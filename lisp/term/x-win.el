@@ -85,6 +85,7 @@
 (defvar x-selection-timeout)
 (defvar x-session-id)
 (defvar x-session-previous-id)
+(defvar x-dnd-movement-function)
 
 (defun x-handle-no-bitmap-icon (_switch)
   (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
@@ -1575,6 +1576,13 @@ frames on all displays."
 
 (add-variable-watcher 'x-gtk-use-native-input
                       #'x-gtk-use-native-input-watcher)
+
+(defun x-dnd-movement (_frame position)
+  "Handle movement to POSITION during drag-and-drop."
+  (dnd-handle-movement position)
+  (redisplay))
+
+(setq x-dnd-movement-function #'x-dnd-movement)
 
 (provide 'x-win)
 (provide 'term/x-win)

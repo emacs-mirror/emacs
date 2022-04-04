@@ -1548,6 +1548,9 @@ extern void x_session_close (void);
 extern struct input_event xg_pending_quit_event;
 #endif
 
+extern bool x_dnd_in_progress;
+extern struct frame *x_dnd_frame;
+
 #ifdef HAVE_XINPUT2
 struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
 #endif

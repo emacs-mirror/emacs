@@ -846,7 +846,10 @@ static int x_filter_event (struct x_display_info *, XEvent *);
 /* Global state maintained during a drag-and-drop operation.  */
 
 /* Flag that indicates if a drag-and-drop operation is in progress.  */
-static bool x_dnd_in_progress;
+bool x_dnd_in_progress;
+
+/* The frame where the drag-and-drop operation originated.  */
+struct frame *x_dnd_frame;
 
 /* Flag that indicates if a drag-and-drop operation is no longer in
    progress, but the nested event loop should continue to run, because
@@ -946,9 +949,6 @@ static Atom *x_dnd_targets = NULL;
 /* The number of elements in that array.  */
 static int x_dnd_n_targets;
 
-/* The frame where the drag-and-drop operation originated.  */
-static struct frame *x_dnd_frame;
-
 /* The old window attributes of the root window before the
    drag-and-drop operation started.  It is used to keep the old event
    mask around, since that should be restored after the operation
@@ -958,6 +958,13 @@ static XWindowAttributes x_dnd_old_window_attrs;
 /* Whether or not `x_dnd_cleaup_drag_and_drop' should actually clean
    up the drag and drop operation.  */
 static bool x_dnd_unwind_flag;
+
+/* The frame for which `x-dnd-movement-function' should be called.  */
+static struct frame *x_dnd_movement_frame;
+
+/* The coordinates which the movement function should be called
+   with.  */
+static int x_dnd_movement_x, x_dnd_movement_y;
 
 struct x_client_list_window
 {
@@ -3137,6 +3144,23 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   XEvent msg;
+  struct frame *target_frame;
+  int dest_x, dest_y;
+  Window child_return;
+
+  target_frame = x_top_window_to_frame (dpyinfo, target);
+
+  if (target_frame && XTranslateCoordinates (dpyinfo->display,
+					     dpyinfo->root_window,
+					     FRAME_X_WINDOW (target_frame),
+					     root_x, root_y, &dest_x,
+					     &dest_y, &child_return))
+    {
+      x_dnd_movement_frame = target_frame;
+      x_dnd_movement_x = dest_x;
+      x_dnd_movement_y = dest_y;
+      return;
+    }
 
   if (target == x_dnd_mouse_rect_target
       && x_dnd_mouse_rect.width
@@ -3150,9 +3174,6 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
 		       + x_dnd_mouse_rect.height))
 	return;
     }
-
-  if (x_top_window_to_frame (dpyinfo, target))
-    return;
 
   msg.xclient.type = ClientMessage;
   msg.xclient.message_type = dpyinfo->Xatom_XdndPosition;
@@ -9143,6 +9164,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   ptrdiff_t i, end, fill;
   XTextProperty prop;
   xm_drop_start_message dmsg;
+  Lisp_Object frame_object, x, y;
 
   if (!FRAME_VISIBLE_P (f))
     error ("Frame is invisible");
@@ -9229,6 +9251,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     = x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_client_list_stacking);
   x_dnd_toplevels = NULL;
   x_dnd_allow_current_frame = allow_current_frame;
+  x_dnd_movement_frame = NULL;
 
   if (x_dnd_use_toplevels)
     {
@@ -9306,6 +9329,28 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			 &next_event, &finish, &hold_quit);
 #endif
 #endif
+
+      if (x_dnd_movement_frame)
+	{
+	  XSETFRAME (frame_object, x_dnd_movement_frame);
+	  XSETINT (x, x_dnd_movement_x);
+	  XSETINT (y, x_dnd_movement_y);
+	  x_dnd_movement_frame = NULL;
+
+	  if (!NILP (Vx_dnd_movement_function)
+	      && !FRAME_TOOLTIP_P (XFRAME (frame_object)))
+	    {
+	      x_dnd_old_window_attrs = root_window_attrs;
+	      x_dnd_unwind_flag = true;
+
+	      ref = SPECPDL_INDEX ();
+	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+	      call2 (Vx_dnd_movement_function, frame_object,
+		     Fposn_at_x_y (x, y, frame_object, Qnil));
+	      x_dnd_unwind_flag = false;
+	      unbind_to (ref, Qnil);
+	    }
+	}
 
       if (hold_quit.kind != NO_EVENT)
 	{
@@ -20746,46 +20791,6 @@ x_free_frame_resources (struct frame *f)
   Lisp_Object bar;
   struct scroll_bar *b;
 #endif
-  xm_drop_start_message dmsg;
-
-  if (x_dnd_in_progress && f == x_dnd_frame)
-    {
-      block_input ();
-      if (x_dnd_last_seen_window != None
-	  && x_dnd_last_protocol_version != -1)
-	x_dnd_send_leave (f, x_dnd_last_seen_window);
-      else if (x_dnd_last_seen_window != None
-	       && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
-	       && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
-	       && x_dnd_motif_setup_p)
-	{
-	  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
-					XM_DRAG_REASON_DROP_START);
-	  dmsg.byte_order = XM_TARGETS_TABLE_CUR;
-	  dmsg.timestamp = 0;
-	  dmsg.side_effects
-	    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
-							       x_dnd_wanted_action),
-				   XM_DROP_SITE_VALID,
-				   xm_side_effect_from_action (dpyinfo,
-							       x_dnd_wanted_action),
-				   XM_DROP_ACTION_DROP_CANCEL);
-	  dmsg.x = 0;
-	  dmsg.y = 0;
-	  dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
-	  dmsg.source_window = FRAME_X_WINDOW (f);
-
-	  xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (f),
-				x_dnd_last_seen_window, &dmsg);
-	}
-      unblock_input ();
-
-      x_dnd_end_window = None;
-      x_dnd_last_seen_window = None;
-      x_dnd_in_progress = false;
-      x_dnd_waiting_for_finish = false;
-      x_dnd_frame = NULL;
-    }
 
   block_input ();
 
@@ -23054,4 +23059,11 @@ coordinates to a Motif drop receiver when the mouse moves outside it
 during a drag-and-drop session, to work around broken implementations
 of Motif.  */);
   x_dnd_fix_motif_leave = true;
+
+  DEFVAR_LISP ("x-dnd-movement-function", Vx_dnd_movement_function,
+    doc: /* Function called upon mouse movement on a frame during drag-and-drop.
+It should either be nil, or accept two arguments FRAME and POSITION,
+where FRAME is the frame the mouse is on top of, and POSITION is a
+mouse position list.  */);
+  Vx_dnd_movement_function = Qnil;
 }

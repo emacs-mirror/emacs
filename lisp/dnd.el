@@ -107,31 +107,33 @@ program."
 
 (defun dnd-handle-movement (posn)
   "Handle mouse movement to POSN when receiving a drop from another program."
-  (when dnd-scroll-margin
-    (ignore-errors
-      (let* ((row (cdr (posn-col-row posn)))
-             (window (when (windowp (posn-window posn))
-                       (posn-window posn)))
-             (text-height (window-text-height window))
-             ;; Make sure it's possible to scroll both up
-             ;; and down if the margin is too large for the
-             ;; window.
-             (margin (min (/ text-height 3) dnd-scroll-margin)))
-        ;; At 2 lines, the window becomes too small for any
-        ;; meaningful scrolling.
-        (unless (<= text-height 2)
-          (cond
-           ;; Inside the bottom scroll margin, scroll up.
-           ((> row (- text-height margin))
-            (with-selected-window window
-              (scroll-up 1)))
-           ;; Inside the top scroll margin, scroll down.
-           ((< row margin)
-            (with-selected-window window
-              (scroll-down 1))))))))
-  (when dnd-indicate-insertion-point
-    (ignore-errors
-      (goto-char (posn-point posn)))))
+  (when (windowp (posn-window posn))
+    (with-selected-window (posn-window posn)
+      (when dnd-scroll-margin
+        (ignore-errors
+          (let* ((row (cdr (posn-col-row posn)))
+                 (window (when (windowp (posn-window posn))
+                           (posn-window posn)))
+                 (text-height (window-text-height window))
+                 ;; Make sure it's possible to scroll both up
+                 ;; and down if the margin is too large for the
+                 ;; window.
+                 (margin (min (/ text-height 3) dnd-scroll-margin)))
+            ;; At 2 lines, the window becomes too small for any
+            ;; meaningful scrolling.
+            (unless (<= text-height 2)
+              (cond
+               ;; Inside the bottom scroll margin, scroll up.
+               ((> row (- text-height margin))
+                (with-selected-window window
+                  (scroll-up 1)))
+               ;; Inside the top scroll margin, scroll down.
+               ((< row margin)
+                (with-selected-window window
+                  (scroll-down 1))))))))
+      (when dnd-indicate-insertion-point
+        (ignore-errors
+          (goto-char (posn-point posn)))))))
 
 (defun dnd-handle-one-url (window action url)
   "Handle one dropped url by calling the appropriate handler.
