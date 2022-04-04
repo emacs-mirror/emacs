@@ -1550,6 +1550,9 @@ and just return it.  PROMPT shouldn't end with a question mark."
   "Tell if SERVER's project root is `file-remote-p'."
   (file-remote-p (project-root (eglot--project server))))
 
+(defun eglot--plist-keys (plist) "Get keys of a plist."
+  (cl-loop for (k _v) on plist by #'cddr collect k))
+
 
 ;;; Minor modes
 ;;;
@@ -3078,13 +3081,6 @@ If NOERROR, return predicate, else erroring function."
 
 (make-obsolete-variable 'eglot--managed-mode-hook
                         'eglot-managed-mode-hook "1.6")
-
-(if (< emacs-major-version 27)
-    (defun eglot--plist-keys (plist)
-      (cl-loop for (k _v) on plist by #'cddr collect k))
-  ;; Make into an obsolete alias once we drop support for Emacs 26.
-  (defalias 'eglot--plist-keys #'map-keys))
-
 (provide 'eglot)
 
 ;; Local Variables:
