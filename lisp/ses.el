@@ -112,6 +112,24 @@ Each function is called with ARG=1."
   :group 'ses
   :type 'hook)
 
+(defcustom ses-jump-cell-name-function 'upcase
+  "Function to process the string passed to function ‘ses-jump’. Set it to 'identity to make no change.
+Set it to 'upcase to make cell name change case isensitive.
+
+ May return
+
+* a string, in this case this must be a cell name.
+* a (row . col) cons cell, in this case that must be valid cell coordinate."
+  :group 'ses
+  :type 'function)
+
+(defcustom ses-jump-prefix-function 'ses-jump-prefix
+  "Function that takes the prefix argument passed to function ‘ses-jump’. It may return the same
+sort of thing as ‘ses-jump-cell-name-function’."
+  :group 'ses
+  :type 'function)
+
+
 
 ;;----------------------------------------------------------------------------
 ;; Global variables and constants
@@ -2233,24 +2251,41 @@ Based on the current set of columns and `window-hscroll' position."
 ;;----------------------------------------------------------------------------
 ;; Redisplay and recalculation
 ;;----------------------------------------------------------------------------
+(defun ses-jump-prefix (prefix-int)
+  "Convert an integer into a (ROW . COL), by numbering cells starting from 0 from top left to bottom right, going row by row."
+  (and (>= prefix-int 0)
+       (<  prefix-int (* ses--numcols ses--numrows))
+       (cons (/ prefix-int ses--numcols) (% prefix-int ses--numcols))))
 
-(defun ses-jump (sym)
+
+(defun ses-jump (&optional sym)
   "Move point to cell SYM."
-  (interactive (let* (names
-		      (s (completing-read
-			  "Jump to cell: "
-			  (and ses--named-cell-hashmap
-			       (progn (maphash (lambda (key _val)
-                                                 (push (symbol-name key) names))
-					       ses--named-cell-hashmap)
-				      names)))))
-		 (if (string= s "")
-		     (user-error "Invalid cell name")
-		   (list (intern s)))))
-  (let ((rowcol (ses-sym-rowcol sym)))
+  (interactive "P")
+  (setq sym
+        (if current-prefix-arg
+            (funcall ses-jump-prefix-function (prefix-numeric-value sym))
+          (or sym
+            (completing-read
+             "Jump to cell: "
+             (and ses--named-cell-hashmap
+                  (let (names)
+                    (maphash (lambda (key _val)
+                               (push (symbol-name key) names))
+                             ses--named-cell-hashmap)
+                    names))))))
+  (and (stringp sym)
+       (not (and ses--named-cell-hashmap (gethash (intern sym) ses--named-cell-hashmap)))
+       (setq sym  (funcall ses-jump-cell-name-function sym)))
+  (if (stringp sym)
+      (if (string= sym "")
+          (user-error "Empty cell name")
+        (setq sym (intern sym))))
+  (let ((rowcol (if (consp sym)
+                    (prog1 sym (setq sym (ses-cell-symbol (car sym) (cdr sym))))
+                  (ses-sym-rowcol sym))))
     (or rowcol (error "Invalid cell name"))
     (if (eq (symbol-value sym) '*skip*)
-	(error "Cell is covered by preceding cell"))
+        (error "Cell is covered by preceding cell"))
     (ses-goto-print (car rowcol) (cdr rowcol))))
 
 (defun ses-jump-safe (cell)

@@ -220,7 +220,14 @@ You move around with the regular Emacs movement commands.
 
 @table @kbd
 @item j
-Moves point to cell, specified by identifier (@code{ses-jump}).
+Moves point to cell, specified by identifier (@code{ses-jump}). Unless
+the cell is a renamed cell, the identifier is case-insensitive. A
+prefix argument @math{n} move to cell with coordinates @math{(n\div R,
+n \% C)} for a spreadsheet of @math{R} rows and @math{C} columns, and
+A1 being of coordinates @math{(0,0)}. The way the identifier or the
+command prefix argument are interpreted can be customized through
+variables @code{ses-jump-cell-name-function} and
+@code{ses-jump-prefix-function}.
 @end table
 
 Point is always at the left edge of a cell, or at the empty endline.
@@ -726,10 +733,6 @@ yank.  This doesn't make any difference?
 @section Customizing @acronym{SES}
 @cindex customizing
 @vindex enable-local-eval
-@vindex ses-mode-hook
-@vindex safe-functions
-@vindex enable-local-eval
-
 
 By default, a newly-created spreadsheet has 1 row and 1 column.  The
 column width is 7 and the default printer is @samp{"%.7g"}.  Each of these
@@ -740,9 +743,34 @@ cell.  You can customize @code{ses-after-entry-functions} to move left or
 up or down.  For diagonal movement, select two functions from the
 list.
 
+@vindex ses-jump-cell-name-function
+@code{ses-jump-cell-name-function} is a customizable variable by
+default set to the @code{upcase} function. This function is called
+when you pass a cell name to the @command{ses-jump} command (@kbd{j}),
+it changes the entered cell name to that where to jump. The default
+setting @code{upcase} allows you to enter the cell name in low
+case. Another use of @code{ses-jump-cell-name-function} could be some
+internationalisation to convert non latin characters into latin
+equivalents to name the cell. Instead of a cell name, the function may
+return cell coordinates in the form of a cons, for instance @code{(0
+. 0)} for cell @code{A1}, @code{(1 . 0)} for cell @code{A2}, etc.
+
+@vindex ses-jump-prefix-function
+@code{ses-jump-prefix-function} is a customisable variable by default
+set to the @code{ses-jump-prefix} function. This function is called
+when you give a prefix argument to the @command{ses-jump} command
+(@kbd{j}). It returns a cell name or cell coordinates corresponding to
+the prefix argument. Cell coordinates are in the form of a cons, for
+instance @code{(1 . 0)} for cell @code{A2}. The default setting
+@code{ses-jump-prefix} will number cells left to right and then top
+down, so assuming a 4x3 spreadsheet prefix argument 0 jumps to cell
+A1, prefix argument 2 jumps to C1, prefix argument 3 jumps to A2, etc.
+
+@vindex ses-mode-hook
 @code{ses-mode-hook} is a normal mode hook (list of functions to
 execute when starting @acronym{SES} mode for a buffer).
 
+@vindex safe-functions
 The variable @code{safe-functions} is a list of possibly-unsafe
 functions to be treated as safe when analyzing formulas and printers.
 @xref{Virus protection}.  Before customizing @code{safe-functions},
