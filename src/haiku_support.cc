@@ -1524,13 +1524,23 @@ public:
   MouseMoved (BPoint point, uint32 transit, const BMessage *drag_msg)
   {
     struct haiku_mouse_motion_event rq;
+    int32 windowid;
+    EmacsWindow *window;
 
+    window = (EmacsWindow *) Window ();
     rq.just_exited_p = transit == B_EXITED_VIEW;
     rq.x = point.x;
     rq.y = point.y;
-    rq.window = this->Window ();
+    rq.window = window;
     rq.time = system_time ();
-    rq.dnd_message = drag_msg != NULL;
+
+    if (drag_msg && (drag_msg->IsSourceRemote ()
+		     || drag_msg->FindInt32 ("emacs:window_id",
+					     &windowid) != B_OK
+		     || windowid != window->window_id))
+      rq.dnd_message = true;
+    else
+      rq.dnd_message = false;
 
     if (ToolTip ())
       ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),

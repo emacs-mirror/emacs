@@ -3155,6 +3155,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 			XSETINT (inev.y, b->y);
 			XSETFRAME (inev.frame_or_window, f);
 		      }
+		    else
+		      haiku_note_drag_motion ();
+
 		    break;
 		  }
 	      }

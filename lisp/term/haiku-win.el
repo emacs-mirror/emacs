@@ -277,6 +277,21 @@ This is necessary because on Haiku `use-system-tooltip' doesn't
 take effect on menu items until the menu bar is updated again."
   (force-mode-line-update t))
 
+;; Note that `mouse-position' can't return the actual frame the mouse
+;; pointer is under, so this only works for the frame where the drop
+;; started.
+(defun haiku-dnd-drag-handler ()
+  "Handle mouse movement during drag-and-drop."
+  (let ((track-mouse 'drag-source)
+        (mouse-position (mouse-pixel-position)))
+    (when (car mouse-position)
+      (dnd-handle-movement (posn-at-x-y (cadr mouse-position)
+                                        (cddr mouse-position)
+                                        (car mouse-position)))
+      (redisplay))))
+
+(setq haiku-drag-track-function #'haiku-dnd-drag-handler)
+
 (defun x-begin-drag (targets &optional action frame _return-frame allow-current-frame)
   "SKIP: real doc in xfns.c."
   (unless haiku-dnd-selection-value

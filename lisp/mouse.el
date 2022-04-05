@@ -3190,7 +3190,12 @@ is copied instead of being cut."
                                          (if mouse-drag-and-drop-region-cut-when-buffers-differ
                                              'XdndActionMove
                                            'XdndActionCopy)
-                                         (posn-window (event-end event)) 'now)
+                                         (posn-window (event-end event)) 'now
+                                         ;; On platforms where we know
+                                         ;; `return-frame' doesn't
+                                         ;; work, allow dropping on
+                                         ;; the drop frame.
+                                         (eq window-system 'haiku))
                          (quit nil))))
                   (when (framep drag-action-or-frame)
                     ;; With some window managers `x-begin-drag'

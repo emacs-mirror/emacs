@@ -293,6 +293,7 @@ extern void haiku_put_pixel (haiku bitmap, int x, int y, unsigned long pixel);
 extern Lisp_Object haiku_menu_show (struct frame *f, int x, int y, int menu_flags,
 				    Lisp_Object title, const char **error_name);
 extern Lisp_Object haiku_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents);
+extern void haiku_note_drag_motion (void);
 
 extern void initialize_frame_menubar (struct frame *f);
 

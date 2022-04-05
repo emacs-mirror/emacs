@@ -791,6 +791,28 @@ ignored if it is dropped on top of FRAME.  */)
   return unbind_to (idx, Qnil);
 }
 
+static Lisp_Object
+haiku_note_drag_motion_1 (void *data)
+{
+  if (!NILP (Vhaiku_drag_track_function))
+    return call0 (Vhaiku_drag_track_function);
+
+  return Qnil;
+}
+
+static Lisp_Object
+haiku_note_drag_motion_2 (enum nonlocal_exit exit, Lisp_Object error)
+{
+  return Qnil;
+}
+
+void
+haiku_note_drag_motion (void)
+{
+  internal_catch_all (haiku_note_drag_motion_1, NULL,
+		      haiku_note_drag_motion_2);
+}
+
 void
 syms_of_haikuselect (void)
 {
@@ -799,6 +821,12 @@ syms_of_haikuselect (void)
 Otherwise, an error will be signalled if adding a file reference to a
 system message failed.  */);
   haiku_signal_invalid_refs = true;
+
+  DEFVAR_LISP ("haiku-drag-track-function", Vhaiku_drag_track_function,
+     doc: /* If non-nil, a function to call upon mouse movement while dragging a message.
+The function is called without any arguments.  `mouse-position' can be
+used to retrieve the current position of the mouse.  */);
+  Vhaiku_drag_track_function = Qnil;
 
   DEFSYM (QSECONDARY, "SECONDARY");
   DEFSYM (QCLIPBOARD, "CLIPBOARD");
