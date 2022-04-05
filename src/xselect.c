@@ -39,6 +39,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <X11/Xproto.h>
 
+static Time pending_dnd_time;
+
 struct prop_location;
 struct selection_data;
 
@@ -304,7 +306,7 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
    Update the Vselection_alist so that we can reply to later requests for
    our selection.  */
 
-static void
+void
 x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 		 Lisp_Object frame)
 {
@@ -770,6 +772,12 @@ x_handle_selection_request (struct selection_input_event *event)
   specpdl_ref count = SPECPDL_INDEX ();
 
   if (!dpyinfo) goto DONE;
+
+  /* This is how the XDND protocol recommends dropping text onto a
+     target that doesn't support XDND.  */
+  if (SELECTION_EVENT_TIME (event) == pending_dnd_time + 1
+      || SELECTION_EVENT_TIME (event) == pending_dnd_time + 2)
+    selection_symbol = QXdndSelection;
 
   local_selection_data = LOCAL_SELECTION (selection_symbol, dpyinfo);
 
@@ -2669,6 +2677,12 @@ x_timestamp_for_selection (struct x_display_info *dpyinfo,
   value = XCAR (XCDR (XCDR (local_value)));
 
   return value;
+}
+
+void
+x_set_pending_dnd_time (Time time)
+{
+  pending_dnd_time = time;
 }
 
 static void syms_of_xselect_for_pdumper (void);
