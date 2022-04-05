@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'tramp-compat)
+(require 'files-x)
 
 ;; Pacify byte-compiler.
 (require 'cl-lib)
@@ -285,9 +286,11 @@ NAME must be equal to `tramp-current-connection'."
  'tramp-connection-local-default-system-profile
  tramp-connection-local-default-system-variables)
 
-(connection-local-set-profiles
+(apply
+ #'connection-local-set-profiles
  '(:application tramp)
- 'tramp-connection-local-default-system-profile)
+ (cons 'tramp-connection-local-default-system-profile
+       (connection-local-get-profiles '(:application tramp))))
 
 (defconst tramp-connection-local-default-shell-variables
   '((shell-file-name . "/bin/sh")
@@ -299,9 +302,138 @@ NAME must be equal to `tramp-current-connection'."
  tramp-connection-local-default-shell-variables)
 
 (with-eval-after-load 'shell
-  (connection-local-set-profiles
+  (apply
+   #'connection-local-set-profiles
    '(:application tramp)
-   'tramp-connection-local-default-shell-profile))
+   (cons 'tramp-connection-local-default-shell-profile
+         (connection-local-get-profiles '(:application tramp)))))
+
+;; Tested with FreeBSD 12.2.
+(defconst tramp-bsd-process-attributes-ps-args
+  `("-acxww"
+    "-o"
+    ,(mapconcat
+      #'identity
+      '("pid"
+        "euid"
+        "user"
+        "egid"
+        "egroup"
+        "comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+      ",")
+    "-o"
+    ,(mapconcat
+      #'identity
+      '("state"
+        "ppid"
+        "pgid"
+        "sid"
+        "tty"
+        "tpgid"
+        "minflt"
+        "majflt"
+        "time"
+        "pri"
+        "nice"
+        "vsz"
+        "rss"
+        "etimes"
+        "pcpu"
+        "pmem"
+        "args")
+      ","))
+  "List of arguments for \"ps\".
+See `tramp-process-attributes-ps-args'.")
+
+(defconst tramp-bsd-process-attributes-ps-format
+  '((pid . number)
+    (euid . number)
+    (user . string)
+    (egid . number)
+    (group . string)
+    (comm . 52)
+    (state . string)
+    (ppid . number)
+    (pgrp . number)
+    (sess . number)
+    (ttname . string)
+    (tpgid . number)
+    (minflt . number)
+    (majflt . number)
+    (time . tramp-ps-time)
+    (pri . number)
+    (nice . number)
+    (vsize . number)
+    (rss . number)
+    (etime . number)
+    (pcpu . number)
+    (pmem . number)
+    (args . nil))
+  "Alist of formats for \"ps\".
+See `tramp-process-attributes-ps-format'.")
+
+(defconst tramp-connection-local-bsd-ps-variables
+  `((tramp-process-attributes-ps-args
+     . ,tramp-bsd-process-attributes-ps-args)
+    (tramp-process-attributes-ps-format
+     . ,tramp-bsd-process-attributes-ps-format))
+  "Default connection-local ps variables for remote BSD connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-connection-local-bsd-ps-profile
+ tramp-connection-local-bsd-ps-variables)
+
+;; Tested with BusyBox v1.24.1.
+(defconst tramp-busybox-process-attributes-ps-args
+  `("-o"
+    ,(mapconcat
+      #'identity
+      '("pid"
+        "user"
+        "group"
+        "comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+      ",")
+    "-o" "stat=abcde"
+    "-o"
+    ,(mapconcat
+      #'identity
+      '("ppid"
+        "pgid"
+        "tty"
+        "time"
+        "nice"
+        "etime"
+        "args")
+      ","))
+  "List of arguments for \"ps\".
+See `tramp-process-attributes-ps-args'.")
+
+(defconst tramp-busybox-process-attributes-ps-format
+  '((pid . number)
+    (user . string)
+    (group . string)
+    (comm . 52)
+    (state . 5)
+    (ppid . number)
+    (pgrp . number)
+    (ttname . string)
+    (time . tramp-ps-time)
+    (nice . number)
+    (etime . tramp-ps-time)
+    (args . nil))
+  "Alist of formats for \"ps\".
+See `tramp-process-attributes-ps-format'.")
+
+(defconst tramp-connection-local-busybox-ps-variables
+  `((tramp-process-attributes-ps-args
+     . ,tramp-busybox-process-attributes-ps-args)
+    (tramp-process-attributes-ps-format
+     . ,tramp-busybox-process-attributes-ps-format))
+  "Default connection-local ps variables for remote Busybox connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-connection-local-busybox-ps-profile
+ tramp-connection-local-busybox-ps-variables)
 
 (add-hook 'tramp-unload-hook
 	  (lambda () (unload-feature 'tramp-integration 'force)))

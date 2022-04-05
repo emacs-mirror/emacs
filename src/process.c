@@ -8203,16 +8203,25 @@ DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
        0, 0, 0,
        doc: /* Return a list of numerical process IDs of all running processes.
 If this functionality is unsupported, return nil.
+If `default-directory' is remote, return process IDs of the respective remote host.
 
 See `process-attributes' for getting attributes of a process given its ID.  */)
   (void)
 {
+  Lisp_Object handler
+    = Ffind_file_name_handler (BVAR (current_buffer, directory),
+			       Qlist_system_processes);
+  if (!NILP (handler))
+    return call1 (handler, Qlist_system_processes);
+
   return list_system_processes ();
 }
 
 DEFUN ("process-attributes", Fprocess_attributes,
        Sprocess_attributes, 1, 1, 0,
        doc: /* Return attributes of the process given by its PID, a number.
+If `default-directory' is remote, PID is regarded as process
+identifier on the respective remote host.
 
 Value is an alist where each element is a cons cell of the form
 
@@ -8263,6 +8272,12 @@ integer or floating point values.
  args    -- command line which invoked the process (string).  */)
   ( Lisp_Object pid)
 {
+  Lisp_Object handler
+    = Ffind_file_name_handler (BVAR (current_buffer, directory),
+			       Qprocess_attributes);
+  if (!NILP (handler))
+    return call2 (handler, Qprocess_attributes, pid);
+
   return system_process_attributes (pid);
 }
 
@@ -8438,6 +8453,8 @@ void
 syms_of_process (void)
 {
   DEFSYM (Qmake_process, "make-process");
+  DEFSYM (Qlist_system_processes, "list-system-processes");
+  DEFSYM (Qprocess_attributes, "process-attributes");
 
 #ifdef subprocesses
 

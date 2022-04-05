@@ -159,6 +159,7 @@ It is used for TCP/IP devices."
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
+    (list-system-processes . tramp-handle-list-system-processes)
     (load . tramp-handle-load)
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
@@ -168,6 +169,7 @@ It is used for TCP/IP devices."
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-adb-handle-make-process)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (process-attributes . tramp-handle-process-attributes)
     (process-file . tramp-adb-handle-process-file)
     (rename-file . tramp-adb-handle-rename-file)
     (set-file-acl . ignore)
@@ -1368,10 +1370,29 @@ connection if a previous connection has died for some reason."
  'tramp-adb-connection-local-default-shell-profile
  tramp-adb-connection-local-default-shell-variables)
 
+(defconst tramp-adb-connection-local-default-ps-variables
+  '((tramp-process-attributes-ps-args)
+    (tramp-process-attributes-ps-format
+     . ((user . string)
+        (pid . number)
+        (ppid . number)
+        (vsize . number)
+        (rss . number)
+        (wchan . string) ; ??
+        (pc . string) ; ??
+        (state . string)
+        (args . nil))))
+  "Default connection-local ps variables for remote adb connections.")
+
+(connection-local-set-profile-variables
+ 'tramp-adb-connection-local-default-ps-profile
+ tramp-adb-connection-local-default-ps-variables)
+
 (with-eval-after-load 'shell
   (connection-local-set-profiles
    `(:application tramp :protocol ,tramp-adb-method)
-   'tramp-adb-connection-local-default-shell-profile))
+   'tramp-adb-connection-local-default-shell-profile
+   'tramp-adb-connection-local-default-ps-profile))
 
 ;; `shell-mode' tries to open remote files like "/adb::~/.history".
 ;; This fails, because the tilde cannot be expanded.  Tell

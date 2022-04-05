@@ -2599,7 +2599,9 @@ Must be handled by the callers."
 	    '(make-nearby-temp-file process-file shell-command
 	      start-file-process temporary-file-directory
 	      ;; Emacs 27+ only.
-	      exec-path make-process))
+	      exec-path make-process
+	      ;; Emacs 29+ only.
+              list-system-processes process-attributes))
     default-directory)
    ;; PROC.
    ((member operation '(file-notify-rm-watch file-notify-valid-p))
@@ -4001,6 +4003,155 @@ Let-bind it when necessary.")
       ;; Result.
       (cons filename (cdr result)))))
 
+(defun tramp-ps-time ()
+  "Read printed time oif \"ps\" in format \"[[DD-]hh:]mm:ss\".
+Return it as number of seconds.  Used in `tramp-process-attributes-ps-format'."
+  (search-forward-regexp "\\s-+")
+  (search-forward-regexp
+   (concat
+    "\\(?:" "\\(?:" "\\([0-9]+\\)-" "\\)?"
+                    "\\([0-9]+\\):" "\\)?"
+                    "\\([0-9]+\\):"
+                    ;; Seconds can also be a floating point number.
+                    "\\([0-9.]+\\)")
+   (line-end-position) 'noerror)
+  (+ (* 24 60 60 (string-to-number (or (match-string 1) "0")))
+        (* 60 60 (string-to-number (or (match-string 2) "0")))
+           (* 60 (string-to-number (or (match-string 3) "0")))
+                 (string-to-number (or (match-string 4) "0"))))
+
+(defconst tramp-process-attributes-ps-args
+  `("-eww"
+    "-o"
+    ,(mapconcat
+     #'identity
+     '("pid"
+       "euid"
+       "euser"
+       "egid"
+       "egroup"
+       "comm:80"
+       "state"
+       "ppid"
+       "pgrp"
+       "sess"
+       "tname"
+       "tpgid"
+       "min_flt"
+       "maj_flt"
+       "times"
+       "pri"
+       "nice"
+       "thcount"
+       "vsize"
+       "rss"
+       "etimes"
+       "pcpu"
+       "pmem"
+       "args")
+     ","))
+  "List of arguments for calling \"ps\".
+See `tramp-get-process-attributes'.
+
+This list is the default value on remote GNU/Linux systems.")
+
+(defconst tramp-process-attributes-ps-format
+  '((pid . number)
+    (euid . number)
+    (user . string)
+    (egid . number)
+    (group . string)
+    (comm . 80)
+    (state . string)
+    (ppid . number)
+    (pgrp . number)
+    (sess . number)
+    (ttname . string)
+    (tpgid . number)
+    (minflt . number)
+    (majflt . number)
+    (time . number)
+    (pri . number)
+    (nice . number)
+    (thcount . number)
+    (vsize . number)
+    (rss . number)
+    (etime . number)
+    (pcpu . number)
+    (pmem . number)
+    (args . nil))
+  "Alist where each element is a cons cell of the form `\(KEY . TYPE)'.
+KEY is a key (symbol) used in `process-attributes'.  TYPE is the
+printed result for KEY of the \"ps\" command, it can be `number',
+`string', a number (string of that length), a symbol (a function
+to be applied), or nil (for the last column of the \"ps\" output.
+
+This alist is used to parse the output of calling \"ps\" in
+`tramp-get-process-attributes'.
+
+This alist is the default value on remote GNU/Linux systems.")
+
+(defun tramp-get-process-attributes (vec)
+  "Return all process attributes for connection VEC.
+Parsing the remote \"ps\" output is controlled by
+`tramp-process-attributes-ps-args' and
+`tramp-process-attributes-ps-format'.
+
+It is not guaranteed, that all process attributes as described in
+`process-attributes' are returned.  The additional attribute
+`pid' shall be returned always."
+  (with-tramp-file-property vec "/" "process-attributes"
+      (ignore-errors
+        (with-temp-buffer
+          (hack-connection-local-variables-apply
+           (connection-local-criteria-for-default-directory))
+          ;; (pop-to-buffer (current-buffer))
+          (when (zerop
+                 (apply
+                  #'process-file
+                  "ps" nil t nil tramp-process-attributes-ps-args))
+            (let (result res)
+              (goto-char (point-min))
+              (while (not (eobp))
+                ;; (tramp-test-message
+                ;;  "%s" (buffer-substring (point) (line-end-position)))
+                (when (save-excursion
+                        (search-forward-regexp
+                         "[[:digit:]]" (line-end-position) 'noerror))
+                  (setq res nil)
+                  (dolist (elt tramp-process-attributes-ps-format)
+                    (push
+                     (cons
+                      (car elt)
+                      (cond
+                       ((eq (cdr elt) 'number) (read (current-buffer)))
+                       ((eq (cdr elt) 'string)
+                        (search-forward-regexp "\\S-+")
+                        (match-string 0))
+                       ((numberp (cdr elt))
+                        (search-forward-regexp "\\s-+")
+                        (search-forward-regexp ".+" (+ (point) (cdr elt)))
+                        (string-trim (match-string 0)))
+                       ((fboundp (cdr elt))
+                        (funcall (cdr elt)))
+                       ((null (cdr elt))
+                        (search-forward-regexp "\\s-+")
+                        (buffer-substring (point) (line-end-position)))
+                       (t nil)))
+                     res))
+                  ;; `nice' could be `-'.
+                  (setq res (rassq-delete-all '- res))
+                  (push (append res) result))
+                (forward-line))
+              ;; Return result.
+              result))))))
+
+(defun tramp-handle-list-system-processes ()
+  "Like `list-system-processes' for Tramp files."
+  (let ((v (tramp-dissect-file-name default-directory)))
+    (tramp-flush-file-property v "/" "process-attributes")
+    (mapcar (lambda (x) (cdr (assq 'pid x))) (tramp-get-process-attributes v))))
+
 (defun tramp-get-lock-file (file)
   "Read lockfile info of FILE.
 Return nil when there is no lockfile."
@@ -4406,6 +4557,14 @@ support symbolic links."
   (tramp-error
    (tramp-dissect-file-name (expand-file-name linkname)) 'file-error
    "make-symbolic-link not supported"))
+
+(defun tramp-handle-process-attributes (pid)
+  "Like `process-attributes' for Tramp files."
+  (catch 'result
+    (dolist (elt (tramp-get-process-attributes
+                  (tramp-dissect-file-name default-directory)))
+      (when (= (cdr (assq 'pid elt)) pid)
+        (throw 'result elt)))))
 
 (defun tramp-handle-shell-command (command &optional output-buffer error-buffer)
   "Like `shell-command' for Tramp files."

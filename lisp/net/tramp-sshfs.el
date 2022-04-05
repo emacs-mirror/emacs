@@ -126,6 +126,7 @@
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-handle-insert-directory)
     (insert-file-contents . tramp-sshfs-handle-insert-file-contents)
+    (list-system-processes . tramp-handle-list-system-processes)
     (load . tramp-handle-load)
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
@@ -135,6 +136,7 @@
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-handle-make-process)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (process-attributes . tramp-handle-process-attributes)
     (process-file . tramp-sshfs-handle-process-file)
     (rename-file . tramp-sshfs-handle-rename-file)
     (set-file-acl . ignore)

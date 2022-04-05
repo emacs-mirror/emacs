@@ -51,6 +51,12 @@
   :group 'unix
   :prefix "proced-")
 
+(defcustom proced-show-remote-processes nil
+  "Whether processes of the remote host shall be shown.
+This happens only when `default-directory' is remote."
+  :version "29.1"
+  :type 'boolean)
+
 (defcustom proced-signal-function #'signal-process
   "Name of signal function.
 It can be an elisp function (usually `signal-process') or a string specifying
@@ -58,13 +64,6 @@ the external command (usually \"kill\")."
   :type '(choice (function :tag "function")
                  (string :tag "command")))
 (make-obsolete-variable 'proced-signal-function "no longer used." "29.1")
-
-(defcustom proced-remote-directory "/sudo::"
-  "Remote directory to be used when sending a signal.
-It must point to the local host, via a `sudo' or `doas' method,
-or alike.  See `proced-send-signal' and `proced-renice'."
-  :version "29.1"
-  :type '(string :tag "remote directory"))
 
 (defcustom proced-renice-command "renice"
   "Name of renice command."
@@ -279,8 +278,8 @@ It can also be a list of keys appearing in `proced-grammar-alist'."
 ;; FIXME: is there a better name for filter `user' that does not coincide
 ;; with an attribute key?
 (defcustom proced-filter-alist
-  `((user (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'")))
-    (user-running (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'"))
+  `((user (user . proced-user-name))
+    (user-running (user . proced-user-name)
                   (state . "\\`[Rr]\\'"))
     (all)
     (all-running (state . "\\`[Rr]\\'"))
@@ -370,7 +369,7 @@ May be used to revert the process listing."
 
 ;; Internal variables
 
-(defvar proced-available (not (null (list-system-processes)))
+(defvar proced-available t;(not (null (list-system-processes)))
   "Non-nil means Proced is known to work on this system.")
 
 (defvar-local proced-process-alist nil
@@ -569,6 +568,12 @@ Important: the match ends just after the marker.")
      :help "Renice Marked Processes"]))
 
 ;; helper functions
+(defun proced-user-name (user)
+  "Check the `user' attribute with user name `proced' is running for."
+  (string-equal user (if (file-remote-p default-directory)
+                         (file-remote-p default-directory 'user)
+                       (user-real-login-name))))
+
 (defun proced-marker-regexp ()
   "Return regexp matching `proced-marker-char'."
   ;; `proced-marker-char' must appear in column zero
@@ -631,8 +636,6 @@ Type \\[proced] to start a Proced session.  In a Proced buffer
 type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
 Type \\[proced-renice] to renice marked processes.
-With a prefix argument \\[universal-argument], sending signals to and renicing of processes
-will be performed with the credentials of `proced-remote-directory'.
 
 The initial content of a listing is defined by the variable `proced-filter'
 and the variable `proced-format'.
@@ -684,8 +687,13 @@ After displaying or updating a Proced buffer, Proced runs the normal hook
 (defun proced (&optional arg)
   "Generate a listing of UNIX system processes.
 \\<proced-mode-map>
-If invoked with optional ARG, do not select the window displaying
-the process information.
+If invoked with optional non-negative ARG, do not select the
+window displaying the process information.
+
+If `proced-show-remote-processes' is non-nil or the command is
+invoked with a negative ARG `\\[universal-argument] \\[negative-argument]', \
+and `default-directory'
+points to a remote host, the system processes of that host are shown.
 
 This function runs the normal hook `proced-post-display-hook'.
 
@@ -696,6 +704,11 @@ Proced buffers."
     (error "Proced is not available on this system"))
   (let ((buffer (get-buffer-create "*Proced*")) new)
     (set-buffer buffer)
+    (when (and (file-remote-p default-directory)
+               (not
+                (or proced-show-remote-processes
+                    (eq arg '-))))
+      (setq default-directory temporary-file-directory))
     (setq new (zerop (buffer-size)))
     (when new
       (proced-mode)
@@ -1413,7 +1426,7 @@ Replace newline characters by \"^J\" (two characters)."
   ;; If none of the alternatives is non-nil, the attribute is ignored
   ;; in the listing.
   (let ((standard-attributes
-         (car (proced-process-attributes (list (emacs-pid)))))
+         (car (proced-process-attributes (list-system-processes))))
         new-format fmi)
     (if (and proced-tree-flag
              (assq 'ppid standard-attributes))
@@ -1773,10 +1786,7 @@ runs the normal hook `proced-after-send-signal-hook'.
 For backward compatibility SIGNAL and PROCESS-ALIST may be nil.
 Then PROCESS-ALIST contains the marked processes or the process point is on
 and SIGNAL is queried interactively.  This noninteractive usage is still
-supported but discouraged.  It will be removed in a future version of Emacs.
-
-With a prefix argument \\[universal-argument], send the signal with the credentials of
-`proced-remote-directory'."
+supported but discouraged.  It will be removed in a future version of Emacs."
   (interactive
    (let* ((process-alist (proced-marked-processes))
           (pnum (if (= 1 (length process-alist))
@@ -1818,10 +1828,7 @@ With a prefix argument \\[universal-argument], send the signal with the credenti
                                         proced-signal-list
                                         nil nil nil nil "TERM"))))))
 
-  (let ((default-directory
-         (if (and current-prefix-arg (stringp proced-remote-directory))
-             proced-remote-directory temporary-file-directory))
-        failures)
+  (let (failures)
     ;; Why not always use `signal-process'?  See
     ;; https://lists.gnu.org/r/emacs-devel/2008-03/msg02955.html
     (if (functionp proced-signal-function)
@@ -1876,10 +1883,7 @@ PROCESS-ALIST is an alist as returned by `proced-marked-processes'.
 Interactively, PROCESS-ALIST contains the marked processes.
 If no process is marked, it contains the process point is on,
 After renicing all processes in PROCESS-ALIST, this command runs
-the normal hook `proced-after-send-signal-hook'.
-
-With a prefix argument \\[universal-argument], apply renice with the credentials of
-`proced-remote-directory'."
+the normal hook `proced-after-send-signal-hook'."
   (interactive
    (let ((process-alist (proced-marked-processes)))
      (proced-with-processes-buffer process-alist
@@ -1888,10 +1892,7 @@ With a prefix argument \\[universal-argument], apply renice with the credentials
    proced-mode)
   (if (numberp priority)
       (setq priority (number-to-string priority)))
-  (let ((default-directory
-         (if (and current-prefix-arg (stringp proced-remote-directory))
-             proced-remote-directory temporary-file-directory))
-        failures)
+  (let (failures)
     (dolist (process process-alist)
       (with-temp-buffer
         (condition-case nil

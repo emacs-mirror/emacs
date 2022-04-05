@@ -1175,11 +1175,12 @@ modes to emulate the behavior of the historical editor Twenex Emacs.
 It is believed to no longer be useful.
 
 ---
-** proced.el supports sending signals to local processes with root permissions.
-When typing 'C-u k' or 'C-u r', sending a signal to or renicing of a
-local process will use alternative credentials.  The credentials to be
-used can be customised by the user option 'proced-remote-directory',
-which defaults to "/sudo::".  'proced-signal-function' has been marked obsolete.
+** proced.el shows system processes of remote hosts.
+When 'default-directory' is remote, and 'proced' is invoked with a
+negative argument like 'C-u - proced', the system processes of that
+remote host are shown.  Alternatively, the user option
+'proced-show-remote-processes' can be set to non-nil.
+'proced-signal-function' has been marked obsolete.
 
 
 * New Modes and Packages in Emacs 29.1
@@ -1854,6 +1855,24 @@ This is to determine which function has to be called in order to
 deliver the signal.  This allows Tramp to send the signal to remote
 asynchronous processes.  The hitherto existing implementation has been
 moved to 'signal-default-interrupt-process'.
+
++++
+** 'list-system-processes' returns remote process IDs now.
+This happens, when the current buffer's 'default-directory' is
+remote.  In order to preserve the old behavior, apply
+
+    (let ((default-directory temporary-file-directory))
+      (list-system-processes))
+
++++
+** 'process-attributes' expects a remote process ID now.
+When current buffer's 'default-directory' is remote, the PID argument
+of 'process-attributes' is regarded as a remote process ID.  In order
+to preserve the old behavior, apply
+
+    (let ((default-directory temporary-file-directory))
+      (process-attributes pid))
+
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems

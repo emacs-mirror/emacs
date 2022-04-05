@@ -3344,6 +3344,7 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},@*
+@code{list-system-processes},
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-directory},
@@ -3352,7 +3353,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},@*
-@code{process-file},
+@code{process-attributes}, @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
 @code{set-file-selinux-context}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},
@@ -3405,6 +3406,7 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},
+@code{list-system-processes},
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-direc@discretionary{}{}{}tory},
@@ -3413,7 +3415,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},
-@code{process-file},
+@code{process-attributes}, @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
 @code{set-file-selinux-context}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},

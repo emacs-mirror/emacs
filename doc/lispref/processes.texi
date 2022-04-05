@@ -2258,9 +2258,8 @@ query flag of all processes is ignored.
 
   In addition to accessing and manipulating processes that are
 subprocesses of the current Emacs session, Emacs Lisp programs can
-also access other processes running on the same machine.  We call
-these @dfn{system processes}, to distinguish them from Emacs
-subprocesses.
+also access other processes.  We call these @dfn{system processes}, to
+distinguish them from Emacs subprocesses.
 
   Emacs provides several primitives for accessing system processes.
 Not all platforms support these primitives; on those which don't,
@@ -2272,6 +2271,9 @@ system.  Each process is identified by its @acronym{PID}, a numerical
 process ID that is assigned by the OS and distinguishes the process
 from all the other processes running on the same machine at the same
 time.
+
+If @code{default-directory} points to a remote host, processes of that
+host are returned.
 @end defun
 
 @defun process-attributes pid
@@ -2282,6 +2284,9 @@ attribute and @var{value} is the value of that attribute.  The various
 attribute @var{key}s that this function can return are listed below.
 Not all platforms support all of these attributes; if an attribute is
 not supported, its association will not appear in the returned alist.
+
+If @code{default-directory} points to a remote host, @var{pid} is
+regarded as process of that host.
 
 @table @code
 @item euid
