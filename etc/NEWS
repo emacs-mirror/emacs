@@ -645,6 +645,11 @@ When this user option names a face, the current
 candidate in the "*Completions*" buffer is highlighted with that face.
 The nil value disables this highlighting.
 
+*** Choosing a completion with a prefix argument doesn't exit the minibuffer.
+This means that typing 'C-u RET' on a completion candidate in the
+"*Completions*" buffer inserts the completion to the minibuffer,
+bot doesn't exit the minibuffer.
+
 ** Isearch and Replace
 
 +++

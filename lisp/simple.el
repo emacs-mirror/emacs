@@ -9229,10 +9229,16 @@ backward)."
     (when (/= 0 n)
       (switch-to-minibuffer))))
 
-(defun choose-completion (&optional event)
+(defun choose-completion (&optional event no-exit no-quit)
   "Choose the completion at point.
-If EVENT, use EVENT's position to determine the starting position."
-  (interactive (list last-nonmenu-event))
+If EVENT, use EVENT's position to determine the starting position.
+With prefix argument NO-EXIT, insert the completion at point to the
+minibuffer, but don't exit the minibuffer.  When the prefix argument
+is not provided, then whether to exit the minibuffer depends on the value
+of `completion-no-auto-exit'.
+If NO-QUIT is non-nil, insert the completion at point to the
+minibuffer, but don't quit the completions window."
+  (interactive (list last-nonmenu-event current-prefix-arg))
   ;; In case this is run via the mouse, give temporary modes such as
   ;; isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
@@ -9240,6 +9246,7 @@ If EVENT, use EVENT's position to determine the starting position."
     (let ((buffer completion-reference-buffer)
           (base-position completion-base-position)
           (insert-function completion-list-insert-choice-function)
+          (completion-no-auto-exit (if no-exit t completion-no-auto-exit))
           (choice
            (save-excursion
              (goto-char (posn-point (event-start event)))
@@ -9257,7 +9264,8 @@ If EVENT, use EVENT's position to determine the starting position."
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))
-      (quit-window nil (posn-window (event-start event)))
+      (unless no-quit
+        (quit-window nil (posn-window (event-start event))))
 
       (with-current-buffer buffer
         (choose-completion-string
