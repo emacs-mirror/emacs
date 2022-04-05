@@ -2806,7 +2806,10 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   XSETFRAME (frame, x_dnd_frame);
 
   x_catch_errors (dpyinfo->display);
+
   child = dpyinfo->root_window;
+  dest_x = root_x;
+  dest_y = root_y;
 
   while (XTranslateCoordinates (dpyinfo->display, child,
 				child, root_x, root_y, &dest_x,
@@ -2821,27 +2824,24 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
       root_y = dest_y;
     }
 
-  if (child != dpyinfo->root_window)
-    {
-      x_own_selection (QPRIMARY, Qnil, frame);
+  x_own_selection (QPRIMARY, Qnil, frame);
 
-      event.xbutton.window = child;
-      event.xbutton.x = dest_x;
-      event.xbutton.y = dest_y;
-      event.xbutton.state = 0;
-      event.xbutton.button = 2;
-      event.xbutton.same_screen = True;
-      event.xbutton.time = before + 1;
-      event.xbutton.time = before + 2;
+  event.xbutton.window = child;
+  event.xbutton.x = dest_x;
+  event.xbutton.y = dest_y;
+  event.xbutton.state = 0;
+  event.xbutton.button = 2;
+  event.xbutton.same_screen = True;
+  event.xbutton.time = before + 1;
+  event.xbutton.time = before + 2;
 
-      x_set_pending_dnd_time (before);
+  x_set_pending_dnd_time (before);
 
-      XSendEvent (dpyinfo->display, child,
-		  True, ButtonPressMask, &event);
-      event.xbutton.type = ButtonRelease;
-      XSendEvent (dpyinfo->display, child,
-		  True, ButtonReleaseMask, &event);
-    }
+  XSendEvent (dpyinfo->display, child,
+	      True, ButtonPressMask, &event);
+  event.xbutton.type = ButtonRelease;
+  XSendEvent (dpyinfo->display, child,
+	      True, ButtonReleaseMask, &event);
 
   x_uncatch_errors ();
 }
@@ -15443,7 +15443,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    else
 		      {
 			x_set_pending_dnd_time (event->xbutton.time);
-			x_dnd_send_unsupported_drop (dpyinfo, x_dnd_last_seen_window,
+			x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
+							       ? x_dnd_last_seen_toplevel
+							       : x_dnd_last_seen_window),
 						     event->xbutton.x_root, event->xbutton.y_root,
 						     event->xbutton.time);
 		      }
@@ -16605,7 +16607,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  else
 			    {
 			      x_set_pending_dnd_time (xev->time);
-			      x_dnd_send_unsupported_drop (dpyinfo, x_dnd_last_seen_window,
+			      x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
+								     ? x_dnd_last_seen_toplevel
+								     : x_dnd_last_seen_window),
 							   xev->root_x, xev->root_y, xev->time);
 			    }
 			}
