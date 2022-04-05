@@ -3497,6 +3497,8 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 #ifdef USE_GTK
   current_hold_quit = NULL;
 #endif
+  x_dnd_return_frame_object = NULL;
+  x_dnd_movement_frame = NULL;
 
   block_input ();
   /* Restore the old event mask.  */
@@ -9528,6 +9530,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  if (x_dnd_use_toplevels)
 	    x_dnd_free_toplevels ();
 
+	  x_dnd_return_frame_object = NULL;
+	  x_dnd_movement_frame = NULL;
+
 	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #ifdef USE_GTK
 	  current_hold_quit = NULL;
@@ -9546,6 +9551,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef USE_GTK
   current_hold_quit = NULL;
 #endif
+  x_dnd_movement_frame = NULL;
 
   /* Restore the old event mask.  */
   XSelectInput (FRAME_X_DISPLAY (f),
@@ -9554,13 +9560,17 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   unblock_input ();
 
-  if (x_dnd_return_frame == 3)
+  if (x_dnd_return_frame == 3
+      && FRAME_LIVE_P (x_dnd_return_frame_object))
     {
       x_dnd_return_frame_object->mouse_moved = true;
 
       XSETFRAME (action, x_dnd_return_frame_object);
+      x_dnd_return_frame_object = NULL;
       return action;
     }
+
+  x_dnd_return_frame_object = NULL;
 
   if (x_dnd_use_toplevels)
     x_dnd_free_toplevels ();
@@ -23014,6 +23024,24 @@ init_xterm (void)
 #endif
 }
 #endif
+
+void
+mark_xterm (void)
+{
+  Lisp_Object val;
+
+  if (x_dnd_return_frame_object)
+    {
+      XSETFRAME (val, x_dnd_return_frame_object);
+      mark_object (val);
+    }
+
+  if (x_dnd_movement_frame)
+    {
+      XSETFRAME (val, x_dnd_movement_frame);
+      mark_object (val);
+    }
+}
 
 void
 syms_of_xterm (void)

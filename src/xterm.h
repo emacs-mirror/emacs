@@ -1557,6 +1557,8 @@ extern struct frame *x_dnd_frame;
 struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
 #endif
 
+extern void mark_xterm (void);
+
 /* Is the frame embedded into another application? */
 
 #define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)
