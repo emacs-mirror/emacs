@@ -534,6 +534,7 @@ TLS (see `erc-session-client-certificate' for more details)."
       (error "Connection attempt failed"))
     ;; Misc server variables
     (with-current-buffer buffer
+      (setq erc-server-filter-data nil)
       (setq erc-server-process process)
       (setq erc-server-quitting nil)
       (setq erc-server-reconnecting nil

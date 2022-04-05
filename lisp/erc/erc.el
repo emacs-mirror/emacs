@@ -138,7 +138,6 @@
 (defvar erc-server-connect-function)
 (defvar erc-server-connected)
 (defvar erc-server-current-nick)
-(defvar erc-server-filter-data)
 (defvar erc-server-lag)
 (defvar erc-server-last-sent-time)
 (defvar erc-server-parameters)
@@ -2055,8 +2054,6 @@ Returns the buffer for the given server or channel."
         (setq erc-server-users nil)
         (setq erc-channel-users
               (make-hash-table :test 'equal))))
-    ;; clear last incomplete line read
-    (setq erc-server-filter-data nil)
     (setq erc-channel-topic "")
     ;; limit on the number of users on the channel (mode +l)
     (setq erc-channel-user-limit nil)
