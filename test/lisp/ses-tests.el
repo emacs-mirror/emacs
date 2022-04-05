@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'ert)
+(eval-when-compile (require 'ert-x))
 (require 'ses)
 
 ;; Silence byte-compiler.
