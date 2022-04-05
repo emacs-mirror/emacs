@@ -8396,30 +8396,30 @@ buffer."
 	    ((visible-list (vhdl-get-visible-signals))
 	     ;; define syntactic regions where signals are read
 	     (scan-regions-list
-	      '(;; right-hand side of signal/variable assignment
+	      `(;; right-hand side of signal/variable assignment
 		;; (special case: "<=" is relational operator in a condition)
-		((vhdl-re-search-forward "[<:]=" proc-end t)
-		 (vhdl-re-search-forward ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>" proc-end t))
+		((vhdl-re-search-forward "[<:]=" ,proc-end t)
+		 (vhdl-re-search-forward ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>" ,proc-end t))
 		;; if condition
-		((vhdl-re-search-forward "^\\s-*if\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" proc-end t))
+		((vhdl-re-search-forward "^\\s-*if\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
 		;; elsif condition
-		((vhdl-re-search-forward "\\<elsif\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" proc-end t))
+		((vhdl-re-search-forward "\\<elsif\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
 		;; while loop condition
-		((vhdl-re-search-forward "^\\s-*while\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<loop\\>" proc-end t))
+		((vhdl-re-search-forward "^\\s-*while\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<loop\\>" ,proc-end t))
 		;; exit/next condition
-		((vhdl-re-search-forward "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" proc-end t)
-		 (vhdl-re-search-forward ";" proc-end t))
+		((vhdl-re-search-forward "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" ,proc-end t)
+		 (vhdl-re-search-forward ";" ,proc-end t))
 		;; assert condition
-		((vhdl-re-search-forward "\\<assert\\>" proc-end t)
-		 (vhdl-re-search-forward "\\(\\<report\\>\\|\\<severity\\>\\|;\\)" proc-end t))
+		((vhdl-re-search-forward "\\<assert\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\(\\<report\\>\\|\\<severity\\>\\|;\\)" ,proc-end t))
 		;; case expression
-		((vhdl-re-search-forward "^\\s-*case\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<is\\>" proc-end t))
+		((vhdl-re-search-forward "^\\s-*case\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<is\\>" ,proc-end t))
 		;; parameter list of procedure call, array index
-		((and (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" proc-end t)
+		((and (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" ,proc-end t)
 		      (1- (point)))
 		 (progn (backward-char) (forward-sexp)
 			(while (looking-at "(") (forward-sexp)) (point)))))
