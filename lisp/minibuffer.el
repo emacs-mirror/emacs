@@ -4360,19 +4360,17 @@ and execute the forms."
   "Run `previous-completion' from the minibuffer in its completions window."
   (interactive "p")
   (with-minibuffer-completions-window
-    (let ((completion-wrap-movement nil))
-      (when completions-highlight-face
-        (setq-local cursor-face-highlight-nonselected-window t))
-      (previous-completion n))))
+    (when completions-highlight-face
+      (setq-local cursor-face-highlight-nonselected-window t))
+    (previous-completion n)))
 
 (defun minibuffer-next-completion (&optional n)
   "Run `next-completion' from the minibuffer in its completions window."
   (interactive "p")
   (with-minibuffer-completions-window
-    (let ((completion-wrap-movement nil))
-      (when completions-highlight-face
-        (setq-local cursor-face-highlight-nonselected-window t))
-      (next-completion n))))
+    (when completions-highlight-face
+      (setq-local cursor-face-highlight-nonselected-window t))
+    (next-completion n)))
 
 (defun minibuffer-choose-previous-completion (&optional n)
   "Run `previous-completion' from the minibuffer in its completions window.
