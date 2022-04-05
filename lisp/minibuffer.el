@@ -2044,7 +2044,8 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
               (when title
                 (insert (format completions-group-format title) "\n")))))
         (completion--insert str group-fun)
-        (insert "\n")))))
+        (insert "\n")))
+    (delete-char -1)))
 
 (defun completion--insert (str group-fun)
   (if (not (consp str))
