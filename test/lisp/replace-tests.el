@@ -406,6 +406,72 @@ Each element has the format:
            (kill-buffer temp-buffer)))))
 
 
+;;; General tests for `query-replace' and `query-replace-regexp'.
+
+(defconst query-replace-tests
+  '(
+    ;; query-replace
+    ("aaa" "M-% a RET 1 RET !" "111")
+    ("aaa" "M-% a RET 1 RET y n y" "1a1")
+    ;; Empty inputs
+    ("aaa" "M-% a RET RET !" "")
+    ("aaa" "M-% RET 1 RET !" "1a1a1a")
+    ;; Reuse the previous default
+    ("aaa" "M-% a RET 1 RET . M-% RET !" "111")
+
+    ;; query-replace-regexp
+    ("aaa" "C-M-% a* RET 1 RET !" "1")
+    ;; Empty inputs
+    ("aaa" "C-M-% a* RET RET !" "")
+    ("aaa" "C-M-% RET 1 RET !" "1a1a1a")
+    ;; Empty matches
+    ("aaa" "C-M-% b* RET 1 RET !" "1a1a1a")
+    ;; Complete matches
+    ("aaa" "C-M-% .* RET 1 RET !" "1")
+    ;; Adjacent matches
+    ("abaab" "C-M-% ab* RET 12 RET !" "121212")
+
+    ))
+
+(defun query-replace--perform-tests (tests)
+  (with-temp-buffer
+    (save-window-excursion
+      ;; `execute-kbd-macro' is applied to window only
+      (set-window-buffer nil (current-buffer))
+      (dolist (case tests)
+        ;; Ensure empty input means empty string to replace:
+        (setq query-replace-defaults nil)
+        (delete-region (point-min) (point-max))
+        (insert (nth 0 case))
+        (goto-char (point-min))
+        (execute-kbd-macro (kbd (nth 1 case)))
+        (should (equal (buffer-string) (nth 2 case)))))))
+
+(ert-deftest query-replace-tests ()
+  (query-replace--perform-tests query-replace-tests))
+
+(ert-deftest query-replace-search-function-tests ()
+  (let* ((replace-re-search-function #'re-search-forward))
+    (query-replace--perform-tests query-replace-tests))
+
+  (let* ((pairs '((1 . 2) (3 . 4)))
+         (replace-re-search-function
+          (lambda (string &optional _bound noerror count)
+            (let (found)
+              (while (and (not found) pairs)
+                (goto-char (caar pairs))
+                (when (re-search-forward string (cdar pairs) noerror count)
+                  (setq found t))
+                (pop pairs))
+              found)))
+         (tests
+          '(
+            ;; FIXME: this test should pass after fixing bug#54733:
+            ;; ("aaaa" "C-M-% .* RET 1 RET !" "1a1a")
+            )))
+    (query-replace--perform-tests tests)))
+
+
 ;;; Tests for `query-replace' undo feature.
 
 (defvar replace-tests-bind-read-string nil
