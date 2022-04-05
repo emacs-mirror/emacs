@@ -601,6 +601,17 @@ value.
 
 ** Minibuffer and Completions
 
+*** New commands for navigating completions from the minibuffer.
+When the minibuffer is the current buffer, typing 'M-<up>' or
+'M-<down>' selects a previous/next completion candidate from the
+"*Completions*" buffer and inserts it to the minibuffer.
+'M-S-<up>' and 'M-S-<down>' do the same, but without inserting
+a completion candidate to the minibuffer, then 'M-RET' can be used
+to choose the currently active candidate from the "*Completions*"
+buffer and exit the minibuffer.  With a prefix argument, 'C-u M-RET'
+inserts the currently active candidate to the minibuffer, but doesn't
+exit the minibuffer.
+
 +++
 *** The "*Completions*" buffer can now be automatically selected.
 To enable this behavior, customize the user option

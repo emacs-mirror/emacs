@@ -2748,7 +2748,12 @@ The completion method is determined by `completion-at-point-functions'."
   "?"         #'minibuffer-completion-help
   "<prior>"   #'switch-to-completions
   "M-v"       #'switch-to-completions
-  "M-g M-c"   #'switch-to-completions)
+  "M-g M-c"   #'switch-to-completions
+  "M-<up>"    #'minibuffer-choose-previous-completion
+  "M-<down>"  #'minibuffer-choose-next-completion
+  "M-S-<up>"   #'minibuffer-previous-completion
+  "M-S-<down>" #'minibuffer-next-completion
+  "M-RET"      #'minibuffer-choose-completion)
 
 (defvar-keymap minibuffer-local-must-match-map
   :doc "Local keymap for minibuffer input with completion, for exact match."
@@ -4337,6 +4342,64 @@ the minibuffer was activated, and execute the forms."
   (interactive "^P")
   (with-minibuffer-selected-window
     (scroll-other-window-down arg)))
+
+(defmacro with-minibuffer-completions-window (&rest body)
+  "Execute the forms in BODY from the minibuffer in its completions window.
+When used in a minibuffer window, select the window with completions,
+and execute the forms."
+  (declare (indent 0) (debug t))
+  `(let ((window (or (get-buffer-window "*Completions*" 0)
+                     ;; Make sure we have a completions window.
+                     (progn (minibuffer-completion-help)
+                            (get-buffer-window "*Completions*" 0)))))
+     (when window
+       (with-selected-window window
+         ,@body))))
+
+(defun minibuffer-previous-completion (&optional n)
+  "Run `previous-completion' from the minibuffer in its completions window."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (let ((completion-wrap-movement nil))
+      (when completions-highlight-face
+        (setq-local cursor-face-highlight-nonselected-window t))
+      (previous-completion n))))
+
+(defun minibuffer-next-completion (&optional n)
+  "Run `next-completion' from the minibuffer in its completions window."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (let ((completion-wrap-movement nil))
+      (when completions-highlight-face
+        (setq-local cursor-face-highlight-nonselected-window t))
+      (next-completion n))))
+
+(defun minibuffer-choose-previous-completion (&optional n)
+  "Run `previous-completion' from the minibuffer in its completions window.
+Also insert the selected completion to the minibuffer."
+  (interactive "p")
+  (minibuffer-previous-completion n)
+  (minibuffer-choose-completion t t))
+
+(defun minibuffer-choose-next-completion (&optional n)
+  "Run `next-completion' from the minibuffer in its completions window.
+Also insert the selected completion to the minibuffer."
+  (interactive "p")
+  (minibuffer-next-completion n)
+  (minibuffer-choose-completion t t))
+
+(defun minibuffer-choose-completion (&optional no-exit no-quit)
+  "Run `choose-completion' from the minibuffer in its completions window.
+With prefix argument NO-EXIT, insert the completion at point to the
+minibuffer, but don't exit the minibuffer.  When the prefix argument
+is not provided, then whether to exit the minibuffer depends on the value
+of `completion-no-auto-exit'.
+If NO-QUIT is non-nil, insert the completion at point to the
+minibuffer, but don't quit the completions window."
+  (interactive "P")
+  (with-minibuffer-completions-window
+    (let ((completion-use-base-affixes t))
+      (choose-completion nil no-exit no-quit))))
 
 (defcustom minibuffer-default-prompt-format " (default %s)"
   "Format string used to output \"default\" values.
