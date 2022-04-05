@@ -9119,6 +9119,16 @@ Its value is a list of the form (START END) where START is the place
 where the completion should be inserted and END (if non-nil) is the end
 of the text to replace.  If END is nil, point is used instead.")
 
+(defvar completion-base-affixes nil
+  "Base context of the text corresponding to the shown completions.
+This variable is used in the *Completions* buffer.
+Its value is a list of the form (PREFIX SUFFIX) where PREFIX is the text
+before the place where completion should be inserted, and SUFFIX is the text
+after the completion.")
+
+(defvar completion-use-base-affixes nil
+  "Non-nil means to restore original prefix and suffix in the minibuffer.")
+
 (defvar completion-list-insert-choice-function #'completion--replace
   "Function to use to insert the text chosen in *Completions*.
 Called with three arguments (BEG END TEXT), it should replace the text
@@ -9245,6 +9255,7 @@ minibuffer, but don't quit the completions window."
   (with-current-buffer (window-buffer (posn-window (event-start event)))
     (let ((buffer completion-reference-buffer)
           (base-position completion-base-position)
+          (base-affixes completion-base-affixes)
           (insert-function completion-list-insert-choice-function)
           (completion-no-auto-exit (if no-exit t completion-no-auto-exit))
           (choice
@@ -9270,7 +9281,8 @@ minibuffer, but don't quit the completions window."
       (with-current-buffer buffer
         (choose-completion-string
          choice buffer
-         (or base-position
+         (or (and completion-use-base-affixes base-affixes)
+             base-position
              ;; If all else fails, just guess.
              (list (choose-completion-guess-base-position choice)))
          insert-function)))))
@@ -9424,9 +9436,11 @@ Called from `temp-buffer-show-hook'."
                 (buffer-substring (minibuffer-prompt-end) (point)))))))
     (with-current-buffer standard-output
       (let ((base-position completion-base-position)
+            (base-affixes completion-base-affixes)
             (insert-fun completion-list-insert-choice-function))
         (completion-list-mode)
         (setq-local completion-base-position base-position)
+        (setq-local completion-base-affixes base-affixes)
         (setq-local completion-list-insert-choice-function insert-fun))
       (setq-local completion-reference-buffer mainbuf)
       (if base-dir (setq default-directory base-dir))

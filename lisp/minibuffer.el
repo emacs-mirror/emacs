@@ -2284,6 +2284,9 @@ variables.")
       (let* ((last (last completions))
              (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
+             (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
+                                            (+ start base-size)))
+             (base-suffix (buffer-substring (point) (point-max)))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
@@ -2375,20 +2378,28 @@ variables.")
                                    ;; completion-all-completions does not give us the
                                    ;; necessary information.
                                    end))
+                        (setq-local completion-base-affixes
+                                    (list base-prefix base-suffix))
                         (setq-local completion-list-insert-choice-function
                              (let ((ctable minibuffer-completion-table)
                                    (cpred minibuffer-completion-predicate)
                                    (cprops completion-extra-properties))
                                (lambda (start end choice)
-                                 (unless (or (zerop (length prefix))
-                                             (equal prefix
-                                                    (buffer-substring-no-properties
-                                                     (max (point-min)
-                                                          (- start (length prefix)))
-                                                     start)))
-                                   (message "*Completions* out of date"))
-                                 ;; FIXME: Use `md' to do quoting&terminator here.
-                                 (completion--replace start end choice)
+                                 (if (and (stringp start) (stringp end))
+                                     (progn
+                                       (delete-minibuffer-contents)
+                                       (insert start choice)
+                                       ;; Keep point after completion before suffix
+                                       (save-excursion (insert end)))
+                                   (unless (or (zerop (length prefix))
+                                               (equal prefix
+                                                      (buffer-substring-no-properties
+                                                       (max (point-min)
+                                                            (- start (length prefix)))
+                                                       start)))
+                                     (message "*Completions* out of date"))
+                                   ;; FIXME: Use `md' to do quoting&terminator here.
+                                   (completion--replace start end choice))
                                  (let* ((minibuffer-completion-table ctable)
                                         (minibuffer-completion-predicate cpred)
                                         (completion-extra-properties cprops)
