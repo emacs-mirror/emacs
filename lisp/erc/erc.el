@@ -130,7 +130,26 @@
   "Running scripts at startup and with /LOAD."
   :group 'erc)
 
-(require 'erc-backend)
+;; Defined in erc-backend
+(defvar erc--server-reconnecting)
+(defvar erc-channel-members-changed-hook)
+(defvar erc-server-367-functions)
+(defvar erc-server-announced-name)
+(defvar erc-server-connect-function)
+(defvar erc-server-connected)
+(defvar erc-server-current-nick)
+(defvar erc-server-filter-data)
+(defvar erc-server-lag)
+(defvar erc-server-last-sent-time)
+(defvar erc-server-parameters)
+(defvar erc-server-process)
+(defvar erc-server-quitting)
+(defvar erc-server-reconnect-count)
+(defvar erc-server-reconnecting)
+(defvar erc-session-client-certificate)
+(defvar erc-session-connector)
+(defvar erc-session-port)
+(defvar erc-session-server)
 
 ;; tunable connection and authentication parameters
 
@@ -7022,6 +7041,8 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
                     (get-buffer-process server-buffer)))))))
 
 (provide 'erc)
+
+(require 'erc-backend)
 
 ;; Deprecated. We might eventually stop requiring the goodies automatically.
 ;; IMPORTANT: This require must appear _after_ the above (provide 'erc) to
