@@ -45,6 +45,7 @@
 
 (defvar haiku-initialized)
 (defvar haiku-signal-invalid-refs)
+(defvar haiku-drag-track-function)
 
 (defvar haiku-dnd-selection-value nil
   "The local value of the special `XdndSelection' selection.")
