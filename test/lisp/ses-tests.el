@@ -26,9 +26,20 @@
 (require 'ses)
 
 ;; Silence byte-compiler.
-(with-suppressed-warnings ((lexical A2) (lexical A3))
+(with-suppressed-warnings ((lexical ses--cells)
+                           (lexical A2)
+                           (lexical A3)
+                           (lexical foo)
+                           (lexical bar)
+                           (lexical B2)
+                           (lexical toto))
+  (defvar ses--cells)
   (defvar A2)
-  (defvar A3))
+  (defvar A3)
+  (defvar foo)
+  (defvar bar)
+  (defvar B2)
+  (defvar toto))
 
 ;; PLAIN FORMULA TESTS
 ;; ======================================================================
@@ -59,11 +70,8 @@ equal to 2. This is done  using interactive calls."
 ;; PLAIN CELL RENAMING TESTS
 ;; ======================================================================
 
-(defvar ses--foo)
-(defvar ses--cells)
-
 (ert-deftest ses-tests-lowlevel-renamed-cell ()
-  "Check that renaming A1 to `ses--foo' and setting `ses--foo' to 1 and A2 to (1+ ses--foo), makes A2 value equal to 2.
+  "Check that renaming A1 to `foo' and setting `foo' to 1 and A2 to (1+ foo), makes A2 value equal to 2.
 This is done using low level functions, `ses-rename-cell' is not
 called but instead we use text replacement in the buffer
 previously passed in text mode."
@@ -77,63 +85,63 @@ previously passed in text mode."
       (text-mode)
       (goto-char (point-min))
       (while (re-search-forward "\\<A1\\>" nil t)
-        (replace-match "ses--foo" t t))
+        (replace-match "foo" t t))
       (ses-mode)
       (should-not  (local-variable-p 'A1))
-      (should (eq ses--foo 1))
-      (should (equal (ses-cell-formula 1 0) '(ses-safe-formula (1+ ses--foo))))
+      (should (eq foo 1))
+      (should (equal (ses-cell-formula 1 0) '(ses-safe-formula (1+ foo))))
       (should (eq (bound-and-true-p A2) 2)))))
 
 (ert-deftest ses-tests-renamed-cell ()
-  "Check that renaming A1 to `ses--foo' and setting `ses--foo' to 1 and A2
-to (1+ ses--foo), makes A2 value equal to 2."
+  "Check that renaming A1 to `foo' and setting `foo' to 1 and A2
+to (1+ foo), makes A2 value equal to 2."
   (let ((ses-initial-size '(2 . 1)))
     (with-temp-buffer
       (ses-mode)
-      (ses-rename-cell 'ses--foo (ses-get-cell 0 0))
-      (dolist (c '((0 0 1) (1 0 (1+ ses--foo))))
+      (ses-rename-cell 'foo (ses-get-cell 0 0))
+      (dolist (c '((0 0 1) (1 0 (1+ foo))))
         (apply 'funcall-interactively 'ses-edit-cell c))
       (ses-command-hook)
       (should-not  (local-variable-p 'A1))
-      (should (eq ses--foo 1))
-      (should (equal (ses-cell-formula 1 0) '(1+ ses--foo)))
+      (should (eq foo 1))
+      (should (equal (ses-cell-formula 1 0) '(1+ foo)))
       (should (eq (bound-and-true-p A2) 2)))))
 
 (ert-deftest ses-tests-renamed-cell-after-setting ()
   "Check that setting A1 to 1 and A2 to (1+ A1), and then
-renaming A1 to `ses--foo' makes `ses--foo' value equal to 2."
+renaming A1 to `foo' makes `foo' value equal to 2."
   (let ((ses-initial-size '(2 . 1)))
     (with-temp-buffer
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'funcall-interactively 'ses-edit-cell c))
       (ses-command-hook); deferred recalc
-      (ses-rename-cell 'ses--foo (ses-get-cell 0 0))
+      (ses-rename-cell 'foo (ses-get-cell 0 0))
       (should-not  (local-variable-p 'A1))
-      (should (eq ses--foo 1))
-      (should (equal (ses-cell-formula 1 0) '(1+ ses--foo)))
+      (should (eq foo 1))
+      (should (equal (ses-cell-formula 1 0) '(1+ foo)))
       (should (eq (bound-and-true-p A2) 2)))))
 
 (ert-deftest ses-tests-renaming-cell-with-one-symbol-formula ()
   "Check that setting A1 to 1 and A2 to A1, and then renaming A1
-to `ses--foo' makes `ses--foo' value equal to 1. Then set A1 to 2 and check
-that `ses--foo' becomes 2."
+to `foo' makes `foo' value equal to 1. Then set A1 to 2 and check
+that `foo' becomes 2."
   (let ((ses-initial-size '(3 . 1)))
     (with-temp-buffer
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 A1)))
         (apply 'funcall-interactively 'ses-edit-cell c))
       (ses-command-hook); deferred recalc
-      (ses-rename-cell 'ses--foo (ses-get-cell 0 0))
+      (ses-rename-cell 'foo (ses-get-cell 0 0))
       (ses-command-hook); deferred recalc
       (should-not  (local-variable-p 'A1))
-      (should (eq ses--foo 1))
-      (should (equal (ses-cell-formula 1 0) 'ses--foo))
+      (should (eq foo 1))
+      (should (equal (ses-cell-formula 1 0) 'foo))
       (should (eq (bound-and-true-p A2) 1))
       (funcall-interactively 'ses-edit-cell 0 0 2)
       (ses-command-hook); deferred recalc
       (should (eq (bound-and-true-p A2) 2))
-      (should (eq ses--foo 2)))))
+      (should (eq foo 2)))))
 
 
 ;; ROW INSERTION TESTS
@@ -155,11 +163,10 @@ to A2 and inserting a row, makes A2 value empty, and A3 equal to
       (should-not (bound-and-true-p A2))
       (should (eq (bound-and-true-p A3) 2)))))
 
-(defvar ses--bar)
 
 (ert-deftest ses-tests-renamed-cells-row-insertion ()
-  "Check that setting A1 to 1 and A2 to (1+ A1), and then renaming A1 to `ses--foo' and A2 to `ses--bar' jumping
-to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
+  "Check that setting A1 to 1 and A2 to (1+ A1), and then renaming A1 to `foo' and A2 to `bar' jumping
+to `bar' and inserting a row, makes A2 value empty, and `bar' equal to
 2."
   (let ((ses-initial-size '(2 . 1)))
     (with-temp-buffer
@@ -167,16 +174,16 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'funcall-interactively 'ses-edit-cell c))
       (ses-command-hook)
-      (ses-rename-cell 'ses--foo (ses-get-cell 0 0))
+      (ses-rename-cell 'foo (ses-get-cell 0 0))
       (ses-command-hook)
-      (ses-rename-cell 'ses--bar (ses-get-cell 1 0))
+      (ses-rename-cell 'bar (ses-get-cell 1 0))
       (ses-command-hook)
-      (should (eq ses--bar 2))
-      (ses-jump 'ses--bar)
+      (should (eq bar 2))
+      (ses-jump 'bar)
       (ses-insert-row 1)
       (ses-command-hook)
       (should-not (bound-and-true-p A2))
-      (should (eq ses--bar 2)))))
+      (should (eq bar 2)))))
 
 
 ;; JUMP tests
@@ -224,15 +231,15 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (should (eq (ses--cell-at-pos (point)) 'B2)))))
 
 (ert-deftest ses-jump-B2-renamed ()
-  "Test jumping to cell B2 after renaming it `ses--toto'."
+  "Test jumping to cell B2 after renaming it `toto'."
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
     (with-temp-buffer
       (ses-mode)
-      (ses-rename-cell 'ses--toto (ses-get-cell 1 1))
-      (ses-jump 'ses--toto)
+      (ses-rename-cell 'toto (ses-get-cell 1 1))
+      (ses-jump 'toto)
       (ses-command-hook)
-      (should (eq (ses--cell-at-pos (point)) 'ses--toto)))))
+      (should (eq (ses--cell-at-pos (point)) 'toto)))))
 
 (provide 'ses-tests)
 

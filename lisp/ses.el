@@ -115,7 +115,7 @@ Set it to 'upcase to make cell name change case isensitive.
  May return
 
 * a string, in this case this must be a cell name.
-* a (row . col) cons cell, in this case that must be valid cell coordinate."
+* a (row . col) cons cell, in this case that must be valid cell coordinates."
   :type 'function)
 
 (defcustom ses-jump-prefix-function #'ses-jump-prefix
