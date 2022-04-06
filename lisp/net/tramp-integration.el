@@ -286,11 +286,9 @@ NAME must be equal to `tramp-current-connection'."
  'tramp-connection-local-default-system-profile
  tramp-connection-local-default-system-variables)
 
-(apply
- #'connection-local-set-profiles
+(connection-local-set-profiles
  '(:application tramp)
- (cons 'tramp-connection-local-default-system-profile
-       (connection-local-get-profiles '(:application tramp))))
+ 'tramp-connection-local-default-system-profile)
 
 (defconst tramp-connection-local-default-shell-variables
   '((shell-file-name . "/bin/sh")
@@ -302,11 +300,9 @@ NAME must be equal to `tramp-current-connection'."
  tramp-connection-local-default-shell-variables)
 
 (with-eval-after-load 'shell
-  (apply
-   #'connection-local-set-profiles
+  (connection-local-set-profiles
    '(:application tramp)
-   (cons 'tramp-connection-local-default-shell-profile
-         (connection-local-get-profiles '(:application tramp)))))
+   'tramp-connection-local-default-shell-profile))
 
 ;; Tested with FreeBSD 12.2.
 (defconst tramp-bsd-process-attributes-ps-args
