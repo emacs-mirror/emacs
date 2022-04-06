@@ -1701,8 +1701,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
   (or (eglot-current-server)
       (jsonrpc-error "No current JSON-RPC connection")))
 
-(defvar-local eglot--unreported-diagnostics nil
-  "Unreported Flymake diagnostics for this buffer.")
+(defvar-local eglot--diagnostics nil
+  "Flymake diagnostics for this buffer.")
 
 (defvar revert-buffer-preserve-modes)
 (defun eglot--after-revert-hook ()
@@ -1717,7 +1717,7 @@ If it is activated, also signal textDocument/didOpen."
     ;; Called when `revert-buffer-in-progress-p' is t but
     ;; `revert-buffer-preserve-modes' is nil.
     (when (and buffer-file-name (eglot-current-server))
-      (setq eglot--unreported-diagnostics `(:just-opened . nil))
+      (setq eglot--diagnostics nil)
       (eglot--managed-mode)
       (eglot--signal-textDocument/didOpen))))
 
@@ -1995,7 +1995,7 @@ COMMAND is a symbol naming the command."
            finally (cond (eglot--current-flymake-report-fn
                           (eglot--report-to-flymake diags))
                          (t
-                          (setq eglot--unreported-diagnostics (cons t diags))))))
+                          (setq eglot--diagnostics diags)))))
       (cl-loop
        with path = (expand-file-name (eglot--uri-to-path uri))
        for diag-spec across diagnostics
@@ -2305,9 +2305,7 @@ may be called multiple times (respecting the protocol of
 `flymake-backend-functions')."
   (cond (eglot--managed-mode
          (setq eglot--current-flymake-report-fn report-fn)
-         ;; Report anything unreported
-         (when eglot--unreported-diagnostics
-           (eglot--report-to-flymake (cdr eglot--unreported-diagnostics))))
+         (eglot--report-to-flymake eglot--diagnostics))
         (t
          (funcall report-fn nil))))
 
@@ -2322,7 +2320,7 @@ may be called multiple times (respecting the protocol of
              ;; keyword forces flymake to delete
              ;; them (github#159).
              :region (cons (point-min) (point-max))))
-  (setq eglot--unreported-diagnostics nil))
+  (setq eglot--diagnostics diags))
 
 (defun eglot-xref-backend () "EGLOT xref backend." 'eglot)
 
