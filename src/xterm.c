@@ -2787,6 +2787,7 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   for (i = 0; i < x_dnd_n_targets; ++i)
     {
       if (x_dnd_targets[i] == XA_STRING
+	  || x_dnd_targets[i] == dpyinfo->Xatom_TEXT
 	  || x_dnd_targets[i] == dpyinfo->Xatom_COMPOUND_TEXT
 	  || x_dnd_targets[i] == dpyinfo->Xatom_UTF8_STRING)
 	break;
