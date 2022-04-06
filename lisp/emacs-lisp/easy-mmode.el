@@ -129,7 +129,7 @@ it is disabled.")
                         (if global "global " "")
                         mode-pretty-name
                         ;; Avoid having quotes turn into pretty quotes.
-                        (string-replace "'" "\\\\='" (format "%S" getter)))))
+                        (string-replace "'" "\\='" (format "%S" getter)))))
           (let ((start (point)))
             (insert argdoc)
             (when (fboundp 'fill-region)
