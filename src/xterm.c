@@ -142,14 +142,22 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    draw text in inverse video, and the cursor graphics context is used
    to display the cursor in the most common case.
 
+   N.B. that some of the other window systems supported by use an
+   emulation of graphics contexts to hold the foreground and
+   background colors used in a glyph string, while the some others
+   ports compute those colors directly based on the colors of the
+   string's face and its highlight, but only on X are graphics
+   contexts a data structure inherent to the window system.
+
    COLOR ALLOCATION
 
-   In X, pixel values for colors are not guaranteed to correspond to
-   their individual components.  The rules for converting colors into
-   pixel values are defined by the visual class of each display opened
-   by Emacs.  When a display is opened, a suitable visual is obtained
-   from the X server, and a colormap is created based on that visual,
-   which is then used for each frame created.
+   In (and only in) X, pixel values for colors are not guaranteed to
+   correspond to their individual components.  The rules for
+   converting colors into pixel values are defined by the visual class
+   of each display opened by Emacs.  When a display is opened, a
+   suitable visual is obtained from the X server, and a colormap is
+   created based on that visual, which is then used for each frame
+   created.
 
    The colormap is then used by the X server to convert pixel values
    from a frame created by Emacs into actual colors which are output
@@ -201,6 +209,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    visuals is in `x_make_truecolor_pixel'.  Also see `x_query_colors`,
    which is used to determine the color values for given pixel
    values.
+
+   In other window systems supported by Emacs, color allocation is
+   handled by the window system itself, to whom Emacs simply passes 24
+   (or 32-bit) RGB values.
 
    OPTIONAL FEATURES
 
