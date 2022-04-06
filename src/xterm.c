@@ -2824,7 +2824,10 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
       root_y = dest_y;
     }
 
-  x_own_selection (QPRIMARY, Qnil, frame);
+  x_own_selection (QPRIMARY,
+		   assq_no_quit (QPRIMARY,
+				 dpyinfo->terminal->Vselection_alist),
+		   frame);
 
   event.xbutton.window = child;
   event.xbutton.x = dest_x;
