@@ -264,8 +264,11 @@ VALUE will be encoded as UTF-8 and stored under the type
                              (if (multibyte-string-p text)
                                  text
                                (decode-coding-string text 'undecided))))))
-       (t (message "Don't know how to drop any of: %s"
-                   (mapcar #'car string)))))))
+       ((not (eq (cdr (assq 'type string))
+                 3003)) ; Type of the placeholder message Emacs uses
+                        ; to cancel a drop on C-g.
+        (message "Don't know how to drop any of: %s"
+                 (mapcar #'car string)))))))
 
 (define-key special-event-map [drag-n-drop]
             'haiku-drag-and-drop)

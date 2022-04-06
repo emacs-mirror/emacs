@@ -1991,6 +1991,10 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   else if (x_dnd_in_progress && f == x_dnd_frame)
     error ("Attempt to delete the drop source frame");
 #endif
+#ifdef HAVE_HAIKU
+  else if (f == haiku_dnd_frame)
+    error ("Attempt to delete the drop source frame");
+#endif
 
   XSETFRAME (frame, f);
 

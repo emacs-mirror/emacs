@@ -27,6 +27,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdlib.h>
 
+/* The frame that is currently the source of a drag-and-drop
+   operation, or NULL if none is in progress.  The reason for this
+   variable is to prevent it from being deleted, which really breaks
+   the nested event loop inside be_drag_message.  */
+struct frame *haiku_dnd_frame;
+
 static void haiku_lisp_to_message (Lisp_Object, void *);
 
 DEFUN ("haiku-selection-data", Fhaiku_selection_data, Shaiku_selection_data,
@@ -726,6 +732,7 @@ haiku_should_quit_drag (void)
 static void
 haiku_unwind_drag_message (void *message)
 {
+  haiku_dnd_frame = NULL;
   BMessage_delete (message);
 }
 
@@ -774,6 +781,7 @@ ignored if it is dropped on top of FRAME.  */)
   if (!FRAME_VISIBLE_P (f))
     error ("Frame is invisible");
 
+  haiku_dnd_frame = f;
   be_message = be_create_simple_message ();
 
   record_unwind_protect_ptr (haiku_unwind_drag_message, be_message);
@@ -852,4 +860,6 @@ used to retrieve the current position of the mouse.  */);
   defsubr (&Shaiku_selection_put);
   defsubr (&Shaiku_selection_owner_p);
   defsubr (&Shaiku_drag_message);
+
+  haiku_dnd_frame = NULL;
 }

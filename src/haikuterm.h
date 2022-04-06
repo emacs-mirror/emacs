@@ -192,6 +192,7 @@ extern struct haiku_display_info *x_display_list;
 extern struct font_driver const haikufont_driver;
 
 extern Lisp_Object tip_frame;
+extern struct frame *haiku_dnd_frame;
 
 struct scroll_bar
 {
