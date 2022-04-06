@@ -244,13 +244,34 @@ prompt you for it.")
   :group 'erc
   :type 'boolean)
 
-(defcustom erc-hide-prompt nil
-  "If non-nil, do not display the prompt for commands.
-
-\(A command is any input starting with a `/').
-
-See also the variables `erc-prompt' and `erc-command-indicator'."
+(defcustom erc-prompt-hidden ">"
+  "Text to show in lieu of the prompt when hidden."
+  :package-version '(ERC . "5.4.1") ; FIXME increment on next ELPA release
   :group 'erc-display
+  :type 'string)
+
+(defcustom erc-hide-prompt t
+  "If non-nil, hide input prompt upon disconnecting.
+To unhide, type something in the input area.  Once revealed, a
+prompt remains unhidden until the next disconnection.  Channel
+prompts are unhidden upon rejoining.  See
+`erc-unhide-query-prompt' for behavior concerning query prompts."
+  :package-version '(ERC . "5.4.1") ; FIXME increment on next ELPA release
+  :group 'erc-display
+  :type '(choice (const :tag "Always hide prompt" t)
+                 (set (const server)
+                      (const query)
+                      (const channel))))
+
+(defcustom erc-unhide-query-prompt nil
+  "When non-nil, always reveal query prompts upon reconnecting.
+Otherwise, prompts in a connection's query buffers remain hidden
+until the user types in the input area or a new message arrives
+from the target."
+  :package-version '(ERC . "5.4.1") ; FIXME increment on next ELPA release
+  :group 'erc-display
+  ;; Extensions may one day offer a way to discover whether a target
+  ;; is online.  When that happens, this can be expanded accordingly.
   :type 'boolean)
 
 ;; tunable GUI stuff
@@ -2013,7 +2034,7 @@ Returns the buffer for the given server or channel."
         (buffer (erc-get-buffer-create server port channel))
         (old-buffer (current-buffer))
         old-point
-        continued-session)
+        (continued-session (and erc-reuse-buffers erc--server-reconnecting)))
     (when connect (run-hook-with-args 'erc-before-connect server port nick))
     (erc-update-modules)
     (set-buffer buffer)
@@ -2031,7 +2052,7 @@ Returns the buffer for the given server or channel."
     ;; (the buffer may have existed)
     (goto-char (point-max))
     (forward-line 0)
-    (when (get-text-property (point) 'erc-prompt)
+    (when (or continued-session (get-text-property (point) 'erc-prompt))
       (setq continued-session t)
       (set-marker erc-input-marker
                   (or (next-single-property-change (point) 'erc-prompt)
@@ -2089,7 +2110,8 @@ Returns the buffer for the given server or channel."
       (goto-char (point-max))
       (insert "\n"))
     (if continued-session
-        (goto-char old-point)
+        (progn (goto-char old-point)
+               (erc--unhide-prompt))
       (set-marker erc-insert-marker (point))
       (erc-display-prompt)
       (goto-char (point-max)))
@@ -3753,12 +3775,15 @@ the message given by REASON."
       (setq erc--server-reconnecting t)
       (setq erc-server-reconnect-count 0)
       (setq process (get-buffer-process (erc-server-buffer)))
-      (if process
-          (delete-process process)
-        (erc-server-reconnect))
+      (when process
+        (delete-process process))
+      (erc-server-reconnect)
       (with-suppressed-warnings ((obsolete erc-server-reconnecting))
-        (setq erc-server-reconnecting nil))
-      (setq erc--server-reconnecting nil)))
+        (if erc-reuse-buffers
+            (progn (cl-assert (not erc--server-reconnecting))
+                   (cl-assert (not erc-server-reconnecting)))
+          (setq erc--server-reconnecting nil
+                erc-server-reconnecting nil)))))
   t)
 (put 'erc-cmd-RECONNECT 'process-not-needed t)
 
@@ -4720,7 +4745,14 @@ Set user modes and run `erc-after-connect' hook."
         (erc-update-mode-line)
         (erc-set-initial-user-mode nick buffer)
         (erc-server-setup-periodical-ping buffer)
-        (run-hook-with-args 'erc-after-connect server nick)))))
+        (run-hook-with-args 'erc-after-connect server nick))))
+
+  (when erc-unhide-query-prompt
+    (erc-with-all-buffers-of-server proc
+      nil ; FIXME use `erc--target' after bug#48598
+      (when (and (erc-default-target)
+                 (not (erc-channel-p (car erc-default-recipients))))
+        (erc--unhide-prompt)))))
 
 (defun erc-set-initial-user-mode (nick buffer)
   "If `erc-user-mode' is non-nil for NICK, set the user modes.
@@ -5673,27 +5705,6 @@ Return non-nil only if we actually send anything."
                (split-string string "\n"))
             (erc-process-input-line (concat string "\n") t nil))
           t))))))
-
-;; (defun erc-display-command (line)
-;;   (when erc-insert-this
-;;     (let ((insert-position (point)))
-;;       (unless erc-hide-prompt
-;;         (erc-display-prompt nil nil (erc-command-indicator)
-;;                             (and (erc-command-indicator)
-;;                                  'erc-command-indicator-face)))
-;;       (let ((beg (point)))
-;;         (insert line)
-;;         (erc-put-text-property beg (point)
-;;                                'font-lock-face 'erc-command-indicator-face)
-;;         (insert "\n"))
-;;       (when (processp erc-server-process)
-;;         (set-marker (process-mark erc-server-process) (point)))
-;;       (set-marker erc-insert-marker (point))
-;;       (save-excursion
-;;         (save-restriction
-;;           (narrow-to-region insert-position (point))
-;;           (run-hooks 'erc-send-modify-hook)
-;;           (run-hooks 'erc-send-post-hook))))))
 
 (defun erc-display-msg (line)
   "Display LINE as a message of the user to the current target at point."
