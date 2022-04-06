@@ -208,6 +208,25 @@ enum event_kind
 				   representation of the dropped items.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
+#ifdef HAVE_X_WINDOWS
+  UNSUPPORTED_DROP_EVENT,      /* Event sent when the regular C
+				  drag-and-drop machinery could not
+				  handle a drop to a window.
+
+			          .code is the XID of the window that
+			          could not be dropped to.
+
+			          .arg is a list of the local value of
+			          XdndSelection, a list of selection
+			          targets, and the intended action to
+			          be taken upon drop, and .timestamp
+			          gives the timestamp where the drop
+			          happened.
+
+			          .x and .y give the coordinates of
+			          the drop originating from the root
+			          window.  */
+#endif
   USER_SIGNAL_EVENT,		/* A user signal.
                                    code is a number identifying it,
                                    index into lispy_user_signals.  */

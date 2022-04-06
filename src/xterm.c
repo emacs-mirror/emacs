@@ -2774,45 +2774,35 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
 
    Dropping on windows that do not support XDND
 
-   Since middle clicking is the universal shortcut for pasting in X,
-   one can drop data into a window that does not support XDND by:
+   Since middle clicking is the universal shortcut for pasting
+   in X, one can drop data into a window that does not support
+   XDND by:
 
-   1. After the mouse has been released to trigger the drop, obtain
-   ownership of XA_PRIMARY.
+   1. After the mouse has been released to trigger the drop,
+   obtain ownership of XA_PRIMARY.
 
-   2. Send a ButtonPress event and then a ButtonRelease event to the
-   deepest subwindow containing the mouse to simulate a middle click.
-   The times for these events should be the time of the actual button
-   release +1 and +2, respectively.  These values will not be used by
-   anybody else, so one can unambiguously recognize the resulting
-   XConvertSelection() request.
+   2. Send a ButtonPress event and then a ButtonRelease event to
+   the deepest subwindow containing the mouse to simulate a
+   middle click.  The times for these events should be the time
+   of the actual button release +1 and +2, respectively.  These
+   values will not be used by anybody else, so one can
+   unambiguously recognize the resulting `XConvertSelection'
+   request.
 
-   3. If a request for XA_PRIMARY arrives bearing the timestamp of
-   either the ButtonPress or the ButtonRelease event, treat it as a
-   request for XdndSelection.  Note that you must use the X data
-   types instead of the MIME types in this case.  (e.g. XA_STRING
-   instead of text/plain).  */
-static void
-x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_window,
-			     int root_x, int root_y, Time before)
+   3. If a request for XA_PRIMARY arrives bearing the timestamp
+   of either the ButtonPress or the ButtonRelease event, treat
+   it as a request for XdndSelection.  Note that you must use
+   the X data types instead of the MIME types in this case.
+   (e.g. XA_STRING instead of text/plain).  */
+void
+x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
+			   Lisp_Object frame, Lisp_Object value,
+			   Lisp_Object targets, Window target_window,
+			   int root_x, int root_y, Time before)
 {
   XEvent event;
   int dest_x, dest_y;
   Window child_return, child;
-  Lisp_Object frame;
-  int i;
-
-  for (i = 0; i < x_dnd_n_targets; ++i)
-    {
-      if (x_dnd_targets[i] == XA_STRING
-	  || x_dnd_targets[i] == dpyinfo->Xatom_TEXT
-	  || x_dnd_targets[i] == dpyinfo->Xatom_COMPOUND_TEXT
-	  || x_dnd_targets[i] == dpyinfo->Xatom_UTF8_STRING)
-	break;
-    }
-
-  if (i == x_dnd_n_targets)
-    return;
 
   event.xbutton.type = ButtonPress;
   event.xbutton.serial = 0;
@@ -2821,8 +2811,6 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   event.xbutton.root = dpyinfo->root_window;
   event.xbutton.x_root = root_x;
   event.xbutton.y_root = root_y;
-
-  XSETFRAME (frame, x_dnd_frame);
 
   x_catch_errors (dpyinfo->display);
 
@@ -2866,6 +2854,55 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
 	      True, ButtonReleaseMask, &event);
 
   x_uncatch_errors ();
+}
+
+static void
+x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_window,
+			     int root_x, int root_y, Time before)
+{
+  struct input_event ie;
+  Lisp_Object targets, arg;
+  int i;
+  char **atom_names, *name;
+
+  EVENT_INIT (ie);
+  targets = Qnil;
+  atom_names = alloca (sizeof *atom_names * x_dnd_n_targets);
+
+  if (!XGetAtomNames (dpyinfo->display, x_dnd_targets,
+		      x_dnd_n_targets, atom_names))
+      return;
+
+  for (i = x_dnd_n_targets; i > 0; --i)
+    {
+      targets = Fcons (build_string (atom_names[i - 1]),
+		       targets);
+      XFree (atom_names[i - 1]);
+    }
+
+  name = XGetAtomName (dpyinfo->display,
+		       x_dnd_wanted_action);
+
+  if (name)
+    {
+      arg = intern (name);
+      XFree (name);
+    }
+  else
+    arg = Qnil;
+
+  ie.kind = UNSUPPORTED_DROP_EVENT;
+  ie.code = (unsigned) target_window;
+  ie.arg = list3 (assq_no_quit (QXdndSelection,
+				dpyinfo->terminal->Vselection_alist),
+		  targets, arg);
+  ie.timestamp = before;
+
+  XSETINT (ie.x, root_x);
+  XSETINT (ie.y, root_y);
+  XSETFRAME (ie.frame_or_window, x_dnd_frame);
+
+  kbd_buffer_store_event (&ie);
 }
 
 static Window
@@ -23273,4 +23310,19 @@ It should either be nil, or accept two arguments FRAME and POSITION,
 where FRAME is the frame the mouse is on top of, and POSITION is a
 mouse position list.  */);
   Vx_dnd_movement_function = Qnil;
+
+  DEFVAR_LISP ("x-dnd-unsupported-drop-function", Vx_dnd_unsupported_drop_function,
+    doc: /* Function called when trying to drop on an unsupported window.
+This function is called whenever the user tries to drop
+something on a window that does not support either the XDND or
+Motif protocols for drag-and-drop.  It should return a non-nil
+value if the drop was handled by the function, and nil if it was
+not.  It should accept several arguments TARGETS, X, Y, ACTION,
+WINDOW-ID and FRAME, where TARGETS is the list of targets that
+was passed to `x-begin-drag', WINDOW-ID is the numeric XID of
+the window that is being dropped on, X and Y are the root
+window-relative coordinates where the drop happened, ACTION
+is the action that was passed to `x-begin-drag', and FRAME is
+the frame which initiated the drag-and-drop operation.  */);
+  Vx_dnd_unsupported_drop_function = Qnil;
 }

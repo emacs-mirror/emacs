@@ -4006,6 +4006,41 @@ kbd_buffer_get_event (KBOARD **kbp,
 	}
         break;
 
+#ifdef HAVE_X_WINDOWS
+      case UNSUPPORTED_DROP_EVENT:
+	{
+	  struct frame *f;
+
+	  kbd_fetch_ptr = next_kbd_event (event);
+	  input_pending = readable_events (0);
+
+	  f = XFRAME (event->ie.frame_or_window);
+
+	  if (!FRAME_LIVE_P (f))
+	    break;
+
+	  if (!NILP (Vx_dnd_unsupported_drop_function))
+	    {
+	      if (!NILP (call6 (Vx_dnd_unsupported_drop_function,
+				XCAR (XCDR (event->ie.arg)), event->ie.x,
+				event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
+				make_uint (event->ie.code),
+				event->ie.frame_or_window)))
+		break;
+	    }
+
+	  x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (f),
+				     event->ie.frame_or_window,
+				     XCAR (event->ie.arg),
+				     XCAR (XCDR (event->ie.arg)),
+				     (Window) event->ie.code,
+				     XFIXNUM (event->ie.x),
+				     XFIXNUM (event->ie.y),
+				     event->ie.timestamp);
+	  break;
+	}
+#endif
+
 #ifdef HAVE_EXT_MENU_BAR
       case MENU_BAR_ACTIVATE_EVENT:
 	{

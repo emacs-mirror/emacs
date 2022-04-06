@@ -779,6 +779,19 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 ;;;
 
+
+
+;;; Handling drops.
+
+(defun x-dnd-handle-unsupported-drop (targets _x _y action _window-id _frame)
+  "Return non-nil if the drop described by TARGETS and ACTION should not proceeed."
+  (not (and (or (eq action 'XdndActionCopy)
+                (eq action 'XdndActionMove))
+            (or (member "STRING" targets)
+                (member "UTF8_STRING" targets)
+                (member "COMPOUND_TEXT" targets)
+                (member "TEXT" targets)))))
+
 (provide 'x-dnd)
 
 ;;; x-dnd.el ends here

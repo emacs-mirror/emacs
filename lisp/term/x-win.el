@@ -86,6 +86,7 @@
 (defvar x-session-id)
 (defvar x-session-previous-id)
 (defvar x-dnd-movement-function)
+(defvar x-dnd-unsupported-drop-function)
 
 (defun x-handle-no-bitmap-icon (_switch)
   (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
@@ -1583,6 +1584,7 @@ frames on all displays."
   (redisplay))
 
 (setq x-dnd-movement-function #'x-dnd-movement)
+(setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
 
 (provide 'x-win)
 (provide 'term/x-win)
