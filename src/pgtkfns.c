@@ -38,13 +38,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xsettings.h"
 #include "atimer.h"
 
-
-#ifdef HAVE_PGTK
-
-/* Static variables to handle applescript execution.  */
-static Lisp_Object as_script, *as_result;
-static int as_status;
-
 static ptrdiff_t image_cache_refcount;
 
 static int x_decode_color (struct frame *f, Lisp_Object color_name,
@@ -4007,10 +4000,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sx_file_dialog);
   defsubr (&Sx_select_font);
 
-  as_status = 0;
-  as_script = Qnil;
-  as_result = 0;
-
   monitor_scale_factor_alist = Qnil;
   staticpro (&monitor_scale_factor_alist);
 
@@ -4055,5 +4044,3 @@ be used as the image of the icon representing the frame.  */);
   DEFSYM (Qreverse_portrait, "reverse-portrait");
   DEFSYM (Qreverse_landscape, "reverse-landscape");
 }
-
-#endif

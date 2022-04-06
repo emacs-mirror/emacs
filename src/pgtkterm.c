@@ -136,12 +136,10 @@ pgtk_toolkit_position (struct frame *f, int x, int y,
     }
 }
 
-/*
- * This is not a flip context in the same sense as gpu rendering
- * scences, it only occurs when a new context was required due to a
- * resize or other fundamental change.  This is called when that
- * context's surface has completed drawing
- */
+/* This is not a flip context in the same sense as gpu rendering
+   scenes, it only occurs when a new context was required due to a
+   resize or other fundamental change.  This is called when that
+   context's surface has completed drawing.  */
 
 static void
 flip_cr_context (struct frame *f)
@@ -221,14 +219,8 @@ mark_pgtkterm (void)
 
 char *
 get_keysym_name (int keysym)
-/* --------------------------------------------------------------------------
-    Called by keyboard.c.  Not sure if the return val is important, except
-    that it be unique.
-   -------------------------------------------------------------------------- */
 {
-  static char value[16];
-  sprintf (value, "%d", keysym);
-  return value;
+  return gdk_keyval_name (keysym);
 }
 
 void
@@ -531,31 +523,8 @@ pgtk_set_window_size (struct frame *f, bool change_gravity,
   gtk_widget_get_size_request (FRAME_GTK_WIDGET (f), &pixelwidth,
 			       &pixelheight);
 
-#if 0
-  if (pixelwise)
-    {
-      pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
-      pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
-    }
-  else
-    {
-      pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
-      pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
-    }
-#else
   pixelwidth = width;
   pixelheight = height;
-#endif
-
-#if 0
-  frame_size_history_add
-    (f, Qx_set_window_size_1, width, height,
-     list5 (Fcons (make_fixnum (pixelwidth), make_fixnum (pixelheight)),
-	    Fcons (make_fixnum (pixelwidth), make_fixnum (pixelheight)),
-	    make_fixnum (f->border_width),
-	    make_fixnum (FRAME_PGTK_TITLEBAR_HEIGHT (f)),
-	    make_fixnum (FRAME_TOOLBAR_HEIGHT (f))));
-#endif
 
   for (GtkWidget * w = FRAME_GTK_WIDGET (f); w != NULL;
        w = gtk_widget_get_parent (w))
@@ -3921,28 +3890,21 @@ xg_scroll_callback (GtkRange * range,
   switch (scroll)
     {
     case GTK_SCROLL_JUMP:
-#if 0
-      /* Buttons 1 2 or 3 must be grabbed.  */
-      if (FRAME_DISPLAY_INFO (f)->grabbed != 0
-          && FRAME_DISPLAY_INFO (f)->grabbed < (1 << 4))
-#endif
-        {
-	  if (bar->horizontal)
-	    {
-	      part = scroll_bar_horizontal_handle;
-	      whole = (int) (gtk_adjustment_get_upper (adj) -
-			     gtk_adjustment_get_page_size (adj));
-	      portion = min ((int) value, whole);
-	      bar->dragging = portion;
-	    }
-	  else
-	    {
-	      part = scroll_bar_handle;
-	      whole = gtk_adjustment_get_upper (adj) -
-		gtk_adjustment_get_page_size (adj);
-	      portion = min ((int) value, whole);
-	      bar->dragging = portion;
-	    }
+      if (bar->horizontal)
+	{
+	  part = scroll_bar_horizontal_handle;
+	  whole = (int) (gtk_adjustment_get_upper (adj) -
+			 gtk_adjustment_get_page_size (adj));
+	  portion = min ((int) value, whole);
+	  bar->dragging = portion;
+	}
+      else
+	{
+	  part = scroll_bar_handle;
+	  whole = gtk_adjustment_get_upper (adj) -
+	    gtk_adjustment_get_page_size (adj);
+	  portion = min ((int) value, whole);
+	  bar->dragging = portion;
 	}
       break;
     case GTK_SCROLL_STEP_BACKWARD:
@@ -4505,8 +4467,6 @@ pgtk_delete_terminal (struct terminal *terminal)
 
       xg_display_close (dpyinfo->gdpy);
 
-      /* Do not close the connection here because it's already closed
-         by X(t)CloseDisplay (Bug#18403).  */
       dpyinfo->gdpy = NULL;
     }
 
