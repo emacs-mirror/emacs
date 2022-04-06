@@ -2634,42 +2634,55 @@ fixed, visit it in a buffer."
                         (binary (concat
                                  "Binary files " file4
                                  " and " file5 " \\(?7:differ\\)\n"))
-                        (horb (concat "\\(?:" header "\\|" binary "\\)")))
+                        (horb (concat "\\(?:" header "\\|" binary "\\)?")))
                    (concat "diff.*?\\(?: a/\\(.*?\\) b/\\(.*\\)\\)?\n"
-                           "\\(?:\\(?:old\\|new\\) mode .*\n\\)*"
                            "\\(?:"
                            ;; For new/deleted files, there might be no
                            ;; header (and no hunk) if the file is/was empty.
-                           "\\(?3:new\\(?6:\\)\\|deleted\\) file.*\n"
-                           index "\\(?:" horb "\\)?"
-                           ;; Normal case.
-                           "\\|" index horb "\\)")))))
+                           "\\(?3:new\\(?6:\\)\\|deleted\\) file mode \\(?10:[0-7]\\{6\\}\\)\n"
+                           index horb
+                           ;; Normal case. There might be no header
+                           ;; (and no hunk) if only the file mode
+                           ;; changed.
+                           "\\|"
+                           "\\(?:old mode \\(?8:[0-7]\\{6\\}\\)\n\\)?"
+                           "\\(?:new mode \\(?9:[0-7]\\{6\\}\\)\n\\)?"
+                           index horb "\\)")))))
         ;; The file names can be extracted either from the `diff' line
         ;; or from the two header lines.  Prefer the header line info if
         ;; available since the `diff' line is ambiguous in case the
         ;; file names include " b/" or " a/".
         ;; FIXME: This prettification throws away all the information
-        ;; about file modes (and the index hashes).
+        ;; about the index hashes.
         (let ((oldfile (or (match-string 4) (match-string 1)))
               (newfile (or (match-string 5) (match-string 2)))
               (kind (if (match-beginning 7) " BINARY"
-                      (unless (or (match-beginning 4) (match-beginning 5))
-                       " empty"))))
+                      (unless (or (match-beginning 4)
+                                  (match-beginning 5)
+                                  (not (match-beginning 3)))
+                        " empty")))
+              (filemode
+               (cond
+                ((match-beginning 10)
+                 (concat " file with mode " (match-string 10) "  "))
+                ((and (match-beginning 8) (match-beginning 9))
+                 (concat " file (mode changed from "
+                         (match-string 8) " to " (match-string 9) ")  "))
+                (t " file  "))))
           (add-text-properties
            (match-beginning 0) (1- (match-end 0))
            (list 'display
                  (propertize
                   (cond
                    ((match-beginning 3)
-                    (concat (capitalize (match-string 3)) kind " file"
-                            "  "
+                    (concat (capitalize (match-string 3)) kind filemode
                             (if (match-beginning 6) newfile oldfile)))
-                   ((null (match-string 4))
-                    (concat "New" kind " file  " newfile))
+                   ((and (null (match-string 4)) (match-string 5))
+                    (concat "New " kind filemode newfile))
                    ((null (match-string 2))
-                    (concat "Deleted" kind " file  " oldfile))
+                    (concat "Deleted" kind filemode oldfile))
                    (t
-                    (concat "Modified" kind " file  " oldfile)))
+                    (concat "Modified" kind filemode oldfile)))
                   'face '(diff-file-header diff-header))
                  'font-lock-multiline t))))))
   nil)
