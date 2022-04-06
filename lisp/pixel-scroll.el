@@ -90,6 +90,7 @@
 (require 'mwheel)
 (require 'subr-x)
 (require 'ring)
+(require 'cua-base)
 
 (defvar pixel-wait 0
   "Idle time on each step of pixel scroll specified in second.
@@ -803,14 +804,14 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
   (interactive)
   (if pixel-scroll-precision-interpolate-page
       (pixel-scroll-precision-interpolate (- (window-text-height nil t)))
-    (scroll-up)))
+    (cua-scroll-up)))
 
 (defun pixel-scroll-interpolate-up ()
   "Interpolate a scroll upwards by one page."
   (interactive)
   (if pixel-scroll-precision-interpolate-page
       (pixel-scroll-precision-interpolate (window-text-height nil t))
-    (scroll-down)))
+    (cua-scroll-down)))
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-precision-mode
