@@ -2656,7 +2656,8 @@ x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
 static int
 x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
 			      Window window, int *wmstate_out,
-			      int *proto_out, int *motif_out)
+			      int *proto_out, int *motif_out,
+			      Window *proxy_out)
 {
 #ifndef USE_XCB
   Atom type;
@@ -2667,6 +2668,7 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
 #else
   xcb_get_property_cookie_t wmstate_cookie;
   xcb_get_property_cookie_t xdnd_proto_cookie;
+  xcb_get_property_cookie_t xdnd_proxy_cookie;
   xcb_get_property_cookie_t xm_style_cookie;
   xcb_get_property_reply_t *reply;
   xcb_generic_error_t *error;
@@ -2696,6 +2698,8 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
   else
     *motif_out = XM_DRAG_STYLE_NONE;
 
+  *proxy_out = x_dnd_get_window_proxy (dpyinfo, window);
+
   if (data)
     XFree (data);
 #else
@@ -2709,6 +2713,10 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
 					(xcb_window_t) window,
 					(xcb_atom_t) dpyinfo->Xatom_XdndAware,
 					XCB_ATOM_ATOM, 0, 1);
+  xdnd_proxy_cookie = xcb_get_property (dpyinfo->xcb_connection, 0,
+					(xcb_window_t) window,
+					(xcb_atom_t) dpyinfo->Xatom_XdndProxy,
+					XCB_ATOM_WINDOW, 0, 1);
   xm_style_cookie = xcb_get_property (dpyinfo->xcb_connection, 0,
 				      (xcb_window_t) window,
 				      (xcb_atom_t) dpyinfo->Xatom_MOTIF_DRAG_RECEIVER_INFO,
@@ -2742,6 +2750,22 @@ x_dnd_get_wm_state_and_proto (struct x_display_info *dpyinfo,
       if (reply->format == 32
 	  && xcb_get_property_value_length (reply) >= 4)
 	*proto_out = *(uint32_t *) xcb_get_property_value (reply);
+
+      free (reply);
+    }
+
+  *proxy_out = None;
+  reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+				  xdnd_proxy_cookie, &error);
+
+  if (!reply)
+    free (error);
+  else
+    {
+      if (reply->format == 32
+	  && reply->type == XCB_ATOM_WINDOW
+	  && (xcb_get_property_value_length (reply) >= 4))
+	*proxy_out = *(xcb_window_t *) xcb_get_property_value (reply);
 
       free (reply);
     }
@@ -3062,7 +3086,8 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
       if (child_return)
 	{
 	  if (x_dnd_get_wm_state_and_proto (dpyinfo, child_return,
-					    &wmstate, &proto, &motif)
+					    &wmstate, &proto, &motif,
+					    &proxy)
 	      /* `proto' and `motif' are set by x_dnd_get_wm_state
 		 even if getting the wm state failed.  */
 	      || proto != -1 || motif != XM_DRAG_STYLE_NONE)
@@ -3074,8 +3099,6 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 
 	      return child_return;
 	    }
-
-	  proxy = x_dnd_get_window_proxy (dpyinfo, child_return);
 
 	  if (proxy != None)
 	    {
