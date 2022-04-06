@@ -728,9 +728,18 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
                      browse-url-filename-alist))
       (setq file (browse-url-url-encode-chars file "[*\"()',=;?% ]"))
     ;; Encode all other file names properly.
-    (setq file (mapconcat #'url-hexify-string
-                          (file-name-split file)
-                          "/")))
+    (let ((bits (file-name-split file)))
+      (setq file
+            (string-join
+             ;; On Windows, the first bit here might be "c:" or the
+             ;; like, so don't encode the ":" in the first bit.
+             (cons (let ((url-unreserved-chars
+                          (if (file-name-absolute-p file)
+                              (cons ?: url-unreserved-chars)
+                            url-unreserved-chars)))
+                     (url-hexify-string (car bits)))
+                   (mapcar #'url-hexify-string (cdr bits)))
+             "/"))))
   (dolist (map browse-url-filename-alist)
     (when (and map (string-match (car map) file))
       (setq file (replace-match (cdr map) t nil file))))

@@ -5091,7 +5091,11 @@ On most systems, this will be true:
         ;; If there's nothing left to peel off, we're at the root and
         ;; we can stop.
         (when (and dir (equal dir filename))
-          (push "" components)
+          (push (if (equal dir "") ""
+                  ;; On Windows, the first component might be "c:" or
+                  ;; the like.
+                  (substring dir 0 -1))
+                components)
           (setq filename nil))))
     components))
 
