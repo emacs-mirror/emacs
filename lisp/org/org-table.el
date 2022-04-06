@@ -2606,7 +2606,7 @@ location of point."
 		     (format-time-string
 		      (org-time-stamp-format
 		       (string-match-p "[0-9]\\{1,2\\}:[0-9]\\{2\\}" ts))
-		      (encode-time
+		      (apply #'encode-time
 			     (save-match-data (org-parse-time-string ts))))))
 		 form t t))
 

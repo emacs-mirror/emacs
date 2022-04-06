@@ -1185,7 +1185,7 @@ nil, just return 0."
    ((numberp s) s)
    ((stringp s)
     (condition-case nil
-	(float-time (encode-time (org-parse-time-string s)))
+	(float-time (apply #'encode-time (org-parse-time-string s)))
       (error 0)))
    (t 0)))
 
@@ -1252,7 +1252,7 @@ following special strings: \"<now>\", \"<today>\",
 \"<tomorrow>\", and \"<yesterday>\".
 
 Return 0. if S is not recognized as a valid value."
-  (let ((today (float-time (encode-time
+  (let ((today (float-time (apply #'encode-time
 				  (append '(0 0 0) (nthcdr 3 (decode-time)))))))
     (save-match-data
       (cond
