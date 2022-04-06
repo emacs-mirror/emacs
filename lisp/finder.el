@@ -367,7 +367,7 @@ not `finder-known-keywords'."
   "Display FILE's commentary section.
 FILE should be in a form suitable for passing to `locate-library'."
   ;; FIXME: Merge this function into `describe-package', which is
-  ;; strictly better as it has links to URL's and is in a proper help
+  ;; strictly better as it has links to URLs and is in a proper help
   ;; buffer with navigation forward and backward, etc.
   (interactive
    (list
