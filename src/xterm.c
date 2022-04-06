@@ -1395,13 +1395,18 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 
   if (drag_window == None)
     {
+      block_input ();
       unrequest_sigio ();
       temp_display = XOpenDisplay (XDisplayString (dpyinfo->display));
       request_sigio ();
 
       if (!temp_display)
-	return None;
+	{
+	  unblock_input ();
+	  return None;
+	}
 
+      XGrabServer (temp_display);
       XSetCloseDownMode (temp_display, RetainPermanent);
       attrs.override_redirect = True;
       drag_window = XCreateWindow (temp_display, DefaultRootWindow (temp_display),
@@ -1422,6 +1427,7 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 			    drag_window, &wattrs);
       rc = !x_had_errors_p (dpyinfo->display);
       x_uncatch_errors_after_check ();
+      unblock_input ();
 
       /* We connected to the wrong display, so just give up.  */
       if (!rc)
