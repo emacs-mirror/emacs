@@ -1336,6 +1336,12 @@ This change is now applied in 'dired-insert-directory'.
 'vc-arch-command'.
 
 +++
+** New generic function 'function-doumentation'.
+Can dynamically generate a raw docstring depending on the type of
+a function.
+Used mainly for docstrings of OClosures.
+
++++
 ** Base64 encoding no longer tolerates latin-1 input.
 The functions 'base64-encode-string', 'base64url-encode-string',
 'base64-encode-region' and 'base64url-encode-region' no longer accept

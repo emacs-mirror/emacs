@@ -505,6 +505,12 @@ This has 2 uses:
   "OClosure function to access a specific slot of an object."
   type slot)
 
+(defun oclosure--accessor-docstring (f)
+  ;; This would like to be a (cl-defmethod function-documentation ...)
+  ;; but for circularity reason the defmethod is in `simple.el'.
+  (format "Access slot \"%S\" of OBJ of type `%S'.\n\n(fn OBJ)"
+          (accessor--slot f) (accessor--type f)))
+
 (oclosure-define (oclosure-accessor
                   (:parent accessor)
                   (:copier oclosure--accessor-copy (type slot index)))

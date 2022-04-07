@@ -65,6 +65,7 @@
     (should (member (oclosure-test-gen ocl1)
                     '("#<oclosure-test:#<oclosure:#<cons>>>"
                       "#<oclosure-test:#<oclosure:#<bytecode>>>")))
+    (should (stringp (documentation #'oclosure-test--fst)))
     ))
 
 (ert-deftest oclosure-test-limits ()

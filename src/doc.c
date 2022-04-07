@@ -341,56 +341,8 @@ string is passed through `substitute-command-keys'.  */)
   else if (MODULE_FUNCTIONP (fun))
     doc = module_function_documentation (XMODULE_FUNCTION (fun));
 #endif
-  else if (COMPILEDP (fun))
-    {
-      if (PVSIZE (fun) <= COMPILED_DOC_STRING)
-	return Qnil;
-      else
-	{
-	  Lisp_Object tem = AREF (fun, COMPILED_DOC_STRING);
-	  if (STRINGP (tem))
-	    doc = tem;
-	  else if (FIXNATP (tem) || CONSP (tem))
-	    doc = tem;
-	  else
-	    return Qnil;
-	}
-    }
-  else if (STRINGP (fun) || VECTORP (fun))
-    {
-      return build_string ("Keyboard macro.");
-    }
-  else if (CONSP (fun))
-    {
-      Lisp_Object funcar = XCAR (fun);
-      if (!SYMBOLP (funcar))
-	xsignal1 (Qinvalid_function, fun);
-      else if (EQ (funcar, Qkeymap))
-	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
-      else if (EQ (funcar, Qlambda)
-	       || (EQ (funcar, Qclosure) && (fun = XCDR (fun), 1))
-	       || EQ (funcar, Qautoload))
-	{
-	  Lisp_Object tem1 = Fcdr (Fcdr (fun));
-	  Lisp_Object tem = Fcar (tem1);
-	  if (STRINGP (tem))
-	    doc = tem;
-	  /* Handle a doc reference--but these never come last
-	     in the function body, so reject them if they are last.  */
-	  else if ((FIXNATP (tem) || (CONSP (tem) && FIXNUMP (XCDR (tem))))
-		   && !NILP (XCDR (tem1)))
-	    doc = tem;
-	  else
-	    return Qnil;
-	}
-      else
-	goto oops;
-    }
   else
-    {
-    oops:
-      xsignal1 (Qinvalid_function, fun);
-    }
+    doc = call1 (intern ("function-documentation"), fun);
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */

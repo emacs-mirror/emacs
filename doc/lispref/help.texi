@@ -158,6 +158,13 @@ the function definition has no documentation string.  In that case,
 @code{documentation} returns @code{nil}.
 @end defun
 
+@defun function-documentation function
+Generic function used by @code{documentation} to extract the raw
+docstring from a function object.  You can specify how to get the
+docstring of a specific function type by adding a corresponding method
+to it.
+@end defun
+
 @defun face-documentation face
 This function returns the documentation string of @var{face} as a
 face.
