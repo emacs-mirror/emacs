@@ -1311,7 +1311,6 @@ xm_write_targets_table (Display *dpy, Window wdesc,
   rec_buffer = xmalloc (600);
   rec_buffer_size = 600;
 
-  XGrabServer (dpy);
   XChangeProperty (dpy, wdesc, targets_table_atom,
 		   targets_table_atom, 8, PropModeReplace,
 		   (unsigned char *) ptr, 8);
@@ -1334,7 +1333,6 @@ xm_write_targets_table (Display *dpy, Window wdesc,
 		       (unsigned char *) rec_buffer,
 		       2 + recs[i]->n_targets * 4);
     }
-  XUngrabServer (dpy);
 
   xfree (rec_buffer);
 }
