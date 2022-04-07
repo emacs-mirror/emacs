@@ -285,6 +285,8 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
     return QTARGETS;
   if (atom == dpyinfo->Xatom_NULL)
     return QNULL;
+  if (atom == dpyinfo->Xatom_XdndSelection)
+    return QXdndSelection;
 
   block_input ();
   x_catch_errors (dpyinfo->display);
