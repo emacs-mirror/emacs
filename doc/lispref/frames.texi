@@ -4079,19 +4079,20 @@ If @var{return-frame} is non-@code{nil} and the mouse moves over an
 Emacs frame after first moving out of @var{frame}, then the frame to
 which the mouse moves will be returned immediately.  If
 @var{return-frame} is the symbol @code{now}, then any frame underneath
-the mouse pointer will be returned and no further work will be done.
-@var{return-frame} useful when you want to treat dragging content from
-one frame to another specially, while also being able to drag content
-to other programs, but it is not guaranteed to work on all systems and
-window managers.
+the mouse pointer will be returned without waiting for the mouse to
+first move out of @var{frame}.  @var{return-frame} is useful when you
+want to treat dragging content from one frame to another specially,
+while also being able to drag content to other programs, but it is not
+guaranteed to work on all systems and with all window managers.
 
 If the drop was rejected or no drop target was found, this function
 returns @code{nil}.  Otherwise, it returns a symbol describing the
 action the target chose to perform, which can differ from @var{action}
 if that isn't supported by the drop target.  @code{XdndActionPrivate}
 is also a valid return value in addition to @code{XdndActionCopy} and
-@code{XdndActionMove}, and means that the drop target chose to perform
-an unspecified action.
+@code{XdndActionMove}; it means that the drop target chose to perform
+an unspecified action, and no further processing is required by the
+caller.
 @end defun
 
 @node Color Names
