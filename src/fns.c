@@ -2915,6 +2915,9 @@ it does up to one space will be removed.
 The user must confirm the answer with RET, and can edit it until it
 has been confirmed.
 
+If the `use-short-answers' variable is non-nil, instead of asking for
+\"yes\" or \"no\", this function will ask for \"y\" or \"n\".
+
 If dialog boxes are supported, a dialog box will be used
 if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   (Lisp_Object prompt)
