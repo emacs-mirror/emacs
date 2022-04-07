@@ -102,6 +102,10 @@ struct frame
   Lisp_Object parent_frame;
 #endif /* HAVE_WINDOW_SYSTEM */
 
+  /* Last device to move over this frame.  Any value that isn't a
+     string means the "Virtual core pointer".  */
+  Lisp_Object last_mouse_device;
+
   /* The frame which should receive keystrokes that occur in this
      frame, or nil if they should go to the frame itself.  This is
      usually nil, but if the frame is minibufferless, we can use this

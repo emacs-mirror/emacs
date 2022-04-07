@@ -392,9 +392,17 @@ struct input_event
      when building events.  Unfortunately some events have to pass much
      more data than it's reasonable to pack directly into this structure.  */
   Lisp_Object arg;
+
+  /* The name of the device from which this event originated.
+
+     It can either be a string, or Qt, which means to use the name
+     "Virtual core pointer" for all events other than keystroke
+     events, and "Virtual core keyboard" for those.  */
+  Lisp_Object device;
 };
 
-#define EVENT_INIT(event) memset (&(event), 0, sizeof (struct input_event))
+#define EVENT_INIT(event) (memset (&(event), 0, sizeof (struct input_event)), \
+			   (event).device = Qt)
 
 /* Bits in the modifiers member of the input_event structure.
    Note that reorder_modifiers assumes that the bits are in canonical

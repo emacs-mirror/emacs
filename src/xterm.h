@@ -244,6 +244,8 @@ struct xi_device_t
 #ifdef HAVE_XINPUT2_2
   struct xi_touch_point_t *touchpoints;
 #endif
+
+  Lisp_Object name;
 };
 #endif
 

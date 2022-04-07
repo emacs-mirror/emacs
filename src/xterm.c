@@ -3922,6 +3922,7 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
 #ifdef HAVE_XINPUT2_2
 	  xi_device->direct_p = false;
 #endif
+	  xi_device->name = build_string (device->name);
 
 	  for (int c = 0; c < device->num_classes; ++c)
 	    {
@@ -9653,6 +9654,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (x_dnd_return_frame == 3
       && FRAME_LIVE_P (x_dnd_return_frame_object))
     {
+      /* Deliberately preserve the last device if
+	 x_dnd_return_frame_object is the drag source.  */
+
+      if (x_dnd_return_frame_object != x_dnd_frame)
+	x_dnd_return_frame_object->last_mouse_device = Qnil;
+
       x_dnd_return_frame_object->mouse_moved = true;
 
       XSETFRAME (action, x_dnd_return_frame_object);
@@ -10170,7 +10177,8 @@ x_construct_mouse_click (struct input_event *result,
    XI_Enter and XI_Leave labels inside `handle_one_xevent'.  */
 
 static bool
-x_note_mouse_movement (struct frame *frame, const XMotionEvent *event)
+x_note_mouse_movement (struct frame *frame, const XMotionEvent *event,
+		       Lisp_Object device)
 {
   XRectangle *r;
   struct x_display_info *dpyinfo;
@@ -10187,6 +10195,7 @@ x_note_mouse_movement (struct frame *frame, const XMotionEvent *event)
   if (event->window != FRAME_X_WINDOW (frame))
     {
       frame->mouse_moved = true;
+      frame->last_mouse_device = device;
       dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, -1, -1);
       dpyinfo->last_mouse_glyph_frame = NULL;
@@ -10201,6 +10210,7 @@ x_note_mouse_movement (struct frame *frame, const XMotionEvent *event)
       || event->y < r->y || event->y >= r->y + r->height)
     {
       frame->mouse_moved = true;
+      frame->last_mouse_device = device;
       dpyinfo->last_mouse_scroll_bar = NULL;
       note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
@@ -14788,12 +14798,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       /* EnterNotify counts as mouse movement,
 	 so update things that depend on mouse position.  */
       if (f && !f->output_data.x->hourglass_p)
-	x_note_mouse_movement (f, &event->xmotion);
+	x_note_mouse_movement (f, &event->xmotion, Qnil);
 #ifdef USE_GTK
       /* We may get an EnterNotify on the buttons in the toolbar.  In that
          case we moved out of any highlighted area and need to note this.  */
       if (!f && dpyinfo->last_mouse_glyph_frame)
-        x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &event->xmotion);
+        x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &event->xmotion,
+			       Qnil);
 #endif
       goto OTHER;
 
@@ -14884,7 +14895,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
       /* See comment in EnterNotify above */
       else if (dpyinfo->last_mouse_glyph_frame)
-        x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &event->xmotion);
+        x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame,
+			       &event->xmotion, Qnil);
 #endif
       goto OTHER;
 
@@ -15123,7 +15135,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		last_mouse_window = window;
 	      }
 
-            if (!x_note_mouse_movement (f, &xmotion))
+            if (!x_note_mouse_movement (f, &xmotion, Qnil))
 	      help_echo_string = previous_help_echo_string;
           }
         else
@@ -15903,8 +15915,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      XIEnterEvent *enter = (XIEnterEvent *) xi_event;
 	      XMotionEvent ev;
+	      struct xi_device_t *source;
 
 	      any = x_top_window_to_frame (dpyinfo, enter->event);
+	      source = xi_device_from_id (dpyinfo, enter->sourceid);
 	      ev.x = lrint (enter->event_x);
 	      ev.y = lrint (enter->event_y);
 	      ev.window = enter->event;
@@ -15972,12 +15986,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      /* EnterNotify counts as mouse movement,
 		 so update things that depend on mouse position.  */
 	      if (f && !f->output_data.x->hourglass_p)
-		x_note_mouse_movement (f, &ev);
+		x_note_mouse_movement (f, &ev, source ? source->name : Qnil);
 #ifdef USE_GTK
 	      /* We may get an EnterNotify on the buttons in the toolbar.  In that
 		 case we moved out of any highlighted area and need to note this.  */
 	      if (!f && dpyinfo->last_mouse_glyph_frame)
-		x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
+		x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev,
+				       source ? source->name : Qnil);
 #endif
 	      goto XI_OTHER;
 	    }
@@ -15985,6 +16000,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_Leave:
 	    {
 	      XILeaveEvent *leave = (XILeaveEvent *) xi_event;
+	      struct xi_device_t *source;
 #ifdef USE_GTK
 	      XMotionEvent ev;
 
@@ -15995,6 +16011,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	      any = x_top_window_to_frame (dpyinfo, leave->event);
+	      source = xi_device_from_id (dpyinfo, leave->sourceid);
 
 	      /* This allows us to catch LeaveNotify events generated by
 		 popup menu grabs.  FIXME: this is right when there is a
@@ -16098,14 +16115,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
 	      /* See comment in EnterNotify above */
 	      else if (dpyinfo->last_mouse_glyph_frame)
-		x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev);
+		x_note_mouse_movement (dpyinfo->last_mouse_glyph_frame, &ev,
+				       source ? source->name : Qnil);
 #endif
 	      goto XI_OTHER;
 	    }
 
 	  case XI_Motion:
 	    {
-	      struct xi_device_t *device;
+	      struct xi_device_t *device, *source;
 #ifdef HAVE_XINPUT2_1
 	      XIValuatorState *states;
 	      double *values;
@@ -16117,6 +16135,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xm_top_level_enter_message emsg;
 	      xm_drag_motion_message dmsg;
 
+	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 
 #ifdef HAVE_XINPUT2_1
 	      states = &xev->valuators;
@@ -16332,6 +16351,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  XSETINT (inev.ie.y, lrint (real_y));
 			  XSETFRAME (inev.ie.frame_or_window, f);
 			}
+
+		      if (source && source->name)
+			inev.ie.device = source->name;
 
 		      goto XI_OTHER;
 		    }
@@ -16588,13 +16610,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			{
 			  inev.ie.kind = SELECT_WINDOW_EVENT;
 			  inev.ie.frame_or_window = window;
+
+			  if (source)
+			    inev.ie.device = source->name;
 			}
 
 		      /* Remember the last window where we saw the mouse.  */
 		      last_mouse_window = window;
 		    }
 
-		  if (!x_note_mouse_movement (f, &ev))
+		  if (!x_note_mouse_movement (f, &ev, source ? source->name : Qnil))
 		    help_echo_string = previous_help_echo_string;
 		}
 	      else
@@ -16628,7 +16653,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      Lisp_Object tab_bar_arg = Qnil;
 	      bool tab_bar_p = false;
 	      bool tool_bar_p = false;
-	      struct xi_device_t *device;
+	      struct xi_device_t *device, *source;
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xvw;
 #endif
@@ -16837,6 +16862,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (xev->evtype == XI_ButtonPress)
 		x_display_set_last_user_time (dpyinfo, xev->time);
 
+	      source = xi_device_from_id (dpyinfo, xev->sourceid);
+
 #ifdef HAVE_XWIDGETS
 	      xvw = xwidget_view_from_window (xev->event);
 	      if (xvw)
@@ -16849,6 +16876,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      inev.ie.kind = SELECT_WINDOW_EVENT;
 		      inev.ie.frame_or_window = xvw->w;
+
+		      if (source)
+			inev.ie.device = source->name;
 		    }
 
 		  *finish = X_EVENT_DROP;
@@ -16918,6 +16948,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  else
 			    inev.ie.kind = HORIZ_WHEEL_EVENT;
 
+			  if (source)
+			    inev.ie.device = source->name;
+
 			  inev.ie.timestamp = xev->time;
 
 			  XSETINT (inev.ie.x, real_x);
@@ -16952,6 +16985,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    inev.ie.kind = WHEEL_EVENT;
 			  else
 			    inev.ie.kind = HORIZ_WHEEL_EVENT;
+
+			  if (source)
+			    inev.ie.device = source->name;
 
 			  inev.ie.timestamp = xev->time;
 
@@ -17070,6 +17106,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  device->grab &= ~(1 << xev->detail);
 		}
 
+	      if (source && inev.ie.kind != NO_EVENT)
+		inev.ie.device = source->name;
+
 	      if (f)
 		f->mouse_moved = false;
 
@@ -17108,11 +17147,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      char *copy_bufptr = copy_buffer;
 	      int copy_bufsiz = sizeof (copy_buffer);
 	      ptrdiff_t i;
-	      struct xi_device_t *device;
+	      struct xi_device_t *device, *source;
 
 	      coding = Qlatin_1;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -17350,6 +17390,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
 		      inev.ie.code = keysym;
 
+		      if (source)
+			inev.ie.device = source->name;
+
 		      goto xi_done_keysym;
 		    }
 
@@ -17360,6 +17403,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			inev.ie.kind = ASCII_KEYSTROKE_EVENT;
 		      else
 			inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+
+		      if (source)
+			inev.ie.device = source->name;
+
 		      inev.ie.code = keysym & 0xFFFFFF;
 		      goto xi_done_keysym;
 		    }
@@ -17375,6 +17422,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				      ? ASCII_KEYSTROKE_EVENT
 				      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
 		      inev.ie.code = XFIXNAT (c);
+
+		      if (source)
+			inev.ie.device = source->name;
+
 		      goto xi_done_keysym;
 		    }
 
@@ -17479,6 +17530,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 key.  */
 		      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
 		      inev.ie.code = keysym;
+
+		      if (source)
+			inev.ie.device = source->name;
+
 		      goto xi_done_keysym;
 		    }
 
@@ -17494,6 +17549,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		      Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
 					  Qcoding, coding, inev.ie.arg);
+
+		      if (source)
+			inev.ie.device = source->name;
 		    }
 		  goto xi_done_keysym;
 		}
@@ -17688,12 +17746,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XINPUT2_2
 	  case XI_TouchBegin:
 	    {
-	      struct xi_device_t *device;
+	      struct xi_device_t *device, *source;
 	      bool menu_bar_p = false, tool_bar_p = false;
 #ifdef HAVE_GTK3
 	      GdkRectangle test_rect;
 #endif
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time);
 
 	      if (!device)
@@ -17741,6 +17800,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  XSETINT (inev.ie.x, lrint (xev->event_x));
 			  XSETINT (inev.ie.y, lrint (xev->event_y));
 			  XSETINT (inev.ie.arg, xev->detail);
+
+			  if (source)
+			    inev.ie.device = source->name;
 			}
 		      x_uncatch_errors_after_check ();
 		    }
@@ -17774,11 +17836,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  case XI_TouchUpdate:
 	    {
-	      struct xi_device_t *device;
+	      struct xi_device_t *device, *source;
 	      struct xi_touch_point_t *touchpoint;
 	      Lisp_Object arg = Qnil;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time);
 
 	      if (!device)
@@ -17809,6 +17872,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				   arg);
 		    }
 
+		  if (source)
+		    inev.ie.device = source->name;
+
 		  inev.ie.arg = arg;
 		}
 
@@ -17817,10 +17883,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  case XI_TouchEnd:
 	    {
-	      struct xi_device_t *device;
+	      struct xi_device_t *device, *source;
 	      bool unlinked_p;
 
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time);
 
 	      if (!device)
@@ -17836,10 +17903,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      inev.ie.kind = TOUCHSCREEN_END_EVENT;
 		      inev.ie.timestamp = xev->time;
+
 		      XSETFRAME (inev.ie.frame_or_window, f);
 		      XSETINT (inev.ie.x, lrint (xev->event_x));
 		      XSETINT (inev.ie.y, lrint (xev->event_y));
 		      XSETINT (inev.ie.arg, xev->detail);
+
+		      if (source)
+			inev.ie.device = source->name;
 		    }
 		}
 
@@ -17852,10 +17923,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  case XI_GesturePinchBegin:
 	  case XI_GesturePinchUpdate:
 	    {
-	      x_display_set_last_user_time (dpyinfo, xi_event->time);
-
 	      XIGesturePinchEvent *pev = (XIGesturePinchEvent *) xi_event;
-	      struct xi_device_t *device = xi_device_from_id (dpyinfo, pev->deviceid);
+	      struct xi_device_t *device, *source;
+
+	      device = xi_device_from_id (dpyinfo, pev->deviceid);
+	      source = xi_device_from_id (dpyinfo, pev->sourceid);
+	      x_display_set_last_user_time (dpyinfo, xi_event->time);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -17884,6 +17957,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				       make_float (pev->delta_y),
 				       make_float (pev->scale),
 				       make_float (pev->delta_angle));
+
+		  if (source)
+		    inev.ie.device = source->name;
 		}
 
 	      /* Once again GTK seems to crash when confronted by
@@ -23142,6 +23218,10 @@ void
 mark_xterm (void)
 {
   Lisp_Object val;
+#ifdef HAVE_XINPUT2
+  struct x_display_info *dpyinfo;
+  int i;
+#endif
 
   if (x_dnd_return_frame_object)
     {
@@ -23154,6 +23234,14 @@ mark_xterm (void)
       XSETFRAME (val, x_dnd_movement_frame);
       mark_object (val);
     }
+
+#ifdef HAVE_XINPUT2
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+    {
+      for (i = 0; i < dpyinfo->num_devices; ++i)
+	mark_object (dpyinfo->devices[i].name);
+    }
+#endif
 }
 
 void

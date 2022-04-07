@@ -1354,6 +1354,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New variable 'last-event-device'.
+On X Windows, this specifies the input extension device from which the
+last input event originated.
+
++++
 ** 'track-mouse' can be a new value 'drag-source'.
 This means the same as 'dropping', but modifies the mouse position
 list in reported motion events if there is no frame underneath the
