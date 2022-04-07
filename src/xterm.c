@@ -15549,6 +15549,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						     event->xbutton.time);
 		      }
 		  }
+		else if (x_dnd_last_seen_toplevel != None)
+		  {
+		    x_set_pending_dnd_time (event->xbutton.time);
+		    x_dnd_send_unsupported_drop (dpyinfo, x_dnd_last_seen_toplevel,
+						 event->xbutton.x_root,
+						 event->xbutton.y_root,
+						 event->xbutton.time);
+		  }
+
 
 		x_dnd_last_protocol_version = -1;
 		x_dnd_last_motif_style = XM_DRAG_STYLE_NONE;
@@ -16711,6 +16720,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 								     : x_dnd_last_seen_window),
 							   xev->root_x, xev->root_y, xev->time);
 			    }
+			}
+		      else if (x_dnd_last_seen_toplevel != None)
+			{
+			  x_set_pending_dnd_time (xev->time);
+			  x_dnd_send_unsupported_drop (dpyinfo,
+						       x_dnd_last_seen_toplevel,
+						       xev->root_x, xev->root_y,
+						       xev->time);
 			}
 
 		      x_dnd_last_protocol_version = -1;
