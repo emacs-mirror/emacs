@@ -51,11 +51,14 @@
  (add-to-list 'tramp-methods
 	      `(,tramp-sshfs-method
 		(tramp-mount-args            (("-C") ("-p" "%p")
+					      ("-o" "dir_cache=no")
+					      ("-o" "transform_symlinks")
 					      ("-o" "idmap=user,reconnect")))
 		;; These are for remote processes.
                 (tramp-login-program        "ssh")
-                (tramp-login-args           (("-q")("-l" "%u") ("-p" "%p")
-				             ("-e" "none") ("%h") ("%l")))
+                (tramp-login-args           (("-q") ("-l" "%u") ("-p" "%p")
+				             ("-e" "none") ("-t" "-t")
+					     ("%h") ("%l")))
                 (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
@@ -106,9 +109,9 @@
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
-    (file-notify-add-watch . ignore)
-    (file-notify-rm-watch . ignore)
-    (file-notify-valid-p . ignore)
+    (file-notify-add-watch . tramp-handle-file-notify-add-watch)
+    (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
@@ -117,7 +120,7 @@
     (file-symlink-p . tramp-handle-file-symlink-p)
     (file-system-info . tramp-sshfs-handle-file-system-info)
     (file-truename . tramp-handle-file-truename)
-    (file-writable-p . tramp-handle-file-writable-p)
+    (file-writable-p . tramp-sshfs-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-handle-insert-directory)
@@ -136,7 +139,7 @@
     (set-file-acl . ignore)
     (set-file-modes . tramp-sshfs-handle-set-file-modes)
     (set-file-selinux-context . ignore)
-    (set-file-times . ignore)
+    (set-file-times . tramp-sshfs-handle-set-file-times)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
     (shell-command . tramp-handle-shell-command)
     (start-file-process . tramp-handle-start-file-process)
@@ -219,6 +222,10 @@ arguments to pass to the OPERATION."
   ;;`file-system-info' exists since Emacs 27.1.
   (tramp-compat-funcall 'file-system-info (tramp-fuse-local-file-name filename)))
 
+(defun tramp-sshfs-handle-file-writable-p (filename)
+  "Like `file-writable-p' for Tramp files."
+  (file-writable-p (tramp-fuse-local-file-name filename)))
+
 (defun tramp-sshfs-handle-insert-file-contents
   (filename &optional visit beg end replace)
   "Like `insert-file-contents' for Tramp files."
@@ -239,16 +246,69 @@ arguments to pass to the OPERATION."
     (error "Implementation does not handle immediate return"))
 
   (with-parsed-tramp-file-name (expand-file-name default-directory) nil
-    (let ((command
+    (let ((coding-system-for-read 'utf-8-dos) ; Is this correct?
+	  (command
 	   (format
 	    "cd %s && exec %s"
-	    localname
-	    (mapconcat #'tramp-shell-quote-argument (cons program args) " "))))
+	    (tramp-unquote-shell-quote-argument localname)
+	    (mapconcat #'tramp-shell-quote-argument (cons program args) " ")))
+	  input tmpinput stderr tmpstderr outbuf)
+
+      ;; Determine input.
+      (if (null infile)
+	  (setq input (tramp-get-remote-null-device v))
+	(setq infile (tramp-compat-file-name-unquote (expand-file-name infile)))
+	(if (tramp-equal-remote default-directory infile)
+	    ;; INFILE is on the same remote host.
+	    (setq input (tramp-unquote-file-local-name infile))
+	  ;; INFILE must be copied to remote host.
+	  (setq input (tramp-make-tramp-temp-file v)
+		tmpinput (tramp-make-tramp-file-name v input 'nohop))
+	  (copy-file infile tmpinput t)))
+      (when input (setq command (format "%s <%s" command input)))
+
+      ;; Determine output.
+      (cond
+       ;; Just a buffer.
+       ((bufferp destination)
+	(setq outbuf destination))
+       ;; A buffer name.
+       ((stringp destination)
+	(setq outbuf (get-buffer-create destination)))
+       ;; (REAL-DESTINATION ERROR-DESTINATION)
+       ((consp destination)
+	;; output.
+	(cond
+	 ((bufferp (car destination))
+	  (setq outbuf (car destination)))
+	 ((stringp (car destination))
+	  (setq outbuf (get-buffer-create (car destination))))
+	 ((car destination)
+	  (setq outbuf (current-buffer))))
+	;; stderr.
+	(cond
+	 ((stringp (cadr destination))
+	  (setcar (cdr destination) (expand-file-name (cadr destination)))
+	  (if (tramp-equal-remote default-directory (cadr destination))
+	      ;; stderr is on the same remote host.
+	      (setq stderr (tramp-unquote-file-local-name (cadr destination)))
+	    ;; stderr must be copied to remote host.  The temporary
+	    ;; file must be deleted after execution.
+	    (setq stderr (tramp-make-tramp-temp-file v)
+		  tmpstderr (tramp-make-tramp-file-name v stderr))))
+	 ;; stderr to be discarded.
+	 ((null (cadr destination))
+	  (setq stderr (tramp-get-remote-null-device v)))))
+       ;; 't
+       (destination
+	(setq outbuf (current-buffer))))
+      (when stderr (setq command (format "%s 2>%s" command stderr)))
+
       (unwind-protect
 	  (apply
 	   #'tramp-call-process
 	   v (tramp-get-method-parameter v 'tramp-login-program)
-	   infile destination display
+	   nil outbuf display
 	   (tramp-expand-args
 	    v 'tramp-login-args
 	    ?h (or (tramp-file-name-host v) "")
@@ -256,7 +316,20 @@ arguments to pass to the OPERATION."
 	    ?p (or (tramp-file-name-port v) "")
 	    ?l command))
 
-	(unless process-file-side-effects
+	;; Synchronize stderr.
+	(when tmpstderr
+	  (tramp-cleanup-connection v 'keep-debug 'keep-password)
+	  (tramp-fuse-unmount v))
+
+	;; Provide error file.
+	(when tmpstderr
+	  (rename-file tmpstderr (cadr destination) t))
+
+	;; Cleanup.  We remove all file cache values for the
+	;; connection, because the remote process could have changed
+	;; them.
+	(when tmpinput (delete-file tmpinput))
+	(when process-file-side-effects
           (tramp-flush-directory-properties v ""))))))
 
 (defun tramp-sshfs-handle-rename-file
@@ -285,6 +358,15 @@ arguments to pass to the OPERATION."
       (tramp-compat-set-file-modes
        (tramp-fuse-local-file-name filename) mode flag))))
 
+(defun tramp-sshfs-handle-set-file-times (filename &optional timestamp flag)
+  "Like `set-file-times' for Tramp files."
+  (or (file-exists-p filename) (write-region "" nil filename nil 0))
+  (with-parsed-tramp-file-name filename nil
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-flush-file-properties v localname)
+      (tramp-compat-set-file-times
+       (tramp-fuse-local-file-name filename) timestamp flag))))
+
 (defun tramp-sshfs-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
@@ -312,6 +394,13 @@ arguments to pass to the OPERATION."
 	(write-region
 	 start end (tramp-fuse-local-file-name filename) append 'nomessage)
 	(tramp-flush-file-properties v localname))
+
+      ;; Set file modification time.
+      (when (or (eq visit t) (stringp visit))
+	(set-visited-file-modtime
+	 (or (tramp-compat-file-attribute-modification-time
+	      (file-attributes filename))
+	     (current-time))))
 
       ;; Unlock file.
       (when file-locked
@@ -344,9 +433,6 @@ connection if a previous connection has died for some reason."
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
       (set-process-query-on-exit-flag p nil)
-
-      ;; Mark process for filelock.
-      (tramp-set-connection-property p "lock-pid" (truncate (time-to-seconds)))
 
       ;; Set connection-local variables.
       (tramp-set-connection-local-variables vec)))
@@ -385,6 +471,24 @@ connection if a previous connection has died for some reason."
       vec "uid-string" (tramp-get-local-uid 'string))
   (with-tramp-connection-property
       vec "gid-string" (tramp-get-local-gid 'string)))
+
+;; `shell-mode' tries to open remote files like "/sshfs:user@host:~/.history".
+;; This fails, because the tilde cannot be expanded.  Tell
+;; `tramp-handle-expand-file-name' to tolerate this.
+(defun tramp-sshfs-tolerate-tilde (orig-fun)
+  "Advice for `shell-mode' to tolerate tilde in remote file names."
+  (let ((tramp-tolerate-tilde
+	 (or tramp-tolerate-tilde
+	     (equal (file-remote-p default-directory 'method)
+		    tramp-sshfs-method))))
+    (funcall orig-fun)))
+
+(add-function
+ :around  (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)
+(add-hook 'tramp-sshfs-unload-hook
+	  (lambda ()
+	    (remove-function
+	     (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
