@@ -857,15 +857,34 @@ to_embedder (GdkWindow *window, double x, double y,
 }
 
 static GdkDevice *
-find_suitable_pointer (struct frame *f)
+find_suitable_pointer (struct frame *f, bool need_smooth)
 {
   GdkSeat *seat = gdk_display_get_default_seat
     (gtk_widget_get_display (FRAME_GTK_WIDGET (f)));
+  GList *devices, *tem;
+  GdkDevice *device;
 
   if (!seat)
     return NULL;
 
-  return gdk_seat_get_pointer (seat);
+  devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL_POINTING);
+  device = NULL;
+  tem = NULL;
+
+  if (need_smooth)
+    {
+      for (tem = devices; tem; tem = tem->next)
+	{
+	  device = GDK_DEVICE (tem->data);
+
+	  if (gdk_device_get_source (device) == GDK_SOURCE_TOUCHPAD)
+	    break;
+	}
+    }
+
+  g_list_free (devices);
+
+  return !tem ? gdk_seat_get_pointer (seat) : device;
 }
 
 static GdkDevice *
@@ -1196,7 +1215,7 @@ xwidget_button_1 (struct xwidget_view *view,
   xg_event->button.button = button;
   xg_event->button.state = modifier_state;
   xg_event->button.time = time;
-  xg_event->button.device = find_suitable_pointer (view->frame);
+  xg_event->button.device = find_suitable_pointer (view->frame, false);
 
   gtk_main_do_event (xg_event);
   gdk_event_free (xg_event);
@@ -1242,7 +1261,8 @@ xwidget_button_1 (struct xwidget_view *view,
 	  xg_event->crossing.detail = GDK_NOTIFY_ANCESTOR;
 	  xg_event->crossing.mode = GDK_CROSSING_UNGRAB;
 	  xg_event->crossing.window = g_object_ref (target_window);
-	  gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+	  gdk_event_set_device (xg_event,
+				find_suitable_pointer (view->frame, false));
 
 	  gtk_main_do_event (xg_event);
 	  gdk_event_free (xg_event);
@@ -1264,7 +1284,8 @@ xwidget_button_1 (struct xwidget_view *view,
 	      xg_event->crossing.mode = GDK_CROSSING_UNGRAB;
 	      xg_event->crossing.window = g_object_ref (toplevel);
 
-	      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+	      gdk_event_set_device (xg_event,
+				    find_suitable_pointer (view->frame, false));
 	      gtk_main_do_event (xg_event);
 	      gdk_event_free (xg_event);
 	    }
@@ -1323,7 +1344,8 @@ xwidget_button (struct xwidget_view *view,
 	  else
 	    xg_event->scroll.direction = GDK_SCROLL_RIGHT;
 
-	  xg_event->scroll.device = find_suitable_pointer (view->frame);
+	  xg_event->scroll.device = find_suitable_pointer (view->frame,
+							   false);
 
 	  xg_event->scroll.x = x;
 	  xg_event->scroll.x_root = x;
@@ -1387,7 +1409,7 @@ xwidget_motion_notify (struct xwidget_view *view,
   xg_event->motion.y_root = root_y;
   xg_event->motion.time = time;
   xg_event->motion.state = state;
-  xg_event->motion.device = find_suitable_pointer (view->frame);
+  xg_event->motion.device = find_suitable_pointer (view->frame, false);
 
   g_object_ref (xg_event->any.window);
 
@@ -1434,7 +1456,7 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   xg_event->scroll.state = state;
   xg_event->scroll.delta_x = dx;
   xg_event->scroll.delta_y = dy;
-  xg_event->scroll.device = find_suitable_pointer (view->frame);
+  xg_event->scroll.device = find_suitable_pointer (view->frame, true);
   xg_event->scroll.is_stop = stop_p;
 
   g_object_ref (xg_event->any.window);
@@ -1499,7 +1521,7 @@ xwidget_pinch (struct xwidget_view *view, XIGesturePinchEvent *xev)
       break;
     }
 
-  gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+  gdk_event_set_device (xg_event, find_suitable_pointer (view->frame, false));
 
   g_object_ref (xg_event->any.window);
   gtk_main_do_event (xg_event);
@@ -1624,7 +1646,8 @@ xw_notify_virtual_upwards_until (struct xwidget_view *xv,
     {
       xg_event = gdk_event_new (type);
 
-      gdk_event_set_device (xg_event, find_suitable_pointer (xv->frame));
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (xv->frame, false));
       window_coords_from_toplevel (tem, toplevel, x, y, &cx, &cy);
       xg_event->crossing.x = cx;
       xg_event->crossing.y = cy;
@@ -1670,7 +1693,8 @@ xw_notify_virtual_downwards_until (struct xwidget_view *xv,
       tem = it->data;
       xg_event = gdk_event_new (type);
 
-      gdk_event_set_device (xg_event, find_suitable_pointer (xv->frame));
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (xv->frame, false));
       window_coords_from_toplevel (tem, toplevel, x, y, &cx, &cy);
       xg_event->crossing.x = cx;
       xg_event->crossing.y = cy;
@@ -1775,7 +1799,8 @@ xw_maybe_synthesize_crossing (struct xwidget_view *view,
 	  xg_event->crossing.detail = GDK_NOTIFY_ANCESTOR;
 	  xg_event->crossing.mode = exit_crossing;
 	  xg_event->crossing.window = g_object_ref (view->last_crossing_window);
-	  gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+	  gdk_event_set_device (xg_event,
+				find_suitable_pointer (view->frame, false));
 
 	  gtk_main_do_event (xg_event);
 	  gdk_event_free (xg_event);
@@ -1839,7 +1864,8 @@ xw_maybe_synthesize_crossing (struct xwidget_view *view,
 					 exit_crossing);
 
       xg_event = gdk_event_new (GDK_LEAVE_NOTIFY);
-      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
       window_coords_from_toplevel (last_crossing, toplevel,
 				   x, y, &cx, &cy);
       xg_event->crossing.x = cx;
@@ -1867,7 +1893,8 @@ xw_maybe_synthesize_crossing (struct xwidget_view *view,
 					   entry_crossing);
 
       xg_event = gdk_event_new (GDK_ENTER_NOTIFY);
-      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
       window_coords_from_toplevel (current_window, toplevel,
 				   x, y, &cx, &cy);
       xg_event->crossing.x = cx;
@@ -1970,7 +1997,8 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 	  xg_event->motion.y_root = event->xmotion.y_root;
 	  xg_event->motion.time = event->xmotion.time;
 	  xg_event->motion.state = event->xmotion.state;
-	  xg_event->motion.device = find_suitable_pointer (view->frame);
+	  xg_event->motion.device
+	    = find_suitable_pointer (view->frame, false);
 	}
       else
 	{
@@ -2017,7 +2045,8 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 	  return;
 	}
 
-      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
     }
 #endif
   else
@@ -2046,7 +2075,8 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
       xg_event->crossing.x_root = event->xcrossing.x_root;
       xg_event->crossing.y_root = event->xcrossing.y_root;
       xg_event->crossing.focus = event->xcrossing.focus;
-      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
     }
 
   gtk_main_do_event (xg_event);
@@ -2072,7 +2102,8 @@ synthesize_focus_in_event (GtkWidget *offscreen_window)
 
   if (FRAME_WINDOW_P (SELECTED_FRAME ()))
     gdk_event_set_device (focus_event,
-			  find_suitable_pointer (SELECTED_FRAME ()));
+			  find_suitable_pointer (SELECTED_FRAME (),
+						 false));
 
   g_object_ref (wnd);
 
