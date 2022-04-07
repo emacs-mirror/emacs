@@ -952,7 +952,10 @@ static XRectangle x_dnd_mouse_rect;
    XdndStatus messages from the drop target.
 
    Under Motif, this is changed upon receiving a XmDROP_START message
-   in reply to our own.  */
+   in reply to our own.
+
+   When dropping on a target that doesn't support any drag-and-drop
+   protocol, this is set to the atom XdndActionPrivate.  */
 static Atom x_dnd_action;
 
 /* The action we want the drop target to perform.  The drop target may
@@ -2896,6 +2899,8 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   if (!XGetAtomNames (dpyinfo->display, x_dnd_targets,
 		      x_dnd_n_targets, atom_names))
       return;
+
+  x_dnd_action = dpyinfo->Xatom_XdndActionPrivate;
 
   for (i = x_dnd_n_targets; i > 0; --i)
     {
