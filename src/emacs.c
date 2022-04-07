@@ -1742,10 +1742,10 @@ main (int argc, char **argv)
          window system to avoid referring users to the wrong GTK bug
          report.  */
 #ifdef HAVE_PGTK
-      fputs ("Due to a limitation in GTK 3, Emacs built with PGTK will simply exit when a"
-	     "display connection is closed."
-	     "\nThere is no way to fix this problem, so if you want to use Emacs on Wayland"
-	     "on multiple displays and have Emacs survive disconnects, you lose.",
+      fputs ("Due to a limitation in GTK 3, Emacs built with PGTK will simply exit when a\n"
+	     "display connection is closed.  The problem is especially difficult to fix,\n"
+	     "such that Emacs on Wayland with multiple displays is unlikely ever to be able\n"
+	     "to survive disconnects.\n",
 	     stderr);
 #elif defined USE_GTK
       fputs ("\nWarning: due to a long standing Gtk+ bug\nhttps://gitlab.gnome.org/GNOME/gtk/issues/221\n\
