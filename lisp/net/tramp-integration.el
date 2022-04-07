@@ -28,7 +28,6 @@
 ;;; Code:
 
 (require 'tramp-compat)
-(require 'files-x)
 
 ;; Pacify byte-compiler.
 (require 'cl-lib)
