@@ -818,6 +818,11 @@ displayed as emojis.  Default nil.
 This is bound to 'W D e' and will display symbols that have emoji
 representation as emojis.
 
++++
+*** New mu backend for gnus-search.
+Configuration is very similar to the notmuch and namazu backends.  It
+supports the unified search syntax.
+
 ** EIEIO
 
 +++

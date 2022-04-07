@@ -21651,6 +21651,9 @@ are:
 
 @item
 @code{gnus-search-namazu}
+
+@item
+@code{gnus-search-mu}
 @end itemize
 
 If you need more granularity, you can specify a search engine in the
@@ -21665,7 +21668,7 @@ buffer.  That might look like:
      (config-file "/home/user/.mail/.notmuch_config")))
 @end example
 
-Search engines like notmuch, namazu and mairix are similar in
+Search engines like notmuch, namazu, mairix and mu are similar in
 behavior: they use a local executable to create an index of a message
 store, and run command line search queries against those messages,
 and return a list of absolute file names of matching messages.
@@ -21704,8 +21707,8 @@ The customization options are formed on the pattern
 non-standard notmuch program, you might set
 @code{gnus-search-notmuch-program} to @file{/usr/local/bin/notmuch}.
 This would apply to all notmuch engines.  The engines that use these
-options are: ``notmuch'', ``namazu'', ``mairix'', ``swish-e'' and
-``swish++''.
+options are: ``notmuch'', ``namazu'', ``mairix'', ``mu'', ``swish-e''
+and ``swish++''.
 
 Alternately, the options can be set directly on your Gnus server
 definitions, for instance, in the @code{nnmaildir} example above.

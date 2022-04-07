@@ -349,6 +349,41 @@ This variable can also be set per-server."
   :version "28.1"
   :type 'boolean)
 
+(defcustom gnus-search-mu-program "mu"
+  "Name of the mu search executable.
+This can also be set per-server."
+  :version "29.1"
+  :type 'string)
+
+(defcustom gnus-search-mu-switches nil
+  "A list of strings, to be given as additional arguments to mu.
+Note that this should be a list. I.e., do NOT use the following:
+    (setq gnus-search-mu-switches \"-u -r\")
+Instead, use this:
+    (setq gnus-search-mu-switches \\='(\"-u\" \"-r\"))
+This can also be set per-server."
+  :version "29.1"
+  :type '(repeat string))
+
+(defcustom gnus-search-mu-remove-prefix (expand-file-name "~/Mail/")
+  "A prefix to remove from the mu results to get a group name.
+Usually this will be set to the path to your mail directory. This
+can also be set per-server."
+  :version "29.1"
+  :type 'directory)
+
+(defcustom gnus-search-mu-config-directory (expand-file-name "~/.cache/mu")
+  "Configuration directory for mu.
+This can also be set per-server."
+  :version "29.1"
+  :type 'file)
+
+(defcustom gnus-search-mu-raw-queries-p nil
+  "If t, all mu engines will only accept raw search query strings.
+This can also be set per-server."
+  :version "29.1"
+  :type 'boolean)
+
 ;; Options for search language parsing.
 
 (defcustom gnus-search-expandable-keys
@@ -902,6 +937,18 @@ quirks.")
     :initform (symbol-value 'gnus-search-notmuch-config-file))
    (raw-queries-p
     :initform (symbol-value 'gnus-search-notmuch-raw-queries-p))))
+
+(defclass gnus-search-mu (gnus-search-indexed)
+  ((program
+    :initform (symbol-value 'gnus-search-mu-program))
+   (remove-prefix
+    :initform (symbol-value 'gnus-search-mu-remove-prefix))
+   (switches
+    :initform (symbol-value 'gnus-search-mu-switches))
+   (config-directory
+    :initform (symbol-value 'gnus-search-mu-config-directory))
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-mu-raw-queries-p))))
 
 (define-obsolete-variable-alias 'nnir-method-default-engines
   'gnus-search-default-engines "28.1")
@@ -1848,6 +1895,101 @@ Assume \"size\" key is equal to \"larger\"."
 	   switches
 	   (when (alist-get 'thread query) (list "-t"))
 	   (list qstring))))
+
+;;; Mu interface
+
+(cl-defmethod gnus-search-transform-expression ((engine gnus-search-mu)
+						(expr list))
+  (cl-case (car expr)
+    (recipient (setf (car expr) 'recip))
+    (address (setf (car expr) 'contact))
+    (id (setf (car expr) 'msgid))
+    (attachment (setf (car expr) 'file)))
+  (cl-flet ()
+    (cond
+     ((consp (car expr))
+      (format "(%s)" (gnus-search-transform engine expr)))
+     ;; Explicitly leave out 'date as gnus-search will encode it
+     ;; first; it is handled later
+     ((memq (car expr) '(cc c bcc h from f to t subject s body b
+			    maildir m msgid i prio p flag g d
+			    size z embed e file j mime y tag x
+			    list v))
+      (format "%s:%s" (car expr)
+	      (if (string-match "\\`\\*" (cdr expr))
+		  (replace-match "" nil nil (cdr expr))
+		(cdr expr))))
+     ((eq (car expr) 'mark)
+      (format "flag:%s" (gnus-search-mu-handle-flag (cdr expr))))
+     ((eq (car expr) 'date)
+      (format "date:%s" (gnus-search-mu-handle-date (cdr expr))))
+     ((eq (car expr) 'before)
+      (format "date:..%s" (gnus-search-mu-handle-date (cdr expr))))
+     ((eq (car expr) 'since)
+      (format "date:%s.." (gnus-search-mu-handle-date (cdr expr))))
+     (t (ignore-errors (cl-call-next-method))))))
+
+(defun gnus-search-mu-handle-date (date)
+  (if (stringp date)
+      date
+    (pcase date
+      (`(nil ,m nil)
+       (nth (1- m) gnus-english-month-names))
+      (`(nil nil ,y)
+       (number-to-string y))
+      ;; mu prefers ISO date YYYY-MM-DD HH:MM:SS
+      (`(,d ,m nil)
+       (let* ((ct (decode-time))
+	      (cm (decoded-time-month ct))
+	      (cy (decoded-time-year ct))
+	      (y (if (> cm m)
+		     cy
+		   (1- cy))))
+	 (format "%d-%02d-%02d" y m d)))
+      (`(nil ,m ,y)
+       (format "%d-%02d" y m))
+      (`(,d ,m ,y)
+       (format "%d-%02d-%02d" y m d)))))
+
+(defun gnus-search-mu-handle-flag (flag)
+  ;; Only change what doesn't match
+  (cond ((string= flag "flag")
+	 "flagged")
+	((string= flag "read")
+	 "seen")
+	(t
+	 flag)))
+
+(cl-defmethod gnus-search-indexed-extract ((_engine gnus-search-mu))
+  (prog1
+      (let ((bol (line-beginning-position))
+	    (eol (line-end-position)))
+	(list (buffer-substring-no-properties bol eol)
+	      100))
+    (move-beginning-of-line 2)))
+
+(cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-mu)
+						  (qstring string)
+						  query &optional groups)
+  (let ((limit (alist-get 'limit query))
+	(thread (alist-get 'thread query)))
+    (with-slots (switches config-directory) engine
+      `("find" 			; command must come first
+	"--nocolor"		; mu will always give coloured output otherwise
+	,(format "--muhome=%s" config-directory)
+	,@switches
+	,(if thread "-r" "")
+	,(if limit (format "--maxnum=%d" limit) "")
+	,qstring
+	,@(if groups
+	      `("and" "("
+		,@(nbutlast (mapcan (lambda (x)
+				      (list (concat "maildir:/" x) "or"))
+				    groups))
+		")")
+	    "")
+	"--format=plain"
+	"--fields=l"))))
 
 ;;; Find-grep interface
 
