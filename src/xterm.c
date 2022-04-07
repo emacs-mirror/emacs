@@ -9540,7 +9540,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  x_dnd_movement_frame = NULL;
 
 	  if (!NILP (Vx_dnd_movement_function)
-	      && !FRAME_TOOLTIP_P (XFRAME (frame_object)))
+	      && !FRAME_TOOLTIP_P (XFRAME (frame_object))
+	      && x_dnd_movement_x >= 0
+	      && x_dnd_movement_y >= 0
+	      && x_dnd_frame
+	      && (XFRAME (frame_object) != x_dnd_frame
+		  || x_dnd_allow_current_frame))
 	    {
 	      x_dnd_old_window_attrs = root_window_attrs;
 	      x_dnd_unwind_flag = true;
