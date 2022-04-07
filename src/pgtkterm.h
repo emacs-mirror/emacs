@@ -611,9 +611,6 @@ extern void syms_of_pgtkmenu (void);
 extern void syms_of_pgtkselect (void);
 extern void syms_of_pgtkim (void);
 
-/* Implemented in pgtkselect. */
-extern void nxatoms_of_pgtkselect (void);
-
 /* Initialization and marking implemented in pgtkterm.c */
 extern void init_pgtkterm (void);
 extern void mark_pgtkterm (void);

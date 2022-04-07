@@ -492,12 +492,6 @@ frame's display, or the first available display.  */)
   return Qnil;
 }
 
-
-void
-nxatoms_of_pgtkselect (void)
-{
-}
-
 void
 syms_of_pgtkselect (void)
 {

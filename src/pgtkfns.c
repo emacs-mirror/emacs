@@ -2212,7 +2212,6 @@ terminate Emacs if we can't open the connection.  */)
 
   CHECK_STRING (display);
 
-  nxatoms_of_pgtkselect ();
   dpyinfo = pgtk_term_init (display, SSDATA (Vx_resource_name));
   if (dpyinfo == 0)
     {

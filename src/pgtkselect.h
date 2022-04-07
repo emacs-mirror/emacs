@@ -26,8 +26,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gtk/gtk.h>
 
 extern void pgtk_selection_init (void);
-extern void pgtk_selection_lost (GtkWidget * widget,
-				 GdkEventSelection * event,
-				 gpointer user_data);
+extern void pgtk_selection_lost (GtkWidget *, GdkEventSelection *, gpointer);
 
 #endif /* HAVE_PGTK */
