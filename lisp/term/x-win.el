@@ -1608,7 +1608,10 @@ Users should not call this function; see `device-class' instead."
           (string-match-p "pointer" downcased-name))
       'mouse)
      ((string-match-p "cursor" downcased-name) 'puck)
-     ((string-match-p "keyboard" downcased-name) 'keyboard)
+     ((or (string-match-p "keyboard" downcased-name)
+          ;; One of my cheap keyboards is really named this...
+          (string= name "USB USB Keykoard"))
+      'keyboard)
      ((string-match-p "button" downcased-name) 'power-button)
      ((string-match-p "touchpad" downcased-name) 'touchpad)
      ((or (string-match-p "midi" downcased-name)
