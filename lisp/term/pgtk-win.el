@@ -367,6 +367,27 @@ This uses `icon-map-list' to map icon file names to stock icon names."
    (t
     (popup-menu (mouse-menu-bar-map) last-nonmenu-event))))
 
+(defun pgtk-device-class (name)
+  "Return the device class of NAME.
+Users should not call this function; see `device-class' instead."
+  (cond
+   ((string-match-p "XTEST" name) 'test)
+   ((string= "Virtual core pointer" name) 'core-pointer)
+   ((string= "Virtual core keyboard" name) 'core-keyboard)
+   (t (let ((number (ignore-errors
+                      (string-to-number name))))
+        (when number
+          (cl-case number
+            (0 'mouse)
+            (1 'pen)
+            (2 'eraser)
+            (3 'puck)
+            (4 'keyboard)
+            (5 'touchscreen)
+            (6 'touchpad)
+            (7 'trackpoint)
+            (8 'pad)))))))
+
 (defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
 
 (provide 'pgtk-win)

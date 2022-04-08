@@ -2434,6 +2434,7 @@ monitors."
 	   (frames . ,(frames-on-display-list display)))))))))
 
 (declare-function x-device-class (name) "x-win.el")
+(declare-function pgtk-device-class (name) "pgtk-win.el")
 
 (defun device-class (frame name)
   "Return the class of the device NAME for an event generated on FRAME.
@@ -2488,6 +2489,8 @@ symbols."
   (let ((frame-type (framep-on-display frame)))
     (cond ((eq frame-type 'x)
            (x-device-class name))
+          ((eq frame-type 'pgtk)
+           (pgtk-device-class name))
           (t (cond
               ((string= name "Virtual core pointer")
                'core-pointer)

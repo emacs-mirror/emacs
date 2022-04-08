@@ -40,8 +40,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <cairo-svg.h>
 #endif
 
-/* could use list to store these, but rest of emacs has a big infrastructure
-   for managing a table of bitmap "records" */
 struct pgtk_bitmap_record
 {
   void *img;
@@ -49,6 +47,15 @@ struct pgtk_bitmap_record
   int refcount;
   int height, width, depth;
   cairo_pattern_t *pattern;
+};
+
+struct pgtk_device_t
+{
+  GdkSeat *seat;
+  GdkDevice *device;
+
+  Lisp_Object name;
+  struct pgtk_device_t *next;
 };
 
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
@@ -112,8 +119,6 @@ struct scroll_bar
   bool horizontal;
 };
 
-
-/* init'd in pgtk_initialize_display_info () */
 struct pgtk_display_info
 {
   /* Chain of all pgtk_display_info structures.  */
@@ -208,13 +213,14 @@ struct pgtk_display_info
   /* The scroll bar in which the last motion event occurred.  */
   void *last_mouse_scroll_bar;
 
-  /* The invisible cursor used for pointer blanking.
-     Unused if this display supports Xfixes extension.  */
+  /* The invisible cursor used for pointer blanking.  */
   Emacs_Cursor invisible_cursor;
 
   /* The GDK cursor for scroll bars and popup menus.  */
   GdkCursor *xg_cursor;
 
+  /* List of all devices for all seats on this display.  */
+  struct pgtk_device_t *devices;
 
   /* The frame where the mouse was last time we reported a mouse position.  */
   struct frame *last_mouse_glyph_frame;
@@ -225,7 +231,7 @@ struct pgtk_display_info
   /* The last click event. */
   GdkEvent *last_click_event;
 
-  /* input method */
+  /* IM context data.  */
   struct
   {
     GtkIMContext *context;
@@ -246,10 +252,6 @@ extern struct pgtk_display_info *x_display_list;
 
 struct pgtk_output
 {
-#if 0
-  void *view;
-  void *miniimage;
-#endif
   unsigned long foreground_color;
   unsigned long background_color;
   void *toolbar;
@@ -406,7 +408,7 @@ struct pgtk_output
   struct atimer *scale_factor_atimer;
 };
 
-/* this dummy decl needed to support TTYs */
+/* Satisfy term.c.  */
 struct x_output
 {
   int unused;
@@ -452,59 +454,8 @@ enum
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
-#define PGTK_FACE_FOREGROUND(f) ((f)->foreground)
-#define PGTK_FACE_BACKGROUND(f) ((f)->background)
 #define FRAME_DEFAULT_FACE(f) FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID)
-
-/* Compute pixel height of the frame's titlebar. */
-#define FRAME_PGTK_TITLEBAR_HEIGHT(f)                                     0
-
-/* Compute pixel size for vertical scroll bars */
-#define PGTK_SCROLL_BAR_WIDTH(f)					\
-  (FRAME_HAS_VERTICAL_SCROLL_BARS (f)					\
-   ? rint (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0			\
-	   ? FRAME_CONFIG_SCROLL_BAR_WIDTH (f)				\
-	   : (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)))	\
-   : 0)
-
-/* Compute pixel size for horizontal scroll bars */
-#define PGTK_SCROLL_BAR_HEIGHT(f)					\
-  (FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)					\
-   ? rint (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) > 0			\
-	   ? FRAME_CONFIG_SCROLL_BAR_HEIGHT (f)				\
-	   : (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)))	\
-   : 0)
-
-/* Difference btwn char-column-calculated and actual SB widths.
-   This is only a concern for rendering when SB on left. */
-#define PGTK_SCROLL_BAR_ADJUST(w, f)				\
-  (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w) ?			\
-   (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)		\
-    - PGTK_SCROLL_BAR_WIDTH (f)) : 0)
-
-/* Difference btwn char-line-calculated and actual SB heights.
-   This is only a concern for rendering when SB on top. */
-#define PGTK_SCROLL_BAR_ADJUST_HORIZONTALLY(w, f)		\
-  (WINDOW_HAS_HORIZONTAL_SCROLL_BARS (w) ?		\
-   (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)	\
-    - PGTK_SCROLL_BAR_HEIGHT (f)) : 0)
-
 #define FRAME_MENUBAR_HEIGHT(f) (FRAME_X_OUTPUT (f)->menubar_height)
-
-/* Calculate system coordinates of the left and top of the parent
-   window or, if there is no parent window, the screen. */
-#define PGTK_PARENT_WINDOW_LEFT_POS(f)                                    \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? [[FRAME_PGTK_VIEW (f) window] parentWindow].frame.origin.x : 0)
-#define PGTK_PARENT_WINDOW_TOP_POS(f)                                     \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? ([[FRAME_PGTK_VIEW (f) window] parentWindow].frame.origin.y          \
-      + [[FRAME_PGTK_VIEW (f) window] parentWindow].frame.size.height     \
-      - FRAME_PGTK_TITLEBAR_HEIGHT (FRAME_PARENT_FRAME (f)))              \
-   : [[[PGTKScreen screepgtk] objectAtIndex: 0] frame].size.height)
-
-#define FRAME_PGTK_FONT_TABLE(f) (FRAME_DISPLAY_INFO (f)->font_table)
-
 #define FRAME_TOOLBAR_TOP_HEIGHT(f) ((f)->output_data.pgtk->toolbar_top_height)
 #define FRAME_TOOLBAR_BOTTOM_HEIGHT(f) \
   ((f)->output_data.pgtk->toolbar_bottom_height)
