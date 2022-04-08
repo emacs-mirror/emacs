@@ -2719,7 +2719,8 @@ It can be retrieved with `(process-get PROCESS PROPNAME)'."
 
 (defun memory-limit ()
   "Return an estimate of Emacs virtual memory usage, divided by 1024."
-  (or (cdr (assq 'vsize (process-attributes (emacs-pid)))) 0))
+  (let ((default-directory temporary-file-directory))
+    (or (cdr (assq 'vsize (process-attributes (emacs-pid)))) 0)))
 
 
 ;;;; Input and display facilities.
