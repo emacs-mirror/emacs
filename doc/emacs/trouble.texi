@@ -296,6 +296,20 @@ editing in the same Emacs session.
 out of memory, because the Buffer Menu needs a fair amount of memory
 itself, and the reserve supply may not be enough.
 
+@cindex memory trouble, GNU/Linux
+  On GNU/Linux systems, the system does not normally report running
+out of memory to Emacs, and can instead randomly kill processes when
+they run out of memory.  We recommend that you turn this behavior off,
+so that Emacs can respond correctly when it runs out of memory, by
+becoming the super user, editing the file @code{/etc/sysctl.conf} to
+contain the following lines, and then running the command @code{sysctl
+-p}:
+
+@example
+vm.overcommit_memory=2
+vm.overcommit_ratio=0
+@end example
+
 @node Crashing
 @subsection When Emacs Crashes
 
