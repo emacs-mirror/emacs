@@ -19200,12 +19200,30 @@ static void x_error_quitter (Display *, XErrorEvent *);
 static int
 x_error_handler (Display *display, XErrorEvent *event)
 {
+#ifdef HAVE_XINPUT2
+  struct x_display_info *dpyinfo;
+#endif
+
 #if defined USE_GTK && defined HAVE_GTK3
   if ((event->error_code == BadMatch || event->error_code == BadWindow)
       && event->request_code == X_SetInputFocus)
     {
       return 0;
     }
+#endif
+
+  /* If we try to ungrab or grab a device that doesn't exist anymore
+     (that happens a lot in xmenu.c), just ignore the error.  */
+
+#ifdef HAVE_XINPUT2
+  dpyinfo = x_display_info_for_display (display);
+
+  /* 51 is X_XIGrabDevice and 52 is X_XIUngrabDevice.  */
+  if (dpyinfo && dpyinfo->supports_xi2
+      && event->request_code == dpyinfo->xi2_opcode
+      && (event->minor_code == 51
+	  || event->minor_code == 52))
+    return 0;
 #endif
 
   if (x_error_message)
