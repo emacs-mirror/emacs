@@ -2433,6 +2433,67 @@ monitors."
 		       ,(display-mm-height display)))
 	   (frames . ,(frames-on-display-list display)))))))))
 
+(declare-function x-device-class (name) "x-win.el")
+
+(defun device-class (frame name)
+  "Return the class of the device NAME for an event generated on FRAME.
+NAME is a string that can be the value of `last-event-device', or
+nil.  FRAME is a window system frame, typically the value of
+`last-event-frame' when `last-event-device' was set.  On some
+window systems, it can also be a display name or a terminal.
+
+The class of a device is one of the following symbols:
+
+  `core-keyboard' means the device is a keyboard-like device, but
+  any other characteristics are unknown.
+
+  `core-pointer' means the device is a pointing device, but any
+  other characteristics are unknown.
+
+  `mouse' means the device is a computer mouse.
+
+  `trackpoint' means the device is a joystick or trackpoint.
+
+  `eraser' means the device is an eraser, which is typically the
+  other end of a stylus on a graphics tablet.
+
+  `pen' means the device is a stylus or some other similar
+  device.
+
+  `puck' means the device is a device similar to a mouse, but
+  reports absolute coordinates.
+
+  `power-button' means the device is a power button, volume
+  button, or some similar control.
+
+  `keyboard' means the device is a keyboard.
+
+  `touchscreen' means the device is a touchscreen.
+
+  `pad' means the device is a collection of buttons and rings and
+  strips commonly found in drawing tablets.
+
+  `touchpad' means the device is an indirect touch device, such
+  as a touchpad.
+
+  `piano' means the device is a piano, or some other kind of
+  musical instrument.
+
+  `test' means the device is used by the XTEST extension to
+  report input.
+
+It can also be nil, which means the class of the device could not
+be determined.  Individual window systems may also return other
+symbols."
+  (let ((frame-type (framep-on-display frame)))
+    (cond ((eq frame-type 'x)
+           (x-device-class name))
+          (t (cond
+              ((string= name "Virtual core pointer")
+               'core-pointer)
+              ((string= name "Virtual core keyboard")
+               'core-keyboard))))))
+
 
 ;;;; Frame geometry values
 

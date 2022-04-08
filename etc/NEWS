@@ -1360,9 +1360,10 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
-** New variable 'last-event-device'.
-On X Windows, this specifies the input extension device from which the
-last input event originated.
+** New variable 'last-event-device' and new function 'device-class'.
+On X Windows, 'last-event-device' specifies the input extension device
+from which the last input event originated, and 'device-class' can be
+used to determine the type of an input device.
 
 +++
 ** 'track-mouse' can be a new value 'drag-source'.

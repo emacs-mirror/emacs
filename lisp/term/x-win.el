@@ -1583,6 +1583,38 @@ frames on all displays."
   (dnd-handle-movement position)
   (redisplay))
 
+(defun x-device-class (name)
+  "Return the device class of NAME.
+Users should not call this function; see `device-class' instead."
+  (let ((downcased-name (downcase name)))
+    (cond
+     ((string-match-p "XTEST" name) 'test)
+     ((string= "Virtual core pointer" name) 'core-pointer)
+     ((string= "Virtual core keyboard" name) 'core-keyboard)
+     ((string-match-p "eraser" downcased-name) 'eraser)
+     ((string-match-p " pad" downcased-name) 'pad)
+     ((or (or (string-match-p "wacom" downcased-name)
+              (string-match-p "pen" downcased-name))
+          (string-match-p "stylus" downcased-name))
+      'pen)
+     ((or (string-prefix-p "xwayland-touch:" name)
+          (string-match-p "touchscreen" downcased-name))
+      'touchscreen)
+     ((or (string-match-p "trackpoint" downcased-name)
+          (string-match-p "stick" downcased-name))
+      'trackpoint)
+     ((or (string-match-p "mouse" downcased-name)
+          (string-match-p "optical" downcased-name)
+          (string-match-p "pointer" downcased-name))
+      'mouse)
+     ((string-match-p "cursor" downcased-name) 'puck)
+     ((string-match-p "keyboard" downcased-name) 'keyboard)
+     ((string-match-p "button" downcased-name) 'power-button)
+     ((string-match-p "touchpad" downcased-name) 'touchpad)
+     ((or (string-match-p "midi" downcased-name)
+          (string-match-p "piano" downcased-name))
+      'piano))))
+
 (setq x-dnd-movement-function #'x-dnd-movement)
 (setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
 
