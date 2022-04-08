@@ -4195,7 +4195,18 @@ must tell Emacs.  Here's how to do that in your init file:
                    nil)))
                ;; Propertize rules to not have /- and -* start comments.
                ("\\(/-\\)" (1 "."))
-               ("\\(-\\*\\)" (1 "."))))
+               ("\\(-\\*\\)"
+                (1
+                 (if (save-excursion
+                       (not (ppss-comment-depth
+                             (syntax-ppss (match-beginning 1)))))
+                     ;; If we're outside a comment, we don't let -*
+                     ;; start a comment.
+	             (string-to-syntax ".")
+                   ;; Inside a comment, ignore it to avoid -*/ not
+                   ;; being intepreted as a comment end.
+                   (forward-char -1)
+                   nil)))))
   ;; Set syntax and font-face highlighting
   ;; Catch changes to sql-product and highlight accordingly
   (sql-set-product (or sql-product 'ansi)) ; Fixes bug#13591
