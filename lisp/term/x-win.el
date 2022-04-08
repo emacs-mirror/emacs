@@ -1616,7 +1616,11 @@ Users should not call this function; see `device-class' instead."
      ((string-match-p "touchpad" downcased-name) 'touchpad)
      ((or (string-match-p "midi" downcased-name)
           (string-match-p "piano" downcased-name))
-      'piano))))
+      'piano)
+     ((or (string-match-p "wskbd" downcased-name) ; NetBSD/OpenBSD
+          (and (string-match-p "/dev" downcased-name)
+               (string-match-p "kbd" downcased-name)))
+      'keyboard))))
 
 (setq x-dnd-movement-function #'x-dnd-movement)
 (setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
