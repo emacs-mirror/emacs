@@ -17038,9 +17038,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      tool_bar_p = EQ (window, f->tool_bar_window);
 
 		      if (tool_bar_p && xev->detail < 4)
-			handle_tool_bar_click
+			handle_tool_bar_click_with_device
 			  (f, x, y, xev->evtype == XI_ButtonPress,
-			   x_x_to_emacs_modifiers (dpyinfo, bv.state));
+			   x_x_to_emacs_modifiers (dpyinfo, bv.state),
+			   source ? source->name : Qt);
 		    }
 #endif /* !USE_GTK */
 

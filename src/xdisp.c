@@ -15114,11 +15114,11 @@ get_tool_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
    Handle mouse button event on the tool-bar of frame F, at
    frame-relative coordinates X/Y.  DOWN_P is true for a button press,
    false for button release.  MODIFIERS is event modifiers for button
-   release.  */
+   release.  DEVICE is the device the click came from, or Qt.  */
 
 void
-handle_tool_bar_click (struct frame *f, int x, int y, bool down_p,
-		       int modifiers)
+handle_tool_bar_click_with_device (struct frame *f, int x, int y, bool down_p,
+				   int modifiers, Lisp_Object device)
 {
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   struct window *w = XWINDOW (f->tool_bar_window);
@@ -15175,11 +15175,18 @@ handle_tool_bar_click (struct frame *f, int x, int y, bool down_p,
       event.frame_or_window = frame;
       event.arg = key;
       event.modifiers = modifiers;
+      event.device = device;
       kbd_buffer_store_event (&event);
       f->last_tool_bar_item = -1;
     }
 }
 
+void
+handle_tool_bar_click (struct frame *f, int x, int y, bool down_p,
+		       int modifiers)
+{
+  handle_tool_bar_click_with_device (f, x, y, down_p, modifiers, Qt);
+}
 
 /* Possibly highlight a tool-bar item on frame F when mouse moves to
    tool-bar window-relative coordinates X/Y.  Called from
