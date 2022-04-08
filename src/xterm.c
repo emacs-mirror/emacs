@@ -13930,7 +13930,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	if (x_dnd_in_progress || x_dnd_waiting_for_finish)
 	  {
-	    eassert (hold_quit);
+	    eassume (hold_quit);
 
 	    *hold_quit = inev.ie;
 	    EVENT_INIT (inev.ie);
