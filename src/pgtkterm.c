@@ -347,6 +347,7 @@ mark_pgtkterm (void)
       mark_object (ev->ie.y);
       mark_object (ev->ie.frame_or_window);
       mark_object (ev->ie.arg);
+      mark_object (ev->ie.device);
     }
 
   for (dpyinfo = x_display_list; dpyinfo;

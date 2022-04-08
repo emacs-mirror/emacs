@@ -13088,6 +13088,12 @@ mark_kboards (void)
 	  mark_object (event->ie.y);
 	  mark_object (event->ie.frame_or_window);
 	  mark_object (event->ie.arg);
+
+	  /* This should never be allocated for a single event, but
+	     mark it anyway in the situation where the list of devices
+	     changed but an event with an old device is still present
+	     in the queue.  */
+	  mark_object (event->ie.device);
 	}
     }
 }
