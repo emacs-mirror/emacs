@@ -7873,7 +7873,7 @@ not_in_argv (NSString *arg)
 
 
 #ifdef NS_IMPL_COCOA
-- (CALayer *)makeBackingLayer;
+- (CALayer *)makeBackingLayer
 {
   EmacsLayer *l = [[EmacsLayer alloc]
                     initWithColorSpace:[[[self window] colorSpace] CGColorSpace]];
