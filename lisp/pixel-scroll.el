@@ -214,6 +214,14 @@ This is only effective when `pixel-scroll-precision-mode' is enabled."
   :type 'boolean
   :version "29.1")
 
+(defcustom pixel-scroll-precision-interpolate-mice t
+  "Whether or not to interpolate scrolling from a mouse.
+If non-nil, scrolling from the mouse wheel of an actual mouse (as
+opposed to a touchpad) will cause Emacs to interpolate the scroll."
+  :group 'scrolling
+  :type 'boolean
+  :version "29.1")
+
 (defun pixel-scroll-in-rush-p ()
   "Return non-nil if next scroll should be non-smooth.
 When scrolling request is delivered soon after the previous one,
@@ -681,16 +689,20 @@ wheel."
             (if (> (abs delta) (window-text-height window t))
                 (mwheel-scroll event nil)
               (with-selected-window window
-                (if (and pixel-scroll-precision-large-scroll-height
-                         (> (abs delta)
-                            pixel-scroll-precision-large-scroll-height)
-                         (let* ((kin-state (pixel-scroll-kinetic-state))
-                                (ring (aref kin-state 0))
-                                (time (aref kin-state 1)))
-                           (or (null time)
-                               (> (- (float-time) time) 1.0)
-                               (and (consp ring)
-                                    (ring-empty-p ring)))))
+                (if (or (and pixel-scroll-precision-interpolate-mice
+                             (eq (device-class last-event-frame
+                                               last-event-device)
+                                 'mouse))
+                        (and pixel-scroll-precision-large-scroll-height
+                             (> (abs delta)
+                                pixel-scroll-precision-large-scroll-height)
+                             (let* ((kin-state (pixel-scroll-kinetic-state))
+                                    (ring (aref kin-state 0))
+                                    (time (aref kin-state 1)))
+                               (or (null time)
+                                   (> (- (float-time) time) 1.0)
+                                   (and (consp ring)
+                                        (ring-empty-p ring))))))
                     (progn
                       (let ((kin-state (pixel-scroll-kinetic-state)))
                         (aset kin-state 0 (make-ring 30))
