@@ -1209,17 +1209,14 @@ sym_scope (struct sym *p)
 }
 
 
-/* Dump the list of members M to file FP.  Value is the length of the
-   list.  */
+/* Dump the list of members M to file FP.  */
 
-static int
+static void
 dump_members (FILE *fp, struct member *m)
 {
-  int n;
-
   putc ('(', fp);
 
-  for (n = 0; m; m = m->next, ++n)
+  for (; m; m = m->next)
     {
       fputs (MEMBER_STRUCT, fp);
       putstr (m->name, fp);
@@ -1239,7 +1236,6 @@ dump_members (FILE *fp, struct member *m)
 
   putc (')', fp);
   putc ('\n', fp);
-  return n;
 }
 
 
@@ -1268,15 +1264,11 @@ dump_sym (FILE *fp, struct sym *root)
 }
 
 
-/* Dump class ROOT and its subclasses to file FP.  Value is the
-   number of classes written.  */
+/* Dump class ROOT and its subclasses to file FP.  */
 
-static int
+static void
 dump_tree (FILE *fp, struct sym *root)
 {
-  struct link *lk;
-  unsigned n = 0;
-
   dump_sym (fp, root);
 
   if (f_verbose)
@@ -1287,20 +1279,20 @@ dump_tree (FILE *fp, struct sym *root)
 
   putc ('(', fp);
 
-  for (lk = root->subs; lk; lk = lk->next)
+  for (struct link *lk = root->subs; lk; lk = lk->next)
     {
       fputs (TREE_STRUCT, fp);
-      n += dump_tree (fp, lk->sym);
+      dump_tree (fp, lk->sym);
       putc (']', fp);
     }
 
   putc (')', fp);
 
   dump_members (fp, root->vars);
-  n += dump_members (fp, root->fns);
+  dump_members (fp, root->fns);
   dump_members (fp, root->static_vars);
-  n += dump_members (fp, root->static_fns);
-  n += dump_members (fp, root->friends);
+  dump_members (fp, root->static_fns);
+  dump_members (fp, root->friends);
   dump_members (fp, root->types);
 
   /* Superclasses.  */
@@ -1312,7 +1304,6 @@ dump_tree (FILE *fp, struct sym *root)
   putc (')', fp);
 
   putc ('\n', fp);
-  return n;
 }
 
 
@@ -1321,9 +1312,6 @@ dump_tree (FILE *fp, struct sym *root)
 static void
 dump_roots (FILE *fp)
 {
-  int i, n = 0;
-  struct sym *r;
-
   /* Output file header containing version string, command line
      options etc.  */
   if (!f_append)
@@ -1347,12 +1335,12 @@ dump_roots (FILE *fp)
   mark_inherited_virtual ();
 
   /* Dump the roots of the graph.  */
-  for (i = 0; i < TABLE_SIZE; ++i)
-    for (r = class_table[i]; r; r = r->next)
+  for (int i = 0; i < TABLE_SIZE; ++i)
+    for (struct sym *r = class_table[i]; r; r = r->next)
       if (!r->supers)
         {
 	  fputs (TREE_STRUCT, fp);
-          n += dump_tree (fp, r);
+          dump_tree (fp, r);
 	  putc (']', fp);
         }
 
