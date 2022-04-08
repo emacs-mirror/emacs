@@ -4982,7 +4982,7 @@ marking.  Emacs has determined that the method it uses to do the\n\
 marking will likely work on your system, but this isn't sure.\n\
 \n\
 If you are a system-programmer, or can get the help of a local wizard\n\
-who is, please take a look at the function mark_stack in alloc.c, and\n\
+who is, please take a look at the function mark_c_stack in alloc.c, and\n\
 verify that the methods used are appropriate for your system.\n\
 \n\
 Please mail the result to <emacs-devel@gnu.org>.\n\
@@ -4995,7 +4995,7 @@ marking.  Emacs has determined that the default method it uses to do the\n\
 marking will not work on your system.  We will need a system-dependent\n\
 solution for your system.\n\
 \n\
-Please take a look at the function mark_stack in alloc.c, and\n\
+Please take a look at the function mark_c_stack in alloc.c, and\n\
 try to find a way to make it work on your system.\n\
 \n\
 Note that you may get false negatives, depending on the compiler.\n\
@@ -5137,7 +5137,7 @@ typedef union
    from the stack start.  */
 
 void
-mark_stack (char const *bottom, char const *end)
+mark_c_stack (char const *bottom, char const *end)
 {
   /* This assumes that the stack is a contiguous region in memory.  If
      that's not the case, something has to be done here to iterate
