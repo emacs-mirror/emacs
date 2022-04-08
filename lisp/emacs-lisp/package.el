@@ -1854,8 +1854,12 @@ SEEN is used internally to detect infinite recursion."
               (error "Need package `%s-%s', but only %s is available"
                      next-pkg (package-version-join next-version)
                      found-something))
-             (t (error "Package `%s-%s' is unavailable"
-                       next-pkg (package-version-join next-version)))))
+             (t
+              (if (eq next-pkg 'emacs)
+                  (error "This package requires Emacs version %s"
+                         (package-version-join next-version))
+                (error "Package `%s-%s' is unavailable"
+                       next-pkg (package-version-join next-version))))))
           (setq packages
                 (package-compute-transaction (cons found packages)
                                              (package-desc-reqs found)
