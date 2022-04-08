@@ -2284,7 +2284,8 @@ can use in calling @code{cancel-timer} (@pxref{Timers}).
 @end deffn
 
 @cindex idleness
-  Emacs becomes @dfn{idle} when it starts waiting for user input, and
+  Emacs becomes @dfn{idle} when it starts waiting for user input
+(unless it waits for input with a timeout, @pxref{Reading One Event}), and
 it remains idle until the user provides some input.  If a timer is set
 for five seconds of idleness, it runs approximately five seconds after
 Emacs first becomes idle.  Even if @var{repeat} is non-@code{nil},
