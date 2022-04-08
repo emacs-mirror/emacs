@@ -5666,14 +5666,15 @@ verbosity of 6."
   "Return t if system process PROCESS-NAME is running for `user-login-name'."
   (when (stringp process-name)
     (catch 'result
-      (dolist (pid (list-system-processes))
-	(when-let ((attributes (process-attributes pid))
-		   (comm (cdr (assoc 'comm attributes))))
-	  (and (string-equal (cdr (assoc 'user attributes)) (user-login-name))
-               ;; The returned command name could be truncated to 15
-               ;; characters.  Therefore, we cannot check for `string-equal'.
-	       (string-prefix-p comm process-name)
-	       (throw 'result t)))))))
+      (let ((default-directory temporary-file-directory))
+	(dolist (pid (list-system-processes))
+	  (when-let ((attributes (process-attributes pid))
+		     (comm (cdr (assoc 'comm attributes))))
+	    (and (string-equal (cdr (assoc 'user attributes)) (user-login-name))
+		 ;; The returned command name could be truncated to 15
+		 ;; characters.  Therefore, we cannot check for `string-equal'.
+		 (string-prefix-p comm process-name)
+		 (throw 'result t))))))))
 
 ;; When calling "emacs -Q", `auth-source-search' won't be called.  If
 ;; you want to debug exactly this case, call "emacs -Q --eval '(setq
