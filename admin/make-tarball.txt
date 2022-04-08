@@ -315,17 +315,70 @@ looks like this:
 	</div>
     </div>
 
-Regenerate the various manuals in manual/.
-The scripts admin/make-manuals and admin/upload-manuals summarize the process.
+Next, regenerate the various manuals in HTML, PDF, and PS formats:
 
-If you have Texinfo installed locally, make-manuals might fail if it
-cannot find epsf.tex.  In that case define in the environment
+  Invoke ./admin/make-manuals from the top-level directory of the
+  Emacs source tree that contains the manuals for which you want to
+  produce HTML docs.  This creates the 'manual' directory and
+  populates it with the necessary files.
 
-  TEXINPUTS=:/path/to/texinfo-tree/doc
+  If you have Texinfo installed locally, make-manuals might fail if it
+  cannot find epsf.tex.  In that case define in the environment
 
-where /path/to/texinfo-tree is the absolute file name of the top-level
-directory where you have the Texinfo source tree.  Then re-run
-make-manuals.
+    TEXINPUTS=:/path/to/texinfo-tree/doc
+
+  where /path/to/texinfo-tree is the absolute file name of the
+  top-level directory where you have the Texinfo source tree.  Then
+  re-run make-manuals.
+
+  make-manuals can also fail if the HTML manuals produced by Texinfo
+  violate some of the assumptions admin/admin.el makes about the
+  format of the produced HTML.  Debug these problems and resolve them,
+  then re-run make-manuals.  (Each time you run make-manuals, it
+  empties the manuals/ directory and regenerates the files there, but
+  if the files in manuals/ can be used without regeneration, i.e. if
+  the problem you solved doesn't affect the produced HTML, you can
+  invoke make-manuals with the -c switch, which will make the process
+  much faster.)
+
+Now change to the 'manual' directory and invoke upload-manuals:
+
+    ../admin/updload-manuals /path/to/webpages/cvs/checkout
+
+  where /path/to/webpages/cvs/checkout is the place where you have the
+  CVS checkout of the Emacs Web pages, with subdirectories 'manual'
+  and 'refcards'.  This moves the produced manuals to directories in
+  the Web pages CVS checkout tree, and also invokes CVS commands to
+  commit changed files, add new files, and remove stale files that are
+  no longer part of the manuals.
+
+  If upload-manuals fails, resolve the problems and re-invoke it.
+  This requires running make-manuals again, since upload-manuals
+  destructively modifies the 'manual' directory where you invoke it.
+  Also, upload-manuals invokes "cvs commit -f", so if you run it
+  several times, some files will be committed more than once even
+  though they were not changed in-between.  Suck it up.
+
+  All the added and removed files need to be committed, so next fire
+  up Emacs, type "C-x v d" to invoke vc-dir on the Web pages checkout,
+  and use "C-x v v" and other VC commands to commit all the files that
+  upload-manuals didn't automatically commit.  (You can also do that
+  with manual CVS commands, of course, but this is not recommended.)
+
+  Next, make sure that manual/index.html file is consistent with the
+  info/dir file in the branch for which you are producing the manuals,
+  in that it mentions all the manuals.  It could be outdated if
+  manuals were added or removed since the last release.
+
+  For each new manual, a file manual/MANUAL.html (where MANUAL is the
+  name of the manual) should be created from the template in
+  manual/eww.html, after editing the title and the Copyright years,
+  and the links in it changed to point to the appropriate files in the
+  manual/html_node/ and manual/html_mono/ subdirectories.
+
+  In addition, the file refcards/index.html should be audited to make
+  sure it includes the up-to-date list of refcards actually produced
+  and put under that subdirectory.
 
 Browsing <https://web.cvs.savannah.gnu.org/viewvc/?root=emacs> is one
 way to check for any files that still need updating.

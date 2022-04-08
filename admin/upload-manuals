@@ -334,7 +334,10 @@ for d in html_node/*; do
     [ -e $webdir/manual/$d ] || {
         echo "New directory: $d"
         mkdir $webdir/manual/$d
-        $cvs add $webdir/manual/$d || die "add error"
+        (
+            cd $webdir/manual
+            $cvs add $d || die "add error"
+        )
     }
 
     new=
