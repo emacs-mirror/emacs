@@ -3842,6 +3842,77 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
   unblock_input ();
 }
 
+static void
+xi_populate_device_from_info (struct xi_device_t *xi_device,
+			      XIDeviceInfo *device)
+{
+#ifdef HAVE_XINPUT2_1
+  struct xi_scroll_valuator_t *valuator;
+  int actual_valuator_count;
+  XIScrollClassInfo *info;
+#endif
+#ifdef HAVE_XINPUT2_2
+  XITouchClassInfo *touch_info;
+#endif
+  int c;
+
+  xi_device->device_id = device->deviceid;
+  xi_device->grab = 0;
+
+#ifdef HAVE_XINPUT2_1
+  actual_valuator_count = 0;
+  xi_device->valuators =
+    xmalloc (sizeof *xi_device->valuators * device->num_classes);
+#endif
+#ifdef HAVE_XINPUT2_2
+  xi_device->touchpoints = NULL;
+#endif
+
+  xi_device->master_p = (device->use == XIMasterKeyboard
+			 || device->use == XIMasterPointer);
+#ifdef HAVE_XINPUT2_2
+  xi_device->direct_p = false;
+#endif
+  xi_device->name = build_string (device->name);
+
+  for (c = 0; c < device->num_classes; ++c)
+    {
+      switch (device->classes[c]->type)
+	{
+#ifdef HAVE_XINPUT2_1
+	case XIScrollClass:
+	  {
+	    info = (XIScrollClassInfo *) device->classes[c];
+
+	    valuator = &xi_device->valuators[actual_valuator_count++];
+	    valuator->horizontal
+	      = (info->scroll_type == XIScrollTypeHorizontal);
+	    valuator->invalid_p = true;
+	    valuator->emacs_value = DBL_MIN;
+	    valuator->increment = info->increment;
+	    valuator->number = info->number;
+	    valuator->pending_enter_reset = false;
+
+	    break;
+	  }
+#endif
+#ifdef HAVE_XINPUT2_2
+	case XITouchClass:
+	  {
+	    touch_info = (XITouchClassInfo *) device->classes[c];
+	    xi_device->direct_p = touch_info->mode == XIDirectTouch;
+	  }
+#endif
+	default:
+	  break;
+	}
+    }
+
+#ifdef HAVE_XINPUT2_1
+  xi_device->scroll_valuator_count = actual_valuator_count;
+#endif
+}
+
 /* The code below handles the tracking of scroll valuators on XInput
    2, in order to support scroll wheels that report information more
    granular than a screen line.
@@ -3876,9 +3947,10 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
 static void
 x_init_master_valuators (struct x_display_info *dpyinfo)
 {
-  int ndevices;
+  int ndevices, actual_devices;
   XIDeviceInfo *infos;
 
+  actual_devices = 0;
   block_input ();
   x_free_xi_devices (dpyinfo);
   infos = XIQueryDevice (dpyinfo->display,
@@ -3892,79 +3964,13 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
       return;
     }
 
-  int actual_devices = 0;
   dpyinfo->devices = xmalloc (sizeof *dpyinfo->devices * ndevices);
 
   for (int i = 0; i < ndevices; ++i)
     {
-      XIDeviceInfo *device = &infos[i];
-
-      if (device->enabled)
-	{
-#ifdef HAVE_XINPUT2_1
-	  int actual_valuator_count = 0;
-#endif
-
-	  struct xi_device_t *xi_device = &dpyinfo->devices[actual_devices++];
-	  xi_device->device_id = device->deviceid;
-	  xi_device->grab = 0;
-
-#ifdef HAVE_XINPUT2_1
-	  xi_device->valuators =
-	    xmalloc (sizeof *xi_device->valuators * device->num_classes);
-#endif
-#ifdef HAVE_XINPUT2_2
-	  xi_device->touchpoints = NULL;
-#endif
-
-	  xi_device->master_p = (device->use == XIMasterKeyboard
-				 || device->use == XIMasterPointer);
-#ifdef HAVE_XINPUT2_2
-	  xi_device->direct_p = false;
-#endif
-	  xi_device->name = build_string (device->name);
-
-	  for (int c = 0; c < device->num_classes; ++c)
-	    {
-	      switch (device->classes[c]->type)
-		{
-#ifdef HAVE_XINPUT2_1
-		case XIScrollClass:
-		  {
-		    XIScrollClassInfo *info =
-		      (XIScrollClassInfo *) device->classes[c];
-		    struct xi_scroll_valuator_t *valuator;
-
-		    valuator = &xi_device->valuators[actual_valuator_count++];
-		    valuator->horizontal
-		      = (info->scroll_type == XIScrollTypeHorizontal);
-		    valuator->invalid_p = true;
-		    valuator->emacs_value = DBL_MIN;
-		    valuator->increment = info->increment;
-		    valuator->number = info->number;
-		    valuator->pending_enter_reset = false;
-
-		    break;
-		  }
-#endif
-#ifdef HAVE_XINPUT2_2
-		case XITouchClass:
-		  {
-		    XITouchClassInfo *info;
-
-		    info = (XITouchClassInfo *) device->classes[c];
-		    xi_device->direct_p = info->mode == XIDirectTouch;
-		  }
-#endif
-		default:
-		  break;
-		}
-	    }
-
-#ifdef HAVE_XINPUT2_1
-	  xi_device->scroll_valuator_count = actual_valuator_count;
-#endif
-	}
+      if (infos[i].enabled)
+	xi_populate_device_from_info (&dpyinfo->devices[actual_devices++],
+				      &infos[i]);
     }
 
   dpyinfo->num_devices = actual_devices;
@@ -17692,8 +17698,83 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    goto XI_OTHER;
 
 	  case XI_HierarchyChanged:
-	    x_init_master_valuators (dpyinfo);
-	    goto XI_OTHER;
+	    {
+	      XIHierarchyEvent *hev = (XIHierarchyEvent *) xi_event;
+	      XIDeviceInfo *info;
+	      int i, j, ndevices, n_disabled, *disabled;
+	      struct xi_device_t *device, *devices;
+#ifdef HAVE_XINPUT2_2
+	      struct xi_touch_point_t *tem, *last;
+#endif
+
+	      disabled = alloca (sizeof *disabled * hev->num_info);
+	      n_disabled = 0;
+
+	      for (i = 0; i < hev->num_info; ++i)
+		{
+		  if (hev->info[i].flags & XIDeviceEnabled)
+		    {
+		      x_catch_errors (dpyinfo->display);
+		      info = XIQueryDevice (dpyinfo->display, hev->info[i].deviceid,
+					    &ndevices);
+		      x_uncatch_errors ();
+
+		      if (info && info->enabled)
+			{
+			  dpyinfo->devices
+			    = xrealloc (dpyinfo->devices, (sizeof *dpyinfo->devices
+							   * ++dpyinfo->num_devices));
+			  device = &dpyinfo->devices[dpyinfo->num_devices - 1];
+			  xi_populate_device_from_info (device, info);
+			}
+
+		      if (info)
+			XIFreeDeviceInfo (info);
+		    }
+		  else if (hev->info[i].flags & XIDeviceDisabled)
+		    disabled[n_disabled++] = hev->info[i].deviceid;
+		}
+
+	      if (n_disabled)
+		{
+		  ndevices = 0;
+		  devices = xmalloc (sizeof *devices * dpyinfo->num_devices);
+
+		  for (i = 0; i < dpyinfo->num_devices; ++i)
+		    {
+		      for (j = 0; j < n_disabled; ++j)
+			{
+			  if (disabled[j] == dpyinfo->devices[i].device_id)
+			    {
+#ifdef HAVE_XINPUT2_1
+			      xfree (dpyinfo->devices[i].valuators);
+#endif
+#ifdef HAVE_XINPUT2_2
+			      tem = dpyinfo->devices[i].touchpoints;
+			      while (tem)
+				{
+				  last = tem;
+				  tem = tem->next;
+				  xfree (last);
+				}
+#endif
+			      goto continue_detachment;
+			    }
+			}
+
+		      devices[ndevices++] = dpyinfo->devices[i];
+
+		    continue_detachment:
+		      continue;
+		    }
+
+		  xfree (dpyinfo->devices);
+		  dpyinfo->devices = devices;
+		  dpyinfo->num_devices = ndevices;
+		}
+
+	      goto XI_OTHER;
+	    }
 
 	  case XI_DeviceChanged:
 	    {

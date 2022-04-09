@@ -3766,6 +3766,7 @@ gen_help_event (Lisp_Object help, Lisp_Object frame, Lisp_Object window,
 		Lisp_Object object, ptrdiff_t pos)
 {
   struct input_event event;
+  EVENT_INIT (event);
 
   event.kind = HELP_EVENT;
   event.frame_or_window = frame;
@@ -3783,6 +3784,7 @@ void
 kbd_buffer_store_help_event (Lisp_Object frame, Lisp_Object help)
 {
   struct input_event event;
+  EVENT_INIT (event);
 
   event.kind = HELP_EVENT;
   event.frame_or_window = frame;
