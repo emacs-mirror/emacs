@@ -435,6 +435,10 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # define AT_EACCESS 4
 #endif
 
+/* Ignore this flag if not supported.  */
+#ifndef AT_NO_AUTOMOUNT
+# define AT_NO_AUTOMOUNT 0
+#endif
 
 #endif /* _@GUARD_PREFIX@_FCNTL_H */
 #endif /* _@GUARD_PREFIX@_FCNTL_H */

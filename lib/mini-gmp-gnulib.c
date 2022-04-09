@@ -40,7 +40,8 @@
 #endif
 
 /* Pacify GCC -Wunused-variable for variables used only in 'assert' calls.  */
-#if defined NDEBUG && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+#if (defined NDEBUG \
+     && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || defined __clang__))
 # pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 

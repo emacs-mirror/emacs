@@ -10,7 +10,7 @@ The GNU MP Library is free software; you can redistribute it and/or modify
 it under the terms of either:
 
   * the GNU Lesser General Public License as published by the Free
-    Software Foundation, either version 3 of the License, or (at your
+    Software Foundation; either version 3 of the License, or (at your
     option) any later version.
 
 or
@@ -1937,9 +1937,8 @@ mpz_neg (mpz_t r, const mpz_t u)
 void
 mpz_swap (mpz_t u, mpz_t v)
 {
-  MP_SIZE_T_SWAP (u->_mp_size, v->_mp_size);
   MP_SIZE_T_SWAP (u->_mp_alloc, v->_mp_alloc);
-  MP_PTR_SWAP (u->_mp_d, v->_mp_d);
+  MPN_PTR_SWAP (u->_mp_d, u->_mp_size, v->_mp_d, v->_mp_size);
 }
 
 

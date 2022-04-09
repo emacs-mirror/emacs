@@ -98,12 +98,14 @@ lchmodat (int fd, char const *file, mode_t mode)
 #  define STATAT_INLINE _GL_INLINE
 # endif
 
+_GL_ATTRIBUTE_DEPRECATED
 STATAT_INLINE int
 statat (int fd, char const *name, struct stat *st)
 {
   return fstatat (fd, name, st, 0);
 }
 
+_GL_ATTRIBUTE_DEPRECATED
 STATAT_INLINE int
 lstatat (int fd, char const *name, struct stat *st)
 {
