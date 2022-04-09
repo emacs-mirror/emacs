@@ -17948,10 +17948,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  if (f && device->direct_p)
 		    {
 		      *finish = X_EVENT_DROP;
-		      x_catch_errors (dpyinfo->display);
 		      if (x_input_grab_touch_events)
 			XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
 					    xev->detail, xev->event, XIAcceptTouch);
+
 		      if (!x_had_errors_p (dpyinfo->display))
 			{
 			  xi_link_touch_point (device, xev->detail, xev->event_x,
@@ -17967,17 +17967,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  if (source)
 			    inev.ie.device = source->name;
 			}
-		      x_uncatch_errors_after_check ();
 		    }
 #ifndef HAVE_GTK3
-		  else
-		    {
-		      x_catch_errors (dpyinfo->display);
-		      if (x_input_grab_touch_events)
-			XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
-					    xev->detail, xev->event, XIRejectTouch);
-		      x_uncatch_errors ();
-		    }
+		  else if (x_input_grab_touch_events)
+		    XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
+					xev->detail, xev->event, XIRejectTouch);
 #endif
 		}
 	      else
@@ -19377,11 +19371,15 @@ x_error_handler (Display *display, XErrorEvent *event)
 #ifdef HAVE_XINPUT2
   dpyinfo = x_display_info_for_display (display);
 
-  /* 51 is X_XIGrabDevice and 52 is X_XIUngrabDevice.  */
+  /* 51 is X_XIGrabDevice and 52 is X_XIUngrabDevice.
+
+     53 is X_XIAllowEvents.  We handle errors from that here to avoid
+     a sync in handle_one_xevent.  */
   if (dpyinfo && dpyinfo->supports_xi2
       && event->request_code == dpyinfo->xi2_opcode
       && (event->minor_code == 51
-	  || event->minor_code == 52))
+	  || event->minor_code == 52
+	  || event->minor_code == 53))
     return 0;
 #endif
 
