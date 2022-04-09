@@ -4240,8 +4240,11 @@ x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
       cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
     }
   else
-    cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
-                          color.green / 65535.0, color.blue / 65535.0);
+    {
+      cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+			    color.green / 65535.0, color.blue / 65535.0);
+      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_OVER);
+    }
 }
 
 void
@@ -4269,8 +4272,11 @@ x_set_cr_source_with_gc_background (struct frame *f, GC gc,
       cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
     }
   else
-    cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
-                          color.green / 65535.0, color.blue / 65535.0);
+    {
+      cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+			    color.green / 65535.0, color.blue / 65535.0);
+      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_OVER);
+    }
 }
 
 static const cairo_user_data_key_t xlib_surface_key, saved_drawable_key;
