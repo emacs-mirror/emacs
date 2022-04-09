@@ -3331,7 +3331,7 @@ x_dnd_send_enter (struct frame *f, Window target, int supported)
 		     x_dnd_n_targets);
 
   x_catch_errors (dpyinfo->display);
-  XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_uncatch_errors ();
 }
 
@@ -3390,7 +3390,7 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
     msg.xclient.data.l[4] = action;
 
   x_catch_errors (dpyinfo->display);
-  XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_uncatch_errors ();
 }
 
@@ -3414,7 +3414,7 @@ x_dnd_send_leave (struct frame *f, Window target)
   msg.xclient.data.l[4] = 0;
 
   x_catch_errors (dpyinfo->display);
-  XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_uncatch_errors ();
 }
 
@@ -3504,7 +3504,7 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
     msg.xclient.data.l[2] = timestamp;
 
   x_catch_errors (dpyinfo->display);
-  XSendEvent (FRAME_X_DISPLAY (f), target, False, 0, &msg);
+  XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_uncatch_errors ();
   return true;
 }
@@ -10735,7 +10735,8 @@ x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
   /* Setting the event mask to zero means that the message will
      be sent to the client that created the window, and if that
      window no longer exists, no event will be sent.  */
-  XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), False, 0, &event);
+  XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), False,
+	      NoEventMask, &event);
   unblock_input ();
 }
 

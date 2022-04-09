@@ -4317,7 +4317,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	obj = make_lispy_movement (f, bar_window, part, x, y, t);
 
       if (!NILP (obj))
-	Vlast_event_device = (STRINGP (f->last_mouse_device)
+	Vlast_event_device = (f && STRINGP (f->last_mouse_device)
 			      ? f->last_mouse_device
 			      : virtual_core_pointer_name);
     }
