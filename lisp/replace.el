@@ -365,11 +365,33 @@ should a regexp."
   (unless noerror
     (barf-if-buffer-read-only))
   (save-mark-and-excursion
-    (let* ((from (query-replace-read-from prompt regexp-flag))
+    (let* ((delimited-flag (and current-prefix-arg
+                                (not (eq current-prefix-arg '-))))
+           (from (minibuffer-with-setup-hook
+                     (minibuffer-lazy-highlight-setup
+                      :case-fold case-fold-search
+                      :filter (when (use-region-p)
+                                (replace--region-filter
+                                 (funcall region-extract-function 'bounds)))
+                      :highlight query-replace-lazy-highlight
+                      :regexp regexp-flag
+                      :regexp-function (or replace-regexp-function
+                                           delimited-flag
+                                           (and replace-char-fold
+	                                        (not regexp-flag)
+	                                        #'char-fold-to-regexp))
+                      :transform (lambda (string)
+                                   (let* ((split (query-replace--split-string string))
+                                          (from-string (if (consp split) (car split) split)))
+                                     (when (and case-fold-search search-upper-case)
+	                               (setq isearch-case-fold-search
+                                             (isearch-no-upper-case-p from-string regexp-flag)))
+                                     from-string)))
+                   (query-replace-read-from prompt regexp-flag)))
            (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
                  (query-replace-read-to from prompt regexp-flag))))
       (list from to
-            (or (and current-prefix-arg (not (eq current-prefix-arg '-)))
+            (or delimited-flag
                 (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
                      (get-text-property 0 'isearch-regexp-function from)))
             (and current-prefix-arg (eq current-prefix-arg '-))))))
@@ -2778,6 +2800,26 @@ to a regexp that is actually used for the search.")
 	       ,search-str ,next-replace)
          ,stack))
 
+(defun replace--region-filter (bounds)
+  "Return a function that decides if a region is inside BOUNDS.
+BOUNDS is a list of cons cells of the form (START . END).  The
+returned function takes as argument two buffer positions, START
+and END."
+  (let ((region-bounds
+         (mapcar (lambda (position)
+                   (cons (copy-marker (car position))
+                         (copy-marker (cdr position))))
+                 bounds)))
+    (lambda (start end)
+      (delq nil (mapcar
+                 (lambda (bounds)
+                   (and
+                    (>= start (car bounds))
+                    (<= start (cdr bounds))
+                    (>= end   (car bounds))
+                    (<= end   (cdr bounds))))
+                 region-bounds)))))
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end backward region-noncontiguous-p)
@@ -2862,22 +2904,9 @@ characters."
 
     ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
     (when region-noncontiguous-p
-      (let ((region-bounds
-             (mapcar (lambda (position)
-                       (cons (copy-marker (car position))
-                             (copy-marker (cdr position))))
-                     (funcall region-extract-function 'bounds))))
-        (setq region-filter
-              (lambda (start end)
-                (delq nil (mapcar
-                           (lambda (bounds)
-                             (and
-                              (>= start (car bounds))
-                              (<= start (cdr bounds))
-                              (>= end   (car bounds))
-                              (<= end   (cdr bounds))))
-                           region-bounds))))
-        (add-function :after-while isearch-filter-predicate region-filter)))
+      (setq region-filter (replace--region-filter
+                           (funcall region-extract-function 'bounds)))
+      (add-function :after-while isearch-filter-predicate region-filter))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (if backward
