@@ -7206,8 +7206,11 @@ pgtk_set_cr_source_with_color (struct frame *f, unsigned long color,
   pgtk_query_color (f, &col);
 
   if (!respects_alpha_background)
-    cairo_set_source_rgb (FRAME_CR_CONTEXT (f), col.red / 65535.0,
-			  col.green / 65535.0, col.blue / 65535.0);
+    {
+      cairo_set_source_rgb (FRAME_CR_CONTEXT (f), col.red / 65535.0,
+			    col.green / 65535.0, col.blue / 65535.0);
+      cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_OVER);
+    }
   else
     {
       cairo_set_source_rgba (FRAME_CR_CONTEXT (f), col.red / 65535.0,
