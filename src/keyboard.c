@@ -4275,12 +4275,13 @@ kbd_buffer_get_event (KBOARD **kbp,
   /* Try generating a mouse motion event.  */
   else if (some_mouse_moved ())
     {
-      struct frame *f = some_mouse_moved ();
+      struct frame *f, *movement_frame = some_mouse_moved ();
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
       Time t;
 
+      f = movement_frame;
       *kbp = current_kboard;
       /* Note that this uses F to determine which terminal to look at.
 	 If there is no valid info, it does not store anything
@@ -4317,8 +4318,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 	obj = make_lispy_movement (f, bar_window, part, x, y, t);
 
       if (!NILP (obj))
-	Vlast_event_device = (f && STRINGP (f->last_mouse_device)
-			      ? f->last_mouse_device
+	Vlast_event_device = (STRINGP (movement_frame->last_mouse_device)
+			      ? movement_frame->last_mouse_device
 			      : virtual_core_pointer_name);
     }
   else
