@@ -3974,58 +3974,49 @@ x_init_master_valuators (struct x_display_info *dpyinfo)
 
 #ifdef HAVE_XINPUT2_1
 /* Return the delta of the scroll valuator VALUATOR_NUMBER under
-   DEVICE_ID in the display DPYINFO with VALUE.  The valuator's
-   valuator will be set to VALUE afterwards.  In case no scroll
-   valuator is found, or if the valuator state is invalid (see the
-   comment under XI_Enter in handle_one_xevent), or if device_id is
-   not known to Emacs, DBL_MAX is returned.  Otherwise, the valuator
-   is returned in VALUATOR_RETURN.  */
+   DEVICE in the display DPYINFO with VALUE.  The valuator's valuator
+   will be set to VALUE afterwards.  In case no scroll valuator is
+   found, or if the valuator state is invalid (see the comment under
+   XI_Enter in handle_one_xevent).  Otherwise, the valuator is
+   returned in VALUATOR_RETURN.  */
 static double
-x_get_scroll_valuator_delta (struct x_display_info *dpyinfo, int device_id,
+x_get_scroll_valuator_delta (struct x_display_info *dpyinfo,
+			     struct xi_device_t *device,
 			     int valuator_number, double value,
 			     struct xi_scroll_valuator_t **valuator_return)
 {
-  block_input ();
+  struct xi_scroll_valuator_t *sv;
+  double delta;
+  int i;
 
-  for (int i = 0; i < dpyinfo->num_devices; ++i)
+  for (i = 0; i < device->scroll_valuator_count; ++i)
     {
-      struct xi_device_t *device = &dpyinfo->devices[i];
+      sv = &device->valuators[i];
 
-      if (device->device_id == device_id)
+      if (sv->number == valuator_number)
 	{
-	  for (int j = 0; j < device->scroll_valuator_count; ++j)
+	  *valuator_return = sv;
+
+	  if (sv->increment == 0)
+	    return DBL_MAX;
+
+	  if (sv->invalid_p)
 	    {
-	      struct xi_scroll_valuator_t *sv = &device->valuators[j];
+	      sv->current_value = value;
+	      sv->invalid_p = false;
 
-	      if (sv->number == valuator_number)
-		{
-		  if (sv->invalid_p)
-		    {
-		      sv->current_value = value;
-		      sv->invalid_p = false;
-		      *valuator_return = sv;
-
-		      unblock_input ();
-		      return DBL_MAX;
-		    }
-		  else
-		    {
-		      double delta = (sv->current_value - value) / sv->increment;
-                      sv->current_value = value;
-		      *valuator_return = sv;
-
-		      unblock_input ();
-		      return delta;
-		    }
-		}
+	      return DBL_MAX;
 	    }
+	  else
+	    {
+	      delta = (sv->current_value - value) / sv->increment;
+	      sv->current_value = value;
 
-	  unblock_input ();
-	  return DBL_MAX;
+	      return delta;
+	    }
 	}
     }
 
-  unblock_input ();
   return DBL_MAX;
 }
 
@@ -16186,7 +16177,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      /* See the comment on top of
 			 x_init_master_valuators for more details on how
 			 scroll wheel movement is reported on XInput 2.  */
-		      delta = x_get_scroll_valuator_delta (dpyinfo, xev->deviceid,
+		      delta = x_get_scroll_valuator_delta (dpyinfo, device,
 							   i, *values, &val);
 		      values++;
 
