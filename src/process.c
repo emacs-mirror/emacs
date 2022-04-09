@@ -6239,7 +6239,6 @@ Otherwise it discards the output.  */)
     {
       Lisp_Object old_read_only;
       ptrdiff_t old_begv, old_zv;
-      ptrdiff_t old_begv_byte, old_zv_byte;
       ptrdiff_t before, before_byte;
       ptrdiff_t opoint_byte;
       struct buffer *b;
@@ -6250,8 +6249,6 @@ Otherwise it discards the output.  */)
       old_read_only = BVAR (current_buffer, read_only);
       old_begv = BEGV;
       old_zv = ZV;
-      old_begv_byte = BEGV_BYTE;
-      old_zv_byte = ZV_BYTE;
 
       bset_read_only (current_buffer, Qnil);
 
@@ -6299,15 +6296,9 @@ Otherwise it discards the output.  */)
 	  opoint_byte += PT_BYTE - before_byte;
 	}
       if (old_begv > before)
-	{
-	  old_begv += PT - before;
-	  old_begv_byte += PT_BYTE - before_byte;
-	}
+	old_begv += PT - before;
       if (old_zv >= before)
-	{
-	  old_zv += PT - before;
-	  old_zv_byte += PT_BYTE - before_byte;
-	}
+	old_zv += PT - before;
 
       /* If the restriction isn't what it should be, set it.  */
       if (old_begv != BEGV || old_zv != ZV)
