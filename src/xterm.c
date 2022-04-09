@@ -13303,6 +13303,29 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	  if (x_dnd_return_frame == 2
 	      && x_any_window_to_frame (dpyinfo, toplevel))
 	    {
+	      if (x_dnd_last_seen_window != None
+		  && x_dnd_last_protocol_version != -1
+		  && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
+		x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
+	      else if (x_dnd_last_seen_window != None
+		       && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+		       && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
+		{
+		  if (!x_dnd_motif_setup_p)
+		    xm_setup_drag_info (dpyinfo, x_dnd_frame);
+
+		  lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+						XM_DRAG_REASON_TOP_LEVEL_LEAVE);
+		  lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+		  lmsg.zero = 0;
+		  lmsg.timestamp = timestamp;
+		  lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
+
+		  if (x_dnd_motif_setup_p)
+		    xm_send_top_level_leave_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
+						     x_dnd_last_seen_window, &lmsg);
+		}
+
 	      x_dnd_end_window = x_dnd_last_seen_window;
 	      x_dnd_last_seen_window = None;
 	      x_dnd_last_seen_toplevel = None;
@@ -14949,6 +14972,29 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		if (x_dnd_return_frame == 2
 		    && x_any_window_to_frame (dpyinfo, toplevel))
 		  {
+		    if (x_dnd_last_seen_window != None
+			&& x_dnd_last_protocol_version != -1
+			&& x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
+		      x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
+		    else if (x_dnd_last_seen_window != None
+			     && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+			     && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
+		      {
+			if (!x_dnd_motif_setup_p)
+			  xm_setup_drag_info (dpyinfo, x_dnd_frame);
+
+			lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+						      XM_DRAG_REASON_TOP_LEVEL_LEAVE);
+			lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+			lmsg.zero = 0;
+			lmsg.timestamp = event->xmotion.time;
+			lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
+
+			if (x_dnd_motif_setup_p)
+			  xm_send_top_level_leave_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
+							   x_dnd_last_seen_window, &lmsg);
+		      }
+
 		    x_dnd_end_window = x_dnd_last_seen_window;
 		    x_dnd_last_seen_window = None;
 		    x_dnd_last_seen_toplevel = None;
@@ -16451,6 +16497,29 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (x_dnd_return_frame == 2
 			  && x_any_window_to_frame (dpyinfo, toplevel))
 			{
+			  if (x_dnd_last_seen_window != None
+			      && x_dnd_last_protocol_version != -1
+			      && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
+			    x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
+			  else if (x_dnd_last_seen_window != None
+				   && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+				   && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
+			    {
+			      if (!x_dnd_motif_setup_p)
+				xm_setup_drag_info (dpyinfo, x_dnd_frame);
+
+			      lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+							    XM_DRAG_REASON_TOP_LEVEL_LEAVE);
+			      lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+			      lmsg.zero = 0;
+			      lmsg.timestamp = event->xmotion.time;
+			      lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
+
+			      if (x_dnd_motif_setup_p)
+				xm_send_top_level_leave_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
+								 x_dnd_last_seen_window, &lmsg);
+			    }
+
 			  x_dnd_end_window = x_dnd_last_seen_window;
 			  x_dnd_last_seen_window = None;
 			  x_dnd_last_seen_toplevel = None;
