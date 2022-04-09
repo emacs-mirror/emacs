@@ -1593,9 +1593,8 @@ the clipboard, and insert it into the buffer.
 
 ---
 ** New function 'minibuffer-lazy-highlight-setup'.
-This function is intended to be added to 'minibuffer-setup-hook'.
-It sets up the minibuffer for lazy highlighting of matches
-in the original window.
+This function allows to set up the minibuffer so that lazy
+highlighting of its content is applied in the original window.
 
 +++
 ** New text property 'inhibit-isearch'.
