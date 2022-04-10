@@ -9120,38 +9120,41 @@ DEF_DLL_FN (VP8StatusCode, WebPGetFeaturesInternal,
 DEF_DLL_FN (uint8_t *, WebPDecodeRGBA, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (uint8_t *, WebPDecodeRGB, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (void, WebPFree, (void *));
-DEF_DLL_FN (uint32_t, WebPDemuxGetI, (const WebPDemuxer* dmux,
-				      WebPFormatFeature feature));
-DEF_DLL_FN (WebPDemuxer*, WebPDemux, (const WebPData* data));
-DEF_DLL_FN (void, WebPDemuxDelete, (WebPDemuxer* dmux));
+DEF_DLL_FN (uint32_t, WebPDemuxGetI, (const WebPDemuxer *, WebPFormatFeature));
+DEF_DLL_FN (WebPDemuxer *, WebPDemuxInternal,
+	    (const WebPData *, int, WebPDemuxState *, int));
+DEF_DLL_FN (void, WebPDemuxDelete, (WebPDemuxer *));
 DEF_DLL_FN (int, WebPAnimDecoderGetNext,
-	    (WebPAnimDecoder* dec, uint8_t** buf, int* timestamp));
-DEF_DLL_FN (WebPAnimDecoder*, WebPAnimDecoderNew,
-	    (const WebPData* webp_data,
-	     const WebPAnimDecoderOptions* dec_options));
-DEF_DLL_FN (int, WebPAnimDecoderHasMoreFrames, (const WebPAnimDecoder* dec));
-DEF_DLL_FN (void, WebPAnimDecoderDelete, (WebPAnimDecoder* dec));
+	    (WebPAnimDecoder *, uint8_t **, int *));
+DEF_DLL_FN (WebPAnimDecoder *, WebPAnimDecoderNewInternal,
+	    (const WebPData *, const WebPAnimDecoderOptions *, int));
+DEF_DLL_FN (int, WebPAnimDecoderOptionsInitInternal,
+	    (WebPAnimDecoderOptions *, int));
+DEF_DLL_FN (int, WebPAnimDecoderHasMoreFrames, (const WebPAnimDecoder *));
+DEF_DLL_FN (void, WebPAnimDecoderDelete, (WebPAnimDecoder *));
 
 static bool
 init_webp_functions (void)
 {
-  HMODULE library;
+  HMODULE library1, library2;
 
-  if (!(library = w32_delayed_load (Qwebp)))
+  if (!((library1 = w32_delayed_load (Qwebp))
+	&& (library2 = w32_delayed_load (Qwebpdemux))))
     return false;
 
-  LOAD_DLL_FN (library, WebPGetInfo);
-  LOAD_DLL_FN (library, WebPGetFeaturesInternal);
-  LOAD_DLL_FN (library, WebPDecodeRGBA);
-  LOAD_DLL_FN (library, WebPDecodeRGB);
-  LOAD_DLL_FN (library, WebPFree);
-  LOAD_DLL_FN (library, WebPDemuxGetI);
-  LOAD_DLL_FN (library, WebPDemux);
-  LOAD_DLL_FN (library, WebPDemuxDelete);
-  LOAD_DLL_FN (library, WebPAnimDecoderGetNext);
-  LOAD_DLL_FN (library, WebPAnimDecoderNew);
-  LOAD_DLL_FN (library, WebPAnimDecoderHasMoreFrames);
-  LOAD_DLL_FN (library, WebPAnimDecoderDelete);
+  LOAD_DLL_FN (library1, WebPGetInfo);
+  LOAD_DLL_FN (library1, WebPGetFeaturesInternal);
+  LOAD_DLL_FN (library1, WebPDecodeRGBA);
+  LOAD_DLL_FN (library1, WebPDecodeRGB);
+  LOAD_DLL_FN (library1, WebPFree);
+  LOAD_DLL_FN (library2, WebPDemuxGetI);
+  LOAD_DLL_FN (library2, WebPDemuxInternal);
+  LOAD_DLL_FN (library2, WebPDemuxDelete);
+  LOAD_DLL_FN (library2, WebPAnimDecoderGetNext);
+  LOAD_DLL_FN (library2, WebPAnimDecoderNewInternal);
+  LOAD_DLL_FN (library2, WebPAnimDecoderOptionsInitInternal);
+  LOAD_DLL_FN (library2, WebPAnimDecoderHasMoreFrames);
+  LOAD_DLL_FN (library2, WebPAnimDecoderDelete);
   return true;
 }
 
@@ -9165,6 +9168,7 @@ init_webp_functions (void)
 #undef WebPDemuxDelete
 #undef WebPAnimDecoderGetNext
 #undef WebPAnimDecoderNew
+#undef WebPAnimDecoderOptionsInit
 #undef WebPAnimDecoderHasMoreFrames
 #undef WebPAnimDecoderDelete
 
@@ -9175,10 +9179,14 @@ init_webp_functions (void)
 #define WebPDecodeRGB fn_WebPDecodeRGB
 #define WebPFree fn_WebPFree
 #define WebPDemuxGetI fn_WebPDemuxGetI
-#define WebPDemux fn_WebPDemux
+#define WebPDemux(d)						\
+  fn_WebPDemuxInternal(d,0,NULL,WEBP_DEMUX_ABI_VERSION)
 #define WebPDemuxDelete fn_WebPDemuxDelete
 #define WebPAnimDecoderGetNext fn_WebPAnimDecoderGetNext
-#define WebPAnimDecoderNew fn_WebPAnimDecoderNew
+#define WebPAnimDecoderNew(d,o)					\
+  fn_WebPAnimDecoderNewInternal(d,o,WEBP_DEMUX_ABI_VERSION)
+#define WebPAnimDecoderOptionsInit(o)				\
+  fn_WebPAnimDecoderOptionsInitInternal(o,WEBP_DEMUX_ABI_VERSION)
 #define WebPAnimDecoderHasMoreFrames fn_WebPAnimDecoderHasMoreFrames
 #define WebPAnimDecoderDelete fn_WebPAnimDecoderDelete
 
@@ -11716,6 +11724,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #if defined (HAVE_WEBP) || (defined (HAVE_NATIVE_IMAGE_API) \
 			    && defined (HAVE_HAIKU))
   DEFSYM (Qwebp, "webp");
+  DEFSYM (Qwebpdemux, "webpdemux");
   add_image_type (Qwebp);
 #endif
 
