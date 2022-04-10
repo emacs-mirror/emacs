@@ -1201,7 +1201,7 @@ protocol, are currently supported.
 
   It can be difficult to scroll a window or determine where dropped
 text will be inserted while dragging text onto an Emacs window.
-Setting the option @var{dnd-indicate-insertion-point} to a
+Setting the option @code{dnd-indicate-insertion-point} to a
 non-@code{nil} value makes point move to the location any dropped text
 will be inserted when the mouse moves in a window during drag, and
 setting @code{dnd-scroll-margin} to an integer value causes a window
