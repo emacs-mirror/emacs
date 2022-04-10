@@ -9053,6 +9053,7 @@ gif_load (struct frame *f, struct image *img)
  ***********************************************************************/
 
 #include "webp/decode.h"
+#include "webp/demux.h"
 
 /* Indices of image specification fields in webp_format, below.  */
 
@@ -9067,6 +9068,7 @@ enum webp_keyword_index
   WEBP_ALGORITHM,
   WEBP_HEURISTIC_MASK,
   WEBP_MASK,
+  WEBP_INDEX,
   WEBP_BACKGROUND,
   WEBP_LAST
 };
@@ -9085,6 +9087,7 @@ static const struct image_keyword webp_format[WEBP_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
@@ -9117,6 +9120,17 @@ DEF_DLL_FN (VP8StatusCode, WebPGetFeaturesInternal,
 DEF_DLL_FN (uint8_t *, WebPDecodeRGBA, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (uint8_t *, WebPDecodeRGB, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (void, WebPFree, (void *));
+DEF_DLL_FN (uint32_t, WebPDemuxGetI, (const WebPDemuxer* dmux,
+				      WebPFormatFeature feature));
+DEF_DLL_FN (WebPDemuxer*, WebPDemux, (const WebPData* data));
+DEF_DLL_FN (void, WebPDemuxDelete, (WebPDemuxer* dmux));
+DEF_DLL_FN (int, WebPAnimDecoderGetNext,
+	    (WebPAnimDecoder* dec, uint8_t** buf, int* timestamp));
+DEF_DLL_FN (WebPAnimDecoder*, WebPAnimDecoderNew,
+	    (const WebPData* webp_data,
+	     const WebPAnimDecoderOptions* dec_options));
+DEF_DLL_FN (int, WebPAnimDecoderHasMoreFrames, (const WebPAnimDecoder* dec));
+DEF_DLL_FN (void, WebPAnimDecoderDelete, (WebPAnimDecoder* dec));
 
 static bool
 init_webp_functions (void)
@@ -9131,6 +9145,13 @@ init_webp_functions (void)
   LOAD_DLL_FN (library, WebPDecodeRGBA);
   LOAD_DLL_FN (library, WebPDecodeRGB);
   LOAD_DLL_FN (library, WebPFree);
+  LOAD_DLL_FN (library, WebPDemuxGetI);
+  LOAD_DLL_FN (library, WebPDemux);
+  LOAD_DLL_FN (library, WebPDemuxDelete);
+  LOAD_DLL_FN (library, WebPAnimDecoderGetNext);
+  LOAD_DLL_FN (library, WebPAnimDecoderNew);
+  LOAD_DLL_FN (library, WebPAnimDecoderHasMoreFrames);
+  LOAD_DLL_FN (library, WebPAnimDecoderDelete);
   return true;
 }
 
@@ -9139,6 +9160,13 @@ init_webp_functions (void)
 #undef WebPDecodeRGBA
 #undef WebPDecodeRGB
 #undef WebPFree
+#undef WebPDemuxGetI
+#undef WebPDemux
+#undef WebPDemuxDelete
+#undef WebPAnimDecoderGetNext
+#undef WebPAnimDecoderNew
+#undef WebPAnimDecoderHasMoreFrames
+#undef WebPAnimDecoderDelete
 
 #define WebPGetInfo fn_WebPGetInfo
 #define WebPGetFeatures(d,s,f)					\
@@ -9146,8 +9174,91 @@ init_webp_functions (void)
 #define WebPDecodeRGBA fn_WebPDecodeRGBA
 #define WebPDecodeRGB fn_WebPDecodeRGB
 #define WebPFree fn_WebPFree
+#define WebPDemuxGetI fn_WebPDemuxGetI
+#define WebPDemux fn_WebPDemux
+#define WebPDemuxDelete fn_WebPDemuxDelete
+#define WebPAnimDecoderGetNext fn_WebPAnimDecoderGetNext
+#define WebPAnimDecoderNew fn_WebPAnimDecoderNew
+#define WebPAnimDecoderHasMoreFrames fn_WebPAnimDecoderHasMoreFrames
+#define WebPAnimDecoderDelete fn_WebPAnimDecoderDelete
 
 #endif /* WINDOWSNT */
+
+/* To speed webp animations up, we keep a cache (based on EQ-ness of
+   the image spec/object) where we put the libwebp animator
+   iterator.  */
+
+struct webp_cache
+{
+  Lisp_Object spec;
+  WebPAnimDecoder* anim;
+  int index, width, height, frames;
+  struct timespec update_time;
+  struct webp_cache *next;
+};
+
+static struct webp_cache *webp_cache = NULL;
+
+static struct webp_cache *
+webp_create_cache (Lisp_Object spec)
+{
+  struct webp_cache *cache = xmalloc (sizeof (struct webp_cache));
+  cache->anim = NULL;
+
+  cache->index = 0;
+  cache->next = NULL;
+  /* FIXME: Does this need gc protection?  */
+  cache->spec = spec;
+  return cache;
+}
+
+/* Discard cached images that haven't been used for a minute. */
+static void
+webp_prune_animation_cache (void)
+{
+  struct webp_cache **pcache = &webp_cache;
+  struct timespec old = timespec_sub (current_timespec (),
+				      make_timespec (60, 0));
+
+  while (*pcache)
+    {
+      struct webp_cache *cache = *pcache;
+      if (timespec_cmp (old, cache->update_time) <= 0)
+	pcache = &cache->next;
+      else
+	{
+	  if (cache->anim)
+	    WebPAnimDecoderDelete (cache->anim);
+	  *pcache = cache->next;
+	  xfree (cache);
+	}
+    }
+}
+
+static struct webp_cache *
+webp_get_animation_cache (Lisp_Object spec)
+{
+  struct webp_cache *cache;
+  struct webp_cache **pcache = &webp_cache;
+
+  webp_prune_animation_cache ();
+
+  while (1)
+    {
+      cache = *pcache;
+      if (! cache)
+	{
+          *pcache = cache = webp_create_cache (spec);
+          break;
+        }
+      if (EQ (spec, cache->spec))
+	break;
+      pcache = &cache->next;
+    }
+
+  cache->update_time = current_timespec ();
+  return cache;
+}
 
 /* Load WebP image IMG for use on frame F.  Value is true if
    successful.  */
@@ -9158,6 +9269,9 @@ webp_load (struct frame *f, struct image *img)
   ptrdiff_t size = 0;
   uint8_t *contents;
   Lisp_Object file = Qnil;
+  int frames = 0;
+  double delay = 0;
+  WebPAnimDecoder* anim = NULL;
 
   /* Open the WebP file.  */
   Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
@@ -9201,6 +9315,9 @@ webp_load (struct frame *f, struct image *img)
       goto webp_error1;
     }
 
+  Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+  ptrdiff_t idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
+
   /* Get WebP features.  */
   WebPBitstreamFeatures features;
   VP8StatusCode result = WebPGetFeatures (contents, size, &features);
@@ -9224,19 +9341,76 @@ webp_load (struct frame *f, struct image *img)
       goto webp_error1;
     }
 
-  /* Decode WebP data.  */
-  uint8_t *decoded;
+  uint8_t *decoded = NULL;
   int width, height;
-  if (features.has_alpha)
-    /* Linear [r0, g0, b0, a0, r1, g1, b1, a1, ...] order.  */
-    decoded = WebPDecodeRGBA (contents, size, &width, &height);
+
+  if (features.has_animation)
+    {
+      /* Animated image.  */
+      WebPData webp_data;
+      webp_data.bytes = contents;
+      webp_data.size = size;
+      int timestamp;
+
+      struct webp_cache* cache = webp_get_animation_cache (img->spec);
+      /* Get the next frame from the animation cache.  */
+      if (cache->anim && cache->index == idx - 1)
+	{
+	  WebPAnimDecoderGetNext (cache->anim, &decoded, &timestamp);
+	  delay = timestamp;
+	  cache->index++;
+	  anim = cache->anim;
+	  width = cache->width;
+	  height = cache->height;
+	  frames = cache->frames;
+	}
+      else
+	{
+	  /* Start a new cache entry.  */
+	  if (cache->anim)
+	    WebPAnimDecoderDelete (cache->anim);
+
+	  /* Get the width/height of the total image.  */
+	  WebPDemuxer* demux = WebPDemux (&webp_data);
+	  cache->width = width = WebPDemuxGetI (demux, WEBP_FF_CANVAS_WIDTH);
+	  cache->height = height = WebPDemuxGetI (demux,
+						  WEBP_FF_CANVAS_HEIGHT);
+	  cache->frames = frames = WebPDemuxGetI (demux, WEBP_FF_FRAME_COUNT);
+	  WebPDemuxDelete (demux);
+
+	  WebPAnimDecoderOptions dec_options;
+	  WebPAnimDecoderOptionsInit (&dec_options);
+	  anim = WebPAnimDecoderNew (&webp_data, &dec_options);
+
+	  cache->anim = anim;
+	  cache->index = idx;
+
+	  while (WebPAnimDecoderHasMoreFrames (anim)) {
+	    WebPAnimDecoderGetNext (anim, &decoded, &timestamp);
+	    /* Each frame has its own delay, but we don't really support
+	       that.  So just use the delay from the first frame.  */
+	    if (delay == 0)
+	      delay = timestamp;
+	    /* Stop when we get to the desired index.  */
+	    if (idx-- == 0)
+	      break;
+	  }
+	}
+    }
   else
-    /* Linear [r0, g0, b0, r1, g1, b1, ...] order.  */
-    decoded = WebPDecodeRGB (contents, size, &width, &height);
+    {
+      /* Non-animated image.  */
+      if (features.has_alpha)
+	/* Linear [r0, g0, b0, a0, r1, g1, b1, a1, ...] order.  */
+	decoded = WebPDecodeRGBA (contents, size, &width, &height);
+      else
+	/* Linear [r0, g0, b0, r1, g1, b1, ...] order.  */
+	decoded = WebPDecodeRGB (contents, size, &width, &height);
+    }
 
   if (!decoded)
     {
-      image_error ("Error when interpreting WebP image data");
+      image_error ("Error when decoding WebP image data");
       goto webp_error1;
     }
 
@@ -9255,7 +9429,8 @@ webp_load (struct frame *f, struct image *img)
   /* Create an image and pixmap serving as mask if the WebP image
      contains an alpha channel.  */
   if (features.has_alpha
-      && !image_create_x_image_and_pixmap (f, img, width, height, 1, &mask_img, true))
+      && !image_create_x_image_and_pixmap (f, img, width, height, 1,
+					   &mask_img, true))
     {
       image_destroy_x_image (ximg);
       image_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP);
@@ -9264,6 +9439,13 @@ webp_load (struct frame *f, struct image *img)
 
   /* Fill the X image and mask from WebP data.  */
   init_color_table ();
+
+  img->corners[TOP_CORNER] = 0;
+  img->corners[LEFT_CORNER] = 0;
+  img->corners[BOT_CORNER]
+    = img->corners[TOP_CORNER] + height;
+  img->corners[RIGHT_CORNER]
+    = img->corners[LEFT_CORNER] + width;
 
   uint8_t *p = decoded;
   for (int y = 0; y < height; ++y)
@@ -9279,7 +9461,7 @@ webp_load (struct frame *f, struct image *img)
 	     image.  WebP allows up to 256 levels of partial transparency.
 	     We handle this like with PNG (which see), using the frame's
 	     background color to combine the image with.  */
-	  if (features.has_alpha)
+	  if (features.has_alpha || anim)
 	    {
 	      if (mask_img)
 		PUT_PIXEL (mask_img, x, y, *p > 0 ? PIX_MASK_DRAW : PIX_MASK_RETAIN);
@@ -9310,14 +9492,24 @@ webp_load (struct frame *f, struct image *img)
   img->width = width;
   img->height = height;
 
+  /* Return animation data.  */
+  img->lisp_data = Fcons (Qcount,
+			  Fcons (make_fixnum (frames),
+				 img->lisp_data));
+  img->lisp_data = Fcons (Qdelay,
+			  Fcons (make_float (delay / 1000),
+				 img->lisp_data));
+
   /* Clean up.  */
-  WebPFree (decoded);
+  if (!anim)
+    WebPFree (decoded);
   if (NILP (specified_data))
     xfree (contents);
   return true;
 
  webp_error2:
-  WebPFree (decoded);
+  if (!anim)
+    WebPFree (decoded);
 
  webp_error1:
   if (NILP (specified_data))
@@ -9484,7 +9676,7 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
    (which is the first one, and then there's a number of images that
    follow.  If following images have non-transparent colors, these are
    composed "on top" of the master image.  So, in general, one has to
-   compute ann the preceding images to be able to display a particular
+   compute all the preceding images to be able to display a particular
    sub-image.
 
    Computing all the preceding images is too slow, so we maintain a
