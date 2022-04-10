@@ -17279,6 +17279,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.state = ((xev->mods.effective & ~(1 << 13 | 1 << 14))
 			    | (xev->group.effective << 13));
 
+	      xkey.x = lrint (xev->event_x);
+	      xkey.y = lrint (xev->event_y);
+	      xkey.x_root = lrint (xev->root_x);
+	      xkey.y_root = lrint (xev->root_y);
+
 	      /* Some input methods react differently depending on the
 		 buttons that are pressed.  */
 	      if (xev->buttons.mask_len)
@@ -17672,6 +17677,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.time = xev->time;
 	      xkey.state = ((xev->mods.effective & ~(1 << 13 | 1 << 14))
 			    | (xev->group.effective << 13));
+	      xkey.x = lrint (xev->event_x);
+	      xkey.y = lrint (xev->event_y);
+	      xkey.x_root = lrint (xev->root_x);
+	      xkey.y_root = lrint (xev->root_y);
 
 	      /* Some input methods react differently depending on the
 		 buttons that are pressed.  */
