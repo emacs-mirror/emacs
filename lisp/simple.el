@@ -222,7 +222,7 @@ rejected, and the function returns nil."
 
 (defcustom next-error-find-buffer-function #'ignore
   "Function called to find a `next-error' capable buffer.
-This functions takes the same three arguments as the function
+This function takes the same three arguments as the function
 `next-error-find-buffer', and should return the buffer to be
 used by the subsequent invocation of the command `next-error'
 and `previous-error'.
