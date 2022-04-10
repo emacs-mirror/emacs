@@ -17741,6 +17741,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 		  else if (hev->info[i].flags & XIDeviceDisabled)
 		    disabled[n_disabled++] = hev->info[i].deviceid;
+		  else if (hev->info[i].flags & XISlaveDetached
+			   || hev->info[i].flags & XISlaveAttached)
+		    {
+		      device = xi_device_from_id (dpyinfo, hev->info[i].deviceid);
+		      x_catch_errors (dpyinfo->display);
+		      info = XIQueryDevice (dpyinfo->display, hev->info[i].deviceid,
+					    &ndevices);
+		      x_uncatch_errors ();
+
+		      if (info)
+			{
+			  if (device && info->enabled)
+			    device->master_p = (info->use == XIMasterKeyboard
+						|| info->use == XIMasterPointer);
+			  else if (device)
+			    disabled[n_disabled++] = hev->info[i].deviceid;
+
+			  XIFreeDeviceInfo (info);
+			}
+		    }
 		}
 
 	      if (n_disabled)
