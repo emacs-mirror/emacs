@@ -615,6 +615,9 @@ struct x_display_info
 
   int num_devices;
   struct xi_device_t *devices;
+
+  Time pending_keystroke_time;
+  int pending_keystroke_source;
 #endif
 
 #ifdef HAVE_XKB

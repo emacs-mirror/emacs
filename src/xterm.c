@@ -14490,6 +14490,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	     `event' itself.  */
 	  XKeyEvent xkey = event->xkey;
 	  int i;
+#ifdef HAVE_XINPUT2
+	  Time pending_keystroke_time;
+	  struct xi_device_t *source;
+
+	  pending_keystroke_time = dpyinfo->pending_keystroke_time;
+
+	  if (event->xkey.time >= pending_keystroke_time)
+	    dpyinfo->pending_keystroke_time = 0;
+#endif
 
 #ifdef USE_GTK
           /* Don't pass keys to GTK.  A Tab will shift focus to the
@@ -14612,6 +14621,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
  	    {
  	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
  	      inev.ie.code = keysym;
+
+#ifdef HAVE_XINPUT2
+	      if (event->xkey.time == pending_keystroke_time)
+		{
+		  source = xi_device_from_id (dpyinfo,
+					      dpyinfo->pending_keystroke_source);
+
+		  if (source)
+		    inev.ie.device = source->name;
+		}
+#endif
+
 	      goto done_keysym;
 	    }
 
@@ -14623,6 +14644,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      else
 		inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 	      inev.ie.code = keysym & 0xFFFFFF;
+
+#ifdef HAVE_XINPUT2
+	      if (event->xkey.time == pending_keystroke_time)
+		{
+		  source = xi_device_from_id (dpyinfo,
+					      dpyinfo->pending_keystroke_source);
+
+		  if (source)
+		    inev.ie.device = source->name;
+		}
+#endif
+
 	      goto done_keysym;
 	    }
 
@@ -14637,6 +14670,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                               ? ASCII_KEYSTROKE_EVENT
                               : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
 	      inev.ie.code = XFIXNAT (c);
+
+#ifdef HAVE_XINPUT2
+	      if (event->xkey.time == pending_keystroke_time)
+		{
+		  source = xi_device_from_id (dpyinfo,
+					      dpyinfo->pending_keystroke_source);
+
+		  if (source)
+		    inev.ie.device = source->name;
+		}
+#endif
+
  	      goto done_keysym;
  	    }
 
@@ -14741,6 +14786,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 key.  */
 	      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
 	      inev.ie.code = keysym;
+
+#ifdef HAVE_XINPUT2
+	      if (event->xkey.time == pending_keystroke_time)
+		{
+		  source = xi_device_from_id (dpyinfo,
+					      dpyinfo->pending_keystroke_source);
+
+		  if (source)
+		    inev.ie.device = source->name;
+		}
+#endif
+
 	      goto done_keysym;
 	    }
 
@@ -14759,6 +14816,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		Fput_text_property (make_fixnum (0), make_fixnum (nbytes),
 				    Qcoding, coding, inev.ie.arg);
+
+#ifdef HAVE_XINPUT2
+		if (event->xkey.time == pending_keystroke_time)
+		  {
+		    source = xi_device_from_id (dpyinfo,
+						dpyinfo->pending_keystroke_source);
+
+		    if (source)
+		      inev.ie.device = source->name;
+		  }
+#endif
 	      }
 
 	    if (keysym == NoSymbol)
@@ -17312,6 +17380,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #else
 	      if (x_filter_event (dpyinfo, (XEvent *) &xkey))
 		{
+		  /* Try to attribute core key events from the input
+		     method to the input extension event that caused
+		     them.  */
+		  dpyinfo->pending_keystroke_time = xev->time;
+		  dpyinfo->pending_keystroke_source = xev->sourceid;
+
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
 		}
