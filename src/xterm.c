@@ -2856,10 +2856,11 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
       root_y = dest_y;
     }
 
-  x_own_selection (QPRIMARY,
-		   assq_no_quit (QPRIMARY,
-				 dpyinfo->terminal->Vselection_alist),
-		   frame);
+  if (CONSP (value))
+    x_own_selection (QPRIMARY, Fnth (make_fixnum (1), value),
+		     frame);
+  else
+    x_own_selection (QPRIMARY, Qnil, frame);
 
   event.xbutton.window = child;
   event.xbutton.x = dest_x;
@@ -9369,19 +9370,26 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   ptrdiff_t i, end, fill;
   XTextProperty prop;
   xm_drop_start_message dmsg;
-  Lisp_Object frame_object, x, y;
+  Lisp_Object frame_object, x, y, frame, local_value;
 
   if (!FRAME_VISIBLE_P (f))
     error ("Frame is invisible");
 
+  XSETFRAME (frame, f);
+  local_value = assq_no_quit (QXdndSelection,
+			      FRAME_TERMINAL (f)->Vselection_alist);
+
   if (x_dnd_in_progress || x_dnd_waiting_for_finish)
     error ("A drag-and-drop session is already in progress");
 
+  if (CONSP (local_value))
+    x_own_selection (QXdndSelection,
+		     Fnth (make_fixnum (1), local_value), frame);
+  else
+    error ("No local value for XdndSelection");
+
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
 					  QXdndSelection);
-
-  if (NILP (ltimestamp))
-    error ("No local value for XdndSelection");
 
   if (BIGNUMP (ltimestamp))
     x_dnd_selection_timestamp = bignum_to_intmax (ltimestamp);
