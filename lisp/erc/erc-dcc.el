@@ -196,7 +196,7 @@ compared with `erc-nick-equal-p' which is IRC case-insensitive."
                       (erc-extract-nick test)
                       (erc-extract-nick val)))
                 ;; not a nick
-                (eq test val)
+                (equal test val)
                 (setq cont nil))))
         (if cont
             (setq result elt)
@@ -507,7 +507,7 @@ FILE is the filename.  If FILE is split into multiple arguments,
 re-join the arguments, separated by a space.
 PROC is the server process."
   (setq file (and file (mapconcat #'identity file " ")))
-  (let* ((elt (erc-dcc-member :nick nick :type 'GET))
+  (let* ((elt (erc-dcc-member :nick nick :type 'GET :file file))
          (filename (or file (plist-get elt :file) "unknown")))
     (if elt
         (let* ((file (read-file-name
