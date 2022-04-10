@@ -4362,7 +4362,7 @@ and execute the forms."
   (with-minibuffer-completions-window
     (when completions-highlight-face
       (setq-local cursor-face-highlight-nonselected-window t))
-    (previous-completion n)))
+    (previous-completion (or n 1))))
 
 (defun minibuffer-next-completion (&optional n)
   "Run `next-completion' from the minibuffer in its completions window."
@@ -4370,7 +4370,7 @@ and execute the forms."
   (with-minibuffer-completions-window
     (when completions-highlight-face
       (setq-local cursor-face-highlight-nonselected-window t))
-    (next-completion n)))
+    (next-completion (or n 1))))
 
 (defun minibuffer-choose-previous-completion (&optional n)
   "Run `previous-completion' from the minibuffer in its completions window.
