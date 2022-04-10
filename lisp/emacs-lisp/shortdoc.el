@@ -47,30 +47,67 @@
   "Add GROUP to the list of defined documentation groups.
 FUNCTIONS is a list of elements on the form:
 
-  (fun
+  (FUNC
    :no-manual BOOL
    :args ARGS
-   :eval EXAMPLE-FORM
+   :eval EVAL
    :no-eval EXAMPLE-FORM
-   :no-eval* EXAMPLE-FORM
    :no-value EXAMPLE-FORM
+   :no-eval* EXAMPLE-FORM
    :result RESULT-FORM
-   :result-string RESULT-FORM
+   :result-string RESULT-STRING
    :eg-result RESULT-FORM
-   :eg-result-string RESULT-FORM)
+   :eg-result-string RESULT-STRING)
 
-BOOL should be non-nil if the function isn't documented in the
+FUNC is the function being documented.
+
+NO-MANUAL should be non-nil if FUNC isn't documented in the
 manual.
 
-ARGS is optional; the function's signature is displayed if ARGS
-is not present.
+ARGS is optional list of function FUNC's arguments.  FUNC's
+signature is displayed automatically if ARGS is not present.
+Specifying ARGS might be useful where you don't want to document
+some of the uncommon arguments a function might have.
 
-If EVAL isn't a string, it will be printed with `prin1', and then
-evaluated to give a result, which is also printed.  If it's a
-string, it'll be inserted as is, then the string will be `read',
-and then evaluated.
+While the `:no-manual' and `:args' property can be used for
+any (FUNC ..) form, all of the other properties shown above
+cannot be used simultaneously in such a form.
 
-There can be any number of :example/:result elements."
+Here are some common forms with examples of properties that go
+together:
+
+1. Document a form or string, and its evaluated return value.
+   (FUNC
+    :eval EVAL)
+
+If EVAL is a string, it will be inserted as is, and then that
+string will be `read' and evaluated.
+
+2. Document a form or string, but manually document its evalation
+   result.  The provided form will not be evaluated.
+
+  (FUNC
+   :no-eval EXAMPLE-FORM
+   :result RESULT-FORM   ;Use `:result-string' if value is in string form
+   )
+
+Using `:no-value' is the same as using `:no-eval'.
+
+Use `:no-eval*' instead of `:no-eval' where the successful
+execution of the documented form depends on some conditions.
+
+3. Document a form or string EXAMPLE-FORM.  Also manually
+   document an example result.  This result could be unrelated to
+   the documented form.
+
+  (FUNC
+   :no-eval EXAMPLE-FORM
+   :eg-result RESULT-FORM ;Use `:eg-result-string' if value is in string form
+   )
+
+A FUNC form can have any number of `:no-eval' (or `:no-value'),
+`:no-eval*', `:result', `:result-string', `:eg-result' and
+`:eg-result-string' properties."
   (declare (indent defun))
   `(progn
      (setq shortdoc--groups (delq (assq ',group shortdoc--groups)
@@ -1408,11 +1445,14 @@ function's documentation in the Info manual")))
 If GROUP doesn't exist, it will be created.
 If SECTION doesn't exist, it will be added.
 
+ELEM is a Lisp form.  See `define-short-documentation-group' for
+details.
+
 Example:
 
   (shortdoc-add-function
-    'file \"Predicates\"
-    '(file-locked-p :no-eval (file-locked-p \"/tmp\")))"
+    \\='file \"Predicates\"
+    \\='(file-locked-p :no-eval (file-locked-p \"/tmp\")))"
   (let ((glist (assq group shortdoc--groups)))
     (unless glist
       (setq glist (list group))
