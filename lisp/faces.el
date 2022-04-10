@@ -2657,8 +2657,9 @@ non-nil."
      :background "grey75" :foreground "black")
     (t
      :inverse-video t))
-  "Face for the mode lines (for the selected window) as well as header lines.
-See `mode-line-display' for the face used on mode lines."
+  "Face for the mode lines as well as header lines.
+See `mode-line-active' and `mode-line-inactive' for the faces
+used on mode lines."
   :version "21.1"
   :group 'mode-line-faces
   :group 'basic-faces)
