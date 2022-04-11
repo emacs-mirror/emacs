@@ -233,12 +233,18 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
 
 (defun textsec--ipvx-address-p (domain)
   "Return non-nil if DOMAIN is an ipv4 or ipv6 address."
-  (or (string-match-p "\\`\\([0-9]\\{1,3\\}\\.?\\)\\{1,4\\}\\'" domain)
-      (let ((ipv6 "\\([0-9a-f]\\{0,4\\}:?\\)\\{1,8\\}"))
-        ;; With brackets.
-        (or (string-match-p (format "\\`\\[%s\\]\\'" ipv6) domain)
-            ;; Without.
-            (string-match-p (format "\\`%s\\'" ipv6) domain)))))
+  ;; This is a very relaxed pattern for IPv4 or IPv6 addresses.  The
+  ;; assumption is that any malformed address accepted by this rule
+  ;; will be rejected by the actual address parser eventually.
+  (rx-let ((ipv4 (** 1 4
+                     (** 1 3 (in "0-9"))
+                     (? ".")))
+           (ipv6 (: (** 1 7
+                        (** 0 4 (in "0-9a-f"))
+                        ":")
+                    (** 0 4 (in "0-9a-f"))
+                    (? ":" ipv4))))
+    (string-match-p (rx bos (or ipv4 ipv6 (: "[" ipv6 "]")) eos) domain)))
 
 (defun textsec-domain-suspicious-p (domain)
   "Say whether DOMAIN's name looks suspicious.
