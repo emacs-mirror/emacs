@@ -8754,10 +8754,21 @@ gif_load (struct frame *f, struct image *img)
   rc = DGifSlurp (gif);
   if (rc == GIF_ERROR || gif->ImageCount <= 0)
     {
-      if (NILP (specified_data))
-	image_error ("Error reading `%s'", img->spec);
+#if HAVE_GIFERRORSTRING
+      const char *errstr = GifErrorString (gif->Error);
+      if (errstr)
+	if (NILP (specified_data))
+	  image_error ("Error reading `%s' (%s)", img->spec,
+		       build_string (errstr));
+	else
+	  image_error ("Error reading GIF data: %s",
+		       build_string (errstr));
       else
-	image_error ("Error reading GIF data");
+#endif
+	if (NILP (specified_data))
+	  image_error ("Error reading `%s'", img->spec);
+	else
+	  image_error ("Error reading GIF data");
       goto gif_error;
     }
 
