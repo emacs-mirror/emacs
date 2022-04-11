@@ -14818,7 +14818,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				    Qcoding, coding, inev.ie.arg);
 
 #ifdef HAVE_XINPUT2
-		if (event->xkey.time == pending_keystroke_time)
+		if (event->xkey.time == pending_keystroke_time
+		    /* I-Bus sometimes sends events generated from
+		       multiple filtered keystrokes with a time of 0,
+		       so just use the recorded source device if it
+		       exists.  */
+		    || (pending_keystroke_time && !event->xkey.time))
 		  {
 		    source = xi_device_from_id (dpyinfo,
 						dpyinfo->pending_keystroke_source);
