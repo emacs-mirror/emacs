@@ -8433,7 +8433,7 @@ tiff_load (struct frame *f, struct image *img)
 
 
 
-#if defined (HAVE_WEBP)
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
 
 /* To speed animations up, we keep a cache (based on EQ-ness of the
    image spec/object) where we put the animator iterator.  */
