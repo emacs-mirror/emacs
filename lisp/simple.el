@@ -5183,7 +5183,7 @@ If `kill-append-merge-undo' is non-nil, remove the last undo
 boundary in the current buffer."
   (let ((cur (car kill-ring)))
     (kill-new (if before-p (concat string cur) (concat cur string))
-              (or (string= cur "")
+              (or (= (length cur) 0)
                   (null (get-text-property 0 'yank-handler cur)))))
   (when (and kill-append-merge-undo (not buffer-read-only))
     (let ((prev buffer-undo-list)
