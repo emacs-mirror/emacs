@@ -9008,7 +9008,11 @@ gif_load (struct frame *f, struct image *img)
 
   /* We have animation data in the cache, so copy it over so that we
      can alter it.  */
+#ifdef HAVE_NTGUI
+  int cache_image_size = width * height * ximg->info.bmiHeader.biBitCount / 8;
+#else
   int cache_image_size = width * height * ximg->bits_per_pixel / 8;
+#endif
   if (cache && cache->temp)
     {
       memcpy (ximg->data, cache->temp, cache_image_size);
