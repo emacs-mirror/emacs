@@ -2789,13 +2789,13 @@ implemented this way:
 (gv-define-expander substring
   (lambda (do place from &optional to)
     (gv-letplace (getter setter) place
-      (macroexp-let2* nil ((start from) (end to))
-        (funcall do `(substring ,getter ,start ,end)
+      (macroexp-let2* (from to)
+        (funcall do `(substring ,getter ,from ,to)
                  (lambda (v)
-                   (macroexp-let2 nil v v
+                   (macroexp-let2* (v)
                      `(progn
                         ,(funcall setter `(cl--set-substring
-                                           ,getter ,start ,end ,v))
+                                           ,getter ,from ,to ,v))
                         ,v))))))))
 @end example
 @end defmac
@@ -2808,7 +2808,7 @@ of Common Lisp could be implemented this way:
 @example
 (defmacro incf (place &optional n)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (or n 1)
+    (macroexp-let2* ((v (or n 1)))
       (funcall setter `(+ ,v ,getter)))))
 @end example
 

@@ -567,12 +567,20 @@ cases where EXP is a constant."
 (defmacro macroexp-let2* (test bindings &rest body)
   "Multiple binding version of `macroexp-let2'.
 
-BINDINGS is a list of elements of the form (SYM EXP).  Each EXP
-can refer to symbols specified earlier in the binding list."
+BINDINGS is a list of elements of the form (SYM EXP) or just SYM,
+which then stands for (SYM SYM).
+Each EXP can refer to symbols specified earlier in the binding list.
+
+TEST has to be a symbol, and if it is nil it can be omitted."
   (declare (indent 2) (debug (sexp (&rest (sexp form)) body)))
+  (when (consp test) ;; `test' was omitted.
+    (push bindings body)
+    (setq bindings test)
+    (setq test nil))
   (pcase-exhaustive bindings
     ('nil (macroexp-progn body))
-    (`((,var ,exp) . ,tl)
+    (`(,(or `(,var ,exp) (and (pred symbolp) var (let exp var)))
+       . ,tl)
      `(macroexp-let2 ,test ,var ,exp
         (macroexp-let2* ,test ,tl ,@body)))))
 
