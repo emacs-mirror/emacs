@@ -2866,6 +2866,8 @@ anim_get_animation_cache (Lisp_Object spec)
   return cache;
 }
 
+#endif  /* HAVE_WEBP || HAVE_GIF */
+
 /* Call FN on every image in the image cache of frame F.  Used to mark
    Lisp Objects in the image cache.  */
 
@@ -8520,10 +8522,6 @@ tiff_load (struct frame *f, struct image *img)
 
 
 
-
-
-#endif /* HAVE_GIF || HAVE_WEBP */
-
 /***********************************************************************
 				 GIF
  ***********************************************************************/
