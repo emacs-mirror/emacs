@@ -2782,6 +2782,90 @@ cache_image (struct frame *f, struct image *img)
 }
 
 
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+
+/* To speed animations up, we keep a cache (based on EQ-ness of the
+   image spec/object) where we put the animator iterator.  */
+
+struct anim_cache
+{
+  Lisp_Object spec;
+  /* For webp, this will be an iterator, and for libgif, a gif handle.  */
+  void *handle;
+  /* If we need to maintain temporary data of some sort.  */
+  void *temp;
+  /* A function to call to free the handle.  */
+  void (*destructor) (void *);
+  int index, width, height, frames;
+  struct timespec update_time;
+  struct anim_cache *next;
+};
+
+static struct anim_cache *anim_cache = NULL;
+
+static struct anim_cache *
+anim_create_cache (Lisp_Object spec)
+{
+  struct anim_cache *cache = xmalloc (sizeof (struct anim_cache));
+  cache->handle = NULL;
+  cache->temp = NULL;
+
+  cache->index = 0;
+  cache->next = NULL;
+  cache->spec = spec;
+  return cache;
+}
+
+/* Discard cached images that haven't been used for a minute. */
+static void
+anim_prune_animation_cache (void)
+{
+  struct anim_cache **pcache = &anim_cache;
+  struct timespec old = timespec_sub (current_timespec (),
+				      make_timespec (60, 0));
+
+  while (*pcache)
+    {
+      struct anim_cache *cache = *pcache;
+      if (timespec_cmp (old, cache->update_time) <= 0)
+	pcache = &cache->next;
+      else
+	{
+	  if (cache->handle)
+	    cache->destructor (cache);
+	  if (cache->temp)
+	    xfree (cache->temp);
+	  *pcache = cache->next;
+	  xfree (cache);
+	}
+    }
+}
+
+static struct anim_cache *
+anim_get_animation_cache (Lisp_Object spec)
+{
+  struct anim_cache *cache;
+  struct anim_cache **pcache = &anim_cache;
+
+  anim_prune_animation_cache ();
+
+  while (1)
+    {
+      cache = *pcache;
+      if (! cache)
+	{
+          *pcache = cache = anim_create_cache (spec);
+          break;
+        }
+      if (EQ (spec, cache->spec))
+	break;
+      pcache = &cache->next;
+    }
+
+  cache->update_time = current_timespec ();
+  return cache;
+}
+
 /* Call FN on every image in the image cache of frame F.  Used to mark
    Lisp Objects in the image cache.  */
 
@@ -2808,6 +2892,11 @@ mark_image_cache (struct image_cache *c)
 	if (c->images[i])
 	  mark_image (c->images[i]);
     }
+
+#if defined HAVE_WEBP || defined HAVE_GIF
+  for (struct anim_cache *cache = anim_cache; cache; cache = cache->next)
+    mark_object (cache->spec);
+#endif
 }
 
 
@@ -8432,91 +8521,6 @@ tiff_load (struct frame *f, struct image *img)
 
 
 
-
-#if defined (HAVE_WEBP) || defined (HAVE_GIF)
-
-/* To speed animations up, we keep a cache (based on EQ-ness of the
-   image spec/object) where we put the animator iterator.  */
-
-struct anim_cache
-{
-  Lisp_Object spec;
-  /* For webp, this will be an iterator, and for libgif, a gif handle.  */
-  void *handle;
-  /* If we need to maintain temporary data of some sort.  */
-  void *temp;
-  /* A function to call to free the handle.  */
-  void (*destructor)(void*);
-  int index, width, height, frames;
-  struct timespec update_time;
-  struct anim_cache *next;
-};
-
-static struct anim_cache *anim_cache = NULL;
-
-static struct anim_cache *
-anim_create_cache (Lisp_Object spec)
-{
-  struct anim_cache *cache = xmalloc (sizeof (struct anim_cache));
-  cache->handle = NULL;
-  cache->temp = NULL;
-
-  cache->index = 0;
-  cache->next = NULL;
-  /* FIXME: Does this need gc protection?  */
-  cache->spec = spec;
-  return cache;
-}
-
-/* Discard cached images that haven't been used for a minute. */
-static void
-anim_prune_animation_cache (void)
-{
-  struct anim_cache **pcache = &anim_cache;
-  struct timespec old = timespec_sub (current_timespec (),
-				      make_timespec (60, 0));
-
-  while (*pcache)
-    {
-      struct anim_cache *cache = *pcache;
-      if (timespec_cmp (old, cache->update_time) <= 0)
-	pcache = &cache->next;
-      else
-	{
-	  if (cache->handle)
-	    cache->destructor (cache);
-	  if (cache->temp)
-	    xfree (cache->temp);
-	  *pcache = cache->next;
-	  xfree (cache);
-	}
-    }
-}
-
-static struct anim_cache *
-anim_get_animation_cache (Lisp_Object spec)
-{
-  struct anim_cache *cache;
-  struct anim_cache **pcache = &anim_cache;
-
-  anim_prune_animation_cache ();
-
-  while (1)
-    {
-      cache = *pcache;
-      if (! cache)
-	{
-          *pcache = cache = anim_create_cache (spec);
-          break;
-        }
-      if (EQ (spec, cache->spec))
-	break;
-      pcache = &cache->next;
-    }
-
-  cache->update_time = current_timespec ();
-  return cache;
-}
 
 #endif /* HAVE_GIF || HAVE_WEBP */
 
