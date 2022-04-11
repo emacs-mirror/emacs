@@ -98,6 +98,7 @@
 (require 'comint)
 (require 'pcomplete)
 (eval-when-compile (require 'files-x)) ;with-connection-local-variables
+(require 'subr-x)
 
 ;;; Customization and Buffer Variables
 
