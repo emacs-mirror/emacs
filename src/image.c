@@ -1796,13 +1796,50 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash,
 }
 
 
+/* Filter out image elements that don't affect display, but will
+   disrupt finding the image in the cache.  This should perhaps be
+   user-configurable, but for now it's hard-coded (but new elements
+   can be added at will).  */
+static Lisp_Object
+filter_image_spec (Lisp_Object spec)
+{
+  Lisp_Object out = Qnil;
+
+  /* Skip past the `image' element.  */
+  if (CONSP (spec))
+    spec = XCDR (spec);
+
+  while (CONSP (spec))
+    {
+      Lisp_Object key = XCAR (spec);
+      spec = XCDR (spec);
+      if (CONSP (spec))
+	{
+	  Lisp_Object value = XCAR (spec);
+	  spec = XCDR (spec);
+
+	  /* Some animation-related data doesn't affect display, but
+	     breaks the image cache.  Filter those out.  */
+	  if (!(EQ (key, QCanimate_buffer)
+		|| EQ (key, QCanimate_tardiness)
+		|| EQ (key, QCanimate_position)
+		|| EQ (key, QCanimate_multi_frame_data)))
+	    {
+	      out = Fcons (value, out);
+	      out = Fcons (key, out);
+	    }
+	}
+    }
+  return out;
+}
+
 /* Search frame F for an image with spec SPEC, and free it.  */
 
 static void
 uncache_image (struct frame *f, Lisp_Object spec)
 {
   struct image *img;
-  EMACS_UINT hash = sxhash (spec);
+  EMACS_UINT hash = sxhash (filter_image_spec (spec));
 
   /* Because the background colors are based on the current face, we
      can have multiple copies of an image with the same spec. We want
@@ -2643,7 +2680,7 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
   eassert (valid_image_p (spec));
 
   /* Look up SPEC in the hash table of the image cache.  */
-  hash = sxhash (spec);
+  hash = sxhash (filter_image_spec (spec));
   img = search_image_cache (f, spec, hash, foreground, background,
 			    font_size, font_family, false);
   if (img && img->load_failed_p)
@@ -11894,6 +11931,11 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif
+
+  DEFSYM (QCanimate_buffer, ":animate-buffer");
+  DEFSYM (QCanimate_tardiness, ":animate-tardiness");
+  DEFSYM (QCanimate_position, ":animate-position");
+  DEFSYM (QCanimate_multi_frame_data, ":animate-multi-frame-data");
 
   defsubr (&Simage_transforms_p);
 
