@@ -8775,6 +8775,7 @@ gif_load (struct frame *f, struct image *img)
   Lisp_Object specified_bg = image_spec_value (img->spec, QCbackground, NULL);
   Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
   Lisp_Object specified_data = image_spec_value (img->spec, QCdata, NULL);
+  unsigned long *pixmap = NULL;
   EMACS_INT idx = -1;
   int gif_err;
   struct anim_cache* cache = NULL;
@@ -8794,7 +8795,10 @@ gif_load (struct frame *f, struct image *img)
 	  /* We have an old cache entry, and it looks correct, so use
 	     it.  */
 	  if (cache->index == idx - 1)
-	    gif = cache->handle;
+	    {
+	      gif = cache->handle;
+	      pixmap = cache->temp;
+	    }
 	}
     }
 
@@ -8958,6 +8962,15 @@ gif_load (struct frame *f, struct image *img)
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
     goto gif_error;
 
+  /* We construct the (possibly composited animated) image in this
+     buffer.  */
+  if (!pixmap)
+    {
+      pixmap = xmalloc (width * height * sizeof (unsigned long));
+      if (cache)
+	cache->temp = pixmap;
+    }
+
   /* Clear the part of the screen image not covered by the image.
      Full animated GIF support requires more here (see the gif89 spec,
      disposal methods).  Let's simply assume that the part not covered
@@ -8972,20 +8985,21 @@ gif_load (struct frame *f, struct image *img)
     frame_bg = lookup_rgb_color (f, color.red, color.green, color.blue);
   }
 #endif	/* USE_CAIRO */
+
   for (y = 0; y < img->corners[TOP_CORNER]; ++y)
     for (x = 0; x < width; ++x)
-      PUT_PIXEL (ximg, x, y, frame_bg);
+      *(pixmap + x + y * width) = frame_bg;
 
   for (y = img->corners[BOT_CORNER]; y < height; ++y)
     for (x = 0; x < width; ++x)
-      PUT_PIXEL (ximg, x, y, frame_bg);
+      *(pixmap + x + y * width) = frame_bg;
 
   for (y = img->corners[TOP_CORNER]; y < img->corners[BOT_CORNER]; ++y)
     {
       for (x = 0; x < img->corners[LEFT_CORNER]; ++x)
-	PUT_PIXEL (ximg, x, y, frame_bg);
+	*(pixmap + x + y * width) = frame_bg;
       for (x = img->corners[RIGHT_CORNER]; x < width; ++x)
-	PUT_PIXEL (ximg, x, y, frame_bg);
+	*(pixmap + x + y * width) = frame_bg;
     }
 
   /* Read the GIF image into the X image.   */
@@ -9006,13 +9020,12 @@ gif_load (struct frame *f, struct image *img)
 
   int start_frame = 0;
 
-  /* We have animation data in the cache, so copy it over so that we
-     can alter it.  */
-  int cache_image_size = width * height * ximg->bits_per_pixel / 8;
+  /* We have animation data in the cache.  */
   if (cache && cache->temp)
     {
-      memcpy (ximg->data, cache->temp, cache_image_size);
-      start_frame = cache->index;
+      start_frame = cache->index + 1;
+      if (start_frame > idx)
+	start_frame = 0;
       cache->index = idx;
     }
 
@@ -9106,8 +9119,8 @@ gif_load (struct frame *f, struct image *img)
 		  int c = raster[y * subimg_width + x];
 		  if (transparency_color_index != c || disposal != DISPOSE_DO_NOT)
                     {
-                      PUT_PIXEL (ximg, x + subimg_left, row + subimg_top,
-                                 pixel_colors[c]);
+		      *(pixmap + x + subimg_left + (y + subimg_top) * width) =
+			pixel_colors[c];
 		    }
 		}
 	    }
@@ -9120,21 +9133,18 @@ gif_load (struct frame *f, struct image *img)
 		int c = raster[y * subimg_width + x];
 		if (transparency_color_index != c || disposal != DISPOSE_DO_NOT)
                   {
-                    PUT_PIXEL (ximg, x + subimg_left, y + subimg_top,
-                               pixel_colors[c]);
+		    *(pixmap + x + subimg_left + (y + subimg_top) * width) =
+		      pixel_colors[c];
                   }
 	      }
 	}
     }
 
-  if (cache)
-    {
-      /* Allocate an area to store what we have computed so far.  */
-      if (! cache->temp)
-	cache->temp = xmalloc (cache_image_size);
-      /* Copy over the data to the cache.  */
-      memcpy (cache->temp, ximg->data, cache_image_size);
-    }
+  /* We now have the complete image (possibly composed from a series
+     of animated frames) in pixmap.  Put it into ximg.  */
+  for (y = 0; y < height; ++y)
+    for (x = 0; x < width; ++x)
+      PUT_PIXEL (ximg, x, y, *(pixmap + x + y * width));
 
 #ifdef COLOR_TABLE_SUPPORT
   img->colors = colors_in_color_table (&img->ncolors);
@@ -9178,6 +9188,8 @@ gif_load (struct frame *f, struct image *img)
 
   if (!cache)
     {
+      if (pixmap)
+	xfree (pixmap);
       if (gif_close (gif, &gif_err) == GIF_ERROR)
 	{
 #if HAVE_GIFERRORSTRING
@@ -9204,7 +9216,11 @@ gif_load (struct frame *f, struct image *img)
 
  gif_error:
   if (!cache)
-    gif_close (gif, NULL);
+    {
+      if (pixmap)
+	xfree (pixmap);
+      gif_close (gif, NULL);
+    }
   return false;
 }
 
