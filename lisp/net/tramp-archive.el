@@ -188,6 +188,8 @@ It must be supported by libarchive(3).")
     "\\)" ;; \1
     "\\(" "/" ".*" "\\)" "\\'"))) ;; \2
 
+(put #'tramp-archive-autoload-file-name-regexp 'tramp-autoload t)
+
 ;; In older Emacsen (prior 27.1), `tramp-archive-autoload-file-name-regexp'
 ;; is not autoloaded.  So we cannot expect it to be known in
 ;; tramp-loaddefs.el.  But it exists, when tramp-archive.el is loaded.
@@ -354,23 +356,28 @@ arguments to pass to the OPERATION."
 (progn (defun tramp-archive-autoload-file-name-handler (operation &rest args)
   "Load Tramp archive file name handler, and perform OPERATION."
   (defvar tramp-archive-autoload)
-  (when tramp-archive-enabled
-    ;; We cannot use `tramp-compat-temporary-file-directory' here due
-    ;; to autoload.  When installing Tramp's GNU ELPA package, there
-    ;; might be an older, incompatible version active.  We try to
-    ;; overload this.
-    (let ((default-directory temporary-file-directory)
-          (tramp-archive-autoload t))
-      (apply #'tramp-autoload-file-name-handler operation args)))))
+  (let (;; We cannot use `tramp-compat-temporary-file-directory' here
+	;; due to autoload.  When installing Tramp's GNU ELPA package,
+	;; there might be an older, incompatible version active.  We
+	;; try to overload this.
+        (default-directory temporary-file-directory)
+        (tramp-archive-autoload tramp-archive-enabled))
+    (apply #'tramp-autoload-file-name-handler operation args))))
+
+(put #'tramp-archive-autoload-file-name-handler 'tramp-autoload t)
 
 ;;;###autoload
 (progn (defun tramp-register-archive-file-name-handler ()
   "Add archive file name handler to `file-name-handler-alist'."
-  (when tramp-archive-enabled
+  (when (and tramp-archive-enabled
+             (not
+              (rassq #'tramp-archive-file-name-handler file-name-handler-alist)))
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
 		       #'tramp-archive-autoload-file-name-handler))
     (put #'tramp-archive-autoload-file-name-handler 'safe-magic t))))
+
+(put #'tramp-register-archive-file-name-handler 'tramp-autoload t)
 
 ;;;###autoload
 (progn

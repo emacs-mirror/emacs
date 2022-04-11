@@ -249,11 +249,13 @@ functions have a binding in this keymap.")
 Bookmark functions update the value automatically.
 You probably do NOT want to change the value yourself.
 
-The value is an alist with bookmarks of the form
+The value is an alist whose elements are of the form
 
  (BOOKMARK-NAME . PARAM-ALIST)
 
-or the deprecated form (BOOKMARK-NAME PARAM-ALIST).
+or the deprecated form (BOOKMARK-NAME PARAM-ALIST).  The alist is
+ordered from most recently created bookmark at the front to least
+recently created bookmark at the end.
 
 BOOKMARK-NAME is the name you gave to the bookmark when creating it.
 
@@ -577,10 +579,10 @@ old one."
           ;; Modify using the new (NAME . ALIST) format.
           (setcdr bm alist))
 
-      ;; otherwise just cons it onto the front (either the bookmark
-      ;; doesn't exist already, or there is no prefix arg.  In either
-      ;; case, we want the new bookmark consed onto the alist...)
-
+      ;; Otherwise just put it onto the front of the list.  Either the
+      ;; bookmark doesn't exist already, or there is no prefix arg.
+      ;; In either case, we want the new bookmark on the front of the
+      ;; list, since the list is kept in reverse order of creation.
       (push (cons stripped-name alist) bookmark-alist))
 
     ;; Added by db
@@ -1138,7 +1140,9 @@ it to the name of the bookmark currently being set, advancing
 
 (defun bookmark-maybe-sort-alist ()
   "Return `bookmark-alist' for display.
-If `bookmark-sort-flag' is non-nil, then return a sorted copy of the alist."
+If `bookmark-sort-flag' is non-nil, then return a sorted copy of the alist.
+Otherwise, just return `bookmark-alist', which by default is ordered
+from most recently created to least recently created bookmark."
   (if bookmark-sort-flag
       (sort (copy-alist bookmark-alist)
             (lambda (x y) (string-lessp (car x) (car y))))

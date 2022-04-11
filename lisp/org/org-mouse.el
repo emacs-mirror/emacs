@@ -295,7 +295,7 @@ nor a function, elements of KEYWORDS are used directly."
 	      ((functionp itemformat) (funcall itemformat keyword))
 	      ((stringp itemformat) (format itemformat keyword))
 	      (t keyword))
-	     (list 'funcall function keyword)
+	     `(funcall #',function ,keyword)
 	     :style (cond
 		     ((null selected) t)
 		     ((functionp selected) 'toggle)

@@ -1266,8 +1266,10 @@ It returns t if a desktop file was loaded, nil otherwise.
 		   (memq desktop-load-locked-desktop '(nil ask))
 		   (or (null desktop-load-locked-desktop)
 		       (daemonp)
-		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
-Using it may cause conflicts.  Use it anyway? " owner)))))
+		       (not (y-or-n-p (format "
+Warning: desktop file appears to be in use by process with PID %s.\n\
+Using it may cause conflicts if that process still runs.\n\
+Use desktop file anyway? " owner)))))
 	      (let ((default-directory desktop-dirname))
 		(setq desktop-dirname nil)
 		(run-hooks 'desktop-not-loaded-hook)

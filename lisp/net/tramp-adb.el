@@ -815,10 +815,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Determine input.
       (if (null infile)
 	  (setq input (tramp-get-remote-null-device v))
-	(setq infile (expand-file-name infile))
+	(setq infile (tramp-compat-file-name-unquote (expand-file-name infile)))
 	(if (tramp-equal-remote default-directory infile)
 	    ;; INFILE is on the same remote host.
-	    (setq input (tramp-file-local-name infile))
+	    (setq input (tramp-unquote-file-local-name infile))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
 		tmpinput (tramp-make-tramp-file-name v input))
@@ -849,7 +849,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (setcar (cdr destination) (expand-file-name (cadr destination)))
 	  (if (tramp-equal-remote default-directory (cadr destination))
 	      ;; stderr is on the same remote host.
-	      (setq stderr (tramp-file-local-name (cadr destination)))
+	      (setq stderr (tramp-unquote-file-local-name (cadr destination)))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
 	    (setq stderr (tramp-make-tramp-temp-file v)
@@ -870,7 +870,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	      (setq ret (tramp-adb-send-command-and-check
 			 v (format
 			    "(cd %s; %s)"
-			    (tramp-shell-quote-argument localname) command)
+			    (tramp-unquote-shell-quote-argument localname)
+			    command)
 			 t))
 	    (unless (natnump ret) (setq ret 1))
 	    ;; We should add the output anyway.
@@ -900,8 +901,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Cleanup.  We remove all file cache values for the connection,
       ;; because the remote process could have changed them.
       (when tmpinput (delete-file tmpinput))
-
-      (unless process-file-side-effects
+      (when process-file-side-effects
         (tramp-flush-directory-properties v ""))
 
       ;; Return exit status.
@@ -985,6 +985,10 @@ implementation will be used."
 		 (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 		 (name1 name)
 		 (i 0))
+
+	    (when (string-match-p "[[:multibyte:]]" command)
+	      (tramp-error
+	       v 'file-error "Cannot apply multi-byte command `%s'" command))
 
 	    (while (get-process name1)
 	      ;; NAME must be unique as process name.
@@ -1264,7 +1268,7 @@ connection if a previous connection has died for some reason."
 	(if (zerop (length device))
 	    (tramp-error vec 'file-error "Device %s not connected" host))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
-	  (let* ((coding-system-for-read 'utf-8-dos) ;is this correct?
+	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 		 (process-connection-type tramp-process-connection-type)
 		 (args (if (> (length host) 0)
 			   (list "-s" device "shell")
@@ -1367,6 +1371,24 @@ connection if a previous connection has died for some reason."
    'connection-local-set-profiles
    `(:application tramp :protocol ,tramp-adb-method)
    'tramp-adb-connection-local-default-shell-profile))
+
+;; `shell-mode' tries to open remote files like "/adb::~/.history".
+;; This fails, because the tilde cannot be expanded.  Tell
+;; `tramp-handle-expand-file-name' to tolerate this.
+(defun tramp-adb-tolerate-tilde (orig-fun)
+  "Advice for `shell-mode' to tolerate tilde in remote file names."
+  (let ((tramp-tolerate-tilde
+	 (or tramp-tolerate-tilde
+	     (equal (file-remote-p default-directory 'method)
+		    tramp-adb-method))))
+    (funcall orig-fun)))
+
+(add-function
+ :around  (symbol-function #'shell-mode) #'tramp-adb-tolerate-tilde)
+(add-hook 'tramp-adb-unload-hook
+	  (lambda ()
+	    (remove-function
+	     (symbol-function #'shell-mode) #'tramp-adb-tolerate-tilde)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

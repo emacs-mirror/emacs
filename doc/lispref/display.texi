@@ -4504,14 +4504,15 @@ about to be executed.  This feature has nothing to do with
 @defvar overlay-arrow-string
 This variable holds the string to display to call attention to a
 particular line, or @code{nil} if the arrow feature is not in use.
-On a graphical display the contents of the string are ignored; instead a
-glyph is displayed in the fringe area to the left of the display area.
+On a graphical display the contents of the string are ignored if the
+left fringe is shown; instead a glyph is displayed in the fringe area
+to the left of the display area.
 @end defvar
 
 @defvar overlay-arrow-position
 This variable holds a marker that indicates where to display the overlay
 arrow.  It should point at the beginning of a line.  On a non-graphical
-display the arrow text
+display, or when the left fringe is not shown, the arrow text
 appears at the beginning of that line, overlaying any text that would
 otherwise appear.  Since the arrow is usually short, and the line
 usually begins with indentation, normally nothing significant is
@@ -4543,11 +4544,12 @@ this list.
 
 Each variable on this list can have properties
 @code{overlay-arrow-string} and @code{overlay-arrow-bitmap} that
-specify an overlay arrow string (for text terminals) or fringe bitmap
-(for graphical terminals) to display at the corresponding overlay
-arrow position.  If either property is not set, the default
-@code{overlay-arrow-string} or @code{overlay-arrow} fringe indicator
-is used.
+specify an overlay arrow string (for text terminals or graphical
+terminals without the left fringe shown) or fringe bitmap
+(for graphical terminals with a left fringe) to display at the
+corresponding overlay arrow position.  If either property is not set,
+the default @code{overlay-arrow-string} or @code{overlay-arrow} fringe
+indicator is used.
 
 
 @node Scroll Bars

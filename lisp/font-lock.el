@@ -349,7 +349,7 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
 ;; Fontification variables:
 
 (defvar font-lock-keywords nil
-  "A list of the keywords to highlight.
+  "A list of keywords and corresponding font-lock highlighting rules.
 There are two kinds of values: user-level, and compiled.
 
 A user-level keywords list is what a major mode or the user would
@@ -374,10 +374,10 @@ point, and set `match-data' appropriately if it succeeds; like
 `re-search-forward' would).  MATCHER regexps can be generated via
 the function `regexp-opt'.
 
-FORM is an expression, whose value should be a keyword element,
-evaluated when the keyword is (first) used in a buffer.  This
-feature can be used to provide a keyword that can only be
-generated when Font Lock mode is actually turned on.
+FORM is an expression, whose value should be a keyword element
+of one of the above forms, evaluated when the keyword is (first)
+used in a buffer.  This feature can be used to provide a keyword
+that can only be generated when Font Lock mode is actually turned on.
 
 HIGHLIGHT should be either MATCH-HIGHLIGHT or MATCH-ANCHORED.
 

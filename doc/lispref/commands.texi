@@ -682,6 +682,11 @@ different ways (e.g., @code{eww-open-in-new-buffer} and
 mode-specific, as they can be issued by the user from pretty much any
 context.
 
+Note that specifying command modes is not supported in native-compiled
+functions in Emacs 28.1 (but this is fixed in later Emacs versions).
+This means that @code{read-extended-command-predicate} isn't supported
+in native-compile builds, either.
+
 @node Generic Commands
 @subsection Select among Command Alternatives
 @cindex generic commands

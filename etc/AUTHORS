@@ -1573,7 +1573,7 @@ and co-wrote help-tests.el
 and changed xdisp.c display.texi w32.c msdos.c w32fns.c simple.el
   files.el fileio.c keyboard.c emacs.c w32term.c text.texi dispnew.c
   w32proc.c files.texi frames.texi configure.ac dispextern.h lisp.h
-  process.c ms-w32.h and 1235 other files
+  process.c ms-w32.h and 1236 other files
 
 Eliza Velasquez: changed server.el
 
@@ -2610,9 +2610,9 @@ Jim Paris: changed process.c
 
 Jim Porter: changed delsel.el ansi-color-tests.el ansi-color.el
   bindings.el esh-var.el term-tests.el term.el tramp.el callproc.c
-  dichromacy-theme.el diff-mode.el eshell-tests.el eshell.texi
+  dichromacy-theme.el diff-mode.el em-pred.el eshell-tests.el eshell.texi
   files-tests.el gdb-mi.el grep-tests.el ispell.el leuven-theme.el man.el
-  menu-bar.el misterioso-theme.el and 9 other files
+  menu-bar.el and 10 other files
 
 Jim Radford: changed gnus-start.el
 
@@ -2949,7 +2949,7 @@ Juri Linkov: wrote compose.el files-x.el misearch.el repeat-tests.el
 and changed isearch.el simple.el info.el replace.el dired.el dired-aux.el
   progmodes/grep.el subr.el window.el image-mode.el mouse.el diff-mode.el
   files.el menu-bar.el minibuffer.el progmodes/compile.el startup.el
-  faces.el vc.el display.texi search.texi and 445 other files
+  faces.el vc.el display.texi search.texi and 446 other files
 
 Jussi Lahdenniemi: changed w32fns.c ms-w32.h msdos.texi w32.c w32.h
   w32console.c w32heap.c w32inevt.c w32term.h
@@ -3306,7 +3306,7 @@ and co-wrote gnus-kill.el gnus-mh.el gnus-msg.el gnus-score.el
 and changed gnus.texi simple.el subr.el files.el process.c text.texi
   display.texi dired.el gnutls.c gnus-ems.el smtpmail.el help-fns.el
   auth-source.el url-http.el edebug.el image.el gnus-cite.el pop3.el
-  dired-aux.el fns.c image.c and 859 other files
+  dired-aux.el fns.c image.c and 860 other files
 
 Lars Rasmusson: changed ebrowse.c
 
@@ -4565,10 +4565,10 @@ and changed xdisp.c comp.c fns.c pdumper.c alloc.c byte-opt.el
   ccl-tests.el ccl.c ccl.el cmds.c comint.el comp-test-funcs.el
   comp-tests.el comp.el composite.c and 28 other files
 
-Po Lu: changed xdisp.c browse-url.el callproc.c cc-compat.el config.bat
-  esh-cmd.el fileio.c langinfo.h loadup.el msdos.c msdos.h nsfns.m
-  nsterm.m process.c sed1v2.inp sed2v2.inp sed3v2.inp sedlibmk.inp
-  tooltip.el xterm.c
+Po Lu: changed xdisp.c anti.texi browse-url.el callproc.c cc-compat.el
+  config.bat esh-cmd.el fileio.c langinfo.h loadup.el msdos.c msdos.h
+  nsfns.m nsterm.m process.c sed1v2.inp sed2v2.inp sed3v2.inp
+  sedlibmk.inp tooltip.el xterm.c
 
 Pontus Michael: changed simple.el
 
@@ -5389,8 +5389,8 @@ and co-wrote ol-gnus.el
 and changed bug-reference.el reftex-vars.el tex-mode.el browse-url.el
   gnus.texi reftex-cite.el tsdh-dark-theme.el tsdh-light-theme.el
   gnus-sum.el maintaining.texi file-notify-tests.el gnus-art.el misc.texi
-  reftex.el org-gnus.el prog-mode.el subword.el image-mode.el json.el
-  lisp-mode.el rcirc.el and 99 other files
+  reftex.el org-gnus.el prog-mode.el subword.el dired.el image-mode.el
+  json.el lisp-mode.el and 99 other files
 
 Tatsuya Ichikawa: changed gnus-agent.el gnus-cache.el
 

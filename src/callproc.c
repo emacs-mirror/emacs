@@ -1335,7 +1335,8 @@ emacs_posix_spawn_init_actions (posix_spawn_file_actions_t *actions,
 }
 
 static int
-emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
+emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes,
+				   const sigset_t *oldset)
 {
   int error = posix_spawnattr_init (attributes);
   if (error != 0)
@@ -1377,11 +1378,7 @@ emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
     goto out;
 
   /* Stop blocking SIGCHLD in the child.  */
-  sigset_t oldset;
-  error = pthread_sigmask (SIG_SETMASK, NULL, &oldset);
-  if (error != 0)
-    goto out;
-  error = posix_spawnattr_setsigmask (attributes, &oldset);
+  error = posix_spawnattr_setsigmask (attributes, oldset);
   if (error != 0)
     goto out;
 
@@ -1390,23 +1387,6 @@ emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
     posix_spawnattr_destroy (attributes);
 
   return error;
-}
-
-static int
-emacs_posix_spawn_init (posix_spawn_file_actions_t *actions,
-                        posix_spawnattr_t *attributes, int std_in,
-                        int std_out, int std_err, const char *cwd)
-{
-  int error = emacs_posix_spawn_init_actions (actions, std_in,
-                                              std_out, std_err, cwd);
-  if (error != 0)
-    return error;
-
-  error = emacs_posix_spawn_init_attributes (attributes);
-  if (error != 0)
-    return error;
-
-  return 0;
 }
 
 #endif
@@ -1443,9 +1423,12 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   if (use_posix_spawn)
     {
       /* Initialize optional attributes before blocking. */
-      int error
-        = emacs_posix_spawn_init (&actions, &attributes, std_in,
-                                  std_out, std_err, cwd);
+      int error = emacs_posix_spawn_init_actions (&actions, std_in,
+                                              std_out, std_err, cwd);
+      if (error != 0)
+	return error;
+
+      error = emacs_posix_spawn_init_attributes (&attributes, oldset);
       if (error != 0)
 	return error;
     }
