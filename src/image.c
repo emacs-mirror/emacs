@@ -8431,6 +8431,95 @@ tiff_load (struct frame *f, struct image *img)
 
 
 
+
+
+#if defined (HAVE_WEBP)
+
+/* To speed animations up, we keep a cache (based on EQ-ness of the
+   image spec/object) where we put the animator iterator.  */
+
+struct anim_cache
+{
+  Lisp_Object spec;
+  /* For webp, this will be an iterator, and for libgif, a gif handle.  */
+  void *handle;
+  /* If we need to maintain temporary data of some sort.  */
+  void *temp;
+  /* A function to call to free the handle.  */
+  void (*destructor)(void*);
+  int index, width, height, frames;
+  struct timespec update_time;
+  struct anim_cache *next;
+};
+
+static struct anim_cache *anim_cache = NULL;
+
+static struct anim_cache *
+anim_create_cache (Lisp_Object spec)
+{
+  struct anim_cache *cache = xmalloc (sizeof (struct anim_cache));
+  cache->handle = NULL;
+  cache->temp = NULL;
+
+  cache->index = 0;
+  cache->next = NULL;
+  /* FIXME: Does this need gc protection?  */
+  cache->spec = spec;
+  return cache;
+}
+
+/* Discard cached images that haven't been used for a minute. */
+static void
+anim_prune_animation_cache (void)
+{
+  struct anim_cache **pcache = &anim_cache;
+  struct timespec old = timespec_sub (current_timespec (),
+				      make_timespec (60, 0));
+
+  while (*pcache)
+    {
+      struct anim_cache *cache = *pcache;
+      if (timespec_cmp (old, cache->update_time) <= 0)
+	pcache = &cache->next;
+      else
+	{
+	  if (cache->handle)
+	    cache->destructor (cache->handle);
+	  if (cache->temp)
+	    xfree (cache->temp);
+	  *pcache = cache->next;
+	  xfree (cache);
+	}
+    }
+}
+
+static struct anim_cache *
+anim_get_animation_cache (Lisp_Object spec)
+{
+  struct anim_cache *cache;
+  struct anim_cache **pcache = &anim_cache;
+
+  anim_prune_animation_cache ();
+
+  while (1)
+    {
+      cache = *pcache;
+      if (! cache)
+	{
+          *pcache = cache = anim_create_cache (spec);
+          break;
+        }
+      if (EQ (spec, cache->spec))
+	break;
+      pcache = &cache->next;
+    }
+
+  cache->update_time = current_timespec ();
+  return cache;
+}
+
+#endif /* HAVE_GIF || HAVE_WEBP */
+
 /***********************************************************************
 				 GIF
  ***********************************************************************/
@@ -9203,82 +9292,6 @@ init_webp_functions (void)
 
 #endif /* WINDOWSNT */
 
-/* To speed webp animations up, we keep a cache (based on EQ-ness of
-   the image spec/object) where we put the libwebp animator
-   iterator.  */
-
-struct webp_cache
-{
-  Lisp_Object spec;
-  WebPAnimDecoder* anim;
-  int index, width, height, frames;
-  struct timespec update_time;
-  struct webp_cache *next;
-};
-
-static struct webp_cache *webp_cache = NULL;
-
-static struct webp_cache *
-webp_create_cache (Lisp_Object spec)
-{
-  struct webp_cache *cache = xmalloc (sizeof (struct webp_cache));
-  cache->anim = NULL;
-
-  cache->index = 0;
-  cache->next = NULL;
-  /* FIXME: Does this need gc protection?  */
-  cache->spec = spec;
-  return cache;
-}
-
-/* Discard cached images that haven't been used for a minute. */
-static void
-webp_prune_animation_cache (void)
-{
-  struct webp_cache **pcache = &webp_cache;
-  struct timespec old = timespec_sub (current_timespec (),
-				      make_timespec (60, 0));
-
-  while (*pcache)
-    {
-      struct webp_cache *cache = *pcache;
-      if (timespec_cmp (old, cache->update_time) <= 0)
-	pcache = &cache->next;
-      else
-	{
-	  if (cache->anim)
-	    WebPAnimDecoderDelete (cache->anim);
-	  *pcache = cache->next;
-	  xfree (cache);
-	}
-    }
-}
-
-static struct webp_cache *
-webp_get_animation_cache (Lisp_Object spec)
-{
-  struct webp_cache *cache;
-  struct webp_cache **pcache = &webp_cache;
-
-  webp_prune_animation_cache ();
-
-  while (1)
-    {
-      cache = *pcache;
-      if (! cache)
-	{
-          *pcache = cache = webp_create_cache (spec);
-          break;
-        }
-      if (EQ (spec, cache->spec))
-	break;
-      pcache = &cache->next;
-    }
-
-  cache->update_time = current_timespec ();
-  return cache;
-}
-
 /* Load WebP image IMG for use on frame F.  Value is true if
    successful.  */
 
@@ -9371,14 +9384,14 @@ webp_load (struct frame *f, struct image *img)
       webp_data.size = size;
       int timestamp;
 
-      struct webp_cache* cache = webp_get_animation_cache (img->spec);
+      struct anim_cache* cache = anim_get_animation_cache (img->spec);
       /* Get the next frame from the animation cache.  */
-      if (cache->anim && cache->index == idx - 1)
+      if (cache->handle && cache->index == idx - 1)
 	{
-	  WebPAnimDecoderGetNext (cache->anim, &decoded, &timestamp);
+	  WebPAnimDecoderGetNext (cache->handle, &decoded, &timestamp);
 	  delay = timestamp;
 	  cache->index++;
-	  anim = cache->anim;
+	  anim = cache->handle;
 	  width = cache->width;
 	  height = cache->height;
 	  frames = cache->frames;
@@ -9386,8 +9399,8 @@ webp_load (struct frame *f, struct image *img)
       else
 	{
 	  /* Start a new cache entry.  */
-	  if (cache->anim)
-	    WebPAnimDecoderDelete (cache->anim);
+	  if (cache->handle)
+	    WebPAnimDecoderDelete (cache->handle);
 
 	  /* Get the width/height of the total image.  */
 	  WebPDemuxer* demux = WebPDemux (&webp_data);
@@ -9395,13 +9408,14 @@ webp_load (struct frame *f, struct image *img)
 	  cache->height = height = WebPDemuxGetI (demux,
 						  WEBP_FF_CANVAS_HEIGHT);
 	  cache->frames = frames = WebPDemuxGetI (demux, WEBP_FF_FRAME_COUNT);
+	  cache->destructor = (void (*)(void *)) &WebPAnimDecoderDelete;
 	  WebPDemuxDelete (demux);
 
 	  WebPAnimDecoderOptions dec_options;
 	  WebPAnimDecoderOptionsInit (&dec_options);
 	  anim = WebPAnimDecoderNew (&webp_data, &dec_options);
 
-	  cache->anim = anim;
+	  cache->handle = anim;
 	  cache->index = idx;
 
 	  while (WebPAnimDecoderHasMoreFrames (anim)) {
