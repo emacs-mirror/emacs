@@ -2430,6 +2430,57 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
       (unless advised
         (advice-remove 'macroexpand #'cl--sm-macroexpand)))))
 
+;;;###autoload
+(defmacro cl-with-gensyms (names &rest body)
+  "Bind each of NAMES to an uninterned symbol and evaluate BODY."
+  (declare (debug (sexp body)) (indent 1))
+  `(let ,(cl-loop for name in names collect
+                  `(,name (gensym (symbol-name ',name))))
+     ,@body))
+
+;;;###autoload
+(defmacro cl-once-only (names &rest body)
+  "Generate code to evaluate each of NAMES just once in BODY.
+
+This macro helps with writing other macros.  Each of names is
+either (NAME FORM) or NAME, which latter means (NAME NAME).
+During macroexpansion, each NAME is bound to an uninterned
+symbol.  The expansion evaluates each FORM and binds it to the
+corresponding uninterned symbol.
+
+For example, consider this macro:
+
+    (defmacro my-cons (x)
+      (cl-once-only (x)
+        \\=`(cons ,x ,x)))
+
+The call (my-cons (pop y)) will expand to something like this:
+
+    (let ((g1 (pop y)))
+      (cons g1 g1))
+
+The use of `cl-once-only' ensures that the pop is performed only
+once, as intended.
+
+See also `macroexp-let2'."
+  (declare (debug (sexp body)) (indent 1))
+  (setq names (mapcar #'ensure-list names))
+  (let ((our-gensyms (cl-loop for _ in names collect (gensym))))
+    ;; During macroexpansion, obtain a gensym for each NAME.
+    `(let ,(cl-loop for sym in our-gensyms collect `(,sym (gensym)))
+       ;; Evaluate each FORM and bind to the corresponding gensym.
+       ;;
+       ;; We require this explicit call to `list' rather than using
+       ;; (,,@(cl-loop ...)) due to a limitation of Elisp's backquote.
+       `(let ,(list
+               ,@(cl-loop for name in names and gensym in our-gensyms
+                          for to-eval = (or (cadr name) (car name))
+                          collect ``(,,gensym ,,to-eval)))
+          ;; During macroexpansion, bind each NAME to its gensym.
+          ,(let ,(cl-loop for name in names and gensym in our-gensyms
+                          collect `(,(car name) ,gensym))
+             ,@body)))))
+
 ;;; Multiple values.
 
 ;;;###autoload
