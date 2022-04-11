@@ -582,6 +582,11 @@ haiku_create_frame (Lisp_Object parms)
   else
     cascade_target = NULL;
 
+  /* Always cascade from the most toplevel frame.  */
+
+  while (cascade_target && FRAME_PARENT_FRAME (cascade_target))
+    cascade_target = FRAME_PARENT_FRAME (cascade_target);
+
   parms = Fcopy_alist (parms);
 
   Vx_resource_name = Vinvocation_name;
@@ -624,6 +629,7 @@ haiku_create_frame (Lisp_Object parms)
       f = make_frame_without_minibuffer (tem, kb, display);
   else
       f = make_frame (1);
+
   XSETFRAME (frame, f);
 
   f->terminal = dpyinfo->terminal;
@@ -809,6 +815,11 @@ haiku_create_frame (Lisp_Object parms)
       || !FRAMEP (parent_frame)
       || !FRAME_LIVE_P (XFRAME (parent_frame)))
     parent_frame = Qnil;
+
+  /* It doesn't make sense to center child frames, the resulting
+     position makes no sense.  */
+  if (!NILP (parent_frame))
+    window_prompting |= PPosition;
 
   fset_parent_frame (f, parent_frame);
   store_frame_param (f, Qparent_frame, parent_frame);
