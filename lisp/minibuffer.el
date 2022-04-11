@@ -2749,11 +2749,9 @@ The completion method is determined by `completion-at-point-functions'."
   "<prior>"   #'switch-to-completions
   "M-v"       #'switch-to-completions
   "M-g M-c"   #'switch-to-completions
-  "M-<up>"    #'minibuffer-choose-previous-completion
-  "M-<down>"  #'minibuffer-choose-next-completion
-  "M-S-<up>"   #'minibuffer-previous-completion
-  "M-S-<down>" #'minibuffer-next-completion
-  "M-RET"      #'minibuffer-choose-completion)
+  "M-<up>"    #'minibuffer-previous-completion
+  "M-<down>"  #'minibuffer-next-completion
+  "M-RET"     #'minibuffer-choose-completion)
 
 (defvar-keymap minibuffer-local-must-match-map
   :doc "Local keymap for minibuffer input with completion, for exact match."
@@ -4356,35 +4354,39 @@ and execute the forms."
        (with-selected-window window
          ,@body))))
 
-(defun minibuffer-previous-completion (&optional n)
-  "Run `previous-completion' from the minibuffer in its completions window."
-  (interactive "p")
-  (with-minibuffer-completions-window
-    (when completions-highlight-face
-      (setq-local cursor-face-highlight-nonselected-window t))
-    (previous-completion (or n 1))))
+(defcustom minibuffer-completion-auto-choose t
+  "Non-nil means to automatically insert completions to the minibuffer.
+When non-nil, then `minibuffer-next-completion' and
+`minibuffer-previous-completion' will insert the completion
+selected by these commands to the minibuffer."
+  :type 'boolean
+  :version "29.1")
 
 (defun minibuffer-next-completion (&optional n)
-  "Run `next-completion' from the minibuffer in its completions window."
+  "Run `next-completion' from the minibuffer in its completions window.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion to the minibuffer."
   (interactive "p")
   (with-minibuffer-completions-window
     (when completions-highlight-face
       (setq-local cursor-face-highlight-nonselected-window t))
-    (next-completion (or n 1))))
+    (next-completion (or n 1))
+    (when minibuffer-completion-auto-choose
+      (let ((completion-use-base-affixes t))
+        (choose-completion nil t t)))))
 
-(defun minibuffer-choose-previous-completion (&optional n)
+(defun minibuffer-previous-completion (&optional n)
   "Run `previous-completion' from the minibuffer in its completions window.
-Also insert the selected completion to the minibuffer."
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion to the minibuffer."
   (interactive "p")
-  (minibuffer-previous-completion n)
-  (minibuffer-choose-completion t t))
-
-(defun minibuffer-choose-next-completion (&optional n)
-  "Run `next-completion' from the minibuffer in its completions window.
-Also insert the selected completion to the minibuffer."
-  (interactive "p")
-  (minibuffer-next-completion n)
-  (minibuffer-choose-completion t t))
+  (with-minibuffer-completions-window
+    (when completions-highlight-face
+      (setq-local cursor-face-highlight-nonselected-window t))
+    (previous-completion (or n 1))
+    (when minibuffer-completion-auto-choose
+      (let ((completion-use-base-affixes t))
+        (choose-completion nil t t)))))
 
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.
