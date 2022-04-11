@@ -6274,6 +6274,10 @@ xg_im_context_commit (GtkIMContext *imc, gchar *str,
 {
   struct frame *f = user_data;
   struct input_event ie;
+#ifdef HAVE_XINPUT2
+  struct xi_device_t *source;
+  struct x_display_info *dpyinfo;
+#endif
 
   EVENT_INIT (ie);
   /* This used to use g_utf8_to_ucs4_fast, which led to bad results
@@ -6291,6 +6295,22 @@ xg_im_context_commit (GtkIMContext *imc, gchar *str,
   Fput_text_property (make_fixnum (0),
 		      make_fixnum (SCHARS (ie.arg)),
 		      Qcoding, Qt, ie.arg);
+
+#ifdef HAVE_XINPUT2
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* There is no timestamp associated with commit events, so use the
+     device that sent the last event to be filtered.  */
+  if (dpyinfo->pending_keystroke_time)
+    {
+      dpyinfo->pending_keystroke_time = 0;
+      source = xi_device_from_id (dpyinfo,
+				  dpyinfo->pending_keystroke_source);
+
+      if (source)
+	ie.device = source->name;
+    }
+#endif
 
   XSETFRAME (ie.frame_or_window, f);
   ie.modifiers = 0;
