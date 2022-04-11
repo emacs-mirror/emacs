@@ -17379,6 +17379,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  || (x_gtk_use_native_input
 		      && x_filter_event (dpyinfo, event)))
 		{
+		  /* Try to attribute core key events from the input
+		     method to the input extension event that caused
+		     them.  */
+		  dpyinfo->pending_keystroke_time = xev->time;
+		  dpyinfo->pending_keystroke_source = xev->sourceid;
+
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
 		}
@@ -17400,6 +17406,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		   || dpyinfo->prefer_native_input)
 		  && xg_filter_key (any, event))
 		{
+		  /* Try to attribute core key events from the input
+		     method to the input extension event that caused
+		     them.  */
+		  dpyinfo->pending_keystroke_time = xev->time;
+		  dpyinfo->pending_keystroke_source = xev->sourceid;
+
 		  *finish = X_EVENT_DROP;
 		  goto XI_OTHER;
 		}

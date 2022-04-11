@@ -6347,6 +6347,10 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   guint keysym = event->key.keyval;
   unsigned int xstate;
   gunichar uc;
+#ifdef HAVE_XINPUT2
+  Time pending_keystroke_time;
+  struct xi_device_t *source;
+#endif
 
   FOR_EACH_FRAME (tail, tem)
     {
@@ -6361,6 +6365,14 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   if (!f)
     return true;
 
+#ifdef HAVE_XINPUT2
+  pending_keystroke_time
+    = FRAME_DISPLAY_INFO (f)->pending_keystroke_time;
+
+  if (event->key.time >= pending_keystroke_time)
+    FRAME_DISPLAY_INFO (f)->pending_keystroke_time = 0;
+#endif
+
   if (!x_gtk_use_native_input
       && !FRAME_DISPLAY_INFO (f)->prefer_native_input)
     return true;
@@ -6374,6 +6386,17 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   inev.ie.modifiers
     |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), xstate);
   inev.ie.timestamp = event->key.time;
+
+#ifdef HAVE_XINPUT2
+  if (event->key.time == pending_keystroke_time)
+    {
+      source = xi_device_from_id (FRAME_DISPLAY_INFO (f),
+				  FRAME_DISPLAY_INFO (f)->pending_keystroke_source);
+
+      if (source)
+	inev.ie.device = source->name;
+    }
+#endif
 
   if (event->key.is_modifier)
     goto done;
