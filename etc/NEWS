@@ -1593,7 +1593,7 @@ the clipboard, and insert it into the buffer.
 
 ---
 ** New function 'minibuffer-lazy-highlight-setup'.
-This function allows to set up the minibuffer so that lazy
+This function allows setting up the minibuffer so that lazy
 highlighting of its content is applied in the original window.
 
 +++
