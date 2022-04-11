@@ -236,15 +236,16 @@ The scripts are as defined by the Unicode Standard Annex 24 (UAX#24)."
   ;; This is a very relaxed pattern for IPv4 or IPv6 addresses.  The
   ;; assumption is that any malformed address accepted by this rule
   ;; will be rejected by the actual address parser eventually.
-  (rx-let ((ipv4 (** 1 4
-                     (** 1 3 (in "0-9"))
-                     (? ".")))
-           (ipv6 (: (** 1 7
-                        (** 0 4 (in "0-9a-f"))
-                        ":")
-                    (** 0 4 (in "0-9a-f"))
-                    (? ":" ipv4))))
-    (string-match-p (rx bos (or ipv4 ipv6 (: "[" ipv6 "]")) eos) domain)))
+  (let ((case-fold-search t))
+    (rx-let ((ipv4 (** 1 4
+                       (** 1 3 (in "0-9"))
+                       (? ".")))
+             (ipv6 (: (** 1 7
+                          (** 0 4 (in "0-9a-f"))
+                          ":")
+                      (** 0 4 (in "0-9a-f"))
+                      (? ":" ipv4))))
+      (string-match-p (rx bos (or ipv4 ipv6 (: "[" ipv6 "]")) eos) domain))))
 
 (defun textsec-domain-suspicious-p (domain)
   "Say whether DOMAIN's name looks suspicious.
