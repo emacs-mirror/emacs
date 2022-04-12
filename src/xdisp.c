@@ -10957,6 +10957,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
      same directionality.  */
   it.bidi_p = false;
 
+  int start_x;
   if (vertical_offset != 0)
     {
       int last_y;
@@ -10990,6 +10991,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
 		      + WINDOW_HEADER_LINE_HEIGHT (w));
       start = clip_to_bounds (BEGV, IT_CHARPOS (it), ZV);
       start_y = it.current_y;
+      start_x = it.current_x;
     }
   else
     {
@@ -10999,11 +11001,52 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
       if (IT_CHARPOS (it) != start)
-	move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+	{
+	  void *it1data = NULL;
+	  struct it it1;
+
+	  SAVE_IT (it1, it, it1data);
+	  move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+	  /* We could have a display property at START, in which case
+	     asking move_it_to to stop at START will overshoot and
+	     stop at position after START.  So we try again, stopping
+	     before START, and account for the width of the last
+	     buffer position manually.  */
+	  if (IT_CHARPOS (it) > start && start > BEGV)
+	    {
+	      ptrdiff_t it1pos = IT_CHARPOS (it1);
+	      int it1_x = it1.current_x;
+
+	      RESTORE_IT (&it, &it1, it1data);
+	      /* If START - 1 is the beginning of screen line,
+		 move_it_to will not move, so we need to use a
+		 lower-level move_it_in_display_line subroutine, and
+		 tell it to move just 1 pixel, so it stops at the next
+		 display element.  */
+	      if (start - 1 > it1pos)
+		move_it_to (&it, start - 1, -1, -1, -1, MOVE_TO_POS);
+	      else
+		move_it_in_display_line (&it, start, it1_x + 1,
+					 MOVE_TO_POS | MOVE_TO_X);
+	      move_it_to (&it, start - 1, -1, -1, -1, MOVE_TO_POS);
+	      start_x = it.current_x;
+	      /* If we didn't change our buffer position, the pixel
+		 width of what's here was not yet accounted for; do it
+		 manually.  */
+	      if (IT_CHARPOS (it) == start - 1)
+		start_x += it.pixel_width;
+	    }
+	  else
+	    {
+	      start_x = it.current_x;
+	      bidi_unshelve_cache (it1data, true);
+	    }
+	}
+      else
+	start_x = it.current_x;
     }
 
   /* Now move to TO.  */
-  int start_x = it.current_x;
   int move_op = MOVE_TO_POS | MOVE_TO_Y;
   int to_x = -1;
   it.current_y = start_y;
