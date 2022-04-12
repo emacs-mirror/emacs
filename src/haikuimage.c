@@ -42,8 +42,10 @@ haiku_can_use_native_image_api (Lisp_Object type)
     mime_type = "image/jpeg";
   else if (EQ (type, Qpng))
     mime_type = "image/png";
+#ifndef HAVE_GIF
   else if (EQ (type, Qgif))
     mime_type = "image/gif";
+#endif
   else if (EQ (type, Qtiff))
     mime_type = "image/tiff";
   else if (EQ (type, Qbmp))
@@ -52,8 +54,12 @@ haiku_can_use_native_image_api (Lisp_Object type)
     mime_type = "image/svg";
   else if (EQ (type, Qpbm))
     mime_type = "image/pbm";
+  /* Don't use native image APIs for image types that have animations,
+     since those aren't supported by the Translation Kit.  */
+#ifndef HAVE_WEBP
   else if (EQ (type, Qwebp))
     mime_type = "image/webp";
+#endif
 
   if (!mime_type)
     return 0;
