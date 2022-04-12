@@ -434,8 +434,9 @@ This is a list of pairs of open/close strings used to display buttons.
 +++
 ** Support for the WebP image format.
 This support is built by default when the libwebp library is
-available.  To disable it, use the '--without-webp' configure flag.
-Image specifiers can now use ':type webp'.
+available.  (This also includes support for animated WebP images.)  To
+disable WebP support, use the '--without-webp' configure flag.  Image
+specifiers can now use ':type webp'.
 
 ** Windows
 
