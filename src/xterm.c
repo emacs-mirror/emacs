@@ -20850,16 +20850,17 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
     {
-      XGrabServer (FRAME_X_DISPLAY (f));
-      if (XIGetClientPointer (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      if (XIGetClientPointer (FRAME_X_DISPLAY (f),
+			      FRAME_X_WINDOW (f),
 			      &deviceid))
 	{
+	  x_catch_errors (FRAME_X_DISPLAY (f));
 	  XIWarpPointer (FRAME_X_DISPLAY (f),
 			 deviceid, None,
 			 FRAME_X_WINDOW (f),
 			 0, 0, 0, 0, pix_x, pix_y);
+	  x_uncatch_errors ();
 	}
-      XUngrabServer (FRAME_X_DISPLAY (f));
     }
   else
 #endif
