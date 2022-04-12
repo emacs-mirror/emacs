@@ -8937,16 +8937,19 @@ gif_load (struct frame *f, struct image *img)
 
       /* Check that the selected subimages fit.  It's not clear whether
 	 the GIF spec requires this, but Emacs can crash if they don't fit.  */
-      for (j = 0; j <= idx; ++j)
+      for (j = 0; j < gif->ImageCount; ++j)
 	{
 	  struct SavedImage *subimage = gif->SavedImages + j;
 	  int subimg_width = subimage->ImageDesc.Width;
 	  int subimg_height = subimage->ImageDesc.Height;
 	  int subimg_top = subimage->ImageDesc.Top;
 	  int subimg_left = subimage->ImageDesc.Left;
-	  if (! (subimg_width >= 0 && subimg_height >= 0
-		 && 0 <= subimg_top && subimg_top <= height - subimg_height
-		 && 0 <= subimg_left && subimg_left <= width - subimg_width))
+	  if (subimg_width < 0
+	      || subimg_height < 0
+	      || subimg_top < 0
+	      || subimg_left < 0
+	      || subimg_top + subimg_height > height
+	      || subimg_left + subimg_width > width)
 	    {
 	      image_error ("Subimage does not fit in image");
 	      goto gif_error;
