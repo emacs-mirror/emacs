@@ -618,6 +618,14 @@ struct x_display_info
 
   Time pending_keystroke_time;
   int pending_keystroke_source;
+
+#if defined USE_GTK && !defined HAVE_GTK3
+  /* This means the two variables above shouldn't be reset the first
+     time a KeyPress event arrives, since they were set from a raw key
+     press event that was sent before the first (real, not sent by an
+     input method) core key event.  */
+  bool pending_keystroke_time_special_p;
+#endif
 #endif
 
 #ifdef HAVE_XKB

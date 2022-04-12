@@ -3688,6 +3688,15 @@ setup_xi_event_mask (struct frame *f)
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
+
+#if defined USE_GTK && !defined HAVE_GTK3
+  memset (m, 0, l);
+  XISetMask (m, XI_RawKeyPress);
+
+  XISelectEvents (FRAME_X_DISPLAY (f),
+		  FRAME_DISPLAY_INFO (f)->root_window,
+		  &mask, 1);
+#endif
   unblock_input ();
 }
 #endif

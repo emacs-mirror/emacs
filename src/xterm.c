@@ -14516,7 +14516,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  pending_keystroke_time = dpyinfo->pending_keystroke_time;
 
 	  if (event->xkey.time >= pending_keystroke_time)
-	    dpyinfo->pending_keystroke_time = 0;
+	    {
+#if defined USE_GTK && !defined HAVE_GTK3
+	      if (!dpyinfo->pending_keystroke_time_special_p)
+#endif
+		dpyinfo->pending_keystroke_time = 0;
+#if defined USE_GTK && !defined HAVE_GTK3
+	      else
+		dpyinfo->pending_keystroke_time_special_p = false;
+#endif
+	    }
 #endif
 
 #ifdef USE_GTK
@@ -17780,6 +17789,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      goto XI_OTHER;
 	    }
+
+#if defined USE_GTK && !defined HAVE_GTK3
+	  case XI_RawKeyPress:
+	    {
+	      XIRawEvent *raw_event = (XIRawEvent *) xi_event;
+
+	      /* This is the only way to attribute core keyboard
+		 events generated on GTK+ 2.x to the extension device
+		 that generated them.  */
+	      dpyinfo->pending_keystroke_time = raw_event->time;
+	      dpyinfo->pending_keystroke_source = raw_event->sourceid;
+	      dpyinfo->pending_keystroke_time_special_p = true;
+	      goto XI_OTHER;
+	    }
+#endif
 
 	  case XI_KeyRelease:
 #if defined HAVE_X_I18N || defined USE_GTK
