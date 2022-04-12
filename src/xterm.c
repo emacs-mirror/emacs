@@ -15812,7 +15812,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                 int y = event->xbutton.y;
 
                 window = window_from_coordinates (f, x, y, 0, true, true);
-                tool_bar_p = EQ (window, f->tool_bar_window);
+                tool_bar_p = (EQ (window, f->tool_bar_window)
+			      && (event->xbutton.type != ButtonRelease
+				  || f->last_tool_bar_item != -1));
 
                 if (tool_bar_p && event->xbutton.button < 4)
 		  handle_tool_bar_click
@@ -17200,7 +17202,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      int y = bv.y;
 
 		      window = window_from_coordinates (f, x, y, 0, true, true);
-		      tool_bar_p = EQ (window, f->tool_bar_window);
+		      /* Ignore button release events if the mouse
+			 wasn't previously pressed on the tool bar.
+			 We do this because otherwise selecting some
+			 text with the mouse and then releasing it on
+			 the tool bar doesn't stop selecting text,
+			 since the tool bar eats the button up
+			 event.  */
+		      tool_bar_p = (EQ (window, f->tool_bar_window)
+				    && (xev->evtype != XI_ButtonRelease
+					|| f->last_tool_bar_item != -1));
 
 		      if (tool_bar_p && xev->detail < 4)
 			handle_tool_bar_click_with_device
