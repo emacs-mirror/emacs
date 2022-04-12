@@ -9883,6 +9883,7 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
 #ifdef HAVE_XKB
   int i;
   int found_meta_p = false;
+  uint vmodmask;
 #endif
 
   dpyinfo->meta_mod_mask = 0;
@@ -9897,12 +9898,14 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
     {
       for (i = 0; i < XkbNumVirtualMods; i++)
 	{
-	  uint vmodmask = dpyinfo->xkb_desc->server->vmods[i];
+	  vmodmask = dpyinfo->xkb_desc->server->vmods[i];
 
 	  if (dpyinfo->xkb_desc->names->vmods[i] == dpyinfo->Xatom_Meta)
 	    {
 	      dpyinfo->meta_mod_mask |= vmodmask;
-	      found_meta_p = vmodmask;
+
+	      if (vmodmask)
+		found_meta_p = true;
 	    }
 	  else if (dpyinfo->xkb_desc->names->vmods[i] == dpyinfo->Xatom_Alt)
 	    dpyinfo->alt_mod_mask |= vmodmask;
