@@ -2473,11 +2473,11 @@ See also `macroexp-let2'."
        ;; We require this explicit call to `list' rather than using
        ;; (,,@(cl-loop ...)) due to a limitation of Elisp's backquote.
        `(let ,(list
-               ,@(cl-loop for name in names and gensym in our-gensyms
+               ,@(cl-loop for name in names for gensym in our-gensyms
                           for to-eval = (or (cadr name) (car name))
                           collect ``(,,gensym ,,to-eval)))
           ;; During macroexpansion, bind each NAME to its gensym.
-          ,(let ,(cl-loop for name in names and gensym in our-gensyms
+          ,(let ,(cl-loop for name in names for gensym in our-gensyms
                           collect `(,(car name) ,gensym))
              ,@body)))))
 
