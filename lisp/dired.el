@@ -1726,37 +1726,50 @@ when Emacs exits or the user drags another file.")
     (with-selected-window (posn-window (event-end event))
       (goto-char (posn-point (event-end event))))
     (track-mouse
-      (let ((new-event (read-event)))
-        (if (not (eq (event-basic-type new-event) 'mouse-movement))
-            (when (eq (event-basic-type new-event) 'mouse-1)
-              (push new-event unread-command-events))
-          ;; We can get an error if there's by some chance no file
-          ;; name at point.
-          (condition-case nil
-              (let ((filename (with-selected-window (posn-window
-                                                     (event-end event))
-                                (dired-file-name-at-point))))
-                (when filename
-                  ;; In theory x-dnd-username combined with a proper
-                  ;; file URI containing the hostname of the remote
-                  ;; server could be used here instead of creating a
-                  ;; local copy of the remote file, but no program
-                  ;; actually implements file DND according to the
-                  ;; spec.
-                  (when (file-remote-p filename)
-                    (setq filename (file-local-copy filename))
-                    (setq dired-last-dragged-remote-file filename)
-                    (add-hook 'kill-emacs-hook
-                              #'dired-remove-last-dragged-local-file))
-                  (gui-backend-set-selection 'XdndSelection filename)
-                  (x-begin-drag '("text/uri-list" "text/x-dnd-username"
-                                  "FILE_NAME" "FILE" "HOST_NAME")
-                                (if (eq 'dired-mouse-drag-files 'link)
-                                    'XdndActionLink
-                                  'XdndActionCopy)
-                                nil nil t)))
-            (error (when (eq (event-basic-type new-event) 'mouse-1)
-                     (push new-event unread-command-events)))))))))
+      (let ((beginning-position (mouse-pixel-position))
+            new-event)
+        (catch 'track-again
+          (setq new-event (read-event))
+          (if (not (eq (event-basic-type new-event) 'mouse-movement))
+              (when (eq (event-basic-type new-event) 'mouse-1)
+                (push new-event unread-command-events))
+            (let ((current-position (mouse-pixel-position)))
+              ;; If the mouse didn't move far enough, don't
+              ;; inadvertently trigger a drag.
+              (when (and (eq (car current-position) (car beginning-position))
+                         (ignore-errors
+                           (and (> 3 (abs (- (cadr beginning-position)
+                                             (cadr current-position))))
+                                (> 3 (abs (- (caddr beginning-position)
+                                             (caddr current-position)))))))
+                (throw 'track-again nil)))
+            ;; We can get an error if there's by some chance no file
+            ;; name at point.
+            (condition-case nil
+                (let ((filename (with-selected-window (posn-window
+                                                       (event-end event))
+                                  (dired-file-name-at-point))))
+                  (when filename
+                    ;; In theory x-dnd-username combined with a proper
+                    ;; file URI containing the hostname of the remote
+                    ;; server could be used here instead of creating a
+                    ;; local copy of the remote file, but no program
+                    ;; actually implements file DND according to the
+                    ;; spec.
+                    (when (file-remote-p filename)
+                      (setq filename (file-local-copy filename))
+                      (setq dired-last-dragged-remote-file filename)
+                      (add-hook 'kill-emacs-hook
+                                #'dired-remove-last-dragged-local-file))
+                    (gui-backend-set-selection 'XdndSelection filename)
+                    (x-begin-drag '("text/uri-list" "text/x-dnd-username"
+                                    "FILE_NAME" "FILE" "HOST_NAME")
+                                  (if (eq 'dired-mouse-drag-files 'link)
+                                      'XdndActionLink
+                                    'XdndActionCopy)
+                                  nil nil t)))
+              (error (when (eq (event-basic-type new-event) 'mouse-1)
+                       (push new-event unread-command-events))))))))))
 
 (defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
                                      (define-key keymap [down-mouse-1] #'dired-mouse-drag)
