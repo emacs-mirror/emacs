@@ -8814,14 +8814,12 @@ gif_load (struct frame *f, struct image *img)
   EMACS_INT idx = -1;
   int gif_err;
   struct anim_cache* cache = NULL;
-
   /* Which sub-image are we to display?  */
-  {
-    Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
-    idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
-  }
+  Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
 
-  if (idx != -1)
+  idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
+
+  if (!NILP (image_number))
     {
       /* If this is an animated image, create a cache for it.  */
       cache = anim_get_animation_cache (img->spec);
