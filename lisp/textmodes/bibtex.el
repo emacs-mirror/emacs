@@ -764,6 +764,20 @@ for a new entry."
       ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
       ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
       ("url") ("urldate")))
+    ("Conference" "Article in Conference Proceedings" ; same as InProceedings
+     (("author")
+      ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)"))
+     (("booktitle" "Name of the conference proceedings")
+      ("year"))
+     (("editor")
+      ("volume" "Volume of the conference proceedings in the series")
+      ("number" "Number of the conference proceedings in a small series (overwritten by volume)")
+      ("series" "Series in which the conference proceedings appeared")
+      ("pages" "Pages in the conference proceedings")
+      ("month") ("address")
+      ("organization" "Sponsoring organization of the conference")
+      ("publisher" "Publishing company, its location")
+      ("note")))
     ("Reference" "Single-Volume Work of Reference" ; same as @collection
      (("editor") ("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
@@ -846,6 +860,15 @@ for a new entry."
       ("year"))
      nil
      (("type" "Type of the PhD thesis")
+      ("address" "Address of the school (if not part of field \"school\") or country")
+      ("month") ("note")))
+    ("MastersThesis" "Master's Thesis"
+     (("author")
+      ("title" "Title of the master's thesis (BibTeX converts it to lowercase)")
+      ("school" "School where the master's thesis was written")
+      ("year"))
+     nil
+     (("type" "Type of the master's thesis (if other than \"Master's thesis\")")
       ("address" "Address of the school (if not part of field \"school\") or country")
       ("month") ("note")))
     ("TechReport" "Technical Report"
