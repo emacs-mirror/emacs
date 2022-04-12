@@ -1020,16 +1020,16 @@ static bool x_dnd_use_toplevels;
 
 /* Motif drag-and-drop protocol support.  */
 
-typedef enum xm_targets_table_byte_order
+typedef enum xm_byte_order
   {
-    XM_TARGETS_TABLE_LSB = 'l',
-    XM_TARGETS_TABLE_MSB = 'B',
+    XM_BYTE_ORDER_LSB_FIRST = 'l',
+    XM_BYTE_ORDER_MSB_FIRST = 'B',
 #ifndef WORDS_BIGENDIAN
-    XM_TARGETS_TABLE_CUR = 'l',
+    XM_BYTE_ORDER_CUR_FIRST = 'l',
 #else
-    XM_TARGETS_TABLE_CUR = 'B',
+    XM_BYTE_ORDER_CUR_FIRST = 'B',
 #endif
-  } xm_targets_table_byte_order;
+  } xm_byte_order;
 
 #define SWAPCARD32(l)				\
   {						\
@@ -1204,7 +1204,7 @@ xm_side_effect_from_action (struct x_display_info *dpyinfo, Atom action)
 static int
 xm_read_targets_table_header (uint8_t *bytes, ptrdiff_t length,
 			      xm_targets_table_header *header_return,
-			      xm_targets_table_byte_order *byteorder_return)
+			      xm_byte_order *byteorder_return)
 {
   if (length < 8)
     return -1;
@@ -1215,20 +1215,20 @@ xm_read_targets_table_header (uint8_t *bytes, ptrdiff_t length,
   header_return->target_list_count = *(uint16_t *) bytes;
   header_return->total_data_size = *(uint32_t *) (bytes + 2);
 
-  if (header_return->byte_order != XM_TARGETS_TABLE_CUR)
+  if (header_return->byte_order != XM_BYTE_ORDER_CUR_FIRST)
     {
       SWAPCARD16 (header_return->target_list_count);
       SWAPCARD32 (header_return->total_data_size);
     }
 
-  header_return->byte_order = XM_TARGETS_TABLE_CUR;
+  header_return->byte_order = XM_BYTE_ORDER_CUR_FIRST;
 
   return 8;
 }
 
 static xm_targets_table_rec *
 xm_read_targets_table_rec (uint8_t *bytes, ptrdiff_t length,
-			   xm_targets_table_byte_order byteorder)
+			   xm_byte_order byteorder)
 {
   uint16_t nitems, i;
   xm_targets_table_rec *rec;
@@ -1241,7 +1241,7 @@ xm_read_targets_table_rec (uint8_t *bytes, ptrdiff_t length,
   if (length < 2 + nitems * 4)
     return NULL;
 
-  if (byteorder != XM_TARGETS_TABLE_CUR)
+  if (byteorder != XM_BYTE_ORDER_CUR_FIRST)
     SWAPCARD16 (nitems);
 
   rec = xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
@@ -1252,7 +1252,7 @@ xm_read_targets_table_rec (uint8_t *bytes, ptrdiff_t length,
     {
       rec->targets[i] = ((uint32_t *) (bytes + 2))[i];
 
-      if (byteorder != XM_TARGETS_TABLE_CUR)
+      if (byteorder != XM_BYTE_ORDER_CUR_FIRST)
 	SWAPCARD32 (rec->targets[i]);
     }
 
@@ -1450,7 +1450,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
   int rc, actual_format, idx;
   xm_targets_table_header header;
   xm_targets_table_rec **recs;
-  xm_targets_table_byte_order byteorder;
+  xm_byte_order byteorder;
   uint8_t *data;
   ptrdiff_t total_bytes, total_items, i;
 
@@ -1536,7 +1536,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 
   if (!rc)
     {
-      header.byte_order = XM_TARGETS_TABLE_CUR;
+      header.byte_order = XM_BYTE_ORDER_CUR_FIRST;
       header.protocol = 0;
       header.target_list_count = 1;
       header.total_data_size = 8 + 2 + ntargets * 4;
@@ -1604,7 +1604,7 @@ xm_setup_drag_info (struct x_display_info *dpyinfo,
 
   if (idx != -1)
     {
-      drag_initiator_info.byteorder = XM_TARGETS_TABLE_CUR;
+      drag_initiator_info.byteorder = XM_BYTE_ORDER_CUR_FIRST;
       drag_initiator_info.protocol = 0;
       drag_initiator_info.table_index = idx;
       drag_initiator_info.selection = dpyinfo->Xatom_XdndSelection;
@@ -1719,7 +1719,7 @@ xm_send_top_level_leave_message (struct x_display_info *dpyinfo, Window source,
     {
       mmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 				    XM_DRAG_REASON_DRAG_MOTION);
-      mmsg.byteorder = XM_TARGETS_TABLE_CUR;
+      mmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
       mmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 									   x_dnd_wanted_action),
 					       XM_DROP_SITE_NONE, XM_DRAG_NOOP,
@@ -1774,14 +1774,14 @@ xm_read_drop_start_reply (const XEvent *msg, xm_drop_start_reply *reply)
   reply->better_x = *(uint16_t *) (data + 2);
   reply->better_y = *(uint16_t *) (data + 4);
 
-  if (reply->byte_order != XM_TARGETS_TABLE_CUR)
+  if (reply->byte_order != XM_BYTE_ORDER_CUR_FIRST)
     {
       SWAPCARD16 (reply->side_effects);
       SWAPCARD16 (reply->better_x);
       SWAPCARD16 (reply->better_y);
     }
 
-  reply->byte_order = XM_TARGETS_TABLE_CUR;
+  reply->byte_order = XM_BYTE_ORDER_CUR_FIRST;
 
   return 0;
 }
@@ -1823,14 +1823,14 @@ xm_read_drag_receiver_info (struct x_display_info *dpyinfo,
       rec->unspecified2 = *(uint32_t *) &data[8];
       rec->unspecified3 = *(uint32_t *) &data[12];
 
-      if (rec->byteorder != XM_TARGETS_TABLE_CUR)
+      if (rec->byteorder != XM_BYTE_ORDER_CUR_FIRST)
 	{
 	  SWAPCARD32 (rec->unspecified1);
 	  SWAPCARD32 (rec->unspecified2);
 	  SWAPCARD32 (rec->unspecified3);
 	}
 
-      rec->byteorder = XM_TARGETS_TABLE_CUR;
+      rec->byteorder = XM_BYTE_ORDER_CUR_FIRST;
     }
 
   if (tmp_data)
@@ -1848,7 +1848,7 @@ x_dnd_send_xm_leave_for_drop (struct x_display_info *dpyinfo,
 
   lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 				XM_DRAG_REASON_TOP_LEVEL_LEAVE);
-  lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+  lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
   lmsg.zero = 0;
   lmsg.timestamp = timestamp;
   lmsg.source_window = FRAME_X_WINDOW (f);
@@ -3545,7 +3545,7 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 	{
 	  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 					XM_DRAG_REASON_DROP_START);
-	  dmsg.byte_order = XM_TARGETS_TABLE_CUR;
+	  dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
 	  dmsg.timestamp = FRAME_DISPLAY_INFO (f)->last_user_time;
 	  dmsg.side_effects
 	    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
@@ -9613,7 +9613,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		{
 		  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						XM_DRAG_REASON_DROP_START);
-		  dmsg.byte_order = XM_TARGETS_TABLE_CUR;
+		  dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
 		  dmsg.timestamp = hold_quit.timestamp;
 		  dmsg.side_effects
 		    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
@@ -13346,7 +13346,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 
 		  lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						XM_DRAG_REASON_TOP_LEVEL_LEAVE);
-		  lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+		  lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		  lmsg.zero = 0;
 		  lmsg.timestamp = timestamp;
 		  lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -13385,7 +13385,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 
 	      lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 					    XM_DRAG_REASON_TOP_LEVEL_LEAVE);
-	      lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+	      lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 	      lmsg.zero = 0;
 	      lmsg.timestamp = timestamp;
 	      lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -13410,7 +13410,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 
 	      emsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 					    XM_DRAG_REASON_TOP_LEVEL_ENTER);
-	      emsg.byteorder = XM_TARGETS_TABLE_CUR;
+	      emsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 	      emsg.zero = 0;
 	      emsg.timestamp = timestamp;
 	      emsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -13435,7 +13435,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 
 	  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 					XM_DRAG_REASON_DRAG_MOTION);
-	  dmsg.byteorder = XM_TARGETS_TABLE_CUR;
+	  dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 	  dmsg.side_effects
 	    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 							       x_dnd_wanted_action),
@@ -13468,7 +13468,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	{
 	  dsmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 					 XM_DRAG_REASON_DROP_START);
-	  dmsg.byteorder = XM_TARGETS_TABLE_CUR;
+	  dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 	  dsmsg.timestamp = timestamp;
 	  dsmsg.side_effects
 	    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
@@ -15088,7 +15088,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						      XM_DRAG_REASON_TOP_LEVEL_LEAVE);
-			lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+			lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 			lmsg.zero = 0;
 			lmsg.timestamp = event->xmotion.time;
 			lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -15133,7 +15133,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		    dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						  XM_DRAG_REASON_DRAG_MOTION);
-		    dmsg.byteorder = XM_TARGETS_TABLE_CUR;
+		    dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		    dmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 											 x_dnd_wanted_action),
 							     XM_DROP_SITE_NONE, XM_DRAG_NOOP,
@@ -15144,7 +15144,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		    lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						  XM_DRAG_REASON_TOP_LEVEL_LEAVE);
-		    lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+		    lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		    lmsg.zero = 0;
 		    lmsg.timestamp = event->xbutton.time;
 		    lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -15173,7 +15173,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		    emsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						  XM_DRAG_REASON_TOP_LEVEL_ENTER);
-		    emsg.byteorder = XM_TARGETS_TABLE_CUR;
+		    emsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		    emsg.zero = 0;
 		    emsg.timestamp = event->xbutton.time;
 		    emsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -15199,7 +15199,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 					      XM_DRAG_REASON_DRAG_MOTION);
-		dmsg.byteorder = XM_TARGETS_TABLE_CUR;
+		dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		dmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										     x_dnd_wanted_action),
 							 XM_DROP_SITE_VALID,
@@ -15677,7 +15677,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			    dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 							  XM_DRAG_REASON_DROP_START);
-			    dmsg.byte_order = XM_TARGETS_TABLE_CUR;
+			    dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
 			    dmsg.side_effects
 			      = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										 x_dnd_wanted_action),
@@ -16615,7 +16615,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			      lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 							    XM_DRAG_REASON_TOP_LEVEL_LEAVE);
-			      lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+			      lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 			      lmsg.zero = 0;
 			      lmsg.timestamp = event->xmotion.time;
 			      lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -16661,7 +16661,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 							XM_DRAG_REASON_DRAG_MOTION);
-			  dmsg.byteorder = XM_TARGETS_TABLE_CUR;
+			  dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 			  dmsg.side_effects
 			    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 									       x_dnd_wanted_action),
@@ -16673,7 +16673,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  lmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 							XM_DRAG_REASON_TOP_LEVEL_LEAVE);
-			  lmsg.byteorder = XM_TARGETS_TABLE_CUR;
+			  lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 			  lmsg.zero = 0;
 			  lmsg.timestamp = xev->time;
 			  lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -16702,7 +16702,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  emsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 							XM_DRAG_REASON_TOP_LEVEL_ENTER);
-			  emsg.byteorder = XM_TARGETS_TABLE_CUR;
+			  emsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 			  emsg.zero = 0;
 			  emsg.timestamp = xev->time;
 			  emsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
@@ -16727,7 +16727,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		      dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 						    XM_DRAG_REASON_DRAG_MOTION);
-		      dmsg.byteorder = XM_TARGETS_TABLE_CUR;
+		      dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		      dmsg.side_effects
 			= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 									   x_dnd_wanted_action),
@@ -16893,7 +16893,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 				  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
 								XM_DRAG_REASON_DROP_START);
-				  dmsg.byte_order = XM_TARGETS_TABLE_CUR;
+				  dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
 				  dmsg.side_effects
 				    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										       x_dnd_wanted_action),
