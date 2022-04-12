@@ -5090,6 +5090,51 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
         (ignore-errors (kill-process proc))
         (ignore-errors (delete-process proc))))))
 
+(ert-deftest tramp-test31-list-system-processes ()
+  "Check `list-system-processes'."
+  :tags '(:expensive-test)
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-processes-p))
+  ;; `list-system-processes' is supported since Emacs 29.1.
+  (skip-unless (tramp--test-emacs29-p))
+
+  (let ((default-directory tramp-test-temporary-file-directory))
+    (skip-unless (consp (list-system-processes)))
+    (should (not (equal (list-system-processes)
+			(let ((default-directory temporary-file-directory))
+			  (list-system-processes)))))))
+
+(ert-deftest tramp-test31-process-attributes ()
+  "Check `process-attributes'."
+  :tags '(:expensive-test :tramp-asynchronous-processes)
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-supports-processes-p))
+  ;; `process-attributes' is supported since Emacs 29.1.
+  (skip-unless (tramp--test-emacs29-p))
+
+  ;; We must use `file-truename' for the temporary directory, in
+  ;; order to establish the connection prior running an asynchronous
+  ;; process.
+  (let ((default-directory (file-truename tramp-test-temporary-file-directory))
+	(delete-exited-processes t)
+	kill-buffer-query-functions command proc)
+    (skip-unless (consp (list-system-processes)))
+
+    (unwind-protect
+	(progn
+	  (setq command '("sleep" "100")
+		proc (apply #'start-file-process "test" nil command))
+	  (while (accept-process-output proc 0))
+	  (when-let ((pid (process-get proc 'remote-pid))
+		     (attributes (process-attributes pid)))
+	    ;; (tramp--test-message "%s" attributes)
+	    (should (equal (cdr (assq 'comm attributes)) (car command)))
+	    (should (equal (cdr (assq 'args attributes))
+			   (mapconcat #'identity command " ")))))
+
+      ;; Cleanup.
+      (ignore-errors (delete-process proc)))))
+
 (defun tramp--test-async-shell-command
     (command output-buffer &optional error-buffer input)
   "Like `async-shell-command', reading the output.

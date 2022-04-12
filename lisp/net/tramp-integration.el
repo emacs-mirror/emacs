@@ -430,8 +430,7 @@ See `tramp-process-attributes-ps-format'.")
  'tramp-connection-local-busybox-ps-profile
  tramp-connection-local-busybox-ps-variables)
 
-
-;; Darwin (macOS)
+;; Darwin (macOS).
 (defconst tramp-darwin-process-attributes-ps-args
   `("-acxww"
     "-o"
@@ -498,31 +497,25 @@ See `tramp-process-attributes-ps-format'.")
      . ,tramp-darwin-process-attributes-ps-args)
     (tramp-process-attributes-ps-format
      . ,tramp-darwin-process-attributes-ps-format))
-  "Default connection-local ps variables for remote Darwin
-connections.")
+  "Default connection-local ps variables for remote Darwin connections.")
 
 (connection-local-set-profile-variables
  'tramp-connection-local-darwin-ps-profile
  tramp-connection-local-darwin-ps-variables)
 
+;; Preset default "ps" profile for local hosts, based on system type.
 
-
-;; Preset default "ps" profile for the case of local sudo, based on
-;; system type.
-
-(let ((local-sudo-profile
-       (cond ((eq system-type 'darwin)
-              'tramp-connection-local-darwin-ps-profile)
-             ;; ...add other system types here
-             )))
-  (when local-sudo-profile
-    (connection-local-set-profiles
-     `(:application tramp :protocol "sudo" :user "root" :machine ,(system-name))
-     local-sudo-profile)
-    (connection-local-set-profiles
-     '(:application tramp :protocol "sudo" :user "root" :machine "localhost")
-     local-sudo-profile)))
-
+(when-let ((local-profile
+	    (cond ((eq system-type 'darwin)
+		   'tramp-connection-local-darwin-ps-profile)
+		  ;; ... Add other system types here.
+		  )))
+  (connection-local-set-profiles
+   `(:application tramp :machine ,(system-name))
+   local-profile)
+  (connection-local-set-profiles
+   '(:application tramp :machine "localhost")
+   local-profile))
 
 (add-hook 'tramp-unload-hook
 	  (lambda () (unload-feature 'tramp-integration 'force)))

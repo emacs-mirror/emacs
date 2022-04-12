@@ -4097,6 +4097,8 @@ The corresponding @code{tramp-process-attributes-ps-format} has the value
 @vindex tramp-connection-local-bsd-ps-variables
 @vindex tramp-connection-local-busybox-ps-profile
 @vindex tramp-connection-local-busybox-ps-variables
+@vindex tramp-connection-local-darwin-ps-profile
+@vindex tramp-connection-local-darwin-ps-variables
 The default values for @code{tramp-process-attributes-ps-args} and
 @code{tramp-process-attributes-ps-format} can be overwritten by
 connection-local variables.
@@ -4107,14 +4109,11 @@ This is already done by @value{tramp} for the @option{adb} method, see
 @code{tramp-adb-connection-local-default-ps-profile} and
 @code{tramp-adb-connection-local-default-ps-variables}.
 
-There are two further predefined sets of connection-local variables
-for remote BSD systems, and for a remote @command{ps} command
-implemented with @command{busybox}.  These are called
-@code{tramp-connection-local-bsd-ps-profile},
-@code{tramp-connection-local-bsd-ps-variables},
-@code{tramp-connection-local-busybox-ps-profile}, and
-@code{tramp-connection-local-busybox-ps-variables}.  Use them
-like
+There are three further predefined sets of connection-local variables
+for remote BSD systems, for remote macOS systems, and for a remote
+@command{ps} command implemented with @command{busybox}.  These are
+called @code{tramp-connection-local-*-ps-profile} and
+@code{tramp-connection-local-*-ps-variables}.  Use them like
 
 @lisp
 @group
