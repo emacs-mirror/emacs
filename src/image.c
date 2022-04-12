@@ -11316,7 +11316,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 #endif
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
-  image_error ("Error parsing SVG image `%s'", img->spec);
+  image_error ("Error parsing SVG image");
   g_clear_error (&err);
   return 0;
 }
