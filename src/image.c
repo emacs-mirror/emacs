@@ -9249,11 +9249,13 @@ gif_load (struct frame *f, struct image *img)
   return true;
 
  gif_error:
-  if (!cache)
+  if (pixmap)
+    xfree (pixmap);
+  gif_close (gif, NULL);
+  if (cache)
     {
-      if (pixmap)
-	xfree (pixmap);
-      gif_close (gif, NULL);
+      cache->handle = NULL;
+      cache->temp = NULL;
     }
   return false;
 }
@@ -9501,9 +9503,6 @@ webp_load (struct frame *f, struct image *img)
   if (features.has_animation)
     {
       /* Animated image.  */
-      WebPData webp_data;
-      webp_data.bytes = contents;
-      webp_data.size = size;
       int timestamp;
 
       struct anim_cache* cache = anim_get_animation_cache (img->spec);
@@ -9523,6 +9522,10 @@ webp_load (struct frame *f, struct image *img)
 	  /* Start a new cache entry.  */
 	  if (cache->handle)
 	    WebPAnimDecoderDelete (cache->handle);
+
+	  WebPData webp_data;
+	  webp_data.bytes = contents;
+	  webp_data.size = size;
 
 	  /* Get the width/height of the total image.  */
 	  WebPDemuxer* demux = WebPDemux (&webp_data);
