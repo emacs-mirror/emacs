@@ -3571,9 +3571,9 @@ x_dnd_cleanup_drag_and_drop (void *frame)
       x_dnd_last_seen_window = None;
       x_dnd_last_seen_toplevel = None;
       x_dnd_in_progress = false;
-      x_set_dnd_targets (NULL, 0);
     }
 
+  x_set_dnd_targets (NULL, 0);
   x_dnd_waiting_for_finish = false;
 
   if (x_dnd_use_toplevels)
@@ -9373,20 +9373,35 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   Lisp_Object frame_object, x, y, frame, local_value;
 
   if (!FRAME_VISIBLE_P (f))
-    error ("Frame is invisible");
+    {
+      x_set_dnd_targets (NULL, 0);
+      error ("Frame is invisible");
+    }
 
   XSETFRAME (frame, f);
   local_value = assq_no_quit (QXdndSelection,
 			      FRAME_TERMINAL (f)->Vselection_alist);
 
   if (x_dnd_in_progress || x_dnd_waiting_for_finish)
-    error ("A drag-and-drop session is already in progress");
+    {
+      x_set_dnd_targets (NULL, 0);
+      error ("A drag-and-drop session is already in progress");
+    }
 
   if (CONSP (local_value))
     x_own_selection (QXdndSelection,
 		     Fnth (make_fixnum (1), local_value), frame);
   else
-    error ("No local value for XdndSelection");
+    {
+      x_set_dnd_targets (NULL, 0);
+      error ("No local value for XdndSelection");
+    }
+
+  if (popup_activated ())
+    {
+      x_set_dnd_targets (NULL, 0);
+      error ("Trying to drag-and-drop from within a menu-entry");
+    }
 
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
 					  QXdndSelection);
@@ -9624,9 +9639,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_last_seen_toplevel = None;
 	      x_dnd_in_progress = false;
 	      x_dnd_frame = NULL;
-	      x_set_dnd_targets (NULL, 0);
 	    }
 
+	  x_set_dnd_targets (NULL, 0);
 	  x_dnd_waiting_for_finish = false;
 
 	  if (x_dnd_use_toplevels)
@@ -9647,6 +9662,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  quit ();
 	}
     }
+
   x_set_dnd_targets (NULL, 0);
   x_dnd_waiting_for_finish = false;
 
