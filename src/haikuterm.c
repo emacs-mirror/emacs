@@ -3213,7 +3213,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		int y = b->y;
 
 		window = window_from_coordinates (f, x, y, 0, true, true);
-		tool_bar_p = EQ (window, f->tool_bar_window);
+		tool_bar_p = (EQ (window, f->tool_bar_window)
+			      && (type != BUTTON_UP
+				  || f->last_tool_bar_item != -1));
 
 		if (tool_bar_p)
 		  {
