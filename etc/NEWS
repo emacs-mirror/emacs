@@ -1371,6 +1371,10 @@ functions.
 ** 'macroexp-let2*' can omit 'test' arg and use single-var bindings.
 
 +++
+** New macro-writing macros, 'cl-with-gensyms' and 'cl-once-only'.
+See the '(cl) Macro-Writing Macros' manual section for descriptions.
+
++++
 ** New variable 'last-event-device' and new function 'device-class'.
 On X Windows, 'last-event-device' specifies the input extension device
 from which the last input event originated, and 'device-class' can be

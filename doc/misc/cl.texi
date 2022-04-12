@@ -843,6 +843,7 @@ constructs.
 * Iteration::              @code{cl-do}, @code{cl-dotimes}, @code{cl-dolist}, @code{cl-do-symbols}.
 * Loop Facility::          The Common Lisp @code{loop} macro.
 * Multiple Values::        @code{cl-values}, @code{cl-multiple-value-bind}, etc.
+* Macro-Writing Macros::   @code{cl-with-gensyms}, @code{cl-once-only}.
 @end menu
 
 @node Assignment
@@ -2513,6 +2514,86 @@ in @code{cl-multiple-value-bind}.
 Since a perfect emulation is not feasible in Emacs Lisp, this
 package opts to keep it as simple and predictable as possible.
 
+@node Macro-Writing Macros
+@section Macro-Writing Macros
+
+@noindent
+This package includes two classic Common Lisp macro-writing macros to
+help render complex macrology easier to read.
+
+@defmac cl-with-gensyms names@dots{} body
+This macro expands to code that executes @var{body} with each of the
+variables in @var{names} bound to a fresh uninterned symbol, or
+@dfn{gensym}, in Common Lisp parlance.  For macros requiring more than
+one gensym, use of @code{cl-with-gensyms} shortens the code and
+renders one's intentions clearer.  Compare:
+
+@example
+(defmacro my-macro (foo)
+  (let ((bar (gensym "bar"))
+        (baz (gensym "baz"))
+        (quux (gensym "quux")))
+    `(let ((,bar (+ @dots{})))
+       @dots{})))
+
+(defmacro my-macro (foo)
+  (cl-with-gensyms (bar baz quux)
+    `(let ((,bar (+ @dots{})))
+       @dots{})))
+@end example
+@end defmac
+
+@defmac cl-once-only ((variable form)@dots{}) body
+This macro is primarily to help the macro programmer ensure that forms
+supplied by the user of the macro are evaluated just once by its
+expansion even though the result of evaluating the form is to occur
+more than once.  Less often, this macro is used to ensure that forms
+supplied by the macro programmer are evaluated just once.
+
+Each @var{variable} may be used to refer to the result of evaluating
+@var{form} in @var{body}.  @code{cl-once-only} binds each
+@var{variable} to a fresh uninterned symbol during the evaluation of
+@var{body}.  Then, @code{cl-once-only} wraps the final expansion in
+code to evaluate each @var{form} and bind the result to the
+corresponding uninterned symbol.  Thus, when the macro writer
+substitutes the value for @var{variable} into the expansion they are
+effectively referring to the result of evaluating @var{form}, rather
+than @var{form} itself.  Another way to put this is that each
+@var{variable} is bound to an expression for the (singular) result of
+evaluating @var{form}.
+
+The most common case is where @var{variable} is one of the arguments
+to the macro being written, so @code{(variable variable)} may be
+abbreviated to just @code{variable}.
+
+For example, consider this macro:
+
+@example
+(defmacro my-list (x y &rest forms)
+  (let ((x-result (gensym))
+        (y-result (gensym)))
+    `(let ((,x-result ,x)
+           (,y-result ,y))
+       (list ,x-result ,y-result ,x-result ,y-result
+             (progn ,@@forms))))
+@end example
+
+In a call like @w{@code{(my-list (pop foo) @dots{})}} the intermediate
+binding to @code{x-result} ensures that the @code{pop} is not done
+twice.  But as a result the code is rather complex: the reader must
+keep track of how @code{x-result} really just means the first
+parameter of the call to the macro, and the required use of multiple
+gensyms to avoid variable capture by @code{(progn ,@@forms)} obscures
+things further.  @code{cl-once-only} takes care of these details:
+
+@example
+(defmacro my-list (x y &rest forms)
+  (cl-once-only (x y)
+    `(list ,x ,y ,x ,y
+           (progn ,@@forms))))
+@end example
+@end defmac
+
 @node Macros
 @chapter Macros
 
@@ -2868,6 +2949,7 @@ out the property and value cells.
 
 @node Creating Symbols
 @section Creating Symbols
+@cindex gensym
 
 @noindent
 These functions create unique symbols, typically for use as
@@ -5028,13 +5110,13 @@ The above @code{incf} example could be written using
 @example
 (defmacro incf (place &optional n)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (or n 1)
+    (cl-once-only ((v (or n 1)))
       (funcall setter `(+ ,v ,getter)))))
 @end example
 @ignore
 (defmacro concatf (place &rest args)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (mapconcat 'identity args)
+    (cl-once-only ((v `(mapconcat 'identity ',args)))
       (funcall setter `(concat ,getter ,v)))))
 @end ignore
 @end defmac
