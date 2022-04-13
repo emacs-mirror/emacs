@@ -9067,12 +9067,37 @@ static void
 x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
 {
   struct frame *old_focus = dpyinfo->x_focus_frame;
+#if defined USE_GTK && !defined HAVE_GTK3 && defined HAVE_XINPUT2
+  XIEventMask mask;
+  ptrdiff_t l;
+
+  if (dpyinfo->supports_xi2)
+    {
+      l = XIMaskLen (XI_LASTEVENT);
+      mask.mask = alloca (l);
+      mask.mask_len = l;
+      memset (mask.mask, 0, l);
+
+      mask.deviceid = XIAllDevices;
+    }
+#endif
 
   if (frame != dpyinfo->x_focus_frame)
     {
       /* Set this before calling other routines, so that they see
 	 the correct value of x_focus_frame.  */
       dpyinfo->x_focus_frame = frame;
+
+      /* Once none of our frames are focused anymore, stop selecting
+	 for raw input events from the root window.  */
+
+#if defined USE_GTK && !defined HAVE_GTK3 && defined HAVE_XINPUT2
+      if (frame && dpyinfo->supports_xi2)
+	XISetMask (mask.mask, XI_RawKeyPress);
+
+      if (dpyinfo->supports_xi2)
+	XISelectEvents (dpyinfo->display, dpyinfo->root_window, &mask, 1);
+#endif
 
       if (old_focus && old_focus->auto_lower)
 	x_lower_frame (old_focus);
