@@ -57,6 +57,7 @@
    (separator-width :initarg :separator-width :accessor vtable-separator-width)
    (sort-by :initarg :sort-by :accessor vtable-sort-by)
    (ellipsis :initarg :ellipsis :accessor vtable-ellipsis)
+   (column-colors :initarg :column-colors :accessor vtable-column-colors)
    (-cache :initform (make-hash-table :test #'equal)))
   "A object to hold the data for a table.")
 
@@ -83,7 +84,8 @@
                             (separator-width 1)
                             sort-by
                             (ellipsis t)
-                            (insert t))
+                            (insert t)
+                            column-colors)
   "Create and insert a vtable at point.
 The vtable object is returned.  If INSERT is nil, the table won't
 be inserted."
@@ -122,6 +124,7 @@ be inserted."
                         :keymap keymap
                         :separator-width separator-width
                         :sort-by sort-by
+                        :column-colors column-colors
                         :ellipsis ellipsis)))
     ;; Compute missing column data.
     (setf (vtable-columns table) (vtable--compute-columns table))
@@ -377,7 +380,8 @@ This also updates the displayed table."
 (defun vtable--insert-line (table line widths spacer
                                   &optional ellipsis ellipsis-width)
   (let ((start (point))
-        (columns (vtable-columns table)))
+        (columns (vtable-columns table))
+        (colors (vtable-column-colors table)))
     (seq-do-indexed
      (lambda (elem index)
        (let ((value (nth 0 elem))
@@ -438,7 +442,12 @@ This also updates the displayed table."
                      (propertize " " 'display
                                  (list 'space
                                        :width (list spacer)))))
-           (put-text-property start (point) 'vtable-column index))))
+           (put-text-property start (point) 'vtable-column index)
+           (when colors
+             (add-face-text-property
+              start (point)
+              (list :background
+                    (elt colors (mod index (length colors)))))))))
      (cdr line))
     (insert "\n")
     (put-text-property start (point) 'vtable-object (car line))))

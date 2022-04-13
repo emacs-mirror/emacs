@@ -387,6 +387,12 @@ The face to be used.  This defaults to @code{variable-pitch}.  This
 face doesn't override the faces in the data, or the faces supplied by
 the getter and formatter functions.
 
+@item :column-colors
+If present, this should be a list of color names to be used as the
+background color on the columns.  If there are fewer colors here than
+there are columns, the colors will be repeated.  The most common use
+case here is to have alternating background colors on the columns.
+
 @item :actions
 This uses the same syntax as @code{define-keymap}, but doesn't refer
 to commands directly.  Instead each key is bound to a command that
