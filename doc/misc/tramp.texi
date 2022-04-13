@@ -2643,10 +2643,40 @@ where @samp{192.168.0.1} is the remote host IP address
 @node Ssh setup
 @section Ssh setup hints
 
-The most common @value{tramp} connection family is based on either
-@command{ssh} or @command{scp} of OpenSSH, or @command{plink} or
-@command{pscp} of PuTTY on MS Windows.  In the following, some
-configuration recommendations are given.
+
+@subsection Using ssh config include for host name completion
+
+@vindex Include@r{, ssh option}
+@findex tramp-set-completion-function
+@findex tramp-get-completion-function
+OpenSSH configuration files can use an @option{Include} option for
+further configuration files.  Default @value{tramp} host name
+completion ignores this option.  However, you can configure this
+yourself.
+
+Given, your @file{~/.ssh/config} file contains the following option:
+
+@example
+Include ~/.ssh/conf.d/*
+@end example
+
+The following code snippet in your @file{.emacs} uses all files in
+that directory for host name completion:
+
+@lisp
+@group
+(tramp-set-completion-function
+ "ssh" (append (tramp-get-completion-function "ssh")
+               (mapcar (lambda (file) `(tramp-parse-sconfig ,file))
+                       (directory-files
+                        "~/.ssh/conf.d/"
+                        'full directory-files-no-dot-files-regexp))))
+@end group
+@end lisp
+
+This code snippet does it for the @option{ssh} method.  If you replace
+@t{"ssh"} by @t{"scp"}, it does it also for that method (or any other
+method you like).
 
 
 @subsection Detection of session hangouts
@@ -4041,9 +4071,9 @@ inspect @value{tramp} @ref{Traces and Profiles, traces}.
 @findex list-system-processes
 @findex process-attributes
 The functions @code{list-system-processes} and
-@code{process-attributes} return information about processes on the
-respective remote host.  In order to retrieve this information, they
-use the command @command{ps}, driven by the following constants:
+@code{process-attributes} return information about system processes on
+the respective remote host.  In order to retrieve this information,
+they use the command @command{ps}, driven by the following constants:
 
 @defvr Constant tramp-process-attributes-ps-args
 This is a list of arguments (strings) @command{ps} is called with.
