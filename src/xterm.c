@@ -12684,7 +12684,7 @@ x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
   /* Switch to scroll bar foreground color.  */
   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
     XSetForeground (FRAME_X_DISPLAY (f), gc,
- 		    f->output_data.x->scroll_bar_foreground_pixel);
+		    f->output_data.x->scroll_bar_foreground_pixel);
 
   /* Draw a one-pixel border just inside the edges of the scroll bar.  */
   XDrawRectangle (FRAME_X_DISPLAY (f), w, gc,
@@ -14677,19 +14677,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           memset (&compose_status, 0, sizeof (compose_status));
           orig_keysym = keysym;
 
- 	  /* Common for all keysym input events.  */
- 	  XSETFRAME (inev.ie.frame_or_window, f);
- 	  inev.ie.modifiers
- 	    = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
- 	  inev.ie.timestamp = xkey.time;
+	  /* Common for all keysym input events.  */
+	  XSETFRAME (inev.ie.frame_or_window, f);
+	  inev.ie.modifiers
+	    = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
+	  inev.ie.timestamp = xkey.time;
 
- 	  /* First deal with keysyms which have defined
- 	     translations to characters.  */
- 	  if (keysym >= 32 && keysym < 128)
- 	    /* Avoid explicitly decoding each ASCII character.  */
- 	    {
- 	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
- 	      inev.ie.code = keysym;
+	  /* First deal with keysyms which have defined
+	     translations to characters.  */
+	  if (keysym >= 32 && keysym < 128)
+	    /* Avoid explicitly decoding each ASCII character.  */
+	    {
+	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+	      inev.ie.code = keysym;
 
 #ifdef HAVE_XINPUT2
 	      if (event->xkey.time == pending_keystroke_time)
@@ -14734,7 +14734,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				Vx_keysym_table,
 				Qnil),
 		  FIXNATP (c)))
- 	    {
+	    {
 	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
                               ? ASCII_KEYSTROKE_EVENT
                               : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
@@ -14751,11 +14751,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
- 	      goto done_keysym;
- 	    }
+	      goto done_keysym;
+	    }
 
- 	  /* Random non-modifier sorts of keysyms.  */
- 	  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
+	  /* Random non-modifier sorts of keysyms.  */
+	  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
 	       || keysym == XK_Delete
 #ifdef XK_ISO_Left_Tab
 	       || (keysym >= XK_ISO_Left_Tab
@@ -22480,7 +22480,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		      vendor ? build_string (vendor) : empty_unibyte_string));
 	    block_input ();
 	    terminal->next_terminal = terminal_list;
- 	    terminal_list = terminal;
+	    terminal_list = terminal;
 	  }
 
 	/* Don't let the initial kboard remain current longer than necessary.
