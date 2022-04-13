@@ -477,8 +477,7 @@ public:
     screen_frame = frame = screen.Frame ();
     deskbar_frame = deskbar.Frame ();
 
-    if (!(modifiers () & B_SHIFT_KEY)
-	&& !deskbar.IsAutoHide ())
+    if (!(modifiers () & B_SHIFT_KEY) && !deskbar.IsAutoHide ())
       {
 	switch (deskbar.Location ())
 	  {
@@ -489,13 +488,14 @@ public:
 	  case B_DESKBAR_BOTTOM:
 	  case B_DESKBAR_LEFT_BOTTOM:
 	  case B_DESKBAR_RIGHT_BOTTOM:
-	    frame.bottom = deskbar_frame.bottom - 2;
+	    frame.bottom = deskbar_frame.top - 2;
 	    break;
 
 	  case B_DESKBAR_LEFT_TOP:
-	    if (deskbar.IsExpanded ())
+	    if (!deskbar.IsExpanded ())
 	      frame.top = deskbar_frame.bottom + 2;
-	    else
+	    else if (!deskbar.IsAlwaysOnTop ()
+		     && !deskbar.IsAutoRaise ())
 	      frame.left = deskbar_frame.right + 2;
 	    break;
 
@@ -525,7 +525,7 @@ public:
 	frame.left = screen_frame.left + (window_frame.left
 					  - decorator_frame.left);
 	frame.right = screen_frame.right - (decorator_frame.right
-					    - window_frame.left);
+					    - window_frame.right);
       }
 
     return frame;
