@@ -1857,6 +1857,11 @@ month, day, or time.  For example, (date-to-time "2021-12-04") now
 assumes a time of 00:00 instead of signaling an error.
 
 +++
+** 'format-seconds' now allows suppressing zero-value trailing elements.
+The new "%x" non-printing control character will suppress zero-value
+elements that appear after "%x".
+
++++
 ** New events for taking advantage of touchscreen devices.
 The events 'touchscreen-begin, 'touchscreen-update', and
 'touchscreen-end' have been added to take better advantage of

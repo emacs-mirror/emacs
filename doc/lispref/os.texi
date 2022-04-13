@@ -1961,6 +1961,10 @@ encountered.  For example, the default format used by
 @w{@code{"%Y, %D, %H, %M, %z%S"}} means that the number of seconds
 will always be produced, but years, days, hours, and minutes will only
 be shown if they are non-zero.
+@item %x
+Non-printing control flag that works along the same lines as
+@samp{%z}, but instead suppresses printing of trailing zero-value time
+elements.
 @item %%
 Produces a literal @samp{%}.
 @end table
