@@ -408,6 +408,11 @@ These will take you (respectively) to the next and previous "page".
 This will take you to the Emacs Lisp manual entry for the item
 displayed, if any.
 
+---
+*** The 'C-h m' ('describe-mode') *Help* buffer has been reformatted.
+It now only includes local minor modes at the start, and the global
+minor modes are listed after the major mode.
+
 ** Outline Mode
 
 +++
