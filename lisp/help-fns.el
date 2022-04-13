@@ -1878,111 +1878,96 @@ whose documentation describes the minor mode.
 If called from Lisp with a non-nil BUFFER argument, display
 documentation for the major and minor modes of that buffer."
   (interactive "@")
-  (let ((help-buffer-under-preparation t))
-    (unless buffer (setq buffer (current-buffer)))
+  (unless buffer
+    (setq buffer (current-buffer)))
+  (let ((help-buffer-under-preparation t)
+        (local-minors (buffer-local-value 'local-minor-modes buffer)))
     (help-setup-xref (list #'describe-mode buffer)
 		     (called-interactively-p 'interactive))
     ;; For the sake of help-do-xref and help-xref-go-back,
     ;; don't switch buffers before calling `help-buffer'.
     (with-help-window (help-buffer)
-      (with-current-buffer buffer
-	(let (minors)
-	  ;; Older packages do not register in minor-mode-list but only in
-	  ;; minor-mode-alist.
-	  (dolist (x minor-mode-alist)
-	    (setq x (car x))
-	    (unless (memq x minor-mode-list)
-	      (push x minor-mode-list)))
-	  ;; Find enabled minor mode we will want to mention.
-	  (dolist (mode minor-mode-list)
-	    ;; Document a minor mode if it is listed in minor-mode-alist,
-	    ;; non-nil, and has a function definition.
-	    (let ((fmode (or (get mode :minor-mode-function) mode)))
-	      (and (boundp mode) (symbol-value mode)
-		   (fboundp fmode)
-		   (let ((pretty-minor-mode
-			  (if (string-match "\\(\\(-minor\\)?-mode\\)?\\'"
-					    (symbol-name fmode))
-			      (capitalize
-			       (substring (symbol-name fmode)
-					  0 (match-beginning 0)))
-			    fmode)))
-		     (push (list fmode pretty-minor-mode
-				 (format-mode-line (assq mode minor-mode-alist)))
-			   minors)))))
-	  ;; Narrowing is not a minor mode, but its indicator is part of
-	  ;; mode-line-modes.
-	  (when (buffer-narrowed-p)
-	    (push '(narrow-to-region "Narrow" " Narrow") minors))
-	  (setq minors
-		(sort minors
-		      (lambda (a b) (string-lessp (cadr a) (cadr b)))))
-	  (when minors
-	    (princ "Enabled minor modes:\n")
-	    (make-local-variable 'help-button-cache)
-	    (with-current-buffer standard-output
-	      (dolist (mode minors)
-		(let ((mode-function (nth 0 mode))
-		      (pretty-minor-mode (nth 1 mode))
-		      (indicator (nth 2 mode)))
-		  (save-excursion
-		    (goto-char (point-max))
-		    (princ "\n\f\n")
-		    (push (point-marker) help-button-cache)
-		    ;; Document the minor modes fully.
-                    (insert-text-button
-                     pretty-minor-mode 'type 'help-function
-                     'help-args (list mode-function)
-                     'button '(t))
-		    (princ (format " minor mode (%s):\n"
-				   (if (zerop (length indicator))
-				       "no indicator"
-				     (format "indicator%s"
-					     indicator))))
-		    (princ (help-split-fundoc (documentation mode-function)
-                                              nil 'doc)))
-		  (insert-button pretty-minor-mode
-				 'action (car help-button-cache)
-				 'follow-link t
-				 'help-echo "mouse-2, RET: show full information")
-		  (newline)))
-	      (forward-line -1)
-	      (fill-paragraph nil)
-	      (forward-line 1))
+      (with-current-buffer (help-buffer)
+        ;; Add the local minor modes at the start.
+        (when local-minors
+          (insert (format "Minor mode%s enabled in this buffer:"
+                          (if (length> local-minors 1)
+                              "s" "")))
+          (describe-mode--minor-modes local-minors))
 
-	    (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
-	  ;; Document the major mode.
-	  (with-current-buffer standard-output
-	    (insert (buttonize
-                     (propertize (format-mode-line
-                                  (buffer-local-value 'mode-name buffer)
-                                  nil nil buffer)
-                                 'face 'bold)
-                     (lambda (_)
-                       (describe-function
-                        (buffer-local-value 'major-mode buffer))))))
-          (princ " mode")
-	  (let* ((mode major-mode)
-		 (file-name (find-lisp-object-file-name mode nil)))
-	    (if (not file-name)
-		(setq help-mode--current-data (list :symbol mode))
-	      (princ (format-message " defined in `%s'"
-                                     (help-fns-short-filename file-name)))
-	      ;; Make a hyperlink to the library.
-	      (with-current-buffer standard-output
-		(save-excursion
-		  (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
-                                      nil t)
-                  (setq help-mode--current-data (list :symbol mode
-                                                      :file file-name))
-                  (help-xref-button 1 'help-function-def mode file-name)))))
-          (let ((fundoc (help-split-fundoc (documentation major-mode) nil 'doc)))
-            (with-current-buffer standard-output
-              (insert ":\n")
-              (insert fundoc)
-              (insert (help-fns--list-local-commands))))))))
-    ;; For the sake of IELM and maybe others
-    nil)
+        ;; Document the major mode.
+        (let ((major (buffer-local-value 'major-mode buffer)))
+          (insert "The major mode is "
+                  (buttonize
+                   (propertize (format-mode-line
+                                (buffer-local-value 'mode-name buffer)
+                                nil nil buffer)
+                               'face 'bold)
+                   (lambda (_)
+                     (describe-function major))))
+          (insert " mode")
+          (when-let ((file-name (find-lisp-object-file-name major nil)))
+	    (insert (format " defined in %s:\n\n"
+                            (buttonize
+                             (help-fns-short-filename file-name)
+                             (lambda (_)
+                               (help-function-def--button-function
+                                major file-name))))))
+          (insert (help-split-fundoc (documentation major-mode) nil 'doc)
+                  (with-current-buffer buffer
+                    (help-fns--list-local-commands)))
+          (ensure-empty-lines 1)
+
+          ;; Insert the global minor modes after the major mode.
+          (when global-minor-modes
+            (insert (format "Global minor mode%s enabled:"
+                            (if (length> global-minor-modes 1)
+                                "s" "")))
+            (describe-mode--minor-modes global-minor-modes)
+            (when (re-search-forward "^\f")
+              (beginning-of-line)
+              (ensure-empty-lines 1)))
+          ;; For the sake of IELM and maybe others
+          nil)))))
+
+(defun describe-mode--minor-modes (modes)
+  (dolist (mode (seq-sort #'string< modes))
+    (let ((pretty-minor-mode
+           (capitalize
+            (replace-regexp-in-string
+             "\\(\\(-minor\\)?-mode\\)?\\'" ""
+             (symbol-name mode)))))
+      (insert
+       " "
+       (buttonize
+        pretty-minor-mode
+        (lambda (mode)
+          (goto-char (point-min))
+          (text-property-search-forward
+           'help-minor-mode mode t)
+          (beginning-of-line))
+        mode))
+      (save-excursion
+	(goto-char (point-max))
+	(insert "\n\n\f\n")
+	;; Document the minor modes fully.
+        (insert (buttonize
+                 (propertize pretty-minor-mode 'help-minor-mode mode)
+                 (lambda (mode)
+                   (describe-function mode))
+                 mode))
+        (let ((indicator
+               (format-mode-line (assq mode minor-mode-alist))))
+	  (insert (format " minor mode (%s):\n"
+			  (if (zerop (length indicator))
+			      "no indicator"
+			    (format "indicator%s"
+				    indicator)))))
+	(insert (help-split-fundoc (documentation mode) nil 'doc)))))
+  (forward-line -1)
+  (fill-paragraph nil)
+  (forward-line 1)
+  (ensure-empty-lines 1))
 
 (defun help-fns--list-local-commands ()
   (let ((functions nil))
