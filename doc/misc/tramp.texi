@@ -2643,6 +2643,11 @@ where @samp{192.168.0.1} is the remote host IP address
 @node Ssh setup
 @section Ssh setup hints
 
+The most common @value{tramp} connection family is based on either
+@command{ssh} or @command{scp} of OpenSSH, or @command{plink} or
+@command{pscp} of PuTTY on MS Windows.  In the following, some
+configuration recommendations are given.
+
 
 @subsection Using ssh config include for host name completion
 
