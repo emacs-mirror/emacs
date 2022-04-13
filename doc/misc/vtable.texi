@@ -418,6 +418,13 @@ current line, they can use the @code{vtable-current-object} function
 @item :separator-width
 The width of the blank space between columns.
 
+@item :divider-width
+@itemx :divider
+You can have a divider inserted between the columns.  This can either
+be specified by using @code{:divider}, which should be a string to be
+displayed between the columns, or @code{:divider-width}, which
+specifies the width of the space to be used as the divider.
+
 @item :sort-by
 This should be a list of tuples, and specifies how the table is to be
 sorted.  Each tuple should consist of an integer (the column index)

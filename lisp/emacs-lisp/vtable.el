@@ -61,6 +61,7 @@
    (actions :initarg :actions :accessor vtable-actions)
    (keymap :initarg :keymap :accessor vtable-keymap)
    (separator-width :initarg :separator-width :accessor vtable-separator-width)
+   (divider :initarg :divider :accessor vtable-divider :initform nil)
    (sort-by :initarg :sort-by :accessor vtable-sort-by)
    (ellipsis :initarg :ellipsis :accessor vtable-ellipsis)
    (column-colors :initarg :column-colors :accessor vtable-column-colors)
@@ -90,6 +91,8 @@
                             (face 'vtable)
                             actions keymap
                             (separator-width 1)
+                            divider
+                            divider-width
                             sort-by
                             (ellipsis t)
                             (insert t)
@@ -120,28 +123,39 @@ be inserted."
   ;; We'll be altering the list, so create a copy.
   (setq objects (copy-sequence objects))
   (let ((table
-         (make-instance 'vtable
-                        :columns columns
-                        :objects objects
-                        :objects-function objects-function
-                        :getter getter
-                        :formatter formatter
-                        :displayer displayer
-                        :use-header-line use-header-line
-                        :face face
-                        :actions actions
-                        :keymap keymap
-                        :separator-width separator-width
-                        :sort-by sort-by
-                        :row-colors row-colors
-                        :column-colors column-colors
-                        :ellipsis ellipsis)))
+         (make-instance
+          'vtable
+          :columns columns
+          :objects objects
+          :objects-function objects-function
+          :getter getter
+          :formatter formatter
+          :displayer displayer
+          :use-header-line use-header-line
+          :face face
+          :actions actions
+          :keymap keymap
+          :separator-width separator-width
+          :sort-by sort-by
+          :row-colors row-colors
+          :column-colors column-colors
+          :ellipsis ellipsis)))
     ;; Compute missing column data.
     (setf (vtable-columns table) (vtable--compute-columns table))
     ;; Compute colors if we have to mix them.
     (when (and row-colors column-colors)
       (setf (vtable--cached-colors table)
             (vtable--compute-colors row-colors column-colors)))
+    ;; Compute the divider.
+    (when (or divider divider-width)
+      (setf (vtable-divider table)
+            (or divider
+                (and divider-width
+                     (propertize
+                      " " 'display
+                      (list 'space :width
+                            (list (vtable--compute-width
+                                   table divider-width))))))))
     (unless sort-by
       (seq-do-indexed (lambda (column index)
                         (when (vtable-column-primary column)
@@ -420,7 +434,8 @@ This also updates the displayed table."
          (if (vtable-row-colors table)
              (elt (vtable--cached-colors table)
                   (mod line-number (length (vtable-row-colors table))))
-           (vtable-column-colors table))))
+           (vtable-column-colors table)))
+        (divider (vtable-divider table)))
     (seq-do-indexed
      (lambda (elem index)
        (let ((value (nth 0 elem))
@@ -461,32 +476,40 @@ This also updates the displayed table."
                         value (- (elt widths index) ellipsis-width))
                        ellipsis)
                     value))))
-               (start (point)))
+               (start (point))
+               ;; Don't insert the separator and the divider after the
+               ;; final column.
+               (last (= index (- (length line) 2))))
            (if (eq (vtable-column-align column) 'left)
-               (insert displayed
-                       (propertize
-                        " " 'display
-                        (list 'space
-                              :width (list
-                                      (+ (- (elt widths index)
-                                            (string-pixel-width displayed))
-                                         spacer)))))
+               (progn
+                 (insert displayed)
+                 (insert (propertize
+                          " " 'display
+                          (list 'space
+                                :width (list
+                                        (+ (- (elt widths index)
+                                              (string-pixel-width displayed))
+                                           (if last 0 spacer)))))))
              ;; Align to the right.
              (insert (propertize " " 'display
                                  (list 'space
                                        :width (list (- (elt widths index)
                                                        (string-pixel-width
                                                         displayed)))))
-                     displayed
-                     (propertize " " 'display
-                                 (list 'space
-                                       :width (list spacer)))))
+                     displayed)
+             (unless last
+               (insert (propertize " " 'display
+                                   (list 'space
+                                         :width (list spacer))))))
            (put-text-property start (point) 'vtable-column index)
            (when column-colors
              (add-face-text-property
               start (point)
               (list :background
-                    (elt column-colors (mod index (length column-colors)))))))))
+                    (elt column-colors (mod index (length column-colors))))))
+           (when (and divider (not last))
+             (insert divider)
+             (setq start (point))))))
      (cdr line))
     (insert "\n")
     (put-text-property start (point) 'vtable-object (car line))
@@ -556,6 +579,7 @@ This also updates the displayed table."
               (start (point))
               (indicator (vtable--indicator table index))
               (indicator-width (string-pixel-width indicator))
+              (last (= index (1- (length (vtable-columns table)))))
               displayed)
          (insert
           (setq displayed
@@ -566,11 +590,12 @@ This also updates the displayed table."
                       name (- (elt widths index) indicator-width))
                    name)
                  indicator))
+          (or (vtable-divider table) "")
           (propertize " " 'display
                       (list 'space :width
                             (list (+ (- (elt widths index)
                                         (string-pixel-width displayed))
-                                     spacer)))))
+                                     (if last 0 spacer))))))
          (put-text-property start (point) 'vtable-column index)))
      (vtable-columns table))
     (insert "\n")
