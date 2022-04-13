@@ -425,6 +425,15 @@ BBDB fields.  SPECs are sexps which are evaluated:
 		       (symbol :tag "BBDB Field")
 		       (sexp :tag "Conversion Spec"))))
 
+(defcustom eudc-ldap-no-wildcard-attributes
+  '(objectclass objectcategory)
+  "LDAP attributes which are always searched for without wildcard character.
+This is the list of special dictionary-valued attributes, where
+wildcarded search may fail.  For example, it fails with
+objectclass in Active Directory servers."
+  :type  '(repeat (symbol :tag "Directory attribute")))
+
+
 ;;}}}
 
 ;;{{{ BBDB Custom Group

@@ -254,7 +254,9 @@ To: * Smith
 @noindent
 will return all LDAP entries with surnames that begin with
 @code{Smith}.  In every LDAP query it makes, EUDC implicitly appends
-the wildcard character to the end of the last word.
+the wildcard character to the end of the last word, except if the word
+corresponds to an attribute which is a member of
+`eudc-ldap-no-wildcard-attributes'.
 
 @menu
 * Emacs-only Configuration::    Configure with @file{.emacs}
