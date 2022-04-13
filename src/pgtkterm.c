@@ -68,11 +68,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gdk/gdkwayland.h>
 #endif
 
-#define STORE_KEYSYM_FOR_DEBUG(keysym) ((void)0)
-
-#define FRAME_CR_CONTEXT(f) ((f)->output_data.pgtk->cr_context)
+#define FRAME_CR_CONTEXT(f)		((f)->output_data.pgtk->cr_context)
 #define FRAME_CR_ACTIVE_CONTEXT(f)	((f)->output_data.pgtk->cr_active)
-#define FRAME_CR_SURFACE(f) (cairo_get_target (FRAME_CR_CONTEXT (f)))
+#define FRAME_CR_SURFACE(f)		(cairo_get_target (FRAME_CR_CONTEXT (f)))
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
@@ -5161,88 +5159,8 @@ size_allocate (GtkWidget * widget, GtkAllocation * alloc,
 }
 
 static void
-x_find_modifier_meanings (struct pgtk_display_info *dpyinfo)
-{
-  GdkDisplay *gdpy = dpyinfo->gdpy;
-  GdkKeymap *keymap = gdk_keymap_get_for_display (gdpy);
-  GdkModifierType state = GDK_META_MASK;
-  gboolean r = gdk_keymap_map_virtual_modifiers (keymap, &state);
-  if (r)
-    {
-      /* Meta key exists. */
-      if (state == GDK_META_MASK)
-	{
-	  dpyinfo->meta_mod_mask = GDK_MOD1_MASK;	/* maybe this is meta. */
-	  dpyinfo->alt_mod_mask = 0;
-	}
-      else
-	{
-	  dpyinfo->meta_mod_mask = state & ~GDK_META_MASK;
-	  if (dpyinfo->meta_mod_mask == GDK_MOD1_MASK)
-	    dpyinfo->alt_mod_mask = 0;
-	  else
-	    dpyinfo->alt_mod_mask = GDK_MOD1_MASK;
-	}
-    }
-  else
-    {
-      dpyinfo->meta_mod_mask = GDK_MOD1_MASK;
-      dpyinfo->alt_mod_mask = 0;
-    }
-
-  state = GDK_SUPER_MASK;
-  r = gdk_keymap_map_virtual_modifiers (keymap, &state);
-  if (r)
-    {
-      /* Super key exists. */
-      if (state == GDK_SUPER_MASK)
-	{
-	  dpyinfo->super_mod_mask = GDK_MOD4_MASK;	/* maybe this is super. */
-	}
-      else
-	{
-	  dpyinfo->super_mod_mask = state & ~GDK_SUPER_MASK;
-	}
-    }
-  else
-    {
-      dpyinfo->super_mod_mask = GDK_MOD4_MASK;
-    }
-
-  state = GDK_HYPER_MASK;
-  r = gdk_keymap_map_virtual_modifiers (keymap, &state);
-  if (r)
-    {
-      /* Hyper key exists. */
-      if (state == GDK_HYPER_MASK)
-	{
-	  dpyinfo->hyper_mod_mask = GDK_MOD3_MASK;	/* maybe this is hyper. */
-	}
-      else
-	{
-	  dpyinfo->hyper_mod_mask = state & ~GDK_HYPER_MASK;
-	}
-    }
-  else
-    {
-      dpyinfo->hyper_mod_mask = GDK_MOD3_MASK;
-    }
-
-  /* If xmodmap says:
-   *   $ xmodmap | grep mod4
-   *   mod4        Super_L (0x85),  Super_R (0x86),  Super_L (0xce),  Hyper_L (0xcf)
-   * then, when mod4 is pressed, both of super and hyper are recognized ON.
-   * Maybe many people have such configuration, and they don't like such behavior,
-   * so I disable hyper if such configuration is detected.
-   */
-  if (dpyinfo->hyper_mod_mask == dpyinfo->super_mod_mask)
-    dpyinfo->hyper_mod_mask = 0;
-}
-
-static void
-get_modifier_values (int *mod_ctrl,
-		     int *mod_meta,
-		     int *mod_alt, int *mod_hyper, int *mod_super)
+get_modifier_values (int *mod_ctrl, int *mod_meta, int *mod_alt,
+		     int *mod_hyper, int *mod_super)
 {
   Lisp_Object tem;
 
@@ -5287,14 +5205,13 @@ pgtk_gtk_to_emacs_modifiers (struct pgtk_display_info *dpyinfo, int state)
     mod |= shift_modifier;
   if (state & GDK_CONTROL_MASK)
     mod |= mod_ctrl;
-  if (state & dpyinfo->meta_mod_mask)
+  if (state & GDK_META_MASK || state & GDK_MOD1_MASK)
     mod |= mod_meta;
-  if (state & dpyinfo->alt_mod_mask)
-    mod |= mod_alt;
-  if (state & dpyinfo->super_mod_mask)
+  if (state & GDK_SUPER_MASK)
     mod |= mod_super;
-  if (state & dpyinfo->hyper_mod_mask)
+  if (state & GDK_HYPER_MASK)
     mod |= mod_hyper;
+
   return mod;
 }
 
@@ -5312,18 +5229,16 @@ pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *dpyinfo, int state)
 		       &mod_super);
 
   mask = 0;
-  if (state & mod_alt)
-    mask |= dpyinfo->alt_mod_mask;
   if (state & mod_super)
-    mask |= dpyinfo->super_mod_mask;
+    mask |= GDK_SUPER_MASK;
   if (state & mod_hyper)
-    mask |= dpyinfo->hyper_mod_mask;
+    mask |= GDK_HYPER_MASK;
   if (state & shift_modifier)
     mask |= GDK_SHIFT_MASK;
   if (state & mod_ctrl)
     mask |= GDK_CONTROL_MASK;
   if (state & mod_meta)
-    mask |= dpyinfo->meta_mod_mask;
+    mask |= GDK_MOD1_MASK;
   return mask;
 }
 
@@ -5382,16 +5297,13 @@ pgtk_enqueue_preedit (struct frame *f, Lisp_Object preedit)
 static gboolean
 key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
-  struct coding_system coding;
   union buffered_input_event inev;
   ptrdiff_t nbytes = 0;
   Mouse_HLInfo *hlinfo;
+  struct frame *f;
 
-  USE_SAFE_ALLOCA;
-
+  f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
   EVENT_INIT (inev.ie);
-
-  struct frame *f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
   hlinfo = MOUSE_HL_INFO (f);
 
   /* If mouse-highlight is an integer, input clears out
@@ -5400,20 +5312,6 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
     {
       clear_mouse_face (hlinfo);
       hlinfo->mouse_face_hidden = true;
-    }
-
-  if (f != 0)
-    {
-      /* While super is pressed, gtk_im_context_filter_keypress() always process the
-       * key events ignoring super.
-       * As a work around, don't call it while super or hyper are pressed...
-       */
-      struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-      if (!(event->key.state & (dpyinfo->super_mod_mask | dpyinfo->hyper_mod_mask)))
-	{
-	  if (pgtk_im_filter_keypress (f, &event->key))
-	    return TRUE;
-	}
     }
 
   if (f != 0)
@@ -5434,9 +5332,19 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
       unsigned char *copy_bufptr = copy_buffer;
       int copy_bufsiz = sizeof (copy_buffer);
       int modifiers;
-      Lisp_Object coding_system = Qlatin_1;
       Lisp_Object c;
-      guint state = event->key.state;
+      guint state;
+
+      state = event->key.state;
+
+      /* While super is pressed, the input method will always always
+	 resend the key events ignoring super.  As a workaround, don't
+	 filter key events with super or hyper pressed.  */
+      if (!(event->key.state & (GDK_SUPER_MASK | GDK_HYPER_MASK)))
+	{
+	  if (pgtk_im_filter_keypress (f, &event->key))
+	    return TRUE;
+	}
 
       state |=
 	pgtk_emacs_to_gtk_modifiers (FRAME_DISPLAY_INFO (f),
@@ -5582,7 +5490,6 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 #endif
 	  ))
 	{
-	  STORE_KEYSYM_FOR_DEBUG (keysym);
 	  /* make_lispy_event will convert this to a symbolic
 	     key.  */
 	  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
@@ -5593,62 +5500,11 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 	  goto done;
 	}
 
-      {				/* Raw bytes, not keysym.  */
-	ptrdiff_t i;
-	int nchars, len;
-
-	for (i = 0, nchars = 0; i < nbytes; i++)
-	  {
-	    if (ASCII_CHAR_P (copy_bufptr[i]))
-	      nchars++;
-	    STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
-	  }
-
-	if (nchars < nbytes)
-	  {
-	    /* Decode the input data.  */
-
-	    /* The input should be decoded with locale `coding_system'. */
-	    if (!NILP (Vlocale_coding_system))
-	      coding_system = Vlocale_coding_system;
-	    setup_coding_system (coding_system, &coding);
-	    coding.src_multibyte = false;
-	    coding.dst_multibyte = true;
-	    /* The input is converted to events, thus we can't
-	       handle composition.  Anyway, there's no XIM that
-	       gives us composition information.  */
-	    coding.common_flags &= ~CODING_ANNOTATION_MASK;
-
-	    SAFE_NALLOCA (coding.destination, MAX_MULTIBYTE_LENGTH, nbytes);
-	    coding.dst_bytes = MAX_MULTIBYTE_LENGTH * nbytes;
-	    coding.mode |= CODING_MODE_LAST_BLOCK;
-	    decode_coding_c_string (&coding, copy_bufptr, nbytes, Qnil);
-	    nbytes = coding.produced;
-	    nchars = coding.produced_char;
-	    copy_bufptr = coding.destination;
-	  }
-
-	/* Convert the input data to a sequence of
-	   character events.  */
-	for (i = 0; i < nbytes; i += len)
-	  {
-	    int ch;
-	    if (nchars == nbytes)
-	      ch = copy_bufptr[i], len = 1;
-	    else
-	      ch = string_char_and_length (copy_bufptr + i, &len);
-	    inev.ie.kind = (SINGLE_BYTE_CHAR_P (ch)
-			    ? ASCII_KEYSTROKE_EVENT
-			    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-	    inev.ie.code = ch;
-	    inev.ie.device
-	      = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
-	    evq_enqueue (&inev);
-	  }
-
-	/* count += nchars; */
-
-	inev.ie.kind = NO_EVENT;	/* Already stored above.  */
+      {
+	inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	inev.ie.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
+	inev.ie.device
+	  = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
 
 	if (keysym == GDK_KEY_VoidSymbol)
 	  goto done;
@@ -5660,10 +5516,7 @@ done:
     {
       XSETFRAME (inev.ie.frame_or_window, f);
       evq_enqueue (&inev);
-      /* count++; */
     }
-
-  SAFE_FREE ();
 
   return TRUE;
 }
@@ -6793,9 +6646,6 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   *nametail++ = '@';
   lispstpcpy (nametail, system_name);
 
-  /* Figure out which modifier bits mean what.  */
-  x_find_modifier_meanings (dpyinfo);
-
   /* Get the scroll bar cursor.  */
   /* We must create a GTK cursor, it is required for GTK widgets.  */
   dpyinfo->xg_cursor = xg_create_default_cursor (dpyinfo->gdpy);
@@ -7044,7 +6894,6 @@ pgtk_clear_area (struct frame *f, int x, int y, int width, int height)
 void
 syms_of_pgtkterm (void)
 {
-  /* from 23+ we need to tell emacs what modifiers there are.. */
   DEFSYM (Qmodifier_value, "modifier-value");
   DEFSYM (Qalt, "alt");
   DEFSYM (Qhyper, "hyper");

@@ -225,9 +225,6 @@ struct pgtk_display_info
   /* The frame where the mouse was last time we reported a mouse position.  */
   struct frame *last_mouse_glyph_frame;
 
-  /* Modifier masks in gdk */
-  int meta_mod_mask, alt_mod_mask, super_mod_mask, hyper_mod_mask;
-
   /* The last click event. */
   GdkEvent *last_click_event;
 
