@@ -1952,12 +1952,16 @@ documentation for the major and minor modes of that buffer."
 
 	    (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
 	  ;; Document the major mode.
-	  (let ((mode mode-name))
-	    (with-current-buffer standard-output
-              (let ((start (point)))
-		(insert (format-mode-line mode nil nil buffer))
-		(add-text-properties start (point) '(face bold)))))
-	  (princ " mode")
+	  (with-current-buffer standard-output
+	    (insert (buttonize
+                     (propertize (format-mode-line
+                                  (buffer-local-value 'mode-name buffer)
+                                  nil nil buffer)
+                                 'face 'bold)
+                     (lambda (_)
+                       (describe-function
+                        (buffer-local-value 'major-mode buffer))))))
+          (princ " mode")
 	  (let* ((mode major-mode)
 		 (file-name (find-lisp-object-file-name mode nil)))
 	    (if (not file-name)
