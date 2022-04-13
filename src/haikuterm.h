@@ -155,7 +155,6 @@ struct haiku_output
   Emacs_Color cursor_color;
 
   Window window_desc, parent_desc;
-  char explicit_parent;
 
   int titlebar_height;
   int toolbar_height;

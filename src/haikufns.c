@@ -648,9 +648,6 @@ haiku_create_frame (Lisp_Object parms)
   /* With FRAME_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
 
-  FRAME_OUTPUT_DATA (f)->parent_desc = NULL;
-  FRAME_OUTPUT_DATA (f)->explicit_parent = 0;
-
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
   if (EQ (name, Qunbound) || NILP (name) || ! STRINGP (name))
@@ -860,22 +857,19 @@ haiku_create_frame (Lisp_Object parms)
   adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
 		     0, true, Qx_create_frame_2);
 
-  if (!FRAME_OUTPUT_DATA (f)->explicit_parent)
-    {
-      Lisp_Object visibility;
+  Lisp_Object visibility;
 
-      visibility = gui_display_get_arg (dpyinfo, parms, Qvisibility, 0, 0,
-                                        RES_TYPE_SYMBOL);
-      if (EQ (visibility, Qunbound))
-	visibility = Qt;
-      if (EQ (visibility, Qicon))
-	haiku_iconify_frame (f);
-      else if (!NILP (visibility))
-	haiku_visualize_frame (f);
-      else /* Qnil */
-	{
-	  f->was_invisible = true;
-	}
+  visibility = gui_display_get_arg (dpyinfo, parms, Qvisibility, 0, 0,
+				    RES_TYPE_SYMBOL);
+  if (EQ (visibility, Qunbound))
+    visibility = Qt;
+  if (EQ (visibility, Qicon))
+    haiku_iconify_frame (f);
+  else if (!NILP (visibility))
+    haiku_visualize_frame (f);
+  else /* Qnil */
+    {
+      f->was_invisible = true;
     }
 
   if (FRAME_HAS_MINIBUF_P (f)
@@ -961,7 +955,6 @@ haiku_create_tip_frame (Lisp_Object parms)
   FRAME_DISPLAY_INFO (f) = dpyinfo;
 
   FRAME_OUTPUT_DATA (f)->parent_desc = NULL;
-  FRAME_OUTPUT_DATA (f)->explicit_parent = 0;
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
