@@ -800,8 +800,6 @@ haiku_create_frame (Lisp_Object parms)
     initialize_frame_menubar (f);
   unblock_input ();
 
-  FRAME_OUTPUT_DATA (f)->window_desc = FRAME_OUTPUT_DATA (f)->window;
-
   Vframe_list = Fcons (frame, Vframe_list);
 
   Lisp_Object parent_frame = gui_display_get_arg (dpyinfo, parms, Qparent_frame, NULL, NULL,
@@ -1046,7 +1044,6 @@ haiku_create_tip_frame (Lisp_Object parms)
     if (!window)
       emacs_abort ();
 
-    FRAME_OUTPUT_DATA (f)->window_desc = window;
     BWindow_set_tooltip_decoration (window);
     unblock_input ();
   }

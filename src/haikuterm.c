@@ -3723,10 +3723,13 @@ haiku_flash (struct frame *f)
   int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
   int width = flash_right - flash_left;
   void *view = FRAME_HAIKU_VIEW (f);
-  struct timespec delay, wakeup, current, timeout;
+  object_wait_info info;
+  bigtime_t wakeup;
 
-  delay = make_timespec (0, 150 * 1000 * 1000);
-  wakeup = timespec_add (current_timespec (), delay);
+  info.object = port_application_to_emacs;
+  info.type = B_OBJECT_TYPE_PORT;
+  info.events = B_EVENT_READ;
+  wakeup = system_time () + 150000;
 
   BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
 		   FRAME_PIXEL_HEIGHT (f));
@@ -3760,17 +3763,17 @@ haiku_flash (struct frame *f)
      available.  */
   while (!detect_input_pending ())
     {
-      current = current_timespec ();
-
       /* Break if result would not be positive.  */
-      if (timespec_cmp (wakeup, current) <= 0)
+      if (wakeup < system_time ())
 	break;
 
-      /* How long `select' should wait.  */
-      timeout = make_timespec (0, 10 * 1000 * 1000);
-
       /* Try to wait that long--but we might wake up sooner.  */
-      pselect (0, NULL, NULL, NULL, &timeout, NULL);
+      wait_for_objects_etc (&info, 1, B_ABSOLUTE_TIMEOUT, wakeup);
+
+      if (info.events & B_EVENT_READ)
+	break;
+
+      info.events = B_EVENT_READ;
     }
 
   BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),

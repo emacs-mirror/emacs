@@ -36,8 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 extern int popup_activated_p;
 
-extern void be_app_quit (void);
-
 struct haikufont_info
 {
   struct font font;
@@ -128,6 +126,8 @@ struct haiku_display_info
 
 struct haiku_output
 {
+  struct haiku_display_info *display_info;
+
   Emacs_Cursor text_cursor;
   Emacs_Cursor nontext_cursor;
   Emacs_Cursor modeline_cursor;
@@ -144,20 +144,11 @@ struct haiku_output
   Emacs_Cursor bottom_edge_cursor;
   Emacs_Cursor bottom_left_corner_cursor;
   Emacs_Cursor no_cursor;
-
   Emacs_Cursor current_cursor;
-
-  struct haiku_display_info *display_info;
-
-  int baseline_offset;
-  int fontset;
 
   Emacs_Color cursor_color;
 
-  Window window_desc, parent_desc;
-
-  int titlebar_height;
-  int toolbar_height;
+  Window parent_desc;
 
   haiku window;
   haiku view;
@@ -165,14 +156,16 @@ struct haiku_output
 
   int menu_up_to_date_p;
   int zoomed_p;
-
+  int hourglass_p;
   int menu_bar_open_p;
+  int fontset;
+  int baseline_offset;
+
+  /* Whether or not there is data in a back buffer that hasn't been
+     displayed yet.  */
+  bool dirty_p;
 
   struct font *font;
-
-  int hourglass_p;
-  uint32_t cursor_fg;
-  bool dirty_p;
 
   /* The pending position we're waiting for. */
   int pending_top, pending_left;
@@ -180,6 +173,9 @@ struct haiku_output
   /* Whether or not adjust_frame_size and haiku_set_offset have yet
      been called by haiku_create_frame.  */
   bool configury_done;
+
+  /* The default cursor foreground color.  */
+  uint32_t cursor_fg;
 };
 
 struct x_output
@@ -230,23 +226,25 @@ struct scroll_bar
   /* True if the scroll bar is horizontal.  */
   bool horizontal;
 
+  /* The amount of units taken up by the thumb, which represents the
+     portion of the buffer currently on screen.  */
   int page_size;
 };
 
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
-#define FRAME_DIRTY_P(f) (FRAME_OUTPUT_DATA (f)->dirty_p)
-#define MAKE_FRAME_DIRTY(f) (FRAME_DIRTY_P (f) = 1)
-#define FRAME_OUTPUT_DATA(f) ((f)->output_data.haiku)
-#define FRAME_HAIKU_WINDOW(f) (FRAME_OUTPUT_DATA (f)->window)
-#define FRAME_HAIKU_VIEW(f) ((MAKE_FRAME_DIRTY (f)), FRAME_OUTPUT_DATA (f)->view)
-#define FRAME_HAIKU_MENU_BAR(f) (FRAME_OUTPUT_DATA (f)->menubar)
-#define FRAME_DISPLAY_INFO(f) (FRAME_OUTPUT_DATA (f)->display_info)
-#define FRAME_FONT(f) (FRAME_OUTPUT_DATA (f)->font)
-#define FRAME_FONTSET(f) (FRAME_OUTPUT_DATA (f)->fontset)
-#define FRAME_NATIVE_WINDOW(f) (FRAME_OUTPUT_DATA (f)->window)
-#define FRAME_BASELINE_OFFSET(f) (FRAME_OUTPUT_DATA (f)->baseline_offset)
-#define FRAME_CURSOR_COLOR(f) (FRAME_OUTPUT_DATA (f)->cursor_color)
+#define FRAME_DIRTY_P(f)		(FRAME_OUTPUT_DATA (f)->dirty_p)
+#define MAKE_FRAME_DIRTY(f)		(FRAME_DIRTY_P (f) = 1)
+#define FRAME_OUTPUT_DATA(f)		((f)->output_data.haiku)
+#define FRAME_HAIKU_WINDOW(f)		(FRAME_OUTPUT_DATA (f)->window)
+#define FRAME_HAIKU_VIEW(f)		((MAKE_FRAME_DIRTY (f)), FRAME_OUTPUT_DATA (f)->view)
+#define FRAME_HAIKU_MENU_BAR(f)		(FRAME_OUTPUT_DATA (f)->menubar)
+#define FRAME_DISPLAY_INFO(f)		(FRAME_OUTPUT_DATA (f)->display_info)
+#define FRAME_FONT(f)			(FRAME_OUTPUT_DATA (f)->font)
+#define FRAME_FONTSET(f)		(FRAME_OUTPUT_DATA (f)->fontset)
+#define FRAME_NATIVE_WINDOW(f)		(FRAME_OUTPUT_DATA (f)->window)
+#define FRAME_BASELINE_OFFSET(f)	(FRAME_OUTPUT_DATA (f)->baseline_offset)
+#define FRAME_CURSOR_COLOR(f)		(FRAME_OUTPUT_DATA (f)->cursor_color)
 
 #ifdef USE_BE_CAIRO
 #define FRAME_CR_CONTEXT(f)					\
@@ -262,57 +260,57 @@ extern void syms_of_haikufont (void);
 extern void syms_of_haikuselect (void);
 extern void init_haiku_select (void);
 
+extern void be_app_quit (void);
+
 extern void haiku_iconify_frame (struct frame *);
 extern void haiku_visualize_frame (struct frame *);
 extern void haiku_unvisualize_frame (struct frame *);
 extern void haiku_set_offset (struct frame *, int, int, int);
 extern void haiku_set_frame_visible_invisible (struct frame *, bool);
-extern void haiku_free_frame_resources (struct frame *f);
-extern void haiku_scroll_bar_remove (struct scroll_bar *bar);
-extern void haiku_clear_under_internal_border (struct frame *f);
-extern void haiku_set_name (struct frame *f, Lisp_Object name, bool explicit_p);
+extern void haiku_free_frame_resources (struct frame *);
+extern void haiku_scroll_bar_remove (struct scroll_bar *);
+extern void haiku_clear_under_internal_border (struct frame *);
+extern void haiku_set_name (struct frame *, Lisp_Object, bool);
 extern Lisp_Object haiku_message_to_lisp (void *);
 
 extern struct haiku_display_info *haiku_term_init (void);
 
 extern void mark_haiku_display (void);
 
-extern int haiku_get_color (const char *name, Emacs_Color *color);
-extern void haiku_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval);
-extern void haiku_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval);
-extern void haiku_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval);
-extern void haiku_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval);
-extern void haiku_change_tab_bar_height (struct frame *f, int height);
-extern void haiku_change_tool_bar_height (struct frame *f, int height);
+extern int haiku_get_color (const char *, Emacs_Color *);
+extern void haiku_set_background_color (struct frame *, Lisp_Object, Lisp_Object);
+extern void haiku_set_cursor_color (struct frame *, Lisp_Object, Lisp_Object);
+extern void haiku_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
+extern void haiku_set_internal_border_width (struct frame *, Lisp_Object, Lisp_Object);
+extern void haiku_change_tab_bar_height (struct frame *, int);
+extern void haiku_change_tool_bar_height (struct frame *, int);
 
-extern void haiku_query_color (uint32_t col, Emacs_Color *color);
+extern void haiku_query_color (uint32_t, Emacs_Color *);
 
-extern unsigned long haiku_get_pixel (haiku bitmap, int x, int y);
-extern void haiku_put_pixel (haiku bitmap, int x, int y, unsigned long pixel);
+extern unsigned long haiku_get_pixel (haiku, int, int);
+extern void haiku_put_pixel (haiku, int, int, unsigned long);
 
-extern Lisp_Object haiku_menu_show (struct frame *f, int x, int y, int menu_flags,
-				    Lisp_Object title, const char **error_name);
-extern Lisp_Object haiku_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents);
+extern Lisp_Object haiku_menu_show (struct frame *, int, int, int,
+				    Lisp_Object, const char **);
+extern Lisp_Object haiku_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 extern void haiku_note_drag_motion (void);
 
-extern void initialize_frame_menubar (struct frame *f);
+extern void initialize_frame_menubar (struct frame *);
 
-extern void run_menu_bar_help_event (struct frame *f, int mb_idx);
-extern void put_xrm_resource (Lisp_Object name, Lisp_Object val);
+extern void run_menu_bar_help_event (struct frame *, int);
+extern void put_xrm_resource (Lisp_Object, Lisp_Object);
 
 #ifdef HAVE_NATIVE_IMAGE_API
-extern bool haiku_can_use_native_image_api (Lisp_Object type);
-extern int haiku_load_image (struct frame *f, struct image *img,
-			     Lisp_Object spec_file, Lisp_Object spec_data);
+extern bool haiku_can_use_native_image_api (Lisp_Object);
+extern int haiku_load_image (struct frame *, struct image *,
+			     Lisp_Object, Lisp_Object);
 extern void syms_of_haikuimage (void);
 #endif
 
 #ifdef USE_BE_CAIRO
-extern cairo_t *
-haiku_begin_cr_clip (struct frame *f, struct glyph_string *s);
+extern cairo_t *haiku_begin_cr_clip (struct frame *, struct glyph_string *);
 
-extern void
-haiku_end_cr_clip (cairo_t *cr);
+extern void haiku_end_cr_clip (cairo_t *);
 #endif
 
 extern void haiku_merge_cursor_foreground (struct glyph_string *, unsigned long *,
