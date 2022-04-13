@@ -590,12 +590,12 @@ This also updates the displayed table."
                       name (- (elt widths index) indicator-width))
                    name)
                  indicator))
-          (or (vtable-divider table) "")
           (propertize " " 'display
                       (list 'space :width
                             (list (+ (- (elt widths index)
                                         (string-pixel-width displayed))
-                                     (if last 0 spacer))))))
+                                     (if last 0 spacer)))))
+          (or (vtable-divider table) ""))
          (put-text-property start (point) 'vtable-column index)))
      (vtable-columns table))
     (insert "\n")
