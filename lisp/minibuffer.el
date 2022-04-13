@@ -1895,9 +1895,7 @@ completions."
   :version "28.1")
 
 (defcustom completions-header-format
-  (propertize "%s possible completions:\n"
-              'face 'shadow
-              :help "Please select a completion")
+  (propertize "%s possible completions:\n" 'face 'shadow)
   "Format of completions header.
 It may contain one %s to show the total count of completions.
 When nil, no header is shown."

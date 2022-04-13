@@ -1110,7 +1110,8 @@ See also `comint-read-input-ring'."
 	  (use-local-map keymap))
 	(forward-line 3)
 	(while (search-backward "completion" nil 'move)
-	  (replace-match "history reference")))
+	  (replace-match (apply #'propertize "history reference"
+				(text-properties-at (point))))))
       (sit-for 0)
       (message "Hit space to flush")
       (setq comint-dynamic-list-input-ring-window-conf conf)
