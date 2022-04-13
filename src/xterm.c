@@ -8652,6 +8652,8 @@ XTflash (struct frame *f)
 {
   GC gc;
   XGCValues values;
+  fd_set fds;
+  int fd;
 
   block_input ();
 
@@ -8702,6 +8704,7 @@ XTflash (struct frame *f)
 
   struct timespec delay = make_timespec (0, 150 * 1000 * 1000);
   struct timespec wakeup = timespec_add (current_timespec (), delay);
+  fd = ConnectionNumber (FRAME_X_DISPLAY (f));
 
   /* Keep waiting until past the time wakeup or any input gets
      available.  */
@@ -8717,8 +8720,17 @@ XTflash (struct frame *f)
       /* How long `select' should wait.  */
       timeout = make_timespec (0, 10 * 1000 * 1000);
 
+      /* Wait for some input to become available on the X
+	 connection.  */
+      FD_ZERO (&fds);
+      FD_SET (fd, &fds);
+
       /* Try to wait that long--but we might wake up sooner.  */
-      pselect (0, NULL, NULL, NULL, &timeout, NULL);
+      pselect (fd + 1, &fds, NULL, NULL, &timeout, NULL);
+
+      /* Some input is available, exit the visible bell.  */
+      if (FD_ISSET (fd, &fds))
+	break;
     }
 
   /* If window is tall, flash top and bottom line.  */
