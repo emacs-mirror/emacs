@@ -2797,7 +2797,7 @@ gtk3_pkg_errors=
 if test "${opsys}" != "mingw32"; then
   if test "${with_gtk3}" = "yes" || test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
     GLIB_REQUIRED=2.37.5
-    if test "${window_system}" = "x"; then
+    if test "${window_system}" = "x11"; then
       GTK_REQUIRED=3.10
     else
       GTK_REQUIRED=3.20
