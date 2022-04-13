@@ -14060,7 +14060,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	}
 
       f = x_top_window_to_frame (dpyinfo, event->xproperty.window);
-      if (f && event->xproperty.atom == dpyinfo->Xatom_net_wm_state)
+      if (f && event->xproperty.atom == dpyinfo->Xatom_net_wm_state
+	  /* This should never happen with embedded windows.  */
+	  && !FRAME_X_EMBEDDED_P (f))
 	{
           bool not_hidden = x_handle_net_wm_state (f, &event->xproperty);
 
@@ -14417,7 +14419,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		x_set_z_group (f, Qbelow, Qnil);
 	    }
 
-	  if (not_hidden)
+	  /* Embedded frames might have NET_WM_STATE left over, but
+	     are always visible once mapped.  */
+	  if (not_hidden || FRAME_X_EMBEDDED_P (f))
 	    {
 	      SET_FRAME_VISIBLE (f, 1);
 	      SET_FRAME_ICONIFIED (f, false);
@@ -14436,7 +14440,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  x_update_opaque_region (f, NULL);
 
-          if (not_hidden && iconified)
+          if ((not_hidden || FRAME_X_EMBEDDED_P (f)) && iconified)
             {
               inev.ie.kind = DEICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
@@ -15543,6 +15547,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           /* Even if the number of character rows and columns has
              not changed, the font size may have changed, so we need
              to check the pixel dimensions as well.  */
+
           if (width != FRAME_PIXEL_WIDTH (f)
               || height != FRAME_PIXEL_HEIGHT (f)
 	      || (f->new_size_p
@@ -21217,6 +21222,12 @@ x_make_frame_visible (struct frame *f)
 	XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* not USE_GTK */
 #endif /* not USE_X_TOOLKIT */
+
+      if (FRAME_X_EMBEDDED_P (f))
+	{
+	  SET_FRAME_VISIBLE (f, true);
+	  SET_FRAME_ICONIFIED (f, false);
+	}
     }
 
   XFlush (FRAME_X_DISPLAY (f));
@@ -22949,7 +22960,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ATOM_REFS_INIT ("ATOM", Xatom_ATOM)
       ATOM_REFS_INIT ("ATOM_PAIR", Xatom_ATOM_PAIR)
       ATOM_REFS_INIT ("CLIPBOARD_MANAGER", Xatom_CLIPBOARD_MANAGER)
-      ATOM_REFS_INIT ("XATOM_COUNTER", Xatom_XEMBED_INFO)
       ATOM_REFS_INIT ("_XEMBED_INFO", Xatom_XEMBED_INFO)
       ATOM_REFS_INIT ("_MOTIF_WM_HINTS", Xatom_MOTIF_WM_HINTS)
       /* For properties of font.  */
