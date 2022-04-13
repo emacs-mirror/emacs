@@ -5008,7 +5008,6 @@ pgtk_any_window_to_frame (GdkWindow * window)
 static gboolean
 pgtk_handle_event (GtkWidget *widget, GdkEvent *event, gpointer *data)
 {
-#if GTK_CHECK_VERSION (3, 18, 0)
   struct frame *f;
   union buffered_input_event inev;
   GtkWidget *frame_widget;
@@ -5045,7 +5044,6 @@ pgtk_handle_event (GtkWidget *widget, GdkEvent *event, gpointer *data)
 
       return TRUE;
     }
-#endif
   return FALSE;
 }
 
