@@ -343,15 +343,18 @@ right of \"%x\", trailing zero units are not output."
           ;; Cf article-make-date-line in gnus-art.
           (setq num (floor seconds unit)
                 seconds (- seconds (* num unit)))
-          ;; Start position of the first non-zero unit.
-          (when (and (not leading-zeropos)
-                     (not (zerop num)))
-            (setq leading-zeropos (match-beginning 0)))
-          (unless (zerop num)
-            (setq trailing-zeropos nil))
-          (when (and (not trailing-zeropos)
-                     (zerop num))
-            (setq trailing-zeropos (match-beginning 0)))
+          (let ((is-zero (zerop (if (= unit 1)
+                                    (+ num fraction)
+                                  num))))
+            ;; Start position of the first non-zero unit.
+            (when (and (not leading-zeropos)
+                       (not is-zero))
+              (setq leading-zeropos (match-beginning 0)))
+            (unless is-zero
+              (setq trailing-zeropos nil))
+            (when (and (not trailing-zeropos)
+                       is-zero)
+              (setq trailing-zeropos (match-beginning 0))))
           (setq string
                 (replace-match
                  (format (if (match-string 2 string)
