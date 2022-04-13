@@ -87,6 +87,8 @@ enum
     WAIT_FOR_RELEASE	= 3001,
     RELEASE_NOW		= 3002,
     CANCEL_DROP		= 3003,
+    SHOW_MENU_BAR	= 3004,
+    BE_MENU_BAR_OPEN	= 3005,
   };
 
 static color_space dpy_color_space = B_NO_COLOR_SPACE;
@@ -423,6 +425,7 @@ public:
   pthread_cond_t menu_update_cv = PTHREAD_COND_INITIALIZER;
   bool menu_updated_p = false;
   int window_id;
+  bool *menus_begun = NULL;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
@@ -902,19 +905,14 @@ public:
   MenusBeginning ()
   {
     struct haiku_menu_bar_state_event rq;
-    int lock_count = 0;
-    thread_id current_thread = find_thread (NULL);
-    thread_id window_thread = Thread ();
+    int lock_count;
+
     rq.window = this;
-    rq.no_lock = false;
+    lock_count = 0;
 
-    if (window_thread != current_thread)
-      rq.no_lock = true;
-
-    haiku_write (MENU_BAR_OPEN, &rq);
-
-    if (!rq.no_lock)
+    if (!menus_begun)
       {
+	haiku_write (MENU_BAR_OPEN, &rq);
 	while (IsLocked ())
 	  {
 	    ++lock_count;
@@ -932,6 +930,9 @@ public:
 	      gui_abort ("Failed to lock after cv signal denoting menu update");
 	  }
       }
+    else
+      *menus_begun = true;
+
     menu_bar_active_p = true;
   }
 
@@ -1243,6 +1244,37 @@ public:
       }
 
     BMenuBar::MouseMoved (point, transit, msg);
+  }
+
+  void
+  MessageReceived (BMessage *msg)
+  {
+    BRect frame;
+    BPoint pt, l;
+    EmacsWindow *window;
+    bool menus_begun;
+
+    if (msg->what == SHOW_MENU_BAR)
+      {
+	window = (EmacsWindow *) Window ();
+	frame = Frame ();
+	pt = frame.LeftTop ();
+	l = pt;
+	menus_begun = false;
+	Parent ()->ConvertToScreen (&pt);
+
+	window->menus_begun = &menus_begun;
+	set_mouse_position (pt.x, pt.y);
+	MouseDown (l);
+	window->menus_begun = NULL;
+
+	if (!menus_begun)
+	  msg->SendReply (msg);
+	else
+	  msg->SendReply (BE_MENU_BAR_OPEN);
+      }
+    else
+      BMenuBar::MessageReceived (msg);
   }
 };
 
@@ -3748,20 +3780,18 @@ EmacsWindow_unzoom (void *window)
   w->UnZoom ();
 }
 
-/* Move the pointer into MBAR and start tracking.  */
-void
+/* Move the pointer into MBAR and start tracking.  Return whether the
+   menu bar was opened correctly.  */
+bool
 BMenuBar_start_tracking (void *mbar)
 {
   EmacsMenuBar *mb = (EmacsMenuBar *) mbar;
-  if (!mb->LockLooper ())
-    gui_abort ("Couldn't lock menubar");
-  BRect frame = mb->Frame ();
-  BPoint pt = frame.LeftTop ();
-  BPoint l = pt;
-  mb->Parent ()->ConvertToScreen (&pt);
-  set_mouse_position (pt.x, pt.y);
-  mb->MouseDown (l);
-  mb->UnlockLooper ();
+  BMessenger messenger (mb);
+  BMessage reply;
+
+  messenger.SendMessage (SHOW_MENU_BAR, &reply);
+
+  return reply.what == BE_MENU_BAR_OPEN;
 }
 
 #ifdef HAVE_NATIVE_IMAGE_API

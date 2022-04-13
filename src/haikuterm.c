@@ -3517,36 +3517,24 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  {
 	    struct haiku_menu_bar_state_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
+	    int was_waiting_for_input_p;
 
 	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
 	      continue;
 
 	    if (type == MENU_BAR_OPEN)
 	      {
-		/* b->no_lock means that MenusBeginning was called
-		   from the main thread, which means tracking was
-		   started manually, and we have already updated the
-		   menu bar.  */
-		if (!b->no_lock)
-		  {
-		    BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
-		    /* This shouldn't be here, but nsmenu does it, so
-		       it should probably be safe.  */
-		    int was_waiting_for_input_p = waiting_for_input;
-		    if (waiting_for_input)
-		      waiting_for_input = 0;
-		    set_frame_menubar (f, 1);
-		    waiting_for_input = was_waiting_for_input_p;
-		    BView_draw_unlock (FRAME_HAIKU_VIEW (f));
-		  }
+		was_waiting_for_input_p = waiting_for_input;
+		if (waiting_for_input)
+		  waiting_for_input = 0;
 
-		/* But set the flag anyway, because the menu will end
-		   from the window thread.  */
+		set_frame_menubar (f, 1);
+		waiting_for_input = was_waiting_for_input_p;
+
 		FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
 		popup_activated_p += 1;
 
-		if (!b->no_lock)
-		  EmacsWindow_signal_menu_update_complete (b->window);
+		EmacsWindow_signal_menu_update_complete (b->window);
 	      }
 	    else
 	      {

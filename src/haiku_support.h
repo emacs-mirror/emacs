@@ -328,7 +328,6 @@ struct haiku_menu_bar_resize_event
 struct haiku_menu_bar_state_event
 {
   void *window;
-  bool no_lock;
 };
 
 #define HAIKU_THIN 0
@@ -869,7 +868,7 @@ extern "C"
   be_translate_bitmap_from_memory (const void *buf, size_t bytes);
 #endif
 
-  extern void
+  extern bool
   BMenuBar_start_tracking (void *mbar);
 
   extern size_t

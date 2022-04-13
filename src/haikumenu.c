@@ -752,19 +752,24 @@ the position of the last non-menu event instead.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_window_system_frame (frame);
+  int rc;
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
     {
       block_input ();
       set_frame_menubar (f, 1);
-      BMenuBar_start_tracking (FRAME_HAIKU_MENU_BAR (f));
+      rc = BMenuBar_start_tracking (FRAME_HAIKU_MENU_BAR (f));
       unblock_input ();
+
+      if (!rc)
+	return Qnil;
+
+      FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
+      popup_activated_p += 1;
     }
   else
-    {
-      return call2 (Qpopup_menu, call0 (Qmouse_menu_bar_map),
-		    last_nonmenu_event);
-    }
+    return call2 (Qpopup_menu, call0 (Qmouse_menu_bar_map),
+		  last_nonmenu_event);
 
   return Qnil;
 }
