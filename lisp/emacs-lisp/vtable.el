@@ -64,6 +64,8 @@
    (sort-by :initarg :sort-by :accessor vtable-sort-by)
    (ellipsis :initarg :ellipsis :accessor vtable-ellipsis)
    (column-colors :initarg :column-colors :accessor vtable-column-colors)
+   (row-colors :initarg :row-colors :accessor vtable-row-colors)
+   (-cached-colors :initform nil :accessor vtable--cached-colors)
    (-cache :initform (make-hash-table :test #'equal)))
   "A object to hold the data for a table.")
 
@@ -91,6 +93,7 @@
                             sort-by
                             (ellipsis t)
                             (insert t)
+                            row-colors
                             column-colors)
   "Create and insert a vtable at point.
 The vtable object is returned.  If INSERT is nil, the table won't
@@ -130,10 +133,15 @@ be inserted."
                         :keymap keymap
                         :separator-width separator-width
                         :sort-by sort-by
+                        :row-colors row-colors
                         :column-colors column-colors
                         :ellipsis ellipsis)))
     ;; Compute missing column data.
     (setf (vtable-columns table) (vtable--compute-columns table))
+    ;; Compute colors if we have to mix them.
+    (when (and row-colors column-colors)
+      (setf (vtable--cached-colors table)
+            (vtable--compute-colors row-colors column-colors)))
     (unless sort-by
       (seq-do-indexed (lambda (column index)
                         (when (vtable-column-primary column)
@@ -143,6 +151,20 @@ be inserted."
     (when insert
       (vtable-insert table))
     table))
+
+(defun vtable--compute-colors (row-colors column-colors)
+  (cl-loop for row in row-colors
+           collect (cl-loop for column in column-colors
+                            collect (vtable--color-blend row column))))
+
+;;; FIXME: This is probably not the right way to blend two colors, is
+;;; it?
+(defun vtable--color-blend (color1 color2)
+  (cl-destructuring-bind (r g b)
+      (mapcar (lambda (n) (* (/ n 2) 255.0))
+              (cl-mapcar #'+ (color-name-to-rgb color1)
+                         (color-name-to-rgb color2)))
+    (format "#%02X%02X%02X" r g b)))
 
 ;;; Interface utility functions.
 
@@ -219,7 +241,8 @@ If it can't be found, return nil and don't move point."
         (error "Can't find the old object"))
       (setcar (cdr objects) object))
     ;; Then update the cache...
-    (let ((line (assq old-object (car (vtable--cache table)))))
+    (let* ((line-number (seq-position old-object (car (vtable--cache table))))
+           (line (elt (car (vtable--cache table)) line-number)))
       (unless line
         (error "Can't find cached object"))
       (setcar line object)
@@ -230,7 +253,8 @@ If it can't be found, return nil and don't move point."
         (let ((keymap (get-text-property (point) 'keymap))
               (start (point)))
           (delete-line)
-          (vtable--insert-line table line (nth 1 (vtable--cache table))
+          (vtable--insert-line table line line-number
+                               (nth 1 (vtable--cache table))
                                (vtable--spacer table))
           (add-text-properties start (point) (list 'keymap keymap
                                                    'vtable table))))
@@ -285,7 +309,10 @@ This also updates the displayed table."
           (unless (vtable-goto-object after-object)
             (vtable-end-of-table))))
       (let ((start (point)))
-        (vtable--insert-line table line (nth 1 cache) (vtable--spacer table))
+        ;; FIXME: We have to adjust colors in lines below this if we
+        ;; have :row-colors.
+        (vtable--insert-line table line 0
+                             (nth 1 cache) (vtable--spacer table))
         (add-text-properties start (point) (list 'keymap keymap
                                                  'vtable table)))
       ;; We may have inserted a non-numerical value into a previously
@@ -374,20 +401,26 @@ This also updates the displayed table."
       (setq start (point)))
     (vtable--sort table)
     ;; Insert the data.
-    (dolist (line (car (vtable--cache table)))
-      (vtable--insert-line table line widths spacer
-                           ellipsis ellipsis-width))
+    (let ((line-number 0))
+      (dolist (line (car (vtable--cache table)))
+        (vtable--insert-line table line line-number widths spacer
+                             ellipsis ellipsis-width)
+        (setq line-number (1+ line-number))))
     (add-text-properties start (point)
                          (list 'keymap (vtable--make-keymap table)
                                'rear-nonsticky t
                                'vtable table))
     (goto-char start)))
 
-(defun vtable--insert-line (table line widths spacer
+(defun vtable--insert-line (table line line-number widths spacer
                                   &optional ellipsis ellipsis-width)
   (let ((start (point))
         (columns (vtable-columns table))
-        (colors (vtable-column-colors table)))
+        (column-colors
+         (if (vtable-row-colors table)
+             (elt (vtable--cached-colors table)
+                  (mod line-number (length (vtable-row-colors table))))
+           (vtable-column-colors table))))
     (seq-do-indexed
      (lambda (elem index)
        (let ((value (nth 0 elem))
@@ -449,14 +482,20 @@ This also updates the displayed table."
                                  (list 'space
                                        :width (list spacer)))))
            (put-text-property start (point) 'vtable-column index)
-           (when colors
+           (when column-colors
              (add-face-text-property
               start (point)
               (list :background
-                    (elt colors (mod index (length colors)))))))))
+                    (elt column-colors (mod index (length column-colors)))))))))
      (cdr line))
     (insert "\n")
-    (put-text-property start (point) 'vtable-object (car line))))
+    (put-text-property start (point) 'vtable-object (car line))
+    (unless column-colors
+      (when-let ((row-colors (vtable-row-colors table)))
+        (add-face-text-property
+         start (point)
+         (list :background
+               (elt row-colors (mod line-number (length row-colors)))))))))
 
 (defun vtable--cache-key ()
   (cons (frame-terminal) (window-width)))
