@@ -28,6 +28,12 @@
 (require 'text-property-search)
 (require 'mule-util)
 
+(defface vtable
+  '((t :inherit variable-pitch))
+  "Face used (by default) for vtables."
+  :version "29.1"
+  :group 'faces)
+
 (cl-defstruct vtable-column
   "A vtable column."
   name
@@ -79,7 +85,7 @@
                             formatter
                             displayer
                             (use-header-line t)
-                            (face 'variable-pitch)
+                            (face 'vtable)
                             actions keymap
                             (separator-width 1)
                             sort-by

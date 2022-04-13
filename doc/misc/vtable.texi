@@ -88,9 +88,9 @@ Here's just about the simplest vtable that can be created:
             ("Gazonk" 45)))
 @end lisp
 
-By default, vtable uses the @code{variable-pitch} font, and
-right-aligns columns that have only numerical data (and left-aligns
-the rest).
+By default, vtable uses the @code{vtable} face (which inherits from
+the @code{variable-pitch} face), and right-aligns columns that have
+only numerical data (and left-aligns the rest).
 
 You'd normally want to name the columns:
 
@@ -383,9 +383,9 @@ there are several tables in the same buffer, then this should be
 @code{nil}.
 
 @item :face
-The face to be used.  This defaults to @code{variable-pitch}.  This
-face doesn't override the faces in the data, or the faces supplied by
-the getter and formatter functions.
+The face to be used.  This defaults to @code{vtable}.  This face
+doesn't override the faces in the data, or the faces supplied by the
+getter and formatter functions.
 
 @item :column-colors
 If present, this should be a list of color names to be used as the
