@@ -3339,7 +3339,8 @@ x_dnd_send_enter (struct frame *f, Window target, int supported)
 static void
 x_dnd_send_position (struct frame *f, Window target, int supported,
 		     unsigned short root_x, unsigned short root_y,
-		     Time timestamp, Atom action)
+		     Time timestamp, Atom action, int button,
+		     unsigned state)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   XEvent msg;
@@ -3380,6 +3381,20 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
   msg.xclient.window = target;
   msg.xclient.data.l[0] = FRAME_X_WINDOW (f);
   msg.xclient.data.l[1] = 0;
+
+  if (supported >= 5)
+    {
+      if (button >= 4 && button <= 8)
+	{
+	  msg.xclient.data.l[1] |= (1 << 9);
+	  msg.xclient.data.l[1] |= (button - 4) << 7;
+	}
+
+      msg.xclient.data.l[1] |= state & 0x3f;
+    }
+  else if (button)
+    return;
+
   msg.xclient.data.l[2] = (root_x << 16) | root_y;
   msg.xclient.data.l[3] = 0;
   msg.xclient.data.l[4] = 0;
@@ -13467,7 +13482,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 			     x_dnd_last_protocol_version,
 			     root_x, root_y,
 			     x_dnd_selection_timestamp,
-			     x_dnd_wanted_action);
+			     x_dnd_wanted_action, 0, 0);
       else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None)
 	{
 	  if (!x_dnd_motif_setup_p)
@@ -15244,7 +15259,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				   event->xmotion.x_root,
 				   event->xmotion.y_root,
 				   x_dnd_selection_timestamp,
-				   x_dnd_wanted_action);
+				   x_dnd_wanted_action, 0,
+				   event->xmotion.state);
 	    else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None)
 	      {
 		if (!x_dnd_motif_setup_p)
@@ -15688,6 +15704,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	if (x_dnd_in_progress
 	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	  {
+	    if (event->xbutton.type == ButtonPress
+		&& x_dnd_last_seen_window != None
+		&& x_dnd_last_protocol_version != -1)
+	      {
+		x_dnd_send_position (x_dnd_frame,
+				     x_dnd_last_seen_window,
+				     x_dnd_last_protocol_version,
+				     event->xbutton.x_root,
+				     event->xbutton.y_root,
+				     x_dnd_selection_timestamp,
+				     x_dnd_wanted_action,
+				     event->xbutton.button,
+				     event->xbutton.state);
+
+		goto OTHER;
+	      }
+
 	    for (int i = 1; i < 8; ++i)
 	      {
 		if (i != event->xbutton.button
@@ -16351,6 +16384,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xm_top_level_leave_message lmsg;
 	      xm_top_level_enter_message emsg;
 	      xm_drag_motion_message dmsg;
+	      int dnd_state;
 
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 
@@ -16769,11 +16803,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 
 		  if (x_dnd_last_protocol_version != -1 && target != None)
-		    x_dnd_send_position (x_dnd_frame, target,
-					 x_dnd_last_protocol_version,
-					 xev->root_x, xev->root_y,
-					 x_dnd_selection_timestamp,
-					 x_dnd_wanted_action);
+		    {
+		      dnd_state = xev->mods.effective;
+
+		      if (xev->buttons.mask_len)
+			{
+			  if (XIMaskIsSet (xev->buttons.mask, 1))
+			    dnd_state |= Button1Mask;
+			  if (XIMaskIsSet (xev->buttons.mask, 2))
+			    dnd_state |= Button2Mask;
+			  if (XIMaskIsSet (xev->buttons.mask, 3))
+			    dnd_state |= Button3Mask;
+			}
+
+		      x_dnd_send_position (x_dnd_frame, target,
+					   x_dnd_last_protocol_version,
+					   xev->root_x, xev->root_y,
+					   x_dnd_selection_timestamp,
+					   x_dnd_wanted_action, 0,
+					   dnd_state);
+		    }
 		  else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None)
 		    {
 		      if (!x_dnd_motif_setup_p)
@@ -16900,18 +16949,42 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      /* A fake XButtonEvent for x_construct_mouse_click. */
 	      XButtonEvent bv;
 	      bool dnd_grab = false;
+	      int dnd_state;
 
 	      if (x_dnd_in_progress
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
+		  if (xev->evtype == XI_ButtonPress
+		      && x_dnd_last_seen_window != None
+		      && x_dnd_last_protocol_version != -1)
+		    {
+		      dnd_state = xev->mods.effective;
+
+		      if (xev->buttons.mask_len)
+			{
+			  if (XIMaskIsSet (xev->buttons.mask, 1))
+			    dnd_state |= Button1Mask;
+			  if (XIMaskIsSet (xev->buttons.mask, 2))
+			    dnd_state |= Button2Mask;
+			  if (XIMaskIsSet (xev->buttons.mask, 3))
+			    dnd_state |= Button3Mask;
+			}
+
+		      x_dnd_send_position (x_dnd_frame, x_dnd_last_seen_window,
+					   x_dnd_last_protocol_version, xev->root_x,
+					   xev->root_y, x_dnd_selection_timestamp,
+					   x_dnd_wanted_action, xev->detail, dnd_state);
+
+		      goto XI_OTHER;
+		    }
+
 		  for (int i = 0; i < xev->buttons.mask_len * 8; ++i)
 		    {
 		      if (i != xev->detail && XIMaskIsSet (xev->buttons.mask, i))
 			dnd_grab = true;
 		    }
 
-		  if (!dnd_grab
-		      && xev->evtype == XI_ButtonRelease)
+		  if (!dnd_grab && xev->evtype == XI_ButtonRelease)
 		    {
 		      x_dnd_end_window = x_dnd_last_seen_window;
 		      x_dnd_in_progress = false;
