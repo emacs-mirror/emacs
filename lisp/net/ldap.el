@@ -148,7 +148,7 @@ Valid properties include:
   "The name of the ldapsearch command line program."
   :type '(string :tag "`ldapsearch' Program"))
 
-(defcustom ldap-ldapsearch-args '("-LL" "-tt")
+(defcustom ldap-ldapsearch-args '("-LLL" "-tt")
   "A list of additional arguments to pass to `ldapsearch'."
   :type '(repeat :tag "`ldapsearch' Arguments"
 		 (string :tag "Argument")))
@@ -682,7 +682,7 @@ an alist of attribute/value pairs."
       (while (re-search-forward (concat "[\t\n\f]+ \\|"
 					ldap-ldapsearch-password-prompt-regexp)
 				nil t)
-	(replace-match "" nil nil))
+	(replace-match ""))
       (goto-char (point-min))
 
       (if (looking-at "usage")
@@ -691,7 +691,6 @@ an alist of attribute/value pairs."
 	;; Skip error message when retrieving attribute list
 	(if (looking-at "Size limit exceeded")
 	    (forward-line 1))
-        (if (looking-at "version:") (forward-line 1)) ;bug#12724.
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
@@ -724,7 +723,6 @@ an alist of attribute/value pairs."
 		(record
 		 (push (nreverse record) result)))
 	  (setq record nil)
-	  (skip-chars-forward " \t\n")
 	  (message "Parsing results... %d" numres)
 	  (setq numres (1+ numres)))
 	(message "Parsing results... done")
