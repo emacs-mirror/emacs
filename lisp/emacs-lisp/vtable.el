@@ -383,6 +383,16 @@ This also updates the displayed table."
 (defun vtable--spacer (table)
   (vtable--compute-width table (vtable-separator-width table)))
 
+(defun vtable--recompute-cache (table)
+  (let* ((data (vtable--compute-cache table))
+         (widths (vtable--compute-widths table data)))
+    (setf (gethash (vtable--cache-key) (slot-value table '-cache))
+          (list data widths))))
+
+(defun vtable--ensure-cache (table)
+  (or (vtable--cache table)
+      (vtable--recompute-cache table)))
+
 (defun vtable-insert (table)
   (let* ((spacer (vtable--spacer table))
          (start (point))
@@ -391,17 +401,10 @@ This also updates the displayed table."
                                    'face (vtable-face table))
                      ""))
          (ellipsis-width (string-pixel-width ellipsis))
-         data widths)
-    ;; We maintain a cache per screen/window width, so that we render
-    ;; correctly if Emacs is open on two different screens (or the
-    ;; user resizes the frame).
-    (if-let ((cache (vtable--cache table)))
-        (setq data (nth 0 cache)
-              widths (nth 1 cache))
-      (setq data (vtable--compute-cache table)
-            widths (vtable--compute-widths table data))
-      (setf (gethash (vtable--cache-key) (slot-value table '-cache))
-            (list data widths)))
+         ;; We maintain a cache per screen/window width, so that we render
+         ;; correctly if Emacs is open on two different screens (or the
+         ;; user resizes the frame).
+         (widths (nth 1 (vtable--ensure-cache table))))
     (if (vtable-use-header-line table)
         (vtable--set-header-line table widths spacer)
       ;; Insert the header line directly into the buffer, and put a
@@ -746,7 +749,7 @@ This also updates the displayed table."
       (vtable-goto-column column))))
 
 (defun vtable--widths (table)
-  (nth 1 (vtable--cache table)))
+  (nth 1 (vtable--ensure-cache table)))
 
 ;;; Commands.
 
@@ -783,7 +786,7 @@ Interactively, N is the prefix argument."
   (interactive "p")
   (let* ((table (vtable-current-table))
          (column (vtable-current-column))
-         (widths (nth 1 (vtable--cache table))))
+         (widths (vtable--widths table)))
     (unless column
       (user-error "No column under point"))
     (cl-incf (aref widths column)
