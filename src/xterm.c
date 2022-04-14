@@ -3389,6 +3389,8 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
 	  msg.xclient.data.l[1] |= (1 << 9);
 	  msg.xclient.data.l[1] |= (button - 4) << 7;
 	}
+      else if (button)
+	return;
 
       msg.xclient.data.l[1] |= state & 0x3f;
     }
