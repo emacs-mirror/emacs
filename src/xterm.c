@@ -986,6 +986,11 @@ static struct frame *x_dnd_movement_frame;
    with.  */
 static int x_dnd_movement_x, x_dnd_movement_y;
 
+#ifdef HAVE_XKB
+/* The keyboard state during the drag-and-drop operation.  */
+static unsigned int x_dnd_keyboard_state;
+#endif
+
 struct x_client_list_window
 {
   Window window;
@@ -3608,6 +3613,11 @@ x_dnd_cleanup_drag_and_drop (void *frame)
   XSelectInput (FRAME_X_DISPLAY (f),
 		FRAME_DISPLAY_INFO (f)->root_window,
 		x_dnd_old_window_attrs.your_event_mask);
+
+#ifdef HAVE_XKB
+  XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+		   XkbStateNotifyMask, 0);
+#endif
   unblock_input ();
 
   x_dnd_frame = NULL;
@@ -9447,6 +9457,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   XTextProperty prop;
   xm_drop_start_message dmsg;
   Lisp_Object frame_object, x, y, frame, local_value;
+#ifdef HAVE_XKB
+  XkbStateRec keyboard_state;
+#endif
 
   if (!FRAME_VISIBLE_P (f))
     {
@@ -9557,6 +9570,20 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_toplevels = NULL;
   x_dnd_allow_current_frame = allow_current_frame;
   x_dnd_movement_frame = NULL;
+#ifdef HAVE_XKB
+  x_dnd_keyboard_state = 0;
+
+  if (FRAME_DISPLAY_INFO (f)->supports_xkb)
+    {
+      XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+		       XkbStateNotifyMask, XkbStateNotifyMask);
+      XkbGetState (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+		   &keyboard_state);
+
+      x_dnd_keyboard_state = (keyboard_state.mods
+			      | keyboard_state.ptr_buttons);
+    }
+#endif
 
   if (x_dnd_use_toplevels)
     {
@@ -9572,10 +9599,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   if (EQ (return_frame, Qnow))
     x_dnd_return_frame = 2;
-
-#ifdef USE_GTK
-  current_count = 0;
-#endif
 
   /* Now select for SubstructureNotifyMask and PropertyNotifyMask on
      the root window, so we can get notified when window stacking
@@ -9600,6 +9623,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef USE_GTK
       current_finish = X_EVENT_NORMAL;
       current_hold_quit = &hold_quit;
+      current_count = 0;
 #endif
 
       block_input ();
@@ -9735,6 +9759,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  XSelectInput (FRAME_X_DISPLAY (f),
 			FRAME_DISPLAY_INFO (f)->root_window,
 			root_window_attrs.your_event_mask);
+#ifdef HAVE_XKB
+	  XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+			   XkbStateNotifyMask, 0);
+#endif
 	  quit ();
 	}
     }
@@ -9752,6 +9780,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   XSelectInput (FRAME_X_DISPLAY (f),
 		FRAME_DISPLAY_INFO (f)->root_window,
 		root_window_attrs.your_event_mask);
+#ifdef HAVE_XKB
+  XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+		   XkbStateNotifyMask, 0);
+#endif
   unblock_input ();
 
   if (x_dnd_return_frame == 3
@@ -13506,7 +13538,13 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 			     x_dnd_last_protocol_version,
 			     root_x, root_y,
 			     x_dnd_selection_timestamp,
-			     x_dnd_wanted_action, 0, 0);
+			     x_dnd_wanted_action, 0,
+#ifdef HAVE_XKB
+			     x_dnd_keyboard_state
+#else
+			     0
+#endif
+			     );
       else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None)
 	{
 	  if (!x_dnd_motif_setup_p)
@@ -18531,6 +18569,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      XkbRefreshKeyboardMapping (&xkbevent->map);
 	      x_find_modifier_meanings (dpyinfo);
 	    }
+	  else if (x_dnd_in_progress
+		   && xkbevent->any.xkb_type == XkbStateNotify)
+	    x_dnd_keyboard_state = (xkbevent->state.mods
+				    | xkbevent->state.ptr_buttons);
 	}
 #endif
 #ifdef HAVE_XSHAPE
@@ -23001,8 +23043,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 		     XkbGroupNamesMask | XkbVirtualModNamesMask,
 		     dpyinfo->xkb_desc);
 
-      XkbSelectEvents (dpyinfo->display,
-		       XkbUseCoreKbd,
+      XkbSelectEvents (dpyinfo->display, XkbUseCoreKbd,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask,
 		       XkbNewKeyboardNotifyMask | XkbMapNotifyMask);
     }
