@@ -634,15 +634,15 @@ x_activate_menubar (struct frame *f)
      Otherwise some versions of Motif will emit a warning and hang,
      and lwlib will fail to destroy the menu window.  */
 
-  if (dpyinfo->num_devices)
+  if (dpyinfo->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{
 	  if (dpyinfo->devices[i].grab)
-	    {
-	      XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			      CurrentTime);
-	    }
+	    XIUngrabDevice (dpyinfo->display,
+			    dpyinfo->devices[i].device_id,
+			    CurrentTime);
 	}
     }
 #endif
@@ -1528,7 +1528,8 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
     }
 
 #if !defined HAVE_GTK3 && defined HAVE_XINPUT2
-  if (FRAME_DISPLAY_INFO (f)->num_devices)
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
     {
       for (int i = 0; i < FRAME_DISPLAY_INFO (f)->num_devices; ++i)
 	{
@@ -1696,7 +1697,8 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   if (dpyinfo->supports_xi2)
     XGrabServer (dpyinfo->display);
 
-  if (dpyinfo->num_devices)
+  if (dpyinfo->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{
@@ -2677,7 +2679,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   /* Clear the XI2 grab so a core grab can be set.  */
 
-  if (dpyinfo->num_devices)
+  if (dpyinfo->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
 	{

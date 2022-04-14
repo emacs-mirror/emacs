@@ -3704,6 +3704,29 @@ record_event (char *locus, int type)
 
 #endif
 
+#ifdef HAVE_XINPUT2
+bool
+xi_frame_selected_for (struct frame *f, unsigned long event)
+{
+  XIEventMask *masks;
+  int i;
+
+  masks = FRAME_X_OUTPUT (f)->xi_masks;
+
+  if (!masks)
+    return false;
+
+  for (i = 0; i < FRAME_X_OUTPUT (f)->num_xi_masks; ++i)
+    {
+      if (masks[i].mask_len >= XIMaskLen (event)
+	  && XIMaskIsSet (masks[i].mask, event))
+	return true;
+    }
+
+  return false;
+}
+#endif
+
 static void
 x_toolkit_position (struct frame *f, int x, int y,
 		    bool *menu_bar_p, bool *tool_bar_p)
@@ -3886,8 +3909,7 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
   xi_device->touchpoints = NULL;
 #endif
 
-  xi_device->master_p = (device->use == XIMasterKeyboard
-			 || device->use == XIMasterPointer);
+  xi_device->use = device->use;
 #ifdef HAVE_XINPUT2_2
   xi_device->direct_p = false;
 #endif
@@ -9559,7 +9581,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
      the root window, so we can get notified when window stacking
      changes, a common operation during drag-and-drop.  */
 
-  block_input ();
   XGetWindowAttributes (FRAME_X_DISPLAY (f),
 			FRAME_DISPLAY_INFO (f)->root_window,
 			&root_window_attrs);
@@ -9581,6 +9602,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       current_hold_quit = &hold_quit;
 #endif
 
+      block_input ();
 #ifdef USE_GTK
       gtk_main_iteration ();
 #else
@@ -9612,6 +9634,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			 &next_event, &finish, &hold_quit);
 #endif
 #endif
+      unblock_input ();
 
       if (x_dnd_movement_frame)
 	{
@@ -9712,7 +9735,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  XSelectInput (FRAME_X_DISPLAY (f),
 			FRAME_DISPLAY_INFO (f)->root_window,
 			root_window_attrs.your_event_mask);
-	  unblock_input ();
 	  quit ();
 	}
     }
@@ -9725,11 +9747,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #endif
   x_dnd_movement_frame = NULL;
 
+  block_input ();
   /* Restore the old event mask.  */
   XSelectInput (FRAME_X_DISPLAY (f),
 		FRAME_DISPLAY_INFO (f)->root_window,
 		root_window_attrs.your_event_mask);
-
   unblock_input ();
 
   if (x_dnd_return_frame == 3
@@ -18024,8 +18046,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (info)
 			{
 			  if (device && info->enabled)
-			    device->master_p = (info->use == XIMasterKeyboard
-						|| info->use == XIMasterPointer);
+			    device->use = info->use;
 			  else if (device)
 			    disabled[n_disabled++] = hev->info[i].deviceid;
 
@@ -21666,9 +21687,6 @@ x_free_frame_resources (struct frame *f)
 #ifdef HAVE_X_I18N
       if (FRAME_XIC (f))
 	free_frame_xic (f);
-
-      if (f->output_data.x->preedit_chars)
-	xfree (f->output_data.x->preedit_chars);
 #endif
 
 #ifdef USE_CAIRO
@@ -21821,6 +21839,17 @@ x_destroy_window (struct frame *f)
 
   xfree (f->output_data.x->saved_menu_event);
   xfree (f->output_data.x);
+
+#ifdef HAVE_X_I18N
+  if (f->output_data.x->preedit_chars)
+    xfree (f->output_data.x->preedit_chars);
+#endif
+
+#ifdef HAVE_XINPUT2
+  if (f->output_data.x->xi_masks)
+    XFree (f->output_data.x->xi_masks);
+#endif
+
   f->output_data.x = NULL;
 
   dpyinfo->reference_count--;

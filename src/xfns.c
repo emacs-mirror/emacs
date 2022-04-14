@@ -4845,6 +4845,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_icon (f, parms);
   x_make_gc (f);
 
+#ifdef HAVE_XINPUT2
+  if (dpyinfo->supports_xi2)
+    FRAME_X_OUTPUT (f)->xi_masks
+      = XIGetSelectedEvents (dpyinfo->display, FRAME_X_WINDOW (f),
+			     &FRAME_X_OUTPUT (f)->num_xi_masks);
+#endif
+
   /* Now consider the frame official.  */
   f->terminal->reference_count++;
   FRAME_DISPLAY_INFO (f)->reference_count++;

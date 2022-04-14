@@ -232,8 +232,7 @@ struct xi_device_t
 #ifdef HAVE_XINPUT2_1
   int scroll_valuator_count;
 #endif
-  int grab;
-  bool master_p;
+  int grab, use;
 #ifdef HAVE_XINPUT2_2
   bool direct_p;
 #endif
@@ -977,6 +976,11 @@ struct x_output
   bool preedit_active;
   int preedit_caret;
 #endif
+
+#ifdef HAVE_XINPUT2
+  XIEventMask *xi_masks;
+  int num_xi_masks;
+#endif
 };
 
 enum
@@ -1571,6 +1575,7 @@ extern struct frame *x_dnd_frame;
 
 #ifdef HAVE_XINPUT2
 struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
+bool xi_frame_selected_for (struct frame *, unsigned long);
 #endif
 
 extern void mark_xterm (void);
