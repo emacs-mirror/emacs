@@ -1219,8 +1219,6 @@ time_cmp (Lisp_Object a, Lisp_Object b)
       return da < db ? -1 : da != db;
     }
 
-  struct lisp_time ta = lisp_time_struct (a, 0);
-
   /* Compare nil to nil correctly, and handle other eq values quicker
      while we're at it.  Compare here rather than earlier, to handle
      NaNs and check formats.  */
@@ -1229,6 +1227,7 @@ time_cmp (Lisp_Object a, Lisp_Object b)
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
+  struct lisp_time ta = lisp_time_struct (a, 0);
   struct lisp_time tb = lisp_time_struct (b, 0);
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
