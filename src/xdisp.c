@@ -9910,6 +9910,18 @@ move_it_in_display_line_to (struct it *it,
 	    }
 	  else
 	    result = MOVE_NEWLINE_OR_CR;
+	  /* If lines are truncated, and the line we moved across is
+	     completely hscrolled out of view, reset the line metrics
+	     to those of the newline we've just processed, so that
+	     glyphs not on display don't affect the line's height.  */
+	  if (it->line_wrap == TRUNCATE
+	      && it->current_x <= it->first_visible_x
+	      && result == MOVE_NEWLINE_OR_CR
+	      && it->char_to_display == '\n')
+	    {
+	      it->max_ascent = it->ascent;
+	      it->max_descent = it->descent;
+	    }
 	  /* If we've processed the newline, make sure this flag is
 	     reset, as it must only be set when the newline itself is
 	     processed.  */
