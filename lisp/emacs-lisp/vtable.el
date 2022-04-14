@@ -570,7 +570,8 @@ This also updates the displayed table."
 
 (defun vtable--insert-header-line (table widths spacer)
   ;; Insert the header directly into the buffer.
-  (let* ((start (point)))
+  (let ((start (point))
+        (divider (vtable-divider table)))
     (seq-do-indexed
      (lambda (column index)
        (let* ((name (propertize
@@ -594,8 +595,9 @@ This also updates the displayed table."
                       (list 'space :width
                             (list (+ (- (elt widths index)
                                         (string-pixel-width displayed))
-                                     (if last 0 spacer)))))
-          (or (vtable-divider table) ""))
+                                     (if last 0 spacer))))))
+         (when (and divider (not last))
+           (insert divider))
          (put-text-property start (point) 'vtable-column index)))
      (vtable-columns table))
     (insert "\n")
@@ -762,6 +764,8 @@ This also updates the displayed table."
   (let* ((table (vtable-current-table))
          (column (vtable-current-column))
          (widths (vtable--widths table)))
+    (unless column
+      (user-error "No column under point"))
     (setf (aref widths column)
           (max (* (vtable--char-width table) 2)
                (- (aref widths column) (vtable--char-width table))))
@@ -773,6 +777,8 @@ This also updates the displayed table."
   (let* ((table (vtable-current-table))
          (column (vtable-current-column))
          (widths (nth 1 (vtable--cache table))))
+    (unless column
+      (user-error "No column under point"))
     (cl-incf (aref widths column) (vtable--char-width table))
     (vtable-revert)))
 
