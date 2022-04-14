@@ -651,6 +651,46 @@ And then rename the system's readline so that it won't be loaded:
 See <https://pypi.python.org/pypi/gnureadline> for more details on
 installation.
 
+*** On MS-Windows, invoking "M-x run-python" signals an error.
+
+If the error says something like this:
+
+  Python was not found; run with arguments to install
+  from the Microsoft Store, or disable this shortcut
+  from Settings > Manage App Execution Aliases.
+
+  Process Python exited abnormally with code 49
+
+then this is due to the MS-Windows "feature" that is intended to
+encourage you to install the latest available Python version.  It
+works by placing "fake" python.exe and python3.exe executables in a
+special directory, and having that directory on your Path _before_ the
+directory where the real Python executable is installed.  That "fake"
+Python then decides whether to redirect you to the Microsoft Store or
+invoke the actual Python.  The directory where Windows keeps those
+"fake" executables is under your Windows user's 'AppData' directory,
+typically 'C:\Users\<user>\AppData\Local\Microsoft\WindowsApps', where
+"<user>" is the user name of your Windows user.
+
+To solve this, you have several alternatives:
+
+  . Go to "Settings > Manage App Execution Aliases" and turn OFF the
+    aliases for python.exe and/or python3.exe.  This will affect only
+    Python, and may require you to manage upgrades to your Python
+    installation manually, instead of being automatically prompted by
+    MS-Windows.
+  . Move the directory with the "fake" executables to the end of Path,
+    or at least after the directory where the real Python is
+    installed.  Depending on the position in Path where you move it,
+    it will affect Python and/or other programs which Windows monitors
+    via the "App Execution Aliases" feature.
+  . Manually remove python.exe and/or python3.exe from the above
+    directory.  Again, this affects only your Python installation.
+
+Whatever you do, you will need to restart Emacs to refresh its notion
+of the directory where python.exe/python3.exe lives, because that is
+recorded when Python mode is started.
+
 *** Visiting files in some auto-mounted directories causes Emacs to print
 'Error reading dir-locals: (file-error "Read error" "is a directory" ...'
 
