@@ -776,6 +776,9 @@ Interactively, N is the prefix argument."
           (max (* (vtable--char-width table) 2)
                (- (aref widths column)
                   (* (vtable--char-width table) (or n 1)))))
+    ;; Store the width so it'll be respected on a revert.
+    (setf (vtable-column-width (elt (vtable-columns table) column))
+          (format "%dpx" (aref widths column)))
     (vtable-revert)))
 
 (defun vtable-widen-current-column (&optional n)
@@ -791,6 +794,9 @@ Interactively, N is the prefix argument."
       (user-error "No column under point"))
     (cl-incf (aref widths column)
              (* (vtable--char-width table) (or n 1)))
+    ;; Store the width so it'll be respected on a revert.
+    (setf (vtable-column-width (elt (vtable-columns table) column))
+          (format "%dpx" (aref widths column)))
     (vtable-revert)))
 
 (defun vtable-previous-column ()
