@@ -250,8 +250,8 @@ where it treats each chapter, section, etc., as a definition.
 together.)
 
 @findex imenu
-  If you type @kbd{M-x imenu}, it reads the name of a definition using
-the minibuffer, then moves point to that definition.  You can use
+  If you type @kbd{M-g i}, it reads the name of a definition using the
+minibuffer, then moves point to that definition.  You can use
 completion to specify the name; the command always displays the whole
 list of valid names.
 
