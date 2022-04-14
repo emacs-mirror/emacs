@@ -68,7 +68,7 @@
    (row-colors :initarg :row-colors :accessor vtable-row-colors)
    (-cached-colors :initform nil :accessor vtable--cached-colors)
    (-cache :initform (make-hash-table :test #'equal)))
-  "A object to hold the data for a table.")
+  "An object to hold the data for a table.")
 
 (defvar-keymap vtable-map
   "S" #'vtable-sort-by-current-column
@@ -100,7 +100,9 @@
                             column-colors)
   "Create and insert a vtable at point.
 The vtable object is returned.  If INSERT is nil, the table won't
-be inserted."
+be inserted.
+
+See info node `(vtable)Top' for vtable documentation."
   (when objects-function
     (setq objects (funcall objects-function)))
   ;; Auto-generate the columns.
