@@ -242,11 +242,13 @@ This function differs from vc-do-command in that it invokes `vc-src-program'."
   (vc-src-command nil files "add"))
 
 (defun vc-src-responsible-p (file)
-  "Return non-nil if SRC thinks it would be responsible for registering FILE."
-  (file-directory-p (expand-file-name ".src"
-                                      (if (file-directory-p file)
-                                          file
-                                        (file-name-directory file)))))
+  "Return the directory if SRC thinks it would be responsible for FILE."
+  (let ((dir (expand-file-name ".src"
+                               (if (file-directory-p file)
+                                   file
+                                 (file-name-directory file)))))
+    (and (file-directory-p dir)
+         dir)))
 
 (defun vc-src-checkin (files comment &optional _rev)
   "SRC-specific version of `vc-backend-checkin'.
