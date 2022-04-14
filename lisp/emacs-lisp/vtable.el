@@ -579,7 +579,11 @@ This also updates the displayed table."
      (lambda (column index)
        (let* ((name (propertize
                      (vtable-column-name column)
-                     'face (list 'header-line (vtable-face table))))
+                     'face (list 'header-line (vtable-face table))
+                     'keymap (define-keymap
+                               "<header-line> <drag-mouse-1>"
+                               #'vtable--drag-resize-column
+                               "<header-line> <down-mouse-1>" #'ignore)))
               (start (point))
               (indicator (vtable--indicator table index))
               (indicator-width (string-pixel-width indicator))
@@ -605,6 +609,24 @@ This also updates the displayed table."
      (vtable-columns table))
     (insert "\n")
     (add-face-text-property start (point) 'header-line)))
+
+(defun vtable--drag-resize-column (e)
+  "Resize the column by dragging."
+  (interactive "e")
+  (let* ((pos-start (event-start e))
+	 (obj (posn-object pos-start)))
+    (with-current-buffer (window-buffer (posn-window pos-start))
+      (let ((column
+             (get-text-property (if obj (cdr obj)
+                                  (posn-point pos-start))
+			        'vtable-column
+			        (car obj)))
+            (start-x (car (posn-x-y pos-start)))
+            (end-x (car (posn-x-y (event-end e)))))
+        (when (> column 0)
+          (vtable--alter-column-width (vtable-current-table)
+                                      (1- column)
+                                      (- end-x start-x)))))))
 
 (defun vtable--recompute-numerical (table line)
   "Recompute numericalness of columns if necessary."
@@ -768,14 +790,17 @@ If N isn't given, N defaults to 1.
 Interactively, N is the prefix argument."
   (interactive "p")
   (let* ((table (vtable-current-table))
-         (column (vtable-current-column))
-         (widths (vtable--widths table)))
+         (column (vtable-current-column)))
     (unless column
       (user-error "No column under point"))
+    (vtable--alter-column-width table column
+                                (- (* (vtable--char-width table) (or n 1))))))
+
+(defun vtable--alter-column-width (table column delta)
+  (let ((widths (vtable--widths table)))
     (setf (aref widths column)
           (max (* (vtable--char-width table) 2)
-               (- (aref widths column)
-                  (* (vtable--char-width table) (or n 1)))))
+               (+ (aref widths column) delta)))
     ;; Store the width so it'll be respected on a revert.
     (setf (vtable-column-width (elt (vtable-columns table) column))
           (format "%dpx" (aref widths column)))
@@ -787,17 +812,7 @@ If N isn't given, N defaults to 1.
 
 Interactively, N is the prefix argument."
   (interactive "p")
-  (let* ((table (vtable-current-table))
-         (column (vtable-current-column))
-         (widths (vtable--widths table)))
-    (unless column
-      (user-error "No column under point"))
-    (cl-incf (aref widths column)
-             (* (vtable--char-width table) (or n 1)))
-    ;; Store the width so it'll be respected on a revert.
-    (setf (vtable-column-width (elt (vtable-columns table) column))
-          (format "%dpx" (aref widths column)))
-    (vtable-revert)))
+  (vtable-narrow-current-column (- n)))
 
 (defun vtable-previous-column ()
   "Go to the previous column."
