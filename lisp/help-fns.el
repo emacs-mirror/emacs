@@ -1966,7 +1966,7 @@ documentation for the major and minor modes of that buffer."
 	(insert (help-split-fundoc (documentation mode) nil 'doc)))))
   (forward-line -1)
   (fill-paragraph nil)
-  (forward-line 1)
+  (forward-paragraph 1)
   (ensure-empty-lines 1))
 
 (defun help-fns--list-local-commands ()
