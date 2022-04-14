@@ -758,9 +758,12 @@ This also updates the displayed table."
   "Minor mode for buffers with vtables with headers."
   :keymap vtable-header-mode-map)
 
-(defun vtable-narrow-current-column ()
-  "Narrow the current column."
-  (interactive)
+(defun vtable-narrow-current-column (&optional n)
+  "Narrow the current column by N characters.
+If N isn't given, N defaults to 1.
+
+Interactively, N is the prefix argument."
+  (interactive "p")
   (let* ((table (vtable-current-table))
          (column (vtable-current-column))
          (widths (vtable--widths table)))
@@ -768,18 +771,23 @@ This also updates the displayed table."
       (user-error "No column under point"))
     (setf (aref widths column)
           (max (* (vtable--char-width table) 2)
-               (- (aref widths column) (vtable--char-width table))))
+               (- (aref widths column)
+                  (* (vtable--char-width table) (or n 1)))))
     (vtable-revert)))
 
-(defun vtable-widen-current-column ()
-  "Widen the current column."
-  (interactive)
+(defun vtable-widen-current-column (&optional n)
+  "Widen the current column by N characters.
+If N isn't given, N defaults to 1.
+
+Interactively, N is the prefix argument."
+  (interactive "p")
   (let* ((table (vtable-current-table))
          (column (vtable-current-column))
          (widths (nth 1 (vtable--cache table))))
     (unless column
       (user-error "No column under point"))
-    (cl-incf (aref widths column) (vtable--char-width table))
+    (cl-incf (aref widths column)
+             (* (vtable--char-width table) (or n 1)))
     (vtable-revert)))
 
 (defun vtable-previous-column ()
