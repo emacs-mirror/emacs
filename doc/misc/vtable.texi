@@ -143,6 +143,8 @@ version of @kbd{M-x list-buffers}:
 (make-vtable
  :columns '("Name" "Size" "File")
  :objects (buffer-list)
+ :actions '("k" kill-buffer
+            "RET" display-buffer)
  :getter (lambda (object column vtable)
            (pcase (vtable-column vtable column)
              ("Name" (buffer-name object))
