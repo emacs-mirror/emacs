@@ -574,16 +574,22 @@ This also updates the displayed table."
 (defun vtable--insert-header-line (table widths spacer)
   ;; Insert the header directly into the buffer.
   (let ((start (point))
-        (divider (vtable-divider table)))
+        (divider (vtable-divider table))
+        (cmap (define-keymap
+                "<header-line> <drag-mouse-1>" #'vtable--drag-resize-column
+                "<header-line> <down-mouse-1>" #'ignore))
+        (dmap (define-keymap
+                "<header-line> <drag-mouse-1>"
+                (lambda (e)
+                  (interactive "e")
+                  (vtable--drag-resize-column e t))
+                "<header-line> <down-mouse-1>" #'ignore)))
     (seq-do-indexed
      (lambda (column index)
        (let* ((name (propertize
                      (vtable-column-name column)
                      'face (list 'header-line (vtable-face table))
-                     'keymap (define-keymap
-                               "<header-line> <drag-mouse-1>"
-                               #'vtable--drag-resize-column
-                               "<header-line> <down-mouse-1>" #'ignore)))
+                     'keymap cmap))
               (start (point))
               (indicator (vtable--indicator table index))
               (indicator-width (string-pixel-width indicator))
@@ -604,14 +610,15 @@ This also updates the displayed table."
                                         (string-pixel-width displayed))
                                      (if last 0 spacer))))))
          (when (and divider (not last))
-           (insert divider))
+           (insert (propertize divider 'keymap dmap)))
          (put-text-property start (point) 'vtable-column index)))
      (vtable-columns table))
     (insert "\n")
     (add-face-text-property start (point) 'header-line)))
 
-(defun vtable--drag-resize-column (e)
-  "Resize the column by dragging."
+(defun vtable--drag-resize-column (e &optional next)
+  "Resize the column by dragging.
+If NEXT, do the next column."
   (interactive "e")
   (let* ((pos-start (event-start e))
 	 (obj (posn-object pos-start)))
@@ -623,9 +630,11 @@ This also updates the displayed table."
 			        (car obj)))
             (start-x (car (posn-x-y pos-start)))
             (end-x (car (posn-x-y (event-end e)))))
-        (when (> column 0)
+        (when (or (> column 0) next)
           (vtable--alter-column-width (vtable-current-table)
-                                      (1- column)
+                                      (if next
+                                          column
+                                        (1- column))
                                       (- end-x start-x)))))))
 
 (defun vtable--recompute-numerical (table line)
