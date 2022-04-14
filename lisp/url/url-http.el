@@ -1405,10 +1405,10 @@ The return value of this function is the retrieval buffer."
               (and proxy-auth
                    (concat "Proxy-Authorization: " proxy-auth "\r\n")))
             "\r\n")
-    (url-host url-current-object)
+    (puny-encode-domain (url-host url-current-object))
     (or (url-port url-current-object)
         url-https-default-port)
-    (url-host url-current-object))))
+    (puny-encode-domain (url-host url-current-object)))))
 
 (defun url-https-proxy-after-change-function (_st _nd _length)
   (let* ((process-buffer (current-buffer))
@@ -1430,12 +1430,12 @@ The return value of this function is the retrieval buffer."
             (condition-case e
                 (let ((tls-connection (gnutls-negotiate
                                        :process proc
-                                       :hostname (url-host url-current-object)
+                                       :hostname (puny-encode-domain (url-host url-current-object))
                                        :verify-error nil)))
                   ;; check certificate validity
                   (setq tls-connection
                         (nsm-verify-connection tls-connection
-                                               (url-host url-current-object)
+                                               (puny-encode-domain (url-host url-current-object))
                                                (url-port url-current-object)))
                   (with-current-buffer process-buffer (erase-buffer))
                   (set-process-buffer tls-connection process-buffer)
