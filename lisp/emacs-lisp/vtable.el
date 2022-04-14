@@ -152,12 +152,10 @@ See info node `(vtable)Top' for vtable documentation."
     (when (or divider divider-width)
       (setf (vtable-divider table)
             (or divider
-                (and divider-width
-                     (propertize
-                      " " 'display
-                      (list 'space :width
-                            (list (vtable--compute-width
-                                   table divider-width))))))))
+                (propertize
+                 " " 'display
+                 (list 'space :width
+                       (list (vtable--compute-width table divider-width)))))))
     (unless sort-by
       (seq-do-indexed (lambda (column index)
                         (when (vtable-column-primary column)
