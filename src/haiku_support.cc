@@ -131,6 +131,29 @@ static void *grab_view = NULL;
 static BLocker grab_view_locker;
 static bool drag_and_drop_in_progress;
 
+/* Many places require us to lock the child frame data, and then lock
+   the locker of some random window.  Unfortunately, locking such a
+   window might be delayed due to an arriving message, which then
+   calls a callback inside that window that tries to lock the child
+   frame data but doesn't finish since the child frame lock is already
+   held, not letting the code that held the child frame lock proceed,
+   thereby causing a deadlock.
+
+   Rectifying that problem is simple: all code in a looper callback
+   must lock the child frame data with this macro instead.
+
+   IOW, If some other code is already running with the child frame
+   lock held, don't interfere: wait until it's finished before
+   continuing.  */
+#define CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK		\
+  if (child_frame_lock.LockWithTimeout (200) != B_OK)	\
+    {							\
+      /* The Haiku equivalent of XPutBackEvent.  */	\
+      if (CurrentMessage ())				\
+	PostMessage (CurrentMessage ());		\
+    }							\
+  else
+
 /* This could be a private API, but it's used by (at least) the Qt
    port, so it's probably here to stay.  */
 extern status_t get_subpixel_antialiasing (bool *);
@@ -968,25 +991,28 @@ public:
 
     haiku_write (MOVE_EVENT, &rq);
 
-    if (!child_frame_lock.Lock ())
-      gui_abort ("Failed to lock child frame state lock");
-    for (struct child_frame *f = subset_windows;
-	 f; f = f->next)
-      DoMove (f);
-    child_frame_lock.Unlock ();
+    CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK
+      {
+	for (struct child_frame *f = subset_windows;
+	     f; f = f->next)
+	  DoMove (f);
+	child_frame_lock.Unlock ();
 
-    BWindow::FrameMoved (newPosition);
+	BWindow::FrameMoved (newPosition);
+      }
   }
 
   void
   WorkspacesChanged (uint32_t old, uint32_t n)
   {
-    if (!child_frame_lock.Lock ())
-      gui_abort ("Failed to lock child frames for changing workspaces");
-    for (struct child_frame *f = subset_windows;
-	 f; f = f->next)
-      DoUpdateWorkspace (f);
-    child_frame_lock.Unlock ();
+    CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK
+      {
+	for (struct child_frame *f = subset_windows;
+	     f; f = f->next)
+	  DoUpdateWorkspace (f);
+
+	child_frame_lock.Unlock ();
+      }
   }
 
   void
