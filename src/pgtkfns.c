@@ -3864,9 +3864,8 @@ nil, it defaults to the selected frame. */)
   return unbind_to (count, font);
 }
 
-#if GTK_CHECK_VERSION (3, 14, 0)
 DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
-       doc: /* Toggle interactive GTK debugging.   */)
+       doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object enable)
 {
   gboolean enable_debug = !NILP (enable);
@@ -3877,7 +3876,6 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
 
   return NILP (enable) ? Qnil : Qt;
 }
-#endif /* GTK_CHECK_VERSION (3, 14, 0) */
 
 /* ==========================================================================
 
@@ -3900,27 +3898,6 @@ syms_of_pgtkfns (void)
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
 	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_cursor_fore_pixel = Qnil;
-
-  DEFVAR_LISP ("pgtk-icon-type-alist", Vpgtk_icon_type_alist,
-	       doc: /* Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.
-If the title of a frame matches REGEXP, then IMAGE.tiff is
-selected as the image of the icon representing the frame when it's
-miniaturized.  If an element is t, then Emacs tries to select an icon
-based on the filetype of the visited file.
-
-The images have to be installed in a folder called English.lproj in the
-Emacs folder.  You have to restart Emacs after installing new icons.
-
-Example: Install an icon Gnus.tiff and execute the following code
-
-(setq pgtk-icon-type-alist
-(append pgtk-icon-type-alist
-\\='((\"^\\\\*\\\\(Group\\\\*$\\\\|Summary \\\\|Article\\\\*$\\\\)\"
-. \"Gnus\"))))
-
-When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
-be used as the image of the icon representing the frame.  */);
-  Vpgtk_icon_type_alist = list1 (Qt);
 
   Fprovide (intern_c_string ("gtk"), Qnil);
 
@@ -3977,10 +3954,7 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
-
-#if GTK_CHECK_VERSION (3, 14, 0)
   defsubr (&Sx_gtk_debug);
-#endif
 
   defsubr (&Spgtk_hide_others);
   defsubr (&Spgtk_hide_emacs);
