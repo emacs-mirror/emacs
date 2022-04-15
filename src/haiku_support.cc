@@ -1787,6 +1787,7 @@ public:
   int last_reported_overscroll_value;
   int max_value, real_max_value;
   int overscroll_start_value;
+  bigtime_t repeater_start;
 
   EmacsScrollBar (int x, int y, int x1, int y1, bool horizontal_p) :
     BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
@@ -1874,14 +1875,17 @@ public:
 	return;
       }
 
-    GetMouse (&point, &buttons, false);
-
-    if (ButtonRegionFor (current_part).Contains (point))
+    if (repeater_start < system_time ())
       {
-	rq.scroll_bar = this;
-	rq.window = Window ();
-	rq.part = current_part;
-	haiku_write (SCROLL_BAR_PART_EVENT, &rq);
+	GetMouse (&point, &buttons, false);
+
+	if (ButtonRegionFor (current_part).Contains (point))
+	  {
+	    rq.scroll_bar = this;
+	    rq.window = Window ();
+	    rq.part = current_part;
+	    haiku_write (SCROLL_BAR_PART_EVENT, &rq);
+	  }
       }
 
     BScrollBar::Pulse ();
@@ -2014,6 +2018,8 @@ public:
 
 	return;
       }
+
+    repeater_start = system_time () + 300000;
 
     if (buttons == B_PRIMARY_MOUSE_BUTTON)
       {
