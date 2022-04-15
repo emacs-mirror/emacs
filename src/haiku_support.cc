@@ -2458,20 +2458,22 @@ BApplication_setup (void)
 
 /* Set up and return a window with its view put in VIEW.  */
 void *
-BWindow_new (void *_view)
+BWindow_new (void **view)
 {
-  BWindow *window = new (std::nothrow) EmacsWindow;
-  BView **v = (BView **) _view;
+  BWindow *window;
+  BView *vw;
+
+  window = new (std::nothrow) EmacsWindow;
   if (!window)
     {
-      *v = NULL;
+      *view = NULL;
       return window;
     }
 
-  BView *vw = new (std::nothrow) EmacsView;
+  vw = new (std::nothrow) EmacsView;
   if (!vw)
     {
-      *v = NULL;
+      *view = NULL;
       window->LockLooper ();
       window->Quit ();
       return NULL;
@@ -2485,15 +2487,17 @@ BWindow_new (void *_view)
      the first time.  */
   window->UnlockLooper ();
   window->AddChild (vw);
-  *v = vw;
+  *view = vw;
   return window;
 }
 
 void
 BWindow_quit (void *window)
 {
-  ((BWindow *) window)->LockLooper ();
-  ((BWindow *) window)->Quit ();
+  BWindow *w = (BWindow *) window;
+
+  w->LockLooper ();
+  w->Quit ();
 }
 
 /* Set WINDOW's offset to X, Y.  */
@@ -2812,42 +2816,6 @@ BWindow_center_on_screen (void *window)
 {
   BWindow *w = (BWindow *) window;
   w->CenterOnScreen ();
-}
-
-/* Tell VIEW it has been clicked at X by Y.  */
-void
-BView_mouse_down (void *view, int x, int y)
-{
-  BView *vw = (BView *) view;
-  if (vw->LockLooper ())
-    {
-      vw->MouseDown (BPoint (x, y));
-      vw->UnlockLooper ();
-    }
-}
-
-/* Tell VIEW the mouse has been released at X by Y.  */
-void
-BView_mouse_up (void *view, int x, int y)
-{
-  BView *vw = (BView *) view;
-  if (vw->LockLooper ())
-    {
-      vw->MouseUp (BPoint (x, y));
-      vw->UnlockLooper ();
-    }
-}
-
-/* Tell VIEW that the mouse has moved to Y by Y.  */
-void
-BView_mouse_moved (void *view, int x, int y, uint32_t transit)
-{
-  BView *vw = (BView *) view;
-  if (vw->LockLooper ())
-    {
-      vw->MouseMoved (BPoint (x, y), transit, NULL);
-      vw->UnlockLooper ();
-    }
 }
 
 /* Import fringe bitmap (short array, low bit rightmost) BITS into
@@ -3715,44 +3683,45 @@ struct popup_file_dialog_data
 static void
 unwind_popup_file_dialog (void *ptr)
 {
-  struct popup_file_dialog_data *data =
-    (struct popup_file_dialog_data *) ptr;
+  struct popup_file_dialog_data *data
+    = (struct popup_file_dialog_data *) ptr;
   BFilePanel *panel = data->panel;
+
   delete panel;
   delete data->entry;
   delete data->msg;
 }
 
-static void
-be_popup_file_dialog_safe_set_target (BFilePanel *dialog, BWindow *window)
-{
-  dialog->SetTarget (BMessenger (window));
-}
-
 /* Popup a file dialog.  */
 char *
-be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int dir_only_p,
-		      void *window, const char *save_text, const char *prompt,
-		      void (*block_input_function) (void),
+be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
+		      int dir_only_p, void *window, const char *save_text,
+		      const char *prompt, void (*block_input_function) (void),
 		      void (*unblock_input_function) (void),
 		      void (*maybe_quit_function) (void))
 {
   specpdl_ref idx = c_specpdl_idx_from_cxx ();
   /* setjmp/longjmp is UB with automatic objects. */
-  block_input_function ();
   BWindow *w = (BWindow *) window;
-  uint32_t mode = dir_only_p ? B_DIRECTORY_NODE : B_FILE_NODE | B_DIRECTORY_NODE;
+  uint32_t mode = (dir_only_p
+		   ? B_DIRECTORY_NODE
+		   : B_FILE_NODE | B_DIRECTORY_NODE);
   BEntry *path = new BEntry;
   BMessage *msg = new BMessage ('FPSE');
   BFilePanel *panel = new BFilePanel (open_p ? B_OPEN_PANEL : B_SAVE_PANEL,
 				      NULL, NULL, mode);
-
+  void *buf;
+  enum haiku_event_type type;
+  char *ptr;
   struct popup_file_dialog_data dat;
+  ssize_t b_s;
+
   dat.entry = path;
   dat.msg = msg;
   dat.panel = panel;
 
   record_c_unwind_protect_from_cxx (unwind_popup_file_dialog, &dat);
+
   if (default_dir)
     {
       if (path->SetTo (default_dir, 0) != B_OK)
@@ -3760,22 +3729,21 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
     }
 
   panel->SetMessage (msg);
+
   if (default_dir)
     panel->SetPanelDirectory (path);
   if (save_text)
     panel->SetSaveText (save_text);
+
   panel->SetHideWhenDone (0);
   panel->Window ()->SetTitle (prompt);
-  be_popup_file_dialog_safe_set_target (panel, w);
-
+  panel->SetTarget (BMessenger (w));
   panel->Show ();
-  unblock_input_function ();
 
-  void *buf = alloca (200);
+  buf = alloca (200);
   while (1)
     {
-      enum haiku_event_type type;
-      char *ptr = NULL;
+      ptr = NULL;
 
       if (!haiku_read_with_timeout (&type, buf, 200, 1000000, false))
 	{
@@ -3789,7 +3757,6 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p, int
 	  maybe_quit_function ();
 	}
 
-      ssize_t b_s;
       block_input_function ();
       haiku_read_size (&b_s, false);
       if (!b_s || ptr || panel->Window ()->IsHidden ())

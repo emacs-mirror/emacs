@@ -64,11 +64,8 @@ static Lisp_Object tip_last_frame;
 /* PARMS argument of last `x-show-tip' call.  */
 static Lisp_Object tip_last_parms;
 
-static void
-haiku_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval);
-static void
-haiku_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name);
-
+static void haiku_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
+static void haiku_set_title (struct frame *, Lisp_Object, Lisp_Object);
 static ptrdiff_t image_cache_refcount;
 
 static Lisp_Object
@@ -255,7 +252,8 @@ int
 haiku_get_color (const char *name, Emacs_Color *color)
 {
   unsigned short r16, g16, b16;
-  Lisp_Object tem;
+  Lisp_Object tem, col;
+  int32 clr;
 
   if (parse_color_spec (name, &r16, &g16, &b16))
     {
@@ -272,10 +270,11 @@ haiku_get_color (const char *name, Emacs_Color *color)
       tem = x_display_list->color_map;
       for (; CONSP (tem); tem = XCDR (tem))
 	{
-	  Lisp_Object col = XCAR (tem);
+	  col = XCAR (tem);
+
 	  if (CONSP (col) && !xstrcasecmp (SSDATA (XCAR (col)), name))
 	    {
-	      int32_t clr = XFIXNUM (XCDR (col));
+	      clr = XFIXNUM (XCDR (col));
 	      color->pixel = clr;
 	      color->red = RED_FROM_ULONG (clr) * 257;
 	      color->green = GREEN_FROM_ULONG (clr) * 257;
@@ -301,10 +300,10 @@ haiku_display_info_for_name (Lisp_Object name)
       if (!x_display_list)
 	return x_display_list;
 
-      error ("Be windowing not initialized");
+      error ("Haiku windowing not initialized");
     }
 
-  error ("Be displays can only be named \"be\"");
+  error ("Haiku displays can only be named \"be\"");
 }
 
 static struct haiku_display_info *
@@ -321,14 +320,14 @@ check_haiku_display_info (Lisp_Object object)
       else if (x_display_list)
 	dpyinfo = x_display_list;
       else
-	error ("Be windowing not present");
+	error ("Haiku windowing not present");
     }
   else if (TERMINALP (object))
     {
       struct terminal *t = decode_live_terminal (object);
 
       if (t->type != output_haiku)
-	error ("Terminal %d is not a Be display", t->id);
+	error ("Terminal %d is not a Haiku display", t->id);
 
       dpyinfo = t->display_info.haiku;
     }
@@ -2412,7 +2411,7 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
    Lisp_Object dir_only_p, Lisp_Object save_text)
 {
   if (!x_display_list)
-    error ("Be windowing not initialized");
+    error ("Haiku windowing not initialized");
 
   if (!NILP (dir))
     CHECK_STRING (dir);
@@ -2513,13 +2512,15 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
+  struct frame *f;
   check_haiku_display_info (terminal);
 
   if (FRAMEP (terminal))
     {
-      struct frame *f = decode_window_system_frame (terminal);
-      return FRAME_HAIKU_VIEW (f) && EmacsView_double_buffered_p (FRAME_HAIKU_VIEW (f)) ?
-	Qt : Qnil;
+      f = decode_window_system_frame (terminal);
+      return ((FRAME_HAIKU_VIEW (f)
+	       && EmacsView_double_buffered_p (FRAME_HAIKU_VIEW (f)))
+	      ? Qt : Qnil);
     }
 
   return Qnil;
@@ -2536,11 +2537,8 @@ frames overlap, FRAME1 (partially) obscures FRAME2.
 Some window managers may refuse to restack windows.  */)
      (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
 {
-  struct frame *f1 = decode_live_frame (frame1);
-  struct frame *f2 = decode_live_frame (frame2);
-
-  check_window_system (f1);
-  check_window_system (f2);
+  struct frame *f1 = decode_window_system_frame (frame1);
+  struct frame *f2 = decode_window_system_frame (frame2);
 
   block_input ();
 

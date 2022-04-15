@@ -2769,23 +2769,26 @@ flush_dirty_back_buffers (void)
 static int
 haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
-  block_input ();
-  int message_count = 0;
-  static void *buf = NULL;
+  int message_count;
+  static void *buf;
   ssize_t b_size;
   struct unhandled_event *unhandled_events = NULL;
-  int button_or_motion_p;
-  int need_flush = 0;
-  int do_help = 0;
+  int button_or_motion_p, need_flush, do_help;
+  enum haiku_event_type type;
+  struct input_event inev, inev2;
 
+  message_count = 0;
+  need_flush = 0;
+  button_or_motion_p = 0;
+  do_help = 0;
+  buf = NULL;
+
+  block_input ();
   if (!buf)
     buf = xmalloc (200);
   haiku_read_size (&b_size, false);
   while (b_size >= 0)
     {
-      enum haiku_event_type type;
-      struct input_event inev, inev2;
-
       if (b_size > 200)
 	emacs_abort ();
 
@@ -2797,7 +2800,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       inev2.arg = Qnil;
 
       button_or_motion_p = 0;
-
       haiku_read (&type, buf, b_size);
 
       switch (type)
@@ -2864,7 +2866,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      continue;
 
 	    expose_frame (f, b->x, b->y, b->width, b->height);
-
 	    haiku_clear_under_internal_border (f);
 	    break;
 	  }
@@ -2873,6 +2874,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_key_event *b = buf;
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 	    struct frame *f = haiku_window_to_frame (b->window);
+
+	    if (!f)
+	      continue;
 
 	    /* If mouse-highlight is an integer, input clears out
 	       mouse highlighting.  */
@@ -2885,9 +2889,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		hlinfo->mouse_face_hidden = true;
 		need_flush = 1;
 	      }
-
-	    if (!f)
-	      continue;
 
 	    inev.code = b->keysym ? b->keysym : b->multibyte_char;
 
@@ -2917,8 +2918,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    if ((x_display_list->focus_event_frame != f && b->activated_p) ||
-		(x_display_list->focus_event_frame == f && !b->activated_p))
+	    if ((x_display_list->focus_event_frame != f && b->activated_p)
+		|| (x_display_list->focus_event_frame == f && !b->activated_p))
 	      {
 		haiku_new_focus_frame (b->activated_p ? f : NULL);
 		if (b->activated_p)

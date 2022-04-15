@@ -622,12 +622,6 @@ BFont_populate_plain_family (struct haiku_font_pattern *ptn)
   ptn->family[sizeof ptn->family - 1] = '\0';
 }
 
-int
-BFont_string_width (void *font, const char *utf8)
-{
-  return ((BFont *) font)->StringWidth (utf8);
-}
-
 haiku_font_family_or_style *
 be_list_font_families (size_t *length)
 {

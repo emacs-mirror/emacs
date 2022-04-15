@@ -372,7 +372,6 @@ struct haiku_menu_bar_state_event
    to bind to the specpdl and handle quitting correctly.  */
 
 #ifdef __cplusplus
-
 #if SIZE_MAX > 0xffffffff
 #define WRAP_SPECPDL_REF 1
 #endif
@@ -394,572 +393,249 @@ extern "C"
 #include <OS.h>
 
 #ifdef __cplusplus
-  typedef void *haiku;
+typedef void *haiku;
 
-  extern void
-  haiku_put_pixel (haiku bitmap, int x, int y, unsigned long pixel);
+extern void
+haiku_put_pixel (haiku, int, int, unsigned long);
 
-  extern unsigned long
-  haiku_get_pixel (haiku bitmap, int x, int y);
+extern unsigned long
+haiku_get_pixel (haiku, int, int);
 #endif
 
-  extern port_id port_application_to_emacs;
-  extern port_id port_popup_menu_to_emacs;
-
-  extern void haiku_io_init (void);
-  extern void haiku_io_init_in_app_thread (void);
-
-  extern void
-  haiku_read_size (ssize_t *len, bool popup_menu_p);
-
-  extern int
-  haiku_read (enum haiku_event_type *type, void *buf, ssize_t len);
-
-  extern int
-  haiku_read_with_timeout (enum haiku_event_type *type, void *buf, ssize_t len,
-			   bigtime_t timeout, bool popup_menu_p);
-
-  extern int
-  haiku_write (enum haiku_event_type type, void *buf);
-
-  extern int
-  haiku_write_without_signal (enum haiku_event_type type, void *buf,
-			      bool popup_menu_p);
-
-  extern void
-  rgb_color_hsl (uint32_t rgb, double *h, double *s, double *l);
-
-  extern void
-  hsl_color_rgb (double h, double s, double l, uint32_t *rgb);
-
-  extern void *
-  BBitmap_new (int width, int height, int mono_p);
-
-  extern void *
-  BBitmap_data (void *bitmap);
-
-  extern int
-  BBitmap_convert (void *bitmap, void **new_bitmap);
-
-  extern void
-  BBitmap_free (void *bitmap);
-
-  extern void
-  BBitmap_dimensions (void *bitmap, int *left, int *top,
-		      int *right, int *bottom, int32_t *bytes_per_row,
-		      int *mono_p);
-
-  extern void *
-  BApplication_setup (void);
-
-  extern void *
-  BWindow_new (void *view);
-
-  extern void
-  BWindow_quit (void *window);
-
-  extern void
-  BWindow_set_offset (void *window, int x, int y);
-
-  extern void
-  BWindow_iconify (void *window);
-
-  extern void
-  BWindow_set_visible (void *window, int visible_p);
-
-  extern void
-  BFont_close (void *font);
-
-  extern void
-  BFont_dat (void *font, int *px_size, int *min_width, int *max_width,
-	     int *avg_width, int *height, int *space_width, int *ascent,
-	     int *descent, int *underline_position, int *underline_thickness);
-
-  extern int
-  BFont_have_char_p (void *font, int32_t chr);
-
-  extern int
-  BFont_have_char_block (void *font, int32_t beg, int32_t end);
-
-  extern void
-  BFont_char_bounds (void *font, const char *mb_str, int *advance,
-		     int *lb, int *rb);
-
-  extern void
-  BFont_nchar_bounds (void *font, const char *mb_str, int *advance,
-		      int *lb, int *rb, int32_t n);
-
-  extern void
-  BWindow_retitle (void *window, const char *title);
-
-  extern void
-  BWindow_resize (void *window, int width, int height);
-
-  extern void
-  BWindow_activate (void *window);
-
-  extern void
-  BView_StartClip (void *view);
-
-  extern void
-  BView_EndClip (void *view);
-
-  extern void
-  BView_SetHighColor (void *view, uint32_t color);
-
-  extern void
-  BView_SetHighColorForVisibleBell (void *view, uint32_t color);
-
-  extern void
-  BView_SetLowColor (void *view, uint32_t color);
-
-  extern void
-  BView_SetPenSize (void *view, int u);
-
-  extern void
-  BView_SetFont (void *view, void *font);
-
-  extern void
-  BView_MovePenTo (void *view, int x, int y);
-
-  extern void
-  BView_DrawString (void *view, const char *chr, ptrdiff_t len);
-
-  extern void
-  BView_DrawChar (void *view, char chr);
-
-  extern void
-  BView_FillRectangle (void *view, int x, int y, int width, int height);
-
-  extern void
-  BView_FillRectangleAbs (void *view, int x, int y, int x1, int y1);
-
-  extern void
-  BView_FillTriangle (void *view, int x1, int y1,
-		      int x2, int y2, int x3, int y3);
-
-  extern void
-  BView_StrokeRectangle (void *view, int x, int y, int width, int height);
-
-  extern void
-  BView_SetViewColor (void *view, uint32_t color);
-
-  extern void
-  BView_ClipToRect (void *view, int x, int y, int width, int height);
-
-  extern void
-  BView_ClipToInverseRect (void *view, int x, int y, int width, int height);
-
-  extern void
-  BView_StrokeLine (void *view, int sx, int sy, int tx, int ty);
-
-  extern void
-  BView_CopyBits (void *view, int x, int y, int width, int height,
-		  int tox, int toy, int towidth, int toheight);
-
-  extern void
-  BView_DrawBitmap (void *view, void *bitmap, int x, int y,
-		    int width, int height, int vx, int vy, int vwidth,
-		    int vheight);
-
-  extern void
-  BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
-			       int y, int width, int height);
-
-  extern void
-  BView_DrawMask (void *src, void *view,
-		  int x, int y, int width, int height,
-		  int vx, int vy, int vwidth, int vheight,
-		  uint32_t color);
-
-  extern void
-  BView_InvertRect (void *view, int x, int y, int width, int height);
-
-  extern void *
-  BBitmap_transform_bitmap (void *bitmap, void *mask, uint32_t m_color,
-			    double rot, int desw, int desh);
-
-  extern void
-  BScreen_px_dim (int *width, int *height);
-
-  extern void
-  BView_resize_to (void *view, int width, int height);
-
-  /* Functions for creating and freeing cursors.  */
-  extern void *
-  BCursor_create_default (void);
-
-  extern void *
-  BCursor_from_id (enum haiku_cursor cursor);
-
-  extern void *
-  BCursor_create_modeline (void);
-
-  extern void *
-  BCursor_create_i_beam (void);
-
-  extern void *
-  BCursor_create_progress_cursor (void);
-
-  extern void *
-  BCursor_create_grab (void);
-
-  extern void
-  BCursor_delete (void *cursor);
-
-  extern void
-  BView_set_view_cursor (void *view, void *cursor);
-
-  extern void
-  BWindow_Flush (void *window);
-
-  extern void *
-  BScrollBar_make_for_view (void *view, int horizontal_p,
-			    int x, int y, int x1, int y1,
-			    void *scroll_bar_ptr);
-
-  extern void
-  BScrollBar_delete (void *sb);
-
-  extern void
-  BView_move_frame (void *view, int x, int y, int x1, int y1);
-
-  extern void
-  BView_scroll_bar_update (void *sb, int portion, int whole, int position,
-			   int dragging, bool can_overscroll);
-
-  extern int
-  BScrollBar_default_size (int horizontal_p);
-
-  extern void
-  BView_invalidate (void *view);
-
-  extern void
-  BView_draw_lock (void *view, bool invalidate_region,
-		   int x, int y, int width, int height);
-
-  extern void
-  BView_invalidate_region (void *view, int x, int y, int width, int height);
-
-  extern void
-  BView_draw_unlock (void *view);
-
-  extern void
-  BWindow_center_on_screen (void *window);
-
-  extern void
-  BView_mouse_moved (void *view, int x, int y, uint32_t transit);
-
-  extern void
-  BView_mouse_down (void *view, int x, int y);
-
-  extern void
-  BView_mouse_up (void *view, int x, int y);
-
-  extern void
-  BBitmap_import_fringe_bitmap (void *bitmap, unsigned short *bits,
-				int wd, int h);
-
-  extern void
-  BBitmap_import_mono_bits (void *bitmap, void *bits, int wd, int h);
-
-  extern void
-  haiku_font_pattern_free (struct haiku_font_pattern *pt);
-
-  extern struct haiku_font_pattern *
-  BFont_find (struct haiku_font_pattern *pt);
-
-  extern int
-  BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size);
-
-  extern void
-  BFont_populate_fixed_family (struct haiku_font_pattern *ptn);
-
-  extern void
-  BFont_populate_plain_family (struct haiku_font_pattern *ptn);
-
-  extern void
-  BView_publish_scroll_bar (void *view, int x, int y, int width, int height);
-
-  extern void
-  BView_forget_scroll_bar (void *view, int x, int y, int width, int height);
-
-  extern bool
-  BView_inside_scroll_bar (void *view, int x, int y);
-
-  extern void
-  BView_get_mouse (void *view, int *x, int *y);
-
-  extern void
-  BView_convert_to_screen (void *view, int *x, int *y);
-
-  extern void
-  BView_convert_from_screen (void *view, int *x, int *y);
-
-  extern void
-  BWindow_change_decoration (void *window, int decorate_p);
-
-  extern void
-  BWindow_set_tooltip_decoration (void *window);
-
-  extern void
-  BWindow_set_avoid_focus (void *window, int avoid_focus_p);
-
-  extern void
-  BView_emacs_delete (void *view);
-
-  extern uint32_t
-  haiku_current_workspace (void);
-
-  extern uint32_t
-  BWindow_workspaces (void *window);
-
-  extern void *
-  BPopUpMenu_new (const char *name);
-
-  extern void
-  BMenu_add_item (void *menu, const char *label, void *ptr, bool enabled_p,
-		  bool marked_p, bool mbar_p, void *mbw_ptr, const char *key,
-		  const char *help);
-
-  extern void
-  BMenu_add_separator (void *menu);
-
-  extern void *
-  BMenu_new_submenu (void *menu, const char *label, bool enabled_p);
-
-  extern void *
-  BMenu_new_menu_bar_submenu (void *menu, const char *label);
-
-  extern int
-  BMenu_count_items (void *menu);
-
-  extern void *
-  BMenu_item_at (void *menu, int idx);
-
-  extern void *
-  BMenu_run (void *menu, int x, int y,
-	     void (*run_help_callback) (void *, void *),
-	     void (*block_input_function) (void),
-	     void (*unblock_input_function) (void),
-	     struct timespec (*process_pending_signals_function) (void),
-	     void *run_help_callback_data);
-
-  extern void
-  BPopUpMenu_delete (void *menu);
-
-  extern void *
-  BMenuBar_new (void *view);
-
-  extern void
-  BMenu_delete_all (void *menu);
-
-  extern void
-  BMenuBar_delete (void *menubar);
-
-  extern void
-  BMenu_item_set_label (void *item, const char *label);
-
-  extern void *
-  BMenu_item_get_menu (void *item);
-
-  extern void
-  BMenu_delete_from (void *menu, int start, int count);
-
-  extern void
-  haiku_ring_bell (void);
-
-  extern void *
-  BAlert_new (const char *text, enum haiku_alert_type type);
-
-  extern void *
-  BAlert_add_button (void *alert, const char *text);
-
-  extern void
-  BAlert_set_offset_spacing (void *alert);
-
-  extern int32
-  BAlert_go (void *alert,
-	     void (*block_input_function) (void),
-	     void (*unblock_input_function) (void),
-	     void (*process_pending_signals_function) (void));
-
-  extern void
-  BButton_set_enabled (void *button, int enabled_p);
-
-  extern void
-  BView_set_tooltip (void *view, const char *tooltip);
-
-  extern void
-  BAlert_delete (void *alert);
-
-  extern void
-  BScreen_res (double *rrsx, double *rrsy);
-
-  extern void
-  EmacsWindow_parent_to (void *window, void *other_window);
-
-  extern void
-  EmacsWindow_unparent (void *window);
-
-  extern int
-  BFont_string_width (void *font, const char *utf8);
-
-  extern void
-  be_get_version_string (char *version, int len);
-
-  extern int
-  be_get_display_planes (void);
-
-  extern int
-  be_get_display_color_cells (void);
-
-  extern void
-  be_warp_pointer (int x, int y);
-
-  extern void
-  EmacsWindow_move_weak_child (void *window, void *child, int xoff, int yoff);
-
-  extern void
-  EmacsView_set_up_double_buffering (void *vw);
-
-  extern void
-  EmacsView_disable_double_buffering (void *vw);
-
-  extern void
-  EmacsView_flip_and_blit (void *vw);
-
-  extern int
-  EmacsView_double_buffered_p (void *vw);
-
-  extern char *
-  be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
-			int dir_only_p,	void *window, const char *save_text,
-			const char *prompt,
-			void (*block_input_function) (void),
-			void (*unblock_input_function) (void),
-			void (*maybe_quit_function) (void));
-
-  extern void
-  record_c_unwind_protect_from_cxx (void (*) (void *), void *);
-
-  extern specpdl_ref c_specpdl_idx_from_cxx (void);
-
-  extern void
-  c_unbind_to_nil_from_cxx (specpdl_ref idx);
-
-  extern void
-  BWindow_zoom (void *window);
-
-  extern void
-  EmacsWindow_make_fullscreen (void *window, int fullscreen_p);
-
-  extern void
-  EmacsWindow_unzoom (void *window);
+extern port_id port_application_to_emacs;
+extern port_id port_popup_menu_to_emacs;
+
+extern void haiku_io_init (void);
+extern void haiku_io_init_in_app_thread (void);
+
+extern void haiku_read_size (ssize_t *, bool);
+
+extern int haiku_read (enum haiku_event_type *, void *, ssize_t);
+extern int haiku_read_with_timeout (enum haiku_event_type *, void *, ssize_t,
+				    bigtime_t, bool);
+extern int haiku_write (enum haiku_event_type, void *);
+extern int haiku_write_without_signal (enum haiku_event_type, void *, bool);
+
+extern void rgb_color_hsl (uint32_t, double *, double *, double *);
+extern void hsl_color_rgb (double, double, double, uint32_t *);
+
+extern void *BBitmap_new (int, int, int);
+extern void *BBitmap_data (void *);
+extern int BBitmap_convert (void *, void **);
+
+extern void BBitmap_free (void *);
+
+extern void BBitmap_dimensions (void *, int *, int *,  int *, int *,
+				int32_t *, int *);
+extern void *BApplication_setup (void);
+extern void *BWindow_new (void **);
+extern void BWindow_quit (void *);
+
+extern void BWindow_set_offset (void *, int, int);
+extern void BWindow_iconify (void *);
+extern void BWindow_set_visible (void *, int);
+extern void BWindow_retitle (void *, const char *);
+extern void BWindow_resize (void *, int, int);
+extern void BWindow_activate (void *);
+extern void BWindow_center_on_screen (void *);
+extern void BWindow_change_decoration (void *, int);
+extern void BWindow_set_tooltip_decoration (void *);
+extern void BWindow_set_avoid_focus (void *, int);
+extern uint32_t BWindow_workspaces (void *);
+extern void BWindow_zoom (void *);
+extern void BWindow_set_min_size (void *, int, int);
+extern void BWindow_set_size_alignment (void *, int, int);
+extern void BWindow_sync (void *);
+extern void BWindow_send_behind (void *, void *);
+extern bool BWindow_is_active (void *);
+extern void BWindow_set_override_redirect (void *, bool);
+extern void BWindow_dimensions (void *, int *, int *);
+extern void BWindow_Flush (void *);
+
+extern void BFont_close (void *);
+extern void BFont_dat (void *, int *, int *, int *, int *,
+		       int *, int *, int *, int *, int *, int *);
+extern int BFont_have_char_p (void *, int32_t);
+extern int BFont_have_char_block (void *, int32_t, int32_t);
+extern void BFont_char_bounds (void *, const char *, int *, int *, int *);
+extern void BFont_nchar_bounds (void *, const char *, int *, int *,
+				int *, int32_t);
+extern struct haiku_font_pattern *BFont_find (struct haiku_font_pattern *);
+
+
+extern void BView_StartClip (void *);
+extern void BView_EndClip (void *);
+extern void BView_SetHighColor (void *, uint32_t);
+extern void BView_SetHighColorForVisibleBell (void *, uint32_t);
+extern void BView_SetLowColor (void *, uint32_t);
+extern void BView_SetPenSize (void *, int);
+extern void BView_SetFont (void *, void *);
+extern void BView_MovePenTo (void *, int, int);
+extern void BView_DrawString (void *, const char *, ptrdiff_t);
+extern void BView_DrawChar (void *, char);
+extern void BView_FillRectangle (void *, int, int, int, int);
+extern void BView_FillRectangleAbs (void *, int, int, int, int);
+extern void BView_FillTriangle (void *, int, int, int, int, int, int);
+extern void BView_StrokeRectangle (void *, int, int, int, int);
+extern void BView_SetViewColor (void *, uint32_t);
+extern void BView_ClipToRect (void *, int, int, int, int);
+extern void BView_ClipToInverseRect (void *, int, int, int, int);
+extern void BView_StrokeLine (void *, int, int, int, int);
+extern void BView_CopyBits (void *, int, int, int, int, int, int, int, int);
+extern void BView_InvertRect (void *, int, int, int, int);
+extern void BView_DrawBitmap (void *, void *, int, int, int, int, int, int,
+			      int, int);
+extern void BView_DrawBitmapWithEraseOp (void *, void *, int, int, int, int);
+extern void BView_DrawMask (void *, void *, int, int, int, int,	int, int,
+			    int, int, uint32_t);
+
+extern void BView_resize_to (void *, int, int);
+extern void BView_set_view_cursor (void *, void *);
+extern void BView_move_frame (void *, int, int, int, int);
+extern void BView_scroll_bar_update (void *, int, int, int, int, bool);
+
+extern void *BBitmap_transform_bitmap (void *, void *, uint32_t, double,
+				       int, int);
+
+extern void BScreen_px_dim (int *, int *);
+extern void BScreen_res (double *, double *);
+
+/* Functions for creating and freeing cursors.  */
+extern void *BCursor_create_default (void);
+extern void *BCursor_from_id (enum haiku_cursor);
+extern void *BCursor_create_modeline (void);
+extern void *BCursor_create_i_beam (void);
+extern void *BCursor_create_progress_cursor (void);
+extern void *BCursor_create_grab (void);
+extern void BCursor_delete (void *);
+
+extern void *BScrollBar_make_for_view (void *, int, int, int, int, int, void *);
+extern void BScrollBar_delete (void *);
+extern int BScrollBar_default_size (int);
+
+extern void BView_invalidate (void *);
+extern void BView_draw_lock (void *, bool, int, int, int, int);
+extern void BView_invalidate_region (void *, int, int, int, int);
+extern void BView_draw_unlock (void *);
+
+extern void BBitmap_import_fringe_bitmap (void *, unsigned short *, int, int);
+extern void BBitmap_import_mono_bits (void *, void *, int, int);
+
+extern void haiku_font_pattern_free (struct haiku_font_pattern *);
+
+extern int BFont_open_pattern (struct haiku_font_pattern *, void **, float);
+extern void BFont_populate_fixed_family (struct haiku_font_pattern *);
+extern void BFont_populate_plain_family (struct haiku_font_pattern *);
+
+extern void BView_publish_scroll_bar (void *, int, int, int, int);
+extern void BView_forget_scroll_bar (void *, int, int, int, int);
+extern bool BView_inside_scroll_bar (void *, int, int);
+extern void BView_get_mouse (void *, int *, int *);
+extern void BView_convert_to_screen (void *, int *, int *);
+extern void BView_convert_from_screen (void *, int *, int *);
+
+extern void BView_emacs_delete (void *);
+extern uint32_t haiku_current_workspace (void);
+
+extern void *BPopUpMenu_new (const char *);
+
+extern void BMenu_add_item (void *, const char *, void *, bool,
+			    bool, bool, void *, const char *,
+			    const char *);
+extern void BMenu_add_separator (void *);
+extern void *BMenu_new_submenu (void *, const char *, bool);
+extern void *BMenu_new_menu_bar_submenu (void *, const char *);
+extern int BMenu_count_items (void *);
+extern void *BMenu_item_at (void *, int);
+extern void *BMenu_run (void *, int, int, void (*) (void *, void *),
+			void (*) (void), void (*) (void),
+			struct timespec (*) (void), void *);
+extern void BPopUpMenu_delete (void *);
+extern void *BMenuBar_new (void *);
+extern void BMenu_delete_all (void *);
+extern void BMenuBar_delete (void *);
+extern void BMenu_item_set_label (void *, const char *);
+extern void *BMenu_item_get_menu (void *);
+extern void BMenu_delete_from (void *, int, int);
+
+extern void haiku_ring_bell (void);
+
+extern void *BAlert_new (const char *, enum haiku_alert_type);
+extern void *BAlert_add_button (void *, const char *);
+extern void BAlert_set_offset_spacing (void *);
+extern int32 BAlert_go (void *, void (*) (void), void (*) (void),
+			void (*) (void));
+extern void BButton_set_enabled (void *, int);
+extern void BView_set_tooltip (void *, const char *);
+extern void BView_show_tooltip (void *);
+extern void BView_set_and_show_sticky_tooltip (void *, const char *,
+					       int, int);
+
+extern void BAlert_delete (void *);
+
+extern void EmacsWindow_parent_to (void *, void *);
+extern void EmacsWindow_unparent (void *);
+extern void EmacsWindow_move_weak_child (void *, void *, int, int);
+extern void EmacsWindow_make_fullscreen (void *, int);
+extern void EmacsWindow_unzoom (void *);
+extern void EmacsWindow_signal_menu_update_complete (void *);
+
+extern void be_get_version_string (char *, int);
+extern int be_get_display_planes (void);
+extern int be_get_display_color_cells (void);
+extern void be_warp_pointer (int, int);
+
+extern void EmacsView_set_up_double_buffering (void *);
+extern void EmacsView_disable_double_buffering (void *);
+extern void EmacsView_flip_and_blit (void *);
+extern int EmacsView_double_buffered_p (void *);
+
+extern char *be_popup_file_dialog (int, const char *, int,
+				   int, void *, const char *,
+				   const char *, void (*) (void),
+				   void (*) (void), void (*) (void));
+
+extern void record_c_unwind_protect_from_cxx (void (*) (void *), void *);
+extern specpdl_ref c_specpdl_idx_from_cxx (void);
+extern void c_unbind_to_nil_from_cxx (specpdl_ref);
 
 #ifdef HAVE_NATIVE_IMAGE_API
-  extern int
-  be_can_translate_type_to_bitmap_p (const char *mime);
-
-  extern void *
-  be_translate_bitmap_from_file_name (const char *filename);
-
-  extern void *
-  be_translate_bitmap_from_memory (const void *buf, size_t bytes);
+extern int be_can_translate_type_to_bitmap_p (const char *);
+extern void *be_translate_bitmap_from_file_name (const char *);
+extern void *be_translate_bitmap_from_memory (const void *, size_t);
 #endif
 
-  extern bool
-  BMenuBar_start_tracking (void *mbar);
-
-  extern size_t
-  BBitmap_bytes_length (void *bitmap);
-
-  extern void
-  BView_show_tooltip (void *view);
+extern bool BMenuBar_start_tracking (void *);
+extern size_t BBitmap_bytes_length (void *);
 
 #ifdef USE_BE_CAIRO
-  extern cairo_t *
-  EmacsView_cairo_context (void *view);
-
-  extern void
-  BView_cr_dump_clipping (void *view, cairo_t *ctx);
-
-  extern void
-  EmacsWindow_begin_cr_critical_section (void *window);
-
-  extern void
-  EmacsWindow_end_cr_critical_section (void *window);
+extern cairo_t *EmacsView_cairo_context (void *);
+extern void BView_cr_dump_clipping (void *, cairo_t *);
+extern void EmacsWindow_begin_cr_critical_section (void *);
+extern void EmacsWindow_end_cr_critical_section (void *);
 #endif
 
-  extern void
-  BView_set_and_show_sticky_tooltip (void *view, const char *tooltip,
-				     int x, int y);
+extern void BMenu_add_title (void *, const char *);
 
-  extern void
-  BMenu_add_title (void *menu, const char *text);
+extern int be_plain_font_height (void);
+extern int be_string_width_with_plain_font (const char *);
+extern int be_get_display_screens (void);
+extern bool be_use_subpixel_antialiasing (void);
+extern const char *be_find_setting (const char *);
+extern haiku_font_family_or_style *be_list_font_families (size_t *);
 
-  extern int
-  be_plain_font_height (void);
+extern void BMessage_delete (void *);
 
-  extern int
-  be_string_width_with_plain_font (const char *str);
-
-  extern int
-  be_get_display_screens (void);
-
-  extern void
-  BWindow_set_min_size (void *window, int width, int height);
-
-  extern void
-  BWindow_set_size_alignment (void *window, int align_width, int align_height);
-
-  extern void
-  BWindow_sync (void *window);
-
-  extern void
-  BWindow_send_behind (void *window, void *other_window);
-
-  extern bool
-  BWindow_is_active (void *window);
-
-  extern bool
-  be_use_subpixel_antialiasing (void);
-
-  extern void
-  BWindow_set_override_redirect (void *window, bool override_redirect_p);
-
-  extern const char *
-  be_find_setting (const char *name);
-
-  extern void
-  EmacsWindow_signal_menu_update_complete (void *window);
-
-  extern haiku_font_family_or_style *
-  be_list_font_families (size_t *length);
-
-  extern void
-  BWindow_dimensions (void *window, int *width, int *height);
-
-  extern void
-  BMessage_delete (void *message);
-
-  extern bool
-  be_drag_message (void *view, void *message, bool allow_same_view,
-		   void (*block_input_function) (void),
-		   void (*unblock_input_function) (void),
-		   void (*process_pending_signals_function) (void),
-		   bool (*should_quit_function) (void));
-
-  extern bool
-  be_drag_and_drop_in_progress (void);
+extern bool be_drag_message (void *, void *, bool, void (*) (void),
+			     void (*) (void), void (*) (void),
+			     bool (*) (void));
+extern bool be_drag_and_drop_in_progress (void);
 
 #ifdef __cplusplus
-  extern void *
-  find_appropriate_view_for_draw (void *vw);
+extern void *find_appropriate_view_for_draw (void *vw);
 }
 
-extern _Noreturn void
-gui_abort (const char *msg);
+extern _Noreturn void gui_abort (const char *msg);
 #endif /* _cplusplus */
 
 /* Borrowed from X.Org keysymdef.h */
@@ -1001,3 +677,7 @@ gui_abort (const char *msg);
 #define XK_F1                            0xffbe
 
 #endif /* _HAIKU_SUPPORT_H_ */
+
+// Local Variables:
+// eval: (setf (alist-get 'inextern-lang c-offsets-alist) 0)
+// End:
