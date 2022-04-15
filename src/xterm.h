@@ -1574,8 +1574,8 @@ extern bool x_dnd_in_progress;
 extern struct frame *x_dnd_frame;
 
 #ifdef HAVE_XINPUT2
-struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
-bool xi_frame_selected_for (struct frame *, unsigned long);
+extern struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
+extern bool xi_frame_selected_for (struct frame *, unsigned long);
 #endif
 
 extern void mark_xterm (void);
