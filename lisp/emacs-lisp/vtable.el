@@ -158,6 +158,7 @@ See info node `(vtable)Top' for vtable documentation."
                   " " 'display
                   (list 'space :width
                         (list (vtable--compute-width table divider-width)))))
+             'mouse-face 'highlight
              'keymap
              (define-keymap
                "<drag-mouse-1>" #'vtable--drag-resize-column
@@ -629,6 +630,7 @@ This also updates the displayed table."
        (let* ((name (propertize
                      (vtable-column-name column)
                      'face (list 'header-line (vtable-face table))
+                     'mouse-face 'header-line-highlight
                      'keymap cmap))
               (start (point))
               (indicator (vtable--indicator table index))
