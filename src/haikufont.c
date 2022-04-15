@@ -149,6 +149,7 @@ haikufont_apply_registry (struct haiku_font_pattern *pattern,
       memcpy (&a[old_l], pattern->wanted_chars, (l - old_l) * sizeof *a);
       xfree (pattern->wanted_chars);
     }
+
   pattern->specified |= FSPEC_WANTED;
   pattern->want_chars_len = l;
   pattern->wanted_chars = a;
@@ -183,7 +184,7 @@ haikufont_get_fallback_entity (void)
   ASET (ent, FONT_FOUNDRY_INDEX, Qhaiku);
   ASET (ent, FONT_FAMILY_INDEX, Qnil);
   ASET (ent, FONT_ADSTYLE_INDEX, Qnil);
-  ASET (ent, FONT_REGISTRY_INDEX, Qutf_8);
+  ASET (ent, FONT_REGISTRY_INDEX, Qiso10646_1);
   ASET (ent, FONT_SIZE_INDEX, make_fixnum (0));
   ASET (ent, FONT_AVGWIDTH_INDEX, make_fixnum (0));
   ASET (ent, FONT_SPACING_INDEX, make_fixnum (FONT_SPACING_MONO));
@@ -387,7 +388,7 @@ haikufont_pattern_to_entity (struct haiku_font_pattern *ptn)
   ASET (ent, FONT_FOUNDRY_INDEX, Qhaiku);
   ASET (ent, FONT_FAMILY_INDEX, Qdefault);
   ASET (ent, FONT_ADSTYLE_INDEX, Qnil);
-  ASET (ent, FONT_REGISTRY_INDEX, Qutf_8);
+  ASET (ent, FONT_REGISTRY_INDEX, Qiso10646_1);
   ASET (ent, FONT_SIZE_INDEX, make_fixnum (0));
   ASET (ent, FONT_AVGWIDTH_INDEX, make_fixnum (0));
   ASET (ent, FONT_SPACING_INDEX, make_fixnum (FONT_SPACING_MONO));
@@ -423,8 +424,7 @@ haikufont_pattern_to_entity (struct haiku_font_pattern *ptn)
 }
 
 static void
-haikufont_spec_or_entity_to_pattern (Lisp_Object ent,
-				     int list_p,
+haikufont_spec_or_entity_to_pattern (Lisp_Object ent, int list_p,
 				     struct haiku_font_pattern *ptn)
 {
   Lisp_Object tem;
@@ -591,27 +591,29 @@ haikufont_match (struct frame *f, Lisp_Object font_spec)
 static Lisp_Object
 haikufont_list (struct frame *f, Lisp_Object font_spec)
 {
-  block_input ();
-  Lisp_Object lst = Qnil;
+  Lisp_Object lst, tem;
+  struct haiku_font_pattern ptn, *found, *pt;
 
+  lst = Qnil;
+
+  block_input ();
   /* Returning irrelevant results on receiving an OTF form will cause
      fontset.c to loop over and over, making displaying some
      characters very slow.  */
-  Lisp_Object tem = assq_no_quit (QCotf, AREF (font_spec, FONT_EXTRA_INDEX));
+  tem = assq_no_quit (QCotf, AREF (font_spec, FONT_EXTRA_INDEX));
+
   if (CONSP (tem) && !NILP (XCDR (tem)))
     {
       unblock_input ();
       return Qnil;
     }
 
-  struct haiku_font_pattern ptn;
   haikufont_spec_or_entity_to_pattern (font_spec, 1, &ptn);
-  struct haiku_font_pattern *found = BFont_find (&ptn);
+  found = BFont_find (&ptn);
   haikufont_done_with_query_pattern (&ptn);
   if (found)
     {
-      for (struct haiku_font_pattern *pt = found;
-	   pt; pt = pt->next)
+      for (pt = found; pt; pt = pt->next)
 	lst = Fcons (haikufont_pattern_to_entity (pt), lst);
       haiku_font_pattern_free (found);
     }

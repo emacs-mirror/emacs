@@ -221,19 +221,21 @@ struct haiku_menu_bar_help_event
 struct haiku_zoom_event
 {
   void *window;
-
   bool zoomed;
 };
 
-#define FSPEC_FAMILY 1
-#define FSPEC_STYLE (1 << 1)
-#define FSPEC_SLANT (1 << 2)
-#define FSPEC_WEIGHT (1 << 3)
-#define FSPEC_SPACING (1 << 4)
-#define FSPEC_WANTED (1 << 5)
-#define FSPEC_NEED_ONE_OF (1 << 6)
-#define FSPEC_WIDTH (1 << 7)
-#define FSPEC_LANGUAGE (1 << 8)
+enum haiku_font_specification
+  {
+    FSPEC_FAMILY      = 1,
+    FSPEC_STYLE	      = 1 << 1,
+    FSPEC_SLANT	      = 1 << 2,
+    FSPEC_WEIGHT      = 1 << 3,
+    FSPEC_SPACING     = 1 << 4,
+    FSPEC_WANTED      = 1 << 5,
+    FSPEC_NEED_ONE_OF = 1 << 6,
+    FSPEC_WIDTH	      = 1 << 7,
+    FSPEC_LANGUAGE    = 1 << 8,
+  };
 
 typedef char haiku_font_family_or_style[64];
 
@@ -395,11 +397,8 @@ extern "C"
 #ifdef __cplusplus
 typedef void *haiku;
 
-extern void
-haiku_put_pixel (haiku, int, int, unsigned long);
-
-extern unsigned long
-haiku_get_pixel (haiku, int, int);
+extern void haiku_put_pixel (haiku, int, int, unsigned long);
+extern unsigned long haiku_get_pixel (haiku, int, int);
 #endif
 
 extern port_id port_application_to_emacs;
