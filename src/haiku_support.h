@@ -632,10 +632,10 @@ extern bool be_drag_message (void *, void *, bool, void (*) (void),
 extern bool be_drag_and_drop_in_progress (void);
 
 #ifdef __cplusplus
-extern void *find_appropriate_view_for_draw (void *vw);
+extern void *find_appropriate_view_for_draw (void *);
 }
 
-extern _Noreturn void gui_abort (const char *msg);
+extern _Noreturn void gui_abort (const char *);
 #endif /* _cplusplus */
 
 #endif /* _HAIKU_SUPPORT_H_ */
