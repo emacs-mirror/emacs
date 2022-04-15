@@ -66,8 +66,9 @@
    (ellipsis :initarg :ellipsis :accessor vtable-ellipsis)
    (column-colors :initarg :column-colors :accessor vtable-column-colors)
    (row-colors :initarg :row-colors :accessor vtable-row-colors)
-   (-cached-colors :initform nil :accessor vtable--cached-colors)
-   (-cache :initform (make-hash-table :test #'equal)))
+   (-cached-colors :initform nil)
+   (-cache :initform (make-hash-table :test #'equal))
+   (-cached-keymap :initform nil))
   "An object to hold the data for a table.")
 
 (defvar-keymap vtable-map
@@ -146,16 +147,23 @@ See info node `(vtable)Top' for vtable documentation."
     (setf (vtable-columns table) (vtable--compute-columns table))
     ;; Compute colors if we have to mix them.
     (when (and row-colors column-colors)
-      (setf (vtable--cached-colors table)
+      (setf (slot-value table '-cached-colors)
             (vtable--compute-colors row-colors column-colors)))
     ;; Compute the divider.
     (when (or divider divider-width)
       (setf (vtable-divider table)
-            (or divider
-                (propertize
-                 " " 'display
-                 (list 'space :width
-                       (list (vtable--compute-width table divider-width)))))))
+            (propertize
+             (or (copy-sequence divider)
+                 (propertize
+                  " " 'display
+                  (list 'space :width
+                        (list (vtable--compute-width table divider-width)))))
+             'keymap
+             (define-keymap
+               "<drag-mouse-1>" #'vtable--drag-resize-column
+               "<down-mouse-1>" #'ignore))))
+    ;; Compute the keymap.
+    (setf (slot-value table '-cached-keymap) (vtable--make-keymap table))
     (unless sort-by
       (seq-do-indexed (lambda (column index)
                         (when (vtable-column-primary column)
@@ -424,8 +432,7 @@ This also updates the displayed table."
                              ellipsis ellipsis-width)
         (setq line-number (1+ line-number))))
     (add-text-properties start (point)
-                         (list 'keymap (vtable--make-keymap table)
-                               'rear-nonsticky t
+                         (list 'rear-nonsticky t
                                'vtable table))
     (goto-char start)))
 
@@ -435,10 +442,11 @@ This also updates the displayed table."
         (columns (vtable-columns table))
         (column-colors
          (if (vtable-row-colors table)
-             (elt (vtable--cached-colors table)
+             (elt (slot-value table '-cached-colors)
                   (mod line-number (length (vtable-row-colors table))))
            (vtable-column-colors table)))
-        (divider (vtable-divider table)))
+        (divider (vtable-divider table))
+        (keymap (slot-value table '-cached-keymap)))
     (seq-do-indexed
      (lambda (elem index)
        (let ((value (nth 0 elem))
@@ -505,6 +513,7 @@ This also updates the displayed table."
                                    (list 'space
                                          :width (list spacer))))))
            (put-text-property start (point) 'vtable-column index)
+           (put-text-property start (point) 'keymap keymap)
            (when column-colors
              (add-face-text-property
               start (point)
@@ -624,10 +633,21 @@ If NEXT, do the next column."
 	 (obj (posn-object pos-start)))
     (with-current-buffer (window-buffer (posn-window pos-start))
       (let ((column
-             (get-text-property (if obj (cdr obj)
-                                  (posn-point pos-start))
-			        'vtable-column
-			        (car obj)))
+             ;; In the header line we have a text property on the
+             ;; divider.
+             (or (get-text-property (if obj (cdr obj)
+                                      (posn-point pos-start))
+			            'vtable-column
+			            (car obj))
+                 ;; For reasons of efficiency, we don't have that in
+                 ;; the buffer itself, so find the column.
+                 (save-excursion
+                   (goto-char (posn-point pos-start))
+                   (1+
+                    (get-text-property
+                     (prop-match-beginning
+                      (text-property-search-backward 'vtable-column))
+                     'vtable-column)))))
             (start-x (car (posn-x-y pos-start)))
             (end-x (car (posn-x-y (event-end e)))))
         (when (or (> column 0) next)
