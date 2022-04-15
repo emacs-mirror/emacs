@@ -392,16 +392,18 @@ If present, this should be a list of color names to be used as the
 background color on the rows.  If there are fewer colors here than
 there are rows, the rows will be repeated.  The most common use
 case here is to have alternating background colors on the rows, so
-this would usually be a list of two colors.
+this would usually be a list of two colors.  This can also be a list
+of faces to be used.
 
 @item :column-colors
 If present, this should be a list of color names to be used as the
 background color on the columns.  If there are fewer colors here than
 there are columns, the colors will be repeated.  The most common use
 case here is to have alternating background colors on the columns, so
-this would usually be a list of two colors.  If both
-@code{:row-colors} and @code{:column-colors} is present, the colors
-will be ``blended'' to produce the final colors in the table.
+this would usually be a list of two colors.  This can also be a list
+of faces to be used.  If both @code{:row-colors} and
+@code{:column-colors} is present, the colors will be ``blended'' to
+produce the final colors in the table.
 
 @item :actions
 This uses the same syntax as @code{define-keymap}, but doesn't refer
