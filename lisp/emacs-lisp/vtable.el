@@ -635,20 +635,43 @@ This also updates the displayed table."
               (indicator-width (string-pixel-width indicator))
               (last (= index (1- (length (vtable-columns table)))))
               displayed)
-         (insert
-          (setq displayed
-                (concat
-                 (if (> (string-pixel-width name)
-                        (- (elt widths index) indicator-width))
-                     (vtable--limit-string
-                      name (- (elt widths index) indicator-width))
-                   name)
-                 indicator))
-          (propertize " " 'display
-                      (list 'space :width
-                            (list (+ (- (elt widths index)
-                                        (string-pixel-width displayed))
-                                     (if last 0 spacer))))))
+         (setq displayed
+               (if (> (string-pixel-width name)
+                      (- (elt widths index) indicator-width))
+                   (vtable--limit-string
+                    name (- (elt widths index) indicator-width))
+                 name))
+         (let ((fill-width
+                (+ (- (elt widths index)
+                      (string-pixel-width displayed)
+                      indicator-width
+                      (vtable-separator-width table))
+                   (if last 0 spacer))))
+           (if (or (not last)
+                   (zerop indicator-width)
+                   (< (seq-reduce #'+ widths 0) (window-width nil t)))
+               ;; Normal case.
+               (insert
+                displayed
+                (propertize " " 'display
+                            (list 'space :width (list fill-width)))
+                indicator)
+             ;; This is the final column, and we have a sorting
+             ;; indicator, and the table is too wide for the window.
+             (let* ((pre-indicator (string-pixel-width
+                                    (buffer-substring (point-min) (point))))
+                    (pre-fill
+                     (- (window-width nil t)
+                        pre-indicator
+                        (string-pixel-width displayed))))
+               (insert
+                displayed
+                (propertize " " 'display
+                            (list 'space :width (list pre-fill)))
+                indicator
+                (propertize " " 'display
+                            (list 'space :width
+                                  (list (- fill-width pre-fill))))))))
          (when (and divider (not last))
            (insert (propertize divider 'keymap dmap)))
          (put-text-property start (point) 'vtable-column index)))
