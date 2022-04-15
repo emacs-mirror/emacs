@@ -166,7 +166,6 @@ and if a matching region is found, place point at the start of the region."
     (let ((origin (point))
           (ended nil)
           pos)
-      (forward-char -1)
       ;; Find the previous candidate.
       (while (not ended)
         (setq pos (previous-single-property-change (point) property))
