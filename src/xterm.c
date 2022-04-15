@@ -17535,6 +17535,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      char *copy_bufptr = copy_buffer;
 	      int copy_bufsiz = sizeof (copy_buffer);
 	      ptrdiff_t i;
+	      uint old_state;
 	      struct xi_device_t *device, *source;
 
 	      coding = Qlatin_1;
@@ -17779,9 +17780,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      else
 #endif
 			{
+			  old_state = xkey.state;
+			  xkey.state &= ~ControlMask;
+			  xkey.state &= ~(dpyinfo->meta_mod_mask
+					  | dpyinfo->super_mod_mask
+					  | dpyinfo->hyper_mod_mask
+					  | dpyinfo->alt_mod_mask);
+
 			  nbytes = XLookupString (&xkey, copy_bufptr,
 						  copy_bufsiz, &keysym,
 						  NULL);
+
+			  xkey.state = old_state;
 			}
 		    }
 
