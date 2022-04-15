@@ -645,7 +645,10 @@ This also updates the displayed table."
                 (+ (- (elt widths index)
                       (string-pixel-width displayed)
                       indicator-width
-                      (vtable-separator-width table))
+                      (vtable-separator-width table)
+                      ;; We want the indicator to not be quite flush
+                      ;; right.
+                      (/ (vtable--char-width table) 2.0))
                    (if last 0 spacer))))
            (if (or (not last)
                    (zerop indicator-width)
@@ -674,6 +677,10 @@ This also updates the displayed table."
                                   (list (- fill-width pre-fill))))))))
          (when (and divider (not last))
            (insert (propertize divider 'keymap dmap)))
+         (insert (propertize
+                  " " 'display
+                  (list 'space :width (list
+                                       (/ (vtable--char-width table) 2.0)))))
          (put-text-property start (point) 'vtable-column index)))
      (vtable-columns table))
     (insert "\n")
