@@ -409,7 +409,7 @@ haiku_frame_raise_lower (struct frame *f, bool raise_p)
 }
 
 static struct frame *
-haiku_mouse_or_wdesc_frame (void *window)
+haiku_mouse_or_wdesc_frame (void *window, bool accept_tooltip)
 {
   struct frame *lm_f = (gui_mouse_grabbed (x_display_list)
 			? x_display_list->last_mouse_frame
@@ -423,7 +423,7 @@ haiku_mouse_or_wdesc_frame (void *window)
       struct frame *w_f = haiku_window_to_frame (window);
 
       /* Do not return a tooltip frame.  */
-      if (!w_f || FRAME_TOOLTIP_P (w_f))
+      if (!w_f || (FRAME_TOOLTIP_P (w_f) && !accept_tooltip))
 	return EQ (track_mouse, Qdropping) ? lm_f : NULL;
       else
 	/* When dropping it would be probably nice to raise w_f
@@ -2952,7 +2952,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	case MOUSE_MOTION:
 	  {
 	    struct haiku_mouse_motion_event *b = buf;
-	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window);
+	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window, true);
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 	    Lisp_Object frame;
 
@@ -2967,7 +2967,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		if (any_help_event_p)
 		  do_help = -1;
-
 		break;
 	      }
 
@@ -3134,7 +3133,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	case BUTTON_DOWN:
 	  {
 	    struct haiku_button_event *b = buf;
-	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window);
+	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window, false);
 	    Lisp_Object tab_bar_arg = Qnil;
 	    int tab_bar_p = 0, tool_bar_p = 0;
 	    bool up_okay_p = false;
