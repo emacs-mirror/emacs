@@ -7236,7 +7236,9 @@ need to be passed verbatim to shell commands."
 
 
 (defvar insert-directory-program (purecopy "ls")
-  "Absolute or relative name of the `ls' program used by `insert-directory'.")
+  "Absolute or relative name of the `ls'-like program.
+This is used by `insert-directory' and `dired-insert-directory'
+\(thus, also by `dired').")
 
 (defcustom directory-free-space-program (purecopy "df")
   "Program to get the amount of free space on a file system.
