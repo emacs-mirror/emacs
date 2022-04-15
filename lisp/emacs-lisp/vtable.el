@@ -522,8 +522,7 @@ This also updates the displayed table."
                        ellipsis)
                     value))))
                (start (point))
-               ;; Don't insert the separator and the divider after the
-               ;; final column.
+               ;; Don't insert the separator after the final column.
                (last (= index (- (length line) 2))))
            (if (eq (vtable-column-align column) 'left)
                (progn
@@ -552,7 +551,7 @@ This also updates the displayed table."
              (add-face-text-property
               start (point)
               (elt column-colors (mod index (length column-colors)))))
-           (when (and divider (not last))
+           (when divider
              (insert divider)
              (setq start (point))))))
      (cdr line))
