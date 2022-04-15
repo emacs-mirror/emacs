@@ -177,7 +177,7 @@ pgtk_display_info_for_name (Lisp_Object name)
 
 
 static void
-x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long fg, old_fg;
 
@@ -204,7 +204,7 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
 
 static void
-x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long bg;
 
@@ -246,7 +246,7 @@ pgtk_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 static void
-x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int pix;
 
@@ -257,7 +257,7 @@ x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 static void
-x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long fore_pixel, pixel;
   struct pgtk_output *x = f->output_data.pgtk;
@@ -381,7 +381,7 @@ pgtk_implicitly_set_name (struct frame *f, Lisp_Object arg,
    If NAME is nil, use the frame name as the title.  */
 
 static void
-x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
+pgtk_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
@@ -407,7 +407,7 @@ pgtk_set_doc_edited (void)
 
 
 static void
-x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
+pgtk_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
   /* Right now, menu bars don't work properly in minibuf-only frames;
@@ -453,7 +453,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
    The frame's height doesn't change.  */
 
 static void
-x_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
+pgtk_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
 
@@ -545,7 +545,7 @@ x_change_tool_bar_height (struct frame *f, int height)
 
 /* Toolbar support.  */
 static void
-x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
+pgtk_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
 
@@ -564,7 +564,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 static void
-x_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int border = check_int_nonnegative (arg);
 
@@ -582,7 +582,7 @@ x_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object ol
 }
 
 static void
-x_set_internal_border_width (struct frame *f, Lisp_Object arg,
+pgtk_set_internal_border_width (struct frame *f, Lisp_Object arg,
 			     Lisp_Object oldval)
 {
   int border = check_int_nonnegative (arg);
@@ -600,7 +600,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg,
 }
 
 static void
-x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   bool result;
 
@@ -630,7 +630,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 static void
-x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   bool result;
 
@@ -663,7 +663,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
 /* This is the same as the xfns.c definition.  */
 static void
-x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
 }
@@ -671,12 +671,12 @@ x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 /* called to set mouse pointer color, but all other terms use it to
    initialize pointer types (and don't set the color ;) */
 static void
-x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
 }
 
 /**
- * x_set_undecorated:
+ * pgtk_set_undecorated:
  *
  * Set frame F's `undecorated' parameter.  If non-nil, F's window-system
  * window is drawn without decorations, title, minimize/maximize boxes
@@ -688,7 +688,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
  * Some window managers may not honor this parameter.
  */
 static void
-x_set_undecorated (struct frame *f, Lisp_Object new_value,
+pgtk_set_undecorated (struct frame *f, Lisp_Object new_value,
 		   Lisp_Object old_value)
 {
   if (!EQ (new_value, old_value))
@@ -699,7 +699,7 @@ x_set_undecorated (struct frame *f, Lisp_Object new_value,
 }
 
 /**
- * x_set_skip_taskbar:
+ * pgtk_set_skip_taskbar:
  *
  * Set frame F's `skip-taskbar' parameter.  If non-nil, this should
  * remove F's icon from the taskbar associated with the display of F's
@@ -709,7 +709,7 @@ x_set_undecorated (struct frame *f, Lisp_Object new_value,
  * Some window managers may not honor this parameter.
  */
 static void
-x_set_skip_taskbar (struct frame *f, Lisp_Object new_value,
+pgtk_set_skip_taskbar (struct frame *f, Lisp_Object new_value,
 		    Lisp_Object old_value)
 {
   if (!EQ (new_value, old_value))
@@ -720,7 +720,7 @@ x_set_skip_taskbar (struct frame *f, Lisp_Object new_value,
 }
 
 /**
- * x_set_override_redirect:
+ * pgtk_set_override_redirect:
  *
  * Set frame F's `override_redirect' parameter which, if non-nil, hints
  * that the window manager doesn't want to deal with F.  Usually, such
@@ -729,7 +729,7 @@ x_set_skip_taskbar (struct frame *f, Lisp_Object new_value,
  * Some window managers may not honor this parameter.
  */
 static void
-x_set_override_redirect (struct frame *f, Lisp_Object new_value,
+pgtk_set_override_redirect (struct frame *f, Lisp_Object new_value,
 			 Lisp_Object old_value)
 {
   if (!EQ (new_value, old_value))
@@ -974,31 +974,31 @@ unless TYPE is `png'.  */)
 frame_parm_handler pgtk_frame_parm_handlers[] = {
   gui_set_autoraise,		/* generic OK */
   gui_set_autolower,		/* generic OK */
-  x_set_background_color,
-  x_set_border_color,
+  pgtk_set_background_color,
+  pgtk_set_border_color,
   gui_set_border_width,
-  x_set_cursor_color,
-  x_set_cursor_type,
+  pgtk_set_cursor_color,
+  pgtk_set_cursor_type,
   gui_set_font,			/* generic OK */
-  x_set_foreground_color,
-  x_set_icon_name,
-  x_set_icon_type,
-  x_set_child_frame_border_width,
-  x_set_internal_border_width,	/* generic OK */
+  pgtk_set_foreground_color,
+  pgtk_set_icon_name,
+  pgtk_set_icon_type,
+  pgtk_set_child_frame_border_width,
+  pgtk_set_internal_border_width,	/* generic OK */
   gui_set_right_divider_width,
   gui_set_bottom_divider_width,
-  x_set_menu_bar_lines,
-  x_set_mouse_color,
+  pgtk_set_menu_bar_lines,
+  pgtk_set_mouse_color,
   x_explicitly_set_name,
   gui_set_scroll_bar_width,	/* generic OK */
   gui_set_scroll_bar_height,	/* generic OK */
-  x_set_title,
+  pgtk_set_title,
   gui_set_unsplittable,		/* generic OK */
   gui_set_vertical_scroll_bars,	/* generic OK */
   gui_set_horizontal_scroll_bars,	/* generic OK */
   gui_set_visibility,		/* generic OK */
-  x_set_tab_bar_lines,
-  x_set_tool_bar_lines,
+  pgtk_set_tab_bar_lines,
+  pgtk_set_tool_bar_lines,
   pgtk_set_scroll_bar_foreground,
   pgtk_set_scroll_bar_background,
   gui_set_screen_gamma,		/* generic OK */
@@ -1012,13 +1012,13 @@ frame_parm_handler pgtk_frame_parm_handlers[] = {
   pgtk_set_sticky,
   pgtk_set_tool_bar_position,
   0,				/* x_set_inhibit_double_buffering */
-  x_set_undecorated,
-  x_set_parent_frame,
-  x_set_skip_taskbar,
-  x_set_no_focus_on_map,
-  x_set_no_accept_focus,
-  x_set_z_group,
-  x_set_override_redirect,
+  pgtk_set_undecorated,
+  pgtk_set_parent_frame,
+  pgtk_set_skip_taskbar,
+  pgtk_set_no_focus_on_map,
+  pgtk_set_no_accept_focus,
+  pgtk_set_z_group,
+  pgtk_set_override_redirect,
   gui_set_no_special_glyphs,
   pgtk_set_alpha_background,
 };
@@ -1514,10 +1514,11 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   init_frame_faces (f);
 
   /* We have to call adjust_frame_size here since otherwise
-     x_set_tool_bar_lines will already work with the character sizes
-     installed by init_frame_faces while the frame's pixel size is still
-     calculated from a character size of 1 and we subsequently hit the
-     (height >= 0) assertion in window_box_height.
+     pgtk_set_tool_bar_lines will already work with the character
+     sizes installed by init_frame_faces while the frame's pixel size
+     is still calculated from a character size of 1 and we
+     subsequently hit the (height >= 0) assertion in
+     window_box_height.
 
      The non-pixelwise code apparently worked around this because it
      had one frame line vs one toolbar line which left us with a zero
@@ -1525,14 +1526,12 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
      Also process `min-width' and `min-height' parameters right here
      because `frame-windows-min-size' needs them.  */
-  tem =
-    gui_display_get_arg (dpyinfo, parms, Qmin_width, NULL, NULL,
-			 RES_TYPE_NUMBER);
+  tem = gui_display_get_arg (dpyinfo, parms, Qmin_width, NULL, NULL,
+			     RES_TYPE_NUMBER);
   if (NUMBERP (tem))
     store_frame_param (f, Qmin_width, tem);
-  tem =
-    gui_display_get_arg (dpyinfo, parms, Qmin_height, NULL, NULL,
-			 RES_TYPE_NUMBER);
+  tem = gui_display_get_arg (dpyinfo, parms, Qmin_height, NULL, NULL,
+			     RES_TYPE_NUMBER);
   if (NUMBERP (tem))
     store_frame_param (f, Qmin_height, tem);
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
@@ -2373,13 +2372,6 @@ x_get_focus_frame (struct frame *frame)
   XSETFRAME (focus, dpyinfo->x_focus_frame);
   return focus;
 }
-
-/* ==========================================================================
-
-    Lisp definitions that, for whatever reason, we can't alias as 'ns-XXX'.
-
-   ========================================================================== */
-
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.  */)
@@ -3876,12 +3868,6 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
 
   return NILP (enable) ? Qnil : Qt;
 }
-
-/* ==========================================================================
-
-    Lisp interface declaration
-
-   ========================================================================== */
 
 void
 syms_of_pgtkfns (void)

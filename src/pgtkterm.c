@@ -606,10 +606,7 @@ x_calc_absolute_position (struct frame *f)
    which means, do adjust for borders but don't change the gravity.  */
 
 static void
-x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
-/* --------------------------------------------------------------------------
-     External: Position the window
-   -------------------------------------------------------------------------- */
+pgtk_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 {
   if (change_gravity > 0)
     {
@@ -712,7 +709,7 @@ pgtk_iconify_frame (struct frame *f)
   /* Make sure the X server knows where the window should be positioned,
      in case the user deiconifies with the window manager.  */
   if (!FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
-    x_set_offset (f, f->left_pos, f->top_pos, 0);
+    pgtk_set_offset (f, f->left_pos, f->top_pos, 0);
 
   SET_FRAME_ICONIFIED (f, true);
   SET_FRAME_VISIBLE (f, 0);
@@ -900,29 +897,8 @@ x_display_pixel_width (struct pgtk_display_info *dpyinfo)
 }
 
 void
-x_set_parent_frame (struct frame *f, Lisp_Object new_value,
-		    Lisp_Object old_value)
-/* --------------------------------------------------------------------------
-     Set frame F's `parent-frame' parameter.  If non-nil, make F a child
-     frame of the frame specified by that parameter.  Technically, this
-     makes F's window-system window a child window of the parent frame's
-     window-system window.  If nil, make F's window-system window a
-     top-level window--a child of its display's root window.
-
-     A child frame's `left' and `top' parameters specify positions
-     relative to the top-left corner of its parent frame's native
-     rectangle.  On macOS moving a parent frame moves all its child
-     frames too, keeping their position relative to the parent
-     unaltered.  When a parent frame is iconified or made invisible, its
-     child frames are made invisible.  When a parent frame is deleted,
-     its child frames are deleted too.
-
-     Whether a child frame has a tool bar may be window-system or window
-     manager dependent.  It's advisable to disable it via the frame
-     parameter settings.
-
-     Some window managers may not honor this parameter.
-   -------------------------------------------------------------------------- */
+pgtk_set_parent_frame (struct frame *f, Lisp_Object new_value,
+		       Lisp_Object old_value)
 {
   struct frame *p = NULL;
 
@@ -1023,20 +999,11 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value,
     }
 }
 
-
+/* Doesn't work on wayland.  */
 void
-x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
-		       Lisp_Object old_value)
-/* Set frame F's `no-focus-on-map' parameter which, if non-nil, means
- * that F's window-system window does not want to receive input focus
- * when it is mapped.  (A frame's window is mapped when the frame is
- * displayed for the first time and when the frame changes its state
- * from `iconified' or `invisible' to `visible'.)
- *
- * Some window managers may not honor this parameter. */
+pgtk_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
+			  Lisp_Object old_value)
 {
-  /* doesn't work on wayland. */
-
   if (!EQ (new_value, old_value))
     {
       xg_set_no_focus_on_map (f, new_value);
@@ -1045,36 +1012,16 @@ x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
 }
 
 void
-x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
-		       Lisp_Object old_value)
-/*  Set frame F's `no-accept-focus' parameter which, if non-nil, hints
- * that F's window-system window does not want to receive input focus
- * via mouse clicks or by moving the mouse into it.
- *
- * If non-nil, this may have the unwanted side-effect that a user cannot
- * scroll a non-selected frame with the mouse.
- *
- * Some window managers may not honor this parameter. */
+pgtk_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
+			  Lisp_Object old_value)
 {
-  /* doesn't work on wayland. */
-
   xg_set_no_accept_focus (f, new_value);
   FRAME_NO_ACCEPT_FOCUS (f) = !NILP (new_value);
 }
 
 void
-x_set_z_group (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
-/* Set frame F's `z-group' parameter.  If `above', F's window-system
-   window is displayed above all windows that do not have the `above'
-   property set.  If nil, F's window is shown below all windows that
-   have the `above' property set and above all windows that have the
-   `below' property set.  If `below', F's window is displayed below
-   all windows that do.
-
-   Some window managers may not honor this parameter. */
+pgtk_set_z_group (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
-  /* doesn't work on wayland. */
-
   if (!FRAME_GTK_OUTER_WIDGET (f))
     return;
 
@@ -1135,7 +1082,7 @@ pgtk_initialize_display_info (struct pgtk_display_info *dpyinfo)
    face.  */
 
 static void
-x_set_cursor_gc (struct glyph_string *s)
+pgtk_set_cursor_gc (struct glyph_string *s)
 {
   if (s->font == FRAME_FONT (s->f)
       && s->face->background == FRAME_BACKGROUND_PIXEL (s->f)
@@ -1173,7 +1120,7 @@ x_set_cursor_gc (struct glyph_string *s)
 /* Set up S->gc of glyph string S for drawing text in mouse face.  */
 
 static void
-x_set_mouse_face_gc (struct glyph_string *s)
+pgtk_set_mouse_face_gc (struct glyph_string *s)
 {
   prepare_face_for_display (s->f, s->face);
 
@@ -1202,7 +1149,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
    matrix was built, so there isn't much to do, here.  */
 
 static void
-x_set_mode_line_face_gc (struct glyph_string *s)
+pgtk_set_mode_line_face_gc (struct glyph_string *s)
 {
   s->xgcv.foreground = s->face->foreground;
   s->xgcv.background = s->face->background;
@@ -1214,7 +1161,7 @@ x_set_mode_line_face_gc (struct glyph_string *s)
    pattern.  */
 
 static void
-x_set_glyph_string_gc (struct glyph_string *s)
+pgtk_set_glyph_string_gc (struct glyph_string *s)
 {
   prepare_face_for_display (s->f, s->face);
 
@@ -1226,17 +1173,17 @@ x_set_glyph_string_gc (struct glyph_string *s)
     }
   else if (s->hl == DRAW_INVERSE_VIDEO)
     {
-      x_set_mode_line_face_gc (s);
+      pgtk_set_mode_line_face_gc (s);
       s->stippled_p = s->face->stipple != 0;
     }
   else if (s->hl == DRAW_CURSOR)
     {
-      x_set_cursor_gc (s);
+      pgtk_set_cursor_gc (s);
       s->stippled_p = false;
     }
   else if (s->hl == DRAW_MOUSE_FACE)
     {
-      x_set_mouse_face_gc (s);
+      pgtk_set_mouse_face_gc (s);
       s->stippled_p = s->face->stipple != 0;
     }
   else if (s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
@@ -1254,7 +1201,7 @@ x_set_glyph_string_gc (struct glyph_string *s)
    line or menu if we don't have X toolkit support.  */
 
 static void
-x_set_glyph_string_clipping (struct glyph_string *s, cairo_t * cr)
+pgtk_set_glyph_string_clipping (struct glyph_string *s, cairo_t * cr)
 {
   XRectangle r[2];
   int n = get_glyph_string_clip_rects (s, r, 2);
@@ -1275,8 +1222,8 @@ x_set_glyph_string_clipping (struct glyph_string *s, cairo_t * cr)
    the area of SRC.  */
 
 static void
-x_set_glyph_string_clipping_exactly (struct glyph_string *src,
-				     struct glyph_string *dst, cairo_t * cr)
+pgtk_set_glyph_string_clipping_exactly (struct glyph_string *src,
+					struct glyph_string *dst, cairo_t * cr)
 {
   dst->clip[0].x = src->x;
   dst->clip[0].y = src->y;
@@ -1813,8 +1760,8 @@ x_erase_corners_for_relief (struct frame *f, unsigned long color, int x,
    be allocated, use DEFAULT_PIXEL, instead.  */
 
 static void
-x_setup_relief_color (struct frame *f, struct relief *relief, double factor,
-		      int delta, unsigned long default_pixel)
+pgtk_setup_relief_color (struct frame *f, struct relief *relief, double factor,
+			 int delta, unsigned long default_pixel)
 {
   Emacs_GC xgcv;
   struct pgtk_output *di = FRAME_X_OUTPUT (f);
@@ -1833,7 +1780,7 @@ x_setup_relief_color (struct frame *f, struct relief *relief, double factor,
 /* Set up colors for the relief lines around glyph string S.  */
 
 static void
-x_setup_relief_colors (struct glyph_string *s)
+pgtk_setup_relief_colors (struct glyph_string *s)
 {
   struct pgtk_output *di = FRAME_X_OUTPUT (s->f);
   unsigned long color;
@@ -1853,17 +1800,17 @@ x_setup_relief_colors (struct glyph_string *s)
   if (TRUE)
     {
       di->relief_background = color;
-      x_setup_relief_color (s->f, &di->white_relief, 1.2, 0x8000,
-			    WHITE_PIX_DEFAULT (s->f));
-      x_setup_relief_color (s->f, &di->black_relief, 0.6, 0x4000,
-			    BLACK_PIX_DEFAULT (s->f));
+      pgtk_setup_relief_color (s->f, &di->white_relief, 1.2, 0x8000,
+			       WHITE_PIX_DEFAULT (s->f));
+      pgtk_setup_relief_color (s->f, &di->black_relief, 0.6, 0x4000,
+			       BLACK_PIX_DEFAULT (s->f));
     }
 }
 
 
 static void
-x_set_clip_rectangles (struct frame *f, cairo_t * cr, XRectangle * rectangles,
-		       int n)
+pgtk_set_clip_rectangles (struct frame *f, cairo_t *cr,
+			  XRectangle *rectangles, int n)
 {
   if (n > 0)
     {
@@ -1909,7 +1856,7 @@ x_draw_relief_rect (struct frame *f,
       bottom_right_color = FRAME_X_OUTPUT (f)->white_relief.xgcv.foreground;
     }
 
-  x_set_clip_rectangles (f, cr, clip_rect, 1);
+  pgtk_set_clip_rectangles (f, cr, clip_rect, 1);
 
   if (left_p)
     {
@@ -1985,7 +1932,7 @@ x_draw_box_rect (struct glyph_string *s,
   foreground_backup = s->xgcv.foreground;
   s->xgcv.foreground = s->face->box_color;
 
-  x_set_clip_rectangles (s->f, cr, clip_rect, 1);
+  pgtk_set_clip_rectangles (s->f, cr, clip_rect, 1);
 
   /* Top.  */
   pgtk_fill_rectangle (s->f, s->xgcv.foreground,
@@ -2055,7 +2002,7 @@ x_draw_glyph_string_box (struct glyph_string *s)
 		     vwidth, left_p, right_p, &clip_rect);
   else
     {
-      x_setup_relief_colors (s);
+      pgtk_setup_relief_colors (s);
       x_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y, hwidth,
 			  vwidth, raised_p, true, true, left_p, right_p,
 			  &clip_rect);
@@ -2219,7 +2166,7 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->slice.y + s->slice.height == s->img->height)
     y1 += thick + extra_y, bot_p = true;
 
-  x_setup_relief_colors (s);
+  pgtk_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
   x_draw_relief_rect (s->f, x, y, x1, y1, thick, thick, raised_p,
 		      top_p, bot_p, left_p, right_p, &r);
@@ -2303,7 +2250,7 @@ x_draw_image_foreground (struct glyph_string *s)
   if (s->img->cr_data)
     {
       cairo_t *cr = pgtk_begin_cr_clip (s->f);
-      x_set_glyph_string_clipping (s, cr);
+      pgtk_set_glyph_string_clipping (s, cr);
       x_cr_draw_image (s->f, &s->xgcv, s->img->cr_data,
 		       s->slice.x, s->slice.y, s->slice.width, s->slice.height,
 		       x, y, true);
@@ -2455,7 +2402,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	    x = s->x;
 	  if (s->row->mouse_face_p && cursor_in_mouse_face_p (s->w))
 	    {
-	      x_set_mouse_face_gc (s);
+	      pgtk_set_mouse_face_gc (s);
 	      color = s->xgcv.foreground;
 	    }
 	  else
@@ -2464,7 +2411,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
 
 	  get_glyph_string_clip_rect (s, &r);
-	  x_set_clip_rectangles (s->f, cr, &r, 1);
+	  pgtk_set_clip_rectangles (s->f, cr, &r, 1);
 
 	  if (s->face->stipple)
 	    {
@@ -2519,8 +2466,8 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	if (next->first_glyph->type != IMAGE_GLYPH)
 	  {
 	    cairo_t *cr = pgtk_begin_cr_clip (next->f);
-	    x_set_glyph_string_gc (next);
-	    x_set_glyph_string_clipping (next, cr);
+	    pgtk_set_glyph_string_gc (next);
+	    pgtk_set_glyph_string_clipping (next, cr);
 	    if (next->first_glyph->type == STRETCH_GLYPH)
 	      x_draw_stretch_glyph_string (next);
 	    else
@@ -2531,7 +2478,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
     }
 
   /* Set up S->gc, set clipping and draw S.  */
-  x_set_glyph_string_gc (s);
+  pgtk_set_glyph_string_gc (s);
 
   cairo_t *cr = pgtk_begin_cr_clip (s->f);
 
@@ -2543,10 +2490,10 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	  || s->first_glyph->type == COMPOSITE_GLYPH))
 
     {
-      x_set_glyph_string_clipping (s, cr);
+      pgtk_set_glyph_string_clipping (s, cr);
       x_draw_glyph_string_background (s, true);
       x_draw_glyph_string_box (s);
-      x_set_glyph_string_clipping (s, cr);
+      pgtk_set_glyph_string_clipping (s, cr);
       relief_drawn_p = true;
     }
   else if (!s->clip_head	/* draw_glyphs didn't specify a clip mask. */
@@ -2556,9 +2503,9 @@ pgtk_draw_glyph_string (struct glyph_string *s)
     /* We must clip just this glyph.  left_overhang part has already
        drawn when s->prev was drawn, and right_overhang part will be
        drawn later when s->next is drawn. */
-      x_set_glyph_string_clipping_exactly (s, s, cr);
+      pgtk_set_glyph_string_clipping_exactly (s, s, cr);
   else
-      x_set_glyph_string_clipping (s, cr);
+      pgtk_set_glyph_string_clipping (s, cr);
 
   switch (s->first_glyph->type)
     {
@@ -2749,9 +2696,9 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		enum draw_glyphs_face save = prev->hl;
 
 		prev->hl = s->hl;
-		x_set_glyph_string_gc (prev);
+		pgtk_set_glyph_string_gc (prev);
 		cairo_save (cr);
-		x_set_glyph_string_clipping_exactly (s, prev, cr);
+		pgtk_set_glyph_string_clipping_exactly (s, prev, cr);
 		if (prev->first_glyph->type == CHAR_GLYPH)
 		  x_draw_glyph_string_foreground (prev);
 		else
@@ -2775,9 +2722,9 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		enum draw_glyphs_face save = next->hl;
 
 		next->hl = s->hl;
-		x_set_glyph_string_gc (next);
+		pgtk_set_glyph_string_gc (next);
 		cairo_save (cr);
-		x_set_glyph_string_clipping_exactly (s, next, cr);
+		pgtk_set_glyph_string_clipping_exactly (s, next, cr);
 		if (next->first_glyph->type == CHAR_GLYPH)
 		  x_draw_glyph_string_foreground (next);
 		else
@@ -4133,16 +4080,16 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f,
    displaying PORTION out of a whole WHOLE, and our position POSITION.  */
 
 static void
-x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion,
-				int position, int whole)
+pgtk_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion,
+				   int position, int whole)
 {
   xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 }
 
 static void
-x_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
-					   int portion, int position,
-					   int whole)
+pgtk_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
+					      int portion, int position,
+					      int whole)
 {
   xg_set_toolkit_horizontal_scroll_bar_thumb (bar, portion, position, whole);
 }
@@ -4294,7 +4241,7 @@ pgtk_set_vertical_scroll_bar (struct window *w, int portion, int whole,
       unblock_input ();
     }
 
-  x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
+  pgtk_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 
   XSETVECTOR (barobj, bar);
   wset_vertical_scroll_bar (w, barobj);
@@ -4375,7 +4322,7 @@ pgtk_set_horizontal_scroll_bar (struct window *w, int portion, int whole,
       unblock_input ();
     }
 
-  x_set_toolkit_horizontal_scroll_bar_thumb (bar, portion, position, whole);
+  pgtk_set_toolkit_horizontal_scroll_bar_thumb (bar, portion, position, whole);
 
   XSETVECTOR (barobj, bar);
   wset_horizontal_scroll_bar (w, barobj);
@@ -4673,7 +4620,7 @@ set_opacity_recursively (GtkWidget * w, gpointer data)
 }
 
 static void
-x_set_frame_alpha (struct frame *f)
+pgtk_set_frame_alpha (struct frame *f)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   double alpha = 1.0;
@@ -4739,7 +4686,7 @@ frame_highlight (struct frame *f)
 
   unblock_input ();
   gui_update_cursor (f, true);
-  x_set_frame_alpha (f);
+  pgtk_set_frame_alpha (f);
 }
 
 static void
@@ -4775,7 +4722,7 @@ frame_unhighlight (struct frame *f)
 
   unblock_input ();
   gui_update_cursor (f, true);
-  x_set_frame_alpha (f);
+  pgtk_set_frame_alpha (f);
 }
 
 
@@ -4929,7 +4876,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->query_colors = pgtk_query_colors;
   terminal->get_focus_frame = x_get_focus_frame;
   terminal->focus_frame_hook = pgtk_focus_frame;
-  terminal->set_frame_offset_hook = x_set_offset;
+  terminal->set_frame_offset_hook = pgtk_set_offset;
   terminal->free_pixmap = pgtk_free_pixmap;
   terminal->toolkit_position_hook = pgtk_toolkit_position;
 
@@ -5587,9 +5534,9 @@ map_event (GtkWidget *widget,
 	  /* The `z-group' is reset every time a frame becomes
 	     invisible.  Handle this here.  */
 	  if (FRAME_Z_GROUP (f) == z_group_above)
-	    x_set_z_group (f, Qabove, Qnil);
+	    pgtk_set_z_group (f, Qabove, Qnil);
 	  else if (FRAME_Z_GROUP (f) == z_group_below)
-	    x_set_z_group (f, Qbelow, Qnil);
+	    pgtk_set_z_group (f, Qbelow, Qnil);
 	}
 
       SET_FRAME_VISIBLE (f, 1);

@@ -62,19 +62,14 @@ pgtk_menu_set_in_use (bool in_use)
     struct frame *f = XFRAME (frame);
 
     if (in_use && FRAME_Z_GROUP_ABOVE (f))
-      x_set_z_group (f, Qabove_suspended, Qabove);
+      pgtk_set_z_group (f, Qabove_suspended, Qabove);
     else if (!in_use && FRAME_Z_GROUP_ABOVE_SUSPENDED (f))
-      x_set_z_group (f, Qabove, Qabove_suspended);
+      pgtk_set_z_group (f, Qabove, Qabove_suspended);
   }
 }
 
 DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
-       doc: /* Start key navigation of the menu bar in FRAME.
-       This initially opens the first menu bar item and you can then navigate with the
-       arrow keys, select a menu entry with the return key or cancel with the
-       escape key.  If FRAME has no menu bar this function does nothing.
-
-       If FRAME is nil or not given, use the selected frame.  */)
+       doc: /* SKIP: real doc in USE_GTK definition in xmenu.c.  */)
   (Lisp_Object frame)
 {
   GtkWidget *menubar;

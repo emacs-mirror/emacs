@@ -523,14 +523,10 @@ extern int x_display_pixel_width (struct pgtk_display_info *);
 
 /* Implemented in pgtkterm.c */
 extern void x_destroy_window (struct frame *f);
-extern void x_set_parent_frame (struct frame *f, Lisp_Object new_value,
-				Lisp_Object old_value);
-extern void x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
-				   Lisp_Object old_value);
-extern void x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
-				   Lisp_Object old_value);
-extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
-			   Lisp_Object old_value);
+extern void pgtk_set_parent_frame (struct frame *f, Lisp_Object, Lisp_Object);
+extern void pgtk_set_no_focus_on_map (struct frame *, Lisp_Object, Lisp_Object);
+extern void pgtk_set_no_accept_focus (struct frame *, Lisp_Object, Lisp_Object);
+extern void pgtk_set_z_group (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Cairo related functions implemented in pgtkterm.c */
 extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int, bool);
