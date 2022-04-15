@@ -2596,13 +2596,11 @@ default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 
 @defopt display-buffer-alist
 The value of this option is an alist mapping conditions to display
-actions.  Each condition may be either a regular expression matching a
-buffer name or a function that takes two arguments: a buffer name and
-the @var{action} argument passed to @code{display-buffer}.  If either
-the name of the buffer passed to @code{display-buffer} matches a
-regular expression in this alist, or the function specified by a
-condition returns non-@code{nil}, then @code{display-buffer} uses the
-corresponding display action to display the buffer.
+actions.  Each condition is passed to @code{buffer-match-p}, along
+with the buffer name and the @var{action} argument passed to
+@code{display-buffer}.  If it returns a non-nil value, then
+@code{display-buffer} uses the corresponding display action to display
+the buffer.
 @end defopt
 
 @defopt display-buffer-base-action

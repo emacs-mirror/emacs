@@ -7440,9 +7440,9 @@ Its value takes effect before processing the ACTION argument of
 If non-nil, this is an alist of elements (CONDITION . ACTION),
 where:
 
- CONDITION is either a regexp matching buffer names, or a
-  function that takes two arguments - a buffer name and the
-  ACTION argument of `display-buffer' - and returns a boolean.
+ CONDITION is passed to `buffer-match-p', along with the buffer
+  that is to be displayed and the ACTION argument of
+  `display-buffer', to check if ACTION should be used.
 
  ACTION is a cons cell (FUNCTIONS . ALIST), where FUNCTIONS is an
   action function or a list of action functions and ALIST is an
@@ -7495,14 +7495,14 @@ all fail.  It should never be set by programs or users.  See
 `display-buffer'.")
 (put 'display-buffer-fallback-action 'risky-local-variable t)
 
-(defun display-buffer-assq-regexp (buffer-name alist action)
+(defun display-buffer-assq-regexp (buffer-or-name alist action)
   "Retrieve ALIST entry corresponding to BUFFER-NAME.
-This returns the cdr of the alist entry ALIST if either its key
-satisfied a BUFFER-NAME per `buffer-match'.  ACTION should have
-the form of the action argument passed to `display-buffer'."
+This returns the cdr of the alist entry ALIST if key and
+buffer-or-name satisfy `buffer-match-p'.  ACTION should have the
+form of the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
-      (when (buffer-match-p (car entry) buffer-name action)
+      (when (buffer-match-p (car entry) buffer-or-name action)
         (throw 'match (cdr entry))))))
 
 (defvar display-buffer--same-window-action
@@ -7672,7 +7672,7 @@ specified by the ACTION argument."
       ;; Otherwise, use the defined actions.
       (let* ((user-action
 	      (display-buffer-assq-regexp
-	       (buffer-name buffer) display-buffer-alist action))
+	       buffer display-buffer-alist action))
              (special-action (display-buffer--special-action buffer))
 	     ;; Extra actions from the arguments to this function:
 	     (extra-action

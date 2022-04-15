@@ -1492,6 +1492,13 @@ them towards or away from each other.
 This hook is run before 'x-popup-menu' is about to display a
 deck-of-cards menu on screen.
 
+** New function 'buffer-match-p'
+Check if a buffer matches a condition, specified using a DSL.
+
+** New function 'match-buffers'
+Use 'buffer-match-p' to gather a list of buffers that match a
+condition.
+
 ** Text security and suspiciousness
 
 +++
