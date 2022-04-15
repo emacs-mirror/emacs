@@ -115,44 +115,7 @@ haiku_toolkit_position (struct frame *f, int x, int y,
 static void
 haiku_delete_terminal (struct terminal *terminal)
 {
-  struct haiku_display_info *dpyinfo = terminal->display_info.haiku;
-  struct terminal *t;
-
-  if (!terminal->name)
-    return;
-
-  block_input ();
-
-  be_app_quit ();
-  delete_port (port_application_to_emacs);
-
-  BCursor_delete (dpyinfo->text_cursor);
-  BCursor_delete (dpyinfo->nontext_cursor);
-  BCursor_delete (dpyinfo->modeline_cursor);
-  BCursor_delete (dpyinfo->hand_cursor);
-  BCursor_delete (dpyinfo->hourglass_cursor);
-  BCursor_delete (dpyinfo->horizontal_drag_cursor);
-  BCursor_delete (dpyinfo->vertical_drag_cursor);
-  BCursor_delete (dpyinfo->left_edge_cursor);
-  BCursor_delete (dpyinfo->top_left_corner_cursor);
-  BCursor_delete (dpyinfo->top_edge_cursor);
-  BCursor_delete (dpyinfo->top_right_corner_cursor);
-  BCursor_delete (dpyinfo->right_edge_cursor);
-  BCursor_delete (dpyinfo->bottom_right_corner_cursor);
-  BCursor_delete (dpyinfo->bottom_edge_cursor);
-  BCursor_delete (dpyinfo->bottom_left_corner_cursor);
-  BCursor_delete (dpyinfo->no_cursor);
-
-  /* Close all frames and delete the generic struct terminal.  */
-  for (t = terminal_list; t; t = t->next_terminal)
-    {
-      if (t->type == output_haiku && t->display_info.haiku == dpyinfo)
-	{
-	  delete_terminal (t);
-	  break;
-	}
-    }
-  unblock_input ();
+  error ("The Haiku terminal cannot be deleted");
 }
 
 static const char *

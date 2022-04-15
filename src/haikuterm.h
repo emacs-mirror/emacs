@@ -260,8 +260,6 @@ extern void syms_of_haikufont (void);
 extern void syms_of_haikuselect (void);
 extern void init_haiku_select (void);
 
-extern void be_app_quit (void);
-
 extern void haiku_iconify_frame (struct frame *);
 extern void haiku_visualize_frame (struct frame *);
 extern void haiku_unvisualize_frame (struct frame *);
