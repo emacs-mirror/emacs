@@ -81,6 +81,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "haiku_support.h"
 
+/* Some messages that Emacs sends to itself.  */
 enum
   {
     SCROLL_BAR_UPDATE	= 3000,
@@ -90,6 +91,29 @@ enum
     SHOW_MENU_BAR	= 3004,
     BE_MENU_BAR_OPEN	= 3005,
     QUIT_APPLICATION	= 3006,
+  };
+
+/* X11 keysyms that we use.  */
+enum
+  {
+    KEY_BACKSPACE   = 0xff08,
+    KEY_TAB	    = 0xff09,
+    KEY_RETURN	    = 0xff0d,
+    KEY_PAUSE	    = 0xff13,
+    KEY_ESCAPE	    = 0xff1b,
+    KEY_DELETE	    = 0xffff,
+    KEY_HOME	    = 0xff50,
+    KEY_LEFT_ARROW  = 0xff51,
+    KEY_UP_ARROW    = 0xff52,
+    KEY_RIGHT_ARROW = 0xff53,
+    KEY_DOWN_ARROW  = 0xff54,
+    KEY_PAGE_UP	    = 0xff55,
+    KEY_PAGE_DOWN   = 0xff56,
+    KEY_END	    = 0xff57,
+    KEY_PRINT	    = 0xff61,
+    KEY_INSERT	    = 0xff63,
+    /* This is used to indicate the first function key.  */
+    KEY_F1	    = 0xffbe,
   };
 
 static color_space dpy_color_space = B_NO_COLOR_SPACE;
@@ -219,62 +243,62 @@ keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
   switch (raw)
     {
     case B_BACKSPACE:
-      *code = XK_BackSpace;
+      *code = KEY_BACKSPACE;
       break;
     case B_RETURN:
-      *code = XK_Return;
+      *code = KEY_RETURN;
       break;
     case B_TAB:
-      *code = XK_Tab;
+      *code = KEY_TAB;
       break;
     case B_ESCAPE:
-      *code = XK_Escape;
+      *code = KEY_ESCAPE;
       break;
     case B_LEFT_ARROW:
-      *code = XK_Left;
+      *code = KEY_LEFT_ARROW;
       break;
     case B_RIGHT_ARROW:
-      *code = XK_Right;
+      *code = KEY_RIGHT_ARROW;
       break;
     case B_UP_ARROW:
-      *code = XK_Up;
+      *code = KEY_UP_ARROW;
       break;
     case B_DOWN_ARROW:
-      *code = XK_Down;
+      *code = KEY_DOWN_ARROW;
       break;
     case B_INSERT:
-      *code = XK_Insert;
+      *code = KEY_INSERT;
       break;
     case B_DELETE:
-      *code = XK_Delete;
+      *code = KEY_DELETE;
       break;
     case B_HOME:
-      *code = XK_Home;
+      *code = KEY_HOME;
       break;
     case B_END:
-      *code = XK_End;
+      *code = KEY_END;
       break;
     case B_PAGE_UP:
-      *code = XK_Page_Up;
+      *code = KEY_PAGE_UP;
       break;
     case B_PAGE_DOWN:
-      *code = XK_Page_Down;
+      *code = KEY_PAGE_DOWN;
       break;
 
     case B_FUNCTION_KEY:
-      *code = XK_F1 + key - 2;
+      *code = KEY_F1 + key - 2;
 
-      if (*code - XK_F1 == 12)
-	*code = XK_Print;
-      else if (*code - XK_F1 == 13)
+      if (*code - KEY_F1 == 12)
+	*code = KEY_PRINT;
+      else if (*code - KEY_F1 == 13)
 	/* Okay, Scroll Lock is a bit too much: keyboard.c doesn't
 	   know about it yet, and it shouldn't, since that's a
 	   modifier key.
 
-	   *code = XK_Scroll_Lock; */
+	   *code = KEY_SCROLL_LOCK; */
 	return -1;
-      else if (*code - XK_F1 == 14)
-	*code = XK_Pause;
+      else if (*code - KEY_F1 == 14)
+	*code = KEY_PAUSE;
 
       break;
 
