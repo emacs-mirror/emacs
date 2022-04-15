@@ -1062,6 +1062,21 @@ modern fonts are used, such as Noto Emoji or Ebrima.
 The solution is to switch to a configuration that uses HarfBuzz as its
 shaping engine, where these problems don't exist.
 
+** On MS-Windows, selecting some fonts as the default font doesn't work.
+
+This can happen if you select font variants such as "Light" or "Thin"
+or "Semibold" or "Heavy", and some others.  The APIs used by Emacs on
+Windows to enumerate fonts in a font family consider only 4 font
+variants to belong to the same family: Regular, Italic, Bold, and
+Bold-Italic.  All the other variants aren't returned by those APIs
+when we request to list all the fonts in a family, and thus aren't
+considered by Emacs to belong to the family.  So any font variant that
+is not one of those 4 will likely not work as expected; in most cases
+Emacs will select some other font instead.
+
+The only workaround is not to choose such font variants as the default
+font when running Emacs on MS-Windows.
+
 * Internationalization problems
 
 ** M-{ does not work on a Spanish PC keyboard.
