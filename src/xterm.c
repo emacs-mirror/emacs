@@ -3615,8 +3615,9 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 		x_dnd_old_window_attrs.your_event_mask);
 
 #ifdef HAVE_XKB
-  XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-		   XkbStateNotifyMask, 0);
+  if (FRAME_DISPLAY_INFO (f)->supports_xkb)
+    XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+		     XkbStateNotifyMask, 0);
 #endif
   unblock_input ();
 
@@ -9760,8 +9761,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			FRAME_DISPLAY_INFO (f)->root_window,
 			root_window_attrs.your_event_mask);
 #ifdef HAVE_XKB
-	  XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-			   XkbStateNotifyMask, 0);
+	  if (FRAME_DISPLAY_INFO (f)->supports_xkb)
+	    XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+			     XkbStateNotifyMask, 0);
 #endif
 	  quit ();
 	}
@@ -9781,8 +9783,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		FRAME_DISPLAY_INFO (f)->root_window,
 		root_window_attrs.your_event_mask);
 #ifdef HAVE_XKB
-  XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-		   XkbStateNotifyMask, 0);
+  if (FRAME_DISPLAY_INFO (f)->supports_xkb)
+    XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+		     XkbStateNotifyMask, 0);
 #endif
   unblock_input ();
 
