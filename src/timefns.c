@@ -1221,7 +1221,8 @@ time_cmp (Lisp_Object a, Lisp_Object b)
 
   /* Compare nil to nil correctly, and handle other eq values quicker
      while we're at it.  Compare here rather than earlier, to handle
-     NaNs and check formats.  */
+     NaNs.  This means (time-equal-p X X) does not signal an error if
+     X is not a valid time value, but that's OK.  */
   if (EQ (a, b))
     return 0;
 
