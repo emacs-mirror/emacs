@@ -23847,7 +23847,7 @@ void
 mark_xterm (void)
 {
   Lisp_Object val;
-#ifdef HAVE_XINPUT2
+#if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS
   struct x_display_info *dpyinfo;
   int i;
 #endif
