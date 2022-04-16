@@ -378,6 +378,20 @@ window.  You can display the same list with @kbd{?}
 used with the completion list:
 
 @table @kbd
+@vindex minibuffer-completion-auto-choose
+@item M-<down>
+@itemx @key{M-<up>}
+These keys will navigate through the completions displayed in the
+completions buffer.  When @code{minibuffer-completion-auto-choose} is
+non-@code{nil} (which is the default), using these commands will
+automatically insert the current completion candidate in the
+minibuffer.  If this user option is @code{nil}, the keys will navigate
+the same way as before, but won't automatically insert the candidate
+in the minibuffer.  Instead you have to use the @key{M-RET} command to
+do that.  With a prefix argument, @key{C-u M-RET} inserts the
+currently active candidate to the minibuffer, but doesn't exit the
+minibuffer.
+
 @findex switch-to-completions
 @item M-v
 @itemx @key{PageUp}
