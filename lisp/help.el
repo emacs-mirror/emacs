@@ -453,10 +453,9 @@ With argument, display info only for the selected version."
 		((< vn 18) "NEWS.1-17")
 		(t (format "NEWS.%d" vn))))
 	 res)
-    (find-file (expand-file-name file data-directory))
-    (setq buffer-read-only t)
-    (emacs-news-mode)
-    (widen)
+    (let ((inhibit-local-variables-regexps '(".*")))
+      (find-file (expand-file-name file data-directory))
+      (emacs-news-view-mode))
     (goto-char (point-min))
     (when (stringp version)
       (when (re-search-forward

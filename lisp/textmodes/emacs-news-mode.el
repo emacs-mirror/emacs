@@ -50,18 +50,26 @@
   `(("^---$" 0 'emacs-news-does-not-need-documentation)
     ("^\\+\\+\\+$" 0 'emacs-news-is-documented)))
 
-;;;###autoload
-(define-derived-mode emacs-news-mode text-mode "NEWS"
-  "Major mode for editing and viewind the Emacs NEWS file."
+(defun emacs-news--mode-common ()
   (setq-local font-lock-defaults '(emacs-news-mode-font-lock-keywords t))
   (setq-local outline-regexp "^\\*+ "
               outline-minor-mode-cycle t
               outline-minor-mode-highlight 'append)
+  (outline-minor-mode))
+
+;;;###autoload
+(define-derived-mode emacs-news-mode text-mode "NEWS"
+  "Major mode for editing the Emacs NEWS file."
   (setq-local fill-paragraph-function #'emacs-news--fill-paragraph)
-  (outline-minor-mode 1)
-  (when buffer-read-only
-    (emacs-news--buttonize)
-    (button-mode)))
+  (emacs-news--mode-common))
+
+;;;###autoload
+(define-derived-mode emacs-news-view-mode special-mode "NEWS"
+  "Major mode for viewing the Emacs NEWS file."
+  (setq buffer-read-only t)
+  (emacs-news--buttonize)
+  (button-mode)
+  (emacs-news--mode-common))
 
 (defun emacs-news--fill-paragraph (&optional justify)
   (cond
