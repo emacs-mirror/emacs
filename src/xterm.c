@@ -18968,6 +18968,13 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
   bool event_found = false;
   struct x_display_info *dpyinfo = terminal->display_info.x;
 
+  /* Don't allow XTread_socket to do anything if drag-and-drop is in
+     progress.  If unblock_input causes XTread_socket to be called and
+     read X events while the drag-and-drop event loop is in progress,
+     things can go wrong very quick.  */
+  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
+    return 0;
+
   block_input ();
 
   /* For debugging, this gives a way to fake an I/O error.  */
