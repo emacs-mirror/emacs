@@ -626,16 +626,29 @@ function argument.  If DATA isn't present (or is nil), the button
 itself will be used instead as the function argument.
 
 If HELP-ECHO, use that as the `help-echo' property."
-  (propertize string
-              'face 'button
-              'mouse-face 'highlight
-              'help-echo help-echo
-              'button t
-              'follow-link t
-              'category t
-              'button-data data
-              'keymap button-map
-              'action callback))
+  (apply #'propertize string
+         (button--properties callback data help-echo)))
+
+(defun button--properties (callback data help-echo)
+  (list 'face 'button
+        'font-lock-face 'button
+        'mouse-face 'highlight
+        'help-echo help-echo
+        'button t
+        'follow-link t
+        'category t
+        'button-data data
+        'keymap button-map
+        'action callback))
+
+(defun buttonize-region (start end callback &optional data help-echo)
+  "Make the region between START and END into a button.
+When clicked, CALLBACK will be called with the DATA as the
+function argument.  If DATA isn't present (or is nil), the button
+itself will be used instead as the function argument.
+
+If HELP-ECHO, use that as the `help-echo' property."
+  (add-text-properties start end (button--properties callback data help-echo)))
 
 (provide 'button)
 

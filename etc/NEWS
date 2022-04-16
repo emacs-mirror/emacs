@@ -1378,6 +1378,10 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New convenience function 'buttonize-region'.
+This works like 'buttonize', but for a region instead of a string.
+
++++
 ** 'macroexp-let2*' can omit 'test' arg and use single-var bindings.
 
 +++
