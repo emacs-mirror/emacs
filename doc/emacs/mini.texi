@@ -690,6 +690,12 @@ changed by changing the @code{completions-format} user option.  If
 @code{vertical}, sort the completions vertically in columns instead,
 and if @code{one-column}, just use a single column.
 
+@vindex completions-sort
+  This user option controls how completions are sorted in the
+@samp{*Completions*} buffer.  The default is @code{alphabetical}, but
+it can also be a function which will be called with the list of
+completions, and should return the list in the desired order.
+
 @vindex completions-max-height
   When @code{completions-max-height} is non-@code{nil}, it limits the
 size of the completions window.  It is specified in lines and include
