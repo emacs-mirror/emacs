@@ -1896,22 +1896,23 @@ rename them using `vc-rename-file'."
   "Rename FILE to NEWNAME.
 Signal a `file-already-exists' error if a file NEWNAME already exists
 unless OK-IF-ALREADY-EXISTS is non-nil."
-  (dired-handle-overwrite newname)
-  (dired-maybe-create-dirs (file-name-directory newname))
-  (if (and dired-vc-rename-file
-           (vc-backend file)
-           (ignore-errors (vc-responsible-backend newname)))
-      (vc-rename-file file newname)
-    ;; error is caught in -create-files
-    (rename-file file newname ok-if-already-exists))
-  ;; Silently rename the visited file of any buffer visiting this file.
-  (and (get-file-buffer file)
-       (with-current-buffer (get-file-buffer file)
-	 (set-visited-file-name newname nil t)))
-  (dired-remove-file file)
-  ;; See if it's an inserted subdir, and rename that, too.
-  (when (file-directory-p file)
-    (dired-rename-subdir file newname)))
+  (let ((file-is-dir-p (file-directory-p file)))
+    (dired-handle-overwrite newname)
+    (dired-maybe-create-dirs (file-name-directory newname))
+    (if (and dired-vc-rename-file
+             (vc-backend file)
+             (ignore-errors (vc-responsible-backend newname)))
+        (vc-rename-file file newname)
+      ;; error is caught in -create-files
+      (rename-file file newname ok-if-already-exists))
+    ;; Silently rename the visited file of any buffer visiting this file.
+    (and (get-file-buffer file)
+         (with-current-buffer (get-file-buffer file)
+	   (set-visited-file-name newname nil t)))
+    (dired-remove-file file)
+    ;; See if it's an inserted subdir, and rename that, too.
+    (when file-is-dir-p
+      (dired-rename-subdir file newname))))
 
 (defun dired-rename-subdir (from-dir to-dir)
   (setq from-dir (file-name-as-directory from-dir)
@@ -1924,7 +1925,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while blist
       (with-current-buffer (car blist)
 	(if (and buffer-file-name
-		 (file-in-directory-p buffer-file-name expanded-from-dir))
+                 (dired-in-this-tree-p buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
 		  (to-file (replace-regexp-in-string
 			    (concat "^" (regexp-quote from-dir))
@@ -1943,7 +1944,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while alist
       (setq elt (car alist)
 	    alist (cdr alist))
-      (if (file-in-directory-p (car elt) expanded-dir)
+      (if (dired-in-this-tree-p (car elt) expanded-dir)
 	  ;; ELT's subdir is affected by the rename
 	  (dired-rename-subdir-2 elt dir to)))
     (if (equal dir default-directory)

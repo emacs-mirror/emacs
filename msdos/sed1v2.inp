@@ -198,6 +198,8 @@ s/ *@WEBP_LIBS@//
 /^PAXCTL_dumped *=/s/=.*$/=/
 /^PAXCTL_notdumped *=/s/=.*$/=/
 /^DUMPING *=/s/@DUMPING@/unexec/
+/^[ \t]*MAKE_PDUMPER_FINGERPRINT = *$/c\
+MAKE_PDUMPER_FINGERPRINT =
 /^lisp\.mk:/,/^$/c\
 lisp.mk: $(lispsource)/loadup.el\
 	@rm -f $@\
@@ -209,6 +211,10 @@ lisp.mk: $(lispsource)/loadup.el\
 
 /^	[ 	]*\$(AM_V_at)\$(libsrc)\/make-docfile -d/s!make-docfile!make-docfile -o $(etc)/DOC!
 / > \$(etc)\/DOC *$/s/ >.*$//
+/^\$(etc)\/DOC/,/^$/{
+  /^$/i\
+	cd ../src
+}
 /^	[ 	]*\$(AM_V_GLOBALS)\$(libsrc)\/make-docfile.*>.*globals.tmp/s!make-docfile!make-docfile -o globals.tmp!
 /^	[ 	]*\$(AM_V_GLOBALS)\$(libsrc)\/make-doc/s!>.*$!!
 /^\$(libsrc)\/make-docfile\$(EXEEXT): /i\
