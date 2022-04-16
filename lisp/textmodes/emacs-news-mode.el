@@ -40,7 +40,8 @@
   :version "29.1")
 
 (defvar-keymap emacs-news-mode-map
-  "C-c C-s" #'emacs-news-next-untagged-entry)
+  "C-c C-s" #'emacs-news-next-untagged-entry
+  "C-c C-n" #'emacs-news-count-untagged-entries)
 
 (defvar emacs-news-mode-font-lock-keywords
   `(("^---$" 0 'emacs-news-does-not-need-documentation)
@@ -91,25 +92,39 @@
     ;; progress if calling this command repeatedly.
     (forward-line 1)
     (while (and (not found)
-                (re-search-forward "\\(\\*+\\) " nil t)
-                (not (save-excursion
-                       (forward-line -1)
-                       (looking-at "---$\\|\\+\\+\\+$"))))
-      ;; We have an entry without a tag before it, but check whether
-      ;; it's a heading (which we can determine if the next entry has
-      ;; more asterisks).
-      (let ((level (length (match-string 1))))
-        (when (save-excursion
-                (re-search-forward "^\\(\\*+\\) " nil t))
-          (when (<= (length (match-string 1)) level)
-            ;; It wasn't a sub-heading, so we've found one.
-            (setq found t)))))
+                (re-search-forward "\\(\\*+\\) " nil t))
+      (unless (save-excursion
+                (forward-line -1)
+                (looking-at "---$\\|\\+\\+\\+$"))
+        ;; We have an entry without a tag before it, but check whether
+        ;; it's a heading (which we can determine if the next entry has
+        ;; more asterisks).
+        (let ((level (length (match-string 1))))
+          (when (save-excursion
+                  (re-search-forward "^\\(\\*+\\) " nil t))
+            (when (<= (length (match-string 1)) level)
+              ;; It wasn't a sub-heading, so we've found one.
+              (setq found t))))))
     (if found
         (progn
           (message "Untagged entry")
-          (beginning-of-line))
+          (beginning-of-line)
+          t)
       (message "No further untagged entries")
-      (goto-char start))))
+      (goto-char start)
+      nil)))
+
+(defun emacs-news-count-untagged-entries ()
+  "Say how many untagged entries there are in the current NEWS buffer."
+  (interactive nil emacs-news-mode)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((i 0))
+      (while (emacs-news-next-untagged-entry)
+        (setq i (1+ i)))
+      (message (if (= i 1)
+                   "There's 1 untagged entry"
+                 (format "There's %s untagged entries" i))))))
 
 (defun emacs-news--buttonize ()
   "Make manual and symbol references into buttons."
