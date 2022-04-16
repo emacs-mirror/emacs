@@ -107,6 +107,7 @@
               (setq found t))))))
     (if found
         (progn
+          (push-mark start)
           (message "Untagged entry")
           (beginning-of-line)
           t)
