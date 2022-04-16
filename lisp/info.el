@@ -5440,7 +5440,8 @@ completion alternatives to currently visited manuals."
     (progn
       (info-initialize)
       (completing-read "Manual name: "
-		       (info--manual-names current-prefix-arg)
+		       (info--filter-manual-names
+                        (info--manual-names current-prefix-arg))
 		       nil t))))
   (let ((blist (buffer-list))
 	(manual-re (concat "\\(/\\|\\`\\)" manual "\\(\\.\\|\\'\\)"))
@@ -5467,6 +5468,22 @@ completion alternatives to currently visited manuals."
       (info-initialize)
       (info (Info-find-file manual)
 	    (generate-new-buffer-name "*info*")))))
+
+(defun info--filter-manual-names (names)
+  (cl-flet ((strip (name)
+              (replace-regexp-in-string "\\([-.]info\\)?\\(\\.gz\\)?\\'"
+                                        "" name)))
+    (seq-uniq (sort (seq-filter
+                     (lambda (name)
+                       (and (not (string-match-p "info-[0-9]" name))
+                            (not (member name '("./" "../" "ChangeLog"
+                                                "NEWS" "README")))))
+                     names)
+                    ;; We prefer the shorter names ("foo" over "foo.gz").
+                    (lambda (s1 s2)
+                      (< (length s1) (length s2))))
+              (lambda (s1 s2)
+                (equal (strip s1) (strip s2))))))
 
 (defun info--manual-names (visited-only)
   (let (names)
