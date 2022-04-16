@@ -1548,7 +1548,11 @@ This hook is run before 'x-popup-menu' is about to display a
 deck-of-cards menu on screen.
 
 ** New function 'buffer-match-p'
-Check if a buffer matches a condition, specified using a DSL.
+Check if a buffer satisfies some condition.  Some examples for
+conditions can be regular expressions that match a buffer name, a
+cons-cell like (major-mode . shell-mode) that matches any buffer where
+major-mode is shell-mode or a combined with a condition like (and
+"\\`\\*.+\\*\\'" (major-mode . special-mode)).
 
 ** New function 'match-buffers'
 Use 'buffer-match-p' to gather a list of buffers that match a
