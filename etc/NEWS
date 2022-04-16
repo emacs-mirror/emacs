@@ -58,6 +58,7 @@ The file is typically installed using a file name akin to
 If a constant file name is required, the file can be renamed to
 "emacs.pdmp", and Emacs will find it during startup anyway.
 
+---
 ** Emacs now supports use of XInput 2 for input events.
 If your X server has support and you have the XInput 2 development headers
 installed, you can configure Emacs with the option '--with-xinput2' to enable
@@ -557,6 +558,7 @@ effectively dragged.
 Customize this option to limit the number of entries in the menu
 "Edit->Paste from Kill Menu".  The default is 60.
 
++++
 ** Performing a pinch gesture on a touchpad now increases the text scale.
 
 ** show-paren-mode
