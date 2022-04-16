@@ -620,7 +620,9 @@ When clicked, CALLBACK will be called with the DATA as the
 function argument.  If DATA isn't present (or is nil), the button
 itself will be used instead as the function argument.
 
-If HELP-ECHO, use that as the `help-echo' property."
+If HELP-ECHO, use that as the `help-echo' property.
+
+Also see `buttonize-region'."
   (apply #'propertize string
          (button--properties callback data help-echo)))
 
@@ -642,7 +644,9 @@ When clicked, CALLBACK will be called with the DATA as the
 function argument.  If DATA isn't present (or is nil), the button
 itself will be used instead as the function argument.
 
-If HELP-ECHO, use that as the `help-echo' property."
+If HELP-ECHO, use that as the `help-echo' property.
+
+Also see `buttonize'."
   (add-text-properties start end (button--properties callback data help-echo)))
 
 (provide 'button)
