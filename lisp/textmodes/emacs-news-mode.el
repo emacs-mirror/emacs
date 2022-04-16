@@ -41,6 +41,7 @@
 
 (defvar-keymap emacs-news-mode-map
   "C-c C-s" #'emacs-news-next-untagged-entry
+  "C-c C-r" #'emacs-news-previous-untagged-entry
   "C-c C-n" #'emacs-news-count-untagged-entries)
 
 (defvar emacs-news-mode-font-lock-keywords
@@ -83,16 +84,21 @@
    (t
     (fill-paragraph justify))))
 
-(defun emacs-news-next-untagged-entry ()
-  "Go to the next untagged NEWS entry."
-  (interactive nil emacs-news-mode)
+(defun emacs-news-next-untagged-entry (&optional reverse)
+  "Go to the next untagged NEWS entry.
+If REVERSE (interactively, the prefix), go to the previous
+untagged NEWS entry."
+  (interactive "P" emacs-news-mode)
   (let ((start (point))
         (found nil))
     ;; Don't consider the current line, because that would stop
     ;; progress if calling this command repeatedly.
-    (forward-line 1)
+    (unless reverse
+      (forward-line 1))
     (while (and (not found)
-                (re-search-forward "\\(\\*+\\) " nil t))
+                (funcall (if reverse #'re-search-backward
+                           #'re-search-forward)
+                         "^\\(\\*+\\) " nil t))
       (unless (save-excursion
                 (forward-line -1)
                 (looking-at "---$\\|\\+\\+\\+$"))
@@ -101,6 +107,7 @@
         ;; more asterisks).
         (let ((level (length (match-string 1))))
           (when (save-excursion
+                  (goto-char (match-end 0))
                   (re-search-forward "^\\(\\*+\\) " nil t))
             (when (<= (length (match-string 1)) level)
               ;; It wasn't a sub-heading, so we've found one.
@@ -114,6 +121,11 @@
       (message "No further untagged entries")
       (goto-char start)
       nil)))
+
+(defun emacs-news-previous-untagged-entry ()
+  "Go to the previous untagged NEWS entry."
+  (interactive nil emacs-news-mode)
+  (emacs-news-next-untagged-entry t))
 
 (defun emacs-news-count-untagged-entries ()
   "Say how many untagged entries there are in the current NEWS buffer."
