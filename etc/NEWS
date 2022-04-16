@@ -3240,12 +3240,13 @@ completing on commands from buffers in major modes derived from
 MODE..., or, if it's a minor mode, when that minor mode is enabled in
 the current buffer.
 
-Note that these forms will only have their effect if the
+Note that these forms will only have their effect for 'M-x' if the
 'read-extended-command-predicate' user option is customized to call
 'command-completion-default-include-p' or a similar function.  The
 default value of 'read-extended-command-predicate' is nil, which means
 no commands that match what you have typed are excluded from being
-completion candidates.
+completion candidates.  The forms will, however, be used by 'M-S-x' by
+default.
 
 ** 'define-minor-mode' now takes an ':interactive' argument.
 This can be used for specifying which modes this minor mode is meant
