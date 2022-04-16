@@ -55,29 +55,24 @@
   "Default face used for buttons."
   :group 'basic-faces)
 
-(defvar button-map
-  (let ((map (make-sparse-keymap)))
-    ;; The following definition needs to avoid using escape sequences that
-    ;; might get converted to ^M when building loaddefs.el
-    (define-key map [(control ?m)] 'push-button)
-    (define-key map [mouse-2] 'push-button)
-    (define-key map [follow-link] 'mouse-face)
-    ;; FIXME: You'd think that for keymaps coming from text-properties on the
-    ;; mode-line or header-line, the `mode-line' or `header-line' prefix
-    ;; shouldn't be necessary!
-    (define-key map [mode-line mouse-2] 'push-button)
-    (define-key map [header-line mouse-2] 'push-button)
-    map)
-  "Keymap used by buttons.")
+(defvar-keymap button-buffer-map
+  :doc  "Keymap useful for buffers containing buttons.
+Mode-specific keymaps may want to use this as their parent keymap."
+  "TAB" #'forward-button
+  "C-TAB" #'backward-button
+  "<backtab>" #'backward-button)
 
-(defvar button-buffer-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\t] 'forward-button)
-    (define-key map "\e\t" 'backward-button)
-    (define-key map [backtab] 'backward-button)
-    map)
-  "Keymap useful for buffers containing buttons.
-Mode-specific keymaps may want to use this as their parent keymap.")
+(defvar-keymap button-map
+  :doc "Keymap used by buttons."
+  :parent button-buffer-map
+  "RET" #'push-button
+  "<mouse-2>" #'push-button
+  "<follow-link>" 'mouse-face
+  ;; FIXME: You'd think that for keymaps coming from text-properties on the
+  ;; mode-line or header-line, the `mode-line' or `header-line' prefix
+  ;; shouldn't be necessary!
+  "<mode-line> <mouse-2>" #'push-button
+  "<header-line> <mouse-2>" #'push-button)
 
 (define-minor-mode button-mode
   "A minor mode for navigating to buttons with the TAB key."

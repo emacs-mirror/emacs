@@ -124,6 +124,13 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
+** 'TAB' and '<backtab>' is now bound in 'button-map'.
+This means that if you're standing on a button, 'TAB' will take you to
+the next button, even if the mode has bound it to something else.
+This also means that 'TAB' on a button in an 'outline-minor-mode'
+heading will move point instead of collapsing the outline.
+
+---
 ** 'Info-default-directory-list' is no longer populated at Emacs startup.
 If you have code in your init file that removes directories from
 'Info-default-directory-list', this will no longer work.
