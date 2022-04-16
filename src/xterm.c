@@ -9435,6 +9435,13 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
+static void
+x_clear_dnd_targets (void)
+{
+  if (x_dnd_unwind_flag)
+    x_set_dnd_targets (NULL, 0);
+}
+
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
@@ -9479,8 +9486,16 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     }
 
   if (CONSP (local_value))
-    x_own_selection (QXdndSelection,
-		     Fnth (make_fixnum (1), local_value), frame);
+    {
+      ref = SPECPDL_INDEX ();
+
+      record_unwind_protect_void (x_clear_dnd_targets);
+      x_dnd_unwind_flag = true;
+      x_own_selection (QXdndSelection,
+		       Fnth (make_fixnum (1), local_value), frame);
+      x_dnd_unwind_flag = false;
+      unbind_to (ref, Qnil);
+    }
   else
     {
       x_set_dnd_targets (NULL, 0);
