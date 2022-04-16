@@ -10846,6 +10846,35 @@ xt_horizontal_action_hook (Widget widget, XtPointer client_data, String action_n
 }
 #endif /* not USE_GTK */
 
+/* Protect WINDOW from garbage collection until a matching scroll bar
+   message is received.  Return whether or not protection
+   succeeded.  */
+static bool
+x_protect_window_for_callback (struct x_display_info *dpyinfo,
+			       Lisp_Object window)
+{
+  if (dpyinfo->n_protected_windows + 1
+      >= dpyinfo->protected_windows_max)
+    return false;
+
+  dpyinfo->protected_windows[dpyinfo->n_protected_windows++]
+    = window;
+  return true;
+}
+
+static void
+x_unprotect_window_for_callback (struct x_display_info *dpyinfo)
+{
+  if (!dpyinfo->n_protected_windows)
+    emacs_abort ();
+
+  dpyinfo->n_protected_windows--;
+
+  if (dpyinfo->n_protected_windows)
+    memmove (dpyinfo->protected_windows, &dpyinfo->protected_windows[1],
+	     sizeof (Lisp_Object) * dpyinfo->n_protected_windows);
+}
+
 /* Send a client message with message type Xatom_Scrollbar for a
    scroll action to the frame of WINDOW.  PART is a value identifying
    the part of the scroll bar that was clicked on.  PORTION is the
@@ -10863,8 +10892,12 @@ x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
   verify (INTPTR_WIDTH <= 64);
   int sign_shift = INTPTR_WIDTH - 32;
 
-  block_input ();
+  /* Don't do anything if too many scroll bar events have been
+     sent but not received.  */
+  if (!x_protect_window_for_callback (FRAME_DISPLAY_INFO (f), window))
+    return;
 
+  block_input ();
   /* Construct a ClientMessage event to send to the frame.  */
   ev->type = ClientMessage;
   ev->message_type = (horizontal
@@ -18854,6 +18887,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       count++;
     }
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  if (event->xany.type == ClientMessage
+      && inev.ie.kind == SCROLL_BAR_CLICK_EVENT)
+    x_unprotect_window_for_callback (dpyinfo);
+#endif
+
   if (do_help
       && !(hold_quit && hold_quit->kind != NO_EVENT))
     {
@@ -23415,6 +23454,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   x_extension_initialize (dpyinfo);
 #endif
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  dpyinfo->protected_windows = xmalloc (sizeof (Lisp_Object) * 256);
+  dpyinfo->n_protected_windows = 0;
+  dpyinfo->protected_windows_max = 256;
+#endif
+
   unblock_input ();
 
   return dpyinfo;
@@ -23469,12 +23514,14 @@ x_delete_display (struct x_display_info *dpyinfo)
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);
-  xfree (dpyinfo);
-
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  xfree (dpyinfo->protected_windows);
+#endif
 #ifdef HAVE_XINPUT2
   if (dpyinfo->supports_xi2)
     x_free_xi_devices (dpyinfo);
 #endif
+  xfree (dpyinfo);
 }
 
 #ifdef USE_X_TOOLKIT
@@ -23817,11 +23864,17 @@ mark_xterm (void)
       mark_object (val);
     }
 
-#ifdef HAVE_XINPUT2
+#if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     {
+#ifdef HAVE_XINPUT2
       for (i = 0; i < dpyinfo->num_devices; ++i)
 	mark_object (dpyinfo->devices[i].name);
+#endif
+#ifdef USE_TOOLKIT_SCROLL_BARS
+      for (i = 0; i < dpyinfo->n_protected_windows; ++i)
+	mark_object (dpyinfo->protected_windows[i]);
+#endif
     }
 #endif
 }

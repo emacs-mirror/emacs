@@ -672,6 +672,12 @@ struct x_display_info
   int xshape_event_base;
   int xshape_error_base;
 #endif
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  Lisp_Object *protected_windows;
+  int n_protected_windows;
+  int protected_windows_max;
+#endif
 };
 
 #ifdef HAVE_X_I18N
