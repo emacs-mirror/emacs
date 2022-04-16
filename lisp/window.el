@@ -7496,10 +7496,11 @@ all fail.  It should never be set by programs or users.  See
 (put 'display-buffer-fallback-action 'risky-local-variable t)
 
 (defun display-buffer-assq-regexp (buffer-or-name alist action)
-  "Retrieve ALIST entry corresponding to BUFFER-NAME.
-This returns the cdr of the alist entry ALIST if key and
-buffer-or-name satisfy `buffer-match-p'.  ACTION should have the
-form of the action argument passed to `display-buffer'."
+  "Retrieve ALIST entry corresponding to buffer specified by BUFFER-OR-NAME.
+This returns the cdr of the alist entry ALIST if the entry's
+key (its car) and BUFFER-OR-NAME satisfy `buffer-match-p', using
+the key as CONDITION argument of `buffer-match-p'.  ACTION should
+have the form of the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
       (when (buffer-match-p (car entry) buffer-or-name action)
