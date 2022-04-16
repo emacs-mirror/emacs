@@ -212,7 +212,7 @@ to the SCCS command."
       (vc-sccs-do-command nil 0 "get" (vc-master-name file)))))
 
 (defun vc-sccs-responsible-p (file)
-  "Return non-nil if SCCS thinks it would be responsible for registering FILE."
+  "Return the directory if SCCS thinks it would be responsible for FILE."
   ;; TODO: check for all the patterns in vc-sccs-master-templates
   (or (and (file-directory-p
             (expand-file-name "SCCS" (file-name-directory file)))

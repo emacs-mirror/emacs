@@ -308,7 +308,7 @@ to the CVS command."
          (vc-switches 'CVS 'register)))
 
 (defun vc-cvs-responsible-p (file)
-  "Return non-nil if CVS thinks it is responsible for FILE."
+  "Return the directory if CVS thinks it is responsible for FILE."
   (let ((dir (if (file-directory-p file)
 	         file
 	       (file-name-directory file))))

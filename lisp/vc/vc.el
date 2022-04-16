@@ -220,7 +220,7 @@
 ;;
 ;; - responsible-p (file)
 ;;
-;;   Return non-nil if this backend considers itself "responsible" for
+;;   Return the directory if this backend considers itself "responsible" for
 ;;   FILE, which can also be a directory.  This function is used to find
 ;;   out what backend to use for registration of new files and for things
 ;;   like change log generation.  The default implementation always

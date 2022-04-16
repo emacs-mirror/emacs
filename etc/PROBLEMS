@@ -1049,6 +1049,15 @@ index 5504171..431adf8 100644
 If you can't modify that file directly, copy it to the directory
 ~/.m17n.d/ (create it if it doesn't exist), and apply the patch.
 
+** On Haiku, some proportionally-spaced fonts display with artifacting.
+
+This is a Haiku bug: https://dev.haiku-os.org/ticket/17229, which can
+be remedied by using a different font that does not exhibit this
+problem, or by configuring Emacs '--with-be-cairo'.
+
+So far, Bitstream Charter and Noto Sans have been known to exhibit
+this problem, while Noto Sans Display is known to not do so.
+
 ** On MS-Windows, some characters display as boxes with hex code.
 
 Also, some characters could display with wrong fonts.
@@ -1062,14 +1071,20 @@ modern fonts are used, such as Noto Emoji or Ebrima.
 The solution is to switch to a configuration that uses HarfBuzz as its
 shaping engine, where these problems don't exist.
 
-** On Haiku, some proportionally-spaced fonts display with artifacting.
+** On MS-Windows, selecting some fonts as the default font doesn't work.
 
-This is a Haiku bug: https://dev.haiku-os.org/ticket/17229, which can
-be remedied by using a different font that does not exhibit this
-problem, or by configuring Emacs '--with-be-cairo'.
+This can happen if you select font variants such as "Light" or "Thin"
+or "Semibold" or "Heavy", and some others.  The APIs used by Emacs on
+Windows to enumerate fonts in a font family consider only 4 font
+variants to belong to the same family: Regular, Italic, Bold, and
+Bold-Italic.  All the other variants aren't returned by those APIs
+when we request to list all the fonts in a family, and thus aren't
+considered by Emacs to belong to the family.  So any font variant that
+is not one of those 4 will likely not work as expected; in most cases
+Emacs will select some other font instead.
 
-So far, Bitstream Charter and Noto Sans have been known to exhibit
-this problem, while Noto Sans Display is known to not do so.
+The only workaround is not to choose such font variants as the default
+font when running Emacs on MS-Windows.
 
 * Internationalization problems
 

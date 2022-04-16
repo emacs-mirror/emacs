@@ -1034,8 +1034,11 @@ If a directory or nothing is found at point, return nil."
 ;;;###autoload
 (defun dired (dirname &optional switches)
   "\"Edit\" directory DIRNAME--delete, rename, print, etc. some files in it.
-Optional second argument SWITCHES specifies the `ls' options used.
-\(Interactively, use a prefix argument to be able to specify SWITCHES.)
+Optional second argument SWITCHES specifies the options to be used
+when invoking `insert-directory-program', usually `ls', which produces
+the listing of the directory files and their attributes.
+Interactively, a prefix argument will cause the command to prompt
+for SWITCHES.
 
 If DIRNAME is a string, Dired displays a list of files in DIRNAME (which
 may also have shell wildcards appended to select certain files).

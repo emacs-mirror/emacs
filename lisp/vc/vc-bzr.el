@@ -640,7 +640,7 @@ Returns nil if unable to find this information."
 ;; Could run `bzr status' in the directory and see if it succeeds, but
 ;; that's relatively expensive.
 (defalias 'vc-bzr-responsible-p #'vc-bzr-root
-  "Return non-nil if FILE is (potentially) controlled by bzr.
+  "Return the directory if FILE is (potentially) controlled by bzr.
 The criterion is that there is a `.bzr' directory in the same
 or a superior directory.")
 

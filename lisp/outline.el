@@ -178,13 +178,22 @@ in the file it applies to.")
     map))
 
 (defcustom outline-minor-mode-cycle-filter nil
-  "Filter out positions on the heading available for cycling."
+  "Control where on a heading the visibility-cycling commands are bound to keys.
+This option controls, in Outline minor mode, where on a heading typing
+the key sequences bound to visibility-cycling commands like `outline-cycle'
+and `outline-cycle-buffer' will invoke those commands.  By default, you can
+invoke these commands by typing `TAB' and `S-TAB' anywhere on a heading line,
+but customizing this option can make those bindings be in effect only at
+specific positions on the heading, like only at the line's beginning or
+line's end.  This allows these keys to be bound to their usual commands,
+as determined by the major mode, elsewhere on the heading lines.
+This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   :type '(choice (const :tag "Everywhere" nil)
                  (const :tag "At line beginning" bolp)
                  (const :tag "Not at line beginning"
                         (lambda () (not (bolp))))
                  (const :tag "At line end" eolp)
-                 (function :tag "Custom filter"))
+                 (function :tag "Custom filter function"))
   :version "28.1")
 
 (defvar outline-minor-mode-cycle)
@@ -371,28 +380,33 @@ After that, changing the prefix key requires manipulating keymaps."
          (set-default sym val)))
 
 (defcustom outline-minor-mode-cycle nil
-  "Enable cycling of headings in `outline-minor-mode'.
-When enabled, it puts a keymap with cycling keys on heading lines.
-When point is on a heading line, then typing `TAB' cycles between `hide all',
-`headings only' and `show all' (`outline-cycle').  Typing `S-TAB' on
-a heading line cycles the whole buffer (`outline-cycle-buffer').
-Typing these keys anywhere outside heading lines uses their default bindings."
+  "Enable visibility-cycling commands on headings in `outline-minor-mode'.
+If enabled, typing `TAB' on a heading line cycles the visibility
+state of that heading's body between `hide all', `headings only'
+and `show all' (`outline-cycle'), and typing `S-TAB' on a heading
+line likewise cycles the visibility state of the whole buffer
+\(`outline-cycle-buffer').
+Typing these keys anywhere outside heading lines invokes their default
+bindings, per the current major mode."
   :type 'boolean
   :safe #'booleanp
   :version "28.1")
 
 (defcustom outline-minor-mode-highlight nil
-  "Highlight headings in `outline-minor-mode' using font-lock keywords.
-Non-nil value works well only when outline font-lock keywords
-don't conflict with the major mode's font-lock keywords.
-When t, it puts outline faces only if there are no major mode's faces
-on headings.  When `override', it completely overwrites major mode's
-faces with outline faces.  When `append', it tries to append outline
-faces to major mode's faces."
-  :type '(choice (const :tag "No highlighting" nil)
-                 (const :tag "Overwrite major mode faces" override)
-                 (const :tag "Append outline faces to major mode faces" append)
-                 (const :tag "Highlight separately from major mode faces" t))
+  "Whether to highlight headings in `outline-minor-mode' using font-lock keywords.
+This option controles whether `outline-minor-mode' will use its font-lock
+keywords to highlight headings, which could potentially conflict with
+font-lock faces defined by the major mode.  Thus, a non-nil value will
+work well only when there's no such conflict.
+If the value is t, use outline faces only if there are no major mode's
+font-lock faces on headings.  When `override', completely overwrite major
+mode's font-lock faces with outline faces.  When `append', try to append
+outline font-lock faces to those of major mode."
+  :type '(choice (const :tag "Do not use outline font-lock highlighting" nil)
+                 (const :tag "Overwrite major mode font-lock faces" override)
+                 (const :tag "Append outline font-lock faces to major mode's"
+                        append)
+                 (const :tag "Highlight with outline font-lock faces only if major mode doesn't" t))
   :safe #'symbolp
   :version "28.1")
 
@@ -1521,11 +1535,14 @@ Return either 'hide-all, 'headings-only, or 'show-all."
        (save-excursion (outline-end-of-subtree) (point)))))
 
 (defun outline-cycle ()
-  "Cycle between `hide all', `headings only' and `show all'.
+  "Cycle visibility state of the current heading line's body.
 
-`Hide all' means hide all subheadings and their bodies.
-`Headings only' means show sub headings but not their bodies.
-`Show all' means show all subheadings and their bodies."
+This cycles the visibility of the current heading line's subheadings
+and body between `hide all', `headings only' and `show all'.
+
+`Hide all' means hide all the subheadings and their bodies.
+`Headings only' means show the subheadings, but not their bodies.
+`Show all' means show all the subheadings and their bodies."
   (interactive)
   (condition-case nil
       (pcase (outline--cycle-state)
@@ -1547,7 +1564,15 @@ Return either 'hide-all, 'headings-only, or 'show-all."
   "Internal variable used for tracking buffer cycle state.")
 
 (defun outline-cycle-buffer ()
-  "Cycle the whole buffer like in `outline-cycle'."
+  "Cycle visibility state of the body lines of the whole buffer.
+
+This cycles the visibility of all the subheadings and bodies of all
+the heading lines in the buffer.  It cycles them between `hide all',
+`headings only' and `show all'.
+
+`Hide all' means hide all the buffer's subheadings and their bodies.
+`Headings only' means show all the subheadings, but not their bodies.
+`Show all' means show all the buffer's subheadings and their bodies."
   (interactive)
   (let (has-top-level)
     (save-excursion

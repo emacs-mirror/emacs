@@ -288,7 +288,7 @@ to the RCS command."
 			   (match-string 1))))))
 
 (defun vc-rcs-responsible-p (file)
-  "Return non-nil if RCS thinks it would be responsible for registering FILE."
+  "Return the directory if RCS thinks it would be responsible for FILE."
   ;; TODO: check for all the patterns in vc-rcs-master-templates
   (let ((dir (if (file-directory-p file)
 	         file
