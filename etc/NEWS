@@ -1251,6 +1251,16 @@ support for pipelines which will move a lot of data.  See section
 "Running Shell Pipelines Natively" in the Eshell manual, node
 "(eshell) Input/Output".
 
++++
+*** New module to help supplying absolute file names to remote commands.
+After enabling the new 'eshell-elecslash' module, typing a forward
+slash as the first character of a command line argument will
+automatically insert the Tramp prefix.  The automatic insertion
+applies only when 'default-directory' is remote and the command is a
+Lisp function.  This frees you from having to keep track of whether
+commands are Lisp function or external when supplying absolute file
+name arguments.  See "Electric forward slash" in the Eshell manual.
+
 ** Miscellaneous
 
 +++

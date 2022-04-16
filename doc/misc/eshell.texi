@@ -1560,6 +1560,7 @@ Eshell module.}  You also need to load the following as shown:
 * Key rebinding::
 * Smart scrolling::
 * Terminal emulation::
+* Electric forward slash::
 @end menu
 
 @node Writing a module
@@ -1591,6 +1592,61 @@ This section is not yet written.
 @section Terminal emulation
 
 This section is not yet written.
+
+@node Electric forward slash
+@section Electric forward slash
+
+To help with supplying absolute file name arguments to remote
+commands, you can add the @code{eshell-elecslash} module to
+@code{eshell-modules-list}.  Then, typing @kbd{/} as the first
+character of a command line argument will automatically insert the
+Tramp prefix @file{/method:host:}.  If this is not what you want
+(e.g.@: because you want to refer to a local file), you can type
+another @kbd{/} to undo the automatic insertion.  Typing @kbd{~/} also
+inserts the Tramp prefix.  The automatic insertion applies only when
+@code{default-directory} is remote and the command is a Lisp function.
+In particular, typing arguments to external commands doesn't insert
+the prefix.
+
+The result is that in most cases of supplying absolute file name
+arguments to commands you should see the Tramp prefix inserted
+automatically only when that's what you'd reasonably expect.  This
+frees you from having to keep track of whether commands are Lisp
+functions or external when typing command line arguments.  For
+example, suppose you execute
+
+@example
+ cd /ssh:root@@example.com:
+ find /etc -name "*gnu*"
+@end example
+
+@noindent and in reviewing the output of the command, you identify a
+file @file{/etc/gnugnu} that should be moved somewhere else.  So you
+type
+
+@example
+ mv /etc/gnugnu /tmp
+@end example
+
+@noindent But since @command{mv} refers to the local Lisp function
+@code{eshell/mv}, not a remote shell command, to say this is to
+request that the local file @file{/etc/gnugnu} be moved into the local
+@file{/tmp} directory.  After you add @code{eshell-elecslash} to
+@code{eshell-modules-list}, then when you type the above @command{mv}
+invocation you will get the following input, which is what you
+intended:
+
+@example
+ mv /ssh:root@@example.com:/etc/gnugnu /ssh:root@@example.com:/tmp
+@end example
+
+The code that determines whether or not the Tramp prefix should be
+inserted uses simple heuristics.  A limitation of the current
+implementation is that it inspects whether only the command at the
+very beginning of input is a Lisp function or external program.  Thus
+when chaining commands with the operators @code{&&}, @code{||},
+@code{|} and @code{;}, the electric forward slash is active only
+within the first command.
 
 @node Bugs and ideas
 @chapter Bugs and ideas
@@ -1995,11 +2051,12 @@ only.  That way, it could be listed as a login shell.
 @item The first keypress after @kbd{M-x watson} triggers
 @code{eshell-send-input}
 
-@item Make @kbd{/} electric
+@item Make @kbd{/} more electric
 
-So that it automatically expands and corrects pathnames.  Or make
-pathname completion for Pcomplete auto-expand @samp{/u/i/std@key{TAB}} to
-@samp{/usr/include/std@key{TAB}}.
+@noindent so that it automatically expands and corrects file names,
+beyond what the @code{em-elecslash} module is able to do.  Or make
+file name completion for Pcomplete auto-expand
+@samp{/u/i/std@key{TAB}} to @samp{/usr/include/std@key{TAB}}.
 
 @item Write the @command{pushd} stack to disk along with @code{last-dir-ring}
 
