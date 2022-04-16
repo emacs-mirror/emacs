@@ -1816,7 +1816,7 @@ See calc-keypad for details."
 	  (if win
 	      (progn
 		(calc-cursor-stack-index 0)
-		(vertical-motion (- 2 (window-height win)))
+		(vertical-motion (- 3 (window-height win)))
 		(set-window-start win (point)))))
 	(calc-cursor-stack-index 0)
 	(if (looking-at " *\\.$")

@@ -905,28 +905,31 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
               (file-attributes %S \"/\")) \
 	    (message \"tramp-archive loaded: %%s\" \
               (featurep 'tramp-archive))))"))
-    (dolist (default-directory
-              `(,temporary-file-directory
-		;;  Starting Emacs in a directory which has
-		;; `tramp-archive-file-name-regexp' syntax is
-		;; supported only with Emacs > 27.2 (sigh!).
-		;; (Bug#48476)
-                ,(file-name-as-directory tramp-archive-test-directory)))
-      (dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
-        (should
-         (string-match
-	  (format
-	   "tramp-archive loaded: %s[[:ascii:]]+tramp-archive loaded: %s"
-	   (tramp-archive-file-name-p default-directory)
-	   (or (tramp-archive-file-name-p default-directory)
-               (tramp-archive-file-name-p file)))
-	  (shell-command-to-string
-	   (format
-	    "%s -batch -Q -L %s --eval %s"
-	    (shell-quote-argument
-	     (expand-file-name invocation-name invocation-directory))
-	    (mapconcat #'shell-quote-argument load-path " -L ")
-	    (shell-quote-argument (format code file))))))))))
+    (dolist (enabled '(t nil))
+      (dolist (default-directory
+               `(,temporary-file-directory
+		 ;;  Starting Emacs in a directory which has
+		 ;; `tramp-archive-file-name-regexp' syntax is
+		 ;; supported only with Emacs > 27.2 (sigh!).
+		 ;; (Bug#48476)
+                 ,(file-name-as-directory tramp-archive-test-directory)))
+	(dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
+          (should
+           (string-match
+	    (format
+	     "tramp-archive loaded: %s[[:ascii:]]+tramp-archive loaded: %s"
+	     (tramp-archive-file-name-p default-directory)
+	     (or (tramp-archive-file-name-p default-directory)
+		 (and enabled (tramp-archive-file-name-p file))))
+	    (shell-command-to-string
+	     (format
+	      "%s -batch -Q -L %s --eval %s --eval %s"
+	      (shell-quote-argument
+	       (expand-file-name invocation-name invocation-directory))
+	      (mapconcat #'shell-quote-argument load-path " -L ")
+	      (shell-quote-argument
+	       (format "(setq tramp-archive-enabled %s)" enabled))
+	      (shell-quote-argument (format code file)))))))))))
 
 (ert-deftest tramp-archive-test46-delay-load ()
   "Check that `tramp-archive' is loaded lazily, only when needed."

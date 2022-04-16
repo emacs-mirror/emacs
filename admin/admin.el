@@ -602,76 +602,81 @@ style=\"text-align:left\">")
 		 (forward-line 1)
 		 (setq done t)))))
     (let (done open-td tag desc)
-      ;; Convert the list that Makeinfo made into a table.
-      (or (search-forward "<ul class=\"menu\">" nil t)
-	  ;; FIXME?  The following search seems dangerously lax.
-	  (search-forward "<ul>"))
-      (replace-match "<table style=\"float:left\" width=\"100%\">")
-      (forward-line 1)
-      (while (not done)
-	(cond
-	 ((or (looking-at "<li>\\(<a.+</a>\\):[ \t]+\\(.*\\)$")
-	      (looking-at "<li>\\(<a.+</a>\\)$"))
-	  (setq tag (match-string 1))
-	  (setq desc (match-string 2))
-	  (replace-match "" t t)
-	  (when open-td
-	    (save-excursion
-	      (forward-char -1)
-	      (skip-chars-backward " ")
-	      (delete-region (point) (line-end-position))
-	      (insert "</td>\n  </tr>")))
-	  (insert "  <tr>\n    ")
-	  (if table-workaround
-	      ;; This works around a Firefox bug in the mono file.
-	      (insert "<td bgcolor=\"white\">")
-	    (insert "<td>"))
-	  (insert tag "</td>\n    <td>" (or desc ""))
-	  (setq open-td t))
-	 ((eq (char-after) ?\n)
-	  (delete-char 1)
-	  ;; Negate the following `forward-line'.
-	  (forward-line -1))
-	 ((looking-at "<!-- ")
-	  (search-forward "-->"))
-	 ((looking-at "<p>[- ]*The Detailed Node Listing[- \n]*")
-	  (replace-match "  </td></tr></table>\n
+      ;; Texinfo 6.8 and later doesn't produce <ul class="menu"> lists
+      ;; for the TOC menu, and the "description" part of each menu
+      ;; item is not there anymore.  So for HTML manuals produced by
+      ;; those newer versions of Texinfo we punt and leave the menu in
+      ;; its original form.
+      (when (or (search-forward "<ul class=\"menu\">" nil t)
+	        ;; FIXME?  The following search seems dangerously lax.
+	        (search-forward "<ul>"))
+        ;; Convert the list that Makeinfo made into a table.
+        (replace-match "<table style=\"float:left\" width=\"100%\">")
+        (forward-line 1)
+        (while (not done)
+	  (cond
+	   ((or (looking-at "<li>\\(<a.+</a>\\):[ \t]+\\(.*\\)$")
+	        (looking-at "<li>\\(<a.+</a>\\)$"))
+	    (setq tag (match-string 1))
+	    (setq desc (match-string 2))
+	    (replace-match "" t t)
+	    (when open-td
+	      (save-excursion
+	        (forward-char -1)
+	        (skip-chars-backward " ")
+	        (delete-region (point) (line-end-position))
+	        (insert "</td>\n  </tr>")))
+	    (insert "  <tr>\n    ")
+	    (if table-workaround
+	        ;; This works around a Firefox bug in the mono file.
+	        (insert "<td bgcolor=\"white\">")
+	      (insert "<td>"))
+	    (insert tag "</td>\n    <td>" (or desc ""))
+	    (setq open-td t))
+	   ((eq (char-after) ?\n)
+	    (delete-char 1)
+	    ;; Negate the following `forward-line'.
+	    (forward-line -1))
+	   ((looking-at "<!-- ")
+	    (search-forward "-->"))
+	   ((looking-at "<p>[- ]*The Detailed Node Listing[- \n]*")
+	    (replace-match "  </td></tr></table>\n
 <h3>Detailed Node Listing</h3>\n\n" t t)
-	  (search-forward "<p>")
-	  ;; FIXME Fragile!
-	  ;; The Emacs and Elisp manual have some text at the
-	  ;; start of the detailed menu that is not part of the menu.
-	  ;; Other manuals do not.
-	  (if (looking-at "Here are some other nodes")
-	      (search-forward "<p>"))
-	  (goto-char (match-beginning 0))
-	  (skip-chars-backward "\n ")
-	  (setq open-td nil)
-	  (insert "</p>\n\n<table  style=\"float:left\" width=\"100%\">"))
-	 ((looking-at "</li></ul>")
-	  (replace-match "" t t))
-	 ((looking-at "<p>")
-	  (replace-match "" t t)
-	  (when open-td
-	    (insert "  </td></tr>")
-	    (setq open-td nil))
-	  (insert "  <tr>
+	    (search-forward "<p>")
+	    ;; FIXME Fragile!
+	    ;; The Emacs and Elisp manual have some text at the
+	    ;; start of the detailed menu that is not part of the menu.
+	    ;; Other manuals do not.
+	    (if (looking-at "Here are some other nodes")
+	        (search-forward "<p>"))
+	    (goto-char (match-beginning 0))
+	    (skip-chars-backward "\n ")
+	    (setq open-td nil)
+	    (insert "</p>\n\n<table  style=\"float:left\" width=\"100%\">"))
+	   ((looking-at "</li></ul>")
+	    (replace-match "" t t))
+	   ((looking-at "<p>")
+	    (replace-match "" t t)
+	    (when open-td
+	      (insert "  </td></tr>")
+	      (setq open-td nil))
+	    (insert "  <tr>
     <th colspan=\"2\" align=\"left\" style=\"text-align:left\">")
-	  (if (re-search-forward "</p>[ \t\n]*<ul class=\"menu\">" nil t)
-	      (replace-match "  </th></tr>")))
-	 ((looking-at "[ \t]*</ul>[ \t]*$")
-	  (replace-match
-	   (if open-td
-	       "  </td></tr>\n</table>"
-	     "</table>") t t)
-	  (setq done t))
-	 (t
-	  (if (eobp)
-	      (error "Parse error in %s"
-		     (file-name-nondirectory buffer-file-name)))
-	  (unless open-td
-	    (setq done t))))
-	(forward-line 1)))))
+	    (if (re-search-forward "</p>[ \t\n]*<ul class=\"menu\">" nil t)
+	        (replace-match "  </th></tr>")))
+	   ((looking-at "[ \t]*</ul>[ \t]*$")
+	    (replace-match
+	     (if open-td
+	         "  </td></tr>\n</table>"
+	       "</table>") t t)
+	    (setq done t))
+	   (t
+	    (if (eobp)
+	        (error "Parse error in %s"
+		       (file-name-nondirectory buffer-file-name)))
+	    (unless open-td
+	      (setq done t))))
+	  (forward-line 1))))))
 
 
 (defconst make-manuals-dist-output-variables

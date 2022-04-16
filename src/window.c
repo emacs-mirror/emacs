@@ -1852,8 +1852,13 @@ Return POS.  */)
 DEFUN ("set-window-start", Fset_window_start, Sset_window_start, 2, 3, 0,
        doc: /* Make display in WINDOW start at position POS in WINDOW's buffer.
 WINDOW must be a live window and defaults to the selected one.  Return
-POS.  Optional third arg NOFORCE non-nil inhibits next redisplay from
-overriding motion of point in order to display at this exact start.
+POS.
+
+Optional third arg NOFORCE non-nil prevents next redisplay from
+moving point if displaying the window at POS makes point invisible;
+redisplay will then choose the WINDOW's start position by itself in
+that case, i.e. it will disregard POS if adhering to it will make
+point not visible in the window.
 
 For reliable setting of WINDOW start position, make sure point is
 at a position that will be visible when that start is in effect,
