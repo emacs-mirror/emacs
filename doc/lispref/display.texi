@@ -8281,7 +8281,7 @@ there is no available font (on a graphical display), and characters
 which cannot be encoded by the terminal's coding system (on a text
 terminal).
 
-@vindex glyphless-display-mode
+@findex glyphless-display-mode
 The @code{glyphless-display-mode} minor mode can be used to toggle
 displaying glyphless characters in a convenient manner in the current
 buffer.  If this mode is enabled, all the glyphless characters are
