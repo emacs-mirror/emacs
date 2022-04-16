@@ -42,6 +42,8 @@
 (defvar-keymap emacs-news-mode-map
   "C-c C-s" #'emacs-news-next-untagged-entry
   "C-c C-r" #'emacs-news-previous-untagged-entry
+  "C-c C-g" #'emacs-news-goto-section
+  "C-c C-f" #'emacs-news-find-heading
   "C-c C-n" #'emacs-news-count-untagged-entries)
 
 (defvar emacs-news-mode-font-lock-keywords
@@ -99,19 +101,15 @@ untagged NEWS entry."
                 (funcall (if reverse #'re-search-backward
                            #'re-search-forward)
                          "^\\(\\*+\\) " nil t))
-      (unless (save-excursion
-                (forward-line -1)
-                (looking-at "---$\\|\\+\\+\\+$"))
-        ;; We have an entry without a tag before it, but check whether
-        ;; it's a heading (which we can determine if the next entry has
-        ;; more asterisks).
-        (let ((level (length (match-string 1))))
-          (when (save-excursion
-                  (goto-char (match-end 0))
-                  (re-search-forward "^\\(\\*+\\) " nil t))
-            (when (<= (length (match-string 1)) level)
-              ;; It wasn't a sub-heading, so we've found one.
-              (setq found t))))))
+      (when (and (not (save-excursion
+                        (forward-line -1)
+                        (looking-at "---$\\|\\+\\+\\+$")))
+                 ;; We have an entry without a tag before it, but
+                 ;; check whether it's a heading (which we can
+                 ;; determine if the next entry has more asterisks).
+                 (not (emacs-news--heading-p)))
+        ;; It wasn't a sub-heading, so we've found one.
+        (setq found t)))
     (if found
         (progn
           (push-mark start)
@@ -121,6 +119,15 @@ untagged NEWS entry."
       (message "No further untagged entries")
       (goto-char start)
       nil)))
+
+(defun emacs-news--heading-p ()
+  (save-excursion
+    (beginning-of-line)
+    (and (looking-at "\\(\\*+\\) ")
+         (let ((level (length (match-string 1))))
+           (goto-char (match-end 0))
+           (when (re-search-forward "^\\(\\*+\\) " nil t)
+             (> (length (match-string 1)) level))))))
 
 (defun emacs-news-previous-untagged-entry ()
   "Go to the previous untagged NEWS entry."
@@ -165,6 +172,38 @@ untagged NEWS entry."
           (buttonize-region (match-beginning 1) (match-end 1)
                             (lambda (node) (info node))
                             (match-string 1)))))))
+
+(defun emacs-news--sections (regexp)
+  (let ((sections nil))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward (concat "^" regexp "\\(.*\\)") nil t)
+        (when (save-match-data (emacs-news--heading-p))
+          (push (buffer-substring-no-properties
+                 (match-beginning 1) (match-end 1))
+                sections))))
+    (nreverse sections)))
+
+(defun emacs-news-goto-section (section)
+  "Go to SECTION in the Emacs NEWS file."
+  (interactive (list
+                (completing-read "Goto section: " (emacs-news--sections "\\* ")
+                                 nil t))
+               emacs-news-mode)
+  (goto-char (point-min))
+  (when (search-forward (concat "\n* " section) nil t)
+    (beginning-of-line)))
+
+(defun emacs-news-find-heading (heading)
+  "Go to HEADING in the Emacs NEWS file."
+  (interactive (list
+                (completing-read "Goto heading: "
+                                 (emacs-news--sections "\\*\\*\\*? ")
+                                 nil t))
+               emacs-news-mode)
+  (goto-char (point-min))
+  (when (re-search-forward (concat "^*+ " (regexp-quote heading)) nil t)
+    (beginning-of-line)))
 
 (provide 'emacs-news-mode)
 
