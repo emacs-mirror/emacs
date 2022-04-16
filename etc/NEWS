@@ -978,6 +978,7 @@ The keybinding for 'image-transform-fit-to-width' is now 's i'.
 *** User option 'image-auto-resize' can now be set to 'fit-window'.
 This works like 'image-transform-fit-to-window'.
 
+---
 *** New user option 'image-auto-resize-max-scale-percent'.
 The new 'fit-window' option will never scale an image more than this
 much (in percent).  It is nil by default, which means no limit.
@@ -1097,6 +1098,7 @@ If non-nil, dragging file names with the mouse in a Dired buffer will
 initiate a drag-and-drop session allowing them to be opened in other
 programs.
 
++++
 *** New user option 'dired-free-space'.
 Dired will now, by default, include the free space in the first line
 instead of having it on a separate line.  To get the previous behavior
