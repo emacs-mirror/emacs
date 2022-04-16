@@ -1194,6 +1194,7 @@ the Galeon web browser was released in September, 2008.
 
 ** Ruby Mode
 
+---
 *** New user option 'ruby-toggle-block-space-before-parameters'.
 
 ** Eshell
@@ -1289,6 +1290,7 @@ they will still be escaped, so the '.foo' symbol is still printed as
 and remapping parent of basic faces does not work reliably.
 Instead of remapping 'mode-line', you have to remap 'mode-line-active'.
 
+---
 ** User option 'mail-source-ignore-errors' is now obsolete.
 The whole mechanism for prompting users to continue in case of
 mail-source errors has been removed, so this option is no longer
