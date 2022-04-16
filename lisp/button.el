@@ -56,10 +56,10 @@
   :group 'basic-faces)
 
 (defvar-keymap button-buffer-map
-  :doc  "Keymap useful for buffers containing buttons.
+  :doc "Keymap useful for buffers containing buttons.
 Mode-specific keymaps may want to use this as their parent keymap."
   "TAB" #'forward-button
-  "C-TAB" #'backward-button
+  "ESC TAB" #'backward-button
   "<backtab>" #'backward-button)
 
 (defvar-keymap button-map
