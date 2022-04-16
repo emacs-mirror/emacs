@@ -586,10 +586,10 @@ change the terminal used on a remote host.
 
 ---
 *** New user options for alternate wheel events.
-The options 'mouse-wheel-down-alternate-event', 'mouse-wheel-up-alternate-event',
-'mouse-wheel-left-alternate-event', and 'mouse-wheel-right-alternate-event' have
-been added to better support systems where two kinds of wheel events can be
-received.
+The options 'mouse-wheel-down-alternate-event',
+'mouse-wheel-up-alternate-event', 'mouse-wheel-left-alternate-event',
+and 'mouse-wheel-right-alternate-event' have been added to better
+support systems where two kinds of wheel events can be received.
 
 ** Editing complex text layout (CTL) scripts
 
@@ -702,7 +702,9 @@ bot doesn't exit the minibuffer.
 ** Isearch and Replace
 
 +++
-*** New user option 'char-fold-override' disables default character equivalences.
+*** New user option 'char-fold-override'.
+Non-nil means that the default definitions of equivalent characters
+are overridden.
 
 +++
 *** New command 'isearch-emoji-by-name'.
@@ -1726,7 +1728,7 @@ Specifying a cons as the FROM argument allows to start measuring text
 from a specified amount of pixels above or below a position.
 
 ---
-** 'eshell-eval-using-options' now follows POSIX/GNU argument syntax conventions.
+** 'eshell-eval-using-options' now follows argument syntax conventions.
 Built-in commands in Eshell now accept command-line options with
 values passed as a single token, such as '-oVALUE' or '--option=VALUE'.
 
