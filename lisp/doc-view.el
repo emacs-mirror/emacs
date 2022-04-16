@@ -1947,8 +1947,7 @@ If BACKWARD is non-nil, jump to the previous match."
             ;; zip-archives, so that this same association is used for
             ;; cbz files. This is fine, as cbz files should be handled
             ;; like epub anyway.
-            ((looking-at "PK") '(epub))
-            ))))
+            ((looking-at "PK") '(epub odf))))))
     (setq-local
      doc-view-doc-type
      (car (or (nreverse (seq-intersection name-types content-types #'eq))
