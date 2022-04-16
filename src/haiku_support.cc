@@ -96,24 +96,29 @@ enum
 /* X11 keysyms that we use.  */
 enum
   {
-    KEY_BACKSPACE   = 0xff08,
-    KEY_TAB	    = 0xff09,
-    KEY_RETURN	    = 0xff0d,
-    KEY_PAUSE	    = 0xff13,
-    KEY_ESCAPE	    = 0xff1b,
-    KEY_DELETE	    = 0xffff,
-    KEY_HOME	    = 0xff50,
-    KEY_LEFT_ARROW  = 0xff51,
-    KEY_UP_ARROW    = 0xff52,
-    KEY_RIGHT_ARROW = 0xff53,
-    KEY_DOWN_ARROW  = 0xff54,
-    KEY_PAGE_UP	    = 0xff55,
-    KEY_PAGE_DOWN   = 0xff56,
-    KEY_END	    = 0xff57,
-    KEY_PRINT	    = 0xff61,
-    KEY_INSERT	    = 0xff63,
+    KEY_BACKSPACE	  = 0xff08,
+    KEY_TAB		  = 0xff09,
+    KEY_RETURN		  = 0xff0d,
+    KEY_PAUSE		  = 0xff13,
+    KEY_ESCAPE		  = 0xff1b,
+    KEY_DELETE		  = 0xffff,
+    KEY_HOME		  = 0xff50,
+    KEY_LEFT_ARROW	  = 0xff51,
+    KEY_UP_ARROW	  = 0xff52,
+    KEY_RIGHT_ARROW	  = 0xff53,
+    KEY_DOWN_ARROW	  = 0xff54,
+    KEY_PAGE_UP		  = 0xff55,
+    KEY_PAGE_DOWN	  = 0xff56,
+    KEY_END		  = 0xff57,
+    KEY_PRINT		  = 0xff61,
+    KEY_INSERT		  = 0xff63,
     /* This is used to indicate the first function key.  */
-    KEY_F1	    = 0xffbe,
+    KEY_F1		  = 0xffbe,
+    /* These are found on some multilingual keyboards.  */
+    KEY_HANGUL		  = 0xff31,
+    KEY_HANGUL_HANJA	  = 0xff34,
+    KEY_HIRIGANA_KATAGANA = 0xff27,
+    KEY_ZENKAKU_HANKAKU	  = 0xff2a,
   };
 
 static color_space dpy_color_space = B_NO_COLOR_SPACE;
@@ -300,6 +305,19 @@ keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
       else if (*code - KEY_F1 == 14)
 	*code = KEY_PAUSE;
 
+      break;
+
+    case B_HANGUL:
+      *code = KEY_HANGUL;
+      break;
+    case B_HANGUL_HANJA:
+      *code = KEY_HANGUL_HANJA;
+      break;
+    case B_KATAKANA_HIRAGANA:
+      *code = KEY_HIRIGANA_KATAGANA;
+      break;
+    case B_HANKAKU_ZENKAKU:
+      *code = KEY_ZENKAKU_HANKAKU;
       break;
 
     default:
