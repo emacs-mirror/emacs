@@ -332,7 +332,10 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
               (if (and using-proxy
                        ;; Bug#35969.
                        (not (equal "https" (url-type url-http-target-url))))
-                  (url-recreate-url url-http-target-url) real-fname))
+                  (let ((url (copy-sequence url-http-target-url)))
+                    (setf (url-host url) (puny-encode-domain (url-host url)))
+                    (url-recreate-url url))
+                real-fname))
              " HTTP/" url-http-version "\r\n"
              ;; Version of MIME we speak
              "MIME-Version: 1.0\r\n"
