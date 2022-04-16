@@ -4027,8 +4027,8 @@ system_process_attributes (Lisp_Object pid)
 
 #elif defined DARWIN_OS
 
-#define HAVE_RUSAGE_INFO_CURRENT (MAC_OS_X_VERSION_MIN_REQUIRED >= 101000)
-#define HAVE_PROC_PIDINFO (MAC_OS_X_VERSION_MIN_REQUIRED >= 1050)
+#define HAVE_RUSAGE_INFO_CURRENT (__MAC_OS_X_VERSION_MIN_REQUIRED >= 101000)
+#define HAVE_PROC_PIDINFO (__MAC_OS_X_VERSION_MIN_REQUIRED >= 1050)
 
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
