@@ -604,6 +604,13 @@ script that was used in ancient South Asia.
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
 ---
+** New mode for editing and viewing the NEWS file.
+It's called 'emacs-news-mode', and adds some highlighting, fixes the
+'M-q' command, and has commands for doing maintenance.  When in read
+only mode (which you get when doing 'C-h N', for instance), it also
+adds buttons to manual entries and symbol references.
+
+---
 ** kmacro
 Kmacros are now OClosures and have a new constructor 'kmacro' which
 uses the 'key-parse' syntax.  It replaces the old 'kmacro-lambda-form'
@@ -1997,6 +2004,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Local variables:
 coding: utf-8
-mode: outline
+mode: emacs-news
 paragraph-separate: "[ 	]*$"
 end:
