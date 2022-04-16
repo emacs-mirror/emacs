@@ -886,6 +886,7 @@ default, no automatic renaming is performed.
 
 ** Help
 
+---
 *** New user option 'help-link-key-to-documentation'.
 When this option is non-nil (which is the default), key bindings
 displayed in the "*Help*" buffer will be linked to the documentation
@@ -922,6 +923,7 @@ it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 
 ** Xref
 
++++
 *** 'project-find-file' and 'project-or-external-find-file' now accept
 a prefix argument which is interpreted to mean "include all files".
 

@@ -1728,6 +1728,7 @@ doesn't seem to belong to a recognizable project, these commands
 prompt you for the project directory.
 
 @findex project-find-file
+@vindex vc-directory-exclusion-list
   The command @kbd{C-x p f} (@code{project-find-file}) is a convenient
 way of visiting files (@pxref{Visiting}) that belong to the current
 project.  Unlike @kbd{C-x C-f}, this command doesn't require to type
@@ -1736,7 +1737,9 @@ base name (i.e., omit the leading directories).  In addition, the
 completion candidates considered by the command include only the files
 belonging to the current project, and nothing else.  If there's a file
 name at point, this command offers that file as the first element of
-the ``future history''.
+the ``future history''.  If given a prefix, include all files under
+the project root, except for @acronym{VCS} directories listed in
+@code{vc-directory-exclusion-list}.
 
 @findex project-find-regexp
   The command @kbd{C-x p g} (@code{project-find-regexp}) is similar to
