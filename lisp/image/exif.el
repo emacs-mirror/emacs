@@ -100,7 +100,10 @@ mirrored or not.")
   "Parse FILE (a JPEG file) and return the Exif data, if any.
 The return value is a list of Exif items.
 
-If the data is invalid, an `exif-error' is signaled."
+If the data is invalid, an `exif-error' is signaled.
+
+Also see the `exif-field' convenience function to extract data
+from the return value of this function."
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (insert-file-contents-literally file)
@@ -110,7 +113,10 @@ If the data is invalid, an `exif-error' is signaled."
   "Parse BUFFER (which should be a JPEG file) and return the Exif data, if any.
 The return value is a list of Exif items.
 
-If the data is invalid, an `exif-error' is signaled."
+If the data is invalid, an `exif-error' is signaled.
+
+Also see the `exif-field' convenience function to extract data
+from the return value of this function."
   (setq buffer (or buffer (current-buffer)))
   (with-current-buffer buffer
     (if enable-multibyte-characters

@@ -1114,6 +1114,7 @@ the buffer will take you to that directory.
 
 ** Exif
 
+---
 *** New function 'exif-field'.
 This is a convenience function to extract the field data from
 'exif-parse-file' and 'exif-parse-buffer'.
