@@ -4012,6 +4012,9 @@ system_process_attributes (Lisp_Object pid)
 
 #elif defined DARWIN_OS
 
+#define HAVE_RUSAGE_INFO_CURRENT (__MAC_OS_X_VERSION_MIN_REQUIRED >= 101000)
+#define HAVE_PROC_PIDINFO (__MAC_OS_X_VERSION_MIN_REQUIRED >= 1050)
+
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
@@ -4114,6 +4117,7 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (proc.kp_eproc.e_tpgid)),
 		 attrs);
 
+#if HAVE_RUSAGE_INFO_CURRENT
   rusage_info_current ri;
   if (proc_pid_rusage(proc_id, RUSAGE_INFO_CURRENT, (rusage_info_t *) &ri) == 0)
     {
@@ -4127,6 +4131,22 @@ system_process_attributes (Lisp_Object pid)
 
       attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (ri.ri_pageins)), attrs);
   }
+#else  /* !HAVE_RUSAGE_INFO_CURRENT */
+  struct rusage *rusage = proc.kp_proc.p_ru;
+  if (rusage)
+    {
+      attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (rusage->ru_minflt)),
+		     attrs);
+      attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (rusage->ru_majflt)),
+		     attrs);
+
+      Lisp_Object utime = make_lisp_timeval (rusage->ru_utime);
+      Lisp_Object stime = make_lisp_timeval (rusage->ru_stime);
+      attrs = Fcons (Fcons (Qutime, utime), attrs);
+      attrs = Fcons (Fcons (Qstime, stime), attrs);
+      attrs = Fcons (Fcons (Qtime, Ftime_add (utime, stime)), attrs);
+    }
+#endif  /* !HAVE_RUSAGE_INFO_CURRENT */
 
   starttime = proc.kp_proc.p_starttime;
   attrs = Fcons (Fcons (Qnice,  make_fixnum (proc.kp_proc.p_nice)), attrs);
@@ -4137,6 +4157,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object etime = Ftime_convert (Ftime_subtract (now, start), Qnil);
   attrs = Fcons (Fcons (Qetime, etime), attrs);
 
+#if HAVE_PROC_PIDINFO
   struct proc_taskinfo taskinfo;
   if (proc_pidinfo (proc_id, PROC_PIDTASKINFO, 0, &taskinfo, sizeof (taskinfo)) > 0)
     {
@@ -4144,6 +4165,7 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qrss, make_fixnum (taskinfo.pti_resident_size / 1024)), attrs);
       attrs = Fcons (Fcons (Qthcount, make_fixnum (taskinfo.pti_threadnum)), attrs);
     }
+#endif	/* HAVE_PROC_PIDINFO */
 
 #ifdef KERN_PROCARGS2
   char args[ARG_MAX];
