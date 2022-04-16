@@ -653,6 +653,7 @@ To enable this behavior, customize the user option
 'second-tab', then the first 'TAB' will display "*Completions*", and
 the second one will switch to the "*Completions*" buffer.
 
+---
 *** New user option 'completion-wrap-movement'.
 When non-nil, the commands 'next-completion' and 'previous-completion'
 automatically wrap around on reaching the beginning or the end of

@@ -9208,14 +9208,18 @@ the completions is popped up and down."
 (defun previous-completion (n)
   "Move to the previous item in the completion list.
 With prefix argument N, move back N items (negative N means move
-forward)."
+forward).
+
+Also see the `completion-wrap-movement' variable."
   (interactive "p")
   (next-completion (- n)))
 
 (defun next-completion (n)
   "Move to the next item in the completion list.
 With prefix argument N, move N items (negative N means move
-backward)."
+backward).
+
+Also see the `completion-wrap-movement' variable."
   (interactive "p")
   (let ((prev (previous-single-property-change (point) 'mouse-face)))
     (goto-char (cond
