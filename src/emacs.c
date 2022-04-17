@@ -2807,7 +2807,8 @@ killed.  */
 
   if (!NILP (restart))
     {
-      execvp (*initial_argv, initial_argv);
+      if (execvp (*initial_argv, initial_argv) < 1)
+	error ("Unable to re-execute Emacs");
     }
 
   if (FIXNUMP (arg))
