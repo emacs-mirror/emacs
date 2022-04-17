@@ -1822,41 +1822,22 @@ directories to search if FILENAME is not absolute; SUFFIXES is a
 list of valid filename suffixes for Info files.  See
 `try-completion' for a description of the remaining arguments."
   (setq suffixes (remove "" suffixes))
-  (when (file-name-absolute-p string)
-    (setq dirs (list (file-name-directory string))))
   (let ((names nil)
-	(names-sans-suffix nil)
-        (suffix (concat (regexp-opt suffixes t) "\\'"))
-        (string-dir (file-name-directory string)))
+        (suffix (concat (regexp-opt suffixes t) "\\'")))
     (dolist (dir dirs)
-      (unless dir
-	(setq dir default-directory))
-      (if string-dir (setq dir (expand-file-name string-dir dir)))
       (when (file-directory-p dir)
-	(dolist (file (file-name-all-completions
-		       (file-name-nondirectory string) dir))
-	  ;; If the file name has no suffix or a standard suffix,
-	  ;; include it.
-	  (and (or (null (file-name-extension file))
-		   (string-match suffix file))
-	       ;; But exclude subfiles of split Info files.
-	       (not (string-match "-[0-9]+\\'" file))
-	       ;; And exclude backup files.
-	       (not (string-match "~\\'" file))
-	       (push (if string-dir (concat string-dir file) file) names))
-	  ;; If the file name ends in a standard suffix,
-	  ;; add the unsuffixed name as a completion option.
-	  (when (string-match suffix file)
-	    (setq file (substring file 0 (match-beginning 0)))
-	    (push (if string-dir (concat string-dir file) file)
-		  names-sans-suffix)))))
-    ;; If there is just one file, don't duplicate it with suffixes,
-    ;; so `Info-read-node-name-1' will be able to complete a single
-    ;; candidate and to add the terminating ")".
-    (if (and (= (length names) 1) (= (length names-sans-suffix) 1))
-	(setq names names-sans-suffix)
-      (setq names (append names-sans-suffix names)))
-    (complete-with-action action names string pred)))
+        (dolist (file (directory-files dir))
+          ;; If the file name has a standard suffix,
+          ;; include it (without the suffix).
+          (when (and (string-match suffix file)
+                     ;; But exclude subfiles of split Info files.
+                     (not (string-match "\.info-[0-9]+" file))
+                     ;; And exclude backup files.
+                     (not (string-match "~\\'" file)))
+            (push (substring file 0 (match-beginning 0))
+                  names)))))
+    (complete-with-action action (delete-dups (nreverse names))
+                          string pred)))
 
 (defun Info-read-node-name-1 (string predicate code)
   "Internal function used by `Info-read-node-name'.
