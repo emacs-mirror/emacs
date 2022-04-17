@@ -613,11 +613,9 @@ script that was used in ancient South Asia.
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
 ---
-** New mode for editing and viewing the NEWS file.
-It's called 'emacs-news-mode', and adds some highlighting, fixes the
-'M-q' command, and has commands for doing maintenance.  When in read
-only mode (which you get when doing 'C-h N', for instance), it also
-adds buttons to manual entries and symbol references.
+** New mode, 'emacs-news-mode', for editing the NEWS file.
+This mode adds some highlighting, fixes the 'M-q' command, and has
+commands for doing maintenance.
 
 ---
 ** kmacro
@@ -889,6 +887,11 @@ of the resulting name is controlled by 'eww-buffer-name-length'.  By
 default, no automatic renaming is performed.
 
 ** Help
+
+---
+*** New mode, 'emacs-news-view-mode', for viewing the NEWS file.
+This mode is used by the 'C-h N' command, and adds buttons to manual
+entries and symbol references.
 
 ---
 *** New user option 'help-link-key-to-documentation'.
