@@ -130,7 +130,8 @@ South Indian language Malayalam is supported in this language environment."))
  "Brahmi" '((charset unicode)
 	    (coding-system utf-8)
 	    (coding-priority utf-8)
-	    ; (input-method . "brahmi") ; FIXME
+	    (input-method . "brahmi")
+            (sample-text . "Brahmi (𑀩𑁆𑀭𑀸𑀳𑁆𑀫𑀻)	𑀦𑀫𑀲𑁆𑀢𑁂")
 	    (documentation . "\
 The ancient Brahmi script is supported in this language environment."))
  '("Indian"))                           ; Should we have an "Old" category?

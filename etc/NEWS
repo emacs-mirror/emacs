@@ -622,7 +622,8 @@ This uses the Tai Tham script, whose support has been enhanced.
 
 *** New language environment "Brahmi".
 This language environment supports Brahmi, which is a historical
-script that was used in ancient South Asia.
+script that was used in ancient South Asia.  A new input method,
+'brahmi', is provided to type text in this script.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
