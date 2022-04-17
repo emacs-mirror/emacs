@@ -159,6 +159,10 @@ Lisp_Object empty_unibyte_string, empty_multibyte_string;
 #ifdef WINDOWSNT
 /* Cache for externally loaded libraries.  */
 Lisp_Object Vlibrary_cache;
+/* Original command line string as received from the OS.  */
+static char *initial_cmdline;
+/* Original working directory when invoked.  */
+static const char *initial_wd;
 #endif
 
 struct gflags gflags;
@@ -1319,6 +1323,7 @@ main (int argc, char **argv)
 	}
     }
   init_heap (use_dynamic_heap);
+  initial_cmdline = GetCommandLine ();
 #endif
 #if defined WINDOWSNT || defined HAVE_NTGUI
   /* Set global variables used to detect Windows version.  Do this as
@@ -1465,6 +1470,9 @@ main (int argc, char **argv)
 #endif
 
   emacs_wd = emacs_get_current_dir_name ();
+#ifdef WINDOWSNT
+  initial_wd = emacs_wd;
+#endif
 #ifdef HAVE_PDUMPER
   if (dumped_with_pdumper_p ())
     pdumper_record_wd (emacs_wd);
@@ -2811,7 +2819,11 @@ killed.  */
 	 (on some systems) with no argv.  */
       if (initial_argc < 1)
 	error ("No command line arguments known; unable to re-execute Emacs");
+#ifdef WINDOWSNT
+      if (w32_reexec_emacs (initial_cmdline, initial_wd) < 1)
+#else
       if (execvp (*initial_argv, initial_argv) < 1)
+#endif
 	error ("Unable to re-execute Emacs");
     }
 

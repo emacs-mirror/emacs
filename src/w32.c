@@ -10614,6 +10614,49 @@ realpath (const char *file_name, char *resolved_name)
   return xstrdup (tgt);
 }
 
+/* A replacement for Posix execvp, used to restart Emacs.  This is
+   needed because the low-level Windows API to start processes accepts
+   the command-line arguments as a single string, so we cannot safely
+   use the MSVCRT execvp emulation, because elements of argv[] that
+   have embedded blanks and tabs will not be passed correctly to the
+   restarted Emacs.  */
+int
+w32_reexec_emacs (char *cmd_line, const char *wdir)
+{
+  STARTUPINFO si;
+  SECURITY_ATTRIBUTES sec_attrs;
+  BOOL status;
+  PROCESS_INFORMATION proc_info;
+
+  GetStartupInfo (&si);		/* Use the same startup info as the caller.  */
+  sec_attrs.nLength = sizeof (sec_attrs);
+  sec_attrs.lpSecurityDescriptor = NULL;
+  sec_attrs.bInheritHandle = FALSE;
+
+  /* Make sure we are in the original directory, in case the command
+     line specifies the program as a relative file name.  */
+  chdir (wdir);
+
+  status = CreateProcess (NULL,		/* program */
+			  cmd_line,	/* command line */
+			  &sec_attrs,	/* process attributes */
+			  NULL,		/* thread attributes */
+			  TRUE,		/* inherit handles? */
+			  NORMAL_PRIORITY_CLASS,
+			  NULL,		/* environment */
+			  wdir,		/* initial directory */
+			  &si,		/* startup info */
+			  &proc_info);
+  if (status)
+    {
+      CloseHandle (proc_info.hThread);
+      CloseHandle (proc_info.hProcess);
+      exit (0);
+    }
+  errno = ENOEXEC;
+  return -1;
+}
+
 /*
 	globals_of_w32 is used to initialize those global variables that
 	must always be initialized on startup even when the global variable
