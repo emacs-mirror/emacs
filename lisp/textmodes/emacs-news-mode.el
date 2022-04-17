@@ -131,11 +131,14 @@ untagged NEWS entry."
 (defun emacs-news--heading-p ()
   (save-excursion
     (beginning-of-line)
+    ;; A heading starts with * characters, and then a blank line, and
+    ;; then paragraphs with more * characters than in the heading.
     (and (looking-at "\\(\\*+\\) ")
          (let ((level (length (match-string 1))))
-           (goto-char (match-end 0))
-           (when (re-search-forward "^\\(\\*+\\) " nil t)
-             (> (length (match-string 1)) level))))))
+           (forward-line 1)
+           (and (looking-at "$")
+                (re-search-forward "^\\(\\*+\\) " nil t)
+                (> (length (match-string 1)) level))))))
 
 (defun emacs-news-previous-untagged-entry ()
   "Go to the previous untagged NEWS entry."
