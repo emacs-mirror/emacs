@@ -2820,7 +2820,7 @@ killed.  */
       if (initial_argc < 1)
 	error ("No command line arguments known; unable to re-execute Emacs");
 #ifdef WINDOWSNT
-      if (w32_reexec_emacs (initial_cmdline, initial_wd) < 1)
+      if (w32_reexec_emacs (initial_cmdline, initial_wd) < 0)
 #else
       if (execvp (*initial_argv, initial_argv) < 1)
 #endif

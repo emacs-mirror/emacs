@@ -10623,6 +10623,12 @@ realpath (const char *file_name, char *resolved_name)
 int
 w32_reexec_emacs (char *cmd_line, const char *wdir)
 {
+  if (inhibit_window_system)
+    {
+      errno = ENOSYS;
+      return -1;	/* FIXME! */
+    }
+
   STARTUPINFO si;
   SECURITY_ATTRIBUTES sec_attrs;
   BOOL status;
