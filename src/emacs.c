@@ -2807,6 +2807,10 @@ killed.  */
 
   if (!NILP (restart))
     {
+      /* This is very unlikely, but it's possible to execute a binary
+	 (on some systems) with no argv.  */
+      if (initial_argc < 1)
+	error ("No command line arguments known; unable to re-execute Emacs");
       if (execvp (*initial_argv, initial_argv) < 1)
 	error ("Unable to re-execute Emacs");
     }
