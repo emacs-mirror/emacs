@@ -406,6 +406,12 @@ command also works for non-Emoji characters.)
 ** Help
 
 ---
+*** New user option 'help-enable-variable-value-editing'.
+If enabled, 'e' on a value in *Help* will pop you to a new buffer
+where you can edit the value.  This is not enabled by default, because
+it's easy to make an edit that yields an invalid result.
+
+---
 *** 'C-h b' uses outlining by default.
 Set 'describe-bindings-outline' to nil to get the old behavior.
 

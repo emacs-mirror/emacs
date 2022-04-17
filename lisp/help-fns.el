@@ -133,6 +133,14 @@ with the current prefix.  The files are chosen according to
   :group 'help
   :version "26.3")
 
+(defcustom help-enable-variable-value-editing nil
+  "If non-nil, allow editing values in *Help* buffers.
+Values that aren't readable by the Emacs Lisp reader can't be
+edited even if this option is enabled."
+  :type 'boolean
+  :group 'help
+  :version "29.1")
+
 (defcustom help-enable-symbol-autoload nil
   "Perform autoload if docs are missing from autoload objects."
   :type 'boolean
@@ -1167,10 +1175,11 @@ it is displayed along with the global value."
 		       (let ((rep
 			      (let ((print-quoted t)
                                     (print-circle t))
-				(cl-prin1-to-string val))))
-			 (if (and (symbolp val) (not (booleanp val)))
+                                (cl-prin1-to-string val))))
+                         (if (and (symbolp val) (not (booleanp val)))
 			     (format-message "`%s'" rep)
-			   rep))))
+			   rep)))
+                      (start (point)))
 		  (if (< (+ (length print-rep) (point) (- line-beg)) 68)
 		      (insert " " print-rep)
 		    (terpri)
@@ -1185,6 +1194,8 @@ it is displayed along with the global value."
                             (insert-buffer-substring pp-buffer)))))
                     ;; Remove trailing newline.
                     (and (= (char-before) ?\n) (delete-char -1)))
+                  (help-fns--editable-variable start (point)
+                                               variable val buffer)
 		  (let* ((sv (get variable 'standard-value))
 			 (origval (and (consp sv)
 				       (condition-case nil
@@ -1204,6 +1215,8 @@ it is displayed along with the global value."
                       (save-restriction
                         (narrow-to-region from (point))
                         (save-excursion (pp-buffer)))
+                      (help-fns--editable-variable from (point)
+                                                   variable origval buffer)
 		      (if (< (point) (+ from 20))
 			  (delete-region (1- from) from)))))))
 	    (terpri)
@@ -1236,7 +1249,9 @@ it is displayed along with the global value."
 			;; See previous comment for this function.
 			;; (help-xref-on-pp from (point))
 			(if (< (point) (+ from 20))
-			    (delete-region (1- from) from)))))))
+			    (delete-region (1- from) from))
+                        (help-fns--editable-variable
+                         from (point) variable global-val buffer))))))
               (terpri))
 
 	    ;; If the value is large, move it to the end.
@@ -1285,6 +1300,62 @@ it is displayed along with the global value."
 	    (with-current-buffer standard-output
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
+
+(defun help-fns--editable-variable (start end variable value buffer)
+  (when (and (readablep value) help-enable-variable-value-editing)
+    (add-text-properties
+     start end
+     (list 'help-echo "`e' to edit the value"
+           'help-fns--edit-variable (list variable value buffer
+                                          (current-buffer))
+           'keymap (define-keymap
+                     "e" #'help-fns-edit-variable)))))
+
+(defvar help-fns--edit-variable)
+
+(put 'help-fns-edit-variable 'disabled t)
+(defun help-fns-edit-variable ()
+  "Edit the variable under point."
+  (interactive)
+  (declare (completion ignore))
+  (let ((var (get-text-property (point) 'help-fns--edit-variable)))
+    (unless var
+      (error "No variable under point"))
+    (pop-to-buffer-same-window (format "*edit %s*" (nth 0 var)))
+    (prin1 (nth 1 var) (current-buffer))
+    (pp-buffer)
+    (goto-char (point-min))
+    (insert (format ";; Edit the `%s' variable.\n" (nth 0 var))
+            ";; C-c C-c to update the value and exit.\n\n")
+    (help-fns--edit-value-mode)
+    (setq-local help-fns--edit-variable var)))
+
+(defvar-keymap help-fns--edit-value-mode-map
+  "C-c C-c" #'help-fns-edit-mode-done)
+
+(define-derived-mode help-fns--edit-value-mode emacs-lisp-mode "Elisp"
+  :interactive nil)
+
+(defun help-fns-edit-mode-done (&optional kill)
+  "Update the value of the variable and kill the buffer.
+If KILL (the prefix), don't update the value, but just kill the
+current buffer."
+  (interactive "P" help-fns--edit-value-mode)
+  (unless help-fns--edit-variable
+    (error "Invalid buffer"))
+  (goto-char (point-min))
+  (cl-destructuring-bind (variable _ buffer help-buffer)
+      help-fns--edit-variable
+    (unless (buffer-live-p buffer)
+      (error "Original buffer is gone; can't update"))
+    (unless kill
+      (let ((value (read (current-buffer))))
+        (with-current-buffer buffer
+          (set variable value))))
+    (kill-buffer (current-buffer))
+    (when (buffer-live-p help-buffer)
+      (with-current-buffer help-buffer
+        (revert-buffer)))))
 
 (defun help-fns--run-describe-functions (functions &rest args)
   (with-current-buffer standard-output

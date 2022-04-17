@@ -393,7 +393,8 @@ The format is (FUNCTION ARGS...).")
 ;;;###autoload
 (define-derived-mode help-mode special-mode "Help"
   "Major mode for viewing help text and navigating references in it.
-Entry to this mode runs the normal hook `help-mode-hook'.
+Also see the `help-enable-editing' variable.
+
 Commands:
 \\{help-mode-map}"
   (setq-local revert-buffer-function
