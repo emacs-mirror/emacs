@@ -36,6 +36,7 @@
 (defvar url-current-object)
 (defvar url-http-after-change-function)
 (defvar url-http-chunked-counter)
+(defvar url-http-chunked-last-crlf-missing nil)
 (defvar url-http-chunked-length)
 (defvar url-http-chunked-start)
 (defvar url-http-connection-opened)
@@ -1071,90 +1072,105 @@ the callback to be triggered."
 Cannot give a sophisticated percentage, but we need a different
 function to look for the special 0-length chunk that signifies
 the end of the document."
-  (save-excursion
-    (goto-char st)
-    (let ((read-next-chunk t)
-	  (case-fold-search t)
-	  (regexp nil)
-	  (no-initial-crlf nil))
-      ;; We need to loop thru looking for more chunks even within
-      ;; one after-change-function call.
-      (while read-next-chunk
-	(setq no-initial-crlf (= 0 url-http-chunked-counter))
-	(if url-http-content-type
+  (if url-http-chunked-last-crlf-missing
+      (progn
+        (goto-char url-http-chunked-last-crlf-missing)
+        (if (not (looking-at "\r\n"))
+	    (url-http-debug
+             "Still spinning for the terminator of last chunk...")
+          (url-http-debug "Saw the last CRLF.")
+          (delete-region (match-beginning 0) (match-end 0))
+          (when (url-http-parse-headers)
+	    (url-http-activate-callback))))
+    (save-excursion
+      (goto-char st)
+      (let ((read-next-chunk t)
+	    (case-fold-search t)
+	    (regexp nil)
+	    (no-initial-crlf nil))
+        ;; We need to loop thru looking for more chunks even within
+        ;; one after-change-function call.
+        (while read-next-chunk
+	  (setq no-initial-crlf (= 0 url-http-chunked-counter))
+	  (if url-http-content-type
+	      (url-display-percentage nil
+	                              "Reading [%s]... chunk #%d"
+	                              url-http-content-type url-http-chunked-counter)
 	    (url-display-percentage nil
-	     "Reading [%s]... chunk #%d"
-	     url-http-content-type url-http-chunked-counter)
-	  (url-display-percentage nil
-	   "Reading... chunk #%d"
-	   url-http-chunked-counter))
-	(url-http-debug "Reading chunk %d (%d %d %d)"
-			url-http-chunked-counter st nd length)
-	(setq regexp (if no-initial-crlf
-			 "\\([0-9a-z]+\\).*\r?\n"
-		       "\r?\n\\([0-9a-z]+\\).*\r?\n"))
+	                            "Reading... chunk #%d"
+	                            url-http-chunked-counter))
+	  (url-http-debug "Reading chunk %d (%d %d %d)"
+			  url-http-chunked-counter st nd length)
+	  (setq regexp (if no-initial-crlf
+			   "\\([0-9a-z]+\\).*\r?\n"
+		         "\r?\n\\([0-9a-z]+\\).*\r?\n"))
 
-	(if url-http-chunked-start
-	    ;; We know how long the chunk is supposed to be, skip over
-	    ;; leading crap if possible.
-	    (if (> nd (+ url-http-chunked-start url-http-chunked-length))
-		(progn
-		  (url-http-debug "Got to the end of chunk #%d!"
-				  url-http-chunked-counter)
-		  (goto-char (+ url-http-chunked-start
-				url-http-chunked-length)))
-	      (url-http-debug "Still need %d bytes to hit end of chunk"
-			      (- (+ url-http-chunked-start
-				    url-http-chunked-length)
-				 nd))
-	      (setq read-next-chunk nil)))
-	(if (not read-next-chunk)
-	    (url-http-debug "Still spinning for next chunk...")
-	  (if no-initial-crlf (skip-chars-forward "\r\n"))
-	  (if (not (looking-at regexp))
-	      (progn
-	        ;; Must not have received the entirety of the chunk header,
-		;; need to spin some more.
-		(url-http-debug "Did not see start of chunk @ %d!" (point))
-		(setq read-next-chunk nil))
-            ;; The data we got may have started in the middle of the
-            ;; initial chunk header, so move back to the start of the
-            ;; line and re-compute.
-            (when (= url-http-chunked-counter 0)
-              (beginning-of-line)
-              (looking-at regexp))
- 	    (add-text-properties (match-beginning 0) (match-end 0)
-                                 (list 'chunked-encoding t
-				       'face 'cursor
-				       'invisible t))
-	    (setq url-http-chunked-length (string-to-number (buffer-substring
-                                                             (match-beginning 1)
-                                                             (match-end 1))
-                                                            16)
-		  url-http-chunked-counter (1+ url-http-chunked-counter)
-		  url-http-chunked-start (set-marker
-					  (or url-http-chunked-start
-					      (make-marker))
-					  (match-end 0)))
-	    (delete-region (match-beginning 0) (match-end 0))
-	    (url-http-debug "Saw start of chunk %d (length=%d, start=%d"
-			    url-http-chunked-counter url-http-chunked-length
-			    (marker-position url-http-chunked-start))
-	    (if (= 0 url-http-chunked-length)
-		(progn
-		  ;; Found the end of the document!  Wheee!
-		  (url-http-debug "Saw end of stream chunk!")
-		  (setq read-next-chunk nil)
-		  (url-display-percentage nil nil)
-		  ;; Every chunk, even the last 0-length one, is
-		  ;; terminated by CRLF.  Skip it.
-		  (when (looking-at "\r?\n")
-		    (url-http-debug "Removing terminator of last chunk")
-		    (delete-region (match-beginning 0) (match-end 0)))
-		  (if (re-search-forward "^\r?\n" nil t)
-		      (url-http-debug "Saw end of trailers..."))
-		  (if (url-http-parse-headers)
-		      (url-http-activate-callback))))))))))
+	  (if url-http-chunked-start
+	      ;; We know how long the chunk is supposed to be, skip over
+	      ;; leading crap if possible.
+	      (if (> nd (+ url-http-chunked-start url-http-chunked-length))
+		  (progn
+		    (url-http-debug "Got to the end of chunk #%d!"
+				    url-http-chunked-counter)
+		    (goto-char (+ url-http-chunked-start
+				  url-http-chunked-length)))
+	        (url-http-debug "Still need %d bytes to hit end of chunk"
+			        (- (+ url-http-chunked-start
+				      url-http-chunked-length)
+				   nd))
+	        (setq read-next-chunk nil)))
+	  (if (not read-next-chunk)
+	      (url-http-debug "Still spinning for next chunk...")
+	    (if no-initial-crlf (skip-chars-forward "\r\n"))
+	    (if (not (looking-at regexp))
+	        (progn
+	          ;; Must not have received the entirety of the chunk header,
+		  ;; need to spin some more.
+		  (url-http-debug "Did not see start of chunk @ %d!" (point))
+		  (setq read-next-chunk nil))
+              ;; The data we got may have started in the middle of the
+              ;; initial chunk header, so move back to the start of the
+              ;; line and re-compute.
+              (when (= url-http-chunked-counter 0)
+                (beginning-of-line)
+                (looking-at regexp))
+              (add-text-properties (match-beginning 0) (match-end 0)
+                                   (list 'chunked-encoding t
+				         'face 'cursor
+				         'invisible t))
+	      (setq url-http-chunked-length
+                    (string-to-number (buffer-substring (match-beginning 1)
+                                                        (match-end 1))
+                                      16)
+		    url-http-chunked-counter (1+ url-http-chunked-counter)
+		    url-http-chunked-start (set-marker
+					    (or url-http-chunked-start
+					        (make-marker))
+					    (match-end 0)))
+	      (delete-region (match-beginning 0) (match-end 0))
+	      (url-http-debug "Saw start of chunk %d (length=%d, start=%d"
+			      url-http-chunked-counter url-http-chunked-length
+			      (marker-position url-http-chunked-start))
+	      (if (= 0 url-http-chunked-length)
+		  (progn
+		    ;; Found the end of the document!  Wheee!
+		    (url-http-debug "Saw end of stream chunk!")
+		    (setq read-next-chunk nil)
+		    (url-display-percentage nil nil)
+		    ;; Every chunk, even the last 0-length one, is
+		    ;; terminated by CRLF.  Skip it.
+		    (if (not (looking-at "\r?\n"))
+                        (progn
+	                  (url-http-debug
+                           "Spinning for the terminator of last chunk...")
+                          (setq-local url-http-chunked-last-crlf-missing
+                                      (point)))
+		      (url-http-debug "Removing terminator of last chunk")
+		      (delete-region (match-beginning 0) (match-end 0))
+		      (when (re-search-forward "^\r?\n" nil t)
+		        (url-http-debug "Saw end of trailers..."))
+		      (when (url-http-parse-headers)
+		        (url-http-activate-callback))))))))))))
 
 (defun url-http-wait-for-headers-change-function (_st nd _length)
   ;; This will wait for the headers to arrive and then splice in the
