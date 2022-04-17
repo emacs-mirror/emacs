@@ -1274,7 +1274,8 @@ Otherwise, return a new string."
 
 (defvar help--keymaps-seen nil)
 (defun describe-map-tree (startmap &optional partial shadow prefix title
-                                   no-menu transl always-title mention-shadow)
+                                   no-menu transl always-title mention-shadow
+                                   buffer)
   "Insert a description of the key bindings in STARTMAP.
 This is followed by the key bindings of all maps reachable
 through STARTMAP.
@@ -1300,7 +1301,10 @@ maps to look through.
 
 If MENTION-SHADOW is non-nil, then when something is shadowed by
 SHADOW, don't omit it; instead, mention it but say it is
-shadowed."
+shadowed.
+
+If BUFFER, lookup keys while in that buffer.  This only affects
+things like :filters for menu bindings."
   (let* ((amaps (accessible-keymaps startmap prefix))
          (orig-maps (if no-menu
                         (progn
@@ -1341,7 +1345,8 @@ shadowed."
                 (setq sub-shadows (cons (cdr (car tail)) sub-shadows)))
               (setq tail (cdr tail))))
           (describe-map (cdr elt) elt-prefix transl partial
-                        sub-shadows no-menu mention-shadow)))
+                        sub-shadows no-menu mention-shadow
+                        buffer)))
       (setq maps (cdr maps)))
     ;; Print title...
     (when (and print-title
@@ -1419,13 +1424,13 @@ Return nil if the key sequence is too long."
           (t nil))))
 
 (defun describe-map (map &optional prefix transl partial shadow
-                         nomenu mention-shadow)
+                         nomenu mention-shadow buffer)
   "Describe the contents of keymap MAP.
 Assume that this keymap itself is reached by the sequence of
 prefix keys PREFIX (a string or vector).
 
-TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
-`describe-map-tree'."
+TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW and BUFFER are as
+in `describe-map-tree'."
   ;; Converted from describe_map in keymap.c.
   (let* ((suppress (and partial 'suppress-keymap))
          (map (keymap-canonicalize map))
@@ -1476,7 +1481,10 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
                                 ((and mention-shadow (not (eq tem definition)))
                                  (setq this-shadowed t))
                                 (t nil))))
-                    (eq definition (lookup-key tail (vector event) t))
+                    (eq definition (if buffer
+                                       (with-current-buffer buffer
+                                         (lookup-key tail (vector event) t))
+                                     (lookup-key tail (vector event) t)))
                     (push (list event definition this-shadowed) vect))))
             ((eq (car tail) 'keymap)
              ;; The same keymap might be in the structure twice, if
