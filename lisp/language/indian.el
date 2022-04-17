@@ -397,7 +397,7 @@ The ancient Brahmi script is supported in this language environment."))
 ;; Brahmi composition rules
 (let ((consonant     "[\U00011013-\U00011034]")
       (non-consonant "[^\U00011013-\U00011034\U00011046\U0001107F]")
-      (vowel         "[\U00011038-\U0001103D\U00011042-\U00011045]")
+      (vowel         "[\U00011038-\U00011045]")
       (numeral       "[\U00011052-\U00011065]")
       (multiplier    "[\U00011064\U00011065]")
       (virama        "\U00011046")
