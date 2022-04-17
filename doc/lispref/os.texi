@@ -699,7 +699,7 @@ If you started Emacs from a terminal, the parent process normally
 resumes control.  The low-level primitive for killing Emacs is
 @code{kill-emacs}.
 
-@deffn Command kill-emacs &optional exit-data
+@deffn Command kill-emacs &optional exit-data restart
 This command calls the hook @code{kill-emacs-hook}, then exits the
 Emacs process and kills it.
 
@@ -714,6 +714,10 @@ input) can read them.
 If @var{exit-data} is neither an integer nor a string, or is omitted,
 that means to use the (system-specific) exit status which indicates
 successful program termination.
+
+If @var{restart} is non-@code{nil}, instead of just exiting at the
+end, start a new Emacs process, using the same command line arguments
+as the currently running Emacs process.
 @end deffn
 
 @cindex SIGTERM
@@ -755,6 +759,13 @@ confirmation from the user.  If any of them returns @code{nil},
 the remaining functions in this hook.  Calling @code{kill-emacs}
 directly does not run this hook.
 @end defopt
+
+@deffn Command restart-emacs
+This command does the same as @code{save-buffers-kill-emacs}, but
+instead of just killing the current Emacs process at the end, it'll
+restart a new Emacs process, using the same command line arguments as
+the currently running Emacs process.
+@end deffn
 
 @node Suspending Emacs
 @subsection Suspending Emacs

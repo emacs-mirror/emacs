@@ -19773,7 +19773,7 @@ For details, see etc/PROBLEMS.\n",
   if (terminal_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
-      Fkill_emacs (make_fixnum (70));
+      Fkill_emacs (make_fixnum (70), Qnil);
     }
 
   totally_unblock_input ();

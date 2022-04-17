@@ -1613,7 +1613,7 @@ process_quit_flag (void)
   Lisp_Object flag = Vquit_flag;
   Vquit_flag = Qnil;
   if (EQ (flag, Qkill_emacs))
-    Fkill_emacs (Qnil);
+    Fkill_emacs (Qnil, Qnil);
   if (EQ (Vthrow_on_input, flag))
     Fthrow (Vthrow_on_input, Qt);
   quit ();

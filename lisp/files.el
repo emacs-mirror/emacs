@@ -7762,14 +7762,17 @@ prompt the user before killing them."
   :group 'convenience
   :version "26.1")
 
-(defun save-buffers-kill-emacs (&optional arg)
+(defun save-buffers-kill-emacs (&optional arg restart)
   "Offer to save each buffer, then kill this Emacs process.
 With prefix ARG, silently save all file-visiting buffers without asking.
 If there are active processes where `process-query-on-exit-flag'
 returns non-nil and `confirm-kill-processes' is non-nil,
 asks whether processes should be killed.
+
 Runs the members of `kill-emacs-query-functions' in turn and stops
-if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
+if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it.
+
+If RESTART, restart Emacs after killing the current Emacs process."
   (interactive "P")
   ;; Don't use save-some-buffers-default-predicate, because we want
   ;; to ask about all the buffers before killing Emacs.
@@ -7823,7 +7826,7 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
      (run-hook-with-args-until-failure 'kill-emacs-query-functions)
      (or (null confirm)
          (funcall confirm "Really exit Emacs? "))
-     (kill-emacs))))
+     (kill-emacs nil restart))))
 
 (defun save-buffers-kill-terminal (&optional arg)
   "Offer to save each buffer, then kill the current connection.
@@ -7838,6 +7841,16 @@ only these files will be asked to be saved."
   (if (frame-parameter nil 'client)
       (server-save-buffers-kill-terminal arg)
     (save-buffers-kill-emacs arg)))
+
+(defun restart-emacs ()
+  "Kill the current Emacs process and start a new one.
+This goes through the same shutdown procedure as
+`save-buffers-kill-emacs', but instead of killing Emacs and
+exiting, it re-executes Emacs (using the same command line
+arguments as the running Emacs)."
+  (interactive)
+  (save-buffers-kill-emacs nil t))
+
 
 ;; We use /: as a prefix to "quote" a file name
 ;; so that magic file name handlers will not apply to it.

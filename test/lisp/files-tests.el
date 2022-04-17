@@ -263,7 +263,7 @@ form.")
                 nil))
              (kill-emacs-args nil)
              ((symbol-function #'kill-emacs)
-              (lambda (&optional arg) (push arg kill-emacs-args)))
+              (lambda (&optional arg arg) (push arg kill-emacs-args)))
              (process
               (make-process
                :name "sleep"

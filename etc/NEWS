@@ -195,6 +195,15 @@ methods instead.
 * Changes in Emacs 29.1
 
 +++
+** New command 'restart-emacs'.
+This is like 'save-buffers-kill-emacs', but instead of just killing
+the current Emacs process at the end, it starts a new Emacs process
+(using the same command line arguments as the running Emacs process).
+'kill-emacs' and 'save-buffers-kill-emacs' have also gained new
+optional parameters to restart instead of just killing the current
+process.
+
++++
 ** New user option 'mouse-drag-and-drop-region-cross-program'.
 If non-nil, this option allows dragging text in the region from Emacs
 to another program.
@@ -1451,7 +1460,8 @@ compliant.
 +++
 ** New macro 'setopt'.
 This is like 'setq', but is meant to be used for user options instead
-of plain variables, and uses 'custom-set'/'set-default' to set them.
+of plain variables, and
+uses 'custom-set'/'set-default' to set them.
 
 +++
 ** New utility predicate 'mode-line-window-selected-p'.

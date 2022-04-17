@@ -12143,7 +12143,7 @@ setup_echo_area_for_printing (bool multibyte_p)
 {
   /* If we can't find an echo area any more, exit.  */
   if (! FRAME_LIVE_P (XFRAME (selected_frame)))
-    Fkill_emacs (Qnil);
+    Fkill_emacs (Qnil, Qnil);
 
   ensure_echo_area_buffers ();
 

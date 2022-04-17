@@ -427,7 +427,7 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 		 don't care about the message stack.  */
 	      if (sig == SIGINT && noninteractive)
 		clear_message_stack ();
-	      Fkill_emacs (make_fixnum (sig));
+	      Fkill_emacs (make_fixnum (sig), Qnil);
 	    }
 
           shut_down_emacs (sig, Qnil);
@@ -2740,21 +2740,25 @@ sort_args (int argc, char **argv)
   xfree (priority);
 }
 
-DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
+DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 2, "P",
        doc: /* Exit the Emacs job and kill it.
 If ARG is an integer, return ARG as the exit program code.
 If ARG is a string, stuff it as keyboard input.
 Any other value of ARG, or ARG omitted, means return an
 exit code that indicates successful program termination.
 
+If RESTART is non-nil, instead of just exiting at the end, start a new
+Emacs process, using the same command line arguments as the currently
+running Emacs process.
+
 This function is called upon receipt of the signals SIGTERM
 or SIGHUP, and upon SIGINT in batch mode.
 
-The value of `kill-emacs-hook', if not void,
-is a list of functions (of no args),
-all of which are called before Emacs is actually killed.  */
+The value of `kill-emacs-hook', if not void, is a list of functions
+(of no args), all of which are called before Emacs is actually
+killed.  */
        attributes: noreturn)
-  (Lisp_Object arg)
+  (Lisp_Object arg, Lisp_Object restart)
 {
   int exit_code;
 
@@ -2800,6 +2804,11 @@ all of which are called before Emacs is actually killed.  */
 #ifdef HAVE_NATIVE_COMP
   eln_load_path_final_clean_up ();
 #endif
+
+  if (!NILP (restart))
+    {
+      execvp (*initial_argv, initial_argv);
+    }
 
   if (FIXNUMP (arg))
     exit_code = (XFIXNUM (arg) < 0
