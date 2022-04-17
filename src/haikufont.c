@@ -1096,6 +1096,10 @@ syms_of_haikufont (void)
   DEFSYM (Qko, "ko");
   DEFSYM (Qjp, "jp");
 
+#ifdef USE_BE_CAIRO
+  Fput (Qhaiku, Qfont_driver_superseded_by, Qftcr);
+#endif
+
   font_cache = list (Qnil);
   staticpro (&font_cache);
 }
