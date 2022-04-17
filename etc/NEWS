@@ -1450,8 +1450,8 @@ compliant.
 
 +++
 ** New macro 'setopt'.
-This is like 'setq', but uses 'customize-set-variable' to set the
-variable(s).
+This is like 'setq', but is meant to be used for user options instead
+of plain variables, and uses 'custom-set'/'set-default' to set them.
 
 +++
 ** New utility predicate 'mode-line-window-selected-p'.
