@@ -1545,7 +1545,7 @@ haiku_free_frame_resources (struct frame *f)
     BWindow_quit (window);
 
   if (FRAME_OUTPUT_DATA (f)->saved_menu_event)
-    xfree (FRAME_OUTPUT_DATA (f))->saved_menu_event;
+    xfree (FRAME_OUTPUT_DATA (f)->saved_menu_event);
 
   xfree (FRAME_OUTPUT_DATA (f));
   FRAME_OUTPUT_DATA (f) = NULL;

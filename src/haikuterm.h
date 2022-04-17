@@ -154,12 +154,12 @@ struct haiku_output
   haiku view;
   haiku menubar;
 
-  int menu_up_to_date_p;
-  int zoomed_p;
-  int hourglass_p;
-  int menu_bar_open_p;
   int fontset;
   int baseline_offset;
+
+  bool_bf zoomed_p : 1;
+  bool_bf hourglass_p : 1;
+  bool_bf menu_bar_open_p : 1;
 
   /* Whether or not there is data in a back buffer that hasn't been
      displayed yet.  */

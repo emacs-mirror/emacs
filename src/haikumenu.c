@@ -541,7 +541,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
   if (!deep_p)
     {
-      FRAME_OUTPUT_DATA (f)->menu_up_to_date_p = 0;
       items = FRAME_MENU_BAR_ITEMS (f);
       Lisp_Object string;
 
@@ -654,8 +653,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
       set_buffer_internal_1 (prev);
 
-      FRAME_OUTPUT_DATA (f)->menu_up_to_date_p = 1;
-
       /* If there has been no change in the Lisp-level contents
 	 of the menu bar, skip redisplaying it.  Just exit.  */
 
@@ -705,19 +702,11 @@ set_frame_menubar (struct frame *f, bool deep_p)
 void
 run_menu_bar_help_event (struct frame *f, int mb_idx)
 {
-  Lisp_Object frame;
-  Lisp_Object vec;
-  Lisp_Object help;
-
-  block_input ();
-  if (!FRAME_OUTPUT_DATA (f)->menu_up_to_date_p)
-    {
-      unblock_input ();
-      return;
-    }
+  Lisp_Object frame, vec, help;
 
   XSETFRAME (frame, f);
 
+  block_input ();
   if (mb_idx < 0)
     {
       kbd_buffer_store_help_event (frame, Qnil);

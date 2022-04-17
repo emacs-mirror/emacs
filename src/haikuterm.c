@@ -3525,9 +3525,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
 	      continue;
 
-	    if (FRAME_OUTPUT_DATA (f)->menu_up_to_date_p)
-	      find_and_call_menu_selection (f, f->menu_bar_items_used,
-					    f->menu_bar_vector, b->ptr);
+	    find_and_call_menu_selection (f, f->menu_bar_items_used,
+					  f->menu_bar_vector, b->ptr);
 	    break;
 	  }
 	case FILE_PANEL_EVENT:
@@ -3551,12 +3550,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      continue;
 
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f) ||
-		!FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
+	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f)
+		|| !FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
 	      continue;
 
 	    run_menu_bar_help_event (f, b->mb_idx);
-
 	    break;
 	  }
 	case ZOOM_EVENT:
