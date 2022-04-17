@@ -381,7 +381,8 @@ elements is negated: these commands will NOT prompt."
 
 (defcustom xref-after-jump-hook '(recenter
                                   xref-pulse-momentarily)
-  "Functions called after jumping to an xref."
+  "Functions called after jumping to an xref.
+Also see `xref-current-item'."
   :type 'hook)
 
 (defcustom xref-after-return-hook '(xref-pulse-momentarily)
@@ -490,7 +491,9 @@ To undo, use \\[xref-go-forward]."
   'xref-current-item
   "29.1")
 
-(defvar xref-current-item nil)
+(defvar xref-current-item nil
+  "Dynamically bound to the current item being processed.
+This can be used from `xref-after-jump-hook', for instance.")
 
 (defun xref-pulse-momentarily ()
   (pcase-let ((`(,beg . ,end)

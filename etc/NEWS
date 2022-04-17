@@ -942,12 +942,16 @@ to enable the display of the buffer list.
 It is bound to 'C-M-,' and jumps to the location where 'xref-go-back'
 ('M-,', also known as 'xref-pop-marker-stack') was invoked previously.
 
-*** 'xref-query-replace-in-results' does not prompt for FROM when
-called without prefix argument, to make the most common case faster:
-replacing entire matches.
++++
+*** 'xref-query-replace-in-results' prompting change.
+This command no longer prompts for FROM when called without prefix
+argument.  This makes the most common case faster: replacing entire
+matches.
 
++++
 *** New command 'xref-find-references-and-replace' to rename one identifier.
 
+---
 *** New variable 'xref-current-item' (renamed from a private version).
 
 *** New function 'xref-show-xrefs'.
