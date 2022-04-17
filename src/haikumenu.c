@@ -775,6 +775,39 @@ the position of the last non-menu event instead.  */)
 }
 
 void
+haiku_activate_menubar (struct frame *f)
+{
+  int rc;
+
+  if (!FRAME_HAIKU_MENU_BAR (f))
+    return;
+
+  set_frame_menubar (f, true);
+
+  if (FRAME_OUTPUT_DATA (f)->saved_menu_event)
+    {
+      block_input ();
+      be_replay_menu_bar_event (FRAME_HAIKU_MENU_BAR (f),
+				FRAME_OUTPUT_DATA (f)->saved_menu_event);
+      xfree (FRAME_OUTPUT_DATA (f)->saved_menu_event);
+      FRAME_OUTPUT_DATA (f)->saved_menu_event = NULL;
+      unblock_input ();
+    }
+  else
+    {
+      block_input ();
+      rc = BMenuBar_start_tracking (FRAME_HAIKU_MENU_BAR (f));
+      unblock_input ();
+
+      if (!rc)
+	return;
+
+      FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
+      popup_activated_p += 1;
+    }
+}
+
+void
 syms_of_haikumenu (void)
 {
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");

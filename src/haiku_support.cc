@@ -91,6 +91,7 @@ enum
     SHOW_MENU_BAR	= 3004,
     BE_MENU_BAR_OPEN	= 3005,
     QUIT_APPLICATION	= 3006,
+    REPLAY_MENU_BAR	= 3007,
   };
 
 /* X11 keysyms that we use.  */
@@ -496,9 +497,6 @@ public:
   window_look pre_override_redirect_look;
   window_feel pre_override_redirect_feel;
   uint32 pre_override_redirect_workspaces;
-  pthread_mutex_t menu_update_mutex = PTHREAD_MUTEX_INITIALIZER;
-  pthread_cond_t menu_update_cv = PTHREAD_COND_INITIALIZER;
-  bool menu_updated_p = false;
   int window_id;
   bool *menus_begun = NULL;
 
@@ -530,9 +528,6 @@ public:
     if (this->parent)
       UnparentAndUnlink ();
     child_frame_lock.Unlock ();
-
-    pthread_cond_destroy (&menu_update_cv);
-    pthread_mutex_destroy (&menu_update_mutex);
   }
 
   BRect
@@ -977,34 +972,13 @@ public:
   }
 
   void
-  MenusBeginning ()
+  MenusBeginning (void)
   {
     struct haiku_menu_bar_state_event rq;
-    int lock_count;
 
     rq.window = this;
-    lock_count = 0;
-
     if (!menus_begun)
-      {
-	haiku_write (MENU_BAR_OPEN, &rq);
-	while (IsLocked ())
-	  {
-	    ++lock_count;
-	    UnlockLooper ();
-	  }
-	pthread_mutex_lock (&menu_update_mutex);
-	while (!menu_updated_p)
-	  pthread_cond_wait (&menu_update_cv,
-			     &menu_update_mutex);
-	menu_updated_p = false;
-	pthread_mutex_unlock (&menu_update_mutex);
-	for (; lock_count; --lock_count)
-	  {
-	    if (!LockLooper ())
-	      gui_abort ("Failed to lock after cv signal denoting menu update");
-	  }
-      }
+      haiku_write (MENU_BAR_OPEN, &rq);
     else
       *menus_begun = true;
 
@@ -1278,6 +1252,8 @@ public:
 
 class EmacsMenuBar : public BMenuBar
 {
+  bool tracking_p;
+
 public:
   EmacsMenuBar () : BMenuBar (BRect (0, 0, 0, 0), NULL)
   {
@@ -1301,6 +1277,22 @@ public:
 
     haiku_write (MENU_BAR_RESIZE, &rq);
     BMenuBar::FrameResized (newWidth, newHeight);
+  }
+
+  void
+  MouseDown (BPoint point)
+  {
+    struct haiku_menu_bar_click_event rq;
+    EmacsWindow *ew = (EmacsWindow *) Window ();
+
+    rq.window = ew;
+    rq.x = std::lrint (point.x);
+    rq.y = std::lrint (point.y);
+
+    if (!ew->menu_bar_active_p)
+      haiku_write (MENU_BAR_CLICK, &rq);
+    else
+      BMenuBar::MouseDown (point);
   }
 
   void
@@ -1350,6 +1342,11 @@ public:
 	  msg->SendReply (msg);
 	else
 	  msg->SendReply (BE_MENU_BAR_OPEN);
+      }
+    else if (msg->what == REPLAY_MENU_BAR)
+      {
+	if (msg->FindPoint ("emacs:point", &pt) == B_OK)
+	  BMenuBar::MouseDown (pt);
       }
     else
       BMenuBar::MessageReceived (msg);
@@ -4148,17 +4145,6 @@ be_find_setting (const char *name)
 }
 
 void
-EmacsWindow_signal_menu_update_complete (void *window)
-{
-  EmacsWindow *w = (EmacsWindow *) window;
-
-  pthread_mutex_lock (&w->menu_update_mutex);
-  w->menu_updated_p = true;
-  pthread_cond_signal (&w->menu_update_cv);
-  pthread_mutex_unlock (&w->menu_update_mutex);
-}
-
-void
 BMessage_delete (void *message)
 {
   delete (BMessage *) message;
@@ -4273,4 +4259,16 @@ bool
 be_drag_and_drop_in_progress (void)
 {
   return drag_and_drop_in_progress;
+}
+
+void
+be_replay_menu_bar_event (void *menu_bar,
+			  struct haiku_menu_bar_click_event *event)
+{
+  BMenuBar *m = (BMenuBar *) menu_bar;
+  BMessenger messenger (m);
+  BMessage msg (REPLAY_MENU_BAR);
+
+  msg.AddPoint ("emacs:point", BPoint (event->x, event->y));
+  messenger.SendMessage (&msg);
 }

@@ -3475,34 +3475,40 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      }
 	    break;
 	  }
+	case MENU_BAR_CLICK:
+	  {
+	    struct haiku_menu_bar_click_event *b = buf;
+	    struct frame *f = haiku_window_to_frame (b->window);
+
+	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
+	      continue;
+
+	    if (!FRAME_OUTPUT_DATA (f)->saved_menu_event)
+	      FRAME_OUTPUT_DATA (f)->saved_menu_event = xmalloc (sizeof *b);
+	    *FRAME_OUTPUT_DATA (f)->saved_menu_event = *b;
+	    inev.kind = MENU_BAR_ACTIVATE_EVENT;
+	    XSETFRAME (inev.frame_or_window, f);
+	    break;
+	  }
 	case MENU_BAR_OPEN:
 	case MENU_BAR_CLOSE:
 	  {
 	    struct haiku_menu_bar_state_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    int was_waiting_for_input_p;
 
 	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
 	      continue;
 
 	    if (type == MENU_BAR_OPEN)
 	      {
-		was_waiting_for_input_p = waiting_for_input;
-		if (waiting_for_input)
-		  waiting_for_input = 0;
-
-		set_frame_menubar (f, 1);
-		waiting_for_input = was_waiting_for_input_p;
-
 		FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
 		popup_activated_p += 1;
-
-		EmacsWindow_signal_menu_update_complete (b->window);
 	      }
 	    else
 	      {
 		if (!popup_activated_p)
 		  emacs_abort ();
+
 		if (FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
 		  {
 		    FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 0;
@@ -3873,6 +3879,7 @@ haiku_create_terminal (struct haiku_display_info *dpyinfo)
   terminal->toggle_invisible_pointer_hook = haiku_toggle_invisible_pointer;
   terminal->fullscreen_hook = haiku_fullscreen;
   terminal->toolkit_position_hook = haiku_toolkit_position;
+  terminal->activate_menubar_hook = haiku_activate_menubar;
 
   return terminal;
 }
@@ -4183,7 +4190,6 @@ This is either one of the symbols `shift', `control', `command', and
 
 Setting it to any other value is equivalent to `shift'.  */);
   Vhaiku_shift_keysym = Qnil;
-
 
   DEFSYM (Qx_use_underline_position_properties,
 	  "x-use-underline-position-properties");

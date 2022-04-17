@@ -79,6 +79,8 @@ haiku_len (enum haiku_event_type type)
       return sizeof (struct haiku_wheel_move_event);
     case MENU_BAR_RESIZE:
       return sizeof (struct haiku_menu_bar_resize_event);
+    case MENU_BAR_CLICK:
+      return sizeof (struct haiku_menu_bar_click_event);
     case MENU_BAR_OPEN:
     case MENU_BAR_CLOSE:
       return sizeof (struct haiku_menu_bar_state_event);

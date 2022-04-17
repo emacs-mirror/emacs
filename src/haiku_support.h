@@ -80,6 +80,7 @@ enum haiku_event_type
     SCROLL_BAR_DRAG_EVENT,
     WHEEL_MOVE_EVENT,
     MENU_BAR_RESIZE,
+    MENU_BAR_CLICK,
     MENU_BAR_OPEN,
     MENU_BAR_SELECT_EVENT,
     MENU_BAR_CLOSE,
@@ -163,6 +164,12 @@ struct haiku_mouse_motion_event
 };
 
 struct haiku_menu_bar_left_event
+{
+  void *window;
+  int x, y;
+};
+
+struct haiku_menu_bar_click_event
 {
   void *window;
   int x, y;
@@ -577,7 +584,6 @@ extern void EmacsWindow_unparent (void *);
 extern void EmacsWindow_move_weak_child (void *, void *, int, int);
 extern void EmacsWindow_make_fullscreen (void *, int);
 extern void EmacsWindow_unzoom (void *);
-extern void EmacsWindow_signal_menu_update_complete (void *);
 
 extern void be_get_version_string (char *, int);
 extern int be_get_display_planes (void);
@@ -629,6 +635,8 @@ extern bool be_drag_message (void *, void *, bool, void (*) (void),
 			     void (*) (void), void (*) (void),
 			     bool (*) (void));
 extern bool be_drag_and_drop_in_progress (void);
+
+extern void be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event *);
 
 #ifdef __cplusplus
 extern void *find_appropriate_view_for_draw (void *);
