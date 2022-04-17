@@ -1303,10 +1303,16 @@ zone.
 
 @cindex Lisp timestamp
 @cindex timestamp, Lisp
+@cindex Coordinated Universal Time
+@cindex Universal Time
+@cindex UTC
+@cindex leap seconds
   Many functions like @code{current-time} and @code{file-attributes}
 return @dfn{Lisp timestamp} values that count seconds, and that can
 represent absolute time by counting seconds since the @dfn{epoch} of
-1970-01-01 00:00:00 UTC.
+1970-01-01 00:00:00 UTC (Coordinated Universal Time).  Typically these
+counts ignore leap seconds; however, GNU and some other operating
+systems can be configured to count leap seconds.
 
   Although traditionally Lisp timestamps were integer pairs, their
 form has evolved and programs ordinarily should not depend on the
@@ -1367,8 +1373,8 @@ Time values can be converted to and from calendrical and other forms.
 Some of these conversions rely on operating system functions that
 limit the range of possible time values, and signal an error such as
 @samp{"Specified time is not representable"} if the
-limits are exceeded.  For instance, a system may not support years
-before 1970, or years before 1901, or years far in the future.
+limits are exceeded.  For instance, a system might not support
+timestamps before the epoch, or years far in the future.
 You can convert a time value into
 a human-readable string using @code{format-time-string}, into a Lisp
 timestamp using @code{time-convert}, and into other forms using
@@ -1434,11 +1440,11 @@ to default to Universal Time with @code{(setenv "TZ" "UTC0")}.  If
 which is a platform-dependent default time zone.
 
 The set of supported @env{TZ} strings is system-dependent.  GNU and
-many other systems support the tzdata database, e.g.,
+many other systems support TZDB timezones, e.g.,
 @samp{"America/New_York"} specifies the time zone and daylight saving
 time history for locations near New York City.  GNU and most other
 systems support POSIX-style @env{TZ} strings, e.g.,
-@samp{"EST+5EDT,M4.1.0/2,M10.5.0/2"} specifies the rules used in New
+@samp{"EST5EDT,M4.1.0,M10.5.0"} specifies the rules used in New
 York from 1987 through 2006.  All systems support the string
 @samp{"UTC0"} meaning Universal Time.
 
@@ -1490,18 +1496,20 @@ The operating system limits the range of time and zone values.
   These functions convert time values (@pxref{Time of Day}) to Lisp
 timestamps, or into calendrical information and vice versa.
 
-  Many 32-bit operating systems are limited to system times containing
-32 bits of information in their seconds component; these systems
-typically handle only the times from 1901-12-13 20:45:52 through
-2038-01-19 03:14:07 Universal Time.  However, 64-bit and some 32-bit operating
-systems have larger seconds components, and can represent times far in
-the past or future.
+  Many operating systems use 64-bit signed integers to count seconds,
+and can represent times far in the past or future.  However, some are
+more limited.  For example, old-fashioned operating systems that use
+32-bit signed integers typically handle only times from 1901-12-13
+20:45:52 through 2038-01-19 03:14:07 Universal Time.
 
-  Calendrical conversion functions always use the Gregorian calendar, even
-for dates before the Gregorian calendar was introduced.  Year numbers
-count the number of years since the year 1 BC, and do not skip zero
+  Calendrical conversion functions use the Gregorian calendar even for
+dates before the Gregorian calendar was introduced, and for dates in
+the far distant past or future for which the Gregorian calendar
+is wildly inaccurate and disagrees with common practice in scientific fields
+like astronomy and paleontology, which use Julian-calendar year lengths.
+Year numbers count since the year 1 BCE, and do not skip zero
 as traditional Gregorian years do; for example, the year number
-@minus{}37 represents the Gregorian year 38 BC@.
+@minus{}37 represents the Gregorian year 38 BCE@.
 
 @defun time-convert time &optional form
 This function converts a time value into a Lisp timestamp.
@@ -1620,53 +1628,6 @@ To access (or alter) the elements in the time value, the
 @code{decoded-time-month}, @code{decoded-time-year},
 @code{decoded-time-weekday}, @code{decoded-time-dst} and
 @code{decoded-time-zone} accessors can be used.
-
-For instance, to increase the year in a decoded time, you could say:
-
-@lisp
-(setf (decoded-time-year decoded-time)
-      (+ (decoded-time-year decoded-time) 4))
-@end lisp
-
-Also see the following function.
-
-@end defun
-
-@defun decoded-time-add time delta
-This function takes a decoded time structure and adds @var{delta}
-(also a decoded time structure) to it.  Elements in @var{delta} that
-are @code{nil} are ignored.
-
-For instance, if you want ``same time next month'', you
-could say:
-
-@lisp
-(let ((time (decode-time nil nil t))
-      (delta (make-decoded-time :month 2)))
-   (encode-time (decoded-time-add time delta)))
-@end lisp
-
-If this date doesn't exist (if you're running this on January 31st,
-for instance), then the date will be shifted back until you get a
-valid date (which will be February 28th or 29th, depending).
-
-Fields are added in a most to least significant order, so if the
-adjustment described above happens, it happens before adding days,
-hours, minutes or seconds.
-
-The values in @var{delta} can be negative to subtract values instead.
-
-The return value is a decoded time structure.
-@end defun
-
-@defun make-decoded-time &key second minute hour day month year dst zone
-Return a decoded time structure with only the given keywords filled
-out, leaving the rest @code{nil}.  For instance, to get a structure
-that represents ``two months'', you could say:
-
-@lisp
-(make-decoded-time :month 2)
-@end lisp
 @end defun
 
 @defun encode-time time &rest obsolescent-arguments
@@ -1676,9 +1637,21 @@ It can act as the inverse of @code{decode-time}.
 Ordinarily the first argument is a list
 @code{(@var{second} @var{minute} @var{hour} @var{day} @var{month}
 @var{year} @var{ignored} @var{dst} @var{zone})} that specifies a
-decoded time in the style of @code{decode-time}, so that
-@code{(encode-time (decode-time ...))}  works.  For the meanings of
-these list members, see the table under @code{decode-time}.
+decoded time in the style of @code{decode-time}.  For the meanings of
+these list elements, see the table under @code{decode-time}.
+In particular, @var{dst} says how to interpret timestamps during a
+daylight saving fallback when timestamps are repeated.
+If @var{dst} is @minus{}1, the DST value is guessed; if it
+is @code{t} or @code{nil} the timestamp with that DST value
+is returned, with an error signaled if no such timestamp exists.
+Unfortunately a @var{dst} value of @code{t} or @code{nil} does not
+disambiguate timestamps duplicated when a TZDB-based timezone moves
+further west of Greenwich, such as disambiguating the two
+standard-time timestamps 2020-12-27 01:30 when @var{zone} is
+@samp{"Europe/Volgograd"}, which at 02:00 that day changed
+standard time from 4 to 3 hours east of Greenwich; if you need to
+handle situations like this you can use a numeric @var{zone} to
+disambiguate instead.
 
 As an obsolescent calling convention, this function can be given six
 or more arguments.  The first six arguments @var{second},
@@ -1687,14 +1660,18 @@ specify most of the components of a decoded time.  If there are more
 than six arguments the @emph{last} argument is used as @var{zone} and
 any other extra arguments are ignored, so that @code{(apply
 #'encode-time (decode-time ...))} works.  In this obsolescent
-convention, @var{zone} defaults to the current time zone rule
-(@pxref{Time Zone Rules}), and @var{dst} is treated as if it was
-@minus{}1.
+convention, @var{dst} is @minus{}1 and @var{zone} defaults to the
+current time zone rule (@pxref{Time Zone Rules}).
+When modernizing an obsolescent caller, ensure that the more-modern
+list equivalent contains 9 elements with a a @code{dst} element that
+is @minus{}1, not @code{nil}.
 
 Year numbers less than 100 are not treated specially.  If you want them
 to stand for years above 1900, or years above 2000, you must alter them
 yourself before you call @code{encode-time}.
 The operating system limits the range of time and zone values.
+However, timestamps ranging from the epoch to the near future are
+always supported.
 
 The @code{encode-time} function acts as a rough inverse to
 @code{decode-time}.  For example, you can pass the output of
@@ -1707,25 +1684,27 @@ the latter to the former as follows:
 You can perform simple date arithmetic by using out-of-range values for
 @var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month};
 for example, day 0 means the day preceding the given month.
+Take care when doing so, as it is common for this to fail in some cases.
+For example:
 
-The old and the new styles to call @code{encode-time} with the same
-values of time fields may give different results.  While modernizing
-code that uses obsolescent calling convention, ensure that the list
-argument contains 9 elements.  Pay special attention that the @code{dst}
-field does not use @code{nil} expecting that actual value will be
-guessed, pass @samp{-1} instead.  During normalizing of values to
-correct state of daylight saving time users may get time shift and even
-wrong date.  It may take months to discover such problem.  When
-called with multiple arguments, the function ignores equivalent of the
-@code{dst} value and @samp{-1} is effectively used.  The new way to call
-@code{encode-time} has an advantage that it is possible to resolve
-ambiguity around backward time shift by passing @code{nil} or @code{t}.
-Unfortunately there are enough cases across the world when a particular
-area is moved to another time zone with no change of daylight saving
-time state.  @code{encode-time} may signal an error in response to
-@code{t} passed as @code{dst}.  You have to pass @code{zone} explicitly
-as time offset in such case if default ambiguity resolution is not
-acceptable.
+@lisp
+;; Try to compute the time four years from now.
+;; Watch out; this might not work as expected.
+(let ((time (decode-time)))
+  (setf (decoded-time-year time)
+        (+ (decoded-time-year time) 4))
+  time)
+@end lisp
+
+@noindent
+Unfortunately, this code might not work as expected if the resulting
+time is invalid due to daylight saving transitions, time zone changes,
+or missing leap days or leap seconds.  For example, if executed on
+February 29, 2096 this code yields a nonexistent date because 2100 is
+not a leap year.  To avoid some (though not all) of the problem, you
+can base calculations on the middle of the affected unit, e.g., start
+at July 1 when adding years.  Alternatively, you can use the
+@file{calendar} and @file{time-date} libraries.
 @end defun
 
 @node Time Parsing
