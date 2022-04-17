@@ -1424,6 +1424,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New function 'flush-standard-output'.
+This enables you do display incomplete lines from batch-based Emacs
+scripts.
+
++++
 ** New convenience function 'buttonize-region'.
 This works like 'buttonize', but for a region instead of a string.
 

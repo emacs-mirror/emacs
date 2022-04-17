@@ -685,6 +685,15 @@ This function outputs @var{character} to @var{stream}.  It returns
 @var{character}.
 @end defun
 
+@defun flush-standard-output
+If you have Emacs-based batch scripts that send output to the
+terminal, Emacs will automatically display the output whenever you
+write a newline characters to @code{standard-output}.  This function
+allows you to flush to @code{standard-output} without sending a
+newline character first, which enables you to display incomplete
+lines.
+@end defun
+
 @defun prin1-to-string object &optional noescape
 @cindex object to string
 This function returns a string containing the text that @code{prin1}

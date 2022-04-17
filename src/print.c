@@ -768,6 +768,16 @@ is used instead.  */)
   return object;
 }
 
+DEFUN ("flush-standard-output", Fflush_standard_output, Sflush_standard_output,
+       0, 0, 0,
+       doc: /* Flush standard-output.
+This can be useful after using `princ' and the like in scripts.  */)
+  (void)
+{
+  fflush (stdout);
+  return Qnil;
+}
+
 DEFUN ("external-debugging-output", Fexternal_debugging_output, Sexternal_debugging_output, 1, 1, 0,
        doc: /* Write CHARACTER to stderr.
 You can call `print' while debugging emacs, and pass it this function
@@ -2549,4 +2559,6 @@ printed.  If the function returns anything else, the object will not
 be printed.  */);
   Vprint_unreadable_function = Qnil;
   DEFSYM (Qprint_unreadable_function, "print-unreadable-function");
+
+  defsubr (&Sflush_standard_output);
 }
