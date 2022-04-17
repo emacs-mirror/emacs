@@ -95,13 +95,13 @@ behavior for real files.
   `(cl-letf
        ,(mapcar
          (lambda (override)
-           (let ((orig-function (symbol-function (car override))))
-             `((symbol-function #',(car override))
+           `((symbol-function #',(car override))
+             (let ((orig-function (symbol-function #',(car override))))
                (lambda (file &rest rest)
                  (apply
                   (if (and (stringp file) (string-prefix-p "/fake/" file))
                       ,(cadr override)
-                    ,orig-function)
+                    orig-function)
                   file rest)))))
          overrides)
      ,@body))
