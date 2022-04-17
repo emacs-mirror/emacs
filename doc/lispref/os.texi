@@ -1707,6 +1707,25 @@ the latter to the former as follows:
 You can perform simple date arithmetic by using out-of-range values for
 @var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month};
 for example, day 0 means the day preceding the given month.
+
+The old and the new styles to call @code{encode-time} with the same
+values of time fields may give different results.  While modernizing
+code that uses obsolescent calling convention, ensure that the list
+argument contains 9 elements.  Pay special attention that the @code{dst}
+field does not use @code{nil} expecting that actual value will be
+guessed, pass @samp{-1} instead.  During normalizing of values to
+correct state of daylight saving time users may get time shift and even
+wrong date.  It may take months to discover such problem.  When
+called with multiple arguments, the function ignores equivalent of the
+@code{dst} value and @samp{-1} is effectively used.  The new way to call
+@code{encode-time} has an advantage that it is possible to resolve
+ambiguity around backward time shift by passing @code{nil} or @code{t}.
+Unfortunately there are enough cases across the world when a particular
+area is moved to another time zone with no change of daylight saving
+time state.  @code{encode-time} may signal an error in response to
+@code{t} passed as @code{dst}.  You have to pass @code{zone} explicitly
+as time offset in such case if default ambiguity resolution is not
+acceptable.
 @end defun
 
 @node Time Parsing

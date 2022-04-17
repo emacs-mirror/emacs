@@ -1631,6 +1631,10 @@ convention, DST and ZONE default to -1 and nil respectively.
 Years before 1970 are not guaranteed to work.  On some systems,
 year values as low as 1901 do work.
 
+See Info node `(elisp)Time Conversion' for description of a pitfall
+that can be faced during migration from the obsolescent to the new
+calling convention due to unconscious usage of nil for the DST argument.
+
 usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
