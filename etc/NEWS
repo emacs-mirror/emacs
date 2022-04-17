@@ -815,6 +815,14 @@ phrase part will be automatically quoted if necessary.
 ** eww/shr
 
 +++
+*** New user option to automatically rename EWW buffers.
+The 'eww-auto-rename-buffer' user option can be configured to rename
+rendered web pages by using their title, URL, or a user-defined
+function which returns a string.  For the first two cases, the length
+of the resulting name is controlled by 'eww-buffer-name-length'.  By
+default, no automatic renaming is performed.
+
++++
 *** New user option 'shr-allowed-images'.
 This complements 'shr-blocked-images', but allows specifying just the
 allowed images.
@@ -875,16 +883,6 @@ Previously, 'M-x align' didn't do anything, and you had to say 'C-u
 M-x align' for it to work.  This has now been changed.  The default
 regexp for 'C-u M-x align-regexp' has also been changed to be easier
 for inexperienced users to use.
-
-** eww
-
-+++
-*** New user option to automatically rename EWW buffers.
-The 'eww-auto-rename-buffer' user option can be configured to rename
-rendered web pages by using their title, URL, or a user-defined
-function which returns a string.  For the first two cases, the length
-of the resulting name is controlled by 'eww-buffer-name-length'.  By
-default, no automatic renaming is performed.
 
 ** Help
 
