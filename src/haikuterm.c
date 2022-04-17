@@ -2766,6 +2766,40 @@ flush_dirty_back_buffers (void)
   unblock_input ();
 }
 
+/* N.B. that support for TYPE must be explictly added to
+   haiku_read_socket.  */
+void
+haiku_wait_for_event (struct frame *f, int type)
+{
+  int input_blocked_to;
+  object_wait_info info;
+  specpdl_ref depth;
+
+  input_blocked_to = interrupt_input_blocked;
+  info.object = port_application_to_emacs;
+  info.type = B_OBJECT_TYPE_PORT;
+  info.events = B_EVENT_READ;
+
+  depth = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+
+  FRAME_OUTPUT_DATA (f)->wait_for_event_type = type;
+
+  while (FRAME_OUTPUT_DATA (f)->wait_for_event_type == type)
+    {
+      if (wait_for_objects (&info, 1) < B_OK)
+	continue;
+
+      pending_signals = true;
+      /* This will call the read_socket_hook.  */
+      totally_unblock_input ();
+      interrupt_input_blocked = input_blocked_to;
+      info.events = B_EVENT_READ;
+    }
+
+  unbind_to (depth, Qnil);
+}
+
 static int
 haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
@@ -3453,7 +3487,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    break;
 	  }
-
 	case MENU_BAR_RESIZE:
 	  {
 	    struct haiku_menu_bar_resize_event *b = buf;
@@ -3462,13 +3495,17 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
 	      continue;
 
+	    if (FRAME_OUTPUT_DATA (f)->wait_for_event_type
+		== MENU_BAR_RESIZE)
+	      FRAME_OUTPUT_DATA (f)->wait_for_event_type = -1;
+
 	    int old_height = FRAME_MENU_BAR_HEIGHT (f);
 
 	    FRAME_MENU_BAR_HEIGHT (f) = b->height + 1;
-	    FRAME_MENU_BAR_LINES (f) =
-	      (b->height + FRAME_LINE_HEIGHT (f)) / FRAME_LINE_HEIGHT (f);
+	    FRAME_MENU_BAR_LINES (f)
+	      = (b->height + FRAME_LINE_HEIGHT (f)) / FRAME_LINE_HEIGHT (f);
 
-	    if (old_height != b->height)
+	    if (old_height != b->height + 1)
 	      {
 		adjust_frame_size (f, -1, -1, 3, true, Qmenu_bar_lines);
 		haiku_clear_under_internal_border (f);

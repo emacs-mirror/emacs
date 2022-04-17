@@ -179,6 +179,9 @@ struct haiku_output
 
   /* If non-NULL, the last menu bar click event received.  */
   struct haiku_menu_bar_click_event *saved_menu_event;
+
+  /* The type of any event that's being waited for.  */
+  int wait_for_event_type;
 };
 
 struct x_output
@@ -295,6 +298,7 @@ extern Lisp_Object haiku_menu_show (struct frame *, int, int, int,
 				    Lisp_Object, const char **);
 extern Lisp_Object haiku_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 extern void haiku_activate_menubar (struct frame *);
+extern void haiku_wait_for_event (struct frame *, int);
 extern void haiku_note_drag_motion (void);
 
 extern void initialize_frame_menubar (struct frame *);

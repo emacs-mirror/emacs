@@ -635,6 +635,7 @@ haiku_create_frame (Lisp_Object parms)
 
   f->output_method = output_haiku;
   f->output_data.haiku = xzalloc (sizeof *f->output_data.haiku);
+  f->output_data.haiku->wait_for_event_type = -1;
 
   fset_icon_name (f, gui_display_get_arg (dpyinfo, parms, Qicon_name,
                                           "iconName", "Title",
@@ -946,6 +947,7 @@ haiku_create_tip_frame (Lisp_Object parms)
      counts etc.  */
   f->output_method = output_haiku;
   f->output_data.haiku = xzalloc (sizeof *f->output_data.haiku);
+  f->output_data.haiku->wait_for_event_type = -1;
 
   f->tooltip = true;
   fset_icon_name (f, Qnil);
@@ -1264,9 +1266,11 @@ haiku_set_override_redirect (struct frame *f, Lisp_Object new_value,
 static void
 haiku_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
+  int nlines;
+
   if (FRAME_TOOLTIP_P (f))
     return;
-  int nlines;
+
   if (TYPE_RANGED_FIXNUMP (int, value))
     nlines = XFIXNUM (value);
   else
