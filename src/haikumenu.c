@@ -521,8 +521,15 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
   if (!mbar)
     {
+      block_input ();
       mbar = FRAME_HAIKU_MENU_BAR (f) = BMenuBar_new (view);
       first_time_p = 1;
+
+      /* Now wait for the MENU_BAR_RESIZE event informing us of the
+	 initial dimensions of that menu bar.  */
+      if (FRAME_VISIBLE_P (f))
+	haiku_wait_for_event (f, MENU_BAR_RESIZE);
+      unblock_input ();
     }
 
   Lisp_Object items;
