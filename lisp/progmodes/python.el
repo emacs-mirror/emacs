@@ -706,7 +706,8 @@ avoid '==' being treated as an assignment."
     ;;   [a] = 5
     ;;   [*a] = 5, 6
     (,(python-font-lock-assignment-matcher
-       (python-rx (or "[" "(") (* space)
+       (python-rx (or line-start ?\;) (* space)
+                  (or "[" "(") (* space)
                   grouped-assignment-target (* space)
                   (or ")" "]") (* space)
                   assignment-operator))
