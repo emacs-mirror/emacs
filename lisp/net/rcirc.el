@@ -771,18 +771,26 @@ SERVER-PLIST is the property list for the server."
           (yes-or-no-p "Encrypt connection?"))
       'tls 'plain))
 
+(defvar rcirc-reconnect-delay)
 (defun rcirc-keepalive ()
   "Send keep alive pings to active rcirc processes.
 Kill processes that have not received a server message since the
 last ping."
   (if (rcirc-process-list)
       (mapc (lambda (process)
-	      (with-rcirc-process-buffer process
-		(when (not rcirc-connecting)
-                  (rcirc-send-ctcp process
-                                   rcirc-nick
-                                   (format "KEEPALIVE %f"
-                                           (float-time))))))
+              (with-rcirc-process-buffer process
+                (when (not rcirc-connecting)
+                  (condition-case nil
+                      (rcirc-send-ctcp process
+                                       rcirc-nick
+                                       (format "KEEPALIVE %f"
+                                               (float-time)))
+                    (rcirc-closed-connection
+                     (if (zerop rcirc-reconnect-delay)
+                         (message "rcirc: Connection to %s closed"
+                                  (process-name process))
+                       (rcirc-reconnect process))
+                     (message ""))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (when (timerp rcirc-keepalive-timer)
@@ -1136,6 +1144,8 @@ used as the message body."
   "Check if PROCESS is open or running."
   (memq (process-status process) '(run open)))
 
+(define-error 'rcirc-closed-connection "Network connection not open")
+
 (defun rcirc-send-string (process &rest parts)
   "Send PROCESS a PARTS plus a newline.
 PARTS may contain a `:' symbol, to designate that the next string
@@ -1153,8 +1163,7 @@ element in PARTS is a list, append it to PARTS."
                          rcirc-encode-coding-system)
                         "\n")))
     (unless (rcirc--connection-open-p process)
-      (error "Network connection to %s is not open"
-             (process-name process)))
+      (signal 'rcirc-closed-connection process))
     (rcirc-debug process string)
     (process-send-string process string)))
 
