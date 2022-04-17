@@ -9465,6 +9465,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   XTextProperty prop;
   xm_drop_start_message dmsg;
   Lisp_Object frame_object, x, y, frame, local_value;
+  bool signals_were_pending;
 #ifdef HAVE_XKB
   XkbStateRec keyboard_state;
 #endif
@@ -9674,7 +9675,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			 &next_event, &finish, &hold_quit);
 #endif
 #endif
+      /* The unblock_input below might try to read input, but
+	 XTread_socket does nothing inside a drag-and-drop event
+	 loop, so don't let it clear the pending_signals flag.  */
+      signals_were_pending = pending_signals;
       unblock_input ();
+      pending_signals = signals_were_pending;
 
       if (x_dnd_movement_frame)
 	{
