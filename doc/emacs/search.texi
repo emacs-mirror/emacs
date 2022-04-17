@@ -899,11 +899,13 @@ character folding during incremental regexp search with @kbd{M-s '},
 the search becomes a non-regexp search and the search pattern you
 typed is interpreted as a literal string.)
 
+@cindex pending, in incremental search
   In some cases, adding characters to the regexp in an incremental
 regexp search can make the cursor move back and start again.  For
 example, if you have searched for @samp{foo} and you add @samp{\|bar},
 the cursor backs up in case the first @samp{bar} precedes the first
-@samp{foo}.  @xref{Regexps}.
+@samp{foo}.  (The prompt will change to say ``Pending'' to notify the
+user that this recalculation has happened.)   @xref{Regexps}.
 
   Forward and backward regexp search are not symmetrical, because
 regexp matching in Emacs always operates forward, starting with the
