@@ -2330,6 +2330,20 @@ emacs_fstatat (int dirfd, char const *filename, void *st, int flags)
   return r;
 }
 
+static int
+sys_openat (int dirfd, char const *file, int oflags, int mode)
+{
+#ifdef O_PATH
+  return openat (dirfd, file, oflags, mode);
+#else
+  /* On platforms without O_PATH, emacs_openat's callers arrange for
+     DIRFD to be AT_FDCWD, so it should be safe to just call 'open'.
+     This ports to old platforms like OS X 10.9 that lack openat.  */
+  eassert (dirfd == AT_FDCWD);
+  return open (file, oflags, mode);
+#endif
+}
+
 /* Assuming the directory DIRFD, open FILE for Emacs use,
    using open flags OFLAGS and mode MODE.
    Use binary I/O on systems that care about text vs binary I/O.
@@ -2345,7 +2359,7 @@ emacs_openat (int dirfd, char const *file, int oflags, int mode)
   if (! (oflags & O_TEXT))
     oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
-  while ((fd = openat (dirfd, file, oflags, mode)) < 0 && errno == EINTR)
+  while ((fd = sys_openat (dirfd, file, oflags, mode)) < 0 && errno == EINTR)
     maybe_quit ();
   return fd;
 }
@@ -2358,24 +2372,17 @@ emacs_open (char const *file, int oflags, int mode)
 
 /* Same as above, but doesn't allow the user to quit.  */
 
-static int
-emacs_openat_noquit (int dirfd, const char *file, int oflags,
-                     int mode)
+int
+emacs_open_noquit (char const *file, int oflags, int mode)
 {
   int fd;
   if (! (oflags & O_TEXT))
     oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
   do
-    fd = openat (dirfd, file, oflags, mode);
+    fd = open (file, oflags, mode);
   while (fd < 0 && errno == EINTR);
   return fd;
-}
-
-int
-emacs_open_noquit (char const *file, int oflags, int mode)
-{
-  return emacs_openat_noquit (AT_FDCWD, file, oflags, mode);
 }
 
 /* Open FILE as a stream for Emacs use, with mode MODE.
