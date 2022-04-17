@@ -6690,7 +6690,7 @@ CONDITION is either:
                       (funcall match (cdr condition)))
                      ((eq (car-safe condition) 'and)
                       (catch 'fail
-                        (dolist (c conditions)
+                        (dolist (c (cdr conditions))
                           (unless (funcall match c)
                             (throw 'fail nil)))
                         t)))
