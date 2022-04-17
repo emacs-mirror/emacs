@@ -9844,10 +9844,18 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (x_dnd_action != None)
     {
       block_input ();
+      x_catch_errors (FRAME_X_DISPLAY (f));
       atom_name = XGetAtomName (FRAME_X_DISPLAY (f),
 				x_dnd_action);
-      action = intern (atom_name);
-      XFree (atom_name);
+      x_uncatch_errors ();
+
+      if (atom_name)
+	{
+	  action = intern (atom_name);
+	  XFree (atom_name);
+	}
+      else
+	action = Qnil;
       unblock_input ();
 
       return action;
