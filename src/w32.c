@@ -10628,41 +10628,46 @@ int
 w32_reexec_emacs (char *cmd_line, const char *wdir)
 {
   STARTUPINFO si;
-  SECURITY_ATTRIBUTES sec_attrs;
   BOOL status;
   PROCESS_INFORMATION proc_info;
+  DWORD dwCreationFlags = NORMAL_PRIORITY_CLASS;
 
   GetStartupInfo (&si);		/* Use the same startup info as the caller.  */
-  sec_attrs.nLength = sizeof (sec_attrs);
-  sec_attrs.lpSecurityDescriptor = NULL;
-  sec_attrs.bInheritHandle = FALSE;
+  if (inhibit_window_system)
+    {
+      HANDLE screen_handle;
+      CONSOLE_SCREEN_BUFFER_INFO screen_info;
+
+      screen_handle = GetStdHandle (STD_OUTPUT_HANDLE);
+      if (screen_handle != INVALID_HANDLE_VALUE
+	  && GetConsoleScreenBufferInfo (screen_handle, &screen_info))
+	{
+	  /* Make the restarted Emacs's console window the same
+	     dimensions as ours.  FIXME: for some reason this doesn't
+	     seem to work!  */
+	  si.dwFlags |= STARTF_USECOUNTCHARS;
+	  si.dwXCountChars = screen_info.dwSize.X;
+	  si.dwYCountChars = screen_info.dwSize.Y;
+	}
+      /* This is a kludge: it causes the restarted "emacs -nw" to have
+	 a new console window created for it, and that new window
+	 might have different (default) properties, not the ones of
+	 the parent process's console window.  But without this,
+	 restarting Emacs in the -nw mode simply doesn't work.
+	 FIXME!  */
+      dwCreationFlags = CREATE_NEW_CONSOLE;
+    }
 
   /* Make sure we are in the original directory, in case the command
      line specifies the program as a relative file name.  */
   chdir (wdir);
 
-  /* This is a kludge: it causes the restarted "emacs -nw" to have a
-     new console window created for it, and that new window might have
-     different (default) properties, not the ones of the parent
-     process's console window.  But without this, restarting Emacs in
-     the -nw mode simply doesn't work.  FIXME!  */
-  if (inhibit_window_system)
-    {
-      if (!FreeConsole ())
-	{
-	  errno = ENOEXEC;
-	  return -1;
-	}
-    }
-
-  status = CreateProcess (NULL,		/* program */
+  status = CreateProcess (NULL,		/* no program, take from command line */
 			  cmd_line,	/* command line */
-			  &sec_attrs,	/* process attributes */
+			  NULL,
 			  NULL,		/* thread attributes */
-			  TRUE,		/* inherit handles? */
-			  inhibit_window_system
-			  ? 0		/* inherit parent's console */
-			  : NORMAL_PRIORITY_CLASS,
+			  FALSE,	/* unherit handles? */
+			  dwCreationFlags,
 			  NULL,		/* environment */
 			  wdir,		/* initial directory */
 			  &si,		/* startup info */
