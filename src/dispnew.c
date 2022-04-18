@@ -3933,7 +3933,8 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
          Apr 2022) */
       || (current_row->mouse_face_p
 	  && !(current_row->mode_line_p
-	       && (vpos > w->current_matrix->tab_line_p)))
+	       && (vpos > (w->current_matrix->tab_line_p
+			   && w->current_matrix->header_line_p))))
       || current_row->x != desired_row->x)
     {
       output_cursor_to (w, vpos, 0, desired_row->y, desired_row->x);
