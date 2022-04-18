@@ -381,8 +381,6 @@ used with the completion list:
 @vindex minibuffer-completion-auto-choose
 @item M-@key{DOWN}
 @itemx M-@key{UP}
-@findex previous-completion
-@findex next-completion
 These keys will navigate through the completions displayed in the
 completions buffer.  When @code{minibuffer-completion-auto-choose} is
 non-@code{nil} (which is the default), using these commands will
