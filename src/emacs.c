@@ -296,7 +296,10 @@ Initialization options:\n\
                               -q --no-site-file --no-site-lisp --no-splash\n\
                               --no-x-resources\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
---terminal, -t DEVICE       use DEVICE for terminal I/O\n\
+-x                          to be used in #!/usr/bin/emacs -x\n\
+                              and has approximately the same meaning\n\
+			      as -Q --script\n\
+--terminal, -t DEVICE       use DEVICE for terminal I/O\n		\
 --user, -u USER             load ~USER/.emacs instead of your own\n\
 \n\
 ",
@@ -2063,6 +2066,16 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
           no_site_lisp = 1;
       }
 
+    if (argmatch (argv, argc, "-x", 0, 1, &junk, &skip_args))
+      {
+	noninteractive = 1;
+	no_site_lisp = 1;
+	/* This is picked up in startup.el.  */
+	argv[skip_args - 1] = (char *) "-scripteval";
+	skip_args -= 1;
+	sort_args (argc, argv);
+      }
+
     /* Don't actually discard this arg.  */
     skip_args = count_before;
   }
@@ -2504,6 +2517,7 @@ static const struct standard_args standard_args[] =
   /* (Note that to imply -nsl, -Q is partially handled here.)  */
   { "-Q", "--quick", 55, 0 },
   { "-quick", 0, 55, 0 },
+  { "-x", 0, 55, 0 },
   { "-q", "--no-init-file", 50, 0 },
   { "-no-init-file", 0, 50, 0 },
   { "-init-directory", "--init-directory", 30, 1 },

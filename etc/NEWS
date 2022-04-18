@@ -101,6 +101,17 @@ Saving Emacs Sessions" node in the Emacs manual for more details.
 * Startup Changes in Emacs 29.1
 
 +++
+** Emacs can now be used more easily in an executable script.
+If you start an executable script with
+
+    #!/usr/bin/emacs -x
+
+Emac will start without reading any init files (like with --quick),
+and then execute the rest of the script file as Emacs Lisp.  When it
+reaches the end of the script, Emacs will exit with an exit code from
+the value of the final form.
+
++++
 ** Emacs now supports setting 'user-emacs-directory' via '--init-directory'.
 
 +++
