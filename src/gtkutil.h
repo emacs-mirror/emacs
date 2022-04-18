@@ -153,6 +153,8 @@ extern bool xg_event_is_for_scrollbar (struct frame *, const EVENT *,
 extern int xg_get_default_scrollbar_width (struct frame *f);
 extern int xg_get_default_scrollbar_height (struct frame *f);
 
+extern void xg_wm_set_size_hint (struct frame *, long int, bool);
+
 extern void update_frame_tool_bar (struct frame *f);
 extern void free_frame_tool_bar (struct frame *f);
 extern void xg_change_toolbar_position (struct frame *f, Lisp_Object pos);
@@ -222,7 +224,7 @@ extern bool xg_is_menu_window (Display *dpy, Window);
 extern bool xg_filter_key (struct frame *frame, XEvent *xkey);
 #endif
 
-/* Mark all callback data that are Lisp_object:s during GC.  */
+/* Mark all callback data that are Lisp_Objects during GC.  */
 extern void xg_mark_data (void);
 
 /* Initialize GTK specific parts.  */

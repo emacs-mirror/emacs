@@ -410,7 +410,7 @@ pgtk_frame_raise_lower (struct frame *f, bool raise_flag)
 /* Free X resources of frame F.  */
 
 void
-x_free_frame_resources (struct frame *f)
+pgtk_free_frame_resources (struct frame *f)
 {
   struct pgtk_display_info *dpyinfo;
   Mouse_HLInfo *hlinfo;
@@ -511,7 +511,7 @@ x_free_frame_resources (struct frame *f)
 }
 
 void
-x_destroy_window (struct frame *f)
+pgtk_destroy_window (struct frame *f)
 /* --------------------------------------------------------------------------
      External: Delete the window
    -------------------------------------------------------------------------- */
@@ -520,7 +520,7 @@ x_destroy_window (struct frame *f)
 
   check_window_system (f);
   if (dpyinfo->gdpy != NULL)
-    x_free_frame_resources (f);
+    pgtk_free_frame_resources (f);
 
   dpyinfo->reference_count--;
 }
@@ -529,7 +529,7 @@ x_destroy_window (struct frame *f)
    from its current recorded position values and gravity.  */
 
 static void
-x_calc_absolute_position (struct frame *f)
+pgtk_calc_absolute_position (struct frame *f)
 {
   int flags = f->size_hint_flags;
   struct frame *p = FRAME_PARENT_FRAME (f);
@@ -563,7 +563,7 @@ x_calc_absolute_position (struct frame *f)
 	f->left_pos = (FRAME_PIXEL_WIDTH (p) - width - 2 * f->border_width
 		       + f->left_pos);
       else
-	f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
+	f->left_pos = (pgtk_display_pixel_width (FRAME_DISPLAY_INFO (f))
 		       - width + f->left_pos);
 
     }
@@ -589,7 +589,7 @@ x_calc_absolute_position (struct frame *f)
 	f->top_pos = (FRAME_PIXEL_HEIGHT (p) - height - 2 * f->border_width
 		       + f->top_pos);
       else
-	f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
+	f->top_pos = (pgtk_display_pixel_height (FRAME_DISPLAY_INFO (f))
 		      - height + f->top_pos);
   }
 
@@ -620,18 +620,16 @@ pgtk_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
       f->win_gravity = NorthWestGravity;
     }
 
-  x_calc_absolute_position (f);
+  pgtk_calc_absolute_position (f);
 
   block_input ();
-  x_wm_set_size_hint (f, 0, false);
+  xg_wm_set_size_hint (f, 0, false);
 
   if (change_gravity != 0)
     {
       if (FRAME_GTK_OUTER_WIDGET (f))
-	{
-	  gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   f->left_pos, f->top_pos);
-	}
+	gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			 f->left_pos, f->top_pos);
       else
 	{
 	  GtkWidget *fixed = FRAME_GTK_WIDGET (f);
@@ -672,7 +670,7 @@ pgtk_set_window_size (struct frame *f, bool change_gravity,
 
   f->output_data.pgtk->preferred_width = pixelwidth;
   f->output_data.pgtk->preferred_height = pixelheight;
-  x_wm_set_size_hint (f, 0, 0);
+  xg_wm_set_size_hint (f, 0, 0);
   xg_frame_set_char_size (f, pixelwidth, pixelheight);
   gtk_widget_queue_resize (FRAME_WIDGET (f));
 
@@ -881,18 +879,20 @@ pgtk_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 }
 
 int
-x_display_pixel_height (struct pgtk_display_info *dpyinfo)
+pgtk_display_pixel_height (struct pgtk_display_info *dpyinfo)
 {
   GdkDisplay *gdpy = dpyinfo->gdpy;
   GdkScreen *gscr = gdk_display_get_default_screen (gdpy);
+
   return gdk_screen_get_height (gscr);
 }
 
 int
-x_display_pixel_width (struct pgtk_display_info *dpyinfo)
+pgtk_display_pixel_width (struct pgtk_display_info *dpyinfo)
 {
   GdkDisplay *gdpy = dpyinfo->gdpy;
   GdkScreen *gscr = gdk_display_get_default_screen (gdpy);
+
   return gdk_screen_get_width (gscr);
 }
 
@@ -962,7 +962,7 @@ pgtk_set_parent_frame (struct frame *f, Lisp_Object new_value,
 	  gtk_box_pack_start (GTK_BOX (f->output_data.pgtk->hbox_widget), fixed, TRUE, TRUE, 0);
 	  f->output_data.pgtk->preferred_width = alloc.width;
 	  f->output_data.pgtk->preferred_height = alloc.height;
-	  x_wm_set_size_hint (f, 0, 0);
+	  xg_wm_set_size_hint (f, 0, 0);
 	  xg_frame_set_char_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, alloc.width),
 				  FRAME_PIXEL_TO_TEXT_HEIGHT (f, alloc.height));
 	  gtk_widget_queue_resize (FRAME_WIDGET (f));
@@ -4860,7 +4860,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->redeem_scroll_bar_hook = pgtk_redeem_scroll_bar;
   terminal->judge_scroll_bars_hook = pgtk_judge_scroll_bars;
   terminal->get_string_resource_hook = pgtk_get_string_resource;
-  terminal->delete_frame_hook = x_destroy_window;
+  terminal->delete_frame_hook = pgtk_destroy_window;
   terminal->delete_terminal_hook = pgtk_delete_terminal;
   terminal->query_frame_background_color = pgtk_query_frame_background_color;
   terminal->defined_color_hook = pgtk_defined_color;
@@ -4868,10 +4868,10 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->set_bitmap_icon_hook = pgtk_bitmap_icon;
   terminal->implicit_set_name_hook = pgtk_implicitly_set_name;
   terminal->iconify_frame_hook = pgtk_iconify_frame;
-  terminal->set_scroll_bar_default_width_hook =
-    pgtk_set_scroll_bar_default_width;
-  terminal->set_scroll_bar_default_height_hook =
-    pgtk_set_scroll_bar_default_height;
+  terminal->set_scroll_bar_default_width_hook
+    = pgtk_set_scroll_bar_default_width;
+  terminal->set_scroll_bar_default_height_hook
+    = pgtk_set_scroll_bar_default_height;
   terminal->set_window_size_hook = pgtk_set_window_size;
   terminal->query_colors = pgtk_query_colors;
   terminal->get_focus_frame = x_get_focus_frame;

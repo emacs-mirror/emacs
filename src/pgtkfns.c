@@ -1053,7 +1053,7 @@ unwind_create_frame (Lisp_Object frame)
 	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
 	FRAME_IMAGE_CACHE (f)->refcount++;
 
-      x_free_frame_resources (f);
+      pgtk_free_frame_resources (f);
       free_glyphs (f);
       return Qt;
     }
@@ -1692,7 +1692,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
      badly we want them.  This should be done after we have the menu
      bar so that its size can be taken into account.  */
   block_input ();
-  x_wm_set_size_hint (f, window_prompting, false);
+  xg_wm_set_size_hint (f, window_prompting, false);
   unblock_input ();
 
   adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
@@ -3026,8 +3026,8 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
     {
       min_x = 0;
       min_y = 0;
-      max_x = x_display_pixel_width (FRAME_DISPLAY_INFO (f));
-      max_y = x_display_pixel_height (FRAME_DISPLAY_INFO (f));
+      max_x = pgtk_display_pixel_width (FRAME_DISPLAY_INFO (f));
+      max_y = pgtk_display_pixel_height (FRAME_DISPLAY_INFO (f));
     }
 
   if (INTEGERP (top))

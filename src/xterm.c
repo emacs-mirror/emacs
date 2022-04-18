@@ -22000,10 +22000,10 @@ x_destroy_window (struct frame *f)
    flag (this is useful when FLAGS is 0).
    The GTK version is in gtkutils.c.  */
 
-#ifndef USE_GTK
 void
 x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 {
+#ifndef USE_GTK
   XSizeHints size_hints;
   Window window = FRAME_OUTER_WINDOW (f);
 #ifdef USE_X_TOOLKIT
@@ -22160,8 +22160,10 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 #endif /* PWinGravity */
 
   XSetWMNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
+#else
+  xg_wm_set_size_size_hint (f, flags, user_position);
+#endif /* USE_GTK */
 }
-#endif /* not USE_GTK */
 
 /* Used for IconicState or NormalState */
 

@@ -62,9 +62,9 @@ struct pgtk_device_t
 #define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
 
 #define ALPHA_FROM_ULONG(color) ((color) >> 24)
-#define RED_FROM_ULONG(color) (((color) >> 16) & 0xff)
+#define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
 #define GREEN_FROM_ULONG(color) (((color) >> 8) & 0xff)
-#define BLUE_FROM_ULONG(color) ((color) & 0xff)
+#define BLUE_FROM_ULONG(color)	((color) & 0xff)
 
 struct scroll_bar
 {
@@ -518,11 +518,10 @@ extern void pgtk_clear_under_internal_border (struct frame *f);
 extern void pgtk_set_event_handler (struct frame *f);
 
 /* Implemented in pgtkterm.c */
-extern int x_display_pixel_height (struct pgtk_display_info *);
-extern int x_display_pixel_width (struct pgtk_display_info *);
+extern int pgtk_display_pixel_height (struct pgtk_display_info *);
+extern int pgtk_display_pixel_width (struct pgtk_display_info *);
 
-/* Implemented in pgtkterm.c */
-extern void x_destroy_window (struct frame *f);
+extern void pgtk_destroy_window (struct frame *f);
 extern void pgtk_set_parent_frame (struct frame *f, Lisp_Object, Lisp_Object);
 extern void pgtk_set_no_focus_on_map (struct frame *, Lisp_Object, Lisp_Object);
 extern void pgtk_set_no_accept_focus (struct frame *, Lisp_Object, Lisp_Object);
@@ -562,8 +561,7 @@ extern void pgtk_delete_terminal (struct terminal *terminal);
 
 extern void pgtk_make_frame_visible (struct frame *f);
 extern void pgtk_make_frame_invisible (struct frame *f);
-extern void x_wm_set_size_hint (struct frame *, long, bool);
-extern void x_free_frame_resources (struct frame *);
+extern void pgtk_free_frame_resources (struct frame *);
 extern void pgtk_iconify_frame (struct frame *f);
 extern void pgtk_focus_frame (struct frame *f, bool noactivate);
 extern void pgtk_set_scroll_bar_default_width (struct frame *f);
