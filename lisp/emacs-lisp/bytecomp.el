@@ -1173,16 +1173,16 @@ message buffer `default-directory'."
         (f2 (file-relative-name file dir)))
     (if (< (length f2) (length f1)) f2 f1)))
 
-(defun byte-compile--first-symbol (form)
-  "Return the \"first\" symbol found in form, or 0 if there is none.
+(defun byte-compile--first-symbol-with-pos (form)
+  "Return the \"first\" symbol with position found in form, or 0 if none.
 Here, \"first\" is by a depth first search."
   (let (sym)
     (cond
-     ((symbolp form) form)
+     ((symbol-with-pos-p form) form)
      ((consp form)
-      (or (and (symbolp (setq sym (byte-compile--first-symbol (car form))))
+      (or (and (symbol-with-pos-p (setq sym (byte-compile--first-symbol-with-pos (car form))))
                sym)
-          (and (symbolp (setq sym (byte-compile--first-symbol (cdr form))))
+          (and (symbolp (setq sym (byte-compile--first-symbol-with-pos (cdr form))))
                sym)
           0))
      ((and (vectorp form)
@@ -1193,7 +1193,7 @@ Here, \"first\" is by a depth first search."
         (catch 'sym
           (while (< i len)
             (when (symbolp
-                   (setq elt (byte-compile--first-symbol (aref form i))))
+                   (setq elt (byte-compile--first-symbol-with-pos (aref form i))))
               (throw 'sym elt))
             (setq i (1+ i)))
           0)))
@@ -1204,7 +1204,7 @@ Here, \"first\" is by a depth first search."
 Return nil if such is not found."
   (catch 'offset
     (dolist (form byte-compile-form-stack)
-      (let ((s (byte-compile--first-symbol form)))
+      (let ((s (byte-compile--first-symbol-with-pos form)))
         (if (symbol-with-pos-p s)
             (throw 'offset (symbol-with-pos-pos s)))))))
 
