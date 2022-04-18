@@ -1345,11 +1345,7 @@ A pair of integers @code{(@var{ticks} . @var{hz})}, where @var{hz} is
 positive.  This represents @var{ticks}/@var{hz} seconds, which is the
 same time as plain @var{ticks} if @var{hz} is 1.  A common value for
 @var{hz} is 1000000000, for a nanosecond-resolution
-clock.@footnote{Currently @var{hz} should be at least 65536 to avoid
-compatibility warnings when the timestamp is passed to standard
-functions, as previous versions of Emacs would interpret such a
-timestamps differently due to backward-compatibility concerns.  These
-warnings are intended to be removed in a future Emacs version.}
+clock.
 
 @item
 A list of four integers @code{(@var{high} @var{low} @var{micro}
