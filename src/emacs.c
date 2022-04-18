@@ -2818,13 +2818,13 @@ killed.  */
       /* This is very unlikely, but it's possible to execute a binary
 	 (on some systems) with no argv.  */
       if (initial_argc < 1)
-	error ("No command line arguments known; unable to re-execute Emacs");
+	emacs_perror ("No command line arguments known; unable to re-execute Emacs");
 #ifdef WINDOWSNT
       if (w32_reexec_emacs (initial_cmdline, initial_wd) < 0)
 #else
       if (execvp (*initial_argv, initial_argv) < 1)
 #endif
-	error ("Unable to re-execute Emacs");
+	emacs_perror ("Unable to re-execute Emacs");
     }
 
   if (FIXNUMP (arg))
