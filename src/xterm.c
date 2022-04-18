@@ -22161,7 +22161,7 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 
   XSetWMNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
 #else
-  xg_wm_set_size_size_hint (f, flags, user_position);
+  xg_wm_set_size_hint (f, flags, user_position);
 #endif /* USE_GTK */
 }
 
