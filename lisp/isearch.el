@@ -868,14 +868,16 @@ This variable is set and changed during isearch.  To change the
 default behavior used for searches, see `search-default-mode'
 instead.")
 
-(defvar isearch-lax-whitespace t
+(defcustom isearch-lax-whitespace t
   "If non-nil, a space will match a sequence of whitespace chars.
 When you enter a space or spaces in ordinary incremental search, it
 will match any sequence matched by the regexp defined by the variable
 `search-whitespace-regexp'.  If the value is nil, each space you type
 matches literally, against one space.  You can toggle the value of this
 variable by the command `isearch-toggle-lax-whitespace', usually bound to
-`M-s SPC' during isearch.")
+`M-s SPC' during isearch."
+  :type 'boolean
+  :version "25.1")
 
 (defvar isearch-regexp-lax-whitespace nil
   "If non-nil, a space will match a sequence of whitespace chars.
