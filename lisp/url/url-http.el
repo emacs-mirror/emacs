@@ -36,7 +36,7 @@
 (defvar url-current-object)
 (defvar url-http-after-change-function)
 (defvar url-http-chunked-counter)
-(defvar url-http-chunked-last-crlf-missing nil)
+(defvar url-http-chunked-last-crlf-missing)
 (defvar url-http-chunked-length)
 (defvar url-http-chunked-start)
 (defvar url-http-connection-opened)
@@ -1163,7 +1163,7 @@ the end of the document."
                         (progn
 	                  (url-http-debug
                            "Spinning for the terminator of last chunk...")
-                          (setq-local url-http-chunked-last-crlf-missing
+                          (setq url-http-chunked-last-crlf-missing
                                       (point)))
 		      (url-http-debug "Removing terminator of last chunk")
 		      (delete-region (match-beginning 0) (match-end 0))
@@ -1354,6 +1354,7 @@ The return value of this function is the retrieval buffer."
 		       url-http-after-change-function
 		       url-http-response-version
 		       url-http-response-status
+                       url-http-chunked-last-crlf-missing
 		       url-http-chunked-length
 		       url-http-chunked-counter
 		       url-http-chunked-start
@@ -1378,6 +1379,7 @@ The return value of this function is the retrieval buffer."
 	      url-http-noninteractive url-request-noninteractive
 	      url-http-data url-request-data
 	      url-http-process connection
+              url-http-chunked-last-crlf-missing nil
 	      url-http-chunked-length nil
 	      url-http-chunked-start nil
 	      url-http-chunked-counter 0
