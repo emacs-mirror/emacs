@@ -2770,6 +2770,22 @@ killed.  */
 {
   int exit_code;
 
+#ifndef WINDOWSNT
+  /* Do some checking before shutting down Emacs, because errors
+     can't be meaningfully reported afterwards.  */
+  if (!NILP (restart))
+    {
+      /* This is very unlikely, but it's possible to execute a binary
+	 (on some systems) with no argv.  */
+      if (initial_argc < 1)
+	error ("No command line arguments known; unable to re-execute Emacs");
+
+      /* Check that the binary hasn't gone away.  */
+      if (!file_access_p (initial_argv[0], F_OK))
+	error ("Emacs executable \"%s\" can't be found", initial_argv[0]);
+    }
+#endif
+
 #ifdef HAVE_LIBSYSTEMD
   /* Notify systemd we are shutting down, but only if we have notified
      it about startup.  */
@@ -2815,10 +2831,6 @@ killed.  */
 
   if (!NILP (restart))
     {
-      /* This is very unlikely, but it's possible to execute a binary
-	 (on some systems) with no argv.  */
-      if (initial_argc < 1)
-	emacs_perror ("No command line arguments known; unable to re-execute Emacs");
 #ifdef WINDOWSNT
       if (w32_reexec_emacs (initial_cmdline, initial_wd) < 0)
 #else
