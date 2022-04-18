@@ -783,11 +783,17 @@ haiku_activate_menubar (struct frame *f)
   if (FRAME_OUTPUT_DATA (f)->saved_menu_event)
     {
       block_input ();
-      be_replay_menu_bar_event (FRAME_HAIKU_MENU_BAR (f),
-				FRAME_OUTPUT_DATA (f)->saved_menu_event);
+      rc = be_replay_menu_bar_event (FRAME_HAIKU_MENU_BAR (f),
+				     FRAME_OUTPUT_DATA (f)->saved_menu_event);
       xfree (FRAME_OUTPUT_DATA (f)->saved_menu_event);
       FRAME_OUTPUT_DATA (f)->saved_menu_event = NULL;
       unblock_input ();
+
+      if (!rc)
+	return;
+
+      FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
+      popup_activated_p += 1;
     }
   else
     {

@@ -636,7 +636,7 @@ extern bool be_drag_message (void *, void *, bool, void (*) (void),
 			     bool (*) (void));
 extern bool be_drag_and_drop_in_progress (void);
 
-extern void be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event *);
+extern bool be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event *);
 
 #ifdef __cplusplus
 extern void *find_appropriate_view_for_draw (void *);

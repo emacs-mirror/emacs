@@ -1335,7 +1335,7 @@ public:
 
 	window->menus_begun = &menus_begun;
 	set_mouse_position (pt.x, pt.y);
-	MouseDown (l);
+	BMenuBar::MouseDown (l);
 	window->menus_begun = NULL;
 
 	if (!menus_begun)
@@ -1345,8 +1345,19 @@ public:
       }
     else if (msg->what == REPLAY_MENU_BAR)
       {
+	window = (EmacsWindow *) Window ();
+	menus_begun = false;
+	window->menus_begun = &menus_begun;
+
 	if (msg->FindPoint ("emacs:point", &pt) == B_OK)
 	  BMenuBar::MouseDown (pt);
+
+	window->menus_begun = NULL;
+
+	if (!menus_begun)
+	  msg->SendReply (msg);
+	else
+	  msg->SendReply (BE_MENU_BAR_OPEN);
       }
     else
       BMenuBar::MessageReceived (msg);
@@ -4261,14 +4272,17 @@ be_drag_and_drop_in_progress (void)
   return drag_and_drop_in_progress;
 }
 
-void
+/* Replay the menu bar click event EVENT.  Return whether or not the
+   menu bar actually opened.  */
+bool
 be_replay_menu_bar_event (void *menu_bar,
 			  struct haiku_menu_bar_click_event *event)
 {
   BMenuBar *m = (BMenuBar *) menu_bar;
   BMessenger messenger (m);
-  BMessage msg (REPLAY_MENU_BAR);
+  BMessage reply, msg (REPLAY_MENU_BAR);
 
   msg.AddPoint ("emacs:point", BPoint (event->x, event->y));
-  messenger.SendMessage (&msg);
+  messenger.SendMessage (&msg, &reply);
+  return reply.what == BE_MENU_BAR_OPEN;
 }
