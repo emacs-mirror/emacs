@@ -240,38 +240,36 @@ DEFUN ("sqlite-open", Fsqlite_open, Ssqlite_open, 0, 1, 0,
 If FILE is nil, an in-memory database will be opened instead.  */)
   (Lisp_Object file)
 {
-  char *name;
+  Lisp_Object name;
+  int flags = (SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
+	       | SQLITE_OPEN_READWRITE);
+#ifdef SQLITE_OPEN_URI
+  flags |= SQLITE_OPEN_URI;
+#endif
+
   if (!init_sqlite_functions ())
     xsignal1 (Qerror, build_string ("sqlite support is not available"));
 
   if (!NILP (file))
-    {
-      CHECK_STRING (file);
-      file = ENCODE_FILE (Fexpand_file_name (file, Qnil));
-      name = xstrdup (SSDATA (file));
-    }
+    name = ENCODE_FILE (Fexpand_file_name (file, Qnil));
   else
-    /* In-memory database.  These have to have different names to
-       refer to different databases.  */
-    name = xstrdup (SSDATA (CALLN (Fformat, build_string (":memory:%d"),
-				   make_int (++db_count))));
+    {
+#ifdef SQLITE_OPEN_MEMORY
+      /* In-memory database.  These have to have different names to
+	 refer to different databases.  */
+      AUTO_STRING (memory_fmt, ":memory:%d");
+      name = CALLN (Fformat, memory_fmt, make_int (++db_count));
+      flags |= SQLITE_OPEN_MEMORY;
+#else
+      xsignal1 (Qerror, build_string ("sqlite in-memory is not available"));
+#endif
+    }
 
   sqlite3 *sdb;
-  int ret = sqlite3_open_v2 (name,
-			     &sdb,
-			     SQLITE_OPEN_FULLMUTEX
-			     | SQLITE_OPEN_READWRITE
-			     | SQLITE_OPEN_CREATE
-			     | (NILP (file) ? SQLITE_OPEN_MEMORY : 0)
-#ifdef SQLITE_OPEN_URI
-			     | SQLITE_OPEN_URI
-#endif
-			     | 0, NULL);
-
-  if (ret != SQLITE_OK)
+  if (sqlite3_open_v2 (SSDATA (name), &sdb, flags, NULL) != SQLITE_OK)
     return Qnil;
 
-  return make_sqlite (false, sdb, NULL, name);
+  return make_sqlite (false, sdb, NULL, xstrdup (SSDATA (name)));
 }
 
 DEFUN ("sqlite-close", Fsqlite_close, Ssqlite_close, 1, 1, 0,
