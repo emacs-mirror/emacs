@@ -1616,7 +1616,7 @@ were a local variable that had been captured by static scoping.
 
 @defun oclosure-type object
 This function returns the OClosure type (a symbol) of @var{object} if it is an
-OClosure, and nil otherwise.
+OClosure, and @code{nil} otherwise.
 @end defun
 
 

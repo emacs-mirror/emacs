@@ -1528,7 +1528,7 @@ integer, it specifies a clock frequency and this function returns an
 integer-pair timestamp @code{(@var{ticks} . @var{form})}.  If @var{form} is
 @code{t}, this function treats it as a positive integer suitable for
 representing the timestamp; for example, it is treated as 1000000000
-if @var{time} is nil and the platform timestamp has nanosecond
+if @var{time} is @code{nil} and the platform timestamp has nanosecond
 resolution.  If @var{form} is @code{list}, this function returns an
 integer list @code{(@var{high} @var{low} @var{micro} @var{pico})}.
 Although an omitted or @code{nil} @var{form} currently acts like

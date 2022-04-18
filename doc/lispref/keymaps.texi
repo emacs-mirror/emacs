@@ -1643,7 +1643,7 @@ non-@code{nil}, the definition will be removed.  This is almost the
 same as setting the definition to @code{nil}, but makes a difference
 if the @var{keymap} has a parent, and @var{key} is shadowing the same
 binding in the parent.  With @var{remove}, subsequent lookups will
-return the binding in the parent, and with a nil @var{def}, the
+return the binding in the parent, whereas with a @code{nil} definition the
 lookups will return @code{nil}.
 @end defun
 

@@ -2142,7 +2142,7 @@ the buffer might contain long lines that will be truncated anyway.
 The optional argument @var{y-limit}, if non-@code{nil}, specifies the
 maximum Y coordinate beyond which text is to be ignored; it is
 therefore also the maximum pixel-height that the function can return.
-If @var{y-limit} is nil or omitted, it means to considers all the
+If @var{y-limit} is @code{nil} or omitted, it means to consider all the
 lines of text till the buffer position specified by @var{to}.  Since
 calculating the pixel-height of a large buffer can take some time, it
 makes sense to specify this argument; in particular, if the caller
@@ -7517,7 +7517,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return @code{nil}
 instead of signaling the error.
 @end deffn
 
@@ -7529,7 +7529,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return @code{nil}
 instead of signaling the error.
 @end deffn
 
