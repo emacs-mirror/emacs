@@ -1353,6 +1353,12 @@ xm_write_drag_initiator_info (Display *dpy, Window wdesc,
   buf[0] = info->byteorder;
   buf[1] = info->protocol;
 
+  if (info->byteorder != XM_BYTE_ORDER_CUR_FIRST)
+    {
+      SWAPCARD16 (info->table_index);
+      SWAPCARD16 (info->selection);
+    }
+
   *((uint16_t *) (buf + 2)) = info->table_index;
   *((uint32_t *) (buf + 4)) = info->selection;
 
@@ -1473,8 +1479,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
   XGrabServer (dpyinfo->display);
   rc = XGetWindowProperty (dpyinfo->display, drag_window,
 			   dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
-			   /* Do larger values occur in practice? */
-			   0L, 20000L, False,
+			   0L, LONG_MAX, False,
 			   dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
 			   &actual_type, &actual_format, &nitems,
 			   &bytes_remaining, &tmp_data) == Success;
