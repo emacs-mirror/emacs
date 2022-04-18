@@ -4640,6 +4640,9 @@ sys_open (const char * path, int oflag, int mode)
   return res;
 }
 
+/* This is not currently used, but might be needed again at some
+   point; DO NOT DELETE!  */
+#if 0
 int
 openat (int fd, const char * path, int oflag, int mode)
 {
@@ -4660,6 +4663,7 @@ openat (int fd, const char * path, int oflag, int mode)
 
   return sys_open (path, oflag, mode);
 }
+#endif
 
 int
 fchmod (int fd, mode_t mode)
@@ -10623,12 +10627,6 @@ realpath (const char *file_name, char *resolved_name)
 int
 w32_reexec_emacs (char *cmd_line, const char *wdir)
 {
-  if (inhibit_window_system)
-    {
-      errno = ENOSYS;
-      return -1;	/* FIXME! */
-    }
-
   STARTUPINFO si;
   SECURITY_ATTRIBUTES sec_attrs;
   BOOL status;
@@ -10643,12 +10641,28 @@ w32_reexec_emacs (char *cmd_line, const char *wdir)
      line specifies the program as a relative file name.  */
   chdir (wdir);
 
+  /* This is a kludge: it causes the restarted "emacs -nw" to have a
+     new console window created for it, and that new window might have
+     different (default) properties, not the ones of the parent
+     process's console window.  But without this, restarting Emacs in
+     the -nw mode simply doesn't work.  FIXME!  */
+  if (inhibit_window_system)
+    {
+      if (!FreeConsole ())
+	{
+	  errno = ENOEXEC;
+	  return -1;
+	}
+    }
+
   status = CreateProcess (NULL,		/* program */
 			  cmd_line,	/* command line */
 			  &sec_attrs,	/* process attributes */
 			  NULL,		/* thread attributes */
 			  TRUE,		/* inherit handles? */
-			  NORMAL_PRIORITY_CLASS,
+			  inhibit_window_system
+			  ? 0		/* inherit parent's console */
+			  : NORMAL_PRIORITY_CLASS,
 			  NULL,		/* environment */
 			  wdir,		/* initial directory */
 			  &si,		/* startup info */
