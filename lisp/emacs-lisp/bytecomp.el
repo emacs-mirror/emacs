@@ -1009,13 +1009,22 @@ CONST2 may be evaluated multiple times."
 
     ;; Similarly, replace TAGs in all jump tables with the correct PC index.
     (dolist (hash-table byte-compile-jump-tables)
-      (maphash #'(lambda (value tag)
-                   (setq pc (cadr tag))
-                   ;; We don't need to split PC here, as it is stored as a lisp
-                   ;; object in the hash table (whereas other goto-* ops store
-                   ;; it within 2 bytes in the byte string).
-                   (puthash value pc hash-table))
-               hash-table))
+      (let (alist)
+        (maphash #'(lambda (value tag)
+                     (setq pc (cadr tag))
+                     ;; We don't need to split PC here, as it is stored as a
+                     ;; lisp object in the hash table (whereas other goto-*
+                     ;; ops store it within 2 bytes in the byte string).
+                     ;; De-position any symbols with position in `value'.
+                     ;; Since this may change the hash table key, we remove
+                     ;; the entry from the table and reinsert it outside the
+                     ;; scope of the `maphash'.
+                     (setq value (byte-run-strip-symbol-positions value))
+                     (push (cons value pc) alist)
+                     (remhash value hash-table))
+                 hash-table)
+        (dolist (elt alist)
+          (puthash (car elt) (cdr elt) hash-table))))
     (let ((bytecode (apply 'unibyte-string (nreverse bytes))))
       (when byte-native-compiling
         ;; Spill LAP for the native compiler here.
