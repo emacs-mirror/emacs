@@ -1814,5 +1814,12 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (should (equal (file-name-split "/foo/bar/") '("" "foo" "bar" "")))
   (should (equal (file-name-split "foo/bar/") '("foo" "bar" ""))))
 
+(ert-deftest files-test-set-mode ()
+  (find-file (ert-resource-file "file-mode"))
+  (should (eq major-mode 'text-mode))
+  (emacs-lisp-mode)
+  ;; Check that the mode cookie doesn't override the explicit setting.
+  (should (eq major-mode 'emacs-lisp-mode)))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here
