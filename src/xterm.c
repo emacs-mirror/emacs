@@ -18661,7 +18661,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  && x_dnd_in_progress && x_dnd_use_toplevels
 	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	{
+#ifndef USE_GTK
 	  XEvent xevent;
+#endif
 	  XShapeEvent *xse = (XShapeEvent *) event;
 #if defined HAVE_XCB_SHAPE && defined HAVE_XCB_SHAPE_INPUT_RECTS
 	  xcb_shape_get_rectangles_cookie_t bounding_rect_cookie;
@@ -18678,6 +18680,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  int rc, ordering;
 #endif
 
+	  /* Somehow this really interferes with GTK's own processing
+	     of ShapeNotify events.  Not sure what GTK uses them for,
+	     but we cannot skip any of them here.  */
+#ifndef USE_GTK
 	  while (XPending (dpyinfo->display))
 	    {
 	      XNextEvent (dpyinfo->display, &xevent);
@@ -18691,6 +18697,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  break;
 		}
 	    }
+#endif
 
 	  for (struct x_client_list_window *tem = x_dnd_toplevels; tem;
 	       tem = tem->next)
