@@ -243,6 +243,11 @@ This build is only supported with GTK+ version 3, and it is an error
 to specify any other X-specific configuration option when PGTK is
 enabled.
 
+If you use exclusively X, do not use the PGTK port.  There are a
+number of respects in which the regular --with-x-toolkit=gtk build
+works better.  The PGTK port should not be considered a simple upgrade
+from --with-x-toolkit=gtk.
+
 With the PGTK build, you will be able to switch between running Emacs
 on X, Wayland and Broadway using the 'GDK_BACKEND' environment
 variable.  GTK+ should automatically detect and use the correct value
