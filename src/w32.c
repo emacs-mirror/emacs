@@ -348,6 +348,7 @@ static BOOL g_b_init_reg_open_key_ex_w;
 static BOOL g_b_init_reg_query_value_ex_w;
 static BOOL g_b_init_expand_environment_strings_w;
 static BOOL g_b_init_get_user_default_ui_language;
+static BOOL g_b_init_get_console_font_size;
 
 BOOL g_b_init_compare_string_w;
 BOOL g_b_init_debug_break_process;
@@ -536,6 +537,18 @@ typedef LONG (WINAPI *RegOpenKeyExW_Proc) (HKEY,LPCWSTR,DWORD,REGSAM,PHKEY);
 typedef LONG (WINAPI *RegQueryValueExW_Proc) (HKEY,LPCWSTR,LPDWORD,LPDWORD,LPBYTE,LPDWORD);
 typedef DWORD (WINAPI *ExpandEnvironmentStringsW_Proc) (LPCWSTR,LPWSTR,DWORD);
 typedef LANGID (WINAPI *GetUserDefaultUILanguage_Proc) (void);
+
+typedef COORD (WINAPI *GetConsoleFontSize_Proc) (HANDLE, DWORD);
+typedef struct
+{
+  DWORD nFont;
+  COORD dwFontSize;
+} CONSOLE_FONT_INFO;
+typedef BOOL (WINAPI *GetCurrentConsoleFont_Proc) (
+    HANDLE,
+    BOOL,
+    CONSOLE_FONT_INFO *);
+
 
   /* ** A utility function ** */
 static BOOL
@@ -10618,6 +10631,47 @@ realpath (const char *file_name, char *resolved_name)
   return xstrdup (tgt);
 }
 
+static void
+get_console_font_size (HANDLE hscreen, int *font_width, int *font_height)
+{
+  static GetCurrentConsoleFont_Proc s_pfn_Get_Current_Console_Font = NULL;
+  static GetConsoleFontSize_Proc s_pfn_Get_Console_Font_Size = NULL;
+
+  /* Default guessed values, for when we cannot obtain the actual ones.  */
+  *font_width = 8;
+  *font_height = 12;
+
+  if (!is_windows_9x ())
+    {
+      if (g_b_init_get_console_font_size == 0)
+	{
+	  HMODULE hm_kernel32 = LoadLibrary ("Kernel32.dll");
+	  if (hm_kernel32)
+	    {
+	      s_pfn_Get_Current_Console_Font = (GetCurrentConsoleFont_Proc)
+		get_proc_addr (hm_kernel32, "GetCurrentConsoleFont");
+	      s_pfn_Get_Console_Font_Size = (GetConsoleFontSize_Proc)
+		get_proc_addr (hm_kernel32, "GetConsoleFontSize");
+	    }
+	  g_b_init_get_console_font_size = 1;
+	}
+    }
+  if (s_pfn_Get_Current_Console_Font && s_pfn_Get_Console_Font_Size)
+    {
+      CONSOLE_FONT_INFO font_info;
+
+      if (s_pfn_Get_Current_Console_Font (hscreen, FALSE, &font_info))
+	{
+	  COORD font_size = s_pfn_Get_Console_Font_Size (hscreen,
+							 font_info.nFont);
+	  if (font_size.X > 0)
+	    *font_width = font_size.X;
+	  if (font_size.Y > 0)
+	    *font_height = font_size.Y;
+	}
+    }
+}
+
 /* A replacement for Posix execvp, used to restart Emacs.  This is
    needed because the low-level Windows API to start processes accepts
    the command-line arguments as a single string, so we cannot safely
@@ -10642,18 +10696,27 @@ w32_reexec_emacs (char *cmd_line, const char *wdir)
       if (screen_handle != INVALID_HANDLE_VALUE
 	  && GetConsoleScreenBufferInfo (screen_handle, &screen_info))
 	{
+	  int font_width, font_height;
+
 	  /* Make the restarted Emacs's console window the same
-	     dimensions as ours.  FIXME: for some reason this doesn't
-	     seem to work!  */
-	  si.dwFlags |= STARTF_USECOUNTCHARS;
+	     dimensions as ours.  */
 	  si.dwXCountChars = screen_info.dwSize.X;
 	  si.dwYCountChars = screen_info.dwSize.Y;
+	  get_console_font_size (screen_handle, &font_width, &font_height);
+	  si.dwXSize =
+	    (screen_info.srWindow.Right - screen_info.srWindow.Left + 1)
+	    * font_width;
+	  si.dwYSize =
+	    (screen_info.srWindow.Bottom - screen_info.srWindow.Top + 1)
+	    * font_height;
+	  si.dwFlags |= STARTF_USESIZE | STARTF_USECOUNTCHARS;
 	}
       /* This is a kludge: it causes the restarted "emacs -nw" to have
 	 a new console window created for it, and that new window
 	 might have different (default) properties, not the ones of
 	 the parent process's console window.  But without this,
-	 restarting Emacs in the -nw mode simply doesn't work.
+	 restarting Emacs in the -nw mode simply doesn't work,
+	 probably because the parent's console is still in use.
 	 FIXME!  */
       dwCreationFlags = CREATE_NEW_CONSOLE;
     }
@@ -10742,6 +10805,7 @@ globals_of_w32 (void)
   g_b_init_compare_string_w = 0;
   g_b_init_debug_break_process = 0;
   g_b_init_get_user_default_ui_language = 0;
+  g_b_init_get_console_font_size = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
