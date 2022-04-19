@@ -1825,5 +1825,9 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (find-file (ert-resource-file "file-mode-multiple"))
   (should (eq major-mode 'outline-mode)))
 
+(ert-deftest files-test-set-mode-prop-line ()
+  (find-file (ert-resource-file "file-mode-prop-line"))
+  (should (eq major-mode 'text-mode)))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here
