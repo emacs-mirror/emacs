@@ -278,17 +278,22 @@
      example,
 
      #+BEGIN_SRC emacs-lisp
-     (define-key some-map "f" '("foo" . command-foo))
-     (define-key some-map "b" '("bar-prefix" . (keymap)))
+       (define-key some-map "f" '("foo" . command-foo))
+       (define-key some-map "b" '("bar-prefix" . (keymap)))
+       (setq my-map (make-sparse-keymap))
+       (define-key some-map "b" (cons "bar-prefix" my-map))
      #+END_SRC
 
      binds =command-foo= to =f= in =some-map=, but also stores the string "foo"
      which which-key will extract to use to describe this command. The second
      example binds an empty keymap to =b= in =some-map= and uses "bar-prefix" to
-     describe it. These bindings are accepted by =define-key= natively (i.e.,
-     with or without which-key being loaded). Since many key-binding utilities
-     use =define-key= internally, this functionality should be available with
-     your favorite method of defining keys as well.
+     describe it. The last two lines replicate the functionality of the second
+     line, while assigning the new keymap to the symbol =my-map= (note the use
+     of =cons= to ensure that =my-map= is evaluated for =define-key=). These
+     bindings are accepted by =define-key= natively (i.e., with or without
+     which-key being loaded). Since many key-binding utilities use =define-key=
+     internally, this functionality should be available with your favorite
+     method of defining keys as well.
 
      The second method is to use =which-key-add-keymap-based-replacements=. The
      statement
