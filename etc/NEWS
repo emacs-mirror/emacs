@@ -1442,6 +1442,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** The local variable section now supports defining fallback modes.
+This was previously only available when using a property line (i.e.,
+putting the modes on the first line of a file).
+
++++
 ** New function 'flush-standard-output'.
 This enables you do display incomplete lines from batch-based Emacs
 scripts.
