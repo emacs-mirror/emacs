@@ -576,12 +576,16 @@ indentation."
 (put 'letrec 'scheme-indent-function 1)
 (put 'let-values 'scheme-indent-function 1) ; SRFI 11
 (put 'let*-values 'scheme-indent-function 1) ; SRFI 11
+(put 'and-let* 'scheme-indent-function 1) ; SRFI 2
 (put 'sequence 'scheme-indent-function 0) ; SICP, not r4rs
 (put 'let-syntax 'scheme-indent-function 1)
 (put 'letrec-syntax 'scheme-indent-function 1)
 (put 'syntax-rules 'scheme-indent-function 1)
 (put 'syntax-case 'scheme-indent-function 2) ; not r5rs
+(put 'with-syntax 'scheme-indent-function 1)
 (put 'library 'scheme-indent-function 1) ; R6RS
+;; Part of at least Guile, Chez Scheme, Chicken
+(put 'eval-when 'scheme-indent-function 1)
 
 (put 'call-with-input-file 'scheme-indent-function 1)
 (put 'call-with-port 'scheme-indent-function 1)
@@ -604,6 +608,14 @@ indentation."
 
 ;; SRFI-8
 (put 'receive 'scheme-indent-function 2)
+
+;; SRFI-204 (withdrawn, but provided in many implementations, see the SRFI text)
+(put 'match 'scheme-indent-function 1)
+(put 'match-lambda 'scheme-indent-function 0)
+(put 'match-lambda* 'scheme-indent-function 0)
+(put 'match-let 'scheme-indent-function 'scheme-let-indent)
+(put 'match-let* 'scheme-indent-function 1)
+(put 'match-letrec 'scheme-indent-function 1)
 
 ;;;; MIT Scheme specific indentation.
 
