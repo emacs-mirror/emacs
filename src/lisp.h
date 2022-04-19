@@ -342,6 +342,7 @@ typedef EMACS_INT Lisp_Word;
 #  define lisp_h_XIL(i) (i)
 #  define lisp_h_XLP(o) ((void *) (uintptr_t) (o))
 # endif
+# define lisp_h_Qnil 0
 #else
 # if LISP_WORDS_ARE_POINTERS
 #  define lisp_h_XLI(o) ((EMACS_INT) (o).i)
@@ -352,6 +353,7 @@ typedef EMACS_INT Lisp_Word;
 #  define lisp_h_XIL(i) ((Lisp_Object) {i})
 #  define lisp_h_XLP(o) ((void *) (uintptr_t) (o).i)
 # endif
+# define lisp_h_Qnil {0}
 #endif
 
 #define lisp_h_PSEUDOVECTORP(a,code)                            \
@@ -3173,12 +3175,12 @@ CHECK_SUBR (Lisp_Object x)
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
-#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
-  SUBR_SECTION_ATTRIBUTE                                                \
-  static union Aligned_Lisp_Subr sname =                                \
-     {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
-       { .a ## maxargs = fnname },					\
-       minargs, maxargs, lname, {intspec}, 0}};				\
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc) \
+  SUBR_SECTION_ATTRIBUTE                                            \
+  static union Aligned_Lisp_Subr sname =                            \
+     {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },			    \
+       { .a ## maxargs = fnname },				    \
+       minargs, maxargs, lname, {intspec}, lisp_h_Qnil}};	    \
    Lisp_Object fnname
 
 /* defsubr (Sname);
