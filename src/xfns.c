@@ -732,7 +732,7 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long opaque_region[] = {0, 0, FRAME_PIXEL_WIDTH (f),
 				   FRAME_PIXEL_HEIGHT (f)};
-#ifdef USE_GTK
+#ifdef HAVE_GTK3
   GObjectClass *object_class;
   GtkWidgetClass *class;
 #endif
