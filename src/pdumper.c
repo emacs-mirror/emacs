@@ -2876,13 +2876,13 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
       dump_remember_cold_op (ctx,
                              COLD_OP_NATIVE_SUBR,
 			     make_lisp_ptr ((void *) subr, Lisp_Vectorlike));
-      dump_field_lv (ctx, &out, subr, &subr->native_intspec, WEIGHT_NORMAL);
+      dump_field_lv (ctx, &out, subr, &subr->intspec.native, WEIGHT_NORMAL);
       dump_field_lv (ctx, &out, subr, &subr->command_modes, WEIGHT_NORMAL);
     }
   else
     {
       dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
-      dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec.string);
       dump_field_emacs_ptr (ctx, &out, subr, &subr->command_modes);
     }
   DUMP_FIELD_COPY (&out, subr, doc);

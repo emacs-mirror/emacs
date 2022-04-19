@@ -2151,9 +2151,9 @@ struct Lisp_Subr
     short min_args, max_args;
     const char *symbol_name;
     union {
-      const char *intspec;
-      Lisp_Object native_intspec;
-    };
+      const char *string;
+      Lisp_Object native;
+    } intspec;
     Lisp_Object command_modes;
     EMACS_INT doc;
 #ifdef HAVE_NATIVE_COMP

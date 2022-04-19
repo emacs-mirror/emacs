@@ -5439,7 +5439,7 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   x->s.min_args = XFIXNUM (minarg);
   x->s.max_args = FIXNUMP (maxarg) ? XFIXNUM (maxarg) : MANY;
   x->s.symbol_name = xstrdup (SSDATA (symbol_name));
-  x->s.native_intspec = intspec;
+  x->s.intspec.native = intspec;
   x->s.command_modes = command_modes;
   x->s.doc = XFIXNUM (doc_idx);
 #ifdef HAVE_NATIVE_COMP

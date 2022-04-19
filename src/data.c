@@ -1090,10 +1090,10 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      if (SUBR_NATIVE_COMPILEDP (fun) && !NILP (XSUBR (fun)->native_intspec))
-	return XSUBR (fun)->native_intspec;
+      if (SUBR_NATIVE_COMPILEDP (fun) && !NILP (XSUBR (fun)->intspec.native))
+	return XSUBR (fun)->intspec.native;
 
-      const char *spec = XSUBR (fun)->intspec;
+      const char *spec = XSUBR (fun)->intspec.string;
       if (spec)
 	return list2 (Qinteractive,
 		      (*spec != '(') ? build_string (spec) :

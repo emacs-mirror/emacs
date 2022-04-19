@@ -6894,7 +6894,7 @@ process_mark_stack (ptrdiff_t base_sp)
 		  {
 		    set_vector_marked (ptr);
 		    struct Lisp_Subr *subr = XSUBR (obj);
-		    mark_stack_push_value (subr->native_intspec);
+		    mark_stack_push_value (subr->intspec.native);
 		    mark_stack_push_value (subr->command_modes);
 		    mark_stack_push_value (subr->native_comp_u);
 		    mark_stack_push_value (subr->lambda_list);
