@@ -131,10 +131,13 @@ struct haiku_dummy_event
   char dummy;
 };
 
-#define HAIKU_MODIFIER_ALT (1)
-#define HAIKU_MODIFIER_CTRL (1 << 1)
-#define HAIKU_MODIFIER_SHIFT (1 << 2)
-#define HAIKU_MODIFIER_SUPER (1 << 3)
+enum haiku_modifier_specification
+  {
+    HAIKU_MODIFIER_ALT	 = 1,
+    HAIKU_MODIFIER_CTRL	 = (1 << 1),
+    HAIKU_MODIFIER_SHIFT = (1 << 2),
+    HAIKU_MODIFIER_SUPER = (1 << 3),
+  };
 
 struct haiku_key_event
 {
@@ -459,8 +462,8 @@ extern void BWindow_dimensions (void *, int *, int *);
 extern void BWindow_Flush (void *);
 
 extern void BFont_close (void *);
-extern void BFont_dat (void *, int *, int *, int *, int *,
-		       int *, int *, int *, int *, int *, int *);
+extern void BFont_metrics (void *, int *, int *, int *, int *,
+			   int *, int *, int *, int *, int *, int *);
 extern int BFont_have_char_p (void *, int32_t);
 extern int BFont_have_char_block (void *, int32_t, int32_t);
 extern void BFont_char_bounds (void *, const char *, int *, int *, int *);
@@ -468,11 +471,9 @@ extern void BFont_nchar_bounds (void *, const char *, int *, int *,
 				int *, int32_t);
 extern struct haiku_font_pattern *BFont_find (struct haiku_font_pattern *);
 
-
 extern void BView_StartClip (void *);
 extern void BView_EndClip (void *);
 extern void BView_SetHighColor (void *, uint32_t);
-extern void BView_SetHighColorForVisibleBell (void *, uint32_t);
 extern void BView_SetLowColor (void *, uint32_t);
 extern void BView_SetPenSize (void *, int);
 extern void BView_SetFont (void *, void *);
@@ -639,10 +640,10 @@ extern bool be_drag_and_drop_in_progress (void);
 extern bool be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event *);
 
 #ifdef __cplusplus
-extern void *find_appropriate_view_for_draw (void *);
 }
 
 extern _Noreturn void gui_abort (const char *);
+extern void *find_appropriate_view_for_draw (void *);
 #endif /* _cplusplus */
 
 #endif /* _HAIKU_SUPPORT_H_ */

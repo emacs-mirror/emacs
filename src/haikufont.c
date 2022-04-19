@@ -727,10 +727,10 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
     avg_width, height, space_width, ascent,
     descent, underline_pos, underline_thickness;
 
-  BFont_dat (be_font, &px_size, &min_width,
-	     &max_width, &avg_width, &height,
-	     &space_width, &ascent, &descent,
-	     &underline_pos, &underline_thickness);
+  BFont_metrics (be_font, &px_size, &min_width,
+		 &max_width, &avg_width, &height,
+		 &space_width, &ascent, &descent,
+		 &underline_pos, &underline_thickness);
 
   font->pixel_size = px_size;
   font->min_width = min_width;
@@ -757,22 +757,31 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
 static void
 haikufont_close (struct font *font)
 {
+  struct haikufont_info *info = (struct haikufont_info *) font;
+  int i;
+
   if (font_data_structures_may_be_ill_formed ())
     return;
-  struct haikufont_info *info = (struct haikufont_info *) font;
 
   block_input ();
   if (info && info->be_font)
     BFont_close (info->be_font);
 
-  for (int i = 0; i < info->metrics_nrows; i++)
-    if (info->metrics[i])
-      xfree (info->metrics[i]);
+  for (i = 0; i < info->metrics_nrows; i++)
+    {
+      if (info->metrics[i])
+	xfree (info->metrics[i]);
+    }
+
   if (info->metrics)
     xfree (info->metrics);
-  for (int i = 0; i < 0x100; ++i)
-    if (info->glyphs[i])
-      xfree (info->glyphs[i]);
+
+  for (i = 0; i < 0x100; ++i)
+    {
+      if (info->glyphs[i])
+	xfree (info->glyphs[i]);
+    }
+
   xfree (info->glyphs);
   unblock_input ();
 }

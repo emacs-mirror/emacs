@@ -85,9 +85,9 @@ BFont_close (void *font)
 }
 
 void
-BFont_dat (void *font, int *px_size, int *min_width, int *max_width,
-	   int *avg_width, int *height, int *space_width, int *ascent,
-	   int *descent, int *underline_position, int *underline_thickness)
+BFont_metrics (void *font, int *px_size, int *min_width, int *max_width,
+	       int *avg_width, int *height, int *space_width, int *ascent,
+	       int *descent, int *underline_position, int *underline_thickness)
 {
   BFont *ft = (BFont *) font;
   struct font_height fheight;

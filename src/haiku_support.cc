@@ -2263,7 +2263,7 @@ public:
 
     menu->PushState ();
     menu->SetFont (be_bold_font);
-    BView_SetHighColorForVisibleBell (menu, 0);
+    menu->SetHighColor (ui_color (B_CONTROL_TEXT_COLOR));
     BMenuItem::DrawContent ();
     menu->PopState ();
   }
