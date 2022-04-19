@@ -756,6 +756,10 @@ static bool toolkit_scroll_bar_interaction;
 
 static Time ignore_next_mouse_click_timeout;
 
+/* The display that ignore_next_mouse_click_timeout applies to.  */
+
+static struct x_display_info *mouse_click_timeout_display;
+
 /* Used locally within XTread_socket.  */
 
 static int x_noop_count;
@@ -15169,7 +15173,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       f = any;
 
       if (f && x_mouse_click_focus_ignore_position)
-	ignore_next_mouse_click_timeout = event->xmotion.time + 200;
+	{
+	  ignore_next_mouse_click_timeout = event->xmotion.time + 200;
+	  mouse_click_timeout_display = dpyinfo;
+	}
 
       /* EnterNotify counts as mouse movement,
 	 so update things that depend on mouse position.  */
@@ -16046,7 +16053,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		&& event->xbutton.button < 9
 		&& f)
 	      {
-		if (ignore_next_mouse_click_timeout)
+		if (ignore_next_mouse_click_timeout
+		    && dpyinfo == mouse_click_timeout_display)
 		  {
 		    if (event->type == ButtonPress
 			&& event->xbutton.time > ignore_next_mouse_click_timeout)
@@ -16115,7 +16123,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               if (! popup_activated ())
 #endif
                 {
-                  if (ignore_next_mouse_click_timeout)
+                  if (ignore_next_mouse_click_timeout
+		      && dpyinfo == mouse_click_timeout_display)
                     {
                       if (event->type == ButtonPress
                           && event->xbutton.time > ignore_next_mouse_click_timeout)
@@ -16412,7 +16421,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      f = any;
 
 	      if (f && x_mouse_click_focus_ignore_position)
-		ignore_next_mouse_click_timeout = xi_event->time + 200;
+		{
+		  ignore_next_mouse_click_timeout = xev->time + 200;
+		  mouse_click_timeout_display = dpyinfo;
+		}
 
 	      /* EnterNotify counts as mouse movement,
 		 so update things that depend on mouse position.  */
@@ -23578,6 +23590,9 @@ x_delete_display (struct x_display_info *dpyinfo)
   if (next_noop_dpyinfo == dpyinfo)
     next_noop_dpyinfo = dpyinfo->next;
 
+  if (mouse_click_timeout_display == dpyinfo)
+    mouse_click_timeout_display = NULL;
+
   if (x_display_list == dpyinfo)
     x_display_list = dpyinfo->next;
   else
@@ -23865,6 +23880,7 @@ x_initialize (void)
   x_noop_count = 0;
   any_help_event_p = false;
   ignore_next_mouse_click_timeout = 0;
+  mouse_click_timeout_display = NULL;
 
 #ifdef USE_GTK
   current_count = -1;
