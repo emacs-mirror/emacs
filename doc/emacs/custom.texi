@@ -1237,25 +1237,22 @@ been introduced to handle a file in a newer Emacs version, you can use
 several @code{mode} entries to use the new mode (called
 @code{my-new-mode}) in the new Emacs, and fall back to the old mode
 (called @code{my-old-mode}) in older Emacs versions.  If you're
-enabling the modes in the first line of the file, you should use this
-order:
+enabling the modes in the first line of the file, can say:
 
 @example
--*- mode: my-new; mode: my-old -*-
+-*- mode: my-old; mode: my-new -*-
 @end example
 
-  Emacs will ignore undefined modes until it finds one it can use.
-However, if you're using a local variable block at the end up the
-file, the order is reversed:
+  Emacs will use the final defined mode it finds, so in older Emacs
+versions it will ignore @code{my-new-mode}, while in Emacs versions
+where @code{my-new-mode} is defined, it'll ignore @code{my-old-mode}.
+Similarly, in a local variable block at the end of the file:
 
 @example
 Local variables:
 mode: my-old
 mode: my-new
 @end example
-
-  Here Emacs will use the @emph{last} defined mode it finds.  (This is
-for historical reasons.)
 
   Do not use the @code{mode} keyword for minor modes.  To enable or
 disable a minor mode in a local variables list, use the @code{eval}
