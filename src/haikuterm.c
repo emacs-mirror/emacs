@@ -1059,6 +1059,8 @@ haiku_draw_glyph_string_foreground (struct glyph_string *s)
       for (i = 0; i < s->nchars; ++i)
 	{
 	  struct glyph *g = s->first_glyph + i;
+
+	  BView_SetPenSize (view, 1);
 	  BView_StrokeRectangle (view, x, s->y, g->pixel_width,
 				 s->height);
 	  x += g->pixel_width;
@@ -1090,6 +1092,7 @@ haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
   unsigned char2b[8];
   int x, i, j;
   struct face *face = s->face;
+  unsigned long color;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1153,11 +1156,21 @@ haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 				 s->ybase + glyph->slice.glyphless.lower_yoff,
 				 false);
 	}
+
       if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
-	BView_FillRectangle (FRAME_HAIKU_VIEW (s->f),
-			     x, s->ybase - glyph->ascent,
-			     glyph->pixel_width - 1,
-			     glyph->ascent + glyph->descent - 1);
+	{
+	  if (s->hl == DRAW_CURSOR)
+	    haiku_merge_cursor_foreground (s, NULL, &color);
+	  else
+	    color = s->face->foreground;
+
+	  BView_SetHighColor (FRAME_HAIKU_VIEW (s->f), color);
+	  BView_SetPenSize (FRAME_HAIKU_VIEW (s->f), 1);
+	  BView_StrokeRectangle (FRAME_HAIKU_VIEW (s->f),
+				 x, s->ybase - glyph->ascent,
+				 glyph->pixel_width - 1,
+				 glyph->ascent + glyph->descent - 1);
+	}
       x += glyph->pixel_width;
    }
 }
