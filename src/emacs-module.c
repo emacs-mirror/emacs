@@ -955,11 +955,9 @@ single memcpy to convert the magnitude.  This way we largely avoid the
 import/export overhead on most platforms.
 */
 
-enum
-{
-  /* Documented maximum count of magnitude elements. */
-  module_bignum_count_max = min (SIZE_MAX, PTRDIFF_MAX) / sizeof (emacs_limb_t)
-};
+/* Documented maximum count of magnitude elements. */
+#define module_bignum_count_max \
+  ((ptrdiff_t) min (SIZE_MAX, PTRDIFF_MAX) / sizeof (emacs_limb_t))
 
 /* Verify that emacs_limb_t indeed has unique object
    representations.  */
