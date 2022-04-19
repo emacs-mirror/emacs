@@ -2616,15 +2616,22 @@ that, an interactive form can specified."
        (defun ,fn-name (,argument &optional process target)
          ,(concat documentation
                   "\n\nNote: If PROCESS or TARGET are nil, the values given"
-		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-         (interactive (list ,interactive-spec))
+                  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
+         (interactive ,(if (stringp interactive-spec)
+                           ;; HACK: Necessary to wrap the result of
+                           ;; the interactive spec in a list.
+                           `(list (call-interactively
+                                   (lambda (&rest args)
+                                     (interactive ,interactive-spec)
+                                     args)))
+                         `(list ,interactive-spec)))
          (unless (if (listp ,argument)
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
            (user-error "Malformed input (%s): %S" ',command ,argument))
          (push ,(upcase (symbol-name command)) rcirc-pending-requests)
          (let ((process (or process (rcirc-buffer-process)))
-	       (target (or target rcirc-target)))
+               (target (or target rcirc-target)))
            (ignore target process)
            (let (,@(cl-loop
                     for i from 0 for arg in (delq '&optional arguments)
