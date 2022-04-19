@@ -1290,6 +1290,7 @@ extern char gnustep_base_version[];  /* version tracking */
 #define NSAlertStyleCritical               NSCriticalAlertStyle
 #define NSControlSizeRegular               NSRegularControlSize
 #define NSCompositingOperationCopy         NSCompositeCopy
+#define NSTextAlignmentRight               NSRightTextAlignment
 
 /* And adds NSWindowStyleMask.  */
 #ifdef __OBJC__

@@ -57,8 +57,10 @@ static CFStringRef mac_font_create_preferred_family_for_attributes (CFDictionary
 static CFIndex mac_font_shape (CTFontRef, CFStringRef,
 			       struct mac_glyph_layout *, CFIndex,
 			       enum lgstring_direction);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
 static CFArrayRef mac_font_copy_default_descriptors_for_language (CFStringRef);
 static CFStringRef mac_font_copy_default_name_for_charset_and_languages (CFCharacterSetRef, CFArrayRef);
+#endif
 #if USE_CT_GLYPH_INFO
 static CGGlyph mac_ctfont_get_glyph_for_cid (CTFontRef, CTCharacterCollection,
                                              CGFontIndex);
@@ -3570,18 +3572,17 @@ mac_font_create_preferred_family_for_attributes (CFDictionaryRef attributes)
 
       if (languages && CFArrayGetCount (languages) > 0)
         {
-          if ([[NSProcessInfo processInfo]
-                isOperatingSystemAtLeastVersion:
-                  ((NSOperatingSystemVersion){
-                    .majorVersion = 10, .minorVersion = 9})])
-            values[num_values++] = CFArrayGetValueAtIndex (languages, 0);
-          else
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
+          if (CTGetCoreTextVersion () < kCTVersionNumber10_9)
             {
               CFCharacterSetRef charset =
                 CFDictionaryGetValue (attributes, kCTFontCharacterSetAttribute);
 
               result = mac_font_copy_default_name_for_charset_and_languages (charset, languages);
             }
+          else
+#endif
+            values[num_values++] = CFArrayGetValueAtIndex (languages, 0);
         }
       if (result == NULL)
         {
@@ -4000,6 +4001,7 @@ mac_ctfont_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
 }
 #endif
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
 static CFArrayRef
 mac_font_copy_default_descriptors_for_language (CFStringRef language)
 {
@@ -4134,6 +4136,7 @@ mac_font_copy_default_name_for_charset_and_languages (CFCharacterSetRef charset,
 
   return result;
 }
+#endif
 
 void *
 macfont_get_nsctfont (struct font *font)

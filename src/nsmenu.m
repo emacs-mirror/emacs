@@ -649,7 +649,8 @@ prettify_key (const char *key)
      work around it by using tabs to split the title into two
      columns.  */
   NSFont *menuFont = [NSFont menuFontOfSize:0];
-  NSDictionary *font_attribs = @{NSFontAttributeName: menuFont};
+  NSDictionary *font_attribs = [NSDictionary dictionaryWithObjectsAndKeys:
+                                               menuFont, NSFontAttributeName, nil];
   CGFloat maxNameWidth = 0;
   CGFloat maxKeyWidth = 0;
 
@@ -677,11 +678,12 @@ prettify_key (const char *key)
   NSTextTab *tab =
     [[[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentRight
                                      location: maxWidth
-                                      options: @{}] autorelease];
+                                      options: [NSDictionary dictionary]] autorelease];
   NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init]
                                       autorelease];
-  [pstyle setTabStops: @[tab]];
-  attributes = @{NSParagraphStyleAttributeName: pstyle};
+  [pstyle setTabStops: [NSArray arrayWithObject:tab]];
+  attributes = [NSDictionary dictionaryWithObjectsAndKeys:
+                               pstyle, NSParagraphStyleAttributeName, nil];
 #endif
 
   /* clear existing contents */

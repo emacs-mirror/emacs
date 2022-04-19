@@ -163,7 +163,7 @@ char const * nstrace_fullscreen_type_name (int fs_type)
       && NSAppKitVersionNumber >= NSAppKitVersionNumber10_7)
     return [self colorUsingColorSpace: [NSColorSpace sRGBColorSpace]];
 #endif
-  return [self colorUsingColorSpace: [NSColorSpace deviceRGBColorSpace]];
+  return [self colorUsingColorSpace: [NSColorSpace genericRGBColorSpace]];
 }
 
 + (NSColor *)colorWithUnsignedLong:(unsigned long)c
@@ -751,7 +751,18 @@ ns_parent_window_rect (struct frame *f)
       EmacsView *parentView = FRAME_NS_VIEW (FRAME_PARENT_FRAME (f));
       parentRect = [parentView convertRect:[parentView frame]
                                     toView:nil];
+
+#if defined (NS_IMPL_COCOA) && !defined (MAC_OS_X_VERSION_10_7)
+      parentRect.origin = [[parentView window] convertBaseToScreen:parentRect.origin];
+#elif defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+      if ([[parentView window]
+             respondsToSelector:@selector(convertRectToScreen:)])
+        parentRect = [[parentView window] convertRectToScreen:parentRect];
+      else
+        parentRect.origin = [[parentView window] convertBaseToScreen:parentRect.origin];
+#else
       parentRect = [[parentView window] convertRectToScreen:parentRect];
+#endif
     }
   else
     parentRect = [[[NSScreen screens] objectAtIndex:0] frame];
@@ -788,10 +799,16 @@ ns_row_rect (struct window *w, struct glyph_row *row,
 double
 ns_frame_scale_factor (struct frame *f)
 {
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > 1060
-  return [[FRAME_NS_VIEW (f) window] backingScaleFactor];
-#else
+#if defined (NS_IMPL_GNUSTEP) || !defined (MAC_OS_X_VERSION_10_7)
   return [[FRAME_NS_VIEW (f) window] userSpaceScaleFactor];
+#elif MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+  if ([[FRAME_NS_VIEW (f) window]
+            respondsToSelector:@selector(backingScaleFactor:)])
+    return [[FRAME_NS_VIEW (f) window] backingScaleFactor];
+  else
+    return [[FRAME_NS_VIEW (f) window] userSpaceScaleFactor];
+#else
+  return [[FRAME_NS_VIEW (f) window] backingScaleFactor];
 #endif
 }
 
@@ -6943,7 +6960,7 @@ not_in_argv (NSString *arg)
   [self mouseMoved: e];
 }
 
-#ifdef NS_IMPL_COCOA
+#if defined NS_IMPL_COCOA && defined MAC_OS_X_VERSION_10_7
 - (void) magnifyWithEvent: (NSEvent *) event
 {
   NSPoint pt = [self convertPoint: [event locationInWindow] fromView: nil];
@@ -8526,7 +8543,7 @@ not_in_argv (NSString *arg)
      expected later.  */
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-  if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
+  if ([self respondsToSelector:@selector(setAccessibilitySubrole:)])
 #endif
     /* Set the accessibility subroles.  */
     if (parentFrame)
@@ -8558,7 +8575,7 @@ not_in_argv (NSString *arg)
 
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-      if ([ourView respondsToSelector:@selector (toggleFullScreen)]
+      if ([ourView respondsToSelector:@selector (toggleFullScreen)])
 #endif
           /* If we are the descendent of a fullscreen window and we
              have no new parent, go fullscreen.  */
@@ -8583,11 +8600,11 @@ not_in_argv (NSString *arg)
 
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-      if ([ourView respondsToSelector:@selector (toggleFullScreen)]
+      if ([ourView respondsToSelector:@selector (toggleFullScreen)])
 #endif
-          /* Child frames must not be fullscreen.  */
-          if ([ourView fsIsNative] && [ourView isFullscreen])
-            [ourView toggleFullScreen:self];
+	/* Child frames must not be fullscreen.  */
+	if ([ourView fsIsNative] && [ourView isFullscreen])
+	  [ourView toggleFullScreen:self];
 #endif
 
       [parentWindow addChildWindow:self
