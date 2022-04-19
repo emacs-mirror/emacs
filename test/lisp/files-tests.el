@@ -1821,5 +1821,9 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   ;; Check that the mode cookie doesn't override the explicit setting.
   (should (eq major-mode 'emacs-lisp-mode)))
 
+(ert-deftest files-test-set-mode-multiple ()
+  (find-file (ert-resource-file "file-mode-multiple"))
+  (should (eq major-mode 'outline-mode)))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here
