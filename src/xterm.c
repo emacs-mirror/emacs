@@ -1488,7 +1488,6 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
   return drag_window;
 }
 
-/* TODO: overflow checks when inserting targets.  */
 static int
 xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 		      Atom *targets, int ntargets)
@@ -1503,6 +1502,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
   xm_byte_order byteorder;
   uint8_t *data;
   ptrdiff_t total_bytes, total_items, i;
+  uint32_t size, target_count;
 
   drag_window = xm_get_drag_window (dpyinfo);
 
@@ -1609,19 +1609,55 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 
       if (idx == -1)
 	{
-	  header.target_list_count++;
-	  header.total_data_size += 2 + ntargets * 4;
-
-	  recs[header.target_list_count - 1]
-	    = xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
-				   targets, ntargets * 4));
-	  recs[header.target_list_count - 1]->n_targets = ntargets;
-
-	  for (i = 0; i < ntargets; ++i)
-	    recs[header.target_list_count - 1]->targets[i] = targets_sorted[i];
-
-	  idx = header.target_list_count - 1;
+	  target_count = header.target_list_count;
 	  rc = false;
+
+	  if (INT_ADD_WRAPV (header.target_list_count, 1,
+			     &header.target_list_count)
+	      || INT_MULTIPLY_WRAPV (ntargets, 4, &size)
+	      || INT_ADD_WRAPV (header.total_data_size, size,
+				&header.total_data_size)
+	      || INT_ADD_WRAPV (header.total_data_size, 2,
+				&header.total_data_size))
+	    {
+	      /* Overflow, remove every entry from the targets table
+		 and add one for our current targets list.  This
+		 confuses real Motif but not GTK 2.x, and there is no
+		 other choice.  */
+
+	      for (i = 0; i < target_count; ++i)
+		xfree (recs[i]);
+
+	      xfree (recs);
+
+	      header.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+	      header.protocol = 0;
+	      header.target_list_count = 1;
+	      header.total_data_size = 8 + 2 + ntargets * 4;
+
+	      recs = xmalloc (sizeof *recs);
+	      recs[0] = xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
+					     targets, ntargets * 4));
+
+	      recs[0]->n_targets = ntargets;
+
+	      for (i = 0; i < ntargets; ++i)
+		recs[0]->targets[i] = targets_sorted[i];
+
+	      idx = 0;
+	    }
+	  else
+	    {
+	      recs[header.target_list_count - 1]
+		= xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
+				       targets, ntargets * 4));
+	      recs[header.target_list_count - 1]->n_targets = ntargets;
+
+	      for (i = 0; i < ntargets; ++i)
+		recs[header.target_list_count - 1]->targets[i] = targets_sorted[i];
+
+	      idx = header.target_list_count - 1;
+	    }
 	}
     }
 
