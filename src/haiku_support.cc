@@ -4317,6 +4317,11 @@ BWindow_set_z_group (void *window, enum haiku_z_group z_group)
 	{
 	  w->z_group = z_group;
 	  w->RecomputeFeel ();
+
+	  if (w->z_group == Z_GROUP_BELOW)
+	    w->SetFlags (w->Flags () | B_AVOID_FRONT);
+	  else
+	    w->SetFlags (w->Flags () & ~B_AVOID_FRONT);
 	}
 
       w->UnlockLooper ();
