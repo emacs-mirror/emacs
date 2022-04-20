@@ -1662,9 +1662,17 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
     }
 
   if (!rc)
-    xm_write_targets_table (dpyinfo->display, drag_window,
-			    dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
-			    &header, recs);
+    {
+      /* Some implementations of Motif DND set the protocol version of
+	 just the targets table to 1 without actually changing the
+	 data format.  To avoid confusing Motif when that happens, set
+	 it back to 0.  There will probably be no more updates to the
+	 protocol either.  */
+      header.protocol = 0;
+      xm_write_targets_table (dpyinfo->display, drag_window,
+			      dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
+			      &header, recs);
+    }
 
   XUngrabServer (dpyinfo->display);
 
