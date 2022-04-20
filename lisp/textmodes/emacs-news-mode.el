@@ -52,8 +52,11 @@
 
 (defun emacs-news--mode-common ()
   (setq-local font-lock-defaults '(emacs-news-mode-font-lock-keywords t))
-  (setq-local outline-regexp "^\\*+ "
+  (setq-local outline-regexp "\\*+ "
               outline-minor-mode-cycle t
+              ;; We subtract one from the level, because we have a
+              ;; space after the asterisks.
+              outline-level (lambda () (1- (length (match-string 0))))
               outline-minor-mode-highlight 'append)
   (outline-minor-mode))
 
