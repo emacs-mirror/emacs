@@ -1670,7 +1670,7 @@ any other extra arguments are ignored, so that @code{(apply
 convention, @var{dst} is @minus{}1 and @var{zone} defaults to the
 current time zone rule (@pxref{Time Zone Rules}).
 When modernizing an obsolescent caller, ensure that the more-modern
-list equivalent contains 9 elements with a a @code{dst} element that
+list equivalent contains 9 elements with a @code{dst} element that
 is @minus{}1, not @code{nil}.
 
 Year numbers less than 100 are not treated specially.  If you want them
@@ -1695,22 +1695,28 @@ Take care when doing so, as it is common for this to fail in some cases.
 For example:
 
 @lisp
-;; Try to compute the time four years from now.
+;; Try to compute the time one month from now.
 ;; Watch out; this might not work as expected.
 (let ((time (decode-time)))
-  (setf (decoded-time-year time)
-        (+ (decoded-time-year time) 4))
+  (setf (decoded-time-month time)
+        (+ (decoded-time-month time) 1))
   time)
 @end lisp
 
 @noindent
 Unfortunately, this code might not work as expected if the resulting
-time is invalid due to daylight saving transitions, time zone changes,
+time is invalid due to month length differences,
+daylight saving transitions, time zone changes,
 or missing leap days or leap seconds.  For example, if executed on
-February 29, 2096 this code yields a nonexistent date because 2100 is
-not a leap year.  To avoid some (though not all) of the problem, you
+January 30 this code yields a nonexistent date February 30,
+which @code{encode-time} would adjust to early March.
+Similarly, adding four years to February 29, 2096 would yield the
+nonexistent date February 29, 2100; and adding one hour to 01:30 on
+March 13, 2022 in New York would yield a timestamp 02:30 that does not
+exist because clocks sprang forward from 02:00 to 03:00 that day.
+To avoid some (though not all) of the problem, you
 can base calculations on the middle of the affected unit, e.g., start
-at July 1 when adding years.  Alternatively, you can use the
+at the 15th of the month when adding months.  Alternatively, you can use the
 @file{calendar} and @file{time-date} libraries.
 @end defun
 
