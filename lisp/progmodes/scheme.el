@@ -562,10 +562,20 @@ indentation."
       (lisp-indent-specform 2 state indent-point normal-indent)
     (lisp-indent-specform 1 state indent-point normal-indent)))
 
-;; (put 'begin 'scheme-indent-function 0), say, causes begin to be indented
-;; like defun if the first form is placed on the next line, otherwise
-;; it is indented like any other form (i.e. forms line up under first).
-
+;; See `scheme-indent-function' (the function) for what these do.
+;; In a nutshell:
+;;  . for forms with no `scheme-indent-function' property the 2nd
+;;    and subsequent lines will be indented with one space;
+;;  . if the value of the property is zero, then when the first form
+;;    is on a separate line, the next lines will be indented with 2
+;;    spaces instead of the default one space;
+;;  . if the value is a positive integer N, the first N lines after
+;;    the first one will be indented with 4 spaces, and the rest
+;;    will be indented with 2 spaces;
+;;  . if the value is `defun', the indentation is like for `defun';
+;;  . if the value is a function, it will be called to produce the
+;;    required indentation.
+;; See also http://community.schemewiki.org/?emacs-indentation.
 (put 'begin 'scheme-indent-function 0)
 (put 'case 'scheme-indent-function 1)
 (put 'delay 'scheme-indent-function 0)
