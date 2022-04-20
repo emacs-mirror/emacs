@@ -2298,11 +2298,17 @@ is non-nil, FUN is not called for @String entries."
     (set-marker-insertion-type end-marker t)
     (save-excursion
       (goto-char (point-min))
-      (while (setq found (bibtex-skip-to-valid-entry))
-        (set-marker end-marker (cdr found))
-        (looking-at bibtex-any-entry-maybe-empty-head)
-        (funcall fun (bibtex-key-in-head "") (car found) end-marker)
-        (goto-char end-marker)))))
+      (let ((prev (point)))
+        (while (setq found (bibtex-skip-to-valid-entry))
+          ;; If we have invalid entries, ensure that we have forward
+          ;; progress so that we don't infloop.
+          (if (= (point) prev)
+              (forward-line 1)
+            (setq prev (point))
+            (set-marker end-marker (cdr found))
+            (looking-at bibtex-any-entry-maybe-empty-head)
+            (funcall fun (bibtex-key-in-head "") (car found) end-marker)
+            (goto-char end-marker)))))))
 
 (defun bibtex-progress-message (&optional flag interval)
   "Echo a message about progress of current buffer.
