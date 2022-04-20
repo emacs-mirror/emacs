@@ -3514,11 +3514,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    int old_height = FRAME_MENU_BAR_HEIGHT (f);
 
-	    FRAME_MENU_BAR_HEIGHT (f) = b->height + 1;
+	    FRAME_MENU_BAR_HEIGHT (f) = b->height;
 	    FRAME_MENU_BAR_LINES (f)
 	      = (b->height + FRAME_LINE_HEIGHT (f)) / FRAME_LINE_HEIGHT (f);
 
-	    if (old_height != b->height + 1)
+	    if (old_height != b->height)
 	      {
 		adjust_frame_size (f, -1, -1, 3, true, Qmenu_bar_lines);
 		haiku_clear_under_internal_border (f);

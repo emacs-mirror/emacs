@@ -1272,8 +1272,8 @@ public:
   {
     struct haiku_menu_bar_resize_event rq;
     rq.window = this->Window ();
-    rq.height = std::lrint (newHeight);
-    rq.width = std::lrint (newWidth);
+    rq.height = std::lrint (newHeight + 1);
+    rq.width = std::lrint (newWidth + 1);
 
     haiku_write (MENU_BAR_RESIZE, &rq);
     BMenuBar::FrameResized (newWidth, newHeight);

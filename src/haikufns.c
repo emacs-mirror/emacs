@@ -1278,9 +1278,6 @@ haiku_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval
 
   fset_redisplay (f);
 
-  FRAME_MENU_BAR_LINES (f) = 0;
-  FRAME_MENU_BAR_HEIGHT (f) = 0;
-
   if (nlines)
     {
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
@@ -1289,11 +1286,14 @@ haiku_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval
     }
   else
     {
+      FRAME_MENU_BAR_LINES (f) = 0;
+      FRAME_MENU_BAR_HEIGHT (f) = 0;
+
       if (FRAME_EXTERNAL_MENU_BAR (f))
 	free_frame_menubar (f);
+
       FRAME_EXTERNAL_MENU_BAR (f) = 0;
-      if (FRAME_HAIKU_P (f))
-	FRAME_HAIKU_MENU_BAR (f) = 0;
+      FRAME_HAIKU_MENU_BAR (f) = 0;
     }
 
   adjust_frame_glyphs (f);

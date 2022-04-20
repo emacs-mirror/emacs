@@ -486,14 +486,19 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 void
 free_frame_menubar (struct frame *f)
 {
+  void *mbar;
+
   FRAME_MENU_BAR_LINES (f) = 0;
   FRAME_MENU_BAR_HEIGHT (f) = 0;
   FRAME_EXTERNAL_MENU_BAR (f) = 0;
 
   block_input ();
-  void *mbar = FRAME_HAIKU_MENU_BAR (f);
+  mbar = FRAME_HAIKU_MENU_BAR (f);
+  FRAME_HAIKU_MENU_BAR (f) = NULL;
+
   if (mbar)
     BMenuBar_delete (mbar);
+
   if (FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
     --popup_activated_p;
   FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 0;
@@ -516,8 +521,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
 {
   void *mbar = FRAME_HAIKU_MENU_BAR (f);
   void *view = FRAME_HAIKU_VIEW (f);
-
-  int first_time_p = 0;
+  bool first_time_p = false;
 
   if (!mbar)
     {
@@ -529,6 +533,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
 	 initial dimensions of that menu bar.  */
       if (FRAME_VISIBLE_P (f))
 	haiku_wait_for_event (f, MENU_BAR_RESIZE);
+
       unblock_input ();
     }
 
