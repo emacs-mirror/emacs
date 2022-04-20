@@ -395,8 +395,8 @@ haiku_set_child_frame_border_width (struct frame *f,
 }
 
 static void
-haiku_set_parent_frame (struct frame *f,
-			Lisp_Object new_value, Lisp_Object old_value)
+haiku_set_parent_frame (struct frame *f, Lisp_Object new_value,
+			Lisp_Object old_value)
 {
   struct frame *p = NULL;
   block_input ();
@@ -421,6 +421,7 @@ haiku_set_parent_frame (struct frame *f,
       EmacsWindow_unparent (FRAME_HAIKU_WINDOW (f));
       FRAME_OUTPUT_DATA (f)->parent_desc = NULL;
     }
+
   if (!NILP (new_value))
     {
       EmacsWindow_parent_to (FRAME_HAIKU_WINDOW (f),
@@ -434,6 +435,43 @@ haiku_set_parent_frame (struct frame *f,
     }
   fset_parent_frame (f, new_value);
   unblock_input ();
+}
+
+static void
+haiku_set_z_group (struct frame *f, Lisp_Object new_value,
+		   Lisp_Object old_value)
+{
+  int rc;
+
+  /* Tooltip frames can't have Z groups, since the window feel is
+     overridden during frame creation.  */
+  if (FRAME_TOOLTIP_P (f))
+    return;
+
+  rc = 1;
+  block_input ();
+
+  if (NILP (new_value))
+    {
+      BWindow_set_z_group (FRAME_HAIKU_WINDOW (f), Z_GROUP_NONE);
+      FRAME_Z_GROUP (f) = z_group_none;
+    }
+  else if (EQ (new_value, Qabove))
+    {
+      BWindow_set_z_group (FRAME_HAIKU_WINDOW (f), Z_GROUP_ABOVE);
+      FRAME_Z_GROUP (f) = z_group_above;
+    }
+  else if (EQ (new_value, Qbelow))
+    {
+      BWindow_set_z_group (FRAME_HAIKU_WINDOW (f), Z_GROUP_BELOW);
+      FRAME_Z_GROUP (f) = z_group_below;
+    }
+  else
+    rc = 0;
+
+  unblock_input ();
+  if (!rc)
+    error ("Invalid z-group specification");
 }
 
 static void
@@ -726,11 +764,11 @@ haiku_create_frame (Lisp_Object parms)
                              RES_TYPE_NUMBER);
   if (FIXNUMP (tem))
     store_frame_param (f, Qmin_height, tem);
+
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1,
 		     Qx_create_frame_1);
 
-  gui_default_parameter (f, parms, Qz_group, Qnil, NULL, NULL, RES_TYPE_SYMBOL);
   gui_default_parameter (f, parms, Qno_focus_on_map, Qnil,
 			 NULL, NULL, RES_TYPE_BOOLEAN);
   gui_default_parameter (f, parms, Qno_accept_focus, Qnil,
@@ -874,6 +912,9 @@ haiku_create_frame (Lisp_Object parms)
       && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
 	  || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
     kset_default_minibuffer_frame (kb, frame);
+
+  gui_default_parameter (f, parms, Qz_group, Qnil,
+			 NULL, NULL, RES_TYPE_SYMBOL);
 
   for (tem = parms; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
@@ -2638,7 +2679,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     NULL, /* set skip taskbar */
     haiku_set_no_focus_on_map,
     haiku_set_no_accept_focus,
-    NULL, /* set z group */
+    haiku_set_z_group,
     haiku_set_override_redirect,
     gui_set_no_special_glyphs,
     gui_set_alpha_background,

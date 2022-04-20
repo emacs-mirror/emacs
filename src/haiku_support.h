@@ -38,19 +38,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 enum haiku_cursor
   {
-    CURSOR_ID_NO_CURSOR = 12,
-    CURSOR_ID_RESIZE_NORTH = 15,
-    CURSOR_ID_RESIZE_EAST = 16,
-    CURSOR_ID_RESIZE_SOUTH = 17,
-    CURSOR_ID_RESIZE_WEST = 18,
-    CURSOR_ID_RESIZE_NORTH_EAST = 19,
-    CURSOR_ID_RESIZE_NORTH_WEST = 20,
-    CURSOR_ID_RESIZE_SOUTH_EAST = 21,
-    CURSOR_ID_RESIZE_SOUTH_WEST = 22,
-    CURSOR_ID_RESIZE_NORTH_SOUTH = 23,
-    CURSOR_ID_RESIZE_EAST_WEST = 24,
+    CURSOR_ID_NO_CURSOR			   = 12,
+    CURSOR_ID_RESIZE_NORTH		   = 15,
+    CURSOR_ID_RESIZE_EAST		   = 16,
+    CURSOR_ID_RESIZE_SOUTH		   = 17,
+    CURSOR_ID_RESIZE_WEST		   = 18,
+    CURSOR_ID_RESIZE_NORTH_EAST		   = 19,
+    CURSOR_ID_RESIZE_NORTH_WEST		   = 20,
+    CURSOR_ID_RESIZE_SOUTH_EAST		   = 21,
+    CURSOR_ID_RESIZE_SOUTH_WEST		   = 22,
+    CURSOR_ID_RESIZE_NORTH_SOUTH	   = 23,
+    CURSOR_ID_RESIZE_EAST_WEST		   = 24,
     CURSOR_ID_RESIZE_NORTH_EAST_SOUTH_WEST = 25,
     CURSOR_ID_RESIZE_NORTH_WEST_SOUTH_EAST = 26
+  };
+
+enum haiku_z_group
+  {
+    Z_GROUP_ABOVE,
+    Z_GROUP_NONE,
+    Z_GROUP_BELOW,
   };
 
 enum haiku_alert_type
@@ -459,6 +466,7 @@ extern void BWindow_send_behind (void *, void *);
 extern bool BWindow_is_active (void *);
 extern void BWindow_set_override_redirect (void *, bool);
 extern void BWindow_dimensions (void *, int *, int *);
+extern void BWindow_set_z_group (void *, enum haiku_z_group);
 extern void BWindow_Flush (void *);
 
 extern void BFont_close (void *);

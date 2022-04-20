@@ -499,11 +499,13 @@ public:
   uint32 pre_override_redirect_workspaces;
   int window_id;
   bool *menus_begun = NULL;
+  enum haiku_z_group z_group;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
   {
     window_id = current_window_id++;
+    z_group = Z_GROUP_NONE;
 
     /* This pulse rate is used by scroll bars for repeating a button
        action while a button is held down.  */
@@ -528,6 +530,19 @@ public:
     if (this->parent)
       UnparentAndUnlink ();
     child_frame_lock.Unlock ();
+  }
+
+  void
+  RecomputeFeel (void)
+  {
+    if (override_redirect_p)
+      SetFeel (kMenuWindowFeel);
+    else if (parent)
+      SetFeel (B_FLOATING_SUBSET_WINDOW_FEEL);
+    else if (z_group == Z_GROUP_ABOVE)
+      SetFeel (B_FLOATING_ALL_WINDOW_FEEL);
+    else
+      SetFeel (B_NORMAL_WINDOW_FEEL);
   }
 
   BRect
@@ -648,12 +663,17 @@ public:
   void
   Unparent (void)
   {
+    EmacsWindow *parent;
+
     if (!child_frame_lock.Lock ())
       gui_abort ("Failed to lock child frame state lock");
-    this->SetFeel (B_NORMAL_WINDOW_FEEL);
+
+    parent = this->parent;
+    this->parent = NULL;
+    RecomputeFeel ();
     UpwardsUnSubsetChildren (parent);
     this->RemoveFromSubset (this);
-    this->parent = NULL;
+
     if (fullscreen_p)
       {
 	fullscreen_p = 0;
@@ -704,7 +724,7 @@ public:
       UnparentAndUnlink ();
 
     this->parent = window;
-    this->SetFeel (B_FLOATING_SUBSET_WINDOW_FEEL);
+    RecomputeFeel ();
     this->AddToSubset (this);
     if (!IsHidden () && this->parent)
       UpwardsSubsetChildren (parent);
@@ -4116,9 +4136,8 @@ BWindow_set_override_redirect (void *window, bool override_redirect_p)
       if (override_redirect_p && !w->override_redirect_p)
 	{
 	  w->override_redirect_p = true;
-	  w->pre_override_redirect_feel = w->Feel ();
 	  w->pre_override_redirect_look = w->Look ();
-	  w->SetFeel (kMenuWindowFeel);
+	  w->RecomputeFeel ();
 	  w->SetLook (B_NO_BORDER_WINDOW_LOOK);
 	  w->pre_override_redirect_workspaces = w->Workspaces ();
 	  w->SetWorkspaces (B_ALL_WORKSPACES);
@@ -4126,8 +4145,8 @@ BWindow_set_override_redirect (void *window, bool override_redirect_p)
       else if (w->override_redirect_p)
 	{
 	  w->override_redirect_p = false;
-	  w->SetFeel (w->pre_override_redirect_feel);
 	  w->SetLook (w->pre_override_redirect_look);
+	  w->RecomputeFeel ();
 	  w->SetWorkspaces (w->pre_override_redirect_workspaces);
 	}
 
@@ -4285,4 +4304,21 @@ be_replay_menu_bar_event (void *menu_bar,
   msg.AddPoint ("emacs:point", BPoint (event->x, event->y));
   messenger.SendMessage (&msg, &reply);
   return reply.what == BE_MENU_BAR_OPEN;
+}
+
+void
+BWindow_set_z_group (void *window, enum haiku_z_group z_group)
+{
+  EmacsWindow *w = (EmacsWindow *) window;
+
+  if (w->LockLooper ())
+    {
+      if (w->z_group != z_group)
+	{
+	  w->z_group = z_group;
+	  w->RecomputeFeel ();
+	}
+
+      w->UnlockLooper ();
+    }
 }
