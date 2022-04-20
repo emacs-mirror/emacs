@@ -3420,7 +3420,7 @@ system_process_attributes (Lisp_Object pid)
 	 utime stime cutime cstime priority nice thcount . start vsize rss */
       if (q
 	  && (sscanf (q + 2, ("%c %d %d %d %d %d %*u %lu %lu %lu %lu "
-			      "%Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld"),
+			      "%llu %llu %llu %llu %ld %ld %d %*d %llu %lu %ld"),
 		      &c, &ppid, &pgrp, &sess, &tty, &tpgid,
 		      &minflt, &cminflt, &majflt, &cmajflt,
 		      &u_time, &s_time, &cutime, &cstime,
