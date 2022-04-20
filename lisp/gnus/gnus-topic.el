@@ -650,6 +650,7 @@ articles in the topic and its subtopics."
   (let* ((visible (if visiblep "" "..."))
 	 (level level)
 	 (name name)
+	 (entries entries)
 	 (indentation (make-string (* gnus-topic-indent-level level) ? ))
 	 (total-number-of-articles unread)
 	 (number-of-groups (length entries))
