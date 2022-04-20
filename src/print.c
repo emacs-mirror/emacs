@@ -1701,10 +1701,10 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 
     case PVEC_USER_PTR:
       {
+	void *finalizer = XUSER_PTR (obj)->finalizer;
 	print_c_string ("#<user-ptr ", printcharfun);
 	int i = sprintf (buf, "ptr=%p finalizer=%p",
-			 XUSER_PTR (obj)->p,
-			 XUSER_PTR (obj)->finalizer);
+			 XUSER_PTR (obj)->p, finalizer);
 	strout (buf, i, i, printcharfun);
 	printchar ('>', printcharfun);
       }
@@ -1875,7 +1875,8 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	print_string (XTHREAD (obj)->name, printcharfun);
       else
 	{
-	  int len = sprintf (buf, "%p", XTHREAD (obj));
+	  void *p = XTHREAD (obj);
+	  int len = sprintf (buf, "%p", p);
 	  strout (buf, len, len, printcharfun);
 	}
       printchar ('>', printcharfun);
@@ -1887,7 +1888,8 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	print_string (XMUTEX (obj)->name, printcharfun);
       else
 	{
-	  int len = sprintf (buf, "%p", XMUTEX (obj));
+	  void *p = XMUTEX (obj);
+	  int len = sprintf (buf, "%p", p);
 	  strout (buf, len, len, printcharfun);
 	}
       printchar ('>', printcharfun);
@@ -1899,7 +1901,8 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	print_string (XCONDVAR (obj)->name, printcharfun);
       else
 	{
-	  int len = sprintf (buf, "%p", XCONDVAR (obj));
+	  void *p = XCONDVAR (obj);
+	  int len = sprintf (buf, "%p", p);
 	  strout (buf, len, len, printcharfun);
 	}
       printchar ('>', printcharfun);
