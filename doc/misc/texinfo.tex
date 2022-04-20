@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2022-01-02.12}
+\def\texinfoversion{2022-04-09.08}
 %
-% Copyright 1985, 1986, 1988, 1990-2021 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2022 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -3171,16 +3171,8 @@ end
 % Default is `distinct'.
 \kbdinputstyle distinct
 
-% @kbd is like @code, except that if the argument is just one @key command,
-% then @kbd has no effect.
-\def\kbd#1{{\def\look{#1}\expandafter\kbdsub\look??\par}}
-
-\def\xkey{\key}
-\def\kbdsub#1#2#3\par{%
-  \def\one{#1}\def\three{#3}\def\threex{??}%
-  \ifx\one\xkey\ifx\threex\three \key{#2}%
-  \else{\tclose{\kbdfont\setcodequotes\look}}\fi
-  \else{\tclose{\kbdfont\setcodequotes\look}}\fi
+\def\kbd#1{%
+  \tclose{\kbdfont\setcodequotes#1}%
 }
 
 % definition of @key that produces a lozenge.  Doesn't adjust to text size.
@@ -4417,7 +4409,7 @@ $$%
       % Find the correct column width
       \hsize=\expandafter\csname col\the\colcount\endcsname
       %
-      \rightskip=0pt
+      \advance\rightskip by -1\rightskip % Zero leaving only any stretch
       \ifnum\colcount=1
         \advance\hsize by\leftskip % Add indent of surrounding text
       \else
@@ -5961,7 +5953,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Chapters, sections, etc.
 
 % Let's start with @part.
-\outer\parseargdef\part{\partzzz{#1}}
+\parseargdef\part{\partzzz{#1}}
 \def\partzzz#1{%
   \chapoddpage
   \null
@@ -8680,9 +8672,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 \def\wordTop{Top}
 
-% Until the next @node or @bye command, divert output to a box that is not
-% output.
-\def\ignorenode{\setbox\dummybox\vbox\bgroup\def\node{\egroup\node}%
+% Until the next @node, @part or @bye command, divert output to a box that
+% is not output.
+\def\ignorenode{\setbox\dummybox\vbox\bgroup
+\def\part{\egroup\part}%
+\def\node{\egroup\node}%
 \ignorenodebye
 }
 
@@ -9391,13 +9385,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \catcode`\^^M = 5     % in case we're inside an example
   \normalturnoffactive  % allow _ et al. in names
   \makevalueexpandable
-  % If the image is by itself, center it.
   \ifvmode
     \imagevmodetrue
   \else \ifx\centersub\centerV
     % for @center @image, we need a vbox so we can have our vertical space
     \imagevmodetrue
-    \vbox\bgroup % vbox has better behavior than vtop herev
+    \vbox\bgroup % vbox has better behavior than vtop here
   \fi\fi
   %
   \ifimagevmode
@@ -9405,11 +9398,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % Usually we'll have text after the image which will insert
     % \parskip glue, so insert it here too to equalize the space
     % above and below.
-    \nobreak\vskip\parskip
-    \nobreak
+    \vskip\parskip
+    %
+    % Place image in a \vtop for a top page margin that is (close to) correct,
+    % as \topskip glue is relative to the first baseline.
+    \vtop\bgroup\hrule height 0pt\vskip-\parskip
   \fi
   %
-  % Leave vertical mode so that indentation from an enclosing
+  % Enter horizontal mode so that indentation from an enclosing
   %  environment such as @quotation is respected.
   % However, if we're at the top level, we don't want the
   %  normal paragraph indentation.
@@ -9438,6 +9434,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi
   %
   \ifimagevmode
+    \egroup
     \medskip  % space after a standalone image
   \fi
   \ifx\centersub\centerV \egroup \fi
@@ -10897,6 +10894,9 @@ directory should work if nowhere else does.}
   %
   \DeclareUnicodeCharacter{1EF8}{\~Y}%
   \DeclareUnicodeCharacter{1EF9}{\~y}%
+  %
+  % Exotic spaces
+  \DeclareUnicodeCharacter{2007}{\hphantom{0}}%
   %
   % Punctuation
   \DeclareUnicodeCharacter{2013}{--}%

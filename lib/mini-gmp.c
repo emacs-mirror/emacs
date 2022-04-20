@@ -90,6 +90,7 @@ see https://www.gnu.org/licenses/.  */
 #define gmp_assert_nocarry(x) do { \
     mp_limb_t __cy = (x);	   \
     assert (__cy == 0);		   \
+    (void) (__cy);		   \
   } while (0)
 
 #define gmp_clz(count, x) do {						\
