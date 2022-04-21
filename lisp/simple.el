@@ -5457,7 +5457,7 @@ This command's old key binding has been given to `kill-ring-save'."
   (let ((str (if region
                  (funcall region-extract-function nil)
                (filter-buffer-substring beg end))))
-  (if (eq last-command 'kill-region)
+    (if (eq last-command 'kill-region)
         (kill-append str (< end beg))
       (kill-new str)))
   (setq deactivate-mark t)
