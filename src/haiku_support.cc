@@ -500,6 +500,7 @@ public:
   int window_id;
   bool *menus_begun = NULL;
   enum haiku_z_group z_group;
+  bool tooltip_p = false;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
 			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
@@ -535,7 +536,7 @@ public:
   void
   RecomputeFeel (void)
   {
-    if (override_redirect_p)
+    if (override_redirect_p || tooltip_p)
       SetFeel (kMenuWindowFeel);
     else if (parent)
       SetFeel (B_FLOATING_SUBSET_WINDOW_FEEL);
@@ -3037,11 +3038,12 @@ BWindow_change_decoration (void *window, int decorate_p)
 void
 BWindow_set_tooltip_decoration (void *window)
 {
-  BWindow *w = (BWindow *) window;
+  EmacsWindow *w = (EmacsWindow *) window;
   if (!w->LockLooper ())
     gui_abort ("Failed to lock window while setting ttip decoration");
+  w->tooltip_p = true;
+  w->RecomputeFeel ();
   w->SetLook (B_BORDERED_WINDOW_LOOK);
-  w->SetFeel (kMenuWindowFeel);
   w->SetFlags (B_NOT_ZOOMABLE
 	       | B_NOT_MINIMIZABLE
 	       | B_AVOID_FRONT
