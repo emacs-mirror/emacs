@@ -2383,7 +2383,12 @@ type \\[help-command] at that time."
 
 (defun isearch-query-replace-regexp (&optional arg)
   "Start `query-replace-regexp' with string to replace from last search string.
-See `isearch-query-replace' for more information."
+See `isearch-query-replace' for more information.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time."
   (interactive
    (list current-prefix-arg))
   (isearch-query-replace arg t))
@@ -2398,12 +2403,7 @@ the search words, ignoring punctuation.  If the last search
 command was a regular expression search, REGEXP is the regular
 expression used in that search.  If the last search command searched
 for a literal string, REGEXP is constructed by quoting all the special
-characters in that string.
-
-As each match is found, the user must type a character saying
-what to do with it.  Type SPC or `y' to replace the match,
-DEL or `n' to skip and go to the next match.  For more directions,
-type \\[help-command] at that time."
+characters in that string."
   (interactive
    (let* ((perform-collect (consp current-prefix-arg))
 	  (regexp (cond
