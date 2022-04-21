@@ -716,8 +716,8 @@ pgtk_iconify_frame (struct frame *f)
 }
 
 static gboolean
-pgtk_make_frame_visible_wait_for_map_event_cb (GtkWidget * widget,
-					       GdkEventAny * event,
+pgtk_make_frame_visible_wait_for_map_event_cb (GtkWidget *widget,
+					       GdkEventAny *event,
 					       gpointer user_data)
 {
   int *foundptr = user_data;
@@ -1280,7 +1280,8 @@ pgtk_compute_glyph_string_overhangs (struct glyph_string *s)
 /* Fill rectangle X, Y, W, H with background color of glyph string S.  */
 
 static void
-x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
+pgtk_clear_glyph_string_rect (struct glyph_string *s, int x, int y,
+			      int w, int h)
 {
   pgtk_fill_rectangle (s->f, s->xgcv.background, x, y, w, h,
 		       (s->first_glyph->type != STRETCH_GLYPH
@@ -1331,7 +1332,7 @@ fill_background (struct glyph_string *s, int x, int y, int width, int height)
    contains the first component of a composition.  */
 
 static void
-x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
+pgtk_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 {
   /* Nothing to do if background has already been drawn or if it
      shouldn't be drawn in the first place.  */
@@ -1358,9 +1359,9 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p || force_p)
 	{
-	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
-				     s->background_width,
-				     s->height - 2 * box_line_width);
+	  pgtk_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
+					s->background_width,
+					s->height - 2 * box_line_width);
 	  s->background_filled_p = true;
 	}
     }
@@ -1384,7 +1385,7 @@ pgtk_draw_rectangle (struct frame *f, unsigned long color, int x, int y,
 /* Draw the foreground of glyph string S.  */
 
 static void
-x_draw_glyph_string_foreground (struct glyph_string *s)
+pgtk_draw_glyph_string_foreground (struct glyph_string *s)
 {
   int i, x;
 
@@ -1431,7 +1432,7 @@ x_draw_glyph_string_foreground (struct glyph_string *s)
 /* Draw the foreground of composite glyph string S.  */
 
 static void
-x_draw_composite_glyph_string_foreground (struct glyph_string *s)
+pgtk_draw_composite_glyph_string_foreground (struct glyph_string *s)
 {
   int i, j, x;
   struct font *font = s->font;
@@ -1522,7 +1523,7 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
 /* Draw the foreground of glyph string S for glyphless characters.  */
 
 static void
-x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
+pgtk_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 {
   struct glyph *glyph = s->first_glyph;
   unsigned char2b[8];
@@ -1617,20 +1618,18 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 #define HIGHLIGHT_COLOR_DARK_BOOST_LIMIT 48000
 
 
-/* Allocate a color which is lighter or darker than *PIXEL by FACTOR
-   or DELTA.  Try a color with RGB values multiplied by FACTOR first.
-   If this produces the same color as PIXEL, try a color where all RGB
-   values have DELTA added.  Return the allocated color in *PIXEL.
-   DISPLAY is the X display, CMAP is the colormap to operate on.
-   Value is non-zero if successful.  */
+/* Compute a color which is lighter or darker than *PIXEL by FACTOR or
+   DELTA.  Try a color with RGB values multiplied by FACTOR first.  If
+   this produces the same color as PIXEL, try a color where all RGB
+   values have DELTA added.  Return the computed color in *PIXEL.  F
+   is the frame to act on.  */
 
-static bool
-x_alloc_lighter_color (struct frame *f, unsigned long *pixel, double factor,
-		       int delta)
+static void
+pgtk_compute_lighter_color (struct frame *f, unsigned long *pixel,
+			    double factor, int delta)
 {
   Emacs_Color color, new;
   long bright;
-  bool success_p;
 
   /* Get RGB color values.  */
   color.pixel = *pixel;
@@ -1670,33 +1669,28 @@ x_alloc_lighter_color (struct frame *f, unsigned long *pixel, double factor,
 	}
     }
 
-  /* Try to allocate the color.  */
-  new.pixel = new.red >> 8 << 16 | new.green >> 8 << 8 | new.blue >> 8;
-  success_p = true;
-  if (success_p)
+  new.pixel = (new.red >> 8 << 16
+	       | new.green >> 8 << 8
+	       | new.blue >> 8);
+
+  if (new.pixel == *pixel)
     {
-      if (new.pixel == *pixel)
-	{
-	  /* If we end up with the same color as before, try adding
-	     delta to the RGB values.  */
-	  new.red = min (0xffff, delta + color.red);
-	  new.green = min (0xffff, delta + color.green);
-	  new.blue = min (0xffff, delta + color.blue);
-	  new.pixel =
-	    new.red >> 8 << 16 | new.green >> 8 << 8 | new.blue >> 8;
-	  success_p = true;
-	}
-      else
-	success_p = true;
-      *pixel = new.pixel;
+      /* If we end up with the same color as before, try adding
+	 delta to the RGB values.  */
+      new.red = min (0xffff, delta + color.red);
+      new.green = min (0xffff, delta + color.green);
+      new.blue = min (0xffff, delta + color.blue);
+      new.pixel = (new.red >> 8 << 16
+		   | new.green >> 8 << 8
+		   | new.blue >> 8);
     }
 
-  return success_p;
+  *pixel = new.pixel;
 }
 
 static void
-x_fill_trapezoid_for_relief (struct frame *f, unsigned long color, int x,
-			     int y, int width, int height, int top_p)
+pgtk_fill_trapezoid_for_relief (struct frame *f, unsigned long color, int x,
+				int y, int width, int height, int top_p)
 {
   cairo_t *cr;
 
@@ -1720,9 +1714,9 @@ enum corners
 };
 
 static void
-x_erase_corners_for_relief (struct frame *f, unsigned long color, int x,
-			    int y, int width, int height, double radius,
-			    double margin, int corners)
+pgtk_erase_corners_for_relief (struct frame *f, unsigned long color, int x,
+			       int y, int width, int height, double radius,
+			       double margin, int corners)
 {
   cairo_t *cr;
   int i;
@@ -1752,13 +1746,6 @@ x_erase_corners_for_relief (struct frame *f, unsigned long color, int x,
   pgtk_end_cr_clip (f);
 }
 
-/* Set up the foreground color for drawing relief lines of glyph
-   string S.  RELIEF is a pointer to a struct relief containing the GC
-   with which lines will be drawn.  Use a color that is FACTOR or
-   DELTA lighter or darker than the relief's background which is found
-   in S->f->output_data.pgtk->relief_background.  If such a color cannot
-   be allocated, use DEFAULT_PIXEL, instead.  */
-
 static void
 pgtk_setup_relief_color (struct frame *f, struct relief *relief, double factor,
 			 int delta, unsigned long default_pixel)
@@ -1771,14 +1758,13 @@ pgtk_setup_relief_color (struct frame *f, struct relief *relief, double factor,
   /* Allocate new color.  */
   xgcv.foreground = default_pixel;
   pixel = background;
-  if (x_alloc_lighter_color (f, &pixel, factor, delta))
-    xgcv.foreground = relief->pixel = pixel;
+  pgtk_compute_lighter_color (f, &pixel, factor, delta);
+  xgcv.foreground = relief->pixel = pixel;
 
   relief->xgcv = xgcv;
 }
 
 /* Set up colors for the relief lines around glyph string S.  */
-
 static void
 pgtk_setup_relief_colors (struct glyph_string *s)
 {
@@ -1807,7 +1793,6 @@ pgtk_setup_relief_colors (struct glyph_string *s)
     }
 }
 
-
 static void
 pgtk_set_clip_rectangles (struct frame *f, cairo_t *cr,
 			  XRectangle *rectangles, int n)
@@ -1834,11 +1819,11 @@ pgtk_set_clip_rectangles (struct frame *f, cairo_t *cr,
    when drawing.  */
 
 static void
-x_draw_relief_rect (struct frame *f,
-		    int left_x, int top_y, int right_x, int bottom_y,
-		    int hwidth, int vwidth, bool raised_p, bool top_p,
-		    bool bot_p, bool left_p, bool right_p,
-		    XRectangle * clip_rect)
+pgtk_draw_relief_rect (struct frame *f,
+		       int left_x, int top_y, int right_x, int bottom_y,
+		       int hwidth, int vwidth, bool raised_p, bool top_p,
+		       bool bot_p, bool left_p, bool right_p,
+		       XRectangle * clip_rect)
 {
   unsigned long top_left_color, bottom_right_color;
   int corners = 0;
@@ -1882,8 +1867,8 @@ x_draw_relief_rect (struct frame *f,
 	pgtk_fill_rectangle (f, top_left_color, left_x, top_y,
 			     right_x + 1 - left_x, hwidth, false);
       else
-	x_fill_trapezoid_for_relief (f, top_left_color, left_x, top_y,
-				     right_x + 1 - left_x, hwidth, 1);
+	pgtk_fill_trapezoid_for_relief (f, top_left_color, left_x, top_y,
+					right_x + 1 - left_x, hwidth, 1);
     }
   if (bot_p)
     {
@@ -1892,9 +1877,9 @@ x_draw_relief_rect (struct frame *f,
 			     bottom_y + 1 - hwidth, right_x + 1 - left_x,
 			     hwidth, false);
       else
-	x_fill_trapezoid_for_relief (f, bottom_right_color,
-				     left_x, bottom_y + 1 - hwidth,
-				     right_x + 1 - left_x, hwidth, 0);
+	pgtk_fill_trapezoid_for_relief (f, bottom_right_color,
+					left_x, bottom_y + 1 - hwidth,
+					right_x + 1 - left_x, hwidth, 0);
     }
   if (left_p && vwidth > 1)
     pgtk_fill_rectangle (f, bottom_right_color, left_x, top_y,
@@ -1903,11 +1888,9 @@ x_draw_relief_rect (struct frame *f,
     pgtk_fill_rectangle (f, bottom_right_color, left_x, top_y,
 			 right_x + 1 - left_x, 1, false);
   if (corners)
-    {
-      x_erase_corners_for_relief (f, FRAME_BACKGROUND_PIXEL (f), left_x,
-				  top_y, right_x - left_x + 1,
-				  bottom_y - top_y + 1, 6, 1, corners);
-    }
+    pgtk_erase_corners_for_relief (f, FRAME_BACKGROUND_PIXEL (f), left_x,
+				   top_y, right_x - left_x + 1,
+				   bottom_y - top_y + 1, 6, 1, corners);
 
   pgtk_end_cr_clip (f);
 }
@@ -1920,10 +1903,10 @@ x_draw_relief_rect (struct frame *f,
    rectangle to use when drawing.  */
 
 static void
-x_draw_box_rect (struct glyph_string *s,
-		 int left_x, int top_y, int right_x, int bottom_y, int hwidth,
-		 int vwidth, bool left_p, bool right_p,
-		 XRectangle * clip_rect)
+pgtk_draw_box_rect (struct glyph_string *s, int left_x,
+		    int top_y, int right_x, int bottom_y, int hwidth,
+		    int vwidth, bool left_p, bool right_p,
+		    XRectangle * clip_rect)
 {
   unsigned long foreground_backup;
 
@@ -1965,7 +1948,7 @@ x_draw_box_rect (struct glyph_string *s,
 /* Draw a box around glyph string S.  */
 
 static void
-x_draw_glyph_string_box (struct glyph_string *s)
+pgtk_draw_glyph_string_box (struct glyph_string *s)
 {
   int hwidth, vwidth, left_x, right_x, top_y, bottom_y, last_x;
   bool raised_p, left_p, right_p;
@@ -1998,26 +1981,20 @@ x_draw_glyph_string_box (struct glyph_string *s)
   get_glyph_string_clip_rect (s, &clip_rect);
 
   if (s->face->box == FACE_SIMPLE_BOX)
-    x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
-		     vwidth, left_p, right_p, &clip_rect);
+    pgtk_draw_box_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
+			vwidth, left_p, right_p, &clip_rect);
   else
     {
       pgtk_setup_relief_colors (s);
-      x_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y, hwidth,
-			  vwidth, raised_p, true, true, left_p, right_p,
-			  &clip_rect);
+      pgtk_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y, hwidth,
+			     vwidth, raised_p, true, true, left_p, right_p,
+			     &clip_rect);
     }
 }
 
 static void
-x_get_scale_factor (int *scale_x, int *scale_y)
-{
-  *scale_x = *scale_y = 1;
-}
-
-static void
-x_draw_horizontal_wave (struct frame *f, unsigned long color, int x, int y,
-			int width, int height, int wave_length)
+pgtk_draw_horizontal_wave (struct frame *f, unsigned long color, int x, int y,
+			   int width, int height, int wave_length)
 {
   cairo_t *cr;
   double dx = wave_length, dy = height - 1;
@@ -2056,34 +2033,19 @@ x_draw_horizontal_wave (struct frame *f, unsigned long color, int x, int y,
   pgtk_end_cr_clip (f);
 }
 
-/*
-   Draw a wavy line under S. The wave fills wave_height pixels from y0.
-
-                    x0         wave_length = 2
-                                 --
-                y0   *   *   *   *   *
-                     |* * * * * * * * *
-    wave_height = 3  | *   *   *   *
-
-*/
 static void
-x_draw_underwave (struct glyph_string *s, unsigned long color)
+pgtk_draw_underwave (struct glyph_string *s, unsigned long color)
 {
-  /* Adjust for scale/HiDPI.  */
-  int scale_x, scale_y;
+  int wave_height = 3, wave_length = 2;
 
-  x_get_scale_factor (&scale_x, &scale_y);
-
-  int wave_height = 3 * scale_y, wave_length = 2 * scale_x;
-
-  x_draw_horizontal_wave (s->f, color, s->x, s->ybase - wave_height + 3,
-			  s->width, wave_height, wave_length);
+  pgtk_draw_horizontal_wave (s->f, color, s->x, s->ybase - wave_height + 3,
+			     s->width, wave_height, wave_length);
 }
 
 /* Draw a relief around the image glyph string S.  */
 
 static void
-x_draw_image_relief (struct glyph_string *s)
+pgtk_draw_image_relief (struct glyph_string *s)
 {
   int x1, y1, thick;
   bool raised_p, top_p, bot_p, left_p, right_p;
@@ -2168,16 +2130,16 @@ x_draw_image_relief (struct glyph_string *s)
 
   pgtk_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
-  x_draw_relief_rect (s->f, x, y, x1, y1, thick, thick, raised_p,
-		      top_p, bot_p, left_p, right_p, &r);
+  pgtk_draw_relief_rect (s->f, x, y, x1, y1, thick, thick, raised_p,
+			 top_p, bot_p, left_p, right_p, &r);
 }
 
 /* Draw part of the background of glyph string S.  X, Y, W, and H
    give the rectangle to draw.  */
 
 static void
-x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w,
-			     int h)
+pgtk_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w,
+				int h)
 {
   if (s->stippled_p)
     {
@@ -2186,13 +2148,13 @@ x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w,
       fill_background (s, x, y, w, h);
     }
   else
-    x_clear_glyph_string_rect (s, x, y, w, h);
+    pgtk_clear_glyph_string_rect (s, x, y, w, h);
 }
 
 static void
-x_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
-		 int src_x, int src_y, int width, int height,
-		 int dest_x, int dest_y, bool overlay_p)
+pgtk_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
+		    int src_x, int src_y, int width, int height,
+		    int dest_x, int dest_y, bool overlay_p)
 {
   cairo_t *cr = pgtk_begin_cr_clip (f);
 
@@ -2228,7 +2190,7 @@ x_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
 /* Draw foreground of image glyph string S.  */
 
 static void
-x_draw_image_foreground (struct glyph_string *s)
+pgtk_draw_image_foreground (struct glyph_string *s)
 {
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -2251,9 +2213,9 @@ x_draw_image_foreground (struct glyph_string *s)
     {
       cairo_t *cr = pgtk_begin_cr_clip (s->f);
       pgtk_set_glyph_string_clipping (s, cr);
-      x_cr_draw_image (s->f, &s->xgcv, s->img->cr_data,
-		       s->slice.x, s->slice.y, s->slice.width, s->slice.height,
-		       x, y, true);
+      pgtk_cr_draw_image (s->f, &s->xgcv, s->img->cr_data,
+			  s->slice.x, s->slice.y, s->slice.width, s->slice.height,
+			  x, y, true);
       if (!s->img->mask)
 	{
 	  /* When the image has a mask, we can expect that at
@@ -2293,7 +2255,7 @@ x_draw_image_foreground (struct glyph_string *s)
  */
 
 static void
-x_draw_image_glyph_string (struct glyph_string *s)
+pgtk_draw_image_glyph_string (struct glyph_string *s)
 {
   int box_line_hwidth = max (s->face->box_vertical_line_width, 0);
   int box_line_vwidth = max (s->face->box_horizontal_line_width, 0);
@@ -2331,26 +2293,26 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	  if (s->slice.y == 0)
 	    y += box_line_vwidth;
 
-	  x_draw_glyph_string_bg_rect (s, x, y, width, height);
+	  pgtk_draw_glyph_string_bg_rect (s, x, y, width, height);
 	}
 
       s->background_filled_p = true;
     }
 
   /* Draw the foreground.  */
-  x_draw_image_foreground (s);
+  pgtk_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
   if (s->img->relief
       || s->hl == DRAW_IMAGE_RAISED
       || s->hl == DRAW_IMAGE_SUNKEN)
-    x_draw_image_relief (s);
+    pgtk_draw_image_relief (s);
 }
 
 /* Draw stretch glyph string S.  */
 
 static void
-x_draw_stretch_glyph_string (struct glyph_string *s)
+pgtk_draw_stretch_glyph_string (struct glyph_string *s)
 {
   eassert (s->first_glyph->type == STRETCH_GLYPH);
 
@@ -2386,7 +2348,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	x -= width;
 
       /* Draw cursor.  */
-      x_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
+      pgtk_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
 
       /* Clear rest using the GC of the original non-cursor face.  */
       if (width < background_width)
@@ -2441,7 +2403,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  x = text_left_x;
 	}
       if (background_width > 0)
-	x_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);
+	pgtk_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);
     }
 
   s->background_filled_p = true;
@@ -2469,9 +2431,9 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	    pgtk_set_glyph_string_gc (next);
 	    pgtk_set_glyph_string_clipping (next, cr);
 	    if (next->first_glyph->type == STRETCH_GLYPH)
-	      x_draw_stretch_glyph_string (next);
+	      pgtk_draw_stretch_glyph_string (next);
 	    else
-	      x_draw_glyph_string_background (next, true);
+	      pgtk_draw_glyph_string_background (next, true);
 	    next->num_clips = 0;
 	    pgtk_end_cr_clip (next->f);
 	  }
@@ -2491,8 +2453,8 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 
     {
       pgtk_set_glyph_string_clipping (s, cr);
-      x_draw_glyph_string_background (s, true);
-      x_draw_glyph_string_box (s);
+      pgtk_draw_glyph_string_background (s, true);
+      pgtk_draw_glyph_string_box (s);
       pgtk_set_glyph_string_clipping (s, cr);
       relief_drawn_p = true;
     }
@@ -2510,7 +2472,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
   switch (s->first_glyph->type)
     {
     case IMAGE_GLYPH:
-      x_draw_image_glyph_string (s);
+      pgtk_draw_image_glyph_string (s);
       break;
 
     case XWIDGET_GLYPH:
@@ -2518,15 +2480,15 @@ pgtk_draw_glyph_string (struct glyph_string *s)
       break;
 
     case STRETCH_GLYPH:
-      x_draw_stretch_glyph_string (s);
+      pgtk_draw_stretch_glyph_string (s);
       break;
 
     case CHAR_GLYPH:
       if (s->for_overlaps)
 	s->background_filled_p = true;
       else
-	x_draw_glyph_string_background (s, false);
-      x_draw_glyph_string_foreground (s);
+	pgtk_draw_glyph_string_background (s, false);
+      pgtk_draw_glyph_string_foreground (s);
       break;
 
     case COMPOSITE_GLYPH:
@@ -2534,16 +2496,16 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 			      && !s->first_glyph->u.cmp.automatic))
 	s->background_filled_p = true;
       else
-	x_draw_glyph_string_background (s, true);
-      x_draw_composite_glyph_string_foreground (s);
+	pgtk_draw_glyph_string_background (s, true);
+      pgtk_draw_composite_glyph_string_foreground (s);
       break;
 
     case GLYPHLESS_GLYPH:
       if (s->for_overlaps)
 	s->background_filled_p = true;
       else
-	x_draw_glyph_string_background (s, true);
-      x_draw_glyphless_glyph_string_foreground (s);
+	pgtk_draw_glyph_string_background (s, true);
+      pgtk_draw_glyphless_glyph_string_foreground (s);
       break;
 
     default:
@@ -2554,7 +2516,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
     {
       /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
-	x_draw_glyph_string_box (s);
+	pgtk_draw_glyph_string_box (s);
 
       /* Draw underline.  */
       if (s->face->underline)
@@ -2562,10 +2524,10 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	  if (s->face->underline == FACE_UNDER_WAVE)
 	    {
 	      if (s->face->underline_defaulted_p)
-		x_draw_underwave (s, s->xgcv.foreground);
+		pgtk_draw_underwave (s, s->xgcv.foreground);
 	      else
 		{
-		  x_draw_underwave (s, s->face->underline_color);
+		  pgtk_draw_underwave (s, s->face->underline_color);
 		}
 	    }
 	  else if (s->face->underline == FACE_UNDER_LINE)
@@ -2700,9 +2662,9 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		cairo_save (cr);
 		pgtk_set_glyph_string_clipping_exactly (s, prev, cr);
 		if (prev->first_glyph->type == CHAR_GLYPH)
-		  x_draw_glyph_string_foreground (prev);
+		  pgtk_draw_glyph_string_foreground (prev);
 		else
-		  x_draw_composite_glyph_string_foreground (prev);
+		  pgtk_draw_composite_glyph_string_foreground (prev);
 		prev->hl = save;
 		prev->num_clips = 0;
 		cairo_restore (cr);
@@ -2726,9 +2688,9 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		cairo_save (cr);
 		pgtk_set_glyph_string_clipping_exactly (s, next, cr);
 		if (next->first_glyph->type == CHAR_GLYPH)
-		  x_draw_glyph_string_foreground (next);
+		  pgtk_draw_glyph_string_foreground (next);
 		else
-		  x_draw_composite_glyph_string_foreground (next);
+		  pgtk_draw_composite_glyph_string_foreground (next);
 		cairo_restore (cr);
 		next->hl = save;
 		next->num_clips = 0;
@@ -2793,7 +2755,7 @@ pgtk_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 /* Draw a hollow box cursor on window W in glyph row ROW.  */
 
 static void
-x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
+pgtk_draw_hollow_cursor (struct window *w, struct glyph_row *row)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   int x, y, wd, h;
@@ -2826,7 +2788,8 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
     }
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   pgtk_clip_to_row (w, row, TEXT_AREA, cr);
-  pgtk_draw_rectangle (f, FRAME_X_OUTPUT (f)->cursor_color, x, y, wd, h - 1, false);
+  pgtk_draw_rectangle (f, FRAME_X_OUTPUT (f)->cursor_color,
+		       x, y, wd, h - 1, false);
   pgtk_end_cr_clip (f);
 }
 
@@ -2838,7 +2801,7 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
    --gerd.  */
 
 static void
-x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width,
+pgtk_draw_bar_cursor (struct window *w, struct glyph_row *row, int width,
 		   enum text_cursor_kinds kind)
 {
   struct frame *f = XFRAME (w->frame);
@@ -2936,6 +2899,7 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 			 int cursor_width, bool on_p, bool active_p)
 {
   struct frame *f = XFRAME (w->frame);
+
   if (on_p)
     {
       w->phys_cursor_type = cursor_type;
@@ -2954,7 +2918,7 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	  switch (cursor_type)
 	    {
 	    case HOLLOW_BOX_CURSOR:
-	      x_draw_hollow_cursor (w, glyph_row);
+	      pgtk_draw_hollow_cursor (w, glyph_row);
 	      break;
 
 	    case FILLED_BOX_CURSOR:
@@ -2962,11 +2926,11 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	      break;
 
 	    case BAR_CURSOR:
-	      x_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
+	      pgtk_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
 	      break;
 
 	    case HBAR_CURSOR:
-	      x_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
+	      pgtk_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
 	      break;
 
 	    case NO_CURSOR:
@@ -3553,41 +3517,6 @@ pgtk_clip_to_row (struct window *w, struct glyph_row *row,
 }
 
 static void
-pgtk_cr_draw_image (struct frame *f, Emacs_GC * gc, cairo_pattern_t * image,
-		    int src_x, int src_y, int width, int height,
-		    int dest_x, int dest_y, bool overlay_p)
-{
-  cairo_t *cr = pgtk_begin_cr_clip (f);
-
-  if (overlay_p)
-    cairo_rectangle (cr, dest_x, dest_y, width, height);
-  else
-    {
-      pgtk_set_cr_source_with_gc_background (f, gc, false);
-      cairo_rectangle (cr, dest_x, dest_y, width, height);
-      cairo_fill_preserve (cr);
-    }
-  cairo_translate (cr, dest_x - src_x, dest_y - src_y);
-
-  cairo_surface_t *surface;
-  cairo_pattern_get_surface (image, &surface);
-  cairo_format_t format = cairo_image_surface_get_format (surface);
-  if (format != CAIRO_FORMAT_A8 && format != CAIRO_FORMAT_A1)
-    {
-      cairo_set_source (cr, image);
-      cairo_fill (cr);
-    }
-  else
-    {
-      pgtk_set_cr_source_with_gc_foreground (f, gc, false);
-      cairo_clip (cr);
-      cairo_mask (cr, image);
-    }
-
-  pgtk_end_cr_clip (f);
-}
-
-static void
 pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 			 struct draw_fringe_bitmap_params *p)
 {
@@ -3601,10 +3530,10 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   if (p->bx >= 0 && !p->overlay_p)
     {
-      /* In case the same realized face is used for fringes and
-         for something displayed in the text (e.g. face `region' on
+      /* In case the same realized face is used for fringes and for
+         something displayed in the text (e.g. face `region' on
          mono-displays, the fill style may have been changed to
-         FillSolid in x_draw_glyph_string_background.  */
+         FillSolid in pgtk_draw_glyph_string_background.  */
       if (face->stipple)
 	{
 	  fill_background_by_face (f, face, p->bx, p->by, p->nx, p->ny);
@@ -3652,7 +3581,8 @@ static int hourglass_enter_count = 0;
 static void
 hourglass_cb (struct atimer *timer)
 {
- /*NOP*/}
+
+}
 
 static void
 pgtk_show_hourglass (struct frame *f)
@@ -3660,7 +3590,9 @@ pgtk_show_hourglass (struct frame *f)
   struct pgtk_output *x = FRAME_X_OUTPUT (f);
   if (x->hourglass_widget != NULL)
     gtk_widget_destroy (x->hourglass_widget);
-  x->hourglass_widget = gtk_event_box_new ();	/* gtk_event_box is GDK_INPUT_ONLY. */
+
+  /* This creates a GDK_INPUT_ONLY window.  */
+  x->hourglass_widget = gtk_event_box_new ();
   gtk_widget_set_has_window (x->hourglass_widget, true);
   gtk_fixed_put (GTK_FIXED (FRAME_GTK_WIDGET (f)), x->hourglass_widget, 0, 0);
   gtk_widget_show (x->hourglass_widget);
@@ -3669,7 +3601,8 @@ pgtk_show_hourglass (struct frame *f)
   gdk_window_set_cursor (gtk_widget_get_window (x->hourglass_widget),
 			 x->hourglass_cursor);
 
-  /* For cursor animation, we receive signals, set pending_signals, and dispatch. */
+  /* For cursor animation, we receive signals, set pending_signals,
+     and wait for the signal handler to run.  */
   if (hourglass_enter_count++ == 0)
     {
       struct timespec ts = make_timespec (0, 50 * 1000 * 1000);
@@ -3740,34 +3673,18 @@ static struct redisplay_interface pgtk_redisplay_interface = {
   pgtk_default_font_parameter,
 };
 
-static void
-pgtk_redraw_scroll_bars (struct frame *f)
-{
-}
-
 void
 pgtk_clear_frame (struct frame *f)
-/* --------------------------------------------------------------------------
-      External (hook): Erase the entire frame
-   -------------------------------------------------------------------------- */
 {
-  /* comes on initial frame because we have
-     after-make-frame-functions = select-frame */
   if (!FRAME_DEFAULT_FACE (f))
     return;
 
-  /* mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f))); */
+  mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   block_input ();
-
   pgtk_clear_area (f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
-
-  /* as of 2006/11 or so this is now needed */
-  pgtk_redraw_scroll_bars (f);
   unblock_input ();
 }
-
-/* Invert the middle quarter of the frame for .15 sec.  */
 
 static void
 recover_from_visible_bell (struct atimer *timer)
@@ -3784,6 +3701,8 @@ recover_from_visible_bell (struct atimer *timer)
     FRAME_X_OUTPUT (f)->atimer_visible_bell = NULL;
 }
 
+/* Invert the middle quarter of the frame for .15 sec.  */
+
 static void
 pgtk_flash (struct frame *f)
 {
@@ -3797,9 +3716,9 @@ pgtk_flash (struct frame *f)
 
     int width = FRAME_CR_SURFACE_DESIRED_WIDTH (f);
     int height = FRAME_CR_SURFACE_DESIRED_HEIGHT (f);
-    cairo_surface_t *surface =
-      cairo_surface_create_similar (surface_orig, CAIRO_CONTENT_COLOR_ALPHA,
-				    width, height);
+    cairo_surface_t *surface
+      = cairo_surface_create_similar (surface_orig, CAIRO_CONTENT_COLOR_ALPHA,
+				      width, height);
 
     cairo_t *cr = cairo_create (surface);
     cairo_set_source_surface (cr, surface_orig, 0, 0);
@@ -4053,7 +3972,7 @@ xg_end_scroll_callback (GtkWidget * widget,
    and X window of the scroll bar in BAR.  */
 
 static void
-x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
+pgtk_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 {
   const char *scroll_bar_name = SCROLL_BAR_NAME;
 
@@ -4064,8 +3983,8 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 }
 
 static void
-x_create_horizontal_toolkit_scroll_bar (struct frame *f,
-					struct scroll_bar *bar)
+pgtk_create_horizontal_toolkit_scroll_bar (struct frame *f,
+					   struct scroll_bar *bar)
 {
   const char *scroll_bar_name = SCROLL_BAR_HORIZONTAL_NAME;
 
@@ -4102,8 +4021,8 @@ pgtk_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
    scroll bar. */
 
 static struct scroll_bar *
-x_scroll_bar_create (struct window *w, int top, int left,
-		     int width, int height, bool horizontal)
+pgtk_scroll_bar_create (struct window *w, int top, int left,
+			int width, int height, bool horizontal)
 {
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar
@@ -4113,9 +4032,9 @@ x_scroll_bar_create (struct window *w, int top, int left,
   block_input ();
 
   if (horizontal)
-    x_create_horizontal_toolkit_scroll_bar (f, bar);
+    pgtk_create_horizontal_toolkit_scroll_bar (f, bar);
   else
-    x_create_toolkit_scroll_bar (f, bar);
+    pgtk_create_toolkit_scroll_bar (f, bar);
 
   XSETWINDOW (bar->window, w);
   bar->top = top;
@@ -4153,7 +4072,7 @@ x_scroll_bar_create (struct window *w, int top, int left,
    nil.  */
 
 static void
-x_scroll_bar_remove (struct scroll_bar *bar)
+pgtk_scroll_bar_remove (struct scroll_bar *bar)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   block_input ();
@@ -4201,7 +4120,7 @@ pgtk_set_vertical_scroll_bar (struct window *w, int portion, int whole,
 	  unblock_input ();
 	}
 
-      bar = x_scroll_bar_create (w, top, left, width, max (height, 1), false);
+      bar = pgtk_scroll_bar_create (w, top, left, width, max (height, 1), false);
     }
   else
     {
@@ -4279,7 +4198,7 @@ pgtk_set_horizontal_scroll_bar (struct window *w, int portion, int whole,
 	  unblock_input ();
 	}
 
-      bar = x_scroll_bar_create (w, top, left, width, height, true);
+      bar = pgtk_scroll_bar_create (w, top, left, width, height, true);
     }
   else
     {
@@ -4466,7 +4385,7 @@ pgtk_judge_scroll_bars (struct frame *f)
     {
       struct scroll_bar *b = XSCROLL_BAR (bar);
 
-      x_scroll_bar_remove (b);
+      pgtk_scroll_bar_remove (b);
 
       next = b->next;
       b->next = b->prev = Qnil;
@@ -4790,7 +4709,7 @@ pgtk_toggle_invisible_pointer (struct frame *f, bool invisible)
    Lisp code can tell when the switch took place by examining the events.  */
 
 static void
-x_new_focus_frame (struct pgtk_display_info *dpyinfo, struct frame *frame)
+pgtk_new_focus_frame (struct pgtk_display_info *dpyinfo, struct frame *frame)
 {
   struct frame *old_focus = dpyinfo->x_focus_frame;
   /* doesn't work on wayland */
@@ -5648,15 +5567,15 @@ delete_event (GtkWidget *widget,
    a FOCUS_IN_EVENT into *BUFP.  */
 
 static void
-x_focus_changed (gboolean is_enter, int state,
-		 struct pgtk_display_info *dpyinfo, struct frame *frame,
-		 union buffered_input_event *bufp)
+pgtk_focus_changed (gboolean is_enter, int state,
+		    struct pgtk_display_info *dpyinfo, struct frame *frame,
+		    union buffered_input_event *bufp)
 {
   if (is_enter)
     {
       if (dpyinfo->x_focus_event_frame != frame)
 	{
-	  x_new_focus_frame (dpyinfo, frame);
+	  pgtk_new_focus_frame (dpyinfo, frame);
 	  dpyinfo->x_focus_event_frame = frame;
 
 	  /* Don't stop displaying the initial startup message
@@ -5681,7 +5600,7 @@ x_focus_changed (gboolean is_enter, int state,
       if (dpyinfo->x_focus_event_frame == frame)
         {
           dpyinfo->x_focus_event_frame = 0;
-          x_new_focus_frame (dpyinfo, 0);
+          pgtk_new_focus_frame (dpyinfo, NULL);
 
           bufp->ie.kind = FOCUS_OUT_EVENT;
           XSETFRAME (bufp->ie.frame_or_window, frame);
@@ -5697,10 +5616,12 @@ enter_notify_event (GtkWidget *widget, GdkEvent *event,
 		    gpointer *user_data)
 {
   union buffered_input_event inev;
-  struct frame *frame =
-    pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+  struct frame *frame
+    = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+
   if (frame == NULL)
     return FALSE;
+
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   struct frame *focus_frame = dpyinfo->x_focus_frame;
   int focus_state
@@ -5712,7 +5633,7 @@ enter_notify_event (GtkWidget *widget, GdkEvent *event,
 
   if (event->crossing.detail != GDK_NOTIFY_INFERIOR
       && event->crossing.focus && !(focus_state & FOCUS_EXPLICIT))
-    x_focus_changed (TRUE, FOCUS_IMPLICIT, dpyinfo, frame, &inev);
+    pgtk_focus_changed (TRUE, FOCUS_IMPLICIT, dpyinfo, frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
@@ -5723,10 +5644,12 @@ leave_notify_event (GtkWidget *widget, GdkEvent *event,
 		    gpointer *user_data)
 {
   union buffered_input_event inev;
-  struct frame *frame =
-    pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+  struct frame *frame
+    = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+
   if (frame == NULL)
     return FALSE;
+
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   struct frame *focus_frame = dpyinfo->x_focus_frame;
   int focus_state
@@ -5747,7 +5670,7 @@ leave_notify_event (GtkWidget *widget, GdkEvent *event,
 
   if (event->crossing.detail != GDK_NOTIFY_INFERIOR
       && event->crossing.focus && !(focus_state & FOCUS_EXPLICIT))
-    x_focus_changed (FALSE, FOCUS_IMPLICIT, dpyinfo, frame, &inev);
+    pgtk_focus_changed (FALSE, FOCUS_IMPLICIT, dpyinfo, frame, &inev);
 
   if (frame)
     {
@@ -5766,11 +5689,11 @@ leave_notify_event (GtkWidget *widget, GdkEvent *event,
 }
 
 static gboolean
-focus_in_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
+focus_in_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
   union buffered_input_event inev;
-  struct frame *frame =
-    pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+  struct frame *frame
+    = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
   if (frame == NULL)
     return TRUE;
@@ -5779,8 +5702,8 @@ focus_in_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  x_focus_changed (TRUE, FOCUS_EXPLICIT,
-		   FRAME_DISPLAY_INFO (frame), frame, &inev);
+  pgtk_focus_changed (TRUE, FOCUS_EXPLICIT,
+		      FRAME_DISPLAY_INFO (frame), frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
 
@@ -5790,11 +5713,11 @@ focus_in_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 }
 
 static gboolean
-focus_out_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
+focus_out_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
   union buffered_input_event inev;
-  struct frame *frame =
-    pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+  struct frame *frame
+    = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
   if (frame == NULL)
     return TRUE;
@@ -5803,8 +5726,8 @@ focus_out_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
 
-  x_focus_changed (FALSE, FOCUS_EXPLICIT,
-		   FRAME_DISPLAY_INFO (frame), frame, &inev);
+  pgtk_focus_changed (FALSE, FOCUS_EXPLICIT,
+		      FRAME_DISPLAY_INFO (frame), frame, &inev);
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
 
@@ -7023,7 +6946,7 @@ pgtk_cr_draw_frame (cairo_t * cr, struct frame *f)
 
 static cairo_status_t
 pgtk_cr_accumulate_data (void *closure, const unsigned char *data,
-		      unsigned int length)
+			 unsigned int length)
 {
   Lisp_Object *acc = (Lisp_Object *) closure;
 
@@ -7049,8 +6972,6 @@ pgtk_cr_destroy (void *cr)
   cairo_destroy (cr);
   unblock_input ();
 }
-
-
 
 Lisp_Object
 pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
@@ -7144,7 +7065,6 @@ pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 
   return CALLN (Fapply, intern ("concat"), Fnreverse (acc));
 }
-
 
 void
 init_pgtkterm (void)
