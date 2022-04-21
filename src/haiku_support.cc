@@ -173,7 +173,7 @@ static bool drag_and_drop_in_progress;
    Rectifying that problem is simple: all code in a looper callback
    must lock the child frame data with this macro instead.
 
-   IOW, If some other code is already running with the child frame
+   IOW, if some other code is already running with the child frame
    lock held, don't interfere: wait until it's finished before
    continuing.  */
 #define CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK		\
@@ -189,13 +189,7 @@ static bool drag_and_drop_in_progress;
    port, so it's probably here to stay.  */
 extern status_t get_subpixel_antialiasing (bool *);
 
-extern "C"
-{
-  extern _Noreturn void emacs_abort (void);
-  /* Also defined in haikuterm.h.  */
-  extern void be_app_quit (void);
-}
-
+/* The ID of the thread the BApplication is running in.  */
 static thread_id app_thread;
 
 _Noreturn void
@@ -205,7 +199,7 @@ gui_abort (const char *msg)
   fprintf (stderr, "Under Haiku, Emacs cannot recover from errors in GUI code\n");
   fprintf (stderr, "App Server disconnects usually manifest as bitmap "
 	   "initialization failures or lock failures.");
-  emacs_abort ();
+  abort ();
 }
 
 struct be_popup_menu_data
