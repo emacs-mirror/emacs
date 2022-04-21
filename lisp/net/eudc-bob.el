@@ -124,7 +124,7 @@ LABEL."
   (let (overlay
 	(p (point))
 	prop val)
-    (insert label)
+    (insert (or label ""))
     (put-text-property p (point) 'face 'bold)
     (setq overlay (make-overlay p (point)))
     (overlay-put overlay 'mouse-face 'highlight)
