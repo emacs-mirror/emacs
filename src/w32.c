@@ -539,11 +539,15 @@ typedef DWORD (WINAPI *ExpandEnvironmentStringsW_Proc) (LPCWSTR,LPWSTR,DWORD);
 typedef LANGID (WINAPI *GetUserDefaultUILanguage_Proc) (void);
 
 typedef COORD (WINAPI *GetConsoleFontSize_Proc) (HANDLE, DWORD);
+
+#if _WIN32_WINNT < 0x0501
 typedef struct
 {
   DWORD nFont;
   COORD dwFontSize;
 } CONSOLE_FONT_INFO;
+#endif
+
 typedef BOOL (WINAPI *GetCurrentConsoleFont_Proc) (
     HANDLE,
     BOOL,
