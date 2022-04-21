@@ -3707,6 +3707,11 @@ x_dnd_cleanup_drag_and_drop (void *frame)
     XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
 		     XkbStateNotifyMask, 0);
 #endif
+
+  /* Delete the Motif drag initiator info if it was set up.  */
+  if (x_dnd_motif_setup_p)
+    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
   unblock_input ();
 
   x_dnd_frame = NULL;
@@ -9891,6 +9896,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	    XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
 			     XkbStateNotifyMask, 0);
 #endif
+	  /* Delete the Motif drag initiator info if it was set up.  */
+	  if (x_dnd_motif_setup_p)
+	    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
 	  quit ();
 	}
     }
@@ -9913,6 +9922,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
 		     XkbStateNotifyMask, 0);
 #endif
+  /* Delete the Motif drag initiator info if it was set up.  */
+  if (x_dnd_motif_setup_p)
+    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
   unblock_input ();
 
   if (x_dnd_return_frame == 3
