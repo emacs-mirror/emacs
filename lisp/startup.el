@@ -1292,11 +1292,13 @@ please check its value")
 
   ;; Re-evaluate predefined variables whose initial value depends on
   ;; the runtime context.
-  (when (listp custom-delayed-init-variables)
-    (mapc #'custom-reevaluate-setting
-          ;; Initialize them in the same order they were loaded, in
-          ;; case there are dependencies between them.
-          (reverse custom-delayed-init-variables)))
+  (let ((user-emacs-directory-warning nil)) ; Delay showing this
+                                            ; warning (Bug#25162).
+    (when (listp custom-delayed-init-variables)
+      (mapc #'custom-reevaluate-setting
+            ;; Initialize them in the same order they were loaded, in
+            ;; case there are dependencies between them.
+            (reverse custom-delayed-init-variables))))
   (setq custom-delayed-init-variables t)
 
   ;; Warn for invalid user name.
@@ -1557,8 +1559,17 @@ please check its value")
 	(list 'error
 	      (substitute-command-keys "Memory exhausted--use \\[save-some-buffers] then exit and restart Emacs")))
 
+  ;; Reevaluate `user-emacs-directory-warning' before process '--eval'
+  ;;  args, so that the user can override that default (Bug#25162).
+  (custom-reevaluate-setting 'user-emacs-directory-warning)
+
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
+
+  ;; Check if `user-emacs-directory' is accessible (Bug#25162).
+  (when (and user-emacs-directory-warning
+             (not (file-accessible-directory-p user-emacs-directory)))
+    (locate-user-emacs-file ""))
 
   ;; This is a problem because, e.g. if emacs.d/gnus.el exists,
   ;; trying to load gnus could load the wrong file.
