@@ -2324,7 +2324,12 @@ arg means replace backward.  Note that using the prefix arg
 is possible only when `isearch-allow-scroll' is non-nil or
 `isearch-allow-prefix' is non-nil, and it doesn't always provide the
 correct matches for `query-replace', so the preferred way to run word
-replacements from Isearch is `M-s w ... M-%'."
+replacements from Isearch is `M-s w ... M-%'.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time."
   (interactive
    (list current-prefix-arg))
   (barf-if-buffer-read-only)
@@ -2393,7 +2398,12 @@ the search words, ignoring punctuation.  If the last search
 command was a regular expression search, REGEXP is the regular
 expression used in that search.  If the last search command searched
 for a literal string, REGEXP is constructed by quoting all the special
-characters in that string."
+characters in that string.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time."
   (interactive
    (let* ((perform-collect (consp current-prefix-arg))
 	  (regexp (cond
