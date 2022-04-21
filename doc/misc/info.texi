@@ -1083,7 +1083,9 @@ If you aren't sure which manual documents the topic you are looking
 for, try the @kbd{M-x info-apropos} command in Emacs, or the @kbd{M-x
 index-apropos} command in the stand-alone reader.  It prompts for
 a string and then looks up that string in all the indices of all the
-Info documents installed on your system.
+Info documents installed on your system.  In Emacs, giving a prefix
+argument to the command will try to search for a regular expression
+instead of a string.
 
 @node Go to node
 @section @kbd{g} goes to a node by name

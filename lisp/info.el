@@ -907,17 +907,20 @@ find a node."
                       filename)))
       filename))))
 
-(defun Info-find-node (filename nodename &optional no-going-back strict-case)
+(defun Info-find-node (filename nodename &optional no-going-back strict-case
+                                noerror)
   "Go to an Info node specified as separate FILENAME and NODENAME.
 NO-GOING-BACK is non-nil if recovering from an error in this function;
 it says do not attempt further (recursive) error recovery.
 
 This function first looks for a case-sensitive match for NODENAME;
 if none is found it then tries a case-insensitive match (unless
-STRICT-CASE is non-nil)."
+STRICT-CASE is non-nil).
+
+If NOERROR, inhibit error messages when we can't find the node."
   (info-initialize)
   (setq nodename (info--node-canonicalize-whitespace nodename))
-  (setq filename (Info-find-file filename))
+  (setq filename (Info-find-file filename noerror))
   ;; Go into Info buffer.
   (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
   ;; Record the node we are leaving, if we were in one.
@@ -3613,13 +3616,16 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 				(format " (line %s)" (nth 3 entry))
 			      "")))))))))
 
-(defun Info-apropos-matches (string)
+(defun Info-apropos-matches (string &optional regexp)
   "Collect STRING matches from all known Info files on your system.
+If REGEXP, use regexp matching instead of literal matching.
 Return a list of matches where each element is in the format
 \((FILENAME INDEXTEXT NODENAME LINENUMBER))."
   (unless (string= string "")
     (let ((pattern (format "\n\\* +\\([^\n]*\\(%s\\)[^\n]*\\):[ \t]+\\([^\n]+\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
-			   (regexp-quote string)))
+			   (if regexp
+                               string
+                             (regexp-quote string))))
 	  (ohist Info-history)
 	  (ohist-list Info-history-list)
 	  (current-node Info-current-node)
@@ -3644,9 +3650,9 @@ Return a list of matches where each element is in the format
 	(dolist (manual (nreverse manuals))
 	  (message "Searching %s" manual)
 	  (condition-case err
-	      (if (setq nodes (Info-index-nodes (Info-find-file manual)))
+	      (if (setq nodes (Info-index-nodes (Info-find-file manual t)))
                   (save-excursion
-                    (Info-find-node manual (car nodes))
+                    (Info-find-node manual (car nodes) nil nil t)
                     (while
                         (progn
                           (goto-char (point-min))
@@ -3673,19 +3679,22 @@ Return a list of matches where each element is in the format
       (or (nreverse matches) t))))
 
 ;;;###autoload
-(defun info-apropos (string)
-  "Grovel indices of all known Info files on your system for STRING.
-Build a menu of the possible matches."
-  (interactive "sIndex apropos: ")
+(defun info-apropos (string &optional regexp)
+  "Search indices of all known Info files on your system for STRING.
+If REGEXP (interactively, the prefix), use a regexp match.
+
+Display a menu of the possible matches."
+  (interactive "sIndex apropos: \nP")
   (if (equal string "")
       (Info-find-node Info-apropos-file "Top")
-    (let* ((nodes Info-apropos-nodes) nodename)
+    (let ((nodes Info-apropos-nodes)
+          nodename)
       (while (and nodes (not (equal string (nth 1 (car nodes)))))
 	(setq nodes (cdr nodes)))
       (if nodes
-	  (Info-find-node Info-apropos-file (car (car nodes)))
+	  (Info-find-node Info-apropos-file (car (car nodes)) nil nil t)
 	(setq nodename (format "Index for ‘%s’" string))
-	(push (list nodename string (Info-apropos-matches string))
+	(push (list nodename string (Info-apropos-matches string regexp))
 	      Info-apropos-nodes)
 	(Info-find-node Info-apropos-file nodename)))))
 

@@ -763,6 +763,9 @@ This fills the region to be no wider than a specified pixel width.
 
 ** Info
 
++++
+*** 'M-x info-apropos' now takes a prefix argument to search for regexps.
+
 ---
 *** New command 'Info-goto-node-web' and key binding 'G'.
 This will take you to the gnu.org web server's version of the current
