@@ -46,6 +46,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 struct haiku_display_info *x_display_list = NULL;
 extern frame_parm_handler haiku_frame_parm_handlers[];
 
+/* This is used to determine when to evict the font lookup cache,
+   which we do every 50 updates.  */
+static int up_to_date_count;
+
 static void **fringe_bmps;
 static int max_fringe_bmp = 0;
 
@@ -231,6 +235,13 @@ haiku_frame_up_to_date (struct frame *f)
   FRAME_MOUSE_UPDATE (f);
   if (FRAME_DIRTY_P (f) && !buffer_flipping_blocked_p ())
     haiku_flip_buffers (f);
+
+  up_to_date_count++;
+  if (up_to_date_count == 50)
+    {
+      be_evict_font_cache ();
+      up_to_date_count = 0;
+    }
   unblock_input ();
 }
 

@@ -304,8 +304,8 @@ struct haiku_font_pattern
   enum haiku_font_slant slant;
   enum haiku_font_width width;
   enum haiku_font_language language;
-  uint32_t *wanted_chars;
-  uint32_t *need_one_of;
+  int *wanted_chars;
+  int *need_one_of;
 
   int oblique_seen_p;
 };
@@ -633,6 +633,8 @@ extern void BMenu_add_title (void *, const char *);
 
 extern int be_plain_font_height (void);
 extern int be_string_width_with_plain_font (const char *);
+extern void be_init_font_data (void);
+extern void be_evict_font_cache (void);
 extern int be_get_display_screens (void);
 extern bool be_use_subpixel_antialiasing (void);
 extern const char *be_find_setting (const char *);

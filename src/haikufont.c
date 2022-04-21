@@ -137,7 +137,7 @@ haikufont_apply_registry (struct haiku_font_pattern *pattern,
 
   for (l = 0; uniquifier[l]; ++l);
 
-  uint32_t *a = xmalloc (l * sizeof *a);
+  int *a = xmalloc (l * sizeof *a);
   for (l = 0; uniquifier[l]; ++l)
     a[l] = uniquifier[l];
 
@@ -1111,4 +1111,6 @@ syms_of_haikufont (void)
 
   font_cache = list (Qnil);
   staticpro (&font_cache);
+
+  be_init_font_data ();
 }

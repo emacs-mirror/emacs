@@ -27,15 +27,111 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "haiku_support.h"
 
+/* Cache used during font lookup.  It contains an opened font object
+   we can look inside, and some previously determined information.  */
+struct font_object_cache_bucket
+{
+  struct font_object_cache_bucket *next;
+  unsigned int hash;
+
+  BFont *font_object;
+};
+
+static struct font_object_cache_bucket *font_object_cache[2048];
+
 /* Haiku doesn't expose font language data in BFont objects.  Thus, we
    select a few representative characters for each supported `:lang'
    (currently Chinese, Korean and Japanese,) and test for those
    instead.  */
 
-static uint32_t language_code_points[MAX_LANGUAGE][4] =
-  {{20154, 20754, 22996, 0}, /* Chinese.  */
-   {51312, 49440, 44544, 0}, /* Korean.  */
-   {26085, 26412, 12371, 0}, /* Japanese.  */};
+static int language_code_points[MAX_LANGUAGE][3] =
+  {{20154, 20754, 22996}, /* Chinese.  */
+   {51312, 49440, 44544}, /* Korean.  */
+   {26085, 26412, 12371}, /* Japanese.  */};
+
+static unsigned int
+hash_string (const char *name_or_style)
+{
+  unsigned int i;
+
+  i = 3323198485ul;
+  for (; *name_or_style; ++name_or_style)
+    {
+      i ^= *name_or_style;
+      i *= 0x5bd1e995;
+      i ^= i >> 15;
+    }
+  return i;
+}
+
+static struct font_object_cache_bucket *
+cache_font_object_data (const char *family, const char *style,
+			BFont *font_object)
+{
+  uint32_t hash;
+  struct font_object_cache_bucket *bucket, *next;
+
+  hash = hash_string (family) ^ hash_string (style);
+  bucket = font_object_cache[hash % 2048];
+
+  for (next = bucket; next; next = next->next)
+    {
+      if (next->hash == hash)
+	{
+	  delete next->font_object;
+	  next->font_object = font_object;
+
+	  return next;
+	}
+    }
+
+  next = new struct font_object_cache_bucket;
+  next->font_object = font_object;
+  next->hash = hash;
+  next->next = bucket;
+  font_object_cache[hash % 2048] = next;
+  return next;
+}
+
+static struct font_object_cache_bucket *
+lookup_font_object_data (const char *family, const char *style)
+{
+  uint32_t hash;
+  struct font_object_cache_bucket *bucket, *next;
+
+  hash = hash_string (family) ^ hash_string (style);
+  bucket = font_object_cache[hash % 2048];
+
+  for (next = bucket; next; next = next->next)
+    {
+      if (next->hash == hash)
+	return next;
+    }
+
+  return NULL;
+}
+
+static bool
+font_object_has_chars (struct font_object_cache_bucket *cached,
+		       int *chars, int nchars, bool just_one_of)
+{
+  int i;
+
+  for (i = 0; i < nchars; ++i)
+    {
+      if (just_one_of
+	  && cached->font_object->IncludesBlock (chars[i],
+						 chars[i]))
+	return true;
+
+      if (!just_one_of
+	  && !cached->font_object->IncludesBlock (chars[i],
+						  chars[i]))
+	return false;
+    }
+
+  return !just_one_of;
+}
 
 static void
 estimate_font_ascii (BFont *font, int *max_width,
@@ -299,54 +395,86 @@ static bool
 font_check_wanted_chars (struct haiku_font_pattern *pattern, font_family family,
 			 char *style)
 {
-  BFont ft;
+  BFont *ft;
+  static struct font_object_cache_bucket *cached;
+  unicode_block wanted_block;
 
-  if (ft.SetFamilyAndStyle (family, style) != B_OK)
-    return false;
+  cached = lookup_font_object_data (family, style);
+  if (cached)
+    ft = cached->font_object;
+  else
+    {
+      ft = new BFont;
 
-  for (int i = 0; i < pattern->want_chars_len; ++i)
-    if (!ft.IncludesBlock (pattern->wanted_chars[i],
-			   pattern->wanted_chars[i]))
-      return false;
+      if (ft->SetFamilyAndStyle (family, style) != B_OK)
+	{
+	  delete ft;
+	  return false;
+	}
 
-  return true;
+      cached = cache_font_object_data (family, style, ft);
+    }
+
+  return font_object_has_chars (cached, pattern->wanted_chars,
+				pattern->want_chars_len, false);
 }
 
 static bool
 font_check_one_of (struct haiku_font_pattern *pattern, font_family family,
 		   char *style)
 {
-  BFont ft;
+  BFont *ft;
+  static struct font_object_cache_bucket *cached;
+  unicode_block wanted_block;
 
-  if (ft.SetFamilyAndStyle (family, style) != B_OK)
-    return false;
+  cached = lookup_font_object_data (family, style);
+  if (cached)
+    ft = cached->font_object;
+  else
+    {
+      ft = new BFont;
 
-  for (int i = 0; i < pattern->need_one_of_len; ++i)
-    if (ft.IncludesBlock (pattern->need_one_of[i],
-			  pattern->need_one_of[i]))
-      return true;
+      if (ft->SetFamilyAndStyle (family, style) != B_OK)
+	{
+	  delete ft;
+	  return false;
+	}
 
-  return false;
+      cached = cache_font_object_data (family, style, ft);
+    }
+
+  return font_object_has_chars (cached, pattern->need_one_of,
+				pattern->need_one_of_len, true);
 }
 
 static bool
 font_check_language (struct haiku_font_pattern *pattern, font_family family,
 		     char *style)
 {
-  BFont ft;
+  BFont *ft;
+  static struct font_object_cache_bucket *cached;
 
-  if (ft.SetFamilyAndStyle (family, style) != B_OK)
-    return false;
+  cached = lookup_font_object_data (family, style);
+  if (cached)
+    ft = cached->font_object;
+  else
+    {
+      ft = new BFont;
+
+      if (ft->SetFamilyAndStyle (family, style) != B_OK)
+	{
+	  delete ft;
+	  return false;
+	}
+
+      cached = cache_font_object_data (family, style, ft);
+    }
 
   if (pattern->language == MAX_LANGUAGE)
     return false;
 
-  for (uint32_t *ch = (uint32_t *)
-	 &language_code_points[pattern->language]; *ch; ch++)
-    if (!ft.IncludesBlock (*ch, *ch))
-      return false;
-
-  return true;
+  return font_object_has_chars (cached, language_code_points[pattern->language],
+				3, false);
 }
 
 static bool
@@ -644,4 +772,34 @@ be_list_font_families (size_t *length)
   *length = families;
 
   return array;
+}
+
+void
+be_init_font_data (void)
+{
+  memset (&font_object_cache, 0, sizeof font_object_cache);
+}
+
+/* Free the font object cache.  This is called every 50 updates of a
+   frame.  */
+void
+be_evict_font_cache (void)
+{
+  struct font_object_cache_bucket *bucket, *last;
+  int i;
+
+  for (i = 0; i < 2048; ++i)
+    {
+      bucket = font_object_cache[i];
+
+      while (bucket)
+	{
+	  last = bucket;
+	  bucket = bucket->next;
+	  delete last->font_object;
+	  delete last;
+	}
+
+      font_object_cache[i] = NULL;
+    }
 }
