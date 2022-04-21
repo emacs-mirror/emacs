@@ -3356,7 +3356,10 @@ recursively.  However, files matching `grep-find-ignored-files'
 and subdirectories matching `grep-find-ignored-directories' are skipped
 in the marked directories.
 
-REGEXP should use constructs supported by your local `grep' command."
+REGEXP should use constructs supported by your local `grep' command.
+
+Also see `query-replace' for user options that affect how this
+function works."
   (interactive
    (let ((common
           (query-replace-read-args
