@@ -1385,7 +1385,6 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
   unsigned char *tmp_data = NULL;
   Window drag_window;
   XSetWindowAttributes attrs;
-  XWindowAttributes wattrs;
   Display *temp_display;
   void *old_handler;
 
@@ -1403,8 +1402,10 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 	{
 	  drag_window = *(Window *) tmp_data;
 	  x_catch_errors (dpyinfo->display);
-	  XGetWindowAttributes (dpyinfo->display,
-				drag_window, &wattrs);
+	  /* We use ButtonPressMask since it's one of the events an
+	     input-only window can never get.  */
+	  XSelectInput (dpyinfo->display, drag_window,
+			ButtonPressMask);
 	  rc = !x_had_errors_p (dpyinfo->display);
 	  x_uncatch_errors_after_check ();
 
@@ -1474,8 +1475,10 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 	 current display, and the XOpenDisplay above didn't
 	 accidentally connect to some other display.  */
       x_catch_errors (dpyinfo->display);
-      XGetWindowAttributes (dpyinfo->display,
-			    drag_window, &wattrs);
+      /* We use ButtonPressMask since it's one of the events an
+	 input-only window can never get.  */
+      XSelectInput (dpyinfo->display, drag_window,
+		    ButtonPressMask);
       rc = !x_had_errors_p (dpyinfo->display);
       x_uncatch_errors_after_check ();
       unblock_input ();
