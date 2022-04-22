@@ -4245,6 +4245,7 @@ See `completing-read' for the meaning of the arguments."
                     ;; override bindings in base-keymap.
                     base-keymap)))
          (buffer (current-buffer))
+         (c-i-c completion-ignore-case)
          (result
           (minibuffer-with-setup-hook
               (lambda ()
@@ -4254,7 +4255,9 @@ See `completing-read' for the meaning of the arguments."
                 (setq-local minibuffer-completion-confirm
                             (unless (eq require-match t) require-match))
                 (setq-local minibuffer--require-match require-match)
-                (setq-local minibuffer--original-buffer buffer))
+                (setq-local minibuffer--original-buffer buffer)
+                ;; Copy the value from original buffer to the minibuffer.
+                (setq-local completion-ignore-case c-i-c))
             (read-from-minibuffer prompt initial-input keymap
                                   nil hist def inherit-input-method))))
     (when (and (equal result "") def)
