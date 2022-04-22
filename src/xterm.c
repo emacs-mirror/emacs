@@ -23009,9 +23009,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 						  SynchronizeResize,
 						  Qnil, Qnil);
 
-    if (STRINGP (value) &&
-	(!strcmp (SSDATA (value), "false")
-	 || !strcmp (SSDATA (value), "off")))
+    if (STRINGP (value)
+	&& (!strcmp (SSDATA (value), "false")
+	    || !strcmp (SSDATA (value), "off")))
       dpyinfo->xsync_supported_p = false;
   }
 #endif
@@ -23136,6 +23136,23 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   int major = 2;
   int xi_first_event, xi_first_error;
 
+#ifndef HAVE_GTK3
+  {
+    AUTO_STRING (disableInputExtension, "disableInputExtension");
+    AUTO_STRING (DisableInputExtension, "DisableInputExtension");
+
+    Lisp_Object value = gui_display_get_resource (dpyinfo,
+						  disableInputExtension,
+						  DisableInputExtension,
+						  Qnil, Qnil);
+
+    if (STRINGP (value)
+	&& (!strcmp (SSDATA (value), "on")
+	    || !strcmp (SSDATA (value), "true")))
+      goto skip_xi_setup;
+  }
+#endif
+
 #ifdef HAVE_XINPUT2_4
   int minor = 4;
 #elif defined HAVE_XINPUT2_3 /* XInput 2.3 */
@@ -23231,6 +23248,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 
   dpyinfo->xi2_version = minor;
+#ifndef HAVE_GTK3
+ skip_xi_setup:
+#endif
 #endif
 
 #ifdef HAVE_XRANDR
