@@ -540,7 +540,7 @@ TYPE is a list whose car is `hash-table' and cdr a list of
 keyword-args forwarded to `make-hash-table'.
 
 Example:
-    (map-into '((1 . 3)) '(hash-table :test eql))"
+    (map-into \\='((1 . 3)) \\='(hash-table :test eql))"
   (map--into-hash map (cdr type)))
 
 (defun map--make-pcase-bindings (args)
