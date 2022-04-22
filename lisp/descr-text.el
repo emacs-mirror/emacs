@@ -176,6 +176,10 @@ otherwise."
 	(insert "\n"))
       ;; Text properties
       (when properties
+        (when (plist-get properties 'invisible)
+          (insert "\nNote that character has an invisibility property,\n"
+                  "  so the character displayed at point in the buffer may\n"
+                  "  differ from the character described here.\n"))
 	(newline)
 	(insert "There are text properties here:\n")
 	(describe-property-list properties)))))
