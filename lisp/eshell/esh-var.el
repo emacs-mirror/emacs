@@ -422,7 +422,7 @@ Possible options are:
 
   NAME          an environment or Lisp variable value
   \"LONG-NAME\"   disambiguates the length of the name
-  'LONG-NAME'   as above
+  `LONG-NAME'   as above
   {COMMAND}     result of command is variable's value
   (LISP-FORM)   result of Lisp form is variable's value
   <COMMAND>     write the output of command to a temporary file;

@@ -867,7 +867,7 @@ while \(:host t) would find all host entries."
       secret)))
 
 (defun auth-source-pick-first-password (&rest spec)
-  "Pick the first secret found by applying 'auth-source-search' to SPEC."
+  "Pick the first secret found by applying `auth-source-search' to SPEC."
   (auth-info-password (car (apply #'auth-source-search (plist-put spec :max 1)))))
 
 (defun auth-source-format-prompt (prompt alist)
@@ -1958,7 +1958,7 @@ entries for git.gnus.org:
 
 
 (defun auth-source--decode-octal-string (string)
-  "Convert octal STRING to utf-8 string.  E.g: 'a\134b' to 'a\b'."
+  "Convert octal STRING to utf-8 string.  E.g: \"a\134b\" to \"a\b\"."
   (let ((list (string-to-list string))
         (size (length string)))
     (decode-coding-string

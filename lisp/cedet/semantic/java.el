@@ -391,7 +391,7 @@ That is TAG `symbol-name' without the leading `@'."
 Return the list of FUN results.  If optional PROPERTY is non-nil only
 call FUN for javadoc keywords which have a value for PROPERTY.  FUN
 receives two arguments: the javadoc keyword and its associated
-'javadoc property list.  It can return any value.  All nil values are
+`javadoc' property list.  It can return any value.  All nil values are
 removed from the result list."
   (delq nil
         (mapcar

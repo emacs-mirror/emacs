@@ -2496,7 +2496,7 @@ unless DEDICATED is non-nil, so if all windows are dedicated, the
 value is nil.  Avoid returning the selected window if possible.
 Optional argument NOT-SELECTED non-nil means never return the
 selected window.  Optional argument NO-OTHER non-nil means to
-never return a window whose 'no-other-window' parameter is
+never return a window whose `no-other-window' parameter is
 non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
@@ -2538,7 +2538,7 @@ never a candidate unless DEDICATED is non-nil, so if all windows
 are dedicated, the value is nil.  Optional argument NOT-SELECTED
 non-nil means never return the selected window.  Optional
 argument NO-OTHER non-nil means to never return a window whose
-'no-other-window' parameter is non-nil.
+`no-other-window' parameter is non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2574,7 +2574,7 @@ never a candidate unless DEDICATED is non-nil, so if all windows
 are dedicated, the value is nil.  Optional argument NOT-SELECTED
 non-nil means never return the selected window.  Optional
 argument NO-OTHER non-nil means to never return a window whose
-'no-other-window' parameter is non-nil.
+`no-other-window' parameter is non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -5117,7 +5117,7 @@ parameter to nil.  See Info node `(elisp) Quitting Windows' for
 more details.
 
 If WINDOW's dedicated flag is t, try to delete WINDOW.  If it
-equals the value 'side', restore that value when WINDOW is not
+equals the value `side', restore that value when WINDOW is not
 deleted.
 
 Optional second argument BURY-OR-KILL tells how to proceed with
@@ -7549,7 +7549,7 @@ to an expression containing one of these \"action\" functions:
 
 For instance:
 
-   (setq display-buffer-alist '((\".*\" display-buffer-at-bottom)))
+   (setq display-buffer-alist \\='((\".*\" display-buffer-at-bottom)))
 
 Buffer display can be further customized to a very high degree;
 the rest of this docstring explains some of the many
@@ -7604,7 +7604,7 @@ Action alist entries are:
     the window specified in frame lines), a floating point
     number (the fraction of its total height with respect to the
     total height of the frame's root window), a cons cell whose
-    car is 'body-lines' and whose cdr is an integer that
+    car is `body-lines' and whose cdr is an integer that
     specifies the height of the window's body in frame lines, or
     a function to be called with one argument - the chosen
     window.  That function is supposed to adjust the height of
@@ -7615,7 +7615,7 @@ Action alist entries are:
     the window specified in frame lines), a floating point
     number (the fraction of its total width with respect to the
     width of the frame's root window), a cons cell whose car is
-    'body-columns' and whose cdr is an integer that specifies the
+    `body-columns' and whose cdr is an integer that specifies the
     width of the window's body in frame columns, or a function to
     be called with one argument - the chosen window.  That
     function is supposed to adjust the width of the window.
@@ -7623,7 +7623,7 @@ Action alist entries are:
     alone on their frame and specifies the desired size of that
     window either as a cons of integers (the total width and
     height of the window on that frame), a cons cell whose car is
-    'body-chars' and whose cdr is a cons of integers (the desired
+    `body-chars' and whose cdr is a cons of integers (the desired
     width and height of the window's body in columns and lines of
     its frame), or a function to be called with one argument -
     the chosen window.  That function is supposed to adjust the

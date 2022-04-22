@@ -109,7 +109,7 @@ To pass in image data, IMAGE should a string containing the image
 data, and IMAGE-FORMAT should be a symbol with a MIME format name
 like \"image/webp\".  For instance:
 
-  (image-convert data-string 'image/bmp)
+  (image-convert data-string \\='image/bmp)
 
 IMAGE can also be an image object as returned by `create-image'.
 

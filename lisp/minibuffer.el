@@ -4101,7 +4101,7 @@ This turns
 into
     (prefix \"f\" any \"o\" any \"o\" any point)
 which is at the core of flex logic.  The extra
-'any' is optimized away later on."
+`any' is optimized away later on."
   (mapcan (lambda (elem)
             (if (stringp elem)
                 (mapcan (lambda (char)

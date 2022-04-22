@@ -234,8 +234,8 @@ Higher values result in larger images."
 
 (defvar doc-view-doc-type nil
   "The type of document in the current buffer.
-Can be `dvi', `pdf', `ps', `djvu', `odf', 'epub', `cbz', `fb2',
-`'xps' or `oxps'.")
+Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
+`xps' or `oxps'.")
 
 ;; FIXME: The doc-view-current-* definitions below are macros because they
 ;; map to accessors which we want to use via `setf' as well!

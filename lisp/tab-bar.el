@@ -229,7 +229,7 @@ a list of frames to update."
 
 (defun tab-bar--key-to-number (key)
   "Return the tab number represented by KEY.
-If KEY is a symbol 'tab-N', where N is a tab number, the value is N.
+If KEY is a symbol `tab-N', where N is a tab number, the value is N.
 If KEY is \\='current-tab, the value is nil.
 For any other value of KEY, the value is t."
   (cond
@@ -426,7 +426,7 @@ on each new frame when the global `tab-bar-mode' is disabled,
 or if you want to disable the tab bar individually on each
 new frame when the global `tab-bar-mode' is enabled, by using
 
-  (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
+  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)"
   (interactive)
   (set-frame-parameter frame 'tab-bar-lines
                        (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))

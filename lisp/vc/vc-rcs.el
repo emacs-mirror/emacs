@@ -1062,9 +1062,9 @@ file."
 (defun vc-rcs-consult-headers (file)
   "Search for RCS headers in FILE, and set properties accordingly.
 
-Returns: nil            if no headers were found
-         'rev           if a workfile revision was found
-         'rev-and-lock  if revision and lock info was found"
+Returns: nil             if no headers were found
+         `rev'           if a workfile revision was found
+         `rev-and-lock'  if revision and lock info was found"
   (cond
    ((not (get-file-buffer file)) nil)
    ((let (status version)

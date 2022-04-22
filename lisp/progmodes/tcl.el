@@ -344,7 +344,7 @@ information):
 
 Add functions to the hook with `add-hook':
 
-   (add-hook 'tcl-mode-hook #'tcl-guess-application)")
+   (add-hook \\='tcl-mode-hook #\\='tcl-guess-application)")
 
 
 (defvar tcl-proc-list

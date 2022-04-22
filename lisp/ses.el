@@ -2331,7 +2331,7 @@ Narrow to print area if optional argument NONARROW is nil."
   "Recalculate and reprint the current cell or range.
 
 If CURCELL is non nil use it as current cell or range
-without any check, otherwise function (ses-check-curcell 'range)
+without any check, otherwise function (ses-check-curcell \\='range)
 is called.
 
 For an individual cell, shows the error if the formula or printer
@@ -3774,15 +3774,15 @@ DEFINITION shall be either a string formatter, e.g.:
   \"%.2f\" or (\"%.2f\")  for left alignment.
 
 or a lambda expression, e.g. for formatting in ISO format dates
-created with a '(calcFunc-date YEAR MONTH DAY)' formula:
+created with a `(calcFunc-date YEAR MONTH DAY)' formula:
 
   (lambda (x)
      (cond
       ((null val) \"\")
-      ((eq (car-safe x) 'date)
-       (let ((calc-format-date '(X YYYY \"-\" MM \"-\" DD)))
+      ((eq (car-safe x) \\='date)
+       (let ((calc-format-date \\='(X YYYY \"-\" MM \"-\" DD)))
          (math-format-date x)))
-      (t (ses-center-span val ?# 'ses-prin1))))
+      (t (ses-center-span val ?# \\='ses-prin1))))
 
 If NAME is already used to name a local printer function, then
 the current definition is proposed as default value, and the
@@ -4122,7 +4122,7 @@ until the next nonblank column."
   (ses-center-span value ?~ printer))
 
 (defun ses-prin1 (value)
-  "Shorthand for  '(prin1-to-string VALUE t)'.
+  "Shorthand for `(prin1-to-string VALUE t)'.
 Useful to handle the default behavior in custom lambda based
 printer functions."
   (prin1-to-string value t))

@@ -1727,7 +1727,7 @@ to the selected frame.
 Storing information about resize operations is off by default.
 If you set the variable `frame-size-history' like this
 
-(setq frame-size-history '(100))
+(setq frame-size-history \\='(100))
 
 then Emacs will save information about the next 100 significant
 operations affecting any frame's size in that variable.  This

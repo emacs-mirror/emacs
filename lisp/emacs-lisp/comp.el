@@ -238,7 +238,7 @@ native compilation runs.")
 
 (defvar comp-curr-allocation-class 'd-default
   "Current allocation class.
-Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
+Can be one of: `d-default', `d-impure' or `d-ephemeral'.  See `comp-ctxt'.")
 
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
@@ -1023,7 +1023,7 @@ To be used by all entry points."
 
 (defun comp-alloc-class-to-container (alloc-class)
   "Given ALLOC-CLASS, return the data container for the current context.
-Assume allocation class 'd-default as default."
+Assume allocation class `d-default' as default."
   (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-default) comp-ctxt))
 
 (defsubst comp-add-const-to-relocs (obj)
@@ -2633,8 +2633,8 @@ TARGET-BB-SYM is the symbol name of the target block."
             do (comp-emit-call-cstr target insn-cell cstr)))))))
 
 (defun comp-add-cstrs (_)
-  "Rewrite conditional branches adding appropriate 'assume' insns.
-This is introducing and placing 'assume' insns in use by fwprop
+  "Rewrite conditional branches adding appropriate `assume' insns.
+This is introducing and placing `assume' insns in use by fwprop
 to propagate conditional branch test information on target basic
 blocks."
   (maphash (lambda (_ f)
@@ -3482,7 +3482,7 @@ Return the list of m-var ids nuked."
 
 (defun comp-remove-type-hints-func ()
   "Remove type hints from the current function.
-These are substituted with a normal 'set' op."
+These are substituted with a normal `set' op."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do (comp-loop-insn-in-block b
@@ -4217,7 +4217,7 @@ Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
 directory (the last entry in `native-comp-eln-load-path') unless
 `native-compile-target-directory' is non-nil.  If the environment
-variable 'NATIVE_DISABLED' is set, only byte compile."
+variable \"NATIVE_DISABLED\" is set, only byte compile."
   (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)

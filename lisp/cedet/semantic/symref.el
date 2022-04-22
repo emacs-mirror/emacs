@@ -101,7 +101,7 @@ Where PREDICATE is a function that takes a directory name for the
 root of a project, and returns non-nil if the tool represented by KEY
 is supported.
 
-If no tools are supported, then 'grep is assumed.")
+If no tools are supported, then `grep' is assumed.")
 
 (defun semantic-symref-calculate-rootdir ()
   "Calculate the root directory for a symref search.
@@ -475,7 +475,7 @@ already."
 Return the Semantic tag associated with HIT.
 SEARCHTXT is the text that is being searched for.
 Used to narrow the in-buffer search.
-SEARCHTYPE is the type of search (such as 'symbol or 'tagname).
+SEARCHTYPE is the type of search (such as `symbol' or `tagname').
 If there is no database, or if the searchtype is wrong, return nil."
   ;; Allowed search types for this mechanism:
   ;; tagname, tagregexp, tagcompletions
@@ -506,7 +506,7 @@ If there is no database, or if the searchtype is wrong, return nil."
 Return the Semantic tag associated with HIT.
 SEARCHTXT is the text that is being searched for.
 Used to narrow the in-buffer search.
-SEARCHTYPE is the type of search (such as 'symbol or 'tagname).
+SEARCHTYPE is the type of search (such as `symbol' or `tagname').
 Optional OPEN-BUFFERS, when nil will use a faster version of
 `find-file' when a file needs to be opened.  If non-nil, then
 normal buffer initialization will be used.

@@ -2560,7 +2560,7 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
       (push x defun-declarations-alist)))
 
 (defun cl--optimize (f _args &rest qualities)
-  "Serve 'cl-optimize' in function declarations.
+  "Serve `cl-optimize' in function declarations.
 Example:
 (defun foo (x)
   (declare (cl-optimize (speed 3) (safety 0)))

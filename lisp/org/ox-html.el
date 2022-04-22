@@ -2909,7 +2909,7 @@ Starred and \"displaymath\" environments are not numbered."
 
 (defun org-html--unlabel-latex-environment (latex-frag)
   "Change environment in LATEX-FRAG string to an unnumbered one.
-For instance, change an 'equation' environment to 'equation*'."
+For instance, change an `equation' environment to `equation*'."
   (replace-regexp-in-string
    "\\`[ \t]*\\\\begin{\\([^*]+?\\)}"
    "\\1*"

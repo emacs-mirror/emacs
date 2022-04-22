@@ -311,7 +311,7 @@ parameter, and should return the (possibly) transformed URL."
 
 (defvar eww-accept-content-types
   "text/html, text/plain, text/sgml, text/css, application/xhtml+xml, */*;q=0.01"
-  "Value used for the HTTP 'Accept' header.")
+  "Value used for the HTTP \"Accept\" header.")
 
 (defvar-keymap eww-link-keymap
   :parent shr-map

@@ -1764,7 +1764,7 @@ initialized. Always use the command `mh-have-file-command'.")
 ;;;###mh-autoload
 (defun mh-have-file-command ()
   "Return t if `file' command is on the system.
-'file -i' is used to get MIME type of composition insertion."
+\"file -i\" is used to get MIME type of composition insertion."
   (when (eq mh-have-file-command 'undefined)
     (setq mh-have-file-command
           (and (executable-find "file") ; file command exists

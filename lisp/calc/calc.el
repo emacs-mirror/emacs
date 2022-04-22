@@ -1375,7 +1375,7 @@ Notations:  3.14e6     3.14 * 10^6
 
 LONG is a desired text for a wide window, SHORT is a desired
 abbreviated text, and width is the buffer width, which will be
-some fraction of the 'parent' window width (At the time of
+some fraction of the \"parent\" window width (At the time of
 writing, 2/3 for calc, 1/3 for trail).  The optional FUDGE is a
 trial-and-error adjustment number for the edge-cases at the
 border of the two cases."

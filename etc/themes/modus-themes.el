@@ -3368,10 +3368,10 @@ theme's fallback text color."
 
 (defun modus-themes--paren (normalbg intensebg)
   "Conditional use of intense colors for matching parentheses.
-NORMALBG should be the special palette color 'bg-paren-match' or
+NORMALBG should be the special palette color `bg-paren-match' or
 something similar.  INTENSEBG must be easier to discern next to
 other backgrounds, such as the special palette color
-'bg-paren-match-intense'."
+`bg-paren-match-intense'."
   (let ((properties (modus-themes--list-or-warn 'modus-themes-paren-match)))
     (list :inherit
           (if (memq 'bold properties)
@@ -3637,8 +3637,8 @@ clearly distinguishes past, present, future tasks."
 (defun modus-themes--agenda-habit (default traffic simple &optional default-d traffic-d simple-d)
   "Specify background values for `modus-themes-org-agenda' habits.
 DEFAULT is the original foregrounc color.  TRAFFIC is to be used
-when the 'traffic-light' style is applied, while SIMPLE
-corresponds to the 'simplified style'.
+when the `traffic-light' style is applied, while SIMPLE
+corresponds to the \"simplified style\".
 
 Optional DEFAULT-D, TRAFFIC-D, SIMPLE-D are alternatives to the
 main colors, meant for dopia when `modus-themes-deuteranopia' is

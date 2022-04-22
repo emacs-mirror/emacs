@@ -891,7 +891,7 @@ All ls time options, namely c, t and u, are handled."
   nil)
 
 (defun ls-lisp--sanitize-switches (switches)
-  "Convert long options of GNU 'ls' to their short form.
+  "Convert long options of GNU \"ls\" to their short form.
 Conversion is done only for flags supported by ls-lisp.
 Long options not supported by ls-lisp are removed.
 Supported options are: A a B C c F G g h i n R r S s t U u v X.

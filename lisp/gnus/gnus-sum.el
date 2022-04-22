@@ -9447,7 +9447,7 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
 
 (defun gnus-collect-urls-from-article ()
   "Select the article and return the list of URLs in it.
-See 'gnus-collect-urls'."
+See `gnus-collect-urls'."
   (gnus-summary-select-article)
   (gnus-with-article-buffer
     (article-goto-body)

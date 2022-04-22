@@ -2125,9 +2125,9 @@ Assume \"size\" key is equal to \"larger\"."
 (defun gnus-search-prepare-query (query-spec)
   "Accept a search query in raw format, and prepare it.
 QUERY-SPEC is an alist produced by functions such as
-`gnus-group-make-search-group', and contains at least a 'query
+`gnus-group-make-search-group', and contains at least a `query'
 key, and possibly some meta keys.  This function extracts any
-additional meta keys from the 'query string, and parses the
+additional meta keys from the `query' string, and parses the
 remaining string, then adds all that to the top-level spec."
   (let ((query (alist-get 'query query-spec))
 	val)

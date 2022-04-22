@@ -306,10 +306,10 @@ number of characters have a special shorthand syntax.
 
 Here's some example key sequences.
 
-  \"f\"           (the key 'f')
-  \"S o m\"       (a three key sequence of the keys 'S', 'o' and 'm')
-  \"C-c o\"       (a two key sequence of the keys 'c' with the control modifier
-                 and then the key 'o')
+  \"f\"           (the key `f')
+  \"S o m\"       (a three key sequence of the keys `S', `o' and `m')
+  \"C-c o\"       (a two key sequence of the keys `c' with the control modifier
+                 and then the key `o')
   \"H-<left>\"    (the key named \"left\" with the hyper modifier)
   \"M-RET\"       (the \"return\" key with a meta modifier)
   \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)

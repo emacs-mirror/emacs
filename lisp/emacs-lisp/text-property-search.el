@@ -47,7 +47,7 @@ match if is not `equal' to VALUE.  Furthermore, a nil PREDICATE
 means that the match region is ended if the value changes.  For
 instance, this means that if you loop with
 
-  (while (setq prop (text-property-search-forward 'face))
+  (while (setq prop (text-property-search-forward \\='face))
     ...)
 
 you will get all distinct regions with non-nil `face' values in

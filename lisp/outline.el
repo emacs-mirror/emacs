@@ -1502,7 +1502,7 @@ LEVEL, decides of subtree visibility according to
 
 (defun outline--cycle-state ()
   "Return the cycle state of current heading.
-Return either 'hide-all, 'headings-only, or 'show-all."
+Return either `hide-all', `headings-only', or `show-all'."
   (save-excursion
     (let (start end ov-list heading-end)
       (outline-back-to-heading)

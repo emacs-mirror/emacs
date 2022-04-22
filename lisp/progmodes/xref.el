@@ -1868,7 +1868,7 @@ to control which program to use when looking for matches."
    (xref--find-ignores-arguments ignores dir)))
 
 (defun xref--find-ignores-arguments (ignores dir)
-  "Convert IGNORES and DIR to a list of arguments for 'find'.
+  "Convert IGNORES and DIR to a list of arguments for `find'.
 IGNORES is a list of glob patterns.  DIR is an absolute
 directory, used as the root of the ignore globs."
   (cl-assert (not (string-match-p "\\`~" dir)))

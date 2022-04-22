@@ -464,7 +464,7 @@ If POS is out of range, the value is nil."
 (defun erc-bounds-of-word-at-point ()
   "Return the bounds of word at point, or nil if we're not at a word.
 If no `subword-mode' is active, then this is
-\(bounds-of-thing-at-point 'word)."
+\(bounds-of-thing-at-point \\='word)."
   (if (or (erc-word-at-arg-p (point))
           (erc-word-at-arg-p (1- (point))))
       (save-excursion
