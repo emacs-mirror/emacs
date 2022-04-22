@@ -2269,7 +2269,7 @@ Example usage:
 
     (erc-tls :server \"irc.libera.chat\" :port 6697
              :client-certificate
-             '(\"/home/bandali/my-cert.key\"
+             \\='(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))"
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))

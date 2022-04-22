@@ -1353,7 +1353,7 @@ to a file, and killing a buffer is counted as \"operating\" on
 the file.  If instead you want to prioritize files that appear in
 buffers you switch to a lot, you can say something like the following:
 
-  (add-hook 'buffer-list-update-hook 'recentf-track-opened-file)"
+  (add-hook \\='buffer-list-update-hook #\\='recentf-track-opened-file)"
   :global t
   :group 'recentf
   :keymap recentf-mode-map

@@ -3008,12 +3008,12 @@ the minibuffer contents."
 
 (defconst undo-equiv-table (make-hash-table :test 'eq :weakness t)
   "Table mapping redo records to the corresponding undo one.
-A redo record for an undo in region maps to 'undo-in-region.
+A redo record for an undo in region maps to `undo-in-region'.
 A redo record for ordinary undo maps to the following (earlier) undo.
 A redo record that undoes to the beginning of the undo list maps to t.
 In the rare case where there are (erroneously) consecutive nil's in
 `buffer-undo-list', `undo' maps the previous valid undo record to
-'empty, if the previous record is a redo record, `undo' doesn't change
+`empty', if the previous record is a redo record, `undo' doesn't change
 its mapping.
 
 To be clear, a redo record is just an undo record, the only difference

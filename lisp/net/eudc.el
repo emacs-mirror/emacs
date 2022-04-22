@@ -174,7 +174,7 @@ Value is the new string."
   "Folding white space.")
 
 (defconst eudc-rfc5322-cctext-token "\u005D-\u007E\u002A-\u005B\u0021-\u0027"
-  "Printable US-ASCII characters not including '(', ')', or '\\'.")
+  "Printable US-ASCII characters not including \"(\", \")\", or \"\\\".")
 
 (defun eudc-rfc5322-quote-phrase (string)
   "Quote STRING if it needs quoting as a phrase in a header."

@@ -1858,8 +1858,8 @@ on which one provides better contrast with COLOR."
       "#ffffff" "black"))
 
 (defconst color-luminance-dark-limit 0.325
-  "The relative luminance below which a color is considered 'dark'.
-A 'dark' color in this sense provides better contrast with white
+  "The relative luminance below which a color is considered \"dark\".
+A \"dark\" color in this sense provides better contrast with white
 than with black; see `color-dark-p'.
 This value was determined experimentally.")
 
