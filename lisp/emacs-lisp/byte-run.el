@@ -32,8 +32,7 @@
 
 (defvar byte-run--ssp-seen nil
   "Which conses/vectors/records have been processed in strip-symbol-positions?
-The value is a hash table, the key being the old element and the value being
-the corresponding new element of the same type.
+The value is a hash table, the keys being the elements and the values being t.
 
 The purpose of this is to detect circular structures.")
 

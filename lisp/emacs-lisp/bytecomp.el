@@ -1185,14 +1185,14 @@ Here, \"first\" is by a depth first search."
           (and (symbolp (setq sym (byte-compile--first-symbol-with-pos (cdr form))))
                sym)
           0))
-     ((and (vectorp form)
+     ((and (or (vectorp form) (recordp form))
            (> (length form) 0))
       (let ((i 0)
             (len (length form))
             elt)
         (catch 'sym
           (while (< i len)
-            (when (symbolp
+            (when (symbol-with-pos-p
                    (setq elt (byte-compile--first-symbol-with-pos (aref form i))))
               (throw 'sym elt))
             (setq i (1+ i)))
