@@ -330,108 +330,109 @@ Assumes the caller has bound `macroexpand-all-environment'."
         (setq form (macroexp-macroexpand form macroexpand-all-environment))
         ;; FIXME: It'd be nice to use `byte-optimize--pcase' here, but when
         ;; I tried it, it broke the bootstrap :-(
-        (pcase form
-          (`(cond . ,clauses)
-           (macroexp--cons 'cond (macroexp--all-clauses clauses) form))
-          (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
-           (macroexp--cons
-            'condition-case
-            (macroexp--cons err
-                            (macroexp--cons (macroexp--expand-all body)
-                                            (macroexp--all-clauses handlers 1)
-                                            (cddr form))
-                            (cdr form))
-            form))
-          (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
-           (push name macroexp--dynvars)
-           (macroexp--all-forms form 2))
-          (`(function ,(and f `(lambda . ,_)))
-           (let ((macroexp--dynvars macroexp--dynvars))
-             (macroexp--cons 'function
-                             (macroexp--cons (macroexp--all-forms f 2)
-                                             nil
-                                             (cdr form))
-                             form)))
-          (`(,(or 'function 'quote) . ,_) form)
-          (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
-                                               pcase--dontcare))
-           (let ((macroexp--dynvars macroexp--dynvars))
+        (let ((fn (car-safe form)))
+          (pcase form
+            (`(cond . ,clauses)
+             (macroexp--cons fn (macroexp--all-clauses clauses) form))
+            (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
              (macroexp--cons
-              fun
-              (macroexp--cons
-               (macroexp--all-clauses bindings 1)
-               (if (null body)
-                   (macroexp-unprogn
-                    (macroexp-warn-and-return
-                     (format "Empty %s body" fun)
-                     nil nil 'compile-only fun))
-                 (macroexp--all-forms body))
-               (cdr form))
-              form)))
-          (`(,(and fun `(lambda . ,_)) . ,args)
-           ;; Embedded lambda in function position.
-           ;; If the byte-optimizer is loaded, try to unfold this,
-           ;; i.e. rewrite it to (let (<args>) <body>).  We'd do it in the optimizer
-           ;; anyway, but doing it here (i.e. earlier) can sometimes avoid the
-           ;; creation of a closure, thus resulting in much better code.
-           (let ((newform (macroexp--unfold-lambda form)))
-	     (if (eq newform form)
-	         ;; Unfolding failed for some reason, avoid infinite recursion.
-	         (macroexp--cons (macroexp--all-forms fun 2)
-                                 (macroexp--all-forms args)
-                                 form)
-	       (macroexp--expand-all newform))))
-          (`(funcall ,exp . ,args)
-           (let ((eexp (macroexp--expand-all exp))
-                 (eargs (macroexp--all-forms args)))
-             ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
-             ;; has a compiler-macro, or to unfold it.
-             (pcase eexp
-               ((and `#',f
-                     (guard (not (or (special-form-p f) (macrop f))))) ;; bug#46636
-                (macroexp--expand-all `(,f . ,eargs)))
-               (_ `(funcall ,eexp . ,eargs)))))
-          (`(funcall . ,_) form)            ;bug#53227
-          (`(,func . ,_)
-           (let ((handler (function-get func 'compiler-macro))
-                 (funargs (function-get func 'funarg-positions)))
-             ;; Check functions quoted with ' rather than with #'
-             (dolist (funarg funargs)
-               (let ((arg (nth funarg form)))
-                 (when (and (eq 'quote (car-safe arg))
-                            (eq 'lambda (car-safe (cadr arg))))
-                   (setcar (nthcdr funarg form)
-                           (macroexp-warn-and-return
-                            (format "%S quoted with ' rather than with #'"
-                                    (let ((f (cadr arg)))
-                                      (if (symbolp f) f `(lambda ,(nth 1 f) ...))))
-                            arg nil nil (cadr arg))))))
-             ;; Macro expand compiler macros.  This cannot be delayed to
-             ;; byte-optimize-form because the output of the compiler-macro can
-             ;; use macros.
-             (if (null handler)
-                 ;; No compiler macro.  We just expand each argument (for
-                 ;; setq/setq-default this works alright because the variable names
-                 ;; are symbols).
-                 (macroexp--all-forms form 1)
-               ;; If the handler is not loaded yet, try (auto)loading the
-               ;; function itself, which may in turn load the handler.
-               (unless (functionp handler)
-                 (with-demoted-errors "macroexp--expand-all: %S"
-                   (autoload-do-load (indirect-function func) func)))
-               (let ((newform (macroexp--compiler-macro handler form)))
-                 (if (eq form newform)
-                     ;; The compiler macro did not find anything to do.
-                     (if (equal form (setq newform (macroexp--all-forms form 1)))
-                         form
-                       ;; Maybe after processing the args, some new opportunities
-                       ;; appeared, so let's try the compiler macro again.
-                       (setq form (macroexp--compiler-macro handler newform))
-                       (if (eq newform form)
-                           newform
-                         (macroexp--expand-all newform)))
-                   (macroexp--expand-all newform))))))
-          (_ form)))
+              fn
+              (macroexp--cons err
+                              (macroexp--cons (macroexp--expand-all body)
+                                              (macroexp--all-clauses handlers 1)
+                                              (cddr form))
+                              (cdr form))
+              form))
+            (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
+             (push name macroexp--dynvars)
+             (macroexp--all-forms form 2))
+            (`(function ,(and f `(lambda . ,_)))
+             (let ((macroexp--dynvars macroexp--dynvars))
+               (macroexp--cons fn
+                               (macroexp--cons (macroexp--all-forms f 2)
+                                               nil
+                                               (cdr form))
+                               form)))
+            (`(,(or 'function 'quote) . ,_) form)
+            (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
+                                                 pcase--dontcare))
+             (let ((macroexp--dynvars macroexp--dynvars))
+               (macroexp--cons
+                fun
+                (macroexp--cons
+                 (macroexp--all-clauses bindings 1)
+                 (if (null body)
+                     (macroexp-unprogn
+                      (macroexp-warn-and-return
+                       (format "Empty %s body" fun)
+                       nil nil 'compile-only fun))
+                   (macroexp--all-forms body))
+                 (cdr form))
+                form)))
+            (`(,(and fun `(lambda . ,_)) . ,args)
+             ;; Embedded lambda in function position.
+             ;; If the byte-optimizer is loaded, try to unfold this,
+             ;; i.e. rewrite it to (let (<args>) <body>).  We'd do it in the optimizer
+             ;; anyway, but doing it here (i.e. earlier) can sometimes avoid the
+             ;; creation of a closure, thus resulting in much better code.
+             (let ((newform (macroexp--unfold-lambda form)))
+	       (if (eq newform form)
+	           ;; Unfolding failed for some reason, avoid infinite recursion.
+	           (macroexp--cons (macroexp--all-forms fun 2)
+                                   (macroexp--all-forms args)
+                                   form)
+	         (macroexp--expand-all newform))))
+            (`(funcall ,exp . ,args)
+             (let ((eexp (macroexp--expand-all exp))
+                   (eargs (macroexp--all-forms args)))
+               ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
+               ;; has a compiler-macro, or to unfold it.
+               (pcase eexp
+                 ((and `#',f
+                       (guard (not (or (special-form-p f) (macrop f))))) ;; bug#46636
+                  (macroexp--expand-all `(,f . ,eargs)))
+                 (_ `(funcall ,eexp . ,eargs)))))
+            (`(funcall . ,_) form)      ;bug#53227
+            (`(,func . ,_)
+             (let ((handler (function-get func 'compiler-macro))
+                   (funargs (function-get func 'funarg-positions)))
+               ;; Check functions quoted with ' rather than with #'
+               (dolist (funarg funargs)
+                 (let ((arg (nth funarg form)))
+                   (when (and (eq 'quote (car-safe arg))
+                              (eq 'lambda (car-safe (cadr arg))))
+                     (setcar (nthcdr funarg form)
+                             (macroexp-warn-and-return
+                              (format "%S quoted with ' rather than with #'"
+                                      (let ((f (cadr arg)))
+                                        (if (symbolp f) f `(lambda ,(nth 1 f) ...))))
+                              arg nil nil (cadr arg))))))
+               ;; Macro expand compiler macros.  This cannot be delayed to
+               ;; byte-optimize-form because the output of the compiler-macro can
+               ;; use macros.
+               (if (null handler)
+                   ;; No compiler macro.  We just expand each argument (for
+                   ;; setq/setq-default this works alright because the variable names
+                   ;; are symbols).
+                   (macroexp--all-forms form 1)
+                 ;; If the handler is not loaded yet, try (auto)loading the
+                 ;; function itself, which may in turn load the handler.
+                 (unless (functionp handler)
+                   (with-demoted-errors "macroexp--expand-all: %S"
+                     (autoload-do-load (indirect-function func) func)))
+                 (let ((newform (macroexp--compiler-macro handler form)))
+                   (if (eq form newform)
+                       ;; The compiler macro did not find anything to do.
+                       (if (equal form (setq newform (macroexp--all-forms form 1)))
+                           form
+                         ;; Maybe after processing the args, some new opportunities
+                         ;; appeared, so let's try the compiler macro again.
+                         (setq form (macroexp--compiler-macro handler newform))
+                         (if (eq newform form)
+                             newform
+                           (macroexp--expand-all newform)))
+                     (macroexp--expand-all newform))))))
+            (_ form))))
     (pop byte-compile-form-stack)))
 
 ;; Record which arguments expect functions, so we can warn when those

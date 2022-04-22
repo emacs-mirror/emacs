@@ -471,7 +471,7 @@ Return the compile-time value of FORM."
   (let ((print-symbols-bare t))         ; Possibly redundant binding.
     (setf form (macroexp-macroexpand form byte-compile-macro-environment)))
   (if (eq (car-safe form) 'progn)
-      (cons 'progn
+      (cons (car form)
             (mapcar (lambda (subform)
                       (byte-compile-recurse-toplevel
                        subform non-toplevel-case))
@@ -3084,7 +3084,7 @@ lambda-expression."
                        ;; which may include "calls" to
                        ;; internal-make-closure (Bug#29988).
                        lexical-binding)
-                   (setq int `(interactive ,newform)))))
+                   (setq int `(,(car int) ,newform)))))
             ((cdr int)                  ; Invalid (interactive . something).
 	     (byte-compile-warn-x int "malformed interactive spec: %s"
 				  int))))

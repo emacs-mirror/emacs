@@ -500,11 +500,11 @@ places where they originally did not directly appear."
                  args)))
 
     (`(cond . ,cond-forms)              ; cond special form
-     `(cond . ,(mapcar (lambda (branch)
-                         (mapcar (lambda (form)
-                                   (cconv-convert form env extend))
-                                 branch))
-                       cond-forms)))
+     `(,(car form) . ,(mapcar (lambda (branch)
+                                (mapcar (lambda (form)
+                                          (cconv-convert form env extend))
+                                        branch))
+                              cond-forms)))
 
     (`(function (lambda ,args . ,body) . ,_)
      (let ((docstring (if (eq :documentation (car-safe (car body)))
@@ -538,7 +538,7 @@ places where they originally did not directly appear."
             (msg (when (eq class :unused)
                    (cconv--warn-unused-msg var "variable")))
             (newprotform (cconv-convert protected-form env extend)))
-       `(condition-case ,var
+       `(,(car form) ,var
             ,(if msg
                  (macroexp--warn-wrap var msg newprotform 'lexical)
                newprotform)
@@ -554,9 +554,9 @@ places where they originally did not directly appear."
                        `((let ((,var (list ,var))) ,@body))))))
              handlers))))
 
-    (`(unwind-protect ,form . ,body)
-     `(unwind-protect ,(cconv-convert form env extend)
-        :fun-body ,(cconv--convert-function () body env form)))
+    (`(unwind-protect ,form1 . ,body)
+     `(,(car form) ,(cconv-convert form1 env extend)
+        :fun-body ,(cconv--convert-function () body env form1)))
 
     (`(setq . ,forms)                   ; setq special form
      (if (= (logand (length forms) 1) 1)
@@ -568,7 +568,7 @@ places where they originally did not directly appear."
                   (sym-new (or (cdr (assq sym env)) sym))
                   (value (cconv-convert (pop forms) env extend)))
              (push (pcase sym-new
-                     ((pred symbolp) `(setq ,sym-new ,value))
+                     ((pred symbolp) `(,(car form) ,sym-new ,value))
                      (`(car-safe ,iexp) `(setcar ,iexp ,value))
                      ;; This "should never happen", but for variables which are
                      ;; mutated+captured+unused, we may end up trying to `setq'
@@ -604,7 +604,7 @@ places where they originally did not directly appear."
                                  (cons fun args)))))))
 
     (`(interactive . ,forms)
-     `(interactive . ,(mapcar (lambda (form)
+     `(,(car form) . ,(mapcar (lambda (form)
                                 (cconv-convert form nil nil))
                               forms)))
 

@@ -338,7 +338,7 @@ for speeding up processing.")
              (let ((exps-opt (byte-optimize-body exps t)))
                (if (macroexp-const-p exp-opt)
                    `(progn ,@exps-opt ,exp-opt)
-	         `(prog1 ,exp-opt ,@exps-opt)))
+	         `(,fn ,exp-opt ,@exps-opt)))
 	   exp-opt)))
 
       (`(,(or `save-excursion `save-restriction `save-current-buffer) . ,exps)
@@ -358,7 +358,7 @@ for speeding up processing.")
               (then-opt (and test-opt (byte-optimize-form then for-effect)))
               (else-opt (and (not (and test-opt const))
                              (byte-optimize-body else for-effect))))
-         `(if ,test-opt ,then-opt . ,else-opt)))
+         `(,fn ,test-opt ,then-opt . ,else-opt)))
 
       (`(,(or 'and 'or) . ,exps)
        ;; FIXME: We have to traverse the expressions in left-to-right
@@ -397,7 +397,7 @@ for speeding up processing.")
               ;; as mutated variables have been marked as non-substitutable.
               (condition (byte-optimize-form (car condition-body) nil))
               (body (byte-optimize-body (cdr condition-body) t)))
-         `(while ,condition . ,body)))
+         `(,fn ,condition . ,body)))
 
       (`(interactive . ,_)
        (byte-compile-warn-x form "misplaced interactive spec: `%s'" form)
@@ -409,7 +409,7 @@ for speeding up processing.")
        form)
 
       (`(condition-case ,var ,exp . ,clauses)
-       `(condition-case ,var          ;Not evaluated.
+       `(,fn ,var          ;Not evaluated.
             ,(byte-optimize-form exp for-effect)
           ,@(mapcar (lambda (clause)
                       (let ((byte-optimize--lexvars
@@ -432,14 +432,14 @@ for speeding up processing.")
        (let ((bodyform (byte-optimize-form exp for-effect)))
          (pcase exps
            (`(:fun-body ,f)
-            `(unwind-protect ,bodyform
+            `(,fn ,bodyform
                :fun-body ,(byte-optimize-form f nil)))
            (_
-            `(unwind-protect ,bodyform
+            `(,fn ,bodyform
                . ,(byte-optimize-body exps t))))))
 
       (`(catch ,tag . ,exps)
-       `(catch ,(byte-optimize-form tag nil)
+       `(,fn ,(byte-optimize-form tag nil)
           . ,(byte-optimize-body exps for-effect)))
 
       ;; Needed as long as we run byte-optimize-form after cconv.
@@ -495,7 +495,7 @@ for speeding up processing.")
                                   (cons (byte-optimize-form (car rest) nil)
                                         (cdr rest)))))
          (push name byte-optimize--dynamic-vars)
-         `(defvar ,name . ,optimized-rest)))
+         `(,fn ,name . ,optimized-rest)))
 
       (`(,(pred byte-code-function-p) . ,exps)
        (cons fn (mapcar #'byte-optimize-form exps)))
@@ -561,49 +561,50 @@ for speeding up processing.")
 
 (defun byte-optimize--rename-var (var new-var form)
   "Replace VAR with NEW-VAR in FORM."
-  (pcase form
-    ((pred symbolp) (if (eq form var) new-var form))
-    (`(setq . ,args)
-     (let ((new-args nil))
-       (while args
-         (push (byte-optimize--rename-var var new-var (car args)) new-args)
-         (push (byte-optimize--rename-var var new-var (cadr args)) new-args)
-         (setq args (cddr args)))
-       `(setq . ,(nreverse new-args))))
-    ;; In binding constructs like `let', `let*' and `condition-case' we
-    ;; rename everything for simplicity, even new bindings named VAR.
-    (`(,(and head (or 'let 'let*)) ,bindings . ,body)
-     `(,head
-       ,(mapcar (lambda (b) (byte-optimize--rename-var-body var new-var b))
-                bindings)
-       ,@(byte-optimize--rename-var-body var new-var body)))
-    (`(condition-case ,res-var ,protected-form . ,handlers)
-     `(condition-case ,(byte-optimize--rename-var var new-var res-var)
-          ,(byte-optimize--rename-var var new-var protected-form)
-        ,@(mapcar (lambda (h)
-                    (cons (car h)
-                          (byte-optimize--rename-var-body var new-var (cdr h))))
-                  handlers)))
-    (`(internal-make-closure ,vars ,env . ,rest)
-     `(internal-make-closure
-       ,vars ,(byte-optimize--rename-var-body var new-var env) . ,rest))
-    (`(defvar ,name . ,rest)
-     ;; NAME is not renamed here; we only care about lexical variables.
-     `(defvar ,name . ,(byte-optimize--rename-var-body var new-var rest)))
+  (let ((fn (car-safe form)))
+    (pcase form
+      ((pred symbolp) (if (eq form var) new-var form))
+      (`(setq . ,args)
+       (let ((new-args nil))
+         (while args
+           (push (byte-optimize--rename-var var new-var (car args)) new-args)
+           (push (byte-optimize--rename-var var new-var (cadr args)) new-args)
+           (setq args (cddr args)))
+         `(,fn . ,(nreverse new-args))))
+      ;; In binding constructs like `let', `let*' and `condition-case' we
+      ;; rename everything for simplicity, even new bindings named VAR.
+      (`(,(and head (or 'let 'let*)) ,bindings . ,body)
+       `(,head
+         ,(mapcar (lambda (b) (byte-optimize--rename-var-body var new-var b))
+                  bindings)
+         ,@(byte-optimize--rename-var-body var new-var body)))
+      (`(condition-case ,res-var ,protected-form . ,handlers)
+       `(,fn ,(byte-optimize--rename-var var new-var res-var)
+             ,(byte-optimize--rename-var var new-var protected-form)
+             ,@(mapcar (lambda (h)
+                         (cons (car h)
+                               (byte-optimize--rename-var-body var new-var (cdr h))))
+                       handlers)))
+      (`(internal-make-closure ,vars ,env . ,rest)
+       `(,fn
+         ,vars ,(byte-optimize--rename-var-body var new-var env) . ,rest))
+      (`(defvar ,name . ,rest)
+       ;; NAME is not renamed here; we only care about lexical variables.
+       `(,fn ,name . ,(byte-optimize--rename-var-body var new-var rest)))
 
-    (`(cond . ,clauses)
-     `(cond ,@(mapcar (lambda (c)
-                        (byte-optimize--rename-var-body var new-var c))
-                      clauses)))
+      (`(cond . ,clauses)
+       `(,fn ,@(mapcar (lambda (c)
+                         (byte-optimize--rename-var-body var new-var c))
+                       clauses)))
 
-    (`(function . ,_) form)
-    (`(quote . ,_) form)
-    (`(lambda . ,_) form)
+      (`(function . ,_) form)
+      (`(quote . ,_) form)
+      (`(lambda . ,_) form)
 
-    ;; Function calls and special forms not handled above.
-    (`(,head . ,args)
-     `(,head . ,(byte-optimize--rename-var-body var new-var args)))
-    (_ form)))
+      ;; Function calls and special forms not handled above.
+      (`(,head . ,args)
+       `(,head . ,(byte-optimize--rename-var-body var new-var args)))
+      (_ form))))
 
 (defun byte-optimize-let-form (head form for-effect)
   ;; Recursively enter the optimizer for the bindings and body
@@ -1174,21 +1175,21 @@ See Info node `(elisp) Integer Basics'."
                 (proper-list-p clause))
            (if (null (cddr clause))
                ;; A trivial `progn'.
-               (byte-optimize-if `(if ,(cadr clause) ,@(nthcdr 2 form)))
+               (byte-optimize-if `(,(car form) ,(cadr clause) ,@(nthcdr 2 form)))
              (nconc (butlast clause)
                     (list
                      (byte-optimize-if
-                      `(if ,(car (last clause)) ,@(nthcdr 2 form)))))))
+                      `(,(car form) ,(car (last clause)) ,@(nthcdr 2 form)))))))
           ((byte-compile-trueconstp clause)
 	   `(progn ,clause ,(nth 2 form)))
 	  ((byte-compile-nilconstp clause)
            `(progn ,clause ,@(nthcdr 3 form)))
 	  ((nth 2 form)
 	   (if (equal '(nil) (nthcdr 3 form))
-	       (list 'if clause (nth 2 form))
+	       (list (car form) clause (nth 2 form))
 	     form))
 	  ((or (nth 3 form) (nthcdr 4 form))
-	   (list 'if
+	   (list (car form)
 		 ;; Don't make a double negative;
 		 ;; instead, take away the one that is there.
 		 (if (and (consp clause) (memq (car clause) '(not null))
@@ -1267,7 +1268,7 @@ See Info node `(elisp) Integer Basics'."
                              (and (consp binding) (cadr binding)))
                            bindings)
                  ,const)
-       `(let* ,(butlast bindings)
+       `(,head ,(butlast bindings)
           ,@(and (consp (car (last bindings)))
                  (cdar (last bindings)))
           ,const)))
@@ -1282,7 +1283,7 @@ See Info node `(elisp) Integer Basics'."
          `(progn ,@(mapcar (lambda (binding)
                              (and (consp binding) (cadr binding)))
                            bindings))
-       `(let* ,(butlast bindings)
+       `(,head ,(butlast bindings)
           ,@(and (consp (car (last bindings)))
                  (cdar (last bindings))))))
 
