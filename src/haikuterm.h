@@ -81,6 +81,7 @@ struct haiku_display_info
   int color_p;
 
   Lisp_Object rdb;
+  Lisp_Object default_name;
 
   Emacs_Cursor vertical_scroll_bar_cursor;
   Emacs_Cursor horizontal_scroll_bar_cursor;
@@ -95,8 +96,6 @@ struct haiku_display_info
   int last_mouse_motion_y;
 
   struct haiku_rect last_mouse_glyph;
-
-  void *last_mouse_scroll_bar;
 
   haiku display;
 

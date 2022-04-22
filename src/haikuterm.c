@@ -3121,7 +3121,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    || b->y < r.y || b->y >= r.y + r.height)
 		  {
 		    f->mouse_moved = true;
-		    dpyinfo->last_mouse_scroll_bar = NULL;
 		    note_mouse_highlight (f, b->x, b->y);
 		    remember_mouse_glyph (f, b->x, b->y,
 					  &FRAME_DISPLAY_INFO (f)->last_mouse_glyph);
@@ -3948,8 +3947,9 @@ haiku_term_init (void)
 {
   struct haiku_display_info *dpyinfo;
   struct terminal *terminal;
-
-  Lisp_Object color_file, color_map;
+  Lisp_Object color_file, color_map, system_name;
+  ptrdiff_t nbytes;
+  void *name_buffer;
 
   block_input ();
   Fset_input_interrupt_mode (Qt);
@@ -4026,6 +4026,23 @@ haiku_term_init (void)
 		 BCursor_from_id (CURSOR_ID_NO_CURSOR));
 #undef ASSIGN_CURSOR
 
+  system_name = Fsystem_name ();
+
+  if (STRINGP (system_name))
+    {
+      nbytes = sizeof "GNU Emacs" + sizeof " at ";
+
+      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+	memory_full (SIZE_MAX);
+
+      name_buffer = alloca (nbytes);
+      sprintf (name_buffer, "%s%s%s", "GNU Emacs",
+	       " at ", SDATA (system_name));
+      dpyinfo->default_name = build_string (name_buffer);
+    }
+  else
+    dpyinfo->default_name = build_string ("GNU Emacs");
+
   unblock_input ();
 
   return dpyinfo;
@@ -4093,7 +4110,10 @@ void
 mark_haiku_display (void)
 {
   if (x_display_list)
-    mark_object (x_display_list->color_map);
+    {
+      mark_object (x_display_list->color_map);
+      mark_object (x_display_list->default_name);
+    }
 }
 
 void
