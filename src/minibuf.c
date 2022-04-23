@@ -1573,6 +1573,7 @@ Test each possible completion specified by COLLECTION
 to see if it begins with STRING.  The possible completions may be
 strings or symbols.  Symbols are converted to strings before testing,
 see `symbol-name'.
+
 All that match STRING are compared together; the longest initial sequence
 common to all these matches is the return value.
 If there is no match at all, the return value is nil.
@@ -1590,14 +1591,21 @@ COLLECTION can also be a function to do the completion itself.
 It receives three arguments: the values STRING, PREDICATE and nil.
 Whatever it returns becomes the value of `try-completion'.
 
-If optional third argument PREDICATE is non-nil,
-it is used to test each possible match.
+If optional third argument PREDICATE is non-nil, it is used to test
+each possible match.
+
 The match is a candidate only if PREDICATE returns non-nil.
-The argument given to PREDICATE is the alist element
-or the symbol from the obarray.  If COLLECTION is a hash-table,
-predicate is called with two arguments: the key and the value.
-Additionally to this predicate, `completion-regexp-list'
-is used to further constrain the set of candidates.  */)
+
+The argument given to PREDICATE is the alist element or the symbol
+from the obarray.  If COLLECTION is a hash-table, predicate is called
+with two arguments: the key and the value.  Additionally to this
+predicate, `completion-regexp-list' is used to further constrain the
+set of candidates.
+
+The result value when `completion-ignore-case' is non-nil will be a
+string that matches (when ignoring case) COLLECTION, but no guarantee
+is made about the case of the result value beyond the whole result
+coming from the user input, or coming from one of the candidates.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
 
