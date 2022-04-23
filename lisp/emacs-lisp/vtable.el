@@ -68,7 +68,8 @@
    (row-colors :initarg :row-colors :accessor vtable-row-colors)
    (-cached-colors :initform nil)
    (-cache :initform (make-hash-table :test #'equal))
-   (-cached-keymap :initform nil))
+   (-cached-keymap :initform nil)
+   (-has-column-spec :initform nil))
   "An object to hold the data for a table.")
 
 (defvar-keymap vtable-map
@@ -106,29 +107,11 @@ be inserted.
 See info node `(vtable)Top' for vtable documentation."
   (when objects-function
     (setq objects (funcall objects-function)))
-  ;; Auto-generate the columns.
-  (unless columns
-    (unless objects
-      (error "Can't auto-generate columns; no objects"))
-    (setf columns (make-list (length (car objects)) "")))
-  (setq columns (mapcar (lambda (column)
-                          (cond
-                           ;; We just have the name (as a string).
-                           ((stringp column)
-                            (make-vtable-column :name column))
-                           ;; A plist of keywords/values.
-                           ((listp column)
-                            (apply #'make-vtable-column column))
-                           ;; A full `vtable-column' object.
-                           (t
-                            column)))
-                        columns))
   ;; We'll be altering the list, so create a copy.
   (setq objects (copy-sequence objects))
   (let ((table
          (make-instance
           'vtable
-          :columns columns
           :objects objects
           :objects-function objects-function
           :getter getter
@@ -143,6 +126,26 @@ See info node `(vtable)Top' for vtable documentation."
           :row-colors row-colors
           :column-colors column-colors
           :ellipsis ellipsis)))
+    ;; Store whether the user has specified columns or not.
+    (setf (slot-value table '-has-column-spec) (not (not columns)))
+    ;; Auto-generate the columns.
+    (unless columns
+      (unless objects
+        (error "Can't auto-generate columns; no objects"))
+      (setq columns (make-list (length (car objects)) "")))
+    (setf (vtable-columns table)
+          (mapcar (lambda (column)
+                    (cond
+                     ;; We just have the name (as a string).
+                     ((stringp column)
+                      (make-vtable-column :name column))
+                     ;; A plist of keywords/values.
+                     ((listp column)
+                      (apply #'make-vtable-column column))
+                     ;; A full `vtable-column' object.
+                     (t
+                      column)))
+                  columns))
     ;; Compute missing column data.
     (setf (vtable-columns table) (vtable--compute-columns table))
     ;; Compute the colors.
@@ -446,17 +449,20 @@ This also updates the displayed table."
          ;; correctly if Emacs is open on two different screens (or the
          ;; user resizes the frame).
          (widths (nth 1 (vtable--ensure-cache table))))
-    (if (vtable-use-header-line table)
-        (vtable--set-header-line table widths spacer)
-      ;; Insert the header line directly into the buffer, and put a
-      ;; keymap to be able to sort the columns there (by clicking on
-      ;; them).
-      (vtable--insert-header-line table widths spacer)
-      (add-text-properties start (point)
-                           (list 'keymap vtable-header-line-map
-                                 'rear-nonsticky t
-                                 'vtable table))
-      (setq start (point)))
+    ;; Don't insert any header or header line if the user hasn't
+    ;; specified the columns.
+    (when (slot-value table '-has-column-spec)
+      (if (vtable-use-header-line table)
+          (vtable--set-header-line table widths spacer)
+        ;; Insert the header line directly into the buffer, and put a
+        ;; keymap to be able to sort the columns there (by clicking on
+        ;; them).
+        (vtable--insert-header-line table widths spacer)
+        (add-text-properties start (point)
+                             (list 'keymap vtable-header-line-map
+                                   'rear-nonsticky t
+                                   'vtable table))
+        (setq start (point))))
     (vtable--sort table)
     ;; Insert the data.
     (let ((line-number 0))
