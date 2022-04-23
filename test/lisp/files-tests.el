@@ -1829,5 +1829,34 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (find-file (ert-resource-file "file-mode-prop-line"))
   (should (eq major-mode 'text-mode)))
 
+(ert-deftest files-load-elc-gz-file ()
+  :expected-result :failed
+  (skip-unless (executable-find "gzip"))
+  (ert-with-temp-directory dir
+    (let* ((pref (expand-file-name "compile-utf8" dir))
+           (el (concat pref ".el")))
+      (copy-file (ert-resource-file "compile-utf8.el") el)
+      (push dir load-path)
+      (should (load pref t))
+      (should (fboundp 'foo))
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot))
+
+      (byte-compile-file el)
+      (should (load (concat pref ".elc") t))
+      (should (fboundp 'foo))
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot))
+
+      (dired-compress-file (concat pref ".elc"))
+      (should (load (concat pref ".elc.gz") t))
+      (should (fboundp 'foo))
+      ;; This fails due to bug#12598.
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot)))))
+
 (provide 'files-tests)
 ;;; files-tests.el ends here
