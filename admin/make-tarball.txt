@@ -334,6 +334,10 @@ looks like this:
 	</div>
     </div>
 
+The file download.html may need to be updated, for example if the
+MS-Windows binaries will be signed by a different person/key than
+those mentioned there.
+
 Next, regenerate the various manuals in HTML, PDF, and PS formats:
 
   Invoke ./admin/make-manuals from the top-level directory of the
