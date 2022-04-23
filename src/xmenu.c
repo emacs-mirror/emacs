@@ -365,16 +365,16 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 	       && event.xgeneric.display == dpyinfo->display
 	       && event.xgeneric.extension == dpyinfo->xi2_opcode)
 	{
+	  if (!event.xcookie.data
+	      && XGetEventData (dpyinfo->display, &event.xcookie))
+	    cookie_claimed_p = true;
+
 	  if (event.xcookie.data)
 	    {
 	      switch (event.xgeneric.evtype)
 		{
 		case XI_ButtonRelease:
 		  {
-		    if (!event.xcookie.data
-			&& XGetEventData (dpyinfo->display, &event.xcookie))
-		      cookie_claimed_p = true;
-
 		    xev = (XIDeviceEvent *) event.xcookie.data;
 		    device = xi_device_from_id (dpyinfo, xev->deviceid);
 
@@ -424,10 +424,6 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		  {
 		    KeySym keysym;
 
-		    if (!event.xcookie.data
-			&& XGetEventData (dpyinfo->display, &event.xcookie))
-		      cookie_claimed_p = true;
-
 		    xev = (XIDeviceEvent *) event.xcookie.data;
 
 		    copy.xkey.type = KeyPress;
@@ -473,6 +469,9 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
 {
   XEvent ev;
   struct frame *f = decode_window_system_frame (frame);
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+#endif
   Widget menubar;
   block_input ();
 
@@ -485,12 +484,44 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
       Window child;
       bool error_p = false;
 
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+      /* Clear the XI2 grab so Motif or lwlib can set a core grab.
+	 Otherwise some versions of Motif will emit a warning and hang,
+	 and lwlib will fail to destroy the menu window.  */
+
+      if (dpyinfo->supports_xi2
+	  && xi_frame_selected_for (f, XI_ButtonPress))
+	{
+	  for (int i = 0; i < dpyinfo->num_devices; ++i)
+	    {
+	      /* The keyboard grab matters too, in this specific
+		 case.  */
+#ifndef USE_LUCID
+	      if (dpyinfo->devices[i].grab)
+#endif
+		{
+		  XIUngrabDevice (dpyinfo->display,
+				  dpyinfo->devices[i].device_id,
+				  CurrentTime);
+		  dpyinfo->devices[i].grab = 0;
+		}
+	    }
+	}
+#endif
+
       x_catch_errors (FRAME_X_DISPLAY (f));
       memset (&ev, 0, sizeof ev);
       ev.xbutton.display = FRAME_X_DISPLAY (f);
       ev.xbutton.window = XtWindow (menubar);
       ev.xbutton.root = FRAME_DISPLAY_INFO (f)->root_window;
+#ifndef HAVE_XINPUT2
       ev.xbutton.time = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
+#else
+      ev.xbutton.time = ((dpyinfo->supports_xi2
+			  && xi_frame_selected_for (f, XI_KeyPress))
+			 ? dpyinfo->last_user_time
+			 : XtLastTimestampProcessed (dpyinfo->display));
+#endif
       ev.xbutton.button = Button1;
       ev.xbutton.x = ev.xbutton.y = FRAME_MENUBAR_HEIGHT (f) / 2;
       ev.xbutton.same_screen = True;

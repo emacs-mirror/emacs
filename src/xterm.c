@@ -13833,10 +13833,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   XEvent configureEvent;
   XEvent next_event;
   Lisp_Object coding;
-#if defined USE_MOTIF && defined HAVE_XINPUT2
-  /* Some XInput 2 events are important for Motif menu bars to work
-     correctly, so they must be translated into core events before
-     being passed to XtDispatchEvent.  */
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+  /* Some XInput 2 events are important for Motif and Lucid menu bars
+     to work correctly, so they must be translated into core events
+     before being passed to XtDispatchEvent.  */
   bool use_copy = false;
   XEvent copy;
 #elif defined USE_GTK && !defined HAVE_GTK3 && defined HAVE_XINPUT2
@@ -17746,7 +17746,41 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 	      /* Dispatch XI_KeyPress events when in menu.  */
 	      if (popup_activated ())
-		goto XI_OTHER;
+		{
+#ifdef USE_LUCID
+		  /* This makes key navigation work inside menus.  */
+		  use_copy = true;
+		  copy.xkey.type = KeyPress;
+		  copy.xkey.serial = xev->serial;
+		  copy.xkey.send_event = xev->send_event;
+		  copy.xkey.display = dpyinfo->display;
+		  copy.xkey.window = xev->event;
+		  copy.xkey.root = xev->root;
+		  copy.xkey.subwindow = xev->child;
+		  copy.xkey.time = xev->time;
+		  copy.xkey.state = ((xev->mods.effective & ~(1 << 13 | 1 << 14))
+				     | (xev->group.effective << 13));
+
+		  copy.xkey.x = lrint (xev->event_x);
+		  copy.xkey.y = lrint (xev->event_y);
+		  copy.xkey.x_root = lrint (xev->root_x);
+		  copy.xkey.y_root = lrint (xev->root_y);
+
+		  if (xev->buttons.mask_len)
+		    {
+		      if (XIMaskIsSet (xev->buttons.mask, 1))
+			copy.xkey.state |= Button1Mask;
+		      if (XIMaskIsSet (xev->buttons.mask, 2))
+			copy.xkey.state |= Button2Mask;
+		      if (XIMaskIsSet (xev->buttons.mask, 3))
+			copy.xkey.state |= Button3Mask;
+		    }
+
+		  copy.xkey.keycode = xev->detail;
+		  copy.xkey.same_screen = True;
+#endif
+		  goto XI_OTHER;
+		}
 #endif
 
 	      x_display_set_last_user_time (dpyinfo, xev->time);
@@ -18193,7 +18227,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	  case XI_KeyRelease:
-#if defined HAVE_X_I18N || defined USE_GTK
+#if defined HAVE_X_I18N || defined USE_GTK || defined USE_LUCID
 	    {
 	      XKeyPressedEvent xkey;
 
@@ -18229,14 +18263,31 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xkey.keycode = xev->detail;
 	      xkey.same_screen = True;
 
+#ifdef USE_LUCID
+	      if (!popup_activated ())
+		{
+#endif
 #ifdef HAVE_X_I18N
-	      if (x_filter_event (dpyinfo, (XEvent *) &xkey))
-		*finish = X_EVENT_DROP;
-#else
-	      f = x_any_window_to_frame (xkey->event);
+		  if (x_filter_event (dpyinfo, (XEvent *) &xkey))
+		    *finish = X_EVENT_DROP;
+#elif defined USE_GTK
+		  f = x_any_window_to_frame (xkey->event);
 
-	      if (f && xg_filter_key (f, event))
-		*finish = X_EVENT_DROP;
+		  if (f && xg_filter_key (f, event))
+		    *finish = X_EVENT_DROP;
+#endif
+#ifdef USE_LUCID
+		}
+	      else
+		{
+		  /* FIXME: the Lucid menu bar pops down upon any key
+		     release event, so we don't dispatch these events
+		     at all, which doesn't seem to be the right
+		     solution.
+
+		     use_copy = true;
+		     copy.xkey = xkey; */
+		}
 #endif
 	    }
 #endif
@@ -19009,12 +19060,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	{
 	  /* Ignore some obviously bogus ConfigureNotify events that
 	     other clients have been known to send Emacs.
-	     (bug#54051)*/
+	     (bug#54051) */
 	  if (event->type != ConfigureNotify
 	      || (event->xconfigure.width != 0
 		  && event->xconfigure.height != 0))
 	    {
-#if defined USE_MOTIF && defined HAVE_XINPUT2
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
 	      XtDispatchEvent (use_copy ? &copy : (XEvent *) event);
 #else
 	      XtDispatchEvent ((XEvent *) event);
