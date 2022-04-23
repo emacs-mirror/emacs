@@ -2083,7 +2083,7 @@ current buffer state and calls REPORT-FN when done."
         :connection-type 'pipe
         :sentinel
         (lambda (proc _event)
-          (when (eq (process-status proc) 'exit)
+          (unless (process-live-p proc)
             (unwind-protect
                 (cond
                  ((not (and (buffer-live-p source-buffer)
