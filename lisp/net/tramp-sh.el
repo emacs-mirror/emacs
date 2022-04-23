@@ -1189,12 +1189,18 @@ component is used as the target of the symlink."
 	    ;; The scripts could fail, for example with huge file size.
 	    (tramp-do-file-attributes-with-ls v localname id-format))))))))
 
+(defconst tramp-sunos-unames (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
+  "Regexp to determine remote SunOS.")
+
 (defun tramp-sh--quoting-style-options (vec)
   "Quoting style options to be used for VEC."
   (or
    (tramp-get-ls-command-with
     vec "--quoting-style=literal --show-control-chars")
-   (tramp-get-ls-command-with vec "-w")
+   ;; ls on Solaris does not return an error in that case.  We've got
+   ;; reports for "SunOS 5.11" so far.
+   (unless (tramp-check-remote-uname vec tramp-sunos-unames)
+     (tramp-get-ls-command-with vec "-w"))
    ""))
 
 (defun tramp-do-file-attributes-with-ls (vec localname &optional id-format)
@@ -3989,9 +3995,6 @@ Returns the exit code of the `test' program."
       (tramp-get-test-command v)
       switch
       (tramp-shell-quote-argument localname)))))
-
-(defconst tramp-sunos-unames (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
-  "Regexp to determine remote SunOS.")
 
 (defun tramp-find-executable
   (vec progname dirlist &optional ignore-tilde ignore-path)
