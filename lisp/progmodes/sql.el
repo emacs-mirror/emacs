@@ -3216,7 +3216,7 @@ For both `:file' and `:completion', there can also be a
      (cond
       ((plist-member plist :file)
        (let ((file-name
-              (read-file-name prompt
+              (read-file-name prompt-def
                               (file-name-directory last-value)
                               default
                               (if (plist-member plist :must-match)
@@ -3246,7 +3246,7 @@ For both `:file' and `:completion', there can also be a
                         default))
 
       ((plist-get plist :number)
-       (read-number prompt (or default last-value 0)))
+       (read-number (concat prompt ": ") (or default last-value 0)))
 
       (t
        (read-string prompt-def last-value history-var default))))))
@@ -3318,7 +3318,7 @@ function like this: (sql-get-login \\='user \\='password \\='database)."
          (sql-get-login-ext 'sql-server "Server" 'sql-server-history plist))
 
         ('database
-         (sql-get-login-ext 'sql-database "Database: "
+         (sql-get-login-ext 'sql-database "Database"
                             'sql-database-history plist))
 
         ('port
