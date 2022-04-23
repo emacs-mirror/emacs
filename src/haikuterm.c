@@ -3164,7 +3164,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    /* It doesn't make sense to show tooltips when
 		       another program is dragging stuff over us.  */
 
-		    do_help = -1;
+		    if (any_help_event_p || do_help)
+		      do_help = -1;
 
 		    if (!be_drag_and_drop_in_progress ())
 		      {
