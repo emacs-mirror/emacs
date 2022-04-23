@@ -1463,6 +1463,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** The return value of 'clear-message-function' is not ignored anymore.
+If the function returns 'dont-clear-message', then the message is not
+cleared, with the assumption that the function cleared it itself.
+
++++
 ** The local variable section now supports defining fallback modes.
 This was previously only available when using a property line (i.e.,
 putting the modes on the first line of a file).

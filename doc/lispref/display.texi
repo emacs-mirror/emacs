@@ -336,7 +336,10 @@ functions call it with no arguments when their argument message is
 Usually this function is called when the next input event arrives
 after displaying an echo-area message.  The function is expected to
 clear the message displayed by its counterpart function specified by
-@code{set-message-function}.
+@code{set-message-function}, but doesn't have to.  If the function
+wants the echo area to remain uncleared, it should return the symbol
+@code{dont-clear-message}; any other value will result in the echo
+area being cleared.
 
 The default value is the function that clears the message displayed in
 an active minibuffer.
