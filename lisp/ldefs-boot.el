@@ -5062,6 +5062,9 @@ Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the incremented value of PLACE.
 
+If X is specified, it should be an expression that should
+evaluate to a number.
+
 \(fn PLACE &optional X)" nil t)
 
 (defvar cl-old-struct-compat-mode nil "\
@@ -5394,7 +5397,7 @@ Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
 directory (the last entry in `native-comp-eln-load-path') unless
 `native-compile-target-directory' is non-nil.  If the environment
-variable 'NATIVE_DISABLED' is set, only byte compile." nil nil)
+variable \"NATIVE_DISABLED\" is set, only byte compile." nil nil)
 
 (autoload 'native-compile-async "comp" "\
 Compile FILES asynchronously.
@@ -8009,8 +8012,11 @@ The directory name must be absolute, but need not be fully expanded.")
 
 (autoload 'dired "dired" "\
 \"Edit\" directory DIRNAME--delete, rename, print, etc. some files in it.
-Optional second argument SWITCHES specifies the `ls' options used.
-\(Interactively, use a prefix argument to be able to specify SWITCHES.)
+Optional second argument SWITCHES specifies the options to be used
+when invoking `insert-directory-program', usually `ls', which produces
+the listing of the directory files and their attributes.
+Interactively, a prefix argument will cause the command to prompt
+for SWITCHES.
 
 If DIRNAME is a string, Dired displays a list of files in DIRNAME (which
 may also have shell wildcards appended to select certain files).
@@ -11061,7 +11067,7 @@ Example usage:
 
     (erc-tls :server \"irc.libera.chat\" :port 6697
              :client-certificate
-             '(\"/home/bandali/my-cert.key\"
+             \\='(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))
 
 \(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE)" t nil)
@@ -16392,7 +16398,8 @@ gives the window that lists the options.")
 
 (autoload 'help-mode "help-mode" "\
 Major mode for viewing help text and navigating references in it.
-Entry to this mode runs the normal hook `help-mode-hook'.
+Also see the `help-enable-editing' variable.
+
 Commands:
 \\{help-mode-map}
 
@@ -19101,10 +19108,12 @@ Give an empty topic name to go to the Index node itself.
 \(fn TOPIC)" t nil)
 
 (autoload 'info-apropos "info" "\
-Grovel indices of all known Info files on your system for STRING.
-Build a menu of the possible matches.
+Search indices of all known Info files on your system for STRING.
+If REGEXP (interactively, the prefix), use a regexp match.
 
-\(fn STRING)" t nil)
+Display a menu of the possible matches.
+
+\(fn STRING &optional REGEXP)" t nil)
 
 (autoload 'info-finder "info" "\
 Display descriptions of the keywords in the Finder virtual manual.
@@ -21651,7 +21660,7 @@ Command to parse command line mailto: links.
 This is meant to be used for MIME handlers: Setting the handler
 for \"x-scheme-handler/mailto;\" to \"emacs -f message-mailto %u\"
 will then start up Emacs ready to compose mail.  For emacsclient use
-  emacsclient -e '(message-mailto \"%u\")'
+  emacsclient -e \\='(message-mailto \"%u\")'
 
 \(fn &optional URL)" t nil)
 
@@ -22324,7 +22333,7 @@ Major mode for the mixal asm language.
 ;;;### (autoloads nil "mm-encode" "gnus/mm-encode.el" (0 0 0 0))
 ;;; Generated autoloads from gnus/mm-encode.el
 
-(define-obsolete-function-alias 'mm-default-file-encoding #'mm-default-file-type "future")
+(define-obsolete-function-alias 'mm-default-file-encoding #'mm-default-file-type "28.1")
 
 (autoload 'mm-default-file-type "mm-encode" "\
 Return a default content type for FILE.
@@ -24672,7 +24681,7 @@ is active.
 \(fn &optional TODO-ONLY STRING EDIT-AT)" t nil)
 
 (autoload 'org-todo-list "org-agenda" "\
-Show all (not done) TODO entries from all agenda file in a single list.
+Show all (not done) TODO entries from all agenda files in a single list.
 The prefix arg can be used to select a specific TODO keyword and limit
 the list to these.  When using `\\[universal-argument]', you will be prompted
 for a keyword.  A numeric prefix directly selects the Nth keyword in
@@ -24733,7 +24742,7 @@ Set restriction lock for agenda to current subtree or file.
 When in a restricted subtree, remove it.
 
 The restriction will span over the entire file if TYPE is `file',
-or if type is '(4), or if the cursor is before the first headline
+or if type is \\='(4), or if the cursor is before the first headline
 in the file.  Otherwise, only apply the restriction to the current
 subtree.
 
@@ -25551,7 +25560,7 @@ PATTERNS are normal `pcase' patterns, and VALUES are expression.
 
 Evaluation happens sequentially as in `setq' (not in parallel).
 
-An example: (pcase-setq `((,a) [(,b)]) '((1) [(2)]))
+An example: (pcase-setq \\=`((,a) [(,b)]) \\='((1) [(2)]))
 
 VAL is presumed to match PAT.  Failure to match may signal an error or go
 undetected, binding variables to arbitrary values, such as nil.
@@ -27976,7 +27985,7 @@ to a file, and killing a buffer is counted as \"operating\" on
 the file.  If instead you want to prioritize files that appear in
 buffers you switch to a lot, you can say something like the following:
 
-  (add-hook 'buffer-list-update-hook 'recentf-track-opened-file)
+  (add-hook \\='buffer-list-update-hook #\\='recentf-track-opened-file)
 
 This is a global minor mode.  If called interactively, toggle the
 `Recentf mode' mode.  If the prefix argument is positive, enable
@@ -35627,7 +35636,7 @@ It must be supported by libarchive(3).")
 Regular expression matching archive file names." '(concat "\\`" "\\(" ".+" "\\." (regexp-opt tramp-archive-suffixes) "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*" "\\)" "\\(" "/" ".*" "\\)" "\\'"))
 
 (defun tramp-archive-autoload-file-name-handler (operation &rest args) "\
-Load Tramp archive file name handler, and perform OPERATION." (defvar tramp-archive-autoload) (when tramp-archive-enabled (let ((default-directory temporary-file-directory) (tramp-archive-autoload t)) (apply #'tramp-autoload-file-name-handler operation args))))
+Load Tramp archive file name handler, and perform OPERATION." (defvar tramp-archive-autoload) (let ((default-directory temporary-file-directory) (tramp-archive-autoload tramp-archive-enabled)) (apply #'tramp-autoload-file-name-handler operation args)))
 
 (defun tramp-register-archive-file-name-handler nil "\
 Add archive file name handler to `file-name-handler-alist'." (when (and tramp-archive-enabled (not (rassq #'tramp-archive-file-name-handler file-name-handler-alist))) (add-to-list 'file-name-handler-alist (cons (tramp-archive-autoload-file-name-regexp) #'tramp-archive-autoload-file-name-handler)) (put #'tramp-archive-autoload-file-name-handler 'safe-magic t)))
@@ -39809,6 +39818,65 @@ Default bookmark handler for Woman buffers.
 
 ;;;***
 
+;;;### (autoloads nil "word-wrap-mode" "textmodes/word-wrap-mode.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from textmodes/word-wrap-mode.el
+
+(autoload 'word-wrap-whitespace-mode "word-wrap-mode" "\
+Allow `word-wrap' to fold on all breaking whitespace characters.
+
+The characters to break on are defined by `word-wrap-whitespace-characters'.
+
+This is a minor mode.  If called interactively, toggle the
+`Word-Wrap-Whitespace mode' mode.  If the prefix argument is
+positive, enable the mode, and if it is zero or negative, disable
+the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable
+the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `word-wrap-whitespace-mode'.
+
+The mode's hook is called both when the mode is enabled and when
+it is disabled.
+
+\(fn &optional ARG)" t nil)
+
+(put 'global-word-wrap-whitespace-mode 'globalized-minor-mode t)
+
+(defvar global-word-wrap-whitespace-mode nil "\
+Non-nil if Global Word-Wrap-Whitespace mode is enabled.
+See the `global-word-wrap-whitespace-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-word-wrap-whitespace-mode'.")
+
+(custom-autoload 'global-word-wrap-whitespace-mode "word-wrap-mode" nil)
+
+(autoload 'global-word-wrap-whitespace-mode "word-wrap-mode" "\
+Toggle Word-Wrap-Whitespace mode in all buffers.
+With prefix ARG, enable Global Word-Wrap-Whitespace mode if ARG is
+positive; otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
+
+Word-Wrap-Whitespace mode is enabled in all buffers where
+`word-wrap-whitespace-mode' would do it.
+
+See `word-wrap-whitespace-mode' for more information on
+Word-Wrap-Whitespace mode.
+
+\(fn &optional ARG)" t nil)
+
+(register-definition-prefixes "word-wrap-mode" '("word-wrap-whitespace-characters"))
+
+;;;***
+
 ;;;### (autoloads nil "x-dnd" "x-dnd.el" (0 0 0 0))
 ;;; Generated autoloads from x-dnd.el
 
@@ -40222,14 +40290,14 @@ Zone out, completely." t nil)
 ;;;;;;  "erc/erc-stamp.el" "erc/erc-status-sidebar.el" "erc/erc-track.el"
 ;;;;;;  "erc/erc-truncate.el" "erc/erc-xdcc.el" "eshell/em-alias.el"
 ;;;;;;  "eshell/em-banner.el" "eshell/em-basic.el" "eshell/em-cmpl.el"
-;;;;;;  "eshell/em-dirs.el" "eshell/em-glob.el" "eshell/em-hist.el"
-;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
-;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
-;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
-;;;;;;  "eshell/em-xtra.el" "eshell/esh-groups.el" "faces.el" "files.el"
-;;;;;;  "finder-inf.el" "font-core.el" "font-lock.el" "format.el"
-;;;;;;  "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el"
-;;;;;;  "international/characters.el" "international/charprop.el"
+;;;;;;  "eshell/em-dirs.el" "eshell/em-elecslash.el" "eshell/em-glob.el"
+;;;;;;  "eshell/em-hist.el" "eshell/em-ls.el" "eshell/em-pred.el"
+;;;;;;  "eshell/em-prompt.el" "eshell/em-rebind.el" "eshell/em-script.el"
+;;;;;;  "eshell/em-smart.el" "eshell/em-term.el" "eshell/em-tramp.el"
+;;;;;;  "eshell/em-unix.el" "eshell/em-xtra.el" "eshell/esh-groups.el"
+;;;;;;  "faces.el" "files.el" "finder-inf.el" "font-core.el" "font-lock.el"
+;;;;;;  "format.el" "frame.el" "help.el" "hfy-cmap.el" "ibuf-ext.el"
+;;;;;;  "indent.el" "international/characters.el" "international/charprop.el"
 ;;;;;;  "international/charscript.el" "international/cp51932.el"
 ;;;;;;  "international/emoji-labels.el" "international/emoji-zwj.el"
 ;;;;;;  "international/eucjp-ms.el" "international/idna-mapping.el"
