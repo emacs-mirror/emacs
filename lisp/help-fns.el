@@ -1302,7 +1302,10 @@ it is displayed along with the global value."
 	      (buffer-string))))))))
 
 (defun help-fns--editable-variable (start end variable value buffer)
-  (when (and (readablep value) help-enable-variable-value-editing)
+  (when (and (readablep value)
+             (not (boundp value))
+             (not (fboundp value))
+             help-enable-variable-value-editing)
     (add-text-properties
      start end
      (list 'help-echo "`e' to edit the value"
