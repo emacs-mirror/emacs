@@ -1844,6 +1844,7 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
       (should (documentation 'zot))
 
       (byte-compile-file el)
+      (fmakunbound 'foo)
       (should (load (concat pref ".elc") t))
       (should (fboundp 'foo))
       (should (documentation 'foo))
@@ -1851,6 +1852,7 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
       (should (documentation 'zot))
 
       (dired-compress-file (concat pref ".elc"))
+      (fmakunbound 'foo)
       (should (load (concat pref ".elc.gz") t))
       (should (fboundp 'foo))
       ;; This fails due to bug#12598.
