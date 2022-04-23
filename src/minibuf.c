@@ -1568,44 +1568,47 @@ match_regexps (Lisp_Object string, Lisp_Object regexps,
 }
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
-       doc: /* Return common substring of all completions of STRING in COLLECTION.
+       doc: /* Return longest common substring of all completions of STRING in COLLECTION.
+
 Test each possible completion specified by COLLECTION
 to see if it begins with STRING.  The possible completions may be
 strings or symbols.  Symbols are converted to strings before testing,
-see `symbol-name'.
+by using `symbol-name'.
 
-All that match STRING are compared together; the longest initial sequence
-common to all these matches is the return value.
-If there is no match at all, the return value is nil.
-For a unique match which is exact, the return value is t.
+If no possible completions match, the function returns nil; if
+there's just one exact match, it returns t; otherwise it returns
+the longest initial substring common to all possible completions
+that begin with STRING.
 
 If COLLECTION is an alist, the keys (cars of elements) are the
 possible completions.  If an element is not a cons cell, then the
-element itself is the possible completion.
-If COLLECTION is a hash-table, all the keys that are strings or symbols
-are the possible completions.
+element itself is a possible completion.
+If COLLECTION is a hash-table, all the keys that are either strings
+or symbols are the possible completions.
 If COLLECTION is an obarray, the names of all symbols in the obarray
 are the possible completions.
 
 COLLECTION can also be a function to do the completion itself.
-It receives three arguments: the values STRING, PREDICATE and nil.
+It receives three arguments: STRING, PREDICATE and nil.
 Whatever it returns becomes the value of `try-completion'.
 
-If optional third argument PREDICATE is non-nil, it is used to test
-each possible match.
+If optional third argument PREDICATE is non-nil, it must be a function
+of one or two arguments, and is used to test each possible completion.
+A possible completion is accepted only if PREDICATE returns non-nil.
 
-The match is a candidate only if PREDICATE returns non-nil.
+The argument given to PREDICATE is either a string or a cons cell (whose
+car is a string) from the alist, or a symbol from the obarray.
+If COLLECTION is a hash-table, PREDICATE is called with two arguments:
+the string key and the associated value.
 
-The argument given to PREDICATE is the alist element or the symbol
-from the obarray.  If COLLECTION is a hash-table, predicate is called
-with two arguments: the key and the value.  Additionally to this
-predicate, `completion-regexp-list' is used to further constrain the
-set of candidates.
+To be acceptable, a possible completion must also match all the regexps
+in `completion-regexp-list' (unless COLLECTION is a function, in
+which case that function should itself handle `completion-regexp-list').
 
-The result value when `completion-ignore-case' is non-nil will be a
-string that matches (when ignoring case) COLLECTION, but no guarantee
-is made about the case of the result value beyond the whole result
-coming from the user input, or coming from one of the candidates.  */)
+If `completion-ignore-case' is non-nil, possible completions are matched
+while ignoring letter-case, but no guarantee is made about the letter-case
+of the return value, except that it comes either from the user's input
+or from one of the possible completions.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
 
@@ -1815,11 +1818,13 @@ coming from the user input, or coming from one of the candidates.  */)
 }
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
-       doc: /* Search for partial matches to STRING in COLLECTION.
-Test each of the possible completions specified by COLLECTION
+       doc: /* Search for partial matches of STRING in COLLECTION.
+
+Test each possible completion specified by COLLECTION
 to see if it begins with STRING.  The possible completions may be
 strings or symbols.  Symbols are converted to strings before testing,
-see `symbol-name'.
+by using `symbol-name'.
+
 The value is a list of all the possible completions that match STRING.
 
 If COLLECTION is an alist, the keys (cars of elements) are the
@@ -1831,17 +1836,21 @@ If COLLECTION is an obarray, the names of all symbols in the obarray
 are the possible completions.
 
 COLLECTION can also be a function to do the completion itself.
-It receives three arguments: the values STRING, PREDICATE and t.
+It receives three arguments: STRING, PREDICATE and t.
 Whatever it returns becomes the value of `all-completions'.
 
-If optional third argument PREDICATE is non-nil,
-it is used to test each possible match.
-The match is a candidate only if PREDICATE returns non-nil.
-The argument given to PREDICATE is the alist element
-or the symbol from the obarray.  If COLLECTION is a hash-table,
-predicate is called with two arguments: the key and the value.
-Additionally to this predicate, `completion-regexp-list'
-is used to further constrain the set of candidates.
+If optional third argument PREDICATE is non-nil, it must be a function
+of one or two arguments, and is used to test each possible completion.
+A possible completion is accepted only if PREDICATE returns non-nil.
+
+The argument given to PREDICATE is either a string or a cons cell (whose
+car is a string) from the alist, or a symbol from the obarray.
+If COLLECTION is a hash-table, PREDICATE is called with two arguments:
+the string key and the associated value.
+
+To be acceptable, a possible completion must also match all the regexps
+in `completion-regexp-list' (unless COLLECTION is a function, in
+which case that function should itself handle `completion-regexp-list').
 
 An obsolete optional fourth argument HIDE-SPACES is still accepted for
 backward compatibility.  If non-nil, strings in COLLECTION that start
