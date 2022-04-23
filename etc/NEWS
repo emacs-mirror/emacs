@@ -642,6 +642,11 @@ script that was used in ancient South Asia.  A new input method,
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
++++
+** New minor mode 'word-wrap-whitespace-mode' for extending 'word-wrap'.
+This mode switches 'word-wrap' on, and breaks on all the whitespace
+characters instead of just SPC and TAB.
+
 ---
 ** New mode, 'emacs-news-mode', for editing the NEWS file.
 This mode adds some highlighting, fixes the 'M-q' command, and has

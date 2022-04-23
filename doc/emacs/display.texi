@@ -1899,12 +1899,22 @@ logical lines, so having a fringe indicator for each wrapped line
 would be visually distracting.  You can change this by customizing the
 variable @code{visual-line-fringe-indicators}.
 
+@vindex word-wrap-whitespace-mode
+  By default, Emacs only breaks lines after whitespace characters like
+@key{SPC} and @key{TAB}, but does not break after whitespace
+characters like @key{EN QUAD}.  Emacs provides a minor mode called
+@code{word-wrap-whitespace-mode} that switches on word wrapping in the
+current mode, and sets up which characters to wrap lines on based on
+the @code{word-wrap-whitespace-characters} user option.  There's also
+a globalized version of that mode called
+@code{global-word-wrap-whitespace-mode}.
+
 @vindex word-wrap-by-category
 @findex modify-category-entry
 @findex char-category-set
 @findex category-set-mnemonics
-  By default, Emacs only breaks lines after whitespace characters.
-That produces incorrect results when CJK and Latin text are mixed
+  Only breaking after whitespace character produces incorrect
+results when CJK and Latin text are mixed
 together (because CJK characters don't use whitespace to separate
 words).  You can customize the option @code{word-wrap-by-category} to
 allow Emacs to break lines after any character with @samp{|} category
