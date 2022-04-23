@@ -15972,103 +15972,106 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto OTHER;
 	      }
 
-	    for (int i = 1; i < 8; ++i)
+	    if (event->xbutton.type == ButtonRelease)
 	      {
-		if (i != event->xbutton.button
-		    && event->xbutton.state & (Button1Mask << (i - 1)))
-		  dnd_grab = true;
-	      }
-
-	    if (!dnd_grab && event->xbutton.type == ButtonRelease)
-	      {
-		x_dnd_end_window = x_dnd_last_seen_window;
-		x_dnd_in_progress = false;
-
-		if (x_dnd_last_seen_window != None
-		    && x_dnd_last_protocol_version != -1)
+		for (int i = 1; i < 8; ++i)
 		  {
-		    x_dnd_pending_finish_target = x_dnd_last_seen_window;
-		    x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
-
-		    x_dnd_waiting_for_finish
-		      = x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-					 x_dnd_selection_timestamp,
-					 x_dnd_last_protocol_version);
+		    if (i != event->xbutton.button
+			&& event->xbutton.state & (Button1Mask << (i - 1)))
+		      dnd_grab = true;
 		  }
-		else if (x_dnd_last_seen_window != None)
+
+		if (!dnd_grab)
 		  {
-		    xm_drop_start_message dmsg;
-		    xm_drag_receiver_info drag_receiver_info;
+		    x_dnd_end_window = x_dnd_last_seen_window;
+		    x_dnd_in_progress = false;
 
-		    if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
-						     &drag_receiver_info)
-			&& drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
-			&& (x_dnd_allow_current_frame
-			    || x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame)))
+		    if (x_dnd_last_seen_window != None
+			&& x_dnd_last_protocol_version != -1)
 		      {
-			if (!x_dnd_motif_setup_p)
-			  xm_setup_drag_info (dpyinfo, x_dnd_frame);
+			x_dnd_pending_finish_target = x_dnd_last_seen_window;
+			x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
-			if (x_dnd_motif_setup_p)
+			x_dnd_waiting_for_finish
+			  = x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+					     x_dnd_selection_timestamp,
+					     x_dnd_last_protocol_version);
+		      }
+		    else if (x_dnd_last_seen_window != None)
+		      {
+			xm_drop_start_message dmsg;
+			xm_drag_receiver_info drag_receiver_info;
+
+			if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
+							 &drag_receiver_info)
+			    && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
+			    && (x_dnd_allow_current_frame
+				|| x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame)))
 			  {
-			    memset (&dmsg, 0, sizeof dmsg);
+			    if (!x_dnd_motif_setup_p)
+			      xm_setup_drag_info (dpyinfo, x_dnd_frame);
 
-			    dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
-							  XM_DRAG_REASON_DROP_START);
-			    dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
-			    dmsg.side_effects
-			      = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
-										 x_dnd_wanted_action),
-						     XM_DROP_SITE_VALID,
-						     xm_side_effect_from_action (dpyinfo,
-										 x_dnd_wanted_action),
-						     (!x_dnd_xm_use_help
-						      ? XM_DROP_ACTION_DROP
-						      : XM_DROP_ACTION_DROP_HELP));
-			    dmsg.timestamp = event->xbutton.time;
-			    dmsg.x = event->xbutton.x_root;
-			    dmsg.y = event->xbutton.y_root;
-			    dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
-			    dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
+			    if (x_dnd_motif_setup_p)
+			      {
+				memset (&dmsg, 0, sizeof dmsg);
 
-			    if (!XM_DRAG_STYLE_IS_DROP_ONLY (drag_receiver_info.protocol_style))
-			      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (x_dnd_frame),
-							    x_dnd_frame, x_dnd_last_seen_window,
-							    event->xbutton.time);
+				dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+							      XM_DRAG_REASON_DROP_START);
+				dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+				dmsg.side_effects
+				  = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
+										     x_dnd_wanted_action),
+							 XM_DROP_SITE_VALID,
+							 xm_side_effect_from_action (dpyinfo,
+										     x_dnd_wanted_action),
+							 (!x_dnd_xm_use_help
+							  ? XM_DROP_ACTION_DROP
+							  : XM_DROP_ACTION_DROP_HELP));
+				dmsg.timestamp = event->xbutton.time;
+				dmsg.x = event->xbutton.x_root;
+				dmsg.y = event->xbutton.y_root;
+				dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
+				dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
-			    xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
-						  x_dnd_last_seen_window, &dmsg);
+				if (!XM_DRAG_STYLE_IS_DROP_ONLY (drag_receiver_info.protocol_style))
+				  x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (x_dnd_frame),
+								x_dnd_frame, x_dnd_last_seen_window,
+								event->xbutton.time);
 
-			    x_dnd_waiting_for_finish = true;
-			    x_dnd_waiting_for_motif_finish = 1;
+				xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
+						      x_dnd_last_seen_window, &dmsg);
+
+				x_dnd_waiting_for_finish = true;
+				x_dnd_waiting_for_motif_finish = 1;
+			      }
+			  }
+			else
+			  {
+			    x_set_pending_dnd_time (event->xbutton.time);
+			    x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
+								   ? x_dnd_last_seen_toplevel
+								   : x_dnd_last_seen_window),
+							 event->xbutton.x_root, event->xbutton.y_root,
+							 event->xbutton.time);
 			  }
 		      }
-		    else
+		    else if (x_dnd_last_seen_toplevel != None)
 		      {
 			x_set_pending_dnd_time (event->xbutton.time);
-			x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
-							       ? x_dnd_last_seen_toplevel
-							       : x_dnd_last_seen_window),
-						     event->xbutton.x_root, event->xbutton.y_root,
+			x_dnd_send_unsupported_drop (dpyinfo, x_dnd_last_seen_toplevel,
+						     event->xbutton.x_root,
+						     event->xbutton.y_root,
 						     event->xbutton.time);
 		      }
-		  }
-		else if (x_dnd_last_seen_toplevel != None)
-		  {
-		    x_set_pending_dnd_time (event->xbutton.time);
-		    x_dnd_send_unsupported_drop (dpyinfo, x_dnd_last_seen_toplevel,
-						 event->xbutton.x_root,
-						 event->xbutton.y_root,
-						 event->xbutton.time);
-		  }
 
 
-		x_dnd_last_protocol_version = -1;
-		x_dnd_last_motif_style = XM_DRAG_STYLE_NONE;
-		x_dnd_last_seen_window = None;
-		x_dnd_last_seen_toplevel = None;
-		x_dnd_frame = NULL;
-		x_set_dnd_targets (NULL, 0);
+		    x_dnd_last_protocol_version = -1;
+		    x_dnd_last_motif_style = XM_DRAG_STYLE_NONE;
+		    x_dnd_last_seen_window = None;
+		    x_dnd_last_seen_toplevel = None;
+		    x_dnd_frame = NULL;
+		    x_set_dnd_targets (NULL, 0);
+		  }
 	      }
 
 	    goto OTHER;
@@ -17234,111 +17237,114 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      goto XI_OTHER;
 		    }
 
-		  for (int i = 0; i < xev->buttons.mask_len * 8; ++i)
+		  if (xev->evtype == XI_ButtonRelease)
 		    {
-		      if (i != xev->detail && XIMaskIsSet (xev->buttons.mask, i))
-			dnd_grab = true;
-		    }
-
-		  if (!dnd_grab && xev->evtype == XI_ButtonRelease)
-		    {
-		      x_dnd_end_window = x_dnd_last_seen_window;
-		      x_dnd_in_progress = false;
-
-		      if (x_dnd_last_seen_window != None
-			  && x_dnd_last_protocol_version != -1)
+		      for (int i = 0; i < xev->buttons.mask_len * 8; ++i)
 			{
-			  x_dnd_pending_finish_target = x_dnd_last_seen_window;
-			  x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
-
-			  x_dnd_waiting_for_finish
-			    = x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-					       x_dnd_selection_timestamp,
-					       x_dnd_last_protocol_version);
+			  if (i != xev->detail && XIMaskIsSet (xev->buttons.mask, i))
+			    dnd_grab = true;
 			}
-		      else if (x_dnd_last_seen_window != None)
+
+		      if (!dnd_grab)
 			{
-			  xm_drop_start_message dmsg;
-			  xm_drag_receiver_info drag_receiver_info;
+			  x_dnd_end_window = x_dnd_last_seen_window;
+			  x_dnd_in_progress = false;
 
-			  if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
-							   &drag_receiver_info)
-			      && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
-			      && (x_dnd_allow_current_frame
-				  || x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame)))
+			  if (x_dnd_last_seen_window != None
+			      && x_dnd_last_protocol_version != -1)
 			    {
-			      if (!x_dnd_motif_setup_p)
-				xm_setup_drag_info (dpyinfo, x_dnd_frame);
+			      x_dnd_pending_finish_target = x_dnd_last_seen_window;
+			      x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
-			      if (x_dnd_motif_setup_p)
+			      x_dnd_waiting_for_finish
+				= x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
+						   x_dnd_selection_timestamp,
+						   x_dnd_last_protocol_version);
+			    }
+			  else if (x_dnd_last_seen_window != None)
+			    {
+			      xm_drop_start_message dmsg;
+			      xm_drag_receiver_info drag_receiver_info;
+
+			      if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
+							       &drag_receiver_info)
+				  && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
+				  && (x_dnd_allow_current_frame
+				      || x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame)))
 				{
-				  memset (&dmsg, 0, sizeof dmsg);
+				  if (!x_dnd_motif_setup_p)
+				    xm_setup_drag_info (dpyinfo, x_dnd_frame);
 
-				  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
-								XM_DRAG_REASON_DROP_START);
-				  dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
-				  dmsg.side_effects
-				    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
-										       x_dnd_wanted_action),
-							   XM_DROP_SITE_VALID,
-							   xm_side_effect_from_action (dpyinfo,
-										       x_dnd_wanted_action),
-							   (!x_dnd_xm_use_help
-							    ? XM_DROP_ACTION_DROP
-							    : XM_DROP_ACTION_DROP_HELP));
-				  dmsg.timestamp = xev->time;
-				  dmsg.x = lrint (xev->root_x);
-				  dmsg.y = lrint (xev->root_y);
-				  /* This atom technically has to be
-				     unique to each drag-and-drop
-				     operation, but that isn't easy to
-				     accomplish, since we cannot
-				     randomly move data around between
-				     selections.  Let's hope no two
-				     instances of Emacs try to drag
-				     into the same window at the same
-				     time.  */
-				  dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
-				  dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
+				  if (x_dnd_motif_setup_p)
+				    {
+				      memset (&dmsg, 0, sizeof dmsg);
 
-				  if (!XM_DRAG_STYLE_IS_DROP_ONLY (drag_receiver_info.protocol_style))
-				    x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (x_dnd_frame),
-								  x_dnd_frame, x_dnd_last_seen_window,
-								  xev->time);
+				      dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+								    XM_DRAG_REASON_DROP_START);
+				      dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+				      dmsg.side_effects
+					= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
+											   x_dnd_wanted_action),
+							       XM_DROP_SITE_VALID,
+							       xm_side_effect_from_action (dpyinfo,
+											   x_dnd_wanted_action),
+							       (!x_dnd_xm_use_help
+								? XM_DROP_ACTION_DROP
+								: XM_DROP_ACTION_DROP_HELP));
+				      dmsg.timestamp = xev->time;
+				      dmsg.x = lrint (xev->root_x);
+				      dmsg.y = lrint (xev->root_y);
+				      /* This atom technically has to be
+					 unique to each drag-and-drop
+					 operation, but that isn't easy to
+					 accomplish, since we cannot
+					 randomly move data around between
+					 selections.  Let's hope no two
+					 instances of Emacs try to drag
+					 into the same window at the same
+					 time.  */
+				      dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
+				      dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
-				  xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
-							x_dnd_last_seen_window, &dmsg);
+				      if (!XM_DRAG_STYLE_IS_DROP_ONLY (drag_receiver_info.protocol_style))
+					x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (x_dnd_frame),
+								      x_dnd_frame, x_dnd_last_seen_window,
+								      xev->time);
 
-				  x_dnd_waiting_for_finish = true;
-				  x_dnd_waiting_for_motif_finish = 1;
+				      xm_send_drop_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
+							    x_dnd_last_seen_window, &dmsg);
+
+				      x_dnd_waiting_for_finish = true;
+				      x_dnd_waiting_for_motif_finish = 1;
+				    }
+				}
+			      else
+				{
+				  x_set_pending_dnd_time (xev->time);
+				  x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
+									 ? x_dnd_last_seen_toplevel
+									 : x_dnd_last_seen_window),
+							       xev->root_x, xev->root_y, xev->time);
 				}
 			    }
-			  else
+			  else if (x_dnd_last_seen_toplevel != None)
 			    {
 			      x_set_pending_dnd_time (xev->time);
-			      x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
-								     ? x_dnd_last_seen_toplevel
-								     : x_dnd_last_seen_window),
-							   xev->root_x, xev->root_y, xev->time);
+			      x_dnd_send_unsupported_drop (dpyinfo,
+							   x_dnd_last_seen_toplevel,
+							   xev->root_x, xev->root_y,
+							   xev->time);
 			    }
-			}
-		      else if (x_dnd_last_seen_toplevel != None)
-			{
-			  x_set_pending_dnd_time (xev->time);
-			  x_dnd_send_unsupported_drop (dpyinfo,
-						       x_dnd_last_seen_toplevel,
-						       xev->root_x, xev->root_y,
-						       xev->time);
-			}
 
-		      x_dnd_last_protocol_version = -1;
-		      x_dnd_last_motif_style = XM_DRAG_STYLE_NONE;
-		      x_dnd_last_seen_window = None;
-		      x_dnd_last_seen_toplevel = None;
-		      x_dnd_frame = NULL;
-		      x_set_dnd_targets (NULL, 0);
+			  x_dnd_last_protocol_version = -1;
+			  x_dnd_last_motif_style = XM_DRAG_STYLE_NONE;
+			  x_dnd_last_seen_window = None;
+			  x_dnd_last_seen_toplevel = None;
+			  x_dnd_frame = NULL;
+			  x_set_dnd_targets (NULL, 0);
 
-		      goto XI_OTHER;
+			  goto XI_OTHER;
+			}
 		    }
 		}
 
