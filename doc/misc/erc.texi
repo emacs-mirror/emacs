@@ -861,7 +861,8 @@ The default value for all three options is the function
 @code{erc-auth-source-search}.  It tries to merge relevant contextual
 parameters with those provided or discovered from the logical connection
 or the underlying transport.  Some auth-source back ends may not be
-compatible; netrc, plstore, json, and secrets are currently supported.
+compatible; netrc, plstore, json, secrets, and pass are currently
+supported.
 @end defopt
 
 @subheading Full name

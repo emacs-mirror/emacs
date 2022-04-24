@@ -3225,7 +3225,9 @@ host but different ports would result in the one with port 123 getting
 the nod.  Much the same would happen for entries sharing only a port:
 the one with host foo would win."
   (when-let*
-      ((priority (map-keys defaults))
+      ((auth-source-backend-parser-functions
+        (erc-compat--auth-source-backend-parser-functions))
+       (priority (map-keys defaults))
        (test (lambda (a b)
                (catch 'done
                  (dolist (key priority)
