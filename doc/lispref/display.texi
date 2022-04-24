@@ -3669,57 +3669,62 @@ Then, the font specifications for all but Chinese GB2312 characters have
 Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
 field.
 
-@defun set-fontset-font name character font-spec &optional frame add
-This function modifies the existing fontset @var{name} to use the font
-matching with @var{font-spec} for the specified @var{character}.
+@defun set-fontset-font fontset characters font-spec &optional frame add
+This function modifies the existing @var{fontset} to use the font
+specified by @var{font-spec} for displaying the specified
+@var{characters}.
 
-If @var{name} is @code{nil}, this function modifies the fontset of the
-selected frame or that of @var{frame} if @var{frame} is not
+If @var{fontset} is @code{nil}, this function modifies the fontset of
+the selected frame or that of @var{frame} if @var{frame} is not
 @code{nil}.
 
-If @var{name} is @code{t}, this function modifies the default
-fontset, whose short name is @samp{fontset-default}.
+If @var{fontset} is @code{t}, this function modifies the default
+fontset, whose short name as a string is @samp{fontset-default}.
 
-In addition to specifying a single codepoint, @var{character} may be a
-cons @code{(@var{from} . @var{to})}, where @var{from} and @var{to} are
-character codepoints.  In that case, use @var{font-spec} for all the
-characters in the range @var{from} and @var{to} (inclusive).
+The @var{characters} argument can be a single character which should
+be displayed using @var{font-spec}.  It can also be a cons cell
+@w{@code{(@var{from} . @var{to})}}, where @var{from} and @var{to} are
+characters.  In that case, use @var{font-spec} for all the characters
+in the range @var{from} and @var{to} (inclusive).
 
-@var{character} may be a charset (@pxref{Character Sets}).  In that
-case, use @var{font-spec} for all the characters in the charset.
+@var{characters} may be a charset symbol (@pxref{Character Sets}).  In
+that case, use @var{font-spec} for all the characters in the charset.
 
-@var{character} may be a script name (@pxref{Character Properties,
+@var{characters} may be a script symbol (@pxref{Character Properties,
 char-script-table}).  In that case, use @var{font-spec} for all the
 characters belonging to the script.
 
-@var{character} may be @code{nil}, which means to use @var{font-spec}
-for any character which no font-spec is specified.
+@var{characters} may be @code{nil}, which means to use @var{font-spec}
+for any character in @var{fontset} for which no font-spec is
+specified.
 
 @var{font-spec} may be a font-spec object created by the function
 @code{font-spec} (@pxref{Low-Level Font}).
 
-@var{font-spec} may be a cons; @code{(@var{family} . @var{registry})},
-where @var{family} is a family name of a font (possibly including a
-foundry name at the head), @var{registry} is a registry name of a font
-(possibly including an encoding name at the tail).
+@var{font-spec} may be a cons cell @w{@code{(@var{family}
+. @var{registry})}}, where @var{family} is a family name of a font
+(possibly including a foundry name at the head), and @var{registry} is
+a registry name of a font (possibly including an encoding name at the
+tail).
 
 @var{font-spec} may be a font name, a string.
 
 @var{font-spec} may be @code{nil}, which explicitly specifies that
-there's no font for the specified @var{character}.  This is useful,
+there's no font for the specified @var{characters}.  This is useful,
 for example, to avoid expensive system-wide search for fonts for
 characters that have no glyphs, like those from the Unicode Private
 Use Area (PUA).
 
 The optional argument @var{add}, if non-@code{nil}, specifies how to
-add @var{font-spec} to the font specifications previously set.  If it
-is @code{prepend}, @var{font-spec} is prepended.  If it is
-@code{append}, @var{font-spec} is appended.  By default,
-@var{font-spec} overrides the previous settings.
+add @var{font-spec} to the font specifications previously set for
+@var{characters}.  If it is @code{prepend}, @var{font-spec} is
+prepended to the existing specs.  If it is @code{append},
+@var{font-spec} is appended.  By default, @var{font-spec} overwrites
+the previously set font specs.
 
-For instance, this changes the default fontset to use a font of which
+For instance, this changes the default fontset to use a font whose
 family name is @samp{Kochi Gothic} for all characters belonging to
-the charset @code{japanese-jisx0208}.
+the charset @code{japanese-jisx0208}:
 
 @smallexample
 (set-fontset-font t 'japanese-jisx0208
