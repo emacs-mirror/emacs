@@ -509,7 +509,10 @@ struct x_display_info
 #endif
 
   /* A cache mapping color names to RGB values.  */
-  struct color_name_cache_entry *color_names;
+  struct color_name_cache_entry **color_names;
+
+  /* The size of that hash table.  */
+  int color_names_size;
 
   /* If non-null, a cache of the colors in the color map.  Don't
      use this directly, call x_color_cells instead.  */

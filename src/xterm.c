@@ -617,6 +617,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <sys/stat.h>
 #include <flexmember.h>
+#include <c-ctype.h>
+
 #include "character.h"
 #include "coding.h"
 #include "composite.h"
@@ -6829,6 +6831,21 @@ x_query_frame_background_color (struct frame *f, XColor *bgcolor)
   x_query_colors (f, bgcolor, 1);
 }
 
+static unsigned int
+x_hash_string_ignore_case (const char *string)
+{
+  unsigned int i;
+
+  i = 3323198485ul;
+  for (; *string; ++string)
+    {
+      i ^= c_tolower (*string);
+      i *= 0x5bd1e995;
+      i ^= i >> 15;
+    }
+  return i;
+}
+
 /* On frame F, translate the color name to RGB values.  Use cached
    information, if possible.
 
@@ -6841,12 +6858,18 @@ Status
 x_parse_color (struct frame *f, const char *color_name,
 	       XColor *color)
 {
+  unsigned short r, g, b;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  Colormap cmap = FRAME_X_COLORMAP (f);
+  struct x_display_info *dpyinfo;
+  struct color_name_cache_entry *cache_entry;
+  unsigned int hash, idx;
+
   /* Don't pass #RGB strings directly to XParseColor, because that
      follows the X convention of zero-extending each channel
      value: #f00 means #f00000.  We want the convention of scaling
      channel values, so #f00 means #ff0000, just as it does for
      HTML, SVG, and CSS.  */
-  unsigned short r, g, b;
   if (parse_color_spec (color_name, &r, &g, &b))
     {
       color->red = r;
@@ -6855,13 +6878,14 @@ x_parse_color (struct frame *f, const char *color_name,
       return 1;
     }
 
-  Display *dpy = FRAME_X_DISPLAY (f);
-  Colormap cmap = FRAME_X_COLORMAP (f);
-  struct color_name_cache_entry *cache_entry;
-  for (cache_entry = FRAME_DISPLAY_INFO (f)->color_names; cache_entry;
-       cache_entry = cache_entry->next)
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+  hash = x_hash_string_ignore_case (color_name);
+  idx = hash % dpyinfo->color_names_size;
+
+  for (cache_entry = FRAME_DISPLAY_INFO (f)->color_names[idx];
+       cache_entry; cache_entry = cache_entry->next)
     {
-      if (!xstrcasecmp(cache_entry->name, color_name))
+      if (!xstrcasecmp (cache_entry->name, color_name))
 	{
 	  *color = cache_entry->rgb;
 	  return 1;
@@ -6879,8 +6903,8 @@ x_parse_color (struct frame *f, const char *color_name,
   cache_entry = xzalloc (sizeof *cache_entry);
   cache_entry->rgb = *color;
   cache_entry->name = xstrdup (color_name);
-  cache_entry->next = FRAME_DISPLAY_INFO (f)->color_names;
-  FRAME_DISPLAY_INFO (f)->color_names = cache_entry;
+  cache_entry->next = FRAME_DISPLAY_INFO (f)->color_names[idx];
+  FRAME_DISPLAY_INFO (f)->color_names[idx] = cache_entry;
   return 1;
 }
 
@@ -22936,6 +22960,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->smallest_font_height = 1;
   dpyinfo->smallest_char_width = 1;
 
+  dpyinfo->color_names_size = 256;
+  dpyinfo->color_names = xzalloc (dpyinfo->color_names_size
+				  * sizeof *dpyinfo->color_names);
+
   /* Set the name of the terminal. */
   terminal->name = xlispstrdup (display_name);
 
@@ -23709,6 +23737,7 @@ x_delete_display (struct x_display_info *dpyinfo)
 {
   struct terminal *t;
   struct color_name_cache_entry *color_entry, *next_color_entry;
+  int i;
 
   /* Close all frames and delete the generic struct terminal for this
      X display.  */
@@ -23741,15 +23770,19 @@ x_delete_display (struct x_display_info *dpyinfo)
 	  tail->next = tail->next->next;
     }
 
-  for (color_entry = dpyinfo->color_names;
-       color_entry;
-       color_entry = next_color_entry)
+  for (i = 0; i < dpyinfo->color_names_size; ++i)
     {
-      next_color_entry = color_entry->next;
-      xfree (color_entry->name);
-      xfree (color_entry);
+      for (color_entry = dpyinfo->color_names[i];
+	   color_entry; color_entry = next_color_entry)
+	{
+	  next_color_entry = color_entry->next;
+
+	  xfree (color_entry->name);
+	  xfree (color_entry);
+	}
     }
 
+  xfree (dpyinfo->color_names);
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);
