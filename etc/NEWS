@@ -420,8 +420,8 @@ command also works for non-Emoji characters.)
 *** The 'C-h .' command now accepts a prefix argument.
 'C-u C-h .' would previously inhibit displaying a warning message if
 there's no local help at point.  This has been changed to call
-call 'button-describe'/'widget-describe' and display button/widget
-help instead.
+'button-describe'/'widget-describe' and display button/widget help
+instead.
 
 ---
 *** New user option 'help-enable-variable-value-editing'.
