@@ -38,30 +38,18 @@
   :group 'erc)
 
 ;;;###autoload(autoload 'erc-fill-mode "erc-fill" nil t)
-(define-minor-mode erc-fill-mode
-  "Toggle ERC fill mode.
-With a prefix argument ARG, enable ERC fill mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
-
+(define-erc-module fill nil
+  "Manage filling in ERC buffers.
 ERC fill mode is a global minor mode.  When enabled, messages in
 the channel buffers are filled."
-  :global t
-  (if erc-fill-mode
-      (erc-fill-enable)
-    (erc-fill-disable)))
-
-(defun erc-fill-enable ()
-  "Setup hooks for `erc-fill-mode'."
-  (interactive)
-  (add-hook 'erc-insert-modify-hook #'erc-fill)
-  (add-hook 'erc-send-modify-hook #'erc-fill))
-
-(defun erc-fill-disable ()
-  "Cleanup hooks, disable `erc-fill-mode'."
-  (interactive)
-  (remove-hook 'erc-insert-modify-hook #'erc-fill)
-  (remove-hook 'erc-send-modify-hook #'erc-fill))
+  ;; FIXME ensure a consistent ordering relative to hook members from
+  ;; other modules.  Ideally, this module's processing should happen
+  ;; after "morphological" modifications to a message's text but
+  ;; before superficial decorations.
+  ((add-hook 'erc-insert-modify-hook #'erc-fill)
+   (add-hook 'erc-send-modify-hook #'erc-fill))
+  ((remove-hook 'erc-insert-modify-hook #'erc-fill)
+   (remove-hook 'erc-send-modify-hook #'erc-fill)))
 
 (defcustom erc-fill-prefix nil
   "Values used as `fill-prefix' for `erc-fill-variable'.
@@ -130,7 +118,7 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
 
 (defun erc-fill-static ()
   "Fills a text such that messages start at column `erc-fill-static-center'."
-  (save-match-data
+  (save-restriction
     (goto-char (point-min))
     (looking-at "^\\(\\S-+\\)")
     (let ((nick (match-string 1)))
