@@ -621,18 +621,17 @@ haiku_calculate_relief_colors (struct glyph_string *s, uint32_t *rgbout_w,
 			       uint32_t *rgbout_b)
 {
   struct face *face = s->face;
+  double h, cs, l;
+  uint32_t rgbin;
 
   prepare_face_for_display (s->f, s->face);
-
-  uint32_t rgbin = face->use_box_color_for_shadows_p
-    ?  face->box_color : face->background;
+  rgbin = (face->use_box_color_for_shadows_p
+	   ? face->box_color : face->background);
 
   if (s->hl == DRAW_CURSOR)
     rgbin = FRAME_CURSOR_COLOR (s->f).pixel;
 
-  double h, cs, l;
   rgb_color_hsl (rgbin, &h, &cs, &l);
-
   hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 0.6), rgbout_b);
   hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 1.2), rgbout_w);
 }
@@ -640,16 +639,16 @@ haiku_calculate_relief_colors (struct glyph_string *s, uint32_t *rgbout_w,
 static void
 haiku_draw_relief_rect (struct glyph_string *s,
 			int left_x, int top_y, int right_x, int bottom_y,
-			int hwidth, int vwidth, bool raised_p, bool top_p, bool bot_p,
-			bool left_p, bool right_p,
+			int hwidth, int vwidth, bool raised_p, bool top_p,
+			bool bot_p, bool left_p, bool right_p,
 			struct haiku_rect *clip_rect, bool fancy_p)
 {
-  uint32_t color_white;
-  uint32_t color_black;
+  uint32_t color_white, color_black;
+  void *view;
 
   haiku_calculate_relief_colors (s, &color_white, &color_black);
 
-  void *view = FRAME_HAIKU_VIEW (s->f);
+  view = FRAME_HAIKU_VIEW (s->f);
   BView_SetHighColor (view, raised_p ? color_white : color_black);
   if (clip_rect)
     {
@@ -726,14 +725,13 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
 {
   int wave_height = 3, wave_length = 2;
   int y, dx, dy, odd, xmax;
+  float ax, ay, bx, by;
+  void *view = FRAME_HAIKU_VIEW (s->f);
+
   dx = wave_length;
   dy = wave_height - 1;
   y = s->ybase - wave_height + 3;
-
-  float ax, ay, bx, by;
   xmax = x + width;
-
-  void *view = FRAME_HAIKU_VIEW (s->f);
 
   BView_StartClip (view);
   haiku_clip_to_string (s);
