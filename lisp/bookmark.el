@@ -1824,7 +1824,29 @@ Don't affect the buffer ring order."
                        (list location))])
               entries)))
     (tabulated-list-init-header)
-    (setq tabulated-list-entries (reverse entries)))
+    ;; The value of `bookmark-sort-flag' might have changed since the
+    ;; last time the buffer contents were generated, so re-check it.
+    (if bookmark-sort-flag
+        (progn
+          (setq tabulated-list-sort-key '("Bookmark Name" . nil))
+          (setq tabulated-list-entries entries))
+      (setq tabulated-list-sort-key nil)
+      ;; And since we're not sorting by bookmark name, show bookmarks
+      ;; according to order of creation, with the most recently
+      ;; created bookmarks at the top and the least recently created
+      ;; at the bottom.
+      ;;
+      ;; Note that clicking the column sort toggle for the bookmark
+      ;; name column will invoke the `tabulated-list-mode' sort, which
+      ;; uses `bookmark-bmenu--name-predicate' to sort lexically by
+      ;; bookmark name instead of by (reverse) creation order.
+      ;; Clicking the toggle again will reverse the lexical sort, but
+      ;; the sort will still be lexical not creation-order.  However,
+      ;; if the user reverts the buffer, then the above check of
+      ;; `bookmark-sort-flag' will happen again and the buffer will
+      ;; go back to a creation-order sort.  This is all expected
+      ;; behavior, as documented in `bookmark-bmenu-mode'.
+      (setq tabulated-list-entries (reverse entries))))
   (tabulated-list-print t))
 
 ;;;###autoload
@@ -1868,6 +1890,18 @@ deletion, or > if it is flagged for displaying."
 Each line describes one of the bookmarks in Emacs.
 Letters do not insert themselves; instead, they are commands.
 Bookmark names preceded by a \"*\" have annotations.
+
+If `bookmark-sort-flag' is non-nil, then sort the list by
+bookmark name (case-insensitively, in collation order); the
+direction of that sort can be reversed by using the column sort
+toggle for the bookmark name column.
+
+If `bookmark-sort-flag' is nil, then sort the list by bookmark
+creation order, with most recently created bookmarks on top.
+However, the column sort toggle will still activate (and
+thereafter toggle the direction of) lexical sorting by bookmark name.
+At any time you may use \\[revert-buffer] to go back to sorting by creation order.
+
 \\<bookmark-bmenu-mode-map>
 \\[bookmark-bmenu-mark] -- mark bookmark to be displayed.
 \\[bookmark-bmenu-mark-all] -- mark all listed bookmarks to be displayed.
@@ -1900,20 +1934,23 @@ Bookmark names preceded by a \"*\" have annotations.
   in another buffer.
 \\[bookmark-bmenu-show-all-annotations] -- show the annotations of all bookmarks in another buffer.
 \\[bookmark-bmenu-edit-annotation] -- edit the annotation for the current bookmark.
-\\[bookmark-bmenu-search] -- incrementally search for bookmarks."
+\\[bookmark-bmenu-search] -- incrementally search for bookmarks.
+\\[revert-buffer] -- refresh the buffer, and thus refresh the sort order (useful
+  if `bookmark-sort-flag' is nil)."
   (setq truncate-lines t)
   (setq buffer-read-only t)
   ;; FIXME: The header could also display the current default bookmark file
   ;; according to `bookmark-bookmarks-timestamp'.
   (setq tabulated-list-format
         `[("" 1) ;; Space to add "*" for bookmark with annotation
-          ("Bookmark" ,bookmark-bmenu-file-column bookmark-bmenu--name-predicate)
+          ("Bookmark Name"
+           ,bookmark-bmenu-file-column bookmark-bmenu--name-predicate)
           ("Type" 8 bookmark-bmenu--type-predicate)
           ,@(if bookmark-bmenu-toggle-filenames
                 '(("File" 0 bookmark-bmenu--file-predicate)))])
   (setq tabulated-list-padding bookmark-bmenu-marks-width)
   (when bookmark-sort-flag
-    (setq tabulated-list-sort-key '("Bookmark" . nil)))
+    (setq tabulated-list-sort-key '("Bookmark Name" . nil)))
   (add-hook 'tabulated-list-revert-hook #'bookmark-bmenu--revert nil t)'
   (setq revert-buffer-function 'bookmark-bmenu--revert)
   (tabulated-list-init-header))
@@ -1922,17 +1959,19 @@ Bookmark names preceded by a \"*\" have annotations.
 (defun bookmark-bmenu--name-predicate (a b)
   "Predicate to sort \"*Bookmark List*\" buffer by the name column.
 This is used for `tabulated-list-format' in `bookmark-bmenu-mode'."
-  (string< (caar a) (caar b)))
+  (string-collate-lessp (caar a) (caar b) nil t))
 
 (defun bookmark-bmenu--type-predicate (a b)
   "Predicate to sort \"*Bookmark List*\" buffer by the type column.
 This is used for `tabulated-list-format' in `bookmark-bmenu-mode'."
-  (string< (elt (cadr a) 2) (elt (cadr b) 2)))
+  (string-collate-lessp (elt (cadr a) 2) (elt (cadr b) 2) nil t))
 
 (defun bookmark-bmenu--file-predicate (a b)
   "Predicate to sort \"*Bookmark List*\" buffer by the file column.
 This is used for `tabulated-list-format' in `bookmark-bmenu-mode'."
-  (string< (bookmark-location (car a)) (bookmark-location (car b))))
+  (string-collate-lessp (bookmark-location (car a))
+                        (bookmark-location (car b))
+                        nil t))
 
 
 (defun bookmark-bmenu-toggle-filenames (&optional show)
