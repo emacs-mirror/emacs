@@ -40,7 +40,7 @@
 When the user finishes editing (with `C-c C-c'), SUCCESS-CALLBACK
 is called with the resulting string.
 
-If the user aborts (with `C-c C-d'), ABORT-CALLBACK (if any) is
+If the user aborts (with `C-c C-k'), ABORT-CALLBACK (if any) is
 called with no parameters.
 
 If present, HELP-TEXT will be inserted at the start of the
@@ -71,7 +71,7 @@ buffer, but won't be included in the resulting string."
 
 (defun read-string-from-buffer (string &optional help-text)
   "Switch to a new buffer to edit STRING in a recursive edit.
-The user finishes editing with `C-c C-c', or aborts with `C-c C-d').
+The user finishes editing with `C-c C-c', or aborts with `C-c C-k').
 
 If present, HELP-TEXT will be inserted at the start of the
 buffer, but won't be included in the resulting string."
@@ -89,7 +89,7 @@ buffer, but won't be included in the resulting string."
 
 (defvar-keymap string-edit-mode-map
   "C-c C-c" #'string-edit-done
-  "C-c C-d" #'string-edit-abort)
+  "C-c C-k" #'string-edit-abort)
 
 (define-derived-mode string-edit-mode text-mode "String"
   "Mode for editing strings."
