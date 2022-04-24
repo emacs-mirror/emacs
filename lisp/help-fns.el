@@ -1303,8 +1303,9 @@ it is displayed along with the global value."
 
 (defun help-fns--editable-variable (start end variable value buffer)
   (when (and (readablep value)
-             (not (and (symbolp value) (boundp value)))
-             (not (and (symbolp value) (fboundp value)))
+             (or (not (symbolp value))
+                 (and (not (and (symbolp value) (boundp value)))
+                      (not (and (symbolp value) (fboundp value)))))
              help-enable-variable-value-editing)
     (add-text-properties
      start end
