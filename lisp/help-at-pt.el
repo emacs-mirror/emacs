@@ -81,6 +81,9 @@ If this produces no string either, return nil."
 	(echo (help-at-pt-string)))
     (if (and kbd (not (eq kbd t))) kbd echo)))
 
+(declare-function widget-describe "wid-edit" (&optional widget-or-pos))
+(declare-function widget-at "wid-edit" (&optional pos))
+
 ;;;###autoload
 (defun display-local-help (&optional inhibit-warning describe-button)
   "Display local help in the echo area.
@@ -95,8 +98,8 @@ is displayed.
 If INHIBIT-WARNING is non-nil, this prevents display of a message
 in case there is no help.
 
-If DESCRIBE-BUTTON in non-nil (interactively, the prefix), and
-there's a button/widget at point, pop to a buffer describing that
+If DESCRIBE-BUTTON in non-nil (interactively, the prefix arg), and
+there's a button/widget at point, pop a buffer describing that
 button/widget instead."
   (interactive (list nil current-prefix-arg))
   (let ((help (help-at-pt-kbd-string)))

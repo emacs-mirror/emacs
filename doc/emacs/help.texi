@@ -182,9 +182,10 @@ programming language you are editing (@code{info-lookup-symbol}).
 @item C-h .
 Display the help message for a special text area, if point is in one
 (@code{display-local-help}).  (These include, for example, links in
-@file{*Help*} buffers.)  @xref{Help Echo}.  If you use a prefix for
-this command, and point as on a button or a widget, this command will
-pop to a new buffer that describes the button/widget.
+@file{*Help*} buffers.)  @xref{Help Echo}.  If you invoke
+this command with a prefix argument, @kbd{C-u C-h .}, and point is on
+a button or a widget, this command will pop a new buffer that
+describes that button/widget.
 @end table
 
 @node Key Help
