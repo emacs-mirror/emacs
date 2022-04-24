@@ -46,6 +46,7 @@
 (defvar haiku-initialized)
 (defvar haiku-signal-invalid-refs)
 (defvar haiku-drag-track-function)
+(defvar haiku-allowed-ui-colors)
 
 (defvar haiku-dnd-selection-value nil
   "The local value of the special `XdndSelection' selection.")
@@ -73,6 +74,29 @@ will be put into the system selection SELECTION.  VALUE is the
 content that is being put into the selection by
 `gui-set-selection'.  See the doc string of `haiku-drag-message'
 for more details on the structure of the associations.")
+
+;; This list has to be set correctly, otherwise Emacs will crash upon
+;; encountering an invalid color.
+(setq haiku-allowed-ui-colors
+      ["B_PANEL_BACKGROUND_COLOR" "B_MENU_BACKGROUND_COLOR"
+       "B_WINDOW_TAB_COLOR" "B_KEYBOARD_NAVIGATION_COLOR"
+       "B_DESKTOP_COLOR" "B_MENU_SELECTED_BACKGROUND_COLOR"
+       "B_MENU_ITEM_TEXT_COLOR" "B_MENU_SELECTED_ITEM_TEXT_COLOR"
+       "B_MENU_SELECTED_BORDER_COLOR" "B_PANEL_TEXT_COLOR"
+       "B_DOCUMENT_BACKGROUND_COLOR" "B_DOCUMENT_TEXT_COLOR"
+       "B_CONTROL_BACKGROUND_COLOR" "B_CONTROL_TEXT_COLOR"
+       "B_CONTROL_BORDER_COLOR" "B_CONTROL_HIGHLIGHT_COLOR"
+       "B_NAVIGATION_PULSE_COLOR" "B_SHINE_COLOR"
+       "B_SHADOW_COLOR" "B_TOOLTIP_BACKGROUND_COLOR"
+       "B_TOOLTIP_TEXT_COLOR" "B_WINDOW_TEXT_COLOR"
+       "B_WINDOW_INACTIVE_TAB_COLOR" "B_WINDOW_INACTIVE_TEXT_COLOR"
+       "B_WINDOW_BORDER_COLOR" "B_WINDOW_INACTIVE_BORDER_COLOR"
+       "B_CONTROL_MARK_COLOR" "B_LIST_BACKGROUND_COLOR"
+       "B_LIST_SELECTED_BACKGROUND_COLOR" "B_LIST_ITEM_TEXT_COLOR"
+       "B_LIST_SELECTED_ITEM_TEXT_COLOR" "B_SCROLL_BAR_THUMB_COLOR"
+       "B_LINK_TEXT_COLOR" "B_LINK_HOVER_COLOR"
+       "B_LINK_VISITED_COLOR" "B_LINK_ACTIVE_COLOR"
+       "B_STATUS_BAR_COLOR" "B_SUCCESS_COLOR" "B_FAILURE_COLOR"])
 
 (defun haiku-selection-bounds (value)
   "Return bounds of selection value VALUE.

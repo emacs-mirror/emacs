@@ -3964,20 +3964,18 @@ haiku_term_init (void)
 
   color_file = Fexpand_file_name (build_string ("rgb.txt"),
 				  Fsymbol_value (intern ("data-directory")));
-
   color_map = Fx_load_color_file (color_file);
+
   if (NILP (color_map))
     fatal ("Could not read %s.\n", SDATA (color_file));
 
   dpyinfo->color_map = color_map;
-
   dpyinfo->display = BApplication_setup ();
-
-  BScreen_res (&dpyinfo->resx, &dpyinfo->resy);
-
   dpyinfo->next = x_display_list;
   dpyinfo->n_planes = be_get_display_planes ();
   x_display_list = dpyinfo;
+
+  BScreen_res (&dpyinfo->resx, &dpyinfo->resy);
 
   terminal = haiku_create_terminal (dpyinfo);
   if (current_kboard == initial_kboard)

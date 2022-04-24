@@ -253,7 +253,10 @@ haiku_get_color (const char *name, Emacs_Color *color)
 {
   unsigned short r16, g16, b16;
   Lisp_Object tem, col;
-  int32 clr;
+  int32 clr, rc;
+  uint32_t ui_color;
+  ptrdiff_t size, i;
+  Lisp_Object string;
 
   if (parse_color_spec (name, &r16, &g16, &b16))
     {
@@ -283,11 +286,34 @@ haiku_get_color (const char *name, Emacs_Color *color)
 	      return 0;
 	  }
 	}
-
       unblock_input ();
     }
 
-  return 1;
+  rc = 1;
+  if (VECTORP (Vhaiku_allowed_ui_colors))
+    {
+      size = ASIZE (Vhaiku_allowed_ui_colors);
+
+      for (i = 0; i < size; ++i)
+	{
+	  string = AREF (Vhaiku_allowed_ui_colors, i);
+
+	  block_input ();
+	  if (STRINGP (string) && !strcmp (SSDATA (string), name))
+	    rc = be_get_ui_color (name, &ui_color);
+	  unblock_input ();
+	}
+    }
+
+  if (!rc)
+    {
+      color->pixel = ui_color;
+      color->red = RED_FROM_ULONG (ui_color) * 257;
+      color->green = GREEN_FROM_ULONG (ui_color) * 257;
+      color->blue = BLUE_FROM_ULONG (ui_color) * 257;
+    }
+
+  return rc;
 }
 
 static struct haiku_display_info *
@@ -2741,6 +2767,12 @@ syms_of_haikufns (void)
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
 	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_cursor_fore_pixel = Qnil;
+
+  DEFVAR_LISP ("haiku-allowed-ui-colors", Vhaiku_allowed_ui_colors,
+	       doc: /* Vector of UI colors that Emacs can look up from the system.
+If this is set up incorrectly, Emacs can crash when encoutering an
+invalid color.  */);
+  Vhaiku_allowed_ui_colors = Qnil;
 
 #ifdef USE_BE_CAIRO
   DEFVAR_LISP ("cairo-version-string", Vcairo_version_string,

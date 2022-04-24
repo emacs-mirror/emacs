@@ -4323,3 +4323,21 @@ BWindow_set_z_group (void *window, enum haiku_z_group z_group)
       w->UnlockLooper ();
     }
 }
+
+int
+be_get_ui_color (const char *name, uint32_t *color)
+{
+  color_which which;
+  rgb_color rgb;
+
+  which = which_ui_color (name);
+
+  if (which == B_NO_COLOR)
+    return 1;
+
+  rgb = ui_color (which);
+  *color = (rgb.blue | rgb.green << 8
+	    | rgb.red << 16 | 255 << 24);
+
+  return 0;
+}
