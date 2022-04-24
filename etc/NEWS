@@ -1469,6 +1469,17 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+---
+** New function 'string-edit'.
+This is meant to be used when the user has to edit a (potentially)
+long string.  It pops you to a new buffer where you can edit the
+string, and a callback is called when the user types 'C-c C-c'.
+
++++
+** New function 'read-string-from-buffer'.
+This is a modal version of 'string-edit', and can be used as an
+alternative to 'read-string'.
+
 +++
 ** The return value of 'clear-message-function' is not ignored anymore.
 If the function returns 'dont-clear-message', then the message is not

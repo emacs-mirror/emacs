@@ -244,6 +244,13 @@ This function works by calling the
     value))
 @end group
 @end smallexample
+
+@findex read-string-from-buffer
+If you have a long string (for instance, one that is several lines
+long) that you wish to edit, using @code{read-string} may not be
+ideal.  In that case, popping to a new, normal buffer where the user
+can edit the string may be more convenient, and you can use the
+@code{read-string-from-buffer} function to do that.
 @end defun
 
 @defun read-regexp prompt &optional defaults history
