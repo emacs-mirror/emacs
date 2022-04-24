@@ -444,7 +444,7 @@ the ``rest'' argument is bound to the keyword list as it appears
 in the call.  For example:
 
 @example
-(cl-defun find-thing (thing &rest rest &key need &allow-other-keys)
+(cl-defun find-thing (thing thing-list &rest rest &key need &allow-other-keys)
   (or (apply 'cl-member thing thing-list :allow-other-keys t rest)
       (if need (error "Thing not found"))))
 @end example
