@@ -416,6 +416,12 @@ command also works for non-Emoji characters.)
 
 ** Help
 
++++
+*** The 'C-h .' command now takes a prefix to display button/widget help.
+'C-u C-h .' would previously inhibit displaying a warning message if
+there's no local help at point.  This has been changed to trigger a
+call 'button-describe'/'widget-describe' instead.
+
 ---
 *** New user option 'help-enable-variable-value-editing'.
 If enabled, 'e' on a value in *Help* will pop you to a new buffer

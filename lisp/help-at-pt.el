@@ -82,24 +82,33 @@ If this produces no string either, return nil."
     (if (and kbd (not (eq kbd t))) kbd echo)))
 
 ;;;###autoload
-(defun display-local-help (&optional arg)
+(defun display-local-help (&optional inhibit-warning describe-button)
   "Display local help in the echo area.
-This displays a short help message, namely the string produced by
-the `kbd-help' property at point.  If `kbd-help' does not produce
-a string, but the `help-echo' property does, then that string is
-printed instead.
+This command, by default, displays a short help message, namely
+the string produced by the `kbd-help' property at point.  If
+`kbd-help' does not produce a string, but the `help-echo'
+property does, then that string is printed instead.
 
 The string is passed through `substitute-command-keys' before it
 is displayed.
 
-A numeric argument ARG prevents display of a message in case
-there is no help.  While ARG can be used interactively, it is
-mainly meant for use from Lisp."
-  (interactive "P")
+If INHIBIT-WARNING is non-nil, this prevents display of a message
+in case there is no help.
+
+If DESCRIBE-BUTTON in non-nil (interactively, the prefix), and
+there's a button/widget at point, pop to a buffer describing that
+button/widget instead."
+  (interactive (list nil current-prefix-arg))
   (let ((help (help-at-pt-kbd-string)))
-    (if help
-	(message "%s" (substitute-command-keys help))
-      (if (not arg) (message "No local help at point")))))
+    (cond
+     ((and describe-button (button-at (point)))
+      (button-describe))
+     ((and describe-button (widget-at (point)))
+      (widget-describe))
+     (help
+      (message "%s" (substitute-command-keys help)))
+     ((not inhibit-warning)
+      (message "No local help at point")))))
 
 (defvar help-at-pt-timer nil
   "Non-nil means that a timer is set that checks for local help.
