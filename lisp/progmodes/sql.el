@@ -4644,6 +4644,9 @@ the call to \\[sql-product-interactive] with
                   (setq sql-buffer (buffer-name new-sqli-buffer))
                   (run-hooks 'sql-set-sqli-hook)))
 
+              ;; Also set the global value.
+              (setq-default sql-buffer (buffer-name new-sqli-buffer))
+
               ;; Make sure the connection is complete
               ;; (Sometimes start up can be slow)
               ;;  and call the login hook
