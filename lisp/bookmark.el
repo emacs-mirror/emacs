@@ -1823,7 +1823,6 @@ Don't affect the buffer ring order."
                  ,@(if bookmark-bmenu-toggle-filenames
                        (list location))])
               entries)))
-    (tabulated-list-init-header)
     ;; The value of `bookmark-sort-flag' might have changed since the
     ;; last time the buffer contents were generated, so re-check it.
     (if bookmark-sort-flag
@@ -1846,7 +1845,12 @@ Don't affect the buffer ring order."
       ;; `bookmark-sort-flag' will happen again and the buffer will
       ;; go back to a creation-order sort.  This is all expected
       ;; behavior, as documented in `bookmark-bmenu-mode'.
-      (setq tabulated-list-entries (reverse entries))))
+      (setq tabulated-list-entries (reverse entries)))
+    ;; Generate the header only after `tabulated-list-sort-key' is
+    ;; settled, because if that's non-nil then the sort-direction
+    ;; indicator will be shown in the named column, but if it's
+    ;; nil then the indicator will not be shown.
+    (tabulated-list-init-header))
   (tabulated-list-print t))
 
 ;;;###autoload
