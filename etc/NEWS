@@ -106,7 +106,7 @@ If you start an executable script with
 
     #!/usr/bin/emacs -x
 
-Emacs will start without reading any init files (like with --quick),
+Emacs will start without reading any init files (like with '--quick'),
 and then execute the rest of the script file as Emacs Lisp.  When it
 reaches the end of the script, Emacs will exit with an exit code from
 the value of the final form.
@@ -136,7 +136,7 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
-** 'TAB' and '<backtab>' is now bound in 'button-map'.
+** 'TAB' and '<backtab>' are now bound in 'button-map'.
 This means that if you're standing on a button, 'TAB' will take you to
 the next button, even if the mode has bound it to something else.
 This also means that 'TAB' on a button in an 'outline-minor-mode'
@@ -451,7 +451,7 @@ This will take you to the Emacs Lisp manual entry for the item
 displayed, if any.
 
 ---
-*** The 'C-h m' ('describe-mode') *Help* buffer has been reformatted.
+*** The 'C-h m' ('describe-mode') "*Help*" buffer has been reformatted.
 It now only includes local minor modes at the start, and the global
 minor modes are listed after the major mode.
 
@@ -679,7 +679,7 @@ value.
 When the minibuffer is the current buffer, typing 'M-<up>' or
 'M-<down>' selects a previous/next completion candidate from the
 "*Completions*" buffer and inserts it to the minibuffer.
-When the variable 'minibuffer-completion-auto-choose' is nil,
+When the user option 'minibuffer-completion-auto-choose' is nil,
 'M-<up>' and 'M-<down>' do the same, but without inserting
 a completion candidate to the minibuffer, then 'M-RET' can be used
 to choose the currently active candidate from the "*Completions*"
@@ -737,7 +737,7 @@ The nil value disables this highlighting.
 *** Choosing a completion with a prefix argument doesn't exit the minibuffer.
 This means that typing 'C-u RET' on a completion candidate in the
 "*Completions*" buffer inserts the completion to the minibuffer,
-bot doesn't exit the minibuffer.
+but doesn't exit the minibuffer.
 
 ** Isearch and Replace
 
@@ -1284,7 +1284,7 @@ keyword-driven fontifications.
 *** New package vtable.el for formatting tabular data.
 This package allows formatting data using variable-pitch fonts.
 The resulting tables can display text in variable pitch fonts, text
-using fonts of different sizes, and images.  See the '(vtable)Top'
+using fonts of different sizes, and images.  See the "(vtable) Top"
 manual for more details.
 
 ---
@@ -1500,11 +1500,11 @@ scripts.
 This works like 'buttonize', but for a region instead of a string.
 
 +++
-** 'macroexp-let2*' can omit 'test' arg and use single-var bindings.
+** 'macroexp-let2*' can omit TEST arg and use single-var bindings.
 
 +++
 ** New macro-writing macros, 'cl-with-gensyms' and 'cl-once-only'.
-See the '(cl) Macro-Writing Macros' manual section for descriptions.
+See the "(cl) Macro-Writing Macros" manual section for descriptions.
 
 +++
 ** New variable 'last-event-device' and new function 'device-class'.
@@ -1619,14 +1619,14 @@ them towards or away from each other.
 This hook is run before 'x-popup-menu' is about to display a
 deck-of-cards menu on screen.
 
-** New function 'buffer-match-p'
+** New function 'buffer-match-p'.
 Check if a buffer satisfies some condition.  Some examples for
 conditions can be regular expressions that match a buffer name, a
-cons-cell like (major-mode . shell-mode) that matches any buffer where
-major-mode is shell-mode or a combined with a condition like (and
-"\\`\\*.+\\*\\'" (major-mode . special-mode)).
+cons-cell like '(major-mode . shell-mode)' that matches any buffer
+where 'major-mode' is 'shell-mode' or a combined with a condition like
+'(and "\\`\\*.+\\*\\'" (major-mode . special-mode))'.
 
-** New function 'match-buffers'
+** New function 'match-buffers'.
 Use 'buffer-match-p' to gather a list of buffers that match a
 condition.
 
