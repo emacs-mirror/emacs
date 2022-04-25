@@ -125,6 +125,7 @@
       tramp-allow-unsafe-temporary-files t
       tramp-cache-read-persistent-data t ;; For auth-sources.
       tramp-copy-size-limit nil
+      tramp-error-show-message-timeout nil
       tramp-persistency-file-name nil
       tramp-verbose 0)
 
@@ -7301,8 +7302,62 @@ process sentinels.  They shall not disturb each other."
     (delete-directory tmp-name)
     (delete-file (concat tmp-name ".tar.gz"))))
 
+(ert-deftest tramp-test46-read-password ()
+  "Check Tramp password handling."
+  :tags '(:expensive-test)
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (tramp--test-mock-p))
+
+  (let ((pass "aaaa")
+	(mock-entry (copy-sequence (assoc "mock" tramp-methods)))
+	mocked-input tramp-methods)
+    ;; We must mock `read-string', in order to avoid interactive
+    ;; arguments.
+    (cl-letf* (((symbol-function #'read-string)
+		(lambda (&rest _args) (pop mocked-input))))
+      (setcdr
+       (assq 'tramp-login-args mock-entry)
+       `((("-c")
+	  (,(tramp-shell-quote-argument
+	     (concat
+	      "read -s -p 'Password: ' pass; echo; "
+	      "(test \"pass$pass\" != \"pass" pass "\" && "
+	      "echo \"Login incorrect\" || sh -i)"))))))
+      (setq tramp-methods `(,mock-entry))
+
+      ;; Reading password from stdin works.
+      (tramp-cleanup-connection tramp-test-vec 'keep-debug)
+      ;; We don't want to invalidate the password.
+      (setq mocked-input `(,(copy-sequence pass)))
+      (should (file-exists-p tramp-test-temporary-file-directory))
+
+      ;; Don't entering a password returns in error.
+      (tramp-cleanup-connection tramp-test-vec 'keep-debug)
+      (setq mocked-input nil)
+      (should-error (file-exists-p tramp-test-temporary-file-directory))
+
+      ;; A wrong password doesn't work either.
+      (tramp-cleanup-connection tramp-test-vec 'keep-debug)
+      (setq mocked-input `(,(concat pass pass)))
+      (should-error (file-exists-p tramp-test-temporary-file-directory))
+
+      ;; Reading password from auth-source works.  We use the netrc
+      ;; backend; the other backends shall behave similar.
+      ;; Macro `ert-with-temp-file' was introduced in Emacs 29.1.
+      (with-no-warnings (when (symbol-plist 'ert-with-temp-file)
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug)
+	(setq mocked-input nil)
+	(auth-source-forget-all-cached)
+	(ert-with-temp-file netrc-file
+	  :prefix "tramp-test" :suffix ""
+	  :text (format
+		 "machine %s port mock password %s"
+		 (file-remote-p tramp-test-temporary-file-directory 'host) pass)
+	  (let ((auth-sources `(,netrc-file)))
+	    (should (file-exists-p tramp-test-temporary-file-directory)))))))))
+
 ;; This test is inspired by Bug#29163.
-(ert-deftest tramp-test46-auto-load ()
+(ert-deftest tramp-test47-auto-load ()
   "Check that Tramp autoloads properly."
   ;; If we use another syntax but `default', Tramp is already loaded
   ;; due to the `tramp-change-syntax' call.
@@ -7327,7 +7382,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test46-delay-load ()
+(ert-deftest tramp-test47-delay-load ()
   "Check that Tramp is loaded lazily, only when needed."
   ;; Tramp is neither loaded at Emacs startup, nor when completing a
   ;; non-Tramp file name like "/foo".  Completing a Tramp-alike file
@@ -7356,7 +7411,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code tm)))))))))
 
-(ert-deftest tramp-test46-recursive-load ()
+(ert-deftest tramp-test47-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -7380,7 +7435,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument code))))))))
 
-(ert-deftest tramp-test46-remote-load-path ()
+(ert-deftest tramp-test47-remote-load-path ()
   "Check that Tramp autoloads its packages with remote `load-path'."
   ;; `tramp-cleanup-all-connections' is autoloaded from tramp-cmds.el.
   ;; It shall still work, when a remote file name is in the
@@ -7405,7 +7460,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test47-unload ()
+(ert-deftest tramp-test48-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)

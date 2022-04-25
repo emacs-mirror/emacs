@@ -2183,6 +2183,11 @@ FMT-STRING and ARGUMENTS."
 
 (put #'tramp-error 'tramp-suppress-trace t)
 
+(defvar tramp-error-show-message-timeout 30
+  "Time to show the Tramp buffer in case of an error.
+If it is bound to nil, the buffer is not shown.  This is used in
+tramp-tests.el.")
+
 (defsubst tramp-error-with-buffer
   (buf vec-or-proc signal fmt-string &rest arguments)
   "Emit an error, and show BUF.
@@ -2200,6 +2205,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	  (apply #'tramp-error vec-or-proc signal fmt-string arguments)
 	;; Save exit.
 	(when (and buf
+		   (natnump tramp-error-show-message-timeout)
 		   (not (zerop tramp-verbose))
 		   ;; Do not show when flagged from outside.
 		   (not non-essential)
@@ -2213,7 +2219,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	    ;; Show buffer.
 	    (pop-to-buffer buf)
 	    (discard-input)
-	    (sit-for 30)))
+	    (sit-for tramp-error-show-message-timeout)))
 	;; Reset timestamp.  It would be wrong after waiting for a while.
 	(when (tramp-file-name-equal-p vec (car tramp-current-connection))
 	  (setcdr tramp-current-connection (current-time)))))))
@@ -2226,7 +2232,8 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
   (unwind-protect
       (apply #'tramp-error vec-or-proc 'user-error fmt-string arguments)
     ;; Save exit.
-    (when (and (not (zerop tramp-verbose))
+    (when (and (natnump tramp-error-show-message-timeout)
+	       (not (zerop tramp-verbose))
 	       ;; Do not show when flagged from outside.
 	       (not non-essential)
 	       ;; Show only when Emacs has started already.
@@ -2236,7 +2243,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	;; `tramp-error' does not show messages.  So we must do it ourselves.
 	(apply #'message fmt-string arguments)
 	(discard-input)
-	(sit-for 30)
+	(sit-for tramp-error-show-message-timeout)
 	;; Reset timestamp.  It would be wrong after waiting for a while.
 	(when
 	    (tramp-file-name-equal-p vec-or-proc (car tramp-current-connection))

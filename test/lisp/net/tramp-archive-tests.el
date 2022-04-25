@@ -888,7 +888,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
 
-(ert-deftest tramp-archive-test46-auto-load ()
+(ert-deftest tramp-archive-test47-auto-load ()
   "Check that `tramp-archive' autoloads properly."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
@@ -931,7 +931,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	       (format "(setq tramp-archive-enabled %s)" enabled))
 	      (shell-quote-argument (format code file)))))))))))
 
-(ert-deftest tramp-archive-test46-delay-load ()
+(ert-deftest tramp-archive-test47-delay-load ()
   "Check that `tramp-archive' is loaded lazily, only when needed."
   :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
