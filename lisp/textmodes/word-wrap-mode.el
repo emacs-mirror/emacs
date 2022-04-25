@@ -47,7 +47,7 @@
     ?\N{ZERO WIDTH SPACE})
   "Characters that `word-wrap-whitespace-mode' should add to `word-wrap'."
   :version "29.1"
-  :type '(repeat char)
+  :type '(repeat character)
   :group 'display)
 
 (defvar word-wrap-mode--previous-state)
