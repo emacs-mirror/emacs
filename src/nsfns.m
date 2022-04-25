@@ -2103,6 +2103,7 @@ The optional argument FRAME is currently ignored.  */)
   Lisp_Object list = Qnil;
   NSEnumerator *colorlists;
   NSColorList *clist;
+  NSAutoreleasePool *pool;
 
   if (!NILP (frame))
     {
@@ -2112,7 +2113,9 @@ The optional argument FRAME is currently ignored.  */)
     }
 
   block_input ();
-
+  /* This can be called during dumping, so we need to set up a
+     temporary autorelease pool.  */
+  pool = [[NSAutoreleasePool alloc] init];
   colorlists = [[NSColorList availableColorLists] objectEnumerator];
   while ((clist = [colorlists nextObject]))
     {
@@ -2123,12 +2126,9 @@ The optional argument FRAME is currently ignored.  */)
           NSString *cname;
           while ((cname = [cnames nextObject]))
             list = Fcons ([cname lispString], list);
-/*           for (i = [[clist allKeys] count] - 1; i >= 0; i--)
-               list = Fcons (build_string ([[[clist allKeys] objectAtIndex: i]
-                                             UTF8String]), list); */
         }
     }
-
+  [pool release];
   unblock_input ();
 
   return list;
