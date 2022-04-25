@@ -419,6 +419,13 @@ lock_file_1 (Lisp_Object lfname, bool force)
   Lisp_Object luser_name = Fuser_login_name (Qnil);
   Lisp_Object lhost_name = Fsystem_name ();
 
+  /* Protect against the extremely unlikely case of the host name
+     containing an @ character.  */
+  if (!NILP (lhost_name) && strchr (SSDATA (lhost_name), '@'))
+    lhost_name = CALLN (Ffuncall, intern ("string-replace"),
+			build_string ("@"), build_string ("-"),
+			lhost_name);
+
   char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
   char const *host_name = STRINGP (lhost_name) ? SSDATA (lhost_name) : "";
   char lock_info_str[MAX_LFINFO + 1];
@@ -583,6 +590,12 @@ current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
      .#test.txt -> larsi@.118961:1646577954) is an empty string.  */
   if (NILP (system_name))
     system_name = build_string ("");
+  /* Protect against the extremely unlikely case of the host name
+     containing an @ character.  */
+  else if (strchr (SSDATA (system_name), '@'))
+    system_name = CALLN (Ffuncall, intern ("string-replace"),
+			 build_string ("@"), build_string ("-"),
+			 system_name);
   /* On current host?  */
   if (STRINGP (system_name)
       && dot - (at + 1) == SBYTES (system_name)
