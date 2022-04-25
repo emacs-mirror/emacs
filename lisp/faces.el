@@ -2873,7 +2873,10 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 ns haiku pgtk) (class color))
+    (((type haiku))
+     :foreground "B_MENU_ITEM_TEXT_COLOR"
+     :background "B_MENU_BACKGROUND_COLOR")
+    (((type x w32 ns pgtk) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))
