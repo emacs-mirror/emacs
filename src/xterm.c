@@ -10717,6 +10717,16 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 #endif /* USE_X_TOOLKIT */
 	  }
 
+	/* Set last user time to avoid confusing some window managers
+	   about the tooltip displayed during drag-and-drop.  */
+
+	if ((EQ (track_mouse, Qdrag_source)
+	     || EQ (track_mouse, Qdropping))
+	    && (dpyinfo->last_user_time
+		< dpyinfo->last_mouse_movement_time))
+	  x_display_set_last_user_time (dpyinfo,
+					dpyinfo->last_mouse_movement_time);
+
 	if ((!f1 || FRAME_TOOLTIP_P (f1))
 	    && (EQ (track_mouse, Qdropping)
 		|| EQ (track_mouse, Qdrag_source))
