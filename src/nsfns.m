@@ -891,7 +891,10 @@ static Lisp_Object
 ns_appkit_version_str (void)
 {
   NSString *tmp;
+  Lisp_Object string;
+  NSAutoreleasePool *autorelease;
 
+  autorelease = [[NSAutoreleasePool alloc] init];
 #ifdef NS_IMPL_GNUSTEP
   tmp = [NSString stringWithFormat:@"gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION)];
 #elif defined (NS_IMPL_COCOA)
@@ -901,7 +904,10 @@ ns_appkit_version_str (void)
 #else
   tmp = [NSString initWithUTF8String:@"ns-unknown"];
 #endif
-  return [tmp lispString];
+  string = [tmp lispString];
+  [autorelease release];
+
+  return string;
 }
 
 

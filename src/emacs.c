@@ -3153,6 +3153,9 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
 {
   const char *path, *p;
   Lisp_Object lpath, element, tem;
+#ifdef NS_SELF_CONTAINED
+  void *autorelease = NULL;
+#endif
   /* Default is to use "." for empty path elements.
      But if argument EMPTY is true, use nil instead.  */
   Lisp_Object empty_element = empty ? Qnil : build_string (".");
@@ -3180,6 +3183,8 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
   if (!path)
     {
 #ifdef NS_SELF_CONTAINED
+      /* ns_relocate needs a valid autorelease pool around it.  */
+      autorelease = ns_alloc_autorelease_pool ();
       path = ns_relocate (defalt);
 #else
       path = defalt;
@@ -3282,6 +3287,11 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
       else
 	break;
     }
+
+#ifdef NS_SELF_CONTAINED
+  if (autorelease)
+    ns_release_autorelease_pool (autorelease);
+#endif
   return Fnreverse (lpath);
 }
 

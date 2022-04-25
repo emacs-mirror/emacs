@@ -5404,20 +5404,21 @@ ns_term_init (Lisp_Object display_name)
 void
 ns_term_shutdown (int sig)
 {
+  NSAutoreleasePool *pool;
+  /* We also need an autorelease pool here, since this can be called
+     during dumping.  */
+  pool = [[NSAutoreleasePool alloc] init];
   [[NSUserDefaults standardUserDefaults] synchronize];
+  [pool release];
 
   /* code not reached in emacs.c after this is called by shut_down_emacs: */
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SSDATA (Vauto_save_list_file_name));
 
   if (sig == 0 || sig == SIGTERM)
-    {
-      [NSApp terminate: NSApp];
-    }
-  else // force a stack trace to happen
-    {
-      emacs_abort ();
-    }
+    [NSApp terminate: NSApp];
+  else /* Force a stack trace to happen.  */
+    emacs_abort ();
 }
 
 
