@@ -639,7 +639,7 @@ extern int be_get_display_screens (void);
 extern bool be_use_subpixel_antialiasing (void);
 extern const char *be_find_setting (const char *);
 extern haiku_font_family_or_style *be_list_font_families (size_t *);
-extern int be_get_ui_color (const char *, uint32 *);
+extern int be_get_ui_color (const char *, uint32_t *);
 
 extern void BMessage_delete (void *);
 
