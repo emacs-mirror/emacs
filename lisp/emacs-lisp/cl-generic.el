@@ -1078,6 +1078,19 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
     (setq combined-args (append (nreverse combined-args) args))
     (list qual-string combined-args doconly)))
 
+(defun cl--generic-upcase-formal-args (args)
+  (mapcar (lambda (arg)
+            (cond
+             ((symbolp arg)
+              (let ((name (symbol-name arg)))
+                (if (eq ?& (aref name 0)) arg
+                  (intern (upcase name)))))
+             ((consp arg)
+              (cons (intern (upcase (symbol-name (car arg))))
+                    (cdr arg)))
+             (t arg)))
+          args))
+
 (add-hook 'help-fns-describe-function-functions #'cl--generic-describe)
 (defun cl--generic-describe (function)
   ;; Supposedly this is called from help-fns, so help-fns should be loaded at
@@ -1094,14 +1107,20 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
         (insert (propertize "Implementations:\n\n" 'face 'bold))
         ;; Loop over fanciful generics
         (dolist (method (cl--generic-method-table generic))
-          (let* ((info (cl--generic-method-info method)))
+          (pcase-let*
+              ((`(,qualifiers ,args ,doc) (cl--generic-method-info method)))
             ;; FIXME: Add hyperlinks for the types as well.
-            (let ((print-quoted nil))
-              (if (length> (nth 0 info) 0)
-                  (insert (format "%s%S" (nth 0 info) (nth 1 info)))
-                ;; Make the non-":extra" bits look more like `C-h f'
-                ;; output.
-                (insert (format "%S" (cons function (nth 1 info))))))
+            (let ((print-quoted nil)
+                  (quals (if (length> qualifiers 0)
+                             (concat (substring qualifiers
+                                                0 (string-match " *\\'"
+                                                                qualifiers))
+                                     "\n")
+                           "")))
+              (insert (format "%s%S"
+                              quals
+                              (cons function
+                                    (cl--generic-upcase-formal-args args)))))
             (let* ((met-name (cl--generic-load-hist-format
                               function
                               (cl--generic-method-qualifiers method)
@@ -1113,7 +1132,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
                                          'help-function-def met-name file
                                          'cl-defmethod)
                 (insert (substitute-command-keys "'.\n"))))
-            (insert "\n" (or (nth 2 info) "Undocumented") "\n\n")))))))
+            (insert "\n" (or doc "Undocumented") "\n\n")))))))
 
 (defun cl--generic-specializers-apply-to-type-p (specializers type)
   "Return non-nil if a method with SPECIALIZERS applies to TYPE."
