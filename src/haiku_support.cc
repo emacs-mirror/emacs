@@ -3071,20 +3071,6 @@ BView_emacs_delete (void *view)
   delete vw;
 }
 
-/* Return the current workspace.  */
-uint32_t
-haiku_current_workspace (void)
-{
-  return current_workspace ();
-}
-
-/* Return a bitmask consisting of workspaces WINDOW is on.  */
-uint32_t
-BWindow_workspaces (void *window)
-{
-  return ((BWindow *) window)->Workspaces ();
-}
-
 /* Create a popup menu.  */
 void *
 BPopUpMenu_new (const char *name)

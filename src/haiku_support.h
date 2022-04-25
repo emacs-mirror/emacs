@@ -457,7 +457,6 @@ extern void BWindow_center_on_screen (void *);
 extern void BWindow_change_decoration (void *, int);
 extern void BWindow_set_tooltip_decoration (void *);
 extern void BWindow_set_avoid_focus (void *, int);
-extern uint32_t BWindow_workspaces (void *);
 extern void BWindow_zoom (void *);
 extern void BWindow_set_min_size (void *, int, int);
 extern void BWindow_set_size_alignment (void *, int, int);
@@ -550,7 +549,6 @@ extern void BView_convert_to_screen (void *, int *, int *);
 extern void BView_convert_from_screen (void *, int *, int *);
 
 extern void BView_emacs_delete (void *);
-extern uint32_t haiku_current_workspace (void);
 
 extern void *BPopUpMenu_new (const char *);
 
