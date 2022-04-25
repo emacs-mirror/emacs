@@ -311,7 +311,7 @@
     (isearch-update-ring string t)
     (re-search-backward string)))
 
-;; The Edit->Search->Incremental Search menu
+;; The Edit->Incremental Search menu
 (defvar menu-bar-i-search-menu
   (let ((menu (make-sparse-keymap "Incremental Search")))
     (bindings--define-key menu [isearch-forward-symbol-at-point]
@@ -340,8 +340,6 @@
 (defvar menu-bar-search-menu
   (let ((menu (make-sparse-keymap "Search")))
 
-    (bindings--define-key menu [i-search]
-      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
     (bindings--define-key menu [separator-tag-isearch]
       menu-bar-separator)
 
@@ -500,6 +498,9 @@
 
     (bindings--define-key menu [replace]
       `(menu-item "Replace" ,menu-bar-replace-menu))
+
+    (bindings--define-key menu [i-search]
+      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
 
     (bindings--define-key menu [search]
       `(menu-item "Search" ,menu-bar-search-menu))
