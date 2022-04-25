@@ -416,6 +416,18 @@ command also works for non-Emoji characters.)
 
 ** Help
 
+---
+*** Commands like 'C-h f' have changed how they describe menu bindings.
+For instance, previously a command might be described as having the
+following bindings:
+
+  It is bound to <open>, C-x C-f, <menu-bar> <file> <new-file>.
+
+This has been changed to:
+
+  It is bound to <open> and C-x C-f.
+  It can also be invoked from the menu: File → Visit New File....
+
 +++
 *** The 'C-h .' command now accepts a prefix argument.
 'C-u C-h .' would previously inhibit displaying a warning message if

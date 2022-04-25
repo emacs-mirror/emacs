@@ -568,9 +568,7 @@ the C sources, too."
                 (insert (concat "It can "
                                 (and keys "also ")
                                 "be invoked from the menu: "))
-                ;; FIXME: Should insert menu names instead of key
-                ;; binding names.
-                (help-fns--insert-bindings menus)
+                (help-fns--insert-menu-bindings menus)
                 (insert ".")
                 (fill-region-as-paragraph start (point))))
             (ensure-empty-lines)))))))
@@ -583,6 +581,33 @@ the C sources, too."
                            (t ", ")))
                     (insert (help--key-description-fontified key)))
                   keys))
+
+(defun help-fns--insert-menu-bindings (menus)
+  (seq-do-indexed
+   (lambda (menu i)
+     (insert
+      (cond ((zerop i) "")
+            ((= i (1- (length menus))) " and ")
+            (t ", ")))
+     (let ((map (lookup-key global-map (seq-take menu 1)))
+           (start (point)))
+       (seq-do-indexed
+        (lambda (entry level)
+          (when (> level 0)
+            (insert
+             (if (char-displayable-p ?→)
+                 " → "
+               " => ")))
+          (let ((elem (assq entry (cdr map))))
+            (if (eq (nth 1 elem) 'menu-item)
+                (progn
+                  (insert (nth 2 elem))
+                  (setq map (cadddr elem)))
+              (insert (nth 1 elem))
+              (setq map (cddr elem)))))
+        (cdr (seq-into menu 'list)))
+       (put-text-property start (point) 'face 'help-key-binding)))
+   menus))
 
 (defun help-fns--compiler-macro (function)
   (let ((handler (function-get function 'compiler-macro)))
