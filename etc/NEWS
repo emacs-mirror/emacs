@@ -2012,6 +2012,11 @@ For example, '(time-add nil '(1 . 1000))' no longer warns that the
 temporary transition aid for Emacs 27, has served its purpose.
 
 +++
+** 'encode-time' now also accepts a 6-element list with just time and date.
+(encode-time (list SECOND MINUTE HOUR DAY MONTH YEAR)) is now short for
+(encode-time (list SECOND MINUTE HOUR DAY MONTH YEAR nil -1 nil)).
+
++++
 ** 'date-to-time' now assumes earliest values if its argument lacks
 month, day, or time.  For example, (date-to-time "2021-12-04") now
 assumes a time of 00:00 instead of signaling an error.

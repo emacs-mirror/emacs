@@ -1620,6 +1620,9 @@ time zone with daylight-saving transitions, DST is t for daylight
 saving time, nil for standard time, and -1 to cause the daylight
 saving flag to be guessed.
 
+TIME can also be a list (SECOND MINUTE HOUR DAY MONTH YEAR), which is
+equivalent to (SECOND MINUTE HOUR DAY MONTH YEAR nil -1 nil).
+
 As an obsolescent calling convention, if this function is called with
 6 or more arguments, the first 6 arguments are SECOND, MINUTE, HOUR,
 DAY, MONTH, and YEAR, and specify the components of a decoded time.
@@ -1645,7 +1648,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   if (nargs == 1)
     {
       Lisp_Object tail = a;
-      for (int i = 0; i < 9; i++, tail = XCDR (tail))
+      for (int i = 0; i < 6; i++, tail = XCDR (tail))
 	CHECK_CONS (tail);
       secarg = XCAR (a); a = XCDR (a);
       minarg = XCAR (a); a = XCDR (a);
@@ -1653,11 +1656,17 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
       mdayarg = XCAR (a); a = XCDR (a);
       monarg = XCAR (a); a = XCDR (a);
       yeararg = XCAR (a); a = XCDR (a);
-      a = XCDR (a);
-      Lisp_Object dstflag = XCAR (a); a = XCDR (a);
-      zone = XCAR (a);
-      if (SYMBOLP (dstflag) && !FIXNUMP (zone) && !CONSP (zone))
-	tm.tm_isdst = !NILP (dstflag);
+      if (! NILP (a))
+	{
+	  CHECK_CONS (a);
+	  a = XCDR (a);
+	  CHECK_CONS (a);
+	  Lisp_Object dstflag = XCAR (a); a = XCDR (a);
+	  CHECK_CONS (a);
+	  zone = XCAR (a);
+	  if (SYMBOLP (dstflag) && !FIXNUMP (zone) && !CONSP (zone))
+	    tm.tm_isdst = !NILP (dstflag);
+	}
     }
   else if (nargs < 6)
     xsignal2 (Qwrong_number_of_arguments, Qencode_time, make_fixnum (nargs));

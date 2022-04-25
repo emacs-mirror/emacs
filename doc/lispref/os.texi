@@ -1660,6 +1660,11 @@ standard time from 4 to 3 hours east of Greenwich; if you need to
 handle situations like this you can use a numeric @var{zone} to
 disambiguate instead.
 
+The first argument can also be a list @code{(@var{second} @var{minute}
+@var{hour} @var{day} @var{month} @var{year})}, which is treated like
+the list @code{(@var{second} @var{minute} @var{hour} @var{day}
+@var{month} @var{year} nil -1 nil)}.
+
 As an obsolescent calling convention, this function can be given six
 or more arguments.  The first six arguments @var{second},
 @var{minute}, @var{hour}, @var{day}, @var{month}, and @var{year}
