@@ -37,10 +37,10 @@
 (cl-defun string-edit (string success-callback
                               &key abort-callback help-text)
   "Switch to a new buffer to edit STRING.
-When the user finishes editing (with `C-c C-c'), SUCCESS-CALLBACK
+When the user finishes editing (with \\<string-edit-mode-map>\\[string-edit-done]), SUCCESS-CALLBACK
 is called with the resulting string.
 
-If the user aborts (with `C-c C-k'), ABORT-CALLBACK (if any) is
+If the user aborts (with \\<string-edit-mode-map>\\[string-edit-abort]), ABORT-CALLBACK (if any) is
 called with no parameters.
 
 If present, HELP-TEXT will be inserted at the start of the
@@ -66,12 +66,12 @@ buffer, but won't be included in the resulting string."
   (setq-local string-edit--success-callback success-callback)
   (when abort-callback
     (setq-local string-edit--abort-callback abort-callback))
-  (message "%S" (substitute-command-keys
-                 "Type `C-c C-c' when you've finished editing")))
+  (message "%s" (substitute-command-keys
+                 "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing")))
 
 (defun read-string-from-buffer (string &optional help-text)
   "Switch to a new buffer to edit STRING in a recursive edit.
-The user finishes editing with `C-c C-c', or aborts with `C-c C-k').
+The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort]).
 
 If present, HELP-TEXT will be inserted at the start of the
 buffer, but won't be included in the resulting string."
