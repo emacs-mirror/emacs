@@ -1423,9 +1423,9 @@ For example, here are the file attributes for @file{files.texi}:
 @group
 (file-attributes "files.texi" 'string)
      @result{}  (nil 1 "lh" "users"
-          (20614 64019 50040 152000)
-          (20000 23 0 0)
-          (20614 64555 902289 872000)
+          (1351023123050040152 . 1000000000)
+          (1310720023000000000 . 1000000000)
+          (1351023659902289872 . 1000000000)
           122295 "-rw-rw-rw-"
           t 6473924464520138
           1014478468)
@@ -1449,13 +1449,13 @@ is owned by the user with name @samp{lh}.
 @item "users"
 is in the group with name @samp{users}.
 
-@item (20614 64019 50040 152000)
+@item (1351023123050040152 . 1000000000)
 was last accessed on October 23, 2012, at 20:12:03.050040152 UTC.
 
-@item (20000 23 0 0)
-was last modified on July 15, 2001, at 08:53:43 UTC.
+@item (1310720023000000000 . 1000000000)
+was last modified on July 15, 2001, at 08:53:43.000000000 UTC.
 
-@item (20614 64555 902289 872000)
+@item (1351023659902289872 . 1000000000)
 last had its status changed on October 23, 2012, at 20:20:59.902289872 UTC.
 
 @item 122295

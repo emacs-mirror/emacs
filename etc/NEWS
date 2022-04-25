@@ -202,6 +202,14 @@ speakers of the Tamil language.  To get back the previous behavior,
 use the new 'tamil-itrans-digits' and 'tamil-inscript-digits' input
 methods instead.
 
++++
+** current-time and related functions now yield (TICKS . HZ) timestamps.
+Previously they yielded timestamps of the forms (HI LO US PS), (HI LO
+US) or (HI LO), which were less regular and less efficient and which
+lacked information about clock resolution.  This long-planned change
+was documented in Emacs 27.  To convert a timestamp X to the old
+4-element list form, you can use (time-convert X 'list).
+
 
 * Changes in Emacs 29.1
 

@@ -69,12 +69,11 @@ enum { TM_YEAR_BASE = 1900 };
 # define FASTER_TIMEFNS 1
 #endif
 
-/* Although current-time etc. generate list-format timestamps
-   (HI LO US PS), the plan is to change these functions to generate
-   frequency-based timestamps (TICKS . HZ) in a future release.
-   To try this now, compile with -DCURRENT_TIME_LIST=0.  */
+/* current-time etc. generate (TICKS . HZ) timestamps.
+   To change that to the old 4-element list format (HI LO US PS),
+   compile with -DCURRENT_TIME_LIST=1.  */
 #ifndef CURRENT_TIME_LIST
-enum { CURRENT_TIME_LIST = true };
+enum { CURRENT_TIME_LIST = false };
 #endif
 
 #if FIXNUM_OVERFLOW_P (1000000000)
@@ -1763,15 +1762,14 @@ bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
        doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
-The time is returned as a list of integers (HIGH LOW USEC PSEC).
-HIGH has the most significant bits of the seconds, while LOW has the
-least significant 16 bits.  USEC and PSEC are the microsecond and
-picosecond counts.
+The time is returned as a pair of integers (TICKS . HZ), where TICKS
+counts clock ticks and HZ is the clock ticks per second.
 
-In a future Emacs version, the format of the returned timestamp is
-planned to change.  Use `time-convert' if you need a particular
-timestamp form; for example, (time-convert nil \\='integer) returns
-the current time in seconds.  */)
+In Emacs 28 and earlier, the returned timestamp had the form (HIGH LOW
+USEC PSEC), where HIGH is the most significant bits of the seconds,
+LOW the least significant 16 bits, and USEC and PSEC are the
+microsecond and picosecond counts.  Use \(time-convert nil \\='list)
+if you need this older timestamp form.  */)
   (void)
 {
   return make_lisp_time (current_timespec ());

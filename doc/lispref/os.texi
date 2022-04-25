@@ -1359,9 +1359,6 @@ This represents the number of seconds using the formula:
 @tex
 $high \times 2^{16} + low + micro \times 10^{-6} + pico \times 10^{-12}$.
 @end tex
-In some cases, functions may default to returning two- or
-three-element lists, with omitted @var{micro} and @var{pico}
-components defaulting to zero.
 On all current machines @var{pico} is a multiple of 1000, but this
 may change as higher-resolution clocks become available.
 @end itemize
@@ -1415,11 +1412,13 @@ The operating system limits the range of time and zone values.
 
 @defun current-time
 This function returns the current time as a Lisp timestamp.
-Although the timestamp takes the form @code{(@var{high} @var{low}
-@var{micro} @var{pico})} in the current Emacs release, this is
-planned to change in a future Emacs version.  You can use the
-@code{time-convert} function to convert a timestamp to some other
-form.  @xref{Time Conversion}.
+The timestamp has the form @code{(@var{ticks} . @var{hz})} where
+@var{ticks} counts clock ticks and @var{hz} is the clock ticks per second.
+
+In Emacs 28 and earlier, the returned timestamp had the list form
+@code{(@var{high} @var{low} @var{usec} @var{psec})}.  You can use
+@code{(time-convert nil 'list)} to return the current time in this
+older form.  @xref{Time Conversion}.
 @end defun
 
 @defun float-time &optional time
