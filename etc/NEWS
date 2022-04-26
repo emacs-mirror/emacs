@@ -940,6 +940,12 @@ representation as emojis.
 Configuration is very similar to the notmuch and namazu backends.  It
 supports the unified search syntax.
 
+---
+*** gnus-html-image-cache-ttl is now a seconds count.
+Formerly it was a pair of numbers (A B) that represented 65536*A + B,
+to cater to older Emacs implementations that lacked bignums.
+The older form still works but is undocumented.
+
 ** EIEIO
 
 +++
