@@ -505,6 +505,13 @@ This has 2 uses:
   "OClosure function to access a specific slot of an object."
   type slot)
 
+(defun oclosure--accessor-cl-print (object stream)
+  (princ "#f(accessor " stream)
+  (prin1 (accessor--type object) stream)
+  (princ "." stream)
+  (prin1 (accessor--slot object) stream)
+  (princ ")" stream))
+
 (defun oclosure--accessor-docstring (f)
   ;; This would like to be a (cl-defmethod function-documentation ...)
   ;; but for circularity reason the defmethod is in `simple.el'.

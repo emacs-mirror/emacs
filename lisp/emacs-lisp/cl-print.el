@@ -242,6 +242,12 @@ into a button whose action shows the function's disassembly.")
         (cl-print-object props stream)))
     (princ ")" stream)))
 
+;; This belongs in oclosure.el, of course, but some load-ordering issues make it
+;; complicated.
+(cl-defmethod cl-print-object ((object accessor) stream)
+  ;; FIXME: η-reduce!
+  (oclosure--accessor-cl-print object stream))
+
 (cl-defmethod cl-print-object ((object cl-structure-object) stream)
   (if (and cl-print--depth (natnump print-level)
            (> cl-print--depth print-level))
