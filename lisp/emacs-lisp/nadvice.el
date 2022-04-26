@@ -42,36 +42,37 @@
 ;; as this one), so we have to do it by hand!
 (push (purecopy '(nadvice 1 0)) package--builtin-versions)
 
+(oclosure-define (advice
+                  (:predicate advice--p)
+                  (:copier advice--cons (cdr))
+                  (:copier advice--copy (car cdr how props)))
+  car cdr how props)
+
 ;;;; Lightweight advice/hook
 (defvar advice--how-alist
-  '((:around "\300\301\302\003#\207" 5)
-    (:before "\300\301\002\"\210\300\302\002\"\207" 4)
-    (:after "\300\302\002\"\300\301\003\"\210\207" 5)
-    (:override "\300\301\002\"\207" 4)
-    (:after-until "\300\302\002\"\206\013\000\300\301\002\"\207" 4)
-    (:after-while "\300\302\002\"\205\013\000\300\301\002\"\207" 4)
-    (:before-until "\300\301\002\"\206\013\000\300\302\002\"\207" 4)
-    (:before-while "\300\301\002\"\205\013\000\300\302\002\"\207" 4)
-    (:filter-args "\300\302\301\003!\"\207" 5)
-    (:filter-return "\301\300\302\003\"!\207" 5))
+  `((:around ,(oclosure-lambda (advice (how :around)) (&rest args)
+                (apply car cdr args)))
+    (:before ,(oclosure-lambda (advice (how :before)) (&rest args)
+                (apply car args) (apply cdr args)))
+    (:after ,(oclosure-lambda (advice (how :after)) (&rest args)
+               (apply cdr args) (apply car args)))
+    (:override ,(oclosure-lambda (advice (how :override)) (&rest args)
+                  (apply car args)))
+    (:after-until ,(oclosure-lambda (advice (how :after-until)) (&rest args)
+                     (or (apply cdr args) (apply car args))))
+    (:after-while ,(oclosure-lambda (advice (how :after-while)) (&rest args)
+                     (and (apply cdr args) (apply car args))))
+    (:before-until ,(oclosure-lambda (advice (how :before-until)) (&rest args)
+                      (or (apply car args) (apply cdr args))))
+    (:before-while ,(oclosure-lambda (advice (how :before-while)) (&rest args)
+                      (and (apply car args) (apply cdr args))))
+    (:filter-args ,(oclosure-lambda (advice (how :filter-args)) (&rest args)
+                     (apply cdr (funcall car args))))
+    (:filter-return ,(oclosure-lambda (advice (how :filter-return)) (&rest args)
+                       (funcall car (apply cdr args)))))
   "List of descriptions of how to add a function.
-Each element has the form (HOW BYTECODE STACK) where:
-  HOW is a keyword indicating where the function is added.
-  BYTECODE is the corresponding byte-code that will be used.
-  STACK is the amount of stack space needed by the byte-code.")
-
-(defvar advice--bytecodes (mapcar #'cadr advice--how-alist))
-
-(defun advice--p (object)
-  (and (byte-code-function-p object)
-       (eq 128 (aref object 0))
-       (memq (length object) '(5 6))
-       (memq (aref object 1) advice--bytecodes)
-       (eq #'apply (aref (aref object 2) 0))))
-
-(defsubst advice--car   (f) (aref (aref f 2) 1))
-(defsubst advice--cdr   (f) (aref (aref f 2) 2))
-(defsubst advice--props (f) (aref (aref f 2) 3))
+Each element has the form (HOW OCL) where HOW is a keyword and
+OCL is a \"prototype\" function of type `advice'.")
 
 (defun advice--cd*r (f)
   (while (advice--p f)
@@ -79,12 +80,6 @@ Each element has the form (HOW BYTECODE STACK) where:
   f)
 
 (define-obsolete-function-alias 'advice--where #'advice--how "29.1")
-(defun advice--how (f)
-  (let ((bytecode (aref f 1))
-        (how nil))
-    (dolist (elem advice--how-alist)
-      (if (eq bytecode (cadr elem)) (setq how (car elem))))
-    how))
 
 (defun advice--make-single-doc (flist function macrop)
   (let ((how (advice--how flist)))
@@ -181,17 +176,26 @@ Each element has the form (HOW BYTECODE STACK) where:
         `(funcall ',fspec ',(cadr ifm))
       (cadr (or iff ifm)))))
 
-(defun advice--make-1 (byte-code stack-depth function main props)
-  "Build a function value that adds FUNCTION to MAIN."
-  (let ((adv-sig (gethash main advertised-signature-table))
-        (advice
-         (apply #'make-byte-code 128 byte-code
-                (vector #'apply function main props) stack-depth nil
-                (and (or (commandp function) (commandp main))
-                     (list (advice--make-interactive-form
-                            function main))))))
-    (when adv-sig (puthash advice adv-sig advertised-signature-table))
-    advice))
+
+(cl-defmethod oclosure-interactive-form ((ad advice) &optional _)
+  (let ((car (advice--car ad))
+        (cdr (advice--cdr ad)))
+    (when (or (commandp car) (commandp cdr))
+      `(interactive ,(advice--make-interactive-form car cdr)))))
+
+(cl-defmethod cl-print-object ((object advice) stream)
+  (cl-assert (advice--p object))
+  (princ "#f(advice " stream)
+  (cl-print-object (advice--car object) stream)
+  (princ " " stream)
+  (princ (advice--how object) stream)
+  (princ " " stream)
+  (cl-print-object (advice--cdr object) stream)
+  (let ((props (advice--props object)))
+    (when props
+      (princ " " stream)
+      (cl-print-object props stream)))
+  (princ ")" stream))
 
 (defun advice--make (how function main props)
   "Build a function value that adds FUNCTION to MAIN at HOW.
@@ -202,12 +206,11 @@ HOW is a symbol to select an entry in `advice--how-alist'."
     (if (and md (> fd md))
         ;; `function' should go deeper.
         (let ((rest (advice--make how function (advice--cdr main) props)))
-          (advice--make-1 (aref main 1) (aref main 3)
-                          (advice--car main) rest (advice--props main)))
-      (let ((desc (assq how advice--how-alist)))
-        (unless desc (error "Unknown add-function location `%S'" how))
-        (advice--make-1 (nth 1 desc) (nth 2 desc)
-                        function main props)))))
+          (advice--cons main rest))
+      (let ((proto (assq how advice--how-alist)))
+        (unless proto (error "Unknown add-function location `%S'" how))
+        (advice--copy (cadr proto)
+                      function main how props)))))
 
 (defun advice--member-p (function use-name definition)
   (let ((found nil))
@@ -233,8 +236,7 @@ HOW is a symbol to select an entry in `advice--how-alist'."
         (if val (car val)
           (let ((nrest (advice--tweak rest tweaker)))
             (if (eq rest nrest) flist
-              (advice--make-1 (aref flist 1) (aref flist 3)
-                              first nrest props))))))))
+              (advice--cons flist nrest))))))))
 
 ;;;###autoload
 (defun advice--remove-function (flist function)
@@ -286,7 +288,7 @@ different, but `function-equal' will hopefully ignore those differences.")
   ;; :before-until is like add-hook on run-hook-with-args-until-success.
   ;; Same with :after-* but for (add-hook ... 'append).
   "Add a piece of advice on the function stored at PLACE.
-FUNCTION describes the code to add.  HOW describes where to add it.
+FUNCTION describes the code to add.  HOW describes how to add it.
 HOW can be explained by showing the resulting new function, as the
 result of combining FUNCTION and the previous value of PLACE, which we
 call OLDFUN here:
