@@ -1063,7 +1063,8 @@ NEW-NAME."
            #'archive--file-desc-ext-file-name
            (or (archive-get-marked ?*) (list (archive-get-descr))))))
      (list names
-           (read-file-name (format "Copy %s to: " (string-join names ", "))))))
+           (read-file-name (format "Copy %s to: " (string-join names ", "))
+                           nil default-directory))))
   (unless (consp files)
     (setq files (list files)))
   (when (and (> (length files) 1)
