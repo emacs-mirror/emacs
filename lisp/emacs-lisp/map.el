@@ -175,7 +175,17 @@ MAP can be an alist, plist, hash-table, or array."
 
 (cl-defgeneric map-delete (map key)
   "Delete KEY in-place from MAP and return MAP.
-Keys not present in MAP are ignored.")
+Keys not present in MAP are ignored.
+
+Note that if MAP is a list (either alist or plist), and you're
+deleting the final element in the list, the list isn't actually
+destructively modified (but the return value will reflect the
+deletion).  So if you're using this method on a list, you have to
+say
+
+  (setq map (map-delete map key))
+
+for this to work reliably.")
 
 (cl-defmethod map-delete ((map list) key)
   ;; FIXME: Signal map-not-inplace i.s.o returning a different list?
