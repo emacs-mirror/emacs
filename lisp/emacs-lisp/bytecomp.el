@@ -1439,7 +1439,7 @@ when printing the error message."
   (and (eq 'macro (car-safe f)) (setq f (cdr f)))
   ;; Advice wrappers have "catch all" args, so fetch the actual underlying
   ;; function to find the real arguments.
-  (while (advice--p f) (setq f (advice--cdr f)))
+  (setq f (advice--cd*r f))
   (if (eq (car-safe f) 'declared)
       (byte-compile-arglist-signature (nth 1 f))
     (condition-case nil

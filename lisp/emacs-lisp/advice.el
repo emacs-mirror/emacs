@@ -1814,8 +1814,7 @@ Redefining advices affect the construction of an advised definition."
   (if (symbolp function)
       (setq function (if (fboundp function)
                          (advice--strip-macro (symbol-function function)))))
-  (while (advice--p function) (setq function (advice--cdr function)))
-  function)
+  (advice--cd*r function))
 
 (defun ad-clear-advicefunname-definition (function)
   (let ((advicefunname (ad-get-advice-info-field function 'advicefunname)))

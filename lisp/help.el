@@ -2039,7 +2039,7 @@ the same names as used in the original source code, when possible."
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
   ;; Advice wrappers have "catch all" args, so fetch the actual underlying
   ;; function to find the real arguments.
-  (while (advice--p def) (setq def (advice--cdr def)))
+  (setq def (advice--cd*r def))
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
