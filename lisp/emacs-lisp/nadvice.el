@@ -48,31 +48,41 @@
                   (:copier advice--copy (car cdr how props)))
   car cdr how props)
 
+(eval-when-compile
+  (defmacro advice--make-how-alist (&rest args)
+    `(list
+      ,@(mapcar
+         (lambda (arg)
+           (pcase-let ((`(,how . ,body) arg))
+             `(list ,how
+                    (oclosure-lambda (advice (how ,how)) (&rest r)
+                      ,@body)
+                    ,(replace-regexp-in-string
+                      "\\<car\\>" "FUNCTION"
+                      (replace-regexp-in-string
+                       "\\<cdr\\>" "OLDFUN"
+                       (format "%S" `(lambda (&rest r) ,@body))
+                       t t)
+                      t t))))
+         args))))
+
 ;;;; Lightweight advice/hook
 (defvar advice--how-alist
-  `((:around ,(oclosure-lambda (advice (how :around)) (&rest args)
-                (apply car cdr args)))
-    (:before ,(oclosure-lambda (advice (how :before)) (&rest args)
-                (apply car args) (apply cdr args)))
-    (:after ,(oclosure-lambda (advice (how :after)) (&rest args)
-               (apply cdr args) (apply car args)))
-    (:override ,(oclosure-lambda (advice (how :override)) (&rest args)
-                  (apply car args)))
-    (:after-until ,(oclosure-lambda (advice (how :after-until)) (&rest args)
-                     (or (apply cdr args) (apply car args))))
-    (:after-while ,(oclosure-lambda (advice (how :after-while)) (&rest args)
-                     (and (apply cdr args) (apply car args))))
-    (:before-until ,(oclosure-lambda (advice (how :before-until)) (&rest args)
-                      (or (apply car args) (apply cdr args))))
-    (:before-while ,(oclosure-lambda (advice (how :before-while)) (&rest args)
-                      (and (apply car args) (apply cdr args))))
-    (:filter-args ,(oclosure-lambda (advice (how :filter-args)) (&rest args)
-                     (apply cdr (funcall car args))))
-    (:filter-return ,(oclosure-lambda (advice (how :filter-return)) (&rest args)
-                       (funcall car (apply cdr args)))))
+  (advice--make-how-alist
+   (:around (apply car cdr r))
+   (:before (apply car r) (apply cdr r))
+   (:after (apply cdr r) (apply car r))
+   (:override (apply car r))
+   (:after-until (or (apply cdr r) (apply car r)))
+   (:after-while (and (apply cdr r) (apply car r)))
+   (:before-until (or (apply car r) (apply cdr r)))
+   (:before-while (and (apply car r) (apply cdr r)))
+   (:filter-args (apply cdr (funcall car r)))
+   (:filter-return (funcall car (apply cdr r))))
   "List of descriptions of how to add a function.
-Each element has the form (HOW OCL) where HOW is a keyword and
-OCL is a \"prototype\" function of type `advice'.")
+Each element has the form (HOW OCL DOC) where HOW is a keyword,
+OCL is a \"prototype\" function of type `advice', and
+DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
 
 (defun advice--cd*r (f)
   (while (advice--p f)
@@ -276,6 +286,29 @@ different, but `function-equal' will hopefully ignore those differences.")
           ((symbolp place)              `(default-value ',place))
           (t place))))
 
+(defun nadvice--make-docstring (sym)
+  (let* ((main (documentation (symbol-function sym) 'raw))
+         (ud (help-split-fundoc main 'pcase))
+         (doc (or (cdr ud) main))
+         (col1width (apply #'max (mapcar (lambda (x)
+                                           (string-width (symbol-name (car x))))
+                                         advice--how-alist)))
+         (table (mapconcat (lambda (x)
+                             (format (format " %%-%ds %%s" col1width)
+                                     (car x) (nth 2 x)))
+                           advice--how-alist "\n"))
+         (table (if global-prettify-symbols-mode
+                    (replace-regexp-in-string "(lambda\\>" "(λ" table t t)
+                  table))
+         (combined-doc
+          (if (not (string-match "<<>>" doc))
+              doc
+            (replace-match table t t doc))))
+    (if ud (help-add-fundoc-usage combined-doc (car ud)) combined-doc)))
+
+(put 'add-function 'function-documentation
+     '(nadvice--make-docstring 'add-function))
+
 ;;;###autoload
 (defmacro add-function (how place function &optional props)
   ;; TODO:
@@ -292,16 +325,7 @@ FUNCTION describes the code to add.  HOW describes how to add it.
 HOW can be explained by showing the resulting new function, as the
 result of combining FUNCTION and the previous value of PLACE, which we
 call OLDFUN here:
-`:before'	(lambda (&rest r) (apply FUNCTION r) (apply OLDFUN r))
-`:after'	(lambda (&rest r) (prog1 (apply OLDFUN r) (apply FUNCTION r)))
-`:around'	(lambda (&rest r) (apply FUNCTION OLDFUN r))
-`:override'	(lambda (&rest r) (apply FUNCTION r))
-`:before-while'	(lambda (&rest r) (and (apply FUNCTION r) (apply OLDFUN r)))
-`:before-until'	(lambda (&rest r) (or  (apply FUNCTION r) (apply OLDFUN r)))
-`:after-while'	(lambda (&rest r) (and (apply OLDFUN r) (apply FUNCTION r)))
-`:after-until'	(lambda (&rest r) (or  (apply OLDFUN r) (apply FUNCTION r)))
-`:filter-args'	(lambda (&rest r) (apply OLDFUN (funcall FUNCTION r)))
-`:filter-return'(lambda (&rest r) (funcall FUNCTION (apply OLDFUN r)))
+<<>>
 If FUNCTION was already added, do nothing.
 PROPS is an alist of additional properties, among which the following have
 a special meaning:
@@ -458,11 +482,16 @@ of the piece of advice."
         (put symbol 'advice--pending (advice--subst-main oldadv nil)))
       (funcall fsetfun symbol newdef))))
 
+(put 'advice-add 'function-documentation
+     '(nadvice--make-docstring 'advice-add))
+
 ;;;###autoload
 (defun advice-add (symbol how function &optional props)
   "Like `add-function' but for the function named SYMBOL.
 Contrary to `add-function', this will properly handle the cases where SYMBOL
-is defined as a macro, alias, command, ..."
+is defined as a macro, alias, command, ...
+HOW can be one of:
+<<>>"
   ;; TODO:
   ;; - record the advice location, to display in describe-function.
   ;; - change all defadvice in lisp/**/*.el.
@@ -483,7 +512,7 @@ is defined as a macro, alias, command, ..."
                         (get symbol 'advice--pending))
                        (t (symbol-function symbol)))
                   function props)
-    ;; FIXME: We could use a defmethod on `function-docstring' instead,
+    ;; FIXME: We could use a defmethod on `function-documentation' instead,
     ;; except when (or (not nf) (autoloadp nf))!
     (put symbol 'function-documentation `(advice--make-docstring ',symbol))
     (add-function :around (get symbol 'defalias-fset-function)
