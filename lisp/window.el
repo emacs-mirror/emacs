@@ -5007,7 +5007,11 @@ minibuffer window or is dedicated to its buffer."
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
 and defaults to the current buffer.
 
-Interactively, prompt for the buffer.
+Interactively, this command will prompt for the buffer name.  A
+prefix argument of 0 (zero) means that only windows in the
+current terminal's frames will be deleted.  Any other prefix
+argument means that only windows in the current frame will be
+deleted.
 
 The following non-nil values of the optional argument FRAME
 have special meanings:
@@ -5044,7 +5048,21 @@ If the buffer specified by BUFFER-OR-NAME is shown in a
 minibuffer window, do nothing for that window.  For any window
 that does not show that buffer, remove the buffer from that
 window's lists of previous and next buffers."
-  (interactive "bDelete windows on (buffer):\nP")
+  (interactive
+   (let ((frame (cond
+                 ((and (numberp current-prefix-arg)
+                       (zerop current-prefix-arg))
+                  0)
+                 (current-prefix-arg t))))
+     (list (read-buffer "Delete windows on (buffer): "
+                        nil nil
+                        (lambda (buf)
+                          (get-buffer-window
+                           (if (consp buf) (car buf) buf)
+                           (cond
+                            ((null frame) t)
+                            ((numberp frame) frame)))))
+           frame)))
   (let ((buffer (window-normalize-buffer buffer-or-name))
 	;; Handle the "inverted" meaning of the FRAME argument wrt other
 	;; `window-list-1' based function.
