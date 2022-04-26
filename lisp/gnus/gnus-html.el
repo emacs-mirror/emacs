@@ -46,8 +46,9 @@
   :group 'gnus-art
   ;; FIXME hardly the friendliest type.  The allowed value is actually
   ;; any time value, but we are assuming no-one cares about USEC and
-  ;; PSEC here.  It would be better to eg make it a number of minutes.
-  :type '(list integer integer))
+  ;; PSEC here.  It would be better to make it a number of seconds.
+  :type '(choice (cons integer integer)
+		 (list integer integer)))
 
 (defcustom gnus-html-image-automatic-caching t
   "Whether automatically cache retrieve images."
