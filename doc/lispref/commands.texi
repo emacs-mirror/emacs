@@ -312,6 +312,25 @@ If @var{function} is an interactively callable function
 specifies how to compute its arguments.  Otherwise, the value is
 @code{nil}.  If @var{function} is a symbol, its function definition is
 used.
+When called on an OClosure, the work is delegated to the generic
+function @code{oclosure-interactive-form}.
+@end defun
+
+@defun oclosure-interactive-form function
+Just like @code{interactive-form}, this function takes a command and
+returns its interactive form.  The difference is that it is a generic
+function and it is only called when @var{function} is an OClosure.
+The purpose is to make it possible for some OClosure types to compute
+their interactive forms dynamically instead of carrying it in one of
+their slots.
+
+This is used for example for @code{kmacro} functions in order to
+reduce their memory size, since they all share the same interactive
+form.  It is also used for @code{advice} functions, where the
+interactive form is computed from the interactive forms of its
+components, so as to make this computation more lazily and to
+correctly adjust the interactive form when one of its component's
+is redefined.
 @end defun
 
 @node Interactive Codes

@@ -1345,6 +1345,11 @@ remote host are shown.  Alternatively, the user option
 Allows the creation of "functions with slots" or "function objects"
 via the macros 'oclosure-define' and 'oclosure-lambda'.
 
+*** New generic function 'oclosure-interactive-form'.
+Used by 'interactive-form' when called on an OClosure.
+This allows specific OClosure types to compute their interactive specs
+on demand rather than precompute them when created.
+
 ---
 ** New theme 'leuven-dark'.
 This is a dark version of the 'leuven' theme.

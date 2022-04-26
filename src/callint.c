@@ -315,7 +315,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
   Lisp_Object up_event = Qnil;
 
   /* Set SPECS to the interactive form, or barf if not interactive.  */
-  Lisp_Object form = Finteractive_form (function);
+  Lisp_Object form = call1 (Qinteractive_form, function);
   if (! CONSP (form))
     wrong_type_argument (Qcommandp, function);
   Lisp_Object specs = Fcar (XCDR (form));

@@ -2185,6 +2185,16 @@ XSUBR (Lisp_Object a)
   return &XUNTAG (a, Lisp_Vectorlike, union Aligned_Lisp_Subr)->s;
 }
 
+/* Return whether a value might be a valid docstring.
+   Used to distinguish the presence of non-docstring in the docstring slot,
+   as in the case of OClosures.  */
+INLINE bool
+VALID_DOCSTRING_P (Lisp_Object doc)
+{
+  return FIXNUMP (doc) || STRINGP (doc)
+         || (CONSP (doc) && STRINGP (XCAR (doc)) && FIXNUMP (XCDR (doc)));
+}
+
 enum char_table_specials
   {
     /* This is the number of slots that every char table must have.  This

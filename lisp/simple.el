@@ -2389,6 +2389,17 @@ function as needed."
 (cl-defmethod function-documentation ((function accessor))
   (oclosure--accessor-docstring function)) ;; FIXME: η-reduce!
 
+;; This should be in `oclosure.el' but that file is loaded before `cl-generic'.
+(cl-defgeneric oclosure-interactive-form (_function)
+  "Return the interactive form of FUNCTION or nil if none.
+This is called by `interactive-form' when invoked on OClosures.
+It should return either nil or a two-element list of the form (interactive FORM)
+where FORM is like the first arg of the `interactive' special form.
+Add your methods to this generic function, but always call `interactive-form'
+instead."
+  ;; (interactive-form function)
+  nil)
+
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.
   "Execute CMD as an editor command.

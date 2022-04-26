@@ -106,6 +106,27 @@
       (and (eq 'error (car err))
            (string-match "Duplicate slot: fst$" (cadr err)))))))
 
+(cl-defmethod oclosure-interactive-form ((ot oclosure-test))
+  (let ((snd (oclosure-test--snd ot)))
+    (if (stringp snd) (list 'interactive snd))))
+
+(ert-deftest oclosure-test-interactive-form ()
+  (should (equal (interactive-form
+                  (oclosure-lambda (oclosure-test (fst 1) (snd 2)) () fst))
+                 nil))
+  (should (equal (interactive-form
+                  (oclosure-lambda (oclosure-test (fst 1) (snd 2)) ()
+                    (interactive "r")
+                    fst))
+                 '(interactive "r")))
+  (should (equal (interactive-form
+                  (oclosure-lambda (oclosure-test (fst 1) (snd "P")) () fst))
+                 '(interactive "P")))
+  (should (not (commandp
+                (oclosure-lambda (oclosure-test (fst 1) (snd 2)) () fst))))
+  (should (commandp
+           (oclosure-lambda (oclosure-test (fst 1) (snd "P")) () fst))))
+
 (oclosure-define (oclosure-test-mut
                   (:parent oclosure-test)
                   (:copier oclosure-test-mut-copy))

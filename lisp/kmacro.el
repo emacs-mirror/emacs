@@ -820,12 +820,13 @@ KEYS should be a vector or a string that obeys `key-valid-p'."
                            (counter (or counter 0))
                            (format (or format "%d")))
       (&optional arg)
-    (interactive "p")
     ;; Use counter and format specific to the macro on the ring!
     (let ((kmacro-counter counter)
 	  (kmacro-counter-format-start format))
       (execute-kbd-macro keys arg #'kmacro-loop-setup-function)
       (setq counter kmacro-counter))))
+
+(cl-defmethod oclosure-interactive-form ((_ kmacro)) '(interactive "p"))
 
 ;;;###autoload
 (defun kmacro-lambda-form (mac &optional counter format)
