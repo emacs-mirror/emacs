@@ -623,17 +623,28 @@ haiku_calculate_relief_colors (struct glyph_string *s, uint32_t *rgbout_w,
   struct face *face = s->face;
   double h, cs, l;
   uint32_t rgbin;
+  struct haiku_output *di;
 
-  prepare_face_for_display (s->f, s->face);
   rgbin = (face->use_box_color_for_shadows_p
 	   ? face->box_color : face->background);
+  di = FRAME_OUTPUT_DATA (s->f);
 
   if (s->hl == DRAW_CURSOR)
     rgbin = FRAME_CURSOR_COLOR (s->f).pixel;
 
-  rgb_color_hsl (rgbin, &h, &cs, &l);
-  hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 0.6), rgbout_b);
-  hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 1.2), rgbout_w);
+  if (di->relief_background != rgbin)
+    {
+      di->relief_background = rgbin & 0xffffffff;
+
+      rgb_color_hsl (rgbin, &h, &cs, &l);
+      hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 0.6),
+		     &di->black_relief_pixel);
+      hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 1.2),
+		     &di->white_relief_pixel);
+    }
+
+  *rgbout_w = di->white_relief_pixel;
+  *rgbout_b = di->black_relief_pixel;
 }
 
 static void

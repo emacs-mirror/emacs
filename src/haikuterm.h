@@ -181,6 +181,17 @@ struct haiku_output
 
   /* The type of any event that's being waited for.  */
   int wait_for_event_type;
+
+  /* The "dark" color of the current relief.  */
+  uint32_t black_relief_pixel;
+
+  /* The "light" color of the current relief.  */
+  uint32_t white_relief_pixel;
+
+  /* The background for which the relief colors above were computed.
+     They are changed only when a different background is involved.
+     -1 means no color has been computed.  */
+  long relief_background;
 };
 
 struct x_output
