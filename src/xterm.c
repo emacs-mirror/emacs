@@ -7158,7 +7158,7 @@ x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap,
        that scaling by FACTOR alone isn't enough.  */
     {
       /* How far below the limit this color is (0 - 1, 1 being darker).  */
-      double dimness = 1 - (double)bright / HIGHLIGHT_COLOR_DARK_BOOST_LIMIT;
+      double dimness = 1 - (double) bright / HIGHLIGHT_COLOR_DARK_BOOST_LIMIT;
       /* The additive adjustment.  */
       int min_delta = delta * dimness * factor / 2;
 
@@ -8179,7 +8179,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 }
 
 static void
-x_get_scale_factor(Display *disp, int *scale_x, int *scale_y)
+x_get_scale_factor (Display *disp, int *scale_x, int *scale_y)
 {
   const int base_res = 96;
   struct x_display_info * dpyinfo = x_display_info_for_display (disp);
@@ -21468,20 +21468,30 @@ xembed_request_focus (struct frame *f)
 static void
 x_ewmh_activate_frame (struct frame *f)
 {
-  /* See Window Manager Specification/Extended Window Manager Hints at
-     https://freedesktop.org/wiki/Specifications/wm-spec/  */
+  XEvent msg;
+  struct x_display_info *dpyinfo;
 
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  if (FRAME_VISIBLE_P (f) && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
+  if (FRAME_VISIBLE_P (f)
+      && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
     {
-      Lisp_Object frame;
-      XSETFRAME (frame, f);
-      x_send_client_event (frame, make_fixnum (0), frame,
-			   dpyinfo->Xatom_net_active_window,
-			   make_fixnum (32),
-			   list2 (make_fixnum (1),
-				  INT_TO_INTEGER (dpyinfo->last_user_time)));
+      /* See the documentation at
+	 https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
+	 for more details on the format of this message.  */
+      msg.xclient.window = FRAME_OUTER_WINDOW (f);
+      msg.xclient.message_type = dpyinfo->Xatom_net_active_window;
+      msg.xclient.data.l[0] = 1;
+      msg.xclient.data.l[1] = dpyinfo->last_user_time;
+      msg.xclient.data.l[2] = (!dpyinfo->x_focus_frame
+			       ? None
+			       : FRAME_OUTER_WINDOW (dpyinfo->x_focus_frame));
+      msg.xclient.data.l[3] = 0;
+      msg.xclient.data.l[4] = 0;
+
+      XSendEvent (dpyinfo->display, dpyinfo->root_window,
+		  False, (SubstructureRedirectMask
+			  | SubstructureNotifyMask), &msg);
     }
 }
 
