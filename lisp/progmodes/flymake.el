@@ -1358,6 +1358,11 @@ This is a suitable place for placing the `flymake-error-counter',
 Separating each of these with space is not necessary."
   :type '(repeat (choice string symbol)))
 
+(defcustom flymake-mode-line-lighter "Flymake"
+  "The string to use in the Flymake mode line."
+  :type 'string
+  :version "29.1")
+
 (defvar flymake-mode-line-title '(:eval (flymake--mode-line-title))
   "Mode-line construct to show Flymake's mode name and menu.")
 
@@ -1386,7 +1391,7 @@ correctly.")
 
 (defun flymake--mode-line-title ()
   `(:propertize
-    "Flymake"
+    ,flymake-mode-line-lighter
     mouse-face mode-line-highlight
     help-echo
     ,(lambda (&rest _)

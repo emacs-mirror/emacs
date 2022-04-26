@@ -669,6 +669,11 @@ script that was used in ancient South Asia.  A new input method,
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Flymake
+
++++
+*** New user option 'flymake-mode-line-lighter'.
+
 +++
 ** New minor mode 'word-wrap-whitespace-mode' for extending 'word-wrap'.
 This mode switches 'word-wrap' on, and breaks on all the whitespace
