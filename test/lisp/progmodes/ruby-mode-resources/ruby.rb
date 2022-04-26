@@ -491,3 +491,12 @@ in ['th', orig_text, 'en', trans_text]
 in {'th' => orig_text, 'ja' => trans_text}
   puts "Japanese translation: #{orig_text} => #{trans_text}"
 end
+
+# Tokenizing "**" and "|" separately.
+def resolve(**args)
+  members = proc do |**args|
+    p(**args)
+  end
+
+  member.call(**args)
+end

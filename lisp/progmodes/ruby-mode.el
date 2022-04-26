@@ -508,7 +508,7 @@ This only affects the output of the command `ruby-toggle-block'."
            ((member tok '("unless" "if" "while" "until"))
             (if (save-excursion (forward-word-strictly -1) (ruby-smie--bosp))
                 tok "iuwu-mod"))
-           ((string-match-p "\\`|[*&]?\\'" tok)
+           ((string-match-p "\\`|[*&]*\\'" tok)
             (forward-char (- 1 (length tok)))
             (setq tok "|")
             (cond
@@ -561,7 +561,7 @@ This only affects the output of the command `ruby-toggle-block'."
            ((ruby-smie--closing-pipe-p) "closing-|")
            (t tok)))
          ((string-match-p "\\`[^|]+|\\'" tok) "closing-|")
-         ((string-match-p "\\`|[*&]\\'" tok)
+         ((string-match-p "\\`|[*&]*\\'" tok)
           (forward-char 1)
           (substring tok 1))
          ((and (equal tok "") (eq ?\\ (char-before)) (looking-at "\n"))
