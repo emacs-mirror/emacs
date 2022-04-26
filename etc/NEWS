@@ -1311,6 +1311,12 @@ Lisp function.  This frees you from having to keep track of whether
 commands are Lisp function or external when supplying absolute file
 name arguments.  See "Electric forward slash" in the Eshell manual.
 
+** Calc
+
++++
+*** New user option 'calc-kill-line-numbering'.
+This can be set to nil to exclude line numbering from kills and copies.
+
 ** Miscellaneous
 
 +++

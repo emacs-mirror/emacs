@@ -439,6 +439,14 @@ to be identified as that note."
   :version "24.1"
   :type 'string)
 
+(defcustom calc-kill-line-numbering t
+  "If non-nil, calculator kills include any line numbering.
+
+This option does not affect calc kill and copy commands which
+operate on the region, such as `calc-copy-region-as-kill'."
+  :version "29.1"
+  :type 'boolean)
+
 (defvar math-format-date-cache) ; calc-forms.el
 
 (defface calc-nonselected-face
