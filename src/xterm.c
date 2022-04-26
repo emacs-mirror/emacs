@@ -21479,8 +21479,10 @@ x_ewmh_activate_frame (struct frame *f)
       /* See the documentation at
 	 https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
 	 for more details on the format of this message.  */
+      msg.xclient.type = ClientMessage;
       msg.xclient.window = FRAME_OUTER_WINDOW (f);
       msg.xclient.message_type = dpyinfo->Xatom_net_active_window;
+      msg.xclient.format = 32;
       msg.xclient.data.l[0] = 1;
       msg.xclient.data.l[1] = dpyinfo->last_user_time;
       msg.xclient.data.l[2] = (!dpyinfo->x_focus_frame
