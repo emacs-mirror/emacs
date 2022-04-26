@@ -43,7 +43,7 @@
 (push (purecopy '(nadvice 1 0)) package--builtin-versions)
 
 ;;;; Lightweight advice/hook
-(defvar advice--where-alist
+(defvar advice--how-alist
   '((:around "\300\301\302\003#\207" 5)
     (:before "\300\301\002\"\210\300\302\002\"\207" 4)
     (:after "\300\302\002\"\300\301\003\"\210\207" 5)
@@ -55,12 +55,12 @@
     (:filter-args "\300\302\301\003!\"\207" 5)
     (:filter-return "\301\300\302\003\"!\207" 5))
   "List of descriptions of how to add a function.
-Each element has the form (WHERE BYTECODE STACK) where:
-  WHERE is a keyword indicating where the function is added.
+Each element has the form (HOW BYTECODE STACK) where:
+  HOW is a keyword indicating where the function is added.
   BYTECODE is the corresponding byte-code that will be used.
   STACK is the amount of stack space needed by the byte-code.")
 
-(defvar advice--bytecodes (mapcar #'cadr advice--where-alist))
+(defvar advice--bytecodes (mapcar #'cadr advice--how-alist))
 
 (defun advice--p (object)
   (and (byte-code-function-p object)
@@ -78,19 +78,20 @@ Each element has the form (WHERE BYTECODE STACK) where:
     (setq f (advice--cdr f)))
   f)
 
-(defun advice--where (f)
+(define-obsolete-function-alias 'advice--where #'advice--how "29.1")
+(defun advice--how (f)
   (let ((bytecode (aref f 1))
-        (where nil))
-    (dolist (elem advice--where-alist)
-      (if (eq bytecode (cadr elem)) (setq where (car elem))))
-    where))
+        (how nil))
+    (dolist (elem advice--how-alist)
+      (if (eq bytecode (cadr elem)) (setq how (car elem))))
+    how))
 
 (defun advice--make-single-doc (flist function macrop)
-  (let ((where (advice--where flist)))
+  (let ((how (advice--how flist)))
     (concat
      (format "This %s has %s advice: "
              (if macrop "macro" "function")
-             where)
+             how)
      (let ((fun (advice--car flist)))
        (if (symbolp fun) (format-message "`%S'." fun)
          (let* ((name (cdr (assq 'name (advice--props flist))))
@@ -192,19 +193,19 @@ Each element has the form (WHERE BYTECODE STACK) where:
     (when adv-sig (puthash advice adv-sig advertised-signature-table))
     advice))
 
-(defun advice--make (where function main props)
-  "Build a function value that adds FUNCTION to MAIN at WHERE.
-WHERE is a symbol to select an entry in `advice--where-alist'."
+(defun advice--make (how function main props)
+  "Build a function value that adds FUNCTION to MAIN at HOW.
+HOW is a symbol to select an entry in `advice--how-alist'."
   (let ((fd (or (cdr (assq 'depth props)) 0))
         (md (if (advice--p main)
                 (or (cdr (assq 'depth (advice--props main))) 0))))
     (if (and md (> fd md))
         ;; `function' should go deeper.
-        (let ((rest (advice--make where function (advice--cdr main) props)))
+        (let ((rest (advice--make how function (advice--cdr main) props)))
           (advice--make-1 (aref main 1) (aref main 3)
                           (advice--car main) rest (advice--props main)))
-      (let ((desc (assq where advice--where-alist)))
-        (unless desc (error "Unknown add-function location `%S'" where))
+      (let ((desc (assq how advice--how-alist)))
+        (unless desc (error "Unknown add-function location `%S'" how))
         (advice--make-1 (nth 1 desc) (nth 2 desc)
                         function main props)))))
 
@@ -274,9 +275,9 @@ different, but `function-equal' will hopefully ignore those differences.")
           (t place))))
 
 ;;;###autoload
-(defmacro add-function (where place function &optional props)
+(defmacro add-function (how place function &optional props)
   ;; TODO:
-  ;; - maybe let `where' specify some kind of predicate and use it
+  ;; - maybe let `how' specify some kind of predicate and use it
   ;;   to implement things like mode-local or eieio-defmethod.
   ;;   Of course, that only makes sense if the predicates of all advices can
   ;;   be combined and made more efficient.
@@ -285,8 +286,8 @@ different, but `function-equal' will hopefully ignore those differences.")
   ;; :before-until is like add-hook on run-hook-with-args-until-success.
   ;; Same with :after-* but for (add-hook ... 'append).
   "Add a piece of advice on the function stored at PLACE.
-FUNCTION describes the code to add.  WHERE describes where to add it.
-WHERE can be explained by showing the resulting new function, as the
+FUNCTION describes the code to add.  HOW describes where to add it.
+HOW can be explained by showing the resulting new function, as the
 result of combining FUNCTION and the previous value of PLACE, which we
 call OLDFUN here:
 `:before'	(lambda (&rest r) (apply FUNCTION r) (apply OLDFUN r))
@@ -326,13 +327,13 @@ is also interactive.  There are 3 cases:
    ;;(indent 2)
    (debug (form [&or symbolp ("local" form) ("var" sexp) gv-place]
            form &optional form)))
-  `(advice--add-function ,where (gv-ref ,(advice--normalize-place place))
+  `(advice--add-function ,how (gv-ref ,(advice--normalize-place place))
                          ,function ,props))
 
 (declare-function comp-subr-trampoline-install "comp")
 
 ;;;###autoload
-(defun advice--add-function (where ref function props)
+(defun advice--add-function (how ref function props)
   (when (and (featurep 'native-compile)
              (subr-primitive-p (gv-deref ref)))
     (let ((subr-name (intern (subr-name (gv-deref ref)))))
@@ -357,7 +358,7 @@ is also interactive.  There are 3 cases:
             (advice--remove-function (gv-deref ref)
                                      (or name (advice--car a)))))
     (setf (gv-deref ref)
-          (advice--make where function (gv-deref ref) props))))
+          (advice--make how function (gv-deref ref) props))))
 
 ;;;###autoload
 (defmacro remove-function (place function)
@@ -456,7 +457,7 @@ of the piece of advice."
       (funcall fsetfun symbol newdef))))
 
 ;;;###autoload
-(defun advice-add (symbol where function &optional props)
+(defun advice-add (symbol how function &optional props)
   "Like `add-function' but for the function named SYMBOL.
 Contrary to `add-function', this will properly handle the cases where SYMBOL
 is defined as a macro, alias, command, ..."
@@ -467,18 +468,18 @@ is defined as a macro, alias, command, ..."
   (let* ((f (symbol-function symbol))
 	 (nf (advice--normalize symbol f)))
     (unless (eq f nf) (fset symbol nf))
-    (add-function where (cond
-                         ((eq (car-safe nf) 'macro) (cdr nf))
-                         ;; Reasons to delay installation of the advice:
-                         ;; - If the function is not yet defined, installing
-                         ;;   the advice would affect `fboundp'ness.
-                         ;; - the symbol-function slot of an autoloaded
-                         ;;   function is not itself a function value.
-                         ;; - `autoload' does nothing if the function is
-                         ;;   not an autoload or undefined.
-                         ((or (not nf) (autoloadp nf))
-                          (get symbol 'advice--pending))
-                         (t (symbol-function symbol)))
+    (add-function how (cond
+                       ((eq (car-safe nf) 'macro) (cdr nf))
+                       ;; Reasons to delay installation of the advice:
+                       ;; - If the function is not yet defined, installing
+                       ;;   the advice would affect `fboundp'ness.
+                       ;; - the symbol-function slot of an autoloaded
+                       ;;   function is not itself a function value.
+                       ;; - `autoload' does nothing if the function is
+                       ;;   not an autoload or undefined.
+                       ((or (not nf) (autoloadp nf))
+                        (get symbol 'advice--pending))
+                       (t (symbol-function symbol)))
                   function props)
     ;; FIXME: We could use a defmethod on `function-docstring' instead,
     ;; except when (or (not nf) (autoloadp nf))!
@@ -517,12 +518,12 @@ See `advice-add' and `add-function' for explanation on the
 arguments.  Note if NAME is nil the advice is anonymous;
 otherwise it is named `SYMBOL@NAME'.
 
-\(fn SYMBOL (WHERE LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
+\(fn SYMBOL (HOW LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
   (declare (indent 2) (doc-string 3) (debug (sexp sexp def-body)))
   (or (listp args) (signal 'wrong-type-argument (list 'listp args)))
   (or (<= 2 (length args) 4)
       (signal 'wrong-number-of-arguments (list 2 4 (length args))))
-  (let* ((where         (nth 0 args))
+  (let* ((how           (nth 0 args))
          (lambda-list   (nth 1 args))
          (name          (nth 2 args))
          (depth         (nth 3 args))
@@ -532,7 +533,7 @@ otherwise it is named `SYMBOL@NAME'.
                         (intern (format "%s@%s" symbol name)))
                        (t (error "Unrecognized name spec `%S'" name)))))
     `(prog1 ,@(and (symbolp advice) `((defun ,advice ,lambda-list ,@body)))
-       (advice-add ',symbol ,where #',advice ,@(and props `(',props))))))
+       (advice-add ',symbol ,how #',advice ,@(and props `(',props))))))
 
 (defun advice-mapc (fun symbol)
   "Apply FUN to every advice function in SYMBOL.
