@@ -434,7 +434,7 @@ following bindings:
 This has been changed to:
 
   It is bound to <open> and C-x C-f.
-  It can also be invoked from the menu: File → Visit New File....
+  It can also be invoked from the menu: File → Visit New File...
 
 +++
 *** The 'C-h .' command now accepts a prefix argument.

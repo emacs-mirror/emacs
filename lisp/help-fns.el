@@ -565,11 +565,10 @@ the C sources, too."
               (insert "\n"))
             (when menus
               (let ((start (point)))
-                (insert (concat "It can "
-                                (and keys "also ")
-                                "be invoked from the menu: "))
-                (help-fns--insert-menu-bindings menus)
-                (insert ".")
+                (help-fns--insert-menu-bindings
+                 menus
+                 (concat "It can " (and keys "also ")
+                         "be invoked from the menu: "))
                 (fill-region-as-paragraph start (point))))
             (ensure-empty-lines)))))))
 
@@ -582,7 +581,7 @@ the C sources, too."
                     (insert (help--key-description-fontified key)))
                   keys))
 
-(defun help-fns--insert-menu-bindings (menus)
+(defun help-fns--insert-menu-bindings (menus heading)
   (seq-do-indexed
    (lambda (menu i)
      (insert
@@ -593,12 +592,15 @@ the C sources, too."
            (start (point)))
        (seq-do-indexed
         (lambda (entry level)
-          (when (> level 0)
-            (insert
-             (if (char-displayable-p ?→)
-                 " → "
-               " => ")))
-          (let ((elem (assq entry (cdr map))))
+          (when-let ((elem (assq entry (cdr map))))
+            (when heading
+              (insert heading)
+              (setq heading nil))
+            (when (> level 0)
+              (insert
+               (if (char-displayable-p ?→)
+                   " → "
+                 " => ")))
             (if (eq (nth 1 elem) 'menu-item)
                 (progn
                   (insert (nth 2 elem))
