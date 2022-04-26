@@ -2966,13 +2966,14 @@ follows:
 @code{nil} means consider only windows on the selected frame.
 (Actually, the last frame used that is not a minibuffer-only frame.)
 @item
-@code{t} means consider windows on all frames.
-@item
 @code{visible} means consider windows on all visible frames.
 @item
 0 means consider windows on all visible or iconified frames.
 @item
 A frame means consider windows on that frame only.
+@item
+@code{t} means consider windows on all frames.  (Note that this value
+is rarely the right thing to use---it might also return a tooltip frame.)
 @end itemize
 
 Note that the meaning of @code{nil} differs slightly from that of the
