@@ -66,6 +66,8 @@ static Lisp_Object tip_last_parms;
 
 static void haiku_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 static void haiku_set_title (struct frame *, Lisp_Object, Lisp_Object);
+
+/* The number of references to an image cache.  */
 static ptrdiff_t image_cache_refcount;
 
 static Lisp_Object
@@ -2604,7 +2606,7 @@ means that if both frames are visible and the display areas of these
 frames overlap, FRAME1 (partially) obscures FRAME2.
 
 Some window managers may refuse to restack windows.  */)
-     (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
+  (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
 {
   struct frame *f1 = decode_window_system_frame (frame1);
   struct frame *f2 = decode_window_system_frame (frame2);
@@ -2648,6 +2650,28 @@ Some window managers may refuse to restack windows.  */)
   BWindow_sync (FRAME_HAIKU_WINDOW (f1));
   BWindow_sync (FRAME_HAIKU_WINDOW (f2));
 
+  unblock_input ();
+
+  return Qnil;
+}
+
+DEFUN ("haiku-save-session-reply", Fhaiku_save_session_reply,
+       Shaiku_save_session_reply, 1, 1, 0,
+       doc: /* Reply to a `save-session' event.
+QUIT-REPLY means whether or not all files were saved and program
+termination should proceed.
+
+Calls to this function must be balanced by the amount of
+`save-session' events received.  This is done automatically, so do not
+call this function yourself.  */)
+  (Lisp_Object quit_reply)
+{
+  struct haiku_session_manager_reply reply;
+  reply.quit_reply = !NILP (quit_reply);
+
+  block_input ();
+  write_port (port_emacs_to_session_manager, 0, &reply,
+	      sizeof reply);
   unblock_input ();
 
   return Qnil;
@@ -2750,6 +2774,7 @@ syms_of_haikufns (void)
   defsubr (&Shaiku_frame_list_z_order);
   defsubr (&Sx_display_save_under);
   defsubr (&Shaiku_frame_restack);
+  defsubr (&Shaiku_save_session_reply);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);

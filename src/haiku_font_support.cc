@@ -292,10 +292,11 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
 {
   char *style = strdup (st);
   char *token;
-  pattern->weight = -1;
+  int tok = 0;
+
+  pattern->weight = NO_WEIGHT;
   pattern->width = NO_WIDTH;
   pattern->slant = NO_SLANT;
-  int tok = 0;
 
   while ((token = std::strtok (!tok ? style : NULL, " ")) && tok < 3)
     {
@@ -317,7 +318,7 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
 	  if (pattern->width == NO_WIDTH)
 	    pattern->width = NORMAL_WIDTH;
 
-	  if (pattern->weight == -1)
+	  if (pattern->weight == NO_WEIGHT)
 	    pattern->weight = HAIKU_REGULAR;
 	}
       else if (token && (!strcmp (token, "SemiBold")
@@ -370,7 +371,7 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
       tok++;
     }
 
-  if (pattern->weight != -1)
+  if (pattern->weight != NO_WEIGHT)
     pattern->specified |= FSPEC_WEIGHT;
   if (pattern->slant != NO_SLANT)
     pattern->specified |= FSPEC_SLANT;

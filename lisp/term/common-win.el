@@ -419,6 +419,16 @@ the operating system.")
 	     (setq defined-colors (cons this-color defined-colors))))
       defined-colors)))
 
+;;;; Session management.
+
+(defvar emacs-save-session-functions nil
+  "Special hook run when a save-session event occurs.
+The functions do not get any argument.
+Functions can return non-nil to inform the session manager that the
+window system shutdown should be aborted.
+
+See also `emacs-session-save'.")
+
 (provide 'term/common-win)
 
 ;;; common-win.el ends here

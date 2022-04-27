@@ -109,14 +109,6 @@
   (setq x-session-previous-id (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
 
-(defvar emacs-save-session-functions nil
-  "Special hook run when a save-session event occurs.
-The functions do not get any argument.
-Functions can return non-nil to inform the session manager that the
-window system shutdown should be aborted.
-
-See also `emacs-session-save'.")
-
 (defun emacs-session-filename (session-id)
   "Construct a filename to save the session in based on SESSION-ID.
 Return a filename in `user-emacs-directory', unless the session file

@@ -286,6 +286,26 @@ enum haiku_font_language
     MAX_LANGUAGE /* This isn't a language. */
   };
 
+enum haiku_font_weight
+  {
+    NO_WEIGHT	      = -1,
+    HAIKU_THIN	      = 0,
+    HAIKU_ULTRALIGHT  = 20,
+    HAIKU_EXTRALIGHT  = 40,
+    HAIKU_LIGHT	      = 50,
+    HAIKU_SEMI_LIGHT  = 75,
+    HAIKU_REGULAR     = 100,
+    HAIKU_SEMI_BOLD   = 180,
+    HAIKU_BOLD	      = 200,
+    HAIKU_EXTRA_BOLD  = 205,
+    HAIKU_ULTRA_BOLD  = 210,
+    HAIKU_BOOK	      = 400,
+    HAIKU_HEAVY	      = 800,
+    HAIKU_ULTRA_HEAVY = 900,
+    HAIKU_BLACK	      = 1000,
+    HAIKU_MEDIUM      = 2000,
+  };
+
 struct haiku_font_pattern
 {
   int specified;
@@ -297,13 +317,13 @@ struct haiku_font_pattern
   struct haiku_font_pattern *next_family;
   haiku_font_family_or_style family;
   haiku_font_family_or_style style;
-  int weight;
   int mono_spacing_p;
   int want_chars_len;
   int need_one_of_len;
   enum haiku_font_slant slant;
   enum haiku_font_width width;
   enum haiku_font_language language;
+  enum haiku_font_weight weight;
   int *wanted_chars;
   int *need_one_of;
 
@@ -349,21 +369,10 @@ struct haiku_menu_bar_state_event
   void *window;
 };
 
-#define HAIKU_THIN 0
-#define HAIKU_ULTRALIGHT 20
-#define HAIKU_EXTRALIGHT 40
-#define HAIKU_LIGHT 50
-#define HAIKU_SEMI_LIGHT 75
-#define HAIKU_REGULAR 100
-#define HAIKU_SEMI_BOLD 180
-#define HAIKU_BOLD 200
-#define HAIKU_EXTRA_BOLD 205
-#define HAIKU_ULTRA_BOLD 210
-#define HAIKU_BOOK 400
-#define HAIKU_HEAVY 800
-#define HAIKU_ULTRA_HEAVY 900
-#define HAIKU_BLACK 1000
-#define HAIKU_MEDIUM 2000
+struct haiku_session_manager_reply
+{
+  bool quit_reply;
+};
 
 #ifdef __cplusplus
 /* Haiku's built in Height and Width functions for calculating
@@ -420,6 +429,7 @@ extern unsigned long haiku_get_pixel (haiku, int, int);
 
 extern port_id port_application_to_emacs;
 extern port_id port_popup_menu_to_emacs;
+extern port_id port_emacs_to_session_manager;
 
 extern void haiku_io_init (void);
 extern void haiku_io_init_in_app_thread (void);

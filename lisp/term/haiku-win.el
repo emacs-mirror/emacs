@@ -358,6 +358,28 @@ take effect on menu items until the menu bar is updated again."
 
 (add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
 
+
+;;;; Session management.
+
+(declare-function haiku-save-session-reply "haikufns.c")
+
+(defun emacs-session-save ()
+  "SKIP: real doc in x-win.el."
+  (with-temp-buffer ; Saving sessions is not yet supported.
+    (condition-case nil
+	;; A return of t means cancel the shutdown.
+	(run-hook-with-args-until-success
+	 'emacs-save-session-functions)
+      (error t))))
+
+(defun handle-save-session (_event)
+  "SKIP: real doc in xsmfns.c."
+  (interactive "e")
+  (let ((cancel-shutdown t))
+    (unwind-protect
+        (setq cancel-shutdown (emacs-session-save))
+      (haiku-save-session-reply (not cancel-shutdown)))))
+
 (provide 'haiku-win)
 (provide 'term/haiku-win)
 

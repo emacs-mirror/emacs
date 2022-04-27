@@ -3662,6 +3662,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    break;
 	  }
 	case APP_QUIT_REQUESTED_EVENT:
+	  inev.kind = SAVE_SESSION_EVENT;
+	  inev.arg = Qt;
+	  break;
 	case KEY_UP:
 	case DUMMY_EVENT:
 	default:
@@ -3962,15 +3965,14 @@ haiku_term_init (void)
   void *name_buffer;
 
   block_input ();
+
   Fset_input_interrupt_mode (Qt);
-
   baud_rate = 19200;
-
   dpyinfo = xzalloc (sizeof *dpyinfo);
-
   haiku_io_init ();
 
-  if (port_application_to_emacs < B_OK)
+  if (port_application_to_emacs < B_OK
+      || port_emacs_to_session_manager < B_OK)
     emacs_abort ();
 
   color_file = Fexpand_file_name (build_string ("rgb.txt"),

@@ -453,8 +453,18 @@ public:
   QuitRequested (void)
   {
     struct haiku_app_quit_requested_event rq;
+    struct haiku_session_manager_reply reply;
+    int32 reply_type;
+
     haiku_write (APP_QUIT_REQUESTED_EVENT, &rq);
-    return 0;
+
+    if (read_port (port_emacs_to_session_manager,
+		   &reply_type, &reply, sizeof reply) < B_OK)
+      /* Return true so the system kills us, since there's no real
+	 alternative if this read fails.  */
+      return true;
+
+    return reply.quit_reply;
   }
 
   void

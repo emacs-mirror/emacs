@@ -40,10 +40,15 @@ port_id port_application_to_emacs;
    thread to Emacs.  */
 port_id port_popup_menu_to_emacs;
 
+/* The port used to send replies to the application after a session
+   management event.  */
+port_id port_emacs_to_session_manager;
+
 void
 haiku_io_init (void)
 {
   port_application_to_emacs = create_port (PORT_CAP, "application emacs port");
+  port_emacs_to_session_manager = create_port (1, "session manager port");
 }
 
 static ssize_t
