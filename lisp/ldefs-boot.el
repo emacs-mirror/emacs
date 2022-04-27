@@ -16110,19 +16110,22 @@ If this produces no string either, return nil." nil nil)
 
 (autoload 'display-local-help "help-at-pt" "\
 Display local help in the echo area.
-This displays a short help message, namely the string produced by
-the `kbd-help' property at point.  If `kbd-help' does not produce
-a string, but the `help-echo' property does, then that string is
-printed instead.
+This command, by default, displays a short help message, namely
+the string produced by the `kbd-help' property at point.  If
+`kbd-help' does not produce a string, but the `help-echo'
+property does, then that string is printed instead.
 
 The string is passed through `substitute-command-keys' before it
 is displayed.
 
-A numeric argument ARG prevents display of a message in case
-there is no help.  While ARG can be used interactively, it is
-mainly meant for use from Lisp.
+If INHIBIT-WARNING is non-nil, this prevents display of a message
+in case there is no help.
 
-\(fn &optional ARG)" t nil)
+If DESCRIBE-BUTTON in non-nil (interactively, the prefix arg), and
+there's a button/widget at point, pop a buffer describing that
+button/widget instead.
+
+\(fn &optional INHIBIT-WARNING DESCRIBE-BUTTON)" t nil)
 
 (autoload 'help-at-pt-cancel-timer "help-at-pt" "\
 Cancel any timer set by `help-at-pt-set-timer'.
@@ -17358,6 +17361,10 @@ that control the choices, as well as a description of the format
 of a holiday list.
 
 The optional LABEL is used to label the buffer created.
+
+The list of holiday lists is computed by the `holiday-lists', and
+you can alter the results by redefining that function, or use
+`add-function' to all values.
 
 \(fn Y1 &optional Y2 L LABEL)" t nil)
 
@@ -32770,6 +32777,14 @@ Major-mode for writing SRecode macros.
 ;;; Generated autoloads from cedet/srecode/table.el
 
 (register-definition-prefixes "srecode/table" '("object-sort-list" "srecode-"))
+
+;;;***
+
+;;;### (autoloads nil "string-edit" "textmodes/string-edit.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from textmodes/string-edit.el
+
+(register-definition-prefixes "string-edit" '("read-string-from-buffer" "string-edit-"))
 
 ;;;***
 
