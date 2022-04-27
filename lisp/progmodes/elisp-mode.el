@@ -1614,8 +1614,6 @@ Return the result of evaluation."
   ;; printing, not while evaluating.
   (defvar elisp--eval-defun-result)
   (let ((debug-on-error eval-expression-debug-on-error)
-	(print-length eval-expression-print-length)
-	(print-level eval-expression-print-level)
         elisp--eval-defun-result)
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
@@ -1630,10 +1628,17 @@ Return the result of evaluation."
           (setq beg (point))
           (setq form (funcall load-read-function (current-buffer)))
           (setq end (point)))
-        ;; Alter the form if necessary.
-        (let ((form (eval-sexp-add-defvars
-                     (elisp--eval-defun-1
-                      (macroexpand form)))))
+        ;; Alter the form if necessary.  We bind `print-level' (etc.)
+        ;; in the form itself, because we want evalling the form to
+        ;; use the original values, while we want the printing to use
+        ;; `eval-expression-print-length' (etc.).
+        (let ((form `(let ((print-level ,print-level)
+                           (print-length ,print-length))
+                       ,(eval-sexp-add-defvars
+                         (elisp--eval-defun-1
+                          (macroexpand form)))))
+	      (print-length eval-expression-print-length)
+	      (print-level eval-expression-print-level))
           (eval-region beg end standard-output
                        (lambda (_ignore)
                          ;; Skipping to the end of the specified region
