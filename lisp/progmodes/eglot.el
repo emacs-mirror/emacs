@@ -195,7 +195,8 @@ language-server/bin/php-language-server.php"))
                                 (json-mode . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio"))))
                                 (dockerfile-mode . ("docker-langserver" "--stdio"))
                                 (clojure-mode . ("clojure-lsp"))
-                                (csharp-mode . ("omnisharp" "-lsp")))
+                                (csharp-mode . ("omnisharp" "-lsp"))
+                                (purescript-mode . ("purescript-language-server" "--stdio")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific
