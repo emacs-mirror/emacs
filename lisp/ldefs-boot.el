@@ -17362,9 +17362,10 @@ of a holiday list.
 
 The optional LABEL is used to label the buffer created.
 
-The list of holiday lists is computed by the `holiday-lists', and
-you can alter the results by redefining that function, or use
-`add-function' to all values.
+The list of holiday lists is computed by the
+`holiday-available-holiday-lists' and you can alter the results
+by redefining that function, or use `add-function' to add
+values.
 
 \(fn Y1 &optional Y2 L LABEL)" t nil)
 
@@ -32784,7 +32785,31 @@ Major-mode for writing SRecode macros.
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from textmodes/string-edit.el
 
-(register-definition-prefixes "string-edit" '("read-string-from-buffer" "string-edit-"))
+(autoload 'string-edit "string-edit" "\
+Switch to a new buffer to edit STRING.
+When the user finishes editing (with \\<string-edit-mode-map>\\[string-edit-done]), SUCCESS-CALLBACK
+is called with the resulting string.
+
+If the user aborts (with \\<string-edit-mode-map>\\[string-edit-abort]), ABORT-CALLBACK (if any) is
+called with no parameters.
+
+PROMPT will be inserted at the start of the buffer, but won't be
+included in the resulting string.  If PROMPT is nil, no help text
+will be inserted.
+
+\(fn PROMPT STRING SUCCESS-CALLBACK &key ABORT-CALLBACK)" nil nil)
+
+(autoload 'read-string-from-buffer "string-edit" "\
+Switch to a new buffer to edit STRING in a recursive edit.
+The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort]).
+
+PROMPT will be inserted at the start of the buffer, but won't be
+included in the resulting string.  If nil, no prompt will be
+inserted in the buffer.
+
+\(fn PROMPT STRING)" nil nil)
+
+(register-definition-prefixes "string-edit" '("string-edit-"))
 
 ;;;***
 
