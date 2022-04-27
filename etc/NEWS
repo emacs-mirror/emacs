@@ -2154,6 +2154,11 @@ where those APIs are available.
 When 'w32-use-native-image-API' is non-nil, Emacs on MS-Windows now
 has built-in support for displaying BMP images.
 
+** Cygwin
+
+---
+*** 'process-attributes' is now implemented.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

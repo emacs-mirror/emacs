@@ -3193,7 +3193,7 @@ make_lisp_timeval (struct timeval t)
 
 #endif
 
-#ifdef GNU_LINUX
+#if defined (GNU_LINUX) || defined (CYGWIN)
 
 static Lisp_Object
 time_from_jiffies (unsigned long long ticks, Lisp_Object hz, Lisp_Object form)
@@ -3241,6 +3241,7 @@ get_up_time (void)
   return up;
 }
 
+# ifdef GNU_LINUX
 #define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
 #define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
 
@@ -3286,6 +3287,7 @@ procfs_ttyname (int rdev)
   unblock_input ();
   return build_string (name);
 }
+# endif	/* GNU_LINUX */
 
 static uintmax_t
 procfs_get_total_memory (void)
@@ -3434,7 +3436,9 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (ppid)), attrs);
 	  attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (pgrp)), attrs);
 	  attrs = Fcons (Fcons (Qsess, INT_TO_INTEGER (sess)), attrs);
+# ifdef GNU_LINUX
 	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
+# endif
 	  attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (tpgid)), attrs);
 	  attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (minflt)), attrs);
 	  attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (majflt)), attrs);
@@ -3482,6 +3486,26 @@ system_process_attributes (Lisp_Object pid)
 	}
     }
   unbind_to (count, Qnil);
+
+# ifdef CYGWIN
+  /* ttname */
+  strcpy (procfn_end, "/ctty");
+  fd = emacs_open (fn, O_RDONLY, 0);
+  if (fd < 0)
+    nread = 0;
+  else
+    {
+      record_unwind_protect_int (close_file_unwind, fd);
+      nread = emacs_read_quit (fd, procbuf, sizeof procbuf);
+    }
+  /* /proc/<pid>/ctty should always end in newline. */
+  if (0 < nread && procbuf[nread - 1] == '\n')
+    procbuf[nread - 1] = '\0';
+  else
+    procbuf[0] = '\0';
+  attrs = Fcons (Fcons (Qttname, build_string (procbuf)), attrs);
+  unbind_to (count, Qnil);
+# endif	/* CYGWIN */
 
   /* args */
   strcpy (procfn_end, "/cmdline");
