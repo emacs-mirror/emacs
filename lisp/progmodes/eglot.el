@@ -2198,11 +2198,12 @@ When called interactively, use the currently active server"
    server :workspace/didChangeConfiguration
    (list
     :settings
-    (cl-loop for (section . v) in eglot-workspace-configuration
-             collect (if (keywordp section)
-                         section
-                       (intern (format ":%s" section)))
-             collect v))))
+    (or (cl-loop for (section . v) in eglot-workspace-configuration
+                 collect (if (keywordp section)
+                             section
+                           (intern (format ":%s" section)))
+                 collect v)
+        eglot--{}))))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql workspace/configuration)) &key items)
