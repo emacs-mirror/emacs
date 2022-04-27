@@ -360,7 +360,8 @@ pgtk_set_name (struct frame *f, Lisp_Object name, int explicit)
    specified a name for the frame; the name will override any set by the
    redisplay code.  */
 static void
-x_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+pgtk_explicitly_set_name (struct frame *f, Lisp_Object arg,
+			  Lisp_Object oldval)
 {
   pgtk_set_name (f, arg, true);
 }
@@ -467,13 +468,12 @@ pgtk_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   else
     nlines = 0;
 
-  x_change_tab_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+  pgtk_change_tab_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
-
 
 /* Set the pixel height of the tab bar of frame F to HEIGHT.  */
 void
-x_change_tab_bar_height (struct frame *f, int height)
+pgtk_change_tab_bar_height (struct frame *f, int height)
 {
   int unit = FRAME_LINE_HEIGHT (f);
   int old_height = FRAME_TAB_BAR_HEIGHT (f);
@@ -578,12 +578,11 @@ pgtk_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object
 	  pgtk_clear_under_internal_border (f);
 	}
     }
-
 }
 
 static void
 pgtk_set_internal_border_width (struct frame *f, Lisp_Object arg,
-			     Lisp_Object oldval)
+				Lisp_Object oldval)
 {
   int border = check_int_nonnegative (arg);
 
@@ -661,32 +660,17 @@ pgtk_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   unblock_input ();
 }
 
-/* This is the same as the xfns.c definition.  */
 static void
 pgtk_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
 }
 
-/* called to set mouse pointer color, but all other terms use it to
-   initialize pointer types (and don't set the color ;) */
 static void
 pgtk_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
 }
 
-/**
- * pgtk_set_undecorated:
- *
- * Set frame F's `undecorated' parameter.  If non-nil, F's window-system
- * window is drawn without decorations, title, minimize/maximize boxes
- * and external borders.  This usually means that the window cannot be
- * dragged, resized, iconified, maximized or deleted with the mouse.  If
- * nil, draw the frame with all the elements listed above unless these
- * have been suspended via window manager settings.
- *
- * Some window managers may not honor this parameter.
- */
 static void
 pgtk_set_undecorated (struct frame *f, Lisp_Object new_value,
 		   Lisp_Object old_value)
@@ -698,16 +682,6 @@ pgtk_set_undecorated (struct frame *f, Lisp_Object new_value,
     }
 }
 
-/**
- * pgtk_set_skip_taskbar:
- *
- * Set frame F's `skip-taskbar' parameter.  If non-nil, this should
- * remove F's icon from the taskbar associated with the display of F's
- * window-system window and inhibit switching to F's window via
- * <Alt>-<TAB>.  If nil, lift these restrictions.
- *
- * Some window managers may not honor this parameter.
- */
 static void
 pgtk_set_skip_taskbar (struct frame *f, Lisp_Object new_value,
 		    Lisp_Object old_value)
@@ -719,18 +693,9 @@ pgtk_set_skip_taskbar (struct frame *f, Lisp_Object new_value,
     }
 }
 
-/**
- * pgtk_set_override_redirect:
- *
- * Set frame F's `override_redirect' parameter which, if non-nil, hints
- * that the window manager doesn't want to deal with F.  Usually, such
- * frames have no decorations and always appear on top of all frames.
- *
- * Some window managers may not honor this parameter.
- */
 static void
 pgtk_set_override_redirect (struct frame *f, Lisp_Object new_value,
-			 Lisp_Object old_value)
+			    Lisp_Object old_value)
 {
   if (!EQ (new_value, old_value))
     {
@@ -745,9 +710,7 @@ pgtk_set_override_redirect (struct frame *f, Lisp_Object new_value,
     }
 }
 
-/* Set icon from FILE for frame F.  By using GTK functions the icon
-   may be any format that GdkPixbuf knows about, i.e. not just bitmaps.  */
-
+/* Set icon from FILE for frame F.  */
 bool
 xg_set_icon (struct frame *f, Lisp_Object file)
 {
@@ -969,59 +932,58 @@ unless TYPE is `png'.  */)
   return pgtk_cr_export_frames (frames, surface_type);
 }
 
-
-/* Note: see frame.c for template, also where generic functions are impl */
-frame_parm_handler pgtk_frame_parm_handlers[] = {
-  gui_set_autoraise,		/* generic OK */
-  gui_set_autolower,		/* generic OK */
-  pgtk_set_background_color,
-  pgtk_set_border_color,
-  gui_set_border_width,
-  pgtk_set_cursor_color,
-  pgtk_set_cursor_type,
-  gui_set_font,			/* generic OK */
-  pgtk_set_foreground_color,
-  pgtk_set_icon_name,
-  pgtk_set_icon_type,
-  pgtk_set_child_frame_border_width,
-  pgtk_set_internal_border_width,	/* generic OK */
-  gui_set_right_divider_width,
-  gui_set_bottom_divider_width,
-  pgtk_set_menu_bar_lines,
-  pgtk_set_mouse_color,
-  x_explicitly_set_name,
-  gui_set_scroll_bar_width,	/* generic OK */
-  gui_set_scroll_bar_height,	/* generic OK */
-  pgtk_set_title,
-  gui_set_unsplittable,		/* generic OK */
-  gui_set_vertical_scroll_bars,	/* generic OK */
-  gui_set_horizontal_scroll_bars,	/* generic OK */
-  gui_set_visibility,		/* generic OK */
-  pgtk_set_tab_bar_lines,
-  pgtk_set_tool_bar_lines,
-  pgtk_set_scroll_bar_foreground,
-  pgtk_set_scroll_bar_background,
-  gui_set_screen_gamma,		/* generic OK */
-  gui_set_line_spacing,		/* generic OK, sets f->extra_line_spacing to int */
-  gui_set_left_fringe,		/* generic OK */
-  gui_set_right_fringe,		/* generic OK */
-  0,				/* x_set_wait_for_wm */
-  gui_set_fullscreen,		/* generic OK */
-  gui_set_font_backend,		/* generic OK */
-  gui_set_alpha,
-  pgtk_set_sticky,
-  pgtk_set_tool_bar_position,
-  0,				/* x_set_inhibit_double_buffering */
-  pgtk_set_undecorated,
-  pgtk_set_parent_frame,
-  pgtk_set_skip_taskbar,
-  pgtk_set_no_focus_on_map,
-  pgtk_set_no_accept_focus,
-  pgtk_set_z_group,
-  pgtk_set_override_redirect,
-  gui_set_no_special_glyphs,
-  pgtk_set_alpha_background,
-};
+frame_parm_handler pgtk_frame_parm_handlers[] =
+  {
+    gui_set_autoraise,		/* generic OK */
+    gui_set_autolower,		/* generic OK */
+    pgtk_set_background_color,
+    pgtk_set_border_color,
+    gui_set_border_width,
+    pgtk_set_cursor_color,
+    pgtk_set_cursor_type,
+    gui_set_font,		/* generic OK */
+    pgtk_set_foreground_color,
+    pgtk_set_icon_name,
+    pgtk_set_icon_type,
+    pgtk_set_child_frame_border_width,
+    pgtk_set_internal_border_width,	/* generic OK */
+    gui_set_right_divider_width,
+    gui_set_bottom_divider_width,
+    pgtk_set_menu_bar_lines,
+    pgtk_set_mouse_color,
+    pgtk_explicitly_set_name,
+    gui_set_scroll_bar_width,	/* generic OK */
+    gui_set_scroll_bar_height,	/* generic OK */
+    pgtk_set_title,
+    gui_set_unsplittable,	/* generic OK */
+    gui_set_vertical_scroll_bars,	/* generic OK */
+    gui_set_horizontal_scroll_bars,	/* generic OK */
+    gui_set_visibility,		/* generic OK */
+    pgtk_set_tab_bar_lines,
+    pgtk_set_tool_bar_lines,
+    pgtk_set_scroll_bar_foreground,
+    pgtk_set_scroll_bar_background,
+    gui_set_screen_gamma,	/* generic OK */
+    gui_set_line_spacing,	/* generic OK, sets f->extra_line_spacing to int */
+    gui_set_left_fringe,	/* generic OK */
+    gui_set_right_fringe,	/* generic OK */
+    0,
+    gui_set_fullscreen,		/* generic OK */
+    gui_set_font_backend,	/* generic OK */
+    gui_set_alpha,
+    pgtk_set_sticky,
+    pgtk_set_tool_bar_position,
+    0,
+    pgtk_set_undecorated,
+    pgtk_set_parent_frame,
+    pgtk_set_skip_taskbar,
+    pgtk_set_no_focus_on_map,
+    pgtk_set_no_accept_focus,
+    pgtk_set_z_group,
+    pgtk_set_override_redirect,
+    gui_set_no_special_glyphs,
+    pgtk_set_alpha_background,
+  };
 
 
 /* Handler for signals raised during x_create_frame and
@@ -1186,7 +1148,7 @@ incorrect when you specify fractional scale factor in compositor.
 If you set scale factor by this function, it is used instead of Gdk's one.
 
 Pass nil as SCALE-FACTOR if you want to reset the specified monitor's
-scale factor. */ )
+scale factor.  */)
   (Lisp_Object monitor_model, Lisp_Object scale_factor)
 {
   CHECK_STRING (monitor_model);
@@ -2255,27 +2217,6 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
   return result;
 }
 
-
-DEFUN ("pgtk-hide-others", Fpgtk_hide_others, Spgtk_hide_others, 0, 0, 0,
-       doc: /* Hides all applications other than Emacs.  */)
-  (void)
-{
-  check_window_system (NULL);
-  return Qnil;
-}
-
-DEFUN ("pgtk-hide-emacs", Fpgtk_hide_emacs, Spgtk_hide_emacs, 1, 1, 0,
-       doc: /* If ON is non-nil, the entire Emacs application is hidden.
-Otherwise if Emacs is hidden, it is unhidden.
-If ON is equal to `activate', Emacs is unhidden and becomes
-the active application.  */)
-  (Lisp_Object on)
-{
-  check_window_system (NULL);
-  return Qnil;
-}
-
-
 DEFUN ("pgtk-font-name", Fpgtk_font_name, Spgtk_font_name, 1, 1, 0,
        doc: /* Determine font PostScript or family name for font NAME.
 NAME should be a string containing either the font name or an XLFD
@@ -2310,7 +2251,6 @@ check_x_display_info (Lisp_Object frame)
 {
   return check_pgtk_display_info (frame);
 }
-
 
 void
 pgtk_set_scroll_bar_default_width (struct frame *f)
@@ -2359,9 +2299,8 @@ pgtk_get_string_resource (XrmDatabase rdb, const char *name,
   return res;
 }
 
-
 Lisp_Object
-x_get_focus_frame (struct frame *frame)
+pgtk_get_focus_frame (struct frame *frame)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
   Lisp_Object focus;
@@ -2404,7 +2343,6 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
     return Qnil;
 }
 
-
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* Internal function called by `display-color-p', which see.  */)
   (Lisp_Object terminal)
@@ -2412,7 +2350,6 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
   check_pgtk_display_info (terminal);
   return Qt;
 }
-
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p, 0, 1, 0,
        doc: /* Return t if the display supports shades of gray.
@@ -2424,7 +2361,6 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   return Qnil;
 }
-
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width, 0, 1, 0,
        doc: /* Return the width in pixels of the display TERMINAL.
@@ -2470,7 +2406,6 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
 
   return make_fixnum (width);
 }
-
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height, Sx_display_pixel_height, 0, 1, 0,
        doc: /* Return the height in pixels of the display TERMINAL.
@@ -3066,7 +3001,7 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
 
 /* Hide tooltip.  Delete its frame if DELETE is true.  */
 static Lisp_Object
-x_hide_tip (bool delete)
+pgtk_hide_tip (bool delete)
 {
   if (!NILP (tip_timer))
     {
@@ -3306,13 +3241,13 @@ Text larger than the specified size is clipped.  */)
 		}
 	    }
 
-	  x_hide_tip (delete);
+	  pgtk_hide_tip (delete);
 	}
       else
-	x_hide_tip (true);
+	pgtk_hide_tip (true);
     }
   else
-    x_hide_tip (true);
+    pgtk_hide_tip (true);
 
   tip_last_frame = frame;
   tip_last_string = string;
@@ -3439,7 +3374,7 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t if tooltip was open, nil otherwise.  */)
   (void)
 {
-  return x_hide_tip (!tooltip_reuse_hidden_frame);
+  return pgtk_hide_tip (!tooltip_reuse_hidden_frame);
 }
 
 /* Return geometric attributes of FRAME.  According to the value of
@@ -3465,10 +3400,8 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   int left_pos, top_pos;
 
   if (FRAME_GTK_OUTER_WIDGET (f))
-    {
-      gtk_window_get_position (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			       &left_pos, &top_pos);
-    }
+    gtk_window_get_position (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			     &left_pos, &top_pos);
   else
     {
       GtkAllocation alloc;
@@ -3912,7 +3845,6 @@ syms_of_pgtkfns (void)
     g_free (ver);
   }
 
-
   defsubr (&Spgtk_set_resource);
   defsubr (&Sxw_display_color_p);	/* this and next called directly by C code */
   defsubr (&Sx_display_grayscale_p);
@@ -3941,9 +3873,6 @@ syms_of_pgtkfns (void)
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_gtk_debug);
-
-  defsubr (&Spgtk_hide_others);
-  defsubr (&Spgtk_hide_emacs);
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);

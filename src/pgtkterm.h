@@ -392,6 +392,10 @@ struct pgtk_output
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
 
+  /* Whether or not a relief background has been computed for this
+     frame.  */
+  bool_bf relief_background_valid_p : 1;
+
   /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
@@ -566,11 +570,11 @@ extern void pgtk_iconify_frame (struct frame *f);
 extern void pgtk_focus_frame (struct frame *f, bool noactivate);
 extern void pgtk_set_scroll_bar_default_width (struct frame *f);
 extern void pgtk_set_scroll_bar_default_height (struct frame *f);
-extern Lisp_Object x_get_focus_frame (struct frame *frame);
+extern Lisp_Object pgtk_get_focus_frame (struct frame *frame);
 
 extern void pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo);
 
-extern void x_change_tab_bar_height (struct frame *, int);
+extern void pgtk_change_tab_bar_height (struct frame *, int);
 
 extern struct pgtk_display_info *check_pgtk_display_info (Lisp_Object object);
 
