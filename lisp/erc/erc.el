@@ -260,6 +260,20 @@ node `(auth) Top' and info node `(erc) Connecting'.")
   :group 'erc
   :type 'boolean)
 
+(defcustom erc-inhibit-multiline-input nil
+  "Conditionally disallow input consisting of multiple lines.
+Issue an error when the number of input lines submitted for
+sending exceeds this value."
+  :package-version '(ERC . "5.4.1") ; FIXME match to next release
+  :group 'erc
+  :type '(choice integer boolean))
+
+(defcustom erc-ask-about-multiline-input nil
+  "Ask to ignore `erc-inhibit-multiline-input' when tripped."
+  :package-version '(ERC . "5.4.1") ; FIXME match to next release
+  :group 'erc
+  :type 'boolean)
+
 (defcustom erc-prompt-hidden ">"
   "Text to show in lieu of the prompt when hidden."
   :package-version '(ERC . "5.4.1") ; FIXME increment on next ELPA release
@@ -5890,6 +5904,23 @@ is empty or consists of one or more spaces, tabs, or form-feeds."
                 (string-match (rx bot (* (in " \t\f")) eot) line))
           (throw 'return t))))))
 
+(defun erc--check-prompt-input-for-excess-lines (_ lines)
+  "Return non-nil when trying to send too many LINES."
+  (when erc-inhibit-multiline-input
+    ;; Assume `erc--discard-trailing-multiline-nulls' is set to run
+    (let ((reversed (seq-drop-while #'string-empty-p (reverse lines)))
+          (max (if (eq erc-inhibit-multiline-input t)
+                   2
+                 erc-inhibit-multiline-input))
+          (seen 0)
+          msg)
+      (while (and (pop reversed) (< (cl-incf seen) max)))
+      (when (= seen max)
+        (setq msg (format "(exceeded by %d)" (1+ (length reversed))))
+        (unless (and erc-ask-about-multiline-input
+                     (y-or-n-p (concat "Send input " msg "?")))
+          (concat "Too many lines " msg))))))
+
 (defun erc--check-prompt-input-for-multiline-blanks (_ lines)
   "Return non-nil when multiline prompt input has blank LINES."
   (when (erc--blank-in-multiline-input-p lines)
@@ -5911,7 +5942,8 @@ is empty or consists of one or more spaces, tabs, or form-feeds."
 (defvar erc--check-prompt-input-functions
   '(erc--check-prompt-input-for-point-in-bounds
     erc--check-prompt-input-for-multiline-blanks
-    erc--check-prompt-input-for-running-process)
+    erc--check-prompt-input-for-running-process
+    erc--check-prompt-input-for-excess-lines)
   "Validators for user input typed at prompt.
 Called with latest input string submitted by user and the list of
 lines produced by splitting it.  If any member function returns

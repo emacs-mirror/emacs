@@ -797,6 +797,31 @@
        (should (equal (funcall next) '("there\n" nil t)))
        (should-not (funcall next))))))
 
+(ert-deftest erc--check-prompt-input-for-excess-lines ()
+  (ert-info ("Without `erc-inhibit-multiline-input'")
+    (should-not erc-inhibit-multiline-input)
+    (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b"))))
+
+  (ert-info ("With `erc-inhibit-multiline-input' as t (2)")
+    (let ((erc-inhibit-multiline-input t))
+      (should-not (erc--check-prompt-input-for-excess-lines "" '("a")))
+      (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "")))
+      (should (erc--check-prompt-input-for-excess-lines "" '("a" "b")))))
+
+  (ert-info ("With `erc-inhibit-multiline-input' as 3")
+    (let ((erc-inhibit-multiline-input 3))
+      (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b")))
+      (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b" "")))
+      (should (erc--check-prompt-input-for-excess-lines "" '("a" "b" "c")))))
+
+  (ert-info ("With `erc-ask-about-multiline-input'")
+    (let ((erc-inhibit-multiline-input t)
+          (erc-ask-about-multiline-input t))
+      (ert-simulate-keys '(?n ?\r ?y ?\r)
+        (should (erc--check-prompt-input-for-excess-lines "" '("a" "b")))
+        (should-not (erc--check-prompt-input-for-excess-lines "" '("a" "b")))))
+    (should-not erc-ask-about-multiline-input)))
+
 ;; The point of this test is to ensure output is handled identically
 ;; regardless of whether a command handler is summoned.
 
