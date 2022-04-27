@@ -38,17 +38,18 @@ See `eshell-wait-for-subprocess'.")
 
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
-  `(ert-with-temp-directory eshell-directory-name
-     (let* (;; We want no history file, so prevent Eshell from falling
-            ;; back on $HISTFILE.
-            (process-environment (cons "HISTFILE" process-environment))
-            (eshell-history-file-name nil)
-            (eshell-buffer (eshell t)))
-       (unwind-protect
-           (with-current-buffer eshell-buffer
-             ,@body)
-         (let (kill-buffer-query-functions)
-           (kill-buffer eshell-buffer))))))
+  `(save-current-buffer
+     (ert-with-temp-directory eshell-directory-name
+       (let* (;; We want no history file, so prevent Eshell from falling
+              ;; back on $HISTFILE.
+              (process-environment (cons "HISTFILE" process-environment))
+              (eshell-history-file-name nil)
+              (eshell-buffer (eshell t)))
+         (unwind-protect
+             (with-current-buffer eshell-buffer
+               ,@body)
+           (let (kill-buffer-query-functions)
+             (kill-buffer eshell-buffer)))))))
 
 (defun eshell-wait-for-subprocess (&optional all)
   "Wait until there is no interactive subprocess running in Eshell.

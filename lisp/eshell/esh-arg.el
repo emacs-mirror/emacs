@@ -401,7 +401,9 @@ If the form has no `type', the syntax is parsed as if `type' were
         (if (eshell-arg-delimiter (1+ end))
             (prog1
                 (list (if buffer-p 'get-buffer-create 'get-process)
-                      (buffer-substring-no-properties (point) end))
+                      (replace-regexp-in-string
+                       (rx "\\" (group (or "\\" "<" ">"))) "\\1"
+                       (buffer-substring-no-properties (point) end)))
               (goto-char (1+ end)))
           (ignore (goto-char here)))))))
 
