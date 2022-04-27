@@ -34,6 +34,7 @@
 (defvar string-edit--success-callback)
 (defvar string-edit--abort-callback)
 
+;;;###autoload
 (cl-defun string-edit (string success-callback
                               &key abort-callback help-text)
   "Switch to a new buffer to edit STRING.
@@ -72,6 +73,7 @@ buffer, but won't be included in the resulting string."
   (message "%s" (substitute-command-keys
                  "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing")))
 
+;;;###autoload
 (defun read-string-from-buffer (string &optional help-text)
   "Switch to a new buffer to edit STRING in a recursive edit.
 The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort]).
