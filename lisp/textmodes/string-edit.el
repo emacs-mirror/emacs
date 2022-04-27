@@ -25,7 +25,7 @@
 
 (require 'cl-lib)
 
-(defface string-edit-help-text
+(defface string-edit-prompt
   '((t (:inherit font-lock-comment-face)))
   "Face used on `string-edit' help text."
   :group 'text
@@ -35,8 +35,8 @@
 (defvar string-edit--abort-callback)
 
 ;;;###autoload
-(cl-defun string-edit (string success-callback
-                              &key abort-callback help-text)
+(cl-defun string-edit (prompt string success-callback
+                              &key abort-callback)
   "Switch to a new buffer to edit STRING.
 When the user finishes editing (with \\<string-edit-mode-map>\\[string-edit-done]), SUCCESS-CALLBACK
 is called with the resulting string.
@@ -44,20 +44,21 @@ is called with the resulting string.
 If the user aborts (with \\<string-edit-mode-map>\\[string-edit-abort]), ABORT-CALLBACK (if any) is
 called with no parameters.
 
-If present, HELP-TEXT will be inserted at the start of the
-buffer, but won't be included in the resulting string."
+PROMPT will be inserted at the start of the buffer, but won't be
+included in the resulting string.  If PROMPT is nil, no help text
+will be inserted."
   (pop-to-buffer-same-window (generate-new-buffer "*edit string*"))
-  (when help-text
+  (when prompt
     (let ((inhibit-read-only t))
-      (insert help-text)
+      (insert prompt)
       (ensure-empty-lines 0)
       (add-text-properties (point-min) (point)
                            (list 'intangible t
-                                 'face 'string-edit-help-text
+                                 'face 'string-edit-prompt
                                  'read-only t))
       (insert (propertize (make-separator-line) 'rear-nonsticky t))
       (add-text-properties (point-min) (point)
-                           (list 'string-edit--help-text t))))
+                           (list 'string-edit--prompt t))))
   (let ((start (point)))
     (insert string)
     (goto-char start))
@@ -74,18 +75,19 @@ buffer, but won't be included in the resulting string."
                  "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing")))
 
 ;;;###autoload
-(defun read-string-from-buffer (string &optional help-text)
+(defun read-string-from-buffer (prompt string)
   "Switch to a new buffer to edit STRING in a recursive edit.
 The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort]).
 
-If present, HELP-TEXT will be inserted at the start of the
-buffer, but won't be included in the resulting string."
+PROMPT will be inserted at the start of the buffer, but won't be
+included in the resulting string.  If nil, no prompt will be
+inserted in the buffer."
   (string-edit
+   prompt
    string
    (lambda (edited)
      (setq string edited)
      (exit-recursive-edit))
-   :help-text help-text
    :abort-callback (lambda ()
                      (exit-recursive-edit)
                      (error "Aborted edit")))
@@ -107,7 +109,7 @@ This will kill the current buffer."
   (goto-char (point-min))
   ;; Skip past the help text.
   (when-let ((match (text-property-search-forward
-                     'string-edit--help-text nil t)))
+                     'string-edit--prompt nil t)))
     (goto-char (prop-match-beginning match)))
   (let ((string (buffer-substring (point) (point-max)))
         (callback string-edit--success-callback))
