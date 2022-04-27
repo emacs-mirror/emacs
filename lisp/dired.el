@@ -2533,6 +2533,8 @@ If the current buffer can be edited with Wdired, (i.e. the major
 mode is `dired-mode'), call `wdired-change-to-wdired-mode'.
 Otherwise, toggle `read-only-mode'."
   (interactive)
+  (unless (file-exists-p default-directory)
+    (user-error "The current directory no longer exists"))
   (when (and (not (file-writable-p default-directory))
              (not (y-or-n-p
                    "Directory isn't writable; edit anyway? ")))
