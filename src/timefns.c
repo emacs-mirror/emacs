@@ -1775,6 +1775,18 @@ if you need this older timestamp form.  */)
   return make_lisp_time (current_timespec ());
 }
 
+#ifdef CLOCKS_PER_SEC
+DEFUN ("current-cpu-time", Fcurrent_cpu_time, Scurrent_cpu_time, 0, 0, 0,
+       doc: /* Return the current CPU time along with its resolution.
+The return value is a pair (CPU-TICKS . TICKS-PER-SEC).
+The CPU-TICKS counter can wrap around, so values cannot be meaningfully
+compared if too much time has passed between them.  */)
+  (void)
+{
+  return Fcons (make_int (clock ()), make_int (CLOCKS_PER_SEC));
+}
+#endif
+
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string,
        0, 2, 0,
        doc: /* Return the current local time, as a human-readable string.
@@ -2014,6 +2026,9 @@ syms_of_timefns (void)
   DEFSYM (Qencode_time, "encode-time");
 
   defsubr (&Scurrent_time);
+#ifdef CLOCKS_PER_SEC
+  defsubr (&Scurrent_cpu_time);
+#endif
   defsubr (&Stime_convert);
   defsubr (&Stime_add);
   defsubr (&Stime_subtract);

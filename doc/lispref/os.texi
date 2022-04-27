@@ -1434,6 +1434,13 @@ as @samp{0.1} but is slightly greater than 1/10.
 @code{time-to-seconds} is an alias for this function.
 @end defun
 
+@defun current-cpu-time
+Return the current @acronym{CPU} time along with its resolution.  The
+return value is a pair @code{(CPU-TICKS . TICKS-PER-SEC)}.  The
+@var{CPU-TICKS} counter can wrap around, so values cannot be
+meaningfully compared if too much time has passed between them.
+@end defun
+
 @node Time Zone Rules
 @section Time Zone Rules
 @cindex time zone rules

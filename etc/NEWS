@@ -1514,6 +1514,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 ---
+** New function 'current-cpu-time'.
+It gives access to the CPU time used by the Emacs process, for
+example for benchmarking purposes.
+
+---
 ** New function 'string-edit'.
 This is meant to be used when the user has to edit a (potentially)
 long string.  It pops you to a new buffer where you can edit the
