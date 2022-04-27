@@ -378,7 +378,10 @@ take effect on menu items until the menu bar is updated again."
   (let ((cancel-shutdown t))
     (unwind-protect
         (setq cancel-shutdown (emacs-session-save))
-      (haiku-save-session-reply (not cancel-shutdown)))))
+      (haiku-save-session-reply (not cancel-shutdown)))
+    ;; The App Server will kill Emacs after receiving the reply, but
+    ;; the Deskbar will not, so kill ourself here.
+    (unless cancel-shutdown (kill-emacs))))
 
 (provide 'haiku-win)
 (provide 'term/haiku-win)
