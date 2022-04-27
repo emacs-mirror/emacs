@@ -595,7 +595,7 @@ the C sources, too."
           (when-let ((elem (assq entry (cdr map))))
             (when heading
               (insert heading)
-              (setq heading nil))
+              (setq heading nil start (point)))
             (when (> level 0)
               (insert
                (if (char-displayable-p ?→)
