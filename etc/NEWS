@@ -767,12 +767,11 @@ but doesn't exit the minibuffer.
 ** Isearch and Replace
 
 +++
-*** Changes in how isearch responds to 'mouse-yank-at-point'.
+*** Changes in how Isearch responds to 'mouse-yank-at-point'.
 If a user does 'C-s' and then uses '<mouse-2>' ('mouse-yank-primary')
-outside the echo area, Emacs will, by default, end the isearch and
-yank the text where the mouse cursor is.  In Emacs 29, if
-'mouse-yank-at-point' is non-nil, the text will be added to the
-isearch instead.
+outside the echo area, Emacs will, by default, end the Isearch and
+yank the text at mouse cursor.  But if 'mouse-yank-at-point' is
+non-nil, the text will now be added to the Isearch instead.
 
 +++
 *** New user option 'char-fold-override'.
