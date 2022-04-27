@@ -7307,8 +7307,12 @@ process sentinels.  They shall not disturb each other."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-mock-p))
+  ;; Not all read commands understand argument "-s" or "-p".
+  (skip-unless
+   (string-empty-p
+    (let ((shell-file-name "sh"))
+      (shell-command-to-string "read -s -p Password: pass"))))
 
-  (tramp--test-instrument-test-case 10
   (let ((pass "secret")
 	(mock-entry (copy-sequence (assoc "mock" tramp-methods)))
 	mocked-input tramp-methods)
@@ -7355,7 +7359,7 @@ process sentinels.  They shall not disturb each other."
 		 "machine %s port mock password %s"
 		 (file-remote-p tramp-test-temporary-file-directory 'host) pass)
 	  (let ((auth-sources `(,netrc-file)))
-	    (should (file-exists-p tramp-test-temporary-file-directory))))))))))
+	    (should (file-exists-p tramp-test-temporary-file-directory)))))))))
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test47-auto-load ()
