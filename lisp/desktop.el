@@ -1121,7 +1121,7 @@ no questions asked."
 			(file-attributes (desktop-full-file-name)))))
       (when
 	  (or (not new-modtime)		; nothing to overwrite
-	      (equal desktop-file-modtime new-modtime)
+	      (time-equal-p desktop-file-modtime new-modtime)
 	      (yes-or-no-p (if desktop-file-modtime
 			       (if (time-less-p desktop-file-modtime
 						new-modtime)
