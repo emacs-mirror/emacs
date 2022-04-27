@@ -645,6 +645,14 @@ Only valid during frame saving & restoring; intended for internal use.")
   "When the desktop file was last modified to the knowledge of this Emacs.
 Used to detect desktop file conflicts.")
 
+(defun desktop--get-file-modtime ()
+  "Get desktop file modtime, in list form for desktop format version 208."
+  (setq desktop-file-modtime
+	(time-convert (file-attribute-modification-time
+		       (file-attributes
+			(desktop-full-file-name)))
+		      'list)))
+
 (defvar desktop-var-serdes-funs
   (list (list
 	 'mark-ring
@@ -1221,9 +1229,7 @@ no questions asked."
 		(write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
 	      (setq desktop-file-checksum checksum)
 	      ;; We remember when it was modified (which is presumably just now).
-	      (setq desktop-file-modtime (file-attribute-modification-time
-					  (file-attributes
-					   (desktop-full-file-name)))))))))))
+	      (desktop--get-file-modtime))))))))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -1332,9 +1338,7 @@ It returns t if a desktop file was loaded, nil otherwise.
                           'window-configuration-change-hook)))
 	    (desktop-auto-save-disable)
 	    ;; Evaluate desktop buffer and remember when it was modified.
-	    (setq desktop-file-modtime (file-attribute-modification-time
-					(file-attributes
-					 (desktop-full-file-name))))
+	    (desktop--get-file-modtime)
 	    (load (desktop-full-file-name) t t t)
 	    ;; If it wasn't already, mark it as in-use, to bother other
 	    ;; desktop instances.
