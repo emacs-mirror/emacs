@@ -416,7 +416,9 @@ before the closing delimiter. This allows modifiers like
               (close (cdr (assoc open eshell-pred-delimiter-pairs)))
               (end (eshell-find-delimiter open close nil nil t)))
     (prog1
-        (buffer-substring-no-properties (1+ (point)) end)
+        (replace-regexp-in-string
+         (rx-to-string `(seq "\\" (group (or "\\" ,open ,close)))) "\\1"
+         (buffer-substring-no-properties (1+ (point)) end))
       (goto-char (if (and chained-p (eq open close))
                      end
                    (1+ end))))))

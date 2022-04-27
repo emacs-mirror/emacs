@@ -533,4 +533,16 @@ PREDICATE is the predicate used to query that attribute."
                     (format ":j%c-%c" (car delims) (cdr delims)))
                    "foo-bar-baz"))))
 
+(ert-deftest em-pred-test/predicate-escaping ()
+  "Test string escaping in predicate and modifier parameters."
+  ;; Escaping the delimiter should remove the backslash.
+  (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":j'\\''")
+                 "foo'bar'baz"))
+  ;; Escaping a backlash should remove the first backslash.
+  (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":j'\\\\'")
+                 "foo\\bar\\baz"))
+  ;; Escaping a different character should keep the backslash.
+  (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":j'\\\"'")
+                 "foo\\\"bar\\\"baz")))
+
 ;; em-pred-tests.el ends here
