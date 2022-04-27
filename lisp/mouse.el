@@ -42,7 +42,9 @@
   :group 'editing)
 
 (defcustom mouse-yank-at-point nil
-  "If non-nil, mouse yank commands yank at point instead of at click."
+  "If non-nil, mouse yank commands yank at point instead of at click.
+This also allows yanking text into an isearch without moving the
+mouse cursor to the echo area."
   :type 'boolean)
 
 (defcustom mouse-drag-copy-region nil

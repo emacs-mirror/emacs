@@ -2631,9 +2631,10 @@ is bound to outside of Isearch."
                        ;; Key search depends on mode (bug#47755)
                        (isearch-mode nil))
                    (key-binding (this-command-keys-vector) t))))
-    (if (and (window-minibuffer-p w)
-	     (not (minibuffer-window-active-p w))) ; in echo area
-	(isearch-yank-x-selection)
+    (if (or mouse-yank-at-point
+            (and (window-minibuffer-p w)
+	         (not (minibuffer-window-active-p w)))) ; in echo area
+        (isearch-yank-x-selection)
       (when (functionp binding)
 	(call-interactively binding)))))
 

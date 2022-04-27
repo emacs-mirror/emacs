@@ -698,6 +698,9 @@ lines, much like @kbd{mouse-1}.
 If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-mouse-2} yanks
 at point.  Then it does not matter precisely where you click, or even
 which of the frame's windows you click on.  @xref{Mouse Commands}.
+This user option also as an effect on interactive search: If this
+variable is non-@code{nil}, yanking with the mouse anywhere in the
+frame will add the text to the search string.
 
 @node Accumulating Text
 @section Accumulating Text
