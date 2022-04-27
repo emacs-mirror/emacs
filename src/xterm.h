@@ -321,8 +321,10 @@ struct x_display_info
      Unused if this display supports Xfixes extension.  */
   Cursor invisible_cursor;
 
-  /* Function used to toggle pointer visibility on this display.  */
-  void (*toggle_visible_pointer) (struct frame *, bool);
+#ifdef HAVE_XFIXES
+  /* Whether or not to use Xfixes for pointer blanking.  */
+  bool fixes_pointer_blanking;
+#endif
 
 #ifdef USE_GTK
   /* The GDK cursor for scroll bars and popup menus.  */

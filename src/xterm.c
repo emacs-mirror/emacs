@@ -8947,16 +8947,6 @@ XTflash (struct frame *f)
   unblock_input ();
 }
 
-
-static void
-XTtoggle_invisible_pointer (struct frame *f, bool invisible)
-{
-  block_input ();
-  FRAME_DISPLAY_INFO (f)->toggle_visible_pointer (f, invisible);
-  unblock_input ();
-}
-
-
 /* Make audible bell.  */
 
 static void
@@ -9298,6 +9288,105 @@ x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
     }
 
   x_frame_rehighlight (dpyinfo);
+}
+
+/* True if the display in DPYINFO supports a version of Xfixes
+   sufficient for pointer blanking.  */
+#ifdef HAVE_XFIXES
+static bool
+x_probe_xfixes_extension (struct x_display_info *dpyinfo)
+{
+  return (dpyinfo->xfixes_supported_p
+	  && dpyinfo->xfixes_major >= 4);
+}
+#endif /* HAVE_XFIXES */
+
+/* Toggle mouse pointer visibility on frame F using the XFixes
+   extension.  */
+#ifdef HAVE_XFIXES
+static void
+xfixes_toggle_visible_pointer (struct frame *f, bool invisible)
+
+{
+  if (invisible)
+    XFixesHideCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  else
+    XFixesShowCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  f->pointer_invisible = invisible;
+}
+#endif /* HAVE_XFIXES */
+
+/* Create invisible cursor on the X display referred by DPYINFO.  */
+static Cursor
+make_invisible_cursor (struct x_display_info *dpyinfo)
+{
+  Display *dpy = dpyinfo->display;
+  static char const no_data[] = { 0 };
+  Pixmap pix;
+  XColor col;
+  Cursor c;
+
+  c = None;
+
+  x_catch_errors (dpy);
+  pix = XCreateBitmapFromData (dpy, dpyinfo->root_window, no_data, 1, 1);
+  if (!x_had_errors_p (dpy) && pix != None)
+    {
+      Cursor pixc;
+      col.pixel = 0;
+      col.red = col.green = col.blue = 0;
+      col.flags = DoRed | DoGreen | DoBlue;
+      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
+      if (! x_had_errors_p (dpy) && pixc != None)
+        c = pixc;
+      XFreePixmap (dpy, pix);
+    }
+
+  x_uncatch_errors ();
+
+  return c;
+}
+
+/* Toggle mouse pointer visibility on frame F by using an invisible
+   cursor.  */
+static void
+x_toggle_visible_pointer (struct frame *f, bool invisible)
+{
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* We could have gotten a BadAlloc error while creating the
+     invisible cursor.  Try to create it again, but if that fails,
+     just give up.  */
+  if (dpyinfo->invisible_cursor == None)
+    dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
+
+  if (dpyinfo->invisible_cursor == None)
+    invisible = false;
+
+  if (invisible)
+    XDefineCursor (dpyinfo->display, FRAME_X_WINDOW (f),
+		   dpyinfo->invisible_cursor);
+  else
+    XDefineCursor (dpyinfo->display, FRAME_X_WINDOW (f),
+		   f->output_data.x->current_cursor);
+
+  f->pointer_invisible = invisible;
+}
+
+static void
+XTtoggle_invisible_pointer (struct frame *f, bool invisible)
+{
+  block_input ();
+#ifdef HAVE_XFIXES
+  if (FRAME_DISPLAY_INFO (f)->fixes_pointer_blanking
+      && x_probe_xfixes_extension (FRAME_DISPLAY_INFO (f)))
+    xfixes_toggle_visible_pointer (f, invisible);
+  else
+#endif
+    x_toggle_visible_pointer (f, invisible);
+  unblock_input ();
 }
 
 /* Handle FocusIn and FocusOut state changes for FRAME.
@@ -22032,7 +22121,7 @@ x_free_frame_resources (struct frame *f)
       /* Always exit with visible pointer to avoid weird issue
 	 with Xfixes (Bug#17609).  */
       if (f->pointer_invisible)
-	FRAME_DISPLAY_INFO (f)->toggle_visible_pointer (f, 0);
+	XTtoggle_invisible_pointer (f, 0);
 
       /* We must free faces before destroying windows because some
 	 font-driver (e.g. xft) access a window while finishing a
@@ -22651,100 +22740,6 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
       fprintf (stderr, "%s-WARNING **: %s\n", log_domain, msg);
 }
 #endif
-
-/* Create invisible cursor on X display referred by DPYINFO.  */
-
-static Cursor
-make_invisible_cursor (struct x_display_info *dpyinfo)
-{
-  Display *dpy = dpyinfo->display;
-  static char const no_data[] = { 0 };
-  Pixmap pix;
-  XColor col;
-  Cursor c = 0;
-
-  x_catch_errors (dpy);
-  pix = XCreateBitmapFromData (dpy, dpyinfo->root_window, no_data, 1, 1);
-  if (! x_had_errors_p (dpy) && pix != None)
-    {
-      Cursor pixc;
-      col.pixel = 0;
-      col.red = col.green = col.blue = 0;
-      col.flags = DoRed | DoGreen | DoBlue;
-      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
-      if (! x_had_errors_p (dpy) && pixc != None)
-        c = pixc;
-      XFreePixmap (dpy, pix);
-    }
-
-  x_uncatch_errors ();
-
-  return c;
-}
-
-/* True if DPY supports Xfixes extension >= 4.  */
-
-static bool
-x_probe_xfixes_extension (Display *dpy)
-{
-#ifdef HAVE_XFIXES
-  struct x_display_info *info
-    = x_display_info_for_display (dpy);
-
-  return (info
-	  && info->xfixes_supported_p
-	  && info->xfixes_major >= 4);
-#else
-  return false;
-#endif /* HAVE_XFIXES */
-}
-
-/* Toggle mouse pointer visibility on frame F by using Xfixes functions.  */
-
-static void
-xfixes_toggle_visible_pointer (struct frame *f, bool invisible)
-{
-#ifdef HAVE_XFIXES
-  if (invisible)
-    XFixesHideCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-  else
-    XFixesShowCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-  f->pointer_invisible = invisible;
-#else
-  emacs_abort ();
-#endif /* HAVE_XFIXES */
-}
-
-/* Toggle mouse pointer visibility on frame F by using invisible cursor.  */
-
-static void
-x_toggle_visible_pointer (struct frame *f, bool invisible)
-{
-  eassert (FRAME_DISPLAY_INFO (f)->invisible_cursor != 0);
-  if (invisible)
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   FRAME_DISPLAY_INFO (f)->invisible_cursor);
-  else
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->current_cursor);
-  f->pointer_invisible = invisible;
-}
-
-/* Setup pointer blanking, prefer Xfixes if available.  */
-
-static void
-x_setup_pointer_blanking (struct x_display_info *dpyinfo)
-{
-  /* FIXME: the brave tester should set EMACS_XFIXES because we're suspecting
-     X server bug, see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=17609.  */
-  if (egetenv ("EMACS_XFIXES") && x_probe_xfixes_extension (dpyinfo->display))
-    dpyinfo->toggle_visible_pointer = xfixes_toggle_visible_pointer;
-  else
-    {
-      dpyinfo->toggle_visible_pointer = x_toggle_visible_pointer;
-      dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
-    }
-}
 
 /* Current X display connection identifier.  Incremented for each next
    connection established.  */
@@ -23630,7 +23625,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				   gray_bits, gray_width, gray_height,
 				   1, 0, 1);
 
-  x_setup_pointer_blanking (dpyinfo);
+  dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
+#ifdef HAVE_XFIXES
+  dpyinfo->fixes_pointer_blanking = egetenv ("EMACS_XFIXES");
+#endif
 
 #ifdef HAVE_X_I18N
   xim_initialize (dpyinfo, resource_name);
