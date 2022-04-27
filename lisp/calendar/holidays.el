@@ -400,7 +400,7 @@ This function is suitable for execution in an init file."
            (displayed-year (calendar-extract-year date)))
       (calendar-list-holidays))))
 
-(defun holiday-available-holyday-lists ()
+(defun holiday-available-holiday-lists ()
   "Return a list of all holiday lists.
 This is used by `list-holidays', and you can customize the return
 value by using `add-function'."
@@ -454,8 +454,8 @@ of a holiday list.
 The optional LABEL is used to label the buffer created.
 
 The list of holiday lists is computed by the
-`holiday-available-holyday-lists' and you can alter the results
-by redefining that function, or use `add-function' to all
+`holiday-available-holiday-lists' and you can alter the results
+by redefining that function, or use `add-function' to add
 values."
   (interactive
    (let* ((start-year (calendar-read-sexp
@@ -468,7 +468,7 @@ values."
                      start-year
                      start-year))
           (completion-ignore-case t)
-          (lists (holiday-available-holyday-lists))
+          (lists (holiday-available-holiday-lists))
           (choice (capitalize
                    (completing-read "List (TAB for choices): " lists nil t)))
           (which (if (string-equal choice "Ask")
