@@ -7308,7 +7308,8 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-mock-p))
 
-  (let ((pass "aaaa")
+  (tramp--test-instrument-test-case 10
+  (let ((pass "secret")
 	(mock-entry (copy-sequence (assoc "mock" tramp-methods)))
 	mocked-input tramp-methods)
     ;; We must mock `read-string', in order to avoid interactive
@@ -7354,7 +7355,7 @@ process sentinels.  They shall not disturb each other."
 		 "machine %s port mock password %s"
 		 (file-remote-p tramp-test-temporary-file-directory 'host) pass)
 	  (let ((auth-sources `(,netrc-file)))
-	    (should (file-exists-p tramp-test-temporary-file-directory)))))))))
+	    (should (file-exists-p tramp-test-temporary-file-directory))))))))))
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test47-auto-load ()
