@@ -295,6 +295,7 @@ extern int sys_unlink (const char *);
 #undef umask
 #define umask   sys_umask
 extern int sys_umask (int);
+#define clock   sys_clock
 
 /* Subprocess calls that are emulated.  */
 #define spawnve sys_spawnve

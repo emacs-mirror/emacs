@@ -71,6 +71,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #undef localtime
 
+#undef clock
+
 char *sys_ctime (const time_t *);
 int sys_chdir (const char *);
 int sys_creat (const char *, int);
@@ -87,6 +89,7 @@ struct tm *sys_localtime (const time_t *);
    compiler to emit a warning about sys_strerror having no
    prototype.  */
 char *sys_strerror (int);
+clock_t sys_clock (void);
 
 #ifdef HAVE_MODULES
 extern void dynlib_reset_last_error (void);
@@ -10155,6 +10158,32 @@ sys_localtime (const time_t *t)
   return localtime (t);
 }
 
+/* The Windows CRT implementation of 'clock' doesn't really return CPU
+   time of the process (it returns the elapsed time since the process
+   started), so we provide a better emulation here, if possible.  */
+clock_t
+sys_clock (void)
+{
+  if (get_process_times_fn)
+    {
+      FILETIME create, exit, kernel, user;
+      HANDLE proc = GetCurrentProcess ();
+      if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
+        {
+          LARGE_INTEGER user_int, kernel_int, total;
+          user_int.LowPart = user.dwLowDateTime;
+          user_int.HighPart = user.dwHighDateTime;
+          kernel_int.LowPart = kernel.dwLowDateTime;
+          kernel_int.HighPart = kernel.dwHighDateTime;
+          total.QuadPart = user_int.QuadPart + kernel_int.QuadPart;
+	  /* We could redefine CLOCKS_PER_SEC to provide a finer
+	     resolution, but with the basic 15.625 msec resolution of
+	     the Windows clock, it doesn't really sound worth the hassle.  */
+	  return total.QuadPart / (10000000 / CLOCKS_PER_SEC);
+        }
+    }
+  return clock ();
+}
 
 
 /* Try loading LIBRARY_ID from the file(s) specified in
