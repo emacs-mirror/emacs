@@ -1410,8 +1410,6 @@ public:
   BPoint tt_absl_pos;
   BMessage *wait_for_release_message = NULL;
 
-  color_space cspace;
-
   EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs", B_FOLLOW_NONE, B_WILL_DRAW)
   {
 
@@ -1432,12 +1430,6 @@ public:
     if (grab_view == this)
       grab_view = NULL;
     grab_view_locker.Unlock ();
-  }
-
-  void
-  AttachedToWindow (void)
-  {
-    cspace = B_RGBA32;
   }
 
   void
@@ -1551,7 +1543,7 @@ public:
 #endif
 	offscreen_draw_view->RemoveSelf ();
 	delete offscreen_draw_bitmap_1;
-	offscreen_draw_bitmap_1 = new BBitmap (Frame (), cspace, 1);
+	offscreen_draw_bitmap_1 = new BBitmap (Frame (), B_RGBA32, 1);
 	if (offscreen_draw_bitmap_1->InitCheck () != B_OK)
 	  gui_abort ("Offscreen draw bitmap initialization failed");
 
@@ -1659,7 +1651,7 @@ public:
     if (offscreen_draw_view)
       gui_abort ("Failed to lock offscreen view setting up double buffering");
 
-    offscreen_draw_bitmap_1 = new BBitmap (Frame (), cspace, 1);
+    offscreen_draw_bitmap_1 = new BBitmap (Frame (), B_RGBA32, 1);
     if (offscreen_draw_bitmap_1->InitCheck () != B_OK)
       gui_abort ("Failed to init offscreen bitmap");
 #ifdef USE_BE_CAIRO
