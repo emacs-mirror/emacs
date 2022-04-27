@@ -1692,6 +1692,14 @@ column 0.  */)
 				  0, false, false);
 }
 
+ptrdiff_t
+window_point (struct window *w)
+{
+  return (w == XWINDOW (selected_window)
+          ? BUF_PT (XBUFFER (w->contents))
+          : XMARKER (w->pointm)->charpos);
+}
+
 DEFUN ("window-point", Fwindow_point, Swindow_point, 0, 1, 0,
        doc: /* Return current value of point in WINDOW.
 WINDOW must be a live window and defaults to the selected one.
@@ -1705,12 +1713,7 @@ correct to return the top-level value of `point', outside of any
 `save-excursion' forms.  But that is hard to define.  */)
   (Lisp_Object window)
 {
-  register struct window *w = decode_live_window (window);
-
-  if (w == XWINDOW (selected_window))
-    return make_fixnum (BUF_PT (XBUFFER (w->contents)));
-  else
-    return Fmarker_position (w->pointm);
+  return make_fixnum (window_point (decode_live_window (window)));
 }
 
 DEFUN ("window-old-point", Fwindow_old_point, Swindow_old_point, 0, 1, 0,
