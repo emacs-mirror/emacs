@@ -221,12 +221,10 @@ define test_template
   ## The similar name is FOO.c if FOO begins with '{lib-,}src/', FOO.el
   ## otherwise.  Although this heuristic does not identify all the
   ## dependencies, it is better than nothing.
-  srcfile = $(patsubst %-tests,$(srcdir)/../%,$(1))$(if $(patsubst src/%,,$(patsubst lib-src/%,,$(1))),.el,.c)
   ifeq (,$(patsubst %-tests,,$(1))$(findstring -tests/,$(1)))
-  ifeq ($(shell test -e $(srcfile) && echo -n yes),yes)
-    $(1).log: $(srcfile)
+    $(1).log: $(patsubst %-tests,$(srcdir)/../%,$(1))$(if \
+					$(patsubst src/%,,$(patsubst lib-src/%,,$(1))),.el,.c)
     $(notdir $(1).log): $(1).log
-  endif
   endif
 
   ## Short aliases that always re-run the tests, with no logging.
