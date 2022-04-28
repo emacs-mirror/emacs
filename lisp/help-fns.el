@@ -592,6 +592,8 @@ the C sources, too."
            (start (point)))
        (seq-do-indexed
         (lambda (entry level)
+          (when (symbolp map)
+            (setq map (symbol-function map)))
           (when-let ((elem (assq entry (cdr map))))
             (when heading
               (insert heading)
