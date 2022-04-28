@@ -875,6 +875,10 @@ struct frame *x_dnd_frame;
    important information.  */
 static bool x_dnd_waiting_for_finish;
 
+/* The display the drop target that is supposed to send information is
+   on.  */
+static Display *x_dnd_finish_display;
+
 /* State of the Motif drop operation.
 
    0 means nothing has happened, i.e. the event loop should not wait
@@ -16123,6 +16127,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  = x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
 					     x_dnd_selection_timestamp,
 					     x_dnd_last_protocol_version);
+			x_dnd_finish_display = dpyinfo->display;
 		      }
 		    else if (x_dnd_last_seen_window != None)
 		      {
@@ -16171,6 +16176,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				x_dnd_waiting_for_finish = true;
 				x_dnd_waiting_for_motif_finish_display = dpyinfo;
 				x_dnd_waiting_for_motif_finish = 1;
+				x_dnd_finish_display = dpyinfo->display;
 			      }
 			  }
 			else
@@ -17388,6 +17394,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				= x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
 						   x_dnd_selection_timestamp,
 						   x_dnd_last_protocol_version);
+			      x_dnd_finish_display = dpyinfo->display;
 			    }
 			  else if (x_dnd_last_seen_window != None)
 			    {
@@ -17445,6 +17452,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				      x_dnd_waiting_for_finish = true;
 				      x_dnd_waiting_for_motif_finish_display = dpyinfo;
 				      x_dnd_waiting_for_motif_finish = 1;
+				      x_dnd_finish_display = dpyinfo->display;
 				    }
 				}
 			      else
@@ -20025,6 +20033,30 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
+
+  /* If drag-and-drop is in progress and the DND frame's display is
+     DPY, cancel drag-and-drop.  Don't reset event masks or try to
+     send responses to other programs because the display is going
+     away.  */
+
+  if ((x_dnd_in_progress || x_dnd_waiting_for_finish)
+      && dpy == (x_dnd_waiting_for_finish
+		 ? x_dnd_finish_display
+		 : FRAME_X_DISPLAY (x_dnd_frame)))
+    {
+      x_dnd_last_seen_window = None;
+      x_dnd_last_seen_toplevel = None;
+      x_dnd_in_progress = false;
+      x_set_dnd_targets (NULL, 0);
+      x_dnd_waiting_for_finish = false;
+
+      if (x_dnd_use_toplevels)
+	x_dnd_free_toplevels ();
+
+      x_dnd_return_frame_object = NULL;
+      x_dnd_movement_frame = NULL;
+      x_dnd_frame = NULL;
+    }
 
   if (dpyinfo)
     {
@@ -23934,6 +23966,27 @@ x_delete_terminal (struct terminal *terminal)
     {
       image_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
+
+      /* Get rid of any drag-and-drop operation that might be in
+	 progress as well.  */
+      if ((x_dnd_in_progress || x_dnd_waiting_for_finish)
+	  && dpyinfo->display == (x_dnd_waiting_for_finish
+				  ? x_dnd_finish_display
+				  : FRAME_X_DISPLAY (x_dnd_frame)))
+	{
+	  x_dnd_last_seen_window = None;
+	  x_dnd_last_seen_toplevel = None;
+	  x_dnd_in_progress = false;
+	  x_set_dnd_targets (NULL, 0);
+	  x_dnd_waiting_for_finish = false;
+
+	  if (x_dnd_use_toplevels)
+	    x_dnd_free_toplevels ();
+
+	  x_dnd_return_frame_object = NULL;
+	  x_dnd_movement_frame = NULL;
+	  x_dnd_frame = NULL;
+	}
 
       /* Whether or not XCloseDisplay destroys the associated resource
 	 database depends on the version of libX11.  To avoid both
