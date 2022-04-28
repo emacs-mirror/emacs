@@ -71,7 +71,7 @@
   (advice--make-how-alist
    (:around (apply car cdr r))
    (:before (apply car r) (apply cdr r))
-   (:after (apply cdr r) (apply car r))
+   (:after (prog1 (apply cdr r) (apply car r)))
    (:override (apply car r))
    (:after-until (or (apply cdr r) (apply car r)))
    (:after-while (and (apply cdr r) (apply car r)))
