@@ -3335,7 +3335,7 @@ REGEXP should use constructs supported by your local `grep' command."
                                   (project--files-in-directory mark ignores "*")
                                   files))
                    (push mark files)))
-               (nreverse marks))
+               (reverse marks))
               (message "Searching...")
               (setq xrefs
                     (xref-matches-in-files regexp files))
