@@ -2469,6 +2469,10 @@ If `dired-copy-preserve-time' is non-nil, this command preserves
 the modification time of each old file in the copy, similar to
 the \"-p\" option for the \"cp\" shell command.
 
+The `dired-keep-marker-copy' user option controls how this
+command handles file marking.  The default is to mark all new
+copies of files with a \"C\" mark.
+
 This command copies symbolic links by creating new ones,
 similar to the \"-d\" option for the \"cp\" shell command.
 But if `dired-copy-dereference' is non-nil, the symbolic
