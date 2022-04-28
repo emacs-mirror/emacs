@@ -1943,6 +1943,7 @@ completion function is trying to complete.  If the symbol matches one
 of the keys in @code{completion-category-overrides}, the usual
 completion behavior is overridden.  @xref{Completion Variables}.
 
+@cindex @code{annotation-function}, in completion
 @item annotation-function
 The value should be a function for @dfn{annotating} completions.  The
 function should take one argument, @var{string}, which is a possible
@@ -1952,6 +1953,7 @@ Unless this function puts own face on the annotation suffix string,
 the @code{completions-annotations} face is added by default to
 that string.
 
+@cindex @code{affixation-function}, in completion
 @item affixation-function
 The value should be a function for adding prefixes and suffixes to
 completions.  The function should take one argument,
@@ -1962,6 +1964,7 @@ the completion string in the @file{*Completions*} buffer, and
 a suffix displayed after the completion string.  This function
 takes priority over @code{annotation-function}.
 
+@cindex @code{group-function}, in completion
 @item group-function
 The value should be a function for grouping the completion candidates.
 The function must take two arguments, @var{completion}, which is a
@@ -1972,12 +1975,14 @@ can also be @code{nil}.  Otherwise the function must return the
 transformed candidate.  The transformation can for example remove a
 redundant prefix, which is displayed in the group title.
 
+@cindex @code{display-sort-function}, in completion
 @item display-sort-function
 The value should be a function for sorting completions.  The function
 should take one argument, a list of completion strings, and return a
 sorted list of completion strings.  It is allowed to alter the input
 list destructively.
 
+@cindex @code{cycle-sort-function}, in completion
 @item cycle-sort-function
 The value should be a function for sorting completions, when
 @code{completion-cycle-threshold} is non-@code{nil} and the user is

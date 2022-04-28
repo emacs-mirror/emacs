@@ -449,6 +449,10 @@ of FACE on FRAME."
 
 (defun face-attribute (face attribute &optional frame inherit)
   "Return the value of FACE's ATTRIBUTE on FRAME.
+
+See `set-face-attribute' for the list of supported attributes
+and their meanings and allowed values.
+
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.

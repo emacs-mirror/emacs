@@ -770,7 +770,7 @@ This function returns the parser state that the parser would reach at
 position @var{pos} starting from the beginning of the visible portion
 of the buffer.
 @iftex
-See the next section for
+See the next section
 @end iftex
 @ifnottex
 @xref{Parser State},

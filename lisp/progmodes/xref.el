@@ -751,6 +751,12 @@ references displayed in the current *xref* buffer.
 When called interactively, it uses '.*' as FROM, which means
 replace the whole name.  Unless called with prefix argument, in
 which case the user is prompted for both FROM and TO."
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+"
   (interactive
    (let* ((fr
            (if current-prefix-arg

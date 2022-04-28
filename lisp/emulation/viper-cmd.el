@@ -4164,7 +4164,12 @@ cursor move past the beginning of line."
   "Query replace.
 If a null string is supplied as the string to be replaced,
 the query replace mode will toggle between string replace
-and regexp replace."
+and regexp replace.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time."
   (interactive)
   (let (str)
     (setq str (viper-read-string-with-history

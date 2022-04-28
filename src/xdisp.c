@@ -770,7 +770,7 @@ static bool message_buf_print;
 static bool message_cleared_p;
 
 /* A scratch glyph row with contents used for generating truncation
-   glyphs.  Also used in direct_output_for_insert.  */
+   glyphs and overlay-arrow glyphs.  */
 
 #define MAX_SCRATCH_GLYPHS 100
 static struct glyph_row scratch_glyph_row;
@@ -22144,7 +22144,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
   struct buffer *buffer = XBUFFER (w->contents);
   struct buffer *old = current_buffer;
   const unsigned char *arrow_string = SDATA (overlay_arrow_string);
-  ptrdiff_t arrow_len = SCHARS (overlay_arrow_string);
+  ptrdiff_t arrow_len = SBYTES (overlay_arrow_string), char_num = 0;
   const unsigned char *arrow_end = arrow_string + arrow_len;
   const unsigned char *p;
   struct it it;
@@ -22175,7 +22175,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
       p += it.len;
 
       /* Get its face.  */
-      ilisp = make_fixnum (p - arrow_string);
+      ilisp = make_fixnum (char_num++);
       face = Fget_text_property (ilisp, Qface, overlay_arrow_string);
       it.face_id = compute_char_face (f, it.char_to_display, face);
 

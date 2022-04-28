@@ -3285,9 +3285,14 @@ To continue searching for next match, use command \\[fileloop-continue]."
 ;;;###autoload
 (defun dired-do-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
-If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue]."
+If you exit the query-replace loop (\\[keyboard-quit], RET or q), you can
+resume the query replace with the command \\[tags-loop-continue]."
   (interactive
    (let ((common
 	  (query-replace-read-args
@@ -3352,6 +3357,11 @@ REGEXP should use constructs supported by your local `grep' command."
 ;;;###autoload
 (defun dired-do-find-regexp-and-replace (from to)
   "Replace matches of FROM with TO, in all marked files.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 If no files are marked, use the file under point.
 

@@ -1450,9 +1450,9 @@ enum xlfd_field
 };
 
 /* Order by which font selection chooses fonts.  The default values
-   mean `first, find a best match for the font width, then for the
-   font height, then for weight, then for slant.'  This variable can be
-   set via set-face-font-sort-order.  */
+   mean "first, find a best match for the font width, then for the
+   font height, then for weight, then for slant."  This variable can be
+   set via 'internal-set-font-selection-order'.  */
 
 static int font_sort_order[4];
 
@@ -1503,16 +1503,22 @@ If FAMILY is omitted or nil, list all families.
 Otherwise, FAMILY must be a string, possibly containing wildcards
 `?' and `*'.
 If FRAME is omitted or nil, use the selected frame.
+
 Each element of the result is a vector [FAMILY WIDTH POINT-SIZE WEIGHT
 SLANT FIXED-P FULL REGISTRY-AND-ENCODING].
-FAMILY is the font family name.  POINT-SIZE is the size of the
-font in 1/10 pt.  WIDTH, WEIGHT, and SLANT are symbols describing the
-width, weight and slant of the font.  These symbols are the same as for
-face attributes.  FIXED-P is non-nil if the font is fixed-pitch.
-FULL is the full name of the font, and REGISTRY-AND-ENCODING is a string
-giving the registry and encoding of the font.
-The result list is sorted according to the current setting of
-the face font sort order.  */)
+
+FAMILY is the font family name.
+POINT-SIZE is the size of the font in 1/10 pt.
+WIDTH, WEIGHT, and SLANT are symbols describing the width, weight
+  and slant of the font.  These symbols are the same as for face
+  attributes, see `set-face-attribute'.
+FIXED-P is non-nil if the font is fixed-pitch.
+FULL is the full name of the font.
+REGISTRY-AND-ENCODING is a string giving the registry and encoding of
+  the font.
+
+The resulting list is sorted according to the current setting of
+the face font sort order, see `face-font-selection-order'.  */)
   (Lisp_Object family, Lisp_Object frame)
 {
   Lisp_Object font_spec, list, *drivers, vec;

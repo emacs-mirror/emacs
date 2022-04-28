@@ -3633,7 +3633,12 @@ If regular expression is nil, repeat last search."
 ;;;###autoload
 (defun ebrowse-tags-query-replace (from to)
   "Query replace FROM with TO in all files of a class tree.
-With prefix arg, process files of marked classes only."
+With prefix arg, process files of marked classes only.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time."
   (interactive
    "sTree query replace (regexp): \nsTree query replace %s by: ")
   (setq ebrowse-tags-loop-call

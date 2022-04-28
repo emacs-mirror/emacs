@@ -38,8 +38,7 @@
   :group 'org-faces)
 
 (defface org-hide
-  '((default :inherit fixed-pitch)
-    (((background light)) (:foreground "white"))
+  '((((background light)) (:foreground "white"))
     (((background dark)) (:foreground "black")))
   "Face used to hide leading stars in headlines.
 The foreground color of this face should be equal to the background
@@ -202,8 +201,7 @@ set the properties in the `org-column' face.  For example, set
   :group 'org-faces)
 
 (defface org-date
-  '((default :inherit fixed-pitch)
-    (((class color) (background light)) (:foreground "Purple" :underline t))
+  '((((class color) (background light)) (:foreground "Purple" :underline t))
     (((class color) (background dark)) (:foreground "Cyan" :underline t))
     (t (:underline t)))
   "Face for date/time stamps."
@@ -379,8 +377,7 @@ changes."
 		   (sexp :tag "Face")))))
 
 (defface org-table	   ;Copied from `font-lock-function-name-face'
-  '((default :inherit fixed-pitch)
-    (((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
     (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
     (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
     (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
@@ -396,8 +393,7 @@ changes."
   :group 'org-faces)
 
 (defface org-formula
-  '((default :inherit fixed-pitch)
-    (((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
     (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
     (((class color) (min-colors 8)  (background light)) (:foreground "red"))
     (((class color) (min-colors 8)  (background dark)) (:foreground "red"))
@@ -405,12 +401,12 @@ changes."
   "Face for formulas."
   :group 'org-faces)
 
-(defface org-code '((t :inherit (fixed-pitch shadow)))
+(defface org-code '((t :inherit shadow))
   "Face for fixed-width text like code snippets."
   :group 'org-faces
   :version "22.1")
 
-(defface org-meta-line '((t :inherit (fixed-pitch font-lock-comment-face)))
+(defface org-meta-line '((t :inherit font-lock-comment-face))
   "Face for meta lines starting with \"#+\"."
   :group 'org-faces
   :version "22.1")
@@ -437,7 +433,7 @@ This face applies to the #+TITLE:, #+SUBTITLE:, #+AUTHOR:,
 #+EMAIL: and #+DATE: keywords."
   :group 'org-faces)
 
-(defface org-block `((t :inherit (fixed-pitch shadow)
+(defface org-block `((t :inherit shadow
 			,@(and (>= emacs-major-version 27) '(:extend t))))
   "Face used for text inside various blocks.
 
@@ -459,7 +455,7 @@ verse and quote blocks are fontified using the `org-verse' and
   "Face used for the line delimiting the end of source blocks."
   :group 'org-faces)
 
-(defface org-verbatim '((t (:inherit (fixed-pitch shadow))))
+(defface org-verbatim '((t (:inherit shadow)))
   "Face for fixed-with text like code snippets."
   :group 'org-faces
   :version "22.1")

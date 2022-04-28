@@ -399,7 +399,9 @@ should a regexp."
 (defun query-replace (from-string to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some occurrences of FROM-STRING with TO-STRING.
 As each match is found, the user must type a character saying
-what to do with it.  For directions, type \\[help-command] at that time.
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer's
@@ -469,7 +471,9 @@ To customize possible responses, change the bindings in `query-replace-map'."
 (defun query-replace-regexp (regexp to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
-what to do with it.  For directions, type \\[help-command] at that time.
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer's
@@ -566,7 +570,9 @@ Interactive use of this function is deprecated in favor of the
 using `search-forward-regexp' and `replace-match' is preferred.
 
 As each match is found, the user must type a character saying
-what to do with it.  For directions, type \\[help-command] at that time.
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 TO-EXPR is a Lisp expression evaluated to compute each replacement.  It may
 reference `replace-count' to get the number of replacements already made.
@@ -651,6 +657,11 @@ Interactively, reads the regexp using `read-regexp'.
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search regexp to the minibuffer
 that reads REGEXP.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 A prefix argument N says to use each replacement string N times
 before rotating to the next.

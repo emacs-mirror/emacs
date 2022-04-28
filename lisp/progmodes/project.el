@@ -1076,6 +1076,10 @@ command \\[fileloop-continue]."
 (defun project-query-replace-regexp (from to)
   "Query-replace REGEXP in all the files of the project.
 Stops when a match is found and prompts for whether to replace it.
+At that prompt, the user must type a character saying what to do
+with the match.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 If you exit the `query-replace', you can later continue the
 `query-replace' loop using the command \\[fileloop-continue]."
   (interactive

@@ -54,11 +54,30 @@ General steps (for each step, check for possible errors):
     section at the beginning of that file, and commit etc/NEWS if it
     was modified.
 
-2.  Regenerate the etc/AUTHORS file:
+2.  Regenerate the versioned ChangeLog.N and etc/AUTHORS files.
+
+    The "M-x authors" command below will first update the current
+    versioned ChangeLog.N file.  For this to work correctly, make sure
+    the top-level Makefile says
+
+      PREFERRED_BRANCH = emacs-NN
+
+    where NN is the version on the release branch from which you are
+    producing the tarball.  If NN is incorrect, update Makefile.in and
+    re-run 'configure' to update Makefile.
+
+    If the versioned ChangeLog.N file is too large, start a new one
+    by bumping N, and also update the line in top-level Makefile.in
+    which says
+
+      CHANGELOG_HISTORY_INDEX_MAX = N
+
+    by incrementing the value of N by 1; then regenerate Makefile.
+
+    Now:
+
       M-: (require 'authors) RET
       M-x authors RET
-
-    (This first updates the current versioned ChangeLog.N)
 
     If this says "Problem updating ChangeLog", find the reason for the
     failure of the command it runs, viz.:
@@ -314,6 +333,10 @@ looks like this:
 	    <h2><em>Emacs 27.1 is out</em>, download it <a href="download.html">here</a>!</h2>
 	</div>
     </div>
+
+The file download.html may need to be updated, for example if the
+MS-Windows binaries will be signed by a different person/key than
+those mentioned there.
 
 Next, regenerate the various manuals in HTML, PDF, and PS formats:
 
