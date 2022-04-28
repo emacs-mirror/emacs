@@ -2818,7 +2818,8 @@ modifying the attributes of a named face.
 
 @defun face-attribute face attribute &optional frame inherit
 This function returns the value of the @var{attribute} attribute for
-@var{face} on @var{frame}.
+@var{face} on @var{frame}.  @xref{Face Attributes}, for the supported
+attributes.
 
 If @var{frame} is omitted or @code{nil}, that means the selected frame
 (@pxref{Input Focus}).  If @var{frame} is @code{t}, this function
@@ -2901,7 +2902,8 @@ for all frames.  This function is mostly intended for internal usage.
 @defun set-face-attribute face frame &rest arguments
 This function sets one or more attributes of @var{face} for
 @var{frame}.  The attributes specified in this way override the face
-spec(s) belonging to @var{face}.
+spec(s) belonging to @var{face}.  @xref{Face Attributes}, for the
+supported attributes.
 
 The extra arguments @var{arguments} specify the attributes to set, and
 the values for them.  They should consist of alternating attribute
@@ -3865,12 +3867,22 @@ symbols, or @code{nil} if none is required.  If @code{gsub} or
 @code{gpos} is a list, a @code{nil} element in that list means that
 the font must not match any of the remaining tag symbols.  The
 @code{gpos} element may be omitted.
+
+@item :type
+@cindex font backend
+The symbol that specifies the @dfn{font backend} used to draw the
+characters.  The possible values depend on the platform and on how
+Emacs was configured at build time.  Typical values include
+@code{ftcrhb} and @code{xfthb} on X, @code{harfbuzz} on MS-Windows,
+@code{ns} on GNUstep, etc.  It can also be @code{nil} if left
+unspecified, typically in a font-spec.
 @end table
 @end defun
 
 @defun font-put font-spec property value
 Set the font property @var{property} in the font-spec @var{font-spec}
-to @var{value}.
+to @var{value}.  The @var{property} can any of the ones described
+above.
 @end defun
 
 @cindex font entity
@@ -3914,12 +3926,28 @@ object, a font entity, or a font spec.
 
 @defun font-get font property
 This function returns the value of the font property @var{property}
-for @var{font}.
+for @var{font}.  The @var{property} can any of the ones that
+@code{font-spec} supports.
 
 If @var{font} is a font spec and the font spec does not specify
 @var{property}, the return value is @code{nil}.  If @var{font} is a
 font object or font entity, the value for the @var{:script} property
-may be a list of scripts supported by the font.
+may be a list of scripts supported by the font, and the value of the
+@code{:otf} property is a cons of the form @w{@code{(@var{gsub}
+. @var{gpos})}}, where @var{gsub} and @var{gpos} are lists
+representing OpenType features  supported by the font, of the form
+
+@smallexample
+((@var{script-tag} (@var{langsys-tag} @var{feature}@dots{}) @dots{}) @dots{})
+@end smallexample
+
+@noindent where @var{script-tag}, @var{langsys-tag}, and @var{feature}
+are symbols representing OpenType layout tags.
+
+If @var{font} is a font object, the special property
+@code{:combining-capability} is non-@code{nil} if the font backend of
+@var{font} supports rendering of combining characters for non-OpenType
+fonts.
 @end defun
 
 @defun font-face-attributes font &optional frame
