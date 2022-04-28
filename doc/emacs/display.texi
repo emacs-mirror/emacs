@@ -2097,3 +2097,14 @@ argument to suppress the effect of bold-face in this case.
 byte with a decimal value of 128 is displayed as @code{\200}.  To
 change display to the hexadecimal format of @code{\x80}, set the
 variable @code{display-raw-bytes-as-hex} to @code{t}.
+Care may be needed when interpreting a raw byte when copying
+text from a terminal containing an Emacs session, or when a terminal's
+@code{escape-glyph} face looks like the default face.  For example, by
+default Emacs displays the four characters @samp{\}, @samp{2},
+@samp{0}, @samp{0} with the same characters it displays a byte with
+decimal value 128.  The problem can be worse with hex displays, where
+the raw byte 128 followed by the character @samp{7} is displayed as
+@code{\x807}, which Emacs Lisp reads as the single character U+0807
+SAMARITAN LETTER IT; this confusion does not occur with the
+corresponding octal display @code{\2007} because octal escapes contain
+at most three digits.
