@@ -2969,6 +2969,12 @@ character after position @var{pos} in @var{object} (a buffer or
 string).  The argument @var{object} is optional and defaults to the
 current buffer.
 
+If @var{position} is at the end of @var{object}, the value is
+@code{nil}, but note that buffer narrowing does not affect the value.
+That is, if @var{object} is a buffer or @code{nil}, and the buffer is
+narrowed and @var{position} is at the end of the narrowed buffer, the
+result may be non-@code{nil}.
+
 If there is no @var{prop} property strictly speaking, but the character
 has a property category that is a symbol, then @code{get-text-property} returns
 the @var{prop} property of that symbol.
@@ -3021,6 +3027,12 @@ properties take precedence over this variable.
 This function returns the entire property list of the character at
 @var{position} in the string or buffer @var{object}.  If @var{object} is
 @code{nil}, it defaults to the current buffer.
+
+If @var{position} is at the end of @var{object}, the value is
+@code{nil}, but note that buffer narrowing does not affect the value.
+That is, if @var{object} is a buffer or @code{nil}, and the buffer is
+narrowed and @var{position} is at the end of the narrowed buffer, the
+result may be non-@code{nil}.
 @end defun
 
 @defvar default-text-properties
