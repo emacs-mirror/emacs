@@ -1225,6 +1225,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       (generate-new-buffer
        (format " *server %s %s %s*"
                nntp-address nntp-port-number buffer))
+    (gnus-add-buffer)
     (mm-disable-multibyte)
     (setq-local after-change-functions nil
 		nntp-process-wait-for nil

@@ -662,12 +662,11 @@ be used directly.")
   (gnus-prune-buffers)
   (cl-pushnew (current-buffer) gnus-buffers))
 
-(defmacro gnus-kill-buffer (buffer)
+(defun gnus-kill-buffer (buffer)
   "Kill BUFFER and remove from the list of Gnus buffers."
-  `(let ((buf ,buffer))
-     (when (gnus-buffer-live-p buf)
-       (kill-buffer buf)
-       (gnus-prune-buffers))))
+  (when (gnus-buffer-live-p buffer)
+    (kill-buffer buffer)
+    (gnus-prune-buffers)))
 
 (defun gnus-buffers ()
   "Return a list of live Gnus buffers."
