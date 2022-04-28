@@ -37,6 +37,7 @@
 (declare-function org-mode "org" ())
 (declare-function org-show-context "org" (&optional key))
 (declare-function org-string-collate-lessp "org-compat" (s1 s2 &optional locale ignore-case))
+(declare-function org-time-convert-to-integer "org-compat" (time))
 
 (defvar org-ts-regexp0)
 (defvar ffap-url-regexp)

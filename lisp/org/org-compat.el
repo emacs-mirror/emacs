@@ -39,7 +39,7 @@
 (declare-function org-calendar-goto-agenda "org-agenda" ())
 (declare-function org-align-tags "org" (&optional all))
 (declare-function org-at-heading-p "org" (&optional ignored))
-(declare-function org-at-table.el-p "org" ())
+(declare-function org-at-table.el-p "org-table" ())
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-lineage "org-element" (blob &optional types with-self))
@@ -238,7 +238,7 @@ This is a floating point number if the size is too large for an integer."
 (if (fboundp 'string-collate-lessp)
     (defalias 'org-string-collate-lessp
       'string-collate-lessp)
-  (defun org-string-collate-lessp (s1 s2 &rest _)
+  (defun org-string-collate-lessp (s1 s2 &optional _ _)
     "Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant."
     (string< s1 s2)))
