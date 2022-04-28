@@ -2781,22 +2781,12 @@ haiku_make_fullscreen_consistent (struct frame *f)
 }
 
 static void
-flush_dirty_back_buffers (void)
+haiku_flush_dirty_back_buffer_on (struct frame *f)
 {
-  block_input ();
-  Lisp_Object tail, frame;
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) &&
-          FRAME_HAIKU_P (f) &&
-          FRAME_HAIKU_WINDOW (f) &&
-          !FRAME_GARBAGED_P (f) &&
-          !buffer_flipping_blocked_p () &&
-          FRAME_DIRTY_P (f))
-        haiku_flip_buffers (f);
-    }
-  unblock_input ();
+  if (!FRAME_GARBAGED_P (f)
+      && !buffer_flipping_blocked_p ()
+      && FRAME_DIRTY_P (f))
+    haiku_flip_buffers (f);
 }
 
 /* N.B. that support for TYPE must be explictly added to
@@ -2840,12 +2830,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   static void *buf;
   ssize_t b_size;
   struct unhandled_event *unhandled_events = NULL;
-  int button_or_motion_p, need_flush, do_help;
+  int button_or_motion_p, do_help;
   enum haiku_event_type type;
   struct input_event inev, inev2;
 
   message_count = 0;
-  need_flush = 0;
   button_or_motion_p = 0;
   do_help = 0;
   buf = NULL;
@@ -2954,7 +2943,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      {
 		clear_mouse_face (hlinfo);
 		hlinfo->mouse_face_hidden = true;
-		need_flush = 1;
+		haiku_flush_dirty_back_buffer_on (f);
 	      }
 
 	    inev.code = b->keysym ? b->keysym : b->multibyte_char;
@@ -3046,7 +3035,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      {
 		hlinfo->mouse_face_hidden = false;
 		clear_mouse_face (hlinfo);
-		need_flush = 1;
+		haiku_flush_dirty_back_buffer_on (f);
 	      }
 
 	    if (b->just_exited_p)
@@ -3059,7 +3048,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    clear_mouse_face (hlinfo);
 		    hlinfo->mouse_face_mouse_frame = 0;
 
-		    need_flush = 1;
+		    haiku_flush_dirty_back_buffer_on (f);
 		  }
 
 		if (f->auto_lower && !popup_activated_p
@@ -3193,7 +3182,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      }
 
 	    if (FRAME_DIRTY_P (f))
-	      need_flush = 1;
+	      haiku_flush_dirty_back_buffer_on (f);
 	    break;
 	  }
 	case BUTTON_UP:
@@ -3231,7 +3220,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  {
 		    tab_bar_arg = handle_tab_bar_click
 		      (f, x, y, type == BUTTON_DOWN, inev.modifiers);
-		    need_flush = 1;
+		    haiku_flush_dirty_back_buffer_on (f);
 		  }
 	      }
 
@@ -3251,7 +3240,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  {
 		    handle_tool_bar_click
 		      (f, x, y, type == BUTTON_DOWN, inev.modifiers);
-		    need_flush = 1;
+		    haiku_flush_dirty_back_buffer_on (f);
 		  }
 	      }
 
@@ -3723,9 +3712,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  gen_help_event (Qnil, help_frame, Qnil, Qnil, 0);
 	}
     }
-
-  if (need_flush)
-    flush_dirty_back_buffers ();
 
   unblock_input ();
 
