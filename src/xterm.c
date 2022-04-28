@@ -23394,6 +23394,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifndef HAVE_GTK3
  skip_xi_setup:
 #endif
+  ;
 #endif
 
 #ifdef HAVE_XRANDR
