@@ -1573,7 +1573,14 @@ the face font sort order.  */)
 			     make_fixnum (point),
 			     FONT_WEIGHT_SYMBOLIC (font),
 			     FONT_SLANT_SYMBOLIC (font),
-			     NILP (spacing) || EQ (spacing, Qp) ? Qnil : Qt,
+			     (NILP (spacing)
+			      || EQ (spacing, Qp)
+			      /* If the font was specified in a way
+				 different from XLFD (e.g., on MS-Windows),
+				 we will have a number there, not 'p'.  */
+			      || EQ (spacing,
+				     make_fixnum (FONT_SPACING_PROPORTIONAL)))
+			     ? Qnil : Qt,
 			     Ffont_xlfd_name (font, Qnil),
 			     AREF (font, FONT_REGISTRY_INDEX));
       result = Fcons (v, result);
