@@ -43,6 +43,8 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_open_v2,
 DEF_DLL_FN (SQLITE_API int, sqlite3_reset, (sqlite3_stmt*));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_text,
 	    (sqlite3_stmt*, int, const char*, int, void(*)(void*)));
+DEF_DLL_FN (SQLITE_API int, sqlite3_bind_blob,
+	    (sqlite3_stmt*, int, const char*, int, void(*)(void*)));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_int64,
 	    (sqlite3_stmt*, int, sqlite3_int64));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_double, (sqlite3_stmt*, int, double));
@@ -80,6 +82,7 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # undef sqlite3_open_v2
 # undef sqlite3_reset
 # undef sqlite3_bind_text
+# undef sqlite3_bind_blob
 # undef sqlite3_bind_int64
 # undef sqlite3_bind_double
 # undef sqlite3_bind_null
@@ -103,6 +106,7 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # define sqlite3_open_v2 fn_sqlite3_open_v2
 # define sqlite3_reset fn_sqlite3_reset
 # define sqlite3_bind_text fn_sqlite3_bind_text
+# define sqlite3_bind_blob fn_sqlite3_bind_blob
 # define sqlite3_bind_int64 fn_sqlite3_bind_int64
 # define sqlite3_bind_double fn_sqlite3_bind_double
 # define sqlite3_bind_null fn_sqlite3_bind_null
@@ -129,6 +133,7 @@ load_dll_functions (HMODULE library)
   LOAD_DLL_FN (library, sqlite3_open_v2);
   LOAD_DLL_FN (library, sqlite3_reset);
   LOAD_DLL_FN (library, sqlite3_bind_text);
+  LOAD_DLL_FN (library, sqlite3_bind_blob);
   LOAD_DLL_FN (library, sqlite3_bind_int64);
   LOAD_DLL_FN (library, sqlite3_bind_double);
   LOAD_DLL_FN (library, sqlite3_bind_null);
@@ -309,10 +314,37 @@ bind_values (sqlite3 *db, sqlite3_stmt *stmt, Lisp_Object values)
 
       if (EQ (type, Qstring))
 	{
-	  Lisp_Object encoded = encode_string (value);
-	  ret = sqlite3_bind_text (stmt, i + 1,
-				   SSDATA (encoded), SBYTES (encoded),
-				   NULL);
+	  Lisp_Object encoded;
+	  bool blob = false;
+
+	  if (SBYTES (value) == 0)
+	    encoded = value;
+	  else
+	    {
+	      Lisp_Object coding_system =
+		Fget_text_property (make_fixnum (0), Qcoding_system, value);
+	      if (NILP (coding_system))
+		/* Default to utf-8.  */
+		encoded = encode_string (value);
+	      else if (EQ (coding_system, Qbinary))
+		blob = true;
+	      else
+		encoded = Fencode_coding_string (value, coding_system,
+						 Qnil, Qnil);
+	    }
+
+	  if (blob)
+	    {
+	      if (SBYTES (value) != SCHARS (value))
+		xsignal1 (Qerror, build_string ("BLOB values must be unibyte"));
+	    ret = sqlite3_bind_blob (stmt, i + 1,
+				       SSDATA (value), SBYTES (value),
+				       NULL);
+	    }
+	    else
+	      ret = sqlite3_bind_text (stmt, i + 1,
+				       SSDATA (encoded), SBYTES (encoded),
+				       NULL);
 	}
       else if (EQ (type, Qinteger))
 	{
@@ -426,11 +458,8 @@ row_to_value (sqlite3_stmt *stmt)
 	  break;
 
 	case SQLITE_BLOB:
-	  v =
-	    code_convert_string_norecord
-	    (make_unibyte_string (sqlite3_column_blob (stmt, i),
-				  sqlite3_column_bytes (stmt, i)),
-	     Qutf_8, false);
+	  v = make_unibyte_string (sqlite3_column_blob (stmt, i),
+				   sqlite3_column_bytes (stmt, i));
 	  break;
 
 	case SQLITE_NULL:
@@ -748,4 +777,6 @@ syms_of_sqlite (void)
   DEFSYM (Qfalse, "false");
   DEFSYM (Qsqlite, "sqlite");
   DEFSYM (Qsqlite3, "sqlite3");
+  DEFSYM (Qbinary, "binary");
+  DEFSYM (Qcoding_system, "coding-system");
 }

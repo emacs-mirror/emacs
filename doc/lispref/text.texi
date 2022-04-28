@@ -5309,6 +5309,24 @@ interpolation).
 @code{sqlite-execute} returns the number of affected rows.  For
 instance, an @samp{insert} statement will return @samp{1}, whereas an
 @samp{update} statement may return zero or a higher number.
+
+Strings in SQLite are, by default, stored as @code{utf-8}, and
+selecting a text column will decode the string using that charset.
+Selecting a blob column will return the raw data without any decoding
+(i.e., it will return a unibyte string containing the bytes as stored
+in the database).  Inserting binary data into blob columns, however,
+requires some care, as @code{sqlite-execute} will, by default,
+interpret all strings as @code{utf-8}.
+
+So if you have, for instance, @acronym{GIF} data in a unibyte string
+called @var{gif}, you have to mark it specially to let
+@code{sqlite-execute} know this:
+
+@lisp
+(put-text-property 0 1 'coding-system 'binary gif)
+(sqlite-execute db "insert into foo values (?, ?)" (list gif 2))
+@end lisp
+
 @end defun
 
 @defun sqlite-select db query &optional values result-type
