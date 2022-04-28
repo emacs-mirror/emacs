@@ -1359,6 +1359,10 @@ This represents the number of seconds using the formula:
 @tex
 $high \times 2^{16} + low + micro \times 10^{-6} + pico \times 10^{-12}$.
 @end tex
+If @code{current-time-list} is @code{t},
+some functions may default to returning two- or
+three-element lists, with omitted @var{micro} and @var{pico}
+components defaulting to zero.
 On all current machines @var{pico} is a multiple of 1000, but this
 may change as higher-resolution clocks become available.
 @end itemize
@@ -1410,15 +1414,28 @@ The operating system limits the range of time and zone values.
 @end example
 @end defun
 
+@defvar current-time-list
+This boolean variable is a transition aid.  If @code{t},
+@code{current-time} and related functions return timestamps in list
+form, typically @code{(@var{high} @var{low} @var{micro} @var{pico})};
+otherwise, they use @code{(@var{ticks} . @var{hz})} form.  Currently
+this variable defaults to @code{t}, for behavior compatible with
+previous Emacs versions.  Developers are encourage to test
+timestamp-related code with this variable set to @code{nil}, as it
+will default to @code{nil} in a future Emacs version, and will be
+removed in some version after that.
+@end defvar
+
 @defun current-time
 This function returns the current time as a Lisp timestamp.
-The timestamp has the form @code{(@var{ticks} . @var{hz})} where
+If @code{current-time-list} is @code{nil},
+the timestamp has the form @code{(@var{ticks} . @var{hz})} where
 @var{ticks} counts clock ticks and @var{hz} is the clock ticks per second.
-
-In Emacs 28 and earlier, the returned timestamp had the list form
-@code{(@var{high} @var{low} @var{usec} @var{psec})}.  You can use
-@code{(time-convert nil 'list)} to return the current time in this
-older form.  @xref{Time Conversion}.
+Otherwise, the timestamp has the list form
+@code{(@var{high} @var{low} @var{usec} @var{psec})}.
+You can use @code{(time-convert nil t)} or @code{(time-convert nil 'list)}
+to obtain a particular form regardless of the value of
+@code{current-time-list}.  @xref{Time Conversion}.
 @end defun
 
 @defun float-time &optional time

@@ -69,11 +69,11 @@ enum { TM_YEAR_BASE = 1900 };
 # define FASTER_TIMEFNS 1
 #endif
 
-/* current-time etc. generate (TICKS . HZ) timestamps.
-   To change that to the old 4-element list format (HI LO US PS),
-   compile with -DCURRENT_TIME_LIST=1.  */
+/* current-time-list defaults to t, typically generating (HI LO US PS)
+   timestamps.  To change the default to nil, generating (TICKS . HZ)
+   timestamps, compile with -DCURRENT_TIME_LIST=0.  */
 #ifndef CURRENT_TIME_LIST
-enum { CURRENT_TIME_LIST = false };
+enum { CURRENT_TIME_LIST = true };
 #endif
 
 #if FIXNUM_OVERFLOW_P (1000000000)
@@ -568,7 +568,7 @@ lisp_time_seconds (struct lisp_time t)
 Lisp_Object
 make_lisp_time (struct timespec t)
 {
-  if (CURRENT_TIME_LIST)
+  if (current_time_list)
     {
       time_t s = t.tv_sec;
       int ns = t.tv_nsec;
@@ -1171,13 +1171,13 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
     }
 
   /* Return an integer if the timestamp resolution is 1,
-     otherwise the (TICKS . HZ) form if !CURRENT_TIME_LIST or if
+     otherwise the (TICKS . HZ) form if !current_time_list or if
      either input used (TICKS . HZ) form or the result can't be expressed
      exactly in (HI LO US PS) form, otherwise the (HI LO US PS) form
      for backward compatibility.  */
   return (EQ (hz, make_fixnum (1))
 	  ? ticks
-	  : (!CURRENT_TIME_LIST
+	  : (!current_time_list
 	     || aform == TIMEFORM_TICKS_HZ
 	     || bform == TIMEFORM_TICKS_HZ
 	     || !trillion_factor (hz))
@@ -1716,7 +1716,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
     time_error (mktime_errno);
 
   if (EQ (hz, make_fixnum (1)))
-    return (CURRENT_TIME_LIST
+    return (current_time_list
 	    ? list2 (hi_time (value), lo_time (value))
 	    : INT_TO_INTEGER (value));
   else
@@ -1747,7 +1747,7 @@ bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
   struct lisp_time t;
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
   if (NILP (form))
-    form = CURRENT_TIME_LIST ? Qlist : Qt;
+    form = current_time_list ? Qlist : Qt;
   if (EQ (form, Qlist))
     return ticks_hz_list4 (t.ticks, t.hz);
   if (EQ (form, Qinteger))
@@ -1762,14 +1762,15 @@ bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
        doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
-The time is returned as a pair of integers (TICKS . HZ), where TICKS
-counts clock ticks and HZ is the clock ticks per second.
+If the variable `current-time-list' is nil, the time is returned as a
+pair of integers (TICKS . HZ), where TICKS counts clock ticks and HZ
+is the clock ticks per second.  Otherwise, the time is returned as a
+list of integers (HIGH LOW USEC PSEC) where HIGH has the most
+significant bits of the seconds, LOW has the least significant 16
+bits, and USEC and PSEC are the microsecond and picosecond counts.
 
-In Emacs 28 and earlier, the returned timestamp had the form (HIGH LOW
-USEC PSEC), where HIGH is the most significant bits of the seconds,
-LOW the least significant 16 bits, and USEC and PSEC are the
-microsecond and picosecond counts.  Use \(time-convert nil \\='list)
-if you need this older timestamp form.  */)
+You can use `time-convert' to get a particular timestamp form
+regardless of the value of `current-time-list'.  */)
   (void)
 {
   return make_lisp_time (current_timespec ());
@@ -2024,6 +2025,19 @@ syms_of_timefns (void)
 #endif
 
   DEFSYM (Qencode_time, "encode-time");
+
+  DEFVAR_BOOL ("current-time-list", current_time_list,
+	       doc: /* Whether `current-time' should return list or (TICKS . HZ) form.
+
+This boolean variable is a transition aid.  If t, `current-time' and
+related functions return timestamps in list form, typically
+\(HIGH LOW USEC PSEC); otherwise, they use (TICKS . HZ) form.
+Currently this variable defaults to t, for behavior compatible with
+previous Emacs versions.  Developers are encourage to test
+timestamp-related code with this variable set to nil, as it will
+default to nil in a future Emacs version, and will be removed in some
+version after that.  */);
+  current_time_list = CURRENT_TIME_LIST;
 
   defsubr (&Scurrent_time);
 #ifdef CLOCKS_PER_SEC

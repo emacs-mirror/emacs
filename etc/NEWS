@@ -203,12 +203,15 @@ use the new 'tamil-itrans-digits' and 'tamil-inscript-digits' input
 methods instead.
 
 +++
-** current-time and related functions now yield (TICKS . HZ) timestamps.
-Previously they yielded timestamps of the forms (HI LO US PS), (HI LO
-US) or (HI LO), which were less regular and less efficient and which
-lacked information about clock resolution.  This long-planned change
-was documented in Emacs 27.  To convert a timestamp X to the old
-4-element list form, you can use (time-convert X 'list).
+** New variable current-time-list governing default timestamp form.
+Functions like current-time now yield (TICKS . HZ) timestamps if this
+new variable is nil.  The variable defaults to t, which means these
+functions default to timestamps of the forms (HI LO US PS), (HI LO US)
+or (HI LO), which are less regular and less efficient.  This is part
+of a long-planned change first documented in Emacs 27.  Developers are
+encourage to test timestamp-related code with this variable set to
+nil, as it will default to nil in a future Emacs version and will be
+removed some time after that.
 
 
 * Changes in Emacs 29.1
