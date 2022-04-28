@@ -886,6 +886,10 @@ static bool x_dnd_waiting_for_finish;
    XmTRANSFER_SUCCESS or XmTRANSFER_FAILURE.  */
 static int x_dnd_waiting_for_motif_finish;
 
+/* The display the Motif drag receiver will send response data
+   from.  */
+struct x_display_info *x_dnd_waiting_for_motif_finish_display;
+
 /* Whether or not F1 was pressed during the drag-and-drop operation.
 
    Motif programs rely on this to decide whether or not help
@@ -14054,12 +14058,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	if ((event->xclient.message_type
 	     == dpyinfo->Xatom_MOTIF_DRAG_AND_DROP_MESSAGE)
-	    /* FIXME: There should probably be a check that the event
-	       comes from the same display where the drop event was
-	       sent, but there's no way to get that information here
-	       safely.  */
 	    && x_dnd_waiting_for_finish
-	    && x_dnd_waiting_for_motif_finish == 1)
+	    && x_dnd_waiting_for_motif_finish == 1
+	    && dpyinfo == x_dnd_waiting_for_motif_finish_display)
 	  {
 	    xm_drop_start_reply reply;
 	    uint16_t operation, status, action;
@@ -14417,6 +14418,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	if (x_dnd_waiting_for_finish
 	    && x_dnd_waiting_for_motif_finish == 2
+	    && dpyinfo == x_dnd_waiting_for_motif_finish_display
 	    && eventp->selection == dpyinfo->Xatom_XdndSelection
 	    && (eventp->target == dpyinfo->Xatom_XmTRANSFER_SUCCESS
 		|| eventp->target == dpyinfo->Xatom_XmTRANSFER_FAILURE))
@@ -16167,6 +16169,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						      x_dnd_last_seen_window, &dmsg);
 
 				x_dnd_waiting_for_finish = true;
+				x_dnd_waiting_for_motif_finish_display = dpyinfo;
 				x_dnd_waiting_for_motif_finish = 1;
 			      }
 			  }
@@ -17440,6 +17443,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							    x_dnd_last_seen_window, &dmsg);
 
 				      x_dnd_waiting_for_finish = true;
+				      x_dnd_waiting_for_motif_finish_display = dpyinfo;
 				      x_dnd_waiting_for_motif_finish = 1;
 				    }
 				}
