@@ -383,11 +383,6 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmDatabase db;
   char line[256];
 
-#if !(defined USE_CAIRO || defined HAVE_XFT)	\
-  && !defined USE_MOTIF && !defined USE_LUCID
-  const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
-#endif
-
   x_rm_string = XrmStringToQuark (XrmStringType);
 #ifndef USE_X_TOOLKIT
   /* pmr@osf.org says this shouldn't be done if USE_X_TOOLKIT.
@@ -414,9 +409,11 @@ x_load_resources (Display *display, const char *xrm_string,
   sprintf (line, "Emacs.dialog*.background: grey75");
   XrmPutLineResource (&rdb, line);
 #if !(defined USE_CAIRO || defined HAVE_XFT) || !defined (USE_LUCID)
-  sprintf (line, "Emacs.dialog*.font: %s", helv);
+  sprintf (line, "Emacs.dialog*.font: %s",
+	   "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1");
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "*XlwMenu*font: %s", helv);
+  sprintf (line, "*XlwMenu*font: %s",
+	   "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1");
   XrmPutLineResource (&rdb, line);
 #endif
   sprintf (line, "*XlwMenu*background: grey75");
