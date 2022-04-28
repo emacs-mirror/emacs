@@ -776,6 +776,11 @@ symbolic links as links or after dereferencing (like @samp{cp -L}).
 The default is @code{nil}, which means that the symbolic links are
 copied by creating new ones.
 
+@vindex dired-keep-marker-copy
+The @code{dired-keep-marker-copy} user option controls how this
+command handles file marking.  The default is to mark all new copies
+of files with a @samp{C} mark.
+
 @item D
 @findex dired-do-delete
 @kindex D @r{(Dired)}
