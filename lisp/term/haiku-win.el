@@ -65,7 +65,8 @@ the type of DATA inside the system message (see the doc string of
 `haiku-drag-message' for more details).")
 
 (defvar haiku-normal-selection-encoders '(haiku-select-encode-xstring
-                                          haiku-select-encode-utf-8-string)
+                                          haiku-select-encode-utf-8-string
+                                          haiku-select-encode-file-name)
   "List of functions which act as selection encoders.
 These functions accept two arguments SELECTION and VALUE, and
 return an association appropriate for a serialized system
@@ -226,6 +227,13 @@ VALUE will be encoded as UTF-8 and stored under the type
     (list "text/plain" 1296649541
           (encode-coding-string value 'utf-8-unix))))
 
+(defun haiku-select-encode-file-name (_selection value)
+  "Convert VALUE to a system message association.
+This takes the file name of VALUE's buffer (if it is an overlay
+or a pair of markers) and turns it into a file system reference."
+  (when (setq value (xselect--selection-bounds value))
+    (list "refs" 'ref (buffer-file-name (nth 2 value)))))
+
 (cl-defmethod gui-backend-get-selection (type data-type
                                               &context (window-system haiku))
   (if (eq data-type 'TARGETS)
@@ -297,8 +305,7 @@ VALUE will be encoded as UTF-8 and stored under the type
         (message "Don't know how to drop any of: %s"
                  (mapcar #'car string)))))))
 
-(define-key special-event-map [drag-n-drop]
-            'haiku-drag-and-drop)
+(define-key special-event-map [drag-n-drop] 'haiku-drag-and-drop)
 
 (defvaralias 'haiku-use-system-tooltips 'use-system-tooltips)
 
