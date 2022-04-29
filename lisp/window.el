@@ -10488,8 +10488,7 @@ If FACE is nil or omitted, the default face is used.  If FACE is
 remapped (see `face-remapping-alist'), the function returns the
 information for the remapped face."
   (with-selected-window (window-normalize-window window t)
-    (let* ((face (if face face 'default))
-	   (info (font-info (face-font face)))
+    (let* ((info (font-info (face-font (or face 'default))))
 	   (width (aref info 11)))
       (if (> width 0)
 	  width
@@ -10503,9 +10502,7 @@ If FACE is nil or omitted, the default face is used.  If FACE is
 remapped (see `face-remapping-alist'), the function returns the
 information for the remapped face."
   (with-selected-window (window-normalize-window window t)
-    (let* ((face (if face face 'default))
-	   (info (font-info (face-font face))))
-      (aref info 3))))
+    (aref (font-info (face-font (or face 'default))) 3)))
 
 (defun window-max-characters-per-line (&optional window face)
   "Return the number of characters that can be displayed on one line in WINDOW.
