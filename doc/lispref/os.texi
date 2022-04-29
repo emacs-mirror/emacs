@@ -1420,7 +1420,7 @@ This boolean variable is a transition aid.  If @code{t},
 form, typically @code{(@var{high} @var{low} @var{micro} @var{pico})};
 otherwise, they use @code{(@var{ticks} . @var{hz})} form.  Currently
 this variable defaults to @code{t}, for behavior compatible with
-previous Emacs versions.  Developers are encourage to test
+previous Emacs versions.  Developers are encouraged to test
 timestamp-related code with this variable set to @code{nil}, as it
 will default to @code{nil} in a future Emacs version, and will be
 removed in some version after that.

@@ -2033,7 +2033,7 @@ This boolean variable is a transition aid.  If t, `current-time' and
 related functions return timestamps in list form, typically
 \(HIGH LOW USEC PSEC); otherwise, they use (TICKS . HZ) form.
 Currently this variable defaults to t, for behavior compatible with
-previous Emacs versions.  Developers are encourage to test
+previous Emacs versions.  Developers are encouraged to test
 timestamp-related code with this variable set to nil, as it will
 default to nil in a future Emacs version, and will be removed in some
 version after that.  */);
