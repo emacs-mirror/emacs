@@ -4633,6 +4633,8 @@ timer_check (void)
 
   Lisp_Object tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
+  block_input ();
+  turn_on_atimers (false);
 
   /* We use copies of the timers' lists to allow a timer to add itself
      again, without locking up Emacs if the newly added timer is
@@ -4646,6 +4648,8 @@ timer_check (void)
   else
     idle_timers = Qnil;
 
+  turn_on_atimers (true);
+  unblock_input ();
   Vinhibit_quit = tem;
 
   do
