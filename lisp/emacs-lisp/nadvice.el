@@ -513,7 +513,7 @@ HOW can be one of:
                        (t (symbol-function symbol)))
                   function props)
     ;; FIXME: We could use a defmethod on `function-documentation' instead,
-    ;; except when (or (not nf) (autoloadp nf))!
+    ;; except when (autoloadp nf)!
     (put symbol 'function-documentation `(advice--make-docstring ',symbol))
     (add-function :around (get symbol 'defalias-fset-function)
                   #'advice--defalias-fset))
