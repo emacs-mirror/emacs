@@ -2252,6 +2252,20 @@ This is a convenience function that uses @code{window-text-pixel-size}
 to compute the width of @var{string} (in pixels).
 @end defun
 
+@defun window-char-pixel-width &optional window face
+Return the average character width for the font used by @var{face} in
+@var{window}.  If @var{face} is @code{nil} or omitted, the
+@code{default} face is used.  If @var{windows} is @code{nil} or
+omitted, the currently selected window is used.
+@end defun
+
+@defun window-char-pixel-height &optional window face
+Return the average character height for the font used by @var{face} in
+@var{window}.  If @var{face} is @code{nil} or omitted, the
+@code{default} face is used.  If @var{windows} is @code{nil} or
+omitted, the currently selected window is used.
+@end defun
+
 @defun line-pixel-height
 This function returns the height in pixels of the line at point in the
 selected window.  The value includes the line spacing of the line

@@ -1079,7 +1079,9 @@ means that if a column at the right of the text area is only partially
 visible, that column is not counted.
 
 Note that the returned value includes the column reserved for the
-continuation glyph.  */)
+continuation glyph.
+
+Also see `window-max-characters-per-line'.  */)
   (Lisp_Object window, Lisp_Object pixelwise)
 {
   return make_fixnum (window_body_width (decode_live_window (window),

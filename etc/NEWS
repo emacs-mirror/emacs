@@ -1521,6 +1521,15 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
++++
+** New function 'window-max-characters-per-line'.
+
++++
+** New function 'window-char-pixel-width'.
+
++++
+** New function 'window-char-pixel-width'.
+
 ---
 ** New function 'current-cpu-time'.
 It gives access to the CPU time used by the Emacs process, for
