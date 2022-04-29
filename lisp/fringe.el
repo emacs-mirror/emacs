@@ -244,9 +244,17 @@ When used in a Lisp program, MODE should be one of these:
   nil (meaning the default width).
 - a single integer, which specifies the pixel widths of both
   fringes.
+
 This command may round up the left and right width specifications
 to ensure that their sum is a multiple of the character width of
 a frame.  It never rounds up a fringe width of 0.
+
+Note that removing a right or left fringe (by setting the width
+to zero) makes Emacs reserve one column of the window body to
+display a line continuation marker.  (This happens for both the
+left and right fringe, since Emacs can display both left-to-right
+and right-to-left text.)  You can use `window-max-characters-per-line'
+to check the effective width.
 
 Fringe widths set by `set-window-fringes' override the default
 fringe widths set by this command.  This command applies to all
