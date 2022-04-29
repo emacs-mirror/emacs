@@ -511,15 +511,13 @@ haiku_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static void
 haiku_set_no_accept_focus (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
-  block_input ();
   if (!EQ (new_value, old_value))
     FRAME_NO_ACCEPT_FOCUS (f) = !NILP (new_value);
 
+  block_input ();
   if (FRAME_HAIKU_WINDOW (f))
-    {
-      BWindow_set_avoid_focus (FRAME_HAIKU_WINDOW (f),
-			       FRAME_NO_ACCEPT_FOCUS (f));
-    }
+    BWindow_set_avoid_focus (FRAME_HAIKU_WINDOW (f),
+			     FRAME_NO_ACCEPT_FOCUS (f));
   unblock_input ();
 }
 
@@ -1626,13 +1624,11 @@ haiku_iconify_frame (struct frame *frame)
   if (FRAME_ICONIFIED_P (frame))
     return;
 
-  block_input ();
-
   SET_FRAME_VISIBLE (frame, false);
   SET_FRAME_ICONIFIED (frame, true);
 
+  block_input ();
   BWindow_iconify (FRAME_HAIKU_WINDOW (frame));
-
   unblock_input ();
 }
 
@@ -1841,7 +1837,9 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* SKIP: real doc in xfns.c.  */)
      (Lisp_Object terminal)
 {
-  return Qt;
+  check_haiku_display_info (terminal);
+
+  return be_is_display_grayscale () ? Qnil : Qt;
 }
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
@@ -1861,20 +1859,19 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
      (Lisp_Object color, Lisp_Object frame)
 {
   Emacs_Color col;
+  int rc;
 
   CHECK_STRING (color);
   decode_window_system_frame (frame);
 
   block_input ();
-  if (haiku_get_color (SSDATA (color), &col))
-    {
-      unblock_input ();
-      return Qnil;
-    }
+  rc = haiku_get_color (SSDATA (color), &col);
   unblock_input ();
 
-  return list3i (lrint (col.red), lrint (col.green),
-		 lrint (col.blue));
+  if (rc)
+    return Qnil;
+
+  return list3i (col.red, col.green, col.blue);
 }
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
@@ -1882,7 +1879,9 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qnil;
+  check_haiku_display_info (terminal);
+
+  return be_is_display_grayscale () ? Qt : Qnil;
 }
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
@@ -1923,9 +1922,9 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
   (Lisp_Object terminal)
 
 {
+  int width, height;
   check_haiku_display_info (terminal);
 
-  int width, height;
   BScreen_px_dim (&width, &height);
   return make_fixnum (width);
 }
@@ -1936,9 +1935,9 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height, Sx_display_pixel_heigh
   (Lisp_Object terminal)
 
 {
+  int width, height;
   check_haiku_display_info (terminal);
 
-  int width, height;
   BScreen_px_dim (&width, &height);
   return make_fixnum (width);
 }
@@ -1948,10 +1947,9 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
   (Lisp_Object terminal)
 {
   struct haiku_display_info *dpyinfo = check_haiku_display_info (terminal);
-
   int width, height;
-  BScreen_px_dim (&width, &height);
 
+  BScreen_px_dim (&width, &height);
   return make_fixnum (height / (dpyinfo->resy / 25.4));
 }
 
@@ -1961,10 +1959,9 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
   (Lisp_Object terminal)
 {
   struct haiku_display_info *dpyinfo = check_haiku_display_info (terminal);
-
   int width, height;
-  BScreen_px_dim (&width, &height);
 
+  BScreen_px_dim (&width, &height);
   return make_fixnum (width / (dpyinfo->resx / 25.4));
 }
 
@@ -1981,14 +1978,20 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
+  int planes;
+  bool grayscale_p;
+
   check_haiku_display_info (terminal);
 
-  int planes = be_get_display_planes ();
+  grayscale_p = be_is_display_grayscale ();
+  if (grayscale_p)
+    return Qstatic_gray;
 
+  planes = be_get_display_planes ();
   if (planes == 8)
-    return intern ("static-color");
+    return Qstatic_color;
 
-  return intern ("true-color");
+  return Qtrue_color;
 }
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
@@ -2741,6 +2744,10 @@ syms_of_haikufns (void)
   DEFSYM (Qnot_useful, "not-useful");
   DEFSYM (Qwhen_mapped, "when-mapped");
   DEFSYM (Qtooltip_reuse_hidden_frame, "tooltip-reuse-hidden-frame");
+
+  DEFSYM (Qstatic_color, "static-color");
+  DEFSYM (Qstatic_gray, "static-gray");
+  DEFSYM (Qtrue_color, "true-color");
 
   defsubr (&Sx_hide_tip);
   defsubr (&Sxw_display_color_p);

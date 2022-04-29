@@ -3587,24 +3587,35 @@ int
 be_get_display_planes (void)
 {
   color_space space = dpy_color_space;
+  BScreen screen;
+
   if (space == B_NO_COLOR_SPACE)
     {
-      BScreen screen; /* This is actually a very slow operation.  */
       if (!screen.IsValid ())
 	gui_abort ("Invalid screen");
+
       space = dpy_color_space = screen.ColorSpace ();
     }
 
-  if (space == B_RGB32 || space == B_RGB24)
-    return 24;
-  if (space == B_RGB16)
-    return 16;
-  if (space == B_RGB15)
-    return 15;
-  if (space == B_CMAP8)
-    return 8;
+  switch (space)
+    {
+    case B_RGB32:
+    case B_RGB24:
+      return 24;
+    case B_RGB16:
+      return 16;
+    case B_RGB15:
+      return 15;
+    case B_CMAP8:
+    case B_GRAY8:
+      return 8;
+    case B_GRAY1:
+      return 1;
 
-  gui_abort ("Bad colorspace for screen");
+    default:
+      gui_abort ("Bad colorspace for screen");
+    }
+
   /* https://www.haiku-os.org/docs/api/classBScreen.html
      says a valid screen can't be anything else.  */
   return -1;
@@ -3614,26 +3625,56 @@ be_get_display_planes (void)
 int
 be_get_display_color_cells (void)
 {
+  BScreen screen;
   color_space space = dpy_color_space;
+
   if (space == B_NO_COLOR_SPACE)
     {
-      BScreen screen;
       if (!screen.IsValid ())
 	gui_abort ("Invalid screen");
+
       space = dpy_color_space = screen.ColorSpace ();
     }
 
-  if (space == B_RGB32 || space == B_RGB24)
-    return 1677216;
-  if (space == B_RGB16)
-    return 65536;
-  if (space == B_RGB15)
-    return 32768;
-  if (space == B_CMAP8)
-    return 256;
+  switch (space)
+    {
+    case B_RGB32:
+    case B_RGB24:
+      return 16777216;
+    case B_RGB16:
+      return 65536;
+    case B_RGB15:
+      return 32768;
+    case B_CMAP8:
+    case B_GRAY8:
+      return 256;
+    case B_GRAY1:
+      return 2;
 
-  gui_abort ("Bad colorspace for screen");
+    default:
+      gui_abort ("Bad colorspace for screen");
+    }
+
   return -1;
+}
+
+/* Return whether or not the current display is only capable of
+   producing grayscale colors.  */
+bool
+be_is_display_grayscale (void)
+{
+  BScreen screen;
+  color_space space = dpy_color_space;
+
+  if (space == B_NO_COLOR_SPACE)
+    {
+      if (!screen.IsValid ())
+	gui_abort ("Invalid screen");
+
+      space = dpy_color_space = screen.ColorSpace ();
+    }
+
+  return space == B_GRAY8 || space == B_GRAY1;
 }
 
 /* Warp the pointer to X by Y.  */

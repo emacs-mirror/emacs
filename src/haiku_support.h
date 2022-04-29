@@ -605,6 +605,7 @@ extern void EmacsWindow_unzoom (void *);
 extern void be_get_version_string (char *, int);
 extern int be_get_display_planes (void);
 extern int be_get_display_color_cells (void);
+extern bool be_is_display_grayscale (void);
 extern void be_warp_pointer (int, int);
 
 extern void EmacsView_set_up_double_buffering (void *);
