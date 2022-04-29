@@ -5468,7 +5468,7 @@ x_flip_and_flush (struct frame *f)
 {
   block_input ();
   if (FRAME_X_NEED_BUFFER_FLIP (f))
-      show_back_buffer (f);
+    show_back_buffer (f);
   x_flush (f);
   unblock_input ();
 }
@@ -13673,12 +13673,9 @@ static void
 flush_dirty_back_buffer_on (struct frame *f)
 {
   block_input ();
-  if (FRAME_LIVE_P (f) &&
-      FRAME_X_P (f) &&
-      FRAME_X_WINDOW (f) &&
-      !FRAME_GARBAGED_P (f) &&
-      !buffer_flipping_blocked_p () &&
-      FRAME_X_NEED_BUFFER_FLIP (f))
+  if (!FRAME_GARBAGED_P (f)
+      && !buffer_flipping_blocked_p ()
+      && FRAME_X_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
   unblock_input ();
 }
