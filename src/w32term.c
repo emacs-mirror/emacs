@@ -276,6 +276,57 @@ XGetGCValues (void *ignore, XGCValues *gc,
 #endif
 
 static void
+w32_show_back_buffer (struct frame *f)
+{
+  struct w32_output *output;
+  HDC raw_dc;
+
+  output = FRAME_OUTPUT_DATA (f);
+
+  enter_crit ();
+
+  if (output->paint_buffer)
+    {
+      raw_dc = GetDC (output->window_desc);
+
+      if (!raw_dc)
+	emacs_abort ();
+
+      BitBlt (raw_dc, 0, 0, FRAME_PIXEL_WIDTH (f),
+	      FRAME_PIXEL_HEIGHT (f),
+	      output->paint_dc, 0, 0, SRCCOPY);
+      ReleaseDC (output->window_desc, raw_dc);
+
+      output->paint_buffer_dirty = 0;
+    }
+
+  leave_crit ();
+}
+
+void
+w32_release_paint_buffer (struct frame *f)
+{
+  /* Delete the back buffer so it gets created
+     again the next time we ask for the DC.  */
+
+  enter_crit ();
+  if (FRAME_OUTPUT_DATA (f)->paint_buffer)
+    {
+      SelectObject (FRAME_OUTPUT_DATA (f)->paint_dc,
+		    FRAME_OUTPUT_DATA (f)->paint_dc_object);
+      ReleaseDC (FRAME_OUTPUT_DATA (f)->window_desc,
+		 FRAME_OUTPUT_DATA (f)->paint_buffer_handle);
+      DeleteDC (FRAME_OUTPUT_DATA (f)->paint_dc);
+      DeleteObject (FRAME_OUTPUT_DATA (f)->paint_buffer);
+
+      FRAME_OUTPUT_DATA (f)->paint_buffer = NULL;
+      FRAME_OUTPUT_DATA (f)->paint_dc = NULL;
+      FRAME_OUTPUT_DATA (f)->paint_buffer_handle = NULL;
+    }
+  leave_crit ();
+}
+
+static void
 w32_get_mouse_wheel_vertical_delta (void)
 {
   if (os_subtype != OS_SUBTYPE_NT)
@@ -704,10 +755,19 @@ w32_update_end (struct frame *f)
 static void
 w32_frame_up_to_date (struct frame *f)
 {
-  if (FRAME_W32_P (f))
-    FRAME_MOUSE_UPDATE (f);
+  FRAME_MOUSE_UPDATE (f);
+
+  if (!buffer_flipping_blocked_p ()
+      && FRAME_OUTPUT_DATA (f)->paint_buffer_dirty)
+    w32_show_back_buffer (f);
 }
 
+static void
+w32_buffer_flipping_unblocked_hook (struct frame *f)
+{
+  if (FRAME_OUTPUT_DATA (f)->paint_buffer_dirty)
+    w32_show_back_buffer (f);
+}
 
 /* Draw truncation mark bitmaps, continuation mark bitmaps, overlay
    arrow bitmaps, or clear the fringes if no bitmaps are required
@@ -2872,8 +2932,7 @@ w32_scroll_run (struct window *w, struct run *run)
 {
   struct frame *f = XFRAME (w->frame);
   int x, y, width, height, from_y, to_y, bottom_y;
-  HWND hwnd = FRAME_W32_WINDOW (f);
-  HRGN expect_dirty;
+  HDC hdc;
 
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
@@ -2892,7 +2951,6 @@ w32_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - from_y;
       else
 	height = run->height;
-      expect_dirty = CreateRectRgn (x, y + height, x + width, bottom_y);
     }
   else
     {
@@ -2902,44 +2960,15 @@ w32_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - to_y;
       else
 	height = run->height;
-      expect_dirty = CreateRectRgn (x, y, x + width, to_y);
     }
 
   block_input ();
-
   /* Cursor off.  Will be switched on again in gui_update_window_end.  */
   gui_clear_cursor (w);
-
-  {
-    RECT from;
-    RECT to;
-    HRGN dirty = CreateRectRgn (0, 0, 0, 0);
-    HRGN combined = CreateRectRgn (0, 0, 0, 0);
-
-    from.left = to.left = x;
-    from.right = to.right = x + width;
-    from.top = from_y;
-    from.bottom = from_y + height;
-    to.top = y;
-    to.bottom = bottom_y;
-
-    ScrollWindowEx (hwnd, 0, to_y - from_y, &from, &to, dirty,
-		    NULL, SW_INVALIDATE);
-
-    /* Combine this with what we expect to be dirty. This covers the
-       case where not all of the region we expect is actually dirty.  */
-    CombineRgn (combined, dirty, expect_dirty, RGN_OR);
-
-    /* If the dirty region is not what we expected, redraw the entire frame.  */
-    if (!EqualRgn (combined, expect_dirty))
-      SET_FRAME_GARBAGED (f);
-
-    DeleteObject (dirty);
-    DeleteObject (combined);
-  }
-
+  hdc = get_frame_dc (f);
+  BitBlt (hdc, x, to_y, width, height, hdc, x, from_y, SRCCOPY);
+  release_frame_dc (f, hdc);
   unblock_input ();
-  DeleteObject (expect_dirty);
 }
 
 
@@ -4809,6 +4838,9 @@ w32_scroll_bar_clear (struct frame *f)
 {
   Lisp_Object bar;
 
+  if (FRAME_OUTPUT_DATA (f)->paint_buffer)
+    return;
+
   /* We can have scroll bars even if this is 0,
      if we just turned off scroll bar mode.
      But in that case we should not clear them.  */
@@ -4928,6 +4960,8 @@ w32_read_socket (struct terminal *terminal,
       /*            w32_name_of_message (msg.msg.message), */
       /*            msg.msg.time)); */
 
+      f = NULL;
+
       EVENT_INIT (inev);
       inev.kind = NO_EVENT;
       inev.arg = Qnil;
@@ -4969,24 +5003,33 @@ w32_read_socket (struct terminal *terminal,
 		}
 	      else
 		{
-		  /* Erase background again for safety.  But don't do
-		     that if the frame's 'garbaged' flag is set, since
-		     in that case expose_frame will do nothing, and if
-		     the various redisplay flags happen to be unset,
-		     we are left with a blank frame.  */
-		  if (!FRAME_GARBAGED_P (f) || FRAME_PARENT_FRAME (f))
+		  enter_crit ();
+		  if (!FRAME_OUTPUT_DATA (f)->paint_buffer)
 		    {
-		      HDC hdc = get_frame_dc (f);
+		      /* Erase background again for safety.  But don't do
+			 that if the frame's 'garbaged' flag is set, since
+			 in that case expose_frame will do nothing, and if
+			 the various redisplay flags happen to be unset,
+			 we are left with a blank frame.  */
 
-		      w32_clear_rect (f, hdc, &msg.rect);
-		      release_frame_dc (f, hdc);
+		      if (!FRAME_GARBAGED_P (f) || FRAME_PARENT_FRAME (f))
+			{
+			  HDC hdc = get_frame_dc (f);
+
+			  w32_clear_rect (f, hdc, &msg.rect);
+			  release_frame_dc (f, hdc);
+			}
+
+		      expose_frame (f,
+				    msg.rect.left,
+				    msg.rect.top,
+				    msg.rect.right - msg.rect.left,
+				    msg.rect.bottom - msg.rect.top);
+		      w32_clear_under_internal_border (f);
 		    }
-		  expose_frame (f,
-				msg.rect.left,
-				msg.rect.top,
-				msg.rect.right - msg.rect.left,
-				msg.rect.bottom - msg.rect.top);
-		  w32_clear_under_internal_border (f);
+		  else
+		    w32_show_back_buffer (f);
+		  leave_crit ();
 		}
 	    }
 	  break;
@@ -5659,6 +5702,8 @@ w32_read_socket (struct terminal *terminal,
 		  if (width != FRAME_PIXEL_WIDTH (f)
 		      || height != FRAME_PIXEL_HEIGHT (f))
 		    {
+		      w32_release_paint_buffer (f);
+
 		      change_frame_size
 			(f, width, height, false, true, false);
 		      SET_FRAME_GARBAGED (f);
@@ -5840,6 +5885,17 @@ w32_read_socket (struct terminal *terminal,
 	    }
 	  count++;
 	}
+
+      /* Event processing might have drawn to F outside redisplay.  If
+         that is the case, flush any changes that have been made to
+         the front buffer.  */
+
+      if (f && FRAME_OUTPUT_DATA (f)->paint_buffer_dirty
+	  /* WM_WINDOWPOSCHANGED makes the buffer dirty, but there's
+	     no reason to flush it here, and that also causes
+	     flicker.  */
+	  && !f->garbaged && msg.msg.message != WM_WINDOWPOSCHANGED)
+	w32_show_back_buffer (f);
     }
 
   /* If the focus was just given to an autoraising frame,
@@ -7054,6 +7110,9 @@ w32_free_frame_resources (struct frame *f)
      face.  */
   free_frame_faces (f);
 
+  /* Now release the back buffer if any exists.  */
+  w32_release_paint_buffer (f);
+
   if (FRAME_W32_WINDOW (f))
     my_destroy_window (f, FRAME_W32_WINDOW (f));
 
@@ -7350,6 +7409,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->update_end_hook = w32_update_end;
   terminal->read_socket_hook = w32_read_socket;
   terminal->frame_up_to_date_hook = w32_frame_up_to_date;
+  terminal->buffer_flipping_unblocked_hook = w32_buffer_flipping_unblocked_hook;
   terminal->defined_color_hook = w32_defined_color;
   terminal->query_frame_background_color = w32_query_frame_background_color;
   terminal->query_colors = w32_query_colors;
@@ -7505,6 +7565,7 @@ w32_delete_display (struct w32_display_info *dpyinfo)
     if (dpyinfo->palette)
       DeleteObject (dpyinfo->palette);
   }
+
   w32_reset_fringes ();
 }
 

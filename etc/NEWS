@@ -2146,6 +2146,13 @@ to preserve the old behavior, apply
 
 ** MS-Windows
 
+---
+*** Emacs now supports double buffering on MS Windows to reduce flicker.
+This leads to a noticable reduction in the amount of graphics flicker
+during redisplay on many systems, but can also make painting slower.
+If that happens, it can be disabled by setting the
+'inhibit-double-buffering' frame parameter.
+
 +++
 *** Emacs now supports system dark mode.
 On Windows 10 (version 1809 and higher) and Windows 11, Emacs will now
