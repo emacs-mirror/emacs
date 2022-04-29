@@ -20037,13 +20037,14 @@ static char *error_msg;
 static AVOID
 x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 {
-  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
+  struct x_display_info *dpyinfo;
   Lisp_Object frame, tail;
   specpdl_ref idx = SPECPDL_INDEX ();
   void *io_error_handler;
   xm_drop_start_message dmsg;
   struct frame *f;
 
+  dpyinfo = x_display_info_for_display (dpy);
   error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
 
@@ -20104,6 +20105,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 	}
 
       XSetIOErrorHandler (io_error_handler);
+      dpyinfo = x_display_info_for_display (dpy);
 
       x_dnd_last_seen_window = None;
       x_dnd_last_seen_toplevel = None;
