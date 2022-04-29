@@ -8341,7 +8341,10 @@ In this case the window is passed as argument.
 Functions specified by the default value are called for each frame if
 at least one window on that frame has been added or changed its buffer
 or its total or body size since the last redisplay.  In this case the
-frame is passed as argument.  */);
+frame is passed as argument.
+
+For instance, to hide the title bar when the frame is maximized, you
+can add `frame-hide-title-bar-when-maximized' to this variable.  */);
   Vwindow_size_change_functions = Qnil;
 
   DEFVAR_LISP ("window-selection-change-functions", Vwindow_selection_change_functions,

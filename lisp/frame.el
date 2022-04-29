@@ -2960,6 +2960,12 @@ If the frame is in fullscreen state, don't change its state, but
 set the frame's `fullscreen-restore' parameter to `maximized', so
 the frame will be maximized after disabling fullscreen state.
 
+If you wish to hide the title bar when the frame is maximized, you
+can add something like the following to your init file:
+
+  (add-hook \\='window-size-change-functions
+            #\\='frame-hide-title-bar-when-maximized)
+
 Note that with some window managers you may have to set
 `frame-resize-pixelwise' to non-nil in order to make a frame
 appear truly maximized.  In addition, you may have to set
@@ -3074,6 +3080,13 @@ Offer NUMBER as default value, if it is a natural number."
         bidi-paragraph-direction
         bidi-display-reordering
         bidi-inhibit-bpa))
+
+(defun frame-hide-title-bar-when-maximized (frame)
+  "Hide the title bar if FRAME is maximized.
+If FRAME isn't maximized, show the title bar."
+  (set-frame-parameter
+   frame 'undecorated
+   (eq (alist-get 'fullscreen (frame-parameters frame)) 'maximized)))
 
 (provide 'frame)
 
