@@ -8848,7 +8848,7 @@ XTflash (struct frame *f)
   GC gc;
   XGCValues values;
   fd_set fds;
-  int fd;
+  int fd, rc;
 
   block_input ();
 
@@ -8921,10 +8921,10 @@ XTflash (struct frame *f)
       FD_SET (fd, &fds);
 
       /* Try to wait that long--but we might wake up sooner.  */
-      pselect (fd + 1, &fds, NULL, NULL, &timeout, NULL);
+      rc = pselect (fd + 1, &fds, NULL, NULL, &timeout, NULL);
 
       /* Some input is available, exit the visible bell.  */
-      if (FD_ISSET (fd, &fds))
+      if (rc >= 0 && FD_ISSET (fd, &fds))
 	break;
     }
 
