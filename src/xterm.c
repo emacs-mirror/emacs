@@ -1005,6 +1005,10 @@ static int x_dnd_movement_x, x_dnd_movement_y;
 static unsigned int x_dnd_keyboard_state;
 #endif
 
+/* jmp_buf that gets us out of the IO error handler if an error occurs
+   terminating DND as part of the display disconnect handler.  */
+static jmp_buf x_dnd_disconnect_handler;
+
 struct x_client_list_window
 {
   Window window;
@@ -2571,8 +2575,17 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
   return 0;
 }
 
-#define X_DND_SUPPORTED_VERSION 5
+static _Noreturn int
+x_dnd_io_error_handler (Display *display)
+{
+#ifdef USE_GTK
+  emacs_abort ();
+#else
+  longjmp (x_dnd_disconnect_handler, 1);
+#endif
+}
 
+#define X_DND_SUPPORTED_VERSION 5
 
 static int x_dnd_get_window_proto (struct x_display_info *, Window);
 static Window x_dnd_get_window_proxy (struct x_display_info *, Window);
@@ -20027,6 +20040,9 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
   specpdl_ref idx = SPECPDL_INDEX ();
+  void *io_error_handler;
+  xm_drop_start_message dmsg;
+  struct frame *f;
 
   error_msg = alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
@@ -20034,16 +20050,61 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
   /* Inhibit redisplay while frames are being deleted. */
   specbind (Qinhibit_redisplay, Qt);
 
-  /* If drag-and-drop is in progress and the DND frame's display is
-     DPY, cancel drag-and-drop.  Don't reset event masks or try to
-     send responses to other programs because the display is going
+  /* If drag-and-drop is in progress, cancel drag-and-drop.  If DND
+     frame's display is DPY, don't reset event masks or try to send
+     responses to other programs because the display is going
      away.  */
 
-  if ((x_dnd_in_progress || x_dnd_waiting_for_finish)
-      && dpy == (x_dnd_waiting_for_finish
-		 ? x_dnd_finish_display
-		 : FRAME_X_DISPLAY (x_dnd_frame)))
+  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
     {
+      /* Handle display disconnect errors here because this function
+	 is not reentrant at this particular spot.  */
+      io_error_handler = XSetIOErrorHandler (x_dnd_io_error_handler);
+
+      if (!sigsetjmp (x_dnd_disconnect_handler, 1)
+	  && x_dnd_in_progress
+	  && dpy != (x_dnd_waiting_for_finish
+		     ? x_dnd_finish_display
+		     : FRAME_X_DISPLAY (x_dnd_frame)))
+	{
+	  /* Clean up drag and drop if the drag frame's display isn't
+	     the one being disconnected.  */
+	  f = x_dnd_frame;
+
+	  if (x_dnd_last_seen_window != None
+	      && x_dnd_last_protocol_version != -1)
+	    x_dnd_send_leave (x_dnd_frame,
+			      x_dnd_last_seen_window);
+	  else if (x_dnd_last_seen_window != None
+		   && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
+		   && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
+		   && x_dnd_motif_setup_p)
+	    {
+	      dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+					    XM_DRAG_REASON_DROP_START);
+	      dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+	      dmsg.timestamp = FRAME_DISPLAY_INFO (f)->last_user_time;
+	      dmsg.side_effects
+		= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+								   x_dnd_wanted_action),
+				       XM_DROP_SITE_VALID,
+				       xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+								   x_dnd_wanted_action),
+				       XM_DROP_ACTION_DROP_CANCEL);
+	      dmsg.x = 0;
+	      dmsg.y = 0;
+	      dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
+	      dmsg.source_window = FRAME_X_WINDOW (f);
+
+	      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
+					    x_dnd_last_seen_window, 0);
+	      xm_send_drop_message (FRAME_DISPLAY_INFO (f), FRAME_X_WINDOW (f),
+				    x_dnd_last_seen_window, &dmsg);
+	    }
+	}
+
+      XSetIOErrorHandler (io_error_handler);
+
       x_dnd_last_seen_window = None;
       x_dnd_last_seen_toplevel = None;
       x_dnd_in_progress = false;
@@ -20234,6 +20295,7 @@ x_io_error_quitter (Display *display)
 	    DisplayString (display));
   x_connection_closed (display, buf, true);
 }
+
 
 /* Changing the font of the frame.  */
 
