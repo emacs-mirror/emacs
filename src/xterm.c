@@ -1390,6 +1390,14 @@ xm_drag_window_error_handler (Display *display, XErrorEvent *event)
   return 0;
 }
 
+static _Noreturn int
+xm_drag_window_io_error_handler (Display *dpy)
+{
+  /* DPY isn't created through GDK, so it doesn't matter if we don't
+     crash here.  */
+  longjmp (x_dnd_disconnect_handler, 1);
+}
+
 static Window
 xm_get_drag_window (struct x_display_info *dpyinfo)
 {
@@ -1400,7 +1408,7 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
   Window drag_window;
   XSetWindowAttributes attrs;
   Display *temp_display;
-  void *old_handler;
+  void *old_handler, *old_io_handler;
 
   drag_window = None;
   rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
@@ -1434,13 +1442,25 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
   if (drag_window == None)
     {
       block_input ();
+      old_io_handler = XSetIOErrorHandler (xm_drag_window_io_error_handler);
+
+      if (sigsetjmp (x_dnd_disconnect_handler, 1))
+	{
+	  XSetIOErrorHandler (old_io_handler);
+	  unblock_input ();
+
+	  return None;
+	}
+
       unrequest_sigio ();
       temp_display = XOpenDisplay (XDisplayString (dpyinfo->display));
       request_sigio ();
 
       if (!temp_display)
 	{
+	  XSetIOErrorHandler (old_io_handler);
 	  unblock_input ();
+
 	  return None;
 	}
 
@@ -1484,6 +1504,7 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 
       XCloseDisplay (temp_display);
       XSetErrorHandler (old_handler);
+      XSetIOErrorHandler (old_io_handler);
 
       /* Make sure the drag window created is actually valid for the
 	 current display, and the XOpenDisplay above didn't
