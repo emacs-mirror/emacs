@@ -416,6 +416,7 @@ Each element has the format:
     ;; Empty inputs
     ("aaa" "M-% a RET RET !" "")
     ("aaa" "M-% RET 1 RET !" "1a1a1a")
+    ("aaa" "M-% RET RET !" "aaa")
     ;; Reuse the previous default
     ("aaa" "M-% a RET 1 RET . M-% RET !" "111")
 
@@ -424,16 +425,21 @@ Each element has the format:
     ;; Empty inputs
     ("aaa" "C-M-% a* RET RET !" "")
     ("aaa" "C-M-% RET 1 RET !" "1a1a1a")
+    ("aaa" "C-M-% RET RET !" "aaa")
     ;; Empty matches
     ("aaa" "C-M-% b* RET 1 RET !" "1a1a1a")
     ;; Complete matches
     ("aaa" "C-M-% .* RET 1 RET !" "1")
-    ;; Adjacent matches
+    ;; Adjacent non-empty matches
     ("abaab" "C-M-% ab* RET 12 RET !" "121212")
-
+    ;; Adjacent non-empty and empty matches
+    ("abab" "C-M-% a* RET 1 RET !" "1b1b")
+    ("abab" "C-M-% b* RET 1 RET !" "1a1a1")
+    ;; Test case from commit 5632eb272c7
+    ("a a a " "C-M-% \\ba SPC RET c RET !" "ccc") ; not "ca c"
     ))
 
-(defun query-replace--perform-tests (tests)
+(defun query-replace--run-tests (tests)
   (with-temp-buffer
     (save-window-excursion
       ;; `execute-kbd-macro' is applied to window only
@@ -448,11 +454,11 @@ Each element has the format:
         (should (equal (buffer-string) (nth 2 case)))))))
 
 (ert-deftest query-replace-tests ()
-  (query-replace--perform-tests query-replace-tests))
+  (query-replace--run-tests query-replace-tests))
 
 (ert-deftest query-replace-search-function-tests ()
   (let* ((replace-re-search-function #'re-search-forward))
-    (query-replace--perform-tests query-replace-tests))
+    (query-replace--run-tests query-replace-tests))
 
   (let* ((pairs '((1 . 2) (3 . 4)))
          (replace-re-search-function
@@ -469,7 +475,31 @@ Each element has the format:
             ;; FIXME: this test should pass after fixing bug#54733:
             ;; ("aaaa" "C-M-% .* RET 1 RET !" "1a1a")
             )))
-    (query-replace--perform-tests tests)))
+    (query-replace--run-tests tests)))
+
+
+;;; General tests for `perform-replace'.
+
+(defconst perform-replace-tests
+  '(
+    ;; Test case from commit 5632eb272c7
+    ("a a a " "\\ba " "c" nil t nil nil nil nil nil nil nil "ccc") ; not "ca c"
+    ;; The same with region inside the second match
+    ;; FIXME: this test should pass after fixing bug#54733:
+    ;; ("a a a " "\\ba " "c" nil t nil nil nil 1 4 nil nil "ca a ")
+    ))
+
+(defun perform-replace--run-tests (tests)
+  (with-temp-buffer
+    (dolist (case tests)
+      (delete-region (point-min) (point-max))
+      (insert (pop case))
+      (goto-char (point-min))
+      (apply 'perform-replace (butlast case))
+      (should (equal (buffer-string) (car (last case)))))))
+
+(ert-deftest perform-replace-tests ()
+  (perform-replace--run-tests perform-replace-tests))
 
 
 ;;; Tests for `query-replace' undo feature.
