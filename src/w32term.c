@@ -5365,7 +5365,9 @@ w32_read_socket (struct terminal *terminal,
 
                     window = window_from_coordinates (f, x, y, 0, 1, 1);
 
-                    if (EQ (window, f->tool_bar_window))
+                    if (EQ (window, f->tool_bar_window)
+			&& (inev.modifiers & down_modifier
+			    || f->last_tool_bar_item != -1))
                       {
                         w32_handle_tool_bar_click (f, &inev);
                         tool_bar_p = 1;
