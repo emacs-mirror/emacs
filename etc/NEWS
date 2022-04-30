@@ -2147,11 +2147,19 @@ to preserve the old behavior, apply
 ** MS-Windows
 
 ---
-*** Emacs now supports double buffering on MS Windows to reduce flicker.
-This leads to a noticable reduction in the amount of graphics flicker
-during redisplay on many systems, but can also make painting slower.
-If that happens, it can be disabled by setting the
-'inhibit-double-buffering' frame parameter.
+*** Emacs now supports double-buffering on MS-Windows to reduce display flicker.
+(This was supported on Free systems since Emacs 26.1.)
+
+To disable double-buffering (e.g., if it causes display problems), set
+the frame parameter 'inhibit-double-buffering' to a non-nil value.
+You can do that either by adding
+
+   '(inhibit-double-buffering . t)
+
+to 'default-frame-alist', or by modifying the frame parameters of the
+selected frame by evaluating
+
+   (modify-frame-parameters nil '((inhibit-double-buffering . t)))
 
 +++
 *** Emacs now supports system dark mode.

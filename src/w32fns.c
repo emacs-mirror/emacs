@@ -1802,7 +1802,7 @@ w32_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   w32_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
-/* Enable or disable double buffering on F.
+/* Enable or disable double buffering on frame F.
 
    When double buffering is enabled, all drawing happens on a back
    buffer (a bitmap), which is then displayed as a single operation
