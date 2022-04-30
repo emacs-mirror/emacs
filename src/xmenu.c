@@ -1718,7 +1718,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   XtSetArg (av[ac], (char *) XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
 
-#if defined HAVE_XINPUT2
+#ifdef HAVE_XINPUT2
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   bool any_xi_grab_p = false;
 
@@ -1779,20 +1779,14 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
       XtDispatchEvent (&property_dummy);
     }
 #endif
-
-  if (dpyinfo->supports_xi2)
-    XUngrabServer (dpyinfo->display);
 #endif
 
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
 
-#if defined HAVE_XINPUT2 && defined USE_MOTIF
-  /* This is needed to prevent XI_Enter events that set an implicit
-     focus from being sent.  */
+#ifdef HAVE_XINPUT2
   if (dpyinfo->supports_xi2)
-    XSetInputFocus (XtDisplay (menu), XtWindow (menu),
-		    RevertToParent, CurrentTime);
+    XUngrabServer (dpyinfo->display);
 #endif
 
   popup_activated_flag = 1;
@@ -1814,14 +1808,6 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
     unbind_to (specpdl_count, Qnil);
   }
-
-#if defined HAVE_XINPUT2 && defined USE_MOTIF
-  /* For some reason input focus isn't always restored to the outer
-     window after the menu pops down.  */
-  if (any_xi_grab_p)
-    XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		    RevertToParent, CurrentTime);
-#endif
 }
 
 #endif /* not USE_GTK */
