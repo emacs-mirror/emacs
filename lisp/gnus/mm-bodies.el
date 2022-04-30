@@ -191,18 +191,17 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
 	   ((eq encoding 'base64)
 	    (base64-decode-region
 	     (point-min)
-	     ;; Some mailers insert whitespace
-	     ;; junk at the end which
-	     ;; base64-decode-region dislikes.
-	     ;; Also remove possible junk which could
-	     ;; have been added by mailing list software.
 	     (save-excursion
+               ;; Some mailers insert whitespace junk at the end which
+	       ;; base64-decode-region dislikes.
 	       (goto-char (point-min))
 	       (while (re-search-forward "^[\t ]*\r?\n" nil t)
 		 (delete-region (match-beginning 0) (match-end 0)))
+	       ;; Also ignore junk which could have been added by
+	       ;; mailing list software by finding the final line with
+	       ;; base64 text.
 	       (goto-char (point-max))
-	       (when (re-search-backward "^[\t ]*[A-Za-z0-9+/]+=*[\t ]*$"
-					 nil t)
+	       (when (re-search-backward "[A-Za-z0-9+/]{3,3}=?[\t ]*$" nil t)
 		 (forward-line))
 	       (point))))
 	   ((memq encoding '(nil 7bit 8bit binary))
