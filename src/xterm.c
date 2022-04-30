@@ -14342,9 +14342,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           {
 	    f = any;
 	    if (f)
-              _XEditResCheckMessages (f->output_data.x->widget,
-				      NULL, (XEvent *) event, NULL);
-	    goto done;
+	      {
+		_XEditResCheckMessages (f->output_data.x->widget,
+					NULL, (XEvent *) event, NULL);
+		goto done;
+	      }
+
+	    goto OTHER;
           }
 #endif /* X_TOOLKIT_EDITRES */
 
