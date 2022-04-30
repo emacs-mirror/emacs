@@ -3292,22 +3292,25 @@ the python shell:
                               (goto-char start)
                               (python-util-forward-comment 1)
                               (current-indentation))))
-         (fillstr (and (not no-cookie)
-                       (not starts-at-point-min-p)
-                       (concat
-                        (format "# -*- coding: %s -*-\n" encoding)
-                        (make-string
-                         ;; Subtract 2 because of the coding cookie.
-                         (- (line-number-at-pos start) 2) ?\n)))))
+         (fillstr (cond (starts-at-point-min-p
+                         nil)
+                        ((not no-cookie)
+                         (concat
+                          (format "# -*- coding: %s -*-\n" encoding)
+                          (make-string
+                           ;; Subtract 2 because of the coding cookie.
+                           (- (line-number-at-pos start) 2) ?\n)))
+                        (t
+                         (make-string (- (line-number-at-pos start) 1) ?\n)))))
     (with-temp-buffer
       (python-mode)
       (when fillstr
         (insert fillstr))
-      (insert substring)
-      (goto-char (point-min))
       (when (not toplevel-p)
-        (insert "if True:")
+        (forward-line -1)
+        (insert "if True:\n")
         (delete-region (point) (line-end-position)))
+      (insert substring)
       (when nomain
         (let* ((if-name-main-start-end
                 (and nomain
