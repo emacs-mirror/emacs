@@ -1756,7 +1756,7 @@ If nil, ask to kill it."
   "Output lines that are longer than this value will be hidden.
 If nil, don't hide anything."
   :type '(choice (const :tag "Hide nothing" nil)
-                 number)
+                 integer)
   :version "29.1")
 
 (defun compilation--update-in-progress-mode-line ()
