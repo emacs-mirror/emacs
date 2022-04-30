@@ -456,7 +456,7 @@ buffer `default-directory'."
 
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
-     (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
+     (": \\(.\\{,200\\}\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
       1 grep-error-face)
      ;; remove match from grep-regexp-alist before fontifying
      ("^Grep[/a-zA-Z]* started.*"
