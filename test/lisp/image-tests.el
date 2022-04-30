@@ -75,7 +75,8 @@
   (should-not (find-image '((:type png :file "does-not-exist-foo-bar.png")))))
 
 (ert-deftest image-supported-file-p/built-in ()
-  ;; (skip-unless (image-type-available-p 'pbm)) ; always built-in
+  ;; (skip-unless (image-type-available-p 'pbm)) ; Always built-in
+  (skip-unless (display-images-p))               ; (except in nox builds).
   (should (eq (image-supported-file-p "foo.pbm") 'pbm)))
 
 (ert-deftest image-supported-file-p/optional ()
