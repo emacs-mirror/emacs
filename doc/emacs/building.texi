@@ -138,6 +138,14 @@ of environment variable settings; each element should be a string of
 the form @code{"@var{envvarname}=@var{value}"}.  These environment
 variable settings override the usual ones.
 
+@vindex compilation-max-output-line-length
+  Displaying extremely long lines in compilation output can slow Emacs
+down.  Lines that are longer than
+@code{compilation-max-output-line-length} will have the portion that's
+exceeds that limit hidden behind a button that can be clicked on to
+reveal the hidden portion.  Set this variable to @code{nil} to never
+hide anything.
+
 @node Compilation Mode
 @section Compilation Mode
 

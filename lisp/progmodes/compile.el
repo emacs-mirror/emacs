@@ -1752,6 +1752,13 @@ If nil, ask to kill it."
   :type 'boolean
   :version "24.3")
 
+(defcustom compilation-max-output-line-length 400
+  "Output lines that are longer than this value will be hidden.
+If nil, don't hide anything."
+  :type '(choice (const :tag "Hide nothing" nil)
+                 number)
+  :version "29.1")
+
 (defun compilation--update-in-progress-mode-line ()
   ;; `compilation-in-progress' affects the mode-line of all
   ;; buffers when it changes from nil to non-nil or vice-versa.
@@ -2426,19 +2433,56 @@ and runs `compilation-filter-hook'."
               ;; We used to use `insert-before-markers', so that windows with
               ;; point at `process-mark' scroll along with the output, but we
               ;; now use window-point-insertion-type instead.
-              (insert string)
+              (if (not compilation-max-output-line-length)
+                  (insert string)
+                (dolist (line (string-lines string nil t))
+                  (compilation--insert-abbreviated-line
+                   line compilation-max-output-line-length)))
               (unless comint-inhibit-carriage-motion
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
               ;; Update the number of errors in compilation-mode-line-errors
               (compilation--ensure-parse (point))
-              ;; (setq-local compilation-buffer-modtime (current-time))
               (run-hooks 'compilation-filter-hook))
 	  (goto-char pos)
           (narrow-to-region min max)
 	  (set-marker pos nil)
 	  (set-marker min nil)
 	  (set-marker max nil))))))
+
+(defun compilation--insert-abbreviated-line (string width)
+  (if (and (> (current-column) 0)
+           (get-text-property (1- (point)) 'button))
+      ;; We already have an abbreviation; just add the string to it.
+      (let ((beg (point)))
+        (insert string)
+        (add-text-properties
+         beg
+         ;; Don't make the final newline invisible.
+         (if (= (aref string (1- (length string))) ?\n)
+             (1- (point))
+           (point))
+         (text-properties-at (1- beg))))
+    (insert string)
+    ;; If we exceeded the limit, hide the last portion of the line.
+    (when (> (current-column) width)
+      (let ((start (save-excursion
+                     (move-to-column width)
+                     (point))))
+        (buttonize-region
+         start (point)
+         (lambda (start)
+           (let ((inhibit-read-only t))
+             (remove-text-properties start (save-excursion
+                                             (goto-char start)
+                                             (line-end-position))
+                                     (text-properties-at start)))))
+        (put-text-property
+         start (if (= (aref string (1- (length string))) ?\n)
+                   ;; Don't hide the final newline.
+                   (1- (point))
+                 (point))
+         'display (if (char-displayable-p ?…) "[…]" "[...]"))))))
 
 (defsubst compilation-buffer-internal-p ()
   "Test if inside a compilation buffer."

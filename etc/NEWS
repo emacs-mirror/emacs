@@ -672,6 +672,14 @@ script that was used in ancient South Asia.  A new input method,
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Compile
+
++++
+*** New user option 'compilation-max-output-line-length'.
+Lines longer than this will have the ends hidden, with a button to
+reveal the hidden text.  This speeds up operations like grepping on
+files that have few newlines.
+
 ** Flymake
 
 +++
