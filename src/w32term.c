@@ -312,6 +312,8 @@ w32_release_paint_buffer (struct frame *f)
   enter_crit ();
   if (FRAME_OUTPUT_DATA (f)->paint_buffer)
     {
+      deselect_palette (f, FRAME_OUTPUT_DATA (f)->paint_buffer_handle);
+
       SelectObject (FRAME_OUTPUT_DATA (f)->paint_dc,
 		    FRAME_OUTPUT_DATA (f)->paint_dc_object);
       ReleaseDC (FRAME_OUTPUT_DATA (f)->window_desc,
