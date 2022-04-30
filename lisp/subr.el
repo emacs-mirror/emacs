@@ -6654,27 +6654,30 @@ lines."
   (let ((lines nil)
         (start 0))
     (while (< start (length string))
-      (if-let ((newline (string-search "\n" string start)))
-          (progn
-            (when (or (not omit-nulls)
-                      (not (= start newline)))
-              (let ((line (substring string start
-                                     (if keep-newlines
-                                         (1+ newline)
-                                       newline))))
-                (when (not (and keep-newlines omit-nulls
-                                (equal line "\n")))
-                  (push line lines))))
-            (setq start (1+ newline))
-            ;; Include the final newline.
-            (when (and (= start (length string))
-                       (not omit-nulls)
-                       (not keep-newlines))
-              (push "" lines)))
-        (if (zerop start)
-            (push string lines)
-          (push (substring string start) lines))
-        (setq start (length string))))
+      (let ((newline (string-search "\n" string start)))
+        (if newline
+            (progn
+              (when (or (not omit-nulls)
+                        (not (= start newline)))
+                (let ((line (substring string start
+                                       (if keep-newlines
+                                           (1+ newline)
+                                         newline))))
+                  (when (not (and keep-newlines omit-nulls
+                                  (equal line "\n")))
+                    (push line lines))))
+              (setq start (1+ newline))
+              ;; Include the final newline.
+              (when (and (= start (length string))
+                         (not omit-nulls)
+                         (not keep-newlines))
+                (push "" lines)))
+          ;; No newline in the remaining part.
+          (if (zerop start)
+              ;; Avoid a string copy if there are no newlines at all.
+              (push string lines)
+            (push (substring string start) lines))
+          (setq start (length string)))))
     (nreverse lines)))
 
 (defun buffer-match-p (condition buffer-or-name &optional arg)
