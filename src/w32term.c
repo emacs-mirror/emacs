@@ -5423,6 +5423,15 @@ w32_read_socket (struct terminal *terminal,
                     window = window_from_coordinates (f, x, y, 0, 1, 1);
 
                     if (EQ (window, f->tool_bar_window)
+			/* Make sure the tool bar was previously
+			   pressed, otherwise an event that started
+			   outside of the tool bar will not be handled
+			   correctly when the mouse button is
+			   released.  For example, start dragging to
+			   select some buffer text, drag the mouse to
+			   the tool bar, and release the mouse button
+			   -- this should not consider the release
+			   event as a tool-bar click.  */
 			&& (inev.modifiers & down_modifier
 			    || f->last_tool_bar_item != -1))
                       {
