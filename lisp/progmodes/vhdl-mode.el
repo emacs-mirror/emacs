@@ -8785,7 +8785,10 @@ project is defined."
 (defun vhdl-electric-period (count) "`..' --> ` => '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) vhdl-last-input-event)
+      ;; We use this-command-keys below to account for translation of
+      ;; kp-decimal into '.'; vhdl-last-input-event doesn't catch
+      ;; that.
+      (cond ((eq (preceding-char) (aref (this-command-keys) 0))
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "=> ")))
