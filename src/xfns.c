@@ -9727,10 +9727,6 @@ eliminated in future versions of Emacs.  */);
   }
 #endif
 
-  DEFVAR_LISP ("x-show-tooltip-timeout", Vx_show_tooltip_timeout,
-	      doc: /* The default timeout (in seconds) for `x-show-tip'.  */);
-  Vx_show_tooltip_timeout = make_fixnum (5);
-
   /* X window properties.  */
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);

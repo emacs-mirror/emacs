@@ -6721,6 +6721,10 @@ See `buffer-display-table' for more information.  */);
      beginning of the next redisplay).  */
   redisplay_dont_pause = true;
 
+  DEFVAR_LISP ("x-show-tooltip-timeout", Vx_show_tooltip_timeout,
+	      doc: /* The default timeout (in seconds) for `x-show-tip'.  */);
+  Vx_show_tooltip_timeout = make_fixnum (5);
+
   DEFVAR_LISP ("tab-bar-position", Vtab_bar_position,
 	       doc: /* Specify on which side from the tool bar the tab bar shall be.
 Possible values are t (below the tool bar), nil (above the tool bar).
