@@ -8292,7 +8292,7 @@ PARMS is an optional list of frame parameters which can be used to
 change the tooltip's appearance.
 
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
-means use the default timeout of 5 seconds.
+means use the default timeout from the `x-show-tooltip-timeout'.
 
 If the list of frame parameters PARMS contains a `left' parameter,
 display the tooltip at that x-position.  If the list of frame parameters
@@ -8338,9 +8338,8 @@ Text larger than the specified size is clipped.  */)
   f = decode_window_system_frame (frame);
 
   if (NILP (timeout))
-    timeout = make_fixnum (5);
-  else
-    CHECK_FIXNAT (timeout);
+    timeout = Vx_show_tooltip_timeout;
+  CHECK_FIXNAT (timeout);
 
   if (NILP (dx))
     dx = make_fixnum (5);
@@ -9726,6 +9725,10 @@ eliminated in future versions of Emacs.  */);
     Vcairo_version_string = make_pure_string (cairo_version, len, len, false);
   }
 #endif
+
+  DEFVAR_LISP ("x-show-tooltip-timeout", Vx_show_tooltip_timeout,
+	      doc: /* The default timeout (in seconds) for `x-show-tip'.  */);
+  Vx_show_tooltip_timeout = make_fixnum (5);
 
   /* X window properties.  */
   defsubr (&Sx_change_window_property);

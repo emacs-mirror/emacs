@@ -1529,6 +1529,12 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+---
+** 'x-show-tip' no longer hard-codes a timeout default.
+The new 'x-show-tooltip-timeout' variable allows the user to alter
+this for packages that don't use 'tooltip-show', but instead calls the
+lower level function directly.
+
 +++
 ** New function 'window-max-characters-per-line'.
 
