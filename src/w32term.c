@@ -774,6 +774,19 @@ w32_buffer_flipping_unblocked_hook (struct frame *f)
     w32_show_back_buffer (f);
 }
 
+/* Flip buffers on F if drawing has happened.  This function is not
+   called to flush the display connection of a frame (which doesn't
+   exist on MS Windows), but also called in some situations in
+   minibuf.c to make the contents of the back buffer visible.  */
+void
+w32_flip_buffers_if_dirty (struct frame *f)
+{
+  if (FRAME_OUTPUT_DATA (f)->paint_buffer
+      && FRAME_OUTPUT_DATA (f)->paint_buffer_dirty
+      && !f->garbaged && !buffer_flipping_blocked_p ())
+    w32_show_back_buffer (f);
+}
+
 /* Draw truncation mark bitmaps, continuation mark bitmaps, overlay
    arrow bitmaps, or clear the fringes if no bitmaps are required
    before DESIRED_ROW is made current.  This function is called from
