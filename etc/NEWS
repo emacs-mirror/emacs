@@ -929,6 +929,16 @@ the common "utm_" trackers from URLs.
 
 ** Gnus
 
++++
+*** Tool bar changes in Gnus/Message.
+There were previously two styles of tool bars available in Gnus and
+Message, referred to as 'gnus-summary-tool-bar-retro',
+'gnus-group-tool-bar-retro' and 'message-tool-bar-retro', and
+'gnus-summary-tool-bar-gnome', 'gnus-group-tool-bar-gnome' and
+'message-tool-bar-gnome'.  The "retro" tool bars have been removed (as
+well as the icons used), and the "Gnome" tool bars are now the only
+pre-defined toolbars.
+
 ---
 *** Gnus now uses a variable-pitch font in the headers by default.
 To get the monospace font back, you can put something like the

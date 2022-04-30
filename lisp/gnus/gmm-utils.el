@@ -134,47 +134,8 @@ ARGS are passed to `message'."
 		(const :tag "No map")
 		(plist :inline t :tag "Properties"))))
 
-(define-widget 'gmm-tool-bar-zap-list 'lazy
-  "Tool bar zap list."
-  :tag "Tool bar zap list"
-  :type '(choice (const :tag "Zap all" t)
-		 (const :tag "Keep all" nil)
-		 (list
-		  ;; :value
-		  ;; Work around (bug in customize?), see
-		  ;; <news:v9is48jrj1.fsf@marauder.physik.uni-ulm.de>
-		  ;; (new-file open-file dired kill-buffer write-file
-		  ;; 	    print-buffer customize help)
-		  (set :inline t
-		       (const new-file)
-		       (const open-file)
-		       (const dired)
-		       (const kill-buffer)
-		       (const save-buffer)
-		       (const write-file)
-		       (const undo)
-		       (const cut)
-		       (const copy)
-		       (const paste)
-		       (const search-forward)
-		       (const print-buffer)
-		       (const customize)
-		       (const help))
-		  (repeat :inline t
-			  :tag "Other"
-			  (symbol :tag "Icon item")))))
-
-(defcustom gmm-tool-bar-style
-  (if (and (boundp 'tool-bar-mode)
-	   tool-bar-mode
-	   (not (memq (display-visual-class)
-		      (list 'static-gray 'gray-scale
-		            'static-color 'pseudo-color))))
-      'gnome
-    'retro)
-  "Preferred tool bar style."
-  :type '(choice (const :tag "GNOME style" gnome)
-		 (const :tag "Retro look"  retro)))
+(defvar gmm-tool-bar-style 'gnome)
+(make-obsolete-variable 'gmm-tool-bar-style nil "29.1")
 
 (defvar tool-bar-map)
 

@@ -24168,15 +24168,12 @@ If you want to see them in the Cc and To fields, set:
 @item gnus-group-tool-bar
 @vindex gnus-group-tool-bar
 Specifies the tool bar in the group buffer.  It can be either a list
-or a symbol referring to a list.  Pre-defined symbols include
-@code{gnus-group-tool-bar-gnome} and @code{gnus-group-tool-bar-retro}.
+or a symbol referring to a list.
 
 @item gnus-summary-tool-bar
 @vindex gnus-summary-tool-bar
 Specifies the tool bar in the summary buffer.  It can be either a list
-or a symbol referring to a list.  Pre-defined symbols include
-@code{gnus-summary-tool-bar-gnome} and
-@code{gnus-summary-tool-bar-retro}.
+or a symbol referring to a list.
 
 @end table
 
