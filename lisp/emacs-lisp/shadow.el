@@ -177,12 +177,11 @@ See the documentation for `list-load-path-shadows' for further information."
      . (1 font-lock-warning-face)))
   "Keywords to highlight in `load-path-shadows-mode'.")
 
-(define-derived-mode load-path-shadows-mode fundamental-mode "LP-Shadows"
+(define-derived-mode load-path-shadows-mode special-mode "LP-Shadows"
   "Major mode for `load-path' shadows buffer."
   (setq-local font-lock-defaults
               '((load-path-shadows-font-lock-keywords)))
-  (setq buffer-undo-list t
-	buffer-read-only t))
+  (setq buffer-undo-list t))
 
 ;; TODO use text-properties instead, a la dired.
 (define-button-type 'load-path-shadows-find-file
