@@ -434,9 +434,11 @@ display purposes; use @code{truncate-string-to-width} or
 (@pxref{Size of Displayed Text}).
 @end defun
 
-@defun string-lines string &optional omit-nulls
+@defun string-lines string &optional omit-nulls keep-newlines
 Split @var{string} into a list of strings on newline boundaries.  If
-@var{omit-nulls}, remove empty lines from the results.
+@var{omit-nulls}, remove empty lines from the results.  if
+@var{keep-newlines}, don't remove the trailing newlines from the
+result strings.
 @end defun
 
 @defun string-pad string length &optional padding start

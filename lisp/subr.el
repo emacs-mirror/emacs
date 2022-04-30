@@ -6646,10 +6646,36 @@ is inserted before adjusting the number of empty lines."
      ((< (- (point) start) lines)
       (insert (make-string (- lines (- (point) start)) ?\n))))))
 
-(defun string-lines (string &optional omit-nulls)
+(defun string-lines (string &optional omit-nulls keep-newlines)
   "Split STRING into a list of lines.
-If OMIT-NULLS, empty lines will be removed from the results."
-  (split-string string "\n" omit-nulls))
+If OMIT-NULLS, empty lines will be removed from the results.
+If KEEP-NEWLINES, don't strip trailing newlines from the result
+lines."
+  (let ((lines nil)
+        (start 0))
+    (while (< start (length string))
+      (if-let ((newline (string-search "\n" string start)))
+          (progn
+            (when (or (not omit-nulls)
+                      (not (= start newline)))
+              (let ((line (substring string start
+                                     (if keep-newlines
+                                         (1+ newline)
+                                       newline))))
+                (when (not (and keep-newlines omit-nulls
+                                (equal line "\n")))
+                  (push line lines))))
+            (setq start (1+ newline))
+            ;; Include the final newline.
+            (when (and (= start (length string))
+                       (not omit-nulls)
+                       (not keep-newlines))
+              (push "" lines)))
+        (if (zerop start)
+            (push string lines)
+          (push (substring string start) lines))
+        (setq start (length string))))
+    (nreverse lines)))
 
 (defun buffer-match-p (condition buffer-or-name &optional arg)
   "Return non-nil if BUFFER-OR-NAME matches CONDITION.

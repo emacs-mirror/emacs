@@ -1028,5 +1028,27 @@ final or penultimate step during initialization."))
   (should (readablep "foo"))
   (should-not (readablep (list (make-marker)))))
 
+(ert-deftest test-string-lines ()
+  (should (equal (string-lines "foo") '("foo")))
+  (should (equal (string-lines "foo\n") '("foo" "")))
+  (should (equal (string-lines "foo\nbar") '("foo" "bar")))
+
+  (should (equal (string-lines "foo" t) '("foo")))
+  (should (equal (string-lines "foo\n" t) '("foo")))
+  (should (equal (string-lines "foo\nbar" t) '("foo" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t) '("foo" "bar")))
+
+  (should (equal (string-lines "foo" nil t) '("foo")))
+  (should (equal (string-lines "foo\n" nil t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" nil t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" nil t)
+                 '("foo\n" "\n" "\n" "bar")))
+
+  (should (equal (string-lines "foo" t t) '("foo")))
+  (should (equal (string-lines "foo\n" t t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" t t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t t)
+                 '("foo\n" "bar"))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
