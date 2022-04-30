@@ -43,7 +43,7 @@
 ;;  /dcc chat nick - Either accept pending chat offer from nick, or offer
 ;;                   DCC chat to nick
 ;;  /dcc close type [nick] - Close DCC connection (SEND/GET/CHAT) with nick
-;;  /dcc get nick [file] - Accept DCC offer from nick
+;;  /dcc get [-t] nick [file] - Accept DCC offer from nick
 ;;  /dcc list - List all DCC offers/connections
 ;;  /dcc send nick file - Offer DCC SEND to nick
 
@@ -105,7 +105,9 @@ Looks like:
  :file - for outgoing sends, the full path to the file.  For incoming sends,
          the suggested filename or vetted filename
 
- :size - size of the file, may be nil on incoming DCCs")
+ :size - size of the file, may be nil on incoming DCCs
+
+ :turbo - optional item indicating sender support for TSEND")
 
 (defun erc-dcc-list-add (type nick peer parent &rest args)
   "Add a new entry of type TYPE to `erc-dcc-list' and return it."
@@ -149,9 +151,9 @@ Looks like:
    (dcc-get-file-too-long
     . "DCC: %f: File longer than sender claimed; aborting transfer")
    (dcc-get-notfound . "DCC: %n hasn't offered %f for DCC transfer")
-   (dcc-list-head . "DCC: From      Type  Active  Size            Filename")
-   (dcc-list-line . "DCC: --------  ----  ------  --------------  --------")
-   (dcc-list-item . "DCC: %-8n  %-4t  %-6a  %-14s  %f")
+   (dcc-list-head . "DCC: From      Type  Active  Size               Filename")
+   (dcc-list-line . "DCC: --------  ----  ------  -----------------  --------")
+   (dcc-list-item . "DCC: %-8n  %-4t  %-6a  %-17s  %f%u")
    (dcc-list-end  . "DCC: End of list.")
    (dcc-malformed . "DCC: error: %n (%u@%h) sent malformed request: %q")
    (dcc-privileged-port
@@ -506,8 +508,12 @@ At least one of TYPE and NICK must be provided."
 FILE is the filename.  If FILE is split into multiple arguments,
 re-join the arguments, separated by a space.
 PROC is the server process."
-  (setq file (and file (mapconcat #'identity file " ")))
-  (let* ((elt (erc-dcc-member :nick nick :type 'GET :file file))
+  (let* ((args (seq-group-by (lambda (s) (eq ?- (aref s 0))) (cons nick file)))
+         (flags (prog1 (cdr (assq t args))
+                  (setq args (cdr (assq nil args))
+                        nick (pop args)
+                        file (and args (mapconcat #'identity args " ")))))
+         (elt (erc-dcc-member :nick nick :type 'GET :file file))
          (filename (or file (plist-get elt :file) "unknown")))
     (if elt
         (let* ((file (read-file-name
@@ -527,7 +533,10 @@ PROC is the server process."
                     'dcc-get-cmd-aborted
                     ?n nick ?f filename)))
                 (t
-                 (erc-dcc-get-file elt file proc))))
+                 (erc-dcc-get-file elt file proc)))
+          (when (member "-t" flags)
+            (setq erc-dcc-list (cons (plist-put elt :turbo t)
+                                     (delq elt erc-dcc-list)))))
       (erc-display-message
        nil '(notice error) 'active
        'dcc-get-notfound ?n nick ?f filename))))
@@ -576,7 +585,12 @@ It lists the current state of `erc-dcc-list' in an easy to read manner."
                         (format " (%d%%)"
                                 (floor (* 100.0 byte-count)
                                        (plist-get elt :size))))))
-       ?f (or (and (plist-member elt :file) (plist-get elt :file)) "")))
+       ?f (or (and (plist-member elt :file) (plist-get elt :file)) "")
+       ?u (if-let* ((flags (concat (and (plist-get elt :turbo) "t")
+                                   (and (plist-get elt :placeholder) "p")))
+                    ((not (string-empty-p flags))))
+              (concat " (" flags ")")
+            "")))
     (erc-display-message
      nil 'notice 'active
      'dcc-list-end)
@@ -603,6 +617,7 @@ separated by a space."
 
 (defvar erc-dcc-query-handler-alist
   '(("SEND" . erc-dcc-handle-ctcp-send)
+    ("TSEND" . erc-dcc-handle-ctcp-send)
     ("CHAT" . erc-dcc-handle-ctcp-chat)))
 
 ;;;###autoload
@@ -621,12 +636,16 @@ that subcommand."
        ?q query ?n nick ?u login ?h host))))
 
 (defconst erc-dcc-ctcp-query-send-regexp
-  (concat "^DCC SEND \\(?:"
+  (rx bot "DCC " (group-n 6 (: (** 0 2 (any "TS")) "SEND")) " "
           ;; Following part matches either filename without spaces
           ;; or filename enclosed in double quotes with any number
           ;; of escaped double quotes inside.
-          "\"\\(\\(?:\\\\\"\\|[^\"\\]\\)+\\)\"\\|\\([^ ]+\\)"
-          "\\) \\([0-9]+\\) \\([0-9]+\\) *\\([0-9]*\\)"))
+      (: (or (: ?\" (group-n 1 (+ (or (: ?\\ ?\") (not (any ?\" ?\\))))) ?\")
+             (group-n 2 (+ (not " ")))))
+      (: " " (group-n 3 (+ digit))
+         " " (group-n 4 (+ digit))
+         (* " ") (group-n 5 (* digit)))
+      eot))
 
 (define-inline erc-dcc-unquote-filename (filename)
   (inline-quote
@@ -651,12 +670,13 @@ It extracts the information about the dcc request and adds it to
        'dcc-request-bogus
        ?r "SEND" ?n nick ?u login ?h host))
      ((string-match erc-dcc-ctcp-query-send-regexp query)
-      (let ((filename
-             (or (match-string 2 query)
-                 (erc-dcc-unquote-filename (match-string 1 query))))
-            (ip       (erc-decimal-to-ip (match-string 3 query)))
-            (port     (match-string 4 query))
-            (size     (match-string 5 query)))
+      (let* ((filename (or (match-string 2 query)
+                           (erc-dcc-unquote-filename (match-string 1 query))))
+             (ip (erc-decimal-to-ip (match-string 3 query)))
+             (port (match-string 4 query))
+             (size (match-string 5 query))
+             (sub (substring (match-string 6 query) 0 -4))
+             (turbo (seq-contains-p sub ?T #'eq)))
         ;; FIXME: a warning really should also be sent
         ;; if the ip address != the host the dcc sender is on.
         (erc-display-message
@@ -673,7 +693,8 @@ It extracts the information about the dcc request and adds it to
          'GET (format "%s!%s@%s" nick login host)
          nil proc
          :ip ip :port port :file filename
-         :size (string-to-number size))
+         :size (string-to-number size)
+         :turbo (and turbo t))
         (if (and (eq erc-dcc-send-request 'auto)
                  (erc-dcc-auto-mask-p (format "\"%s!%s@%s\"" nick login host)))
             (erc-dcc-get-file (car erc-dcc-list) filename proc))))
@@ -952,6 +973,16 @@ The contents of the BUFFER will then be erased."
       (setq erc-dcc-byte-count (+ (buffer-size) erc-dcc-byte-count))
       (erase-buffer))))
 
+;; If people really need this, we can convert it into a proper option.
+
+(defvar erc-dcc--X-send-final-turbo-ack nil
+  "Workaround for maverick turbo senders that only require a final ACK.
+The only known culprit is WeeChat, with its xfer.network.fast_send
+option, which is on by default.  Leaving this set to nil and calling
+/DCC GET -t works just fine, but WeeChat sees it as a failure even
+though the file arrives in its entirety.  Setting this to t may
+alleviate such problems.")
+
 (defun erc-dcc-get-filter (proc str)
   "This is the process filter for transfers from other clients to this one.
 It reads incoming bytes from the network and stores them in the DCC
@@ -986,7 +1017,14 @@ rather than every 1024 byte block, but nobody seems to care."
          'dcc-get-file-too-long
          ?f (file-name-nondirectory (buffer-name)))
         (delete-process proc))
-       ((not (process-get proc :reportingp))
+       ;; Some senders want us to hang up.  Only observed w. TSEND.
+       ((and (plist-get erc-dcc-entry-data :turbo)
+             (= received-bytes (plist-get erc-dcc-entry-data :size)))
+        (when erc-dcc--X-send-final-turbo-ack
+          (process-send-string proc (erc-pack-int received-bytes)))
+        (delete-process proc))
+       ((not (or (plist-get erc-dcc-entry-data :turbo)
+                 (process-get proc :reportingp)))
         (process-put proc :reportingp t)
         (process-send-string proc (erc-pack-int received-bytes))
         (process-put proc :reportingp nil))))))
@@ -996,7 +1034,8 @@ rather than every 1024 byte block, but nobody seems to care."
 It shuts down the connection and notifies the user that the
 transfer is complete."
   ;; FIXME, we should look at EVENT, and also check size.
-  (unless (string= event "connection broken by remote peer\n")
+  (unless (member event '("connection broken by remote peer\n"
+                          "deleted\n"))
     (lwarn 'erc :warning "Unexpected sentinel event %S for %s"
            (string-trim-right event) proc))
   (with-current-buffer (process-buffer proc)
