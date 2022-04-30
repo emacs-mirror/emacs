@@ -14077,6 +14077,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	if (event->xclient.message_type == dpyinfo->Xatom_XdndFinished
 	    && (x_dnd_waiting_for_finish && !x_dnd_waiting_for_motif_finish)
+	    /* Also check that the display is correct, since
+	       `x_dnd_pending_finish_target' could still be valid on
+	       another X server.  */
+	    && dpyinfo->display == x_dnd_finish_display
 	    && event->xclient.data.l[0] == x_dnd_pending_finish_target)
 	  {
 	    x_dnd_waiting_for_finish = false;
