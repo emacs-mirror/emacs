@@ -8292,7 +8292,8 @@ PARMS is an optional list of frame parameters which can be used to
 change the tooltip's appearance.
 
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
-means use the default timeout from the `x-show-tooltip-timeout'.
+means use the default timeout from the `x-show-tooltip-timeout'
+variable.
 
 If the list of frame parameters PARMS contains a `left' parameter,
 display the tooltip at that x-position.  If the list of frame parameters
