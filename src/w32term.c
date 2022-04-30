@@ -283,6 +283,9 @@ w32_show_back_buffer (struct frame *f)
 
   output = FRAME_OUTPUT_DATA (f);
 
+  if (!output->want_paint_buffer || w32_disable_double_buffering)
+    return;
+
   enter_crit ();
 
   if (output->paint_buffer)
@@ -2935,6 +2938,8 @@ w32_scroll_run (struct window *w, struct run *run)
   struct frame *f = XFRAME (w->frame);
   int x, y, width, height, from_y, to_y, bottom_y;
   HDC hdc;
+  HWND hwnd = FRAME_W32_WINDOW (f);
+  HRGN expect_dirty = NULL;
 
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
@@ -2953,6 +2958,9 @@ w32_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - from_y;
       else
 	height = run->height;
+
+      if (w32_disable_double_buffering)
+	expect_dirty = CreateRectRgn (x, y + height, x + width, bottom_y);
     }
   else
     {
@@ -2962,15 +2970,55 @@ w32_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - to_y;
       else
 	height = run->height;
+
+      if (w32_disable_double_buffering)
+	expect_dirty = CreateRectRgn (x, y, x + width, to_y);
     }
 
   block_input ();
+
   /* Cursor off.  Will be switched on again in gui_update_window_end.  */
   gui_clear_cursor (w);
-  hdc = get_frame_dc (f);
-  BitBlt (hdc, x, to_y, width, height, hdc, x, from_y, SRCCOPY);
-  release_frame_dc (f, hdc);
+  if (!w32_disable_double_buffering)
+    {
+      hdc = get_frame_dc (f);
+      BitBlt (hdc, x, to_y, width, height, hdc, x, from_y, SRCCOPY);
+      release_frame_dc (f, hdc);
+    }
+  else
+    {
+      RECT from;
+      RECT to;
+      HRGN dirty = CreateRectRgn (0, 0, 0, 0);
+      HRGN combined = CreateRectRgn (0, 0, 0, 0);
+
+      from.left = to.left = x;
+      from.right = to.right = x + width;
+      from.top = from_y;
+      from.bottom = from_y + height;
+      to.top = y;
+      to.bottom = bottom_y;
+
+      ScrollWindowEx (hwnd, 0, to_y - from_y, &from, &to, dirty,
+		      NULL, SW_INVALIDATE);
+
+      /* Combine this with what we expect to be dirty. This covers the
+	 case where not all of the region we expect is actually dirty.  */
+      CombineRgn (combined, dirty, expect_dirty, RGN_OR);
+
+      /* If the dirty region is not what we expected, redraw the entire frame.  */
+      if (!EqualRgn (combined, expect_dirty))
+	SET_FRAME_GARBAGED (f);
+
+      DeleteObject (dirty);
+      DeleteObject (combined);
+    }
+
   unblock_input ();
+
+  if (w32_disable_double_buffering
+      && expect_dirty)
+    DeleteObject (expect_dirty);
 }
 
 
@@ -4840,7 +4888,12 @@ w32_scroll_bar_clear (struct frame *f)
 {
   Lisp_Object bar;
 
-  if (FRAME_OUTPUT_DATA (f)->paint_buffer)
+  /* Return if double buffering is enabled, since clearing a frame
+     actually clears just the back buffer, so avoid clearing all of
+     the scroll bars, since that causes the scroll bars to
+     flicker.  */
+  if (!w32_disable_double_buffering
+      && FRAME_OUTPUT_DATA (f)->want_paint_buffer)
     return;
 
   /* We can have scroll bars even if this is 0,
@@ -4958,6 +5011,11 @@ w32_read_socket (struct terminal *terminal,
       struct input_event inev;
       int do_help = 0;
 
+      /* WM_WINDOWPOSCHANGED makes the buffer dirty, but there's no
+	 reason to flush the back buffer after receiving such an
+	 event, and that also causes flicker.  */
+      bool ignore_dirty_back_buffer = false;
+
       /* DebPrint (("w32_read_socket: %s time:%u\n", */
       /*            w32_name_of_message (msg.msg.message), */
       /*            msg.msg.time)); */
@@ -5005,8 +5063,8 @@ w32_read_socket (struct terminal *terminal,
 		}
 	      else
 		{
-		  enter_crit ();
-		  if (!FRAME_OUTPUT_DATA (f)->paint_buffer)
+		  if (w32_disable_double_buffering
+		      || !FRAME_OUTPUT_DATA (f)->paint_buffer)
 		    {
 		      /* Erase background again for safety.  But don't do
 			 that if the frame's 'garbaged' flag is set, since
@@ -5031,7 +5089,6 @@ w32_read_socket (struct terminal *terminal,
 		    }
 		  else
 		    w32_show_back_buffer (f);
-		  leave_crit ();
 		}
 	    }
 	  break;
@@ -5484,6 +5541,7 @@ w32_read_socket (struct terminal *terminal,
 
 	case WM_WINDOWPOSCHANGED:
 	  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+	  ignore_dirty_back_buffer = true;
 
 	  if (f)
 	    {
@@ -5894,11 +5952,9 @@ w32_read_socket (struct terminal *terminal,
          that is the case, flush any changes that have been made to
          the front buffer.  */
 
-      if (f && FRAME_OUTPUT_DATA (f)->paint_buffer_dirty
-	  /* WM_WINDOWPOSCHANGED makes the buffer dirty, but there's
-	     no reason to flush it here, and that also causes
-	     flicker.  */
-	  && !f->garbaged && msg.msg.message != WM_WINDOWPOSCHANGED)
+      if (f && !w32_disable_double_buffering
+	  && FRAME_OUTPUT_DATA (f)->paint_buffer_dirty
+	  && !f->garbaged && ignore_dirty_back_buffer)
 	w32_show_back_buffer (f);
     }
 

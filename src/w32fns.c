@@ -1802,9 +1802,16 @@ w32_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   w32_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
+/* Enable or disable double buffering on F.
+
+   When double buffering is enabled, all drawing happens on a back
+   buffer (a bitmap), which is then displayed as a single operation
+   after redisplay is complete.  This avoids flicker caused by the
+   results of an incomplete redisplay becoming visible.  */
 static void
 w32_set_inhibit_double_buffering (struct frame *f,
 				  Lisp_Object new_value,
+				  /* This parameter is unused.  */
 				  Lisp_Object old_value)
 {
   block_input ();
@@ -4114,7 +4121,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       f = w32_window_to_frame (dpyinfo, hwnd);
 
       enter_crit ();
-      if (f && !FRAME_OUTPUT_DATA (f)->paint_buffer)
+      if (f && (w32_disable_double_buffering
+		|| !FRAME_OUTPUT_DATA (f)->paint_buffer))
 	{
 	  HDC hdc = get_frame_dc (f);
 	  GetUpdateRect (hwnd, &wmsg.rect, FALSE);
@@ -11235,6 +11243,12 @@ A value of zero indicates that the single-byte code page is in use,
 see `w32-ansi-code-page'.  */);
   w32_multibyte_code_page = _getmbcp ();
 #endif
+
+  DEFVAR_BOOL ("w32-disable-double-buffering", w32_disable_double_buffering,
+	       doc: /* Completely disable double buffering.
+This variable is used for debugging, and takes precedence over any
+value of the `inhibit-double-buffering' frame parameter.  */);
+  w32_disable_double_buffering = false;
 
   if (os_subtype == OS_SUBTYPE_NT)
     w32_unicode_gui = 1;

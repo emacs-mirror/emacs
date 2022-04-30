@@ -171,7 +171,8 @@ get_frame_dc (struct frame *f)
   if (output->paint_dc)
     {
       if (output->paint_buffer_width != FRAME_PIXEL_WIDTH (f)
-	  || output->paint_buffer_height != FRAME_PIXEL_HEIGHT (f))
+	  || output->paint_buffer_height != FRAME_PIXEL_HEIGHT (f)
+	  || w32_disable_double_buffering)
 	w32_release_paint_buffer (f);
       else
 	{
@@ -188,7 +189,8 @@ get_frame_dc (struct frame *f)
     {
       select_palette (f, hdc);
 
-      if (FRAME_OUTPUT_DATA (f)->want_paint_buffer)
+      if (!w32_disable_double_buffering
+	  && FRAME_OUTPUT_DATA (f)->want_paint_buffer)
 	{
 	  back_buffer
 	    = CreateCompatibleBitmap (hdc, FRAME_PIXEL_WIDTH (f),
