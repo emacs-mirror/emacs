@@ -14680,6 +14680,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
           if (!FRAME_GARBAGED_P (f))
             {
+#ifdef USE_X_TOOLKIT
+	      if (f->output_data.x->edit_widget)
+		/* The widget's expose proc will be run in this
+		   case.  */
+		goto OTHER;
+#endif
 #ifdef USE_GTK
               /* This seems to be needed for GTK 2.6 and later, see
                  https://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
