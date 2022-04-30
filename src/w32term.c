@@ -5976,7 +5976,7 @@ w32_read_socket (struct terminal *terminal,
 
       if (f && !w32_disable_double_buffering
 	  && FRAME_OUTPUT_DATA (f)->paint_buffer_dirty
-	  && !f->garbaged && ignore_dirty_back_buffer)
+	  && !f->garbaged && !ignore_dirty_back_buffer)
 	w32_show_back_buffer (f);
     }
 
