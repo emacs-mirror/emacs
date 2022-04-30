@@ -16863,6 +16863,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      double delta, scroll_unit;
 		      int scroll_height;
 		      Lisp_Object window;
+		      struct scroll_bar *bar;
+
+		      bar = NULL;
 
 		      /* See the comment on top of
 			 x_init_master_valuators for more details on how
@@ -16880,9 +16883,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      if (!f)
 				{
 #if defined USE_MOTIF || !defined USE_TOOLKIT_SCROLL_BARS
-				  struct scroll_bar *bar
-				    = x_window_to_scroll_bar (xi_event->display,
-							      xev->event, 2);
+				  bar = x_window_to_scroll_bar (dpyinfo->display,
+								xev->event, 2);
 
 				  if (bar)
 				    f = WINDOW_XFRAME (XWINDOW (bar->window));
@@ -16899,11 +16901,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 			  if (FRAME_X_WINDOW (f) != xev->event)
-			    XTranslateCoordinates (dpyinfo->display,
-						   xev->event, FRAME_X_WINDOW (f),
-						   lrint (xev->event_x),
-						   lrint (xev->event_y),
-						   &real_x, &real_y, &dummy);
+			    {
+			      if (!bar)
+				bar = x_window_to_scroll_bar (dpyinfo->display, xev->event, 2);
+
+			      /* If this is a scroll bar, compute the
+				 actual position directly to avoid an
+				 extra roundtrip.  */
+
+			      if (bar)
+				{
+				  real_x = lrint (xev->event_x + bar->left);
+				  real_y = lrint (xev->event_y + bar->top);
+				}
+			      else
+				XTranslateCoordinates (dpyinfo->display,
+						       xev->event, FRAME_X_WINDOW (f),
+						       lrint (xev->event_x),
+						       lrint (xev->event_y),
+						       &real_x, &real_y, &dummy);
+			    }
 			  else
 			    {
 			      real_x = lrint (xev->event_x);
