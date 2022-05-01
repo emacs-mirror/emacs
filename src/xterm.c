@@ -9956,8 +9956,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       block_input ();
 #ifdef USE_GTK
       gtk_main_iteration ();
-#else
-#ifdef USE_X_TOOLKIT
+#elif defined USE_X_TOOLKIT
       XtAppNextEvent (Xt_app_con, &next_event);
 #else
       x_next_event_from_any_display (&next_event);
@@ -9988,7 +9987,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #else
 	  handle_one_xevent (event_display,
 			     &next_event, &finish, &hold_quit);
-#endif
 #endif
 	}
 
