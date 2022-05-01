@@ -1140,6 +1140,7 @@ Moves point to the end of the new text."
   ;; The properties on `newtext' include things like the
   ;; `completions-first-difference' face, which we don't want to
   ;; include upon insertion.
+  (setq newtext (copy-sequence newtext)) ;Don't modify the arg by side-effect.
   (if minibuffer-allow-text-properties
       ;; If we're preserving properties, then just remove the faces
       ;; and other properties added by the completion machinery.
