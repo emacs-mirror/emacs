@@ -587,6 +587,15 @@ available options can be restored by enabling this option.
 * Editing Changes in Emacs 29.1
 
 ---
+** 'scroll-other-window' and 'scroll-other-window-down' now respects remapping.
+These commands (bound to 'C-M-v' and 'C-M-V') used to scroll the other
+windows without looking a customizations in that other window.  These
+functions now check whether they have been rebound in the buffer in
+that other window, and then call the remapped function instead.  In
+addition, these commands now also respect the
+'scroll-error-top-bottom' user option.
+
+---
 ** Indentation of 'cl-flet' and 'cl-labels' has changed.
 These forms now indent like this:
 

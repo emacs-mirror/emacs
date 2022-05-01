@@ -10093,6 +10093,24 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (put 'scroll-down-command 'scroll-command t)
 
+(defun scroll-other-window (&optional lines)
+  "Scroll next window upward LINES lines; or near full screen if no ARG.
+See `scroll-up-command' for details."
+  (interactive "P")
+  (with-selected-window (other-window-for-scrolling)
+    (funcall (or (command-remapping #'scroll-up-command)
+                 #'scroll-up-command)
+             lines)))
+
+(defun scroll-other-window-down (&optional lines)
+  "Scroll next window downward LINES lines; or near full screen if no ARG.
+See `scroll-down-command' for details."
+  (interactive "P")
+  (with-selected-window (other-window-for-scrolling)
+    (funcall (or (command-remapping #'scroll-down-command)
+                 #'scroll-down-command)
+             lines)))
+
 ;;; Scrolling commands which scroll a line instead of full screen.
 
 (defun scroll-up-line (&optional arg)

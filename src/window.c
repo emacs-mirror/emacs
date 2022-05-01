@@ -6334,36 +6334,6 @@ followed by all visible frames on the current terminal.  */)
   return window;
 }
 
-DEFUN ("scroll-other-window", Fscroll_other_window, Sscroll_other_window, 0, 1, "P",
-       doc: /* Scroll next window upward ARG lines; or near full screen if no ARG.
-A near full screen is `next-screen-context-lines' less than a full screen.
-Negative ARG means scroll downward.  If ARG is the atom `-', scroll
-downward by nearly full screen.  When calling from a program, supply
-as argument a number, nil, or `-'.
-
-The next window is usually the one below the current one;
-or the one at the top if the current one is at the bottom.
-It is determined by the function `other-window-for-scrolling',
-which see.
-
-Also see the `other-window-scroll-default' variable.  */)
-  (Lisp_Object arg)
-{
-  specpdl_ref count = SPECPDL_INDEX ();
-  scroll_command (Fother_window_for_scrolling (), arg, 1);
-  return unbind_to (count, Qnil);
-}
-
-DEFUN ("scroll-other-window-down", Fscroll_other_window_down,
-       Sscroll_other_window_down, 0, 1, "P",
-       doc: /* Scroll next window downward ARG lines; or near full screen if no ARG.
-For more details, see the documentation for `scroll-other-window'.  */)
-  (Lisp_Object arg)
-{
-  specpdl_ref count = SPECPDL_INDEX ();
-  scroll_command (Fother_window_for_scrolling (), arg, -1);
-  return unbind_to (count, Qnil);
-}
 
 DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns left.
@@ -8608,8 +8578,6 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Sscroll_left);
   defsubr (&Sscroll_right);
   defsubr (&Sother_window_for_scrolling);
-  defsubr (&Sscroll_other_window);
-  defsubr (&Sscroll_other_window_down);
   defsubr (&Sminibuffer_selected_window);
   defsubr (&Srecenter);
   defsubr (&Swindow_text_width);
