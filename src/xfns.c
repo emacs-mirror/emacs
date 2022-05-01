@@ -8243,29 +8243,6 @@ x_hide_tip (bool delete)
 	      else
 		x_make_frame_invisible (XFRAME (tip_frame));
 
-#ifdef USE_LUCID
-	      /* Bloodcurdling hack alert: The Lucid menu bar widget's
-		 redisplay procedure is not called when a tip frame over
-		 menu items is unmapped.  Redisplay the menu manually...  */
-	      {
-		Widget w;
-		struct frame *f = SELECTED_FRAME ();
-
-		if (FRAME_X_P (f) && FRAME_LIVE_P (f))
-		  {
-		    w = f->output_data.x->menubar_widget;
-
-		    if (!DoesSaveUnders (FRAME_DISPLAY_INFO (f)->screen)
-			&& w != NULL)
-		      {
-			block_input ();
-			xlwmenu_redisplay (w);
-			unblock_input ();
-		      }
-		  }
-	      }
-#endif /* USE_LUCID */
-
 	      was_open = Qt;
 	    }
 	  else

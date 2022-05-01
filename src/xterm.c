@@ -14797,6 +14797,34 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         {
 	  bool visible = FRAME_VISIBLE_P (f);
 
+#ifdef USE_LUCID
+	  /* Bloodcurdling hack alert: The Lucid menu bar widget's
+	     redisplay procedure is not called when a tip frame over
+	     menu items is unmapped.  Redisplay the menu manually...  */
+	  if (FRAME_TOOLTIP_P (f) && popup_activated ())
+	    {
+	      Widget w;
+	      Lisp_Object tail, frame;
+	      struct frame *f1;
+
+	      FOR_EACH_FRAME (tail, frame)
+		{
+		  if (!FRAME_X_P (XFRAME (frame)))
+		    continue;
+
+		  f1 = XFRAME (frame);
+
+		  if (FRAME_LIVE_P (f1))
+		    {
+		      w = FRAME_X_OUTPUT (f1)->menubar_widget;
+
+		      if (w && !DoesSaveUnders (FRAME_DISPLAY_INFO (f1)->screen))
+			xlwmenu_redisplay (w);
+		    }
+		}
+	    }
+#endif /* USE_LUCID */
+
 	  /* While a frame is unmapped, display generation is
              disabled; you don't want to spend time updating a
              display that won't ever be seen.  */
