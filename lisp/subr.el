@@ -6747,29 +6747,31 @@ is inserted before adjusting the number of empty lines."
 If OMIT-NULLS, empty lines will be removed from the results.
 If KEEP-NEWLINES, don't strip trailing newlines from the result
 lines."
-  (let ((lines nil)
-        (start 0))
-    (while (< start (length string))
-      (let ((newline (string-search "\n" string start)))
-        (if newline
-            (progn
-              (when (or (not omit-nulls)
-                        (not (= start newline)))
-                (let ((line (substring string start
-                                       (if keep-newlines
-                                           (1+ newline)
-                                         newline))))
-                  (when (not (and keep-newlines omit-nulls
-                                  (equal line "\n")))
-                    (push line lines))))
-              (setq start (1+ newline)))
-          ;; No newline in the remaining part.
-          (if (zerop start)
-              ;; Avoid a string copy if there are no newlines at all.
-              (push string lines)
-            (push (substring string start) lines))
-          (setq start (length string)))))
-    (nreverse lines)))
+  (if (equal string "")
+      (list "")
+    (let ((lines nil)
+          (start 0))
+      (while (< start (length string))
+        (let ((newline (string-search "\n" string start)))
+          (if newline
+              (progn
+                (when (or (not omit-nulls)
+                          (not (= start newline)))
+                  (let ((line (substring string start
+                                         (if keep-newlines
+                                             (1+ newline)
+                                           newline))))
+                    (when (not (and keep-newlines omit-nulls
+                                    (equal line "\n")))
+                      (push line lines))))
+                (setq start (1+ newline)))
+            ;; No newline in the remaining part.
+            (if (zerop start)
+                ;; Avoid a string copy if there are no newlines at all.
+                (push string lines)
+              (push (substring string start) lines))
+            (setq start (length string)))))
+      (nreverse lines))))
 
 (defun buffer-match-p (condition buffer-or-name &optional arg)
   "Return non-nil if BUFFER-OR-NAME matches CONDITION.
