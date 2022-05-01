@@ -1082,6 +1082,12 @@ struct font_driver const haikufont_driver =
     .list_family = haikufont_list_family
   };
 
+static bool
+haikufont_should_quit_popup (void)
+{
+  return !NILP (Vquit_flag);
+}
+
 DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
        doc: /* Read a font using a native dialog.
 Return a font spec describing the font chosen by the user.
@@ -1103,7 +1109,9 @@ in the font selection dialog.  */)
     error ("Trying to use a menu from within a menu-entry");
 
   popup_activated_p++;
-  rc = be_select_font (process_pending_signals, &family, &style,
+  rc = be_select_font (process_pending_signals,
+		       haikufont_should_quit_popup,
+		       &family, &style,
 		       !NILP (exclude_proportional));
   popup_activated_p--;
 

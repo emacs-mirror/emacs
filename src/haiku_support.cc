@@ -2650,7 +2650,8 @@ public:
 
   void
   WaitForChoice (struct font_selection_dialog_message *msg,
-		 void (*process_pending_signals_function) (void))
+		 void (*process_pending_signals_function) (void),
+		 bool (*should_quit_function) (void))
   {
     int32 reply_type;
     struct object_wait_info infos[2];
@@ -2682,6 +2683,9 @@ public:
 
 	if (infos[0].events & B_EVENT_READ)
 	  process_pending_signals_function ();
+
+	if (should_quit_function ())
+	  goto cancel;
 
 	infos[0].events = B_EVENT_READ;
 	infos[1].events = B_EVENT_READ;
@@ -4664,6 +4668,7 @@ be_get_ui_color (const char *name, uint32_t *color)
 
 bool
 be_select_font (void (*process_pending_signals_function) (void),
+		bool (*should_quit_function) (void),
 		haiku_font_family_or_style *family,
 		haiku_font_family_or_style *style,
 		bool allow_monospace_only)
@@ -4684,7 +4689,8 @@ be_select_font (void (*process_pending_signals_function) (void),
     }
 
   dialog->Show ();
-  dialog->WaitForChoice (&msg, process_pending_signals_function);
+  dialog->WaitForChoice (&msg, process_pending_signals_function,
+			 should_quit_function);
 
   if (!dialog->LockLooper ())
     gui_abort ("Failed to lock font selection dialog looper");
