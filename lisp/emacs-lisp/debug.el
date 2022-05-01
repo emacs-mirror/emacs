@@ -90,6 +90,11 @@ The value used here is passed to `quit-restore-window'."
   :group 'debugger
   :version "24.3")
 
+(defcustom debug-allow-recursive-debug nil
+  "If non-nil, erroring in debug and edebug won't recursively debug."
+  :type 'boolean
+  :version "29.1")
+
 (defvar debugger-step-after-exit nil
   "Non-nil means \"single-step\" after the debugger exits.")
 
@@ -534,7 +539,13 @@ The environment used is the one when entering the activation frame at point."
                       (error 0)))) ;; If on first line.
 	(base (debugger--backtrace-base)))
     (debugger-env-macro
-      (let ((val (backtrace-eval exp nframe base)))
+      (let ((val (if debug-allow-recursive-debug
+                     (backtrace-eval exp nframe base)
+                   (condition-case err
+                       (backtrace-eval exp nframe base)
+                     (error (format "%s: %s"
+                                    (get (car err) 'error-message)
+			            (car (cdr err))))))))
         (prog1
             (debugger--print val t)
           (let ((str (eval-expression-print-format val)))

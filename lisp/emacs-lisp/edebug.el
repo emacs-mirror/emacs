@@ -57,6 +57,7 @@
 (require 'cl-lib)
 (require 'seq)
 (eval-when-compile (require 'pcase))
+(require 'debug)
 
 ;;; Options
 
@@ -3713,7 +3714,9 @@ Print result in minibuffer."
   (interactive (list (read--expression "Eval: ")))
   (princ
    (edebug-outside-excursion
-    (let ((result (edebug-eval expr)))
+    (let ((result (if debug-allow-recursive-debug
+                      (edebug-eval expr)
+                    (edebug-safe-eval expr))))
       (values--store-value result)
       (concat (edebug-safe-prin1-to-string result)
               (eval-expression-print-format result))))))

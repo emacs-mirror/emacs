@@ -700,8 +700,12 @@ on this process.
 @table @kbd
 @item e @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context outside of Edebug
-(@code{edebug-eval-expression}).  That is, Edebug tries to minimize its
-interference with the evaluation.
+(@code{edebug-eval-expression}).  That is, Edebug tries to minimize
+its interference with the evaluation.  By default, this command
+suppresses the debugger during evaluation, so that an error in the
+evaluated expression won't add a new error on top of the existing one.
+Set the @code{debug-allow-recursive-debug} user option to a
+non-@code{nil} value to override this.
 
 @item M-: @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context of Edebug itself
