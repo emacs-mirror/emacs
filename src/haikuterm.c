@@ -144,23 +144,15 @@ get_string_resource (void *ignored, const char *name, const char *class)
 static void
 haiku_update_size_hints (struct frame *f)
 {
-  int base_width, base_height;
-  eassert (FRAME_HAIKU_P (f) && FRAME_HAIKU_WINDOW (f));
-
   if (f->tooltip)
     return;
 
-  base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-  base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
-
   block_input ();
   BWindow_set_size_alignment (FRAME_HAIKU_WINDOW (f),
-			      frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (f),
-			      frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (f));
-  BWindow_set_min_size (FRAME_HAIKU_WINDOW (f), base_width,
-			base_height
-			+ FRAME_TOOL_BAR_HEIGHT (f)
-			+ FRAME_MENU_BAR_HEIGHT (f));
+			      (frame_resize_pixelwise
+			       ? 1 : FRAME_COLUMN_WIDTH (f)),
+			      (frame_resize_pixelwise
+			       ? 1 : FRAME_LINE_HEIGHT (f)));
   unblock_input ();
 }
 

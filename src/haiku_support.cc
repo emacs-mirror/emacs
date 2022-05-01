@@ -2565,7 +2565,7 @@ public:
     : BWindow (BRect (0, 0, 500, 500),
 	       "Select font from list",
 	       B_TITLED_WINDOW_LOOK,
-	       B_NORMAL_WINDOW_FEEL, 0),
+	       B_MODAL_APP_WINDOW_FEEL, 0),
       basic_view (NULL, 0),
       font_family_pane (BRect (0, 0, 10, 10), NULL,
 			B_SINGLE_SELECTION_LIST,
@@ -2584,14 +2584,15 @@ public:
       cancel_button ("Cancel", "Cancel",
 		     new BMessage (B_CANCEL)),
       ok_button ("OK", "OK", new BMessage (B_OK)),
-      size_entry (NULL, NULL, NULL, NULL),
+      size_entry (NULL, "Size:", NULL, NULL),
       allow_monospace_only (monospace_only)
   {
     BStringItem *family_item;
     int i, n_families;
     font_family name;
-    uint32 flags;
+    uint32 flags, c;
     BMessage *selection;
+    BTextView *size_text;
 
     AddChild (&basic_view);
 
@@ -2638,12 +2639,20 @@ public:
 	    font_family_pane.AddItem (family_item);
 	  }
       }
+
+    size_text = size_entry.TextView ();
+
+    for (c = 0; c <= 47; ++c)
+      size_text->DisallowChar (c);
+
+    for (c = 58; c <= 127; ++c)
+      size_text->DisallowChar (c);
   }
 
   void
   FrameResized (float new_width, float new_height)
   {
-    BRect frame = Frame ();
+    BRect frame;
     float ok_height, ok_width;
     float cancel_height, cancel_width;
     float size_width, size_height;
@@ -2657,6 +2666,10 @@ public:
 
     max_height = std::max (std::max (ok_height, cancel_height),
 			   size_height);
+
+    SetSizeLimits (cancel_width + ok_width + size_width + 6,
+		   65535, max_height + 64, 65535);
+    frame = Frame ();
 
     basic_view.ResizeTo (BE_RECT_WIDTH (frame), BE_RECT_HEIGHT (frame));
     split_view.ResizeTo (BE_RECT_WIDTH (frame),
@@ -2673,7 +2686,8 @@ public:
 
     ok_button.ResizeTo (ok_width, ok_height);
     cancel_button.ResizeTo (cancel_width, cancel_height);
-    size_entry.ResizeTo (BE_RECT_WIDTH (frame) / 6,
+    size_entry.ResizeTo (std::max (size_width,
+				   BE_RECT_WIDTH (frame) / 4),
 			 size_height);
   }
 
@@ -4405,17 +4419,6 @@ be_get_display_screens (void)
 }
 
 /* Set the minimum width the user can resize WINDOW to.  */
-void
-BWindow_set_min_size (void *window, int width, int height)
-{
-  BWindow *w = (BWindow *) window;
-
-  if (!w->LockLooper ())
-    gui_abort ("Failed to lock window looper setting min size");
-  w->SetSizeLimits (width, -1, height, -1);
-  w->UnlockLooper ();
-}
-
 /* Synchronize WINDOW's connection to the App Server.  */
 void
 BWindow_sync (void *window)

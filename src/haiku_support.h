@@ -468,7 +468,6 @@ extern void BWindow_change_decoration (void *, int);
 extern void BWindow_set_tooltip_decoration (void *);
 extern void BWindow_set_avoid_focus (void *, int);
 extern void BWindow_zoom (void *);
-extern void BWindow_set_min_size (void *, int, int);
 extern void BWindow_set_size_alignment (void *, int, int);
 extern void BWindow_sync (void *);
 extern void BWindow_send_behind (void *, void *);
