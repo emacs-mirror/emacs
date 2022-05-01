@@ -6762,12 +6762,7 @@ lines."
                   (when (not (and keep-newlines omit-nulls
                                   (equal line "\n")))
                     (push line lines))))
-              (setq start (1+ newline))
-              ;; Include the final newline.
-              (when (and (= start (length string))
-                         (not omit-nulls)
-                         (not keep-newlines))
-                (push "" lines)))
+              (setq start (1+ newline)))
           ;; No newline in the remaining part.
           (if (zerop start)
               ;; Avoid a string copy if there are no newlines at all.

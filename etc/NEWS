@@ -136,6 +136,11 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
+** 'string-lines' handles trailing newlines differently.
+It no longer returns an empty final string if the string ends with a
+newline.
+
+---
 ** 'TAB' and '<backtab>' are now bound in 'button-map'.
 This means that if you're standing on a button, 'TAB' will take you to
 the next button, even if the mode has bound it to something else.
