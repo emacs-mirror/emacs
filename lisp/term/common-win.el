@@ -65,7 +65,6 @@
 	       (cons  4 'ns-drag-file)
 	       (cons  5 'ns-drag-color)
 	       (cons  6 'ns-drag-text)
-	       (cons  7 'ns-change-font)
 	       (cons  8 'ns-open-file-line)
 ;;;	       (cons  9 'ns-insert-working-text)
 ;;;	       (cons 10 'ns-delete-working-text)

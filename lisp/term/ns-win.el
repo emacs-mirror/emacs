@@ -176,7 +176,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
-(define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
 (define-key global-map [ns-new-frame] 'make-frame)
@@ -622,34 +621,6 @@ If FRAME is nil, the change applies to the selected frame."
 
 ;; Needed for font listing functions under both backend and normal
 (setq scalable-fonts-allowed t)
-
-;; Set to use font panel instead
-(declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
-(defalias 'x-select-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-(defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-
-;; nsterm.m
-(defvar ns-input-font)
-(defvar ns-input-fontsize)
-
-(defun ns-respond-to-change-font ()
-  "Set the font chosen in the font-picker panel.
-Respond to changeFont: event, expecting ns-input-font and
-ns-input-fontsize of new font."
-  (interactive)
-  (let ((face 'default))
-    (set-face-attribute face t
-                        :family ns-input-font
-                        :height (* 10 ns-input-fontsize))
-    (set-face-attribute face (selected-frame)
-                        :family ns-input-font
-                        :height (* 10 ns-input-fontsize))
-    (let ((spec (list (list t (face-attr-construct 'default)))))
-      (put face 'customized-face spec)
-      (custom-push-theme 'theme-face face 'user 'set spec)
-      (put face 'face-modified nil))))
 
 ;; Default fontset for macOS.  This is mainly here to show how a fontset
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever

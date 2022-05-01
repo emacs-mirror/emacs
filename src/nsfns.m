@@ -1593,26 +1593,22 @@ Some window managers may refuse to restack windows.  */)
     }
 }
 
-DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
-       0, 1, "",
-       doc: /* Pop up the font panel.  */)
-     (Lisp_Object frame)
+DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
+       doc: /* Read a font using a Nextstep dialog.
+Return a string describing the selected font.
+
+FRAME is the frame on which to pop up the font chooser.  If omitted or
+nil, it defaults to the selected frame. */)
+  (Lisp_Object frame, Lisp_Object ignored)
 {
   struct frame *f = decode_window_system_frame (frame);
-  id fm = [NSFontManager sharedFontManager];
-  struct font *font = f->output_data.ns->font;
-  NSFont *nsfont;
-#ifdef NS_IMPL_GNUSTEP
-  nsfont = ((struct nsfont_info *)font)->nsfont;
-#endif
-#ifdef NS_IMPL_COCOA
-  nsfont = (NSFont *) macfont_get_nsctfont (font);
-#endif
-  [fm setSelectedFont: nsfont isMultiple: NO];
-  [fm orderFrontFontPanel: NSApp];
-  return Qnil;
-}
+  Lisp_Object font = [FRAME_NS_VIEW (f) showFontPanel];
 
+  if (NILP (font))
+    quit ();
+
+  return font;
+}
 
 DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
        0, 1, "",
@@ -3299,7 +3295,7 @@ Default is t.  */);
   defsubr (&Sns_emacs_info_panel);
   defsubr (&Sns_list_services);
   defsubr (&Sns_perform_service);
-  defsubr (&Sns_popup_font_panel);
+  defsubr (&Sx_select_font);
   defsubr (&Sns_popup_color_panel);
 
   defsubr (&Sx_show_tip);

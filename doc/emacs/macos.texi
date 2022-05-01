@@ -273,14 +273,6 @@ application is overriding the default behavior.
 The modifier keys listed above are defined by macOS and are unaffected
 by user changes to the modifiers in Emacs.
 
-@item ns-change-font
-This event occurs when the user selects a font in a Nextstep font
-panel (which can be opened with @kbd{Cmd-t}).  The default behavior is
-to adjust the font of the selected frame
-(@code{ns-respond-to-changefont}).  The name and size of the selected
-font are stored in the variables @code{ns-input-font} and
-@code{ns-input-fontsize}, respectively.
-
 @item ns-power-off
 This event occurs when the user logs out and Emacs is still running, or when
 ``Quit Emacs'' is chosen from the application menu.

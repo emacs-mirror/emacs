@@ -4442,10 +4442,10 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 }
 
 
-int
-ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-	   fd_set *exceptfds, struct timespec *timeout,
-	   sigset_t *sigmask)
+static int
+ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
+	     fd_set *exceptfds, struct timespec *timeout,
+	     sigset_t *sigmask, BOOL run_loop_only)
 /* --------------------------------------------------------------------------
      Replacement for select, checking for events
    -------------------------------------------------------------------------- */
@@ -4461,7 +4461,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   check_native_fs ();
 #endif
 
-  if (hold_event_q.nr > 0)
+  if (hold_event_q.nr > 0 && !run_loop_only)
     {
       /* We already have events pending.  */
       raise (SIGIO);
@@ -4479,12 +4479,12 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   if (NSApp == nil
       || ![NSThread isMainThread]
       || (timeout && timeout->tv_sec == 0 && timeout->tv_nsec == 0))
-    return thread_select(pselect, nfds, readfds, writefds,
-                         exceptfds, timeout, sigmask);
+    return thread_select (pselect, nfds, readfds, writefds,
+			  exceptfds, timeout, sigmask);
   else
     {
       struct timespec t = {0, 0};
-      thread_select(pselect, 0, NULL, NULL, NULL, &t, sigmask);
+      thread_select (pselect, 0, NULL, NULL, NULL, &t, sigmask);
     }
 
   /* FIXME: This draining of outerpool causes a crash when a buffer
@@ -4600,6 +4600,15 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
     }
 
   return result;
+}
+
+int
+ns_select (int nfds, fd_set *readfds, fd_set *writefds,
+	   fd_set *exceptfds, struct timespec *timeout,
+	   sigset_t *sigmask)
+{
+  return ns_select_1 (nfds, readfds, writefds, exceptfds,
+		      timeout, sigmask, NO);
 }
 
 #ifdef HAVE_PTHREAD
@@ -6082,47 +6091,78 @@ not_in_argv (NSString *arg)
 
 
 /* Called on font panel selection.  */
-- (void)changeFont: (id)sender
+- (void) changeFont: (id) sender
 {
-  struct face *face = FACE_FROM_ID (emacsframe, DEFAULT_FACE_ID);
-  struct font *font = face->font;
-  id newFont;
-  CGFloat size;
+  struct font *font = FRAME_OUTPUT_DATA (emacsframe)->font;
   NSFont *nsfont;
-  struct input_event ie;
-
-  NSTRACE ("[EmacsView changeFont:]");
-  EVENT_INIT (ie);
 
 #ifdef NS_IMPL_GNUSTEP
-  nsfont = ((struct nsfont_info *)font)->nsfont;
-#endif
-#ifdef NS_IMPL_COCOA
+  nsfont = ((struct nsfont_info *) font)->nsfont;
+#else
   nsfont = (NSFont *) macfont_get_nsctfont (font);
 #endif
 
-  if ((newFont = [sender convertFont: nsfont]))
-    {
-      ie.kind = NS_NONKEY_EVENT;
-      ie.modifiers = 0;
-      ie.code = KEY_NS_CHANGE_FONT;
-      XSETFRAME (ie.frame_or_window, emacsframe);
+  if (!font_panel_active)
+    return;
 
-      size = [newFont pointSize];
-      ns_input_fontsize = make_fixnum (lrint (size));
-      ns_input_font = [[newFont familyName] lispString];
+  if (font_panel_result)
+    [font_panel_result release];
 
-      kbd_buffer_store_event (&ie);
-    }
+  font_panel_result = (NSFont *) [sender convertFont: nsfont];
+
+  if (font_panel_result)
+    [font_panel_result retain];
+
+  font_panel_active = NO;
+  [NSApp stop: self];
 }
 
+- (Lisp_Object) showFontPanel
+{
+  id fm = [NSFontManager sharedFontManager];
+  struct font *font = FRAME_OUTPUT_DATA (emacsframe)->font;
+  NSFont *nsfont, *result;
+  struct timespec timeout;
+
+#ifdef NS_IMPL_GNUSTEP
+  nsfont = ((struct nsfont_info *) font)->nsfont;
+#else
+  nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
+
+  [fm setSelectedFont: nsfont isMultiple: NO];
+  [fm orderFrontFontPanel: NSApp];
+
+  font_panel_active = YES;
+  timeout = make_timespec (0, 100000000);
+
+  block_input ();
+  while (font_panel_active
+	 && [[fm fontPanel: YES] isVisible])
+    ns_select_1 (0, NULL, NULL, NULL, &timeout, NULL, YES);
+  unblock_input ();
+
+  if (font_panel_result)
+    [font_panel_result autorelease];
+
+  result = font_panel_result;
+  font_panel_result = nil;
+
+  [[fm fontPanel: YES] setIsVisible: NO];
+  font_panel_active = NO;
+
+  /* TODO: return a font spec instead of a string.  */
+  if (result)
+    return [[result familyName] lispString];
+
+  return Qnil;
+}
 
 - (BOOL)acceptsFirstResponder
 {
   NSTRACE ("[EmacsView acceptsFirstResponder]");
   return YES;
 }
-
 
 - (void)resetCursorRects
 {

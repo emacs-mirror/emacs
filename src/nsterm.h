@@ -442,23 +442,25 @@ typedef id instancetype;
 #else
 @interface EmacsView : NSView <NSTextInput>
 #endif
-   {
+{
 #ifdef NS_IMPL_COCOA
-   char *old_title;
-   BOOL maximizing_resize;
+  char *old_title;
+  BOOL maximizing_resize;
 #endif
-   BOOL windowClosing;
-   NSString *workingText;
-   BOOL processingCompose;
-   int fs_state, fs_before_fs, next_maximized;
-   int maximized_width, maximized_height;
-   EmacsWindow *nonfs_window;
-   BOOL fs_is_native;
+  BOOL font_panel_active;
+  NSFont *font_panel_result;
+  BOOL windowClosing;
+  NSString *workingText;
+  BOOL processingCompose;
+  int fs_state, fs_before_fs, next_maximized;
+  int maximized_width, maximized_height;
+  EmacsWindow *nonfs_window;
+  BOOL fs_is_native;
 @public
-   struct frame *emacsframe;
-   int scrollbarsNeedingUpdate;
-   NSRect ns_userRect;
-   }
+  struct frame *emacsframe;
+  int scrollbarsNeedingUpdate;
+  NSRect ns_userRect;
+}
 
 /* AppKit-side interface */
 - (instancetype)menuDown: (id)sender;
@@ -485,6 +487,7 @@ typedef id instancetype;
 #ifdef NS_IMPL_GNUSTEP
 - (void)windowDidMove: (id)sender;
 #endif
+- (Lisp_Object) showFontPanel;
 - (int)fullscreenState;
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
