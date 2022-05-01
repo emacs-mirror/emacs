@@ -9703,6 +9703,45 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   return x_window_to_frame (dpyinfo, wdesc);
 }
 
+static void
+x_next_event_from_any_display (XEvent *event)
+{
+  struct x_display_info *dpyinfo;
+  fd_set fds;
+  int fd, maxfd;
+
+  while (true)
+    {
+      FD_ZERO (&fds);
+      maxfd = -1;
+
+      for (dpyinfo = x_display_list; dpyinfo;
+	   dpyinfo = dpyinfo->next)
+	{
+	  if (XPending (dpyinfo->display))
+	    {
+	      XNextEvent (dpyinfo->display, event);
+	      return;
+	    }
+
+	  fd = XConnectionNumber (dpyinfo->display);
+
+	  if (fd > maxfd)
+	    maxfd = fd;
+
+	  eassert (fd < FD_SETSIZE);
+	  FD_SET (XConnectionNumber (dpyinfo->display), &fds);
+	}
+
+      eassert (maxfd >= 0);
+
+      /* We don't have to check the return of pselect, because if an
+	 error occurs XPending will call the IO error handler, which
+	 then brings us out of this loop.  */
+      pselect (maxfd, &fds, NULL, NULL, NULL, NULL);
+    }
+}
+
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
 static void
@@ -9739,6 +9778,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef HAVE_XKB
   XkbStateRec keyboard_state;
 #endif
+  struct x_display_info *event_display;
 
   if (!FRAME_VISIBLE_P (f))
     {
@@ -9920,31 +9960,38 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef USE_X_TOOLKIT
       XtAppNextEvent (Xt_app_con, &next_event);
 #else
-      XNextEvent (FRAME_X_DISPLAY (f), &next_event);
+      x_next_event_from_any_display (&next_event);
 #endif
 
+      event_display
+	= x_display_info_for_display (next_event.xany.display);
+
+      if (event_display)
+	{
 #ifdef HAVE_X_I18N
 #ifdef HAVE_XINPUT2
-      if (next_event.type != GenericEvent
-	  || !FRAME_DISPLAY_INFO (f)->supports_xi2
-	  || (next_event.xgeneric.extension
-	      != FRAME_DISPLAY_INFO (f)->xi2_opcode))
-	{
+	  if (next_event.type != GenericEvent
+	      || !event_display->supports_xi2
+	      || (next_event.xgeneric.extension
+		  != event_display->xi2_opcode))
+	    {
 #endif
-	  if (!x_filter_event (FRAME_DISPLAY_INFO (f), &next_event))
-	    handle_one_xevent (FRAME_DISPLAY_INFO (f),
-			       &next_event, &finish, &hold_quit);
+	      if (!x_filter_event (event_display, &next_event))
+		handle_one_xevent (event_display,
+				   &next_event, &finish, &hold_quit);
 #ifdef HAVE_XINPUT2
-	}
-      else
-	handle_one_xevent (FRAME_DISPLAY_INFO (f),
-			   &next_event, &finish, &hold_quit);
+	    }
+	  else
+	    handle_one_xevent (event_display,
+			       &next_event, &finish, &hold_quit);
 #endif
 #else
-      handle_one_xevent (FRAME_DISPLAY_INFO (f),
-			 &next_event, &finish, &hold_quit);
+	  handle_one_xevent (event_display,
+			     &next_event, &finish, &hold_quit);
 #endif
 #endif
+	}
+
       /* The unblock_input below might try to read input, but
 	 XTread_socket does nothing inside a drag-and-drop event
 	 loop, so don't let it clear the pending_signals flag.  */
