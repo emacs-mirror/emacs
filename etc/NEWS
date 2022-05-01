@@ -478,6 +478,11 @@ displayed, if any.
 It now only includes local minor modes at the start, and the global
 minor modes are listed after the major mode.
 
++++
+*** The user option 'help-window-select' now affects apropos commands.
+The apropos commands will now select the apropos window if
+'help-window-select' is non-nil.
+
 ** Outline Mode
 
 +++
