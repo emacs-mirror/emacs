@@ -648,6 +648,7 @@ extern int be_get_display_screens (void);
 extern bool be_use_subpixel_antialiasing (void);
 extern const char *be_find_setting (const char *);
 extern haiku_font_family_or_style *be_list_font_families (size_t *);
+extern void be_font_style_to_flags (char *, struct haiku_font_pattern *);
 extern int be_get_ui_color (const char *, uint32_t *);
 
 extern void BMessage_delete (void *);
@@ -658,6 +659,9 @@ extern bool be_drag_message (void *, void *, bool, void (*) (void),
 extern bool be_drag_and_drop_in_progress (void);
 
 extern bool be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event *);
+extern bool be_select_font (void (*process_pending_signals_function) (void),
+			    haiku_font_family_or_style *,
+			    haiku_font_family_or_style *);
 #ifdef __cplusplus
 }
 

@@ -294,6 +294,9 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
   char *token;
   int tok = 0;
 
+  if (!style)
+    return;
+
   pattern->weight = NO_WEIGHT;
   pattern->width = NO_WIDTH;
   pattern->slant = NO_SLANT;
@@ -803,4 +806,12 @@ be_evict_font_cache (void)
 
       font_object_cache[i] = NULL;
     }
+}
+
+void
+be_font_style_to_flags (char *style, struct haiku_font_pattern *pattern)
+{
+  pattern->specified = 0;
+
+  font_style_to_flags (style, pattern);
 }

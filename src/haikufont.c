@@ -1082,6 +1082,53 @@ struct font_driver const haikufont_driver =
     .list_family = haikufont_list_family
   };
 
+DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
+       doc: /* Read a font using a native dialog.
+Return a font spec describing the font chosen by the user.
+
+FRAME is the frame on which to pop up the font chooser.  If omitted or
+nil, it defaults to the selected frame.
+If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
+in the font selection dialog.  */)
+  (Lisp_Object frame, Lisp_Object exclude_proportional)
+{
+  haiku_font_family_or_style family, style;
+  bool rc;
+  struct haiku_font_pattern pattern;
+  Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle;
+
+  decode_window_system_frame (frame);
+
+  if (popup_activated_p)
+    error ("Trying to use a menu from within a menu-entry");
+
+  popup_activated_p++;
+  rc = be_select_font (process_pending_signals, &family, &style);
+  popup_activated_p--;
+
+  if (!rc)
+    quit ();
+
+  be_font_style_to_flags (style, &pattern);
+
+  lfamily = build_string_from_utf8 (family);
+  lweight = (pattern.specified & FSPEC_WEIGHT
+	     ? haikufont_weight_to_lisp (pattern.weight)
+	     : Qunspecified);
+  lslant = (pattern.specified & FSPEC_SLANT
+	    ? haikufont_slant_to_lisp (pattern.slant)
+	    : Qunspecified);
+  lwidth = (pattern.specified & FSPEC_WIDTH
+	    ? haikufont_width_to_lisp (pattern.width)
+	    : Qunspecified);
+  ladstyle = (pattern.specified & FSPEC_STYLE
+	     ? intern (pattern.style) : Qunspecified);
+
+  return CALLN (Ffont_spec, QCfamily, lfamily,
+		QCweight, lweight, QCslant, lslant,
+		QCwidth, lwidth, QCadstyle, ladstyle);
+}
+
 void
 syms_of_haikufont (void)
 {
@@ -1111,6 +1158,8 @@ syms_of_haikufont (void)
 
   font_cache = list (Qnil);
   staticpro (&font_cache);
+
+  defsubr (&Sx_select_font);
 
   be_init_font_data ();
 }
