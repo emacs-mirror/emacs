@@ -1099,9 +1099,9 @@ in the font selection dialog.  */)
   (Lisp_Object frame, Lisp_Object exclude_proportional)
 {
   haiku_font_family_or_style family, style;
-  bool rc;
+  int rc, size;
   struct haiku_font_pattern pattern;
-  Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle;
+  Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle, lsize;
 
   decode_window_system_frame (frame);
 
@@ -1111,7 +1111,7 @@ in the font selection dialog.  */)
   popup_activated_p++;
   rc = be_select_font (process_pending_signals,
 		       haikufont_should_quit_popup,
-		       &family, &style,
+		       &family, &style, &size,
 		       !NILP (exclude_proportional));
   popup_activated_p--;
 
@@ -1132,10 +1132,12 @@ in the font selection dialog.  */)
 	    : Qunspecified);
   ladstyle = (pattern.specified & FSPEC_STYLE
 	     ? intern (pattern.style) : Qnil);
+  lsize = (size >= 0 ? make_fixnum (size) : Qnil);
 
   return CALLN (Ffont_spec, QCfamily, lfamily,
 		QCweight, lweight, QCslant, lslant,
-		QCwidth, lwidth, QCadstyle, ladstyle);
+		QCwidth, lwidth, QCadstyle, ladstyle,
+		QCsize, lsize);
 }
 
 void

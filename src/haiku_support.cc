@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <interface/StringItem.h>
 #include <interface/SplitView.h>
 #include <interface/ScrollView.h>
+#include <interface/TextControl.h>
 
 #include <locale/UnicodeChar.h>
 
@@ -132,13 +133,19 @@ enum
 struct font_selection_dialog_message
 {
   /* Whether or not font selection was cancelled.  */
-  bool cancel;
+  bool_bf cancel : 1;
+
+  /* Whether or not a size was explictly specified.  */
+  bool_bf size_specified : 1;
 
   /* The index of the selected font family.  */
   int family_idx;
 
   /* The index of the selected font style.  */
   int style_idx;
+
+  /* The selected font size.  */
+  int size;
 };
 
 static color_space dpy_color_space = B_NO_COLOR_SPACE;
@@ -2438,6 +2445,7 @@ class EmacsFontSelectionDialog : public BWindow
   BObjectList<BStringItem> all_families;
   BObjectList<BStringItem> all_styles;
   BButton cancel_button, ok_button;
+  BTextControl size_entry;
   port_id comm_port;
   bool allow_monospace_only;
 
@@ -2497,6 +2505,7 @@ class EmacsFontSelectionDialog : public BWindow
   void
   MessageReceived (BMessage *msg)
   {
+    const char *text;
     int idx;
     struct font_selection_dialog_message rq;
 
@@ -2513,6 +2522,12 @@ class EmacsFontSelectionDialog : public BWindow
 	rq.cancel = false;
 	rq.family_idx = font_family_pane.CurrentSelection ();
 	rq.style_idx = font_style_pane.CurrentSelection ();
+
+	text = size_entry.Text ();
+	rq.size = atoi (text);
+
+	if (rq.size > 0)
+	  rq.size_specified = true;
 
 	write_port (comm_port, 0, &rq, sizeof rq);
       }
@@ -2539,6 +2554,7 @@ public:
     font_style_scroller.RemoveSelf ();
     cancel_button.RemoveSelf ();
     ok_button.RemoveSelf ();
+    size_entry.RemoveSelf ();
     basic_view.RemoveSelf ();
 
     if (comm_port >= B_OK)
@@ -2568,6 +2584,7 @@ public:
       cancel_button ("Cancel", "Cancel",
 		     new BMessage (B_CANCEL)),
       ok_button ("OK", "OK", new BMessage (B_OK)),
+      size_entry (NULL, NULL, NULL, NULL),
       allow_monospace_only (monospace_only)
   {
     BStringItem *family_item;
@@ -2581,6 +2598,7 @@ public:
     basic_view.AddChild (&split_view);
     basic_view.AddChild (&cancel_button);
     basic_view.AddChild (&ok_button);
+    basic_view.AddChild (&size_entry);
     split_view.AddChild (&font_family_scroller, 0.7);
     split_view.AddChild (&font_style_scroller, 0.3);
 
@@ -2628,24 +2646,35 @@ public:
     BRect frame = Frame ();
     float ok_height, ok_width;
     float cancel_height, cancel_width;
+    float size_width, size_height;
+    float bone;
     int max_height;
 
     ok_button.GetPreferredSize (&ok_width, &ok_height);
     cancel_button.GetPreferredSize (&cancel_width,
 				    &cancel_height);
+    size_entry.GetPreferredSize (&size_width, &size_height);
 
-    max_height = std::max (ok_height, cancel_height);
+    max_height = std::max (std::max (ok_height, cancel_height),
+			   size_height);
 
     basic_view.ResizeTo (BE_RECT_WIDTH (frame), BE_RECT_HEIGHT (frame));
     split_view.ResizeTo (BE_RECT_WIDTH (frame),
 			 BE_RECT_HEIGHT (frame) - 4 - max_height);
+
+    bone = BE_RECT_HEIGHT (frame) - 2 - max_height / 2;
+
     ok_button.MoveTo ((BE_RECT_WIDTH (frame)
 		       - 4 - cancel_width - ok_width),
-		      BE_RECT_HEIGHT (frame) - 2 - max_height);
+		      bone - ok_height / 2);
     cancel_button.MoveTo (BE_RECT_WIDTH (frame) - 2 - cancel_width,
-			  BE_RECT_HEIGHT (frame) - 2 - max_height);
+			  bone - cancel_height / 2);
+    size_entry.MoveTo (2, bone - size_height / 2);
+
     ok_button.ResizeTo (ok_width, ok_height);
     cancel_button.ResizeTo (cancel_width, cancel_height);
+    size_entry.ResizeTo (BE_RECT_WIDTH (frame) / 6,
+			 size_height);
   }
 
   void
@@ -4671,7 +4700,7 @@ be_select_font (void (*process_pending_signals_function) (void),
 		bool (*should_quit_function) (void),
 		haiku_font_family_or_style *family,
 		haiku_font_family_or_style *style,
-		bool allow_monospace_only)
+		int *size, bool allow_monospace_only)
 {
   EmacsFontSelectionDialog *dialog;
   struct font_selection_dialog_message msg;
@@ -4707,6 +4736,7 @@ be_select_font (void (*process_pending_signals_function) (void),
 
   memcpy (family, family_buffer, sizeof *family);
   memcpy (style, style_buffer, sizeof *style);
+  *size = msg.size_specified ? msg.size : -1;
 
   return true;
 }
