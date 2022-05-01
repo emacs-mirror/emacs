@@ -2519,15 +2519,13 @@ class EmacsFontSelectionDialog : public BWindow
     else if (msg->what == B_OK
 	     && font_style_pane.CurrentSelection () >= 0)
       {
+	text = size_entry.Text ();
+
 	rq.cancel = false;
 	rq.family_idx = font_family_pane.CurrentSelection ();
 	rq.style_idx = font_style_pane.CurrentSelection ();
-
-	text = size_entry.Text ();
 	rq.size = atoi (text);
-
-	if (rq.size > 0)
-	  rq.size_specified = true;
+	rq.size_specified = rq.size > 0 || strlen (text);
 
 	write_port (comm_port, 0, &rq, sizeof rq);
       }
