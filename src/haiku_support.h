@@ -661,7 +661,7 @@ extern bool be_drag_and_drop_in_progress (void);
 extern bool be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event *);
 extern bool be_select_font (void (*process_pending_signals_function) (void),
 			    haiku_font_family_or_style *,
-			    haiku_font_family_or_style *);
+			    haiku_font_family_or_style *, bool);
 #ifdef __cplusplus
 }
 

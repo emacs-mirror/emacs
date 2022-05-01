@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <interface/ListView.h>
 #include <interface/StringItem.h>
 #include <interface/SplitView.h>
+#include <interface/ScrollView.h>
 
 #include <locale/UnicodeChar.h>
 
@@ -2428,13 +2429,17 @@ public:
 
 class EmacsFontSelectionDialog : public BWindow
 {
+  BView basic_view;
   BSplitView split_view;
   BListView font_family_pane;
   BListView font_style_pane;
+  BScrollView font_family_scroller;
+  BScrollView font_style_scroller;
   BObjectList<BStringItem> all_families;
   BObjectList<BStringItem> all_styles;
   BButton cancel_button, ok_button;
   port_id comm_port;
+  bool allow_monospace_only;
 
   void
   UpdateStylesForIndex (int idx)
@@ -2527,22 +2532,42 @@ public:
     font_family_pane.MakeEmpty ();
     font_style_pane.MakeEmpty ();
 
-    split_view.RemoveSelf ();
+    font_family_pane.RemoveSelf ();
+    font_style_pane.RemoveSelf ();
+    font_family_scroller.RemoveSelf ();
+    font_style_scroller.RemoveSelf ();
     cancel_button.RemoveSelf ();
     ok_button.RemoveSelf ();
+    basic_view.RemoveSelf ();
 
     if (comm_port >= B_OK)
       delete_port (comm_port);
   }
 
-  EmacsFontSelectionDialog (void) : BWindow (BRect (0, 0, 300, 300), "",
-					     B_TITLED_WINDOW_LOOK,
-					     B_NORMAL_WINDOW_FEEL, 0),
-				    all_families (20, true),
-				    all_styles (20, true),
-				    cancel_button ("Cancel", "Cancel",
-						   new BMessage (B_CANCEL)),
-				    ok_button ("OK", "OK", new BMessage (B_OK))
+  EmacsFontSelectionDialog (bool monospace_only)
+    : BWindow (BRect (0, 0, 300, 300),
+	       "Select font from list",
+	       B_TITLED_WINDOW_LOOK,
+	       B_NORMAL_WINDOW_FEEL, 0),
+      basic_view (NULL, 0),
+      font_family_pane (BRect (0, 0, 10, 10), NULL,
+			B_SINGLE_SELECTION_LIST,
+			B_FOLLOW_ALL_SIDES),
+      font_style_pane (BRect (0, 0, 10, 10), NULL,
+		       B_SINGLE_SELECTION_LIST,
+		       B_FOLLOW_ALL_SIDES),
+      font_family_scroller (NULL, &font_family_pane,
+			    B_FOLLOW_LEFT | B_FOLLOW_TOP,
+			    0, false, true),
+      font_style_scroller (NULL, &font_style_pane,
+			   B_FOLLOW_LEFT | B_FOLLOW_TOP,
+			   0, false, true),
+      all_families (20, true),
+      all_styles (20, true),
+      cancel_button ("Cancel", "Cancel",
+		     new BMessage (B_CANCEL)),
+      ok_button ("OK", "OK", new BMessage (B_OK)),
+      allow_monospace_only (monospace_only)
   {
     BStringItem *family_item;
     int i, n_families;
@@ -2550,11 +2575,15 @@ public:
     uint32 flags;
     BMessage *selection;
 
-    AddChild (&split_view);
-    AddChild (&cancel_button);
-    AddChild (&ok_button);
-    split_view.AddChild (&font_family_pane);
-    split_view.AddChild (&font_style_pane);
+    AddChild (&basic_view);
+
+    basic_view.AddChild (&split_view);
+    basic_view.AddChild (&cancel_button);
+    basic_view.AddChild (&ok_button);
+    split_view.AddChild (&font_family_scroller);
+    split_view.AddChild (&font_style_scroller);
+
+    basic_view.SetViewUIColor (B_PANEL_BACKGROUND_COLOR);
 
     FrameResized (801, 801);
     UpdateForSelectedStyle ();
@@ -2576,6 +2605,9 @@ public:
 
 	    all_families.AddItem (family_item);
 	    font_family_pane.AddItem (family_item);
+
+	    family_item->SetEnabled (!allow_monospace_only
+				     || flags & B_IS_FIXED);
 	  }
 	else
 	  {
@@ -2601,6 +2633,7 @@ public:
 
     max_height = std::max (ok_height, cancel_height);
 
+    basic_view.ResizeTo (BE_RECT_WIDTH (frame), BE_RECT_HEIGHT (frame));
     split_view.ResizeTo (BE_RECT_WIDTH (frame),
 			 BE_RECT_HEIGHT (frame) - 4 - max_height);
     ok_button.MoveTo ((BE_RECT_WIDTH (frame)
@@ -4629,7 +4662,8 @@ be_get_ui_color (const char *name, uint32_t *color)
 bool
 be_select_font (void (*process_pending_signals_function) (void),
 		haiku_font_family_or_style *family,
-		haiku_font_family_or_style *style)
+		haiku_font_family_or_style *style,
+		bool allow_monospace_only)
 {
   EmacsFontSelectionDialog *dialog;
   struct font_selection_dialog_message msg;
@@ -4637,7 +4671,7 @@ be_select_font (void (*process_pending_signals_function) (void),
   font_family family_buffer;
   font_style style_buffer;
 
-  dialog = new EmacsFontSelectionDialog;
+  dialog = new EmacsFontSelectionDialog (allow_monospace_only);
   dialog->CenterOnScreen ();
 
   if (dialog->InitCheck () < B_OK)

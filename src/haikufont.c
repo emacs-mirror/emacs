@@ -1103,7 +1103,8 @@ in the font selection dialog.  */)
     error ("Trying to use a menu from within a menu-entry");
 
   popup_activated_p++;
-  rc = be_select_font (process_pending_signals, &family, &style);
+  rc = be_select_font (process_pending_signals, &family, &style,
+		       !NILP (exclude_proportional));
   popup_activated_p--;
 
   if (!rc)
@@ -1122,7 +1123,7 @@ in the font selection dialog.  */)
 	    ? haikufont_width_to_lisp (pattern.width)
 	    : Qunspecified);
   ladstyle = (pattern.specified & FSPEC_STYLE
-	     ? intern (pattern.style) : Qunspecified);
+	     ? intern (pattern.style) : Qnil);
 
   return CALLN (Ffont_spec, QCfamily, lfamily,
 		QCweight, lweight, QCslant, lslant,
