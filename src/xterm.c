@@ -9778,7 +9778,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifdef HAVE_XKB
   XkbStateRec keyboard_state;
 #endif
+#ifndef USE_GTK
   struct x_display_info *event_display;
+#endif
 
   if (!FRAME_VISIBLE_P (f))
     {
