@@ -2507,7 +2507,8 @@ class EmacsFontSelectionDialog : public BWindow
       }
     else if (msg->what == FONT_STYLE_SELECTED)
       UpdateForSelectedStyle ();
-    else if (msg->what == B_OK)
+    else if (msg->what == B_OK
+	     && font_style_pane.CurrentSelection () >= 0)
       {
 	rq.cancel = false;
 	rq.family_idx = font_family_pane.CurrentSelection ();
@@ -2545,7 +2546,7 @@ public:
   }
 
   EmacsFontSelectionDialog (bool monospace_only)
-    : BWindow (BRect (0, 0, 300, 300),
+    : BWindow (BRect (0, 0, 500, 500),
 	       "Select font from list",
 	       B_TITLED_WINDOW_LOOK,
 	       B_NORMAL_WINDOW_FEEL, 0),
@@ -2580,8 +2581,8 @@ public:
     basic_view.AddChild (&split_view);
     basic_view.AddChild (&cancel_button);
     basic_view.AddChild (&ok_button);
-    split_view.AddChild (&font_family_scroller);
-    split_view.AddChild (&font_style_scroller);
+    split_view.AddChild (&font_family_scroller, 0.7);
+    split_view.AddChild (&font_style_scroller, 0.3);
 
     basic_view.SetViewUIColor (B_PANEL_BACKGROUND_COLOR);
 
@@ -2592,6 +2593,8 @@ public:
     font_family_pane.SetSelectionMessage (selection);
     selection = new BMessage (FONT_STYLE_SELECTED);
     font_style_pane.SetSelectionMessage (selection);
+    selection = new BMessage (B_OK);
+    font_style_pane.SetInvocationMessage (selection);
 
     comm_port = create_port (1, "font dialog port");
 
