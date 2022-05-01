@@ -1547,7 +1547,8 @@ functions.
 ---
 ** New function 'malloc-trim'.
 This function allows returning unused memory back to the operating
-system, and is mainly meant as a debugging tool.
+system, and is mainly meant as a debugging tool.  It is currently
+available only when Emacs was built with glibc as the C library.
 
 ---
 ** 'x-show-tip' no longer hard-codes a timeout default.
