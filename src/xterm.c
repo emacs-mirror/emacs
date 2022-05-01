@@ -9962,6 +9962,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       x_next_event_from_any_display (&next_event);
 #endif
 
+#ifndef USE_GTK
       event_display
 	= x_display_info_for_display (next_event.xany.display);
 
@@ -9989,6 +9990,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			     &next_event, &finish, &hold_quit);
 #endif
 	}
+#endif
 
       /* The unblock_input below might try to read input, but
 	 XTread_socket does nothing inside a drag-and-drop event
