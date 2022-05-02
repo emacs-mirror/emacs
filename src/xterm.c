@@ -18591,6 +18591,48 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  if (hev->info[i].flags & XIDeviceEnabled)
 		    {
+		      /* Handle all disabled devices now, to prevent
+			 things happening out-of-order later.  */
+		      if (n_disabled)
+			{
+			  ndevices = 0;
+			  devices = xmalloc (sizeof *devices * dpyinfo->num_devices);
+
+			  for (i = 0; i < dpyinfo->num_devices; ++i)
+			    {
+			      for (j = 0; j < n_disabled; ++j)
+				{
+				  if (disabled[j] == dpyinfo->devices[i].device_id)
+				    {
+#ifdef HAVE_XINPUT2_1
+				      xfree (dpyinfo->devices[i].valuators);
+#endif
+#ifdef HAVE_XINPUT2_2
+				      tem = dpyinfo->devices[i].touchpoints;
+				      while (tem)
+					{
+					  last = tem;
+					  tem = tem->next;
+					  xfree (last);
+					}
+#endif
+				      goto continue_detachment;
+				    }
+				}
+
+			      devices[ndevices++] = dpyinfo->devices[i];
+
+			    continue_detachment:
+			      continue;
+			    }
+
+			  xfree (dpyinfo->devices);
+			  dpyinfo->devices = devices;
+			  dpyinfo->num_devices = ndevices;
+
+			  n_disabled = 0;
+			}
+
 		      x_catch_errors (dpyinfo->display);
 		      info = XIQueryDevice (dpyinfo->display, hev->info[i].deviceid,
 					    &ndevices);
@@ -18654,13 +18696,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				  xfree (last);
 				}
 #endif
-			      goto continue_detachment;
+			      goto break_detachment;
 			    }
 			}
 
 		      devices[ndevices++] = dpyinfo->devices[i];
 
-		    continue_detachment:
+		    break_detachment:
 		      continue;
 		    }
 
