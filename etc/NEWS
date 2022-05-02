@@ -711,8 +711,9 @@ script that was used in ancient South Asia.  A new input method,
 
 +++
 *** New command 'scratch-buffer'.
-This switches to the *scratch* buffer.  If it doesn't exist, create it
-first.
+This command switches to the *scratch* buffer.  If *scratch* doesn't
+exist, the command creates it first.  You can use this command if you
+inadvertently delete the *scratch* buffer.
 
 ** Debugging
 
