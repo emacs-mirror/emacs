@@ -661,7 +661,9 @@ extern bool be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event 
 extern bool be_select_font (void (*) (void), bool (*) (void),
 			    haiku_font_family_or_style *,
 			    haiku_font_family_or_style *,
-			    int *, bool);
+			    int *, bool, int, int);
+
+extern int be_find_font_indices (struct haiku_font_pattern *, int *, int *);
 #ifdef __cplusplus
 }
 

@@ -815,3 +815,38 @@ be_font_style_to_flags (char *style, struct haiku_font_pattern *pattern)
 
   font_style_to_flags (style, pattern);
 }
+
+int
+be_find_font_indices (struct haiku_font_pattern *pattern,
+		      int *family_index, int *style_index)
+{
+  int32 i, j, n_families, n_styles;
+  font_family family;
+  font_style style;
+  uint32 flags;
+
+  n_families = count_font_families ();
+
+  for (i = 0; i < n_families; ++i)
+    {
+      if (get_font_family (i, &family, &flags) == B_OK)
+	{
+	  n_styles = count_font_styles (family);
+
+	  for (j = 0; j < n_styles; ++j)
+	    {
+	      if (get_font_style (family, j, &style, &flags) == B_OK
+		  && font_family_style_matches_p (family, style,
+						  flags, pattern))
+		{
+		  *family_index = i;
+		  *style_index = j;
+
+		  return 0;
+		}
+	    }
+	}
+    }
+
+  return 1;
+}

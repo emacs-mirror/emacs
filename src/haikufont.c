@@ -253,7 +253,7 @@ haikufont_lisp_to_weight (Lisp_Object weight)
     return HAIKU_LIGHT;
   if (EQ (weight, Qsemi_light))
     return HAIKU_SEMI_LIGHT;
-  if (EQ (weight, Qnormal))
+  if (EQ (weight, Qnormal) || EQ (weight, Qregular))
     return HAIKU_REGULAR;
   if (EQ (weight, Qsemi_bold))
     return HAIKU_SEMI_BOLD;
@@ -274,7 +274,7 @@ haikufont_lisp_to_weight (Lisp_Object weight)
   if (EQ (weight, Qmedium))
     return HAIKU_MEDIUM;
 
-  emacs_abort ();
+  return HAIKU_REGULAR;
 }
 
 static Lisp_Object
@@ -297,15 +297,16 @@ haikufont_slant_to_lisp (enum haiku_font_slant slant)
 static enum haiku_font_slant
 haikufont_lisp_to_slant (Lisp_Object slant)
 {
-  if (EQ (slant, Qitalic) ||
-      EQ (slant, Qreverse_italic))
+  if (EQ (slant, Qitalic)
+      || EQ (slant, Qreverse_italic))
     return SLANT_ITALIC;
-  if (EQ (slant, Qoblique) ||
-      EQ (slant, Qreverse_oblique))
+  if (EQ (slant, Qoblique)
+      || EQ (slant, Qreverse_oblique))
     return SLANT_OBLIQUE;
-  if (EQ (slant, Qnormal))
+  if (EQ (slant, Qnormal) || EQ (slant, Qregular))
     return SLANT_REGULAR;
-  emacs_abort ();
+
+  return SLANT_REGULAR;
 }
 
 static Lisp_Object
@@ -349,7 +350,7 @@ haikufont_lisp_to_width (Lisp_Object lisp)
     return CONDENSED;
   if (EQ (lisp, Qsemi_condensed))
     return SEMI_CONDENSED;
-  if (EQ (lisp, Qnormal))
+  if (EQ (lisp, Qnormal) || EQ (lisp, Qregular))
     return NORMAL_WIDTH;
   if (EQ (lisp, Qexpanded))
     return EXPANDED;
@@ -357,7 +358,8 @@ haikufont_lisp_to_width (Lisp_Object lisp)
     return EXTRA_EXPANDED;
   if (EQ (lisp, Qultra_expanded))
     return ULTRA_EXPANDED;
-  emacs_abort ();
+
+  return NORMAL_WIDTH;
 }
 
 static int
@@ -424,6 +426,56 @@ haikufont_pattern_to_entity (struct haiku_font_pattern *ptn)
 }
 
 static void
+haikufont_pattern_from_object (struct haiku_font_pattern *pattern,
+			       Lisp_Object font_object)
+{
+  Lisp_Object val;
+
+  pattern->specified = 0;
+
+  val = AREF (font_object, FONT_FAMILY_INDEX);
+  if (!NILP (val))
+    {
+      pattern->specified |= FSPEC_FAMILY;
+      strncpy ((char *) &pattern->family,
+	       SSDATA (SYMBOL_NAME (val)),
+	       sizeof pattern->family - 1);
+      pattern->family[sizeof pattern->family - 1] = '\0';
+    }
+
+  val = AREF (font_object, FONT_ADSTYLE_INDEX);
+  if (!NILP (val))
+    {
+      pattern->specified |= FSPEC_STYLE;
+      strncpy ((char *) &pattern->style,
+	       SSDATA (SYMBOL_NAME (val)),
+	       sizeof pattern->style - 1);
+      pattern->style[sizeof pattern->style - 1] = '\0';
+    }
+
+  val = FONT_WEIGHT_FOR_FACE (font_object);
+  if (!NILP (val) && !EQ (val, Qunspecified))
+    {
+      pattern->specified |= FSPEC_WEIGHT;
+      pattern->weight = haikufont_lisp_to_weight (val);
+    }
+
+  val = FONT_SLANT_FOR_FACE (font_object);
+  if (!NILP (val) && !EQ (val, Qunspecified))
+    {
+      pattern->specified |= FSPEC_SLANT;
+      pattern->slant = haikufont_lisp_to_slant (font_object);
+    }
+
+  val = FONT_WIDTH_FOR_FACE (font_object);
+  if (!NILP (val) && !EQ (val, Qunspecified))
+    {
+      pattern->specified |= FSPEC_WIDTH;
+      pattern->width = haikufont_lisp_to_width (font_object);
+    }
+}
+
+static void
 haikufont_spec_or_entity_to_pattern (Lisp_Object ent, int list_p,
 				     struct haiku_font_pattern *ptn)
 {
@@ -469,8 +521,9 @@ haikufont_spec_or_entity_to_pattern (Lisp_Object ent, int list_p,
     }
 
   tem = AREF (ent, FONT_FAMILY_INDEX);
-  if (!NILP (tem) && !EQ (tem, Qunspecified) &&
-      (list_p && !haikufont_maybe_handle_special_family (tem, ptn)))
+  if (!NILP (tem) && !EQ (tem, Qunspecified)
+      && (list_p
+	  && !haikufont_maybe_handle_special_family (tem, ptn)))
     {
       ptn->specified |= FSPEC_FAMILY;
       strncpy ((char *) &ptn->family,
@@ -1098,22 +1151,41 @@ If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog.  */)
   (Lisp_Object frame, Lisp_Object exclude_proportional)
 {
+  struct frame *f;
+  struct font *font;
+  Lisp_Object font_object;
   haiku_font_family_or_style family, style;
-  int rc, size;
+  int rc, size, initial_family, initial_style;
   struct haiku_font_pattern pattern;
   Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle, lsize;
 
-  decode_window_system_frame (frame);
+  f = decode_window_system_frame (frame);
 
   if (popup_activated_p)
     error ("Trying to use a menu from within a menu-entry");
+
+  initial_style = -1;
+  initial_family = -1;
+
+  font = FRAME_FONT (f);
+
+  if (font)
+    {
+      XSETFONT (font_object, font);
+
+      haikufont_pattern_from_object (&pattern, font_object);
+      be_find_font_indices (&pattern, &initial_family,
+			    &initial_style);
+      haikufont_done_with_query_pattern (&pattern);
+    }
 
   popup_activated_p++;
   unrequest_sigio ();
   rc = be_select_font (process_pending_signals,
 		       haikufont_should_quit_popup,
 		       &family, &style, &size,
-		       !NILP (exclude_proportional));
+		       !NILP (exclude_proportional),
+		       initial_family, initial_style);
   request_sigio ();
   popup_activated_p--;
 
@@ -1161,6 +1233,7 @@ syms_of_haikufont (void)
   DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qextra_expanded, "extra-expanded");
   DEFSYM (Qultra_expanded, "ultra-expanded");
+  DEFSYM (Qregular, "regular");
   DEFSYM (Qzh, "zh");
   DEFSYM (Qko, "ko");
   DEFSYM (Qjp, "jp");

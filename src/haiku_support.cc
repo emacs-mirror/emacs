@@ -2448,6 +2448,7 @@ class EmacsFontSelectionDialog : public BWindow
   BTextControl size_entry;
   port_id comm_port;
   bool allow_monospace_only;
+  int pending_selection_idx;
 
   void
   UpdateStylesForIndex (int idx)
@@ -2479,6 +2480,13 @@ class EmacsFontSelectionDialog : public BWindow
 	  }
       }
 
+    if (pending_selection_idx >= 0)
+      {
+	font_style_pane.Select (pending_selection_idx);
+	font_style_pane.ScrollToSelection ();
+      }
+
+    pending_selection_idx = -1;
     UpdateForSelectedStyle ();
   }
 
@@ -2559,7 +2567,9 @@ public:
       delete_port (comm_port);
   }
 
-  EmacsFontSelectionDialog (bool monospace_only)
+  EmacsFontSelectionDialog (bool monospace_only,
+			    int initial_family_idx,
+			    int initial_style_idx)
     : BWindow (BRect (0, 0, 500, 500),
 	       "Select font from list",
 	       B_TITLED_WINDOW_LOOK,
@@ -2583,7 +2593,8 @@ public:
 		     new BMessage (B_CANCEL)),
       ok_button ("OK", "OK", new BMessage (B_OK)),
       size_entry (NULL, "Size:", NULL, NULL),
-      allow_monospace_only (monospace_only)
+      allow_monospace_only (monospace_only),
+      pending_selection_idx (initial_style_idx)
   {
     BStringItem *family_item;
     int i, n_families;
@@ -2636,6 +2647,12 @@ public:
 	    all_families.AddItem (family_item);
 	    font_family_pane.AddItem (family_item);
 	  }
+      }
+
+    if (initial_family_idx >= 0)
+      {
+	font_family_pane.Select (initial_family_idx);
+	font_family_pane.ScrollToSelection ();
       }
 
     size_text = size_entry.TextView ();
@@ -4701,7 +4718,8 @@ be_select_font (void (*process_pending_signals_function) (void),
 		bool (*should_quit_function) (void),
 		haiku_font_family_or_style *family,
 		haiku_font_family_or_style *style,
-		int *size, bool allow_monospace_only)
+		int *size, bool allow_monospace_only,
+		int initial_family, int initial_style)
 {
   EmacsFontSelectionDialog *dialog;
   struct font_selection_dialog_message msg;
@@ -4709,7 +4727,8 @@ be_select_font (void (*process_pending_signals_function) (void),
   font_family family_buffer;
   font_style style_buffer;
 
-  dialog = new EmacsFontSelectionDialog (allow_monospace_only);
+  dialog = new EmacsFontSelectionDialog (allow_monospace_only,
+					 initial_family, initial_style);
   dialog->CenterOnScreen ();
 
   if (dialog->InitCheck () < B_OK)
