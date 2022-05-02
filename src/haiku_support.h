@@ -290,7 +290,6 @@ enum haiku_font_weight
   {
     NO_WEIGHT	      = -1,
     HAIKU_THIN	      = 0,
-    HAIKU_ULTRALIGHT  = 20,
     HAIKU_EXTRALIGHT  = 40,
     HAIKU_LIGHT	      = 50,
     HAIKU_SEMI_LIGHT  = 75,
@@ -298,7 +297,6 @@ enum haiku_font_weight
     HAIKU_SEMI_BOLD   = 180,
     HAIKU_BOLD	      = 200,
     HAIKU_EXTRA_BOLD  = 205,
-    HAIKU_ULTRA_BOLD  = 210,
     HAIKU_BOOK	      = 400,
     HAIKU_HEAVY	      = 800,
     HAIKU_ULTRA_HEAVY = 900,

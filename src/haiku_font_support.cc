@@ -305,9 +305,8 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
     {
       if (token && !strcmp (token, "Thin"))
 	pattern->weight = HAIKU_THIN;
-      else if (token && !strcmp (token, "UltraLight"))
-	pattern->weight = HAIKU_ULTRALIGHT;
-      else if (token && !strcmp (token, "ExtraLight"))
+      else if (token && (!strcmp (token, "UltraLight")
+			 || !strcmp (token, "ExtraLight")))
 	pattern->weight = HAIKU_EXTRALIGHT;
       else if (token && !strcmp (token, "Light"))
 	pattern->weight = HAIKU_LIGHT;
@@ -330,12 +329,11 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
 	pattern->weight = HAIKU_SEMI_BOLD;
       else if (token && !strcmp (token, "Bold"))
 	pattern->weight = HAIKU_BOLD;
-      else if (token && (!strcmp (token, "ExtraBold") ||
+      else if (token && (!strcmp (token, "ExtraBold")
 			 /* This has actually been seen in the wild.  */
-			 !strcmp (token, "Extrabold")))
+			 || !strcmp (token, "Extrabold")
+			 || !strcmp (token, "UltraBold")))
 	pattern->weight = HAIKU_EXTRA_BOLD;
-      else if (token && !strcmp (token, "UltraBold"))
-	pattern->weight = HAIKU_ULTRA_BOLD;
       else if (token && !strcmp (token, "Book"))
 	pattern->weight = HAIKU_BOOK;
       else if (token && !strcmp (token, "Heavy"))

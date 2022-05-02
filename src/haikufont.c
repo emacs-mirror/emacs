@@ -208,8 +208,6 @@ haikufont_weight_to_lisp (int weight)
     {
     case HAIKU_THIN:
       return Qthin;
-    case HAIKU_ULTRALIGHT:
-      return Qultra_light;
     case HAIKU_EXTRALIGHT:
       return Qextra_light;
     case HAIKU_LIGHT:
@@ -224,8 +222,6 @@ haikufont_weight_to_lisp (int weight)
       return Qbold;
     case HAIKU_EXTRA_BOLD:
       return Qextra_bold;
-    case HAIKU_ULTRA_BOLD:
-      return Qultra_bold;
     case HAIKU_BOOK:
       return Qbook;
     case HAIKU_HEAVY:
@@ -246,7 +242,7 @@ haikufont_lisp_to_weight (Lisp_Object weight)
   if (EQ (weight, Qthin))
     return HAIKU_THIN;
   if (EQ (weight, Qultra_light))
-    return HAIKU_ULTRALIGHT;
+    return HAIKU_EXTRALIGHT;
   if (EQ (weight, Qextra_light))
     return HAIKU_EXTRALIGHT;
   if (EQ (weight, Qlight))
@@ -262,7 +258,7 @@ haikufont_lisp_to_weight (Lisp_Object weight)
   if (EQ (weight, Qextra_bold))
     return HAIKU_EXTRA_BOLD;
   if (EQ (weight, Qultra_bold))
-    return HAIKU_ULTRA_BOLD;
+    return HAIKU_EXTRA_BOLD;
   if (EQ (weight, Qbook))
     return HAIKU_BOOK;
   if (EQ (weight, Qheavy))
