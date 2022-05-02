@@ -1571,8 +1571,9 @@ this is a reply."
 	(when gcc
 	  (message-remove-header "gcc")
 	  (widen)
-	  (setq groups (message-unquote-tokens
-			(message-tokenize-header gcc ",\n\t")))
+	  (setq groups (mapcar #'string-trim
+                               (message-unquote-tokens
+			        (message-tokenize-header gcc))))
 	  ;; Copy the article over to some group(s).
 	  (while (setq group (pop groups))
 	    (setq method (gnus-inews-group-method group))
