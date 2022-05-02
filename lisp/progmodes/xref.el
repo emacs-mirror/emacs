@@ -966,7 +966,7 @@ beginning of the line."
 (defvar xref--button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] #'xref-select-and-show-xref)
+    (define-key map [mouse-2] #'xref-goto-xref)
     map))
 
 (defun xref-select-and-show-xref (event)
