@@ -713,6 +713,7 @@ be passed to the program.
 
 @node Inline Query Expansion
 @section Inline Query Expansion
+@subsection Inline Query Expansion Using a Key Binding
 
 Inline query expansion is a powerful method to get completion from
 your directory servers.  The most common usage is for expanding names
@@ -885,6 +886,29 @@ An error is signaled.  The expansion aborts.
 Default is @code{select}
 @end defvar
 
+@subsection Inline Query Expansion Using completion-at-point
+
+In addition to providing a dedicated EUDC function for binding to a
+key shortcut (@pxref{Inline Query Expansion}), EUDC also provides a
+function to contribute search results to the Emacs in-buffer
+completion system available via the function
+@code{completion-at-point} (@pxref{Identifier
+Inquiries,,,maintaining}) in @code{message-mode} buffers
+(@pxref{Top,Message,, message, Message}).  When using this mechanism,
+queries are made in the multi-server query mode of operation
+(@pxref{Multi-server Queries}).
+
+When a buffer in @code{message-mode} is created, EUDC's inline
+expansion function is automatically added to the variable
+@code{completion-at-point-functions}.  As a result, whenever
+@code{completion-at-point} is invoked in a @code{message-mode} buffer,
+EUDC will be queried for email addresses matching the words before
+point.  Since this will be useful only when editing specific message
+header fields that require specifying one or more email addresses, an
+additional check is performed whether point is actually in one of
+those header fields.  Thus, any matching email addresses will be
+offered for completion in suitable message header fields only, and not
+in other places, like for example the body of the message.
 
 
 @node The Server Hotlist

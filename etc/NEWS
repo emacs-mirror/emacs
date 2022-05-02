@@ -1073,6 +1073,12 @@ is called, and the returned values are used to populate the phrase and
 comment parts (see RFC 5322 for definitions).  In both cases, the
 phrase part will be automatically quoted if necessary.
 
++++
+*** New function 'eudc-capf-complete' with message-mode integration
+EUDC can now contribute email addresses to 'completion-at-point' by
+adding the new function 'eudc-capf-complete' to
+'completion-at-point-functions' in message-mode.
+
 ** eww/shr
 
 +++
