@@ -366,7 +366,13 @@ inside double-quotes"
 (ert-deftest esh-var-test/interp-convert-cmd-multiline ()
   "Interpolate multi-line command result"
   (should (equal (eshell-test-command-result "echo ${echo \"foo\nbar\"}")
-                 '("foo" "bar"))))
+                 '("foo" "bar")))
+  ;; Numeric output should be converted to numbers...
+  (should (equal (eshell-test-command-result "echo ${echo \"01\n02\n03\"}")
+                 '(1 2 3)))
+  ;; ... but only if every line is numeric.
+  (should (equal (eshell-test-command-result "echo ${echo \"01\n02\nhi\"}")
+                 '("01" "02" "hi"))))
 
 (ert-deftest esh-var-test/interp-convert-cmd-number ()
   "Interpolate numeric command result"

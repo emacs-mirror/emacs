@@ -1396,6 +1396,13 @@ If an Eshell expansion like '$FOO' is surrounded by double quotes, the
 result will always be a single string, no matter the type that would
 otherwise be returned.
 
++++
+*** Eshell subcommands with multiline numeric output return lists of numbers.
+If every line of the output of an Eshell subcommand like '${COMMAND}'
+is numeric, the result will be a list of numbers (or a single number
+if only one line of output).  Previously, this only converted numbers
+when there was a single line of output.
+
 ---
 *** Built-in Eshell commands now follow POSIX/GNU argument syntax conventions.
 Built-in commands in Eshell now accept command-line options with

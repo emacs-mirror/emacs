@@ -198,6 +198,23 @@ doubling it up."
       (when (= depth 0)
         (if reverse-p (point) (1- (point)))))))
 
+(defun eshell-convertible-to-number-p (string)
+  "Return non-nil if STRING can be converted to a number.
+If `eshell-convert-numeric-aguments', always return nil."
+  (and eshell-convert-numeric-arguments
+       (string-match
+        (concat "\\`\\s-*" eshell-number-regexp "\\s-*\\'")
+        string)))
+
+(defun eshell-convert-to-number (string)
+  "Try to convert STRING to a number.
+If STRING doesn't look like a number (or
+`eshell-convert-numeric-aguments' is nil), just return STRING
+unchanged."
+  (if (eshell-convertible-to-number-p string)
+      (string-to-number string)
+    string))
+
 (defun eshell-convert (string &optional to-string)
   "Convert STRING into a more-native Lisp object.
 If TO-STRING is non-nil, always return a single string with
@@ -207,8 +224,8 @@ trailing newlines removed.  Otherwise, this behaves as follows:
 
 * Split multiline strings by line.
 
-* If `eshell-convert-numeric-aguments' is non-nil, convert
-  numeric strings to numbers."
+* If `eshell-convert-numeric-aguments' is non-nil and every line
+  of output looks like a number, convert them to numbers."
   (cond
    ((not (stringp string))
     (if to-string
@@ -220,15 +237,12 @@ trailing newlines removed.  Otherwise, this behaves as follows:
 	    string
 	  (when (eq (aref string (1- len)) ?\n)
 	    (setq string (substring string 0 (1- len))))
-          (cond
-           ((string-search "\n" string)
-            (split-string string "\n"))
-           ((and eshell-convert-numeric-arguments
-	         (string-match
-                  (concat "\\`\\s-*" eshell-number-regexp "\\s-*\\'")
-                  string))
-            (string-to-number string))
-           (t string)))))))
+          (if (string-search "\n" string)
+              (let ((lines (split-string string "\n")))
+                (if (seq-every-p #'eshell-convertible-to-number-p lines)
+                    (mapcar #'string-to-number lines)
+                  lines))
+            (eshell-convert-to-number string)))))))
 
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.

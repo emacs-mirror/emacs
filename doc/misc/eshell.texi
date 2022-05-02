@@ -1061,9 +1061,11 @@ when on its own, but the @code{$} allows it to be used inside double
 quotes or as part of a string.
 
 Normally, the output is split line-by-line, returning a list (or the
-first element if there's only one line of output).  However, when this
-expansion is surrounded by double quotes, it returns the output as a
-single string instead.
+first element if there's only one line of output); if
+@code{eshell-convert-numeric-arguments} is non-@code{nil} and every
+line of output looks like a number, convert each line to a number.
+However, when this expansion is surrounded by double quotes, it
+returns the output as a single string instead.
 
 @item $<@var{command}>
 As with @samp{$@{@var{command}@}}, evaluates the Eshell command invocation
