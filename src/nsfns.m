@@ -1595,7 +1595,7 @@ Some window managers may refuse to restack windows.  */)
 
 DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
        doc: /* Read a font using a Nextstep dialog.
-Return a string describing the selected font.
+Return a font specification describing the selected font.
 
 FRAME is the frame on which to pop up the font chooser.  If omitted or
 nil, it defaults to the selected frame. */)

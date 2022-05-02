@@ -6055,6 +6055,63 @@ not_in_argv (NSString *arg)
 
 @end  /* EmacsApp */
 
+static Lisp_Object
+ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
+{
+  NSFontSymbolicTraits traits = [desc symbolicTraits];
+  NSDictionary *dict = [desc objectForKey: NSFontTraitsAttribute];
+  NSString *family = [font familyName];
+  Lisp_Object lwidth, lslant, lweight, lheight;
+  NSNumber *tem;
+
+  lwidth = Qnil;
+  lslant = Qnil;
+  lweight = Qnil;
+  lheight = Qnil;
+
+  if (traits & NSFontBoldTrait)
+    lweight = Qbold;
+
+  if (traits & NSFontItalicTrait)
+    lslant = Qitalic;
+
+  if (traits & NSFontCondensedTrait)
+    lwidth = Qcondensed;
+  else if (traits & NSFontExpandedTrait)
+    lwidth = Qexpanded;
+
+  if (dict != nil)
+    {
+      tem = [dict objectForKey: NSFontSlantTrait];
+
+      if (tem != nil)
+	lslant = ([tem floatValue] > 0
+		  ? Qitalic : ([tem floatValue] < 0
+			       ? intern ("reverse-italic")
+			       : Qnormal));
+
+      tem = [dict objectForKey: NSFontWeightTrait];
+
+      if (tem != nil)
+	lweight = ([tem floatValue] > 0
+		   ? Qbold : ([tem floatValue] < -0.4f
+			      ? Qlight : Qnormal));
+
+      tem = [dict objectForKey: NSFontWidthTrait];
+
+      if (tem != nil)
+	lwidth = ([tem floatValue] > 0
+		  ? Qexpanded : ([tem floatValue] < 0
+				 ? Qnormal : Qcondensed));
+    }
+
+  lheight = make_float ([font pointSize]);
+
+  return CALLN (Ffont_spec,
+		QCwidth, lwidth, QCslant, lslant,
+		QCweight, lweight, QCsize, lheight,
+		QCfamily, [family lispString]);
+}
 
 /* ==========================================================================
 
@@ -6151,9 +6208,9 @@ not_in_argv (NSString *arg)
   [[fm fontPanel: YES] setIsVisible: NO];
   font_panel_active = NO;
 
-  /* TODO: return a font spec instead of a string.  */
   if (result)
-    return [[result familyName] lispString];
+    return ns_font_desc_to_font_spec ([result fontDescriptor],
+				      result);
 
   return Qnil;
 }
