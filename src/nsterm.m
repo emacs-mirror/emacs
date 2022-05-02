@@ -6087,7 +6087,7 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
       if (tem != nil)
 	lslant = ([tem floatValue] > 0
 		  ? Qitalic : ([tem floatValue] < 0
-			       ? intern ("reverse-italic")
+			       ? Qreverse_italic
 			       : Qnormal));
 
       tem = [dict objectForKey: NSFontWeightTrait];
@@ -10260,6 +10260,9 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   DEFSYM (QCordinary, ":ordinary");
   DEFSYM (QCfunction, ":function");
   DEFSYM (QCmouse, ":mouse");
+  DEFSYM (Qcondensed, "condensed");
+  DEFSYM (Qreverse_italic, "reverse-italic");
+  DEFSYM (Qexpanded, "reverse-italic");
 
 #ifdef NS_IMPL_COCOA
   Fprovide (Qcocoa, Qnil);
