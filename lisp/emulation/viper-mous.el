@@ -62,8 +62,8 @@ or a triple-click."
 ;; time interval in millisecond within which successive clicks are
 ;; considered related
 (defcustom viper-multiclick-timeout (if (viper-window-display-p)
-                                        double-click-time
-				    500)
+                                        (mouse-double-click-time)
+				      500)
   "Time interval in milliseconds for mouse clicks to be considered related."
   :type 'integer)
 

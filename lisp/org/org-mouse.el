@@ -208,7 +208,7 @@ this function is called.  Otherwise, the current major mode menu is used."
   (interactive "@e \nP")
   (if (and (= (event-click-count event) 1)
 	   (or (not mark-active)
-	       (sit-for (/ double-click-time 1000.0))))
+               (sit-for (/ (mouse-double-click-time) 1000.0))))
       (progn
 	(select-window (posn-window (event-start event)))
 	(when (not (org-mouse-mark-active))

@@ -167,6 +167,17 @@ Expects to be bound to `(double-)mouse-1' in `key-translation-map'."
 (define-key key-translation-map [double-mouse-1]
   #'mouse--click-1-maybe-follows-link)
 
+(defun mouse-double-click-time ()
+  "Return a number for `double-click-time'.
+In contrast to using the `double-click-time' variable directly,
+which could be set to nil or t, this function is guaranteed to
+always return a positive integer or zero."
+  (let ((ct double-click-time))
+   (cond ((eq ct t) 10000) ; arbitrary number useful for sit-for
+         ((eq ct nil) 0)
+         ((and (numberp ct) (> ct 0)) ct)
+         (t 0))))
+
 
 ;; Provide a mode-specific menu on a mouse button.
 

@@ -867,7 +867,7 @@ with `mouse-movement' events."
                   (memq 'down last-modifiers)
                   ;; After a click, see if a double click is on the way.
                   (and (memq 'click last-modifiers)
-                       (not (sit-for (/ double-click-time 1000.0) t))))
+                       (not (sit-for (/ (mouse-double-click-time) 1000.0) t))))
             (let* ((seq (read-key-sequence "\
 Describe the following key, mouse click, or menu item: "
                                            nil nil 'can-return-switch-frame))

@@ -25,6 +25,20 @@
 
 ;;; Code:
 
+(ert-deftest mouse-test-mouse-double-click-time ()
+  (let ((double-click-time 500))
+    (should (= (mouse-double-click-time) 500)))
+  (let ((double-click-time 0))
+    (should (= (mouse-double-click-time) 0)))
+  (let ((double-click-time -500))
+    (should (= (mouse-double-click-time) 0)))
+  (let ((double-click-time nil))
+    (should (= (mouse-double-click-time) 0)))
+  (let ((double-click-time t))
+    (should (numberp (mouse-double-click-time))))
+  (let ((double-click-time '(invalid)))
+    (should (= (mouse-double-click-time) 0))))
+
 (ert-deftest bug23288-use-return-value ()
   "If `mouse-on-link-p' returns a string, its first character is used."
   (cl-letf ((unread-command-events '((down-mouse-1 nil 1) (mouse-1 nil 1)))
