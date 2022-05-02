@@ -8787,25 +8787,11 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
   while (result == 0)
     {
       XEvent event, copy;
-#ifdef HAVE_XINPUT2
-      x_menu_wait_for_event (FRAME_X_DISPLAY (f));
-#else
       x_menu_wait_for_event (0);
-#endif
 
-      if (
-#ifndef HAVE_XINPUT2
-	  XtAppPending (Xt_app_con)
-#else
-	  XPending (FRAME_X_DISPLAY (f))
-#endif
-	  )
+      if (XtAppPending (Xt_app_con))
 	{
-#ifndef HAVE_XINPUT2
 	  XtAppNextEvent (Xt_app_con, &event);
-#else
-	  XNextEvent (FRAME_X_DISPLAY (f), &event);
-#endif
 
 	  copy = event;
 	  if (event.type == KeyPress
