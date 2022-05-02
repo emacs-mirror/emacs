@@ -2672,8 +2672,10 @@ call this function yourself.  */)
   reply.quit_reply = !NILP (quit_reply);
 
   block_input ();
+  unrequest_sigio ();
   write_port (port_emacs_to_session_manager, 0, &reply,
 	      sizeof reply);
+  request_sigio ();
   unblock_input ();
 
   return Qnil;

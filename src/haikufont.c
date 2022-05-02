@@ -1109,10 +1109,12 @@ in the font selection dialog.  */)
     error ("Trying to use a menu from within a menu-entry");
 
   popup_activated_p++;
+  unrequest_sigio ();
   rc = be_select_font (process_pending_signals,
 		       haikufont_should_quit_popup,
 		       &family, &style, &size,
 		       !NILP (exclude_proportional));
+  request_sigio ();
   popup_activated_p--;
 
   if (!rc)
