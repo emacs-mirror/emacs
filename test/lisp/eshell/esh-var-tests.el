@@ -176,8 +176,17 @@
   (should (equal (eshell-test-command-result "+ $(+ 1 2)$(+ 1 2) 3") 36)))
 
 (ert-deftest esh-var-test/interp-concat-cmd ()
-  "Interpolate and concat command"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36)))
+  "Interpolate and concat command with literal"
+  (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36))
+  (should (equal (eshell-test-command-result "echo ${*echo \"foo\nbar\"}-baz")
+                 '("foo" "bar-baz")))
+  ;; Concatenating to a number in a list should produce a number...
+  (should (equal (eshell-test-command-result "echo ${*echo \"1\n2\"}3")
+                 '(1 23)))
+  ;; ... but concatenating to a string that looks like a number in a list
+  ;; should produce a string.
+  (should (equal (eshell-test-command-result "echo ${*echo \"hi\n2\"}3")
+                 '("hi" "23"))))
 
 (ert-deftest esh-var-test/interp-concat-cmd2 ()
   "Interpolate and concat two commands"
@@ -325,6 +334,12 @@ inside double-quotes"
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
   "Interpolate command result redirected to temp file inside double-quotes"
   (should (equal (eshell-test-command-result "cat \"$<echo hi>\"") "hi")))
+
+(ert-deftest esh-var-test/quoted-interp-concat-cmd ()
+  "Interpolate and concat command with literal"
+  (should (equal (eshell-test-command-result
+                  "echo \"${echo \\\"foo\nbar\\\"} baz\"")
+                 "foo\nbar baz")))
 
 
 ;; Interpolated variable conversion

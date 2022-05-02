@@ -180,19 +180,63 @@ treated as a literal character."
       (add-text-properties 0 (length string) '(escaped t) string))
   string)
 
+(defun eshell-concat (quoted &rest rest)
+  "Concatenate all the arguments in REST and return the result.
+If QUOTED is nil, the resulting value(s) may be converted to
+numbers (see `eshell-concat-1').
+
+If each argument in REST is a non-list value, the result will be
+a single value, as if (mapconcat #'eshell-stringify REST) had been
+called, possibly converted to a number.
+
+If there is at least one (non-nil) list argument, the result will
+be a list, with \"adjacent\" elements of consecutive arguments
+concatenated as strings (again, possibly converted to numbers).
+For example, concatenating \"a\", (\"b\"), and (\"c\" \"d\")
+would produce (\"abc\" \"d\")."
+  (let (result)
+    (dolist (i rest result)
+      (when i
+        (cond
+         ((null result)
+          (setq result i))
+         ((listp result)
+          (let (curr-head curr-tail)
+            (if (listp i)
+                (setq curr-head (car i)
+                      curr-tail (cdr i))
+              (setq curr-head i
+                    curr-tail nil))
+            (setq result
+                  (append
+                   (butlast result 1)
+                   (list (eshell-concat-1 quoted (car (last result))
+                                          curr-head))
+                   curr-tail))))
+         ((listp i)
+          (setq result
+                (cons (eshell-concat-1 quoted result (car i))
+                      (cdr i))))
+         (t
+          (setq result (eshell-concat-1 quoted result i))))))))
+
+(defun eshell-concat-1 (quoted first second)
+  "Concatenate FIRST and SECOND.
+If QUOTED is nil and either FIRST or SECOND are numbers, try to
+convert the result to a number as well."
+  (let ((result (concat (eshell-stringify first) (eshell-stringify second))))
+    (if (and (not quoted)
+             (or (numberp first) (numberp second)))
+        (eshell-convert-to-number result)
+      result)))
+
 (defun eshell-resolve-current-argument ()
   "If there are pending modifications to be made, make them now."
   (when eshell-current-argument
     (when eshell-arg-listified
-      (let ((parts eshell-current-argument))
-	(while parts
-	  (unless (stringp (car parts))
-	    (setcar parts
-		    (list 'eshell-to-flat-string (car parts))))
-	  (setq parts (cdr parts)))
-	(setq eshell-current-argument
-	      (list 'eshell-convert
-		    (append (list 'concat) eshell-current-argument))))
+      (setq eshell-current-argument
+            (append (list 'eshell-concat eshell-current-quoted)
+                    eshell-current-argument))
       (setq eshell-arg-listified nil))
     (while eshell-current-modifiers
       (setq eshell-current-argument

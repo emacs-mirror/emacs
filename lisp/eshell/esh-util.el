@@ -293,6 +293,7 @@ Prepend remote identification of `default-directory', if any."
 
 (defun eshell-to-flat-string (value)
   "Make value a string.  If separated by newlines change them to spaces."
+  (declare (obsolete nil "29.1"))
   (let ((text (eshell-stringify value)))
     (if (string-match "\n+\\'" text)
 	(setq text (replace-match "" t t text)))

@@ -1017,11 +1017,37 @@ parsers (such as @command{cpp} and @command{m4}), but in a command
 shell, they are less often used for constants, and usually for using
 variables and string manipulation.@footnote{Eshell has no
 string-manipulation expansions because the Elisp library already
-provides many functions for this.}  For example, @code{$var} on a line
-expands to the value of the variable @code{var} when the line is
+provides many functions for this.}  For example, @code{$@var{var}} on
+a line expands to the value of the variable @var{var} when the line is
 executed.  Expansions are usually passed as arguments, but may also be
-used as commands.@footnote{E.g., entering just @samp{$var} at the prompt
-is equivalent to entering the value of @code{var} at the prompt.}
+used as commands.@footnote{E.g., entering just @samp{$@var{var}} at
+the prompt is equivalent to entering the value of @var{var} at the
+prompt.}
+
+You can concatenate expansions with regular string arguments or even
+other expansions.  In the simplest case, when the expansion returns a
+string value, this is equivalent to ordinary string concatenation; for
+example, @samp{$@{echo "foo"@}bar} returns @samp{foobar}.  The exact
+behavior depends on the types of each value being concatenated:
+
+@table @asis
+
+@item both strings
+Concatenate both values together.
+
+@item one or both numbers
+Concatenate the string representation of each value, converting back to
+a number if possible.
+
+@item one or both (non-@code{nil}) lists
+Concatenate ``adjacent'' elements of each value (possibly converting
+back to a number as above).  For example, @samp{$list("a" "b")c}
+returns @samp{("a" "bc")}.
+
+@item anything else
+Concatenate the string represenation of each value.
+
+@end table
 
 @menu
 * Dollars Expansion::

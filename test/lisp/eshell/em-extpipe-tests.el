@@ -170,7 +170,7 @@
 
 (em-extpipe-tests--deftest em-extpipe-test-13 "foo*|bar"
   (should-parse '(eshell-execute-pipeline
-                  '((eshell-named-command (concat "foo" "*"))
+                  '((eshell-named-command (eshell-concat nil "foo" "*"))
                     (eshell-named-command "bar")))))
 
 (em-extpipe-tests--deftest em-extpipe-test-14 "tac *<temp"
