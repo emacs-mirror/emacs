@@ -6170,9 +6170,19 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
   if (font_panel_result)
     [font_panel_result retain];
 
+#ifndef NS_IMPL_COCOA
+  font_panel_active = NO;
+  [NSApp stop: self];
+#endif
+}
+
+#ifdef NS_IMPL_COCOA
+- (void) noteUserSelectedFont
+{
   font_panel_active = NO;
   [NSApp stop: self];
 }
+#endif
 
 - (Lisp_Object) showFontPanel
 {
@@ -6180,11 +6190,30 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
   struct font *font = FRAME_OUTPUT_DATA (emacsframe)->font;
   NSFont *nsfont, *result;
   struct timespec timeout;
+#ifdef NS_IMPL_COCOA
+  NSButton *button;
+  BOOL canceled;
+#endif
 
 #ifdef NS_IMPL_GNUSTEP
   nsfont = ((struct nsfont_info *) font)->nsfont;
 #else
   nsfont = (NSFont *) macfont_get_nsctfont (font);
+#endif
+
+#ifdef NS_IMPL_COCOA
+  /* FIXME: this button could be made a lot prettier, but I don't know
+     how.  */
+  button = [[NSButton alloc] initWithFrame: NSMakeRect (0, 0, 192, 40)];
+  [button setTitle: @"OK"];
+  [button setTarget: self];
+  [button setAction: @selector (noteUserSelectedFont)];
+  [button setButtonType: NSButtonTypeMomentaryPushIn];
+  [button setHidden: NO];
+
+  [[fm fontPanel: YES] setAccessoryView: button];
+  [button release];
+  [[fm fontPanel: YES] setDefaultButtonCell: [button cell]];
 #endif
 
   [fm setSelectedFont: nsfont isMultiple: NO];
@@ -6195,12 +6224,22 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
 
   block_input ();
   while (font_panel_active
-	 && [[fm fontPanel: YES] isVisible])
+#ifdef NS_IMPL_COCOA
+	 && (canceled = [[fm fontPanel: YES] isVisible])
+#else
+	 && [[fm fontPanel: YES] isVisible]
+#endif
+	 )
     ns_select_1 (0, NULL, NULL, NULL, &timeout, NULL, YES);
   unblock_input ();
 
   if (font_panel_result)
     [font_panel_result autorelease];
+
+#ifdef NS_IMPL_COCOA
+  if (!canceled)
+    font_panel_result = nil;
+#endif
 
   result = font_panel_result;
   font_panel_result = nil;
