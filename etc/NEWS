@@ -707,6 +707,13 @@ script that was used in ancient South Asia.  A new input method,
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Miscellaneous
+
++++
+*** New command 'scratch-buffer'.
+This switches to the *scratch* buffer.  If it doesn't exist, create it
+first.
+
 ** Debugging
 
 *** New user option 'debug-allow-recursive-debug'.

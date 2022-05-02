@@ -1742,6 +1742,10 @@ which is provided for evaluating Emacs Lisp expressions interactively.
 Its major mode is Lisp Interaction mode.  You can also enable Lisp
 Interaction mode by typing @kbd{M-x lisp-interaction-mode}.
 
+@findex scratch-buffer
+  If you kill the @file{*scratch*} buffer, you can recreate it with
+the @kbd{M-x scratch-buffer} command.
+
 @findex eval-print-last-sexp
 @kindex C-j @r{(Lisp Interaction mode)}
   In the @file{*scratch*} buffer, and other Lisp Interaction mode
