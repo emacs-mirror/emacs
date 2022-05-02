@@ -371,9 +371,9 @@ of master file."
 
 (defun reftex-using-biblatex-p ()
   "Return non-nil if we are using biblatex or other specific cite package.
-biblatex and other packages like multibib allow multiple macro
-calls to load a bibliography file.  This packages should be
-detected by this function."
+biblatex and other similar packages like multibib allow multiple macro
+calls to load a bibliography file.  This function should be able to
+detect those packages."
   (if (boundp 'TeX-active-styles)
       ;; the sophisticated AUCTeX way
       (or (member "biblatex" TeX-active-styles)
