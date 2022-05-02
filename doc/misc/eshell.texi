@@ -1194,9 +1194,9 @@ non-symlinks not owned by @code{root}, upper-cased.
 Some predicates and modifiers accept string parameters, such as
 @samp{*(u'@var{user}')}, which matches all files owned by @var{user}.
 These parameters must be surrounded by delimiters; you can use any of
-the following pairs of delimiters: @code{" @dots{} "}, @code{' @dots{}
-'}, @code{/ @dots{} /}, @code{| @dots{} |}, @code{( @dots{} )},
-@code{[ @dots{} ]}, @code{< @dots{} >}, or @code{@{ @dots{} @}}.
+the following pairs of delimiters: @code{"@dots{}"}, @code{'@dots{}'},
+@code{/@dots{}/}, @code{|@dots{}|}, @code{(@dots{})},
+@code{[@dots{}]}, @code{<@dots{}>}, or @code{@{@dots{}@}}.
 
 You can customize the syntax and behavior of predicates and modifiers
 in Eshell via the Customize group ``eshell-pred'' (@pxref{Easy
