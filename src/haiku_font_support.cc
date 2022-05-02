@@ -494,8 +494,8 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
       strcmp ((char *) &pattern->family, family))
     return false;
 
-  if (!ignore_flags_p && (pattern->specified & FSPEC_SPACING) &&
-      !(pattern->mono_spacing_p) != !(flags & B_IS_FIXED))
+  if (!ignore_flags_p && (pattern->specified & FSPEC_SPACING)
+      && !(pattern->mono_spacing_p) != !(flags & B_IS_FIXED))
     return false;
 
   if (pattern->specified & FSPEC_STYLE)
@@ -508,7 +508,8 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
 
   if ((pattern->specified & FSPEC_SLANT)
       && (pattern->slant
-	  != ((m.specified & FSPEC_SLANT) ? m.slant : SLANT_REGULAR)))
+	  != (m.specified & FSPEC_SLANT
+	      ? m.slant : SLANT_REGULAR)))
     return false;
 
   if ((pattern->specified & FSPEC_WANTED)
@@ -516,8 +517,9 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
     return false;
 
   if ((pattern->specified & FSPEC_WIDTH)
-      && (pattern->width !=
-	  ((m.specified & FSPEC_WIDTH) ? m.width : NORMAL_WIDTH)))
+      && (pattern->width
+	  != (m.specified & FSPEC_WIDTH
+	      ? m.width : NORMAL_WIDTH)))
     return false;
 
   if ((pattern->specified & FSPEC_NEED_ONE_OF)

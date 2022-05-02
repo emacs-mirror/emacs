@@ -460,14 +460,14 @@ haikufont_pattern_from_object (struct haiku_font_pattern *pattern,
   if (!NILP (val) && !EQ (val, Qunspecified))
     {
       pattern->specified |= FSPEC_SLANT;
-      pattern->slant = haikufont_lisp_to_slant (font_object);
+      pattern->slant = haikufont_lisp_to_slant (val);
     }
 
   val = FONT_WIDTH_FOR_FACE (font_object);
   if (!NILP (val) && !EQ (val, Qunspecified))
     {
       pattern->specified |= FSPEC_WIDTH;
-      pattern->width = haikufont_lisp_to_width (font_object);
+      pattern->width = haikufont_lisp_to_width (val);
     }
 }
 
