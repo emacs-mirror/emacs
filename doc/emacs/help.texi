@@ -34,6 +34,14 @@ is unconditionally selected by help commands, and if its value is
 @code{other}, the help window is selected only if there are more than
 two windows on the selected frame.
 
+@vindex help-window-keep-selected
+  Conversely, many commands in the @samp{*Help*} buffer will pop up a
+new window to display the results.  For instance, clicking on the link
+to show the source code, or using the @key{i} command to display the
+manual entry, will (by default) pop up a new window.  If
+@code{help-window-keep-selected} is changed to non-@code{nil}, the
+window displaying the @samp{*Help*} buffer will be reused instead.
+
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
   If you are looking for a certain feature, but don't know what it is

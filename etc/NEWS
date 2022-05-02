@@ -443,6 +443,11 @@ command also works for non-Emoji characters.)
 
 ** Help
 
++++
+*** New user option 'help-window-keep-selected'.
+If non-nil, commands to show the info manual and the source will reuse
+the same window the *Help* buffer is shown in.
+
 ---
 *** Commands like 'C-h f' have changed how they describe menu bindings.
 For instance, previously a command might be described as having the

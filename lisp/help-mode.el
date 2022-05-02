@@ -268,7 +268,9 @@ The format is (FUNCTION ARGS...).")
     (let* ((location
             (find-function-search-for-symbol fun type file))
            (position (cdr location)))
-      (pop-to-buffer (car location))
+      (if help-window-keep-selected
+          (pop-to-buffer-same-window (car location))
+        (pop-to-buffer (car location)))
       (run-hooks 'find-function-after-hook)
       (if position
           (progn
@@ -819,7 +821,8 @@ The help buffers are divided into \"pages\" by the ^L character."
   (unless help-mode--current-data
     (error "No symbol to look up in the current buffer"))
   (info-lookup-symbol (plist-get help-mode--current-data :symbol)
-                      'emacs-lisp-mode))
+                      'emacs-lisp-mode
+                      help-window-keep-selected))
 
 (defun help-goto-lispref-info ()
   "View the Emacs Lisp manual *info* node of the current help item."

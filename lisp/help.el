@@ -1802,12 +1802,24 @@ the help window appears on another frame, it may get selected and
 its frame get input focus even if this option is nil.
 
 This option has effect if and only if the help window was created
-by `with-help-window'."
+by `with-help-window'.
+
+Also see `help-window-keep-selected'."
   :type '(choice (const :tag "never (nil)" nil)
 		 (const :tag "other" other)
 		 (const :tag "always (t)" t))
   :group 'help
   :version "23.1")
+
+(defcustom help-window-keep-selected nil
+  "If non-nil, navigation commands in the *Help* buffer will reuse the window.
+If nil, many commands in the *Help* buffer, like \\<help-mode-map>\\[help-view-source] and \\[help-goto-info], will
+pop to a different window to display the results.
+
+Also see `help-window-select'."
+  :type 'boolean
+  :group 'help
+  :version "29.1")
 
 (define-obsolete-variable-alias 'help-enable-auto-load
   'help-enable-autoload "27.1")

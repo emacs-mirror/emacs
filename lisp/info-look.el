@@ -280,7 +280,7 @@ system."
 
 ;;;###autoload (put 'info-lookup-symbol 'info-file "emacs")
 ;;;###autoload
-(defun info-lookup-symbol (symbol &optional mode)
+(defun info-lookup-symbol (symbol &optional mode same-window)
   "Look up and display documentation of SYMBOL in the relevant Info manual.
 SYMBOL should be an identifier: a function or method, a macro, a variable,
 a data type, a class, etc.
@@ -293,10 +293,13 @@ MODE is the major mode whose Info manuals to search for the documentation
 of SYMBOL.  It defaults to the current buffer's `major-mode'; if that
 mode doesn't have any Info manuals known to Emacs, the command will
 prompt for MODE to use, with completion.  With prefix arg, the command
-always prompts for MODE."
+always prompts for MODE.
+
+Is SAME-WINDOW, try to reuse the current window instead of
+popping up a new one."
   (interactive
    (info-lookup-interactive-arguments 'symbol current-prefix-arg))
-  (info-lookup 'symbol symbol mode))
+  (info-lookup 'symbol symbol mode same-window))
 
 ;;;###autoload (put 'info-lookup-file 'info-file "emacs")
 ;;;###autoload
@@ -388,7 +391,7 @@ If optional argument QUERY is non-nil, query for the help mode."
         spec
       mode)))
 
-(defun info-lookup (topic item mode)
+(defun info-lookup (topic item mode &optional same-window)
   "Display the documentation of TOPIC whose name is ITEM, using MODE's manuals.
 TOPIC should be any known symbol of a help topic type, such as `file'
 or `symbol'.  See the documentation of HELP-TOPIC in the doc
@@ -397,7 +400,10 @@ ITEM is the item whose documentation to search: file name if
 TOPIC is `file', a symbol if TOPIC is `symbol', etc.
 MODE is the `major-mode' whose Info manuals to search for documentation
 of ITEM; if it's nil, the function uses `info-lookup-file-name-alist'
-and the current buffer's file name to guess the mode.."
+and the current buffer's file name to guess the mode.
+
+If SAME-WINDOW, reuse the current window.  If nil, pop to a
+different window."
   (or mode (setq mode (info-lookup-select-mode)))
   (setq mode (info-lookup--item-to-mode item mode))
   (if-let ((info (info-lookup->mode-value topic mode)))
@@ -423,19 +429,21 @@ and the current buffer's file name to guess the mode.."
       (if (not info-lookup-other-window-flag)
 	  (info)
 	(save-window-excursion (info))
-	(let* ((info-window (get-buffer-window "*info*" t))
-	       (info-frame (and info-window (window-frame info-window))))
-	  (if (and info-frame
-		   (not (eq info-frame (selected-frame)))
-		   (display-multi-frame-p)
-		   (memq info-frame (frames-on-display-list)))
-	      ;; *info* is visible in another frame on same display.
-	      ;; Raise that frame and select the window.
-	      (progn
-		(select-window info-window)
-		(raise-frame info-frame))
-	    ;; In any other case, switch to *info* in another window.
-	    (switch-to-buffer-other-window "*info*")))))
+        (if same-window
+            (pop-to-buffer-same-window "*info*")
+	  (let* ((info-window (get-buffer-window "*info*" t))
+	         (info-frame (and info-window (window-frame info-window))))
+	    (if (and info-frame
+		     (not (eq info-frame (selected-frame)))
+		     (display-multi-frame-p)
+		     (memq info-frame (frames-on-display-list)))
+	        ;; *info* is visible in another frame on same display.
+	        ;; Raise that frame and select the window.
+	        (progn
+		  (select-window info-window)
+		  (raise-frame info-frame))
+	      ;; In any other case, switch to *info* another window.
+	      (switch-to-buffer-other-window "*info*"))))))
     (while (and (not found) modes)
       (setq doc-spec (info-lookup->doc-spec topic (car modes)))
       (while (and (not found) doc-spec)
