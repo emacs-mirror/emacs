@@ -562,7 +562,7 @@ If N, return the Nth ancestor instead."
        buffer))
 
 (define-obsolete-function-alias 'gnus-buffer-exists-p
-  'gnus-buffer-live-p "27.1")
+  #'gnus-buffer-live-p "27.1")
 
 (defun gnus-horizontal-recenter ()
   "Recenter the current buffer horizontally."
@@ -680,7 +680,7 @@ yield \"nnimap:yxa\"."
 (defun gnus-turn-off-edit-menu (type)
   "Turn off edit menu in `gnus-TYPE-mode-map'."
   (define-key (symbol-value (intern (format "gnus-%s-mode-map" type)))
-    [menu-bar edit] 'undefined))
+    [menu-bar edit] #'undefined))
 
 (defvar print-string-length)
 
@@ -954,9 +954,9 @@ ARG is passed to the first function."
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
 
-(define-obsolete-function-alias 'gnus-remove-if 'seq-remove "27.1")
+(define-obsolete-function-alias 'gnus-remove-if #'seq-remove "27.1")
 
-(define-obsolete-function-alias 'gnus-remove-if-not 'seq-filter "27.1")
+(define-obsolete-function-alias 'gnus-remove-if-not #'seq-filter "27.1")
 
 (defun gnus-grep-in-list (word list)
   "Find if a WORD matches any regular expression in the given LIST."
@@ -1091,9 +1091,10 @@ ARG is passed to the first function."
 (defun gnus-byte-compile (form)
   "Byte-compile FORM if `gnus-use-byte-compile' is non-nil."
   (if gnus-use-byte-compile
-      (let ((byte-compile-warnings '(unresolved callargs redefine)))
+      (let ((byte-compile-warnings '(unresolved callargs redefine))
+	    (lexical-binding t))
 	(byte-compile form))
-    form))
+    (eval form t)))
 
 (defun gnus-remassoc (key alist)
   "Delete by side effect any elements of LIST whose car is `equal' to KEY.
