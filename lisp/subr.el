@@ -6748,7 +6748,9 @@ If OMIT-NULLS, empty lines will be removed from the results.
 If KEEP-NEWLINES, don't strip trailing newlines from the result
 lines."
   (if (equal string "")
-      (list "")
+      (if omit-nulls
+          nil
+        (list ""))
     (let ((lines nil)
           (start 0))
       (while (< start (length string))
