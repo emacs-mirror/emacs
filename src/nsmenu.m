@@ -760,12 +760,6 @@ prettify_key (const char *key)
       : Qnil;
 }
 
-#ifdef NS_IMPL_GNUSTEP
-/* The code below doesn't work on Mac OS X, because it runs a nested
-   Carbon-related event loop to track menu bar movement.
-
-   But it works fine aside from that, so it will work on GNUstep if
-   they start to call `willHighlightItem'.  */
 - (void) menu: (NSMenu *) menu willHighlightItem: (NSMenuItem *) item
 {
   NSInteger idx = [item tag];
@@ -779,12 +773,11 @@ prettify_key (const char *key)
   XSETFRAME (frame, f);
   help = AREF (vec, idx + MENU_ITEMS_ITEM_HELP);
 
+  popup_activated_flag++;
   if (STRINGP (help) || NILP (help))
-    kbd_buffer_store_help_event (frame, help);
-
-  raise (SIGIO);
+    show_help_echo (help, Qnil, Qnil, Qnil);
+  popup_activated_flag--;
 }
-#endif
 
 #ifdef NS_IMPL_GNUSTEP
 - (void) close
