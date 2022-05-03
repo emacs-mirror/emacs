@@ -91,6 +91,10 @@ functions.")
 
 (defconst tool-bar-keymap-cache (make-hash-table :weakness t :test 'equal))
 
+(defun tool-bar--flush-cache ()
+  (setf (gethash (cons (frame-terminal) tool-bar-map) tool-bar-keymap-cache)
+        nil))
+
 (defun tool-bar-make-keymap (&optional _ignore)
   "Generate an actual keymap from `tool-bar-map'.
 Its main job is to figure out which images to use based on the display's
@@ -139,7 +143,8 @@ ICON.xbm, using `find-image'.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
 To define items in any other map, use `tool-bar-local-item'."
-  (apply #'tool-bar-local-item icon def key tool-bar-map props))
+  (apply #'tool-bar-local-item icon def key tool-bar-map props)
+  (tool-bar--flush-cache))
 
 (defun tool-bar--image-expression (icon)
   "Return an expression that evaluates to an image spec for ICON."
