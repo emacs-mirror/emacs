@@ -3648,93 +3648,68 @@ Allows the suppression of continuation prompts.")
 
 (defvar sql-preoutput-hold nil)
 
-(defun sql-starts-with-prompt-re ()
-  "Anchor the prompt expression at the beginning of the output line.
-Remove the start of line regexp."
-  (concat "\\`" comint-prompt-regexp))
-
-(defun sql-ends-with-prompt-re ()
-  "Anchor the prompt expression at the end of the output line.
-Match a SQL prompt or a password prompt."
-  (concat "\\(?:\\(?:" sql-prompt-regexp "\\)\\|"
-          "\\(?:" comint-password-prompt-regexp "\\)\\)\\'"))
-
 (defun sql-interactive-remove-continuation-prompt (oline)
   "Strip out continuation prompts out of the OLINE.
 
 Added to the `comint-preoutput-filter-functions' hook in a SQL
-interactive buffer.  If `sql-output-newline-count' is greater than
-zero, then an output line matching the continuation prompt is filtered
-out.  If the count is zero, then a newline is inserted into the output
-to force the output from the query to appear on a new line.
+interactive buffer.  The complication to this filter is that the
+continuation prompts may arrive in multiple chunks.  If they do,
+then the function saves any unfiltered output in a buffer and
+prepends that buffer to the next chunk to properly match the
+broken-up prompt.
 
-The complication to this filter is that the continuation prompts
-may arrive in multiple chunks.  If they do, then the function
-saves any unfiltered output in a buffer and prepends that buffer
-to the next chunk to properly match the broken-up prompt.
-
-If the filter gets confused, it should reset and stop filtering
-to avoid deleting non-prompt output."
-
-  ;; continue gathering lines of text iff
-  ;;  + we know what a prompt looks like, and
-  ;;  + there is held text, or
-  ;;  + there are continuation prompt yet to come, or
-  ;;  + not just a prompt string
+The filter goes into play only if something is already
+accumulated, or we're waiting for continuation
+prompts (`sql-output-newline-count' is positive).  In this case:
+- Accumulate process output into `sql-preoutput-hold'.
+- Remove any complete prompts / continuation prompts that we're waiting
+  for.
+- In case we're expecting more prompts - return all currently
+  accumulated _complete_ lines, leaving the rest for the next
+  invocation.  They will appear in the output immediately.  This way we
+  don't accumulate large chunks of data for no reason.
+- If we found all expected prompts - just return all current accumulated
+  data."
   (when (and comint-prompt-regexp
-             (or (> (length (or sql-preoutput-hold "")) 0)
-                 (> (or sql-output-newline-count 0) 0)
-                 (not (or (string-match sql-prompt-regexp oline)
-                          (and sql-prompt-cont-regexp
-                               (string-match sql-prompt-cont-regexp oline))))))
-
+             ;; We either already have something held, or expect
+             ;; prompts
+             (or sql-preoutput-hold
+                 (and sql-output-newline-count
+                      (> sql-output-newline-count 0))))
     (save-match-data
-      (let (prompt-found last-nl)
+      ;; Add this text to what's left from the last pass
+      (setq oline (concat sql-preoutput-hold oline)
+            sql-preoutput-hold nil)
 
-        ;; Add this text to what's left from the last pass
-        (setq oline (concat sql-preoutput-hold oline)
-              sql-preoutput-hold "")
+      ;; If we are looking for prompts
+      (when (and sql-output-newline-count
+                 (> sql-output-newline-count 0))
+        ;; Loop thru each starting prompt and remove it
+        (while (and (not (string-empty-p oline))
+                    (> sql-output-newline-count 0)
+                    (string-match comint-prompt-regexp oline))
+          (setq oline (replace-match "" nil nil oline)
+                sql-output-newline-count (1- sql-output-newline-count)))
 
-        ;; If we are looking for multiple prompts
-        (when (and (integerp sql-output-newline-count)
-                   (>= sql-output-newline-count 1))
-          ;; Loop thru each starting prompt and remove it
-          (let ((start-re (sql-starts-with-prompt-re)))
-            (while (and (not (string= oline ""))
-                      (> sql-output-newline-count 0)
-                      (string-match start-re oline))
-              (setq oline (replace-match "" nil nil oline)
-                    sql-output-newline-count (1- sql-output-newline-count)
-                    prompt-found t)))
+        ;; If we've found all the expected prompts, stop looking
+        (if (= sql-output-newline-count 0)
+            (setq sql-output-newline-count nil)
+          ;; Still more possible prompts, leave them for the next pass
+          (setq sql-preoutput-hold oline
+                oline "")))
 
-          ;; If we've found all the expected prompts, stop looking
-          (if (= sql-output-newline-count 0)
-              (setq sql-output-newline-count nil)
-
-            ;; Still more possible prompts, leave them for the next pass
-            (setq sql-preoutput-hold oline
-                  oline "")))
-
-        ;; If no prompts were found, stop looking
-        (unless prompt-found
-          (setq sql-output-newline-count nil
-                oline (concat oline sql-preoutput-hold)
-                sql-preoutput-hold ""))
-
-        ;; Break up output by physical lines if we haven't hit the final prompt
-        (let ((end-re (sql-ends-with-prompt-re)))
-          (unless (and (not (string= oline ""))
-                       (string-match end-re oline)
-                       (>= (match-end 0) (length oline)))
-            ;; Find everything upto the last nl
-            (setq last-nl 0)
-            (while (string-match "\n" oline last-nl)
-              (setq last-nl (match-end 0)))
-            ;; Hold after the last nl, return upto last nl
-            (setq sql-preoutput-hold (concat (substring oline last-nl)
-                                             sql-preoutput-hold)
-                  oline (substring oline 0 last-nl)))))))
+      ;; Lines that are now complete may be passed further
+      (when sql-preoutput-hold
+        (let ((last-nl 0))
+          (while (string-match "\n" sql-preoutput-hold last-nl)
+            (setq last-nl (match-end 0)))
+          ;; Return up to last nl, hold after the last nl
+          (setq oline (substring sql-preoutput-hold 0 last-nl)
+                sql-preoutput-hold (substring sql-preoutput-hold last-nl))
+          (when (string-empty-p sql-preoutput-hold)
+            (setq sql-preoutput-hold nil))))))
   oline)
+
 
 ;;; Sending the region to the SQLi buffer.
 (defvar sql-debug-send nil
