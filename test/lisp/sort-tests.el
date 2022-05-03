@@ -106,5 +106,38 @@ reversing the sort."
                            :generator (lambda (n) (concat (sort-tests-random-word n) " " (sort-tests-random-word n)))
                            :less-pred (lambda (a b) (string< (field-n a 2) (field-n b 2))))))
 
+(defun test-with-buffer-unmodified-if-unchanged ()
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t"))
+    (should (buffer-modified-p)))
+
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t")
+      (delete-char -1))
+    (should (not (buffer-modified-p))))
+
+  ;; Shouldn't error.
+  (should
+   (with-temp-buffer
+     (let ((inner (current-buffer)))
+       (with-buffer-unmodified-if-unchanged
+         (insert "t")
+         (delete-char -1)
+         (kill-buffer (current-buffer))
+         t))))
+
+  (with-temp-buffer
+    (let ((outer (current-buffer)))
+      (with-temp-buffer
+        (let ((inner (current-buffer)))
+        (with-buffer-unmodified-if-unchanged
+          (insert "t")
+          (delete-char -1)
+          (set-buffer outer))
+        (with-current-buffer inner
+          (should (not (buffer-modified-p)))))))))
+
 (provide 'sort-tests)
 ;;; sort-tests.el ends here

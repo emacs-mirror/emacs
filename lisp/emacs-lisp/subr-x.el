@@ -426,22 +426,24 @@ modification status:
 
   (with-buffer-unmodified-if-unchanged
     (insert \"a\")
-    (delete-char -1))
-
-BODY must preserve the current buffer."
+    (delete-char -1))."
   (declare (debug t) (indent 0))
-  (let ((hash (gensym)))
+  (let ((hash (gensym))
+        (buffer (gensym)))
     `(let ((,hash (and (not (buffer-modified-p))
-                       (buffer-hash))))
+                       (buffer-hash)))
+           (,buffer (current-buffer)))
        (prog1
            (progn
              ,@body)
          ;; If we didn't change anything in the buffer (and the buffer
          ;; was previously unmodified), then flip the modification status
          ;; back to "unchanged".
-         (when (and ,hash (buffer-modified-p)
-                    (equal ,hash (buffer-hash)))
-           (restore-buffer-modified-p nil))))))
+         (when (buffer-live-p ,buffer)
+           (with-current-buffer ,buffer
+             (when (and ,hash (buffer-modified-p)
+                        (equal ,hash (buffer-hash)))
+               (restore-buffer-modified-p nil))))))))
 
 (provide 'subr-x)
 
