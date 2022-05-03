@@ -238,9 +238,9 @@ specify an argument of some other data type, you can use an
 (1 2 3)
 @end example
 
-Additionally, many @ref{Built-ins, Eshell commands} will flatten the
-arguments they receive, so passing a list as an argument will
-``spread'' the elements into multiple arguments:
+Additionally, many built-in Eshell commands (@pxref{Built-ins, Eshell
+commands}) will flatten the arguments they receive, so passing a list
+as an argument will ``spread'' the elements into multiple arguments:
 
 @example
 ~ $ printnl (list 1 2) 3
@@ -258,7 +258,7 @@ surrounding the string with apostrophes (@code{''}) or double quotes
 characters like pipe (@code{|}), which could be part of remote file
 names.
 
-When using @ref{Expansion, expansions} in an Eshell command, the
+When using expansions (@pxref{Expansion}) in an Eshell command, the
 result may potentially be of any data type.  To ensure that the result
 is always a string, the expansion can be surrounded by double quotes.
 
