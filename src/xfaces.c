@@ -4447,17 +4447,26 @@ free_realized_face (struct frame *f, struct face *face)
 void
 prepare_face_for_display (struct frame *f, struct face *face)
 {
+  Emacs_GC egc;
+  unsigned long mask;
+
   eassert (FRAME_WINDOW_P (f));
 
   if (face->gc == 0)
     {
-      Emacs_GC egc;
-      unsigned long mask = GCForeground | GCBackground | GCGraphicsExposures;
+      mask = GCForeground | GCBackground | GCGraphicsExposures;
 
       egc.foreground = face->foreground;
       egc.background = face->background;
 #ifdef HAVE_X_WINDOWS
       egc.graphics_exposures = False;
+
+      /* While this was historically slower than a line_width of 0,
+	 the difference no longer matters on modern X servers, so set
+	 it to 1 in order for PolyLine requests to behave consistently
+	 everywhere.  */
+      mask |= GCLineWidth;
+      egc.line_width = 1;
 #endif
 
       block_input ();

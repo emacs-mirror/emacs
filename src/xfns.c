@@ -4237,7 +4237,7 @@ x_make_gc (struct frame *f)
 
   gc_values.foreground = FRAME_FOREGROUND_PIXEL (f);
   gc_values.background = FRAME_BACKGROUND_PIXEL (f);
-  gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
+  gc_values.line_width = 1;
   f->output_data.x->normal_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
                  FRAME_X_DRAWABLE (f),
