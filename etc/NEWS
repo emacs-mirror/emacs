@@ -1626,6 +1626,12 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 ---
+** New macro 'with-buffer-unmodified-if-unchanged'.
+If the buffer is marked as unmodified, and code does modifications
+that, in total, means that the buffer is identical to the buffer
+before, mark the buffer as unmodified again.
+
+---
 ** New function 'malloc-trim'.
 This function allows returning unused memory back to the operating
 system, and is mainly meant as a debugging tool.  It is currently

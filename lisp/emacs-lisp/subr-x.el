@@ -416,6 +416,31 @@ this defaults to the current buffer."
         (error "No process selected"))
       process)))
 
+(defmacro with-buffer-unmodified-if-unchanged (&rest body)
+  "Like `progn', but change buffer modification status only if buffer is changed.
+That is, if the buffer is marked as unmodified before BODY, and
+BODY does modifications that, in total, means that the buffer is
+identical to the buffer before BODY, mark the buffer as
+unmodified again.  In other words, this won't change buffer
+modification status:
+
+  (with-buffer-unmodified-if-unchanged
+    (insert \"a\")
+    (delete-char -1))"
+  (declare (debug t) (indent 0))
+  (let ((hash (gensym)))
+    `(let ((,hash (and (not (buffer-modified-p))
+                       (buffer-hash))))
+       (prog1
+           (progn
+             ,@body)
+         ;; If we didn't change anything in the buffer (and the buffer
+         ;; was previously unmodified), then flip the modification status
+         ;; back to "unchanged".
+         (when (and ,hash
+                    (equal ,hash (buffer-hash)))
+           (set-buffer-modified-p nil))))))
+
 (provide 'subr-x)
 
 ;;; subr-x.el ends here
