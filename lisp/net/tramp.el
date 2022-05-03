@@ -3353,6 +3353,121 @@ User is always nil."
      (forward-line 1)
      result))
 
+;;; Skeleton macros for file name handler functions.
+
+(defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
+  "Skeleton for `tramp-*-handle-delete-directory'.
+BODY is the backend specific code."
+  (declare (indent 3) (debug t))
+  `(with-parsed-tramp-file-name (expand-file-name ,directory) nil
+    (if (and delete-by-moving-to-trash ,trash)
+	;; Move non-empty dir to trash only if recursive deletion was
+	;; requested.
+	(if (not (or ,recursive (tramp-compat-directory-empty-p ,directory)))
+	    (tramp-error
+	     v 'file-error "Directory is not empty, not moving to trash")
+	  (move-file-to-trash ,directory))
+      ,@body)
+    (tramp-flush-directory-properties v localname)))
+
+(put #'tramp-skeleton-delete-directory 'tramp-suppress-trace t)
+
+(defmacro tramp-skeleton-write-region
+  (start end filename append visit lockname mustbenew &rest body)
+  "Skeleton for `tramp-*-handle-write-region'.
+BODY is the backend specific code."
+  (declare (indent 7) (debug t))
+  `(with-parsed-tramp-file-name (expand-file-name ,filename) nil
+     (setq ,filename (expand-file-name ,filename)
+	   ,lockname (file-truename (or ,lockname ,filename)))
+     ;; Sometimes, there is another file name handler responsible for
+     ;; VISIT, for example `jka-compr-handler'.  We must respect this.
+     ;; See Bug#55166.
+     (let ((handler (and (stringp ,visit)
+			 (let ((inhibit-file-name-handlers
+				(cons 'tramp-file-name-handler
+				      inhibit-file-name-handlers))
+			       (inhibit-file-name-operation 'write-region))
+			   (find-file-name-handler ,visit 'write-region)))))
+       (if handler
+	   (progn
+	     (tramp-message
+	      v 5 "Calling handler `%s' for visiting `%s'" handler ,visit)
+	     (funcall
+	      handler 'write-region
+	      ,start ,end ,filename ,append ,visit ,lockname ,mustbenew))
+
+	 (when (and ,mustbenew (file-exists-p ,filename)
+		    (or (eq ,mustbenew 'excl)
+			(not
+			 (y-or-n-p
+			  (format
+			   "File %s exists; overwrite anyway?" ,filename)))))
+	   (tramp-error v 'file-already-exists ,filename))
+
+	 (let ((file-locked (eq (file-locked-p ,lockname) t))
+	       (uid (or (file-attribute-user-id
+			 (file-attributes ,filename 'integer))
+			(tramp-get-remote-uid v 'integer)))
+	       (gid (or (file-attribute-group-id
+			 (file-attributes ,filename 'integer))
+			(tramp-get-remote-gid v 'integer)))
+	       (curbuf (current-buffer)))
+
+	   ;; Lock file.
+	   (when (and (not (auto-save-file-name-p
+			    (file-name-nondirectory ,filename)))
+		      (file-remote-p ,lockname)
+		      (not file-locked))
+	     (setq file-locked t)
+	     ;; `lock-file' exists since Emacs 28.1.
+	     (tramp-compat-funcall 'lock-file ,lockname))
+
+	   ;; The body.
+	   ,@body
+
+	   ;; We must protect `last-coding-system-used', now we have
+	   ;; set it to its correct value.
+	   (let (last-coding-system-used (need-chown t))
+	     ;; Set file modification time.
+	     (when (or (eq ,visit t) (stringp ,visit))
+               (let ((file-attr (file-attributes ,filename 'integer)))
+		 (set-visited-file-modtime
+		  ;; We must pass modtime explicitly, because FILENAME
+		  ;; can be different from (buffer-file-name), f.e. if
+		  ;; `file-precious-flag' is set.
+		  (or (file-attribute-modification-time file-attr)
+		      (current-time)))
+		 (when (and (= (file-attribute-user-id file-attr) uid)
+			    (= (file-attribute-group-id file-attr) gid))
+		   (setq need-chown nil))))
+
+	     ;; Set the ownership.
+	     (when need-chown
+               (tramp-set-file-uid-gid ,filename uid gid)))
+
+	   ;; We must also flush the cache of the directory, because
+	   ;; `file-attributes' reads the values from there.
+	   (tramp-flush-file-properties v localname)
+
+	   ;; Unlock file.
+	   (when file-locked
+	     ;; `unlock-file' exists since Emacs 28.1.
+	     (tramp-compat-funcall 'unlock-file ,lockname))
+
+	   ;; Sanity check.
+	   (unless (equal curbuf (current-buffer))
+	     (tramp-error
+	      v 'file-error
+	      "Buffer has changed from `%s' to `%s'" curbuf (current-buffer)))
+
+	   (when (and (null noninteractive)
+		      (or (eq ,visit t) (string-or-null-p ,visit)))
+	     (tramp-message v 0 "Wrote %s" ,filename))
+	   (run-hooks 'tramp-handle-write-region-hook))))))
+
+(put #'tramp-skeleton-write-region 'tramp-suppress-trace t)
+
 ;;; Common file name handler functions for different backends:
 
 (defvar tramp-handle-file-local-copy-hook nil
@@ -4827,33 +4942,10 @@ of."
 (defun tramp-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename)
-	lockname (file-truename (or lockname filename)))
-  (with-parsed-tramp-file-name filename nil
-    (when (and mustbenew (file-exists-p filename)
-	       (or (eq mustbenew 'excl)
-		   (not
-		    (y-or-n-p
-		     (format "File %s exists; overwrite anyway?" filename)))))
-      (tramp-error v 'file-already-exists filename))
-
-    (let ((file-locked (eq (file-locked-p lockname) t))
-	  (tmpfile (tramp-compat-make-temp-file filename))
+  (tramp-skeleton-write-region start end filename append visit lockname mustbenew
+    (let ((tmpfile (tramp-compat-make-temp-file filename))
 	  (modes (tramp-default-file-modes
-		  filename (and (eq mustbenew 'excl) 'nofollow)))
-	  (uid (or (file-attribute-user-id (file-attributes filename 'integer))
-		   (tramp-get-remote-uid v 'integer)))
-	  (gid (or (file-attribute-group-id (file-attributes filename 'integer))
-		   (tramp-get-remote-gid v 'integer))))
-
-      ;; Lock file.
-      (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
-		 (file-remote-p lockname)
-		 (not file-locked))
-	(setq file-locked t)
-	;; `lock-file' exists since Emacs 28.1.
-	(tramp-compat-funcall 'lock-file lockname))
-
+		  filename (and (eq mustbenew 'excl) 'nofollow))))
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; The permissions of the temporary file should be set.  If
@@ -4872,29 +4964,7 @@ of."
 	(error
 	 (delete-file tmpfile)
 	 (tramp-error
-	  v 'file-error "Couldn't write region to `%s'" filename)))
-
-      (tramp-flush-file-properties v localname)
-
-      ;; Set file modification time.
-      (when (or (eq visit t) (stringp visit))
-	(set-visited-file-modtime
-	 (or (file-attribute-modification-time (file-attributes filename))
-	     (current-time))))
-
-      ;; Set the ownership.
-      (tramp-set-file-uid-gid filename uid gid)
-
-      ;; Unlock file.
-      (when file-locked
-	;; `unlock-file' exists since Emacs 28.1.
-	(tramp-compat-funcall 'unlock-file lockname))
-
-      ;; The end.
-      (when (and (null noninteractive)
-		 (or (eq visit t) (string-or-null-p visit)))
-	(tramp-message v 0 "Wrote %s" filename))
-      (run-hooks 'tramp-handle-write-region-hook))))
+	  v 'file-error "Couldn't write region to `%s'" filename))))))
 
 ;; This is used in tramp-sh.el and tramp-sudoedit.el.
 (defconst tramp-stat-marker "/////"
@@ -6175,23 +6245,6 @@ If VEC is `tramp-null-hop', return local null device."
     (with-tramp-connection-property vec "null-device"
       (let ((default-directory (tramp-make-tramp-file-name vec)))
         (tramp-compat-null-device)))))
-
-(defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
-  "Skeleton for `tramp-*-handle-delete-directory'.
-BODY is the backend specific code."
-  (declare (indent 3) (debug t))
-  `(with-parsed-tramp-file-name (expand-file-name ,directory) nil
-    (if (and delete-by-moving-to-trash ,trash)
-	;; Move non-empty dir to trash only if recursive deletion was
-	;; requested.
-	(if (not (or ,recursive (tramp-compat-directory-empty-p ,directory)))
-	    (tramp-error
-	     v 'file-error "Directory is not empty, not moving to trash")
-	  (move-file-to-trash ,directory))
-      ,@body)
-    (tramp-flush-directory-properties v localname)))
-
-(put #'tramp-skeleton-delete-directory 'tramp-suppress-trace t)
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages
