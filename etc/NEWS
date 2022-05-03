@@ -136,6 +136,14 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
+** Sorting commands no longer necessarily change modification status.
+In earlier Emacs versions, commands like 'M-x sort-lines' would always
+change buffer modification status to "modified", whether they changed
+something in the buffer or not.  This has been changed: The buffer is
+marked as modified only if the sorting ended up changing the contents
+of the buffer.
+
+---
 ** 'string-lines' handles trailing newlines differently.
 It no longer returns an empty final string if the string ends with a
 newline.
