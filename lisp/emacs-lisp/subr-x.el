@@ -426,7 +426,9 @@ modification status:
 
   (with-buffer-unmodified-if-unchanged
     (insert \"a\")
-    (delete-char -1))"
+    (delete-char -1))
+
+BODY must preserve the current buffer."
   (declare (debug t) (indent 0))
   (let ((hash (gensym)))
     `(let ((,hash (and (not (buffer-modified-p))
@@ -437,9 +439,9 @@ modification status:
          ;; If we didn't change anything in the buffer (and the buffer
          ;; was previously unmodified), then flip the modification status
          ;; back to "unchanged".
-         (when (and ,hash
+         (when (and ,hash (buffer-modified-p)
                     (equal ,hash (buffer-hash)))
-           (set-buffer-modified-p nil))))))
+           (restore-buffer-modified-p nil))))))
 
 (provide 'subr-x)
 
