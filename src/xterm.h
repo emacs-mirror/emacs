@@ -1025,13 +1025,15 @@ extern void x_mark_frame_dirty (struct frame *f);
    code after any drawing command, but we can run code whenever
    someone asks for the handle necessary to draw.  */
 #define FRAME_X_DRAWABLE(f)                             \
-  (x_mark_frame_dirty((f)), FRAME_X_RAW_DRAWABLE ((f)))
+  (x_mark_frame_dirty ((f)), FRAME_X_RAW_DRAWABLE ((f)))
 
+#ifdef HAVE_XDBE
 #define FRAME_X_DOUBLE_BUFFERED_P(f)            \
   (FRAME_X_WINDOW (f) != FRAME_X_RAW_DRAWABLE (f))
 
 /* Return the need-buffer-flip flag for frame F.  */
 #define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
+#endif
 
 /* Return the outermost X window associated with the frame F.  */
 #ifdef USE_X_TOOLKIT

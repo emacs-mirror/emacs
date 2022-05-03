@@ -823,22 +823,24 @@ x_set_tool_bar_position (struct frame *f,
     wrong_choice (choice, new_value);
 }
 
+#ifdef HAVE_XDBE
 static void
 x_set_inhibit_double_buffering (struct frame *f,
                                 Lisp_Object new_value,
                                 Lisp_Object old_value)
 {
-  block_input ();
+  bool want_double_buffering, was_double_buffered;
+
   if (FRAME_X_WINDOW (f) && !EQ (new_value, old_value))
     {
-      bool want_double_buffering = NILP (new_value);
-      bool was_double_buffered = FRAME_X_DOUBLE_BUFFERED_P (f);
-      /* font_drop_xrender_surfaces in xftfont does something only if
-         we're double-buffered, so call font_drop_xrender_surfaces before
-         and after any potential change.  One of the calls will end up
-         being a no-op.  */
+      want_double_buffering = NILP (new_value);
+      was_double_buffered = FRAME_X_DOUBLE_BUFFERED_P (f);
+
+      block_input ();
       if (want_double_buffering != was_double_buffered)
 	{
+	  /* Force XftDraw etc to be recreated with the new double
+	     buffered drawable.  */
 	  font_drop_xrender_surfaces (f);
 
 	  /* Scroll bars decide whether or not to use a back buffer
@@ -860,9 +862,10 @@ x_set_inhibit_double_buffering (struct frame *f,
           SET_FRAME_GARBAGED (f);
           font_drop_xrender_surfaces (f);
         }
+      unblock_input ();
     }
-  unblock_input ();
 }
+#endif
 
 /**
  * x_set_undecorated:
@@ -3548,8 +3551,11 @@ xic_set_xfontset (struct frame *f, const char *base_fontname)
 void
 x_mark_frame_dirty (struct frame *f)
 {
-  if (FRAME_X_DOUBLE_BUFFERED_P (f) && !FRAME_X_NEED_BUFFER_FLIP (f))
+#ifdef HAVE_XDBE
+  if (FRAME_X_DOUBLE_BUFFERED_P (f)
+      && !FRAME_X_NEED_BUFFER_FLIP (f))
     FRAME_X_NEED_BUFFER_FLIP (f) = true;
+#endif
 }
 
 static void
@@ -3630,12 +3636,12 @@ tear_down_x_back_buffer (struct frame *f)
 void
 initial_set_up_x_back_buffer (struct frame *f)
 {
-  block_input ();
   eassert (FRAME_X_WINDOW (f));
   FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
-  if (NILP (CDR (Fassq (Qinhibit_double_buffering, f->param_alist))))
+
+  if (NILP (CDR (Fassq (Qinhibit_double_buffering,
+			f->param_alist))))
     set_up_x_back_buffer (f);
-  unblock_input ();
 }
 
 #if defined HAVE_XINPUT2
@@ -8614,7 +8620,12 @@ DEFUN ("x-double-buffered-p", Fx_double_buffered_p, Sx_double_buffered_p,
      (Lisp_Object frame)
 {
   struct frame *f = decode_live_frame (frame);
+
+#ifdef HAVE_XDBE
   return FRAME_X_DOUBLE_BUFFERED_P (f) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif
 }
 
 
@@ -9360,7 +9371,11 @@ frame_parm_handler x_frame_parm_handlers[] =
   gui_set_alpha,
   x_set_sticky,
   x_set_tool_bar_position,
+#ifdef HAVE_XDBE
   x_set_inhibit_double_buffering,
+#else
+  NULL,
+#endif
   x_set_undecorated,
   x_set_parent_frame,
   x_set_skip_taskbar,
