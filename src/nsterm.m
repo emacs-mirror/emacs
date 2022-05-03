@@ -6102,7 +6102,7 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
       if (tem != nil)
 	lwidth = ([tem floatValue] > 0
 		  ? Qexpanded : ([tem floatValue] < 0
-				 ? Qnormal : Qcondensed));
+				 ? Qcondensed : Qnormal));
     }
 
   lheight = make_float ([font pointSize]);
@@ -6110,7 +6110,9 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
   return CALLN (Ffont_spec,
 		QCwidth, lwidth, QCslant, lslant,
 		QCweight, lweight, QCsize, lheight,
-		QCfamily, [family lispString]);
+		QCfamily, (family
+			   ? [family lispString]
+			   : Qnil));
 }
 
 /* ==========================================================================
