@@ -2649,7 +2649,7 @@ for which LSP on-type-formatting should be requested."
             (line-beginning-position))))
        :exit-function
        (lambda (proxy status)
-         (when (eq status 'finished)
+         (when (memq status '(finished exact))
            ;; To assist in using this whole `completion-at-point'
            ;; function inside `completion-in-region', ensure the exit
            ;; function runs in the buffer where the completion was
