@@ -296,7 +296,10 @@ The format is (FUNCTION ARGS...).")
 		   (setq file (locate-library file t))
 		   (if (and file (file-readable-p file))
 		       (progn
-			 (pop-to-buffer (find-file-noselect file))
+                         (if help-window-keep-selected
+			     (pop-to-buffer-same-window
+                              (find-file-noselect file))
+                           (pop-to-buffer (find-file-noselect file)))
                          (widen)
 			 (goto-char (point-min))
 			 (if (re-search-forward
@@ -315,7 +318,9 @@ The format is (FUNCTION ARGS...).")
 		     (setq file (help-C-file-name var 'var)))
 		   (let* ((location (find-variable-noselect var file))
                           (position (cdr location)))
-		     (pop-to-buffer (car location))
+                     (if help-window-keep-selected
+		         (pop-to-buffer-same-window (car location))
+                       (pop-to-buffer (car location)))
 		     (run-hooks 'find-function-after-hook)
                      (if position
                            (progn
@@ -336,7 +341,9 @@ The format is (FUNCTION ARGS...).")
 		   (let* ((location
 			  (find-function-search-for-symbol fun 'defface file))
                          (position (cdr location)))
-		     (pop-to-buffer (car location))
+                     (if help-window-keep-selected
+                         (pop-to-buffer-same-window (car location))
+		       (pop-to-buffer (car location)))
                      (if position
                            (progn
                              ;; Widen the buffer if necessary to go to this position.
@@ -378,7 +385,9 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function
   (lambda (file pos)
-    (view-buffer-other-window (find-file-noselect file))
+    (if help-window-keep-selected
+        (view-buffer (find-file-noselect file))
+      (view-buffer-other-window (find-file-noselect file)))
     (goto-char pos))
   'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
 
