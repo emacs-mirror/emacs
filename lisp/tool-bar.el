@@ -89,17 +89,20 @@ functions.")
 
 (declare-function image-mask-p "image.c" (spec &optional frame))
 
-(defconst tool-bar-keymap-cache (make-hash-table))
+(defconst tool-bar-keymap-cache (make-hash-table :test #'equal))
+
+(defun tool-bar--cache-key ()
+  (cons (frame-terminal) (sxhash-eq tool-bar-map)))
 
 (defun tool-bar--flush-cache ()
-  (setf (gethash (frame-terminal) tool-bar-keymap-cache) nil))
+  (setf (gethash (tool-bar--cache-key) tool-bar-keymap-cache) nil))
 
 (defun tool-bar-make-keymap (&optional _ignore)
   "Generate an actual keymap from `tool-bar-map'.
 Its main job is to figure out which images to use based on the display's
 color capability and based on the available image libraries."
-  (or (gethash (frame-terminal) tool-bar-keymap-cache)
-      (setf (gethash (frame-terminal) tool-bar-keymap-cache)
+  (or (gethash (tool-bar--cache-key) tool-bar-keymap-cache)
+      (setf (gethash (tool-bar--cache-key) tool-bar-keymap-cache)
             (tool-bar-make-keymap-1))))
 
 (defun tool-bar-make-keymap-1 ()
