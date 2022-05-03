@@ -434,7 +434,9 @@ If `all', also restores frames that are partially offscreen onscreen.
 Note that checking of frame boundaries is only approximate.
 It can fail to reliably detect frames whose onscreen/offscreen state
 depends on a few pixels, especially near the right / bottom borders
-of the screen."
+of the screen.
+Text-mode frames are always considered onscreen, so this option has
+no effect on restoring frames in a non-GUI session."
   :type '(choice (const :tag "Only fully offscreen frames" t)
 		 (const :tag "Also partially offscreen frames" all)
 		 (const :tag "Do not force frames onscreen" nil))
@@ -1251,7 +1253,11 @@ This function also sets `desktop-dirname' to nil."
 ;; ----------------------------------------------------------------------------
 (defun desktop-restoring-frameset-p ()
   "True if calling `desktop-restore-frameset' will actually restore it."
-  (and desktop-restore-frames desktop-saved-frameset (display-graphic-p) t))
+  (and desktop-restore-frames desktop-saved-frameset
+       ;; Don't restore frames when the selected frame is the daemon's
+       ;; initial frame.
+       (not (and (daemonp) (not (frame-parameter nil 'client))))
+       t))
 
 (defun desktop-restore-frameset ()
   "Restore the state of a set of frames.
@@ -1262,7 +1268,8 @@ being set (usually, by reading it from the desktop)."
 		      :reuse-frames (eq desktop-restore-reuses-frames t)
 		      :cleanup-frames (not (eq desktop-restore-reuses-frames 'keep))
 		      :force-display desktop-restore-in-current-display
-		      :force-onscreen desktop-restore-forces-onscreen)))
+		      :force-onscreen (and desktop-restore-forces-onscreen
+                                           (display-graphic-p)))))
 
 ;; Just to silence the byte compiler.
 ;; Dynamically bound in `desktop-read'.
