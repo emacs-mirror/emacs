@@ -439,9 +439,9 @@ modification status:
          ;; If we didn't change anything in the buffer (and the buffer
          ;; was previously unmodified), then flip the modification status
          ;; back to "unchanged".
-         (when (buffer-live-p ,buffer)
+         (when (and ,hash (buffer-live-p ,buffer))
            (with-current-buffer ,buffer
-             (when (and ,hash (buffer-modified-p)
+             (when (and (buffer-modified-p)
                         (equal ,hash (buffer-hash)))
                (restore-buffer-modified-p nil))))))))
 
