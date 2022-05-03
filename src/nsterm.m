@@ -6182,6 +6182,19 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
 - (void) noteUserSelectedFont
 {
   font_panel_active = NO;
+
+  /* If no font was previously selected, use the currently selected
+     font.  */
+
+  if (!font_panel_result && FRAME_FONT (emacsframe))
+    {
+      font_panel_result
+	= macfont_get_nsctfont (FRAME_FONT (emacsframe));
+
+      if (font_panel_result)
+	[font_panel_result retain];
+    }
+
   [NSApp stop: self];
 }
 #endif
