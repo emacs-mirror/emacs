@@ -2306,7 +2306,7 @@ public:
 
     menu->PushState ();
     menu->SetFont (be_bold_font);
-    menu->SetHighColor (ui_color (B_CONTROL_TEXT_COLOR));
+    menu->SetHighColor (ui_color (B_MENU_ITEM_TEXT_COLOR));
     BMenuItem::DrawContent ();
     menu->PopState ();
   }
