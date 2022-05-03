@@ -1180,8 +1180,8 @@ haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	  BView_SetPenSize (FRAME_HAIKU_VIEW (s->f), 1);
 	  BView_StrokeRectangle (FRAME_HAIKU_VIEW (s->f),
 				 x, s->ybase - glyph->ascent,
-				 glyph->pixel_width - 1,
-				 glyph->ascent + glyph->descent - 1);
+				 glyph->pixel_width,
+				 glyph->ascent + glyph->descent);
 	}
       x += glyph->pixel_width;
    }
