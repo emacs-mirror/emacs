@@ -320,10 +320,13 @@ version of the package, a newer version is also installed.
 @section Package Installation
 
 @findex package-install
+@findex package-update
   Packages are most conveniently installed using the package menu
 (@pxref{Package Menu}), but you can also use the command @kbd{M-x
 package-install}.  This prompts for the name of a package with the
-@samp{available} status, then downloads and installs it.
+@samp{available} status, then downloads and installs it.  Similarly,
+if you want to update a package, you can use the @kbd{M-x
+package-update} command.
 
 @cindex package requirements
   A package may @dfn{require} certain other packages to be installed,

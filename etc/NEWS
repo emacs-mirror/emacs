@@ -707,6 +707,13 @@ script that was used in ancient South Asia.  A new input method,
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Package
+
++++
+*** New command 'package-update'.
+This command allows you to upgrade packages without using 'M-x
+list-packages'.
+
 ** Miscellaneous
 
 +++

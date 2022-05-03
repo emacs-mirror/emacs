@@ -2136,6 +2136,31 @@ to install it but still mark it as selected."
           (message  "Package `%s' installed." name))
       (message "`%s' is already installed" name))))
 
+;;;###autoload
+(defun package-update (name)
+  "Update package NAME if a newer version exists."
+  (interactive
+   (progn
+     ;; Initialize the package system to get the list of package
+     ;; symbols for completion.
+     (package--archives-initialize)
+     (list (completing-read
+            "Update package: "
+            (mapcar
+             #'car
+             (seq-filter
+              (lambda (elt)
+                (let ((available
+                       (assq (car elt) package-archive-contents)))
+                  (and available
+                       (version-list-<
+                        (package-desc-priority-version (cadr elt))
+                        (package-desc-priority-version (cadr available))))))
+              package-alist))
+            nil t))))
+  (package-delete (cadr (assq (intern name) package-alist)) 'force)
+  (package-install (intern name) 'dont-select))
+
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
 If the result looks like a dotted numeric version, return it.
