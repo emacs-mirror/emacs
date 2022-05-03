@@ -245,10 +245,12 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
   (save-excursion
     (beginning-of-line)
     (skip-chars-forward " \t")
-    (skip-chars-forward "A-Za-z0-9+")
-    (skip-chars-forward "=")
-    (skip-chars-forward " \t")
-    (eolp)))
+    (and (looking-at "[A-Za-z0-9+]\\{3\\}")
+         (progn
+           (skip-chars-forward "A-Za-z0-9+")
+           (skip-chars-forward "=")
+           (skip-chars-forward " \t")
+           (eolp)))))
 
 (defun mm-decode-body (charset &optional encoding type)
   "Decode the current article that has been encoded with ENCODING to CHARSET.
