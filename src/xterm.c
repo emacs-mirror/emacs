@@ -13143,6 +13143,22 @@ x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
 #else
   Drawable w = bar->x_drawable;
 #endif
+  int x, y, width, height;
+
+  if (event->type == Expose)
+    {
+      x = event->xexpose.x;
+      y = event->xexpose.y;
+      width = event->xexpose.width;
+      height = event->xexpose.height;
+    }
+  else
+    {
+      x = event->xgraphicsexpose.x;
+      y = event->xgraphicsexpose.y;
+      width = event->xgraphicsexpose.width;
+      height = event->xgraphicsexpose.height;
+    }
 
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
@@ -13161,10 +13177,7 @@ x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
 
       XFillRectangle (FRAME_X_DISPLAY (f),
 		      bar->x_drawable,
-		      gc, event->xexpose.x,
-		      event->xexpose.y,
-		      event->xexpose.width,
-		      event->xexpose.height);
+		      gc, x, y, width, height);
 
       XSetForeground (FRAME_X_DISPLAY (f), gc,
 		      FRAME_FOREGROUND_PIXEL (f));
@@ -14835,6 +14848,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  show_back_buffer (f);
 #endif
         }
+#ifndef USE_TOOLKIT_SCROLL_BARS
+      struct scroll_bar *bar
+	= x_window_to_scroll_bar (dpyinfo->display,
+				  /* Hopefully this is just a window,
+				     not the back buffer.  */
+				  event->xgraphicsexpose.drawable, 2);
+
+      if (bar)
+	x_scroll_bar_expose (bar, event);
+#endif
 #ifdef USE_X_TOOLKIT
       else
         goto OTHER;
