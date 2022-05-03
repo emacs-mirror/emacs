@@ -941,6 +941,20 @@ Here's some example key sequences:
 For an approximate inverse of this, see `key-description'."
   (declare (pure t) (side-effect-free t))
   (let ((res (key-parse keys)))
+    ;; For historical reasons, parse "C-x ( C-d C-x )" as "C-d", since
+    ;; `kbd' used to be a wrapper around `read-kbd-macro'.
+    (when (and (>= (length res) 4)
+               (eq (aref res 0) ?\C-x)
+               (eq (aref res 1) ?\()
+               (eq (aref res (- (length res) 2)) ?\C-x)
+               (eq (aref res (- (length res) 1)) ?\)))
+      (setq res (apply #'vector (let ((lres (append res nil)))
+                                  ;; Remove the first and last two elements.
+                                  (setq lres (cddr lres))
+                                  (setq lres (nreverse lres))
+                                  (setq lres (cddr lres))
+                                  (nreverse lres)))))
+
     (if (not (memq nil (mapcar (lambda (ch)
                                  (and (numberp ch)
                                       (<= 0 ch 127)))

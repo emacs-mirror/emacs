@@ -281,18 +281,7 @@ See `kbd' for a descripion of KEYS."
           (when key
             (dolist (_ (number-sequence 1 times))
               (setq res (vconcat res key))))))
-      (if (and (>= (length res) 4)
-               (eq (aref res 0) ?\C-x)
-               (eq (aref res 1) ?\()
-               (eq (aref res (- (length res) 2)) ?\C-x)
-               (eq (aref res (- (length res) 1)) ?\)))
-          (apply #'vector (let ((lres (append res nil)))
-                            ;; Remove the first and last two elements.
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)))
-        res))))
+      res)))
 
 (defun key-valid-p (keys)
   "Say whether KEYS is a valid key.
