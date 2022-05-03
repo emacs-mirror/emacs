@@ -1053,9 +1053,10 @@ final or penultimate step during initialization."))
   (should (equal (string-lines "foo\n\n\nbar" t t)
                  '("foo\n" "bar"))))
 
-(defun test-keymap-parse-macros ()
+(ert-deftest test-keymap-parse-macros ()
   (should (equal (key-parse "C-x ( C-d C-x )") [24 40 4 24 41]))
-  (should (equal (kbd "C-x ( C-d C-x )") "")))
+  (should (equal (kbd "C-x ( C-d C-x )") ""))
+  (should (equal (kbd "C-x ( C-x )") "")))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
