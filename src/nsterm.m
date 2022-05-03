@@ -10301,7 +10301,7 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   DEFSYM (QCmouse, ":mouse");
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qreverse_italic, "reverse-italic");
-  DEFSYM (Qexpanded, "reverse-italic");
+  DEFSYM (Qexpanded, "expanded");
 
 #ifdef NS_IMPL_COCOA
   Fprovide (Qcocoa, Qnil);
