@@ -490,8 +490,8 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
   if (style)
     font_style_to_flags (style, &m);
 
-  if ((pattern->specified & FSPEC_FAMILY) &&
-      strcmp ((char *) &pattern->family, family))
+  if ((pattern->specified & FSPEC_FAMILY)
+      && strcmp ((char *) &pattern->family, family))
     return false;
 
   if (!ignore_flags_p && (pattern->specified & FSPEC_SPACING)
@@ -500,6 +500,10 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
 
   if (pattern->specified & FSPEC_STYLE)
     return style && !strcmp (style, pattern->style);
+  /* Don't allow matching fonts with an adstyle if no style was
+     specified in the query pattern.  */
+  else if (m.specified & FSPEC_STYLE)
+    return false;
 
   if ((pattern->specified & FSPEC_WEIGHT)
       && (pattern->weight
