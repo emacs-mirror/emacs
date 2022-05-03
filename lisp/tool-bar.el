@@ -89,19 +89,18 @@ functions.")
 
 (declare-function image-mask-p "image.c" (spec &optional frame))
 
-(defconst tool-bar-keymap-cache (make-hash-table :weakness t :test 'equal))
+(defconst tool-bar-keymap-cache (make-hash-table))
 
 (defun tool-bar--flush-cache ()
-  (setf (gethash (cons (frame-terminal) tool-bar-map) tool-bar-keymap-cache)
-        nil))
+  (setf (gethash (frame-terminal) tool-bar-keymap-cache) nil))
 
 (defun tool-bar-make-keymap (&optional _ignore)
   "Generate an actual keymap from `tool-bar-map'.
 Its main job is to figure out which images to use based on the display's
 color capability and based on the available image libraries."
-  (let ((key (cons (frame-terminal) tool-bar-map)))
-    (or (gethash key tool-bar-keymap-cache)
-	(puthash key (tool-bar-make-keymap-1) tool-bar-keymap-cache))))
+  (or (gethash (frame-terminal) tool-bar-keymap-cache)
+      (setf (gethash (frame-terminal) tool-bar-keymap-cache)
+            (tool-bar-make-keymap-1))))
 
 (defun tool-bar-make-keymap-1 ()
   "Generate an actual keymap from `tool-bar-map', without caching."
@@ -182,6 +181,7 @@ ICON.xbm, using `find-image'."
   (let* ((image-exp (tool-bar--image-expression icon)))
     (define-key-after map (vector key)
       `(menu-item ,(symbol-name key) ,def :image ,image-exp ,@props))
+    (tool-bar--flush-cache)
     (force-mode-line-update)))
 
 ;;;###autoload
@@ -248,6 +248,7 @@ holds a keymap."
                 (setq rest (cdr rest)))
             (append `(menu-item ,(car defn) ,rest)
                     (list :image image-exp) props))))
+      (tool-bar--flush-cache)
       (force-mode-line-update))))
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
