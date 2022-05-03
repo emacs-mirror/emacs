@@ -288,12 +288,13 @@ to the RCS command."
 			   (match-string 1))))))
 
 (defun vc-rcs-responsible-p (file)
-  "Return non-nil if RCS thinks it would be responsible for registering FILE."
+  "Return the directory if RCS thinks it would be responsible for FILE."
   ;; TODO: check for all the patterns in vc-rcs-master-templates
-  (file-directory-p (expand-file-name "RCS"
-                                      (if (file-directory-p file)
-                                          file
-                                        (file-name-directory file)))))
+  (let ((dir (if (file-directory-p file)
+	         file
+	       (file-name-directory file))))
+    (and (file-directory-p (expand-file-name "RCS" dir))
+         (file-name-directory (expand-file-name "RCS" dir)))))
 
 (defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."

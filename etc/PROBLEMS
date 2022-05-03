@@ -651,6 +651,46 @@ And then rename the system's readline so that it won't be loaded:
 See <https://pypi.python.org/pypi/gnureadline> for more details on
 installation.
 
+*** On MS-Windows, invoking "M-x run-python" signals an error.
+
+If the error says something like this:
+
+  Python was not found; run with arguments to install
+  from the Microsoft Store, or disable this shortcut
+  from Settings > Manage App Execution Aliases.
+
+  Process Python exited abnormally with code 49
+
+then this is due to the MS-Windows "feature" that is intended to
+encourage you to install the latest available Python version.  It
+works by placing "fake" python.exe and python3.exe executables in a
+special directory, and having that directory on your Path _before_ the
+directory where the real Python executable is installed.  That "fake"
+Python then decides whether to redirect you to the Microsoft Store or
+invoke the actual Python.  The directory where Windows keeps those
+"fake" executables is under your Windows user's 'AppData' directory,
+typically 'C:\Users\<user>\AppData\Local\Microsoft\WindowsApps', where
+"<user>" is the user name of your Windows user.
+
+To solve this, you have several alternatives:
+
+  . Go to "Settings > Manage App Execution Aliases" and turn OFF the
+    aliases for python.exe and/or python3.exe.  This will affect only
+    Python, and may require you to manage upgrades to your Python
+    installation manually, instead of being automatically prompted by
+    MS-Windows.
+  . Move the directory with the "fake" executables to the end of Path,
+    or at least after the directory where the real Python is
+    installed.  Depending on the position in Path where you move it,
+    it will affect Python and/or other programs which Windows monitors
+    via the "App Execution Aliases" feature.
+  . Manually remove python.exe and/or python3.exe from the above
+    directory.  Again, this affects only your Python installation.
+
+Whatever you do, you will need to restart Emacs to refresh its notion
+of the directory where python.exe/python3.exe lives, because that is
+recorded when Python mode is started.
+
 *** Visiting files in some auto-mounted directories causes Emacs to print
 'Error reading dir-locals: (file-error "Read error" "is a directory" ...'
 
@@ -1021,6 +1061,21 @@ modern fonts are used, such as Noto Emoji or Ebrima.
 
 The solution is to switch to a configuration that uses HarfBuzz as its
 shaping engine, where these problems don't exist.
+
+** On MS-Windows, selecting some fonts as the default font doesn't work.
+
+This can happen if you select font variants such as "Light" or "Thin"
+or "Semibold" or "Heavy", and some others.  The APIs used by Emacs on
+Windows to enumerate fonts in a font family consider only 4 font
+variants to belong to the same family: Regular, Italic, Bold, and
+Bold-Italic.  All the other variants aren't returned by those APIs
+when we request to list all the fonts in a family, and thus aren't
+considered by Emacs to belong to the family.  So any font variant that
+is not one of those 4 will likely not work as expected; in most cases
+Emacs will select some other font instead.
+
+The only workaround is not to choose such font variants as the default
+font when running Emacs on MS-Windows.
 
 * Internationalization problems
 

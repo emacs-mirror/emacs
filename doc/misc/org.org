@@ -6405,7 +6405,7 @@ special repeaters =++= and =.+=.  For example:
    Marking this DONE shifts the date to one month after today.
 
 ,** TODO Wash my hands
-   DEADLINE: <2019-04-05 08:00 Sun .+1h>
+   DEADLINE: <2019-04-05 08:00 Fri .+1h>
    Marking this DONE shifts the date to exactly one hour from now.
 #+end_example
 

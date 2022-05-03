@@ -9,7 +9,7 @@
 ;; Homepage: https://orgmode.org
 ;; Package-Requires: ((emacs "25.1"))
 
-;; Version: 9.5.2
+;; Version: 9.5.3
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -199,6 +199,7 @@ Stars are put in group 1 and the trimmed body in group 2.")
 (declare-function org-update-radio-target-regexp "ol" ())
 
 (defvar org-element-paragraph-separate)
+(defvar org-element--timestamp-regexp)
 (defvar org-indent-indentation-per-level)
 (defvar org-radio-target-regexp)
 (defvar org-target-link-regexp)
@@ -15011,16 +15012,24 @@ value is equivalent to `inactive'.
 When at a timestamp, return the position of the point as a symbol
 among `bracket', `after', `year', `month', `hour', `minute',
 `day' or a number of character from the last know part of the
-time stamp.
+time stamp.  If diary sexp timestamps, any point inside the timestamp
+is considered `day' (i.e. only `bracket', `day', and `after' return
+values are possible).
 
 When matching, the match groups are the following:
-  group 1: year
-  group 2: month
-  group 3: day number
-  group 4: day name
+  group 1: year, if any
+  group 2: month, if any
+  group 3: day number, if any
+  group 4: day name, if any
   group 5: hours, if any
   group 6: minutes, if any"
-  (let* ((regexp (if extended org-ts-regexp3 org-ts-regexp2))
+  (let* ((regexp
+          (if extended
+              (if (eq extended 'agenda)
+                  (rx (or (regexp org-ts-regexp3)
+                          (regexp org-element--timestamp-regexp)))
+		org-ts-regexp3)
+            org-ts-regexp2))
 	 (pos (point))
 	 (match?
 	  (let ((boundaries (org-in-regexp regexp)))
@@ -15051,7 +15060,8 @@ When matching, the match groups are the following:
      ((org-pos-in-match-range pos 8)      'minute)
      ((or (org-pos-in-match-range pos 4)
 	  (org-pos-in-match-range pos 5)) 'day)
-     ((and (> pos (or (match-end 8) (match-end 5)))
+     ((and (or (match-end 8) (match-end 5))
+           (> pos (or (match-end 8) (match-end 5)))
 	   (< pos (match-end 0)))
       (- pos (or (match-end 8) (match-end 5))))
      (t                                   'day))))

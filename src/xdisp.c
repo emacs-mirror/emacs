@@ -774,7 +774,7 @@ static bool message_buf_print;
 static bool message_cleared_p;
 
 /* A scratch glyph row with contents used for generating truncation
-   glyphs.  Also used in direct_output_for_insert.  */
+   glyphs and overlay-arrow glyphs.  */
 
 #define MAX_SCRATCH_GLYPHS 100
 static struct glyph_row scratch_glyph_row;
@@ -10788,11 +10788,51 @@ include the height of any of these, if present, in the return value.  */)
      non-zero X coordinate.  */
   reseat_at_previous_visible_line_start (&it);
   it.current_x = it.hpos = 0;
+
+  int start_x;
   if (IT_CHARPOS (it) != start)
-    move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+    {
+      void *it1data = NULL;
+      struct it it1;
+
+      SAVE_IT (it1, it, it1data);
+      move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+      /* We could have a display property at START, in which case
+	 asking move_it_to to stop at START will overshoot and stop at
+	 position after START.  So we try again, stopping before
+	 START, and account for the width of the last buffer position
+	 manually.  */
+      if (IT_CHARPOS (it) > start && start > BEGV)
+	{
+	  ptrdiff_t it1pos = IT_CHARPOS (it1);
+	  int it1_x = it1.current_x;
+
+	  RESTORE_IT (&it, &it1, it1data);
+	  /* If START - 1 is the beginning of screen line, move_it_to
+	     will not move, so we need to use a lower-level
+	     move_it_in_display_line subroutine, and tell it to move
+	     just 1 pixel, so it stops at the next display element.  */
+	  if (start - 1 > it1pos)
+	    move_it_to (&it, start - 1, -1, -1, -1, MOVE_TO_POS);
+	  else
+	    move_it_in_display_line (&it, start, it1_x + 1,
+				     MOVE_TO_POS | MOVE_TO_X);
+	  start_x = it.current_x;
+	  /* If we didn't change our buffer position, the pixel width
+	     of what's here was not yet accounted for; do it manually.  */
+	  if (IT_CHARPOS (it) == start - 1)
+	    start_x += it.pixel_width;
+	}
+      else
+	{
+	  start_x = it.current_x;
+	  bidi_unshelve_cache (it1data, true);
+	}
+    }
+  else
+    start_x = it.current_x;
 
   /* Now move to TO.  */
-  int start_x = it.current_x;
   int move_op = MOVE_TO_POS | MOVE_TO_Y;
   int to_x = -1;
   it.current_y = start_y;
@@ -21613,7 +21653,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
   struct buffer *buffer = XBUFFER (w->contents);
   struct buffer *old = current_buffer;
   const unsigned char *arrow_string = SDATA (overlay_arrow_string);
-  ptrdiff_t arrow_len = SCHARS (overlay_arrow_string);
+  ptrdiff_t arrow_len = SBYTES (overlay_arrow_string), char_num = 0;
   const unsigned char *arrow_end = arrow_string + arrow_len;
   const unsigned char *p;
   struct it it;
@@ -21644,7 +21684,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
       p += it.len;
 
       /* Get its face.  */
-      ilisp = make_fixnum (p - arrow_string);
+      ilisp = make_fixnum (char_num++);
       face = Fget_text_property (ilisp, Qface, overlay_arrow_string);
       it.face_id = compute_char_face (f, it.char_to_display, face);
 

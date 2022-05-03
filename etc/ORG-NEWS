@@ -451,10 +451,6 @@ you can now configure them.
 (the default) or use the attachment directory of the current node, if
 it is correctly configured as a Git repository.
 
-*** Some faces now use fixed-pitch
-
-See [[msg:875z8njaol.fsf@protesilaos.com][this thread]].
-
 *** New option ~org-attach-sync-delete-empty-dir~
 
 ~org-attach-sync-delete-empty-dir~ controls the deletion of an empty
@@ -509,7 +505,7 @@ heading, except return nil.
 
 In the past, faces of todo keywords, emphasised text, tags, and
 priority cookies inherited =default= face.  The resulting headline
-fontification was not always consistent, as discussed in [[https://lists.gnu.org/archive/html/emacs-orgmode/2020-09/msg00331.html][this bug
+fontification was not always consistent, as discussed in [[msg::87h7sawubl.fsf@protesilaos.com][this bug
 report]].  Now, the relevant faces adapt to face used to fontify the
 current headline level.
 

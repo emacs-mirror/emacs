@@ -88,6 +88,12 @@ No active TAGS table is required."
 (defun reftex-query-replace-document (&optional from to delimited)
   "Do `query-replace-regexp' of FROM with TO over the entire document.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
 No active TAGS table is required."

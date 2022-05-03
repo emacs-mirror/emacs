@@ -701,7 +701,13 @@ quit the *xref* buffer."
   "Perform interactive replacement of FROM with TO in all displayed xrefs.
 
 This command interactively replaces FROM with TO in the names of the
-references displayed in the current *xref* buffer."
+references displayed in the current *xref* buffer.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+"
   (interactive
    (let ((fr (read-regexp "Xref query-replace (regexp)" ".*")))
      (list fr
