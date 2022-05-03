@@ -381,7 +381,7 @@ MSG is either a help string to display, or nil to cancel the display."
            ;; Tooltips can't be displayed on top of the global menu
            ;; bar on NS.
            (or (not (eq window-system 'ns))
-               (menu-or-popup-active-p)))
+               (not (menu-or-popup-active-p))))
       (let ((previous-help tooltip-help-message))
 	(setq tooltip-help-message msg)
 	(cond ((null msg)
