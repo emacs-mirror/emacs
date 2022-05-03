@@ -245,9 +245,9 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
   (save-excursion
     (beginning-of-line)
     (skip-chars-forward " \t")
-    (and (looking-at "[A-Za-z0-9+]\\{3\\}")
+    (and (looking-at "[A-Za-z0-9+/]\\{3\\}")
          (progn
-           (skip-chars-forward "A-Za-z0-9+")
+           (skip-chars-forward "A-Za-z0-9+/")
            (skip-chars-forward "=")
            (skip-chars-forward " \t")
            (eolp)))))
