@@ -490,7 +490,7 @@ OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
-OPTION_DEFAULT_OFF([xinput2],[use version 2 of the X Input Extension for input])
+OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for input])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],

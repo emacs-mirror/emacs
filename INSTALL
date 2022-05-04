@@ -358,9 +358,9 @@ Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 Use --without-xim to inhibit the default use of X Input Methods.
 In this case, the X resource useXIM can be used to turn on use of XIM.
 
-Use --with-xinput2 to enable the use of version 2 of the X Input
-Extension.  This enables support for touchscreens, pinch gestures, and
-scroll wheels that report scroll deltas at pixel-level precision.
+Use --without-xinput2 to disable the use of version 2 of the X Input
+Extension.  This disables support for touchscreens, pinch gestures,
+and scroll wheels that report scroll deltas at pixel-level precision.
 
 Use --disable-largefile to omit support for files larger than 2GB, and
 --disable-year2038 to omit support for timestamps past the year 2038,
