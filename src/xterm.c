@@ -17192,7 +17192,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  XSETFRAME (inev.ie.frame_or_window, f);
 			}
 
-		      if (source && source->name)
+		      if (source && !NILP (source->name))
 			inev.ie.device = source->name;
 
 		      goto XI_OTHER;
