@@ -1309,9 +1309,14 @@ All keyword parameters default to nil."
 			    (setq mb-window nil)))
 			(when mb-window
 			  (push (cons 'minibuffer mb-window) frame-cfg))))))
-                  (when (frameset-switch-to-gui-p frame-cfg)
-                    ;; Apply small offsets to each frame, so that they
-                    ;; don't obscure each other.
+                  ;; Apply small offsets to each frame that came from
+                  ;; a TTY-saved desktop, so that they don't obscure
+                  ;; each other, but only if we don't have real frame
+                  ;; position infor from a GUI session in some,
+                  ;; possibly distant, past.
+                  (when (and (frameset-switch-to-gui-p frame-cfg)
+                             (null (cdr (assq 'GUI:top frame-cfg)))
+                             (null (cdr (assq 'GUI:left frame-cfg))))
                     (setq dx (+ dx 20)
                           dy (+ dy 10)))
 		  ;; OK, we're ready at last to create (or reuse) a frame and
