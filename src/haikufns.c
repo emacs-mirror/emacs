@@ -2484,7 +2484,7 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
   if (!NILP (dir))
     {
       CHECK_STRING (dir);
-      dir = DECODE_FILE (dir);
+      dir = ENCODE_FILE (dir);
     }
 
   if (!NILP (save_text))
@@ -2516,7 +2516,7 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
   value = build_string (file_name);
   free (file_name);
 
-  return ENCODE_FILE (value);
+  return DECODE_FILE (value);
 }
 
 DEFUN ("haiku-put-resource", Fhaiku_put_resource, Shaiku_put_resource,
