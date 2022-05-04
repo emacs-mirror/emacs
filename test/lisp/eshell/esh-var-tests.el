@@ -333,7 +333,12 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
   "Interpolate command result redirected to temp file inside double-quotes"
-  (should (equal (eshell-test-command-result "cat \"$<echo hi>\"") "hi")))
+  (let ((temporary-file-directory
+         (file-name-as-directory (make-temp-file "esh-vars-tests" t))))
+    (unwind-protect
+        (should (equal (eshell-test-command-result "cat \"$<echo hi>\"")
+                       "hi"))
+      (delete-directory temporary-file-directory t))))
 
 (ert-deftest esh-var-test/quoted-interp-concat-cmd ()
   "Interpolate and concat command with literal"
