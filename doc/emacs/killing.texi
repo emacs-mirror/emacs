@@ -540,11 +540,11 @@ clipboard.
 clipboard contents are normally lost.  Optionally, Emacs can save the
 existing clipboard contents to the kill ring, preventing you from
 losing the old clipboard data.  If
-@code{save-interprogram-paste-before-kill} changed to a number, then
-this data is copied over if it's smaller (in characters) than this
-number.  If this variable is any other non-@code{nil} value, it's
-always copied over---at the risk of high memory consumption if that
-data turns out to be large.
+@code{save-interprogram-paste-before-kill} has been set to a number,
+then the data is copied over if it's smaller (in characters) than
+this number.  If this variable is any other non-@code{nil} value, the
+data is always copied over---at the risk of high memory consumption if
+that data turns out to be large.
 
   Yank commands, such as @kbd{C-y} (@code{yank}), also use the
 clipboard.  If another application ``owns'' the clipboard---i.e., if
@@ -567,8 +567,8 @@ change the variable @code{select-enable-clipboard} to @code{nil}.
 instance, a web browser will usually let you choose ``Copy Image'' on
 images, and this image will be put on the clipboard.  On capable
 platforms, Emacs can yank these objects with the @code{yank-media}
-command---but only in modes that have support for it (@pxref{Yanking
-Media,,, elisp, The Emacs Lisp Reference Manual}).
+command---but only in modes that have support for it (@w{@pxref{Yanking
+Media,,, elisp, The Emacs Lisp Reference Manual}}).
 
 @cindex clipboard manager
 @vindex x-select-enable-clipboard-manager
