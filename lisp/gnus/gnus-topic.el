@@ -748,8 +748,8 @@ articles in the topic and its subtopics."
 		   (car type) (car gnus-group-list-mode)
 		   (cdr gnus-group-list-mode)))
 	 (all-groups (gnus-topic-find-groups
-		   (car type) (car gnus-group-list-mode)
-		   (cdr gnus-group-list-mode) nil t))
+		      (car type) (car gnus-group-list-mode)
+		      (cdr gnus-group-list-mode) nil t))
 	entry)
     (while children
       (cl-incf unread (gnus-topic-unread (caar (pop children)))))
@@ -788,8 +788,8 @@ articles in the topic and its subtopics."
 		   (car type) (car gnus-group-list-mode)
 		   (cdr gnus-group-list-mode)))
 	 (all-groups (gnus-topic-find-groups
-		   (car type) (car gnus-group-list-mode)
-		   (cdr gnus-group-list-mode) t))
+		      (car type) (car gnus-group-list-mode)
+		      (cdr gnus-group-list-mode) nil t))
 	 (parent (gnus-topic-parent-topic topic-name))
 	 (all-entries entries)
 	 (unread 0)
