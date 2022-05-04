@@ -1851,7 +1851,7 @@ your X defaults file to avoid the problem:
 
   XTerm.*.allowSendEvents: True
 
-Note that this can in theory pose a security risk, but in pratice
+Note that this can in theory pose a security risk, but in practice
 modern X servers have so many other ways to send input to clients
 without signifying that the event is synthesized that it does not
 matter.
