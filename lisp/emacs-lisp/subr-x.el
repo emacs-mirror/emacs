@@ -417,16 +417,23 @@ this defaults to the current buffer."
       process)))
 
 (defmacro with-buffer-unmodified-if-unchanged (&rest body)
-  "Like `progn', but change buffer modification status only if buffer is changed.
-That is, if the buffer is marked as unmodified before BODY, and
-BODY does modifications that, in total, means that the buffer is
-identical to the buffer before BODY, mark the buffer as
-unmodified again.  In other words, this won't change buffer
-modification status:
+  "Like `progn', but change buffer-modified status only if buffer text changes.
+If the buffer was unmodified before execution of BODY, and
+buffer text after execution of BODY is identical to what it was
+before, ensure that buffer is still marked unmodified afterwards.
+For example, the following won't change the buffer's modification
+status:
 
   (with-buffer-unmodified-if-unchanged
     (insert \"a\")
-    (delete-char -1))."
+    (delete-char -1))
+
+Note that only changes in the raw byte sequence of the buffer text,
+as stored in the internal representation, are monitored for the
+purpose of detecting the lack of changes in buffer text.  Any other
+changes that are normally perceived as \"buffer modifications\", such
+as changes in text properties, `buffer-file-coding-system', buffer
+multibytenes, etc. -- will still cause the buffer to become modified."
   (declare (debug t) (indent 0))
   (let ((hash (gensym))
         (buffer (gensym)))
