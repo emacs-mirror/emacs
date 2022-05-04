@@ -2577,7 +2577,8 @@ public:
 
   EmacsFontSelectionDialog (bool monospace_only,
 			    int initial_family_idx,
-			    int initial_style_idx)
+			    int initial_style_idx,
+			    int initial_size)
     : BWindow (BRect (0, 0, 500, 500),
 	       "Select font from list",
 	       B_TITLED_WINDOW_LOOK,
@@ -2610,6 +2611,7 @@ public:
     uint32 flags, c;
     BMessage *selection;
     BTextView *size_text;
+    char format_buffer[4];
 
     AddChild (&basic_view);
 
@@ -2670,6 +2672,12 @@ public:
 
     for (c = 58; c <= 127; ++c)
       size_text->DisallowChar (c);
+
+    if (initial_size > 0 && initial_size < 1000)
+      {
+	sprintf (format_buffer, "%d", initial_size);
+	size_entry.SetText (format_buffer);
+      }
   }
 
   void
@@ -4719,7 +4727,8 @@ be_select_font (void (*process_pending_signals_function) (void),
 		haiku_font_family_or_style *family,
 		haiku_font_family_or_style *style,
 		int *size, bool allow_monospace_only,
-		int initial_family, int initial_style)
+		int initial_family, int initial_style,
+		int initial_size)
 {
   EmacsFontSelectionDialog *dialog;
   struct font_selection_dialog_message msg;
@@ -4728,7 +4737,8 @@ be_select_font (void (*process_pending_signals_function) (void),
   font_style style_buffer;
 
   dialog = new EmacsFontSelectionDialog (allow_monospace_only,
-					 initial_family, initial_style);
+					 initial_family, initial_style,
+					 initial_size);
   dialog->CenterOnScreen ();
 
   if (dialog->InitCheck () < B_OK)

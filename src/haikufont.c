@@ -1151,7 +1151,7 @@ in the font selection dialog.  */)
   struct font *font;
   Lisp_Object font_object;
   haiku_font_family_or_style family, style;
-  int rc, size, initial_family, initial_style;
+  int rc, size, initial_family, initial_style, initial_size;
   struct haiku_font_pattern pattern;
   Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle, lsize;
 
@@ -1162,6 +1162,7 @@ in the font selection dialog.  */)
 
   initial_style = -1;
   initial_family = -1;
+  initial_size = -1;
 
   font = FRAME_FONT (f);
 
@@ -1173,6 +1174,8 @@ in the font selection dialog.  */)
       be_find_font_indices (&pattern, &initial_family,
 			    &initial_style);
       haikufont_done_with_query_pattern (&pattern);
+
+      initial_size = font->pixel_size;
     }
 
   popup_activated_p++;
@@ -1181,7 +1184,8 @@ in the font selection dialog.  */)
 		       haikufont_should_quit_popup,
 		       &family, &style, &size,
 		       !NILP (exclude_proportional),
-		       initial_family, initial_style);
+		       initial_family, initial_style,
+		       initial_size);
   request_sigio ();
   popup_activated_p--;
 
