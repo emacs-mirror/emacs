@@ -4469,7 +4469,7 @@ ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
       return -1;
     }
 
-  eassert (nfds <= FD_SETSIZE);
+  eassert (nfds <= EMACS_MAX_FD);
   for (k = 0; k < nfds; k++)
     {
       if (readfds && FD_ISSET(k, readfds)) ++nr;
@@ -5704,15 +5704,15 @@ ns_term_shutdown (int sig)
      maximum number of open files for the process in their first call.
      We make dummy calls to them and then reduce the resource limit
      here, since pselect cannot handle file descriptors that are
-     greater than or equal to FD_SETSIZE.  */
+     greater than or equal to EMACS_MAX_FD.  */
   CFSocketGetTypeID ();
   CFFileDescriptorGetTypeID ();
   [[NSFileHandle alloc] init];
   struct rlimit rlim;
   if (getrlimit (RLIMIT_NOFILE, &rlim) == 0
-      && rlim.rlim_cur > FD_SETSIZE)
+      && rlim.rlim_cur > EMACS_MAX_FD)
     {
-      rlim.rlim_cur = FD_SETSIZE;
+      rlim.rlim_cur = EMACS_MAX_FD;
       setrlimit (RLIMIT_NOFILE, &rlim);
     }
   if ([NSApp activationPolicy] == NSApplicationActivationPolicyProhibited) {

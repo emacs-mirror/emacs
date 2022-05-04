@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_SETRLIMIT
 # include <sys/resource.h>
 
-/* If NOFILE_LIMIT.rlim_cur is greater than FD_SETSIZE, then
+/* If NOFILE_LIMIT.rlim_cur is greater than EMACS_MAX_FD, then
    NOFILE_LIMIT is the initial limit on the number of open files,
    which should be restored in child processes.  */
 static struct rlimit nofile_limit;
@@ -299,7 +299,7 @@ static void child_signal_read (int, void *);
 static void child_signal_notify (void);
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor.  */
-static Lisp_Object chan_process[FD_SETSIZE];
+static Lisp_Object chan_process[EMACS_MAX_FD];
 static void wait_for_socket_fds (Lisp_Object, char const *);
 
 /* Alist of elements (NAME . PROCESS).  */
@@ -311,18 +311,18 @@ static Lisp_Object Vprocess_alist;
    output from the process is to read at least one char.
    Always -1 on systems that support FIONREAD.  */
 
-static int proc_buffered_char[FD_SETSIZE];
+static int proc_buffered_char[EMACS_MAX_FD];
 
 /* Table of `struct coding-system' for each process.  */
-static struct coding_system *proc_decode_coding_system[FD_SETSIZE];
-static struct coding_system *proc_encode_coding_system[FD_SETSIZE];
+static struct coding_system *proc_decode_coding_system[EMACS_MAX_FD];
+static struct coding_system *proc_encode_coding_system[EMACS_MAX_FD];
 
 #ifdef DATAGRAM_SOCKETS
 /* Table of `partner address' for datagram sockets.  */
 static struct sockaddr_and_len {
   struct sockaddr *sa;
   ptrdiff_t len;
-} datagram_address[FD_SETSIZE];
+} datagram_address[EMACS_MAX_FD];
 #define DATAGRAM_CHAN_P(chan)	(datagram_address[chan].sa != 0)
 #define DATAGRAM_CONN_P(proc)                                           \
   (PROCESSP (proc) &&                                                   \
@@ -460,8 +460,113 @@ static struct fd_callback_data
   /* If this fd is currently being selected on by a thread, this
      points to the thread.  Otherwise it is NULL.  */
   struct thread_state *waiting_thread;
-} fd_callback_info[FD_SETSIZE];
+} fd_callback_info[EMACS_MAX_FD];
 
+#ifdef USE_POLL
+struct pollfd pollfds[EMACS_MAX_FD];
+
+/* Convert a read set and a write set to the corresponding array of
+   struct pollfd.  maxfds is the highest fd set in the sets.  Returns
+   the number of file descriptors set in the array.  rset and wset can
+   be NULL, in which case they will be treated as if they were empty
+   sets.  */
+
+int
+fd_sets_to_pollfds (emacs_fd_set *rset, emacs_fd_set *wset, int maxfds)
+{
+  int poll_idx = 0;
+  emacs_fd_set dummy_rset;
+  emacs_fd_set dummy_wset;
+
+  if (!rset)
+    {
+      FD_ZERO (&dummy_rset);
+      rset = &dummy_rset;
+    }
+  if (!wset)
+    {
+      FD_ZERO (&dummy_wset);
+      wset = &dummy_wset;
+    }
+  for (int i = 0; i < maxfds; i++)
+    {
+      short flag = 0;
+      if (FD_ISSET (i, rset))
+	flag |= POLLIN;
+      if (FD_ISSET (i, wset))
+	flag |= POLLOUT;
+      if (flag != 0)
+	{
+	  pollfds[poll_idx].fd = i;
+	  pollfds[poll_idx].events = flag;
+	  poll_idx++;
+	}
+    }
+  return poll_idx;
+}
+
+/* Convert an array of struct pollfd to the corresponding read and
+   write fd_sets.  poll_count is the number of file descriptors set in
+   the array.  rset and wset can be NULL, in which case they're
+   treated as if they were empty.  */
+
+void
+pollfds_to_fd_sets (emacs_fd_set *rset, emacs_fd_set *wset, int poll_count)
+{
+  emacs_fd_set dummy_rset;
+  emacs_fd_set dummy_wset;
+
+  if (!rset)
+    rset = &dummy_rset;
+  FD_ZERO (rset);
+  if (!wset)
+    wset = &dummy_wset;
+  FD_ZERO (wset);
+  for (int i = 0; i < poll_count; i++)
+    {
+      if (pollfds[i].revents & (POLLIN|POLLHUP))
+	FD_SET (pollfds[i].fd, rset);
+      if (pollfds[i].revents & POLLOUT)
+	FD_SET (pollfds[i].fd, wset);
+    }
+}
+
+/* Convert a struct timespec to the corresponding timeout in
+   milliseconds.  A NULL timespec is treated as infinity.  */
+
+int
+timespec_to_timeout (const struct timespec *ts)
+{
+  if (!ts)
+    return -1;
+  return (ts->tv_sec * 1000 + ts->tv_nsec / 1000000);
+}
+
+/* Wrapper around `poll' with the calling convention of pselect.
+   Converts arguments as appropriate.  The sigmask argument is not
+   handled, since Emacs doesn't actually use it.  */
+int
+emacs_pselect (int nfds, emacs_fd_set *readfds, emacs_fd_set *writefds,
+	       emacs_fd_set *errorfds, const struct timespec *timeout,
+	       const sigset_t *sigmask)
+{
+  int ret;
+  int poll_count;
+
+  poll_count = fd_sets_to_pollfds (readfds, writefds, nfds);
+  ret = poll (pollfds, poll_count, timespec_to_timeout (timeout));
+  if (ret > 0)
+    pollfds_to_fd_sets(readfds, writefds, poll_count);
+  else
+    {
+      if (readfds)
+	FD_ZERO (readfds);
+      if (writefds)
+	FD_ZERO (writefds);
+    }
+  return ret;
+}
+#endif	/* USE_POLL */
 
 /* Add a file descriptor FD to be monitored for when read is possible.
    When read is possible, call FUNC with argument DATA.  */
@@ -471,7 +576,7 @@ add_read_fd (int fd, fd_callback func, void *data)
 {
   add_keyboard_wait_descriptor (fd);
 
-  eassert (0 <= fd && fd < FD_SETSIZE);
+  eassert (0 <= fd && fd < EMACS_MAX_FD);
   fd_callback_info[fd].func = func;
   fd_callback_info[fd].data = data;
 }
@@ -486,14 +591,14 @@ add_non_keyboard_read_fd (int fd, fd_callback func, void *data)
 static void
 add_process_read_fd (int fd)
 {
-  eassert (fd >= 0 && fd < FD_SETSIZE);
+  eassert (fd >= 0 && fd < EMACS_MAX_FD);
   eassert (fd_callback_info[fd].func == NULL);
 
   fd_callback_info[fd].flags &= ~KEYBOARD_FD;
   fd_callback_info[fd].flags |= FOR_READ;
   if (fd > max_desc)
     max_desc = fd;
-  eassert (0 <= fd && fd < FD_SETSIZE);
+  eassert (0 <= fd && fd < EMACS_MAX_FD);
   fd_callback_info[fd].flags |= PROCESS_FD;
 }
 
@@ -504,7 +609,7 @@ delete_read_fd (int fd)
 {
   delete_keyboard_wait_descriptor (fd);
 
-  eassert (0 <= fd && fd < FD_SETSIZE);
+  eassert (0 <= fd && fd < EMACS_MAX_FD);
   if (fd_callback_info[fd].flags == 0)
     {
       fd_callback_info[fd].func = 0;
@@ -518,7 +623,7 @@ delete_read_fd (int fd)
 void
 add_write_fd (int fd, fd_callback func, void *data)
 {
-  eassert (fd >= 0 && fd < FD_SETSIZE);
+  eassert (fd >= 0 && fd < EMACS_MAX_FD);
 
   fd_callback_info[fd].func = func;
   fd_callback_info[fd].data = data;
@@ -530,7 +635,7 @@ add_write_fd (int fd, fd_callback func, void *data)
 static void
 add_non_blocking_write_fd (int fd)
 {
-  eassert (fd >= 0 && fd < FD_SETSIZE);
+  eassert (fd >= 0 && fd < EMACS_MAX_FD);
   eassert (fd_callback_info[fd].func == NULL);
 
   fd_callback_info[fd].flags |= FOR_WRITE | NON_BLOCKING_CONNECT_FD;
@@ -544,7 +649,7 @@ recompute_max_desc (void)
 {
   int fd;
 
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
   for (fd = max_desc; fd >= 0; --fd)
     {
       if (fd_callback_info[fd].flags != 0)
@@ -553,7 +658,7 @@ recompute_max_desc (void)
 	  break;
 	}
     }
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
 }
 
 /* Stop monitoring file descriptor FD for when write is possible.  */
@@ -561,7 +666,7 @@ recompute_max_desc (void)
 void
 delete_write_fd (int fd)
 {
-  eassert (0 <= fd && fd < FD_SETSIZE);
+  eassert (0 <= fd && fd < EMACS_MAX_FD);
   if ((fd_callback_info[fd].flags & NON_BLOCKING_CONNECT_FD) != 0)
     {
       if (--num_pending_connects < 0)
@@ -584,7 +689,7 @@ compute_input_wait_mask (fd_set *mask)
   int fd;
 
   FD_ZERO (mask);
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
   for (fd = 0; fd <= max_desc; ++fd)
     {
       if (fd_callback_info[fd].thread != NULL
@@ -607,7 +712,7 @@ compute_non_process_wait_mask (fd_set *mask)
   int fd;
 
   FD_ZERO (mask);
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
   for (fd = 0; fd <= max_desc; ++fd)
     {
       if (fd_callback_info[fd].thread != NULL
@@ -631,7 +736,7 @@ compute_non_keyboard_wait_mask (fd_set *mask)
   int fd;
 
   FD_ZERO (mask);
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
   for (fd = 0; fd <= max_desc; ++fd)
     {
       if (fd_callback_info[fd].thread != NULL
@@ -655,7 +760,7 @@ compute_write_mask (fd_set *mask)
   int fd;
 
   FD_ZERO (mask);
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
   for (fd = 0; fd <= max_desc; ++fd)
     {
       if (fd_callback_info[fd].thread != NULL
@@ -677,7 +782,7 @@ clear_waiting_thread_info (void)
 {
   int fd;
 
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
   for (fd = 0; fd <= max_desc; ++fd)
     {
       if (fd_callback_info[fd].waiting_thread == current_thread)
@@ -969,10 +1074,10 @@ update_processes_for_thread_death (Lisp_Object dying_thread)
 	  struct Lisp_Process *proc = XPROCESS (process);
 
 	  pset_thread (proc, Qnil);
-	  eassert (proc->infd < FD_SETSIZE);
+	  eassert (proc->infd < EMACS_MAX_FD);
 	  if (proc->infd >= 0)
 	    fd_callback_info[proc->infd].thread = NULL;
-	  eassert (proc->outfd < FD_SETSIZE);
+	  eassert (proc->outfd < EMACS_MAX_FD);
 	  if (proc->outfd >= 0)
 	    fd_callback_info[proc->outfd].thread = NULL;
 	}
@@ -1413,10 +1518,10 @@ If THREAD is nil, the process is unlocked.  */)
 
   proc = XPROCESS (process);
   pset_thread (proc, thread);
-  eassert (proc->infd < FD_SETSIZE);
+  eassert (proc->infd < EMACS_MAX_FD);
   if (proc->infd >= 0)
     fd_callback_info[proc->infd].thread = tstate;
-  eassert (proc->outfd < FD_SETSIZE);
+  eassert (proc->outfd < EMACS_MAX_FD);
   if (proc->outfd >= 0)
     fd_callback_info[proc->outfd].thread = tstate;
 
@@ -2144,7 +2249,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	}
     }
 
-  if (FD_SETSIZE <= inchannel || FD_SETSIZE <= outchannel)
+  if (EMACS_MAX_FD <= inchannel || EMACS_MAX_FD <= outchannel)
     report_file_errno ("Creating pipe", Qnil, EMFILE);
 
 #ifndef WINDOWSNT
@@ -2156,7 +2261,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
 
   /* Record this as an active process, with its channels.  */
-  eassert (0 <= inchannel && inchannel < FD_SETSIZE);
+  eassert (0 <= inchannel && inchannel < EMACS_MAX_FD);
   chan_process[inchannel] = process;
   p->infd = inchannel;
   p->outfd = outchannel;
@@ -2251,7 +2356,7 @@ create_pty (Lisp_Object process)
   if (pty_fd >= 0)
     {
       p->open_fd[SUBPROCESS_STDIN] = pty_fd;
-      if (FD_SETSIZE <= pty_fd)
+      if (EMACS_MAX_FD <= pty_fd)
 	report_file_errno ("Opening pty", Qnil, EMFILE);
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
@@ -2274,7 +2379,7 @@ create_pty (Lisp_Object process)
 
       /* Record this as an active process, with its channels.
 	 As a result, child_setup will close Emacs's side of the pipes.  */
-      eassert (0 <= pty_fd && pty_fd < FD_SETSIZE);
+      eassert (0 <= pty_fd && pty_fd < EMACS_MAX_FD);
       chan_process[pty_fd] = process;
       p->infd = pty_fd;
       p->outfd = pty_fd;
@@ -2360,7 +2465,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
   outchannel = p->open_fd[WRITE_TO_SUBPROCESS];
   inchannel = p->open_fd[READ_FROM_SUBPROCESS];
 
-  if (FD_SETSIZE <= inchannel || FD_SETSIZE <= outchannel)
+  if (EMACS_MAX_FD <= inchannel || EMACS_MAX_FD <= outchannel)
     report_file_errno ("Creating pipe", Qnil, EMFILE);
 
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
@@ -2371,7 +2476,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 #endif
 
   /* Record this as an active process, with its channels.  */
-  eassert (0 <= inchannel && inchannel < FD_SETSIZE);
+  eassert (0 <= inchannel && inchannel < EMACS_MAX_FD);
   chan_process[inchannel] = proc;
   p->infd = inchannel;
   p->outfd = outchannel;
@@ -2702,7 +2807,7 @@ set up yet, this function will block until socket setup has completed.  */)
     return Qnil;
 
   channel = XPROCESS (process)->infd;
-  eassert (0 <= channel && channel < FD_SETSIZE);
+  eassert (0 <= channel && channel < EMACS_MAX_FD);
   return conv_sockaddr_to_lisp (datagram_address[channel].sa,
 				datagram_address[channel].len);
 }
@@ -2731,7 +2836,7 @@ set up yet, this function will block until socket setup has completed.  */)
   channel = XPROCESS (process)->infd;
 
   len = get_lisp_to_sockaddr_size (address, &family);
-  eassert (0 <= channel && channel < FD_SETSIZE);
+  eassert (0 <= channel && channel < EMACS_MAX_FD);
   if (len == 0 || datagram_address[channel].len != len)
     return Qnil;
   conv_lisp_to_sockaddr (family, address, datagram_address[channel].sa, len);
@@ -3105,13 +3210,13 @@ usage:  (make-serial-process &rest ARGS)  */)
 
   fd = serial_open (port);
   p->open_fd[SUBPROCESS_STDIN] = fd;
-  if (FD_SETSIZE <= fd)
+  if (EMACS_MAX_FD <= fd)
     report_file_errno ("Opening serial port", port, EMFILE);
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_desc)
     max_desc = fd;
-  eassert (0 <= fd && fd < FD_SETSIZE);
+  eassert (0 <= fd && fd < EMACS_MAX_FD);
   chan_process[fd] = proc;
 
   buffer = Fplist_get (contact, QCbuffer);
@@ -3283,7 +3388,7 @@ finish_after_tls_connection (Lisp_Object proc)
 		    Fplist_get (contact, QChost),
 		    Fplist_get (contact, QCservice));
 
-  eassert (p->outfd < FD_SETSIZE);
+  eassert (p->outfd < EMACS_MAX_FD);
   if (NILP (result))
     {
       pset_status (p, list2 (Qfailed,
@@ -3329,7 +3434,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
   if (!NILP (use_external_socket_p))
     {
       socket_to_use = external_sock_fd;
-      eassert (socket_to_use < FD_SETSIZE);
+      eassert (socket_to_use < EMACS_MAX_FD);
 
       /* Ensure we don't consume the external socket twice.  */
       external_sock_fd = -1;
@@ -3372,7 +3477,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	      continue;
 	    }
 	  /* Reject file descriptors that would be too large.  */
-	  if (FD_SETSIZE <= s)
+	  if (EMACS_MAX_FD <= s)
 	    {
 	      emacs_close (s);
 	      s = -1;
@@ -3510,7 +3615,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	      if (errno == EINTR)
 		goto retry_select;
 	      else
-		report_file_error ("Failed select", Qnil);
+		report_file_error ("Failed select/poll", Qnil);
 	    }
 	  eassert (sc > 0);
 
@@ -3543,7 +3648,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 #ifdef DATAGRAM_SOCKETS
       if (p->socktype == SOCK_DGRAM)
 	{
-	  eassert (0 <= s && s < FD_SETSIZE);
+	  eassert (0 <= s && s < EMACS_MAX_FD);
 	  if (datagram_address[s].sa)
 	    emacs_abort ();
 
@@ -3608,7 +3713,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
   inch = s;
   outch = s;
 
-  eassert (0 <= inch && inch < FD_SETSIZE);
+  eassert (0 <= inch && inch < EMACS_MAX_FD);
   chan_process[inch] = proc;
 
   fcntl (inch, F_SETFL, O_NONBLOCK);
@@ -3635,7 +3740,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
       if (! (connecting_status (p->status)
 	     && EQ (XCDR (p->status), addrinfos)))
 	pset_status (p, Fcons (Qconnect, addrinfos));
-      eassert (0 <= inch && inch < FD_SETSIZE);
+      eassert (0 <= inch && inch < EMACS_MAX_FD);
       if ((fd_callback_info[inch].flags & NON_BLOCKING_CONNECT_FD) == 0)
 	add_non_blocking_write_fd (inch);
     }
@@ -4703,7 +4808,7 @@ deactivate_process (Lisp_Object proc)
     close_process_fd (&p->open_fd[i]);
 
   inchannel = p->infd;
-  eassert (inchannel < FD_SETSIZE);
+  eassert (inchannel < EMACS_MAX_FD);
   if (inchannel >= 0)
     {
       p->infd  = -1;
@@ -4839,7 +4944,7 @@ server_accept_connection (Lisp_Object server, int channel)
 
   s = accept4 (channel, &saddr.sa, &len, SOCK_CLOEXEC);
 
-  if (FD_SETSIZE <= s)
+  if (EMACS_MAX_FD <= s)
     {
       emacs_close (s);
       s = -1;
@@ -4943,7 +5048,7 @@ server_accept_connection (Lisp_Object server, int channel)
   Lisp_Object name = Fformat (nargs, args);
   Lisp_Object proc = make_process (name);
 
-  eassert (0 <= s && s < FD_SETSIZE);
+  eassert (0 <= s && s < EMACS_MAX_FD);
   chan_process[s] = proc;
 
   fcntl (s, F_SETFL, O_NONBLOCK);
@@ -5226,7 +5331,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (! NILP (wait_for_cell) && ! NILP (XCAR (wait_for_cell)))
 	break;
 
-      eassert (max_desc < FD_SETSIZE);
+      eassert (max_desc < EMACS_MAX_FD);
 
 #if defined HAVE_GETADDRINFO_A || defined HAVE_GNUTLS
       {
@@ -5359,7 +5464,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	     because otherwise we wouldn't run into a timeout
 	     below.  */
 	  int fd = child_signal_read_fd;
-	  eassert (fd < FD_SETSIZE);
+	  eassert (fd < EMACS_MAX_FD);
 	  if (0 <= fd)
 	    FD_CLR (fd, &Atemp);
 
@@ -5453,7 +5558,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 an asynchronous process.  Otherwise this might deadlock if we
 	 receive a SIGCHLD during `pselect'.  */
       int child_fd = child_signal_read_fd;
-      eassert (child_fd < FD_SETSIZE);
+      eassert (child_fd < EMACS_MAX_FD);
       if (0 <= child_fd)
         FD_SET (child_fd, &Available);
 
@@ -5563,7 +5668,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	     And if so, we need to skip the select which could block. */
 	  FD_ZERO (&tls_available);
 	  tls_nfds = 0;
-	  for (channel = 0; channel < FD_SETSIZE; ++channel)
+	  for (channel = 0; channel < EMACS_MAX_FD; ++channel)
 	    if (! NILP (chan_process[channel])
 		&& FD_ISSET (channel, &Available))
 	      {
@@ -5625,7 +5730,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      else if (nfds > 0)
 		/* Slow path, merge one by one.  Note: nfds does not need
 		   to be accurate, just positive is enough. */
-		for (channel = 0; channel < FD_SETSIZE; ++channel)
+		for (channel = 0; channel < EMACS_MAX_FD; ++channel)
 		  if (FD_ISSET(channel, &tls_available))
 		    FD_SET(channel, &Available);
 	    }
@@ -6019,7 +6124,7 @@ read_process_output (Lisp_Object proc, int channel)
 {
   ssize_t nbytes;
   struct Lisp_Process *p = XPROCESS (proc);
-  eassert (0 <= channel && channel < FD_SETSIZE);
+  eassert (0 <= channel && channel < EMACS_MAX_FD);
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
   ptrdiff_t readmax = clip_to_bounds (1, read_process_output_max, PTRDIFF_MAX);
@@ -6184,7 +6289,7 @@ read_and_dispose_of_process_output (struct Lisp_Process *p, char *chars,
 	 proc_encode_coding_system[p->outfd] surely points to a
 	 valid memory because p->outfd will be changed once EOF is
 	 sent to the process.  */
-      eassert (p->outfd < FD_SETSIZE);
+      eassert (p->outfd < EMACS_MAX_FD);
       if (NILP (p->encode_coding_system) && p->outfd >= 0
 	  && proc_encode_coding_system[p->outfd])
 	{
@@ -6415,7 +6520,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
   if (p->outfd < 0)
     error ("Output file descriptor of %s is closed", SDATA (p->name));
 
-  eassert (p->outfd < FD_SETSIZE);
+  eassert (p->outfd < EMACS_MAX_FD);
   coding = proc_encode_coding_system[p->outfd];
   Vlast_coding_system_used = CODING_ID_NAME (coding->id);
 
@@ -6528,7 +6633,7 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
           if (outfd < 0)
             error ("Output file descriptor of %s is closed",
                    SDATA (p->name));
-	  eassert (0 <= outfd && outfd < FD_SETSIZE);
+	  eassert (0 <= outfd && outfd < EMACS_MAX_FD);
 #ifdef DATAGRAM_SOCKETS
 	  if (DATAGRAM_CHAN_P (outfd))
 	    {
@@ -6980,7 +7085,7 @@ traffic.  */)
       struct Lisp_Process *p;
 
       p = XPROCESS (process);
-      eassert (p->infd < FD_SETSIZE);
+      eassert (p->infd < EMACS_MAX_FD);
       if (EQ (p->command, Qt)
 	  && p->infd >= 0
 	  && (!EQ (p->filter, Qt) || EQ (p->status, Qlisten)))
@@ -7124,7 +7229,7 @@ process has been transmitted to the serial port.  */)
 
 
   outfd = XPROCESS (proc)->outfd;
-  eassert (outfd < FD_SETSIZE);
+  eassert (outfd < EMACS_MAX_FD);
   if (outfd >= 0)
     coding = proc_encode_coding_system[outfd];
 
@@ -7172,13 +7277,13 @@ process has been transmitted to the serial port.  */)
       p->open_fd[WRITE_TO_SUBPROCESS] = new_outfd;
       p->outfd = new_outfd;
 
-      eassert (0 <= new_outfd && new_outfd < FD_SETSIZE);
+      eassert (0 <= new_outfd && new_outfd < EMACS_MAX_FD);
       if (!proc_encode_coding_system[new_outfd])
 	proc_encode_coding_system[new_outfd]
 	  = xmalloc (sizeof (struct coding_system));
       if (old_outfd >= 0)
 	{
-	  eassert (old_outfd < FD_SETSIZE);
+	  eassert (old_outfd < EMACS_MAX_FD);
 	  *proc_encode_coding_system[new_outfd]
 	    = *proc_encode_coding_system[old_outfd];
 	  memset (proc_encode_coding_system[old_outfd], 0,
@@ -7251,7 +7356,7 @@ child_signal_init (void)
   int fds[2];
   if (emacs_pipe (fds) < 0)
     report_file_error ("Creating pipe for child signal", Qnil);
-  if (FD_SETSIZE <= fds[0])
+  if (EMACS_MAX_FD <= fds[0])
     {
       /* Since we need to `pselect' on the read end, it has to fit
 	 into an `fd_set'.  */
@@ -7723,7 +7828,7 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
   struct Lisp_Process *p = XPROCESS (process);
   if (p->infd < 0)
     return Qnil;
-  eassert (p->infd < FD_SETSIZE);
+  eassert (p->infd < EMACS_MAX_FD);
   struct coding_system *coding = proc_decode_coding_system[p->infd];
   return (CODING_FOR_UNIBYTE (coding) ? Qnil : Qt);
 }
@@ -7757,7 +7862,7 @@ keyboard_bit_set (fd_set *mask)
 {
   int fd;
 
-  eassert (max_desc < FD_SETSIZE);
+  eassert (max_desc < EMACS_MAX_FD);
   for (fd = 0; fd <= max_desc; fd++)
     if (FD_ISSET (fd, mask)
 	&& ((fd_callback_info[fd].flags & (FOR_READ | KEYBOARD_FD))
@@ -8005,7 +8110,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 void
 add_timer_wait_descriptor (int fd)
 {
-  eassert (0 <= fd && fd < FD_SETSIZE);
+  eassert (0 <= fd && fd < EMACS_MAX_FD);
   add_read_fd (fd, timerfd_callback, NULL);
   fd_callback_info[fd].flags &= ~KEYBOARD_FD;
 }
@@ -8031,7 +8136,7 @@ void
 add_keyboard_wait_descriptor (int desc)
 {
 #ifdef subprocesses /* Actually means "not MSDOS".  */
-  eassert (desc >= 0 && desc < FD_SETSIZE);
+  eassert (desc >= 0 && desc < EMACS_MAX_FD);
   fd_callback_info[desc].flags &= ~PROCESS_FD;
   fd_callback_info[desc].flags |= (FOR_READ | KEYBOARD_FD);
   if (desc > max_desc)
@@ -8045,7 +8150,7 @@ void
 delete_keyboard_wait_descriptor (int desc)
 {
 #ifdef subprocesses
-  eassert (desc >= 0 && desc < FD_SETSIZE);
+  eassert (desc >= 0 && desc < EMACS_MAX_FD);
 
   fd_callback_info[desc].flags &= ~(FOR_READ | KEYBOARD_FD | PROCESS_FD);
 
@@ -8068,7 +8173,7 @@ setup_process_coding_systems (Lisp_Object process)
   if (inch < 0 || outch < 0)
     return;
 
-  eassert (0 <= inch && inch < FD_SETSIZE);
+  eassert (0 <= inch && inch < EMACS_MAX_FD);
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch] = xmalloc (sizeof (struct coding_system));
   coding_system = p->decode_coding_system;
@@ -8080,7 +8185,7 @@ setup_process_coding_systems (Lisp_Object process)
     }
   setup_coding_system (coding_system, proc_decode_coding_system[inch]);
 
-  eassert (0 <= outch && outch < FD_SETSIZE);
+  eassert (0 <= outch && outch < EMACS_MAX_FD);
   if (!proc_encode_coding_system[outch])
     proc_encode_coding_system[outch] = xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
@@ -8322,7 +8427,7 @@ void
 restore_nofile_limit (void)
 {
 #ifdef HAVE_SETRLIMIT
-  if (FD_SETSIZE < nofile_limit.rlim_cur)
+  if (EMACS_MAX_FD < nofile_limit.rlim_cur)
     setrlimit (RLIMIT_NOFILE, &nofile_limit);
 #endif
 }
@@ -8383,13 +8488,13 @@ init_process_emacs (int sockfd)
     }
 
 #ifdef HAVE_SETRLIMIT
-  /* Don't allocate more than FD_SETSIZE file descriptors for Emacs itself.  */
+  /* Don't allocate more than EMACS_MAX_FD file descriptors for Emacs itself.  */
   if (getrlimit (RLIMIT_NOFILE, &nofile_limit) != 0)
     nofile_limit.rlim_cur = 0;
-  else if (FD_SETSIZE < nofile_limit.rlim_cur)
+  else if (EMACS_MAX_FD < nofile_limit.rlim_cur)
     {
       struct rlimit rlim = nofile_limit;
-      rlim.rlim_cur = FD_SETSIZE;
+      rlim.rlim_cur = EMACS_MAX_FD;
       if (setrlimit (RLIMIT_NOFILE, &rlim) != 0)
 	nofile_limit.rlim_cur = 0;
     }
@@ -8425,7 +8530,7 @@ init_process_emacs (int sockfd)
 
   Vprocess_alist = Qnil;
   deleted_pid_list = Qnil;
-  for (i = 0; i < FD_SETSIZE; i++)
+  for (i = 0; i < EMACS_MAX_FD; i++)
     {
       chan_process[i] = Qnil;
       proc_buffered_char[i] = -1;

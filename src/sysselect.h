@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    where w32 needs it, but not where sysselect.h is included.  The w32
    definitions in w32.h are incompatible with the below.  */
 #ifndef WINDOWSNT
+#ifndef USE_POLL
 #ifdef FD_SET
 #ifndef FD_SETSIZE
 #define FD_SETSIZE 64
@@ -43,6 +44,37 @@ typedef int fd_set;
 #define FD_ISSET(n, p) (*(p) & (1 << (n)))
 #define FD_ZERO(p) (*(p) = 0)
 #endif /* no FD_SET */
+#define EMACS_MAX_FD FD_SETSIZE
+#else /* no USE_POLL */
+#define EMACS_MAX_FD (10 * FD_SETSIZE)
+#define fd_set emacs_fd_set
+#define pselect emacs_pselect
+#undef FD_CLR
+#undef FD_ISSET
+#undef FD_SET
+#undef FD_ZERO
+
+typedef struct {
+  EMACS_UINT bits[EMACS_MAX_FD / EMACS_UINT_WIDTH];
+} emacs_fd_set;
+
+/* standard access macros */
+#define FD_SET(n, p) \
+  do { \
+    if ((n) < EMACS_MAX_FD) { \
+      (p)->bits[(n)/EMACS_UINT_WIDTH] |= (1 << (n)%EMACS_UINT_WIDTH); \
+    } \
+  } while (0)
+#define FD_CLR(n, p) \
+  do { \
+    if ((n) < EMACS_MAX_FD) { \
+      (p)->bits[(n)/EMACS_UINT_WIDTH] &= ~(1 << (n)%EMACS_UINT_WIDTH); \
+    } \
+  } while (0)
+#define FD_ISSET(n, p) ((n) < EMACS_MAX_FD ? ((p)->bits[(n)/EMACS_UINT_WIDTH] & (1 << (n)%EMACS_UINT_WIDTH)) : 0)
+#define FD_ZERO(p) memset((p), 0, sizeof(emacs_fd_set))
+#include "syspoll.h"
+#endif /* no USE_POLL */
 #endif /* not WINDOWSNT */
 
 #if !defined (HAVE_SELECT)
@@ -66,21 +98,21 @@ INLINE_HEADER_BEGIN
 INLINE void
 fd_CLR (int fd, fd_set *set)
 {
-  eassume (0 <= fd && fd < FD_SETSIZE);
+  eassume (0 <= fd && fd < EMACS_MAX_FD);
   FD_CLR (fd, set);
 }
 
 INLINE bool
 fd_ISSET (int fd, fd_set *set)
 {
-  eassume (0 <= fd && fd < FD_SETSIZE);
+  eassume (0 <= fd && fd < EMACS_MAX_FD);
   return FD_ISSET (fd, set) != 0;
 }
 
 INLINE void
 fd_SET (int fd, fd_set *set)
 {
-  eassume (0 <= fd && fd < FD_SETSIZE);
+  eassume (0 <= fd && fd < EMACS_MAX_FD);
   FD_SET (fd, set);
 }
 
