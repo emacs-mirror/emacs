@@ -632,17 +632,16 @@ Typically \"page-%s.png\".")
 	   (propertize
 	    (format "Page %d of %d." page len) 'face 'bold)
 	   ;; Tell user if converting isn't finished yet
-	   (if doc-view--current-converter-processes
-	       " (still converting...)\n"
-	     "\n")
-	   ;; Display context infos if this page matches the last search
-	   (when (and doc-view--current-search-matches
-		      (assq page doc-view--current-search-matches))
-	     (concat (propertize "Search matches:\n" 'face 'bold)
+           (and doc-view--current-converter-processes
+                " (still converting...)")
+           ;; Display context infos if this page matches the last search
+           (when (and doc-view--current-search-matches
+                      (assq page doc-view--current-search-matches))
+             (concat "\n" (propertize "Search matches:" 'face 'bold)
 		     (let ((contexts ""))
 		       (dolist (m (cdr (assq page
 					     doc-view--current-search-matches)))
-			 (setq contexts (concat contexts "  - \"" m "\"\n")))
+			 (setq contexts (concat contexts "\n  - \"" m "\"")))
 		       contexts)))))
     ;; Update the buffer
     ;; We used to find the file name from doc-view--current-files but
