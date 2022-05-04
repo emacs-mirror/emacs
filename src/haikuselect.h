@@ -21,6 +21,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef __cplusplus
 #include <cstdio>
+#else
+#include <stdio.h>
 #endif
 
 #include <SupportDefs.h>
@@ -33,13 +35,11 @@ enum haiku_clipboard
   };
 
 #ifdef __cplusplus
-#include <stdio.h>
 extern "C"
 {
 extern void init_haiku_select (void);
 #endif
 /* Whether or not the selection was recently changed.  */
-extern int selection_state_flag;
 
 /* Find a string with the MIME type TYPE in the system clipboard.  */
 extern char *BClipboard_find_system_data (const char *, ssize_t *);

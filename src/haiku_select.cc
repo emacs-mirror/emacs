@@ -35,8 +35,6 @@ static int64 count_clipboard = -1;
 static int64 count_primary = -1;
 static int64 count_secondary = -1;
 
-int selection_state_flag;
-
 static char *
 BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
 {
