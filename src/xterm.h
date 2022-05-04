@@ -1495,13 +1495,6 @@ extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
 
-extern void x_send_client_event (Lisp_Object display,
-                                 Lisp_Object dest,
-                                 Lisp_Object from,
-                                 Atom message_type,
-                                 Lisp_Object format,
-                                 Lisp_Object values);
-
 extern bool x_handle_dnd_message (struct frame *,
 				  const XClientMessageEvent *,
 				  struct x_display_info *,

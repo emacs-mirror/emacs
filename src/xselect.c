@@ -60,6 +60,8 @@ static Lisp_Object selection_data_to_lisp_data (struct x_display_info *,
 						ptrdiff_t, Atom, int);
 static void lisp_data_to_selection_data (struct x_display_info *, Lisp_Object,
 					 struct selection_data *);
+static void x_send_client_event (Lisp_Object, Lisp_Object, Lisp_Object,
+				 Atom, Lisp_Object, Lisp_Object);
 
 /* Printing traces to stderr.  */
 
@@ -2612,7 +2614,7 @@ are ignored.  */)
   return Qnil;
 }
 
-void
+static void
 x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
                      Atom message_type, Lisp_Object format, Lisp_Object values)
 {

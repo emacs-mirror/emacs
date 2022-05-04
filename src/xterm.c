@@ -21071,19 +21071,26 @@ x_wm_supports (struct frame *f, Atom want_atom)
 static void
 set_wm_state (Lisp_Object frame, bool add, Atom atom, Atom value)
 {
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (XFRAME (frame));
+  struct x_display_info *dpyinfo;
+  XEvent msg;
 
-  x_send_client_event (frame, make_fixnum (0), frame,
-                       dpyinfo->Xatom_net_wm_state,
-                       make_fixnum (32),
-                       /* 1 = add, 0 = remove */
-                       Fcons
-                       (make_fixnum (add),
-                        Fcons
-                        (INT_TO_INTEGER (atom),
-                         (value != 0
-			  ? list1 (INT_TO_INTEGER (value))
-			  : Qnil))));
+  dpyinfo = FRAME_DISPLAY_INFO (XFRAME (frame));
+  msg.xclient.type = ClientMessage;
+  msg.xclient.window = FRAME_OUTER_WINDOW (XFRAME (frame));
+  msg.xclient.message_type = dpyinfo->Xatom_net_wm_state;
+  msg.xclient.format = 32;
+
+  msg.xclient.data.l[0] = add ? 1 : 0;
+  msg.xclient.data.l[1] = atom;
+  msg.xclient.data.l[2] = value;
+  msg.xclient.data.l[3] = 1; /* Source indication.  */
+  msg.xclient.data.l[4] = 0;
+
+  block_input ();
+  XSendEvent (dpyinfo->display, dpyinfo->root_window,
+	      False, (SubstructureRedirectMask
+		      | SubstructureNotifyMask), &msg);
+  unblock_input ();
 }
 
 void
