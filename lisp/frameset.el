@@ -1312,7 +1312,7 @@ All keyword parameters default to nil."
                   ;; Apply small offsets to each frame that came from
                   ;; a TTY-saved desktop, so that they don't obscure
                   ;; each other, but only if we don't have real frame
-                  ;; position infor from a GUI session in some,
+                  ;; position info from a GUI session in some,
                   ;; possibly distant, past.
                   (when (and (frameset-switch-to-gui-p frame-cfg)
                              (null (cdr (assq 'GUI:top frame-cfg)))
