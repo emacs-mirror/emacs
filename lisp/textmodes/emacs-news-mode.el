@@ -158,7 +158,7 @@ untagged NEWS entry."
         (setq i (1+ i)))
       (message (if (= i 1)
                    "There's 1 untagged entry"
-                 (format "There's %s untagged entries" i))))))
+                 (format "There are %s untagged entries" i))))))
 
 (defun emacs-news--buttonize ()
   "Make manual and symbol references into buttons."
