@@ -95,7 +95,15 @@ functions.")
   (cons (frame-terminal) (sxhash-eq tool-bar-map)))
 
 (defun tool-bar--flush-cache ()
-  (setf (gethash (tool-bar--cache-key) tool-bar-keymap-cache) nil))
+  "Remove all cached entries that refer to the current `tool-bar-map'."
+  (let ((id (sxhash-eq tool-bar-map))
+        (entries nil))
+    (maphash (lambda (k _)
+               (when (equal (cdr k) id)
+                 (push k entries)))
+             tool-bar-keymap-cache)
+    (dolist (k entries)
+      (remhash k tool-bar-keymap-cache))))
 
 (defun tool-bar-make-keymap (&optional _ignore)
   "Generate an actual keymap from `tool-bar-map'.
