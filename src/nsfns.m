@@ -1677,15 +1677,17 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   BOOL isSave = NILP (mustmatch) && NILP (dir_only_p);
   id panel;
   Lisp_Object fname = Qnil;
-
-  NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
-    [NSString stringWithLispString:prompt];
-  NSString *dirS = NILP (dir) || !STRINGP (dir) ?
-    [NSString stringWithLispString:BVAR (current_buffer, directory)] :
-    [NSString stringWithLispString:dir];
-  NSString *initS = NILP (init) || !STRINGP (init) ? nil :
-    [NSString stringWithLispString:init];
+  NSString *promptS, *dirS, *initS, *str;
   NSEvent *nxev;
+
+  promptS = (NILP (prompt) || !STRINGP (prompt)
+	     ? nil : [NSString stringWithLispString: prompt]);
+  dirS = (NILP (dir) || !STRINGP (dir)
+	  ? [NSString stringWithLispString:
+			ENCODE_FILE (BVAR (current_buffer, directory))] :
+	  [NSString stringWithLispString: ENCODE_FILE (dir)]);
+  initS = (NILP (init) || !STRINGP (init)
+	   ? nil : [NSString stringWithLispString: init]);
 
   check_window_system (NULL);
 
@@ -1758,9 +1760,15 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
 
   if (ns_fd_data.ret == MODAL_OK_RESPONSE)
     {
-      NSString *str = ns_filename_from_panel (panel);
-      if (! str) str = ns_directory_from_panel (panel);
-      if (str) fname = [str lispString];
+      str = ns_filename_from_panel (panel);
+
+      if (!str)
+	str = ns_directory_from_panel (panel);
+      if (str)
+	fname = [str lispString];
+
+      if (!NILP (fname))
+	fname = DECODE_FILE (fname);
     }
 
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
