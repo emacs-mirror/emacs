@@ -722,28 +722,26 @@
     (with-buffer-unmodified-if-unchanged
       (insert "t")
       (delete-char -1))
-    (should (not (buffer-modified-p))))
+    (should-not (buffer-modified-p)))
 
   ;; Shouldn't error.
   (should
    (with-temp-buffer
-     (let ((inner (current-buffer)))
-       (with-buffer-unmodified-if-unchanged
-         (insert "t")
-         (delete-char -1)
-         (kill-buffer (current-buffer))
-         t))))
+     (with-buffer-unmodified-if-unchanged
+       (insert "t")
+       (delete-char -1)
+       (kill-buffer))))
 
   (with-temp-buffer
     (let ((outer (current-buffer)))
       (with-temp-buffer
         (let ((inner (current-buffer)))
-        (with-buffer-unmodified-if-unchanged
-          (insert "t")
-          (delete-char -1)
-          (set-buffer outer))
-        (with-current-buffer inner
-          (should (not (buffer-modified-p)))))))))
+          (with-buffer-unmodified-if-unchanged
+            (insert "t")
+            (delete-char -1)
+            (set-buffer outer))
+          (with-current-buffer inner
+            (should-not (buffer-modified-p))))))))
 
 
 (provide 'subr-x-tests)
