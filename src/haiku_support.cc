@@ -100,6 +100,7 @@ enum
     REPLAY_MENU_BAR	 = 3007,
     FONT_FAMILY_SELECTED = 3008,
     FONT_STYLE_SELECTED	 = 3009,
+    FILE_PANEL_SELECTION = 3010,
   };
 
 /* X11 keysyms that we use.  */
@@ -187,6 +188,10 @@ static int current_window_id;
 static void *grab_view = NULL;
 static BLocker grab_view_locker;
 static bool drag_and_drop_in_progress;
+
+/* Port used to send data to the main thread while a file panel is
+   active.  */
+static port_id volatile current_file_panel_port;
 
 /* Many places require us to lock the child frame data, and then lock
    the locker of some random window.  Unfortunately, locking such a
@@ -875,46 +880,48 @@ public:
 
 	haiku_write (MENU_BAR_SELECT_EVENT, &rq);
       }
-    else if (msg->what == 'FPSE'
+    else if (msg->what == FILE_PANEL_SELECTION
 	     || ((msg->FindInt32 ("old_what", &old_what) == B_OK
-		  && old_what == 'FPSE')))
+		  && old_what == FILE_PANEL_SELECTION)))
       {
-	struct haiku_file_panel_event rq;
+	const char *str_path, *name;
+	char *file_name, *str_buf;
 	BEntry entry;
 	BPath path;
 	entry_ref ref;
 
-	rq.ptr = NULL;
+	file_name = NULL;
 
 	if (msg->FindRef ("refs", &ref) == B_OK &&
 	    entry.SetTo (&ref, 0) == B_OK &&
 	    entry.GetPath (&path) == B_OK)
 	  {
-	    const char *str_path = path.Path ();
+	    str_path = path.Path ();
+
 	    if (str_path)
-	      rq.ptr = strdup (str_path);
+	      file_name = strdup (str_path);
 	  }
 
 	if (msg->FindRef ("directory", &ref),
 	    entry.SetTo (&ref, 0) == B_OK &&
 	    entry.GetPath (&path) == B_OK)
 	  {
-	    const char *name = msg->GetString ("name");
-	    const char *str_path = path.Path ();
+	    name = msg->GetString ("name");
+	    str_path = path.Path ();
 
 	    if (name)
 	      {
-		char str_buf[std::strlen (str_path)
-			     + std::strlen (name) + 2];
-		snprintf ((char *) &str_buf,
-			  std::strlen (str_path)
+		str_buf = (char *) alloca (std::strlen (str_path)
+					   + std::strlen (name) + 2);
+		snprintf (str_buf, std::strlen (str_path)
 			  + std::strlen (name) + 2, "%s/%s",
 			  str_path, name);
-		rq.ptr = strdup (str_buf);
+		file_name = strdup (str_buf);
 	      }
 	  }
 
-	haiku_write (FILE_PANEL_EVENT, &rq);
+	write_port (current_file_panel_port, 0,
+		    &file_name, sizeof file_name);
       }
     else
       BWindow::MessageReceived (msg);
@@ -1117,12 +1124,13 @@ public:
   void
   Minimize (bool minimized_p)
   {
-    BWindow::Minimize (minimized_p);
     struct haiku_iconification_event rq;
+
     rq.window = this;
     rq.iconified_p = !parent && minimized_p;
-
     haiku_write (ICONIFICATION, &rq);
+
+    BWindow::Minimize (minimized_p);
   }
 
   void
@@ -4121,100 +4129,92 @@ EmacsView_double_buffered_p (void *vw)
   return db_p;
 }
 
-struct popup_file_dialog_data
-{
-  BMessage *msg;
-  BFilePanel *panel;
-  BEntry *entry;
-};
-
-static void
-unwind_popup_file_dialog (void *ptr)
-{
-  struct popup_file_dialog_data *data
-    = (struct popup_file_dialog_data *) ptr;
-  BFilePanel *panel = data->panel;
-
-  delete panel;
-  delete data->entry;
-  delete data->msg;
-}
-
 /* Popup a file dialog.  */
 char *
 be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
 		      int dir_only_p, void *window, const char *save_text,
-		      const char *prompt, void (*block_input_function) (void),
-		      void (*unblock_input_function) (void),
-		      void (*maybe_quit_function) (void))
+		      const char *prompt,
+		      void (*process_pending_signals_function) (void))
 {
-  specpdl_ref idx = c_specpdl_idx_from_cxx ();
-  /* setjmp/longjmp is UB with automatic objects. */
-  BWindow *w = (BWindow *) window;
-  uint32_t mode = (dir_only_p
-		   ? B_DIRECTORY_NODE
-		   : B_FILE_NODE | B_DIRECTORY_NODE);
-  BEntry *path = new BEntry;
-  BMessage *msg = new BMessage ('FPSE');
-  BFilePanel *panel = new BFilePanel (open_p ? B_OPEN_PANEL : B_SAVE_PANEL,
-				      NULL, NULL, mode);
-  void *buf;
-  enum haiku_event_type type;
-  char *ptr;
-  struct popup_file_dialog_data dat;
-  ssize_t b_s;
+  BWindow *w, *panel_window;
+  BEntry path;
+  BMessage msg (FILE_PANEL_SELECTION);
+  BFilePanel panel (open_p ? B_OPEN_PANEL : B_SAVE_PANEL,
+		    NULL, NULL, (dir_only_p
+				 ? B_DIRECTORY_NODE
+				 : B_FILE_NODE | B_DIRECTORY_NODE));
+  object_wait_info infos[2];
+  ssize_t status;
+  int32 reply_type;
+  char *file_name;
 
-  dat.entry = path;
-  dat.msg = msg;
-  dat.panel = panel;
+  current_file_panel_port = create_port (1, "file panel port");
+  file_name = NULL;
 
-  record_c_unwind_protect_from_cxx (unwind_popup_file_dialog, &dat);
+  if (current_file_panel_port < B_OK)
+    return NULL;
 
   if (default_dir)
     {
-      if (path->SetTo (default_dir, 0) != B_OK)
+      if (path.SetTo (default_dir, 0) != B_OK)
 	default_dir = NULL;
     }
 
-  panel->SetMessage (msg);
+  w = (BWindow *) window;
+  panel_window = panel.Window ();
+
+  panel.SetMessage (&msg);
 
   if (default_dir)
-    panel->SetPanelDirectory (path);
+    panel.SetPanelDirectory (&path);
+
   if (save_text)
-    panel->SetSaveText (save_text);
+    panel.SetSaveText (save_text);
 
-  panel->SetHideWhenDone (0);
-  panel->Window ()->SetTitle (prompt);
-  panel->SetTarget (BMessenger (w));
-  panel->Show ();
+  panel_window->SetTitle (prompt);
+  panel_window->SetFeel (B_MODAL_APP_WINDOW_FEEL);
 
-  buf = alloca (200);
-  while (1)
+  panel.SetHideWhenDone (false);
+  panel.SetTarget (BMessenger (w));
+  panel.Show ();
+
+  infos[0].object = port_application_to_emacs;
+  infos[0].type = B_OBJECT_TYPE_PORT;
+  infos[0].events = B_EVENT_READ;
+
+  infos[1].object = current_file_panel_port;
+  infos[1].type = B_OBJECT_TYPE_PORT;
+  infos[1].events = B_EVENT_READ;
+
+  while (true)
     {
-      ptr = NULL;
+      status = wait_for_objects (infos, 2);
 
-      if (!haiku_read_with_timeout (&type, buf, 200, 1000000, false))
+      if (status == B_INTERRUPTED || status == B_WOULD_BLOCK)
+	continue;
+
+      if (infos[0].events & B_EVENT_READ)
+	process_pending_signals_function ();
+
+      if (infos[1].events & B_EVENT_READ)
 	{
-	  block_input_function ();
-	  if (type != FILE_PANEL_EVENT)
-	    haiku_write (type, buf);
-	  else if (!ptr)
-	    ptr = (char *) ((struct haiku_file_panel_event *) buf)->ptr;
-	  unblock_input_function ();
+	  status = read_port (current_file_panel_port,
+			      &reply_type, &file_name,
+			      sizeof file_name);
 
-	  maybe_quit_function ();
+	  if (status < B_OK)
+	    file_name = NULL;
+
+	  goto out;
 	}
 
-      block_input_function ();
-      haiku_read_size (&b_s, false);
-      if (!b_s || ptr || panel->Window ()->IsHidden ())
-	{
-	  c_unbind_to_nil_from_cxx (idx);
-	  unblock_input_function ();
-	  return ptr;
-	}
-      unblock_input_function ();
+      infos[0].events = B_EVENT_READ;
+      infos[1].events = B_EVENT_READ;
     }
+
+ out:
+  delete_port (current_file_panel_port);
+  return file_name;
 }
 
 /* Zoom WINDOW.  */

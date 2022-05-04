@@ -617,14 +617,6 @@ haiku_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval
     }
 }
 
-static void
-unwind_popup (void)
-{
-  if (!popup_activated_p)
-    emacs_abort ();
-  --popup_activated_p;
-}
-
 static Lisp_Object
 haiku_create_frame (Lisp_Object parms)
 {
@@ -2479,12 +2471,15 @@ Optional arg MUSTMATCH, if non-nil, means the returned file or
 directory must exist.
 Optional arg DIR_ONLY_P, if non-nil, means choose only directories.
 Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry field.  */)
-  (Lisp_Object prompt, Lisp_Object frame,
-   Lisp_Object dir, Lisp_Object mustmatch,
-   Lisp_Object dir_only_p, Lisp_Object save_text)
+  (Lisp_Object prompt, Lisp_Object frame, Lisp_Object dir,
+   Lisp_Object mustmatch, Lisp_Object dir_only_p, Lisp_Object save_text)
 {
-  if (!x_display_list)
-    error ("Haiku windowing not initialized");
+  struct frame *f;
+  char *file_name;
+  Lisp_Object value;
+
+  if (popup_activated_p)
+    error ("Trying to use a menu from within a menu-entry");
 
   if (!NILP (dir))
     CHECK_STRING (dir);
@@ -2497,37 +2492,28 @@ Optional arg SAVE_TEXT, if non-nil, specifies some text to show in the entry fie
 
   CHECK_STRING (prompt);
 
-  CHECK_LIVE_FRAME (frame);
-  check_window_system (XFRAME (frame));
-
-  specpdl_ref idx = SPECPDL_INDEX ();
-  record_unwind_protect_void (unwind_popup);
-
-  struct frame *f = XFRAME (frame);
-
-  FRAME_DISPLAY_INFO (f)->focus_event_frame = f;
+  f = decode_window_system_frame (frame);
 
   ++popup_activated_p;
-  char *fn = be_popup_file_dialog (!NILP (mustmatch) || !NILP (dir_only_p),
-				   !NILP (dir) ? SSDATA (ENCODE_UTF_8 (dir)) : NULL,
-				   !NILP (mustmatch), !NILP (dir_only_p),
-				   FRAME_HAIKU_WINDOW (f),
-				   !NILP (save_text) ? SSDATA (ENCODE_UTF_8 (save_text)) : NULL,
-				   SSDATA (ENCODE_UTF_8 (prompt)),
-				   block_input, unblock_input, maybe_quit);
+  unrequest_sigio ();
+  file_name = be_popup_file_dialog (!NILP (mustmatch) || !NILP (dir_only_p),
+				    !NILP (dir) ? SSDATA (dir) : NULL,
+				    !NILP (mustmatch), !NILP (dir_only_p),
+				    FRAME_HAIKU_WINDOW (f),
+				    (!NILP (save_text)
+				     ? SSDATA (ENCODE_UTF_8 (save_text)) : NULL),
+				    SSDATA (ENCODE_UTF_8 (prompt)),
+				    process_pending_signals);
+  request_sigio ();
+  --popup_activated_p;
 
-  unbind_to (idx, Qnil);
+  if (!file_name)
+    quit ();
 
-  block_input ();
-  BWindow_activate (FRAME_HAIKU_WINDOW (f));
-  unblock_input ();
+  value = build_string (file_name);
+  free (file_name);
 
-  if (!fn)
-    return Qnil;
-
-  Lisp_Object p = build_string_from_utf8 (fn);
-  free (fn);
-  return p;
+  return value;
 }
 
 DEFUN ("haiku-put-resource", Fhaiku_put_resource, Shaiku_put_resource,

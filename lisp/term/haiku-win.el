@@ -273,7 +273,8 @@ or a pair of markers) and turns it into a file system reference."
                             (or dir (and default-filename
                                          (file-name-directory default-filename)))
                             mustmatch only-dir-p
-                            (file-name-nondirectory default-filename))
+                            (and default-filename
+                                 (file-name-nondirectory default-filename)))
     (error "x-file-dialog on a tty frame")))
 
 (defun haiku-drag-and-drop (event)

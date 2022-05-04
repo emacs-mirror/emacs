@@ -91,8 +91,6 @@ haiku_len (enum haiku_event_type type)
       return sizeof (struct haiku_menu_bar_state_event);
     case MENU_BAR_SELECT_EVENT:
       return sizeof (struct haiku_menu_bar_select_event);
-    case FILE_PANEL_EVENT:
-      return sizeof (struct haiku_file_panel_event);
     case MENU_BAR_HELP_EVENT:
       return sizeof (struct haiku_menu_bar_help_event);
     case ZOOM_EVENT:
@@ -208,25 +206,4 @@ haiku_io_init_in_app_thread (void)
 
   if (pthread_sigmask (SIG_BLOCK, &set, NULL))
     perror ("pthread_sigmask");
-}
-
-/* Record an unwind protect from C++ code.  */
-void
-record_c_unwind_protect_from_cxx (void (*fn) (void *), void *r)
-{
-  record_unwind_protect_ptr (fn, r);
-}
-
-/* SPECPDL_IDX that is safe from C++ code.  */
-specpdl_ref
-c_specpdl_idx_from_cxx (void)
-{
-  return SPECPDL_INDEX ();
-}
-
-/* unbind_to (IDX, Qnil), but safe from C++ code.  */
-void
-c_unbind_to_nil_from_cxx (specpdl_ref idx)
-{
-  unbind_to (idx, Qnil);
 }
