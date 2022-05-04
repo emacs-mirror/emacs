@@ -751,7 +751,7 @@ haiku_create_frame (Lisp_Object parms)
 
   gui_default_parameter (f, parms, Qborder_width, make_fixnum (0),
                          "borderwidth", "BorderWidth", RES_TYPE_NUMBER);
-  gui_default_parameter (f, parms, Qinternal_border_width, make_fixnum (2),
+  gui_default_parameter (f, parms, Qinternal_border_width, make_fixnum (0),
                          "internalBorderWidth", "InternalBorderWidth",
                          RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qchild_frame_border_width, Qnil,
