@@ -915,8 +915,8 @@ when the tab is current.  Return the result as a keymap."
   (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
          (rest (tab-bar-format-list rest))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
-         (hpos (length rest))
-         (str (propertize " " 'display `(space :align-to (- right ,hpos)))))
+         (hpos (string-pixel-width (propertize rest 'face 'tab-bar)))
+         (str (propertize " " 'display `(space :align-to (- right (,hpos))))))
     `((align-right menu-item ,str ignore))))
 
 (defun tab-bar-format-global ()
@@ -926,7 +926,7 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((global menu-item ,(string-trim-right (format-mode-line global-mode-string)) ignore)))
+  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))
