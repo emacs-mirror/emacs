@@ -1957,14 +1957,16 @@ COMMAND is a symbol naming the command."
               (cond ((null sev) 'eglot-error)
                     ((<= sev 1) 'eglot-error)
                     ((= sev 2)  'eglot-warning)
-                    (t          'eglot-note))))
+                    (t          'eglot-note)))
+            (mess (source code message)
+              (concat source (and code (concat " [" code "]")) ": " message)))
     (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
         (with-current-buffer buffer
           (cl-loop
            for diag-spec across diagnostics
-           collect (eglot--dbind ((Diagnostic) range message severity source tags)
+           collect (eglot--dbind ((Diagnostic) range code message severity source tags)
                        diag-spec
-                     (setq message (concat source ": " message))
+                     (setq message (mess source code message))
                      (pcase-let
                          ((`(,beg . ,end) (eglot--range-region range)))
                        ;; Fallback to `flymake-diag-region' if server
@@ -2001,8 +2003,8 @@ COMMAND is a symbol naming the command."
       (cl-loop
        with path = (expand-file-name (eglot--uri-to-path uri))
        for diag-spec across diagnostics
-       collect (eglot--dbind ((Diagnostic) range message severity source) diag-spec
-                 (setq message (concat source ": " message))
+       collect (eglot--dbind ((Diagnostic) code range message severity source) diag-spec
+                 (setq message (mess source code message))
                  (let* ((start (plist-get range :start))
                         (line (1+ (plist-get start :line)))
                         (char (1+ (plist-get start :character))))
