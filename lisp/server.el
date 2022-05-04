@@ -82,7 +82,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (defgroup server nil
   "Emacs running as a server process."
@@ -1366,9 +1368,14 @@ The following commands are accepted by the client:
 			  (find-file-noselect initial-buffer-choice))
 			 ((functionp initial-buffer-choice)
 			  (funcall initial-buffer-choice)))))
-	      (switch-to-buffer
-	       (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
-	       'norecord)))
+              (if (buffer-live-p buf)
+                  (switch-to-buffer buf 'norecord)
+                (if-let ((scratch (get-buffer "*scratch*")))
+                    (switch-to-buffer scratch 'norecord)
+                  (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
+                  (when initial-scratch-message
+                    (insert initial-scratch-message))
+                  (funcall initial-major-mode)))))
 
           ;; Delete the client if necessary.
           (cond
