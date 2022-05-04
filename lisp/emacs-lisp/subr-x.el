@@ -433,7 +433,8 @@ as stored in the internal representation, are monitored for the
 purpose of detecting the lack of changes in buffer text.  Any other
 changes that are normally perceived as \"buffer modifications\", such
 as changes in text properties, `buffer-file-coding-system', buffer
-multibytenes, etc. -- will still cause the buffer to become modified."
+multibytenes, etc. -- will not be noticed, and the buffer will still
+be marked unmodified, effectively ignoring those changes."
   (declare (debug t) (indent 0))
   (let ((hash (gensym))
         (buffer (gensym)))
