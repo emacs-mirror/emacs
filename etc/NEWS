@@ -40,13 +40,13 @@ the option '--with-be-app', the resulting Emacs will only run in
 text-mode terminals.
 
 +++
-*** Cairo drawing support has been enabled for Haiku builds.
+** Cairo drawing support has been enabled for Haiku builds.
 To enable Cairo support, ensure that the Cairo and FreeType
 development files are present on your system, and configure Emacs with
 '--with-be-cairo'.
 
 ---
-*** Double buffering is now enabled on the Haiku operating system.
+** Double buffering is now enabled on the Haiku operating system.
 Unlike X, there is no compile-time option to enable or disable
 double-buffering.  If you wish to disable double-buffering, change the
 frame parameter 'inhibit-double-buffering' instead.
@@ -65,8 +65,8 @@ headers installed, Emacs will use the X Input Extension for handling
 input.  If this causes problems, you can configure Emacs with the
 option '--without-xinput2' to disable this support.
 
-The named feature 'xinput2' can be used to test for the presence of
-XInput 2 support from Lisp programs.
+(featurep 'xinput2) can be used to test for the presence of XInput 2
+support from Lisp programs.
 
 +++
 ** Emacs now supports being built with pure GTK.
@@ -93,10 +93,10 @@ as was already the case for all the non-preloaded files.
 The option 'desktop-load-locked-desktop' can now be set to the value
 'check-pid', which means to allow loading a locked ".emacs.desktop"
 file if the Emacs process which locked it is no longer running on the
-local machine.  This allows to avoid asking questions about locked
-desktop files when the Emacs session which locked it crashes or was
-otherwise interrupted and didn't exit gracefully.  See the "(emacs)
-Saving Emacs Sessions" node in the Emacs manual for more details.
+local machine.  This allows avoiding questions about locked desktop
+files when the Emacs session which locked it crashes, or was otherwise
+interrupted, and didn't exit gracefully.  See the "(emacs) Saving
+Emacs Sessions" node in the Emacs manual for more details.
 
 
 * Startup Changes in Emacs 29.1
@@ -151,7 +151,7 @@ newline.
 
 ---
 ** 'TAB' and '<backtab>' are now bound in 'button-map'.
-This means that if you're standing on a button, 'TAB' will take you to
+This means that if your cursor is on a button, 'TAB' will take you to
 the next button, even if the mode has bound it to something else.
 This also means that 'TAB' on a button in an 'outline-minor-mode'
 heading will move point instead of collapsing the outline.
@@ -449,6 +449,8 @@ command also works for non-Emoji characters.)
 
 ---
 *** New input method 'emoji'.
+This allows you to enter emoji using short strings, eg :face_palm: or
+:scream:.
 
 ** Help
 
@@ -1191,8 +1193,8 @@ user options that are no longer needed are now obsolete:
 *** Navigation and marking commands now work in image display buffer.
 The following new bindings have been added:
 
-  n / SPC   image-dired-display-next-thumbnail-original
-  p / DEL   image-dired-display-previous-thumbnail-original
+  n or SPC  image-dired-display-next-thumbnail-original
+  p or DEL  image-dired-display-previous-thumbnail-original
   m         image-dired-mark-thumb-original-file
   d         image-dired-flag-thumb-original-file
   u         image-dired-unmark-thumb-original-file
@@ -1351,7 +1353,7 @@ will abbreviate the user's home directory, for example by abbreviating
 +++
 *** New user option 'tramp-use-scp-direct-remote-copying'.
 When set to non-nil, Tramp does not copy files between two remote
-hosts via a local copy in its temporary directory, but let the 'scp'
+hosts via a local copy in its temporary directory, but lets the 'scp'
 command do this job.
 
 +++
@@ -1964,8 +1966,10 @@ It marks the image with the 'inhibit-isearch' text property, which
 inhibits 'isearch' matching the STRING parameter.
 
 ---
-** New function 'replace-regexp-function'.
-It can be used to implement own regexp syntax for search/replace.
+** New variable 'replace-regexp-function'.
+Function to call to convert the entered FROM string to an Emacs
+regexp in 'query-replace' and similar commands.  It can be used to
+implement a different regexp syntax for search/replace.
 
 ---
 ** New variables to customize defaults of FROM for 'query-replace*' commands.
@@ -2240,7 +2244,7 @@ translation.
 +++
 ** 'shell-quote-argument' has a new optional parameter POSIX.
 This is useful when quoting shell arguments for a remote shell
-invocation.  Such shells are POSIX conform by default.
+invocation.  Such shells are POSIX conformant by default.
 
 +++
 ** 'signal-process' now consults the list 'signal-process-functions'.
@@ -2250,8 +2254,8 @@ asynchronous processes.  The hitherto existing implementation has been
 moved to 'signal-default-interrupt-process'.
 
 +++
-** 'list-system-processes' returns remote process IDs now.
-This happens, when the current buffer's 'default-directory' is
+** 'list-system-processes' now returns remote process IDs.
+This happens only when the current buffer's 'default-directory' is
 remote.  In order to preserve the old behavior, apply
 
     (let ((default-directory temporary-file-directory))
