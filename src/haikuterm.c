@@ -1351,14 +1351,14 @@ haiku_draw_composite_glyph_string_foreground (struct glyph_string *s)
 
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
-
   if (s->font_not_found_p && !s->cmp_from)
     {
       if (s->hl == DRAW_CURSOR)
 	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
       else
 	BView_SetHighColor (view, s->face->foreground);
-      BView_StrokeRectangle (view, s->x, s->y, s->width - 1, s->height - 1);
+      BView_StrokeRectangle (view, s->x, s->y,
+			     s->width, s->height);
     }
   else if (!s->first_glyph->u.cmp.automatic)
     {
