@@ -2358,7 +2358,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)"))
   (insert "\t\t")
   (insert-button "Open *scratch* buffer"
 		 'action (lambda (_button) (switch-to-buffer
-                                       (startup--get-buffer-create-scratch)))
+                                       (get-scratch-buffer-create)))
 		 'follow-link t)
   (insert "\n")
   (save-restriction
@@ -2489,12 +2489,6 @@ A fancy display is used on graphic displays, normal otherwise."
 
 (defalias 'about-emacs 'display-about-screen)
 (defalias 'display-splash-screen 'display-startup-screen)
-
-(defun startup--get-buffer-create-scratch ()
-  (or (get-buffer "*scratch*")
-      (with-current-buffer (get-buffer-create "*scratch*")
-        (set-buffer-major-mode (current-buffer))
-        (current-buffer))))
 
 ;; This avoids byte-compiler warning in the unexec build.
 (declare-function pdumper-stats "pdumper.c" ())
@@ -2787,7 +2781,7 @@ nil default-directory" name)
     (when (eq initial-buffer-choice t)
       ;; When `initial-buffer-choice' equals t make sure that *scratch*
       ;; exists.
-      (startup--get-buffer-create-scratch))
+      (get-scratch-buffer-create))
 
     ;; If *scratch* exists and is empty, insert initial-scratch-message.
     ;; Do this before switching to *scratch* below to handle bug#9605.
@@ -2811,7 +2805,7 @@ nil default-directory" name)
 		   ((functionp initial-buffer-choice)
 		    (funcall initial-buffer-choice))
                    ((eq initial-buffer-choice t)
-                    (startup--get-buffer-create-scratch))
+                    (get-scratch-buffer-create))
                    (t
                     (error "`initial-buffer-choice' must be a string, a function, or t")))))
         (unless (buffer-live-p buf)

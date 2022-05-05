@@ -329,10 +329,10 @@ file will not inhibit the message for someone else.
 @end defopt
 
 @defopt initial-scratch-message
-This variable, if non-@code{nil}, should be a string, which is
-treated as documentation to be
-inserted into the @file{*scratch*} buffer when Emacs starts up.  If it
-is @code{nil}, the @file{*scratch*} buffer is empty.
+This variable, if non-@code{nil}, should be a string, which is treated
+as documentation to be inserted into the @file{*scratch*} buffer when
+Emacs starts up or when that buffer is recreated.  If it is
+@code{nil}, the @file{*scratch*} buffer is empty.
 @end defopt
 
 @noindent

@@ -1665,16 +1665,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
   if (!NILP (notsogood))
     return notsogood;
   else
-    {
-      AUTO_STRING (scratch, "*scratch*");
-      buf = Fget_buffer (scratch);
-      if (NILP (buf))
-	{
-	  buf = Fget_buffer_create (scratch, Qnil);
-	  Fset_buffer_major_mode (buf);
-	}
-      return buf;
-    }
+    return safe_call (1, Qget_scratch_buffer_create);
 }
 
 /* The following function is a safe variant of Fother_buffer: It doesn't
@@ -1690,15 +1681,7 @@ other_buffer_safely (Lisp_Object buffer)
     if (candidate_buffer (buf, buffer))
       return buf;
 
-  AUTO_STRING (scratch, "*scratch*");
-  buf = Fget_buffer (scratch);
-  if (NILP (buf))
-    {
-      buf = Fget_buffer_create (scratch, Qnil);
-      Fset_buffer_major_mode (buf);
-    }
-
-  return buf;
+  return safe_call (1, Qget_scratch_buffer_create);
 }
 
 DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
@@ -5583,6 +5566,7 @@ syms_of_buffer (void)
   DEFSYM (Qbefore_change_functions, "before-change-functions");
   DEFSYM (Qafter_change_functions, "after-change-functions");
   DEFSYM (Qkill_buffer_query_functions, "kill-buffer-query-functions");
+  DEFSYM (Qget_scratch_buffer_create, "get-scratch-buffer-create");
 
   DEFSYM (Qvertical_scroll_bar, "vertical-scroll-bar");
   Fput (Qvertical_scroll_bar, Qchoice, list4 (Qnil, Qt, Qleft, Qright));

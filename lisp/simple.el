@@ -10213,16 +10213,24 @@ This is an integer indicating the UTC offset in seconds, i.e.,
 the number of seconds east of Greenwich.")
   )
 
+(defun get-scratch-buffer-create ()
+  "Return the \*scratch\* buffer, creating a new one if needed."
+  (or (get-buffer "*scratch*")
+      (let ((scratch (get-buffer-create "*scratch*")))
+        ;; Don't touch the buffer contents or mode unless we know that
+        ;; we just created it.
+        (with-current-buffer scratch
+          (when initial-scratch-message
+            (insert (substitute-command-keys initial-scratch-message))
+            (set-buffer-modified-p nil))
+          (funcall initial-major-mode))
+        scratch)))
+
 (defun scratch-buffer ()
   "Switch to the \*scratch\* buffer.
 If the buffer doesn't exist, create it first."
   (interactive)
-  (if (get-buffer "*scratch*")
-      (pop-to-buffer-same-window "*scratch*")
-    (pop-to-buffer-same-window (get-buffer-create "*scratch*"))
-    (when initial-scratch-message
-      (insert initial-scratch-message))
-    (funcall initial-major-mode)))
+  (pop-to-buffer-same-window (get-scratch-buffer-create)))
 
 
 

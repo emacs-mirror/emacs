@@ -245,6 +245,14 @@ encouraged to test timestamp-related code with this variable set to
 nil, as it will default to nil in a future Emacs version and will be
 removed some time after that.
 
++++
+** Functions which recreate the *scratch* buffer now also initialize it.
+When functions like 'other-buffer' and 'server-execute' recreate
+*scratch*, they now also insert 'initial-scratch-message' and set
+the major mode according to 'initial-major-mode', like at Emacs
+startup.  Previously, these functions ignored
+'initial-scratch-message' and left *scratch* in 'fundamental-mode'.
+
 
 * Changes in Emacs 29.1
 

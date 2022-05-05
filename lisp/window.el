@@ -4886,10 +4886,7 @@ the buffer `*scratch*', creating it if necessary."
   (setq frame (or frame (selected-frame)))
   (or (get-next-valid-buffer (nreverse (buffer-list frame))
  			     buffer visible-ok frame)
-      (get-buffer "*scratch*")
-      (let ((scratch (get-buffer-create "*scratch*")))
-	(set-buffer-major-mode scratch)
-	scratch)))
+      (get-scratch-buffer-create)))
 
 (defcustom frame-auto-hide-function #'iconify-frame
   "Function called to automatically hide frames.
@@ -8621,12 +8618,13 @@ If BUFFER-OR-NAME is nil, return the buffer returned by
 `other-buffer'.  Else, if a buffer specified by BUFFER-OR-NAME
 exists, return that buffer.  If no such buffer exists, create a
 buffer with the name BUFFER-OR-NAME and return that buffer."
-  (if buffer-or-name
-      (or (get-buffer buffer-or-name)
-	  (let ((buffer (get-buffer-create buffer-or-name)))
-	    (set-buffer-major-mode buffer)
-	    buffer))
-    (other-buffer)))
+  (pcase buffer-or-name
+    ('nil (other-buffer))
+    ("*scratch*" (get-scratch-buffer-create))
+    (_ (or (get-buffer buffer-or-name)
+	   (let ((buffer (get-buffer-create buffer-or-name)))
+	     (set-buffer-major-mode buffer)
+	     buffer)))))
 
 (defcustom switch-to-buffer-preserve-window-point t
   "If non-nil, `switch-to-buffer' tries to preserve `window-point'.
