@@ -574,18 +574,21 @@ BFont_find (struct haiku_font_pattern *pt)
   font_family name;
   font_style sname;
   uint32 flags;
-  int sty_count;
-  int fam_count = count_font_families ();
+  int sty_count, fam_count, si, fi;
+  struct haiku_font_pattern *p, *head, *n;
+  bool oblique_seen_p;
 
-  for (int fi = 0; fi < fam_count; ++fi)
+  fam_count = count_font_families ();
+
+  for (fi = 0; fi < fam_count; ++fi)
     {
       if (get_font_family (fi, &name, &flags) == B_OK)
 	{
 	  sty_count = count_font_styles (name);
-	  if (!sty_count &&
-	      font_family_style_matches_p (name, NULL, flags, pt))
+	  if (!sty_count
+	      && font_family_style_matches_p (name, NULL, flags, pt))
 	    {
-	      struct haiku_font_pattern *p = new struct haiku_font_pattern;
+	      p = new struct haiku_font_pattern;
 	      p->specified = 0;
 	      p->oblique_seen_p = 1;
 	      haiku_font_fill_pattern (p, name, NULL, flags);
@@ -598,11 +601,11 @@ BFont_find (struct haiku_font_pattern *pt)
 	    }
 	  else if (sty_count)
 	    {
-	      for (int si = 0; si < sty_count; ++si)
+	      for (si = 0; si < sty_count; ++si)
 		{
-		  int oblique_seen_p = 0;
-		  struct haiku_font_pattern *head = r;
-		  struct haiku_font_pattern *p = NULL;
+		  oblique_seen_p = 0;
+		  head = r;
+		  p = NULL;
 
 		  if (get_font_style (name, si, &sname, &flags) == B_OK)
 		    {
@@ -611,8 +614,18 @@ BFont_find (struct haiku_font_pattern *pt)
 			  p = new struct haiku_font_pattern;
 			  p->specified = 0;
 			  haiku_font_fill_pattern (p, name, (char *) &sname, flags);
-			  if (p->specified & FSPEC_SLANT &&
-			      ((p->slant == SLANT_OBLIQUE) || (p->slant == SLANT_ITALIC)))
+
+			  /* Add the indices to this font now so we
+			     won't have to loop over each font in
+			     order to open it later.  */
+
+			  p->specified |= FSPEC_INDICES;
+			  p->family_index = fi;
+			  p->style_index = si;
+
+			  if (p->specified & FSPEC_SLANT
+			      && (p->slant == SLANT_OBLIQUE
+				  || p->slant == SLANT_ITALIC))
 			    oblique_seen_p = 1;
 
 			  p->next = r;
@@ -627,9 +640,7 @@ BFont_find (struct haiku_font_pattern *pt)
 		    p->last = NULL;
 
 		  for (; head; head = head->last)
-		    {
-		      head->oblique_seen_p = oblique_seen_p;
-		    }
+		    head->oblique_seen_p = oblique_seen_p;
 		}
 	    }
 	}
@@ -642,13 +653,18 @@ BFont_find (struct haiku_font_pattern *pt)
   if (!(pt->specified & FSPEC_SLANT))
     {
       /* r->last is invalid from here onwards.  */
-      for (struct haiku_font_pattern *p = r; p;)
+      for (p = r; p;)
 	{
 	  if (!p->oblique_seen_p)
 	    {
-	      struct haiku_font_pattern *n = new haiku_font_pattern;
+	      n = new haiku_font_pattern;
 	      *n = *p;
+
 	      n->slant = SLANT_OBLIQUE;
+
+	      /* Opening a font by its indices doesn't provide enough
+		 information to synthesize the oblique font later.  */
+	      n->specified &= ~FSPEC_INDICES;
 	      p->next = n;
 	      p = p->next_family;
 	    }
@@ -660,26 +676,68 @@ BFont_find (struct haiku_font_pattern *pt)
   return r;
 }
 
+/* Find and open a font with the family at FAMILY and the style at
+   STYLE, and set its size to SIZE.  Value is NULL if opening the font
+   failed.  */
+void *
+be_open_font_at_index (int family, int style, float size)
+{
+  font_family family_name;
+  font_style style_name;
+  uint32 flags;
+  status_t rc;
+  BFont *font;
+
+  rc = get_font_family (family, &family_name, &flags);
+
+  if (rc != B_OK)
+    return NULL;
+
+  rc = get_font_style (family_name, style, &style_name, &flags);
+
+  if (rc != B_OK)
+    return NULL;
+
+  font = new BFont;
+
+  rc = font->SetFamilyAndStyle (family_name, style_name);
+
+  if (rc != B_OK)
+    {
+      delete font;
+      return NULL;
+    }
+
+  font->SetSize (size);
+  font->SetEncoding (B_UNICODE_UTF8);
+  font->SetSpacing (B_BITMAP_SPACING);
+  return font;
+}
+
 /* Find and open a font matching the pattern PAT, which must have its
    family set.  */
 int
 BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
 {
-  int sty_count;
+  int sty_count, si, code;
   font_family name;
   font_style sname;
+  BFont *ft;
   uint32 flags = 0;
+  struct haiku_font_pattern copy;
+
   if (!(pat->specified & FSPEC_FAMILY))
     return 1;
+
   strncpy (name, pat->family, sizeof name - 1);
   name[sizeof name - 1] = '\0';
 
   sty_count = count_font_styles (name);
 
-  if (!sty_count &&
-      font_family_style_matches_p (name, NULL, flags, pat, 1))
+  if (!sty_count
+      && font_family_style_matches_p (name, NULL, flags, pat, 1))
     {
-      BFont *ft = new BFont;
+      ft = new BFont;
       ft->SetSize (size);
       ft->SetEncoding (B_UNICODE_UTF8);
       ft->SetSpacing (B_BITMAP_SPACING);
@@ -694,12 +752,13 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
     }
   else if (sty_count)
     {
-      for (int si = 0; si < sty_count; ++si)
+      for (si = 0; si < sty_count; ++si)
 	{
-	  if (get_font_style (name, si, &sname, &flags) == B_OK &&
-	      font_family_style_matches_p (name, (char *) &sname, flags, pat))
+	  if (get_font_style (name, si, &sname, &flags) == B_OK
+	      && font_family_style_matches_p (name, (char *) &sname,
+					      flags, pat))
 	    {
-	      BFont *ft = new BFont;
+	      ft = new BFont;
 	      ft->SetSize (size);
 	      ft->SetEncoding (B_UNICODE_UTF8);
 	      ft->SetSpacing (B_BITMAP_SPACING);
@@ -709,6 +768,7 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
 		  delete ft;
 		  return 1;
 		}
+
 	      *font = (void *) ft;
 	      return 0;
 	    }
@@ -717,12 +777,14 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
 
   if (pat->specified & FSPEC_SLANT && pat->slant == SLANT_OBLIQUE)
     {
-      struct haiku_font_pattern copy = *pat;
+      copy = *pat;
       copy.slant = SLANT_REGULAR;
-      int code = BFont_open_pattern (&copy, font, size);
+      code = BFont_open_pattern (&copy, font, size);
+
       if (code)
 	return code;
-      BFont *ft = (BFont *) *font;
+
+      ft = (BFont *) *font;
       /* XXX Font measurements don't respect shear.  Haiku bug?
 	 This apparently worked in BeOS.
 	 ft->SetShear (100.0); */
