@@ -1269,7 +1269,16 @@ being set (usually, by reading it from the desktop)."
 		      :cleanup-frames (not (eq desktop-restore-reuses-frames 'keep))
 		      :force-display desktop-restore-in-current-display
 		      :force-onscreen (and desktop-restore-forces-onscreen
-                                           (display-graphic-p)))))
+                                           (display-graphic-p)))
+    ;; When at least one restored frame contains a tab bar,
+    ;; enable `tab-bar-mode' that takes care about recalculating
+    ;; the correct values of the frame parameter `tab-bar-lines'
+    ;; (that depends on `tab-bar-show'), and also loads graphical buttons.
+    (when (seq-some
+           (lambda (frame)
+             (menu-bar-positive-p (frame-parameter frame 'tab-bar-lines)))
+           (frame-list))
+      (tab-bar-mode 1))))
 
 ;; Just to silence the byte compiler.
 ;; Dynamically bound in `desktop-read'.
