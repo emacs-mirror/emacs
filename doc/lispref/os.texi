@@ -1371,7 +1371,7 @@ may change as higher-resolution clocks become available.
   Function arguments, e.g., the @var{time} argument to
 @code{format-time-string}, accept a more-general @dfn{time value}
 format, which can be a Lisp timestamp, @code{nil} for the current
-time, a single floating-point number for seconds, or a list
+time, a finite floating-point number for seconds, or a list
 @code{(@var{high} @var{low} @var{micro})} or @code{(@var{high}
 @var{low})} that is a truncated list timestamp with missing elements
 taken to be zero.
@@ -1558,13 +1558,13 @@ Although an omitted or @code{nil} @var{form} currently acts like
 @code{list}, this is planned to change in a future Emacs version, so
 callers requiring list timestamps should pass @code{list} explicitly.
 
-If @var{time} is infinite or a NaN, this function signals an error.
+If @var{time} is not a time value, this function signals an error.
 Otherwise, if @var{time} cannot be represented exactly, conversion
 truncates it toward minus infinity.  When @var{form} is @code{t},
 conversion is always exact so no truncation occurs, and the returned
 clock resolution is no less than that of @var{time}.  By way of
-contrast, @code{float-time} can convert any Lisp time value without
-signaling an error, although the result might not be exact.
+contrast, although @code{float-time} can also convert any time value
+without signaling an error, the result might not be exact.
 @xref{Time of Day}.
 
 For efficiency this function might return a value that is @code{eq} to
@@ -1652,7 +1652,7 @@ a particular form should specify @var{form}.
 @var{dow} and @var{utcoff}, and its @var{second} is an integer between
 0 and 59 inclusive.
 
-To access (or alter) the elements in the time value, the
+To access (or alter) the elements in the calendrical information, the
 @code{decoded-time-second}, @code{decoded-time-minute},
 @code{decoded-time-hour}, @code{decoded-time-day},
 @code{decoded-time-month}, @code{decoded-time-year},
@@ -1755,7 +1755,7 @@ at the 15th of the month when adding months.  Alternatively, you can use the
 @cindex formatting time values
 
   These functions convert time values to text in a string, and vice versa.
-Time values include @code{nil}, numbers, and Lisp timestamps
+Time values include @code{nil}, finite numbers, and Lisp timestamps
 (@pxref{Time of Day}).
 
 @defun date-to-time string
@@ -2067,25 +2067,23 @@ interactively, it prints the duration in the echo area.
   These functions perform calendrical computations using time values
 (@pxref{Time of Day}).  As with any time value, a value of
 @code{nil} for any of their
-time-value arguments stands for the current system time, and a single
+time-value arguments stands for the current system time, and a finite
 number stands for the number of seconds since the epoch.
 
 @defun time-less-p t1 t2
-This returns @code{t} if time value @var{t1} is less than time value
+This returns @code{t} if the time value @var{t1} is less than the time value
 @var{t2}.
-The result is @code{nil} if either argument is a NaN.
 @end defun
 
 @defun time-equal-p t1 t2
-This returns @code{t} if @var{t1} and @var{t2} are equal time values.
-The result is @code{nil} if either argument is a NaN.
+This returns @code{t} if the two time values @var{t1} and @var{t2} are
+equal.
 @end defun
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, as a Lisp time value.  The result is exact and its clock
+two time values, as a Lisp timestamp.  The result is exact and its clock
 resolution is no worse than the worse of its two arguments' resolutions.
-The result is floating-point only if it is infinite or a NaN@.
 If you need the difference in units
 of elapsed seconds, you can convert it with @code{time-convert} or
 @code{float-time}.  @xref{Time Conversion}.
