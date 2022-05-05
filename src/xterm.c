@@ -13226,8 +13226,14 @@ x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
 static void
 x_scroll_bar_handle_click (struct scroll_bar *bar,
 			   const XEvent *event,
-			   struct input_event *emacs_event)
+			   struct input_event *emacs_event,
+			   Lisp_Object device)
 {
+  int left_range, x, top_range, y;
+#ifndef USE_TOOLKIT_SCROLL_BARS
+  int new_start, new_end;
+#endif
+
   if (! WINDOWP (bar->window))
     emacs_abort ();
 
@@ -13245,11 +13251,15 @@ x_scroll_bar_handle_click (struct scroll_bar *bar,
   emacs_event->frame_or_window = bar->window;
   emacs_event->arg = Qnil;
   emacs_event->timestamp = event->xbutton.time;
+
+  if (!NILP (device))
+    emacs_event->device = device;
+
   if (bar->horizontal)
     {
-      int left_range
-	= HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width);
-      int x = event->xbutton.x - HORIZONTAL_SCROLL_BAR_LEFT_BORDER;
+
+      left_range = HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width);
+      x = event->xbutton.x - HORIZONTAL_SCROLL_BAR_LEFT_BORDER;
 
       if (x < 0) x = 0;
       if (x > left_range) x = left_range;
@@ -13265,8 +13275,8 @@ x_scroll_bar_handle_click (struct scroll_bar *bar,
       /* If the user has released the handle, set it to its final position.  */
       if (event->type == ButtonRelease && bar->dragging != -1)
 	{
-	  int new_start = - bar->dragging;
-	  int new_end = new_start + bar->end - bar->start;
+	  new_start = - bar->dragging;
+	  new_end = new_start + bar->end - bar->start;
 
 	  x_scroll_bar_set_handle (bar, new_start, new_end, false);
 	  bar->dragging = -1;
@@ -13278,9 +13288,9 @@ x_scroll_bar_handle_click (struct scroll_bar *bar,
     }
   else
     {
-      int top_range
+      top_range
 	= VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
-      int y = event->xbutton.y - VERTICAL_SCROLL_BAR_TOP_BORDER;
+      y = event->xbutton.y - VERTICAL_SCROLL_BAR_TOP_BORDER;
 
       if (y < 0) y = 0;
       if (y > top_range) y = top_range;
@@ -13296,8 +13306,8 @@ x_scroll_bar_handle_click (struct scroll_bar *bar,
       /* If the user has released the handle, set it to its final position.  */
       if (event->type == ButtonRelease && bar->dragging != -1)
 	{
-	  int new_start = y - bar->dragging;
-	  int new_end = new_start + bar->end - bar->start;
+	  new_start = y - bar->dragging;
+	  new_end = new_start + bar->end - bar->start;
 
 	  x_scroll_bar_set_handle (bar, new_start, new_end, false);
 	  bar->dragging = -1;
@@ -16532,12 +16542,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                scroll bars.  */
             if (bar && event->xbutton.state & ControlMask)
               {
-                x_scroll_bar_handle_click (bar, event, &inev.ie);
+                x_scroll_bar_handle_click (bar, event, &inev.ie, Qnil);
                 *finish = X_EVENT_DROP;
               }
 #else /* not USE_TOOLKIT_SCROLL_BARS */
             if (bar)
-              x_scroll_bar_handle_click (bar, event, &inev.ie);
+              x_scroll_bar_handle_click (bar, event, &inev.ie, Qnil);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
           }
 
@@ -17993,13 +18003,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifndef USE_TOOLKIT_SCROLL_BARS
 		  if (bar)
-		    x_scroll_bar_handle_click (bar, (XEvent *) &bv, &inev.ie);
+		    x_scroll_bar_handle_click (bar, (XEvent *) &bv, &inev.ie,
+					       source ? source->name : Qnil);
 #else
 		  /* Make the "Ctrl-Mouse-2 splits window" work for toolkit
 		     scroll bars.  */
 		  if (bar && xev->mods.effective & ControlMask)
 		    {
-		      x_scroll_bar_handle_click (bar, (XEvent *) &bv, &inev.ie);
+		      x_scroll_bar_handle_click (bar, (XEvent *) &bv, &inev.ie,
+						 source ? source->name : Qnil);
 		      *finish = X_EVENT_DROP;
 		    }
 #endif
