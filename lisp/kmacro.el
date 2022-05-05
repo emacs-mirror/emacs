@@ -954,7 +954,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 
 (cl-defmethod register-val-describe ((data kmacro-register) _verbose)
   (princ (format "a keyboard macro:\n   %s"
-		 (format-kbd-macro (kmacro-register-macro data)))))
+		 (key-description (kmacro-register-macro data)))))
 
 (cl-defmethod register-val-insert ((data kmacro-register))
   (insert (format-kbd-macro (kmacro-register-macro data))))
