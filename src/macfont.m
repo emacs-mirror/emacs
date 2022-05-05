@@ -847,7 +847,7 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
           {{FONT_WEIGHT_INDEX, kCTFontWeightTrait,
             {{-0.4, 50},	/* light */
              {-0.24, 87.5},	/* (semi-light + normal) / 2 */
-             {0, 100},		/* normal */
+             {0, 80},		/* normal */
              {0.24, 140},	/* (semi-bold + normal) / 2 */
              {0.4, 200},	/* bold */
              {CGFLOAT_MAX, CGFLOAT_MAX}},

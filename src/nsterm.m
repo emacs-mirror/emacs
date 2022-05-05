@@ -6092,10 +6092,26 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
 
       tem = [dict objectForKey: NSFontWeightTrait];
 
+#ifdef NS_IMPL_GNUSTEP
       if (tem != nil)
 	lweight = ([tem floatValue] > 0
 		   ? Qbold : ([tem floatValue] < -0.4f
 			      ? Qlight : Qnormal));
+#else
+      if (tem != nil)
+	{
+	  if ([tem floatValue] >= 0.4)
+	    lweight = Qbold;
+	  else if ([tem floatValue] >= 0.24)
+	    lweight = Qmedium;
+	  else if ([tem floatValue] >= 0)
+	    lweight = Qnormal;
+	  else if ([tem floatValue] >= -0.24)
+	    lweight = Qsemi_light;
+	  else
+	    lweight = Qlight;
+	}
+#endif
 
       tem = [dict objectForKey: NSFontWidthTrait];
 
@@ -6127,6 +6143,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   prototype = [[NSButtonCell alloc] init];
   [prototype setBezelStyle: NSBezelStyleRounded];
+  [prototype setTitle: @"Cancel"];
   cell_size = [prototype cellSize];
   frame = NSMakeRect (0, 0, cell_size.width * 2,
 		      cell_size.height);
