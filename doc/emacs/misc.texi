@@ -900,7 +900,7 @@ Subshells in different buffers run independently and in parallel.
 looking at the commands you enter, looking for @samp{cd} commands and
 the like.  This is an error-prone solution, since there are many ways
 to change the current directory, so Emacs also looks for special
-@acronym{OSC} (Operating System Commands} escape codes that are
+@acronym{OSC} (Operating System Commands) escape codes that are
 designed to convey this information in a more reliable fashion.  You
 should arrange for your shell to print the appropriate escape sequence
 at each prompt, for instance with the following command:
