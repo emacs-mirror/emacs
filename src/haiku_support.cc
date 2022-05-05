@@ -42,7 +42,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <interface/StringItem.h>
 #include <interface/SplitView.h>
 #include <interface/ScrollView.h>
+#include <interface/StringView.h>
 #include <interface/TextControl.h>
+#include <interface/CheckBox.h>
 
 #include <locale/UnicodeChar.h>
 
@@ -101,6 +103,9 @@ enum
     FONT_FAMILY_SELECTED = 3008,
     FONT_STYLE_SELECTED	 = 3009,
     FILE_PANEL_SELECTION = 3010,
+    QUIT_PREVIEW_DIALOG	 = 3011,
+    SET_FONT_INDICES	 = 3012,
+    SET_PREVIEW_DIALOG	 = 3013,
   };
 
 /* X11 keysyms that we use.  */
@@ -2442,14 +2447,142 @@ public:
   }
 };
 
+class EmacsFontPreviewDialog : public BWindow
+{
+  BStringView text_view;
+  BMessenger preview_source;
+  BFont *current_font;
+  bool is_visible;
+
+  void
+  DoLayout (void)
+  {
+    float width, height;
+
+    text_view.GetPreferredSize (&width, &height);
+    text_view.ResizeTo (width - 1, height - 1);
+
+    SetSizeLimits (width, width, height, height);
+    ResizeTo (width - 1, height - 1);
+  }
+
+  bool
+  QuitRequested (void)
+  {
+    preview_source.SendMessage (QUIT_PREVIEW_DIALOG);
+
+    return false;
+  }
+
+  void
+  MessageReceived (BMessage *message)
+  {
+    int32 family, style;
+    uint32 flags;
+    font_family name;
+    font_style sname;
+    status_t rc;
+
+    if (message->what == SET_FONT_INDICES)
+      {
+	if (message->FindInt32 ("emacs:family", &family) != B_OK
+	    || message->FindInt32 ("emacs:style", &style) != B_OK)
+	  return;
+
+	rc = get_font_family (family, &name, &flags);
+
+	if (rc != B_OK)
+	  return;
+
+	rc = get_font_style (name, style, &sname, &flags);
+
+	if (rc != B_OK)
+	  return;
+
+	if (current_font)
+	  delete current_font;
+
+	current_font = new BFont;
+	current_font->SetFamilyAndStyle (name, sname);
+	text_view.SetFont (current_font);
+
+	DoLayout ();
+	return;
+      }
+
+    BWindow::MessageReceived (message);
+  }
+
+public:
+
+  EmacsFontPreviewDialog (BWindow *target)
+    : BWindow (BRect (45, 45, 500, 300),
+	       "Preview font",
+	       B_FLOATING_WINDOW_LOOK,
+	       B_MODAL_APP_WINDOW_FEEL,
+	       B_NOT_ZOOMABLE | B_NOT_RESIZABLE),
+      text_view (BRect (0, 0, 0, 0),
+		 NULL, "The quick brown fox "
+		 "jumped over the lazy dog"),
+      preview_source (target),
+      current_font (NULL)
+  {
+    AddChild (&text_view);
+    DoLayout ();
+  }
+
+  ~EmacsFontPreviewDialog (void)
+  {
+    text_view.RemoveSelf ();
+
+    if (current_font)
+      delete current_font;
+  }
+};
+
+class DualLayoutView : public BView
+{
+  BScrollView *view_1;
+  BView *view_2;
+
+  void
+  FrameResized (float new_width, float new_height)
+  {
+    BRect frame;
+    float width, height;
+
+    frame = Frame ();
+
+    view_2->GetPreferredSize (&width, &height);
+
+    view_1->MoveTo (0, 0);
+    view_1->ResizeTo (BE_RECT_WIDTH (frame),
+		      BE_RECT_HEIGHT (frame) - height);
+    view_2->MoveTo (2, BE_RECT_HEIGHT (frame) - height);
+    view_2->ResizeTo (BE_RECT_WIDTH (frame) - 4, height);
+
+    BView::FrameResized (new_width, new_height);
+  }
+
+public:
+  DualLayoutView (BScrollView *first, BView *second) : BView (NULL, B_FRAME_EVENTS),
+						       view_1 (first),
+						       view_2 (second)
+  {
+    FrameResized (801, 801);
+  }
+};
+
 class EmacsFontSelectionDialog : public BWindow
 {
   BView basic_view;
+  BCheckBox preview_checkbox;
   BSplitView split_view;
   BListView font_family_pane;
   BListView font_style_pane;
   BScrollView font_family_scroller;
   BScrollView font_style_scroller;
+  DualLayoutView style_view;
   BObjectList<BStringItem> all_families;
   BObjectList<BStringItem> all_styles;
   BButton cancel_button, ok_button;
@@ -2457,6 +2590,51 @@ class EmacsFontSelectionDialog : public BWindow
   port_id comm_port;
   bool allow_monospace_only;
   int pending_selection_idx;
+  EmacsFontPreviewDialog *preview;
+
+  void
+  ShowPreview (void)
+  {
+    if (!preview)
+      {
+	preview = new EmacsFontPreviewDialog (this);
+	preview->Show ();
+
+	UpdatePreview ();
+      }
+  }
+
+  void
+  UpdatePreview (void)
+  {
+    int family, style;
+    BMessage message;
+    BMessenger messenger (preview);
+
+    family = font_family_pane.CurrentSelection ();
+    style = font_style_pane.CurrentSelection ();
+
+    message.what = SET_FONT_INDICES;
+    message.AddInt32 ("emacs:family", family);
+    message.AddInt32 ("emacs:style", style);
+
+    messenger.SendMessage (&message);
+  }
+
+  void
+  HidePreview (void)
+  {
+    if (preview)
+      {
+	if (preview->LockLooper ())
+	  preview->Quit ();
+	/* I hope this works.  */
+	else
+	  delete preview;
+
+	preview = NULL;
+      }
+  }
 
   void
   UpdateStylesForIndex (int idx)
@@ -2512,10 +2690,15 @@ class EmacsFontSelectionDialog : public BWindow
   void
   UpdateForSelectedStyle (void)
   {
-    if (font_style_pane.CurrentSelection () < 0)
+    int style = font_style_pane.CurrentSelection ();
+
+    if (style < 0)
       ok_button.SetEnabled (false);
     else
       ok_button.SetEnabled (true);
+
+    if (style >= 0 && preview)
+      UpdatePreview ();
   }
 
   void
@@ -2551,6 +2734,18 @@ class EmacsFontSelectionDialog : public BWindow
 
 	write_port (comm_port, 0, &rq, sizeof rq);
       }
+    else if (msg->what == SET_PREVIEW_DIALOG)
+      {
+	if (preview_checkbox.Value () == B_CONTROL_OFF)
+	  HidePreview ();
+	else
+	  ShowPreview ();
+      }
+    else if (msg->what == QUIT_PREVIEW_DIALOG)
+      {
+	preview_checkbox.SetValue (B_CONTROL_OFF);
+	HidePreview ();
+      }
 
     BWindow::MessageReceived (msg);
   }
@@ -2559,11 +2754,22 @@ public:
 
   ~EmacsFontSelectionDialog (void)
   {
+    if (preview)
+      {
+	if (preview->LockLooper ())
+	  preview->Quit ();
+	/* I hope this works.  */
+	else
+	  delete preview;
+      }
+
     font_family_pane.MakeEmpty ();
     font_style_pane.MakeEmpty ();
 
     font_family_pane.RemoveSelf ();
     font_style_pane.RemoveSelf ();
+    preview_checkbox.RemoveSelf ();
+    style_view.RemoveSelf ();
     font_family_scroller.RemoveSelf ();
     font_style_scroller.RemoveSelf ();
     cancel_button.RemoveSelf ();
@@ -2584,18 +2790,21 @@ public:
 	       B_TITLED_WINDOW_LOOK,
 	       B_MODAL_APP_WINDOW_FEEL, 0),
       basic_view (NULL, 0),
-      font_family_pane (BRect (0, 0, 10, 10), NULL,
+      preview_checkbox ("Show preview", "Show preview",
+			new BMessage (SET_PREVIEW_DIALOG)),
+      font_family_pane (BRect (0, 0, 0, 0), NULL,
 			B_SINGLE_SELECTION_LIST,
 			B_FOLLOW_ALL_SIDES),
-      font_style_pane (BRect (0, 0, 10, 10), NULL,
+      font_style_pane (BRect (0, 0, 0, 0), NULL,
 		       B_SINGLE_SELECTION_LIST,
 		       B_FOLLOW_ALL_SIDES),
       font_family_scroller (NULL, &font_family_pane,
 			    B_FOLLOW_LEFT | B_FOLLOW_TOP,
 			    0, false, true),
       font_style_scroller (NULL, &font_style_pane,
-			   B_FOLLOW_LEFT | B_FOLLOW_TOP,
-			   0, false, true),
+			   B_FOLLOW_ALL_SIDES,
+			   B_SUPPORTS_LAYOUT, false, true),
+      style_view (&font_style_scroller, &preview_checkbox),
       all_families (20, true),
       all_styles (20, true),
       cancel_button ("Cancel", "Cancel",
@@ -2603,7 +2812,8 @@ public:
       ok_button ("OK", "OK", new BMessage (B_OK)),
       size_entry (NULL, "Size:", NULL, NULL),
       allow_monospace_only (monospace_only),
-      pending_selection_idx (initial_style_idx)
+      pending_selection_idx (initial_style_idx),
+      preview (NULL)
   {
     BStringItem *family_item;
     int i, n_families;
@@ -2620,9 +2830,12 @@ public:
     basic_view.AddChild (&ok_button);
     basic_view.AddChild (&size_entry);
     split_view.AddChild (&font_family_scroller, 0.7);
-    split_view.AddChild (&font_style_scroller, 0.3);
+    split_view.AddChild (&style_view, 0.3);
+    style_view.AddChild (&font_style_scroller);
+    style_view.AddChild (&preview_checkbox);
 
     basic_view.SetViewUIColor (B_PANEL_BACKGROUND_COLOR);
+    style_view.SetViewUIColor (B_PANEL_BACKGROUND_COLOR);
 
     FrameResized (801, 801);
     UpdateForSelectedStyle ();
@@ -2703,7 +2916,7 @@ public:
     frame = Frame ();
 
     basic_view.ResizeTo (BE_RECT_WIDTH (frame), BE_RECT_HEIGHT (frame));
-    split_view.ResizeTo (BE_RECT_WIDTH (frame),
+    split_view.ResizeTo (BE_RECT_WIDTH (frame) - 1,
 			 BE_RECT_HEIGHT (frame) - 4 - max_height);
 
     bone = BE_RECT_HEIGHT (frame) - 2 - max_height / 2;
