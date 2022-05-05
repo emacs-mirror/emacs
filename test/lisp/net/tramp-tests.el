@@ -47,6 +47,7 @@
 (require 'ert)
 (require 'ert-x)
 (require 'seq) ; For `seq-random-elt', autoloaded since Emacs 28.1
+(require 'tar-mode)
 (require 'trace)
 (require 'tramp)
 (require 'vc)
@@ -2510,6 +2511,48 @@ This checks also `file-name-as-directory', `file-name-directory',
       ;; Cleanup.
       (ignore-errors (advice-remove 'write-region advice))
       (ignore-errors (delete-file tmp-name)))))
+
+;; The following test is inspired by Bug#55166.
+(ert-deftest tramp-test10-write-region-other-file-name-handler ()
+  "Check that another file name handler in VISIT is acknowledged."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (not (tramp--test-ange-ftp-p)))
+  (skip-unless (executable-find "gzip"))
+
+  (let* ((default-directory tramp-test-temporary-file-directory)
+	 (archive (ert-resource-file "foo.tar.gz"))
+	 (tmp-file (expand-file-name (file-name-nondirectory archive)))
+	 (require-final-newline t)
+	 (inhibit-message t)
+         (backup-inhibited t)
+	 create-lockfiles buffer1 buffer2)
+    (unwind-protect
+	(progn
+	  (copy-file archive tmp-file 'ok)
+	  ;; Read archive.  Check contents of foo.txt, and modify it.  Save.
+	  (with-current-buffer (setq buffer1 (find-file-noselect tmp-file))
+	    (should (tar-goto-file "foo.txt"))
+	    (save-current-buffer
+	      (setq buffer2 (tar-extract))
+	      (should (string-equal (buffer-string) "foo\n"))
+	      (goto-char (point-max))
+	      (insert "bar")
+              (should (null (save-buffer))))
+            (should (null (save-buffer))))
+
+	  (kill-buffer buffer1)
+	  (kill-buffer buffer2)
+	  ;; Read archive.  Check contents of modified foo.txt.
+	  (with-current-buffer (setq buffer1 (find-file-noselect tmp-file))
+	    (should (tar-goto-file "foo.txt"))
+	    (save-current-buffer
+	      (setq buffer2 (tar-extract))
+	      (should (string-equal (buffer-string) "foo\nbar\n")))))
+
+      ;; Cleanup.
+      (ignore-errors (kill-buffer buffer1))
+      (ignore-errors (kill-buffer buffer2))
+      (ignore-errors (delete-file tmp-file)))))
 
 (ert-deftest tramp-test11-copy-file ()
   "Check `copy-file'."
@@ -4984,10 +5027,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  :tags (append '(:expensive-test :tramp-asynchronous-processes)
-                ;; The final `process-live-p' check does not run sufficiently.
-		(and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
-		     '(:unstable)))
+  ;; The final `process-live-p' check does not run sufficiently.
+  :tags '(:expensive-test :tramp-asynchronous-processes :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -5026,10 +5067,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
 (ert-deftest tramp-test31-signal-process ()
   "Check `signal-process'."
-  :tags (append '(:expensive-test :tramp-asynchronous-processes)
-                ;; The final `process-live-p' check does not run sufficiently.
-		(and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
-		     '(:unstable)))
+  ;; The final `process-live-p' check does not run sufficiently.
+  :tags '(:expensive-test :tramp-asynchronous-processes :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -7563,8 +7602,9 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
 ;; * Fix `tramp-test06-directory-file-name' for "ftp".
-;; * Implement `tramp-test31-interrupt-process' for "adb", "sshfs" and
-;;   for direct async processes.
+;; * Implement `tramp-test31-interrupt-process' and
+;;   `tramp-test31-signal-process' for "adb", "sshfs" and for direct
+;;   async processes.  Check, why they don't run stable.
 ;; * Check, why direct async processes do not work for
 ;;   `tramp-test44-asynchronous-requests'.
 
