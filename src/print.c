@@ -954,7 +954,14 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
       errmsg = Fget (errname, Qerror_message);
       /* During loadup 'substitute-command-keys' might not be available.  */
       if (!NILP (Ffboundp (Qsubstitute_command_keys)))
-	errmsg = call1 (Qsubstitute_command_keys, errmsg);
+	{
+	  /* `substitute-command-keys' may bug out, which would lead
+	     to infinite recursion when we're called from
+	     skip_debugger, so ignore errors.  */
+	  Lisp_Object subs = safe_call1 (Qsubstitute_command_keys, errmsg);
+	  if (!NILP (subs))
+	    errmsg = subs;
+	}
 
       file_error = Fmemq (Qfile_error, error_conditions);
     }
