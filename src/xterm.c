@@ -6044,7 +6044,10 @@ x_set_cursor_gc (struct glyph_string *s)
 
       IF_DEBUG (x_check_font (s->f, s->font));
       xgcv.graphics_exposures = False;
-      mask = GCForeground | GCBackground | GCGraphicsExposures;
+      xgcv.line_width = 1;
+      mask = (GCForeground | GCBackground
+	      | GCGraphicsExposures
+	      | GCLineWidth);
 
       if (FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc)
 	XChangeGC (display, FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc,
@@ -6076,7 +6079,11 @@ x_set_mouse_face_gc (struct glyph_string *s)
       xgcv.background = s->face->background;
       xgcv.foreground = s->face->foreground;
       xgcv.graphics_exposures = False;
-      mask = GCForeground | GCBackground | GCGraphicsExposures;
+      xgcv.line_width = 1;
+
+      mask = (GCForeground | GCBackground
+	      | GCGraphicsExposures
+	      | GCLineWidth);
 
       if (FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc)
 	XChangeGC (display, FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc,
@@ -19832,6 +19839,9 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
       else
 	xgcv.background = xgcv.foreground = f->output_data.x->cursor_pixel;
       xgcv.graphics_exposures = False;
+      xgcv.line_width = 1;
+
+      mask |= GCLineWidth;
 
       if (gc)
 	XChangeGC (dpy, gc, mask, &xgcv);
