@@ -618,6 +618,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/stat.h>
 #include <flexmember.h>
 #include <c-ctype.h>
+#include <byteswap.h>
 
 #include "character.h"
 #include "coding.h"
@@ -1054,6 +1055,8 @@ typedef enum xm_byte_order
 #endif
   } xm_byte_order;
 
+#ifdef ENABLE_CHECKING
+
 #define SWAPCARD32(l)				\
   {						\
     struct { unsigned t : 32; } bit32;		\
@@ -1072,6 +1075,11 @@ typedef enum xm_byte_order
     n = tp[0]; tp[0] = tp[1]; tp[1] = n;	\
     s = bit16.t;				\
   }
+
+#else
+#define SWAPCARD32(l)	bswap_32 (l)
+#define SWAPCARD16(l)	bswap_16 (l)
+#endif
 
 typedef struct xm_targets_table_header
 {
