@@ -6115,6 +6115,47 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
 			   : Qnil));
 }
 
+#ifdef NS_IMPL_COCOA
+static NSView *
+ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
+{
+  NSMatrix *matrix;
+  NSButtonCell *prototype;
+  NSSize cell_size;
+  NSRect frame;
+  NSButtonCell *cancel, *ok;
+
+  prototype = [[NSButtonCell alloc] init];
+  [prototype setBezelStyle: NSBezelStyleRounded];
+  cell_size = [prototype cellSize];
+  frame = NSMakeRect (0, 0, cell_size.width * 2,
+		      cell_size.height);
+  matrix = [[NSMatrix alloc] initWithFrame: frame
+				      mode: NSTrackModeMatrix
+				 prototype: prototype
+			      numberOfRows: 1
+			   numberOfColumns: 2];
+  [prototype release];
+
+  ok = (NSButtonCell *) [matrix cellAtRow: 0 column: 0];
+  cancel = (NSButtonCell *) [matrix cellAtRow: 0 column: 1];
+
+  [ok setTitle: @"OK"];
+  [ok setTarget: target];
+  [ok setAction: select];
+  [ok setButtonType: NSButtonTypeMomentaryPushIn];
+
+  [cancel setTitle: @"Cancel"];
+  [cancel setTarget: target];
+  [cancel setAction: cancel_action];
+  [cancel setButtonType: NSButtonTypeMomentaryPushIn];
+
+  [matrix selectCell: ok];
+
+  return matrix;
+}
+#endif
+
 /* ==========================================================================
 
     EmacsView implementation
@@ -6197,6 +6238,17 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
 
   [NSApp stop: self];
 }
+
+- (void) noteUserCancelledSelection
+{
+  font_panel_active = NO;
+
+  if (font_panel_result)
+    [font_panel_result release];
+  font_panel_result = nil;
+
+  [NSApp stop: self];
+}
 #endif
 
 - (Lisp_Object) showFontPanel
@@ -6206,7 +6258,7 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
   NSFont *nsfont, *result;
   struct timespec timeout;
 #ifdef NS_IMPL_COCOA
-  NSButton *button;
+  NSView *buttons;
   BOOL canceled;
 #endif
 
@@ -6217,18 +6269,12 @@ ns_font_desc_to_font_spec (NSFontDescriptor *desc, NSFont *font)
 #endif
 
 #ifdef NS_IMPL_COCOA
-  /* FIXME: this button could be made a lot prettier, but I don't know
-     how.  */
-  button = [[NSButton alloc] initWithFrame: NSMakeRect (0, 0, 192, 40)];
-  [button setTitle: @"OK"];
-  [button setTarget: self];
-  [button setAction: @selector (noteUserSelectedFont)];
-  [button setButtonType: NSButtonTypeMomentaryPushIn];
-  [button setHidden: NO];
-
-  [[fm fontPanel: YES] setAccessoryView: button];
-  [button release];
-  [[fm fontPanel: YES] setDefaultButtonCell: [button cell]];
+  buttons
+    = ns_create_font_panel_buttons (self,
+				    @selector (noteUserSelectedFont),
+				    @selector (noteUserCancelledSelection));
+  [[fm fontPanel: YES] setAccessoryView: buttons];
+  [buttons release];
 #endif
 
   [fm setSelectedFont: nsfont isMultiple: NO];
