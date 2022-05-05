@@ -2575,6 +2575,20 @@ class DualLayoutView : public BView
     BView::FrameResized (new_width, new_height);
   }
 
+  /* This is called by the BSplitView.  */
+  BSize
+  MinSize (void)
+  {
+    float width, height;
+    BSize size_1;
+
+    size_1 = view_1->MinSize ();
+    view_2->GetPreferredSize (&width, &height);
+
+    return BSize (std::max (size_1.width, width),
+		  std::max (size_1.height, height));
+  }
+
 public:
   DualLayoutView (BScrollView *first, BView *second) : BView (NULL, B_FRAME_EVENTS),
 						       view_1 (first),
