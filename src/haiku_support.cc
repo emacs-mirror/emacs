@@ -92,20 +92,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Some messages that Emacs sends to itself.  */
 enum
   {
-    SCROLL_BAR_UPDATE	 = 3000,
-    WAIT_FOR_RELEASE	 = 3001,
-    RELEASE_NOW		 = 3002,
-    CANCEL_DROP		 = 3003,
-    SHOW_MENU_BAR	 = 3004,
-    BE_MENU_BAR_OPEN	 = 3005,
-    QUIT_APPLICATION	 = 3006,
-    REPLAY_MENU_BAR	 = 3007,
-    FONT_FAMILY_SELECTED = 3008,
-    FONT_STYLE_SELECTED	 = 3009,
-    FILE_PANEL_SELECTION = 3010,
-    QUIT_PREVIEW_DIALOG	 = 3011,
-    SET_FONT_INDICES	 = 3012,
-    SET_PREVIEW_DIALOG	 = 3013,
+    SCROLL_BAR_UPDATE	  = 3000,
+    WAIT_FOR_RELEASE	  = 3001,
+    RELEASE_NOW		  = 3002,
+    CANCEL_DROP		  = 3003,
+    SHOW_MENU_BAR	  = 3004,
+    BE_MENU_BAR_OPEN	  = 3005,
+    QUIT_APPLICATION	  = 3006,
+    REPLAY_MENU_BAR	  = 3007,
+    FONT_FAMILY_SELECTED  = 3008,
+    FONT_STYLE_SELECTED	  = 3009,
+    FILE_PANEL_SELECTION  = 3010,
+    QUIT_PREVIEW_DIALOG	  = 3011,
+    SET_FONT_INDICES	  = 3012,
+    SET_PREVIEW_DIALOG	  = 3013,
+    UPDATE_PREVIEW_DIALOG = 3014,
   };
 
 /* X11 keysyms that we use.  */
@@ -2482,9 +2483,13 @@ class EmacsFontPreviewDialog : public BWindow
     font_family name;
     font_style sname;
     status_t rc;
+    const char *size_name;
+    int size;
 
     if (message->what == SET_FONT_INDICES)
       {
+	size_name = message->FindString ("emacs:size");
+
 	if (message->FindInt32 ("emacs:family", &family) != B_OK
 	    || message->FindInt32 ("emacs:style", &style) != B_OK)
 	  return;
@@ -2504,8 +2509,14 @@ class EmacsFontPreviewDialog : public BWindow
 
 	current_font = new BFont;
 	current_font->SetFamilyAndStyle (name, sname);
-	text_view.SetFont (current_font);
 
+	if (size_name && strlen (size_name))
+	  {
+	    size = atoi (size_name);
+	    current_font->SetSize (size);
+	  }
+
+	text_view.SetFont (current_font);
 	DoLayout ();
 	return;
       }
@@ -2617,6 +2628,9 @@ class EmacsFontSelectionDialog : public BWindow
     message.what = SET_FONT_INDICES;
     message.AddInt32 ("emacs:family", family);
     message.AddInt32 ("emacs:style", style);
+
+    message.AddString ("emacs:size",
+		       size_entry.Text ());
 
     messenger.SendMessage (&message);
   }
@@ -2746,6 +2760,11 @@ class EmacsFontSelectionDialog : public BWindow
 	preview_checkbox.SetValue (B_CONTROL_OFF);
 	HidePreview ();
       }
+    else if (msg->what == UPDATE_PREVIEW_DIALOG)
+      {
+	if (preview)
+	  UpdatePreview ();
+      }
 
     BWindow::MessageReceived (msg);
   }
@@ -2810,7 +2829,8 @@ public:
       cancel_button ("Cancel", "Cancel",
 		     new BMessage (B_CANCEL)),
       ok_button ("OK", "OK", new BMessage (B_OK)),
-      size_entry (NULL, "Size:", NULL, NULL),
+      size_entry (NULL, "Size:", NULL,
+		  new BMessage (UPDATE_PREVIEW_DIALOG)),
       allow_monospace_only (monospace_only),
       pending_selection_idx (initial_style_idx),
       preview (NULL)
@@ -2846,6 +2866,8 @@ public:
     font_style_pane.SetSelectionMessage (selection);
     selection = new BMessage (B_OK);
     font_style_pane.SetInvocationMessage (selection);
+    selection = new BMessage (UPDATE_PREVIEW_DIALOG);
+    size_entry.SetModificationMessage (selection);
 
     comm_port = create_port (1, "font dialog port");
 
