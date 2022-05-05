@@ -896,6 +896,19 @@ also rename the @file{*shell*} buffer using @kbd{M-x rename-uniquely},
 then create a new @file{*shell*} buffer using plain @kbd{M-x shell}.
 Subshells in different buffers run independently and in parallel.
 
+  Emacs attempts to keep track of what the current directory is by
+looking at the commands you enter, looking for @samp{cd} commands and
+the like.  This is an error-prone solution, since there are many ways
+to change the current directory, so Emacs also looks for special
+@acronym{OSC} (Operating System Commands} escape codes that are
+designed to convey this information in a more reliable fashion.  You
+should arrange for your shell to print the appropriate escape sequence
+at each prompt, for instance with the following command:
+
+@example
+printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
+@end example
+
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
 @cindex @env{ESHELL} environment variable

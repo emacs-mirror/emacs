@@ -1033,7 +1033,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   "Toggle directory tracking in this shell buffer (Shell Dirtrack mode).
 
 The `dirtrack' package provides an alternative implementation of
-this feature; see the function `dirtrack-mode'."
+this feature; see the function `dirtrack-mode'.  Also see
+`comint-osc-directory-tracker' for an escape-sequence based
+solution."
   :lighter nil
   (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
   (if shell-dirtrack-mode
