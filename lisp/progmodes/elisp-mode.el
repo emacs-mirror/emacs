@@ -239,22 +239,23 @@ Comments in the form will be lost."
 
 (defun elisp-mode-syntax-propertize (start end)
   (goto-char start)
-  (funcall
-   (syntax-propertize-rules
-    ;; Empty symbol.
-    ("##" (0 (unless (nth 8 (syntax-ppss))
-               (string-to-syntax "_"))))
-    ;; Unicode character names.  (The longest name is 88 characters
-    ;; long.)
-    ("\\?\\\\N{[-A-Z ]\\{,88\\}}"
-     (0 (unless (nth 8 (syntax-ppss))
-          (string-to-syntax "_"))))
-    ((rx "#" (or (seq (group-n 1 "&" (+ digit)) ?\") ; Bool-vector.
-                 (seq (group-n 1 "s") "(")           ; Record.
-                 (seq (group-n 1 (+ "^")) "[")))     ; Char-table.
-     (1 (unless (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
-          (string-to-syntax "'")))))
-   start end))
+  (let ((case-fold-search nil))
+    (funcall
+     (syntax-propertize-rules
+      ;; Empty symbol.
+      ("##" (0 (unless (nth 8 (syntax-ppss))
+                 (string-to-syntax "_"))))
+      ;; Unicode character names.  (The longest name is 88 characters
+      ;; long.)
+      ("\\?\\\\N{[-A-Za-z0-9 ]\\{,100\\}}"
+       (0 (unless (nth 8 (syntax-ppss))
+            (string-to-syntax "_"))))
+      ((rx "#" (or (seq (group-n 1 "&" (+ digit)) ?\") ; Bool-vector.
+                   (seq (group-n 1 "s") "(")           ; Record.
+                   (seq (group-n 1 (+ "^")) "[")))     ; Char-table.
+       (1 (unless (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+            (string-to-syntax "'")))))
+     start end)))
 
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
