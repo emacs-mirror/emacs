@@ -1868,7 +1868,13 @@ point not visible in the window.
 For reliable setting of WINDOW start position, make sure point is
 at a position that will be visible when that start is in effect,
 otherwise there's a chance POS will be disregarded, e.g., if point
-winds up in a partially-visible line.  */)
+winds up in a partially-visible line.
+
+The setting of the WINDOW's start position takes effect during the
+next redisplay cycle, not immediately.  If NOFORCE is nil or
+omitted, forcing the display of WINDOW to start at POS cancels
+any setting of WINDOW's vertical scroll (\"vscroll\") amount
+set by `set-window-vscroll' and by scrolling functions.  */)
   (Lisp_Object window, Lisp_Object pos, Lisp_Object noforce)
 {
   register struct window *w = decode_live_window (window);
