@@ -1231,14 +1231,11 @@ in the font selection dialog.  */)
 
   lfamily = build_string_from_utf8 (family);
   lweight = (pattern.specified & FSPEC_WEIGHT
-	     ? haikufont_weight_to_lisp (pattern.weight)
-	     : Qunspecified);
+	     ? haikufont_weight_to_lisp (pattern.weight) : Qnil);
   lslant = (pattern.specified & FSPEC_SLANT
-	    ? haikufont_slant_to_lisp (pattern.slant)
-	    : Qunspecified);
+	    ? haikufont_slant_to_lisp (pattern.slant) : Qnil);
   lwidth = (pattern.specified & FSPEC_WIDTH
-	    ? haikufont_width_to_lisp (pattern.width)
-	    : Qunspecified);
+	    ? haikufont_width_to_lisp (pattern.width) : Qnil);
   ladstyle = (pattern.specified & FSPEC_STYLE
 	     ? intern (pattern.style) : Qnil);
   lsize = (size >= 0 ? make_fixnum (size) : Qnil);
