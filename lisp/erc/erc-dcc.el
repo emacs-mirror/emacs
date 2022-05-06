@@ -43,7 +43,7 @@
 ;;  /dcc chat nick - Either accept pending chat offer from nick, or offer
 ;;                   DCC chat to nick
 ;;  /dcc close type [nick] - Close DCC connection (SEND/GET/CHAT) with nick
-;;  /dcc get [-t] nick [file] - Accept DCC offer from nick
+;;  /dcc get [-t][-s] nick [file] - Accept DCC offer from nick
 ;;  /dcc list - List all DCC offers/connections
 ;;  /dcc send nick file - Offer DCC SEND to nick
 
@@ -107,6 +107,8 @@ Looks like:
 
  :size - size of the file, may be nil on incoming DCCs
 
+ :secure - optional item indicating sender support for TLS
+
  :turbo - optional item indicating sender support for TSEND")
 
 (defun erc-dcc-list-add (type nick peer parent &rest args)
@@ -121,12 +123,13 @@ Looks like:
 ;; more: the entry data from erc-dcc-list for this particular process.
 (defvar erc-dcc-connect-function 'erc-dcc-open-network-stream)
 
-(defun erc-dcc-open-network-stream (procname buffer addr port _entry)
+(defun erc-dcc-open-network-stream (procname buffer addr port entry)
   ;; FIXME: Time to try activating this again!?
   (if nil;  (fboundp 'open-network-stream-nowait)  ;; this currently crashes
                                                    ;; cvs emacs
       (open-network-stream-nowait procname buffer addr port)
-    (open-network-stream procname buffer addr port)))
+    (open-network-stream procname buffer addr port
+                         :type (and (plist-get entry :secure) 'tls))))
 
 (erc-define-catalog
  'english
@@ -534,6 +537,9 @@ PROC is the server process."
                     ?n nick ?f filename)))
                 (t
                  (erc-dcc-get-file elt file proc)))
+          (when (member "-s" flags)
+            (setq erc-dcc-list (cons (plist-put elt :secure t)
+                                     (delq elt erc-dcc-list))))
           (when (member "-t" flags)
             (setq erc-dcc-list (cons (plist-put elt :turbo t)
                                      (delq elt erc-dcc-list)))))
@@ -574,6 +580,7 @@ It lists the current state of `erc-dcc-list' in an easy to read manner."
               (process-status (plist-get elt :peer))
             "no")
        ?s (concat size
+                  ;; FIXME consider uniquified names, e.g., foo.bin<2>
                   (if (and (eq 'GET (plist-get elt :type))
                            (plist-member elt :file)
                            (buffer-live-p (get-buffer (plist-get elt :file)))
@@ -587,7 +594,7 @@ It lists the current state of `erc-dcc-list' in an easy to read manner."
                                        (plist-get elt :size))))))
        ?f (or (and (plist-member elt :file) (plist-get elt :file)) "")
        ?u (if-let* ((flags (concat (and (plist-get elt :turbo) "t")
-                                   (and (plist-get elt :placeholder) "p")))
+                                   (and (plist-get elt :secure) "s")))
                     ((not (string-empty-p flags))))
               (concat " (" flags ")")
             "")))
@@ -618,6 +625,9 @@ separated by a space."
 (defvar erc-dcc-query-handler-alist
   '(("SEND" . erc-dcc-handle-ctcp-send)
     ("TSEND" . erc-dcc-handle-ctcp-send)
+    ("SSEND" . erc-dcc-handle-ctcp-send)
+    ("TSSEND" . erc-dcc-handle-ctcp-send)
+    ("STSEND" . erc-dcc-handle-ctcp-send)
     ("CHAT" . erc-dcc-handle-ctcp-chat)))
 
 ;;;###autoload
@@ -676,6 +686,7 @@ It extracts the information about the dcc request and adds it to
              (port (match-string 4 query))
              (size (match-string 5 query))
              (sub (substring (match-string 6 query) 0 -4))
+             (secure (seq-contains-p sub ?S #'eq))
              (turbo (seq-contains-p sub ?T #'eq)))
         ;; FIXME: a warning really should also be sent
         ;; if the ip address != the host the dcc sender is on.
@@ -694,7 +705,8 @@ It extracts the information about the dcc request and adds it to
          nil proc
          :ip ip :port port :file filename
          :size (string-to-number size)
-         :turbo (and turbo t))
+         :turbo (and turbo t)
+         :secure (and secure t))
         (if (and (eq erc-dcc-send-request 'auto)
                  (erc-dcc-auto-mask-p (format "\"%s!%s@%s\"" nick login host)))
             (erc-dcc-get-file (car erc-dcc-list) filename proc))))

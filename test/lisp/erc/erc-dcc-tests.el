@@ -75,7 +75,8 @@
                            :port "9899"
                            :file "foo"
                            :size 1405135128
-                           :turbo ,(and turbo t))))
+                           :turbo ,(and turbo t)
+                           :secure nil)))
     (goto-char (point-min))
     (should (search-forward "file foo offered by tester" nil t))
     (erc-dcc-do-LIST-command erc-server-process)
