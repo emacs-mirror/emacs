@@ -244,6 +244,11 @@ Comments in the form will be lost."
     ;; Empty symbol.
     ("##" (0 (unless (nth 8 (syntax-ppss))
                (string-to-syntax "_"))))
+    ;; Unicode character names.  (The longest name is 88 characters
+    ;; long.)
+    ("\\?\\\\N{[-A-Z ]\\{,88\\}}"
+     (0 (unless (nth 8 (syntax-ppss))
+          (string-to-syntax "_"))))
     ((rx "#" (or (seq (group-n 1 "&" (+ digit)) ?\") ; Bool-vector.
                  (seq (group-n 1 "s") "(")           ; Record.
                  (seq (group-n 1 (+ "^")) "[")))     ; Char-table.
