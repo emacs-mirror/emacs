@@ -1324,10 +1324,14 @@ lw_separator_p (const char *label, enum menu_separator *type, int motif_p)
     {
       /* Old-style separator, maybe.  It's a separator if it contains
 	 only dashes.  */
-      while (*label == '-')
-	++label;
-      separator_p = *label == 0;
-      *type = SEPARATOR_SHADOW_ETCHED_IN;
+      if (*label == '-')
+	{
+	  while (*label == '-')
+	    ++label;
+	  separator_p = *label == 0;
+
+	  *type = SEPARATOR_SHADOW_ETCHED_IN;
+	}
     }
 
   return separator_p;
