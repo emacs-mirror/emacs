@@ -1236,6 +1236,14 @@ please check its value")
 		  (t
 		   (setq argval nil
 			 argi orig-argi)))))
+
+        ;; We handle "-scripteval" further down, but we have to
+        ;; inhibit loading the user init file first.  (This is for
+        ;; "emacs -x" handling.)
+	(when (equal argi "-scripteval")
+	  (setq init-file-user nil
+                noninteractive t))
+
 	(cond
 	 ;; The --display arg is handled partly in C, partly in Lisp.
 	 ;; When it shows up here, we just put it back to be handled
