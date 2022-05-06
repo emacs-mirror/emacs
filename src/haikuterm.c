@@ -1349,6 +1349,8 @@ haiku_draw_composite_glyph_string_foreground (struct glyph_string *s)
 	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
       else
 	BView_SetHighColor (view, s->face->foreground);
+
+      BView_SetPenSize (view, 1);
       BView_StrokeRectangle (view, s->x, s->y,
 			     s->width, s->height);
     }
