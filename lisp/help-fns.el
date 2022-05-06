@@ -837,7 +837,8 @@ the C sources, too."
            (insert-text-button
             (symbol-name group)
             'action (lambda (_)
-                      (shortdoc-display-group group object))
+                      (shortdoc-display-group group object
+                                              help-window-keep-selected))
             'follow-link t
             'help-echo (purecopy "mouse-1, RET: show documentation group")))
          groups)

@@ -1298,16 +1298,20 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (keymap-lookup (current-global-map) "C-x x g")))
 
 ;;;###autoload
-(defun shortdoc-display-group (group &optional function)
+(defun shortdoc-display-group (group &optional function same-window)
   "Pop to a buffer with short documentation summary for functions in GROUP.
-If FUNCTION is non-nil, place point on the entry for FUNCTION (if any)."
+If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
+If SAME-WINDOW, don't pop to a new window."
   (interactive (list (completing-read "Show summary for functions in: "
                                       (mapcar #'car shortdoc--groups))))
   (when (stringp group)
     (setq group (intern group)))
   (unless (assq group shortdoc--groups)
     (error "No such documentation group %s" group))
-  (pop-to-buffer (format "*Shortdoc %s*" group))
+  (funcall (if same-window
+               #'pop-to-buffer-same-window
+             #'pop-to-buffer)
+           (format "*Shortdoc %s*" group))
   (let ((inhibit-read-only t)
         (prev nil))
     (erase-buffer)
