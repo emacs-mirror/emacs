@@ -1636,6 +1636,12 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
++++
+** New macro 'buffer-local-set-state'.
+This is a helper macro to be used by minor modes that wish to restore
+buffer-local variables back to their original states when the mode is
+switched off.
+
 ---
 ** New macro 'with-buffer-unmodified-if-unchanged'.
 If the buffer is marked as unmodified, and code does modifications

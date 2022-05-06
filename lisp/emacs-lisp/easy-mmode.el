@@ -825,6 +825,39 @@ Interactively, COUNT is the prefix numeric argument, and defaults to 1."
            ,@body))
        (put ',prev-sym 'definition-name ',base))))
 
+
+(defmacro buffer-local-set-state (&rest pairs)
+  "Like `setq-local', but return an object that allows restoring previous state.
+Use `buffer-local-restore-state' on the returned object to
+restore the state.
+
+\(fn [VARIABLE VALUE]...)"
+  (declare (debug setq))
+  (unless (zerop (mod (length pairs) 2))
+    (error "PAIRS must have an even number of variable/value members"))
+  `(prog1
+       (buffer-local-set-state--get ',pairs)
+     (setq-local ,@pairs)))
+
+(defun buffer-local-set-state--get (pairs)
+  (let ((states nil))
+    (while pairs
+      (push (list (car pairs)
+                  (and (boundp (car pairs))
+                       (local-variable-p (car pairs)))
+                  (and (boundp (car pairs))
+                       (symbol-value (car pairs))))
+            states)
+      (setq pairs (cddr pairs)))
+    (nreverse states)))
+
+(defun buffer-local-restore-state (states)
+  "Restore buffer local variable values in STATES.
+STATES is an object returned by `buffer-local-set-state'."
+  (pcase-dolist (`(,variable ,local ,value) states)
+    (if local
+        (set variable value)
+      (kill-local-variable variable))))
 
 (provide 'easy-mmode)
 

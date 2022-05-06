@@ -60,26 +60,15 @@ The characters to break on are defined by `word-wrap-whitespace-characters'."
   (if word-wrap-whitespace-mode
       (progn
         (setq-local word-wrap-mode--previous-state
-                    (list (category-table)
-                          (local-variable-p 'word-wrap-by-category)
-                          word-wrap-by-category
-                          (local-variable-p 'word-wrap)
-                          word-wrap))
+                    (cons (category-table)
+                          (buffer-local-set-state
+                           word-wrap-by-category t
+                           word-wrap t)))
         (set-category-table (copy-category-table))
         (dolist (char word-wrap-whitespace-characters)
-          (modify-category-entry char ?|))
-        (setq-local word-wrap-by-category t
-                    word-wrap t))
-    (pcase-let ((`(,table ,lby-cat ,by-cat
-                          ,lwrap ,wrap)
-                 word-wrap-mode--previous-state))
-      (if lby-cat
-          (setq-local word-wrap-by-category by-cat)
-        (kill-local-variable 'word-wrap-by-category))
-      (if lwrap
-          (setq-local word-wrap wrap)
-        (kill-local-variable 'word-wrap))
-      (set-category-table table))))
+          (modify-category-entry char ?|)))
+    (set-category-table (car word-wrap-mode--previous-state))
+    (buffer-local-restore-state (cdr word-wrap-mode--previous-state))))
 
 ;;;###autoload
 (define-globalized-minor-mode global-word-wrap-whitespace-mode
