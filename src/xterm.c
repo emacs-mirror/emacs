@@ -10035,116 +10035,133 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       unblock_input ();
       pending_signals = signals_were_pending;
 
-      if (x_dnd_movement_frame)
+      /* Ignore mouse movement from displays that aren't the DND
+	 display.  */
+#ifndef USE_GTK
+      if (event_display == FRAME_DISPLAY_INFO (f))
 	{
-	  XSETFRAME (frame_object, x_dnd_movement_frame);
-	  XSETINT (x, x_dnd_movement_x);
-	  XSETINT (y, x_dnd_movement_y);
-	  x_dnd_movement_frame = NULL;
-
-	  if (!NILP (Vx_dnd_movement_function)
-	      && !FRAME_TOOLTIP_P (XFRAME (frame_object))
-	      && x_dnd_movement_x >= 0
-	      && x_dnd_movement_y >= 0
-	      && x_dnd_frame
-	      && (XFRAME (frame_object) != x_dnd_frame
-		  || x_dnd_allow_current_frame))
+#endif
+	  if (x_dnd_movement_frame)
 	    {
-	      x_dnd_old_window_attrs = root_window_attrs;
-	      x_dnd_unwind_flag = true;
+	      XSETFRAME (frame_object, x_dnd_movement_frame);
+	      XSETINT (x, x_dnd_movement_x);
+	      XSETINT (y, x_dnd_movement_y);
+	      x_dnd_movement_frame = NULL;
 
-	      ref = SPECPDL_INDEX ();
-	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
-	      call2 (Vx_dnd_movement_function, frame_object,
-		     Fposn_at_x_y (x, y, frame_object, Qnil));
-	      x_dnd_unwind_flag = false;
-	      unbind_to (ref, Qnil);
-	    }
-	}
-
-      if (hold_quit.kind != NO_EVENT)
-	{
-	  if (hold_quit.kind == SELECTION_REQUEST_EVENT)
-	    {
-	      x_dnd_old_window_attrs = root_window_attrs;
-	      x_dnd_unwind_flag = true;
-
-	      ref = SPECPDL_INDEX ();
-	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
-	      x_handle_selection_event ((struct selection_input_event *) &hold_quit);
-	      x_dnd_unwind_flag = false;
-	      unbind_to (ref, Qnil);
-	      continue;
-	    }
-
-	  if (x_dnd_in_progress)
-	    {
-	      if (x_dnd_last_seen_window != None
-		  && x_dnd_last_protocol_version != -1)
-		x_dnd_send_leave (f, x_dnd_last_seen_window);
-	      else if (x_dnd_last_seen_window != None
-		       && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
-		       && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
-		       && x_dnd_motif_setup_p)
+	      if (!NILP (Vx_dnd_movement_function)
+		  && !FRAME_TOOLTIP_P (XFRAME (frame_object))
+		  && x_dnd_movement_x >= 0
+		  && x_dnd_movement_y >= 0
+		  && x_dnd_frame
+		  && (XFRAME (frame_object) != x_dnd_frame
+		      || x_dnd_allow_current_frame))
 		{
-		  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
-						XM_DRAG_REASON_DROP_START);
-		  dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
-		  dmsg.timestamp = hold_quit.timestamp;
-		  dmsg.side_effects
-		    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
-								       x_dnd_wanted_action),
-					   XM_DROP_SITE_VALID,
-					   xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
-								       x_dnd_wanted_action),
-					   XM_DROP_ACTION_DROP_CANCEL);
-		  dmsg.x = 0;
-		  dmsg.y = 0;
-		  dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
-		  dmsg.source_window = FRAME_X_WINDOW (f);
+		  x_dnd_old_window_attrs = root_window_attrs;
+		  x_dnd_unwind_flag = true;
 
-		  x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
-						x_dnd_last_seen_window,
-						hold_quit.timestamp);
-		  xm_send_drop_message (FRAME_DISPLAY_INFO (f), FRAME_X_WINDOW (f),
-					x_dnd_last_seen_window, &dmsg);
+		  ref = SPECPDL_INDEX ();
+		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+		  call2 (Vx_dnd_movement_function, frame_object,
+			 Fposn_at_x_y (x, y, frame_object, Qnil));
+		  x_dnd_unwind_flag = false;
+		  unbind_to (ref, Qnil);
+		}
+	    }
+
+	  if (hold_quit.kind != NO_EVENT)
+	    {
+	      if (hold_quit.kind == SELECTION_REQUEST_EVENT)
+		{
+		  x_dnd_old_window_attrs = root_window_attrs;
+		  x_dnd_unwind_flag = true;
+
+		  ref = SPECPDL_INDEX ();
+		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+		  x_handle_selection_event ((struct selection_input_event *) &hold_quit);
+		  x_dnd_unwind_flag = false;
+		  unbind_to (ref, Qnil);
+		  continue;
 		}
 
-	      x_dnd_end_window = x_dnd_last_seen_window;
-	      x_dnd_last_seen_window = None;
-	      x_dnd_last_seen_toplevel = None;
-	      x_dnd_in_progress = false;
-	      x_dnd_frame = NULL;
-	    }
+	      if (x_dnd_in_progress)
+		{
+		  if (x_dnd_last_seen_window != None
+		      && x_dnd_last_protocol_version != -1)
+		    x_dnd_send_leave (f, x_dnd_last_seen_window);
+		  else if (x_dnd_last_seen_window != None
+			   && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
+			   && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
+			   && x_dnd_motif_setup_p)
+		    {
+		      dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+						    XM_DRAG_REASON_DROP_START);
+		      dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+		      dmsg.timestamp = hold_quit.timestamp;
+		      dmsg.side_effects
+			= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+									   x_dnd_wanted_action),
+					       XM_DROP_SITE_VALID,
+					       xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+									   x_dnd_wanted_action),
+					       XM_DROP_ACTION_DROP_CANCEL);
+		      dmsg.x = 0;
+		      dmsg.y = 0;
+		      dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
+		      dmsg.source_window = FRAME_X_WINDOW (f);
 
-	  x_set_dnd_targets (NULL, 0);
-	  x_dnd_waiting_for_finish = false;
+		      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
+						    x_dnd_last_seen_window,
+						    hold_quit.timestamp);
+		      xm_send_drop_message (FRAME_DISPLAY_INFO (f), FRAME_X_WINDOW (f),
+					    x_dnd_last_seen_window, &dmsg);
+		    }
 
-	  if (x_dnd_use_toplevels)
-	    x_dnd_free_toplevels ();
+		  x_dnd_end_window = x_dnd_last_seen_window;
+		  x_dnd_last_seen_window = None;
+		  x_dnd_last_seen_toplevel = None;
+		  x_dnd_in_progress = false;
+		  x_dnd_frame = NULL;
+		}
 
-	  x_dnd_return_frame_object = NULL;
-	  x_dnd_movement_frame = NULL;
+	      x_set_dnd_targets (NULL, 0);
+	      x_dnd_waiting_for_finish = false;
 
-	  FRAME_DISPLAY_INFO (f)->grabbed = 0;
+	      if (x_dnd_use_toplevels)
+		x_dnd_free_toplevels ();
+
+	      x_dnd_return_frame_object = NULL;
+	      x_dnd_movement_frame = NULL;
+
+	      FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #ifdef USE_GTK
-	  current_hold_quit = NULL;
+	      current_hold_quit = NULL;
 #endif
-	  /* Restore the old event mask.  */
-	  XSelectInput (FRAME_X_DISPLAY (f),
-			FRAME_DISPLAY_INFO (f)->root_window,
-			root_window_attrs.your_event_mask);
+	      /* Restore the old event mask.  */
+	      XSelectInput (FRAME_X_DISPLAY (f),
+			    FRAME_DISPLAY_INFO (f)->root_window,
+			    root_window_attrs.your_event_mask);
 #ifdef HAVE_XKB
-	  if (FRAME_DISPLAY_INFO (f)->supports_xkb)
-	    XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-			     XkbStateNotifyMask, 0);
+	      if (FRAME_DISPLAY_INFO (f)->supports_xkb)
+		XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
+				 XkbStateNotifyMask, 0);
 #endif
-	  /* Delete the Motif drag initiator info if it was set up.  */
-	  if (x_dnd_motif_setup_p)
-	    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
-	  quit ();
+	      /* Delete the Motif drag initiator info if it was set up.  */
+	      if (x_dnd_motif_setup_p)
+		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+	      quit ();
+	    }
+#ifndef USE_GTK
 	}
+      else
+	{
+	  if (x_dnd_movement_frame)
+	    x_dnd_movement_frame = NULL;
+
+	  if (hold_quit.kind != NO_EVENT)
+	    EVENT_INIT (hold_quit);
+	}
+#endif
     }
 
   x_set_dnd_targets (NULL, 0);
