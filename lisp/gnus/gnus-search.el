@@ -1337,7 +1337,11 @@ elements are present."
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
 					      (str string))
   (with-slots (literal-plus) engine
-    (if (multibyte-string-p str)
+    ;; TODO: Figure out how Exchange IMAP servers actually work.  They
+    ;; do not accept any CHARSET but US-ASCII, but they do report
+    ;; Literal+ capability.  So what do we do?  Will quoted strings
+    ;; always work?
+    (if (string-match-p "[^[:ascii:]]" str)
 	;; If LITERAL+ is available, use it and encode string as
 	;; UTF-8.
 	(if literal-plus
