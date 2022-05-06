@@ -26,6 +26,7 @@
 
 (require 'vc-rcs)
 (eval-when-compile (require 'vc))
+(require 'log-view)
 
 (declare-function vc-checkout "vc" (file &optional rev))
 (declare-function vc-expand-dirs "vc" (file-or-dir-list backend))
@@ -1256,6 +1257,14 @@ ignore file."
         (insert str (if old-dir "/\n" "\n"))
         (if sort (sort-lines nil (point-min) (point-max)))
         (save-buffer)))))
+
+(defvar-keymap vc-cvs-log-view-mode-map
+  "N" #'log-view-file-next
+  "P" #'log-view-file-prev
+  "M-n" #'log-view-file-next
+  "M-p" #'log-view-file-prev)
+
+(define-derived-mode vc-cvs-log-view-mode log-view-mode "CVS-Log-View")
 
 (provide 'vc-cvs)
 

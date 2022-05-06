@@ -27,6 +27,7 @@
 
 (eval-when-compile
   (require 'vc))
+(require 'log-view)
 
 ;;;
 ;;; Customization options
@@ -517,6 +518,14 @@ If NAME is nil or a revision number string it's just passed through."
        (expand-file-name vc-sccs-name-assoc-file
 			 (file-name-directory (vc-master-name file))))
       (vc-parse-buffer (concat name "\t:\t" file "\t\\(.+\\)") 1))))
+
+(defvar-keymap vc-sccs-log-view-mode-map
+  "N" #'log-view-file-next
+  "P" #'log-view-file-prev
+  "M-n" #'log-view-file-next
+  "M-p" #'log-view-file-prev)
+
+(define-derived-mode vc-sccs-log-view-mode log-view-mode "SCCS-Log-View")
 
 (provide 'vc-sccs)
 

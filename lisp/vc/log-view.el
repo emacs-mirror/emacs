@@ -134,11 +134,7 @@
   "n" #'log-view-msg-next
   "p" #'log-view-msg-prev
   "TAB" #'log-view-msg-next
-  "<backtab>" #'log-view-msg-prev
-  "N" #'log-view-file-next
-  "P" #'log-view-file-prev
-  "M-n" #'log-view-file-next
-  "M-p" #'log-view-file-prev)
+  "<backtab>" #'log-view-msg-prev)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu."

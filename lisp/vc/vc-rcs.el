@@ -40,6 +40,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'vc))
+(require 'log-view)
 
 (declare-function vc-read-revision "vc"
                   (prompt &optional files backend default initial-input))
@@ -1455,6 +1456,14 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
       ;; rv
       `((headers ,desc ,@headers)
         (revisions ,@revs)))))
+
+(defvar-keymap vc-rcs-log-view-mode-map
+  "N" #'log-view-file-next
+  "P" #'log-view-file-prev
+  "M-n" #'log-view-file-next
+  "M-p" #'log-view-file-prev)
+
+(define-derived-mode vc-rcs-log-view-mode log-view-mode "RCS-Log-View")
 
 (provide 'vc-rcs)
 
