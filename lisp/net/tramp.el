@@ -3377,83 +3377,80 @@ BODY is the backend specific code."
   "Skeleton for `tramp-*-handle-write-region'.
 BODY is the backend specific code."
   (declare (indent 7) (debug t))
-  `(with-parsed-tramp-file-name (expand-file-name ,filename) nil
-     (setq ,filename (expand-file-name ,filename)
-	   ,lockname (file-truename (or ,lockname ,filename)))
-     ;; Sometimes, there is another file name handler responsible for
-     ;; VISIT, for example `jka-compr-handler'.  We must respect this.
-     ;; See Bug#55166.
-     (let ((handler (and (stringp ,visit)
-			 (let ((inhibit-file-name-handlers
-				(cons 'tramp-file-name-handler
-				      inhibit-file-name-handlers))
-			       (inhibit-file-name-operation 'write-region))
-			   (find-file-name-handler ,visit 'write-region)))))
+  ;; Sometimes, there is another file name handler responsible for
+  ;; VISIT, for example `jka-compr-handler'.  We must respect this.
+  ;; See Bug#55166.
+  `(let* ((filename (expand-file-name ,filename))
+	 (lockname (file-truename (or ,lockname filename)))
+	 (handler (and (stringp ,visit)
+		       (let ((inhibit-file-name-handlers
+			      (cons 'tramp-file-name-handler
+				    inhibit-file-name-handlers))
+			     (inhibit-file-name-operation 'write-region))
+			 (find-file-name-handler ,visit 'write-region)))))
+     (with-parsed-tramp-file-name filename nil
        (if handler
 	   (progn
 	     (tramp-message
 	      v 5 "Calling handler `%s' for visiting `%s'" handler ,visit)
 	     (funcall
 	      handler 'write-region
-	      ,start ,end ,filename ,append ,visit ,lockname ,mustbenew))
+	      ,start ,end filename ,append ,visit lockname ,mustbenew))
 
-	 (when (and ,mustbenew (file-exists-p ,filename)
+	 (when (and ,mustbenew (file-exists-p filename)
 		    (or (eq ,mustbenew 'excl)
 			(not
 			 (y-or-n-p
 			  (format
-			   "File %s exists; overwrite anyway?" ,filename)))))
-	   (tramp-error v 'file-already-exists ,filename))
+			   "File %s exists; overwrite anyway?" filename)))))
+	   (tramp-error v 'file-already-exists filename))
 
-	 (let ((file-locked (eq (file-locked-p ,lockname) t))
+	 (let ((file-locked (eq (file-locked-p lockname) t))
 	       (uid (or (file-attribute-user-id
-			 (file-attributes ,filename 'integer))
+			 (file-attributes filename 'integer))
 			(tramp-get-remote-uid v 'integer)))
 	       (gid (or (file-attribute-group-id
-			 (file-attributes ,filename 'integer))
+			 (file-attributes filename 'integer))
 			(tramp-get-remote-gid v 'integer)))
 	       (curbuf (current-buffer)))
 
 	   ;; Lock file.
 	   (when (and (not (auto-save-file-name-p
-			    (file-name-nondirectory ,filename)))
-		      (file-remote-p ,lockname)
+			    (file-name-nondirectory filename)))
+		      (file-remote-p lockname)
 		      (not file-locked))
 	     (setq file-locked t)
 	     ;; `lock-file' exists since Emacs 28.1.
-	     (tramp-compat-funcall 'lock-file ,lockname))
+	     (tramp-compat-funcall 'lock-file lockname))
 
 	   ;; The body.
 	   ,@body
 
+	   ;; We must also flush the cache of the directory, because
+	   ;; `file-attributes' reads the values from there.
+	   (tramp-flush-file-properties v localname)
+
 	   ;; We must protect `last-coding-system-used', now we have
 	   ;; set it to its correct value.
-	   (let (last-coding-system-used (need-chown t))
+	   (let (last-coding-system-used)
 	     ;; Set file modification time.
 	     (when (or (eq ,visit t) (stringp ,visit))
-               (let ((file-attr (file-attributes ,filename 'integer)))
+	       (when-let ((file-attr (file-attributes filename 'integer)))
 		 (set-visited-file-modtime
 		  ;; We must pass modtime explicitly, because FILENAME
 		  ;; can be different from (buffer-file-name), f.e. if
 		  ;; `file-precious-flag' is set.
 		  (or (file-attribute-modification-time file-attr)
 		      (current-time)))
-		 (when (and (= (file-attribute-user-id file-attr) uid)
-			    (= (file-attribute-group-id file-attr) gid))
-		   (setq need-chown nil))))
-
-	     ;; Set the ownership.
-	     (when need-chown
-               (tramp-set-file-uid-gid ,filename uid gid)))
-
-	   ;; We must also flush the cache of the directory, because
-	   ;; `file-attributes' reads the values from there.
-	   (tramp-flush-file-properties v localname)
+		 ;; Set the ownership.
+		 (unless (and (= (file-attribute-user-id file-attr) uid)
+			      (= (file-attribute-group-id file-attr) gid))
+		   (tramp-set-file-uid-gid filename uid gid)))))
 
 	   ;; Unlock file.
 	   (when file-locked
 	     ;; `unlock-file' exists since Emacs 28.1.
-	     (tramp-compat-funcall 'unlock-file ,lockname))
+	     (tramp-compat-funcall 'unlock-file lockname))
 
 	   ;; Sanity check.
 	   (unless (equal curbuf (current-buffer))
@@ -3463,7 +3460,7 @@ BODY is the backend specific code."
 
 	   (when (and (null noninteractive)
 		      (or (eq ,visit t) (string-or-null-p ,visit)))
-	     (tramp-message v 0 "Wrote %s" ,filename))
+	     (tramp-message v 0 "Wrote %s" filename))
 	   (run-hooks 'tramp-handle-write-region-hook))))))
 
 (put #'tramp-skeleton-write-region 'tramp-suppress-trace t)
@@ -4366,7 +4363,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	      (make-symbolic-link info lockname 'ok-if-already-exists)
 	    (error
 	     (with-file-modes #o0644
-               (write-region info nil lockname)))))))))
+               (write-region info nil lockname nil 'no-message)))))))))
 
 (defun tramp-handle-make-lock-file-name (file)
   "Like `make-lock-file-name' for Tramp files."
