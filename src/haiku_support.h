@@ -549,8 +549,8 @@ extern void BView_scroll_bar_update (void *, int, int, int, int, bool);
 extern void *BBitmap_transform_bitmap (void *, void *, uint32_t, double,
 				       int, int);
 
-extern void BScreen_px_dim (int *, int *);
-extern void BScreen_res (double *, double *);
+extern void be_get_display_resolution (double *, double *);
+extern void be_get_screen_dimensions (int *, int *);
 
 /* Functions for creating and freeing cursors.  */
 extern void *BCursor_create_default (void);

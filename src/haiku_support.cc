@@ -3265,15 +3265,18 @@ BWindow_activate (void *window)
 /* Return the pixel dimensions of the main screen in WIDTH and
    HEIGHT.  */
 void
-BScreen_px_dim (int *width, int *height)
+be_get_screen_dimensions (int *width, int *height)
 {
   BScreen screen;
+  BRect frame;
+
   if (!screen.IsValid ())
     gui_abort ("Invalid screen");
-  BRect frame = screen.Frame ();
 
-  *width = frame.right - frame.left;
-  *height = frame.bottom - frame.top;
+  frame = screen.Frame ();
+
+  *width = 1 + frame.right - frame.left;
+  *height = 1 + frame.bottom - frame.top;
 }
 
 /* Resize VIEW to WIDTH, HEIGHT.  */
@@ -4129,25 +4132,32 @@ BAlert_delete (void *alert)
   delete (BAlert *) alert;
 }
 
-/* Place the resolution of the monitor in DPI in RSSX and RSSY.  */
+/* Place the resolution of the monitor in DPI in X_OUT and Y_OUT.  */
 void
-BScreen_res (double *rrsx, double *rrsy)
+be_get_display_resolution (double *x_out, double *y_out)
 {
   BScreen s (B_MAIN_SCREEN_ID);
+  monitor_info i;
+  double x_inches, y_inches;
+  BRect frame;
+
   if (!s.IsValid ())
     gui_abort ("Invalid screen for resolution checks");
-  monitor_info i;
 
   if (s.GetMonitorInfo (&i) == B_OK)
     {
-      *rrsx = (double) i.width / (double) 2.54;
-      *rrsy = (double) i.height / (double) 2.54;
+      frame = s.Frame ();
+
+      x_inches = (double) i.width * 25.4;
+      y_inches = (double) i.height * 25.4;
+
+      *x_out = (double) BE_RECT_WIDTH (frame) / x_inches;
+      *y_out = (double) BE_RECT_HEIGHT (frame) / y_inches;
+      return;
     }
-  else
-    {
-      *rrsx = 72.27;
-      *rrsy = 72.27;
-    }
+
+  *x_out = 72.0;
+  *y_out = 72.0;
 }
 
 /* Add WINDOW to OTHER_WINDOW's subset and parent it to

@@ -1203,7 +1203,11 @@ compute_tip_xy (struct frame *f,
       /* Default min and max values.  */
       min_x = 0;
       min_y = 0;
-      BScreen_px_dim (&max_x, &max_y);
+
+      be_get_screen_dimensions (&max_x, &max_y);
+
+      max_x = max_x - 1;
+      max_y = max_y - 1;
 
       block_input ();
       BView_get_mouse (FRAME_HAIKU_VIEW (f), &x, &y);
@@ -1917,7 +1921,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
   int width, height;
   check_haiku_display_info (terminal);
 
-  BScreen_px_dim (&width, &height);
+  be_get_screen_dimensions (&width, &height);
   return make_fixnum (width);
 }
 
@@ -1930,7 +1934,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height, Sx_display_pixel_heigh
   int width, height;
   check_haiku_display_info (terminal);
 
-  BScreen_px_dim (&width, &height);
+  be_get_screen_dimensions (&width, &height);
   return make_fixnum (width);
 }
 
@@ -1941,7 +1945,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
   struct haiku_display_info *dpyinfo = check_haiku_display_info (terminal);
   int width, height;
 
-  BScreen_px_dim (&width, &height);
+  be_get_screen_dimensions (&width, &height);
   return make_fixnum (height / (dpyinfo->resy / 25.4));
 }
 
@@ -1953,7 +1957,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
   struct haiku_display_info *dpyinfo = check_haiku_display_info (terminal);
   int width, height;
 
-  BScreen_px_dim (&width, &height);
+  be_get_screen_dimensions (&width, &height);
   return make_fixnum (width / (dpyinfo->resx / 25.4));
 }
 

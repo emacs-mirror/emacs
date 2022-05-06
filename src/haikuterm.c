@@ -3939,9 +3939,9 @@ haiku_term_init (void)
   dpyinfo->display = BApplication_setup ();
   dpyinfo->next = x_display_list;
   dpyinfo->n_planes = be_get_display_planes ();
-  x_display_list = dpyinfo;
+  be_get_display_resolution (&dpyinfo->resx, &dpyinfo->resy);
 
-  BScreen_res (&dpyinfo->resx, &dpyinfo->resy);
+  x_display_list = dpyinfo;
 
   terminal = haiku_create_terminal (dpyinfo);
   if (current_kboard == initial_kboard)
