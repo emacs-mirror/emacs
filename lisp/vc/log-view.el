@@ -162,9 +162,15 @@
     ["Previous Log Entry"  log-view-msg-prev
      :help "Go to the previous count'th log message"]
     ["Next File"  log-view-file-next
-     :help "Go to the next count'th file"]
+     :help "Go to the next count'th file"
+     :active (derived-mode-p vc-cvs-log-view-mode
+                             vc-rcs-log-view-mode
+                             vc-sccs-log-view-mode)]
     ["Previous File"  log-view-file-prev
-     :help "Go to the previous count'th file"]))
+     :help "Go to the previous count'th file"
+     :active (derived-mode-p vc-cvs-log-view-mode
+                             vc-rcs-log-view-mode
+                             vc-sccs-log-view-mode)]))
 
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")

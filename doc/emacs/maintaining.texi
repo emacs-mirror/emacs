@@ -1055,15 +1055,6 @@ prefix argument is a repeat count.
 Move to the next revision entry.  A numeric prefix argument is a
 repeat count.
 
-@item P
-Move to the log of the previous file, if showing logs for a multi-file
-VC fileset.  Otherwise, just move to the beginning of the log.  A
-numeric prefix argument is a repeat count.
-
-@item N
-Move to the log of the next file, if showing logs for a multi-file VC
-fileset.  A numeric prefix argument is a repeat count.
-
 @item a
 Annotate the revision on the current line (@pxref{Old Revisions}).
 
