@@ -1065,6 +1065,9 @@ final or penultimate step during initialization."))
     (let ((state (buffer-local-set-state global 10
                                          local 20
                                          unexist 30)))
+      (should (= global 10))
+      (should (= local 20))
+      (should (= unexist 30))
       (buffer-local-restore-state state)
       (should (= global 1))
       (should (= local 2))
