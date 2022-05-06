@@ -237,6 +237,20 @@ Comments in the form will be lost."
       (if (bolp) (delete-char -1))
       (indent-region start (point)))))
 
+(defun elisp-mode-syntax-propertize (start end)
+  (goto-char start)
+  (funcall
+   (syntax-propertize-rules
+    ;; Empty symbol.
+    ("##" (0 (unless (nth 8 (syntax-ppss))
+               (string-to-syntax "_"))))
+    ((rx "#" (or (seq (group-n 1 "&" (+ digit)) ?\") ; Bool-vector.
+                 (seq (group-n 1 "s") "(")           ; Record.
+                 (seq (group-n 1 (+ "^")) "[")))     ; Char-table.
+     (1 (unless (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+          (string-to-syntax "'")))))
+   start end))
+
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
   :options '(eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
@@ -310,6 +324,7 @@ be used instead.
             #'elisp-eldoc-var-docstring nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
+  (setq-local syntax-propertize-function #'elisp-mode-syntax-propertize)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local)
   (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
