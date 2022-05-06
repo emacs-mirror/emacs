@@ -1130,6 +1130,9 @@ consider all symbols (if they match PATTERN).
 
 Return list of symbols and documentation found.
 
+The *Apropos* window will be selected if `help-window-select' is
+non-nil.
+
 \(fn PATTERN &optional DO-ALL)" t nil)
 
 (autoload 'apropos-library "apropos" "\
@@ -7685,6 +7688,12 @@ If NODISPLAY is non-nil, don't redisplay the article buffer.
 
 \(fn &optional NODISPLAY)" '(gnus-article-mode gnus-summary-mode) nil)
 
+(autoload 'gnus-article-outlook-rearrange-citation "deuglify" "\
+Repair broken citations.
+If NODISPLAY is non-nil, don't redisplay the article buffer.
+
+\(fn &optional NODISPLAY)" '(gnus-article-mode gnus-summary-mode) nil)
+
 (autoload 'gnus-outlook-deuglify-article "deuglify" "\
 Full deuglify of broken Outlook (Express) articles.
 Treat \"smartquotes\", unwrap lines, repair attribution and
@@ -7696,7 +7705,7 @@ article buffer.
 (autoload 'gnus-article-outlook-deuglify-article "deuglify" "\
 Deuglify broken Outlook (Express) articles and redisplay." '(gnus-article-mode gnus-summary-mode) nil)
 
-(register-definition-prefixes "deuglify" '("gnus-"))
+(register-definition-prefixes "deuglify" '("gnus-outlook-"))
 
 ;;;***
 
@@ -8843,7 +8852,18 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX).
 
 (function-put 'easy-mmode-defsyntax 'lisp-indent-function '1)
 
-(register-definition-prefixes "easy-mmode" '("easy-mmode-"))
+(autoload 'buffer-local-set-state--get "easy-mmode" "\
+
+
+\(fn PAIRS)" nil nil)
+
+(autoload 'buffer-local-restore-state "easy-mmode" "\
+Restore buffer local variable values in STATES.
+STATES is an object returned by `buffer-local-set-state'.
+
+\(fn STATES)" nil nil)
+
+(register-definition-prefixes "easy-mmode" '("buffer-local-set-state" "easy-mmode-"))
 
 ;;;***
 
@@ -9229,6 +9249,11 @@ If regular expression is nil, repeat last search.
 (autoload 'ebrowse-tags-query-replace "ebrowse" "\
 Query replace FROM with TO in all files of a class tree.
 With prefix arg, process files of marked classes only.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 \(fn FROM TO)" t nil)
 
@@ -11613,7 +11638,13 @@ Do `query-replace-regexp' of FROM with TO on all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[fileloop-continue].
-For non-interactive use, superseded by `fileloop-initialize-replace'.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+
+For non-interactive use, this is superseded by `fileloop-initialize-replace'.
 
 \(fn FROM TO &optional DELIMITED FILES)" t nil)
 
@@ -13947,7 +13978,7 @@ and choose the directory as the fortune-file.
 Minimum set of parameters to filter for live (on-session) framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
-(defvar frameset-persistent-filter-alist (append '((background-color . frameset-filter-sanitize-color) (buffer-list . :never) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (font-backend . :never) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (parent-frame . :never) (mouse-wheel-frame . :never) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-system . :never)) frameset-session-filter-alist) "\
+(defvar frameset-persistent-filter-alist (append '((background-color . frameset-filter-sanitize-color) (bottom . frameset-filter-shelve-param) (buffer-list . :never) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (font-backend . :never) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:bottom . frameset-filter-unshelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:left . frameset-filter-unshelve-param) (GUI:right . frameset-filter-unshelve-param) (GUI:top . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (left . frameset-filter-shelve-param) (parent-frame . :never) (mouse-wheel-frame . :never) (right . frameset-filter-shelve-param) (top . frameset-filter-shelve-param) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-system . :never)) frameset-session-filter-alist) "\
 Parameters to filter for persistent framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 
@@ -19265,7 +19296,10 @@ mode doesn't have any Info manuals known to Emacs, the command will
 prompt for MODE to use, with completion.  With prefix arg, the command
 always prompts for MODE.
 
-\(fn SYMBOL &optional MODE)" t nil)
+Is SAME-WINDOW, try to reuse the current window instead of
+popping up a new one.
+
+\(fn SYMBOL &optional MODE SAME-WINDOW)" t nil)
  (put 'info-lookup-file 'info-file "emacs")
 
 (autoload 'info-lookup-file "info-look" "\
@@ -20462,6 +20496,10 @@ sleep in seconds.
 
 (autoload 'linum-mode "linum" "\
 Toggle display of line numbers in the left margin (Linum mode).
+
+This mode has been largely replaced by `display-line-numbers-mode'
+\(which is much faster and has fewer interaction problems with other
+modes).
 
 Linum mode is a buffer-local minor mode.
 
@@ -24325,7 +24363,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 5 2)) package--builtin-versions)
+(push (purecopy '(org 9 5 3)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -25237,6 +25275,11 @@ If PKG is a `package-desc' and it is already installed, don't try
 to install it but still mark it as selected.
 
 \(fn PKG &optional DONT-SELECT)" t nil)
+
+(autoload 'package-update "package" "\
+Update package NAME if a newer version exists.
+
+\(fn NAME)" t nil)
 
 (autoload 'package-install-from-buffer "package" "\
 Install a package from the current buffer.
@@ -26984,6 +27027,10 @@ command \\[fileloop-continue].
 (autoload 'project-query-replace-regexp "project" "\
 Query-replace REGEXP in all the files of the project.
 Stops when a match is found and prompts for whether to replace it.
+At that prompt, the user must type a character saying what to do
+with the match.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 If you exit the `query-replace', you can later continue the
 `query-replace' loop using the command \\[fileloop-continue].
 
@@ -32955,38 +33002,6 @@ Studlify-case the current buffer." t nil)
 ;;;### (autoloads nil "subr-x" "emacs-lisp/subr-x.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/subr-x.el
 
-(autoload 'if-let "subr-x" "\
-Bind variables according to SPEC and evaluate THEN or ELSE.
-Evaluate each binding in turn, as in `let*', stopping if a
-binding value is nil.  If all are non-nil return the value of
-THEN, otherwise the last form in ELSE.
-
-Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
-SYMBOL to the value of VALUEFORM.  An element can additionally be
-of the form (VALUEFORM), which is evaluated and checked for nil;
-i.e. SYMBOL can be omitted if only the test result is of
-interest.  It can also be of the form SYMBOL, then the binding of
-SYMBOL is checked for nil.
-
-As a special case, interprets a SPEC of the form (SYMBOL SOMETHING)
-like ((SYMBOL SOMETHING)).  This exists for backward compatibility
-with an old syntax that accepted only one binding.
-
-\(fn SPEC THEN &rest ELSE)" nil t)
-
-(function-put 'if-let 'lisp-indent-function '2)
-
-(autoload 'when-let "subr-x" "\
-Bind variables according to SPEC and conditionally evaluate BODY.
-Evaluate each binding in turn, stopping if a binding value is nil.
-If all are non-nil, return the value of the last form in BODY.
-
-The variable list SPEC is the same as in `if-let'.
-
-\(fn SPEC &rest BODY)" nil t)
-
-(function-put 'when-let 'lisp-indent-function '1)
-
 (autoload 'string-truncate-left "subr-x" "\
 Truncate STRING to LENGTH, replacing initial surplus with \"...\".
 
@@ -33026,7 +33041,7 @@ Query the user for a process and return the process object.
 
 \(fn PROMPT)" nil nil)
 
-(register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "named-let" "replace-region-contents" "string-" "thread-" "when-let*" "with-memoization"))
+(register-definition-prefixes "subr-x" '("hash-table-" "internal--thread-argument" "named-let" "replace-region-contents" "string-" "thread-" "with-"))
 
 ;;;***
 
