@@ -4466,6 +4466,23 @@ CASE-FOLD non-nil means the search was case-insensitive."
   (isearch-search)
   (isearch-update))
 
+
+
+(defvar isearch-fold-quotes-mode--state)
+(define-minor-mode isearch-fold-quotes-mode
+  "Minor mode to aid searching for \\=` characters in help modes."
+  :lighter ""
+  (if isearch-fold-quotes-mode
+      (setq-local isearch-fold-quotes-mode--state
+                  (buffer-local-set-state
+                   search-default-mode
+                   (lambda (string &optional _lax)
+                     (thread-last
+                       (regexp-quote string)
+                       (replace-regexp-in-string "`" "[`‘]")
+                       (replace-regexp-in-string "'" "['’]")))))
+    (buffer-local-restore-state isearch-fold-quotes-mode--state)))
+
 (provide 'isearch)
 
 ;;; isearch.el ends here

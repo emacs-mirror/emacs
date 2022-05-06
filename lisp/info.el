@@ -4490,7 +4490,8 @@ Advanced commands:
   (setq-local revert-buffer-function #'Info-revert-buffer-function)
   (setq-local font-lock-defaults '(Info-mode-font-lock-keywords t t))
   (Info-set-mode-line)
-  (setq-local bookmark-make-record-function #'Info-bookmark-make-record))
+  (setq-local bookmark-make-record-function #'Info-bookmark-make-record)
+  (isearch-fold-quotes-mode))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.

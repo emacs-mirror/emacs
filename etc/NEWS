@@ -137,6 +137,13 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
+** Isearch in *Help* and *info* now char-folds quote characters by default.
+This means that you can say 'C-s `foo' (GRAVE ACCENT) if the buffer
+contains "‘foo" (LEFT SINGLE QUOTATION MARK) and the like.  These
+quotation characters look somewhat similar in some fonts.  To switch
+this off, disable the new 'isearch-fold-quotes-mode' minor mode.
+
+---
 ** Sorting commands no longer necessarily change modification status.
 In earlier Emacs versions, commands like 'M-x sort-lines' would always
 change buffer modification status to "modified", whether they changed
@@ -1635,6 +1642,12 @@ functions.
 
 
 * Lisp Changes in Emacs 29.1
+
+---
+*** New minor mode 'isearch-fold-quotes-mode'.
+This sets up 'search-default-mode' so that quote characters are
+char-folded into each other.  It is used, by default, in *Help* and
+*info* buffers.
 
 +++
 ** New macro 'buffer-local-set-state'.
