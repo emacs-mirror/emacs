@@ -1520,7 +1520,8 @@ to `compilation-error-regexp-alist' if RULES is nil."
         ;; FIXME-omake: Doing it here seems wrong, at least it should depend on
         ;; whether or not omake's own error messages are recognized.
         (cond
-         ((not omake-included) nil)
+         ((or (not omake-included) (not pat))
+          nil)
          ((string-match "\\`\\([^^]\\|\\^\\( \\*\\|\\[\\)\\)" pat)
           nil) ;; Not anchored or anchored but already allows empty spaces.
          (t (setq pat (concat "^\\(?:      \\)?" (substring pat 1)))))
@@ -1539,7 +1540,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
           (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
         (goto-char start)
-        (while (re-search-forward pat end t)
+        (while (and pat (re-search-forward pat end t))
           (when (setq props (compilation-error-properties
                              file line end-line col end-col
                              (or type 2) fmt rule))
