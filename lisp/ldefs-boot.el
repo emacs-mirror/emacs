@@ -8852,18 +8852,7 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX).
 
 (function-put 'easy-mmode-defsyntax 'lisp-indent-function '1)
 
-(autoload 'buffer-local-set-state--get "easy-mmode" "\
-
-
-\(fn PAIRS)" nil nil)
-
-(autoload 'buffer-local-restore-state "easy-mmode" "\
-Restore buffer local variable values in STATES.
-STATES is an object returned by `buffer-local-set-state'.
-
-\(fn STATES)" nil nil)
-
-(register-definition-prefixes "easy-mmode" '("buffer-local-set-state" "easy-mmode-"))
+(register-definition-prefixes "easy-mmode" '("easy-mmode-"))
 
 ;;;***
 

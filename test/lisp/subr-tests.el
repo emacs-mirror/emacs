@@ -1058,5 +1058,17 @@ final or penultimate step during initialization."))
   (should (equal (kbd "C-x ( C-d C-x )") ""))
   (should (equal (kbd "C-x ( C-x )") "")))
 
+(ert-deftest test-local-set-state ()
+  (setq global 1)
+  (with-temp-buffer
+    (setq-local local 2)
+    (let ((state (buffer-local-set-state global 10
+                                         local 20
+                                         unexist 30)))
+      (buffer-local-restore-state state)
+      (should (= global 1))
+      (should (= local 2))
+      (should-not (boundp 'unexist)))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

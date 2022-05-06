@@ -207,6 +207,39 @@ Also see `local-variable-p'."
     (:success t)
     (void-variable nil)))
 
+(defmacro buffer-local-set-state (&rest pairs)
+  "Like `setq-local', but allow restoring the previous state of locals later.
+This macro returns an object that can be passed to `buffer-local-restore-state'
+in order to restore the state of the local variables set via this macro.
+
+\(fn [VARIABLE VALUE]...)"
+  (declare (debug setq))
+  (unless (zerop (mod (length pairs) 2))
+    (error "PAIRS must have an even number of variable/value members"))
+  `(prog1
+       (buffer-local-set-state--get ',pairs)
+     (setq-local ,@pairs)))
+
+(defun buffer-local-set-state--get (pairs)
+  (let ((states nil))
+    (while pairs
+      (push (list (car pairs)
+                  (and (boundp (car pairs))
+                       (local-variable-p (car pairs)))
+                  (and (boundp (car pairs))
+                       (symbol-value (car pairs))))
+            states)
+      (setq pairs (cddr pairs)))
+    (nreverse states)))
+
+(defun buffer-local-restore-state (states)
+  "Restore values of buffer-local variables recorded in STATES.
+STATES should be an object returned by `buffer-local-set-state'."
+  (pcase-dolist (`(,variable ,local ,value) states)
+    (if local
+        (set variable value)
+      (kill-local-variable variable))))
+
 (defmacro push (newelt place)
   "Add NEWELT to the list stored in the generalized variable PLACE.
 This is morally equivalent to (setf PLACE (cons NEWELT PLACE)),

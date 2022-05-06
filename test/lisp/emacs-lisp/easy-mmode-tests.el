@@ -60,16 +60,4 @@
     (easy-mmode-test-mode 'toggle)
     (should (eq easy-mmode-test-mode t))))
 
-(ert-deftest test-local-set-state ()
-  (setq global 1)
-  (with-temp-buffer
-    (setq-local local 2)
-    (let ((state (buffer-local-set-state global 10
-                                         local 20
-                                         unexist 30)))
-      (buffer-local-restore-state state)
-      (should (= global 1))
-      (should (= local 2))
-      (should-not (boundp 'unexist)))))
-
 ;;; easy-mmode-tests.el ends here
