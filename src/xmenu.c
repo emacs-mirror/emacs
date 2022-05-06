@@ -1618,6 +1618,84 @@ popup_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
   menu_item_selection = client_data;
 }
 
+
+#ifdef HAVE_XINPUT2
+static void
+prepare_for_entry_into_toolkit_menu (struct frame *f)
+{
+  XIEventMask mask;
+  ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+  unsigned char *m;
+  Lisp_Object tail, frame;
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  if (!dpyinfo->supports_xi2)
+    return;
+
+  mask.mask = m = alloca (l);
+  memset (m, 0, l);
+  mask.mask_len = l;
+
+  mask.deviceid = XIAllMasterDevices;
+
+  XISetMask (m, XI_Motion);
+  XISetMask (m, XI_Enter);
+  XISetMask (m, XI_Leave);
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+
+      if (FRAME_X_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && !FRAME_TOOLTIP_P (f))
+	XISelectEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			&mask, 1);
+    }
+}
+
+static void
+leave_toolkit_menu (void *data)
+{
+  XIEventMask mask;
+  ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+  unsigned char *m;
+  Lisp_Object tail, frame;
+  struct x_display_info *dpyinfo;
+  struct frame *f;
+
+  dpyinfo = FRAME_DISPLAY_INFO ((struct frame *) data);
+
+  if (!dpyinfo->supports_xi2)
+    return;
+
+  mask.mask = m = alloca (l);
+  memset (m, 0, l);
+  mask.mask_len = l;
+
+  mask.deviceid = XIAllMasterDevices;
+
+  XISetMask (m, XI_ButtonPress);
+  XISetMask (m, XI_ButtonRelease);
+  XISetMask (m, XI_Motion);
+  XISetMask (m, XI_Enter);
+  XISetMask (m, XI_Leave);
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+
+      if (FRAME_X_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && !FRAME_TOOLTIP_P (f))
+	XISelectEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			&mask, 1);
+    }
+}
+#endif
+
 /* ID is the LWLIB ID of the dialog box.  */
 
 static void
@@ -1720,11 +1798,9 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
 #ifdef HAVE_XINPUT2
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  bool any_xi_grab_p = false;
 
   /* Clear the XI2 grab, and if any XI2 grab was set, place a core
      grab on the frame's edit widget.  */
-
   if (dpyinfo->supports_xi2)
     XGrabServer (dpyinfo->display);
 
@@ -1735,7 +1811,6 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 	{
 	  if (dpyinfo->devices[i].grab)
 	    {
-	      any_xi_grab_p = true;
 	      dpyinfo->devices[i].grab = 0;
 
 	      XIUngrabDevice (dpyinfo->display,
@@ -1743,20 +1818,6 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 			      CurrentTime);
 	    }
 	}
-    }
-
-  if (any_xi_grab_p)
-    {
-#ifndef USE_MOTIF
-      XGrabPointer (dpyinfo->display,
-		    FRAME_X_WINDOW (f),
-		    False, (PointerMotionMask
-			    | PointerMotionHintMask
-			    | ButtonReleaseMask
-			    | ButtonPressMask),
-		    GrabModeSync, GrabModeAsync,
-		    None, None, CurrentTime);
-#endif
     }
 
 #ifdef USE_MOTIF
@@ -1781,6 +1842,9 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 #endif
 #endif
 
+#ifdef HAVE_XINPUT2
+  prepare_for_entry_into_toolkit_menu (f);
+#endif
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
 
@@ -1791,17 +1855,15 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
   popup_activated_flag = 1;
 
-#if defined HAVE_XINPUT2 && !defined USE_MOTIF
-  if (any_xi_grab_p)
-    XAllowEvents (dpyinfo->display, AsyncPointer, CurrentTime);
-#endif
-
   x_activate_timeout_atimer ();
 
   {
     specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
     record_unwind_protect_int (pop_down_menu, (int) menu_id);
+#ifdef HAVE_XINPUT2
+    record_unwind_protect_ptr (leave_toolkit_menu, f);
+#endif
 
     /* Process events that apply to the menu.  */
     popup_get_selection (0, FRAME_DISPLAY_INFO (f), menu_id, true);
