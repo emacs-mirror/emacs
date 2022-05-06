@@ -1844,6 +1844,11 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
 #ifdef HAVE_XINPUT2
   prepare_for_entry_into_toolkit_menu (f);
+
+#ifdef USE_LUCID
+  if (dpyinfo->supports_xi2)
+    x_mouse_leave (dpyinfo);
+#endif
 #endif
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);

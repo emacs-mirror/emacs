@@ -10333,12 +10333,21 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 }
 
 
-#if !defined USE_X_TOOLKIT && !defined USE_GTK
+#if (defined USE_LUCID && defined HAVE_XINPUT2) \
+  || (!defined USE_X_TOOLKIT && !defined USE_GTK)
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
 void
 x_mouse_leave (struct x_display_info *dpyinfo)
 {
+  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+
+  if (hlinfo->mouse_face_mouse_frame)
+    {
+      clear_mouse_face (hlinfo);
+      hlinfo->mouse_face_mouse_frame = NULL;
+    }
+
   x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
 }
 #endif
