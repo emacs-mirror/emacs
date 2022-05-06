@@ -1912,14 +1912,15 @@ This means ``use in modes derived from @code{text-mode}, but nowhere
 else''.  (There's an implicit @code{nil} element at the end.)
 @end defmac
 
+@findex buffer-local-restore-state
 @defmac buffer-local-set-state variable value...
-Minor modes often set buffer-local variables that alters some features
+Minor modes often set buffer-local variables that affect some features
 in Emacs.  When a minor mode is switched off, the mode is expected to
 restore the previous state of these variables.  This convenience macro
 helps with doing that: It works much like @code{setq-local}, but
 returns an object that can be used to restore these values back to
-their previous values/states (with the
-@code{buffer-local-restore-state} function).
+their previous values/states (using the companion function
+@code{buffer-local-restore-state}).
 @end defmac
 
 @node Mode Line Format

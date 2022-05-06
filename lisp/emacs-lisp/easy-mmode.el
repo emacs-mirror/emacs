@@ -827,9 +827,9 @@ Interactively, COUNT is the prefix numeric argument, and defaults to 1."
 
 
 (defmacro buffer-local-set-state (&rest pairs)
-  "Like `setq-local', but return an object that allows restoring previous state.
-Use `buffer-local-restore-state' on the returned object to
-restore the state.
+  "Like `setq-local', but allow restoring the previous state of locals later.
+This macro returns an object that can be passed to `buffer-local-restore-state'
+in order to restore the state of the local variables set via this macro.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
@@ -854,8 +854,8 @@ restore the state.
 
 ;;;###autoload
 (defun buffer-local-restore-state (states)
-  "Restore buffer local variable values in STATES.
-STATES is an object returned by `buffer-local-set-state'."
+  "Restore values of buffer-local variables recorded in STATES.
+STATES should be an object returned by `buffer-local-set-state'."
   (pcase-dolist (`(,variable ,local ,value) states)
     (if local
         (set variable value)
