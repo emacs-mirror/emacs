@@ -839,6 +839,7 @@ restore the state.
        (buffer-local-set-state--get ',pairs)
      (setq-local ,@pairs)))
 
+;;;###autoload
 (defun buffer-local-set-state--get (pairs)
   (let ((states nil))
     (while pairs
@@ -851,6 +852,7 @@ restore the state.
       (setq pairs (cddr pairs)))
     (nreverse states)))
 
+;;;###autoload
 (defun buffer-local-restore-state (states)
   "Restore buffer local variable values in STATES.
 STATES is an object returned by `buffer-local-set-state'."
