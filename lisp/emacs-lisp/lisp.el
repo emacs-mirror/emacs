@@ -171,6 +171,8 @@ This command assumes point is not in a string or comment.
 If INTERACTIVE is non-nil, as it is interactively,
 report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
+  (when (ppss-comment-or-string-start (syntax-ppss))
+    (user-error "This command doesn't work in strings or comments"))
   (if interactive
       (condition-case _
           (down-list arg nil)
