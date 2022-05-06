@@ -15002,7 +15002,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	popup_activated_flag = 1;
 #endif
 
-      if (x_dnd_in_progress)
+      if (x_dnd_in_progress
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	x_dnd_update_state (dpyinfo, dpyinfo->last_user_time);
 
       if (x_dnd_in_progress && x_dnd_use_toplevels
@@ -16267,7 +16268,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	}
 
-      if (x_dnd_in_progress)
+      if (x_dnd_in_progress
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	x_dnd_update_state (dpyinfo, dpyinfo->last_user_time);
       goto OTHER;
 
@@ -16651,7 +16653,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case CirculateNotify:
-      if (x_dnd_in_progress)
+      if (x_dnd_in_progress
+	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	x_dnd_update_state (dpyinfo, dpyinfo->last_user_time);
       goto OTHER;
 
