@@ -169,6 +169,8 @@ which used the Kaithi script are supported in this language environment."))
 	   ("H" . "\u094D")		; HALANT
 	   ("s" . "[\u0951\u0952]")	; stress sign
 	   ("t" . "[\u0953\u0954]")	; accent
+           ("1" . "\u0967")             ; numeral 1
+           ("3" . "\u0969")             ; numeral 3
 	   ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
 	   ("X" . "[\u0900-\u097F]"))))	; all coverage
@@ -180,6 +182,8 @@ which used the Kaithi script are supported in this language environment."))
       "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*n?a?s?t?A?\\)\\|"
       ;; special consonant form, or
       "JHR\\|"
+      ;; vedic accents with numerals, or
+      "1ss\\|3ss\\|s3ss\\|"
       ;; any other singleton characters
       "X")
      table))
