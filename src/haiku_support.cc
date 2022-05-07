@@ -195,10 +195,6 @@ static void *grab_view = NULL;
 static BLocker grab_view_locker;
 static bool drag_and_drop_in_progress;
 
-/* Port used to send data to the main thread while a file panel is
-   active.  */
-static port_id volatile current_file_panel_port;
-
 /* Many places require us to lock the child frame data, and then lock
    the locker of some random window.  Unfortunately, locking such a
    window might be delayed due to an arriving message, which then
@@ -853,8 +849,6 @@ public:
   void
   MessageReceived (BMessage *msg)
   {
-    int32 old_what = 0;
-
     if (msg->WasDropped ())
       {
 	BPoint whereto;
@@ -885,49 +879,6 @@ public:
 	rq.ptr = (void *) msg->GetPointer ("menuptr");
 
 	haiku_write (MENU_BAR_SELECT_EVENT, &rq);
-      }
-    else if (msg->what == FILE_PANEL_SELECTION
-	     || ((msg->FindInt32 ("old_what", &old_what) == B_OK
-		  && old_what == FILE_PANEL_SELECTION)))
-      {
-	const char *str_path, *name;
-	char *file_name, *str_buf;
-	BEntry entry;
-	BPath path;
-	entry_ref ref;
-
-	file_name = NULL;
-
-	if (msg->FindRef ("refs", &ref) == B_OK &&
-	    entry.SetTo (&ref, 0) == B_OK &&
-	    entry.GetPath (&path) == B_OK)
-	  {
-	    str_path = path.Path ();
-
-	    if (str_path)
-	      file_name = strdup (str_path);
-	  }
-
-	if (msg->FindRef ("directory", &ref),
-	    entry.SetTo (&ref, 0) == B_OK &&
-	    entry.GetPath (&path) == B_OK)
-	  {
-	    name = msg->GetString ("name");
-	    str_path = path.Path ();
-
-	    if (name)
-	      {
-		str_buf = (char *) alloca (std::strlen (str_path)
-					   + std::strlen (name) + 2);
-		snprintf (str_buf, std::strlen (str_path)
-			  + std::strlen (name) + 2, "%s/%s",
-			  str_path, name);
-		file_name = strdup (str_buf);
-	      }
-	  }
-
-	write_port (current_file_panel_port, 0,
-		    &file_name, sizeof file_name);
       }
     else
       BWindow::MessageReceived (msg);
@@ -3026,6 +2977,125 @@ public:
   }
 };
 
+class EmacsFilePanelCallbackLooper : public BLooper
+{
+  port_id comm_port;
+
+  void
+  MessageReceived (BMessage *msg)
+  {
+    const char *str_path, *name;
+    char *file_name, *str_buf;
+    BEntry entry;
+    BPath path;
+    entry_ref ref;
+    int old_what;
+
+    if (msg->what == FILE_PANEL_SELECTION
+	|| ((msg->FindInt32 ("old_what", &old_what) == B_OK
+	     && old_what == FILE_PANEL_SELECTION)))
+      {
+	file_name = NULL;
+
+	if (msg->FindRef ("refs", &ref) == B_OK
+	    && entry.SetTo (&ref, 0) == B_OK
+	    && entry.GetPath (&path) == B_OK)
+	  {
+	    str_path = path.Path ();
+
+	    if (str_path)
+	      file_name = strdup (str_path);
+	  }
+	else if (msg->FindRef ("directory", &ref) == B_OK
+		 && entry.SetTo (&ref, 0) == B_OK
+		 && entry.GetPath (&path) == B_OK)
+	  {
+	    name = msg->GetString ("name");
+	    str_path = path.Path ();
+
+	    if (name)
+	      {
+		str_buf = (char *) alloca (std::strlen (str_path)
+					   + std::strlen (name) + 2);
+		snprintf (str_buf, std::strlen (str_path)
+			  + std::strlen (name) + 2, "%s/%s",
+			  str_path, name);
+		file_name = strdup (str_buf);
+	      }
+	  }
+
+	write_port (comm_port, 0, &file_name, sizeof file_name);
+      }
+
+    BLooper::MessageReceived (msg);
+  }
+
+public:
+  EmacsFilePanelCallbackLooper (void) : BLooper ()
+  {
+    comm_port = create_port (1, "file panel port");
+  }
+
+  ~EmacsFilePanelCallbackLooper (void)
+  {
+    delete_port (comm_port);
+  }
+
+  char *
+  ReadFileName (void (*process_pending_signals_function) (void))
+  {
+    object_wait_info infos[2];
+    ssize_t status;
+    int32 reply_type;
+    char *file_name;
+
+    file_name = NULL;
+
+    infos[0].object = port_application_to_emacs;
+    infos[0].type = B_OBJECT_TYPE_PORT;
+    infos[0].events = B_EVENT_READ;
+
+    infos[1].object = comm_port;
+    infos[1].type = B_OBJECT_TYPE_PORT;
+    infos[1].events = B_EVENT_READ;
+
+    while (true)
+      {
+	status = wait_for_objects (infos, 2);
+
+	if (status == B_INTERRUPTED || status == B_WOULD_BLOCK)
+	  continue;
+
+	if (infos[0].events & B_EVENT_READ)
+	  process_pending_signals_function ();
+
+	if (infos[1].events & B_EVENT_READ)
+	  {
+	    status = read_port (comm_port,
+				&reply_type, &file_name,
+				sizeof file_name);
+
+	    if (status < B_OK)
+	      file_name = NULL;
+
+	    goto out;
+	  }
+
+	infos[0].events = B_EVENT_READ;
+	infos[1].events = B_EVENT_READ;
+      }
+
+  out:
+    return file_name;
+  }
+
+  status_t
+  InitCheck (void)
+  {
+    return comm_port >= B_OK ? B_OK : comm_port;
+  }
+};
+
 static int32
 start_running_application (void *data)
 {
@@ -4403,23 +4473,23 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
 		      const char *prompt,
 		      void (*process_pending_signals_function) (void))
 {
-  BWindow *w, *panel_window;
+  BWindow *panel_window;
   BEntry path;
   BMessage msg (FILE_PANEL_SELECTION);
   BFilePanel panel (open_p ? B_OPEN_PANEL : B_SAVE_PANEL,
 		    NULL, NULL, (dir_only_p
 				 ? B_DIRECTORY_NODE
 				 : B_FILE_NODE | B_DIRECTORY_NODE));
-  object_wait_info infos[2];
-  ssize_t status;
-  int32 reply_type;
   char *file_name;
+  EmacsFilePanelCallbackLooper *looper;
 
-  current_file_panel_port = create_port (1, "file panel port");
-  file_name = NULL;
+  looper = new EmacsFilePanelCallbackLooper;
 
-  if (current_file_panel_port < B_OK)
-    return NULL;
+  if (looper->InitCheck () < B_OK)
+    {
+      delete looper;
+      return NULL;
+    }
 
   if (default_dir)
     {
@@ -4427,10 +4497,7 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
 	default_dir = NULL;
     }
 
-  w = (BWindow *) window;
   panel_window = panel.Window ();
-
-  panel.SetMessage (&msg);
 
   if (default_dir)
     panel.SetPanelDirectory (&path);
@@ -4442,45 +4509,16 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
   panel_window->SetFeel (B_MODAL_APP_WINDOW_FEEL);
 
   panel.SetHideWhenDone (false);
-  panel.SetTarget (BMessenger (w));
+  panel.SetTarget (BMessenger (looper));
+  panel.SetMessage (&msg);
   panel.Show ();
 
-  infos[0].object = port_application_to_emacs;
-  infos[0].type = B_OBJECT_TYPE_PORT;
-  infos[0].events = B_EVENT_READ;
+  looper->Run ();
+  file_name = looper->ReadFileName (process_pending_signals_function);
 
-  infos[1].object = current_file_panel_port;
-  infos[1].type = B_OBJECT_TYPE_PORT;
-  infos[1].events = B_EVENT_READ;
+  if (looper->Lock ())
+    looper->Quit ();
 
-  while (true)
-    {
-      status = wait_for_objects (infos, 2);
-
-      if (status == B_INTERRUPTED || status == B_WOULD_BLOCK)
-	continue;
-
-      if (infos[0].events & B_EVENT_READ)
-	process_pending_signals_function ();
-
-      if (infos[1].events & B_EVENT_READ)
-	{
-	  status = read_port (current_file_panel_port,
-			      &reply_type, &file_name,
-			      sizeof file_name);
-
-	  if (status < B_OK)
-	    file_name = NULL;
-
-	  goto out;
-	}
-
-      infos[0].events = B_EVENT_READ;
-      infos[1].events = B_EVENT_READ;
-    }
-
- out:
-  delete_port (current_file_panel_port);
   return file_name;
 }
 
