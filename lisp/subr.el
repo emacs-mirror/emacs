@@ -207,6 +207,39 @@ Also see `local-variable-p'."
     (:success t)
     (void-variable nil)))
 
+(defmacro buffer-local-set-state (&rest pairs)
+  "Like `setq-local', but allow restoring the previous state of locals later.
+This macro returns an object that can be passed to `buffer-local-restore-state'
+in order to restore the state of the local variables set via this macro.
+
+\(fn [VARIABLE VALUE]...)"
+  (declare (debug setq))
+  (unless (zerop (mod (length pairs) 2))
+    (error "PAIRS must have an even number of variable/value members"))
+  `(prog1
+       (buffer-local-set-state--get ',pairs)
+     (setq-local ,@pairs)))
+
+(defun buffer-local-set-state--get (pairs)
+  (let ((states nil))
+    (while pairs
+      (push (list (car pairs)
+                  (and (boundp (car pairs))
+                       (local-variable-p (car pairs)))
+                  (and (boundp (car pairs))
+                       (symbol-value (car pairs))))
+            states)
+      (setq pairs (cddr pairs)))
+    (nreverse states)))
+
+(defun buffer-local-restore-state (states)
+  "Restore values of buffer-local variables recorded in STATES.
+STATES should be an object returned by `buffer-local-set-state'."
+  (pcase-dolist (`(,variable ,local ,value) states)
+    (if local
+        (set variable value)
+      (kill-local-variable variable))))
+
 (defmacro push (newelt place)
   "Add NEWELT to the list stored in the generalized variable PLACE.
 This is morally equivalent to (setf PLACE (cons NEWELT PLACE)),
@@ -243,18 +276,14 @@ change the list."
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.
 When COND yields non-nil, eval BODY forms sequentially and return
-value of last one, or nil if there are none.
-
-\(fn COND BODY...)"
+value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
 When COND yields nil, eval BODY forms sequentially and return
-value of last one, or nil if there are none.
-
-\(fn COND BODY...)"
+value of last one, or nil if there are none."
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
@@ -945,6 +974,20 @@ Here's some example key sequences:
 For an approximate inverse of this, see `key-description'."
   (declare (pure t) (side-effect-free t))
   (let ((res (key-parse keys)))
+    ;; For historical reasons, parse "C-x ( C-d C-x )" as "C-d", since
+    ;; `kbd' used to be a wrapper around `read-kbd-macro'.
+    (when (and (>= (length res) 4)
+               (eq (aref res 0) ?\C-x)
+               (eq (aref res 1) ?\()
+               (eq (aref res (- (length res) 2)) ?\C-x)
+               (eq (aref res (- (length res) 1)) ?\)))
+      (setq res (apply #'vector (let ((lres (append res nil)))
+                                  ;; Remove the first and last two elements.
+                                  (setq lres (cddr lres))
+                                  (setq lres (nreverse lres))
+                                  (setq lres (cddr lres))
+                                  (nreverse lres)))))
+
     (if (not (memq nil (mapcar (lambda (ch)
                                  (and (numberp ch)
                                       (<= 0 ch 127)))
@@ -2371,6 +2414,102 @@ Affects only hooks run in the current buffer."
      (let ((delay-mode-hooks t))
        ,@body)))
 
+;;; `when-let' and friends.
+
+(defun internal--build-binding (binding prev-var)
+  "Check and build a single BINDING with PREV-VAR."
+  (setq binding
+        (cond
+         ((symbolp binding)
+          (list binding binding))
+         ((null (cdr binding))
+          (list (make-symbol "s") (car binding)))
+         (t binding)))
+  (when (> (length binding) 2)
+    (signal 'error
+            (cons "`let' bindings can have only one value-form" binding)))
+  (let ((var (car binding)))
+    `(,var (and ,prev-var ,(cadr binding)))))
+
+(defun internal--build-bindings (bindings)
+  "Check and build conditional value forms for BINDINGS."
+  (let ((prev-var t))
+    (mapcar (lambda (binding)
+              (let ((binding (internal--build-binding binding prev-var)))
+                (setq prev-var (car binding))
+                binding))
+            bindings)))
+
+(defmacro if-let* (varlist then &rest else)
+  "Bind variables according to VARLIST and evaluate THEN or ELSE.
+This is like `if-let' but doesn't handle a VARLIST of the form
+\(SYMBOL SOMETHING) specially."
+  (declare (indent 2)
+           (debug ((&rest [&or symbolp (symbolp form) (form)])
+                   body)))
+  (if varlist
+      `(let* ,(setq varlist (internal--build-bindings varlist))
+         (if ,(caar (last varlist))
+             ,then
+           ,@else))
+    `(let* () ,then)))
+
+(defmacro when-let* (varlist &rest body)
+  "Bind variables according to VARLIST and conditionally evaluate BODY.
+This is like `when-let' but doesn't handle a VARLIST of the form
+\(SYMBOL SOMETHING) specially."
+  (declare (indent 1) (debug if-let*))
+  (list 'if-let* varlist (macroexp-progn body)))
+
+(defmacro and-let* (varlist &rest body)
+  "Bind variables according to VARLIST and conditionally evaluate BODY.
+Like `when-let*', except if BODY is empty and all the bindings
+are non-nil, then the result is non-nil."
+  (declare (indent 1) (debug if-let*))
+  (let (res)
+    (if varlist
+        `(let* ,(setq varlist (internal--build-bindings varlist))
+           (when ,(setq res (caar (last varlist)))
+             ,@(or body `(,res))))
+      `(let* () ,@(or body '(t))))))
+
+(defmacro if-let (spec then &rest else)
+  "Bind variables according to SPEC and evaluate THEN or ELSE.
+Evaluate each binding in turn, as in `let*', stopping if a
+binding value is nil.  If all are non-nil return the value of
+THEN, otherwise the last form in ELSE.
+
+Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
+SYMBOL to the value of VALUEFORM.  An element can additionally be
+of the form (VALUEFORM), which is evaluated and checked for nil;
+i.e. SYMBOL can be omitted if only the test result is of
+interest.  It can also be of the form SYMBOL, then the binding of
+SYMBOL is checked for nil.
+
+As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
+like \((SYMBOL SOMETHING)).  This exists for backward compatibility
+with an old syntax that accepted only one binding."
+  (declare (indent 2)
+           (debug ([&or (symbolp form)  ; must be first, Bug#48489
+                        (&rest [&or symbolp (symbolp form) (form)])]
+                   body)))
+  (when (and (<= (length spec) 2)
+             (not (listp (car spec))))
+    ;; Adjust the single binding case
+    (setq spec (list spec)))
+  (list 'if-let* spec then (macroexp-progn else)))
+
+(defmacro when-let (spec &rest body)
+  "Bind variables according to SPEC and conditionally evaluate BODY.
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all are non-nil, return the value of the last form in BODY.
+
+The variable list SPEC is the same as in `if-let'."
+  (declare (indent 1) (debug if-let))
+  (list 'if-let spec (macroexp-progn body)))
+
+
+
 ;; PUBLIC: find if the current mode derives from another.
 
 (defun provided-mode-derived-p (mode &rest modes)
@@ -2719,7 +2858,8 @@ It can be retrieved with `(process-get PROCESS PROPNAME)'."
 
 (defun memory-limit ()
   "Return an estimate of Emacs virtual memory usage, divided by 1024."
-  (or (cdr (assq 'vsize (process-attributes (emacs-pid)))) 0))
+  (let ((default-directory temporary-file-directory))
+    (or (cdr (assq 'vsize (process-attributes (emacs-pid)))) 0)))
 
 
 ;;;; Input and display facilities.
@@ -3118,7 +3258,7 @@ If there is a natural number at point, use it as default."
   (make-hash-table :test 'equal))
 
 (defun read-char-from-minibuffer-insert-char ()
-  "Insert the character you type in the minibuffer and exit.
+  "Insert the character you type into the minibuffer and exit minibuffer.
 Discard all previous input before inserting and exiting the minibuffer."
   (interactive)
   (when (minibufferp)
@@ -3127,9 +3267,11 @@ Discard all previous input before inserting and exiting the minibuffer."
     (exit-minibuffer)))
 
 (defun read-char-from-minibuffer-insert-other ()
-  "Handle inserting of a character other than allowed.
-Display an error on trying to insert a disallowed character.
-Also discard all previous input in the minibuffer."
+  "Reject a disallowed character typed into the minibuffer.
+This command is intended to be bound to keys that users are not
+allowed to type into the minibuffer.  When the user types any
+such key, this command discard all minibuffer input and displays
+an error message."
   (interactive)
   (when (minibufferp)
     (delete-minibuffer-contents)
@@ -3758,14 +3900,18 @@ Note: :data and :device are currently not supported on Windows."
 
 (declare-function w32-shell-dos-semantics "w32-fns" nil)
 
-(defun shell-quote-argument (argument)
+(defun shell-quote-argument (argument &optional posix)
   "Quote ARGUMENT for passing as argument to an inferior shell.
 
 This function is designed to work with the syntax of your system's
 standard shell, and might produce incorrect results with unusual shells.
-See Info node `(elisp)Security Considerations'."
-  (cond
-   ((eq system-type 'ms-dos)
+See Info node `(elisp)Security Considerations'.
+
+If the optional POSIX argument is non-nil, ARGUMENT is quoted
+according to POSIX shell quoting rules, regardless of the
+system's shell."
+(cond
+   ((and (not posix) (eq system-type 'ms-dos))
     ;; Quote using double quotes, but escape any existing quotes in
     ;; the argument with backslashes.
     (let ((result "")
@@ -3780,7 +3926,7 @@ See Info node `(elisp)Security Considerations'."
                   start (1+ end))))
       (concat "\"" result (substring argument start) "\"")))
 
-   ((and (eq system-type 'windows-nt) (w32-shell-dos-semantics))
+   ((and (not posix) (eq system-type 'windows-nt) (w32-shell-dos-semantics))
 
     ;; First, quote argument so that CommandLineToArgvW will
     ;; understand it.  See
@@ -6612,5 +6758,123 @@ OBJECT if it is readable."
                  (progn
                    (forward-line 1)
                    (point))))
+
+(defun ensure-empty-lines (&optional lines)
+  "Ensure that there are LINES number of empty lines before point.
+If LINES is nil or omitted, ensure that there is a single empty
+line before point.
+
+If called interactively, LINES is given by the prefix argument.
+
+If there are more than LINES empty lines before point, the number
+of empty lines is reduced to LINES.
+
+If point is not at the beginning of a line, a newline character
+is inserted before adjusting the number of empty lines."
+  (interactive "p")
+  (unless (bolp)
+    (insert "\n"))
+  (let ((lines (or lines 1))
+        (start (save-excursion
+                 (if (re-search-backward "[^\n]" nil t)
+                     (+ (point) 2)
+                   (point-min)))))
+    (cond
+     ((> (- (point) start) lines)
+      (delete-region (point) (- (point) (- (point) start lines))))
+     ((< (- (point) start) lines)
+      (insert (make-string (- lines (- (point) start)) ?\n))))))
+
+(defun string-lines (string &optional omit-nulls keep-newlines)
+  "Split STRING into a list of lines.
+If OMIT-NULLS, empty lines will be removed from the results.
+If KEEP-NEWLINES, don't strip trailing newlines from the result
+lines."
+  (if (equal string "")
+      (if omit-nulls
+          nil
+        (list ""))
+    (let ((lines nil)
+          (start 0))
+      (while (< start (length string))
+        (let ((newline (string-search "\n" string start)))
+          (if newline
+              (progn
+                (when (or (not omit-nulls)
+                          (not (= start newline)))
+                  (let ((line (substring string start
+                                         (if keep-newlines
+                                             (1+ newline)
+                                           newline))))
+                    (when (not (and keep-newlines omit-nulls
+                                    (equal line "\n")))
+                      (push line lines))))
+                (setq start (1+ newline)))
+            ;; No newline in the remaining part.
+            (if (zerop start)
+                ;; Avoid a string copy if there are no newlines at all.
+                (push string lines)
+              (push (substring string start) lines))
+            (setq start (length string)))))
+      (nreverse lines))))
+
+(defun buffer-match-p (condition buffer-or-name &optional arg)
+  "Return non-nil if BUFFER-OR-NAME matches CONDITION.
+CONDITION is either:
+- a regular expression, to match a buffer name,
+- a predicate function that takes a buffer object and ARG as
+  arguments, and returns non-nil if the buffer matches,
+- a cons-cell, where the car describes how to interpret the cdr.
+  The car can be one of the following:
+  * `major-mode': the buffer matches if the buffer's major
+    mode is derived from the major mode denoted by the cons-cell's
+    cdr
+  * `not': the cdr is interpreted as a negation of a condition.
+  * `and': the cdr is a list of recursive conditions, that all have
+    to be met.
+  * `or': the cdr is a list of recursive condition, of which at
+    least one has to be met."
+  (letrec
+      ((buffer (get-buffer buffer-or-name))
+       (match
+        (lambda (conditions)
+          (catch 'match
+            (dolist (condition conditions)
+              (when (cond
+                     ((stringp condition)
+                      (string-match-p condition (buffer-name buffer)))
+                     ((functionp condition)
+                      (if (eq 1 (cdr (func-arity condition)))
+                          (funcall condition buffer)
+                        (funcall condition buffer arg)))
+                     ((eq (car-safe condition) 'major-mode)
+                      (provided-mode-derived-p
+                       (buffer-local-value 'major-mode buffer)
+                       (cdr condition)))
+                     ((eq (car-safe condition) 'not)
+                      (not (funcall match (cdr condition))))
+                     ((eq (car-safe condition) 'or)
+                      (funcall match (cdr condition)))
+                     ((eq (car-safe condition) 'and)
+                      (catch 'fail
+                        (dolist (c (cdr conditions))
+                          (unless (funcall match c)
+                            (throw 'fail nil)))
+                        t)))
+                (throw 'match t)))))))
+    (funcall match (list condition))))
+
+(defun match-buffers (condition &optional buffers arg)
+  "Return a list of buffers that match CONDITION.
+See `buffer-match' for details on CONDITION.  By default all
+buffers are checked, this can be restricted by passing an
+optional argument BUFFERS, set to a list of buffers to check.
+ARG is passed to `buffer-match', for predicate conditions in
+CONDITION."
+  (let (bufs)
+    (dolist (buf (or buffers (buffer-list)))
+      (when (buffer-match-p condition (get-buffer buf) arg)
+        (push buf bufs)))
+    bufs))
 
 ;;; subr.el ends here

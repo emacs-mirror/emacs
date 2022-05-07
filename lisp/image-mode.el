@@ -419,39 +419,31 @@ window configuration prior to the last `image-mode-fit-frame'
 call."
   (interactive (list nil t))
   (let* ((buffer (current-buffer))
-         (display (image-get-display-property))
-         (size (image-display-size display))
 	 (saved (frame-parameter frame 'image-mode-saved-params))
 	 (window-configuration (current-window-configuration frame))
-	 (width  (frame-width  frame))
-	 (height (frame-height frame)))
+	 (frame-width (frame-text-width frame))
+	 (frame-height (frame-text-height frame)))
     (with-selected-frame (or frame (selected-frame))
       (if (and toggle saved
-	       (= (caar saved) width)
-	       (= (cdar saved) height))
+	       (= (caar saved) frame-width)
+	       (= (cdar saved) frame-height))
 	  (progn
-	    (set-frame-width  frame (car (nth 1 saved)))
-	    (set-frame-height frame (cdr (nth 1 saved)))
+	    (set-frame-width frame (car (nth 1 saved)) nil t)
+	    (set-frame-height frame (cdr (nth 1 saved)) nil t)
 	    (set-window-configuration (nth 2 saved))
 	    (set-frame-parameter frame 'image-mode-saved-params nil))
 	(delete-other-windows)
 	(switch-to-buffer buffer t t)
-	(let* ((edges (window-inside-edges))
-	       (inner-width  (- (nth 2 edges) (nth 0 edges)))
-	       (inner-height (- (nth 3 edges) (nth 1 edges))))
-	  (set-frame-width  frame (+ (ceiling (car size))
-				     width (- inner-width)))
-	  (set-frame-height frame (+ (ceiling (cdr size))
-				     height (- inner-height)))
-	  ;; The frame size after the above `set-frame-*' calls may
-	  ;; differ from what we specified, due to window manager
-	  ;; interference.  We have to call `frame-width' and
-	  ;; `frame-height' to get the actual results.
-	  (set-frame-parameter frame 'image-mode-saved-params
-			       (list (cons (frame-width)
-					   (frame-height))
-				     (cons width height)
-				     window-configuration)))))))
+        (fit-frame-to-buffer frame)
+	;; The frame size after the above `set-frame-*' calls may
+	;; differ from what we specified, due to window manager
+	;; interference.  We have to call `frame-width' and
+	;; `frame-height' to get the actual results.
+	(set-frame-parameter frame 'image-mode-saved-params
+			     (list (cons (frame-text-width frame)
+					 (frame-text-height frame))
+				   (cons frame-width frame-height)
+				   window-configuration))))))
 
 ;;; Image Mode setup
 
@@ -625,6 +617,8 @@ image as text, when opening such images in `image-mode'."
 
 (put 'image-mode 'mode-class 'special)
 
+(declare-function image-converter-initialize "image-converter.el")
+
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.
@@ -650,7 +644,12 @@ Key bindings:
                        "Empty file"
                      "(New file)")
                  "Empty buffer"))
-    (image-mode--display)))
+    (image-mode--display)
+    ;; Ensure that we recognize externally parsed image formats in
+    ;; commands like `n'.
+    (when image-use-external-converter
+      (require 'image-converter)
+      (image-converter-initialize))))
 
 (defun image-mode--display ()
   (if (not (image-get-display-property))
@@ -1197,8 +1196,9 @@ replacing the current Image mode buffer."
   "Return an alist of type/buffer for all \"parent\" buffers to image FILE.
 This is normally a list of Dired buffers, but can also be archive and
 tar mode buffers."
-  (let ((buffers nil)
-        (dir (file-name-directory file)))
+  (let* ((non-essential t) ; Do not block for remote buffers.
+         (buffers nil)
+         (dir (file-name-directory file)))
     (cond
      ((and (boundp 'tar-superior-buffer)
 	   tar-superior-buffer)
@@ -1213,6 +1213,8 @@ tar mode buffers."
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
           (when (and (derived-mode-p 'dired-mode)
+	             (equal (file-remote-p dir)
+		            (file-remote-p default-directory))
 	             (equal (file-truename dir)
 		            (file-truename default-directory)))
             (push (cons 'dired (current-buffer)) buffers))))

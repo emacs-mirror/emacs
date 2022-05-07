@@ -2430,6 +2430,57 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
       (unless advised
         (advice-remove 'macroexpand #'cl--sm-macroexpand)))))
 
+;;;###autoload
+(defmacro cl-with-gensyms (names &rest body)
+  "Bind each of NAMES to an uninterned symbol and evaluate BODY."
+  (declare (debug (sexp body)) (indent 1))
+  `(let ,(cl-loop for name in names collect
+                  `(,name (gensym (symbol-name ',name))))
+     ,@body))
+
+;;;###autoload
+(defmacro cl-once-only (names &rest body)
+  "Generate code to evaluate each of NAMES just once in BODY.
+
+This macro helps with writing other macros.  Each of names is
+either (NAME FORM) or NAME, which latter means (NAME NAME).
+During macroexpansion, each NAME is bound to an uninterned
+symbol.  The expansion evaluates each FORM and binds it to the
+corresponding uninterned symbol.
+
+For example, consider this macro:
+
+    (defmacro my-cons (x)
+      (cl-once-only (x)
+        \\=`(cons ,x ,x)))
+
+The call (my-cons (pop y)) will expand to something like this:
+
+    (let ((g1 (pop y)))
+      (cons g1 g1))
+
+The use of `cl-once-only' ensures that the pop is performed only
+once, as intended.
+
+See also `macroexp-let2'."
+  (declare (debug (sexp body)) (indent 1))
+  (setq names (mapcar #'ensure-list names))
+  (let ((our-gensyms (cl-loop for _ in names collect (gensym))))
+    ;; During macroexpansion, obtain a gensym for each NAME.
+    `(let ,(cl-loop for sym in our-gensyms collect `(,sym (gensym)))
+       ;; Evaluate each FORM and bind to the corresponding gensym.
+       ;;
+       ;; We require this explicit call to `list' rather than using
+       ;; (,,@(cl-loop ...)) due to a limitation of Elisp's backquote.
+       `(let ,(list
+               ,@(cl-loop for name in names for gensym in our-gensyms
+                          for to-eval = (or (cadr name) (car name))
+                          collect ``(,,gensym ,,to-eval)))
+          ;; During macroexpansion, bind each NAME to its gensym.
+          ,(let ,(cl-loop for name in names for gensym in our-gensyms
+                          collect `(,(car name) ,gensym))
+             ,@body)))))
+
 ;;; Multiple values.
 
 ;;;###autoload
@@ -2509,7 +2560,7 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
       (push x defun-declarations-alist)))
 
 (defun cl--optimize (f _args &rest qualities)
-  "Serve 'cl-optimize' in function declarations.
+  "Serve `cl-optimize' in function declarations.
 Example:
 (defun foo (x)
   (declare (cl-optimize (speed 3) (safety 0)))
@@ -2901,18 +2952,10 @@ To see the documentation for a defined struct type, use
            (debug
             (&define                    ;Makes top-level form not be wrapped.
              [&or symbolp
-                  (gate
+                  (gate ;; FIXME: Why?
                    symbolp &rest
-                   [&or symbolp
-                        (&or [":conc-name" symbolp]
-                             [":constructor" symbolp &optional cl-lambda-list]
-                             [":copier" symbolp]
-                             [":predicate" symbolp]
-                             [":include" symbolp &rest sexp] ;; Not finished.
-                             [":print-function" sexp]
-                             [":type" symbolp]
-                             [":named"]
-                             [":initial-offset" natnump])])]
+                   [&or (":constructor" &define name &optional cl-lambda-list)
+                        sexp])]
              [&optional stringp]
              ;; All the above is for the following def-form.
              &rest &or symbolp (symbolp &optional def-form &rest sexp))))
@@ -3287,8 +3330,9 @@ the form NAME which is a shorthand for (NAME NAME)."
             (funcall orig pred1
                      (cl--defstruct-predicate t2))))
      (funcall orig pred1 pred2))))
-(advice-add 'pcase--mutually-exclusive-p
-            :around #'cl--pcase-mutually-exclusive-p)
+(when (fboundp 'advice-add)           ;Not available during bootstrap.
+  (advice-add 'pcase--mutually-exclusive-p
+              :around #'cl--pcase-mutually-exclusive-p))
 
 
 (defun cl-struct-sequence-type (struct-type)
@@ -3359,9 +3403,11 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (boolean	. booleanp)
                  (bool-vector	. bool-vector-p)
                  (buffer	. bufferp)
+                 (byte-code-function . byte-code-function-p)
                  (character	. natnump)
                  (char-table	. char-table-p)
                  (command	. commandp)
+                 (compiled-function . byte-code-function-p)
                  (hash-table	. hash-table-p)
                  (cons		. consp)
                  (fixnum	. fixnump)
@@ -3375,6 +3421,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (null		. null)
                  (real		. numberp)
                  (sequence	. sequencep)
+                 (subr		. subrp)
                  (string	. stringp)
                  (symbol	. symbolp)
                  (vector	. vectorp)
@@ -3632,7 +3679,7 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
 
 (define-inline cl-struct-slot-value (struct-type slot-name inst)
   "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.
-STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
+STRUCT-TYPE and SLOT-NAME are symbols.  INST is a structure instance."
   (declare (side-effect-free t))
   (inline-letevals (struct-type slot-name inst)
     (inline-quote

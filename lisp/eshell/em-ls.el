@@ -100,15 +100,14 @@ faster and conserves more memory."
   :type 'boolean)
 
 (defface eshell-ls-directory
-  '((((class color) (background light)) (:foreground "Blue" :weight bold))
-    (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
-    (t (:weight bold)))
-  "The face used for highlighting directories.")
+  '((t (:inherit font-lock-function-name-face)))
+  "The face used for highlighting directories."
+  :version "29.1")
 
 (defface eshell-ls-symlink
-  '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
-    (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
-  "The face used for highlighting symbolic links.")
+  '((t (:inherit font-lock-keyword-face)))
+  "The face used for highlighting symbolic links."
+  :version "29.1")
 
 (defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))

@@ -550,13 +550,21 @@ invalid_syntax_lisp (Lisp_Object s, Lisp_Object readcharfun)
 {
   if (BUFFERP (readcharfun))
     {
+      ptrdiff_t line, column;
+
+      /* Get the line/column in the readcharfun buffer.  */
+      {
+	specpdl_ref count = SPECPDL_INDEX ();
+
+	record_unwind_protect_excursion ();
+	set_buffer_internal (XBUFFER (readcharfun));
+	line = count_lines (BEGV_BYTE, PT_BYTE) + 1;
+	column = current_column ();
+	unbind_to (count, Qnil);
+      }
+
       xsignal (Qinvalid_read_syntax,
-	       list3 (s,
-		      /* We should already be in the readcharfun
-			 buffer when this error is called, so no need
-			 to switch to it first. */
-		      make_fixnum (count_lines (BEGV_BYTE, PT_BYTE) + 1),
-		      make_fixnum (current_column ())));
+	       list3 (s, make_fixnum (line), make_fixnum (column)));
     }
   else
     xsignal1 (Qinvalid_read_syntax, s);
@@ -1661,7 +1669,7 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
-  int fd = openp (path, filename, suffixes, &file, predicate, false, false);
+  int fd = openp (path, filename, suffixes, &file, predicate, false, true);
   if (NILP (predicate) && fd >= 0)
     emacs_close (fd);
   return file;
@@ -3480,6 +3488,29 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 		      /* Read the object itself.  */
 		      Lisp_Object tem = read0 (readcharfun, locate_syms);
 
+                      if (CONSP (tem))
+                        {
+			  if (BASE_EQ (tem, placeholder))
+			    /* Catch silly games like #1=#1# */
+			    invalid_syntax ("nonsensical self-reference",
+					    readcharfun);
+
+			  /* Optimisation: since the placeholder is already
+			     a cons, repurpose it as the actual value.
+			     This allows us to skip the substition below,
+			     since the placeholder is already referenced
+			     inside TEM at the appropriate places.  */
+                          Fsetcar (placeholder, XCAR (tem));
+                          Fsetcdr (placeholder, XCDR (tem));
+
+			  struct Lisp_Hash_Table *h2
+			    = XHASH_TABLE (read_objects_completed);
+			  ptrdiff_t i = hash_lookup (h2, placeholder, &hash);
+			  eassert (i < 0);
+			  hash_put (h2, placeholder, Qnil, hash);
+			  return placeholder;
+			}
+
 		      /* If it can be recursive, remember it for
 			 future substitutions.  */
 		      if (! SYMBOLP (tem)
@@ -3494,24 +3525,15 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 			}
 
 		      /* Now put it everywhere the placeholder was...  */
-                      if (CONSP (tem))
-                        {
-                          Fsetcar (placeholder, XCAR (tem));
-                          Fsetcdr (placeholder, XCDR (tem));
-                          return placeholder;
-                        }
-                      else
-                        {
-		          Flread__substitute_object_in_subtree
-			    (tem, placeholder, read_objects_completed);
+		      Flread__substitute_object_in_subtree
+			(tem, placeholder, read_objects_completed);
 
-		          /* ...and #n# will use the real value from now on.  */
-			  i = hash_lookup (h, number, &hash);
-			  eassert (i >= 0);
-			  set_hash_value_slot (h, i, tem);
+		      /* ...and #n# will use the real value from now on.  */
+		      i = hash_lookup (h, number, &hash);
+		      eassert (i >= 0);
+		      set_hash_value_slot (h, i, tem);
 
-		          return tem;
-                        }
+		      return tem;
 		    }
 
 		  /* #n# returns a previously read object.  */

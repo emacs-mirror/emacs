@@ -335,7 +335,7 @@ DEFUN ("frame-windows-min-size", Fframe_windows_min_size,
  * additionally limit the minimum frame height to a value large enough
  * to support menu bar, tab bar, mode line and echo area.
  */
-int
+static int
 frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
 			Lisp_Object ignore, Lisp_Object pixelwise)
 {
@@ -1987,6 +1987,14 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       else
 	error ("Attempt to delete the only frame");
     }
+#ifdef HAVE_X_WINDOWS
+  else if (x_dnd_in_progress && f == x_dnd_frame)
+    error ("Attempt to delete the drop source frame");
+#endif
+#ifdef HAVE_HAIKU
+  else if (f == haiku_dnd_frame)
+    error ("Attempt to delete the drop source frame");
+#endif
 
   XSETFRAME (frame, f);
 
@@ -2505,9 +2513,12 @@ vertical offset, measured in units of the frame's default character size.
 If Emacs is running on a mouseless terminal or hasn't been programmed
 to read the mouse position, it returns the selected frame for FRAME
 and nil for X and Y.
-If `mouse-position-function' is non-nil, `mouse-position' calls it,
-passing the normal return value to that function as an argument,
-and returns whatever that function returns.  */)
+
+FRAME might be nil if `track-mouse' is set to `drag-source'.  This
+means there is no frame under the mouse.  If `mouse-position-function'
+is non-nil, `mouse-position' calls it, passing the normal return value
+to that function as an argument, and returns whatever that function
+returns.  */)
   (void)
 {
   return mouse_position (true);
@@ -2534,7 +2545,7 @@ mouse_position (bool call_mouse_position_function)
 						  &time_dummy);
     }
 
-  if (! NILP (x))
+  if (! NILP (x) && f)
     {
       int col = XFIXNUM (x);
       int row = XFIXNUM (y);
@@ -2542,7 +2553,10 @@ mouse_position (bool call_mouse_position_function)
       XSETINT (x, col);
       XSETINT (y, row);
     }
-  XSETFRAME (lispy_dummy, f);
+  if (f)
+    XSETFRAME (lispy_dummy, f);
+  else
+    lispy_dummy = Qnil;
   retval = Fcons (lispy_dummy, Fcons (x, y));
   if (call_mouse_position_function && !NILP (Vmouse_position_function))
     retval = call1 (Vmouse_position_function, retval);
@@ -2555,9 +2569,11 @@ DEFUN ("mouse-pixel-position", Fmouse_pixel_position,
 The position is given in pixel units, where (0, 0) is the
 upper-left corner of the frame, X is the horizontal offset, and Y is
 the vertical offset.
-If Emacs is running on a mouseless terminal or hasn't been programmed
-to read the mouse position, it returns the selected frame for FRAME
-and nil for X and Y.  */)
+FRAME might be nil if `track-mouse' is set to `drag-source'.  This
+means there is no frame under the mouse.  If Emacs is running on a
+mouseless terminal or hasn't been programmed to read the mouse
+position, it returns the selected frame for FRAME and nil for X and
+Y.  */)
   (void)
 {
   struct frame *f;
@@ -2578,7 +2594,11 @@ and nil for X and Y.  */)
 						  &time_dummy);
     }
 
-  XSETFRAME (lispy_dummy, f);
+  if (f)
+    XSETFRAME (lispy_dummy, f);
+  else
+    lispy_dummy = Qnil;
+
   retval = Fcons (lispy_dummy, Fcons (x, y));
   if (!NILP (Vmouse_position_function))
     retval = call1 (Vmouse_position_function, retval);
@@ -3495,7 +3515,10 @@ DEFUN ("frame-native-width", Fframe_native_width,
        Sframe_native_width, 0, 1, 0,
        doc: /* Return FRAME's native width in pixels.
 For a terminal frame, the result really gives the width in characters.
-If FRAME is omitted or nil, the selected frame is used.  */)
+If FRAME is omitted or nil, the selected frame is used.
+
+If you're interested only in the width of the text portion of the
+frame, see `frame-text-width' instead.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_any_frame (frame);
@@ -3518,6 +3541,9 @@ In the Gtk+ and NS versions, it includes only any window (including the
 minibuffer or echo area), mode line, and header line.  It does not
 include the tool bar or menu bar.  With other graphical versions, it may
 also include the tool bar and the menu bar.
+
+If you're interested only in the height of the text portion of the
+frame, see `frame-text-height' instead.
 
 For a text terminal, it includes the menu bar.  In this case, the
 result is really in characters rather than pixels (i.e., is identical
@@ -6270,7 +6296,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
 
   DEFVAR_BOOL ("scroll-bar-adjust-thumb-portion",
                scroll_bar_adjust_thumb_portion_p,
-               doc: /* Adjust thumb for overscrolling for Gtk+ and MOTIF.
+               doc: /* Adjust scroll bars for overscrolling for Gtk+, Motif and Haiku.
 Non-nil means adjust the thumb in the scroll bar so it can be dragged downwards
 even if the end of the buffer is shown (i.e. overscrolling).
 Set to nil if you want the thumb to be at the bottom when the end of the buffer

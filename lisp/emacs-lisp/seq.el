@@ -403,23 +403,23 @@ found or not."
         (setq count (+ 1 count))))
     count))
 
-(with-suppressed-warnings ((obsolete seq-contains))
-  (cl-defgeneric seq-contains (sequence elt &optional testfn)
-    "Return the first element in SEQUENCE that is equal to ELT.
+(cl-defgeneric seq-contains (sequence elt &optional testfn)
+  "Return the first element in SEQUENCE that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
-    (declare (obsolete seq-contains-p "27.1"))
-    (seq-some (lambda (e)
-                (when (funcall (or testfn #'equal) elt e)
-                  e))
-              sequence)))
+  (declare (obsolete seq-contains-p "27.1"))
+  (seq-some (lambda (e)
+              (when (funcall (or testfn #'equal) elt e)
+                e))
+            sequence))
 
 (cl-defgeneric seq-contains-p (sequence elt &optional testfn)
   "Return non-nil if SEQUENCE contains an element equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
     (catch 'seq--break
       (seq-doseq (e sequence)
-        (when (funcall (or testfn #'equal) e elt)
-          (throw 'seq--break t)))
+        (let ((r (funcall (or testfn #'equal) e elt)))
+          (when r
+            (throw 'seq--break r))))
       nil))
 
 (cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)

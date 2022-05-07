@@ -47,6 +47,8 @@
          (calc-check-stack num)
 	 (let ((stuff (calc-top-list n (- num n -1))))
 	   (calc-cursor-stack-index num)
+           (unless calc-kill-line-numbering
+             (re-search-forward "\\=[0-9]+:\\s-+" (point-at-eol) t))
 	   (let ((first (point)))
 	     (calc-cursor-stack-index (- num n))
 	     (if (null nn)

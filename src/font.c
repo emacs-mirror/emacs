@@ -4237,26 +4237,33 @@ merge_font_spec (Lisp_Object from, Lisp_Object to)
 DEFUN ("font-get", Ffont_get, Sfont_get, 2, 2, 0,
        doc: /* Return the value of FONT's property KEY.
 FONT is a font-spec, a font-entity, or a font-object.
-KEY is any symbol, but these are reserved for specific meanings:
-  :family, :weight, :slant, :width, :foundry, :adstyle, :registry,
-  :size, :name, :script, :otf
+KEY can be any symbol, but these are reserved for specific meanings:
+  :foundry, :family, :adstyle, :registry, :weight, :slant, :width,
+  :size, :dpi, :spacing, :avgwidth, :script, :lang, :otf
 See the documentation of `font-spec' for their meanings.
-In addition, if FONT is a font-entity or a font-object, values of
-:script and :otf are different from those of a font-spec as below:
 
-The value of :script may be a list of scripts that are supported by the font.
+If FONT is a font-entity or a font-object, then values of
+:script and :otf properties are different from those of a font-spec
+as below:
 
-The value of :otf is a cons (GSUB . GPOS) where GSUB and GPOS are lists
-representing the OpenType features supported by the font by this form:
-  ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
-SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
-Layout tags.
+  The value of :script may be a list of scripts that are supported by
+  the font.
+
+  The value of :otf is a cons (GSUB . GPOS) where GSUB and GPOS are
+  lists representing the OpenType features supported by the font, of
+  this form: ((SCRIPT (LANGSYS FEATURE ...) ...) ...), where
+  SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
+  Layout tags.  See `otf-script-alist' for the OpenType script tags.
 
 In addition to the keys listed above, the following keys are reserved
 for the specific meanings as below:
 
-The value of :combining-capability is non-nil if the font-backend of
-FONT supports rendering of combining characters for non-OTF fonts.  */)
+  The value of :type is a symbol that identifies the font backend to be
+  used, such as `ftcrhb' or `xfthb' on X , `harfbuzz' or `uniscribe' on
+  MS-Windows, `ns' on Cocoa/GNUstep, etc.
+
+  The value of :combining-capability is non-nil if the font-backend of
+  FONT supports rendering of combining characters for non-OTF fonts.  */)
   (Lisp_Object font, Lisp_Object key)
 {
   int idx;
@@ -4384,7 +4391,9 @@ accepted by the function `font-spec' (which see), VAL must be what
 allowed in `font-spec'.
 
 If FONT is a font-entity or a font-object, KEY must not be the one
-accepted by `font-spec'.  */)
+accepted by `font-spec'.
+
+See also `font-get' for KEYs that have special meanings.  */)
   (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 {
   int idx;

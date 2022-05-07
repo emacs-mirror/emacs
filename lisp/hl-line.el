@@ -102,7 +102,16 @@ This variable has no effect in Global Highlight Line mode.
 For that, use `global-hl-line-sticky-flag'."
   :type 'boolean
   :version "22.1"
-  :group 'hl-line)
+  :group 'hl-line
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (when (featurep 'hl-line)
+           (unless value
+             (let ((selected (window-buffer (selected-window))))
+               (dolist (buffer (buffer-list))
+                 (unless (eq buffer selected)
+                   (with-current-buffer buffer
+                     (hl-line-unhighlight)))))))))
 
 (defcustom global-hl-line-sticky-flag nil
   "Non-nil means the Global HL-Line mode highlight appears in all windows.
@@ -125,8 +134,11 @@ This variable is expected to be made buffer-local by modes.")
 (defvar hl-line-overlay-buffer nil
   "Most recently visited buffer in which Hl-Line mode is enabled.")
 
-(defvar hl-line-overlay-priority -50
-  "Priority used on the overlay used by hl-line.")
+(defcustom hl-line-overlay-priority -50
+  "Priority used on the overlay used by hl-line."
+  :type 'integer
+  :version "28.1"
+  :group 'hl-line)
 
 ;;;###autoload
 (define-minor-mode hl-line-mode

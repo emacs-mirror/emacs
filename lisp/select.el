@@ -25,9 +25,10 @@
 ;; Based partially on earlier release by Lucid.
 
 ;; The functionality here is divided in two parts:
-;; - Low-level: gui-get-selection, gui-set-selection, gui-selection-owner-p,
-;;   gui-selection-exists-p are the backend-dependent functions meant to access
-;;   various kinds of selections (CLIPBOARD, PRIMARY, SECONDARY).
+;; - Low-level: gui-backend-get-selection, gui-backend-set-selection,
+;;   gui-backend-selection-owner-p, gui-backend-selection-exists-p are
+;;   the backend-dependent functions meant to access various kinds of
+;;   selections (CLIPBOARD, PRIMARY, SECONDARY).
 ;; - Higher-level: gui-select-text and gui-selection-value go together to
 ;;   access the general notion of "GUI selection" for interoperation with other
 ;;   applications.  This can use either the clipboard or the primary selection,
@@ -108,9 +109,10 @@ E.g. it doesn't exist under MS-Windows."
   :group 'killing
   :version "25.1")
 
-;; We keep track of the last text selected here, so we can check the
-;; current selection against it, and avoid passing back our own text
-;; from gui-selection-value.  We track both
+;; We keep track of the last selection here, so we can check the
+;; current selection against it, and avoid passing back with
+;; gui-selection-value the same text we previously killed or
+;; yanked. We track both
 ;; separately in case another X application only sets one of them
 ;; we aren't fooled by the PRIMARY or CLIPBOARD selection staying the same.
 
@@ -119,22 +121,68 @@ E.g. it doesn't exist under MS-Windows."
 (defvar gui--last-selected-text-primary nil
   "The value of the PRIMARY selection last seen.")
 
+(defvar gui--last-selection-timestamp-clipboard nil
+  "The timestamp of the CLIPBOARD selection last seen.")
+(defvar gui--last-selection-timestamp-primary nil
+  "The timestamp of the PRIMARY selection last seen.")
+
+(defun gui--set-last-clipboard-selection (text)
+  "Save last clipboard selection.
+Save the selected text, passed as argument, and for window
+systems that support it, save the selection timestamp too."
+  (setq gui--last-selected-text-clipboard text)
+  (when (eq window-system 'x)
+    (setq gui--last-selection-timestamp-clipboard
+          (gui-backend-get-selection 'CLIPBOARD 'TIMESTAMP))))
+
+(defun gui--set-last-primary-selection (text)
+  "Save last primary selection.
+Save the selected text, passed as argument, and for window
+systems that support it, save the selection timestamp too."
+  (setq gui--last-selected-text-primary text)
+  (when (eq window-system 'x)
+    (setq gui--last-selection-timestamp-primary
+          (gui-backend-get-selection 'PRIMARY 'TIMESTAMP))))
+
+(defun gui--clipboard-selection-unchanged-p (text)
+  "Check whether the clipboard selection has changed.
+Compare the selection text, passed as argument, with the text
+from the last saved selection. For window systems that support
+it, compare the selection timestamp too."
+  (and
+   (equal text gui--last-selected-text-clipboard)
+   (or (not (eq window-system 'x))
+       (eq gui--last-selection-timestamp-clipboard
+           (gui-backend-get-selection 'CLIPBOARD 'TIMESTAMP)))))
+
+(defun gui--primary-selection-unchanged-p (text)
+  "Check whether the primary selection has changed.
+Compare the selection text, passed as argument, with the text
+from the last saved selection. For window systems that support
+it, compare the selection timestamp too."
+  (and
+   (equal text gui--last-selected-text-primary)
+   (or (not (eq window-system 'x))
+       (eq gui--last-selection-timestamp-primary
+           (gui-backend-get-selection 'PRIMARY 'TIMESTAMP)))))
+
+
 (defun gui-select-text (text)
   "Select TEXT, a string, according to the window system.
-if `select-enable-clipboard' is non-nil, copy TEXT to the system's clipboard.
+If `select-enable-clipboard' is non-nil, copy TEXT to the system's clipboard.
 If `select-enable-primary' is non-nil, put TEXT in the primary selection.
 
 MS-Windows does not have a \"primary\" selection."
   (when select-enable-primary
     (gui-set-selection 'PRIMARY text)
-    (setq gui--last-selected-text-primary text))
+    (gui--set-last-primary-selection text))
   (when select-enable-clipboard
     ;; When cutting, the selection is cleared and PRIMARY
     ;; set to the empty string.  Prevent that, PRIMARY
     ;; should not be reset by cut (Bug#16382).
     (setq saved-region-selection text)
     (gui-set-selection 'CLIPBOARD text)
-    (setq gui--last-selected-text-clipboard text)))
+    (gui--set-last-clipboard-selection text)))
 (define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
 
 (defcustom x-select-request-type nil
@@ -175,6 +223,7 @@ decoded.  If `gui-get-selection' signals an error, return nil."
            ;; some other window systems.
            (memq window-system '(x haiku))
            (eq type 'CLIPBOARD)
+           ;; Should we unify this with gui--clipboard-selection-unchanged-p?
            (gui-backend-selection-owner-p type))
     (let ((request-type (if (memq window-system '(x pgtk haiku))
                             (or x-select-request-type
@@ -197,19 +246,17 @@ decoded.  If `gui-get-selection' signals an error, return nil."
            (let ((text (gui--selection-value-internal 'CLIPBOARD)))
              (when (string= text "")
                (setq text nil))
-             ;; When `select-enable-clipboard' is non-nil,
-             ;; killing/copying text (with, say, `C-w') will push the
-             ;; text to the clipboard (and store it in
-             ;; `gui--last-selected-text-clipboard').  We check
-             ;; whether the text on the clipboard is identical to this
-             ;; text, and if so, we report that the clipboard is
-             ;; empty.  See (bug#27442) for further discussion about
-             ;; this DWIM action, and possible ways to make this check
-             ;; less fragile, if so desired.
-             (prog1
-                 (unless (equal text gui--last-selected-text-clipboard)
-                   text)
-               (setq gui--last-selected-text-clipboard text)))))
+             ;; Check the CLIPBOARD selection for 'newness', i.e.,
+             ;; whether it is different from the last time we did a
+             ;; yank operation or whether it was set by Emacs itself
+             ;; with a kill operation, since in both cases the text
+             ;; will already be in the kill ring. See (bug#27442) and
+             ;; (bug#53894) for further discussion about this DWIM
+             ;; action, and possible ways to make this check less
+             ;; fragile, if so desired.
+             (unless (gui--clipboard-selection-unchanged-p text)
+               (gui--set-last-clipboard-selection text)
+               text))))
         (primary-text
          (when select-enable-primary
            (let ((text (gui--selection-value-internal 'PRIMARY)))
@@ -217,10 +264,9 @@ decoded.  If `gui-get-selection' signals an error, return nil."
              ;; Check the PRIMARY selection for 'newness', is it different
              ;; from what we remembered them to be last time we did a
              ;; cut/paste operation.
-             (prog1
-                 (unless (equal text gui--last-selected-text-primary)
-                   text)
-               (setq gui--last-selected-text-primary text))))))
+             (unless (gui--primary-selection-unchanged-p text)
+               (gui--set-last-primary-selection text)
+               text)))))
 
     ;; As we have done one selection, clear this now.
     (setq next-selection-coding-system nil)
@@ -235,11 +281,11 @@ decoded.  If `gui-get-selection' signals an error, return nil."
     ;; something like the following has happened since the last time
     ;; we looked at the selections: Application X set all the
     ;; selections, then Application Y set only one of them.
-    ;; In this case since we don't have
-    ;; timestamps there is no way to know what the 'correct' value to
-    ;; return is.  The nice thing to do would be to tell the user we
-    ;; saw multiple possible selections and ask the user which was the
-    ;; one they wanted.
+    ;; In this case, for systems that support selection timestamps, we
+    ;; could return the newer.  For systems that don't, there is no
+    ;; way to know what the 'correct' value to return is.  The nice
+    ;; thing to do would be to tell the user we saw multiple possible
+    ;; selections and ask the user which was the one they wanted.
     (or clip-text primary-text)
     ))
 
@@ -350,10 +396,10 @@ the formats available in the clipboard if TYPE is `CLIPBOARD'."
 (defun gui-set-selection (type data)
   "Make an X selection of type TYPE and value DATA.
 The argument TYPE (nil means `PRIMARY') says which selection, and
-DATA specifies the contents.  TYPE must be a symbol.  \(It can also
-be a string, which stands for the symbol with that name, but this
-is considered obsolete.)  DATA may be a string, a symbol, an
-integer (or a cons of two integers or list of two integers).
+DATA specifies the contents.  TYPE must be a symbol.  \(It can
+also be a string, which stands for the symbol with that name, but
+this is considered obsolete.)  DATA may be a string, a symbol, or
+an integer.
 
 The selection may also be a cons of two markers pointing to the same buffer,
 or an overlay.  In these cases, the selection is considered to be the text
@@ -485,7 +531,8 @@ two markers or an overlay.  Otherwise, it is nil."
 			       (if eight-bit 'C_STRING
 				 'STRING))))))))
 	  (cond
-	   ((eq type 'UTF8_STRING)
+	   ((or (eq type 'UTF8_STRING)
+                (eq type 'text/plain\;charset=utf-8))
 	    (if (or (not coding)
 		    (not (eq (coding-system-type coding) 'utf-8)))
 		(setq coding 'utf-8))
@@ -495,6 +542,12 @@ two markers or an overlay.  Otherwise, it is nil."
 	    (if (or (not coding)
 		    (not (eq (coding-system-type coding) 'charset)))
 		(setq coding 'iso-8859-1))
+	    (setq str (encode-coding-string str coding)))
+
+           ((eq type 'text/plain)
+            (if (or (not coding)
+		    (not (eq (coding-system-type coding) 'charset)))
+		(setq coding 'ascii))
 	    (setq str (encode-coding-string str coding)))
 
 	   ((eq type 'COMPOUND_TEXT)
@@ -539,31 +592,36 @@ two markers or an overlay.  Otherwise, it is nil."
     (if len
 	(xselect--int-to-cons len))))
 
-(defun xselect-convert-to-targets (_selection _type _value)
-  ;; return a vector of atoms, but remove duplicates first.
-  (let* ((all (cons 'TIMESTAMP
-		    (cons 'MULTIPLE
-			  (mapcar 'car selection-converter-alist))))
-	 (rest all))
-    (while rest
-      (cond ((memq (car rest) (cdr rest))
-	     (setcdr rest (delq (car rest) (cdr rest))))
-	    ((eq (car (cdr rest)) '_EMACS_INTERNAL)  ; shh, it's a secret
-	     (setcdr rest (cdr (cdr rest))))
-	    (t
-	     (setq rest (cdr rest)))))
-    (apply 'vector all)))
+(defun xselect-convert-to-targets (selection _type value)
+  ;; Return a vector of atoms, but remove duplicates first.
+  (apply #'vector
+         (delete-dups
+          `( TIMESTAMP MULTIPLE
+             . ,(delq '_EMACS_INTERNAL
+                      (mapcar (lambda (conv)
+                                (if (or (not (consp (cdr conv)))
+                                        (funcall (cadr conv) selection
+                                                 (car conv) value))
+                                    (car conv)
+                                  '_EMACS_INTERNAL))
+                              selection-converter-alist))))))
 
 (defun xselect-convert-to-delete (selection _type _value)
-  (gui-backend-set-selection selection nil)
+  ;; This should be handled by the caller of `x-begin-drag'.
+  (unless (eq selection 'XdndSelection)
+    (gui-backend-set-selection selection nil))
   ;; A return value of nil means that we do not know how to do this conversion,
   ;; and replies with an "error".  A return value of NULL means that we have
   ;; done the conversion (and any side-effects) but have no value to return.
   'NULL)
 
-(defun xselect-convert-to-filename (_selection _type value)
-  (when (setq value (xselect--selection-bounds value))
-    (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value)))))
+(defun xselect-convert-to-filename (selection _type value)
+  (if (not (eq selection 'XdndSelection))
+      (when (setq value (xselect--selection-bounds value))
+        (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value))))
+    (when (and (stringp value)
+               (file-exists-p value))
+      (xselect--encode-string 'C_STRING value))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
@@ -625,11 +683,50 @@ This function returns the string \"emacs\"."
   (when (eq selection 'CLIPBOARD)
     'NULL))
 
+(defun xselect-convert-to-username (_selection _type _value)
+  (user-real-login-name))
+
+(defun xselect-convert-to-text-uri-list (_selection _type value)
+  (when (and (stringp value)
+             (file-exists-p value))
+    (concat (url-encode-url
+             ;; Uncomment the following code code in a better world where
+             ;; people write correct code that adds the hostname to the URI.
+             ;; Since most programs don't implement this properly, we omit the
+             ;; hostname so that copying files actually works.  Most properly
+             ;; written programs will look at WM_CLIENT_MACHINE to determine
+             ;; the hostname anyway.  (format "file://%s%s\n" (system-name)
+             ;; (expand-file-name value))
+             (concat "file://" (expand-file-name value)))
+            "\n")))
+
+(defun xselect-convert-to-xm-file (selection _type value)
+  (when (and (stringp value)
+             (file-exists-p value)
+             (eq selection 'XdndSelection))
+    (xselect--encode-string 'C_STRING
+                            (concat value [0]))))
+
+(defun xselect-uri-list-available-p (selection _type value)
+  "Return whether or not `text/uri-list' is a valid target for SELECTION.
+VALUE is the local selection value of SELECTION."
+  (and (eq selection 'XdndSelection)
+       (stringp value)
+       (file-exists-p value)))
+
+(defun xselect-convert-xm-special (_selection _type _value)
+  "")
+
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)
 	(COMPOUND_TEXT . xselect-convert-to-string)
 	(STRING . xselect-convert-to-string)
 	(UTF8_STRING . xselect-convert-to-string)
+	(text/plain . xselect-convert-to-string)
+	(text/plain\;charset=utf-8 . xselect-convert-to-string)
+        (text/uri-list . (xselect-uri-list-available-p . xselect-convert-to-text-uri-list))
+        (text/x-xdnd-username . xselect-convert-to-username)
+        (FILE . (xselect-uri-list-available-p . xselect-convert-to-xm-file))
 	(TARGETS . xselect-convert-to-targets)
 	(LENGTH . xselect-convert-to-length)
 	(DELETE . xselect-convert-to-delete)
@@ -645,7 +742,9 @@ This function returns the string \"emacs\"."
 	(ATOM . xselect-convert-to-atom)
 	(INTEGER . xselect-convert-to-integer)
 	(SAVE_TARGETS . xselect-convert-to-save-targets)
-	(_EMACS_INTERNAL . xselect-convert-to-identity)))
+	(_EMACS_INTERNAL . xselect-convert-to-identity)
+        (XmTRANSFER_SUCCESS . xselect-convert-xm-special)
+        (XmTRANSFER_FAILURE . xselect-convert-xm-special)))
 
 (provide 'select)
 

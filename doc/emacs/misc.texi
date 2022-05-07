@@ -896,6 +896,19 @@ also rename the @file{*shell*} buffer using @kbd{M-x rename-uniquely},
 then create a new @file{*shell*} buffer using plain @kbd{M-x shell}.
 Subshells in different buffers run independently and in parallel.
 
+  Emacs attempts to keep track of what the current directory is by
+looking at the commands you enter, looking for @samp{cd} commands and
+the like.  This is an error-prone solution, since there are many ways
+to change the current directory, so Emacs also looks for special
+@acronym{OSC} (Operating System Commands) escape codes that are
+designed to convey this information in a more reliable fashion.  You
+should arrange for your shell to print the appropriate escape sequence
+at each prompt, for instance with the following command:
+
+@example
+printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
+@end example
+
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
 @cindex @env{ESHELL} environment variable
@@ -2770,7 +2783,12 @@ will by default ask you whether to use the locked desktop file.  You
 can avoid the question by customizing the variable
 @code{desktop-load-locked-desktop} to either @code{nil}, which means
 never load the desktop in this case, or @code{t}, which means load the
-desktop without asking.
+desktop without asking.  Finally, the @code{check-pid} value means to
+load the file if the Emacs process that has locked the desktop is not
+running on the local machine.  This should not be used in
+circumstances where the locking Emacs might still be running on
+another machine.  This could be the case in multi-user environments
+where your home directory is mounted remotely using NFS or similar.
 
 @cindex desktop restore in daemon mode
   When Emacs starts in daemon mode, it cannot ask you any questions,

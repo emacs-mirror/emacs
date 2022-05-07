@@ -80,6 +80,17 @@
     (narrow-to-page 2)
     (should (equal (buffer-string) "baz"))
     (narrow-to-page -1)
+    (should (equal (buffer-string) "bar\n"))
+
+    (widen)
+    (goto-char (point-min))
+    (narrow-to-page)
+    (should (equal (buffer-string) "foo\n"))
+    (goto-char (point-max))
+    (narrow-to-page 2)
+    (should (equal (buffer-string) "baz"))
+    (goto-char (point-max))
+    (narrow-to-page -1)
     (should (equal (buffer-string) "bar\n"))))
 
 (ert-deftest page-tests-count-lines-page ()
@@ -99,5 +110,6 @@
     (should (equal (page--what-page) '(2 2)))
     (forward-page)
     (should (equal (page--what-page) '(3 4)))))
+
 
 ;;; page-tests.el ends here

@@ -229,7 +229,7 @@ a list of frames to update."
 
 (defun tab-bar--key-to-number (key)
   "Return the tab number represented by KEY.
-If KEY is a symbol 'tab-N', where N is a tab number, the value is N.
+If KEY is a symbol `tab-N', where N is a tab number, the value is N.
 If KEY is \\='current-tab, the value is nil.
 For any other value of KEY, the value is t."
   (cond
@@ -426,7 +426,7 @@ on each new frame when the global `tab-bar-mode' is disabled,
 or if you want to disable the tab bar individually on each
 new frame when the global `tab-bar-mode' is enabled, by using
 
-  (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
+  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)"
   (interactive)
   (set-frame-parameter frame 'tab-bar-lines
                        (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
@@ -915,8 +915,8 @@ when the tab is current.  Return the result as a keymap."
   (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
          (rest (tab-bar-format-list rest))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
-         (hpos (length rest))
-         (str (propertize " " 'display `(space :align-to (- right ,hpos)))))
+         (hpos (string-pixel-width (propertize rest 'face 'tab-bar)))
+         (str (propertize " " 'display `(space :align-to (- right (,hpos))))))
     `((align-right menu-item ,str ignore))))
 
 (defun tab-bar-format-global ()
@@ -926,7 +926,7 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((global menu-item ,(string-trim-right (format-mode-line global-mode-string)) ignore)))
+  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))
@@ -1384,7 +1384,8 @@ After the tab is created, the hooks in
             (split-window) (delete-window))))
 
       (let ((buffer
-             (if (functionp tab-bar-new-tab-choice)
+             (if (and (functionp tab-bar-new-tab-choice)
+                      (not (memq tab-bar-new-tab-choice '(clone window))))
                  (funcall tab-bar-new-tab-choice)
                (if (stringp tab-bar-new-tab-choice)
                    (or (get-buffer tab-bar-new-tab-choice)
@@ -1658,9 +1659,10 @@ happens interactively)."
           (setq index (max 0 (min index (length tabs))))
           (cl-pushnew tab (nthcdr index tabs))
           (when (eq index 0)
-            ;; pushnew handles the head of tabs but not frame-parameter
+            ;; `pushnew' handles the head of tabs but not frame-parameter
             (tab-bar-tabs-set tabs))
-          (tab-bar-select-tab (1+ index))))
+          (tab-bar-select-tab (1+ index)))
+        (tab-bar--update-tab-bar-lines))
 
     (message "No more closed tabs to undo")))
 

@@ -469,16 +469,6 @@ BView_FillTriangle (void *view, int x1, int y1,
 }
 
 void
-BView_SetHighColorForVisibleBell (void *view, uint32_t color)
-{
-  BView *vw = (BView *) view;
-  rgb_color col;
-  rgb32_to_rgb_color (color, &col);
-
-  vw->SetHighColor (col);
-}
-
-void
 BView_InvertRect (void *view, int x, int y, int width, int height)
 {
   BView *vw = get_view (view);

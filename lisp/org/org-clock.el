@@ -1904,11 +1904,11 @@ PROPNAME lets you set a custom text property instead of :org-clock-minutes."
 	   ((match-end 2)
 	    ;; Two time stamps.
 	    (let* ((ts (float-time
-			(encode-time
+			(apply #'encode-time
 			       (save-match-data
 				 (org-parse-time-string (match-string 2))))))
 		   (te (float-time
-			(encode-time
+			(apply #'encode-time
 			       (org-parse-time-string (match-string 3)))))
 		   (dt (- (if tend (min te tend) te)
 			  (if tstart (max ts tstart) ts))))
@@ -3042,9 +3042,9 @@ Otherwise, return nil."
 	  (setq ts (match-string 1)
 		te (match-string 3))
 	  (setq s (- (float-time
-		      (encode-time (org-parse-time-string te)))
+		      (apply #'encode-time (org-parse-time-string te)))
 		     (float-time
-		      (encode-time (org-parse-time-string ts))))
+		      (apply #'encode-time (org-parse-time-string ts))))
 		neg (< s 0)
 		s (abs s)
 		h (floor (/ s 3600))

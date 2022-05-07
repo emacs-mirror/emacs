@@ -1,7 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -131,7 +130,7 @@ Samples:
 This variable controls several other variables and is _NOT_ automatically
 updated.  Call the function `url-setup-privacy-info' after modifying this
 variable."
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val) (set-default sym val) (url-setup-privacy-info))
   :type '(radio (const :tag "None (you believe in the basic goodness of humanity)"
 		       :value none)
@@ -204,10 +203,9 @@ from the ACCESS_proxy environment variables."
   :type 'boolean
   :group 'url-cache)
 
-(defvar url-mime-separator-chars (mapcar 'identity
-					(concat "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-						"abcdefghijklmnopqrstuvwxyz"
-						"0123456789'()+_,-./=?"))
+(defvar url-mime-separator-chars (append "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+					 "abcdefghijklmnopqrstuvwxyz"
+					 "0123456789'()+_,-./=?")
   "Characters allowable in a MIME multipart separator.")
 
 (defcustom url-bad-port-list
@@ -254,7 +252,7 @@ Generated according to current coding system priorities."
 			  (push (car elt) accum)))
 		    (nreverse accum)))))
     (concat (format "%s;q=1, " (pop ordered))
-	    (mapconcat 'symbol-name ordered ";q=0.5, ")
+	    (mapconcat #'symbol-name ordered ";q=0.5, ")
 	    ";q=0.5")))
 
 (defvar url-mime-charset-string nil
@@ -425,7 +423,7 @@ This should be set, e.g. by mail user agents rendering HTML to avoid
 `bugs' which call home.")
 
 (defun url-interactive-p ()
-  "Say whether the current request is from a interactive context."
+  "Non-nil when the current request is from an interactive context."
   (not (or url-request-noninteractive
            (bound-and-true-p url-http-noninteractive))))
 
@@ -435,5 +433,4 @@ This should be set, e.g. by mail user agents rendering HTML to avoid
 (make-obsolete-variable 'url-version 'emacs-version "28.1")
 
 (provide 'url-vars)
-
 ;;; url-vars.el ends here

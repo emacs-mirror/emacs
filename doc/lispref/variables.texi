@@ -2295,6 +2295,21 @@ list in @var{variables} is an alist of the form
   '((null-device . "/dev/null")))
 @end group
 @end example
+
+@findex connection-local-get-profile-variables
+If you want to append variable settings to an existing profile, you
+could use the function @code{connection-local-get-profile-variables}
+in order to retrieve the existing settings, like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'remote-bash
+  (append
+   (connection-local-get-profile-variables 'remote-bash)
+   '((shell-command-dont-erase-buffer . t))))
+@end group
+@end example
 @end defun
 
 @deffn {User Option} connection-local-profile-alist
@@ -2417,6 +2432,37 @@ are unwound.  Example:
 @end group
 @end example
 @end defmac
+
+@defvar connection-local-default-application
+The default application, a symbol, to be applied in
+@code{with-connection-local-variables}.  It defaults to @code{tramp},
+but in case you want to overwrite Tramp's settings temporarily, you
+could let-bind it like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'my-remote-perl
+  '((perl-command-name . "/usr/local/bin/perl5")
+    (perl-command-switch . "-e %s")))
+@end group
+
+@group
+(connection-local-set-profiles
+  '(:application 'my-app :protocol "ssh" :machine "remotehost")
+  'my-remote-perl)
+@end group
+
+@group
+(let ((default-directory "/ssh:remotehost:/working/dir/")
+      (connection-local-default-application 'my-app))
+  (with-connection-local-variables
+    do something useful))
+@end group
+@end example
+
+This variable must not be changed globally.
+@end defvar
 
 @defvar enable-connection-local-variables
 If @code{nil}, connection-local variables are ignored.  This variable
@@ -2743,13 +2789,13 @@ implemented this way:
 (gv-define-expander substring
   (lambda (do place from &optional to)
     (gv-letplace (getter setter) place
-      (macroexp-let2* nil ((start from) (end to))
-        (funcall do `(substring ,getter ,start ,end)
+      (macroexp-let2* (from to)
+        (funcall do `(substring ,getter ,from ,to)
                  (lambda (v)
-                   (macroexp-let2 nil v v
+                   (macroexp-let2* (v)
                      `(progn
                         ,(funcall setter `(cl--set-substring
-                                           ,getter ,start ,end ,v))
+                                           ,getter ,from ,to ,v))
                         ,v))))))))
 @end example
 @end defmac
@@ -2762,7 +2808,7 @@ of Common Lisp could be implemented this way:
 @example
 (defmacro incf (place &optional n)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (or n 1)
+    (macroexp-let2* ((v (or n 1)))
       (funcall setter `(+ ,v ,getter)))))
 @end example
 

@@ -453,8 +453,8 @@ With argument, display info only for the selected version."
 		((< vn 18) "NEWS.1-17")
 		(t (format "NEWS.%d" vn))))
 	 res)
-    (view-file (expand-file-name file data-directory))
-    (widen)
+    (find-file (expand-file-name file data-directory))
+    (emacs-news-view-mode)
     (goto-char (point-min))
     (when (stringp version)
       (when (re-search-forward
@@ -621,7 +621,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (completing-read (format-prompt "Where is command" fn)
-		                obarray 'commandp t nil nil
+		                obarray #'commandp t nil nil
 		                (and fn (symbol-name fn))))
      (list (unless (equal val "") (intern val))
 	   current-prefix-arg)))
@@ -867,7 +867,7 @@ with `mouse-movement' events."
                   (memq 'down last-modifiers)
                   ;; After a click, see if a double click is on the way.
                   (and (memq 'click last-modifiers)
-                       (not (sit-for (/ double-click-time 1000.0) t))))
+                       (not (sit-for (/ (mouse-double-click-time) 1000.0) t))))
             (let* ((seq (read-key-sequence "\
 Describe the following key, mouse click, or menu item: "
                                            nil nil 'can-return-switch-frame))
@@ -1273,7 +1273,8 @@ Otherwise, return a new string."
 
 (defvar help--keymaps-seen nil)
 (defun describe-map-tree (startmap &optional partial shadow prefix title
-                                   no-menu transl always-title mention-shadow)
+                                   no-menu transl always-title mention-shadow
+                                   buffer)
   "Insert a description of the key bindings in STARTMAP.
 This is followed by the key bindings of all maps reachable
 through STARTMAP.
@@ -1299,7 +1300,10 @@ maps to look through.
 
 If MENTION-SHADOW is non-nil, then when something is shadowed by
 SHADOW, don't omit it; instead, mention it but say it is
-shadowed."
+shadowed.
+
+If BUFFER, lookup keys while in that buffer.  This only affects
+things like :filters for menu bindings."
   (let* ((amaps (accessible-keymaps startmap prefix))
          (orig-maps (if no-menu
                         (progn
@@ -1340,7 +1344,8 @@ shadowed."
                 (setq sub-shadows (cons (cdr (car tail)) sub-shadows)))
               (setq tail (cdr tail))))
           (describe-map (cdr elt) elt-prefix transl partial
-                        sub-shadows no-menu mention-shadow)))
+                        sub-shadows no-menu mention-shadow
+                        buffer)))
       (setq maps (cdr maps)))
     ;; Print title...
     (when (and print-title
@@ -1388,7 +1393,8 @@ Return nil if the key sequence is too long."
         ((keymapp definition)
          (insert "Prefix Command\n"))
         ((byte-code-function-p definition)
-         (insert "[%s]\n" (buttonize "byte-code" #'disassemble definition)))
+         (insert (format "[%s]\n"
+                         (buttonize "byte-code" #'disassemble definition))))
         ((and (consp definition)
               (memq (car definition) '(closure lambda)))
          (insert (format "[%s]\n"
@@ -1417,13 +1423,13 @@ Return nil if the key sequence is too long."
           (t nil))))
 
 (defun describe-map (map &optional prefix transl partial shadow
-                         nomenu mention-shadow)
+                         nomenu mention-shadow buffer)
   "Describe the contents of keymap MAP.
 Assume that this keymap itself is reached by the sequence of
 prefix keys PREFIX (a string or vector).
 
-TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
-`describe-map-tree'."
+TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW and BUFFER are as
+in `describe-map-tree'."
   ;; Converted from describe_map in keymap.c.
   (let* ((suppress (and partial 'suppress-keymap))
          (map (keymap-canonicalize map))
@@ -1474,7 +1480,10 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
                                 ((and mention-shadow (not (eq tem definition)))
                                  (setq this-shadowed t))
                                 (t nil))))
-                    (eq definition (lookup-key tail (vector event) t))
+                    (eq definition (if buffer
+                                       (with-current-buffer buffer
+                                         (lookup-key tail (vector event) t))
+                                     (lookup-key tail (vector event) t)))
                     (push (list event definition this-shadowed) vect))))
             ((eq (car tail) 'keymap)
              ;; The same keymap might be in the structure twice, if
@@ -1793,12 +1802,24 @@ the help window appears on another frame, it may get selected and
 its frame get input focus even if this option is nil.
 
 This option has effect if and only if the help window was created
-by `with-help-window'."
+by `with-help-window'.
+
+Also see `help-window-keep-selected'."
   :type '(choice (const :tag "never (nil)" nil)
 		 (const :tag "other" other)
 		 (const :tag "always (t)" t))
   :group 'help
   :version "23.1")
+
+(defcustom help-window-keep-selected nil
+  "If non-nil, navigation commands in the *Help* buffer will reuse the window.
+If nil, many commands in the *Help* buffer, like \\<help-mode-map>\\[help-view-source] and \\[help-goto-info], will
+pop to a different window to display the results.
+
+Also see `help-window-select'."
+  :type 'boolean
+  :group 'help
+  :version "29.1")
 
 (define-obsolete-variable-alias 'help-enable-auto-load
   'help-enable-autoload "27.1")
@@ -2030,7 +2051,7 @@ the same names as used in the original source code, when possible."
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
   ;; Advice wrappers have "catch all" args, so fetch the actual underlying
   ;; function to find the real arguments.
-  (while (advice--p def) (setq def (advice--cdr def)))
+  (setq def (advice--cd*r def))
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
@@ -2146,7 +2167,10 @@ the suggested string to use instead.  See
                   confusables ", ")
        string))))
 
-(defun help-command-error-confusable-suggestions (data _context _signal)
+(defun help-command-error-confusable-suggestions (data context signal)
+  ;; Delegate most of the work to the original default value of
+  ;; `command-error-function' implemented in C.
+  (command-error-default-function data context signal)
   (pcase data
     (`(void-variable ,var)
      (let ((suggestions (help-uni-confusable-suggestions
@@ -2155,8 +2179,12 @@ the suggested string to use instead.  See
          (princ (concat "\n  " suggestions) t))))
     (_ nil)))
 
-(add-function :after command-error-function
-              #'help-command-error-confusable-suggestions)
+(when (eq command-error-function #'command-error-default-function)
+  ;; Override the default set in the C code.
+  ;; This is not done using `add-function' so as to loosen the bootstrap
+  ;; dependencies.
+  (setq command-error-function
+        #'help-command-error-confusable-suggestions))
 
 (define-obsolete-function-alias 'help-for-help-internal #'help-for-help "28.1")
 

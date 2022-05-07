@@ -726,7 +726,7 @@ Returns position with the end of that macro."
 	  (point))))))
 
 (defun semantic-lex-spp-get-overlay (&optional point)
-  "Return first overlay which has a 'semantic-spp property."
+  "Return first overlay which has a `semantic-spp' property."
   (let ((overlays (overlays-at (or point (point)))))
     (while (and overlays
 		(null (overlay-get (car overlays) 'semantic-spp)))

@@ -488,7 +488,14 @@ and send the mail again%s."
 Interactively, you will be prompted for SUBJECT and a patch FILE
 name (which will be attached to the mail).  You will end up in a
 Message buffer where you can explain more about the patch."
-  (interactive "sThis patch is about: \nfPatch file name: ")
+  (interactive
+   (let* ((file (read-file-name "Patch file name: "))
+          (guess (with-temp-buffer
+                   (insert-file-contents file)
+                   (mail-fetch-field "Subject"))))
+     (list (read-string (format-prompt "This patch is about" guess)
+                        nil nil guess)
+           file)))
   (switch-to-buffer "*Patch Help*")
   (let ((inhibit-read-only t))
     (erase-buffer)

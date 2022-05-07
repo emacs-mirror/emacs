@@ -64,7 +64,7 @@ The expected output from running BODY on the input goes here.
 # -------- NAME: end --------
 
 You can have many of these blocks in one test file.  You can
-chose a NAME for each block, which is passed to the 'should'
+chose a NAME for each block, which is passed to the `should'
 clause for easy identification of the first test case that
 failed (if any).  Text outside these the blocks is ignored by the
 tests, so you can use it to document the test cases if you wish."

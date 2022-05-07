@@ -156,7 +156,7 @@ Names should be as they appear in loaddefs.el.")
   "Set by `cus-test-apropos' to a list of options with :get property.")
 
 (defvar cus-test-vars-with-changed-state nil
-  "Set by `cus-test-apropos' to a list of options with state 'changed.")
+  "Set by `cus-test-apropos' to a list of options with state \\='changed.")
 
 (defvar cus-test-deps-errors nil
   "List of require/load problems found by `cus-test-deps'.")

@@ -983,66 +983,36 @@ simple manner."
 
     (gnus-run-hooks 'gnus-group-menu-hook)))
 
-
 (defvar gnus-group-tool-bar-map nil)
 
-(defun gnus-group-tool-bar-update (&optional symbol value)
-  "Update group buffer toolbar.
-Setter function for custom variables."
-  (when symbol
-    (set-default symbol value))
-  ;; (setq-default gnus-group-tool-bar-map nil)
-  ;; (use-local-map gnus-group-mode-map)
-  (when (gnus-alive-p)
-    (with-current-buffer gnus-group-buffer
-      (gnus-group-make-tool-bar t))))
-
-(defcustom gnus-group-tool-bar (if (eq gmm-tool-bar-style 'gnome)
-				   'gnus-group-tool-bar-gnome
-				 'gnus-group-tool-bar-retro)
-  "Specifies the Gnus group tool bar.
-
-It can be either a list or a symbol referring to a list.  See
-`gmm-tool-bar-from-list' for the format of the list.  The
-default key map is `gnus-group-mode-map'.
-
-Pre-defined symbols include `gnus-group-tool-bar-gnome' and
-`gnus-group-tool-bar-retro'."
-  :type '(choice (const :tag "GNOME style" gnus-group-tool-bar-gnome)
-		 (const :tag "Retro look" gnus-group-tool-bar-retro)
-		 (repeat :tag "User defined list" gmm-tool-bar-item)
-		 (symbol))
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
-  :group 'gnus-group)
-
-(defcustom gnus-group-tool-bar-gnome
+(defcustom gnus-group-tool-bar
   '((gnus-group-post-news "mail/compose")
     ;; Some useful agent icons?  I don't use the agent so agent users should
     ;; suggest useful commands:
-    (gnus-agent-toggle-plugged "unplugged" t
-			       :help "Gnus is currently unplugged.  Click to work online."
-     			       :visible (and gnus-agent (not gnus-plugged)))
-    (gnus-agent-toggle-plugged "plugged" t
-			       :help "Gnus is currently plugged.  Click to work offline."
-     			       :visible (and gnus-agent gnus-plugged))
-    ;; FIXME: gnus-agent-toggle-plugged (in gnus-agent-group-make-menu-bar)
-    ;; should have a better help text.
-    (gnus-group-send-queue "mail/outbox" t
-			   :visible (and gnus-agent gnus-plugged)
-			   :help "Send articles from the queue group")
-    (gnus-group-get-new-news "mail/inbox" nil
-			     :visible (or (not gnus-agent)
-					  gnus-plugged))
-    ;; FIXME: gnus-*-read-group should have a better help text.
-    (gnus-topic-read-group "open" nil
-			   :visible (and (boundp 'gnus-topic-mode)
-					 gnus-topic-mode))
-    (gnus-group-read-group "open" nil
-			   :visible (not (and (boundp 'gnus-topic-mode)
-					      gnus-topic-mode)))
-    ;; (gnus-group-find-new-groups "???" nil)
+    (gnus-agent-toggle-plugged
+     "unplugged" t
+     :help "Gnus is currently unplugged.  Click to work online."
+     :visible (and gnus-agent (not gnus-plugged)))
+    (gnus-agent-toggle-plugged
+     "plugged" t
+     :help "Gnus is currently plugged.  Click to work offline."
+     :visible (and gnus-agent gnus-plugged))
+    (gnus-group-send-queue
+     "mail/outbox" t
+     :visible (and gnus-agent gnus-plugged)
+     :help "Send articles from the queue group")
+    (gnus-group-get-new-news
+     "mail/inbox" nil
+     :visible (or (not gnus-agent)
+		  gnus-plugged))
+    (gnus-topic-read-group
+     "open" nil
+     :visible (and (boundp 'gnus-topic-mode)
+		   gnus-topic-mode))
+    (gnus-group-read-group
+     "open" nil
+     :visible (not (and (boundp 'gnus-topic-mode)
+			gnus-topic-mode)))
     (gnus-group-save-newsrc "save")
     (gnus-group-describe-group "describe")
     (gnus-group-toggle-subscription-at-point "gnus/toggle-subscription")
@@ -1051,44 +1021,22 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
     (gnus-group-exit "exit")
     (gmm-customize-mode "preferences" t :help "Edit mode preferences")
     (gnus-info-find-node "help"))
-  "List of functions for the group tool bar (GNOME style).
+  "Specifies the Gnus group tool bar.
 
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
+It can be either a list or a symbol referring to a list.  See
+`gmm-tool-bar-from-list' for the format of the list.  The
+default key map is `gnus-group-mode-map'."
+  :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
+		 (symbol))
+  :version "29.1"
   :group 'gnus-group)
 
-(defcustom gnus-group-tool-bar-retro
-  '((gnus-group-get-new-news "gnus/get-news")
-    (gnus-group-get-new-news-this-group "gnus/gnntg")
-    (gnus-group-catchup-current "gnus/catchup")
-    (gnus-group-describe-group "gnus/describe-group")
-    (gnus-group-subscribe "gnus/subscribe" t
-			  :help "Subscribe to the current group")
-    (gnus-group-unsubscribe "gnus/unsubscribe" t
-			    :help "Unsubscribe from the current group")
-    (gnus-group-exit "gnus/exit-gnus" gnus-group-mode-map))
-  "List of functions for the group tool bar (retro look).
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
-  :group 'gnus-group)
-
-(defcustom gnus-group-tool-bar-zap-list t
-  "List of icon items from the global tool bar.
-These items are not displayed in the Gnus group mode tool bar.
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type 'gmm-tool-bar-zap-list
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
-  :group 'gnus-group)
+(defvar gnus-group-tool-bar-gnome nil)
+(make-obsolete-variable 'gnus-group-tool-bar-gnome nil "29.1")
+(defvar gnus-group-tool-bar-retro nil)
+(make-obsolete-variable 'gnus-group-tool-bar-retro nil "29.1")
+(defvar gnus-group-tool-bar-zap-list t)
+(make-obsolete-variable 'gnus-group-tool-bar-zap-list nil "29.1")
 
 (defvar image-load-path)
 (defvar tool-bar-map)

@@ -796,6 +796,15 @@ offer a smarter default choice of shell command."
 			 'read-shell-command prompt nil nil))))
 
 ;;;###autoload
+(defcustom dired-confirm-shell-command t
+  "Whether to prompt for confirmation for ‘dired-do-shell-command’.
+If non-nil, prompt for confirmation if the command contains potentially
+dangerous characters.  If nil, never prompt for confirmation."
+  :type 'boolean
+  :group 'dired
+  :version "29.1")
+
+;;;###autoload
 (defun dired-do-async-shell-command (command &optional arg file-list)
   "Run a shell command COMMAND on the marked files asynchronously.
 
@@ -873,7 +882,9 @@ can be produced by `dired-get-marked-files', for example.
 
 `dired-guess-shell-alist-default' and
 `dired-guess-shell-alist-user' are consulted when the user is
-prompted for the shell command to use interactively."
+prompted for the shell command to use interactively.
+
+Also see the `dired-confirm-shell-command' variable."
   ;; Functions dired-run-shell-command and dired-shell-stuff-it do the
   ;; actual work and can be redefined for customization.
   (interactive
@@ -891,6 +902,8 @@ prompted for the shell command to use interactively."
          (ok (cond
               ((not (or on-each no-subst))
                (error "You can not combine `*' and `?' substitution marks"))
+              ((not dired-confirm-shell-command)
+               t)
               ((setq confirmations (dired--need-confirm-positions command "*"))
                (dired--no-subst-confirm confirmations command))
               ((setq confirmations (dired--need-confirm-positions command "?"))
@@ -1251,7 +1264,8 @@ and `dired-compress-files-alist'."
            (when (zerop
                   (dired-shell-command
                    (format-spec (cdr rule)
-                                `((?o . ,(shell-quote-argument out-file))
+                                `((?o . ,(shell-quote-argument
+                                          (file-local-name out-file)))
                                   (?i . ,(mapconcat
                                           (lambda (in-file)
                                             (shell-quote-argument
@@ -1883,22 +1897,23 @@ rename them using `vc-rename-file'."
   "Rename FILE to NEWNAME.
 Signal a `file-already-exists' error if a file NEWNAME already exists
 unless OK-IF-ALREADY-EXISTS is non-nil."
-  (dired-handle-overwrite newname)
-  (dired-maybe-create-dirs (file-name-directory newname))
-  (if (and dired-vc-rename-file
-           (vc-backend file)
-           (ignore-errors (vc-responsible-backend newname)))
-      (vc-rename-file file newname)
-    ;; error is caught in -create-files
-    (rename-file file newname ok-if-already-exists))
-  ;; Silently rename the visited file of any buffer visiting this file.
-  (and (get-file-buffer file)
-       (with-current-buffer (get-file-buffer file)
-	 (set-visited-file-name newname nil t)))
-  (dired-remove-file file)
-  ;; See if it's an inserted subdir, and rename that, too.
-  (when (file-directory-p file)
-    (dired-rename-subdir file newname)))
+  (let ((file-is-dir-p (file-directory-p file)))
+    (dired-handle-overwrite newname)
+    (dired-maybe-create-dirs (file-name-directory newname))
+    (if (and dired-vc-rename-file
+             (vc-backend file)
+             (ignore-errors (vc-responsible-backend newname)))
+        (vc-rename-file file newname)
+      ;; error is caught in -create-files
+      (rename-file file newname ok-if-already-exists))
+    ;; Silently rename the visited file of any buffer visiting this file.
+    (and (get-file-buffer file)
+         (with-current-buffer (get-file-buffer file)
+	   (set-visited-file-name newname nil t)))
+    (dired-remove-file file)
+    ;; See if it's an inserted subdir, and rename that, too.
+    (when file-is-dir-p
+      (dired-rename-subdir file newname))))
 
 (defun dired-rename-subdir (from-dir to-dir)
   (setq from-dir (file-name-as-directory from-dir)
@@ -1911,7 +1926,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while blist
       (with-current-buffer (car blist)
 	(if (and buffer-file-name
-		 (file-in-directory-p buffer-file-name expanded-from-dir))
+                 (dired-in-this-tree-p buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
 		  (to-file (replace-regexp-in-string
 			    (concat "^" (regexp-quote from-dir))
@@ -1930,7 +1945,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while alist
       (setq elt (car alist)
 	    alist (cdr alist))
-      (if (file-in-directory-p (car elt) expanded-dir)
+      (if (dired-in-this-tree-p (car elt) expanded-dir)
 	  ;; ELT's subdir is affected by the rename
 	  (dired-rename-subdir-2 elt dir to)))
     (if (equal dir default-directory)
@@ -2454,6 +2469,10 @@ neighboring Dired window).
 If `dired-copy-preserve-time' is non-nil, this command preserves
 the modification time of each old file in the copy, similar to
 the \"-p\" option for the \"cp\" shell command.
+
+The `dired-keep-marker-copy' user option controls how this
+command handles file marking.  The default is to mark all new
+copies of files with a \"C\" mark.
 
 This command copies symbolic links by creating new ones,
 similar to the \"-d\" option for the \"cp\" shell command.
@@ -3142,16 +3161,16 @@ a file name.  Otherwise, it searches the whole buffer without restrictions."
 
 (define-minor-mode dired-isearch-filenames-mode
   "Toggle file names searching on or off.
-When on, Isearch skips matches outside file names using the predicate
-`dired-isearch-filter-filenames' that matches only at file names.
-When off, it uses the original predicate."
+When on, Isearch skips matches outside file names using the search function
+`dired-isearch-search-filenames' that matches only at file names.
+When off, it uses the default search function."
   :lighter nil
   (if dired-isearch-filenames-mode
-      (add-function :before-while (local 'isearch-filter-predicate)
-                    #'dired-isearch-filter-filenames
+      (add-function :around (local 'isearch-search-fun-function)
+                    #'dired-isearch-search-filenames
                     '((isearch-message-prefix . "filename ")))
-    (remove-function (local 'isearch-filter-predicate)
-                     #'dired-isearch-filter-filenames))
+    (remove-function (local 'isearch-search-fun-function)
+                     #'dired-isearch-search-filenames))
   (when isearch-mode
     (setq isearch-success t isearch-adjusted t)
     (isearch-update)))
@@ -3175,12 +3194,46 @@ Intended to be added to `isearch-mode-hook'."
   (unless isearch-suspended
     (kill-local-variable 'dired-isearch-filenames)))
 
-(defun dired-isearch-filter-filenames (beg end)
-  "Test whether some part of the current search match is inside a file name.
-This function returns non-nil if some part of the text between BEG and END
-is part of a file name (i.e., has the text property `dired-filename')."
-  (text-property-not-all (min beg end) (max beg end)
-			 'dired-filename nil))
+(defun dired-isearch-search-filenames (orig-fun)
+  "Return the function that searches inside file names.
+The returned function narrows the search to match the search string
+only as part of a file name enclosed by the text property `dired-filename'.
+It's intended to override the default search function."
+  (let ((search-fun (funcall orig-fun))
+        (property 'dired-filename))
+    (lambda (string &optional bound noerror count)
+      (let* ((old (point))
+             ;; Check if point is already on the property.
+             (beg (when (get-text-property
+                         (if isearch-forward old (max (1- old) (point-min)))
+                         property)
+                    old))
+             end found)
+        ;; Otherwise, try to search for the next property.
+        (unless beg
+          (setq beg (if isearch-forward
+                        (next-single-property-change old property)
+                      (previous-single-property-change old property)))
+          (when beg (goto-char beg)))
+        ;; Non-nil `beg' means there are more properties.
+        (while (and beg (not found))
+          ;; Search for the end of the current property.
+          (setq end (if isearch-forward
+                        (next-single-property-change beg property)
+                      (previous-single-property-change beg property)))
+          (setq found (funcall
+                       search-fun string (if bound (if isearch-forward
+                                                       (min bound end)
+                                                     (max bound end))
+                                           end)
+                       noerror count))
+          (unless found
+            (setq beg (if isearch-forward
+                          (next-single-property-change end property)
+                        (previous-single-property-change end property)))
+            (when beg (goto-char beg))))
+        (unless found (goto-char old))
+        found))))
 
 ;;;###autoload
 (defun dired-isearch-filenames ()
@@ -3233,9 +3286,14 @@ To continue searching for next match, use command \\[fileloop-continue]."
 ;;;###autoload
 (defun dired-do-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
-If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue]."
+If you exit the query-replace loop (\\[keyboard-quit], RET or q), you can
+resume the query replace with the command \\[tags-loop-continue]."
   (interactive
    (let ((common
 	  (query-replace-read-args
@@ -3287,7 +3345,7 @@ REGEXP should use constructs supported by your local `grep' command."
                                   (project--files-in-directory mark ignores "*")
                                   files))
                    (push mark files)))
-               (nreverse marks))
+               (reverse marks))
               (message "Searching...")
               (setq xrefs
                     (xref-matches-in-files regexp files))
@@ -3301,6 +3359,11 @@ REGEXP should use constructs supported by your local `grep' command."
 (defun dired-do-find-regexp-and-replace (from to)
   "Replace matches of FROM with TO, in all marked files.
 
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+
 If no files are marked, use the file under point.
 
 For any marked directory, matches in all of its files are replaced,
@@ -3308,7 +3371,10 @@ recursively.  However, files matching `grep-find-ignored-files'
 and subdirectories matching `grep-find-ignored-directories' are skipped
 in the marked directories.
 
-REGEXP should use constructs supported by your local `grep' command."
+REGEXP should use constructs supported by your local `grep' command.
+
+Also see `query-replace' for user options that affect how this
+function works."
   (interactive
    (let ((common
           (query-replace-read-args

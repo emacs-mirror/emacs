@@ -898,7 +898,7 @@ Regular objects have whole numbers lower than 255.
 Objects that cannot be taken but might move and are
 described during room description are negative.
 Stuff that is described and might change are 255, and are
-handled specially by 'dun-describe-room.")
+handled specially by `dun-describe-room'.")
 
 (defconst dun-room-silents (list nil
         (list obj-tree obj-coconut)            ;; dead-end

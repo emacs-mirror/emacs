@@ -234,8 +234,8 @@ Higher values result in larger images."
 
 (defvar doc-view-doc-type nil
   "The type of document in the current buffer.
-Can be `dvi', `pdf', `ps', `djvu', `odf', 'epub', `cbz', `fb2',
-`'xps' or `oxps'.")
+Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
+`xps' or `oxps'.")
 
 ;; FIXME: The doc-view-current-* definitions below are macros because they
 ;; map to accessors which we want to use via `setf' as well!
@@ -632,17 +632,16 @@ Typically \"page-%s.png\".")
 	   (propertize
 	    (format "Page %d of %d." page len) 'face 'bold)
 	   ;; Tell user if converting isn't finished yet
-	   (if doc-view--current-converter-processes
-	       " (still converting...)\n"
-	     "\n")
-	   ;; Display context infos if this page matches the last search
-	   (when (and doc-view--current-search-matches
-		      (assq page doc-view--current-search-matches))
-	     (concat (propertize "Search matches:\n" 'face 'bold)
+           (and doc-view--current-converter-processes
+                " (still converting...)")
+           ;; Display context infos if this page matches the last search
+           (when (and doc-view--current-search-matches
+                      (assq page doc-view--current-search-matches))
+             (concat "\n" (propertize "Search matches:" 'face 'bold)
 		     (let ((contexts ""))
 		       (dolist (m (cdr (assq page
 					     doc-view--current-search-matches)))
-			 (setq contexts (concat contexts "  - \"" m "\"\n")))
+			 (setq contexts (concat contexts "\n  - \"" m "\"")))
 		       contexts)))))
     ;; Update the buffer
     ;; We used to find the file name from doc-view--current-files but
@@ -1947,8 +1946,7 @@ If BACKWARD is non-nil, jump to the previous match."
             ;; zip-archives, so that this same association is used for
             ;; cbz files. This is fine, as cbz files should be handled
             ;; like epub anyway.
-            ((looking-at "PK") '(epub))
-            ))))
+            ((looking-at "PK") '(epub odf))))))
     (setq-local
      doc-view-doc-type
      (car (or (nreverse (seq-intersection name-types content-types #'eq))

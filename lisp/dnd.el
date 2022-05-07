@@ -42,8 +42,7 @@
   `((,(purecopy "^file:///")  . dnd-open-local-file)	; XDND format.
     (,(purecopy "^file://")   . dnd-open-file)		; URL with host
     (,(purecopy "^file:")     . dnd-open-local-file)	; Old KDE, Motif, Sun
-    (,(purecopy "^\\(https?\\|ftp\\|file\\|nfs\\)://") . dnd-open-file)
-   )
+    (,(purecopy "^\\(https?\\|ftp\\|file\\|nfs\\)://") . dnd-open-file))
 
   "The functions to call for different protocols when a drop is made.
 This variable is used by `dnd-handle-one-url' and `dnd-handle-file-name'.
@@ -57,7 +56,8 @@ If no match is found, the URL is inserted as text by calling `dnd-insert-text'.
 The function shall return the action done (move, copy, link or private)
 if some action was made, or nil if the URL is ignored."
   :version "22.1"
-  :type '(repeat (cons (regexp) (function))))
+  :type '(repeat (cons (regexp) (function)))
+  :group 'dnd)
 
 
 (defcustom dnd-open-remote-file-function
@@ -73,16 +73,67 @@ Predefined functions are `dnd-open-local-file' and `dnd-open-remote-url'.
 is the default on MS-Windows.  `dnd-open-remote-url' uses `url-handler-mode'
 and is the default except for MS-Windows."
   :version "22.1"
-  :type 'function)
+  :type 'function
+  :group 'dnd)
 
 
 (defcustom dnd-open-file-other-window nil
   "If non-nil, always use `find-file-other-window' to open dropped files."
   :version "22.1"
-  :type 'boolean)
+  :type 'boolean
+  :group 'dnd)
 
+(defcustom dnd-scroll-margin nil
+  "The scroll margin inside a window underneath the cursor during drag-and-drop.
+If the mouse moves this many lines close to the top or bottom of
+a window while dragging text, then that window will be scrolled
+down and up respectively."
+  :type '(choice (const :tag "Don't scroll during mouse movement")
+                 (integer :tag "This many lines from window top or bottom"))
+  :version "29.1"
+  :group 'dnd)
+
+(defcustom dnd-indicate-insertion-point nil
+  "Whether or not point should follow the position of the mouse.
+If non-nil, the point of the window underneath the mouse will be
+adjusted to reflect where any text will be inserted upon drop
+when the mouse moves while receiving a drop from another
+program."
+  :type 'boolean
+  :version "29.1"
+  :group 'dnd)
 
 ;; Functions
+
+(defun dnd-handle-movement (posn)
+  "Handle mouse movement to POSN when receiving a drop from another program."
+  (when (windowp (posn-window posn))
+    (with-selected-window (posn-window posn)
+      (when dnd-scroll-margin
+        (ignore-errors
+          (let* ((row (cdr (posn-col-row posn)))
+                 (window (when (windowp (posn-window posn))
+                           (posn-window posn)))
+                 (text-height (window-text-height window))
+                 ;; Make sure it's possible to scroll both up
+                 ;; and down if the margin is too large for the
+                 ;; window.
+                 (margin (min (/ text-height 3) dnd-scroll-margin)))
+            ;; At 2 lines, the window becomes too small for any
+            ;; meaningful scrolling.
+            (unless (<= text-height 2)
+              (cond
+               ;; Inside the bottom scroll margin, scroll up.
+               ((> row (- text-height margin))
+                (with-selected-window window
+                  (scroll-up 1)))
+               ;; Inside the top scroll margin, scroll down.
+               ((< row margin)
+                (with-selected-window window
+                  (scroll-down 1))))))))
+      (when dnd-indicate-insertion-point
+        (ignore-errors
+          (goto-char (posn-point posn)))))))
 
 (defun dnd-handle-one-url (window action url)
   "Handle one dropped url by calling the appropriate handler.

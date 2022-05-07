@@ -1846,7 +1846,9 @@ to which that point should be aligned, if we were to reindent it.")
                            (move-to-column fc)
                            (syntax-ppss))))
         (while
-            (and (with-demoted-errors "SMIE Error: %S"
+            ;; We silence the error completely since errors are "normal" in
+            ;; some cases and an error message would be annoying (bug#19342).
+            (and (ignore-error scan-error
                    (save-excursion
                      (let ((end (point))
                            (bsf nil)    ;Best-so-far.

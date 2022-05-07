@@ -18078,6 +18078,17 @@ parameter of @code{nnselect-rescan} will allow automatic refreshing.
 A refresh can always be invoked manually through
 @code{gnus-group-get-new-news-this-group}.
 
+By default a compressed version of the selection is stored (for
+permanent groups) along with other group information in the newsrc.
+For cases where this might be undesirable (for example if the
+selection is a very long list that doesn't compress well) a
+non-@code{nil} group parameter of @code{nnselect-always-regenerate}
+will prevent the list from being stored, and instead regenerate the
+list each time it is needed.  If more flexibility is desired,
+@code{nnselect-get-artlist-override-function} and
+@code{nnselect-store-artlist-override-function} may be set to
+functions that get and store the list of articles.
+
 Gnus includes engines for searching a variety of backends.  While the
 details of each search engine vary, the result of a search is always a
 vector of the sort used by the nnselect method, and the results of
@@ -21640,6 +21651,9 @@ are:
 
 @item
 @code{gnus-search-namazu}
+
+@item
+@code{gnus-search-mu}
 @end itemize
 
 If you need more granularity, you can specify a search engine in the
@@ -21654,7 +21668,7 @@ buffer.  That might look like:
      (config-file "/home/user/.mail/.notmuch_config")))
 @end example
 
-Search engines like notmuch, namazu and mairix are similar in
+Search engines like notmuch, namazu, mairix and mu are similar in
 behavior: they use a local executable to create an index of a message
 store, and run command line search queries against those messages,
 and return a list of absolute file names of matching messages.
@@ -21693,8 +21707,8 @@ The customization options are formed on the pattern
 non-standard notmuch program, you might set
 @code{gnus-search-notmuch-program} to @file{/usr/local/bin/notmuch}.
 This would apply to all notmuch engines.  The engines that use these
-options are: ``notmuch'', ``namazu'', ``mairix'', ``swish-e'' and
-``swish++''.
+options are: ``notmuch'', ``namazu'', ``mairix'', ``mu'', ``swish-e''
+and ``swish++''.
 
 Alternately, the options can be set directly on your Gnus server
 definitions, for instance, in the @code{nnmaildir} example above.
@@ -24154,15 +24168,12 @@ If you want to see them in the Cc and To fields, set:
 @item gnus-group-tool-bar
 @vindex gnus-group-tool-bar
 Specifies the tool bar in the group buffer.  It can be either a list
-or a symbol referring to a list.  Pre-defined symbols include
-@code{gnus-group-tool-bar-gnome} and @code{gnus-group-tool-bar-retro}.
+or a symbol referring to a list.
 
 @item gnus-summary-tool-bar
 @vindex gnus-summary-tool-bar
 Specifies the tool bar in the summary buffer.  It can be either a list
-or a symbol referring to a list.  Pre-defined symbols include
-@code{gnus-summary-tool-bar-gnome} and
-@code{gnus-summary-tool-bar-retro}.
+or a symbol referring to a list.
 
 @end table
 

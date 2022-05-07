@@ -20,9 +20,27 @@ commands (@code{help-for-help}).  You can scroll the list with
 @key{SPC} and @key{DEL}, then type the help command you want.  To
 cancel, type @kbd{C-g}.
 
+@cindex help buffer
   Many help commands display their information in a special @dfn{help
 buffer}.  In this buffer, you can type @key{SPC} and @key{DEL} to
 scroll and type @key{RET} to follow hyperlinks.  @xref{Help Mode}.
+
+@vindex help-window-select
+  By default, help commands display the help buffer in a separate
+window without selecting that window.  The variable
+@code{help-window-select} controls this: its default value is
+@code{nil}; if it's customized to the value @code{t}, the help window
+is unconditionally selected by help commands, and if its value is
+@code{other}, the help window is selected only if there are more than
+two windows on the selected frame.
+
+@vindex help-window-keep-selected
+  Conversely, many commands in the @samp{*Help*} buffer will pop up a
+new window to display the results.  For instance, clicking on the link
+to show the source code, or using the @key{i} command to display the
+manual entry, will (by default) pop up a new window.  If
+@code{help-window-keep-selected} is changed to non-@code{nil}, the
+window displaying the @samp{*Help*} buffer will be reused instead.
 
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
@@ -182,7 +200,10 @@ programming language you are editing (@code{info-lookup-symbol}).
 @item C-h .
 Display the help message for a special text area, if point is in one
 (@code{display-local-help}).  (These include, for example, links in
-@file{*Help*} buffers.)  @xref{Help Echo}.
+@file{*Help*} buffers.)  @xref{Help Echo}.  If you invoke
+this command with a prefix argument, @kbd{C-u C-h .}, and point is on
+a button or a widget, this command will pop a new buffer that
+describes that button/widget.
 @end table
 
 @node Key Help
@@ -332,9 +353,9 @@ are included varies depending on the command used.
 @cindex apropos
 
   The @dfn{apropos} commands answer questions like, ``What are the
-commands for working with files?''  More precisely, you specify an
-@dfn{apropos pattern}, which means either a word, a list of words, or
-a regular expression.
+commands for working with files?''  More precisely, you specify your
+query as an @dfn{apropos pattern}, which is either a word, a list of
+words, or a regular expression.
 
   Each of the following apropos commands reads an apropos pattern in
 the minibuffer, searches for items that match the pattern, and
@@ -392,6 +413,12 @@ of all command names that contain @samp{file}, including
 comes with a brief description and a list of keys you can currently
 invoke it with.  In our example, it would say that you can invoke
 @code{find-file} by typing @kbd{C-x C-f}.
+
+@vindex help-window-select@r{, and apropos commands}
+  By default, the window showing the apropos buffer with the results
+of the query is not selected, but you can cause it to be selected by
+customizing the variable @code{help-window-select} to any
+non-@code{nil} value.
 
   For more information about a function definition, variable or symbol
 property listed in an apropos buffer, you can click on it with

@@ -1761,12 +1761,7 @@ nil."
 		 (lambda (bufname)
 		   (let ((buf (if (consp bufname)
 				  (cdr bufname) (get-buffer bufname))))
-		     (when buf
-		       (erc--buffer-p buf (lambda () t) proc)
-		       (with-current-buffer buf
-			 (and (derived-mode-p 'erc-mode)
-			      (or (null proc)
-				  (eq proc erc-server-process))))))))))
+                     (and buf (erc--buffer-p buf (lambda () t) proc)))))))
 (defun erc-switch-to-buffer (&optional arg)
   "Prompt for an ERC buffer to switch to.
 When invoked with prefix argument, use all ERC buffers.  Without
@@ -2274,7 +2269,7 @@ Example usage:
 
     (erc-tls :server \"irc.libera.chat\" :port 6697
              :client-certificate
-             '(\"/home/bandali/my-cert.key\"
+             \\='(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))"
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))

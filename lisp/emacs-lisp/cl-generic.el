@@ -144,13 +144,20 @@ SPECIALIZERS-FUNCTION takes as first argument a tag value TAG
 (cl-defstruct (cl--generic-method
                (:constructor nil)
                (:constructor cl--generic-make-method
-                (specializers qualifiers uses-cnm function))
+                (specializers qualifiers call-con function))
                (:predicate nil))
   (specializers nil :read-only t :type list)
   (qualifiers   nil :read-only t :type (list-of atom))
-  ;; USES-CNM is a boolean indicating if FUNCTION expects an extra argument
-  ;; holding the next-method.
-  (uses-cnm     nil :read-only t :type boolean)
+  ;; CALL-CON indicates the calling convention expected by FUNCTION:
+  ;; - nil: FUNCTION is just a normal function with no extra arguments for
+  ;;   `call-next-method' or `next-method-p' (which it hence can't use).
+  ;; - `curried': FUNCTION is a curried function that first takes the
+  ;;   "next combined method" and return the resulting combined method.
+  ;;   It can distinguish `next-method-p' by checking if that next method
+  ;;   is `cl--generic-isnot-nnm-p'.
+  ;; - t: FUNCTION takes the `call-next-method' function as its first (extra)
+  ;;      argument.
+  (call-con     nil :read-only t :type symbol)
   (function     nil :read-only t :type function))
 
 (cl-defstruct (cl--generic
@@ -262,6 +269,16 @@ DEFAULT-BODY, if present, is used as the body of a default method.
          (declarations nil)
          (methods ())
          (options ())
+         (warnings
+          (let ((nonsymargs
+                 (delq nil (mapcar (lambda (arg) (unless (symbolp arg) arg))
+                                   args))))
+            (when nonsymargs
+              (list
+               (macroexp-warn-and-return
+                (format "Non-symbol arguments to cl-defgeneric: %s"
+                        (mapconcat #'prin1-to-string nonsymargs ""))
+                nil nil nil nonsymargs)))))
          next-head)
     (while (progn (setq next-head (car-safe (car options-and-methods)))
                   (or (keywordp next-head)
@@ -284,14 +301,17 @@ DEFAULT-BODY, if present, is used as the body of a default method.
       (setq name (gv-setter (cadr name))))
     `(prog1
          (progn
+           ,@warnings
            (defalias ',name
              (cl-generic-define ',name ',args ',(nreverse options))
              ,(if (consp doc)           ;An expression rather than a constant.
                   `(help-add-fundoc-usage ,doc ',args)
                 (help-add-fundoc-usage doc args)))
            :autoload-end
-           ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
-                     (nreverse methods)))
+           ,(when methods
+              `(with-suppressed-warnings ((obsolete ,name))
+                 ,@(mapcar (lambda (method) `(cl-defmethod ,name ,@method))
+                           (nreverse methods)))))
        ,@(mapcar (lambda (declaration)
                    (let ((f (cdr (assq (car declaration)
                                        defun-declarations-alist))))
@@ -381,14 +401,16 @@ the specializer used will be the one returned by BODY."
                                    . ,(lambda () spec-args))
                                  macroexpand-all-environment)))
       (require 'cl-lib)        ;Needed to expand `cl-flet' and `cl-function'.
-      (when (assq 'interactive (cadr fun))
+      (when (assq 'interactive body)
         (message "Interactive forms not supported in generic functions: %S"
-                 (assq 'interactive (cadr fun))))
+                 (assq 'interactive body)))
       ;; First macroexpand away the cl-function stuff (e.g. &key and
       ;; destructuring args, `declare' and whatnot).
       (pcase (macroexpand fun macroenv)
         (`#'(lambda ,args . ,body)
          (let* ((parsed-body (macroexp-parse-body body))
+                (nm (make-symbol "cl--nm"))
+                (arglist (make-symbol "cl--args"))
                 (cnm (make-symbol "cl--cnm"))
                 (nmp (make-symbol "cl--nmp"))
                 (nbody (macroexpand-all
@@ -401,15 +423,49 @@ the specializer used will be the one returned by BODY."
                 ;; is used.
                 ;; FIXME: Also, optimize the case where call-next-method is
                 ;; only called with explicit arguments.
-                (uses-cnm (macroexp--fgrep `((,cnm) (,nmp)) nbody)))
-           (cons (not (not uses-cnm))
-                 `#'(lambda (,@(if uses-cnm (list cnm)) ,@args)
-                      ,@(car parsed-body)
-                      ,(if (not (assq nmp uses-cnm))
-                           nbody
-                         `(let ((,nmp (lambda ()
-                                        (cl--generic-isnot-nnm-p ,cnm))))
-                            ,nbody))))))
+                (uses-cnm (macroexp--fgrep `((,cnm) (,nmp)) nbody))
+                (λ-lift (mapcar #'car uses-cnm)))
+           (if (not uses-cnm)
+               (cons nil
+                     `#'(lambda (,@args)
+                          ,@(car parsed-body)
+                          ,nbody))
+             (cons 'curried
+                   `#'(lambda (,nm) ;Called when constructing the effective method.
+                        (let ((,nmp (if (cl--generic-isnot-nnm-p ,nm)
+                                        #'always #'ignore)))
+                          ;; This `(λ (&rest x) .. (apply (λ (args) ..) x))'
+                          ;; dance is needed because we need to get the original
+                          ;; args as a list when `cl-call-next-method' is
+                          ;; called with no arguments.  It's important to
+                          ;; capture it as a list since it needs to distinguish
+                          ;; the nil case from the absent case in optional
+                          ;; arguments and it needs to properly remember the
+                          ;; original value if `nbody' mutates some of its
+                          ;; formal args.
+                          ;; FIXME: This `(λ (&rest ,arglist)' could be skipped
+                          ;; when we know `cnm' is always called with args, and
+                          ;; it could be implemented more efficiently if `cnm'
+                          ;; is always called directly and there are no
+                          ;; `&optional' args.
+                          (lambda (&rest ,arglist)
+                            ,@(let* ((prebody (car parsed-body))
+                                     (ds (if (stringp (car prebody))
+                                             prebody
+                                           (setq prebody (cons nil prebody))))
+                                     (usage (help-split-fundoc (car ds) nil)))
+                                (unless usage
+                                  (setcar ds (help-add-fundoc-usage (car ds)
+                                                                    args)))
+                                prebody)
+                            (let ((,cnm (lambda (&rest args)
+                                          (apply ,nm (or args ,arglist)))))
+                              ;; This `apply+lambda' basically parses
+                              ;; `arglist' according to `args'.
+                              ;; A destructuring-bind would do the trick
+                              ;; as well when/if it's more efficient.
+                              (apply (lambda (,@λ-lift ,@args) ,nbody)
+                                     ,@λ-lift ,arglist)))))))))
         (f (error "Unexpected macroexpansion result: %S" f))))))
 
 (put 'cl-defmethod 'function-documentation
@@ -498,8 +554,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                     cl--generic-edebug-make-name nil]
              lambda-doc                 ; documentation string
              def-body)))                ; part to be debugged
-  (let ((qualifiers nil)
-        (orig-name name))
+  (let ((qualifiers nil))
     (while (cl-generic--method-qualifier-p args)
       (push args qualifiers)
       (setq args (pop body)))
@@ -507,23 +562,18 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (require 'gv)
       (declare-function gv-setter "gv" (name))
       (setq name (gv-setter (cadr name))))
-    (pcase-let* ((`(,uses-cnm . ,fun) (cl--generic-lambda args body)))
+    (pcase-let* ((`(,call-con . ,fun) (cl--generic-lambda args body)))
       `(progn
-         ,(and (get name 'byte-obsolete-info)
-               (or (not (fboundp 'byte-compile-warning-enabled-p))
-                   (byte-compile-warning-enabled-p 'obsolete name))
-               (let* ((obsolete (get name 'byte-obsolete-info)))
-                 (macroexp-warn-and-return
-                  (macroexp--obsolete-warning name obsolete "generic function")
-                  nil nil nil orig-name)))
          ;; You could argue that `defmethod' modifies rather than defines the
          ;; function, so warnings like "not known to be defined" are fair game.
          ;; But in practice, it's common to use `cl-defmethod'
          ;; without a previous `cl-defgeneric'.
          ;; The ",'" is a no-op that pacifies check-declare.
          (,'declare-function ,name "")
-         (cl-generic-define-method ',name ',(nreverse qualifiers) ',args
-                                   ,uses-cnm ,fun)))))
+         ;; We use #' to quote `name' so as to trigger an
+         ;; obsolescence warning when applicable.
+         (cl-generic-define-method #',name ',(nreverse qualifiers) ',args
+                                   ',call-con ,fun)))))
 
 (defun cl--generic-member-method (specializers qualifiers methods)
   (while
@@ -541,7 +591,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
   `(,name ,qualifiers . ,specializers))
 
 ;;;###autoload
-(defun cl-generic-define-method (name qualifiers args uses-cnm function)
+(defun cl-generic-define-method (name qualifiers args call-con function)
   (pcase-let*
       ((generic (cl-generic-ensure-function name))
        (`(,spec-args . ,_) (cl--generic-split-args args))
@@ -550,7 +600,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                                    spec-arg (cdr spec-arg)))
                              spec-args))
        (method (cl--generic-make-method
-                specializers qualifiers uses-cnm function))
+                specializers qualifiers call-con function))
        (mt (cl--generic-method-table generic))
        (me (cl--generic-member-method specializers qualifiers mt))
        (dispatches (cl--generic-dispatches generic))
@@ -603,6 +653,14 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
 
 (defvar cl--generic-dispatchers (make-hash-table :test #'equal))
 
+(defvar cl--generic-compiler
+  ;; Don't byte-compile the dispatchers if cl-generic itself is not
+  ;; compiled.  Otherwise the byte-compiler and all the code on
+  ;; which it depends needs to be usable before cl-generic is loaded,
+  ;; which imposes a significant burden on the bootstrap.
+  (if (consp (lambda (x) (+ x 1)))
+      (lambda (exp) (eval exp t)) #'byte-compile))
+
 (defun cl--generic-get-dispatcher (dispatch)
   (with-memoization
       ;; We need `copy-sequence` here because this `dispatch' object might be
@@ -647,7 +705,8 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       ;; FIXME: For generic functions with a single method (or with 2 methods,
       ;; one of which always matches), using a tagcode + hash-table is
       ;; overkill: better just use a `cl-typep' test.
-      (byte-compile
+      (funcall
+       cl--generic-compiler
        `(lambda (generic dispatches-left methods)
           ;; FIXME: We should find a way to expand `with-memoize' once
           ;; and forall so we don't need `subr-x' when we get here.
@@ -718,29 +777,38 @@ for all those different tags in the method-cache.")
                   (list (cl--generic-name generic)))
         f))))
 
-(defun cl--generic-no-next-method-function (generic method)
-  (lambda (&rest args)
-    (apply #'cl-no-next-method generic method args)))
+(oclosure-define (cl--generic-nnm)
+  "Special type for `call-next-method's that just call `no-next-method'.")
 
 (defun cl-generic-call-method (generic method &optional fun)
   "Return a function that calls METHOD.
 FUN is the function that should be called when METHOD calls
 `call-next-method'."
-  (if (not (cl--generic-method-uses-cnm method))
-      (cl--generic-method-function method)
-    (let ((met-fun (cl--generic-method-function method))
-          (next (or fun (cl--generic-no-next-method-function
-                         generic method))))
-      (lambda (&rest args)
-        (apply met-fun
-               ;; FIXME: This sucks: passing just `next' would
-               ;; be a lot more efficient than the lambda+apply
-               ;; quasi-η, but we need this to implement the
-               ;; "if call-next-method is called with no
-               ;; arguments, then use the previous arguments".
-               (lambda (&rest cnm-args)
-                 (apply next (or cnm-args args)))
-               args)))))
+  (let ((met-fun (cl--generic-method-function method)))
+    (pcase (cl--generic-method-call-con method)
+      ('nil met-fun)
+      ('curried
+       (funcall met-fun (or fun
+                            (oclosure-lambda (cl--generic-nnm) (&rest args)
+                              (apply #'cl-no-next-method generic method
+                                     args)))))
+      ;; FIXME: backward compatibility with old convention for `.elc' files
+      ;; compiled before the `curried' convention.
+      (_
+       (lambda (&rest args)
+         (apply met-fun
+                (if fun
+                    ;; FIXME: This sucks: passing just `next' would
+                    ;; be a lot more efficient than the lambda+apply
+                    ;; quasi-η, but we need this to implement the
+                    ;; "if call-next-method is called with no
+                    ;; arguments, then use the previous arguments".
+                    (lambda (&rest cnm-args)
+                      (apply fun (or cnm-args args)))
+                  (oclosure-lambda (cl--generic-nnm) (&rest cnm-args)
+                    (apply #'cl-no-next-method generic method
+                           (or cnm-args args))))
+                args))))))
 
 ;; Standard CLOS name.
 (defalias 'cl-method-qualifiers #'cl--generic-method-qualifiers)
@@ -875,11 +943,20 @@ those methods.")
     (setq arg-or-context `(&context . ,arg-or-context)))
   (unless (fboundp 'cl--generic-get-dispatcher)
     (require 'cl-generic))
-  (let ((fun (cl--generic-get-dispatcher
-              `(,arg-or-context
-                ,@(apply #'append
-                         (mapcar #'cl-generic-generalizers specializers))
-                ,cl--generic-t-generalizer))))
+  (let ((fun
+         ;; Let-bind cl--generic-dispatchers so we *re*compute the function
+         ;; from scratch, since the one in the cache may be non-compiled!
+         (let ((cl--generic-dispatchers (make-hash-table))
+               ;; When compiling `cl-generic' during bootstrap, make sure
+               ;; we prefill with compiled dispatchers even though the loaded
+               ;; `cl-generic' is still interpreted.
+               (cl--generic-compiler
+                (if (featurep 'bytecomp) #'byte-compile cl--generic-compiler)))
+           (cl--generic-get-dispatcher
+            `(,arg-or-context
+              ,@(apply #'append
+                       (mapcar #'cl-generic-generalizers specializers))
+              ,cl--generic-t-generalizer)))))
     ;; Recompute dispatch at run-time, since the generalizers may be slightly
     ;; different (e.g. byte-compiled rather than interpreted).
     ;; FIXME: There is a risk that the run-time generalizer is not equivalent
@@ -897,36 +974,9 @@ those methods.")
   "Standard support for :after, :before, :around, and `:extra NAME' qualifiers."
   (cl--generic-standard-method-combination generic methods))
 
-(defconst cl--generic-nnm-sample (cl--generic-no-next-method-function t t))
-(defconst cl--generic-cnm-sample
-  (funcall (cl--generic-build-combined-method
-            nil (list (cl--generic-make-method () () t #'identity)))))
-
 (defun cl--generic-isnot-nnm-p (cnm)
   "Return non-nil if CNM is the function that calls `cl-no-next-method'."
-  ;; ¡Big Gross Ugly Hack!
-  ;; `next-method-p' just sucks, we should let it die.  But EIEIO did support
-  ;; it, and some packages use it, so we need to support it.
-  (catch 'found
-    (cl-assert (function-equal cnm cl--generic-cnm-sample))
-    (if (byte-code-function-p cnm)
-        (let ((cnm-constants (aref cnm 2))
-              (sample-constants (aref cl--generic-cnm-sample 2)))
-          (dotimes (i (length sample-constants))
-            (when (function-equal (aref sample-constants i)
-                                  cl--generic-nnm-sample)
-              (throw 'found
-                     (not (function-equal (aref cnm-constants i)
-                                          cl--generic-nnm-sample))))))
-      (cl-assert (eq 'closure (car-safe cl--generic-cnm-sample)))
-      (let ((cnm-env (cadr cnm)))
-        (dolist (vb (cadr cl--generic-cnm-sample))
-          (when (function-equal (cdr vb) cl--generic-nnm-sample)
-            (throw 'found
-                   (not (function-equal (cdar cnm-env)
-                                        cl--generic-nnm-sample))))
-          (setq cnm-env (cdr cnm-env)))))
-    (error "Haven't found no-next-method-sample in cnm-sample")))
+  (not (eq (oclosure-type cnm) 'cl--generic-nnm)))
 
 ;;; Define some pre-defined generic functions, used internally.
 
@@ -1002,9 +1052,12 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
 (defun cl--generic-method-info (method)
   (let* ((specializers (cl--generic-method-specializers method))
          (qualifiers   (cl--generic-method-qualifiers method))
-         (uses-cnm     (cl--generic-method-uses-cnm method))
+         (call-con     (cl--generic-method-call-con method))
          (function     (cl--generic-method-function method))
-         (args (help-function-arglist function 'names))
+         (args (help-function-arglist (if (not (eq call-con 'curried))
+                                          function
+                                        (funcall function #'ignore))
+                                      'names))
          (docstring (documentation function))
          (qual-string
           (if (null qualifiers) ""
@@ -1015,7 +1068,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
                       (let ((split (help-split-fundoc docstring nil)))
                         (if split (cdr split) docstring))))
          (combined-args ()))
-    (if uses-cnm (setq args (cdr args)))
+    (if (eq t call-con) (setq args (cdr args)))
     (dolist (specializer specializers)
       (let ((arg (if (eq '&rest (car args))
                      (intern (format "arg%d" (length combined-args)))
@@ -1024,6 +1077,19 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
               combined-args)))
     (setq combined-args (append (nreverse combined-args) args))
     (list qual-string combined-args doconly)))
+
+(defun cl--generic-upcase-formal-args (args)
+  (mapcar (lambda (arg)
+            (cond
+             ((symbolp arg)
+              (let ((name (symbol-name arg)))
+                (if (eq ?& (aref name 0)) arg
+                  (intern (upcase name)))))
+             ((consp arg)
+              (cons (intern (upcase (symbol-name (car arg))))
+                    (cdr arg)))
+             (t arg)))
+          args))
 
 (add-hook 'help-fns-describe-function-functions #'cl--generic-describe)
 (defun cl--generic-describe (function)
@@ -1041,9 +1107,20 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
         (insert (propertize "Implementations:\n\n" 'face 'bold))
         ;; Loop over fanciful generics
         (dolist (method (cl--generic-method-table generic))
-          (let* ((info (cl--generic-method-info method)))
+          (pcase-let*
+              ((`(,qualifiers ,args ,doc) (cl--generic-method-info method)))
             ;; FIXME: Add hyperlinks for the types as well.
-            (insert (format "%s%S" (nth 0 info) (nth 1 info)))
+            (let ((print-quoted nil)
+                  (quals (if (length> qualifiers 0)
+                             (concat (substring qualifiers
+                                                0 (string-match " *\\'"
+                                                                qualifiers))
+                                     "\n")
+                           "")))
+              (insert (format "%s%S"
+                              quals
+                              (cons function
+                                    (cl--generic-upcase-formal-args args)))))
             (let* ((met-name (cl--generic-load-hist-format
                               function
                               (cl--generic-method-qualifiers method)
@@ -1055,7 +1132,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
                                          'help-function-def met-name file
                                          'cl-defmethod)
                 (insert (substitute-command-keys "'.\n"))))
-            (insert "\n" (or (nth 2 info) "Undocumented") "\n\n")))))))
+            (insert "\n" (or doc "Undocumented") "\n\n")))))))
 
 (defun cl--generic-specializers-apply-to-type-p (specializers type)
   "Return non-nil if a method with SPECIALIZERS applies to TYPE."
@@ -1071,7 +1148,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
                  (let ((sclass (cl--find-class specializer))
                        (tclass (cl--find-class type)))
                    (when (and sclass tclass)
-                     (member specializer (cl--generic-class-parents tclass))))))
+                     (member specializer (cl--class-allparents tclass))))))
            (setq applies t)))
     applies))
 
@@ -1200,22 +1277,11 @@ These match if the argument is `eql' to VAL."
   ;; Use exactly the same code as for `typeof'.
   `(if ,name (type-of ,name) 'null))
 
-(defun cl--generic-class-parents (class)
-  (let ((parents ())
-        (classes (list class)))
-    ;; BFS precedence.  FIXME: Use a topological sort.
-    (while (let ((class (pop classes)))
-             (cl-pushnew (cl--class-name class) parents)
-             (setq classes
-                   (append classes
-                           (cl--class-parents class)))))
-    (nreverse parents)))
-
 (defun cl--generic-struct-specializers (tag &rest _)
   (and (symbolp tag)
        (let ((class (get tag 'cl--class)))
          (when (cl-typep class 'cl-structure-class)
-           (cl--generic-class-parents class)))))
+           (cl--class-allparents class)))))
 
 (cl-generic-define-generalizer cl--generic-struct-generalizer
   50 #'cl--generic-struct-tag
@@ -1297,6 +1363,42 @@ Used internally for the (major-mode MODE) context specializers."
                     ;;E.g. could be (eql ...)
                     (progn (cl-assert (null modes)) mode)
                   `(derived-mode ,mode . ,modes))))
+
+;;; Dispatch on OClosure type
+
+;; It would make sense to put this into `oclosure.el' except that when
+;; `oclosure.el' is loaded `cl-defmethod' is not available yet.
+
+(defun cl--generic-oclosure-tag (name &rest _)
+  `(oclosure-type ,name))
+
+(defun cl-generic--oclosure-specializers (tag &rest _)
+  (and (symbolp tag)
+       (let ((class (cl--find-class tag)))
+         (when (cl-typep class 'oclosure--class)
+           (oclosure--class-allparents class)))))
+
+(cl-generic-define-generalizer cl-generic--oclosure-generalizer
+  ;; Give slightly higher priority than the struct specializer, so that
+  ;; for a generic function with methods dispatching structs and on OClosures,
+  ;; we first try `oclosure-type' before `type-of' since `type-of' will return
+  ;; non-nil for an OClosure as well.
+  51 #'cl--generic-oclosure-tag
+  #'cl-generic--oclosure-specializers)
+
+(cl-defmethod cl-generic-generalizers :extra "oclosure-struct" (type)
+  "Support for dispatch on types defined by `oclosure-define'."
+  (or
+   (when (symbolp type)
+     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
+     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
+     ;; take place without requiring cl-lib.
+     (let ((class (cl--find-class type)))
+       (and (cl-typep class 'oclosure--class)
+            (list cl-generic--oclosure-generalizer))))
+   (cl-call-next-method)))
+
+(cl--generic-prefill-dispatchers 0 oclosure)
 
 ;;; Support for unloading.
 

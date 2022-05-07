@@ -294,6 +294,22 @@ which will invoke Emacs with @samp{--script} and supply the name of
 the script file as @var{file}.  Emacs Lisp then treats the @samp{#!}
 on this first line as a comment delimiter.
 
+@item -x
+@opindex -x
+This option can only be used in executable script files, and should be
+invoked like this:
+
+@example
+#!/usr/bin/emacs -x
+@end example
+
+This is like @samp{--script}, but suppresses loading the init files
+(like @code{--quick}), and can't be used on a normal command line
+(since it doesn't specify the script to load).  In addition, when it
+reaches the end of the script, it exits Emacs and uses the value of
+the final form as the exit value from the script (if the final value
+is numerical).  Otherwise, it will always exit with a zero value.
+
 @item --no-build-details
 @opindex --no-build-details
 @cindex build details

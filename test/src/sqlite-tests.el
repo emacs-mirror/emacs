@@ -216,4 +216,29 @@
        db "/usr/lib/x86_64-linux-gnu/libsqlite3_mod_csvtable.so")
       '(nil t)))))
 
+(ert-deftest sqlite-blob ()
+  (skip-unless (sqlite-available-p))
+  (let (db)
+    (progn
+      (setq db (sqlite-open))
+      (sqlite-execute
+       db "create table if not exists test10 (col1 text, col2 blob, col3 numbre)")
+      (let ((string (with-temp-buffer
+                      (set-buffer-multibyte nil)
+                      (insert 0 1 2)
+                      (buffer-string))))
+        (should-not (multibyte-string-p string))
+        (sqlite-execute
+         db "insert into test10 values (?, ?, 1)"
+         (list string
+               (propertize string
+                           'coding-system 'binary)))
+        (cl-destructuring-bind
+            (c1 c2 _)
+            (car (sqlite-select db "select * from test10 where col3 = 1"))
+          (should (equal c1 string))
+          (should (equal c2 string))
+          (should (multibyte-string-p c1))
+          (should-not (multibyte-string-p c2)))))))
+
 ;;; sqlite-tests.el ends here

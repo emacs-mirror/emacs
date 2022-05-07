@@ -2209,7 +2209,10 @@ whether or not it is currently displayed in some window.  */)
 	}
       else
 	it_overshoot_count =
-	  !(it.method == GET_FROM_IMAGE || it.method == GET_FROM_STRETCH);
+	  /* If image_id is negative, it's a fringe bitmap, which by
+	     definition doesn't affect display in the text area.  */
+	  !((it.method == GET_FROM_IMAGE && it.image_id >= 0)
+	    || it.method == GET_FROM_STRETCH);
 
       if (start_x_given)
 	{

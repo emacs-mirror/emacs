@@ -85,6 +85,10 @@ extern char **environ;
 #include "nsterm.h"
 #endif
 
+#ifdef HAVE_PGTK
+#include "pgtkterm.h"
+#endif
+
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
@@ -1335,7 +1339,8 @@ emacs_posix_spawn_init_actions (posix_spawn_file_actions_t *actions,
 }
 
 static int
-emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
+emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes,
+				   const sigset_t *oldset)
 {
   int error = posix_spawnattr_init (attributes);
   if (error != 0)
@@ -1377,11 +1382,7 @@ emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
     goto out;
 
   /* Stop blocking SIGCHLD in the child.  */
-  sigset_t oldset;
-  error = pthread_sigmask (SIG_SETMASK, NULL, &oldset);
-  if (error != 0)
-    goto out;
-  error = posix_spawnattr_setsigmask (attributes, &oldset);
+  error = posix_spawnattr_setsigmask (attributes, oldset);
   if (error != 0)
     goto out;
 
@@ -1390,23 +1391,6 @@ emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
     posix_spawnattr_destroy (attributes);
 
   return error;
-}
-
-static int
-emacs_posix_spawn_init (posix_spawn_file_actions_t *actions,
-                        posix_spawnattr_t *attributes, int std_in,
-                        int std_out, int std_err, const char *cwd)
-{
-  int error = emacs_posix_spawn_init_actions (actions, std_in,
-                                              std_out, std_err, cwd);
-  if (error != 0)
-    return error;
-
-  error = emacs_posix_spawn_init_attributes (attributes);
-  if (error != 0)
-    return error;
-
-  return 0;
 }
 
 #endif
@@ -1443,9 +1427,12 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   if (use_posix_spawn)
     {
       /* Initialize optional attributes before blocking. */
-      int error
-        = emacs_posix_spawn_init (&actions, &attributes, std_in,
-                                  std_out, std_err, cwd);
+      int error = emacs_posix_spawn_init_actions (&actions, std_in,
+                                              std_out, std_err, cwd);
+      if (error != 0)
+	return error;
+
+      error = emacs_posix_spawn_init_attributes (&attributes, oldset);
       if (error != 0)
 	return error;
     }
@@ -1704,6 +1691,7 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
   /* For DISPLAY try to get the values from the frame or the initial env.  */
   if (strcmp (var, "DISPLAY") == 0)
     {
+#ifndef HAVE_PGTK
       Lisp_Object display
 	= Fframe_parameter (NILP (frame) ? selected_frame : frame, Qdisplay);
       if (STRINGP (display))
@@ -1712,6 +1700,7 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
 	  *valuelen = SBYTES (display);
 	  return 1;
 	}
+#endif
       /* If still not found, Look for DISPLAY in Vinitial_environment.  */
       if (getenv_internal_1 (var, varlen, value, valuelen,
 			     Vinitial_environment))
@@ -1829,6 +1818,18 @@ make_environment_block (Lisp_Object current_dir)
     if (NILP (display))
       {
 	Lisp_Object tmp = Fframe_parameter (selected_frame, Qdisplay);
+
+#ifdef HAVE_PGTK
+	/* The only time GDK actually returns correct information is
+	   when it's running under X Windows.  DISPLAY shouldn't be
+	   set to a Wayland display either, since that's an X specific
+	   variable.  */
+	if (FRAME_WINDOW_P (SELECTED_FRAME ())
+	    && strcmp (G_OBJECT_TYPE_NAME (FRAME_X_DISPLAY (SELECTED_FRAME ())),
+		       "GdkX11Display"))
+	  tmp = Qnil;
+#endif
+
 	if (!STRINGP (tmp) && CONSP (Vinitial_environment))
 	  /* If still not found, Look for DISPLAY in Vinitial_environment.  */
 	  tmp = Fgetenv_internal (build_string ("DISPLAY"),

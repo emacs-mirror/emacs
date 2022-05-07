@@ -79,7 +79,7 @@
 ;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
 ;; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
 ;;
-;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URL's.
+;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URLs.
 ;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
 ;; Also, you can add `ffap-menu-rescan' to various hooks to fontify
 ;; the file and URL references within a buffer.
@@ -282,7 +282,7 @@ For a fancy alternative, get `ffap-url.el'."
   :risky t)
 
 (defcustom ffap-next-regexp
-  ;; If you want ffap-next to find URL's only, try this:
+  ;; If you want ffap-next to find URLs only, try this:
   ;; (and ffap-url-regexp (string-match "\\\\`" ffap-url-regexp)
   ;;	  (concat "\\<" (substring ffap-url-regexp 2))))
   ;;
@@ -315,7 +315,7 @@ disable ffap most of the time."
 
 ;;; Find Next Thing in buffer (`ffap-next'):
 ;;
-;; Original ffap-next-url (URL's only) from RPECK 30 Mar 1995.  Since
+;; Original ffap-next-url (URLs only) from RPECK 30 Mar 1995.  Since
 ;; then, broke it up into ffap-next-guess (noninteractive) and
 ;; ffap-next (a command).  It now work on files as well as url's.
 
@@ -363,7 +363,7 @@ Actual search is done by the function `ffap-next-guess'."
 	  (sit-for 0)			; display point movement
 	  (find-file-at-point (ffap-prompter guess)))
       (goto-char pt)			; restore point
-      (message "No %sfiles or URL's found"
+      (message "No %sfiles or URLs found"
 	       (if wrap "" "more ")))))
 
 (defun ffap-next-url (&optional back wrap)

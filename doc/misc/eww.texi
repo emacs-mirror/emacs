@@ -311,11 +311,9 @@ state the directionality.
 size or content.  By customizing @code{shr-max-image-proportion} you
 can set the maximal image proportion in relation to the window they
 are displayed in.  E.g., 0.7 means an image is allowed to take up 70%
-of the width and height.  If Emacs supports image scaling (ImageMagick
-support required) then larger images are scaled down.  You can block
-specific images completely by customizing @code{shr-blocked-images},
-or, if you want to only allow some specific images, customize
-@code{shr-allowed-images}.
+of the width and height.  If Emacs supports image scaling, then larger
+images are scaled down.  You can block specific images completely by
+customizing @code{shr-blocked-images}.
 
 @vindex shr-inhibit-images
   You can control image display by customizing

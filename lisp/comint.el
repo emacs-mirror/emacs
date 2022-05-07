@@ -1110,7 +1110,8 @@ See also `comint-read-input-ring'."
 	  (use-local-map keymap))
 	(forward-line 3)
 	(while (search-backward "completion" nil 'move)
-	  (replace-match "history reference")))
+	  (replace-match (apply #'propertize "history reference"
+				(text-properties-at (point))))))
       (sit-for 0)
       (message "Hit space to flush")
       (setq comint-dynamic-list-input-ring-window-conf conf)
@@ -1515,6 +1516,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
                 #'comint-history-isearch-wrap)
     (setq-local isearch-push-state-function
                 #'comint-history-isearch-push-state)
+    (setq-local isearch-lazy-count nil)
     (add-hook 'isearch-mode-end-hook 'comint-history-isearch-end nil t)))
 
 (defun comint-history-isearch-end ()
@@ -1526,6 +1528,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
   (setq isearch-message-function nil)
   (setq isearch-wrap-function nil)
   (setq isearch-push-state-function nil)
+  (kill-local-variable 'isearch-lazy-count)
   (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t)
   (unless isearch-suspended
     (custom-reevaluate-setting 'comint-history-isearch)))

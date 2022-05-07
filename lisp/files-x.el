@@ -722,14 +722,18 @@ will not be changed."
         (copy-tree connection-local-variables-alist)))
    (hack-local-variables-apply)))
 
+(defvar connection-local-default-application 'tramp
+  "Default application in connection-local functions, a symbol.
+This variable must not be changed globally.")
+
 (defsubst connection-local-criteria-for-default-directory (&optional application)
   "Return a connection-local criteria, which represents `default-directory'.
-If APPLICATION is nil, the symbol `tramp' is used."
+If APPLICATION is nil, `connection-local-default-application' is used."
   (when (file-remote-p default-directory)
-    `(:application ,(or application 'tramp)
-       :protocol   ,(file-remote-p default-directory 'method)
-       :user       ,(file-remote-p default-directory 'user)
-       :machine    ,(file-remote-p default-directory 'host))))
+    `(:application ,(or application connection-local-default-application)
+      :protocol    ,(file-remote-p default-directory 'method)
+      :user        ,(file-remote-p default-directory 'user)
+      :machine     ,(file-remote-p default-directory 'host))))
 
 ;;;###autoload
 (defmacro with-connection-local-variables (&rest body)

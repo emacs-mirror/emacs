@@ -546,15 +546,16 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\(\\s-*\\)\\\\\\\\")
      (modes    . align-tex-modes))
 
-    ;; With a numeric prefix argument, or C-u, space delimited text
-    ;; tables will be aligned.
+    ;; Align space delimited text as columns.
     (text-column
      (regexp   . "\\(^\\|\\S-\\)\\([ \t]+\\)\\(\\S-\\|$\\)")
      (group    . 2)
      (modes    . align-text-modes)
      (repeat   . t)
      (run-if   . ,(lambda ()
-                    (not (eq '- current-prefix-arg)))))
+                    (and (not (eq '- current-prefix-arg))
+                         (not (apply #'provided-mode-derived-p
+                                     major-mode align-tex-modes))))))
 
     ;; With a negative prefix argument, lists of dollar figures will
     ;; be aligned.

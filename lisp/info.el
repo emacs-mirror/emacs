@@ -907,17 +907,20 @@ find a node."
                       filename)))
       filename))))
 
-(defun Info-find-node (filename nodename &optional no-going-back strict-case)
+(defun Info-find-node (filename nodename &optional no-going-back strict-case
+                                noerror)
   "Go to an Info node specified as separate FILENAME and NODENAME.
 NO-GOING-BACK is non-nil if recovering from an error in this function;
 it says do not attempt further (recursive) error recovery.
 
 This function first looks for a case-sensitive match for NODENAME;
 if none is found it then tries a case-insensitive match (unless
-STRICT-CASE is non-nil)."
+STRICT-CASE is non-nil).
+
+If NOERROR, inhibit error messages when we can't find the node."
   (info-initialize)
   (setq nodename (info--node-canonicalize-whitespace nodename))
-  (setq filename (Info-find-file filename))
+  (setq filename (Info-find-file filename noerror))
   ;; Go into Info buffer.
   (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
   ;; Record the node we are leaving, if we were in one.
@@ -1822,41 +1825,22 @@ directories to search if FILENAME is not absolute; SUFFIXES is a
 list of valid filename suffixes for Info files.  See
 `try-completion' for a description of the remaining arguments."
   (setq suffixes (remove "" suffixes))
-  (when (file-name-absolute-p string)
-    (setq dirs (list (file-name-directory string))))
   (let ((names nil)
-	(names-sans-suffix nil)
-        (suffix (concat (regexp-opt suffixes t) "\\'"))
-        (string-dir (file-name-directory string)))
+        (suffix (concat (regexp-opt suffixes t) "\\'")))
     (dolist (dir dirs)
-      (unless dir
-	(setq dir default-directory))
-      (if string-dir (setq dir (expand-file-name string-dir dir)))
       (when (file-directory-p dir)
-	(dolist (file (file-name-all-completions
-		       (file-name-nondirectory string) dir))
-	  ;; If the file name has no suffix or a standard suffix,
-	  ;; include it.
-	  (and (or (null (file-name-extension file))
-		   (string-match suffix file))
-	       ;; But exclude subfiles of split Info files.
-	       (not (string-match "-[0-9]+\\'" file))
-	       ;; And exclude backup files.
-	       (not (string-match "~\\'" file))
-	       (push (if string-dir (concat string-dir file) file) names))
-	  ;; If the file name ends in a standard suffix,
-	  ;; add the unsuffixed name as a completion option.
-	  (when (string-match suffix file)
-	    (setq file (substring file 0 (match-beginning 0)))
-	    (push (if string-dir (concat string-dir file) file)
-		  names-sans-suffix)))))
-    ;; If there is just one file, don't duplicate it with suffixes,
-    ;; so `Info-read-node-name-1' will be able to complete a single
-    ;; candidate and to add the terminating ")".
-    (if (and (= (length names) 1) (= (length names-sans-suffix) 1))
-	(setq names names-sans-suffix)
-      (setq names (append names-sans-suffix names)))
-    (complete-with-action action names string pred)))
+        (dolist (file (directory-files dir))
+          ;; If the file name has a standard suffix,
+          ;; include it (without the suffix).
+          (when (and (string-match suffix file)
+                     ;; But exclude subfiles of split Info files.
+                     (not (string-match "\.info-[0-9]+" file))
+                     ;; And exclude backup files.
+                     (not (string-match "~\\'" file)))
+            (push (substring file 0 (match-beginning 0))
+                  names)))))
+    (complete-with-action action (delete-dups (nreverse names))
+                          string pred)))
 
 (defun Info-read-node-name-1 (string predicate code)
   "Internal function used by `Info-read-node-name'.
@@ -2615,7 +2599,8 @@ new buffer."
 	 (if (eq alt-default t) (setq alt-default str))
 	 ;; Don't add this string if it's a duplicate.
 	 (or (assoc-string str completions t)
-	     (push str completions))))
+	     (push str completions)))
+       (setq completions (nreverse completions)))
      ;; If no good default was found, try an alternate.
      (or default
 	 (setq default alt-default))
@@ -3632,13 +3617,16 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 				(format " (line %s)" (nth 3 entry))
 			      "")))))))))
 
-(defun Info-apropos-matches (string)
+(defun Info-apropos-matches (string &optional regexp)
   "Collect STRING matches from all known Info files on your system.
+If REGEXP, use regexp matching instead of literal matching.
 Return a list of matches where each element is in the format
 \((FILENAME INDEXTEXT NODENAME LINENUMBER))."
   (unless (string= string "")
     (let ((pattern (format "\n\\* +\\([^\n]*\\(%s\\)[^\n]*\\):[ \t]+\\([^\n]+\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
-			   (regexp-quote string)))
+			   (if regexp
+                               string
+                             (regexp-quote string))))
 	  (ohist Info-history)
 	  (ohist-list Info-history-list)
 	  (current-node Info-current-node)
@@ -3663,9 +3651,9 @@ Return a list of matches where each element is in the format
 	(dolist (manual (nreverse manuals))
 	  (message "Searching %s" manual)
 	  (condition-case err
-	      (if (setq nodes (Info-index-nodes (Info-find-file manual)))
+	      (if (setq nodes (Info-index-nodes (Info-find-file manual t)))
                   (save-excursion
-                    (Info-find-node manual (car nodes))
+                    (Info-find-node manual (car nodes) nil nil t)
                     (while
                         (progn
                           (goto-char (point-min))
@@ -3692,19 +3680,22 @@ Return a list of matches where each element is in the format
       (or (nreverse matches) t))))
 
 ;;;###autoload
-(defun info-apropos (string)
-  "Grovel indices of all known Info files on your system for STRING.
-Build a menu of the possible matches."
-  (interactive "sIndex apropos: ")
+(defun info-apropos (string &optional regexp)
+  "Search indices of all known Info files on your system for STRING.
+If REGEXP (interactively, the prefix), use a regexp match.
+
+Display a menu of the possible matches."
+  (interactive "sIndex apropos: \nP")
   (if (equal string "")
       (Info-find-node Info-apropos-file "Top")
-    (let* ((nodes Info-apropos-nodes) nodename)
+    (let ((nodes Info-apropos-nodes)
+          nodename)
       (while (and nodes (not (equal string (nth 1 (car nodes)))))
 	(setq nodes (cdr nodes)))
       (if nodes
-	  (Info-find-node Info-apropos-file (car (car nodes)))
+	  (Info-find-node Info-apropos-file (car (car nodes)) nil nil t)
 	(setq nodename (format "Index for ‘%s’" string))
-	(push (list nodename string (Info-apropos-matches string))
+	(push (list nodename string (Info-apropos-matches string regexp))
 	      Info-apropos-nodes)
 	(Info-find-node Info-apropos-file nodename)))))
 
@@ -4295,7 +4286,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 				  (substring str (match-end 0))))
 		(setq i (1+ i)))
 	      (setq items
-		    (cons str items))))
+		    (cons str items)))
+            (setq items (nreverse items)))
 	  (while (and items (< number 9))
 	    (setq current (car items)
 		  items (cdr items)
@@ -4498,7 +4490,9 @@ Advanced commands:
   (setq-local revert-buffer-function #'Info-revert-buffer-function)
   (setq-local font-lock-defaults '(Info-mode-font-lock-keywords t t))
   (Info-set-mode-line)
-  (setq-local bookmark-make-record-function #'Info-bookmark-make-record))
+  (setq-local bookmark-make-record-function #'Info-bookmark-make-record)
+  (unless search-default-mode
+    (isearch-fold-quotes-mode)))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.
@@ -5440,7 +5434,8 @@ completion alternatives to currently visited manuals."
     (progn
       (info-initialize)
       (completing-read "Manual name: "
-		       (info--manual-names current-prefix-arg)
+		       (info--filter-manual-names
+                        (info--manual-names current-prefix-arg))
 		       nil t))))
   (let ((blist (buffer-list))
 	(manual-re (concat "\\(/\\|\\`\\)" manual "\\(\\.\\|\\'\\)"))
@@ -5467,6 +5462,22 @@ completion alternatives to currently visited manuals."
       (info-initialize)
       (info (Info-find-file manual)
 	    (generate-new-buffer-name "*info*")))))
+
+(defun info--filter-manual-names (names)
+  (cl-flet ((strip (name)
+              (replace-regexp-in-string "\\([-.]info\\)?\\(\\.gz\\)?\\'"
+                                        "" name)))
+    (seq-uniq (sort (seq-filter
+                     (lambda (name)
+                       (and (not (string-match-p "info-[0-9]" name))
+                            (not (member name '("./" "../" "ChangeLog"
+                                                "NEWS" "README")))))
+                     names)
+                    ;; We prefer the shorter names ("foo" over "foo.gz").
+                    (lambda (s1 s2)
+                      (< (length s1) (length s2))))
+              (lambda (s1 s2)
+                (equal (strip s1) (strip s2))))))
 
 (defun info--manual-names (visited-only)
   (let (names)

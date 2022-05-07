@@ -31,6 +31,16 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib)
+                   (require 'flymake)
+                   (require 'rx))
+(declare-function flymake-diag-region "flymake"
+                  (buffer line &optional col))
+(declare-function flymake-make-diagnostic "flymake"
+                  ( locus beg end type text
+                    &optional data overlay-properties))
+(declare-function flymake--log-1 (level sublog msg &rest args))
+
 (eval-when-compile (require 'tex-mode))
 (declare-function tex-buffer "tex-mode" ())
 (declare-function tex-region "tex-mode" (beg end))
@@ -335,6 +345,69 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 	(match-string-no-properties 1))))
 
+;;; Flymake support
+(defvar-local texinfo--flymake-proc nil)
+(defun texinfo-flymake (report-fn &rest _)
+  "Texinfo checking for Flymake.
+
+REPORT-FN is the callback function."
+  (let ((executable (or (executable-find "makeinfo")
+                        (executable-find "texi2any")))
+        (source (current-buffer)))
+
+    (unless executable
+      (error "Flymake for Texinfo requires `makeinfo' or `texi2any'"))
+
+    (when (process-live-p texinfo--flymake-proc)
+      (kill-process texinfo--flymake-proc))
+
+    (save-restriction
+      (widen)
+      (setq texinfo--flymake-proc
+            (make-process
+             :name "texinfo-flymake"
+             :noquery t
+             :connection-type 'pipe
+             :buffer (generate-new-buffer " *texinfo-flymake*")
+             :command `(,executable "-o" ,null-device "-")
+             :sentinel
+             (lambda (proc _event)
+               (when (memq (process-status proc) '(exit signal))
+                 (unwind-protect
+                     (if (eq (buffer-local-value 'texinfo--flymake-proc
+                                                 source)
+                             proc)
+                         (with-current-buffer (process-buffer proc)
+                           (goto-char (point-min))
+                           (cl-loop
+                            while (search-forward-regexp
+                                   (rx line-start
+                                       "-:"
+                                       (group-n 1 (0+ digit)) ; Line
+                                       (optional ":" (group-n 2 (0+ digit))) ; col
+                                       ": "
+                                       (optional (group-n 3 "warning: ")) ; warn
+                                       (group-n 4 (0+ nonl)) ; Message
+                                       line-end)
+                                   nil t)
+                            for msg = (match-string 4)
+                            for (beg . end) = (flymake-diag-region
+                                               source
+                                               (string-to-number (match-string 1)))
+                            for type = (if (match-string 3)
+                                           :warning
+                                         :error)
+                            collect (flymake-make-diagnostic
+                                     source beg end type msg)
+                            into diags
+                            finally (funcall report-fn diags)))
+                       (flymake-log :warning "Cancelling obsolete check %s"
+                                    proc))
+                   (kill-buffer (process-buffer proc)))))))
+      (process-send-region texinfo--flymake-proc (point-min) (point-max))
+      (process-send-eof texinfo--flymake-proc))))
+
+
 ;;; Texinfo mode
 
 ;;;###autoload
@@ -454,7 +527,10 @@ value of `texinfo-mode-hook'."
 	      (let ((prevent-filling "^@\\(def\\|multitable\\)"))
 		(if (null auto-fill-inhibit-regexp)
 		    prevent-filling
-		  (concat auto-fill-inhibit-regexp "\\|" prevent-filling)))))
+		  (concat auto-fill-inhibit-regexp "\\|" prevent-filling))))
+
+  ;; Set up Flymake support.
+  (add-hook 'flymake-diagnostic-functions #'texinfo-flymake nil t))
 
 (defvar texinfo-fillable-commands '("@noindent")
   "A list of commands that can be filled.")

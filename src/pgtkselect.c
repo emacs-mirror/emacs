@@ -17,13 +17,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/*
-Originally by Carl Edman
-Updated by Christian Limpach (chris@nice.ch)
-OpenStep/Rhapsody port by Scott Bender (sbender@harmony-ds.com)
-macOS/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
-GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
-*/
+/* FIXME: this file needs a major rewrite to replace the use of GTK's
+   own high-level GtkClipboard API with the GDK selection API:
+
+   https://developer-old.gnome.org/gdk3/stable/gdk3-Selections.html
+
+   That way, most of the code can be shared with X, and non-text
+   targets along with drag-and-drop can be supported.  GDK implements
+   selections according to the ICCCM, as on X, but its selection API
+   will work on any supported window system.  */
 
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes.  */
@@ -151,10 +153,8 @@ selection_type_to_quarks (GdkAtom type, GQuark * quark_data,
       *quark_size = quark_clipboard_size;
     }
   else
-    {
-      /* fixme: Is it safe to use 'error' here? */
-      error ("Unknown selection type.");
-    }
+    /* FIXME: Is it safe to use 'error' here? */
+    error ("Unknown selection type.");
 }
 
 static void
@@ -490,12 +490,6 @@ frame's display, or the first available display.  */)
 
   gtk_selection_data_free (seldata);
   return Qnil;
-}
-
-
-void
-nxatoms_of_pgtkselect (void)
-{
 }
 
 void

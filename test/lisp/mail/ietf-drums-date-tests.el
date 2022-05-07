@@ -52,52 +52,34 @@
 
   ;; Start with some compatible RFC822 dates.
   (dolist (case '(("Mon, 22 Feb 2016 19:35:42 +0100"
-                   (42 35 19 22 2 2016 1 -1 3600)
-                   (22219 21758))
+		   (42 35 19 22 2 2016 1 -1 3600))
                   ("22 Feb 2016 19:35:42 +0100"
-                   (42 35 19 22 2 2016 nil -1 3600)
-                   (22219 21758))
+		   (42 35 19 22 2 2016 nil -1 3600))
                   ("Mon, 22 February 2016 19:35:42 +0100"
-                   (42 35 19 22 2 2016 1 -1 3600)
-                   (22219 21758))
+		   (42 35 19 22 2 2016 1 -1 3600))
                   ("Mon, 22 feb 2016 19:35:42 +0100"
-                   (42 35 19 22 2 2016 1 -1 3600)
-                   (22219 21758))
+		   (42 35 19 22 2 2016 1 -1 3600))
                   ("Monday, 22 february 2016 19:35:42 +0100"
-                   (42 35 19 22 2 2016 1 -1 3600)
-                   (22219 21758))
+		   (42 35 19 22 2 2016 1 -1 3600))
                   ("Monday, 22 february 2016 19:35:42 PST"
-                   (42 35 19 22 2 2016 1 nil -28800)
-                   (22219 54158))
+		   (42 35 19 22 2 2016 1 nil -28800))
                   ("Friday, 21 Sep 2018 13:47:58 PDT"
-                   (58 47 13 21 9 2018 5 t -25200)
-                   (23461 22782))
+		   (58 47 13 21 9 2018 5 t -25200))
                   ("Friday, 21 Sep 2018 13:47:58 EDT"
-                   (58 47 13 21 9 2018 5 t -14400)
-                   (23461 11982))))
+		   (58 47 13 21 9 2018 5 t -14400))
+		  ("Mon, 22 Feb 2016 19:35:42"
+		   (42 35 19 22 2 2016 1 -1 nil))
+		  ("Friday, 21 Sep 2018 13:47:58"
+		   (58 47 13 21 9 2018 5 -1 nil))))
     (let* ((input (car case))
-           (parsed (cadr case))
-           (encoded (caddr case)))
+	   (parsed (cadr case)))
       ;; The input should parse the same without RFC822.
       (should (equal (ietf-drums-parse-date-string input) parsed))
       (should (equal (ietf-drums-parse-date-string input nil t) parsed))
       ;; Check the encoded date (the official output, though the
       ;; decoded-time is easier to debug).
-      (should (equal (ietf-drums-parse-date input) encoded))))
-
-  ;; Test a few without timezones.
-  (dolist (case '(("Mon, 22 Feb 2016 19:35:42"
-                   (42 35 19 22 2 2016 1 -1 nil))
-                  ("Friday, 21 Sep 2018 13:47:58"
-                   (58 47 13 21 9 2018 5 -1 nil))))
-    (let* ((input (car case))
-           (parsed (cadr case)))
-      ;; The input should parse the same without RFC822.
-      (should (equal (ietf-drums-parse-date-string input) parsed))
-      (should (equal (ietf-drums-parse-date-string input nil t) parsed))
-      ;; We can't check the encoded date here because it will differ
-      ;; depending on the TZ of the test environment.
-      ))
+      (should (time-equal-p (ietf-drums-parse-date input)
+			    (encode-time parsed)))))
 
   ;; Two-digit years are not allowed by the "modern" format.
   (should (equal (ietf-drums-parse-date-string "22 Feb 16 19:35:42 +0100")

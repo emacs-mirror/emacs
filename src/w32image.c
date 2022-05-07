@@ -253,6 +253,7 @@ w32_can_use_native_image_api (Lisp_Object type)
 	|| EQ (type, Qpng)
 	|| EQ (type, Qgif)
 	|| EQ (type, Qtiff)
+	|| EQ (type, Qbmp)
 	|| EQ (type, Qnative_image)))
     {
       /* GDI+ can also display BMP, Exif, ICON, WMF, and EMF images.

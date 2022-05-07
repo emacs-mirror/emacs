@@ -385,7 +385,7 @@ correspond to what the tutorial says.\n\n")
   "Find the key bindings used in the tutorial that have changed.
 Return a list with elements of the form
 
-  '(KEY DEF-FUN DEF-FUN-TXT WHERE REMARK QUIET)
+  (KEY DEF-FUN DEF-FUN-TXT WHERE REMARK QUIET)
 
 where
 

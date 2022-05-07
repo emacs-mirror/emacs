@@ -3503,10 +3503,7 @@ def foo():
    (should (string= (python-shell-buffer-substring
                      (python-tests-look-at "print ('a')")
                      (point-max))
-                    "if True:
-
-    print ('a')
-"))))
+                    "# -*- coding: utf-8 -*-\nif True:\n    print ('a')\n\n"))))
 
 (ert-deftest python-shell-buffer-substring-11 ()
   "Check substring from partial block and point within indentation."
@@ -3521,10 +3518,7 @@ def foo():
                        (backward-char 1)
                        (point))
                      (point-max))
-                    "if True:
-
-    print ('a')
-"))))
+                    "# -*- coding: utf-8 -*-\nif True:\n    print ('a')\n\n"))))
 
 (ert-deftest python-shell-buffer-substring-12 ()
   "Check substring from partial block and point in whitespace."
@@ -3539,13 +3533,7 @@ def foo():
    (should (string= (python-shell-buffer-substring
                      (python-tests-look-at "# Whitespace")
                      (point-max))
-                    "if True:
-
-
-        # Whitespace
-
-    print ('a')
-"))))
+                    "# -*- coding: utf-8 -*-\n\nif True:\n        # Whitespace\n\n    print ('a')\n\n"))))
 
 
 

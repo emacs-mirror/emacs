@@ -1581,7 +1581,7 @@ Buffer mode and name are selected according to buffer type.
 
 If buffer has trigger associated with it in `gdb-buffer-rules',
 this trigger is subscribed to `gdb-buf-publisher' and called with
-'update argument."
+`update' argument."
   (or (gdb-get-buffer buffer-type thread)
       (let ((rules (assoc buffer-type gdb-buffer-rules))
             (new (generate-new-buffer "limbo")))

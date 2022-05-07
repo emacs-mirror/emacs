@@ -90,6 +90,7 @@
 (require 'mwheel)
 (require 'subr-x)
 (require 'ring)
+(require 'cua-base)
 
 (defvar pixel-wait 0
   "Idle time on each step of pixel scroll specified in second.
@@ -209,6 +210,14 @@ Nil means to not interpolate such scrolls."
 (defcustom pixel-scroll-precision-interpolate-page nil
   "Whether or not to interpolate scrolling via the Page Down and Page Up keys.
 This is only effective when `pixel-scroll-precision-mode' is enabled."
+  :group 'scrolling
+  :type 'boolean
+  :version "29.1")
+
+(defcustom pixel-scroll-precision-interpolate-mice t
+  "Whether or not to interpolate scrolling from a mouse.
+If non-nil, scrolling from the mouse wheel of an actual mouse (as
+opposed to a touchpad) will cause Emacs to interpolate the scroll."
   :group 'scrolling
   :type 'boolean
   :version "29.1")
@@ -680,16 +689,20 @@ wheel."
             (if (> (abs delta) (window-text-height window t))
                 (mwheel-scroll event nil)
               (with-selected-window window
-                (if (and pixel-scroll-precision-large-scroll-height
-                         (> (abs delta)
-                            pixel-scroll-precision-large-scroll-height)
-                         (let* ((kin-state (pixel-scroll-kinetic-state))
-                                (ring (aref kin-state 0))
-                                (time (aref kin-state 1)))
-                           (or (null time)
-                               (> (- (float-time) time) 1.0)
-                               (and (consp ring)
-                                    (ring-empty-p ring)))))
+                (if (or (and pixel-scroll-precision-interpolate-mice
+                             (eq (device-class last-event-frame
+                                               last-event-device)
+                                 'mouse))
+                        (and pixel-scroll-precision-large-scroll-height
+                             (> (abs delta)
+                                pixel-scroll-precision-large-scroll-height)
+                             (let* ((kin-state (pixel-scroll-kinetic-state))
+                                    (ring (aref kin-state 0))
+                                    (time (aref kin-state 1)))
+                               (or (null time)
+                                   (> (- (float-time) time) 1.0)
+                                   (and (consp ring)
+                                        (ring-empty-p ring))))))
                     (progn
                       (let ((kin-state (pixel-scroll-kinetic-state)))
                         (aset kin-state 0 (make-ring 30))
@@ -803,14 +816,14 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
   (interactive)
   (if pixel-scroll-precision-interpolate-page
       (pixel-scroll-precision-interpolate (- (window-text-height nil t)))
-    (scroll-up)))
+    (cua-scroll-up)))
 
 (defun pixel-scroll-interpolate-up ()
   "Interpolate a scroll upwards by one page."
   (interactive)
   (if pixel-scroll-precision-interpolate-page
       (pixel-scroll-precision-interpolate (window-text-height nil t))
-    (scroll-down)))
+    (cua-scroll-down)))
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-precision-mode

@@ -197,7 +197,7 @@ gives special treatment to certain characters, and if these characters
 occur in the file name, they will confuse the shell.  To handle these
 characters, use the function @code{shell-quote-argument}:
 
-@defun shell-quote-argument argument
+@defun shell-quote-argument argument &optional posix
 This function returns a string that represents, in shell syntax,
 an argument whose actual contents are @var{argument}.  It should
 work reliably to concatenate the return value into a shell command
@@ -226,6 +226,15 @@ a shell command:
         (shell-quote-argument oldfile)
         " "
         (shell-quote-argument newfile))
+@end example
+
+If the optional @var{posix} argument is non-@code{nil}, @var{argument}
+is quoted according to POSIX shell quoting rules, regardless of the
+system’s shell.  This is useful when your shell could run on a remote
+host, which requires a POSIX shell in general.
+
+@example
+(shell-quote-argument "foo > bar" (file-remote-p default-directory))
 @end example
 @end defun
 
@@ -1463,7 +1472,7 @@ incoming data from the connection.  For serial connections, data that
 arrived during the time the process was stopped might be lost.
 @end defun
 
-@deffn Command signal-process process signal
+@deffn Command signal-process process signal &optional remote
 This function sends a signal to process @var{process}.  The argument
 @var{signal} specifies which signal to send; it should be an integer,
 or a symbol whose name is a signal.
@@ -1471,12 +1480,18 @@ or a symbol whose name is a signal.
 The @var{process} argument can be a system process @acronym{ID} (an
 integer); that allows you to send signals to processes that are not
 children of Emacs.  @xref{System Processes}.
+
+If @var{process} is a process object which contains the property
+@code{remote-pid}, or @var{process} is a number and @var{remote} is a
+remote file name, @var{process} is interpreted as process on the
+respective remote host, which will be the process to signal.
 @end deffn
 
 Sometimes, it is necessary to send a signal to a non-local
 asynchronous process.  This is possible by writing an own
-@code{interrupt-process} implementation.  This function must be added
-then to @code{interrupt-process-functions}.
+@code{interrupt-process} or @code{signal-process} implementation.
+This function must be added then to @code{interrupt-process-functions}
+or @code{signal-process-functions}, respectively.
 
 @defvar interrupt-process-functions
 This variable is a list of functions to be called for
@@ -1487,6 +1502,17 @@ default function, which shall always be the last in this list, is
 @code{internal-default-interrupt-process}.
 
 This is the mechanism, how Tramp implements @code{interrupt-process}.
+@end defvar
+
+@defvar signal-process-functions
+This variable is a list of functions to be called for
+@code{signal-process}.  The arguments of the functions are the same as
+for @code{signal-process}.  These functions are called in the order of
+the list, until one of them returns non-@code{nil}.  The default
+function, which shall always be the last in this list, is
+@code{signal-default-interrupt-process}.
+
+This is the mechanism, how Tramp implements @code{signal-process}.
 @end defvar
 
 @node Output from Processes
@@ -2232,9 +2258,8 @@ query flag of all processes is ignored.
 
   In addition to accessing and manipulating processes that are
 subprocesses of the current Emacs session, Emacs Lisp programs can
-also access other processes running on the same machine.  We call
-these @dfn{system processes}, to distinguish them from Emacs
-subprocesses.
+also access other processes.  We call these @dfn{system processes}, to
+distinguish them from Emacs subprocesses.
 
   Emacs provides several primitives for accessing system processes.
 Not all platforms support these primitives; on those which don't,
@@ -2246,6 +2271,9 @@ system.  Each process is identified by its @acronym{PID}, a numerical
 process ID that is assigned by the OS and distinguishes the process
 from all the other processes running on the same machine at the same
 time.
+
+If @code{default-directory} points to a remote host, processes of that
+host are returned.
 @end defun
 
 @defun process-attributes pid
@@ -2256,6 +2284,9 @@ attribute and @var{value} is the value of that attribute.  The various
 attribute @var{key}s that this function can return are listed below.
 Not all platforms support all of these attributes; if an attribute is
 not supported, its association will not appear in the returned alist.
+
+If @code{default-directory} points to a remote host, @var{pid} is
+regarded as process of that host.
 
 @table @code
 @item euid

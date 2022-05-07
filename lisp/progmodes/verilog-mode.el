@@ -3622,10 +3622,10 @@ is 0.
 Meaning of *single* declaration:
    E.g. In a module's port-list -
            module test(input clk, rst, x, output [1:0] y);
-   Here 'input clk, rst, x' is 1 *single* declaration statement,
-and 'output [1:0] y' is the other single declaration.  In the 1st single
-declaration, POINT is moved to start of 'clk'.  And in the 2nd declaration,
-POINT is moved to 'y'."
+   Here `input clk, rst, x' is 1 *single* declaration statement,
+and `output [1:0] y' is the other single declaration.  In the 1st single
+declaration, POINT is moved to start of `clk'.  And in the 2nd declaration,
+POINT is moved to `y'."
 
 
   (let (maxpoint old-point)

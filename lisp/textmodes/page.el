@@ -35,11 +35,18 @@ A page boundary is any line whose beginning matches the regexp
   (interactive "p")
   (or count (setq count 1))
   (while (and (> count 0) (not (eobp)))
-    ;; In case the page-delimiter matches the null string,
-    ;; don't find a match without moving.
-    (if (bolp) (forward-char 1))
-    (unless (re-search-forward page-delimiter nil t)
-      (goto-char (point-max)))
+    (if (and (looking-at page-delimiter)
+             (> (match-end 0) (point)))
+        ;; If we're standing at the page delimiter, then just skip to
+        ;; the end of it.  (But only if it's not a zero-length
+        ;; delimiter, because then we wouldn't have forward progress.)
+        (goto-char (match-end 0))
+      ;; In case the page-delimiter matches the null string,
+      ;; don't find a match without moving.
+      (when (bolp)
+        (forward-char 1))
+      (unless (re-search-forward page-delimiter nil t)
+        (goto-char (point-max))))
     (setq count (1- count)))
   (while (and (< count 0) (not (bobp)))
     ;; In case the page-delimiter matches the null string,

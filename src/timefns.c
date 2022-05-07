@@ -69,10 +69,9 @@ enum { TM_YEAR_BASE = 1900 };
 # define FASTER_TIMEFNS 1
 #endif
 
-/* Although current-time etc. generate list-format timestamps
-   (HI LO US PS), the plan is to change these functions to generate
-   frequency-based timestamps (TICKS . HZ) in a future release.
-   To try this now, compile with -DCURRENT_TIME_LIST=0.  */
+/* current-time-list defaults to t, typically generating (HI LO US PS)
+   timestamps.  To change the default to nil, generating (TICKS . HZ)
+   timestamps, compile with -DCURRENT_TIME_LIST=0.  */
 #ifndef CURRENT_TIME_LIST
 enum { CURRENT_TIME_LIST = true };
 #endif
@@ -342,7 +341,7 @@ init_timefns (void)
 }
 
 /* Report that a time value is out of range for Emacs.  */
-void
+static AVOID
 time_overflow (void)
 {
   error ("Specified time is not representable");
@@ -569,7 +568,7 @@ lisp_time_seconds (struct lisp_time t)
 Lisp_Object
 make_lisp_time (struct timespec t)
 {
-  if (CURRENT_TIME_LIST)
+  if (current_time_list)
     {
       time_t s = t.tv_sec;
       int ns = t.tv_nsec;
@@ -1172,13 +1171,13 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
     }
 
   /* Return an integer if the timestamp resolution is 1,
-     otherwise the (TICKS . HZ) form if !CURRENT_TIME_LIST or if
+     otherwise the (TICKS . HZ) form if !current_time_list or if
      either input used (TICKS . HZ) form or the result can't be expressed
      exactly in (HI LO US PS) form, otherwise the (HI LO US PS) form
      for backward compatibility.  */
   return (EQ (hz, make_fixnum (1))
 	  ? ticks
-	  : (!CURRENT_TIME_LIST
+	  : (!current_time_list
 	     || aform == TIMEFORM_TICKS_HZ
 	     || bform == TIMEFORM_TICKS_HZ
 	     || !trillion_factor (hz))
@@ -1219,16 +1218,16 @@ time_cmp (Lisp_Object a, Lisp_Object b)
       return da < db ? -1 : da != db;
     }
 
-  struct lisp_time ta = lisp_time_struct (a, 0);
-
   /* Compare nil to nil correctly, and handle other eq values quicker
      while we're at it.  Compare here rather than earlier, to handle
-     NaNs and check formats.  */
+     NaNs.  This means (time-equal-p X X) does not signal an error if
+     X is not a valid time value, but that's OK.  */
   if (EQ (a, b))
     return 0;
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
+  struct lisp_time ta = lisp_time_struct (a, 0);
   struct lisp_time tb = lisp_time_struct (b, 0);
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
@@ -1609,16 +1608,19 @@ check_tm_member (Lisp_Object obj, int offset)
 DEFUN ("encode-time", Fencode_time, Sencode_time, 1, MANY, 0,
        doc: /* Convert TIME to a timestamp.
 
-TIME is a list (SECOND MINUTE HOUR DAY MONTH YEAR IGNORED DST ZONE).
+TIME is a list (SECOND MINUTE HOUR DAY MONTH YEAR IGNORED DST ZONE)
 in the style of `decode-time', so that (encode-time (decode-time ...)) works.
 In this list, ZONE can be nil for Emacs local time, t for Universal
 Time, `wall' for system wall clock time, or a string as in the TZ
-environment variable.  It can also be a list (as from
+environment variable.  ZONE can also be a list (as from
 `current-time-zone') or an integer (as from `decode-time') applied
 without consideration for daylight saving time.  If ZONE specifies a
 time zone with daylight-saving transitions, DST is t for daylight
 saving time, nil for standard time, and -1 to cause the daylight
 saving flag to be guessed.
+
+TIME can also be a list (SECOND MINUTE HOUR DAY MONTH YEAR), which is
+equivalent to (SECOND MINUTE HOUR DAY MONTH YEAR nil -1 nil).
 
 As an obsolescent calling convention, if this function is called with
 6 or more arguments, the first 6 arguments are SECOND, MINUTE, HOUR,
@@ -1626,10 +1628,12 @@ DAY, MONTH, and YEAR, and specify the components of a decoded time.
 If there are more than 6 arguments the *last* argument is used as ZONE
 and any other extra arguments are ignored, so that (apply
 #\\='encode-time (decode-time ...)) works.  In this obsolescent
-convention, DST and ZONE default to -1 and nil respectively.
+convention, DST is -1 and ZONE defaults to nil.
 
-Years before 1970 are not guaranteed to work.  On some systems,
-year values as low as 1901 do work.
+The range of supported years is at least 1970 to the near future.
+Out-of-range values for SECOND through MONTH are brought into range
+via date arithmetic.  This can be tricky especially when combined with
+DST; see Info node `(elisp)Time Conversion' for details and caveats.
 
 usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -1643,7 +1647,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   if (nargs == 1)
     {
       Lisp_Object tail = a;
-      for (int i = 0; i < 9; i++, tail = XCDR (tail))
+      for (int i = 0; i < 6; i++, tail = XCDR (tail))
 	CHECK_CONS (tail);
       secarg = XCAR (a); a = XCDR (a);
       minarg = XCAR (a); a = XCDR (a);
@@ -1651,11 +1655,17 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
       mdayarg = XCAR (a); a = XCDR (a);
       monarg = XCAR (a); a = XCDR (a);
       yeararg = XCAR (a); a = XCDR (a);
-      a = XCDR (a);
-      Lisp_Object dstflag = XCAR (a); a = XCDR (a);
-      zone = XCAR (a);
-      if (SYMBOLP (dstflag) && !FIXNUMP (zone) && !CONSP (zone))
-	tm.tm_isdst = !NILP (dstflag);
+      if (! NILP (a))
+	{
+	  CHECK_CONS (a);
+	  a = XCDR (a);
+	  CHECK_CONS (a);
+	  Lisp_Object dstflag = XCAR (a); a = XCDR (a);
+	  CHECK_CONS (a);
+	  zone = XCAR (a);
+	  if (SYMBOLP (dstflag) && !FIXNUMP (zone) && !CONSP (zone))
+	    tm.tm_isdst = !NILP (dstflag);
+	}
     }
   else if (nargs < 6)
     xsignal2 (Qwrong_number_of_arguments, Qencode_time, make_fixnum (nargs));
@@ -1706,7 +1716,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
     time_error (mktime_errno);
 
   if (EQ (hz, make_fixnum (1)))
-    return (CURRENT_TIME_LIST
+    return (current_time_list
 	    ? list2 (hi_time (value), lo_time (value))
 	    : INT_TO_INTEGER (value));
   else
@@ -1737,7 +1747,7 @@ bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
   struct lisp_time t;
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
   if (NILP (form))
-    form = CURRENT_TIME_LIST ? Qlist : Qt;
+    form = current_time_list ? Qlist : Qt;
   if (EQ (form, Qlist))
     return ticks_hz_list4 (t.ticks, t.hz);
   if (EQ (form, Qinteger))
@@ -1752,19 +1762,31 @@ bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
        doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
-The time is returned as a list of integers (HIGH LOW USEC PSEC).
-HIGH has the most significant bits of the seconds, while LOW has the
-least significant 16 bits.  USEC and PSEC are the microsecond and
-picosecond counts.
+If the variable `current-time-list' is nil, the time is returned as a
+pair of integers (TICKS . HZ), where TICKS counts clock ticks and HZ
+is the clock ticks per second.  Otherwise, the time is returned as a
+list of integers (HIGH LOW USEC PSEC) where HIGH has the most
+significant bits of the seconds, LOW has the least significant 16
+bits, and USEC and PSEC are the microsecond and picosecond counts.
 
-In a future Emacs version, the format of the returned timestamp is
-planned to change.  Use `time-convert' if you need a particular
-timestamp form; for example, (time-convert nil \\='integer) returns
-the current time in seconds.  */)
+You can use `time-convert' to get a particular timestamp form
+regardless of the value of `current-time-list'.  */)
   (void)
 {
   return make_lisp_time (current_timespec ());
 }
+
+#ifdef CLOCKS_PER_SEC
+DEFUN ("current-cpu-time", Fcurrent_cpu_time, Scurrent_cpu_time, 0, 0, 0,
+       doc: /* Return the current CPU time along with its resolution.
+The return value is a pair (CPU-TICKS . TICKS-PER-SEC).
+The CPU-TICKS counter can wrap around, so values cannot be meaningfully
+compared if too much time has passed between them.  */)
+  (void)
+{
+  return Fcons (make_int (clock ()), make_int (CLOCKS_PER_SEC));
+}
+#endif
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string,
        0, 2, 0,
@@ -2004,7 +2026,23 @@ syms_of_timefns (void)
 
   DEFSYM (Qencode_time, "encode-time");
 
+  DEFVAR_BOOL ("current-time-list", current_time_list,
+	       doc: /* Whether `current-time' should return list or (TICKS . HZ) form.
+
+This boolean variable is a transition aid.  If t, `current-time' and
+related functions return timestamps in list form, typically
+\(HIGH LOW USEC PSEC); otherwise, they use (TICKS . HZ) form.
+Currently this variable defaults to t, for behavior compatible with
+previous Emacs versions.  Developers are encouraged to test
+timestamp-related code with this variable set to nil, as it will
+default to nil in a future Emacs version, and will be removed in some
+version after that.  */);
+  current_time_list = CURRENT_TIME_LIST;
+
   defsubr (&Scurrent_time);
+#ifdef CLOCKS_PER_SEC
+  defsubr (&Scurrent_cpu_time);
+#endif
   defsubr (&Stime_convert);
   defsubr (&Stime_add);
   defsubr (&Stime_subtract);

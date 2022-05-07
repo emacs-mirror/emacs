@@ -177,6 +177,10 @@ Also add the value to the front of the list in the variable `values'."
     (let ((pt (point)))
       (save-excursion
         (forward-sexp -1)
+        ;; Make `pp-eval-last-sexp' work the same way `eval-last-sexp'
+        ;; does.
+        (when (looking-at ",@?")
+          (goto-char (match-end 0)))
         (read
          ;; If first line is commented, ignore all leading comments:
          (if (save-excursion (beginning-of-line) (looking-at-p "[ \t]*;"))

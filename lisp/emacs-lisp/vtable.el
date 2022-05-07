@@ -28,6 +28,12 @@
 (require 'text-property-search)
 (require 'mule-util)
 
+(defface vtable
+  '((t :inherit variable-pitch))
+  "Face used (by default) for vtables."
+  :version "29.1"
+  :group 'faces)
+
 (cl-defstruct vtable-column
   "A vtable column."
   name
@@ -55,10 +61,16 @@
    (actions :initarg :actions :accessor vtable-actions)
    (keymap :initarg :keymap :accessor vtable-keymap)
    (separator-width :initarg :separator-width :accessor vtable-separator-width)
+   (divider :initarg :divider :accessor vtable-divider :initform nil)
    (sort-by :initarg :sort-by :accessor vtable-sort-by)
    (ellipsis :initarg :ellipsis :accessor vtable-ellipsis)
-   (-cache :initform (make-hash-table :test #'equal)))
-  "A object to hold the data for a table.")
+   (column-colors :initarg :column-colors :accessor vtable-column-colors)
+   (row-colors :initarg :row-colors :accessor vtable-row-colors)
+   (-cached-colors :initform nil)
+   (-cache :initform (make-hash-table :test #'equal))
+   (-cached-keymap :initform nil)
+   (-has-column-spec :initform nil))
+  "An object to hold the data for a table.")
 
 (defvar-keymap vtable-map
   "S" #'vtable-sort-by-current-column
@@ -78,53 +90,84 @@
                             formatter
                             displayer
                             (use-header-line t)
-                            (face 'variable-pitch)
+                            (face 'vtable)
                             actions keymap
                             (separator-width 1)
+                            divider
+                            divider-width
                             sort-by
                             (ellipsis t)
-                            (insert t))
+                            (insert t)
+                            row-colors
+                            column-colors)
   "Create and insert a vtable at point.
 The vtable object is returned.  If INSERT is nil, the table won't
-be inserted."
+be inserted.
+
+See info node `(vtable)Top' for vtable documentation."
   (when objects-function
     (setq objects (funcall objects-function)))
-  ;; Auto-generate the columns.
-  (unless columns
-    (unless objects
-      (error "Can't auto-generate columns; no objects"))
-    (setf columns (make-list (length (car objects)) "")))
-  (setq columns (mapcar (lambda (column)
-                          (cond
-                           ;; We just have the name (as a string).
-                           ((stringp column)
-                            (make-vtable-column :name column))
-                           ;; A plist of keywords/values.
-                           ((listp column)
-                            (apply #'make-vtable-column column))
-                           ;; A full `vtable-column' object.
-                           (t
-                            column)))
-                        columns))
   ;; We'll be altering the list, so create a copy.
   (setq objects (copy-sequence objects))
   (let ((table
-         (make-instance 'vtable
-                        :columns columns
-                        :objects objects
-                        :objects-function objects-function
-                        :getter getter
-                        :formatter formatter
-                        :displayer displayer
-                        :use-header-line use-header-line
-                        :face face
-                        :actions actions
-                        :keymap keymap
-                        :separator-width separator-width
-                        :sort-by sort-by
-                        :ellipsis ellipsis)))
+         (make-instance
+          'vtable
+          :objects objects
+          :objects-function objects-function
+          :getter getter
+          :formatter formatter
+          :displayer displayer
+          :use-header-line use-header-line
+          :face face
+          :actions actions
+          :keymap keymap
+          :separator-width separator-width
+          :sort-by sort-by
+          :row-colors row-colors
+          :column-colors column-colors
+          :ellipsis ellipsis)))
+    ;; Store whether the user has specified columns or not.
+    (setf (slot-value table '-has-column-spec) (not (not columns)))
+    ;; Auto-generate the columns.
+    (unless columns
+      (unless objects
+        (error "Can't auto-generate columns; no objects"))
+      (setq columns (make-list (length (car objects)) "")))
+    (setf (vtable-columns table)
+          (mapcar (lambda (column)
+                    (cond
+                     ;; We just have the name (as a string).
+                     ((stringp column)
+                      (make-vtable-column :name column))
+                     ;; A plist of keywords/values.
+                     ((listp column)
+                      (apply #'make-vtable-column column))
+                     ;; A full `vtable-column' object.
+                     (t
+                      column)))
+                  columns))
     ;; Compute missing column data.
     (setf (vtable-columns table) (vtable--compute-columns table))
+    ;; Compute the colors.
+    (when (or row-colors column-colors)
+      (setf (slot-value table '-cached-colors)
+            (vtable--compute-colors row-colors column-colors)))
+    ;; Compute the divider.
+    (when (or divider divider-width)
+      (setf (vtable-divider table)
+            (propertize
+             (or (copy-sequence divider)
+                 (propertize
+                  " " 'display
+                  (list 'space :width
+                        (list (vtable--compute-width table divider-width)))))
+             'mouse-face 'highlight
+             'keymap
+             (define-keymap
+               "<drag-mouse-1>" #'vtable--drag-resize-column
+               "<down-mouse-1>" #'ignore))))
+    ;; Compute the keymap.
+    (setf (slot-value table '-cached-keymap) (vtable--make-keymap table))
     (unless sort-by
       (seq-do-indexed (lambda (column index)
                         (when (vtable-column-primary column)
@@ -134,6 +177,52 @@ be inserted."
     (when insert
       (vtable-insert table))
     table))
+
+(defun vtable--compute-colors (row-colors column-colors)
+  (cond
+   ((null column-colors)
+    (mapcar #'vtable--make-color-face row-colors))
+   ((null row-colors)
+    (mapcar #'vtable--make-color-face column-colors))
+   (t
+    (cl-loop for row in row-colors
+             collect (cl-loop for column in column-colors
+                              collect (vtable--face-blend
+                                       (vtable--make-color-face row)
+                                       (vtable--make-color-face column)))))))
+
+(defun vtable--make-color-face (object)
+  (if (stringp object)
+      (list :background object)
+    object))
+
+(defun vtable--face-blend (face1 face2)
+  (let ((foreground (vtable--face-color face1 face2 #'face-foreground
+                                        :foreground))
+        (background (vtable--face-color face1 face2 #'face-background
+                                        :background)))
+    `(,@(and foreground (list :foreground foreground))
+      ,@(and background (list :background background)))))
+
+(defun vtable--face-color (face1 face2 accessor slot)
+  (let ((col1 (if (facep face1)
+                  (funcall accessor face1)
+                (plist-get face1 slot)))
+        (col2 (if (facep face2)
+                  (funcall accessor face2)
+                (plist-get face2 slot))))
+    (if (and col1 col2)
+        (vtable--color-blend col1 col2)
+      (or col1 col2))))
+
+;;; FIXME: This is probably not the right way to blend two colors, is
+;;; it?
+(defun vtable--color-blend (color1 color2)
+  (cl-destructuring-bind (r g b)
+      (mapcar (lambda (n) (* (/ n 2) 255.0))
+              (cl-mapcar #'+ (color-name-to-rgb color1)
+                         (color-name-to-rgb color2)))
+    (format "#%02X%02X%02X" r g b)))
 
 ;;; Interface utility functions.
 
@@ -210,7 +299,8 @@ If it can't be found, return nil and don't move point."
         (error "Can't find the old object"))
       (setcar (cdr objects) object))
     ;; Then update the cache...
-    (let ((line (assq old-object (car (vtable--cache table)))))
+    (let* ((line-number (seq-position old-object (car (vtable--cache table))))
+           (line (elt (car (vtable--cache table)) line-number)))
       (unless line
         (error "Can't find cached object"))
       (setcar line object)
@@ -221,7 +311,8 @@ If it can't be found, return nil and don't move point."
         (let ((keymap (get-text-property (point) 'keymap))
               (start (point)))
           (delete-line)
-          (vtable--insert-line table line (nth 1 (vtable--cache table))
+          (vtable--insert-line table line line-number
+                               (nth 1 (vtable--cache table))
                                (vtable--spacer table))
           (add-text-properties start (point) (list 'keymap keymap
                                                    'vtable table))))
@@ -276,7 +367,10 @@ This also updates the displayed table."
           (unless (vtable-goto-object after-object)
             (vtable-end-of-table))))
       (let ((start (point)))
-        (vtable--insert-line table line (nth 1 cache) (vtable--spacer table))
+        ;; FIXME: We have to adjust colors in lines below this if we
+        ;; have :row-colors.
+        (vtable--insert-line table line 0
+                             (nth 1 cache) (vtable--spacer table))
         (add-text-properties start (point) (list 'keymap keymap
                                                  'vtable table)))
       ;; We may have inserted a non-numerical value into a previously
@@ -333,6 +427,16 @@ This also updates the displayed table."
 (defun vtable--spacer (table)
   (vtable--compute-width table (vtable-separator-width table)))
 
+(defun vtable--recompute-cache (table)
+  (let* ((data (vtable--compute-cache table))
+         (widths (vtable--compute-widths table data)))
+    (setf (gethash (vtable--cache-key) (slot-value table '-cache))
+          (list data widths))))
+
+(defun vtable--ensure-cache (table)
+  (or (vtable--cache table)
+      (vtable--recompute-cache table)))
+
 (defun vtable-insert (table)
   (let* ((spacer (vtable--spacer table))
          (start (point))
@@ -341,43 +445,48 @@ This also updates the displayed table."
                                    'face (vtable-face table))
                      ""))
          (ellipsis-width (string-pixel-width ellipsis))
-         data widths)
-    ;; We maintain a cache per screen/window width, so that we render
-    ;; correctly if Emacs is open on two different screens (or the
-    ;; user resizes the frame).
-    (if-let ((cache (vtable--cache table)))
-        (setq data (nth 0 cache)
-              widths (nth 1 cache))
-      (setq data (vtable--compute-cache table)
-            widths (vtable--compute-widths table data))
-      (setf (gethash (vtable--cache-key) (slot-value table '-cache))
-            (list data widths)))
-    (if (vtable-use-header-line table)
-        (vtable--set-header-line table widths spacer)
-      ;; Insert the header line directly into the buffer, and put a
-      ;; keymap to be able to sort the columns there (by clicking on
-      ;; them).
-      (vtable--insert-header-line table widths spacer)
-      (add-text-properties start (point)
-                           (list 'keymap vtable-header-line-map
-                                 'rear-nonsticky t
-                                 'vtable table))
-      (setq start (point)))
+         ;; We maintain a cache per screen/window width, so that we render
+         ;; correctly if Emacs is open on two different screens (or the
+         ;; user resizes the frame).
+         (widths (nth 1 (vtable--ensure-cache table))))
+    ;; Don't insert any header or header line if the user hasn't
+    ;; specified the columns.
+    (when (slot-value table '-has-column-spec)
+      (if (vtable-use-header-line table)
+          (vtable--set-header-line table widths spacer)
+        ;; Insert the header line directly into the buffer, and put a
+        ;; keymap to be able to sort the columns there (by clicking on
+        ;; them).
+        (vtable--insert-header-line table widths spacer)
+        (add-text-properties start (point)
+                             (list 'keymap vtable-header-line-map
+                                   'rear-nonsticky t
+                                   'vtable table))
+        (setq start (point))))
     (vtable--sort table)
     ;; Insert the data.
-    (dolist (line (car (vtable--cache table)))
-      (vtable--insert-line table line widths spacer
-                           ellipsis ellipsis-width))
+    (let ((line-number 0))
+      (dolist (line (car (vtable--cache table)))
+        (vtable--insert-line table line line-number widths spacer
+                             ellipsis ellipsis-width)
+        (setq line-number (1+ line-number))))
     (add-text-properties start (point)
-                         (list 'keymap (vtable--make-keymap table)
-                               'rear-nonsticky t
+                         (list 'rear-nonsticky t
                                'vtable table))
     (goto-char start)))
 
-(defun vtable--insert-line (table line widths spacer
+(defun vtable--insert-line (table line line-number widths spacer
                                   &optional ellipsis ellipsis-width)
   (let ((start (point))
-        (columns (vtable-columns table)))
+        (columns (vtable-columns table))
+        (column-colors
+         (and (vtable-column-colors table)
+              (if (vtable-row-colors table)
+                  (elt (slot-value table '-cached-colors)
+                       (mod line-number (length (vtable-row-colors table))))
+                (slot-value table '-cached-colors))))
+        (divider (vtable-divider table))
+        (keymap (slot-value table '-cached-keymap)))
     (seq-do-indexed
      (lambda (elem index)
        (let ((value (nth 0 elem))
@@ -418,30 +527,47 @@ This also updates the displayed table."
                         value (- (elt widths index) ellipsis-width))
                        ellipsis)
                     value))))
-               (start (point)))
+               (start (point))
+               ;; Don't insert the separator after the final column.
+               (last (= index (- (length line) 2))))
            (if (eq (vtable-column-align column) 'left)
-               (insert displayed
-                       (propertize
-                        " " 'display
-                        (list 'space
-                              :width (list
-                                      (+ (- (elt widths index)
-                                            (string-pixel-width displayed))
-                                         spacer)))))
+               (progn
+                 (insert displayed)
+                 (insert (propertize
+                          " " 'display
+                          (list 'space
+                                :width (list
+                                        (+ (- (elt widths index)
+                                              (string-pixel-width displayed))
+                                           (if last 0 spacer)))))))
              ;; Align to the right.
              (insert (propertize " " 'display
                                  (list 'space
                                        :width (list (- (elt widths index)
                                                        (string-pixel-width
                                                         displayed)))))
-                     displayed
-                     (propertize " " 'display
-                                 (list 'space
-                                       :width (list spacer)))))
-           (put-text-property start (point) 'vtable-column index))))
+                     displayed)
+             (unless last
+               (insert (propertize " " 'display
+                                   (list 'space
+                                         :width (list spacer))))))
+           (put-text-property start (point) 'vtable-column index)
+           (put-text-property start (point) 'keymap keymap)
+           (when column-colors
+             (add-face-text-property
+              start (point)
+              (elt column-colors (mod index (length column-colors)))))
+           (when divider
+             (insert divider)
+             (setq start (point))))))
      (cdr line))
     (insert "\n")
-    (put-text-property start (point) 'vtable-object (car line))))
+    (put-text-property start (point) 'vtable-object (car line))
+    (unless column-colors
+      (when-let ((row-colors (slot-value table '-cached-colors)))
+        (add-face-text-property
+         start (point)
+         (elt row-colors (mod line-number (length row-colors))))))))
 
 (defun vtable--cache-key ()
   (cons (frame-terminal) (window-width)))
@@ -456,22 +582,26 @@ This also updates the displayed table."
   (pcase-dolist (`(,index . ,direction) (vtable-sort-by table))
     (let ((cache (vtable--cache table))
           (numerical (vtable-column--numerical
-                      (elt (vtable-columns table) index))))
+                      (elt (vtable-columns table) index)))
+          (numcomp (if (eq direction 'descend)
+                       #'> #'<))
+          (stringcomp (if (eq direction 'descend)
+                          #'string> #'string<)))
       (setcar cache
               (sort (car cache)
                     (lambda (e1 e2)
                       (let ((c1 (elt e1 (1+ index)))
                             (c2 (elt e2 (1+ index))))
                         (if numerical
-                            (< (car c1) (car c2))
-                          (string< (if (stringp (car c1))
-                                       (car c1)
-                                     (format "%s" (car c1)))
-                                   (if (stringp (car c2))
-                                       (car c2)
-                                     (format "%s" (car c2)))))))))
-      (when (eq direction 'descend)
-        (setcar cache (nreverse (car cache)))))))
+                            (funcall numcomp (car c1) (car c2))
+                          (funcall
+                           stringcomp
+                           (if (stringp (car c1))
+                               (car c1)
+                             (format "%s" (car c1)))
+                           (if (stringp (car c2))
+                               (car c2)
+                             (format "%s" (car c2))))))))))))
 
 (defun vtable--indicator (table index)
   (let ((order (car (last (vtable-sort-by table)))))
@@ -489,34 +619,111 @@ This also updates the displayed table."
 
 (defun vtable--insert-header-line (table widths spacer)
   ;; Insert the header directly into the buffer.
-  (let* ((start (point)))
+  (let ((start (point))
+        (divider (vtable-divider table))
+        (cmap (define-keymap
+                "<header-line> <drag-mouse-1>" #'vtable--drag-resize-column
+                "<header-line> <down-mouse-1>" #'ignore))
+        (dmap (define-keymap
+                "<header-line> <drag-mouse-1>"
+                (lambda (e)
+                  (interactive "e")
+                  (vtable--drag-resize-column e t))
+                "<header-line> <down-mouse-1>" #'ignore)))
     (seq-do-indexed
      (lambda (column index)
        (let* ((name (propertize
                      (vtable-column-name column)
-                     'face (list 'header-line (vtable-face table))))
+                     'face (list 'header-line (vtable-face table))
+                     'mouse-face 'header-line-highlight
+                     'keymap cmap))
               (start (point))
               (indicator (vtable--indicator table index))
               (indicator-width (string-pixel-width indicator))
+              (last (= index (1- (length (vtable-columns table)))))
               displayed)
-         (insert
-          (setq displayed
-                (concat
-                 (if (> (string-pixel-width name)
-                        (- (elt widths index) indicator-width))
-                     (vtable--limit-string
-                      name (- (elt widths index) indicator-width))
-                   name)
-                 indicator))
-          (propertize " " 'display
-                      (list 'space :width
-                            (list (+ (- (elt widths index)
-                                        (string-pixel-width displayed))
-                                     spacer)))))
+         (setq displayed
+               (if (> (string-pixel-width name)
+                      (- (elt widths index) indicator-width))
+                   (vtable--limit-string
+                    name (- (elt widths index) indicator-width))
+                 name))
+         (let ((fill-width
+                (+ (- (elt widths index)
+                      (string-pixel-width displayed)
+                      indicator-width
+                      (vtable-separator-width table)
+                      ;; We want the indicator to not be quite flush
+                      ;; right.
+                      (/ (vtable--char-width table) 2.0))
+                   (if last 0 spacer))))
+           (if (or (not last)
+                   (zerop indicator-width)
+                   (< (seq-reduce #'+ widths 0) (window-width nil t)))
+               ;; Normal case.
+               (insert
+                displayed
+                (propertize " " 'display
+                            (list 'space :width (list fill-width)))
+                indicator)
+             ;; This is the final column, and we have a sorting
+             ;; indicator, and the table is too wide for the window.
+             (let* ((pre-indicator (string-pixel-width
+                                    (buffer-substring (point-min) (point))))
+                    (pre-fill
+                     (- (window-width nil t)
+                        pre-indicator
+                        (string-pixel-width displayed))))
+               (insert
+                displayed
+                (propertize " " 'display
+                            (list 'space :width (list pre-fill)))
+                indicator
+                (propertize " " 'display
+                            (list 'space :width
+                                  (list (- fill-width pre-fill))))))))
+         (when (and divider (not last))
+           (insert (propertize divider 'keymap dmap)))
+         (insert (propertize
+                  " " 'display
+                  (list 'space :width (list
+                                       (/ (vtable--char-width table) 2.0)))))
          (put-text-property start (point) 'vtable-column index)))
      (vtable-columns table))
     (insert "\n")
     (add-face-text-property start (point) 'header-line)))
+
+(defun vtable--drag-resize-column (e &optional next)
+  "Resize the column by dragging.
+If NEXT, do the next column."
+  (interactive "e")
+  (let* ((pos-start (event-start e))
+	 (obj (posn-object pos-start)))
+    (with-current-buffer (window-buffer (posn-window pos-start))
+      (let ((column
+             ;; In the header line we have a text property on the
+             ;; divider.
+             (or (get-text-property (if obj (cdr obj)
+                                      (posn-point pos-start))
+			            'vtable-column
+			            (car obj))
+                 ;; For reasons of efficiency, we don't have that in
+                 ;; the buffer itself, so find the column.
+                 (save-excursion
+                   (goto-char (posn-point pos-start))
+                   (1+
+                    (get-text-property
+                     (prop-match-beginning
+                      (text-property-search-backward 'vtable-column))
+                     'vtable-column)))))
+            (start-x (car (posn-x-y pos-start)))
+            (end-x (car (posn-x-y (event-end e)))))
+        (when (or (> column 0) next)
+          (vtable--alter-column-width (vtable-current-table)
+                                      (if next
+                                          column
+                                        (1- column))
+                                      (- end-x start-x)))))))
 
 (defun vtable--recompute-numerical (table line)
   "Recompute numericalness of columns if necessary."
@@ -661,7 +868,7 @@ This also updates the displayed table."
       (vtable-goto-column column))))
 
 (defun vtable--widths (table)
-  (nth 1 (vtable--cache table)))
+  (nth 1 (vtable--ensure-cache table)))
 
 ;;; Commands.
 
@@ -673,25 +880,36 @@ This also updates the displayed table."
   "Minor mode for buffers with vtables with headers."
   :keymap vtable-header-mode-map)
 
-(defun vtable-narrow-current-column ()
-  "Narrow the current column."
-  (interactive)
+(defun vtable-narrow-current-column (&optional n)
+  "Narrow the current column by N characters.
+If N isn't given, N defaults to 1.
+
+Interactively, N is the prefix argument."
+  (interactive "p")
   (let* ((table (vtable-current-table))
-         (column (vtable-current-column))
-         (widths (vtable--widths table)))
+         (column (vtable-current-column)))
+    (unless column
+      (user-error "No column under point"))
+    (vtable--alter-column-width table column
+                                (- (* (vtable--char-width table) (or n 1))))))
+
+(defun vtable--alter-column-width (table column delta)
+  (let ((widths (vtable--widths table)))
     (setf (aref widths column)
           (max (* (vtable--char-width table) 2)
-               (- (aref widths column) (vtable--char-width table))))
+               (+ (aref widths column) delta)))
+    ;; Store the width so it'll be respected on a revert.
+    (setf (vtable-column-width (elt (vtable-columns table) column))
+          (format "%dpx" (aref widths column)))
     (vtable-revert)))
 
-(defun vtable-widen-current-column ()
-  "Widen the current column."
-  (interactive)
-  (let* ((table (vtable-current-table))
-         (column (vtable-current-column))
-         (widths (nth 1 (vtable--cache table))))
-    (cl-incf (aref widths column) (vtable--char-width table))
-    (vtable-revert)))
+(defun vtable-widen-current-column (&optional n)
+  "Widen the current column by N characters.
+If N isn't given, N defaults to 1.
+
+Interactively, N is the prefix argument."
+  (interactive "p")
+  (vtable-narrow-current-column (- n)))
 
 (defun vtable-previous-column ()
   "Go to the previous column."

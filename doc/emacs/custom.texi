@@ -1232,6 +1232,28 @@ Manual}.
 These four keywords are not really variables; setting them in any
 other context has no special meaning.
 
+  If you're editing a file across Emacs versions, and a new mode has
+been introduced to handle a file in a newer Emacs version, you can use
+several @code{mode} entries to use the new mode (called
+@code{my-new-mode}) in the new Emacs, and fall back to the old mode
+(called @code{my-old-mode}) in older Emacs versions.  If you're
+enabling the modes in the first line of the file, can say:
+
+@example
+-*- mode: my-old; mode: my-new -*-
+@end example
+
+  Emacs will use the final defined mode it finds, so in older Emacs
+versions it will ignore @code{my-new-mode}, while in Emacs versions
+where @code{my-new-mode} is defined, it'll ignore @code{my-old-mode}.
+Similarly, in a local variable block at the end of the file:
+
+@example
+Local variables:
+mode: my-old
+mode: my-new
+@end example
+
   Do not use the @code{mode} keyword for minor modes.  To enable or
 disable a minor mode in a local variables list, use the @code{eval}
 keyword with a Lisp expression that runs the mode command

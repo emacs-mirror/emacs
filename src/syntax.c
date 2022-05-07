@@ -1074,7 +1074,7 @@ unsigned char const syntax_spec_code[0400] =
 
 /* Indexed by syntax code, give the letter that describes it.  */
 
-char const syntax_code_spec[16] =
+static char const syntax_code_spec[16] =
   {
     ' ', '.', 'w', '_', '(', ')', '\'', '\"', '$', '\\', '/', '<', '>', '@',
     '!', '|'

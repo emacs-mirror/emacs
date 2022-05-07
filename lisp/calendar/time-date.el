@@ -287,17 +287,23 @@ use.  \"%,1s\" means \"use one decimal\".
 
 The \"%z\" specifier does not print anything.  When it is used, specifiers
 must be given in order of decreasing size.  To the left of \"%z\", nothing
-is output until the first non-zero unit is encountered."
+is output until the first non-zero unit is encountered.
+
+The \"%x\" specifier does not print anything.  When it is used,
+specifiers must be given in order of decreasing size.  To the
+right of \"%x\", trailing zero units are not output."
   (let ((start 0)
         (units '(("y" "year"   31536000)
                  ("d" "day"       86400)
                  ("h" "hour"       3600)
                  ("m" "minute"       60)
                  ("s" "second"        1)
-                 ("z")))
+                 ("z")
+                 ("x")))
         (case-fold-search t)
-        spec match usedunits zeroflag larger prev name unit num zeropos
-        fraction)
+        spec match usedunits zeroflag larger prev name unit num
+        leading-zeropos trailing-zeropos fraction
+        chop-leading chop-trailing)
     (while (string-match "%\\.?[0-9]*\\(,[0-9]\\)?\\(.\\)" string start)
       (setq start (match-end 0)
             spec (match-string 2 string))
@@ -306,15 +312,16 @@ is output until the first non-zero unit is encountered."
             (error "Bad format specifier: `%s'" spec))
         (if (assoc (downcase spec) usedunits)
             (error "Multiple instances of specifier: `%s'" spec))
-        (if (string-equal (car match) "z")
+        (if (or (string-equal (car match) "z")
+                (string-equal (car match) "x"))
             (setq zeroflag t)
           (unless larger
             (setq unit (nth 2 match)
                   larger (and prev (> unit prev))
                   prev unit)))
         (push match usedunits)))
-    (and zeroflag larger
-         (error "Units are not in decreasing order of size"))
+    (when (and zeroflag larger)
+      (error "Units are not in decreasing order of size"))
     (unless (numberp seconds)
       (setq seconds (float-time seconds)))
     (setq fraction (mod seconds 1)
@@ -326,18 +333,28 @@ is output until the first non-zero unit is encountered."
       (when (string-match
              (format "%%\\(\\.?[0-9]+\\)?\\(,[0-9]+\\)?\\(%s\\)" spec)
              string)
-        (if (string-equal spec "z")     ; must be last in units
-            (setq string
-                  (replace-regexp-in-string
-                   "%z" ""
-                   (substring string (min (or zeropos (match-end 0))
-                                          (match-beginning 0)))))
+        (cond
+         ((string-equal spec "z")
+          (setq chop-leading (and leading-zeropos
+                                  (min leading-zeropos (match-beginning 0)))))
+         ((string-equal spec "x")
+          (setq chop-trailing t))
+         (t
           ;; Cf article-make-date-line in gnus-art.
           (setq num (floor seconds unit)
                 seconds (- seconds (* num unit)))
-          ;; Start position of the first non-zero unit.
-          (or zeropos
-              (setq zeropos (unless (zerop num) (match-beginning 0))))
+          (let ((is-zero (zerop (if (= unit 1)
+                                    (+ num fraction)
+                                  num))))
+            ;; Start position of the first non-zero unit.
+            (when (and (not leading-zeropos)
+                       (not is-zero))
+              (setq leading-zeropos (match-beginning 0)))
+            (unless is-zero
+              (setq trailing-zeropos nil))
+            (when (and (not trailing-zeropos)
+                       is-zero)
+              (setq trailing-zeropos (match-beginning 0))))
           (setq string
                 (replace-match
                  (format (if (match-string 2 string)
@@ -360,7 +377,17 @@ is output until the first non-zero unit is encountered."
                            (format " %s%s" name
                                    (if (= num 1) "" "s"))))
                  t t string))))))
-  (string-replace "%%" "%" string))
+    (let ((pre string))
+      (when (and chop-trailing trailing-zeropos)
+        (setq string (substring string 0 trailing-zeropos)))
+      (when chop-leading
+        (setq string (substring string chop-leading)))
+      ;; If we ended up removing everything, return the formatted
+      ;; string in full.
+      (when (equal string "")
+        (setq string pre)))
+    (setq string (replace-regexp-in-string "%[zx]" "" string)))
+  (string-trim (string-replace "%%" "%" string)))
 
 (defvar seconds-to-string
   (list (list 1 "ms" 0.001)

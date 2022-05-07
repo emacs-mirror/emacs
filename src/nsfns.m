@@ -891,7 +891,10 @@ static Lisp_Object
 ns_appkit_version_str (void)
 {
   NSString *tmp;
+  Lisp_Object string;
+  NSAutoreleasePool *autorelease;
 
+  autorelease = [[NSAutoreleasePool alloc] init];
 #ifdef NS_IMPL_GNUSTEP
   tmp = [NSString stringWithFormat:@"gnustep-gui-%s", Xstr(GNUSTEP_GUI_VERSION)];
 #elif defined (NS_IMPL_COCOA)
@@ -901,7 +904,10 @@ ns_appkit_version_str (void)
 #else
   tmp = [NSString initWithUTF8String:@"ns-unknown"];
 #endif
-  return [tmp lispString];
+  string = [tmp lispString];
+  [autorelease release];
+
+  return string;
 }
 
 
@@ -1587,26 +1593,22 @@ Some window managers may refuse to restack windows.  */)
     }
 }
 
-DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
-       0, 1, "",
-       doc: /* Pop up the font panel.  */)
-     (Lisp_Object frame)
+DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
+       doc: /* Read a font using a Nextstep dialog.
+Return a font specification describing the selected font.
+
+FRAME is the frame on which to pop up the font chooser.  If omitted or
+nil, it defaults to the selected frame. */)
+  (Lisp_Object frame, Lisp_Object ignored)
 {
   struct frame *f = decode_window_system_frame (frame);
-  id fm = [NSFontManager sharedFontManager];
-  struct font *font = f->output_data.ns->font;
-  NSFont *nsfont;
-#ifdef NS_IMPL_GNUSTEP
-  nsfont = ((struct nsfont_info *)font)->nsfont;
-#endif
-#ifdef NS_IMPL_COCOA
-  nsfont = (NSFont *) macfont_get_nsctfont (font);
-#endif
-  [fm setSelectedFont: nsfont isMultiple: NO];
-  [fm orderFrontFontPanel: NSApp];
-  return Qnil;
-}
+  Lisp_Object font = [FRAME_NS_VIEW (f) showFontPanel];
 
+  if (NILP (font))
+    quit ();
+
+  return font;
+}
 
 DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
        0, 1, "",
@@ -1675,15 +1677,17 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   BOOL isSave = NILP (mustmatch) && NILP (dir_only_p);
   id panel;
   Lisp_Object fname = Qnil;
-
-  NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
-    [NSString stringWithLispString:prompt];
-  NSString *dirS = NILP (dir) || !STRINGP (dir) ?
-    [NSString stringWithLispString:BVAR (current_buffer, directory)] :
-    [NSString stringWithLispString:dir];
-  NSString *initS = NILP (init) || !STRINGP (init) ? nil :
-    [NSString stringWithLispString:init];
+  NSString *promptS, *dirS, *initS, *str;
   NSEvent *nxev;
+
+  promptS = (NILP (prompt) || !STRINGP (prompt)
+	     ? nil : [NSString stringWithLispString: prompt]);
+  dirS = (NILP (dir) || !STRINGP (dir)
+	  ? [NSString stringWithLispString:
+			ENCODE_FILE (BVAR (current_buffer, directory))] :
+	  [NSString stringWithLispString: ENCODE_FILE (dir)]);
+  initS = (NILP (init) || !STRINGP (init)
+	   ? nil : [NSString stringWithLispString: init]);
 
   check_window_system (NULL);
 
@@ -1756,9 +1760,15 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
 
   if (ns_fd_data.ret == MODAL_OK_RESPONSE)
     {
-      NSString *str = ns_filename_from_panel (panel);
-      if (! str) str = ns_directory_from_panel (panel);
-      if (str) fname = [str lispString];
+      str = ns_filename_from_panel (panel);
+
+      if (!str)
+	str = ns_directory_from_panel (panel);
+      if (str)
+	fname = [str lispString];
+
+      if (!NILP (fname))
+	fname = DECODE_FILE (fname);
     }
 
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
@@ -2103,6 +2113,7 @@ The optional argument FRAME is currently ignored.  */)
   Lisp_Object list = Qnil;
   NSEnumerator *colorlists;
   NSColorList *clist;
+  NSAutoreleasePool *pool;
 
   if (!NILP (frame))
     {
@@ -2112,7 +2123,9 @@ The optional argument FRAME is currently ignored.  */)
     }
 
   block_input ();
-
+  /* This can be called during dumping, so we need to set up a
+     temporary autorelease pool.  */
+  pool = [[NSAutoreleasePool alloc] init];
   colorlists = [[NSColorList availableColorLists] objectEnumerator];
   while ((clist = [colorlists nextObject]))
     {
@@ -2123,12 +2136,9 @@ The optional argument FRAME is currently ignored.  */)
           NSString *cname;
           while ((cname = [cnames nextObject]))
             list = Fcons ([cname lispString], list);
-/*           for (i = [[clist allKeys] count] - 1; i >= 0; i--)
-               list = Fcons (build_string ([[[clist allKeys] objectAtIndex: i]
-                                             UTF8String]), list); */
         }
     }
-
+  [pool release];
   unblock_input ();
 
   return list;
@@ -2856,9 +2866,8 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   str = SSDATA (string);
   f = decode_window_system_frame (frame);
   if (NILP (timeout))
-    timeout = make_fixnum (5);
-  else
-    CHECK_FIXNAT (timeout);
+    timeout = Vx_show_tooltip_timeout;
+  CHECK_FIXNAT (timeout);
 
   if (NILP (dx))
     dx = make_fixnum (5);
@@ -3294,7 +3303,7 @@ Default is t.  */);
   defsubr (&Sns_emacs_info_panel);
   defsubr (&Sns_list_services);
   defsubr (&Sns_perform_service);
-  defsubr (&Sns_popup_font_panel);
+  defsubr (&Sx_select_font);
   defsubr (&Sns_popup_color_panel);
 
   defsubr (&Sx_show_tip);

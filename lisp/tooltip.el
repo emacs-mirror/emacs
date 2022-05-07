@@ -377,7 +377,11 @@ It is also called if Tooltip mode is on, for text-only displays."
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (if (and (display-graphic-p))
+  (if (and (display-graphic-p)
+           ;; Tooltips can't be displayed on top of the global menu
+           ;; bar on NS.
+           (or (not (eq window-system 'ns))
+               (not (menu-or-popup-active-p))))
       (let ((previous-help tooltip-help-message))
 	(setq tooltip-help-message msg)
 	(cond ((null msg)

@@ -274,6 +274,7 @@ See `tramp-actions-before-shell' for more info.")
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-smb-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
+    (list-system-processes . ignore)
     (load . tramp-handle-load)
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
@@ -283,6 +284,7 @@ See `tramp-actions-before-shell' for more info.")
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-smb-handle-make-symbolic-link)
+    (process-attributes . ignore)
     (process-file . tramp-smb-handle-process-file)
     (rename-file . tramp-smb-handle-rename-file)
     (set-file-acl . tramp-smb-handle-set-file-acl)
@@ -1129,7 +1131,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  ;; Insert size information.
 	  (when full-directory-p
 	    (insert
-	     (if avail
+	     (if (and avail
+		      ;; Emacs 29.1 or later.
+		      (not (fboundp 'dired--insert-disk-space)))
 		 (format "total used in directory %s available %s\n" used avail)
 	       (format "total %s\n" used))))
 
@@ -1542,7 +1546,8 @@ component is used as the target of the symlink."
 	   (command (string-join (cons program args) " "))
 	   (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 	   (name1 name)
-	   (i 0))
+	   (i 0)
+	   p)
       (unwind-protect
 	  (save-excursion
 	    (save-restriction
@@ -1565,8 +1570,13 @@ component is used as the target of the symlink."
 			host (file-name-directory localname))))
 		  (tramp-message v 6 "(%s); exit" command)
 		  (tramp-send-string v command)))
+	      (setq p (tramp-get-connection-process v))
+	      (when program
+		(process-put p 'remote-command (cons program args))
+		(tramp-set-connection-property
+	       p "remote-command" (cons program args)))
 	      ;; Return value.
-	      (tramp-get-connection-process v)))
+	      p))
 
 	;; Save exit.
 	(with-current-buffer (tramp-get-connection-buffer v)
@@ -1607,28 +1617,8 @@ VEC or USER, or if there is no home directory, return nil."
 (defun tramp-smb-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
-  (setq filename (expand-file-name filename)
-	lockname (file-truename (or lockname filename)))
-  (with-parsed-tramp-file-name filename nil
-    (when (and mustbenew (file-exists-p filename)
-	       (or (eq mustbenew 'excl)
-		   (not
-		    (y-or-n-p
-		     (format "File %s exists; overwrite anyway?" filename)))))
-      (tramp-error v 'file-already-exists filename))
-
-    (let ((file-locked (eq (file-locked-p lockname) t))
-	  (curbuf (current-buffer))
-	  (tmpfile (tramp-compat-make-temp-file filename)))
-
-      ;; Lock file.
-      (when (and (not (auto-save-file-name-p (file-name-nondirectory filename)))
-		 (file-remote-p lockname)
-		 (not file-locked))
-	(setq file-locked t)
-	;; `lock-file' exists since Emacs 28.1.
-	(tramp-compat-funcall 'lock-file lockname))
-
+  (tramp-skeleton-write-region start end filename append visit lockname mustbenew
+    (let ((tmpfile (tramp-compat-make-temp-file filename)))
       (when (and append (file-exists-p filename))
 	(copy-file filename tmpfile 'ok))
       ;; We say `no-message' here because we don't want the visited file
@@ -1644,33 +1634,7 @@ VEC or USER, or if there is no home directory, return nil."
 		     v (format "put %s \"%s\""
 			       tmpfile (tramp-smb-get-localname v)))
 	      (tramp-error v 'file-error "Cannot write `%s'" filename))
-	  (delete-file tmpfile)))
-
-      ;; We must also flush the cache of the directory, because
-      ;; `file-attributes' reads the values from there.
-      (tramp-flush-file-properties v localname)
-
-      (unless (equal curbuf (current-buffer))
-	(tramp-error
-	 v 'file-error
-	 "Buffer has changed from `%s' to `%s'" curbuf (current-buffer)))
-
-      ;; Set file modification time.
-      (when (or (eq visit t) (stringp visit))
-	(set-visited-file-modtime
-	 (or (file-attribute-modification-time (file-attributes filename))
-	     (current-time))))
-
-      ;; Unlock file.
-      (when file-locked
-	;; `unlock-file' exists since Emacs 28.1.
-	(tramp-compat-funcall 'unlock-file lockname))
-
-      ;; The end.
-      (when (and (null noninteractive)
-		 (or (eq visit t) (string-or-null-p visit)))
-	(tramp-message v 0 "Wrote %s" filename))
-      (run-hooks 'tramp-handle-write-region-hook))))
+	  (delete-file tmpfile))))))
 
 ;; Internal file name functions.
 

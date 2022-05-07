@@ -40,10 +40,15 @@ port_id port_application_to_emacs;
    thread to Emacs.  */
 port_id port_popup_menu_to_emacs;
 
+/* The port used to send replies to the application after a session
+   management event.  */
+port_id port_emacs_to_session_manager;
+
 void
 haiku_io_init (void)
 {
   port_application_to_emacs = create_port (PORT_CAP, "application emacs port");
+  port_emacs_to_session_manager = create_port (1, "session manager port");
 }
 
 static ssize_t
@@ -79,19 +84,19 @@ haiku_len (enum haiku_event_type type)
       return sizeof (struct haiku_wheel_move_event);
     case MENU_BAR_RESIZE:
       return sizeof (struct haiku_menu_bar_resize_event);
+    case MENU_BAR_CLICK:
+      return sizeof (struct haiku_menu_bar_click_event);
     case MENU_BAR_OPEN:
     case MENU_BAR_CLOSE:
       return sizeof (struct haiku_menu_bar_state_event);
     case MENU_BAR_SELECT_EVENT:
       return sizeof (struct haiku_menu_bar_select_event);
-    case FILE_PANEL_EVENT:
-      return sizeof (struct haiku_file_panel_event);
     case MENU_BAR_HELP_EVENT:
       return sizeof (struct haiku_menu_bar_help_event);
     case ZOOM_EVENT:
       return sizeof (struct haiku_zoom_event);
-    case REFS_EVENT:
-      return sizeof (struct haiku_refs_event);
+    case DRAG_AND_DROP_EVENT:
+      return sizeof (struct haiku_drag_and_drop_event);
     case APP_QUIT_REQUESTED_EVENT:
       return sizeof (struct haiku_app_quit_requested_event);
     case DUMMY_EVENT:
@@ -145,7 +150,7 @@ haiku_read (enum haiku_event_type *type, void *buf, ssize_t len)
    Input is blocked when an attempt to read is in progress.  */
 int
 haiku_read_with_timeout (enum haiku_event_type *type, void *buf, ssize_t len,
-			 time_t timeout, bool popup_menu_p)
+			 bigtime_t timeout, bool popup_menu_p)
 {
   int32 typ;
   port_id from = (popup_menu_p
@@ -201,25 +206,4 @@ haiku_io_init_in_app_thread (void)
 
   if (pthread_sigmask (SIG_BLOCK, &set, NULL))
     perror ("pthread_sigmask");
-}
-
-/* Record an unwind protect from C++ code.  */
-void
-record_c_unwind_protect_from_cxx (void (*fn) (void *), void *r)
-{
-  record_unwind_protect_ptr (fn, r);
-}
-
-/* SPECPDL_IDX that is safe from C++ code.  */
-specpdl_ref
-c_specpdl_idx_from_cxx (void)
-{
-  return SPECPDL_INDEX ();
-}
-
-/* unbind_to (IDX, Qnil), but safe from C++ code.  */
-void
-c_unbind_to_nil_from_cxx (specpdl_ref idx)
-{
-  unbind_to (idx, Qnil);
 }

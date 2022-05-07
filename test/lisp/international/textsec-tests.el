@@ -117,7 +117,19 @@
   (should (textsec-domain-suspicious-p "f\N{LEFT-TO-RIGHT ISOLATE}oo.org"))
 
   (should (textsec-domain-suspicious-p "Сгсе.ru"))
-  (should-not (textsec-domain-suspicious-p "фСгсе.ru")))
+  (should-not (textsec-domain-suspicious-p "фСгсе.ru"))
+
+  (should-not (textsec-domain-suspicious-p
+               "21a:34aa:c782:3ad2:1bf8:73f8:141:66e8"))
+  (should (textsec-domain-suspicious-p
+               "21a:34aa:c782:3ad2:1bf8:73f8:141:66e8:66e8"))
+  (should-not (textsec-domain-suspicious-p
+               "[21a:34aa:c782:3ad2:1bf8:73f8:141:66e8]"))
+  (should (textsec-domain-suspicious-p
+           "[21a:34aa:c782:3ad2:1bf8:73f8:141:66e8"))
+  (should-not (textsec-domain-suspicious-p "138.25.106.12"))
+  (should-not (textsec-domain-suspicious-p "2001:db8::ff00:42:8329"))
+  (should-not (textsec-domain-suspicious-p "::ffff:129.55.2.201")))
 
 (ert-deftest test-suspicious-local ()
   (should-not (textsec-local-address-suspicious-p "larsi"))

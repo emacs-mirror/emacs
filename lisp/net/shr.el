@@ -228,6 +228,10 @@ temporarily blinks with this face."
   "Face for <h6> elements."
   :version "28.1")
 
+(defface shr-code '((t :inherit fixed-pitch))
+  "Face used for rendering <code> blocks."
+  :version "29.1")
+
 (defcustom shr-inhibit-images nil
   "If non-nil, inhibit loading images."
   :version "28.1"
@@ -1410,7 +1414,7 @@ ones, in case fg and bg are nil."
   (shr-fontize-dom dom 'underline))
 
 (defun shr-tag-code (dom)
-  (let ((shr-current-font 'fixed-pitch))
+  (let ((shr-current-font 'shr-code))
     (shr-generic dom)))
 
 (defun shr-tag-tt (dom)

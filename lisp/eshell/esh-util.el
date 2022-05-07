@@ -151,67 +151,98 @@ Otherwise, evaluates FORM with no error handling."
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
   "From point, find the CLOSE delimiter corresponding to OPEN.
-The matching is bounded by BOUND.
-If REVERSE-P is non-nil, process the region backwards.
-If BACKSLASH-P is non-nil, and OPEN and CLOSE are the same character,
-then quoting is done by a backslash, rather than a doubled delimiter."
+The matching is bounded by BOUND. If REVERSE-P is non-nil,
+process the region backwards.
+
+If BACKSLASH-P is non-nil, or OPEN and CLOSE are different
+characters, then a backslash can be used to escape a delimiter
+(or another backslash).  Otherwise, the delimiter is escaped by
+doubling it up."
   (save-excursion
     (let ((depth 1)
 	  (bound (or bound (point-max))))
-      (if (if reverse-p
-	      (eq (char-before) close)
-	    (eq (char-after) open))
-	  (forward-char (if reverse-p -1 1)))
+      (when (if reverse-p
+                (eq (char-before) close)
+              (eq (char-after) open))
+        (forward-char (if reverse-p -1 1)))
       (while (and (> depth 0)
-		  (funcall (if reverse-p '> '<) (point) bound))
-	(let ((c (if reverse-p (char-before) (char-after))) nc)
+                  (funcall (if reverse-p #'> #'<) (point) bound))
+        (let ((c (if reverse-p (char-before) (char-after))))
 	  (cond ((and (not reverse-p)
 		      (or (not (eq open close))
 			  backslash-p)
 		      (eq c ?\\)
-		      (setq nc (char-after (1+ (point))))
-		      (or (eq nc open) (eq nc close)))
+                      (memq (char-after (1+ (point)))
+                            (list open close ?\\)))
 		 (forward-char 1))
 		((and reverse-p
 		      (or (not (eq open close))
 			  backslash-p)
-		      (or (eq c open) (eq c close))
-		      (eq (char-before (1- (point)))
-			  ?\\))
+                      (eq (char-before (1- (point))) ?\\)
+                      (memq c (list open close ?\\)))
 		 (forward-char -1))
 		((eq open close)
-		 (if (eq c open)
-		     (if (and (not backslash-p)
-			      (eq (if reverse-p
-				      (char-before (1- (point)))
-				    (char-after (1+ (point)))) open))
-			 (forward-char (if reverse-p -1 1))
-		       (setq depth (1- depth)))))
+                 (when (eq c open)
+                   (if (and (not backslash-p)
+                            (eq (if reverse-p
+                                    (char-before (1- (point)))
+                                  (char-after (1+ (point))))
+                                open))
+                       (forward-char (if reverse-p -1 1))
+                     (setq depth (1- depth)))))
 		((= c open)
 		 (setq depth (+ depth (if reverse-p -1 1))))
 		((= c close)
 		 (setq depth (+ depth (if reverse-p 1 -1))))))
 	(forward-char (if reverse-p -1 1)))
-      (if (= depth 0)
-	  (if reverse-p (point) (1- (point)))))))
+      (when (= depth 0)
+        (if reverse-p (point) (1- (point)))))))
 
-(defun eshell-convert (string)
-  "Convert STRING into a more native looking Lisp object."
-  (if (not (stringp string))
-      string
-    (let ((len (length string)))
-      (if (= len 0)
-	  string
-	(if (eq (aref string (1- len)) ?\n)
+(defun eshell-convertible-to-number-p (string)
+  "Return non-nil if STRING can be converted to a number.
+If `eshell-convert-numeric-aguments', always return nil."
+  (and eshell-convert-numeric-arguments
+       (string-match
+        (concat "\\`\\s-*" eshell-number-regexp "\\s-*\\'")
+        string)))
+
+(defun eshell-convert-to-number (string)
+  "Try to convert STRING to a number.
+If STRING doesn't look like a number (or
+`eshell-convert-numeric-aguments' is nil), just return STRING
+unchanged."
+  (if (eshell-convertible-to-number-p string)
+      (string-to-number string)
+    string))
+
+(defun eshell-convert (string &optional to-string)
+  "Convert STRING into a more-native Lisp object.
+If TO-STRING is non-nil, always return a single string with
+trailing newlines removed.  Otherwise, this behaves as follows:
+
+* Return non-strings as-is.
+
+* Split multiline strings by line.
+
+* If `eshell-convert-numeric-aguments' is non-nil and every line
+  of output looks like a number, convert them to numbers."
+  (cond
+   ((not (stringp string))
+    (if to-string
+        (eshell-stringify string)
+      string))
+   (to-string (string-trim-right string "\n+"))
+   (t (let ((len (length string)))
+        (if (= len 0)
+	    string
+	  (when (eq (aref string (1- len)) ?\n)
 	    (setq string (substring string 0 (1- len))))
-	(if (string-search "\n" string)
-	    (split-string string "\n")
-	  (if (and eshell-convert-numeric-arguments
-		   (string-match
-		    (concat "\\`\\s-*" eshell-number-regexp
-			    "\\s-*\\'") string))
-	      (string-to-number string)
-	    string))))))
+          (if (string-search "\n" string)
+              (let ((lines (split-string string "\n")))
+                (if (seq-every-p #'eshell-convertible-to-number-p lines)
+                    (mapcar #'string-to-number lines)
+                  lines))
+            (eshell-convert-to-number string)))))))
 
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.
@@ -262,6 +293,7 @@ Prepend remote identification of `default-directory', if any."
 
 (defun eshell-to-flat-string (value)
   "Make value a string.  If separated by newlines change them to spaces."
+  (declare (obsolete nil "29.1"))
   (let ((text (eshell-stringify value)))
     (if (string-match "\n+\\'" text)
 	(setq text (replace-match "" t t text)))
@@ -589,11 +621,11 @@ list."
 The optional argument ID-FORMAT specifies the preferred uid and
 gid format.  Valid values are `string' and `integer', defaulting to
 `integer'.  See `file-attributes'."
-  (let* ((file (expand-file-name file))
+  (let* ((expanded-file (expand-file-name file))
 	 entry)
-    (if (string-equal (file-remote-p file 'method) "ftp")
-	(let ((base (file-name-nondirectory file))
-	      (dir (file-name-directory file)))
+    (if (string-equal (file-remote-p expanded-file 'method) "ftp")
+	(let ((base (file-name-nondirectory expanded-file))
+	      (dir (file-name-directory expanded-file)))
 	  (if (string-equal "" base) (setq base "."))
 	  (unless entry
 	    (setq entry (eshell-parse-ange-ls dir))

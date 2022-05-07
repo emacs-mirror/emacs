@@ -85,6 +85,8 @@
 (defvar x-selection-timeout)
 (defvar x-session-id)
 (defvar x-session-previous-id)
+(defvar x-dnd-movement-function)
+(defvar x-dnd-unsupported-drop-function)
 
 (defun x-handle-no-bitmap-icon (_switch)
   (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
@@ -106,14 +108,6 @@
       (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-session-previous-id (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
-
-(defvar emacs-save-session-functions nil
-  "Special hook run when a save-session event occurs.
-The functions do not get any argument.
-Functions can return non-nil to inform the session manager that the
-window system shutdown should be aborted.
-
-See also `emacs-session-save'.")
 
 (defun emacs-session-filename (session-id)
   "Construct a filename to save the session in based on SESSION-ID.
@@ -1575,6 +1569,53 @@ frames on all displays."
 
 (add-variable-watcher 'x-gtk-use-native-input
                       #'x-gtk-use-native-input-watcher)
+
+(defun x-dnd-movement (_frame position)
+  "Handle movement to POSITION during drag-and-drop."
+  (dnd-handle-movement position)
+  (redisplay))
+
+(defun x-device-class (name)
+  "Return the device class of NAME.
+Users should not call this function; see `device-class' instead."
+  (let ((downcased-name (downcase name)))
+    (cond
+     ((string-match-p "XTEST" name) 'test)
+     ((string= "Virtual core pointer" name) 'core-pointer)
+     ((string= "Virtual core keyboard" name) 'core-keyboard)
+     ((string-match-p "eraser" downcased-name) 'eraser)
+     ((string-match-p " pad" downcased-name) 'pad)
+     ((or (or (string-match-p "wacom" downcased-name)
+              (string-match-p "pen" downcased-name))
+          (string-match-p "stylus" downcased-name))
+      'pen)
+     ((or (string-prefix-p "xwayland-touch:" name)
+          (string-match-p "touchscreen" downcased-name))
+      'touchscreen)
+     ((or (string-match-p "trackpoint" downcased-name)
+          (string-match-p "stick" downcased-name))
+      'trackpoint)
+     ((or (string-match-p "mouse" downcased-name)
+          (string-match-p "optical" downcased-name)
+          (string-match-p "pointer" downcased-name))
+      'mouse)
+     ((string-match-p "cursor" downcased-name) 'puck)
+     ((or (string-match-p "keyboard" downcased-name)
+          ;; One of my cheap keyboards is really named this...
+          (string= name "USB USB Keykoard"))
+      'keyboard)
+     ((string-match-p "button" downcased-name) 'power-button)
+     ((string-match-p "touchpad" downcased-name) 'touchpad)
+     ((or (string-match-p "midi" downcased-name)
+          (string-match-p "piano" downcased-name))
+      'piano)
+     ((or (string-match-p "wskbd" downcased-name) ; NetBSD/OpenBSD
+          (and (string-match-p "/dev" downcased-name)
+               (string-match-p "kbd" downcased-name)))
+      'keyboard))))
+
+(setq x-dnd-movement-function #'x-dnd-movement)
+(setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
 
 (provide 'x-win)
 (provide 'term/x-win)

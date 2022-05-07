@@ -336,7 +336,10 @@ functions call it with no arguments when their argument message is
 Usually this function is called when the next input event arrives
 after displaying an echo-area message.  The function is expected to
 clear the message displayed by its counterpart function specified by
-@code{set-message-function}.
+@code{set-message-function}, but doesn't have to.  If the function
+wants the echo area to remain uncleared, it should return the symbol
+@code{dont-clear-message}; any other value will result in the echo
+area being cleared.
 
 The default value is the function that clears the message displayed in
 an active minibuffer.
@@ -2142,7 +2145,7 @@ the buffer might contain long lines that will be truncated anyway.
 The optional argument @var{y-limit}, if non-@code{nil}, specifies the
 maximum Y coordinate beyond which text is to be ignored; it is
 therefore also the maximum pixel-height that the function can return.
-If @var{y-limit} is nil or omitted, it means to considers all the
+If @var{y-limit} is @code{nil} or omitted, it means to consider all the
 lines of text till the buffer position specified by @var{to}.  Since
 calculating the pixel-height of a large buffer can take some time, it
 makes sense to specify this argument; in particular, if the caller
@@ -2247,6 +2250,20 @@ meaning as with @code{window-text-pixel-size}.
 @defun string-pixel-width string
 This is a convenience function that uses @code{window-text-pixel-size}
 to compute the width of @var{string} (in pixels).
+@end defun
+
+@defun window-char-pixel-width &optional window face
+Return the average character width for the font used by @var{face} in
+@var{window}.  If @var{face} is @code{nil} or omitted, the
+@code{default} face is used.  If @var{windows} is @code{nil} or
+omitted, the currently selected window is used.
+@end defun
+
+@defun window-char-pixel-height &optional window face
+Return the average character height for the font used by @var{face} in
+@var{window}.  If @var{face} is @code{nil} or omitted, the
+@code{default} face is used.  If @var{windows} is @code{nil} or
+omitted, the currently selected window is used.
 @end defun
 
 @defun line-pixel-height
@@ -2924,7 +2941,8 @@ modifying the attributes of a named face.
 
 @defun face-attribute face attribute &optional frame inherit
 This function returns the value of the @var{attribute} attribute for
-@var{face} on @var{frame}.
+@var{face} on @var{frame}.  @xref{Face Attributes}, for the supported
+attributes.
 
 If @var{frame} is omitted or @code{nil}, that means the selected frame
 (@pxref{Input Focus}).  If @var{frame} is @code{t}, this function
@@ -3007,7 +3025,8 @@ for all frames.  This function is mostly intended for internal usage.
 @defun set-face-attribute face frame &rest arguments
 This function sets one or more attributes of @var{face} for
 @var{frame}.  The attributes specified in this way override the face
-spec(s) belonging to @var{face}.
+spec(s) belonging to @var{face}.  @xref{Face Attributes}, for the
+supported attributes.
 
 The extra arguments @var{arguments} specify the attributes to set, and
 the values for them.  They should consist of alternating attribute
@@ -3807,57 +3826,62 @@ Then, the font specifications for all but Chinese GB2312 characters have
 Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
 field.
 
-@defun set-fontset-font name character font-spec &optional frame add
-This function modifies the existing fontset @var{name} to use the font
-matching with @var{font-spec} for the specified @var{character}.
+@defun set-fontset-font fontset characters font-spec &optional frame add
+This function modifies the existing @var{fontset} to use the font
+specified by @var{font-spec} for displaying the specified
+@var{characters}.
 
-If @var{name} is @code{nil}, this function modifies the fontset of the
-selected frame or that of @var{frame} if @var{frame} is not
+If @var{fontset} is @code{nil}, this function modifies the fontset of
+the selected frame or that of @var{frame} if @var{frame} is not
 @code{nil}.
 
-If @var{name} is @code{t}, this function modifies the default
-fontset, whose short name is @samp{fontset-default}.
+If @var{fontset} is @code{t}, this function modifies the default
+fontset, whose short name as a string is @samp{fontset-default}.
 
-In addition to specifying a single codepoint, @var{character} may be a
-cons @code{(@var{from} . @var{to})}, where @var{from} and @var{to} are
-character codepoints.  In that case, use @var{font-spec} for all the
-characters in the range @var{from} and @var{to} (inclusive).
+The @var{characters} argument can be a single character which should
+be displayed using @var{font-spec}.  It can also be a cons cell
+@w{@code{(@var{from} . @var{to})}}, where @var{from} and @var{to} are
+characters.  In that case, use @var{font-spec} for all the characters
+in the range @var{from} and @var{to} (inclusive).
 
-@var{character} may be a charset (@pxref{Character Sets}).  In that
-case, use @var{font-spec} for all the characters in the charset.
+@var{characters} may be a charset symbol (@pxref{Character Sets}).  In
+that case, use @var{font-spec} for all the characters in the charset.
 
-@var{character} may be a script name (@pxref{Character Properties,
+@var{characters} may be a script symbol (@pxref{Character Properties,
 char-script-table}).  In that case, use @var{font-spec} for all the
 characters belonging to the script.
 
-@var{character} may be @code{nil}, which means to use @var{font-spec}
-for any character which no font-spec is specified.
+@var{characters} may be @code{nil}, which means to use @var{font-spec}
+for any character in @var{fontset} for which no font-spec is
+specified.
 
 @var{font-spec} may be a font-spec object created by the function
 @code{font-spec} (@pxref{Low-Level Font}).
 
-@var{font-spec} may be a cons; @code{(@var{family} . @var{registry})},
-where @var{family} is a family name of a font (possibly including a
-foundry name at the head), @var{registry} is a registry name of a font
-(possibly including an encoding name at the tail).
+@var{font-spec} may be a cons cell @w{@code{(@var{family}
+. @var{registry})}}, where @var{family} is a family name of a font
+(possibly including a foundry name at the head), and @var{registry} is
+a registry name of a font (possibly including an encoding name at the
+tail).
 
 @var{font-spec} may be a font name, a string.
 
 @var{font-spec} may be @code{nil}, which explicitly specifies that
-there's no font for the specified @var{character}.  This is useful,
+there's no font for the specified @var{characters}.  This is useful,
 for example, to avoid expensive system-wide search for fonts for
 characters that have no glyphs, like those from the Unicode Private
 Use Area (PUA).
 
 The optional argument @var{add}, if non-@code{nil}, specifies how to
-add @var{font-spec} to the font specifications previously set.  If it
-is @code{prepend}, @var{font-spec} is prepended.  If it is
-@code{append}, @var{font-spec} is appended.  By default,
-@var{font-spec} overrides the previous settings.
+add @var{font-spec} to the font specifications previously set for
+@var{characters}.  If it is @code{prepend}, @var{font-spec} is
+prepended to the existing specs.  If it is @code{append},
+@var{font-spec} is appended.  By default, @var{font-spec} overwrites
+the previously set font specs.
 
-For instance, this changes the default fontset to use a font of which
+For instance, this changes the default fontset to use a font whose
 family name is @samp{Kochi Gothic} for all characters belonging to
-the charset @code{japanese-jisx0208}.
+the charset @code{japanese-jisx0208}:
 
 @smallexample
 (set-fontset-font t 'japanese-jisx0208
@@ -3997,13 +4021,26 @@ required; and @code{gpos} is a list of OpenType GPOS feature tag
 symbols, or @code{nil} if none is required.  If @code{gsub} or
 @code{gpos} is a list, a @code{nil} element in that list means that
 the font must not match any of the remaining tag symbols.  The
-@code{gpos} element may be omitted.
+@code{gpos} element may be omitted.  For the list of OpenType script,
+language, and feature tags, see
+@uref{https://docs.microsoft.com/en-us/typography/opentype/spec/ttoreg,
+the list of registered OTF tags}.
+
+@item :type
+@cindex font backend
+The symbol that specifies the @dfn{font backend} used to draw the
+characters.  The possible values depend on the platform and on how
+Emacs was configured at build time.  Typical values include
+@code{ftcrhb} and @code{xfthb} on X, @code{harfbuzz} on MS-Windows,
+@code{ns} on GNUstep, etc.  It can also be @code{nil} if left
+unspecified, typically in a font-spec.
 @end table
 @end defun
 
 @defun font-put font-spec property value
 Set the font property @var{property} in the font-spec @var{font-spec}
-to @var{value}.
+to @var{value}.  The @var{property} can any of the ones described
+above.
 @end defun
 
 @cindex font entity
@@ -4047,12 +4084,28 @@ object, a font entity, or a font spec.
 
 @defun font-get font property
 This function returns the value of the font property @var{property}
-for @var{font}.
+for @var{font}.  The @var{property} can any of the ones that
+@code{font-spec} supports.
 
 If @var{font} is a font spec and the font spec does not specify
 @var{property}, the return value is @code{nil}.  If @var{font} is a
 font object or font entity, the value for the @var{:script} property
-may be a list of scripts supported by the font.
+may be a list of scripts supported by the font, and the value of the
+@code{:otf} property is a cons of the form @w{@code{(@var{gsub}
+. @var{gpos})}}, where @var{gsub} and @var{gpos} are lists
+representing OpenType features  supported by the font, of the form
+
+@smallexample
+((@var{script-tag} (@var{langsys-tag} @var{feature}@dots{}) @dots{}) @dots{})
+@end smallexample
+
+@noindent where @var{script-tag}, @var{langsys-tag}, and @var{feature}
+are symbols representing OpenType layout tags.
+
+If @var{font} is a font object, the special property
+@code{:combining-capability} is non-@code{nil} if the font backend of
+@var{font} supports rendering of combining characters for non-OpenType
+fonts.
 @end defun
 
 @defun font-face-attributes font &optional frame
@@ -4642,14 +4695,15 @@ about to be executed.  This feature has nothing to do with
 @defvar overlay-arrow-string
 This variable holds the string to display to call attention to a
 particular line, or @code{nil} if the arrow feature is not in use.
-On a graphical display the contents of the string are ignored; instead a
-glyph is displayed in the fringe area to the left of the display area.
+On a graphical display the contents of the string are ignored if the
+left fringe is shown; instead a glyph is displayed in the fringe area
+to the left of the display area.
 @end defvar
 
 @defvar overlay-arrow-position
 This variable holds a marker that indicates where to display the overlay
 arrow.  It should point at the beginning of a line.  On a non-graphical
-display the arrow text
+display, or when the left fringe is not shown, the arrow text
 appears at the beginning of that line, overlaying any text that would
 otherwise appear.  Since the arrow is usually short, and the line
 usually begins with indentation, normally nothing significant is
@@ -4681,11 +4735,12 @@ this list.
 
 Each variable on this list can have properties
 @code{overlay-arrow-string} and @code{overlay-arrow-bitmap} that
-specify an overlay arrow string (for text terminals) or fringe bitmap
-(for graphical terminals) to display at the corresponding overlay
-arrow position.  If either property is not set, the default
-@code{overlay-arrow-string} or @code{overlay-arrow} fringe indicator
-is used.
+specify an overlay arrow string (for text terminals or graphical
+terminals without the left fringe shown) or fringe bitmap
+(for graphical terminals with a left fringe) to display at the
+corresponding overlay arrow position.  If either property is not set,
+the default @code{overlay-arrow-string} or @code{overlay-arrow} fringe
+indicator is used.
 
 
 @node Scroll Bars
@@ -5504,6 +5559,12 @@ available), XPM (@code{libXpm}), GIF (@code{libgif} or
 symbol}.  The symbols for the above formats are, respectively,
 @code{pbm}, @code{xbm}, @code{xpm}, @code{gif}, @code{jpeg},
 @code{tiff}, @code{png}, @code{svg}, and @code{webp}.
+
+  On some platforms, the built-in image support that doesn't require
+any optional libraries includes BMP images.@footnote{
+On MS-Windows, this requires @code{w32-use-native-image-API} to be set
+non-@code{nil}.
+}
 
   Furthermore, if you build Emacs with ImageMagick
 (@code{libMagickWand}) support, Emacs can display any image format
@@ -7509,7 +7570,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return @code{nil}
 instead of signaling the error.
 @end deffn
 
@@ -7521,7 +7582,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return @code{nil}
 instead of signaling the error.
 @end deffn
 
@@ -8273,7 +8334,7 @@ there is no available font (on a graphical display), and characters
 which cannot be encoded by the terminal's coding system (on a text
 terminal).
 
-@vindex glyphless-display-mode
+@findex glyphless-display-mode
 The @code{glyphless-display-mode} minor mode can be used to toggle
 displaying glyphless characters in a convenient manner in the current
 buffer.  If this mode is enabled, all the glyphless characters are

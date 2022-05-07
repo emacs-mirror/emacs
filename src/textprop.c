@@ -561,8 +561,13 @@ DEFUN ("text-properties-at", Ftext_properties_at,
        doc: /* Return the list of properties of the character at POSITION in OBJECT.
 If the optional second argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
+
 If OBJECT is a string, POSITION is a 0-based index into it.
-If POSITION is at the end of OBJECT, the value is nil.
+
+If POSITION is at the end of OBJECT, the value is nil, but note that
+buffer narrowing does not affect the value.  That is, if OBJECT is a
+buffer or nil, and the buffer is narrowed and POSITION is at the end
+of the narrowed buffer, the result may be non-nil.
 
 If you want to display the text properties at point in a human-readable
 form, use the `describe-text-properties' command.  */)
@@ -590,7 +595,11 @@ DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
 OBJECT should be a buffer or a string; if omitted or nil, it defaults
 to the current buffer.
-If POSITION is at the end of OBJECT, the value is nil.  */)
+
+If POSITION is at the end of OBJECT, the value is nil, but note that
+buffer narrowing does not affect the value.  That is, if the buffer is
+narrowed and POSITION is at the end of the narrowed buffer, the result
+may be non-nil.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {
   return textget (Ftext_properties_at (position, object), prop);

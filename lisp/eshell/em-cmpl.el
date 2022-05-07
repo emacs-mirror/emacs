@@ -311,18 +311,24 @@ to writing a completion function."
       (describe-prefix-bindings)
     (call-interactively 'pcomplete-help)))
 
+(defun eshell--pcomplete-insert-tab ()
+  (if (not pcomplete-allow-modifications)
+      (throw 'pcompleted nil)
+    (insert-and-inherit "\t")
+    (throw 'pcompleted t)))
+
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
   (when (and eshell-no-completion-during-jobs
 	     (eshell-interactive-process-p))
-    (insert-and-inherit "\t")
-    (throw 'pcompleted t))
+    (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
 	(begin (save-excursion (eshell-bol) (point)))
 	(posns (list t))
 	args delim)
-    (when (memq this-command '(pcomplete-expand
-			       pcomplete-expand-and-complete))
+    (when (and pcomplete-allow-modifications
+	       (memq this-command '(pcomplete-expand
+			            pcomplete-expand-and-complete)))
       (run-hook-with-args 'eshell-expand-input-functions begin end)
       (if (= begin end)
 	  (end-of-line))
@@ -335,14 +341,11 @@ to writing a completion function."
 	       (setq begin (1+ (cadr delim))
 		     args (eshell-parse-arguments begin end)))
 	      ((eq (car delim) ?\()
-	       (eshell-complete-lisp-symbol)
-	       (throw 'pcompleted t))
+	       (throw 'pcompleted (elisp-completion-at-point)))
 	      (t
-	       (insert-and-inherit "\t")
-	       (throw 'pcompleted t))))
+	       (eshell--pcomplete-insert-tab))))
     (when (get-text-property (1- end) 'comment)
-      (insert-and-inherit "\t")
-      (throw 'pcompleted t))
+      (eshell--pcomplete-insert-tab))
     (let ((pos begin))
       (while (< pos end)
 	(if (get-text-property pos 'arg-begin)

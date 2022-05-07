@@ -1560,12 +1560,12 @@ If TYPE is `groups', include only groups."
 ;;;###autoload
 (defun custom-prompt-customize-unsaved-options ()
   "Prompt user to customize any unsaved customization options.
-Return non-nil if user chooses to customize, for use in
+Return nil if user chooses to customize, for use in
 `kill-emacs-query-functions'."
   (not (and (custom-unsaved-options)
-	    (yes-or-no-p "Some customized options have not been saved; Examine? ")
-	    (customize-unsaved)
-	    t)))
+	    (yes-or-no-p
+             "Some customized options have not been saved; Examine? ")
+	    (progn (customize-unsaved) t))))
 
 ;;; Buffer.
 
@@ -4798,7 +4798,11 @@ if only the first line of the docstring is shown."))
         (delay-mode-hooks (emacs-lisp-mode)))
       (let ((inhibit-read-only t)
 	    (print-length nil)
-	    (print-level nil))
+	    (print-level nil)
+            ;; We might be saving byte-code with embedded NULs, which
+            ;; can cause problems when read back, so print them
+            ;; readably.  (Bug#52554)
+            (print-escape-control-characters t))
         (atomic-change-group
 	  (custom-save-variables)
 	  (custom-save-faces)))

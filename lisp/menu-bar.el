@@ -311,7 +311,7 @@
     (isearch-update-ring string t)
     (re-search-backward string)))
 
-;; The Edit->Search->Incremental Search menu
+;; The Edit->Incremental Search menu
 (defvar menu-bar-i-search-menu
   (let ((menu (make-sparse-keymap "Incremental Search")))
     (bindings--define-key menu [isearch-forward-symbol-at-point]
@@ -339,12 +339,6 @@
 
 (defvar menu-bar-search-menu
   (let ((menu (make-sparse-keymap "Search")))
-
-    (bindings--define-key menu [i-search]
-      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
-    (bindings--define-key menu [separator-tag-isearch]
-      menu-bar-separator)
-
     (bindings--define-key menu [tags-continue]
       '(menu-item "Continue Tags Search" fileloop-continue
                   :enable (and (featurep 'fileloop)
@@ -501,6 +495,9 @@
     (bindings--define-key menu [replace]
       `(menu-item "Replace" ,menu-bar-replace-menu))
 
+    (bindings--define-key menu [i-search]
+      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
+
     (bindings--define-key menu [search]
       `(menu-item "Search" ,menu-bar-search-menu))
 
@@ -606,7 +603,8 @@
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
   (let ((select-enable-clipboard t)
-        ;; Ensure that we defeat the DWIM login in `gui-selection-value'.
+        ;; Ensure that we defeat the DWIM logic in `gui-selection-value'
+        ;; (i.e., that gui--clipboard-selection-unchanged-p returns nil).
         (gui--last-selected-text-clipboard nil))
     (yank)))
 

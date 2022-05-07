@@ -3928,9 +3928,13 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 	 However, it causes excessive flickering when mouse is moved
 	 across the mode line.  Luckily, turning it off for the mode
 	 line doesn't seem to hurt anything. -- cyd.
-         But it is still needed for the header line. -- kfs.  */
+         But it is still needed for the header line. -- kfs.
+         The header line vpos is 1 if a tab line is enabled.  (18th
+         Apr 2022) */
       || (current_row->mouse_face_p
-	  && !(current_row->mode_line_p && vpos > 0))
+	  && !(current_row->mode_line_p
+	       && (vpos > (w->current_matrix->tab_line_p
+			   && w->current_matrix->header_line_p))))
       || current_row->x != desired_row->x)
     {
       output_cursor_to (w, vpos, 0, desired_row->y, desired_row->x);
@@ -6716,6 +6720,10 @@ See `buffer-display-table' for more information.  */);
      done regardless of this setting if there's pending input at the
      beginning of the next redisplay).  */
   redisplay_dont_pause = true;
+
+  DEFVAR_LISP ("x-show-tooltip-timeout", Vx_show_tooltip_timeout,
+	      doc: /* The default timeout (in seconds) for `x-show-tip'.  */);
+  Vx_show_tooltip_timeout = make_fixnum (5);
 
   DEFVAR_LISP ("tab-bar-position", Vtab_bar_position,
 	       doc: /* Specify on which side from the tool bar the tab bar shall be.

@@ -328,7 +328,7 @@ PATTERNS are normal `pcase' patterns, and VALUES are expression.
 
 Evaluation happens sequentially as in `setq' (not in parallel).
 
-An example: (pcase-setq `((,a) [(,b)]) '((1) [(2)]))
+An example: (pcase-setq \\=`((,a) [(,b)]) \\='((1) [(2)]))
 
 VAL is presumed to match PAT.  Failure to match may signal an error or go
 undetected, binding variables to arbitrary values, such as nil.

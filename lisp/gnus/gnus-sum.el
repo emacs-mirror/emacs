@@ -2887,45 +2887,11 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 
 (defvar gnus-summary-tool-bar-map nil)
 
-;; Note: The :set function in the `gnus-summary-tool-bar*' variables will only
-;; affect _new_ message buffers.  We might add a function that walks thru all
-;; summary-mode buffers and force the update.
-(defun gnus-summary-tool-bar-update (&optional symbol value)
-  "Update summary mode toolbar.
-Setter function for custom variables."
-  (setq-default gnus-summary-tool-bar-map nil)
-  (when symbol
-    ;; When used as ":set" function:
-    (set-default symbol value))
-  (when (gnus-buffer-live-p gnus-summary-buffer)
-    (with-current-buffer gnus-summary-buffer
-      (gnus-summary-make-tool-bar))))
-
-(defcustom gnus-summary-tool-bar (if (eq gmm-tool-bar-style 'gnome)
-				     'gnus-summary-tool-bar-gnome
-				   'gnus-summary-tool-bar-retro)
-  "Specifies the Gnus summary tool bar.
-
-It can be either a list or a symbol referring to a list.  See
-`gmm-tool-bar-from-list' for the format of the list.  The
-default key map is `gnus-summary-mode-map'.
-
-Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
-`gnus-summary-tool-bar-retro'."
-  :type '(choice (const :tag "GNOME style" gnus-summary-tool-bar-gnome)
-		 (const :tag "Retro look"  gnus-summary-tool-bar-retro)
-		 (repeat :tag "User defined list" gmm-tool-bar-item)
-		 (symbol))
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
-  :group 'gnus-summary)
-
-(defcustom gnus-summary-tool-bar-gnome
+(defcustom gnus-summary-tool-bar
   '((gnus-summary-post-news "mail/compose" nil)
-    (gnus-summary-insert-new-articles "mail/inbox" nil
-				      :visible (or (not gnus-agent)
-						   gnus-plugged))
+    (gnus-summary-insert-new-articles
+     "mail/inbox" nil
+     :visible (or (not gnus-agent) gnus-plugged))
     (gnus-summary-reply-with-original "mail/reply")
     (gnus-summary-reply "mail/reply" nil :visible nil)
     (gnus-summary-followup-with-original "mail/reply-all")
@@ -2935,17 +2901,10 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
     (gnus-summary-search-article-forward "search" nil :visible nil)
     (gnus-summary-print-article "print")
     (gnus-summary-tick-article-forward "flag-followup" nil :visible nil)
-    ;; Some new commands that may need more suitable icons:
     (gnus-summary-save-newsrc "save" nil :visible nil)
-    ;; (gnus-summary-show-article "stock_message-display" nil :visible nil)
     (gnus-summary-prev-article "left-arrow")
     (gnus-summary-next-article "right-arrow")
     (gnus-summary-next-page "next-page")
-    ;; (gnus-summary-enter-digest-group "right_arrow" nil :visible nil)
-    ;;
-    ;; Maybe some sort-by-... could be added:
-    ;; (gnus-summary-sort-by-author "sort-a-z" nil :visible nil)
-    ;; (gnus-summary-sort-by-date "sort-1-9" nil :visible nil)
     (gnus-summary-mark-as-expirable
      "delete" nil
      :visible (gnus-check-backend-function 'request-expire-articles
@@ -2959,64 +2918,25 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
      "mail/not-spam" nil
      :visible (and (fboundp 'spam-group-spam-contents-p)
 		   (spam-group-spam-contents-p gnus-newsgroup-name)))
-    ;;
     (gnus-summary-exit "exit")
     (gmm-customize-mode "preferences" t :help "Edit mode preferences")
     (gnus-info-find-node "help"))
-  "List of functions for the summary tool bar (GNOME style).
+  "Specifies the Gnus summary tool bar.
 
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
+It can be either a list or a symbol referring to a list.  See
+`gmm-tool-bar-from-list' for the format of the list.  The
+default key map is `gnus-summary-mode-map'."
+  :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
+		 (symbol))
+  :version "29.1"
   :group 'gnus-summary)
 
-(defcustom gnus-summary-tool-bar-retro
-  '((gnus-summary-prev-unread-article "gnus/prev-ur")
-    (gnus-summary-next-unread-article "gnus/next-ur")
-    (gnus-summary-post-news "gnus/post")
-    (gnus-summary-followup-with-original "gnus/fuwo")
-    (gnus-summary-followup "gnus/followup")
-    (gnus-summary-reply-with-original "gnus/reply-wo")
-    (gnus-summary-reply "gnus/reply")
-    (gnus-summary-caesar-message "gnus/rot13")
-    (gnus-uu-decode-uu "gnus/uu-decode")
-    (gnus-summary-save-article-file "gnus/save-aif")
-    (gnus-summary-save-article "gnus/save-art")
-    (gnus-uu-post-news "gnus/uu-post")
-    (gnus-summary-catchup "gnus/catchup")
-    (gnus-summary-catchup-and-exit "gnus/cu-exit")
-    (gnus-summary-exit "gnus/exit-summ")
-    ;; Some new command that may need more suitable icons:
-    (gnus-summary-print-article "gnus/print" nil :visible nil)
-    (gnus-summary-mark-as-expirable "gnus/close" nil :visible nil)
-    (gnus-summary-save-newsrc "gnus/save" nil :visible nil)
-    ;; (gnus-summary-enter-digest-group "gnus/right_arrow" nil :visible nil)
-    (gnus-summary-search-article-forward "gnus/search" nil :visible nil)
-    ;; (gnus-summary-insert-new-articles "gnus/paste" nil :visible nil)
-    ;; (gnus-summary-toggle-threads "gnus/open" nil :visible nil)
-    ;;
-    (gnus-info-find-node "gnus/help" nil :visible nil))
-  "List of functions for the summary tool bar (retro look).
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
-  :group 'gnus-summary)
-
-(defcustom gnus-summary-tool-bar-zap-list t
-  "List of icon items from the global tool bar.
-These items are not displayed in the Gnus summary mode tool bar.
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type 'gmm-tool-bar-zap-list
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
-  :group 'gnus-summary)
+(defvar gnus-summary-tool-bar-gnome nil)
+(make-obsolete-variable 'gnus-summary-tool-bar-gnome nil "29.1")
+(defvar gnus-summary-tool-bar-retro nil)
+(make-obsolete-variable 'gnus-summary-tool-bar-retro nil "29.1")
+(defvar gnus-summary-tool-bar-zap-list t)
+(make-obsolete-variable 'gnus-summary-tool-bar-zap-list nil "29.1")
 
 (defvar image-load-path)
 (defvar tool-bar-map)
@@ -8663,7 +8583,7 @@ these articles."
         (when matching-subject
           (gnus-summary-limit-include-matching-articles
            "subject"
-           matching-subject)
+           (regexp-quote matching-subject))
           ;; Each of the previous two limit calls push a limit onto
           ;; the limit stack. Presumably we want to think of the
           ;; thread and its associated subject matches as a single
@@ -9445,6 +9365,16 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
       (push primary urls))
     (delete-dups urls)))
 
+(defun gnus-collect-urls-from-article ()
+  "Select the article and return the list of URLs in it.
+See `gnus-collect-urls'."
+  (gnus-summary-select-article)
+  (gnus-with-article-buffer
+    (article-goto-body)
+    ;; Back up a char, in case body starts with a button.
+    (backward-char)
+    (gnus-collect-urls)))
+
 (defun gnus-shorten-url (url max)
   "Return an excerpt from URL not exceeding MAX characters."
   (if (<= (length url) max)
@@ -9460,33 +9390,27 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
   "Scan the current article body for links, and offer to browse them.
 
 Links are opened using `browse-url' unless a prefix argument is
-given: Then `browse-url-secondary-browser-function' is used instead.
+given: then `browse-url-secondary-browser-function' is used instead.
 
 If only one link is found, browse that directly, otherwise use
 completion to select a link.  The first link marked in the
 article text with `gnus-collect-urls-primary-text' is the
 default."
   (interactive "P" gnus-summary-mode)
-  (let (urls target)
-    (gnus-summary-select-article)
-    (gnus-with-article-buffer
-      (article-goto-body)
-      ;; Back up a char, in case body starts with a button.
-      (backward-char)
-      (setq urls (gnus-collect-urls))
-      (setq target
-	    (cond ((= (length urls) 1)
-		   (car urls))
-		  ((> (length urls) 1)
-		   (completing-read
-		    (format-prompt "URL to browse"
-				   (gnus-shorten-url (car urls) 40))
-		    urls nil t nil nil (car urls)))))
-      (if target
-	  (if external
-	      (funcall browse-url-secondary-browser-function target)
-	    (browse-url target))
-	(message "No URLs found.")))))
+  (let* ((urls (gnus-collect-urls-from-article))
+         (target
+	  (cond ((= (length urls) 1)
+		 (car urls))
+		((> (length urls) 1)
+		 (completing-read
+		  (format-prompt "URL to browse"
+				 (gnus-shorten-url (car urls) 40))
+		  urls nil t nil nil (car urls))))))
+    (if target
+	(if external
+	    (funcall browse-url-secondary-browser-function target)
+	  (browse-url target))
+      (message "No URLs found."))))
 
 (defun gnus-summary-isearch-article (&optional regexp-p)
   "Do incremental search forward on the current article.

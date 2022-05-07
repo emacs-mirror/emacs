@@ -208,6 +208,7 @@
 
 (require 'syntax)
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 ;; Define core `font-lock' group.
 (defgroup font-lock '((jit-lock custom-group))
@@ -279,6 +280,47 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
+(defcustom font-lock-ignore nil
+  "Rules to selectively disable fontifications due to `font-lock-keywords'.
+If non-nil, the value should be a list of condition sets of the form
+
+  (SYMBOL CONDITION ...)
+
+where:
+
+ - SYMBOL is a symbol, usually a major or minor mode.  The subsequent
+   CONDITIONs apply if SYMBOL is bound as variable and its value is non-nil.
+   If SYMBOL is a symbol of a mode, that means the buffer has that mode
+   enabled (for major modes, it means the buffer's major mode is derived
+   from SYMBOL's mode).
+
+ - Each CONDITION can be one of the following:
+   - A symbol, typically a face.  It matches any element of
+     `font-lock-keywords' that references the symbol.  The symbol is
+     interpreted as a glob pattern; in particular, `*' matches
+     everything, `?' matches any single character, and `[abcd]'
+     matches one character from the set.
+   - A string.  It matches any element of `font-lock-keywords' whose
+     MATCHER is a regexp that matches the string.  This can be used to
+     disable fontification of a particular programming keyword.
+   - A form (pred FUNCTION).  It matches an element of `font-lock-keywords'
+     if FUNCTION, when called with the element as the argument, returns
+     non-nil.
+   - A form (not CONDITION).  It matches if CONDITION doesn't.
+   - A form (and CONDITION ...).  It matches if all the provided
+     CONDITIONs match.
+   - A form (or CONDITION ...).  It matches if at least one of the
+     provided CONDITIONs matches.
+   - A form (except CONDITIONs ...).  This can be used only at top level
+     or inside an `or' clause.  It undoes the effect of previous
+     matching CONDITIONs on the same level.
+
+In each buffer, fontifications due to the elements of `font-lock-keywords'
+that match at least one applicable CONDITION are disabled."
+  :type '(alist :key-type symbol :value-type sexp)
+  :group 'font-lock
+  :version "29.1")
+
 (defcustom font-lock-verbose nil
   "If non-nil, means show status messages for buffer fontification.
 If a number, only buffers greater than this size have fontification messages."
@@ -349,7 +391,7 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
 ;; Fontification variables:
 
 (defvar font-lock-keywords nil
-  "A list of the keywords to highlight.
+  "A list of keywords and corresponding font-lock highlighting rules.
 There are two kinds of values: user-level, and compiled.
 
 A user-level keywords list is what a major mode or the user would
@@ -374,10 +416,10 @@ point, and set `match-data' appropriately if it succeeds; like
 `re-search-forward' would).  MATCHER regexps can be generated via
 the function `regexp-opt'.
 
-FORM is an expression, whose value should be a keyword element,
-evaluated when the keyword is (first) used in a buffer.  This
-feature can be used to provide a keyword that can only be
-generated when Font Lock mode is actually turned on.
+FORM is an expression, whose value should be a keyword element
+of one of the above forms, evaluated when the keyword is (first)
+used in a buffer.  This feature can be used to provide a keyword
+that can only be generated when Font Lock mode is actually turned on.
 
 HIGHLIGHT should be either MATCH-HIGHLIGHT or MATCH-ANCHORED.
 
@@ -1810,9 +1852,8 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
       (error "Font-lock trying to use keywords before setting them up"))
   (if (eq (car-safe keywords) t)
       keywords
-    (setq keywords
-	  (cons t (cons keywords
-			(mapcar #'font-lock-compile-keyword keywords))))
+    (let ((compiled (mapcar #'font-lock-compile-keyword keywords)))
+      (setq keywords `(t ,keywords ,@(font-lock--filter-keywords compiled))))
     (if (and (not syntactic-keywords)
 	     (let ((beg-function (with-no-warnings syntax-begin-function)))
 	       (or (eq beg-function #'beginning-of-defun)
@@ -1882,6 +1923,50 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
 	 (car (last keywords)))
 	(t
 	 (car keywords))))
+
+(defun font-lock--match-keyword (rule keyword)
+  "Return non-nil if font-lock KEYWORD matches RULE.
+See `font-lock-ignore' for the possible rules."
+  (pcase-exhaustive rule
+    ('* t)
+    ((pred symbolp)
+     (let ((regexp (when (string-match-p "[*?]" (symbol-name rule))
+                     (wildcard-to-regexp (symbol-name rule)))))
+       (named-let search ((obj keyword))
+         (cond
+          ((consp obj) (or (search (car obj)) (search (cdr obj))))
+          ((not regexp) (eq rule obj))
+          ((symbolp obj) (string-match-p regexp (symbol-name obj)))))))
+    ((pred stringp) (when (stringp (car keyword))
+                      (string-match-p (concat "\\`\\(?:" (car keyword) "\\)")
+                                      rule)))
+    (`(or . ,rules) (let ((match nil))
+                      (while rules
+                        (pcase-exhaustive (pop rules)
+                          (`(except ,rule)
+                           (when match
+                             (setq match (not (font-lock--match-keyword rule keyword)))))
+                          (rule
+                           (unless match
+                             (setq match (font-lock--match-keyword rule keyword))))))
+                      match))
+    (`(not ,rule) (not (font-lock--match-keyword rule keyword)))
+    (`(and . ,rules) (seq-every-p (lambda (rule)
+                                    (font-lock--match-keyword rule keyword))
+                                  rules))
+    (`(pred ,fun) (funcall fun keyword))))
+
+(defun font-lock--filter-keywords (keywords)
+  "Filter a list of KEYWORDS using `font-lock-ignore'."
+  (if-let ((rules (mapcan (pcase-lambda (`(,mode . ,rules))
+                            (when (or (and (boundp mode) mode)
+                                      (derived-mode-p mode))
+                              (copy-sequence rules)))
+                          font-lock-ignore)))
+      (seq-filter (lambda (keyword) (not (font-lock--match-keyword
+                                          `(or ,@rules) keyword)))
+                  keywords)
+    keywords))
 
 (defun font-lock-refresh-defaults ()
   "Restart fontification in current buffer after recomputing from defaults.

@@ -307,8 +307,8 @@ object."
 (defun url-digest-auth-build-response (key url realm attrs)
   "Compute authorization string for the given challenge using KEY.
 
-The string looks like 'Digest username=\"John\", realm=\"The
-Realm\", ...'
+The string looks like \"Digest username=\"John\", realm=\"The
+Realm\", ...\"
 
 Part of the challenge is already solved in a pre-computed KEY
 which is list of a realm (or a directory), user name, and hash

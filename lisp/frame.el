@@ -1727,7 +1727,7 @@ to the selected frame.
 Storing information about resize operations is off by default.
 If you set the variable `frame-size-history' like this
 
-(setq frame-size-history '(100))
+(setq frame-size-history \\='(100))
 
 then Emacs will save information about the next 100 significant
 operations affecting any frame's size in that variable.  This
@@ -2433,6 +2433,70 @@ monitors."
 		       ,(display-mm-height display)))
 	   (frames . ,(frames-on-display-list display)))))))))
 
+(declare-function x-device-class (name) "x-win.el")
+(declare-function pgtk-device-class (name) "pgtk-win.el")
+
+(defun device-class (frame name)
+  "Return the class of the device NAME for an event generated on FRAME.
+NAME is a string that can be the value of `last-event-device', or
+nil.  FRAME is a window system frame, typically the value of
+`last-event-frame' when `last-event-device' was set.  On some
+window systems, it can also be a display name or a terminal.
+
+The class of a device is one of the following symbols:
+
+  `core-keyboard' means the device is a keyboard-like device, but
+  any other characteristics are unknown.
+
+  `core-pointer' means the device is a pointing device, but any
+  other characteristics are unknown.
+
+  `mouse' means the device is a computer mouse.
+
+  `trackpoint' means the device is a joystick or trackpoint.
+
+  `eraser' means the device is an eraser, which is typically the
+  other end of a stylus on a graphics tablet.
+
+  `pen' means the device is a stylus or some other similar
+  device.
+
+  `puck' means the device is a device similar to a mouse, but
+  reports absolute coordinates.
+
+  `power-button' means the device is a power button, volume
+  button, or some similar control.
+
+  `keyboard' means the device is a keyboard.
+
+  `touchscreen' means the device is a touchscreen.
+
+  `pad' means the device is a collection of buttons and rings and
+  strips commonly found in drawing tablets.
+
+  `touchpad' means the device is an indirect touch device, such
+  as a touchpad.
+
+  `piano' means the device is a piano, or some other kind of
+  musical instrument.
+
+  `test' means the device is used by the XTEST extension to
+  report input.
+
+It can also be nil, which means the class of the device could not
+be determined.  Individual window systems may also return other
+symbols."
+  (let ((frame-type (framep-on-display frame)))
+    (cond ((eq frame-type 'x)
+           (x-device-class name))
+          ((eq frame-type 'pgtk)
+           (pgtk-device-class name))
+          (t (cond
+              ((string= name "Virtual core pointer")
+               'core-pointer)
+              ((string= name "Virtual core keyboard")
+               'core-keyboard))))))
+
 
 ;;;; Frame geometry values
 
@@ -2896,6 +2960,12 @@ If the frame is in fullscreen state, don't change its state, but
 set the frame's `fullscreen-restore' parameter to `maximized', so
 the frame will be maximized after disabling fullscreen state.
 
+If you wish to hide the title bar when the frame is maximized, you
+can add something like the following to your init file:
+
+  (add-hook \\='window-size-change-functions
+            #\\='frame-hide-title-bar-when-maximized)
+
 Note that with some window managers you may have to set
 `frame-resize-pixelwise' to non-nil in order to make a frame
 appear truly maximized.  In addition, you may have to set
@@ -3010,6 +3080,13 @@ Offer NUMBER as default value, if it is a natural number."
         bidi-paragraph-direction
         bidi-display-reordering
         bidi-inhibit-bpa))
+
+(defun frame-hide-title-bar-when-maximized (frame)
+  "Hide the title bar if FRAME is maximized.
+If FRAME isn't maximized, show the title bar."
+  (set-frame-parameter
+   frame 'undecorated
+   (eq (alist-get 'fullscreen (frame-parameters frame)) 'maximized)))
 
 (provide 'frame)
 

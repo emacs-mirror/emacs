@@ -663,7 +663,10 @@ search for matches for any two (or more) of those words.
 With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil,
 consider all symbols (if they match PATTERN).
 
-Return list of symbols and documentation found."
+Return list of symbols and documentation found.
+
+The *Apropos* window will be selected if `help-window-select' is
+non-nil."
   (interactive (list (apropos-read-pattern "symbol")
 		     current-prefix-arg))
   (setq apropos--current (list #'apropos pattern do-all))
@@ -1249,7 +1252,9 @@ as a heading."
 	  (apropos-print-doc 5 'apropos-widget t)
 	  (apropos-print-doc 4 'apropos-plist nil))
         (setq-local truncate-partial-width-windows t)
-        (setq-local truncate-lines t))))
+        (setq-local truncate-lines t)))
+    (when help-window-select
+      (select-window (get-buffer-window "*Apropos*"))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 

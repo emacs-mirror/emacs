@@ -889,7 +889,7 @@ Makefile mode can be configured by modifying the following variables:
   (setq-local comment-start-skip "#+[ \t]*")
 
   ;; Make sure TAB really inserts \t.
-  (setq-local indent-line-function 'indent-to-left-margin)
+  (setq-local indent-line-function #'insert-tab)
 
   ;; Real TABs are important in makefiles
   (setq indent-tabs-mode t))

@@ -46,6 +46,16 @@ formats that are to be supported: Only the suffixes that map to
   :type 'symbol
   :version "27.1")
 
+(defcustom image-convert-to-format "png"
+  "The image format to convert to.
+This should be a string like \"png\" or \"ppm\" or some
+other (preferrably lossless) format that Emacs understands
+natively.  The converter chosen has to support the format, and if
+not, conversion will fail."
+  :group 'image
+  :version "29.1"
+  :type 'string)
+
 (defvar image-converter-regexp nil
   "A regexp that matches the file name suffixes that can be converted.")
 
@@ -58,15 +68,19 @@ formats that are to be supported: Only the suffixes that map to
     (imagemagick :command "convert" :probe ("-list" "format")))
   "List of supported image converters to try.")
 
+(defun image-converter-initialize ()
+  "Determine the external image converter to be used.
+This also determines which external formats we can parse."
+  (unless image-converter
+    (image-converter--find-converter)))
+
 (defun image-convert-p (source &optional data-p)
   "Return `image-convert' if SOURCE is an image that can be converted.
 SOURCE can either be a file name or a string containing image
 data.  In the latter case, DATA-P should be non-nil.  If DATA-P
 is a string, it should be a MIME format string like
 \"image/gif\"."
-  ;; Find an installed image converter.
-  (unless image-converter
-    (image-converter--find-converter))
+  (image-converter-initialize)
   ;; When image-converter was customized
   (when (and image-converter (not image-converter-regexp))
     (when-let ((formats (image-converter--probe image-converter)))
@@ -85,22 +99,23 @@ is a string, it should be a MIME format string like
        'image-convert))
 
 (defun image-convert (image &optional image-format)
-  "Convert IMAGE file to the PNG format.
+  "Convert IMAGE file to an image format Emacs understands.
+This will usually be \"png\", but this is controlled by the
+`image-convert-to-format' user option.
+
 IMAGE can either be a file name or image data.
 
 To pass in image data, IMAGE should a string containing the image
 data, and IMAGE-FORMAT should be a symbol with a MIME format name
 like \"image/webp\".  For instance:
 
-  (image-convert data-string 'image/bmp)
+  (image-convert data-string \\='image/bmp)
 
 IMAGE can also be an image object as returned by `create-image'.
 
-This function converts the image to PNG, and the converted image
-data is returned as a string."
-  ;; Find an installed image converter.
-  (unless image-converter
-    (image-converter--find-converter))
+This function converts the image the preferred format, and the
+converted image data is returned as a string."
+  (image-converter-initialize)
   (unless image-converter
     (error "No external image converters available"))
   (when (and image-format
@@ -120,7 +135,9 @@ data is returned as a string."
     (if (listp image)
         ;; Return an image object that's the same as we were passed,
         ;; but ignore the :type value.
-        (apply #'create-image (buffer-string) 'png t
+        (apply #'create-image (buffer-string)
+               (intern image-convert-to-format)
+               t
                (cl-loop for (key val) on (cdr image) by #'cddr
                         unless (eq key :type)
                         append (list key val)))
@@ -239,12 +256,15 @@ Only suffixes that map to `image-mode' are returned."
                                  (list (format "%s:-"
                                                (image-converter--mime-type
                                                 image-format))
-                                       "png:-"))))
+                                       (concat image-convert-to-format
+                                               ":-")))))
                      ;; SOURCE is a file name.
                      (apply #'call-process (car command)
                             nil t nil
                             (append (cdr command)
-                                    (list (expand-file-name source) "png:-")))))
+                                    (list (expand-file-name source)
+                                          (concat image-convert-to-format
+                                                  ":-"))))))
       ;; If the command failed, hopefully the buffer contains the
       ;; error message.
       (buffer-string))))
@@ -262,14 +282,15 @@ Only suffixes that map to `image-mode' are returned."
                                 (append
                                  (cdr command)
                                  (list "-i" "-"
-                                       "-c:v" "png"
+                                       "-c:v" image-convert-to-format
                                        "-f" "image2pipe" "-"))))
                      (apply #'call-process
                             (car command)
                             nil '(t nil) nil
                             (append (cdr command)
                                     (list "-i" (expand-file-name source)
-                                          "-c:v" "png" "-f" "image2pipe"
+                                          "-c:v" image-convert-to-format
+                                          "-f" "image2pipe"
                                           "-")))))
       "ffmpeg error when converting")))
 

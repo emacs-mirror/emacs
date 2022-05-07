@@ -2200,6 +2200,16 @@ get_random (void)
   return val & INTMASK;
 }
 
+/* Return a random unsigned long.  */
+unsigned long int
+get_random_ulong (void)
+{
+  unsigned long int r = 0;
+  for (int i = 0; i < (ULONG_WIDTH + RAND_BITS - 1) / RAND_BITS; i++)
+    r = random () ^ (r << RAND_BITS) ^ (r >> (ULONG_WIDTH - RAND_BITS));
+  return r;
+}
+
 #ifndef HAVE_SNPRINTF
 /* Approximate snprintf as best we can on ancient hosts that lack it.  */
 int
@@ -2320,6 +2330,20 @@ emacs_fstatat (int dirfd, char const *filename, void *st, int flags)
   return r;
 }
 
+static int
+sys_openat (int dirfd, char const *file, int oflags, int mode)
+{
+#ifdef O_PATH
+  return openat (dirfd, file, oflags, mode);
+#else
+  /* On platforms without O_PATH, emacs_openat's callers arrange for
+     DIRFD to be AT_FDCWD, so it should be safe to just call 'open'.
+     This ports to old platforms like OS X 10.9 that lack openat.  */
+  eassert (dirfd == AT_FDCWD);
+  return open (file, oflags, mode);
+#endif
+}
+
 /* Assuming the directory DIRFD, open FILE for Emacs use,
    using open flags OFLAGS and mode MODE.
    Use binary I/O on systems that care about text vs binary I/O.
@@ -2335,7 +2359,7 @@ emacs_openat (int dirfd, char const *file, int oflags, int mode)
   if (! (oflags & O_TEXT))
     oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
-  while ((fd = openat (dirfd, file, oflags, mode)) < 0 && errno == EINTR)
+  while ((fd = sys_openat (dirfd, file, oflags, mode)) < 0 && errno == EINTR)
     maybe_quit ();
   return fd;
 }
@@ -2348,24 +2372,17 @@ emacs_open (char const *file, int oflags, int mode)
 
 /* Same as above, but doesn't allow the user to quit.  */
 
-static int
-emacs_openat_noquit (int dirfd, const char *file, int oflags,
-                     int mode)
+int
+emacs_open_noquit (char const *file, int oflags, int mode)
 {
   int fd;
   if (! (oflags & O_TEXT))
     oflags |= O_BINARY;
   oflags |= O_CLOEXEC;
   do
-    fd = openat (dirfd, file, oflags, mode);
+    fd = open (file, oflags, mode);
   while (fd < 0 && errno == EINTR);
   return fd;
-}
-
-int
-emacs_open_noquit (char const *file, int oflags, int mode)
-{
-  return emacs_openat_noquit (AT_FDCWD, file, oflags, mode);
 }
 
 /* Open FILE as a stream for Emacs use, with mode MODE.
@@ -3176,7 +3193,7 @@ make_lisp_timeval (struct timeval t)
 
 #endif
 
-#ifdef GNU_LINUX
+#if defined (GNU_LINUX) || defined (CYGWIN)
 
 static Lisp_Object
 time_from_jiffies (unsigned long long ticks, Lisp_Object hz, Lisp_Object form)
@@ -3224,6 +3241,7 @@ get_up_time (void)
   return up;
 }
 
+# ifdef GNU_LINUX
 #define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
 #define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
 
@@ -3269,6 +3287,7 @@ procfs_ttyname (int rdev)
   unblock_input ();
   return build_string (name);
 }
+# endif	/* GNU_LINUX */
 
 static uintmax_t
 procfs_get_total_memory (void)
@@ -3403,7 +3422,7 @@ system_process_attributes (Lisp_Object pid)
 	 utime stime cutime cstime priority nice thcount . start vsize rss */
       if (q
 	  && (sscanf (q + 2, ("%c %d %d %d %d %d %*u %lu %lu %lu %lu "
-			      "%Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld"),
+			      "%llu %llu %llu %llu %ld %ld %d %*d %llu %lu %ld"),
 		      &c, &ppid, &pgrp, &sess, &tty, &tpgid,
 		      &minflt, &cminflt, &majflt, &cmajflt,
 		      &u_time, &s_time, &cutime, &cstime,
@@ -3417,7 +3436,9 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (ppid)), attrs);
 	  attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (pgrp)), attrs);
 	  attrs = Fcons (Fcons (Qsess, INT_TO_INTEGER (sess)), attrs);
+# ifdef GNU_LINUX
 	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
+# endif
 	  attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (tpgid)), attrs);
 	  attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (minflt)), attrs);
 	  attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (majflt)), attrs);
@@ -3465,6 +3486,26 @@ system_process_attributes (Lisp_Object pid)
 	}
     }
   unbind_to (count, Qnil);
+
+# ifdef CYGWIN
+  /* ttname */
+  strcpy (procfn_end, "/ctty");
+  fd = emacs_open (fn, O_RDONLY, 0);
+  if (fd < 0)
+    nread = 0;
+  else
+    {
+      record_unwind_protect_int (close_file_unwind, fd);
+      nread = emacs_read_quit (fd, procbuf, sizeof procbuf);
+    }
+  /* /proc/<pid>/ctty should always end in newline. */
+  if (0 < nread && procbuf[nread - 1] == '\n')
+    procbuf[nread - 1] = '\0';
+  else
+    procbuf[0] = '\0';
+  attrs = Fcons (Fcons (Qttname, build_string (procbuf)), attrs);
+  unbind_to (count, Qnil);
+# endif	/* CYGWIN */
 
   /* args */
   strcpy (procfn_end, "/cmdline");
@@ -4002,6 +4043,9 @@ system_process_attributes (Lisp_Object pid)
 
 #elif defined DARWIN_OS
 
+#define HAVE_RUSAGE_INFO_CURRENT (__MAC_OS_X_VERSION_MIN_REQUIRED >= 101000)
+#define HAVE_PROC_PIDINFO (__MAC_OS_X_VERSION_MIN_REQUIRED >= 1050)
+
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
@@ -4104,6 +4148,7 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (proc.kp_eproc.e_tpgid)),
 		 attrs);
 
+#if HAVE_RUSAGE_INFO_CURRENT
   rusage_info_current ri;
   if (proc_pid_rusage(proc_id, RUSAGE_INFO_CURRENT, (rusage_info_t *) &ri) == 0)
     {
@@ -4117,6 +4162,22 @@ system_process_attributes (Lisp_Object pid)
 
       attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (ri.ri_pageins)), attrs);
   }
+#else  /* !HAVE_RUSAGE_INFO_CURRENT */
+  struct rusage *rusage = proc.kp_proc.p_ru;
+  if (rusage)
+    {
+      attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (rusage->ru_minflt)),
+		     attrs);
+      attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (rusage->ru_majflt)),
+		     attrs);
+
+      Lisp_Object utime = make_lisp_timeval (rusage->ru_utime);
+      Lisp_Object stime = make_lisp_timeval (rusage->ru_stime);
+      attrs = Fcons (Fcons (Qutime, utime), attrs);
+      attrs = Fcons (Fcons (Qstime, stime), attrs);
+      attrs = Fcons (Fcons (Qtime, Ftime_add (utime, stime)), attrs);
+    }
+#endif  /* !HAVE_RUSAGE_INFO_CURRENT */
 
   starttime = proc.kp_proc.p_starttime;
   attrs = Fcons (Fcons (Qnice,  make_fixnum (proc.kp_proc.p_nice)), attrs);
@@ -4127,6 +4188,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object etime = Ftime_convert (Ftime_subtract (now, start), Qnil);
   attrs = Fcons (Fcons (Qetime, etime), attrs);
 
+#if HAVE_PROC_PIDINFO
   struct proc_taskinfo taskinfo;
   if (proc_pidinfo (proc_id, PROC_PIDTASKINFO, 0, &taskinfo, sizeof (taskinfo)) > 0)
     {
@@ -4134,6 +4196,7 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qrss, make_fixnum (taskinfo.pti_resident_size / 1024)), attrs);
       attrs = Fcons (Fcons (Qthcount, make_fixnum (taskinfo.pti_threadnum)), attrs);
     }
+#endif	/* HAVE_PROC_PIDINFO */
 
 #ifdef KERN_PROCARGS2
   char args[ARG_MAX];

@@ -709,4 +709,22 @@ collection clause."
       ;; Just make sure the forms can be instrumented.
       (eval-buffer))))
 
+(ert-deftest cl-defstruct/edebug ()
+  "Check that we can instrument `cl-defstruct' forms."
+  (with-temp-buffer
+    (dolist (form '((cl-defstruct cl-defstruct/edebug/1)
+                    (cl-defstruct (cl-defstruct/edebug/2
+                                   :noinline))
+                    (cl-defstruct (cl-defstruct/edebug/3
+                                   (:noinline t)))
+                    (cl-defstruct (cl-defstruct/edebug/4
+                                   :named))
+                    (cl-defstruct (cl-defstruct/edebug/5
+                                   (:named t)))))
+      (print form (current-buffer)))
+    (let ((edebug-all-defs t)
+          (edebug-initial-mode 'Go-nonstop))
+      ;; Just make sure the forms can be instrumented.
+      (eval-buffer))))
+
 ;;; cl-macs-tests.el ends here

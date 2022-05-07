@@ -1520,7 +1520,8 @@ to `compilation-error-regexp-alist' if RULES is nil."
         ;; FIXME-omake: Doing it here seems wrong, at least it should depend on
         ;; whether or not omake's own error messages are recognized.
         (cond
-         ((not omake-included) nil)
+         ((or (not omake-included) (not pat))
+          nil)
          ((string-match "\\`\\([^^]\\|\\^\\( \\*\\|\\[\\)\\)" pat)
           nil) ;; Not anchored or anchored but already allows empty spaces.
          (t (setq pat (concat "^\\(?:      \\)?" (substring pat 1)))))
@@ -1539,7 +1540,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
           (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
         (goto-char start)
-        (while (re-search-forward pat end t)
+        (while (and pat (re-search-forward pat end t))
           (when (setq props (compilation-error-properties
                              file line end-line col end-col
                              (or type 2) fmt rule))
@@ -1751,6 +1752,13 @@ Otherwise, construct a buffer name from NAME-OF-MODE."
 If nil, ask to kill it."
   :type 'boolean
   :version "24.3")
+
+(defcustom compilation-max-output-line-length 400
+  "Output lines that are longer than this value will be hidden.
+If nil, don't hide anything."
+  :type '(choice (const :tag "Hide nothing" nil)
+                 integer)
+  :version "29.1")
 
 (defun compilation--update-in-progress-mode-line ()
   ;; `compilation-in-progress' affects the mode-line of all
@@ -2426,19 +2434,56 @@ and runs `compilation-filter-hook'."
               ;; We used to use `insert-before-markers', so that windows with
               ;; point at `process-mark' scroll along with the output, but we
               ;; now use window-point-insertion-type instead.
-              (insert string)
+              (if (not compilation-max-output-line-length)
+                  (insert string)
+                (dolist (line (string-lines string nil t))
+                  (compilation--insert-abbreviated-line
+                   line compilation-max-output-line-length)))
               (unless comint-inhibit-carriage-motion
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
               ;; Update the number of errors in compilation-mode-line-errors
               (compilation--ensure-parse (point))
-              ;; (setq-local compilation-buffer-modtime (current-time))
               (run-hooks 'compilation-filter-hook))
 	  (goto-char pos)
           (narrow-to-region min max)
 	  (set-marker pos nil)
 	  (set-marker min nil)
 	  (set-marker max nil))))))
+
+(defun compilation--insert-abbreviated-line (string width)
+  (if (and (> (current-column) 0)
+           (get-text-property (1- (point)) 'button))
+      ;; We already have an abbreviation; just add the string to it.
+      (let ((beg (point)))
+        (insert string)
+        (add-text-properties
+         beg
+         ;; Don't make the final newline invisible.
+         (if (= (aref string (1- (length string))) ?\n)
+             (1- (point))
+           (point))
+         (text-properties-at (1- beg))))
+    (insert string)
+    ;; If we exceeded the limit, hide the last portion of the line.
+    (when (> (current-column) width)
+      (let ((start (save-excursion
+                     (move-to-column width)
+                     (point))))
+        (buttonize-region
+         start (point)
+         (lambda (start)
+           (let ((inhibit-read-only t))
+             (remove-text-properties start (save-excursion
+                                             (goto-char start)
+                                             (line-end-position))
+                                     (text-properties-at start)))))
+        (put-text-property
+         start (if (= (aref string (1- (length string))) ?\n)
+                   ;; Don't hide the final newline.
+                   (1- (point))
+                 (point))
+         'display (if (char-displayable-p ?…) "[…]" "[...]"))))))
 
 (defsubst compilation-buffer-internal-p ()
   "Test if inside a compilation buffer."

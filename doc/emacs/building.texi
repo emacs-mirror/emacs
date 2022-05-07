@@ -138,6 +138,14 @@ of environment variable settings; each element should be a string of
 the form @code{"@var{envvarname}=@var{value}"}.  These environment
 variable settings override the usual ones.
 
+@vindex compilation-max-output-line-length
+  Displaying extremely long lines in compilation output can slow Emacs
+down.  Lines that are longer than
+@code{compilation-max-output-line-length} will have the portion that's
+exceeds that limit hidden behind a button that can be clicked on to
+reveal the hidden portion.  Set this variable to @code{nil} to never
+hide anything.
+
 @node Compilation Mode
 @section Compilation Mode
 
@@ -1733,6 +1741,10 @@ are larger than it from being displayed as characters.
 which is provided for evaluating Emacs Lisp expressions interactively.
 Its major mode is Lisp Interaction mode.  You can also enable Lisp
 Interaction mode by typing @kbd{M-x lisp-interaction-mode}.
+
+@findex scratch-buffer
+  If you kill the @file{*scratch*} buffer, you can recreate it with
+the @kbd{M-x scratch-buffer} command.
 
 @findex eval-print-last-sexp
 @kindex C-j @r{(Lisp Interaction mode)}

@@ -97,7 +97,7 @@
      ((("FOOBAR:" . "something") nil "hi there"))
      ((FOOBAR:something nil "hi there"))))
   "List of strings which are parsed using namespace expansion.
-Parser is called with and without 'symbol-qnames argument.")
+Parser is called with and without `symbol-qnames' argument.")
 
 (ert-deftest xml-parse-tests ()
   "Test XML parsing."

@@ -313,7 +313,7 @@ With the following piece of advice, you can make this functionality
 available in most of Emacs, with the exception of filename completion
 in the minibuffer:
 
-    (advice-add 'expand-file-name :around #'my-expand-multiple-dots)
+    (advice-add \\='expand-file-name :around #\\='my-expand-multiple-dots)
     (defun my-expand-multiple-dots (orig-fun filename &rest args)
       (apply orig-fun (eshell-expand-multiple-dots filename) args))"
   (while (string-match "\\(?:\\`\\|/\\)\\.\\.\\(\\.+\\)\\(?:\\'\\|/\\)"

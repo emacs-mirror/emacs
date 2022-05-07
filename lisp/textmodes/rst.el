@@ -2351,7 +2351,7 @@ If user selects bullets or #, it's just added with position arranged by
 `rst-insert-list-new-tag'.
 
 If user selects enumerations, a further prompt is given.  User need to
-input a starting item, for example 'e' for 'A)' style.  The position is
+input a starting item, for example `e' for `A)' style.  The position is
 also arranged by `rst-insert-list-new-tag'."
   (let* ((itemstyle (completing-read
 		     (format-prompt "Select preferred item style" "#.")

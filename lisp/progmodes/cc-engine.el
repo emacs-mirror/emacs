@@ -6139,7 +6139,7 @@ comment at the start of cc-engine.el for more info."
 	  (setq s (cons -1 (cdr s))))
 	 ((and (equal match ",")
 	       (eq (car s) -1)))	; at "," in "class foo : bar, ..."
-	 ((member match '(";" "*" "," "("))
+	 ((member match '(";" "*" "," ")"))
 	  (when (and s (cdr s) (<= (car s) 0))
 	    (setq s (cdr s))))
 	 ((c-keyword-member kwd-sym 'c-flat-decl-block-kwds)

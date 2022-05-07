@@ -2927,8 +2927,11 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
       else if (bidi_it->bracket_enclosed_type == STRONG_L   /* N0c, N0d */
 	       || bidi_it->bracket_enclosed_type == STRONG_R)
 	{
-	  eassert (bidi_it->prev_for_neutral.type != UNKNOWN_BT);
-	  switch (bidi_it->prev_for_neutral.type)
+	  bidi_type_t prev_type_for_neutral = bidi_it->prev_for_neutral.type;
+
+	  if (prev_type_for_neutral == UNKNOWN_BT)
+	    prev_type_for_neutral = embedding_type;
+	  switch (prev_type_for_neutral)
 	    {
 	    case STRONG_R:
 	    case WEAK_EN:

@@ -176,8 +176,17 @@
   (should (equal (eshell-test-command-result "+ $(+ 1 2)$(+ 1 2) 3") 36)))
 
 (ert-deftest esh-var-test/interp-concat-cmd ()
-  "Interpolate and concat command"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36)))
+  "Interpolate and concat command with literal"
+  (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36))
+  (should (equal (eshell-test-command-result "echo ${*echo \"foo\nbar\"}-baz")
+                 '("foo" "bar-baz")))
+  ;; Concatenating to a number in a list should produce a number...
+  (should (equal (eshell-test-command-result "echo ${*echo \"1\n2\"}3")
+                 '(1 23)))
+  ;; ... but concatenating to a string that looks like a number in a list
+  ;; should produce a string.
+  (should (equal (eshell-test-command-result "echo ${*echo \"hi\n2\"}3")
+                 '("hi" "23"))))
 
 (ert-deftest esh-var-test/interp-concat-cmd2 ()
   "Interpolate and concat two commands"
@@ -210,12 +219,17 @@
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[0]\"")
                    "zero"))
+    ;; FIXME: These tests would use the 0th index like the other tests
+    ;; here, but evaluating the command just above adds an `escaped'
+    ;; property to the string "zero".  This results in the output
+    ;; printing the string properties, which is probably the wrong
+    ;; behavior.  See bug#54486.
     (should (equal (eshell-test-command-result
-                    "echo \"$eshell-test-value[0 2]\"")
-                   '("zero" "two")))
+                    "echo \"$eshell-test-value[1 2]\"")
+                   "(\"one\" \"two\")"))
     (should (equal (eshell-test-command-result
-                    "echo \"$eshell-test-value[0 2 4]\"")
-                   '("zero" "two" "four")))))
+                    "echo \"$eshell-test-value[1 2 4]\"")
+                   "(\"one\" \"two\" \"four\")"))))
 
 (ert-deftest esh-var-test/quoted-interp-var-split-indices ()
   "Interpolate string variable with indices inside double-quotes"
@@ -225,7 +239,7 @@
                    "zero"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[0 2]\"")
-                   '("zero" "two")))))
+                   "(\"zero\" \"two\")"))))
 
 (ert-deftest esh-var-test/quoted-interp-var-string-split-indices ()
   "Interpolate string variable with string splitter and indices
@@ -236,14 +250,14 @@ inside double-quotes"
                    "zero"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[: 0 2]\"")
-                   '("zero" "two"))))
+                   "(\"zero\" \"two\")")))
   (let ((eshell-test-value "zeroXoneXtwoXthreeXfour"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[X 0]\"")
                    "zero"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[X 0 2]\"")
-                   '("zero" "two")))))
+                   "(\"zero\" \"two\")"))))
 
 (ert-deftest esh-var-test/quoted-interp-var-regexp-split-indices ()
   "Interpolate string variable with regexp splitter and indices"
@@ -253,43 +267,47 @@ inside double-quotes"
                    "zero"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value['[:!]' 0 2]\"")
-                   '("zero" "two")))
+                   "(\"zero\" \"two\")"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[\\\"[:!]\\\" 0]\"")
                    "zero"))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[\\\"[:!]\\\" 0 2]\"")
-                   '("zero" "two")))))
+                   "(\"zero\" \"two\")"))))
 
 (ert-deftest esh-var-test/quoted-interp-var-assoc ()
   "Interpolate alist variable with index inside double-quotes"
   (let ((eshell-test-value '(("foo" . 1))))
     (should (equal (eshell-test-command-result
                     "echo \"$eshell-test-value[foo]\"")
-                   1))))
+                   "1"))))
 
 (ert-deftest esh-var-test/quoted-interp-var-length-list ()
   "Interpolate length of list variable inside double-quotes"
   (let ((eshell-test-value '((1 2) (3) (5 (6 7 8 9)))))
-    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value\"") 3))
-    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value[1]\"")
-                1))
-    (should (eq (eshell-test-command-result
-                 "echo \"$#eshell-test-value[2][1]\"")
-                4))))
+    (should (equal (eshell-test-command-result "echo \"$#eshell-test-value\"")
+                   "3"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$#eshell-test-value[1]\"")
+                   "1"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$#eshell-test-value[2][1]\"")
+                   "4"))))
 
 (ert-deftest esh-var-test/quoted-interp-var-length-string ()
   "Interpolate length of string variable inside double-quotes"
   (let ((eshell-test-value "foobar"))
-    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value\"")
-                6))))
+    (should (equal (eshell-test-command-result "echo \"$#eshell-test-value\"")
+                   "6"))))
 
 (ert-deftest esh-var-test/quoted-interp-var-length-alist ()
   "Interpolate length of alist variable inside double-quotes"
   (let ((eshell-test-value '(("foo" . (1 2 3)))))
-    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value\"") 1))
-    (should (eq (eshell-test-command-result "echo \"$#eshell-test-value[foo]\"")
-                3))))
+    (should (equal (eshell-test-command-result "echo \"$#eshell-test-value\"")
+                   "1"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$#eshell-test-value[foo]\"")
+                   "3"))))
 
 (ert-deftest esh-var-test/quoted-interp-lisp ()
   "Interpolate Lisp form evaluation inside double-quotes"
@@ -299,7 +317,8 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/quoted-interp-lisp-indices ()
   "Interpolate Lisp form evaluation with index"
-  (should (equal (eshell-test-command-result "+ \"$(list 1 2)[1]\" 3") 5)))
+  (should (equal (eshell-test-command-result "concat \"$(list 1 2)[1]\" cool")
+                 "2cool")))
 
 (ert-deftest esh-var-test/quoted-interp-cmd ()
   "Interpolate command result inside double-quotes"
@@ -309,11 +328,143 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/quoted-interp-cmd-indices ()
   "Interpolate command result with index inside double-quotes"
-  (should (equal (eshell-test-command-result "+ \"${list 1 2}[1]\" 3") 5)))
+  (should (equal (eshell-test-command-result "concat \"${list 1 2}[1]\" cool")
+                 "2cool")))
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
   "Interpolate command result redirected to temp file inside double-quotes"
-  (should (equal (eshell-test-command-result "cat \"$<echo hi>\"") "hi")))
+  (let ((temporary-file-directory
+         (file-name-as-directory (make-temp-file "esh-vars-tests" t))))
+    (unwind-protect
+        (should (equal (eshell-test-command-result "cat \"$<echo hi>\"")
+                       "hi"))
+      (delete-directory temporary-file-directory t))))
+
+(ert-deftest esh-var-test/quoted-interp-concat-cmd ()
+  "Interpolate and concat command with literal"
+  (should (equal (eshell-test-command-result
+                  "echo \"${echo \\\"foo\nbar\\\"} baz\"")
+                 "foo\nbar baz")))
+
+
+;; Interpolated variable conversion
+
+(ert-deftest esh-var-test/interp-convert-var-number ()
+  "Interpolate numeric variable"
+  (let ((eshell-test-value 123))
+    (should (equal (eshell-test-command-result "type-of $eshell-test-value")
+                   'integer))))
+
+(ert-deftest esh-var-test/interp-convert-var-split-indices ()
+  "Interpolate and convert string variable with indices"
+  (let ((eshell-test-value "000 010 020 030 040"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0]")
+                   0))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[0 2]")
+                   '(0 20)))))
+
+(ert-deftest esh-var-test/interp-convert-quoted-var-number ()
+  "Interpolate numeric quoted numeric variable"
+  (let ((eshell-test-value 123))
+    (should (equal (eshell-test-command-result "type-of $'eshell-test-value'")
+                   'integer))
+    (should (equal (eshell-test-command-result "type-of $\"eshell-test-value\"")
+                   'integer))))
+
+(ert-deftest esh-var-test/interp-convert-quoted-var-split-indices ()
+  "Interpolate and convert quoted string variable with indices"
+  (let ((eshell-test-value "000 010 020 030 040"))
+    (should (equal (eshell-test-command-result "echo $'eshell-test-value'[0]")
+                   0))
+    (should (equal (eshell-test-command-result "echo $'eshell-test-value'[0 2]")
+                   '(0 20)))))
+
+(ert-deftest esh-var-test/interp-convert-cmd-string-newline ()
+  "Interpolate trailing-newline command result"
+  (should (equal (eshell-test-command-result "echo ${echo \"foo\n\"}") "foo")))
+
+(ert-deftest esh-var-test/interp-convert-cmd-multiline ()
+  "Interpolate multi-line command result"
+  (should (equal (eshell-test-command-result "echo ${echo \"foo\nbar\"}")
+                 '("foo" "bar")))
+  ;; Numeric output should be converted to numbers...
+  (should (equal (eshell-test-command-result "echo ${echo \"01\n02\n03\"}")
+                 '(1 2 3)))
+  ;; ... but only if every line is numeric.
+  (should (equal (eshell-test-command-result "echo ${echo \"01\n02\nhi\"}")
+                 '("01" "02" "hi"))))
+
+(ert-deftest esh-var-test/interp-convert-cmd-number ()
+  "Interpolate numeric command result"
+  (should (equal (eshell-test-command-result "echo ${echo \"1\"}") 1)))
+
+(ert-deftest esh-var-test/interp-convert-cmd-split-indices ()
+  "Interpolate command result with indices"
+  (should (equal (eshell-test-command-result "echo ${echo \"000 010 020\"}[0]")
+                 0))
+  (should (equal (eshell-test-command-result
+                  "echo ${echo \"000 010 020\"}[0 2]")
+                 '(0 20))))
+
+(ert-deftest esh-var-test/quoted-interp-convert-var-number ()
+  "Interpolate numeric variable inside double-quotes"
+  (let ((eshell-test-value 123))
+    (should (equal (eshell-test-command-result "type-of \"$eshell-test-value\"")
+                   'string))))
+
+(ert-deftest esh-var-test/quoted-interp-convert-var-split-indices ()
+  "Interpolate string variable with indices inside double-quotes"
+  (let ((eshell-test-value "000 010 020 030 040"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0]\"")
+                   "000"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0 2]\"")
+                   "(\"000\" \"020\")"))))
+
+(ert-deftest esh-var-test/quoted-interp-convert-quoted-var-number ()
+  "Interpolate numeric quoted variable inside double-quotes"
+  (let ((eshell-test-value 123))
+    (should (equal (eshell-test-command-result
+                    "type-of \"$'eshell-test-value'\"")
+                   'string))
+    (should (equal (eshell-test-command-result
+                    "type-of \"$\\\"eshell-test-value\\\"\"")
+                   'string))))
+
+(ert-deftest esh-var-test/quoted-interp-convert-quoted-var-split-indices ()
+  "Interpolate quoted string variable with indices inside double-quotes"
+  (let ((eshell-test-value "000 010 020 030 040"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0]\"")
+                   "000"))
+    (should (equal (eshell-test-command-result
+                    "echo \"$eshell-test-value[0 2]\"")
+                   "(\"000\" \"020\")"))))
+
+(ert-deftest esh-var-test/quoted-interp-convert-cmd-string-newline ()
+  "Interpolate trailing-newline command result inside double-quotes"
+  (should (equal (eshell-test-command-result "echo \"${echo \\\"foo\n\\\"}\"")
+                 "foo"))
+  (should (equal (eshell-test-command-result "echo \"${echo \\\"foo\n\n\\\"}\"")
+                 "foo")))
+
+(ert-deftest esh-var-test/quoted-interp-convert-cmd-multiline ()
+  "Interpolate multi-line command result inside double-quotes"
+  (should (equal (eshell-test-command-result
+                  "echo \"${echo \\\"foo\nbar\\\"}\"")
+                 "foo\nbar")))
+
+(ert-deftest esh-var-test/quoted-interp-convert-cmd-number ()
+  "Interpolate numeric command result inside double-quotes"
+  (should (equal (eshell-test-command-result "echo \"${echo \\\"1\\\"}\"")
+                 "1")))
+
+(ert-deftest esh-var-test/quoted-interp-convert-cmd-split-indices ()
+  "Interpolate command result with indices inside double-quotes"
+  (should (equal (eshell-test-command-result
+                  "echo \"${echo \\\"000 010 020\\\"}[0]\"")
+                 "000")))
 
 
 ;; Built-in variables

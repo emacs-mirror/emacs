@@ -23,6 +23,9 @@
 # include <stdint.h>
 
 # if HAVE_OPENSSL_SHA1
+#  ifndef OPENSSL_API_COMPAT
+#   define OPENSSL_API_COMPAT 0x10101000L /* FIXME: Use OpenSSL 1.1+ API.  */
+#  endif
 #  include <openssl/sha.h>
 # endif
 

@@ -712,5 +712,37 @@
           (loop (cdr rest) (+ sum (car rest))))))
     (should (equal (mapcar #'funcall funs) '(43 1 0)))))
 
+(ert-deftest test-with-buffer-unmodified-if-unchanged ()
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t"))
+    (should (buffer-modified-p)))
+
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t")
+      (delete-char -1))
+    (should-not (buffer-modified-p)))
+
+  ;; Shouldn't error.
+  (should
+   (with-temp-buffer
+     (with-buffer-unmodified-if-unchanged
+       (insert "t")
+       (delete-char -1)
+       (kill-buffer))))
+
+  (with-temp-buffer
+    (let ((outer (current-buffer)))
+      (with-temp-buffer
+        (let ((inner (current-buffer)))
+          (with-buffer-unmodified-if-unchanged
+            (insert "t")
+            (delete-char -1)
+            (set-buffer outer))
+          (with-current-buffer inner
+            (should-not (buffer-modified-p))))))))
+
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

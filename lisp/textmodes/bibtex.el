@@ -764,6 +764,20 @@ for a new entry."
       ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
       ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
       ("url") ("urldate")))
+    ("Conference" "Article in Conference Proceedings" ; same as InProceedings
+     (("author")
+      ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)"))
+     (("booktitle" "Name of the conference proceedings")
+      ("year"))
+     (("editor")
+      ("volume" "Volume of the conference proceedings in the series")
+      ("number" "Number of the conference proceedings in a small series (overwritten by volume)")
+      ("series" "Series in which the conference proceedings appeared")
+      ("pages" "Pages in the conference proceedings")
+      ("month") ("address")
+      ("organization" "Sponsoring organization of the conference")
+      ("publisher" "Publishing company, its location")
+      ("note")))
     ("Reference" "Single-Volume Work of Reference" ; same as @collection
      (("editor") ("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
@@ -846,6 +860,15 @@ for a new entry."
       ("year"))
      nil
      (("type" "Type of the PhD thesis")
+      ("address" "Address of the school (if not part of field \"school\") or country")
+      ("month") ("note")))
+    ("MastersThesis" "Master's Thesis"
+     (("author")
+      ("title" "Title of the master's thesis (BibTeX converts it to lowercase)")
+      ("school" "School where the master's thesis was written")
+      ("year"))
+     nil
+     (("type" "Type of the master's thesis (if other than \"Master's thesis\")")
       ("address" "Address of the school (if not part of field \"school\") or country")
       ("month") ("note")))
     ("TechReport" "Technical Report"
@@ -2275,11 +2298,17 @@ is non-nil, FUN is not called for @String entries."
     (set-marker-insertion-type end-marker t)
     (save-excursion
       (goto-char (point-min))
-      (while (setq found (bibtex-skip-to-valid-entry))
-        (set-marker end-marker (cdr found))
-        (looking-at bibtex-any-entry-maybe-empty-head)
-        (funcall fun (bibtex-key-in-head "") (car found) end-marker)
-        (goto-char end-marker)))))
+      (let ((prev (point)))
+        (while (setq found (bibtex-skip-to-valid-entry))
+          ;; If we have invalid entries, ensure that we have forward
+          ;; progress so that we don't infloop.
+          (if (= (point) prev)
+              (forward-line 1)
+            (setq prev (point))
+            (set-marker end-marker (cdr found))
+            (looking-at bibtex-any-entry-maybe-empty-head)
+            (funcall fun (bibtex-key-in-head "") (car found) end-marker)
+            (goto-char end-marker)))))))
 
 (defun bibtex-progress-message (&optional flag interval)
   "Echo a message about progress of current buffer.
@@ -5010,7 +5039,7 @@ on the value of `bibtex-entry-format'.
 If the reference key of the entry is empty or a prefix argument is given,
 calculate a new reference key.  (Note: this works only if fields in entry
 begin on separate lines prior to calling `bibtex-clean-entry' or if
-'realign is contained in `bibtex-entry-format'.)
+`realign' is contained in `bibtex-entry-format'.)
 Don't call `bibtex-clean-entry' on @Preamble entries.
 At end of the cleaning process, the functions in
 `bibtex-clean-entry-hook' are called with region narrowed to entry."

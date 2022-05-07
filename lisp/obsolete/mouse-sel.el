@@ -438,7 +438,7 @@ Click sets point & mark to click position.
 Dragging extends region/selection.
 
 Multi-clicking selects word/lines/paragraphs, as determined by
-'mouse-sel-determine-selection-thing.
+`mouse-sel-determine-selection-thing'.
 
 Clicking mouse-2 while selecting copies selected text to the kill-ring.
 Clicking mouse-1 or mouse-3 kills the selected text.
@@ -459,7 +459,7 @@ Click sets the start of the secondary selection to click position.
 Dragging extends the secondary selection.
 
 Multi-clicking selects word/lines/paragraphs, as determined by
-'mouse-sel-determine-selection-thing.
+`mouse-sel-determine-selection-thing'.
 
 Clicking mouse-2 while selecting copies selected text to the kill-ring.
 Clicking mouse-1 or mouse-3 kills the selected text.

@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haiku_support.h"
 
 static Lisp_Object *volatile menu_item_selection;
+static struct timespec menu_timer_timespec;
 
 int popup_activated_p = 0;
 
@@ -340,12 +341,35 @@ haiku_menu_show_help (void *help, void *data)
     show_help_echo (Qnil, Qnil, Qnil, Qnil);
 }
 
+static Lisp_Object
+haiku_process_pending_signals_for_menu_1 (void *ptr)
+{
+  menu_timer_timespec = timer_check ();
+
+  return Qnil;
+}
+
+static Lisp_Object
+haiku_process_pending_signals_for_menu_2 (enum nonlocal_exit exit, Lisp_Object error)
+{
+  menu_timer_timespec.tv_sec = 0;
+  menu_timer_timespec.tv_nsec = -1;
+
+  return Qnil;
+}
+
 static struct timespec
 haiku_process_pending_signals_for_menu (void)
 {
   process_pending_signals ();
 
-  return timer_check ();
+  /* The original idea was to let timers throw so that timeouts can
+     work correctly, but there's no way to pop down a BPopupMenu
+     that's currently popped up.  */
+  internal_catch_all (haiku_process_pending_signals_for_menu_1, NULL,
+		      haiku_process_pending_signals_for_menu_2);
+
+  return menu_timer_timespec;
 }
 
 Lisp_Object
@@ -462,14 +486,19 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 void
 free_frame_menubar (struct frame *f)
 {
+  void *mbar;
+
   FRAME_MENU_BAR_LINES (f) = 0;
   FRAME_MENU_BAR_HEIGHT (f) = 0;
   FRAME_EXTERNAL_MENU_BAR (f) = 0;
 
   block_input ();
-  void *mbar = FRAME_HAIKU_MENU_BAR (f);
+  mbar = FRAME_HAIKU_MENU_BAR (f);
+  FRAME_HAIKU_MENU_BAR (f) = NULL;
+
   if (mbar)
     BMenuBar_delete (mbar);
+
   if (FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
     --popup_activated_p;
   FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 0;
@@ -492,13 +521,20 @@ set_frame_menubar (struct frame *f, bool deep_p)
 {
   void *mbar = FRAME_HAIKU_MENU_BAR (f);
   void *view = FRAME_HAIKU_VIEW (f);
-
-  int first_time_p = 0;
+  bool first_time_p = false;
 
   if (!mbar)
     {
+      block_input ();
       mbar = FRAME_HAIKU_MENU_BAR (f) = BMenuBar_new (view);
       first_time_p = 1;
+
+      /* Now wait for the MENU_BAR_RESIZE event informing us of the
+	 initial dimensions of that menu bar.  */
+      if (FRAME_VISIBLE_P (f))
+	haiku_wait_for_event (f, MENU_BAR_RESIZE);
+
+      unblock_input ();
     }
 
   Lisp_Object items;
@@ -517,7 +553,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
   if (!deep_p)
     {
-      FRAME_OUTPUT_DATA (f)->menu_up_to_date_p = 0;
       items = FRAME_MENU_BAR_ITEMS (f);
       Lisp_Object string;
 
@@ -630,8 +665,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
       set_buffer_internal_1 (prev);
 
-      FRAME_OUTPUT_DATA (f)->menu_up_to_date_p = 1;
-
       /* If there has been no change in the Lisp-level contents
 	 of the menu bar, skip redisplaying it.  Just exit.  */
 
@@ -681,19 +714,11 @@ set_frame_menubar (struct frame *f, bool deep_p)
 void
 run_menu_bar_help_event (struct frame *f, int mb_idx)
 {
-  Lisp_Object frame;
-  Lisp_Object vec;
-  Lisp_Object help;
-
-  block_input ();
-  if (!FRAME_OUTPUT_DATA (f)->menu_up_to_date_p)
-    {
-      unblock_input ();
-      return;
-    }
+  Lisp_Object frame, vec, help;
 
   XSETFRAME (frame, f);
 
+  block_input ();
   if (mb_idx < 0)
     {
       kbd_buffer_store_help_event (frame, Qnil);
@@ -728,21 +753,65 @@ the position of the last non-menu event instead.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_window_system_frame (frame);
+  int rc;
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
     {
       block_input ();
       set_frame_menubar (f, 1);
-      BMenuBar_start_tracking (FRAME_HAIKU_MENU_BAR (f));
+      rc = BMenuBar_start_tracking (FRAME_HAIKU_MENU_BAR (f));
       unblock_input ();
+
+      if (!rc)
+	return Qnil;
+
+      FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
+      popup_activated_p += 1;
+    }
+  else
+    return call2 (Qpopup_menu, call0 (Qmouse_menu_bar_map),
+		  last_nonmenu_event);
+
+  return Qnil;
+}
+
+void
+haiku_activate_menubar (struct frame *f)
+{
+  int rc;
+
+  if (!FRAME_HAIKU_MENU_BAR (f))
+    return;
+
+  set_frame_menubar (f, true);
+
+  if (FRAME_OUTPUT_DATA (f)->saved_menu_event)
+    {
+      block_input ();
+      rc = be_replay_menu_bar_event (FRAME_HAIKU_MENU_BAR (f),
+				     FRAME_OUTPUT_DATA (f)->saved_menu_event);
+      xfree (FRAME_OUTPUT_DATA (f)->saved_menu_event);
+      FRAME_OUTPUT_DATA (f)->saved_menu_event = NULL;
+      unblock_input ();
+
+      if (!rc)
+	return;
+
+      FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
+      popup_activated_p += 1;
     }
   else
     {
-      return call2 (Qpopup_menu, call0 (Qmouse_menu_bar_map),
-		    last_nonmenu_event);
-    }
+      block_input ();
+      rc = BMenuBar_start_tracking (FRAME_HAIKU_MENU_BAR (f));
+      unblock_input ();
 
-  return Qnil;
+      if (!rc)
+	return;
+
+      FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
+      popup_activated_p += 1;
+    }
 }
 
 void

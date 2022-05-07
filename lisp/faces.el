@@ -46,7 +46,8 @@ the terminal-initialization file to be loaded."
     ("vt320" . "vt200")
     ("vt400" . "vt200")
     ("vt420" . "vt200")
-    ("alacritty" . "xterm"))
+    ("alacritty" . "xterm")
+    ("foot" . "xterm"))
   "Alist of terminal type aliases.
 Entries are of the form (TYPE . ALIAS), where both elements are strings.
 This means to treat a terminal of type TYPE as if it were of type ALIAS."
@@ -448,6 +449,10 @@ of FACE on FRAME."
 
 (defun face-attribute (face attribute &optional frame inherit)
   "Return the value of FACE's ATTRIBUTE on FRAME.
+
+See `set-face-attribute' for the list of supported attributes
+and their meanings and allowed values.
+
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
@@ -1857,8 +1862,8 @@ on which one provides better contrast with COLOR."
       "#ffffff" "black"))
 
 (defconst color-luminance-dark-limit 0.325
-  "The relative luminance below which a color is considered 'dark'.
-A 'dark' color in this sense provides better contrast with white
+  "The relative luminance below which a color is considered \"dark\".
+A \"dark\" color in this sense provides better contrast with white
 than with black; see `color-dark-p'.
 This value was determined experimentally.")
 
@@ -2656,8 +2661,9 @@ non-nil."
      :background "grey75" :foreground "black")
     (t
      :inverse-video t))
-  "Face for the mode lines (for the selected window) as well as header lines.
-See `mode-line-display' for the face used on mode lines."
+  "Face for the mode lines as well as header lines.
+See `mode-line-active' and `mode-line-inactive' for the faces
+used on mode lines."
   :version "21.1"
   :group 'mode-line-faces
   :group 'basic-faces)
@@ -2871,7 +2877,10 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 ns haiku pgtk) (class color))
+    (((type haiku))
+     :foreground "B_MENU_ITEM_TEXT_COLOR"
+     :background "B_MENU_BACKGROUND_COLOR")
+    (((type x w32 ns pgtk) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))

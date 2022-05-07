@@ -153,8 +153,7 @@ with other features and packages.  For instance:
 
 will constrain Emacs to a maximum minibuffer height of 3 lines when
 icompletion is occurring."
-  :type 'hook
-  :group 'icomplete)
+  :type 'hook)
 
 
 ;;;_* Initialization
@@ -174,11 +173,11 @@ Used to implement the option `icomplete-show-matches-on-no-input'.")
 
 (defvar icomplete-minibuffer-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [?\M-\t] 'icomplete-force-complete)
-    (define-key map [remap minibuffer-complete-and-exit] 'icomplete-ret)
-    (define-key map [?\C-j]  'icomplete-force-complete-and-exit)
-    (define-key map [?\C-.]  'icomplete-forward-completions)
-    (define-key map [?\C-,]  'icomplete-backward-completions)
+    (define-key map [?\M-\t] #'icomplete-force-complete)
+    (define-key map [remap minibuffer-complete-and-exit] #'icomplete-ret)
+    (define-key map [?\C-j]  #'icomplete-force-complete-and-exit)
+    (define-key map [?\C-.]  #'icomplete-forward-completions)
+    (define-key map [?\C-,]  #'icomplete-backward-completions)
     map)
   "Keymap used by `icomplete-mode' in the minibuffer.")
 
@@ -394,18 +393,18 @@ if that doesn't produce a completion match."
 
 (defvar icomplete-fido-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-k") 'icomplete-fido-kill)
-    (define-key map (kbd "C-d") 'icomplete-fido-delete-char)
-    (define-key map (kbd "RET") 'icomplete-fido-ret)
-    (define-key map (kbd "C-m") 'icomplete-fido-ret)
-    (define-key map (kbd "DEL") 'icomplete-fido-backward-updir)
-    (define-key map (kbd "M-j") 'icomplete-fido-exit)
-    (define-key map (kbd "C-s") 'icomplete-forward-completions)
-    (define-key map (kbd "C-r") 'icomplete-backward-completions)
-    (define-key map (kbd "<right>") 'icomplete-forward-completions)
-    (define-key map (kbd "<left>") 'icomplete-backward-completions)
-    (define-key map (kbd "C-.") 'icomplete-forward-completions)
-    (define-key map (kbd "C-,") 'icomplete-backward-completions)
+    (define-key map (kbd "C-k")     #'icomplete-fido-kill)
+    (define-key map (kbd "C-d")     #'icomplete-fido-delete-char)
+    (define-key map (kbd "RET")     #'icomplete-fido-ret)
+    (define-key map (kbd "C-m")     #'icomplete-fido-ret)
+    (define-key map (kbd "DEL")     #'icomplete-fido-backward-updir)
+    (define-key map (kbd "M-j")     #'icomplete-fido-exit)
+    (define-key map (kbd "C-s")     #'icomplete-forward-completions)
+    (define-key map (kbd "C-r")     #'icomplete-backward-completions)
+    (define-key map (kbd "<right>") #'icomplete-forward-completions)
+    (define-key map (kbd "<left>")  #'icomplete-backward-completions)
+    (define-key map (kbd "C-.")     #'icomplete-forward-completions)
+    (define-key map (kbd "C-,")     #'icomplete-backward-completions)
     map)
   "Keymap used by `fido-mode' in the minibuffer.")
 
@@ -431,7 +430,7 @@ if that doesn't produce a completion match."
 
 This global minor mode makes minibuffer completion behave
 more like `ido-mode' than regular `icomplete-mode'."
-  :global t :group 'icomplete
+  :global t
   (remove-hook 'minibuffer-setup-hook #'icomplete-minibuffer-setup)
   (remove-hook 'minibuffer-setup-hook #'icomplete--fido-mode-setup)
   (when fido-mode
@@ -457,7 +456,7 @@ You can use the following key bindings to navigate and select
 completions:
 
 \\{icomplete-minibuffer-map}"
-  :global t :group 'icomplete
+  :global t
   (remove-hook 'minibuffer-setup-hook #'icomplete-minibuffer-setup)
   (remove-hook 'completion-in-region-mode-hook #'icomplete--in-region-setup)
   (when icomplete-mode
@@ -532,7 +531,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (setq icomplete--in-region-buffer nil)
       (delete-overlay icomplete-overlay)
       (kill-local-variable 'completion-show-inline-help)
-      (remove-hook 'post-command-hook 'icomplete-post-command-hook t)
+      (remove-hook 'post-command-hook #'icomplete-post-command-hook t)
       (message nil)))
   (when (and completion-in-region-mode
 	     icomplete-mode (icomplete-simple-completing-p))
@@ -543,7 +542,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (unless (memq icomplete-minibuffer-map (cdr tem))
 	(setcdr tem (make-composed-keymap icomplete-minibuffer-map
 					  (cdr tem)))))
-    (add-hook 'post-command-hook 'icomplete-post-command-hook nil t)))
+    (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)))
 
 (defun icomplete--sorted-completions ()
   (or completion-all-sorted-completions
@@ -630,12 +629,12 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 
 (defvar icomplete-vertical-mode-minibuffer-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-n") 'icomplete-forward-completions)
-    (define-key map (kbd "C-p") 'icomplete-backward-completions)
-    (define-key map (kbd "<down>") 'icomplete-forward-completions)
-    (define-key map (kbd "<up>") 'icomplete-backward-completions)
-    (define-key map (kbd "M-<") 'icomplete-vertical-goto-first)
-    (define-key map (kbd "M->") 'icomplete-vertical-goto-last)
+    (define-key map (kbd "C-n")    #'icomplete-forward-completions)
+    (define-key map (kbd "C-p")    #'icomplete-backward-completions)
+    (define-key map (kbd "<down>") #'icomplete-forward-completions)
+    (define-key map (kbd "<up>")   #'icomplete-backward-completions)
+    (define-key map (kbd "M-<")    #'icomplete-vertical-goto-first)
+    (define-key map (kbd "M->")    #'icomplete-vertical-goto-last)
     map)
   "Keymap used by `icomplete-vertical-mode' in the minibuffer.")
 
@@ -691,7 +690,7 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
              (icomplete-simple-completing-p)) ;Shouldn't be necessary.
     (let ((saved-point (point)))
       (save-excursion
-        (goto-char (point-max))
+        (goto-char (icomplete--field-end))
                                         ; Insert the match-status information:
         (when (and (or icomplete-show-matches-on-no-input
                        (not (equal (icomplete--field-string)
@@ -1043,7 +1042,7 @@ matches exist."
                     (push first prospects)))
                 (concat determ
                         "{"
-                        (mapconcat 'identity prospects icomplete-separator)
+                        (mapconcat #'identity prospects icomplete-separator)
                         (concat (and limit (concat icomplete-separator ellipsis))
                                 "}")))
             ;; Restore the base-size info, since completion-all-sorted-completions

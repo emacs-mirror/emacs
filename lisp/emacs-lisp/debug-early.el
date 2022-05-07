@@ -35,30 +35,34 @@
 
 (defalias 'debug-early-backtrace
   #'(lambda ()
-  "Print a trace of Lisp function calls currently active.
+      "Print a trace of Lisp function calls currently active.
 The output stream used is the value of `standard-output'.
 
 This is a simplified version of the standard `backtrace'
 function, intended for use in debugging the early parts
 of the build process."
-  (princ "\n")
-  (mapbacktrace
-   #'(lambda (evald func args _flags)
-       (let ((args args))
-	 (if evald
-	     (progn
-	       (princ "  ")
-	       (prin1 func)
-	       (princ "("))
-	   (progn
-	     (princ "  (")
-	     (setq args (cons func args))))
-	 (if args
-	     (while (progn
-	              (prin1 (car args))
-	              (setq args (cdr args)))
-	       (princ " ")))
-	 (princ ")\n"))))))
+      (princ "\n")
+      (let ((print-escape-newlines t)
+            (print-escape-control-characters t)
+            (print-escape-nonascii t)
+            (prin1 (if (fboundp 'cl-prin1) #'cl-prin1 #'prin1)))
+        (mapbacktrace
+         #'(lambda (evald func args _flags)
+             (let ((args args))
+	       (if evald
+	           (progn
+	             (princ "  ")
+	             (funcall prin1 func)
+	             (princ "("))
+	         (progn
+	           (princ "  (")
+	           (setq args (cons func args))))
+	       (if args
+	           (while (progn
+	                    (funcall prin1 (car args))
+	                    (setq args (cdr args)))
+	             (princ " ")))
+	       (princ ")\n")))))))
 
 (defalias 'debug-early
   #'(lambda (&rest args)
@@ -76,7 +80,7 @@ superseded by `debug' after enough Lisp has been loaded to
 support the latter, except in batch mode which always uses
 `debug-early'.
 
-(In versions of Emacs prior to Emacs 29, no backtrace was
+\(In versions of Emacs prior to Emacs 29, no backtrace was
 available before `debug' was usable.)"
   (princ "\nError: ")
   (prin1 (car (car (cdr args))))	; The error symbol.

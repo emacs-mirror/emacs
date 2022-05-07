@@ -231,6 +231,7 @@
 	(chorasmian #x10FB0)
 	(elymaic #x10FE0)
 	(old-uyghur #x10F70)
+        (brahmi #x11013 #x11045 #x11052 #x11065)
 	(mahajani #x11150)
 	(khojki #x11200)
 	(khudawadi #x112B0)
@@ -770,6 +771,7 @@
                     chorasmian
 		    elymaic
                     old-uyghur
+                    brahmi
 		    makasar
                     dives-akuru
 		    cuneiform

@@ -2969,6 +2969,12 @@ character after position @var{pos} in @var{object} (a buffer or
 string).  The argument @var{object} is optional and defaults to the
 current buffer.
 
+If @var{position} is at the end of @var{object}, the value is
+@code{nil}, but note that buffer narrowing does not affect the value.
+That is, if @var{object} is a buffer or @code{nil}, and the buffer is
+narrowed and @var{position} is at the end of the narrowed buffer, the
+result may be non-@code{nil}.
+
 If there is no @var{prop} property strictly speaking, but the character
 has a property category that is a symbol, then @code{get-text-property} returns
 the @var{prop} property of that symbol.
@@ -3021,6 +3027,12 @@ properties take precedence over this variable.
 This function returns the entire property list of the character at
 @var{position} in the string or buffer @var{object}.  If @var{object} is
 @code{nil}, it defaults to the current buffer.
+
+If @var{position} is at the end of @var{object}, the value is
+@code{nil}, but note that buffer narrowing does not affect the value.
+That is, if @var{object} is a buffer or @code{nil}, and the buffer is
+narrowed and @var{position} is at the end of the narrowed buffer, the
+result may be non-@code{nil}.
 @end defun
 
 @defvar default-text-properties
@@ -3541,15 +3553,29 @@ special modes that implement their own highlighting.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}
-This property is used instead of @code{face} when the mouse is on or
-near the character.  For this purpose, ``near'' means that all text
-between the character and where the mouse is have the same
-@code{mouse-face} property value.
+This property is used instead of @code{face} when the mouse pointer
+hovers over the text which has this property.  When this happens, the
+entire stretch of text that has the same @code{mouse-face} property
+value, not just the character under the mouse, is highlighted.
 
 Emacs ignores all face attributes from the @code{mouse-face} property
 that alter the text size (e.g., @code{:height}, @code{:weight}, and
 @code{:slant}).  Those attributes are always the same as for the
 unhighlighted text.
+
+@item cursor-face
+@kindex cursor-face @r{(text property)}
+@findex cursor-face-highlight-mode
+@vindex cursor-face-highlight-nonselected-window
+This property is similar to @code{mouse-face}, but it is used when
+point (not the mouse) is inside text that has this property.  The
+highlighting happens only if the mode
+@code{cursor-face-highlight-mode} is enabled.  When the variable
+@code{cursor-face-highlight-nonselected-window} is non-@code{nil}, the
+text with this face is highlighted even if the window is not selected,
+similarly to what @code{highlight-nonselected-windows} does for the
+region (@pxref{Mark,, The Mark and the Region, emacs, The GNU Emacs
+Manual}).
 
 @item fontified
 @kindex fontified @r{(text property)}
@@ -5283,6 +5309,24 @@ interpolation).
 @code{sqlite-execute} returns the number of affected rows.  For
 instance, an @samp{insert} statement will return @samp{1}, whereas an
 @samp{update} statement may return zero or a higher number.
+
+Strings in SQLite are, by default, stored as @code{utf-8}, and
+selecting a text column will decode the string using that charset.
+Selecting a blob column will return the raw data without any decoding
+(i.e., it will return a unibyte string containing the bytes as stored
+in the database).  Inserting binary data into blob columns, however,
+requires some care, as @code{sqlite-execute} will, by default,
+interpret all strings as @code{utf-8}.
+
+So if you have, for instance, @acronym{GIF} data in a unibyte string
+called @var{gif}, you have to mark it specially to let
+@code{sqlite-execute} know this:
+
+@lisp
+(put-text-property 0 1 'coding-system 'binary gif)
+(sqlite-execute db "insert into foo values (?, ?)" (list gif 2))
+@end lisp
+
 @end defun
 
 @defun sqlite-select db query &optional values result-type
@@ -5393,6 +5437,12 @@ Load the named extension @var{module} into the database @var{db}.
 Extensions are usually shared-library files; on GNU and Unix systems,
 they have the @file{.so} file-name extension.
 @end defun
+
+@findex sqlite-mode-open-file
+If you wish to list the contents of an SQLite file, you can use the
+@code{sqlite-mode-open-file} command.  This will pop to a buffer using
+@code{sqlite-mode}, which allows you to examine (and alter) the
+contents of an SQLite database.
 
 @node Parsing HTML/XML
 @section Parsing HTML and XML

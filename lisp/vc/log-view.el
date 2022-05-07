@@ -134,11 +134,7 @@
   "n" #'log-view-msg-next
   "p" #'log-view-msg-prev
   "TAB" #'log-view-msg-next
-  "<backtab>" #'log-view-msg-prev
-  "N" #'log-view-file-next
-  "P" #'log-view-file-prev
-  "M-n" #'log-view-file-next
-  "M-p" #'log-view-file-prev)
+  "<backtab>" #'log-view-msg-prev)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu."
@@ -166,9 +162,15 @@
     ["Previous Log Entry"  log-view-msg-prev
      :help "Go to the previous count'th log message"]
     ["Next File"  log-view-file-next
-     :help "Go to the next count'th file"]
+     :help "Go to the next count'th file"
+     :active (derived-mode-p vc-cvs-log-view-mode
+                             vc-rcs-log-view-mode
+                             vc-sccs-log-view-mode)]
     ["Previous File"  log-view-file-prev
-     :help "Go to the previous count'th file"]))
+     :help "Go to the previous count'th file"
+     :active (derived-mode-p vc-cvs-log-view-mode
+                             vc-rcs-log-view-mode
+                             vc-sccs-log-view-mode)]))
 
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")

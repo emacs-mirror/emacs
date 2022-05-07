@@ -39,7 +39,7 @@
 (declare-function org-calendar-goto-agenda "org-agenda" ())
 (declare-function org-align-tags "org" (&optional all))
 (declare-function org-at-heading-p "org" (&optional ignored))
-(declare-function org-at-table.el-p "org" ())
+(declare-function org-at-table.el-p "org-table" ())
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-lineage "org-element" (blob &optional types with-self))
@@ -70,6 +70,35 @@
 (defvar org-table-dataline-regexp)
 (defvar org-table-tab-recognizes-table.el)
 (defvar org-table1-hline-regexp)
+
+
+;;; Emacs < 29 compatibility
+
+(defvar org-file-has-changed-p--hash-table (make-hash-table :test #'equal)
+  "Internal variable used by `org-file-has-changed-p'.")
+
+(if (fboundp 'file-has-changed-p)
+    (defalias 'org-file-has-changed-p #'file-has-changed-p)
+  (defun org-file-has-changed-p (file &optional tag)
+    "Return non-nil if FILE has changed.
+The size and modification time of FILE are compared to the size
+and modification time of the same FILE during a previous
+invocation of `org-file-has-changed-p'.  Thus, the first invocation
+of `org-file-has-changed-p' always returns non-nil when FILE exists.
+The optional argument TAG, which must be a symbol, can be used to
+limit the comparison to invocations with identical tags; it can be
+the symbol of the calling function, for example."
+    (let* ((file (directory-file-name (expand-file-name file)))
+           (remote-file-name-inhibit-cache t)
+           (fileattr (file-attributes file 'integer))
+	   (attr (and fileattr
+                      (cons (file-attribute-size fileattr)
+		            (file-attribute-modification-time fileattr))))
+	   (sym (concat (symbol-name tag) "@" file))
+	   (cachedattr (gethash sym org-file-has-changed-p--hash-table)))
+      (when (not (equal attr cachedattr))
+        (puthash sym attr org-file-has-changed-p--hash-table)))))
+
 
 
 ;;; Emacs < 28.1 compatibility
@@ -209,7 +238,7 @@ This is a floating point number if the size is too large for an integer."
 (if (fboundp 'string-collate-lessp)
     (defalias 'org-string-collate-lessp
       'string-collate-lessp)
-  (defun org-string-collate-lessp (s1 s2 &rest _)
+  (defun org-string-collate-lessp (s1 s2 &optional _ _)
     "Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant."
     (string< s1 s2)))

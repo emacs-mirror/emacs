@@ -27,15 +27,111 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "haiku_support.h"
 
+/* Cache used during font lookup.  It contains an opened font object
+   we can look inside, and some previously determined information.  */
+struct font_object_cache_bucket
+{
+  struct font_object_cache_bucket *next;
+  unsigned int hash;
+
+  BFont *font_object;
+};
+
+static struct font_object_cache_bucket *font_object_cache[2048];
+
 /* Haiku doesn't expose font language data in BFont objects.  Thus, we
    select a few representative characters for each supported `:lang'
    (currently Chinese, Korean and Japanese,) and test for those
    instead.  */
 
-static uint32_t language_code_points[MAX_LANGUAGE][4] =
-  {{20154, 20754, 22996, 0}, /* Chinese.  */
-   {51312, 49440, 44544, 0}, /* Korean.  */
-   {26085, 26412, 12371, 0}, /* Japanese.  */};
+static int language_code_points[MAX_LANGUAGE][3] =
+  {{20154, 20754, 22996}, /* Chinese.  */
+   {51312, 49440, 44544}, /* Korean.  */
+   {26085, 26412, 12371}, /* Japanese.  */};
+
+static unsigned int
+hash_string (const char *name_or_style)
+{
+  unsigned int i;
+
+  i = 3323198485ul;
+  for (; *name_or_style; ++name_or_style)
+    {
+      i ^= *name_or_style;
+      i *= 0x5bd1e995;
+      i ^= i >> 15;
+    }
+  return i;
+}
+
+static struct font_object_cache_bucket *
+cache_font_object_data (const char *family, const char *style,
+			BFont *font_object)
+{
+  uint32_t hash;
+  struct font_object_cache_bucket *bucket, *next;
+
+  hash = hash_string (family) ^ hash_string (style);
+  bucket = font_object_cache[hash % 2048];
+
+  for (next = bucket; next; next = next->next)
+    {
+      if (next->hash == hash)
+	{
+	  delete next->font_object;
+	  next->font_object = font_object;
+
+	  return next;
+	}
+    }
+
+  next = new struct font_object_cache_bucket;
+  next->font_object = font_object;
+  next->hash = hash;
+  next->next = bucket;
+  font_object_cache[hash % 2048] = next;
+  return next;
+}
+
+static struct font_object_cache_bucket *
+lookup_font_object_data (const char *family, const char *style)
+{
+  uint32_t hash;
+  struct font_object_cache_bucket *bucket, *next;
+
+  hash = hash_string (family) ^ hash_string (style);
+  bucket = font_object_cache[hash % 2048];
+
+  for (next = bucket; next; next = next->next)
+    {
+      if (next->hash == hash)
+	return next;
+    }
+
+  return NULL;
+}
+
+static bool
+font_object_has_chars (struct font_object_cache_bucket *cached,
+		       int *chars, int nchars, bool just_one_of)
+{
+  int i;
+
+  for (i = 0; i < nchars; ++i)
+    {
+      if (just_one_of
+	  && cached->font_object->IncludesBlock (chars[i],
+						 chars[i]))
+	return true;
+
+      if (!just_one_of
+	  && !cached->font_object->IncludesBlock (chars[i],
+						  chars[i]))
+	return false;
+    }
+
+  return !just_one_of;
+}
 
 static void
 estimate_font_ascii (BFont *font, int *max_width,
@@ -85,9 +181,9 @@ BFont_close (void *font)
 }
 
 void
-BFont_dat (void *font, int *px_size, int *min_width, int *max_width,
-	   int *avg_width, int *height, int *space_width, int *ascent,
-	   int *descent, int *underline_position, int *underline_thickness)
+BFont_metrics (void *font, int *px_size, int *min_width, int *max_width,
+	       int *avg_width, int *height, int *space_width, int *ascent,
+	       int *descent, int *underline_position, int *underline_thickness)
 {
   BFont *ft = (BFont *) font;
   struct font_height fheight;
@@ -196,18 +292,21 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
 {
   char *style = strdup (st);
   char *token;
-  pattern->weight = -1;
+  int tok = 0;
+
+  if (!style)
+    return;
+
+  pattern->weight = NO_WEIGHT;
   pattern->width = NO_WIDTH;
   pattern->slant = NO_SLANT;
-  int tok = 0;
 
   while ((token = std::strtok (!tok ? style : NULL, " ")) && tok < 3)
     {
       if (token && !strcmp (token, "Thin"))
 	pattern->weight = HAIKU_THIN;
-      else if (token && !strcmp (token, "UltraLight"))
-	pattern->weight = HAIKU_ULTRALIGHT;
-      else if (token && !strcmp (token, "ExtraLight"))
+      else if (token && (!strcmp (token, "UltraLight")
+			 || !strcmp (token, "ExtraLight")))
 	pattern->weight = HAIKU_EXTRALIGHT;
       else if (token && !strcmp (token, "Light"))
 	pattern->weight = HAIKU_LIGHT;
@@ -221,7 +320,7 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
 	  if (pattern->width == NO_WIDTH)
 	    pattern->width = NORMAL_WIDTH;
 
-	  if (pattern->weight == -1)
+	  if (pattern->weight == NO_WEIGHT)
 	    pattern->weight = HAIKU_REGULAR;
 	}
       else if (token && (!strcmp (token, "SemiBold")
@@ -230,12 +329,11 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
 	pattern->weight = HAIKU_SEMI_BOLD;
       else if (token && !strcmp (token, "Bold"))
 	pattern->weight = HAIKU_BOLD;
-      else if (token && (!strcmp (token, "ExtraBold") ||
+      else if (token && (!strcmp (token, "ExtraBold")
 			 /* This has actually been seen in the wild.  */
-			 !strcmp (token, "Extrabold")))
+			 || !strcmp (token, "Extrabold")
+			 || !strcmp (token, "UltraBold")))
 	pattern->weight = HAIKU_EXTRA_BOLD;
-      else if (token && !strcmp (token, "UltraBold"))
-	pattern->weight = HAIKU_ULTRA_BOLD;
       else if (token && !strcmp (token, "Book"))
 	pattern->weight = HAIKU_BOOK;
       else if (token && !strcmp (token, "Heavy"))
@@ -274,7 +372,7 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
       tok++;
     }
 
-  if (pattern->weight != -1)
+  if (pattern->weight != NO_WEIGHT)
     pattern->specified |= FSPEC_WEIGHT;
   if (pattern->slant != NO_SLANT)
     pattern->specified |= FSPEC_SLANT;
@@ -289,6 +387,7 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
       pattern->specified |= FSPEC_STYLE;
       std::strncpy ((char *) &pattern->style, st,
 		    sizeof pattern->style - 1);
+      pattern->style[sizeof pattern->style - 1] = '\0';
     }
 
   free (style);
@@ -298,54 +397,86 @@ static bool
 font_check_wanted_chars (struct haiku_font_pattern *pattern, font_family family,
 			 char *style)
 {
-  BFont ft;
+  BFont *ft;
+  static struct font_object_cache_bucket *cached;
+  unicode_block wanted_block;
 
-  if (ft.SetFamilyAndStyle (family, style) != B_OK)
-    return false;
+  cached = lookup_font_object_data (family, style);
+  if (cached)
+    ft = cached->font_object;
+  else
+    {
+      ft = new BFont;
 
-  for (int i = 0; i < pattern->want_chars_len; ++i)
-    if (!ft.IncludesBlock (pattern->wanted_chars[i],
-			   pattern->wanted_chars[i]))
-      return false;
+      if (ft->SetFamilyAndStyle (family, style) != B_OK)
+	{
+	  delete ft;
+	  return false;
+	}
 
-  return true;
+      cached = cache_font_object_data (family, style, ft);
+    }
+
+  return font_object_has_chars (cached, pattern->wanted_chars,
+				pattern->want_chars_len, false);
 }
 
 static bool
 font_check_one_of (struct haiku_font_pattern *pattern, font_family family,
 		   char *style)
 {
-  BFont ft;
+  BFont *ft;
+  static struct font_object_cache_bucket *cached;
+  unicode_block wanted_block;
 
-  if (ft.SetFamilyAndStyle (family, style) != B_OK)
-    return false;
+  cached = lookup_font_object_data (family, style);
+  if (cached)
+    ft = cached->font_object;
+  else
+    {
+      ft = new BFont;
 
-  for (int i = 0; i < pattern->need_one_of_len; ++i)
-    if (ft.IncludesBlock (pattern->need_one_of[i],
-			  pattern->need_one_of[i]))
-      return true;
+      if (ft->SetFamilyAndStyle (family, style) != B_OK)
+	{
+	  delete ft;
+	  return false;
+	}
 
-  return false;
+      cached = cache_font_object_data (family, style, ft);
+    }
+
+  return font_object_has_chars (cached, pattern->need_one_of,
+				pattern->need_one_of_len, true);
 }
 
 static bool
 font_check_language (struct haiku_font_pattern *pattern, font_family family,
 		     char *style)
 {
-  BFont ft;
+  BFont *ft;
+  static struct font_object_cache_bucket *cached;
 
-  if (ft.SetFamilyAndStyle (family, style) != B_OK)
-    return false;
+  cached = lookup_font_object_data (family, style);
+  if (cached)
+    ft = cached->font_object;
+  else
+    {
+      ft = new BFont;
+
+      if (ft->SetFamilyAndStyle (family, style) != B_OK)
+	{
+	  delete ft;
+	  return false;
+	}
+
+      cached = cache_font_object_data (family, style, ft);
+    }
 
   if (pattern->language == MAX_LANGUAGE)
     return false;
 
-  for (uint32_t *ch = (uint32_t *)
-	 &language_code_points[pattern->language]; *ch; ch++)
-    if (!ft.IncludesBlock (*ch, *ch))
-      return false;
-
-  return true;
+  return font_object_has_chars (cached, language_code_points[pattern->language],
+				3, false);
 }
 
 static bool
@@ -359,16 +490,20 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
   if (style)
     font_style_to_flags (style, &m);
 
-  if ((pattern->specified & FSPEC_FAMILY) &&
-      strcmp ((char *) &pattern->family, family))
+  if ((pattern->specified & FSPEC_FAMILY)
+      && strcmp ((char *) &pattern->family, family))
     return false;
 
-  if (!ignore_flags_p && (pattern->specified & FSPEC_SPACING) &&
-      !(pattern->mono_spacing_p) != !(flags & B_IS_FIXED))
+  if (!ignore_flags_p && (pattern->specified & FSPEC_SPACING)
+      && !(pattern->mono_spacing_p) != !(flags & B_IS_FIXED))
     return false;
 
   if (pattern->specified & FSPEC_STYLE)
     return style && !strcmp (style, pattern->style);
+  /* Don't allow matching fonts with an adstyle if no style was
+     specified in the query pattern.  */
+  else if (m.specified & FSPEC_STYLE)
+    return false;
 
   if ((pattern->specified & FSPEC_WEIGHT)
       && (pattern->weight
@@ -377,7 +512,8 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
 
   if ((pattern->specified & FSPEC_SLANT)
       && (pattern->slant
-	  != ((m.specified & FSPEC_SLANT) ? m.slant : SLANT_REGULAR)))
+	  != (m.specified & FSPEC_SLANT
+	      ? m.slant : SLANT_REGULAR)))
     return false;
 
   if ((pattern->specified & FSPEC_WANTED)
@@ -385,8 +521,9 @@ font_family_style_matches_p (font_family family, char *style, uint32_t flags,
     return false;
 
   if ((pattern->specified & FSPEC_WIDTH)
-      && (pattern->width !=
-	  ((m.specified & FSPEC_WIDTH) ? m.width : NORMAL_WIDTH)))
+      && (pattern->width
+	  != (m.specified & FSPEC_WIDTH
+	      ? m.width : NORMAL_WIDTH)))
     return false;
 
   if ((pattern->specified & FSPEC_NEED_ONE_OF)
@@ -411,6 +548,7 @@ haiku_font_fill_pattern (struct haiku_font_pattern *pattern,
   pattern->specified |= FSPEC_FAMILY;
   std::strncpy (pattern->family, family,
 		sizeof pattern->family - 1);
+  pattern->family[sizeof pattern->family - 1] = '\0';
   pattern->specified |= FSPEC_SPACING;
   pattern->mono_spacing_p = flags & B_IS_FIXED;
 }
@@ -436,18 +574,21 @@ BFont_find (struct haiku_font_pattern *pt)
   font_family name;
   font_style sname;
   uint32 flags;
-  int sty_count;
-  int fam_count = count_font_families ();
+  int sty_count, fam_count, si, fi;
+  struct haiku_font_pattern *p, *head, *n;
+  bool oblique_seen_p;
 
-  for (int fi = 0; fi < fam_count; ++fi)
+  fam_count = count_font_families ();
+
+  for (fi = 0; fi < fam_count; ++fi)
     {
       if (get_font_family (fi, &name, &flags) == B_OK)
 	{
 	  sty_count = count_font_styles (name);
-	  if (!sty_count &&
-	      font_family_style_matches_p (name, NULL, flags, pt))
+	  if (!sty_count
+	      && font_family_style_matches_p (name, NULL, flags, pt))
 	    {
-	      struct haiku_font_pattern *p = new struct haiku_font_pattern;
+	      p = new struct haiku_font_pattern;
 	      p->specified = 0;
 	      p->oblique_seen_p = 1;
 	      haiku_font_fill_pattern (p, name, NULL, flags);
@@ -460,11 +601,11 @@ BFont_find (struct haiku_font_pattern *pt)
 	    }
 	  else if (sty_count)
 	    {
-	      for (int si = 0; si < sty_count; ++si)
+	      for (si = 0; si < sty_count; ++si)
 		{
-		  int oblique_seen_p = 0;
-		  struct haiku_font_pattern *head = r;
-		  struct haiku_font_pattern *p = NULL;
+		  oblique_seen_p = 0;
+		  head = r;
+		  p = NULL;
 
 		  if (get_font_style (name, si, &sname, &flags) == B_OK)
 		    {
@@ -473,8 +614,18 @@ BFont_find (struct haiku_font_pattern *pt)
 			  p = new struct haiku_font_pattern;
 			  p->specified = 0;
 			  haiku_font_fill_pattern (p, name, (char *) &sname, flags);
-			  if (p->specified & FSPEC_SLANT &&
-			      ((p->slant == SLANT_OBLIQUE) || (p->slant == SLANT_ITALIC)))
+
+			  /* Add the indices to this font now so we
+			     won't have to loop over each font in
+			     order to open it later.  */
+
+			  p->specified |= FSPEC_INDICES;
+			  p->family_index = fi;
+			  p->style_index = si;
+
+			  if (p->specified & FSPEC_SLANT
+			      && (p->slant == SLANT_OBLIQUE
+				  || p->slant == SLANT_ITALIC))
 			    oblique_seen_p = 1;
 
 			  p->next = r;
@@ -489,9 +640,7 @@ BFont_find (struct haiku_font_pattern *pt)
 		    p->last = NULL;
 
 		  for (; head; head = head->last)
-		    {
-		      head->oblique_seen_p = oblique_seen_p;
-		    }
+		    head->oblique_seen_p = oblique_seen_p;
 		}
 	    }
 	}
@@ -504,13 +653,18 @@ BFont_find (struct haiku_font_pattern *pt)
   if (!(pt->specified & FSPEC_SLANT))
     {
       /* r->last is invalid from here onwards.  */
-      for (struct haiku_font_pattern *p = r; p;)
+      for (p = r; p;)
 	{
 	  if (!p->oblique_seen_p)
 	    {
-	      struct haiku_font_pattern *n = new haiku_font_pattern;
+	      n = new haiku_font_pattern;
 	      *n = *p;
+
 	      n->slant = SLANT_OBLIQUE;
+
+	      /* Opening a font by its indices doesn't provide enough
+		 information to synthesize the oblique font later.  */
+	      n->specified &= ~FSPEC_INDICES;
 	      p->next = n;
 	      p = p->next_family;
 	    }
@@ -522,24 +676,68 @@ BFont_find (struct haiku_font_pattern *pt)
   return r;
 }
 
+/* Find and open a font with the family at FAMILY and the style at
+   STYLE, and set its size to SIZE.  Value is NULL if opening the font
+   failed.  */
+void *
+be_open_font_at_index (int family, int style, float size)
+{
+  font_family family_name;
+  font_style style_name;
+  uint32 flags;
+  status_t rc;
+  BFont *font;
+
+  rc = get_font_family (family, &family_name, &flags);
+
+  if (rc != B_OK)
+    return NULL;
+
+  rc = get_font_style (family_name, style, &style_name, &flags);
+
+  if (rc != B_OK)
+    return NULL;
+
+  font = new BFont;
+
+  rc = font->SetFamilyAndStyle (family_name, style_name);
+
+  if (rc != B_OK)
+    {
+      delete font;
+      return NULL;
+    }
+
+  font->SetSize (size);
+  font->SetEncoding (B_UNICODE_UTF8);
+  font->SetSpacing (B_BITMAP_SPACING);
+  return font;
+}
+
 /* Find and open a font matching the pattern PAT, which must have its
    family set.  */
 int
 BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
 {
-  int sty_count;
+  int sty_count, si, code;
   font_family name;
   font_style sname;
+  BFont *ft;
   uint32 flags = 0;
+  struct haiku_font_pattern copy;
+
   if (!(pat->specified & FSPEC_FAMILY))
     return 1;
+
   strncpy (name, pat->family, sizeof name - 1);
+  name[sizeof name - 1] = '\0';
+
   sty_count = count_font_styles (name);
 
-  if (!sty_count &&
-      font_family_style_matches_p (name, NULL, flags, pat, 1))
+  if (!sty_count
+      && font_family_style_matches_p (name, NULL, flags, pat, 1))
     {
-      BFont *ft = new BFont;
+      ft = new BFont;
       ft->SetSize (size);
       ft->SetEncoding (B_UNICODE_UTF8);
       ft->SetSpacing (B_BITMAP_SPACING);
@@ -554,12 +752,13 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
     }
   else if (sty_count)
     {
-      for (int si = 0; si < sty_count; ++si)
+      for (si = 0; si < sty_count; ++si)
 	{
-	  if (get_font_style (name, si, &sname, &flags) == B_OK &&
-	      font_family_style_matches_p (name, (char *) &sname, flags, pat))
+	  if (get_font_style (name, si, &sname, &flags) == B_OK
+	      && font_family_style_matches_p (name, (char *) &sname,
+					      flags, pat))
 	    {
-	      BFont *ft = new BFont;
+	      ft = new BFont;
 	      ft->SetSize (size);
 	      ft->SetEncoding (B_UNICODE_UTF8);
 	      ft->SetSpacing (B_BITMAP_SPACING);
@@ -569,6 +768,7 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
 		  delete ft;
 		  return 1;
 		}
+
 	      *font = (void *) ft;
 	      return 0;
 	    }
@@ -577,12 +777,14 @@ BFont_open_pattern (struct haiku_font_pattern *pat, void **font, float size)
 
   if (pat->specified & FSPEC_SLANT && pat->slant == SLANT_OBLIQUE)
     {
-      struct haiku_font_pattern copy = *pat;
+      copy = *pat;
       copy.slant = SLANT_REGULAR;
-      int code = BFont_open_pattern (&copy, font, size);
+      code = BFont_open_pattern (&copy, font, size);
+
       if (code)
 	return code;
-      BFont *ft = (BFont *) *font;
+
+      ft = (BFont *) *font;
       /* XXX Font measurements don't respect shear.  Haiku bug?
 	 This apparently worked in BeOS.
 	 ft->SetShear (100.0); */
@@ -603,6 +805,7 @@ BFont_populate_fixed_family (struct haiku_font_pattern *ptn)
 
   ptn->specified |= FSPEC_FAMILY;
   strncpy (ptn->family, f, sizeof ptn->family - 1);
+  ptn->family[sizeof ptn->family - 1] = '\0';
 }
 
 void
@@ -614,12 +817,7 @@ BFont_populate_plain_family (struct haiku_font_pattern *ptn)
 
   ptn->specified |= FSPEC_FAMILY;
   strncpy (ptn->family, f, sizeof ptn->family - 1);
-}
-
-int
-BFont_string_width (void *font, const char *utf8)
-{
-  return ((BFont *) font)->StringWidth (utf8);
+  ptn->family[sizeof ptn->family - 1] = '\0';
 }
 
 haiku_font_family_or_style *
@@ -644,4 +842,77 @@ be_list_font_families (size_t *length)
   *length = families;
 
   return array;
+}
+
+void
+be_init_font_data (void)
+{
+  memset (&font_object_cache, 0, sizeof font_object_cache);
+}
+
+/* Free the font object cache.  This is called every 50 updates of a
+   frame.  */
+void
+be_evict_font_cache (void)
+{
+  struct font_object_cache_bucket *bucket, *last;
+  int i;
+
+  for (i = 0; i < 2048; ++i)
+    {
+      bucket = font_object_cache[i];
+
+      while (bucket)
+	{
+	  last = bucket;
+	  bucket = bucket->next;
+	  delete last->font_object;
+	  delete last;
+	}
+
+      font_object_cache[i] = NULL;
+    }
+}
+
+void
+be_font_style_to_flags (char *style, struct haiku_font_pattern *pattern)
+{
+  pattern->specified = 0;
+
+  font_style_to_flags (style, pattern);
+}
+
+int
+be_find_font_indices (struct haiku_font_pattern *pattern,
+		      int *family_index, int *style_index)
+{
+  int32 i, j, n_families, n_styles;
+  font_family family;
+  font_style style;
+  uint32 flags;
+
+  n_families = count_font_families ();
+
+  for (i = 0; i < n_families; ++i)
+    {
+      if (get_font_family (i, &family, &flags) == B_OK)
+	{
+	  n_styles = count_font_styles (family);
+
+	  for (j = 0; j < n_styles; ++j)
+	    {
+	      if (get_font_style (family, j, &style, &flags) == B_OK
+		  && font_family_style_matches_p (family, style,
+						  flags, pattern))
+		{
+		  *family_index = i;
+		  *style_index = j;
+
+		  return 0;
+		}
+	    }
+	}
+    }
+
+  return 1;
 }

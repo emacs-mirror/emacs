@@ -1127,6 +1127,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key goto-map    "p" 'previous-error)
 (define-key goto-map "\M-p" 'previous-error)
 (define-key goto-map   "\t" 'move-to-column)
+(define-key goto-map    "i" 'imenu)
 
 (defvar search-map (make-sparse-keymap)
   "Keymap for search related commands.")
@@ -1402,10 +1403,8 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key esc-map [?\C-\ ] 'mark-sexp)
 (define-key esc-map "\C-d" 'down-list)
 (define-key esc-map "\C-k" 'kill-sexp)
-;;; These are dangerous in various situations,
-;;; so let's not encourage anyone to use them.
-;;;(define-key global-map [C-M-delete] 'backward-kill-sexp)
-;;;(define-key global-map [C-M-backspace] 'backward-kill-sexp)
+(define-key global-map [C-M-delete] 'backward-kill-sexp)
+(define-key global-map [C-M-backspace] 'backward-kill-sexp)
 (define-key esc-map [C-delete] 'backward-kill-sexp)
 (define-key esc-map [C-backspace] 'backward-kill-sexp)
 (define-key esc-map "\C-n" 'forward-list)

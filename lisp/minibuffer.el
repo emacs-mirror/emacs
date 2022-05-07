@@ -864,7 +864,11 @@ Intended to be called via `clear-message-function'."
       (setq minibuffer-message-timer nil))
     (when (overlayp minibuffer-message-overlay)
       (delete-overlay minibuffer-message-overlay)
-      (setq minibuffer-message-overlay nil))))
+      (setq minibuffer-message-overlay nil)))
+
+  ;; Return nil telling the caller that the message
+  ;; should be also handled by the caller.
+  nil)
 
 (setq clear-message-function 'clear-minibuffer-message)
 
@@ -894,11 +898,23 @@ If the current buffer is not a minibuffer, erase its entire contents."
 
 (defcustom completion-auto-help t
   "Non-nil means automatically provide help for invalid completion input.
-If the value is t the *Completions* buffer is displayed whenever completion
+If the value is t, the *Completions* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
-the second failed attempt to complete."
-  :type '(choice (const nil) (const t) (const lazy)))
+the second failed attempt to complete.
+If the value is 'always', the *Completions* buffer is always shown
+after a completion attempt, and the list of completions is updated if
+already visible.
+If the value is 'visible', the *Completions* buffer is displayed
+whenever completion is requested but cannot be done for the first time,
+but remains visible thereafter, and the list of completions in it is
+updated for subsequent attempts to complete.."
+  :type '(choice (const :tag "Don't show" nil)
+                 (const :tag "Show only when cannot complete" t)
+                 (const :tag "Show after second failed completion attempt" lazy)
+                 (const :tag
+                        "Leave visible after first failed completion" visible)
+                 (const :tag "Always visible" always)))
 
 (defvar completion-styles-alist
   '((emacs21
@@ -1124,6 +1140,7 @@ Moves point to the end of the new text."
   ;; The properties on `newtext' include things like the
   ;; `completions-first-difference' face, which we don't want to
   ;; include upon insertion.
+  (setq newtext (copy-sequence newtext)) ;Don't modify the arg by side-effect.
   (if minibuffer-allow-text-properties
       ;; If we're preserving properties, then just remove the faces
       ;; and other properties added by the completion machinery.
@@ -1343,16 +1360,18 @@ when the buffer's text is already an exact match."
               (completion--cache-all-sorted-completions beg end comps)
               (minibuffer-force-complete beg end))
              (completed
-              ;; We could also decide to refresh the completions,
-              ;; if they're displayed (and assuming there are
-              ;; completions left).
-              (minibuffer-hide-completions)
-              (if exact
-                  ;; If completion did not put point at end of field,
-                  ;; it's a sign that completion is not finished.
-                  (completion--done completion
-                                    (if (< comp-pos (length completion))
-                                        'exact 'unknown))))
+              (cond
+               ((pcase completion-auto-help
+                  ('visible (get-buffer-window "*Completions*" 0))
+                  ('always t))
+                (minibuffer-completion-help beg end))
+               (t (minibuffer-hide-completions)
+                  (when exact
+                    ;; If completion did not put point at end of field,
+                    ;; it's a sign that completion is not finished.
+                    (completion--done completion
+                                      (if (< comp-pos (length completion))
+                                          'exact 'unknown))))))
              ;; Show the completion table, if requested.
              ((not exact)
 	      (if (pcase completion-auto-help
@@ -1396,18 +1415,26 @@ scroll the window of possible completions."
    ;; and this command is repeated, scroll that window.
    ((and (window-live-p minibuffer-scroll-window)
          (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
-    (let ((window minibuffer-scroll-window)
-          (reverse (equal (this-command-keys) [backtab])))
+    (let ((window minibuffer-scroll-window))
       (with-current-buffer (window-buffer window)
-        (if (pos-visible-in-window-p (if reverse (point-min) (point-max)) window)
-            ;; If end or beginning is in view, scroll up to the
-            ;; beginning or end respectively.
-            (if reverse
-                (set-window-point window (point-max))
-              (set-window-start window (point-min) nil))
-          ;; Else scroll down one screen.
-          (with-selected-window window
-            (if reverse (scroll-down) (scroll-up))))
+        (cond
+         ;; Here this is possible only when second-tab, so jump now.
+         (completion-auto-select
+          (switch-to-completions))
+         ;; Reverse tab
+         ((equal (this-command-keys) [backtab])
+          (if (pos-visible-in-window-p (point-min) window)
+              ;; If beginning is in view, scroll up to the end.
+              (set-window-point window (point-max))
+            ;; Else scroll down one screen.
+            (with-selected-window window (scroll-down))))
+         ;; Normal tab
+         (t
+          (if (pos-visible-in-window-p (point-max) window)
+              ;; If end is in view, scroll up to the end.
+              (set-window-start window (point-min) nil)
+            ;; Else scroll down one screen.
+            (with-selected-window window (scroll-up)))))
         nil)))
    ;; If we're cycling, keep on cycling.
    ((and completion-cycling completion-all-sorted-completions)
@@ -1842,6 +1869,17 @@ Return nil if there is no valid completion, else t."
 This face is only used if the strings used for completions
 doesn't already specify a face.")
 
+(defface completions-highlight
+  '((t :inherit highlight))
+  "Default face for highlighting the current completion candidate."
+  :version "29.1")
+
+(defcustom completions-highlight-face 'completions-highlight
+  "A face name to highlight the current completion candidate.
+If the value is nil, no highlighting is performed."
+  :type '(choice (const nil) face)
+  :version "29.1")
+
 (defcustom completions-format 'horizontal
   "Define the appearance and sorting of completions.
 If the value is `vertical', display completions sorted vertically
@@ -1860,6 +1898,15 @@ detailed view with more information prepended or appended to
 completions."
   :type 'boolean
   :version "28.1")
+
+(defcustom completions-header-format
+  (propertize "%s possible completions:\n" 'face 'shadow)
+  "Format of completions header.
+It may contain one %s to show the total count of completions.
+When nil, no header is shown."
+  :type '(choice (const :tag "No header" nil)
+                 (string :tag "Header format string"))
+  :version "29.1")
 
 (defun completion--insert-strings (strings &optional group-fun)
   "Insert a list of STRINGS into the current buffer.
@@ -2000,7 +2047,8 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
               (when title
                 (insert (format completions-group-format title) "\n")))))
         (completion--insert str group-fun)
-        (insert "\n")))))
+        (insert "\n")))
+    (delete-char -1)))
 
 (defun completion--insert (str group-fun)
   (if (not (consp str))
@@ -2012,7 +2060,7 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
               (funcall group-fun str 'transform)
             str))
          (point))
-       `(mouse-face highlight completion--string ,str))
+       `(mouse-face highlight cursor-face ,completions-highlight-face completion--string ,str))
     ;; If `str' is a list that has 2 elements,
     ;; then the second element is a suffix annotation.
     ;; If `str' has 3 elements, then the second element
@@ -2123,10 +2171,9 @@ candidates."
 
     (with-current-buffer standard-output
       (goto-char (point-max))
-      (if (null completions)
-          (insert "There are no possible completions of what you have typed.")
-        (insert "Possible completions are:\n")
-        (completion--insert-strings completions group-fun))))
+      (when completions-header-format
+        (insert (format completions-header-format (length completions))))
+      (completion--insert-strings completions group-fun)))
 
   (run-hooks 'completion-setup-hook)
   nil)
@@ -2198,6 +2245,19 @@ variables.")
                (equal pre-msg (and exit-fun (current-message))))
       (completion--message message))))
 
+(defcustom completions-max-height nil
+  "Maximum height for *Completions* buffer window."
+  :type '(choice (const nil) natnum)
+  :version "29.1")
+
+(defun completions--fit-window-to-buffer (&optional win &rest _)
+  "Resize *Completions* buffer window."
+  (if temp-buffer-resize-mode
+      (let ((temp-buffer-max-height (or completions-max-height
+                                        temp-buffer-max-height)))
+        (resize-temp-buffer-window win))
+    (fit-window-to-buffer win completions-max-height)))
+
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -2227,6 +2287,9 @@ variables.")
       (let* ((last (last completions))
              (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
+             (base-prefix (buffer-substring (minibuffer--completion-prompt-end)
+                                            (+ start base-size)))
+             (base-suffix (buffer-substring (point) (point-max)))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))
                                            base-size md
@@ -2261,9 +2324,7 @@ variables.")
              ,(if (eq (selected-window) (minibuffer-window))
                   'display-buffer-at-bottom
                 'display-buffer-below-selected))
-            ,(if temp-buffer-resize-mode
-                 '(window-height . resize-temp-buffer-window)
-               '(window-height . fit-window-to-buffer))
+            (window-height . completions--fit-window-to-buffer)
             ,(when temp-buffer-resize-mode
                '(preserve-size . (nil . t)))
             (body-function
@@ -2320,20 +2381,28 @@ variables.")
                                    ;; completion-all-completions does not give us the
                                    ;; necessary information.
                                    end))
+                        (setq-local completion-base-affixes
+                                    (list base-prefix base-suffix))
                         (setq-local completion-list-insert-choice-function
                              (let ((ctable minibuffer-completion-table)
                                    (cpred minibuffer-completion-predicate)
                                    (cprops completion-extra-properties))
                                (lambda (start end choice)
-                                 (unless (or (zerop (length prefix))
-                                             (equal prefix
-                                                    (buffer-substring-no-properties
-                                                     (max (point-min)
-                                                          (- start (length prefix)))
-                                                     start)))
-                                   (message "*Completions* out of date"))
-                                 ;; FIXME: Use `md' to do quoting&terminator here.
-                                 (completion--replace start end choice)
+                                 (if (and (stringp start) (stringp end))
+                                     (progn
+                                       (delete-minibuffer-contents)
+                                       (insert start choice)
+                                       ;; Keep point after completion before suffix
+                                       (save-excursion (insert end)))
+                                   (unless (or (zerop (length prefix))
+                                               (equal prefix
+                                                      (buffer-substring-no-properties
+                                                       (max (point-min)
+                                                            (- start (length prefix)))
+                                                       start)))
+                                     (message "*Completions* out of date"))
+                                   ;; FIXME: Use `md' to do quoting&terminator here.
+                                   (completion--replace start end choice))
                                  (let* ((minibuffer-completion-table ctable)
                                         (minibuffer-completion-predicate cpred)
                                         (completion-extra-properties cprops)
@@ -2354,6 +2423,7 @@ variables.")
   "Get rid of an out-of-date *Completions* buffer."
   ;; FIXME: We could/should use minibuffer-scroll-window here, but it
   ;; can also point to the minibuffer-parent-window, so it's a bit tricky.
+  (interactive)
   (let ((win (get-buffer-window "*Completions*" 0)))
     (if win (with-selected-window win (bury-buffer)))))
 
@@ -2681,7 +2751,10 @@ The completion method is determined by `completion-at-point-functions'."
   "?"         #'minibuffer-completion-help
   "<prior>"   #'switch-to-completions
   "M-v"       #'switch-to-completions
-  "M-g M-c"   #'switch-to-completions)
+  "M-g M-c"   #'switch-to-completions
+  "M-<up>"    #'minibuffer-previous-completion
+  "M-<down>"  #'minibuffer-next-completion
+  "M-RET"     #'minibuffer-choose-completion)
 
 (defvar-keymap minibuffer-local-must-match-map
   :doc "Local keymap for minibuffer input with completion, for exact match."
@@ -4033,7 +4106,7 @@ This turns
 into
     (prefix \"f\" any \"o\" any \"o\" any point)
 which is at the core of flex logic.  The extra
-'any' is optimized away later on."
+`any' is optimized away later on."
   (mapcan (lambda (elem)
             (if (stringp elem)
                 (mapcan (lambda (char)
@@ -4177,6 +4250,7 @@ See `completing-read' for the meaning of the arguments."
                     ;; override bindings in base-keymap.
                     base-keymap)))
          (buffer (current-buffer))
+         (c-i-c completion-ignore-case)
          (result
           (minibuffer-with-setup-hook
               (lambda ()
@@ -4186,7 +4260,9 @@ See `completing-read' for the meaning of the arguments."
                 (setq-local minibuffer-completion-confirm
                             (unless (eq require-match t) require-match))
                 (setq-local minibuffer--require-match require-match)
-                (setq-local minibuffer--original-buffer buffer))
+                (setq-local minibuffer--original-buffer buffer)
+                ;; Copy the value from original buffer to the minibuffer.
+                (setq-local completion-ignore-case c-i-c))
             (read-from-minibuffer prompt initial-input keymap
                                   nil hist def inherit-input-method))))
     (when (and (equal result "") def)
@@ -4270,6 +4346,66 @@ the minibuffer was activated, and execute the forms."
   (interactive "^P")
   (with-minibuffer-selected-window
     (scroll-other-window-down arg)))
+
+(defmacro with-minibuffer-completions-window (&rest body)
+  "Execute the forms in BODY from the minibuffer in its completions window.
+When used in a minibuffer window, select the window with completions,
+and execute the forms."
+  (declare (indent 0) (debug t))
+  `(let ((window (or (get-buffer-window "*Completions*" 0)
+                     ;; Make sure we have a completions window.
+                     (progn (minibuffer-completion-help)
+                            (get-buffer-window "*Completions*" 0)))))
+     (when window
+       (with-selected-window window
+         ,@body))))
+
+(defcustom minibuffer-completion-auto-choose t
+  "Non-nil means to automatically insert completions to the minibuffer.
+When non-nil, then `minibuffer-next-completion' and
+`minibuffer-previous-completion' will insert the completion
+selected by these commands to the minibuffer."
+  :type 'boolean
+  :version "29.1")
+
+(defun minibuffer-next-completion (&optional n)
+  "Run `next-completion' from the minibuffer in its completions window.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion to the minibuffer."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (when completions-highlight-face
+      (setq-local cursor-face-highlight-nonselected-window t))
+    (next-completion (or n 1))
+    (when minibuffer-completion-auto-choose
+      (let ((completion-use-base-affixes t))
+        (choose-completion nil t t)))))
+
+(defun minibuffer-previous-completion (&optional n)
+  "Run `previous-completion' from the minibuffer in its completions window.
+When `minibuffer-completion-auto-choose' is non-nil, then also
+insert the selected completion to the minibuffer."
+  (interactive "p")
+  (with-minibuffer-completions-window
+    (when completions-highlight-face
+      (setq-local cursor-face-highlight-nonselected-window t))
+    (previous-completion (or n 1))
+    (when minibuffer-completion-auto-choose
+      (let ((completion-use-base-affixes t))
+        (choose-completion nil t t)))))
+
+(defun minibuffer-choose-completion (&optional no-exit no-quit)
+  "Run `choose-completion' from the minibuffer in its completions window.
+With prefix argument NO-EXIT, insert the completion at point to the
+minibuffer, but don't exit the minibuffer.  When the prefix argument
+is not provided, then whether to exit the minibuffer depends on the value
+of `completion-no-auto-exit'.
+If NO-QUIT is non-nil, insert the completion at point to the
+minibuffer, but don't quit the completions window."
+  (interactive "P")
+  (with-minibuffer-completions-window
+    (let ((completion-use-base-affixes t))
+      (choose-completion nil no-exit no-quit))))
 
 (defcustom minibuffer-default-prompt-format " (default %s)"
   "Format string used to output \"default\" values.

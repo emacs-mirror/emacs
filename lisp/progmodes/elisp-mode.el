@@ -237,6 +237,26 @@ Comments in the form will be lost."
       (if (bolp) (delete-char -1))
       (indent-region start (point)))))
 
+(defun elisp-mode-syntax-propertize (start end)
+  (goto-char start)
+  (let ((case-fold-search nil))
+    (funcall
+     (syntax-propertize-rules
+      ;; Empty symbol.
+      ("##" (0 (unless (nth 8 (syntax-ppss))
+                 (string-to-syntax "_"))))
+      ;; Unicode character names.  (The longest name is 88 characters
+      ;; long.)
+      ("\\?\\\\N{[-A-Za-z0-9 ]\\{,100\\}}"
+       (0 (unless (nth 8 (syntax-ppss))
+            (string-to-syntax "_"))))
+      ((rx "#" (or (seq (group-n 1 "&" (+ digit)) ?\") ; Bool-vector.
+                   (seq (group-n 1 "s") "(")           ; Record.
+                   (seq (group-n 1 (+ "^")) "[")))     ; Char-table.
+       (1 (unless (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+            (string-to-syntax "'")))))
+     start end)))
+
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
   :options '(eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
@@ -310,6 +330,7 @@ be used instead.
             #'elisp-eldoc-var-docstring nil t)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
+  (setq-local syntax-propertize-function #'elisp-mode-syntax-propertize)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local)
   (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
@@ -779,7 +800,7 @@ functions are annotated with \"<f>\" via the
 (defun elisp--xref-make-xref (type symbol file &optional summary)
   "Return an xref for TYPE SYMBOL in FILE.
 TYPE must be a type in `find-function-regexp-alist' (use nil for
-'defun).  If SUMMARY is non-nil, use it for the summary;
+`defun').  If SUMMARY is non-nil, use it for the summary;
 otherwise build the summary from TYPE and SYMBOL."
   (xref-make (or summary
 		 (format elisp--xref-format (or type 'defun) symbol))
@@ -1614,8 +1635,6 @@ Return the result of evaluation."
   ;; printing, not while evaluating.
   (defvar elisp--eval-defun-result)
   (let ((debug-on-error eval-expression-debug-on-error)
-	(print-length eval-expression-print-length)
-	(print-level eval-expression-print-level)
         elisp--eval-defun-result)
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
@@ -1630,10 +1649,17 @@ Return the result of evaluation."
           (setq beg (point))
           (setq form (funcall load-read-function (current-buffer)))
           (setq end (point)))
-        ;; Alter the form if necessary.
-        (let ((form (eval-sexp-add-defvars
-                     (elisp--eval-defun-1
-                      (macroexpand form)))))
+        ;; Alter the form if necessary.  We bind `print-level' (etc.)
+        ;; in the form itself, because we want evalling the form to
+        ;; use the original values, while we want the printing to use
+        ;; `eval-expression-print-length' (etc.).
+        (let ((form `(let ((print-level ,print-level)
+                           (print-length ,print-length))
+                       ,(eval-sexp-add-defvars
+                         (elisp--eval-defun-1
+                          (macroexpand form)))))
+	      (print-length eval-expression-print-length)
+	      (print-level eval-expression-print-level))
           (eval-region beg end standard-output
                        (lambda (_ignore)
                          ;; Skipping to the end of the specified region
@@ -2083,7 +2109,7 @@ current buffer state and calls REPORT-FN when done."
         :connection-type 'pipe
         :sentinel
         (lambda (proc _event)
-          (when (eq (process-status proc) 'exit)
+          (unless (process-live-p proc)
             (unwind-protect
                 (cond
                  ((not (and (buffer-live-p source-buffer)

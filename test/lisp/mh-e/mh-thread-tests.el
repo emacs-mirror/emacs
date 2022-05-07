@@ -24,7 +24,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (defun mh-thread-tests-before-from ()
-  "Generate the fields of a scan line up to where the 'From' field would start.
+  "Generate the fields of a scan line up to where the \"From\" field would start.
 The exact contents are not important, but the number of characters is."
     (concat (make-string mh-cmd-note ?9)
             (make-string mh-scan-cmd-note-width ?A)

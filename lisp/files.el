@@ -987,10 +987,7 @@ one or more of those symbols."
 	  (logior (if (memq 'executable predicate) 1 0)
 		  (if (memq 'writable predicate) 2 0)
 		  (if (memq 'readable predicate) 4 0))))
-  (let ((file (locate-file-internal filename path suffixes predicate)))
-    (if (and file (string-match "\\.eln\\'" file))
-        (gethash (file-name-nondirectory file) comp-eln-to-el-h)
-      file)))
+  (locate-file-internal filename path suffixes predicate))
 
 (defun locate-file-completion-table (dirs suffixes string pred action)
   "Do completion for file names passed to `locate-file'."
@@ -3744,8 +3741,8 @@ return as the symbol specifying the mode."
 	       (while (not (or (and (eq handle-mode t) result)
                                (>= (point) end)))
 		 (unless (looking-at hack-local-variable-regexp)
-		   (message "Malformed mode-line: %S"
-                            (buffer-substring-no-properties (point) end))
+		   (message "Malformed mode-line: %S in buffer %S"
+                            (buffer-substring-no-properties (point) end) (buffer-name))
 		   (throw 'malformed-line nil))
 		 (goto-char (match-end 0))
 		 ;; There used to be a downcase here,
@@ -3902,8 +3899,8 @@ inhibited."
       (with-demoted-errors "Directory-local variables error: %s"
 	;; Note this is a no-op if enable-local-variables is nil.
 	(hack-dir-local-variables))
-      (let ((result (append (hack-local-variables--find-variables)
-                            (hack-local-variables-prop-line))))
+      (let ((result (append (hack-local-variables--find-variables handle-mode)
+                            (hack-local-variables-prop-line handle-mode))))
         (if (and enable-local-variables
                  (not (inhibit-local-variables-p)))
             (progn
@@ -3981,8 +3978,7 @@ major-mode."
 	        (forward-line 1))
 	      (goto-char (point-min))
 
-	      (while (not (or (eobp)
-                              (and (eq handle-mode t) result)))
+	      (while (not (eobp))
 	        ;; Find the variable name;
 	        (unless (looking-at hack-local-variable-regexp)
                   (user-error "Malformed local variable line: %S"
@@ -4008,7 +4004,8 @@ major-mode."
 			   (not (string-match
 			         "-minor\\'"
 			         (setq val2 (downcase (symbol-name val)))))
-			   (setq result (intern (concat val2 "-mode"))))
+                           ;; Allow several mode: elements.
+                           (push (intern (concat val2 "-mode")) result))
 		    (cond ((eq var 'coding))
 			  ((eq var 'lexical-binding)
 			   (unless hack-local-variables--warned-lexical
@@ -4032,7 +4029,10 @@ major-mode."
 				         val)
                                    result))))))
 	        (forward-line 1)))))))
-    result))
+    (if (eq handle-mode t)
+        ;; Return the final mode: setting that's defined.
+        (car (seq-filter #'fboundp result))
+      result)))
 
 (defun hack-local-variables-apply ()
   "Apply the elements of `file-local-variables-alist'.
@@ -5094,7 +5094,11 @@ On most systems, this will be true:
         ;; If there's nothing left to peel off, we're at the root and
         ;; we can stop.
         (when (and dir (equal dir filename))
-          (push "" components)
+          (push (if (equal dir "") ""
+                  ;; On Windows, the first component might be "c:" or
+                  ;; the like.
+                  (substring dir 0 -1))
+                components)
           (setq filename nil))))
     components))
 
@@ -7324,7 +7328,9 @@ need to be passed verbatim to shell commands."
 
 
 (defvar insert-directory-program (purecopy "ls")
-  "Absolute or relative name of the `ls' program used by `insert-directory'.")
+  "Absolute or relative name of the `ls'-like program.
+This is used by `insert-directory' and `dired-insert-directory'
+\(thus, also by `dired').")
 
 (defcustom directory-free-space-program (purecopy "df")
   "Program to get the amount of free space on a file system.
@@ -7759,14 +7765,17 @@ prompt the user before killing them."
   :group 'convenience
   :version "26.1")
 
-(defun save-buffers-kill-emacs (&optional arg)
+(defun save-buffers-kill-emacs (&optional arg restart)
   "Offer to save each buffer, then kill this Emacs process.
 With prefix ARG, silently save all file-visiting buffers without asking.
 If there are active processes where `process-query-on-exit-flag'
 returns non-nil and `confirm-kill-processes' is non-nil,
 asks whether processes should be killed.
+
 Runs the members of `kill-emacs-query-functions' in turn and stops
-if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
+if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it.
+
+If RESTART, restart Emacs after killing the current Emacs process."
   (interactive "P")
   ;; Don't use save-some-buffers-default-predicate, because we want
   ;; to ask about all the buffers before killing Emacs.
@@ -7820,7 +7829,7 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
      (run-hook-with-args-until-failure 'kill-emacs-query-functions)
      (or (null confirm)
          (funcall confirm "Really exit Emacs? "))
-     (kill-emacs))))
+     (kill-emacs nil restart))))
 
 (defun save-buffers-kill-terminal (&optional arg)
   "Offer to save each buffer, then kill the current connection.
@@ -7835,6 +7844,16 @@ only these files will be asked to be saved."
   (if (frame-parameter nil 'client)
       (server-save-buffers-kill-terminal arg)
     (save-buffers-kill-emacs arg)))
+
+(defun restart-emacs ()
+  "Kill the current Emacs process and start a new one.
+This goes through the same shutdown procedure as
+`save-buffers-kill-emacs', but instead of killing Emacs and
+exiting, it re-executes Emacs (using the same command line
+arguments as the running Emacs)."
+  (interactive)
+  (save-buffers-kill-emacs nil t))
+
 
 ;; We use /: as a prefix to "quote" a file name
 ;; so that magic file name handlers will not apply to it.

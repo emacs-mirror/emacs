@@ -41,7 +41,8 @@ You may need to customize it for local needs."
 
 
 (defconst rmail-digest-methods
-  '(rmail-digest-parse-mime
+  '(rmail-digest-parse-mixed-mime
+    rmail-digest-parse-mime
     rmail-digest-parse-rfc1153strict
     rmail-digest-parse-rfc1153sloppy
     rmail-digest-parse-rfc934)
@@ -51,6 +52,53 @@ These functions operate on the current narrowing, and take no argument.
 A function returns nil if it cannot parse the digest.  If it can, it
 returns a list of cons pairs containing the start and end positions of
 each undigestified message as markers.")
+
+(defun rmail-content-type-boundary (type)
+  "If Content-type is of type TYPE, return its boundary; otherwise, return nil."
+  (goto-char (point-min))
+  (let ((head-end (save-excursion (search-forward "\n\n" nil t) (point))))
+    (when (re-search-forward
+           (concat "^Content-type: " type ";"
+                   "\\s-* boundary=\"?\\([^\";\n]+\\)[\";\n]")
+           head-end t)
+      (match-string 1))))
+
+(defun rmail-digest-parse-mixed-mime ()
+  "Like `rmail-digest-parse-mime', but for multipart/mixed messages."
+  (when-let ((boundary (rmail-content-type-boundary "multipart/mixed")))
+    (let ((global-sep (concat "\n--" boundary))
+          (digest (concat "^Content-type: multipart/digest;"
+                          "\\s-* boundary=\"?\\([^\";\n]+\\)[\";\n]"))
+          result)
+      (search-forward global-sep nil t)
+      (while (not (or result (eobp)))
+        ;; For each part, see if it is a multipart/digest.
+        (let* ((limit (save-excursion (search-forward global-sep nil 'move)
+                                      (point)))
+               (beg (and (re-search-forward digest limit t)
+                         (match-beginning 0)))
+               digest-sep)
+          (when (and beg
+                     (setq digest-sep (concat "\n--" (match-string 1)))
+                     ;; Search for 1st sep.
+                     (search-forward digest-sep nil t))
+            ;; Skip body part headers.
+            (search-forward "\n\n" nil t)
+            ;; Push the 1st message.
+            (push (cons (copy-marker beg) (copy-marker (point-marker) t))
+                  result)
+            ;; Push the rest of the messages.
+            (let ((start (make-marker))
+                  done)
+              (while (and (search-forward digest-sep limit 'move) (not done))
+                (move-marker start (match-beginning 0))
+                (and (looking-at "--$") (setq done t))
+                (search-forward "\n\n")
+                (push (cons (copy-marker start)
+                            (copy-marker (point-marker) t))
+                      result))))
+          (goto-char limit)))
+      (nreverse result))))
 
 (defun rmail-digest-parse-mime ()
   (goto-char (point-min))

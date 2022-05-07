@@ -433,6 +433,20 @@ will be killed."
   :version "28.1"
   :type 'boolean)
 
+(defcustom rcirc-cycle-completion-flag nil
+  "Non-nil means to use cycling for completion in rcirc buffers.
+See the Info node `(emacs) Completion Options' for background on
+what cycling completion means."
+  :version "29.1"
+  :set (lambda (sym val)
+         (dolist (buf (match-buffers '(major-mode . rcirc-mode)))
+           (with-current-buffer buf
+             (if val
+                 (setq-local completion-cycle-threshold t)
+               (kill-local-variable 'completion-cycle-threshold))))
+         (set-default sym val))
+  :type 'boolean)
+
 (defvar-local rcirc-nick nil
   "The nickname used for the current connection.")
 
@@ -757,18 +771,26 @@ SERVER-PLIST is the property list for the server."
           (yes-or-no-p "Encrypt connection?"))
       'tls 'plain))
 
+(defvar rcirc-reconnect-delay)
 (defun rcirc-keepalive ()
   "Send keep alive pings to active rcirc processes.
 Kill processes that have not received a server message since the
 last ping."
   (if (rcirc-process-list)
       (mapc (lambda (process)
-	      (with-rcirc-process-buffer process
-		(when (not rcirc-connecting)
-                  (rcirc-send-ctcp process
-                                   rcirc-nick
-                                   (format "KEEPALIVE %f"
-                                           (float-time))))))
+              (with-rcirc-process-buffer process
+                (when (not rcirc-connecting)
+                  (condition-case nil
+                      (rcirc-send-ctcp process
+                                       rcirc-nick
+                                       (format "KEEPALIVE %f"
+                                               (float-time)))
+                    (rcirc-closed-connection
+                     (if (zerop rcirc-reconnect-delay)
+                         (message "rcirc: Connection to %s closed"
+                                  (process-name process))
+                       (rcirc-reconnect process))
+                     (message ""))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (when (timerp rcirc-keepalive-timer)
@@ -1060,17 +1082,18 @@ Note that the messages are stored in reverse order.")
                         ;; expression and `rcirc-process-regexp'.
                         (error "Malformed tag %S" tag))
                       (cons (match-string 1 tag)
-                            (replace-regexp-in-string
-                             (rx (* ?\\ ?\\) ?\\ (any ?: ?s ?\\ ?r ?n))
-                             (lambda (rep)
-                               (concat (substring rep 0 -2)
-                                       (cl-case (aref rep (1- (length rep)))
-                                         (?:  ";")
-                                         (?s  " ")
-                                         (?\\ "\\\\")
-                                         (?r  "\r")
-                                         (?n  "\n"))))
-                             (match-string 2 tag))))
+                            (when (match-string 2 tag)
+                              (replace-regexp-in-string
+                               (rx (* ?\\ ?\\) ?\\ (any ?: ?s ?\\ ?r ?n))
+                               (lambda (rep)
+                                 (concat (substring rep 0 -2)
+                                         (cl-case (aref rep (1- (length rep)))
+                                           (?:  ";")
+                                           (?s  " ")
+                                           (?\\ "\\\\")
+                                           (?r  "\r")
+                                           (?n  "\n"))))
+                               (match-string 2 tag)))))
                     (split-string tag-data ";"))))
                rcirc-message-tags))
              (user (match-string 3 text))
@@ -1122,6 +1145,8 @@ used as the message body."
   "Check if PROCESS is open or running."
   (memq (process-status process) '(run open)))
 
+(define-error 'rcirc-closed-connection "Network connection not open")
+
 (defun rcirc-send-string (process &rest parts)
   "Send PROCESS a PARTS plus a newline.
 PARTS may contain a `:' symbol, to designate that the next string
@@ -1139,8 +1164,7 @@ element in PARTS is a list, append it to PARTS."
                          rcirc-encode-coding-system)
                         "\n")))
     (unless (rcirc--connection-open-p process)
-      (error "Network connection to %s is not open"
-             (process-name process)))
+      (signal 'rcirc-closed-connection process))
     (rcirc-debug process string)
     (process-send-string process string)))
 
@@ -1434,7 +1458,8 @@ PROCESS is the process object used for communication.
 
   (add-hook 'completion-at-point-functions
             'rcirc-completion-at-point nil 'local)
-  (setq-local completion-cycle-threshold t)
+  (when rcirc-cycle-completion-flag
+    (setq-local completion-cycle-threshold t))
 
   (run-mode-hooks 'rcirc-mode-hook))
 
@@ -2592,15 +2617,22 @@ that, an interactive form can specified."
        (defun ,fn-name (,argument &optional process target)
          ,(concat documentation
                   "\n\nNote: If PROCESS or TARGET are nil, the values given"
-		  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
-         (interactive (list ,interactive-spec))
+                  "\nby `rcirc-buffer-process' and `rcirc-target' will be used.")
+         (interactive ,(if (stringp interactive-spec)
+                           ;; HACK: Necessary to wrap the result of
+                           ;; the interactive spec in a list.
+                           `(list (call-interactively
+                                   (lambda (&rest args)
+                                     (interactive ,interactive-spec)
+                                     args)))
+                         `(list ,interactive-spec)))
          (unless (if (listp ,argument)
                      (<= ,required (length ,argument) ,total)
                    (string-match ,regexp ,argument))
            (user-error "Malformed input (%s): %S" ',command ,argument))
          (push ,(upcase (symbol-name command)) rcirc-pending-requests)
          (let ((process (or process (rcirc-buffer-process)))
-	       (target (or target rcirc-target)))
+               (target (or target rcirc-target)))
            (ignore target process)
            (let (,@(cl-loop
                     for i from 0 for arg in (delq '&optional arguments)

@@ -201,7 +201,10 @@ Returns a form where all lambdas don't have any free variables."
          (i 0)
          (new-env ()))
     ;; Build the "formal and actual envs" for the closure-converted function.
-    (dolist (fv fvs)
+    ;; Hack for OClosure: `nreverse' here intends to put the captured vars
+    ;; in the closure such that the first one is the one that is bound
+    ;; most closely.
+    (dolist (fv (nreverse fvs))
       (let ((exp (or (cdr (assq fv env)) fv)))
         (pcase exp
           ;; If `fv' is a variable that's wrapped in a cons-cell,
@@ -240,7 +243,7 @@ Returns a form where all lambdas don't have any free variables."
   ;; this case better, we'd need to traverse the tree one more time to
   ;; collect this data, and I think that it's not worth it.
   (mapcar (lambda (mapping)
-            (if (not (eq (cadr mapping) 'apply-partially))
+            (if (not (eq (cadr mapping) #'apply-partially))
                 mapping
               (cl-assert (eq (car mapping) (nth 2 mapping)))
               `(,(car mapping)
@@ -449,6 +452,9 @@ places where they originally did not directly appear."
                  (let ((var-def (cconv--lifted-arg var env))
                        (closedsym (make-symbol (format "closed-%s" var))))
                    (setq new-env (cconv--remap-llv new-env var closedsym))
+                   ;; FIXME: `closedsym' doesn't need to be added to `extend'
+                   ;; but adding it makes it easier to write the assertion at
+                   ;; the beginning of this function.
                    (setq new-extend (cons closedsym (remq var new-extend)))
                    (push `(,closedsym ,var-def) binders-new)))
 
@@ -494,11 +500,11 @@ places where they originally did not directly appear."
                  args)))
 
     (`(cond . ,cond-forms)              ; cond special form
-     `(cond . ,(mapcar (lambda (branch)
-                         (mapcar (lambda (form)
-                                   (cconv-convert form env extend))
-                                 branch))
-                       cond-forms)))
+     `(,(car form) . ,(mapcar (lambda (branch)
+                                (mapcar (lambda (form)
+                                          (cconv-convert form env extend))
+                                        branch))
+                              cond-forms)))
 
     (`(function (lambda ,args . ,body) . ,_)
      (let ((docstring (if (eq :documentation (car-safe (car body)))
@@ -532,7 +538,7 @@ places where they originally did not directly appear."
             (msg (when (eq class :unused)
                    (cconv--warn-unused-msg var "variable")))
             (newprotform (cconv-convert protected-form env extend)))
-       `(condition-case ,var
+       `(,(car form) ,var
             ,(if msg
                  (macroexp--warn-wrap var msg newprotform 'lexical)
                newprotform)
@@ -548,9 +554,9 @@ places where they originally did not directly appear."
                        `((let ((,var (list ,var))) ,@body))))))
              handlers))))
 
-    (`(unwind-protect ,form . ,body)
-     `(unwind-protect ,(cconv-convert form env extend)
-        :fun-body ,(cconv--convert-function () body env form)))
+    (`(unwind-protect ,form1 . ,body)
+     `(,(car form) ,(cconv-convert form1 env extend)
+        :fun-body ,(cconv--convert-function () body env form1)))
 
     (`(setq . ,forms)                   ; setq special form
      (if (= (logand (length forms) 1) 1)
@@ -562,7 +568,7 @@ places where they originally did not directly appear."
                   (sym-new (or (cdr (assq sym env)) sym))
                   (value (cconv-convert (pop forms) env extend)))
              (push (pcase sym-new
-                     ((pred symbolp) `(setq ,sym-new ,value))
+                     ((pred symbolp) `(,(car form) ,sym-new ,value))
                      (`(car-safe ,iexp) `(setcar ,iexp ,value))
                      ;; This "should never happen", but for variables which are
                      ;; mutated+captured+unused, we may end up trying to `setq'
@@ -598,11 +604,19 @@ places where they originally did not directly appear."
                                  (cons fun args)))))))
 
     (`(interactive . ,forms)
-     `(interactive . ,(mapcar (lambda (form)
+     `(,(car form) . ,(mapcar (lambda (form)
                                 (cconv-convert form nil nil))
                               forms)))
 
     (`(declare . ,_) form)              ;The args don't contain code.
+
+    (`(oclosure--fix-type (ignore . ,vars) ,exp)
+     (dolist (var vars)
+       (let ((x (assq var env)))
+         (pcase (cdr x)
+           (`(car-safe . ,_) (error "Slot %S should not be mutated" var))
+           (_ (cl-assert (null (cdr x)))))))
+     (cconv-convert exp env extend))
 
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,

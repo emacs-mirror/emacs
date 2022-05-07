@@ -263,7 +263,7 @@ form.")
                 nil))
              (kill-emacs-args nil)
              ((symbol-function #'kill-emacs)
-              (lambda (&optional arg) (push arg kill-emacs-args)))
+              (lambda (&rest args) (push args kill-emacs-args)))
              (process
               (make-process
                :name "sleep"
@@ -274,7 +274,7 @@ form.")
     (save-buffers-kill-emacs)
     (kill-process process)
     (should-not yes-or-no-p-prompts)
-    (should (equal kill-emacs-args '(nil)))))
+    (should (equal kill-emacs-args '((nil nil))))))
 
 (ert-deftest files-tests-read-file-in-~ ()
   "Test file prompting in directory named `~'.
@@ -1813,6 +1813,52 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (should (equal (file-name-split "/foo/bar/zot") '("" "foo" "bar" "zot")))
   (should (equal (file-name-split "/foo/bar/") '("" "foo" "bar" "")))
   (should (equal (file-name-split "foo/bar/") '("foo" "bar" ""))))
+
+(ert-deftest files-test-set-mode ()
+  (find-file (ert-resource-file "file-mode"))
+  (should (eq major-mode 'text-mode))
+  (emacs-lisp-mode)
+  ;; Check that the mode cookie doesn't override the explicit setting.
+  (should (eq major-mode 'emacs-lisp-mode)))
+
+(ert-deftest files-test-set-mode-multiple ()
+  (find-file (ert-resource-file "file-mode-multiple"))
+  (should (eq major-mode 'outline-mode)))
+
+(ert-deftest files-test-set-mode-prop-line ()
+  (find-file (ert-resource-file "file-mode-prop-line"))
+  (should (eq major-mode 'text-mode)))
+
+(ert-deftest files-load-elc-gz-file ()
+  :expected-result :failed
+  (skip-unless (executable-find "gzip"))
+  (ert-with-temp-directory dir
+    (let* ((pref (expand-file-name "compile-utf8" dir))
+           (el (concat pref ".el")))
+      (copy-file (ert-resource-file "compile-utf8.el") el)
+      (push dir load-path)
+      (should (load pref t))
+      (should (fboundp 'foo))
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot))
+
+      (byte-compile-file el)
+      (fmakunbound 'foo)
+      (should (load (concat pref ".elc") t))
+      (should (fboundp 'foo))
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot))
+
+      (dired-compress-file (concat pref ".elc"))
+      (fmakunbound 'foo)
+      (should (load (concat pref ".elc.gz") t))
+      (should (fboundp 'foo))
+      ;; This fails due to bug#12598.
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot)))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

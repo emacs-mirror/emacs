@@ -296,6 +296,31 @@ editing in the same Emacs session.
 out of memory, because the Buffer Menu needs a fair amount of memory
 itself, and the reserve supply may not be enough.
 
+@cindex out of memory killer, GNU/Linux
+@cindex OOM killer
+  On GNU/Linux systems, Emacs does not normally get notified about
+out-of-memory situations; instead, the OS can kill the Emacs process
+when it runs out of memory.  This feature is known as the
+@dfn{out-of-memory killer}, or @dfn{@acronym{OOM} killer}.  When this
+behavior is in effect, Emacs is unable to detect the out-of-memory
+situation in time, and won't be able to let you save your buffer as
+described above.  However, it is possible to turn off this behavior of
+the OS, and thus allow Emacs a chance to handle the out-of-memory
+situation in a more useful manner, before it is killed.  To do that,
+become the super user, edit the file @code{/etc/sysctl.conf} to
+contain the lines shown below, and then invoke the command
+@w{@kbd{sysctl -p}} from the shell prompt:
+
+@example
+vm.overcommit_memory=2
+vm.overcommit_ratio=0
+@end example
+
+@noindent
+Please note that the above setting affects all the processes on the
+system, and in general the behavior of the system under memory
+pressure, not just the Emacs process alone.
+
 @node Crashing
 @subsection When Emacs Crashes
 

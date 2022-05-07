@@ -2505,6 +2505,8 @@ With a prefix argument, TRASH is nil.  */)
   return Qnil;
 }
 
+#if defined HAVE_NATIVE_COMP && defined WINDOWSNT
+
 static Lisp_Object
 internal_delete_file_1 (Lisp_Object ignore)
 {
@@ -2523,6 +2525,8 @@ internal_delete_file (Lisp_Object filename)
 				   Qt, internal_delete_file_1);
   return NILP (tem);
 }
+
+#endif
 
 /* Return -1 if FILE is a case-insensitive file name, 0 if not,
    and a positive errno value if the result cannot be determined.  */
@@ -5519,7 +5523,10 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
        doc: /* Return t if (car A) is numerically less than (car B).  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  return arithcompare (Fcar (a), Fcar (b), ARITH_LESS);
+  Lisp_Object ca = Fcar (a), cb = Fcar (b);
+  if (FIXNUMP (ca) && FIXNUMP (cb))
+    return XFIXNUM (ca) < XFIXNUM (cb) ? Qt : Qnil;
+  return arithcompare (ca, cb, ARITH_LESS);
 }
 
 /* Build the complete list of annotations appropriate for writing out
@@ -5973,7 +5980,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   bool old_message_p = 0;
   struct auto_save_unwind auto_save_unwind;
 
-  intmax_t sum = INT_ADD_WRAPV (specpdl_size, 40, &sum) ? INTMAX_MAX : sum;
+  intmax_t sum = INT_ADD_WRAPV (specpdl_end - specpdl, 40, &sum)
+                 ? INTMAX_MAX : sum;
   if (max_specpdl_size < sum)
     max_specpdl_size = sum;
 

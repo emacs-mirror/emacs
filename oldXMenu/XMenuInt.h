@@ -37,6 +37,8 @@ without express or implied warranty.
 
 #include <config.h>
 
+#include <attribute.h>
+
 /* Avoid warnings about redefining NULL by including <stdio.h> first;
    the other file which wants to define it (<stddef.h> on Ultrix
    systems) can deal if NULL is already defined, but <stdio.h> can't.  */

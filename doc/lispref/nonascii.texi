@@ -855,15 +855,24 @@ function to all or part of the characters in a charset:
 Call @var{function} for characters in @var{charset}.  @var{function}
 is called with two arguments.  The first one is a cons cell
 @code{(@var{from} .  @var{to})}, where @var{from} and @var{to}
-indicate a range of characters contained in charset.  The second
-argument passed to @var{function} is @var{arg}.
+indicate a range of characters contained in @var{charset}.  The second
+argument passed to @var{function} is @var{arg}, or @code{nil} if
+@var{arg} is omitted.
 
 By default, the range of codepoints passed to @var{function} includes
 all the characters in @var{charset}, but optional arguments
 @var{from-code} and @var{to-code} limit that to the range of
 characters between these two codepoints of @var{charset}.  If either
 of them is @code{nil}, it defaults to the first or last codepoint of
-@var{charset}, respectively.
+@var{charset}, respectively.  Note that @var{from-code} and
+@var{to-code} are @var{charset}'s codepoints, not the Emacs codes of
+characters; by contrast, the values @var{from} and @var{to} in the
+cons cell passed to @var{function} @emph{are} Emacs character codes.
+Those Emacs character codes are either Unicode code points, or Emacs
+internal code points that extend Unicode and are beyond the Unicode
+range of characters @code{0..#x10FFFF} (@pxref{Text Representations}).
+The latter happens rarely, with legacy CJK charsets for codepoints of
+@var{charset} which specify characters not yet unified with Unicode.
 @end defun
 
 @node Scanning Charsets

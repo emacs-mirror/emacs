@@ -3512,10 +3512,18 @@ enabled.  Typically, @var{body} would use @code{read-event} to read
 the motion events and modify the display accordingly.  @xref{Motion
 Events}, for the format of mouse motion events.
 
-The value of @code{track-mouse} is that of the last form in @var{body}.
-You should design @var{body} to return when it sees the up-event that
-indicates the release of the button, or whatever kind of event means
-it is time to stop tracking.
+The value of @code{track-mouse} is that of the last form in
+@var{body}.  You should design @var{body} to return when it sees the
+up-event that indicates the release of the button, or whatever kind of
+event means it is time to stop tracking.  Its value also controls how
+mouse events are reported while a mouse button is held down: if it is
+@code{dropping} or @code{drag-source}, the motion events are reported
+relative to the frame underneath the pointer.  If there is no such
+frame, the events will be reported relative to the frame the mouse
+buttons were first pressed on.  In addition, the @code{posn-window} of
+the mouse position list will be @code{nil} if the value is
+@code{drag-source}.  This is useful to determine if a frame is not
+directly visible underneath the mouse pointer.
 
 The @code{track-mouse} form causes Emacs to generate mouse motion
 events by binding the variable @code{track-mouse} to a
@@ -3918,11 +3926,11 @@ upper-case names, in accord with X Window System conventions.  If
 @var{type} is @code{nil}, that stands for @code{PRIMARY}.
 
 If @var{data} is @code{nil}, it means to clear out the selection.
-Otherwise, @var{data} may be a string, a symbol, an integer (or a cons
-of two integers or list of two integers), an overlay, or a cons of two
-markers pointing to the same buffer.  An overlay or a pair of markers
-stands for text in the overlay or between the markers.  The argument
-@var{data} may also be a vector of valid non-vector selection values.
+Otherwise, @var{data} may be a string, a symbol, an integer, an
+overlay, or a cons of two markers pointing to the same buffer.  An
+overlay or a pair of markers stands for text in the overlay or between
+the markers.  The argument @var{data} may also be a vector of valid
+non-vector selection values.
 
 This function returns @var{data}.
 @end deffn
@@ -4037,6 +4045,55 @@ there is no match there, Emacs looks for a match in
 @code{browse-url-handlers} and @code{browse-url-default-handlers}.  If
 still no match has been found, the text for the URL is inserted.  If
 you want to alter Emacs behavior, you can customize these variables.
+
+@cindex initiating drag-and-drop
+  On capable window systems, Emacs also supports dragging contents
+from its frames to windows of other applications.
+
+@defun x-begin-drag targets &optional action frame return-frame allow-current-frame
+This function begins a drag from @var{frame}, and returns when the
+drag-and-drop operation ends, either because the drop was successful,
+or because the drop was rejected.  The drop occurs when all mouse
+buttons are released on top of an X window other than @var{frame} (the
+@dfn{drop target}), or any X window if @var{allow-current-frame} is
+non-@code{nil}.
+
+@var{targets} is a list of strings describing selection targets, much
+like the @var{data-type} argument to @code{gui-get-selection}, that
+the drop target can request from Emacs (@pxref{Window System
+Selections}).
+
+@var{action} is a symbol describing the action recommended to the
+target.  It can either be @code{XdndActionCopy}, which
+means to copy the contents of the selection @code{XdndSelection} to
+the drop target; or @code{XdndActionMove}, which means copy as with
+@code{XdndActionCopy}, and in addition the caller should delete
+whatever was stored in that selection after copying it.
+
+@var{action} may also be an alist which associates between symbols
+describing the available actions, and strings that the drop target is
+expected to present to the user to choose between the available
+actions.
+
+If @var{return-frame} is non-@code{nil} and the mouse moves over an
+Emacs frame after first moving out of @var{frame}, then the frame to
+which the mouse moves will be returned immediately.  If
+@var{return-frame} is the symbol @code{now}, then any frame underneath
+the mouse pointer will be returned without waiting for the mouse to
+first move out of @var{frame}.  @var{return-frame} is useful when you
+want to treat dragging content from one frame to another specially,
+while also being able to drag content to other programs, but it is not
+guaranteed to work on all systems and with all window managers.
+
+If the drop was rejected or no drop target was found, this function
+returns @code{nil}.  Otherwise, it returns a symbol describing the
+action the target chose to perform, which can differ from @var{action}
+if that isn't supported by the drop target.  @code{XdndActionPrivate}
+is also a valid return value in addition to @code{XdndActionCopy} and
+@code{XdndActionMove}; it means that the drop target chose to perform
+an unspecified action, and no further processing is required by the
+caller.
+@end defun
 
 @node Color Names
 @section Color Names

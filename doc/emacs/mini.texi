@@ -378,6 +378,20 @@ window.  You can display the same list with @kbd{?}
 used with the completion list:
 
 @table @kbd
+@vindex minibuffer-completion-auto-choose
+@item M-@key{DOWN}
+@itemx M-@key{UP}
+These keys will navigate through the completions displayed in the
+completions buffer.  When @code{minibuffer-completion-auto-choose} is
+non-@code{nil} (which is the default), using these commands will
+automatically insert the current completion candidate in the
+minibuffer.  If this user option is @code{nil}, the keys will navigate
+the same way as before, but won't automatically insert the candidate
+in the minibuffer.  Instead you have to use the @kbd{M-@key{RET}} command to
+do that.  With a prefix argument, @kbd{C-u M-@key{RET}} inserts the
+currently active candidate to the minibuffer, but doesn't exit the
+minibuffer.
+
 @findex switch-to-completions
 @item M-v
 @itemx @key{PageUp}
@@ -624,11 +638,34 @@ completion alternatives in the completion list.
 @vindex completion-auto-help
   If @code{completion-auto-help} is set to @code{nil}, the completion
 commands never display the completion list buffer; you must type
-@kbd{?}  to display the list.  If the value is @code{lazy}, Emacs only
+@kbd{?} to display the list.  If the value is @code{lazy}, Emacs only
 shows the completion list buffer on the second attempt to complete.
 In other words, if there is nothing to complete, the first @key{TAB}
 echoes @samp{Next char not unique}; the second @key{TAB} shows the
-completion list buffer.
+completion list buffer.  If the value is @code{always}, the completion
+list buffer is always shown when completion is attempted.
+
+The display of the completion list buffer after it is shown for the
+first time is also controlled by @code{completion-auto-help}.  If the
+value is @code{t} or @code{lazy}, the window showing the completions
+pops down when Emacs is able to complete (and may pop up again if
+Emacs is again unable to complete after you type some more text); if
+the value is @code{always}, the window pops down only when you exit
+the completion.  The value @code{visible} is a hybrid: it behaves like
+@code{t} when it decides whether to pop up the window showing the
+completion list buffer, and like @code{always} when it decides whether
+to pop it down.
+
+@vindex completion-auto-select
+  Emacs can optionally select the window showing the completions when
+it shows that window.  To enable this behavior, customize the user
+option @code{completion-auto-select} to @code{t}, which changes the
+behavior of @key{TAB} when Emacs pops up the completions: pressing
+@kbd{@key{TAB}} will switch to the completion list buffer, and you can
+then move to a candidate by cursor motion commands and select it with
+@kbd{@key{RET}}.  If the value of @code{completion-auto-select} is
+@code{second-tab}, then the first @kbd{@key{TAB}} will pop up the
+completions list buffer, and the second one will switch to it.
 
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion
@@ -650,6 +687,42 @@ sorted in columns horizontally in alphabetical order, but this can be
 changed by changing the @code{completions-format} user option.  If
 @code{vertical}, sort the completions vertically in columns instead,
 and if @code{one-column}, just use a single column.
+
+@vindex completions-sort
+  This user option controls how completions are sorted in the
+@samp{*Completions*} buffer.  The default is @code{alphabetical}, but
+it can also be a function which will be called with the list of
+completions, and should return the list in the desired order.
+
+@vindex completions-max-height
+  When @code{completions-max-height} is non-@code{nil}, it limits the
+size of the completions window.  It is specified in lines and include
+mode, header line and a bottom divider, if any.  For a more complex
+control of the Completion window display properties, you can use
+@code{display-buffer-alist} (@pxref{Buffer Display Action
+Alists,,Action Alists for Buffer Display, elisp, The Emacs Lisp
+Reference Manual}).
+
+@vindex completions-header-format
+The variable @code{completions-header-format} is a format spec string to
+control the informative line shown before the completions list of
+candidates.  If it contains a @samp{%s} construct, that get replaced
+by the number of completions shown in the completion list buffer.  To
+suppress the display of the heading line, customize this variable to
+@code{nil}.  The string that is the value of this variable can have
+text properties to change the visual appearance of the heading line;
+some useful properties @code{face} or @code{cursor-intangible}
+(@pxref{Special Properties,,Properties with Special Meanings, elisp,
+The Emacs Lisp Reference Manual}).
+
+@vindex completions-highlight-face
+When @code{completions-highlight-face} names a face, the current
+completion candidate, the one that will be selected by typing
+@kbd{@key{RET}} or clicking the mouse, will be highlighted using that
+face.  The default value of this variable is
+@code{completions-highlight}; the value is @code{nil} disables this
+highlighting.  This feature uses the special text property
+@code{cursor-face}.
 
 @node Minibuffer History
 @section Minibuffer History

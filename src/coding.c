@@ -1131,7 +1131,6 @@ detect_coding_utf_8 (struct coding_system *coding,
   ptrdiff_t consumed_chars = 0;
   bool bom_found = 0;
   ptrdiff_t nchars = coding->head_ascii;
-  int eol_seen = coding->eol_seen;
 
   detect_info->checked |= CATEGORY_MASK_UTF_8;
   /* A coding system of this category is always ASCII compatible.  */
@@ -1161,15 +1160,10 @@ detect_coding_utf_8 (struct coding_system *coding,
 	    {
 	      if (src < src_end && *src == '\n')
 		{
-		  eol_seen |= EOL_SEEN_CRLF;
 		  src++;
 		  nchars++;
 		}
-	      else
-		eol_seen |= EOL_SEEN_CR;
 	    }
-	  else if (c == '\n')
-	    eol_seen |= EOL_SEEN_LF;
 	  continue;
 	}
       ONE_MORE_BYTE (c1);

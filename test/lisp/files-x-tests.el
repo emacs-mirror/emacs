@@ -325,6 +325,9 @@
         (should-not (boundp 'remote-shell-file-name))
         (should (string-equal (symbol-value 'remote-null-device) "null"))
 
+        (connection-local-set-profiles
+         files-x-test--application 'remote-bash)
+
 	(with-connection-local-variables
 	 ;; All connection-local variables are set.  They apply in
 	 ;; reverse order in `connection-local-variables-alist'.
@@ -344,6 +347,21 @@
          (should (local-variable-p 'remote-shell-file-name))
          (should (local-variable-p 'remote-null-device))
          ;; The proper variable values are set.
+         (should
+          (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))
+         (should
+          (string-equal (symbol-value 'remote-null-device) "/dev/null"))
+
+         ;; Run another instance of `with-connection-local-variables'
+         ;; with a different application.
+         (let ((connection-local-default-application (cadr files-x-test--application)))
+	   (with-connection-local-variables
+            ;; The proper variable values are set.
+            (should
+             (string-equal (symbol-value 'remote-shell-file-name) "/bin/bash"))
+            (should
+             (string-equal (symbol-value 'remote-null-device) "/dev/null"))))
+         ;; The variable values are reset.
          (should
           (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))
          (should

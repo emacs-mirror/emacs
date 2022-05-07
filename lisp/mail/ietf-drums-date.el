@@ -50,8 +50,8 @@ See the decoded-time defstruct.")
   '((0 60) (0 59) (0 23) (1 31) (1 12) (1 9999))
   "Numeric slot ranges, for bounds checking.
 Note that RFC5322 explicitly requires that seconds go up to 60,
-to allow for leap seconds (see Mills, D., 'Network Time
-Protocol', STD 12, RFC 1119, September 1989).")
+to allow for leap seconds (see Mills, D., \"Network Time
+Protocol\", STD 12, RFC 1119, September 1989).")
 
 (defsubst ietf-drums-date--ignore-char-p (char)
   ;; Ignore whitespace and commas.

@@ -577,7 +577,7 @@ Return register which holds a value of the expression."
     (ccl-check-register expr cmd)))
 
 (defun ccl-compile-branch-blocks (code rrr blocks)
-  "Compile BLOCKs of BRANCH statement.  CODE is 'branch or 'read-branch.
+  "Compile BLOCKs of BRANCH statement.  CODE is `branch' or `read-branch'.
 REG is a register which holds a value of EXPRESSION part.  BLOCKs
 is a list of CCL-BLOCKs."
   (let ((branches (length blocks))

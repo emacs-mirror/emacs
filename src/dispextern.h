@@ -3460,6 +3460,8 @@ extern Lisp_Object handle_tab_bar_click (struct frame *,
 					 int, int, bool, int);
 extern void handle_tool_bar_click (struct frame *,
                                    int, int, bool, int);
+extern void handle_tool_bar_click_with_device (struct frame *, int, int, bool,
+					       int, Lisp_Object);
 
 extern void expose_frame (struct frame *, int, int, int, int);
 extern bool gui_intersect_rectangles (const Emacs_Rectangle *,

@@ -126,6 +126,17 @@ environment."))
 South Indian language Malayalam is supported in this language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Brahmi" '((charset unicode)
+	    (coding-system utf-8)
+	    (coding-priority utf-8)
+	    (input-method . "brahmi")
+            (sample-text . "Brahmi (𑀩𑁆𑀭𑀸𑀳𑁆𑀫𑀻)	𑀦𑀫𑀲𑁆𑀢𑁂")
+	    (documentation . "\
+The ancient Brahmi script is supported in this language environment."))
+ '("Indian"))                           ; Should we have an "Old" category?
+
+
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
 
@@ -383,6 +394,32 @@ South Indian language Malayalam is supported in this language environment."))
 	      composition-function-table key
 	      (list (vector (cdr slot) 0 #'font-shape-gstring))))))
    char-script-table))
+
+;; Brahmi composition rules
+(let ((consonant     "[\U00011013-\U00011034]")
+      (non-consonant "[^\U00011013-\U00011034\U00011046\U0001107F]")
+      (vowel         "[\U00011038-\U00011045]")
+      (numeral       "[\U00011052-\U00011065]")
+      (multiplier    "[\U00011064\U00011065]")
+      (virama        "\U00011046")
+      (number-joiner "\U0001107F"))
+  (set-char-table-range composition-function-table
+		        '(#x11046 . #x11046)
+                        (list (vector
+                               ;; Consonant conjuncts
+                               (concat consonant "\\(?:" virama consonant "\\)+"
+                                       vowel "?")
+                               1 'font-shape-gstring)
+                              (vector
+                               ;; Vowelless consonants
+                               (concat consonant virama non-consonant)
+                               1 'font-shape-gstring)))
+  (set-char-table-range composition-function-table
+                        '(#x1107F . #x1107F)
+                        (list (vector
+                               ;; Additive-multiplicative numerals
+                               (concat multiplier number-joiner numeral)
+                               1 'font-shape-gstring))))
 
 (provide 'indian)
 

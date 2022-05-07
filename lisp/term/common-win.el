@@ -65,7 +65,6 @@
 	       (cons  4 'ns-drag-file)
 	       (cons  5 'ns-drag-color)
 	       (cons  6 'ns-drag-text)
-	       (cons  7 'ns-change-font)
 	       (cons  8 'ns-open-file-line)
 ;;;	       (cons  9 'ns-insert-working-text)
 ;;;	       (cons 10 'ns-delete-working-text)
@@ -418,6 +417,16 @@ the operating system.")
 	(and (color-supported-p this-color frame t)
 	     (setq defined-colors (cons this-color defined-colors))))
       defined-colors)))
+
+;;;; Session management.
+
+(defvar emacs-save-session-functions nil
+  "Special hook run when a save-session event occurs.
+The functions do not get any argument.
+Functions can return non-nil to inform the session manager that the
+window system shutdown should be aborted.
+
+See also `emacs-session-save'.")
 
 (provide 'term/common-win)
 

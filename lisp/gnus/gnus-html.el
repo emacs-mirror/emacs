@@ -40,14 +40,11 @@
 (require 'help-fns)
 (require 'url-queue)
 
-(defcustom gnus-html-image-cache-ttl (days-to-time 7)
-  "Time used to determine if we should use images from the cache."
-  :version "24.1"
+(defcustom gnus-html-image-cache-ttl (time-convert (days-to-time 7) 'integer)
+  "Number of seconds used to determine if we should use images from the cache."
+  :version "29.1"
   :group 'gnus-art
-  ;; FIXME hardly the friendliest type.  The allowed value is actually
-  ;; any time value, but we are assuming no-one cares about USEC and
-  ;; PSEC here.  It would be better to eg make it a number of minutes.
-  :type '(list integer integer))
+  :type 'number)
 
 (defcustom gnus-html-image-automatic-caching t
   "Whether automatically cache retrieve images."

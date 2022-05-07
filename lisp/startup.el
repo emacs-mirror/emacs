@@ -1044,7 +1044,11 @@ init-file, or to a default value if loading is not possible."
         (debug-on-error-initial
          (if (eq init-file-debug t)
              'startup
-           init-file-debug)))
+           init-file-debug))
+        ;; The init file might contain byte-code with embedded NULs,
+        ;; which can cause problems when read back, so disable nul
+        ;; byte detection.  (Bug#52554)
+        (inhibit-null-byte-detection t))
     (let ((debug-on-error debug-on-error-initial))
       (condition-case-unless-debug error
           (when init-file-user
@@ -1232,6 +1236,14 @@ please check its value")
 		  (t
 		   (setq argval nil
 			 argi orig-argi)))))
+
+        ;; We handle "-scripteval" further down, but we have to
+        ;; inhibit loading the user init file first.  (This is for
+        ;; "emacs -x" handling.)
+	(when (equal argi "-scripteval")
+	  (setq init-file-user nil
+                noninteractive t))
+
 	(cond
 	 ;; The --display arg is handled partly in C, partly in Lisp.
 	 ;; When it shows up here, we just put it back to be handled
@@ -1287,12 +1299,16 @@ please check its value")
          (setcdr command-line-args args)))
 
   ;; Re-evaluate predefined variables whose initial value depends on
-  ;; the runtime context.
-  (when (listp custom-delayed-init-variables)
-    (mapc #'custom-reevaluate-setting
-          ;; Initialize them in the same order they were loaded, in
-          ;; case there are dependencies between them.
-          (reverse custom-delayed-init-variables)))
+  ;; the runtime context.  But delay the warning about
+  ;; `user-emacs-directory' being inaccessible until after processing
+  ;; the init file and the command-line arguments, in case the user
+  ;; customized `user-emacs-directory-warning' to nil via those.
+  (let ((user-emacs-directory-warning nil))
+    (when (listp custom-delayed-init-variables)
+      (mapc #'custom-reevaluate-setting
+            ;; Initialize them in the same order they were loaded, in
+            ;; case there are dependencies between them.
+            (reverse custom-delayed-init-variables))))
   (setq custom-delayed-init-variables t)
 
   ;; Warn for invalid user name.
@@ -1553,8 +1569,20 @@ please check its value")
 	(list 'error
 	      (substitute-command-keys "Memory exhausted--use \\[save-some-buffers] then exit and restart Emacs")))
 
+  ;; Reevaluate `user-emacs-directory-warning' before processing
+  ;; '--eval' arguments, so that the user could override the default
+  ;; value in the '--eval' forms.
+  (custom-reevaluate-setting 'user-emacs-directory-warning)
+
   ;; Process the remaining args.
   (command-line-1 (cdr command-line-args))
+
+  ;; Check if `user-emacs-directory' is accessible and warn if it
+  ;; isn't, unless `user-emacs-directory-warning' was customized to
+  ;; disable that warning.
+  (when (and user-emacs-directory-warning
+             (not (file-accessible-directory-p user-emacs-directory)))
+    (locate-user-emacs-file ""))
 
   ;; This is a problem because, e.g. if emacs.d/gnus.el exists,
   ;; trying to load gnus could load the wrong file.
@@ -2660,7 +2688,7 @@ nil default-directory" name)
 
                     ;; This is used to handle -script.  It's not clear
                     ;; we need to document it (it is totally internal).
-                    ((member argi '("-scriptload"))
+                    ((member argi '("-scriptload" "-scripteval"))
                      (let* ((file (command-line-normalize-file-name
                                    (or argval (pop command-line-args-left))))
                             ;; Take file from default dir.
@@ -2673,7 +2701,10 @@ nil default-directory" name)
                        ;; actually exist on some systems.
                        (when (file-exists-p truename)
                          (setq file-ex truename))
-                       (command-line--load-script file-ex)))
+                       (if (equal argi "-scripteval")
+                           ;; This will kill Emacs.
+                           (command-line--eval-script file-ex)
+                         (command-line--load-script file-ex))))
 
                     ((equal argi "-insert")
                      (setq inhibit-startup-screen t)
@@ -2874,6 +2905,22 @@ nil default-directory" name)
        (when (looking-at "#!")
          (delete-line))
        (eval-buffer buffer nil file nil t)))))
+
+(defun command-line--eval-script (file)
+  (load-with-code-conversion
+   file file nil t
+   (lambda (buffer _)
+     (with-current-buffer buffer
+       (goto-char (point-min))
+       (when (looking-at "#!")
+         (forward-line))
+       (let (value form)
+         (while (ignore-error 'end-of-file
+                  (setq form (read (current-buffer))))
+           (setq value (eval form t)))
+         (kill-emacs (if (numberp value)
+                         value
+                       0)))))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."

@@ -176,7 +176,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
-(define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
 (define-key global-map [ns-new-frame] 'make-frame)
@@ -508,25 +507,28 @@ unless the current buffer is a scratch buffer."
 Switch to a buffer editing the last file dropped, or insert the
 string dropped into the current buffer."
   (interactive "e")
-  (let* ((window (posn-window (event-start event)))
-         (arg (car (cdr (cdr event))))
-         (type (car arg))
-         (operations (car (cdr arg)))
-         (objects (cdr (cdr arg)))
-         (string (mapconcat 'identity objects "\n")))
-    (set-frame-selected-window nil window)
-    (raise-frame)
-    (setq window (selected-window))
-    (cond ((or (memq 'ns-drag-operation-generic operations)
-               (memq 'ns-drag-operation-copy operations))
-           ;; Perform the default/copy action.
-           (dolist (data objects)
-             (dnd-handle-one-url window 'private (if (eq type 'file)
-                                                     (concat "file:" data)
-                                                   data))))
-          (t
-           ;; Insert the text as is.
-           (dnd-insert-text window 'private string)))))
+  (if (eq (car-safe (cdr-safe (cdr-safe event))) 'lambda)
+      (dnd-handle-movement (event-start event))
+    (let* ((window (posn-window (event-start event)))
+           (arg (car (cdr (cdr event))))
+           (type (car arg))
+           (operations (car (cdr arg)))
+           (objects (cdr (cdr arg)))
+           (string (mapconcat 'identity objects "\n")))
+      (set-frame-selected-window nil window)
+      (raise-frame)
+      (setq window (selected-window))
+      (goto-char (posn-point (event-start event)))
+      (cond ((or (memq 'ns-drag-operation-generic operations)
+                 (memq 'ns-drag-operation-copy operations))
+             ;; Perform the default/copy action.
+             (dolist (data objects)
+               (dnd-handle-one-url window 'private (if (eq type 'file)
+                                                       (concat "file:" data)
+                                                     data))))
+            (t
+             ;; Insert the text as is.
+             (dnd-insert-text window 'private string))))))
 
 (global-set-key [drag-n-drop] 'ns-drag-n-drop)
 
@@ -619,34 +621,6 @@ If FRAME is nil, the change applies to the selected frame."
 
 ;; Needed for font listing functions under both backend and normal
 (setq scalable-fonts-allowed t)
-
-;; Set to use font panel instead
-(declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
-(defalias 'x-select-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-(defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-
-;; nsterm.m
-(defvar ns-input-font)
-(defvar ns-input-fontsize)
-
-(defun ns-respond-to-change-font ()
-  "Set the font chosen in the font-picker panel.
-Respond to changeFont: event, expecting ns-input-font and
-ns-input-fontsize of new font."
-  (interactive)
-  (let ((face 'default))
-    (set-face-attribute face t
-                        :family ns-input-font
-                        :height (* 10 ns-input-fontsize))
-    (set-face-attribute face (selected-frame)
-                        :family ns-input-font
-                        :height (* 10 ns-input-fontsize))
-    (let ((spec (list (list t (face-attr-construct 'default)))))
-      (put face 'customized-face spec)
-      (custom-push-theme 'theme-face face 'user 'set spec)
-      (put face 'face-modified nil))))
 
 ;; Default fontset for macOS.  This is mainly here to show how a fontset
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever

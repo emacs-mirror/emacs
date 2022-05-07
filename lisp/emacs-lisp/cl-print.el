@@ -221,26 +221,11 @@ into a button whose action shows the function's disassembly.")
                             'byte-code-function object)))))
   (princ ")" stream))
 
-;; This belongs in nadvice.el, of course, but some load-ordering issues make it
-;; complicated: cl-generic uses macros from cl-macs and cl-macs uses advice-add
-;; from nadvice, so nadvice needs to be loaded before cl-generic and hence
-;; can't use cl-defmethod.
-(cl-defmethod cl-print-object :extra "nadvice"
-              ((object compiled-function) stream)
-  (if (not (advice--p object))
-      (cl-call-next-method)
-    (princ "#f(advice-wrapper " stream)
-    (when (fboundp 'advice--where)
-      (princ (advice--where object) stream)
-      (princ " " stream))
-    (cl-print-object (advice--cdr object) stream)
-    (princ " " stream)
-    (cl-print-object (advice--car object) stream)
-    (let ((props (advice--props object)))
-      (when props
-        (princ " " stream)
-        (cl-print-object props stream)))
-    (princ ")" stream)))
+;; This belongs in oclosure.el, of course, but some load-ordering issues make it
+;; complicated.
+(cl-defmethod cl-print-object ((object accessor) stream)
+  ;; FIXME: η-reduce!
+  (oclosure--accessor-cl-print object stream))
 
 (cl-defmethod cl-print-object ((object cl-structure-object) stream)
   (if (and cl-print--depth (natnump print-level)

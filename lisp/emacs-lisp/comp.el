@@ -238,7 +238,7 @@ native compilation runs.")
 
 (defvar comp-curr-allocation-class 'd-default
   "Current allocation class.
-Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
+Can be one of: `d-default', `d-impure' or `d-ephemeral'.  See `comp-ctxt'.")
 
 (defconst comp-passes '(comp-spill-lap
                         comp-limplify
@@ -898,6 +898,8 @@ non local exit (ends with an `unreachable' insn)."))
        :documentation "Doc string.")
   (int-spec nil :type list
             :documentation "Interactive form.")
+  (command-modes nil :type list
+                 :documentation "Command modes.")
   (lap () :type list
        :documentation "LAP assembly representation.")
   (ssa-status nil :type symbol
@@ -1021,7 +1023,7 @@ To be used by all entry points."
 
 (defun comp-alloc-class-to-container (alloc-class)
   "Given ALLOC-CLASS, return the data container for the current context.
-Assume allocation class 'd-default as default."
+Assume allocation class `d-default' as default."
   (cl-struct-slot-value 'comp-ctxt (or alloc-class 'd-default) comp-ctxt))
 
 (defsubst comp-add-const-to-relocs (obj)
@@ -1243,6 +1245,7 @@ clashes."
                                  :c-name c-name
                                  :doc (documentation f t)
                                  :int-spec (interactive-form f)
+                                 :command-modes (command-modes f)
                                  :speed (comp-spill-speed function-name)
                                  :pure (comp-spill-decl-spec function-name
                                                              'pure))))
@@ -1282,10 +1285,12 @@ clashes."
                    (make-comp-func-l :c-name c-name
                                      :doc (documentation form t)
                                      :int-spec (interactive-form form)
+                                     :command-modes (command-modes form)
                                      :speed (comp-ctxt-speed comp-ctxt))
                  (make-comp-func-d :c-name c-name
                                    :doc (documentation form t)
                                    :int-spec (interactive-form form)
+                                   :command-modes (command-modes form)
                                    :speed (comp-ctxt-speed comp-ctxt)))))
     (let ((lap (byte-to-native-lambda-lap
                 (gethash (aref byte-code 1)
@@ -1327,6 +1332,7 @@ clashes."
             (comp-func-byte-func func) byte-func
             (comp-func-doc func) (documentation byte-func t)
             (comp-func-int-spec func) (interactive-form byte-func)
+            (comp-func-command-modes func) (command-modes byte-func)
             (comp-func-c-name func) c-name
             (comp-func-lap func) lap
             (comp-func-frame-size func) (comp-byte-frame-size byte-func)
@@ -2079,7 +2085,8 @@ and the annotation emission."
                                 (i (hash-table-count h)))
                            (puthash i (comp-func-doc f) h)
                            i)
-                         (comp-func-int-spec f)))
+                         (comp-func-int-spec f)
+                         (comp-func-command-modes f)))
                        ;; This is the compilation unit it-self passed as
                        ;; parameter.
                        (make-comp-mvar :slot 0))))))
@@ -2122,7 +2129,8 @@ These are stored in the reloc data array."
                          (i (hash-table-count h)))
                     (puthash i (comp-func-doc func) h)
                     i)
-                  (comp-func-int-spec func)))
+                  (comp-func-int-spec func)
+                  (comp-func-command-modes func)))
                 ;; This is the compilation unit it-self passed as
                 ;; parameter.
                 (make-comp-mvar :slot 0)))))
@@ -2625,8 +2633,8 @@ TARGET-BB-SYM is the symbol name of the target block."
             do (comp-emit-call-cstr target insn-cell cstr)))))))
 
 (defun comp-add-cstrs (_)
-  "Rewrite conditional branches adding appropriate 'assume' insns.
-This is introducing and placing 'assume' insns in use by fwprop
+  "Rewrite conditional branches adding appropriate `assume' insns.
+This is introducing and placing `assume' insns in use by fwprop
 to propagate conditional branch test information on target basic
 blocks."
   (maphash (lambda (_ f)
@@ -3474,7 +3482,7 @@ Return the list of m-var ids nuked."
 
 (defun comp-remove-type-hints-func ()
   "Remove type hints from the current function.
-These are substituted with a normal 'set' op."
+These are substituted with a normal `set' op."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do (comp-loop-insn-in-block b
@@ -4209,7 +4217,7 @@ Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
 directory (the last entry in `native-comp-eln-load-path') unless
 `native-compile-target-directory' is non-nil.  If the environment
-variable 'NATIVE_DISABLED' is set, only byte compile."
+variable \"NATIVE_DISABLED\" is set, only byte compile."
   (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)

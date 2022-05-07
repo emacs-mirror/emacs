@@ -417,5 +417,13 @@ otherwise, use a different charset."
            t)))
     (should (equal (prin1-to-string (make-marker)) ""))))
 
+(ert-deftest test-dots ()
+  (should (equal (prin1-to-string 'foo.bar) "foo.bar"))
+  (should (equal (prin1-to-string '.foo) "\\.foo"))
+  (should (equal (prin1-to-string '.foo.) "\\.foo."))
+  (should (equal (prin1-to-string 'bar?bar) "bar?bar"))
+  (should (equal (prin1-to-string '\?bar) "\\?bar"))
+  (should (equal (prin1-to-string '\?bar?) "\\?bar?")))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here

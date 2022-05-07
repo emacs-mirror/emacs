@@ -1,7 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1997-1999, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -76,20 +75,18 @@
   "Association list of the standard \"Keywords:\" headers.
 Each element has the form (KEYWORD . DESCRIPTION).")
 
-(defvar finder-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " "	'finder-select)
-    (define-key map "f"	'finder-select)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2]	'finder-mouse-select)
-    (define-key map "\C-m"	'finder-select)
-    (define-key map "?"	'finder-summary)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "q"	'finder-exit)
-    (define-key map "d"	'finder-list-keywords)
-    map)
-  "Keymap used in `finder-mode'.")
+(defvar-keymap finder-mode-map
+  :doc "Keymap used in `finder-mode'."
+  "SPC"           #'finder-select
+  "f"             #'finder-select
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'finder-mouse-select
+  "C-m"           #'finder-select
+  "?"             #'finder-summary
+  "n"             #'next-line
+  "p"             #'previous-line
+  "q"             #'finder-exit
+  "d"             #'finder-list-keywords)
 
 (easy-menu-define finder-mode-menu finder-mode-map
   "Menu for `finder-mode'."
@@ -367,7 +364,7 @@ not `finder-known-keywords'."
   "Display FILE's commentary section.
 FILE should be in a form suitable for passing to `locate-library'."
   ;; FIXME: Merge this function into `describe-package', which is
-  ;; strictly better as it has links to URL's and is in a proper help
+  ;; strictly better as it has links to URLs and is in a proper help
   ;; buffer with navigation forward and backward, etc.
   (interactive
    (list

@@ -1,4 +1,5 @@
-/*
+/* Support for accessing SQLite databases.
+
 Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -19,8 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 This file is based on the emacs-sqlite3 package written by Syohei
 YOSHIDA <syohex@gmail.com>, which can be found at:
 
-   https://github.com/syohex/emacs-sqlite3
-*/
+   https://github.com/syohex/emacs-sqlite3  */
 
 #include <config.h>
 #include "lisp.h"
@@ -42,6 +42,8 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_open_v2,
 	    (const char*, sqlite3**, int, const char*));
 DEF_DLL_FN (SQLITE_API int, sqlite3_reset, (sqlite3_stmt*));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_text,
+	    (sqlite3_stmt*, int, const char*, int, void(*)(void*)));
+DEF_DLL_FN (SQLITE_API int, sqlite3_bind_blob,
 	    (sqlite3_stmt*, int, const char*, int, void(*)(void*)));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_int64,
 	    (sqlite3_stmt*, int, sqlite3_int64));
@@ -80,6 +82,7 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # undef sqlite3_open_v2
 # undef sqlite3_reset
 # undef sqlite3_bind_text
+# undef sqlite3_bind_blob
 # undef sqlite3_bind_int64
 # undef sqlite3_bind_double
 # undef sqlite3_bind_null
@@ -103,6 +106,7 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # define sqlite3_open_v2 fn_sqlite3_open_v2
 # define sqlite3_reset fn_sqlite3_reset
 # define sqlite3_bind_text fn_sqlite3_bind_text
+# define sqlite3_bind_blob fn_sqlite3_bind_blob
 # define sqlite3_bind_int64 fn_sqlite3_bind_int64
 # define sqlite3_bind_double fn_sqlite3_bind_double
 # define sqlite3_bind_null fn_sqlite3_bind_null
@@ -129,6 +133,7 @@ load_dll_functions (HMODULE library)
   LOAD_DLL_FN (library, sqlite3_open_v2);
   LOAD_DLL_FN (library, sqlite3_reset);
   LOAD_DLL_FN (library, sqlite3_bind_text);
+  LOAD_DLL_FN (library, sqlite3_bind_blob);
   LOAD_DLL_FN (library, sqlite3_bind_int64);
   LOAD_DLL_FN (library, sqlite3_bind_double);
   LOAD_DLL_FN (library, sqlite3_bind_null);
@@ -240,38 +245,36 @@ DEFUN ("sqlite-open", Fsqlite_open, Ssqlite_open, 0, 1, 0,
 If FILE is nil, an in-memory database will be opened instead.  */)
   (Lisp_Object file)
 {
-  char *name;
+  Lisp_Object name;
+  int flags = (SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
+	       | SQLITE_OPEN_READWRITE);
+#ifdef SQLITE_OPEN_URI
+  flags |= SQLITE_OPEN_URI;
+#endif
+
   if (!init_sqlite_functions ())
     xsignal1 (Qerror, build_string ("sqlite support is not available"));
 
   if (!NILP (file))
-    {
-      CHECK_STRING (file);
-      file = ENCODE_FILE (Fexpand_file_name (file, Qnil));
-      name = xstrdup (SSDATA (file));
-    }
+    name = ENCODE_FILE (Fexpand_file_name (file, Qnil));
   else
-    /* In-memory database.  These have to have different names to
-       refer to different databases.  */
-    name = xstrdup (SSDATA (CALLN (Fformat, build_string (":memory:%d"),
-				   make_int (++db_count))));
+    {
+#ifdef SQLITE_OPEN_MEMORY
+      /* In-memory database.  These have to have different names to
+	 refer to different databases.  */
+      AUTO_STRING (memory_fmt, ":memory:%d");
+      name = CALLN (Fformat, memory_fmt, make_int (++db_count));
+      flags |= SQLITE_OPEN_MEMORY;
+#else
+      xsignal1 (Qerror, build_string ("sqlite in-memory is not available"));
+#endif
+    }
 
   sqlite3 *sdb;
-  int ret = sqlite3_open_v2 (name,
-			     &sdb,
-			     SQLITE_OPEN_FULLMUTEX
-			     | SQLITE_OPEN_READWRITE
-			     | SQLITE_OPEN_CREATE
-			     | (NILP (file) ? SQLITE_OPEN_MEMORY : 0)
-#ifdef SQLITE_OPEN_URI
-			     | SQLITE_OPEN_URI
-#endif
-			     | 0, NULL);
-
-  if (ret != SQLITE_OK)
+  if (sqlite3_open_v2 (SSDATA (name), &sdb, flags, NULL) != SQLITE_OK)
     return Qnil;
 
-  return make_sqlite (false, sdb, NULL, name);
+  return make_sqlite (false, sdb, NULL, xstrdup (SSDATA (name)));
 }
 
 DEFUN ("sqlite-close", Fsqlite_close, Ssqlite_close, 1, 1, 0,
@@ -311,10 +314,37 @@ bind_values (sqlite3 *db, sqlite3_stmt *stmt, Lisp_Object values)
 
       if (EQ (type, Qstring))
 	{
-	  Lisp_Object encoded = encode_string (value);
-	  ret = sqlite3_bind_text (stmt, i + 1,
-				   SSDATA (encoded), SBYTES (encoded),
-				   NULL);
+	  Lisp_Object encoded;
+	  bool blob = false;
+
+	  if (SBYTES (value) == 0)
+	    encoded = value;
+	  else
+	    {
+	      Lisp_Object coding_system =
+		Fget_text_property (make_fixnum (0), Qcoding_system, value);
+	      if (NILP (coding_system))
+		/* Default to utf-8.  */
+		encoded = encode_string (value);
+	      else if (EQ (coding_system, Qbinary))
+		blob = true;
+	      else
+		encoded = Fencode_coding_string (value, coding_system,
+						 Qnil, Qnil);
+	    }
+
+	  if (blob)
+	    {
+	      if (SBYTES (value) != SCHARS (value))
+		xsignal1 (Qerror, build_string ("BLOB values must be unibyte"));
+	    ret = sqlite3_bind_blob (stmt, i + 1,
+				       SSDATA (value), SBYTES (value),
+				       NULL);
+	    }
+	    else
+	      ret = sqlite3_bind_text (stmt, i + 1,
+				       SSDATA (encoded), SBYTES (encoded),
+				       NULL);
 	}
       else if (EQ (type, Qinteger))
 	{
@@ -428,11 +458,8 @@ row_to_value (sqlite3_stmt *stmt)
 	  break;
 
 	case SQLITE_BLOB:
-	  v =
-	    code_convert_string_norecord
-	    (make_unibyte_string (sqlite3_column_blob (stmt, i),
-				  sqlite3_column_bytes (stmt, i)),
-	     Qutf_8, false);
+	  v = make_unibyte_string (sqlite3_column_blob (stmt, i),
+				   sqlite3_column_bytes (stmt, i));
 	  break;
 
 	case SQLITE_NULL:
@@ -750,4 +777,6 @@ syms_of_sqlite (void)
   DEFSYM (Qfalse, "false");
   DEFSYM (Qsqlite, "sqlite");
   DEFSYM (Qsqlite3, "sqlite3");
+  DEFSYM (Qbinary, "binary");
+  DEFSYM (Qcoding_system, "coding-system");
 }

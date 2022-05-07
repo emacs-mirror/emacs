@@ -1450,13 +1450,19 @@ is owned by the user with name @samp{lh}.
 is in the group with name @samp{users}.
 
 @item (20614 64019 50040 152000)
-was last accessed on October 23, 2012, at 20:12:03.050040152 UTC.
+was last accessed on October 23, 2012, at 20:12:03.050040152 UTC@.
+(This timestamp is @code{(1351023123050040152 . 1000000000)}
+if @code{current-time-list} is @code{nil}.)
 
 @item (20000 23 0 0)
-was last modified on July 15, 2001, at 08:53:43 UTC.
+was last modified on July 15, 2001, at 08:53:43.000000000 UTC@.
+(This timestamp is @code{(1310720023000000000 . 1000000000)}
+if @code{current-time-list} is @code{nil}.)
 
 @item (20614 64555 902289 872000)
-last had its status changed on October 23, 2012, at 20:20:59.902289872 UTC.
+last had its status changed on October 23, 2012, at 20:20:59.902289872 UTC@.
+(This timestamp is @code{(1351023659902289872 . 1000000000)}
+if @code{current-time-list} is @code{nil}.)
 
 @item 122295
 is 122295 bytes long.  (It may not contain 122295 characters, though,
@@ -3344,6 +3350,7 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},@*
+@code{list-system-processes},
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-directory},
@@ -3352,7 +3359,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},@*
-@code{process-file},
+@code{process-attributes}, @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
 @code{set-file-selinux-context}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},
@@ -3405,6 +3412,7 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},
+@code{list-system-processes},
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-direc@discretionary{}{}{}tory},
@@ -3413,7 +3421,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},
-@code{process-file},
+@code{process-attributes}, @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
 @code{set-file-selinux-context}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},

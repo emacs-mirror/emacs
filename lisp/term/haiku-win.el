@@ -44,14 +44,115 @@
 (defvar x-command-line-resources)
 
 (defvar haiku-initialized)
+(defvar haiku-signal-invalid-refs)
+(defvar haiku-drag-track-function)
+(defvar haiku-allowed-ui-colors)
+
+(defvar haiku-dnd-selection-value nil
+  "The local value of the special `XdndSelection' selection.")
+
+(defvar haiku-dnd-selection-converters '((STRING . haiku-dnd-convert-string)
+                                         (text/uri-list . haiku-dnd-convert-uri-list))
+  "Alist of X selection types to functions that act as selection converters.
+The functions should accept a single argument VALUE, describing
+the value of the drag-and-drop selection, and return a list of
+two elements TYPE and DATA, where TYPE is a string containing the
+MIME type of DATA, and DATA is a unibyte string, or nil if the
+data could not be converted.
+
+DATA can optionally have a text property `type', which specifies
+the type of DATA inside the system message (see the doc string of
+`haiku-drag-message' for more details).")
+
+(defvar haiku-normal-selection-encoders '(haiku-select-encode-xstring
+                                          haiku-select-encode-utf-8-string
+                                          haiku-select-encode-file-name)
+  "List of functions which act as selection encoders.
+These functions accept two arguments SELECTION and VALUE, and
+return an association appropriate for a serialized system
+message (or nil if VALUE is not applicable to the encoder) that
+will be put into the system selection SELECTION.  VALUE is the
+content that is being put into the selection by
+`gui-set-selection'.  See the doc string of `haiku-drag-message'
+for more details on the structure of the associations.")
+
+;; This list has to be set correctly, otherwise Emacs will crash upon
+;; encountering an invalid color.
+(setq haiku-allowed-ui-colors
+      ["B_PANEL_BACKGROUND_COLOR" "B_MENU_BACKGROUND_COLOR"
+       "B_WINDOW_TAB_COLOR" "B_KEYBOARD_NAVIGATION_COLOR"
+       "B_DESKTOP_COLOR" "B_MENU_SELECTED_BACKGROUND_COLOR"
+       "B_MENU_ITEM_TEXT_COLOR" "B_MENU_SELECTED_ITEM_TEXT_COLOR"
+       "B_MENU_SELECTED_BORDER_COLOR" "B_PANEL_TEXT_COLOR"
+       "B_DOCUMENT_BACKGROUND_COLOR" "B_DOCUMENT_TEXT_COLOR"
+       "B_CONTROL_BACKGROUND_COLOR" "B_CONTROL_TEXT_COLOR"
+       "B_CONTROL_BORDER_COLOR" "B_CONTROL_HIGHLIGHT_COLOR"
+       "B_NAVIGATION_PULSE_COLOR" "B_SHINE_COLOR"
+       "B_SHADOW_COLOR" "B_TOOLTIP_BACKGROUND_COLOR"
+       "B_TOOLTIP_TEXT_COLOR" "B_WINDOW_TEXT_COLOR"
+       "B_WINDOW_INACTIVE_TAB_COLOR" "B_WINDOW_INACTIVE_TEXT_COLOR"
+       "B_WINDOW_BORDER_COLOR" "B_WINDOW_INACTIVE_BORDER_COLOR"
+       "B_CONTROL_MARK_COLOR" "B_LIST_BACKGROUND_COLOR"
+       "B_LIST_SELECTED_BACKGROUND_COLOR" "B_LIST_ITEM_TEXT_COLOR"
+       "B_LIST_SELECTED_ITEM_TEXT_COLOR" "B_SCROLL_BAR_THUMB_COLOR"
+       "B_LINK_TEXT_COLOR" "B_LINK_HOVER_COLOR"
+       "B_LINK_VISITED_COLOR" "B_LINK_ACTIVE_COLOR"
+       "B_STATUS_BAR_COLOR" "B_SUCCESS_COLOR" "B_FAILURE_COLOR"])
+
+;; Also update `x-colors' to take that into account.
+(setq x-colors (append haiku-allowed-ui-colors x-colors))
+
+(defun haiku-selection-bounds (value)
+  "Return bounds of selection value VALUE.
+The return value is a list (BEG END BUF) if VALUE is a cons of
+two markers or an overlay.  Otherwise, it is nil."
+  (cond ((bufferp value)
+	 (with-current-buffer value
+	   (when (mark t)
+	     (list (mark t) (point) value))))
+	((and (consp value)
+	      (markerp (car value))
+	      (markerp (cdr value)))
+	 (when (and (marker-buffer (car value))
+		    (buffer-name (marker-buffer (car value)))
+		    (eq (marker-buffer (car value))
+			(marker-buffer (cdr value))))
+	   (list (marker-position (car value))
+		 (marker-position (cdr value))
+		 (marker-buffer (car value)))))
+	((overlayp value)
+	 (when (overlay-buffer value)
+	   (list (overlay-start value)
+		 (overlay-end value)
+		 (overlay-buffer value))))))
+
+(defun haiku-dnd-convert-string (value)
+  "Convert VALUE to a UTF-8 string and appropriate MIME type.
+Return a list of the appropriate MIME type, and UTF-8 data of
+VALUE as a unibyte string, or nil if VALUE was not a string."
+  (unless (stringp value)
+    (when-let ((bounds (haiku-selection-bounds value)))
+      (setq value (ignore-errors
+                    (with-current-buffer (nth 2 bounds)
+                      (buffer-substring (nth 0 bounds)
+                                        (nth 1 bounds)))))))
+  (when (stringp value)
+    (list "text/plain" (string-to-unibyte
+                        (encode-coding-string value 'utf-8)))))
+
+(defun haiku-dnd-convert-uri-list (value)
+  "Convert VALUE to a file system reference if it is a file name."
+  (when (and (stringp value)
+             (file-exists-p value))
+    (list "refs" (propertize (expand-file-name value) 'type 'ref))))
 
 (declare-function x-open-connection "haikufns.c")
 (declare-function x-handle-args "common-win")
 (declare-function haiku-selection-data "haikuselect.c")
 (declare-function haiku-selection-put "haikuselect.c")
-(declare-function haiku-selection-targets "haikuselect.c")
 (declare-function haiku-selection-owner-p "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
+(declare-function haiku-drag-message "haikuselect.c")
 
 (defun haiku--handle-x-command-line-resources (command-line-resources)
   "Handle command line X resources specified with the option `-xrm'.
@@ -92,16 +193,66 @@ If TYPE is nil, return \"text/plain\"."
    ((symbolp type) (symbol-name type))
    (t "text/plain")))
 
+(defun haiku-selection-targets (clipboard)
+  "Find the types of data available from CLIPBOARD.
+CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
+`CLIPBOARD'.  Return the available types as a list of strings."
+  (mapcar #'car (haiku-selection-data clipboard nil)))
+
+(defun haiku-select-encode-xstring (_selection value)
+  "Convert VALUE to a system message association.
+VALUE will be encoded as Latin-1 (like on X Windows) and stored
+under the type `text/plain;charset=iso-8859-1'."
+  (unless (stringp value)
+    (when-let ((bounds (haiku-selection-bounds value)))
+      (setq value (ignore-errors
+                    (with-current-buffer (nth 2 bounds)
+                      (buffer-substring (nth 0 bounds)
+                                        (nth 1 bounds)))))))
+  (when (and (stringp value) (not (string-empty-p value)))
+    (list "text/plain;charset=iso-8859-1" 1296649541
+          (encode-coding-string value 'iso-latin-1))))
+
+(defun haiku-select-encode-utf-8-string (_selection value)
+  "Convert VALUE to a system message association.
+VALUE will be encoded as UTF-8 and stored under the type
+`text/plain'."
+  (unless (stringp value)
+    (when-let ((bounds (haiku-selection-bounds value)))
+      (setq value (ignore-errors
+                    (with-current-buffer (nth 2 bounds)
+                      (buffer-substring (nth 0 bounds)
+                                        (nth 1 bounds)))))))
+  (when (and (stringp value) (not (string-empty-p value)))
+    (list "text/plain" 1296649541
+          (encode-coding-string value 'utf-8-unix))))
+
+(defun haiku-select-encode-file-name (_selection value)
+  "Convert VALUE to a system message association.
+This takes the file name of VALUE's buffer (if it is an overlay
+or a pair of markers) and turns it into a file system reference."
+  (when (setq value (xselect--selection-bounds value))
+    (list "refs" 'ref (buffer-file-name (nth 2 value)))))
+
 (cl-defmethod gui-backend-get-selection (type data-type
                                               &context (window-system haiku))
   (if (eq data-type 'TARGETS)
       (apply #'vector (mapcar #'intern
                               (haiku-selection-targets type)))
-    (haiku-selection-data type (haiku--selection-type-to-mime data-type))))
+    (if (eq type 'XdndSelection)
+        haiku-dnd-selection-value
+      (haiku-selection-data type (haiku--selection-type-to-mime data-type)))))
 
 (cl-defmethod gui-backend-set-selection (type value
                                               &context (window-system haiku))
-  (haiku-selection-put type "text/plain" value t))
+  (if (eq type 'XdndSelection)
+      (setq haiku-dnd-selection-value value)
+    (let ((message nil))
+      (dolist (encoder haiku-normal-selection-encoders)
+        (let ((result (funcall encoder type value)))
+          (when result
+            (push result message))))
+      (haiku-selection-put type message))))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
                                               &context (window-system haiku))
@@ -122,20 +273,40 @@ If TYPE is nil, return \"text/plain\"."
                             (or dir (and default-filename
                                          (file-name-directory default-filename)))
                             mustmatch only-dir-p
-                            (file-name-nondirectory default-filename))
+                            (and default-filename
+                                 (file-name-nondirectory default-filename)))
     (error "x-file-dialog on a tty frame")))
 
-(defun haiku-dnd-handle-drag-n-drop-event (event)
+(defun haiku-drag-and-drop (event)
   "Handle specified drag-n-drop EVENT."
   (interactive "e")
   (let* ((string (caddr event))
 	 (window (posn-window (event-start event))))
-    (with-selected-window window
-      (raise-frame)
-      (dnd-handle-one-url window 'private (concat "file:" string)))))
+    (if (eq string 'lambda) ; This means the mouse moved.
+        (dnd-handle-movement (event-start event))
+      (cond
+       ((assoc "refs" string)
+        (with-selected-window window
+          (raise-frame)
+          (dolist (filename (cddr (assoc "refs" string)))
+            (dnd-handle-one-url window 'private
+                                (concat "file:" filename)))))
+       ((assoc "text/plain" string)
+        (with-selected-window window
+          (raise-frame)
+          (dolist (text (cddr (assoc "text/plain" string)))
+            (goto-char (posn-point (event-start event)))
+            (dnd-insert-text window 'private
+                             (if (multibyte-string-p text)
+                                 text
+                               (decode-coding-string text 'undecided))))))
+       ((not (eq (cdr (assq 'type string))
+                 3003)) ; Type of the placeholder message Emacs uses
+                        ; to cancel a drop on C-g.
+        (message "Don't know how to drop any of: %s"
+                 (mapcar #'car string)))))))
 
-(define-key special-event-map [drag-n-drop]
-            'haiku-dnd-handle-drag-n-drop-event)
+(define-key special-event-map [drag-n-drop] 'haiku-drag-and-drop)
 
 (defvaralias 'haiku-use-system-tooltips 'use-system-tooltips)
 
@@ -145,7 +316,80 @@ This is necessary because on Haiku `use-system-tooltip' doesn't
 take effect on menu items until the menu bar is updated again."
   (force-mode-line-update t))
 
+;; Note that `mouse-position' can't return the actual frame the mouse
+;; pointer is under, so this only works for the frame where the drop
+;; started.
+(defun haiku-dnd-drag-handler ()
+  "Handle mouse movement during drag-and-drop."
+  (let ((track-mouse 'drag-source)
+        (mouse-position (mouse-pixel-position)))
+    (when (car mouse-position)
+      (dnd-handle-movement (posn-at-x-y (cadr mouse-position)
+                                        (cddr mouse-position)
+                                        (car mouse-position)))
+      (redisplay))))
+
+(setq haiku-drag-track-function #'haiku-dnd-drag-handler)
+
+(defun x-begin-drag (targets &optional action frame _return-frame allow-current-frame)
+  "SKIP: real doc in xfns.c."
+  (unless haiku-dnd-selection-value
+    (error "No local value for XdndSelection"))
+  (let ((message nil)
+        (mouse-highlight nil)
+        (haiku-signal-invalid-refs nil))
+    (dolist (target targets)
+      (let ((selection-converter (cdr (assoc (intern target)
+                                             haiku-dnd-selection-converters))))
+        (when selection-converter
+          (let ((selection-result
+                 (funcall selection-converter
+                          haiku-dnd-selection-value)))
+            (when selection-result
+              (let ((field (cdr (assoc (car selection-result) message))))
+                (unless (cadr field)
+                  ;; Add B_MIME_TYPE to the message if the type was not
+                  ;; previously specified, or the type if it was.
+                  (push (or (get-text-property 0 'type
+                                               (cadr selection-result))
+                            1296649541)
+                        (alist-get (car selection-result) message
+                                   nil nil #'equal))))
+              (push (cadr selection-result)
+                    (cdr (alist-get (car selection-result) message
+                                    nil nil #'equal))))))))
+    (prog1 (or (and (symbolp action)
+                    action)
+               'XdndActionCopy)
+      (haiku-drag-message (or frame (selected-frame))
+                          message allow-current-frame))))
+
 (add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
+
+
+;;;; Session management.
+
+(declare-function haiku-save-session-reply "haikufns.c")
+
+(defun emacs-session-save ()
+  "SKIP: real doc in x-win.el."
+  (with-temp-buffer ; Saving sessions is not yet supported.
+    (condition-case nil
+	;; A return of t means cancel the shutdown.
+	(run-hook-with-args-until-success
+	 'emacs-save-session-functions)
+      (error t))))
+
+(defun handle-save-session (_event)
+  "SKIP: real doc in xsmfns.c."
+  (interactive "e")
+  (let ((cancel-shutdown t))
+    (unwind-protect
+        (setq cancel-shutdown (emacs-session-save))
+      (haiku-save-session-reply (not cancel-shutdown)))
+    ;; The App Server will kill Emacs after receiving the reply, but
+    ;; the Deskbar will not, so kill ourself here.
+    (unless cancel-shutdown (kill-emacs))))
 
 (provide 'haiku-win)
 (provide 'term/haiku-win)

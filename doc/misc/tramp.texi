@@ -1881,29 +1881,25 @@ Example:
 
 The following predefined functions parsing configuration files exist:
 
-@table @asis
+@ftable @asis
 @item @code{tramp-parse-rhosts}
-@findex tramp-parse-rhosts
 
 This function parses files which are syntactical equivalent to
 @file{~/.rhosts}.  It returns both host names and user names, if
 specified.
 
 @item @code{tramp-parse-shosts}
-@findex tramp-parse-shosts
 
 This function parses files which are syntactical equivalent to
 @file{~/.ssh/known_hosts}.  Since there are no user names specified
 in such files, it can return host names only.
 
 @item @code{tramp-parse-sconfig}
-@findex tramp-parse-sconfig
 
 This function returns the host nicknames defined by @option{Host}
 entries in @file{~/.ssh/config} style files.
 
 @item @code{tramp-parse-shostkeys}
-@findex tramp-parse-shostkeys
 
 SSH2 parsing of directories @file{/etc/ssh2/hostkeys/*} and
 @file{~/ssh2/hostkeys/*}.  Hosts are coded in file names
@@ -1911,7 +1907,6 @@ SSH2 parsing of directories @file{/etc/ssh2/hostkeys/*} and
 are always @code{nil}.
 
 @item @code{tramp-parse-sknownhosts}
-@findex tramp-parse-sknownhosts
 
 Another SSH2 style parsing of directories like
 @file{/etc/ssh2/knownhosts/*} and @file{~/ssh2/knownhosts/*}.  This
@@ -1919,26 +1914,22 @@ case, hosts names are coded in file names
 @file{@var{host-name}.@var{algorithm}.pub}.  User names are always @code{nil}.
 
 @item @code{tramp-parse-hosts}
-@findex tramp-parse-hosts
 
 A function dedicated to @file{/etc/hosts} for host names.
 
 @item @code{tramp-parse-passwd}
-@findex tramp-parse-passwd
 
 A function which parses @file{/etc/passwd} for user names.
 
 @item @code{tramp-parse-etc-group}
-@findex tramp-parse-etc-group
 
 A function which parses @file{/etc/group} for group names.
 
 @item @code{tramp-parse-netrc}
-@findex tramp-parse-netrc
 
 A function which parses @file{~/.netrc} and @file{~/.authinfo}-style files.
 
-@end table
+@end ftable
 
 To keep a custom file with custom data in a custom structure, a custom
 function has to be provided.  This function must meet the following
@@ -2658,6 +2649,41 @@ The most common @value{tramp} connection family is based on either
 configuration recommendations are given.
 
 
+@subsection Using ssh config include for host name completion
+
+@vindex Include@r{, ssh option}
+@findex tramp-set-completion-function
+@findex tramp-get-completion-function
+OpenSSH configuration files can use an @option{Include} option for
+further configuration files.  Default @value{tramp} host name
+completion ignores this option.  However, you can configure this
+yourself.
+
+Given, your @file{~/.ssh/config} file contains the following option:
+
+@example
+Include ~/.ssh/conf.d/*
+@end example
+
+The following code snippet in your @file{.emacs} uses all files in
+that directory for host name completion:
+
+@lisp
+@group
+(tramp-set-completion-function
+ "ssh" (append (tramp-get-completion-function "ssh")
+               (mapcar (lambda (file) `(tramp-parse-sconfig ,file))
+                       (directory-files
+                        "~/.ssh/conf.d/"
+                        'full directory-files-no-dot-files-regexp))))
+@end group
+@end lisp
+
+This code snippet does it for the @option{ssh} method.  If you replace
+@t{"ssh"} by @t{"scp"}, it does it also for that method (or any other
+method you like).
+
+
 @subsection Detection of session hangouts
 
 @vindex ServerAliveInterval@r{, ssh option}
@@ -2912,6 +2938,7 @@ property @t{"mount-args"}, @xref{Predefined connection information}.
 Additionally, it declares also the arguments for running remote
 processes, using the @command{ssh} command.  These don't need to be
 changed.
+
 
 @node Android shell setup
 @section Android shell setup hints
@@ -4019,6 +4046,127 @@ using the @code{:connection-type} keyword.  If this keyword is not
 used, the value of @code{process-connection-type} is applied instead.
 
 
+@subsection Process properties of asynchronous remote processes
+@cindex Asynchronous remote processes
+
+When available, @value{tramp} adds process properties to process
+objects of asynchronous properties.  However, it is not guaranteed
+that all these properties are set.
+
+@itemize
+@item @code{remote-tty}
+
+This is the name of the terminal a @var{process} uses on the remote
+host, i.e., it reads and writes on.
+
+@item @code{remote-pid}
+
+The process id of the command executed on the remote host.  This is
+used when sending signals remotely.
+
+@item @code{remote-command}
+
+The remote command which has been invoked via @code{make-process} or
+@code{start-file-process}, a list of strings (program and its
+arguments).  This does not show the additional shell sugar
+@value{tramp} makes around the commands, in order to see this you must
+inspect @value{tramp} @ref{Traces and Profiles, traces}.
+@end itemize
+
+@findex list-system-processes
+@findex process-attributes
+The functions @code{list-system-processes} and
+@code{process-attributes} return information about system processes on
+the respective remote host.  In order to retrieve this information,
+they use the command @command{ps}, driven by the following constants:
+
+@defvr Constant tramp-process-attributes-ps-args
+This is a list of arguments (strings) @command{ps} is called with.
+The default value is appropriate for GNU/Linux remote hosts.
+@end defvr
+
+@defvr Constant tramp-process-attributes-ps-format
+This is a list of cons cells @code{(@var{key} . @var{type})} for
+interpretation of the @command{ps} output.  @var{key} is a key used in
+the @code{process-attributes} output plus the key @code{pid}, and
+@var{type} is the respective value returned by @command{ps}.  It can
+be
+
+
+@multitable {@bullet{} @code{numberp}} {--- a string of @var{number} width, could contain spaces}
+@item @bullet{} @code{numberp} @tab --- a number
+@item @bullet{} @code{stringp} @tab --- a string without spaces
+@item @bullet{} @var{number}
+@tab --- a string of @var{number} width, could contain spaces
+@item @bullet{} @code{nil} @tab --- a string until end of line
+@end multitable
+
+The default value is appropriate for GNU/Linux remote hosts.
+@end defvr
+
+If, for example, @code{tramp-process-attributes-ps-args} is declared
+as @code{("-eww" "-o" "pid,euid,euser,egid,egroup,comm:40,state")},
+the output of the respective @command{ps} command would look like
+
+@smallexample
+@group
+    PID  EUID EUSER     EGID EGROUP   COMMAND                                  S
+      1     0 root         0 root     systemd                                  S
+   1610     0 root         0 root     NFSv4 callback                           S
+   @dots{}
+@end group
+@end smallexample
+
+The corresponding @code{tramp-process-attributes-ps-format} has the value
+
+@smallexample
+@group
+@code{((pid . numberp) (euid . numberp) (user . stringp)
+ (egid . numberp) (group . stringp) (comm . 40) (state . stringp))}
+@end group
+@end smallexample
+
+@vindex tramp-adb-connection-local-default-ps-profile
+@vindex tramp-adb-connection-local-default-ps-variables
+@vindex tramp-connection-local-bsd-ps-profile
+@vindex tramp-connection-local-bsd-ps-variables
+@vindex tramp-connection-local-busybox-ps-profile
+@vindex tramp-connection-local-busybox-ps-variables
+@vindex tramp-connection-local-darwin-ps-profile
+@vindex tramp-connection-local-darwin-ps-variables
+The default values for @code{tramp-process-attributes-ps-args} and
+@code{tramp-process-attributes-ps-format} can be overwritten by
+connection-local variables.
+@ifinfo
+@xref{Connection Variables, , , emacs}.
+@end ifinfo
+This is already done by @value{tramp} for the @option{adb} method, see
+@code{tramp-adb-connection-local-default-ps-profile} and
+@code{tramp-adb-connection-local-default-ps-variables}.
+
+There are three further predefined sets of connection-local variables
+for remote BSD systems, for remote macOS systems, and for a remote
+@command{ps} command implemented with @command{busybox}.  These are
+called @code{tramp-connection-local-*-ps-profile} and
+@code{tramp-connection-local-*-ps-variables}.  Use them like
+
+@lisp
+@group
+(connection-local-set-profiles
+ '(:application tramp :machine "mybsdhost")
+ 'tramp-connection-local-bsd-ps-profile)
+@end group
+@end lisp
+
+@cindex proced
+@vindex proced-show-remote-processes
+If you want to see a listing of remote system processes when calling
+@code{proced}, set user option @code{proced-show-remote-processes} to
+non-@code{nil}, or invoke that command with a negative argument like
+@kbd{C-u - M-x proced @key{RET}} when your buffer has a remote
+@code{default-directory}.
+
+
 @anchor{Improving performance of asynchronous remote processes}
 @subsection Improving performance of asynchronous remote processes
 @cindex Asynchronous remote processes
@@ -4998,6 +5146,26 @@ directory, remote files cannot be restored with the respective tools,
 because those conventions don't specify remote paths.  Such files must
 be restored by moving them manually from
 @file{$@{XDG_DATA_HOME@}/Trash/files/}, if needed.
+
+
+@item
+How to identify temporary files produced by @value{tramp}?
+
+@vindex tramp-temp-name-prefix
+Temporary files are kept in your @code{temporary-file-directory}
+directory, which is often @file{/tmp/}.  By default, they have the
+file name prefix @t{"tramp."}.  If you want to change this prefix, for
+example because you want to identify temporary files produced by
+@code{file-local-copy} in your package, you can bind the variable
+@code{tramp-temp-name-prefix} temporarily:
+
+@example
+@group
+(let ((tramp-temp-name-prefix "my-prefix."))
+  (file-local-copy "@trampfn{ssh,,.emacs}"))
+@result{} "/tmp/my-prefix.HDfgDZ"
+@end group
+@end example
 
 
 @item

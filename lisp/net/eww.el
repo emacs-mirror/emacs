@@ -311,7 +311,7 @@ parameter, and should return the (possibly) transformed URL."
 
 (defvar eww-accept-content-types
   "text/html, text/plain, text/sgml, text/css, application/xhtml+xml, */*;q=0.01"
-  "Value used for the HTTP 'Accept' header.")
+  "Value used for the HTTP \"Accept\" header.")
 
 (defvar-keymap eww-link-keymap
   :parent shr-map
@@ -2053,7 +2053,9 @@ If CHARSET is nil then use UTF-8."
 (defun eww-write-bookmarks ()
   (with-temp-file (expand-file-name "eww-bookmarks" eww-bookmarks-directory)
     (insert ";; Auto-generated file; don't edit -*- mode: lisp-data -*-\n")
-    (pp eww-bookmarks (current-buffer))))
+    (let ((print-length nil)
+          (print-level nil))
+      (pp eww-bookmarks (current-buffer)))))
 
 (defun eww-read-bookmarks (&optional error-out)
   "Read bookmarks from `eww-bookmarks'.

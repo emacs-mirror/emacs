@@ -383,14 +383,6 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmDatabase db;
   char line[256];
 
-#if defined USE_MOTIF || !(defined USE_CAIRO || defined HAVE_XFT) || !defined USE_LUCID
-  const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
-#endif
-
-#ifdef USE_MOTIF
-  const char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
-#endif
-
   x_rm_string = XrmStringToQuark (XrmStringType);
 #ifndef USE_X_TOOLKIT
   /* pmr@osf.org says this shouldn't be done if USE_X_TOOLKIT.
@@ -399,47 +391,7 @@ x_load_resources (Display *display, const char *xrm_string,
 #endif
   rdb = XrmGetStringDatabase ("");
 
-  /* Add some font defaults.  If the font `helv' doesn't exist, widgets
-     will use some other default font.  */
 #ifdef USE_MOTIF
-
-  sprintf (line, "%s.pane.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fontList: %s", myclass, helv);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*menu*background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*menubar*background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*verticalScrollBar.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*verticalScrollBar.troughColor: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*horizontalScrollBar.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*horizontalScrollBar.troughColor: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.dialog*.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.Text.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.FilterText.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*DirList.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*ItemsList.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.Text.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.FilterText.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*ItemsList.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*DirList.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-
   /* Set double click time of list boxes in the file selection
      dialog from `double-click-time'.  */
   if (FIXNUMP (Vdouble_click_time) && XFIXNUM (Vdouble_click_time) > 0)
@@ -451,15 +403,17 @@ x_load_resources (Display *display, const char *xrm_string,
 	       myclass, XFIXNAT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
     }
-
 #else /* not USE_MOTIF */
-
+  /* Add some font defaults.  If the font `helv' doesn't exist,
+     widgets will use some other default font.  */
   sprintf (line, "Emacs.dialog*.background: grey75");
   XrmPutLineResource (&rdb, line);
 #if !(defined USE_CAIRO || defined HAVE_XFT) || !defined (USE_LUCID)
-  sprintf (line, "Emacs.dialog*.font: %s", helv);
+  sprintf (line, "Emacs.dialog*.font: %s",
+	   "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1");
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "*XlwMenu*font: %s", helv);
+  sprintf (line, "*XlwMenu*font: %s",
+	   "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1");
   XrmPutLineResource (&rdb, line);
 #endif
   sprintf (line, "*XlwMenu*background: grey75");
@@ -468,7 +422,6 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs*horizontalScrollBar.background: grey75");
   XrmPutLineResource (&rdb, line);
-
 #endif /* not USE_MOTIF */
 
   user_database = get_user_db (display);

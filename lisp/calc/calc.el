@@ -439,6 +439,14 @@ to be identified as that note."
   :version "24.1"
   :type 'string)
 
+(defcustom calc-kill-line-numbering t
+  "If non-nil, calculator kills include any line numbering.
+
+This option does not affect calc kill and copy commands which
+operate on the region, such as `calc-copy-region-as-kill'."
+  :version "29.1"
+  :type 'boolean)
+
 (defvar math-format-date-cache) ; calc-forms.el
 
 (defface calc-nonselected-face
@@ -1375,7 +1383,7 @@ Notations:  3.14e6     3.14 * 10^6
 
 LONG is a desired text for a wide window, SHORT is a desired
 abbreviated text, and width is the buffer width, which will be
-some fraction of the 'parent' window width (At the time of
+some fraction of the \"parent\" window width (At the time of
 writing, 2/3 for calc, 1/3 for trail).  The optional FUDGE is a
 trial-and-error adjustment number for the edge-cases at the
 border of the two cases."
@@ -1816,7 +1824,7 @@ See calc-keypad for details."
 	  (if win
 	      (progn
 		(calc-cursor-stack-index 0)
-		(vertical-motion (- 2 (window-height win)))
+		(vertical-motion (- 3 (window-height win 'floor)))
 		(set-window-start win (point)))))
 	(calc-cursor-stack-index 0)
 	(if (looking-at " *\\.$")

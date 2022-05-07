@@ -22,6 +22,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <dpmi.h>
 
 #include "termhooks.h"		/* struct terminal */
+struct terminal;
+
+extern unsigned int _dos_commit(int);
+#define tcdrain(f) _dos_commit(f)
 
 int dos_ttraw (struct tty_display_info *);
 int dos_ttcooked (void);
@@ -57,6 +61,11 @@ ssize_t readlinkat (int, const char *, char *, size_t);
 int fstatat (int, char const *, struct stat *, int);
 int unsetenv (const char *);
 int faccessat (int, const char *, int, int);
+int openat (int, const char *, int, int);
+int fchmodat (int, const char *, mode_t, int);
+int futimens (int, const struct timespec[2]);
+int utimensat (int, const char *, const struct timespec[2], int);
+
 void msdos_fatal_signal (int);
 void syms_of_msdos (void);
 int pthread_sigmask (int, const sigset_t *, sigset_t *);

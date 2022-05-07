@@ -112,9 +112,15 @@
                 (goto-char start)
                 (dolist (line (split-string text "\n"))
                   (end-of-line)
-                  (if (bolp)
-                      (insert line "\n")
-                    (insert line))
+                  (if (not (bolp))
+		      (insert line)
+		    (insert (make-string
+                             (max (- (* (mod (1- times) columns)
+                                        (+ fill-column 4))
+                                     (current-column))
+                                  0)
+			     ?\s))
+                    (insert line "\n"))
                   (forward-line 1))))))))
     buf))
 
@@ -163,8 +169,9 @@ Usage example:
                       \\='((?a \"always\")
                         (?s \"session only\")
                         (?n \"no\")))"
-  (let* ((choices (if show-help choices (append choices '((?? "?")))))
-         (altered-names (mapcar #'rmc--add-key-description choices))
+  (let* ((prompt-choices
+          (if show-help choices (append choices '((?? "?")))))
+         (altered-names (mapcar #'rmc--add-key-description prompt-choices))
          (full-prompt
           (format
            "%s (%s): "
@@ -175,7 +182,7 @@ Usage example:
       (save-excursion
         (if show-help
             (setq buf (rmc--show-help prompt help-string show-help
-                                   choices altered-names)))
+                                      choices altered-names)))
 	(while (not tchar)
 	  (message "%s%s"
                    (if wrong-char
@@ -194,7 +201,7 @@ Usage example:
                             (lambda (elem)
                               (cons (capitalize (cadr elem))
                                     (car elem)))
-                            choices)))
+                            prompt-choices)))
                   (condition-case nil
                       (let ((cursor-in-echo-area t))
                         (read-event))
@@ -232,7 +239,7 @@ Usage example:
             (when wrong-char
               (ding))
             (setq buf (rmc--show-help prompt help-string show-help
-                                   choices altered-names))))))
+                                      choices altered-names))))))
     (when (buffer-live-p buf)
       (kill-buffer buf))
     (assq tchar choices)))

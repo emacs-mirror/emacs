@@ -130,6 +130,49 @@
     (should (equal [nil nil nil nil nil t t t t t] (vconcat A)))
     (should (equal [t t t t t nil nil nil nil nil] (vconcat (nreverse A))))))
 
+(defconst fns-tests--string-lessp-cases
+  '((a 97 error)
+    (97 "a" error)
+    ("abc" "abd" t)
+    ("abd" "abc" nil)
+    (abc "abd" t)
+    ("abd" abc nil)
+    (abc abd t)
+    (abd abc nil)
+    ("" "" nil)
+    ("" " " t)
+    (" " "" nil)
+    ("abc" "abcd" t)
+    ("abcd" "abc" nil)
+    ("abc" "abc" nil)
+    (abc abc nil)
+    ("\0" "" nil)
+    ("" "\0" t)
+    ("~" "\x80" t)
+    ("\x80" "\x80" nil)
+    ("\xfe" "\xff" t)
+    ("Munchen" "München" t)
+    ("München" "Munchen" nil)
+    ("München" "München" nil)
+    ("Ré" "Réunion" t)))
+
+
+(ert-deftest fns-tests-string-lessp ()
+  ;; Exercise both `string-lessp' and its alias `string<', both directly
+  ;; and in a function (exercising its bytecode).
+  (dolist (lessp (list #'string-lessp #'string<
+                       (lambda (a b) (string-lessp a b))
+                       (lambda (a b) (string< a b))))
+    (ert-info ((prin1-to-string lessp) :prefix "function: ")
+      (dolist (case fns-tests--string-lessp-cases)
+        (ert-info ((prin1-to-string case) :prefix "case: ")
+          (pcase case
+            (`(,x ,y error)
+             (should-error (funcall lessp x y)))
+            (`(,x ,y ,expected)
+             (should (equal (funcall lessp x y) expected)))))))))
+
+
 (ert-deftest fns-tests-compare-strings ()
   (should-error (compare-strings))
   (should-error (compare-strings "xyzzy" "xyzzy"))
@@ -204,6 +247,76 @@
 		 [-1 2 3 4 5 5 7 8 9]))
   (should (equal (sort (vector 9 5 2 -1 5 3 8 7 4) (lambda (x y) (> x y)))
 		 [9 8 7 5 5 4 3 2 -1]))
+  ;; Sort a reversed list and vector.
+  (should (equal
+	 (sort (reverse (number-sequence 1 1000)) (lambda (x y) (< x y)))
+	 (number-sequence 1 1000)))
+  (should (equal
+	   (sort (reverse (vconcat (number-sequence 1 1000)))
+                 (lambda (x y) (< x y)))
+	 (vconcat (number-sequence 1 1000))))
+  ;; Sort a constant list and vector.
+  (should (equal
+           (sort (make-vector 100 1) (lambda (x y) (> x y)))
+           (make-vector 100 1)))
+  (should (equal
+           (sort (append (make-vector 100 1) nil) (lambda (x y) (> x y)))
+           (append (make-vector 100 1) nil)))
+  ;; Sort a long list and vector with every pair reversed.
+  (let ((vec (make-vector 100000 nil))
+        (logxor-vec (make-vector 100000 nil)))
+    (dotimes (i 100000)
+      (aset logxor-vec i  (logxor i 1))
+      (aset vec i i))
+    (should (equal
+             (sort logxor-vec (lambda (x y) (< x y)))
+             vec))
+    (should (equal
+             (sort (append logxor-vec nil) (lambda (x y) (< x y)))
+             (append vec nil))))
+  ;; Sort a list and vector with seven swaps.
+  (let ((vec (make-vector 100 nil))
+        (swap-vec (make-vector 100 nil)))
+    (dotimes (i 100)
+      (aset vec i (- i 50))
+      (aset swap-vec i (- i 50)))
+    (mapc (lambda (p)
+	(let ((tmp (elt swap-vec (car p))))
+	  (aset swap-vec (car p) (elt swap-vec (cdr p)))
+	  (aset swap-vec (cdr p) tmp)))
+          '((48 . 94) (75 . 77) (33 . 41) (92 . 52)
+            (10 . 96) (1 . 14) (43 . 81)))
+    (should (equal
+             (sort (copy-sequence swap-vec) (lambda (x y) (< x y)))
+             vec))
+    (should (equal
+             (sort (append swap-vec nil) (lambda (x y) (< x y)))
+             (append vec nil))))
+  ;; Check for possible corruption after GC.
+  (let* ((size 3000)
+         (complex-vec (make-vector size nil))
+         (vec (make-vector size nil))
+         (counter 0)
+         (my-counter (lambda ()
+                       (if (< counter 500)
+                           (cl-incf counter)
+                         (setq counter 0)
+                         (garbage-collect))))
+         (rand 1)
+         (generate-random
+	  (lambda () (setq rand
+                           (logand (+ (* rand 1103515245) 12345)  2147483647)))))
+    ;; Make a complex vector and its sorted version.
+    (dotimes (i size)
+      (let ((r (funcall generate-random)))
+        (aset complex-vec i (cons r "a"))
+        (aset vec i (cons r "a"))))
+    ;; Sort it.
+    (should (equal
+             (sort complex-vec
+                   (lambda (x y) (funcall my-counter) (< (car x) (car y))))
+             (sort vec 'car-less-than-car))))
+  ;; Check for sorting stability.
   (should (equal
 	   (sort
 	    (vector

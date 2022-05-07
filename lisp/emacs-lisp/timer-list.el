@@ -62,7 +62,7 @@
                   ((numberp repeat)
                    (propertize
                     (format "%12s" (format-seconds
-                                    "%dd %hh %mm %z%,1ss" repeat))
+                                    "%x%dd %hh %mm %z%,1ss" repeat))
                     'help-echo "Repeat interval"))
                   ((null repeat)
                    (propertize "           -" 'help-echo "Runs once"))

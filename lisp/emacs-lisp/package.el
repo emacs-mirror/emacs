@@ -566,9 +566,9 @@ This is the name of the package with its version appended."
   "Return file-name extension of package-desc object PKG-DESC.
 Depending on the `package-desc-kind' of PKG-DESC, this is one of:
 
-   'single - \".el\"
-   'tar    - \".tar\"
-   'dir    - \"\"
+   \\='single - \".el\"
+   \\='tar    - \".tar\"
+   \\='dir    - \"\"
 
 Signal an error if the kind is none of the above."
   (pcase (package-desc-kind pkg-desc)
@@ -1854,8 +1854,12 @@ SEEN is used internally to detect infinite recursion."
               (error "Need package `%s-%s', but only %s is available"
                      next-pkg (package-version-join next-version)
                      found-something))
-             (t (error "Package `%s-%s' is unavailable"
-                       next-pkg (package-version-join next-version)))))
+             (t
+              (if (eq next-pkg 'emacs)
+                  (error "This package requires Emacs version %s"
+                         (package-version-join next-version))
+                (error "Package `%s-%s' is unavailable"
+                       next-pkg (package-version-join next-version))))))
           (setq packages
                 (package-compute-transaction (cons found packages)
                                              (package-desc-reqs found)
@@ -2131,6 +2135,31 @@ to install it but still mark it as selected."
           (package--quickstart-maybe-refresh)
           (message  "Package `%s' installed." name))
       (message "`%s' is already installed" name))))
+
+;;;###autoload
+(defun package-update (name)
+  "Update package NAME if a newer version exists."
+  (interactive
+   (progn
+     ;; Initialize the package system to get the list of package
+     ;; symbols for completion.
+     (package--archives-initialize)
+     (list (completing-read
+            "Update package: "
+            (mapcar
+             #'car
+             (seq-filter
+              (lambda (elt)
+                (let ((available
+                       (assq (car elt) package-archive-contents)))
+                  (and available
+                       (version-list-<
+                        (package-desc-priority-version (cadr elt))
+                        (package-desc-priority-version (cadr available))))))
+              package-alist))
+            nil t))))
+  (package-delete (cadr (assq (intern name) package-alist)) 'force)
+  (package-install (intern name) 'dont-select))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -3461,7 +3490,7 @@ corresponding to the newer version."
       ;; ENTRY is (PKG-DESC [NAME VERSION STATUS DOC])
       (let ((pkg-desc (car entry))
             (status (aref (cadr entry) 2)))
-        (cond ((member status '("installed" "dependency" "unsigned"))
+        (cond ((member status '("installed" "dependency" "unsigned" "external"))
                (push pkg-desc installed))
               ((member status '("available" "new"))
                (setq available (package--append-to-alist pkg-desc available))))))

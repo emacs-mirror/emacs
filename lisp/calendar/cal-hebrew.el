@@ -798,6 +798,10 @@ In this case, the following civil date corresponds to the Hebrew birthday."
                  (diary-ordinal-suffix age)
                  (if (= b-date d) "" " (evening)")))))
 
+(defvar diary-hebrew-omer-sefirot
+  ["Hesed" "Gevurah" "Tiferet" "Netzach" "Hod" "Yesod" "Malchut"]
+  "The order of Sefirot for counting the Omer.
+See https://opensiddur.org/prayers/solilunar/solar-cycles/sefirat-haomer/the-order-of-counting-the-omer-in-the-spring/")
 ;;;###diary-autoload
 (defun diary-hebrew-omer (&optional mark)
   "Omer count diary entry.
@@ -813,7 +817,7 @@ use when highlighting the day in the calendar."
          (day (% omer 7)))
     (if (and (> omer 0) (< omer 50))
         (cons mark
-              (format "Day %d%s of the omer (until sunset)"
+              (format "Day %d%s of the omer (until sunset) %s she'be'%s"
                       omer
                       (if (zerop week)
                           ""
@@ -823,7 +827,10 @@ use when highlighting the day in the calendar."
                                 (if (zerop day)
                                     ""
                                   (format " and %d day%s"
-                                          day (if (= day 1) "" "s"))))))))))
+                                          day (if (= day 1) "" "s")))))
+                      (aref diary-hebrew-omer-sefirot (% (+ 6 day) 7))
+                      (aref diary-hebrew-omer-sefirot
+                            (+ (if (zerop day) -1 0) week)))))))
 
 (autoload 'diary-make-date "diary-lib")
 

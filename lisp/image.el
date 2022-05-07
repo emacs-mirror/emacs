@@ -380,6 +380,7 @@ be determined."
   "Determine the type of image file FILE from its name.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
+  (declare (obsolete image-supported-file-p "29.1"))
   (let (type first (case-fold-search t))
     (catch 'found
       (dolist (elem image-type-file-name-regexps first)
@@ -388,6 +389,20 @@ be determined."
 	      (throw 'found type)
 	    ;; If nothing seems to be supported, return first type that matched.
 	    (or first (setq first type))))))))
+
+ ;;;###autoload
+(defun image-supported-file-p (file)
+  "Say whether Emacs has native support for displaying TYPE.
+The value is a symbol specifying the image type, or nil if type
+cannot be determined (or if Emacs doesn't have built-in support
+for the image type)."
+  (let ((case-fold-search t)
+        type)
+    (catch 'found
+      (dolist (elem image-type-file-name-regexps)
+	(when (and (string-match-p (car elem) file)
+                   (image-type-available-p (setq type (cdr elem))))
+	  (throw 'found type))))))
 
 (declare-function image-convert-p "image-converter.el"
                   (source &optional image-format))
@@ -417,7 +432,7 @@ type if we can't otherwise guess it."
                               (require 'image-converter)
                               (image-convert-p source data-p))))
 		 (or (image-type-from-file-header source)
-		     (image-type-from-file-name source)
+		     (image-supported-file-p source)
                      (and image-use-external-converter
                           (progn
                             (require 'image-converter)
@@ -461,6 +476,7 @@ must be available."
     (and auto
 	 (or (eq auto t) (image-type-available-p type)))))
 
+(defvar image-convert-to-format)
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)
@@ -498,7 +514,7 @@ Image file names that are not absolute are searched for in the
     (when (eq type 'image-convert)
       (require 'image-converter)
       (setq file-or-data (image-convert file-or-data data-format)
-            type 'png
+            type (intern image-convert-to-format)
             data-p t)))
   (when (image-type-available-p type)
     (let ((image

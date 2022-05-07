@@ -44,6 +44,10 @@
   "Test `eshell-command-result' with an elisp command."
   (should (equal (eshell-test-command-result "(+ 1 2)") 3)))
 
+(ert-deftest eshell-test/lisp-command-with-quote ()
+  "Test `eshell-command-result' with an elisp command containing a quote."
+  (should (equal (eshell-test-command-result "(eq 'foo nil)") nil)))
+
 (ert-deftest eshell-test/for-loop ()
   "Test `eshell-command-result' with a for loop.."
   (let ((process-environment (cons "foo" process-environment)))
@@ -110,6 +114,25 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-wait-for-subprocess)
    (eshell-match-result "OLLEH\n")))
 
+(ert-deftest eshell-test/redirect-buffer ()
+  "Check that piping to a buffer works"
+  (with-temp-buffer
+    (rename-buffer "eshell-temp-buffer" t)
+    (let ((bufname (buffer-name)))
+      (with-temp-eshell
+       (eshell-insert-command (format "echo hi > #<%s>" bufname)))
+      (should (equal (buffer-string) "hi")))))
+
+(ert-deftest eshell-test/redirect-buffer-escaped ()
+  "Check that piping to a buffer with escaped characters works"
+  (with-temp-buffer
+    (rename-buffer "eshell\\temp\\buffer" t)
+    (let ((bufname (buffer-name)))
+      (with-temp-eshell
+       (eshell-insert-command (format "echo hi > #<%s>"
+                                      (string-replace "\\" "\\\\" bufname))))
+      (should (equal (buffer-string) "hi")))))
+
 (ert-deftest eshell-test/inside-emacs-var ()
   "Test presence of \"INSIDE_EMACS\" in subprocesses"
   (with-temp-eshell
@@ -144,9 +167,9 @@ chars"
   "Test that the backslash is not preserved for escaped special
 chars"
   (with-temp-eshell
-   (eshell-command-result-p "echo \"h\\\\i\""
+   (eshell-command-result-p "echo \"\\\"hi\\\\\""
                             ;; Backslashes are doubled for regexp.
-                            "h\\\\i\n")))
+                            "\\\"hi\\\\\n")))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"

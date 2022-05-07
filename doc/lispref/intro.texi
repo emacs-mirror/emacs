@@ -503,9 +503,11 @@ if the information is not available.
 @example
 @group
 emacs-build-time
-     @result{} (20614 63694 515336 438000)
+     @result{} (25194 55894 8547 617000)
 @end group
 @end example
+(This timestamp is @code{(1651169878008547617 . 1000000000)}
+if @code{current-time-list} was @code{nil} when Emacs was built.)
 @end defvar
 
 @defvar emacs-version

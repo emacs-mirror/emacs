@@ -21,7 +21,7 @@
 
 ;;; Code:
 
-(require 'ert)
+(require 'ert-x)
 (require 'erc)
 (require 'erc-ring)
 (require 'erc-networks)
@@ -113,6 +113,63 @@
     (should-not (get-buffer "#bar"))
     (should (get-buffer "#spam"))
     (kill-buffer "#spam")))
+
+(ert-deftest erc--switch-to-buffer ()
+  (defvar erc-modified-channels-alist) ; lisp/erc/erc-track.el
+
+  (let ((proc (start-process "aNet" (current-buffer) "true"))
+        (erc-modified-channels-alist `(("fake") (,(messages-buffer))))
+        (inhibit-message noninteractive)
+        (completion-fail-discreetly t) ; otherwise ^G^G printed to .log file
+        ;;
+        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+
+    (with-current-buffer (get-buffer-create "server")
+      (erc-mode)
+      (set-process-buffer (setq erc-server-process proc) (current-buffer))
+      (set-process-query-on-exit-flag erc-server-process nil)
+      (with-current-buffer (get-buffer-create "#chan")
+        (erc-mode)
+        (setq erc-server-process proc))
+      (with-current-buffer (get-buffer-create "#foo")
+        (erc-mode)
+        (setq erc-server-process proc))
+
+      (ert-info ("Channel #chan selectable from server buffer")
+        (ert-simulate-keys (list ?# ?c ?h ?a ?n ?\C-m)
+          (should (string= "#chan" (erc--switch-to-buffer))))))
+
+    (ert-info ("Channel #foo selectable from non-ERC buffer")
+      (ert-simulate-keys (list ?# ?f ?o ?o ?\C-m)
+        (should (string= "#foo" (erc--switch-to-buffer)))))
+
+    (ert-info ("Default selectable")
+      (ert-simulate-keys (list ?\C-m)
+        (should (string= "*Messages*" (erc--switch-to-buffer)))))
+
+    (ert-info ("Extant but non-ERC buffer not selectable")
+      (get-buffer-create "#fake") ; not ours
+      (ert-simulate-keys (kbd "#fake C-m C-a C-k C-m")
+        ;; Initial query fails ~~~~~~^; clearing input accepts default
+        (should (string= "*Messages*" (erc--switch-to-buffer)))))
+
+    (with-current-buffer (get-buffer-create "other")
+      (erc-mode)
+      (setq erc-server-process (start-process "bNet" (current-buffer) "true"))
+      (set-process-query-on-exit-flag erc-server-process nil))
+
+    (ert-info ("Foreign ERC buffer not selectable")
+      (ert-simulate-keys (kbd "other C-m C-a C-k C-m")
+        (with-current-buffer "server"
+          (should (string= "*Messages*" (erc--switch-to-buffer))))))
+
+    (ert-info ("Any ERC-buffer selectable from non-ERC buffer")
+      (should-not (eq major-mode 'erc-mode))
+      (ert-simulate-keys (list ?o ?t ?h ?e ?r ?\C-m)
+        (should (string= "other" (erc--switch-to-buffer)))))
+
+    (dolist (b '("server" "other" "#chan" "#foo" "#fake"))
+      (kill-buffer b))))
 
 (ert-deftest erc-lurker-maybe-trim ()
   (let (erc-lurker-trim-nicks

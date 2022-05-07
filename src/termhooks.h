@@ -208,6 +208,25 @@ enum event_kind
 				   representation of the dropped items.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
+#ifdef HAVE_X_WINDOWS
+  UNSUPPORTED_DROP_EVENT,      /* Event sent when the regular C
+				  drag-and-drop machinery could not
+				  handle a drop to a window.
+
+			          .code is the XID of the window that
+			          could not be dropped to.
+
+			          .arg is a list of the local value of
+			          XdndSelection, a list of selection
+			          targets, and the intended action to
+			          be taken upon drop, and .timestamp
+			          gives the timestamp where the drop
+			          happened.
+
+			          .x and .y give the coordinates of
+			          the drop originating from the root
+			          window.  */
+#endif
   USER_SIGNAL_EVENT,		/* A user signal.
                                    code is a number identifying it,
                                    index into lispy_user_signals.  */
@@ -373,9 +392,17 @@ struct input_event
      when building events.  Unfortunately some events have to pass much
      more data than it's reasonable to pack directly into this structure.  */
   Lisp_Object arg;
+
+  /* The name of the device from which this event originated.
+
+     It can either be a string, or Qt, which means to use the name
+     "Virtual core pointer" for all events other than keystroke
+     events, and "Virtual core keyboard" for those.  */
+  Lisp_Object device;
 };
 
-#define EVENT_INIT(event) memset (&(event), 0, sizeof (struct input_event))
+#define EVENT_INIT(event) (memset (&(event), 0, sizeof (struct input_event)), \
+			   (event).device = Qt)
 
 /* Bits in the modifiers member of the input_event structure.
    Note that reorder_modifiers assumes that the bits are in canonical

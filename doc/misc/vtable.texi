@@ -88,9 +88,9 @@ Here's just about the simplest vtable that can be created:
             ("Gazonk" 45)))
 @end lisp
 
-By default, vtable uses the @code{variable-pitch} font, and
-right-aligns columns that have only numerical data (and left-aligns
-the rest).
+By default, vtable uses the @code{vtable} face (which inherits from
+the @code{variable-pitch} face), and right-aligns columns that have
+only numerical data (and left-aligns the rest).
 
 You'd normally want to name the columns:
 
@@ -383,9 +383,27 @@ there are several tables in the same buffer, then this should be
 @code{nil}.
 
 @item :face
-The face to be used.  This defaults to @code{variable-pitch}.  This
-face doesn't override the faces in the data, or the faces supplied by
-the getter and formatter functions.
+The face to be used.  This defaults to @code{vtable}.  This face
+doesn't override the faces in the data, or the faces supplied by the
+getter and formatter functions.
+
+@item :row-colors
+If present, this should be a list of color names to be used as the
+background color on the rows.  If there are fewer colors here than
+there are rows, the rows will be repeated.  The most common use
+case here is to have alternating background colors on the rows, so
+this would usually be a list of two colors.  This can also be a list
+of faces to be used.
+
+@item :column-colors
+If present, this should be a list of color names to be used as the
+background color on the columns.  If there are fewer colors here than
+there are columns, the colors will be repeated.  The most common use
+case here is to have alternating background colors on the columns, so
+this would usually be a list of two colors.  This can also be a list
+of faces to be used.  If both @code{:row-colors} and
+@code{:column-colors} is present, the colors will be ``blended'' to
+produce the final colors in the table.
 
 @item :actions
 This uses the same syntax as @code{define-keymap}, but doesn't refer
@@ -401,6 +419,13 @@ current line, they can use the @code{vtable-current-object} function
 
 @item :separator-width
 The width of the blank space between columns.
+
+@item :divider-width
+@itemx :divider
+You can have a divider inserted between the columns.  This can either
+be specified by using @code{:divider}, which should be a string to be
+displayed between the columns, or @code{:divider-width}, which
+specifies the width of the space to be used as the divider.
 
 @item :sort-by
 This should be a list of tuples, and specifies how the table is to be

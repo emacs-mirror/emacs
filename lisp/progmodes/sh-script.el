@@ -1549,7 +1549,7 @@ with your script for an edit-interpret-debug cycle."
          ;; Checks that use `buffer-file-name' follow.
          ((string-match "\\.m?spec\\'" buffer-file-name) "rpm")
          ((string-match "[.]sh\\>"     buffer-file-name) "sh")
-         ((string-match "[.]bash\\>"   buffer-file-name) "bash")
+         ((string-match "[.]bash\\(rc\\)?\\>"   buffer-file-name) "bash")
          ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
          ((string-match "[.]mkshrc\\>" buffer-file-name) "mksh")
          ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")

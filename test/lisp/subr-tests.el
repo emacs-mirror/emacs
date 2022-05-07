@@ -1028,5 +1028,50 @@ final or penultimate step during initialization."))
   (should (readablep "foo"))
   (should-not (readablep (list (make-marker)))))
 
+(ert-deftest test-string-lines ()
+  (should (equal (string-lines "") '("")))
+  (should (equal (string-lines "" t) '()))
+
+  (should (equal (string-lines "foo") '("foo")))
+  (should (equal (string-lines "foo\n") '("foo")))
+  (should (equal (string-lines "foo\nbar") '("foo" "bar")))
+
+  (should (equal (string-lines "foo" t) '("foo")))
+  (should (equal (string-lines "foo\n" t) '("foo")))
+  (should (equal (string-lines "foo\nbar" t) '("foo" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t) '("foo" "bar")))
+
+  (should (equal (string-lines "foo" nil t) '("foo")))
+  (should (equal (string-lines "foo\n" nil t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" nil t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" nil t)
+                 '("foo\n" "\n" "\n" "bar")))
+
+  (should (equal (string-lines "foo" t t) '("foo")))
+  (should (equal (string-lines "foo\n" t t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" t t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t t)
+                 '("foo\n" "bar"))))
+
+(ert-deftest test-keymap-parse-macros ()
+  (should (equal (key-parse "C-x ( C-d C-x )") [24 40 4 24 41]))
+  (should (equal (kbd "C-x ( C-d C-x )") ""))
+  (should (equal (kbd "C-x ( C-x )") "")))
+
+(ert-deftest test-local-set-state ()
+  (setq global 1)
+  (with-temp-buffer
+    (setq-local local 2)
+    (let ((state (buffer-local-set-state global 10
+                                         local 20
+                                         unexist 30)))
+      (should (= global 10))
+      (should (= local 20))
+      (should (= unexist 30))
+      (buffer-local-restore-state state)
+      (should (= global 1))
+      (should (= local 2))
+      (should-not (boundp 'unexist)))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

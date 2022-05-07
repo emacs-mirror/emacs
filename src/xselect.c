@@ -39,6 +39,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <X11/Xproto.h>
 
+static Time pending_dnd_time;
+
 struct prop_location;
 struct selection_data;
 
@@ -58,6 +60,8 @@ static Lisp_Object selection_data_to_lisp_data (struct x_display_info *,
 						ptrdiff_t, Atom, int);
 static void lisp_data_to_selection_data (struct x_display_info *, Lisp_Object,
 					 struct selection_data *);
+static void x_send_client_event (Lisp_Object, Lisp_Object, Lisp_Object,
+				 Atom, Lisp_Object, Lisp_Object);
 
 /* Printing traces to stderr.  */
 
@@ -206,24 +210,49 @@ static Atom
 symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
 {
   Atom val;
-  if (NILP (sym))	    return 0;
-  if (EQ (sym, QPRIMARY))   return XA_PRIMARY;
-  if (EQ (sym, QSECONDARY)) return XA_SECONDARY;
-  if (EQ (sym, QSTRING))    return XA_STRING;
-  if (EQ (sym, QINTEGER))   return XA_INTEGER;
-  if (EQ (sym, QATOM))	    return XA_ATOM;
-  if (EQ (sym, QCLIPBOARD)) return dpyinfo->Xatom_CLIPBOARD;
-  if (EQ (sym, QTIMESTAMP)) return dpyinfo->Xatom_TIMESTAMP;
-  if (EQ (sym, QTEXT))	    return dpyinfo->Xatom_TEXT;
-  if (EQ (sym, QCOMPOUND_TEXT)) return dpyinfo->Xatom_COMPOUND_TEXT;
-  if (EQ (sym, QUTF8_STRING)) return dpyinfo->Xatom_UTF8_STRING;
-  if (EQ (sym, QDELETE))    return dpyinfo->Xatom_DELETE;
-  if (EQ (sym, QMULTIPLE))  return dpyinfo->Xatom_MULTIPLE;
-  if (EQ (sym, QINCR))	    return dpyinfo->Xatom_INCR;
-  if (EQ (sym, Q_EMACS_TMP_)) return dpyinfo->Xatom_EMACS_TMP;
-  if (EQ (sym, QTARGETS))   return dpyinfo->Xatom_TARGETS;
-  if (EQ (sym, QNULL))	    return dpyinfo->Xatom_NULL;
-  if (!SYMBOLP (sym)) emacs_abort ();
+  if (NILP (sym))
+    return 0;
+  if (EQ (sym, QPRIMARY))
+    return XA_PRIMARY;
+  if (EQ (sym, QSECONDARY))
+    return XA_SECONDARY;
+  if (EQ (sym, QSTRING))
+    return XA_STRING;
+  if (EQ (sym, QINTEGER))
+    return XA_INTEGER;
+  if (EQ (sym, QATOM))
+    return XA_ATOM;
+  if (EQ (sym, QCLIPBOARD))
+    return dpyinfo->Xatom_CLIPBOARD;
+  if (EQ (sym, QTIMESTAMP))
+    return dpyinfo->Xatom_TIMESTAMP;
+  if (EQ (sym, QTEXT))
+    return dpyinfo->Xatom_TEXT;
+  if (EQ (sym, QCOMPOUND_TEXT))
+    return dpyinfo->Xatom_COMPOUND_TEXT;
+  if (EQ (sym, QUTF8_STRING))
+    return dpyinfo->Xatom_UTF8_STRING;
+  if (EQ (sym, QDELETE))
+    return dpyinfo->Xatom_DELETE;
+  if (EQ (sym, QMULTIPLE))
+    return dpyinfo->Xatom_MULTIPLE;
+  if (EQ (sym, QINCR))
+    return dpyinfo->Xatom_INCR;
+  if (EQ (sym, Q_EMACS_TMP_))
+    return dpyinfo->Xatom_EMACS_TMP;
+  if (EQ (sym, QTARGETS))
+    return dpyinfo->Xatom_TARGETS;
+  if (EQ (sym, QNULL))
+    return dpyinfo->Xatom_NULL;
+  if (EQ (sym, QXdndSelection))
+    return dpyinfo->Xatom_XdndSelection;
+  if (EQ (sym, QXmTRANSFER_SUCCESS))
+    return dpyinfo->Xatom_XmTRANSFER_SUCCESS;
+  if (EQ (sym, QXmTRANSFER_FAILURE))
+    return dpyinfo->Xatom_XmTRANSFER_FAILURE;
+
+  if (!SYMBOLP (sym))
+    emacs_abort ();
 
   TRACE1 (" XInternAtom %s", SSDATA (SYMBOL_NAME (sym)));
   block_input ();
@@ -283,9 +312,17 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
     return QTARGETS;
   if (atom == dpyinfo->Xatom_NULL)
     return QNULL;
+  if (atom == dpyinfo->Xatom_XdndSelection)
+    return QXdndSelection;
+  if (atom == dpyinfo->Xatom_XmTRANSFER_SUCCESS)
+    return QXmTRANSFER_SUCCESS;
+  if (atom == dpyinfo->Xatom_XmTRANSFER_FAILURE)
+    return QXmTRANSFER_FAILURE;
 
   block_input ();
+  x_catch_errors (dpyinfo->display);
   str = XGetAtomName (dpyinfo->display, atom);
+  x_uncatch_errors ();
   unblock_input ();
   TRACE1 ("XGetAtomName --> %s", str);
   if (! str) return Qnil;
@@ -302,7 +339,7 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
    Update the Vselection_alist so that we can reply to later requests for
    our selection.  */
 
-static void
+void
 x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 		 Lisp_Object frame)
 {
@@ -385,6 +422,9 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 
       CHECK_SYMBOL (target_type);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
+
+      if (CONSP (handler_fn))
+	handler_fn = XCDR (handler_fn);
 
       if (!NILP (handler_fn))
 	value = call3 (handler_fn,
@@ -765,6 +805,12 @@ x_handle_selection_request (struct selection_input_event *event)
   specpdl_ref count = SPECPDL_INDEX ();
 
   if (!dpyinfo) goto DONE;
+
+  /* This is how the XDND protocol recommends dropping text onto a
+     target that doesn't support XDND.  */
+  if (SELECTION_EVENT_TIME (event) == pending_dnd_time + 1
+      || SELECTION_EVENT_TIME (event) == pending_dnd_time + 2)
+    selection_symbol = QXdndSelection;
 
   local_selection_data = LOCAL_SELECTION (selection_symbol, dpyinfo);
 
@@ -2568,7 +2614,7 @@ are ignored.  */)
   return Qnil;
 }
 
-void
+static void
 x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
                      Atom message_type, Lisp_Object format, Lisp_Object values)
 {
@@ -2647,6 +2693,31 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
 
 
 
+/* Return the timestamp where ownership of SELECTION was asserted, or
+   nil if no local selection is present.  */
+
+Lisp_Object
+x_timestamp_for_selection (struct x_display_info *dpyinfo,
+			   Lisp_Object selection)
+{
+  Lisp_Object value, local_value;
+
+  local_value = LOCAL_SELECTION (selection, dpyinfo);
+
+  if (NILP (local_value))
+    return Qnil;
+
+  value = XCAR (XCDR (XCDR (local_value)));
+
+  return value;
+}
+
+void
+x_set_pending_dnd_time (Time time)
+{
+  pending_dnd_time = time;
+}
+
 static void syms_of_xselect_for_pdumper (void);
 
 void
@@ -2671,10 +2742,17 @@ syms_of_xselect (void)
   DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
 	       doc: /* An alist associating X Windows selection-types with functions.
 These functions are called to convert the selection, with three args:
-the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
-a desired type to which the selection should be converted;
-and the local selection value (whatever was given to
+the name of the selection (typically `PRIMARY', `SECONDARY', or
+`CLIPBOARD'); a desired type to which the selection should be
+converted; and the local selection value (whatever was given to
 `x-own-selection-internal').
+
+On X Windows, the function can also be a cons of (PREDICATE
+. FUNCTION), where PREDICATE determines whether or not the selection
+type will appear in the list of selection types available to other
+programs, and FUNCTION is the function which is actually called.
+PREDICATE is called with the same arguments as FUNCTION, and should
+return a non-nil value if the data type is to appear in that list.
 
 The function should return the value to send to the X server
 \(typically a string).  A return value of nil
@@ -2745,6 +2823,9 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (Qx_lost_selection_functions, "x-lost-selection-functions");
   DEFSYM (Qx_sent_selection_functions, "x-sent-selection-functions");
+
+  DEFSYM (QXmTRANSFER_SUCCESS, "XmTRANSFER_SUCCESS");
+  DEFSYM (QXmTRANSFER_FAILURE, "XmTRANSFER_FAILURE");
 
   pdumper_do_now_and_after_load (syms_of_xselect_for_pdumper);
 }

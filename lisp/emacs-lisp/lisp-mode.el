@@ -1436,29 +1436,49 @@ and initial semicolons."
                                   (derived-mode-p 'emacs-lisp-mode))
                              emacs-lisp-docstring-fill-column
                            fill-column)))
-        (save-restriction
+        (let ((ppss (syntax-ppss))
+              (start (point)))
           (save-excursion
-          (let ((ppss (syntax-ppss))
-                (start (point)))
-            ;; If we're in a string, then narrow (roughly) to that
-            ;; string before filling.  This avoids filling Lisp
-            ;; statements that follow the string.
-            (when (ppss-string-terminator ppss)
-              (goto-char (ppss-comment-or-string-start ppss))
-              (beginning-of-line)
-              ;; The string may be unterminated -- in that case, don't
-              ;; narrow.
-              (when (ignore-errors
-                      (progn
-                        (forward-sexp 1)
-                        t))
-                (narrow-to-region (ppss-comment-or-string-start ppss)
-                                  (point))))
-            ;; Move back to where we were.
+            (save-restriction
+              ;; If we're not inside a string, then do very basic
+              ;; filling.  This avoids corrupting embedded strings in
+              ;; code.
+              (if (not (ppss-comment-or-string-start ppss))
+                  (lisp--fill-line-simple)
+                ;; If we're in a string, then narrow (roughly) to that
+                ;; string before filling.  This avoids filling Lisp
+                ;; statements that follow the string.
+                (when (ppss-string-terminator ppss)
+                  (goto-char (ppss-comment-or-string-start ppss))
+                  ;; The string may be unterminated -- in that case, don't
+                  ;; narrow.
+                  (when (ignore-errors
+                          (progn
+                            (forward-sexp 1)
+                            t))
+                    (narrow-to-region (ppss-comment-or-string-start ppss)
+                                      (point))))
+                ;; Move back to where we were.
+                (goto-char start)
+	        (fill-paragraph justify)))))))
+  ;; Never return nil.
+  t)
+
+(defun lisp--fill-line-simple ()
+  (narrow-to-region (line-beginning-position) (line-end-position))
+  (goto-char (point-min))
+  (while (and (not (eobp))
+              (re-search-forward "\\_>" nil t))
+    (when (> (current-column) fill-column)
+      (let ((start (point)))
+        (backward-sexp)
+        (if (looking-back "[[(]" (point-min))
             (goto-char start)
-	    (fill-paragraph justify)))))
-      ;; Never return nil.
-      t))
+          (skip-chars-backward " \t")
+          (insert "\n")
+          (forward-sexp))))
+    (unless (eobp)
+      (forward-char 1))))
 
 (defun indent-code-rigidly (start end arg &optional nochange-regexp)
   "Indent all lines of code, starting in the region, sideways by ARG columns.

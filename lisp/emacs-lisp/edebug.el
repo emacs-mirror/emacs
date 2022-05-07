@@ -57,6 +57,7 @@
 (require 'cl-lib)
 (require 'seq)
 (eval-when-compile (require 'pcase))
+(require 'debug)
 
 ;;; Options
 
@@ -3711,12 +3712,25 @@ Return the result of the last expression."
 If interactive, prompt for the expression.
 Print result in minibuffer."
   (interactive (list (read--expression "Eval: ")))
-  (princ
-   (edebug-outside-excursion
-    (let ((result (edebug-eval expr)))
-      (values--store-value result)
-      (concat (edebug-safe-prin1-to-string result)
-              (eval-expression-print-format result))))))
+  (let* ((errored nil)
+         (result
+          (edebug-outside-excursion
+           (let ((result (if debug-allow-recursive-debug
+                             (edebug-eval expr)
+                           (condition-case err
+                               (edebug-eval expr)
+                             (error
+                              (setq errored
+                                    (format "%s: %s"
+			                    (get (car err) 'error-message)
+			                    (car (cdr err)))))))))
+             (unless errored
+               (values--store-value result)
+               (concat (edebug-safe-prin1-to-string result)
+                       (eval-expression-print-format result)))))))
+    (if errored
+        (message "Error: %s" errored)
+      (princ result))))
 
 (defun edebug-eval-last-sexp (&optional no-truncate)
   "Evaluate sexp before point in the outside environment.

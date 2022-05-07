@@ -64,7 +64,7 @@
 ;; This mode supports font-lock, imenu and mode-compile.  In the
 ;; hairy version font-lock is on, but you should activate imenu
 ;; yourself (note that mode-compile is not standard yet).  Well, you
-;; can use imenu from keyboard anyway (M-x imenu), but it is better
+;; can use imenu from keyboard anyway (M-g i), but it is better
 ;; to bind it like that:
 
 ;; (define-key global-map [M-S-down-mouse-3] 'imenu)

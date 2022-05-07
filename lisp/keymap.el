@@ -281,18 +281,7 @@ See `kbd' for a descripion of KEYS."
           (when key
             (dolist (_ (number-sequence 1 times))
               (setq res (vconcat res key))))))
-      (if (and (>= (length res) 4)
-               (eq (aref res 0) ?\C-x)
-               (eq (aref res 1) ?\()
-               (eq (aref res (- (length res) 2)) ?\C-x)
-               (eq (aref res (- (length res) 1)) ?\)))
-          (apply #'vector (let ((lres (append res nil)))
-                            ;; Remove the first and last two elements.
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)))
-        res))))
+      res)))
 
 (defun key-valid-p (keys)
   "Say whether KEYS is a valid key.
@@ -306,10 +295,10 @@ number of characters have a special shorthand syntax.
 
 Here's some example key sequences.
 
-  \"f\"           (the key 'f')
-  \"S o m\"       (a three key sequence of the keys 'S', 'o' and 'm')
-  \"C-c o\"       (a two key sequence of the keys 'c' with the control modifier
-                 and then the key 'o')
+  \"f\"           (the key `f')
+  \"S o m\"       (a three key sequence of the keys `S', `o' and `m')
+  \"C-c o\"       (a two key sequence of the keys `c' with the control modifier
+                 and then the key `o')
   \"H-<left>\"    (the key named \"left\" with the hyper modifier)
   \"M-RET\"       (the \"return\" key with a meta modifier)
   \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)

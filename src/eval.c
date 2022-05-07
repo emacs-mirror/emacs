@@ -223,8 +223,8 @@ init_eval_once_for_pdumper (void)
 {
   enum { size = 50 };
   union specbinding *pdlvec = malloc ((size + 1) * sizeof *specpdl);
-  specpdl_size = size;
   specpdl = specpdl_ptr = pdlvec + 1;
+  specpdl_end = specpdl + size;
 }
 
 void
@@ -266,8 +266,6 @@ restore_stack_limits (Lisp_Object data)
   integer_to_intmax (XCAR (data), &max_specpdl_size);
   integer_to_intmax (XCDR (data), &max_lisp_eval_depth);
 }
-
-static void grow_specpdl (void);
 
 /* Call the Lisp debugger, giving it argument ARG.  */
 
@@ -561,6 +559,10 @@ usage: (function ARG)  */)
 	{ /* Handle the special (:documentation <form>) to build the docstring
 	     dynamically.  */
 	  Lisp_Object docstring = eval_sub (Fcar (XCDR (tmp)));
+	  if (SYMBOLP (docstring) && !NILP (docstring))
+	    /* Hack for OClosures: Allow the docstring to be a symbol
+             * (the OClosure's type).  */
+	    docstring = Fsymbol_name (docstring);
 	  CHECK_STRING (docstring);
 	  cdr = Fcons (XCAR (cdr), Fcons (docstring, XCDR (XCDR (cdr))));
 	}
@@ -1235,6 +1237,7 @@ unwind_to_catch (struct handler *catch, enum nonlocal_exit type,
   eassert (handlerlist == catch);
 
   lisp_eval_depth = catch->f_lisp_eval_depth;
+  set_act_rec (current_thread, catch->act_rec);
 
   sys_longjmp (catch->jmp, 1);
 }
@@ -1502,90 +1505,6 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
     }
 }
 
-/* Like internal_condition_case_1 but call BFUN with ARG1, ARG2, ARG3 as
-   its arguments.  */
-
-Lisp_Object
-internal_condition_case_3 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object,
-                                                Lisp_Object),
-                           Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
-                           Lisp_Object handlers,
-                           Lisp_Object (*hfun) (Lisp_Object))
-{
-  struct handler *c = push_handler (handlers, CONDITION_CASE);
-  if (sys_setjmp (c->jmp))
-    {
-      Lisp_Object val = handlerlist->val;
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
-      return hfun (val);
-    }
-  else
-    {
-      Lisp_Object val = bfun (arg1, arg2, arg3);
-      eassert (handlerlist == c);
-      handlerlist = c->next;
-      return val;
-    }
-}
-
-/* Like internal_condition_case_1 but call BFUN with ARG1, ARG2, ARG3, ARG4 as
-   its arguments.  */
-
-Lisp_Object
-internal_condition_case_4 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object,
-                                                Lisp_Object, Lisp_Object),
-                           Lisp_Object arg1, Lisp_Object arg2,
-                           Lisp_Object arg3, Lisp_Object arg4,
-                           Lisp_Object handlers,
-                           Lisp_Object (*hfun) (Lisp_Object))
-{
-  struct handler *c = push_handler (handlers, CONDITION_CASE);
-  if (sys_setjmp (c->jmp))
-    {
-      Lisp_Object val = handlerlist->val;
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
-      return hfun (val);
-    }
-  else
-    {
-      Lisp_Object val = bfun (arg1, arg2, arg3, arg4);
-      eassert (handlerlist == c);
-      handlerlist = c->next;
-      return val;
-    }
-}
-
-/* Like internal_condition_case_1 but call BFUN with ARG1, ARG2, ARG3,
-   ARG4, ARG5 as its arguments.  */
-
-Lisp_Object
-internal_condition_case_5 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object,
-                                                Lisp_Object, Lisp_Object,
-						Lisp_Object),
-                           Lisp_Object arg1, Lisp_Object arg2,
-                           Lisp_Object arg3, Lisp_Object arg4,
-			   Lisp_Object arg5, Lisp_Object handlers,
-                           Lisp_Object (*hfun) (Lisp_Object))
-{
-  struct handler *c = push_handler (handlers, CONDITION_CASE);
-  if (sys_setjmp (c->jmp))
-    {
-      Lisp_Object val = handlerlist->val;
-      clobbered_eassert (handlerlist == c);
-      handlerlist = handlerlist->next;
-      return hfun (val);
-    }
-  else
-    {
-      Lisp_Object val = bfun (arg1, arg2, arg3, arg4, arg5);
-      eassert (handlerlist == c);
-      handlerlist = c->next;
-      return val;
-    }
-}
-
 /* Like internal_condition_case but call BFUN with NARGS as first,
    and ARGS as second argument.  */
 
@@ -1675,6 +1594,7 @@ push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
   c->next = handlerlist;
   c->f_lisp_eval_depth = lisp_eval_depth;
   c->pdlcount = SPECPDL_INDEX ();
+  c->act_rec = get_act_rec (current_thread);
   c->poll_suppress_count = poll_suppress_count;
   c->interrupt_input_blocked = interrupt_input_blocked;
   handlerlist = c;
@@ -1693,7 +1613,7 @@ process_quit_flag (void)
   Lisp_Object flag = Vquit_flag;
   Vquit_flag = Qnil;
   if (EQ (flag, Qkill_emacs))
-    Fkill_emacs (Qnil);
+    Fkill_emacs (Qnil, Qnil);
   if (EQ (Vthrow_on_input, flag))
     Fthrow (Vthrow_on_input, Qt);
   quit ();
@@ -1773,7 +1693,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       && ! NILP (error_symbol)
       /* Don't try to call a lisp function if we've already overflowed
          the specpdl stack.  */
-      && specpdl_ptr < specpdl + specpdl_size)
+      && specpdl_ptr < specpdl_end)
     {
       /* Edebug takes care of restoring these variables when it exits.  */
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 20);
@@ -2125,14 +2045,77 @@ then strings and vectors are not accepted.  */)
   (Lisp_Object function, Lisp_Object for_call_interactively)
 {
   register Lisp_Object fun;
-  register Lisp_Object funcar;
-  Lisp_Object if_prop = Qnil;
+  bool genfun = false; /* If true, we should consult `interactive-form'.  */
 
   fun = function;
 
   fun = indirect_function (fun); /* Check cycles.  */
   if (NILP (fun))
     return Qnil;
+
+  /* Emacs primitives are interactive if their DEFUN specifies an
+     interactive spec.  */
+  if (SUBRP (fun))
+    {
+      if (XSUBR (fun)->intspec.string)
+        return Qt;
+    }
+  /* Bytecode objects are interactive if they are long enough to
+     have an element whose index is COMPILED_INTERACTIVE, which is
+     where the interactive spec is stored.  */
+  else if (COMPILEDP (fun))
+    {
+      if (PVSIZE (fun) > COMPILED_INTERACTIVE)
+        return Qt;
+      else if (PVSIZE (fun) > COMPILED_DOC_STRING)
+        {
+          Lisp_Object doc = AREF (fun, COMPILED_DOC_STRING);
+          /* An invalid "docstring" is a sign that we have an OClosure.  */
+          genfun = !(NILP (doc) || VALID_DOCSTRING_P (doc));
+        }
+    }
+
+#ifdef HAVE_MODULES
+  /* Module functions are interactive if their `interactive_form'
+     field is non-nil. */
+  else if (MODULE_FUNCTIONP (fun))
+    {
+      if (!NILP (module_function_interactive_form (XMODULE_FUNCTION (fun))))
+        return Qt;
+    }
+#endif
+
+  /* Strings and vectors are keyboard macros.  */
+  else if (STRINGP (fun) || VECTORP (fun))
+    return (NILP (for_call_interactively) ? Qt : Qnil);
+
+  /* Lists may represent commands.  */
+  else if (!CONSP (fun))
+    return Qnil;
+  else
+    {
+      Lisp_Object funcar = XCAR (fun);
+      if (EQ (funcar, Qautoload))
+        {
+          if (!NILP (Fcar (Fcdr (Fcdr (XCDR (fun))))))
+            return Qt;
+        }
+      else
+        {
+          Lisp_Object body = CDR_SAFE (XCDR (fun));
+          if (EQ (funcar, Qclosure))
+            body = CDR_SAFE (body);
+          else if (!EQ (funcar, Qlambda))
+	    return Qnil;
+	  if (!NILP (Fassq (Qinteractive, body)))
+	    return Qt;
+	  else if (VALID_DOCSTRING_P (CAR_SAFE (body)))
+            /* A "docstring" is a sign that we may have an OClosure.  */
+	    genfun = true;
+	}
+    }
+
+  /* By now, if it's not a function we already returned nil.  */
 
   /* Check an `interactive-form' property if present, analogous to the
      function-documentation property.  */
@@ -2141,45 +2124,18 @@ then strings and vectors are not accepted.  */)
     {
       Lisp_Object tmp = Fget (fun, Qinteractive_form);
       if (!NILP (tmp))
-	if_prop = Qt;
+	error ("Found an 'interactive-form' property!");
       fun = Fsymbol_function (fun);
     }
 
-  /* Emacs primitives are interactive if their DEFUN specifies an
-     interactive spec.  */
-  if (SUBRP (fun))
-    return XSUBR (fun)->intspec ? Qt : if_prop;
-
-  /* Bytecode objects are interactive if they are long enough to
-     have an element whose index is COMPILED_INTERACTIVE, which is
-     where the interactive spec is stored.  */
-  else if (COMPILEDP (fun))
-    return (PVSIZE (fun) > COMPILED_INTERACTIVE ? Qt : if_prop);
-
-#ifdef HAVE_MODULES
-  /* Module functions are interactive if their `interactive_form'
-     field is non-nil. */
-  else if (MODULE_FUNCTIONP (fun))
-    return NILP (module_function_interactive_form (XMODULE_FUNCTION (fun)))
-             ? if_prop
-             : Qt;
-#endif
-
-  /* Strings and vectors are keyboard macros.  */
-  if (STRINGP (fun) || VECTORP (fun))
-    return (NILP (for_call_interactively) ? Qt : Qnil);
-
-  /* Lists may represent commands.  */
-  if (!CONSP (fun))
-    return Qnil;
-  funcar = XCAR (fun);
-  if (EQ (funcar, Qclosure))
-    return (!NILP (Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun)))))
-	    ? Qt : if_prop);
-  else if (EQ (funcar, Qlambda))
-    return !NILP (Fassq (Qinteractive, Fcdr (XCDR (fun)))) ? Qt : if_prop;
-  else if (EQ (funcar, Qautoload))
-    return !NILP (Fcar (Fcdr (Fcdr (XCDR (fun))))) ? Qt : if_prop;
+  /* If there's no immediate interactive form but it's an OClosure,
+     then delegate to the generic-function in case it has
+     a type-specific interactive-form.  */
+  if (genfun)
+    {
+      Lisp_Object iform = call1 (Qinteractive_form, fun);
+      return NILP (iform) ? Qnil : Qt;
+    }
   else
     return Qnil;
 }
@@ -2333,60 +2289,27 @@ alist mapping symbols to their value.  */)
   return unbind_to (count, eval_sub (form));
 }
 
-static void
+void
 grow_specpdl_allocation (void)
 {
-  eassert (specpdl_ptr == specpdl + specpdl_size);
+  eassert (specpdl_ptr == specpdl_end);
 
   specpdl_ref count = SPECPDL_INDEX ();
   ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
   union specbinding *pdlvec = specpdl - 1;
-  ptrdiff_t pdlvecsize = specpdl_size + 1;
-  if (max_size <= specpdl_size)
+  ptrdiff_t size = specpdl_end - specpdl;
+  ptrdiff_t pdlvecsize = size + 1;
+  if (max_size <= size)
     {
       if (max_specpdl_size < 400)
 	max_size = max_specpdl_size = 400;
-      if (max_size <= specpdl_size)
+      if (max_size <= size)
 	xsignal0 (Qexcessive_variable_binding);
     }
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
   specpdl = pdlvec + 1;
-  specpdl_size = pdlvecsize - 1;
+  specpdl_end = specpdl + pdlvecsize - 1;
   specpdl_ptr = specpdl_ref_to_ptr (count);
-}
-
-/* Grow the specpdl stack by one entry.
-   The caller should have already initialized the entry.
-   Signal an error on stack overflow.
-
-   Make sure that there is always one unused entry past the top of the
-   stack, so that the just-initialized entry is safely unwound if
-   memory exhausted and an error is signaled here.  Also, allocate a
-   never-used entry just before the bottom of the stack; sometimes its
-   address is taken.  */
-
-INLINE void
-grow_specpdl (void)
-{
-  specpdl_ptr++;
-  if (specpdl_ptr == specpdl + specpdl_size)
-    grow_specpdl_allocation ();
-}
-
-specpdl_ref
-record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
-{
-  specpdl_ref count = SPECPDL_INDEX ();
-
-  eassert (nargs >= UNEVALLED);
-  specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
-  specpdl_ptr->bt.debug_on_exit = false;
-  specpdl_ptr->bt.function = function;
-  current_thread->stack_top = specpdl_ptr->bt.args = args;
-  specpdl_ptr->bt.nargs = nargs;
-  grow_specpdl ();
-
-  return count;
 }
 
 /* Eval a sub-expression of the current expression (i.e. in the same
@@ -2892,76 +2815,6 @@ apply1 (Lisp_Object fn, Lisp_Object arg)
   return NILP (arg) ? Ffuncall (1, &fn) : CALLN (Fapply, fn, arg);
 }
 
-/* Call function fn on no arguments.  */
-Lisp_Object
-call0 (Lisp_Object fn)
-{
-  return Ffuncall (1, &fn);
-}
-
-/* Call function fn with 1 argument arg1.  */
-Lisp_Object
-call1 (Lisp_Object fn, Lisp_Object arg1)
-{
-  return CALLN (Ffuncall, fn, arg1);
-}
-
-/* Call function fn with 2 arguments arg1, arg2.  */
-Lisp_Object
-call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
-{
-  return CALLN (Ffuncall, fn, arg1, arg2);
-}
-
-/* Call function fn with 3 arguments arg1, arg2, arg3.  */
-Lisp_Object
-call3 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
-{
-  return CALLN (Ffuncall, fn, arg1, arg2, arg3);
-}
-
-/* Call function fn with 4 arguments arg1, arg2, arg3, arg4.  */
-Lisp_Object
-call4 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
-       Lisp_Object arg4)
-{
-  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4);
-}
-
-/* Call function fn with 5 arguments arg1, arg2, arg3, arg4, arg5.  */
-Lisp_Object
-call5 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
-       Lisp_Object arg4, Lisp_Object arg5)
-{
-  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5);
-}
-
-/* Call function fn with 6 arguments arg1, arg2, arg3, arg4, arg5, arg6.  */
-Lisp_Object
-call6 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
-       Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6)
-{
-  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6);
-}
-
-/* Call function fn with 7 arguments arg1, arg2, arg3, arg4, arg5, arg6, arg7.  */
-Lisp_Object
-call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
-       Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6, Lisp_Object arg7)
-{
-  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-}
-
-/* Call function fn with 8 arguments arg1, arg2, arg3, arg4, arg5,
-   arg6, arg7, arg8.  */
-Lisp_Object
-call8 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
-       Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6, Lisp_Object arg7,
-       Lisp_Object arg8)
-{
-  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
-}
-
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Return t if OBJECT is a function.  */)
      (Lisp_Object object)
@@ -3153,10 +3006,7 @@ fetch_and_exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
   if (CONSP (AREF (fun, COMPILED_BYTECODE)))
     Ffetch_bytecode (fun);
 
-  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
-			 AREF (fun, COMPILED_CONSTANTS),
-			 AREF (fun, COMPILED_STACK_DEPTH),
-			 args_template, nargs, args);
+  return exec_byte_code (fun, args_template, nargs, args);
 }
 
 static Lisp_Object
@@ -3625,6 +3475,20 @@ record_unwind_protect_ptr (void (*function) (void *), void *arg)
   specpdl_ptr->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
   specpdl_ptr->unwind_ptr.func = function;
   specpdl_ptr->unwind_ptr.arg = arg;
+  specpdl_ptr->unwind_ptr.mark = NULL;
+  grow_specpdl ();
+}
+
+/* Like `record_unwind_protect_ptr', but also specifies a function
+   for GC-marking Lisp objects only reachable through ARG.  */
+void
+record_unwind_protect_ptr_mark (void (*function) (void *), void *arg,
+				void (*mark) (void *))
+{
+  specpdl_ptr->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
+  specpdl_ptr->unwind_ptr.func = function;
+  specpdl_ptr->unwind_ptr.arg = arg;
+  specpdl_ptr->unwind_ptr.mark = mark;
   grow_specpdl ();
 }
 
@@ -3668,6 +3532,7 @@ record_unwind_protect_module (enum specbind_tag kind, void *ptr)
   specpdl_ptr->kind = kind;
   specpdl_ptr->unwind_ptr.func = NULL;
   specpdl_ptr->unwind_ptr.arg = ptr;
+  specpdl_ptr->unwind_ptr.mark = NULL;
   grow_specpdl ();
 }
 
@@ -3796,6 +3661,7 @@ set_unwind_protect_ptr (specpdl_ref count, void (*func) (void *), void *arg)
   p->unwind_ptr.kind = SPECPDL_UNWIND_PTR;
   p->unwind_ptr.func = func;
   p->unwind_ptr.arg = arg;
+  p->unwind_ptr.mark = NULL;
 }
 
 /* Pop and execute entries from the unwind-protect stack until the
@@ -4229,6 +4095,10 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 	  break;
 
 	case SPECPDL_UNWIND_PTR:
+	  if (pdl->unwind_ptr.mark)
+	    pdl->unwind_ptr.mark (pdl->unwind_ptr.arg);
+	  break;
+
 	case SPECPDL_UNWIND_INT:
 	case SPECPDL_UNWIND_INTMAX:
         case SPECPDL_UNWIND_VOID:

@@ -256,7 +256,7 @@ cache is flushed from position START, defaulting to point."
 (defun electric-pair--syntax-ppss (&optional pos where)
   "Like `syntax-ppss', but sometimes fallback to `parse-partial-sexp'.
 
-WHERE is a list defaulting to '(string comment) and indicates
+WHERE is a list defaulting to \\='(string comment) and indicates
 when to fallback to `parse-partial-sexp'."
   (let* ((pos (or pos (point)))
          (where (or where '(string comment)))

@@ -365,11 +365,33 @@ should a regexp."
   (unless noerror
     (barf-if-buffer-read-only))
   (save-mark-and-excursion
-    (let* ((from (query-replace-read-from prompt regexp-flag))
+    (let* ((delimited-flag (and current-prefix-arg
+                                (not (eq current-prefix-arg '-))))
+           (from (minibuffer-with-setup-hook
+                     (minibuffer-lazy-highlight-setup
+                      :case-fold case-fold-search
+                      :filter (when (use-region-p)
+                                (replace--region-filter
+                                 (funcall region-extract-function 'bounds)))
+                      :highlight query-replace-lazy-highlight
+                      :regexp regexp-flag
+                      :regexp-function (or replace-regexp-function
+                                           delimited-flag
+                                           (and replace-char-fold
+	                                        (not regexp-flag)
+	                                        #'char-fold-to-regexp))
+                      :transform (lambda (string)
+                                   (let* ((split (query-replace--split-string string))
+                                          (from-string (if (consp split) (car split) split)))
+                                     (when (and case-fold-search search-upper-case)
+	                               (setq isearch-case-fold-search
+                                             (isearch-no-upper-case-p from-string regexp-flag)))
+                                     from-string)))
+                   (query-replace-read-from prompt regexp-flag)))
            (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
                  (query-replace-read-to from prompt regexp-flag))))
       (list from to
-            (or (and current-prefix-arg (not (eq current-prefix-arg '-)))
+            (or delimited-flag
                 (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
                      (get-text-property 0 'isearch-regexp-function from)))
             (and current-prefix-arg (eq current-prefix-arg '-))))))
@@ -377,7 +399,9 @@ should a regexp."
 (defun query-replace (from-string to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some occurrences of FROM-STRING with TO-STRING.
 As each match is found, the user must type a character saying
-what to do with it.  For directions, type \\[help-command] at that time.
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer's
@@ -447,7 +471,9 @@ To customize possible responses, change the bindings in `query-replace-map'."
 (defun query-replace-regexp (regexp to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
-what to do with it.  For directions, type \\[help-command] at that time.
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer's
@@ -544,7 +570,9 @@ Interactive use of this function is deprecated in favor of the
 using `search-forward-regexp' and `replace-match' is preferred.
 
 As each match is found, the user must type a character saying
-what to do with it.  For directions, type \\[help-command] at that time.
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 TO-EXPR is a Lisp expression evaluated to compute each replacement.  It may
 reference `replace-count' to get the number of replacements already made.
@@ -629,6 +657,11 @@ Interactively, reads the regexp using `read-regexp'.
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search regexp to the minibuffer
 that reads REGEXP.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 A prefix argument N says to use each replacement string N times
 before rotating to the next.
@@ -2685,6 +2718,11 @@ to a regexp that is actually used for the search.")
 	  (or (if regexp-flag
 		  replace-re-search-function
 		replace-search-function)
+              ;; `isearch-search-fun' can't be used here because
+              ;; when buffer-local `isearch-search-fun-function'
+              ;; searches e.g. the minibuffer history, then
+              ;; `query-replace' should not operate on the whole
+              ;; history, but only on the minibuffer contents.
 	      (isearch-search-fun-default))))
     (funcall search-function search-string limit t)))
 
@@ -2773,6 +2811,26 @@ to a regexp that is actually used for the search.")
 	       ,search-str ,next-replace)
          ,stack))
 
+(defun replace--region-filter (bounds)
+  "Return a function that decides if a region is inside BOUNDS.
+BOUNDS is a list of cons cells of the form (START . END).  The
+returned function takes as argument two buffer positions, START
+and END."
+  (let ((region-bounds
+         (mapcar (lambda (position)
+                   (cons (copy-marker (car position))
+                         (copy-marker (cdr position))))
+                 bounds)))
+    (lambda (start end)
+      (delq nil (mapcar
+                 (lambda (bounds)
+                   (and
+                    (>= start (car bounds))
+                    (<= start (cdr bounds))
+                    (>= end   (car bounds))
+                    (<= end   (cdr bounds))))
+                 region-bounds)))))
+
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end backward region-noncontiguous-p)
@@ -2857,22 +2915,9 @@ characters."
 
     ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
     (when region-noncontiguous-p
-      (let ((region-bounds
-             (mapcar (lambda (position)
-                       (cons (copy-marker (car position))
-                             (copy-marker (cdr position))))
-                     (funcall region-extract-function 'bounds))))
-        (setq region-filter
-              (lambda (start end)
-                (delq nil (mapcar
-                           (lambda (bounds)
-                             (and
-                              (>= start (car bounds))
-                              (<= start (cdr bounds))
-                              (>= end   (car bounds))
-                              (<= end   (cdr bounds))))
-                           region-bounds))))
-        (add-function :after-while isearch-filter-predicate region-filter)))
+      (setq region-filter (replace--region-filter
+                           (funcall region-extract-function 'bounds)))
+      (add-function :after-while isearch-filter-predicate region-filter))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (if backward

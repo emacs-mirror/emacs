@@ -1371,8 +1371,11 @@ Keymap summary
 	(t
 	 ;; Turn mode on
 	 (artist-mode-init)
-         (let ((font (face-attribute 'default :font)))
-           (when (and (fontp font) (not (font-get font :spacing)))
+         (let* ((font (face-attribute 'default :font))
+                (spacing-prop (if (fontp font)
+                                  (font-get font :spacing)
+                                t)))
+           (when (or (null spacing-prop) (eq spacing-prop 0))
              (message "The default font isn't monospaced, so the drawings in this buffer may look odd"))))))
 
 ;; Init and exit

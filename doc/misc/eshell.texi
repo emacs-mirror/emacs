@@ -228,15 +228,39 @@ other background process in Emacs.
 
 @node Arguments
 @section Arguments
-Command arguments are passed to the functions as either strings or
-numbers, depending on what the parser thinks they look like.  If you
-need to use a function that takes some other data type, you will need to
-call it in an Elisp expression (which can also be used with
-@ref{Expansion, expansions}).  As with other shells, you can
-escape special characters and spaces with the backslash (@code{\}) and
-apostrophes (@code{''}) and double quotes (@code{""}).  This is needed
-especially for file names with special characters like pipe
-(@code{|}), which could be part of remote file names.
+Ordinarily, command arguments are parsed by Eshell as either strings
+or numbers, depending on what the parser thinks they look like.  To
+specify an argument of some other data type, you can use an
+@ref{Dollars Expansion, Elisp expression}:
+
+@example
+~ $ echo (list 1 2 3)
+(1 2 3)
+@end example
+
+Additionally, many built-in Eshell commands (@pxref{Built-ins, Eshell
+commands}) will flatten the arguments they receive, so passing a list
+as an argument will ``spread'' the elements into multiple arguments:
+
+@example
+~ $ printnl (list 1 2) 3
+1
+2
+3
+@end example
+
+@subsection Quoting and escaping
+
+As with other shells, you can escape special characters and spaces
+with by prefixing the character with a backslash (@code{\}), or by
+surrounding the string with apostrophes (@code{''}) or double quotes
+(@code{""}).  This is needed especially for file names with special
+characters like pipe (@code{|}), which could be part of remote file
+names.
+
+When using expansions (@pxref{Expansion}) in an Eshell command, the
+result may potentially be of any data type.  To ensure that the result
+is always a string, the expansion can be surrounded by double quotes.
 
 @node Built-ins
 @section Built-in commands
@@ -993,15 +1017,42 @@ parsers (such as @command{cpp} and @command{m4}), but in a command
 shell, they are less often used for constants, and usually for using
 variables and string manipulation.@footnote{Eshell has no
 string-manipulation expansions because the Elisp library already
-provides many functions for this.}  For example, @code{$var} on a line
-expands to the value of the variable @code{var} when the line is
+provides many functions for this.}  For example, @code{$@var{var}} on
+a line expands to the value of the variable @var{var} when the line is
 executed.  Expansions are usually passed as arguments, but may also be
-used as commands.@footnote{E.g., entering just @samp{$var} at the prompt
-is equivalent to entering the value of @code{var} at the prompt.}
+used as commands.@footnote{E.g., entering just @samp{$@var{var}} at
+the prompt is equivalent to entering the value of @var{var} at the
+prompt.}
+
+You can concatenate expansions with regular string arguments or even
+other expansions.  In the simplest case, when the expansion returns a
+string value, this is equivalent to ordinary string concatenation; for
+example, @samp{$@{echo "foo"@}bar} returns @samp{foobar}.  The exact
+behavior depends on the types of each value being concatenated:
+
+@table @asis
+
+@item both strings
+Concatenate both values together.
+
+@item one or both numbers
+Concatenate the string representation of each value, converting back to
+a number if possible.
+
+@item one or both (non-@code{nil}) lists
+Concatenate ``adjacent'' elements of each value (possibly converting
+back to a number as above).  For example, @samp{$list("a" "b")c}
+returns @samp{("a" "bc")}.
+
+@item anything else
+Concatenate the string represenation of each value.
+
+@end table
 
 @menu
 * Dollars Expansion::
 * Globbing::
+* Argument Predication and Modification::
 @end menu
 
 @node Dollars Expansion
@@ -1025,11 +1076,22 @@ value, such as @samp{$"@var{var}"-suffix}.
 @item $(@var{lisp})
 Expands to the result of evaluating the S-expression @code{(@var{lisp})}.  On
 its own, this is identical to just @code{(@var{lisp})}, but with the @code{$},
-it can be used in a string, such as @samp{/some/path/$(@var{lisp}).txt}.
+it can be used inside double quotes or within a longer string, such as
+@samp{/some/path/$(@var{lisp}).txt}.
 
 @item $@{@var{command}@}
-Returns the output of @command{@var{command}}, which can be any valid Eshell
-command invocation, and may even contain expansions.
+Returns the output of @command{@var{command}}, which can be any valid
+Eshell command invocation, and may even contain expansions.  Similar
+to @code{$(@var{lisp})}, this is identical to @code{@{@var{command}@}}
+when on its own, but the @code{$} allows it to be used inside double
+quotes or as part of a string.
+
+Normally, the output is split line-by-line, returning a list (or the
+first element if there's only one line of output); if
+@code{eshell-convert-numeric-arguments} is non-@code{nil} and every
+line of output looks like a number, convert each line to a number.
+However, when this expansion is surrounded by double quotes, it
+returns the output as a single string instead.
 
 @item $<@var{command}>
 As with @samp{$@{@var{command}@}}, evaluates the Eshell command invocation
@@ -1089,15 +1151,345 @@ the result of @var{expr} is not a string or a sequence.
 
 @node Globbing
 @section Globbing
-Eshell's globbing syntax is very similar to that of Zsh.  Users coming
-from Bash can still use Bash-style globbing, as there are no
-incompatibilities.  Most globbing is pattern-based expansion, but there
-is also predicate-based expansion.  @xref{Filename Generation, , ,
-zsh, The Z Shell Manual},
-for full syntax.  To customize the syntax and behavior of globbing in
-Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
-The GNU Emacs Manual}.}
-groups ``eshell-glob'' and ``eshell-pred''.
+@vindex eshell-glob-case-insensitive
+Eshell's globbing syntax is very similar to that of Zsh
+(@pxref{Filename Generation, , , zsh, The Z Shell Manual}).  Users
+coming from Bash can still use Bash-style globbing, as there are no
+incompatibilities.
+
+By default, globs are case sensitive, except on MS-DOS/MS-Windows
+systems.  You can control this behavior via the
+@code{eshell-glob-case-insensitive} option.  You can further customize
+the syntax and behavior of globbing in Eshell via the Customize group
+``eshell-glob'' (@pxref{Easy Customization, , , emacs, The GNU Emacs
+Manual}).
+
+@table @samp
+
+@item *
+Matches any string (including the empty string).  For example,
+@samp{*.el} matches any file with the @file{.el} extension.
+
+@item ?
+Matches any single character.  For example, @samp{?at} matches
+@file{cat} and @file{bat}, but not @file{goat}.
+
+@item **/
+Matches zero or more subdirectories in a file name.  For example,
+@samp{**/foo.el} matches @file{foo.el}, @file{bar/foo.el},
+@file{bar/baz/foo.el}, etc.  Note that this cannot be combined with
+any other patterns in the same file name segment, so while
+@samp{foo/**/bar.el} is allowed, @samp{foo**/bar.el} is not.
+
+@item ***/
+Like @samp{**/}, but follows symlinks as well.
+
+@cindex character sets, in Eshell glob patterns
+@cindex character classes, in Eshell glob patterns
+@item [ @dots{} ]
+Defines a @dfn{character set} (@pxref{Regexps, , , emacs, The GNU
+Emacs Manual}).  A character set matches characters between the two
+brackets; for example, @samp{[ad]} matches @file{a} and @file{d}.  You
+can also include ranges of characters in the set by separating the
+start and end with @samp{-}.  Thus, @samp{[a-z]} matches any
+lower-case @acronym{ASCII} letter.  Note that, unlike in Zsh,
+character ranges are interpreted in the Unicode codepoint order, not
+in the locale-dependent collation order.
+
+Additionally, you can include @dfn{character classes} in a character
+set.  A @samp{[:} and balancing @samp{:]} enclose a character class
+inside a character set.  For instance, @samp{[[:alnum:]]}
+matches any letter or digit.  @xref{Char Classes, , , elisp, The Emacs
+Lisp Reference Manual}, for a list of character classes.
+
+@cindex complemented character sets, in Eshell glob patterns
+@item [^ @dots{} ]
+Defines a @dfn{complemented character set}.  This behaves just like a
+character set, but matches any character @emph{except} the ones
+specified.
+
+@cindex groups, in Eshell glob patterns
+@item ( @dots{} )
+Defines a @dfn{group}.  A group matches the pattern between @samp{(}
+and @samp{)}.  Note that a group can only match a single file name
+component, so a @samp{/} inside a group will signal an error.
+
+@item @var{x}|@var{y}
+Inside of a group, matches either @var{x} or @var{y}.  For example,
+@samp{e(m|sh)-*} matches any file beginning with @file{em-} or
+@file{esh-}.
+
+@item @var{x}#
+Matches zero or more copies of the glob pattern @var{x}.  For example,
+@samp{fo#.el} matches @file{f.el}, @file{fo.el}, @file{foo.el}, etc.
+
+@item @var{x}##
+Matches one or more copies of the glob pattern @var{x}.  Thus,
+@samp{fo#.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
+etc.
+
+@item @var{x}~@var{y}
+Matches anything that matches the pattern @var{x} but not @var{y}. For
+example, @samp{[[:digit:]]#~4?} matches @file{1} and @file{12}, but
+not @file{42}.  Note that unlike in Zsh, only a single @samp{~}
+operator can be used in a pattern, and it cannot be inside of a group
+like @samp{(@var{x}~@var{y})}.
+
+@end table
+
+@node Argument Predication and Modification
+@section Argument Predication and Modification
+@cindex argument predication
+@cindex argument modification
+Eshell supports @dfn{argument predication}, to filter elements of a
+glob, and @dfn{argument modification}, to manipulate argument values.
+These are similar to glob qualifiers in Zsh (@pxref{Glob Qualifiers, ,
+, zsh, The Z Shell Manual}).
+
+Predicates and modifiers are introduced with @samp{(@var{filters})}
+after any list argument, where @var{filters} is a list of predicates
+or modifiers.  For example, @samp{*(.)} expands to all regular files
+in the current directory and @samp{*(^@@:U^u0)} expands to all
+non-symlinks not owned by @code{root}, upper-cased.
+
+Some predicates and modifiers accept string parameters, such as
+@samp{*(u'@var{user}')}, which matches all files owned by @var{user}.
+These parameters must be surrounded by delimiters; you can use any of
+the following pairs of delimiters: @code{"@dots{}"}, @code{'@dots{}'},
+@code{/@dots{}/}, @code{|@dots{}|}, @code{(@dots{})},
+@code{[@dots{}]}, @code{<@dots{}>}, or @code{@{@dots{}@}}.
+
+You can customize the syntax and behavior of predicates and modifiers
+in Eshell via the Customize group ``eshell-pred'' (@pxref{Easy
+Customization, , , emacs, The GNU Emacs Manual}).
+
+@menu
+* Argument Predicates::
+* Argument Modifiers::
+@end menu
+
+@node Argument Predicates
+@subsection Argument Predicates
+You can use argument predicates to filter lists of file names based on
+various properties of those files.  This is most useful when combined
+with globbing, but can be used on any list of files names.  Eshell
+supports the following argument predicates:
+
+@table @asis
+
+@item @samp{/}
+Matches directories.
+
+@item @samp{.} @r{(Period)}
+Matches regular files.
+
+@item @samp{@@}
+Matches symbolic links.
+
+@item @samp{=}
+Matches sockets.
+
+@item @samp{p}
+Matches named pipes.
+
+@item @samp{%}
+Matches block or character devices.
+
+@item @samp{%b}
+Matches block devices.
+
+@item @samp{%c}
+Matches character devices.
+
+@item @samp{*}
+Matches regular files that can be executed by the current user.
+
+@item @samp{r}
+@item @samp{A}
+@item @samp{R}
+Matches files that are readable by their owners (@samp{r}), their
+groups (@samp{A}), or the world (@samp{R}).
+
+@item @samp{w}
+@item @samp{I}
+@item @samp{W}
+Matches files that are writable by their owners (@samp{w}), their
+groups (@samp{I}), or the world (@samp{W}).
+
+@item @samp{x}
+@item @samp{E}
+@item @samp{X}
+Matches files that are executable by their owners (@samp{x}), their
+groups (@samp{E}), or the world (@samp{X}).
+
+@item @samp{s}
+Matches files with the setuid flag set.
+
+@item @samp{S}
+Matches files with the setgid flag set.
+
+@item @samp{t}
+Matches files with the sticky bit set.
+
+@item @samp{U}
+Matches files owned by the current effective user ID.
+
+@item @samp{G}
+Matches files owned by the current effective group ID.
+
+@item @samp{l@option{[+-]}@var{n}}
+Matches files with @var{n} links.  With @option{+} (or @option{-}),
+matches files with more than (or less than) @var{n} links,
+respectively.
+
+@item @samp{u@var{uid}}
+@item @samp{u'@var{user-name}'}
+Matches files owned by user ID @var{uid} or user name @var{user-name}.
+
+@item @samp{g@var{gid}}
+@item @samp{g'@var{group-name}'}
+Matches files owned by group ID @var{gid} or group name
+@var{group-name}.
+
+@item @samp{a@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{a@option{[+-]}'@var{file}'}
+Matches files last accessed exactly @var{n} days ago.  With @option{+}
+(or @option{-}), matches files accessed more than (or less than)
+@var{n} days ago, respectively.
+
+With @var{unit}, @var{n} is a quantity in that unit of time, so
+@samp{aw-1} matches files last accessed within one week.  @var{unit}
+can be @samp{M} (30-day months), @samp{w} (weeks), @samp{h} (hours),
+@samp{m} (minutes), or @samp{s} (seconds).
+
+If @var{file} is specified instead, compare against the modification
+time of @file{file}.  Thus, @samp{a-'hello.txt'} matches all files
+accessed after @file{hello.txt} was last accessed.
+
+@item @samp{m@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{m@option{[+-]}'@var{file}'}
+Like @samp{a}, but examines modification time.
+
+@item @samp{c@option{[@var{unit}]}@option{[+-]}@var{n}}
+@item @samp{c@option{[+-]}'@var{file}'}
+Like @samp{a}, but examines status change time.
+
+@item @samp{L@option{[@var{unit}]}@option{[+-]}@var{n}}
+Matches files exactly @var{n} bytes in size.  With @option{+} (or
+@option{-}), matches files larger than (or smaller than) @var{n}
+bytes, respectively.
+
+With @var{unit}, @var{n} is a quantity in that unit of size, so
+@samp{Lm+5} matches files larger than 5 MiB in size.  @var{unit} can
+be one of the following (case-insensitive) characters: @samp{m}
+(megabytes), @samp{k} (kilobytes), or @samp{p} (512-byte blocks).
+
+@end table
+
+The @samp{^} and @samp{-} operators are not argument predicates
+themselves, but they modify the behavior of all subsequent predicates.
+@samp{^} inverts the meaning of subsequent predicates, so
+@samp{*(^RWX)} expands to all files whose permissions disallow the
+world from accessing them in any way (i.e., reading, writing to, or
+modifying them).  When examining a symbolic link, @samp{-} applies the
+subsequent predicates to the link's target instead of the link itself.
+
+@node Argument Modifiers
+@subsection Argument Modifiers
+You can use argument modifiers to manipulate argument values.  For
+example, you can sort lists, remove duplicate values, capitalize
+words, etc.  All argument modifiers are prefixed by @samp{:}, so
+@samp{$exec-path(:h:u:x/^\/home/)} lists all of the unique parent
+directories of the elements in @code{exec-path}, excluding those in
+@file{/home}.
+
+@table @samp
+
+@item E
+Re-evaluates the value as an Eshell argument.  For example, if
+@var{foo} is @code{"$@{echo hi@}"}, then the result of @samp{$foo(:E)}
+is @code{hi}.
+
+@item L
+Converts the value to lower case.
+
+@item U
+Converts the value to upper case.
+
+@item C
+Capitalizes the value.
+
+@item h
+Treating the value as a file name, gets the directory name (the
+``head'').  For example, @samp{foo/bar/baz.el(:h)} expands to
+@samp{foo/bar/}.
+
+@item t
+Treating the value as a file name, gets the base name (the ``tail'').
+For example, @samp{foo/bar/baz.el(:h)} expands to @samp{baz.el}.
+
+@item e
+Treating the value as a file name, gets the final extension of the
+file, excluding the dot.  For example, @samp{foo.tar.gz(:e)}
+expands to @code{gz}.
+
+@item r
+Treating the value as a file name, gets the file name excluding the
+final extension.  For example, @samp{foo/bar/baz.tar.gz(:r)} expands
+to @samp{foo/bar/baz.tar}.
+
+@item q
+Marks that the value should be interpreted by Eshell literally, so
+that any special characters like @samp{$} no longer have any special
+meaning.
+
+@item s/@var{pattern}/@var{replace}/
+Replaces the first instance of the regular expression @var{pattern}
+with @var{replace}.  Signals an error if no match is found.
+
+As with other modifiers taking string parameters, you can use
+different delimiters to separate @var{pattern} and @var{replace}, such
+as @samp{s'@dots{}'@dots{}'}, @samp{s[@dots{}][@dots{}]}, or even
+@samp{s[@dots{}]/@dots{}/}.
+
+@item gs/@var{pattern}/@var{replace}/
+Replaces all instances of the regular expression @var{pattern} with
+@var{replace}.
+
+@item i/@var{pattern}/
+Filters a list of values to include only the elements matching the
+regular expression @var{pattern}.
+
+@item x/@var{pattern}/
+Filters a list of values to exclude all the elements matching the
+regular expression @var{pattern}.
+
+@item S
+@item S/@var{pattern}/
+Splits the value using the regular expression @var{pattern} as a
+delimiter.  If @var{pattern} is omitted, split on spaces.
+
+@item j
+@item j/@var{delim}/
+Joins a list of values, inserting the string @var{delim} between each
+value.  If @var{delim} is omitted, use a single space as the
+delimiter.
+
+@item o
+Sorts a list of strings in ascending lexicographic order, comparing
+pairs of characters according to their character codes (@pxref{Text
+Comparison, , , elisp, The Emacs Lisp Reference Manual}).
+
+@item O
+Sorts a list of strings in descending lexicographic order.
+
+@item u
+Removes any duplicate elements from a list of values.
+
+@item R
+Reverses the order of a list of values.
+
+@end table
 
 @node Input/Output
 @chapter Input/Output
@@ -1241,6 +1633,7 @@ Eshell module.}  You also need to load the following as shown:
 * Key rebinding::
 * Smart scrolling::
 * Terminal emulation::
+* Electric forward slash::
 @end menu
 
 @node Writing a module
@@ -1272,6 +1665,61 @@ This section is not yet written.
 @section Terminal emulation
 
 This section is not yet written.
+
+@node Electric forward slash
+@section Electric forward slash
+
+To help with supplying absolute file name arguments to remote
+commands, you can add the @code{eshell-elecslash} module to
+@code{eshell-modules-list}.  Then, typing @kbd{/} as the first
+character of a command line argument will automatically insert the
+Tramp prefix @file{/method:host:}.  If this is not what you want
+(e.g.@: because you want to refer to a local file), you can type
+another @kbd{/} to undo the automatic insertion.  Typing @kbd{~/} also
+inserts the Tramp prefix.  The automatic insertion applies only when
+@code{default-directory} is remote and the command is a Lisp function.
+In particular, typing arguments to external commands doesn't insert
+the prefix.
+
+The result is that in most cases of supplying absolute file name
+arguments to commands you should see the Tramp prefix inserted
+automatically only when that's what you'd reasonably expect.  This
+frees you from having to keep track of whether commands are Lisp
+functions or external when typing command line arguments.  For
+example, suppose you execute
+
+@example
+ cd /ssh:root@@example.com:
+ find /etc -name "*gnu*"
+@end example
+
+@noindent and in reviewing the output of the command, you identify a
+file @file{/etc/gnugnu} that should be moved somewhere else.  So you
+type
+
+@example
+ mv /etc/gnugnu /tmp
+@end example
+
+@noindent But since @command{mv} refers to the local Lisp function
+@code{eshell/mv}, not a remote shell command, to say this is to
+request that the local file @file{/etc/gnugnu} be moved into the local
+@file{/tmp} directory.  After you add @code{eshell-elecslash} to
+@code{eshell-modules-list}, then when you type the above @command{mv}
+invocation you will get the following input, which is what you
+intended:
+
+@example
+ mv /ssh:root@@example.com:/etc/gnugnu /ssh:root@@example.com:/tmp
+@end example
+
+The code that determines whether or not the Tramp prefix should be
+inserted uses simple heuristics.  A limitation of the current
+implementation is that it inspects whether only the command at the
+very beginning of input is a Lisp function or external program.  Thus
+when chaining commands with the operators @code{&&}, @code{||},
+@code{|} and @code{;}, the electric forward slash is active only
+within the first command.
 
 @node Bugs and ideas
 @chapter Bugs and ideas
@@ -1676,11 +2124,12 @@ only.  That way, it could be listed as a login shell.
 @item The first keypress after @kbd{M-x watson} triggers
 @code{eshell-send-input}
 
-@item Make @kbd{/} electric
+@item Make @kbd{/} more electric
 
-So that it automatically expands and corrects pathnames.  Or make
-pathname completion for Pcomplete auto-expand @samp{/u/i/std@key{TAB}} to
-@samp{/usr/include/std@key{TAB}}.
+@noindent so that it automatically expands and corrects file names,
+beyond what the @code{em-elecslash} module is able to do.  Or make
+file name completion for Pcomplete auto-expand
+@samp{/u/i/std@key{TAB}} to @samp{/usr/include/std@key{TAB}}.
 
 @item Write the @command{pushd} stack to disk along with @code{last-dir-ring}
 

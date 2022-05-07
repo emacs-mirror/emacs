@@ -71,6 +71,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #undef localtime
 
+#undef clock
+
 char *sys_ctime (const time_t *);
 int sys_chdir (const char *);
 int sys_creat (const char *, int);
@@ -87,6 +89,7 @@ struct tm *sys_localtime (const time_t *);
    compiler to emit a warning about sys_strerror having no
    prototype.  */
 char *sys_strerror (int);
+clock_t sys_clock (void);
 
 #ifdef HAVE_MODULES
 extern void dynlib_reset_last_error (void);
@@ -348,6 +351,7 @@ static BOOL g_b_init_reg_open_key_ex_w;
 static BOOL g_b_init_reg_query_value_ex_w;
 static BOOL g_b_init_expand_environment_strings_w;
 static BOOL g_b_init_get_user_default_ui_language;
+static BOOL g_b_init_get_console_font_size;
 
 BOOL g_b_init_compare_string_w;
 BOOL g_b_init_debug_break_process;
@@ -536,6 +540,22 @@ typedef LONG (WINAPI *RegOpenKeyExW_Proc) (HKEY,LPCWSTR,DWORD,REGSAM,PHKEY);
 typedef LONG (WINAPI *RegQueryValueExW_Proc) (HKEY,LPCWSTR,LPDWORD,LPDWORD,LPBYTE,LPDWORD);
 typedef DWORD (WINAPI *ExpandEnvironmentStringsW_Proc) (LPCWSTR,LPWSTR,DWORD);
 typedef LANGID (WINAPI *GetUserDefaultUILanguage_Proc) (void);
+
+typedef COORD (WINAPI *GetConsoleFontSize_Proc) (HANDLE, DWORD);
+
+#if _WIN32_WINNT < 0x0501
+typedef struct
+{
+  DWORD nFont;
+  COORD dwFontSize;
+} CONSOLE_FONT_INFO;
+#endif
+
+typedef BOOL (WINAPI *GetCurrentConsoleFont_Proc) (
+    HANDLE,
+    BOOL,
+    CONSOLE_FONT_INFO *);
+
 
   /* ** A utility function ** */
 static BOOL
@@ -4640,6 +4660,9 @@ sys_open (const char * path, int oflag, int mode)
   return res;
 }
 
+/* This is not currently used, but might be needed again at some
+   point; DO NOT DELETE!  */
+#if 0
 int
 openat (int fd, const char * path, int oflag, int mode)
 {
@@ -4660,6 +4683,7 @@ openat (int fd, const char * path, int oflag, int mode)
 
   return sys_open (path, oflag, mode);
 }
+#endif
 
 int
 fchmod (int fd, mode_t mode)
@@ -10134,6 +10158,32 @@ sys_localtime (const time_t *t)
   return localtime (t);
 }
 
+/* The Windows CRT implementation of 'clock' doesn't really return CPU
+   time of the process (it returns the elapsed time since the process
+   started), so we provide a better emulation here, if possible.  */
+clock_t
+sys_clock (void)
+{
+  if (get_process_times_fn)
+    {
+      FILETIME create, exit, kernel, user;
+      HANDLE proc = GetCurrentProcess ();
+      if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
+        {
+          LARGE_INTEGER user_int, kernel_int, total;
+          user_int.LowPart = user.dwLowDateTime;
+          user_int.HighPart = user.dwHighDateTime;
+          kernel_int.LowPart = kernel.dwLowDateTime;
+          kernel_int.HighPart = kernel.dwHighDateTime;
+          total.QuadPart = user_int.QuadPart + kernel_int.QuadPart;
+	  /* We could redefine CLOCKS_PER_SEC to provide a finer
+	     resolution, but with the basic 15.625 msec resolution of
+	     the Windows clock, it doesn't really sound worth the hassle.  */
+	  return total.QuadPart / (10000000 / CLOCKS_PER_SEC);
+        }
+    }
+  return clock ();
+}
 
 
 /* Try loading LIBRARY_ID from the file(s) specified in
@@ -10614,6 +10664,120 @@ realpath (const char *file_name, char *resolved_name)
   return xstrdup (tgt);
 }
 
+static void
+get_console_font_size (HANDLE hscreen, int *font_width, int *font_height)
+{
+  static GetCurrentConsoleFont_Proc s_pfn_Get_Current_Console_Font = NULL;
+  static GetConsoleFontSize_Proc s_pfn_Get_Console_Font_Size = NULL;
+
+  /* Default guessed values, for when we cannot obtain the actual ones.  */
+  *font_width = 8;
+  *font_height = 12;
+
+  if (!is_windows_9x ())
+    {
+      if (g_b_init_get_console_font_size == 0)
+	{
+	  HMODULE hm_kernel32 = LoadLibrary ("Kernel32.dll");
+	  if (hm_kernel32)
+	    {
+	      s_pfn_Get_Current_Console_Font = (GetCurrentConsoleFont_Proc)
+		get_proc_addr (hm_kernel32, "GetCurrentConsoleFont");
+	      s_pfn_Get_Console_Font_Size = (GetConsoleFontSize_Proc)
+		get_proc_addr (hm_kernel32, "GetConsoleFontSize");
+	    }
+	  g_b_init_get_console_font_size = 1;
+	}
+    }
+  if (s_pfn_Get_Current_Console_Font && s_pfn_Get_Console_Font_Size)
+    {
+      CONSOLE_FONT_INFO font_info;
+
+      if (s_pfn_Get_Current_Console_Font (hscreen, FALSE, &font_info))
+	{
+	  COORD font_size = s_pfn_Get_Console_Font_Size (hscreen,
+							 font_info.nFont);
+	  if (font_size.X > 0)
+	    *font_width = font_size.X;
+	  if (font_size.Y > 0)
+	    *font_height = font_size.Y;
+	}
+    }
+}
+
+/* A replacement for Posix execvp, used to restart Emacs.  This is
+   needed because the low-level Windows API to start processes accepts
+   the command-line arguments as a single string, so we cannot safely
+   use the MSVCRT execvp emulation, because elements of argv[] that
+   have embedded blanks and tabs will not be passed correctly to the
+   restarted Emacs.  */
+int
+w32_reexec_emacs (char *cmd_line, const char *wdir)
+{
+  STARTUPINFO si;
+  BOOL status;
+  PROCESS_INFORMATION proc_info;
+  DWORD dwCreationFlags = NORMAL_PRIORITY_CLASS;
+
+  GetStartupInfo (&si);		/* Use the same startup info as the caller.  */
+  if (inhibit_window_system)
+    {
+      HANDLE screen_handle;
+      CONSOLE_SCREEN_BUFFER_INFO screen_info;
+
+      screen_handle = GetStdHandle (STD_OUTPUT_HANDLE);
+      if (screen_handle != INVALID_HANDLE_VALUE
+	  && GetConsoleScreenBufferInfo (screen_handle, &screen_info))
+	{
+	  int font_width, font_height;
+
+	  /* Make the restarted Emacs's console window the same
+	     dimensions as ours.  */
+	  si.dwXCountChars = screen_info.dwSize.X;
+	  si.dwYCountChars = screen_info.dwSize.Y;
+	  get_console_font_size (screen_handle, &font_width, &font_height);
+	  si.dwXSize =
+	    (screen_info.srWindow.Right - screen_info.srWindow.Left + 1)
+	    * font_width;
+	  si.dwYSize =
+	    (screen_info.srWindow.Bottom - screen_info.srWindow.Top + 1)
+	    * font_height;
+	  si.dwFlags |= STARTF_USESIZE | STARTF_USECOUNTCHARS;
+	}
+      /* This is a kludge: it causes the restarted "emacs -nw" to have
+	 a new console window created for it, and that new window
+	 might have different (default) properties, not the ones of
+	 the parent process's console window.  But without this,
+	 restarting Emacs in the -nw mode simply doesn't work,
+	 probably because the parent's console is still in use.
+	 FIXME!  */
+      dwCreationFlags = CREATE_NEW_CONSOLE;
+    }
+
+  /* Make sure we are in the original directory, in case the command
+     line specifies the program as a relative file name.  */
+  chdir (wdir);
+
+  status = CreateProcess (NULL,		/* no program, take from command line */
+			  cmd_line,	/* command line */
+			  NULL,
+			  NULL,		/* thread attributes */
+			  FALSE,	/* unherit handles? */
+			  dwCreationFlags,
+			  NULL,		/* environment */
+			  wdir,		/* initial directory */
+			  &si,		/* startup info */
+			  &proc_info);
+  if (status)
+    {
+      CloseHandle (proc_info.hThread);
+      CloseHandle (proc_info.hProcess);
+      exit (0);
+    }
+  errno = ENOEXEC;
+  return -1;
+}
+
 /*
 	globals_of_w32 is used to initialize those global variables that
 	must always be initialized on startup even when the global variable
@@ -10674,6 +10838,7 @@ globals_of_w32 (void)
   g_b_init_compare_string_w = 0;
   g_b_init_debug_break_process = 0;
   g_b_init_get_user_default_ui_language = 0;
+  g_b_init_get_console_font_size = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and

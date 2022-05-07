@@ -662,12 +662,11 @@ be used directly.")
   (gnus-prune-buffers)
   (cl-pushnew (current-buffer) gnus-buffers))
 
-(defmacro gnus-kill-buffer (buffer)
+(defun gnus-kill-buffer (buffer)
   "Kill BUFFER and remove from the list of Gnus buffers."
-  `(let ((buf ,buffer))
-     (when (gnus-buffer-live-p buf)
-       (kill-buffer buf)
-       (gnus-prune-buffers))))
+  (when (gnus-buffer-live-p buffer)
+    (kill-buffer buffer)
+    (gnus-prune-buffers)))
 
 (defun gnus-buffers ()
   "Return a list of live Gnus buffers."
@@ -2529,7 +2528,8 @@ are always t.")
      ("nnmail" nnmail-split-fancy nnmail-article-group)
      ("nnvirtual" nnvirtual-catchup-group nnvirtual-convert-headers)
      ("gnus-xmas" gnus-xmas-splash)
-     ("score-mode" :interactive t gnus-score-mode gnus-score-edit-all-score)
+     ("score-mode" :interactive t gnus-score-mode)
+     ("gnus-score" :interactive t gnus-score-edit-all-score)
      ("gnus-mh" gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
      ("gnus-mh" :interactive (gnus-summary-mode) gnus-summary-save-in-folder)

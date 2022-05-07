@@ -966,8 +966,8 @@ See Bug#21722."
     (setq buffer-undo-list nil)
     (downcase-word 1)
     (should (= (length (delq nil (undo-make-selective-list 1 9))) 2))
-    (should (= (length (delq nil (undo-make-selective-list 4 9))) 1))
-    ;; FIXME this is the off-by-one error case.
+    ;; FIXME: These should give 0, but currently give 1.
+    ;;(should (= (length (delq nil (undo-make-selective-list 4 9))) 0))
     ;;(should (= (length (delq nil (undo-make-selective-list 5 9))) 0))
     (should (= (length (delq nil (undo-make-selective-list 6 9))) 0))))
 

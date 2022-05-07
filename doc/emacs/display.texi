@@ -1011,10 +1011,15 @@ in C comments, use this:
 @end example
 
 @findex font-lock-remove-keywords
+@vindex font-lock-ignore
 @noindent
 To remove keywords from the font-lock highlighting patterns, use the
 function @code{font-lock-remove-keywords}.  @xref{Search-based
 Fontification,,, elisp, The Emacs Lisp Reference Manual}.
+Alternatively, you can selectively disable highlighting due to some
+keywords by customizing the @code{font-lock-ignore} option,
+@pxref{Customizing Keywords,,, elisp, The Emacs Lisp Reference
+Manual}.
 
 @cindex just-in-time (JIT) font-lock
 @cindex background syntax highlighting
@@ -1894,12 +1899,22 @@ logical lines, so having a fringe indicator for each wrapped line
 would be visually distracting.  You can change this by customizing the
 variable @code{visual-line-fringe-indicators}.
 
+@vindex word-wrap-whitespace-mode
+  By default, Emacs only breaks lines after whitespace characters like
+@key{SPC} and @key{TAB}, but does not break after whitespace
+characters like @key{EN QUAD}.  Emacs provides a minor mode called
+@code{word-wrap-whitespace-mode} that switches on word wrapping in the
+current mode, and sets up which characters to wrap lines on based on
+the @code{word-wrap-whitespace-characters} user option.  There's also
+a globalized version of that mode called
+@code{global-word-wrap-whitespace-mode}.
+
 @vindex word-wrap-by-category
 @findex modify-category-entry
 @findex char-category-set
 @findex category-set-mnemonics
-  By default, Emacs only breaks lines after whitespace characters.
-That produces incorrect results when CJK and Latin text are mixed
+  Only breaking after whitespace character produces incorrect
+results when CJK and Latin text are mixed
 together (because CJK characters don't use whitespace to separate
 words).  You can customize the option @code{word-wrap-by-category} to
 allow Emacs to break lines after any character with @samp{|} category
@@ -2082,3 +2097,14 @@ argument to suppress the effect of bold-face in this case.
 byte with a decimal value of 128 is displayed as @code{\200}.  To
 change display to the hexadecimal format of @code{\x80}, set the
 variable @code{display-raw-bytes-as-hex} to @code{t}.
+Care may be needed when interpreting a raw byte when copying
+text from a terminal containing an Emacs session, or when a terminal's
+@code{escape-glyph} face looks like the default face.  For example, by
+default Emacs displays the four characters @samp{\}, @samp{2},
+@samp{0}, @samp{0} with the same characters it displays a byte with
+decimal value 128.  The problem can be worse with hex displays, where
+the raw byte 128 followed by the character @samp{7} is displayed as
+@code{\x807}, which Emacs Lisp reads as the single character U+0807
+SAMARITAN LETTER IT; this confusion does not occur with the
+corresponding octal display @code{\2007} because octal escapes contain
+at most three digits.

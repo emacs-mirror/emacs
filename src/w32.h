@@ -244,6 +244,9 @@ extern int w32_init_random (void *, ptrdiff_t);
 
 extern Lisp_Object w32_read_registry (HKEY, Lisp_Object, Lisp_Object);
 
+/* Used instead of execvp to restart Emacs.  */
+extern int w32_reexec_emacs (char *, const char *);
+
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 

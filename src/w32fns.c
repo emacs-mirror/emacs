@@ -1802,6 +1802,32 @@ w32_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   w32_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
+/* Enable or disable double buffering on frame F.
+
+   When double buffering is enabled, all drawing happens on a back
+   buffer (a bitmap), which is then displayed as a single operation
+   after redisplay is complete.  This avoids flicker caused by the
+   results of an incomplete redisplay becoming visible.  */
+static void
+w32_set_inhibit_double_buffering (struct frame *f,
+				  Lisp_Object new_value,
+				  /* This parameter is unused.  */
+				  Lisp_Object old_value)
+{
+  block_input ();
+
+  if (NILP (new_value))
+    FRAME_OUTPUT_DATA (f)->want_paint_buffer = 1;
+  else
+    {
+      FRAME_OUTPUT_DATA (f)->want_paint_buffer = 0;
+      w32_release_paint_buffer (f);
+
+      SET_FRAME_GARBAGED (f);
+    }
+
+  unblock_input ();
+}
 
 /* Set the pixel height of the tool bar of frame F to HEIGHT.  */
 void
@@ -4093,7 +4119,10 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
     case WM_ERASEBKGND:
       f = w32_window_to_frame (dpyinfo, hwnd);
-      if (f)
+
+      enter_crit ();
+      if (f && (w32_disable_double_buffering
+		|| !FRAME_OUTPUT_DATA (f)->paint_buffer))
 	{
 	  HDC hdc = get_frame_dc (f);
 	  GetUpdateRect (hwnd, &wmsg.rect, FALSE);
@@ -4107,6 +4136,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		     wmsg.rect.right, wmsg.rect.bottom));
 #endif /* W32_DEBUG_DISPLAY */
 	}
+      leave_crit ();
       return 1;
     case WM_PALETTECHANGED:
       /* ignore our own changes */
@@ -6080,6 +6110,10 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          ? make_fixnum (0) : make_fixnum (1),
                          NULL, NULL, RES_TYPE_NUMBER);
 
+  gui_default_parameter (f, parameters, Qinhibit_double_buffering, Qnil,
+                         "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                         RES_TYPE_BOOLEAN);
+
   gui_default_parameter (f, parameters, Qbuffer_predicate, Qnil,
                          "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
   gui_default_parameter (f, parameters, Qtitle, Qnil,
@@ -7096,6 +7130,9 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
+                         "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                         RES_TYPE_BOOLEAN);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
@@ -7329,9 +7366,8 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   decode_window_system_frame (frame);
 
   if (NILP (timeout))
-    timeout = make_fixnum (5);
-  else
-    CHECK_FIXNAT (timeout);
+    timeout = Vx_show_tooltip_timeout;
+  CHECK_FIXNAT (timeout);
 
   if (NILP (dx))
     dx = make_fixnum (5);
@@ -10432,7 +10468,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   gui_set_alpha,
   0, /* x_set_sticky */
   0, /* x_set_tool_bar_position */
-  0, /* x_set_inhibit_double_buffering */
+  w32_set_inhibit_double_buffering,
   w32_set_undecorated,
   w32_set_parent_frame,
   w32_set_skip_taskbar,
@@ -11206,6 +11242,12 @@ A value of zero indicates that the single-byte code page is in use,
 see `w32-ansi-code-page'.  */);
   w32_multibyte_code_page = _getmbcp ();
 #endif
+
+  DEFVAR_BOOL ("w32-disable-double-buffering", w32_disable_double_buffering,
+	       doc: /* Completely disable double buffering.
+This variable is used for debugging, and takes precedence over any
+value of the `inhibit-double-buffering' frame parameter.  */);
+  w32_disable_double_buffering = false;
 
   if (os_subtype == OS_SUBTYPE_NT)
     w32_unicode_gui = 1;

@@ -19,12 +19,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <Clipboard.h>
+#include <Message.h>
+#include <Path.h>
+#include <Entry.h>
 
 #include <cstdlib>
 #include <cstring>
 
 #include "haikuselect.h"
-
 
 static BClipboard *primary = NULL;
 static BClipboard *secondary = NULL;
@@ -32,8 +34,6 @@ static BClipboard *system_clipboard = NULL;
 static int64 count_clipboard = -1;
 static int64 count_primary = -1;
 static int64 count_secondary = -1;
-
-int selection_state_flag;
 
 static char *
 BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
@@ -61,9 +61,17 @@ BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
   if (len)
     *len = bt;
 
-  cb->Unlock ();
+  void *data = malloc (bt);
 
-  return strndup (ptr, bt);
+  if (!data)
+    {
+      cb->Unlock ();
+      return NULL;
+    }
+
+  memcpy (data, ptr, bt);
+  cb->Unlock ();
+  return (char *) data;
 }
 
 static void
@@ -256,4 +264,218 @@ init_haiku_select (void)
   system_clipboard = new BClipboard ("system");
   primary = new BClipboard ("primary");
   secondary = new BClipboard ("secondary");
+}
+
+int
+be_enum_message (void *message, int32 *tc, int32 index,
+		 int32 *count, const char **name_return)
+{
+  BMessage *msg = (BMessage *) message;
+  type_code type;
+  char *name;
+  status_t rc;
+
+  rc = msg->GetInfo (B_ANY_TYPE, index, &name, &type, count);
+
+  if (rc != B_OK)
+    return 1;
+
+  *tc = type;
+  *name_return = name;
+  return 0;
+}
+
+int
+be_get_refs_data (void *message, const char *name,
+		  int32 index, char **path_buffer)
+{
+  status_t rc;
+  BEntry entry;
+  BPath path;
+  entry_ref ref;
+  BMessage *msg;
+
+  msg = (BMessage *) message;
+  rc = msg->FindRef (name, index, &ref);
+
+  if (rc != B_OK)
+    return 1;
+
+  rc = entry.SetTo (&ref, 0);
+
+  if (rc != B_OK)
+    return 1;
+
+  rc = entry.GetPath (&path);
+
+  if (rc != B_OK)
+    return 1;
+
+  *path_buffer = strdup (path.Path ());
+  return 0;
+}
+
+int
+be_get_point_data (void *message, const char *name,
+		   int32 index, float *x, float *y)
+{
+  status_t rc;
+  BMessage *msg;
+  BPoint point;
+
+  msg = (BMessage *) message;
+  rc = msg->FindPoint (name, index, &point);
+
+  if (rc != B_OK)
+    return 1;
+
+  *x = point.x;
+  *y = point.y;
+
+  return 0;
+}
+
+int
+be_get_message_data (void *message, const char *name,
+		     int32 type_code, int32 index,
+		     const void **buf_return,
+		     ssize_t *size_return)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->FindData (name, type_code,
+			index, buf_return, size_return) != B_OK;
+}
+
+uint32
+be_get_message_type (void *message)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->what;
+}
+
+void
+be_set_message_type (void *message, uint32 what)
+{
+  BMessage *msg = (BMessage *) message;
+
+  msg->what = what;
+}
+
+void *
+be_get_message_message (void *message, const char *name,
+			int32 index)
+{
+  BMessage *msg = (BMessage *) message;
+  BMessage *out = new (std::nothrow) BMessage;
+
+  if (!out)
+    return NULL;
+
+  if (msg->FindMessage (name, index, out) != B_OK)
+    {
+      delete out;
+      return NULL;
+    }
+
+  return out;
+}
+
+void *
+be_create_simple_message (void)
+{
+  return new BMessage (B_SIMPLE_DATA);
+}
+
+int
+be_add_message_data (void *message, const char *name,
+		     int32 type_code, const void *buf,
+		     ssize_t buf_size)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->AddData (name, type_code, buf, buf_size) != B_OK;
+}
+
+int
+be_add_refs_data (void *message, const char *name,
+		  const char *filename)
+{
+  BEntry entry (filename);
+  entry_ref ref;
+  BMessage *msg = (BMessage *) message;
+
+  if (entry.InitCheck () != B_OK)
+    return 1;
+
+  if (entry.GetRef (&ref) != B_OK)
+    return 1;
+
+  return msg->AddRef (name, &ref) != B_OK;
+}
+
+int
+be_add_point_data (void *message, const char *name,
+		   float x, float y)
+{
+  BMessage *msg = (BMessage *) message;
+
+  return msg->AddPoint (name, BPoint (x, y)) != B_OK;
+}
+
+int
+be_add_message_message (void *message, const char *name,
+			void *data)
+{
+  BMessage *msg = (BMessage *) message;
+  BMessage *data_message = (BMessage *) data;
+
+  if (msg->AddMessage (name, data_message) != B_OK)
+    return 1;
+
+  return 0;
+}
+
+int
+be_lock_clipboard_message (enum haiku_clipboard clipboard,
+			   void **message_return, bool clear)
+{
+  BClipboard *board;
+
+  if (clipboard == CLIPBOARD_PRIMARY)
+    board = primary;
+  else if (clipboard == CLIPBOARD_SECONDARY)
+    board = secondary;
+  else
+    board = system_clipboard;
+
+  if (!board->Lock ())
+    return 1;
+
+  if (clear)
+    board->Clear ();
+
+  *message_return = board->Data ();
+  return 0;
+}
+
+void
+be_unlock_clipboard (enum haiku_clipboard clipboard, bool discard)
+{
+  BClipboard *board;
+
+  if (clipboard == CLIPBOARD_PRIMARY)
+    board = primary;
+  else if (clipboard == CLIPBOARD_SECONDARY)
+    board = secondary;
+  else
+    board = system_clipboard;
+
+  if (discard)
+    board->Revert ();
+  else
+    board->Commit ();
+
+  board->Unlock ();
 }

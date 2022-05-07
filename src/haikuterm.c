@@ -40,22 +40,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <cairo.h>
 #endif
 
+/* Minimum and maximum values used for Haiku scroll bars.  */
+#define BE_SB_MAX 12000000
+
 struct haiku_display_info *x_display_list = NULL;
 extern frame_parm_handler haiku_frame_parm_handlers[];
+
+/* This is used to determine when to evict the font lookup cache,
+   which we do every 50 updates.  */
+static int up_to_date_count;
 
 static void **fringe_bmps;
 static int max_fringe_bmp = 0;
 
 static Lisp_Object rdb;
-
-struct unhandled_event
-{
-  struct unhandled_event *next;
-  enum haiku_event_type type;
-  uint8_t buffer[200];
-};
-
-static bool any_help_event_p = false;
+static bool any_help_event_p;
 
 char *
 get_keysym_name (int keysym)
@@ -112,7 +111,7 @@ haiku_toolkit_position (struct frame *f, int x, int y,
 static void
 haiku_delete_terminal (struct terminal *terminal)
 {
-  emacs_abort ();
+  error ("The Haiku terminal cannot be deleted");
 }
 
 static const char *
@@ -137,23 +136,15 @@ get_string_resource (void *ignored, const char *name, const char *class)
 static void
 haiku_update_size_hints (struct frame *f)
 {
-  int base_width, base_height;
-  eassert (FRAME_HAIKU_P (f) && FRAME_HAIKU_WINDOW (f));
-
   if (f->tooltip)
     return;
 
-  base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-  base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
-
   block_input ();
   BWindow_set_size_alignment (FRAME_HAIKU_WINDOW (f),
-			      frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (f),
-			      frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (f));
-  BWindow_set_min_size (FRAME_HAIKU_WINDOW (f), base_width,
-			base_height
-			+ FRAME_TOOL_BAR_HEIGHT (f)
-			+ FRAME_MENU_BAR_HEIGHT (f));
+			      (frame_resize_pixelwise
+			       ? 1 : FRAME_COLUMN_WIDTH (f)),
+			      (frame_resize_pixelwise
+			       ? 1 : FRAME_LINE_HEIGHT (f)));
   unblock_input ();
 }
 
@@ -228,6 +219,13 @@ haiku_frame_up_to_date (struct frame *f)
   FRAME_MOUSE_UPDATE (f);
   if (FRAME_DIRTY_P (f) && !buffer_flipping_blocked_p ())
     haiku_flip_buffers (f);
+
+  up_to_date_count++;
+  if (up_to_date_count == 50)
+    {
+      be_evict_font_cache ();
+      up_to_date_count = 0;
+    }
   unblock_input ();
 }
 
@@ -406,26 +404,102 @@ haiku_frame_raise_lower (struct frame *f, bool raise_p)
 }
 
 static struct frame *
-haiku_mouse_or_wdesc_frame (void *window)
+haiku_mouse_or_wdesc_frame (void *window, bool accept_tooltip)
 {
   struct frame *lm_f = (gui_mouse_grabbed (x_display_list)
 			? x_display_list->last_mouse_frame
 			: NULL);
 
-  if (lm_f && !EQ (track_mouse, Qdropping))
+  if (lm_f && !EQ (track_mouse, Qdropping)
+      && !EQ (track_mouse, Qdrag_source))
     return lm_f;
   else
     {
       struct frame *w_f = haiku_window_to_frame (window);
 
       /* Do not return a tooltip frame.  */
-      if (!w_f || FRAME_TOOLTIP_P (w_f))
+      if (!w_f || (FRAME_TOOLTIP_P (w_f) && !accept_tooltip))
 	return EQ (track_mouse, Qdropping) ? lm_f : NULL;
       else
 	/* When dropping it would be probably nice to raise w_f
 	   here.  */
 	return w_f;
     }
+}
+
+/* Set the thumb size and position of scroll bar BAR.  We are
+   currently displaying PORTION out of a whole WHOLE, and our position
+   POSITION.  */
+
+static void
+haiku_set_scroll_bar_thumb (struct scroll_bar *bar, int portion,
+			    int position, int whole)
+{
+  void *scroll_bar = bar->scroll_bar;
+  double top, shown, size, value;
+
+  if (scroll_bar_adjust_thumb_portion_p)
+    {
+      /* We use an estimate of 30 chars per line rather than the real
+         `portion' value.  This has the disadvantage that the thumb
+         size is not very representative, but it makes our life a lot
+         easier.  Otherwise, we have to constantly adjust the thumb
+         size, which we can't always do quickly enough: while
+         dragging, the size of the thumb might prevent the user from
+         dragging the thumb all the way to the end.  */
+      portion = WINDOW_TOTAL_LINES (XWINDOW (bar->window)) * 30;
+      /* When the thumb is at the bottom, position == whole.  So we
+         need to increase `whole' to make space for the thumb.  */
+      whole += portion;
+    }
+  else
+    bar->page_size = 0;
+
+  if (whole <= 0)
+    top = 0, shown = 1;
+  else
+    {
+      top = (double) position / whole;
+      shown = (double) portion / whole;
+    }
+
+  /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
+     is the scroll bar's maximum and MIN is the scroll bar's minimum
+     value.  */
+  size = clip_to_bounds (1, shown * BE_SB_MAX, BE_SB_MAX);
+
+  /* Position.  Must be in the range [MIN .. MAX - SLIDER_SIZE].  */
+  value = top * BE_SB_MAX;
+  value = min (value, BE_SB_MAX - size);
+
+  if (!bar->dragging && scroll_bar_adjust_thumb_portion_p)
+    bar->page_size = size;
+
+  BView_scroll_bar_update (scroll_bar, lrint (size),
+			   BE_SB_MAX, ceil (value),
+			   (scroll_bar_adjust_thumb_portion_p
+			    ? bar->dragging : bar->dragging ? -1 : 0),
+			   !scroll_bar_adjust_thumb_portion_p);
+}
+
+static void
+haiku_set_horizontal_scroll_bar_thumb (struct scroll_bar *bar, int portion,
+				       int position, int whole)
+{
+  void *scroll_bar = bar->scroll_bar;
+  double size, value, shown, top;
+
+  shown = (double) portion / whole;
+  top = (double) position / whole;
+
+  size = shown * BE_SB_MAX;
+  value = top * BE_SB_MAX;
+
+  if (!bar->dragging)
+    bar->page_size = size;
+
+  BView_scroll_bar_update (scroll_bar, lrint (size), BE_SB_MAX,
+			   ceil (value), bar->dragging ? -1 : 0, true);
 }
 
 static struct scroll_bar *
@@ -531,35 +605,45 @@ haiku_calculate_relief_colors (struct glyph_string *s, uint32_t *rgbout_w,
 			       uint32_t *rgbout_b)
 {
   struct face *face = s->face;
+  double h, cs, l;
+  uint32_t rgbin;
+  struct haiku_output *di;
 
-  prepare_face_for_display (s->f, s->face);
-
-  uint32_t rgbin = face->use_box_color_for_shadows_p
-    ?  face->box_color : face->background;
+  rgbin = (face->use_box_color_for_shadows_p
+	   ? face->box_color : face->background);
+  di = FRAME_OUTPUT_DATA (s->f);
 
   if (s->hl == DRAW_CURSOR)
     rgbin = FRAME_CURSOR_COLOR (s->f).pixel;
 
-  double h, cs, l;
-  rgb_color_hsl (rgbin, &h, &cs, &l);
+  if (di->relief_background != rgbin)
+    {
+      di->relief_background = rgbin & 0xffffffff;
 
-  hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 0.6), rgbout_b);
-  hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 1.2), rgbout_w);
+      rgb_color_hsl (rgbin, &h, &cs, &l);
+      hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 0.6),
+		     &di->black_relief_pixel);
+      hsl_color_rgb (h, cs, fmin (1.0, fmax (0.2, l) * 1.2),
+		     &di->white_relief_pixel);
+    }
+
+  *rgbout_w = di->white_relief_pixel;
+  *rgbout_b = di->black_relief_pixel;
 }
 
 static void
 haiku_draw_relief_rect (struct glyph_string *s,
 			int left_x, int top_y, int right_x, int bottom_y,
-			int hwidth, int vwidth, bool raised_p, bool top_p, bool bot_p,
-			bool left_p, bool right_p,
+			int hwidth, int vwidth, bool raised_p, bool top_p,
+			bool bot_p, bool left_p, bool right_p,
 			struct haiku_rect *clip_rect, bool fancy_p)
 {
-  uint32_t color_white;
-  uint32_t color_black;
+  uint32_t color_white, color_black;
+  void *view;
 
   haiku_calculate_relief_colors (s, &color_white, &color_black);
 
-  void *view = FRAME_HAIKU_VIEW (s->f);
+  view = FRAME_HAIKU_VIEW (s->f);
   BView_SetHighColor (view, raised_p ? color_white : color_black);
   if (clip_rect)
     {
@@ -636,14 +720,13 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
 {
   int wave_height = 3, wave_length = 2;
   int y, dx, dy, odd, xmax;
+  float ax, ay, bx, by;
+  void *view = FRAME_HAIKU_VIEW (s->f);
+
   dx = wave_length;
   dy = wave_height - 1;
   y = s->ybase - wave_height + 3;
-
-  float ax, ay, bx, by;
   xmax = x + width;
-
-  void *view = FRAME_HAIKU_VIEW (s->f);
 
   BView_StartClip (view);
   haiku_clip_to_string (s);
@@ -980,6 +1063,8 @@ haiku_draw_glyph_string_foreground (struct glyph_string *s)
       for (i = 0; i < s->nchars; ++i)
 	{
 	  struct glyph *g = s->first_glyph + i;
+
+	  BView_SetPenSize (view, 1);
 	  BView_StrokeRectangle (view, x, s->y, g->pixel_width,
 				 s->height);
 	  x += g->pixel_width;
@@ -1011,6 +1096,7 @@ haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
   unsigned char2b[8];
   int x, i, j;
   struct face *face = s->face;
+  unsigned long color;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
@@ -1074,11 +1160,21 @@ haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 				 s->ybase + glyph->slice.glyphless.lower_yoff,
 				 false);
 	}
+
       if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
-	BView_FillRectangle (FRAME_HAIKU_VIEW (s->f),
-			     x, s->ybase - glyph->ascent,
-			     glyph->pixel_width - 1,
-			     glyph->ascent + glyph->descent - 1);
+	{
+	  if (s->hl == DRAW_CURSOR)
+	    haiku_merge_cursor_foreground (s, NULL, &color);
+	  else
+	    color = s->face->foreground;
+
+	  BView_SetHighColor (FRAME_HAIKU_VIEW (s->f), color);
+	  BView_SetPenSize (FRAME_HAIKU_VIEW (s->f), 1);
+	  BView_StrokeRectangle (FRAME_HAIKU_VIEW (s->f),
+				 x, s->ybase - glyph->ascent,
+				 glyph->pixel_width,
+				 glyph->ascent + glyph->descent);
+	}
       x += glyph->pixel_width;
    }
 }
@@ -1247,14 +1343,16 @@ haiku_draw_composite_glyph_string_foreground (struct glyph_string *s)
 
   /* Draw a rectangle for the composition if the font for the very
      first character of the composition could not be loaded.  */
-
   if (s->font_not_found_p && !s->cmp_from)
     {
       if (s->hl == DRAW_CURSOR)
 	BView_SetHighColor (view, FRAME_OUTPUT_DATA (s->f)->cursor_fg);
       else
 	BView_SetHighColor (view, s->face->foreground);
-      BView_StrokeRectangle (view, s->x, s->y, s->width - 1, s->height - 1);
+
+      BView_SetPenSize (view, 1);
+      BView_StrokeRectangle (view, s->x, s->y,
+			     s->width, s->height);
     }
   else if (!s->first_glyph->u.cmp.automatic)
     {
@@ -1739,6 +1837,22 @@ static void
 haiku_set_window_size (struct frame *f, bool change_gravity,
 		       int width, int height)
 {
+  Lisp_Object frame;
+
+  /* On X Windows, window managers typically disallow resizing a
+     window when it is fullscreen.  Do the same here.  */
+
+  XSETFRAME (frame, f);
+  if (!NILP (Fframe_parameter (frame, Qfullscreen))
+      /* Only do this if the fullscreen status has actually been
+	 applied.  */
+      && f->want_fullscreen == FULLSCREEN_NONE
+      /* And if the configury during frame completion has been
+	 completed.  Otherwise, there will be no valid "old size" to
+	 go back to.  */
+      && FRAME_OUTPUT_DATA (f)->configury_done)
+    return;
+
   haiku_update_size_hints (f);
 
   if (FRAME_HAIKU_WINDOW (f))
@@ -1877,7 +1991,8 @@ haiku_draw_window_cursor (struct window *w,
 static void
 haiku_show_hourglass (struct frame *f)
 {
-  if (FRAME_OUTPUT_DATA (f)->hourglass_p)
+  if (FRAME_TOOLTIP_P (f)
+      || FRAME_OUTPUT_DATA (f)->hourglass_p)
     return;
 
   block_input ();
@@ -1892,7 +2007,8 @@ haiku_show_hourglass (struct frame *f)
 static void
 haiku_hide_hourglass (struct frame *f)
 {
-  if (!FRAME_OUTPUT_DATA (f)->hourglass_p)
+  if (FRAME_TOOLTIP_P (f)
+      || !FRAME_OUTPUT_DATA (f)->hourglass_p)
     return;
 
   block_input ();
@@ -2211,7 +2327,6 @@ haiku_set_horizontal_scroll_bar (struct window *w, int portion, int whole, int p
   if (NILP (w->horizontal_scroll_bar))
     {
       bar = haiku_scroll_bar_create (w, left, top, width, height, true);
-      BView_scroll_bar_update (bar->scroll_bar, portion, whole, position);
       bar->update = position;
       bar->position = position;
       bar->total = whole;
@@ -2234,13 +2349,9 @@ haiku_set_horizontal_scroll_bar (struct window *w, int portion, int whole, int p
 	  bar->width = width;
 	  bar->height = height;
 	}
-
-      if (!bar->dragging)
-	{
-	  BView_scroll_bar_update (bar->scroll_bar, portion, whole, position);
-	  BView_invalidate (bar->scroll_bar);
-	}
     }
+
+  haiku_set_horizontal_scroll_bar_thumb (bar, portion, position, whole);
   bar->position = position;
   bar->total = whole;
   XSETVECTOR (barobj, bar);
@@ -2271,7 +2382,6 @@ haiku_set_vertical_scroll_bar (struct window *w,
   if (NILP (w->vertical_scroll_bar))
     {
       bar = haiku_scroll_bar_create (w, left, top, width, height, false);
-      BView_scroll_bar_update (bar->scroll_bar, portion, whole, position);
       bar->position = position;
       bar->total = whole;
     }
@@ -2293,15 +2403,9 @@ haiku_set_vertical_scroll_bar (struct window *w,
 	  bar->width = width;
 	  bar->height = height;
 	}
-
-      if (!bar->dragging)
-	{
-	  BView_scroll_bar_update (bar->scroll_bar, portion, whole, position);
-	  bar->update = position;
-	  BView_invalidate (bar->scroll_bar);
-	}
     }
 
+  haiku_set_scroll_bar_thumb (bar, portion, position, whole);
   bar->position = position;
   bar->total = whole;
 
@@ -2447,17 +2551,26 @@ haiku_scroll_run (struct window *w, struct run *run)
   unblock_input ();
 }
 
+/* Haiku doesn't provide any way to get the frame actually underneath
+   the pointer, so we typically return dpyinfo->last_mouse_frame if
+   the display is grabbed and `track-mouse' is not `dropping' or
+   `drag-source'; failing that, we return the selected frame, and
+   finally a random window system frame (as long as `track-mouse' is
+   not `drag-source') if that didn't work either.  */
 static void
 haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		      enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 		      Time *timestamp)
 {
   Lisp_Object frame, tail;
-  struct frame *f1 = NULL;
+  struct frame *f1;
+  int screen_x, screen_y;
+  void *view;
 
   if (!fp)
     return;
 
+  f1 = NULL;
   block_input ();
 
   FOR_EACH_FRAME (tail, frame)
@@ -2466,15 +2579,14 @@ haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	XFRAME (frame)->mouse_moved = false;
     }
 
-  if (gui_mouse_grabbed (x_display_list) && !EQ (track_mouse, Qdropping))
+  if (gui_mouse_grabbed (x_display_list)
+      && !EQ (track_mouse, Qdropping)
+      && !EQ (track_mouse, Qdrag_source))
     f1 = x_display_list->last_mouse_frame;
+  else
+    f1 = x_display_list->last_mouse_motion_frame;
 
-  if (!f1 || FRAME_TOOLTIP_P (f1))
-    f1 = ((EQ (track_mouse, Qdropping) && gui_mouse_grabbed (x_display_list))
-	  ? x_display_list->last_mouse_frame
-	  : NULL);
-
-  if (!f1 && insist > 0)
+  if (!f1 && FRAME_HAIKU_P (SELECTED_FRAME ()))
     f1 = SELECTED_FRAME ();
 
   if (!f1 || (!FRAME_HAIKU_P (f1) && (insist > 0)))
@@ -2483,26 +2595,37 @@ haiku_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	  !FRAME_TOOLTIP_P (XFRAME (frame)))
 	f1 = XFRAME (frame);
 
-  if (FRAME_TOOLTIP_P (f1))
+  if (f1 && FRAME_TOOLTIP_P (f1))
     f1 = NULL;
 
   if (f1 && FRAME_HAIKU_P (f1))
     {
-      int sx, sy;
-      void *view = FRAME_HAIKU_VIEW (f1);
+      view = FRAME_HAIKU_VIEW (f1);
+
       if (view)
 	{
-	  BView_get_mouse (view, &sx, &sy);
-
-	  remember_mouse_glyph (f1, sx, sy, &x_display_list->last_mouse_glyph);
+	  BView_get_mouse (view, &screen_x, &screen_y);
+	  remember_mouse_glyph (f1, screen_x, screen_y,
+				&x_display_list->last_mouse_glyph);
 	  x_display_list->last_mouse_glyph_frame = f1;
 
 	  *bar_window = Qnil;
 	  *part = scroll_bar_above_handle;
-	  *fp = f1;
+
+	  /* If track-mouse is `drag-source' and the mouse pointer is
+	     certain to not be actually under the chosen frame, return
+	     NULL in FP to at least try being consistent with X.  */
+	  if (EQ (track_mouse, Qdrag_source)
+	      && (screen_x < 0 || screen_y < 0
+		  || screen_x >= FRAME_PIXEL_WIDTH (f1)
+		  || screen_y >= FRAME_PIXEL_HEIGHT (f1)))
+	    *fp = NULL;
+	  else
+	    *fp = f1;
+
 	  *timestamp = x_display_list->last_mouse_movement_time;
-	  XSETINT (*x, sx);
-	  XSETINT (*y, sy);
+	  XSETINT (*x, screen_x);
+	  XSETINT (*y, screen_y);
 	}
     }
 
@@ -2524,8 +2647,9 @@ haiku_flush (struct frame *f)
 static void
 haiku_define_frame_cursor (struct frame *f, Emacs_Cursor cursor)
 {
-  if (f->tooltip)
+  if (FRAME_TOOLTIP_P (f))
     return;
+
   block_input ();
   if (!f->pointer_invisible && FRAME_HAIKU_VIEW (f)
       && !FRAME_OUTPUT_DATA (f)->hourglass_p)
@@ -2646,44 +2770,69 @@ haiku_make_fullscreen_consistent (struct frame *f)
 }
 
 static void
-flush_dirty_back_buffers (void)
+haiku_flush_dirty_back_buffer_on (struct frame *f)
 {
-  block_input ();
-  Lisp_Object tail, frame;
-  FOR_EACH_FRAME (tail, frame)
+  if (!FRAME_GARBAGED_P (f)
+      && !buffer_flipping_blocked_p ()
+      && FRAME_DIRTY_P (f))
+    haiku_flip_buffers (f);
+}
+
+/* N.B. that support for TYPE must be explictly added to
+   haiku_read_socket.  */
+void
+haiku_wait_for_event (struct frame *f, int type)
+{
+  int input_blocked_to;
+  object_wait_info info;
+  specpdl_ref depth;
+
+  input_blocked_to = interrupt_input_blocked;
+  info.object = port_application_to_emacs;
+  info.type = B_OBJECT_TYPE_PORT;
+  info.events = B_EVENT_READ;
+
+  depth = SPECPDL_INDEX ();
+  specbind (Qinhibit_quit, Qt);
+
+  FRAME_OUTPUT_DATA (f)->wait_for_event_type = type;
+
+  while (FRAME_OUTPUT_DATA (f)->wait_for_event_type == type)
     {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) &&
-          FRAME_HAIKU_P (f) &&
-          FRAME_HAIKU_WINDOW (f) &&
-          !FRAME_GARBAGED_P (f) &&
-          !buffer_flipping_blocked_p () &&
-          FRAME_DIRTY_P (f))
-        haiku_flip_buffers (f);
+      if (wait_for_objects (&info, 1) < B_OK)
+	continue;
+
+      pending_signals = true;
+      /* This will call the read_socket_hook.  */
+      totally_unblock_input ();
+      interrupt_input_blocked = input_blocked_to;
+      info.events = B_EVENT_READ;
     }
-  unblock_input ();
+
+  unbind_to (depth, Qnil);
 }
 
 static int
 haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
-  block_input ();
-  int message_count = 0;
-  static void *buf = NULL;
+  int message_count;
+  static void *buf;
   ssize_t b_size;
-  struct unhandled_event *unhandled_events = NULL;
-  int button_or_motion_p;
-  int need_flush = 0;
-  int do_help = 0;
+  int button_or_motion_p, do_help;
+  enum haiku_event_type type;
+  struct input_event inev, inev2;
 
+  message_count = 0;
+  button_or_motion_p = 0;
+  do_help = 0;
+  buf = NULL;
+
+  block_input ();
   if (!buf)
     buf = xmalloc (200);
   haiku_read_size (&b_size, false);
   while (b_size >= 0)
     {
-      enum haiku_event_type type;
-      struct input_event inev, inev2;
-
       if (b_size > 200)
 	emacs_abort ();
 
@@ -2695,7 +2844,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
       inev2.arg = Qnil;
 
       button_or_motion_p = 0;
-
       haiku_read (&type, buf, b_size);
 
       switch (type)
@@ -2751,19 +2899,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		cancel_mouse_face (f);
 		haiku_clear_under_internal_border (f);
 	      }
-
-	    if (FRAME_OUTPUT_DATA (f)->pending_zoom_width != width ||
-		FRAME_OUTPUT_DATA (f)->pending_zoom_height != height)
-	      {
-		FRAME_OUTPUT_DATA (f)->zoomed_p = 0;
-		haiku_make_fullscreen_consistent (f);
-	      }
-	    else
-	      {
-		FRAME_OUTPUT_DATA (f)->zoomed_p = 1;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_width = INT_MIN;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_height = INT_MIN;
-	      }
 	    break;
 	  }
 	case FRAME_EXPOSED:
@@ -2775,7 +2910,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      continue;
 
 	    expose_frame (f, b->x, b->y, b->width, b->height);
-
 	    haiku_clear_under_internal_border (f);
 	    break;
 	  }
@@ -2784,6 +2918,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_key_event *b = buf;
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
 	    struct frame *f = haiku_window_to_frame (b->window);
+
+	    if (!f)
+	      continue;
 
 	    /* If mouse-highlight is an integer, input clears out
 	       mouse highlighting.  */
@@ -2794,11 +2931,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      {
 		clear_mouse_face (hlinfo);
 		hlinfo->mouse_face_hidden = true;
-		need_flush = 1;
+		haiku_flush_dirty_back_buffer_on (f);
 	      }
-
-	    if (!f)
-	      continue;
 
 	    inev.code = b->keysym ? b->keysym : b->multibyte_char;
 
@@ -2828,8 +2962,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    if ((x_display_list->focus_event_frame != f && b->activated_p) ||
-		(x_display_list->focus_event_frame == f && !b->activated_p))
+	    if ((x_display_list->focus_event_frame != f && b->activated_p)
+		|| (x_display_list->focus_event_frame == f && !b->activated_p))
 	      {
 		haiku_new_focus_frame (b->activated_p ? f : NULL);
 		if (b->activated_p)
@@ -2862,8 +2996,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	case MOUSE_MOTION:
 	  {
 	    struct haiku_mouse_motion_event *b = buf;
-	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window);
+	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window, true);
 	    Mouse_HLInfo *hlinfo = &x_display_list->mouse_highlight;
+	    Lisp_Object frame;
 
 	    if (!f)
 	      continue;
@@ -2876,11 +3011,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		if (any_help_event_p)
 		  do_help = -1;
-
 		break;
 	      }
 
-	    Lisp_Object frame;
 	    XSETFRAME (frame, f);
 
 	    x_display_list->last_mouse_movement_time = b->time / 1000;
@@ -2890,7 +3023,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      {
 		hlinfo->mouse_face_hidden = false;
 		clear_mouse_face (hlinfo);
-		need_flush = 1;
+		haiku_flush_dirty_back_buffer_on (f);
 	      }
 
 	    if (b->just_exited_p)
@@ -2903,7 +3036,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    clear_mouse_face (hlinfo);
 		    hlinfo->mouse_face_mouse_frame = 0;
 
-		    need_flush = 1;
+		    haiku_flush_dirty_back_buffer_on (f);
 		  }
 
 		if (f->auto_lower && !popup_activated_p
@@ -2974,7 +3107,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    || b->y < r.y || b->y >= r.y + r.height)
 		  {
 		    f->mouse_moved = true;
-		    dpyinfo->last_mouse_scroll_bar = NULL;
 		    note_mouse_highlight (f, b->x, b->y);
 		    remember_mouse_glyph (f, b->x, b->y,
 					  &FRAME_DISPLAY_INFO (f)->last_mouse_glyph);
@@ -2996,8 +3128,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 			&& (!NILP (focus_follows_mouse)
 			    || f == SELECTED_FRAME ()))
 		      {
-			inev.kind = SELECT_WINDOW_EVENT;
-			inev.frame_or_window = window;
+			inev2.kind = SELECT_WINDOW_EVENT;
+			inev2.frame_or_window = window;
 		      }
 
 		    last_mouse_window = window;
@@ -3012,16 +3144,40 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		if (!NILP (help_echo_string)
 		    || !NILP (previous_help_echo_string))
 		  do_help = 1;
+
+		if (b->dnd_message)
+		  {
+		    /* It doesn't make sense to show tooltips when
+		       another program is dragging stuff over us.  */
+
+		    if (any_help_event_p || do_help)
+		      do_help = -1;
+
+		    if (!be_drag_and_drop_in_progress ())
+		      {
+			inev.kind = DRAG_N_DROP_EVENT;
+			inev.arg = Qlambda;
+
+			XSETINT (inev.x, b->x);
+			XSETINT (inev.y, b->y);
+			XSETFRAME (inev.frame_or_window, f);
+		      }
+		    else
+		      haiku_note_drag_motion ();
+
+		    break;
+		  }
 	      }
 
-	    need_flush = FRAME_DIRTY_P (f);
+	    if (FRAME_DIRTY_P (f))
+	      haiku_flush_dirty_back_buffer_on (f);
 	    break;
 	  }
 	case BUTTON_UP:
 	case BUTTON_DOWN:
 	  {
 	    struct haiku_button_event *b = buf;
-	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window);
+	    struct frame *f = haiku_mouse_or_wdesc_frame (b->window, false);
 	    Lisp_Object tab_bar_arg = Qnil;
 	    int tab_bar_p = 0, tool_bar_p = 0;
 	    bool up_okay_p = false;
@@ -3052,7 +3208,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		  {
 		    tab_bar_arg = handle_tab_bar_click
 		      (f, x, y, type == BUTTON_DOWN, inev.modifiers);
-		    need_flush = 1;
+		    haiku_flush_dirty_back_buffer_on (f);
 		  }
 	      }
 
@@ -3064,13 +3220,15 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		int y = b->y;
 
 		window = window_from_coordinates (f, x, y, 0, true, true);
-		tool_bar_p = EQ (window, f->tool_bar_window);
+		tool_bar_p = (EQ (window, f->tool_bar_window)
+			      && (type != BUTTON_UP
+				  || f->last_tool_bar_item != -1));
 
 		if (tool_bar_p)
 		  {
 		    handle_tool_bar_click
 		      (f, x, y, type == BUTTON_DOWN, inev.modifiers);
-		    need_flush = 1;
+		    haiku_flush_dirty_back_buffer_on (f);
 		  }
 	      }
 
@@ -3149,16 +3307,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    if (FRAME_OUTPUT_DATA (f)->pending_zoom_x != b->x ||
-		FRAME_OUTPUT_DATA (f)->pending_zoom_y != b->y)
-	      FRAME_OUTPUT_DATA (f)->zoomed_p = 0;
-	    else
-	      {
-		FRAME_OUTPUT_DATA (f)->zoomed_p = 1;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_x = INT_MIN;
-		FRAME_OUTPUT_DATA (f)->pending_zoom_y = INT_MIN;
-	      }
-
 	    if (FRAME_PARENT_FRAME (f))
 	      haiku_coords_from_parent (f, &b->x, &b->y);
 
@@ -3191,6 +3339,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    struct haiku_scroll_bar_value_event *b = buf;
 	    struct scroll_bar *bar
 	      = haiku_scroll_bar_from_widget (b->scroll_bar, b->window);
+	    int portion, whole;
 
 	    if (!bar)
 	      continue;
@@ -3205,13 +3354,29 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    if (bar->position != b->position)
 	      {
-		inev.kind = bar->horizontal ? HORIZONTAL_SCROLL_BAR_CLICK_EVENT :
-		  SCROLL_BAR_CLICK_EVENT;
+		inev.kind = (bar->horizontal
+			     ? HORIZONTAL_SCROLL_BAR_CLICK_EVENT :
+			     SCROLL_BAR_CLICK_EVENT);
 		inev.part = bar->horizontal ?
 		  scroll_bar_horizontal_handle : scroll_bar_handle;
 
-		XSETINT (inev.x, b->position);
-		XSETINT (inev.y, bar->total);
+		if (bar->horizontal)
+		  {
+		    portion = bar->total * ((float) b->position
+					    / BE_SB_MAX);
+		    whole = (bar->total
+			     * ((float) (BE_SB_MAX - bar->page_size)
+				/ BE_SB_MAX));
+		    portion = min (portion, whole);
+		  }
+		else
+		  {
+		    whole = BE_SB_MAX - bar->page_size;
+		    portion = min (b->position, whole);
+		  }
+
+		XSETINT (inev.x, portion);
+		XSETINT (inev.y, whole);
 		XSETWINDOW (inev.frame_or_window, w);
 	      }
 	    break;
@@ -3332,7 +3497,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    break;
 	  }
-
 	case MENU_BAR_RESIZE:
 	  {
 	    struct haiku_menu_bar_resize_event *b = buf;
@@ -3341,17 +3505,36 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
 	      continue;
 
+	    if (FRAME_OUTPUT_DATA (f)->wait_for_event_type
+		== MENU_BAR_RESIZE)
+	      FRAME_OUTPUT_DATA (f)->wait_for_event_type = -1;
+
 	    int old_height = FRAME_MENU_BAR_HEIGHT (f);
 
-	    FRAME_MENU_BAR_HEIGHT (f) = b->height + 1;
-	    FRAME_MENU_BAR_LINES (f) =
-	      (b->height + FRAME_LINE_HEIGHT (f)) / FRAME_LINE_HEIGHT (f);
+	    FRAME_MENU_BAR_HEIGHT (f) = b->height;
+	    FRAME_MENU_BAR_LINES (f)
+	      = (b->height + FRAME_LINE_HEIGHT (f)) / FRAME_LINE_HEIGHT (f);
 
 	    if (old_height != b->height)
 	      {
 		adjust_frame_size (f, -1, -1, 3, true, Qmenu_bar_lines);
 		haiku_clear_under_internal_border (f);
 	      }
+	    break;
+	  }
+	case MENU_BAR_CLICK:
+	  {
+	    struct haiku_menu_bar_click_event *b = buf;
+	    struct frame *f = haiku_window_to_frame (b->window);
+
+	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
+	      continue;
+
+	    if (!FRAME_OUTPUT_DATA (f)->saved_menu_event)
+	      FRAME_OUTPUT_DATA (f)->saved_menu_event = xmalloc (sizeof *b);
+	    *FRAME_OUTPUT_DATA (f)->saved_menu_event = *b;
+	    inev.kind = MENU_BAR_ACTIVATE_EVENT;
+	    XSETFRAME (inev.frame_or_window, f);
 	    break;
 	  }
 	case MENU_BAR_OPEN:
@@ -3365,35 +3548,14 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 	    if (type == MENU_BAR_OPEN)
 	      {
-		/* b->no_lock means that MenusBeginning was called
-		   from the main thread, which means tracking was
-		   started manually, and we have already updated the
-		   menu bar.  */
-		if (!b->no_lock)
-		  {
-		    BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
-		    /* This shouldn't be here, but nsmenu does it, so
-		       it should probably be safe.  */
-		    int was_waiting_for_input_p = waiting_for_input;
-		    if (waiting_for_input)
-		      waiting_for_input = 0;
-		    set_frame_menubar (f, 1);
-		    waiting_for_input = was_waiting_for_input_p;
-		    BView_draw_unlock (FRAME_HAIKU_VIEW (f));
-		  }
-
-		/* But set the flag anyway, because the menu will end
-		   from the window thread.  */
 		FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 1;
 		popup_activated_p += 1;
-
-		if (!b->no_lock)
-		  EmacsWindow_signal_menu_update_complete (b->window);
 	      }
 	    else
 	      {
 		if (!popup_activated_p)
 		  emacs_abort ();
+
 		if (FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
 		  {
 		    FRAME_OUTPUT_DATA (f)->menu_bar_open_p = 0;
@@ -3410,22 +3572,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f))
 	      continue;
 
-	    if (FRAME_OUTPUT_DATA (f)->menu_up_to_date_p)
-	      find_and_call_menu_selection (f, f->menu_bar_items_used,
-					    f->menu_bar_vector, b->ptr);
-	    break;
-	  }
-	case FILE_PANEL_EVENT:
-	  {
-	    if (!popup_activated_p)
-	      continue;
-
-	    struct unhandled_event *ev = xmalloc (sizeof *ev);
-	    ev->next = unhandled_events;
-	    ev->type = type;
-	    memcpy (&ev->buffer, buf, 200);
-
-	    unhandled_events = ev;
+	    find_and_call_menu_selection (f, f->menu_bar_items_used,
+					  f->menu_bar_vector, b->ptr);
 	    break;
 	  }
 	case MENU_BAR_HELP_EVENT:
@@ -3436,12 +3584,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      continue;
 
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f) ||
-		!FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
+	    if (!f || !FRAME_EXTERNAL_MENU_BAR (f)
+		|| !FRAME_OUTPUT_DATA (f)->menu_bar_open_p)
 	      continue;
 
 	    run_menu_bar_help_event (f, b->mb_idx);
-
 	    break;
 	  }
 	case ZOOM_EVENT:
@@ -3453,39 +3600,35 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_height = b->height;
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_width = b->width;
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_x = b->x;
-	    FRAME_OUTPUT_DATA (f)->pending_zoom_y = b->y;
-
-	    FRAME_OUTPUT_DATA (f)->zoomed_p = 1;
+	    FRAME_OUTPUT_DATA (f)->zoomed_p = b->zoomed;
 	    haiku_make_fullscreen_consistent (f);
 	    break;
 	  }
-	case REFS_EVENT:
+	case DRAG_AND_DROP_EVENT:
 	  {
-	    struct haiku_refs_event *b = buf;
+	    struct haiku_drag_and_drop_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
 
 	    if (!f)
 	      {
-		free (b->ref);
+		BMessage_delete (b->message);
 		continue;
 	      }
 
 	    inev.kind = DRAG_N_DROP_EVENT;
-	    inev.arg = build_string_from_utf8 (b->ref);
+	    inev.arg = haiku_message_to_lisp (b->message);
 
 	    XSETINT (inev.x, b->x);
 	    XSETINT (inev.y, b->y);
 	    XSETFRAME (inev.frame_or_window, f);
 
-	    /* There should be no problem with calling free here.
-	       free on Haiku is thread-safe.  */
-	    free (b->ref);
+	    BMessage_delete (b->message);
 	    break;
 	  }
 	case APP_QUIT_REQUESTED_EVENT:
+	  inev.kind = SAVE_SESSION_EVENT;
+	  inev.arg = Qt;
+	  break;
 	case KEY_UP:
 	case DUMMY_EVENT:
 	default:
@@ -3515,14 +3658,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	}
     }
 
-  for (struct unhandled_event *ev = unhandled_events; ev;)
-    {
-      haiku_write_without_signal (ev->type, &ev->buffer, false);
-      struct unhandled_event *old = ev;
-      ev = old->next;
-      xfree (old);
-    }
-
   if (do_help && !(hold_quit && hold_quit->kind != NO_EVENT))
     {
       Lisp_Object help_frame = Qnil;
@@ -3544,9 +3679,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  gen_help_event (Qnil, help_frame, Qnil, Qnil, 0);
 	}
     }
-
-  if (need_flush)
-    flush_dirty_back_buffers ();
 
   unblock_input ();
 
@@ -3584,10 +3716,13 @@ haiku_flash (struct frame *f)
   int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
   int width = flash_right - flash_left;
   void *view = FRAME_HAIKU_VIEW (f);
-  struct timespec delay, wakeup, current, timeout;
+  object_wait_info info;
+  bigtime_t wakeup;
 
-  delay = make_timespec (0, 150 * 1000 * 1000);
-  wakeup = timespec_add (current_timespec (), delay);
+  info.object = port_application_to_emacs;
+  info.type = B_OBJECT_TYPE_PORT;
+  info.events = B_EVENT_READ;
+  wakeup = system_time () + 150000;
 
   BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
 		   FRAME_PIXEL_HEIGHT (f));
@@ -3621,17 +3756,17 @@ haiku_flash (struct frame *f)
      available.  */
   while (!detect_input_pending ())
     {
-      current = current_timespec ();
-
       /* Break if result would not be positive.  */
-      if (timespec_cmp (wakeup, current) <= 0)
+      if (wakeup < system_time ())
 	break;
 
-      /* How long `select' should wait.  */
-      timeout = make_timespec (0, 10 * 1000 * 1000);
-
       /* Try to wait that long--but we might wake up sooner.  */
-      pselect (0, NULL, NULL, NULL, &timeout, NULL);
+      wait_for_objects_etc (&info, 1, B_ABSOLUTE_TIMEOUT, wakeup);
+
+      if (info.events & B_EVENT_READ)
+	break;
+
+      info.events = B_EVENT_READ;
     }
 
   BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
@@ -3684,12 +3819,12 @@ haiku_toggle_invisible_pointer (struct frame *f, bool invisible_p)
 {
   void *view = FRAME_HAIKU_VIEW (f);
 
-  if (view)
+  if (view && !FRAME_TOOLTIP_P (f))
     {
       block_input ();
-      BView_set_view_cursor (view, invisible_p ?
-			     FRAME_OUTPUT_DATA (f)->no_cursor :
-			     FRAME_OUTPUT_DATA (f)->current_cursor);
+      BView_set_view_cursor (view, (invisible_p
+				    ? FRAME_OUTPUT_DATA (f)->no_cursor
+				    : FRAME_OUTPUT_DATA (f)->current_cursor));
       f->pointer_invisible = invisible_p;
       unblock_input ();
     }
@@ -3698,14 +3833,18 @@ haiku_toggle_invisible_pointer (struct frame *f, bool invisible_p)
 static void
 haiku_fullscreen (struct frame *f)
 {
+  /* When FRAME_OUTPUT_DATA (f)->configury_done is false, the frame is
+     being created, and its regular width and height have not yet been
+     set.  This function will be called again by haiku_create_frame,
+     so do nothing.  */
+  if (!FRAME_OUTPUT_DATA (f)->configury_done)
+    return;
+
   if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
-    {
-      EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 0);
-      BWindow_zoom (FRAME_HAIKU_WINDOW (f));
-    }
+    BWindow_zoom (FRAME_HAIKU_WINDOW (f));
   else if (f->want_fullscreen == FULLSCREEN_BOTH)
     EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 1);
-  else if (f->want_fullscreen == FULLSCREEN_NONE)
+  else
     {
       EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 0);
       EmacsWindow_unzoom (FRAME_HAIKU_WINDOW (f));
@@ -3764,6 +3903,7 @@ haiku_create_terminal (struct haiku_display_info *dpyinfo)
   terminal->toggle_invisible_pointer_hook = haiku_toggle_invisible_pointer;
   terminal->fullscreen_hook = haiku_fullscreen;
   terminal->toolkit_position_hook = haiku_toolkit_position;
+  terminal->activate_menubar_hook = haiku_activate_menubar;
 
   return terminal;
 }
@@ -3773,36 +3913,34 @@ haiku_term_init (void)
 {
   struct haiku_display_info *dpyinfo;
   struct terminal *terminal;
-
-  Lisp_Object color_file, color_map;
+  Lisp_Object color_file, color_map, system_name;
+  ptrdiff_t nbytes;
+  void *name_buffer;
 
   block_input ();
+
   Fset_input_interrupt_mode (Qt);
-
   baud_rate = 19200;
-
   dpyinfo = xzalloc (sizeof *dpyinfo);
-
   haiku_io_init ();
 
-  if (port_application_to_emacs < B_OK)
+  if (port_application_to_emacs < B_OK
+      || port_emacs_to_session_manager < B_OK)
     emacs_abort ();
 
   color_file = Fexpand_file_name (build_string ("rgb.txt"),
 				  Fsymbol_value (intern ("data-directory")));
-
   color_map = Fx_load_color_file (color_file);
+
   if (NILP (color_map))
     fatal ("Could not read %s.\n", SDATA (color_file));
 
   dpyinfo->color_map = color_map;
-
   dpyinfo->display = BApplication_setup ();
-
-  BScreen_res (&dpyinfo->resx, &dpyinfo->resy);
-
   dpyinfo->next = x_display_list;
   dpyinfo->n_planes = be_get_display_planes ();
+  be_get_display_resolution (&dpyinfo->resx, &dpyinfo->resy);
+
   x_display_list = dpyinfo;
 
   terminal = haiku_create_terminal (dpyinfo);
@@ -3820,6 +3958,54 @@ haiku_term_init (void)
   dpyinfo->smallest_char_width = 1;
 
   gui_init_fringe (terminal->rif);
+
+#define ASSIGN_CURSOR(cursor, be_cursor) (dpyinfo->cursor = be_cursor)
+  ASSIGN_CURSOR (text_cursor, BCursor_create_i_beam ());
+  ASSIGN_CURSOR (nontext_cursor, BCursor_create_default ());
+  ASSIGN_CURSOR (modeline_cursor, BCursor_create_modeline ());
+  ASSIGN_CURSOR (hand_cursor, BCursor_create_grab ());
+  ASSIGN_CURSOR (hourglass_cursor, BCursor_create_progress_cursor ());
+  ASSIGN_CURSOR (horizontal_drag_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_EAST_WEST));
+  ASSIGN_CURSOR (vertical_drag_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_SOUTH));
+  ASSIGN_CURSOR (left_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_WEST));
+  ASSIGN_CURSOR (top_left_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_WEST));
+  ASSIGN_CURSOR (top_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH));
+  ASSIGN_CURSOR (top_right_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_EAST));
+  ASSIGN_CURSOR (right_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_EAST));
+  ASSIGN_CURSOR (bottom_right_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_EAST));
+  ASSIGN_CURSOR (bottom_edge_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH));
+  ASSIGN_CURSOR (bottom_left_corner_cursor,
+		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_WEST));
+  ASSIGN_CURSOR (no_cursor,
+		 BCursor_from_id (CURSOR_ID_NO_CURSOR));
+#undef ASSIGN_CURSOR
+
+  system_name = Fsystem_name ();
+
+  if (STRINGP (system_name))
+    {
+      nbytes = sizeof "GNU Emacs" + sizeof " at ";
+
+      if (INT_ADD_WRAPV (nbytes, SBYTES (system_name), &nbytes))
+	memory_full (SIZE_MAX);
+
+      name_buffer = alloca (nbytes);
+      sprintf (name_buffer, "%s%s%s", "GNU Emacs",
+	       " at ", SDATA (system_name));
+      dpyinfo->default_name = build_string (name_buffer);
+    }
+  else
+    dpyinfo->default_name = build_string ("GNU Emacs");
+
   unblock_input ();
 
   return dpyinfo;
@@ -3887,7 +4073,10 @@ void
 mark_haiku_display (void)
 {
   if (x_display_list)
-    mark_object (x_display_list->color_map);
+    {
+      mark_object (x_display_list->color_map);
+      mark_object (x_display_list->default_name);
+    }
 }
 
 void
@@ -4043,7 +4232,6 @@ This is either one of the symbols `shift', `control', `command', and
 
 Setting it to any other value is equivalent to `shift'.  */);
   Vhaiku_shift_keysym = Qnil;
-
 
   DEFSYM (Qx_use_underline_position_properties,
 	  "x-use-underline-position-properties");

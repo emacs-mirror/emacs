@@ -191,7 +191,7 @@ get fancy, the default and simplest configuration is:
 (setq auth-sources '("secrets:Login"))
 ;;; use pass (@file{~/.password-store})
 ;;; (@pxref{The Unix password store})
-(setq auth-sources '(password-store))
+(auth-source-pass-enable)
 ;;; JSON data in format [@{ "machine": "SERVER",
 ;;; "login": "USER", "password": "PASSWORD" @}...]
 (setq auth-sources '("~/.authinfo.json.gpg"))
