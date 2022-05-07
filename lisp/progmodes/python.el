@@ -2646,6 +2646,7 @@ banner and the initial prompt are received separately."
 (defun python-comint-postoutput-scroll-to-bottom (output)
   "Faster version of `comint-postoutput-scroll-to-bottom'.
 Avoids `recenter' calls until OUTPUT is completely sent."
+  (declare (obsolete nil "29.1")) ; Not used.
   (when (and (not (string= "" output))
              (python-shell-comint-end-of-output-p
               (ansi-color-filter-apply output)))
@@ -2951,11 +2952,11 @@ variable.
   (setq-local comint-output-filter-functions
               '(ansi-color-process-output
                 python-shell-comint-watch-for-first-prompt-output-filter
-                python-comint-postoutput-scroll-to-bottom
                 comint-watch-for-password-prompt))
   (setq-local comint-highlight-input nil)
   (setq-local compilation-error-regexp-alist
               python-shell-compilation-regexp-alist)
+  (setq-local scroll-conservatively 1)
   (add-hook 'completion-at-point-functions
             #'python-shell-completion-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"
