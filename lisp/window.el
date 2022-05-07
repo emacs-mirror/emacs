@@ -10031,6 +10031,11 @@ When point is already on that position, then signal an error."
 
 (defun scroll-up-command (&optional arg)
   "Scroll text of selected window upward ARG lines; or near full screen if no ARG.
+Interactively, giving this command a numerical prefix will scroll
+up by that many lines (and down by that many lines if the number
+is negative).  Without a prefix, scroll up by a full screen.
+If given a `C-u -' prefix, scroll a full page down instead.
+
 If `scroll-error-top-bottom' is non-nil and `scroll-up' cannot
 scroll window further, move cursor to the bottom line.
 When point is already on that position, then signal an error.
@@ -10063,6 +10068,11 @@ If ARG is the atom `-', scroll downward by nearly full screen."
 
 (defun scroll-down-command (&optional arg)
   "Scroll text of selected window down ARG lines; or near full screen if no ARG.
+Interactively, giving this command a numerical prefix will scroll
+down by that many lines (and up by that many lines if the number
+is negative).  Without a prefix, scroll down by a full screen.
+If given a `C-u -' prefix, scroll a full page up instead.
+
 If `scroll-error-top-bottom' is non-nil and `scroll-down' cannot
 scroll window further, move cursor to the top line.
 When point is already on that position, then signal an error.
