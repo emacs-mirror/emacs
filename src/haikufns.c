@@ -1783,6 +1783,15 @@ haiku_set_inhibit_double_buffering (struct frame *f,
   unblock_input ();
 }
 
+static void
+haiku_set_sticky (struct frame *f, Lisp_Object new_value,
+		  Lisp_Object old_value)
+{
+  block_input ();
+  BWindow_set_sticky (FRAME_HAIKU_WINDOW (f), !NILP (new_value));
+  unblock_input ();
+}
+
 
 
 DEFUN ("haiku-set-mouse-absolute-pixel-position",
@@ -2713,7 +2722,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     gui_set_fullscreen,
     gui_set_font_backend,
     gui_set_alpha,
-    NULL, /* set sticky */
+    haiku_set_sticky,
     NULL, /* set tool bar pos */
     haiku_set_inhibit_double_buffering,
     haiku_set_undecorated,

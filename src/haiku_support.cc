@@ -5067,3 +5067,18 @@ be_select_font (void (*process_pending_signals_function) (void),
 
   return true;
 }
+
+void
+BWindow_set_sticky (void *window, bool sticky)
+{
+  BWindow *w = (BWindow *) window;
+
+  if (w->LockLooper ())
+    {
+      w->SetFlags (sticky ? (w->Flags ()
+			     | B_SAME_POSITION_IN_ALL_WORKSPACES)
+		   : w->Flags () & ~B_SAME_POSITION_IN_ALL_WORKSPACES);
+
+      w->UnlockLooper ();
+    }
+}

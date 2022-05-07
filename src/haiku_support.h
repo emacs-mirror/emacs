@@ -504,6 +504,7 @@ extern bool BWindow_is_active (void *);
 extern void BWindow_set_override_redirect (void *, bool);
 extern void BWindow_dimensions (void *, int *, int *);
 extern void BWindow_set_z_group (void *, enum haiku_z_group);
+extern void BWindow_set_sticky (void *, bool);
 extern void BWindow_Flush (void *);
 
 extern void BFont_close (void *);
