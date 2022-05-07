@@ -742,6 +742,9 @@ this script.
 
 ** dabbrev
 
+---
+*** New function 'dabbrev-capf' for use on 'completion-at-point-functions'
+
 +++
 *** New user option 'dabbrev-ignored-buffer-modes'.
 Buffers with major modes in this list will be ignored.  By default,
