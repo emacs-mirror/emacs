@@ -462,6 +462,15 @@ This allows you to enter emoji using short strings, eg :face_palm: or
 ** Help
 
 +++
+*** New doc string syntax to indicate that symbols shouldn't be links.
+When displaying doc strings in *Help* buffers, strings that are
+"`like-this'" are made into links (if they point to a bound
+function/variable).  This can lead to false positives when talking
+about values that are symbols that happen to have the same names as
+functions/variables.  To inhibit this buttonification, the new
+"\\+`like-this'" syntax can be used.
+
++++
 *** New user option 'help-window-keep-selected'.
 If non-nil, commands to show the info manual and the source will reuse
 the same window the *Help* buffer is shown in.

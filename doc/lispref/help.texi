@@ -362,6 +362,10 @@ depending on the value of @code{text-quoting-style}.
 quotes the following character and is discarded; thus, @samp{\=`} puts
 @samp{`} into the output, @samp{\=\[} puts @samp{\[} into the output,
 and @samp{\=\=} puts @samp{\=} into the output.
+
+@item \+
+This indicates that the symbol directly following should not be marked
+as link in the @file{*Help*} buffer.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a

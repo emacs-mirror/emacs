@@ -452,6 +452,7 @@ Commands:
  		    "\\(symbol\\|program\\|property\\)\\|" ; Don't link
 		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
 		    "[ \t\n]+\\)?"
+                    "\\(\\\\\\+\\)?"
                     "['`‘]\\(\\(?:\\sw\\|\\s_\\)+\\|`\\)['’]"))
   "Regexp matching doc string references to symbols.
 
@@ -628,27 +629,28 @@ that."
                 ;; Quoted symbols
                 (save-excursion
                   (while (re-search-forward help-xref-symbol-regexp nil t)
-                    (let* ((data (match-string 8))
-                           (sym (intern-soft data)))
-                      (if sym
-                          (cond
-                           ((match-string 3) ; `variable' &c
-                            (and (or (boundp sym) ; `variable' doesn't ensure
+                    (when-let ((sym (intern-soft (match-string 9))))
+                      (if (match-string 8)
+                          (delete-region (match-beginning 8)
+                                         (match-end 8))
+                        (cond
+                         ((match-string 3)        ; `variable' &c
+                          (and (or (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
-                                     (get sym 'variable-documentation))
-                                 (help-xref-button 8 'help-variable sym)))
-                           ((match-string 4) ; `function' &c
-                            (and (fboundp sym) ; similarly
-                                 (help-xref-button 8 'help-function sym)))
-                           ((match-string 5) ; `face'
-                            (and (facep sym)
-                                 (help-xref-button 8 'help-face sym)))
-                           ((match-string 6)) ; nothing for `symbol'
-                           ((match-string 7)
-                            (help-xref-button 8 'help-function-def sym))
-                           ((cl-some (lambda (x) (funcall (nth 1 x) sym))
-                                     describe-symbol-backends)
-                            (help-xref-button 8 'help-symbol sym)))))))
+                                   (get sym 'variable-documentation))
+                               (help-xref-button 9 'help-variable sym)))
+                         ((match-string 4)     ; `function' &c
+                          (and (fboundp sym)   ; similarly
+                               (help-xref-button 9 'help-function sym)))
+                         ((match-string 5) ; `face'
+                          (and (facep sym)
+                               (help-xref-button 9 'help-face sym)))
+                         ((match-string 6)) ; nothing for `symbol'
+                         ((match-string 7)
+                          (help-xref-button 9 'help-function-def sym))
+                         ((cl-some (lambda (x) (funcall (nth 1 x) sym))
+                                   describe-symbol-backends)
+                          (help-xref-button 9 'help-symbol sym)))))))
                 ;; An obvious case of a key substitution:
                 (save-excursion
                   (while (re-search-forward
