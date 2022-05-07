@@ -1264,7 +1264,8 @@ and `dired-compress-files-alist'."
            (when (zerop
                   (dired-shell-command
                    (format-spec (cdr rule)
-                                `((?o . ,(shell-quote-argument out-file))
+                                `((?o . ,(shell-quote-argument
+                                          (file-local-name out-file)))
                                   (?i . ,(mapconcat
                                           (lambda (in-file)
                                             (shell-quote-argument

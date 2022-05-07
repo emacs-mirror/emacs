@@ -4021,7 +4021,10 @@ required; and @code{gpos} is a list of OpenType GPOS feature tag
 symbols, or @code{nil} if none is required.  If @code{gsub} or
 @code{gpos} is a list, a @code{nil} element in that list means that
 the font must not match any of the remaining tag symbols.  The
-@code{gpos} element may be omitted.
+@code{gpos} element may be omitted.  For the list of OpenType script,
+language, and feature tags, see
+@uref{https://docs.microsoft.com/en-us/typography/opentype/spec/ttoreg,
+the list of registered OTF tags}.
 
 @item :type
 @cindex font backend
