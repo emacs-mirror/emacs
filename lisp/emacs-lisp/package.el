@@ -2885,7 +2885,13 @@ either a full name or nil, and EMAIL is a valid email address."
 
 (define-derived-mode package-menu-mode tabulated-list-mode "Package Menu"
   "Major mode for browsing a list of packages.
-Letters do not insert themselves; instead, they are commands.
+The most useful commands here are:
+
+  `x': Install the package under point if it isn't already installed,
+       and delete it if it's already installed,
+  `i': mark a package for installation, and
+  `d': mark a package for deletion.  Use the `x' command to perform the
+       actions on the marked files.
 \\<package-menu-mode-map>
 \\{package-menu-mode-map}"
   :interactive nil
@@ -3632,8 +3638,13 @@ packages list, respectively."
 (defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
 Packages marked for installation are downloaded and installed,
-packages marked for deletion are removed,
-and packages marked for upgrading are downloaded and upgraded.
+packages marked for deletion are removed, and packages marked for
+upgrading are downloaded and upgraded.
+
+If no packages are marked, the action taken depends on the state
+of the package under point.  If it's not already installed, this
+command will install the package, and if it's installed, it will
+delete the package.
 
 Optional argument NOQUERY non-nil means do not ask the user to confirm."
   (interactive nil package-menu-mode)
@@ -3651,8 +3662,20 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                 ((eq cmd ?I)
                  (push pkg-desc install-list))))
         (forward-line)))
+    ;; Nothing marked.
     (unless (or delete-list install-list)
-      (user-error "No operations specified"))
+      ;; Not on a package line.
+      (unless (tabulated-list-get-id)
+        (user-error "No operations specified"))
+      (let* ((id (tabulated-list-get-id))
+             (status (package-menu-get-status)))
+        (cond
+         ((member status '("installed"))
+          (push id delete-list))
+         ((member status '("available" "avail-obso" "new" "dependency"))
+          (push id install-list))
+         (t (user-error "No default action available for status: %s"
+                        status)))))
     (let-alist (package-menu--partition-transaction install-list delete-list)
       (when (or noquery
                 (package-menu--prompt-transaction-p .delete .install .upgrade))
