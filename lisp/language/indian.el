@@ -183,7 +183,7 @@ which used the Kaithi script are supported in this language environment."))
       ;; special consonant form, or
       "JHR\\|"
       ;; vedic accents with numerals, or
-      "1ss\\|3ss\\|s3ss\\|"
+      "1ss?\\|3ss\\|s3ss\\|"
       ;; any other singleton characters
       "X")
      table))
