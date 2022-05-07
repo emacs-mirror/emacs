@@ -677,7 +677,10 @@ x_activate_menubar (struct frame *f)
 	}
     }
 #endif
-  XtDispatchEvent (f->output_data.x->saved_menu_event);
+  /* The cascade button might have been deleted, so don't activate the
+     popup if it no widget was found to dispatch to.  */
+  popup_activated_flag
+    = XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
   unblock_input ();
 

@@ -665,6 +665,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef USE_MOTIF
 #include <Xm/Xm.h>
+#include <Xm/CascadeB.h>
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -16635,14 +16636,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             && event->xbutton.same_screen)
           {
 #ifdef USE_MOTIF
-	    unsigned char column_type;
 	    Widget widget;
 
 	    widget = XtWindowToWidget (dpyinfo->display,
 				       event->xbutton.window);
-	    XtVaGetValues (widget, XmNrowColumnType, &column_type, NULL);
 
-	    if (column_type != XmMENU_BAR)
+	    if (widget && XmIsCascadeButton (widget)
+		&& XtIsSensitive (widget))
 	      {
 #endif
 		if (!f->output_data.x->saved_menu_event)
