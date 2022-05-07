@@ -194,14 +194,15 @@ which used the Kaithi script are supported in this language environment."))
 	 '(("a" . "\u0981")		; SIGN CANDRABINDU
 	   ("A" . "[\u0982\u0983]")	; SIGN ANUSVARA .. VISARGA
 	   ("V" . "[\u0985-\u0994\u09E0\u09E1]") ; independent vowel
-	   ("C" . "[\u0995-\u09B9\u09DC-\u09DF\u09F1]") ; consonant
+	   ("C" . "[\u0995-\u09B9\u09DC-\u09DF\u09F0\u09F1]") ; consonant
 	   ("B" . "[\u09AC\u09AF\u09B0\u09F0]")		; BA, YA, RA
 	   ("R" . "[\u09B0\u09F0]")		; RA
 	   ("n" . "\u09BC")		; NUKTA
 	   ("v" . "[\u09BE-\u09CC\u09D7\u09E2\u09E3]") ; vowel sign
 	   ("H" . "\u09CD")		; HALANT
 	   ("T" . "\u09CE")		; KHANDA TA
-	   ("N" . "\u200C")		; ZWNJ
+           ("S" . "\u09FE")             ; SANDHI MARK
+           ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
 	   ("X" . "[\u0980-\u09FF]"))))	; all coverage
     (indian-compose-regexp
@@ -209,7 +210,7 @@ which used the Kaithi script are supported in this language environment."))
       ;; syllables with an independent vowel, or
       "\\(?:RH\\)?Vn?\\(?:J?HB\\)?v*n?a?A?\\|"
       ;; consonant-based syllables, or
-      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*[NJ]?v?a?A?\\)\\|"
+      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*[NJ]?v?a?A?S?\\)\\|"
       ;; another syllables with an independent vowel, or
       "\\(?:RH\\)?T\\|"
       ;; special consonant form, or
