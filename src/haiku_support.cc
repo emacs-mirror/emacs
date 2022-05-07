@@ -2989,7 +2989,7 @@ class EmacsFilePanelCallbackLooper : public BLooper
     BEntry entry;
     BPath path;
     entry_ref ref;
-    int old_what;
+    int32 old_what;
 
     if (msg->what == FILE_PANEL_SELECTION
 	|| ((msg->FindInt32 ("old_what", &old_what) == B_OK
