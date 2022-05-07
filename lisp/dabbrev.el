@@ -225,17 +225,27 @@ or matched by `dabbrev-ignored-buffer-regexps'."
 
 (defcustom dabbrev-ignored-buffer-names '("*Messages*" "*Buffer List*")
   "List of buffer names that dabbrev should not check.
-See also `dabbrev-ignored-buffer-regexps'."
+See also `dabbrev-ignored-buffer-regexps' and
+`dabbrev-ignored-buffer-modes'."
   :type '(repeat (string :tag "Buffer name"))
   :group 'dabbrev
   :version "20.3")
 
 (defcustom dabbrev-ignored-buffer-regexps nil
   "List of regexps matching names of buffers that dabbrev should not check.
-See also `dabbrev-ignored-buffer-names'."
+See also `dabbrev-ignored-buffer-names' and
+`dabbrev-ignored-buffer-modes'."
   :type '(repeat regexp)
   :group 'dabbrev
   :version "21.1")
+
+(defcustom dabbrev-ignored-buffer-modes
+  '(archive-mode image-mode tar-mode)
+  "Inhibit looking for abbreviations in buffers derived from these modes.
+See also `dabbrev-ignored-buffer-names' and
+`dabbrev-ignored-buffer-regexps'."
+  :type '(repeat symbol)
+  :version "29.1")
 
 (defcustom dabbrev-check-other-buffers t
   "Should \\[dabbrev-expand] look in other buffers?
@@ -632,18 +642,28 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
   "Return a list of other buffers to search for a possible abbrev.
 The current buffer is not included in the list.
 
-This function makes a list of all the buffers returned by `buffer-list',
-then discards buffers whose names match `dabbrev-ignored-buffer-names'
-or `dabbrev-ignored-buffer-regexps'.  It also discards buffers for which
-`dabbrev-friend-buffer-function', if it is bound, returns nil when called
-with the buffer as argument.
-It returns the list of the buffers that are not discarded."
+This function makes a list of all the buffers returned by
+`buffer-list', then discards buffers whose names match
+`dabbrev-ignored-buffer-names' or
+`dabbrev-ignored-buffer-regexps', and major modes that match
+`dabbrev-ignored-buffer-modes'.  It also discards buffers for
+which `dabbrev-friend-buffer-function', if it is bound, returns
+nil when called with the buffer as argument.  It returns the list
+of the buffers that are not discarded."
   (dabbrev-filter-elements
-   buffer (buffer-list)
+   buffer (dabbrev--filter-buffer-modes)
    (and (not (eq (current-buffer) buffer))
 	(not (dabbrev--ignore-buffer-p buffer))
 	(boundp 'dabbrev-friend-buffer-function)
 	(funcall dabbrev-friend-buffer-function buffer))))
+
+(defun dabbrev--filter-buffer-modes ()
+  (seq-filter (lambda (buffer)
+                (not (apply
+                      #'provided-mode-derived-p
+                      (buffer-local-value 'major-mode buffer)
+                      dabbrev-ignored-buffer-modes)))
+              (buffer-list)))
 
 (defun dabbrev--try-find (abbrev reverse n ignore-case)
   "Search for ABBREV, backwards if REVERSE, N times.
@@ -779,7 +799,7 @@ of the start of the occurrence."
 	  (setq list
 		(append list
 			(dabbrev-filter-elements
-			 buffer (buffer-list)
+			 buffer (dabbrev--filter-buffer-modes)
 			 (and (not (memq buffer list))
 			      (not (dabbrev--ignore-buffer-p buffer)))))))
       ;; Remove the current buffer.

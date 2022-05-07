@@ -734,6 +734,13 @@ script that was used in ancient South Asia.  A new input method,
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** dabbrev
+
++++
+*** New user option 'dabbrev-ignored-buffer-modes'.
+Buffers with major modes in this list will be ignored.  By default,
+this includes "binary" buffers like 'archive-mode' and 'image-mode'.
+
 ** Package
 
 +++
