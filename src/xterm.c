@@ -6933,11 +6933,12 @@ x_parse_color (struct frame *f, const char *color_name,
 	       XColor *color)
 {
   unsigned short r, g, b;
-  Display *dpy = FRAME_X_DISPLAY (f);
-  Colormap cmap = FRAME_X_COLORMAP (f);
+  Display *dpy;
+  Colormap cmap;
   struct x_display_info *dpyinfo;
   struct color_name_cache_entry *cache_entry;
   unsigned int hash, idx;
+  int rc;
 
   /* Don't pass #RGB strings directly to XParseColor, because that
      follows the X convention of zero-extending each channel
@@ -6949,37 +6950,49 @@ x_parse_color (struct frame *f, const char *color_name,
       color->red = r;
       color->green = g;
       color->blue = b;
+
       return 1;
-    }
-
-  dpyinfo = FRAME_DISPLAY_INFO (f);
-  hash = x_hash_string_ignore_case (color_name);
-  idx = hash % dpyinfo->color_names_size;
-
-  for (cache_entry = FRAME_DISPLAY_INFO (f)->color_names[idx];
-       cache_entry; cache_entry = cache_entry->next)
-    {
-      if (!xstrcasecmp (cache_entry->name, color_name))
-	{
-	  *color = cache_entry->rgb;
-	  return 1;
-	}
     }
 
   /* Some X servers send BadValue on empty color names.  */
   if (!strlen (color_name))
     return 0;
 
-  if (XParseColor (dpy, cmap, color_name, color) == 0)
-    /* No caching of negative results, currently.  */
-    return 0;
+  cmap = FRAME_X_COLORMAP (f);
+  dpy = FRAME_X_DISPLAY (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  hash = x_hash_string_ignore_case (color_name);
+  idx = hash % dpyinfo->color_names_size;
+
+  for (cache_entry = dpyinfo->color_names[idx];
+       cache_entry; cache_entry = cache_entry->next)
+    {
+      if (!xstrcasecmp (cache_entry->name, color_name))
+	{
+	  if (cache_entry->valid)
+	    *color = cache_entry->rgb;
+
+	  return cache_entry->valid;
+	}
+    }
+
+  block_input ();
+  rc = XParseColor (dpy, cmap, color_name, color);
+  unblock_input ();
 
   cache_entry = xzalloc (sizeof *cache_entry);
-  cache_entry->rgb = *color;
+
+  if (rc)
+    cache_entry->rgb = *color;
+
+  cache_entry->valid = rc;
   cache_entry->name = xstrdup (color_name);
-  cache_entry->next = FRAME_DISPLAY_INFO (f)->color_names[idx];
-  FRAME_DISPLAY_INFO (f)->color_names[idx] = cache_entry;
-  return 1;
+  cache_entry->next = dpyinfo->color_names[idx];
+
+  dpyinfo->color_names[idx] = cache_entry;
+
+  return rc;
 }
 
 

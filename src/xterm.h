@@ -196,8 +196,15 @@ extern cairo_pattern_t *x_bitmap_stipple (struct frame *, Pixmap);
 struct color_name_cache_entry
 {
   struct color_name_cache_entry *next;
+
+  /* The color values of the cached color entry.  */
   XColor rgb;
+
+  /* The name of the cached color.  */
   char *name;
+
+  /* Whether or not RGB is valid (i.e. the color actually exists).  */
+  bool_bf valid : 1;
 };
 
 #ifdef HAVE_XINPUT2
