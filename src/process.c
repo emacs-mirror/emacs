@@ -1071,13 +1071,24 @@ record_deleted_pid (pid_t pid, Lisp_Object filename)
 
 }
 
-DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
+DEFUN ("delete-process", Fdelete_process, Sdelete_process, 0, 1,
+       "(list 'message)",
        doc: /* Delete PROCESS: kill it and forget about it immediately.
 PROCESS may be a process, a buffer, the name of a process or buffer, or
-nil, indicating the current buffer's process.  */)
+nil, indicating the current buffer's process.
+
+Interactively, it will kill the current buffer's process.  */)
   (register Lisp_Object process)
 {
   register struct Lisp_Process *p;
+  bool mess = false;
+
+  /* We use this to see whether we were called interactively.  */
+  if (EQ (process, Qmessage))
+    {
+      mess = true;
+      process = Qnil;
+    }
 
   process = get_process (process);
   p = XPROCESS (process);
@@ -1131,6 +1142,8 @@ nil, indicating the current buffer's process.  */)
 	}
     }
   remove_process (process);
+  if (mess)
+    message ("Deleted process");
   return Qnil;
 }
 
@@ -8637,6 +8650,7 @@ sentinel or a process filter function has an error.  */);
 
   DEFSYM (Qnull, "null");
   DEFSYM (Qpipe_process_p, "pipe-process-p");
+  DEFSYM (Qmessage, "message");
 
   defsubr (&Sprocessp);
   defsubr (&Sget_process);

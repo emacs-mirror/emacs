@@ -248,6 +248,13 @@ removed some time after that.
 
 * Changes in Emacs 29.1
 
+---
+** 'delete-process' is now a command.
+When called interactively, it will kill the process running in the
+current buffer (if any).  This can be useful if you have runaway
+output in the current buffer (from a process or a network connection),
+and want to stop it.
+
 +++
 ** New command 'restart-emacs'.
 This is like 'save-buffers-kill-emacs', but instead of just killing

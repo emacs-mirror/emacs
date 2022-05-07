@@ -1011,16 +1011,18 @@ terminated (due to calling @code{exit} or to a signal).  If it is
 they exit.
 @end defopt
 
-@defun delete-process process
+@defun delete-process &optional process
 This function deletes a process, killing it with a @code{SIGKILL}
 signal if the process was running a program.  The argument may be a
 process, the name of a process, a buffer, or the name of a buffer.  (A
 buffer or buffer-name stands for the process that
-@code{get-buffer-process} returns.)  Calling @code{delete-process} on
-a running process terminates it, updates the process status, and runs
-the sentinel immediately.  If the process has already terminated,
-calling @code{delete-process} has no effect on its status, or on the
-running of its sentinel (which will happen sooner or later).
+@code{get-buffer-process} returns, and a missing or @code{nil}
+@var{process} means that the current buffer's process should be
+killed.)  Calling @code{delete-process} on a running process
+terminates it, updates the process status, and runs the sentinel
+immediately.  If the process has already terminated, calling
+@code{delete-process} has no effect on its status, or on the running
+of its sentinel (which will happen sooner or later).
 
 If the process object represents a network, serial, or pipe
 connection, its status changes to @code{closed}; otherwise, it changes
