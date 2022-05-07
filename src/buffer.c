@@ -1499,6 +1499,18 @@ use current buffer as BUFFER.  */)
   return modiff_to_integer (BUF_MODIFF (decode_buffer (buffer)));
 }
 
+DEFUN ("internal--set-buffer-modified-tick",
+       Finternal__set_buffer_modified_tick, Sinternal__set_buffer_modified_tick,
+       1, 2, 0,
+       doc: /* Set BUFFER's tick counter to TICK.
+No argument or nil as argument means use current buffer as BUFFER.  */)
+  (Lisp_Object tick, Lisp_Object buffer)
+{
+  CHECK_FIXNUM (tick);
+  BUF_MODIFF (decode_buffer (buffer)) = XFIXNUM (tick);
+  return Qnil;
+}
+
 DEFUN ("buffer-chars-modified-tick", Fbuffer_chars_modified_tick,
        Sbuffer_chars_modified_tick, 0, 1, 0,
        doc: /* Return BUFFER's character-change tick counter.
@@ -6418,6 +6430,7 @@ will run for `clone-indirect-buffer' calls as well.  */);
   defsubr (&Sforce_mode_line_update);
   defsubr (&Sset_buffer_modified_p);
   defsubr (&Sbuffer_modified_tick);
+  defsubr (&Sinternal__set_buffer_modified_tick);
   defsubr (&Sbuffer_chars_modified_tick);
   defsubr (&Srename_buffer);
   defsubr (&Sother_buffer);

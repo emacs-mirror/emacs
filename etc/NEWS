@@ -1508,6 +1508,15 @@ Emacs buffers, like indentation and the like.  The new ert function
 * Incompatible Lisp Changes in Emacs 29.1
 
 ---
+** 'with-silent-modifications' also restores buffer modification ticks.
+'with-silent-modifications' is a macro meant to be used by the font
+locking machinery to allow applying text properties without changing
+the modification status of the buffer.  However, it didn't restore the
+buffer modification ticks, so applying font locking to a modified
+buffer that had already been auto-saved would trigger another
+auto-saving.  This is no longer the case.
+
+---
 ** 'prin1' doesn't always escape "." and "?" in symbols any more.
 Previously, symbols like 'foo.bar' would be printed by 'prin1' as
 "foo\.bar".  This now prints as "foo.bar" instead.  The Emacs Lisp

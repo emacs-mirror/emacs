@@ -4594,14 +4594,19 @@ like `buffer-modified-p', checking whether the file is locked by
 someone else, running buffer modification hooks, and other things
 of that nature."
   (declare (debug t) (indent 0))
-  (let ((modified (make-symbol "modified")))
+  (let ((modified (make-symbol "modified"))
+        (tick (make-symbol "tick")))
     `(let* ((,modified (buffer-modified-p))
+            (,tick (buffer-modified-tick))
             (buffer-undo-list t)
             (inhibit-read-only t)
             (inhibit-modification-hooks t))
        (unwind-protect
            (progn
              ,@body)
+         ;; We restore the buffer tick count, too, because otherwise
+         ;; we'll trigger a new auto-save.
+         (internal--set-buffer-modified-tick ,tick)
          (unless ,modified
            (restore-buffer-modified-p nil))))))
 
