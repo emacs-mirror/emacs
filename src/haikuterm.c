@@ -43,17 +43,24 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Minimum and maximum values used for Haiku scroll bars.  */
 #define BE_SB_MAX 12000000
 
-struct haiku_display_info *x_display_list = NULL;
-extern frame_parm_handler haiku_frame_parm_handlers[];
+/* The single Haiku display (if any).  */
+struct haiku_display_info *x_display_list;
 
 /* This is used to determine when to evict the font lookup cache,
    which we do every 50 updates.  */
 static int up_to_date_count;
 
+/* List of defined fringe bitmaps.  */
 static void **fringe_bmps;
-static int max_fringe_bmp = 0;
 
+/* The amount of fringe bitmaps in that list.  */
+static int max_fringe_bmp;
+
+/* Alist of resources to their values.  */
 static Lisp_Object rdb;
+
+/* Non-zero means that a HELP_EVENT has been generated since Emacs
+   start.  */
 static bool any_help_event_p;
 
 char *

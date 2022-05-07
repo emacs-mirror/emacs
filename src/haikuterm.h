@@ -205,6 +205,8 @@ extern struct font_driver const haikufont_driver;
 extern Lisp_Object tip_frame;
 extern struct frame *haiku_dnd_frame;
 
+extern frame_parm_handler haiku_frame_parm_handlers[];
+
 struct scroll_bar
 {
   /* These fields are shared by all vectors.  */
