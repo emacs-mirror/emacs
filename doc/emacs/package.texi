@@ -89,6 +89,11 @@ list of available packages from package archive servers.  If the
 network is unavailable, it falls back on the most recently retrieved
 list.
 
+The main command to use in the package list buffer is the @key{x}
+command.  If the package under point isn't installed already, this
+command will install it.  If the package under point is already
+installed, this command will delete it.
+
 The following commands are available in the package menu:
 
 @table @kbd
@@ -162,7 +167,10 @@ installed versions (marked with status @samp{obsolete}).
 @findex package-menu-execute
 Download and install all packages marked with @kbd{i}, and their
 dependencies; also, delete all packages marked with @kbd{d}
-(@code{package-menu-execute}).  This also removes the marks.
+(@code{package-menu-execute}).  This also removes the marks.  If no
+packages are marked, this command will install the package under point
+(if it isn't installed already), or delete the package under point (if
+it's already installed).
 
 @item g
 @item r

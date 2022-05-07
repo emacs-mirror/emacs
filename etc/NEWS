@@ -748,6 +748,7 @@ this includes "binary" buffers like 'archive-mode' and 'image-mode'.
 This command allows you to upgrade packages without using 'M-x
 list-packages'.
 
++++
 *** New DWIM action on 'x'.
 If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
