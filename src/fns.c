@@ -4113,7 +4113,7 @@ hash_table_user_defined_call (ptrdiff_t nargs, Lisp_Object *args,
   return unbind_to (count, Ffuncall (nargs, args));
 }
 
-/* Ignore HT and compare KEY1 and KEY2 using 'eql'.
+/* Ignore H and compare KEY1 and KEY2 using 'eql'.
    Value is true if KEY1 and KEY2 are the same.  */
 
 static Lisp_Object
@@ -4122,7 +4122,7 @@ cmpfn_eql (Lisp_Object key1, Lisp_Object key2, struct Lisp_Hash_Table *h)
   return Feql (key1, key2);
 }
 
-/* Ignore HT and compare KEY1 and KEY2 using 'equal'.
+/* Ignore H and compare KEY1 and KEY2 using 'equal'.
    Value is true if KEY1 and KEY2 are the same.  */
 
 static Lisp_Object
@@ -4132,7 +4132,7 @@ cmpfn_equal (Lisp_Object key1, Lisp_Object key2, struct Lisp_Hash_Table *h)
 }
 
 
-/* Given HT, compare KEY1 and KEY2 using HT->user_cmp_function.
+/* Given H, compare KEY1 and KEY2 using H->user_cmp_function.
    Value is true if KEY1 and KEY2 are the same.  */
 
 static Lisp_Object
@@ -4143,8 +4143,7 @@ cmpfn_user_defined (Lisp_Object key1, Lisp_Object key2,
   return hash_table_user_defined_call (ARRAYELTS (args), args, h);
 }
 
-/* Ignore HT and return a hash code for KEY which uses 'eq' to compare
-   keys.  */
+/* Ignore H and return a hash code for KEY which uses 'eq' to compare keys.  */
 
 static Lisp_Object
 hashfn_eq (Lisp_Object key, struct Lisp_Hash_Table *h)
@@ -4154,7 +4153,7 @@ hashfn_eq (Lisp_Object key, struct Lisp_Hash_Table *h)
   return make_ufixnum (XHASH (key) ^ XTYPE (key));
 }
 
-/* Ignore HT and return a hash code for KEY which uses 'equal' to compare keys.
+/* Ignore H and return a hash code for KEY which uses 'equal' to compare keys.
    The hash code is at most INTMASK.  */
 
 static Lisp_Object
@@ -4163,7 +4162,7 @@ hashfn_equal (Lisp_Object key, struct Lisp_Hash_Table *h)
   return make_ufixnum (sxhash (key));
 }
 
-/* Ignore HT and return a hash code for KEY which uses 'eql' to compare keys.
+/* Ignore H and return a hash code for KEY which uses 'eql' to compare keys.
    The hash code is at most INTMASK.  */
 
 static Lisp_Object
@@ -4172,7 +4171,7 @@ hashfn_eql (Lisp_Object key, struct Lisp_Hash_Table *h)
   return (FLOATP (key) || BIGNUMP (key) ? hashfn_equal : hashfn_eq) (key, h);
 }
 
-/* Given HT, return a hash code for KEY which uses a user-defined
+/* Given H, return a hash code for KEY which uses a user-defined
    function to compare keys.  */
 
 Lisp_Object
