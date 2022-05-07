@@ -731,6 +731,12 @@ This language environment supports Brahmi, which is a historical
 script that was used in ancient South Asia.  A new input method,
 'brahmi', is provided to type text in this script.
 
+*** New language environment "Kaithi".
+This language environment supports Kaithi or Kayasthi, which was
+an important writing system of the past mainly used for administrative
+purposes.  A new input method, 'kaithi', is provided to type text in
+this script.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

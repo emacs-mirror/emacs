@@ -136,6 +136,17 @@ South Indian language Malayalam is supported in this language environment."))
 The ancient Brahmi script is supported in this language environment."))
  '("Indian"))                           ; Should we have an "Old" category?
 
+(set-language-info-alist
+ "Kaithi" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "kaithi")
+            (sample-text . "Kaithi (𑂍𑂶𑂟𑂲)        𑂩𑂰𑂧𑂩𑂰𑂧")
+            (documentation . "\
+Languages such as Awadhi, Bhojpuri, Magahi and Maithili
+which used the Kaithi script are supported in this language environment."))
+ '("Indian"))
+
 
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
@@ -420,6 +431,33 @@ The ancient Brahmi script is supported in this language environment."))
                                ;; Additive-multiplicative numerals
                                (concat multiplier number-joiner numeral)
                                1 'font-shape-gstring))))
+
+;; Kaithi composition rules
+(let ((consonant            "[\x1108D-\x110AF]")
+      (nukta                "\x110BA")
+      (vowel                "[\x1108D-\x110C2]")
+      (anusvara-candrabindu "[\x11080\x11081]")
+      (virama               "\x110B9")
+      (number-sign          "\x110BD")
+      (number-sign-above    "\x110CD")
+      (numerals             "[\x966-\x96F]+")
+      (zwj                  "\x200D"))
+  (set-char-table-range composition-function-table
+                        '(#x110B0 . #x110BA)
+                        (list (vector
+                               (concat consonant nukta "?\\(?:" virama zwj "?" consonant nukta "?\\)*\\(?:"
+                                       virama zwj "?\\|" vowel "*" nukta "?" anusvara-candrabindu "?\\)")
+                               1 'font-shape-gstring)))
+  (set-char-table-range composition-function-table
+                        '(#x110BD . #x110BD)
+                        (list (vector
+                               (concat number-sign numerals)
+                               0 'font-shape-gstring)))
+  (set-char-table-range composition-function-table
+                        '(#x110CD . #x110CD)
+                        (list (vector
+                               (concat number-sign-above numerals)
+                               0 'font-shape-gstring))))
 
 (provide 'indian)
 
