@@ -239,8 +239,7 @@ See also `dabbrev-ignored-buffer-names' and
   :group 'dabbrev
   :version "21.1")
 
-(defcustom dabbrev-ignored-buffer-modes
-  '(archive-mode image-mode tar-mode)
+(defcustom dabbrev-ignored-buffer-modes '(archive-mode image-mode)
   "Inhibit looking for abbreviations in buffers derived from these modes.
 See also `dabbrev-ignored-buffer-names' and
 `dabbrev-ignored-buffer-regexps'."
