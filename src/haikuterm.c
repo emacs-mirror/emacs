@@ -1910,8 +1910,9 @@ haiku_after_update_window_line (struct window *w,
 	  void *view = FRAME_HAIKU_VIEW (f);
 	  BView_draw_lock (view, false, 0, 0, 0, 0);
 	  BView_StartClip (view);
-	  BView_SetHighColor (view, face->background_defaulted_p ?
-			      FRAME_BACKGROUND_PIXEL (f) : face->background);
+	  BView_SetHighColor (view, (face->background_defaulted_p
+				     ? FRAME_BACKGROUND_PIXEL (f)
+				     : face->background));
 	  BView_FillRectangle (view, 0, y, width, height);
 	  BView_FillRectangle (view, FRAME_PIXEL_WIDTH (f) - width,
 			       y, width, height);
@@ -2529,25 +2530,50 @@ static void
 haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 			  struct draw_fringe_bitmap_params *p)
 {
-  void *view = FRAME_HAIKU_VIEW (XFRAME (WINDOW_FRAME (w)));
-  struct face *face = p->face;
+  struct face *face;
+  struct frame *f;
+  struct haiku_bitmap_record *rec;
+  void *view, *bitmap;
+  uint32 col;
+
+  f = XFRAME (WINDOW_FRAME (w));
+  view = FRAME_HAIKU_VIEW (f);
+  face = p->face;
 
   block_input ();
   BView_draw_lock (view, true, p->x, p->y, p->wd, p->h);
   BView_StartClip (view);
 
   haiku_clip_to_row (w, row, ANY_AREA);
+
   if (p->bx >= 0 && !p->overlay_p)
     {
-      BView_SetHighColor (view, face->background);
-      BView_FillRectangle (view, p->bx, p->by, p->nx, p->ny);
+      if (!face->stipple)
+	{
+	  BView_SetHighColor (view, face->background);
+	  BView_FillRectangle (view, p->bx, p->by, p->nx, p->ny);
+	}
+      else
+	{
+	  rec = haiku_get_bitmap_rec (f, face->stipple);
+	  haiku_update_bitmap_rec (rec, face->foreground,
+				   face->background);
+
+	  BView_StartClip (view);
+	  haiku_clip_to_row (w, row, ANY_AREA);
+	  BView_ClipToRect (view, p->bx, p->by, p->nx, p->ny);
+	  BView_DrawBitmapTiled (view, rec->img, 0, 0, -1, -1,
+				 0, 0, FRAME_PIXEL_WIDTH (f),
+				 FRAME_PIXEL_HEIGHT (f));
+	  BView_EndClip (view);
+	}
     }
 
   if (p->which
       && p->which < max_fringe_bmp
       && p->which < max_used_fringe_bitmap)
     {
-      void *bitmap = fringe_bmps[p->which];
+      bitmap = fringe_bmps[p->which];
 
       if (!bitmap)
 	{
@@ -2560,8 +2586,6 @@ haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	  gui_define_fringe_bitmap (WINDOW_XFRAME (w), p->which);
 	  bitmap = fringe_bmps[p->which];
 	}
-
-      uint32_t col;
 
       if (!p->cursor_p)
 	col = face->foreground;
