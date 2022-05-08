@@ -3079,7 +3079,9 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       break;
     case HOLLOW_BOX_CURSOR:
       draw_phys_cursor_glyph (w, glyph_row, DRAW_NORMAL_TEXT);
-      [NSBezierPath strokeRect: r];
+
+      /* This works like it does in PostScript, not X Windows.  */
+      [NSBezierPath strokeRect: NSInsetRect (r, 0.5, 0.5)];
       break;
     case HBAR_CURSOR:
       NSRectFill (r);
