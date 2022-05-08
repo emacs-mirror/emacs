@@ -542,20 +542,24 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
-  void *bitmap;
+  void *bitmap, *stipple;
   int bytes_per_line, x, y;
 
-  bitmap = BBitmap_new (width, height, 1);
+  bitmap = BBitmap_new (width, height, false);
 
   if (!bitmap)
     return -1;
 
   bytes_per_line = (width + 7) / 8;
+  stipple = xmalloc (height * bytes_per_line);
+  memcpy (stipple, bits, height * bytes_per_line);
 
   for (y = 0; y < height; y++)
     {
       for (x = 0; x < width; x++)
-	PUT_PIXEL (bitmap, x, y, (bits[8] >> (x % 8)) & 1);
+	PUT_PIXEL (bitmap, x, y, ((bits[8] >> (x % 8)) & 1
+				  ? f->foreground_pixel
+				  : f->background_pixel));
       bits += bytes_per_line;
     }
 #endif
@@ -577,6 +581,11 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #ifdef HAVE_HAIKU
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].stipple_bits = stipple;
+  dpyinfo->bitmaps[id - 1].stipple_foreground
+    = f->foreground_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_background
+    = f->background_pixel & 0xffffffff;
 #endif
 
   dpyinfo->bitmaps[id - 1].file = NULL;
@@ -731,7 +740,7 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
       return -1;
     }
 
-  bitmap = BBitmap_new (width, height, 1);
+  bitmap = BBitmap_new (width, height, false);
 
   if (!bitmap)
     {
@@ -748,6 +757,11 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].height = height;
   dpyinfo->bitmaps[id - 1].width = width;
   dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].stipple_foreground
+    = f->foreground_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_background
+    = f->background_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_bits = data;
 
   bytes_per_line = (width + 7) / 8;
   tmp = data;
@@ -755,13 +769,14 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   for (y = 0; y < height; y++)
     {
       for (x = 0; x < width; x++)
-	PUT_PIXEL (bitmap, x, y, (tmp[x / 8] >> (x % 8)) & 1);
+	PUT_PIXEL (bitmap, x, y, ((tmp[x / 8] >> (x % 8)) & 1
+				  ? f->foreground_pixel
+				  : f->background_pixel));
 
       tmp += bytes_per_line;
     }
 
   xfree (contents);
-  xfree (data);
   return id;
 #endif
 }
@@ -796,6 +811,9 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 
 #ifdef HAVE_HAIKU
   BBitmap_free (bm->img);
+
+  if (bm->stipple_bits)
+    xfree (bm->stipple_bits);
 #endif
 
   if (bm->file)

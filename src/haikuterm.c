@@ -971,10 +971,11 @@ haiku_draw_string_box (struct glyph_string *s)
 
 static void
 haiku_draw_plain_background (struct glyph_string *s, struct face *face,
-			     int box_line_hwidth, int box_line_vwidth)
+			     int x, int y, int width, int height)
 {
   void *view = FRAME_HAIKU_VIEW (s->f);
   unsigned long cursor_color;
+
   if (s->hl == DRAW_CURSOR)
     {
       haiku_merge_cursor_foreground (s, NULL, &cursor_color);
@@ -983,36 +984,84 @@ haiku_draw_plain_background (struct glyph_string *s, struct face *face,
   else
     BView_SetHighColor (view, face->background_defaulted_p ?
 			FRAME_BACKGROUND_PIXEL (s->f) :
-		      face->background);
+			face->background);
 
-  BView_FillRectangle (view, s->x,
-		       s->y + box_line_hwidth,
-		       s->background_width,
-		       s->height - 2 * box_line_hwidth);
+  BView_FillRectangle (view, x, y, width, height);
 }
 
-static void *
-haiku_get_bitmap (struct frame *f, ptrdiff_t id)
+static struct haiku_bitmap_record *
+haiku_get_bitmap_rec (struct frame *f, ptrdiff_t id)
 {
-  return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].img;
+  return &FRAME_DISPLAY_INFO (f)->bitmaps[id - 1];
+}
+
+static void
+haiku_update_bitmap_rec (struct haiku_bitmap_record *rec,
+			 uint32_t new_foreground,
+			 uint32_t new_background)
+{
+  char *bits;
+  int x, y, bytes_per_line;
+
+  if (new_foreground == rec->stipple_foreground
+      && new_background == rec->stipple_background)
+    return;
+
+  bits = rec->stipple_bits;
+  bytes_per_line = (rec->width + 7) / 8;
+
+  for (y = 0; y < rec->height; y++)
+    {
+      for (x = 0; x < rec->width; x++)
+	haiku_put_pixel (rec->img, x, y,
+			 ((bits[x / 8] >> (x % 8)) & 1
+			  ? new_foreground : new_background));
+
+      bits += bytes_per_line;
+    }
+
+  rec->stipple_foreground = new_foreground;
+  rec->stipple_background = new_background;
 }
 
 static void
 haiku_draw_stipple_background (struct glyph_string *s, struct face *face,
-			       int box_line_hwidth, int box_line_vwidth)
+			       int x, int y, int width, int height)
 {
+  struct haiku_bitmap_record *rec;
+  unsigned long foreground, background;
   void *view;
 
   view = FRAME_HAIKU_VIEW (s->f);
+  rec = haiku_get_bitmap_rec (s->f, s->face->stipple);
+
+  if (s->hl == DRAW_CURSOR)
+    haiku_merge_cursor_foreground (s, &foreground, &background);
+  else
+    {
+      foreground = s->face->foreground;
+      background = s->face->background;
+    }
+
+  haiku_update_bitmap_rec (rec, foreground, background);
+
   BView_StartClip (view);
   haiku_clip_to_string (s);
-  BView_ClipToRect (view, s->x, s->y + box_line_hwidth,
-		    s->background_width,
-		    s->height - 2 * box_line_hwidth);
-  BView_DrawBitmapTiled (view, haiku_get_bitmap (s->f, face->stipple),
-			 0, 0, -1, -1, 0, 0, FRAME_PIXEL_WIDTH (s->f),
+  BView_ClipToRect (view, x, y, width, height);
+  BView_DrawBitmapTiled (view, rec->img, 0, 0, -1, -1,
+			 0, 0, FRAME_PIXEL_WIDTH (s->f),
 			 FRAME_PIXEL_HEIGHT (s->f));
   BView_EndClip (view);
+}
+
+void
+haiku_draw_background_rect (struct glyph_string *s, struct face *face,
+			    int x, int y, int width, int height)
+{
+  if (!s->stippled_p)
+    haiku_draw_plain_background (s, face, x, y, width, height);
+  else
+    haiku_draw_stipple_background (s, face, x, y, width, height);
 }
 
 static void
@@ -1028,12 +1077,10 @@ haiku_maybe_draw_background (struct glyph_string *s, int force_p)
 	  || FONT_TOO_HIGH (s->font)
           || s->font_not_found_p || s->extends_to_end_of_line_p || force_p)
 	{
-	  if (!face->stipple)
-	    haiku_draw_plain_background (s, face, box_line_width,
-					 box_vline_width);
-	  else
-	    haiku_draw_stipple_background (s, face, box_line_width,
-					   box_vline_width);
+	  haiku_draw_background_rect (s, s->face, s->x, s->y + box_line_width,
+				      s->background_width,
+				      s->height - 2 * box_line_width);
+
 	  s->background_filled_p = 1;
 	}
     }
@@ -1286,17 +1333,8 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	}
 
       if (background_width > 0)
-	{
-	  void *view = FRAME_HAIKU_VIEW (s->f);
-	  unsigned long bkg;
-	  if (s->hl == DRAW_CURSOR)
-	    haiku_merge_cursor_foreground (s, NULL, &bkg);
-	  else
-	    bkg = s->face->background;
-
-	  BView_SetHighColor (view, bkg);
-	  BView_FillRectangle (view, x, s->y, background_width, s->height);
-	}
+	haiku_draw_background_rect (s, s->face, s->y,
+				    background_width, s->height);
     }
   s->background_filled_p = 1;
 }
@@ -1566,6 +1604,7 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
   void *view = FRAME_HAIKU_VIEW (s->f);
   void *bitmap = s->img->pixmap;
 
+  /* TODO: implement stipples for images with masks.  */
   s->stippled_p = face->stipple != 0;
 
   BView_SetHighColor (view, face->background);
@@ -1648,16 +1687,14 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 static void
 haiku_draw_glyph_string (struct glyph_string *s)
 {
-  void *view;
+  void *view = FRAME_HAIKU_VIEW (s->f);;
+  struct face *face = s->face;
 
   block_input ();
-  view = FRAME_HAIKU_VIEW (s->f);
   BView_draw_lock (view, false, 0, 0, 0, 0);
   prepare_face_for_display (s->f, s->face);
 
-  struct face *face = s->face;
-  if (face != s->face)
-    prepare_face_for_display (s->f, face);
+  s->stippled_p = s->hl != DRAW_CURSOR && face->stipple;
 
   if (s->next && s->right_overhang && !s->for_overlaps)
     {
