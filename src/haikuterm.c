@@ -1860,8 +1860,21 @@ haiku_draw_glyph_string (struct glyph_string *s)
 	      }
 	}
     }
+
   haiku_end_clip (s);
   BView_draw_unlock (view);
+
+  /* Set the stipple_p flag indicating whether or not a stipple was
+     drawn in s->row.  That is the case either when s is a stretch
+     glyph string and s->face->stipple is not NULL, or when
+     s->face->stipple exists and s->hl is not DRAW_CURSOR, and s is
+     not an image.  This is different from X.  */
+  if (s->first_glyph->type != IMAGE_GLYPH
+      && s->face->stipple
+      && (s->first_glyph->type == STRETCH_GLYPH
+	  || s->hl != DRAW_CURSOR))
+    s->row->stipple_p = true;
+
   unblock_input ();
 }
 
