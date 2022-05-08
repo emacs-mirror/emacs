@@ -134,6 +134,15 @@ be auto-detected by Tramp.
 
 The string is used in `tramp-methods'.")
 
+(defvar tramp-scp-force-scp-protocol nil
+  "Force scp protocol.
+
+It is the string \"-O\" if supported by the local scp (since
+release 8.6), otherwise the string \"\".  If it is nil, it will
+be auto-detected by Tramp.
+
+The string is used in `tramp-methods'.")
+
 ;; Initialize `tramp-methods' with the supported methods.
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -170,7 +179,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
                 (tramp-copy-args            (("-P" "%p") ("-p" "%k")
-					     ("%x") ("-q") ("-r") ("%c")))
+					     ("%x") ("%y") ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -186,7 +195,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
                 (tramp-copy-args            (("-P" "%p") ("-p" "%k")
-				             ("%x") ("-q") ("-r") ("%c")))
+				             ("%x") ("%y") ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -2311,7 +2320,8 @@ The method used must be an out-of-band method."
 		    ?h (or host "") ?u (or user "") ?p (or port "")
 		    ?r listener ?c options ?k (if keep-date " " "")
                     ?n (concat "2>" (tramp-get-remote-null-device v))
-		    ?x (tramp-scp-strict-file-name-checking v))
+		    ?x (tramp-scp-strict-file-name-checking v)
+		    ?y (tramp-scp-force-scp-protocol v))
 	      copy-program (tramp-get-method-parameter v 'tramp-copy-program)
 	      copy-keep-date (tramp-get-method-parameter
 			      v 'tramp-copy-keep-date)
@@ -4817,6 +4827,33 @@ Goes through the list `tramp-inline-compress-commands'."
                      "\\(illegal\\|unknown\\) option -- T" nil t)
 		  (setq tramp-scp-strict-file-name-checking "-T")))))))
       tramp-scp-strict-file-name-checking)))
+
+(defun tramp-scp-force-scp-protocol (vec)
+  "Return the force scp protocol argument of the local scp."
+  (cond
+   ;; No options to be computed.
+   ((null (assoc "%y" (tramp-get-method-parameter vec 'tramp-copy-args)))
+    "")
+
+   ;; There is already a value to be used.
+   ((stringp tramp-scp-force-scp-protocol)
+    tramp-scp-force-scp-protocol)
+
+   ;; Determine the options.
+   (t (setq tramp-scp-force-scp-protocol "")
+      (let ((case-fold-search t))
+	(ignore-errors
+	  (when (executable-find "scp")
+	    (with-tramp-progress-reporter
+		vec 4 "Computing force scp protocol argument"
+	      (with-temp-buffer
+		(tramp-call-process vec "scp" nil t nil "-O")
+		(goto-char (point-min))
+		(unless
+                    (search-forward-regexp
+                     "\\(illegal\\|unknown\\) option -- O" nil t)
+		  (setq tramp-scp-force-scp-protocol "-O")))))))
+      tramp-scp-force-scp-protocol)))
 
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
