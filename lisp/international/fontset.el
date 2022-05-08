@@ -234,6 +234,7 @@
         (brahmi #x11013 #x11045 #x11052 #x11065)
         (kaithi #x1108D #x110B0 #x110BD)
 	(mahajani #x11150)
+        (sharada #x11191 #x111B3 #x111CD)
 	(khojki #x11200)
 	(khudawadi #x112B0)
 	(grantha #x11305)
@@ -774,6 +775,7 @@
                     old-uyghur
                     brahmi
                     kaithi
+                    sharada
                     tirhuta
 		    makasar
                     dives-akuru
