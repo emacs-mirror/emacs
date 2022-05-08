@@ -1834,7 +1834,7 @@ list of valid filename suffixes for Info files.  See
           ;; include it (without the suffix).
           (when (and (string-match suffix file)
                      ;; But exclude subfiles of split Info files.
-                     (not (string-match "\.info-[0-9]+" file))
+                     (not (string-match "\\.info-[0-9]+" file))
                      ;; And exclude backup files.
                      (not (string-match "~\\'" file)))
             (push (substring file 0 (match-beginning 0))

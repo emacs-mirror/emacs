@@ -1430,7 +1430,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
     (when (and (= (length key) 1)
                (symbolp (elt key 0)))
       (let ((name (symbol-name (elt key 0))))
-        (when (string-match "\\`f\\([0-9]++\\)\\'" name)
+        (when (string-match "\\`f\\([0-9]+\\)\\'" name)
           (let* ((num (string-to-number (match-string 1 name)))
                  (ansi
                   (cond

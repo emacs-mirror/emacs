@@ -10214,7 +10214,7 @@ the number of seconds east of Greenwich.")
   )
 
 (defun get-scratch-buffer-create ()
-  "Return the \*scratch\* buffer, creating a new one if needed."
+  "Return the *scratch* buffer, creating a new one if needed."
   (or (get-buffer "*scratch*")
       (let ((scratch (get-buffer-create "*scratch*")))
         ;; Don't touch the buffer contents or mode unless we know that
@@ -10227,7 +10227,7 @@ the number of seconds east of Greenwich.")
         scratch)))
 
 (defun scratch-buffer ()
-  "Switch to the \*scratch\* buffer.
+  "Switch to the *scratch* buffer.
 If the buffer doesn't exist, create it first."
   (interactive)
   (pop-to-buffer-same-window (get-scratch-buffer-create)))
