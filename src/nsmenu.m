@@ -741,15 +741,15 @@ prettify_key (const char *key)
   /* p = [view convertPoint:p fromView: nil]; */
   p.y = NSHeight ([view frame]) - p.y;
   e = [[view window] currentEvent];
-   event = [NSEvent mouseEventWithType: NSEventTypeRightMouseDown
-                              location: p
-                         modifierFlags: 0
-                             timestamp: [e timestamp]
-                          windowNumber: [[view window] windowNumber]
-                               context: nil
-                           eventNumber: 0 /* [e eventNumber] */
-                            clickCount: 1
-                              pressure: 0];
+  event = [NSEvent mouseEventWithType: NSEventTypeRightMouseDown
+			     location: p
+			modifierFlags: 0
+			    timestamp: [e timestamp]
+			 windowNumber: [[view window] windowNumber]
+			      context: nil
+			  eventNumber: 0 /* [e eventNumber] */
+			   clickCount: 1
+			     pressure: 0];
 
   context_menu_value = -1;
   [NSMenu popUpContextMenu: self withEvent: event forView: view];
@@ -766,6 +766,10 @@ prettify_key (const char *key)
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object vec = f->menu_bar_vector;
   Lisp_Object help, frame;
+
+  /* This isn't a menubar, ignore.  */
+  if (context_menu_value == -1)
+    return;
 
   if (idx >= ASIZE (vec))
     return;
