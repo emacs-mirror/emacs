@@ -611,7 +611,7 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
-#ifdef HAVE_HAIKU
+#if defined HAVE_HAIKU || defined HAVE_NS
 static char *slurp_file (int, ptrdiff_t *);
 static Lisp_Object image_find_image_fd (Lisp_Object, int *);
 static bool xbm_read_bitmap_data (struct frame *, char *, char *,
@@ -630,11 +630,36 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 #endif
 
 #ifdef HAVE_NS
-  ptrdiff_t id;
-  void *bitmap = ns_image_from_file (file);
+  ptrdiff_t id, size;
+  int fd, width, height, rc;
+  char *contents, *data;
+  void *bitmap;
+
+  if (!STRINGP (image_find_image_fd (file, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  bitmap = ns_image_from_XBM (data, width, height, 0, 0);
 
   if (!bitmap)
+    {
+      xfree (contents);
+      xfree (data);
       return -1;
+    }
 
   id = image_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].img = bitmap;
@@ -643,6 +668,9 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = ns_image_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = ns_image_height (bitmap);
+
+  xfree (contents);
+  xfree (data);
   return id;
 #endif
 
