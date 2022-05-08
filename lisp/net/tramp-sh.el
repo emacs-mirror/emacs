@@ -137,6 +137,15 @@ be auto-detected by Tramp.
 
 The string is used in `tramp-methods'.")
 
+(defvar tramp-scp-force-scp-protocol nil
+  "Force scp protocol.
+
+It is the string \"-O\" if supported by the local scp (since
+release 8.6), otherwise the string \"\".  If it is nil, it will
+be auto-detected by Tramp.
+
+The string is used in `tramp-methods'.")
+
 (defcustom tramp-use-scp-direct-remote-copying nil
   "Whether to use direct copying between two remote hosts."
   :group 'tramp
@@ -179,7 +188,8 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
                 (tramp-copy-args            (("-P" "%p") ("-p" "%k")
-					     ("%x") ("%y") ("-q") ("-r") ("%c")))
+					     ("%x") ("%y") ("%z")
+					     ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -195,7 +205,8 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
                 (tramp-copy-args            (("-P" "%p") ("-p" "%k")
-				             ("%x") ("%y") ("-q") ("-r") ("%c")))
+				             ("%x") ("%y") ("%z")
+					     ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -2347,7 +2358,8 @@ The method used must be an out-of-band method."
 		  ?r listener ?c options ?k (if keep-date " " "")
                   ?n (concat "2>" (tramp-get-remote-null-device v))
 		  ?x (tramp-scp-strict-file-name-checking v)
-		  ?y (tramp-scp-direct-remote-copying v1 v2))
+		  ?y (tramp-scp-force-scp-protocol v)
+		  ?z (tramp-scp-direct-remote-copying v1 v2))
 	    copy-program (tramp-get-method-parameter v 'tramp-copy-program)
 	    copy-keep-date (tramp-get-method-parameter
 			    v 'tramp-copy-keep-date)
@@ -4810,14 +4822,41 @@ Goes through the list `tramp-inline-compress-commands'."
 		  (setq tramp-scp-strict-file-name-checking "-T")))))))
       tramp-scp-strict-file-name-checking)))
 
+(defun tramp-scp-force-scp-protocol (vec)
+  "Return the force scp protocol argument of the local scp."
+  (cond
+   ;; No options to be computed.
+   ((null (assoc "%y" (tramp-get-method-parameter vec 'tramp-copy-args)))
+    "")
+
+   ;; There is already a value to be used.
+   ((stringp tramp-scp-force-scp-protocol)
+    tramp-scp-force-scp-protocol)
+
+   ;; Determine the options.
+   (t (setq tramp-scp-force-scp-protocol "")
+      (let ((case-fold-search t))
+	(ignore-errors
+	  (when (executable-find "scp")
+	    (with-tramp-progress-reporter
+		vec 4 "Computing force scp protocol argument"
+	      (with-temp-buffer
+		(tramp-call-process vec "scp" nil t nil "-O")
+		(goto-char (point-min))
+		(unless
+                    (search-forward-regexp
+                     "\\(illegal\\|unknown\\) option -- O" nil t)
+		  (setq tramp-scp-force-scp-protocol "-O")))))))
+      tramp-scp-force-scp-protocol)))
+
 (defun tramp-scp-direct-remote-copying (vec1 vec2)
   "Return the direct remote copying argument of the local scp."
   (cond
    ((or (not tramp-use-scp-direct-remote-copying) (null vec1) (null vec2)
 	(not (tramp-get-process vec1))
 	(not (equal (tramp-file-name-port vec1) (tramp-file-name-port vec2)))
-	(null (assoc "%y" (tramp-get-method-parameter vec1 'tramp-copy-args)))
-	(null (assoc "%y" (tramp-get-method-parameter vec2 'tramp-copy-args))))
+	(null (assoc "%z" (tramp-get-method-parameter vec1 'tramp-copy-args)))
+	(null (assoc "%z" (tramp-get-method-parameter vec2 'tramp-copy-args))))
     "")
 
    ((let ((case-fold-search t))

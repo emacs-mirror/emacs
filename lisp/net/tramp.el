@@ -255,7 +255,9 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%n\" expands to \"2>/dev/null\".
     - \"%x\" is replaced by the `tramp-scp-strict-file-name-checking'
       argument if it is supported.
-    - \"%y\" is replaced by the `tramp-scp-direct-remote-copying'
+    - \"%y\" is replaced by the `tramp-scp-force-scp-protocol'
+      argument if it is supported.
+    - \"%z\" is replaced by the `tramp-scp-direct-remote-copying'
       argument if it is supported.
 
     The existence of `tramp-login-args', combined with the
