@@ -2718,6 +2718,20 @@ This is what happens in interactive use with M-x.  */)
 	   : Qnil);
       if (!NILP (symlink_target))
 	Fmake_symbolic_link (symlink_target, newname, ok_if_already_exists);
+      else if (S_ISFIFO (file_st.st_mode))
+	{
+	  /* If it's a FIFO, calling `copy-file' will hang if it's a
+	     inter-file system move, so do it here.  (It will signal
+	     an error in that case, but it won't hang in any case.)  */
+	  if (!NILP (ok_if_already_exists))
+	    barf_or_query_if_file_exists (newname, false,
+					  "rename to it",
+					  FIXNUMP (ok_if_already_exists),
+					  false);
+	  if (rename (SSDATA (encoded_file), SSDATA (encoded_newname)) != 0)
+	    report_file_errno ("Renaming", list2 (file, newname), errno);
+	  return Qnil;
+	}
       else
 	Fcopy_file (file, newname, ok_if_already_exists, Qt, Qt, Qt);
     }
