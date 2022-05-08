@@ -223,7 +223,7 @@ list of slot properties.  The currently known properties are the following:
   `:mutable': A non-nil value mean the slot can be mutated.
   `:type': Specifies the type of the values expected to appear in the slot."
   (declare (doc-string 2) (indent 1))
-  (unless (stringp docstring)
+  (unless (or (stringp docstring) (null docstring))
     (push docstring slots)
     (setq docstring nil))
   (let* ((options (when (consp name)
