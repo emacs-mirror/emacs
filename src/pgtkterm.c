@@ -1333,9 +1333,7 @@ pgtk_draw_glyph_string_background (struct glyph_string *s, bool force_p)
       if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
-
-	  fill_background (s,
-			   s->x, s->y + box_line_width,
+	  fill_background (s, s->x, s->y + box_line_width,
 			   s->background_width,
 			   s->height - 2 * box_line_width);
 	  s->background_filled_p = true;
@@ -2501,9 +2499,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	      if (s->face->underline_defaulted_p)
 		pgtk_draw_underwave (s, s->xgcv.foreground);
 	      else
-		{
-		  pgtk_draw_underwave (s, s->face->underline_color);
-		}
+		pgtk_draw_underwave (s, s->face->underline_color);
 	    }
 	  else if (s->face->underline == FACE_UNDER_LINE)
 	    {
@@ -2669,6 +2665,11 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	      }
 	}
     }
+
+  /* TODO: figure out in which cases the stipple is actually drawn on
+     PGTK.  */
+  if (!s->row->stipple_p)
+    s->row->stipple_p = s->face->stipple;
 
   /* Reset clipping.  */
   pgtk_end_cr_clip (s->f);
@@ -3505,9 +3506,7 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
          mono-displays, the fill style may have been changed to
          FillSolid in pgtk_draw_glyph_string_background.  */
       if (face->stipple)
-	{
-	  fill_background_by_face (f, face, p->bx, p->by, p->nx, p->ny);
-	}
+	fill_background_by_face (f, face, p->bx, p->by, p->nx, p->ny);
       else
 	{
 	  pgtk_set_cr_source_with_color (f, face->background, true);
@@ -6608,9 +6607,9 @@ pgtk_xlfd_to_fontname (const char *xlfd)
 }
 
 bool
-pgtk_defined_color (struct frame *f,
-		    const char *name,
-		    Emacs_Color * color_def, bool alloc, bool makeIndex)
+pgtk_defined_color (struct frame *f, const char *name,
+		    Emacs_Color *color_def, bool alloc,
+		    bool makeIndex)
 /* --------------------------------------------------------------------------
          Return true if named color found, and set color_def rgb accordingly.
          If makeIndex and alloc are nonzero put the color in the color_table,
