@@ -1026,7 +1026,10 @@ haiku_update_bitmap_rec (struct haiku_bitmap_record *rec,
 
 static void
 haiku_draw_stipple_background (struct glyph_string *s, struct face *face,
-			       int x, int y, int width, int height)
+			       int x, int y, int width, int height,
+			       bool explicit_colors_p,
+			       uint32 explicit_background,
+			       uint32 explicit_foreground)
 {
   struct haiku_bitmap_record *rec;
   unsigned long foreground, background;
@@ -1035,7 +1038,12 @@ haiku_draw_stipple_background (struct glyph_string *s, struct face *face,
   view = FRAME_HAIKU_VIEW (s->f);
   rec = haiku_get_bitmap_rec (s->f, s->face->stipple);
 
-  if (s->hl == DRAW_CURSOR)
+  if (explicit_colors_p)
+    {
+      background = explicit_background;
+      foreground = explicit_foreground;
+    }
+  else if (s->hl == DRAW_CURSOR)
     haiku_merge_cursor_foreground (s, &foreground, &background);
   else
     {
@@ -1061,7 +1069,8 @@ haiku_draw_background_rect (struct glyph_string *s, struct face *face,
   if (!s->stippled_p)
     haiku_draw_plain_background (s, face, x, y, width, height);
   else
-    haiku_draw_stipple_background (s, face, x, y, width, height);
+    haiku_draw_stipple_background (s, face, x, y, width, height,
+				   false, 0, 0);
 }
 
 static void
@@ -1255,9 +1264,8 @@ haiku_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 static void
 haiku_draw_stretch_glyph_string (struct glyph_string *s)
 {
-  eassert (s->first_glyph->type == STRETCH_GLYPH);
-
   struct face *face = s->face;
+  uint32_t bkg;
 
   if (s->hl == DRAW_CURSOR && !x_stretch_cursor_p)
     {
@@ -1305,9 +1313,11 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	  int y = s->y;
 	  int w = background_width - width, h = s->height;
 
+	  /* Draw stipples manually because we want the background
+	     part of a stretch glyph to have a stipple even if the
+	     cursor is visible on top.  */
 	  if (!face->stipple)
 	    {
-	      uint32_t bkg;
 	      if (s->row->mouse_face_p && cursor_in_mouse_face_p (s->w))
 		haiku_mouse_face_colors (s, NULL, &bkg);
 	      else
@@ -1315,6 +1325,16 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 
 	      BView_SetHighColor (view, bkg);
 	      BView_FillRectangle (view, x, y, w, h);
+	    }
+	  else
+	    {
+	      if (s->row->mouse_face_p && cursor_in_mouse_face_p (s->w))
+		haiku_mouse_face_colors (s, NULL, &bkg);
+	      else
+		bkg = face->background;
+
+	      haiku_draw_stipple_background (s, s->face, x, y, w, h,
+					     true, bkg, face->foreground);
 	    }
 	}
     }
@@ -1333,7 +1353,7 @@ haiku_draw_stretch_glyph_string (struct glyph_string *s)
 	}
 
       if (background_width > 0)
-	haiku_draw_background_rect (s, s->face, s->y,
+	haiku_draw_background_rect (s, s->face, s->x, s->y,
 				    background_width, s->height);
     }
   s->background_filled_p = 1;
@@ -1706,13 +1726,16 @@ haiku_draw_glyph_string (struct glyph_string *s)
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
           {
-	    prepare_face_for_display (s->f, s->next->face);
-	    haiku_start_clip (s->next);
-	    haiku_clip_to_string (s->next);
+	    prepare_face_for_display (s->f, next->face);
+	    next->stippled_p
+	      = next->hl != DRAW_CURSOR && next->face->stipple;
+
+	    haiku_start_clip (next);
+	    haiku_clip_to_string (next);
             if (next->first_glyph->type != STRETCH_GLYPH)
-	      haiku_maybe_draw_background (s->next, 1);
+	      haiku_maybe_draw_background (next, true);
             else
-	      haiku_draw_stretch_glyph_string (s->next);
+	      haiku_draw_stretch_glyph_string (next);
 	    haiku_end_clip (s);
           }
     }
