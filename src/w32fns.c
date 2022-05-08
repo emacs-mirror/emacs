@@ -247,6 +247,8 @@ static HWND w32_visible_system_caret_hwnd;
 
 static int w32_unicode_gui;
 
+static bool w32_selection_dialog_open;
+
 /* From w32menu.c  */
 int menubar_in_use = 0;
 
@@ -4184,6 +4186,16 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		       update_rect.left, update_rect.top,
 		       update_rect.right, update_rect.bottom));
 #endif
+	    /* Under double-buffering, update the frame from the back
+	       buffer, to prevent a "ghost" of the selection dialog to
+	       be left on display while the user selects in the dialog.  */
+	    if (w32_selection_dialog_open
+		&& !w32_disable_double_buffering
+		&& FRAME_OUTPUT_DATA (f)->paint_dc)
+	      BitBlt (FRAME_OUTPUT_DATA (f)->paint_buffer_handle,
+		      0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+		      FRAME_OUTPUT_DATA (f)->paint_dc, 0, 0, SRCCOPY);
+
 	    EndPaint (hwnd, &paintStruct);
 	    leave_crit ();
 
@@ -7754,6 +7766,15 @@ void
 w32_dialog_in_progress (Lisp_Object in_progress)
 {
   Lisp_Object frames, frame;
+
+  /* Indicate to w32_wnd_proc that the selection dialog is about to be
+     open (or was closed, if IN_PROGRESS is nil).  */
+  if (!w32_disable_double_buffering)
+    {
+      enter_crit ();
+      w32_selection_dialog_open = !NILP (in_progress);
+      leave_crit ();
+    }
 
   /* Don't let frames in `above' z-group obscure dialog windows.  */
   FOR_EACH_FRAME (frames, frame)
