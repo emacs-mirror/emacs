@@ -4392,7 +4392,6 @@ add_row_entry (struct glyph_row *row)
   return entry;
 }
 
-
 /* Try to reuse part of the current display of W by scrolling lines.
    HEADER_LINE_P means W has a header line.
 
@@ -4438,6 +4437,14 @@ scrolling_window (struct window *w, int tab_line_p)
       struct glyph_row *d = MATRIX_ROW (desired_matrix, i);
       struct glyph_row *c = MATRIX_ROW (current_matrix, i);
 
+      /* If there is a row with a stipple currently on the glass, give
+	 up.  Stipples look different depending on where on the
+	 display they are drawn, so scrolling the display will produce
+	 incorrect results.  */
+
+      if (c->stipple_p)
+	return 0;
+
       if (c->enabled_p
 	  && d->enabled_p
 	  && !d->redraw_fringe_bitmaps_p
@@ -4466,6 +4473,16 @@ scrolling_window (struct window *w, int tab_line_p)
     return -1;
 
   first_old = first_new = i;
+
+  while (i < current_matrix->nrows - 1)
+    {
+      /* If there is a stipple after the first change, give up as
+	 well.  */
+      if (MATRIX_ROW (current_matrix, i)->stipple_p)
+	return 0;
+
+      ++i;
+    }
 
   /* Set last_new to the index + 1 of the row that reaches the
      bottom boundary in the desired matrix.  Give up if we find a

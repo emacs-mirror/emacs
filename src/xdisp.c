@@ -32015,14 +32015,16 @@ gui_insert_glyphs (struct window *w, struct glyph_row *updated_row,
 
 void
 gui_clear_end_of_line (struct window *w, struct glyph_row *updated_row,
-		     enum glyph_row_area updated_area, int to_x)
+		       enum glyph_row_area updated_area, int to_x)
 {
   struct frame *f;
   int max_x, min_y, max_y;
   int from_x, from_y, to_y;
+  struct face *face;
 
   eassert (updated_row);
   f = XFRAME (w->frame);
+  face = FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID);
 
   if (updated_row->full_width_p)
     max_x = (WINDOW_PIXEL_WIDTH (w)
@@ -32074,6 +32076,9 @@ gui_clear_end_of_line (struct window *w, struct glyph_row *updated_row,
       block_input ();
       FRAME_RIF (f)->clear_frame_area (f, from_x, from_y,
                                        to_x - from_x, to_y - from_y);
+
+      if (face && !updated_row->stipple_p)
+	updated_row->stipple_p = face->stipple;
       unblock_input ();
     }
 }
