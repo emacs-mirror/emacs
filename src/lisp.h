@@ -5515,7 +5515,7 @@ struct for_each_tail_internal
 	  || ((check_quit) ? maybe_quit () : (void) 0, 0 < --li.n)	\
 	  || (li.q = li.n = li.max <<= 1, li.n >>= USHRT_WIDTH,		\
 	      li.tortoise = (tail), false))				\
-	 && EQ (tail, li.tortoise))					\
+	 && BASE_EQ (tail, li.tortoise))				\
 	? (cycle) : (void) 0))
 
 /* Do a `for' loop over alist values.  */
