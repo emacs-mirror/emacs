@@ -5762,15 +5762,19 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 	 mono-displays, the fill style may have been changed to
 	 FillSolid in x_draw_glyph_string_background.  */
       if (face->stipple)
-	XSetFillStyle (display, face->gc, FillOpaqueStippled);
+	{
+	  XSetFillStyle (display, face->gc, FillOpaqueStippled);
+	  x_fill_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny,
+			    true);
+	  XSetFillStyle (display, face->gc, FillSolid);
+	}
       else
-	XSetBackground (display, face->gc, face->background);
-
-      x_clear_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny,
-			 true);
-
-      if (!face->stipple)
-	XSetForeground (display, face->gc, face->foreground);
+	{
+	  XSetBackground (display, face->gc, face->background);
+	  x_clear_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny,
+			   true);
+	  XSetForeground (display, face->gc, face->foreground);
+	}
     }
 
 #ifdef USE_CAIRO
