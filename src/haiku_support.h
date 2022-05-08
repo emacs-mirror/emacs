@@ -541,6 +541,8 @@ extern void BView_DrawBitmap (void *, void *, int, int, int, int, int, int,
 extern void BView_DrawBitmapWithEraseOp (void *, void *, int, int, int, int);
 extern void BView_DrawMask (void *, void *, int, int, int, int,	int, int,
 			    int, int, uint32_t);
+extern void BView_DrawBitmapTiled (void *, void *, int, int,
+				   int, int, int, int, int, int);
 
 extern void BView_resize_to (void *, int, int);
 extern void BView_set_view_cursor (void *, void *);
@@ -570,9 +572,7 @@ extern void BView_invalidate (void *);
 extern void BView_draw_lock (void *, bool, int, int, int, int);
 extern void BView_invalidate_region (void *, int, int, int, int);
 extern void BView_draw_unlock (void *);
-
 extern void BBitmap_import_fringe_bitmap (void *, unsigned short *, int, int);
-extern void BBitmap_import_mono_bits (void *, void *, int, int);
 
 extern void haiku_font_pattern_free (struct haiku_font_pattern *);
 

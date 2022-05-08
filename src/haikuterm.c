@@ -122,7 +122,8 @@ haiku_delete_terminal (struct terminal *terminal)
 }
 
 static const char *
-get_string_resource (void *ignored, const char *name, const char *class)
+haiku_get_string_resource (void *ignored, const char *name,
+			   const char *class)
 {
   const char *native;
 
@@ -990,10 +991,28 @@ haiku_draw_plain_background (struct glyph_string *s, struct face *face,
 		       s->height - 2 * box_line_hwidth);
 }
 
+static void *
+haiku_get_bitmap (struct frame *f, ptrdiff_t id)
+{
+  return FRAME_DISPLAY_INFO (f)->bitmaps[id - 1].img;
+}
+
 static void
 haiku_draw_stipple_background (struct glyph_string *s, struct face *face,
 			       int box_line_hwidth, int box_line_vwidth)
 {
+  void *view;
+
+  view = FRAME_HAIKU_VIEW (s->f);
+  BView_StartClip (view);
+  haiku_clip_to_string (s);
+  BView_ClipToRect (view, s->x, s->y + box_line_hwidth,
+		    s->background_width,
+		    s->height - 2 * box_line_hwidth);
+  BView_DrawBitmapTiled (view, haiku_get_bitmap (s->f, face->stipple),
+			 0, 0, -1, -1, 0, 0, FRAME_PIXEL_WIDTH (s->f),
+			 FRAME_PIXEL_HEIGHT (s->f));
+  BView_EndClip (view);
 }
 
 static void
@@ -2079,19 +2098,25 @@ haiku_draw_vertical_window_border (struct window *w,
 static void
 haiku_set_scroll_bar_default_width (struct frame *f)
 {
-  int unit = FRAME_COLUMN_WIDTH (f);
-  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = BScrollBar_default_size (0) + 1;
-  FRAME_CONFIG_SCROLL_BAR_COLS (f) =
-    (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
+  int unit, size;
+
+  unit = FRAME_COLUMN_WIDTH (f);
+  size = BScrollBar_default_size (0) + 1;
+
+  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = size;
+  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (size + unit - 1) / unit;
 }
 
 static void
 haiku_set_scroll_bar_default_height (struct frame *f)
 {
-  int height = FRAME_LINE_HEIGHT (f);
-  FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = BScrollBar_default_size (1) + 1;
-  FRAME_CONFIG_SCROLL_BAR_LINES (f) =
-    (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) + height - 1) / height;
+  int height, size;
+
+  height = FRAME_LINE_HEIGHT (f);
+  size = BScrollBar_default_size (true) + 1;
+
+  FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = size;
+  FRAME_CONFIG_SCROLL_BAR_LINES (f) = (size + height - 1) / height;
 }
 
 static void
@@ -2273,15 +2298,17 @@ static struct scroll_bar *
 haiku_scroll_bar_create (struct window *w, int left, int top,
 			 int width, int height, bool horizontal_p)
 {
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct frame *f;
   Lisp_Object barobj;
+  struct scroll_bar *bar;
+  void *scroll_bar;
+  void *view;
 
-  void *sb = NULL;
-  void *vw = FRAME_HAIKU_VIEW (f);
+  f = XFRAME (WINDOW_FRAME (w));
+  view = FRAME_HAIKU_VIEW (f);
 
   block_input ();
-  struct scroll_bar *bar
-    = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, prev, PVEC_OTHER);
+  bar = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, prev, PVEC_OTHER);
 
   XSETWINDOW (bar->window, w);
   bar->top = top;
@@ -2294,15 +2321,14 @@ haiku_scroll_bar_create (struct window *w, int left, int top,
   bar->update = -1;
   bar->horizontal = horizontal_p;
 
-  sb = BScrollBar_make_for_view (vw, horizontal_p,
-				 left, top, left + width - 1,
-				 top + height - 1, bar);
-
-  BView_publish_scroll_bar (vw, left, top, width, height);
+  scroll_bar = BScrollBar_make_for_view (view, horizontal_p,
+					 left, top, left + width - 1,
+					 top + height - 1, bar);
+  BView_publish_scroll_bar (view, left, top, width, height);
 
   bar->next = FRAME_SCROLL_BARS (f);
   bar->prev = Qnil;
-  bar->scroll_bar = sb;
+  bar->scroll_bar = scroll_bar;
   XSETVECTOR (barobj, bar);
   fset_scroll_bars (f, barobj);
 
@@ -2316,18 +2342,20 @@ haiku_scroll_bar_create (struct window *w, int left, int top,
 static void
 haiku_set_horizontal_scroll_bar (struct window *w, int portion, int whole, int position)
 {
-  eassert (WINDOW_HAS_HORIZONTAL_SCROLL_BAR (w));
   Lisp_Object barobj;
   struct scroll_bar *bar;
   int top, height, left, width;
   int window_x, window_width;
+  void *view;
 
+  eassert (WINDOW_HAS_HORIZONTAL_SCROLL_BAR (w));
   /* Get window dimensions.  */
   window_box (w, ANY_AREA, &window_x, 0, &window_width, 0);
   left = window_x;
   width = window_width;
   top = WINDOW_SCROLL_BAR_AREA_Y (w);
   height = WINDOW_CONFIG_SCROLL_BAR_HEIGHT (w);
+  view = FRAME_HAIKU_VIEW (WINDOW_XFRAME (w));
 
   block_input ();
 
@@ -2342,15 +2370,15 @@ haiku_set_horizontal_scroll_bar (struct window *w, int portion, int whole, int p
     {
       bar = XSCROLL_BAR (w->horizontal_scroll_bar);
 
-      if (bar->left != left || bar->top != top ||
-	  bar->width != width || bar->height != height)
+      if (bar->left != left || bar->top != top
+	  || bar->width != width || bar->height != height)
 	{
-	  void *view = FRAME_HAIKU_VIEW (WINDOW_XFRAME (w));
 	  BView_forget_scroll_bar (view, bar->left, bar->top,
 				   bar->width, bar->height);
 	  BView_move_frame (bar->scroll_bar, left, top,
 			    left + width - 1, top + height - 1);
 	  BView_publish_scroll_bar (view, left, top, width, height);
+
 	  bar->left = left;
 	  bar->top = top;
 	  bar->width = width;
@@ -2367,14 +2395,15 @@ haiku_set_horizontal_scroll_bar (struct window *w, int portion, int whole, int p
 }
 
 static void
-haiku_set_vertical_scroll_bar (struct window *w,
-			       int portion, int whole, int position)
+haiku_set_vertical_scroll_bar (struct window *w, int portion, int whole, int position)
 {
-  eassert (WINDOW_HAS_VERTICAL_SCROLL_BAR (w));
   Lisp_Object barobj;
   struct scroll_bar *bar;
   int top, height, left, width;
   int window_y, window_height;
+  void *view;
+
+  eassert (WINDOW_HAS_VERTICAL_SCROLL_BAR (w));
 
   /* Get window dimensions.  */
   window_box (w, ANY_AREA, 0, &window_y, 0, &window_height);
@@ -2384,8 +2413,10 @@ haiku_set_vertical_scroll_bar (struct window *w,
   /* Compute the left edge and the width of the scroll bar area.  */
   left = WINDOW_SCROLL_BAR_AREA_X (w);
   width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
-  block_input ();
 
+  view = FRAME_HAIKU_VIEW (WINDOW_XFRAME (w));
+
+  block_input ();
   if (NILP (w->vertical_scroll_bar))
     {
       bar = haiku_scroll_bar_create (w, left, top, width, height, false);
@@ -2396,15 +2427,15 @@ haiku_set_vertical_scroll_bar (struct window *w,
     {
       bar = XSCROLL_BAR (w->vertical_scroll_bar);
 
-      if (bar->left != left || bar->top != top ||
-	  bar->width != width || bar->height != height)
+      if (bar->left != left || bar->top != top
+	  || bar->width != width || bar->height != height)
 	{
-	  void *view = FRAME_HAIKU_VIEW (WINDOW_XFRAME (w));
 	  BView_forget_scroll_bar (view, bar->left, bar->top,
 				   bar->width, bar->height);
 	  BView_move_frame (bar->scroll_bar, left, top,
 			    left + width - 1, top + height - 1);
 	  BView_publish_scroll_bar (view, left, top, width, height);
+
 	  bar->left = left;
 	  bar->top = top;
 	  bar->width = width;
@@ -3880,7 +3911,7 @@ haiku_create_terminal (struct haiku_display_info *dpyinfo)
   terminal->frame_visible_invisible_hook = haiku_set_frame_visible_invisible;
   terminal->set_frame_offset_hook = haiku_set_offset;
   terminal->delete_terminal_hook = haiku_delete_terminal;
-  terminal->get_string_resource_hook = get_string_resource;
+  terminal->get_string_resource_hook = haiku_get_string_resource;
   terminal->set_new_font_hook = haiku_new_font;
   terminal->defined_color_hook = haiku_defined_color;
   terminal->set_window_size_hook = haiku_set_window_size;
@@ -4089,9 +4120,15 @@ mark_haiku_display (void)
 void
 haiku_scroll_bar_remove (struct scroll_bar *bar)
 {
+  void *view;
+  struct frame *f;
+
+  f = WINDOW_XFRAME (XWINDOW (bar->window));
+  view = FRAME_HAIKU_VIEW (f);
+
   block_input ();
-  void *view = FRAME_HAIKU_VIEW (WINDOW_XFRAME (XWINDOW (bar->window)));
-  BView_forget_scroll_bar (view, bar->left, bar->top, bar->width, bar->height);
+  BView_forget_scroll_bar (view, bar->left, bar->top,
+			   bar->width, bar->height);
   BScrollBar_delete (bar->scroll_bar);
   expose_frame (WINDOW_XFRAME (XWINDOW (bar->window)),
 		bar->left, bar->top, bar->width, bar->height);
@@ -4100,7 +4137,6 @@ haiku_scroll_bar_remove (struct scroll_bar *bar)
     wset_horizontal_scroll_bar (XWINDOW (bar->window), Qnil);
   else
     wset_vertical_scroll_bar (XWINDOW (bar->window), Qnil);
-
   unblock_input ();
 };
 

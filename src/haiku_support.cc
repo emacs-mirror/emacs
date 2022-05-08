@@ -3599,17 +3599,6 @@ BBitmap_import_fringe_bitmap (void *bitmap, unsigned short *bits, int wd, int h)
     }
 }
 
-void
-BBitmap_import_mono_bits (void *bitmap, void *bits, int wd, int h)
-{
-  BBitmap *bmp = (BBitmap *) bitmap;
-
-  if (wd % 8)
-    wd += 8 - (wd % 8);
-
-  bmp->ImportBits (bits, wd / 8 * h, wd / 8, 0, B_GRAY1);
-}
-
 /* Make a scrollbar at X, Y known to the view VIEW.  */
 void
 BView_publish_scroll_bar (void *view, int x, int y, int width, int height)

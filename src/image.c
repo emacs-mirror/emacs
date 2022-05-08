@@ -542,12 +542,22 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
-  void *bitmap = BBitmap_new (width, height, 1);
+  void *bitmap;
+  int bytes_per_line, x, y;
+
+  bitmap = BBitmap_new (width, height, 1);
 
   if (!bitmap)
     return -1;
 
-  BBitmap_import_mono_bits (bitmap, bits, width, height);
+  bytes_per_line = (width + 7) / 8;
+
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+	PUT_PIXEL (bitmap, x, y, (bits[8] >> (x % 8)) & 1);
+      bits += bytes_per_line;
+    }
 #endif
 
   id = image_allocate_bitmap_record (f);
@@ -592,12 +602,19 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
+#ifdef HAVE_HAIKU
+static char *slurp_file (int, ptrdiff_t *);
+static Lisp_Object image_find_image_fd (Lisp_Object, int *);
+static bool xbm_read_bitmap_data (struct frame *, char *, char *,
+				  int *, int *, char **, bool);
+#endif
+
 /* Create bitmap from file FILE for frame F.  */
 
 ptrdiff_t
 image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 {
-#if defined (HAVE_NTGUI) || defined (HAVE_HAIKU)
+#if defined (HAVE_NTGUI)
   return -1;  /* W32_TODO : bitmap support */
 #else
   Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -609,7 +626,6 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   if (!bitmap)
       return -1;
-
 
   id = image_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].img = bitmap;
@@ -637,7 +653,6 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
-  //dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
   dpyinfo->bitmaps[id - 1].pattern
@@ -692,6 +707,63 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   return id;
 #endif /* HAVE_X_WINDOWS */
+
+#ifdef HAVE_HAIKU
+  ptrdiff_t id, size;
+  int fd, width, height, rc, bytes_per_line, x, y;
+  char *contents, *data, *tmp;
+  void *bitmap;
+
+  if (!STRINGP (image_find_image_fd (file, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  bitmap = BBitmap_new (width, height, 1);
+
+  if (!bitmap)
+    {
+      xfree (contents);
+      xfree (data);
+      return -1;
+    }
+
+  id = image_allocate_bitmap_record (f);
+
+  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].file = NULL;
+  dpyinfo->bitmaps[id - 1].height = height;
+  dpyinfo->bitmaps[id - 1].width = width;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+
+  bytes_per_line = (width + 7) / 8;
+  tmp = data;
+
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+	PUT_PIXEL (bitmap, x, y, (tmp[x / 8] >> (x % 8)) & 1);
+
+      tmp += bytes_per_line;
+    }
+
+  xfree (contents);
+  xfree (data);
+  return id;
+#endif
 }
 
 /* Free bitmap B.  */
