@@ -37,6 +37,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "ftfont.h"
 #include "pdumper.h"
+#ifdef HAVE_PGTK
+#include "xsettings.h"
+#endif
 
 #ifdef USE_BE_CAIRO
 #define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
@@ -168,7 +171,12 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   cairo_matrix_t font_matrix, ctm;
   cairo_matrix_init_scale (&font_matrix, pixel_size, pixel_size);
   cairo_matrix_init_identity (&ctm);
+
+#ifdef HAVE_PGTK
+  cairo_font_options_t *options = xsettings_get_font_options ();
+#else
   cairo_font_options_t *options = cairo_font_options_create ();
+#endif
 #ifdef USE_BE_CAIRO
   if (be_use_subpixel_antialiasing ())
     cairo_font_options_set_antialias (options, CAIRO_ANTIALIAS_SUBPIXEL);
@@ -624,6 +632,28 @@ ftcrfont_draw (struct glyph_string *s,
   return len;
 }
 
+#ifdef HAVE_PGTK
+/* Determine if FONT_OBJECT is a valid cached font for ENTITY by
+   comparing the options used to open it with the user's current
+   preferences specified via GSettings.  */
+static bool
+ftcrfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
+			 Lisp_Object entity)
+{
+  struct font_info *info = (struct font_info *) XFONT_OBJECT (font_object);
+
+  cairo_font_options_t *options = cairo_font_options_create ();
+  cairo_scaled_font_get_font_options (info->cr_scaled_font, options);
+  cairo_font_options_t *gsettings_options = xsettings_get_font_options ();
+
+  bool equal = cairo_font_options_equal (options, gsettings_options);
+  cairo_font_options_destroy (options);
+  cairo_font_options_destroy (gsettings_options);
+
+  return equal;
+}
+#endif
+
 #ifdef HAVE_HARFBUZZ
 
 static Lisp_Object
@@ -694,6 +724,9 @@ struct font_driver const ftcrfont_driver =
 #endif
   .filter_properties = ftfont_filter_properties,
   .combining_capability = ftfont_combining_capability,
+#ifdef HAVE_PGTK
+  .cached_font_ok = ftcrfont_cached_font_ok
+#endif
   };
 #ifdef HAVE_HARFBUZZ
 struct font_driver ftcrhbfont_driver;
