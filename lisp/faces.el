@@ -1203,7 +1203,8 @@ an integer value."
             'integerp)
            (:stipple
             (and (memq (window-system frame) '(x ns pgtk haiku)) ; No stipple on w32
-                 (mapcar #'list
+                 (mapcar (lambda (item)
+                           (cons item item))
                          (apply #'nconc
                                 (mapcar (lambda (dir)
                                           (and (file-readable-p dir)
