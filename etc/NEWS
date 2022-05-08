@@ -719,7 +719,7 @@ The options 'mouse-wheel-down-alternate-event',
 and 'mouse-wheel-right-alternate-event' have been added to better
 support systems where two kinds of wheel events can be received.
 
-** Editing complex text layout (CTL) scripts
+** Internationalization changes
 
 *** The <Delete> function key now allows deleting the entire composed sequence.
 For the details, see the item about the 'delete-forward-char' command
@@ -748,6 +748,11 @@ this script.
 This language environment supports Tirhuta or Mithilaakshar, which is
 used to write the Maithili language.  A new input method, 'tirhuta',
 is provided to type text in this script.
+
+---
+*** New Greek translation of the Emacs tutorial.
+Type 'C-u C-h t' to select it in case your language setup does not do
+so automatically.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
