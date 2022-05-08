@@ -918,6 +918,13 @@ is buffer-local."
   :type 'integer
   :version "27.1")
 
+(defcustom term-bind-function-keys nil
+  "If nil, don't alter <f1>, <f2> and so on.
+If non-nil, bind these keys in `term-mode' and send them to the
+underlying shell."
+  :type 'boolean
+  :version "29.1")
+
 
 ;; Set up term-raw-map, etc.
 
@@ -958,6 +965,10 @@ is buffer-local."
     (define-key map [next] 'term-send-next)
     (define-key map [xterm-paste] #'term--xterm-paste)
     (define-key map [?\C-/] #'term-send-C-_)
+
+    (when term-bind-function-keys
+      (dotimes (key 21)
+        (keymap-set map (format "<f%d>" key) #'term-send-function-key)))
     map)
   "Keyboard map for sending characters directly to the inferior process.")
 
@@ -1411,6 +1422,26 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 (defun term-send-del   () (interactive) (term-send-raw-string "\e[3~"))
 (defun term-send-backspace  () (interactive) (term-send-raw-string "\C-?"))
 (defun term-send-C-_  () (interactive) (term-send-raw-string "\C-_"))
+
+(defun term-send-function-key ()
+  "If bound to a function key, this will send that key to the underlying shell."
+  (interactive)
+  (let ((key (this-command-keys-vector)))
+    (when (and (= (length key) 1)
+               (symbolp (elt key 0)))
+      (let ((name (symbol-name (elt key 0))))
+        (when (string-match "\\`f\\([0-9]++\\)\\'" name)
+          (let* ((num (string-to-number (match-string 1 name)))
+                 (ansi
+                  (cond
+                   ((<= num 5) (+ num 10))
+                   ((<= num 10) (+ num 11))
+                   ((<= num 14) (+ num 12))
+                   ((<= num 16) (+ num 13))
+                   ((<= num 20) (+ num 14)))))
+            (when ansi
+              (term-send-raw-string (format "\e[%d~" ansi)))))))))
+
 
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
