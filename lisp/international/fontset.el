@@ -238,7 +238,7 @@
 	(khudawadi #x112B0)
 	(grantha #x11305)
 	(newa #x11400)
-	(tirhuta #x11481)
+	(tirhuta #x11481 #x1148F #x114D0)
 	(siddham #x11580)
 	(modi #x11600)
 	(takri #x11680)
@@ -774,6 +774,7 @@
                     old-uyghur
                     brahmi
                     kaithi
+                    tirhuta
 		    makasar
                     dives-akuru
 		    cuneiform

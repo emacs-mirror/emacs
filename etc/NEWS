@@ -744,6 +744,11 @@ an important writing system of the past mainly used for administrative
 purposes.  A new input method, 'kaithi', is provided to type text in
 this script.
 
+*** New language environment "Tirhuta".
+This language environment supports Tirhuta or Mithilaakshar, which is
+used to write the Maithili language.  A new input method, 'tirhuta',
+is provided to type text in this script.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

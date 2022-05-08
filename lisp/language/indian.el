@@ -147,6 +147,17 @@ Languages such as Awadhi, Bhojpuri, Magahi and Maithili
 which used the Kaithi script are supported in this language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Tirhuta" '((charset unicode)
+             (coding-system utf-8)
+             (coding-priority utf-8)
+             (input-method . "tirhuta")
+             (sample-text . "Tirhuta (𑒞𑒱𑒩𑒯𑒳𑒞𑒰)        𑒣𑓂𑒩𑒢𑒰𑒧")
+             (documentation . "\
+Maithili language and its script Tirhuta is supported in this
+language environment."))
+ '("Indian"))
+
 
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
@@ -465,5 +476,18 @@ which used the Kaithi script are supported in this language environment."))
                                0 'font-shape-gstring))))
 
 (provide 'indian)
+
+;; Tirhuta composition rules
+(let ((consonant            "[\x1148F-\x114AF]")
+      (nukta                "\x114C3")
+      (vowel                "[\x114B0-\x114BE]")
+      (anusvara-candrabindu "[\x114BF\x114C0]")
+      (virama               "\x114C2"))
+  (set-char-table-range composition-function-table
+                        '(#x114B0 . #x114C3)
+                        (list (vector
+                               (concat consonant nukta "?\\(?:" virama consonant nukta "?\\)*\\(?:"
+                                       virama "\\|" vowel "*" nukta "?" anusvara-candrabindu "?\\)")
+                               1 'font-shape-gstring))))
 
 ;;; indian.el ends here
