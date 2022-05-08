@@ -9452,8 +9452,21 @@ x_toggle_visible_pointer (struct frame *f, bool invisible)
   if (dpyinfo->invisible_cursor == None)
     dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
 
+#ifndef HAVE_XFIXES
   if (dpyinfo->invisible_cursor == None)
     invisible = false;
+#else
+  /* But if Xfixes is available, try using it instead.  */
+  if (x_probe_xfixes_extension (dpyinfo))
+    {
+      dpyinfo->fixes_pointer_blanking = true;
+      xfixes_toggle_visible_pointer (f, invisible);
+
+      return;
+    }
+  else
+    invisible = false;
+#endif
 
   if (invisible)
     XDefineCursor (dpyinfo->display, FRAME_X_WINDOW (f),
