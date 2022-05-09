@@ -1742,22 +1742,6 @@ You will need an implementation of TeX for Windows.
 A number of implementations are listed on the
 @uref{http://www.tug.org/interest.html#free, TeX Users Group} website.
 
-@menu
-* AUCTeX::
-@end menu
-
-@node AUCTeX
-@subsection AUCTeX
-@cindex auctex, precompiled for Windows
-@cindex latex
-@cindex preview-latex
-
-AUCTeX is an Emacs package for writing LaTeX files, which also
-includes preview-latex, an Emacs mode for previewing the formatted
-contents of LaTeX documents.  AUCTeX is available from
-@uref{https://elpa.gnu.org, GNU ELPA} and can be installed with the
-command @kbd{M-x list-packages}.
-
 @node Spell check
 @section How do I perform spell checks?
 @cindex spell checking
