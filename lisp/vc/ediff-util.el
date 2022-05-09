@@ -3432,7 +3432,7 @@ Without an argument, it saves customized diff argument, if available
 
 (defun ediff-show-diff-output (arg)
   "With prefix argument ARG, show plain diff output.
-Without an argument, it saves customized diff argument, if available
+Without an argument, save the customized diff argument, if available
 (and plain output, if customized output was not generated)."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
