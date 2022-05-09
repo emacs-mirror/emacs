@@ -100,7 +100,7 @@ ts_calloc_wrapper (size_t n, size_t size)
   return xzalloc (n * size);
 }
 
-void
+static void
 ts_initialize ()
 {
   if (!ts_initialized)
@@ -114,7 +114,7 @@ ts_initialize ()
 
 /* Translates a symbol treesit-<lang> to a C name
    treesit_<lang>.  */
-void
+static void
 ts_symbol_to_c_name (char *symbol_name)
 {
   for (int idx=0; idx < strlen (symbol_name); idx++)
@@ -124,7 +124,7 @@ ts_symbol_to_c_name (char *symbol_name)
     }
 }
 
-bool
+static bool
 ts_find_override_name
 (Lisp_Object language_symbol, Lisp_Object *name, Lisp_Object *c_symbol)
 {
@@ -149,7 +149,7 @@ ts_find_override_name
    thsi function pushes "lib_base_name.so" and "lib_base_name.dylib"
    into *path_candidates. Obiviously path_candidates should be a Lisp
    list of Lisp strings.  */
-void
+static void
 ts_load_language_push_for_each_suffix
 (Lisp_Object lib_base_name, Lisp_Object *path_candidates)
 {
@@ -168,7 +168,7 @@ ts_load_language_push_for_each_suffix
 
    If SIGNAL is true, signal an error when failed to load LANGUAGE; if
    false, return NULL when failed.  */
-TSLanguage *
+static TSLanguage *
 ts_load_language (Lisp_Object language_symbol, bool signal)
 {
   Lisp_Object symbol_name = Fsymbol_name (language_symbol);
@@ -242,7 +242,7 @@ ts_load_language (Lisp_Object language_symbol, bool signal)
 
   /* Load TSLanguage.  */
   dynlib_error ();
-  TSLanguage *(*langfn) ();
+  TSLanguage *(*langfn) (void);
   langfn = dynlib_sym (handle, c_name);
   error = dynlib_error ();
   if (error != NULL)
@@ -348,10 +348,9 @@ ts_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
     }
 }
 
-void
+static void
 ts_ensure_position_synced (Lisp_Object parser)
 {
-  TSParser *ts_parser = XTS_PARSER (parser)->parser;
   TSTree *tree = XTS_PARSER (parser)->tree;
 
   if (tree == NULL)
@@ -406,7 +405,7 @@ ts_ensure_position_synced (Lisp_Object parser)
   XTS_PARSER (parser)->visible_end = visible_end;
 }
 
-void
+static void
 ts_check_buffer_size (struct buffer *buffer)
 {
   ptrdiff_t buffer_size =
@@ -419,7 +418,7 @@ ts_check_buffer_size (struct buffer *buffer)
 
 /* Parse the buffer.  We don't parse until we have to. When we have
 to, we call this function to parse and update the tree.  */
-void
+static void
 ts_ensure_parsed (Lisp_Object parser)
 {
   if (!XTS_PARSER (parser)->need_reparse)
@@ -456,7 +455,7 @@ ts_ensure_parsed (Lisp_Object parser)
 /* This is the read function provided to tree-sitter to read from a
    buffer.  It reads one character at a time and automatically skips
    the gap.  */
-const char*
+static const char*
 ts_read_buffer (void *parser, uint32_t byte_index,
 		TSPoint position, uint32_t *bytes_read)
 {
@@ -647,7 +646,7 @@ DEFUN ("treesit-parser-root-node",
 
 /* Checks that the RANGES argument of
    treesit-parser-set-included-ranges is valid.  */
-void
+static void
 ts_check_range_argument (Lisp_Object ranges)
 {
   EMACS_INT last_point = 1;
@@ -706,7 +705,6 @@ is nil, set PARSER to parse the whole buffer.  */)
       /* Set ranges for PARSER.  */
       ptrdiff_t len = list_length (ranges);
       TSRange *ts_ranges = malloc (sizeof(TSRange) * len);
-      struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
       for (int idx=0; !NILP (ranges); idx++, ranges = XCDR (ranges))
 	{
@@ -1246,7 +1244,7 @@ explanation.  */)
 		     query, build_pure_c_string (" "));
 }
 
-char*
+static const char*
 ts_query_error_to_string (TSQueryError error)
 {
   switch (error)
@@ -1285,7 +1283,7 @@ struct capture_range
 
 /* Collect predicates for this match and return them in a list.  Each
    predicate is a list of strings and symbols.  */
-Lisp_Object
+static Lisp_Object
 ts_predicates_for_pattern
 (TSQuery *query, uint32_t pattern_index)
 {
@@ -1327,7 +1325,7 @@ ts_predicates_for_pattern
 
 /* Translate a capture NAME (symbol) to the text of the captured node.
    Signals treesit-query-error if such node is not captured.  */
-Lisp_Object
+static Lisp_Object
 ts_predicate_capture_name_to_text
 (Lisp_Object name, struct capture_range captures)
 {
@@ -1360,7 +1358,7 @@ ts_predicate_capture_name_to_text
    false otherwise. A and B can be either string, or a capture name.
    The capture name evaluates to the text its captured node spans in
    the buffer.  */
-bool
+static bool
 ts_predicate_equal
 (Lisp_Object args, struct capture_range captures)
 {
@@ -1383,7 +1381,7 @@ ts_predicate_equal
 /* Handles predicate (#match "regexp" @node).  Return true if "regexp"
    matches the text spanned by @node; return false otherwise.  Matching
    is case-sensitive.  */
-bool
+static bool
 ts_predicate_match
 (Lisp_Object args, struct capture_range captures)
 {
@@ -1420,7 +1418,7 @@ ts_predicate_match
 
 /* If all predicates in PREDICATES passes, return true; otherwise
    return false.  */
-bool
+static bool
 ts_eval_predicates
 (struct capture_range captures, Lisp_Object predicates)
 {
