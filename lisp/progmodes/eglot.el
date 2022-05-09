@@ -1440,7 +1440,7 @@ If optional MARKER, return a marker instead"
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (let* ((server (eglot-current-server))
          (remote-prefix (and server (eglot--trampish-p server)))
-         (retval (url-filename (url-generic-parse-url (url-unhex-string uri))))
+         (retval (url-unhex-string (url-filename (url-generic-parse-url uri))))
          ;; Remove the leading "/" for local MS Windows-style paths.
          (normalized (if (and (not remote-prefix)
                               (eq system-type 'windows-nt)
