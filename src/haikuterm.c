@@ -742,8 +742,8 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
   float ax, ay, bx, by;
   void *view;
 
-  scale_x = 4;
-  scale_y = 4;
+  scale_x = 1;
+  scale_y = 1;
   haiku_get_scale_factor (&scale_x, &scale_y);
   wave_height = 3 * scale_y;
   wave_length = 2 * scale_x;
