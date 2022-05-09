@@ -5636,7 +5636,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	      if (w->vscroll < 0 && rtop > 0)
 		{
 		  px = max (0, -w->vscroll - min (rtop, -dy));
-		  Fset_window_vscroll (window, make_fixnum (px), Qt);
+		  Fset_window_vscroll (window, make_fixnum (px), Qt,
+				       Qnil);
 		  return;
 		}
 	    }
@@ -5646,7 +5647,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	      if (rbot > 0 && (w->vscroll < 0 || vpos == 0))
 		{
 		  px = max (0, -w->vscroll + min (rbot, dy));
-		  Fset_window_vscroll (window, make_fixnum (px), Qt);
+		  Fset_window_vscroll (window, make_fixnum (px), Qt,
+				       Qnil);
 		  return;
 		}
 
@@ -5655,7 +5657,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 		{
 		  ptrdiff_t spos;
 
-		  Fset_window_vscroll (window, make_fixnum (0), Qt);
+		  Fset_window_vscroll (window, make_fixnum (0), Qt,
+				       Qnil);
 		  /* If there are other text lines above the current row,
 		     move window start to current row.  Else to next row. */
 		  if (rbot > 0)
@@ -5674,7 +5677,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	    }
 	}
       /* Cancel previous vscroll.  */
-      Fset_window_vscroll (window, make_fixnum (0), Qt);
+      Fset_window_vscroll (window, make_fixnum (0), Qt, Qnil);
     }
 
   itdata = bidi_shelve_cache ();
@@ -7944,7 +7947,7 @@ optional second arg PIXELS-P means value is measured in pixels.  */)
 
 
 DEFUN ("set-window-vscroll", Fset_window_vscroll, Sset_window_vscroll,
-       2, 3, 0,
+       2, 4, 0,
        doc: /* Set amount by which WINDOW should be scrolled vertically to VSCROLL.
 This takes effect when displaying tall lines or images.
 
@@ -7954,8 +7957,12 @@ optional third arg PIXELS-P non-nil means that VSCROLL is in pixels.
 If PIXELS-P is nil, VSCROLL may have to be rounded so that it
 corresponds to an integral number of pixels.  The return value is the
 result of this rounding.
-If PIXELS-P is non-nil, the return value is VSCROLL.  */)
-  (Lisp_Object window, Lisp_Object vscroll, Lisp_Object pixels_p)
+If PIXELS-P is non-nil, the return value is VSCROLL.
+
+PRESERVE_VSCROLL_P makes setting the start of WINDOW preserve the
+vscroll if its start is "frozen" due to a resized mini-window.  */)
+  (Lisp_Object window, Lisp_Object vscroll, Lisp_Object pixels_p,
+   Lisp_Object preserve_vscroll_p)
 {
   struct window *w = decode_live_window (window);
   struct frame *f = XFRAME (w->frame);
@@ -7984,6 +7991,8 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
 	  /* Mark W for redisplay.  (bug#55299) */
 	  wset_redisplay (w);
 	}
+
+      w->preserve_vscroll_p = !NILP (preserve_vscroll_p);
     }
 
   return Fwindow_vscroll (window, pixels_p);

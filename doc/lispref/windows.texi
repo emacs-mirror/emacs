@@ -5508,7 +5508,7 @@ pixels, rather than in units of the normal line height.
 @end example
 @end defun
 
-@defun set-window-vscroll window lines &optional pixels-p
+@defun set-window-vscroll window lines &optional pixels-p preserve-vscroll-p
 This function sets @var{window}'s vertical scroll position to
 @var{lines}.  If @var{window} is @code{nil}, the selected window is
 used.  The argument @var{lines} should be zero or positive; if not, it
@@ -5530,6 +5530,12 @@ The return value is the result of this rounding.
 
 If @var{pixels-p} is non-@code{nil}, @var{lines} specifies a number of
 pixels.  In this case, the return value is @var{lines}.
+
+Normally, the vscroll does not take effect on windows that aren't the
+@code{minibuffer-scroll-window} or the selected window when the
+mini-window is resized (@pxref{Minibuffer Windows}).  This ``frozen''
+behavior is disabled when the @var{preserve-vscroll-p} parameter is
+non-@code{nil}, which means to set the vscroll as usual.
 @end defun
 
 @defvar auto-window-vscroll

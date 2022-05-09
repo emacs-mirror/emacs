@@ -547,7 +547,7 @@ the height of the current window."
                               (beginning-of-visual-line)
                               (point)))
                       t)
-    (set-window-vscroll nil desired-vscroll t)))
+    (set-window-vscroll nil desired-vscroll t t)))
 
 (defun pixel-scroll-precision-scroll-down (delta)
   "Scroll the current window down by DELTA pixels."
@@ -586,7 +586,7 @@ the height of the current window."
         (goto-char up-point)))
     (let ((current-vscroll (window-vscroll nil t)))
       (setq delta (- delta current-vscroll))
-      (set-window-vscroll nil 0 t)
+      (set-window-vscroll nil 0 t t)
       (when (> delta 0)
         (let* ((start (window-start))
                (dims (window-text-pixel-size nil (cons start (- delta))
@@ -602,7 +602,7 @@ the height of the current window."
             (signal 'beginning-of-buffer nil))
           (setq delta (- delta height))))
       (when (< delta 0)
-        (set-window-vscroll nil (- delta) t)))))
+        (set-window-vscroll nil (- delta) t t)))))
 
 (defun pixel-scroll-precision-interpolate (delta &optional old-window)
   "Interpolate a scroll of DELTA pixels.

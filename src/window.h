@@ -445,6 +445,10 @@ struct window
        window.  */
     bool_bf suspend_auto_hscroll : 1;
 
+    /* True if vscroll should be preserved while forcing the start due
+       to a frozen window.  */
+    bool_bf preserve_vscroll_p : 1;
+
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;

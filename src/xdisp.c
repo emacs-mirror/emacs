@@ -19168,7 +19168,14 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       int new_vpos = -1;
 
       w->force_start = false;
-      w->vscroll = 0;
+
+      /* The vscroll should be preserved in this case, since
+	 `pixel-scroll-precision-mode' must continue working normally
+	 when a mini-window is resized.  (bug#55312) */
+      if (!w->preserve_vscroll_p || !window_frozen_p (w))
+	w->vscroll = 0;
+
+      w->preserve_vscroll_p = false;
       w->window_end_valid = false;
 
       /* Forget any recorded base line for line number display.  */
