@@ -724,21 +724,40 @@ haiku_draw_relief_rect (struct glyph_string *s,
 }
 
 static void
+haiku_get_scale_factor (int *scale_x, int *scale_y)
+{
+  struct haiku_display_info *dpyinfo = x_display_list;
+
+  if (dpyinfo->resx > 96)
+    *scale_x = floor (dpyinfo->resx / 96);
+  if (dpyinfo->resy > 96)
+    *scale_y = floor (dpyinfo->resy / 96);
+}
+
+static void
 haiku_draw_underwave (struct glyph_string *s, int width, int x)
 {
-  int wave_height = 3, wave_length = 2;
-  int y, dx, dy, odd, xmax;
+  int wave_height, wave_length;
+  int y, dx, dy, odd, xmax, scale_x, scale_y;
   float ax, ay, bx, by;
-  void *view = FRAME_HAIKU_VIEW (s->f);
+  void *view;
+
+  scale_x = 4;
+  scale_y = 4;
+  haiku_get_scale_factor (&scale_x, &scale_y);
+  wave_height = 3 * scale_y;
+  wave_length = 2 * scale_x;
 
   dx = wave_length;
   dy = wave_height - 1;
   y = s->ybase - wave_height + 3;
   xmax = x + width;
+  view = FRAME_HAIKU_VIEW (s->f);
 
   BView_StartClip (view);
   haiku_clip_to_string (s);
   BView_ClipToRect (view, x, y, width, wave_height);
+
   ax = x - ((int) (x) % dx) + (float) 0.5;
   bx = ax + dx;
   odd = (int) (ax / dx) % 2;
@@ -749,6 +768,8 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
   else
     by += dy;
 
+  BView_SetPenSize (view, scale_y);
+
   while (ax <= xmax)
     {
       BView_StrokeLine (view, ax, ay, bx, by);
@@ -756,6 +777,8 @@ haiku_draw_underwave (struct glyph_string *s, int width, int x)
       bx += dx, by = y + 0.5 + odd * dy;
       odd = !odd;
     }
+
+  BView_SetPenSize (view, 1);
   BView_EndClip (view);
 }
 
