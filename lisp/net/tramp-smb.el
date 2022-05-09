@@ -609,7 +609,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (if (tramp-tramp-file-p filename) filename newname))
 	 'file-missing filename))
 
-      (if-let ((tmpfile (file-local-copy filename)))
+      ;; `file-local-copy' returns a file name also for a local file
+      ;; with `jka-compr-handler', so we cannot trust its result as
+      ;; indication for a remote file name.
+      (if-let ((tmpfile
+		(and (file-remote-p filename) (file-local-copy filename))))
 	  ;; Remote filename.
 	  (condition-case err
 	      (rename-file tmpfile newname ok-if-already-exists)

@@ -65,9 +65,6 @@
 (declare-function tramp-method-out-of-band-p "tramp-sh")
 (declare-function tramp-smb-get-localname "tramp-smb")
 (defvar ange-ftp-make-backup-files)
-(defvar auto-save-file-name-transforms)
-(defvar lock-file-name-transforms)
-(defvar remote-file-name-inhibit-locks)
 (defvar tramp-connection-properties)
 (defvar tramp-copy-size-limit)
 (defvar tramp-display-escape-sequence-regexp)
@@ -77,11 +74,58 @@
 (defvar tramp-remote-path)
 (defvar tramp-remote-process-environment)
 
+;; Needed for Emacs 26.
+(declare-function with-connection-local-variables "files-x")
 ;; Needed for Emacs 27.
+(defvar lock-file-name-transforms)
 (defvar process-file-return-signal-string)
+(defvar remote-file-name-inhibit-locks)
 (defvar shell-command-dont-erase-buffer)
 ;; Needed for Emacs 28.
 (defvar dired-copy-dereference)
+
+;; `ert-resource-file' was introduced in Emacs 28.1.
+(unless (macrop 'ert-resource-file)
+  (eval-and-compile
+    (defvar ert-resource-directory-format "%s-resources/"
+      "Format for `ert-resource-directory'.")
+    (defvar ert-resource-directory-trim-left-regexp ""
+      "Regexp for `string-trim' (left) used by `ert-resource-directory'.")
+    (defvar ert-resource-directory-trim-right-regexp "\\(-tests?\\)?\\.el"
+      "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
+
+    (defmacro ert-resource-directory ()
+      "Return absolute file name of the resource directory for this file.
+
+The path to the resource directory is the \"resources\" directory
+in the same directory as the test file.
+
+If that directory doesn't exist, use the directory named like the
+test file but formatted by `ert-resource-directory-format' and trimmed
+using `string-trim' with arguments
+`ert-resource-directory-trim-left-regexp' and
+`ert-resource-directory-trim-right-regexp'.  The default values mean
+that if called from a test file named \"foo-tests.el\", return
+the absolute file name for \"foo-resources\"."
+      `(let* ((testfile ,(or (bound-and-true-p byte-compile-current-file)
+                             (and load-in-progress load-file-name)
+                             buffer-file-name))
+              (default-directory (file-name-directory testfile)))
+	 (file-truename
+	  (if (file-accessible-directory-p "resources/")
+              (expand-file-name "resources/")
+            (expand-file-name
+             (format
+	      ert-resource-directory-format
+              (string-trim testfile
+			   ert-resource-directory-trim-left-regexp
+			   ert-resource-directory-trim-right-regexp)))))))
+
+    (defmacro ert-resource-file (file)
+      "Return file name of resource file named FILE.
+A resource file is in the resource directory as per
+`ert-resource-directory'."
+      `(expand-file-name ,file (ert-resource-directory)))))
 
 ;; Beautify batch mode.
 (when noninteractive
@@ -2505,7 +2549,9 @@ This checks also `file-name-as-directory', `file-name-directory',
           (setq-local file-precious-flag t)
           (setq-local backup-inhibited t)
           (insert "bar")
+	  (should (buffer-modified-p))
           (should (null (save-buffer)))
+	  (should (not (buffer-modified-p)))
           (should-not (cl-member tmp-name written-files :test #'string=)))
 
       ;; Cleanup.
@@ -2518,6 +2564,8 @@ This checks also `file-name-as-directory', `file-name-directory',
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-ange-ftp-p)))
   (skip-unless (executable-find "gzip"))
+  ;; The function was introduced in Emacs 28.1.
+  (skip-unless (boundp 'tar-goto-file))
 
   (let* ((default-directory tramp-test-temporary-file-directory)
 	 (archive (ert-resource-file "foo.tar.gz"))
@@ -2531,20 +2579,26 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (copy-file archive tmp-file 'ok)
 	  ;; Read archive.  Check contents of foo.txt, and modify it.  Save.
 	  (with-current-buffer (setq buffer1 (find-file-noselect tmp-file))
-	    (should (tar-goto-file "foo.txt"))
+	    ;; The function was introduced in Emacs 28.1.
+	    (with-no-warnings (should (tar-goto-file "foo.txt")))
 	    (save-current-buffer
 	      (setq buffer2 (tar-extract))
 	      (should (string-equal (buffer-string) "foo\n"))
 	      (goto-char (point-max))
 	      (insert "bar")
-              (should (null (save-buffer))))
-            (should (null (save-buffer))))
+	      (should (buffer-modified-p))
+              (should (null (save-buffer)))
+	      (should-not (buffer-modified-p)))
+	    (should (buffer-modified-p))
+            (should (null (save-buffer)))
+	    (should-not (buffer-modified-p)))
 
 	  (kill-buffer buffer1)
 	  (kill-buffer buffer2)
 	  ;; Read archive.  Check contents of modified foo.txt.
 	  (with-current-buffer (setq buffer1 (find-file-noselect tmp-file))
-	    (should (tar-goto-file "foo.txt"))
+	    ;; The function was introduced in Emacs 28.1.
+	    (with-no-warnings (should (tar-goto-file "foo.txt")))
 	    (save-current-buffer
 	      (setq buffer2 (tar-extract))
 	      (should (string-equal (buffer-string) "foo\nbar\n")))))
@@ -5032,6 +5086,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
+  ;; Since Emacs 27.1.
+  (skip-unless (macrop 'with-connection-local-variables))
 
   ;; We must use `file-truename' for the temporary directory, in
   ;; order to establish the connection prior running an asynchronous
@@ -5072,6 +5128,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
+  ;; Since Emacs 27.1.
+  (skip-unless (macrop 'with-connection-local-variables))
   ;; Since Emacs 29.1.
   (skip-unless (boundp 'signal-process-functions))
 
@@ -5117,10 +5175,12 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (should (equal (process-get proc 'remote-command)
 			   (with-connection-local-variables
 			    `(,shell-file-name ,shell-command-switch ,command))))
-	    (should
-             (zerop
-              (signal-process
-               (process-get proc 'remote-pid) sigcode default-directory)))
+	    ;; `signal-process' has argument REMOTE since Emacs 29.
+	    (with-no-warnings
+	      (should
+               (zerop
+		(signal-process
+		 (process-get proc 'remote-pid) sigcode default-directory))))
 	    ;; Let the process accept the signal.
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (accept-process-output proc 0 nil t)))
@@ -5181,9 +5241,11 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 INPUT, if non-nil, is a string sent to the process."
   (let ((proc (async-shell-command command output-buffer error-buffer))
 	(delete-exited-processes t))
-    (should (equal (process-get proc 'remote-command)
-		   (with-connection-local-variables
-		    `(,shell-file-name ,shell-command-switch ,command))))
+    ;; Since Emacs 27.1.
+    (when (macrop 'with-connection-local-variables)
+      (should (equal (process-get proc 'remote-command)
+		     (with-connection-local-variables
+		      `(,shell-file-name ,shell-command-switch ,command)))))
     (cl-letf (((symbol-function #'shell-command-sentinel) #'ignore))
       (when (stringp input)
 	(process-send-string proc input))
@@ -5567,7 +5629,7 @@ Use direct async.")
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   ;; Since Emacs 27.1.
-  (skip-unless (fboundp 'with-connection-local-variables))
+  (skip-unless (macrop 'with-connection-local-variables))
 
   (let* ((default-directory tramp-test-temporary-file-directory)
 	 (tmp-name1 (tramp--test-make-temp-name))
@@ -5583,6 +5645,8 @@ Use direct async.")
           (should (file-directory-p tmp-name1))
 
 	  ;; `local-variable' is buffer-local due to explicit setting.
+	  ;; We need `with-no-warnings', because `defvar-local' is not
+	  ;; called at toplevel.
 	  (with-no-warnings
 	   (defvar-local local-variable 'buffer))
 	  (with-temp-buffer
@@ -6163,7 +6227,9 @@ Use direct async.")
             (with-temp-buffer
               (set-visited-file-name tmp-name1)
               (insert "foo")
-              (save-buffer))
+	      (should (buffer-modified-p))
+              (save-buffer)
+	      (should-not (buffer-modified-p)))
             (should-not (with-no-warnings (file-locked-p tmp-name1)))
 	    (with-no-warnings (lock-file tmp-name1))
 	    (should (eq (with-no-warnings (file-locked-p tmp-name1)) t))
@@ -6285,7 +6351,9 @@ Use direct async.")
 		;; buffer results in a prompt.
 		(cl-letf (((symbol-function 'yes-or-no-p)
 			   (lambda (_) (ert-fail "Test failed unexpectedly"))))
-		  (save-buffer))
+		  (should (buffer-modified-p))
+		  (save-buffer)
+		  (should-not (buffer-modified-p)))
 		(should-not (file-locked-p tmp-name))
 
 		;; For local files, just changing the file
@@ -6317,7 +6385,9 @@ Use direct async.")
 		  (cl-letf (((symbol-function 'yes-or-no-p) #'tramp--test-always)
 			    ((symbol-function 'read-char-choice)
 			     (lambda (&rest _) ?y)))
-		    (save-buffer))
+		    (should (buffer-modified-p))
+		    (save-buffer)
+		    (should-not (buffer-modified-p)))
 		  (should-not (file-locked-p tmp-name))))
 
 	    ;; Cleanup.
