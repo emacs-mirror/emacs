@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.11.1
+;; Version: 1.12.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -464,19 +464,22 @@ directly from the user or from ElDoc's automatic mechanisms'.")
 
 (defvar eldoc--doc-buffer-docs nil "Documentation items in `eldoc--doc-buffer'.")
 
-(defun eldoc-doc-buffer ()
-  "Display ElDoc documentation buffer.
+(defun eldoc-doc-buffer (&optional interactive)
+  "Get or display ElDoc documentation buffer.
 
-This holds the results of the last documentation request."
-  (interactive)
+The buffer holds the results of the last documentation request.
+If INTERACTIVE, display it.  Else, return said buffer."
+  (interactive (list t))
   (unless (buffer-live-p eldoc--doc-buffer)
     (user-error (format
                  "ElDoc buffer doesn't exist, maybe `%s' to produce one."
                  (substitute-command-keys "\\[eldoc]"))))
   (with-current-buffer eldoc--doc-buffer
-    (rename-buffer (replace-regexp-in-string "^ *" ""
-                                             (buffer-name)))
-    (display-buffer (current-buffer))))
+    (cond (interactive
+           (rename-buffer (replace-regexp-in-string "^ *" ""
+                                                    (buffer-name)))
+           (display-buffer (current-buffer)))
+          (t (current-buffer)))))
 
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
