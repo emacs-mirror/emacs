@@ -1874,6 +1874,33 @@ this, you can remove the X resource or put this in your init file:
 
   (xterm-remove-modify-other-keys)
 
+** The shift TAB key combination works as meta TAB on a Linux console.
+
+This happens because on your keyboard layout, S-TAB produces the same
+keycodes as typing ESC TAB individually.  The best way to solve this
+is to modify your keyboard layout to produce different codes, and tell
+Emacs what these new codes mean.
+
+The current keyboard layout will probably be a .map.gz file somewhere
+under /usr/share/keymaps.  Identify this file, possibly from a system
+initialization file such as /etc/conf.d/keymaps.  Run gunzip on it to
+decompress it, and amend the entries for keycode 15 to look something
+like this:
+
+keycode  15 = Tab
+        alt     keycode  15 = Meta_Tab
+        shift keycode 15 = F219
+string F219 = "\033[4}\011"      # Shift+<tab>
+
+After possibly saving this file under a different name, compress it
+again using gzip.  Amend /etc/conf.d/keyamps, etc., if needed.
+Further details can be found in the man page for loadkeys.
+
+Then add the following line near the start of your site-start.el or
+.emacs or init.el file:
+
+(define-key input-decode-map "\e[4}\t" 'backtab)
+
 ** Emacs spontaneously displays "I-search: " at the bottom of the screen.
 
 This means that Control-S/Control-Q (XON/XOFF) "flow control" is being
