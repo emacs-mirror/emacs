@@ -1754,10 +1754,9 @@ A number of implementations are listed on the
 
 AUCTeX is an Emacs package for writing LaTeX files, which also
 includes preview-latex, an Emacs mode for previewing the formatted
-contents of LaTeX documents.  Pre-compiled versions for Windows are
-available from
-@uref{https://www.gnu.org/software/auctex/download-for-windows.html, the
-AUCTeX site}.
+contents of LaTeX documents.  AUCTeX is available from
+@uref{https://elpa.gnu.org, GNU ELPA} and can be installed with the
+command @kbd{M-x list-packages}.
 
 @node Spell check
 @section How do I perform spell checks?
