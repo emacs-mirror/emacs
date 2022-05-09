@@ -1959,7 +1959,7 @@ COMMAND is a symbol naming the command."
                     ((= sev 2)  'eglot-warning)
                     (t          'eglot-note)))
             (mess (source code message)
-              (concat source (and code (concat " [" code "]")) ": " message)))
+              (concat source (and code (format " [%s]" code)) ": " message)))
     (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
         (with-current-buffer buffer
           (cl-loop
