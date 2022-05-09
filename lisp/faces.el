@@ -1148,13 +1148,18 @@ returned.  Otherwise, DEFAULT is returned verbatim."
                            nil t nil 'face-name-history default))
               ;; Ignore elements that are not faces
               ;; (for example, because DEFAULT was "all faces")
-              (if (facep face) (push (intern face) faces)))
+              (if (facep face) (push (if (stringp face)
+                                         (intern face)
+                                       face)
+                                     faces)))
             (nreverse faces))
         (let ((face (completing-read
                      prompt
                      (completion-table-in-turn nonaliasfaces aliasfaces)
                      nil t nil 'face-name-history defaults)))
-          (if (facep face) (intern face)))))))
+          (when (facep face) (if (stringp face)
+                                 (intern face)
+                               face)))))))
 
 ;; Not defined without X, but behind window-system test.
 (defvar x-bitmap-file-path)
