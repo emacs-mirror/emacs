@@ -821,7 +821,7 @@ after it starts.  */)
   team_id team_id;
   status_t rc;
   ptrdiff_t i, nargs;
-  Lisp_Object tem;
+  Lisp_Object tem, canonical;
   void *message;
   specpdl_ref depth;
 
@@ -840,9 +840,10 @@ after it starts.  */)
     {
       CHECK_LIST (file_or_type);
       tem = XCAR (file_or_type);
+      canonical = Fexpand_file_name (tem, Qnil);
 
       CHECK_STRING (tem);
-      SAFE_ALLOCA_STRING (file, ENCODE_FILE (tem));
+      SAFE_ALLOCA_STRING (file, ENCODE_FILE (canonical));
       CHECK_LIST_END (XCDR (file_or_type), file_or_type);
     }
 
