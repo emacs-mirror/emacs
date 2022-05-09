@@ -1297,7 +1297,7 @@ Called from a program, START and END specify the region to indent."
                    ;; Don't mess with strings, unless it's the
                    ;; enclosing set of quotes or a docstring.
                    (or (not (python-syntax-context 'string))
-                       (eq
+                       (equal
                         (syntax-after
                          (+ (1- (point))
                             (current-indentation)
