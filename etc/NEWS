@@ -772,6 +772,12 @@ This language environment supports the Sharada script.  Named after the
 goddess of learning, this script is used to write the Kashmiri language.
 A new input method, 'sharada', is provided to type text in this script.
 
+*** New language environment "Siddham".
+This language environment supports the Siddham script for the Sanskrit
+language.  Nowadays it is mostly used by the Buddhist monks in Japan for
+religious writings.  A new input method, 'siddham', is provided to type
+text in this script.
+
 ---
 *** New Greek translation of the Emacs tutorial.
 Type 'C-u C-h t' to select it in case your language setup does not do

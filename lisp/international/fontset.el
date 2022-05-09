@@ -240,7 +240,7 @@
 	(grantha #x11305)
 	(newa #x11400)
 	(tirhuta #x11481 #x1148F #x114D0)
-	(siddham #x11580)
+	(siddham #x1158E #x115AF #x115D4)
 	(modi #x11600)
 	(takri #x11680)
 	(dogra #x11800)
@@ -777,6 +777,7 @@
                     kaithi
                     sharada
                     tirhuta
+                    siddham
 		    makasar
                     dives-akuru
 		    cuneiform

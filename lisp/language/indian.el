@@ -169,6 +169,17 @@ Kashmiri language and its script Sharada is supported in this
 language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Siddham" '((charset unicode)
+             (coding-system utf-8)
+             (coding-priority utf-8)
+             (input-method . "siddham")
+             (sample-text . "Siddham (𑖭𑖰𑖟𑖿𑖠𑖽)        𑖡𑖦𑖭𑖿𑖝𑖸")
+             (documentation . "\
+Sanskrit language and one of its script Siddham is supported
+in this language environment."))
+ '("Indian"))
+
 
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
@@ -542,6 +553,25 @@ language environment."))
                                ;; Fricatives with Consonants
                                (concat fricatives "?" consonant vowel "?")
                                0 'font-shape-gstring))))
+
+;; Siddham composition rules
+(let ((consonant            "[\x1158E-\x115AE]")
+      (nukta                "\x115C0")
+      (independent-vowel    "[\x11580-\x1158D\x115D8-\x115DB]")
+      (vowel                "[\x115AF-\x115BB\x115DC\x115DD]")
+      (nasal                "[\x115BC\x115BD]")
+      (virama               "\x115BF"))
+  (set-char-table-range composition-function-table
+                        '(#x115AF . #x115C0)
+                        (list (vector
+                               ;; Consonant based syllables
+                               (concat consonant nukta "?\\(?:" virama consonant nukta "?\\)*\\(?:"
+                                       virama "\\|" vowel "*" nukta "?" nasal "?\\)")
+                               1 'font-shape-gstring)
+                              (vector
+                               ;; Nasal vowels
+                               (concat independent-vowel nasal "?")
+                               1 'font-shape-gstring))))
 
 (provide 'indian)
 ;;; indian.el ends here
