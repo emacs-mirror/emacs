@@ -690,6 +690,8 @@ extern bool be_select_font (void (*) (void), bool (*) (void),
 			    int *, bool, int, int, int);
 
 extern int be_find_font_indices (struct haiku_font_pattern *, int *, int *);
+extern status_t be_roster_launch (const char *, const char *, char **,
+				  ptrdiff_t, void *, team_id *);
 #ifdef __cplusplus
 }
 

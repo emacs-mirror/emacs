@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <app/Application.h>
 #include <app/Cursor.h>
 #include <app/Messenger.h>
+#include <app/Roster.h>
 
 #include <interface/GraphicsDefs.h>
 #include <interface/InterfaceDefs.h>
@@ -5070,4 +5071,37 @@ BWindow_set_sticky (void *window, bool sticky)
 
       w->UnlockLooper ();
     }
+}
+
+status_t
+be_roster_launch (const char *type, const char *file, char **cargs,
+		  ptrdiff_t nargs, void *message, team_id *team_id)
+{
+  BEntry entry;
+  entry_ref ref;
+
+  if (type)
+    {
+      if (message)
+	return be_roster->Launch (type, (BMessage *) message,
+				  team_id);
+
+      return be_roster->Launch (type, (nargs > INT_MAX
+				       ? INT_MAX : nargs),
+				cargs, team_id);
+    }
+
+  if (entry.SetTo (file) != B_OK)
+    return B_ERROR;
+
+  if (entry.GetRef (&ref) != B_OK)
+    return B_ERROR;
+
+  if (message)
+    return be_roster->Launch (&ref, (BMessage *) message,
+			      team_id);
+
+  return be_roster->Launch (&ref, (nargs > INT_MAX
+				   ? INT_MAX : nargs),
+			    cargs, team_id);
 }

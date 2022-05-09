@@ -275,7 +275,7 @@ haiku_message_to_lisp (void *message)
 	      if (!pbuf)
 		memory_full (SIZE_MAX);
 
-	      t1 = build_string (pbuf);
+	      t1 = DECODE_FILE (build_string (pbuf));
 
 	      free (pbuf);
 	      break;
@@ -526,7 +526,8 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	    case 'RREF':
 	      CHECK_STRING (data);
 
-	      if (be_add_refs_data (message, SSDATA (name), SSDATA (data))
+	      if (be_add_refs_data (message, SSDATA (name),
+				    SSDATA (ENCODE_FILE (data)))
 		  && haiku_signal_invalid_refs)
 		signal_error ("Invalid file name", data);
 	      break;
@@ -799,6 +800,87 @@ ignored if it is dropped on top of FRAME.  */)
   return unbind_to (idx, Qnil);
 }
 
+DEFUN ("haiku-roster-launch", Fhaiku_roster_launch, Shaiku_roster_launch,
+       2, 2, 0,
+       doc: /* Launch an application associated with FILE-OR-TYPE.
+Return the process ID of the application, or nil if no application was
+launched.
+
+FILE-OR-TYPE can either be a string denoting a MIME type, or a list
+with one argument FILE, denoting a file whose associated application
+will be launched.
+
+ARGS can either be a vector of strings containing the arguments that
+will be passed to the application, or a system message in the form
+accepted by `haiku-drag-message' that will be sent to the application
+after it starts.  */)
+  (Lisp_Object file_or_type, Lisp_Object args)
+{
+  char **cargs;
+  char *type, *file;
+  team_id team_id;
+  status_t rc;
+  ptrdiff_t i, nargs;
+  Lisp_Object tem;
+  void *message;
+  specpdl_ref depth;
+
+  type = NULL;
+  file = NULL;
+  cargs = NULL;
+  message = NULL;
+  nargs = 0;
+  depth = SPECPDL_INDEX ();
+
+  USE_SAFE_ALLOCA;
+
+  if (STRINGP (file_or_type))
+    SAFE_ALLOCA_STRING (type, file_or_type);
+  else
+    {
+      CHECK_LIST (file_or_type);
+      tem = XCAR (file_or_type);
+
+      CHECK_STRING (tem);
+      SAFE_ALLOCA_STRING (file, ENCODE_FILE (tem));
+      CHECK_LIST_END (XCDR (file_or_type), file_or_type);
+    }
+
+  if (VECTORP (args))
+    {
+      nargs = ASIZE (args);
+      cargs = SAFE_ALLOCA (nargs * sizeof *cargs);
+
+      for (i = 0; i < nargs; ++i)
+	{
+	  tem = AREF (args, i);
+	  CHECK_STRING (tem);
+	  maybe_quit ();
+
+	  cargs[i] = SAFE_ALLOCA (SBYTES (tem) + 1);
+	  memcpy (cargs[i], SDATA (tem), SBYTES (tem) + 1);
+	}
+    }
+  else
+    {
+      message = be_create_simple_message ();
+
+      record_unwind_protect_ptr (BMessage_delete, message);
+      haiku_lisp_to_message (args, message);
+    }
+
+  block_input ();
+  rc = be_roster_launch (type, file, cargs, nargs, message,
+			 &team_id);
+  unblock_input ();
+
+  if (rc == B_OK)
+    return SAFE_FREE_UNBIND_TO (depth,
+				make_uint (team_id));
+
+  return SAFE_FREE_UNBIND_TO (depth, Qnil);
+}
+
 static Lisp_Object
 haiku_note_drag_motion_1 (void *data)
 {
@@ -860,6 +942,7 @@ used to retrieve the current position of the mouse.  */);
   defsubr (&Shaiku_selection_put);
   defsubr (&Shaiku_selection_owner_p);
   defsubr (&Shaiku_drag_message);
+  defsubr (&Shaiku_roster_launch);
 
   haiku_dnd_frame = NULL;
 }
