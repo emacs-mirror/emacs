@@ -754,8 +754,10 @@ the cell contents dynamically."
   :group 'table)
 
 (defcustom table-latex-environment "tabular"
-  "Which tabular-compatible environment to use when generating latex.
-\"tabular\" and \"longtable\" are known to work."
+  "Tabular-compatible environment to use when generating latex.
+The value should be a string suitable for use as a LaTeX environment
+that's compatible with the \"tabular\" protocol, such as \"tabular\"
+and \"longtable\"."
   :tag "Latex environment used to export tables"
   :type '(choice
 	  (const :tag "tabular" "tabular")
