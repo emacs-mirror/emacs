@@ -275,14 +275,6 @@ Vibhav Pant
        lisp/net/browse-url.el
        lisp/erc/*
 
-Alan Third
-        The NS port:
-            nextstep/*
-            src/ns*
-            src/*.m
-            lisp/term/ns-win.el
-            doc/emacs/macos.texi
-
 Amin Bandali
 	Eshell
 	    lisp/eshell/*
