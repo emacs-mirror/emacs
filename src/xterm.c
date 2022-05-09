@@ -868,6 +868,10 @@ static int x_filter_event (struct x_display_info *, XEvent *);
 /* Flag that indicates if a drag-and-drop operation is in progress.  */
 bool x_dnd_in_progress;
 
+/* Number that indicates the last "generation" of
+   UNSUPPORTED_DROP_EVENTs handled.  */
+unsigned x_dnd_unsupported_event_level;
+
 /* The frame where the drag-and-drop operation originated.  */
 struct frame *x_dnd_frame;
 
@@ -3070,6 +3074,7 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
 
   ie.kind = UNSUPPORTED_DROP_EVENT;
   ie.code = (unsigned) target_window;
+  ie.modifiers = x_dnd_unsupported_event_level;
   ie.arg = list3 (assq_no_quit (QXdndSelection,
 				dpyinfo->terminal->Vselection_alist),
 		  targets, arg);
@@ -9479,15 +9484,18 @@ x_toggle_visible_pointer (struct frame *f, bool invisible)
     invisible = false;
 #else
   /* But if Xfixes is available, try using it instead.  */
-  if (x_probe_xfixes_extension (dpyinfo))
+  if (dpyinfo->invisible_cursor == None)
     {
-      dpyinfo->fixes_pointer_blanking = true;
-      xfixes_toggle_visible_pointer (f, invisible);
+      if (x_probe_xfixes_extension (dpyinfo))
+	{
+	  dpyinfo->fixes_pointer_blanking = true;
+	  xfixes_toggle_visible_pointer (f, invisible);
 
-      return;
+	  return;
+	}
+      else
+	invisible = false;
     }
-  else
-    invisible = false;
 #endif
 
   if (invisible)
@@ -9864,6 +9872,64 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifndef USE_GTK
   struct x_display_info *event_display;
 #endif
+  union buffered_input_event *events, *event;
+  int n_events;
+  struct frame *event_frame;
+
+  /* Before starting drag-and-drop, walk through the keyboard buffer
+     to see if there are any UNSUPPORTED_DROP_EVENTs, and run them now
+     if they exist, to prevent race conditions from happening due to
+     multiple unsupported drops running at once.  */
+
+  block_input ();
+  events = alloca (sizeof *events * KBD_BUFFER_SIZE);
+  n_events = 0;
+  event = kbd_fetch_ptr;
+
+  while (event != kbd_store_ptr)
+    {
+      if (event->ie.kind == UNSUPPORTED_DROP_EVENT
+	  && event->ie.modifiers < x_dnd_unsupported_event_level)
+	events[n_events++] = *event;
+
+      event = (event == kbd_buffer + KBD_BUFFER_SIZE - 1
+	       ? kbd_buffer : event + 1);
+    }
+
+  x_dnd_unsupported_event_level += 1;
+  unblock_input ();
+
+  for (i = 0; i < n_events; ++i)
+    {
+      maybe_quit ();
+
+      event = &events[i];
+      event_frame = XFRAME (event->ie.frame_or_window);
+
+      if (!FRAME_LIVE_P (event_frame))
+	continue;
+
+      if (!NILP (Vx_dnd_unsupported_drop_function))
+	{
+	  if (!NILP (call7 (Vx_dnd_unsupported_drop_function,
+			    XCAR (XCDR (event->ie.arg)), event->ie.x,
+			    event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
+			    make_uint (event->ie.code),
+			    event->ie.frame_or_window,
+			    make_int (event->ie.timestamp))))
+	    continue;
+	}
+
+      x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (event_frame),
+				 event->ie.frame_or_window,
+				 XCAR (event->ie.arg),
+				 XCAR (XCDR (event->ie.arg)),
+				 (Window) event->ie.code,
+				 XFIXNUM (event->ie.x),
+				 XFIXNUM (event->ie.y),
+				 event->ie.timestamp);
+      break;
+    }
 
   if (!FRAME_VISIBLE_P (f))
     {
@@ -24849,16 +24915,16 @@ mouse position list.  */);
 
   DEFVAR_LISP ("x-dnd-unsupported-drop-function", Vx_dnd_unsupported_drop_function,
     doc: /* Function called when trying to drop on an unsupported window.
-This function is called whenever the user tries to drop
-something on a window that does not support either the XDND or
-Motif protocols for drag-and-drop.  It should return a non-nil
-value if the drop was handled by the function, and nil if it was
-not.  It should accept several arguments TARGETS, X, Y, ACTION,
-WINDOW-ID and FRAME, where TARGETS is the list of targets that
-was passed to `x-begin-drag', WINDOW-ID is the numeric XID of
-the window that is being dropped on, X and Y are the root
-window-relative coordinates where the drop happened, ACTION
-is the action that was passed to `x-begin-drag', and FRAME is
-the frame which initiated the drag-and-drop operation.  */);
+This function is called whenever the user tries to drop something on a
+window that does not support either the XDND or Motif protocols for
+drag-and-drop.  It should return a non-nil value if the drop was
+handled by the function, and nil if it was not.  It should accept
+several arguments TARGETS, X, Y, ACTION, WINDOW-ID, FRAME and TIME,
+where TARGETS is the list of targets that was passed to
+`x-begin-drag', WINDOW-ID is the numeric XID of the window that is
+being dropped on, X and Y are the root window-relative coordinates
+where the drop happened, ACTION is the action that was passed to
+`x-begin-drag', FRAME is the frame which initiated the drag-and-drop
+operation, and TIME is the X server time when the drop happened.  */);
   Vx_dnd_unsupported_drop_function = Qnil;
 }

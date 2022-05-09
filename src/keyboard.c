@@ -95,8 +95,6 @@ volatile int interrupt_input_blocked;
    The maybe_quit function checks this.  */
 volatile bool pending_signals;
 
-enum { KBD_BUFFER_SIZE = 4096 };
-
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 static KBOARD *all_kboards;
@@ -290,14 +288,14 @@ bool input_was_pending;
 
 /* Circular buffer for pre-read keyboard input.  */
 
-static union buffered_input_event kbd_buffer[KBD_BUFFER_SIZE];
+union buffered_input_event kbd_buffer[KBD_BUFFER_SIZE];
 
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.  */
-static union buffered_input_event *kbd_fetch_ptr;
+union buffered_input_event *kbd_fetch_ptr;
 
 /* Pointer to next place to store character in kbd_buffer.  */
-static union buffered_input_event *kbd_store_ptr;
+union buffered_input_event *kbd_store_ptr;
 
 /* The above pair of variables forms a "queue empty" flag.  When we
    enqueue a non-hook event, we increment kbd_store_ptr.  When we
@@ -4022,6 +4020,11 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  kbd_fetch_ptr = next_kbd_event (event);
 	  input_pending = readable_events (0);
 
+	  /* This means this event was already handled in
+	     `x_dnd_begin_drag_and_drop'.  */
+	  if (event->ie.modifiers < x_dnd_unsupported_event_level)
+	    break;
+
 	  f = XFRAME (event->ie.frame_or_window);
 
 	  if (!FRAME_LIVE_P (f))
@@ -4029,11 +4032,12 @@ kbd_buffer_get_event (KBOARD **kbp,
 
 	  if (!NILP (Vx_dnd_unsupported_drop_function))
 	    {
-	      if (!NILP (call6 (Vx_dnd_unsupported_drop_function,
+	      if (!NILP (call7 (Vx_dnd_unsupported_drop_function,
 				XCAR (XCDR (event->ie.arg)), event->ie.x,
 				event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
 				make_uint (event->ie.code),
-				event->ie.frame_or_window)))
+				event->ie.frame_or_window,
+				make_int (event->ie.timestamp))))
 		break;
 	    }
 

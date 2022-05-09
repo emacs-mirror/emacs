@@ -223,6 +223,11 @@ enum event_kind
 			          gives the timestamp where the drop
 			          happened.
 
+				  .modifiers gives a number that
+				  determines if an event was already
+				  handled by
+				  `x_dnd_begin_drag_and_drop'.
+
 			          .x and .y give the coordinates of
 			          the drop originating from the root
 			          window.  */
