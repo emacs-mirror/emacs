@@ -3907,7 +3907,8 @@ update_marginal_area (struct window *w, struct glyph_row *updated_row,
    Value is true if display has changed.  */
 
 static bool
-update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
+update_text_area (struct window *w, struct glyph_row *updated_row, int vpos,
+		  bool *partial_p)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
@@ -4013,6 +4014,13 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 		{
 		  x += desired_glyph->pixel_width;
 		  ++desired_glyph, ++current_glyph, ++i;
+
+		  /* Say that only a partial update was performed of
+		     the current row (i.e. not all the glyphs were
+		     drawn).  This is used to preserve the stipple_p
+		     flag of the current row inside
+		     update_window_line.  */
+		  *partial_p = true;
 		}
 
 	      /* Consider the case that the current row contains "xxx
@@ -4084,8 +4092,14 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 	      rif->write_glyphs (w, updated_row, start,
 				 TEXT_AREA, i - start_hpos);
 	      changed_p = 1;
+	      *partial_p = true;
 	    }
 	}
+
+      /* This means we will draw from the start, so no partial update
+	 is being performed.  */
+      if (!i)
+	*partial_p = false;
 
       /* Write the rest.  */
       if (i < desired_row->used[TEXT_AREA])
@@ -4159,7 +4173,9 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
-  bool changed_p = 0;
+
+  /* partial_p is true if not all of desired_row was drawn.  */
+  bool changed_p = 0, partial_p = 0, was_stipple;
 
   /* A row can be completely invisible in case a desired matrix was
      built with a vscroll and then make_cursor_line_fully_visible shifts
@@ -4183,7 +4199,7 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
 	}
 
       /* Update the display of the text area.  */
-      if (update_text_area (w, desired_row, vpos))
+      if (update_text_area (w, desired_row, vpos, &partial_p))
 	{
 	  changed_p = 1;
 	  if (current_row->mouse_face_p)
@@ -4212,7 +4228,17 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
     }
 
   /* Update current_row from desired_row.  */
+  was_stipple = current_row->stipple_p;
   make_current (w->desired_matrix, w->current_matrix, vpos);
+
+  /* If only a partial update was performed, any stipple already
+     displayed in MATRIX_ROW (w->current_matrix, vpos) might still be
+     there, so don't hurry to clear that flag if it's not in
+     desired_row.  */
+
+  if (partial_p && was_stipple)
+    current_row->stipple_p = true;
+
   return changed_p;
 }
 

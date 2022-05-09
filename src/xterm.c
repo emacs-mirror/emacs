@@ -5750,7 +5750,8 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 }
 
 static void
-x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fringe_bitmap_params *p)
+x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
+		      struct draw_fringe_bitmap_params *p)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Display *display = FRAME_X_DISPLAY (f);
@@ -5772,6 +5773,8 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 	  x_fill_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny,
 			    true);
 	  XSetFillStyle (display, face->gc, FillSolid);
+
+	  row->stipple_p = true;
 	}
       else
 	{
