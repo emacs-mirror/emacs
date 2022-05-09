@@ -2589,6 +2589,8 @@ haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 				 0, 0, FRAME_PIXEL_WIDTH (f),
 				 FRAME_PIXEL_HEIGHT (f));
 	  BView_EndClip (view);
+
+	  row->stipple_p = true;
 	}
     }
 
