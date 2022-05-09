@@ -1268,6 +1268,21 @@ ts_query_error_to_string (TSQueryError error)
     }
 }
 
+/* This struct is used for passing captures to be check against
+   predicates.  Captures we check for are the ones in START before
+   END.  For example, if START and END are
+
+   START       END
+    v              v
+   (1 . (2 . (3 . (4 . (5 . (6 . nil))))))
+
+   We only look at captures 1 2 3.  */
+struct capture_range
+{
+  Lisp_Object start;
+  Lisp_Object end;
+};
+
 /* Collect predicates for this match and return them in a list.  Each
    predicate is a list of strings and symbols.  */
 Lisp_Object
@@ -1313,10 +1328,12 @@ ts_predicates_for_pattern
 /* Translate a capture NAME (symbol) to the text of the captured node.
    Signals treesit-query-error if such node is not captured.  */
 Lisp_Object
-ts_predicate_capture_name_to_text (Lisp_Object name, Lisp_Object captures)
+ts_predicate_capture_name_to_text
+(Lisp_Object name, struct capture_range captures)
 {
   Lisp_Object node = Qnil;
-  for (Lisp_Object tail = captures; !NILP (tail); tail = XCDR (tail))
+  for (Lisp_Object tail = captures.start;
+       !EQ (tail, captures.end); tail = XCDR (tail))
     {
       if (EQ (XCAR (XCAR (tail)), name))
 	{
@@ -1344,14 +1361,14 @@ ts_predicate_capture_name_to_text (Lisp_Object name, Lisp_Object captures)
    The capture name evaluates to the text its captured node spans in
    the buffer.  */
 bool
-ts_predicate_equal (Lisp_Object args, Lisp_Object captures)
+ts_predicate_equal
+(Lisp_Object args, struct capture_range captures)
 {
   if (XFIXNUM (Flength (args)) != 2)
     xsignal2 (Qtreesit_query_error, build_pure_c_string ("Predicate `equal' requires two arguments but only given"), Flength (args));
 
   Lisp_Object arg1 = XCAR (args);
   Lisp_Object arg2 = XCAR (XCDR (args));
-  Lisp_Object tail = captures;
   Lisp_Object text1 = STRINGP (arg1) ? arg1 :
     ts_predicate_capture_name_to_text (arg1, captures);
   Lisp_Object text2 = STRINGP (arg2) ? arg2 :
@@ -1367,14 +1384,14 @@ ts_predicate_equal (Lisp_Object args, Lisp_Object captures)
    matches the text spanned by @node; return false otherwise.  Matching
    is case-sensitive.  */
 bool
-ts_predicate_match (Lisp_Object args, Lisp_Object captures)
+ts_predicate_match
+(Lisp_Object args, struct capture_range captures)
 {
   if (XFIXNUM (Flength (args)) != 2)
     xsignal2 (Qtreesit_query_error, build_pure_c_string ("Predicate `equal' requires two arguments but only given"), Flength (args));
 
   Lisp_Object regexp = XCAR (args);
   Lisp_Object capture_name = XCAR (XCDR (args));
-  Lisp_Object tail = captures;
   Lisp_Object text = ts_predicate_capture_name_to_text
     (capture_name, captures);
 
@@ -1404,7 +1421,8 @@ ts_predicate_match (Lisp_Object args, Lisp_Object captures)
 /* If all predicates in PREDICATES passes, return true; otherwise
    return false.  */
 bool
-ts_eval_predicates (Lisp_Object captures, Lisp_Object predicates)
+ts_eval_predicates
+(struct capture_range captures, Lisp_Object predicates)
 {
   bool pass = true;
   /* Evaluate each predicates.  */
@@ -1498,13 +1516,21 @@ else goes wrong.  */)
   TSQueryMatch match;
 
   /* Go over each match, collect captures and predicates.  Include the
-     captures in the return list if all predicates in that match
-     passes.  */
+     captures in the RESULT list unconditionally as we get them, then
+     test for predicates.  If predicates pass, then all good, if
+     predicates don't pass, revert the result back to the result
+     before this loop (PREV_RESULT). (Predicates control the entire
+     match.) This way we don't need to create a list of captures in
+     every for loop and nconc it to RESULT every time.  That is indeed
+     the initial implementation in which Yoav found nconc being the
+     bottleneck (98.4% of the running time spent on nconc).  */
   Lisp_Object result = Qnil;
+  Lisp_Object prev_result = result;
   while (ts_query_cursor_next_match (cursor, &match))
     {
+      /* Record the checkpoint that we may roll back to.  */
+      prev_result = result;
       /* Get captured nodes.  */
-      Lisp_Object captures_lisp = Qnil;
       const TSQueryCapture *captures = match.captures;
       for (int idx=0; idx < match.capture_count; idx++)
 	{
@@ -1517,21 +1543,23 @@ else goes wrong.  */)
 	  Lisp_Object cap =
 	    Fcons (intern_c_string_1 (capture_name, capture_name_len),
 		   captured_node);
-	  captures_lisp = Fcons (cap, captures_lisp);
+	  result = Fcons (cap, result);
 	}
       /* Get predicates.  */
       Lisp_Object predicates =
 	ts_predicates_for_pattern (ts_query, match.pattern_index);
 
-      captures_lisp = Fnreverse (captures_lisp);
-      if (ts_eval_predicates (captures_lisp, predicates))
+      /* captures_lisp = Fnreverse (captures_lisp); */
+      struct capture_range captures_range = { result, prev_result };
+      if (!ts_eval_predicates (captures_range, predicates))
 	{
-	  result = CALLN (Fnconc, result, captures_lisp);
+	  /* Predicates didn't pass, roll back.  */
+	  result = prev_result;
 	}
     }
   ts_query_delete (ts_query);
   ts_query_cursor_delete (cursor);
-  return result;
+  return Fnreverse (result);
 }
 
 /*** Initialization */
