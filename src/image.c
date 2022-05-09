@@ -781,7 +781,7 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].depth = 1;
-  dpyinfo->bitmaps[id - 1].file = NULL;
+  dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
   dpyinfo->bitmaps[id - 1].height = height;
   dpyinfo->bitmaps[id - 1].width = width;
   dpyinfo->bitmaps[id - 1].refcount = 1;
