@@ -2135,6 +2135,12 @@ This holds the value of the previous call to 'set-locale-environment'.
 This macro can be used to change the locale temporarily while
 executing code.
 
+** table.el
+
+---
+*** New user option 'table-latex-environment'.
+This allows switching between "table" and "tabular".
+
 ** Tabulated List Mode
 
 +++
