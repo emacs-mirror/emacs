@@ -14053,6 +14053,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 		x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 	      else if (x_dnd_last_seen_window != None
 		       && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+		       && !x_dnd_disable_motif_drag
 		       && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 		{
 		  if (!x_dnd_motif_setup_p)
@@ -14092,6 +14093,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	    x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 	  else if (x_dnd_last_seen_window != None
 		   && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+		   && !x_dnd_disable_motif_drag
 		   && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 	    {
 	      if (!x_dnd_motif_setup_p)
@@ -14117,7 +14119,8 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	  if (target != None && x_dnd_last_protocol_version != -1)
 	    x_dnd_send_enter (x_dnd_frame, target,
 			      x_dnd_last_protocol_version);
-	  else if (target != None && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style))
+	  else if (target != None && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+		   && !x_dnd_disable_motif_drag)
 	    {
 	      if (!x_dnd_motif_setup_p)
 		xm_setup_drag_info (dpyinfo, x_dnd_frame);
@@ -14148,7 +14151,8 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 			     0
 #endif
 			     );
-      else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None)
+      else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None
+	       && !x_dnd_disable_motif_drag)
 	{
 	  if (!x_dnd_motif_setup_p)
 	    xm_setup_drag_info (dpyinfo, x_dnd_frame);
@@ -15875,6 +15879,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 		    else if (x_dnd_last_seen_window != None
 			     && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+			     && !x_dnd_disable_motif_drag
 			     && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 		      {
 			if (!x_dnd_motif_setup_p)
@@ -15914,6 +15919,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 		else if (x_dnd_last_seen_window != None
 			 && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+			 && x_dnd_disable_motif_drag
 			 && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 		  {
 		    if (!x_dnd_motif_setup_p)
@@ -15960,7 +15966,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		if (target != None && x_dnd_last_protocol_version != -1)
 		  x_dnd_send_enter (x_dnd_frame, target,
 				    x_dnd_last_protocol_version);
-		else if (target != None && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style))
+		else if (target != None && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+			 && !x_dnd_disable_motif_drag)
 		  {
 		    if (!x_dnd_motif_setup_p)
 		      xm_setup_drag_info (dpyinfo, x_dnd_frame);
@@ -15987,7 +15994,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				   x_dnd_selection_timestamp,
 				   x_dnd_wanted_action, 0,
 				   event->xmotion.state);
-	    else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None)
+	    else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None
+		     && !x_dnd_disable_motif_drag)
 	      {
 		if (!x_dnd_motif_setup_p)
 		  xm_setup_drag_info (dpyinfo, x_dnd_frame);
@@ -17454,6 +17462,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 			  else if (x_dnd_last_seen_window != None
 				   && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+				   && !x_dnd_disable_motif_drag
 				   && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 			    {
 			      if (!x_dnd_motif_setup_p)
@@ -17493,6 +17502,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			x_dnd_send_leave (x_dnd_frame, x_dnd_last_seen_window);
 		      else if (x_dnd_last_seen_window != None
 			       && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+			       && !x_dnd_disable_motif_drag
 			       && x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame))
 			{
 			  if (!x_dnd_motif_setup_p)
@@ -17541,7 +17551,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (target != None && x_dnd_last_protocol_version != -1)
 			x_dnd_send_enter (x_dnd_frame, target,
 					  x_dnd_last_protocol_version);
-		      else if (target != None && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style))
+		      else if (target != None && XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style)
+			       && !x_dnd_disable_motif_drag)
 			{
 			  if (!x_dnd_motif_setup_p)
 			    xm_setup_drag_info (dpyinfo, x_dnd_frame);
@@ -17581,7 +17592,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					   x_dnd_wanted_action, 0,
 					   dnd_state);
 		    }
-		  else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None)
+		  else if (XM_DRAG_STYLE_IS_DYNAMIC (x_dnd_last_motif_style) && target != None
+			   && !x_dnd_disable_motif_drag)
 		    {
 		      if (!x_dnd_motif_setup_p)
 			xm_setup_drag_info (dpyinfo, x_dnd_frame);
@@ -24905,6 +24917,13 @@ coordinates to a Motif drop receiver when the mouse moves outside it
 during a drag-and-drop session, to work around broken implementations
 of Motif.  */);
   x_dnd_fix_motif_leave = true;
+
+  DEFVAR_BOOL ("x-dnd-disable-motif-drag", x_dnd_disable_motif_drag,
+	       doc: /* Disable the Motif drag protocol during DND.
+This reduces network usage, but also means you can no longer scroll
+around inside the Motif window underneath the cursor during
+drag-and-drop.  */);
+  x_dnd_disable_motif_drag = false;
 
   DEFVAR_LISP ("x-dnd-movement-function", Vx_dnd_movement_function,
     doc: /* Function called upon mouse movement on a frame during drag-and-drop.
