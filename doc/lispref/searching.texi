@@ -550,8 +550,8 @@ special character anyway, regardless of where it appears.
 
 As a @samp{\} is not special inside a character alternative, it can
 never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
-So you should not quote these characters when they have no special
-meaning either.  This would not clarify anything, since backslashes
+You should not quote these characters when they have no special
+meaning.  This would not clarify anything, since backslashes
 can legitimately precede these characters where they @emph{have}
 special meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string
 syntax), which matches any single character except a backslash.
@@ -825,12 +825,13 @@ matches any character whose syntax is not @var{code}.
 @cindex category, regexp search for
 @item \c@var{code}
 matches any character whose category is @var{code}.  Here @var{code}
-is a character that represents a category: thus, @samp{code} for
-Chinese characters or @samp{g} for Greek characters in the standard
-category table.  You can see the list of all the currently defined
-categories with @kbd{M-x describe-categories @key{RET}}.  You can also
-define your own categories in addition to the standard ones using the
-@code{define-category} function (@pxref{Categories}).
+is a character that represents a category: for example, in the standard
+category table, @samp{c} stands for Chinese characters and @samp{g}
+stands for Greek characters.  You can see the list of all the
+currently defined categories with @w{@kbd{M-x describe-categories
+@key{RET}}}.  You can also define your own categories in addition to
+the standard ones using the @code{define-category} function
+(@pxref{Categories}).
 
 @item \C@var{code}
 matches any character whose category is not @var{code}.

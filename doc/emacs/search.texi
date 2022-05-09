@@ -1027,9 +1027,11 @@ you search for @samp{a.*?$} against the text @samp{abbab} followed by
 a newline, it matches the whole string.  Since it @emph{can} match
 starting at the first @samp{a}, it does.
 
+@cindex set of alternative characters, in regular expressions
+@cindex character set, in regular expressions
 @item @kbd{[ @dots{} ]}
-is a @dfn{a set of alternative characters}, beginning with @samp{[}
-and terminated by @samp{]}.
+is a @dfn{set of alternative characters}, or a @dfn{character set},
+beginning with @samp{[} and terminated by @samp{]}.
 
 In the simplest case, the characters between the two brackets are what
 this set can match.  Thus, @samp{[ad]} matches either one @samp{a} or
@@ -1046,9 +1048,10 @@ which matches any lower-case @acronym{ASCII} letter or @samp{$}, @samp{%} or
 period.  As another example, @samp{[α-ωί]} matches all lower-case
 Greek letters.
 
+@cindex character classes, in regular expressions
 You can also include certain special @dfn{character classes} in a
 character set.  A @samp{[:} and balancing @samp{:]} enclose a
-character class inside a character alternative.  For instance,
+character class inside a set of alternative characters.  For instance,
 @samp{[[:alnum:]]} matches any letter or digit.  @xref{Char Classes,,,
 elisp, The Emacs Lisp Reference Manual}, for a list of character
 classes.
@@ -1116,10 +1119,10 @@ no preceding expression on which the @samp{*} can act.  It is poor practice
 to depend on this behavior; it is better to quote the special character anyway,
 regardless of where it appears.
 
-As a @samp{\} is not special inside a character alternative, it can
+As a @samp{\} is not special inside a set of alternative characters, it can
 never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
-So you should not quote these characters when they have no special
-meaning either.  This would not clarify anything, since backslashes
+You should not quote these characters when they have no special
+meaning.  This would not clarify anything, since backslashes
 can legitimately precede these characters where they @emph{have}
 special meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string
 syntax), which matches any single character except a backslash.
