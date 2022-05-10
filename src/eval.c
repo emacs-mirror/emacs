@@ -2803,7 +2803,11 @@ apply1 (Lisp_Object fn, Lisp_Object arg)
 }
 
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a function.  */)
+       doc: /* Return t if OBJECT is a function.
+
+An object is a function if it is callable via `funcall';
+this includes primitive functions, byte-code functions, closures, and
+symbols with function bindings.  */)
      (Lisp_Object object)
 {
   if (FUNCTIONP (object))
