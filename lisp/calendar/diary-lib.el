@@ -1,7 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -2246,12 +2245,10 @@ Prefix argument ARG makes the entry nonmarking."
   ;; Return value suitable for `write-contents-functions'.
   nil)
 
-(defvar diary-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-s" 'diary-show-all-entries)
-    (define-key map "\C-c\C-q" 'quit-window)
-    map)
-  "Keymap for `diary-mode'.")
+(defvar-keymap diary-mode-map
+  :doc "Keymap for `diary-mode'."
+  "C-c C-s" #'diary-show-all-entries
+  "C-c C-q" #'quit-window)
 
 (defun diary-font-lock-sexps (limit)
   "Recognize sexp diary entry up to LIMIT for font-locking."
