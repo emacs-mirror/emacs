@@ -14861,11 +14861,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      rc = XGetWindowProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
 				       dpyinfo->Xatom_net_wm_window_opacity,
-				       0, 1, False, XA_CARDINAL, &actual,
+				       0, 1, False, AnyPropertyType, &actual,
 				       &actual_format, &n, &left, &tmp_data);
 
 	      if (rc == Success && actual_format == 32
-		  && actual == XA_CARDINAL && n)
+		  && (actual == XA_CARDINAL
+		      /* Some broken programs set the opacity property
+			 to those types, but window managers accept
+			 them anyway.  */
+		      || actual == XA_ATOM
+		      || actual == XA_WINDOW) && n)
 		{
 		  opacity = *(unsigned long *) tmp_data & OPAQUE;
 		  f->alpha[0] = (double) opacity / (double) OPAQUE;
