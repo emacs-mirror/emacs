@@ -541,10 +541,12 @@ file formerly visited.
 @ref{Text}.
 
 @defun buffer-modified-p &optional buffer
-This function returns @code{t} if the buffer @var{buffer} has been modified
-since it was last read in from a file or saved, or @code{nil}
-otherwise.  If @var{buffer} is not supplied, the current buffer
-is tested.
+This function returns non-@code{nil} if the buffer @var{buffer} has
+been modified since it was last read in from a file or saved, or
+@code{nil} otherwise.  If @var{buffer} has been autosaved after
+@var{buffer} was last modified, the symbol @code{autosaved} is
+returned.  If @var{buffer} is not supplied, the current buffer is
+tested.
 @end defun
 
 @defun set-buffer-modified-p flag

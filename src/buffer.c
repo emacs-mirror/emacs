@@ -1376,12 +1376,23 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 
 DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
        0, 1, 0,
-       doc: /* Return t if BUFFER was modified since its file was last read or saved.
-No argument or nil as argument means use current buffer as BUFFER.  */)
+       doc: /* Return non-nil if BUFFER was modified since its file was last read or saved.
+No argument or nil as argument means use current buffer as BUFFER.
+
+If BUFFER has been autosaved after BUFFER was last modified, the
+symbol `autosaved' is returned.  */)
   (Lisp_Object buffer)
 {
   struct buffer *buf = decode_buffer (buffer);
-  return BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf) ? Qt : Qnil;
+  if (BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf))
+    {
+      if (BUF_AUTOSAVE_MODIFF (buf) == BUF_MODIFF (buf))
+	return Qautosaved;
+      else
+	return Qt;
+    }
+  else
+    return Qnil;
 }
 
 DEFUN ("force-mode-line-update", Fforce_mode_line_update,
@@ -1436,6 +1447,11 @@ and `buffer-file-truename' are non-nil.  */)
 DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        Srestore_buffer_modified_p, 1, 1, 0,
        doc: /* Like `set-buffer-modified-p', but doesn't redisplay buffer's mode line.
+A nil FLAG means to mark the buffer as unmodified.  A non-nil FLAG
+means mark the buffer as modified, except the special value
+`autosaved', which will instead mark the buffer as having been
+autosaved.
+
 This function also locks or unlocks the file visited by the buffer,
 if both `buffer-file-truename' and `buffer-file-name' are non-nil.
 
@@ -1475,16 +1491,19 @@ state of the current buffer.  Use with care.  */)
      recent-auto-save-p from t to nil.
      Vice versa, if FLAG is non-nil and SAVE_MODIFF>=auto_save_modified
      we risk changing recent-auto-save-p from nil to t.  */
-  SAVE_MODIFF = (NILP (flag)
-		 /* FIXME: This unavoidably sets recent-auto-save-p to nil.  */
-		 ? MODIFF
-		 /* Let's try to preserve recent-auto-save-p.  */
-		 : SAVE_MODIFF < MODIFF ? SAVE_MODIFF
-		 /* If SAVE_MODIFF == auto_save_modified == MODIFF,
-		    we can either decrease SAVE_MODIFF and auto_save_modified
-		    or increase MODIFF.  */
-		 : modiff_incr (&MODIFF));
-
+  if (NILP (flag))
+    /* This unavoidably sets recent-auto-save-p to nil.  */
+    SAVE_MODIFF = MODIFF;
+  else
+    {
+      if (EQ (flag, Qautosaved))
+	BUF_AUTOSAVE_MODIFF (b) = MODIFF;
+      /* If SAVE_MODIFF == auto_save_modified == MODIFF, we can either
+	 decrease SAVE_MODIFF and auto_save_modified or increase
+	 MODIFF.  */
+      else if (SAVE_MODIFF >= MODIFF)
+	SAVE_MODIFF = modiff_incr (&MODIFF);
+    }
   return flag;
 }
 
@@ -6464,6 +6483,8 @@ will run for `clone-indirect-buffer' calls as well.  */);
   defsubr (&Soverlay_get);
   defsubr (&Soverlay_put);
   defsubr (&Srestore_buffer_modified_p);
+
+  DEFSYM (Qautosaved, "autosaved");
 
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }
