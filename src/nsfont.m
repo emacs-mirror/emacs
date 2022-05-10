@@ -1177,9 +1177,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   face = s->face;
 
   r.origin.x = x;
-  if (s->face->box != FACE_NO_BOX && s->first_glyph->left_box_line_p)
-    r.origin.x += max (s->face->box_vertical_line_width, 0);
-
   r.origin.y = y;
   r.size.height = FONT_HEIGHT (font);
 

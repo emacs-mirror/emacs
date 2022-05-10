@@ -3450,36 +3450,32 @@ ns_draw_box (NSRect r, CGFloat hthickness, CGFloat vthickness,
 
 static void
 ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
-               char top_p, char bottom_p, char left_p, char right_p,
-               struct glyph_string *s)
+		char top_p, char bottom_p, char left_p, char right_p,
+		struct glyph_string *s)
 /* --------------------------------------------------------------------------
     Draw a relief rect inside r, optionally leaving some sides open.
     Note we can't just use an NSDrawBezel command, because of the possibility
     of some sides not being drawn, and because the rect will be filled.
    -------------------------------------------------------------------------- */
 {
-  static NSColor *baseCol = nil, *lightCol = nil, *darkCol = nil;
-  NSColor *newBaseCol = nil;
+  static NSColor *baseCol, *lightCol, *darkCol;
+  NSColor *newBaseCol;
   NSRect inner;
+  NSBezierPath *p;
+
+  baseCol = nil;
+  lightCol = nil;
+  newBaseCol = nil;
+  p = nil;
 
   NSTRACE ("ns_draw_relief");
 
   /* set up colors */
 
   if (s->face->use_box_color_for_shadows_p)
-    {
-      newBaseCol = [NSColor colorWithUnsignedLong:s->face->box_color];
-    }
-/*     else if (s->first_glyph->type == IMAGE_GLYPH
-	   && s->img->pixmap
-   	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
-       {
-         newBaseCol = IMAGE_BACKGROUND  (s->img, s->f, 0);
-       } */
+    newBaseCol = [NSColor colorWithUnsignedLong: s->face->box_color];
   else
-    {
-      newBaseCol = [NSColor colorWithUnsignedLong:s->face->background];
-    }
+    newBaseCol = [NSColor colorWithUnsignedLong: s->face->background];
 
   if (newBaseCol == nil)
     newBaseCol = [NSColor grayColor];
@@ -3498,26 +3494,27 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
   inner = NSMakeRect (NSMinX (outer) + (left_p ? hthickness : 0),
                       NSMinY (outer) + (top_p ? vthickness : 0),
                       NSWidth (outer) - (left_p ? hthickness : 0)
-                                      - (right_p ? hthickness : 0),
+		      - (right_p ? hthickness : 0),
                       NSHeight (outer) - (top_p ? vthickness : 0)
-                                       - (bottom_p ? vthickness : 0));
+		      - (bottom_p ? vthickness : 0));
 
   [(raised_p ? lightCol : darkCol) set];
 
   if (top_p || left_p)
     {
-      NSBezierPath *p = [NSBezierPath bezierPath];
-      [p moveToPoint:NSMakePoint (NSMinX (outer), NSMinY (outer))];
+      p = [NSBezierPath bezierPath];
+
+      [p moveToPoint: NSMakePoint (NSMinX (outer), NSMinY (outer))];
       if (top_p)
         {
-          [p lineToPoint:NSMakePoint (NSMaxX (outer), NSMinY (outer))];
-          [p lineToPoint:NSMakePoint (NSMaxX (inner), NSMinY (inner))];
+          [p lineToPoint: NSMakePoint (NSMaxX (outer), NSMinY (outer))];
+          [p lineToPoint :NSMakePoint (NSMaxX (inner), NSMinY (inner))];
         }
-      [p lineToPoint:NSMakePoint (NSMinX (inner), NSMinY (inner))];
+      [p lineToPoint: NSMakePoint (NSMinX (inner), NSMinY (inner))];
       if (left_p)
         {
-          [p lineToPoint:NSMakePoint (NSMinX (inner), NSMaxY (inner))];
-          [p lineToPoint:NSMakePoint (NSMinX (outer), NSMaxY (outer))];
+          [p lineToPoint: NSMakePoint (NSMinX (inner), NSMaxY (inner))];
+          [p lineToPoint: NSMakePoint (NSMinX (outer), NSMaxY (outer))];
         }
       [p closePath];
       [p fill];
@@ -3525,24 +3522,68 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
 
   [(raised_p ? darkCol : lightCol) set];
 
-    if (bottom_p || right_p)
+  if (bottom_p || right_p)
     {
-      NSBezierPath *p = [NSBezierPath bezierPath];
-      [p moveToPoint:NSMakePoint (NSMaxX (outer), NSMaxY (outer))];
+      p = [NSBezierPath bezierPath];
+
+      [p moveToPoint: NSMakePoint (NSMaxX (outer), NSMaxY (outer))];
       if (right_p)
         {
-          [p lineToPoint:NSMakePoint (NSMaxX (outer), NSMinY (outer))];
-          [p lineToPoint:NSMakePoint (NSMaxX (inner), NSMinY (inner))];
+          [p lineToPoint: NSMakePoint (NSMaxX (outer), NSMinY (outer))];
+          [p lineToPoint: NSMakePoint (NSMaxX (inner), NSMinY (inner))];
         }
       [p lineToPoint:NSMakePoint (NSMaxX (inner), NSMaxY (inner))];
       if (bottom_p)
         {
-          [p lineToPoint:NSMakePoint (NSMinX (inner), NSMaxY (inner))];
-          [p lineToPoint:NSMakePoint (NSMinX (outer), NSMaxY (outer))];
+          [p lineToPoint: NSMakePoint (NSMinX (inner), NSMaxY (inner))];
+          [p lineToPoint: NSMakePoint (NSMinX (outer), NSMaxY (outer))];
         }
       [p closePath];
       [p fill];
     }
+
+  /* If one of h/vthickness are more than 1, draw the outermost line
+     on the respective sides in the black relief color.  */
+
+  if (p)
+    [p removeAllPoints];
+  else
+    p = [NSBezierPath bezierPath];
+
+  if (hthickness > 1 && top_p)
+    {
+      [p moveToPoint: NSMakePoint (NSMinX (outer),
+				   NSMinY (outer) + 0.5)];
+      [p lineToPoint: NSMakePoint (NSMaxX (outer),
+				   NSMinY (outer) + 0.5)];
+    }
+
+  if (hthickness > 1 && bottom_p)
+    {
+      [p moveToPoint: NSMakePoint (NSMinX (outer),
+				   NSMaxY (outer) - 0.5)];
+      [p lineToPoint: NSMakePoint (NSMaxX (outer),
+				   NSMaxY (outer) - 0.5)];
+    }
+
+  if (vthickness > 1 && left_p)
+    {
+      [p moveToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMinY (outer) + 0.5)];
+      [p lineToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMaxY (outer) - 0.5)];
+    }
+
+  if (vthickness > 1 && left_p)
+    {
+      [p moveToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMinY (outer) + 0.5)];
+      [p lineToPoint: NSMakePoint (NSMinX (outer) + 0.5,
+				   NSMaxY (outer) - 0.5)];
+    }
+
+  [darkCol set];
+  [p stroke];
 }
 
 
@@ -3624,6 +3665,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
   if (!s->background_filled_p/* || s->hl == DRAW_MOUSE_FACE*/)
     {
       int box_line_width = max (s->face->box_horizontal_line_width, 0);
+
       if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	  /* When xdisp.c ignores FONT_HEIGHT, we cannot trust font
 	     dimensions, since the actual glyphs might be much
@@ -3650,7 +3692,7 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 
 	  NSRect r = NSMakeRect (s->x, s->y + box_line_width,
 				 s->background_width,
-				 s->height-2*box_line_width);
+				 s->height - 2 * box_line_width);
 	  NSRectFill (r);
 
 	  s->background_filled_p = 1;
