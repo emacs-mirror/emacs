@@ -3055,7 +3055,8 @@ DEFAULT specifies a default value to return if the user just types RET.
 The value of DEFAULT is inserted into PROMPT.
 HIST specifies a history list variable.  See `read-from-minibuffer'
 for details of the HIST argument.
-This function is used by the `interactive' code letter `n'."
+
+This function is used by the `interactive' code letter \"n\"."
   (let ((n nil)
 	(default1 (if (consp default) (car default) default)))
     (when default1
