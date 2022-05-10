@@ -1564,14 +1564,21 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Incompatible Lisp Changes in Emacs 29.1
 
++++
+** 'buffer-modified-p' has been extended.
+This function was previously documented to return only nil or t.  This
+has been changed to nil/'autosaved'/non-nil.  The new 'autosaved'
+value means that the buffer is modified, but that it hasn't been
+modified after the last auto-save.
+
 ---
-** 'with-silent-modifications' also restores buffer modification ticks.
+** 'with-silent-modifications' also restores buffer autosave status.
 'with-silent-modifications' is a macro meant to be used by the font
 locking machinery to allow applying text properties without changing
 the modification status of the buffer.  However, it didn't restore the
-buffer modification ticks, so applying font locking to a modified
-buffer that had already been auto-saved would trigger another
-auto-saving.  This is no longer the case.
+buffer autosave status, so applying font locking to a modified buffer
+that had already been auto-saved would trigger another auto-saving.
+This is no longer the case.
 
 ---
 ** 'prin1' doesn't always escape "." and "?" in symbols any more.
@@ -1708,6 +1715,11 @@ functions.
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+*** 'restore-buffer-modified-p' can now alter buffer auto-save state.
+With a FLAG value of 'autosaved', it will mark the buffer as having
+been auto-saved after the last modification.
 
 ---
 *** New minor mode 'isearch-fold-quotes-mode'.
