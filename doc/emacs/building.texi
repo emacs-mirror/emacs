@@ -180,7 +180,7 @@ list of customization variables and faces.
 Emacs automatically visits the locus of the first error message that
 appears in the @file{*compilation*} buffer.  (This variable can also
 have the values @code{if-location-known} and @code{first-known}, which
-modifies whether to automatically visit.)
+modify the conditions for automatically visiting the error locus.)
 
   Compilation mode provides the following additional commands.  These
 commands can also be used in @file{*grep*} buffers, where the
