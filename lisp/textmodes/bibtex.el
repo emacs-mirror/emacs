@@ -2298,11 +2298,11 @@ is non-nil, FUN is not called for @String entries."
     (set-marker-insertion-type end-marker t)
     (save-excursion
       (goto-char (point-min))
-      (let ((prev (point)))
+      (let ((prev nil))
         (while (setq found (bibtex-skip-to-valid-entry))
           ;; If we have invalid entries, ensure that we have forward
           ;; progress so that we don't infloop.
-          (if (= (point) prev)
+          (if (equal (point) prev)
               (forward-line 1)
             (setq prev (point))
             (set-marker end-marker (cdr found))
