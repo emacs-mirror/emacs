@@ -5972,13 +5972,15 @@ do_auto_save_eh (Lisp_Object ignore)
 
 DEFUN ("do-auto-save", Fdo_auto_save, Sdo_auto_save, 0, 2, "",
        doc: /* Auto-save all buffers that need it.
-This is all buffers that have auto-saving enabled and are changed
-since last auto-saved.
+This auto-saves all buffers that have auto-saving enabled and
+were changed since last auto-saved.
 
-Auto-saving writes the buffer into a file so that your editing is not
-lost if the system crashes.
+Auto-saving writes the buffer into a file so that your edits are
+not lost if the system crashes.
 
-This file is not the file you visited; that changes only when you save.
+The auto-save file is not the file you visited; that changes only
+when you save.
+
 Normally, run the normal hook `auto-save-hook' before saving.
 
 A non-nil NO-MESSAGE argument means do not print any message if successful.

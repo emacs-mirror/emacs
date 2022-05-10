@@ -1379,8 +1379,8 @@ DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
        doc: /* Return non-nil if BUFFER was modified since its file was last read or saved.
 No argument or nil as argument means use current buffer as BUFFER.
 
-If BUFFER has been autosaved after BUFFER was last modified, the
-symbol `autosaved' is returned.  */)
+If BUFFER was autosaved since it was last modified, this function
+returns the symbol `autosaved'.  */)
   (Lisp_Object buffer)
 {
   struct buffer *buf = decode_buffer (buffer);
@@ -1448,9 +1448,9 @@ DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        Srestore_buffer_modified_p, 1, 1, 0,
        doc: /* Like `set-buffer-modified-p', but doesn't redisplay buffer's mode line.
 A nil FLAG means to mark the buffer as unmodified.  A non-nil FLAG
-means mark the buffer as modified, except the special value
-`autosaved', which will instead mark the buffer as having been
-autosaved.
+means mark the buffer as modified, but the special value
+`autosaved' will instead mark the buffer as having been
+autosaved since it was last modified.
 
 This function also locks or unlocks the file visited by the buffer,
 if both `buffer-file-truename' and `buffer-file-name' are non-nil.
