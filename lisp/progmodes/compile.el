@@ -951,7 +951,10 @@ Faces `compilation-error-face', `compilation-warning-face',
 
 (defcustom compilation-auto-jump-to-first-error nil
   "If non-nil, automatically jump to the first error during compilation."
-  :type 'boolean
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "Always" t)
+                 (const :tag "If location known" if-location-known)
+                 (const :tag "First known location" first-known))
   :version "23.1")
 
 (defvar-local compilation-auto-jump-to-next nil
@@ -1182,14 +1185,39 @@ POS and RES.")
 	      l2
 	    (setcdr l1 (cons (list ,key) l2)))))))
 
+(defun compilation--file-known-p ()
+  "Say whether the file under point can be found."
+  (when-let* ((msg (get-text-property (point) 'compilation-message))
+              (loc (compilation--message->loc msg))
+              (elem (compilation-find-file-1
+                     (point-marker)
+                     (caar (compilation--loc->file-struct loc))
+                     (cadr (car (compilation--loc->file-struct loc)))
+                     (compilation--file-struct->formats
+                      (compilation--loc->file-struct loc)))))
+    (car elem)))
+
 (defun compilation-auto-jump (buffer pos)
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (goto-char pos)
       (let ((win (get-buffer-window buffer 0)))
         (if win (set-window-point win pos)))
-      (if compilation-auto-jump-to-first-error
-	  (compile-goto-error)))))
+      (when compilation-auto-jump-to-first-error
+        (cl-case compilation-auto-jump-to-first-error
+          ('if-location-known
+           (when (compilation--file-known-p)
+	     (compile-goto-error)))
+          ('first-known
+           (let (match)
+             (while (and (not (compilation--file-known-p))
+                         (setq match (text-property-search-forward
+                                      'compilation-message nil nil t)))
+               (goto-char (prop-match-beginning match))))
+           (when (compilation--file-known-p)
+	     (compile-goto-error)))
+          (otherwise
+           (compile-goto-error)))))))
 
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
@@ -2974,19 +3002,7 @@ and overlay is highlighted between MK and END-MK."
   (remove-hook 'pre-command-hook
 	       #'compilation-goto-locus-delete-o))
 
-(defun compilation-find-file (marker filename directory &rest formats)
-  "Find a buffer for file FILENAME.
-If FILENAME is not found at all, ask the user where to find it.
-Pop up the buffer containing MARKER and scroll to MARKER if we ask
-the user where to find the file.
-Search the directories in `compilation-search-path'.
-A nil in `compilation-search-path' means to try the
-\"current\" directory, which is passed in DIRECTORY.
-If DIRECTORY is relative, it is combined with `default-directory'.
-If DIRECTORY is nil, that means use `default-directory'.
-FORMATS, if given, is a list of formats to reformat FILENAME when
-looking for it: for each element FMT in FORMATS, this function
-attempts to find a file whose name is produced by (format FMT FILENAME)."
+(defun compilation-find-file-1 (marker filename directory &optional formats)
   (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
         (spec-dir (if directory
@@ -3035,6 +3051,23 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
                             (find-file-noselect name))
                 fmts (cdr fmts)))
         (setq dirs (cdr dirs))))
+    (list buffer spec-dir)))
+
+(defun compilation-find-file (marker filename directory &rest formats)
+  "Find a buffer for file FILENAME.
+If FILENAME is not found at all, ask the user where to find it.
+Pop up the buffer containing MARKER and scroll to MARKER if we ask
+the user where to find the file.
+Search the directories in `compilation-search-path'.
+A nil in `compilation-search-path' means to try the
+\"current\" directory, which is passed in DIRECTORY.
+If DIRECTORY is relative, it is combined with `default-directory'.
+If DIRECTORY is nil, that means use `default-directory'.
+FORMATS, if given, is a list of formats to reformat FILENAME when
+looking for it: for each element FMT in FORMATS, this function
+attempts to find a file whose name is produced by (format FMT FILENAME)."
+  (pcase-let ((`(,buffer ,spec-dir)
+               (compilation-find-file-1 marker filename directory formats)))
     (while (null buffer)    ;Repeat until the user selects an existing file.
       ;; The file doesn't exist.  Ask the user where to find it.
       (save-excursion            ;This save-excursion is probably not right.

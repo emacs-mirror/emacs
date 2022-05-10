@@ -811,6 +811,12 @@ which is a change in behaviour from previous Emacs versions.
 ** Compile
 
 +++
+*** The 'compilation-auto-jump-to-first-error' has been extended.
+It can now have the additional values 'if-location-known' (which will
+only jump if the location of the first error is known), and
+'first-known' (which will jump to the first known error location).
+
++++
 *** New user option 'compilation-max-output-line-length'.
 Lines longer than this will have the ends hidden, with a button to
 reveal the hidden text.  This speeds up operations like grepping on
