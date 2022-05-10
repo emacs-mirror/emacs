@@ -586,9 +586,9 @@ haiku_defined_color (struct frame *f,
 
 /* Adapted from xterm `x_draw_box_rect'.  */
 static void
-haiku_draw_box_rect (struct glyph_string *s,
-		     int left_x, int top_y, int right_x, int bottom_y, int hwidth,
-		     int vwidth, bool left_p, bool right_p, struct haiku_rect *clip_rect)
+haiku_draw_box_rect (struct glyph_string *s, int left_x, int top_y,
+		     int right_x, int bottom_y, int hwidth, int vwidth,
+		     bool left_p, bool right_p, struct haiku_rect *clip_rect)
 {
   void *view = FRAME_HAIKU_VIEW (s->f);
   struct face *face = s->face;
@@ -612,13 +612,19 @@ static void
 haiku_calculate_relief_colors (struct glyph_string *s, uint32_t *rgbout_w,
 			       uint32_t *rgbout_b)
 {
-  struct face *face = s->face;
   double h, cs, l;
   uint32_t rgbin;
   struct haiku_output *di;
 
-  rgbin = (face->use_box_color_for_shadows_p
-	   ? face->box_color : face->background);
+  if (s->face->use_box_color_for_shadows_p)
+    rgbin = s->face->box_color;
+  else if (s->first_glyph->type == IMAGE_GLYPH
+	   && s->img->pixmap
+	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
+    rgbin = IMAGE_BACKGROUND (s->img, s->f, 0);
+  else
+    rgbin = s->face->background;
+
   di = FRAME_OUTPUT_DATA (s->f);
 
   if (s->hl == DRAW_CURSOR)
@@ -640,30 +646,35 @@ haiku_calculate_relief_colors (struct glyph_string *s, uint32_t *rgbout_w,
 }
 
 static void
-haiku_draw_relief_rect (struct glyph_string *s,
-			int left_x, int top_y, int right_x, int bottom_y,
-			int hwidth, int vwidth, bool raised_p, bool top_p,
-			bool bot_p, bool left_p, bool right_p,
-			struct haiku_rect *clip_rect, bool fancy_p)
+haiku_draw_relief_rect (struct glyph_string *s, int left_x, int top_y,
+			int right_x, int bottom_y, int hwidth, int vwidth,
+			bool raised_p, bool top_p, bool bot_p, bool left_p,
+			bool right_p, struct haiku_rect *clip_rect)
 {
   uint32_t color_white, color_black;
   void *view;
 
+  view = FRAME_HAIKU_VIEW (s->f);
   haiku_calculate_relief_colors (s, &color_white, &color_black);
 
-  view = FRAME_HAIKU_VIEW (s->f);
   BView_SetHighColor (view, raised_p ? color_white : color_black);
+
   if (clip_rect)
     {
       BView_StartClip (view);
       haiku_clip_to_string (s);
-      BView_ClipToRect (view, clip_rect->x, clip_rect->y, clip_rect->width,
-			clip_rect->height);
+      BView_ClipToRect (view, clip_rect->x, clip_rect->y,
+			clip_rect->width, clip_rect->height);
     }
+
   if (top_p)
-    BView_FillRectangle (view, left_x, top_y, right_x - left_x + 1, hwidth);
+    BView_FillRectangle (view, left_x, top_y,
+			 right_x - left_x + 1, hwidth);
+
   if (left_p)
-    BView_FillRectangle (view, left_x, top_y, vwidth, bottom_y - top_y + 1);
+    BView_FillRectangle (view, left_x, top_y,
+			 vwidth, bottom_y - top_y + 1);
+
   BView_SetHighColor (view, !raised_p ? color_white : color_black);
 
   if (bot_p)
@@ -707,7 +718,7 @@ haiku_draw_relief_rect (struct glyph_string *s,
   BView_SetHighColor (view, s->face->background);
 
   /* Omit corner pixels.  */
-  if (hwidth > 1 || vwidth > 1)
+  if (hwidth > 1 && vwidth > 1)
     {
       if (left_p && top_p)
 	BView_FillRectangle (view, left_x, top_y, 1, 1);
@@ -989,7 +1000,7 @@ haiku_draw_string_box (struct glyph_string *s)
   else
     haiku_draw_relief_rect (s, left_x, top_y, right_x, bottom_y, hwidth,
 			    vwidth, raised_p, true, true, left_p, right_p,
-			    NULL, 1);
+			    NULL);
 }
 
 static void
@@ -1611,7 +1622,7 @@ haiku_draw_image_relief (struct glyph_string *s)
 
   get_glyph_string_clip_rect (s, &r);
   haiku_draw_relief_rect (s, x, y, x1, y1, thick, thick, raised_p,
-			  top_p, bot_p, left_p, right_p, &r, 0);
+			  top_p, bot_p, left_p, right_p, &r);
 }
 
 static void
