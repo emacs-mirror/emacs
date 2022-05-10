@@ -1247,6 +1247,19 @@ as a heading."
 				 'apropos-user-option
 			       'apropos-variable)
 			     (not nosubst))
+          ;; Insert an excerpt of variable values.
+          (when (boundp symbol)
+            (insert "  Value: ")
+            (let* ((print-escape-newlines t)
+                   (value (prin1-to-string (symbol-value symbol)))
+                   (truncated (truncate-string-to-width
+                               value (- (window-width) 20) nil nil t)))
+              (insert truncated)
+              (unless (equal value truncated)
+                (buttonize-region (1- (point)) (point)
+                                  (lambda (_)
+                                    (message "Value: %s" value))))
+              (insert "\n")))
 	  (apropos-print-doc 7 'apropos-group t)
 	  (apropos-print-doc 6 'apropos-face t)
 	  (apropos-print-doc 5 'apropos-widget t)

@@ -476,6 +476,9 @@ This allows you to enter emoji using short strings, eg :face_palm: or
 
 ** Help
 
+---
+*** 'M-x apropos-variable' output now includes values of variables.
+
 +++
 *** New doc string syntax to indicate that symbols shouldn't be links.
 When displaying doc strings in *Help* buffers, strings that are
