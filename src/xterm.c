@@ -5358,9 +5358,16 @@ x_set_frame_alpha (struct frame *f)
 			     &actual, &format, &n, &left,
 			     &data);
 
-    if (rc == Success && actual != None && data)
+    if (rc == Success && actual != None
+	&& n && format == XA_CARDINAL && data)
       {
         unsigned long value = *(unsigned long *) data;
+
+	/* Xlib sign-extends values greater than 0x7fffffff on 64-bit
+	   machines.  Get the low bits by ourself.  */
+
+	value &= 0xffffffff;
+
 	if (value == opac)
 	  {
 	    x_uncatch_errors ();
@@ -14746,7 +14753,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  unsigned long nitems, bytesafter;
 		  unsigned char *data = NULL;
 
-
 		  if (event->xproperty.state == PropertyDelete)
 		    {
 		      if (!last)
@@ -14833,6 +14839,44 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      inev.ie.kind = ICONIFY_EVENT;
 	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
+	}
+
+      if (f && FRAME_X_OUTPUT (f)->alpha_identical_p
+	  && (event->xproperty.atom
+	      == dpyinfo->Xatom_net_wm_window_opacity))
+	{
+	  int rc, actual_format;
+	  Atom actual;
+	  unsigned char *tmp_data;
+	  unsigned long n, left, opacity;
+
+	  tmp_data = NULL;
+
+	  if (event->xproperty.state == PropertyDelete)
+	    {
+	      f->alpha[0] = 1.0;
+	      f->alpha[1] = 1.0;
+	    }
+	  else
+	    {
+	      rc = XGetWindowProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+				       dpyinfo->Xatom_net_wm_window_opacity,
+				       0, 1, False, XA_CARDINAL, &actual,
+				       &actual_format, &n, &left, &tmp_data);
+
+	      if (rc == Success && actual_format == 32
+		  && actual == XA_CARDINAL && n)
+		{
+		  opacity = *(unsigned long *) tmp_data & OPAQUE;
+		  f->alpha[0] = (double) opacity / (double) OPAQUE;
+		  f->alpha[1] = (double) opacity / (double) OPAQUE;
+
+		  store_frame_param (f, Qalpha, make_float (f->alpha[0]));
+		}
+	    }
+
+	  if (tmp_data)
+	    XFree (tmp_data);
 	}
 
       if (event->xproperty.window == dpyinfo->root_window
