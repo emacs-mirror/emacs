@@ -3477,6 +3477,9 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
   else
     newBaseCol = [NSColor colorWithUnsignedLong: s->face->background];
 
+  if (s->hl == DRAW_CURSOR)
+    newBaseCol = FRAME_CURSOR_COLOR (s->f);
+
   if (newBaseCol == nil)
     newBaseCol = [NSColor grayColor];
 
@@ -3485,18 +3488,31 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
       [baseCol release];
       baseCol = [newBaseCol retain];
       [lightCol release];
-      lightCol = [[baseCol highlightWithLevel: 0.2] retain];
+      lightCol = [[baseCol highlightWithLevel: 0.4] retain];
       [darkCol release];
-      darkCol = [[baseCol shadowWithLevel: 0.3] retain];
+      darkCol = [[baseCol shadowWithLevel: 0.4] retain];
     }
 
   /* Calculate the inner rectangle.  */
-  inner = NSMakeRect (NSMinX (outer) + (left_p ? hthickness : 0),
-                      NSMinY (outer) + (top_p ? vthickness : 0),
-                      NSWidth (outer) - (left_p ? hthickness : 0)
-		      - (right_p ? hthickness : 0),
-                      NSHeight (outer) - (top_p ? vthickness : 0)
-		      - (bottom_p ? vthickness : 0));
+  inner = outer;
+
+  if (left_p)
+    {
+      inner.origin.x += vthickness;
+      inner.size.width -= vthickness;
+    }
+
+  if (right_p)
+    inner.size.width -= vthickness;
+
+  if (top_p)
+    {
+      inner.origin.y += hthickness;
+      inner.size.height -= hthickness;
+    }
+
+  if (bottom_p)
+    inner.size.height -= hthickness;
 
   [(raised_p ? lightCol : darkCol) set];
 
@@ -3508,7 +3524,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
       if (top_p)
         {
           [p lineToPoint: NSMakePoint (NSMaxX (outer), NSMinY (outer))];
-          [p lineToPoint :NSMakePoint (NSMaxX (inner), NSMinY (inner))];
+          [p lineToPoint: NSMakePoint (NSMaxX (inner), NSMinY (inner))];
         }
       [p lineToPoint: NSMakePoint (NSMinX (inner), NSMinY (inner))];
       if (left_p)
@@ -3584,6 +3600,31 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
 
   [darkCol set];
   [p stroke];
+
+  if (vthickness > 1 && hthickness > 1)
+    {
+      [FRAME_BACKGROUND_COLOR (s->f) set];
+
+      if (left_p && top_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMinX (outer),
+					    NSMinY (outer),
+					    1, 1)];
+
+      if (right_p && top_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMaxX (outer) - 1,
+					    NSMinY (outer),
+					    1, 1)];
+
+      if (right_p && bottom_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMaxX (outer) - 1,
+					    NSMaxY (outer) - 1,
+					    1, 1)];
+
+      if (left_p && bottom_p)
+	[NSBezierPath fillRect: NSMakeRect (NSMinX (outer),
+					    NSMaxY (outer) - 1,
+					    1, 1)];
+    }
 }
 
 
