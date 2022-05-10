@@ -551,8 +551,9 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (if (not (or (eq dabbrev--last-buffer dabbrev--last-buffer-found)
 		   (minibuffer-window-active-p (selected-window))))
 	  (progn
-	    (message "Expansion found in `%s'"
-		     (buffer-name dabbrev--last-buffer))
+            (when (buffer-name dabbrev--last-buffer)
+	      (message "Expansion found in `%s'"
+		       (buffer-name dabbrev--last-buffer)))
 	    (setq dabbrev--last-buffer-found dabbrev--last-buffer))
 	(message nil))
       (if (and (or (eq (current-buffer) dabbrev--last-buffer)
@@ -770,17 +771,38 @@ of the start of the occurrence."
                  (make-progress-reporter
                   "Scanning for dabbrevs..."
                   (- (length dabbrev--friend-buffer-list)) 0 0 1 1.5))))
-       ;; Walk through the buffers till we find a match.
-       (let (expansion)
-	 (while (and (not expansion) dabbrev--friend-buffer-list)
-	   (setq dabbrev--last-buffer (pop dabbrev--friend-buffer-list))
-	   (set-buffer dabbrev--last-buffer)
-           (progress-reporter-update dabbrev--progress-reporter
-                                     (- (length dabbrev--friend-buffer-list)))
-	   (setq dabbrev--last-expansion-location (point-min))
-	   (setq expansion (dabbrev--try-find abbrev nil 1 ignore-case)))
-	 (progress-reporter-done dabbrev--progress-reporter)
-	 expansion)))))
+       (let ((file-name (buffer-file-name))
+             file-name-buffer)
+         (unwind-protect
+             (progn
+               ;; Include the file name components into the abbrev
+               ;; list (because if you have a file name "foobar", it's
+               ;; somewhat likely that you'll be talking about foobar
+               ;; stuff in the file itself).
+               (when file-name
+                 (setq file-name-buffer (generate-new-buffer " *abbrev-file*"))
+                 (with-current-buffer file-name-buffer
+                   (dolist (part (file-name-split file-name))
+                     (insert part "\n")))
+                 (setq dabbrev--friend-buffer-list
+                       (append dabbrev--friend-buffer-list
+                               (list file-name-buffer))))
+               ;; Walk through the buffers till we find a match.
+               (let (expansion)
+	         (while (and (not expansion) dabbrev--friend-buffer-list)
+	           (setq dabbrev--last-buffer
+                         (pop dabbrev--friend-buffer-list))
+	           (set-buffer dabbrev--last-buffer)
+                   (progress-reporter-update
+                    dabbrev--progress-reporter
+                    (- (length dabbrev--friend-buffer-list)))
+	           (setq dabbrev--last-expansion-location (point-min))
+	           (setq expansion (dabbrev--try-find
+                                    abbrev nil 1 ignore-case)))
+	         (progress-reporter-done dabbrev--progress-reporter)
+	         expansion))
+           (when (buffer-live-p file-name-buffer)
+             (kill-buffer file-name-buffer))))))))
 
 ;; Compute the list of buffers to scan.
 ;; If dabbrev-search-these-buffers-only, then the current buffer
