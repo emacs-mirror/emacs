@@ -6822,14 +6822,12 @@ mouse buttons are released on top of FRAME.  */)
 {
   struct frame *f = decode_window_system_frame (frame);
   int ntargets = 0, nnames = 0;
-  ptrdiff_t len;
   char *target_names[2048];
   Atom *target_atoms;
   Lisp_Object lval, original, tem, t1, t2;
   Atom xaction;
   Atom action_list[2048];
   char *name_list[2048];
-  char *scratch;
 
   USE_SAFE_ALLOCA;
 
@@ -6843,10 +6841,8 @@ mouse buttons are released on top of FRAME.  */)
 
       if (ntargets < 2048)
 	{
-	  scratch = SSDATA (XCAR (targets));
-	  len = strlen (scratch);
-	  target_names[ntargets] = SAFE_ALLOCA (len + 1);
-	  strncpy (target_names[ntargets], scratch, len + 1);
+	  SAFE_ALLOCA_STRING (target_names[ntargets],
+			      XCAR (targets));
 	  ntargets++;
 	}
       else
@@ -6896,10 +6892,8 @@ mouse buttons are released on top of FRAME.  */)
 	      else
 		signal_error ("Invalid drag-and-drop action", tem);
 
-	      scratch = SSDATA (ENCODE_UTF_8 (t2));
-	      len = strlen (scratch);
-	      name_list[nnames] = SAFE_ALLOCA (len + 1);
-	      strncpy (name_list[nnames], scratch, len + 1);
+	      SAFE_ALLOCA_STRING (name_list[nnames],
+				  ENCODE_SYSTEM (t2));
 
 	      nnames++;
 	    }
