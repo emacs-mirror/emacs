@@ -7614,19 +7614,25 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
     {
       if (left_p && top_p && x_inside_rect_p (clip_rect, 1,
 					      left_x, top_y))
-	x_clear_rectangle (f, normal_gc, left_x, top_y, 1, 1, false);
+	/* This should respect `alpha-backgroun' since it's being
+	   cleared with the background color of the frame.  */
+	x_clear_rectangle (f, normal_gc, left_x, top_y, 1, 1,
+			   true);
 
       if (left_p && bot_p && x_inside_rect_p (clip_rect, 1,
 					      left_x, bottom_y))
-	x_clear_rectangle (f, normal_gc, left_x, bottom_y, 1, 1, false);
+	x_clear_rectangle (f, normal_gc, left_x, bottom_y, 1, 1,
+			   true);
 
       if (right_p && top_p && x_inside_rect_p (clip_rect, 1,
 					       right_x, top_y))
-	x_clear_rectangle (f, normal_gc, right_x, top_y, 1, 1, false);
+	x_clear_rectangle (f, normal_gc, right_x, top_y, 1, 1,
+			   true);
 
       if (right_p && bot_p && x_inside_rect_p (clip_rect, 1,
 					       right_x, bottom_y))
-	x_clear_rectangle (f, normal_gc, right_x, bottom_y, 1, 1, false);
+	x_clear_rectangle (f, normal_gc, right_x, bottom_y, 1, 1,
+			   true);
     }
 
   x_reset_clip_rectangles (f, white_gc);
