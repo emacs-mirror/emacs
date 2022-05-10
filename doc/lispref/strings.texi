@@ -856,9 +856,7 @@ between 2 and 16 (inclusive), and integers are converted in that base.
 If @var{base} is @code{nil}, then base ten is used.  Floating-point
 conversion only works in base ten; we have not implemented other
 radices for floating-point numbers, because that would be much more
-work and does not seem useful.  If @var{string} looks like an integer
-but its value is too large to fit into a Lisp integer,
-@code{string-to-number} returns a floating-point result.
+work and does not seem useful.
 
 The parsing skips spaces and tabs at the beginning of @var{string},
 then reads as much of @var{string} as it can interpret as a number in
