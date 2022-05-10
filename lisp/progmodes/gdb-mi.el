@@ -284,8 +284,8 @@ Possible values are:
   :type '(choice
           (const :tag "Always restore" t)
           (const :tag "Don't restore" nil)
-          (const :tag "Depends on `gdb-show-main'" 'if-gdb-show-main)
-          (const :tag "Depends on `gdb-many-windows'" 'if-gdb-many-windows))
+          (const :tag "Depends on `gdb-show-main'" if-gdb-show-main)
+          (const :tag "Depends on `gdb-many-windows'" if-gdb-many-windows))
   :group 'gdb
   :version "28.1")
 

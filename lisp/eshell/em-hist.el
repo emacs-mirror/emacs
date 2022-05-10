@@ -104,7 +104,7 @@ in bash, and any other non-nil value mirrors the \"ignoredups\"
 value."
   :type '(choice (const :tag "Don't ignore anything" nil)
                  (const :tag "Ignore consecutive duplicates" t)
-                 (const :tag "Only keep last duplicate" 'erase)))
+                 (const :tag "Only keep last duplicate" erase)))
 
 (defcustom eshell-save-history-on-exit t
   "Determine if history should be automatically saved.
