@@ -119,6 +119,15 @@
                               t))
 			   "\\s-+\\(" lisp-mode-symbol-regexp "\\)"))
 	 2)
+   ;; Like the previous, but uses a quoted symbol as the name.
+   (list nil
+	 (purecopy (concat "^\\s-*("
+			   (eval-when-compile
+			     (regexp-opt
+			      '("defalias" "define-obsolete-function-alias")
+                              t))
+			   "\\s-+'\\(" lisp-mode-symbol-regexp "\\)"))
+	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
