@@ -256,6 +256,13 @@ startup.  Previously, these functions ignored
 
 * Changes in Emacs 29.1
 
+** Menus
+
+---
+*** The entries following the buffers in the "Buffers" menu can now be altered.
+Change the 'menu-bar-buffers-menu-command-entries' variable to alter
+the remaining entries.
+
 ---
 ** 'delete-process' is now a command.
 When called interactively, it will kill the process running in the
