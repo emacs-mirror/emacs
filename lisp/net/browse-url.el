@@ -1633,13 +1633,11 @@ from `browse-url-elinks-wrapper'."
 
 ;;; Adding buttons to a buffer to call `browse-url' when you hit them.
 
-(defvar browse-url-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" #'browse-url-button-open)
-    (define-key map [mouse-2] #'browse-url-button-open)
-    (define-key map "w" #'browse-url-button-copy)
-    map)
-  "The keymap used for `browse-url' buttons.")
+(defvar-keymap browse-url-button-map
+  :doc "The keymap used for `browse-url' buttons."
+  "RET"       #'browse-url-button-open
+  "<mouse-2>" #'browse-url-button-open
+  "w"         #'browse-url-button-copy)
 
 (defface browse-url-button
   '((t :inherit link))
