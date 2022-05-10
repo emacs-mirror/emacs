@@ -261,7 +261,7 @@ startup.  Previously, these functions ignored
 ---
 *** The entries following the buffers in the "Buffers" menu can now be altered.
 Change the 'menu-bar-buffers-menu-command-entries' variable to alter
-the remaining entries.
+the entries that follow the buffer list.
 
 ---
 ** 'delete-process' is now a command.
