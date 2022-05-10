@@ -14856,6 +14856,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      f->alpha[0] = 1.0;
 	      f->alpha[1] = 1.0;
+
+	      store_frame_param (f, Qalpha, Qnil);
 	    }
 	  else
 	    {
@@ -14877,6 +14879,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  f->alpha[1] = (double) opacity / (double) OPAQUE;
 
 		  store_frame_param (f, Qalpha, make_float (f->alpha[0]));
+		}
+	      else
+		{
+		  f->alpha[0] = 1.0;
+		  f->alpha[1] = 1.0;
+
+		  store_frame_param (f, Qalpha, Qnil);
 		}
 	    }
 
