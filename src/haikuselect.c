@@ -35,6 +35,21 @@ struct frame *haiku_dnd_frame;
 
 static void haiku_lisp_to_message (Lisp_Object, void *);
 
+static enum haiku_clipboard
+haiku_get_clipboard_name (Lisp_Object clipboard)
+{
+  if (EQ (clipboard, QPRIMARY))
+    return CLIPBOARD_PRIMARY;
+
+  if (EQ (clipboard, QSECONDARY))
+    return CLIPBOARD_SECONDARY;
+
+  if (EQ (clipboard, QCLIPBOARD))
+    return CLIPBOARD_CLIPBOARD;
+
+  signal_error ("Invalid clipboard", clipboard);
+}
+
 DEFUN ("haiku-selection-data", Fhaiku_selection_data, Shaiku_selection_data,
        2, 2, 0,
        doc: /* Retrieve content typed as NAME from the clipboard
@@ -53,22 +68,15 @@ message in the format accepted by `haiku-drag-message', which see.  */)
   int rc;
 
   CHECK_SYMBOL (clipboard);
-
-  if (!EQ (clipboard, QPRIMARY) && !EQ (clipboard, QSECONDARY)
-      && !EQ (clipboard, QCLIPBOARD))
-    signal_error ("Invalid clipboard", clipboard);
+  clipboard_name = haiku_get_clipboard_name (clipboard);
 
   if (!NILP (name))
     {
       CHECK_STRING (name);
 
       block_input ();
-      if (EQ (clipboard, QPRIMARY))
-	dat = BClipboard_find_primary_selection_data (SSDATA (name), &len);
-      else if (EQ (clipboard, QSECONDARY))
-	dat = BClipboard_find_secondary_selection_data (SSDATA (name), &len);
-      else
-	dat = BClipboard_find_system_data (SSDATA (name), &len);
+      dat = be_find_clipboard_data (clipboard_name,
+				    SSDATA (name), &len);
       unblock_input ();
 
       if (!dat)
@@ -83,18 +91,11 @@ message in the format accepted by `haiku-drag-message', which see.  */)
 			  Qforeign_selection, Qt, str);
 
       block_input ();
-      BClipboard_free_data (dat);
+      free (dat);
       unblock_input ();
     }
   else
     {
-      if (EQ (clipboard, QPRIMARY))
-	clipboard_name = CLIPBOARD_PRIMARY;
-      else if (EQ (clipboard, QSECONDARY))
-	clipboard_name = CLIPBOARD_SECONDARY;
-      else
-	clipboard_name = CLIPBOARD_CLIPBOARD;
-
       block_input ();
       rc = be_lock_clipboard_message (clipboard_name, &message, false);
       unblock_input ();
@@ -139,17 +140,11 @@ In that case, the arguments after NAME are ignored.  */)
   int rc;
   void *message;
 
+  CHECK_SYMBOL (clipboard);
+  clipboard_name = haiku_get_clipboard_name (clipboard);
+
   if (CONSP (name) || NILP (name))
     {
-      if (EQ (clipboard, QPRIMARY))
-	clipboard_name = CLIPBOARD_PRIMARY;
-      else if (EQ (clipboard, QSECONDARY))
-	clipboard_name = CLIPBOARD_SECONDARY;
-      else if (EQ (clipboard, QCLIPBOARD))
-	clipboard_name = CLIPBOARD_CLIPBOARD;
-      else
-	signal_error ("Invalid clipboard", clipboard);
-
       rc = be_lock_clipboard_message (clipboard_name,
 				      &message, true);
 
@@ -164,7 +159,6 @@ In that case, the arguments after NAME are ignored.  */)
       return unbind_to (ref, Qnil);
     }
 
-  CHECK_SYMBOL (clipboard);
   CHECK_STRING (name);
   if (!NILP (data))
     CHECK_STRING (data);
@@ -172,20 +166,8 @@ In that case, the arguments after NAME are ignored.  */)
   dat = !NILP (data) ? SSDATA (data) : NULL;
   len = !NILP (data) ? SBYTES (data) : 0;
 
-  if (EQ (clipboard, QPRIMARY))
-    BClipboard_set_primary_selection_data (SSDATA (name), dat, len,
-					   !NILP (clear));
-  else if (EQ (clipboard, QSECONDARY))
-    BClipboard_set_secondary_selection_data (SSDATA (name), dat, len,
-					     !NILP (clear));
-  else if (EQ (clipboard, QCLIPBOARD))
-    BClipboard_set_system_data (SSDATA (name), dat, len, !NILP (clear));
-  else
-    {
-      unblock_input ();
-      signal_error ("Bad clipboard", clipboard);
-    }
-
+  be_set_clipboard_data (clipboard_name, SSDATA (name), dat, len,
+			 !NILP (clear));
   return Qnil;
 }
 
@@ -193,17 +175,10 @@ DEFUN ("haiku-selection-owner-p", Fhaiku_selection_owner_p, Shaiku_selection_own
        0, 1, 0,
        doc: /* Whether the current Emacs process owns the given SELECTION.
 The arg should be the name of the selection in question, typically one
-of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  For
-convenience, the symbol nil is the same as `PRIMARY', and t is the
-same as `SECONDARY'.  */)
+of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  */)
   (Lisp_Object selection)
 {
   bool value;
-
-  if (NILP (selection))
-    selection = QPRIMARY;
-  else if (EQ (selection, Qt))
-    selection = QSECONDARY;
 
   block_input ();
   if (EQ (selection, QPRIMARY))

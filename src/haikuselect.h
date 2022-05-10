@@ -41,27 +41,14 @@ extern void init_haiku_select (void);
 #endif
 /* Whether or not the selection was recently changed.  */
 
-/* Find a string with the MIME type TYPE in the system clipboard.  */
-extern char *BClipboard_find_system_data (const char *, ssize_t *);
-extern char *BClipboard_find_primary_selection_data (const char *, ssize_t *);
-extern char *BClipboard_find_secondary_selection_data (const char *, ssize_t *);
-
-extern void BClipboard_set_system_data (const char *, const char *, ssize_t, bool);
-extern void BClipboard_set_primary_selection_data (const char *, const char *,
-						   ssize_t, bool);
-extern void BClipboard_set_secondary_selection_data (const char *, const char *,
-						     ssize_t, bool);
-
-extern void BClipboard_system_targets (char **, int);
-extern void BClipboard_primary_targets (char **, int);
-extern void BClipboard_secondary_targets (char **, int);
+extern char *be_find_clipboard_data (enum haiku_clipboard, const char *, ssize_t *);
+extern void be_set_clipboard_data (enum haiku_clipboard, const char *, const char *,
+				   ssize_t, bool);
+extern void be_get_clipboard_targets (enum haiku_clipboard, char **, int);
 
 extern bool BClipboard_owns_clipboard (void);
 extern bool BClipboard_owns_primary (void);
 extern bool BClipboard_owns_secondary (void);
-
-/* Free the returned data.  */
-extern void BClipboard_free_data (void *);
 
 extern int be_enum_message (void *, int32 *, int32, int32 *, const char **);
 extern int be_get_message_data (void *, const char *, int32, int32,

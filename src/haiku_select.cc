@@ -35,22 +35,45 @@ static int64 count_clipboard = -1;
 static int64 count_primary = -1;
 static int64 count_secondary = -1;
 
-static char *
-BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
+static BClipboard *
+get_clipboard_object (enum haiku_clipboard clipboard)
 {
-  if (!cb->Lock ())
-    return 0;
-
-  BMessage *dat = cb->Data ();
-  if (!dat)
+  switch (clipboard)
     {
-      cb->Unlock ();
-      return 0;
+    case CLIPBOARD_PRIMARY:
+      return primary;
+
+    case CLIPBOARD_SECONDARY:
+      return secondary;
+
+    case CLIPBOARD_CLIPBOARD:
+      return system_clipboard;
     }
 
+  abort ();
+}
+
+static char *
+be_find_clipboard_data_1 (BClipboard *cb, const char *type, ssize_t *len)
+{
+  BMessage *data;
   const char *ptr;
-  ssize_t bt;
-  dat->FindData (type, B_MIME_TYPE, (const void **) &ptr, &bt);
+  ssize_t nbytes;
+  void *value;
+
+  if (!cb->Lock ())
+    return NULL;
+
+  data = cb->Data ();
+
+  if (!data)
+    {
+      cb->Unlock ();
+      return NULL;
+    }
+
+  data->FindData (type, B_MIME_TYPE, (const void **) &ptr,
+		  &nbytes);
 
   if (!ptr)
     {
@@ -59,9 +82,9 @@ BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
     }
 
   if (len)
-    *len = bt;
+    *len = nbytes;
 
-  void *data = malloc (bt);
+  value = malloc (nbytes);
 
   if (!data)
     {
@@ -69,13 +92,14 @@ BClipboard_find_data (BClipboard *cb, const char *type, ssize_t *len)
       return NULL;
     }
 
-  memcpy (data, ptr, bt);
+  memcpy (value, ptr, nbytes);
   cb->Unlock ();
-  return (char *) data;
+
+  return (char *) value;
 }
 
 static void
-BClipboard_get_targets (BClipboard *cb, char **buf, int buf_size)
+be_get_clipboard_targets_1 (BClipboard *cb, char **buf, int buf_size)
 {
   BMessage *data;
   char *name;
@@ -122,116 +146,60 @@ BClipboard_get_targets (BClipboard *cb, char **buf, int buf_size)
 }
 
 static void
-BClipboard_set_data (BClipboard *cb, const char *type, const char *dat,
-		     ssize_t len, bool clear)
+be_set_clipboard_data_1 (BClipboard *cb, const char *type, const char *data,
+			 ssize_t len, bool clear)
 {
+  BMessage *message_data;
+
   if (!cb->Lock ())
     return;
 
   if (clear)
     cb->Clear ();
 
-  BMessage *mdat = cb->Data ();
-  if (!mdat)
+  message_data = cb->Data ();
+
+  if (!message_data)
     {
       cb->Unlock ();
       return;
     }
 
-  if (dat)
+  if (data)
     {
-      if (mdat->ReplaceData (type, B_MIME_TYPE, dat, len)
+      if (message_data->ReplaceData (type, B_MIME_TYPE, data, len)
 	  == B_NAME_NOT_FOUND)
-	mdat->AddData (type, B_MIME_TYPE, dat, len);
+	message_data->AddData (type, B_MIME_TYPE, data, len);
     }
   else
-    mdat->RemoveName (type);
+    message_data->RemoveName (type);
+
   cb->Commit ();
   cb->Unlock ();
 }
 
 char *
-BClipboard_find_system_data (const char *type, ssize_t *len)
+be_find_clipboard_data (enum haiku_clipboard id, const char *type,
+			ssize_t *len)
 {
-  if (!system_clipboard)
-    return 0;
-
-  return BClipboard_find_data (system_clipboard, type, len);
-}
-
-char *
-BClipboard_find_primary_selection_data (const char *type, ssize_t *len)
-{
-  if (!primary)
-    return 0;
-
-  return BClipboard_find_data (primary, type, len);
-}
-
-char *
-BClipboard_find_secondary_selection_data (const char *type, ssize_t *len)
-{
-  if (!secondary)
-    return 0;
-
-  return BClipboard_find_data (secondary, type, len);
+  return be_find_clipboard_data_1 (get_clipboard_object (id),
+				   type, len);
 }
 
 void
-BClipboard_set_system_data (const char *type, const char *data,
-			    ssize_t len, bool clear)
+be_set_clipboard_data (enum haiku_clipboard id, const char *type,
+		       const char *data, ssize_t len, bool clear)
 {
-  if (!system_clipboard)
-    return;
-
-  count_clipboard = system_clipboard->SystemCount ();
-  BClipboard_set_data (system_clipboard, type, data, len, clear);
+  be_set_clipboard_data_1 (get_clipboard_object (id), type,
+			   data, len, clear);
 }
 
 void
-BClipboard_set_primary_selection_data (const char *type, const char *data,
-				       ssize_t len, bool clear)
+be_get_clipboard_targets (enum haiku_clipboard id, char **targets,
+			  int len)
 {
-  if (!primary)
-    return;
-
-  count_primary = primary->SystemCount ();
-  BClipboard_set_data (primary, type, data, len, clear);
-}
-
-void
-BClipboard_set_secondary_selection_data (const char *type, const char *data,
-					 ssize_t len, bool clear)
-{
-  if (!secondary)
-    return;
-
-  count_secondary = secondary->SystemCount ();
-  BClipboard_set_data (secondary, type, data, len, clear);
-}
-
-void
-BClipboard_free_data (void *ptr)
-{
-  std::free (ptr);
-}
-
-void
-BClipboard_system_targets (char **buf, int len)
-{
-  BClipboard_get_targets (system_clipboard, buf, len);
-}
-
-void
-BClipboard_primary_targets (char **buf, int len)
-{
-  BClipboard_get_targets (primary, buf, len);
-}
-
-void
-BClipboard_secondary_targets (char **buf, int len)
-{
-  BClipboard_get_targets (secondary, buf, len);
+  be_get_clipboard_targets_1 (get_clipboard_object (id), targets,
+			      len);
 }
 
 bool
@@ -443,12 +411,7 @@ be_lock_clipboard_message (enum haiku_clipboard clipboard,
 {
   BClipboard *board;
 
-  if (clipboard == CLIPBOARD_PRIMARY)
-    board = primary;
-  else if (clipboard == CLIPBOARD_SECONDARY)
-    board = secondary;
-  else
-    board = system_clipboard;
+  board = get_clipboard_object (clipboard);
 
   if (!board->Lock ())
     return 1;
@@ -465,12 +428,7 @@ be_unlock_clipboard (enum haiku_clipboard clipboard, bool discard)
 {
   BClipboard *board;
 
-  if (clipboard == CLIPBOARD_PRIMARY)
-    board = primary;
-  else if (clipboard == CLIPBOARD_SECONDARY)
-    board = secondary;
-  else
-    board = system_clipboard;
+  board = get_clipboard_object (clipboard);
 
   if (discard)
     board->Revert ();
