@@ -1617,16 +1617,63 @@ AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
 
-# sqrt and other floating-point functions such as fmod and frexp
-# are found in -lm on many systems.
-OLD_LIBS=$LIBS
-AC_SEARCH_LIBS([sqrt], [m])
-if test "X$LIBS" = "X$OLD_LIBS"; then
-  LIB_MATH=
-else
-  LIB_MATH=$ac_cv_search_sqrt
-fi
-LIBS=$OLD_LIBS
+# Check for all math.h functions that Emacs uses; on some platforms,
+# -lm is needed for some of these functions.
+AC_CACHE_CHECK([for math library],
+  [emacs_cv_lib_math],
+  [OLD_LIBS=$LIBS
+   AC_LINK_IFELSE(
+     [AC_LANG_SOURCE([[
+	#include <math.h>
+	int
+	main (int argc, char **argv)
+	{
+	  double d = argc;
+	  float f = argc;
+	  int i = argc;
+	  long l = argc;
+	  d = acos (d);
+	  d = asin (d);
+	  d = atan (d);
+	  d = atan2 (d, d);
+	  d = ceil (d);
+	  d = copysign (d, d);
+	  d = cos (d);
+	  d = exp (d);
+	  d = fabs (d);
+	  d = floor (d);
+	  d = fmod (d, d);
+	  d = frexp (d, &i);
+	  d = ldexp (d, i);
+	  d = log (d);
+	  d = log2 (d);
+	  d = log10 (d);
+	  d = pow (d, d);
+	  d = rint (d);
+	  d = scalbn (d, l);
+	  d = sin (d);
+	  d = sqrt (d);
+	  d = tan (d);
+	  d = trunc (d);
+	  f = fabsf (f);
+	  f = powf (f, f);
+	  i = ilogb (d);
+	  i = signbit (d);
+	  l = lrint (d);
+	  l = lround (d);
+	  return d == f && i == l;
+	}
+     ]])],
+     [emacs_cv_lib_math='none required'],
+     [LIBS="-lm $LIBS"
+      AC_LINK_IFELSE([],
+        [emacs_cv_lib_math=-lm],
+	[AC_MSG_ERROR([Math library (-lm) not found])])])
+   LIBS=$OLD_LIBS])
+case $emacs_cv_lib_math in
+  -*) LIB_MATH=$emacs_cv_lib_math;;
+  *)  LIB_MATH=;;
+esac
 
 dnl Current possibilities handled by sed (aix4-2 -> aix,
 dnl gnu-linux -> gnu/linux, etc.):
