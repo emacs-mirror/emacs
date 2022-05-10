@@ -780,6 +780,14 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** ispell
+
+---
+*** 'ispell-region' and 'ispell-buffer' now push the mark.
+The location of the last word the user was queried about is pushed to
+the mark ring, so that the user can skip back to the location with
+'C-x C-x'.
+
 ** dabbrev
 
 ---
