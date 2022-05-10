@@ -7588,7 +7588,7 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
   if (top_p && left_p && bot_p && right_p
       && hwidth > 1 && vwidth > 1)
     x_draw_rectangle (f, black_gc, left_x, top_y,
-		      right_x - left_x, top_y - bottom_y);
+		      right_x - left_x, bottom_y - top_y);
   else
     {
       if (top_p && hwidth > 1)
