@@ -1583,7 +1583,7 @@ Emacs buffers, like indentation and the like.  The new ert function
 This function was previously documented to return only nil or t.  This
 has been changed to nil/'autosaved'/non-nil.  The new 'autosaved'
 value means that the buffer is modified, but that it hasn't been
-modified after the last auto-save.
+modified since the time of last auto-save.
 
 ---
 ** 'with-silent-modifications' also restores buffer autosave status.
@@ -1733,7 +1733,7 @@ functions.
 +++
 *** 'restore-buffer-modified-p' can now alter buffer auto-save state.
 With a FLAG value of 'autosaved', it will mark the buffer as having
-been auto-saved after the last modification.
+been auto-saved since the time of last modification.
 
 ---
 *** New minor mode 'isearch-fold-quotes-mode'.
