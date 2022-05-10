@@ -441,6 +441,7 @@ Use group `text' for this instead.  This group is deprecated."
     (define-key map "u" 'Custom-goto-parent)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
+    (define-key map "H" 'custom-toggle-hide-all-variables)
     map)
   "Keymap for `Custom-mode'.")
 
@@ -745,6 +746,9 @@ groups after non-groups, if nil do not order groups at all."
      (or custom-file user-init-file)
      "Un-customize settings in this and future sessions." "delete" "Uncustomize"
      (modified set changed rogue saved))
+    (" Toggle hiding all values " custom-toggle-hide-all-variables
+     t "Toggle hiding all values."
+     "hide" "Hide" t)
     (" Help for Customize " Custom-help t "Get help for using Customize."
      "help" "Help" t)
     (" Exit " Custom-buffer-done t "Exit Customize." "exit" "Exit" t))
@@ -2833,6 +2837,29 @@ try matching its doc string against `custom-guess-doc-alist'."
 	(when (eq (widget-get widget :custom-level) 1)
 	  (custom-add-parent-links widget))
 	(custom-add-see-also widget)))))
+
+(defvar custom--hidden-state)
+
+(defun custom-toggle-hide-all-variables ()
+  "Toggle whether to show contents of the widgets in the current buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    ;; Surely there's a better way to find all the "top level" widgets
+    ;; in a buffer, but I couldn't find it.
+    (while (not (eobp))
+      (when-let* ((widget (widget-at (point)))
+                  (parent (widget-get widget :parent))
+                  (state (widget-get parent :custom-state)))
+        (when (eq state custom--hidden-state)
+          (custom-toggle-hide-variable widget)))
+      (forward-line 1)))
+  (setq custom--hidden-state (if (eq custom--hidden-state 'hidden)
+                                 'standard
+                               'hidden))
+  (if (eq custom--hidden-state 'hidden)
+      (message "All variables hidden")
+    (message "All variables shown")))
 
 (defun custom-toggle-hide-variable (visibility-widget &rest _ignore)
   "Toggle the visibility of a `custom-variable' parent widget.
@@ -5230,7 +5257,8 @@ if that value is non-nil."
 			:label (nth 5 arg)))
 		     custom-commands)
 		    (setq custom-tool-bar-map map))))
-  (setq-local custom--invocation-options nil)
+  (setq-local custom--invocation-options nil
+              custom--hidden-state 'hidden)
   (setq-local revert-buffer-function #'custom--revert-buffer)
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)

@@ -780,6 +780,13 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Customize
+
+---
+*** New command 'custom-toggle-hide-all-variables'.
+This is bound to 'H' and toggles whether to hide or show the widget
+contents.
+
 ** ispell
 
 ---
