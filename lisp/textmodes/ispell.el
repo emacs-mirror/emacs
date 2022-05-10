@@ -3052,7 +3052,7 @@ when needed."
 ;;;###autoload
 (defun ispell-region (reg-start reg-end &optional recheckp shift)
   "Interactively check a region for spelling errors.
-Mark is left at the final word that the user was queried about.
+Leave the mark at the last misspelled word that the user was queried about.
 
 Return nil if spell session was terminated, otherwise returns shift offset
 amount for last line processed."
@@ -3615,7 +3615,7 @@ to limit the check."
 ;;;###autoload
 (defun ispell-buffer ()
   "Check the current buffer for spelling errors interactively.
-Mark is left at the final word that the user was queried about."
+Leave the mark at the last misspelled word that the user was queried about."
   (interactive)
   (ispell-region (point-min) (point-max)))
 

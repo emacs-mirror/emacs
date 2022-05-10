@@ -791,9 +791,9 @@ contents.
 
 ---
 *** 'ispell-region' and 'ispell-buffer' now push the mark.
-The location of the last word the user was queried about is pushed to
-the mark ring, so that the user can skip back to the location with
-'C-x C-x'.
+These commands push onto the mark ring the location of the last
+misspelled word where corrections were offered, so that you can then
+skip back to that location with 'C-x C-x'.
 
 ** dabbrev
 
