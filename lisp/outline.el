@@ -215,10 +215,6 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   (let ((map (make-sparse-keymap)))
     (outline-minor-mode-cycle--bind map (kbd "TAB") #'outline-cycle)
     (outline-minor-mode-cycle--bind map (kbd "<backtab>") #'outline-cycle-buffer)
-    (outline-minor-mode-cycle--bind map (kbd "M-<left>") #'outline-promote)
-    (outline-minor-mode-cycle--bind map (kbd "M-<right>") #'outline-demote)
-    (outline-minor-mode-cycle--bind map (kbd "M-<up>") #'outline-move-subtree-up)
-    (outline-minor-mode-cycle--bind map (kbd "M-<down>") #'outline-move-subtree-down)
     map)
   "Keymap used by `outline-minor-mode-cycle'.")
 
