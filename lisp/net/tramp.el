@@ -3435,7 +3435,7 @@ BODY is the backend specific code."
 
 	   ;; We must protect `last-coding-system-used', now we have
 	   ;; set it to its correct value.
-	   (let (last-coding-system-used)
+	   (let (last-coding-system-used (need-chown t))
 	     ;; Set file modification time.
 	     (when (or (eq ,visit t) (stringp ,visit))
 	       (when-let ((file-attr (file-attributes filename 'integer)))
@@ -3445,10 +3445,13 @@ BODY is the backend specific code."
 		  ;; `file-precious-flag' is set.
 		  (or (file-attribute-modification-time file-attr)
 		      (current-time)))
-		 ;; Set the ownership.
 		 (unless (and (= (file-attribute-user-id file-attr) uid)
 			      (= (file-attribute-group-id file-attr) gid))
-		   (tramp-set-file-uid-gid filename uid gid)))))
+		   (setq need-chown nil))))
+
+	     ;; Set the ownership.
+             (when need-chown
+               (tramp-set-file-uid-gid filename uid gid)))
 
 	   ;; Unlock file.
 	   (when file-locked
@@ -5627,7 +5630,9 @@ If FILENAME is remote, a file name handler is called."
       (setq gid (file-attribute-group-id (file-attributes dir)))))
 
   (if (tramp-tramp-file-p filename)
-      (tramp-file-name-handler #'tramp-set-file-uid-gid filename uid gid)
+      (funcall (if (tramp-crypt-file-name-p filename)
+		   #'tramp-crypt-file-name-handler #'tramp-file-name-handler)
+	       #'tramp-set-file-uid-gid filename uid gid)
     ;; On W32 systems, "chown" does not work.
     (unless (memq system-type '(ms-dos windows-nt))
       (let ((uid (or (and (natnump uid) uid) (tramp-get-local-uid 'integer)))

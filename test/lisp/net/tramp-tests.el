@@ -4474,7 +4474,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
     (let ((tmp-name (tramp--test-make-temp-name nil quoted)))
       (unwind-protect
 	  (progn
-	    (load tmp-name 'noerror 'nomessage)
+	    ;; Ange-FTP does not tolerate a missing file, even with `noerror'.
+	    (unless (tramp--test-ange-ftp-p)
+	      (load tmp-name 'noerror 'nomessage))
 	    (should-not (featurep 'tramp-test-load))
 	    (write-region "(provide 'tramp-test-load)" nil tmp-name)
 	    ;; `load' in lread.c does not pass `must-suffix'.  Why?
