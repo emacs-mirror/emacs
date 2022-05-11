@@ -1619,15 +1619,16 @@ public:
 	copy_bitmap = NULL;
       }
     if (!copy_bitmap)
-      copy_bitmap = new BBitmap (offscreen_draw_bitmap_1);
+      {
+	copy_bitmap = new BBitmap (offscreen_draw_bitmap_1);
+	SetViewBitmap (copy_bitmap, Frame (),
+		       Frame (), B_FOLLOW_NONE, 0);
+      }
     else
       copy_bitmap->ImportBits (offscreen_draw_bitmap_1);
 
     if (copy_bitmap->InitCheck () != B_OK)
       gui_abort ("Failed to init copy bitmap during buffer flip");
-
-    SetViewBitmap (copy_bitmap,
-		   Frame (), Frame (), B_FOLLOW_NONE, 0);
 
     Invalidate (&invalid_region);
     invalid_region.MakeEmpty ();

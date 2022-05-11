@@ -204,6 +204,8 @@ haiku_clip_to_string_exactly (struct glyph_string *s, struct glyph_string *dst)
 {
   BView_ClipToRect (FRAME_HAIKU_VIEW (s->f), s->x, s->y,
 		    s->width, s->height);
+  BView_invalidate_region (FRAME_HAIKU_VIEW (s->f), s->x,
+			   s->y, s->width, s->height);
 }
 
 static void
@@ -2087,10 +2089,12 @@ haiku_draw_window_cursor (struct window *w,
     case DEFAULT_CURSOR:
     case NO_CURSOR:
       break;
+
     case HBAR_CURSOR:
       BView_FillRectangle (view, fx, fy, w->phys_cursor_width, h);
       BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
       break;
+
     case BAR_CURSOR:
       if (cursor_glyph->resolved_level & 1)
 	{
@@ -2104,6 +2108,7 @@ haiku_draw_window_cursor (struct window *w,
 
       BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
       break;
+
     case HOLLOW_BOX_CURSOR:
       if (phys_cursor_glyph->type != IMAGE_GLYPH)
 	{
@@ -2115,6 +2120,7 @@ haiku_draw_window_cursor (struct window *w,
 
       BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
       break;
+
     case FILLED_BOX_CURSOR:
       draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
     }
@@ -2575,13 +2581,18 @@ haiku_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   face = p->face;
 
   block_input ();
-  BView_draw_lock (view, true, p->x, p->y, p->wd, p->h);
+  BView_draw_lock (view, true, 0, 0, 0, 0);
   BView_StartClip (view);
+
+  if (p->wd && p->h)
+    BView_invalidate_region (view, p->x, p->y, p->wd, p->h);
 
   haiku_clip_to_row (w, row, ANY_AREA);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
+      BView_invalidate_region (view, p->bx, p->by, p->nx, p->ny);
+
       if (!face->stipple)
 	{
 	  BView_SetHighColor (view, face->background);
