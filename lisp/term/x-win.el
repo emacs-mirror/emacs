@@ -241,7 +241,9 @@ exists."
 (defconst x-pointer-ur-angle 148)
 (defconst x-pointer-watch 150)
 (defconst x-pointer-xterm 152)
-(defconst x-pointer-invisible 255)
+(defconst x-pointer-invisible 65536) ;; This value is larger than a
+                                     ;; CARD16, so it cannot be a
+                                     ;; valid cursor.
 
 
 ;;;; Keysyms

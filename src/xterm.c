@@ -22639,6 +22639,18 @@ x_make_frame_visible_invisible (struct frame *f, bool visible)
     x_make_frame_invisible (f);
 }
 
+Cursor
+x_create_font_cursor (struct x_display_info *dpyinfo, int glyph)
+{
+  if (glyph <= 65535)
+    return XCreateFontCursor (dpyinfo->display, glyph);
+
+  /* x-pointer-invisible cannot fit in CARD16, and thus cannot be any
+     existing cursor.  */
+  return make_invisible_cursor (dpyinfo);
+}
+
+
 /* Change window state from mapped to iconified.  */
 
 void

@@ -300,12 +300,14 @@ has an integer value is a valid cursor shape.  You might want to
 redefine this function to suit your own tastes."
   (if (null mouse-avoidance-pointer-shapes)
       (progn
-	(setq mouse-avoidance-pointer-shapes
-	      (mapcar (lambda (x) (symbol-value (intern x)))
-		      (all-completions "x-pointer-" obarray
-				       (lambda (x)
-					  (and (boundp x)
-                                               (integerp (symbol-value x)))))))))
+	(dolist (i (all-completions "x-pointer-" obarray
+				    (lambda (x)
+				      (and (boundp x)
+                                           (integerp (symbol-value x))))))
+          (ignore-errors
+            (let ((value (symbol-value (intern i))))
+              (when (< value x-pointer-invisible)
+                (push value mouse-avoidance-pointer-shapes)))))))
   (seq-random-elt mouse-avoidance-pointer-shapes))
 
 (defun mouse-avoidance-ignore-p ()
@@ -317,7 +319,8 @@ redefine this function to suit your own tastes."
 	(not (eq (car mp) (selected-frame)))
         ;; Don't interfere with ongoing `mouse-drag-and-drop-region'
         ;; (Bug#36269).
-        (eq track-mouse 'dropping)
+        (or (eq track-mouse 'dropping)
+            (eq track-mouse 'drag-source))
 	;; Don't do anything if last event was a mouse event.
 	;; FIXME: this code fails in the case where the mouse was moved
 	;; since the last key-press but without generating any event.
