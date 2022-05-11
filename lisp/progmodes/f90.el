@@ -600,6 +600,7 @@ and variable-name parts, respectively."
   (append
    f90-font-lock-keywords-1
    (list
+    '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
     ;; Variable declarations (avoid the real function call).
     ;; NB by accident (?), this correctly fontifies the "integer" in:
     ;; integer () function foo ()
@@ -611,8 +612,8 @@ and variable-name parts, respectively."
     '("^[ \t0-9]*\\(?:pure\\|elemental\\)?[ \t]*\
 \\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
 enumerator\\|generic\\|procedure\\|logical\\|double[ \t]*precision\\)\
-\\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\)"
-      (1 font-lock-type-face t) (4 font-lock-variable-name-face t))
+\\(.*::\\|[ \t]*(.*)\\)?\\(\\(?:[^&!\n]*\\(?:&\n\\)?\\)+\\)"
+      (1 font-lock-type-face t) (4 font-lock-variable-name-face append))
     ;; Derived type/class variables.
     ;; TODO ? If we just highlighted the "type" part, rather than
     ;; "type(...)", this could be in the previous expression. And this
@@ -654,7 +655,6 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\(?:\\sw\\|\\s_\\)+)\\|none\\)[ \t
     '("\\_<\\(namelist\\|common\\)[ \t]*/\\(\\(?:\\sw\\|\\s_\\)+\\)?/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     "\\_<else\\([ \t]*if\\|where\\)?\\_>"
-    '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
     "\\_<\\(then\\|continue\\|format\\|include\\|\\(?:error[ \t]+\\)?stop\\|\
 return\\)\\_>"
     '("\\_<\\(exit\\|cycle\\)[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)?\\_>"
