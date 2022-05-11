@@ -3392,7 +3392,7 @@ BCursor_create_modeline (void)
 }
 
 void *
-BCursor_from_id (enum haiku_cursor cursor)
+BCursor_from_id (int cursor)
 {
   return new BCursor ((enum BCursorID) cursor);
 }

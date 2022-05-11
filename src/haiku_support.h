@@ -557,7 +557,7 @@ extern void be_get_screen_dimensions (int *, int *);
 
 /* Functions for creating and freeing cursors.  */
 extern void *BCursor_create_default (void);
-extern void *BCursor_from_id (enum haiku_cursor);
+extern void *BCursor_from_id (int);
 extern void *BCursor_create_modeline (void);
 extern void *BCursor_create_i_beam (void);
 extern void *BCursor_create_progress_cursor (void);

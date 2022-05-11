@@ -304,6 +304,7 @@ extern void haiku_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
 extern void haiku_set_internal_border_width (struct frame *, Lisp_Object, Lisp_Object);
 extern void haiku_change_tab_bar_height (struct frame *, int);
 extern void haiku_change_tool_bar_height (struct frame *, int);
+extern void haiku_free_custom_cursors (struct frame *);
 
 extern void haiku_query_color (uint32_t, Emacs_Color *);
 

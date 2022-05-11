@@ -763,6 +763,8 @@ haiku_create_frame (Lisp_Object parms)
                          "foreground", "Foreground", RES_TYPE_STRING);
   gui_default_parameter (f, parms, Qbackground_color, build_string ("white"),
                          "background", "Background", RES_TYPE_STRING);
+  gui_default_parameter (f, parms, Qmouse_color, build_string ("black"),
+                         "pointerColor", "Foreground", RES_TYPE_STRING);
   gui_default_parameter (f, parms, Qline_spacing, Qnil,
                          "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qleft_fringe, Qnil,
@@ -820,33 +822,11 @@ haiku_create_frame (Lisp_Object parms)
                              RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !NILP (tem));
 
-  block_input ();
-#define ASSIGN_CURSOR(cursor) \
-  (FRAME_OUTPUT_DATA (f)->cursor = dpyinfo->cursor)
-
-  ASSIGN_CURSOR (text_cursor);
-  ASSIGN_CURSOR (nontext_cursor);
-  ASSIGN_CURSOR (modeline_cursor);
-  ASSIGN_CURSOR (hand_cursor);
-  ASSIGN_CURSOR (hourglass_cursor);
-  ASSIGN_CURSOR (horizontal_drag_cursor);
-  ASSIGN_CURSOR (vertical_drag_cursor);
-  ASSIGN_CURSOR (left_edge_cursor);
-  ASSIGN_CURSOR (top_left_corner_cursor);
-  ASSIGN_CURSOR (top_edge_cursor);
-  ASSIGN_CURSOR (top_right_corner_cursor);
-  ASSIGN_CURSOR (right_edge_cursor);
-  ASSIGN_CURSOR (bottom_right_corner_cursor);
-  ASSIGN_CURSOR (bottom_edge_cursor);
-  ASSIGN_CURSOR (bottom_left_corner_cursor);
-  ASSIGN_CURSOR (no_cursor);
-
-  FRAME_OUTPUT_DATA (f)->current_cursor = dpyinfo->text_cursor;
-#undef ASSIGN_CURSOR
-
   f->terminal->reference_count++;
 
-  FRAME_OUTPUT_DATA (f)->window = BWindow_new (&FRAME_OUTPUT_DATA (f)->view);
+  block_input ();
+  FRAME_OUTPUT_DATA (f)->window
+    = BWindow_new (&FRAME_OUTPUT_DATA (f)->view);
   unblock_input ();
 
   if (!FRAME_OUTPUT_DATA (f)->window)
@@ -1567,6 +1547,7 @@ haiku_free_frame_resources (struct frame *f)
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
   free_frame_faces (f);
+  haiku_free_custom_cursors (f);
 
   /* Free scroll bars */
   for (bar = FRAME_SCROLL_BARS (f); !NILP (bar); bar = b->next)
@@ -1790,6 +1771,133 @@ haiku_set_sticky (struct frame *f, Lisp_Object new_value,
   block_input ();
   BWindow_set_sticky (FRAME_HAIKU_WINDOW (f), !NILP (new_value));
   unblock_input ();
+}
+
+struct user_cursor_info
+{
+  /* A pointer to the Lisp_Object describing the cursor.  */
+  Lisp_Object *lisp_cursor;
+
+  /* The offset of the cursor in the `struct haiku_output' of each
+     frame.  */
+  ptrdiff_t output_offset;
+
+  /* The offset of the default value of the cursor in the display
+     info structure.  */
+  ptrdiff_t default_offset;
+};
+
+#define INIT_USER_CURSOR(lisp, cursor)			\
+  { (lisp), offsetof (struct haiku_output, cursor),	\
+      offsetof (struct haiku_display_info, cursor) }
+
+struct user_cursor_info custom_cursors[] =
+  {
+    INIT_USER_CURSOR (&Vx_pointer_shape,		text_cursor),
+    INIT_USER_CURSOR (NULL,				nontext_cursor),
+    INIT_USER_CURSOR (NULL,				modeline_cursor),
+    INIT_USER_CURSOR (&Vx_sensitive_text_pointer_shape,	hand_cursor),
+    INIT_USER_CURSOR (&Vx_hourglass_pointer_shape,	hourglass_cursor),
+    INIT_USER_CURSOR (NULL,				horizontal_drag_cursor),
+    INIT_USER_CURSOR (NULL,				vertical_drag_cursor),
+    INIT_USER_CURSOR (NULL,				left_edge_cursor),
+    INIT_USER_CURSOR (NULL,				top_left_corner_cursor),
+    INIT_USER_CURSOR (NULL,				top_edge_cursor),
+    INIT_USER_CURSOR (NULL,				top_right_corner_cursor),
+    INIT_USER_CURSOR (NULL,				right_edge_cursor),
+    INIT_USER_CURSOR (NULL,				bottom_right_corner_cursor),
+    INIT_USER_CURSOR (NULL,				bottom_edge_cursor),
+    INIT_USER_CURSOR (NULL,				bottom_left_corner_cursor),
+    INIT_USER_CURSOR (NULL,				no_cursor),
+  };
+
+/* Free all cursors not default in F.  */
+void
+haiku_free_custom_cursors (struct frame *f)
+{
+  struct user_cursor_info *cursor;
+  struct haiku_output *output;
+  struct haiku_display_info *dpyinfo;
+  Emacs_Cursor *frame_cursor;
+  Emacs_Cursor *display_cursor;
+  int i;
+
+  output = FRAME_OUTPUT_DATA (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  for (i = 0; i < ARRAYELTS (custom_cursors); ++i)
+    {
+      cursor = &custom_cursors[i];
+      frame_cursor = (Emacs_Cursor *) ((char *) output
+				       + cursor->output_offset);
+      display_cursor = (Emacs_Cursor *) ((char *) dpyinfo
+					 + cursor->default_offset);
+
+      if (*frame_cursor != *display_cursor
+	  && *frame_cursor)
+	{
+	  BCursor_delete (*frame_cursor);
+
+	  if (output->current_cursor == *frame_cursor)
+	    output->current_cursor = *display_cursor;
+	}
+
+      *frame_cursor = *display_cursor;
+    }
+}
+
+static void
+haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  struct haiku_output *output;
+  Emacs_Cursor *frame_cursor, old;
+  int i, n;
+
+  output = FRAME_OUTPUT_DATA (f);
+
+  /* This will also reset all the cursors back to their default
+     values.  */
+  haiku_free_custom_cursors (f);
+
+  for (i = 0; i < ARRAYELTS (custom_cursors); ++i)
+    {
+      frame_cursor = (Emacs_Cursor *) ((char *) output
+				       + custom_cursors[i].output_offset);
+      old = *frame_cursor;
+
+      if (custom_cursors[i].lisp_cursor
+	  && FIXNUMP (*custom_cursors[i].lisp_cursor))
+	{
+	  if (!RANGED_FIXNUMP (0, *custom_cursors[i].lisp_cursor,
+			       28)) /* 28 is the largest Haiku cursor ID.  */
+	    signal_error ("Invalid cursor",
+			  *custom_cursors[i].lisp_cursor);
+
+	  n = XFIXNUM (*custom_cursors[i].lisp_cursor);
+
+	  /* Create and set the custom cursor.  */
+	  block_input ();
+	  *frame_cursor = BCursor_from_id (n);
+	  unblock_input ();
+
+	  /* This function can be called before the frame's window is
+	     created.  */
+	  if (FRAME_HAIKU_WINDOW (f))
+	    {
+	      if (output->current_cursor == old)
+		{
+		  output->current_cursor = *frame_cursor;
+
+		  block_input ();
+		  BView_set_view_cursor (FRAME_HAIKU_VIEW (f),
+					 *frame_cursor);
+		  unblock_input ();
+		}
+	    }
+	}
+    }
+
+  update_face_from_frame_parameter (f, Qmouse_color, arg);
 }
 
 
@@ -2701,7 +2809,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     gui_set_right_divider_width,
     gui_set_bottom_divider_width,
     haiku_set_menu_bar_lines,
-    NULL, /* set mouse color */
+    haiku_set_mouse_color,
     haiku_explicitly_set_name,
     gui_set_scroll_bar_width,
     gui_set_scroll_bar_height,
@@ -2804,6 +2912,19 @@ syms_of_haikufns (void)
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
 	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_cursor_fore_pixel = Qnil;
+
+  DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
+	       doc: /* SKIP: real doc in xfns.c.  */);
+  Vx_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-hourglass-pointer-shape", Vx_hourglass_pointer_shape,
+	       doc: /* SKIP: real doc in xfns.c.  */);
+  Vx_hourglass_pointer_shape = Qnil;
+
+  DEFVAR_LISP ("x-sensitive-text-pointer-shape",
+	       Vx_sensitive_text_pointer_shape,
+	       doc: /* SKIP: real doc in xfns.c.  */);
+  Vx_sensitive_text_pointer_shape = Qnil;
 
   DEFVAR_LISP ("haiku-allowed-ui-colors", Vhaiku_allowed_ui_colors,
 	       doc: /* Vector of UI colors that Emacs can look up from the system.

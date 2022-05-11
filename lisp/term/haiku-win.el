@@ -392,6 +392,37 @@ take effect on menu items until the menu bar is updated again."
     ;; the Deskbar will not, so kill ourself here.
     (unless cancel-shutdown (kill-emacs))))
 
+
+;;;; Cursors.
+
+;; We use the same interface as X, but the cursor numbers are
+;; different, and there are also less cursors.
+
+(defconst x-pointer-X-cursor 5)			; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-arrow 1)			; B_CURSOR_ID_SYSTEM_DEFAULT
+(defconst x-pointer-bottom-left-corner 22)	; B_CURSOR_ID_RESIZE_SOUTH_WEST
+(defconst x-pointer-bottom-right-corner 21)	; B_CURSOR_ID_RESIZE_SOUTH_EAST
+(defconst x-pointer-bottom-side 17)		; B_CURSOR_ID_RESIZE_SOUTH
+(defconst x-pointer-clock 14)			; B_CURSOR_ID_PROGRESS
+(defconst x-pointer-cross 5)			; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-cross-reverse 5)		; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-crosshair 5)		; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-diamond-cross 5)		; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-hand1 7)			; B_CURSOR_ID_GRAB
+(defconst x-pointer-hand2 8)			; B_CURSOR_ID_GRABBING
+(defconst x-pointer-left-side 18)		; B_CURSOR_ID_RESIZE_WEST
+(defconst x-pointer-right-side 16)		; B_CURSOR_ID_RESIZE_EAST
+(defconst x-pointer-sb-down-arrow 17)		; B_CURSOR_ID_RESIZE_SOUTH
+(defconst x-pointer-sb-left-arrow 18)		; B_CURSOR_ID_RESIZE_WEST
+(defconst x-pointer-sb-right-arrow 16)		; B_CURSOR_ID_RESIZE_EAST
+(defconst x-pointer-sb-up-arrow 16)		; B_CURSOR_ID_RESIZE_NORTH
+(defconst x-pointer-target 5)			; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-top-left-corner 20)		; B_CURSOR_ID_RESIZE_NORTH_WEST
+(defconst x-pointer-top-right-corner 19)	; B_CURSOR_ID_RESIZE_NORTH_EAST
+(defconst x-pointer-top-side 16)		; B_CURSOR_ID_RESIZE_NORTH
+(defconst x-pointer-watch 14)			; B_CURSOR_ID_PROGRESS
+(defconst x-pointer-invisible 12)		; B_CURSOR_ID_NO_CURSOR
+
 (provide 'haiku-win)
 (provide 'term/haiku-win)
 
