@@ -787,6 +787,11 @@ so automatically.
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
 ---
+*** New user option 'cperl-file-style'.
+The determines the indentation style to be used.  This can also be
+used as a file-local variable.
+
+---
 *** 'gud-go' is now bound to 'C-c C-v'.
 If given a prefix, it will query the user for an argument to use for
 the run/continue command.
