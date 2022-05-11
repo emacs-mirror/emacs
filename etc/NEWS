@@ -788,8 +788,8 @@ so automatically.
 
 ---
 *** New user option 'cperl-file-style'.
-The determines the indentation style to be used.  This can also be
-used as a file-local variable.
+This option determines the indentation style to be used.  It can also
+be used as a file-local variable.
 
 ---
 *** 'gud-go' is now bound to 'C-c C-v'.
