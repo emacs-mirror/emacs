@@ -2998,7 +2998,7 @@ static int
 haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 {
   int message_count;
-  static void *buf;
+  void *buf;
   ssize_t b_size;
   int button_or_motion_p, do_help;
   enum haiku_event_type type;
