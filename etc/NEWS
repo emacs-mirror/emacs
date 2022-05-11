@@ -1767,6 +1767,19 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+** Byte compilation
+
+---
+*** Byte compilation will now warn about some malformed 'defcustom' types.
+It's very common to write 'defcustom' types on the form:
+
+   :type '(choice (const :tag "foo" 'bar))
+
+I.e., double-quoting the 'bar', which is almost never the correct
+value.  The byte compiler will now issue a warning if it encounters
+these forms.
+
+
 +++
 *** 'restore-buffer-modified-p' can now alter buffer auto-save state.
 With a FLAG value of 'autosaved', it will mark the buffer as having

@@ -1562,15 +1562,39 @@ extra args."
 (dolist (elt '(format message error))
   (put elt 'byte-compile-format-like t))
 
+(defun byte-compile--suspicious-defcustom-choice (type)
+  "Say whether defcustom TYPE looks odd."
+  ;; Check whether there's anything like (choice (const :tag "foo" ;; 'bar)).
+  ;; We don't actually follow the syntax for defcustom types, but this
+  ;; should be good enough.
+  (catch 'found
+    (if (and (consp type)
+             (proper-list-p type))
+        (if (memq (car type) '(const other))
+            (when (assq 'quote type)
+              (throw 'found t))
+          (when (memq t (mapcar #'byte-compile--suspicious-defcustom-choice
+                                type))
+            (throw 'found t)))
+      nil)))
+
 ;; Warn if a custom definition fails to specify :group, or :type.
 (defun byte-compile-nogroup-warn (form)
   (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
 	(name (cadr form)))
     (when (eq (car-safe name) 'quote)
-      (or (not (eq (car form) 'custom-declare-variable))
-	  (plist-get keyword-args :type)
-	  (byte-compile-warn-x (cadr name)
-	   "defcustom for `%s' fails to specify type" (cadr name)))
+      (when (eq (car form) 'custom-declare-variable)
+        (let ((type (plist-get keyword-args :type)))
+	  (cond
+           ((not type)
+	    (byte-compile-warn-x (cadr name)
+	                         "defcustom for `%s' fails to specify type"
+                                 (cadr name)))
+           ((byte-compile--suspicious-defcustom-choice type)
+	    (byte-compile-warn-x
+             (cadr name)
+	     "defcustom for `%s' has syntactically odd type `%s'"
+             (cadr name) type)))))
       (if (and (memq (car form) '(custom-declare-face custom-declare-variable))
 	       byte-compile-current-group)
 	  ;; The group will be provided implicitly.

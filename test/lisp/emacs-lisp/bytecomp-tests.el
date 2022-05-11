@@ -1538,6 +1538,12 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
 (TEST-IN-COMMENTS t) (TEST-IN-STRINGS t) (TEST-IN-CODE t) \
 (FIXTURE-FN \\='#\\='electric-pair-mode))" fill-column)))
 
+(defun test-bytecomp-defgroup-choice ()
+  (should-not (byte-compile--suspicious-defcustom-choice 'integer))
+  (should-not (byte-compile--suspicious-defcustom-choice
+               '(choice (const :tag "foo" bar))))
+  (should (byte-compile--suspicious-defcustom-choice
+           '(choice (const :tag "foo" 'bar)))))
 
 ;; Local Variables:
 ;; no-byte-compile: t
