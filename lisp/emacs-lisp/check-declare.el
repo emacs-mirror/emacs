@@ -319,10 +319,11 @@ Returns non-nil if any false statements are found."
   (setq root (directory-file-name (file-relative-name root)))
   (or (file-directory-p root)
       (error "Directory `%s' not found" root))
-  (let ((files (process-lines find-program root
-                              "-name" "*.el"
-                              "-exec" grep-program
-                              "-l" "^[ \t]*(declare-function" "{}" "+")))
+  (let ((files (process-lines-ignore-status
+                find-program root
+                "-name" "*.el"
+                "-exec" grep-program
+                "-l" "^[ \t]*(declare-function" "{}" "+")))
     (when files
       (apply #'check-declare-files files))))
 
