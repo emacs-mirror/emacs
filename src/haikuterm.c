@@ -3007,11 +3007,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   message_count = 0;
   button_or_motion_p = 0;
   do_help = 0;
-  buf = NULL;
+
+  buf = alloca (200);
 
   block_input ();
-  if (!buf)
-    buf = xmalloc (200);
   haiku_read_size (&b_size, false);
   while (b_size >= 0)
     {
