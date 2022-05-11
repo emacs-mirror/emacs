@@ -8848,13 +8848,15 @@ x_delete_glyphs (struct frame *f, int n)
 /* Like XClearArea, but check that WIDTH and HEIGHT are reasonable.
    If they are <= 0, this is probably an error.  */
 
-MAYBE_UNUSED static void
+#if defined USE_GTK || !defined USE_CAIRO
+static void
 x_clear_area1 (Display *dpy, Window window,
                int x, int y, int width, int height, int exposures)
 {
   eassert (width > 0 && height > 0);
   XClearArea (dpy, window, x, y, width, height, exposures);
 }
+#endif
 
 void
 x_clear_area (struct frame *f, int x, int y, int width, int height)
