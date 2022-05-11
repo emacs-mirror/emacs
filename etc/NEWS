@@ -121,7 +121,7 @@ This will output a string identifying the current Emacs build.
 
 +++
 ** New hook 'after-pdump-load-hook'.
-This is run at the end of the Emacs startup process, and it meant to
+This is run at the end of the Emacs startup process, and is meant to
 be used to reinitialize structures that would normally be done at load
 time.
 
@@ -158,10 +158,10 @@ newline.
 
 ---
 ** 'TAB' and '<backtab>' are now bound in 'button-map'.
-This means that if your cursor is on a button, 'TAB' will take you to
-the next button, even if the mode has bound it to something else.
-This also means that 'TAB' on a button in an 'outline-minor-mode'
-heading will move point instead of collapsing the outline.
+This means that if point is on a button, 'TAB' will take you to the
+next button, even if the mode has bound it to something else.  This
+also means that 'TAB' on a button in an 'outline-minor-mode' heading
+will move point instead of collapsing the outline.
 
 ---
 ** 'Info-default-directory-list' is no longer populated at Emacs startup.
@@ -171,7 +171,7 @@ If you have code in your init file that removes directories from
 ---
 ** 'C-k' no longer deletes files in 'ido-mode'.
 To get the previous action back, put something like the following in
-your init file:
+your Init file:
 
     (require 'ido)
     (keymap-set ido-file-completion-map "C-k" #'ido-delete-file-at-head)
@@ -235,8 +235,8 @@ use the new 'tamil-itrans-digits' and 'tamil-inscript-digits' input
 methods instead.
 
 +++
-** New variable current-time-list governing default timestamp form.
-Functions like current-time now yield (TICKS . HZ) timestamps if this
+** New variable 'current-time-list' governing default timestamp form.
+Functions like 'current-time' now yield (TICKS . HZ) timestamps if this
 new variable is nil.  The variable defaults to t, which means these
 functions default to timestamps of the forms (HI LO US PS), (HI LO US)
 or (HI LO), which are less regular and less efficient.  This is part
@@ -403,8 +403,8 @@ make it more convenient to inspect and modify them.
 Running 'with-connection-local-variables' defaults to application
 'tramp'.  This can be changed by let-binding
 'connection-local-default-application' to another symbol.  This is
-useful when running code in a buffer, where Tramp has already set some
-connection local variables.
+useful when running code in a buffer where Tramp has already set some
+connection-local variables.
 
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
@@ -573,7 +573,7 @@ or is itself too long.
 +++
 *** New user option 'outline-minor-mode-use-buttons'.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
-in addition to the ellipsis.  Default nil.
+in addition to the ellipsis.  The default is nil.
 
 ---
 *** New user option 'outline-minor-mode-buttons'.
@@ -582,8 +582,8 @@ This is a list of pairs of open/close strings used to display buttons.
 +++
 ** Support for the WebP image format.
 This support is built by default when the libwebp library is
-available.  (This also includes support for animated WebP images.)  To
-disable WebP support, use the '--without-webp' configure flag.  Image
+available, and includes support for animated WebP images.  To disable
+WebP support, use the '--without-webp' configure flag.  Image
 specifiers can now use ':type webp'.
 
 ** Windows
@@ -681,7 +681,7 @@ This change also affects 'cl-macrolet', 'cl-flet*' and
 
 +++
 ** New user option 'translate-upper-case-key-bindings'.
-This can be set to nil to inhibit translating upper case keys to lower
+Set this option to nil to inhibit translating upper case keys to lower
 case keys.
 
 +++
@@ -691,8 +691,8 @@ point.
 
 ---
 ** Improved mouse behavior with auto-scrolling modes.
-When clicking inside the 'scroll-margin' or 'hscroll-margin' region
-the point is now moved only when releasing the mouse button.  This no
+When clicking inside the 'scroll-margin' or 'hscroll-margin' region,
+point is now moved only when releasing the mouse button.  This no
 longer results in a bogus selection, unless the mouse has been
 effectively dragged.
 
@@ -713,9 +713,9 @@ Customize this option to limit the number of entries in the menu
 *** New user option 'show-paren-context-when-offscreen'.
 When non-nil, if the point is in a closing delimiter and the opening
 delimiter is offscreen, shows some context around the opening
-delimiter in the echo area.  Default nil.
+delimiter in the echo area.  The default is nil.
 
-May also be set to the symbols 'overlay' or 'child-frame' in which
+May also be set to the symbols 'overlay' or 'child-frame', in which
 case the context is shown in an overlay or child-frame at the top-left
 of the current window.  The latter option requires a graphical frame.
 On non-graphical frames, the context is shown in the echo area.
@@ -724,7 +724,7 @@ On non-graphical frames, the context is shown in the echo area.
 
 +++
 *** 'comint-term-environment' is now aware of connection-local variables.
-The user option 'comint-terminfo-terminal' and variable
+The user option 'comint-terminfo-terminal' and the variable
 'system-uses-terminfo' can now be set as connection-local variables to
 change the terminal used on a remote host.
 
@@ -1108,7 +1108,7 @@ allowed images.
 *** New user option 'shr-use-xwidgets-for-media'.
 If non-nil (and Emacs has been built with support for xwidgets),
 display <video> elements with an xwidget.  Note that this is
-experimental, and is known to crash Emacs on some systems, and just
+experimental; it is known to crash Emacs on some systems, and just
 doesn't work on other systems.  Also see etc/PROBLEMS.
 
 +++
@@ -1145,7 +1145,7 @@ All other 'gnus-header-*' faces inherit from this face now.
 +++
 *** New user option 'gnus-treat-emojize-symbols'.
 If non-nil, symbols that have an emoji representation will be
-displayed as emojis.  Default nil.
+displayed as emojis.  The default is nil.
 
 +++
 *** New command 'gnus-article-emojize-symbols'.
@@ -1158,7 +1158,7 @@ Configuration is very similar to the notmuch and namazu backends.  It
 supports the unified search syntax.
 
 ---
-*** gnus-html-image-cache-ttl is now a seconds count.
+*** 'gnus-html-image-cache-ttl' is now a seconds count.
 Formerly it was a pair of numbers (A B) that represented 65536*A + B,
 to cater to older Emacs implementations that lacked bignums.
 The older form still works but is undocumented.
@@ -1393,7 +1393,7 @@ Emacs for tens of seconds.  In addition, you can now customize this
 option to nil to disable this confirmation completely.
 
 ---
-*** Make 'image-dired-rotate-thumbnail-(left|right)' obsolete.
+*** 'image-dired-rotate-thumbnail-(left|right)' is now obsolete.
 Instead, use commands 'image-dired-refresh-thumb' to generate a new
 thumbnail, or 'image-rotate' to rotate the thumbnail without updating
 the thumbnail file.
@@ -1431,13 +1431,12 @@ This is a convenience function to extract the field data from
 
 ---
 *** New user option 'xwidget-webkit-buffer-name-format'.
-Using this option you can control how the xwidget-webkit buffers are
-named.
+This option controls how xwidget-webkit buffers are named.
 
 ---
 *** New user option 'xwidget-webkit-cookie-file'.
-Using this option you can control whether the xwidget-webkit buffers
-save cookies set by web pages, and if so, in which file to save them.
+This option controls whether the xwidget-webkit buffers save cookies
+set by web pages, and if so, in which file to save them.
 
 +++
 *** New minor mode 'xwidget-webkit-edit-mode'.
@@ -1558,7 +1557,7 @@ commands" in the "(eshell) Built-ins" node of the Eshell manual.
 
 +++
 *** New user option 'calc-kill-line-numbering'.
-This can be set to nil to exclude line numbering from kills and copies.
+Set it to nil to exclude line numbering from kills and copies.
 
 ** Miscellaneous
 
@@ -1831,9 +1830,6 @@ lower level function directly.
 +++
 ** New function 'window-char-pixel-width'.
 
-+++
-** New function 'window-char-pixel-width'.
-
 ---
 ** New function 'current-cpu-time'.
 It gives access to the CPU time used by the Emacs process, for
@@ -1862,7 +1858,7 @@ putting the modes on the first line of a file).
 
 +++
 ** New function 'flush-standard-output'.
-This enables you do display incomplete lines from batch-based Emacs
+This enables you to display incomplete lines from batch-based Emacs
 scripts.
 
 +++
@@ -2335,18 +2331,17 @@ for performing searches on WebKit xwidgets.
 
 +++
 *** New function 'xwidget-webkit-back-forward-list'.
-This function is used to obtain the history of page-loads in a given
-WebKit xwidget.
+This function returns the history of page-loads in a WebKit xwidget.
 
 +++
 *** New function 'xwidget-webkit-estimated-load-progress'.
-This function is used to obtain the estimated progress of page loading
-in a given WebKit xwidget.
+This function returns the estimated progress of page loading in a
+WebKit xwidget.
 
 +++
 *** New function 'xwidget-webkit-stop-loading'.
-This function is used to terminate all data transfer during page loads
-in a given WebKit xwidget.
+This function terminates all data transfer during page loads in a
+WebKit xwidget.
 
 +++
 *** 'load-changed' xwidget events are now more detailed.
