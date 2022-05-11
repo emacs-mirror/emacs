@@ -2010,6 +2010,11 @@ Tables}).  The width of a tab character is usually @code{tab-width}
 (@pxref{Usual Display}).
 @end defun
 
+@defun char-uppercase-p char
+Return non-@code{nil} if @var{char} is an uppercase character
+according to Unicode.
+@end defun
+
 @defun string-width string &optional from to
 This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.

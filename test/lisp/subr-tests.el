@@ -1074,5 +1074,12 @@ final or penultimate step during initialization."))
       (should (= subr-test--local 2))
       (should-not (boundp 'subr-test--unexist)))))
 
+(ert-deftest test-char-uppercase-p ()
+  "Tests for `char-uppercase-p'."
+  (dolist (c (list ?R ?S ?Ω ?Ψ))
+    (should (char-uppercase-p c)))
+  (dolist (c (list ?a ?b ?α ?β))
+    (should-not (char-uppercase-p c))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
