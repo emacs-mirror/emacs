@@ -146,7 +146,12 @@ function:
 This function returns @code{t} if @var{object} is any kind of
 function, i.e., can be passed to @code{funcall}.  Note that
 @code{functionp} returns @code{t} for symbols that are function names,
-and returns @code{nil} for special forms.
+and returns @code{nil} for symbols that are macros or special forms.
+
+If @var{object} is not a function, this function ordinarily returns
+@code{nil}.  However, the representation of function objects is
+complicated, and for efficiency reasons in rare cases this function
+can return @code{t} even when @var{object} is not a function.
 @end defun
 
   It is also possible to find out how many arguments an arbitrary
