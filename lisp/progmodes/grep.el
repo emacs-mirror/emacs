@@ -215,6 +215,7 @@ by `grep-compute-defaults'; to change the default value, use
     ("hh" .    "*.hxx *.hpp *.[Hh] *.HH *.h++")
     ("h" .     "*.h")
     ("l" .     "[Cc]hange[Ll]og*")
+    ("am" .    "Makefile.am GNUmakefile *.mk")
     ("m" .     "[Mm]akefile*")
     ("tex" .   "*.tex")
     ("texi" .  "*.texi")
