@@ -7959,7 +7959,7 @@ corresponds to an integral number of pixels.  The return value is the
 result of this rounding.
 If PIXELS-P is non-nil, the return value is VSCROLL.
 
-PRESERVE_VSCROLL_P makes setting the start of WINDOW preserve the
+PRESERVE-VSCROLL-P makes setting the start of WINDOW preserve the
 vscroll if its start is "frozen" due to a resized mini-window.  */)
   (Lisp_Object window, Lisp_Object vscroll, Lisp_Object pixels_p,
    Lisp_Object preserve_vscroll_p)
