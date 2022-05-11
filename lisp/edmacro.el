@@ -251,8 +251,7 @@ or nil, use a compact 80-column format."
 		   ((looking-at "Key:\\(.*\\)$")
 		    (when edmacro-store-hook
 		      (error "\"Key\" line not allowed in this context"))
-		    (let ((key (edmacro-parse-keys
-				(match-string 1))))
+		    (let ((key (kbd (match-string 1))))
 		      (unless (equal key "")
 			(if (equal key "none")
 			    (setq no-keys t)
