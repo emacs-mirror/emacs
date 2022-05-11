@@ -254,7 +254,9 @@ specified by `erc-button-alist'."
             regexp)
         (erc-button-remove-old-buttons)
         (dolist (entry alist)
-          (if (eq (car entry) 'nicknames)
+          (if (or (eq (car entry) 'nicknames)
+                  ;; Old form retained for backward compatibility.
+                  (equal (car entry) (quote 'nicknames)))
               (erc-button-add-nickname-buttons entry)
             (progn
               (setq regexp (or (and (stringp (car entry)) (car entry))
