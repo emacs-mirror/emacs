@@ -1812,8 +1812,13 @@ or as help on variables `cperl-tips', `cperl-problems',
     (cperl-find-pods-heres))
   (when cperl-file-style
     (cperl-set-style cperl-file-style))
+  (add-hook 'hack-local-variables-hook #'cperl--set-file-style nil t)
   ;; Setup Flymake
   (add-hook 'flymake-diagnostic-functions #'perl-flymake nil t))
+
+(defun cperl--set-file-style ()
+  (when cperl-file-style
+    (cperl-set-style cperl-file-style)))
 
 ;; Fix for perldb - make default reasonable
 (defun cperl-db ()
