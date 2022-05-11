@@ -8228,7 +8228,10 @@ help buffer.
 The window's display table, if there is one, takes precedence over the
 buffer's display table.  If neither exists, Emacs tries to use the
 standard display table; if that is @code{nil}, Emacs uses the usual
-character display conventions (@pxref{Usual Display}).
+character display conventions (@pxref{Usual Display}).  (Emacs does
+not ``merge'' display tables: For instance, if the window has a
+display table, the buffer's display table and the standard display
+table are completely ignored.)
 
   Note that display tables affect how the mode line is displayed, so
 if you want to force redisplay of the mode line using a new display
