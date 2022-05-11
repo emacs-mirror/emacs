@@ -2709,6 +2709,12 @@ The optional argument NEW-WINDOW is not used.
 
 \(fn URL &optional NEW-WINDOW)" t nil)
 
+(autoload 'browse-url-default-haiku-browser "browse-url" "\
+Browse URL with the system default browser.
+Default to the URL around or before point.
+
+\(fn URL &optional NEW-WINDOW)" t nil)
+
 (autoload 'browse-url-emacs "browse-url" "\
 Ask Emacs to load URL into a buffer and show it in another window.
 Optional argument SAME-WINDOW non-nil means show the URL in the
@@ -10207,7 +10213,7 @@ It creates an autoload function for CNAME's constructor.
 
 ;;;### (autoloads nil "eldoc" "emacs-lisp/eldoc.el" (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/eldoc.el
-(push (purecopy '(eldoc 1 11 1)) package--builtin-versions)
+(push (purecopy '(eldoc 1 12 0)) package--builtin-versions)
 
 ;;;***
 
@@ -11960,6 +11966,37 @@ Display a button for the JPEG DATA.
 \(fn DATA)" nil nil)
 
 (register-definition-prefixes "eudc-bob" '("eudc-bob-"))
+
+;;;***
+
+;;;### (autoloads nil "eudc-capf" "net/eudc-capf.el" (0 0 0 0))
+;;; Generated autoloads from net/eudc-capf.el
+
+(autoload 'eudc-capf-complete "eudc-capf" "\
+Email address completion function for `completion-at-point-functions'.
+
+This function checks whether the current major mode is one of the
+modes listed in `eudc-capf-modes', and whether point is on a line
+with a message header listing email recipients, that is, a line
+whose beginning matches `message-email-recipient-header-regexp',
+and, if the check succeeds, searches for records matching the
+words before point.
+
+The return value is either nil when no match is found, or a
+completion table as required for functions listed in
+`completion-at-point-functions'." nil nil)
+
+(autoload 'eudc-capf-message-expand-name "eudc-capf" "\
+Email address completion function for `message-completion-alist'.
+
+When this function is added to `message-completion-alist',
+replacing any existing entry for `message-expand-name' there,
+with an appropriate regular expression such as for example
+`message-email-recipient-header-regexp', then EUDC will be
+queried for email addresses, and the results delivered to
+`completion-at-point'." nil nil)
+
+(register-definition-prefixes "eudc-capf" '("eudc-capf-modes"))
 
 ;;;***
 
@@ -19728,6 +19765,8 @@ By just answering RET you can find out what the current dictionary is.
 
 (autoload 'ispell-region "ispell" "\
 Interactively check a region for spelling errors.
+Leave the mark at the last misspelled word that the user was queried about.
+
 Return nil if spell session was terminated, otherwise returns shift offset
 amount for last line processed.
 
@@ -19746,7 +19785,8 @@ to limit the check.
 Check the comment or string containing point for spelling errors." t nil)
 
 (autoload 'ispell-buffer "ispell" "\
-Check the current buffer for spelling errors interactively." t nil)
+Check the current buffer for spelling errors interactively.
+Leave the mark at the last misspelled word that the user was queried about." t nil)
 
 (autoload 'ispell-buffer-with-debug "ispell" "\
 `ispell-buffer' with some output sent to `ispell-debug-buffer'.
@@ -31248,8 +31288,9 @@ Make the shell buffer the current buffer, and return it.
 (autoload 'shortdoc-display-group "shortdoc" "\
 Pop to a buffer with short documentation summary for functions in GROUP.
 If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
+If SAME-WINDOW, don't pop to a new window.
 
-\(fn GROUP &optional FUNCTION)" t nil)
+\(fn GROUP &optional FUNCTION SAME-WINDOW)" t nil)
 
 (defalias 'shortdoc #'shortdoc-display-group)
 
