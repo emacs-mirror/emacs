@@ -1581,7 +1581,8 @@ commands to use in that buffer.
 					 (or explicit-shell-file-name
 					     (getenv "ESHELL")
 					     shell-file-name))))
-  (set-buffer (make-term "terminal" program))
+  (let ((prog (split-string-shell-command program)))
+    (set-buffer (apply #'make-term "terminal" (car prog) nil (cdr prog))))
   (term-char-mode)
   (pop-to-buffer-same-window "*terminal*"))
 
@@ -4399,7 +4400,10 @@ and `C-x' being marked as a `term-escape-char'."
   ;; for now they have the *term-ansi-term*<?> form but we'll see...
 
   (setq term-ansi-buffer-name (generate-new-buffer-name term-ansi-buffer-name))
-  (setq term-ansi-buffer-name (term-ansi-make-term term-ansi-buffer-name program))
+  (let ((prog (split-string-shell-command program)))
+    (setq term-ansi-buffer-name
+          (apply #'term-ansi-make-term term-ansi-buffer-name (car prog)
+                 nil (cdr prog))))
 
   (set-buffer term-ansi-buffer-name)
   (term-mode)
