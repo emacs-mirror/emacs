@@ -120,7 +120,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Where to look for SRC master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard SRC file names"
-			'("%s.src/%s,v"))
+			("%s.src/%s,v"))
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function))))
