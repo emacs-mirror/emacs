@@ -786,6 +786,11 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+---
+*** 'gud-go' is now bound to 'C-c C-v'.
+If given a prefix, it will query the user for an argument to use for
+the run/continue command.
+
 ** Customize
 
 ---
