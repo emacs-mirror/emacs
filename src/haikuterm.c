@@ -715,7 +715,7 @@ haiku_draw_relief_rect (struct glyph_string *s, int left_x, int top_y,
   if (vwidth > 1 && right_p)
     BView_StrokeLine (view, right_x, top_y, right_x, bottom_y);
 
-  BView_SetHighColor (view, s->face->background);
+  BView_SetHighColor (view, FRAME_BACKGROUND_PIXEL (s->f));
 
   /* Omit corner pixels.  */
   if (hwidth > 1 && vwidth > 1)
