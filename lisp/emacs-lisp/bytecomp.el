@@ -1056,8 +1056,14 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		(dolist (s xs)
 		  (pcase s
 		    (`(defun . ,f)
-		     (unless (seq-some #'autoloadp
-		                       (get (cdr s) 'function-history))
+		     ;; If `f' has a history, it's presumably because
+		     ;; it was already defined beforehand (typically
+		     ;; as an autoload).  It could also be because it
+		     ;; was defined twice during `form', in which case
+		     ;; we arguably should add it to b-c-noruntime-functions,
+                     ;; but it's not clear it's worth the trouble
+		     ;; trying to recognize that case.
+		     (unless (get f 'function-history)
                        (push f byte-compile-noruntime-functions)))))))))))))
 
 (defun byte-compile-eval-before-compile (form)
