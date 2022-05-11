@@ -325,6 +325,7 @@ See `run-hooks'."
     (define-key map "U" #'vc-dir-unmark-all-files)
     (define-key map "\C-?" #'vc-dir-unmark-file-up)
     (define-key map "\M-\C-?" #'vc-dir-unmark-all-files)
+    (define-key map "%" #'vc-dir-mark-by-regexp)
     ;; Movement.
     (define-key map "n" #'vc-dir-next-line)
     (define-key map " " #'vc-dir-next-line)
@@ -749,6 +750,23 @@ share the same state."
 			 (not (vc-dir-fileinfo->directory crt-data)))
 		(vc-dir-mark-file crt)))
 	    (setq crt (ewoc-next vc-ewoc crt))))))))
+
+(defun vc-dir-mark-by-regexp (regexp &optional unmark)
+  "Mark all files that match REGEXP.
+If UNMARK (interactively, the prefix), unmark instead."
+  (interactive "sMark files matching: \nP")
+  (ewoc-map
+   (lambda (filearg)
+     (when (and (not (vc-dir-fileinfo->directory filearg))
+                (eq (not unmark)
+                    (not (vc-dir-fileinfo->marked filearg)))
+                ;; We don't want to match on the part of the file
+                ;; that's above the current directory.
+                (string-match-p regexp (file-relative-name
+                                        (vc-dir-fileinfo->name filearg))))
+       (setf (vc-dir-fileinfo->marked filearg) (not unmark))
+       t))
+   vc-ewoc))
 
 (defun vc-dir-mark-files (mark-files)
   "Mark files specified by file names in the argument MARK-FILES.

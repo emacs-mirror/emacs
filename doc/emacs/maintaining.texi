@@ -1316,6 +1316,12 @@ point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
 
+@findex vc-dir-mark-by-regexp
+@item %
+You can use this command to mark files by regexp
+(@code{vc-dir-mark-by-regexp}).  If given a prefix, unmark files
+instead.
+
 @item G
 Add the file under point to the list of files that the VC should
 ignore (@code{vc-dir-ignore}).  For instance, if the VC is Git, it

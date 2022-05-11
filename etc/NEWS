@@ -1009,6 +1009,11 @@ info node.  This command only works for the Emacs and Emacs Lisp manuals.
 
 ** vc
 
++++
+*** New command '%' ('vc-dir-mark-by-regexp').
+This command marks files based on a regexp.  If given a prefix
+argument, unmark instead.
+
 ---
 *** 'C-x v v' on an unregistered file will now use the most specific backend.
 Previously, if you had an SVN-covered "~/" directory, and a Git-covered
