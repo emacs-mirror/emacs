@@ -51,7 +51,6 @@
 (require 'yank-media)
 (require 'mailcap)
 (require 'sendmail)
-(require 'eudc-capf)
 
 (autoload 'mailclient-send-it "mailclient")
 
