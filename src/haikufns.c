@@ -1998,34 +1998,28 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
 }
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
-       1, 3, 0,
-       doc: /* SKIP: real doc in xfns.c.  */)
+       1, 3, 0, doc: /* SKIP: real doc in xfns.c.  */)
      (Lisp_Object display, Lisp_Object resource_string, Lisp_Object must_succeed)
 {
-  struct haiku_display_info *dpyinfo;
   CHECK_STRING (display);
 
   if (NILP (Fstring_equal (display, build_string ("be"))))
     {
       if (!NILP (must_succeed))
-	fatal ("Bad display");
+	fatal ("Invalid display %s", SDATA (display));
       else
-	error ("Bad display");
+	signal_error ("Invalid display", display);
     }
 
   if (x_display_list)
-    return Qnil;
-
-  dpyinfo = haiku_term_init ();
-
-  if (!dpyinfo)
     {
       if (!NILP (must_succeed))
-	fatal ("Display not responding");
+	fatal ("A display is already open");
       else
-	error ("Display not responding");
+	error ("A display is already open");
     }
 
+  haiku_term_init ();
   return Qnil;
 }
 
@@ -2687,6 +2681,7 @@ Frames are listed from topmost (first) to bottommost (last).  */)
 
   if (NILP (sel))
     return frames;
+
   return Fcons (sel, frames);
 }
 
