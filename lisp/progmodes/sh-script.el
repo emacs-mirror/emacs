@@ -642,8 +642,9 @@ implemented as aliases.  See `sh-feature'."
   :group 'sh-script)
 
 (defcustom sh-indent-statement-after-and t
-  "How to indent statements following &&.
-If t, indent to the &&.  If nil, indent to the parent."
+  "How to indent statements following && in Shell-Script mode.
+If t, indent to align with &&.
+If nil, indent to align with the previous line's indentation."
   :type 'boolean
   :version "29.1")
 
