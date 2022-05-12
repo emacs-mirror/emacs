@@ -830,6 +830,10 @@ this includes "binary" buffers like 'archive-mode' and 'image-mode'.
 ** Package
 
 +++
+*** New command 'package-update-all'.
+This command allows updating all packages without any queries.
+
++++
 *** New command 'package-update'.
 This command allows you to upgrade packages without using 'M-x
 list-packages'.

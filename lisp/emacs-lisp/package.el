@@ -2140,26 +2140,44 @@ to install it but still mark it as selected."
 (defun package-update (name)
   "Update package NAME if a newer version exists."
   (interactive
-   (progn
-     ;; Initialize the package system to get the list of package
-     ;; symbols for completion.
-     (package--archives-initialize)
-     (list (completing-read
-            "Update package: "
-            (mapcar
-             #'car
-             (seq-filter
-              (lambda (elt)
-                (let ((available
-                       (assq (car elt) package-archive-contents)))
-                  (and available
-                       (version-list-<
-                        (package-desc-priority-version (cadr elt))
-                        (package-desc-priority-version (cadr available))))))
-              package-alist))
-            nil t))))
-  (package-delete (cadr (assq (intern name) package-alist)) 'force)
-  (package-install (intern name) 'dont-select))
+   (list (completing-read
+          "Update package: " (package--updateable-packages) nil t)))
+  (let ((package (if (symbolp name)
+                     name
+                   (intern name))))
+    (package-delete (cadr (assq package package-alist)) 'force)
+    (package-install package 'dont-select)))
+
+(defun package--updateable-packages ()
+  ;; Initialize the package system to get the list of package
+  ;; symbols for completion.
+  (package--archives-initialize)
+  (mapcar
+   #'car
+   (seq-filter
+    (lambda (elt)
+      (let ((available
+             (assq (car elt) package-archive-contents)))
+        (and available
+             (version-list-<
+              (package-desc-priority-version (cadr elt))
+              (package-desc-priority-version (cadr available))))))
+    package-alist)))
+
+(defun package-update-all (&optional inhibit-queries)
+  "Upgrade all packages."
+  (interactive "P")
+  (let ((updateable (package--updateable-packages)))
+    (if (not updateable)
+        (message "No packages to update")
+      (when (and (not inhibit-queries)
+                 (not (yes-or-no-p
+                       (if (length= updateable 1)
+                           "One package to update.  Do it? "
+                         (format "%s packages to update.  Do it?"
+                                 (length updateable))))))
+        (user-error "Updating aborted"))
+      (mapc #'package-update updateable))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
