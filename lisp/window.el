@@ -4578,7 +4578,9 @@ as well.  In that case, if this option specifies a function, it
 will be called with the third argument nil.
 
 Under certain circumstances `switch-to-prev-buffer' may ignore
-this option, for example, when there is only one buffer left."
+this option, for example, when there is only one buffer left.
+
+Also see `switch-to-prev-buffer-skip-regexp'."
   :type
   '(choice (const :tag "Never" nil)
            (const :tag "This frame" this)
@@ -4589,16 +4591,37 @@ this option, for example, when there is only one buffer left."
   :version "27.1"
   :group 'windows)
 
+(defcustom switch-to-prev-buffer-skip-regexp nil
+  "Regexp matching buffers that should be skipped by `switch-to-prev-buffer'.
+This also affects `switch-to-next-buffer'.
+
+This can either be a regexp or a list of regexps.
+
+Also see `switch-to-prev-buffer-skip'."
+  :type '(choice regexp
+                 (repeat regexp))
+  :version "29.1"
+  :group 'windows)
+
 (defun switch-to-prev-buffer-skip-p (skip window buffer &optional bury-or-kill)
   "Return non-nil if `switch-to-prev-buffer' should skip BUFFER.
 SKIP is a value derived from `switch-to-prev-buffer-skip', WINDOW
 the window `switch-to-prev-buffer' acts upon.  Optional argument
 BURY-OR-KILL is passed unchanged by `switch-to-prev-buffer' and
 omitted in calls from `switch-to-next-buffer'."
-  (when skip
-    (if (functionp skip)
-        (funcall skip window buffer bury-or-kill)
-      (get-buffer-window buffer skip))))
+  (or (and skip
+           (if (functionp skip)
+               (funcall skip window buffer bury-or-kill)
+             (get-buffer-window buffer skip)))
+      (and switch-to-prev-buffer-skip-regexp
+           (or (and (stringp switch-to-prev-buffer-skip-regexp)
+                    (string-match-p switch-to-prev-buffer-skip-regexp
+                                    (buffer-name buffer)))
+               (and (consp switch-to-prev-buffer-skip-regexp)
+                    (catch 'found
+                      (dolist (regexp switch-to-prev-buffer-skip-regexp)
+                        (when (string-match-p regexp (buffer-name buffer))
+                          (throw 'tag t)))))))))
 
 (defun switch-to-prev-buffer (&optional window bury-or-kill)
   "In WINDOW switch to previous buffer.
