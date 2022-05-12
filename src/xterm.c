@@ -5310,6 +5310,20 @@ x_set_frame_alpha (struct frame *f)
   unsigned long opac;
   Window parent;
 
+#ifndef USE_XCB
+  unsigned char *data = NULL;
+  Atom actual;
+  int rc, format;
+  unsigned long n, left;
+  unsigned long value;
+#else
+  xcb_get_property_cookie_t opacity_cookie;
+  xcb_get_property_reply_t *opacity_reply;
+  xcb_generic_error_t *error;
+  bool rc;
+  uint32_t value;
+#endif
+
   if (dpyinfo->highlight_frame == f)
     alpha = f->alpha[0];
   else
@@ -5348,11 +5362,7 @@ x_set_frame_alpha (struct frame *f)
 
   /* return unless necessary */
   {
-    unsigned char *data = NULL;
-    Atom actual;
-    int rc, format;
-    unsigned long n, left;
-
+#ifndef USE_XCB
     rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 			     0, 1, False, XA_CARDINAL,
 			     &actual, &format, &n, &left,
@@ -5361,7 +5371,7 @@ x_set_frame_alpha (struct frame *f)
     if (rc == Success && actual != None
 	&& n && format == XA_CARDINAL && data)
       {
-        unsigned long value = *(unsigned long *) data;
+        value = *(unsigned long *) data;
 
 	/* Xlib sign-extends values greater than 0x7fffffff on 64-bit
 	   machines.  Get the low bits by ourself.  */
@@ -5378,6 +5388,37 @@ x_set_frame_alpha (struct frame *f)
 
     if (data)
       XFree (data);
+#else
+    /* Avoid the confusing Xlib sign-extension mess by using XCB
+       instead.  */
+    opacity_cookie
+      = xcb_get_property (dpyinfo->xcb_connection, 0, (xcb_window_t) win,
+			  (xcb_atom_t) dpyinfo->Xatom_net_wm_window_opacity,
+			  XCB_ATOM_CARDINAL, 0, 1);
+    opacity_reply
+      = xcb_get_property_reply (dpyinfo->xcb_connection,
+				opacity_cookie, &error);
+
+    rc = opacity_reply;
+
+    if (!opacity_reply)
+      free (error);
+    else
+      {
+	rc = (opacity_reply->format == 32
+	      && opacity_reply->type == XCB_ATOM_CARDINAL
+	      && (xcb_get_property_value_length (opacity_reply) >= 4));
+
+	if (rc)
+	  value = *(uint32_t *) xcb_get_property_value (opacity_reply);
+      }
+
+    if (opacity_reply)
+      free (opacity_reply);
+
+    if (rc && value == opac)
+      return;
+#endif
   }
 
   XChangeProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
@@ -14924,12 +14965,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  && (event->xproperty.atom
 	      == dpyinfo->Xatom_net_wm_window_opacity))
 	{
+#ifndef USE_XCB
 	  int rc, actual_format;
 	  Atom actual;
 	  unsigned char *tmp_data;
 	  unsigned long n, left, opacity;
 
 	  tmp_data = NULL;
+#else
+	  xcb_get_property_cookie_t opacity_cookie;
+	  xcb_get_property_reply_t *opacity_reply;
+	  xcb_generic_error_t *error;
+	  bool rc;
+	  uint32_t value;
+#endif
 
 	  if (event->xproperty.state == PropertyDelete)
 	    {
@@ -14940,6 +14989,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	  else
 	    {
+#ifndef USE_XCB
 	      rc = XGetWindowProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
 				       dpyinfo->Xatom_net_wm_window_opacity,
 				       0, 1, False, AnyPropertyType, &actual,
@@ -14966,10 +15016,50 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  store_frame_param (f, Qalpha, Qnil);
 		}
+#else
+	      opacity_cookie
+		= xcb_get_property (dpyinfo->xcb_connection, 0,
+				    (xcb_window_t) FRAME_OUTER_WINDOW (f),
+				    (xcb_atom_t) dpyinfo->Xatom_net_wm_window_opacity,
+				    XCB_ATOM_CARDINAL, 0, 1);
+	      opacity_reply
+		= xcb_get_property_reply (dpyinfo->xcb_connection,
+					  opacity_cookie, &error);
+
+	      if (!opacity_reply)
+		free (error), rc = false;
+	      else
+		rc = (opacity_reply->format == 32
+		      && (opacity_reply->type == XCB_ATOM_CARDINAL
+			  || opacity_reply->type == XCB_ATOM_ATOM
+			  || opacity_reply->type == XCB_ATOM_WINDOW)
+		      && (xcb_get_property_value_length (opacity_reply) >= 4));
+
+	      if (rc)
+		{
+		  value = *(uint32_t *) xcb_get_property_value (opacity_reply);
+
+		  f->alpha[0] = (double) value / (double) OPAQUE;
+		  f->alpha[1] = (double) value / (double) OPAQUE;
+		  store_frame_param (f, Qalpha, make_float (f->alpha[0]));
+		}
+	      else
+		{
+		  f->alpha[0] = 1.0;
+		  f->alpha[1] = 1.0;
+
+		  store_frame_param (f, Qalpha, Qnil);
+		}
+
+	      if (opacity_reply)
+		free (opacity_reply);
+#endif
 	    }
 
+#ifndef USE_XCB
 	  if (tmp_data)
 	    XFree (tmp_data);
+#endif
 	}
 
       if (event->xproperty.window == dpyinfo->root_window
