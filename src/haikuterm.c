@@ -2927,13 +2927,6 @@ haiku_define_frame_cursor (struct frame *f, Emacs_Cursor cursor)
 }
 
 static void
-haiku_update_window_end (struct window *w, bool cursor_on_p,
-			 bool mouse_face_overwritten_p)
-{
-
-}
-
-static void
 haiku_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct haiku_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -3001,8 +2994,8 @@ static struct redisplay_interface haiku_redisplay_interface =
     gui_clear_end_of_line,
     haiku_scroll_run,
     haiku_after_update_window_line,
-    NULL,
-    haiku_update_window_end,
+    NULL, /* update_window_begin */
+    NULL, /* update_window_end */
     haiku_flush,
     gui_clear_window_mouse_face,
     gui_get_glyph_overhangs,
@@ -3018,7 +3011,7 @@ static struct redisplay_interface haiku_redisplay_interface =
     haiku_draw_window_cursor,
     haiku_draw_vertical_window_border,
     haiku_draw_window_divider,
-    0, /* shift glyphs for insert */
+    NULL, /* shift glyphs for insert */
     haiku_show_hourglass,
     haiku_hide_hourglass,
     haiku_default_font_parameter,
