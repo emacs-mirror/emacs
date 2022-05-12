@@ -1515,6 +1515,16 @@ with parameters from the *Messages* buffer modification."
       (should (eq (buffer-modified-p) 'autosaved))
       (insert "zot")
       (restore-buffer-modified-p 'autosaved)
+      (should (eq (buffer-modified-p) 'autosaved))))
+
+  (ert-with-temp-file file
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (buffer-modified-p))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) 'autosaved))
+      (restore-buffer-modified-p 'autosaved)
       (should (eq (buffer-modified-p) 'autosaved)))))
 
 ;;; buffer-tests.el ends here

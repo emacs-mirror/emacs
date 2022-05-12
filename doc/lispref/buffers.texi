@@ -565,9 +565,9 @@ function @code{force-mode-line-update} works by doing this:
 @end defun
 
 @defun restore-buffer-modified-p flag
-Like @code{set-buffer-modified-p}, but does not force redisplay
-of mode lines.  This function also allows a @var{flag} value of
-@code{autosaved}, which marks the buffer as having been autosaved
+Like @code{set-buffer-modified-p}, but does not force redisplay of
+mode lines.  This function also allows a @var{flag} value of
+@code{autosaved}, which also marks the buffer as having been autosaved
 after the last modification.
 @end defun
 
