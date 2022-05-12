@@ -3017,7 +3017,15 @@ highlight the original region when
   "Display TOOLTIP, a tooltip string, using `x-show-tip'.
 Call `tooltip-show-help-non-mode' instead on non-graphical displays."
   (if (display-graphic-p)
-      (x-show-tip tooltip)
+      (let ((params (copy-sequence tooltip-frame-parameters))
+	    (fg (face-attribute 'tooltip :foreground))
+	    (bg (face-attribute 'tooltip :background)))
+	(when (stringp fg)
+	  (setf (alist-get 'foreground-color params) fg)
+	  (setf (alist-get 'border-color params) fg))
+	(when (stringp bg)
+	  (setf (alist-get 'background-color params) bg))
+        (x-show-tip tooltip nil params))
     (tooltip-show-help-non-mode tooltip)))
 
 (declare-function x-hide-tip "xfns.c")
@@ -3059,6 +3067,7 @@ is copied instead of being cut."
                                                                (cdr bounds)))
                                                (region-bounds)))
          (region-noncontiguous (region-noncontiguous-p))
+         (mouse-fine-grained-tracking t)
          ;; Whether or not some text was ``cut'' from Emacs to another
          ;; program and the cleaanup code should not try modifying the
          ;; region.
