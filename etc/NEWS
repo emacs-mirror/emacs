@@ -258,8 +258,8 @@ startup.  Previously, these functions ignored
 
 +++
 *** New user option 'switch-to-prev-buffer-skip-regexp'.
-This should be a regexp or a list of regexps, and buffers with names
-matching this will be ignored by 'switch-to-prev-buffer' and
+This should be a regexp or a list of regexps; buffers whose names
+match those regexps will be ignored by 'switch-to-prev-buffer' and
 'switch-to-next-buffer'.
 
 ** Menus

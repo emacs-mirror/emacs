@@ -4592,10 +4592,10 @@ Also see `switch-to-prev-buffer-skip-regexp'."
   :group 'windows)
 
 (defcustom switch-to-prev-buffer-skip-regexp nil
-  "Regexp matching buffers that should be skipped by `switch-to-prev-buffer'.
-This also affects `switch-to-next-buffer'.
-
-This can either be a regexp or a list of regexps.
+  "Buffers that `switch-to-prev-buffer' and `switch-to-next-buffer' should skip.
+The value can either be a regexp or a list of regexps.  Buffers whose
+names match these regexps are skipped by `switch-to-prev-buffer'
+and `switch-to-next-buffer'.
 
 Also see `switch-to-prev-buffer-skip'."
   :type '(choice regexp

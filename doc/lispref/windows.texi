@@ -4174,9 +4174,9 @@ these functions can switch to.
 @end defopt
 
 @defopt switch-to-prev-buffer-skip-regexp
-This user option should be either a regular expression, or a list of
-regular expressions, and buffers that have names that match this
-option will be ignored by @code{switch-to-prev-buffer} and
+This user option should be either a regular expression or a list of
+regular expressions.  Buffers whose names match one of those regular
+expressions will be ignored by @code{switch-to-prev-buffer} and
 @code{switch-to-next-buffer} (except when there's no other buffer to
 switch to).
 @end defopt
