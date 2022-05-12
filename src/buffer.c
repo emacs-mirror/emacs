@@ -1449,8 +1449,8 @@ DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        doc: /* Like `set-buffer-modified-p', but doesn't redisplay buffer's mode line.
 A nil FLAG means to mark the buffer as unmodified.  A non-nil FLAG
 means mark the buffer as modified.  A special value of `autosaved'
-will mark the buffer modified, and also as having been autosaved since
-it was last modified.
+will mark the buffer as modified and also as autosaved since it was
+last modified.
 
 This function also locks or unlocks the file visited by the buffer,
 if both `buffer-file-truename' and `buffer-file-name' are non-nil.
