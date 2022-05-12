@@ -2261,23 +2261,26 @@ Optionally use old comment from FILE as initial value."
      comment)))
 
 ;;;###autoload
-(defun image-dired-mark-tagged-files ()
-  "Use regexp to mark files with matching tag.
+(defun image-dired-mark-tagged-files (regexp)
+  "Use REGEXP to mark files with matching tag.
 A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
 lets you input a regexp and this will be matched against all tags
 on all image files in the database file.  The files that have a
 matching tag will be marked in the Dired buffer."
-  (interactive)
+  (interactive "sMark tagged files (regexp): ")
   (image-dired-sane-db-file)
-  (let ((tag (read-string "Mark tagged files (regexp): "))
-        (hits 0)
+  (let ((hits 0)
         files)
     (image-dired--with-db-file
-     ;; Collect matches
-     (while (search-forward-regexp
-	     (concat "\\(^[^;\n]+\\);.*" tag ".*$") nil t)
-       (push (match-string 1) files)))
+      ;; Collect matches
+      (while (search-forward-regexp "\\(^[^;\n]+\\);\\(.*\\)" nil t)
+        (let ((file (match-string 1))
+              (tags (split-string (match-string 2) ";")))
+          (when (seq-find (lambda (tag)
+                            (string-match-p regexp tag))
+                          tags)
+            (push file files)))))
     ;; Mark files
     (dolist (curr-file files)
       ;; I tried using `dired-mark-files-regexp' but it was waaaay to
