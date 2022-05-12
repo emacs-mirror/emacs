@@ -360,7 +360,7 @@ The name of the first different author/editor is used."
 
 ;; Parse the bibliography environment
 (defun reftex-extract-bib-entries-from-thebibliography (files)
-  "Extract bib-entries from the \begin{thebibliography} environment.
+  "Extract bib-entries from the \\begin{thebibliography} environment.
 Parsing is not as good as for the BibTeX database stuff.
 The environment should be located in FILES."
   (let* (start end buf entries re re-list file default)
