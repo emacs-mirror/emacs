@@ -799,7 +799,7 @@ the run/continue command.
 ** Customize
 
 ---
-*** New command 'custom-toggle-hide-all-variables'.
+*** New command 'custom-toggle-hide-all-widgets'.
 This is bound to 'H' and toggles whether to hide or show the widget
 contents.
 

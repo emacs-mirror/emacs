@@ -441,7 +441,7 @@ Use group `text' for this instead.  This group is deprecated."
     (define-key map "u" 'Custom-goto-parent)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
-    (define-key map "H" 'custom-toggle-hide-all-variables)
+    (define-key map "H" 'custom-toggle-hide-all-widgets)
     map)
   "Keymap for `Custom-mode'.")
 
@@ -746,7 +746,7 @@ groups after non-groups, if nil do not order groups at all."
      (or custom-file user-init-file)
      "Un-customize settings in this and future sessions." "delete" "Uncustomize"
      (modified set changed rogue saved))
-    (" Toggle hiding all values " custom-toggle-hide-all-variables
+    (" Toggle hiding all values " custom-toggle-hide-all-widgets
      t "Toggle hiding all values."
      "hide" "Hide" t)
     (" Help for Customize " Custom-help t "Get help for using Customize."
@@ -2840,7 +2840,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 
 (defvar custom--hidden-state)
 
-(defun custom-toggle-hide-all-variables ()
+(defun custom-toggle-hide-all-widgets ()
   "Hide or show details of all customizable settings in a Custom buffer.
 This command is for use in a Custom buffer that shows many
 customizable settings, like \"*Customize Group*\" or \"*Customize Faces*\".
@@ -2862,7 +2862,7 @@ else."
           (setq state 'standard))
         (when (and (eq (widget-type widget) 'custom-visibility)
                    (eq state custom--hidden-state))
-          (custom-toggle-hide-variable widget)))
+          (custom-toggle-parent widget)))
       (forward-line 1)))
   (setq custom--hidden-state (if (eq custom--hidden-state 'hidden)
                                  'standard
