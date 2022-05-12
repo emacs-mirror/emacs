@@ -396,7 +396,7 @@ Should be one of:
 (defvar url-lazy-message-time 0)
 
 ;; Fixme: We may not be able to run SSL.
-(defvar url-extensions-header "Security/Digest Security/SSL")
+(defvar url-extensions-header nil)
 
 (defvar url-parse-syntax-table
   (copy-syntax-table emacs-lisp-mode-syntax-table)
