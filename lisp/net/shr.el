@@ -994,8 +994,7 @@ the mouse click event."
   (let ((url (get-text-property (point) 'shr-url)))
     (if (not url)
 	(message "No link under point")
-      (url-retrieve (shr-encode-url url)
-                    #'shr-store-contents (list url directory)))))
+      (url-retrieve url #'shr-store-contents (list url directory)))))
 
 (defun shr-store-contents (status url directory)
   (unless (plist-get status :error)
@@ -1154,7 +1153,7 @@ Return a string with image data."
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (when (ignore-errors
-	    (url-cache-extract (url-cache-create-filename (shr-encode-url url)))
+	    (url-cache-extract (url-cache-create-filename url))
 	    t)
       (when (re-search-forward "\r?\n\r?\n" nil t)
 	(shr-parse-image-data)))))
@@ -1252,6 +1251,7 @@ START, and END.  Note that START and END should be markers."
 
 (defun shr-encode-url (url)
   "Encode URL."
+  (declare (obsolete nil "29.1"))
   (browse-url-url-encode-chars url "[)$ ]"))
 
 (autoload 'shr-color-visible "shr-color")
@@ -1672,13 +1672,13 @@ The preference is a float determined from `shr-prefer-media-type'."
 	  (setq shr-start (point))
           (shr-insert alt))
 	 ((and (not shr-ignore-cache)
-	       (url-is-cached (shr-encode-url url)))
+	       (url-is-cached url))
 	  (funcall shr-put-image-function (shr-get-image-data url) alt
                    (list :width width :height height)))
 	 (t
 	  (when (and shr-ignore-cache
-		     (url-is-cached (shr-encode-url url)))
-	    (let ((file (url-cache-create-filename (shr-encode-url url))))
+		     (url-is-cached url))
+	    (let ((file (url-cache-create-filename url)))
 	      (when (file-exists-p file)
 		(delete-file file))))
           (when (image-type-available-p 'svg)
@@ -1687,7 +1687,7 @@ The preference is a float determined from `shr-prefer-media-type'."
              (or alt "")))
           (insert " ")
 	  (url-queue-retrieve
-           (shr-encode-url url) #'shr-image-fetched
+           url #'shr-image-fetched
 	   (list (current-buffer) start (set-marker (make-marker) (point))
                  (list :width width :height height))
 	   t
