@@ -567,7 +567,8 @@ This way enabling/disabling of menu items is more correct."
                  (const "C++")
                  (const "K&R")
                  (const "BSD")
-                 (const "Whitesmith"))
+                 (const "Whitesmith")
+                 (const :tag "Default" nil))
   :version "29.1")
 ;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
 
