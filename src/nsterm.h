@@ -1329,5 +1329,6 @@ enum NSWindowTabbingMode
 #define NSControlStateValueOn NSOnState
 #define NSControlStateValueOff NSOffState
 #define NSBezelStyleRounded NSRoundedBezelStyle
+#define NSButtonTypeMomentaryPushIn NSMomentaryPushInButton
 #endif
 #endif	/* HAVE_NS */
