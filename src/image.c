@@ -750,8 +750,28 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   int fd, width, height, rc, bytes_per_line, x, y;
   char *contents, *data, *tmp;
   void *bitmap;
+  Lisp_Object found;
 
-  if (!STRINGP (image_find_image_fd (file, &fd)))
+  /* Look for an existing bitmap with the same name.  */
+  for (id = 0; id < dpyinfo->bitmaps_last; ++id)
+    {
+      if (dpyinfo->bitmaps[id].refcount
+	  && dpyinfo->bitmaps[id].file
+	  && !strcmp (dpyinfo->bitmaps[id].file, SSDATA (file)))
+	{
+	  ++dpyinfo->bitmaps[id].refcount;
+	  return id + 1;
+	}
+    }
+
+  /* Search bitmap-file-path for the file, if appropriate.  */
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
+	     make_fixnum (R_OK), false, false)
+      < 0)
+    return -1;
+
+  if (!STRINGP (image_find_image_fd (file, &fd))
+      && !STRINGP (image_find_image_fd (found, &fd)))
     return -1;
 
   contents = slurp_file (fd, &size);
