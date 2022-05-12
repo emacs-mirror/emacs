@@ -799,6 +799,15 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Shell Script Mode
+
+---
+*** New user option 'sh-indent-statement-after-and'.
+This controls how statements like the following are indented:
+
+     foo &&
+         bar
+
 ---
 *** New user option 'cperl-file-style'.
 This option determines the indentation style to be used.  It can also
