@@ -3415,6 +3415,7 @@ BODY is the backend specific code."
 	       (gid (or (file-attribute-group-id
 			 (file-attributes filename 'integer))
 			(tramp-get-remote-gid v 'integer)))
+	       (attributes (file-extended-attributes filename))
 	       (curbuf (current-buffer)))
 
 	   ;; Lock file.
@@ -3452,6 +3453,12 @@ BODY is the backend specific code."
 	     ;; Set the ownership.
              (when need-chown
                (tramp-set-file-uid-gid filename uid gid)))
+
+	   ;; Set extended attributes.  We ignore possible errors,
+	   ;; because ACL strings could be incompatible.
+	   (when attributes
+	     (ignore-errors
+	       (set-file-extended-attributes filename attributes)))
 
 	   ;; Unlock file.
 	   (when file-locked
