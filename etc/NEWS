@@ -660,8 +660,13 @@ Rcirc will use the default 'completion-at-point' mechanism.  The
 conventional IRC behaviour of completing by cycling through the
 available options can be restored by enabling this option.
 
+** imenu
+
 +++
-** 'imenu' is now bound to 'M-g i' globally.
+*** 'imenu' is now bound to 'M-g i' globally.
+
+---
+*** New command 'imenu-flush-cache'.
 
 * Editing Changes in Emacs 29.1
 
