@@ -677,6 +677,11 @@ recreate it anew next time 'imenu' is invoked.
 
 * Editing Changes in Emacs 29.1
 
++++
+** M-SPC is now bound to 'cycle-spacing' (formerly it was 'just-one-space').
+The actions performed by 'cycle-spacing' and their order can now be
+customized via 'cycle-spacing-actions'.
+
 ---
 ** 'scroll-other-window' and 'scroll-other-window-down' now respects remapping.
 These commands (bound to 'C-M-v' and 'C-M-V') used to scroll the other
