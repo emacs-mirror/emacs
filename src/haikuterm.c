@@ -1631,12 +1631,13 @@ static void
 haiku_draw_image_glyph_string (struct glyph_string *s)
 {
   struct face *face = s->face;
-
+  void *view, *bitmap, *mask;
   int box_line_hwidth = max (face->box_vertical_line_width, 0);
   int box_line_vwidth = max (face->box_horizontal_line_width, 0);
-
-  int x, y;
-  int height, width;
+  int x, y, height, width, relief;
+  struct haiku_rect nr;
+  Emacs_Rectangle cr, ir, r;
+  unsigned long background;
 
   height = s->height;
   if (s->slice.y == 0)
@@ -1657,20 +1658,22 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
   if (s->slice.y == 0)
     y += box_line_vwidth;
 
-  void *view = FRAME_HAIKU_VIEW (s->f);
-  void *bitmap = s->img->pixmap;
+  view = FRAME_HAIKU_VIEW (s->f);
+  bitmap = s->img->pixmap;
 
   /* TODO: implement stipples for images with masks.  */
   s->stippled_p = face->stipple != 0;
 
-  BView_SetHighColor (view, face->background);
+  if (s->hl == DRAW_CURSOR)
+    haiku_merge_cursor_foreground (s, NULL, &background);
+  else
+    background = face->background;
+
+  BView_SetHighColor (view, background);
   BView_FillRectangle (view, x, y, width, height);
 
   if (bitmap)
     {
-      struct haiku_rect nr;
-      Emacs_Rectangle cr, ir, r;
-
       get_glyph_string_clip_rect (s, &nr);
       CONVERT_TO_EMACS_RECT (cr, nr);
       x = s->x;
@@ -1692,7 +1695,7 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
       ir.height = s->slice.height;
       r = ir;
 
-      void *mask = s->img->mask;
+      mask = s->img->mask;
 
       if (gui_intersect_rectangles (&cr, &ir, &r))
 	{
@@ -1726,11 +1729,25 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 	    BBitmap_free (bitmap);
 	}
 
-      if (s->hl == DRAW_CURSOR)
+      if (!s->img->mask)
 	{
-	  BView_SetPenSize (view, 1);
-	  BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
-	  BView_StrokeRectangle (view, r.x, r.y, r.width, r.height);
+	  /* When the image has a mask, we can expect that at
+	     least part of a mouse highlight or a block cursor will
+	     be visible.  If the image doesn't have a mask, make
+	     a block cursor visible by drawing a rectangle around
+	     the image.  I believe it's looking better if we do
+	     nothing here for mouse-face.  */
+
+	  if (s->hl == DRAW_CURSOR)
+	    {
+	      relief = eabs (s->img->relief);
+
+	      BView_SetPenSize (view, 1);
+	      BView_SetHighColor (view, FRAME_CURSOR_COLOR (s->f).pixel);
+	      BView_StrokeRectangle (view, x - relief, y - relief,
+				     s->slice.width + relief * 2,
+				     s->slice.height + relief * 2);
+	    }
 	}
     }
 
@@ -2000,132 +2017,201 @@ haiku_set_window_size (struct frame *f, bool change_gravity,
 }
 
 static void
-haiku_draw_window_cursor (struct window *w,
-			  struct glyph_row *glyph_row,
-			  int x, int y,
-			  enum text_cursor_kinds cursor_type,
-			  int cursor_width, bool on_p, bool active_p)
+haiku_draw_hollow_cursor (struct window *w, struct glyph_row *row)
 {
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-  struct face *face;
-  struct glyph *phys_cursor_glyph;
+  struct frame *f;
+  int x, y, wd, h;
   struct glyph *cursor_glyph;
+  uint32_t foreground;
+  void *view;
 
-  void *view = FRAME_HAIKU_VIEW (f);
+  f = XFRAME (WINDOW_FRAME (w));
+  view = FRAME_HAIKU_VIEW (f);
 
-  int fx, fy, h, cursor_height;
-
-  if (!on_p)
+  /* Get the glyph the cursor is on.  If we can't tell because
+     the current matrix is invalid or such, give up.  */
+  cursor_glyph = get_phys_cursor_glyph (w);
+  if (cursor_glyph == NULL)
     return;
 
-  if (cursor_type == NO_CURSOR)
-    {
-      w->phys_cursor_width = 0;
-      return;
-    }
+  /* Compute frame-relative coordinates for phys cursor.  */
+  get_phys_cursor_geometry (w, row, cursor_glyph, &x, &y, &h);
+  wd = w->phys_cursor_width;
 
-  w->phys_cursor_on_p = true;
-  w->phys_cursor_type = cursor_type;
+  /* The foreground of cursor_gc is typically the same as the normal
+     background color, which can cause the cursor box to be invisible.  */
+  foreground = FRAME_CURSOR_COLOR (f).pixel;
 
-  phys_cursor_glyph = get_phys_cursor_glyph (w);
+  /* When on R2L character, show cursor at the right edge of the
+     glyph, unless the cursor box is as wide as the glyph or wider
+     (the latter happens when x-stretch-cursor is non-nil).  */
+  if ((cursor_glyph->resolved_level & 1) != 0
+      && cursor_glyph->pixel_width > wd)
+    x += cursor_glyph->pixel_width - wd;
 
-  if (!phys_cursor_glyph)
-    {
-      if (glyph_row->exact_window_width_line_p
-          && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
-        {
-          glyph_row->cursor_in_fringe_p = 1;
-          draw_fringe_bitmap (w, glyph_row, 0);
-        }
-      return;
-    }
+  /* Set clipping, draw the rectangle, and reset clipping again.
+     This also marks the region as invalidated.  */
 
-  get_phys_cursor_geometry (w, glyph_row, phys_cursor_glyph, &fx, &fy, &h);
-
-  if (cursor_type == BAR_CURSOR)
-    {
-      if (cursor_width < 1)
-	cursor_width = max (FRAME_CURSOR_WIDTH (f), 1);
-      if (cursor_width < w->phys_cursor_width)
-        w->phys_cursor_width = cursor_width;
-    }
-  else if (cursor_type == HBAR_CURSOR)
-    {
-      cursor_height = (cursor_width < 1) ? lrint (0.25 * h) : cursor_width;
-      if (cursor_height > glyph_row->height)
-        cursor_height = glyph_row->height;
-      if (h > cursor_height)
-        fy += h - cursor_height;
-      h = cursor_height;
-    }
-
-  BView_draw_lock (view, false, 0, 0, 0, 0);
+  BView_draw_lock (view, true, x, y, wd, h);
   BView_StartClip (view);
+  haiku_clip_to_row (w, row, TEXT_AREA);
 
-  if (cursor_type == BAR_CURSOR)
-    {
-      cursor_glyph = get_phys_cursor_glyph (w);
-      face = FACE_FROM_ID (f, cursor_glyph->face_id);
-    }
+  /* Now set the foreground color and pen size.  */
+  BView_SetHighColor (view, foreground);
+  BView_SetPenSize (view, 1);
 
-  /* If the glyph's background equals the color we normally draw the
-     bar cursor in, our cursor in its normal color is invisible.  Use
-     the glyph's foreground color instead in this case, on the
-     assumption that the glyph's colors are chosen so that the glyph
-     is legible.  */
+  /* Actually draw the rectangle.  */
+  BView_StrokeRectangle (view, x, y, wd, h);
 
-  /* xterm.c only does this for bar cursors, and nobody has
-     complained, so it would be best to do that here as well.  */
-  if (cursor_type == BAR_CURSOR
-      && face->background == FRAME_CURSOR_COLOR (f).pixel)
-    BView_SetHighColor (view, face->foreground);
-  else
-    BView_SetHighColor (view, FRAME_CURSOR_COLOR (f).pixel);
-  haiku_clip_to_row (w, glyph_row, TEXT_AREA);
-
-  switch (cursor_type)
-    {
-    default:
-    case DEFAULT_CURSOR:
-    case NO_CURSOR:
-      break;
-
-    case HBAR_CURSOR:
-      BView_FillRectangle (view, fx, fy, w->phys_cursor_width, h);
-      BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
-      break;
-
-    case BAR_CURSOR:
-      if (cursor_glyph->resolved_level & 1)
-	{
-	  BView_FillRectangle (view, fx + cursor_glyph->pixel_width - w->phys_cursor_width,
-			       fy, w->phys_cursor_width, h);
-	  BView_invalidate_region (view, fx + cursor_glyph->pixel_width - w->phys_cursor_width,
-				   fy, w->phys_cursor_width, h);
-	}
-      else
-	BView_FillRectangle (view, fx, fy, w->phys_cursor_width, h);
-
-      BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
-      break;
-
-    case HOLLOW_BOX_CURSOR:
-      if (phys_cursor_glyph->type != IMAGE_GLYPH)
-	{
-	  BView_SetPenSize (view, 1);
-	  BView_StrokeRectangle (view, fx, fy, w->phys_cursor_width, h);
-	}
-      else
-	draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
-
-      BView_invalidate_region (view, fx, fy, w->phys_cursor_width, h);
-      break;
-
-    case FILLED_BOX_CURSOR:
-      draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
-    }
+  /* Reset clipping.  */
   BView_EndClip (view);
   BView_draw_unlock (view);
+}
+
+static void
+haiku_draw_bar_cursor (struct window *w, struct glyph_row *row,
+		       int width, enum text_cursor_kinds kind)
+{
+  struct frame *f;
+  struct glyph *cursor_glyph;
+  struct glyph_row *r;
+  struct face *face;
+  uint32_t foreground;
+  void *view;
+  int x, y, dummy_x, dummy_y, dummy_h;
+
+  f = XFRAME (w->frame);
+
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
+  cursor_glyph = get_phys_cursor_glyph (w);
+  if (cursor_glyph == NULL)
+    return;
+
+  /* If on an image, draw like a normal cursor.  That's usually better
+     visible than drawing a bar, esp. if the image is large so that
+     the bar might not be in the window.  */
+  if (cursor_glyph->type == IMAGE_GLYPH)
+    {
+      r = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+      draw_phys_cursor_glyph (w, r, DRAW_CURSOR);
+    }
+  else
+    {
+      view = FRAME_HAIKU_VIEW (f);
+      face = FACE_FROM_ID (f, cursor_glyph->face_id);
+
+      /* If the glyph's background equals the color we normally draw
+	 the bars cursor in, the bar cursor in its normal color is
+	 invisible.  Use the glyph's foreground color instead in this
+	 case, on the assumption that the glyph's colors are chosen so
+	 that the glyph is legible.  */
+      if (face->background == FRAME_CURSOR_COLOR (f).pixel)
+	foreground = face->foreground;
+      else
+	foreground = FRAME_CURSOR_COLOR (f).pixel;
+
+      BView_draw_lock (view, false, 0, 0, 0, 0);
+      BView_StartClip (view);
+      BView_SetHighColor (view, foreground);
+      haiku_clip_to_row (w, row, TEXT_AREA);
+
+      if (kind == BAR_CURSOR)
+	{
+	  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+	  y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y);
+
+	  if (width < 0)
+	    width = FRAME_CURSOR_WIDTH (f);
+	  width = min (cursor_glyph->pixel_width, width);
+
+	  w->phys_cursor_width = width;
+
+	  /* If the character under cursor is R2L, draw the bar cursor
+	     on the right of its glyph, rather than on the left.  */
+	  if ((cursor_glyph->resolved_level & 1) != 0)
+	    x += cursor_glyph->pixel_width - width;
+
+	  BView_FillRectangle (view, x, y, width, row->height);
+	  BView_invalidate_region (view, x, y, width, row->height);
+	}
+      else /* HBAR_CURSOR */
+	{
+	  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+	  y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+					   row->height - width);
+
+	  if (width < 0)
+	    width = row->height;
+
+	  width = min (row->height, width);
+
+	  get_phys_cursor_geometry (w, row, cursor_glyph, &dummy_x,
+				    &dummy_y, &dummy_h);
+
+	  if ((cursor_glyph->resolved_level & 1) != 0
+	      && cursor_glyph->pixel_width > w->phys_cursor_width - 1)
+	    x += cursor_glyph->pixel_width - w->phys_cursor_width + 1;
+
+	  BView_FillRectangle (view, x, y, w->phys_cursor_width - 1,
+			       width);
+	  BView_invalidate_region (view, x, y, w->phys_cursor_width - 1,
+				   width);
+	}
+
+      BView_EndClip (view);
+      BView_draw_unlock (view);
+    }
+}
+
+static void
+haiku_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
+			  int x, int y, enum text_cursor_kinds cursor_type,
+			  int cursor_width, bool on_p, bool active_p)
+{
+  if (on_p)
+    {
+      w->phys_cursor_type = cursor_type;
+      w->phys_cursor_on_p = true;
+
+      if (glyph_row->exact_window_width_line_p
+	  && (glyph_row->reversed_p
+	      ? (w->phys_cursor.hpos < 0)
+	      : (w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])))
+	{
+	  glyph_row->cursor_in_fringe_p = true;
+	  draw_fringe_bitmap (w, glyph_row, glyph_row->reversed_p);
+	}
+      else
+	{
+	  switch (cursor_type)
+	    {
+	    case HOLLOW_BOX_CURSOR:
+	      haiku_draw_hollow_cursor (w, glyph_row);
+	      break;
+
+	    case FILLED_BOX_CURSOR:
+	      draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+	      break;
+
+	    case BAR_CURSOR:
+	      haiku_draw_bar_cursor (w, glyph_row, cursor_width, BAR_CURSOR);
+	      break;
+
+	    case HBAR_CURSOR:
+	      haiku_draw_bar_cursor (w, glyph_row, cursor_width, HBAR_CURSOR);
+	      break;
+
+	    case NO_CURSOR:
+	      w->phys_cursor_width = 0;
+	      break;
+
+	    default:
+	      emacs_abort ();
+	    }
+	}
+    }
 }
 
 static void
