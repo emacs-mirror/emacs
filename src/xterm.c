@@ -14794,7 +14794,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	   events immediately, by setting hold_quit to the input
 	   event.  */
 
-	if (x_dnd_in_progress || x_dnd_waiting_for_finish)
+	if ((x_dnd_in_progress
+	     && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
+	    || (x_dnd_waiting_for_finish
+		&& dpyinfo->display == x_dnd_finish_display))
 	  {
 	    eassume (hold_quit);
 
