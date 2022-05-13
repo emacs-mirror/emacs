@@ -143,7 +143,7 @@ that language in the current buffer, and use that."
                   (treesit-parser-root-node parser-or-lang)
                 (treesit-buffer-root-node parser-or-lang))))
     ;; TODO: We might want a `treesit-node-decendant-for-pos' in C.
-    (while (cond ((< (treesit-node-end node) point)
+    (while (cond ((and node (< (treesit-node-end node) point))
                   (setq node (treesit-node-next-sibling node))
                   t)
                  ((treesit-node-child node 0 named)
