@@ -1836,56 +1836,56 @@ struct user_cursor_info custom_cursors[] =
 
 struct user_cursor_bitmap_info cursor_bitmaps[] =
   {
-    { NULL, NULL, 0, 0, 0, 0 },				/* text_cursor */
-    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },	/* nontext_cursor */
-    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },	/* modeline_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* hand_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* hourglass_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* horizontal_drag_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* vertical_drag_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* left_edge_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* top_left_corner_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* top_edge_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* top_right_corner_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* right_edge_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* bottom_right_corner_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* bottom_edge_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* bottom_left_corner_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },				/* no_cursor */
+    { ibeam_ptr_bits, ibeam_ptrmask_bits, 15, 15, 7, 7 },	/* text_cursor */
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },		/* nontext_cursor */
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },		/* modeline_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* hand_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* hourglass_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* horizontal_drag_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* vertical_drag_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* left_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* top_left_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* top_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* top_right_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* right_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* bottom_right_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* bottom_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* bottom_left_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },					/* no_cursor */
   };
 
 /* Array of cursor bitmaps for each system cursor ID.  This is used to
    color in user-specified cursors.  */
 struct user_cursor_bitmap_info cursor_bitmaps_for_id[28] =
   {
-    { NULL, NULL, 0, 0, 0, 0				},
-    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1	},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
-    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1		},
+    { ibeam_ptr_bits, ibeam_ptrmask_bits, 15, 15, 7, 7		},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { cross_ptr_bits, cross_ptrmask_bits, 30, 30, 15, 15	},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
+    { NULL, NULL, 0, 0, 0, 0					},
   };
 
 static void *
