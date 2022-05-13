@@ -1808,6 +1808,12 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New minor mode 'header-line-indent-mode'.
+This is meant to be used in modes that have a header line that should
+be kept aligned with the buffer contents when the user switches
+'display-line-numbers-mode' on or off.
+
++++
 ** New predicate 'char-uppercase-p'.
 This returns non-nil if its argument its an uppercase character.
 

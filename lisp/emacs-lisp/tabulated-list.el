@@ -264,18 +264,14 @@ variables `tabulated-list-tty-sort-indicator-asc' and
 Populated by `tabulated-list-init-header'.")
 (defvar tabulated-list--header-overlay nil)
 
-(defun tabulated-list-line-number-width ()
-  "Return the width taken by `display-line-numbers' in the current buffer."
-  ;; line-number-display-width returns the value for the selected
-  ;; window, which might not be the window in which the current buffer
-  ;; is displayed.
-  (if (not display-line-numbers)
-           0
-    (let ((cbuf-window (get-buffer-window (current-buffer) t)))
-      (if (window-live-p cbuf-window)
-          (with-selected-window cbuf-window
-            (line-number-display-width 'columns))
-        4))))
+(define-obsolete-function-alias 'tabulated-list-line-number-width
+  'header-line-indent--line-number-width "29.1")
+(define-obsolete-function-alias 'tabulated-list-watch-line-number-width
+  'header-line-indent--watch-line-number-width "29.1")
+(define-obsolete-function-alias 'tabulated-list-watch-line-number-width
+  'header-line-indent--watch-line-number-width "29.1")
+(define-obsolete-function-alias 'tabulated-list-window-scroll-function
+  'header-line-indent--window-scroll-function "29.1")
 
 (defun tabulated-list-init-header ()
   "Set up header line for the Tabulated List buffer."
@@ -289,9 +285,9 @@ Populated by `tabulated-list-init-header'.")
          (hcols (mapcar #'car tabulated-list-format))
          (tabulated-list--near-rows (list hcols hcols))
 	 (cols nil))
-    (if display-line-numbers
-        (setq x (+ x (tabulated-list-line-number-width))))
-    (push (propertize " " 'display `(space :align-to ,x)) cols)
+    (push (propertize " " 'display
+                      `(space :align-to (+ header-line-indent-width ,x)))
+          cols)
     (dotimes (n len)
       (let* ((col (aref tabulated-list-format n))
              (not-last-col (< n (1- len)))
@@ -342,20 +338,25 @@ Populated by `tabulated-list-init-header'.")
             (when (> shift 0)
               (setq cols
                     (cons (car cols)
-                          (cons (propertize (make-string shift ?\s)
-                                            'display
-                                            `(space :align-to ,(+ x shift)))
-                                (cdr cols))))
+                          (cons
+                           (propertize
+                            (make-string shift ?\s)
+                            'display
+                            `(space :align-to
+                                    (+ header-line-indent-width ,(+ x shift))))
+                           (cdr cols))))
               (setq x (+ x shift)))))
 	(if (>= pad-right 0)
-	    (push (propertize " "
-			      'display `(space :align-to ,next-x)
-			      'face 'fixed-pitch)
+	    (push (propertize
+                   " "
+		   'display `(space :align-to
+                                    (+ header-line-indent-width ,next-x))
+		   'face 'fixed-pitch)
 		  cols))
         (setq x next-x)))
     (setq cols (apply 'concat (nreverse cols)))
     (if tabulated-list-use-header-line
-	(setq header-line-format cols)
+	(setq header-line-format (list "" 'header-line-indent cols))
       (setq-local tabulated-list--header-string cols))))
 
 (defun tabulated-list-print-fake-header ()
@@ -770,23 +771,6 @@ Interactively, N is the prefix numeric argument, and defaults to
   (interactive "p")
   (tabulated-list-widen-current-column (- n)))
 
-(defvar tabulated-list--current-lnum-width nil)
-(defun tabulated-list-watch-line-number-width (_window)
-  (if display-line-numbers
-      (let ((lnum-width (tabulated-list-line-number-width)))
-        (when (not (= tabulated-list--current-lnum-width lnum-width))
-          (setq-local tabulated-list--current-lnum-width lnum-width)
-          (tabulated-list-init-header)))))
-
-(defun tabulated-list-window-scroll-function (window _start)
-  (if display-line-numbers
-      (let ((lnum-width
-             (with-selected-window window
-               (line-number-display-width 'columns))))
-        (when (not (= tabulated-list--current-lnum-width lnum-width))
-          (setq-local tabulated-list--current-lnum-width lnum-width)
-          (tabulated-list-init-header)))))
-
 (defun tabulated-list-next-column (&optional arg)
   "Go to the start of the next column after point on the current line.
 If ARG is provided, move that many columns."
@@ -857,15 +841,7 @@ as the ewoc pretty-printer."
   ;; Avoid messing up the entries' display just because the first
   ;; column of the first entry happens to begin with a R2L letter.
   (setq bidi-paragraph-direction 'left-to-right)
-  ;; This is for if/when they turn on display-line-numbers
-  (add-hook 'display-line-numbers-mode-hook #'tabulated-list-revert nil t)
-  ;; This is for if/when they customize the line-number face or when
-  ;; the line-number width needs to change due to scrolling.
-  (setq-local tabulated-list--current-lnum-width 0)
-  (add-hook 'pre-redisplay-functions
-            #'tabulated-list-watch-line-number-width nil t)
-  (add-hook 'window-scroll-functions
-            #'tabulated-list-window-scroll-function nil t))
+  (header-line-indent-mode))
 
 (put 'tabulated-list-mode 'mode-class 'special)
 

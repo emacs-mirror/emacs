@@ -2575,7 +2575,23 @@ mode line feature, except that it's controlled by
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
-It is normally @code{nil}, so that ordinary buffers have no header line.
+It is normally @code{nil}, so that ordinary buffers have no header
+line.
+
+@findex header-line-indent-mode
+If @code{display-line-numbers-mode} is used, and you want the header
+line to be indented by the same amount as the buffer contents, you can
+use the @code{header-line-indent-mode} minor mode.  This minor mode
+keeps the @code{header-line-indent} variable updated, so that you can
+say something like:
+
+@lisp
+(setq header-line-format
+      `("" header-line-format ,my-header-line))
+@end lisp
+
+This can be useful if you're displaying columnar data, and the header
+line should align with that data in the buffer.
 @end defvar
 
 @defun window-header-line-height &optional window
