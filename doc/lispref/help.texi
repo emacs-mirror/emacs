@@ -440,7 +440,7 @@ RET             minibuffer-complete-and-exit
 C-g             abort-recursive-edit
 "
 
-The keymap description will normally exclude menu items, but it
+The keymap description will normally exclude menu items, but if
 @var{include-menus} is non-@code{nil}, include them.
 
 @group
