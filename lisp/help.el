@@ -1938,40 +1938,37 @@ Return VALUE."
     ;; Return VALUE.
     value))
 
-;; `with-help-window' is a wrapper for `with-temp-buffer-window'
-;; providing the following additional twists:
-
-;; (1) It puts the buffer in `help-mode' (via `help-mode-setup') and
-;;     adds cross references (via `help-mode-finish').
-
-;; (2) It issues a message telling how to scroll and quit the help
-;;     window (via `help-window-setup').
-
-;; (3) An option (customizable via `help-window-select') to select the
-;;     help window automatically.
-
-;; (4) A marker (`help-window-point-marker') to move point in the help
-;;     window to an arbitrary buffer position.
 (defmacro with-help-window (buffer-or-name &rest body)
   "Evaluate BODY, send output to BUFFER-OR-NAME and show in a help window.
-This construct is like `with-temp-buffer-window', which see, but unlike
-that, it puts the buffer specified by BUFFER-OR-NAME in `help-mode' and
-displays a message about how to delete the help window when it's no
-longer needed.  The help window will be selected if
-`help-window-select' is non-nil.
-Most of this is done by `help-window-setup', which see."
+The return value from BODY will be returned.
+
+The help window will be selected if `help-window-select' is
+non-nil.
+
+The `temp-buffer-window-setup-hook' hook is called."
   (declare (indent 1) (debug t))
-  `(progn
-     ;; Make `help-window-point-marker' point nowhere.  The only place
-     ;; where this should be set to a buffer position is within BODY.
-     (set-marker help-window-point-marker nil)
-     (let ((temp-buffer-window-setup-hook
-	    (cons 'help-mode-setup temp-buffer-window-setup-hook))
-	   (temp-buffer-window-show-hook
-	    (cons 'help-mode-finish temp-buffer-window-show-hook)))
-       (setq help-window-old-frame (selected-frame))
-       (with-temp-buffer-window
-	,buffer-or-name nil 'help-window-setup (progn ,@body)))))
+  `(help--window-setup ,buffer-or-name (lambda () ,@body)))
+
+(defun help--window-setup (buffer callback)
+  ;; Make `help-window-point-marker' point nowhere.  The only place
+  ;; where this should be set to a buffer position is within BODY.
+  (set-marker help-window-point-marker nil)
+  (with-current-buffer (get-buffer-create buffer)
+    (setq buffer-read-only t
+          buffer-file-name nil)
+    (buffer-disable-undo)
+    (let ((inhibit-read-only t)
+	  (inhibit-modification-hooks t))
+      (erase-buffer)
+      (delete-all-overlays)
+      (prog1
+          (let ((standard-output (current-buffer)))
+            (funcall callback)
+            (run-hooks 'temp-buffer-window-setup-hook))
+        (help-window-setup (temp-buffer-window-show (current-buffer)))
+        (unless (derived-mode-p 'help-mode)
+          (help-mode))
+        (help-make-xrefs (current-buffer))))))
 
 ;; Called from C, on encountering `help-char' when reading a char.
 ;; Don't print to *Help*; that would clobber Help history.
