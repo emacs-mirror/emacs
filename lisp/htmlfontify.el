@@ -1157,14 +1157,6 @@ The default handler is `hfy-face-to-css-default'.
 
 See also `hfy-face-to-style'.")
 
-(defalias 'hfy-prop-invisible-p
-  (if (fboundp 'invisible-p) #'invisible-p
-    (lambda (prop)
-      "Is text property PROP an active invisibility property?"
-      (or (and (eq buffer-invisibility-spec t) prop)
-          (or (memq prop buffer-invisibility-spec)
-              (assq prop buffer-invisibility-spec))))))
-
 (defun hfy-find-invisible-ranges ()
   "Return a list of (start-point . end-point) cons cells of invisible regions."
   (save-excursion
@@ -1254,8 +1246,8 @@ return a `defface' style list of face properties instead of a face symbol."
       (when face-name (setq base-face face-name))
       (dolist (P overlay-data)
         (let ((iprops (cadr (memq 'invisible P)))) ;FIXME: plist-get?
-          ;;(message "(hfy-prop-invisible-p %S)" iprops)
-          (when (and iprops (hfy-prop-invisible-p iprops))
+          ;;(message "(invisible-p %S)" iprops)
+          (when (and iprops (invisible-p iprops))
             (setq extra-props
                   (cons :invisible (cons t extra-props))) ))
         (let ((fprops (cadr (or (memq 'face P)
@@ -2408,6 +2400,8 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
   "Return the intersection (using `eq') of two lists SET-A and SET-B."
   (declare (obsolete seq-intersection "28.1"))
   (nreverse (seq-intersection set-a set-b #'eq)))
+
+(define-obsolete-function-alias 'hfy-prop-invisible-p #'invisible-p "29.1")
 
 (provide 'htmlfontify)
 
