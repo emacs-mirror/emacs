@@ -2171,6 +2171,7 @@ to install it but still mark it as selected."
     (if (not updateable)
         (message "No packages to update")
       (when (and (not inhibit-queries)
+                 (not noninteractive)
                  (not (yes-or-no-p
                        (if (length= updateable 1)
                            "One package to update.  Do it? "
