@@ -423,8 +423,7 @@ Commands:
 (defun help-mode-setup ()
   "Enter Help mode in the current buffer."
   (declare (obsolete nil "29.1"))
-  (unless (derived-mode-p 'help-mode)
-    (help-mode))
+  (help-mode)
   (setq buffer-read-only nil))
 
 ;;;###autoload
