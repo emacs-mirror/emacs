@@ -562,6 +562,11 @@ minor modes are listed after the major mode.
 The apropos commands will now select the apropos window if
 'help-window-select' is non-nil.
 
+---
+*** 'describe-keymap' now considers the symbol at point.
+If the symbol at point is a keymap, 'describe-keymap' suggests it as
+the default candidate.
+
 ** Outline Mode
 
 +++

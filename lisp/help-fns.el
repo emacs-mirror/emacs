@@ -1922,7 +1922,10 @@ in `describe-keymap'.  See also `Searching the Active Keymaps'."
 When called interactively, prompt for a variable that has a
 keymap value."
   (interactive
-   (let* ((km (help-fns--most-relevant-active-keymap))
+   (let* ((sym (symbol-at-point))
+          (km (or (and (keymapp (ignore-errors (symbol-value sym)))
+                       sym)
+                  (help-fns--most-relevant-active-keymap)))
           (val (completing-read
                 (format-prompt "Keymap" km)
                 obarray
