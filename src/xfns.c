@@ -4551,6 +4551,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   struct x_display_info *dpyinfo = NULL;
   Lisp_Object parent, parent_frame;
   struct kboard *kb;
+#ifdef HAVE_GTK3
+  GdkWindow *gwin;
+#endif
 
   parms = Fcopy_alist (parms);
 
@@ -4977,6 +4980,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
       if (EQ (x_gtk_resize_child_frames, Qresize_mode))
 	gtk_container_set_resize_mode
 	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)), GTK_RESIZE_IMMEDIATE);
+#endif
+#ifdef HAVE_GTK3
+      gwin = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
+      gdk_x11_window_set_frame_sync_enabled (gwin, false);
 #endif
       unblock_input ();
     }
