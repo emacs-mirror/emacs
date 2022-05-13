@@ -6281,40 +6281,6 @@ same_x_server (const char *name1, const char *name2)
 	  && (*name2 == '.' || *name2 == '\0'));
 }
 
-#define GNOME_INTERFACE_SCHEMA "org.gnome.desktop.interface"
-
-static gdouble
-pgtk_get_text_scaling_factor (void)
-{
-  GSettingsSchemaSource *schema_source;
-  GSettingsSchema *schema;
-  GSettings *settings;
-  double factor;
-
-  schema_source = g_settings_schema_source_get_default ();
-
-  if (schema_source != NULL)
-    {
-      schema = g_settings_schema_source_lookup (schema_source,
-						GNOME_INTERFACE_SCHEMA,
-						true);
-
-      if (schema)
-        {
-	  g_settings_schema_unref (schema);
-
-	  settings = g_settings_new (GNOME_INTERFACE_SCHEMA);
-	  factor = g_settings_get_double (settings,
-					  "text-scaling-factor");
-
-	  g_object_unref (settings);
-	  return factor;
-	}
-    }
-  return 1;
-}
-
-
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -6483,17 +6449,14 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   reset_mouse_highlight (&dpyinfo->mouse_highlight);
 
-  {
-    gscr = gdk_display_get_default_screen (dpyinfo->gdpy);
-    dpi = gdk_screen_get_resolution (gscr);
+  gscr = gdk_display_get_default_screen (dpyinfo->gdpy);
+  dpi = gdk_screen_get_resolution (gscr);
 
-    if (dpi < 0)
-      dpi = 96.0;
+  if (dpi < 0)
+    dpi = 96.0;
 
-    dpi *= pgtk_get_text_scaling_factor ();
-    dpyinfo->resx = dpi;
-    dpyinfo->resy = dpi;
-  }
+  dpyinfo->resx = dpi;
+  dpyinfo->resy = dpi;
 
   /* Set up scrolling increments.  */
   dpyinfo->scroll.x_per_char = 1;
