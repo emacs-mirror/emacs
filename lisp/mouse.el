@@ -3049,7 +3049,7 @@ is copied instead of being cut."
 
           ;; Show a tooltip.
           (if mouse-drag-and-drop-region-show-tooltip
-              (tooltip-show text-tooltip)
+              (tooltip-show (copy-sequence text-tooltip))
             (tooltip-hide))
 
           ;; Show cursor and highlight the original region.
