@@ -658,7 +658,6 @@ there is no recent clock to choose from."
 		     (if (< i 10)
 			 (+ i ?0)
 		       (+ i (- ?A 10))) m))
-	    (if (fboundp 'int-to-char) (setf (car s) (int-to-char (car s))))
 	    (push s sel-list)))
 	(run-hooks 'org-clock-before-select-task-hook)
 	(goto-char (point-min))
