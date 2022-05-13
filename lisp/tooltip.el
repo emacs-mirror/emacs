@@ -230,16 +230,16 @@ change the existing association.  Value is the resulting alist."
 (declare-function x-show-tip "xfns.c"
 		  (string &optional frame parms timeout dx dy))
 
-(defun tooltip-show (text &optional use-echo-area text-face frame-face)
+(defun tooltip-show (text &optional use-echo-area text-face default-face)
   "Show a tooltip window displaying TEXT.
 
 Text larger than `x-max-tooltip-size' is clipped.
 
-If the alist in `tooltip-frame-parameters' includes `left' and `top'
-parameters, they determine the x and y position where the tooltip
-is displayed.  Otherwise, the tooltip pops at offsets specified by
-`tooltip-x-offset' and `tooltip-y-offset' from the current mouse
-position.
+If the alist in `tooltip-frame-parameters' includes `left' and
+`top' parameters, they determine the x and y position where the
+tooltip is displayed.  Otherwise, the tooltip pops at offsets
+specified by `tooltip-x-offset' and `tooltip-y-offset' from the
+current mouse position.
 
 The text properties of TEXT are also modified to add the
 appropriate faces before displaying the tooltip.  If your code
@@ -249,21 +249,23 @@ passing it to this function.
 Optional second arg USE-ECHO-AREA non-nil means to show tooltip
 in echo area.
 
-The third and fourth args TEXT-FACE and FRAME-FACE specify faces
-used to display the tooltip, and default to `tooltip' if not
-specified.  TEXT-FACE specifies a face used to display text in
-the tooltip, while FRAME-FACE specifies a face that provides the
-background, foreground and border colors of the tooltip frame.
+The third and fourth args TEXT-FACE and DEFAULT-FACE specify
+faces used to display the tooltip, and default to `tooltip' if
+not specified.  TEXT-FACE specifies a face used to display text
+in the tooltip, while DEFAULT-FACE specifies a face that provides
+the background, foreground and border colors of the tooltip
+frame.
 
 Note that the last two arguments are not respected when
 `use-system-tooltips' is non-nil and Emacs is built with support
-for system tooltips."
+for system tooltips, such as on NS, Haiku, and with the GTK
+toolkit."
   (if use-echo-area
       (tooltip-show-help-non-mode text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
-	      (fg (face-attribute (or frame-face 'tooltip) :foreground))
-	      (bg (face-attribute (or frame-face 'tooltip) :background)))
+	      (fg (face-attribute (or default-face 'tooltip) :foreground))
+	      (bg (face-attribute (or default-face 'tooltip) :background)))
 	  (when (stringp fg)
 	    (setf (alist-get 'foreground-color params) fg)
 	    (setf (alist-get 'border-color params) fg))
