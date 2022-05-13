@@ -1795,8 +1795,8 @@ struct user_cursor_info
 
 struct user_cursor_bitmap_info
 {
-  /* The name of a bitmap to use instead of the font cursor if a
-     cursor color was set.  */
+  /* A bitmap to use instead of the font cursor to create cursors in a
+     certain color.  */
   const void *bits;
 
   /* The mask for that bitmap.  */
@@ -1837,8 +1837,8 @@ struct user_cursor_info custom_cursors[] =
 struct user_cursor_bitmap_info cursor_bitmaps[] =
   {
     { NULL, NULL, 0, 0, 0, 0 },				/* text_cursor */
-    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 4, 1 },	/* nontext_cursor */
-    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 4, 1 },	/* modeline_cursor */
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },	/* nontext_cursor */
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },	/* modeline_cursor */
     { NULL, NULL, 0, 0, 0, 0 },				/* hand_cursor */
     { NULL, NULL, 0, 0, 0, 0 },				/* hourglass_cursor */
     { NULL, NULL, 0, 0, 0, 0 },				/* horizontal_drag_cursor */
@@ -1852,6 +1852,40 @@ struct user_cursor_bitmap_info cursor_bitmaps[] =
     { NULL, NULL, 0, 0, 0, 0 },				/* bottom_edge_cursor */
     { NULL, NULL, 0, 0, 0, 0 },				/* bottom_left_corner_cursor */
     { NULL, NULL, 0, 0, 0, 0 },				/* no_cursor */
+  };
+
+/* Array of cursor bitmaps for each system cursor ID.  This is used to
+   color in user-specified cursors.  */
+struct user_cursor_bitmap_info cursor_bitmaps_for_id[28] =
+  {
+    { NULL, NULL, 0, 0, 0, 0				},
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1	},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
+    { NULL, NULL, 0, 0, 0, 0				},
   };
 
 static void *
@@ -1972,6 +2006,20 @@ haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 			  *custom_cursors[i].lisp_cursor);
 
 	  n = XFIXNUM (*custom_cursors[i].lisp_cursor);
+
+	  if (color_specified_p && cursor_bitmaps_for_id[n].bits)
+	    {
+	      recolored
+		= haiku_create_colored_cursor (&cursor_bitmaps_for_id[n],
+					       color.pixel,
+					       FRAME_BACKGROUND_PIXEL (f));
+
+	      if (recolored)
+		{
+		  *frame_cursor = recolored;
+		  continue;
+		}
+	    }
 
 	  /* Create and set the custom cursor.  */
 	  *frame_cursor = BCursor_from_id (n);
