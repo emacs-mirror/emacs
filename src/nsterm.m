@@ -3741,6 +3741,92 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
     }
 }
 
+static void
+ns_draw_image_relief (struct glyph_string *s)
+{
+  int x1, y1, thick;
+  bool raised_p, top_p, bot_p, left_p, right_p;
+  int extra_x, extra_y;
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
+
+  /* If first glyph of S has a left box line, start drawing it to the
+     right of that line.  */
+  if (s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += max (s->face->box_vertical_line_width, 0);
+
+  /* If there is a margin around the image, adjust x- and y-position
+     by that margin.  */
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
+
+  if (s->hl == DRAW_IMAGE_SUNKEN
+      || s->hl == DRAW_IMAGE_RAISED)
+    {
+      if (s->face->id == TAB_BAR_FACE_ID)
+	thick = (tab_bar_button_relief < 0
+		 ? DEFAULT_TAB_BAR_BUTTON_RELIEF
+		 : min (tab_bar_button_relief, 1000000));
+      else
+	thick = (tool_bar_button_relief < 0
+		 ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		 : min (tool_bar_button_relief, 1000000));
+      raised_p = s->hl == DRAW_IMAGE_RAISED;
+    }
+  else
+    {
+      thick = eabs (s->img->relief);
+      raised_p = s->img->relief > 0;
+    }
+
+  x1 = x + s->slice.width - 1;
+  y1 = y + s->slice.height - 1;
+
+  extra_x = extra_y = 0;
+  if (s->face->id == TAB_BAR_FACE_ID)
+    {
+      if (CONSP (Vtab_bar_button_margin)
+	  && FIXNUMP (XCAR (Vtab_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtab_bar_button_margin)))
+	{
+	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin)) - thick;
+	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin)) - thick;
+	}
+      else if (FIXNUMP (Vtab_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin) - thick;
+    }
+
+  if (s->face->id == TOOL_BAR_FACE_ID)
+    {
+      if (CONSP (Vtool_bar_button_margin)
+	  && FIXNUMP (XCAR (Vtool_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtool_bar_button_margin)))
+	{
+	  extra_x = XFIXNUM (XCAR (Vtool_bar_button_margin));
+	  extra_y = XFIXNUM (XCDR (Vtool_bar_button_margin));
+	}
+      else if (FIXNUMP (Vtool_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtool_bar_button_margin);
+    }
+
+  top_p = bot_p = left_p = right_p = false;
+
+  if (s->slice.x == 0)
+    x -= thick + extra_x, left_p = true;
+  if (s->slice.y == 0)
+    y -= thick + extra_y, top_p = true;
+  if (s->slice.x + s->slice.width == s->img->width)
+    x1 += thick + extra_x, right_p = true;
+  if (s->slice.y + s->slice.height == s->img->height)
+    y1 += thick + extra_y, bot_p = true;
+
+  ns_draw_relief (NSMakeRect (x, y, x1 - x + 1, y1 - y + 1), thick,
+		  thick, raised_p, top_p, bot_p, left_p, right_p, s);
+}
 
 static void
 ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
@@ -3752,8 +3838,6 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   int box_line_vwidth = max (s->face->box_horizontal_line_width, 0);
   int x = s->x, y = s->ybase - image_ascent (s->img, s->face, &s->slice);
   int bg_x, bg_y, bg_height;
-  int th;
-  char raised_p;
   NSRect br;
   struct face *face = s->face;
   NSColor *tdCol;
@@ -3847,51 +3931,29 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   if (s->hl == DRAW_CURSOR)
     {
       [FRAME_CURSOR_COLOR (s->f) set];
-      tdCol = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
+      tdCol = [NSColor colorWithUnsignedLong: NS_FACE_BACKGROUND (face)];
     }
   else
-    {
-      tdCol = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)];
-    }
+    tdCol = [NSColor colorWithUnsignedLong: NS_FACE_FOREGROUND (face)];
 
   /* Draw underline, overline, strike-through.  */
   ns_draw_text_decoration (s, face, tdCol, br.size.width, br.origin.x);
 
-  /* Draw relief, if requested */
-  if (s->img->relief || s->hl ==DRAW_IMAGE_RAISED || s->hl ==DRAW_IMAGE_SUNKEN)
-    {
-      if (s->hl == DRAW_IMAGE_SUNKEN || s->hl == DRAW_IMAGE_RAISED)
-        {
-          th = (tool_bar_button_relief < 0
-		? DEFAULT_TOOL_BAR_BUTTON_RELIEF
-		: min (tool_bar_button_relief, 1000000));
-          raised_p = (s->hl == DRAW_IMAGE_RAISED);
-        }
-      else
-        {
-          th = abs (s->img->relief);
-          raised_p = (s->img->relief > 0);
-        }
+  /* If we must draw a relief around the image, do it.  */
+  if (s->img->relief
+      || s->hl == DRAW_IMAGE_RAISED
+      || s->hl == DRAW_IMAGE_SUNKEN)
+    ns_draw_image_relief (s);
 
-      r.origin.x = x - th;
-      r.origin.y = y - th;
-      r.size.width = s->slice.width + 2*th-1;
-      r.size.height = s->slice.height + 2*th-1;
-      ns_draw_relief (r, th, th, raised_p,
-                      s->slice.y == 0,
-                      s->slice.y + s->slice.height == s->img->height,
-                      s->slice.x == 0,
-                      s->slice.x + s->slice.width == s->img->width, s);
-    }
-
-  /* If there is no mask, the background won't be seen,
-     so draw a rectangle on the image for the cursor.
-     Do this for all images, getting transparency right is not reliable.  */
+  /* If there is no mask, the background won't be seen, so draw a
+     rectangle on the image for the cursor.  Do this for all images,
+     getting transparency right is not reliable.  */
   if (s->hl == DRAW_CURSOR)
     {
       int thickness = abs (s->img->relief);
       if (thickness == 0) thickness = 1;
-      ns_draw_box (br, thickness, thickness, FRAME_CURSOR_COLOR (s->f), 1, 1);
+      ns_draw_box (br, thickness, thickness,
+		   FRAME_CURSOR_COLOR (s->f), 1, 1);
     }
 }
 
