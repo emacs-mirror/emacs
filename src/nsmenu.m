@@ -765,17 +765,33 @@ prettify_key (const char *key)
   NSInteger idx = [item tag];
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object vec = f->menu_bar_vector;
-  Lisp_Object help, frame;
-
-  /* This isn't a menubar, ignore.  */
-  if (context_menu_value == -1)
-    return;
-
-  if (idx >= ASIZE (vec))
-    return;
+  Lisp_Object help, frame, *client_data;
 
   XSETFRAME (frame, f);
-  help = AREF (vec, idx + MENU_ITEMS_ITEM_HELP);
+
+  /* This menu isn't a menubar, so use the pointer to the popup menu
+     data.  */
+  if (context_menu_value != 0)
+    {
+      client_data = (Lisp_Object *) idx;
+
+      if (client_data)
+	help = client_data[MENU_ITEMS_ITEM_HELP];
+      else
+	help = Qnil;
+    }
+  /* Just dismiss any help-echo that might already be in progress if
+     no menu item will be highlighted.  */
+  else if (item == nil)
+    help = Qnil;
+  else
+    {
+      if (idx >= ASIZE (vec))
+	return;
+
+      /* Otherwise, get the help data from the menu bar vector.  */
+      help = AREF (vec, idx + MENU_ITEMS_ITEM_HELP);
+    }
 
   popup_activated_flag++;
   if (STRINGP (help) || NILP (help))
