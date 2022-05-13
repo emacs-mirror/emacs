@@ -369,6 +369,9 @@
 ;; TODO
 ;; - Functions in treesit.el
 ;; - treesit-load-name-override-list
+;; - treesit-traverse-defun
+;; - treesit-beginning-of-defun
+;; - treesit-end-of-defun
 
 (provide 'treesit-tests)
 ;;; treesit-tests.el ends here

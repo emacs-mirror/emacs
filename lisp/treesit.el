@@ -832,6 +832,65 @@ indentation (target) is in green, current indentation is in red."
       (indent-region (point-min) (point-max))
       (diff-buffers source-buf (current-buffer)))))
 
+;;; Navigation
+
+(defvar-local treesit-defun-query nil
+  "A tree-sitter query that matches function/class definitions.
+Capture names don't matter.  This variable is used by navigation
+functions like `treesit-beginning-of-defun'.")
+
+(defun treesit-traverse-defun (pos-fn arg)
+  "Move forward/backward to the beginning/end of a defun.
+
+Defun is defined according to `treesit-defun-pattern'.  Move
+forward/backward ARG time, positive ARG means go forward,
+negative ARG means go backward.
+
+POS-FN can be either `treesit-node-start' or `treesit-node-end'."
+  (unless treesit-defun-query
+    (error "Variable `treesit-defun-query' is unset"))
+  (cl-loop for idx from 1 to (abs arg)
+           for positions =
+           (remove
+            nil
+            (mapcar (lambda (parser)
+                      (if-let ((starting-point (point))
+                               (node (treesit-node-at
+                                      (point) parser t)))
+                          (funcall
+                           pos-fn
+                           (treesit-traverse-forward-depth-first
+                            node
+                            (lambda (node)
+                              (and (not (eq (funcall pos-fn node)
+                                            starting-point))
+                                   (treesit-query-capture
+                                    node treesit-defun-query)))
+                            arg))))
+                    treesit-parser-list))
+           ;; If we can find a defun start, jump to it.
+           if positions do (goto-char (apply #'max positions))
+           else return nil
+           if (eq (point) (point-min)) return nil
+           ;; Return t to indicate that search is successful.
+           finally return t))
+
+(defun treesit-beginning-of-defun (&optional arg)
+  "Move backward to the beginning of a defun.
+
+With ARG, do it that many times.  Negative ARG means move forward
+to the ARGth following beginning of defun.  Defun is defined
+according to `treesit-defun-pattern'."
+  (treesit-traverse-defun #'treesit-node-start (- arg)))
+
+(defun treesit-end-of-defun (&optional arg)
+  "Move forward to the end of a defun.
+
+With ARG, do it that many times.  Negative ARG means move back to
+ARGth preceding end of defun.  Defun is defined according to
+`treesit-defun-pattern'."
+  (treesit-traverse-defun #'treesit-node-end arg))
+
 ;;; Debugging
 
 (defvar-local treesit--inspect-name nil
