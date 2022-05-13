@@ -118,7 +118,7 @@ configuration."
   "Which ssh Control* arguments to use.
 
 If it is a string, it should have the form
-\"-o ControlMaster=auto -o ControlPath=\\='tramp.%%r@%%h:%%p\\='
+\"-o ControlMaster=auto -o ControlPath=tramp.%%C
 -o ControlPersist=no\".  Percent characters in the ControlPath
 spec must be doubled, because the string is used as format string.
 
@@ -4779,13 +4779,13 @@ Goes through the list `tramp-inline-compress-commands'."
 	      (if (zerop
 		   (tramp-call-process
 		    vec "ssh" nil nil nil
-		    "-G" "-o" "ControlPath='tramp.%C'" "0.0.0.1"))
+		    "-G" "-o" "ControlPath=tramp.%C" "0.0.0.1"))
 		  (setq tramp-ssh-controlmaster-options
 			(concat tramp-ssh-controlmaster-options
-				" -o ControlPath='tramp.%%C'"))
+				" -o ControlPath=tramp.%%C"))
 		(setq tramp-ssh-controlmaster-options
 		      (concat tramp-ssh-controlmaster-options
-			      " -o ControlPath='tramp.%%r@%%h:%%p'")))
+			      " -o ControlPath=tramp.%%r@%%h:%%p")))
 	      (when (zerop
 		     (tramp-call-process
 		      vec "ssh" nil nil nil
