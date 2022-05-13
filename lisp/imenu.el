@@ -903,9 +903,8 @@ for more information."
   "Flush the current imenu cache.
 This forces a full rescan of the buffer to recreate the index alist
 next time `imenu' is invoked."
-  (interactive)
-  (setq imenu--index-alist nil)
-  (message "Flushed the imenu cache"))
+  (imenu--cleanup)
+  (setq imenu--index-alist nil))
 
 (provide 'imenu)
 

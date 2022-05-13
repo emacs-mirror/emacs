@@ -280,11 +280,6 @@ changes in the text.
 than @code{imenu-auto-rescan-maxout} in bytes, and scanning is
 stopped if it takes more than @code{imenu-max-index-time} seconds.
 
-@findex imenu-flush-cache
-  You can force Imenu to forget the buffer's index with @w{@kbd{M-x
-imenu-flush-cache @key{RET}}}.  This causes Imenu to rescan the
-current buffer next time you invoke @kbd{M-g i} in that buffer.
-
 @vindex imenu-sort-function
   You can customize the way the menus are sorted by setting the
 variable @code{imenu-sort-function}.  By default, names are ordered as

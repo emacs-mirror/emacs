@@ -666,7 +666,7 @@ available options can be restored by enabling this option.
 *** 'imenu' is now bound to 'M-g i' globally.
 
 ---
-*** New command 'imenu-flush-cache'.
+*** New function 'imenu-flush-cache'.
 Use it if you want Imenu to forget the buffer's index alist and
 recreate it anew next time 'imenu' is invoked.
 
