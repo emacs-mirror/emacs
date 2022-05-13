@@ -577,7 +577,7 @@ prefix argument (`C-u C-u C-u C-c C-w')."
 		     (with-demoted-errors "Bookmark set error: %S"
 		       (bookmark-set bookmark-name))))
 		 (move-marker org-capture-last-stored-marker (point)))
-	       (when (fboundp 'deactivate-mark) (deactivate-mark))
+               (deactivate-mark)
 	       (run-hooks 'org-after-refile-insert-hook)))
 	    (unless org-refile-keep
 	      (if regionp

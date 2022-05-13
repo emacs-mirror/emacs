@@ -12160,7 +12160,7 @@ This works in the agenda, and also in an Org buffer."
 	 (progn
 	   (message "[s]et or [r]emove? ")
 	   (equal (read-char-exclusive) ?r))))
-  (when (fboundp 'deactivate-mark) (deactivate-mark))
+  (deactivate-mark)
   (let ((agendap (equal major-mode 'org-agenda-mode))
 	l1 l2 m buf pos newhead (cnt 0))
     (goto-char end)
