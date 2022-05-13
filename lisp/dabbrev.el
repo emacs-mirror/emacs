@@ -802,7 +802,10 @@ of the start of the occurrence."
 	         (progress-reporter-done dabbrev--progress-reporter)
 	         expansion))
            (when (buffer-live-p file-name-buffer)
-             (kill-buffer file-name-buffer))))))))
+             (kill-buffer file-name-buffer))
+           (setq dabbrev--friend-buffer-list
+                 (seq-filter #'buffer-live-p
+                             dabbrev--friend-buffer-list))))))))
 
 ;; Compute the list of buffers to scan.
 ;; If dabbrev-search-these-buffers-only, then the current buffer
