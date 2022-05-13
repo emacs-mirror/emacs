@@ -468,5 +468,21 @@ otherwise, use a different charset."
   (should-error (prin1-to-string 'foo nil '((a . b) b)))
   (should-error (prin1-to-string 'foo nil '((length . 10) . b))))
 
+(ert-deftest print-deeply-nested ()
+  ;; Check that we can print a deeply nested data structure correctly.
+  (let ((print-circle t))
+    (let ((levels 10000)
+          (x 'a)
+          (prefix nil)
+          (suffix nil))
+      (dotimes (_ levels)
+        (setq x (list (vector (record 'r x))))
+        (push "([#s(r " prefix)
+        (push ")])" suffix))
+      (let ((expected (concat (apply #'concat prefix)
+                              "a"
+                              (apply #'concat suffix))))
+        (should (equal (prin1-to-string x) expected))))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here
