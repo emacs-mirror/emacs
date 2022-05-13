@@ -471,11 +471,10 @@ is retrieved.  Using an outdated node throws
 
 @heading Retrieving node from syntax tree
 
-@defun treesit-node-at beg &optional end parser-or-lang named
-This function returns the @emph{smallest} node that covers the span
-from @var{beg} to @var{end}.  In other words, the start of the node
-@code{<=} @var{beg}, and the end of the node @code{>=} @var{end}.  If
-@var{end} is omitted, it defaults to the value of @var{beg}.
+@defun treesit-node-at beg end &optional parser-or-lang named
+This function returns the @emph{smallest} node that starts at or after
+the @var{point}.  In other words, the start of the node is equal or
+greater than @var{point}.
 
 When @var{parser-or-lang} is nil, this function uses the first parser
 in @var{treesit-parser-list} in the current buffer.  If
@@ -489,10 +488,32 @@ instead (@pxref{tree-sitter named node, named node}).
 @example
 @group
 ;; Find the node at point in a C parser's syntax tree.
-(treesit-node-at (point) (point) 'c)
+(treesit-node-on (point) 'c)
     @c @result{} #<treesit-node from 1 to 4 in *scratch*>
 @end group
 @end example
+@end defun
+
+@defun treesit-node-on beg end &optional parser-or-lang named
+This function returns the @emph{smallest} node that covers the span
+from @var{beg} to @var{end}.  In other words, the start of the node is
+less or equal to @var{beg}, and the end of the node is greater or
+equal to @var{end}.
+
+@emph{Beware}, Calling this function on an empty line that is not
+inside any top-level construct (function definition, etc) most
+probably will give you the root node, because the root node is the
+smallest node that covers that empty line.  You probably want to use
+@code{treesit-node-at} instead.
+
+When @var{parser-or-lang} is nil, this function uses the first parser
+in @var{treesit-parser-list} in the current buffer.  If
+@var{parser-or-lang} is a parser object, it use that parser; if
+@var{parser-or-lang} is a language, it finds the first parser using
+that language in @var{treesit-parser-list} and use that.
+
+If @var{named} is non-nil, this function looks for a named node
+instead (@pxref{tree-sitter named node, named node}).
 @end defun
 
 @defun treesit-parser-root-node parser

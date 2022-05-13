@@ -90,7 +90,7 @@ Return the root node of the syntax tree."
 (defun treesit-language-at (point)
   "Return the language used at POINT."
   (cl-loop for parser in treesit-parser-list
-           if (treesit-node-at point nil parser)
+           if (treesit-node-on point point parser)
            return (treesit-parser-language parser)))
 
 (defun treesit-set-ranges (parser-or-lang ranges)
@@ -128,11 +128,40 @@ Return the root node of the syntax tree."
   (treesit-parser-language
    (treesit-node-parser node)))
 
-(defun treesit-node-at (beg &optional end parser-or-lang named)
+(defun treesit-node-at (point &optional parser-or-lang named)
+  "Return the smallest node that starts at or after POINT.
+
+\"Starts at or after POINT\" means the start of the node is
+greater or larger than POINT.  Return nil if none find.  If NAMED
+non-nil, only look for named node.
+
+If PARSER-OR-LANG is nil, use the first parser in
+`treesit-parser-list'; if PARSER-OR-LANG is a parser, use
+that parser; if PARSER-OR-LANG is a language, find a parser using
+that language in the current buffer, and use that."
+  (let ((node (if (treesit-parser-p parser-or-lang)
+                  (treesit-parser-root-node parser-or-lang)
+                (treesit-buffer-root-node parser-or-lang))))
+    ;; TODO: We might want a `treesit-node-decendant-for-pos' in C.
+    (while (cond ((< (treesit-node-end node) point)
+                  (setq node (treesit-node-next-sibling node))
+                  t)
+                 ((treesit-node-child node 0 named)
+                  (setq node (treesit-node-child node 0 named))
+                  t)))
+    node))
+
+(defun treesit-node-on (beg end &optional parser-or-lang named)
   "Return the smallest node covering BEG to END.
 
-If omitted, END defaults to BEG.  Return nil if none find.  If
-NAMED non-nil, only look for named node.  NAMED defaults to nil.
+BEWARE!  Calling this function on an empty line that is not
+inside any top-level construct (function definition, etc) most
+probably will give you the root node, because the root node is
+the smallest node that covers that empty line.  You probably want
+to use `treesit-node-at' instead.
+
+Return nil if none find.  If NAMED non-nil, only look for named
+node.
 
 If PARSER-OR-LANG is nil, use the first parser in
 `treesit-parser-list'; if PARSER-OR-LANG is a parser, use
@@ -358,7 +387,7 @@ If LOUDLY is non-nil, message some debugging information."
     (when-let* ((language (nth 0 setting))
                 (match-pattern (nth 1 setting))
                 (parser (treesit-get-parser-create language)))
-      (when-let ((node (treesit-node-at start end parser)))
+      (when-let ((node (treesit-node-on start end parser)))
         (let ((captures (treesit-query-capture
                          node match-pattern
                          ;; Specifying the range is important. More
@@ -500,7 +529,7 @@ See `treesit-simple-indent-presets'.")
                      (forward-line -1)
                      (skip-chars-forward " \t")
                      (treesit-node-start
-                      (treesit-node-at (point) nil nil t))))))
+                      (treesit-node-at (point) nil t))))))
   "A list of presets.
 These presets that can be used as MATHER and ANCHOR in
 `treesit-simple-indent-rules'.
@@ -622,8 +651,7 @@ of the current line.")
                 (point)))
          (smallest-node
           (cl-loop for parser in treesit-parser-list
-                   for node = (treesit-node-at
-                               bol nil parser)
+                   for node = (treesit-node-at bol parser)
                    if node return node))
          (node (treesit-parent-while
                 smallest-node
@@ -639,7 +667,7 @@ of the current line.")
          (parent (cond ((and node parser)
                         (treesit-node-parent node))
                        (parser
-                        (treesit-node-at bol nil parser))
+                        (treesit-node-at bol parser))
                        (t nil)))
          (`(,anchor . ,offset)
           (funcall treesit-indent-function node parent bol)))

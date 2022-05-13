@@ -331,7 +331,11 @@
                 'json))
     ;; `treesit-node-at'.
     (should (equal (treesit-node-string
-                    (treesit-node-at 1 2 'json))
+                    (treesit-node-at 1 'json))
+                   "(\"[\")"))
+    ;; `treesit-node-on'
+    (should (equal (treesit-node-string
+                    (treesit-node-on 1 2 'json))
                    "(\"[\")"))
     ;; `treesit-buffer-root-node'.
     (should (treesit-node-eq
