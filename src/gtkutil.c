@@ -6395,6 +6395,9 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   if (!f)
     return true;
 
+  if (popup_activated ())
+    return true;
+
 #ifdef HAVE_XINPUT2
   pending_keystroke_time
     = FRAME_DISPLAY_INFO (f)->pending_keystroke_time;

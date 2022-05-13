@@ -14014,6 +14014,13 @@ x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
       result = xg_filter_key (f1, event);
       unblock_input ();
 
+      /* Clear `xg_pending_quit_event' so we don't end up reacting to quit
+	 events sent outside the main event loop (i.e. those sent from
+	 inside a popup menu event loop).  */
+
+      if (popup_activated ())
+	xg_pending_quit_event.kind = NO_EVENT;
+
       if (result && f1)
 	/* There will probably be a GDK event generated soon, so
 	   exercise the wire to make pselect return.  */
