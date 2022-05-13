@@ -1090,7 +1090,7 @@ strings done by `substitute-command-keys'."
   :version "29.1"
   :group 'help)
 
-(defun substitute-command-keys (string &optional no-face)
+(defun substitute-command-keys (string &optional no-face include-menus)
   "Substitute key descriptions for command names in STRING.
 Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
@@ -1100,11 +1100,13 @@ unless the optional argument NO-FACE is non-nil.
 Each substring of the form \\\\=`KEYBINDING' will be replaced by
 KEYBINDING and use the `help-key-binding' face.
 
-Each substring of the form \\\\={MAPVAR} is replaced by a summary of
-the value of MAPVAR as a keymap.  This summary is similar to the one
-produced by ‘describe-bindings’.  The summary ends in two newlines
-(used by the helper function ‘help-make-xrefs’ to find the end of the
-summary).
+Each substring of the form \\\\={MAPVAR} is replaced by a summary
+of the value of MAPVAR as a keymap.  This summary is similar to
+the one produced by ‘describe-bindings’.  This will normally
+exclude menu bindings, but if the optional INCLUDE-MENUS argument
+is non-nil, also include menu bindings.  The summary ends in two
+newlines (used by the helper function ‘help-make-xrefs’ to find
+the end of the summary).
 
 Each substring of the form \\\\=<MAPVAR> specifies the use of MAPVAR
 as the keymap for future \\\\=[COMMAND] substrings.
@@ -1253,9 +1255,11 @@ Otherwise, return a new string."
                    (t
                     ;; Get the list of active keymaps that precede this one.
                     ;; If this one's not active, get nil.
-                    (let ((earlier-maps (cdr (memq this-keymap (reverse active-maps)))))
+                    (let ((earlier-maps
+                           (cdr (memq this-keymap (reverse active-maps)))))
                       (describe-map-tree this-keymap t (nreverse earlier-maps)
-                                         nil nil t nil nil t))))))))
+                                         nil nil (not include-menus)
+                                         nil nil t))))))))
              ;; 2. Handle quotes.
              ((and (eq (text-quoting-style) 'curve)
                    (or (and (= (following-char) ?\`)

@@ -390,7 +390,7 @@ quotes.  You can customize it freely according to your personal
 preference.
 @end defopt
 
-@defun substitute-command-keys string &optional no-face
+@defun substitute-command-keys string &optional no-face include-menus
 @vindex help-key-binding@r{ (face)}
 This function scans @var{string} for the above special sequences and
 replaces them by what they stand for, returning the result as a string.
@@ -439,6 +439,9 @@ C-j             minibuffer-complete-and-exit
 RET             minibuffer-complete-and-exit
 C-g             abort-recursive-edit
 "
+
+The keymap description will normally exclude menu items, but it
+@var{include-menus} is non-@code{nil}, include them.
 
 @group
 (substitute-command-keys
