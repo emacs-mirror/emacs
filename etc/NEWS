@@ -2030,6 +2030,11 @@ where 'major-mode' is 'shell-mode' or a combined with a condition like
 Use 'buffer-match-p' to gather a list of buffers that match a
 condition.
 
+---
+** New arguments 'text-face' and 'frame-face' for 'tooltip-show'.
+They allow changing the faces used for the tooltip text and frame
+colors of the resulting tooltip frame from the default 'tooltip' face.
+
 ** Text security and suspiciousness
 
 +++
