@@ -782,7 +782,7 @@ prettify_key (const char *key)
     }
   /* Just dismiss any help-echo that might already be in progress if
      no menu item will be highlighted.  */
-  else if (item == nil)
+  else if (item == nil || idx <= 0)
     help = Qnil;
   else
     {
