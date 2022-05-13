@@ -1942,9 +1942,7 @@ before point that's highlighted as misspelled."
 			   'face 'flyspell-incorrect
 			   string))
       (setq pos (cdr pos)))
-    (if (fboundp 'display-message)
-	(display-message 'no-log string)
-      (message "%s" string))))
+    (message "%s" string)))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-abbrev-table ...                                        */
