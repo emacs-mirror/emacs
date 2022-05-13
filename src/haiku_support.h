@@ -563,6 +563,7 @@ extern void *BCursor_create_i_beam (void);
 extern void *BCursor_create_progress_cursor (void);
 extern void *BCursor_create_grab (void);
 extern void BCursor_delete (void *);
+extern void *be_create_pixmap_cursor (void *, int, int);
 
 extern void *BScrollBar_make_for_view (void *, int, int, int, int, int, void *);
 extern void BScrollBar_delete (void *);

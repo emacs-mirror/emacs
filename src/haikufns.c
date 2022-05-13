@@ -34,6 +34,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haiku_support.h"
 #include "termhooks.h"
 
+#include "bitmaps/leftptr.xbm"
+#include "bitmaps/leftpmsk.xbm"
+
 #include <stdlib.h>
 
 #include <kernel/OS.h>
@@ -763,7 +766,7 @@ haiku_create_frame (Lisp_Object parms)
                          "foreground", "Foreground", RES_TYPE_STRING);
   gui_default_parameter (f, parms, Qbackground_color, build_string ("white"),
                          "background", "Background", RES_TYPE_STRING);
-  gui_default_parameter (f, parms, Qmouse_color, build_string ("black"),
+  gui_default_parameter (f, parms, Qmouse_color, build_string ("font-color"),
                          "pointerColor", "Foreground", RES_TYPE_STRING);
   gui_default_parameter (f, parms, Qline_spacing, Qnil,
                          "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
@@ -1056,7 +1059,10 @@ haiku_create_tip_frame (Lisp_Object parms)
 
   gui_default_parameter (f, parms, Qbackground_color, build_string ("white"),
                          "background", "Background", RES_TYPE_STRING);
-  gui_default_parameter (f, parms, Qmouse_color, build_string ("black"),
+
+  /* FIXME: is there a better method to tell Emacs to not recolor the
+     cursors other than setting the color to a special value?  */
+  gui_default_parameter (f, parms, Qmouse_color, build_string ("font-color"),
                          "pointerColor", "Foreground", RES_TYPE_STRING);
   gui_default_parameter (f, parms, Qcursor_color, build_string ("black"),
                          "cursorColor", "Foreground", RES_TYPE_STRING);
@@ -1787,6 +1793,23 @@ struct user_cursor_info
   ptrdiff_t default_offset;
 };
 
+struct user_cursor_bitmap_info
+{
+  /* The name of a bitmap to use instead of the font cursor if a
+     cursor color was set.  */
+  const void *bits;
+
+  /* The mask for that bitmap.  */
+  const void *mask;
+
+  /* The dimensions of the cursor bitmap.  */
+  int width, height;
+
+  /* The position inside the cursor bitmap corresponding to the
+     position of the mouse pointer.  */
+  int x, y;
+};
+
 #define INIT_USER_CURSOR(lisp, cursor)			\
   { (lisp), offsetof (struct haiku_output, cursor),	\
       offsetof (struct haiku_display_info, cursor) }
@@ -1811,7 +1834,70 @@ struct user_cursor_info custom_cursors[] =
     INIT_USER_CURSOR (NULL,				no_cursor),
   };
 
-/* Free all cursors not default in F.  */
+struct user_cursor_bitmap_info cursor_bitmaps[] =
+  {
+    { NULL, NULL, 0, 0, 0, 0 },				/* text_cursor */
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 4, 1 },	/* nontext_cursor */
+    { left_ptr_bits, left_ptrmsk_bits, 16, 16, 4, 1 },	/* modeline_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* hand_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* hourglass_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* horizontal_drag_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* vertical_drag_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* left_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* top_left_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* top_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* top_right_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* right_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* bottom_right_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* bottom_edge_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* bottom_left_corner_cursor */
+    { NULL, NULL, 0, 0, 0, 0 },				/* no_cursor */
+  };
+
+static void *
+haiku_create_colored_cursor (struct user_cursor_bitmap_info *info,
+			     uint32_t foreground, uint32_t background)
+{
+  const char *bits, *mask;
+  void *bitmap, *cursor;
+  int width, height, bytes_per_line, x, y;
+
+  bits = info->bits;
+  mask = info->mask;
+  width = info->width;
+  height = info->height;
+  bytes_per_line = (width + 7) / 8;
+
+  bitmap = BBitmap_new (width, height, false);
+
+  if (!bitmap)
+    memory_full (SIZE_MAX);
+
+  for (y = 0; y < height; ++y)
+    {
+      for (x = 0; x < width; ++x)
+	{
+	  if (mask[x / 8] >> (x % 8) & 1)
+	    haiku_put_pixel (bitmap, x, y,
+			     (bits[x / 8] >> (x % 8) & 1
+			      ? (foreground | 255u << 24)
+			      : (background | 255u << 24)));
+	  else
+	    haiku_put_pixel (bitmap, x, y, 0);
+	}
+
+      mask += bytes_per_line;
+      bits += bytes_per_line;
+    }
+
+  cursor = be_create_pixmap_cursor (bitmap, info->x, info->y);
+  BBitmap_free (bitmap);
+
+  return cursor;
+}
+
+/* Free all cursors on F that were allocated specifically for the
+   frame.  */
 void
 haiku_free_custom_cursors (struct frame *f)
 {
@@ -1833,13 +1919,12 @@ haiku_free_custom_cursors (struct frame *f)
       display_cursor = (Emacs_Cursor *) ((char *) dpyinfo
 					 + cursor->default_offset);
 
-      if (*frame_cursor != *display_cursor
-	  && *frame_cursor)
+      if (*frame_cursor != *display_cursor && *frame_cursor)
 	{
-	  BCursor_delete (*frame_cursor);
-
 	  if (output->current_cursor == *frame_cursor)
 	    output->current_cursor = *display_cursor;
+
+	  BCursor_delete (*frame_cursor);
 	}
 
       *frame_cursor = *display_cursor;
@@ -1850,8 +1935,21 @@ static void
 haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   struct haiku_output *output;
-  Emacs_Cursor *frame_cursor, old;
-  int i, n;
+  Emacs_Cursor *frame_cursor, old, *recolored;
+  int i, n, rc;
+  bool color_specified_p;
+  Emacs_Color color;
+
+  CHECK_STRING (arg);
+  color_specified_p = true;
+
+  if (!strcmp (SSDATA (arg), "font-color"))
+    color_specified_p = false;
+  else
+    rc = haiku_get_color (SSDATA (arg), &color);
+
+  if (color_specified_p && rc)
+    signal_error ("Invalid color", arg);
 
   output = FRAME_OUTPUT_DATA (f);
 
@@ -1876,24 +1974,30 @@ haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	  n = XFIXNUM (*custom_cursors[i].lisp_cursor);
 
 	  /* Create and set the custom cursor.  */
-	  block_input ();
 	  *frame_cursor = BCursor_from_id (n);
-	  unblock_input ();
+	}
+      else if (color_specified_p && cursor_bitmaps[i].bits)
+	{
+	  recolored
+	    = haiku_create_colored_cursor (&cursor_bitmaps[i], color.pixel,
+					   FRAME_BACKGROUND_PIXEL (f));
 
-	  /* This function can be called before the frame's window is
-	     created.  */
-	  if (FRAME_HAIKU_WINDOW (f))
-	    {
-	      if (output->current_cursor == old)
-		{
-		  output->current_cursor = *frame_cursor;
+	  if (recolored)
+	    *frame_cursor = recolored;
+	}
+    }
 
-		  block_input ();
-		  BView_set_view_cursor (FRAME_HAIKU_VIEW (f),
-					 *frame_cursor);
-		  unblock_input ();
-		}
-	    }
+  /* This function can be called before the frame's window is
+     created.  */
+  if (FRAME_HAIKU_WINDOW (f))
+    {
+      if (output->current_cursor == old
+	  && old != *frame_cursor)
+	{
+	  output->current_cursor = *frame_cursor;
+
+	  BView_set_view_cursor (FRAME_HAIKU_VIEW (f),
+				 *frame_cursor);
 	}
     }
 

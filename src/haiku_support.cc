@@ -5122,3 +5122,21 @@ be_roster_launch (const char *type, const char *file, char **cargs,
 				   ? INT_MAX : nargs),
 			    cargs, team_id);
 }
+
+void *
+be_create_pixmap_cursor (void *bitmap, int x, int y)
+{
+  BBitmap *bm;
+  BCursor *cursor;
+
+  bm = (BBitmap *) bitmap;
+  cursor = new BCursor (bm, BPoint (x, y));
+
+  if (cursor->InitCheck () != B_OK)
+    {
+      delete cursor;
+      return NULL;
+    }
+
+  return cursor;
+}

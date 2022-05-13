@@ -577,11 +577,8 @@ haiku_query_frame_background_color (struct frame *f, Emacs_Color *bgcolor)
 }
 
 static bool
-haiku_defined_color (struct frame *f,
-		     const char *name,
-		     Emacs_Color *color,
-		     bool alloc,
-		     bool make_index)
+haiku_defined_color (struct frame *f, const char *name,
+		     Emacs_Color *color, bool alloc, bool make_index)
 {
   return !haiku_get_color (name, color);
 }
