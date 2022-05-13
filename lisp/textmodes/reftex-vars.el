@@ -1318,7 +1318,7 @@ macro before insertion.  For example, it will change
     \\cite[][]{Jones}              -> \\cite{Jones}
     \\cite[][Chapter 1]{Jones}     -> \\cite[Chapter 1]{Jones}
     \\cite[see][]{Jones}           -> \\cite[see][]{Jones}
-    \\cite[see][Chapter 1]{Jones}  -> \\cite{Jones}
+    \\cite[see][Chapter 1]{Jones}  -> \\cite[see][Chapter 1]{Jones}
 It is possible that other packages have other conventions about which
 optional argument is interpreted how - that is why this cleaning up
 can be turned off."
