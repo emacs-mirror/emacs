@@ -369,7 +369,9 @@
 ;; TODO
 ;; - Functions in treesit.el
 ;; - treesit-load-name-override-list
-;; - treesit-traverse-defun
+;; - treesit-search-forward
+;; - treesit-search-beginning
+;; - treesit-search-end
 ;; - treesit-beginning-of-defun
 ;; - treesit-end-of-defun
 

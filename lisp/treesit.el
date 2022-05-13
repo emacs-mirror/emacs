@@ -832,6 +832,89 @@ indentation (target) is in green, current indentation is in red."
       (indent-region (point-min) (point-max))
       (diff-buffers source-buf (current-buffer)))))
 
+;;; Search
+
+(defun treesit-search-forward (pos-fn arg query &optional lang)
+  "Search forward for nodes that matches QUERY.
+
+This is a more primitive function, you might want to use
+`treesit-search-beginning' or `treesit-search-end' instead.
+
+QUERY has to capture the node to match.  LANG specifies the
+language in which we search for nodes.  If LANG is nil, use the
+first parser in `treesit-parser-list'.
+
+Move forward/backward ARG times, positive ARG means go forward,
+negative ARG means go backward.
+
+POS-FN can be either `treesit-node-start' or `treesit-node-end',
+or any function that takes a node and returns a position.
+
+If search succeeds, stop at the position returned by POS-FN and
+return the matched node.  Return nil if search failed."
+  (cl-loop for idx from 1 to (abs arg)
+           for parser = (if lang
+                            (treesit-get-parser-create lang)
+                          (car treesit-parser-list))
+           for node =
+           (if-let ((starting-point (point))
+                    (node (treesit-node-at (point) parser t)))
+               (treesit-traverse-forward-depth-first
+                node
+                (lambda (node)
+                  (and (not (eq (funcall pos-fn node)
+                                starting-point))
+                       (if (> arg 0)
+                           ;; Make sure we move forward.
+                           (> (funcall pos-fn node) starting-point)
+                         ;; Make sure we move backward.
+                         (< (funcall pos-fn node) starting-point))
+                       (cl-loop for cap-node in
+                                (mapcar
+                                 #'cdr
+                                 (treesit-query-capture node query))
+                                if (treesit-node-eq cap-node node)
+                                return t)))
+                arg))
+           for pos = (funcall pos-fn node)
+           ;; If we can find a match, jump to it.
+           if pos do (goto-char pos)
+           else return nil
+           ;; Return t to indicate that search is successful.
+           finally return node))
+
+(defun treesit-search-beginning (query arg &optional lang)
+  "Search forward for nodes that matches QUERY.
+
+Stops at the beginning of matched node.
+
+QUERY has to capture the node to match.  LANG specifies the
+language in which we search for nodes.  If LANG is nil, use the
+first parser in `treesit-parser-list'.
+
+Move forward/backward ARG times, positive ARG means go forward,
+negative ARG means go backward.
+
+If search succeeds, return the matched node.  Return nil if
+search failed."
+  (treesit-search-forward #'treesit-node-start arg query lang))
+
+(defun treesit-search-end (query arg &optional lang)
+  "Search forward for nodes that matches QUERY.
+
+Stops at the end of matched node.
+
+QUERY has to capture the node to match.  LANG specifies the
+language in which we search for nodes.  If LANG is nil, use the
+first parser in `treesit-parser-list'.
+
+Move forward/backward ARG times, positive ARG means go forward,
+negative ARG means go backward.
+
+If search succeeds, return the matched node.  Return nil if
+search failed."
+  (treesit-search-forward #'treesit-node-end arg query lang))
+
 ;;; Navigation
 
 (defvar-local treesit-defun-query nil
@@ -839,49 +922,15 @@ indentation (target) is in green, current indentation is in red."
 Capture names don't matter.  This variable is used by navigation
 functions like `treesit-beginning-of-defun'.")
 
-(defun treesit-traverse-defun (pos-fn arg)
-  "Move forward/backward to the beginning/end of a defun.
-
-Defun is defined according to `treesit-defun-pattern'.  Move
-forward/backward ARG time, positive ARG means go forward,
-negative ARG means go backward.
-
-POS-FN can be either `treesit-node-start' or `treesit-node-end'."
-  (unless treesit-defun-query
-    (error "Variable `treesit-defun-query' is unset"))
-  (cl-loop for idx from 1 to (abs arg)
-           for positions =
-           (remove
-            nil
-            (mapcar (lambda (parser)
-                      (if-let ((starting-point (point))
-                               (node (treesit-node-at
-                                      (point) parser t)))
-                          (funcall
-                           pos-fn
-                           (treesit-traverse-forward-depth-first
-                            node
-                            (lambda (node)
-                              (and (not (eq (funcall pos-fn node)
-                                            starting-point))
-                                   (treesit-query-capture
-                                    node treesit-defun-query)))
-                            arg))))
-                    treesit-parser-list))
-           ;; If we can find a defun start, jump to it.
-           if positions do (goto-char (apply #'max positions))
-           else return nil
-           if (eq (point) (point-min)) return nil
-           ;; Return t to indicate that search is successful.
-           finally return t))
-
 (defun treesit-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
 
 With ARG, do it that many times.  Negative ARG means move forward
 to the ARGth following beginning of defun.  Defun is defined
 according to `treesit-defun-pattern'."
-  (treesit-traverse-defun #'treesit-node-start (- arg)))
+  (unless treesit-defun-query
+    (error "Variable `treesit-defun-query' is unset"))
+  (treesit-search-beginning treesit-defun-query (- arg)))
 
 (defun treesit-end-of-defun (&optional arg)
   "Move forward to the end of a defun.
@@ -889,7 +938,9 @@ according to `treesit-defun-pattern'."
 With ARG, do it that many times.  Negative ARG means move back to
 ARGth preceding end of defun.  Defun is defined according to
 `treesit-defun-pattern'."
-  (treesit-traverse-defun #'treesit-node-end arg))
+  (unless treesit-defun-query
+    (error "Variable `treesit-defun-query' is unset"))
+  (treesit-search-end treesit-defun-query arg))
 
 ;;; Debugging
 
