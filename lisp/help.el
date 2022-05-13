@@ -1954,8 +1954,11 @@ The `temp-buffer-window-setup-hook' hook is called."
   ;; where this should be set to a buffer position is within BODY.
   (set-marker help-window-point-marker nil)
   (with-current-buffer (get-buffer-create buffer)
+    (unless (derived-mode-p 'help-mode)
+      (help-mode))
     (setq buffer-read-only t
           buffer-file-name nil)
+    (setq-local help-mode--current-data nil)
     (buffer-disable-undo)
     (let ((inhibit-read-only t)
 	  (inhibit-modification-hooks t))
@@ -1966,8 +1969,6 @@ The `temp-buffer-window-setup-hook' hook is called."
             (funcall callback)
             (run-hooks 'temp-buffer-window-setup-hook))
         (help-window-setup (temp-buffer-window-show (current-buffer)))
-        (unless (derived-mode-p 'help-mode)
-          (help-mode))
         (help-make-xrefs (current-buffer))))))
 
 ;; Called from C, on encountering `help-char' when reading a char.
