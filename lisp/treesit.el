@@ -227,6 +227,113 @@ one argument, the parent node."
             node (treesit-node-parent node)))
     last))
 
+(defalias 'treesit-traverse-parent #'treesit-parent-until)
+
+(defun treesit-traverse-depth-first (node pred &optional step)
+  "Traverse the subtree of NODE depth-first.
+
+Traverse starting from NODE (i.e., NODE is passed to PRED).  For
+each node traversed, call PRED with the node, stop and return the
+node if PRED returns non-nil.  If STEP >= 0 or nil, go forward,
+if STEP < 0, go backward.  If no node satisfies PRED, return
+nil."
+  (if (funcall pred node)
+      node
+    (cl-loop for child in (if (or (null step) (>= step 0))
+                              (treesit-node-children node)
+                            (nreverse (treesit-node-children node)))
+             if (treesit-traverse-depth-first child pred step)
+             return child)))
+
+(defun treesit--traverse-breadth-first-1 (pred step queue tail)
+  "The work horse for `treesit-traverse-breadth-first'.
+PRED and STEP are the same as in
+`treesit-traverse-breadth-first'.  This function simply runes BFS
+on QUEUE: pops an element from QUEUE, append children to QUEUE,
+process the element, and next iteration.  TAIL is the pointer to
+the last cons in QUEUE, used for appending elements."
+  (cl-loop while queue
+           if (funcall pred (car queue)) return (car queue)
+           else do
+           (let ((children (if (or (null step) (>= step 0))
+                               (treesit-node-children (car queue))
+                             (nreverse (treesit-node-children (car queue))))))
+             ;; Append children to the end.
+             (setcdr tail children)
+             (setq tail (last tail))
+             ;; Pop the head off.
+             (setq queue (cdr queue)))
+           finally return nil))
+
+(defun treesit-traverse-breadth-first (node pred &optional step)
+  "Traverse the subtree of NODE breadth-first.
+
+Traverse starting from NODE (i.e., NODE is passed to PRED).  For
+each node traversed, call PRED with the node, stop and return the
+node if PRED returns non-nil.  If STEP >= 0 or nil, go forward,
+if STEP < 0, go backward.  If no node satisfies PRED, return
+nil."
+  ;; Traverse with a queue.
+  (let* ((queue (list node))
+         (tail (last queue)))
+    (treesit--traverse-breadth-first-1 pred step queue tail)))
+
+(defun treesit-next-sibling-or-up (node step)
+  "Return the next sibling of NODE.
+
+If there is no next sibling of NODE but NODE has a parent, return
+the parent.  If there is no parent, return nil.  If STEP >= 0 or
+nil, return the next sibling, if STEP < 0, return the previous
+one.
+
+Return either ('sibling node) or ('parent node)."
+  ;; First deplete siblings.
+  (if-let ((sibling (if (or (null step) (>= step 0))
+                        (treesit-node-next-sibling node)
+                      (treesit-node-prev-sibling node))))
+      (list 'sibling sibling)
+    ;; When siblings depleted, go up one level.
+    (when (treesit-node-parent node)
+      (list 'parent (treesit-node-parent node)))))
+
+(defun treesit-traverse-forward-depth-first (node pred &optional step)
+  "Traverse the whole tree forward from NODE depth-first.
+
+Traverse starting from NODE (i.e., NODE is passed to PRED).  For
+each node traversed, call PRED with the node, stop and return the
+node if PRED returns non-nil.  If STEP >= 0 or nil, go forward,
+if STEP < 0, go backward.  If no node satisfies PRED, return
+nil.
+
+Traversing forward depth-first means, for a tree like the below
+where NODE is marked 1, traverse as numbered:
+
+                16
+                |
+       3--------4-----------8
+       |        |           |
+  o--o-+--1  5--+--6    9---+-----12
+  |  |    |        |    |         |
+  o  o    2        7  +-+-+    +--+--+
+                      |   |    |  |  |
+                      10  11   13 14 15"
+  ;; First try NODE's subtree.
+  (or (treesit-traverse-depth-first node pred step)
+      ;; If no match, try the next node: next sibling, or parent if no
+      ;; next sibling exists.
+      (catch 'match
+        (let ((next (list nil node)))
+          ;; If NEXT is parent, call PRED on it and keep going.
+          (while (and (setq next (treesit-next-sibling-or-up
+                                  (cadr next) step))
+                      (eq (car next) 'parent))
+            (when (funcall pred (cadr next))
+              (throw 'match (cadr next))))
+          (when next
+            ;; If NEXT is non-nil, it must be ('sibling node).
+            (treesit-traverse-forward-depth-first
+             (cadr next) pred step))))))
+
 (defun treesit-node-children (node &optional named)
   "Return a list of NODE's children.
 If NAMED is non-nil, collect named child only."

@@ -360,6 +360,10 @@
     ;; `treesit-parent-while'
     ;; `treesit-node-children'
     ;; `treesit-node-field-name'
+    ;; `treesit-next-sibling-or-up'
+    ;; `treesit-traverse-depth-first'
+    ;; `treesit-traverse-breadth-first'
+    ;; `treesit-traverse-forward-depth-first'
     ))
 
 ;; TODO
