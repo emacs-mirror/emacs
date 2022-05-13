@@ -6621,6 +6621,10 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 			glyph->ascent + glyph->descent - 1);
       x += glyph->pixel_width;
    }
+
+  /* Defend against hypothetical bad code elsewhere that uses
+     s->char2b after this function returns.  */
+  s->char2b = NULL;
 }
 
 #ifdef USE_X_TOOLKIT
@@ -23521,7 +23525,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifdef USE_XCB
   xcb_connection_t *xcb_conn;
 #endif
-  char *cm_atom_sprintf;
+  static char const cm_atom_fmt[] = "_NET_WM_CM_S%d";
+  char cm_atom_sprintf[sizeof cm_atom_fmt - 2 + INT_STRLEN_BOUND (int)];
 
   block_input ();
 
@@ -24212,14 +24217,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       dpyinfo->resx = (mm < 1) ? 100 : pixels * 25.4 / mm;
     }
 
-  {
-    int n = snprintf (NULL, 0, "_NET_WM_CM_S%d",
-		      XScreenNumberOfScreen (dpyinfo->screen));
-    cm_atom_sprintf = alloca (n + 1);
-
-    snprintf (cm_atom_sprintf, n + 1, "_NET_WM_CM_S%d",
-	      XScreenNumberOfScreen (dpyinfo->screen));
-  }
+  sprintf (cm_atom_sprintf, cm_atom_fmt,
+	   XScreenNumberOfScreen (dpyinfo->screen));
 
   {
     static const struct

@@ -22471,6 +22471,13 @@ compute_line_metrics (struct it *it)
 }
 
 
+static void
+clear_position (struct it *it)
+{
+  it->position.charpos = 0;
+  it->position.bytepos = 0;
+}
+
 /* Append one space to the glyph row of iterator IT if doing a
    window-based redisplay.  The space has the same face as
    IT->face_id.  Value is true if a space was added.
@@ -22506,7 +22513,7 @@ append_space_for_newline (struct it *it, bool default_face_p)
       struct face *face;
 
       it->what = IT_CHARACTER;
-      memset (&it->position, 0, sizeof it->position);
+      clear_position (it);
       it->object = Qnil;
       it->len = 1;
 
@@ -22835,7 +22842,7 @@ extend_face_to_end_of_line (struct it *it)
 	      const int stretch_width =
 		indicator_column - it->current_x - char_width;
 
-	      memset (&it->position, 0, sizeof it->position);
+	      clear_position (it);
 
 	      /* Only generate a stretch glyph if there is distance
 		 between current_x and the indicator position.  */
@@ -22869,7 +22876,7 @@ extend_face_to_end_of_line (struct it *it)
 
 	      if (stretch_width > 0)
 		{
-		  memset (&it->position, 0, sizeof it->position);
+		  clear_position (it);
 		  append_stretch_glyph (it, Qnil, stretch_width,
 					it->ascent + it->descent,
 					stretch_ascent);
@@ -22919,7 +22926,7 @@ extend_face_to_end_of_line (struct it *it)
 		(((it->ascent + it->descent)
 		  * FONT_BASE (font)) / FONT_HEIGHT (font));
 	      saved_pos = it->position;
-	      memset (&it->position, 0, sizeof it->position);
+	      clear_position (it);
 	      saved_avoid_cursor = it->avoid_cursor_p;
 	      it->avoid_cursor_p = true;
 	      saved_face_id = it->face_id;
@@ -22957,7 +22964,7 @@ extend_face_to_end_of_line (struct it *it)
       enum display_element_type saved_what = it->what;
 
       it->what = IT_CHARACTER;
-      memset (&it->position, 0, sizeof it->position);
+      clear_position (it);
       it->object = Qnil;
       it->c = it->char_to_display = ' ';
       it->len = 1;
@@ -32651,7 +32658,7 @@ display_and_set_cursor (struct window *w, bool on,
 {
   struct frame *f = XFRAME (w->frame);
   int new_cursor_type;
-  int new_cursor_width;
+  int new_cursor_width UNINIT;
   bool active_cursor;
   struct glyph_row *glyph_row;
   struct glyph *glyph;

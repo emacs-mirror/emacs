@@ -1427,14 +1427,19 @@ main (int argc, char **argv)
   if (CTAGS)
     if (append_to_tagfile || update)
       {
-	char *cmd = xmalloc (2 * strlen (tagfile) + sizeof "sort -u -o..");
 	/* Maybe these should be used:
 	   setenv ("LC_COLLATE", "C", 1);
 	   setenv ("LC_ALL", "C", 1); */
-	char *z = stpcpy (cmd, "sort -u -o ");
-	z = stpcpy (z, tagfile);
-	*z++ = ' ';
-	strcpy (z, tagfile);
+	char *cmd = xmalloc (8 * strlen (tagfile) + sizeof "sort -u -o '' ''");
+	char *z = stpcpy (cmd, "sort -u -o '");
+	char *escaped_tagfile = z;
+	for (; *tagfile; *z++ = *tagfile++)
+	  if (*tagfile == '\'')
+	    z = stpcpy (z, "'\\'");
+	ptrdiff_t escaped_tagfile_len = z - escaped_tagfile;
+	z = stpcpy (z, "' '");
+	z = mempcpy (z, escaped_tagfile, escaped_tagfile_len);
+	strcpy (z, "'");
 	return system (cmd);
       }
   return EXIT_SUCCESS;
@@ -6396,7 +6401,8 @@ mercury_decl (char *s, size_t pos)
   size_t origpos;
   origpos = pos;
 
-  while (s + pos != NULL && (c_isalnum (s[pos]) || s[pos] == '_')) ++pos;
+  while (c_isalnum (s[pos]) || s[pos] == '_')
+    pos++;
 
   unsigned char decl_type_length = pos - origpos;
   char buf[decl_type_length + 1];
@@ -6440,9 +6446,9 @@ mercury_decl (char *s, size_t pos)
 	       so this is the hard case.  */
 	    if (strcmp (buf, "solver") == 0)
 	      {
-		++pos;
-		while (s + pos != NULL && (c_isalnum (s[pos]) || s[pos] == '_'))
-		  ++pos;
+		do
+		  pos++;
+		while (c_isalnum (s[pos]) || s[pos] == '_');
 
 		decl_type_length = pos - origpos;
 		char buf2[decl_type_length + 1];
@@ -6492,7 +6498,6 @@ mercury_decl (char *s, size_t pos)
       while (c_isalnum (s[pos])
              || s[pos] == '_'
              || (s[pos] == '.' /* A module dot.  */
-                 && s + pos + 1 != NULL
                  && (c_isalnum (s[pos + 1]) || s[pos + 1] == '_')
 		 && (module_dot_pos = pos)))  /* Record module dot position.
 				                 Erase module from name.  */
@@ -6536,10 +6541,10 @@ mercury_decl (char *s, size_t pos)
     }
   else if (is_mercury_quantifier && s[pos] == '[')   /* :- some [T] pred/func.  */
     {
-      for (++pos; s + pos != NULL && s[pos] != ']'; ++pos) {}
-      if (s + pos == NULL) return null_pos;
-      ++pos;
-      pos = skip_spaces (s + pos) - s;
+      char *close_bracket = strchr (s + pos + 1, ']');
+      if (!close_bracket)
+	return null_pos;
+      pos = skip_spaces (close_bracket + 1) - s;
       mercury_pos_t position = mercury_decl (s, pos);
       position.totlength += pos - origpos;
       return position;

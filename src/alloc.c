@@ -1032,9 +1032,12 @@ lisp_free (void *block)
     return;
 
   MALLOC_BLOCK_INPUT;
+#ifndef GC_MALLOC_CHECK
+  struct mem_node *m = mem_find (block);
+#endif
   free (block);
 #ifndef GC_MALLOC_CHECK
-  mem_delete (mem_find (block));
+  mem_delete (m);
 #endif
   MALLOC_UNBLOCK_INPUT;
 }
