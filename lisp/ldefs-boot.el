@@ -8478,7 +8478,46 @@ Display-Line-Numbers mode.
 
 \(fn &optional ARG)" t nil)
 
-(register-definition-prefixes "display-line-numbers" '("display-line-numbers-"))
+(defvar header-line-indent "" "\
+String to indent at the start if the header line.
+This is used in `header-line-indent-mode', and buffers that have
+this switched on should have a `header-line-format' that look like:
+
+  (\"\" header-line-indent THE-REST...)")
+
+(defvar header-line-indent-width 0 "\
+The width of the current line numbers displayed.")
+
+(autoload 'header-line-indent-mode "display-line-numbers" "\
+Mode to indent the header line in `display-line-numbers-mode' buffers.
+
+This means that the header line will be kept indented so that it
+has blank space that's as wide as the displayed line numbers in
+the buffer.
+
+Buffers that have this switched on should have a
+`header-line-format' that look like:
+
+  (\"\" header-line-indent THE-REST...)
+
+This is a minor mode.  If called interactively, toggle the
+`Header-Line-Indent mode' mode.  If the prefix argument is
+positive, enable the mode, and if it is zero or negative, disable
+the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable
+the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `header-line-indent-mode'.
+
+The mode's hook is called both when the mode is enabled and when
+it is disabled.
+
+\(fn &optional ARG)" t nil)
+
+(register-definition-prefixes "display-line-numbers" '("display-line-numbers-" "header-line-indent--"))
 
 ;;;***
 
@@ -16471,8 +16510,12 @@ Commands:
 (autoload 'help-mode-setup "help-mode" "\
 Enter Help mode in the current buffer." nil nil)
 
+(make-obsolete 'help-mode-setup 'nil '"29.1")
+
 (autoload 'help-mode-finish "help-mode" "\
 Finalize Help mode setup in current buffer." nil nil)
+
+(make-obsolete 'help-mode-finish 'nil '"29.1")
 
 (autoload 'help-setup-xref "help-mode" "\
 Invoked from commands using the \"*Help*\" buffer to install some xref info.
@@ -18742,12 +18785,14 @@ With prefix argument ARG, display image in its original size.
 Add comment to current or marked files in Dired." t nil)
 
 (autoload 'image-dired-mark-tagged-files "image-dired" "\
-Use regexp to mark files with matching tag.
+Use REGEXP to mark files with matching tag.
 A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
 lets you input a regexp and this will be matched against all tags
 on all image files in the database file.  The files that have a
-matching tag will be marked in the Dired buffer." t nil)
+matching tag will be marked in the Dired buffer.
+
+\(fn REGEXP)" t nil)
 
 (autoload 'image-dired-dired-edit-comment-and-tags "image-dired" "\
 Edit comment and tags of current or marked image files.
