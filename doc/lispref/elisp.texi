@@ -592,6 +592,7 @@ Advising Emacs Lisp Functions
 * Advising Named Functions::  Advising named functions.
 * Advice Combinators::        Ways to compose advice.
 * Porting Old Advice::        Adapting code using the old defadvice.
+* Advice and Byte Code::      Not all functions can be advised.
 
 Macros
 
