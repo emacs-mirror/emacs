@@ -973,7 +973,7 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       if (p)
 	{
 	  window = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
-	  gdk_x11_window_set_frame_sync_enabled (window, false);
+	  gdk_x11_window_set_frame_sync_enabled (window, FALSE);
 	}
 #endif
       unblock_input ();
@@ -4983,7 +4983,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif
 #ifdef HAVE_GTK3
       gwin = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
-      gdk_x11_window_set_frame_sync_enabled (gwin, false);
+      gdk_x11_window_set_frame_sync_enabled (gwin, FALSE);
 #endif
       unblock_input ();
     }

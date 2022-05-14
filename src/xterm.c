@@ -14765,17 +14765,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    *finish = X_EVENT_DROP;
 #else
 		    widget = FRAME_GTK_OUTER_WIDGET (f);
+		    window = gtk_widget_get_window (widget);
+		    eassert (window);
+
+		    /* This could be a (former) child frame for which
+		       frame synchronization was disabled.  Enable it
+		       now.  */
+		    gdk_x11_window_set_frame_sync_enabled (window, TRUE);
 
 		    if (widget && !FRAME_X_OUTPUT (f)->xg_sync_end_pending_p)
 		      {
-			window = gtk_widget_get_window (widget);
-			eassert (window);
 			frame_clock = gdk_window_get_frame_clock (window);
 			eassert (frame_clock);
 
 			gdk_frame_clock_request_phase (frame_clock,
 						       GDK_FRAME_CLOCK_PHASE_BEFORE_PAINT);
-
 			FRAME_X_OUTPUT (f)->xg_sync_end_pending_p = true;
 		      }
 #endif
