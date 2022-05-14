@@ -800,15 +800,10 @@ This basically creates a sparse keymap, and makes its parent be
      ["Auto Update" speedbar-toggle-updates
       :active (not speedbar-update-flag-disable)
       :style toggle :selected speedbar-update-flag])
-   (if (and (or (fboundp 'defimage)
-		(fboundp 'make-image-specifier))
-	    (if (fboundp 'display-graphic-p)
-		(display-graphic-p)
-	      window-system))
-       (list
-	["Use Images" speedbar-toggle-images
-	 :style toggle :selected speedbar-use-images]))
-   )
+   (when (and (fboundp 'defimage) (display-graphic-p))
+     (list
+      ["Use Images" speedbar-toggle-images
+       :style toggle :selected speedbar-use-images])))
   "Base part of the speedbar menu.")
 
 (defvar speedbar-easymenu-definition-special

@@ -7080,9 +7080,7 @@ One may build such TAGS files from CPerl mode menu."
       (error "No items found"))
   (setq update
         ;; (imenu-choose-buffer-index "Packages: " (nth 2 cperl-hierarchy))
-	(if (if (fboundp 'display-popup-menus-p)
-		(display-popup-menus-p)
-	      window-system)
+        (if (display-popup-menus-p)
 	    (x-popup-menu t (nth 2 cperl-hierarchy))
 	  (require 'tmm)
 	  (tmm-prompt (nth 2 cperl-hierarchy))))
