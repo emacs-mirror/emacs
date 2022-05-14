@@ -1144,7 +1144,8 @@ no input, and GDB is waiting for input."
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) gdb-define-alist))))
 
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defconst gdb--string-regexp (rx "\""
                                  (* (or (seq "\\" nonl)

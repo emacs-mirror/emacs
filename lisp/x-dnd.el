@@ -403,7 +403,7 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 ;;;  XDND protocol.
 
 (declare-function x-change-window-property "xfns.c"
-		  (prop value &optional frame type format outer-P))
+		  (prop value &optional frame type format outer-P window-id))
 
 (defun x-dnd-init-xdnd-for-frame (frame)
   "Set the XdndAware property for FRAME to indicate that we do XDND."

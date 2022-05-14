@@ -61,10 +61,10 @@
 (eval-when-compile
   (require 'subr-x))
 
-(declare-function info 'info)
-(declare-function Man-find-section 'man)
-(declare-function Man-next-section 'man)
-(declare-function Man-getpage-in-background 'man)
+(declare-function info "info")
+(declare-function Man-find-section "man")
+(declare-function Man-next-section "man")
+(declare-function Man-getpage-in-background "man")
 
 (defvar Man-notify-method)
 

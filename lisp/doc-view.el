@@ -1641,7 +1641,8 @@ For now these keys are useful:
 \\[image-kill-buffer] : Kill the conversion process and this buffer.
 \\[doc-view-kill-proc] : Kill the conversion process.\n")))))
 
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defun doc-view-show-tooltip ()
   (interactive)

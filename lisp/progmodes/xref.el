@@ -1549,7 +1549,7 @@ This command is intended to be bound to a mouse event."
           (xref-find-references identifier))
       (user-error "No identifier here"))))
 
-(declare-function apropos-parse-pattern "apropos" (pattern))
+(declare-function apropos-parse-pattern "apropos" (pattern &optional do-all))
 
 ;;;###autoload
 (defun xref-find-apropos (pattern)

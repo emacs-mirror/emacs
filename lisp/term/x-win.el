@@ -1559,7 +1559,7 @@ EVENT is a preedit-text event."
 
 (defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
 
-(declare-function x-internal-focus-input-context (focus frame) "xfns.c")
+(declare-function x-internal-focus-input-context "xfns.c" (focus))
 
 (defun x-gtk-use-native-input-watcher (_symbol newval &rest _ignored)
   "Variable watcher for `x-gtk-use-native-input'.

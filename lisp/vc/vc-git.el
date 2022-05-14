@@ -1599,7 +1599,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (declare-function grep-read-regexp "grep" ())
 (declare-function grep-read-files "grep" (regexp))
 (declare-function grep-expand-template "grep"
-                 (template &optional regexp files dir excl))
+                 (template &optional regexp files dir excl more-opts))
 (defvar compilation-environment)
 
 ;; Derived from `lgrep'.

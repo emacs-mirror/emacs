@@ -6382,7 +6382,8 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
     (eval '(mode-compile))))		; Avoid a warning
 
 (declare-function Info-find-node "info"
-		  (filename nodename &optional no-going-back strict-case))
+		  (filename nodename &optional no-going-back strict-case
+                            noerror))
 
 (defun cperl-info-buffer (type)
   ;; Return buffer with documentation.  Creates if missing.
