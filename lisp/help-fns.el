@@ -1079,7 +1079,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 (add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
 (add-hook 'help-fns-describe-function-functions #'help-fns--interactive-only)
 (add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
-(add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro)
+(add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro 100)
 
 
 ;; Variables
