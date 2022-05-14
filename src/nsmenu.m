@@ -1540,6 +1540,12 @@ pop_down_menu (void *arg)
     {
       popup_activated_flag = 0;
       [panel close];
+      /* For some reason this is required on macOS, or the selected
+	 frame gets the keyboard focus but doesn't become
+	 highlighted.  */
+#ifdef NS_IMPL_COCOA
+      [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+#endif
       discard_menu_items ();
     }
 }
@@ -1847,10 +1853,11 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   if (title_string)
     [title setStringValue:
 	     [NSString stringWithUTF8String: title_string]];
-  else if (is_question)
-    [title setStringValue: @"Question"];
+
+  if (is_question)
+    [command setStringValue: @"Question"];
   else
-    [title setStringValue: @"Information"];
+    [command setStringValue: @"Information"];
 
   return self;
 }
