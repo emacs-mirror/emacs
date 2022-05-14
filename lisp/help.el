@@ -1966,8 +1966,9 @@ The `temp-buffer-window-setup-hook' hook is called."
       (delete-all-overlays)
       (prog1
           (let ((standard-output (current-buffer)))
-            (funcall callback)
-            (run-hooks 'temp-buffer-window-setup-hook))
+            (prog1
+                (funcall callback)
+              (run-hooks 'temp-buffer-window-setup-hook)))
         (help-window-setup (temp-buffer-window-show (current-buffer)))
         (help-make-xrefs (current-buffer))))))
 
