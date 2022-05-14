@@ -1856,10 +1856,10 @@ struct user_cursor_bitmap_info cursor_bitmaps[] =
     { ibeam_ptr_bits, ibeam_ptrmask_bits, 15, 15, 7, 7 },	/* text_cursor */
     { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },		/* nontext_cursor */
     { left_ptr_bits, left_ptrmsk_bits, 16, 16, 3, 1 },		/* modeline_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },					/* hand_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },					/* hourglass_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },					/* horizontal_drag_cursor */
-    { NULL, NULL, 0, 0, 0, 0 },					/* vertical_drag_cursor */
+    { hand_ptr_bits, hand_ptrmask_bits, 15, 15, 4, 3 },		/* hand_cursor */
+    { hourglass_bits, hourglass_mask_bits, 15, 15, 7, 7 },	/* hourglass_cursor */
+    { horizd_ptr_bits, horizd_ptrmask_bits, 15, 15, 7, 7 },	/* horizontal_drag_cursor */
+    { vertd_ptr_bits, vertd_ptrmask_bits, 15, 15, 7, 7 },	/* vertical_drag_cursor */
     { NULL, NULL, 0, 0, 0, 0 },					/* left_edge_cursor */
     { NULL, NULL, 0, 0, 0, 0 },					/* top_left_corner_cursor */
     { NULL, NULL, 0, 0, 0, 0 },					/* top_edge_cursor */
