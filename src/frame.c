@@ -2334,12 +2334,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     }
 
   /* Cause frame titles to update--necessary if we now have just one
-     frame.  On NS the menu bar becomes empty after a tooltip frame is
-     deleted for an unknown reason, so this serves to restore the
-     contents of the menu bar as well.  */
-#ifndef HAVE_NS
+     frame.  */
   if (!is_tooltip_frame)
-#endif
     update_mode_lines = 15;
 
   /* Now run the post-deletion hooks.  */

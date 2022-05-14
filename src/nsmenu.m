@@ -52,6 +52,10 @@ EmacsMenu *svcsMenu;
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
 
+/* The last frame whose menubar was updated.  (This is the frame whose
+   menu bar is currently being displayed.)  */
+static struct frame *last_menubar_frame;
+
 /* NOTE: toolbar implementation is at end,
    following complete menu implementation.  */
 
@@ -71,6 +75,12 @@ void
 free_frame_menubar (struct frame *f)
 {
   id menu = [NSApp mainMenu];
+
+  if (f != last_menubar_frame)
+    return;
+
+  last_menubar_frame = NULL;
+
   for (int i = [menu numberOfItems] - 1 ; i >= 0; i--)
     {
       NSMenuItem *item = (NSMenuItem *)[menu itemAtIndex:i];
@@ -135,9 +145,9 @@ ns_update_menubar (struct frame *f, bool deep_p)
 #endif
       return;
     }
-  XSETFRAME (Vmenu_updating_frame, f);
-/*fprintf (stderr, "ns_update_menubar: frame: %p\tdeep: %d\tsub: %p\n", f, deep_p, submenu); */
 
+  XSETFRAME (Vmenu_updating_frame, f);
+  last_menubar_frame = f;
   block_input ();
 
   /* Menu may have been created automatically; if so, discard it.  */
@@ -155,7 +165,7 @@ ns_update_menubar (struct frame *f, bool deep_p)
 
 #if NSMENUPROFILE
   ftime (&tb);
-  t = -(1000*tb.time+tb.millitm);
+  t = -(1000 * tb.time + tb.millitm);
 #endif
 
   if (deep_p)
@@ -413,7 +423,7 @@ ns_update_menubar (struct frame *f, bool deep_p)
 
 #if NSMENUPROFILE
   ftime (&tb);
-  t += 1000*tb.time+tb.millitm;
+  t += 1000 * tb.time + tb.millitm;
   fprintf (stderr, "Menu update took %ld msec.\n", t);
 #endif
 
