@@ -45,7 +45,6 @@
 (defvar pgtk-use-im-context-on-new-connection)
 
 (declare-function pgtk-use-im-context "pgtkim.c")
-(declare-function pgtk-hide-emacs "pgtkfns.c" (on))
 
 (defun pgtk-drag-n-drop (event &optional new-frame force-text)
   "Edit the files listed in the drag-n-drop EVENT.

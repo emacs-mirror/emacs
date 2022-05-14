@@ -1993,7 +1993,8 @@ workarea attribute."
 (declare-function x-frame-list-z-order "xfns.c" (&optional display))
 (declare-function w32-frame-list-z-order "w32fns.c" (&optional display))
 (declare-function ns-frame-list-z-order "nsfns.m" (&optional display))
-(declare-function pgtk-frame-list-z-order "pgtkfns.c" (&optional display))
+;; TODO: implement this on PGTK.
+;; (declare-function pgtk-frame-list-z-order "pgtkfns.c" (&optional display))
 (declare-function haiku-frame-list-z-order "haikufns.c" (&optional display))
 
 (defun frame-list-z-order (&optional display)
@@ -2016,7 +2017,9 @@ Return nil if DISPLAY contains no Emacs frame."
      ((eq frame-type 'ns)
       (ns-frame-list-z-order display))
      ((eq frame-type 'pgtk)
-      (pgtk-frame-list-z-order display))
+      ;; This is currently not supported on PGTK.
+      ;; (pgtk-frame-list-z-order display)
+      nil)
      ((eq frame-type 'haiku)
       (haiku-frame-list-z-order display)))))
 
