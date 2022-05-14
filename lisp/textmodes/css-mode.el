@@ -417,21 +417,20 @@
     ("mask-type" "luminance" "alpha")
     ("clip" "rect()" "auto")
 
-    ;; CSS Multi-column Layout Module
+    ;; CSS Multi-column Layout Module Level 1
     ;; (https://www.w3.org/TR/css3-multicol/#property-index)
     ;; "break-after", "break-before", and "break-inside" are left out
     ;; below, because they're already included in CSS Fragmentation
     ;; Module Level 3.
-    ("column-count" integer "auto")
-    ("column-fill" "auto" "balance")
-    ("column-gap" length "normal")
+    ("column-count" "auto" integer)
+    ("column-fill" "auto" "balance" "balance-all")
     ("column-rule" column-rule-width column-rule-style
-     column-rule-color "transparent")
+     column-rule-color)
     ("column-rule-color" color)
-    ("column-rule-style" border-style)
-    ("column-rule-width" border-width)
+    ("column-rule-style" line-style)
+    ("column-rule-width" line-width)
     ("column-span" "none" "all")
-    ("column-width" length "auto")
+    ("column-width" "auto" length)
     ("columns" column-width column-count)
 
     ;; CSS Overflow Module Level 3
