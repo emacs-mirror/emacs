@@ -308,24 +308,24 @@
 
     ;; CSS Box Alignment Module Level 3
     ;; (https://www.w3.org/TR/css-align-3/#property-index)
-    ("align-content"
-     baseline-position content-distribution overflow-position content-position)
-    ("align-items"
-     "normal" "stretch" baseline-position overflow-position self-position)
-    ("align-self"
-     "auto" "normal" "stretch"
-     baseline-position overflow-position self-position)
-    ("justify-content" "normal"
-     content-distribution overflow-position content-position "left" "right")
-    ("justify-items"
-     "normal" "stretch" baseline-position overflow-position self-position
-     "left" "right" "legacy")
-    ("justify-self"
-     "auto" "normal" "stretch" baseline-position overflow-position self-position
-     "left" "right")
+    ("align-content" baseline-position content-distribution
+     overflow-position content-position)
+    ("align-items" "normal" "stretch" baseline-position
+     overflow-position self-position)
+    ("align-self" "auto" "normal" "stretch" baseline-position
+     overflow-position self-position)
+    ("column-gap" "normal" length-percentage)
+    ("gap" row-gap column-gap)
+    ("justify-content" "normal" content-distribution overflow-position
+     content-position "left" "right")
+    ("justify-items" "normal" "stretch" baseline-position
+     overflow-position self-position "left" "right" "legacy" "center")
+    ("justify-self" "auto" "normal" "stretch" baseline-position
+     overflow-position self-position "left" "right")
     ("place-content" align-content justify-content)
     ("place-items" align-items justify-items)
     ("place-self" justify-self align-self)
+    ("row-gap" "normal" length-percentage)
 
     ;; CSS Flexible Box Layout Module Level 2
     ;; (https://www.w3.org/TR/css-flexbox-2/#property-index)
