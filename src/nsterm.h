@@ -574,22 +574,32 @@ typedef id instancetype;
    ========================================================================== */
 
 @interface EmacsDialogPanel : NSPanel
-   {
-   NSTextField *command;
-   NSTextField *title;
-   NSMatrix *matrix;
-   int rows, cols;
-   BOOL timer_fired, window_closed;
-   Lisp_Object dialog_return;
-   Lisp_Object *button_values;
-   }
-- (instancetype)initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
-- (void)process_dialog: (Lisp_Object)list;
-- (void)addButton: (char *)str value: (int)tag row: (int)row;
-- (void)addString: (char *)str row: (int)row;
-- (void)addSplit;
-- (Lisp_Object)runDialogAt: (NSPoint)p;
-- (void)timeout_handler: (NSTimer *)timedEntry;
+{
+  NSTextField *command;
+  NSTextField *title;
+  NSMatrix *matrix;
+  int rows, cols;
+  BOOL timer_fired, window_closed;
+  Lisp_Object dialog_return;
+}
+
+- (instancetype) initWithTitle: (char *) title_str
+		    isQuestion: (BOOL) is_question;
+- (void) processMenuItems: (Lisp_Object) menu_items
+		     used: (ptrdiff_t) menu_items_used
+	  withErrorOutput: (const char **) error_name;
+
+- (void) addButton: (char *) str
+	     value: (NSInteger) tag
+	       row: (int) row
+	    enable: (BOOL) enable;
+- (void) addString: (char *) str
+	       row: (int) row;
+- (void) addSplit;
+- (void) resizeBoundsPriorToDisplay;
+
+- (Lisp_Object) runDialogAt: (NSPoint) p;
+- (void) timeout_handler: (NSTimer *) timedEntry;
 @end
 
 #ifdef NS_IMPL_COCOA
