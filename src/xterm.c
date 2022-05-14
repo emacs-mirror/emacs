@@ -2106,27 +2106,29 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
   toplevels = (Window *) data;
 
 #ifdef USE_XCB
+  USE_SAFE_ALLOCA;
+
   window_attribute_cookies
-    = alloca (sizeof *window_attribute_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *window_attribute_cookies * nitems);
   translate_coordinate_cookies
-    = alloca (sizeof *translate_coordinate_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *translate_coordinate_cookies * nitems);
   get_property_cookies
-    = alloca (sizeof *get_property_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *get_property_cookies * nitems);
   xm_property_cookies
-    = alloca (sizeof *xm_property_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *xm_property_cookies * nitems);
   extent_property_cookies
-    = alloca (sizeof *extent_property_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *extent_property_cookies * nitems);
   get_geometry_cookies
-    = alloca (sizeof *get_geometry_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *get_geometry_cookies * nitems);
 
 #ifdef HAVE_XCB_SHAPE
   bounding_rect_cookies
-    = alloca (sizeof *bounding_rect_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *bounding_rect_cookies * nitems);
 #endif
 
 #ifdef HAVE_XCB_SHAPE_INPUT_RECTS
   input_rect_cookies
-    = alloca (sizeof *input_rect_cookies * nitems);
+    = SAFE_ALLOCA (sizeof *input_rect_cookies * nitems);
 #endif
 
   for (i = 0; i < nitems; ++i)
@@ -2605,6 +2607,10 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	}
 #endif
     }
+
+#ifdef USE_XCB
+  SAFE_FREE ();
+#endif
 
   return 0;
 }
