@@ -273,6 +273,9 @@ The footer.
   "Test that we can undigest a RFC 934 digest."
   (ert-with-temp-file file
     :text rmail-rfc934-digest
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
     (rmail file)
     (undigestify-rmail-message)
     (should (= rmail-total-messages 4))
@@ -285,6 +288,9 @@ The footer.
   :expected-result :failed
   (ert-with-temp-file file
     :text rmail-rfc1153-digest-strict
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
     (rmail file)
     (should
      (ignore-errors
@@ -300,6 +306,9 @@ The footer.
   "Test that we can undigest a RFC 1153 with a Subject header in its footer."
   (ert-with-temp-file file
     :text rmail-rfc1153-digest-less-strict
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
     (rmail file)
     (undigestify-rmail-message)
     (should (= rmail-total-messages 5))
@@ -310,6 +319,9 @@ The footer.
   "Test that we can undigest a sloppy RFC 1153 digest."
   (ert-with-temp-file file
     :text rmail-rfc1153-digest-sloppy
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
     (rmail file)
     (undigestify-rmail-message)
     (should (= rmail-total-messages 5))
@@ -324,6 +336,9 @@ The footer.
   :expected-result :failed
   (ert-with-temp-file file
     :text rmail-rfc1521-mime-digest
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
     (rmail file)
     (undigestify-rmail-message)
     (should (= rmail-total-messages 3))
@@ -334,6 +349,9 @@ The footer.
   "Test that we can undigest a digest inside a multipart/mixed digest."
   (ert-with-temp-file file
     :text rmail-multipart-mixed-digest
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
     (rmail file)
     (undigestify-rmail-message)
     (should (= rmail-total-messages 4))

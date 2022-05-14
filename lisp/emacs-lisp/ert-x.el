@@ -424,10 +424,15 @@ The following keyword arguments are supported:
 :text STRING    If non-nil, pass STRING to `make-temp-file' as
                 the TEXT argument.
 
+:coding CODING  If non-nil, bind `coding-system-for-write' to CODING
+                when executing BODY.  This is handy when STRING includes
+                non-ASCII characters or the temporary file must have a
+                specific encoding or end-of-line format.
+
 See also `ert-with-temp-directory'."
   (declare (indent 1) (debug (symbolp body)))
   (cl-check-type name symbol)
-  (let (keyw prefix suffix directory text extra-keywords)
+  (let (keyw prefix suffix directory text extra-keywords coding)
     (while (keywordp (setq keyw (car body)))
       (setq body (cdr body))
       (pcase keyw
@@ -435,6 +440,7 @@ See also `ert-with-temp-directory'."
         (:suffix (setq suffix (pop body)))
         (:directory (setq directory (pop body)))
         (:text (setq text (pop body)))
+        (:coding (setq coding (pop body)))
         (_ (push keyw extra-keywords) (pop body))))
     (when extra-keywords
       (error "Invalid keywords: %s" (mapconcat #'symbol-name extra-keywords " ")))
@@ -443,7 +449,8 @@ See also `ert-with-temp-directory'."
           (suffix (or suffix ert-temp-file-suffix
                       (ert--with-temp-file-generate-suffix
                        (or (macroexp-file-name) buffer-file-name)))))
-      `(let* ((,temp-file (,(if directory 'file-name-as-directory 'identity)
+      `(let* ((coding-system-for-write ,(or coding coding-system-for-write))
+              (,temp-file (,(if directory 'file-name-as-directory 'identity)
                            (make-temp-file ,prefix ,directory ,suffix ,text)))
               (,name ,(if directory
                           `(file-name-as-directory ,temp-file)
