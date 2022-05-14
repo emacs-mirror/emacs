@@ -269,6 +269,10 @@
     ("resize" "none" "both" "horizontal" "vertical")
     ("text-overflow" "clip" "ellipsis" string)
 
+    ;; CSS Cascading and Inheritance Level 3
+    ;; (https://www.w3.org/TR/css-cascade-3/#property-index)
+    ("all")
+
     ;; CSS Color Module Level 3
     ;; (https://www.w3.org/TR/css3-color/#property)
     ("color" color)
