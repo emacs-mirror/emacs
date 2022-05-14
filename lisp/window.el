@@ -5142,6 +5142,14 @@ all window-local buffer lists."
   :version "27.1"
   :group 'windows)
 
+(defun quit-restore-select-window (window)
+  "Select WINDOW after having quit another one.
+Do not select an inactive minibuffer window."
+  (when (and (window-live-p window)
+             (or (not (window-minibuffer-p window))
+                 (minibuffer-window-active-p window)))
+    (select-window window)))
+
 (defun quit-restore-window (&optional window bury-or-kill)
   "Quit WINDOW and deal with its buffer.
 WINDOW must be a live window and defaults to the selected one.
@@ -5191,15 +5199,13 @@ nil means to not handle the buffer in a particular way.  This
      ((and dedicated (not (eq dedicated 'side))
            (window--delete window 'dedicated (eq bury-or-kill 'kill)))
       ;; If the previously selected window is still alive, select it.
-      (when (window-live-p (nth 2 quit-restore))
-        (select-window (nth 2 quit-restore))))
+      (quit-restore-select-window (nth 2 quit-restore)))
      ((and (not prev-buffer)
 	   (eq (nth 1 quit-restore) 'tab)
 	   (eq (nth 3 quit-restore) buffer))
       (tab-bar-close-tab)
       ;; If the previously selected window is still alive, select it.
-      (when (window-live-p (nth 2 quit-restore))
-	(select-window (nth 2 quit-restore))))
+      (quit-restore-select-window (nth 2 quit-restore)))
      ((and (not prev-buffer)
 	   (or (eq (nth 1 quit-restore) 'frame)
 	       (and (eq (nth 1 quit-restore) 'window)
@@ -5211,8 +5217,7 @@ nil means to not handle the buffer in a particular way.  This
 	   ;; Delete WINDOW if possible.
 	   (window--delete window nil (eq bury-or-kill 'kill)))
       ;; If the previously selected window is still alive, select it.
-      (when (window-live-p (nth 2 quit-restore))
-	(select-window (nth 2 quit-restore))))
+      (quit-restore-select-window (nth 2 quit-restore)))
      ((and (listp (setq quad (nth 1 quit-restore)))
 	   (buffer-live-p (car quad))
 	   (eq (nth 3 quit-restore) buffer))
@@ -5256,8 +5261,8 @@ nil means to not handle the buffer in a particular way.  This
       ;; Reset the quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
       ;; Select old window.
-      (when (window-live-p (nth 2 quit-restore))
-	(select-window (nth 2 quit-restore))))
+      ;; If the previously selected window is still alive, select it.
+      (quit-restore-select-window (nth 2 quit-restore)))
      (t
       ;; Show some other buffer in WINDOW and reset the quit-restore
       ;; parameter.
@@ -5270,8 +5275,8 @@ nil means to not handle the buffer in a particular way.  This
           (when (eq dedicated 'side)
             (set-window-dedicated-p window 'side))
         (window--delete window nil (eq bury-or-kill 'kill))
-        (when (window-live-p (nth 2 quit-restore))
-          (select-window (nth 2 quit-restore))))))
+      ;; If the previously selected window is still alive, select it.
+      (quit-restore-select-window (nth 2 quit-restore)))))
 
     ;; Deal with the buffer.
     (cond
