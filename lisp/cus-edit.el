@@ -1498,7 +1498,7 @@ symbols `custom-face' or `custom-variable'."
       (custom-buffer-create (custom-sort-items found t nil)
 			    "*Customize Saved*"))))
 
-(declare-function apropos-parse-pattern "apropos" (pattern))
+(declare-function apropos-parse-pattern "apropos" (pattern &optional di-all))
 (defvar apropos-regexp)
 
 ;;;###autoload

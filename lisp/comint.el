@@ -4026,9 +4026,9 @@ arguments, with point where the escape sequence was located."
 
 ;; Current directory tracking (OSC 7)
 
-(declare-function url-host "url-parse.el")
-(declare-function url-type "url-parse.el")
-(declare-function url-filename "url-parse.el")
+(declare-function url-host "url/url-parse.el")
+(declare-function url-type "url/url-parse.el")
+(declare-function url-filename "url/url-parse.el")
 (defun comint-osc-directory-tracker (_ text)
   "Update `default-directory' from OSC 7 escape sequences.
 

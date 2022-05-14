@@ -2433,8 +2433,8 @@ monitors."
 		       ,(display-mm-height display)))
 	   (frames . ,(frames-on-display-list display)))))))))
 
-(declare-function x-device-class (name) "x-win.el")
-(declare-function pgtk-device-class (name) "pgtk-win.el")
+(declare-function x-device-class "term/x-win.el" (name))
+(declare-function pgtk-device-class "term/pgtk-win.el" (name))
 
 (defun device-class (frame name)
   "Return the class of the device NAME for an event generated on FRAME.

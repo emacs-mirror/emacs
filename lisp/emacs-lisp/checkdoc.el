@@ -1127,7 +1127,7 @@ When called from Lisp, FILES is a list of filenames."
    (progn
      ;; These Dired functions must be defined since we're in a Dired buffer.
      (declare-function dired-get-filename "dired"
-                       (&optional localp no-error-if-not-filep bof))
+                       (&optional localp no-error-if-not-filep))
      ;; These functions are used by the expansion of `dired-map-over-marks'.
      (declare-function dired-move-to-filename "dired"
                        (&optional raise-error eol))
@@ -2234,7 +2234,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
 ;;
 (defvar ispell-process)
 (declare-function ispell-buffer-local-words "ispell" ())
-(declare-function ispell-correct-p "ispell" ())
+(declare-function ispell-correct-p "ispell" (&optional following))
 (declare-function ispell-set-spellchecker-params "ispell" ())
 (declare-function ispell-accept-buffer-local-defs "ispell" ())
 (declare-function ispell-error-checking-word "ispell" (word))

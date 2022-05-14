@@ -39,7 +39,7 @@
 (declare-function flymake-make-diagnostic "flymake"
                   ( locus beg end type text
                     &optional data overlay-properties))
-(declare-function flymake--log-1 (level sublog msg &rest args))
+(declare-function flymake--log-1 "flymake" (level sublog msg &rest args))
 
 (eval-when-compile (require 'tex-mode))
 (declare-function tex-buffer "tex-mode" ())

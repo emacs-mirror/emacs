@@ -776,8 +776,8 @@ functions are annotated with \"<f>\" via the
 
 ;;; Xref backend
 
-(declare-function xref-make "xref" (summary location))
-(declare-function xref-item-location "xref" (this))
+(declare-function xref-make "progmodes/xref" (summary location))
+(declare-function xref-item-location "progmodes/xref" (this))
 
 (defun elisp--xref-backend () 'elisp)
 

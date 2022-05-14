@@ -89,7 +89,7 @@ If this contains a %s, that will be replaced by the matching rule."
   :type 'string
   :version "28.1")
 
-(declare-function sgml-tag "sgml-mode" (&optional str arg))
+(declare-function sgml-tag "textmodes/sgml-mode" (&optional str arg))
 
 (defcustom auto-insert-alist
   `((("\\.\\([Hh]\\|hh\\|hpp\\|hxx\\|h\\+\\+\\)\\'" . "C / C++ header")

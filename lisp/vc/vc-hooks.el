@@ -966,7 +966,7 @@ In the latter case, VC mode is deactivated for this buffer."
 
 (defalias 'vc-menu-map vc-menu-map)
 
-(declare-function vc-responsible-backend "vc" (file))
+(declare-function vc-responsible-backend "vc" (file &optional no-error))
 
 (defun vc-menu-map-filter (orig-binding)
   (if (and (symbolp orig-binding) (fboundp orig-binding))

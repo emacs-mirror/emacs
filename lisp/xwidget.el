@@ -36,7 +36,7 @@
 (require 'format-spec)
 
 (declare-function make-xwidget "xwidget.c"
-                  (type title width height arguments &optional buffer related))
+                  (type title width height &optional arguments buffer related))
 (declare-function xwidget-buffer "xwidget.c" (xwidget))
 (declare-function set-xwidget-buffer "xwidget.c" (xwidget buffer))
 (declare-function xwidget-size-request "xwidget.c" (xwidget))
