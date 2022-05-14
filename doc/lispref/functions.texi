@@ -2143,32 +2143,31 @@ when porting such old @code{after} advice, you'll need to turn it into new
 @node Advice and Byte Code
 @subsection Advice and Byte Code
 @cindex compiler macros, advising
-@cindex @code{byte-compile}, advising
-@cindex @code{byte-optimizer}, advising
+@cindex @code{byte-compile} and  @code{byte-optimize}, advising
 
   Not all functions can be reliably advised.  The byte compiler may
 choose to replace a call to a function with a sequence of instructions
-that doesn't include the function call to the function you were
-interested in altering.
+that doesn't call the function you were interested in altering.
 
 This usually happens due to one of the three following mechanisms:
 
-@table @dfn
+@table @asis
 @item @code{byte-compile} properties
-If function @var{symbol} has a @code{byte-compile} property, that
-property will be used instead of @var{symbol}'s definition.
+If a function's symbol has a @code{byte-compile} property, that
+property will be used instead of the symbol's function definition.
 @xref{Compilation Functions}.
 
 @item @code{byte-optimize} properties
-If function @var{symbol} has a @code{byte-compile} property, the byte
+If a function's symbol has a @code{byte-optimize} property, the byte
 compiler may rewrite the function arguments, or decide to use a
 different function altogether.
 
-@item compiler macros
-Compiler macros are defined using a special @code{declare} form.  This
-tells the compiler to use the defined @dfn{expander} as an
-optimization function, and it can return a new expression to use
-instead of the function call.  @xref{Declare Form}.
+@item @code{compiler-macro} declare forms
+A function can have a special @code{compiler-macro} @code{declare}
+form in its definition (@pxref{Declare Form}) that defines an
+@dfn{expander} to call when compiling the function.  The expander
+could then cause the produced byte-code not to call the original
+function.
 @end table
 
 @node Obsolete Functions
