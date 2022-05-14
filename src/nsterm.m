@@ -1517,7 +1517,7 @@ ns_make_frame_visible (struct frame *f)
 }
 
 
-static void
+void
 ns_make_frame_invisible (struct frame *f)
 /* --------------------------------------------------------------------------
      Hide the window (X11 semantics)
@@ -1708,10 +1708,8 @@ ns_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
 
 
 static void
-ns_set_window_size (struct frame *f,
-                    bool change_gravity,
-                    int width,
-                    int height)
+ns_set_window_size (struct frame *f, bool change_gravity,
+                    int width, int height)
 /* --------------------------------------------------------------------------
      Adjust window pixel size based on native sizes WIDTH and HEIGHT.
      Impl is a bit more complex than other terms, need to do some
@@ -8729,17 +8727,18 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 @implementation EmacsWindow
 
 
-- (instancetype) initWithEmacsFrame:(struct frame *)f
+- (instancetype) initWithEmacsFrame: (struct frame *) f
 {
   return [self initWithEmacsFrame:f fullscreen:NO screen:nil];
 }
 
 
-- (instancetype) initWithEmacsFrame:(struct frame *)f
-                         fullscreen:(BOOL)fullscreen
-                             screen:(NSScreen *)screen
+- (instancetype) initWithEmacsFrame: (struct frame *) f
+                         fullscreen: (BOOL) fullscreen
+                             screen: (NSScreen *) screen
 {
   NSWindowStyleMask styleMask;
+  int width, height;
 
   NSTRACE ("[EmacsWindow initWithEmacsFrame:fullscreen:screen:]");
 
@@ -8752,20 +8751,22 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
       styleMask |= NSWindowStyleMaskResizable;
 #endif
     }
+  else if (f->tooltip)
+    styleMask = 0;
   else
-    styleMask = NSWindowStyleMaskTitled
-      | NSWindowStyleMaskResizable
-      | NSWindowStyleMaskMiniaturizable
-      | NSWindowStyleMaskClosable;
+    styleMask = (NSWindowStyleMaskTitled
+		 | NSWindowStyleMaskResizable
+		 | NSWindowStyleMaskMiniaturizable
+		 | NSWindowStyleMaskClosable);
 
-  self = [super initWithContentRect:
-                  NSMakeRect (0, 0,
-                              FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
-                              FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines))
-                          styleMask:styleMask
-                            backing:NSBackingStoreBuffered
-                              defer:YES
-                             screen:screen];
+  width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols);
+  height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines);
+
+  self = [super initWithContentRect: NSMakeRect (0, 0, width, height)
+                          styleMask: styleMask
+                            backing: NSBackingStoreBuffered
+                              defer: YES
+                             screen: screen];
   if (self)
     {
       NSString *name;

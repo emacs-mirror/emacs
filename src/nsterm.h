@@ -1176,6 +1176,7 @@ extern size_t ns_image_size_in_bytes (void *img);
 /* This in nsterm.m */
 extern float ns_antialias_threshold;
 extern void ns_make_frame_visible (struct frame *f);
+extern void ns_make_frame_invisible (struct frame *f);
 extern void ns_iconify_frame (struct frame *f);
 extern void ns_set_undecorated (struct frame *f, Lisp_Object new_value,
                                 Lisp_Object old_value);
