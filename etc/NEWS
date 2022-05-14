@@ -796,6 +796,11 @@ language.  Nowadays it is mostly used by the Buddhist monks in Japan for
 religious writings.  A new input method, 'siddham', is provided to type
 text in this script.
 
+*** New language environment "Syloti Nagri"
+This language environment supports the Syloti Nagri script for the Sylheti
+language, which is spoke in parts of Bangladesh, Assam and Tripura.  A new
+input method, 'syloti-nagri', is provided to type text in this script.
+
 ---
 *** New Greek translation of the Emacs tutorial.
 Type 'C-u C-h t' to select it in case your language setup does not do

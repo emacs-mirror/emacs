@@ -194,6 +194,7 @@
 	(kanbun #x319D)
 	(han #x5B57)
 	(yi #xA288)
+        (syloti-nagri #xA807 #xA823 #xA82C)
 	(javanese #xA980)
 	(cham #xAA00)
 	(tai-viet #xAA80)
@@ -748,6 +749,7 @@
 		    symbol
 		    braille
 		    yi
+                    syloti-nagri
                     javanese
 		    tai-viet
 		    aegean-number
