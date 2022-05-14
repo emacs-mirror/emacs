@@ -4441,12 +4441,13 @@ LAX-WHITESPACE: The value of `isearch-lax-whitespace' and
                                 (format minibuffer-lazy-count-format
                                         isearch-lazy-count-total)))))
       (lambda ()
-        (add-hook 'minibuffer-exit-hook unwind)
-        (add-hook 'after-change-functions after-change)
+        (add-hook 'minibuffer-exit-hook unwind nil t)
+        (add-hook 'after-change-functions after-change nil t)
         (when minibuffer-lazy-count-format
           (setq overlay (make-overlay (point-min) (point-min) (current-buffer) t))
           (add-hook 'lazy-count-update-hook display-count))
         (when filter
+          (make-local-variable 'isearch-filter-predicate)
           (add-function :after-while isearch-filter-predicate filter))
         (funcall after-change nil nil nil)))))
 
