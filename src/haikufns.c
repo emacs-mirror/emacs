@@ -1119,6 +1119,23 @@ haiku_create_tip_frame (Lisp_Object parms)
   /* FIXME - can this be done in a similar way to normal frames?
      https://lists.gnu.org/r/emacs-devel/2007-10/msg00641.html */
 
+  {
+    Lisp_Object disptype;
+
+    if (be_get_display_planes () == 1)
+      disptype = Qmono;
+    else if (be_is_display_grayscale ())
+      disptype = Qgrayscale;
+    else
+      disptype = Qcolor;
+
+    if (NILP (Fframe_parameter (frame, Qdisplay_type)))
+      {
+	AUTO_FRAME_ARG (arg, Qdisplay_type, disptype);
+	Fmodify_frame_parameters (frame, arg);
+      }
+  }
+
   /* Set up faces after all frame parameters are known.  This call
      also merges in face attributes specified for new frames.
 
@@ -3006,6 +3023,9 @@ syms_of_haikufns (void)
   DEFSYM (Qstatic_color, "static-color");
   DEFSYM (Qstatic_gray, "static-gray");
   DEFSYM (Qtrue_color, "true-color");
+  DEFSYM (Qmono, "mono");
+  DEFSYM (Qgrayscale, "grayscale");
+  DEFSYM (Qcolor, "color");
 
   defsubr (&Sx_hide_tip);
   defsubr (&Sxw_display_color_p);
