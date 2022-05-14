@@ -4067,27 +4067,48 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
   unblock_input ();
 }
 
+#ifdef HAVE_XINPUT2_1
+struct xi_known_valuator
+{
+  /* The current value of this valuator.  */
+  double current_value;
+
+  /* The number of the valuator.  */
+  int number;
+
+  /* The next valuator whose value we already know.  */
+  struct xi_known_valuator *next;
+};
+#endif
+
 static void
 xi_populate_device_from_info (struct xi_device_t *xi_device,
 			      XIDeviceInfo *device)
 {
 #ifdef HAVE_XINPUT2_1
   struct xi_scroll_valuator_t *valuator;
+  struct xi_known_valuator *values, *tem;
   int actual_valuator_count;
   XIScrollClassInfo *info;
+  XIValuatorClassInfo *val_info;
 #endif
+  int c;
 #ifdef HAVE_XINPUT2_2
   XITouchClassInfo *touch_info;
 #endif
-  int c;
+
+#ifdef HAVE_XINPUT2_1
+  USE_SAFE_ALLOCA;
+#endif
 
   xi_device->device_id = device->deviceid;
   xi_device->grab = 0;
 
 #ifdef HAVE_XINPUT2_1
   actual_valuator_count = 0;
-  xi_device->valuators =
-    xmalloc (sizeof *xi_device->valuators * device->num_classes);
+  xi_device->valuators = xmalloc (sizeof *xi_device->valuators
+				  * device->num_classes);
+  values = NULL;
 #endif
 #ifdef HAVE_XINPUT2_2
   xi_device->touchpoints = NULL;
@@ -4119,7 +4140,21 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
 
 	    break;
 	  }
+
+	case XIValuatorClass:
+	  {
+	    val_info = (XIValuatorClassInfo *) device->classes[c];
+	    tem = SAFE_ALLOCA (sizeof *tem);
+
+	    tem->next = values;
+	    tem->number = val_info->number;
+	    tem->current_value = val_info->value;
+
+	    values = tem;
+	    break;
+	  }
 #endif
+
 #ifdef HAVE_XINPUT2_2
 	case XITouchClass:
 	  {
@@ -4134,6 +4169,25 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
 
 #ifdef HAVE_XINPUT2_1
   xi_device->scroll_valuator_count = actual_valuator_count;
+
+  /* Now look through all the valuators whose values are already known
+     and populate our client-side records with their current
+     values.  */
+
+  for (tem = values; values; values = values->next)
+    {
+      for (c = 0; c < xi_device->scroll_valuator_count; ++c)
+	{
+	  if (xi_device->valuators[c].number == tem->number)
+	    {
+	      xi_device->valuators[c].invalid_p = false;
+	      xi_device->valuators[c].current_value = tem->current_value;
+	      xi_device->valuators[c].pending_enter_reset = true;
+	    }
+	}
+    }
+
+  SAFE_FREE ();
 #endif
 }
 
