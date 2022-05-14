@@ -2164,14 +2164,15 @@ to install it but still mark it as selected."
               (package-desc-priority-version (cadr available))))))
     package-alist)))
 
-(defun package-update-all (&optional inhibit-queries)
-  "Upgrade all packages."
-  (interactive "P")
+(defun package-update-all (&optional query)
+  "Upgrade all packages.
+If QUERY, ask the user before updating packages.  Interactively,
+QUERY is always true."
+  (interactive (list t))
   (let ((updateable (package--updateable-packages)))
     (if (not updateable)
         (message "No packages to update")
-      (when (and (not inhibit-queries)
-                 (not noninteractive)
+      (when (and query
                  (not (yes-or-no-p
                        (if (length= updateable 1)
                            "One package to update.  Do it? "
