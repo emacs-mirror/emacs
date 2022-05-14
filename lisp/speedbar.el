@@ -2276,9 +2276,7 @@ the list."
 		      (with-current-buffer (get-file-buffer f)
                         speedbar-tag-hierarchy-method)
 		    speedbar-tag-hierarchy-method))
-	 (lst (if (fboundp 'copy-tree)
-		  (copy-tree lst)
-		lst)))
+         (lst (copy-tree lst)))
     (while methods
       (setq lst (funcall (car methods) lst)
 	    methods (cdr methods)))

@@ -2238,8 +2238,7 @@ If cursor is not at the end of the user input, move to end of input."
        (t
 	(add-to-history 'buffer-name-history buf)
 	(setq buf (get-buffer-create buf))
-	(if (fboundp 'set-buffer-major-mode)
-	    (set-buffer-major-mode buf))
+        (set-buffer-major-mode buf)
 	(ido-visit-buffer buf method t))))))
 
 (defun ido-record-work-directory (&optional dir)

@@ -874,7 +874,7 @@ Optional arg BUFFER (default: current buffer) is the buffer to check."
                             apropos-all-words apropos-accumulator))
          (setq var  (apropos-value-internal #'local-variable-if-set-p symb
                                             #'symbol-value)))
-       (when (and (fboundp 'apropos-false-hit-str)  (apropos-false-hit-str var))
+       (when (apropos-false-hit-str var)
          (setq var nil))
        (when var
          (setq apropos-accumulator (cons (list symb (apropos-score-str var) nil var)
