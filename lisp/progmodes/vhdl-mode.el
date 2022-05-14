@@ -153,7 +153,11 @@
 (defvar lazy-lock-defer-on-scrolling)
 (defvar lazy-lock-defer-on-the-fly)
 (defvar speedbar-attached-frame)
-
+(defvar arch-alist)
+(defvar pack-alist)
+(defvar file-alist)
+(defvar unit-alist)
+(defvar rule-alist)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Variables
@@ -14952,10 +14956,10 @@ otherwise use cached data."
   (vhdl-speedbar-expand-units directory)
   (vhdl-aput 'vhdl-directory-alist directory (list (list directory))))
 
-(defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg pack-alist
-					ent-inst-list depth)
-  "Insert hierarchy of ENT-ALIST, CONF-ALIST, and PACK-ALIST."
-  (if (not (or ent-alist conf-alist pack-alist))
+(defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg
+                                        package-alist ent-inst-list depth)
+  "Insert hierarchy of ENT-ALIST, CONF-ALIST, and PACKAGE-ALIST."
+  (if (not (or ent-alist conf-alist package-alist))
       (vhdl-speedbar-make-title-line "No VHDL design units!" depth)
     (let ((ent-alist ent-alist-arg)
           (conf-alist conf-alist-arg)
@@ -14985,15 +14989,15 @@ otherwise use cached data."
 	 'vhdl-speedbar-configuration-face depth)
 	(setq conf-alist (cdr conf-alist)))
       ;; insert packages
-      (when pack-alist (vhdl-speedbar-make-title-line "Packages:" depth))
-      (while pack-alist
-	(setq pack-entry (car pack-alist))
+      (when package-alist (vhdl-speedbar-make-title-line "Packages:" depth))
+      (while package-alist
+	(setq pack-entry (car package-alist))
 	(vhdl-speedbar-make-pack-line
 	 (nth 0 pack-entry) (nth 1 pack-entry)
 	 (cons (nth 2 pack-entry) (nth 3 pack-entry))
 	 (cons (nth 7 pack-entry) (nth 8 pack-entry))
 	 depth)
-	(setq pack-alist (cdr pack-alist))))))
+	(setq package-alist (cdr package-alist))))))
 
 (declare-function speedbar-line-directory "speedbar" (&optional depth))
 
@@ -17212,6 +17216,7 @@ specified by a target."
       (unless (or (assoc directory vhdl-file-alist)
 		  (vhdl-load-cache directory))
 	(vhdl-scan-directory-contents directory))))
+  (defvar rule-alist) ; we need it to be dynamically bound
   (let* ((directory (abbreviate-file-name (vhdl-default-directory)))
 	 (project (vhdl-project-p))
 	 (ent-alist (vhdl-aget vhdl-entity-alist (or project directory)))
