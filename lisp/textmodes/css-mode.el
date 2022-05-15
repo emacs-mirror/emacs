@@ -928,6 +928,32 @@ cannot be completed sensibly: `custom-ident',
 (defface css-proprietary-property '((t :inherit (css-property italic)))
   "Face to use for vendor-specific properties.")
 
+(defun css--selector-regexp (sassy)
+  (concat
+   "\\(?:"
+   (if (not sassy)
+       "[-_%*#.>[:alnum:]]+"
+     ;; Same as for non-sassy except we do want to allow { and }
+     ;; chars in selectors in the case of #{$foo}
+     ;; variable interpolation!
+     (concat "\\(?:[-_%*#.>[:alnum:]]*" scss--hash-re
+             "\\|[-_%*#.>[:alnum:]]+\\)"))
+   ;; Even though pseudo-elements should be prefixed by ::, a
+   ;; single colon is accepted for backward compatibility.
+   "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
+                                   css-pseudo-element-ids)
+                           t)
+   "\\|::" (regexp-opt css-pseudo-element-ids t) "\\)\\)?"
+   ;; Braces after selectors.
+   "\\(?:\\[[^]\n]+\\]\\)?"
+   ;; Parentheses after selectors.
+   "\\(?:([^)]+)\\)?"
+   ;; Main bit over.  But perhaps just [target]?
+   "\\|\\[[^]\n]+\\]"
+   ;; :root, ::marker and the like.
+   "\\|::?[[:alnum:]]+\\(?:([^)]+)\\)?"
+   "\\)"))
+
 (defun css--font-lock-keywords (&optional sassy)
   `((,(concat "!\\s-*" (regexp-opt css--bang-ids))
      (0 font-lock-builtin-face))
@@ -948,28 +974,16 @@ cannot be completed sensibly: `custom-ident',
     ;; selector between [...] should simply not be highlighted.
     (,(concat
        "^[ \t]*\\("
-       (if (not sassy)
-           ;; We don't allow / as first char, so as not to
-           ;; take a comment as the beginning of a selector.
-           "[^@/:{}() \t\n][^:{}()]*"
-         ;; Same as for non-sassy except we do want to allow { and }
-         ;; chars in selectors in the case of #{$foo}
-         ;; variable interpolation!
-         (concat "\\(?:" scss--hash-re
-                 "\\|[^@/:{}() \t\n#]\\)"
-                 "[^:{}()#]*\\(?:" scss--hash-re "[^:{}()#]*\\)*"))
-       ;; Even though pseudo-elements should be prefixed by ::, a
-       ;; single colon is accepted for backward compatibility.
-       "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
-                                       css-pseudo-element-ids)
-                               t)
-       "\\|::" (regexp-opt css-pseudo-element-ids t) "\\)"
-       "\\(?:([^)]+)\\)?"
-       (if (not sassy)
-           "[^:{}()\n]*"
-         (concat "[^:{}()\n#]*\\(?:" scss--hash-re "[^:{}()\n#]*\\)*"))
+       ;; We have at least one selector.
+       (css--selector-regexp sassy)
+       ;; And then possibly more.
+       "\\(?:"
+       ;; Separators between selectors.
+       "[ \n\t,+~>]+"
+       (css--selector-regexp sassy)
        "\\)*"
-       "\\)\\(?:\n[ \t]*\\)*{")
+       ;; And then a brace.
+       "\\)[ \n\t]*{")
      (1 'css-selector keep))
     ;; In the above rule, we allow the open-brace to be on some subsequent
     ;; line.  This will only work if we properly mark the intervening text
