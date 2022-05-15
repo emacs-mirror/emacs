@@ -4779,7 +4779,7 @@ corresponding connection was closed.  */)
 		 SDATA (proc->name),
 		 STRINGP (proc_thread_name)
 		 ? SDATA (proc_thread_name)
-		 : SDATA (Fprin1_to_string (proc->thread, Qt)));
+		 : SDATA (Fprin1_to_string (proc->thread, Qt, Qnil)));
 	}
     }
   else

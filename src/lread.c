@@ -2349,7 +2349,7 @@ readevalloop (Lisp_Object readcharfun,
 	{
 	  Vvalues = Fcons (val, Vvalues);
 	  if (EQ (Vstandard_output, Qt))
-	    Fprin1 (val, Qnil);
+	    Fprin1 (val, Qnil, Qnil);
 	  else
 	    Fprint (val, Qnil);
 	}

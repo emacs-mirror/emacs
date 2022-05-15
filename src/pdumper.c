@@ -1383,7 +1383,7 @@ print_paths_to_root_1 (struct dump_context *ctx,
     {
       Lisp_Object referrer = XCAR (referrers);
       referrers = XCDR (referrers);
-      Lisp_Object repr = Fprin1_to_string (referrer, Qnil);
+      Lisp_Object repr = Fprin1_to_string (referrer, Qnil, Qnil);
       for (int i = 0; i < level; ++i)
 	putc (' ', stderr);
       fwrite (SDATA (repr), 1, SBYTES (repr), stderr);
@@ -3758,7 +3758,7 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
             reloc.u.dump_offset = dump_recall_object (ctx, target_value);
             if (reloc.u.dump_offset <= 0)
               {
-                Lisp_Object repr = Fprin1_to_string (target_value, Qnil);
+                Lisp_Object repr = Fprin1_to_string (target_value, Qnil, Qnil);
                 error ("relocation target was not dumped: %s", SDATA (repr));
               }
             dump_check_dump_off (ctx, reloc.u.dump_offset);

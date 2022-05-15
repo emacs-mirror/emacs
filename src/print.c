@@ -620,7 +620,51 @@ If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
   return val;
 }
 
-DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
+static void
+print_bind_all_defaults (void)
+{
+  for (Lisp_Object vars = Vprint__variable_mapping; !NILP (vars);
+       vars = XCDR (vars))
+    {
+      Lisp_Object elem = XCDR (XCAR (vars));
+      specbind (XCAR (elem), XCAR (XCDR (elem)));
+    }
+}
+
+static void
+print_bind_overrides (Lisp_Object overrides)
+{
+  if (EQ (overrides, Qt))
+    print_bind_all_defaults ();
+  else if (!CONSP (overrides))
+    xsignal (Qwrong_type_argument, Qconsp);
+  else
+    {
+      while (!NILP (overrides))
+	{
+	  Lisp_Object setting = XCAR (overrides);
+	  if (EQ (setting, Qt))
+	    print_bind_all_defaults ();
+	  else if (!CONSP (setting))
+	    xsignal (Qwrong_type_argument, Qconsp);
+	  else
+	    {
+	      Lisp_Object key = XCAR (setting),
+		value = XCDR (setting);
+	      Lisp_Object map = Fassq (key, Vprint__variable_mapping);
+	      if (NILP (map))
+		xsignal2 (Qwrong_type_argument, Qsymbolp, map);
+	      specbind (XCAR (XCDR (map)), value);
+	    }
+
+	  if (!NILP (XCDR (overrides)) && !CONSP (XCDR (overrides)))
+	    xsignal (Qwrong_type_argument, Qconsp);
+	  overrides = XCDR (overrides);
+	}
+    }
+}
+
+DEFUN ("prin1", Fprin1, Sprin1, 1, 3, 0,
        doc: /* Output the printed representation of OBJECT, any Lisp object.
 Quoting characters are printed when needed to make output that `read'
 can handle, whenever this is possible.  For complex objects, the behavior
@@ -642,21 +686,43 @@ of these:
    - t, in which case the output is displayed in the echo area.
 
 If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
-is used instead.  */)
-  (Lisp_Object object, Lisp_Object printcharfun)
+is used instead.
+
+OVERRIDES should be a list of settings.  An element in this list be
+the symbol t, which means "use all the defaults".  If not, an element
+should be a pair, where the `car' or the pair is the setting, and the
+`cdr' of the pair is the value of printer-related settings to use for
+this `prin1' call.
+
+For instance:
+
+  (prin1 object nil \\='((length . 100) (circle . t))).
+
+See the manual entry `(elisp)Output Overrides' for a list of possible
+values.
+
+As a special case, OVERRIDES can also simply be the symbol t, which
+means "use all the defaults".  */)
+  (Lisp_Object object, Lisp_Object printcharfun, Lisp_Object overrides)
 {
+  specpdl_ref count = SPECPDL_INDEX ();
+
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
+  if (!NILP (overrides))
+    print_bind_overrides (overrides);
+
   PRINTPREPARE;
   print (object, printcharfun, 1);
   PRINTFINISH;
-  return object;
+
+  return unbind_to (count, object);
 }
 
 /* A buffer which is used to hold output being built by prin1-to-string.  */
 Lisp_Object Vprin1_to_string_buffer;
 
-DEFUN ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 2, 0,
+DEFUN ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 3, 0,
        doc: /* Return a string containing the printed representation of OBJECT.
 OBJECT can be any Lisp object.  This function outputs quoting characters
 when necessary to make output that `read' can handle, whenever possible,
@@ -666,12 +732,17 @@ the behavior is controlled by `print-level' and `print-length', which see.
 OBJECT is any of the Lisp data types: a number, a string, a symbol,
 a list, a buffer, a window, a frame, etc.
 
+See `prin1' for the meaning of OVERRIDES.
+
 A printed representation of an object is text which describes that object.  */)
-  (Lisp_Object object, Lisp_Object noescape)
+  (Lisp_Object object, Lisp_Object noescape, Lisp_Object overrides)
 {
   specpdl_ref count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_modification_hooks, Qt);
+
+  if (!NILP (overrides))
+    print_bind_overrides (overrides);
 
   /* Save and restore this: we are altering a buffer
      but we don't want to deactivate the mark just for that.
@@ -847,7 +918,7 @@ append to existing target file.  */)
 void
 debug_print (Lisp_Object arg)
 {
-  Fprin1 (arg, Qexternal_debugging_output);
+  Fprin1 (arg, Qexternal_debugging_output, Qnil);
   fputs ("\r\n", stderr);
 }
 
@@ -995,7 +1066,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 	    || EQ (errname, Qend_of_file) || EQ (errname, Quser_error))
 	  Fprinc (obj, stream);
 	else
-	  Fprin1 (obj, stream);
+	  Fprin1 (obj, stream, Qnil);
       }
   }
 }
@@ -2571,4 +2642,35 @@ be printed.  */);
   DEFSYM (Qprint_unreadable_function, "print-unreadable-function");
 
   defsubr (&Sflush_standard_output);
+
+  DEFVAR_LISP ("print--variable-mapping", Vprint__variable_mapping,
+	       doc: /* Mapping for print variables in `prin1'.
+Do not modify this list.  */);
+  Vprint__variable_mapping = Qnil;
+  Lisp_Object total[] = {
+    list3 (intern ("length"), intern ("print-length"), Qnil),
+    list3 (intern ("level"), intern ("print-level"), Qnil),
+    list3 (intern ("circle"), intern ("print-circle"), Qnil),
+    list3 (intern ("quoted"), intern ("print-quoted"), Qt),
+    list3 (intern ("escape-newlines"), intern ("print-escape-newlines"), Qnil),
+    list3 (intern ("escape-control-characters"),
+	   intern ("print-escape-control-characters"), Qnil),
+    list3 (intern ("escape-nonascii"), intern ("print-escape-nonascii"), Qnil),
+    list3 (intern ("escape-multibyte"),
+	   intern ("print-escape-multibyte"), Qnil),
+    list3 (intern ("charset-text-property"),
+	   intern ("print-charset-text-property"), Qnil),
+    list3 (intern ("unreadeable-function"),
+	   intern ("print-unreadable-function"), Qnil),
+    list3 (intern ("gensym"), intern ("print-gensym"), Qnil),
+    list3 (intern ("continuous-numbering"),
+	   intern ("print-continuous-numbering"), Qnil),
+    list3 (intern ("number-table"), intern ("print-number-table"), Qnil),
+    list3 (intern ("float-format"), intern ("float-output-format"), Qnil),
+    list3 (intern ("integers-as-characters"),
+	   intern ("print-integers-as-characters"), Qnil),
+  };
+
+  Vprint__variable_mapping = CALLMANY (Flist, total);
+  make_symbol_constant (intern_c_string ("print--variable-mapping"));
 }

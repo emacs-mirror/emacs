@@ -1818,6 +1818,10 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'prin1' and 'prin1-to-string' now takes an OVERRIDES parameter.
+This parameter can be used to override printer settings.
+
++++
 ** New minor mode 'header-line-indent-mode'.
 This is meant to be used in modes that have a header line that should
 be kept aligned with the buffer contents when the user switches

@@ -739,6 +739,7 @@ Reading and Printing Lisp Objects
 * Output Functions::        Functions to print Lisp objects as text.
 * Output Variables::        Variables that control what the printing
                               functions do.
+* Output Overrides::        Overriding output variables.
 
 Minibuffers
 

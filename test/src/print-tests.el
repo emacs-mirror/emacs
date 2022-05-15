@@ -425,5 +425,48 @@ otherwise, use a different charset."
   (should (equal (prin1-to-string '\?bar) "\\?bar"))
   (should (equal (prin1-to-string '\?bar?) "\\?bar?")))
 
+(ert-deftest test-prin1-overrides ()
+  (with-temp-buffer
+    (let ((print-length 10))
+      (prin1 (make-list 20 t) (current-buffer) t)
+      (should (= print-length 10)))
+    (goto-char (point-min))
+    (should (= (length (read (current-buffer))) 20)))
+
+  (with-temp-buffer
+    (let ((print-length 10))
+      (prin1 (make-list 20 t) (current-buffer) '((length . 5)))
+      (should (= print-length 10)))
+    (goto-char (point-min))
+    (should (= (length (read (current-buffer))) 6)))
+
+  (with-temp-buffer
+    (let ((print-length 10))
+      (prin1 (make-list 20 t) (current-buffer) '(t (length . 5)))
+      (should (= print-length 10)))
+    (goto-char (point-min))
+    (should (= (length (read (current-buffer))) 6))))
+
+(ert-deftest test-prin1-to-string-overrides ()
+  (let ((print-length 10))
+    (should
+     (= (length (car (read-from-string
+                      (prin1-to-string (make-list 20 t) nil t))))
+        20)))
+
+  (let ((print-length 10))
+    (should
+     (= (length (car (read-from-string
+                      (prin1-to-string (make-list 20 t) nil
+                                       '((length . 5))))))
+        6)))
+
+  (should-error (prin1-to-string 'foo nil 'a))
+  (should-error (prin1-to-string 'foo nil '(a)))
+  (should-error (prin1-to-string 'foo nil '(t . b)))
+  (should-error (prin1-to-string 'foo nil '(t b)))
+  (should-error (prin1-to-string 'foo nil '((a . b) b)))
+  (should-error (prin1-to-string 'foo nil '((length . 10) . b))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here
