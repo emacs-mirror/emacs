@@ -4410,14 +4410,17 @@ LAX-WHITESPACE: The value of `isearch-lax-whitespace' and
     (let ((unwind (make-symbol "minibuffer-lazy-highlight--unwind"))
           (after-change (make-symbol "minibuffer-lazy-highlight--after-change"))
           (display-count (make-symbol "minibuffer-lazy-highlight--display-count"))
+          (buffer (current-buffer))
           overlay)
       (fset unwind
             (lambda ()
-              (remove-function isearch-filter-predicate filter)
+              (when filter
+                (with-current-buffer buffer
+                  (remove-function (local 'isearch-filter-predicate) filter)))
               (remove-hook 'lazy-count-update-hook display-count)
               (when overlay (delete-overlay overlay))
-              (remove-hook 'after-change-functions after-change)
-              (remove-hook 'minibuffer-exit-hook unwind)
+              (remove-hook 'after-change-functions after-change t)
+              (remove-hook 'minibuffer-exit-hook unwind t)
               (let ((lazy-highlight-cleanup cleanup))
                 (lazy-highlight-cleanup))))
       (fset after-change
@@ -4447,8 +4450,8 @@ LAX-WHITESPACE: The value of `isearch-lax-whitespace' and
           (setq overlay (make-overlay (point-min) (point-min) (current-buffer) t))
           (add-hook 'lazy-count-update-hook display-count))
         (when filter
-          (make-local-variable 'isearch-filter-predicate)
-          (add-function :after-while isearch-filter-predicate filter))
+          (with-current-buffer buffer
+            (add-function :after-while (local 'isearch-filter-predicate) filter)))
         (funcall after-change nil nil nil)))))
 
 
