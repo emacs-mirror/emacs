@@ -319,7 +319,7 @@ also include other characters as needed by the major mode; see
 `electric-indent-chars' for the actual list.
 
 By \"reindent\" we mean remove any existing indentation, and then
-indent the line accordiung to context and rules of the major mode.
+indent the line according to context and rules of the major mode.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-indent-local-mode'."
