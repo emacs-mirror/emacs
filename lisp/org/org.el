@@ -247,7 +247,7 @@ byte-compiled before it is loaded."
     (if compile
 	(progn
 	  (byte-compile-file tangled-file)
-	  (load tangled-file)
+	  (load-file (byte-compile-dest-file tangled-file))
 	  (message "Compiled and loaded %s" tangled-file))
       (load-file tangled-file)
       (message "Loaded %s" tangled-file))))
@@ -15026,8 +15026,9 @@ When matching, the match groups are the following:
   (let* ((regexp
           (if extended
               (if (eq extended 'agenda)
-                  (rx (or (regexp org-ts-regexp3)
-                          (regexp org-element--timestamp-regexp)))
+                  (rx-to-string
+                   `(or (regexp ,org-ts-regexp3)
+                        (regexp ,org-element--timestamp-regexp)))
 		org-ts-regexp3)
             org-ts-regexp2))
 	 (pos (point))
