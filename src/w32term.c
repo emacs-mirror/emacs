@@ -2720,7 +2720,7 @@ w32_draw_glyph_string (struct glyph_string *s)
 
 		  if (!(s->face->underline_at_descent_line_p
 			/* Ignore minimum_offset if the amount of pixels
-			   was explictly specified.  */
+			   was explicitly specified.  */
 			&& s->face->underline_pixels_above_descent_line))
 		    position = max (position, minimum_offset);
                 }

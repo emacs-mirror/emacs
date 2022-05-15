@@ -2684,7 +2684,7 @@ It is called with three arguments, as if it were
   "Function to convert the FROM string of query-replace commands to a regexp.
 This is used by `query-replace', `query-replace-regexp', etc. as
 the value of `isearch-regexp-function' when they search for the
-occurences of the string/regexp to be replaced.  This is intended
+occurrences of the string/regexp to be replaced.  This is intended
 to be used when the string to be replaced, as typed by the user,
 is not to be interpreted literally, but instead should be converted
 to a regexp that is actually used for the search.")

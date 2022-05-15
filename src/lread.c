@@ -3497,7 +3497,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 
 			  /* Optimisation: since the placeholder is already
 			     a cons, repurpose it as the actual value.
-			     This allows us to skip the substition below,
+			     This allows us to skip the substitution below,
 			     since the placeholder is already referenced
 			     inside TEM at the appropriate places.  */
                           Fsetcar (placeholder, XCAR (tem));

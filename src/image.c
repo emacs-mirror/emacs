@@ -9108,7 +9108,7 @@ gif_load (struct frame *f, struct image *img)
       goto gif_error;
     }
 
-  /* It's an animated image, so initalize the cache.  */
+  /* It's an animated image, so initialize the cache.  */
   if (cache && !cache->handle)
     {
       cache->handle = gif;

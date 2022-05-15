@@ -6461,7 +6461,7 @@ This requires restrictions of file name syntax."
 
 (defun tramp--test-asynchronous-processes-p ()
   "Whether asynchronous processes tests are run.
-This is used in tests which we dont't want to tag
+This is used in tests which we don't want to tag
 `:tramp-asynchronous-processes' completely."
   (and
    (ert-select-tests
@@ -6484,7 +6484,7 @@ This does not support some special file names."
 
 (defun tramp--test-expensive-test-p ()
   "Whether expensive tests are run.
-This is used in tests which we dont't want to tag `:expensive'
+This is used in tests which we don't want to tag `:expensive'
 completely."
   (ert-select-tests
    (ert--stats-selector ert--current-run-stats)

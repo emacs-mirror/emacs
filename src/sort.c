@@ -783,7 +783,7 @@ merge_at (merge_state *ms, const ptrdiff_t i)
 }
 
 
-/* Compute the "power" of the first of two adjacent runs begining at
+/* Compute the "power" of the first of two adjacent runs beginning at
    index S1, with the first having length N1 and the second (starting
    at index S1+N1) having length N2.  The run has total length N.  */
 

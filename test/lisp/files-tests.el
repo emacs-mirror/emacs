@@ -1691,7 +1691,7 @@ FN-TEST is the function to test: either `save-some-buffers' or
 specified inside ARGS-RESULTS.
 
 During the call to FN-TEST,`read-event' is overridden with a function that
-just returns `n' and `kill-emacs' is overriden to do nothing.
+just returns `n' and `kill-emacs' is overridden to do nothing.
 
 ARGS-RESULTS is a list of elements (FN-ARGS CALLERS-DIR EXPECTED), where
 FN-ARGS are the arguments for FN-TEST;

@@ -848,7 +848,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
 	error ("Unknown color.");
 
       /* On pgtk, this frame parameter should be ignored, and honor
-	 gtk theme.  (It honors the GTK theme if not explictly set, so
+	 gtk theme.  (It honors the GTK theme if not explicitly set, so
 	 I see no harm in letting users tinker a bit more.)  */
       char css[64];
       sprintf (css, "scrollbar trough { background-color: #%06x; }",
@@ -2853,7 +2853,7 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
      Frame parameters may be changed if .Xdefaults contains
      specifications for the default font.  For example, if there is an
      `Emacs.default.attributeBackground: pink', the `background-color'
-     attribute of the frame get's set, which let's the internal border
+     attribute of the frame gets set, which lets the internal border
      of the tooltip frame appear in pink.  Prevent this.  */
   {
     Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);

@@ -49,7 +49,7 @@ formats that are to be supported: Only the suffixes that map to
 (defcustom image-convert-to-format "png"
   "The image format to convert to.
 This should be a string like \"png\" or \"ppm\" or some
-other (preferrably lossless) format that Emacs understands
+other (preferably lossless) format that Emacs understands
 natively.  The converter chosen has to support the format, and if
 not, conversion will fail."
   :group 'image

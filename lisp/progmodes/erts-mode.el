@@ -51,17 +51,17 @@
      :foreground "blue")
     (t
      :bold t))
-  "Face used for displaying specificaton values."
+  "Face used for displaying specification values."
   :group 'erts-mode)
 
 (defface erts-mode-start-test
   '((t :inherit font-lock-keyword-face))
-  "Face used for displaying specificaton test start markers."
+  "Face used for displaying specification test start markers."
   :group 'erts-mode)
 
 (defface erts-mode-end-test
   '((t :inherit font-lock-comment-face))
-  "Face used for displaying specificaton test start markers."
+  "Face used for displaying specification test start markers."
   :group 'erts-mode)
 
 (defvar erts-mode-map

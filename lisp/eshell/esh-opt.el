@@ -205,7 +205,7 @@ a long option."
 VALUE is the potential value of the OPT, coming from args like
 \"-fVALUE\" or \"--foo=VALUE\", or nil if no value was supplied.  If
 OPT doesn't consume a value, return VALUE unchanged so that it can be
-processed later; otherwsie, return nil.
+processed later; otherwise, return nil.
 
 If the OPT consumes an argument for its value and VALUE is nil, the
 argument list will be modified."

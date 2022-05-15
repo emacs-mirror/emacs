@@ -1855,7 +1855,7 @@ The browser to used is specified by the
   (replace-regexp-in-string ".utm_.*" "" url))
 
 (defun eww--transform-url (url)
-  "Appy `eww-url-transformers'."
+  "Apply `eww-url-transformers'."
   (when url
     (dolist (func eww-url-transformers)
       (setq url (funcall func url)))

@@ -143,7 +143,7 @@ struct font_selection_dialog_message
   /* Whether or not font selection was cancelled.  */
   bool_bf cancel : 1;
 
-  /* Whether or not a size was explictly specified.  */
+  /* Whether or not a size was explicitly specified.  */
   bool_bf size_specified : 1;
 
   /* The index of the selected font family.  */

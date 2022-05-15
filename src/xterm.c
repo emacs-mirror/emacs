@@ -78,7 +78,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    INPUT FOCUS
 
    Under X, the window where keyboard input is sent is not always
-   explictly defined.  When there is a focus window, it receives what
+   explicitly defined.  When there is a focus window, it receives what
    is referred to as "explicit focus", but when there is none, it
    receives "implicit focus" whenever the pointer enters it, and loses
    that focus when the pointer leaves.  When the toplevel window of a
@@ -2515,7 +2515,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	    }
 
 	  /* And the common case where there is no input rect and the
-	     bouding rect equals the window dimensions.  */
+	     bounding rect equals the window dimensions.  */
 
 	  if (tem->n_input_rects == -1
 	      && tem->n_bounding_rects == 1
@@ -8781,7 +8781,7 @@ x_draw_glyph_string (struct glyph_string *s)
                     }
 
 		  /* Ignore minimum_offset if the amount of pixels was
-		     explictly specified.  */
+		     explicitly specified.  */
 		  if (!s->face->underline_pixels_above_descent_line)
 		    position = max (position, minimum_offset);
                 }
@@ -19973,7 +19973,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 
 		  /* And the common case where there is no input rect and the
-		     bouding rect equals the window dimensions.  */
+		     bounding rect equals the window dimensions.  */
 
 		  if (tem->n_input_rects == -1
 		      && tem->n_bounding_rects == 1

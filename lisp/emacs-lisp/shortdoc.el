@@ -83,7 +83,7 @@ together:
 If EVAL is a string, it will be inserted as is, and then that
 string will be `read' and evaluated.
 
-2. Document a form or string, but manually document its evalation
+2. Document a form or string, but manually document its evaluation
    result.  The provided form will not be evaluated.
 
   (FUNC

@@ -3036,7 +3036,7 @@ haiku_flush_dirty_back_buffer_on (struct frame *f)
     haiku_flip_buffers (f);
 }
 
-/* N.B. that support for TYPE must be explictly added to
+/* N.B. that support for TYPE must be explicitly added to
    haiku_read_socket.  */
 void
 haiku_wait_for_event (struct frame *f, int type)
