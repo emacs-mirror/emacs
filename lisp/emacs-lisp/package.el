@@ -2166,8 +2166,8 @@ to install it but still mark it as selected."
 
 (defun package-update-all (&optional query)
   "Upgrade all packages.
-If QUERY, ask the user before updating packages.  Interactively,
-QUERY is always true."
+If QUERY, ask the user before updating packages.  When called
+interactively, QUERY is always true."
   (interactive (list t))
   (let ((updateable (package--updateable-packages)))
     (if (not updateable)
