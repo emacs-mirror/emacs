@@ -3379,56 +3379,28 @@ BView_resize_to (void *view, int width, int height)
   vw->UnlockLooper ();
 }
 
-void *
-BCursor_create_default (void)
-{
-  return new BCursor (B_CURSOR_ID_SYSTEM_DEFAULT);
-}
-
-void *
-BCursor_create_modeline (void)
-{
-  return new BCursor (B_CURSOR_ID_CONTEXT_MENU);
-}
-
-void *
-BCursor_from_id (int cursor)
-{
-  return new BCursor ((enum BCursorID) cursor);
-}
-
-void *
-BCursor_create_i_beam (void)
-{
-  return new BCursor (B_CURSOR_ID_I_BEAM);
-}
-
-void *
-BCursor_create_progress_cursor (void)
-{
-  return new BCursor (B_CURSOR_ID_PROGRESS);
-}
-
-void *
-BCursor_create_grab (void)
-{
-  return new BCursor (B_CURSOR_ID_GRAB);
-}
-
 void
-BCursor_delete (void *cursor)
+be_delete_cursor (void *cursor)
 {
   if (cursor)
     delete (BCursor *) cursor;
 }
 
+void *
+be_create_cursor_from_id (int id)
+{
+  return new BCursor ((enum BCursorID) id);
+}
+
 void
 BView_set_view_cursor (void *view, void *cursor)
 {
-  if (!((BView *) view)->LockLooper ())
+  BView *v = (BView *) view;
+
+  if (!v->LockLooper ())
     gui_abort ("Failed to lock view setting cursor");
-  ((BView *) view)->SetViewCursor ((BCursor *) cursor);
-  ((BView *) view)->UnlockLooper ();
+  v->SetViewCursor ((BCursor *) cursor);
+  v->UnlockLooper ();
 }
 
 void

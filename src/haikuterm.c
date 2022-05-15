@@ -4216,34 +4216,24 @@ haiku_term_init (void)
 
   gui_init_fringe (terminal->rif);
 
-#define ASSIGN_CURSOR(cursor, be_cursor) (dpyinfo->cursor = be_cursor)
-  ASSIGN_CURSOR (text_cursor, BCursor_create_i_beam ());
-  ASSIGN_CURSOR (nontext_cursor, BCursor_create_default ());
-  ASSIGN_CURSOR (modeline_cursor, BCursor_create_modeline ());
-  ASSIGN_CURSOR (hand_cursor, BCursor_create_grab ());
-  ASSIGN_CURSOR (hourglass_cursor, BCursor_create_progress_cursor ());
-  ASSIGN_CURSOR (horizontal_drag_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_EAST_WEST));
-  ASSIGN_CURSOR (vertical_drag_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_SOUTH));
-  ASSIGN_CURSOR (left_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_WEST));
-  ASSIGN_CURSOR (top_left_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_WEST));
-  ASSIGN_CURSOR (top_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH));
-  ASSIGN_CURSOR (top_right_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_NORTH_EAST));
-  ASSIGN_CURSOR (right_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_EAST));
-  ASSIGN_CURSOR (bottom_right_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_EAST));
-  ASSIGN_CURSOR (bottom_edge_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH));
-  ASSIGN_CURSOR (bottom_left_corner_cursor,
-		 BCursor_from_id (CURSOR_ID_RESIZE_SOUTH_WEST));
-  ASSIGN_CURSOR (no_cursor,
-		 BCursor_from_id (CURSOR_ID_NO_CURSOR));
+#define ASSIGN_CURSOR(cursor, cursor_id)			\
+  (dpyinfo->cursor = be_create_cursor_from_id (cursor_id))
+  ASSIGN_CURSOR (text_cursor,			CURSOR_ID_I_BEAM);
+  ASSIGN_CURSOR (nontext_cursor,		CURSOR_ID_SYSTEM_DEFAULT);
+  ASSIGN_CURSOR (modeline_cursor,		CURSOR_ID_CONTEXT_MENU);
+  ASSIGN_CURSOR (hand_cursor,			CURSOR_ID_GRAB);
+  ASSIGN_CURSOR (hourglass_cursor,		CURSOR_ID_PROGRESS);
+  ASSIGN_CURSOR (horizontal_drag_cursor,	CURSOR_ID_RESIZE_EAST_WEST);
+  ASSIGN_CURSOR (vertical_drag_cursor,		CURSOR_ID_RESIZE_NORTH_SOUTH);
+  ASSIGN_CURSOR (left_edge_cursor,		CURSOR_ID_RESIZE_WEST);
+  ASSIGN_CURSOR (top_left_corner_cursor,	CURSOR_ID_RESIZE_NORTH_WEST);
+  ASSIGN_CURSOR (top_edge_cursor,		CURSOR_ID_RESIZE_NORTH);
+  ASSIGN_CURSOR (top_right_corner_cursor,	CURSOR_ID_RESIZE_NORTH_EAST);
+  ASSIGN_CURSOR (right_edge_cursor,		CURSOR_ID_RESIZE_EAST);
+  ASSIGN_CURSOR (bottom_right_corner_cursor,	CURSOR_ID_RESIZE_SOUTH_EAST);
+  ASSIGN_CURSOR (bottom_edge_cursor,		CURSOR_ID_RESIZE_SOUTH);
+  ASSIGN_CURSOR (bottom_left_corner_cursor,	CURSOR_ID_RESIZE_SOUTH_WEST);
+  ASSIGN_CURSOR (no_cursor,			CURSOR_ID_NO_CURSOR);
 #undef ASSIGN_CURSOR
 
   system_name = Fsystem_name ();

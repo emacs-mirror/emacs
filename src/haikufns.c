@@ -1975,7 +1975,7 @@ haiku_free_custom_cursors (struct frame *f)
 	  if (output->current_cursor == *frame_cursor)
 	    output->current_cursor = *display_cursor;
 
-	  BCursor_delete (*frame_cursor);
+	  be_delete_cursor (*frame_cursor);
 	}
 
       *frame_cursor = *display_cursor;
@@ -2039,7 +2039,7 @@ haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	    }
 
 	  /* Create and set the custom cursor.  */
-	  *frame_cursor = BCursor_from_id (n);
+	  *frame_cursor = be_create_cursor_from_id (n);
 	}
       else if (color_specified_p && cursor_bitmaps[i].bits)
 	{

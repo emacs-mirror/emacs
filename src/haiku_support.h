@@ -38,7 +38,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 enum haiku_cursor
   {
+    CURSOR_ID_SYSTEM_DEFAULT		   = 1,
+    CURSOR_ID_CONTEXT_MENU		   = 3,
+    CURSOR_ID_COPY			   = 4,
+    CURSOR_ID_CREATE_LINK		   = 29,
+    CURSOR_ID_CROSS_HAIR		   = 5,
+    CURSOR_ID_FOLLOW_LINK		   = 6,
+    CURSOR_ID_GRAB			   = 7,
+    CURSOR_ID_GRABBING			   = 8,
+    CURSOR_ID_HELP			   = 9,
+    CURSOR_ID_I_BEAM			   = 2,
+    CURSOR_ID_I_BEAM_HORIZONTAL		   = 10,
+    CURSOR_ID_MOVE			   = 11,
     CURSOR_ID_NO_CURSOR			   = 12,
+    CURSOR_ID_NOT_ALLOWED		   = 13,
+    CURSOR_ID_PROGRESS			   = 14,
     CURSOR_ID_RESIZE_NORTH		   = 15,
     CURSOR_ID_RESIZE_EAST		   = 16,
     CURSOR_ID_RESIZE_SOUTH		   = 17,
@@ -50,7 +64,9 @@ enum haiku_cursor
     CURSOR_ID_RESIZE_NORTH_SOUTH	   = 23,
     CURSOR_ID_RESIZE_EAST_WEST		   = 24,
     CURSOR_ID_RESIZE_NORTH_EAST_SOUTH_WEST = 25,
-    CURSOR_ID_RESIZE_NORTH_WEST_SOUTH_EAST = 26
+    CURSOR_ID_RESIZE_NORTH_WEST_SOUTH_EAST = 26,
+    CURSOR_ID_ZOOM_IN			   = 27,
+    CURSOR_ID_ZOOM_OUT			   = 28
   };
 
 enum haiku_z_group
@@ -556,14 +572,9 @@ extern void be_get_display_resolution (double *, double *);
 extern void be_get_screen_dimensions (int *, int *);
 
 /* Functions for creating and freeing cursors.  */
-extern void *BCursor_create_default (void);
-extern void *BCursor_from_id (int);
-extern void *BCursor_create_modeline (void);
-extern void *BCursor_create_i_beam (void);
-extern void *BCursor_create_progress_cursor (void);
-extern void *BCursor_create_grab (void);
-extern void BCursor_delete (void *);
+extern void *be_create_cursor_from_id (int);
 extern void *be_create_pixmap_cursor (void *, int, int);
+extern void be_delete_cursor (void *);
 
 extern void *BScrollBar_make_for_view (void *, int, int, int, int, int, void *);
 extern void BScrollBar_delete (void *);
