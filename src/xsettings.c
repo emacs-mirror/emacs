@@ -230,44 +230,6 @@ static GSettings *gsettings_client;
 /* The cairo font_options as obtained using gsettings.  */
 static cairo_font_options_t *font_options;
 
-/* Store an event for re-rendering of the fonts.  */
-static void
-store_font_options_changed (void)
-{
-  if (dpyinfo_valid (first_dpyinfo))
-    store_config_changed_event (Qfont_render,
-				XCAR (first_dpyinfo->name_list_element));
-}
-
-/* Apply changes in the hinting system setting.  */
-static void
-apply_gsettings_font_hinting (GSettings *settings)
-{
-  GVariant *val = g_settings_get_value (settings, GSETTINGS_FONT_HINTING);
-  if (val)
-    {
-      g_variant_ref_sink (val);
-      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
-	{
-	  const char *hinting = g_variant_get_string (val, NULL);
-
-	  if (!strcmp (hinting, "full"))
-	    cairo_font_options_set_hint_style (font_options,
-					       CAIRO_HINT_STYLE_FULL);
-	  else if (!strcmp (hinting, "medium"))
-	    cairo_font_options_set_hint_style (font_options,
-					       CAIRO_HINT_STYLE_MEDIUM);
-	  else if (!strcmp (hinting, "slight"))
-	    cairo_font_options_set_hint_style (font_options,
-					       CAIRO_HINT_STYLE_SLIGHT);
-	  else if (!strcmp (hinting, "none"))
-	    cairo_font_options_set_hint_style (font_options,
-					       CAIRO_HINT_STYLE_NONE);
-	}
-      g_variant_unref (val);
-    }
-}
-
 static bool
 xg_settings_key_valid_p (GSettings *settings, const char *key)
 {
@@ -289,6 +251,52 @@ xg_settings_key_valid_p (GSettings *settings, const char *key)
 #else
   return false;
 #endif
+}
+
+/* Store an event for re-rendering of the fonts.  */
+static void
+store_font_options_changed (void)
+{
+  if (dpyinfo_valid (first_dpyinfo))
+    store_config_changed_event (Qfont_render,
+				XCAR (first_dpyinfo->name_list_element));
+}
+
+/* Apply changes in the hinting system setting.  */
+static void
+apply_gsettings_font_hinting (GSettings *settings)
+{
+  GVariant *val;
+  const char *hinting;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_HINTING))
+    return;
+
+  val = g_settings_get_value (settings, GSETTINGS_FONT_HINTING);
+
+  if (val)
+    {
+      g_variant_ref_sink (val);
+
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+	{
+	  hinting = g_variant_get_string (val, NULL);
+
+	  if (!strcmp (hinting, "full"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_FULL);
+	  else if (!strcmp (hinting, "medium"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_MEDIUM);
+	  else if (!strcmp (hinting, "slight"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_SLIGHT);
+	  else if (!strcmp (hinting, "none"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_NONE);
+	}
+      g_variant_unref (val);
+    }
 }
 
 /* Apply changes in the antialiasing system setting.  */
@@ -328,14 +336,22 @@ apply_gsettings_font_antialias (GSettings *settings)
 static void
 apply_gsettings_font_rgba_order (GSettings *settings)
 {
-  GVariant *val = g_settings_get_value (settings,
-					GSETTINGS_FONT_RGBA_ORDER);
+  GVariant *val;
+  const char *rgba_order;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_RGBA_ORDER))
+    return;
+
+  val = g_settings_get_value (settings,
+			      GSETTINGS_FONT_RGBA_ORDER);
+
   if (val)
     {
       g_variant_ref_sink (val);
+
       if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
 	{
-	  const char *rgba_order = g_variant_get_string (val, NULL);
+	  rgba_order = g_variant_get_string (val, NULL);
 
 	  if (!strcmp (rgba_order, "rgb"))
 	    cairo_font_options_set_subpixel_order (font_options,
