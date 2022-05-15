@@ -16981,7 +16981,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    f = x_any_window_to_frame (dpyinfo, event->xbutton.window);
 
 	    if (event->xbutton.button > 3
-		&& event->xbutton.button < 9
+		&& event->xbutton.button < 8
 		&& f)
 	      {
 		if (ignore_next_mouse_click_timeout
@@ -18402,7 +18402,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  f = x_any_window_to_frame (dpyinfo, xev->event);
 
-		  if (xev->detail > 3 && xev->detail < 9 && f)
+		  if (xev->detail > 3 && xev->detail < 8 && f)
 		    {
 		      if (xev->evtype == XI_ButtonRelease)
 			{
@@ -18445,7 +18445,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (f)
 		{
-		  if (xev->detail >= 4 && xev->detail <= 8)
+		  if (xev->detail >= 4 && xev->detail < 8)
 		    {
 		      if (xev->evtype == XI_ButtonRelease)
 			{
