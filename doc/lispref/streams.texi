@@ -653,7 +653,7 @@ This function outputs the printed representation of @var{object} to
 
 If @var{overrides} is non-@code{nil}, it should either be @code{t}
 (which tells @code{prin1} to use the defaults for all printer related
-variables), or a list of settings.  @xref{Output Overrides} for details.
+variables), or a list of settings.  @xref{Output Overrides}, for details.
 @end defun
 
 @defun princ object &optional stream
@@ -716,7 +716,7 @@ would have printed for the same argument.
 
 If @var{overrides} is non-@code{nil}, it should either be @code{t}
 (which tells @code{prin1} to use the defaults for all printer related
-variables), or a list of settings.  @xref{Output Overrides} for details.
+variables), or a list of settings.  @xref{Output Overrides}, for details.
 @end example
 
 If @var{noescape} is non-@code{nil}, that inhibits use of quoting
@@ -983,20 +983,25 @@ having their own escape syntax such as newline.
 
 @node Output Overrides
 @section Overriding Output Variables
+@cindex overrides, in output functions
+@cindex output variables, overriding
 
-@xref{Output Functions} lists the numerous variables that controls how
-the Emacs Lisp printer outputs data.  These are generally available
-for users to change, but sometimes you want to output data in the
-default format.  For instance, if you're storing Emacs Lisp data in a
-file, you don't want that data to be shortened by a
-@code{print-length} setting.
+The previous section (@pxref{Output Functions}) lists the numerous
+variables that control how the Emacs Lisp printer formats data for
+outputs.  These are generally available for users to change, but
+sometimes you want to output data in the default format, or override
+the user settings in some other way.  For instance, if you're storing
+Emacs Lisp data in a file, you don't want that data to be shortened by
+a @code{print-length} setting.
 
 The @code{prin1} and @code{prin1-to-string} functions therefore have
-an optional @var{overrides} argument.  This variable can either be
-@code{t} (which means that all printing variables should be the
-default values), or a list of settings.  Each element in the list can
-either be @code{t} (which means ``reset to defaults'') or a pair where
-the @code{car} is a symbol, and the @code{cdr} is the value.
+an optional @var{overrides} argument.  This argument can either be
+@code{t} (which means that all printing variables should be reset to
+the default values), or a list of settings for some of the variables.
+Each element in the list can be either @code{t} (which means ``reset
+to defaults'', and will usually be the first element of the list), or
+a pair whose @code{car} is a symbol that stands for an output variable
+and whose @code{cdr} is the value for that variable.
 
 For instance, this prints using nothing but defaults:
 
@@ -1005,14 +1010,14 @@ For instance, this prints using nothing but defaults:
 @end lisp
 
 This prints @var{object} using the current printing settings, but
-overrides @code{print-length} to 5:
+overrides the value of @code{print-length} to be 5:
 
 @lisp
 (prin1 object nil '((length . 5)))
 @end lisp
 
 And finally, this prints @var{object} using only default settings, but
-overrides @code{print-length} to 5:
+with @code{print-length} bound to 5:
 
 @lisp
 (prin1 object nil '(t (length . 5)))
@@ -1024,46 +1029,32 @@ map to:
 @table @code
 @item length
 This overrides @code{print-length}.
-
 @item level
 This overrides @code{print-level}.
-
 @item circle
 This overrides @code{print-circle}.
-
 @item quoted
 This overrides @code{print-quoted}.
-
 @item escape-newlines
 This overrides @code{print-escape-newlines}.
-
 @item escape-control-characters
 This overrides @code{print-escape-control-characters}.
-
 @item escape-nonascii
 This overrides @code{print-escape-nonascii}.
-
 @item escape-multibyte
 This overrides @code{print-escape-multibyte}.
-
 @item charset-text-property
 This overrides @code{print-charset-text-property}.
-
 @item unreadeable-function
 This overrides @code{print-unreadable-function}.
-
 @item gensym
 This overrides @code{print-gensym}.
-
 @item continuous-numbering
 This overrides @code{print-continuous-numbering}.
-
 @item number-table
 This overrides @code{print-number-table}.
-
 @item float-format
 This overrides @code{float-output-format}.
-
 @item integers-as-characters
 This overrides @code{print-integers-as-characters}.
 @end table

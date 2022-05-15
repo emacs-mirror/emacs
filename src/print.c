@@ -688,11 +688,11 @@ of these:
 If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
 is used instead.
 
-OVERRIDES should be a list of settings.  An element in this list be
-the symbol t, which means "use all the defaults".  If not, an element
-should be a pair, where the `car' or the pair is the setting, and the
-`cdr' of the pair is the value of printer-related settings to use for
-this `prin1' call.
+Optional argument OVERRIDES should be a list of settings for print-related
+variables.  An element in this list can be the symbol t, which means "reset
+all the values to their defaults".  Otherwise, an element should be a pair,
+where the `car' or the pair is the setting symbol, and the `cdr' is the
+value of of the setting to use for this `prin1' call.
 
 For instance:
 
@@ -702,7 +702,7 @@ See the manual entry `(elisp)Output Overrides' for a list of possible
 values.
 
 As a special case, OVERRIDES can also simply be the symbol t, which
-means "use all the defaults".  */)
+means "use default values for all the print-related settings".  */)
   (Lisp_Object object, Lisp_Object printcharfun, Lisp_Object overrides)
 {
   specpdl_ref count = SPECPDL_INDEX ();
@@ -2645,6 +2645,7 @@ be printed.  */);
 
   DEFVAR_LISP ("print--variable-mapping", Vprint__variable_mapping,
 	       doc: /* Mapping for print variables in `prin1'.
+Internal use only.
 Do not modify this list.  */);
   Vprint__variable_mapping = Qnil;
   Lisp_Object total[] = {
