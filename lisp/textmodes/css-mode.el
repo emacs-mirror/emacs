@@ -936,8 +936,8 @@ cannot be completed sensibly: `custom-ident',
      ;; Same as for non-sassy except we do want to allow { and }
      ;; chars in selectors in the case of #{$foo}
      ;; variable interpolation!
-     (concat "\\(?:[-_%*#.>[:alnum:]]*" scss--hash-re
-             "\\|[-_%*#.>[:alnum:]]+\\)"))
+     (concat "\\(?:[-_%*#.>&+~[:alnum:]]*" scss--hash-re
+             "\\|[-_%*#.>&+~[:alnum:]]+\\)"))
    ;; Even though pseudo-elements should be prefixed by ::, a
    ;; single colon is accepted for backward compatibility.
    "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
