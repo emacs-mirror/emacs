@@ -1616,6 +1616,13 @@ values passed as a single token, such as '-oVALUE' or
 'eshell-eval-using-options' macro.  See "Defining new built-in
 commands" in the "(eshell) Built-ins" node of the Eshell manual.
 
+** Shell
+
+---
+*** New user option 'shell-kill-buffer-on-exit'.
+Enabling this will automatically kill a *shell* buffer as soon as the
+shell session terminates.
+
 ** Calc
 
 +++

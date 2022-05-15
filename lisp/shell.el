@@ -331,6 +331,12 @@ Useful for shells like zsh that has this feature."
   :group 'shell-directories
   :version "28.1")
 
+(defcustom shell-kill-buffer-on-exit nil
+  "Kill a shell buffer after the shell process terminates."
+  :type 'boolean
+  :group 'shell
+  :version "29.1")
+
 (defvar shell-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-f" 'shell-forward-command)
@@ -818,6 +824,17 @@ Make the shell buffer the current buffer, and return it.
           (with-temp-buffer
             (insert-file-contents startfile)
             (buffer-string)))))))
+  (when shell-kill-buffer-on-exit
+    (let* ((buffer (current-buffer))
+           (process (get-buffer-process buffer))
+           (sentinel (process-sentinel process)))
+      (set-process-sentinel
+       process
+       (lambda (proc event)
+         (when sentinel
+           (funcall sentinel proc event))
+         (unless (buffer-live-p proc)
+           (kill-buffer buffer))))))
   buffer)
 
 ;;; Directory tracking
