@@ -14536,6 +14536,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   GdkEvent *copy = NULL;
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
 #endif
+  USE_SAFE_ALLOCA;
 
   *finish = X_EVENT_NORMAL;
 
@@ -15753,7 +15754,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               if (status_return == XBufferOverflow)
                 {
                   copy_bufsiz = nbytes + 1;
-                  copy_bufptr = alloca (copy_bufsiz);
+                  copy_bufptr = SAFE_ALLOCA (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
                                             &xkey, (char *) copy_bufptr,
                                             copy_bufsiz, &keysym,
@@ -18858,7 +18859,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (status_return == XBufferOverflow)
 			{
 			  copy_bufsiz = nbytes + 1;
-			  copy_bufptr = alloca (copy_bufsiz);
+			  copy_bufptr = SAFE_ALLOCA (copy_bufsiz);
 			  nbytes = XmbLookupString (FRAME_XIC (f),
 						    &xkey, (char *) copy_bufptr,
 						    copy_bufsiz, &keysym,
@@ -18890,8 +18891,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						       copy_bufsiz, &overflow);
 			  if (overflow)
 			    {
-			      copy_bufptr = alloca ((copy_bufsiz += overflow)
-						    * sizeof *copy_bufptr);
+			      copy_bufptr = SAFE_ALLOCA ((copy_bufsiz += overflow)
+							 * sizeof *copy_bufptr);
 			      overflow = 0;
 			      nbytes = XkbTranslateKeySym (dpyinfo->display, &sym,
 							   state & ~mods_rtrn, copy_bufptr,
@@ -19202,7 +19203,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      struct xi_touch_point_t *tem, *last;
 #endif
 
-	      disabled = alloca (sizeof *disabled * hev->num_info);
+	      disabled = SAFE_ALLOCA (sizeof *disabled * hev->num_info);
 	      n_disabled = 0;
 
 	      for (i = 0; i < hev->num_info; ++i)
@@ -20072,6 +20073,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   if (any && any != f)
     flush_dirty_back_buffer_on (any);
 #endif
+
+  SAFE_FREE ();
   return count;
 }
 
