@@ -1090,8 +1090,7 @@ haiku_draw_stipple_background (struct glyph_string *s, struct face *face,
   haiku_clip_to_string (s);
   BView_ClipToRect (view, x, y, width, height);
   BView_DrawBitmapTiled (view, rec->img, 0, 0, -1, -1,
-			 0, 0, FRAME_PIXEL_WIDTH (s->f),
-			 FRAME_PIXEL_HEIGHT (s->f));
+			 0, 0, x + width, y + height);
   BView_EndClip (view);
 }
 
