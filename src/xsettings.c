@@ -268,17 +268,47 @@ apply_gsettings_font_hinting (GSettings *settings)
     }
 }
 
+static bool
+xg_settings_key_valid_p (GSettings *settings, const char *key)
+{
+#ifdef GLIB_VERSION_2_32
+  GSettingsSchema *schema;
+  bool rc;
+
+  g_object_get (G_OBJECT (settings),
+		"settings-schema", &schema,
+		NULL);
+
+  if (!schema)
+    return false;
+
+  rc = g_settings_schema_has_key (schema, key);
+  g_settings_schema_unref (schema);
+
+  return rc;
+#else
+  return false;
+#endif
+}
+
 /* Apply changes in the antialiasing system setting.  */
 static void
 apply_gsettings_font_antialias (GSettings *settings)
 {
-  GVariant *val = g_settings_get_value (settings, GSETTINGS_FONT_ANTIALIASING);
+  GVariant *val;
+  const char *antialias;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_ANTIALIASING))
+    return;
+
+  val = g_settings_get_value (settings, GSETTINGS_FONT_ANTIALIASING);
+
   if (val)
     {
       g_variant_ref_sink (val);
       if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
 	{
-	  const char *antialias = g_variant_get_string (val, NULL);
+	  antialias = g_variant_get_string (val, NULL);
 
 	  if (!strcmp (antialias, "none"))
 	    cairo_font_options_set_antialias (font_options,
