@@ -424,7 +424,7 @@
          (with-temp-buffer
            (insert-file-contents (ert-resource-file "css-selectors.txt"))
            (string-lines (buffer-string)))))
-    (with-suppressed-warnings ((interactive font-lock-debug-fontif))
+    (with-suppressed-warnings ((interactive-only font-lock-debug-fontify))
       (dolist (selector selectors)
         (with-temp-buffer
           (css-mode)
@@ -474,7 +474,7 @@
          (with-temp-buffer
            (insert-file-contents (ert-resource-file "scss-selectors.txt"))
            (string-lines (buffer-string)))))
-    (with-suppressed-warnings ((interactive font-lock-debug-fontif))
+    (with-suppressed-warnings ((interactive-only font-lock-debug-fontify))
       (dolist (selector selectors)
         (with-temp-buffer
           (scss-mode)
