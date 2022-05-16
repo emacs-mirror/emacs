@@ -17762,8 +17762,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		      if (!other_valuators_found)
 			goto XI_OTHER;
-		      else
-			puts ("ovf");
 		    }
 #ifdef HAVE_XWIDGETS
 		}
