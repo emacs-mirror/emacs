@@ -780,7 +780,11 @@ DEFUN ("haiku-roster-launch", Fhaiku_roster_launch, Shaiku_roster_launch,
        doc: /* Launch an application associated with FILE-OR-TYPE.
 Return the process ID of any process created, the symbol
 `already-running' if ARGS was sent to a program that's already
-running, or nil if launching the application failed.
+running, or nil if launching the application failed because no
+application was found for FILE-OR-TYPE.
+
+Signal an error if FILE-OR-TYPE is invalid, or if ARGS is a message
+but the application doesn't accept messages.
 
 FILE-OR-TYPE can either be a string denoting a MIME type, or a list
 with one argument FILE, denoting a file whose associated application
@@ -861,6 +865,9 @@ after it starts.  */)
 				make_uint (team_id));
   else if (rc == B_ALREADY_RUNNING)
     return Qalready_running;
+  else if (rc == B_BAD_VALUE)
+    signal_error ("Invalid type or bad arguments",
+		  list2 (file_or_type, args));
 
   return SAFE_FREE_UNBIND_TO (depth, Qnil);
 }
