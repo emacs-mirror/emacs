@@ -4307,6 +4307,7 @@ x_get_scroll_valuator_delta (struct x_display_info *dpyinfo,
 	}
     }
 
+  *valuator_return = NULL;
   return DBL_MAX;
 }
 
@@ -17507,6 +17508,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      XIValuatorState *states;
 	      double *values;
 	      bool found_valuator = false;
+	      bool other_valuators_found = false;
 #endif
 	      /* A fake XMotionEvent for x_note_mouse_movement. */
 	      XMotionEvent ev;
@@ -17563,6 +17565,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      delta = x_get_scroll_valuator_delta (dpyinfo, device,
 							   i, *values, &val);
 		      values++;
+
+		      if (!val)
+			{
+			  other_valuators_found = true;
+			  continue;
+			}
 
 		      if (delta != DBL_MAX)
 			{
@@ -17752,7 +17760,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (source && !NILP (source->name))
 			inev.ie.device = source->name;
 
-		      goto XI_OTHER;
+		      if (!other_valuators_found)
+			goto XI_OTHER;
+		      else
+			puts ("ovf");
 		    }
 #ifdef HAVE_XWIDGETS
 		}
