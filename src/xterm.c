@@ -10112,6 +10112,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	    continue;
 	}
 
+      /* `x-dnd-unsupported-drop-function' could have deleted the
+	 event frame.  */
+      if (!FRAME_LIVE_P (event_frame))
+	continue;
+
       x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (event_frame),
 				 event->ie.frame_or_window,
 				 XCAR (event->ie.arg),

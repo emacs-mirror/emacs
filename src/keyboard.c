@@ -4041,6 +4041,11 @@ kbd_buffer_get_event (KBOARD **kbp,
 		break;
 	    }
 
+	  /* `x-dnd-unsupported-drop-function' could have deleted the
+	     event frame.  */
+	  if (!FRAME_LIVE_P (f))
+	    break;
+
 	  x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (f),
 				     event->ie.frame_or_window,
 				     XCAR (event->ie.arg),
