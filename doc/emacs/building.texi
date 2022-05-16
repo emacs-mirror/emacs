@@ -289,6 +289,19 @@ window so that the current error message is @var{n} lines from the
 top, whether or not there is a fringe; the default value, @code{nil},
 gives the behavior described above.
 
+@vindex compilation-hidden-output
+  Compilation output can sometimes be very verbose, and much of it isn't
+of particular interest to a user.  The
+@code{compilation-hidden-output} user option should either be a regexp
+or a list of regexps, and output that matches will be made invisible.
+For instance, to hide the verbose output from recursive makefiles, you
+can say something like:
+
+@lisp
+(setq compilation-hidden-output
+      '("^make[^\n]+\n"))
+@end lisp
+
 @vindex compilation-error-regexp-alist
 @vindex grep-regexp-alist
   To parse messages from the compiler, Compilation mode uses the

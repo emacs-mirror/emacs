@@ -82,6 +82,25 @@ after `call-process' inserts the grep output into the buffer.")
   "Position of the start of the text inserted by `compilation-filter'.
 This is bound before running `compilation-filter-hook'.")
 
+(defcustom compilation-hidden-output nil
+  "Regexp to match output from the compilation that should be hidden.
+This can also be a list of regexps.
+
+The text matched by this variable will be made invisible, which
+means that it'll still be present in the buffer, so that
+navigation commands (for instance, `next-error') can still make
+use of the hidden text to determine the current directory and the
+like.
+
+For instance, to hide the verbose output from recursive
+makefiles, you can say something like:
+
+  (setq compilation-hidden-output
+        \\='(\"^make[^\n]+\n\"))"
+  :type '(choice regexp
+                 (repeat regexp))
+  :version "29.1")
+
 (defvar compilation-first-column 1
   "This is how compilers number the first column, usually 1 or 0.
 If this is buffer-local in the destination buffer, Emacs obeys
@@ -2441,8 +2460,8 @@ commands of Compilation major mode are available.  See
 
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
-Just inserts the text,
-handles carriage motion (see `comint-inhibit-carriage-motion'),
+Just inserts the text, handles carriage motion (see
+`comint-inhibit-carriage-motion'), `compilation-hidden-output',
 and runs `compilation-filter-hook'."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
@@ -2467,6 +2486,8 @@ and runs `compilation-filter-hook'."
                 (dolist (line (string-lines string nil t))
                   (compilation--insert-abbreviated-line
                    line compilation-max-output-line-length)))
+              (when compilation-hidden-output
+                (compilation--hide-output compilation-filter-start))
               (unless comint-inhibit-carriage-motion
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
@@ -2478,6 +2499,24 @@ and runs `compilation-filter-hook'."
 	  (set-marker pos nil)
 	  (set-marker min nil)
 	  (set-marker max nil))))))
+
+(defun compilation--hide-output (start)
+  (save-excursion
+    (goto-char start)
+    (beginning-of-line)
+    ;; Apply the match to each line, but wait until we have a complete
+    ;; line.
+    (let ((start (point)))
+      (while (search-forward "\n" nil t)
+        (save-restriction
+          (narrow-to-region start (point))
+          (dolist (regexp (ensure-list compilation-hidden-output))
+            (goto-char start)
+            (while (re-search-forward regexp nil t)
+              (add-text-properties (match-beginning 0) (match-end 0)
+                                   '( invisible t
+                                      rear-nonsticky t))))
+          (goto-char (point-max)))))))
 
 (defun compilation--insert-abbreviated-line (string width)
   (if (and (> (current-column) 0)
