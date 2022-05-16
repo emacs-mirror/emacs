@@ -1295,8 +1295,8 @@ doing any other command before the next \\[cycle-spacing]."
                               ((eq '- arg) '-)
                               (t context-n)))
                    (numeric-n (prefix-numeric-value actual-n))
-                   (include-newlines (and actual-n
-                                          (or (eq actual-n '-)
+                   (include-newlines (or (eq actual-n '-)
+                                         (and (integerp actual-n)
                                               (< actual-n 0)))))
               (cond
                ((eq actual-action 'just-one-space)
