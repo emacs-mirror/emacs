@@ -1405,7 +1405,7 @@ main (int argc, char **argv)
      related to the GUI system, like -font, -geometry, and -title, and
      then processes the rest of arguments whose priority is below
      those that are related to the GUI system.  The arguments
-     porcessed by 'command-line' are removed from 'command-line-args';
+     processed by 'command-line' are removed from 'command-line-args';
      the arguments processed by 'command-line-1' aren't, they are only
      removed from 'command-line-args-left'.
 
