@@ -1697,11 +1697,11 @@ Checks list of active processes against list of newsticker processes."
 ;; ======================================================================
 (defun newsticker--images-dir ()
   "Return directory where feed images are saved."
-  (concat newsticker-dir "/images/"))
+  (expand-file-name "images/" newsticker-dir))
 
 (defun newsticker--icons-dir ()
   "Return directory where feed icons are saved."
-  (concat newsticker-dir "/icons/"))
+  (expand-file-name "icons/" newsticker-dir))
 
 (defun newsticker--image-get (feed-name filename directory url)
   "Get image for FEED-NAME by returning FILENAME from DIRECTORY.
@@ -2114,7 +2114,7 @@ FEED is a symbol!"
 
 (defun newsticker--cache-dir ()
   "Return directory for saving cache data."
-  (concat newsticker-dir "/feeds"))
+  (expand-file-name "feeds/" newsticker-dir))
 
 (defun newsticker--cache-save ()
   "Save cache data for all feeds."
@@ -2125,13 +2125,15 @@ FEED is a symbol!"
 
 (defun newsticker--cache-save-feed (feed)
   "Save cache data for FEED."
-  (let ((dir (concat (newsticker--cache-dir) "/" (symbol-name (car feed)))))
+  (let ((dir (file-name-as-directory
+              (expand-file-name (symbol-name (car feed))
+                                (newsticker--cache-dir)))))
     (unless (file-directory-p dir)
       (make-directory dir t))
     (let ((coding-system-for-write 'utf-8))
-      (with-temp-file (concat dir "/data")
+      (with-temp-file (expand-file-name "data" dir)
         (insert ";; -*- coding: utf-8 -*-\n")
-        (insert (prin1-to-string (cdr feed)))))))
+        (prin1 (cdr feed) (current-buffer) t)))))
 
 (defun newsticker--cache-read ()
   "Read cache data."
@@ -2141,7 +2143,9 @@ FEED is a symbol!"
 
 (defun newsticker--cache-read-feed (feed-name)
   "Read cache data for feed named FEED-NAME."
-  (let ((file-name (concat (newsticker--cache-dir) "/" feed-name "/data"))
+  (let ((file-name (expand-file-name
+                    "data" (expand-file-name
+                            feed-name (newsticker--cache-dir))))
         (coding-system-for-read 'utf-8))
     (when (file-exists-p file-name)
       (with-temp-buffer
@@ -2334,14 +2338,19 @@ This function just prints out the values of the FEEDNAME and title of the ITEM."
   "Download the first image.
 If FEEDNAME equals \"imagefeed\" download the first image URL
 found in the description=contents of ITEM to the directory
-\"~/tmp/newsticker/FEEDNAME/TITLE\" where TITLE is the title of
-the item."
+`temporary-file-directory'/newsticker/FEEDNAME/TITLE where TITLE
+is the title of the item."
   (when (string= feedname "imagefeed")
     (let ((title (newsticker--title item))
           (desc (newsticker--desc item)))
       (when (string-match "<img src=\"\\(http://[^ \"]+\\)\"" desc)
         (let ((url (substring desc (match-beginning 1) (match-end 1)))
-              (temp-dir (concat "~/tmp/newsticker/" feedname "/" title))
+		(temp-dir (file-name-as-directory
+                           (expand-file-name
+                            title (expand-file-name
+                                   feedname (expand-file-name
+                                             "newsticker"
+                                             temporary-file-directory)))))
               (org-dir default-directory))
           (unless (file-directory-p temp-dir)
             (make-directory temp-dir t))
@@ -2355,7 +2364,8 @@ the item."
 
 (defun newsticker-download-enclosures (feedname item)
   "In all feeds download the enclosed object of the news ITEM.
-The object is saved to the directory \"~/tmp/newsticker/FEEDNAME/TITLE\", which
+The object is saved to the directory
+`temporary-file-directory'/newsticker/FEEDNAME/TITLE, which
 is created if it does not exist.  TITLE is the title of the news
 item.  Argument FEEDNAME is ignored.
 This function is suited for adding it to `newsticker-new-item-functions'."
@@ -2363,7 +2373,12 @@ This function is suited for adding it to `newsticker-new-item-functions'."
         (enclosure (newsticker--enclosure item)))
     (when enclosure
       (let ((url (cdr (assoc 'url enclosure)))
-            (temp-dir (concat "~/tmp/newsticker/" feedname "/" title))
+            (temp-dir (file-name-as-directory
+                       (expand-file-name
+                        title (expand-file-name
+                               feedname (expand-file-name
+                                         "newsticker"
+                                         temporary-file-directory)))))
             (org-dir default-directory))
         (unless (file-directory-p temp-dir)
           (make-directory temp-dir t))

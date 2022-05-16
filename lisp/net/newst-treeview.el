@@ -1257,20 +1257,20 @@ Note: does not update the layout."
   "Save treeview group settings."
   (interactive)
   (let ((coding-system-for-write 'utf-8)
-        (buf (find-file-noselect (concat newsticker-dir "/groups"))))
+        (buf (find-file-noselect (expand-file-name "groups" newsticker-dir))))
     (when buf
       (with-current-buffer buf
         (setq buffer-undo-list t)
         (erase-buffer)
         (insert ";; -*- coding: utf-8 -*-\n")
-        (insert (prin1-to-string newsticker-groups))
+        (prin1 newsticker-groups (current-buffer) t)
         (save-buffer)
         (kill-buffer)))))
 
 (defun newsticker--treeview-load ()
   "Load treeview settings."
   (let* ((coding-system-for-read 'utf-8)
-         (filename (concat newsticker-dir "/groups"))
+         (filename (expand-file-name "groups" newsticker-dir))
          (buf (and (file-exists-p filename)
                    (find-file-noselect filename))))
     (when buf
@@ -1282,7 +1282,6 @@ Note: does not update the layout."
          (message "Error while reading newsticker groups file!")
          (setq newsticker-groups nil)))
       (kill-buffer buf))))
-
 
 (defun newsticker-treeview-scroll-item ()
   "Scroll current item."
