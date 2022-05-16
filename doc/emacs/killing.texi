@@ -130,8 +130,8 @@ leaving @minus{}@var{n} spaces before point.
 @vindex cycle-spacing-actions
 The command @code{cycle-spacing} (@kbd{M-@key{SPC}}) acts like a more
 flexible version of @code{just-one-space}.  It performs different
-space cleanup actions if you call it repeatedly in succession as
-defined by @code{cycle-spacing-actions}.
+space cleanup actions defined by @code{cycle-spacing-actions}, in a
+cyclic manner, if you call it repeatedly in succession.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all
