@@ -3544,7 +3544,7 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
 
   if (supported >= 5)
     {
-      if (button >= 4 && button <= 8)
+      if (button >= 4 && button <= 7)
 	{
 	  msg.xclient.data.l[1] |= (1 << 9);
 	  msg.xclient.data.l[1] |= (button - 4) << 7;
