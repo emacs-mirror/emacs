@@ -1656,8 +1656,8 @@ Haiku windowing support, it displays tooltips via the toolkit, using
 the default appearance of the toolkit's tooltips.@footnote{The
 foreground and background colors of toolkit-created tooltips on
 Nextstep can also be customized by setting the @code{foreground} and
-@code{background} frame parameters inside
-@code{tooltip-frame-parameters}} To disable this, change the variable
+@code{background} frame parameters that are part of
+@code{tooltip-frame-parameters}.} To disable this, change the variable
 @code{use-system-tooltips} to @code{nil}.  If you do this, or if Emacs
 is built without the appropriate windowing support, most attributes of
 the tooltip text are specified by the @code{tooltip} face, and by X
