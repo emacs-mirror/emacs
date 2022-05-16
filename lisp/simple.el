@@ -1176,7 +1176,8 @@ ACTION is any action except for `restore' and ARG is either
              (list :tag "Action with modified arg"
                    (choice ,@actions)
                    (choice (const :tag "Inverted prefix arg" inverted-arg)
-                           (const :tag "Fixed numeric arg" integer)))
+                           (const :tag "Fixed numeric arg" integer)
+                           (const :tag "Negative arg" -)))
              (const :tag "Restore the original spacing" restore))))
   :version "29.1")
 
