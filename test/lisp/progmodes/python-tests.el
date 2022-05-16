@@ -95,6 +95,19 @@ STRING, it is skipped so the next STRING occurrence is selected."
         found-point
       (and restore-point (goto-char starting-point)))))
 
+(defun python-tests-assert-faces (content faces)
+  "Assert that font faces for CONTENT are equal to FACES."
+  (python-tests-with-temp-buffer content
+    (font-lock-ensure nil nil)
+    (should (equal faces (python-tests-get-buffer-faces)))))
+
+(defun python-tests-get-buffer-faces ()
+  "Return a list of (position . face) for each face change positions."
+  (cl-loop for pos = (point-min)
+           then (next-single-property-change pos 'face)
+           while pos
+           collect (cons pos (get-text-property pos 'face))))
+
 (defun python-tests-self-insert (char-or-str)
   "Call `self-insert-command' for chars in CHAR-OR-STR."
   (let ((chars
@@ -200,6 +213,153 @@ aliqua."
     (python-indent-dedent-line-backspace 1)
     (should (string= (buffer-string) "\"\""))
     (should (null (nth 3 (syntax-ppss))))))
+
+(ert-deftest python-font-lock-assignment-statement-1 ()
+  (python-tests-assert-faces
+   "a, b, c = 1, 2, 3"
+   '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-variable-name-face) (5)
+     (7 . font-lock-variable-name-face) (8))))
+
+(ert-deftest python-font-lock-assignment-statement-2 ()
+  (python-tests-assert-faces
+   "a, *b, c = 1, 2, 3, 4, 5"
+   '((1 . font-lock-variable-name-face) (2)
+     (5 . font-lock-variable-name-face) (6)
+     (8 . font-lock-variable-name-face) (9))))
+
+(ert-deftest python-font-lock-assignment-statement-3 ()
+  (python-tests-assert-faces
+   "[a, b] = (1, 2)"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (5 . font-lock-variable-name-face) (6))))
+
+(ert-deftest python-font-lock-assignment-statement-4 ()
+  (python-tests-assert-faces
+   "(l[1], l[2]) = (10, 11)"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (8 . font-lock-variable-name-face) (9))))
+
+(ert-deftest python-font-lock-assignment-statement-5 ()
+  (python-tests-assert-faces
+   "(a, b, c, *d) = *x, y = 5, 6, 7, 8, 9"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (5 . font-lock-variable-name-face) (6)
+     (8 . font-lock-variable-name-face) (9)
+     (12 . font-lock-variable-name-face) (13)
+     (18 . font-lock-variable-name-face) (19)
+     (21 . font-lock-variable-name-face) (22))))
+
+(ert-deftest python-font-lock-assignment-statement-6 ()
+  (python-tests-assert-faces
+   "(a,) = 'foo',"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (8 . font-lock-string-face) (13))))
+
+(ert-deftest python-font-lock-assignment-statement-7 ()
+  (python-tests-assert-faces
+   "(*a,) = ['foo', 'bar', 'baz']"
+   '((1)
+     (3 . font-lock-variable-name-face) (4)
+     (10 . font-lock-string-face) (15)
+     (17 . font-lock-string-face) (22)
+     (24 . font-lock-string-face) (29))))
+
+(ert-deftest python-font-lock-assignment-statement-8 ()
+  (python-tests-assert-faces
+   "d = D('a', ['b'], 'c')"
+   '((1 . font-lock-variable-name-face) (2)
+     (7 . font-lock-string-face) (10)
+     (13 . font-lock-string-face) (16)
+     (19 . font-lock-string-face) (22))))
+
+(ert-deftest python-font-lock-assignment-statement-9 ()
+  (python-tests-assert-faces
+   "d.x, d.y[0], *d.z = 'a', 'b', 'c', 'd', 'e'"
+   '((1)
+     (3 . font-lock-variable-name-face) (4)
+     (8 . font-lock-variable-name-face) (9)
+     (17 . font-lock-variable-name-face) (18)
+     (21 . font-lock-string-face) (24)
+     (26 . font-lock-string-face) (29)
+     (31 . font-lock-string-face) (34)
+     (36 . font-lock-string-face) (39)
+     (41 . font-lock-string-face))))
+
+(ert-deftest python-font-lock-assignment-statement-10 ()
+  (python-tests-assert-faces
+   "a: int = 5"
+   '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-builtin-face) (7))))
+
+(ert-deftest python-font-lock-assignment-statement-11 ()
+  (python-tests-assert-faces
+   "b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')"
+   '((1 . font-lock-variable-name-face) (2)
+     (19 . font-lock-builtin-face) (22)
+     (40 . font-lock-builtin-face) (43)
+     (46 . font-lock-builtin-face) (49)
+     (55 . font-lock-constant-face) (59)
+     (61 . font-lock-string-face) (66))))
+
+(ert-deftest python-font-lock-assignment-statement-12 ()
+  (python-tests-assert-faces
+   "c: Collection = {1, 2, 3}"
+   '((1 . font-lock-variable-name-face) (2))))
+
+(ert-deftest python-font-lock-assignment-statement-13 ()
+  (python-tests-assert-faces
+   "d: Mapping[int, str] = {1: 'bar', 2: 'baz'}"
+   '((1 . font-lock-variable-name-face) (2)
+     (12 . font-lock-builtin-face) (15)
+     (17 . font-lock-builtin-face) (20)
+     (28 . font-lock-string-face) (33)
+     (38 . font-lock-string-face) (43))))
+
+(ert-deftest python-font-lock-assignment-statement-14 ()
+  (python-tests-assert-faces
+   "(a) = 5; (b) = 6"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (11 . font-lock-variable-name-face) (12))))
+
+(ert-deftest python-font-lock-assignment-statement-15 ()
+  (python-tests-assert-faces
+   "[a] = 5,; [b] = 6,"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (12 . font-lock-variable-name-face) (13))))
+
+(ert-deftest python-font-lock-assignment-statement-16 ()
+  (python-tests-assert-faces
+   "[*a] = 5, 6; [*b] = 7, 8"
+   '((1)
+     (3 . font-lock-variable-name-face) (4)
+     (16 . font-lock-variable-name-face) (17))))
+
+(ert-deftest python-font-lock-assignment-statement-17 ()
+  (python-tests-assert-faces
+   "CustomInt = int
+
+def f(x: CustomInt) -> CustomInt:
+    y = x + 1
+    ys: Sequence[CustomInt] = [y, y + 1]
+    res: CustomInt = sum(ys) + 1
+    return res
+"
+   '((1 . font-lock-variable-name-face) (10)
+     (13 . font-lock-builtin-face) (16)
+     (18 . font-lock-keyword-face) (21)
+     (22 . font-lock-function-name-face) (23)
+     (56 . font-lock-variable-name-face) (57)
+     (70 . font-lock-variable-name-face) (72)
+     (111 . font-lock-variable-name-face) (114)
+     (128 . font-lock-builtin-face) (131)
+     (144 . font-lock-keyword-face) (150))))
 
 
 ;;; Indentation

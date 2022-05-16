@@ -394,7 +394,7 @@ This variant of `rx' supports common Python named REGEXPS."
             (open-paren        (or "{" "[" "("))
             (close-paren       (or "}" "]" ")"))
             (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
-            (not-simple-operator (not simple-operator))
+            (not-simple-operator (not (or simple-operator ?\n)))
             (operator          (or "==" ">=" "is" "not"
                                    "**" "//" "<<" ">>" "<=" "!="
                                    "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
@@ -603,15 +603,15 @@ builtins.")
 
 (defun python-font-lock-assignment-matcher (regexp)
   "Font lock matcher for assignments based on REGEXP.
-Return nil if REGEXP matched within a `paren' context (to avoid,
-e.g., default values for arguments or passing arguments by name
-being treated as assignments) or is followed by an '=' sign (to
-avoid '==' being treated as an assignment."
+Search for next occurrence if REGEXP matched within a `paren'
+context (to avoid, e.g., default values for arguments or passing
+arguments by name being treated as assignments) or is followed by
+an '=' sign (to avoid '==' being treated as an assignment."
   (lambda (limit)
-    (let ((res (re-search-forward regexp limit t)))
-      (unless (or (python-syntax-context 'paren)
-                  (equal (char-after (point)) ?=))
-        res))))
+    (cl-loop while (re-search-forward regexp limit t)
+             unless (or (python-syntax-context 'paren)
+                        (equal (char-after) ?=))
+               return t)))
 
 (defvar python-font-lock-keywords-maximum-decoration
   `((python--font-lock-f-strings)
