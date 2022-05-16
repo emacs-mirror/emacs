@@ -244,7 +244,7 @@
 	(newa #x11400)
 	(tirhuta #x11481 #x1148F #x114D0)
 	(siddham #x1158E #x115AF #x115D4)
-	(modi #x11600)
+	(modi #x1160E #x11630 #x11655)
 	(takri #x11680)
 	(dogra #x11800)
 	(warang-citi #x118A1)
@@ -782,6 +782,7 @@
                     sharada
                     tirhuta
                     siddham
+                    modi
 		    makasar
                     dives-akuru
 		    cuneiform

@@ -45,8 +45,9 @@
 		(coding-system utf-8)
 		(coding-priority utf-8)
 		(input-method . "devanagari-aiba")
+                (sample-text . "Devanagari (देवनागरी)	नमस्ते / नमस्कार")
 		(documentation . "\
-Such languages using Devanagari script as Hindi and Marathi
+Such languages using Devanagari script as Hindi, Marathi and Nepali
 are supported in this language environment."))
  '("Indian"))
 
@@ -55,16 +56,18 @@ are supported in this language environment."))
 	     (coding-system utf-8)
 	     (coding-priority utf-8)
 	     (input-method . "bengali-itrans")
+             (sample-text . "Bengali (বাংলা)	নমস্কার")
 	     (documentation . "\
 Such languages using Bengali script as Bengali and Assamese
 are supported in this language environment."))
  '("Indian"))
 
 (set-language-info-alist
- "Punjabi" '((charset unicode)
+ "Gurmukhi" '((charset unicode)
 	      (coding-system utf-8)
 	      (coding-priority utf-8)
 	      (input-method . "punjabi-itrans")
+              (sample-text . "Gurmukhi (ਗੁਰਮੁਖੀ)	ਸਤ ਸ੍ਰੀ ਅਕਾਲ")
 	      (documentation . "\
 North Indian language Punjabi is supported in this language environment."))
  '("Indian"))
@@ -74,6 +77,7 @@ North Indian language Punjabi is supported in this language environment."))
 	      (coding-system utf-8)
 	      (coding-priority utf-8)
 	      (input-method . "gujarati-itrans")
+              (sample-text . "Gujarati (ગુજરાતી)	નમસ્તે")
 	      (documentation . "\
 North Indian language Gujarati is supported in this language environment."))
  '("Indian"))
@@ -83,6 +87,7 @@ North Indian language Gujarati is supported in this language environment."))
 	      (coding-system utf-8)
 	      (coding-priority utf-8)
 	      (input-method . "oriya-itrans")
+              (sample-text . "Oriya (ଓଡ଼ିଆ)	ନମସ୍କାର")
 	      (documentation . "\
 Such languages using Oriya script as Oriya, Khonti, and Santali
 are supported in this language environment."))
@@ -93,6 +98,7 @@ are supported in this language environment."))
 	   (coding-system utf-8)
 	   (coding-priority utf-8)
 	   (input-method . "tamil-itrans")
+           (sample-text . "Tamil (தமிழ்)	வணக்கம்")
 	   (documentation . "\
 South Indian Language Tamil is supported in this language environment."))
  '("Indian"))
@@ -102,6 +108,7 @@ South Indian Language Tamil is supported in this language environment."))
 	    (coding-system utf-8)
 	    (coding-priority utf-8)
 	    (input-method . "telugu-itrans")
+            (sample-text . "Telugu (తెలుగు)	నమస్కారం")
 	    (documentation . "\
 South Indian Language Telugu is supported in this language environment."))
  '("Indian"))
@@ -122,6 +129,7 @@ environment."))
 	       (coding-system utf-8)
 	       (coding-priority utf-8)
 	       (input-method . "malayalam-itrans")
+               (sample-text . "Malayalam (മലയാളം)	നമസ്കാരം")
 	       (documentation . "\
 South Indian language Malayalam is supported in this language environment."))
  '("Indian"))
@@ -141,7 +149,7 @@ The ancient Brahmi script is supported in this language environment."))
             (coding-system utf-8)
             (coding-priority utf-8)
             (input-method . "kaithi")
-            (sample-text . "Kaithi (𑂍𑂶𑂟𑂲)        𑂩𑂰𑂧𑂩𑂰𑂧")
+            (sample-text . "Kaithi (𑂍𑂶𑂟𑂲)	𑂩𑂰𑂧𑂩𑂰𑂧")
             (documentation . "\
 Languages such as Awadhi, Bhojpuri, Magahi and Maithili
 which used the Kaithi script are supported in this language environment."))
@@ -152,7 +160,7 @@ which used the Kaithi script are supported in this language environment."))
              (coding-system utf-8)
              (coding-priority utf-8)
              (input-method . "tirhuta")
-             (sample-text . "Tirhuta (𑒞𑒱𑒩𑒯𑒳𑒞𑒰)        𑒣𑓂𑒩𑒢𑒰𑒧")
+             (sample-text . "Tirhuta (𑒞𑒱𑒩𑒯𑒳𑒞𑒰)	𑒣𑓂𑒩𑒢𑒰𑒧 / 𑒮𑒲𑒞𑒰𑒩𑒰𑒧")
              (documentation . "\
 Maithili language and its script Tirhuta is supported in this
 language environment."))
@@ -163,7 +171,7 @@ language environment."))
              (coding-system utf-8)
              (coding-priority utf-8)
              (input-method . "sharada")
-             (sample-text . "Sharada (𑆯𑆳𑆫𑆢𑆳)        𑆤𑆩𑆱𑇀𑆑𑆳𑆫")
+             (sample-text . "Sharada (𑆯𑆳𑆫𑆢𑆳)	𑆤𑆩𑆱𑇀𑆑𑆳𑆫")
              (documentation . "\
 Kashmiri language and its script Sharada is supported in this
 language environment."))
@@ -174,7 +182,7 @@ language environment."))
              (coding-system utf-8)
              (coding-priority utf-8)
              (input-method . "siddham")
-             (sample-text . "Siddham (𑖭𑖰𑖟𑖿𑖠𑖽)        𑖡𑖦𑖭𑖿𑖝𑖸")
+             (sample-text . "Siddham (𑖭𑖰𑖟𑖿𑖠𑖽)	𑖡𑖦𑖭𑖿𑖝𑖸")
              (documentation . "\
 Sanskrit language and one of its script Siddham is supported
 in this language environment."))
@@ -185,12 +193,22 @@ in this language environment."))
                   (coding-system utf-8)
                   (coding-priority utf-8)
                   (input-method . "syloti-nagri")
-                  (sample-text . "Syloti Nagri (ꠍꠤꠟꠐꠤ ꠘꠣꠉꠞꠤ)        ꠀꠌ꠆ꠍꠣꠟꠣꠝꠥ ꠀꠟꠣꠁꠇꠥꠝ")
+                  (sample-text . "Syloti Nagri (ꠍꠤꠟꠐꠤ ꠘꠣꠉꠞꠤ)	ꠀꠌ꠆ꠍꠣꠟꠣꠝꠥ ꠀꠟꠣꠁꠇꠥꠝ / ꠘꠝꠡ꠆ꠇꠣꠞ")
                   (documentation . "\
 Sylheti language and its script Syloti Nagri is supported
 in this language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Modi" '((charset unicode)
+          (coding-system utf-8)
+          (coding-priority utf-8)
+          (input-method . "modi")
+          (sample-text . "Modi (𑘦𑘻𑘚𑘲)	𑘡𑘦𑘭𑘿𑘎𑘰𑘨")
+          (documentation . "\
+Marathi language and one of its script Modi is supported
+in this language environment."))
+ '("Indian"))
 
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
@@ -616,6 +634,28 @@ in this language environment."))
                                ;; Consonant with the alternate virama
                                (concat consonant "\\(?:" alternate-virama consonant "\\)+"
                                        vowel "?" nasal "?")
+                               1 'font-shape-gstring))))
+
+;; Modi composition rules
+(let ((consonant            "[\x1160E-\x1162F]")
+      (independent-vowel    "[\x11600-\x1160D]")
+      (vowel                "[\x11630-\x1163C]")
+      (nasal                "\x1163D")
+      (visarga              "\x1163E")
+      (virama               "\x1163F")
+      (ardhacandra          "\x11640"))
+  (set-char-table-range composition-function-table
+                        '(#x11630 . #x11640)
+                        (list (vector
+                               ;; Consonant based syllables
+                               (concat consonant "\\(?:" virama consonant "\\)*\\(?:"
+                                       virama "\\|" vowel "*" ardhacandra "?" nasal
+                                       "?" visarga "?\\)")
+                               1 'font-shape-gstring)
+                              (vector
+                               ;; Vowels based syllables
+                               (concat independent-vowel virama "?" vowel "?" ardhacandra
+                                       nasal "?" visarga "?")
                                1 'font-shape-gstring))))
 
 (provide 'indian)
