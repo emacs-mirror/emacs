@@ -82,8 +82,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <csignal>
 #include <cfloat>
 
-#include <pthread.h>
-
 #ifdef USE_BE_CAIRO
 #include <cairo.h>
 #endif

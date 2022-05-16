@@ -437,32 +437,14 @@ struct haiku_session_manager_reply
    dimensions of a BRect, instead of relying on the broken Width and
    Height functions.  */
 
-#define BE_RECT_HEIGHT(rect) (ceil (((rect).bottom - (rect).top) + 1))
-#define BE_RECT_WIDTH(rect) (ceil (((rect).right - (rect).left) + 1))
+#define BE_RECT_HEIGHT(rect)	(ceil (((rect).bottom - (rect).top) + 1))
+#define BE_RECT_WIDTH(rect)	(ceil (((rect).right - (rect).left) + 1))
 #endif /* __cplusplus */
-
-/* C++ code cannot include lisp.h, but file dialogs need to be able
-   to bind to the specpdl and handle quitting correctly.  */
-
-#ifdef __cplusplus
-#if SIZE_MAX > 0xffffffff
-#define WRAP_SPECPDL_REF 1
-#endif
-#ifdef WRAP_SPECPDL_REF
-typedef struct { ptrdiff_t bytes; } specpdl_ref;
-#else
-typedef ptrdiff_t specpdl_ref;
-#endif
-
-#else
-#include "lisp.h"
-#endif
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-#include <pthread.h>
 #include <OS.h>
 
 #ifdef __cplusplus

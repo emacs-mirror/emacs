@@ -728,7 +728,7 @@ run_menu_bar_help_event (struct frame *f, int mb_idx)
 
   vec = f->menu_bar_vector;
   if ((mb_idx + MENU_ITEMS_ITEM_HELP) >= ASIZE (vec))
-    emacs_abort ();
+    return;
 
   help = AREF (vec, mb_idx + MENU_ITEMS_ITEM_HELP);
   if (STRINGP (help) || NILP (help))
