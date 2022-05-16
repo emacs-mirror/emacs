@@ -620,10 +620,12 @@ If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
   return val;
 }
 
+static Lisp_Object Vprint_variable_mapping;
+
 static void
 print_bind_all_defaults (void)
 {
-  for (Lisp_Object vars = Vprint__variable_mapping; !NILP (vars);
+  for (Lisp_Object vars = Vprint_variable_mapping; !NILP (vars);
        vars = XCDR (vars))
     {
       Lisp_Object elem = XCDR (XCAR (vars));
@@ -632,8 +634,41 @@ print_bind_all_defaults (void)
 }
 
 static void
+print_create_variable_mapping (void)
+{
+  Lisp_Object total[] = {
+    list3 (intern ("length"), intern ("print-length"), Qnil),
+    list3 (intern ("level"), intern ("print-level"), Qnil),
+    list3 (intern ("circle"), intern ("print-circle"), Qnil),
+    list3 (intern ("quoted"), intern ("print-quoted"), Qt),
+    list3 (intern ("escape-newlines"), intern ("print-escape-newlines"), Qnil),
+    list3 (intern ("escape-control-characters"),
+	   intern ("print-escape-control-characters"), Qnil),
+    list3 (intern ("escape-nonascii"), intern ("print-escape-nonascii"), Qnil),
+    list3 (intern ("escape-multibyte"),
+	   intern ("print-escape-multibyte"), Qnil),
+    list3 (intern ("charset-text-property"),
+	   intern ("print-charset-text-property"), Qnil),
+    list3 (intern ("unreadeable-function"),
+	   intern ("print-unreadable-function"), Qnil),
+    list3 (intern ("gensym"), intern ("print-gensym"), Qnil),
+    list3 (intern ("continuous-numbering"),
+	   intern ("print-continuous-numbering"), Qnil),
+    list3 (intern ("number-table"), intern ("print-number-table"), Qnil),
+    list3 (intern ("float-format"), intern ("float-output-format"), Qnil),
+    list3 (intern ("integers-as-characters"),
+	   intern ("print-integers-as-characters"), Qnil),
+  };
+
+  Vprint_variable_mapping = CALLMANY (Flist, total);
+}
+
+static void
 print_bind_overrides (Lisp_Object overrides)
 {
+  if (NILP (Vprint_variable_mapping))
+    print_create_variable_mapping ();
+
   if (EQ (overrides, Qt))
     print_bind_all_defaults ();
   else if (!CONSP (overrides))
@@ -651,7 +686,7 @@ print_bind_overrides (Lisp_Object overrides)
 	    {
 	      Lisp_Object key = XCAR (setting),
 		value = XCDR (setting);
-	      Lisp_Object map = Fassq (key, Vprint__variable_mapping);
+	      Lisp_Object map = Fassq (key, Vprint_variable_mapping);
 	      if (NILP (map))
 		xsignal2 (Qwrong_type_argument, Qsymbolp, map);
 	      specbind (XCAR (XCDR (map)), value);
@@ -2643,35 +2678,6 @@ be printed.  */);
 
   defsubr (&Sflush_standard_output);
 
-  DEFVAR_LISP ("print--variable-mapping", Vprint__variable_mapping,
-	       doc: /* Mapping for print variables in `prin1'.
-Internal use only.
-Do not modify this list.  */);
-  Vprint__variable_mapping = Qnil;
-  Lisp_Object total[] = {
-    list3 (intern ("length"), intern ("print-length"), Qnil),
-    list3 (intern ("level"), intern ("print-level"), Qnil),
-    list3 (intern ("circle"), intern ("print-circle"), Qnil),
-    list3 (intern ("quoted"), intern ("print-quoted"), Qt),
-    list3 (intern ("escape-newlines"), intern ("print-escape-newlines"), Qnil),
-    list3 (intern ("escape-control-characters"),
-	   intern ("print-escape-control-characters"), Qnil),
-    list3 (intern ("escape-nonascii"), intern ("print-escape-nonascii"), Qnil),
-    list3 (intern ("escape-multibyte"),
-	   intern ("print-escape-multibyte"), Qnil),
-    list3 (intern ("charset-text-property"),
-	   intern ("print-charset-text-property"), Qnil),
-    list3 (intern ("unreadeable-function"),
-	   intern ("print-unreadable-function"), Qnil),
-    list3 (intern ("gensym"), intern ("print-gensym"), Qnil),
-    list3 (intern ("continuous-numbering"),
-	   intern ("print-continuous-numbering"), Qnil),
-    list3 (intern ("number-table"), intern ("print-number-table"), Qnil),
-    list3 (intern ("float-format"), intern ("float-output-format"), Qnil),
-    list3 (intern ("integers-as-characters"),
-	   intern ("print-integers-as-characters"), Qnil),
-  };
-
-  Vprint__variable_mapping = CALLMANY (Flist, total);
-  make_symbol_constant (intern_c_string ("print--variable-mapping"));
+  /* Initialized in print_create_variable_mapping.  */
+  staticpro (&Vprint_variable_mapping);
 }
