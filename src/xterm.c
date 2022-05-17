@@ -1082,8 +1082,8 @@ typedef enum xm_byte_order
   }
 
 #else
-#define SWAPCARD32(l)	bswap_32 (l)
-#define SWAPCARD16(l)	bswap_16 (l)
+#define SWAPCARD32(l)	((l) = bswap_32 (l))
+#define SWAPCARD16(l)	((l) = bswap_16 (l))
 #endif
 
 typedef struct xm_targets_table_header
