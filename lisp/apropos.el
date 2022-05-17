@@ -1055,7 +1055,10 @@ non-nil."
       (setq sepa (goto-char sepb)))))
 
 (defun apropos-documentation-check-elc-file (file)
-  (if (member file apropos-files-scanned)
+  (unless (file-name-absolute-p file)
+    (setq file (locate-library file)))
+  (if (or (member file apropos-files-scanned)
+          (not (file-exists-p file)))
       nil
     (let (symbol doc beg end this-is-a-variable)
       (setq apropos-files-scanned (cons file apropos-files-scanned))
