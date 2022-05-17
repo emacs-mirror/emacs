@@ -882,10 +882,11 @@ divergent TECO command sets and key bindings at MIT, and completed by
 RMS.
 
 Many people have said that TECO code looks a lot like line noise; you
-can read more at @uref{news:alt.lang.teco}.  Someone has written a TECO
-implementation in Emacs Lisp (to find it, see @ref{Packages that do not
-come with Emacs}); it would be an interesting project to run the
-original TECO Emacs inside of Emacs.
+can read more on
+@uref{https://en.wikipedia.org/wiki/TECO_(text_editor), Wikipedia}.
+Someone has written a TECO implementation in Emacs Lisp (to find it,
+see @ref{Packages that do not come with Emacs}); it would be an
+interesting project to run the original TECO Emacs inside of Emacs.
 
 @cindex Why Emacs?
 For some not-so-serious alternative reasons for Emacs to have that
