@@ -230,6 +230,8 @@ static cairo_font_options_t *font_options;
 
 static GSettings *gsettings_client;
 
+#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+
 static bool
 xg_settings_key_valid_p (GSettings *settings, const char *key)
 {
@@ -252,6 +254,8 @@ xg_settings_key_valid_p (GSettings *settings, const char *key)
   return false;
 #endif
 }
+
+#endif
 
 #ifdef HAVE_PGTK
 /* Store an event for re-rendering of the fonts.  */
