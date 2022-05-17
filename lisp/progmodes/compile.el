@@ -1813,7 +1813,8 @@ If nil, don't hide anything."
   (unless compilation-in-progress (force-mode-line-update t)))
 
 ;;;###autoload
-(defun compilation-start (command &optional mode name-function highlight-regexp)
+(defun compilation-start (command &optional mode name-function highlight-regexp
+                                  continue)
   "Run compilation command COMMAND (low level interface).
 If COMMAND starts with a cd command, that becomes the `default-directory'.
 The rest of the arguments are optional; for them, nil means use the default.
@@ -1829,6 +1830,12 @@ else use or create a buffer with name based on the major mode.
 If HIGHLIGHT-REGEXP is non-nil, `next-error' will temporarily highlight
 the matching section of the visited source line; the default is to use the
 global value of `compilation-highlight-regexp'.
+
+If CONTINUE is non-nil, the buffer won't be emptied before
+compilation is started.  This can be useful if you wish to
+combine the output from several compilation commands in the same
+buffer.  The new output will be at the end of the buffer, and
+point is not changed.
 
 Returns the compilation buffer created."
   (or mode (setq mode 'compilation-mode))
@@ -1893,7 +1900,12 @@ Returns the compilation buffer created."
                   (if (= (length expanded-dir) 1)
                       (car expanded-dir)
                     substituted-dir)))))
-	(erase-buffer)
+        (if continue
+            (progn
+              ;; Save the point so we can restore it.
+              (setq continue (point))
+              (goto-char (point-max)))
+	  (erase-buffer))
 	;; Select the desired mode.
 	(if (not (eq mode t))
             (progn
@@ -1919,12 +1931,13 @@ Returns the compilation buffer created."
         (if (or compilation-auto-jump-to-first-error
 		(eq compilation-scroll-output 'first-error))
             (setq-local compilation-auto-jump-to-next t))
-	;; Output a mode setter, for saving and later reloading this buffer.
-	(insert "-*- mode: " name-of-mode
-		"; default-directory: "
-                (prin1-to-string (abbreviate-file-name default-directory))
-		" -*-\n"
-		(format "%s started at %s\n\n"
+        (when (zerop (buffer-size))
+	  ;; Output a mode setter, for saving and later reloading this buffer.
+	  (insert "-*- mode: " name-of-mode
+		  "; default-directory: "
+                  (prin1-to-string (abbreviate-file-name default-directory))
+		  " -*-\n"))
+        (insert (format "%s started at %s\n\n"
 			mode-name
 			(substring (current-time-string) 0 19))
 		command "\n")
@@ -1947,24 +1960,26 @@ Returns the compilation buffer created."
         (setq-local compilation-arguments
                     (list command mode name-function highlight-regexp))
         (setq-local revert-buffer-function 'compilation-revert-buffer)
-	(and outwin
-	     ;; Forcing the window-start overrides the usual redisplay
-	     ;; feature of bringing point into view, so setting the
-	     ;; window-start to top of the buffer risks losing the
-	     ;; effect of moving point to EOB below, per
-	     ;; compilation-scroll-output, if the command is long
-	     ;; enough to push point outside of the window.  This
-	     ;; could happen, e.g., in `rgrep'.
-	     (not compilation-scroll-output)
-	     (set-window-start outwin (point-min)))
+	(when (and outwin
+                   (not continue)
+	           ;; Forcing the window-start overrides the usual redisplay
+	           ;; feature of bringing point into view, so setting the
+	           ;; window-start to top of the buffer risks losing the
+	           ;; effect of moving point to EOB below, per
+	           ;; compilation-scroll-output, if the command is long
+	           ;; enough to push point outside of the window.  This
+	           ;; could happen, e.g., in `rgrep'.
+	           (not compilation-scroll-output))
+	  (set-window-start outwin (point-min)))
 
 	;; Position point as the user will see it.
 	(let ((desired-visible-point
-	       ;; Put it at the end if `compilation-scroll-output' is set.
-	       (if compilation-scroll-output
-		   (point-max)
-		 ;; Normally put it at the top.
-		 (point-min))))
+	       (cond
+                (continue continue)
+	        ;; Put it at the end if `compilation-scroll-output' is set.
+                (compilation-scroll-output (point-max))
+		;; Normally put it at the top.
+                (t (point-min)))))
 	  (goto-char desired-visible-point)
 	  (when (and outwin (not (eq outwin (selected-window))))
 	    (set-window-point outwin desired-visible-point)))
