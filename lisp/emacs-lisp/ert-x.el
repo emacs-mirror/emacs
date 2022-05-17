@@ -338,7 +338,8 @@ unless the output is going to the echo area (when PRINTCHARFUN is
 t or PRINTCHARFUN is nil and `standard-output' is t).  If the
 output is destined for the echo area, the advice function will
 convert it to a string and pass it to COLLECTOR first."
-  (lambda (func object &optional printcharfun)
+  ;;; FIXME: Pass on OVERRIDES.
+  (lambda (func object &optional printcharfun _overrides)
     (if (not (eq t (or printcharfun standard-output)))
         (funcall func object printcharfun)
       (funcall collector (with-output-to-string
