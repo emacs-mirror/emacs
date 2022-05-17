@@ -741,7 +741,9 @@ value.  */)
        and where the `foo` package only gets loaded when <foo-function>
        is called, so the outer `let` incorrectly made the binding lexical
        because the <foo-var> wasn't yet declared as dynamic at that point.  */
-    error ("Defining as dynamic an already lexical var");
+    xsignal2 (Qerror,
+	      build_string ("Defining as dynamic an already lexical var"),
+	      symbol);
 
   XSYMBOL (symbol)->u.s.declared_special = true;
   if (!NILP (doc))
