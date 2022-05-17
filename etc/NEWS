@@ -777,45 +777,22 @@ Setting it to a non-nil value temporarily disables automatic
 composition of character sequences at point, and thus makes it easier
 to edit such sequences by allowing point to "enter" the sequence.
 
-*** New language environment "Northern Thai".
-This uses the Tai Tham script, whose support has been enhanced.
+*** Support for many old scripts and writing systems.
+Emacs now supports and has language-environments and input methods for
+several dozens of old scripts that were used in the past for various
+languages in South and South-East Asia.  For each such script Emacs
+now has font-selection and character composition rules, a language
+environment, and an input method.  The newly-added scripts and the
+corresponding language environments are:
 
-*** New language environment "Brahmi".
-This language environment supports Brahmi, which is a historical
-script that was used in ancient South Asia.  A new input method,
-'brahmi', is provided to type text in this script.
-
-*** New language environment "Kaithi".
-This language environment supports Kaithi or Kayasthi, which was
-an important writing system of the past mainly used for administrative
-purposes.  A new input method, 'kaithi', is provided to type text in
-this script.
-
-*** New language environment "Tirhuta".
-This language environment supports Tirhuta or Mithilaakshar, which is
-used to write the Maithili language.  A new input method, 'tirhuta',
-is provided to type text in this script.
-
-*** New language environment "Sharada".
-This language environment supports the Sharada script.  Named after the
-goddess of learning, this script is used to write the Kashmiri language.
-A new input method, 'sharada', is provided to type text in this script.
-
-*** New language environment "Siddham".
-This language environment supports the Siddham script for the Sanskrit
-language.  Nowadays it is mostly used by the Buddhist monks in Japan for
-religious writings.  A new input method, 'siddham', is provided to type
-text in this script.
-
-*** New language environment "Syloti Nagri".
-This language environment supports the Syloti Nagri script for the Sylheti
-language, which is spoke in parts of Bangladesh, Assam and Tripura.  A new
-input method, 'syloti-nagri', is provided to type text in this script.
-
-*** New language environment "Modi".
-This language environment supports the Modi script which was used to write
-the Marathi language in the past.  A new input method, 'modi', is provided
-to type text in this script.
+**** Tai Tham script and the Northern Thai language environment
+**** Brahmi script and language environment
+**** Kaithi script and language environment
+**** Tirhuta script and language environment
+**** Sharada script and language environment
+**** Siddham script and language environment
+**** Syloti Nagri script and language environment
+**** Modi script and language environment
 
 ---
 *** New Greek translation of the Emacs tutorial.
