@@ -250,7 +250,7 @@ Use the `pp-max-width' variable to control the desired line length."
                                    (set-marker (make-marker) (1- (point))))))
               (pp--format-list sexp)))
            (t
-            (princ sexp (current-buffer)))))
+            (prin1 sexp (current-buffer)))))
     ;; Print some of the smaller integers as characters, perhaps?
     (integer
      (if (<= ?0 sexp ?z)

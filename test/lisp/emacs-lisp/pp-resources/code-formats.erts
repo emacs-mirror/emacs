@@ -128,3 +128,15 @@ Name: code-formats12
 =-=
 (global-set-key (kbd "s-x") #'kill-region)
 =-=-=
+
+Name: code-formats13
+
+=-=
+'("a")
+=-=-=
+
+Name: code-formats14
+
+=-=
+'("a" . "b")
+=-=-=
