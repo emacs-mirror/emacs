@@ -1169,7 +1169,7 @@ ACTION is any action except for `restore' and ARG is either
                  (const :tag "Delete spaces after point" delete-space-after)
                  (const :tag "Delete spaces before point" delete-space-before)
                  (const :tag "Delete all spaces around point" delete-all-space)
-                 (function :tag "Function receiving a numerig arg"))))
+                 (function :tag "Function receiving a numeric arg"))))
           `(repeat
             (choice
              ,@actions
