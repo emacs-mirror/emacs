@@ -4288,7 +4288,7 @@ activations need to be changed, such as when `package-load-list' is modified."
           (insert-file-contents file)
           ;; Fixup the special #$ reader form and throw away comments.
           (while (re-search-forward "#\\$\\|^;\\(.*\n\\)" nil 'move)
-            (unless (nth 8 (syntax-ppss))
+            (unless (ppss-string-terminator (save-match-data (syntax-ppss)))
               (replace-match (if (match-end 1) "" pfile) t t)))
           (unless (bolp) (insert "\n"))
           (insert ")\n")))
