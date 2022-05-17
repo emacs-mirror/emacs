@@ -229,9 +229,11 @@ from a variety of coding systems when reading or writing it.
 @item Command
 A command is a Lisp function specially defined to be able to serve as
 a key binding in Emacs or to be invoked by its name
-(@pxref{Glossary---Command Name}).  When you type a key sequence
-(q.v.), its binding (q.v.@:) is looked up in the relevant keymaps
-(q.v.@:) to find the command to run.  @xref{Commands}.
+(@pxref{Glossary---Command Name}).  (Another term for @dfn{command} is
+@dfn{interactive function}---they are used interchangeably.)  When you
+type a key sequence (q.v.), its binding (q.v.@:) is looked up in the
+relevant keymaps (q.v.@:) to find the command to run.
+@xref{Commands}.
 
 @item Command History
 @xref{Glossary---Minibuffer History}.
@@ -774,6 +776,14 @@ typing sequences of @acronym{ASCII} characters (q.v.).  @xref{Input Methods}.
 @item Insertion
 Insertion means adding text into the buffer, either from the keyboard
 or from some other place in Emacs.
+
+@item Interactive Function
+A different term for @dfn{command} (q.v.).
+
+@item Interactive Invocation
+A function can be called from Lisp code, or called as a user level
+command (via @kbd{M-x}, a key binding or a menu).  In the latter case,
+the function is said to be @dfn{called interactively}.
 
 @item Interlocking
 @xref{Glossary---File Locking}.
