@@ -37,7 +37,7 @@ can be enabled by configuring Emacs with the option '--with-be-app',
 which will require the Haiku Application Kit development headers and a
 C++ compiler to be present on your system.  If Emacs is not built with
 the option '--with-be-app', the resulting Emacs will only run in
-text-mode terminals.
+'text-mode' terminals.
 
 +++
 ** Cairo drawing support has been enabled for Haiku builds.
@@ -65,7 +65,7 @@ headers installed, Emacs will use the X Input Extension for handling
 input.  If this causes problems, you can configure Emacs with the
 option '--without-xinput2' to disable this support.
 
-(featurep 'xinput2) can be used to test for the presence of XInput 2
+'(featurep 'xinput2)' can be used to test for the presence of XInput 2
 support from Lisp programs.
 
 +++
@@ -137,7 +137,7 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
-** Isearch in *Help* and *info* now char-folds quote characters by default.
+** Isearch in "*Help*" and "*info*" now char-folds quote characters by default.
 This means that you can say 'C-s `foo' (GRAVE ACCENT) if the buffer
 contains "‘foo" (LEFT SINGLE QUOTATION MARK) and the like.  These
 quotation characters look somewhat similar in some fonts.  To switch
@@ -236,28 +236,28 @@ methods instead.
 
 +++
 ** New variable 'current-time-list' governing default timestamp form.
-Functions like 'current-time' now yield (TICKS . HZ) timestamps if this
-new variable is nil.  The variable defaults to t, which means these
-functions default to timestamps of the forms (HI LO US PS), (HI LO US)
-or (HI LO), which are less regular and less efficient.  This is part
-of a long-planned change first documented in Emacs 27.  Developers are
-encouraged to test timestamp-related code with this variable set to
-nil, as it will default to nil in a future Emacs version and will be
-removed some time after that.
+Functions like 'current-time' now yield '(TICKS . HZ)' timestamps if
+this new variable is nil.  The variable defaults to t, which means
+these functions default to timestamps of the forms '(HI LO US PS)',
+'(HI LO US)' or '(HI LO)', which are less regular and less efficient.
+This is part of a long-planned change first documented in Emacs 27.
+Developers are encouraged to test timestamp-related code with this
+variable set to nil, as it will default to nil in a future Emacs
+version and will be removed some time after that.
 
 +++
-** Functions which recreate the *scratch* buffer now also initialize it.
+** Functions which recreate the "*scratch*" buffer now also initialize it.
 When functions like 'other-buffer' and 'server-execute' recreate
-*scratch*, they now also insert 'initial-scratch-message' and set
+"*scratch*", they now also insert 'initial-scratch-message' and set
 the major mode according to 'initial-major-mode', like at Emacs
 startup.  Previously, these functions ignored
-'initial-scratch-message' and left *scratch* in 'fundamental-mode'.
+'initial-scratch-message' and left "*scratch*" in 'fundamental-mode'.
 
 
 * Changes in Emacs 29.1
 
 +++
-*** New user option 'switch-to-prev-buffer-skip-regexp'.
+** New user option 'switch-to-prev-buffer-skip-regexp'.
 This should be a regexp or a list of regexps; buffers whose names
 match those regexps will be ignored by 'switch-to-prev-buffer' and
 'switch-to-next-buffer'.
@@ -400,7 +400,7 @@ tooltips.  The existing GTK-specific option
 ** Non-native tooltips are now supported on Nextstep.
 This means Emacs built with GNUstep or built on macOS is now able to
 display different faces and images inside tooltips when the
-'use-system-tooltips' variable is nil.
+'use-system-tooltips' user option is nil.
 
 ** Connection-local variables
 
@@ -490,8 +490,8 @@ command also works for non-Emoji characters.)
 
 ---
 *** New input method 'emoji'.
-This allows you to enter emoji using short strings, eg :face_palm: or
-:scream:.
+This allows you to enter emoji using short strings, eg ':face_palm:'
+or ':scream:'.
 
 ** Help
 
@@ -500,7 +500,7 @@ This allows you to enter emoji using short strings, eg :face_palm: or
 
 +++
 *** New doc string syntax to indicate that symbols shouldn't be links.
-When displaying doc strings in *Help* buffers, strings that are
+When displaying doc strings in "*Help*" buffers, strings that are
 "`like-this'" are made into links (if they point to a bound
 function/variable).  This can lead to false positives when talking
 about values that are symbols that happen to have the same names as
@@ -510,19 +510,19 @@ functions/variables.  To inhibit this buttonification, the new
 +++
 *** New user option 'help-window-keep-selected'.
 If non-nil, commands to show the info manual and the source will reuse
-the same window the *Help* buffer is shown in.
+the same window the "*Help*" buffer is shown in.
 
 ---
 *** Commands like 'C-h f' have changed how they describe menu bindings.
 For instance, previously a command might be described as having the
 following bindings:
 
-  It is bound to <open>, C-x C-f, <menu-bar> <file> <new-file>.
+    It is bound to <open>, C-x C-f, <menu-bar> <file> <new-file>.
 
 This has been changed to:
 
-  It is bound to <open> and C-x C-f.
-  It can also be invoked from the menu: File → Visit New File...
+    It is bound to <open> and C-x C-f.
+    It can also be invoked from the menu: File → Visit New File...
 
 +++
 *** The 'C-h .' command now accepts a prefix argument.
@@ -533,7 +533,7 @@ instead.
 
 ---
 *** New user option 'help-enable-variable-value-editing'.
-If enabled, 'e' on a value in *Help* will pop you to a new buffer
+If enabled, 'e' on a value in "*Help*" will pop you to a new buffer
 where you can edit the value.  This is not enabled by default, because
 it's easy to make an edit that yields an invalid result.
 
@@ -671,7 +671,7 @@ Rcirc will use the default 'completion-at-point' mechanism.  The
 conventional IRC behaviour of completing by cycling through the
 available options can be restored by enabling this option.
 
-** imenu
+** Imenu
 
 +++
 *** 'imenu' is now bound to 'M-g i' globally.
@@ -684,12 +684,13 @@ recreate it anew next time 'imenu' is invoked.
 * Editing Changes in Emacs 29.1
 
 +++
-** M-SPC is now bound to 'cycle-spacing' (formerly it invoked 'just-one-space').
-The actions performed by 'cycle-spacing' and their order can now be
-customized via the variable 'cycle-spacing-actions'.
+** 'M-SPC' is now bound to 'cycle-spacing'.
+Formerly it invoked 'just-one-space'.  The actions performed by
+'cycle-spacing' and their order can now be customized via the user
+option 'cycle-spacing-actions'.
 
 ---
-** 'scroll-other-window' and 'scroll-other-window-down' now respects remapping.
+** 'scroll-other-window' and 'scroll-other-window-down' now respect remapping.
 These commands (bound to 'C-M-v' and 'C-M-V') used to scroll the other
 windows without looking a customizations in that other window.  These
 functions now check whether they have been rebound in the buffer in
@@ -808,13 +809,16 @@ so automatically.
 *** New user option 'sh-indent-statement-after-and'.
 This controls how statements like the following are indented:
 
-     foo &&
-         bar
+    foo &&
+        bar
 
+** Cperl Mode
 ---
 *** New user option 'cperl-file-style'.
 This option determines the indentation style to be used.  It can also
 be used as a file-local variable.
+
+** Gud
 
 ---
 *** 'gud-go' is now bound to 'C-c C-v'.
@@ -828,7 +832,7 @@ the run/continue command.
 This is bound to 'H' and toggles whether to hide or show the widget
 contents.
 
-** ispell
+** Ispell
 
 ---
 *** 'ispell-region' and 'ispell-buffer' now push the mark.
@@ -836,10 +840,10 @@ These commands push onto the mark ring the location of the last
 misspelled word where corrections were offered, so that you can then
 skip back to that location with 'C-x C-x'.
 
-** dabbrev
+** Dabbrev
 
 ---
-*** New function 'dabbrev-capf' for use on 'completion-at-point-functions'
+*** New function 'dabbrev-capf' for use on 'completion-at-point-functions'.
 
 +++
 *** New user option 'dabbrev-ignored-buffer-modes'.
@@ -849,16 +853,16 @@ this includes "binary" buffers like 'archive-mode' and 'image-mode'.
 ** Package
 
 +++
-*** New command 'package-update-all'.
-This command allows updating all packages without any queries.
-
-+++
 *** New command 'package-update'.
 This command allows you to upgrade packages without using 'M-x
 list-packages'.
 
 +++
-*** New DWIM action on 'x'.
+*** New command 'package-update-all'.
+This command allows updating all packages without any queries.
+
++++
+*** New DWIM action on 'x' in "*Packages*" buffer.
 If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
 
@@ -866,14 +870,14 @@ it isn't already, and remove it if it is installed.
 
 +++
 *** New command 'scratch-buffer'.
-This command switches to the *scratch* buffer.  If *scratch* doesn't
+This command switches to the "*scratch*" buffer.  If "*scratch*" doesn't
 exist, the command creates it first.  You can use this command if you
-inadvertently delete the *scratch* buffer.
+inadvertently delete the "*scratch*" buffer.
 
 ** Debugging
 
 *** New user option 'debug-allow-recursive-debug'.
-This user option controls whether the 'e' (in a *Backtrace*
+This user option controls whether the 'e' (in a "*Backtrace*"
 buffer or while edebugging) and 'C-x C-e' (while edebugging) commands
 lead to a (further) backtrace.  By default, this variable is nil,
 which is a change in behaviour from previous Emacs versions.
@@ -886,7 +890,7 @@ This can be used to make specific parts of compilation output
 invisible.
 
 +++
-*** The 'compilation-auto-jump-to-first-error' has been extended.
+*** The 'compilation-auto-jump-to-first-error' user option has been extended.
 It can now have the additional values 'if-location-known' (which will
 only jump if the location of the first error is known), and
 'first-known' (which will jump to the first known error location).
@@ -913,7 +917,7 @@ This mode adds some highlighting, fixes the 'M-q' command, and has
 commands for doing maintenance.
 
 ---
-** kmacro
+** Kmacro
 Kmacros are now OClosures and have a new constructor 'kmacro' which
 uses the 'key-parse' syntax.  It replaces the old 'kmacro-lambda-form'
 (which is now declared obsolete).
@@ -1027,7 +1031,7 @@ For instance, to enable jumping to the "*Messages*" buffer with
 
     (set-register ?m '(buffer . "*Messages*"))
 
-** pixel-fill
+** Pixel-fill
 
 +++
 *** This is a new package that deals with filling variable-pitch text.
@@ -1046,7 +1050,7 @@ This fills the region to be no wider than a specified pixel width.
 This will take you to the gnu.org web server's version of the current
 info node.  This command only works for the Emacs and Emacs Lisp manuals.
 
-** vc
+** VC
 
 +++
 *** New command '%' ('vc-dir-mark-by-regexp').
@@ -1123,12 +1127,12 @@ comment parts (see RFC 5322 for definitions).  In both cases, the
 phrase part will be automatically quoted if necessary.
 
 +++
-*** New function 'eudc-capf-complete' with message-mode integration
+*** New function 'eudc-capf-complete' with 'message-mode' integration.
 EUDC can now contribute email addresses to 'completion-at-point' by
 adding the new function 'eudc-capf-complete' to
-'completion-at-point-functions' in message-mode.
+'completion-at-point-functions' in 'message-mode'.
 
-** eww/shr
+** EWW/SHR
 
 +++
 *** New user option to automatically rename EWW buffers.
@@ -1198,7 +1202,7 @@ supports the unified search syntax.
 
 ---
 *** 'gnus-html-image-cache-ttl' is now a seconds count.
-Formerly it was a pair of numbers (A B) that represented 65536*A + B,
+Formerly it was a pair of numbers '(A B)' that represented 65536*A + B,
 to cater to older Emacs implementations that lacked bignums.
 The older form still works but is undocumented.
 
@@ -1207,7 +1211,7 @@ The older form still works but is undocumented.
 +++
 *** 'slot-value' can now be used to access slots of 'cl-defstruct' objects.
 
-** align
+** Align
 
 ---
 *** Alignment in 'text-mode' has changed.
@@ -1230,7 +1234,7 @@ displayed in the "*Help*" buffer will be linked to the documentation
 for the command they are bound to.  This does not affect listings of
 key bindings and functions (such as 'C-h b').
 
-** info-look
+** Info-look
 
 ---
 *** info-look specs can now be expanded at run time instead of a load time.
@@ -1238,19 +1242,19 @@ The new ':doc-spec-function' element can be used to compute the
 ':doc-spec' element when the user asks for info on that particular
 mode (instead of at load time).
 
-** subr-x
+** Subr-x
 
 +++
 *** New macro 'with-memoization' provides a very primitive form of memoization.
 
-** ansi-color
+** Ansi-color
 
 ---
 *** Support for ANSI 256-color and 24-bit colors.
 256-color and 24-bit color codes are now handled by ANSI color
 filters and displayed with the specified color.
 
-** term-mode
+** Term-mode
 
 ---
 *** New user option 'term-bind-function-keys'.
@@ -1259,7 +1263,7 @@ underlying shell instead of using the normal Emacs bindings.
 
 ---
 *** Support for ANSI 256-color and 24-bit colors, italic and other fonts.
-Term-mode can now display 256-color and 24-bit color codes.  It can
+'term-mode' can now display 256-color and 24-bit color codes.  It can
 also handle ANSI codes for faint, italic and blinking text, displaying
 it with new 'term-{faint,italic,slow-blink,fast-blink}' faces.
 
@@ -1357,11 +1361,11 @@ user options that are no longer needed are now obsolete:
 *** Navigation and marking commands now work in image display buffer.
 The following new bindings have been added:
 
-  n or SPC  image-dired-display-next-thumbnail-original
-  p or DEL  image-dired-display-previous-thumbnail-original
-  m         image-dired-mark-thumb-original-file
-  d         image-dired-flag-thumb-original-file
-  u         image-dired-unmark-thumb-original-file
+    n or SPC  image-dired-display-next-thumbnail-original
+    p or DEL  image-dired-display-previous-thumbnail-original
+    m         image-dired-mark-thumb-original-file
+    d         image-dired-flag-thumb-original-file
+    u         image-dired-unmark-thumb-original-file
 
 ---
 *** Reduce dependency on external "exiftool" command.
@@ -1835,7 +1839,7 @@ This returns non-nil if its argument its an uppercase character.
 *** Byte compilation will now warn about some malformed 'defcustom' types.
 It's very common to write 'defcustom' types on the form:
 
-   :type '(choice (const :tag "foo" 'bar))
+    :type '(choice (const :tag "foo" 'bar))
 
 I.e., double-quoting the 'bar', which is almost never the correct
 value.  The byte compiler will now issue a warning if it encounters
@@ -1849,8 +1853,8 @@ been auto-saved since the time of last modification.
 ---
 *** New minor mode 'isearch-fold-quotes-mode'.
 This sets up 'search-default-mode' so that quote characters are
-char-folded into each other.  It is used, by default, in *Help* and
-*info* buffers.
+char-folded into each other.  It is used, by default, in "*Help*" and
+"*info*" buffers.
 
 +++
 ** New macro 'buffer-local-set-state'.
@@ -1873,7 +1877,7 @@ available only when Emacs was built with glibc as the C library.
 ---
 ** 'x-show-tip' no longer hard-codes a timeout default.
 The new 'x-show-tooltip-timeout' variable allows the user to alter
-this for packages that don't use 'tooltip-show', but instead calls the
+this for packages that don't use 'tooltip-show', but instead call the
 lower level function directly.
 
 +++
@@ -2049,7 +2053,7 @@ Use 'buffer-match-p' to gather a list of buffers that match a
 condition.
 
 ---
-** New arguments 'text-face' and 'default-face' for 'tooltip-show'.
+** New optional arguments 'text-face' and 'default-face' for 'tooltip-show'.
 They allow changing the faces used for the tooltip text and frame
 colors of the resulting tooltip frame from the default 'tooltip' face.
 
@@ -2294,7 +2298,7 @@ descriptor, which means to insert an image in that column instead of
 text.  See the documentation string of that variable for details.
 
 +++
-** :keys in 'menu-item' can now be a function.
+** ':keys' in 'menu-item' can now be a function.
 If so, it is called whenever the menu is computed, and can be used to
 calculate the keys dynamically.
 
@@ -2431,8 +2435,8 @@ temporary transition aid for Emacs 27, has served its purpose.
 
 +++
 ** 'encode-time' now also accepts a 6-element list with just time and date.
-(encode-time (list SECOND MINUTE HOUR DAY MONTH YEAR)) is now short for
-(encode-time (list SECOND MINUTE HOUR DAY MONTH YEAR nil -1 nil)).
+'(encode-time (list SECOND MINUTE HOUR DAY MONTH YEAR))' is now short for
+'(encode-time (list SECOND MINUTE HOUR DAY MONTH YEAR nil -1 nil))'.
 
 +++
 ** 'date-to-time' now assumes earliest values if its argument lacks
@@ -2518,12 +2522,12 @@ To disable double-buffering (e.g., if it causes display problems), set
 the frame parameter 'inhibit-double-buffering' to a non-nil value.
 You can do that either by adding
 
-   '(inhibit-double-buffering . t)
+    '(inhibit-double-buffering . t)
 
 to 'default-frame-alist', or by modifying the frame parameters of the
 selected frame by evaluating
 
-   (modify-frame-parameters nil '((inhibit-double-buffering . t)))
+    (modify-frame-parameters nil '((inhibit-double-buffering . t)))
 
 +++
 *** Emacs now supports system dark mode.
