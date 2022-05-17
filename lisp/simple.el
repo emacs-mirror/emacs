@@ -1177,7 +1177,7 @@ and ARG is either
              (list :tag "Action with modified arg"
                    (choice ,@actions)
                    (choice (const :tag "Inverted prefix arg" inverted-arg)
-                           (const :tag "Fixed numeric arg" integer)
+                           (integer :tag "Fixed numeric arg")
                            (const :tag "Negative arg" -)))
              (const :tag "Restore the original spacing" restore))))
   :version "29.1")
