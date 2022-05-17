@@ -686,6 +686,9 @@ extern bool be_select_font (void (*) (void), bool (*) (void),
 extern int be_find_font_indices (struct haiku_font_pattern *, int *, int *);
 extern status_t be_roster_launch (const char *, const char *, char **,
 				  ptrdiff_t, void *, team_id *);
+extern void be_get_window_decorator_dimensions (void *, int *, int *, int *, int *);
+extern void be_get_window_decorator_frame (void *, int *, int *, int *, int *);
+
 #ifdef __cplusplus
 }
 

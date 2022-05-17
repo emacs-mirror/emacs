@@ -196,6 +196,11 @@ struct haiku_output
      They are changed only when a different background is involved.
      -1 means no color has been computed.  */
   long relief_background;
+
+  /* The absolute position of this frame.  This differs from left_pos
+     and top_pos in that the decorator and parent frames are not taken
+     into account.  */
+  int frame_x, frame_y;
 };
 
 struct x_output

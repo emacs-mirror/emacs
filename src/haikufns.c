@@ -104,6 +104,29 @@ get_geometry_from_preferences (struct haiku_display_info *dpyinfo,
   return parms;
 }
 
+/* Update the left and top offsets of F after its decorators
+   change.  */
+static void
+haiku_update_after_decoration_change (struct frame *f)
+{
+  int x, y, width, height;
+  struct frame *parent;
+
+  be_get_window_decorator_frame (FRAME_HAIKU_WINDOW (f),
+				 &x, &y, &width, &height);
+
+  parent = FRAME_PARENT_FRAME (f);
+
+  if (parent)
+    {
+      x = x - FRAME_OUTPUT_DATA (f)->frame_x;
+      y = y - FRAME_OUTPUT_DATA (f)->frame_x;
+    }
+
+  f->left_pos = x;
+  f->top_pos = y;
+}
+
 void
 haiku_change_tool_bar_height (struct frame *f, int height)
 {
@@ -827,10 +850,7 @@ haiku_create_frame (Lisp_Object parms)
 
   f->terminal->reference_count++;
 
-  block_input ();
-  FRAME_OUTPUT_DATA (f)->window
-    = BWindow_new (&FRAME_OUTPUT_DATA (f)->view);
-  unblock_input ();
+  FRAME_OUTPUT_DATA (f)->window = BWindow_new (&FRAME_OUTPUT_DATA (f)->view);
 
   if (!FRAME_OUTPUT_DATA (f)->window)
     xsignal1 (Qerror, build_unibyte_string ("Could not create window"));
@@ -842,7 +862,8 @@ haiku_create_frame (Lisp_Object parms)
 
   Vframe_list = Fcons (frame, Vframe_list);
 
-  Lisp_Object parent_frame = gui_display_get_arg (dpyinfo, parms, Qparent_frame, NULL, NULL,
+  Lisp_Object parent_frame = gui_display_get_arg (dpyinfo, parms,
+						  Qparent_frame, NULL, NULL,
 						  RES_TYPE_SYMBOL);
 
   if (EQ (parent_frame, Qunbound)
@@ -1315,6 +1336,8 @@ haiku_set_undecorated (struct frame *f, Lisp_Object new_value,
   FRAME_UNDECORATED (f) = !NILP (new_value);
   BWindow_change_decoration (FRAME_HAIKU_WINDOW (f), NILP (new_value));
   unblock_input ();
+
+  haiku_update_after_decoration_change (f);
 }
 
 static void
@@ -1329,6 +1352,8 @@ haiku_set_override_redirect (struct frame *f, Lisp_Object new_value,
 				 !NILP (new_value));
   FRAME_OVERRIDE_REDIRECT (f) = !NILP (new_value);
   unblock_input ();
+
+  haiku_update_after_decoration_change (f);
 }
 
 static void
@@ -1375,47 +1400,74 @@ haiku_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval
 static Lisp_Object
 frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 {
-  struct frame *f = decode_live_frame (frame);
-  check_window_system (f);
+  struct frame *f, *parent;
+  int outer_x, outer_y, outer_width, outer_height;
+  int right_off, bottom_off, top_off;
+  int native_x, native_y;
+
+  f = decode_window_system_frame (frame);
+  parent = FRAME_PARENT_FRAME (f);
+
+  be_get_window_decorator_frame (FRAME_HAIKU_WINDOW (f), &outer_x,
+				 &outer_y, &outer_width, &outer_height);
+  be_get_window_decorator_dimensions (FRAME_HAIKU_WINDOW (f), NULL,
+				      &top_off, &right_off, &bottom_off);
+  native_x = FRAME_OUTPUT_DATA (f)->frame_x;
+  native_y = FRAME_OUTPUT_DATA (f)->frame_y;
+
+  if (parent)
+    {
+      /* Adjust all the coordinates by the coordinates of the parent
+	 frame.  */
+      outer_x -= FRAME_OUTPUT_DATA (parent)->frame_x;
+      outer_y -= FRAME_OUTPUT_DATA (parent)->frame_y;
+      native_x -= FRAME_OUTPUT_DATA (parent)->frame_x;
+      native_y -= FRAME_OUTPUT_DATA (parent)->frame_y;
+    }
 
   if (EQ (attribute, Qouter_edges))
-    return list4i (f->left_pos, f->top_pos,
-		   f->left_pos, f->top_pos);
+    return list4i (outer_x, outer_y,
+		   outer_x + outer_width,
+		   outer_y + outer_height);
   else if (EQ (attribute, Qnative_edges))
-    return list4i (f->left_pos, f->top_pos,
-		   f->left_pos + FRAME_PIXEL_WIDTH (f),
-		   f->top_pos + FRAME_PIXEL_HEIGHT (f));
+    return list4i (native_x, native_y,
+		   native_x + FRAME_PIXEL_WIDTH (f),
+		   native_y + FRAME_PIXEL_HEIGHT (f));
   else if (EQ (attribute, Qinner_edges))
-    return list4i (f->left_pos + FRAME_INTERNAL_BORDER_WIDTH (f),
-		   f->top_pos + FRAME_INTERNAL_BORDER_WIDTH (f) +
-		   FRAME_MENU_BAR_HEIGHT (f) + FRAME_TOOL_BAR_HEIGHT (f),
-		   f->left_pos - FRAME_INTERNAL_BORDER_WIDTH (f) +
-		   FRAME_PIXEL_WIDTH (f),
-		   f->top_pos + FRAME_PIXEL_HEIGHT (f) -
-		   FRAME_INTERNAL_BORDER_WIDTH (f));
+    return list4i (native_x + FRAME_INTERNAL_BORDER_WIDTH (f),
+		   native_y + FRAME_INTERNAL_BORDER_WIDTH (f)
+		   + FRAME_MENU_BAR_HEIGHT (f) + FRAME_TOOL_BAR_HEIGHT (f),
+		   native_x - FRAME_INTERNAL_BORDER_WIDTH (f)
+		   + FRAME_PIXEL_WIDTH (f),
+		   native_y + FRAME_PIXEL_HEIGHT (f)
+		   - FRAME_INTERNAL_BORDER_WIDTH (f));
 
   else
-    return
-      list (Fcons (Qouter_position,
-		   Fcons (make_fixnum (f->left_pos),
-			  make_fixnum (f->top_pos))),
-	    Fcons (Qouter_size,
-		   Fcons (make_fixnum (FRAME_PIXEL_WIDTH (f)),
-			  make_fixnum (FRAME_PIXEL_HEIGHT (f)))),
-	    Fcons (Qexternal_border_size,
-		   Fcons (make_fixnum (0), make_fixnum (0))),
-	    Fcons (Qtitle_bar_size,
-		   Fcons (make_fixnum (0), make_fixnum (0))),
-	    Fcons (Qmenu_bar_external, Qnil),
-	    Fcons (Qmenu_bar_size, Fcons (make_fixnum (FRAME_PIXEL_WIDTH (f) -
-						       (FRAME_INTERNAL_BORDER_WIDTH (f) * 2)),
-					  make_fixnum (FRAME_MENU_BAR_HEIGHT (f)))),
-	    Fcons (Qtool_bar_external, Qnil),
-	    Fcons (Qtool_bar_position, Qtop),
-	    Fcons (Qtool_bar_size, Fcons (make_fixnum (FRAME_PIXEL_WIDTH (f) -
-						       (FRAME_INTERNAL_BORDER_WIDTH (f) * 2)),
-					  make_fixnum (FRAME_TOOL_BAR_HEIGHT (f)))),
-	    Fcons (Qinternal_border_width, make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (f))));
+    return list (Fcons (Qouter_position,
+			Fcons (make_fixnum (outer_x),
+			       make_fixnum (outer_y))),
+		 Fcons (Qouter_size,
+			Fcons (make_fixnum (outer_width),
+			       make_fixnum (outer_height))),
+		 Fcons (Qexternal_border_size,
+			Fcons (make_fixnum (right_off),
+			       make_fixnum (bottom_off))),
+		 Fcons (Qtitle_bar_size,
+			Fcons (make_fixnum (outer_width),
+			       make_fixnum (top_off))),
+		 Fcons (Qmenu_bar_external, Qnil),
+		 Fcons (Qmenu_bar_size,
+			Fcons (make_fixnum (FRAME_PIXEL_WIDTH (f)
+					    - (FRAME_INTERNAL_BORDER_WIDTH (f) * 2)),
+			       make_fixnum (FRAME_MENU_BAR_HEIGHT (f)))),
+		 Fcons (Qtool_bar_external, Qnil),
+		 Fcons (Qtool_bar_position, Qtop),
+		 Fcons (Qtool_bar_size,
+			Fcons (make_fixnum (FRAME_PIXEL_WIDTH (f)
+					    - (FRAME_INTERNAL_BORDER_WIDTH (f) * 2)),
+			       make_fixnum (FRAME_TOOL_BAR_HEIGHT (f)))),
+		 Fcons (Qinternal_border_width,
+			make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (f))));
 }
 
 void

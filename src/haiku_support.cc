@@ -796,11 +796,23 @@ public:
   }
 
   void
+  MoveToIncludingFrame (int x, int y)
+  {
+    BRect decorator, frame;
+
+    decorator = DecoratorFrame ();
+    frame = Frame ();
+
+    MoveTo (x + frame.left - decorator.left,
+	    y + frame.top - decorator.top);
+  }
+
+  void
   DoMove (struct child_frame *f)
   {
     BRect frame = this->Frame ();
-    f->window->MoveTo (frame.left + f->xoff,
-		       frame.top + f->yoff);
+    f->window->MoveToIncludingFrame (frame.left + f->xoff,
+				     frame.top + f->yoff);
   }
 
   void
@@ -1062,7 +1074,7 @@ public:
       gui_abort ("Failed to lock child frame state lock");
 
     if (!this->parent)
-      this->MoveTo (x, y);
+      this->MoveToIncludingFrame (x, y);
     else
       this->parent->MoveChild (this, x, y, 0);
     child_frame_lock.Unlock ();
@@ -1173,30 +1185,6 @@ public:
   }
 
   void
-  GetParentWidthHeight (int *width, int *height)
-  {
-    if (!child_frame_lock.Lock ())
-      gui_abort ("Failed to lock child frame state lock");
-
-    if (parent)
-      {
-	BRect frame = parent->Frame ();
-	*width = BE_RECT_WIDTH (frame);
-	*height = BE_RECT_HEIGHT (frame);
-      }
-    else
-      {
-	BScreen s (this);
-	BRect frame = s.Frame ();
-
-	*width = BE_RECT_WIDTH (frame);
-	*height = BE_RECT_HEIGHT (frame);
-      }
-
-    child_frame_lock.Unlock ();
-  }
-
-  void
   OffsetChildRect (BRect *r, EmacsWindow *c)
   {
     if (!child_frame_lock.Lock ())
@@ -1221,17 +1209,21 @@ public:
   MakeFullscreen (int make_fullscreen_p)
   {
     BScreen screen (this);
+    uint32 flags;
+    BRect screen_frame;
 
     if (!screen.IsValid ())
       gui_abort ("Trying to make a window fullscreen without a screen");
 
+    screen_frame = screen.Frame ();
     UnZoom ();
 
     if (make_fullscreen_p == fullscreen_p)
       return;
 
     fullscreen_p = make_fullscreen_p;
-    uint32 flags = Flags ();
+    flags = Flags ();
+
     if (fullscreen_p)
       {
 	if (zoomed_p)
@@ -1240,24 +1232,18 @@ public:
 	flags |= B_NOT_MOVABLE | B_NOT_ZOOMABLE;
 	pre_fullscreen_rect = Frame ();
 
-	if (!child_frame_lock.Lock ())
-	  gui_abort ("Failed to lock child frame state lock");
-
-	if (parent)
-	  parent->OffsetChildRect (&pre_fullscreen_rect, this);
-
-	child_frame_lock.Unlock ();
-
-	int w, h;
-	EmacsMoveTo (0, 0);
-	GetParentWidthHeight (&w, &h);
-	ResizeTo (w - 1, h - 1);
+	MoveTo (0, 0);
+	ResizeTo (BE_RECT_WIDTH (screen_frame) - 1,
+		  BE_RECT_HEIGHT (screen_frame) - 1);
       }
     else
       {
 	flags &= ~(B_NOT_MOVABLE | B_NOT_ZOOMABLE);
-	EmacsMoveTo (pre_fullscreen_rect.left,
-		     pre_fullscreen_rect.top);
+
+	/* Use MoveTo directly since pre_fullscreen_rect isn't
+	   adjusted for decorator sizes.  */
+	MoveTo (pre_fullscreen_rect.left,
+		pre_fullscreen_rect.top);
 	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
 		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
       }
@@ -5096,4 +5082,56 @@ be_create_pixmap_cursor (void *bitmap, int x, int y)
     }
 
   return cursor;
+}
+
+void
+be_get_window_decorator_dimensions (void *window, int *left, int *top,
+				    int *right, int *bottom)
+{
+  BWindow *wnd;
+  BRect frame, window_frame;
+
+  wnd = (BWindow *) window;
+
+  if (!wnd->LockLooper ())
+    gui_abort ("Failed to lock window looper frame");
+
+  frame = wnd->DecoratorFrame ();
+  window_frame = wnd->Frame ();
+
+  if (left)
+    *left = window_frame.left - frame.left;
+
+  if (top)
+    *top = window_frame.top - frame.top;
+
+  if (right)
+    *right = frame.right - window_frame.right;
+
+  if (bottom)
+    *bottom = frame.bottom - window_frame.bottom;
+
+  wnd->UnlockLooper ();
+}
+
+void
+be_get_window_decorator_frame (void *window, int *left, int *top,
+			       int *width, int *height)
+{
+  BWindow *wnd;
+  BRect frame;
+
+  wnd = (BWindow *) window;
+
+  if (!wnd->LockLooper ())
+    gui_abort ("Failed to lock window looper frame");
+
+  frame = wnd->DecoratorFrame ();
+
+  *left = frame.left;
+  *top = frame.top;
+  *width = BE_RECT_WIDTH (frame);
+  *height = BE_RECT_HEIGHT (frame);
+
+  wnd->UnlockLooper ();
 }

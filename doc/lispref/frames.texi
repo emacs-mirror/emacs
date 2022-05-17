@@ -683,9 +683,9 @@ The position of the top left corner of the native frame specifies the
 indicate that position for the various builds:
 
 @itemize @w{}
-@item (1) non-toolkit and terminal frames
+@item (1) non-toolkit, Haiku, and terminal frames
 
-@item (2) Lucid, Motif, MS-Windows, and Haiku frames
+@item (2) Lucid, Motif, and MS-Windows frames
 
 @item (3) GTK+ and NS frames
 @end itemize

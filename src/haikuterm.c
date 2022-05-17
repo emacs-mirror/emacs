@@ -96,14 +96,9 @@ static void
 haiku_coords_from_parent (struct frame *f, int *x, int *y)
 {
   struct frame *p = FRAME_PARENT_FRAME (f);
-  eassert (p);
 
-  for (struct frame *parent = p; parent;
-       parent = FRAME_PARENT_FRAME (parent))
-    {
-      *x -= parent->left_pos;
-      *y -= parent->top_pos;
-    }
+  *x -= FRAME_OUTPUT_DATA (p)->frame_x;
+  *y -= FRAME_OUTPUT_DATA (p)->frame_y;
 }
 
 static void
@@ -3535,7 +3530,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		SET_FRAME_ICONIFIED (f, 0);
 		inev.kind = DEICONIFY_EVENT;
 
-
 		/* Haiku doesn't expose frames on deiconification, but
 		   if we are double-buffered, the previous screen
 		   contents should have been preserved. */
@@ -3559,30 +3553,40 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  {
 	    struct haiku_move_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
+	    int decorator_width, decorator_height, top, left;
+	    struct frame *p;
 
 	    if (!f)
 	      continue;
 
+	    FRAME_OUTPUT_DATA (f)->frame_x = b->x;
+	    FRAME_OUTPUT_DATA (f)->frame_y = b->y;
+
 	    if (FRAME_PARENT_FRAME (f))
 	      haiku_coords_from_parent (f, &b->x, &b->y);
 
-	    if (b->x != f->left_pos || b->y != f->top_pos)
+	    be_get_window_decorator_dimensions (b->window, &decorator_width,
+						&decorator_height, NULL,
+						NULL);
+
+	    left = b->x - decorator_width;
+	    top = b->y - decorator_height;
+
+	    if (left != f->left_pos || top != f->top_pos)
 	      {
 		inev.kind = MOVE_FRAME_EVENT;
 
-		XSETINT (inev.x, b->x);
-		XSETINT (inev.y, b->y);
+		XSETINT (inev.x, left);
+		XSETINT (inev.y, top);
 
-		f->left_pos = b->x;
-		f->top_pos = b->y;
+		f->left_pos = left;
+		f->top_pos = top;
 
-		struct frame *p;
+		p = FRAME_PARENT_FRAME (f);
 
-		if ((p = FRAME_PARENT_FRAME (f)))
-		  {
-		    void *window = FRAME_HAIKU_WINDOW (p);
-		    EmacsWindow_move_weak_child (window, b->window, b->x, b->y);
-		  }
+		if (p)
+		  EmacsWindow_move_weak_child (FRAME_HAIKU_WINDOW (p),
+					       b->window, left, top);
 
 		XSETFRAME (inev.frame_or_window, f);
 	      }
