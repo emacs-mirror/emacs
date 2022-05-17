@@ -2217,8 +2217,7 @@ Export subscriptions to a buffer in OPML Format."
           (newsticker--opml-insert-feed (car f) 4)))
       (insert "  </body>\n</opml>\n")))
   (pop-to-buffer "*OPML Export*")
-  (when (fboundp 'sgml-mode)
-    (sgml-mode)))
+  (sgml-mode))
 
 (defun newsticker--opml-insert-elt (elt depth)
   "Insert an OPML ELT with indentation level DEPTH."
