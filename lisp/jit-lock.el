@@ -217,6 +217,11 @@ If the system load rises above `jit-lock-stealth-load' percent, stealth
 fontification is suspended.  Stealth fontification intensity is controlled via
 the variable `jit-lock-stealth-nice'.
 
+`jit-lock-mode' is not a regular minor mode, and it doesn't
+follow the regular conventions to switch the functionality on or
+off.  Instead, an ARG of nil will switch it off, and non-nil will
+switch it on.
+
 If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
   (setq jit-lock-mode arg)
   (cond
