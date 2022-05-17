@@ -1153,7 +1153,8 @@ which accepts one argument is allowed.  It receives the raw
 prefix arg of this cycle.
 
 In addition, an action may take the form (ACTION ARG) where
-ACTION is any action except for `restore' and ARG is either
+ACTION is one of the predefined actions (except for `restore')
+and ARG is either
 - an integer with the meaning that ACTION should always use this
   fixed integer instead of the actual prefix arg or
 - the symbol `inverted-arg' with the meaning that ACTION should
