@@ -20134,8 +20134,14 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
   /* Don't allow XTread_socket to do anything if drag-and-drop is in
      progress.  If unblock_input causes XTread_socket to be called and
      read X events while the drag-and-drop event loop is in progress,
-     things can go wrong very quick.  */
-  if (x_dnd_in_progress || x_dnd_waiting_for_finish)
+     things can go wrong very quick.
+
+     That doesn't matter for events from displays other than the
+     display of the drag-and-drop operation, though.  */
+  if ((x_dnd_in_progress
+       && dpyinfo->display == FRAME_X_DISPLAY (x_dnd_frame))
+      || (x_dnd_waiting_for_finish
+	  && dpyinfo->display == x_dnd_finish_display))
     return 0;
 
   block_input ();
