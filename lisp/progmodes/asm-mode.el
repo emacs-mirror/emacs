@@ -68,13 +68,11 @@
   "Abbrev table used while in Asm mode.")
 (define-abbrev-table 'asm-mode-abbrev-table ())
 
-(defvar asm-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Note that the comment character isn't set up until asm-mode is called.
-    (define-key map ":"		'asm-colon)
-    (define-key map "\C-c;"	'comment-region)
-    map)
-  "Keymap for Asm mode.")
+(defvar-keymap asm-mode-map
+  :doc "Keymap for Asm mode."
+  ;; Note that the comment character isn't set up until asm-mode is called.
+  ":"     #'asm-colon
+  "C-c ;" #'comment-region)
 
 (easy-menu-define asm-mode-menu asm-mode-map
   "Menu for Asm mode."

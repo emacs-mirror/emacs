@@ -31,17 +31,16 @@
   "Abbrev table in use in Icon-mode buffers.")
 (define-abbrev-table 'icon-mode-abbrev-table ())
 
-(defvar icon-mode-map
-  (let ((map (make-sparse-keymap "Icon")))
-    (define-key map "{" 'electric-icon-brace)
-    (define-key map "}" 'electric-icon-brace)
-    (define-key map "\e\C-h" 'mark-icon-function)
-    (define-key map "\e\C-a" 'beginning-of-icon-defun)
-    (define-key map "\e\C-e" 'end-of-icon-defun)
-    (define-key map "\e\C-q" 'indent-icon-exp)
-    (define-key map "\177" 'backward-delete-char-untabify)
-    map)
-  "Keymap used in Icon mode.")
+(defvar-keymap icon-mode-map
+  :doc "Keymap used in Icon mode."
+  :name "Icon"
+  "{"     #'electric-icon-brace
+  "}"     #'electric-icon-brace
+  "C-M-h" #'mark-icon-function
+  "C-M-a" #'beginning-of-icon-defun
+  "C-M-e" #'end-of-icon-defun
+  "C-M-q" #'indent-icon-exp
+  "DEL"   #'backward-delete-char-untabify)
 
 (easy-menu-define icon-mode-menu icon-mode-map
   "Menu for Icon mode."

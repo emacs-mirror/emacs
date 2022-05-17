@@ -40,12 +40,10 @@
   ;; Somewhat arbitrary, by analogy with eg goto-address.
   :group 'comm)
 
-(defvar bug-reference-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'bug-reference-push-button)
-    (define-key map (kbd "C-c RET") 'bug-reference-push-button)
-    map)
-  "Keymap used by bug reference buttons.")
+(defvar-keymap bug-reference-map
+  :doc "Keymap used by bug reference buttons."
+  "<mouse-2>" #'bug-reference-push-button
+  "C-c RET"   #'bug-reference-push-button)
 
 ;; E.g., "https://gcc.gnu.org/PR%s"
 (defvar bug-reference-url-format nil

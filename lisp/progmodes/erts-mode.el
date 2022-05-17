@@ -64,12 +64,10 @@
   "Face used for displaying specification test start markers."
   :group 'erts-mode)
 
-(defvar erts-mode-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map prog-mode-map)
-    (define-key map "\C-c\C-r" 'erts-tag-region)
-    (define-key map "\C-c\C-c" 'erts-run-test)
-    map))
+(defvar-keymap erts-mode-map
+  :parent prog-mode-map
+  "C-c C-r" #'erts-tag-region
+  "C-c C-c" #'erts-run-test)
 
 (defvar erts-mode-font-lock-keywords
   ;; Specifications.

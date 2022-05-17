@@ -1,7 +1,6 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1988, 1997-1998, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -201,12 +200,10 @@
 
 (defvar scheme-mode-line-process "")
 
-(defvar scheme-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map lisp-mode-shared-map)
-    map)
-  "Keymap for Scheme mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
+(defvar-keymap scheme-mode-map
+  :doc "Keymap for Scheme mode.
+All commands in `lisp-mode-shared-map' are inherited by this map."
+  :parent lisp-mode-shared-map)
 
 (easy-menu-define scheme-mode-menu scheme-mode-map
   "Menu for Scheme mode."
