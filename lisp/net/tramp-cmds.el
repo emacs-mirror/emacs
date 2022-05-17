@@ -51,6 +51,7 @@ SYNTAX can be one of the symbols `default' (default),
   (when syntax
     (customize-set-variable 'tramp-syntax syntax)))
 
+;;;###tramp-autoload
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
   (append
@@ -61,6 +62,7 @@ SYNTAX can be one of the symbols `default' (default),
    (all-completions
     "*trace tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
 
+;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
   "Return a list of all buffers with remote `default-directory'."
   (delq

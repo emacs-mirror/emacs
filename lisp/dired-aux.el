@@ -1242,7 +1242,8 @@ and `dired-compress-files-alist'."
            (when (zerop
                   (dired-shell-command
                    (format-spec (cdr rule)
-                                `((?o . ,(shell-quote-argument out-file))
+                                `((?o . ,(shell-quote-argument
+                                          (file-local-name out-file)))
                                   (?i . ,(mapconcat
                                           (lambda (in-file)
                                             (shell-quote-argument
@@ -3178,7 +3179,7 @@ type \\[help-command] at that time.
 
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit the query-replace loop (\\[keyboard-quit], RET or q), you can
-resume the query replace with the command \\[tags-loop-continue]."
+resume the query replace with the command \\[fileloop-continue]."
   (interactive
    (let ((common
 	  (query-replace-read-args
