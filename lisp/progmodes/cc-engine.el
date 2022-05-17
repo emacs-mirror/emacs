@@ -3886,7 +3886,10 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 		  (cons (if (and ce (< bra ce) (> ce here)) ; {..} straddling HERE?
 			    bra
 			  (point-min))
-			(min here from)))))))))
+			(progn
+			  (goto-char (min here from))
+			  (c-beginning-of-macro)
+			  (point))))))))))
 
 (defsubst c-state-push-any-brace-pair (bra+1 macro-start-or-here)
   ;; If BRA+1 is nil, do nothing.  Otherwise, BRA+1 is the buffer position
