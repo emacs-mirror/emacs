@@ -2383,22 +2383,6 @@ public:
   }
 };
 
-class EmacsPopUpMenu : public BPopUpMenu
-{
-public:
-  EmacsPopUpMenu (const char *name) : BPopUpMenu (name, 0)
-  {
-
-  }
-
-  void
-  FrameResized (float w, float h)
-  {
-    Invalidate ();
-    BPopUpMenu::FrameResized (w, h);
-  }
-};
-
 class EmacsFontPreviewDialog : public BWindow
 {
   BStringView text_view;
@@ -3745,7 +3729,8 @@ BView_emacs_delete (void *view)
 void *
 BPopUpMenu_new (const char *name)
 {
-  BPopUpMenu *menu = new EmacsPopUpMenu (name);
+  BPopUpMenu *menu = new BPopUpMenu (name);
+
   menu->SetRadioMode (0);
   return menu;
 }
@@ -3755,9 +3740,11 @@ BPopUpMenu_new (const char *name)
 void
 BMenu_add_title (void *menu, const char *text)
 {
-  EmacsTitleMenuItem *it = new EmacsTitleMenuItem (text);
-  BMenu *mn = (BMenu *) menu;
-  mn->AddItem (it);
+  BMenu *be_menu = (BMenu *) menu;
+  EmacsTitleMenuItem *it;
+
+  it = new EmacsTitleMenuItem (text);
+  be_menu->AddItem (it);
 }
 
 /* Add an item to the menu MENU.  */
