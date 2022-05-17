@@ -28441,7 +28441,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 
       /* '(NUM)': absolute number of pixels.  */
       if (NUMBERP (car))
-{
+	{
 	  double fact;
 	  int offset =
 	    width_p && align_to && *align_to < 0 ? it->lnum_pixel_width : 0;
