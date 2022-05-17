@@ -44,11 +44,16 @@
     (delete-file (tramp-fuse-local-file-name filename) trash)
     (tramp-flush-file-properties v localname)))
 
+(defvar tramp-fuse-remove-hidden-files nil
+  "Remove hidden files from directory listings.")
+
 (defsubst tramp-fuse-remove-hidden-files (files)
   "Remove hidden files from FILES."
-  (cl-remove-if
-   (lambda (x) (and (stringp x) (string-match-p "\\.fuse_hidden" x)))
-   files))
+  (if tramp-fuse-remove-hidden-files
+      (cl-remove-if
+       (lambda (x) (and (stringp x) (string-match-p "\\.fuse_hidden" x)))
+       files)
+    files))
 
 (defun tramp-fuse-handle-directory-files
     (directory &optional full match nosort count)
