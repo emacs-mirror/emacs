@@ -1344,12 +1344,12 @@ To customize possible responses, change the \"bindings\" in
       (kmacro-push-ring)
       (setq last-kbd-macro kmacro-step-edit-new-macro))))
 
-(defun kdb-macro-redisplay ()
-  "Force redisplay during kbd macro execution."
+(defun kmacro-redisplay ()
+  "Force redisplay during keyboard macro execution."
   (interactive)
   (or executing-kbd-macro
       defining-kbd-macro
-      (user-error "Not defining or executing kbd macro"))
+      (user-error "Not defining or executing keyboard macro"))
   (when executing-kbd-macro
     (let ((executing-kbd-macro nil))
       (redisplay))))

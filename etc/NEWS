@@ -24,11 +24,16 @@ with a prefix argument or by typing 'C-u C-h C-n'.
 
 * Changes in Emacs 28.2
 
+This is a bug-fix release with no new features.
+
 
 * Editing Changes in Emacs 28.2
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.2
+
+** The command 'kdb-macro-redisplay' was renamed to 'kmacro-redisplay'.
+This is to fix an embarrassing typo in the original name.
 
 
 * New Modes and Packages in Emacs 28.2
