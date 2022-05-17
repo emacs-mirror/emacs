@@ -1098,11 +1098,12 @@ For instance, `image/png' will result in `png'."
   (mailcap-parse-mimetypes)
   (let* ((all-mime-type
 	  ;; All unique MIME types from file extensions
-	  (delete-dups
-	   (mapcar (lambda (file)
-		     (mailcap-extension-to-mime
-		      (file-name-extension file t)))
-		   files)))
+          (delq nil
+	        (delete-dups
+	         (mapcar (lambda (file)
+		           (mailcap-extension-to-mime
+		            (file-name-extension file t)))
+		         files))))
 	 (all-mime-info
 	  ;; All MIME info lists
 	  (delete-dups
