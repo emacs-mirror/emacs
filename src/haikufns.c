@@ -109,22 +109,15 @@ get_geometry_from_preferences (struct haiku_display_info *dpyinfo,
 static void
 haiku_update_after_decoration_change (struct frame *f)
 {
-  int x, y, width, height;
-  struct frame *parent;
+  /* Don't reset offsets during initial frame creation, since the
+     contents of f->left_pos and f->top_pos won't be applied to the
+     window until `x-create-frame' finishes, so setting them here will
+     overwrite the offsets that the window should be moved to.  */
 
-  be_get_window_decorator_frame (FRAME_HAIKU_WINDOW (f),
-				 &x, &y, &width, &height);
+  if (!FRAME_OUTPUT_DATA (f)->configury_done)
+    return;
 
-  parent = FRAME_PARENT_FRAME (f);
-
-  if (parent)
-    {
-      x = x - FRAME_OUTPUT_DATA (f)->frame_x;
-      y = y - FRAME_OUTPUT_DATA (f)->frame_x;
-    }
-
-  f->left_pos = x;
-  f->top_pos = y;
+  be_send_move_frame_event (FRAME_HAIKU_WINDOW (f));
 }
 
 void

@@ -219,8 +219,9 @@ struct haiku_iconification_event
 struct haiku_move_event
 {
   void *window;
-  int x;
-  int y;
+  int x, y;
+  int decorator_width;
+  int decorator_height;
 };
 
 struct haiku_wheel_move_event
@@ -688,6 +689,7 @@ extern status_t be_roster_launch (const char *, const char *, char **,
 				  ptrdiff_t, void *, team_id *);
 extern void be_get_window_decorator_dimensions (void *, int *, int *, int *, int *);
 extern void be_get_window_decorator_frame (void *, int *, int *, int *, int *);
+extern void be_send_move_frame_event (void *);
 
 #ifdef __cplusplus
 }

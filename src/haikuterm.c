@@ -3553,7 +3553,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  {
 	    struct haiku_move_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    int decorator_width, decorator_height, top, left;
+	    int top, left;
 	    struct frame *p;
 
 	    if (!f)
@@ -3565,12 +3565,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (FRAME_PARENT_FRAME (f))
 	      haiku_coords_from_parent (f, &b->x, &b->y);
 
-	    be_get_window_decorator_dimensions (b->window, &decorator_width,
-						&decorator_height, NULL,
-						NULL);
-
-	    left = b->x - decorator_width;
-	    top = b->y - decorator_height;
+	    left = b->x - b->decorator_width;
+	    top = b->y - b->decorator_height;
 
 	    if (left != f->left_pos || top != f->top_pos)
 	      {

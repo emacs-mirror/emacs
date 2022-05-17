@@ -106,6 +106,7 @@ enum
     SET_FONT_INDICES	  = 3012,
     SET_PREVIEW_DIALOG	  = 3013,
     UPDATE_PREVIEW_DIALOG = 3014,
+    SEND_MOVE_FRAME_EVENT = 3015,
   };
 
 /* X11 keysyms that we use.  */
@@ -993,6 +994,8 @@ public:
 	    haiku_write (WHEEL_MOVE_EVENT, &rq);
 	  };
       }
+    else if (msg->what == SEND_MOVE_FRAME_EVENT)
+      FrameMoved (Frame ().LeftTop ());
     else
       BWindow::DispatchMessage (msg, handler);
   }
@@ -1034,33 +1037,44 @@ public:
   }
 
   void
-  FrameMoved (BPoint newPosition)
+  FrameMoved (BPoint new_position)
   {
     struct haiku_move_event rq;
+    BRect frame, decorator_frame;
+    struct child_frame *f;
+
     rq.window = this;
-    rq.x = std::lrint (newPosition.x);
-    rq.y = std::lrint (newPosition.y);
+    rq.x = std::lrint (new_position.x);
+    rq.y = std::lrint (new_position.y);
+
+    frame = Frame ();
+    decorator_frame = DecoratorFrame ();
+
+    rq.decorator_width
+      = std::lrint (frame.left - decorator_frame.left);
+    rq.decorator_height
+      = std::lrint (frame.top - decorator_frame.top);
 
     haiku_write (MOVE_EVENT, &rq);
 
     CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK
       {
-	for (struct child_frame *f = subset_windows;
-	     f; f = f->next)
+	for (f = subset_windows; f; f = f->next)
 	  DoMove (f);
 	child_frame_lock.Unlock ();
 
-	BWindow::FrameMoved (newPosition);
+	BWindow::FrameMoved (new_position);
       }
   }
 
   void
   WorkspacesChanged (uint32_t old, uint32_t n)
   {
+    struct child_frame *f;
+
     CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK
       {
-	for (struct child_frame *f = subset_windows;
-	     f; f = f->next)
+	for (f = subset_windows; f; f = f->next)
 	  DoUpdateWorkspace (f);
 
 	child_frame_lock.Unlock ();
@@ -5134,4 +5148,18 @@ be_get_window_decorator_frame (void *window, int *left, int *top,
   *height = BE_RECT_HEIGHT (frame);
 
   wnd->UnlockLooper ();
+}
+
+/* Request that a MOVE_EVENT be sent for WINDOW.  This is so that
+   frame offsets can be updated after a frame parameter affecting
+   decorators changes.  Sending an event instead of updating the
+   offsets directly avoids race conditions where events with older
+   information are received after the update happens.  */
+void
+be_send_move_frame_event (void *window)
+{
+  BWindow *wnd = (BWindow *) window;
+  BMessenger msg (wnd);
+
+  msg.SendMessage (SEND_MOVE_FRAME_EVENT);
 }
