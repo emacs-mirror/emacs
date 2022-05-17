@@ -172,7 +172,7 @@ macro to be executed before appending to it."
     (define-key map "\C-k" #'kmacro-end-or-call-macro-repeat)
     (define-key map "r"    #'apply-macro-to-region-lines)
     (define-key map "q"    #'kbd-macro-query)  ;; Like C-x q
-    (define-key map "d"    #'kdb-macro-redisplay)
+    (define-key map "d"    #'kmacro-redisplay)
 
     ;; macro ring
     (define-key map "\C-n" #'kmacro-cycle-ring-next)
