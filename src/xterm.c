@@ -5618,6 +5618,12 @@ show_back_buffer (struct frame *f)
 static void
 x_flip_and_flush (struct frame *f)
 {
+  /* Flipping buffers requires a working connection to the X server,
+     which isn't always present if `inhibit-redisplay' is t, since
+     this can be called from the IO error handler.  */
+  if (!NILP (Vinhibit_redisplay))
+    return;
+
   block_input ();
 #ifdef HAVE_XDBE
   if (FRAME_X_NEED_BUFFER_FLIP (f))
