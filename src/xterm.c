@@ -18328,9 +18328,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      g_object_ref (copy->button.window);
 
-	      if (popup_activated ()
-		  && xev->evtype == XI_ButtonRelease)
-		goto XI_OTHER;
+	      if (popup_activated ())
+		{
+		  /* GTK+ popup menus don't respond to core buttons
+		     after Button3, so don't dismiss popup menus upon
+		     wheel movement here either.  */
+		  if (xev->detail > 3)
+		    *finish = X_EVENT_DROP;
+
+		  if (xev->evtype == XI_ButtonRelease)
+		    goto XI_OTHER;
+		}
 #endif
 
 #ifdef HAVE_XINPUT2_1
