@@ -3713,7 +3713,6 @@ information is available from
 * Compose Character::
 * Binding combinations of modifiers and function keys::
 * Meta key does not work in xterm::
-* SPC no longer completes file names::
 @end menu
 
 @node Binding keys to commands
@@ -4182,22 +4181,6 @@ XTerm.VT100.Translations: #override \
 You might have to replace @samp{Meta} with @samp{Alt}.
 
 @end itemize
-
-@node SPC no longer completes file names
-@section Why doesn't @key{SPC} complete file names anymore?
-@cindex @kbd{SPC} file name completion
-
-Starting with Emacs 22.1, @kbd{SPC} no longer completes file names in
-the minibuffer, so that file names with embedded spaces could be typed
-without the need to quote the spaces.
-
-You can get the old behavior by binding @kbd{SPC} to
-@code{minibuffer-complete-word} in the minibuffer, as follows:
-
-@lisp
-(define-key minibuffer-local-filename-completion-map (kbd "SPC")
-  'minibuffer-complete-word)
-@end lisp
 
 @c ------------------------------------------------------------
 @node Alternate character sets
