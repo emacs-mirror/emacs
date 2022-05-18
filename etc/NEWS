@@ -37,7 +37,7 @@ can be enabled by configuring Emacs with the option '--with-be-app',
 which will require the Haiku Application Kit development headers and a
 C++ compiler to be present on your system.  If Emacs is not built with
 the option '--with-be-app', the resulting Emacs will only run in
-'text-mode' terminals.
+text-mode terminals.
 
 +++
 ** Cairo drawing support has been enabled for Haiku builds.
