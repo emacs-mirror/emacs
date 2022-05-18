@@ -782,6 +782,7 @@ disable support."
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
   :global t
+  :group 'which-key
   :lighter which-key-lighter
   :keymap (let ((map (make-sparse-keymap)))
             (mapc
