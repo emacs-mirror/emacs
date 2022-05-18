@@ -1991,7 +1991,7 @@ haiku_set_window_size (struct frame *f, bool change_gravity,
       /* Only do this if the fullscreen status has actually been
 	 applied.  */
       && f->want_fullscreen == FULLSCREEN_NONE
-      /* And if the configury during frame completion has been
+      /* And if the configury during frame creation has been
 	 completed.  Otherwise, there will be no valid "old size" to
 	 go back to.  */
       && FRAME_OUTPUT_DATA (f)->configury_done)
@@ -4352,6 +4352,22 @@ void
 haiku_set_offset (struct frame *frame, int x, int y,
 		  int change_gravity)
 {
+  Lisp_Object lframe;
+
+  /* Don't allow moving a fullscreen frame: the semantics of that are
+     unclear.  */
+
+  XSETFRAME (lframe, frame);
+  if (EQ (Fframe_parameter (lframe, Qfullscreen), Qfullboth)
+      /* Only do this if the fullscreen status has actually been
+	 applied.  */
+      && frame->want_fullscreen == FULLSCREEN_NONE
+      /* And if the configury during frame creation has been
+	 completed.  Otherwise, there will be no valid "old position"
+	 to go back to.  */
+      && FRAME_OUTPUT_DATA (frame)->configury_done)
+    return;
+
   if (change_gravity > 0)
     {
       frame->top_pos = y;
