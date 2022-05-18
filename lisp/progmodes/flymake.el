@@ -1104,7 +1104,7 @@ diagnostics annotated in the buffer.
 
 By default, `flymake-mode' doesn't override the \\[next-error] command, but
 if you're using Flymake a lot (and don't use the regular compilation
-mechanisms that often), if can be useful to put something like
+mechanisms that often), it can be useful to put something like
 the following in your init file:
 
   (setq next-error-function \\='flymake-goto-next-error)
