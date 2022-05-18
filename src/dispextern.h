@@ -3615,6 +3615,9 @@ void gamma_correct (struct frame *, XColor *);
 #ifdef HAVE_NTGUI
 void gamma_correct (struct frame *, COLORREF *);
 #endif
+#ifdef HAVE_HAIKU
+void gamma_correct (struct frame *, Emacs_Color *);
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 

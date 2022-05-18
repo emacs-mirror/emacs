@@ -575,7 +575,14 @@ static bool
 haiku_defined_color (struct frame *f, const char *name,
 		     Emacs_Color *color, bool alloc, bool make_index)
 {
-  return !haiku_get_color (name, color);
+  int rc;
+
+  rc = !haiku_get_color (name, color);
+
+  if (rc && f->gamma && alloc)
+    gamma_correct (f, color);
+
+  return rc;
 }
 
 /* Adapted from xterm `x_draw_box_rect'.  */

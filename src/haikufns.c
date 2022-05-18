@@ -268,6 +268,22 @@ haiku_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     haiku_change_tab_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
+void
+gamma_correct (struct frame *f, Emacs_Color *color)
+{
+  if (f->gamma)
+    {
+      color->red = (pow (color->red / 65535.0, f->gamma)
+		    * 65535.0 + 0.5);
+      color->green = (pow (color->green / 65535.0, f->gamma)
+		      * 65535.0 + 0.5);
+      color->blue = (pow (color->blue / 65535.0, f->gamma)
+		     * 65535.0 + 0.5);
+      color->pixel = RGB_TO_ULONG (color->red / 256,
+				   color->green / 256,
+				   color->blue / 256);
+    }
+}
 
 int
 haiku_get_color (const char *name, Emacs_Color *color)
