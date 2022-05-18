@@ -2845,6 +2845,11 @@ the function specified in @code{pop-up-frame-function}
 the newly created frame's parameters.
 @end defun
 
+@defun display-buffer-full-frame buffer alist
+This function displays the buffer on the current frame, deleting all
+other windows so that it takes up the full frame.
+@end defun
+
 @defun display-buffer-in-child-frame buffer alist
 This function tries to display @var{buffer} in a child frame
 (@pxref{Child Frames}) of the selected frame, either reusing an

@@ -7435,6 +7435,7 @@ The actual non-nil value of this variable will be copied to the
 	   (const display-buffer-pop-up-window)
 	   (const display-buffer-same-window)
 	   (const display-buffer-pop-up-frame)
+	   (const display-buffer-full-frame)
 	   (const display-buffer-in-child-frame)
 	   (const display-buffer-below-selected)
 	   (const display-buffer-at-bottom)
@@ -7581,6 +7582,7 @@ to an expression containing one of these \"action\" functions:
  `display-buffer-use-least-recent-window' -- Try to avoid re-using
     windows that have recently been switched to.
  `display-buffer-pop-up-window' -- Pop up a new window.
+ `display-buffer-full-frame' -- Delete other windows and use the full frame.
  `display-buffer-below-selected' -- Use or pop up a window below
     the selected one.
  `display-buffer-at-bottom' -- Use or pop up a window at the
@@ -7813,6 +7815,23 @@ indirectly called by the latter."
 	      (window-minibuffer-p)
 	      (window-dedicated-p))
     (window--display-buffer buffer (selected-window) 'reuse alist)))
+
+(defun display-buffer-full-frame (buffer alist)
+  "Display BUFFER in the current frame, taking the entire frame.
+ALIST is an association list of action symbols and values.  See
+Info node `(elisp) Buffer Display Action Alists' for details of
+such alists.
+
+This is an action function for buffer display, see Info
+node `(elisp) Buffer Display Action Functions'.  It should be
+called only by `display-buffer' or a function directly or
+indirectly called by the latter."
+  (when-let ((window (or (display-buffer-reuse-window buffer alist)
+                         (display-buffer-same-window buffer alist)
+                         (display-buffer-pop-up-window buffer alist)
+                         (display-buffer-use-some-window buffer alist))))
+    (delete-other-windows window)
+    window))
 
 (defun display-buffer--maybe-same-window (buffer alist)
   "Conditionally display BUFFER in the selected window.

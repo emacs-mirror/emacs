@@ -606,6 +606,11 @@ specifiers can now use ':type webp'.
 ** Windows
 
 +++
+*** New display action 'display-buffer-full-frame'.
+This action removes other windows on the frame when displaying a
+buffer.
+
++++
 *** 'display-buffer' now can set up the body size of the chosen window.
 For example, a 'display-buffer-alist' entry of
 
