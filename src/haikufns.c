@@ -1394,17 +1394,22 @@ static Lisp_Object
 frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 {
   struct frame *f, *parent;
+  void *window;
   int outer_x, outer_y, outer_width, outer_height;
   int right_off, bottom_off, top_off;
   int native_x, native_y;
 
   f = decode_window_system_frame (frame);
   parent = FRAME_PARENT_FRAME (f);
+  window = FRAME_HAIKU_WINDOW (f);
 
-  be_get_window_decorator_frame (FRAME_HAIKU_WINDOW (f), &outer_x,
-				 &outer_y, &outer_width, &outer_height);
-  be_get_window_decorator_dimensions (FRAME_HAIKU_WINDOW (f), NULL,
-				      &top_off, &right_off, &bottom_off);
+  be_lock_window (window);
+  be_get_window_decorator_frame (window, &outer_x, &outer_y,
+				 &outer_width, &outer_height);
+  be_get_window_decorator_dimensions (window, NULL, &top_off,
+				      &right_off, &bottom_off);
+  be_unlock_window (window);
+
   native_x = FRAME_OUTPUT_DATA (f)->frame_x;
   native_y = FRAME_OUTPUT_DATA (f)->frame_y;
 

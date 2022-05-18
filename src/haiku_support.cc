@@ -5163,3 +5163,20 @@ be_send_move_frame_event (void *window)
 
   msg.SendMessage (SEND_MOVE_FRAME_EVENT);
 }
+
+void
+be_lock_window (void *window)
+{
+  BWindow *wnd = (BWindow *) window;
+
+  if (!wnd->LockLooper ())
+    gui_abort ("Failed to lock window looper");
+}
+
+void
+be_unlock_window (void *window)
+{
+  BWindow *wnd = (BWindow *) window;
+
+  wnd->UnlockLooper ();
+}

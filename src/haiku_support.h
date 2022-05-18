@@ -691,6 +691,8 @@ extern void be_get_window_decorator_dimensions (void *, int *, int *, int *, int
 extern void be_get_window_decorator_frame (void *, int *, int *, int *, int *);
 extern void be_send_move_frame_event (void *);
 
+extern void be_lock_window (void *);
+extern void be_unlock_window (void *);
 #ifdef __cplusplus
 }
 
