@@ -1055,8 +1055,11 @@ non-nil."
       (setq sepa (goto-char sepb)))))
 
 (defun apropos-documentation-check-elc-file (file)
+  ;; .elc files have the location of the file specified as #$, but for
+  ;; built-in files, that's a relative name (while for the rest, it's
+  ;; absolute).  So expand the name in the former case.
   (unless (file-name-absolute-p file)
-    (setq file (locate-library file)))
+    (setq file (expand-file-name file lisp-directory)))
   (if (or (member file apropos-files-scanned)
           (not (file-exists-p file)))
       nil
