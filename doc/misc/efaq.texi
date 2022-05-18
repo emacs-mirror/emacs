@@ -4159,10 +4159,6 @@ If there is an @code{rlogin} connection between @code{xterm} and Emacs, the
 of every character.
 
 @item
-If Emacs is running on Ultrix, it is reported that evaluating
-@code{(set-input-mode t nil)} helps.
-
-@item
 If all else fails, you can make @code{xterm} generate @kbd{@key{ESC} W} when
 you type @kbd{M-W}, which is the same conversion Emacs would make if it
 got the @kbd{M-W} anyway.  In X11R4, the following resource
