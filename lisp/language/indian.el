@@ -83,14 +83,15 @@ North Indian language Gujarati is supported in this language environment."))
  '("Indian"))
 
 (set-language-info-alist
- "Oriya" '((charset unicode)
-	      (coding-system utf-8)
-	      (coding-priority utf-8)
-	      (input-method . "oriya-itrans")
-              (sample-text . "Oriya (ଓଡ଼ିଆ)	ନମସ୍କାର")
-	      (documentation . "\
-Such languages using Oriya script as Oriya, Khonti, and Santali
-are supported in this language environment."))
+ "Odia" '((charset unicode)
+	  (coding-system utf-8)
+	  (coding-priority utf-8)
+	  (input-method . "odia")
+          (sample-text . "Odia (ଓଡ଼ିଆ)	ନମସ୍କାର")
+	  (documentation . "\
+Such languages using the Odia script as Odia, Khonti, and Santali
+are supported in this language environment (formerly the Oriya
+language environment)."))
  '("Indian"))
 
 (set-language-info-alist
@@ -339,7 +340,7 @@ in this language environment."))
 	 '(("a" . "\u0B01")		; SIGN CANDRABINDU
 	   ("A" . "[\u0B02\u0B03]")	; SIGN ANUSVARA .. VISARGA
 	   ("V" . "[\u0B05-\u0B14\u0B60\u0B61]") ; independent vowel
-	   ("C" . "[\u0B15-\u0B39\u0B5C\u0B5D\u0B71]")	; consonant
+	   ("C" . "[\u0B15-\u0B39\u0B5C\u0B5D\u0B5F\u0B71]")	; consonant
 	   ("B" . "[\u0B15-\u0B17\u0B1B-\u0B1D\u0B1F-\u0B21\u0B23\u0B24\u0B27-\u0B30\u0B32-\u0B35\u0B38\u0B39]") ; consonant with below form
 	   ("R" . "\u0B30")		; RA
 	   ("n" . "\u0B3C")		; NUKTA

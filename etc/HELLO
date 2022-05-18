@@ -11,7 +11,7 @@ Non-ASCII examples:
           Cześć!,</x-charset><x-charset><param>latin-iso8859-2</param> Dobrý den,</x-charset><x-charset><param>cyrillic-iso8859-5</param> Здравствуйте!,</x-charset><x-charset><param>greek-iso8859-7</param> Γειά σας,</x-charset> გამარჯობა
   Africa: <x-charset><param>ethiopic</param>ሠላም</x-charset>
   Middle/Near East:<x-charset><param>hebrew-iso8859-8</param> שָׁלוֹם,</x-charset> السّلام عليكم
-  South Asia: નમસ્તે, नमस्ते, ನಮಸ್ಕಾರ, നമസ്കാരം, ଶୁଣିବେ,
+  South Asia: નમસ્તે, नमस्ते, ನಮಸ್ಕಾರ, നമസ്കാരം, ନମସ୍କାର,
               ආයුබෝවන්, வணக்கம், నమస్కారం,<x-charset><param>tibetan</param> བཀྲ་ཤིས་བདེ་ལེགས༎</x-charset>
   South East Asia: ជំរាបសួរ,<x-charset><param>lao</param> ສະບາຍດີ,</x-charset> မင်္ဂလာပါ,<x-charset><param>thai-tis620</param> สวัสดีครับ,</x-charset><x-charset><param>vietnamese-viscii-lower</param> </x-charset><x-charset><param>vietnamese-viscii-upper</param>C</x-charset><x-charset><param>vietnamese-viscii-lower</param>hào bạn</x-charset>
   East Asia:<x-charset><param>chinese-gb2312</param> 你好,</x-charset><x-charset><param>chinese-big5-1</param> 早晨,</x-charset><x-charset><param>japanese-jisx0208</param> こんにちは,</x-charset><x-charset><param>korean-ksc5601</param> 안녕하세요</x-charset>
@@ -56,6 +56,7 @@ Greek, ancient (ἑλληνική)	Οὖλέ τε καὶ μέγα χαῖρε
 Gujarati (ગુજરાતી)	નમસ્તે
 Gurmukhi (ਗੁਰਮੁਖੀ)	ਸਤ ਸ੍ਰੀ ਅਕਾਲ
 Hebrew (עִבְרִית)	שָׁלוֹם
+Hindi (हिन्दी)	प्रणाम / पाय लागू
 Hungarian (magyar)	Szép jó napot!
 Inuktitut (ᐃᓄᒃᑎᑐᑦ)	ᐊᐃ
 Italian (italiano)	Ciao / Buon giorno
@@ -74,7 +75,7 @@ Modi (𑘦𑘻𑘚𑘲)	𑘡𑘦𑘭𑘿𑘎𑘰𑘨
 Mongolian (монгол хэл)	Сайн байна уу?
 Northern Thai (ᨣᩣᩴᨾᩮᩬᩥᨦ / ᨽᩣᩈᩣᩃ᩶ᩣ᩠ᨶᨶᩣ)	ᩈ᩠ᩅᩢᩔ᩠ᨯᩦᨣᩕᩢ᩠ᨸ
 Norwegian (norsk)	Hei / God dag
-Oriya (ଓଡ଼ିଆ)	ନମସ୍କାର
+Odia (ଓଡ଼ିଆ)	ନମସ୍କାର
 Polish  (język polski)	Dzień dobry! / Cześć!
 Russian (русский)	Здра́вствуйте!
 Sharada (𑆯𑆳𑆫𑆢𑆳)	𑆤𑆩𑆱𑇀𑆑𑆳𑆫
