@@ -23045,6 +23045,10 @@ x_iconify_frame (struct frame *f)
     msg.xclient.message_type = FRAME_DISPLAY_INFO (f)->Xatom_wm_change_state;
     msg.xclient.format = 32;
     msg.xclient.data.l[0] = IconicState;
+    msg.xclient.data.l[1] = 0;
+    msg.xclient.data.l[2] = 0;
+    msg.xclient.data.l[3] = 0;
+    msg.xclient.data.l[4] = 0;
 
     if (! XSendEvent (FRAME_X_DISPLAY (f),
 		      FRAME_DISPLAY_INFO (f)->root_window,
