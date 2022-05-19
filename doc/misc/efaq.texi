@@ -9,10 +9,9 @@
 
 @copying
 Copyright @copyright{} 2001--2022 Free Software Foundation, Inc.@*
-Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
-Reuven M. Lerner@*
-Copyright @copyright{} 1992, 1993 Steven Byrnes@*
-Copyright @copyright{} 1990, 1991, 1992 Joseph Brian Wells@*
+Copyright @copyright{} 1994--2000 Reuven M. Lerner@*
+Copyright @copyright{} 1992--1993 Steven Byrnes@*
+Copyright @copyright{} 1990--1992 Joseph Brian Wells@*
 
 @quotation
 This list of frequently asked questions about GNU Emacs with answers
