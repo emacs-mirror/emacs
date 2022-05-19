@@ -927,20 +927,20 @@ functions like `treesit-beginning-of-defun'.")
 
 With ARG, do it that many times.  Negative ARG means move forward
 to the ARGth following beginning of defun.  Defun is defined
-according to `treesit-defun-pattern'."
+according to `treesit-defun-query'."
   (unless treesit-defun-query
     (error "Variable `treesit-defun-query' is unset"))
-  (treesit-search-beginning treesit-defun-query (- arg)))
+  (treesit-search-beginning treesit-defun-query (- (or arg 1))))
 
 (defun treesit-end-of-defun (&optional arg)
   "Move forward to the end of a defun.
 
 With ARG, do it that many times.  Negative ARG means move back to
 ARGth preceding end of defun.  Defun is defined according to
-`treesit-defun-pattern'."
+`treesit-defun-query'."
   (unless treesit-defun-query
     (error "Variable `treesit-defun-query' is unset"))
-  (treesit-search-end treesit-defun-query arg))
+  (treesit-search-end treesit-defun-query (or arg 1)))
 
 ;;; Debugging
 
