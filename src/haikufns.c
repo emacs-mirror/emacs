@@ -2281,7 +2281,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height, Sx_display_pixel_heigh
   check_haiku_display_info (terminal);
 
   be_get_screen_dimensions (&width, &height);
-  return make_fixnum (width);
+  return make_fixnum (height);
 }
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,

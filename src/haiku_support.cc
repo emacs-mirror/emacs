@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <attribute.h>
 
 #include <app/Application.h>
 #include <app/Cursor.h>
@@ -518,33 +519,42 @@ public:
     struct child_frame *next;
     int xoff, yoff;
     EmacsWindow *window;
-  } *subset_windows = NULL;
+  } *subset_windows;
 
-  EmacsWindow *parent = NULL;
+  EmacsWindow *parent;
   BRect pre_fullscreen_rect;
   BRect pre_zoom_rect;
-  int x_before_zoom = INT_MIN;
-  int y_before_zoom = INT_MIN;
-  bool fullscreen_p = false;
-  bool zoomed_p = false;
-  bool shown_flag = false;
-  volatile int was_shown_p = 0;
-  bool menu_bar_active_p = false;
-  bool override_redirect_p = false;
+  int x_before_zoom;
+  int y_before_zoom;
+  bool shown_flag;
+  volatile bool was_shown_p;
+  bool menu_bar_active_p;
+  bool override_redirect_p;
   window_look pre_override_redirect_look;
   window_feel pre_override_redirect_feel;
   uint32 pre_override_redirect_workspaces;
   int window_id;
-  bool *menus_begun = NULL;
+  bool *menus_begun;
   enum haiku_z_group z_group;
-  bool tooltip_p = false;
+  bool tooltip_p;
+  enum haiku_fullscreen_mode fullscreen_mode;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
-			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
+			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS),
+		   subset_windows (NULL),
+		   parent (NULL),
+		   x_before_zoom (INT_MIN),
+		   y_before_zoom (INT_MIN),
+		   shown_flag (false),
+		   was_shown_p (false),
+		   menu_bar_active_p (false),
+		   override_redirect_p (false),
+		   window_id (current_window_id),
+		   menus_begun (NULL),
+		   z_group (Z_GROUP_NONE),
+		   tooltip_p (false),
+		   fullscreen_mode (FULLSCREEN_MODE_NONE)
   {
-    window_id = current_window_id++;
-    z_group = Z_GROUP_NONE;
-
     /* This pulse rate is used by scroll bars for repeating a button
        action while a button is held down.  */
     SetPulseRate (30000);
@@ -711,12 +721,6 @@ public:
     RecomputeFeel ();
     UpwardsUnSubsetChildren (parent);
     this->RemoveFromSubset (this);
-
-    if (fullscreen_p)
-      {
-	fullscreen_p = 0;
-	MakeFullscreen (1);
-      }
     child_frame_lock.Unlock ();
   }
 
@@ -766,11 +770,6 @@ public:
     this->AddToSubset (this);
     if (!IsHidden () && this->parent)
       UpwardsSubsetChildren (parent);
-    if (fullscreen_p)
-      {
-	fullscreen_p = 0;
-	MakeFullscreen (1);
-      }
     window->LinkChild (this);
 
     child_frame_lock.Unlock ();
@@ -1161,41 +1160,103 @@ public:
   }
 
   void
-  Zoom (BPoint o, float w, float h)
+  ClearFullscreen (void)
   {
-    struct haiku_zoom_event rq;
-    BRect rect;
-    rq.window = this;
-
-    if (fullscreen_p)
-      MakeFullscreen (0);
-
-    if (!zoomed_p)
+    switch (fullscreen_mode)
       {
-	pre_zoom_rect = Frame ();
-	zoomed_p = true;
-	rect = CalculateZoomRect ();
-      }
-    else
-      {
-	zoomed_p = false;
-	rect = pre_zoom_rect;
+      case FULLSCREEN_MODE_MAXIMIZED:
+	BWindow::Zoom (pre_zoom_rect.LeftTop (),
+		       BE_RECT_WIDTH (pre_zoom_rect) - 1,
+		       BE_RECT_HEIGHT (pre_zoom_rect) - 1);
+	break;
+
+      case FULLSCREEN_MODE_BOTH:
+      case FULLSCREEN_MODE_HEIGHT:
+      case FULLSCREEN_MODE_WIDTH:
+	MoveTo (pre_fullscreen_rect.LeftTop ());
+	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
+		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
+
+	SetFlags (Flags () & ~(B_NOT_MOVABLE
+			       | B_NOT_ZOOMABLE
+			       | B_NOT_RESIZABLE));
+	break;
+
+      case FULLSCREEN_MODE_NONE:
+	break;
       }
 
-    rq.zoomed = zoomed_p;
-    haiku_write (ZOOM_EVENT, &rq);
+    fullscreen_mode = FULLSCREEN_MODE_NONE;
+  }
 
-    BWindow::Zoom (rect.LeftTop (), BE_RECT_WIDTH (rect) - 1,
-		   BE_RECT_HEIGHT (rect) - 1);
+  BRect
+  FullscreenRectForMode (enum haiku_fullscreen_mode mode)
+  {
+    BScreen screen (this);
+    BRect frame;
+
+    if (!screen.IsValid ())
+      return BRect (0, 0, 0, 0);
+
+    frame = screen.Frame ();
+
+    if (mode == FULLSCREEN_MODE_HEIGHT)
+      frame.right -= BE_RECT_WIDTH (frame) / 2;
+    else if (mode == FULLSCREEN_MODE_WIDTH)
+      frame.bottom -= BE_RECT_HEIGHT (frame) / 2;
+
+    return frame;
   }
 
   void
-  UnZoom (void)
+  SetFullscreen (enum haiku_fullscreen_mode mode)
   {
-    if (!zoomed_p)
+    BRect zoom_rect;
+
+    if (fullscreen_mode == mode)
       return;
 
-    BWindow::Zoom ();
+    ClearFullscreen ();
+
+    switch (mode)
+      {
+      case FULLSCREEN_MODE_MAXIMIZED:
+	pre_zoom_rect = Frame ();
+	zoom_rect = CalculateZoomRect ();
+	BWindow::Zoom (zoom_rect.LeftTop (),
+		       BE_RECT_WIDTH (zoom_rect) - 1,
+		       BE_RECT_HEIGHT (zoom_rect) - 1);
+	break;
+
+      case FULLSCREEN_MODE_BOTH:
+	SetFlags (Flags () | B_NOT_MOVABLE);
+	FALLTHROUGH;
+
+      case FULLSCREEN_MODE_HEIGHT:
+      case FULLSCREEN_MODE_WIDTH:
+	SetFlags (Flags () | B_NOT_ZOOMABLE | B_NOT_RESIZABLE);
+	pre_fullscreen_rect = Frame ();
+	zoom_rect = FullscreenRectForMode (mode);
+	ResizeTo (BE_RECT_WIDTH (zoom_rect) - 1,
+		  BE_RECT_HEIGHT (zoom_rect) - 1);
+	MoveTo (zoom_rect.left, zoom_rect.top);
+
+	break;
+
+      case FULLSCREEN_MODE_NONE:
+	break;
+      }
+
+    fullscreen_mode = mode;
+  }
+
+  void
+  Zoom (BPoint o, float w, float h)
+  {
+    struct haiku_zoom_event rq;
+
+    rq.window = this;
+    haiku_write (ZOOM_EVENT, &rq);
   }
 
   void
@@ -1217,51 +1278,6 @@ public:
 
     child_frame_lock.Lock ();
     gui_abort ("Trying to calculate offsets for a child frame that doesn't exist");
-  }
-
-  void
-  MakeFullscreen (int make_fullscreen_p)
-  {
-    BScreen screen (this);
-    uint32 flags;
-    BRect screen_frame;
-
-    if (!screen.IsValid ())
-      gui_abort ("Trying to make a window fullscreen without a screen");
-
-    screen_frame = screen.Frame ();
-    UnZoom ();
-
-    if (make_fullscreen_p == fullscreen_p)
-      return;
-
-    fullscreen_p = make_fullscreen_p;
-    flags = Flags ();
-
-    if (fullscreen_p)
-      {
-	if (zoomed_p)
-	  UnZoom ();
-
-	flags |= B_NOT_MOVABLE | B_NOT_ZOOMABLE;
-	pre_fullscreen_rect = Frame ();
-
-	MoveTo (0, 0);
-	ResizeTo (BE_RECT_WIDTH (screen_frame) - 1,
-		  BE_RECT_HEIGHT (screen_frame) - 1);
-      }
-    else
-      {
-	flags &= ~(B_NOT_MOVABLE | B_NOT_ZOOMABLE);
-
-	/* Use MoveTo directly since pre_fullscreen_rect isn't
-	   adjusted for decorator sizes.  */
-	MoveTo (pre_fullscreen_rect.left,
-		pre_fullscreen_rect.top);
-	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
-		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
-      }
-    SetFlags (flags);
   }
 };
 
@@ -4486,30 +4502,6 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
   return file_name;
 }
 
-/* Zoom WINDOW.  */
-void
-BWindow_zoom (void *window)
-{
-  BWindow *w = (BWindow *) window;
-  w->Zoom ();
-}
-
-/* Make WINDOW fullscreen if FULLSCREEN_P.  */
-void
-EmacsWindow_make_fullscreen (void *window, int fullscreen_p)
-{
-  EmacsWindow *w = (EmacsWindow *) window;
-  w->MakeFullscreen (fullscreen_p);
-}
-
-/* Unzoom (maximize) WINDOW.  */
-void
-EmacsWindow_unzoom (void *window)
-{
-  EmacsWindow *w = (EmacsWindow *) window;
-  w->UnZoom ();
-}
-
 /* Move the pointer into MBAR and start tracking.  Return whether the
    menu bar was opened correctly.  */
 bool
@@ -5179,4 +5171,16 @@ be_unlock_window (void *window)
   BWindow *wnd = (BWindow *) window;
 
   wnd->UnlockLooper ();
+}
+
+void
+be_set_window_fullscreen_mode (void *window, enum haiku_fullscreen_mode mode)
+{
+  EmacsWindow *w = (EmacsWindow *) window;
+
+  if (!w->LockLooper ())
+    gui_abort ("Failed to lock window to set fullscreen mode");
+
+  w->SetFullscreen (mode);
+  w->UnlockLooper ();
 }

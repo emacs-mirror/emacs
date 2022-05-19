@@ -249,7 +249,6 @@ struct haiku_menu_bar_help_event
 struct haiku_zoom_event
 {
   void *window;
-  bool zoomed;
 };
 
 enum haiku_font_specification
@@ -314,6 +313,15 @@ enum haiku_font_weight
     HAIKU_ULTRA_HEAVY = 900,
     HAIKU_BLACK	      = 1000,
     HAIKU_MEDIUM      = 2000,
+  };
+
+enum haiku_fullscreen_mode
+  {
+    FULLSCREEN_MODE_NONE,
+    FULLSCREEN_MODE_WIDTH,
+    FULLSCREEN_MODE_HEIGHT,
+    FULLSCREEN_MODE_BOTH,
+    FULLSCREEN_MODE_MAXIMIZED,
   };
 
 struct haiku_font_pattern
@@ -495,7 +503,6 @@ extern void BWindow_center_on_screen (void *);
 extern void BWindow_change_decoration (void *, int);
 extern void BWindow_set_tooltip_decoration (void *);
 extern void BWindow_set_avoid_focus (void *, int);
-extern void BWindow_zoom (void *);
 extern void BWindow_set_size_alignment (void *, int, int);
 extern void BWindow_sync (void *);
 extern void BWindow_send_behind (void *, void *);
@@ -623,8 +630,6 @@ extern void BAlert_delete (void *);
 extern void EmacsWindow_parent_to (void *, void *);
 extern void EmacsWindow_unparent (void *);
 extern void EmacsWindow_move_weak_child (void *, void *, int, int);
-extern void EmacsWindow_make_fullscreen (void *, int);
-extern void EmacsWindow_unzoom (void *);
 
 extern void be_get_version_string (char *, int);
 extern int be_get_display_planes (void);
@@ -690,6 +695,7 @@ extern status_t be_roster_launch (const char *, const char *, char **,
 extern void be_get_window_decorator_dimensions (void *, int *, int *, int *, int *);
 extern void be_get_window_decorator_frame (void *, int *, int *, int *, int *);
 extern void be_send_move_frame_event (void *);
+extern void be_set_window_fullscreen_mode (void *, enum haiku_fullscreen_mode);
 
 extern void be_lock_window (void *);
 extern void be_unlock_window (void *);

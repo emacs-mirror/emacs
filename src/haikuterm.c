@@ -3018,11 +3018,20 @@ static struct redisplay_interface haiku_redisplay_interface =
 static void
 haiku_make_fullscreen_consistent (struct frame *f)
 {
-  Lisp_Object lval = get_frame_param (f, Qfullscreen);
+  Lisp_Object lval;
+  struct haiku_output *output;
 
-  if (!EQ (lval, Qmaximized) && FRAME_OUTPUT_DATA (f)->zoomed_p)
+  output = FRAME_OUTPUT_DATA (f);
+
+  if (output->fullscreen_mode == FULLSCREEN_MODE_BOTH)
+    lval = Qfullboth;
+  else if (output->fullscreen_mode == FULLSCREEN_MODE_WIDTH)
+    lval = Qfullwidth;
+  else if (output->fullscreen_mode == FULLSCREEN_MODE_HEIGHT)
+    lval = Qfullheight;
+  else if (output->fullscreen_mode == FULLSCREEN_MODE_MAXIMIZED)
     lval = Qmaximized;
-  else if (EQ (lval, Qmaximized) && !FRAME_OUTPUT_DATA (f)->zoomed_p)
+  else
     lval = Qnil;
 
   store_frame_param (f, Qfullscreen, lval);
@@ -3857,14 +3866,20 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	case ZOOM_EVENT:
 	  {
 	    struct haiku_zoom_event *b = buf;
-
 	    struct frame *f = haiku_window_to_frame (b->window);
+	    struct haiku_output *output;
 
 	    if (!f)
 	      continue;
 
-	    FRAME_OUTPUT_DATA (f)->zoomed_p = b->zoomed;
-	    haiku_make_fullscreen_consistent (f);
+	    output = FRAME_OUTPUT_DATA (f);
+
+	    if (output->fullscreen_mode == FULLSCREEN_MAXIMIZED)
+	      f->want_fullscreen = FULLSCREEN_NONE;
+	    else
+	      f->want_fullscreen = FULLSCREEN_MAXIMIZED;
+
+	    FRAME_TERMINAL (f)->fullscreen_hook (f);
 	    break;
 	  }
 	case DRAG_AND_DROP_EVENT:
@@ -4096,6 +4111,8 @@ haiku_toggle_invisible_pointer (struct frame *f, bool invisible_p)
 static void
 haiku_fullscreen (struct frame *f)
 {
+  enum haiku_fullscreen_mode mode;
+
   /* When FRAME_OUTPUT_DATA (f)->configury_done is false, the frame is
      being created, and its regular width and height have not yet been
      set.  This function will be called again by haiku_create_frame,
@@ -4104,18 +4121,22 @@ haiku_fullscreen (struct frame *f)
     return;
 
   if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
-    BWindow_zoom (FRAME_HAIKU_WINDOW (f));
+    mode = FULLSCREEN_MODE_MAXIMIZED;
   else if (f->want_fullscreen == FULLSCREEN_BOTH)
-    EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 1);
+    mode = FULLSCREEN_MODE_BOTH;
+  else if (f->want_fullscreen == FULLSCREEN_WIDTH)
+    mode = FULLSCREEN_MODE_WIDTH;
+  else if (f->want_fullscreen == FULLSCREEN_HEIGHT)
+    mode = FULLSCREEN_MODE_HEIGHT;
   else
-    {
-      EmacsWindow_make_fullscreen (FRAME_HAIKU_WINDOW (f), 0);
-      EmacsWindow_unzoom (FRAME_HAIKU_WINDOW (f));
-    }
+    mode = FULLSCREEN_MODE_NONE;
 
   f->want_fullscreen = FULLSCREEN_NONE;
+  be_set_window_fullscreen_mode (FRAME_HAIKU_WINDOW (f), mode);
+  FRAME_OUTPUT_DATA (f)->fullscreen_mode = mode;
 
   haiku_update_size_hints (f);
+  haiku_make_fullscreen_consistent (f);
 }
 
 static struct terminal *
