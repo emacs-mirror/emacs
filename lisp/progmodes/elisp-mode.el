@@ -2088,7 +2088,9 @@ current buffer state and calls REPORT-FN when done."
     (when (process-live-p elisp-flymake--byte-compile-process)
       (kill-process elisp-flymake--byte-compile-process)))
   (let ((temp-file (make-temp-file "elisp-flymake-byte-compile"))
-        (source-buffer (current-buffer)))
+        (source-buffer (current-buffer))
+        (coding-system-for-write 'utf-8-unix)
+        (coding-system-for-read 'utf-8))
     (save-restriction
       (widen)
       (write-region (point-min) (point-max) temp-file nil 'nomessage))
@@ -2138,6 +2140,8 @@ Runs in a batch-mode Emacs.  Interactively use variable
   (interactive (list buffer-file-name))
   (let* ((file (or file
                    (car command-line-args-left)))
+         (coding-system-for-read 'utf-8-unix)
+         (coding-system-for-write 'utf-8)
          (byte-compile-log-buffer
           (generate-new-buffer " *dummy-byte-compile-log-buffer*"))
          (byte-compile-dest-file-function #'ignore)
