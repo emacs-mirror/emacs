@@ -90,8 +90,19 @@ North Indian language Gujarati is supported in this language environment."))
           (sample-text . "Odia (ଓଡ଼ିଆ)	ନମସ୍କାର")
 	  (documentation . "\
 Such languages using the Odia script as Odia, Khonti, and Santali
-are supported in this language environment (formerly the Oriya
-language environment)."))
+are supported in this language environment.  (This language
+environment was formerly known as \"Oriya\")."))
+ '("Indian"))
+
+(set-language-info-alist
+ "Oriya" '((charset unicode)
+	  (coding-system utf-8)
+	  (coding-priority utf-8)
+	  (input-method . "odia")
+          (sample-text . "Odia (ଓଡ଼ିଆ)	ନମସ୍କାର")
+	  (documentation . "\
+Such languages using the Odia script as Odia, Khonti, and Santali
+are supported in this language environment."))
  '("Indian"))
 
 (set-language-info-alist
