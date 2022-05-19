@@ -182,6 +182,7 @@
 	(canadian-aboriginal #x14C0)
 	(ogham #x168F)
 	(runic #x16A0)
+        (tagalog #x1700)
 	(khmer #x1780)
 	(mongolian #x1826)
         (tai-le #x1950)
@@ -748,6 +749,7 @@
                     cham
 		    ogham
 		    runic
+                    tagalog
 		    symbol
 		    braille
 		    yi

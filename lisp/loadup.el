@@ -245,6 +245,7 @@
 (load "language/khmer")
 (load "language/burmese")
 (load "language/cham")
+(load "language/philippine")
 
 (load "indent")
 (let ((max-specpdl-size (max max-specpdl-size 1800)))
