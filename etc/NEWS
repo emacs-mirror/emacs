@@ -783,6 +783,7 @@ Setting it to a non-nil value temporarily disables automatic
 composition of character sequences at point, and thus makes it easier
 to edit such sequences by allowing point to "enter" the sequence.
 
+---
 *** Support for many old scripts and writing systems.
 Emacs now supports and has language-environments and input methods for
 several dozens of old scripts that were used in the past for various
@@ -799,6 +800,13 @@ corresponding language environments are:
 **** Siddham script and language environment
 **** Syloti Nagri script and language environment
 **** Modi script and language environment
+
+---
+*** The "Oriya" language environment was renamed to "Odia".
+This is to follow the change in the official name of the script.  The
+'oriya' input method was also renamed to 'odia'.  However, the old
+name of the language environment and the input method are still
+supported.
 
 ---
 *** New Greek translation of the Emacs tutorial.
