@@ -5928,6 +5928,15 @@ See also `yank-handled-properties'."
   :group 'killing
   :version "24.3")
 
+(defcustom yank-transform-functions nil
+  "List of functions to run on strings to be yanked.
+Each function in this list will be called (in order) with the
+string to be yanked as the sole argument, and should return the (possibly)
+ transformed string."
+  :type '(repeat function)
+  :version "29.1"
+  :group 'killing)
+
 (defvar yank-window-start nil)
 (defvar yank-undo-function nil
   "If non-nil, function used by `yank-pop' to delete last stretch of yanked text.
@@ -5998,6 +6007,8 @@ property, as described below.
 
 Properties listed in `yank-handled-properties' are processed,
 then those listed in `yank-excluded-properties' are discarded.
+
+STRING will be run through `yank-transform-functions'.
 
 If STRING has a non-nil `yank-handler' property anywhere, the
 normal insert behavior is altered, and instead, for each contiguous

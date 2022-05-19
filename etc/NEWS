@@ -2190,6 +2190,9 @@ platforms.
 This command lets you examine all data in the current selection and
 the clipboard, and insert it into the buffer.
 
+** New user option 'yank-transform-functions'.
+This function allows the user to alter the string to be inserted.
+
 ---
 ** New function 'minibuffer-lazy-highlight-setup'.
 This function allows setting up the minibuffer so that lazy
