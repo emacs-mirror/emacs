@@ -358,12 +358,12 @@ haiku_display_info_for_name (Lisp_Object name)
 {
   CHECK_STRING (name);
 
-  if (!NILP (Fstring_equal (name, build_string ("be"))))
+  if (!strcmp (SSDATA (name), "be"))
     {
-      if (!x_display_list)
+      if (x_display_list)
 	return x_display_list;
 
-      error ("Haiku windowing not initialized");
+      return haiku_term_init ();
     }
 
   error ("Haiku displays can only be named \"be\"");
