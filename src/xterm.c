@@ -19558,6 +19558,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (!menu_bar_p && !tool_bar_p)
 		{
+		  x_catch_errors (dpyinfo->display);
+
 		  if (f && device->direct_p)
 		    {
 		      *finish = X_EVENT_DROP;
@@ -19586,6 +19588,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    XIAllowTouchEvents (dpyinfo->display, xev->deviceid,
 					xev->detail, xev->event, XIRejectTouch);
 #endif
+		  x_uncatch_errors ();
 		}
 	      else
 		{
