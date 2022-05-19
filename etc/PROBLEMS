@@ -805,6 +805,22 @@ to take advantage of.
 
 * Runtime problems related to font handling
 
+** Some fonts are detected but not usable under Xft.
+
+Some fonts might not be usable under Emacs even though they show up in
+the font family list when Emacs is built with Xft.  This is because
+Emacs prevents fonts that have color glyphs (such as color Emoji) from
+being used, since they typically cause Xft crashes.
+
+On some GNU/Linux systems, fonts (such as Source Code Pro) that do not
+have color glyphs are reported as color fonts, causing them to be
+unavailable when using Xft.  This is known to happen under Fedora
+GNU/Linux 36 or later, and possibly other distributions as well.
+
+If you encounter a such a font, you can enable it while ignoring other
+fonts that actually have color glyphs by adding its family name to the
+list `xft-color-font-whitelist'.
+
 ** Characters are displayed as empty boxes or with wrong font under X.
 
 *** This may be due to your local fontconfig customization.
