@@ -5621,7 +5621,10 @@ x_flip_and_flush (struct frame *f)
   /* Flipping buffers requires a working connection to the X server,
      which isn't always present if `inhibit-redisplay' is t, since
      this can be called from the IO error handler.  */
-  if (!NILP (Vinhibit_redisplay))
+  if (!NILP (Vinhibit_redisplay)
+      /* This has to work for tooltip frames, however, and redisplay
+	 cannot happen when they are being flushed anyway.  (bug#55519) */
+      && !FRAME_TOOLTIP_P (f))
     return;
 
   block_input ();
