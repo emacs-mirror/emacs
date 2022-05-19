@@ -14506,6 +14506,24 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
     }
 }
 
+int
+x_display_pixel_height (struct x_display_info *dpyinfo)
+{
+  if (dpyinfo->screen_height)
+    return dpyinfo->screen_height;
+
+  return HeightOfScreen (dpyinfo->screen);
+}
+
+int
+x_display_pixel_width (struct x_display_info *dpyinfo)
+{
+  if (dpyinfo->screen_width)
+    return dpyinfo->screen_width;
+
+  return WidthOfScreen (dpyinfo->screen);
+}
+
 /* Handles the XEvent EVENT on display DPYINFO.
 
    *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
@@ -16514,6 +16532,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
          So if this ConfigureNotify is immediately followed by another
          for the same window, use the info from the latest update, and
          consider the events all handled.  */
+
       /* Opaque resize may be trickier; ConfigureNotify events are
          mixed with Expose events for multiple windows.  */
       configureEvent = *event;
@@ -16534,6 +16553,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           else
 	    configureEvent = next_event;
         }
+
+      /* If we get a ConfigureNotify for the root window, this means
+	 the dimensions of the screen it's on changed.  */
+
+      if (configureEvent.xconfigure.window == dpyinfo->root_window)
+	{
+	  dpyinfo->screen_width = configureEvent.xconfigure.width;
+	  dpyinfo->screen_height = configureEvent.xconfigure.height;
+	}
 
       if (x_dnd_in_progress && x_dnd_use_toplevels
 	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
@@ -23869,6 +23897,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       return 0;
     }
 #endif
+
+  /* Select for structure events on the root window, since this allows
+     us to record changes to the size of the screen.  */
+
+  XSelectInput (dpy, DefaultRootWindow (dpy), StructureNotifyMask);
 
   /* We have definitely succeeded.  Record the new connection.  */
 
