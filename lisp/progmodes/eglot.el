@@ -1996,7 +1996,11 @@ COMMAND is a symbol naming the command."
                                              collect it)))
                           `((face . ,faces))))))
            into diags
-           finally (cond (eglot--current-flymake-report-fn
+           finally (cond ((and
+                           ;; only add to current report if Flymake
+                           ;; starts on idle-timer (github#958)
+                           (not (null flymake-no-changes-timeout))
+                           eglot--current-flymake-report-fn)
                           (eglot--report-to-flymake diags))
                          (t
                           (setq eglot--diagnostics diags)))))
