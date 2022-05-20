@@ -2202,6 +2202,10 @@ the clipboard, and insert it into the buffer.
 This function allows the user to alter the string to be inserted.
 
 ---
+** New command 'yank-in-context'.
+This command tries to preserve string/comment syntax when yanking.
+
+---
 ** New function 'minibuffer-lazy-highlight-setup'.
 This function allows setting up the minibuffer so that lazy
 highlighting of its content is applied in the original window.

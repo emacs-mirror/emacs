@@ -1543,6 +1543,11 @@ with your script for an edit-interpret-debug cycle."
   (add-hook 'completion-at-point-functions
             #'sh-completion-at-point-function nil t)
   (setq-local outline-regexp "###")
+  (setq-local escaped-string-quote
+              (lambda (terminator)
+                (if (eq terminator ?')
+                    "'\\'"
+                  "\\")))
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell

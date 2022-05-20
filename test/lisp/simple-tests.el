@@ -971,5 +971,39 @@ See Bug#21722."
     ;;(should (= (length (delq nil (undo-make-selective-list 5 9))) 0))
     (should (= (length (delq nil (undo-make-selective-list 6 9))) 0))))
 
+(ert-deftest test-yank-in-context ()
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo \"foo\"")
+      (kill-new "\"bar\"")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo \"f\\\"bar\\\"oo\""))
+
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo \"foo\"")
+      (kill-new "'bar'")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo \"f'bar'oo\""))
+
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo 'foo'")
+      (kill-new "'bar'")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo 'f'\\''bar'\\''oo'")))
+
 (provide 'simple-test)
 ;;; simple-tests.el ends here

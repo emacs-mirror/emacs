@@ -60,6 +60,24 @@ value of 1 means that nothing is amalgamated.")
 (defgroup paren-matching nil
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
+
+(defvar-local escaped-string-quote "\\"
+  "String to insert before a string quote character in a string to escape it.
+This is typically a backslash (in most languages):
+
+  \\='foo\\\\='bar\\='
+  \"foo\\\"bar\"
+
+But in SQL, for instance, it's \"\\='\":
+
+  \\='foo\\='\\='bar\\='
+
+This can also be a function, which is called with the string
+terminator as the argument, and should return a string to be
+used as the escape.
+
+This variable is used by the `yank-in-context' command.")
+
 
 ;;; next-error support framework
 
@@ -6013,6 +6031,9 @@ Properties listed in `yank-handled-properties' are processed,
 then those listed in `yank-excluded-properties' are discarded.
 
 STRING will be run through `yank-transform-functions'.
+`yank-in-context' is a command that uses this mechanism to
+provide a `yank' alternative that conveniently preserves
+string/comment syntax.
 
 If STRING has a non-nil `yank-handler' property anywhere, the
 normal insert behavior is altered, and instead, for each contiguous
@@ -6063,6 +6084,88 @@ See also the command `yank-pop' (\\[yank-pop])."
 With ARG, rotate that many kills forward (or backward, if negative)."
   (interactive "p")
   (current-kill arg))
+
+(defun yank-in-context (&optional arg)
+  "Insert the last stretch of killed text while preserving syntax.
+In particular, if point is inside a string, any quote characters
+in the killed text will be quoted, so that the string remains a
+valid string.
+
+If point is inside a comment, ensure that the inserted text is
+also marked as a comment.
+
+This command otherwise behaves as `yank'.  See that command for
+explanation of ARG.
+
+This function uses the `escaped-string-quote' buffer-local
+variable to determine how strings should be escaped."
+  (interactive "*P")
+  (let ((yank-transform-functions (cons #'yank-in-context--transform
+                                        yank-transform-functions)))
+    (yank arg)))
+
+(defun yank-in-context--transform (string)
+  (let ((ppss (syntax-ppss)))
+    (cond
+     ;; We're in a string.
+     ((ppss-string-terminator ppss)
+      (string-replace
+       (string (ppss-string-terminator ppss))
+       (concat (if (functionp escaped-string-quote)
+                   (funcall escaped-string-quote
+                            (ppss-string-terminator ppss))
+                 escaped-string-quote)
+               (string (ppss-string-terminator ppss)))
+       string))
+     ;; We're in a comment.
+     ((or (ppss-comment-depth ppss)
+          (and (bolp)
+               (not (eobp))
+               ;; If we're in the middle of a bunch of commented text,
+               ;; we probably want to be commented.  This is quite DWIM.
+               (or (bobp)
+                   (save-excursion
+                     (forward-line -1)
+                     (forward-char 1)
+                     (ppss-comment-depth (syntax-ppss))))
+               (ppss-comment-depth
+                (setq ppss (save-excursion
+                             (forward-char 1)
+                             (syntax-ppss))))))
+      (cond
+       ((and (eq (ppss-comment-depth ppss) t)
+             (> (length comment-end) 0)
+             (string-search comment-end string))
+        (user-error "Can't insert a string containing a comment terminator in a comment"))
+       ;; If this is a comment syntax that has an explicit end, then
+       ;; we can just insert as is.
+       ((> (length comment-end) 0) string)
+       ;; Line-based comment formats.
+       ((or (string-search "\n" string)
+            (bolp))
+        (let ((mode major-mode)
+              (bolp (bolp))
+              (eolp (eolp))
+              (comment-style 'plain))
+          (with-temp-buffer
+            (funcall mode)
+            (insert string)
+            (when (string-match-p "\n\\'" string)
+              (cond
+               ((not eolp) (delete-char -1))
+               (bolp (insert "\n"))))
+            (comment-normalize-vars)
+            (comment-region-default-1
+             (if bolp
+                 (point-min)
+               (save-excursion
+                 (goto-char (point-min))
+                 (forward-line 1)
+                 (point)))
+             (point-max) nil t)
+            (buffer-string))))
+       (t string)))
+     (t string))))
 
 (defvar read-from-kill-ring-history)
 (defun read-from-kill-ring (prompt)
