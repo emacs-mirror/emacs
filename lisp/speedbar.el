@@ -306,10 +306,9 @@ attached to and added to this list before the new frame is initialized."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value"))))
 
-(defcustom speedbar-use-imenu-flag (fboundp 'imenu)
+(defcustom speedbar-use-imenu-flag t
   "Non-nil means use imenu for file parsing, nil to use etags.
-XEmacs prior to 20.4 doesn't support imenu, therefore the default is to
-use etags instead.  Etags support is not as robust as imenu support."
+Etags support is not as robust as imenu support." ; See Bug#51102
   :tag "Use Imenu for tags"
   :group 'speedbar
   :type 'boolean)

@@ -1091,7 +1091,7 @@ Unless KEEP, removes the old indentation."
     ["Debugger" cperl-db t]
     "----"
     ("Tools"
-     ["Imenu" imenu (fboundp 'imenu)]
+     ["Imenu" imenu]
      ["Imenu on Perl Info" cperl-imenu-on-info (featurep 'imenu)]
      "----"
      ["Ispell PODs" cperl-pod-spell

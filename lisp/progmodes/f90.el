@@ -825,9 +825,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
          :style toggle :help "Expand abbreviations while typing in this buffer"]
         ["Add Imenu Menu" f90-add-imenu-menu
          :active   (not (lookup-key (current-local-map) [menu-bar index]))
-         :included (fboundp 'imenu-add-to-menubar)
-         :help "Add an index menu to the menu-bar"
-         ]))
+         :help "Add an index menu to the menu-bar"]))
     map)
   "Keymap used in F90 mode.")
 
