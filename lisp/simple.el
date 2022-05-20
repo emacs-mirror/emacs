@@ -5932,7 +5932,11 @@ See also `yank-handled-properties'."
   "List of functions to run on strings to be yanked.
 Each function in this list will be called (in order) with the
 string to be yanked as the sole argument, and should return the (possibly)
- transformed string."
+transformed string.
+
+The functions will be called from the buffer the string will be
+inserted, and with point at the place where the string is to be
+inserted."
   :type '(repeat function)
   :version "29.1"
   :group 'killing)
