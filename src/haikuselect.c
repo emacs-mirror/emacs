@@ -295,6 +295,14 @@ haiku_message_to_lisp (void *message)
 	      t1 = make_int ((intmax_t) *(ssize_t *) buf);
 	      break;
 
+	    case 'DBLE':
+	      t1 = make_float (*(double *) buf);
+	      break;
+
+	    case 'FLOT':
+	      t1 = make_float (*(float *) buf);
+	      break;
+
 	    default:
 	      t1 = make_uninit_string (buf_size);
 	      memcpy (SDATA (t1), buf, buf_size);
@@ -353,6 +361,14 @@ haiku_message_to_lisp (void *message)
 	  t2 = Qpoint;
 	  break;
 
+	case 'DBLE':
+	  t2 = Qdouble;
+	  break;
+
+	case 'FLOT':
+	  t2 = Qfloat;
+	  break;
+
 	default:
 	  t2 = make_int (type_code);
 	}
@@ -398,6 +414,10 @@ lisp_to_type_code (Lisp_Object obj)
     return 'SSZT';
   else if (EQ (obj, Qpoint))
     return 'BPNT';
+  else if (EQ (obj, Qfloat))
+    return 'FLOT';
+  else if (EQ (obj, Qdouble))
+    return 'DBLE';
   else
     return -1;
 }
@@ -416,7 +436,8 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
   ssize_t ssizet_data;
   intmax_t t4;
   uintmax_t t5;
-  float t6, t7;
+  float t6, t7, float_data;
+  double double_data;
   int rc;
   specpdl_ref ref;
 
@@ -518,6 +539,30 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	      if (be_add_point_data (message, SSDATA (name),
 				     t6, t7))
 		signal_error ("Invalid point", data);
+	      break;
+
+	    case 'FLOT':
+	      CHECK_NUMBER (data);
+	      float_data = XFLOATINT (data);
+
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &float_data,
+					sizeof float_data);
+
+	      if (rc)
+		signal_error ("Failed to add float", data);
+	      break;
+
+	    case 'DBLE':
+	      CHECK_NUMBER (data);
+	      double_data = XFLOATINT (data);
+
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, &double_data,
+					sizeof double_data);
+
+	      if (rc)
+		signal_error ("Failed to add double", data);
 	      break;
 
 	    case 'SHRT':
@@ -734,6 +779,10 @@ system.  If TYPE is `ssize_t', then DATA is an integer that can hold
 values from -1 to the maximum value of the C data type `ssize_t' on
 the current system.  If TYPE is `point', then DATA is a cons of float
 values describing the X and Y coordinates of an on-screen location.
+If TYPE is `float', then DATA is a low-precision floating point
+number, whose exact precision is not guaranteed.  If TYPE is `double',
+then DATA is a floating point number that can represent any value a
+Lisp float can represent.
 
 If the field name is not a string but the symbol `type', then it
 associates to a 32-bit unsigned integer describing the type of the
@@ -928,6 +977,8 @@ used to retrieve the current position of the mouse.  */);
   DEFSYM (Qsize_t, "size_t");
   DEFSYM (Qssize_t, "ssize_t");
   DEFSYM (Qpoint, "point");
+  DEFSYM (Qfloat, "float");
+  DEFSYM (Qdouble, "double");
   DEFSYM (Qalready_running, "already-running");
 
   defsubr (&Shaiku_selection_data);
