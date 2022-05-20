@@ -4180,6 +4180,10 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
                      YES, YES);
       x += glyph->pixel_width;
    }
+
+  /* GCC 12 complains even though nothing ever uses s->char2b after
+     this function returns.  */
+  s->char2b = NULL;
 }
 
 static void
