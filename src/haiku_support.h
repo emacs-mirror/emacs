@@ -249,6 +249,7 @@ struct haiku_menu_bar_help_event
 struct haiku_zoom_event
 {
   void *window;
+  int fullscreen_mode;
 };
 
 enum haiku_font_specification

@@ -3867,14 +3867,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  {
 	    struct haiku_zoom_event *b = buf;
 	    struct frame *f = haiku_window_to_frame (b->window);
-	    struct haiku_output *output;
 
 	    if (!f)
 	      continue;
 
-	    output = FRAME_OUTPUT_DATA (f);
-
-	    if (output->fullscreen_mode == FULLSCREEN_MAXIMIZED)
+	    if (b->fullscreen_mode == FULLSCREEN_MODE_MAXIMIZED)
 	      f->want_fullscreen = FULLSCREEN_NONE;
 	    else
 	      f->want_fullscreen = FULLSCREEN_MAXIMIZED;

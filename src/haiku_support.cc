@@ -1281,6 +1281,7 @@ public:
     struct haiku_zoom_event rq;
 
     rq.window = this;
+    rq.fullscreen_mode = fullscreen_mode;
     haiku_write (ZOOM_EVENT, &rq);
   }
 
