@@ -2488,8 +2488,15 @@ and no others."
 
 (defalias 'some-window 'get-window-with-predicate)
 
+(defcustom display-buffer-avoid-small-windows nil
+  "If non-nil, windows that have fewer lines than this are avoided.
+This is used by `get-lru-window'."
+  :type '(choice nil number)
+  :version "29.1"
+  :group 'windows)
+
 (defun get-lru-window (&optional all-frames dedicated not-selected no-other)
-   "Return the least recently used window on frames specified by ALL-FRAMES.
+  "Return the least recently used window on frames specified by ALL-FRAMES.
 Return a full-width window if possible.  A minibuffer window is
 never a candidate.  A dedicated window is never a candidate
 unless DEDICATED is non-nil, so if all windows are dedicated, the
@@ -2513,15 +2520,23 @@ have special meanings:
 - A frame means consider all windows on that frame only.
 
 Any other value of ALL-FRAMES means consider all windows on the
-selected frame and no others."
-   (let (best-window best-time second-best-window second-best-time time)
-    (dolist (window (window-list-1 nil 'nomini all-frames))
+selected frame and no others.
+
+`display-buffer-avoid-small-windows' is also taken into
+consideration.  Windows smaller than this size will be avoided if
+there are larger windows available."
+  (let ((windows (window-list-1 nil 'nomini all-frames))
+        best-window best-time second-best-window second-best-time time)
+    (dolist (window windows)
       (when (and (or dedicated (not (window-dedicated-p window)))
 		 (or (not not-selected) (not (eq window (selected-window))))
                  (or (not no-other)
                      (not (window-parameter window 'no-other-window))))
 	(setq time (window-use-time window))
 	(if (or (eq window (selected-window))
+                (and display-buffer-avoid-small-windows
+                     (< (window-height window)
+                        display-buffer-avoid-small-windows))
 		(not (window-full-width-p window)))
 	    (when (or (not second-best-time) (< time second-best-time))
 	      (setq second-best-time time)

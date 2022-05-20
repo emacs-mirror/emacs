@@ -3305,6 +3305,11 @@ window has at least that many columns.  If the value is @code{nil},
 that means not to split this way.
 @end defopt
 
+@defopt display-buffer-avoid-small-windows
+If non-@code{nil}, this should be a number.  Windows that have fewer
+lines than this will be avoided when choosing an existing window.
+@end defopt
+
 @defopt even-window-sizes
 This variable, if non-@code{nil}, causes @code{display-buffer} to even
 window sizes whenever it reuses an existing window, and that window is
