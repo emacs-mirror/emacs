@@ -503,3 +503,40 @@ BView_InvertRect (void *view, int x, int y, int width, int height)
 
   vw->InvertRect (BRect (x, y, x + width - 1, y + height - 1));
 }
+
+static void
+be_draw_cross_on_pixmap_1 (BBitmap *bitmap, int x, int y, int width,
+			   int height, uint32_t color)
+{
+  BBitmap dest (bitmap->Bounds (),
+		bitmap->ColorSpace (),
+		true, false);
+  BView view (bitmap->Bounds (), NULL, B_FOLLOW_NONE, 0);
+  rgb_color high_color;
+
+  rgb32_to_rgb_color (color, &high_color);
+  dest.ImportBits (bitmap);
+
+  if (!dest.Lock ())
+    return;
+
+  dest.AddChild (&view);
+
+  view.SetHighColor (high_color);
+  view.StrokeLine (BPoint (x, y),
+		   BPoint (x + width - 1, y + height - 1));
+  view.StrokeLine (BPoint (x, y + height - 1),
+		   BPoint (x + width - 1, y));
+  view.RemoveSelf ();
+  bitmap->ImportBits (&dest);
+}
+
+void
+be_draw_cross_on_pixmap (void *bitmap, int x, int y, int width,
+			 int height, uint32_t color)
+{
+  BBitmap *target = (BBitmap *) bitmap;
+
+  be_draw_cross_on_pixmap_1 (target, x, y, width, height,
+			     color);
+}

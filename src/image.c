@@ -6307,7 +6307,7 @@ image_edge_detection (struct frame *f, struct image *img,
 }
 
 
-#if defined HAVE_X_WINDOWS || defined USE_CAIRO
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_HAIKU
 static void
 image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
 			 int x, int y, unsigned int width, unsigned int height,
@@ -6341,9 +6341,11 @@ image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
   XDrawLine (dpy, pixmap, gc, x, y, x + width - 1, y + height - 1);
   XDrawLine (dpy, pixmap, gc, x, y + height - 1, x + width - 1, y);
   XFreeGC (dpy, gc);
-#endif	/* HAVE_X_WINDOWS */
+#elif HAVE_HAIKU
+  be_draw_cross_on_pixmap (pixmap, x, y, width, height, color);
+#endif
 }
-#endif	/* HAVE_X_WINDOWS || USE_CAIRO */
+#endif	/* HAVE_X_WINDOWS || USE_CAIRO || HAVE_HAIKU */
 
 /* Transform image IMG on frame F so that it looks disabled.  */
 
@@ -6385,25 +6387,23 @@ image_disable_image (struct frame *f, struct image *img)
     {
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
-#ifndef HAVE_HAIKU
 
-#ifndef USE_CAIRO
+#if !defined USE_CAIRO && !defined HAVE_HAIKU
 #define CrossForeground(f) BLACK_PIX_DEFAULT (f)
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
-#else  /* USE_CAIRO */
+#else  /* USE_CAIRO || HAVE_HAIKU */
 #define CrossForeground(f) 0
 #define MaskForeground(f)  PIX_MASK_DRAW
-#endif	/* USE_CAIRO */
+#endif	/* USE_CAIRO || HAVE_HAIKU */
 
-#ifndef USE_CAIRO
+#if !defined USE_CAIRO && !defined HAVE_HAIKU
       image_sync_to_pixmaps (f, img);
-#endif	/* !USE_CAIRO */
+#endif	/* !USE_CAIRO && !HAVE_HAIKU */
       image_pixmap_draw_cross (f, img->pixmap, 0, 0, img->width, img->height,
 			       CrossForeground (f));
       if (img->mask)
 	image_pixmap_draw_cross (f, img->mask, 0, 0, img->width, img->height,
 				 MaskForeground (f));
-#endif /* !HAVE_HAIKU */
 #endif /* !HAVE_NS */
 #else
       HDC hdc, bmpdc;

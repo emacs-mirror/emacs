@@ -484,6 +484,8 @@ extern void hsl_color_rgb (double, double, double, uint32_t *);
 extern void *BBitmap_new (int, int, int);
 extern void *BBitmap_data (void *);
 extern int BBitmap_convert (void *, void **);
+extern void be_draw_cross_on_pixmap (void *, int, int, int, int,
+				     uint32_t);
 
 extern void BBitmap_free (void *);
 
