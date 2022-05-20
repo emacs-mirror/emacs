@@ -1015,36 +1015,67 @@ static unsigned int x_dnd_keyboard_state;
    terminating DND as part of the display disconnect handler.  */
 static jmp_buf x_dnd_disconnect_handler;
 
+/* Structure describing a single window that can be the target of
+   drag-and-drop operations.  */
 struct x_client_list_window
 {
+  /* The window itself.  */
   Window window;
+
+  /* The display that window is on.  */
   Display *dpy;
+
+  /* Its X and Y coordinates from the root window.  */
   int x, y;
+
+  /* The width and height of the window.  */
   int width, height;
+
+  /* Whether or not the window is mapped.  */
   bool mapped_p;
+
+  /* The event mask for the window before Emacs selected for events on
+     it.  */
   long previous_event_mask;
+
+  /* The window manager state of the window.  */
   unsigned long wm_state;
 
+  /* The next window in this list.  */
   struct x_client_list_window *next;
+
+  /* The Motif protocol style of this window, if any.  */
   uint8_t xm_protocol_style;
 
+  /* The extents of the frame window in each direction.  */
   int frame_extents_left;
   int frame_extents_right;
   int frame_extents_top;
   int frame_extents_bottom;
 
 #ifdef HAVE_XSHAPE
+  /* The border width of this window.  */
   int border_width;
 
+  /* The rectangles making up the input shape.  */
   XRectangle *input_rects;
+
+  /* The number of rectangles composing the input shape.  */
   int n_input_rects;
 
+  /* The rectangles making up the bounding shape.  */
   XRectangle *bounding_rects;
+
+  /* The number of rectangles composing the bounding shape.  */
   int n_bounding_rects;
 #endif
 };
 
-static struct x_client_list_window *x_dnd_toplevels = NULL;
+/* List of all toplevels in stacking order, from top to bottom.  */
+static struct x_client_list_window *x_dnd_toplevels;
+
+/* Whether or not the window manager supports the required features
+   for `x_dnd_toplevels' to work.  */
 static bool x_dnd_use_toplevels;
 
 /* Motif drag-and-drop protocol support.  */
@@ -1223,6 +1254,10 @@ typedef struct xm_top_level_leave_message
 #define XM_DROP_SITE_VALID	3
 /* #define XM_DROP_SITE_INVALID	2 */
 #define XM_DROP_SITE_NONE	1
+
+/* The version of the Motif drag-and-drop protocols that Emacs
+   supports.  */
+#define XM_DRAG_PROTOCOL_VERSION	0
 
 static uint8_t
 xm_side_effect_from_action (struct x_display_info *dpyinfo, Atom action)
@@ -1637,7 +1672,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
   if (!rc)
     {
       header.byte_order = XM_BYTE_ORDER_CUR_FIRST;
-      header.protocol = 0;
+      header.protocol = XM_DRAG_PROTOCOL_VERSION;
       header.target_list_count = 1;
       header.total_data_size = 8 + 2 + ntargets * 4;
 
@@ -1682,7 +1717,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	      xfree (recs);
 
 	      header.byte_order = XM_BYTE_ORDER_CUR_FIRST;
-	      header.protocol = 0;
+	      header.protocol = XM_DRAG_PROTOCOL_VERSION;
 	      header.target_list_count = 1;
 	      header.total_data_size = 8 + 2 + ntargets * 4;
 
@@ -1719,7 +1754,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	 data format.  To avoid confusing Motif when that happens, set
 	 it back to 0.  There will probably be no more updates to the
 	 protocol either.  */
-      header.protocol = 0;
+      header.protocol = XM_DRAG_PROTOCOL_VERSION;
       xm_write_targets_table (dpyinfo->display, drag_window,
 			      dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
 			      &header, recs);
@@ -1749,7 +1784,7 @@ xm_setup_drag_info (struct x_display_info *dpyinfo,
   if (idx != -1)
     {
       drag_initiator_info.byteorder = XM_BYTE_ORDER_CUR_FIRST;
-      drag_initiator_info.protocol = 0;
+      drag_initiator_info.protocol = XM_DRAG_PROTOCOL_VERSION;
       drag_initiator_info.table_index = idx;
       drag_initiator_info.selection = dpyinfo->Xatom_XdndSelection;
 
@@ -1976,6 +2011,9 @@ xm_read_drag_receiver_info (struct x_display_info *dpyinfo,
 
       rec->byteorder = XM_BYTE_ORDER_CUR_FIRST;
     }
+
+  if (data[1] > XM_DRAG_PROTOCOL_VERSION)
+    rc = 0;
 
   if (tmp_data)
     XFree (tmp_data);
@@ -2359,7 +2397,9 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	      && xcb_get_property_value_length (xm_property_reply) >= 4)
 	    {
 	      xmdata = xcb_get_property_value (xm_property_reply);
-	      tem->xm_protocol_style = xmdata[2];
+
+	      if (xmdata[1] <= XM_DRAG_PROTOCOL_VERSION)
+		tem->xm_protocol_style = xmdata[2];
 	    }
 #endif
 
