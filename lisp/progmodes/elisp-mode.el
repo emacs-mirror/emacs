@@ -627,13 +627,13 @@ functions are annotated with \"<f>\" via the
            ;; t if in function position.
            (funpos (eq (char-before beg) ?\())
            (quoted (elisp--form-quoted-p beg))
-           (fun-sym (condition-case nil
-                        (save-excursion
-                          (up-list -1)
-                          (forward-char 1)
-                          (and (memq (char-syntax (char-after)) '(?w ?_))
-                               (read (current-buffer))))
-                      (error nil))))
+           (is-ignore-error
+            (condition-case nil
+                (save-excursion
+                  (up-list -1)
+                  (forward-char 1)
+                  (looking-at-p "ignore-error\\>"))
+              (error nil))))
       (when (and end (or (not (nth 8 (syntax-ppss)))
                          (memq (char-before beg) '(?` ?‘))))
         (let ((table-etc
@@ -642,7 +642,7 @@ functions are annotated with \"<f>\" via the
                     ;; FIXME: We could look at the first element of
                     ;; the current form and use it to provide a more
                     ;; specific completion table in more cases.
-                    ((eq fun-sym 'ignore-error)
+                    (is-ignore-error
                      (list t (elisp--completion-local-symbols)
                            :predicate (lambda (sym)
                                         (get sym 'error-conditions))))
