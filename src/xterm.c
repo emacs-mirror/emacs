@@ -1034,8 +1034,9 @@ struct x_client_list_window
   /* Whether or not the window is mapped.  */
   bool mapped_p;
 
-  /* The event mask for the window before Emacs selected for events on
-     it.  */
+  /* A bitmask describing events Emacs was listening for from the
+     window before some extra events were added in
+     `x_dnd_compute_toplevels'.  */
   long previous_event_mask;
 
   /* The window manager state of the window.  */
