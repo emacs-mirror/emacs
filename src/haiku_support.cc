@@ -1042,6 +1042,20 @@ public:
     BRect frame, decorator_frame;
     struct child_frame *f;
 
+    if (fullscreen_mode == FULLSCREEN_MODE_WIDTH
+	&& new_position.x != 0)
+      {
+	MoveTo (0, new_position.y);
+	return;
+      }
+
+    if (fullscreen_mode == FULLSCREEN_MODE_HEIGHT
+	&& new_position.y != 0)
+      {
+	MoveTo (new_position.x, 0);
+	return;
+      }
+
     rq.window = this;
     rq.x = std::lrint (new_position.x);
     rq.y = std::lrint (new_position.y);
@@ -1159,34 +1173,46 @@ public:
     child_frame_lock.Unlock ();
   }
 
-  void
-  ClearFullscreen (void)
+  BRect
+  ClearFullscreen (enum haiku_fullscreen_mode target_mode)
   {
+    BRect original_frame;
+
     switch (fullscreen_mode)
       {
       case FULLSCREEN_MODE_MAXIMIZED:
-	BWindow::Zoom (pre_zoom_rect.LeftTop (),
-		       BE_RECT_WIDTH (pre_zoom_rect) - 1,
-		       BE_RECT_HEIGHT (pre_zoom_rect) - 1);
+	original_frame = pre_zoom_rect;
+
+	if (target_mode == FULLSCREEN_MODE_NONE)
+	  BWindow::Zoom (pre_zoom_rect.LeftTop (),
+			 BE_RECT_WIDTH (pre_zoom_rect) - 1,
+			 BE_RECT_HEIGHT (pre_zoom_rect) - 1);
 	break;
 
       case FULLSCREEN_MODE_BOTH:
       case FULLSCREEN_MODE_HEIGHT:
       case FULLSCREEN_MODE_WIDTH:
-	MoveTo (pre_fullscreen_rect.LeftTop ());
-	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
-		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
-
+	original_frame = pre_fullscreen_rect;
 	SetFlags (Flags () & ~(B_NOT_MOVABLE
 			       | B_NOT_ZOOMABLE
 			       | B_NOT_RESIZABLE));
+
+	if (target_mode != FULLSCREEN_MODE_NONE)
+	  goto out;
+
+	MoveTo (pre_fullscreen_rect.LeftTop ());
+	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
+		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
 	break;
 
       case FULLSCREEN_MODE_NONE:
+	original_frame = Frame ();
 	break;
       }
 
+  out:
     fullscreen_mode = FULLSCREEN_MODE_NONE;
+    return original_frame;
   }
 
   BRect
@@ -1211,17 +1237,17 @@ public:
   void
   SetFullscreen (enum haiku_fullscreen_mode mode)
   {
-    BRect zoom_rect;
+    BRect zoom_rect, frame;
 
     if (fullscreen_mode == mode)
       return;
 
-    ClearFullscreen ();
+    frame = ClearFullscreen (mode);
 
     switch (mode)
       {
       case FULLSCREEN_MODE_MAXIMIZED:
-	pre_zoom_rect = Frame ();
+	pre_zoom_rect = frame;
 	zoom_rect = CalculateZoomRect ();
 	BWindow::Zoom (zoom_rect.LeftTop (),
 		       BE_RECT_WIDTH (zoom_rect) - 1,
@@ -1235,12 +1261,11 @@ public:
       case FULLSCREEN_MODE_HEIGHT:
       case FULLSCREEN_MODE_WIDTH:
 	SetFlags (Flags () | B_NOT_ZOOMABLE | B_NOT_RESIZABLE);
-	pre_fullscreen_rect = Frame ();
+	pre_fullscreen_rect = frame;
 	zoom_rect = FullscreenRectForMode (mode);
 	ResizeTo (BE_RECT_WIDTH (zoom_rect) - 1,
 		  BE_RECT_HEIGHT (zoom_rect) - 1);
 	MoveTo (zoom_rect.left, zoom_rect.top);
-
 	break;
 
       case FULLSCREEN_MODE_NONE:
