@@ -12863,11 +12863,12 @@ and tool-bar buttons.  */);
 
   DEFVAR_LISP ("select-active-regions",
 	       Vselect_active_regions,
-	       doc: /* If non-nil, an active region automatically sets the primary selection.
-If the value is `only', only temporarily active regions (usually made
-by mouse-dragging or shift-selection) set the window selection.
+	       doc: /* If non-nil, any active region automatically sets the primary selection.
+This variable only has an effect when Transient Mark mode is enabled.
 
-This takes effect only when Transient Mark mode is enabled.  */);
+If the value is `only', only temporarily active regions (usually made
+by mouse-dragging or shift-selection) set the window system's primary
+selection.  */);
   Vselect_active_regions = Qt;
 
   DEFVAR_LISP ("saved-region-selection",
