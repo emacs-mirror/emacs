@@ -315,8 +315,7 @@ This will only be consulted if the coding system in
   :version "24.1"
   :type '(repeat coding-system))
 
-(defcustom erc-server-coding-system (if (and (fboundp 'coding-system-p)
-                                             (coding-system-p 'undecided)
+(defcustom erc-server-coding-system (if (and (coding-system-p 'undecided)
                                              (coding-system-p 'utf-8))
                                         '(utf-8 . undecided)
                                       nil)

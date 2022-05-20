@@ -1,7 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -217,9 +216,7 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-percentage (x y)
-  (if (fboundp 'float)
-      (round (* 100 (/ x (float y))))
-    (/ (* x 100) y)))
+  (round (* 100 (/ x (float y)))))
 
 ;;;###autoload
 (defalias 'url-basepath 'url-file-directory)
