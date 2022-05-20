@@ -244,6 +244,9 @@
               ('let
                 (forward-sexp 1)
                 (>= pos (point)))
+              ((or 'defun 'defmacro 'cl-defmethod 'cl-defun)
+                (forward-sexp 2)
+                (>= pos (point)))
               ('condition-case
                   ;; If (cdr paren-posns), then we're in the BODY
                   ;; of HANDLERS.
