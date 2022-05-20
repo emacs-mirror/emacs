@@ -10101,7 +10101,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   struct frame *any;
   char *atom_name, *ask_actions;
   Lisp_Object action, ltimestamp;
-  specpdl_ref ref;
+  specpdl_ref ref, count;
   ptrdiff_t i, end, fill;
   XTextProperty prop;
   xm_drop_start_message dmsg;
@@ -10228,6 +10228,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     {
       ask_actions = NULL;
       end = 0;
+      count = SPECPDL_INDEX ();
 
       for (i = 0; i < n_ask_actions; ++i)
 	{
@@ -10249,16 +10250,25 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       prop.format = 8;
       prop.nitems = end;
 
+      record_unwind_protect_ptr (xfree, ask_actions);
+
+      /* This can potentially store a lot of data in window
+	 properties, so check for allocation errors.  */
       block_input ();
+      x_catch_errors (FRAME_X_DISPLAY (f));
       XSetTextProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			&prop, FRAME_DISPLAY_INFO (f)->Xatom_XdndActionDescription);
-      xfree (ask_actions);
 
       XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionList, XA_ATOM, 32,
 		       PropModeReplace, (unsigned char *) ask_action_list,
 		       n_ask_actions);
+      x_check_errors (FRAME_X_DISPLAY (f),
+		      "Can't set action descriptions: %s");
+      x_uncatch_errors_after_check ();
       unblock_input ();
+
+      unbind_to (count, Qnil);
     }
   else
     {
