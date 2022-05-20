@@ -1667,8 +1667,9 @@ START and END."
 If called interactively, START and END are normally the start and
 end of the buffer; but if the region is active, START and END are
 the start and end of the region.  Print a message reporting the
-number of lines, words, and chars.  With prefix argument, also
-include the data for the entire (un-narrowed) buffer.
+number of lines, sentences, words, and chars.  With prefix
+argument, also include the data for the entire (un-narrowed)
+buffer.
 
 If called from Lisp, return the number of words between START and
 END, without printing any message.  TOTALS is ignored when called
@@ -1708,11 +1709,13 @@ from Lisp."
 
 (defun count-words--format (str start end)
   (let ((lines (count-lines start end))
+	(sentences (count-sentences start end))
 	(words (count-words start end))
 	(chars (- end start)))
-    (format "%s has %d line%s, %d word%s, and %d character%s"
+    (format "%s has %d line%s, %d sentence%s, %d word%s, and %d character%s"
 	     str
 	     lines (if (= lines 1) "" "s")
+	     sentences (if (= sentences 1) "" "s")
 	     words (if (= words 1) "" "s")
 	     chars (if (= chars 1) "" "s"))))
 

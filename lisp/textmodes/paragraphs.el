@@ -477,7 +477,23 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
 	    (skip-chars-backward " \t\n")
 	  (goto-char par-end)))
       (setq arg (1- arg)))
-    (constrain-to-field nil opoint t)))
+    (let ((npoint (constrain-to-field nil opoint t)))
+      (not (= npoint opoint)))))
+
+(defun count-sentences (start end)
+  "Count sentences in current buffer from START to END."
+  (let ((sentences 0)
+        (inhibit-field-text-motion t))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region start end)
+        (goto-char (point-min))
+	(while (ignore-errors (forward-sentence))
+	  (setq sentences (1+ sentences)))
+        ;; Remove last possibly empty sentence
+        (when (/= (skip-chars-backward " \t\n") 0)
+          (setq sentences (1- sentences)))
+	sentences))))
 
 (defun repunctuate-sentences-filter (_start _end)
   "Search filter used by `repunctuate-sentences' to skip unneeded spaces.
