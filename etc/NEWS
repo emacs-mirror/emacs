@@ -822,7 +822,7 @@ so automatically.
 
 ** Enriched Mode
 
----
++++
 *** New command 'enriched-toggle-markup'.
 This allows you to see the markup in 'enriched-mode' buffers (e.g.,
 the HELLO file).
