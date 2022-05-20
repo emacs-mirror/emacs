@@ -3307,7 +3307,9 @@ that means not to split this way.
 
 @defopt display-buffer-avoid-small-windows
 If non-@code{nil}, this should be a number.  Windows that have fewer
-lines than this will be avoided when choosing an existing window.
+lines than that will be avoided when choosing an existing window.  The
+value is interpreted in units of the frame's canonical line height,
+like @code{window-total-height} does (@pxref{Window Sizes}).
 @end defopt
 
 @defopt even-window-sizes

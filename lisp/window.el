@@ -2490,7 +2490,8 @@ and no others."
 
 (defcustom display-buffer-avoid-small-windows nil
   "If non-nil, windows that have fewer lines than this are avoided.
-This is used by `get-lru-window'."
+This is used by `get-lru-window'.  The value is interpreted in units
+of the frame's canonical line height, like `window-total-height' does."
   :type '(choice nil number)
   :version "29.1"
   :group 'windows)
@@ -2522,9 +2523,9 @@ have special meanings:
 Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others.
 
-`display-buffer-avoid-small-windows' is also taken into
-consideration.  Windows smaller than this size will be avoided if
-there are larger windows available."
+`display-buffer-avoid-small-windows', if non-nil, is also taken into
+consideration.  Windows whose height is smaller that the value of that
+variable will be avoided if larger windows are available."
   (let ((windows (window-list-1 nil 'nomini all-frames))
         best-window best-time second-best-window second-best-time time)
     (dolist (window windows)

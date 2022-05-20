@@ -606,8 +606,8 @@ specifiers can now use ':type webp'.
 ** Windows
 
 *** New user option 'display-buffer-avoid-small-windows'.
-If non-nil, this should be a window height.  If windows smaller than
-this will be avoided by 'display-buffer', if possible.
+If non-nil, this should be a window height, a number.  Windows smaller
+than this will be avoided by 'display-buffer', if possible.
 
 +++
 *** New display action 'display-buffer-full-frame'.
