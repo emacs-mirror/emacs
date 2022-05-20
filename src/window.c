@@ -8121,11 +8121,11 @@ compare_window_configurations (Lisp_Object configuration1,
   return true;
 }
 
-DEFUN ("compare-window-configurations", Fcompare_window_configurations,
-       Scompare_window_configurations, 2, 2, 0,
-       doc: /* Compare two window configurations as regards the structure of windows.
-This function ignores details such as the values of point
-and scrolling positions.  */)
+DEFUN ("window-configuration-equal-p", Fwindow_configuration_equal_p,
+       Swindow_configuration_equal_p, 2, 2, 0,
+       doc: /* Say whether two window configurations have the same window layout.
+This function ignores details such as the values of point and
+scrolling positions.  */)
   (Lisp_Object x, Lisp_Object y)
 {
   if (compare_window_configurations (x, y))
@@ -8613,7 +8613,7 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Swindow_scroll_bars);
   defsubr (&Swindow_vscroll);
   defsubr (&Sset_window_vscroll);
-  defsubr (&Scompare_window_configurations);
+  defsubr (&Swindow_configuration_equal_p);
   defsubr (&Swindow_bump_use_time);
   defsubr (&Swindow_list);
   defsubr (&Swindow_list_1);

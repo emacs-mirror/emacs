@@ -1368,7 +1368,7 @@ See Info node `(elisp) Integer Basics'."
 	 buffer-substring byte-code-function-p
 	 capitalize car-less-than-car car cdr ceiling char-after char-before
 	 char-equal char-to-string char-width compare-strings
-	 compare-window-configurations concat coordinates-in-window-p
+	 window-configuration-equal-p concat coordinates-in-window-p
 	 copy-alist copy-sequence copy-marker copysign cos count-lines
 	 current-time-string current-time-zone
 	 decode-char

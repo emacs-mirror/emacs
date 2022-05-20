@@ -1874,6 +1874,9 @@ This was used internally by quail.el and keyboard.c in Emacs 27.
 It does nothing in Emacs 28.")
 (make-obsolete-variable 'inhibit--record-char nil "28.1")
 
+(define-obsolete-function-alias 'compare-window-configurations
+  #'window-configuration-equal-p "29.1")
+
 ;; We can't actually make `values' obsolete, because that will result
 ;; in warnings when using `values' in let-bindings.
 ;;(make-obsolete-variable 'values "no longer used" "28.1")

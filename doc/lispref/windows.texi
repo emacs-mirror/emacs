@@ -6141,11 +6141,10 @@ configuration on the current frame.
 This function returns @code{t} if @var{object} is a window configuration.
 @end defun
 
-@defun compare-window-configurations config1 config2
-This function compares two window configurations as regards the
-structure of windows, but ignores the values of point and the
-saved scrolling positions---it can return @code{t} even if those
-aspects differ.
+@defun window-configuration-equal-p config1 config2
+This function says whether two window configurations have the same
+window layout, but ignores the values of point and the saved scrolling
+positions---it can return @code{t} even if those aspects differ.
 @end defun
 
 @defun window-configuration-frame config
