@@ -1856,6 +1856,17 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+** Themes
+
+---
+*** New hooks 'enable-theme-hook' and 'disable-theme-hook'.
+These are run after enabling and disabling a theme, respectively.
+
+---
+*** Themes can now be made obsolete.
+Using 'make-obsolete' on a theme is now supported.  This will make
+'load-theme' issue a warning when loading the theme.
+
 +++
 ** New hook 'display-monitors-changed-functions'.
 It is called whenever the configuration of different monitors on a
@@ -2365,11 +2376,6 @@ local variables.
 +++
 ** Third 'mapconcat' argument SEPARATOR is now optional.
 An explicit nil always meant the empty string, now it can be left out.
-
----
-** Themes can now be made obsolete.
-Using 'make-obsolete' on a theme is now supported.  This will make
-'load-theme' issue a warning when loading the theme.
 
 +++
 ** New function 'define-keymap'.
