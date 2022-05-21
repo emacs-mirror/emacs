@@ -699,6 +699,12 @@ Formerly it invoked 'just-one-space'.  The actions performed by
 option 'cycle-spacing-actions'.
 
 ---
+** 'zap-to-char' and 'zap-up-to-char' are case-sensitive for upper-case chars.
+These commands now behave as case-sensitive for interactive calls when
+are invoked with an uppercase argument, regardless of the
+`case-fold-search' value.
+
+---
 ** 'scroll-other-window' and 'scroll-other-window-down' now respect remapping.
 These commands (bound to 'C-M-v' and 'C-M-V') used to scroll the other
 windows without looking a customizations in that other window.  These

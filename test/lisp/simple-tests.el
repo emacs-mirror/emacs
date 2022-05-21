@@ -1004,6 +1004,27 @@ See Bug#21722."
       (yank-in-context)
       (buffer-string))
     "echo 'f'\\''bar'\\''oo'")))
+
+;;; Tests for `zap-to-char'
+
+(defmacro with-zap-to-char-test (original result &rest body)
+  (declare (indent 2) (debug (stringp stringp body)))
+  `(with-temp-buffer
+     (insert ,original)
+     (goto-char (point-min))
+     ,@body
+     (should (equal (buffer-string) ,result))))
+
+(ert-deftest simple-tests-zap-to-char ()
+  (with-zap-to-char-test "abcde" "de"
+    (zap-to-char 1 ?c))
+  (with-zap-to-char-test "abcde abc123" "123"
+    (zap-to-char 2 ?c))
+  (let ((case-fold-search t))
+    (with-zap-to-char-test "abcdeCXYZ" "deCXYZ"
+      (zap-to-char 1 ?C))
+    (with-zap-to-char-test "abcdeCXYZ" "XYZ"
+      (zap-to-char 1 ?C 'interactive))))
 
 (provide 'simple-test)
 ;;; simple-tests.el ends here

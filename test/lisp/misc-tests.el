@@ -44,7 +44,14 @@
     (zap-up-to-char 1 ?c))
   (with-misc-test "abcde abc123" "c123"
     (goto-char (point-min))
-    (zap-up-to-char 2 ?c)))
+    (zap-up-to-char 2 ?c))
+  (let ((case-fold-search t))
+    (with-misc-test "abcdeCXYZ" "cdeCXYZ"
+      (goto-char (point-min))
+      (zap-up-to-char 1 ?C))
+    (with-misc-test "abcdeCXYZ" "CXYZ"
+      (goto-char (point-min))
+      (zap-up-to-char 1 ?C 'interactive))))
 
 (ert-deftest misc-test-upcase-char ()
   (with-misc-test "abcde" "aBCDe"
