@@ -16613,6 +16613,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       if (configureEvent.xconfigure.window == dpyinfo->root_window)
 	{
+#ifdef HAVE_XRANDR
+	  /* This function is OK to call even if the X server doesn't
+	     support RandR.  */
+	  XRRUpdateConfiguration (&configureEvent);
+#endif
+
 	  dpyinfo->screen_width = configureEvent.xconfigure.width;
 	  dpyinfo->screen_height = configureEvent.xconfigure.height;
 	}
@@ -20113,6 +20119,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	{
 	  union buffered_input_event *ev;
 	  Time timestamp;
+
+	  if (event->type == (dpyinfo->xrandr_event_base
+			      + RRScreenChangeNotify))
+	    XRRUpdateConfiguration (event);
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
