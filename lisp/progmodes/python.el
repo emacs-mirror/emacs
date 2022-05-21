@@ -606,12 +606,15 @@ builtins.")
 Search for next occurrence if REGEXP matched within a `paren'
 context (to avoid, e.g., default values for arguments or passing
 arguments by name being treated as assignments) or is followed by
-an '=' sign (to avoid '==' being treated as an assignment."
+an '=' sign (to avoid '==' being treated as an assignment.  Set
+point to the position one character before the end of the
+occurrence found so that subsequent searches can detect the '='
+sign in chained assignment."
   (lambda (limit)
     (cl-loop while (re-search-forward regexp limit t)
              unless (or (python-syntax-context 'paren)
                         (equal (char-after) ?=))
-               return t)))
+               return (progn (backward-char) t))))
 
 (defvar python-font-lock-keywords-maximum-decoration
   `((python--font-lock-f-strings)
@@ -706,7 +709,7 @@ an '=' sign (to avoid '==' being treated as an assignment."
     ;;   [a] = 5
     ;;   [*a] = 5, 6
     (,(python-font-lock-assignment-matcher
-       (python-rx (or line-start ?\;) (* space)
+       (python-rx (or line-start ?\; ?=) (* space)
                   (or "[" "(") (* space)
                   grouped-assignment-target (* space)
                   (or ")" "]") (* space)
