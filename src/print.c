@@ -2016,36 +2016,48 @@ named_escape (int i)
   return 0;
 }
 
-enum print_entry_type {
-  PE_list,			/* print rest of list */
-  PE_rbrac,			/* print ")" */
-  PE_vector,			/* print rest of vector */
-  PE_hash,			/* print rest of hash data */
-};
+enum print_entry_type
+  {
+    PE_list,			/* print rest of list */
+    PE_rbrac,			/* print ")" */
+    PE_vector,			/* print rest of vector */
+    PE_hash,			/* print rest of hash data */
+  };
 
-struct print_stack_entry {
+struct print_stack_entry
+{
   enum print_entry_type type;
-  union {
-    struct {
+
+  union
+  {
+    struct
+    {
       Lisp_Object last;		/* cons whose car was just printed  */
-      ptrdiff_t idx;		/* index of next element */
+      intmax_t idx;		/* index of next element */
       intmax_t maxlen;		/* max length (from Vprint_length) */
-      /* state for Brent cycle detection */
+      /* State for Brent cycle detection.  See FOR_EACH_TAIL_INTERNAL
+	 in lisp.h for more details.  */
       Lisp_Object tortoise;     /* slow pointer */
       ptrdiff_t n;		/* tortoise step countdown */
       ptrdiff_t m;		/* tortoise step period */
     } list;
-    struct {
+
+    struct
+    {
       Lisp_Object obj;		/* object to print after " . " */
     } dotted_cdr;
-    struct {
+
+    struct
+    {
       Lisp_Object obj;		/* vector object */
       ptrdiff_t size;		/* length of vector */
       ptrdiff_t idx;		/* index of next element */
       const char *end;		/* string to print at end */
       bool truncated;		/* whether to print "..." before end */
     } vector;
-    struct {
+
+    struct
+    {
       Lisp_Object obj;		/* hash-table object */
       ptrdiff_t nobjs;		/* number of keys and values to print */
       ptrdiff_t idx;		/* index of key-value pair */
@@ -2055,7 +2067,8 @@ struct print_stack_entry {
   } u;
 };
 
-struct print_stack {
+struct print_stack
+{
   struct print_stack_entry *stack;  /* base of stack */
   ptrdiff_t size;		    /* allocated size in entries */
   ptrdiff_t sp;			    /* current number of entries */
