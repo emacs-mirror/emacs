@@ -1587,6 +1587,10 @@ pgtk_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 			     false);
       x += glyph->pixel_width;
     }
+
+  /* Pacify GCC 12 even though s->char2b is not used after this
+     function returns.  */
+  s->char2b = NULL;
 }
 
 /* Brightness beyond which a color won't have its highlight brightness
@@ -6163,6 +6167,20 @@ drag_data_received (GtkWidget *widget, GdkDragContext *context,
   gtk_drag_finish (context, TRUE, FALSE, time);
 }
 
+static void
+pgtk_monitors_changed_cb (GdkScreen *screen, gpointer user_data)
+{
+  struct terminal *terminal;
+  union buffered_input_event inev;
+
+  EVENT_INIT (inev.ie);
+  terminal = user_data;
+  inev.ie.kind = MONITORS_CHANGED_EVENT;
+  XSETTERMINAL (inev.ie.arg, terminal);
+
+  evq_enqueue (&inev);
+}
+
 void
 pgtk_set_event_handler (struct frame *f)
 {
@@ -6457,6 +6475,10 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   dpyinfo->resx = dpi;
   dpyinfo->resy = dpi;
+
+  g_signal_connect (G_OBJECT (gscr), "monitors-changed",
+		    G_CALLBACK (pgtk_monitors_changed_cb),
+		    terminal);
 
   /* Set up scrolling increments.  */
   dpyinfo->scroll.x_per_char = 1;
