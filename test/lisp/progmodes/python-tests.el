@@ -343,6 +343,13 @@ aliqua."
 
 (ert-deftest python-font-lock-assignment-statement-17 ()
   (python-tests-assert-faces
+   "(a) = (b) = 1"
+   `((1)
+     (2 . font-lock-variable-name-face) (3)
+     (8 . font-lock-variable-name-face) (9))))
+
+(ert-deftest python-font-lock-assignment-statement-18 ()
+  (python-tests-assert-faces
    "CustomInt = int
 
 def f(x: CustomInt) -> CustomInt:
