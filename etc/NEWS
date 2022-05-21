@@ -1851,6 +1851,11 @@ functions.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New hook 'display-monitors-changed-functions'.
+It is called whenever the configuration of different monitors on a
+display changes.
+
++++
 ** 'prin1' and 'prin1-to-string' now take an optional OVERRIDES parameter.
 This parameter can be used to override values of print-related settings.
 

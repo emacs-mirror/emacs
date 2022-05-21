@@ -602,6 +602,9 @@ struct x_display_info
   XModifierKeymap *modmap;
 
 #ifdef HAVE_XRANDR
+  bool xrandr_supported_p;
+  int xrandr_event_base;
+  int xrandr_error_base;
   int xrandr_major_version;
   int xrandr_minor_version;
 #endif

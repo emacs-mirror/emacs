@@ -458,6 +458,16 @@ monitor, the same string as returned by the function
 @var{display} should be the name of an X display (a string).
 @end deffn
 
+@cindex monitor change functions
+@defvar display-monitors-changed-functions
+This variable is an abnormal hook run when the monitor configuration
+changes, which can happen if a monitor is rotated, moved, added or
+removed from a multiple-monitor setup, if the primary monitor changes,
+or if the resolution of a monitor changes.  It is called with a single
+argument consisting of the terminal on which the monitor configuration
+changed.
+@end defvar
+
 @node Frame Geometry
 @section Frame Geometry
 @cindex frame geometry

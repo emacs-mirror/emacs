@@ -4058,6 +4058,18 @@ kbd_buffer_get_event (KBOARD **kbp,
 	}
 #endif
 
+      case MONITORS_CHANGED_EVENT:
+	{
+	  kbd_fetch_ptr = next_kbd_event (event);
+	  input_pending = readable_events (0);
+
+	  CALLN (Frun_hook_with_args,
+		 Qdisplay_monitors_changed_functions,
+		 event->ie.arg);
+
+	  break;
+	}
+
 #ifdef HAVE_EXT_MENU_BAR
       case MENU_BAR_ACTIVATE_EVENT:
 	{
@@ -12609,6 +12621,8 @@ See also `pre-command-hook'.  */);
   DEFSYM (Qtouchscreen_end, "touchscreen-end");
   DEFSYM (Qtouchscreen_update, "touchscreen-update");
   DEFSYM (Qpinch, "pinch");
+  DEFSYM (Qdisplay_monitors_changed_functions,
+	  "display-monitors-changed-functions");
 
   DEFSYM (Qcoding, "coding");
 
@@ -12952,6 +12966,15 @@ This flag may eventually be removed once this behavior is deemed safe.  */);
 Otherwise, a wheel event will be sent every time the mouse wheel is
 moved.  */);
   mwheel_coalesce_scroll_events = true;
+
+  DEFVAR_LISP ("display-monitors-changed-functions", Vdisplay_monitors_changed_functions,
+    doc: /* Abnormal hook run when the monitor configuration changes.
+This can happen if a monitor is rotated, moved, plugged in or removed
+from a multi-monitor setup, if the primary monitor changes, or if the
+resolution of a monitor changes.  The hook should accept a single
+argument, which is the terminal on which the monitor configuration
+changed.  */);
+  Vdisplay_monitors_changed_functions = Qnil;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }
