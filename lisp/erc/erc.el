@@ -1573,11 +1573,23 @@ This only has effect when `erc-join-buffer' is set to `frame'."
 
 (defcustom erc-reuse-frames t
   "Determines whether new frames are always created.
-Non-nil means that a new frame is not created to display an ERC
-buffer if there is already a window displaying it.  This only has
-effect when `erc-join-buffer' is set to `frame'."
+
+A value of t means only create a frame for undisplayed buffers.
+`displayed' means use any existing, potentially hidden frame
+already displaying a buffer from the same network context or,
+failing that, a frame showing any ERC buffer.  As a last resort,
+`displayed' defaults to the selected frame, except for brand new
+connections, for which the invoking frame is always used.  When
+this option is nil, a new frame is always created.
+
+Regardless of its value, this option is ignored unless
+`erc-join-buffer' is set to `frame'.  And like most options in
+the `erc-buffer' customize group, this has no effect on server
+buffers while reconnecting because those are always buried."
+  :package-version '(ERC . "5.6") ; FIXME sync on release
   :group 'erc-buffers
-  :type 'boolean)
+  :type '(choice boolean
+                 (const displayed)))
 
 (defun erc-channel-p (channel)
   "Return non-nil if CHANNEL seems to be an IRC channel name."
@@ -2003,6 +2015,35 @@ Except ignore all local modules, which were introduced in ERC 5.5."
             (push mode local-modes))
         (error "`%s' is not a known ERC module" module)))))
 
+(defun erc--setup-buffer-first-window (frame a b)
+  (catch 'found
+    (walk-window-tree
+     (lambda (w)
+       (when (cond ((functionp a) (with-current-buffer (window-buffer w)
+                                    (funcall a b)))
+                   (t (eq (buffer-local-value a (window-buffer w)) b)))
+         (throw 'found t)))
+     frame nil 0)))
+
+(defun erc--display-buffer-use-some-frame (buffer alist)
+  "Maybe display BUFFER in an existing frame for the same connection.
+If performed, return window used; otherwise, return nil.  Forward ALIST
+to display-buffer machinery."
+  (when-let*
+      ((idp (lambda (value)
+              (and erc-networks--id
+                   (erc-networks--id-equal-p erc-networks--id value))))
+       (procp (lambda (frame)
+                (erc--setup-buffer-first-window frame idp erc-networks--id)))
+       (ercp (lambda (frame)
+               (erc--setup-buffer-first-window frame 'major-mode 'erc-mode)))
+       ((or (cdr (frame-list)) (funcall ercp (selected-frame)))))
+    ;; Workaround to avoid calling `window--display-buffer' directly
+    (or (display-buffer-use-some-frame buffer
+                                       `((frame-predicate . ,procp) ,@alist))
+        (display-buffer-use-some-frame buffer
+                                       `((frame-predicate . ,ercp) ,@alist)))))
+
 (defun erc-setup-buffer (buffer)
   "Consults `erc-join-buffer' to find out how to display `BUFFER'."
   (pcase (if (zerop (erc-with-server-buffer
@@ -2018,15 +2059,21 @@ Except ignore all local modules, which were introduced in ERC 5.5."
     ('bury
      nil)
     ('frame
-     (when (or (not erc-reuse-frames)
-               (not (get-buffer-window buffer t)))
+     (cond
+      ((and (eq erc-reuse-frames 'displayed)
+            (not (get-buffer-window buffer t)))
+       (display-buffer buffer '((erc--display-buffer-use-some-frame)
+                                (inhibit-switch-frame . t)
+                                (inhibit-same-window . t))))
+      ((or (not erc-reuse-frames)
+           (not (get-buffer-window buffer t)))
        (let ((frame (make-frame (or erc-frame-alist
                                     default-frame-alist))))
          (raise-frame frame)
          (select-frame frame))
        (switch-to-buffer buffer)
        (when erc-frame-dedicated-flag
-         (set-window-dedicated-p (selected-window) t))))
+         (set-window-dedicated-p (selected-window) t)))))
     (_
      (if (active-minibuffer-window)
          (display-buffer buffer)
