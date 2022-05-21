@@ -1859,7 +1859,7 @@ functions.
 ** Themes
 
 ---
-*** New hooks 'enable-theme-hook' and 'disable-theme-hook'.
+*** New hooks 'enable-theme-functions' and 'disable-theme-functions'.
 These are run after enabling and disabling a theme, respectively.
 
 ---

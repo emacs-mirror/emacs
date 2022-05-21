@@ -1422,16 +1422,16 @@ are not directories are omitted from the expansion."
 
 ;;; Enabling and disabling loaded themes.
 
-(defcustom enable-theme-hook nil
-  "Atypical hook run after a theme has been enabled.
+(defcustom enable-theme-functions nil
+  "Abnormal hook that is run after a theme has been enabled.
 The functions in the hook are called with one parameter -- the
  name of the theme that's been enabled (as a symbol)."
   :type 'hook
   :group 'customize
   :version "29.1")
 
-(defcustom disable-theme-hook nil
-  "Atypical hook run after a theme has been disabled.
+(defcustom disable-theme-functions nil
+  "Abnormal hook that is run after a theme has been disabled.
 The functions in the hook are called with one parameter -- the
  name of the theme that's been disabled (as a symbol)."
   :type 'hook
@@ -1448,7 +1448,7 @@ precedence (after `user') among enabled themes.
 Note that any already-enabled themes remain enabled after this
 function runs.  To disable other themes, use `disable-theme'.
 
-After THEME has been enabled, `enable-theme-hook' is run."
+After THEME has been enabled, runs `enable-theme-functions'."
   (interactive (list (intern
 		      (completing-read
 		       "Enable custom theme: "
@@ -1498,7 +1498,7 @@ After THEME has been enabled, `enable-theme-hook' is run."
     ;; Give the `user' theme the highest priority.
     (enable-theme 'user))
   ;; Allow callers to react to the enabling.
-  (run-hook-with-args 'enable-theme-hook theme))
+  (run-hook-with-args 'enable-theme-functions theme))
 
 (defcustom custom-enabled-themes nil
   "List of enabled Custom Themes, highest precedence first.
@@ -1545,7 +1545,7 @@ Setting this variable through Customize calls `enable-theme' or
   "Disable all variable and face settings defined by THEME.
 See `custom-enabled-themes' for a list of enabled themes.
 
-After THEME has been disabled, `disable-theme-hook' is run."
+After THEME has been disabled, runs `disable-theme-functions'."
   (interactive (list (intern
 		      (completing-read
 		       "Disable custom theme: "
@@ -1591,7 +1591,7 @@ After THEME has been disabled, `disable-theme-hook' is run."
     (setq custom-enabled-themes
           (delq theme custom-enabled-themes))
     ;; Allow callers to react to the disabling.
-    (run-hook-with-args 'disable-theme-hook theme)))
+    (run-hook-with-args 'disable-theme-functions theme)))
 
 ;; Only used if window-system not null.
 (declare-function x-get-resource "frame.c"
