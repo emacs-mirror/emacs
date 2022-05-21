@@ -2376,6 +2376,8 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 		  (&optional terminal))
 (declare-function pgtk-display-monitor-attributes-list "pgtkfns.c"
 		  (&optional terminal))
+(declare-function haiku-display-monitor-attributes-list "haikufns.c"
+		  (&optional terminal))
 
 (defun display-monitor-attributes-list (&optional display)
   "Return a list of physical monitor attributes on DISPLAY.
@@ -2427,6 +2429,8 @@ monitors."
       (ns-display-monitor-attributes-list display))
      ((eq frame-type 'pgtk)
       (pgtk-display-monitor-attributes-list display))
+     ((eq frame-type 'haiku)
+      (haiku-display-monitor-attributes-list display))
      (t
       (let ((geometry (list 0 0 (display-pixel-width display)
 			    (display-pixel-height display))))

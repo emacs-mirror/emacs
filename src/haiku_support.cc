@@ -449,6 +449,80 @@ map_normal (uint32_t kc, uint32_t *ch)
   key_map_lock.Unlock ();
 }
 
+static BRect
+get_zoom_rect (BWindow *window)
+{
+  BScreen screen;
+  BDeskbar deskbar;
+  BRect screen_frame;
+  BRect frame;
+  BRect deskbar_frame;
+  BRect window_frame;
+  BRect decorator_frame;
+
+  if (!screen.IsValid ())
+    gui_abort ("Failed to calculate screen rect");
+
+  screen_frame = frame = screen.Frame ();
+  deskbar_frame = deskbar.Frame ();
+
+  if (!(modifiers () & B_SHIFT_KEY) && !deskbar.IsAutoHide ())
+    {
+      switch (deskbar.Location ())
+	{
+	case B_DESKBAR_TOP:
+	  frame.top = deskbar_frame.bottom + 2;
+	  break;
+
+	case B_DESKBAR_BOTTOM:
+	case B_DESKBAR_LEFT_BOTTOM:
+	case B_DESKBAR_RIGHT_BOTTOM:
+	  frame.bottom = deskbar_frame.top - 2;
+	  break;
+
+	case B_DESKBAR_LEFT_TOP:
+	  if (!deskbar.IsExpanded ())
+	    frame.top = deskbar_frame.bottom + 2;
+	  else if (!deskbar.IsAlwaysOnTop ()
+		   && !deskbar.IsAutoRaise ())
+	    frame.left = deskbar_frame.right + 2;
+	  break;
+
+	default:
+	  if (deskbar.IsExpanded ()
+	      && !deskbar.IsAlwaysOnTop ()
+	      && !deskbar.IsAutoRaise ())
+	    frame.right = deskbar_frame.left - 2;
+	}
+    }
+
+  if (window)
+    {
+      window_frame = window->Frame ();
+      decorator_frame = window->DecoratorFrame ();
+
+      frame.top += (window_frame.top
+		    - decorator_frame.top);
+      frame.bottom -= (decorator_frame.bottom
+		       - window_frame.bottom);
+      frame.left += (window_frame.left
+		     - decorator_frame.left);
+      frame.right -= (decorator_frame.right
+		      - window_frame.right);
+
+      if (frame.top > deskbar_frame.bottom
+	  || frame.bottom < deskbar_frame.top)
+	{
+	  frame.left = screen_frame.left + (window_frame.left
+					    - decorator_frame.left);
+	  frame.right = screen_frame.right - (decorator_frame.right
+					      - window_frame.right);
+	}
+    }
+
+  return frame;
+}
+
 class Emacs : public BApplication
 {
 public:
@@ -591,77 +665,6 @@ public:
       SetFeel (B_FLOATING_ALL_WINDOW_FEEL);
     else
       SetFeel (B_NORMAL_WINDOW_FEEL);
-  }
-
-  BRect
-  CalculateZoomRect (void)
-  {
-    BScreen screen (this);
-    BDeskbar deskbar;
-    BRect screen_frame;
-    BRect frame;
-    BRect deskbar_frame;
-    BRect window_frame;
-    BRect decorator_frame;
-
-    if (!screen.IsValid ())
-      gui_abort ("Failed to calculate screen rect");
-
-    screen_frame = frame = screen.Frame ();
-    deskbar_frame = deskbar.Frame ();
-
-    if (!(modifiers () & B_SHIFT_KEY) && !deskbar.IsAutoHide ())
-      {
-	switch (deskbar.Location ())
-	  {
-	  case B_DESKBAR_TOP:
-	    frame.top = deskbar_frame.bottom + 2;
-	    break;
-
-	  case B_DESKBAR_BOTTOM:
-	  case B_DESKBAR_LEFT_BOTTOM:
-	  case B_DESKBAR_RIGHT_BOTTOM:
-	    frame.bottom = deskbar_frame.top - 2;
-	    break;
-
-	  case B_DESKBAR_LEFT_TOP:
-	    if (!deskbar.IsExpanded ())
-	      frame.top = deskbar_frame.bottom + 2;
-	    else if (!deskbar.IsAlwaysOnTop ()
-		     && !deskbar.IsAutoRaise ())
-	      frame.left = deskbar_frame.right + 2;
-	    break;
-
-	  default:
-	    if (deskbar.IsExpanded ()
-		&& !deskbar.IsAlwaysOnTop ()
-		&& !deskbar.IsAutoRaise ())
-	      frame.right = deskbar_frame.left - 2;
-	  }
-      }
-
-    window_frame = Frame ();
-    decorator_frame = DecoratorFrame ();
-
-    frame.top += (window_frame.top
-		  - decorator_frame.top);
-    frame.bottom -= (decorator_frame.bottom
-		     - window_frame.bottom);
-    frame.left += (window_frame.left
-		   - decorator_frame.left);
-    frame.right -= (decorator_frame.right
-		    - window_frame.right);
-
-    if (frame.top > deskbar_frame.bottom
-	|| frame.bottom < deskbar_frame.top)
-      {
-	frame.left = screen_frame.left + (window_frame.left
-					  - decorator_frame.left);
-	frame.right = screen_frame.right - (decorator_frame.right
-					    - window_frame.right);
-      }
-
-    return frame;
   }
 
   void
@@ -1248,7 +1251,7 @@ public:
       {
       case FULLSCREEN_MODE_MAXIMIZED:
 	pre_zoom_rect = frame;
-	zoom_rect = CalculateZoomRect ();
+	zoom_rect = get_zoom_rect (this);
 	BWindow::Zoom (zoom_rect.LeftTop (),
 		       BE_RECT_WIDTH (zoom_rect) - 1,
 		       BE_RECT_HEIGHT (zoom_rect) - 1);
@@ -5209,4 +5212,27 @@ be_set_window_fullscreen_mode (void *window, enum haiku_fullscreen_mode mode)
 
   w->SetFullscreen (mode);
   w->UnlockLooper ();
+}
+
+bool
+be_get_explicit_workarea (int *x, int *y, int *width, int *height)
+{
+  BDeskbar deskbar;
+  BRect zoom;
+  deskbar_location location;
+
+  location = deskbar.Location ();
+
+  if (location != B_DESKBAR_TOP
+      && location != B_DESKBAR_BOTTOM)
+    return false;
+
+  zoom = get_zoom_rect (NULL);
+
+  *x = zoom.left;
+  *y = zoom.top;
+  *width = BE_RECT_WIDTH (zoom);
+  *height = BE_RECT_HEIGHT (zoom);
+
+  return true;
 }

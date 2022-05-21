@@ -3021,6 +3021,57 @@ call this function yourself.  */)
   return Qnil;
 }
 
+DEFUN ("haiku-display-monitor-attributes-list",
+       Fhaiku_display_monitor_attributes_list,
+       Shaiku_display_monitor_attributes_list,
+       0, 1, 0,
+       doc: /* Return a list of physical monitor attributes on the display TERMINAL.
+
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+Internal use only, use `display-monitor-attributes-list' instead.  */)
+  (Lisp_Object terminal)
+{
+  struct MonitorInfo monitor;
+  struct haiku_display_info *dpyinfo;
+  Lisp_Object frames, tail, tem;
+
+  dpyinfo = check_haiku_display_info (terminal);
+  frames = Qnil;
+
+  FOR_EACH_FRAME (tail, tem)
+    {
+      maybe_quit ();
+
+      if (FRAME_HAIKU_P (XFRAME (tem))
+	  && !FRAME_TOOLTIP_P (XFRAME (tem)))
+	frames = Fcons (tem, frames);
+    }
+
+  monitor.geom.x = 0;
+  monitor.geom.y = 0;
+  be_get_screen_dimensions ((int *) &monitor.geom.width,
+			    (int *) &monitor.geom.height);
+
+  monitor.mm_width = (monitor.geom.width
+		      / (dpyinfo->resx / 25.4));
+  monitor.mm_height = (monitor.geom.height
+		       / (dpyinfo->resy / 25.4));
+  monitor.name = (char *) "BeOS monitor";
+
+  if (!be_get_explicit_workarea ((int *) &monitor.work.x,
+				 (int *) &monitor.work.y,
+				 (int *) &monitor.work.width,
+				 (int *) &monitor.work.height))
+    monitor.work = monitor.geom;
+
+  return make_monitor_attribute_list (&monitor, 1, 0,
+				      make_vector (1, frames),
+				      "fallback");
+}
+
 frame_parm_handler haiku_frame_parm_handlers[] =
   {
     gui_set_autoraise,
@@ -3126,6 +3177,7 @@ syms_of_haikufns (void)
   defsubr (&Sx_display_save_under);
   defsubr (&Shaiku_frame_restack);
   defsubr (&Shaiku_save_session_reply);
+  defsubr (&Shaiku_display_monitor_attributes_list);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);
