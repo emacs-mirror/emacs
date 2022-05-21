@@ -122,7 +122,7 @@ listing.  As an exception, if you type @kbd{C-x C-j} in a Dired
 buffer, Emacs displays the directory listing of the parent directory
 and places point on the line that corresponds to the directory where
 you invoked @code{dired-jump}.  Typing @kbd{C-x 4 C-j}
-(@code{dired-jump-other-window} has the same effect, but displays the
+(@code{dired-jump-other-window}) has the same effect, but displays the
 Dired buffer in a new window.
 
   The variable @code{dired-listing-switches} specifies the options to
