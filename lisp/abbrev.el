@@ -349,7 +349,7 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
 (defun inverse-add-mode-abbrev (n)
   "Define the word before point as a mode-specific abbreviation.
 With prefix argument N, define the Nth word before point as the
-abbreviation.
+abbreviation.  Negative N means use the Nth word after point.
 
 If `only-global-abbrevs' is non-nil, this command defines a
 global (mode-independent) abbrev instead of a mode-specific one.
@@ -371,7 +371,7 @@ to define an abbrev by specifying the abbreviation in the minibuffer."
 (defun inverse-add-global-abbrev (n)
   "Define the word before point as a global (mode-independent) abbreviation.
 With prefix argument N, define the Nth word before point as the
-abbreviation.
+abbreviation.  Negative N means use the Nth word after point.
 
 This command reads the expansion from the minibuffer, defines the
 abbrev, and then expands the abbreviation in the current buffer.
