@@ -465,7 +465,9 @@ changes, which can happen if a monitor is rotated, moved, added or
 removed from a multiple-monitor setup, if the primary monitor changes,
 or if the resolution of a monitor changes.  It is called with a single
 argument consisting of the terminal on which the monitor configuration
-changed.
+changed.  Programs should call @code{display-monitor-attributes-list}
+with the terminal as the argument to retrieve the new monitor
+configuration on that terminal.
 @end defvar
 
 @node Frame Geometry
