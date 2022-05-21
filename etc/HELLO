@@ -1,9 +1,11 @@
 Content-Type: text/enriched
 Text-Width: 70
 
-This is a list of ways to say hello in various languages.
-It is not intended to be comprehensive, but to demonstrate
-some of the character sets that Emacs supports.
+This is a list of ways to write a <x-color><param>orange red</param>"hello"</x-color> greeting using
+various scripts.  It is not intended to be comprehensive,
+but to demonstrate some of the character sets and writing
+systems that Emacs supports.  Look for the script used to
+write your language, to see if it is supported.
 
 
 Non-ASCII examples:
