@@ -701,7 +701,7 @@ option 'cycle-spacing-actions'.
 ---
 ** 'zap-to-char' and 'zap-up-to-char' are case-sensitive for upper-case chars.
 These commands now behave as case-sensitive for interactive calls when
-are invoked with an uppercase argument, regardless of the
+they are invoked with an uppercase character, regardless of the
 `case-fold-search' value.
 
 ---
