@@ -5213,6 +5213,31 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_default_font_parameter
 };
 
+#ifdef NS_IMPL_COCOA
+static void
+ns_displays_reconfigured (CGDirectDisplayID display,
+			  CGDisplayChangeSummaryFlags flags,
+			  void *user_info)
+{
+  struct input_event ie;
+  union buffered_input_event *ev;
+
+  EVENT_INIT (ie);
+
+  ev = (kbd_store_ptr == kbd_buffer
+	? kbd_buffer + KBD_BUFFER_SIZE - 1
+	: kbd_store_ptr - 1);
+
+  if (kbd_store_ptr != kbd_fetch_ptr
+      && ev->ie.kind == MONITORS_CHANGED_EVENT)
+    return;
+
+  ie.kind = MONITORS_CHANGED_EVENT;
+  XSETTERMINAL (ie.arg, x_display_list->terminal);
+
+  kbd_buffer_store_event (&ie);
+}
+#endif
 
 static void
 ns_delete_display (struct ns_display_info *dpyinfo)
@@ -5566,6 +5591,15 @@ ns_term_init (Lisp_Object display_name)
   /* GNUstep steals SIGCHLD for use in NSTask, but we don't use NSTask.
      We must re-catch it so subprocess works.  */
   catch_child_signal ();
+#endif
+
+#ifdef NS_IMPL_COCOA
+  /* Begin listening for display reconfiguration, so we can run the
+     appropriate hooks.  FIXME: is this called when the resolution of
+     a monitor changes?  */
+
+  CGDisplayRegisterReconfigurationCallback (ns_displays_reconfigured,
+					    NULL);
 #endif
 
   NSTRACE_MSG ("ns_term_init done");
