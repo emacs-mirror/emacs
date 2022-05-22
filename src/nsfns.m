@@ -47,6 +47,13 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #ifdef NS_IMPL_COCOA
 #include <IOKit/graphics/IOGraphicsLib.h>
 #include "macfont.h"
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 120000
+#define IOMasterPort IOMainPort
+#endif
+#endif
 #endif
 
 #ifdef HAVE_NS
@@ -789,11 +796,13 @@ ns_implicitly_set_icon_type (struct frame *f)
   Lisp_Object chain, elt;
   NSAutoreleasePool *pool;
   BOOL setMini = YES;
+  NSWorkspace *workspace;
 
   NSTRACE ("ns_implicitly_set_icon_type");
 
   block_input ();
   pool = [[NSAutoreleasePool alloc] init];
+  workspace = [NSWorkspace sharedWorkspace];
   if (f->output_data.ns->miniimage
       && [[NSString stringWithLispString:f->name]
                isEqualToString: [(NSImage *)f->output_data.ns->miniimage name]])
@@ -838,7 +847,19 @@ ns_implicitly_set_icon_type (struct frame *f)
 
   if (image == nil)
     {
-      image = [[[NSWorkspace sharedWorkspace] iconForFileType: @"text"] retain];
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+      if ([workspace respondsToSelector: @selector (iconForContentType:)])
+#endif
+	image = [[workspace iconForContentType:
+			      [UTType typeWithIdentifier: @"text"]] retain];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+      else
+#endif
+#endif
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+	image = [[workspace iconForFileType: @"text"] retain];
+#endif
       setMini = NO;
     }
 
@@ -1757,7 +1778,20 @@ Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
   ns_fd_data.ret = NO;
 #ifdef NS_IMPL_COCOA
   if (! NILP (mustmatch) || ! NILP (dir_only_p))
-    [panel setAllowedFileTypes: nil];
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+      if ([panel respondsToSelector: @selector (setAllowedContentTypes:)])
+#endif
+	[panel setAllowedContentTypes: [NSArray array]];
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+      else
+#endif
+#endif
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
+	[panel setAllowedFileTypes: nil];
+#endif
+    }
   if (dirS) [panel setDirectoryURL: [NSURL fileURLWithPath: dirS]];
   if (initS && NILP (Ffile_directory_p (init)))
     [panel setNameFieldStringValue: [initS lastPathComponent]];

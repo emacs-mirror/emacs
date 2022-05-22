@@ -2081,6 +2081,16 @@ Either fix this, or re-configure with the option '--without-ns'.])])
     fi
   fi
 
+  AC_CACHE_CHECK([for Mac OS X 12.0 or later],
+                 [emacs_cv_macosx_12_0],
+                 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <AvailabilityMacros.h>
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
+Mac OS X 12.x or later.
+#endif
+                 ]])], [emacs_cv_macosx_12_0=no],
+                 [emacs_cv_macosx_12_0=yes]))
+
   if test "${with_native_image_api}" = yes; then
      AC_DEFINE(HAVE_NATIVE_IMAGE_API, 1, [Define to use native OS APIs for images.])
      NATIVE_IMAGE_API="yes (ns)"
@@ -6216,6 +6226,9 @@ case "$opsys" in
      if test "$NS_IMPL_COCOA" = "yes"; then
         libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon \
                     -framework IOSurface -framework QuartzCore"
+        if test "$emacs_cv_macosx_12_0" = "yes"; then
+	  libs_nsgui="$libs_nsgui -framework UniformTypeIdentifiers"
+	fi
      fi
    else
      libs_nsgui=
