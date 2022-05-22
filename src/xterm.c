@@ -20120,6 +20120,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  union buffered_input_event *ev;
 	  Time timestamp;
 	  Lisp_Object current_monitors;
+	  XRRScreenChangeNotifyEvent *notify;
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
@@ -20127,7 +20128,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
-	    timestamp = ((XRRScreenChangeNotifyEvent *) event)->timestamp;
+	    {
+	      notify = ((XRRScreenChangeNotifyEvent *) event);
+	      timestamp = notify->timestamp;
+
+	      dpyinfo->screen_width = notify->width;
+	      dpyinfo->screen_height = notify->height;
+	    }
 	  else
 	    timestamp = 0;
 
