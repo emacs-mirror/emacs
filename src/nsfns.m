@@ -847,6 +847,7 @@ ns_implicitly_set_icon_type (struct frame *f)
 
   if (image == nil)
     {
+#ifndef NS_IMPL_GNUSTEP
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
       if ([workspace respondsToSelector: @selector (iconForContentType:)])
@@ -855,6 +856,7 @@ ns_implicitly_set_icon_type (struct frame *f)
 			      [UTType typeWithIdentifier: @"text"]] retain];
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
       else
+#endif
 #endif
 #endif
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 120000
