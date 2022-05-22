@@ -156,44 +156,45 @@ struct font_selection_dialog_message
   int size;
 };
 
+/* The color space of the main screen.  B_NO_COLOR_SPACE means it has
+   not yet been computed.  */
 static color_space dpy_color_space = B_NO_COLOR_SPACE;
-static key_map *key_map = NULL;
-static char *key_chars = NULL;
+
+/* The keymap, or NULL if it has not been initialized.  */
+static key_map *key_map;
+
+/* Indices of characters into the keymap.  */
+static char *key_chars;
+
+/* Lock around keymap data, since it's touched from different
+   threads.  */
 static BLocker key_map_lock;
 
 /* The locking semantics of BWindows running in multiple threads are
    so complex that child frame state (which is the only state that is
    shared between different BWindows at runtime) does best with a
    single global lock.  */
-
 static BLocker child_frame_lock;
 
-/* A LeaveNotify event (well, the closest equivalent on Haiku, which
-   is a B_MOUSE_MOVED event with `transit' set to B_EXITED_VIEW) might
-   be sent out-of-order with regards to motion events from other
-   windows, such as when the mouse pointer rapidly moves from an
-   undecorated child frame to its parent.  This can cause a failure to
-   clear the mouse face on the former if an event for the latter is
-   read by Emacs first and ends up showing the mouse face there.
-
-   While this lock doesn't really ensure that the events will be
-   delivered in the correct order, it makes them arrive in the correct
-   order "most of the time" on my machine, which is good enough and
-   preferable to adding a lot of extra complexity to the event
-   handling code to sort motion events by their timestamps.
-
-   Obviously this depends on the number of execution units that are
-   available, and the scheduling priority of each thread involved in
-   the input handling, but it will be good enough for most people.  */
-
-static BLocker movement_locker;
-
+/* Variable where the popup menu thread returns the chosen menu
+   item.  */
 static BMessage volatile *popup_track_message;
+
+/* Variable in which alert dialog threads return the selected button
+   number.  */
 static int32 volatile alert_popup_value;
+
+/* The current window ID.  This is increased every time a frame is
+   created.  */
 static int current_window_id;
 
-static void *grab_view = NULL;
+/* The view that has the passive grab.  */
+static void *grab_view;
+
+/* The locker for that variable.  */
 static BLocker grab_view_locker;
+
+/* Whether or not a drag-and-drop operation is in progress.  */
 static bool drag_and_drop_in_progress;
 
 /* Many places require us to lock the child frame data, and then lock
@@ -1279,7 +1280,7 @@ public:
   }
 
   void
-  Zoom (BPoint o, float w, float h)
+  Zoom (BPoint origin, float width, float height)
   {
     struct haiku_zoom_event rq;
 
@@ -1366,11 +1367,7 @@ public:
 	rq.y = std::lrint (point.y);
 	rq.window = this->Window ();
 
-	if (movement_locker.Lock ())
-	  {
-	    haiku_write (MENU_BAR_LEFT, &rq);
-	    movement_locker.Unlock ();
-	  }
+	haiku_write (MENU_BAR_LEFT, &rq);
       }
 
     BMenuBar::MouseMoved (point, transit, msg);
@@ -1713,8 +1710,11 @@ public:
     struct haiku_mouse_motion_event rq;
     int32 windowid;
     EmacsWindow *window;
+    BToolTip *tooltip;
 
     window = (EmacsWindow *) Window ();
+    tooltip = ToolTip ();
+
     rq.just_exited_p = transit == B_EXITED_VIEW;
     rq.x = point.x;
     rq.y = point.y;
@@ -1729,9 +1729,9 @@ public:
     else
       rq.dnd_message = false;
 
-    if (ToolTip ())
-      ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
-						    -(point.y - tt_absl_pos.y)));
+    if (tooltip)
+      tooltip->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
+						 -(point.y - tt_absl_pos.y)));
 
     if (!grab_view_locker.Lock ())
       gui_abort ("Couldn't lock grab view locker");
@@ -1744,11 +1744,7 @@ public:
 
     grab_view_locker.Unlock ();
 
-    if (movement_locker.Lock ())
-      {
-	haiku_write (MOUSE_MOTION, &rq);
-	movement_locker.Unlock ();
-      }
+    haiku_write (MOUSE_MOTION, &rq);
   }
 
   void
@@ -2224,11 +2220,7 @@ public:
 	rq.y = std::lrint (conv.y);
 	rq.window = this->Window ();
 
-	if (movement_locker.Lock ())
-	  {
-	    haiku_write (MENU_BAR_LEFT, &rq);
-	    movement_locker.Unlock ();
-	  }
+	haiku_write (MENU_BAR_LEFT, &rq);
       }
 
     if (in_overscroll)
