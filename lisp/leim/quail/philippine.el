@@ -62,5 +62,35 @@
  ("N"  ?ᜅ)
  ("m"  ?ᜋ))
 
+(quail-define-package
+ "hanunoo" "Hanunoo" "ᜱ" nil "Hanunoo phonetic input method."
+ nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("q"  ?₱)
+ ("w"  ?ᜯ)
+ ("r"  ?ᜭ)
+ ("t"  ?ᜦ)
+ ("y"  ?ᜬ)
+ ("u"  ?ᜳ)
+ ("U"  ?ᜢ)
+ ("i"  ?ᜲ)
+ ("I"  ?ᜡ)
+ ("p"  ?ᜩ)
+ ("a"  ?ᜠ)
+ ("s"  ?ᜰ)
+ ("d"  ?ᜧ)
+ ("f"  ?᜴)
+ ("g"  ?ᜤ)
+ ("h"  ?ᜱ)
+ ("j"  ?᜵)
+ ("J"  ?᜶)
+ ("k"  ?ᜣ)
+ ("l"  ?ᜮ)
+ ("b"  ?ᜪ)
+ ("n"  ?ᜨ)
+ ("N"  ?ᜥ)
+ ("m"  ?ᜫ))
+
 (provide 'philippine)
 ;;; philippine.el ends here

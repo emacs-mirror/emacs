@@ -37,6 +37,15 @@
 Tagalog language using the Baybayin script is supported in
 this language environment.")))
 
+(set-language-info-alist
+ "Hanunoo" '((charset unicode)
+             (coding-system utf-8)
+             (coding-priority utf-8)
+             (input-method . "hanunoo")
+             (sample-text . "Hanunoo (ᜱᜨᜳᜨᜳᜢ)	ᜫᜬᜧ᜴ ᜣᜭᜯᜥ᜴ ᜰᜲᜭᜥ᜴")
+             (documentation . "\
+Philippine Language Hanunoo is supported in this language environment.")))
+
 ;; Tagalog composition rules
 (let ((akshara              "[\x1700-\x1711\x171F]")
       (vowel                "[\x1712\x1713]")
@@ -50,6 +59,17 @@ this language environment.")))
                                1 'font-shape-gstring)))
   (set-char-table-range composition-function-table
                         '(#x1715 . #x1715)
+                        (list (vector
+                               ;; Akshara pamudpod syllables
+                               (concat akshara pamudpod vowel "?")
+                               1 'font-shape-gstring))))
+
+;; Hanunoo composition rules
+(let ((akshara              "[\x1720-\x1731]")
+      (vowel                "[\x1732\x1733]")
+      (pamudpod             "\x1734"))
+  (set-char-table-range composition-function-table
+                        '(#x1734 . #x1734)
                         (list (vector
                                ;; Akshara pamudpod syllables
                                (concat akshara pamudpod vowel "?")
