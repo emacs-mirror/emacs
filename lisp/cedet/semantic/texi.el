@@ -61,10 +61,7 @@ IGNORE any arguments, always parse the whole buffer.
 Each tag returned is of the form:
  (\"NAME\" section (:members CHILDREN))
 or
- (\"NAME\" def)
-
-It is an override of `semantic-parse-region' and must be installed by the
-function `semantic-install-function-overrides'."
+ (\"NAME\" def)"
   (mapcar #'semantic-texi-expand-tag
           (semantic-texi-parse-headings)))
 

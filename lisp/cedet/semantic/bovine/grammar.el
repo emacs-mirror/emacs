@@ -260,7 +260,8 @@ QUOTEMODE is the mode in which quoted symbols are slurred."
       (insert ")\n")))
 )
 
-(defun bovine-grammar-parsetable-builder ()
+(define-mode-local-override semantic-grammar-parsetable-builder
+  bovine-grammar-mode ()
   "Return the parser table expression as a string value.
 The format of a bovine parser table is:
 
@@ -409,7 +410,8 @@ The source directory is relative to some root in the load path."
 	  newdir))
       (error (buffer-name))))
 
-(defun bovine-grammar-setupcode-builder ()
+(define-mode-local-override semantic-grammar-setupcode-builder
+  bovine-grammar-mode ()
   "Return the text of the setup code."
   (format
    "(setq semantic--parse-table %s\n\
@@ -435,10 +437,7 @@ Menu items are appended to the common grammar menu.")
 ;;;###autoload
 (define-derived-mode bovine-grammar-mode semantic-grammar-mode "BY"
   "Major mode for editing Bovine grammars."
-  (semantic-grammar-setup-menu bovine-grammar-menu)
-  (semantic-install-function-overrides
-   '((semantic-grammar-parsetable-builder . bovine-grammar-parsetable-builder)
-     (semantic-grammar-setupcode-builder  . bovine-grammar-setupcode-builder))))
+  (semantic-grammar-setup-menu bovine-grammar-menu))
 
 (add-to-list 'auto-mode-alist '("\\.by\\'" . bovine-grammar-mode))
 
@@ -461,7 +460,7 @@ Menu items are appended to the common grammar menu.")
 (defun bovine--make-parser-1 (infile &optional outdir)
   (if outdir (setq outdir (file-name-directory (expand-file-name outdir))))
   ;; It would be nicer to use a temp-buffer rather than find-file-noselect.
-  ;; The only thing stopping us is bovine-grammar-setupcode-builder's
+  ;; The only thing stopping us is bovine's semantic-grammar-setupcode-builder's
   ;; use of (buffer-name).  Perhaps that could be changed to
   ;; (file-name-nondirectory (buffer-file-name)) ?
 ;;  (with-temp-buffer
