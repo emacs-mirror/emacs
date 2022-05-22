@@ -880,7 +880,7 @@ Lisp code."
       (unless (derived-mode-p 'emacs-lisp-mode)
         (emacs-lisp-mode))
 
-;;;; Header + Prologue
+      ;; Header + Prologue
 
       (insert header
               "\n;;; Prologue\n;;\n"
@@ -892,7 +892,7 @@ Lisp code."
 
       (save-excursion
 
-;;;; Declarations
+        ;; Declarations
 
         (insert "\n;;; Declarations\n;;\n")
 
@@ -927,12 +927,12 @@ Lisp code."
            (semantic-grammar-setup-data))
          "Setup the Semantic Parser.")
 
-;;;; Analyzers
+        ;; Analyzers
         (insert "\n;;; Analyzers\n;;\n")
 
         (semantic-grammar-insert-defanalyzers)
 
-;;;; Epilogue & Footer
+        ;; Epilogue & Footer
 
         (insert "\n;;; Epilogue\n;;\n"
                 epilogue
@@ -967,7 +967,7 @@ Lisp code."
         ;; have created this language for, and force them to call our
         ;; setup function again, refreshing all semantic data, and
         ;; enabling them to work with the new code just created.
-;;;; FIXME?
+        ;; FIXME?
         ;; At this point, I don't know any user's defined setup code :-(
         ;; At least, what I can do for now, is to run the generated
         ;; parser-install function.

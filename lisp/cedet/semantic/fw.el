@@ -277,6 +277,7 @@ If optional argument MODE is non-nil, it must be a major mode symbol.
 OVERRIDES will be installed globally for this major mode.  If MODE is
 nil, OVERRIDES will be installed locally in the current buffer.  This
 later installation should be done in MODE hook."
+  (declare (obsolete define-mode-local-override "29.1"))
   (mode-local-bind
    ;; Add the semantic- prefix to OVERLOAD short names.
    (mapcar
