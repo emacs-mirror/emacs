@@ -2492,7 +2492,7 @@ and no others."
   "If non-nil, windows that have fewer lines than this are avoided.
 This is used by `get-lru-window'.  The value is interpreted in units
 of the frame's canonical line height, like `window-total-height' does."
-  :type '(choice nil number)
+  :type '(choice (const nil) number)
   :version "29.1"
   :group 'windows)
 
