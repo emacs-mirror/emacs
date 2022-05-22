@@ -5912,6 +5912,29 @@ w32_read_socket (struct terminal *terminal,
 			 (short) HIWORD (msg.msg.lParam)));
 	    }
 
+	  /* According to the MS documentation, this message is sent
+	     to each window whenever a monitor is added, removed, or
+	     has its resolution change.  Detect duplicate events when
+	     there are multiple frames by ensuring only one event is
+	     put in the keyboard buffer at any given time.  */
+	  {
+	    union buffered_input_event *ev;
+
+	    ev = (kbd_store_ptr == kbd_buffer
+		  ? kbd_buffer + KBD_BUFFER_SIZE - 1
+		  : kbd_store_ptr - 1);
+
+	    if (kbd_store_ptr != kbd_fetch_ptr
+		&& ev->ie.kind == MONITORS_CHANGED_EVENT
+		&& XTERMINAL (ev->ie.arg) == dpyinfo->terminal)
+	      /* Don't store a MONITORS_CHANGED_EVENT if there is
+		 already an undelivered event on the queue.  */
+	      break;
+
+	    inev.kind = MONITORS_CHANGED_EVENT;
+	    XSETTERMINAL (inev.arg, dpyinfo->terminal);
+	  }
+
 	  check_visibility = 1;
 	  break;
 
