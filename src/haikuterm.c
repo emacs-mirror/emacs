@@ -3960,6 +3960,21 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   return message_count;
 }
 
+static Lisp_Object
+haiku_get_focus_frame (struct frame *f)
+{
+  Lisp_Object lisp_focus;
+  struct frame *focus;
+
+  focus = FRAME_DISPLAY_INFO (f)->focused_frame;
+
+  if (!focus)
+    return Qnil;
+
+  XSETFRAME (lisp_focus, focus);
+  return lisp_focus;
+}
+
 static void
 haiku_frame_rehighlight (struct frame *frame)
 {
@@ -4185,6 +4200,7 @@ haiku_create_terminal (struct haiku_display_info *dpyinfo)
   terminal->fullscreen_hook = haiku_fullscreen;
   terminal->toolkit_position_hook = haiku_toolkit_position;
   terminal->activate_menubar_hook = haiku_activate_menubar;
+  terminal->get_focus_frame = haiku_get_focus_frame;
 
   return terminal;
 }
