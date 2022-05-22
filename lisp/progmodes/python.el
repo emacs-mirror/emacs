@@ -540,9 +540,9 @@ the {...} holes that appear within f-strings."
         (setq ppss (syntax-ppss))))))
 
 (defvar python-font-lock-keywords-level-1
-  `((,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
+  `((,(python-rx symbol-start "def" (1+ space) (group symbol-name))
      (1 font-lock-function-name-face))
-    (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
+    (,(python-rx symbol-start "class" (1+ space) (group symbol-name))
      (1 font-lock-type-face)))
   "Font lock keywords to use in `python-mode' for level 1 decoration.
 

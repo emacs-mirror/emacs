@@ -214,6 +214,18 @@ aliqua."
     (should (string= (buffer-string) "\"\""))
     (should (null (nth 3 (syntax-ppss))))))
 
+(ert-deftest python-font-lock-keywords-level-1-1 ()
+  (python-tests-assert-faces
+   "def func():"
+   '((1 . font-lock-keyword-face) (4)
+     (5 . font-lock-function-name-face) (9))))
+
+(ert-deftest python-font-lock-keywords-level-1-2 ()
+  "Invalid function name should not be font-locked."
+  (python-tests-assert-faces
+   "def 1func():"
+   '((1 . font-lock-keyword-face) (4))))
+
 (ert-deftest python-font-lock-assignment-statement-1 ()
   (python-tests-assert-faces
    "a, b, c = 1, 2, 3"
