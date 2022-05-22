@@ -1995,6 +1995,9 @@ xm_read_drag_receiver_info (struct x_display_info *dpyinfo,
     {
       data = (uint8_t *) tmp_data;
 
+      if (data[1] > XM_DRAG_PROTOCOL_VERSION)
+	return 1;
+
       rec->byteorder = data[0];
       rec->protocol = data[1];
       rec->protocol_style = data[2];
@@ -2012,9 +2015,6 @@ xm_read_drag_receiver_info (struct x_display_info *dpyinfo,
 
       rec->byteorder = XM_BYTE_ORDER_CUR_FIRST;
     }
-
-  if (data[1] > XM_DRAG_PROTOCOL_VERSION)
-    rc = 0;
 
   if (tmp_data)
     XFree (tmp_data);
