@@ -977,7 +977,9 @@ a completion candidate to the minibuffer, then 'M-RET' can be used
 to choose the currently active candidate from the "*Completions*"
 buffer and exit the minibuffer.  With a prefix argument, 'C-u M-RET'
 inserts the currently active candidate to the minibuffer, but doesn't
-exit the minibuffer.
+exit the minibuffer.  These keys are also available for in-buffer
+completion, but they don't insert candidates automatically, you need
+to type 'M-RET' to insert the selected candidate to the buffer.
 
 +++
 *** The "*Completions*" buffer can now be automatically selected.

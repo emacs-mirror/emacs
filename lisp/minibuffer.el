@@ -2543,7 +2543,10 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
   ;; FIXME: Only works if completion-in-region-mode was activated via
   ;; completion-at-point called directly.
   "M-?" #'completion-help-at-point
-  "TAB" #'completion-at-point)
+  "TAB" #'completion-at-point
+  "M-<up>"   #'minibuffer-previous-completion
+  "M-<down>" #'minibuffer-next-completion
+  "M-RET"    #'minibuffer-choose-completion)
 
 ;; It is difficult to know when to exit completion-in-region-mode (i.e. hide
 ;; the *Completions*).  Here's how previous packages did it:
@@ -2590,6 +2593,7 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
     (cl-assert completion-in-region-mode-predicate)
     (setq completion-in-region-mode--predicate
 	  completion-in-region-mode-predicate)
+    (setq-local minibuffer-completion-auto-choose nil)
     (add-hook 'post-command-hook #'completion-in-region--postch)
     (push `(completion-in-region-mode . ,completion-in-region-mode-map)
           minor-mode-overriding-map-alist)))
@@ -4369,30 +4373,25 @@ selected by these commands to the minibuffer."
   :version "29.1")
 
 (defun minibuffer-next-completion (&optional n)
-  "Run `next-completion' from the minibuffer in its completions window.
+  "Move to the next item in its completions window from the minibuffer.
 When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion to the minibuffer."
   (interactive "p")
-  (with-minibuffer-completions-window
-    (when completions-highlight-face
-      (setq-local cursor-face-highlight-nonselected-window t))
-    (next-completion (or n 1))
-    (when minibuffer-completion-auto-choose
-      (let ((completion-use-base-affixes t))
-        (choose-completion nil t t)))))
+  (let ((auto-choose minibuffer-completion-auto-choose))
+    (with-minibuffer-completions-window
+      (when completions-highlight-face
+        (setq-local cursor-face-highlight-nonselected-window t))
+      (next-completion (or n 1))
+      (when auto-choose
+        (let ((completion-use-base-affixes t))
+          (choose-completion nil t t))))))
 
 (defun minibuffer-previous-completion (&optional n)
-  "Run `previous-completion' from the minibuffer in its completions window.
+  "Move to the previous item in its completions window from the minibuffer.
 When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion to the minibuffer."
   (interactive "p")
-  (with-minibuffer-completions-window
-    (when completions-highlight-face
-      (setq-local cursor-face-highlight-nonselected-window t))
-    (previous-completion (or n 1))
-    (when minibuffer-completion-auto-choose
-      (let ((completion-use-base-affixes t))
-        (choose-completion nil t t)))))
+  (minibuffer-next-completion (- (or n 1))))
 
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.

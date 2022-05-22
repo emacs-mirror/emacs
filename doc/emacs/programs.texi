@@ -1439,9 +1439,13 @@ performs completion using the function, variable, or property names
 defined in the current Emacs session.
 
   In all other respects, in-buffer symbol completion behaves like
-minibuffer completion.  For instance, if Emacs cannot complete to a
-unique symbol, it displays a list of completion alternatives in
-another window.  @xref{Completion}.
+minibuffer completion.  For instance, if Emacs cannot complete to
+a unique symbol, it displays a list of completion alternatives in
+another window.  Then you can use the keys @kbd{M-@key{DOWN}} and
+@kbd{M-@key{UP}} to navigate through the completions displayed
+in the completions buffer without leaving the original buffer,
+and the key @kbd{M-@key{RET}} to insert the currently highlighted
+completion to the buffer.  @xref{Completion}.
 
   In Text mode and related modes, @kbd{M-@key{TAB}} completes words
 based on the spell-checker's dictionary.  @xref{Spelling}.
