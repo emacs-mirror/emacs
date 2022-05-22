@@ -285,10 +285,10 @@ later installation should be done in MODE hook."
         (if (string-match "^semantic-" name)
             e
           (cons (intern (format "semantic-%s" name)) (cdr e)))))
-    overrides
-    nil)
+    overrides)
    (list 'constant-flag (not transient)
-         'override-flag t)))
+         'override-flag t)
+   nil))
 
 ;;; User Interrupt handling
 ;;
