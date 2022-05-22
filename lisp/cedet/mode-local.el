@@ -38,10 +38,12 @@
 ;; user might wish to customize a given variable or function then
 ;; the existing customization mechanism should be used.
 
+;; NOTE: `define-overloadable-function' and `define-mode-local-override' are
+;; nowadays advantageously replaced by `cl-defgeneric' and `cl-defmethod'
+;; (with a `&context (derived-mode <MODE>)').
+
 ;; To Do:
 ;; Allow customization of a variable for a specific mode?
-;;
-;; Add macro for defining the '-default' functionality.
 
 ;;; Code:
 
@@ -187,7 +189,7 @@ behaviors.  Use the function `mode-local-bind' to define new bindings.")
 (defun mode-local-bind (bindings &optional plist mode)
   "Define BINDINGS in the specified environment.
 BINDINGS is a list of (VARIABLE . VALUE).
-Optional argument PLIST is a property list each VARIABLE symbol will
+Argument PLIST is a property list each VARIABLE symbol will
 be set to.  The following properties have special meaning:
 
 - `constant-flag' if non-nil, prevent rebinding variables.
@@ -195,13 +197,15 @@ be set to.  The following properties have special meaning:
 - `override-flag' if non-nil, define override functions.
 
 The `override-flag' and `mode-variable-flag' properties are mutually
-exclusive.
+exclusive and exactly one of the two must be non-nil.
 
-If optional argument MODE is non-nil, it must be a major mode symbol.
-BINDINGS will be defined globally for this major mode.  If MODE is
-nil, BINDINGS will be defined locally in the current buffer, in
-variable `mode-local-symbol-table'.  The later should be done in MODE
-hook."
+Argument MODE must be a major mode symbol.
+BINDINGS will be defined globally for this major mode.
+
+For backward compatibility, If MODE is nil, BINDINGS will be defined locally
+in the current buffer, in variable `mode-local-symbol-table', but
+this use is deprecated and will be removed."
+  (declare (advertised-calling-convention (bindings plist mode) "29.1"))
   ;; Check plist consistency
   (and (plist-get plist 'mode-variable-flag)
        (plist-get plist 'override-flag)
@@ -217,6 +221,7 @@ hook."
       ;; Fail if trying to bind mode variables in local context!
       (if (plist-get plist 'mode-variable-flag)
           (error "Mode required to bind mode variables"))
+      (message "Obsolete use of nil MODE arg to mode-local-bind!")
       ;; Install in buffer local symbol table.  Create a new one if
       ;; needed.
       (setq table (or mode-local-symbol-table
@@ -412,6 +417,7 @@ Set each SYM to the value of its VAL, locally in buffers already in
 MODE, or in buffers switched to that mode.
 Return the value of the last VAL."
   (declare (debug (symbolp &rest symbolp form)))
+  (unless mode (error "Argument mode should be a major mode"))
   (when args
     (let (i ll bl sl tmp sym val)
       (setq i 0)
@@ -598,6 +604,7 @@ BODY is the implementation of this function."
   (declare (doc-string 4)
            (indent defun)
            (debug (&define name symbolp lambda-list stringp def-body)))
+  (unless mode (error "Argument mode should be a major mode"))
   (let ((newname (intern (format "%s-%s" name mode))))
     `(progn
        (eval-and-compile

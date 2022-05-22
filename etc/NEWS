@@ -827,6 +827,10 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** CEDET
+---
+*** Deprecate buffer-local function overrides for mode-local functions
+
 ** Enriched Mode
 
 +++
