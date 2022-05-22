@@ -34,7 +34,7 @@
              (input-method . "tagalog")
              (sample-text . "Tagalog (ᜊᜌ᜔ᜊᜌᜒᜈ᜔)	ᜃᜓᜋᜓᜐ᜔ᜆ")
              (documentation . "\
-Tagalog which uses the Baybayin script is supported in
+Tagalog language using the Baybayin script is supported in
 this language environment.")))
 
 ;; Tagalog composition rules

@@ -22,15 +22,16 @@
 
 ;;; Commentary:
 
-;; This input method supports scripts like Tagalog, Hanunoo, Buhid and
-;; Tagbanwa.
+;; Input methods for Philippine languages.
 
 ;;; Code:
 
 (require 'quail)
 
+;; This input method supports languages like Tagalog, Hanunoo, Buhid and
+;; Tagbanwa, using the Baybayin script.
 (quail-define-package
- "tagalog" "Tagalog" "ᜊ" nil "Baybayin phonetic input method."
+ "tagalog" "Tagalog" "ᜊ" nil "Tagalog phonetic input method."
  nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
