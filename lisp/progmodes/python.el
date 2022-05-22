@@ -678,7 +678,7 @@ sign in chained assignment."
     ;; and variants thereof
     ;; the cases
     ;;   (a) = 5
-    ;;   [a] = 5
+    ;;   [a] = 5,
     ;;   [*a] = 5, 6
     ;; are handled separately below
     (,(python-font-lock-assignment-matcher
@@ -708,7 +708,7 @@ sign in chained assignment."
      (1 font-lock-variable-name-face))
     ;; special cases
     ;;   (a) = 5
-    ;;   [a] = 5
+    ;;   [a] = 5,
     ;;   [*a] = 5, 6
     (,(python-font-lock-assignment-matcher
        (python-rx (or line-start ?\; ?=) (* space)
