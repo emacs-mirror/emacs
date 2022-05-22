@@ -1251,7 +1251,7 @@ literals (Bug#20852)."
       (defun zot ()
         (wrong-params 1 2 3)))
    '((callargs wrong-params))
-   "Warning: wrong-params called with")
+   "Warning: .wrong-params. called with")
 
   (test-byte-comp-compile-and-load nil
     (defvar obsolete-variable nil)
