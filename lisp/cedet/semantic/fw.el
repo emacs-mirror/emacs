@@ -278,7 +278,7 @@ OVERRIDES will be installed globally for this major mode.  If MODE is
 nil, OVERRIDES will be installed locally in the current buffer.  This
 later installation should be done in MODE hook."
   (declare (obsolete define-mode-local-override "29.1"))
-  (with-suppressed-warnings ((wrong-args mode-local-bind))
+  (with-suppressed-warnings ((callargs mode-local-bind))
     (mode-local-bind
      ;; Add the semantic- prefix to OVERLOAD short names.
      (mapcar

@@ -637,7 +637,7 @@ The warnings that can be suppressed are a subset of the warnings
 in `byte-compile-warning-types'; see the variable
 `byte-compile-warnings' for a fuller explanation of the warning
 types.  The types that can be suppressed with this macro are
-`free-vars', `callargs', `redefine', `obsolete', `wrong-args',
+`free-vars', `callargs', `redefine', `obsolete',
 `interactive-only', `lexical', `mapcar', `constants' and
 `suspicious'.
 

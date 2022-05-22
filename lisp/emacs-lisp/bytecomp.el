@@ -1494,7 +1494,7 @@ when printing the error message."
                 byte-compile-unresolved-functions)))))
 
 (defun byte-compile-emit-callargs-warn (name actual-args min-args max-args)
-  (when (byte-compile-warning-enabled-p 'wrong-args name)
+  (when (byte-compile-warning-enabled-p 'callargs name)
     (byte-compile-warn-x
      name
      "`%s' called with %d argument%s, but %s %s"
@@ -3839,7 +3839,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 
 
 (defun byte-compile-subr-wrong-args (form n)
-  (when (byte-compile-warning-enabled-p 'wrong-args (car form))
+  (when (byte-compile-warning-enabled-p 'callargs (car form))
     (byte-compile-warn-x (car form)
                          "`%s' called with %d arg%s, but requires %s"
                          (car form) (length (cdr form))
