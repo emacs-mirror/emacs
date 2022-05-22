@@ -295,7 +295,9 @@ Return the expanded expression."
   wisent-grammar-mode ()
   "Return the parser setup code."
   (format
-   "(setq semantic-parser-name \"LALR\"\n\
+   "(semantic-install-function-overrides\n\
+      '((semantic-parse-stream . wisent-parse-stream)))\n\
+    (setq semantic-parser-name \"LALR\"\n\
           semantic--parse-table %s\n\
           semantic-debug-parser-source %S\n\
           semantic-flex-keywords-obarray %s\n\

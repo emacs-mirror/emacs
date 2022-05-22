@@ -277,19 +277,18 @@ If optional argument MODE is non-nil, it must be a major mode symbol.
 OVERRIDES will be installed globally for this major mode.  If MODE is
 nil, OVERRIDES will be installed locally in the current buffer.  This
 later installation should be done in MODE hook."
-  (declare (obsolete define-mode-local-override "29.1"))
-  (with-suppressed-warnings ((callargs mode-local-bind))
-    (mode-local-bind
-     ;; Add the semantic- prefix to OVERLOAD short names.
-     (mapcar
-      (lambda (e)
-        (let ((name (symbol-name (car e))))
-          (if (string-match "^semantic-" name)
-              e
-            (cons (intern (format "semantic-%s" name)) (cdr e)))))
-      overrides)
-     (list 'constant-flag (not transient)
-           'override-flag t))))
+  (mode-local-bind
+   ;; Add the semantic- prefix to OVERLOAD short names.
+   (mapcar
+    (lambda (e)
+      (let ((name (symbol-name (car e))))
+        (if (string-match "^semantic-" name)
+            e
+          (cons (intern (format "semantic-%s" name)) (cdr e)))))
+    overrides
+    nil)
+   (list 'constant-flag (not transient)
+         'override-flag t)))
 
 ;;; User Interrupt handling
 ;;

@@ -154,25 +154,17 @@ and will be collected in `semantic-lex' form: (SYMBOL START . END)."
 ;; Maybe the latter is faster because it eliminates a lot of function
 ;; call.
 ;;
-;; Emacs<29 generated grammars which manually setup `wisent-parse-stream'
-;; as a buffer-local overload for `semantic-parse-stream', but we don't
-;; need that now that we define a mode-local overload instead.
-(define-obsolete-function-alias 'wisent-parse-stream
-  #'wisent--parse-stream "29.1"
-  "Recompile your grammars so they don't call `wisent-parse-stream' any more.")
-(define-mode-local-override semantic-parse-stream semantic-grammar-mode
-  (stream goal)
-  "Parse STREAM using the Wisent LALR parser.
-See `wisent--parse-stream'."
-  (wisent--parse-stream stream goal))
-(defun wisent--parse-stream (stream goal)
+(defun wisent-parse-stream (stream goal)
   "Parse STREAM using the Wisent LALR parser.
 GOAL is a nonterminal symbol to start parsing at.
 Return the list (STREAM SEMANTIC-STREAM) where STREAM are those
 elements of STREAM that have not been used.  SEMANTIC-STREAM is the
 list of semantic tags found.
 The LALR parser automaton must be available in buffer local variable
-`semantic--parse-table'."
+`semantic--parse-table'.
+
+Must be installed by `semantic-install-function-overrides' to override
+the standard function `semantic-parse-stream'."
   (let (wisent-lex-istream wisent-lex-lookahead la-elt cache)
 
     ;; IMPLEMENTATION NOTES:
@@ -275,7 +267,10 @@ Optional arguments GOAL is a nonterminal symbol to start parsing at,
 DEPTH is the lexical depth to scan, and RETURNONERROR is a flag to
 stop parsing on syntax error, when non-nil.
 The LALR parser automaton must be available in buffer local variable
-`semantic--parse-table'."
+`semantic--parse-table'.
+
+Must be installed by `semantic-install-function-overrides' to override
+the standard function `semantic-parse-region'."
   (if (or (< start (point-min)) (> end (point-max)) (< end start))
       (error "Invalid bounds [%s %s] passed to `wisent-parse-region'"
              start end))
