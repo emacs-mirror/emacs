@@ -20159,8 +20159,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  current_monitors
 	    = Fx_display_monitor_attributes_list (inev.ie.arg);
 
-	  if (Fequal (current_monitors,
-		      dpyinfo->last_monitor_attributes_list))
+	  if (!NILP (Fequal (current_monitors,
+			     dpyinfo->last_monitor_attributes_list)))
 	    inev.ie.kind = NO_EVENT;
 
 	  dpyinfo->last_monitor_attributes_list = current_monitors;
