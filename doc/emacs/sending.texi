@@ -667,7 +667,9 @@ the bug reporter (@pxref{Bugs}).  To specify a mail user agent,
 customize the variable @code{mail-user-agent}.  Currently, legitimate
 values include @code{message-user-agent} (Message mode)
 @code{sendmail-user-agent} (Mail mode), @code{gnus-user-agent}, and
-@code{mh-e-user-agent}.
+@code{mh-e-user-agent}.  Additional options may be available; check
+in the manual of your mail user agent package for details.  You may
+also define another mail user agent using `define-mail-user-agent'.
 
   If you select a different mail-composition method, the information
 in this chapter about the mail buffer and Message mode does not apply;
