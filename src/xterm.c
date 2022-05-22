@@ -20119,6 +20119,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	{
 	  union buffered_input_event *ev;
 	  Time timestamp;
+	  Lisp_Object current_monitors;
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
@@ -20144,6 +20145,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  inev.ie.kind = MONITORS_CHANGED_EVENT;
 	  inev.ie.timestamp = timestamp;
 	  XSETTERMINAL (inev.ie.arg, dpyinfo->terminal);
+
+	  /* Also don't do anything if the monitor configuration
+	     didn't really change.  */
+
+	  current_monitors
+	    = Fx_display_monitor_attributes_list (inev.ie.arg);
+
+	  if (Fequal (current_monitors,
+		      dpyinfo->last_monitor_attributes_list))
+	    inev.ie.kind = NO_EVENT;
+
+	  dpyinfo->last_monitor_attributes_list = current_monitors;
 	}
 #endif
     OTHER:
@@ -24447,9 +24460,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
 #ifdef HAVE_XRANDR
+  Lisp_Object term;
+
+  dpyinfo->last_monitor_attributes_list = Qnil;
   dpyinfo->xrandr_supported_p
     = XRRQueryExtension (dpy, &dpyinfo->xrandr_event_base,
 			 &dpyinfo->xrandr_error_base);
+
+  XSETTERMINAL (term, terminal);
+
   if (dpyinfo->xrandr_supported_p)
     {
       XRRQueryVersion (dpy, &dpyinfo->xrandr_major_version,
@@ -24457,15 +24476,20 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
       if (dpyinfo->xrandr_major_version == 1
 	  && dpyinfo->xrandr_minor_version >= 2)
-	XRRSelectInput (dpyinfo->display,
-			dpyinfo->root_window,
-			(RRScreenChangeNotifyMask
-			 | RRCrtcChangeNotifyMask
-			 | RROutputChangeNotifyMask
-			 /* Emacs doesn't actually need this, but GTK
-			    selects for it when the display is
-			    initialized.  */
-			 | RROutputPropertyNotifyMask));
+	{
+	  dpyinfo->last_monitor_attributes_list
+	    = Fx_display_monitor_attributes_list (term);
+
+	  XRRSelectInput (dpyinfo->display,
+			  dpyinfo->root_window,
+			  (RRScreenChangeNotifyMask
+			   | RRCrtcChangeNotifyMask
+			   | RROutputChangeNotifyMask
+			   /* Emacs doesn't actually need this, but GTK
+			      selects for it when the display is
+			      initialized.  */
+			   | RROutputPropertyNotifyMask));
+	}
     }
 #endif
 
@@ -25274,7 +25298,7 @@ mark_xterm (void)
       mark_object (val);
     }
 
-#if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS
+#if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS || defined HAVE_XRANDR
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     {
 #ifdef HAVE_XINPUT2
@@ -25284,6 +25308,9 @@ mark_xterm (void)
 #ifdef USE_TOOLKIT_SCROLL_BARS
       for (i = 0; i < dpyinfo->n_protected_windows; ++i)
 	mark_object (dpyinfo->protected_windows[i]);
+#endif
+#ifdef HAVE_XRANDR
+      mark_object (dpyinfo->last_monitor_attributes_list);
 #endif
     }
 #endif
