@@ -362,6 +362,8 @@ This variant of `rx' supports common Python named REGEXPS."
   `(rx-let ((block-start       (seq symbol-start
                                     (or "def" "class" "if" "elif" "else" "try"
                                         "except" "finally" "for" "while" "with"
+                                        ;; Python 3.10+ PEP634
+                                        "match" "case"
                                         ;; Python 3.5+ PEP492
                                         (and "async" (+ space)
                                              (or "def" "for" "with")))

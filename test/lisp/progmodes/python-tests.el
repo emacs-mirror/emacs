@@ -1516,6 +1516,31 @@ this is an arbitrarily
      (should (string= (buffer-substring-no-properties (point-min) (point-max))
                       expected)))))
 
+(ert-deftest python-indent-after-match-block ()
+  "Test PEP634 match."
+  (python-tests-with-temp-buffer
+   "
+match foo:
+"
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (goto-char (point-max))
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-after-case-block ()
+  "Test PEP634 case."
+  (python-tests-with-temp-buffer
+   "
+match foo:
+    case 1:
+"
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (goto-char (point-max))
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 8))))
+
 
 ;;; Filling
 
