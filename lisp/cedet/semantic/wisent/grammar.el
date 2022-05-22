@@ -284,13 +284,15 @@ Return the expanded expression."
          (assocs       (wisent-grammar-assocs)))
     (cons terminals (cons assocs nonterminals))))
 
-(defun wisent-grammar-parsetable-builder ()
+(define-mode-local-override semantic-grammar-parsetable-builder
+  wisent-grammar-mode ()
   "Return the value of the parser table."
   `(wisent-compiled-grammar
     ,(wisent-grammar-grammar)
     ,(semantic-grammar-start)))
 
-(defun wisent-grammar-setupcode-builder ()
+(define-mode-local-override semantic-grammar-setupcode-builder
+  wisent-grammar-mode ()
   "Return the parser setup code."
   (format
    "(semantic-install-function-overrides\n\
@@ -322,10 +324,7 @@ Menu items are appended to the common grammar menu.")
 (define-derived-mode wisent-grammar-mode semantic-grammar-mode "WY"
   "Major mode for editing Wisent grammars."
   (semantic-grammar-setup-menu wisent-grammar-menu)
-  (setq-local semantic-grammar-require-form '(require 'semantic/wisent))
-  (semantic-install-function-overrides
-   '((semantic-grammar-parsetable-builder . wisent-grammar-parsetable-builder)
-     (semantic-grammar-setupcode-builder  . wisent-grammar-setupcode-builder))))
+  (setq-local semantic-grammar-require-form '(require 'semantic/wisent)))
 
 (defvar-mode-local wisent-grammar-mode semantic-grammar-macros
   '(
