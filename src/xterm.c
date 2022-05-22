@@ -23397,7 +23397,6 @@ x_destroy_window (struct frame *f)
     x_free_frame_resources (f);
 
   xfree (f->output_data.x->saved_menu_event);
-  xfree (f->output_data.x);
 
 #ifdef HAVE_X_I18N
   if (f->output_data.x->preedit_chars)
@@ -23409,6 +23408,7 @@ x_destroy_window (struct frame *f)
     XFree (f->output_data.x->xi_masks);
 #endif
 
+  xfree (f->output_data.x);
   f->output_data.x = NULL;
 
   dpyinfo->reference_count--;
