@@ -290,7 +290,11 @@ may have changed) back to `save-place-alist'."
               ;; adding hooks to it.
               (with-current-buffer (get-buffer-create " *Saved Places*")
                 (delete-region (point-min) (point-max))
-                (insert-file-contents file)
+                ;; Make sure our 'coding:' cookie in the save-place
+                ;; file will take effect, in case the caller binds
+                ;; coding-system-for-read.
+                (let (coding-system-for-read)
+                  (insert-file-contents file))
                 (goto-char (point-min))
                 (setq save-place-alist
                       (with-demoted-errors "Error reading save-place-file: %S"
