@@ -1084,6 +1084,7 @@ AS_IF([test $gl_gcc_warnings = no],
 
   if test "$emacs_cv_clang" = yes; then
     nw="$nw -Wdouble-promotion"
+    nm="$nm -Wunknown-pragmas"
   fi
 
   # This causes too much noise in the MinGW build.
