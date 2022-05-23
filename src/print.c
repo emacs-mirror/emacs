@@ -2033,13 +2033,14 @@ struct print_stack_entry
     struct
     {
       Lisp_Object last;		/* cons whose car was just printed  */
-      intmax_t idx;		/* index of next element */
-      intmax_t maxlen;		/* max length (from Vprint_length) */
-      /* State for Brent cycle detection.  See FOR_EACH_TAIL_INTERNAL
-	 in lisp.h for more details.  */
+      intmax_t maxlen;		/* max number of elements left to print */
+      /* State for Brent cycle detection.  See
+	 Brent RP. BIT. 1980;20(2):176-184. doi:10.1007/BF01933190
+	 https://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf */
       Lisp_Object tortoise;     /* slow pointer */
       ptrdiff_t n;		/* tortoise step countdown */
       ptrdiff_t m;		/* tortoise step period */
+      ptrdiff_t tortoise_idx;	/* index of tortoise */
     } list;
 
     struct
@@ -2421,10 +2422,10 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		  .type = PE_list,
 		  .u.list.last = obj,
 		  .u.list.maxlen = print_length,
-		  .u.list.idx = 1,
 		  .u.list.tortoise = obj,
 		  .u.list.n = 2,
 		  .u.list.m = 2,
+		  .u.list.tortoise_idx = 0,
 		});
 	      /* print the car */
 	      obj = XCAR (obj);
@@ -2588,17 +2589,15 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			obj = next;
 			e->type = PE_rbrac;
 			goto print_obj;
-		    }
-		}
+		      }
+		  }
 
 		/* list continues: print " " ELEM ... */
 
 		printchar (' ', printcharfun);
 
-		/* FIXME: We wouldn't need to keep track of idx if we
-		   count down maxlen instead, and maintain a separate
-		   tortoise index if required.  */
-		if (e->u.list.idx >= e->u.list.maxlen)
+		--e->u.list.maxlen;
+		if (e->u.list.maxlen <= 0)
 		  {
 		    print_c_string ("...)", printcharfun);
 		    --prstack.sp;
@@ -2607,22 +2606,21 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		  }
 
 		e->u.list.last = next;
-		e->u.list.idx++;
 		e->u.list.n--;
 		if (e->u.list.n == 0)
 		  {
 		    /* Double tortoise update period and teleport it.  */
+		    e->u.list.tortoise_idx += e->u.list.m;
 		    e->u.list.m <<= 1;
 		    e->u.list.n = e->u.list.m;
 		    e->u.list.tortoise = next;
 		  }
 		else if (BASE_EQ (next, e->u.list.tortoise))
 		  {
-		    /* FIXME: This #N tail index is bug-compatible with
-		       previous implementations but actually nonsense;
+		    /* FIXME: This #N tail index is somewhat ambiguous;
 		       see bug#55395.  */
 		    int len = sprintf (buf, ". #%" PRIdMAX ")",
-				       (e->u.list.idx >> 1) - 1);
+				       e->u.list.tortoise_idx);
 		    strout (buf, len, len, printcharfun);
 		    --prstack.sp;
 		    --print_depth;
