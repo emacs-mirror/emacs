@@ -16653,6 +16653,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  /* This function is OK to call even if the X server doesn't
 	     support RandR.  */
 	  XRRUpdateConfiguration (&configureEvent);
+#elif !defined USE_GTK
+	  /* Catch screen size changes even if RandR is not available
+	     on the client.  GTK does this internally.  */
+
+	  inev.ie.kind = MONITORS_CHANGED_EVENT;
+	  XSETTERMINAL (inev.ie.arg, dpyinfo->terminal);
+
+	  /* Store this event now since inev.ie.type could be set to
+	     MOVE_FRAME_EVENT later.  */
+	  kbd_buffer_store_event (&inev.ie);
+	  inev.ie.kind = NO_EVENT;
 #endif
 
 	  dpyinfo->screen_width = configureEvent.xconfigure.width;
