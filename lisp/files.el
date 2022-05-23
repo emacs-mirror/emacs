@@ -5849,7 +5849,18 @@ See `save-some-buffers' for PRED values."
                                   (funcall pred))))
                        buffer))
                  (buffer-list))))
-         (delq nil buffers)))
+    (delq nil buffers)))
+
+(defvar save-some-buffers-functions nil
+  "Functions to be run by `save-some-buffers' after saving the buffers.
+The functions can be called in two \"modes\", depending on the
+first argument.  If the first argument is `query', then the
+function should return non-nil if there is something to be
+saved (but it should not actually save anything).
+
+If the first argument is something else, then the function should
+save according to the value of the second argument, which is the
+ARG argument from `save-some-buffers'.")
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
@@ -5875,7 +5886,10 @@ should return non-nil if that buffer should be considered.
 PRED defaults to the value of `save-some-buffers-default-predicate'.
 
 See `save-some-buffers-action-alist' if you want to
-change the additional actions you can take on files."
+change the additional actions you can take on files.
+
+The functions in `save-some-buffers-functions' will be called
+after saving the buffers."
   (interactive "P")
   (unless pred
     (setq pred
@@ -5891,7 +5905,7 @@ change the additional actions you can take on files."
           (lambda (buffer)
             (setq switched-buffer buffer)))
          queried autosaved-buffers
-	 files-done abbrevs-done)
+	 files-done inhibit-message)
     (unwind-protect
         (save-window-excursion
           (dolist (buffer (buffer-list))
@@ -5939,19 +5953,10 @@ change the additional actions you can take on files."
                  (files--buffers-needing-to-be-saved pred)
 	         '("buffer" "buffers" "save")
 	         save-some-buffers-action-alist))
-          ;; Maybe to save abbrevs, and record whether
-          ;; we either saved them or asked to.
-          (and save-abbrevs abbrevs-changed
-	       (progn
-	         (if (or arg
-		         (eq save-abbrevs 'silently)
-		         (y-or-n-p (format "Save abbrevs in %s? "
-                                           abbrev-file-name)))
-		     (write-abbrev-file nil))
-	         ;; Don't keep bothering user if he says no.
-	         (setq abbrevs-changed nil)
-	         (setq abbrevs-done t)))
-          (or queried (> files-done 0) abbrevs-done
+          ;; Allow other things to be saved at this time, like abbrevs.
+          (dolist (func save-some-buffers-functions)
+            (setq inhibit-message (or (funcall func nil arg) inhibit-message)))
+          (or queried (> files-done 0) inhibit-message
 	      (cond
 	       ((null autosaved-buffers)
                 (when (called-interactively-p 'any)
@@ -7779,7 +7784,11 @@ If RESTART, restart Emacs after killing the current Emacs process."
   (interactive "P")
   ;; Don't use save-some-buffers-default-predicate, because we want
   ;; to ask about all the buffers before killing Emacs.
-    (when (files--buffers-needing-to-be-saved t)
+  (when (or (files--buffers-needing-to-be-saved t)
+            (catch 'need-save
+              (dolist (func save-some-buffers-functions)
+                (when (funcall func 'query)
+                  (throw 'need-save t)))))
       (if (use-dialog-box-p)
           (pcase (x-popup-dialog
                   t `("Unsaved Buffers"

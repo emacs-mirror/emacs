@@ -1859,6 +1859,12 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+** 'save-some-buffers' can now be extended to save other things.
+Traditionally, 'save-some-buffers' saved buffers, and also saved
+abbrevs.  This has been generalized via the
+'save-some-buffers-functions', and packages can now register things to
+be saved.
+
 ** Themes
 
 ---

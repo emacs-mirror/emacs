@@ -1197,6 +1197,28 @@ This mode is for editing abbrevs in a buffer prepared by `edit-abbrevs',
 which see."
   :interactive nil)
 
+(defun abbrev--possibly-save (query &optional arg)
+  ;; Query mode.
+  (if (eq query 'query)
+      (and save-abbrevs abbrevs-changed)
+    ;; Maybe save abbrevs, and record whether we either saved them or
+    ;; asked to.
+    (and save-abbrevs
+         abbrevs-changed
+         (progn
+	   (if (or arg
+		   (eq save-abbrevs 'silently)
+		   (y-or-n-p (format "Save abbrevs in %s? " abbrev-file-name)))
+	       (progn
+                 (write-abbrev-file nil)
+                 nil)
+	     ;; Don't keep bothering user if they say no.
+	     (setq abbrevs-changed nil)
+             ;; Inhibit message in `save-some-buffers'.
+	     t)))))
+
+(add-hook 'save-some-buffers-functions #'abbrev--possibly-save)
+
 (provide 'abbrev)
 
 ;;; abbrev.el ends here
