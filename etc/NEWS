@@ -35,6 +35,18 @@ This is a bug-fix release with no new features.
 ** The command 'kdb-macro-redisplay' was renamed to 'kmacro-redisplay'.
 This is to fix an embarrassing typo in the original name.
 
+** 'desktop-save-mode' now saves the desktop in 'save-buffers-kill-emacs'.
+Previously, the desktop was saved in 'kill-emacs' via
+'kill-emacs-hook'.  However, that violated the convention that
+functions in 'kill-emacs-hook' cannot interact with the user, and in
+particular didn't play well with ending daemon sessions of Emacs.  So
+we moved the saving of the desktop to 'save-buffers-kill-emacs', via
+'kill-emacs-query-functions'.  To make sure the desktop is saved,
+terminate Emacs with 'save-buffers-kill-emacs', not with 'kill-emacs'.
+
+(This change was done in Emacs 28.1, but we didn't announce it in NEWS
+back then.)
+
 
 * New Modes and Packages in Emacs 28.2
 
