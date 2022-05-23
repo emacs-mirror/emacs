@@ -14578,6 +14578,42 @@ x_display_pixel_width (struct x_display_info *dpyinfo)
   return WidthOfScreen (dpyinfo->screen);
 }
 
+#ifdef USE_GTK
+static void
+x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
+{
+  struct x_display_info *dpyinfo;
+  struct input_event ie;
+  Lisp_Object current_monitors, terminal;
+  GdkDisplay *gdpy;
+  Display *dpy;
+
+  gdpy = gdk_screen_get_display (gscr);
+  dpy = gdk_x11_display_get_xdisplay (gdpy);
+  dpyinfo = x_display_info_for_display (dpy);
+
+  if (!dpyinfo)
+    return;
+
+  XSETTERMINAL (terminal, dpyinfo->terminal);
+
+  current_monitors
+    = Fx_display_monitor_attributes_list (terminal);
+
+  if (NILP (Fequal (current_monitors,
+		    dpyinfo->last_monitor_attributes_list)))
+    {
+      EVENT_INIT (ie);
+      ie.kind = MONITORS_CHANGED_EVENT;
+      ie.arg = terminal;
+
+      kbd_buffer_store_event (&ie);
+    }
+
+  dpyinfo->last_monitor_attributes_list = current_monitors;
+}
+#endif
+
 /* Handles the XEvent EVENT on display DPYINFO.
 
    *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
@@ -20110,7 +20146,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	}
 #endif
-#ifdef HAVE_XRANDR
+#if defined HAVE_XRANDR && !defined USE_GTK
       if (dpyinfo->xrandr_supported_p
 	  && (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify)
@@ -23860,6 +23896,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
   static char const cm_atom_fmt[] = "_NET_WM_CM_S%d";
   char cm_atom_sprintf[sizeof cm_atom_fmt - 2 + INT_STRLEN_BOUND (int)];
+#ifdef USE_GTK
+  GdkDisplay *gdpy;
+  GdkScreen *gscr;
+#endif
 
   block_input ();
 
@@ -24469,7 +24509,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #ifdef HAVE_XRANDR
   Lisp_Object term;
 
+#ifndef USE_GTK
   dpyinfo->last_monitor_attributes_list = Qnil;
+#endif
   dpyinfo->xrandr_supported_p
     = XRRQueryExtension (dpy, &dpyinfo->xrandr_event_base,
 			 &dpyinfo->xrandr_error_base);
@@ -24481,12 +24523,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       XRRQueryVersion (dpy, &dpyinfo->xrandr_major_version,
 		       &dpyinfo->xrandr_minor_version);
 
+#ifndef USE_GTK
       if (dpyinfo->xrandr_major_version == 1
 	  && dpyinfo->xrandr_minor_version >= 2)
 	{
-	  dpyinfo->last_monitor_attributes_list
-	    = Fx_display_monitor_attributes_list (term);
-
 	  XRRSelectInput (dpyinfo->display,
 			  dpyinfo->root_window,
 			  (RRScreenChangeNotifyMask
@@ -24496,8 +24536,24 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 			      selects for it when the display is
 			      initialized.  */
 			   | RROutputPropertyNotifyMask));
+
+	  dpyinfo->last_monitor_attributes_list
+	    = Fx_display_monitor_attributes_list (term);
 	}
+#endif
     }
+#endif
+
+#ifdef USE_GTK
+  dpyinfo->last_monitor_attributes_list
+    = Fx_display_monitor_attributes_list (term);
+
+  gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
+  gscr = gdk_display_get_default_screen (gdpy);
+
+  g_signal_connect (G_OBJECT (gscr), "monitors-changed",
+		    G_CALLBACK (x_monitors_changed_cb),
+		    NULL);
 #endif
 
 #ifdef HAVE_XKB
@@ -25305,7 +25361,8 @@ mark_xterm (void)
       mark_object (val);
     }
 
-#if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS || defined HAVE_XRANDR
+#if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS \
+  || defined HAVE_XRANDR || defined USE_GTK
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     {
 #ifdef HAVE_XINPUT2
@@ -25316,7 +25373,7 @@ mark_xterm (void)
       for (i = 0; i < dpyinfo->n_protected_windows; ++i)
 	mark_object (dpyinfo->protected_windows[i]);
 #endif
-#ifdef HAVE_XRANDR
+#if defined HAVE_XRANDR || defined USE_GTK
       mark_object (dpyinfo->last_monitor_attributes_list);
 #endif
     }

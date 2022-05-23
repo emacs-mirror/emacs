@@ -607,7 +607,9 @@ struct x_display_info
   int xrandr_error_base;
   int xrandr_major_version;
   int xrandr_minor_version;
+#endif
 
+#if defined HAVE_XRANDR || defined USE_GTK
   /* This is used to determine if the monitor configuration really
      changed upon receiving a monitor change event.  */
   Lisp_Object last_monitor_attributes_list;
