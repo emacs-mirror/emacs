@@ -1894,13 +1894,19 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
-  widget_value **submenu_stack
-    = alloca (menu_items_used * sizeof *submenu_stack);
-  Lisp_Object *subprefix_stack
-    = alloca (menu_items_used * sizeof *subprefix_stack);
+  widget_value **submenu_stack;
+  Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
+  specpdl_ref specpdl_count;
 
-  specpdl_ref specpdl_count = SPECPDL_INDEX ();
+  USE_SAFE_ALLOCA;
+
+  submenu_stack = SAFE_ALLOCA (menu_items_used
+			       * sizeof *submenu_stack);
+  subprefix_stack = SAFE_ALLOCA (menu_items_used
+				 * sizeof *subprefix_stack);
+
+  specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f));
 
@@ -1909,6 +1915,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
       *error_name = "Empty menu";
+      SAFE_FREE ();
       return Qnil;
     }
 
@@ -2141,6 +2148,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
 		  unblock_input ();
+
+		  SAFE_FREE ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -2155,6 +2164,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 
   unblock_input ();
+
+  SAFE_FREE ();
   return Qnil;
 }
 
