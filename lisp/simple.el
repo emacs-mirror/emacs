@@ -6352,8 +6352,8 @@ If called interactively, do a case sensitive search if CHAR
 is an upper-case character."
   (interactive (list (prefix-numeric-value current-prefix-arg)
 		     (read-char-from-minibuffer "Zap to char: "
-						nil 'read-char-history))
-               t)
+						nil 'read-char-history)
+               t))
   ;; Avoid "obsolete" warnings for translation-table-for-input.
   (with-no-warnings
     (if (char-table-p translation-table-for-input)
