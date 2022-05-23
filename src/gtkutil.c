@@ -736,67 +736,74 @@ xg_check_special_colors (struct frame *f,
                          const char *color_name,
                          Emacs_Color *color)
 {
-  bool success_p = 0;
-  bool get_bg = strcmp ("gtk_selection_bg_color", color_name) == 0;
-  bool get_fg = !get_bg && strcmp ("gtk_selection_fg_color", color_name) == 0;
+  bool success_p;
+  bool get_bg;
+  bool get_fg;
+#ifdef HAVE_GTK3
+  GtkStyleContext *gsty;
+  GdkRGBA col;
+  char buf[sizeof "rgb://rrrr/gggg/bbbb"];
+  int state;
+  GdkRGBA *c;
+  unsigned short r, g, b;
+#else
+  GtkStyle *gsty;
+  GdkColor *grgb;
+#endif
 
-  if (! FRAME_GTK_WIDGET (f) || ! (get_bg || get_fg))
+  get_bg = !strcmp ("gtk_selection_bg_color", color_name);
+  get_fg = !get_bg && !strcmp ("gtk_selection_fg_color", color_name);
+  success_p = false;
+
+#ifdef HAVE_PGTK
+  while (FRAME_PARENT_FRAME (f))
+    f = FRAME_PARENT_FRAME (f);
+#endif
+
+  if (!FRAME_GTK_WIDGET (f) || !(get_bg || get_fg))
     return success_p;
 
   block_input ();
-  {
 #ifdef HAVE_GTK3
+  gsty = gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+  state = GTK_STATE_FLAG_SELECTED | GTK_STATE_FLAG_FOCUSED;
+
+  if (get_fg)
+    gtk_style_context_get_color (gsty, state, &col);
+  else
+    {
+      /* FIXME: Retrieving the background color is deprecated in
+	 GTK+ 3.16.  New versions of GTK+ don't use the concept of a
+	 single background color any more, so we shouldn't query for
+	 it.  */
+      gtk_style_context_get (gsty, state,
+			     GTK_STYLE_PROPERTY_BACKGROUND_COLOR, &c,
+			     NULL);
+      col = *c;
+      gdk_rgba_free (c);
+    }
+
+  r = col.red * 65535;
+  g = col.green * 65535;
+  b = col.blue * 65535;
 #ifndef HAVE_PGTK
-    GtkStyleContext *gsty
-      = gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+  sprintf (buf, "rgb:%04x/%04x/%04x", r, g, b);
+  success_p = x_parse_color (f, buf, color) != 0;
 #else
-    GtkStyleContext *gsty
-      = gtk_widget_get_style_context (FRAME_WIDGET (f));
-#endif
-    GdkRGBA col;
-    char buf[sizeof "rgb://rrrr/gggg/bbbb"];
-    int state = GTK_STATE_FLAG_SELECTED|GTK_STATE_FLAG_FOCUSED;
-    if (get_fg)
-      gtk_style_context_get_color (gsty, state, &col);
-    else
-      {
-        GdkRGBA *c;
-        /* FIXME: Retrieving the background color is deprecated in
-           GTK+ 3.16.  New versions of GTK+ don't use the concept of a
-           single background color any more, so we shouldn't query for
-           it.  */
-        gtk_style_context_get (gsty, state,
-                               GTK_STYLE_PROPERTY_BACKGROUND_COLOR, &c,
-                               NULL);
-        col = *c;
-        gdk_rgba_free (c);
-      }
-
-    unsigned short
-      r = col.red * 65535,
-      g = col.green * 65535,
-      b = col.blue * 65535;
-#ifndef HAVE_PGTK
-    sprintf (buf, "rgb:%04x/%04x/%04x", r, g, b);
-    success_p = x_parse_color (f, buf, color) != 0;
-#else
-    sprintf (buf, "#%04x%04x%04x", r, g, b);
-    success_p = pgtk_parse_color (f, buf, color) != 0;
+  sprintf (buf, "#%04x%04x%04x", r, g, b);
+  success_p = pgtk_parse_color (f, buf, color) != 0;
 #endif
 #else
-    GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
-    GdkColor *grgb = get_bg
-      ? &gsty->bg[GTK_STATE_SELECTED]
-      : &gsty->fg[GTK_STATE_SELECTED];
+  gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
+  grgb = (get_bg ? &gsty->bg[GTK_STATE_SELECTED]
+	  : &gsty->fg[GTK_STATE_SELECTED]);
 
-    color->red = grgb->red;
-    color->green = grgb->green;
-    color->blue = grgb->blue;
-    color->pixel = grgb->pixel;
-    success_p = 1;
+  color->red = grgb->red;
+  color->green = grgb->green;
+  color->blue = grgb->blue;
+  color->pixel = grgb->pixel;
+  success_p = 1;
 #endif
-
-  }
   unblock_input ();
   return success_p;
 }

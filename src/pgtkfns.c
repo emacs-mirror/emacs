@@ -566,15 +566,23 @@ pgtk_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 static void
 pgtk_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int border = check_int_nonnegative (arg);
+  int border;
+
+  if (NILP (arg))
+    border = -1;
+  else if (RANGED_FIXNUMP (0, arg, INT_MAX))
+    border = XFIXNAT (arg);
+  else
+    signal_error ("Invalid child frame border width", arg);
 
   if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
     {
       f->child_frame_border_width = border;
 
-      if (FRAME_X_WINDOW (f))
+      if (FRAME_GTK_WIDGET (f))
 	{
-	  adjust_frame_size (f, -1, -1, 3, false, Qchild_frame_border_width);
+	  adjust_frame_size (f, -1, -1, 3,
+			     false, Qchild_frame_border_width);
 	  pgtk_clear_under_internal_border (f);
 	}
     }

@@ -3351,15 +3351,10 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
   if (gui_mouse_grabbed (dpyinfo)
       && (!EQ (track_mouse, Qdropping)
 	  && !EQ (track_mouse, Qdrag_source)))
-    {
-      /* 1.1. use last_mouse_frame as frame where the pointer is
-	 on.  */
-      f1 = dpyinfo->last_mouse_frame;
-    }
+    f1 = dpyinfo->last_mouse_frame;
   else
     {
       f1 = *fp;
-      /* 1.2. get frame where the pointer is on.  */
       win = gtk_widget_get_window (FRAME_GTK_WIDGET (*fp));
       seat = gdk_display_get_default_seat (dpyinfo->gdpy);
       device = gdk_seat_get_pointer (seat);
@@ -3385,19 +3380,17 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
       return;
     }
 
-  /* 2. get the display and the device. */
   win = gtk_widget_get_window (FRAME_GTK_WIDGET (f1));
-  GdkDisplay *gdpy = gdk_window_get_display (win);
-  seat = gdk_display_get_default_seat (gdpy);
+  seat = gdk_display_get_default_seat (dpyinfo->gdpy);
   device = gdk_seat_get_pointer (seat);
 
-  /* 3. get x, y relative to edit window of the frame. */
-  win = gdk_window_get_device_position (win, device, &win_x, &win_y, &mask);
+  win = gdk_window_get_device_position (win, device,
+					&win_x, &win_y, &mask);
 
   if (f1 != NULL)
     {
-      dpyinfo = FRAME_DISPLAY_INFO (f1);
-      remember_mouse_glyph (f1, win_x, win_y, &dpyinfo->last_mouse_glyph);
+      remember_mouse_glyph (f1, win_x, win_y,
+			    &dpyinfo->last_mouse_glyph);
       dpyinfo->last_mouse_glyph_frame = f1;
 
       *bar_window = Qnil;
