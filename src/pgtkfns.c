@@ -1437,8 +1437,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
     }
 
-  gui_default_parameter (f, parms, Qchild_frame_border_width,
-			 make_fixnum (0),
+  gui_default_parameter (f, parms, Qchild_frame_border_width, Qnil,
 			 "childFrameBorderWidth", "childFrameBorderWidth",
 			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
