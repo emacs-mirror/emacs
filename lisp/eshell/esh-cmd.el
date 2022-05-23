@@ -827,8 +827,8 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 		      ((cdr pipeline) t)
 		      (t (quote 'last)))))
           (let ((proc ,(car pipeline)))
-            (setq headproc (or proc headproc))
-            (setq tailproc (or tailproc proc))
+            (set headproc (or proc (symbol-value headproc)))
+            (set tailproc (or (symbol-value tailproc) proc))
             proc))))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
@@ -861,7 +861,7 @@ This is used on systems where async subprocesses are not supported."
        (let ((result ,(car pipeline)))
          ;; tailproc gets the result of the last successful process in
          ;; the pipeline.
-         (setq tailproc (or result tailproc))
+         (set tailproc (or result (symbol-value tailproc)))
          ,(if (cdr pipeline)
               `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline))))
          result))))
@@ -870,7 +870,11 @@ This is used on systems where async subprocesses are not supported."
 
 (defmacro eshell-execute-pipeline (pipeline)
   "Execute the commands in PIPELINE, connecting each to one another."
-  `(let ((eshell-in-pipeline-p t) headproc tailproc)
+  `(let ((eshell-in-pipeline-p t)
+         (headproc (make-symbol "headproc"))
+         (tailproc (make-symbol "tailproc")))
+     (set headproc nil)
+     (set tailproc nil)
      (progn
        ,(if (fboundp 'make-process)
 	    `(eshell-do-pipelines ,pipeline)
@@ -880,7 +884,8 @@ This is used on systems where async subprocesses are not supported."
 				(car (aref eshell-current-handles
 					   ,eshell-error-handle)) nil)))
 	     (eshell-do-pipelines-synchronously ,pipeline)))
-       (eshell-process-identity (cons headproc tailproc)))))
+       (eshell-process-identity (cons (symbol-value headproc)
+                                      (symbol-value tailproc))))))
 
 (defmacro eshell-as-subcommand (command)
   "Execute COMMAND using a temp buffer.

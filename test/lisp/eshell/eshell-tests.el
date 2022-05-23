@@ -114,6 +114,22 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-wait-for-subprocess)
    (eshell-match-result "OLLEH\n")))
 
+(ert-deftest eshell-test/pipe-subcommand ()
+  "Check that piping with an asynchronous subcommand works"
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo hi} | *cat"
+                            "hi")))
+
+(ert-deftest eshell-test/pipe-subcommand-with-pipe ()
+  "Check that piping with an asynchronous subcommand with its own pipe works"
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo hi | *cat} | *cat"
+                            "hi")))
+
 (ert-deftest eshell-test/redirect-buffer ()
   "Check that piping to a buffer works"
   (with-temp-buffer
