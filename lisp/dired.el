@@ -3957,7 +3957,11 @@ this subdir."
     (let ((inhibit-read-only t))
       (dired-repeat-over-lines
        (prefix-numeric-value arg)
-       (lambda () (delete-char 1) (insert dired-marker-char)))))))
+       (lambda ()
+         (when (or (not (looking-at-p dired-re-dot))
+                   (not (equal dired-marker-char dired-del-marker)))
+           (delete-char 1)
+           (insert dired-marker-char))))))))
 
 (defun dired-unmark (arg &optional interactive)
   "Unmark the file at point in the Dired buffer.

@@ -137,6 +137,14 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 ---
+** The 'd' command in Dired now more consistently skip dot files.
+In previous Emacs versions, commands like `C-u 10 d' would put the "D"
+mark on the next ten files, no matter whether they were dot files
+(i.e., "." and "..") or not, while marking the next ten lines with the
+mouse (in 'transient-mark-mode') and then hitting 'd' would skip dot
+files.  These now work equivalently.
+
+---
 ** Isearch in "*Help*" and "*info*" now char-folds quote characters by default.
 This means that you can say 'C-s `foo' (GRAVE ACCENT) if the buffer
 contains "‘foo" (LEFT SINGLE QUOTATION MARK) and the like.  These
