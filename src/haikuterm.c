@@ -3899,6 +3899,15 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    BMessage_delete (b->message);
 	    break;
 	  }
+	case SCREEN_CHANGED_EVENT:
+	  {
+	    struct haiku_screen_changed_event *b = buf;
+
+	    inev.kind = MONITORS_CHANGED_EVENT;
+	    XSETTERMINAL (inev.arg, x_display_list->terminal);
+	    inev.timestamp = b->when / 1000;
+	    break;
+	  }
 	case APP_QUIT_REQUESTED_EVENT:
 	  inev.kind = SAVE_SESSION_EVENT;
 	  inev.arg = Qt;

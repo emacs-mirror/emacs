@@ -112,8 +112,14 @@ enum haiku_event_type
     DRAG_AND_DROP_EVENT,
     APP_QUIT_REQUESTED_EVENT,
     DUMMY_EVENT,
-    MENU_BAR_LEFT
+    SCREEN_CHANGED_EVENT,
+    MENU_BAR_LEFT,
   };
+
+struct haiku_screen_changed_event
+{
+  bigtime_t when;
+};
 
 struct haiku_quit_requested_event
 {
