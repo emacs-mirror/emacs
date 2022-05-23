@@ -79,6 +79,9 @@ static EmacsMenu *dockMenu;
 static EmacsMenu *mainMenu;
 #endif
 
+/* The last known monitor attributes list.  */
+static Lisp_Object last_known_monitors;
+
 /* ==========================================================================
 
    NSTRACE, Trace support.
@@ -89,8 +92,8 @@ static EmacsMenu *mainMenu;
 
 /* The following use "volatile" since they can be accessed from
    parallel threads.  */
-volatile int nstrace_num = 0;
-volatile int nstrace_depth = 0;
+volatile int nstrace_num;
+volatile int nstrace_depth;
 
 /* When 0, no trace is emitted.  This is used by NSTRACE_WHEN and
    NSTRACE_UNLESS to silence functions called.
@@ -101,33 +104,41 @@ volatile int nstrace_depth = 0;
 volatile int nstrace_enabled_global = 1;
 
 /* Called when nstrace_enabled goes out of scope.  */
-void nstrace_leave(int * pointer_to_nstrace_enabled)
+void
+nstrace_leave (int *pointer_to_nstrace_enabled)
 {
   if (*pointer_to_nstrace_enabled)
-    {
-      --nstrace_depth;
-    }
+    --nstrace_depth;
 }
 
 
 /* Called when nstrace_saved_enabled_global goes out of scope.  */
-void nstrace_restore_global_trace_state(int * pointer_to_saved_enabled_global)
+void
+nstrace_restore_global_trace_state (int *pointer_to_saved_enabled_global)
 {
   nstrace_enabled_global = *pointer_to_saved_enabled_global;
 }
 
 
-char const * nstrace_fullscreen_type_name (int fs_type)
+const char *
+nstrace_fullscreen_type_name (int fs_type)
 {
   switch (fs_type)
     {
-    case -1:                   return "-1";
-    case FULLSCREEN_NONE:      return "FULLSCREEN_NONE";
-    case FULLSCREEN_WIDTH:     return "FULLSCREEN_WIDTH";
-    case FULLSCREEN_HEIGHT:    return "FULLSCREEN_HEIGHT";
-    case FULLSCREEN_BOTH:      return "FULLSCREEN_BOTH";
-    case FULLSCREEN_MAXIMIZED: return "FULLSCREEN_MAXIMIZED";
-    default:                   return "FULLSCREEN_?????";
+    case -1:
+      return "-1";
+    case FULLSCREEN_NONE:
+      return "FULLSCREEN_NONE";
+    case FULLSCREEN_WIDTH:
+      return "FULLSCREEN_WIDTH";
+    case FULLSCREEN_HEIGHT:
+      return "FULLSCREEN_HEIGHT";
+    case FULLSCREEN_BOTH:
+      return "FULLSCREEN_BOTH";
+    case FULLSCREEN_MAXIMIZED:
+      return "FULLSCREEN_MAXIMIZED";
+    default:
+      return "FULLSCREEN_?????";
     }
 }
 #endif
@@ -5221,8 +5232,16 @@ ns_displays_reconfigured (CGDirectDisplayID display,
 {
   struct input_event ie;
   union buffered_input_event *ev;
+  Lisp_Object new_monitors;
 
   EVENT_INIT (ie);
+
+  new_monitors = Fns_display_monitor_attributes_list (Qnil);
+
+  if (!NILP (Fequal (new_monitors, last_known_monitors)))
+    return;
+
+  last_known_monitors = new_monitors;
 
   ev = (kbd_store_ptr == kbd_buffer
 	? kbd_buffer + KBD_BUFFER_SIZE - 1
@@ -5601,6 +5620,7 @@ ns_term_init (Lisp_Object display_name)
   CGDisplayRegisterReconfigurationCallback (ns_displays_reconfigured,
 					    NULL);
 #endif
+  last_known_monitors = Fns_display_monitor_attributes_list (Qnil);
 
   NSTRACE_MSG ("ns_term_init done");
 
@@ -5642,6 +5662,10 @@ ns_term_shutdown (int sig)
 
 - (id)init
 {
+#ifdef NS_IMPL_GNUSTEP
+  NSNotificationCenter *notification_center;
+#endif
+
   NSTRACE ("[EmacsApp init]");
 
   if ((self = [super init]))
@@ -5653,6 +5677,14 @@ ns_term_shutdown (int sig)
       self->applicationDidFinishLaunchingCalled = NO;
 #endif
     }
+
+#ifdef NS_IMPL_GNUSTEP
+  notification_center = [NSNotificationCenter defaultCenter];
+  [notification_center addObserver: self
+			  selector: @selector(updateMonitors:)
+			      name: NSApplicationDidChangeScreenParametersNotification
+			    object: nil];
+#endif
 
   return self;
 }
@@ -5666,11 +5698,11 @@ ns_term_shutdown (int sig)
 #define NSAppKitVersionNumber10_9 1265
 #endif
 
-    if ((int)NSAppKitVersionNumber != NSAppKitVersionNumber10_9)
-      {
-        [super run];
-        return;
-      }
+  if ((int) NSAppKitVersionNumber != NSAppKitVersionNumber10_9)
+    {
+      [super run];
+      return;
+    }
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -5854,6 +5886,36 @@ ns_term_shutdown (int sig)
   return YES;
 }
 
+#ifdef NS_IMPL_GNUSTEP
+- (void) updateMonitors: (NSNotification *) notification
+{
+  struct input_event ie;
+  union buffered_input_event *ev;
+  Lisp_Object new_monitors;
+
+  EVENT_INIT (ie);
+
+  new_monitors = Fns_display_monitor_attributes_list (Qnil);
+
+  if (!NILP (Fequal (new_monitors, last_known_monitors)))
+    return;
+
+  last_known_monitors = new_monitors;
+
+  ev = (kbd_store_ptr == kbd_buffer
+	? kbd_buffer + KBD_BUFFER_SIZE - 1
+	: kbd_store_ptr - 1);
+
+  if (kbd_store_ptr != kbd_fetch_ptr
+      && ev->ie.kind == MONITORS_CHANGED_EVENT)
+    return;
+
+  ie.kind = MONITORS_CHANGED_EVENT;
+  XSETTERMINAL (ie.arg, x_display_list->terminal);
+
+  kbd_buffer_store_event (&ie);
+}
+#endif
 
 /* **************************************************************************
 
@@ -10575,4 +10637,6 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
   syms_of_nsfont ();
 #endif
 
+  last_known_monitors = Qnil;
+  staticpro (&last_known_monitors);
 }

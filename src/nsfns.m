@@ -2769,7 +2769,8 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
         }
       else
         {
-          // Flip y coordinate as NS has y starting from the bottom.
+          /* Flip y coordinate as NS screen coordinates originate from
+	     the bottom.  */
           y = (short) (primary_display_height - fr.size.height - fr.origin.y);
           vy = (short) (primary_display_height -
                         vfr.size.height - vfr.origin.y);
@@ -2781,11 +2782,12 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       m->geom.height = (unsigned short) fr.size.height;
 
       m->work.x = (short) vfr.origin.x;
-      // y is flipped on NS, so vy - y are pixels missing at the bottom,
-      // and fr.size.height - vfr.size.height are pixels missing in total.
-      // Pixels missing at top are
-      // fr.size.height - vfr.size.height - vy + y.
-      // work.y is then pixels missing at top + y.
+      /* y is flipped on NS, so vy - y are pixels missing at the
+	 bottom, and fr.size.height - vfr.size.height are pixels
+	 missing in total.
+
+	 Pixels missing at top are fr.size.height - vfr.size.height -
+	 vy + y.  work.y is then pixels missing at top + y.  */
       m->work.y = (short) (fr.size.height - vfr.size.height) - vy + y + y;
       m->work.width = (unsigned short) vfr.size.width;
       m->work.height = (unsigned short) vfr.size.height;
@@ -2800,13 +2802,14 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       }
 
 #else
-      // Assume 92 dpi as x-display-mm-height/x-display-mm-width does.
+      /* Assume 92 dpi as x-display-mm-height and x-display-mm-width
+	 do.  */
       m->mm_width = (int) (25.4 * fr.size.width / 92.0);
       m->mm_height = (int) (25.4 * fr.size.height / 92.0);
 #endif
     }
 
-  // Primary monitor is always first for NS.
+  /* Primary monitor is always ordered first for NS.  */
   attributes_list = ns_make_monitor_attribute_list (monitors, n_monitors,
                                                     0, "NS");
 
