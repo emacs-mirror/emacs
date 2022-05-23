@@ -35,26 +35,35 @@ int popup_activated_p = 0;
 
 static void
 digest_menu_items (void *first_menu, int start, int menu_items_used,
-		   int mbar_p)
+		   bool is_menu_bar)
 {
   void **menus, **panes;
-  ssize_t menu_len = (menu_items_used + 1 - start) * sizeof *menus;
-  ssize_t pane_len = (menu_items_used + 1 - start) * sizeof *panes;
+  ssize_t menu_len;
+  ssize_t pane_len;
+  int i, menu_depth;
+  void *menu, *window, *view;
+  Lisp_Object pane_name, prefix;
+  const char *pane_string;
+  Lisp_Object item_name, enable, descrip, def, selected, help;
 
-  menus = alloca (menu_len);
-  panes = alloca (pane_len);
+  USE_SAFE_ALLOCA;
 
-  int i = start, menu_depth = 0;
+  menu_len = (menu_items_used + 1 - start) * sizeof *menus;
+  pane_len = (menu_items_used + 1 - start) * sizeof *panes;
+  menu = first_menu;
 
+  i = start;
+  menu_depth = 0;
+
+  menus = SAFE_ALLOCA (menu_len);
+  panes = SAFE_ALLOCA (pane_len);
   memset (menus, 0, menu_len);
   memset (panes, 0, pane_len);
-
-  void *menu = first_menu;
-
   menus[0] = first_menu;
 
-  void *window = NULL;
-  void *view = NULL;
+  window = NULL;
+  view = NULL;
+
   if (FRAMEP (Vmenu_updating_frame) &&
       FRAME_LIVE_P (XFRAME (Vmenu_updating_frame)) &&
       FRAME_HAIKU_P (XFRAME (Vmenu_updating_frame)))
@@ -83,9 +92,6 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 	i += 1;
       else if (EQ (AREF (menu_items, i), Qt))
 	{
-	  Lisp_Object pane_name, prefix;
-	  const char *pane_string;
-
 	  if (menu_items_n_panes == 1)
 	    {
 	      i += MENU_ITEMS_PANE_LENGTH;
@@ -116,7 +122,6 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 	}
       else
 	{
-	  Lisp_Object item_name, enable, descrip, def, selected, help;
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
 	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
@@ -144,7 +149,7 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 	    menu = BMenu_new_submenu (menu, SSDATA (item_name), !NILP (enable));
 	  else if (NILP (def) && menu_separator_name_p (SSDATA (item_name)))
 	    BMenu_add_separator (menu);
-	  else if (!mbar_p)
+	  else if (!is_menu_bar)
 	    {
 	      if (!use_system_tooltips || NILP (Fsymbol_value (Qtooltip_mode)))
 		BMenu_add_item (menu, SSDATA (item_name),
@@ -178,6 +183,8 @@ digest_menu_items (void *first_menu, int start, int menu_items_used,
 
   if (view)
     BView_draw_unlock (view);
+
+  SAFE_FREE ();
 }
 
 static Lisp_Object
@@ -376,12 +383,18 @@ Lisp_Object
 haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 		 Lisp_Object title, const char **error_name)
 {
-  int i = 0, submenu_depth = 0;
-  void *view = FRAME_HAIKU_VIEW (f);
-  void *menu;
+  int i, submenu_depth, j;
+  void *view, *menu;
+  Lisp_Object *subprefix_stack;
+  Lisp_Object prefix, entry;
 
-  Lisp_Object *subprefix_stack =
-    alloca (menu_items_used * sizeof (Lisp_Object));
+  USE_SAFE_ALLOCA;
+
+  view = FRAME_HAIKU_VIEW (f);
+  i = 0;
+  submenu_depth = 0;
+  subprefix_stack
+    = SAFE_ALLOCA (menu_items_used * sizeof (Lisp_Object));
 
   eassert (FRAME_HAIKU_P (f));
 
@@ -390,6 +403,8 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
       *error_name = "Empty menu";
+
+      SAFE_FREE ();
       return Qnil;
     }
 
@@ -417,8 +432,6 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 
   if (menu_item_selection)
     {
-      Lisp_Object prefix, entry;
-
       prefix = entry = Qnil;
       i = 0;
       while (i < menu_items_used)
@@ -452,8 +465,6 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 		{
 		  if (menuflags & MENU_KEYMAPS)
 		    {
-		      int j;
-
 		      entry = list1 (entry);
 		      if (!NILP (prefix))
 			entry = Fcons (prefix, entry);
@@ -464,6 +475,8 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 		  block_input ();
 		  BPopUpMenu_delete (menu);
 		  unblock_input ();
+
+		  SAFE_FREE ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -480,6 +493,8 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
   block_input ();
   BPopUpMenu_delete (menu);
   unblock_input ();
+
+  SAFE_FREE ();
   return Qnil;
 }
 
