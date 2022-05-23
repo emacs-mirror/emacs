@@ -1449,14 +1449,29 @@ main (int argc, char **argv)
 	  version = emacs_version;
 	  copyright = emacs_copyright;
 	}
-      printf (("%s %s\n"
-	       "%s\n"
+      printf ("%s %s\n", PACKAGE_NAME, version);
+      {
+	Lisp_Object rversion =
+	  Fsymbol_value (intern_c_string ("emacs-repository-version"));
+	Lisp_Object rbranch =
+	  Fsymbol_value (intern_c_string ("emacs-repository-branch"));
+	Lisp_Object rtime =
+	  Fsymbol_value (intern_c_string ("emacs-build-time"));
+	if (!NILP (rversion) && !NILP (rbranch) && !NILP (rtime))
+	  printf ("Development version %s on %s branch; build date %s.\n",
+		  SSDATA (Fsubstring (rversion, make_fixnum (0),
+				      make_fixnum (12))),
+		  SSDATA (rbranch),
+		  SSDATA (Fformat_time_string (build_string ("%Y-%m-%d"),
+					       rtime, Qnil)));
+      }
+      printf (("%s\n"
 	       "%s comes with ABSOLUTELY NO WARRANTY.\n"
 	       "You may redistribute copies of %s\n"
 	       "under the terms of the GNU General Public License.\n"
 	       "For more information about these matters, "
 	       "see the file named COPYING.\n"),
-	      PACKAGE_NAME, version, copyright, PACKAGE_NAME, PACKAGE_NAME);
+	      copyright, PACKAGE_NAME, PACKAGE_NAME);
       exit (0);
     }
 
