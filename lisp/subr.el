@@ -441,7 +441,10 @@ To signal with MESSAGE without interpreting format characters
 like `%', `\\=`' and `\\='', use (error \"%s\" MESSAGE).
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency."
+for the sake of consistency.
+
+To alter the look of the displayed error messages, you can use
+the `command-error-function' variable."
   (declare (advertised-calling-convention (string &rest args) "23.1"))
   (signal 'error (list (apply #'format-message args))))
 
@@ -457,7 +460,10 @@ To signal with MESSAGE without interpreting format characters
 like `%', `\\=`' and `\\='', use (user-error \"%s\" MESSAGE).
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency."
+for the sake of consistency.
+
+To alter the look of the displayed error messages, you can use
+the `command-error-function' variable."
   (signal 'user-error (list (apply #'format-message format args))))
 
 (defun define-error (name message &optional parent)

@@ -12863,6 +12863,14 @@ Called with three arguments:
 - the context (a string which normally goes at the start of the message),
 - the Lisp function within which the error was signaled.
 
+For instance, to make error messages stand out more in the echo area,
+you could say something like:
+
+    (setq command-error-function
+          (lambda (data _ _)
+            (message "%s" (propertize (error-message-string data)
+                                      \\='face \\='error))))
+
 Also see `set-message-function' (which controls how non-error messages
 are displayed).  */);
   Vcommand_error_function = intern ("command-error-default-function");
