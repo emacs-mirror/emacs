@@ -28,11 +28,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "haikuselect.h"
 
+/* The clipboard object representing the primary selection.  */
 static BClipboard *primary = NULL;
+
+/* The clipboard object representing the secondary selection.  */
 static BClipboard *secondary = NULL;
+
+/* The clipboard object used by other programs, representing the
+   clipboard.  */
 static BClipboard *system_clipboard = NULL;
+
+/* The number of times the system clipboard has changed.  */
 static int64 count_clipboard = -1;
+
+/* The number of times the primary selection has changed.  */
 static int64 count_primary = -1;
+
+/* The number of times the secondary selection has changed.  */
 static int64 count_secondary = -1;
 
 static BClipboard *
@@ -178,6 +190,25 @@ be_set_clipboard_data_1 (BClipboard *cb, const char *type, const char *data,
   cb->Unlock ();
 }
 
+void
+be_update_clipboard_count (enum haiku_clipboard id)
+{
+  switch (id)
+    {
+    case CLIPBOARD_CLIPBOARD:
+      count_clipboard = system_clipboard->SystemCount ();
+      break;
+
+    case CLIPBOARD_PRIMARY:
+      count_primary = primary->SystemCount ();
+      break;
+
+    case CLIPBOARD_SECONDARY:
+      count_secondary = secondary->SystemCount ();
+      break;
+    }
+}
+
 char *
 be_find_clipboard_data (enum haiku_clipboard id, const char *type,
 			ssize_t *len)
@@ -190,6 +221,8 @@ void
 be_set_clipboard_data (enum haiku_clipboard id, const char *type,
 		       const char *data, ssize_t len, bool clear)
 {
+  be_update_clipboard_count (id);
+
   be_set_clipboard_data_1 (get_clipboard_object (id), type,
 			   data, len, clear);
 }
@@ -202,28 +235,46 @@ be_get_clipboard_targets (enum haiku_clipboard id, char **targets,
 			      len);
 }
 
-bool
-BClipboard_owns_clipboard (void)
+static bool
+clipboard_owner_p (void)
 {
   return (count_clipboard >= 0
 	  && (count_clipboard + 1
 	      == system_clipboard->SystemCount ()));
 }
 
-bool
-BClipboard_owns_primary (void)
+static bool
+primary_owner_p (void)
 {
   return (count_primary >= 0
 	  && (count_primary + 1
 	      == primary->SystemCount ()));
 }
 
-bool
-BClipboard_owns_secondary (void)
+static bool
+secondary_owner_p (void)
 {
   return (count_secondary >= 0
 	  && (count_secondary + 1
 	      == secondary->SystemCount ()));
+}
+
+bool
+be_clipboard_owner_p (enum haiku_clipboard clipboard)
+{
+  switch (clipboard)
+    {
+    case CLIPBOARD_PRIMARY:
+      return primary_owner_p ();
+
+    case CLIPBOARD_SECONDARY:
+      return secondary_owner_p ();
+
+    case CLIPBOARD_CLIPBOARD:
+      return clipboard_owner_p ();
+    }
+
+  abort ();
 }
 
 void

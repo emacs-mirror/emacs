@@ -145,6 +145,8 @@ In that case, the arguments after NAME are ignored.  */)
 
   if (CONSP (name) || NILP (name))
     {
+      be_update_clipboard_count (clipboard_name);
+
       rc = be_lock_clipboard_message (clipboard_name,
 				      &message, true);
 
@@ -179,16 +181,11 @@ of the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.  */)
   (Lisp_Object selection)
 {
   bool value;
+  enum haiku_clipboard name;
 
   block_input ();
-  if (EQ (selection, QPRIMARY))
-    value = BClipboard_owns_primary ();
-  else if (EQ (selection, QSECONDARY))
-    value = BClipboard_owns_secondary ();
-  else if (EQ (selection, QCLIPBOARD))
-    value = BClipboard_owns_clipboard ();
-  else
-    value = false;
+  name = haiku_get_clipboard_name (selection);
+  value = be_clipboard_owner_p (name);
   unblock_input ();
 
   return value ? Qt : Qnil;
