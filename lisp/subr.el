@@ -4083,8 +4083,8 @@ This function is like `insert', except it honors the variables
 
 It also runs the string through `yank-transform-functions'."
   ;; Allow altering the yank string.
-  (dolist (func yank-transform-functions)
-    (setq string (funcall func string)))
+  (run-hook-wrapped 'yank-transform-functions
+                    (lambda (f) (setq string (funcall f string))))
   (let (to)
     (while (setq to (next-single-property-change 0 'yank-handler string))
       (insert-for-yank-1 (substring string 0 to))

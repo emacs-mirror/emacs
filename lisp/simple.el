@@ -5947,14 +5947,14 @@ See also `yank-handled-properties'."
   :version "24.3")
 
 (defcustom yank-transform-functions nil
-  "List of functions to run on strings to be yanked.
+  "Hook run on strings to be yanked.
 Each function in this list will be called (in order) with the
 string to be yanked as the sole argument, and should return the (possibly)
 transformed string.
 
 The functions will be called with the destination buffer as the current
 buffer, and with point at the place where the string is to be inserted."
-  :type '(repeat function)
+  :type 'hook
   :version "29.1"
   :group 'killing)
 
