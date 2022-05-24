@@ -799,21 +799,23 @@ the C sources, too."
         (erase-buffer)
         (insert-file-contents f)
         (goto-char (point-min))
-        (search-forward "\n*")
-        (while (re-search-forward re nil t)
-          (let ((pos (match-beginning 0)))
-            (save-excursion
-              ;; Almost all entries are of the form "* ... in Emacs NN.MM."
-              ;; but there are also a few in the form "* Emacs NN.MM is a bug
-              ;; fix release ...".
-              (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
-                                           nil t))
-                  (message "Ref found in non-versioned section in %S"
-                           (file-name-nondirectory f))
-                (let ((version (match-string 1)))
-                  (when (or (null first) (version< version first))
-                    (setq place (list f pos))
-                    (setq first version)))))))))
+        ;; Failed git merges can leave empty files that look like NEWS
+        ;; in etc.  Don't error here.
+        (when (search-forward "\n*" nil t)
+          (while (re-search-forward re nil t)
+            (let ((pos (match-beginning 0)))
+              (save-excursion
+                ;; Almost all entries are of the form "* ... in Emacs NN.MM."
+                ;; but there are also a few in the form "* Emacs NN.MM is a bug
+                ;; fix release ...".
+                (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
+                                             nil t))
+                    (message "Ref found in non-versioned section in %S"
+                             (file-name-nondirectory f))
+                  (let ((version (match-string 1)))
+                    (when (or (null first) (version< version first))
+                      (setq place (list f pos))
+                      (setq first version))))))))))
     (when first
       (make-text-button first nil 'type 'help-news 'help-args place))))
 
