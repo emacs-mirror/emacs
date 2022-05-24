@@ -51,7 +51,14 @@
            (doc-string 3))
   `(ert-deftest ,(intern (concat "comp-tests-" (symbol-name name))) ,args
      :tags '(:nativecomp)
-     ,@docstring-and-body))
+     ,@(and (stringp (car docstring-and-body))
+            (list (pop docstring-and-body)))
+     ;; Some of the tests leave spill files behind -- so create a
+     ;; sub-dir where native-comp can do its work, and then delete it
+     ;; at the end.
+     (ert-with-temp-directory dir
+       (let ((temporary-file-directory dir))
+         ,@docstring-and-body))))
 
 
 
