@@ -6180,6 +6180,7 @@ garbage_collect (void)
 
   mark_pinned_objects ();
   mark_pinned_symbols ();
+  mark_lread ();
   mark_terminals ();
   mark_kboards ();
   mark_threads ();
