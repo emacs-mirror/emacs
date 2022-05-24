@@ -5613,9 +5613,15 @@ If HIGHLIGHT-REGEXP is non-nil, `next-error' will temporarily highlight
 the matching section of the visited source line; the default is to use the
 global value of `compilation-highlight-regexp'.
 
+If CONTINUE is non-nil, the buffer won't be emptied before
+compilation is started.  This can be useful if you wish to
+combine the output from several compilation commands in the same
+buffer.  The new output will be at the end of the buffer, and
+point is not changed.
+
 Returns the compilation buffer created.
 
-\(fn COMMAND &optional MODE NAME-FUNCTION HIGHLIGHT-REGEXP)" nil nil)
+\(fn COMMAND &optional MODE NAME-FUNCTION HIGHLIGHT-REGEXP CONTINUE)" nil nil)
 
 (autoload 'compilation-mode "compile" "\
 Major mode for compilation log buffers.
@@ -8483,10 +8489,15 @@ String to indent at the start if the header line.
 This is used in `header-line-indent-mode', and buffers that have
 this switched on should have a `header-line-format' that look like:
 
-  (\"\" header-line-indent THE-REST...)")
+  (\"\" header-line-indent THE-REST...)
+
+Also see `header-line-indent-width'.")
 
 (defvar header-line-indent-width 0 "\
-The width of the current line numbers displayed.")
+The width of the current line numbers displayed.
+This is updated when `header-line-indent-mode' is switched on.
+
+Also see `header-line-indent'.")
 
 (autoload 'header-line-indent-mode "display-line-numbers" "\
 Mode to indent the header line in `display-line-numbers-mode' buffers.
@@ -8499,6 +8510,12 @@ Buffers that have this switched on should have a
 `header-line-format' that look like:
 
   (\"\" header-line-indent THE-REST...)
+
+The `header-line-indent-width' variable is also kept updated, and
+has the width of `header-line-format'.  This can be used, for
+instance, in `:align-to' specs, like:
+
+  (space :align-to (+ header-line-indent-width 10))
 
 This is a minor mode.  If called interactively, toggle the
 `Header-Line-Indent mode' mode.  If the prefix argument is
@@ -11169,7 +11186,7 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 ;;;### (autoloads nil "erc-lang" "erc/erc-lang.el" (0 0 0 0))
 ;;; Generated autoloads from erc/erc-lang.el
 
-(register-definition-prefixes "erc-lang" '("erc-cmd-LANG" "iso-638-languages" "language"))
+(register-definition-prefixes "erc-lang" '("erc-cmd-LANG" "iso-639-1-languages" "language"))
 
 ;;;***
 
@@ -13484,6 +13501,13 @@ The commands `flymake-goto-next-error' and
 `flymake-goto-prev-error' can be used to navigate among Flymake
 diagnostics annotated in the buffer.
 
+By default, `flymake-mode' doesn't override the \\[next-error] command, but
+if you're using Flymake a lot (and don't use the regular compilation
+mechanisms that often), it can be useful to put something like
+the following in your init file:
+
+  (setq next-error-function \\='flymake-goto-next-error)
+
 The visual appearance of each type of diagnostic can be changed
 by setting properties `flymake-overlay-control', `flymake-bitmap'
 and `flymake-severity' on the symbols of diagnostic types (like
@@ -14219,7 +14243,7 @@ Interactively, reads the register using `register-read-with-preview'.
 ;;;### (autoloads nil "fringe" "fringe.el" (0 0 0 0))
 ;;; Generated autoloads from fringe.el
 
-(unless (fboundp 'define-fringe-bitmap) (defun define-fringe-bitmap (_bitmap _bits &optional _height _width _align) "Define fringe bitmap BITMAP from BITS of size HEIGHT x WIDTH.\nBITMAP is a symbol identifying the new fringe bitmap.\nBITS is either a string or a vector of integers.\nHEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.\nWIDTH must be an integer between 1 and 16, or nil which defaults to 8.\nOptional fifth arg ALIGN may be one of ‘top’, ‘center’, or ‘bottom’,\nindicating the positioning of the bitmap relative to the rows where it\nis used; the default is to center the bitmap.  Fifth arg may also be a\nlist (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap\nshould be repeated.\nIf BITMAP already exists, the existing definition is replaced."))
+(unless (fboundp 'define-fringe-bitmap) (defun define-fringe-bitmap (_bitmap _bits &optional _height _width _align) "Define fringe bitmap BITMAP from BITS of size HEIGHT x WIDTH.\nBITMAP is a symbol identifying the new fringe bitmap.\nBITS is either a string or a vector of integers.\nHEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.\nWIDTH must be an integer between 1 and 16, or nil which defaults to 8.\nOptional fifth arg ALIGN may be one of `top', `center', or `bottom',\nindicating the positioning of the bitmap relative to the rows where it\nis used; the default is to center the bitmap.  Fifth arg may also be a\nlist (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap\nshould be repeated.\nIf BITMAP already exists, the existing definition is replaced."))
 
 (register-definition-prefixes "fringe" '("fringe-" "set-fringe-"))
 
@@ -22273,11 +22297,14 @@ The characters copied are inserted in the buffer before point.
 
 (autoload 'zap-up-to-char "misc" "\
 Kill up to, but not including ARGth occurrence of CHAR.
+When run interactively, the argument INTERACTIVE is non-nil.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found.
 Ignores CHAR at point.
+If called interactively, do a case sensitive search if CHAR
+is an upper-case character.
 
-\(fn ARG CHAR)" t nil)
+\(fn ARG CHAR &optional INTERACTIVE)" t nil)
 
 (autoload 'mark-beginning-of-buffer "misc" "\
 Set mark at the beginning of the buffer." t nil)
@@ -30334,7 +30361,7 @@ Major mode for editing Bovine grammars.
 
 \(fn)" t nil)
 
-(register-definition-prefixes "semantic/bovine/grammar" '("bovine-"))
+(register-definition-prefixes "semantic/bovine/grammar" '("bovine-" "semantic-grammar-"))
 
 ;;;***
 
@@ -30475,7 +30502,7 @@ Major mode for editing Wisent grammars.
 
 \(fn)" t nil)
 
-(register-definition-prefixes "semantic/wisent/grammar" '("wisent-"))
+(register-definition-prefixes "semantic/wisent/grammar" '("semantic-grammar-" "wisent-"))
 
 ;;;***
 
@@ -35757,7 +35784,7 @@ Discard Tramp from loading remote files." (interactive) (ignore-errors (unload-f
 (defvar tramp-archive-enabled (featurep 'dbusbind) "\
 Non-nil when file archive support is available.")
 
-(defconst tramp-archive-suffixes '("7z" "apk" "ar" "cab" "CAB" "cpio" "crate" "deb" "depot" "exe" "iso" "jar" "lzh" "LZH" "msu" "MSU" "mtree" "odb" "odf" "odg" "odp" "ods" "odt" "pax" "rar" "rpm" "shar" "tar" "tbz" "tgz" "tlz" "txz" "tzst" "warc" "xar" "xpi" "xps" "zip" "ZIP") "\
+(defconst tramp-archive-suffixes '("7z" "apk" "ar" "cab" "CAB" "cpio" "crate" "deb" "depot" "epub" "exe" "iso" "jar" "lzh" "LZH" "msu" "MSU" "mtree" "odb" "odf" "odg" "odp" "ods" "odt" "pax" "rar" "rpm" "shar" "tar" "tbz" "tgz" "tlz" "txz" "tzst" "warc" "xar" "xpi" "xps" "zip" "ZIP") "\
 List of suffixes which indicate a file archive.
 It must be supported by libarchive(3).")
 
@@ -40452,45 +40479,46 @@ Zone out, completely." t nil)
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
 ;;;;;;  "language/indian.el" "language/japanese.el" "language/khmer.el"
 ;;;;;;  "language/korean.el" "language/lao.el" "language/misc-lang.el"
-;;;;;;  "language/romanian.el" "language/sinhala.el" "language/slovak.el"
-;;;;;;  "language/tai-viet.el" "language/thai.el" "language/tibetan.el"
-;;;;;;  "language/utf-8-lang.el" "language/vietnamese.el" "ldefs-boot.el"
-;;;;;;  "leim/ja-dic/ja-dic.el" "leim/leim-list.el" "leim/quail/4Corner.el"
-;;;;;;  "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el"
-;;;;;;  "leim/quail/CTLau.el" "leim/quail/ECDICT.el" "leim/quail/ETZY.el"
-;;;;;;  "leim/quail/PY-b5.el" "leim/quail/PY.el" "leim/quail/Punct-b5.el"
-;;;;;;  "leim/quail/Punct.el" "leim/quail/QJ-b5.el" "leim/quail/QJ.el"
-;;;;;;  "leim/quail/SW.el" "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el"
-;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/cham.el"
-;;;;;;  "leim/quail/compose.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
-;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/emoji.el"
-;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
-;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
-;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
-;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
-;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
-;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
-;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
-;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
-;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
-;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
-;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "minibuffer.el"
-;;;;;;  "mouse.el" "newcomment.el" "obarray.el" "org/ob-core.el"
-;;;;;;  "org/ob-lob.el" "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el"
-;;;;;;  "org/ol-bbdb.el" "org/ol-irc.el" "org/ol.el" "org/org-archive.el"
-;;;;;;  "org/org-attach.el" "org/org-clock.el" "org/org-colview.el"
-;;;;;;  "org/org-compat.el" "org/org-datetree.el" "org/org-duration.el"
-;;;;;;  "org/org-element.el" "org/org-feed.el" "org/org-footnote.el"
-;;;;;;  "org/org-goto.el" "org/org-id.el" "org/org-indent.el" "org/org-install.el"
-;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
-;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
-;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
-;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
-;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
-;;;;;;  "org/ox-texinfo.el" "org/ox.el" "paren.el" "progmodes/elisp-mode.el"
-;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
-;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
-;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
+;;;;;;  "language/philippine.el" "language/romanian.el" "language/sinhala.el"
+;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
+;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
+;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
+;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
+;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
+;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
+;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
+;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
+;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
+;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
+;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
+;;;;;;  "leim/quail/emoji.el" "leim/quail/georgian.el" "leim/quail/greek.el"
+;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
+;;;;;;  "leim/quail/hebrew.el" "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el"
+;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
+;;;;;;  "leim/quail/persian.el" "leim/quail/philippine.el" "leim/quail/programmer-dvorak.el"
+;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
+;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
+;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
+;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
+;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
+;;;;;;  "loadup.el" "mail/blessmail.el" "mail/undigest.el" "menu-bar.el"
+;;;;;;  "mh-e/mh-gnus.el" "minibuffer.el" "mouse.el" "newcomment.el"
+;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
+;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
+;;;;;;  "org/ol.el" "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
+;;;;;;  "org/org-colview.el" "org/org-compat.el" "org/org-datetree.el"
+;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
+;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
+;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
+;;;;;;  "org/org-list.el" "org/org-macs.el" "org/org-mobile.el" "org/org-num.el"
+;;;;;;  "org/org-plot.el" "org/org-refile.el" "org/org-table.el"
+;;;;;;  "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el" "org/ox-html.el"
+;;;;;;  "org/ox-icalendar.el" "org/ox-latex.el" "org/ox-md.el" "org/ox-odt.el"
+;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
+;;;;;;  "paren.el" "progmodes/elisp-mode.el" "progmodes/prog-mode.el"
+;;;;;;  "ps-mule.el" "register.el" "replace.el" "rfn-eshadow.el"
+;;;;;;  "select.el" "simple.el" "startup.el" "subdirs.el" "subr.el"
+;;;;;;  "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
 ;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
 ;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
 ;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
