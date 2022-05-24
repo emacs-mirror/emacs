@@ -1533,23 +1533,33 @@ Returns the stats object."
   "Like `ert-run-tests-batch', but exits Emacs when done.
 
 The exit status will be 0 if all test results were as expected, 1
-on unexpected results, or 2 if the tool detected an error outside
+son unexpected results, or 2 if the tool detected an error outside
 of the tests (e.g. invalid SELECTOR or bug in the code that runs
 the tests)."
   (or noninteractive
       (user-error "This function is only for use in batch mode"))
-  ;; Better crash loudly than attempting to recover from undefined
-  ;; behavior.
-  (setq attempt-stack-overflow-recovery nil
-        attempt-orderly-shutdown-on-fatal-signal nil)
-  (unwind-protect
-      (let ((stats (ert-run-tests-batch selector)))
-        (kill-emacs (if (zerop (ert-stats-completed-unexpected stats)) 0 1)))
+  (let ((eln-dir (and (featurep 'native-compile)
+                      (make-temp-file "test-nativecomp-cache-" t))))
+    (when eln-dir
+      (startup-redirect-eln-cache eln-dir))
+    ;; Better crash loudly than attempting to recover from undefined
+    ;; behavior.
+    (setq attempt-stack-overflow-recovery nil
+          attempt-orderly-shutdown-on-fatal-signal nil)
     (unwind-protect
-        (progn
-          (message "Error running tests")
-          (backtrace))
-      (kill-emacs 2))))
+        (let ((stats (ert-run-tests-batch selector)))
+          (when eln-dir
+            (ignore-errors
+              (delete-directory eln-dir t)))
+          (kill-emacs (if (zerop (ert-stats-completed-unexpected stats)) 0 1)))
+      (unwind-protect
+          (progn
+            (message "Error running tests")
+            (backtrace))
+        (when eln-dir
+          (ignore-errors
+            (delete-directory eln-dir t)))
+        (kill-emacs 2)))))
 
 (defvar ert-load-file-name nil
   "The name of the loaded ERT test file, a string.
