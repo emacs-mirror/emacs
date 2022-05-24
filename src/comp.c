@@ -756,7 +756,7 @@ comp_hash_source_file (Lisp_Object filename)
 
 DEFUN ("comp--subr-signature", Fcomp__subr_signature,
        Scomp__subr_signature, 1, 1, 0,
-       doc: /* Support function to 'hash_native_abi'.
+       doc: /* Support function to hash_native_abi.
 For internal use.  */)
   (Lisp_Object subr)
 {

@@ -3643,7 +3643,7 @@ DEFUN ("frame-fringe-width", Ffringe_width, Sfringe_width, 0, 1, 0,
 
 DEFUN ("frame-child-frame-border-width", Fframe_child_frame_border_width, Sframe_child_frame_border_width, 0, 1, 0,
        doc: /* Return width of FRAME's child-frame border in pixels.
- If FRAME's 'child-frame-border-width' parameter is nil, return FRAME's
+ If FRAME's `child-frame-border-width' parameter is nil, return FRAME's
  internal border width instead.  */)
   (Lisp_Object frame)
 {

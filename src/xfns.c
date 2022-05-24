@@ -9700,11 +9700,11 @@ default and usually works with most desktops.  Some desktop environments
 however, may refuse to resize a child frame when Emacs is built with
 GTK3.  For those environments, the two settings below are provided.
 
-If this equals the symbol 'hide', Emacs temporarily hides the child
+If this equals the symbol `hide', Emacs temporarily hides the child
 frame during resizing.  This approach seems to work reliably, may
 however induce some flicker when the frame is made visible again.
 
-If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
+If this equals the symbol `resize-mode', Emacs uses GTK's resize mode to
 always trigger an immediate resize of the child frame.  This method is
 deprecated by GTK and may not work in future versions of that toolkit.
 It also may freeze Emacs when used with other desktop environments.  It

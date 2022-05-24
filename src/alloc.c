@@ -6302,7 +6302,7 @@ where each entry has the form (NAME SIZE USED FREE), where:
   to return them to the OS).
 
 However, if there was overflow in pure space, and Emacs was dumped
-using the 'unexec' method, `garbage-collect' returns nil, because
+using the \"unexec\" method, `garbage-collect' returns nil, because
 real GC can't be done.
 
 Note that calling this function does not guarantee that absolutely all
