@@ -310,7 +310,7 @@ may re-organize the list with side-effects."
 ;; class tag.
 ;;
 (defvar-local semantic-orphaned-member-metaparent-type "class"
-  "In `semantic-adopt-external-members', the type of 'type for metaparents.
+  "In `semantic-adopt-external-members', the type of `type' for metaparents.
 A metaparent is a made-up type semantic token used to hold the child list
 of orphaned members of a named type.")
 

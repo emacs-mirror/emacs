@@ -1102,10 +1102,10 @@ KEYBINDING and use the `help-key-binding' face.
 
 Each substring of the form \\\\={MAPVAR} is replaced by a summary
 of the value of MAPVAR as a keymap.  This summary is similar to
-the one produced by ‘describe-bindings’.  This will normally
+the one produced by `describe-bindings'.  This will normally
 exclude menu bindings, but if the optional INCLUDE-MENUS argument
 is non-nil, also include menu bindings.  The summary ends in two
-newlines (used by the helper function ‘help-make-xrefs’ to find
+newlines (used by the helper function `help-make-xrefs' to find
 the end of the summary).
 
 Each substring of the form \\\\=<MAPVAR> specifies the use of MAPVAR
@@ -1113,7 +1113,7 @@ as the keymap for future \\\\=[COMMAND] substrings.
 
 Each grave accent \\=` is replaced by left quote, and each apostrophe \\='
 is replaced by right quote.  Left and right quote characters are
-specified by ‘text-quoting-style’.
+specified by `text-quoting-style'.
 
 \\\\== quotes the following character and is discarded; thus, \\\\==\\\\== puts \\\\==
 into the output, \\\\==\\[ puts \\[ into the output, and \\\\==\\=` puts \\=` into the
