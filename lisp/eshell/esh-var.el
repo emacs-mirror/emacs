@@ -185,7 +185,7 @@ list of the indices that was used in the reference, and whether the
 user is requesting the length of the ultimate element.  For example, a
 reference of `$NAME[10][20]' would result in the function for alias
 `NAME' being called (assuming it were aliased to a function), and the
-arguments passed to this function would be the list '(10 20)', and
+arguments passed to this function would be the list `(10 20)', and
 nil.
 
 If the value is a string, return the value for the variable with that

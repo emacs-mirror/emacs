@@ -2483,7 +2483,7 @@ For definition of that list see `tramp-set-completion-function'."
 
 (defun tramp-default-file-modes (filename &optional flag)
   "Return file modes of FILENAME as integer.
-If optional FLAG is ‘nofollow’, do not follow FILENAME if it is a
+If optional FLAG is `nofollow', do not follow FILENAME if it is a
 symbolic link.  If the file modes of FILENAME cannot be
 determined, return the value of `default-file-modes', without
 execute permissions."

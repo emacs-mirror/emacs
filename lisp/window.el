@@ -4181,8 +4181,8 @@ another live window on that frame to serve as its selected
 window.  This option allows to control which window gets selected
 instead.
 
-The possible choices are 'mru' (the default) to select the most
-recently used window on that frame, and 'pos' to choose the
+The possible choices are `mru' (the default) to select the most
+recently used window on that frame, and `pos' to choose the
 window at the frame coordinates of point of the previously
 selected window.  If this is nil, choose the frame's first window
 instead.  A window with a non-nil `no-other-window' parameter is

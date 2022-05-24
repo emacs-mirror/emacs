@@ -234,7 +234,7 @@ This vector holds the faces used for SGR control sequence parameters 0
 to 7.
 
 This variable is obsolete.  To customize the display of faces used by
-ansi-color, change 'ansi-color-FACE', e.g. `ansi-color-bold'.  To
+ansi-color, change `ansi-color-FACE', e.g. `ansi-color-bold'.  To
 customize the actual faces used (e.g. to temporarily display SGR
 control sequences differently), use `ansi-color-basic-faces-vector'."
   :type '(vector face face face face face face face face)
@@ -249,7 +249,7 @@ This vector holds the colors used for SGR control sequence parameters
 30 to 37 (foreground colors) and 40 to 47 (background colors).
 
 This variable is obsolete.  To customize the display of colors used by
-ansi-color, change 'ansi-color-COLOR', e.g. `ansi-color-red'.  To
+ansi-color, change `ansi-color-COLOR', e.g. `ansi-color-red'.  To
 customize the actual faces used (e.g. to temporarily display SGR
 control sequences differently), use `ansi-color-normal-colors-vector'."
   :type '(vector (choice color (cons color color))

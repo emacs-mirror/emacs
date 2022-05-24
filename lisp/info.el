@@ -4236,7 +4236,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
   (Info-history-menu e "Back in history" Info-history 'Info-history-back))
 
 (defun Info-history-forward-menu (e)
-  "Pop up the menu with a list of Info nodes visited with ‘Info-history-back’."
+  "Pop up the menu with a list of Info nodes visited with `Info-history-back'."
   (interactive "e" Info-mode)
   (Info-history-menu e "Forward in history" Info-history-forward 'Info-history-forward))
 

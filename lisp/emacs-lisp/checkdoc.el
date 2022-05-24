@@ -327,7 +327,7 @@ This should be set in an Emacs Lisp file's local variables."
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
 (defcustom checkdoc-column-zero-backslash-before-paren t
-  "Non-nil means to warn if there is no '\\' before '(' in column zero.
+  "Non-nil means to warn if there is no \"\\\" before \"(\" in column zero.
 This backslash is no longer needed on Emacs 27.1 or later.
 
 See Info node `(elisp) Documentation Tips' for background."

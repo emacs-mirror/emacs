@@ -314,7 +314,7 @@ BITMAP is a symbol identifying the new fringe bitmap.
 BITS is either a string or a vector of integers.
 HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
 WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
-Optional fifth arg ALIGN may be one of ‘top’, ‘center’, or ‘bottom’,
+Optional fifth arg ALIGN may be one of `top', `center', or `bottom',
 indicating the positioning of the bitmap relative to the rows where it
 is used; the default is to center the bitmap.  Fifth arg may also be a
 list (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap

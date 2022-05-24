@@ -108,9 +108,9 @@ Each function is called with ARG=1."
   :type 'hook)
 
 (defcustom ses-jump-cell-name-function #'upcase
-  "Function to process the string passed to function ‘ses-jump’.
-Set it to 'identity to make no change.
-Set it to 'upcase to make cell name change case isensitive.
+  "Function to process the string passed to function `ses-jump'.
+Set it to `identity' to make no change.
+Set it to `upcase' to make cell name change case isensitive.
 
  May return
 
@@ -119,8 +119,8 @@ Set it to 'upcase to make cell name change case isensitive.
   :type 'function)
 
 (defcustom ses-jump-prefix-function #'ses-jump-prefix
-  "Function that takes the prefix argument passed to function ‘ses-jump’.
-It may return the same sort of thing as ‘ses-jump-cell-name-function’."
+  "Function that takes the prefix argument passed to function `ses-jump'.
+It may return the same sort of thing as `ses-jump-cell-name-function'."
   :type 'function)
 
 

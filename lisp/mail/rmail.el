@@ -537,7 +537,7 @@ Examples:
 ;; Note: this is matched with case-fold-search bound to t.
 (defcustom rmail-re-abbrevs
   "\\(RE\\|رد\\|回复\\|回覆\\|SV\\|Antw\\|VS\\|REF\\|AW\\|ΑΠ\\|ΣΧΕΤ\\|השב\\|Vá\\|R\\|RIF\\|BLS\\|RES\\|Odp\\|YNT\\|ATB\\)"
-  "Regexp with localized 'Re:' abbreviations in various languages."
+  "Regexp with localized \"Re:\" abbreviations in various languages."
   :version "28.1"
   :type 'regexp)
 

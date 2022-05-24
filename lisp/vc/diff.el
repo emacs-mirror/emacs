@@ -153,7 +153,7 @@ Possible values are:
   ;; Noninteractive helper for creating and reverting diff buffers
   "Compare the OLD and NEW file/buffer.
 If the optional SWITCHES is nil, the switches specified in the
-variable ‘diff-switches’ are passed to the diff command,
+variable `diff-switches' are passed to the diff command,
 otherwise SWITCHES is used.  SWITCHES can be a string or a list
 of strings.
 

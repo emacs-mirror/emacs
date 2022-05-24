@@ -192,7 +192,7 @@ determine the renaming scheme, as follows:
   user-defined function:
 
   (defun my-eww-rename-buffer ()
-    (when (eq major-mode 'eww-mode)
+    (when (eq major-mode \\='eww-mode)
       (when-let ((string (or (plist-get eww-data :title)
                              (plist-get eww-data :url))))
         (format \"*%s*\" string))))

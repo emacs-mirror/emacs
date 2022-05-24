@@ -797,7 +797,7 @@ offer a smarter default choice of shell command."
 
 ;;;###autoload
 (defcustom dired-confirm-shell-command t
-  "Whether to prompt for confirmation for ‘dired-do-shell-command’.
+  "Whether to prompt for confirmation for `dired-do-shell-command'.
 If non-nil, prompt for confirmation if the command contains potentially
 dangerous characters.  If nil, never prompt for confirmation."
   :type 'boolean

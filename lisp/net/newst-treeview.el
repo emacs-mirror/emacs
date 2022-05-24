@@ -106,13 +106,13 @@ applies to newsticker only."
 
 (defcustom newsticker-treeview-use-feed-name-from-url-list-in-treeview
   t
-  "Use the feed names from 'newsticker-url-list' for display in treeview."
+  "Use the feed names from `newsticker-url-list' for display in treeview."
   :version "28.1"
   :type 'boolean)
 
 (defcustom newsticker-treeview-use-feed-name-from-url-list-in-itemview
   t
-  "Use feed names from 'newsticker-url-list' in itemview."
+  "Use feed names from `newsticker-url-list' in itemview."
   :version "28.1"
   :type 'boolean)
 
