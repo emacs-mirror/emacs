@@ -184,6 +184,8 @@
 	(runic #x16A0)
         (tagalog #x1700)
         (hanunoo #x1720)
+        (buhid #x1740)
+        (tagbanwa #x1760)
 	(khmer #x1780)
 	(mongolian #x1826)
         (tai-le #x1950)
@@ -752,6 +754,8 @@
 		    runic
                     tagalog
                     hanunoo
+                    buhid
+                    tagbanwa
 		    symbol
 		    braille
 		    yi

@@ -46,6 +46,23 @@ this language environment.")))
              (documentation . "\
 Philippine Language Hanunoo is supported in this language environment.")))
 
+(set-language-info-alist
+ "Buhid" '((charset unicode)
+           (coding-system utf-8)
+           (coding-priority utf-8)
+           (input-method . "buhid")
+           (documentation . "\
+Philippine Language Buhid is supported in this language environment.")))
+
+(set-language-info-alist
+ "Tagbanwa" '((charset unicode)
+             (coding-system utf-8)
+             (coding-priority utf-8)
+             (input-method . "tagbanwa")
+             (sample-text . "Tagbanwa (ᝦᝪᝯ)	ᝫᝩᝬᝥ ᝣᝮᝧᝯ")
+             (documentation . "\
+Philippine Languages Tagbanwa are supported in this language environment.")))
+
 ;; Tagalog composition rules
 (let ((akshara              "[\x1700-\x1711\x171F]")
       (vowel                "[\x1712\x1713]")
