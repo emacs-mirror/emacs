@@ -1763,13 +1763,40 @@ Intended for `eldoc-documentation-functions' (which see)."
 
 (defun elisp-eldoc-var-docstring (callback &rest _ignored)
   "Document variable at point.
-Intended for `eldoc-documentation-functions' (which see)."
+Intended for `eldoc-documentation-functions' (which see).
+Also see `elisp-eldoc-var-docstring-with-value'."
   (let* ((sym (elisp--current-symbol))
          (docstring (and sym (elisp-get-var-docstring sym))))
     (when docstring
       (funcall callback docstring
                :thing sym
                :face 'font-lock-variable-name-face))))
+
+(defun elisp-eldoc-var-docstring-with-value (callback &rest _)
+  "Document variable at point.
+Intended for `eldoc-documentation-functions' (which see).
+Also see `elisp-eldoc-var-docstring-with-value'."
+  (when-let ((cs (elisp--current-symbol)))
+    (when (and (boundp cs)
+	       ;; nil and t are boundp!
+	       (not (null cs))
+	       (not (eq cs t)))
+      (funcall callback
+	       (format "%.100S %s"
+		       (symbol-value cs)
+		       (let* ((doc (documentation-property
+                                    cs 'variable-documentation t))
+			      (more (- (length doc) 1000)))
+			 (concat (propertize
+				  (string-limit (if (string= doc "nil")
+						    "Undocumented."
+						  doc)
+					        1000)
+				  'face 'font-lock-doc-face)
+				 (when (> more 0)
+				   (format "[%sc more]" more)))))
+	       :thing cs
+	       :face 'font-lock-variable-name-face))))
 
 (defun elisp-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.

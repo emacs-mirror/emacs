@@ -1868,6 +1868,9 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
+---
+** New eldoc function: 'elisp-eldoc-var-docstring-with-value'.
+
 ** 'save-some-buffers' can now be extended to save other things.
 Traditionally, 'save-some-buffers' saved buffers, and also saved
 abbrevs.  This has been generalized via the
