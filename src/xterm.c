@@ -784,6 +784,137 @@ static int current_finish;
 static struct input_event *current_hold_quit;
 #endif
 
+struct x_atom_ref
+{
+  /* Atom name.  */
+  const char *name;
+
+  /* Offset of atom in the display info structure.  */
+  int offset;
+};
+
+/* List of all atoms that should be interned when connecting to a
+   display.  */
+static const struct x_atom_ref x_atom_refs[] =
+  {
+#define ATOM_REFS_INIT(string, member)				\
+    { string, offsetof (struct x_display_info, member) },
+    ATOM_REFS_INIT ("WM_PROTOCOLS", Xatom_wm_protocols)
+    ATOM_REFS_INIT ("WM_TAKE_FOCUS", Xatom_wm_take_focus)
+    ATOM_REFS_INIT ("WM_SAVE_YOURSELF", Xatom_wm_save_yourself)
+    ATOM_REFS_INIT ("WM_DELETE_WINDOW", Xatom_wm_delete_window)
+    ATOM_REFS_INIT ("WM_CHANGE_STATE", Xatom_wm_change_state)
+    ATOM_REFS_INIT ("WM_STATE", Xatom_wm_state)
+    ATOM_REFS_INIT ("WM_CONFIGURE_DENIED", Xatom_wm_configure_denied)
+    ATOM_REFS_INIT ("WM_MOVED", Xatom_wm_window_moved)
+    ATOM_REFS_INIT ("WM_CLIENT_LEADER", Xatom_wm_client_leader)
+    ATOM_REFS_INIT ("WM_TRANSIENT_FOR", Xatom_wm_transient_for)
+    ATOM_REFS_INIT ("Editres", Xatom_editres)
+    ATOM_REFS_INIT ("CLIPBOARD", Xatom_CLIPBOARD)
+    ATOM_REFS_INIT ("TIMESTAMP", Xatom_TIMESTAMP)
+    ATOM_REFS_INIT ("TEXT", Xatom_TEXT)
+    ATOM_REFS_INIT ("COMPOUND_TEXT", Xatom_COMPOUND_TEXT)
+    ATOM_REFS_INIT ("UTF8_STRING", Xatom_UTF8_STRING)
+    ATOM_REFS_INIT ("DELETE", Xatom_DELETE)
+    ATOM_REFS_INIT ("MULTIPLE", Xatom_MULTIPLE)
+    ATOM_REFS_INIT ("INCR", Xatom_INCR)
+    ATOM_REFS_INIT ("_EMACS_TMP_",  Xatom_EMACS_TMP)
+    ATOM_REFS_INIT ("EMACS_SERVER_TIME_PROP", Xatom_EMACS_SERVER_TIME_PROP)
+    ATOM_REFS_INIT ("TARGETS", Xatom_TARGETS)
+    ATOM_REFS_INIT ("NULL", Xatom_NULL)
+    ATOM_REFS_INIT ("ATOM", Xatom_ATOM)
+    ATOM_REFS_INIT ("ATOM_PAIR", Xatom_ATOM_PAIR)
+    ATOM_REFS_INIT ("CLIPBOARD_MANAGER", Xatom_CLIPBOARD_MANAGER)
+    ATOM_REFS_INIT ("_XEMBED_INFO", Xatom_XEMBED_INFO)
+    ATOM_REFS_INIT ("_MOTIF_WM_HINTS", Xatom_MOTIF_WM_HINTS)
+    /* For properties of font.  */
+    ATOM_REFS_INIT ("PIXEL_SIZE", Xatom_PIXEL_SIZE)
+    ATOM_REFS_INIT ("AVERAGE_WIDTH", Xatom_AVERAGE_WIDTH)
+    ATOM_REFS_INIT ("_MULE_BASELINE_OFFSET", Xatom_MULE_BASELINE_OFFSET)
+    ATOM_REFS_INIT ("_MULE_RELATIVE_COMPOSE", Xatom_MULE_RELATIVE_COMPOSE)
+    ATOM_REFS_INIT ("_MULE_DEFAULT_ASCENT", Xatom_MULE_DEFAULT_ASCENT)
+    /* Ghostscript support.  */
+    ATOM_REFS_INIT ("DONE", Xatom_DONE)
+    ATOM_REFS_INIT ("PAGE", Xatom_PAGE)
+    ATOM_REFS_INIT ("SCROLLBAR", Xatom_Scrollbar)
+    ATOM_REFS_INIT ("HORIZONTAL_SCROLLBAR", Xatom_Horizontal_Scrollbar)
+    ATOM_REFS_INIT ("_XEMBED", Xatom_XEMBED)
+    /* EWMH */
+    ATOM_REFS_INIT ("_NET_WM_STATE", Xatom_net_wm_state)
+    ATOM_REFS_INIT ("_NET_WM_STATE_FULLSCREEN", Xatom_net_wm_state_fullscreen)
+    ATOM_REFS_INIT ("_NET_WM_STATE_MAXIMIZED_HORZ",
+		    Xatom_net_wm_state_maximized_horz)
+    ATOM_REFS_INIT ("_NET_WM_STATE_MAXIMIZED_VERT",
+		    Xatom_net_wm_state_maximized_vert)
+    ATOM_REFS_INIT ("_NET_WM_STATE_STICKY", Xatom_net_wm_state_sticky)
+    ATOM_REFS_INIT ("_NET_WM_STATE_SHADED", Xatom_net_wm_state_shaded)
+    ATOM_REFS_INIT ("_NET_WM_STATE_HIDDEN", Xatom_net_wm_state_hidden)
+    ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE", Xatom_net_window_type)
+    ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE_TOOLTIP",
+		    Xatom_net_window_type_tooltip)
+    ATOM_REFS_INIT ("_NET_WM_ICON_NAME", Xatom_net_wm_icon_name)
+    ATOM_REFS_INIT ("_NET_WM_NAME", Xatom_net_wm_name)
+    ATOM_REFS_INIT ("_NET_SUPPORTED",  Xatom_net_supported)
+    ATOM_REFS_INIT ("_NET_SUPPORTING_WM_CHECK", Xatom_net_supporting_wm_check)
+    ATOM_REFS_INIT ("_NET_WM_WINDOW_OPACITY", Xatom_net_wm_window_opacity)
+    ATOM_REFS_INIT ("_NET_ACTIVE_WINDOW", Xatom_net_active_window)
+    ATOM_REFS_INIT ("_NET_FRAME_EXTENTS", Xatom_net_frame_extents)
+    ATOM_REFS_INIT ("_NET_CURRENT_DESKTOP", Xatom_net_current_desktop)
+    ATOM_REFS_INIT ("_NET_WORKAREA", Xatom_net_workarea)
+    ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST", Xatom_net_wm_sync_request)
+    ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
+    ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
+    ATOM_REFS_INIT ("_NET_WM_USER_TIME", Xatom_net_wm_user_time)
+    ATOM_REFS_INIT ("_NET_WM_USER_TIME_WINDOW", Xatom_net_wm_user_time_window)
+    ATOM_REFS_INIT ("_NET_CLIENT_LIST_STACKING", Xatom_net_client_list_stacking)
+    /* Session management */
+    ATOM_REFS_INIT ("SM_CLIENT_ID", Xatom_SM_CLIENT_ID)
+    ATOM_REFS_INIT ("_XSETTINGS_SETTINGS", Xatom_xsettings_prop)
+    ATOM_REFS_INIT ("MANAGER", Xatom_xsettings_mgr)
+    ATOM_REFS_INIT ("_NET_WM_STATE_SKIP_TASKBAR", Xatom_net_wm_state_skip_taskbar)
+    ATOM_REFS_INIT ("_NET_WM_STATE_ABOVE", Xatom_net_wm_state_above)
+    ATOM_REFS_INIT ("_NET_WM_STATE_BELOW", Xatom_net_wm_state_below)
+    ATOM_REFS_INIT ("_NET_WM_OPAQUE_REGION", Xatom_net_wm_opaque_region)
+    ATOM_REFS_INIT ("_NET_WM_PING", Xatom_net_wm_ping)
+    ATOM_REFS_INIT ("_NET_WM_PID", Xatom_net_wm_pid)
+#ifdef HAVE_XKB
+    ATOM_REFS_INIT ("Meta", Xatom_Meta)
+    ATOM_REFS_INIT ("Super", Xatom_Super)
+    ATOM_REFS_INIT ("Hyper", Xatom_Hyper)
+    ATOM_REFS_INIT ("ShiftLock", Xatom_ShiftLock)
+    ATOM_REFS_INIT ("Alt", Xatom_Alt)
+#endif
+    /* DND source.  */
+    ATOM_REFS_INIT ("XdndAware", Xatom_XdndAware)
+    ATOM_REFS_INIT ("XdndSelection", Xatom_XdndSelection)
+    ATOM_REFS_INIT ("XdndTypeList", Xatom_XdndTypeList)
+    ATOM_REFS_INIT ("XdndActionCopy", Xatom_XdndActionCopy)
+    ATOM_REFS_INIT ("XdndActionMove", Xatom_XdndActionMove)
+    ATOM_REFS_INIT ("XdndActionLink", Xatom_XdndActionLink)
+    ATOM_REFS_INIT ("XdndActionAsk", Xatom_XdndActionAsk)
+    ATOM_REFS_INIT ("XdndActionPrivate", Xatom_XdndActionPrivate)
+    ATOM_REFS_INIT ("XdndActionList", Xatom_XdndActionList)
+    ATOM_REFS_INIT ("XdndActionDescription", Xatom_XdndActionDescription)
+    ATOM_REFS_INIT ("XdndProxy", Xatom_XdndProxy)
+    ATOM_REFS_INIT ("XdndEnter", Xatom_XdndEnter)
+    ATOM_REFS_INIT ("XdndPosition", Xatom_XdndPosition)
+    ATOM_REFS_INIT ("XdndStatus", Xatom_XdndStatus)
+    ATOM_REFS_INIT ("XdndLeave", Xatom_XdndLeave)
+    ATOM_REFS_INIT ("XdndDrop", Xatom_XdndDrop)
+    ATOM_REFS_INIT ("XdndFinished", Xatom_XdndFinished)
+    /* Motif drop protocol support.  */
+    ATOM_REFS_INIT ("_MOTIF_DRAG_WINDOW", Xatom_MOTIF_DRAG_WINDOW)
+    ATOM_REFS_INIT ("_MOTIF_DRAG_TARGETS", Xatom_MOTIF_DRAG_TARGETS)
+    ATOM_REFS_INIT ("_MOTIF_DRAG_AND_DROP_MESSAGE",
+		    Xatom_MOTIF_DRAG_AND_DROP_MESSAGE)
+    ATOM_REFS_INIT ("_MOTIF_DRAG_INITIATOR_INFO",
+		    Xatom_MOTIF_DRAG_INITIATOR_INFO)
+    ATOM_REFS_INIT ("_MOTIF_DRAG_RECEIVER_INFO",
+		    Xatom_MOTIF_DRAG_RECEIVER_INFO)
+    ATOM_REFS_INIT ("XmTRANSFER_SUCCESS", Xatom_XmTRANSFER_SUCCESS)
+    ATOM_REFS_INIT ("XmTRANSFER_FAILURE", Xatom_XmTRANSFER_FAILURE)
+  };
+
 enum
 {
   X_EVENT_NORMAL,
@@ -23467,6 +23598,31 @@ x_destroy_window (struct frame *f)
   dpyinfo->reference_count--;
 }
 
+/* Intern NAME in DPYINFO, but check to see if the atom was already
+   interned, and use that instead.  */
+Atom
+x_intern_cached_atom (struct x_display_info *dpyinfo,
+		      const char *name)
+{
+  int i;
+  char *ptr;
+  Atom *atom;
+
+  for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
+    {
+      ptr = (char *) dpyinfo;
+
+      if (!strcmp (x_atom_refs[i].name, name))
+	{
+	  atom = (Atom *) (ptr + x_atom_refs[i].offset);
+
+	  return *atom;
+	}
+    }
+
+  return XInternAtom (dpyinfo->display, name, False);
+}
+
 
 /* Setting window manager hints.  */
 
@@ -24655,131 +24811,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	   XScreenNumberOfScreen (dpyinfo->screen));
 
   {
-    static const struct
-    {
-      const char *name;
-      int offset;
-    } atom_refs[] = {
-#define ATOM_REFS_INIT(string, member) \
-      { string, offsetof (struct x_display_info, member) },
-      ATOM_REFS_INIT ("WM_PROTOCOLS", Xatom_wm_protocols)
-      ATOM_REFS_INIT ("WM_TAKE_FOCUS", Xatom_wm_take_focus)
-      ATOM_REFS_INIT ("WM_SAVE_YOURSELF", Xatom_wm_save_yourself)
-      ATOM_REFS_INIT ("WM_DELETE_WINDOW", Xatom_wm_delete_window)
-      ATOM_REFS_INIT ("WM_CHANGE_STATE", Xatom_wm_change_state)
-      ATOM_REFS_INIT ("WM_STATE", Xatom_wm_state)
-      ATOM_REFS_INIT ("WM_CONFIGURE_DENIED", Xatom_wm_configure_denied)
-      ATOM_REFS_INIT ("WM_MOVED", Xatom_wm_window_moved)
-      ATOM_REFS_INIT ("WM_CLIENT_LEADER", Xatom_wm_client_leader)
-      ATOM_REFS_INIT ("WM_TRANSIENT_FOR", Xatom_wm_transient_for)
-      ATOM_REFS_INIT ("Editres", Xatom_editres)
-      ATOM_REFS_INIT ("CLIPBOARD", Xatom_CLIPBOARD)
-      ATOM_REFS_INIT ("TIMESTAMP", Xatom_TIMESTAMP)
-      ATOM_REFS_INIT ("TEXT", Xatom_TEXT)
-      ATOM_REFS_INIT ("COMPOUND_TEXT", Xatom_COMPOUND_TEXT)
-      ATOM_REFS_INIT ("UTF8_STRING", Xatom_UTF8_STRING)
-      ATOM_REFS_INIT ("DELETE", Xatom_DELETE)
-      ATOM_REFS_INIT ("MULTIPLE", Xatom_MULTIPLE)
-      ATOM_REFS_INIT ("INCR", Xatom_INCR)
-      ATOM_REFS_INIT ("_EMACS_TMP_",  Xatom_EMACS_TMP)
-      ATOM_REFS_INIT ("EMACS_SERVER_TIME_PROP", Xatom_EMACS_SERVER_TIME_PROP)
-      ATOM_REFS_INIT ("TARGETS", Xatom_TARGETS)
-      ATOM_REFS_INIT ("NULL", Xatom_NULL)
-      ATOM_REFS_INIT ("ATOM", Xatom_ATOM)
-      ATOM_REFS_INIT ("ATOM_PAIR", Xatom_ATOM_PAIR)
-      ATOM_REFS_INIT ("CLIPBOARD_MANAGER", Xatom_CLIPBOARD_MANAGER)
-      ATOM_REFS_INIT ("_XEMBED_INFO", Xatom_XEMBED_INFO)
-      ATOM_REFS_INIT ("_MOTIF_WM_HINTS", Xatom_MOTIF_WM_HINTS)
-      /* For properties of font.  */
-      ATOM_REFS_INIT ("PIXEL_SIZE", Xatom_PIXEL_SIZE)
-      ATOM_REFS_INIT ("AVERAGE_WIDTH", Xatom_AVERAGE_WIDTH)
-      ATOM_REFS_INIT ("_MULE_BASELINE_OFFSET", Xatom_MULE_BASELINE_OFFSET)
-      ATOM_REFS_INIT ("_MULE_RELATIVE_COMPOSE", Xatom_MULE_RELATIVE_COMPOSE)
-      ATOM_REFS_INIT ("_MULE_DEFAULT_ASCENT", Xatom_MULE_DEFAULT_ASCENT)
-      /* Ghostscript support.  */
-      ATOM_REFS_INIT ("DONE", Xatom_DONE)
-      ATOM_REFS_INIT ("PAGE", Xatom_PAGE)
-      ATOM_REFS_INIT ("SCROLLBAR", Xatom_Scrollbar)
-      ATOM_REFS_INIT ("HORIZONTAL_SCROLLBAR", Xatom_Horizontal_Scrollbar)
-      ATOM_REFS_INIT ("_XEMBED", Xatom_XEMBED)
-      /* EWMH */
-      ATOM_REFS_INIT ("_NET_WM_STATE", Xatom_net_wm_state)
-      ATOM_REFS_INIT ("_NET_WM_STATE_FULLSCREEN", Xatom_net_wm_state_fullscreen)
-      ATOM_REFS_INIT ("_NET_WM_STATE_MAXIMIZED_HORZ",
-		      Xatom_net_wm_state_maximized_horz)
-      ATOM_REFS_INIT ("_NET_WM_STATE_MAXIMIZED_VERT",
-		      Xatom_net_wm_state_maximized_vert)
-      ATOM_REFS_INIT ("_NET_WM_STATE_STICKY", Xatom_net_wm_state_sticky)
-      ATOM_REFS_INIT ("_NET_WM_STATE_SHADED", Xatom_net_wm_state_shaded)
-      ATOM_REFS_INIT ("_NET_WM_STATE_HIDDEN", Xatom_net_wm_state_hidden)
-      ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE", Xatom_net_window_type)
-      ATOM_REFS_INIT ("_NET_WM_WINDOW_TYPE_TOOLTIP",
-		      Xatom_net_window_type_tooltip)
-      ATOM_REFS_INIT ("_NET_WM_ICON_NAME", Xatom_net_wm_icon_name)
-      ATOM_REFS_INIT ("_NET_WM_NAME", Xatom_net_wm_name)
-      ATOM_REFS_INIT ("_NET_SUPPORTED",  Xatom_net_supported)
-      ATOM_REFS_INIT ("_NET_SUPPORTING_WM_CHECK", Xatom_net_supporting_wm_check)
-      ATOM_REFS_INIT ("_NET_WM_WINDOW_OPACITY", Xatom_net_wm_window_opacity)
-      ATOM_REFS_INIT ("_NET_ACTIVE_WINDOW", Xatom_net_active_window)
-      ATOM_REFS_INIT ("_NET_FRAME_EXTENTS", Xatom_net_frame_extents)
-      ATOM_REFS_INIT ("_NET_CURRENT_DESKTOP", Xatom_net_current_desktop)
-      ATOM_REFS_INIT ("_NET_WORKAREA", Xatom_net_workarea)
-      ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST", Xatom_net_wm_sync_request)
-      ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
-      ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
-      ATOM_REFS_INIT ("_NET_WM_USER_TIME", Xatom_net_wm_user_time)
-      ATOM_REFS_INIT ("_NET_WM_USER_TIME_WINDOW", Xatom_net_wm_user_time_window)
-      ATOM_REFS_INIT ("_NET_CLIENT_LIST_STACKING", Xatom_net_client_list_stacking)
-      /* Session management */
-      ATOM_REFS_INIT ("SM_CLIENT_ID", Xatom_SM_CLIENT_ID)
-      ATOM_REFS_INIT ("_XSETTINGS_SETTINGS", Xatom_xsettings_prop)
-      ATOM_REFS_INIT ("MANAGER", Xatom_xsettings_mgr)
-      ATOM_REFS_INIT ("_NET_WM_STATE_SKIP_TASKBAR", Xatom_net_wm_state_skip_taskbar)
-      ATOM_REFS_INIT ("_NET_WM_STATE_ABOVE", Xatom_net_wm_state_above)
-      ATOM_REFS_INIT ("_NET_WM_STATE_BELOW", Xatom_net_wm_state_below)
-      ATOM_REFS_INIT ("_NET_WM_OPAQUE_REGION", Xatom_net_wm_opaque_region)
-      ATOM_REFS_INIT ("_NET_WM_PING", Xatom_net_wm_ping)
-      ATOM_REFS_INIT ("_NET_WM_PID", Xatom_net_wm_pid)
-#ifdef HAVE_XKB
-      ATOM_REFS_INIT ("Meta", Xatom_Meta)
-      ATOM_REFS_INIT ("Super", Xatom_Super)
-      ATOM_REFS_INIT ("Hyper", Xatom_Hyper)
-      ATOM_REFS_INIT ("ShiftLock", Xatom_ShiftLock)
-      ATOM_REFS_INIT ("Alt", Xatom_Alt)
-#endif
-      /* DND source.  */
-      ATOM_REFS_INIT ("XdndAware", Xatom_XdndAware)
-      ATOM_REFS_INIT ("XdndSelection", Xatom_XdndSelection)
-      ATOM_REFS_INIT ("XdndTypeList", Xatom_XdndTypeList)
-      ATOM_REFS_INIT ("XdndActionCopy", Xatom_XdndActionCopy)
-      ATOM_REFS_INIT ("XdndActionMove", Xatom_XdndActionMove)
-      ATOM_REFS_INIT ("XdndActionLink", Xatom_XdndActionLink)
-      ATOM_REFS_INIT ("XdndActionAsk", Xatom_XdndActionAsk)
-      ATOM_REFS_INIT ("XdndActionPrivate", Xatom_XdndActionPrivate)
-      ATOM_REFS_INIT ("XdndActionList", Xatom_XdndActionList)
-      ATOM_REFS_INIT ("XdndActionDescription", Xatom_XdndActionDescription)
-      ATOM_REFS_INIT ("XdndProxy", Xatom_XdndProxy)
-      ATOM_REFS_INIT ("XdndEnter", Xatom_XdndEnter)
-      ATOM_REFS_INIT ("XdndPosition", Xatom_XdndPosition)
-      ATOM_REFS_INIT ("XdndStatus", Xatom_XdndStatus)
-      ATOM_REFS_INIT ("XdndLeave", Xatom_XdndLeave)
-      ATOM_REFS_INIT ("XdndDrop", Xatom_XdndDrop)
-      ATOM_REFS_INIT ("XdndFinished", Xatom_XdndFinished)
-      /* Motif drop protocol support.  */
-      ATOM_REFS_INIT ("_MOTIF_DRAG_WINDOW", Xatom_MOTIF_DRAG_WINDOW)
-      ATOM_REFS_INIT ("_MOTIF_DRAG_TARGETS", Xatom_MOTIF_DRAG_TARGETS)
-      ATOM_REFS_INIT ("_MOTIF_DRAG_AND_DROP_MESSAGE",
-		      Xatom_MOTIF_DRAG_AND_DROP_MESSAGE)
-      ATOM_REFS_INIT ("_MOTIF_DRAG_INITIATOR_INFO",
-		      Xatom_MOTIF_DRAG_INITIATOR_INFO)
-      ATOM_REFS_INIT ("_MOTIF_DRAG_RECEIVER_INFO",
-		      Xatom_MOTIF_DRAG_RECEIVER_INFO)
-      ATOM_REFS_INIT ("XmTRANSFER_SUCCESS", Xatom_XmTRANSFER_SUCCESS)
-      ATOM_REFS_INIT ("XmTRANSFER_FAILURE", Xatom_XmTRANSFER_FAILURE)
-    };
-
     int i;
-    enum { atom_count = ARRAYELTS (atom_refs) };
+    enum { atom_count = ARRAYELTS (x_atom_refs) };
     /* 1 for _XSETTINGS_SN.  */
     enum { total_atom_count = 2 + atom_count };
     Atom atoms_return[total_atom_count];
@@ -24789,7 +24822,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 			     + INT_STRLEN_BOUND (int)];
 
     for (i = 0; i < atom_count; i++)
-      atom_names[i] = (char *) atom_refs[i].name;
+      atom_names[i] = (char *) x_atom_refs[i].name;
 
     /* Build _XSETTINGS_SN atom name.  */
     sprintf (xsettings_atom_name, xsettings_fmt,
@@ -24801,7 +24834,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
                   False, atoms_return);
 
     for (i = 0; i < atom_count; i++)
-      *(Atom *) ((char *) dpyinfo + atom_refs[i].offset) = atoms_return[i];
+      *(Atom *) ((char *) dpyinfo + x_atom_refs[i].offset) = atoms_return[i];
 
     /* Manually copy last two atoms.  */
     dpyinfo->Xatom_xsettings_sel = atoms_return[i];
