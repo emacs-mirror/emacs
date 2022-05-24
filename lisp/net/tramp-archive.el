@@ -57,6 +57,7 @@
 ;; * ".crate" - Cargo (Rust) packages
 ;; * ".deb" - Debian packages
 ;; * ".depot" - HP-UX SD depots
+;; * ".epub" - Electronic publications
 ;; * ".exe" - Self extracting Microsoft Windows EXE files
 ;; * ".iso" - ISO 9660 images
 ;; * ".jar" - Java archives
@@ -145,6 +146,7 @@
     "crate" ;; Cargo (Rust) packages.  Not in libarchive testsuite.
     "deb" ;; Debian packages.  Not in libarchive testsuite.
     "depot" ;; HP-UX SD depot.  Not in libarchive testsuite.
+    "epub" ;; Electronic publications.  Not in libarchive testsuite.
     "exe" ;; Self extracting Microsoft Windows EXE files.
     "iso" ;; ISO 9660 images.
     "jar" ;; Java archives.  Not in libarchive testsuite.
