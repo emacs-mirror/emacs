@@ -879,9 +879,16 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
   EmacsMenu *pmenu;
   NSPoint p;
   Lisp_Object tem;
-  specpdl_ref specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count;
   widget_value *wv, *first_wv = 0;
+  widget_value *save_wv = 0, *prev_wv = 0;
+  widget_value **submenu_stack;
+  int submenu_depth = 0;
+  int first_pane = 1;
+  int i;
   bool keymaps = (menuflags & MENU_KEYMAPS);
+
+  USE_SAFE_ALLOCA;
 
   NSTRACE ("ns_menu_show");
 
@@ -889,27 +896,18 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
 
   p.x = x; p.y = y;
 
-  /* Don't GC due to a mysterious bug.  */
-  inhibit_garbage_collection ();
-
   /* now parse stage 2 as in ns_update_menubar */
   wv = make_widget_value ("contextmenu", NULL, true, Qnil);
   wv->button_type = BUTTON_TYPE_NONE;
   first_wv = wv;
 
-#if 0
-  /* FIXME: a couple of one-line differences prevent reuse.  */
-  wv = digest_single_submenu (0, menu_items_used, 0);
-#else
-  {
-  widget_value *save_wv = 0, *prev_wv = 0;
-  widget_value **submenu_stack
-    = alloca (menu_items_used * sizeof *submenu_stack);
-  /* Lisp_Object *subprefix_stack
-       = alloca (menu_items_used * sizeof *subprefix_stack); */
-  int submenu_depth = 0;
-  int first_pane = 1;
-  int i;
+  submenu_stack
+    = SAFE_ALLOCA (menu_items_used * sizeof *submenu_stack);
+
+  specpdl_count = SPECPDL_INDEX ();
+
+  /* Don't GC due to a mysterious bug.  */
+  inhibit_garbage_collection ();
 
   /* Loop over all panes and items, filling in the tree.  */
   i = 0;
@@ -1039,8 +1037,6 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
-  }
-#endif
 
   if (!NILP (title))
     {
@@ -1075,6 +1071,8 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
   unbind_to (specpdl_count, Qnil);
   unblock_input ();
+
+  SAFE_FREE ();
   return tem;
 }
 
