@@ -613,28 +613,33 @@ unwind_create_tip_frame (Lisp_Object frame)
   tip_frame = Qnil;
 }
 
+static unsigned long
+haiku_decode_color (struct frame *f, Lisp_Object color_name)
+{
+  Emacs_Color cdef;
+
+  CHECK_STRING (color_name);
+
+  if (!haiku_get_color (SSDATA (color_name), &cdef))
+    return cdef.pixel;
+
+  signal_error ("Undefined color", color_name);
+}
+
 static void
 haiku_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  struct haiku_output *output = FRAME_OUTPUT_DATA (f);
-  unsigned long old_fg;
+  struct haiku_output *output;
+  unsigned long fg, old_fg;
 
-  Emacs_Color color;
-
-  if (haiku_get_color (SSDATA (arg), &color))
-    {
-      store_frame_param (f, Qforeground_color, oldval);
-      unblock_input ();
-      error ("Bad color");
-    }
-
+  fg = haiku_decode_color (f, arg);
   old_fg = FRAME_FOREGROUND_PIXEL (f);
-  FRAME_FOREGROUND_PIXEL (f) = color.pixel;
+  FRAME_FOREGROUND_PIXEL (f) = fg;
+  output = FRAME_OUTPUT_DATA (f);
 
   if (FRAME_HAIKU_WINDOW (f))
     {
 
-      block_input ();
       if (output->cursor_color.pixel == old_fg)
 	{
 	  output->cursor_color.pixel = old_fg;
@@ -642,8 +647,6 @@ haiku_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 	  output->cursor_color.green = GREEN_FROM_ULONG (old_fg);
 	  output->cursor_color.blue = BLUE_FROM_ULONG (old_fg);
 	}
-
-      unblock_input ();
 
       update_face_from_frame_parameter (f, Qforeground_color, arg);
 
@@ -1487,76 +1490,51 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 void
 haiku_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  Emacs_Color color;
-  struct face *defface;
+  unsigned long background;
 
-  CHECK_STRING (arg);
+  background = haiku_decode_color (f, arg);
 
-  block_input ();
-  if (haiku_get_color (SSDATA (arg), &color))
-    {
-      store_frame_param (f, Qbackground_color, oldval);
-      unblock_input ();
-      error ("Bad color");
-    }
-
-  FRAME_OUTPUT_DATA (f)->cursor_fg = color.pixel;
-  FRAME_BACKGROUND_PIXEL (f) = color.pixel;
+  FRAME_OUTPUT_DATA (f)->cursor_fg = background;
+  FRAME_BACKGROUND_PIXEL (f) = background;
 
   if (FRAME_HAIKU_VIEW (f))
     {
       BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
-      BView_SetViewColor (FRAME_HAIKU_VIEW (f), color.pixel);
+      BView_SetViewColor (FRAME_HAIKU_VIEW (f), background);
       BView_draw_unlock (FRAME_HAIKU_VIEW (f));
 
-      defface = FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID);
-      if (defface)
-	{
-	  defface->background = color.pixel;
-	  update_face_from_frame_parameter (f, Qbackground_color, arg);
-	  clear_frame (f);
-	}
-    }
+      FRAME_OUTPUT_DATA (f)->cursor_fg = background;
+      update_face_from_frame_parameter (f, Qbackground_color, arg);
 
-  if (FRAME_VISIBLE_P (f))
-    SET_FRAME_GARBAGED (f);
-  unblock_input ();
+      if (FRAME_VISIBLE_P (f))
+	redraw_frame (f);
+    }
 }
 
 void
 haiku_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  Emacs_Color color, fore_pixel;
+  unsigned long fore_pixel, pixel;
 
-  CHECK_STRING (arg);
-  block_input ();
+  pixel = haiku_decode_color (f, arg);
 
-  if (haiku_get_color (SSDATA (arg), &color))
+  if (!NILP (Vx_cursor_fore_pixel))
     {
-      store_frame_param (f, Qcursor_color, oldval);
-      unblock_input ();
-      error ("Bad color");
-    }
-
-  FRAME_CURSOR_COLOR (f) = color;
-
-  if (STRINGP (Vx_cursor_fore_pixel))
-    {
-      if (haiku_get_color (SSDATA (Vx_cursor_fore_pixel),
-			   &fore_pixel))
-	error ("Bad color %s", SSDATA (Vx_cursor_fore_pixel));
-      FRAME_OUTPUT_DATA (f)->cursor_fg = fore_pixel.pixel;
+      fore_pixel = haiku_decode_color (f, Vx_cursor_fore_pixel);
+      FRAME_OUTPUT_DATA (f)->cursor_fg = fore_pixel;
     }
   else
     FRAME_OUTPUT_DATA (f)->cursor_fg = FRAME_BACKGROUND_PIXEL (f);
 
+  haiku_query_color (pixel, &FRAME_CURSOR_COLOR (f));
+
   if (FRAME_VISIBLE_P (f))
     {
-      gui_update_cursor (f, 0);
-      gui_update_cursor (f, 1);
+      gui_update_cursor (f, false);
+      gui_update_cursor (f, true);
     }
+
   update_face_from_frame_parameter (f, Qcursor_color, arg);
-  unblock_input ();
 }
 
 void
@@ -2066,7 +2044,7 @@ haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     rc = haiku_get_color (SSDATA (arg), &color);
 
   if (color_specified_p && rc)
-    signal_error ("Invalid color", arg);
+    signal_error ("Undefined color", arg);
 
   output = FRAME_OUTPUT_DATA (f);
 

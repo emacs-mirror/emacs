@@ -4476,7 +4476,7 @@ haiku_merge_cursor_foreground (struct glyph_string *s,
     foreground = s->face->foreground;
 
   if (background == s->face->background
-      || foreground == s->face->foreground)
+      && foreground == s->face->foreground)
     {
       background = s->face->foreground;
       foreground = s->face->background;
