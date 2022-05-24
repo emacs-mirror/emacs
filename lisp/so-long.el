@@ -1518,14 +1518,14 @@ The variables are set in accordance with what was remembered in `so-long'."
       (kill-local-variable variable))))
 
 (defun so-long-mode-maintain-preserved-variables ()
-  "Set any 'preserved' variables.
+  "Set any \"preserved\" variables.
 
 The variables are set in accordance with what was remembered in `so-long'."
   (dolist (var (so-long-original 'so-long-mode-preserved-variables))
     (so-long-restore-variable var)))
 
 (defun so-long-mode-maintain-preserved-minor-modes ()
-  "Enable or disable 'preserved' minor modes.
+  "Enable or disable \"preserved\" minor modes.
 
 The modes are set in accordance with what was remembered in `so-long'."
   (dolist (mode (so-long-original 'so-long-mode-preserved-minor-modes))

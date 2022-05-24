@@ -534,7 +534,7 @@ made obsolete, for example a date or a release number.
 This macro evaluates all its parameters, and both OBSOLETE-NAME
 and CURRENT-NAME should be symbols, so a typical usage would look like:
 
-  (define-obsolete-variable-alias 'foo-thing 'bar-thing \"28.1\")
+  (define-obsolete-variable-alias \\='foo-thing \\='bar-thing \"28.1\")
 
 This macro uses `defvaralias' and `make-obsolete-variable' (which see).
 See the Info node `(elisp)Variable Aliases' for more details.

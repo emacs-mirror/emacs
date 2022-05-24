@@ -291,9 +291,9 @@ parameters."
 
 (defmacro nnselect-get-artlist (group)
   "Get the list of articles for GROUP.
-If the group parameter 'nnselect-get-artlist-override-function is
+If the group parameter `nnselect-get-artlist-override-function' is
 non-nil call this function with argument GROUP to get the
-artlist; if the group parameter 'nnselect-always-regenerate is
+artlist; if the group parameter `nnselect-always-regenerate' is
 non-nil, regenerate the artlist; otherwise retrieve the artlist
 directly from the group parameters."
   `(when (gnus-nnselect-group-p ,group)
@@ -310,9 +310,9 @@ directly from the group parameters."
 
 (defmacro nnselect-store-artlist  (group artlist)
   "Store the ARTLIST for GROUP.
-If the group parameter 'nnselect-store-artlist-override-function
+If the group parameter `nnselect-store-artlist-override-function'
 is non-nil call this function on GROUP and ARTLIST; if the group
-parameter 'nnselect-always-regenerate is non-nil don't store the
+parameter `nnselect-always-regenerate' is non-nil don't store the
 artlist; otherwise store the ARTLIST in the group parameters."
   `(let ((override (gnus-group-get-parameter
 		    ,group

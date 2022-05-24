@@ -1902,8 +1902,8 @@ variable with value KEYMAP."
 The heuristic to determine which keymap is most likely to be
 relevant to a user follows this order:
 
-1. 'keymap' text property at point
-2. 'local-map' text property at point
+1. `keymap' text property at point
+2. `local-map' text property at point
 3. the `current-local-map'
 
 This is used to set the default value for the interactive prompt
