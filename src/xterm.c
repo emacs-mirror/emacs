@@ -16212,7 +16212,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       if (f && x_mouse_click_focus_ignore_position)
 	{
-	  ignore_next_mouse_click_timeout = event->xmotion.time + 200;
+	  ignore_next_mouse_click_timeout = (event->xmotion.time
+					     + x_mouse_click_focus_ignore_time);
 	  mouse_click_timeout_display = dpyinfo;
 	}
 
@@ -17505,7 +17506,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (f && x_mouse_click_focus_ignore_position)
 		{
-		  ignore_next_mouse_click_timeout = enter->time + 200;
+		  ignore_next_mouse_click_timeout = (enter->time
+						     + x_mouse_click_focus_ignore_time);
 		  mouse_click_timeout_display = dpyinfo;
 		}
 
@@ -25441,8 +25443,20 @@ This variable is used only when the window manager requires that you
 click on a frame to select it (give it focus).  In that case, a value
 of nil, means that the selected window and cursor position changes to
 reflect the mouse click position, while a non-nil value means that the
-selected window or cursor position is preserved.  */);
+selected window or cursor position is preserved.
+
+This option works by ignoring button press events for a given amount
+of time after a frame might've been focused.  If it does not work for
+you, try increasing the value of
+`x-mouse-click-focus-ignore-time'.  */);
   x_mouse_click_focus_ignore_position = false;
+
+  DEFVAR_INT ("x-mouse-click-focus-ignore-time", x_mouse_click_focus_ignore_time,
+    doc: /* Number of miliseconds for which to ignore buttons after focus change.
+This variable only takes effect if
+`x-mouse-click-focus-ignore-position' is non-nil, and should be
+adjusted if the default value does not work for whatever reason.  */);
+  x_mouse_click_focus_ignore_time = 200;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
     doc: /* Which toolkit scroll bars Emacs uses, if any.
