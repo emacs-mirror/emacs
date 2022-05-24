@@ -612,7 +612,7 @@ and variable-name parts, respectively."
     '("^[ \t0-9]*\\(?:pure\\|elemental\\)?[ \t]*\
 \\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
 enumerator\\|generic\\|procedure\\|logical\\|double[ \t]*precision\\)\
-\\(.*::\\|[ \t]*(.*)\\)?\\(\\(?:[^&!\n]*\\(?:&\n\\)?\\)+\\)"
+\\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\(?:&\n[^&!\n]*\\)*\\)"
       (1 font-lock-type-face t) (4 font-lock-variable-name-face append))
     ;; Derived type/class variables.
     ;; TODO ? If we just highlighted the "type" part, rather than
