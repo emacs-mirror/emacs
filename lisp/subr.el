@@ -6052,7 +6052,7 @@ to deactivate this transient map, regardless of KEEP-PRED."
                           ;; We may have a remapped command, so chase
                           ;; down that.
                           (when (and mc (symbolp mc))
-                            (setq mc (or (command-remapping mc nil map) mc)))
+                            (setq mc (or (command-remapping mc) mc)))
                           ;; If the key is unbound `this-command` is
                           ;; nil and so is `mc`.
                           (and mc (eq this-command mc))))
