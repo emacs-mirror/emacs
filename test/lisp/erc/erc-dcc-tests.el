@@ -49,43 +49,45 @@
 ;; `erc-dcc-do-LIST-command'
 
 (defun erc-dcc-tests--dcc-handle-ctcp-send (turbo)
-  (with-current-buffer (get-buffer-create "fake-server")
-    (erc-mode)
-    (setq erc-server-process
-          (start-process "fake" (current-buffer) "sleep" "10")
-          erc-input-marker (make-marker)
-          erc-insert-marker (make-marker)
-          erc-server-current-nick "dummy")
-    (set-process-query-on-exit-flag erc-server-process nil)
-    (should-not erc-dcc-list)
-    (erc-ctcp-query-DCC erc-server-process
-                        "tester"
-                        "~tester"
-                        "fake.irc"
-                        "dummy"
-                        (concat "DCC " (if turbo "TSEND" "SEND")
-                                " foo 2130706433 9899 1405135128"))
-    (should-not (cdr erc-dcc-list))
-    (should (equal (plist-put (car erc-dcc-list) :parent 'fake)
-                   `(:nick "tester!~tester@fake.irc"
-                           :type GET
-                           :peer nil
-                           :parent fake
-                           :ip "127.0.0.1"
-                           :port "9899"
-                           :file "foo"
-                           :size 1405135128
-                           :turbo ,(and turbo t)
-                           :secure nil)))
-    (goto-char (point-min))
-    (should (search-forward "file foo offered by tester" nil t))
-    (erc-dcc-do-LIST-command erc-server-process)
-    (should (search-forward-regexp (concat
-                                    "GET +no +1405135128 +foo"
-                                    (and turbo " +(T)") "$")
-                                   nil t))
-    (when noninteractive
-      (let (erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+  (let (erc-send-completed-hook
+        erc-insert-modify-hook
+        erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+    (with-current-buffer (get-buffer-create "fake-server")
+      (erc-mode)
+      (setq erc-server-process
+            (start-process "fake" (current-buffer) "sleep" "10")
+            erc-input-marker (make-marker)
+            erc-insert-marker (make-marker)
+            erc-server-current-nick "dummy")
+      (set-process-query-on-exit-flag erc-server-process nil)
+      (should-not erc-dcc-list)
+      (erc-ctcp-query-DCC erc-server-process
+                          "tester"
+                          "~tester"
+                          "fake.irc"
+                          "dummy"
+                          (concat "DCC " (if turbo "TSEND" "SEND")
+                                  " foo 2130706433 9899 1405135128"))
+      (should-not (cdr erc-dcc-list))
+      (should (equal (plist-put (car erc-dcc-list) :parent 'fake)
+                     `(:nick "tester!~tester@fake.irc"
+                             :type GET
+                             :peer nil
+                             :parent fake
+                             :ip "127.0.0.1"
+                             :port "9899"
+                             :file "foo"
+                             :size 1405135128
+                             :turbo ,(and turbo t)
+                             :secure nil)))
+      (goto-char (point-min))
+      (should (search-forward "file foo offered by tester" nil t))
+      (erc-dcc-do-LIST-command erc-server-process)
+      (should (search-forward-regexp (concat
+                                      "GET +no +1405135128 +foo"
+                                      (and turbo " +(T)") "$")
+                                     nil t))
+      (when noninteractive
         (kill-buffer))))
   ;; `erc-dcc-list' is global; must leave it empty
   (should erc-dcc-list)
