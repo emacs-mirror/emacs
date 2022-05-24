@@ -1912,6 +1912,20 @@ This returns non-nil if its argument its an uppercase character.
 ** Byte compilation
 
 ---
+*** Byte compilation will now warn about some quoting mistakes in doc strings.
+When writing code snippets that contains the ' character (APOSTROPHE),
+that quote character has to be escaped to avoid Emacs displaying it as
+’ (LEFT SINGLE QUOTATION MARK), which would make code examples like
+
+    (setq foo '(1 2 3))
+
+invalid.  Emacs will now warn during byte compilation if it seems
+something like that, and also warn about when using RIGHT/LEFT SINGLE
+QUOTATION MARK directly.  In both these cases, if these characters
+should really be present in the doc string, they should be quoted with
+\=.
+
+---
 *** Byte compilation will now warn about some malformed 'defcustom' types.
 It's very common to write 'defcustom' types on the form:
 

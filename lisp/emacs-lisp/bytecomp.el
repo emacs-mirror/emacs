@@ -325,7 +325,8 @@ Elements of the list may be:
   constants   let-binding of, or assignment to, constants/nonvariables.
   docstrings  docstrings that are too wide (longer than
               `byte-compile-docstring-max-column' or
-              `fill-column' characters, whichever is bigger).
+              `fill-column' characters, whichever is bigger) or
+              have other stylistic issues.
   suspicious  constructs that usually don't do what the coder wanted.
 
 If the list begins with `not', then the remaining elements specify warnings to
@@ -1729,8 +1730,12 @@ value, it will override this variable."
   :safe #'integerp
   :version "28.1")
 
-(defun byte-compile-docstring-length-warn (form)
-  "Warn if documentation string of FORM is too wide.
+(define-obsolete-function-alias 'byte-compile-docstring-length-warn
+  'byte-compile-docstring-style-warn "29.1")
+
+(defun byte-compile-docstring-style-warn (form)
+  "Warn if there are stylistic problems with the docstring in FORM.
+Warn if documentation string of FORM is too wide.
 It is too wide if it has any lines longer than the largest of
 `fill-column' and `byte-compile-docstring-max-column'."
   (when (byte-compile-warning-enabled-p 'docstrings)
@@ -1750,12 +1755,24 @@ It is too wide if it has any lines longer than the largest of
       (when (and (consp name) (eq (car name) 'quote))
         (setq name (cadr name)))
       (setq name (if name (format " `%s' " name) ""))
-      (when (and kind docs (stringp docs)
-                 (byte-compile--wide-docstring-p docs col))
-        (byte-compile-warn-x
-         name
-         "%s%sdocstring wider than %s characters"
-         kind name col))))
+      (when (and kind docs (stringp docs))
+        (when (byte-compile--wide-docstring-p docs col)
+          (byte-compile-warn-x
+           name
+           "%s%sdocstring wider than %s characters"
+           kind name col))
+        ;; There's a "naked" ' character before a symbol/list, so it
+        ;; should probably be quoted with \=.
+        (when (string-match-p "\\( \"\\|[ \t]\\|^\\)'[a-z(]" docs)
+          (byte-compile-warn-x
+           name "%s%sdocstring has wrong usage of unescaped single quotes (use \\= or different quoting)"
+           kind name))
+        ;; There's a "Unicode quote" in the string -- it should probably
+        ;; be an ASCII one instead.
+        (when (string-match-p "\\( \"\\|[ \t]\\|^\\)[‘’]" docs)
+          (byte-compile-warn-x
+           name "%s%sdocstring has wrong usage of \"fancy\" single quotation marks"
+           kind name)))))
   form)
 
 ;; If we have compiled any calls to functions which are not known to be
@@ -2617,7 +2634,7 @@ list that represents a doc string reference.
   (if (stringp (nth 3 form))
       (prog1
           form
-        (byte-compile-docstring-length-warn form))
+        (byte-compile-docstring-style-warn form))
     ;; No doc string, so we can compile this as a normal form.
     (byte-compile-keep-pending form 'byte-compile-normal-call)))
 
@@ -2649,7 +2666,7 @@ list that represents a doc string reference.
   (if (and (null (cddr form))		;No `value' provided.
            (eq (car form) 'defvar))     ;Just a declaration.
       nil
-    (byte-compile-docstring-length-warn form)
+    (byte-compile-docstring-style-warn form)
     (setq form (copy-sequence form))
     (when (consp (nth 2 form))
       (setcar (cdr (cdr form))
@@ -2674,7 +2691,7 @@ list that represents a doc string reference.
            (byte-compile-warn-x
             newname
             "Alias for `%S' should be declared before its referent" newname)))))
-  (byte-compile-docstring-length-warn form)
+  (byte-compile-docstring-style-warn form)
   (byte-compile-keep-pending form))
 
 (put 'custom-declare-variable 'byte-hunk-handler
@@ -3066,7 +3083,7 @@ lambda-expression."
       (setq fun (cons 'lambda fun))
     (unless (eq 'lambda (car-safe fun))
       (error "Not a lambda list: %S" fun)))
-  (byte-compile-docstring-length-warn fun)
+  (byte-compile-docstring-style-warn fun)
   (byte-compile-check-lambda-list (nth 1 fun))
   (let* ((arglist (nth 1 fun))
          (arglistvars (byte-run-strip-symbol-positions
@@ -4942,7 +4959,7 @@ binding slots have been popped."
      (nth 1 form)
      "global/dynamic var `%s' lacks a prefix"
      (nth 1 form)))
-  (byte-compile-docstring-length-warn form)
+  (byte-compile-docstring-style-warn form)
   (let ((fun (nth 0 form))
 	(var (nth 1 form))
 	(value (nth 2 form))
@@ -5018,7 +5035,7 @@ binding slots have been popped."
       ;; - `arg' is the expression to which it is defined.
       ;; - `rest' is the rest of the arguments.
       (`(,_ ',name ,arg . ,rest)
-       (byte-compile-docstring-length-warn form)
+       (byte-compile-docstring-style-warn form)
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
