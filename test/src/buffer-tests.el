@@ -1515,7 +1515,11 @@ with parameters from the *Messages* buffer modification."
       (should (eq (buffer-modified-p) 'autosaved))
       (insert "zot")
       (restore-buffer-modified-p 'autosaved)
-      (should (eq (buffer-modified-p) 'autosaved))))
+      (should (eq (buffer-modified-p) 'autosaved))
+
+      ;; Clean up.
+      (when (file-exists-p buffer-auto-save-file-name)
+        (delete-file buffer-auto-save-file-name))))
 
   (ert-with-temp-file file
     (with-current-buffer (find-file file)
