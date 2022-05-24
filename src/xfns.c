@@ -7563,6 +7563,8 @@ if PROP has no value of TYPE (always a string in the MS Windows case). */)
     }
 
   block_input ();
+  x_catch_errors (FRAME_X_DISPLAY (f));
+
   if (STRINGP (type))
     {
       if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
@@ -7593,6 +7595,9 @@ if PROP has no value of TYPE (always a string in the MS Windows case). */)
                                              &found);
     }
 
+  x_check_errors (FRAME_X_DISPLAY (f),
+		  "Can't retrieve window property: %s");
+  x_uncatch_errors_after_check ();
 
   unblock_input ();
   return prop_value;
@@ -7638,6 +7643,7 @@ Otherwise, the return value is a vector with the following fields:
 
   block_input ();
 
+  x_catch_errors (FRAME_X_DISPLAY (f));
   prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			   prop_atom, 0, 0, False, AnyPropertyType,
@@ -7667,6 +7673,10 @@ Otherwise, the return value is a vector with the following fields:
 			 make_fixnum (actual_format),
 			 make_fixnum (bytes_remaining / (actual_format >> 3)));
     }
+
+  x_check_errors (FRAME_X_DISPLAY (f),
+		  "Can't retrieve window property: %s");
+  x_uncatch_errors_after_check ();
 
   unblock_input ();
   return prop_attr;
