@@ -1574,6 +1574,7 @@ with value CHAR in the region [FROM to)."
   ;; properties.  This includes all calls to `c-parse-state'.  This macro will
   ;; be invoked recursively; however the `c-string-fences-set-flag' mechanism
   ;; should ensure consistency, when this happens.
+  (declare (debug t))
   `(unwind-protect
        (progn
 	 (unless c-string-fences-set-flag
