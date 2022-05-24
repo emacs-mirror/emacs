@@ -944,7 +944,7 @@ CFG is mutated by a pass.")
       :documentation "Unique id when in SSA form.")
   (slot nil :type (or fixnum symbol)
         :documentation "Slot number in the array if a number or
-        'scratch' for scratch slot."))
+        `scratch' for scratch slot."))
 
 (defun comp-mvar-type-hint-match-p (mvar type-hint)
   "Match MVAR against TYPE-HINT.
