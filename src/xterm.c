@@ -24679,17 +24679,20 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   ;
 #endif
 
-#ifdef HAVE_XRANDR
+#if defined HAVE_XRANDR || defined USE_GTK
   Lisp_Object term;
 
-#ifndef USE_GTK
-  dpyinfo->last_monitor_attributes_list = Qnil;
+  XSETTERMINAL (term, terminal);
 #endif
+
+#ifdef HAVE_XRANDR
   dpyinfo->xrandr_supported_p
     = XRRQueryExtension (dpy, &dpyinfo->xrandr_event_base,
 			 &dpyinfo->xrandr_error_base);
 
-  XSETTERMINAL (term, terminal);
+#ifndef USE_GTK
+  dpyinfo->last_monitor_attributes_list = Qnil;
+#endif
 
   if (dpyinfo->xrandr_supported_p)
     {
