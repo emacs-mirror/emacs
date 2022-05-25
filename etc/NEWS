@@ -2268,8 +2268,8 @@ This command lets you examine all data in the current selection and
 the clipboard, and insert it into the buffer.
 
 +++
-** New user option 'yank-transform-functions'.
-This function allows the user to alter the string to be inserted.
+** New variable 'yank-transform-functions'.
+This variable allows the user to alter the string to be inserted.
 
 ---
 ** New command 'yank-in-context'.

@@ -1111,7 +1111,7 @@ or specifying key bindings.  It takes effect after
 @code{yank-handled-properties}.
 @end defopt
 
-@defopt yank-transform-functions
+@defvar yank-transform-functions
 This variable is a list of functions.  Each function is called (in
 order) with the string to be yanked as the argument, and should
 return a (possibly transformed) string.  This variable can be set
@@ -1127,7 +1127,7 @@ could say something like:
 	 '(string-clean-whitespace)))
     (call-interactively #'yank)))
 @end lisp
-@end defopt
+@end defvar
 
 @node Yank Commands
 @subsection Functions for Yanking
