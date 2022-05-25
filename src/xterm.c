@@ -10238,7 +10238,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   XTextProperty prop;
   xm_drop_start_message dmsg;
   Lisp_Object frame_object, x, y, frame, local_value;
-  bool signals_were_pending;
+  bool signals_were_pending, need_sync;
 #ifdef HAVE_XKB
   XkbStateRec keyboard_state;
 #endif
@@ -10800,14 +10800,20 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     {
       block_input ();
       x_catch_errors (FRAME_X_DISPLAY (f));
-      atom_name = XGetAtomName (FRAME_X_DISPLAY (f),
-				x_dnd_action);
-      x_uncatch_errors ();
+      atom_name = x_get_atom_name (FRAME_DISPLAY_INFO (f),
+				   x_dnd_action, &need_sync);
+
+      if (need_sync)
+	x_uncatch_errors ();
+      else
+	/* No protocol request actually happened, so avoid the extra
+	   sync by calling x_uncatch_errors_after_check instead.  */
+	x_uncatch_errors_after_check ();
 
       if (atom_name)
 	{
 	  action = intern (atom_name);
-	  XFree (atom_name);
+	  xfree (atom_name);
 	}
       else
 	action = Qnil;
@@ -23599,8 +23605,10 @@ x_destroy_window (struct frame *f)
 }
 
 /* Intern NAME in DPYINFO, but check to see if the atom was already
-   interned, and use that instead.  If PREDEFINED_ONLY, return None if
-   the atom was not already interned at connection setup.  */
+   interned when the X connection was opened, and use that instead.
+
+   If PREDEFINED_ONLY, return None if the atom was not interned during
+   connection setup or is predefined.  */
 Atom
 x_intern_cached_atom (struct x_display_info *dpyinfo,
 		      const char *name, bool predefined_only)
@@ -23664,6 +23672,65 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
     return None;
 
   return XInternAtom (dpyinfo->display, name, False);
+}
+
+/* Whether or not a request to the X server happened is placed in
+   NEED_SYNC.  */
+char *
+x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
+		 bool *need_sync)
+{
+  char *dpyinfo_pointer, *name, *value;
+  int i;
+  Atom ref_atom;
+
+  dpyinfo_pointer = (char *) dpyinfo;
+  value = NULL;
+  *need_sync = false;
+
+  switch (atom)
+    {
+    case XA_PRIMARY:
+      return xstrdup ("PRIMARY");
+
+    case XA_SECONDARY:
+      return xstrdup ("SECONDARY");
+
+    case XA_INTEGER:
+      return xstrdup ("INTEGER");
+
+    case XA_ATOM:
+      return xstrdup ("ATOM");
+
+    case XA_CARDINAL:
+      return xstrdup ("CARDINAL");
+
+    case XA_WINDOW:
+      return xstrdup ("WINDOW");
+
+    default:
+      for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
+	{
+	  ref_atom = *(Atom *) (dpyinfo_pointer
+				+ x_atom_refs[i].offset);
+
+	  if (atom == ref_atom)
+	    return xstrdup (x_atom_refs[i].name);
+	}
+
+      name = XGetAtomName (dpyinfo->display, atom);
+      *need_sync = true;
+
+      if (name)
+	{
+	  value = xstrdup (name);
+	  XFree (name);
+	}
+
+      break;
+    }
+
+  return value;
 }
 
 

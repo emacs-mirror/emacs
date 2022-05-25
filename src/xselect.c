@@ -2458,21 +2458,25 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   char empty[] = "";
   Lisp_Object ret = Qnil;
   Display *dpy = FRAME_X_DISPLAY (f);
+  struct x_display_info *dpyinfo;
   Atom atom;
-  bool had_errors_p;
+  bool had_errors_p, need_sync;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   CONS_TO_INTEGER (value, Atom, atom);
 
   block_input ();
   x_catch_errors (dpy);
-  name = atom ? XGetAtomName (dpy, atom) : empty;
-  had_errors_p = x_had_errors_p (dpy);
+  name = (atom ? x_get_atom_name (dpyinfo, atom,
+				  &need_sync) : empty);
+  had_errors_p = need_sync && x_had_errors_p (dpy);
   x_uncatch_errors_after_check ();
 
   if (!had_errors_p)
     ret = build_string (name);
 
-  if (atom && name) XFree (name);
+  if (atom && name) xfree (name);
   if (NILP (ret)) ret = empty_unibyte_string;
 
   unblock_input ();
