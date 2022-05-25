@@ -188,6 +188,7 @@
         (tagbanwa #x1760)
 	(khmer #x1780)
 	(mongolian #x1826)
+        (limbu #x1901 #x1920 #x1936)
         (tai-le #x1950)
         (tai-lue #x1980)
         (tai-tham #x1A20 #x1A55 #x1A61 #x1A80)
@@ -756,6 +757,7 @@
                     hanunoo
                     buhid
                     tagbanwa
+                    limbu
 		    symbol
 		    braille
 		    yi

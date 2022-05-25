@@ -222,6 +222,17 @@ Marathi language and one of its script Modi is supported
 in this language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Limbu" '((charset unicode)
+           (coding-system utf-8)
+           (coding-priority utf-8)
+           (input-method . "limbu")
+           (sample-text . "Limbu (ᤕᤠᤰᤌᤢᤱ ᤐᤠᤴ)	ᤛᤣᤘᤠᤖᤥ")
+           (documentation . "\
+Limbu language and its script is supported in this
+language environment."))
+ '("Indian"))
+
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
 
@@ -668,6 +679,21 @@ in this language environment."))
                                ;; Vowels based syllables
                                (concat independent-vowel virama "?" vowel "?" ardhacandra
                                        nasal "?" visarga "?")
+                               1 'font-shape-gstring))))
+
+;; Limbu composition rules
+(let ((consonant            "[\x1900-\x191E]")
+      (vowel                "[\x1920-\x1928]")
+      (subjoined-letter     "[\x1929-\x192B]")
+      (small-letter         "[\x1930-\x1938]")
+      (other-signs          "[\x1939\x193A]")
+      (sa-i                 "\x193B"))
+  (set-char-table-range composition-function-table
+                        '(#x1920 . #x193B)
+                        (list (vector
+                               ;; Consonant based syllables
+                               (concat consonant sa-i "?" subjoined-letter "?" small-letter
+                                       "?" vowel "?" other-signs "?")
                                1 'font-shape-gstring))))
 
 (provide 'indian)
