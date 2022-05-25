@@ -256,6 +256,7 @@ the command."
 
 (defcustom eshell-subcommand-bindings
   '((eshell-in-subcommand-p t)
+    (eshell-in-pipeline-p nil)
     (default-directory default-directory)
     (process-environment (eshell-copy-environment)))
   "A list of `let' bindings for subcommand environments."
@@ -907,7 +908,8 @@ This avoids the need to use `let*'."
 (defmacro eshell-command-to-value (object)
   "Run OBJECT synchronously, returning its result as a string.
 Returns a string comprising the output from the command."
-  `(let ((value (make-symbol "eshell-temp")))
+  `(let ((value (make-symbol "eshell-temp"))
+         (eshell-in-pipeline-p nil))
      (eshell-do-command-to-value ,object)))
 
 ;;;_* Iterative evaluation
