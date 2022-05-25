@@ -25385,6 +25385,13 @@ Update package NAME if a newer version exists.
 
 \(fn NAME)" t nil)
 
+(autoload 'package-update-all "package" "\
+Upgrade all packages.
+If QUERY, ask the user before updating packages.  When called
+interactively, QUERY is always true.
+
+\(fn &optional QUERY)" t nil)
+
 (autoload 'package-install-from-buffer "package" "\
 Install a package from the current buffer.
 The current buffer is assumed to be a single .el or .tar file or
