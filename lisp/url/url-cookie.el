@@ -494,12 +494,10 @@ Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
       (url-cookie--generate-buffer)
       (goto-char point))))
 
-(defvar url-cookie-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [delete] 'url-cookie-delete)
-    (define-key map [(control k)] 'url-cookie-delete)
-    (define-key map [(control _)] 'url-cookie-undo)
-    map))
+(defvar-keymap url-cookie-mode-map
+  "<delete>" #'url-cookie-delete
+  "C-k"      #'url-cookie-delete
+  "C-_"      #'url-cookie-undo)
 
 (define-derived-mode url-cookie-mode special-mode "URL Cookie"
   "Mode for listing cookies.
