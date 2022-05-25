@@ -233,6 +233,7 @@ each one of its four blocks.")
 (defvar-local tetris-pos-x 0)
 (defvar-local tetris-pos-y 0)
 (defvar-local tetris-paused nil)
+(defvar-local tetris-bag nil)
 
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -341,10 +342,21 @@ each one of its four blocks.")
   (let ((period (tetris-get-tick-period)))
     (if period (gamegrid-set-timer period))))
 
+(defun tetris-shuffle (sequence)
+  (loop for i from (length sequence) downto 2 do
+    (rotatef (elt sequence (random i))
+             (elt sequence (1- i))))
+  sequence)
+
+(defun tetris-seven-bag ()
+  (when (not tetris-bag)
+    (setq tetris-bag (tetris-shuffle (list 0 1 2 3 4 5 6))))
+  (pop tetris-bag))
+
 (defun tetris-new-shape ()
   (setq tetris-shape tetris-next-shape)
   (setq tetris-rot 0)
-  (setq tetris-next-shape (random 7))
+  (setq tetris-next-shape (tetris-seven-bag))
   (setq tetris-pos-x (/ (- tetris-width (tetris-shape-width)) 2))
   (setq tetris-pos-y 0)
   (if (tetris-test-shape)
