@@ -639,14 +639,8 @@ haiku_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 
   if (FRAME_HAIKU_WINDOW (f))
     {
-
       if (output->cursor_color.pixel == old_fg)
-	{
-	  output->cursor_color.pixel = old_fg;
-	  output->cursor_color.red = RED_FROM_ULONG (old_fg);
-	  output->cursor_color.green = GREEN_FROM_ULONG (old_fg);
-	  output->cursor_color.blue = BLUE_FROM_ULONG (old_fg);
-	}
+	haiku_query_color (fg, &output->cursor_color);
 
       update_face_from_frame_parameter (f, Qforeground_color, arg);
 
