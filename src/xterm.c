@@ -23599,10 +23599,11 @@ x_destroy_window (struct frame *f)
 }
 
 /* Intern NAME in DPYINFO, but check to see if the atom was already
-   interned, and use that instead.  */
+   interned, and use that instead.  If PREDEFINED_ONLY, return None if
+   the atom was not already interned at connection setup.  */
 Atom
 x_intern_cached_atom (struct x_display_info *dpyinfo,
-		      const char *name)
+		      const char *name, bool predefined_only)
 {
   int i;
   char *ptr;
@@ -23648,6 +23649,9 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
 	  return *atom;
 	}
     }
+
+  if (predefined_only)
+    return None;
 
   return XInternAtom (dpyinfo->display, name, False);
 }

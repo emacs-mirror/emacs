@@ -7246,19 +7246,28 @@ converted to an atom and the value of the atom is used.  If an element
 is a cons, it is converted to a 32 bit number where the car is the 16
 top bits and the cdr is the lower 16 bits.
 
-FRAME nil or omitted means use the selected frame.
-If TYPE is given and non-nil, it is the name of the type of VALUE.
- If TYPE is not given or nil, the type is STRING.
-FORMAT gives the size in bits of each element if VALUE is a list.
- It must be one of 8, 16 or 32.
- If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
-If OUTER-P is non-nil, the property is changed for the outer X window of
- FRAME.  Default is to change on the edit X window.
-If WINDOW-ID is non-nil, change the property of that window instead
- of FRAME's X window; the number 0 denotes the root window.  This argument
- is separate from FRAME because window IDs are not unique across X
- displays or screens on the same display, so FRAME provides context
- for the window ID. */)
+FRAME nil or omitted means use the selected frame.  If TYPE is given
+and non-nil, it is the name of the type of VALUE.  If TYPE is not
+given or nil, the type is STRING.
+
+FORMAT gives the size in bits of each element if VALUE is a list.  It
+must be one of 8, 16 or 32.
+
+If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to
+8.  If OUTER-P is non-nil, the property is changed for the outer X
+window of FRAME.  Default is to change on the edit X window.
+
+If WINDOW-ID is non-nil, change the property of that window instead of
+FRAME's X window; the number 0 denotes the root window.  This argument
+is separate from FRAME because window IDs are not unique across X
+displays or screens on the same display, so FRAME provides context for
+the window ID.
+
+If VALUE is a string and FORMAT is 32, then the format of VALUE is
+system-specific.  VALUE must contain unsigned integer data in native
+endian-ness in multiples of the size of the C type 'long': the low 32
+bits of each such number are used as the value of each element of the
+property.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
    Lisp_Object type, Lisp_Object format, Lisp_Object outer_p,
    Lisp_Object window_id)
@@ -7271,6 +7280,8 @@ If WINDOW-ID is non-nil, change the property of that window instead
   int nelements;
   Window target_window;
 #ifdef USE_XCB
+  bool intern_prop;
+  bool intern_target;
   xcb_intern_atom_cookie_t prop_atom_cookie;
   xcb_intern_atom_cookie_t target_type_cookie;
   xcb_intern_atom_reply_t *reply;
@@ -7341,41 +7352,62 @@ If WINDOW-ID is non-nil, change the property of that window instead
 
   block_input ();
 #ifndef USE_XCB
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+  prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+				    SSDATA (prop), false);
   if (! NILP (type))
     {
       CHECK_STRING (type);
-      target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
+      target_type = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+					  SSDATA (type), false);
     }
 #else
   rc = true;
-  prop_atom_cookie
-    = xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
-		       0, SBYTES (prop), SSDATA (prop));
+  intern_target = true;
+  intern_prop = true;
+
+  prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+				    SSDATA (prop), true);
+
+  if (prop_atom != None)
+    intern_prop = false;
+  else
+    prop_atom_cookie
+      = xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
+			 0, SBYTES (prop), SSDATA (prop));
 
   if (!NILP (type))
     {
       CHECK_STRING (type);
-      target_type_cookie
-	= xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
-			   0, SBYTES (type), SSDATA (type));
+
+      target_type = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+					  SSDATA (type), true);
+
+      if (target_type)
+	intern_target = false;
+      else
+	target_type_cookie
+	  = xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
+			     0, SBYTES (type), SSDATA (type));
     }
 
-  reply = xcb_intern_atom_reply (FRAME_DISPLAY_INFO (f)->xcb_connection,
-				 prop_atom_cookie, &generic_error);
-
-  if (reply)
+  if (intern_prop)
     {
-      prop_atom = (Atom) reply->atom;
-      free (reply);
-    }
-  else
-    {
-      free (generic_error);
-      rc = false;
+      reply = xcb_intern_atom_reply (FRAME_DISPLAY_INFO (f)->xcb_connection,
+				     prop_atom_cookie, &generic_error);
+
+      if (reply)
+	{
+	  prop_atom = (Atom) reply->atom;
+	  free (reply);
+	}
+      else
+	{
+	  free (generic_error);
+	  rc = false;
+	}
     }
 
-  if (!NILP (type))
+  if (!NILP (type) && intern_target)
     {
       reply = xcb_intern_atom_reply (FRAME_DISPLAY_INFO (f)->xcb_connection,
 				     target_type_cookie, &generic_error);
@@ -7439,7 +7471,7 @@ Value is PROP.  */)
 
   block_input ();
   prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-				    SSDATA (prop));
+				    SSDATA (prop), false);
 
   x_catch_errors (FRAME_X_DISPLAY (f));
   XDeleteProperty (FRAME_X_DISPLAY (f), target_window, prop_atom);
@@ -7575,11 +7607,11 @@ if PROP has no value of TYPE (always a string in the MS Windows case). */)
         target_type = AnyPropertyType;
       else
         target_type = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-					    SSDATA (type));
+					    SSDATA (type), false);
     }
 
   prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-				    SSDATA (prop));
+				    SSDATA (prop), false);
   prop_value = x_window_property_intern (f,
                                          target_window,
                                          prop_atom,
@@ -7651,7 +7683,7 @@ Otherwise, the return value is a vector with the following fields:
 
   x_catch_errors (FRAME_X_DISPLAY (f));
   prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-				    SSDATA (prop));
+				    SSDATA (prop), false);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			   prop_atom, 0, 0, False, AnyPropertyType,
 			   &actual_type, &actual_format, &actual_size,
