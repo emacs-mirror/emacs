@@ -1533,7 +1533,7 @@ Returns the stats object."
   "Like `ert-run-tests-batch', but exits Emacs when done.
 
 The exit status will be 0 if all test results were as expected, 1
-son unexpected results, or 2 if the tool detected an error outside
+on unexpected results, or 2 if the tool detected an error outside
 of the tests (e.g. invalid SELECTOR or bug in the code that runs
 the tests)."
   (or noninteractive
