@@ -44,10 +44,11 @@
 ;; (info "(emacs)Saving Emacs Sessions") in the GNU Emacs Manual.
 
 ;; When the desktop module is loaded, the function `desktop-kill' is
-;; added to the `kill-emacs-hook'.  This function is responsible for
-;; saving the desktop when Emacs is killed.  Furthermore an anonymous
-;; function is added to the `after-init-hook'.  This function is
-;; responsible for loading the desktop when Emacs is started.
+;; added to the `kill-emacs-query-functions'.  This function is
+;; responsible for saving the desktop and deleting the desktop lock
+;; file when Emacs is killed.  In addition, an anonymous function is
+;; added to the `after-init-hook'.  This function is responsible for
+;; loading the desktop when Emacs is started.
 
 ;; Special handling.
 ;; -----------------

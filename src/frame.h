@@ -127,6 +127,7 @@ struct frame
   /* This frame's selected window.
      Each frame has its own window hierarchy
      and one of the windows in it is selected within the frame.
+     This window may be the mini-window of the frame, if any.
      The selected window of the selected frame is Emacs's selected window.  */
   Lisp_Object selected_window;
 

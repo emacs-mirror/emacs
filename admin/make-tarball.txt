@@ -334,6 +334,9 @@ looks like this:
 	</div>
     </div>
 
+Also, make sure the copyright years at the bottom of emacs.html are
+up-to-date.
+
 The file download.html may need to be updated, for example if the
 MS-Windows binaries will be signed by a different person/key than
 those mentioned there.

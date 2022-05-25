@@ -659,6 +659,7 @@ such as MIME support.  Another available mode is MH-E
 (@pxref{Top,,MH-E,mh-e, The Emacs Interface to MH}).
 
 @vindex mail-user-agent
+@findex define-mail-user-agent
   You can choose any of these @dfn{mail user agents} as your preferred
 method for editing and sending mail.  The commands @kbd{C-x m},
 @kbd{C-x 4 m} and @kbd{C-x 5 m} use whichever agent you have
@@ -667,7 +668,10 @@ the bug reporter (@pxref{Bugs}).  To specify a mail user agent,
 customize the variable @code{mail-user-agent}.  Currently, legitimate
 values include @code{message-user-agent} (Message mode)
 @code{sendmail-user-agent} (Mail mode), @code{gnus-user-agent}, and
-@code{mh-e-user-agent}.
+@code{mh-e-user-agent}.  Additional options may be available; check
+in the manual of your mail user agent package for details.  You may
+also define another mail user agent using
+@code{define-mail-user-agent}.
 
   If you select a different mail-composition method, the information
 in this chapter about the mail buffer and Message mode does not apply;

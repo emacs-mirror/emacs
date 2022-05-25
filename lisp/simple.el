@@ -9207,9 +9207,10 @@ Valid values include:
                            paraphernalia if Gnus is running, particularly
                            the Gcc: header for archiving.
 
-Additional valid symbols may be available; check with the author of
-your package for details.  The function should return non-nil if it
-succeeds.
+Additional valid symbols may be available; check in the manual of
+your mail user agent package for details.  You may also define
+your own symbol to be used as value for this variable using
+`define-mail-user-agent'.
 
 See also `read-mail-command' concerning reading mail."
   :type '(radio (function-item :tag "Message package"

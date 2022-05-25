@@ -201,20 +201,12 @@ move_minibuffers_onto_frame (struct frame *of, bool for_deletion)
     return;
   if (FRAME_LIVE_P (f)
       && !EQ (f->minibuffer_window, of->minibuffer_window)
-      && WINDOW_LIVE_P (f->minibuffer_window) /* F not a tootip frame */
+      && WINDOW_LIVE_P (f->minibuffer_window) /* F not a tooltip frame */
       && WINDOW_LIVE_P (of->minibuffer_window))
     {
       zip_minibuffer_stacks (f->minibuffer_window, of->minibuffer_window);
       if (for_deletion && XFRAME (MB_frame) != of)
 	MB_frame = selected_frame;
-      if (!for_deletion
-	  && MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (of))))
-	{
-	  Lisp_Object old_frame;
-	  XSETFRAME (old_frame, of);
-	  Fset_frame_selected_window (old_frame,
-				      Fframe_first_window (old_frame), Qnil);
-	}
     }
 }
 

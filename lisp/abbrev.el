@@ -42,12 +42,12 @@
 
 (defcustom abbrev-file-name
   (locate-user-emacs-file "abbrev_defs" ".abbrev_defs")
-  "Default name of file from which to read abbrevs."
+  "Default name of file from which to read and where to save abbrevs."
   :initialize 'custom-initialize-delay
   :type 'file)
 
 (defcustom only-global-abbrevs nil
-  "Non-nil means user plans to use global abbrevs only.
+  "Non-nil means user plans to use only global abbrevs.
 This makes the commands that normally define mode-specific abbrevs
 define global abbrevs instead."
   :type 'boolean
@@ -59,7 +59,8 @@ define global abbrevs instead."
 
 In Abbrev mode, inserting an abbreviation causes it to expand and
 be replaced by its expansion."
-  ;; It's defined in C, this stops the d-m-m macro defining it again.
+  ;; It's defined in C, this stops the 'define-minor-mode' macro from
+  ;; defining it again.
   :variable abbrev-mode)
 
 (put 'abbrev-mode 'safe-local-variable 'booleanp)
@@ -81,7 +82,8 @@ be replaced by its expansion."
 
 (defun copy-abbrev-table (table)
   "Make a new abbrev-table with the same abbrevs as TABLE.
-Does not copy property lists."
+This function does not copy property lists of the abbrevs.
+See `define-abbrev' for the documentation of abbrev properties."
   (let ((new-table (make-abbrev-table)))
     (obarray-map
      (lambda (symbol)
@@ -93,8 +95,8 @@ Does not copy property lists."
     new-table))
 
 (defun insert-abbrevs ()
-  "Insert after point a description of all defined abbrevs.
-Mark is set after the inserted text."
+  "Insert the description of all defined abbrevs after point.
+Set mark after the inserted text."
   (interactive)
   (push-mark
    (save-excursion
@@ -103,15 +105,15 @@ Mark is set after the inserted text."
      (point))))
 
 (defun list-abbrevs (&optional local)
-  "Display a list of defined abbrevs.
-If LOCAL is non-nil, interactively when invoked with a
-prefix arg, display only local, i.e. mode-specific, abbrevs.
-Otherwise display all abbrevs."
+  "Display a list of the defined abbrevs.
+If LOCAL is non-nil (interactively, when invoked with a
+prefix arg), display only local, i.e. mode-specific, abbrevs.
+Otherwise display all the abbrevs."
   (interactive "P")
   (display-buffer (prepare-abbrev-list-buffer local)))
 
 (defun abbrev-table-name (table)
-  "Value is the name of abbrev table TABLE."
+  "Return the name of the specified abbrev TABLE."
   (let ((tables abbrev-table-name-list)
 	found)
     (while (and (not found) tables)
@@ -135,33 +137,33 @@ Otherwise display all abbrevs."
 	  (dolist (table (nreverse empty-tables))
 	    (insert-abbrev-table-description table t)))
         ;; Note: `list-abbrevs' can display only local abbrevs, in
-        ;; which case editing could lose abbrevs of other tables. Thus
-        ;; enter `edit-abbrevs-mode' only if LOCAL is nil.
+        ;; which case editing could lose abbrevs of other tables.
+        ;; Thus enter `edit-abbrevs-mode' only if LOCAL is nil.
         (edit-abbrevs-mode))
       (goto-char (point-min))
       (set-buffer-modified-p nil)
       (current-buffer))))
 
 (defun edit-abbrevs ()
-  "Alter abbrev definitions by editing a list of them.
-Selects a buffer containing a list of abbrev definitions with
-point located in the abbrev table for the current buffer, and
-turns on `edit-abbrevs-mode' in that buffer.
+  "Alter abbrev definitions by editing the list of abbrevs.
+This selects a buffer containing the list of abbrev definitions
+with point located in the abbrev table for the current buffer, and
+turns on `edit-abbrevs-mode' in the buffer with the list of abbrevs.
 
-You can edit them and type \\<edit-abbrevs-mode-map>\\[edit-abbrevs-redefine] \
+You can edit the abbrevs and type \\<edit-abbrevs-mode-map>\\[edit-abbrevs-redefine] \
 to redefine abbrevs
 according to your editing.
 
 The abbrevs editing buffer contains a header line for each
 abbrev table, which is the abbrev table name in parentheses.
 
-This is followed by one line per abbrev in that table:
+The header line is followed by one line per abbrev in that table:
 
     NAME   USECOUNT   EXPANSION   HOOK
 
 where NAME and EXPANSION are strings with quotes,
 USECOUNT is an integer, and HOOK is any valid function
-or may be omitted (it is usually omitted)."
+that may be omitted (it is usually omitted)."
   (interactive)
   (let ((table-name (abbrev-table-name local-abbrev-table)))
     (switch-to-buffer (prepare-abbrev-list-buffer))
@@ -182,8 +184,9 @@ or may be omitted (it is usually omitted)."
   "Define abbrevs according to current visible buffer contents.
 See documentation of `edit-abbrevs' for info on the format of the
 text you must have in the buffer.
-With argument, eliminate all abbrev definitions except
-the ones defined from the buffer now."
+If ARG is non-nil (interactively, when invoked with a prefix
+argument), eliminate all abbrev definitions except the ones
+defined by the current buffer contents."
   (interactive "P")
   (if arg (kill-all-abbrevs))
   (save-excursion
@@ -214,7 +217,8 @@ the ones defined from the buffer now."
   "Read abbrev definitions from file written with `write-abbrev-file'.
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
-Optional second argument QUIETLY non-nil means don't display a message."
+Optional second argument QUIETLY non-nil means don't display a message
+about loading the abbrevs."
   (interactive
    (list
     (read-file-name (format-prompt "Read abbrev file" abbrev-file-name)
@@ -223,22 +227,22 @@ Optional second argument QUIETLY non-nil means don't display a message."
   (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)
-  "Read abbrev definitions from file written with `write-abbrev-file'.
+  "Quietly read abbrev definitions from file written with `write-abbrev-file'.
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
-Does not display any message."
+Do not display any messages about loading the abbrevs."
 					;(interactive "fRead abbrev file: ")
   (read-abbrev-file file t))
 
 (defun write-abbrev-file (&optional file verbose)
   "Write all user-level abbrev definitions to a file of Lisp code.
 This does not include system abbrevs; it includes only the abbrev tables
-listed in listed in `abbrev-table-name-list'.
+listed in `abbrev-table-name-list'.
 The file written can be loaded in another session to define the same abbrevs.
-The argument FILE is the file name to write.  If omitted or nil, the file
-specified in `abbrev-file-name' is used.
-If VERBOSE is non-nil, display a message indicating where abbrevs
-have been saved."
+The argument FILE is the file name to write.  If omitted or nil, it defaults
+to the value of `abbrev-file-name'.
+If VERBOSE is non-nil, display a message indicating the file where the
+abbrevs have been saved."
   (interactive
    (list
     (read-file-name "Write abbrev file: "
@@ -251,10 +255,10 @@ have been saved."
       (dolist (table
 	       ;; We sort the table in order to ease the automatic
 	       ;; merging of different versions of the user's abbrevs
-	       ;; file.  This is useful, for example, for when the
+	       ;; file.  This is useful, for example, when the
 	       ;; user keeps their home directory in a revision
-	       ;; control system, and is therefore keeping multiple
-	       ;; slightly-differing copies loosely synchronized.
+	       ;; control system, and therefore keeps multiple
+	       ;; slightly-differing loosely synchronized copies.
 	       (sort (copy-sequence abbrev-table-name-list)
 		     (lambda (s1 s2)
 		       (string< (symbol-name s1)
@@ -268,7 +272,7 @@ have been saved."
       (write-region nil nil file nil (and (not verbose) 0)))))
 
 (defun abbrev-edit-save-to-file (file)
-  "Save all user-level abbrev definitions in current buffer to FILE."
+  "Save to FILE all the user-level abbrev definitions in current buffer."
   (interactive
    (list (read-file-name "Save abbrevs to file: "
 			 (file-name-directory
@@ -279,7 +283,7 @@ have been saved."
   (write-abbrev-file file t))
 
 (defun abbrev-edit-save-buffer ()
-  "Save all user-level abbrev definitions in current buffer.
+  "Save all the user-level abbrev definitions in current buffer.
 The saved abbrevs are written to the file specified by
 `abbrev-file-name'."
   (interactive nil edit-abbrevs-mode)
@@ -287,15 +291,16 @@ The saved abbrevs are written to the file specified by
 
 
 (defun add-mode-abbrev (arg)
-  "Define mode-specific abbrev for last word(s) before point.
-Argument is how many words before point form the expansion;
-or zero means the region is the expansion.
-A negative argument means to undefine the specified abbrev.
-Reads the abbreviation in the minibuffer.
+  "Define a mode-specific abbrev whose expansion is the last word before point.
+Prefix argument ARG says how many words before point to use for the expansion;
+zero means the entire region is the expansion.
+A negative ARG means to undefine the specified abbrev.
+
+This command reads the abbreviation from the minibuffer.
 
 See also `inverse-add-mode-abbrev', which performs the opposite task:
-if the abbrev text is already in the buffer, use this command to
-define an abbrev by specifying the expansion in the minibuffer.
+if the abbreviation is already in the buffer, use that command to define
+a mode-specific abbrev by specifying its expansion in the minibuffer.
 
 Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
@@ -307,15 +312,16 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
    "Mode" arg))
 
 (defun add-global-abbrev (arg)
-  "Define global (all modes) abbrev for last word(s) before point.
-The prefix argument specifies the number of words before point that form the
-expansion; or zero means the region is the expansion.
-A negative argument means to undefine the specified abbrev.
-This command uses the minibuffer to read the abbreviation.
+  "Define a global (all modes) abbrev whose expansion is last word before point.
+Prefix argument ARG says how many words before point to use for the expansion;
+zero means the entire region is the expansion.
+A negative ARG means to undefine the specified abbrev.
+
+This command reads the abbreviation from the minibuffer.
 
 See also `inverse-add-global-abbrev', which performs the opposite task:
-if the abbrev text is already in the buffer, use this command to
-define an abbrev by specifying the expansion in the minibuffer.
+if the abbreviation is already in the buffer, use that command to define
+a global abbrev by specifying its expansion in the minibuffer.
 
 Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
@@ -329,25 +335,30 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
 		     (save-excursion (forward-word (- arg)) (point))))))
 	name)
     (setq name
-	  (read-string (format (if exp "%s abbrev for \"%s\": "
+	  (read-string (format (if exp "%s abbrev that expands into \"%s\": "
 				 "Undefine %s abbrev: ")
 			       type exp)))
     (set-text-properties 0 (length name) nil name)
     (if (or (null exp)
 	    (not (abbrev-expansion name table))
-	    (y-or-n-p (format "%s expands to \"%s\"; redefine? "
+	    (y-or-n-p (format "%s expands into \"%s\"; redefine? "
 			      name (abbrev-expansion name table))))
 	(define-abbrev table (downcase name) exp))))
 
 (defun inverse-add-mode-abbrev (n)
-  "Define last word before point as a mode-specific abbrev.
-With prefix argument N, defines the Nth word before point.
-This command uses the minibuffer to read the expansion.
-Expands the abbreviation after defining it.
+  "Define the word before point as a mode-specific abbreviation.
+With prefix argument N, define the Nth word before point as the
+abbreviation.  Negative N means use the Nth word after point.
+
+If `only-global-abbrevs' is non-nil, this command defines a
+global (mode-independent) abbrev instead of a mode-specific one.
+
+This command reads the expansion from the minibuffer, defines the
+abbrev, and then expands the abbreviation in the current buffer.
 
 See also `add-mode-abbrev', which performs the opposite task:
-if the expansion is already in the buffer, use this command
-to define an abbrev by specifying the abbrev in the minibuffer."
+if the expansion is already in the buffer, use that command
+to define an abbrev by specifying the abbreviation in the minibuffer."
   (interactive "p")
   (inverse-add-abbrev
    (if only-global-abbrevs
@@ -357,14 +368,16 @@ to define an abbrev by specifying the abbrev in the minibuffer."
    "Mode" n))
 
 (defun inverse-add-global-abbrev (n)
-  "Define last word before point as a global (mode-independent) abbrev.
-With prefix argument N, defines the Nth word before point.
-This command uses the minibuffer to read the expansion.
-Expands the abbreviation after defining it.
+  "Define the word before point as a global (mode-independent) abbreviation.
+With prefix argument N, define the Nth word before point as the
+abbreviation.  Negative N means use the Nth word after point.
+
+This command reads the expansion from the minibuffer, defines the
+abbrev, and then expands the abbreviation in the current buffer.
 
 See also `add-global-abbrev', which performs the opposite task:
-if the expansion is already in the buffer, use this command
-to define an abbrev by specifying the abbrev in the minibuffer."
+if the expansion is already in the buffer, use that command
+to define an abbrev by specifying the abbreviation in the minibuffer."
   (interactive "p")
   (inverse-add-abbrev global-abbrev-table "Global" n))
 
@@ -378,10 +391,10 @@ to define an abbrev by specifying the abbrev in the minibuffer."
       (setq start (point)
 	    name (buffer-substring-no-properties start end)))
 
-    (setq exp (read-string (format "%s expansion for \"%s\": " type name)
+    (setq exp (read-string (format "Expansion for %s abbrev \"%s\": " type name)
 			   nil nil nil t))
     (when (or (not (abbrev-expansion name table))
-	      (y-or-n-p (format "%s expands to \"%s\"; redefine? "
+	      (y-or-n-p (format "%s expands into \"%s\"; redefine? "
 				name (abbrev-expansion name table))))
       (define-abbrev table (downcase name) exp)
       (save-excursion
@@ -389,10 +402,11 @@ to define an abbrev by specifying the abbrev in the minibuffer."
 	(expand-abbrev)))))
 
 (defun abbrev-prefix-mark (&optional arg)
-  "Mark current point as the beginning of an abbrev.
-The abbrev to be expanded starts here rather than at beginning of
-word.  This way, you can expand an abbrev with a prefix: insert
-the prefix, use this command, then insert the abbrev.
+  "Mark point as the beginning of an abbreviation.
+The abbrev to be expanded starts at point rather than at the
+beginning of a word.  This way, you can expand an abbrev with
+a prefix: insert the prefix, use this command, then insert the
+abbrev.
 
 This command inserts a hyphen after the prefix, and if the abbrev
 is subsequently expanded, this hyphen will be removed.
@@ -407,8 +421,8 @@ argument."
   (insert "-"))
 
 (defun expand-region-abbrevs (start end &optional noquery)
-  "For abbrev occurrence in the region, offer to expand it.
-The user is asked to type \\`y' or \\`n' for each occurrence.
+  "For each abbrev occurrence in the region, offer to expand it.
+Ask the user to type `y' or `n' for each occurrence.
 A prefix argument means don't query; expand all abbrevs."
   (interactive "r\nP")
   (save-excursion
@@ -429,18 +443,19 @@ A prefix argument means don't query; expand all abbrevs."
 ;;; Abbrev properties.
 
 (defun abbrev-table-get (table prop)
-  "Get the PROP property of abbrev table TABLE."
+  "Get the property PROP of abbrev table TABLE."
   (let ((sym (obarray-get table "")))
     (if sym (get sym prop))))
 
 (defun abbrev-table-put (table prop val)
-  "Set the PROP property of abbrev table TABLE to VAL."
+  "Set the property PROP of abbrev table TABLE to VAL."
   (let ((sym (obarray-put table "")))
     (set sym nil)	     ; Make sure it won't be confused for an abbrev.
     (put sym prop val)))
 
 (defalias 'abbrev-get 'get
   "Get the property PROP of abbrev ABBREV
+See `define-abbrev' for the effect of some special properties.
 
 \(fn ABBREV PROP)")
 
@@ -500,7 +515,8 @@ for any particular abbrev defined in both.")
 (defvar abbrev-minor-mode-table-alist nil
   "Alist of abbrev tables to use for minor modes.
 Each element looks like (VARIABLE . ABBREV-TABLE);
-ABBREV-TABLE is active whenever VARIABLE's value is non-nil.
+ABBREV-TABLE is active whenever VARIABLE's value is non-nil;
+VARIABLE is supposed to be a minor-mode variable.
 ABBREV-TABLE can also be a list of abbrev tables.")
 
 (defvar fundamental-mode-abbrev-table
@@ -511,11 +527,11 @@ ABBREV-TABLE can also be a list of abbrev tables.")
   "The abbrev table of mode-specific abbrevs for Fundamental Mode.")
 
 (defvar abbrevs-changed nil
-  "Set non-nil by defining or altering any word abbrevs.
+  "Non-nil if any word abbrevs were defined or altered.
 This causes `save-some-buffers' to offer to save the abbrevs.")
 
 (defcustom abbrev-all-caps nil
-  "Non-nil means expand multi-word abbrevs all caps if abbrev was so."
+  "Non-nil means expand multi-word abbrevs in all caps if the abbrev was so."
   :type 'boolean
   :group 'abbrev-mode)
 
@@ -532,17 +548,17 @@ Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.")
   "The abbrev-symbol of the last abbrev expanded.  See `abbrev-symbol'.")
 
 (defvar last-abbrev-text nil
-  "The exact text of the last abbrev expanded.
+  "The exact text of the last abbrev that was expanded.
 It is nil if the abbrev has already been unexpanded.")
 
 (defvar last-abbrev-location 0
-  "The location of the start of the last abbrev expanded.")
+  "The location of the start of the last abbrev that was expanded.")
 
 ;; (defvar-local local-abbrev-table fundamental-mode-abbrev-table
 ;;   "Local (mode-specific) abbrev table of current buffer.")
 
 (defun clear-abbrev-table (table)
-  "Undefine all abbrevs in abbrev table TABLE, leaving it empty."
+  "Undefine all abbrevs in abbrev table TABLE, leaving TABLE empty."
   (setq abbrevs-changed t)
   (let* ((sym (obarray-get table "")))
     (dotimes (i (length table))
@@ -557,9 +573,9 @@ It is nil if the abbrev has already been unexpanded.")
   ;; For backward compatibility, always return nil.
   nil)
 
-(defun define-abbrev (table name expansion &optional hook &rest props)
-  "Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.
-NAME must be a string, and should be lower-case.
+(defun define-abbrev (table abbrev expansion &optional hook &rest props)
+  "Define ABBREV in TABLE, to expand into EXPANSION and optionally call HOOK.
+ABBREV must be a string, and should be lower-case.
 EXPANSION should usually be a string.
 To undefine an abbrev, define it with EXPANSION = nil.
 If HOOK is non-nil, it should be a function of no arguments;
@@ -583,8 +599,8 @@ PROPS is a property list.  The following properties are special:
   overwrite a non-system abbreviation of the same name.
 - `:case-fixed': non-nil means that abbreviations are looked up without
   case-folding, and the expansion is not capitalized/upcased.
-- `:enable-function': a function of no argument which returns non-nil if the
-  abbrev should be used for a particular call of `expand-abbrev'.
+- `:enable-function': a function of no arguments which returns non-nil
+  if the abbrev should be used for a particular call of `expand-abbrev'.
 
 An obsolete but still supported calling form is:
 
@@ -599,7 +615,7 @@ An obsolete but still supported calling form is:
   (setq props (plist-put props :abbrev-table-modiff
                          (abbrev-table-get table :abbrev-table-modiff)))
   (let ((system-flag (plist-get props :system))
-        (sym (obarray-put table name)))
+        (sym (obarray-put table abbrev)))
     ;; Don't override a prior user-defined abbrev with a system abbrev,
     ;; unless system-flag is `force'.
     (unless (and (not (memq system-flag '(nil force)))
@@ -619,7 +635,7 @@ An obsolete but still supported calling form is:
                 (if (eq 'force system-flag) (plist-put props :system t) props))
       (abbrev-table-put table :abbrev-table-modiff
                         (1+ (abbrev-table-get table :abbrev-table-modiff))))
-    name))
+    abbrev))
 
 (defun abbrev--check-chars (abbrev global)
   "Check if the characters in ABBREV have word syntax in either the
@@ -639,7 +655,7 @@ current (if global is nil) or standard syntax table."
                (if global "in the standard syntax" "in this mode"))))))
 
 (defun define-global-abbrev (abbrev expansion)
-  "Define ABBREV as a global abbreviation for EXPANSION.
+  "Define ABBREV as a global abbreviation that expands into EXPANSION.
 The characters in ABBREV must all be word constituents in the standard
 syntax table."
   (interactive "sDefine global abbrev: \nsExpansion for %s: ")
@@ -647,7 +663,7 @@ syntax table."
   (define-abbrev global-abbrev-table (downcase abbrev) expansion))
 
 (defun define-mode-abbrev (abbrev expansion)
-  "Define ABBREV as a mode-specific abbreviation for EXPANSION.
+  "Define ABBREV as a mode-specific abbreviation that expands into EXPANSION.
 The characters in ABBREV must all be word-constituents in the current mode."
   (interactive "sDefine mode abbrev: \nsExpansion for %s: ")
   (unless local-abbrev-table
@@ -656,8 +672,8 @@ The characters in ABBREV must all be word-constituents in the current mode."
   (define-abbrev local-abbrev-table (downcase abbrev) expansion))
 
 (defun abbrev--active-tables (&optional tables)
-  "Return the list of abbrev tables currently active.
-TABLES if non-nil overrides the usual rules.  It can hold
+  "Return the list of abbrev tables that are currently active.
+TABLES, if non-nil, overrides the usual rules.  It can hold
 either a single abbrev table or a list of abbrev tables."
   ;; We could just remove the `tables' arg and let callers use
   ;; (or table (abbrev--active-tables)) but then they'd have to be careful
@@ -683,7 +699,7 @@ either a single abbrev table or a list of abbrev tables."
   "Return the symbol representing abbrev named ABBREV in TABLE.
 This symbol's name is ABBREV, but it is not the canonical symbol of that name;
 it is interned in the abbrev-table TABLE rather than the normal obarray.
-The value is nil if that abbrev is not defined."
+The value is nil if such an abbrev is not defined."
   (let* ((case-fold (not (abbrev-table-get table :case-fixed)))
          ;; In case the table doesn't set :case-fixed but some of the
          ;; abbrevs do, we have to be careful.
@@ -700,11 +716,11 @@ The value is nil if that abbrev is not defined."
         sym)))
 
 (defun abbrev-symbol (abbrev &optional table)
-  "Return the symbol representing abbrev named ABBREV.
+  "Return the symbol representing the abbrev named ABBREV in TABLE.
 This symbol's name is ABBREV, but it is not the canonical symbol of that name;
 it is interned in an abbrev-table rather than the normal obarray.
-The value is nil if that abbrev is not defined.
-Optional second arg TABLE is abbrev table to look it up in.
+The value is nil if such an abbrev is not defined.
+Optional second arg TABLE is the abbrev table to look it up in.
 The default is to try buffer's mode-specific abbrev table, then global table."
   (let ((tables (abbrev--active-tables table))
         sym)
@@ -717,7 +733,7 @@ The default is to try buffer's mode-specific abbrev table, then global table."
 
 (defun abbrev-expansion (abbrev &optional table)
   "Return the string that ABBREV expands into in the current buffer.
-Optionally specify an abbrev table as second arg;
+Optionally specify an abbrev TABLE as second arg;
 then ABBREV is looked up in that table only."
   (symbol-value (abbrev-symbol abbrev table)))
 
@@ -781,9 +797,9 @@ then ABBREV is looked up in that table only."
 (defun abbrev-insert (abbrev &optional name wordstart wordend)
   "Insert abbrev ABBREV at point.
 If non-nil, NAME is the name by which this abbrev was found.
-If non-nil, WORDSTART is the place where to insert the abbrev.
-If WORDEND is non-nil, the abbrev replaces the previous text between
-WORDSTART and WORDEND.
+If non-nil, WORDSTART is the buffer position where to insert the abbrev.
+If WORDEND is non-nil, it is a buffer position; the abbrev replaces the
+previous text between WORDSTART and WORDEND.
 Return ABBREV if the expansion should be considered as having taken place.
 The return value can be influenced by a `no-self-insert' property;
 see `define-abbrev' for details."
@@ -848,7 +864,8 @@ see `define-abbrev' for details."
 
 (defvar abbrev-expand-function #'abbrev--default-expand
   "Function that `expand-abbrev' uses to perform abbrev expansion.
-Takes no argument and should return the abbrev symbol if expansion took place.")
+Takes no arguments, and should return the abbrev symbol if expansion
+took place.")
 
 (defcustom abbrev-suggest nil
   "Non-nil means suggest using abbrevs to save typing.
@@ -907,15 +924,17 @@ Expansion is a string of one or more words."
 
 (defun abbrev--suggest-above-threshold (expansion)
   "Return non-nil if the abbrev in EXPANSION provides significant savings.
-A significant saving, here, is the difference in length between
-the abbrev and the abbrev expansion.  EXPANSION is a cons cell
-where the car is the expansion and the cdr is the abbrev."
+A significant saving, here, means the difference in length between
+the abbrev and its expansion is not below the threshold specified
+by the value of `abbrev-suggest-hint-threshold'.
+EXPANSION is a cons cell where the car is the expansion and the cdr is
+the abbrev."
     (>= (- (length (car expansion))
 	   (length (cdr expansion)))
 	abbrev-suggest-hint-threshold))
 
 (defvar abbrev--suggest-saved-recommendations nil
-    "Keeps a list of expansions that have abbrevs defined.
+    "Keeps the list of expansions that have abbrevs defined.
 The user can show this list by calling
 `abbrev-suggest-show-report'.")
 
@@ -931,7 +950,7 @@ EXPANSION is a cons cell where the `car' is the expansion and the
     (push expansion abbrev--suggest-saved-recommendations))
 
 (defun abbrev--suggest-shortest-abbrev (new current)
-    "Return the shortest abbrev of NEW and CURRENT.
+    "Return the shortest of the two abbrevs given by NEW and CURRENT.
 NEW and CURRENT are cons cells where the `car' is the expansion
 and the `cdr' is the abbrev."
     (if (not current)
@@ -960,8 +979,8 @@ informed about the existing abbrev."
 
 (defun abbrev--suggest-get-totals ()
     "Return a list of all expansions and how many times they were used.
-Each expansion is a cons cell where the `car' is the expansion
-and the `cdr' is the number of times the expansion has been
+Each expansion in the returned list is a cons cell where the `car' is the
+expansion text and the `cdr' is the number of times the expansion has been
 typed."
     (let (total cell)
       (dolist (expansion abbrev--suggest-saved-recommendations)
@@ -1089,11 +1108,11 @@ Presumes that `standard-output' points to `current-buffer'."
 (defun insert-abbrev-table-description (name &optional readable)
   "Insert before point a full description of abbrev table named NAME.
 NAME is a symbol whose value is an abbrev table.
-If optional 2nd arg READABLE is non-nil, a human-readable description
-is inserted.
+If optional 2nd arg READABLE is non-nil, insert a human-readable
+description.
 
-If READABLE is nil, an expression is inserted.  The expression is
-a call to `define-abbrev-table' that when evaluated will define
+If READABLE is nil, insert an expression.  The expression is
+a call to `define-abbrev-table' that, when evaluated, will define
 the abbrev table NAME exactly as it is currently defined.
 Abbrevs marked as \"system abbrevs\" are ignored."
   (let ((symbols (abbrev--table-symbols name readable)))
@@ -1140,10 +1159,10 @@ Properties with special meaning:
   case-folding, and the expansion is not capitalized/upcased.
 - `:regexp' is a regular expression that specifies how to extract the
   name of the abbrev before point.  The submatch 1 is treated
-  as the potential name of an abbrev.  If :regexp is nil, the default
+  as the potential name of an abbrev.  If `:regexp' is nil, the default
   behavior uses `backward-word' and `forward-word' to extract the name
-  of the abbrev, which can therefore only be a single word.
-- `:enable-function' can be set to a function of no argument which returns
+  of the abbrev, which can therefore by default only be a single word.
+- `:enable-function' can be set to a function of no arguments which returns
   non-nil if and only if the abbrevs in this table should be used for this
   instance of `expand-abbrev'."
   (declare (doc-string 3) (indent defun))
@@ -1172,7 +1191,7 @@ Properties with special meaning:
 
 (defun abbrev-table-menu (table &optional prompt sortfun)
   "Return a menu that shows all abbrevs in TABLE.
-Selecting an entry runs `abbrev-insert'.
+Selecting an entry runs `abbrev-insert' for that entry's abbrev.
 PROMPT is the prompt to use for the keymap.
 SORTFUN is passed to `sort' to change the default ordering."
   (unless sortfun (setq sortfun 'string-lessp))
