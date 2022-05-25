@@ -41,7 +41,7 @@
 ;; See the Emacs Lisp Reference Manual for more details.
 
 ;; If you wish to change the default edebug global command prefix, change:
-;; (setq global-edebug-prefix "\C-xX")
+;; (setq edebug-global-prefix "\C-xX")
 
 ;; Edebug was written by
 ;; Daniel LaLiberte
