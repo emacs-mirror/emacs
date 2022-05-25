@@ -23629,14 +23629,24 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
   /* Now do some common predefined atoms.  */
   if (!strcmp (name, "PRIMARY"))
     return XA_PRIMARY;
+
   if (!strcmp (name, "SECONDARY"))
     return XA_SECONDARY;
+
   if (!strcmp (name, "STRING"))
     return XA_STRING;
+
   if (!strcmp (name, "INTEGER"))
     return XA_INTEGER;
+
   if (!strcmp (name, "ATOM"))
     return XA_ATOM;
+
+  if (!strcmp (name, "CARDINAL"))
+    return XA_CARDINAL;
+
+  if (!strcmp (name, "WINDOW"))
+    return XA_WINDOW;
 
   for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
     {
