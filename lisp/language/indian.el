@@ -132,7 +132,7 @@ South Indian Language Telugu is supported in this language environment."))
 	     (input-method . "kannada-itrans")
 	     (sample-text . "Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ")
 	     (documentation . "\
-Kannada language and script is supported in this language
+Kannada language and script are supported in this language
 environment."))
  '("Indian"))
 
@@ -174,7 +174,7 @@ which used the Kaithi script are supported in this language environment."))
              (input-method . "tirhuta")
              (sample-text . "Tirhuta (𑒞𑒱𑒩𑒯𑒳𑒞𑒰)	𑒣𑓂𑒩𑒢𑒰𑒧 / 𑒮𑒲𑒞𑒰𑒩𑒰𑒧")
              (documentation . "\
-Maithili language and its script Tirhuta is supported in this
+Maithili language and its script Tirhuta are supported in this
 language environment."))
  '("Indian"))
 
@@ -185,7 +185,7 @@ language environment."))
              (input-method . "sharada")
              (sample-text . "Sharada (𑆯𑆳𑆫𑆢𑆳)	𑆤𑆩𑆱𑇀𑆑𑆳𑆫")
              (documentation . "\
-Kashmiri language and its script Sharada is supported in this
+Kashmiri language and its script Sharada are supported in this
 language environment."))
  '("Indian"))
 
@@ -196,7 +196,7 @@ language environment."))
              (input-method . "siddham")
              (sample-text . "Siddham (𑖭𑖰𑖟𑖿𑖠𑖽)	𑖡𑖦𑖭𑖿𑖝𑖸")
              (documentation . "\
-Sanskrit language and one of its script Siddham is supported
+Sanskrit language and one of its script Siddham are supported
 in this language environment."))
  '("Indian"))
 
@@ -207,7 +207,7 @@ in this language environment."))
                   (input-method . "syloti-nagri")
                   (sample-text . "Syloti Nagri (ꠍꠤꠟꠐꠤ ꠘꠣꠉꠞꠤ)	ꠀꠌ꠆ꠍꠣꠟꠣꠝꠥ ꠀꠟꠣꠁꠇꠥꠝ / ꠘꠝꠡ꠆ꠇꠣꠞ")
                   (documentation . "\
-Sylheti language and its script Syloti Nagri is supported
+Sylheti language and its script Syloti Nagri are supported
 in this language environment."))
  '("Indian"))
 
@@ -218,7 +218,7 @@ in this language environment."))
           (input-method . "modi")
           (sample-text . "Modi (𑘦𑘻𑘚𑘲)	𑘡𑘦𑘭𑘿𑘎𑘰𑘨")
           (documentation . "\
-Marathi language and one of its script Modi is supported
+Marathi language and one of its script Modi are supported
 in this language environment."))
  '("Indian"))
 
@@ -229,7 +229,7 @@ in this language environment."))
            (input-method . "limbu")
            (sample-text . "Limbu (ᤕᤠᤰᤌᤢᤱ ᤐᤠᤴ)	ᤛᤣᤘᤠᤖᤥ")
            (documentation . "\
-Limbu language and its script is supported in this
+Limbu language and its script are supported in this
 language environment."))
  '("Indian"))
 
