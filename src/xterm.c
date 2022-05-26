@@ -23674,19 +23674,21 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
   return XInternAtom (dpyinfo->display, name, False);
 }
 
-/* Whether or not a request to the X server happened is placed in
-   NEED_SYNC.  */
+/* Get the name of ATOM, but try not to make a request to the X
+   server.  Whether or not a request to the X server happened is
+   placed in NEED_SYNC.  */
 char *
 x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
 		 bool *need_sync)
 {
-  char *dpyinfo_pointer, *name, *value;
+  char *dpyinfo_pointer, *name, *value, *buffer;
   int i;
   Atom ref_atom;
 
   dpyinfo_pointer = (char *) dpyinfo;
   value = NULL;
   *need_sync = false;
+  buffer = alloca (45 + INT_STRLEN_BOUND (int));
 
   switch (atom)
     {
@@ -23709,6 +23711,20 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
       return xstrdup ("WINDOW");
 
     default:
+      if (atom == dpyinfo->Xatom_xsettings_sel)
+	{
+	  sprintf (buffer, "_XSETTINGS_S%d",
+		   XScreenNumberOfScreen (dpyinfo->screen));
+	  return xstrdup (buffer);
+	}
+
+      if (atom == dpyinfo->Xatom_NET_WM_CM_Sn)
+	{
+	  sprintf (buffer, "_NET_WM_CM_S%d",
+		   XScreenNumberOfScreen (dpyinfo->screen));
+	  return xstrdup (buffer);
+	}
+
       for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
 	{
 	  ref_atom = *(Atom *) (dpyinfo_pointer
