@@ -2496,13 +2496,13 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
   ptrdiff_t i;
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
-
   if (SYMBOLP (atom))
     x_atom = symbol_to_x_atom (dpyinfo, atom);
   else if (STRINGP (atom))
     {
       block_input ();
-      x_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (atom), False);
+      x_atom = x_intern_cached_atom (dpyinfo, SSDATA (atom),
+				     false);
       unblock_input ();
     }
   else
