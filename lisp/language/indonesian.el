@@ -45,6 +45,14 @@ Balinese language and its script are supported in this language environment.")))
               (documentation . "\
 Javanese language and its script are supported in this language environment.")))
 
+(set-language-info-alist
+ "Sundanese" '((charset unicode)
+              (coding-system utf-8)
+              (coding-priority utf-8)
+              (input-method . "sundanese")
+              (sample-text . "Sundanese (ᮃᮊ᮪ᮞᮛᮞᮥᮔ᮪ᮓ)    ᮞᮙ᮪ᮕᮥᮛᮞᮥᮔ᮪")
+              (documentation . "\
+Sundanese language and its script are supported in this language environment.")))
 
 ;; Balinese composition rules
 (let ((consonant            "[\x1B13-\x1B33\x1B45-\x1B4B]")
@@ -58,7 +66,7 @@ Javanese language and its script are supported in this language environment.")))
                         '(#x1B34 . #x1B44)
                         (list (vector
                                ;; Consonant based syllables
-                               (concat consonant rerekan "?" "\\(?:" adeg-adeg consonant
+                               (concat consonant rerekan "?\\(?:" adeg-adeg consonant
                                        rerekan "?\\)*\\(?:" adeg-adeg "\\|" vowel "*" rerekan
                                        "?" modifier-above "?" musical-symbol "?\\)")
                                1 'font-shape-gstring)
@@ -80,13 +88,34 @@ Javanese language and its script are supported in this language environment.")))
                         '(#xA9B3 . #xA9C0)
                         (list (vector
                                ;; Consonant based syllables
-                               (concat consonant telu "?" "\\(?:" pangkon consonant
+                               (concat consonant telu "?\\(?:" pangkon consonant
                                        telu "?\\)*\\(?:" pangkon "\\|" vowel "*" telu
                                        "?" modifier-above "?" dependant-consonant "?\\)")
                                1 'font-shape-gstring)
                               (vector
                                ;; Vowels based syllables
                                (concat independent-vowel telu "?" pangkon "?"
+                                       vowel "?" modifier-above "?" dependant-consonant "?")
+                               1 'font-shape-gstring))))
+
+;; Sundanese composition rules
+(let ((consonant            "[\x1B8A-\x1BA0\x1BAE\x1BAF\x1BBB-\x1BBF]")
+      (independent-vowel    "[\x1B83-\x1B89]")
+      (vowel                "[\x1BA4-\x1BA9]")
+      (dependant-consonant  "[\x1BA1-\x1BA3\x1BAC-\x1BAD]")
+      (modifier-above       "[\x1B80-\x1B82]")
+      (virama               "[\x1BAA\x1BAB]"))
+  (set-char-table-range composition-function-table
+                        '(#x1BA1 . #x1BAD)
+                        (list (vector
+                               ;; Consonant based syllables
+                               (concat consonant "\\(?:" virama consonant
+                                       "\\)*\\(?:" virama "\\|" vowel "*"
+                                       modifier-above "?" dependant-consonant "?\\)")
+                               1 'font-shape-gstring)
+                              (vector
+                               ;; Vowels based syllables
+                               (concat independent-vowel virama "?"
                                        vowel "?" modifier-above "?" dependant-consonant "?")
                                1 'font-shape-gstring))))
 
