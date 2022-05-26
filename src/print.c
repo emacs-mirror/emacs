@@ -2040,7 +2040,7 @@ struct print_stack_entry
       Lisp_Object tortoise;     /* slow pointer */
       ptrdiff_t n;		/* tortoise step countdown */
       ptrdiff_t m;		/* tortoise step period */
-      ptrdiff_t tortoise_idx;	/* index of tortoise */
+      intmax_t tortoise_idx;	/* index of tortoise */
     } list;
 
     struct
