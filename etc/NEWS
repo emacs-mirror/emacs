@@ -1873,6 +1873,8 @@ functions.
 
 ---
 ** New eldoc function: 'elisp-eldoc-var-docstring-with-value'.
+This function includes the current value of the variable in eldoc display
+and can be used as a more detailed alternative to 'elisp-eldoc-var-docstring'.
 
 ** 'save-some-buffers' can now be extended to save other things.
 Traditionally, 'save-some-buffers' saved buffers, and also saved
