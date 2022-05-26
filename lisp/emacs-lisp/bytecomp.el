@@ -1181,39 +1181,34 @@ message buffer `default-directory'."
     (if (< (length f2) (length f1)) f2 f1)))
 
 (defun byte-compile--first-symbol-with-pos (form)
-  "Return the \"first\" symbol with position found in form, or 0 if none.
-Here, \"first\" is by a depth first search."
-  (let (sym)
-    (cond
-     ((symbol-with-pos-p form) form)
-     ((consp form)
-      (or (and (symbol-with-pos-p (setq sym (byte-compile--first-symbol-with-pos (car form))))
-               sym)
-          (and (symbolp (setq sym (byte-compile--first-symbol-with-pos (cdr form))))
-               sym)
-          0))
-     ((and (or (vectorp form) (recordp form))
-           (> (length form) 0))
-      (let ((i 0)
-            (len (length form))
-            elt)
-        (catch 'sym
-          (while (< i len)
-            (when (symbol-with-pos-p
-                   (setq elt (byte-compile--first-symbol-with-pos (aref form i))))
-              (throw 'sym elt))
-            (setq i (1+ i)))
-          0)))
-     (t 0))))
+  "Return the first symbol with position in form, or nil if none.
+Order is by depth-first search."
+  (cond
+   ((symbol-with-pos-p form) form)
+   ((consp form)
+    (or (byte-compile--first-symbol-with-pos (car form))
+        (let ((sym nil))
+          (setq form (cdr form))
+          (while (and (consp form)
+                      (not (setq sym (byte-compile--first-symbol-with-pos
+                                      (car form)))))
+            (setq form (cdr form)))
+          (or sym
+              (and form (byte-compile--first-symbol-with-pos form))))))
+   ((vectorp form)
+    (let ((len (length form))
+          (i 0)
+          (sym nil))
+      (while (and (< i len)
+                  (not (setq sym (byte-compile--first-symbol-with-pos
+                                  (aref form i)))))
+        (setq i (1+ i)))
+      sym))))
 
 (defun byte-compile--warning-source-offset ()
-  "Return a source offset from `byte-compile-form-stack'.
-Return nil if such is not found."
-  (catch 'offset
-    (dolist (form byte-compile-form-stack)
-      (let ((s (byte-compile--first-symbol-with-pos form)))
-        (if (symbol-with-pos-p s)
-            (throw 'offset (symbol-with-pos-pos s)))))))
+  "Return a source offset from `byte-compile-form-stack' or nil if none."
+  (let ((sym (byte-compile--first-symbol-with-pos byte-compile-form-stack)))
+    (and sym (symbol-with-pos-pos sym))))
 
 ;; This is used as warning-prefix for the compiler.
 ;; It is always called with the warnings buffer current.
