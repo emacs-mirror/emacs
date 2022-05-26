@@ -1112,9 +1112,9 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
        tramp-prefix-port-format ":"
        (cond ((member host devices) host)
 	     ;; This is the case when the host is connected to the default port.
-	     ((member (format "%s%s%d" host tramp-prefix-port-format port)
+	     ((member (format "%s%s%s" host tramp-prefix-port-format port)
 		      devices)
-	      (format "%s:%d" host port))
+	      (format "%s:%s" host port))
 	     ;; An empty host name shall be mapped as well, when there
 	     ;; is exactly one entry in `devices'.
 	     ((and (zerop (length host)) (= (length devices) 1))
