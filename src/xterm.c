@@ -1119,6 +1119,14 @@ static Atom x_dnd_action;
    in `x_dnd_action' upon completion of a drop.  */
 static Atom x_dnd_wanted_action;
 
+/* The set of optional actions available to a Motif drop target
+   computed at the start of the drag-and-drop operation.  */
+static uint8_t x_dnd_motif_operations;
+
+/* The preferred optional action out of that set.  Only takes effect
+   if `x_dnd_action' is XdndAsk.  */
+static uint8_t x_dnd_first_motif_operation;
+
 /* Array of selection targets available to the drop target.  */
 static Atom *x_dnd_targets = NULL;
 
@@ -1405,8 +1413,32 @@ xm_side_effect_from_action (struct x_display_info *dpyinfo, Atom action)
     return XM_DRAG_MOVE;
   else if (action == dpyinfo->Xatom_XdndActionLink)
     return XM_DRAG_LINK;
+  else if (action == dpyinfo->Xatom_XdndActionAsk)
+    return x_dnd_first_motif_operation;
 
   return XM_DRAG_NOOP;
+}
+
+static uint8_t
+xm_operations_from_actions (struct x_display_info *dpyinfo,
+			    Atom *ask_actions, int n_ask_actions)
+{
+  int i;
+  uint8_t flags;
+
+  flags = 0;
+
+  for (i = 0; i < n_ask_actions; ++i)
+    {
+      if (ask_actions[i] == dpyinfo->Xatom_XdndActionCopy)
+	flags |= XM_DRAG_COPY;
+      else if (ask_actions[i] == dpyinfo->Xatom_XdndActionMove)
+	flags |= XM_DRAG_MOVE;
+      else if (ask_actions[i] == dpyinfo->Xatom_XdndActionLink)
+	flags |= XM_DRAG_LINK;
+    }
+
+  return flags;
 }
 
 static int
@@ -2038,7 +2070,7 @@ xm_send_top_level_leave_message (struct x_display_info *dpyinfo, Window source,
       mmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
       mmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 									   x_dnd_wanted_action),
-					       XM_DROP_SITE_NONE, XM_DRAG_NOOP,
+					       XM_DROP_SITE_NONE, x_dnd_motif_operations,
 					       XM_DROP_ACTION_DROP_CANCEL);
       mmsg.timestamp = dmsg->timestamp;
       mmsg.x = 65535;
@@ -3904,9 +3936,7 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 	  dmsg.side_effects
 	    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
 							       x_dnd_wanted_action),
-				   XM_DROP_SITE_VALID,
-				   xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
-							       x_dnd_wanted_action),
+				   XM_DROP_SITE_VALID, x_dnd_motif_operations,
 				   XM_DROP_ACTION_DROP_CANCEL);
 	  dmsg.x = 0;
 	  dmsg.y = 0;
@@ -10361,8 +10391,21 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   else
     x_dnd_selection_timestamp = XFIXNUM (ltimestamp);
 
+  x_dnd_motif_operations
+    = xm_side_effect_from_action (FRAME_DISPLAY_INFO (f), xaction);
+
+  x_dnd_first_motif_operation = XM_DRAG_NOOP;
+
   if (n_ask_actions)
     {
+      x_dnd_motif_operations
+	= xm_operations_from_actions (FRAME_DISPLAY_INFO (f),
+				      ask_action_list,
+				      n_ask_actions);
+      x_dnd_first_motif_operation
+	= xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+				      ask_action_list[0]);
+
       ask_actions = NULL;
       end = 0;
       count = SPECPDL_INDEX ();
@@ -10609,9 +10652,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		      dmsg.side_effects
 			= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
 									   x_dnd_wanted_action),
-					       XM_DROP_SITE_VALID,
-					       xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
-									   x_dnd_wanted_action),
+					       XM_DROP_SITE_VALID, x_dnd_motif_operations,
 					       XM_DROP_ACTION_DROP_CANCEL);
 		      dmsg.x = 0;
 		      dmsg.y = 0;
@@ -10683,9 +10724,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		      dmsg.side_effects
 			= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
 									   x_dnd_wanted_action),
-					       XM_DROP_SITE_VALID,
-					       xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
-									   x_dnd_wanted_action),
+					       XM_DROP_SITE_VALID, x_dnd_motif_operations,
 					       XM_DROP_ACTION_DROP_CANCEL);
 		      dmsg.x = 0;
 		      dmsg.y = 0;
@@ -14643,9 +14682,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	  dmsg.side_effects
 	    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 							       x_dnd_wanted_action),
-				   XM_DROP_SITE_VALID,
-				   xm_side_effect_from_action (dpyinfo,
-							       x_dnd_wanted_action),
+				   XM_DROP_SITE_VALID, x_dnd_motif_operations,
 				   (!x_dnd_xm_use_help
 				    ? XM_DROP_ACTION_DROP
 				    : XM_DROP_ACTION_DROP_HELP));
@@ -14677,9 +14714,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	  dsmsg.side_effects
 	    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 							       x_dnd_wanted_action),
-				   XM_DROP_SITE_VALID,
-				   xm_side_effect_from_action (dpyinfo,
-							       x_dnd_wanted_action),
+				   XM_DROP_SITE_VALID, x_dnd_motif_operations,
 				   XM_DROP_ACTION_DROP_CANCEL);
 	  dsmsg.x = 0;
 	  dsmsg.y = 0;
@@ -16579,7 +16614,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		    dmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 											 x_dnd_wanted_action),
-							     XM_DROP_SITE_NONE, XM_DRAG_NOOP,
+							     XM_DROP_SITE_NONE, x_dnd_motif_operations,
 							     XM_DROP_ACTION_DROP_CANCEL);
 		    dmsg.timestamp = event->xmotion.time;
 		    dmsg.x = event->xmotion.x_root;
@@ -16648,9 +16683,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		dmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 		dmsg.side_effects = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										     x_dnd_wanted_action),
-							 XM_DROP_SITE_VALID,
-							 xm_side_effect_from_action (dpyinfo,
-										     x_dnd_wanted_action),
+							 XM_DROP_SITE_VALID, x_dnd_motif_operations,
 							 (!x_dnd_xm_use_help
 							  ? XM_DROP_ACTION_DROP
 							  : XM_DROP_ACTION_DROP_HELP));
@@ -17182,9 +17215,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				dmsg.side_effects
 				  = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 										     x_dnd_wanted_action),
-							 XM_DROP_SITE_VALID,
-							 xm_side_effect_from_action (dpyinfo,
-										     x_dnd_wanted_action),
+							 XM_DROP_SITE_VALID, x_dnd_motif_operations,
 							 (!x_dnd_xm_use_help
 							  ? XM_DROP_ACTION_DROP
 							  : XM_DROP_ACTION_DROP_HELP));
@@ -18204,7 +18235,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  dmsg.side_effects
 			    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 									       x_dnd_wanted_action),
-						   XM_DROP_SITE_NONE, XM_DRAG_NOOP,
+						   XM_DROP_SITE_NONE, x_dnd_motif_operations,
 						   XM_DROP_ACTION_DROP_CANCEL);
 			  dmsg.timestamp = xev->time;
 			  dmsg.x = lrint (xev->root_x);
@@ -18287,9 +18318,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      dmsg.side_effects
 			= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 									   x_dnd_wanted_action),
-					       XM_DROP_SITE_VALID,
-					       xm_side_effect_from_action (dpyinfo,
-									   x_dnd_wanted_action),
+					       XM_DROP_SITE_VALID, x_dnd_motif_operations,
 					       (!x_dnd_xm_use_help
 						? XM_DROP_ACTION_DROP
 						: XM_DROP_ACTION_DROP_HELP));
@@ -18480,9 +18509,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				      dmsg.side_effects
 					= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (dpyinfo,
 											   x_dnd_wanted_action),
-							       XM_DROP_SITE_VALID,
-							       xm_side_effect_from_action (dpyinfo,
-											   x_dnd_wanted_action),
+							       XM_DROP_SITE_VALID, x_dnd_motif_operations,
 							       (!x_dnd_xm_use_help
 								? XM_DROP_ACTION_DROP
 								: XM_DROP_ACTION_DROP_HELP));
@@ -21311,9 +21338,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 	      dmsg.side_effects
 		= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
 								   x_dnd_wanted_action),
-				       XM_DROP_SITE_VALID,
-				       xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
-								   x_dnd_wanted_action),
+				       XM_DROP_SITE_VALID, x_dnd_motif_operations,
 				       XM_DROP_ACTION_DROP_CANCEL);
 	      dmsg.x = 0;
 	      dmsg.y = 0;
