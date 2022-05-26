@@ -1,4 +1,4 @@
-;;; leuven-dark-theme.el --- Awesome Emacs color theme on dark background
+;;; leuven-dark-theme.el --- Awesome Emacs color theme on dark background  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
@@ -103,7 +103,7 @@ more...")
 
       ;; Leuven generic colors.
       (cancel '(:slant italic :strike-through t :foreground "#5b5660"))
-      (clock-line '(:box (:line-width 1 :color "#cfa161") :foreground "#ffffff" :background "#1636ff"))
+      ;; (clock-line '(:box (:line-width 1 :color "#cfa161") :foreground "#ffffff" :background "#1636ff"))
       (code-block '(:foreground "#ffff7f" :background "#252046"))
       (code-inline '(:foreground "#ff9bff" :background "#262031"))
       (column '(:height 1.0 :weight normal :slant normal :underline nil :strike-through nil :foreground "#1e52b8" :background "#252c48"))
@@ -124,10 +124,10 @@ more...")
       (grep-file-name '(:weight bold :foreground "#d8b76b")) ; Used for grep hits.
       (grep-line-number '(:weight bold :foreground "#5fca5b"))
       (highlight-blue '(:background "#3c312a"))
-      (highlight-blue2 '(:background "#3e2d2f"))
+      ;; (highlight-blue2 '(:background "#3e2d2f"))
       (highlight-gray '(:background "#3e3944"))
-      (highlight-green '(:background "#2f0e3a"))
-      (highlight-red '(:background "#063741"))
+      ;; (highlight-green '(:background "#2f0e3a"))
+      ;; (highlight-red '(:background "#063741"))
       (highlight-yellow '(:background "#2d2058"))
       (link '(:weight normal :underline t :foreground "#ff925a"))
       (link-no-underline '(:weight normal :foreground "#ff925a"))
