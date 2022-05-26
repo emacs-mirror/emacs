@@ -36,6 +36,15 @@
               (documentation . "\
 Balinese language and its script are supported in this language environment.")))
 
+(set-language-info-alist
+ "Javanese" '((charset unicode)
+              (coding-system utf-8)
+              (coding-priority utf-8)
+              (input-method . "javanese")
+              (sample-text . "Javanese (ꦲꦏ꧀ꦱꦫꦗꦮ)	ꦲꦭꦺꦴ")
+              (documentation . "\
+Javanese language and its script are supported in this language environment.")))
+
 
 ;; Balinese composition rules
 (let ((consonant            "[\x1B13-\x1B33\x1B45-\x1B4B]")
@@ -59,6 +68,27 @@ Balinese language and its script are supported in this language environment.")))
                                        vowel "?" modifier-above "?" musical-symbol "?")
                                1 'font-shape-gstring))))
 
+;; Javanese composition rules
+(let ((consonant            "[\xA98F-\xA9B2]")
+      (independent-vowel    "[\xA984-\xA98E]")
+      (telu                 "\xA9B3")
+      (vowel                "[\xA9B4-\xA9BC]")
+      (dependant-consonant  "[\xA9BD-\xA9BF]")
+      (modifier-above       "[\xA980-\xA983]")
+      (pangkon              "\xA9C0"))
+  (set-char-table-range composition-function-table
+                        '(#xA9B3 . #xA9C0)
+                        (list (vector
+                               ;; Consonant based syllables
+                               (concat consonant telu "?" "\\(?:" pangkon consonant
+                                       telu "?\\)*\\(?:" pangkon "\\|" vowel "*" telu
+                                       "?" modifier-above "?" dependant-consonant "?\\)")
+                               1 'font-shape-gstring)
+                              (vector
+                               ;; Vowels based syllables
+                               (concat independent-vowel telu "?" pangkon "?"
+                                       vowel "?" modifier-above "?" dependant-consonant "?")
+                               1 'font-shape-gstring))))
 
 (provide 'indonesian)
 ;;; indonesian.el ends here

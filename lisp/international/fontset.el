@@ -203,7 +203,7 @@
 	(han #x5B57)
 	(yi #xA288)
         (syloti-nagri #xA807 #xA823 #xA82C)
-	(javanese #xA980)
+	(javanese #xA98F #xA9B4 #xA9CA)
 	(cham #xAA00)
 	(tai-viet #xAA80)
 	(hangul #xAC00)
