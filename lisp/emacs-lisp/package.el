@@ -4295,8 +4295,9 @@ activations need to be changed, such as when `package-load-list' is modified."
           (insert ")\n")))
       (pp `(defvar package-activated-list) (current-buffer))
       (pp `(setq package-activated-list
-                 (append ',(mapcar #'package-desc-name package--quickstart-pkgs)
-                         package-activated-list))
+                 (delete-dups
+                  (append ',(mapcar #'package-desc-name package--quickstart-pkgs)
+                          package-activated-list)))
           (current-buffer))
       (let ((info-dirs (butlast Info-directory-list)))
         (when info-dirs
