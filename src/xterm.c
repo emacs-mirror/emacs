@@ -784,6 +784,11 @@ static int current_finish;
 static struct input_event *current_hold_quit;
 #endif
 
+/* Compare two request serials A and B with OP, handling
+   wraparound.  */
+#define X_COMPARE_SERIALS(a, op ,b) \
+  (((long) (a) - (long) (b)) op 0)
+
 struct x_atom_ref
 {
   /* Atom name.  */
@@ -21011,52 +21016,78 @@ x_text_icon (struct frame *f, const char *icon_name)
 
 #define X_ERROR_MESSAGE_SIZE 200
 
-/* If non-nil, this should be a string.
-   It means catch X errors  and store the error message in this string.
+/* If non-nil, this should be a string.  It means catch X errors and
+   store the error message in this string.
 
    The reason we use a stack is that x_catch_error/x_uncatch_error can
-   be called from a signal handler.
-*/
+   be called from a signal handler.  */
 
-struct x_error_message_stack {
+struct x_error_message_stack
+{
   char string[X_ERROR_MESSAGE_SIZE];
   Display *dpy;
   x_special_error_handler handler;
   void *handler_data;
   struct x_error_message_stack *prev;
+
+  /* The first request that this error handler applies to.  Keeping
+     track of this allows us to avoid an XSync yet still have errors
+     for previously made requests be handled correctly.  */
+  unsigned long first_request;
 };
+
 static struct x_error_message_stack *x_error_message;
+
+static struct x_error_message_stack *
+x_find_error_handler (Display *dpy, XErrorEvent *event)
+{
+  struct x_error_message_stack *stack;
+
+  stack = x_error_message;
+
+  while (stack)
+    {
+      if (X_COMPARE_SERIALS (event->serial, >=,
+			     stack->first_request)
+	  && dpy == stack->dpy)
+	return stack;
+
+      stack = stack->prev;
+    }
+
+  return NULL;
+}
 
 /* An X error handler which stores the error message in
    *x_error_message.  This is called from x_error_handler if
    x_catch_errors is in effect.  */
 
 static void
-x_error_catcher (Display *display, XErrorEvent *event)
+x_error_catcher (Display *display, XErrorEvent *event,
+		 struct x_error_message_stack *stack)
 {
   XGetErrorText (display, event->error_code,
-		 x_error_message->string,
-		 X_ERROR_MESSAGE_SIZE);
-  if (x_error_message->handler)
-    x_error_message->handler (display, event, x_error_message->string,
-			      x_error_message->handler_data);
+		 stack->string, X_ERROR_MESSAGE_SIZE);
+
+  if (stack->handler)
+    stack->handler (display, event, stack->string,
+		    stack->handler_data);
 }
 
-/* Begin trapping X errors for display DPY.  Actually we trap X errors
-   for all displays, but DPY should be the display you are actually
-   operating on.
+/* Begin trapping X errors for display DPY.
 
-   After calling this function, X protocol errors no longer cause
-   Emacs to exit; instead, they are recorded in the string
-   stored in *x_error_message.
+   After calling this function, X protocol errors generated on DPY no
+   longer cause Emacs to exit; instead, they are recorded in the
+   string stored in *x_error_message.
 
    Calling x_check_errors signals an Emacs error if an X error has
    occurred since the last call to x_catch_errors or x_check_errors.
 
-   Calling x_uncatch_errors resumes the normal error handling.
-   Calling x_uncatch_errors_after_check is similar, but skips an XSync
-   to the server, and should be used only immediately after
-   x_had_errors_p or x_check_errors.  */
+   Calling x_uncatch_errors resumes the normal error handling,
+   skipping an XSync if the last request made is known to have been
+   processed.  Calling x_uncatch_errors_after_check is similar, but
+   skips an XSync to the server, and should be used only immediately
+   after x_had_errors_p or x_check_errors.  */
 
 void
 x_catch_errors_with_handler (Display *dpy, x_special_error_handler handler,
@@ -21064,14 +21095,12 @@ x_catch_errors_with_handler (Display *dpy, x_special_error_handler handler,
 {
   struct x_error_message_stack *data = xmalloc (sizeof *data);
 
-  /* Make sure any errors from previous requests have been dealt with.  */
-  XSync (dpy, False);
-
   data->dpy = dpy;
   data->string[0] = 0;
   data->handler = handler;
   data->handler_data = handler_data;
   data->prev = x_error_message;
+  data->first_request = NextRequest (dpy);
   x_error_message = data;
 }
 
@@ -21100,8 +21129,7 @@ x_uncatch_errors_after_check (void)
   unblock_input ();
 }
 
-/* Undo the last x_catch_errors call.
-   DPY should be the display that was passed to x_catch_errors.  */
+/* Undo the last x_catch_errors call.  */
 
 void
 x_uncatch_errors (void)
@@ -21119,7 +21147,11 @@ x_uncatch_errors (void)
 
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
-  if (x_display_info_for_display (x_error_message->dpy) != 0)
+  if (x_display_info_for_display (x_error_message->dpy) != 0
+      /* There is no point in making this extra sync if all requests
+	 are known to have been fully processed.  */
+      && (LastKnownRequestProcessed (x_error_message->dpy)
+	  != NextRequest (x_error_message->dpy) - 1))
     XSync (x_error_message->dpy, False);
 
   tmp = x_error_message;
@@ -21135,13 +21167,23 @@ x_uncatch_errors (void)
 void
 x_check_errors (Display *dpy, const char *format)
 {
-  /* Make sure to catch any errors incurred so far.  */
-  XSync (dpy, False);
+  char string[X_ERROR_MESSAGE_SIZE];
+
+  /* This shouldn't happen, since x_check_errors should be called
+     immediately inside an x_catch_errors block.  */
+  if (dpy != x_error_message->dpy)
+    emacs_abort ();
+
+  /* There is no point in making this extra sync if all requests
+     are known to have been fully processed.  */
+  if (LastKnownRequestProcessed (dpy)
+      != NextRequest (dpy) - 1)
+    XSync (dpy, False);
 
   if (x_error_message->string[0])
     {
-      char string[X_ERROR_MESSAGE_SIZE];
-      memcpy (string, x_error_message->string, X_ERROR_MESSAGE_SIZE);
+      memcpy (string, x_error_message->string,
+	      X_ERROR_MESSAGE_SIZE);
       x_uncatch_errors ();
       error (format, string);
     }
@@ -21153,8 +21195,15 @@ x_check_errors (Display *dpy, const char *format)
 bool
 x_had_errors_p (Display *dpy)
 {
+  /* This shouldn't happen, since x_check_errors should be called
+     immediately inside an x_catch_errors block.  */
+  if (dpy != x_error_message->dpy)
+    emacs_abort ();
+
   /* Make sure to catch any errors incurred so far.  */
-  XSync (dpy, False);
+  if (LastKnownRequestProcessed (dpy)
+      != NextRequest (dpy) - 1)
+    XSync (dpy, False);
 
   return x_error_message->string[0] != 0;
 }
@@ -21164,6 +21213,11 @@ x_had_errors_p (Display *dpy)
 void
 x_clear_errors (Display *dpy)
 {
+  /* This shouldn't happen, since x_check_errors should be called
+     immediately inside an x_catch_errors block.  */
+  if (dpy != x_error_message->dpy)
+    emacs_abort ();
+
   x_error_message->string[0] = 0;
 }
 
@@ -21386,6 +21440,7 @@ static void x_error_quitter (Display *, XErrorEvent *);
 static int
 x_error_handler (Display *display, XErrorEvent *event)
 {
+  struct x_error_message_stack *stack;
 #ifdef HAVE_XINPUT2
   struct x_display_info *dpyinfo;
 #endif
@@ -21416,8 +21471,10 @@ x_error_handler (Display *display, XErrorEvent *event)
     return 0;
 #endif
 
-  if (x_error_message)
-    x_error_catcher (display, event);
+  stack = x_find_error_handler (display, event);
+
+  if (stack)
+    x_error_catcher (display, event, stack);
   else
     x_error_quitter (display, event);
   return 0;
