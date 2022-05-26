@@ -4039,48 +4039,59 @@ the deferred compilation mechanism."
            (comp-ctxt (make-comp-ctxt :output output
                                       :with-late-load with-late-load)))
       (comp-log "\n\n" 1)
-      (condition-case err
-          (cl-loop
-           with report = nil
-           for t0 = (current-time)
-           for pass in comp-passes
-           unless (memq pass comp-disabled-passes)
-           do
-           (comp-log (format "(%s) Running pass %s:\n"
-                             function-or-file pass)
-                     2)
-           (setf data (funcall pass data))
-           (push (cons pass (float-time (time-since t0))) report)
-           (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                    do (funcall f data))
-           finally
-           (when comp-log-time-report
-             (comp-log (format "Done compiling %s" data) 0)
-             (cl-loop for (pass . time) in (reverse report)
-                      do (comp-log (format "Pass %s took: %fs." pass time) 0))))
-        (native-compiler-skip)
-        (t
-         (let ((err-val (cdr err)))
-           ;; If we are doing an async native compilation print the
-           ;; error in the correct format so is parsable and abort.
-           (if (and comp-async-compilation
-                    (not (eq (car err) 'native-compiler-error)))
-               (progn
-                 (message (if err-val
-                              "%s: Error: %s %s"
-                            "%s: Error %s")
-                          function-or-file
-                          (get (car err) 'error-message)
-                          (car-safe err-val))
-                 (kill-emacs -1))
-             ;; Otherwise re-signal it adding the compilation input.
-	     (signal (car err) (if (consp err-val)
-			           (cons function-or-file err-val)
-			         (list function-or-file err-val)))))))
-        (if (stringp function-or-file)
-            data
-          ;; So we return the compiled function.
-          (native-elisp-load data)))))
+      (unwind-protect
+          (progn
+            (condition-case err
+                (cl-loop
+                 with report = nil
+                 for t0 = (current-time)
+                 for pass in comp-passes
+                 unless (memq pass comp-disabled-passes)
+                 do
+                 (comp-log (format "(%s) Running pass %s:\n"
+                                   function-or-file pass)
+                           2)
+                 (setf data (funcall pass data))
+                 (push (cons pass (float-time (time-since t0))) report)
+                 (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                          do (funcall f data))
+                 finally
+                 (when comp-log-time-report
+                   (comp-log (format "Done compiling %s" data) 0)
+                   (cl-loop for (pass . time) in (reverse report)
+                            do (comp-log (format "Pass %s took: %fs."
+                                                 pass time) 0))))
+              (native-compiler-skip)
+              (t
+               (let ((err-val (cdr err)))
+                 ;; If we are doing an async native compilation print the
+                 ;; error in the correct format so is parsable and abort.
+                 (if (and comp-async-compilation
+                          (not (eq (car err) 'native-compiler-error)))
+                     (progn
+                       (message (if err-val
+                                    "%s: Error: %s %s"
+                                  "%s: Error %s")
+                                function-or-file
+                                (get (car err) 'error-message)
+                                (car-safe err-val))
+                       (kill-emacs -1))
+                   ;; Otherwise re-signal it adding the compilation input.
+	           (signal (car err) (if (consp err-val)
+			                 (cons function-or-file err-val)
+			               (list function-or-file err-val)))))))
+            (if (stringp function-or-file)
+                data
+              ;; So we return the compiled function.
+              (native-elisp-load data)))
+        ;; We may have created a temporary file when we're being
+        ;; called with something other than a file as the argument.
+        ;; Delete it.
+        (when (and (not (stringp function-or-file))
+                   comp-ctxt
+                   (comp-ctxt-output comp-ctxt)
+                   (file-exists-p (comp-ctxt-output comp-ctxt)))
+          (delete-file (comp-ctxt-output comp-ctxt)))))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
