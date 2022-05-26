@@ -183,6 +183,10 @@ by counted more than once."
 (cl-defgeneric memory-report--object-size-1 (_counted _value)
   0)
 
+;; This shouldn't happen, but there's some leakage.
+(cl-defmethod memory-report--object-size-1 (_ (_value symbol-with-pos))
+  (memory-report--size 'symbol))
+
 (cl-defmethod memory-report--object-size-1 (_ (value symbol))
   ;; Don't count global symbols -- makes sizes of lists of symbols too
   ;; heavy.
