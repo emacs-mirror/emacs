@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (defun zot ()
   "Yes."
   nil)
