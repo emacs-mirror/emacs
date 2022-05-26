@@ -3244,13 +3244,13 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
       XFree (atom_names[i - 1]);
     }
 
-  name = XGetAtomName (dpyinfo->display,
-		       x_dnd_wanted_action);
+  name = x_get_atom_name (dpyinfo, x_dnd_wanted_action,
+			  false);
 
   if (name)
     {
       arg = intern (name);
-      XFree (name);
+      xfree (name);
     }
   else
     arg = Qnil;
@@ -3810,12 +3810,12 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 
 	  lval = Qnil;
 	  atom_names = alloca (x_dnd_n_targets * sizeof *atom_names);
-	  name = XGetAtomName (dpyinfo->display, x_dnd_wanted_action);
+	  name = x_get_atom_name (dpyinfo, x_dnd_wanted_action, false);
 
 	  if (!XGetAtomNames (dpyinfo->display, x_dnd_targets,
 			      x_dnd_n_targets, atom_names))
 	    {
-	      XFree (name);
+	      xfree (name);
 	      return false;
 	    }
 
@@ -3833,7 +3833,7 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 	  XSETINT (ie.x, win_x);
 	  XSETINT (ie.y, win_y);
 
-	  XFree (name);
+	  xfree (name);
 	  kbd_buffer_store_event (&ie);
 
 	  return false;
