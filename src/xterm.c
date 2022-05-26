@@ -21236,9 +21236,12 @@ x_fully_uncatch_errors (void)
 
 #if false
 static unsigned int x_wire_count;
-x_trace_wire (void)
+
+static int
+x_trace_wire (Display *dpy)
 {
-  fprintf (stderr, "Lib call: %d\n", ++x_wire_count);
+  fprintf (stderr, "Lib call: %u\n", ++x_wire_count);
+  return 0;
 }
 #endif
 
@@ -24488,7 +24491,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   terminal->name = xlispstrdup (display_name);
 
 #if false
-  XSetAfterFunction (x_current_display, x_trace_wire);
+  XSetAfterFunction (dpyinfo->display, x_trace_wire);
 #endif
 
   Lisp_Object system_name = Fsystem_name ();
