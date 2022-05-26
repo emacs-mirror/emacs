@@ -331,5 +331,128 @@
                   "custgroup" '("customize-group-other-window") nil 9)))
            15)))
 
+
+(defmacro completing-read-with-minibuffer-setup (collection &rest body)
+  (declare (indent 1) (debug (collection body)))
+  `(catch 'result
+     (minibuffer-with-setup-hook
+         (lambda ()
+           (let ((redisplay-skip-initial-frame nil)
+                 (executing-kbd-macro nil)) ; Don't skip redisplay
+             (throw 'result (progn . ,body))))
+       (let ((executing-kbd-macro t)) ; Force the real minibuffer
+         (completing-read "Prompt: " ,collection)))))
+
+(ert-deftest completion-auto-help-test ()
+  (let (messages)
+    (cl-letf* (((symbol-function 'minibuffer-message)
+                (lambda (message &rest args)
+                  (push (apply #'format-message message args) messages))))
+      (let ((completion-auto-help nil))
+        (completing-read-with-minibuffer-setup
+            '("a" "ab" "ac")
+          (execute-kbd-macro (kbd "a TAB TAB"))
+          (should (equal (car messages) "Complete, but not unique"))
+          (should-not (get-buffer-window "*Completions*" 0))))
+      (let ((completion-auto-help t))
+        (completing-read-with-minibuffer-setup
+            '("a" "ab" "ac")
+          (execute-kbd-macro (kbd "a TAB TAB"))
+          (should (get-buffer-window "*Completions*" 0)))))))
+
+(ert-deftest completion-auto-select-test ()
+  (let ((completion-auto-select t))
+    (completing-read-with-minibuffer-setup
+        '("aa" "ab" "ac")
+      (execute-kbd-macro (kbd "a TAB"))
+      (should (and (get-buffer-window "*Completions*" 0)
+                   (eq (current-buffer) (get-buffer "*Completions*"))))))
+  (let ((completion-auto-select 'second-tab))
+    (completing-read-with-minibuffer-setup
+        '("aa" "ab" "ac")
+      (execute-kbd-macro (kbd "a TAB"))
+      (should (and (get-buffer-window "*Completions*" 0)
+                   (not (eq (current-buffer) (get-buffer "*Completions*")))))
+      (execute-kbd-macro (kbd "TAB TAB"))
+      (should (eq (current-buffer) (get-buffer "*Completions*"))))))
+
+(ert-deftest completion-auto-wrap-test ()
+  (let ((completion-wrap-movement nil))
+    (completing-read-with-minibuffer-setup
+        '("aa" "ab" "ac")
+      (insert "a")
+      (minibuffer-completion-help)
+      (switch-to-completions)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (next-completion 2)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      ;; FIXME: bug#54374
+      ;; (next-completion 1)
+      ;; (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (previous-completion 1)
+      (should (equal "ab" (get-text-property (point) 'completion--string)))))
+  (let ((completion-wrap-movement t))
+    (completing-read-with-minibuffer-setup
+        '("aa" "ab" "ac")
+      (insert "a")
+      (minibuffer-completion-help)
+      (switch-to-completions)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (next-completion 2)
+      (should (equal "ac" (get-text-property (point) 'completion--string)))
+      (next-completion 1)
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (previous-completion 1)
+      (should (equal "ac" (get-text-property (point) 'completion--string))))))
+
+(ert-deftest completions-header-format-test ()
+  (let ((completions-header-format nil)
+        (completion-show-help nil))
+    (completing-read-with-minibuffer-setup
+        '("aa" "ab" "ac")
+      (insert "a")
+      (minibuffer-completion-help)
+      (switch-to-completions)
+      ;; FIXME: bug#55430
+      ;; (should (equal "aa" (get-text-property (point) 'completion--string)))
+      ;; FIXME: bug#54374
+      ;; (previous-completion 1)
+      ;; (should (equal "ac" (get-text-property (point) 'completion--string)))
+      ;; (next-completion 1)
+      ;; (should (equal "aa" (get-text-property (point) 'completion--string)))
+      ;; FIXME: bug#55430
+      ;; (choose-completion nil t)
+      ;; (should (equal (minibuffer-contents) "aa"))
+      )
+    (completing-read-with-minibuffer-setup
+        '("aa" "ab" "ac")
+      ;; FIXME: bug#55289
+      ;; (execute-kbd-macro (kbd "a M-<up> M-<down>"))
+      ;; (should (equal (minibuffer-contents) "aa"))
+      )))
+
+(ert-deftest completions-affixation-navigation-test ()
+  (let ((completion-extra-properties
+         '(:affixation-function
+           (lambda (completions)
+             (mapcar (lambda (c)
+                       (list c "prefix " " suffix"))
+                     completions)))))
+    (completing-read-with-minibuffer-setup
+        '("aa" "ab" "ac")
+      (insert "a")
+      (minibuffer-completion-help)
+      (switch-to-completions)
+      (should (equal 'highlight (get-text-property (point) 'mouse-face)))
+      (should (equal "aa" (get-text-property (point) 'completion--string)))
+      (next-completion 1)
+      (should (equal 'highlight (get-text-property (point) 'mouse-face)))
+      (should (equal "ab" (get-text-property (point) 'completion--string)))
+      (goto-char (1- (point-max)))
+      ;; FIXME: bug#54374
+      ;; (choose-completion nil t)
+      ;; (should (equal (minibuffer-contents) "ac"))
+      )))
+
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here
