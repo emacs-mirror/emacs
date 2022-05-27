@@ -1540,6 +1540,19 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
     || physical_font->ntmFontSig.fsUsb[1]
     || physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff;
 
+  /* Kludgey fix for Arial Unicode MS font that claims support for
+     scripts it doesn't actually cover.  */
+  if (strncmp (logical_font->elfLogFont.lfFaceName,
+	       "Arial Unicode MS", 16) == 0)
+    {
+      /* Reset bits 4 (Phonetic), 12 (Vai), 14 (Nko), 27 (Balinese).  */
+      physical_font->ntmFontSig.fsUsb[0] &= 0xf7ffafef;
+      /* Reset bits 53 (Phags-pa) and 58 (Phoenician).  */
+      physical_font->ntmFontSig.fsUsb[1] &= 0xfbdfffff;
+      /* Set bit 70 (Tibetan).  */
+      physical_font->ntmFontSig.fsUsb[2] |= 0x00000040;
+    }
+
   /* Skip non matching fonts.  */
 
   /* For uniscribe backend, consider only truetype or opentype fonts
