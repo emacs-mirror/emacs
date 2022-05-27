@@ -2168,10 +2168,11 @@ to install it but still mark it as selected."
 
 ;;;###autoload
 (defun package-update-all (&optional query)
-  "Upgrade all packages.
+  "Refresh package list and upgrade all packages.
 If QUERY, ask the user before updating packages.  When called
 interactively, QUERY is always true."
   (interactive (list (not noninteractive)))
+  (package-refresh-contents)
   (let ((updateable (package--updateable-packages)))
     (if (not updateable)
         (message "No packages to update")
