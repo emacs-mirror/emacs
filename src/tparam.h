@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef EMACS_TPARAM_H
 #define EMACS_TPARAM_H
 
+#include <stdlib.h>
+
 #include <attribute.h>
 
 /* Don't try to include termcap.h.  On some systems, configure finds a
@@ -32,7 +34,8 @@ int tgetnum (const char *);
 char *tgetstr (const char *, char **);
 char *tgoto (const char *, int, int);
 
-char *tparam (const char *, char *, int, int, int, int, int) ATTRIBUTE_MALLOC;
+char *tparam (const char *, char *, int, int, int, int, int)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
 
 extern char PC;
 extern char *BC;
