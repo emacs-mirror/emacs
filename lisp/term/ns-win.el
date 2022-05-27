@@ -870,12 +870,18 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function ns-disown-selection-internal "nsselect.m" (selection))
 (declare-function ns-selection-owner-p "nsselect.m" (&optional selection))
 (declare-function ns-selection-exists-p "nsselect.m" (&optional selection))
+(declare-function ns-begin-drag "nsselect.m")
+
+(defvar ns-dnd-selection-value nil
+  "The value of the special `XdndSelection' selection on NS.")
+
 (declare-function ns-get-selection "nsselect.m" (selection-symbol target-type))
 
-(cl-defmethod gui-backend-set-selection (selection value
-                                         &context (window-system ns))
-  (if value (ns-own-selection-internal selection value)
-    (ns-disown-selection-internal selection)))
+(cl-defmethod gui-backend-set-selection (selection value &context (window-system ns))
+  (if (eq selection 'XdndSelection)
+      (setq ns-dnd-selection-value selection)
+    (if value (ns-own-selection-internal selection value)
+      (ns-disown-selection-internal selection))))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
                                              &context (window-system ns))
@@ -888,6 +894,16 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (cl-defmethod gui-backend-get-selection (selection-symbol target-type
                                          &context (window-system ns))
   (ns-get-selection selection-symbol target-type))
+
+(defun x-begin-drag (targets &optional action frame _return-frame _allow-current-frame)
+  "SKIP: real doc in xfns.c."
+  (unless ns-dnd-selection-value
+    (error "No local value for XdndSelection"))
+  (let ((pasteboard nil))
+    (when (and (member "STRING" targets)
+               (stringp ns-dnd-selection-value))
+      (push (cons 'string ns-dnd-selection-value) pasteboard))
+    (ns-begin-drag frame pasteboard action)))
 
 (provide 'ns-win)
 (provide 'term/ns-win)

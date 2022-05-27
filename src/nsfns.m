@@ -1859,7 +1859,7 @@ ns_get_defaults_value (const char *key)
 DEFUN ("ns-get-resource", Fns_get_resource, Sns_get_resource, 2, 2, 0,
        doc: /* Return the value of the property NAME of OWNER from the defaults database.
 If OWNER is nil, Emacs is assumed.  */)
-     (Lisp_Object owner, Lisp_Object name)
+  (Lisp_Object owner, Lisp_Object name)
 {
   const char *value;
 
@@ -1880,7 +1880,7 @@ DEFUN ("ns-set-resource", Fns_set_resource, Sns_set_resource, 3, 3, 0,
        doc: /* Set property NAME of OWNER to VALUE, from the defaults database.
 If OWNER is nil, Emacs is assumed.
 If VALUE is nil, the default is removed.  */)
-     (Lisp_Object owner, Lisp_Object name, Lisp_Object value)
+  (Lisp_Object owner, Lisp_Object name, Lisp_Object value)
 {
   check_window_system (NULL);
   if (NILP (owner))
@@ -1907,7 +1907,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
        doc: /* SKIP: real doc in xfns.c.  */)
-     (Lisp_Object terminal)
+  (Lisp_Object terminal)
 {
   check_ns_display_info (terminal);
   /* This function has no real equivalent under Nextstep.  Return nil to

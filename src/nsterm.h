@@ -412,19 +412,27 @@ typedef id instancetype;
 @interface EmacsWindow : NSWindow
 {
   NSPoint grabOffset;
+  NSEvent *last_drag_event;
+  NSDragOperation drag_op;
+  NSDragOperation selected_op;
 }
 
 #ifdef NS_IMPL_GNUSTEP
 - (NSInteger) orderedIndex;
 #endif
 
-- (instancetype)initWithEmacsFrame:(struct frame *)f;
-- (instancetype)initWithEmacsFrame:(struct frame *)f fullscreen:(BOOL)fullscreen screen:(NSScreen *)screen;
-- (void)createToolbar:(struct frame *)f;
-- (void)setParentChildRelationships;
-- (NSInteger)borderWidth;
-- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
-- (void)setAppearance;
+- (instancetype) initWithEmacsFrame: (struct frame *) f;
+- (instancetype) initWithEmacsFrame: (struct frame *) f
+			 fullscreen: (BOOL) fullscreen
+			     screen: (NSScreen *) screen;
+- (void) createToolbar: (struct frame *) f;
+- (void) setParentChildRelationships;
+- (NSInteger) borderWidth;
+- (BOOL) restackWindow: (NSWindow *) win above: (BOOL) above;
+- (void) setAppearance;
+- (void) setLastDragEvent: (NSEvent *) event;
+- (NSDragOperation) beginDrag: (NSDragOperation) op
+		forPasteboard: (NSPasteboard *) pasteboard;
 @end
 
 
@@ -1323,6 +1331,7 @@ enum NSWindowTabbingMode
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_13)
 /* Deprecated in macOS 10.13.  */
 #define NSPasteboardNameGeneral NSGeneralPboard
+#define NSPasteboardNameDrag NSDragPBoard
 #endif
 
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_14)

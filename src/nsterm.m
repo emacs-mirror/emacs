@@ -7059,6 +7059,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 {
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (emacsframe);
   NSPoint p = [self convertPoint: [theEvent locationInWindow] fromView: nil];
+  EmacsWindow *window;
 
   NSTRACE ("[EmacsView mouseDown:]");
 
@@ -7069,6 +7070,9 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   /* Appears to be needed to prevent spurious movement events generated on
      button clicks.  */
   emacsframe->mouse_moved = 0;
+
+  window = (EmacsWindow *) [self window];
+  [window setLastDragEvent: theEvent];
 
   if ([theEvent type] == NSEventTypeScrollWheel)
     {
@@ -8859,6 +8863,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 		 | NSWindowStyleMaskMiniaturizable
 		 | NSWindowStyleMaskClosable);
 
+  last_drag_event = nil;
+
   width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols);
   height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines);
 
@@ -8974,6 +8980,11 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   /* We need to release the toolbar ourselves.  */
   [[self toolbar] release];
+
+  /* Also the last button press event .  */
+  if (last_drag_event)
+    [last_drag_event release];
+
   [super dealloc];
 }
 
@@ -9496,6 +9507,55 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   /* Required for fullscreen and undecorated windows.  */
 {
   return YES;
+}
+
+- (void) setLastDragEvent: (NSEvent *) event
+{
+  if (last_drag_event)
+    [last_drag_event release];
+  last_drag_event = [event copy];
+}
+
+- (NSDragOperation) draggingSourceOperationMaskForLocal: (BOOL) is_local
+{
+  return drag_op;
+}
+
+- (void) draggedImage: (NSImage *) image
+	      endedAt: (NSPoint) screen_point
+	    operation: (NSDragOperation) operation
+{
+  selected_op = operation;
+}
+
+- (NSDragOperation) beginDrag: (NSDragOperation) op
+		forPasteboard: (NSPasteboard *) pasteboard
+{
+  NSImage *image;
+
+  drag_op = op;
+  selected_op = NSDragOperationNone;
+  image = [[NSImage alloc] initWithSize: NSMakeSize (1.0, 1.0)];
+
+  /* Now draw transparency onto the image.  */
+  [image lockFocus];
+  [[NSColor colorWithUnsignedLong: 0] set];
+  NSRectFillUsingOperation (NSMakeRect (0, 0, 1, 1),
+			    NSCompositingOperationCopy);
+  [image unlockFocus];
+
+  if (last_drag_event)
+    [self dragImage: image
+		 at: NSMakePoint (0, 0)
+	     offset: NSMakeSize (0, 0)
+	      event: last_drag_event
+	 pasteboard: pasteboard
+	     source: self
+	  slideBack: NO];
+
+  [image release];
+
+  return selected_op;
 }
 
 @end /* EmacsWindow */
