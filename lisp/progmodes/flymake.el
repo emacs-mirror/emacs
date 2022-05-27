@@ -1080,9 +1080,8 @@ Interactively, with a prefix arg, FORCE is t."
                     (flymake--run-backend backend backend-args)))
                   nil))))))))
 
-(defvar flymake-mode-map
-  (let ((map (make-sparse-keymap))) map)
-  "Keymap for `flymake-mode'.")
+(defvar-keymap flymake-mode-map
+  :doc "Keymap for `flymake-mode'.")
 
 ;;;###autoload
 (define-minor-mode flymake-mode
@@ -1493,11 +1492,9 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
 
 (defvar-local flymake--diagnostics-buffer-source nil)
 
-(defvar flymake-diagnostics-buffer-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'flymake-goto-diagnostic)
-    (define-key map (kbd "SPC") 'flymake-show-diagnostic)
-    map))
+(defvar-keymap flymake-diagnostics-buffer-mode-map
+  "RET" #'flymake-goto-diagnostic
+  "SPC" #'flymake-show-diagnostic)
 
 (defun flymake-show-diagnostic (pos &optional other-window)
   "Show location of diagnostic at POS."

@@ -121,13 +121,11 @@ If m4 is not in your PATH, set this to an absolute file name."
    ("#" (0 (when (m4--quoted-p (match-beginning 0))
              (string-to-syntax "."))))))
 
-(defvar m4-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-b" 'm4-m4-buffer)
-    (define-key map "\C-c\C-r" 'm4-m4-region)
-    (define-key map "\C-c\C-c" 'comment-region)
-    map)
-  "Keymap for M4 Mode.")
+(defvar-keymap m4-mode-map
+  :doc "Keymap for M4 Mode."
+  "C-c C-b" #'m4-m4-buffer
+  "C-c C-r" #'m4-m4-region
+  "C-c C-c" #'comment-region)
 
 (easy-menu-define m4-mode-menu m4-mode-map
   "Menu for M4 Mode."
