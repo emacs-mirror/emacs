@@ -235,7 +235,7 @@ face to apply)."
 and have `which-key-special-key-face' applied to them. This is
 disabled by default. Try this to see the effect.
 
-\(setq which-key-special-keys '(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
+\(setq which-key-special-keys \\='(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
   :group 'which-key
   :type '(repeat string))
 
@@ -291,10 +291,10 @@ location is tried."
 
 (defcustom which-key-side-window-slot 0
   "The `slot' to use for `display-buffer-in-side-window' when
-`which-key-popup-type' is 'side-window. Quoting from the
+`which-key-popup-type' is `side-window'.  Quoting from the
 docstring of `display-buffer-in-side-window',
 
-‘slot’ if non-nil, specifies the window slot where to display
+`slot' if non-nil, specifies the window slot where to display
 BUFFER.  A value of zero or nil means use the middle slot on the
 specified side.  A negative value means use a slot
 preceding (that is, above or on the left of) the middle slot.  A
@@ -906,7 +906,7 @@ replaced. COMMAND can be nil if the binding corresponds to a key
 prefix. An example is
 
 \(which-key-add-keymap-based-replacements global-map
-  \"C-x w\" '\(\"Save as\" . write-file\)\).
+  \"C-x w\" \\='\(\"Save as\" . write-file\)\).
 
 For backwards compatibility, REPLACEMENT can also be a string,
 but the above format is preferred, and the option to use a string
@@ -938,7 +938,7 @@ may either be a string, as in
 a cons of two strings as in
 
 \(which-key-add-key-based-replacements \"C-x 8\"
-                                        '(\"unicode\" . \"Unicode keys\")\)
+                                        \\='(\"unicode\" . \"Unicode keys\")\)
 
 or a function that takes a \(KEY . BINDING\) cons and returns a
 replacement.
