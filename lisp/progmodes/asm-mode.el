@@ -24,16 +24,16 @@
 ;;; Commentary:
 
 ;; This mode was written by Eric S. Raymond <esr@snark.thyrsus.com>,
-;; inspired by an earlier asm-mode by Martin Neitzel.
+;; inspired by an earlier `asm-mode' by Martin Neitzel.
 
-;; This major mode is based on prog mode.  It defines a private abbrev table
-;; that can be used to save abbrevs for assembler mnemonics.  It binds just
-;; five keys:
+;; This major mode is based on `prog-mode'.  It defines a private
+;; abbrev table that can be used to save abbrevs for assembler
+;; mnemonics.  It binds just five keys:
 ;;
 ;;	TAB		tab to next tab stop
 ;;	:		outdent preceding label, tab to tab stop
 ;;	comment char	place or move comment
-;;			asm-comment-char specifies which character this is;
+;;			`asm-comment-char' specifies which character this is;
 ;;			you can use a different character in different
 ;;			Asm mode buffers.
 ;;	C-j, C-m	newline and tab to tab stop
@@ -41,9 +41,9 @@
 ;; Code is indented to the first tab stop level.
 
 ;; This mode runs two hooks:
-;;   1) An asm-mode-set-comment-hook before the part of the initialization
-;; depending on asm-comment-char, and
-;;   2) an asm-mode-hook at the end of initialization.
+;;   1) `asm-mode-set-comment-hook' before the part of the initialization
+;;      depending on `asm-comment-char', and
+;;   2) `asm-mode-hook' at the end of initialization.
 
 ;;; Code:
 
@@ -128,7 +128,7 @@ Special commands:
   (setq-local tab-always-indent nil)
 
   (run-hooks 'asm-mode-set-comment-hook)
-  ;; Make our own local child of asm-mode-map
+  ;; Make our own local child of `asm-mode-map'
   ;; so we can define our own comment character.
   (use-local-map (nconc (make-sparse-keymap) asm-mode-map))
   (local-set-key (vector asm-comment-char) #'asm-comment)
