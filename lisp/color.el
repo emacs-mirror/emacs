@@ -39,6 +39,10 @@
 COLOR should be a color name (e.g. \"white\") or an RGB triplet
 string (e.g. \"#ffff1122eecc\").
 
+COLOR can also be the symbol `unspecified' or one of the strings
+\"unspecified-fg\" or \"unspecified-bg\", in which case the
+return value is nil.
+
 Normally the return value is a list of three floating-point
 numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
 
