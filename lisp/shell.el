@@ -719,7 +719,7 @@ Sentinels will always get the two parameters PROCESS and EVENT."
         (insert (format "\nProcess %s %s\n" process event))))))
 
 ;;;###autoload
-(defun shell (&optional buffer)
+(defun shell (&optional buffer file-name)
   "Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
 Interactively, a prefix arg means to prompt for BUFFER.
 If `default-directory' is a remote file name, it is also prompted
@@ -730,6 +730,8 @@ If BUFFER exists and shell process is running, just switch to BUFFER.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
  or (if that is nil) from `shell-file-name'.
+Non-interactively, it can also be specified via the FILE-NAME arg.
+
 If a file `~/.emacs_SHELLNAME' exists, or `~/.emacs.d/init_SHELLNAME.sh',
 it is given as initial input (but this may be lost, due to a timing
 error, if the shell discards input when it starts up).
@@ -771,7 +773,20 @@ Make the shell buffer the current buffer, and return it.
 		     (expand-file-name
 		      (read-directory-name
 		       "Default directory: " default-directory default-directory
-		       t nil))))))))
+		       t nil))))))
+    ;; On remote hosts, the local `shell-file-name' might be useless.
+    (when (and (file-remote-p default-directory)
+               (null explicit-shell-file-name)
+               (null (getenv "ESHELL")))
+      ;; `expand-file-name' shall not add the MS Windows volume letter
+      ;; (Bug#49229).
+      (replace-regexp-in-string
+       "^[[:alpha:]]:" ""
+       (file-local-name
+        (expand-file-name
+         (read-file-name "Remote shell path: " default-directory
+                         shell-file-name t shell-file-name
+                         #'file-remote-p)))))))
   (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
                        (comint-check-proc (current-buffer)))
                    (get-buffer-create (or buffer "*shell*"))
@@ -782,21 +797,8 @@ Make the shell buffer the current buffer, and return it.
   (pop-to-buffer buffer display-comint-buffer-action)
 
   (with-connection-local-variables
-   ;; On remote hosts, the local `shell-file-name' might be useless.
-   (when (and (file-remote-p default-directory)
-              (called-interactively-p 'any)
-              (null explicit-shell-file-name)
-              (null (getenv "ESHELL")))
-     ;; `expand-file-name' shall not add the MS Windows volume letter
-     ;; (Bug#49229).
-     (setq-local explicit-shell-file-name
-                 (replace-regexp-in-string
-                  "^[[:alpha:]]:" ""
-                  (file-local-name
-                   (expand-file-name
-                    (read-file-name "Remote shell path: " default-directory
-                                    shell-file-name t shell-file-name
-                                    #'file-remote-p))))))
+   (when file-name
+     (setq-local explicit-shell-file-name file-name))
 
    ;; Rain or shine, BUFFER must be current by now.
    (unless (comint-check-proc buffer)
