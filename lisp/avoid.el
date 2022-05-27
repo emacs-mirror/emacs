@@ -293,6 +293,8 @@ accumulated, and tries to keep it close to zero."
       (mouse-avoidance-set-mouse-position (cons (+ (car (cdr cur)) deltax)
 						(+ (cdr (cdr cur)) deltay))))))
 
+(defvar x-pointer-invisible) ; silence byte-compiler
+
 (defun mouse-avoidance-random-shape ()
   "Return a random cursor shape.
 This assumes that any variable whose name begins with x-pointer- and
