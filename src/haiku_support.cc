@@ -2385,30 +2385,25 @@ public:
 class EmacsMenuItem : public BMenuItem
 {
 public:
-  int menu_bar_id = -1;
-  void *menu_ptr = NULL;
-  void *wind_ptr = NULL;
-  char *key = NULL;
-  char *help = NULL;
+  int menu_bar_id;
+  void *menu_ptr;
+  void *wind_ptr;
+  char *key;
+  char *help;
 
-  EmacsMenuItem (const char *ky,
-		 const char *str,
-		 const char *help,
-		 BMessage *message = NULL) : BMenuItem (str, message)
+  EmacsMenuItem (const char *key_label, const char *label,
+		 const char *help, BMessage *message = NULL)
+    : BMenuItem (label, message),
+      menu_bar_id (-1),
+      menu_ptr (NULL),
+      wind_ptr (NULL),
+      key (NULL),
+      help (NULL)
   {
-    if (ky)
-      {
-	key = strdup (ky);
-	if (!key)
-	  gui_abort ("strdup failed");
-      }
+    if (key_label)
+      key = strdup (key_label);
 
-    if (help)
-      {
-	this->help = strdup (help);
-	if (!this->help)
-	  gui_abort ("strdup failed");
-      }
+    this->help = strdup (help);
   }
 
   ~EmacsMenuItem ()
