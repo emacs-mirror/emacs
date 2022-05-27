@@ -7264,10 +7264,8 @@ x_hash_string_ignore_case (const char *string)
 /* On frame F, translate the color name to RGB values.  Use cached
    information, if possible.
 
-   Note that there is currently no way to clean old entries out of the
-   cache.  However, it is limited to names in the server's database,
-   and names we've actually looked up; list-colors-display is probably
-   the most color-intensive case we're likely to hit.  */
+   If too many entries are placed in the cache, the least recently
+   used entries are removed.  */
 
 Status
 x_parse_color (struct frame *f, const char *color_name,
@@ -7351,13 +7349,15 @@ x_parse_color (struct frame *f, const char *color_name,
   dpyinfo->color_names[idx] = cache_entry;
 
   /* Don't let the color cache become too big.  */
-  if (dpyinfo->color_names_length[idx] > 128)
+  if (dpyinfo->color_names_length[idx] > (x_color_cache_bucket_size > 0
+					  ? x_color_cache_bucket_size : 128))
     {
       i = 0;
 
       for (last = dpyinfo->color_names[idx]; last; last = last->next)
 	{
-	  if (++i == 128)
+	  if (++i == (x_color_cache_bucket_size > 0
+		      ? x_color_cache_bucket_size : 128))
 	    {
 	      next = last->next;
 	      last->next = NULL;
@@ -25941,4 +25941,9 @@ where the drop happened, ACTION is the action that was passed to
 `x-begin-drag', FRAME is the frame which initiated the drag-and-drop
 operation, and TIME is the X server time when the drop happened.  */);
   Vx_dnd_unsupported_drop_function = Qnil;
+
+  DEFVAR_INT ("x-color-cache-bucket-size", x_color_cache_bucket_size,
+    doc: /* Most buckets allowed per display in the internal color cache.
+Values less than 1 mean 128.  This option is for debugging only.  */);
+  x_color_cache_bucket_size = 128;
 }

@@ -3025,6 +3025,23 @@ GTK_IM_MODULE.
 GTK does not allow programs to warp the pointer anymore.  There is
 nothing that can be done about this problem.
 
+** Certain keys such as 'C-S-u' are not reported correctly.
+
+Some keys with modifiers such as Shift and Control might not be
+reported correctly due to incorrectly written GTK input method
+modules.  This is known to happen to 'C-S-u' and 'C->', which are
+misreported as 'C-u' and '>'.
+
+To disable the use of GTK input methods, evaluate:
+
+  (pgtk-use-im-context nil)
+
+This will also cause system input methods and features such as the
+Compose key to stop working.
+
+On X Windows, users should not use Emacs configured with PGTK, since
+this and many other problems do not exist on the regular X builds.
+
 * Build-time problems
 
 ** Configuration
