@@ -17841,6 +17841,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 masks are set on the frame widget's window.  */
 	      f = x_window_to_frame (dpyinfo, leave->event);
 
+	      /* Also do this again here, since the test for `any'
+		 above may not have found a frame, as that usually
+		 just looks up a top window on Xt builds.  */
+
+#ifdef HAVE_XINPUT2_1
+	      if (leave->detail != XINotifyInferior && f)
+		xi_reset_scroll_valuators_for_device_id (dpyinfo,
+							 leave->deviceid, false);
+#endif
+
 	      if (!f)
 		f = x_top_window_to_frame (dpyinfo, leave->event);
 #endif
