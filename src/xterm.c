@@ -7277,9 +7277,10 @@ x_parse_color (struct frame *f, const char *color_name,
   Display *dpy;
   Colormap cmap;
   struct x_display_info *dpyinfo;
-  struct color_name_cache_entry *cache_entry;
+  struct color_name_cache_entry *cache_entry, *last;
+  struct color_name_cache_entry *next, *color_entry;
   unsigned int hash, idx;
-  int rc;
+  int rc, i;
 
   /* Don't pass #RGB strings directly to XParseColor, because that
      follows the X convention of zero-extending each channel
@@ -7306,16 +7307,31 @@ x_parse_color (struct frame *f, const char *color_name,
   hash = x_hash_string_ignore_case (color_name);
   idx = hash % dpyinfo->color_names_size;
 
+  last = NULL;
+
   for (cache_entry = dpyinfo->color_names[idx];
        cache_entry; cache_entry = cache_entry->next)
     {
       if (!xstrcasecmp (cache_entry->name, color_name))
 	{
+	  /* Move recently used entries to the start of the color
+	     cache.  */
+
+	  if (last)
+	    {
+	      last->next = cache_entry->next;
+	      cache_entry->next = dpyinfo->color_names[idx];
+
+	      dpyinfo->color_names[idx] = cache_entry;
+	    }
+
 	  if (cache_entry->valid)
 	    *color = cache_entry->rgb;
 
 	  return cache_entry->valid;
 	}
+
+      last = cache_entry;
     }
 
   block_input ();
@@ -7323,6 +7339,7 @@ x_parse_color (struct frame *f, const char *color_name,
   unblock_input ();
 
   cache_entry = xzalloc (sizeof *cache_entry);
+  dpyinfo->color_names_length[idx] += 1;
 
   if (rc)
     cache_entry->rgb = *color;
@@ -7332,6 +7349,33 @@ x_parse_color (struct frame *f, const char *color_name,
   cache_entry->next = dpyinfo->color_names[idx];
 
   dpyinfo->color_names[idx] = cache_entry;
+
+  /* Don't let the color cache become too big.  */
+  if (dpyinfo->color_names_length[idx] > 128)
+    {
+      i = 0;
+
+      for (last = dpyinfo->color_names[idx]; last; last = last->next)
+	{
+	  if (++i == 128)
+	    {
+	      next = last->next;
+	      last->next = NULL;
+
+	      for (color_entry = next; color_entry; color_entry = last)
+		{
+		  last = color_entry->next;
+
+		  xfree (color_entry->name);
+		  xfree (color_entry);
+
+		  dpyinfo->color_names_length[idx] -= 1;
+		}
+
+	      return rc;
+	    }
+	}
+    }
 
   return rc;
 }
@@ -24511,6 +24555,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->color_names_size = 256;
   dpyinfo->color_names = xzalloc (dpyinfo->color_names_size
 				  * sizeof *dpyinfo->color_names);
+  dpyinfo->color_names_length = xzalloc (dpyinfo->color_names_size
+					 * sizeof *dpyinfo->color_names_length);
 
   /* Set the name of the terminal. */
   terminal->name = xlispstrdup (display_name);
@@ -25248,6 +25294,7 @@ x_delete_display (struct x_display_info *dpyinfo)
     }
 
   xfree (dpyinfo->color_names);
+  xfree (dpyinfo->color_names_length);
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);

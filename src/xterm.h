@@ -520,6 +520,9 @@ struct x_display_info
   /* A cache mapping color names to RGB values.  */
   struct color_name_cache_entry **color_names;
 
+  /* The number of buckets for each hash in that hash table.  */
+  ptrdiff_t *color_names_length;
+
   /* The size of that hash table.  */
   int color_names_size;
 
