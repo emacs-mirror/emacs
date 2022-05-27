@@ -1415,7 +1415,7 @@ If FORCE is non-nil and no process found, create one."
   (pop-to-buffer (process-buffer (sh-shell-process t)) display-comint-buffer-action))
 
 (defun sh-send-text (text)
-  "Send the text to the `sh-shell-process'."
+  "Send TEXT to `sh-shell-process'."
   (comint-send-string (sh-shell-process t) (concat text "\n")))
 
 (defun sh-cd-here ()

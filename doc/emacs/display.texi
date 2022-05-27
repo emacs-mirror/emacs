@@ -1980,7 +1980,7 @@ The command @kbd{M-x display-line-numbers-mode} provides a
 convenient way to turn on display of line numbers.  This mode has a globalized
 variant, @code{global-display-line-numbers-mode}.  The user option
 @code{display-line-numbers-type} controls which sub-mode of
-line-number display, described above, will these modes activate.
+line-number display, described above, these modes will activate.
 
 @noindent
 Note that line numbers are not displayed in the minibuffer and in the
