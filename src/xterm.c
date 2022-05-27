@@ -1157,7 +1157,7 @@ static unsigned int x_dnd_keyboard_state;
 
 /* jmp_buf that gets us out of the IO error handler if an error occurs
    terminating DND as part of the display disconnect handler.  */
-static jmp_buf x_dnd_disconnect_handler;
+static sigjmp_buf x_dnd_disconnect_handler;
 
 /* Structure describing a single window that can be the target of
    drag-and-drop operations.  */
@@ -1612,7 +1612,7 @@ xm_drag_window_io_error_handler (Display *dpy)
 {
   /* DPY isn't created through GDK, so it doesn't matter if we don't
      crash here.  */
-  longjmp (x_dnd_disconnect_handler, 1);
+  siglongjmp (x_dnd_disconnect_handler, 1);
 }
 
 static Window
@@ -2830,7 +2830,7 @@ x_dnd_io_error_handler (Display *display)
 #ifdef USE_GTK
   emacs_abort ();
 #else
-  longjmp (x_dnd_disconnect_handler, 1);
+  siglongjmp (x_dnd_disconnect_handler, 1);
 #endif
 }
 
