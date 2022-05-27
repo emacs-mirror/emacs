@@ -203,6 +203,13 @@ files that were compiled with an old EIEIO (Emacs<25).
 ** 'C-x 8 .' has been moved to 'C-x 8 . .'.
 This is to open up the 'C-x 8 .' map to bind further characters there.
 
+---
+** 'C-x 8 =' moved to 'C-x 8 = ='.
+You can now use 'C-x 8 =' to insert several characters with macron;
+for example, 'C-x 8 = a' will insert U+0101 LATIN SMALL LETTER A WITH
+MACRON.  To insert a lone macron, type 'C-x 8 = =' instead of the
+previous 'C-x ='.
+
 ** Eshell
 
 ---
