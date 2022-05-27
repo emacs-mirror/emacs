@@ -9521,6 +9521,24 @@ the completions is popped up and down."
   :version "29.1"
   :group 'completion)
 
+(defun first-completion ()
+  "Move to the first item in the completion list."
+  (interactive)
+  (goto-char (point-min))
+  (unless (get-text-property (point) 'mouse-face)
+    (when-let ((pos (next-single-property-change (point) 'mouse-face)))
+      (goto-char pos))))
+
+(defun last-completion ()
+  "Move to the last item in the completion list."
+  (interactive)
+  (goto-char (previous-single-property-change
+              (point-max) 'mouse-face nil (point-min)))
+  ;; Move to the start of last one.
+  (unless (get-text-property (point) 'mouse-face)
+    (when-let ((pos (previous-single-property-change (point) 'mouse-face)))
+      (goto-char pos))))
+
 (defun previous-completion (n)
   "Move to the previous item in the completion list.
 With prefix argument N, move back N items (negative N means move
@@ -9537,60 +9555,51 @@ backward).
 
 Also see the `completion-wrap-movement' variable."
   (interactive "p")
-  (let ((prev (previous-single-property-change (point) 'mouse-face)))
-    (goto-char (cond
-                ((not prev)
-                 (1- (next-single-property-change (point) 'mouse-face)))
-                ((/= prev (point))
-                 (point))
-                (t prev))))
-
-  (let ((beg (point-min))
-        (end (point-max))
-        (tabcommand (member (this-command-keys) '("\t" [backtab])))
-        prop)
+  (let ((tabcommand (member (this-command-keys) '("\t" [backtab])))
+        pos)
     (catch 'bound
       (while (> n 0)
+        (setq pos (point))
         ;; If in a completion, move to the end of it.
-        (when (get-text-property (point) 'mouse-face)
-          (goto-char (next-single-property-change (point) 'mouse-face nil end)))
-        ;; If at the last completion option, wrap or skip to the
-        ;; minibuffer, if requested. We can't use (eobp) because some
-        ;; extra text may be after the last candidate: ex: when
-        ;; completion-detailed
-        (setq prop (next-single-property-change (point) 'mouse-face nil end))
-        (when (and completion-wrap-movement (eq end prop))
-          (if (and completion-auto-select tabcommand)
-              (throw 'bound nil)
-            (goto-char (point-min))))
-        ;; Move to start of next one.
-        (unless (get-text-property (point) 'mouse-face)
-          (goto-char (next-single-property-change (point) 'mouse-face nil end)))
+        (when (get-text-property pos 'mouse-face)
+          (setq pos (next-single-property-change pos 'mouse-face)))
+        (when pos (setq pos (next-single-property-change pos 'mouse-face)))
+        (if pos
+            ;; Move to the start of next one.
+            (goto-char pos)
+          ;; If at the last completion option, wrap or skip
+          ;; to the minibuffer, if requested.
+          (when completion-wrap-movement
+            (if (and (eq completion-auto-select t) tabcommand)
+                (throw 'bound nil)
+              (first-completion))))
         (setq n (1- n)))
 
-      (while (and (< n 0) (not (bobp)))
-        (setq prop (get-text-property (1- (point)) 'mouse-face))
+      (while (< n 0)
+        (setq pos (point))
         ;; If in a completion, move to the start of it.
-        (when (and prop (eq prop (get-text-property (point) 'mouse-face)))
-          (goto-char (previous-single-property-change
-                      (point) 'mouse-face nil beg)))
-        ;; Move to end of the previous completion.
-        (unless (or (bobp) (get-text-property (1- (point)) 'mouse-face))
-          (goto-char (previous-single-property-change
-                      (point) 'mouse-face nil beg)))
-        ;; If at the first completion option, wrap or skip to the
-        ;; minibuffer, if requested.
-        (setq prop (previous-single-property-change (point) 'mouse-face nil beg))
-        (when (and completion-wrap-movement (eq beg prop))
-          (if (and completion-auto-select tabcommand)
-              (progn
-                (goto-char (next-single-property-change (point) 'mouse-face nil end))
-                (throw 'bound nil))
-            (goto-char (point-max))))
-        ;; Move to the start of that one.
-        (goto-char (previous-single-property-change
-                    (point) 'mouse-face nil beg))
+        (when (and (get-text-property pos 'mouse-face)
+                   (not (bobp))
+                   (get-text-property (1- pos) 'mouse-face))
+          (setq pos (previous-single-property-change pos 'mouse-face)))
+        (when pos (setq pos (previous-single-property-change pos 'mouse-face)))
+        (if pos
+            (progn
+              (goto-char pos)
+              ;; Move to the start of that one.
+              (unless (get-text-property (point) 'mouse-face)
+                (goto-char (previous-single-property-change
+                            (point) 'mouse-face nil (point-min)))))
+          ;; If at the first completion option, wrap or skip
+          ;; to the minibuffer, if requested.
+          (when completion-wrap-movement
+            (if (and (eq completion-auto-select t) tabcommand)
+                (progn
+                  ;; (goto-char (next-single-property-change (point) 'mouse-face))
+                  (throw 'bound nil))
+              (last-completion))))
         (setq n (1+ n))))
+
     (when (/= 0 n)
       (switch-to-minibuffer))))
 
@@ -9618,13 +9627,16 @@ minibuffer, but don't quit the completions window."
              (goto-char (posn-point (event-start event)))
              (let (beg)
                (cond
-                ((and (not (eobp)) (get-text-property (point) 'mouse-face))
+                ((and (not (eobp))
+                      (get-text-property (point) 'completion--string))
                  (setq beg (1+ (point))))
                 ((and (not (bobp))
-                      (get-text-property (1- (point)) 'mouse-face))
+                      (get-text-property (1- (point)) 'completion--string))
                  (setq beg (point)))
                 (t (error "No completion here")))
-               (setq beg (previous-single-property-change beg 'mouse-face))
+               (setq beg (or (previous-single-property-change
+                              beg 'completion--string)
+                             beg))
                (substring-no-properties
                 (get-text-property beg 'completion--string))))))
 
@@ -9830,8 +9842,8 @@ select the completion near point.\n\n")))))
        ((and (memq this-command '(completion-at-point minibuffer-complete))
              (equal (this-command-keys) [backtab]))
         (goto-char (point-max))
-        (previous-completion 1))
-       (t (next-completion 1))))))
+        (last-completion))
+       (t (first-completion))))))
 
 (defun read-expression-switch-to-completions ()
   "Select the completion list window while reading an expression."

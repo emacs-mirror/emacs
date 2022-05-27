@@ -2074,11 +2074,11 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
       (when prefix
         (let ((beg (point))
               (end (progn (insert prefix) (point))))
-          (put-text-property beg end 'mouse-face nil)))
+          (add-text-properties beg end `(mouse-face nil completion--string ,(car str)))))
       (completion--insert (car str) group-fun)
       (let ((beg (point))
             (end (progn (insert suffix) (point))))
-        (put-text-property beg end 'mouse-face nil)
+        (add-text-properties beg end `(mouse-face nil completion--string ,(car str)))
         ;; Put the predefined face only when suffix
         ;; is added via annotation-function without prefix,
         ;; and when the caller doesn't use own face.

@@ -3939,7 +3939,7 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
       ;; In the new buffer, go to the first completion.
       ;; FIXME: Perhaps this should be done in `ido-completion-help'.
       (when (bobp)
-	(next-completion 1)))))
+	(first-completion)))))
 
 (defun ido-completion-auto-help ()
   "Call `ido-completion-help' if `completion-auto-help' is non-nil."
