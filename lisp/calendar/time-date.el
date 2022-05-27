@@ -552,7 +552,7 @@ changes in daylight saving time are not taken into account."
 
 (cl-defun make-decoded-time (&key second minute hour
                                   day month year
-                                  dst zone)
+                                  (dst -1) zone)
   "Return a `decoded-time' structure with only the keywords given filled out."
   (list second minute hour day month year nil dst zone))
 
