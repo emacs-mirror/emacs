@@ -656,7 +656,7 @@ target, or the drop was rejected).  */)
   NSDragOperation operation;
 
   f = decode_window_system_frame (frame);
-  pasteboard = [NSPasteboard pasteboardWithName: NSDragPboard];
+  pasteboard = [NSPasteboard pasteboardWithName: NSPasteboardNameDrag];
   window = (EmacsWindow *) [FRAME_NS_VIEW (f) window];
 
   operation = ns_dnd_action_to_operation (action);

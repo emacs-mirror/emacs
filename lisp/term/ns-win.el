@@ -879,7 +879,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (cl-defmethod gui-backend-set-selection (selection value &context (window-system ns))
   (if (eq selection 'XdndSelection)
-      (setq ns-dnd-selection-value selection)
+      (setq ns-dnd-selection-value value)
     (if value (ns-own-selection-internal selection value)
       (ns-disown-selection-internal selection))))
 
