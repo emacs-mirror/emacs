@@ -25943,7 +25943,7 @@ operation, and TIME is the X server time when the drop happened.  */);
   Vx_dnd_unsupported_drop_function = Qnil;
 
   DEFVAR_INT ("x-color-cache-bucket-size", x_color_cache_bucket_size,
-    doc: /* Most buckets allowed per display in the internal color cache.
+    doc: /* Max number of buckets allowed per display in the internal color cache.
 Values less than 1 mean 128.  This option is for debugging only.  */);
   x_color_cache_bucket_size = 128;
 }
