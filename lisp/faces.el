@@ -516,6 +516,9 @@ FACES may be either a single face or a list of faces.
 
 (defun face-foreground (face &optional frame inherit)
   "Return the foreground color name of FACE, or nil if unspecified.
+On TTY frames, the returned color name can be \"unspecified-fg\",
+which stands for the unknown default foreground color of the display
+where the frame is displayed.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
@@ -537,6 +540,9 @@ merging with the `default' face (which is always completely specified)."
 
 (defun face-background (face &optional frame inherit)
   "Return the background color name of FACE, or nil if unspecified.
+On TTY frames, the returned color name can be \"unspecified-bg\",
+which stands for the unknown default background color of the display
+where the frame is displayed.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
@@ -2097,11 +2103,17 @@ unnamed faces (e.g, `foreground-color')."
         (face-attribute 'default attribute))))
 
 (defun foreground-color-at-point ()
-  "Return the foreground color of the character after point."
+  "Return the foreground color of the character after point.
+On TTY frames, the returned color name can be \"unspecified-fg\",
+which stands for the unknown default foreground color of the
+display where the frame is displayed."
   (faces--attribute-at-point :foreground 'foreground-color))
 
 (defun background-color-at-point ()
-  "Return the background color of the character after point."
+  "Return the background color of the character after point.
+On TTY frames, the returned color name can be \"unspecified-bg\",
+which stands for the unknown default background color of the
+display where the frame is displayed."
   (faces--attribute-at-point :background 'background-color))
 
 

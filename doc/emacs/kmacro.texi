@@ -179,7 +179,7 @@ itself counts as the first repetition, since it is executed as you
 define it, so @kbd{C-u 4 C-x )} executes the macro immediately 3
 additional times.
 
-@findex kdb-macro-redisplay
+@findex kmacro-redisplay
 @kindex C-x C-k d
   While executing a long-running keyboard macro, it can sometimes be
 useful to trigger a redisplay (to show how far we've gotten).  The
