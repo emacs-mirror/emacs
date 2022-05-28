@@ -6830,9 +6830,9 @@ is allowed to be FRAME.  Otherwise, no action will be taken if the
 mouse buttons are released on top of FRAME.
 
 This function will sometimes return immediately if no mouse buttons
-are currently held down, and should only be called in situations where
-it is known that some are being held down down, such as immediately
-after a `down-mouse-1' event.  */)
+are currently held down.  It should only be called when it is known
+that mouse buttons are being held down, such as immediately after a
+`down-mouse-1' (or similar) event.  */)
   (Lisp_Object targets, Lisp_Object action, Lisp_Object frame,
    Lisp_Object return_frame, Lisp_Object allow_current_frame)
 {
