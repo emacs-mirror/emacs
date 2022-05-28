@@ -1861,6 +1861,22 @@ class C(object):
                 (beginning-of-line)
                 (point))))))
 
+(ert-deftest python-nav-beginning-of-defun-4 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        a():
+    return 0
+"
+   (python-tests-look-at "return 0")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))))
+
 (ert-deftest python-nav-end-of-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -1964,6 +1980,20 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (python-tests-look-at "return wrapped_f")
                 (line-beginning-position))))))
 
+(ert-deftest python-nav-end-of-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        a():
+    return 0
+"
+   (should (= (save-excursion
+                (python-tests-look-at "def \\")
+                (python-nav-end-of-defun)
+                (point))
+              (save-excursion
+                (point-max))))))
+
 (ert-deftest python-nav-backward-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -2062,6 +2092,18 @@ class A(object):
      (should (not (python-nav-backward-defun)))
      (should (= point (point))))))
 
+(ert-deftest python-nav-backward-defun-4 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        a():
+    return 0
+"
+   (goto-char (point-max))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "def \\" -1)))
+   (should (not (python-nav-backward-defun)))))
+
 (ert-deftest python-nav-forward-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -2159,6 +2201,18 @@ class A(object):
    (let ((point (python-tests-look-at "(object):")))
      (should (not (python-nav-forward-defun)))
      (should (= point (point))))))
+
+(ert-deftest python-nav-forward-defun-4 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        a():
+    return 0
+"
+   (goto-char (point-min))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "():")))
+   (should (not (python-nav-forward-defun)))))
 
 (ert-deftest python-nav-beginning-of-statement-1 ()
   (python-tests-with-temp-buffer

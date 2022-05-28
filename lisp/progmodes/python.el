@@ -359,7 +359,8 @@
 (defmacro python-rx (&rest regexps)
   "Python mode specialized rx macro.
 This variant of `rx' supports common Python named REGEXPS."
-  `(rx-let ((block-start       (seq symbol-start
+  `(rx-let ((sp-bsnl (or space (and ?\\ ?\n)))
+            (block-start       (seq symbol-start
                                     (or "def" "class" "if" "elif" "else" "try"
                                         "except" "finally" "for" "while" "with"
                                         ;; Python 3.10+ PEP634
@@ -1439,7 +1440,7 @@ marks the next defun after the ones already marked."
                  function))
 
 (defvar python-nav-beginning-of-defun-regexp
-  (python-rx line-start (* space) defun (+ space) (group symbol-name))
+  (python-rx line-start (* space) defun (+ sp-bsnl) (group symbol-name))
   "Regexp matching class or function definition.
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
