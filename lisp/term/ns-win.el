@@ -903,6 +903,13 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
     (when (and (member "STRING" targets)
                (stringp ns-dnd-selection-value))
       (push (cons 'string ns-dnd-selection-value) pasteboard))
+    (when (and (member "FILE_NAME" targets)
+               (file-exists-p ns-dnd-selection-value))
+      (push (cons 'file
+                  (url-encode-url (concat "file://"
+                                          (expand-file-name
+                                           ns-dnd-selection-value))))
+            pasteboard))
     (ns-begin-drag frame pasteboard action)))
 
 (provide 'ns-win)

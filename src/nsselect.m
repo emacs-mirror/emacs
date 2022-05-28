@@ -561,16 +561,33 @@ static void
 ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
 			      NSPasteboard *pasteboard)
 {
+  NSArray *types, *new;
+
+  types = [pasteboard types];
+
   CHECK_SYMBOL (type);
 
   if (EQ (type, Qstring))
     {
       CHECK_STRING (data);
 
-      [pasteboard declareTypes: [NSArray arrayWithObject: NSPasteboardTypeString]
+      new = [types arrayByAddingObject: NSPasteboardTypeString];
+
+      [pasteboard declareTypes: new
 			 owner: nil];
       [pasteboard setString: [NSString stringWithLispString: data]
 		    forType: NSPasteboardTypeString];
+    }
+  else if (EQ (type, Qfile))
+    {
+      CHECK_STRING (data);
+
+      new = [types arrayByAddingObject: NSPasteboardTypeFileURL];
+
+      [pasteboard declareTypes: new
+			 owner: nil];
+      [pasteboard setString: [NSString stringWithLispString: data]
+		    forType: NSPasteboardTypeFileURL];
     }
   else
     signal_error ("Unknown pasteboard type", type);
@@ -581,6 +598,9 @@ ns_lisp_to_pasteboard (Lisp_Object object,
 		       NSPasteboard *pasteboard)
 {
   Lisp_Object tem, type, data;
+
+  [pasteboard declareTypes: [NSArray array]
+		     owner: nil];
 
   CHECK_LIST (object);
   for (tem = object; CONSP (tem); tem = XCDR (tem))
@@ -641,6 +661,9 @@ the meaning of DATA:
 
   - `string' means DATA should be a string describing text that will
     be dragged to another program.
+
+  - `file' means DATA should be a file URL that will be dragged to
+    another program.
 
 ACTION is the action that will be taken by the drop target towards the
 data inside PBOARD.
