@@ -10646,7 +10646,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      /* FIXME: how come this can end up with movement frames
 		 from other displays on GTK builds?  */
 	      && (FRAME_X_DISPLAY (x_dnd_movement_frame)
-		  == FRAME_X_DISPLAY (f)))
+		  == FRAME_X_DISPLAY (f))
+	      /* If both those variables are false, then F is no
+		 longer protected from deletion by Lisp code.  This
+		 can only happen during the final iteration of the DND
+		 event loop.  */
+	      && (x_dnd_in_progress || x_dnd_waiting_for_finish))
 	    {
 	      XSETFRAME (frame_object, x_dnd_movement_frame);
 	      XSETINT (x, x_dnd_movement_x);
@@ -10677,14 +10682,24 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	    {
 	      if (hold_quit.kind == SELECTION_REQUEST_EVENT)
 		{
-		  x_dnd_old_window_attrs = root_window_attrs;
-		  x_dnd_unwind_flag = true;
+		  /* It's not safe to run Lisp inside this function if
+		     x_dnd_in_progress and x_dnd_waiting_for_finish
+		     are unset, so push it back into the event queue.  */
 
-		  ref = SPECPDL_INDEX ();
-		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
-		  x_handle_selection_event ((struct selection_input_event *) &hold_quit);
-		  x_dnd_unwind_flag = false;
-		  unbind_to (ref, Qnil);
+		  if (!x_dnd_in_progress && !x_dnd_waiting_for_finish)
+		    kbd_buffer_store_event (&hold_quit);
+		  else
+		    {
+		      x_dnd_old_window_attrs = root_window_attrs;
+		      x_dnd_unwind_flag = true;
+
+		      ref = SPECPDL_INDEX ();
+		      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+		      x_handle_selection_event ((struct selection_input_event *) &hold_quit);
+		      x_dnd_unwind_flag = false;
+		      unbind_to (ref, Qnil);
+		    }
+
 		  continue;
 		}
 
