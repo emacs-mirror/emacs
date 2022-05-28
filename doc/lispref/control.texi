@@ -629,7 +629,10 @@ Attempts to match @var{pattern1}, @var{pattern2}, @dots{}, in order,
 until one of them succeeds.  In that case, @code{or} likewise matches,
 and the rest of the sub-patterns are not tested.
 
-To present a consistent environment (@pxref{Intro Eval})
+To present a consistent environment
+@ifnottex
+(@pxref{Intro Eval})
+@end ifnottex
 to @var{body-forms} (thus avoiding an evaluation error on match),
 the set of variables bound by the pattern is the union of the
 variables bound by each sub-pattern.  If a variable is not bound by
