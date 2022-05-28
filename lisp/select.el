@@ -481,7 +481,8 @@ two markers or an overlay.  Otherwise, it is nil."
 (defun xselect--int-to-cons (n)
   (cons (ash n -16) (logand n 65535)))
 
-(defun xselect--encode-string (type str &optional can-modify)
+(defun xselect--encode-string (type str &optional can-modify
+                                    prefer-string-to-c-string)
   (when str
     ;; If TYPE is nil, this is a local request; return STR as-is.
     (if (null type)
@@ -574,7 +575,10 @@ two markers or an overlay.  Otherwise, it is nil."
       (setq str (string-replace "\0" "\\0" str))
 
       (setq next-selection-coding-system nil)
-      (cons type str))))
+      (cons (if (and prefer-string-to-c-string
+                     (eq type 'C_STRING))
+                'STRING type)
+            str))))
 
 (defun xselect-convert-to-string (_selection type value)
   (let ((str (cond ((stringp value) value)
@@ -621,7 +625,8 @@ two markers or an overlay.  Otherwise, it is nil."
         (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value))))
     (when (and (stringp value)
                (file-exists-p value))
-      (xselect--encode-string 'C_STRING value))))
+      (xselect--encode-string 'TEXT (expand-file-name value)
+                              nil t))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
@@ -717,6 +722,42 @@ VALUE is the local selection value of SELECTION."
 (defun xselect-convert-xm-special (_selection _type _value)
   "")
 
+(defun xselect-dt-netfile-available-p (selection _type value)
+  "Return whether or not `_DT_NETFILE' is a valid target for SELECTION.
+VALUE is SELECTION's local selection value."
+  (and (eq selection 'XdndSelection)
+       (stringp value)
+       (file-exists-p value)
+       (not (file-remote-p value))))
+
+(defun xselect-tt-net-file (file)
+  "Get the canonical ToolTalk filename for FILE.
+FILE must be a local file, or otherwise the conversion will fail.
+The string returned has three components: the hostname of the
+machine where the file is, the real path, and the local path.
+They are encoded into a string of the form
+\"HOST=0-X,RPATH=X-Y,LPATH=Y-Z:DATA\", where X, Y, and Z are the
+positions of the hostname, rpath and lpath inside DATA."
+  (let ((hostname (system-name))
+        (rpath file)
+        (lpath file))
+    (format "HOST=0-%d,RPATH=%d-%d,LPATH=%d-%d:%s%s%s"
+            (1- (length hostname)) (length hostname)
+            (1- (+ (length hostname) (length rpath)))
+            (+ (length hostname) (length rpath))
+            (1- (+ (length hostname) (length rpath)
+                   (length lpath)))
+            hostname rpath lpath)))
+
+(defun xselect-convert-to-dt-netfile (selection _type value)
+  "Convert SELECTION to a ToolTalk filename.
+VALUE should be SELECTION's local value."
+  (when (and (eq selection 'XdndSelection)
+             (stringp value)
+             (file-exists-p value)
+             (not (file-remote-p value)))
+    (xselect-tt-net-file value)))
+
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)
 	(COMPOUND_TEXT . xselect-convert-to-string)
@@ -724,9 +765,11 @@ VALUE is the local selection value of SELECTION."
 	(UTF8_STRING . xselect-convert-to-string)
 	(text/plain . xselect-convert-to-string)
 	(text/plain\;charset=utf-8 . xselect-convert-to-string)
-        (text/uri-list . (xselect-uri-list-available-p . xselect-convert-to-text-uri-list))
+        (text/uri-list . (xselect-uri-list-available-p
+                          . xselect-convert-to-text-uri-list))
         (text/x-xdnd-username . xselect-convert-to-username)
-        (FILE . (xselect-uri-list-available-p . xselect-convert-to-xm-file))
+        (FILE . (xselect-uri-list-available-p
+                 . xselect-convert-to-xm-file))
 	(TARGETS . xselect-convert-to-targets)
 	(LENGTH . xselect-convert-to-length)
 	(DELETE . xselect-convert-to-delete)
@@ -744,7 +787,9 @@ VALUE is the local selection value of SELECTION."
 	(SAVE_TARGETS . xselect-convert-to-save-targets)
 	(_EMACS_INTERNAL . xselect-convert-to-identity)
         (XmTRANSFER_SUCCESS . xselect-convert-xm-special)
-        (XmTRANSFER_FAILURE . xselect-convert-xm-special)))
+        (XmTRANSFER_FAILURE . xselect-convert-xm-special)
+        (_DT_NETFILE . (xselect-convert-to-dt-netfile
+                        . xselect-dt-netfile-available-p))))
 
 (provide 'select)
 
