@@ -740,22 +740,28 @@ If APPLICATION is nil, `connection-local-default-application' is used."
   "Apply connection-local variables according to `default-directory'.
 Execute BODY, and unwind connection-local variables."
   (declare (debug t))
-  `(if (file-remote-p default-directory)
-       (let ((enable-connection-local-variables t)
-             (old-buffer-local-variables (buffer-local-variables))
-	     connection-local-variables-alist)
-	 (hack-connection-local-variables-apply
-	  (connection-local-criteria-for-default-directory))
-	 (unwind-protect
-             (progn ,@body)
-	   ;; Cleanup.
-	   (dolist (variable connection-local-variables-alist)
-	     (let ((elt (assq (car variable) old-buffer-local-variables)))
-	       (if elt
-		   (set (make-local-variable (car elt)) (cdr elt))
-		 (kill-local-variable (car variable)))))))
-     ;; No connection-local variables to apply.
-     ,@body))
+  `(with-connection-local-variables-1 (lambda () ,@body)))
+
+;;;###autoload
+(defun with-connection-local-variables-1 (body-fun)
+  "Apply connection-local variables according to `default-directory'.
+Call BODY-FUN with no args, and then unwind connection-local variables."
+  (if (file-remote-p default-directory)
+      (let ((enable-connection-local-variables t)
+            (old-buffer-local-variables (buffer-local-variables))
+	    connection-local-variables-alist)
+	(hack-connection-local-variables-apply
+	 (connection-local-criteria-for-default-directory))
+	(unwind-protect
+            (funcall body-fun)
+	  ;; Cleanup.
+	  (dolist (variable connection-local-variables-alist)
+	    (let ((elt (assq (car variable) old-buffer-local-variables)))
+	      (if elt
+		  (set (make-local-variable (car elt)) (cdr elt))
+		(kill-local-variable (car variable)))))))
+    ;; No connection-local variables to apply.
+    (funcall body-fun)))
 
 ;;;###autoload
 (defun path-separator ()
