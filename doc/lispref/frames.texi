@@ -4067,7 +4067,9 @@ drag-and-drop operation ends, either because the drop was successful,
 or because the drop was rejected.  The drop occurs when all mouse
 buttons are released on top of an X window other than @var{frame} (the
 @dfn{drop target}), or any X window if @var{allow-current-frame} is
-non-@code{nil}.
+non-@code{nil}.  If no mouse buttons are held down when the
+drag-and-drop operation begins, this function may immediately return
+@code{nil}.
 
 @var{targets} is a list of strings describing selection targets, much
 like the @var{data-type} argument to @code{gui-get-selection}, that
