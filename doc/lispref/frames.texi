@@ -4106,6 +4106,10 @@ is also a valid return value in addition to @code{XdndActionCopy} and
 @code{XdndActionMove}; it means that the drop target chose to perform
 an unspecified action, and no further processing is required by the
 caller.
+
+The caller must cooperate with the target to fully perform the action
+chosen by the target.  For example, callers should delete the buffer
+text that was dragged if this function returns @code{XdndActionMove}.
 @end defun
 
 @node Color Names

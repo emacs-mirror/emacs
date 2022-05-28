@@ -6792,8 +6792,9 @@ buttons are released, then return the action chosen by the target, or
 starts when the mouse is pressed on FRAME, and the contents of the
 selection `XdndSelection' will be sent to the X window underneath the
 mouse pointer (the drop target) when the mouse button is released.
-ACTION is a symbol which tells the target what the source will do, and
-can be one of the following:
+
+ACTION is a symbol which tells the target what it should do, and can
+be one of the following:
 
  - `XdndActionCopy', which means to copy the contents from the drag
    source (FRAME) to the drop target.
@@ -6804,6 +6805,10 @@ can be one of the following:
 
 `XdndActionPrivate' is also a valid return value, and means that the
 drop target chose to perform an unspecified or unknown action.
+
+The source is also expected to cooperate with the target to perform
+the action chosen by the target.  For example, callers should delete
+the buffer text that was dragged if `XdndActionMove' is returned.
 
 There are also some other valid values of ACTION that depend on
 details of both the drop target's implementation details and that of
