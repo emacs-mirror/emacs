@@ -382,7 +382,7 @@ Use the `pp-max-width' variable to control the desired line length."
         (when (> (current-column) (pp--max-width))
           (condition-case ()
               (backward-up-list 1)
-            (:success (when (looking-back " " 2)
+            (:success (when (and (not (bobp)) (looking-back " " 2))
                         (insert "\n")))
             (error nil)))))))
 
