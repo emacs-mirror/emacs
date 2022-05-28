@@ -582,7 +582,11 @@ ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
     {
       CHECK_STRING (data);
 
+#if NS_USE_NSPasteboardTypeFileURL
       new = [types arrayByAddingObject: NSPasteboardTypeFileURL];
+#else
+      new = [types arrayByAddingObject: NSFilenamesPboardType];
+#endif
 
       [pasteboard declareTypes: new
 			 owner: nil];
