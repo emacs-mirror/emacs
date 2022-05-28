@@ -1927,7 +1927,7 @@ struct user_cursor_bitmap_info cursor_bitmaps_for_id[28] =
     { NULL, NULL, 0, 0, 0, 0					},
     { NULL, NULL, 0, 0, 0, 0					},
     { NULL, NULL, 0, 0, 0, 0					},
-    { NULL, NULL, 0, 0, 0, 0					},
+    { hourglass_bits, hourglass_mask_bits, 15, 15, 7, 7		},
     { NULL, NULL, 0, 0, 0, 0					},
     { NULL, NULL, 0, 0, 0, 0					},
     { NULL, NULL, 0, 0, 0, 0					},
