@@ -1603,7 +1603,9 @@ extern struct input_event xg_pending_quit_event;
 #endif
 
 extern bool x_dnd_in_progress;
+extern bool x_dnd_waiting_for_finish;
 extern struct frame *x_dnd_frame;
+extern struct frame *x_dnd_finish_frame;
 extern unsigned x_dnd_unsupported_event_level;
 
 #ifdef HAVE_XINPUT2

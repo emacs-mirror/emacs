@@ -2458,24 +2458,25 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   struct x_display_info *dpyinfo;
   Atom atom;
   bool had_errors_p, need_sync;
+  char *name;
+  Lisp_Object ret;
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
-
   CONS_TO_INTEGER (value, Atom, atom);
 
-  block_input ();
   x_catch_errors (dpy);
-  char *name = atom ? x_get_atom_name (dpyinfo, atom, &need_sync) : NULL;
+  name = x_get_atom_name (dpyinfo, atom, &need_sync);
   had_errors_p = need_sync && x_had_errors_p (dpy);
   x_uncatch_errors_after_check ();
-  Lisp_Object ret = empty_unibyte_string;
+
+  ret = empty_unibyte_string;
+
   if (name)
     {
       if (!had_errors_p)
 	ret = build_string (name);
       xfree (name);
     }
-  unblock_input ();
 
   return ret;
 }

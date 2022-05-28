@@ -1995,7 +1995,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	error ("Attempt to delete the only frame");
     }
 #ifdef HAVE_X_WINDOWS
-  else if (x_dnd_in_progress && f == x_dnd_frame)
+  else if ((x_dnd_in_progress && f == x_dnd_frame)
+	   || (x_dnd_waiting_for_finish && f == x_dnd_finish_frame))
     error ("Attempt to delete the drop source frame");
 #endif
 #ifdef HAVE_HAIKU
