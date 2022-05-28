@@ -590,8 +590,14 @@ ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
 
       [pasteboard declareTypes: new
 			 owner: nil];
+
+#if NS_USE_NSPasteboardTypeFileURL
       [pasteboard setString: [NSString stringWithLispString: data]
 		    forType: NSPasteboardTypeFileURL];
+#else
+      [pasteboard setString: [NSString stringWithLispString: data]
+		    forType: NSFilenamesPboardType];
+#endif
     }
   else
     signal_error ("Unknown pasteboard type", type);
