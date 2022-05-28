@@ -4088,6 +4088,7 @@ the deferred compilation mechanism."
         ;; called with something other than a file as the argument.
         ;; Delete it.
         (when (and (not (stringp function-or-file))
+                   (not output)
                    comp-ctxt
                    (comp-ctxt-output comp-ctxt)
                    (file-exists-p (comp-ctxt-output comp-ctxt)))
