@@ -1326,6 +1326,11 @@ ones, in case fg and bg are nil."
 (defun shr-tag-comment (_dom)
   )
 
+;; Introduced in HTML5.  For text browsers, functionally similar to a
+;; comment.
+(defun shr-tag-template (_dom)
+  )
+
 (defun shr-dom-to-xml (dom &optional charset)
   (with-temp-buffer
     (shr-dom-print dom)
