@@ -10637,7 +10637,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       if (event_display == FRAME_DISPLAY_INFO (f))
 	{
 #endif
-	  if (x_dnd_movement_frame)
+	  if (x_dnd_movement_frame
+	      /* FIXME: how come this can end up with movement frames
+		 from other displays on GTK builds?  */
+	      && (FRAME_X_DISPLAY (x_dnd_movement_frame)
+		  == FRAME_X_DISPLAY (f)))
 	    {
 	      XSETFRAME (frame_object, x_dnd_movement_frame);
 	      XSETINT (x, x_dnd_movement_x);
