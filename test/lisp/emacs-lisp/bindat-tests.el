@@ -162,12 +162,40 @@
                                         (bindat-pack bindat-test--LEB128 n))
                          n)))))))
 
+(ert-deftest bindat-test--str-strz-prealloc ()
+  (dolist (tc `(((,(bindat-type str 1) "") . "xx")
+                ((,(bindat-type str 2) "") . "xx")
+                ((,(bindat-type str 2) "a") . "ax")
+                ((,(bindat-type str 2) "ab") . "ab")
+                ((,(bindat-type str 2) "abc") . "ab")
+                ((((x str 1)) ((x . ""))) . "xx")
+                ((((x str 2)) ((x . ""))) . "xx")
+                ((((x str 2)) ((x . "a"))) . "ax")
+                ((((x str 2)) ((x . "ab"))) . "ab")
+                ((((x str 2)) ((x . "abc"))) . "ab")
+                ((,(bindat-type strz 1) "") . "xx")
+                ((,(bindat-type strz 2) "") . "xx")
+                ((,(bindat-type strz 2) "a") . "ax")
+                ((,(bindat-type strz 2) "ab") . "ab")
+                ((,(bindat-type strz 2) "abc") . "ab")
+                ((((x strz 1)) ((x . ""))) . "xx")
+                ((((x strz 2)) ((x . ""))) . "xx")
+                ((((x strz 2)) ((x . "a"))) . "ax")
+                ((((x strz 2)) ((x . "ab"))) . "ab")
+                ((((x strz 2)) ((x . "abc"))) . "ab")
+                ((,(bindat-type strz) "") . "xx")
+                ((,(bindat-type strz) "a") . "ax")))
+    (let ((prealloc (make-string 2 ?x)))
+      (apply #'bindat-pack (append (car tc) (list prealloc)))
+      (should (equal prealloc (cdr tc))))))
+
 (let ((spec (bindat-type strz 2)))
   (ert-deftest bindat-test--strz-fixedlen-len ()
     (should (equal (bindat-length spec "") 2))
     (should (equal (bindat-length spec "a") 2)))
 
   (ert-deftest bindat-test--strz-fixedlen-len-overflow ()
+    (should (equal (bindat-length spec "ab") 2))
     (should (equal (bindat-length spec "abc") 2)))
 
   (ert-deftest bindat-test--strz-fixedlen-pack ()
@@ -177,17 +205,18 @@
   (ert-deftest bindat-test--strz-fixedlen-pack-overflow ()
     ;; This is not the only valid semantic, but it's the one we've
     ;; offered historically.
+    (should (equal (bindat-pack spec "ab") "ab"))
     (should (equal (bindat-pack spec "abc") "ab")))
 
   (ert-deftest bindat-test--strz-fixedlen-unpack ()
-    ;; There are no tests for unpacking "ab" or "ab\0" because those
-    ;; packed strings cannot be produced from the spec (packing "ab"
-    ;; should produce "a\0", not "ab" or "ab\0").
     (should (equal (bindat-unpack spec "\0\0") ""))
     (should (equal (bindat-unpack spec "\0X") ""))
     (should (equal (bindat-unpack spec "a\0") "a"))
     ;; Same comment as for b-t-s-f-pack-overflow.
-    (should (equal (bindat-unpack spec "ab") "ab"))))
+    (should (equal (bindat-unpack spec "ab") "ab"))
+    ;; Missing null terminator.
+    (should-error (bindat-unpack spec ""))
+    (should-error (bindat-unpack spec "a"))))
 
 (let ((spec (bindat-type strz)))
   (ert-deftest bindat-test--strz-varlen-len ()
@@ -199,11 +228,11 @@
     (should (equal (bindat-pack spec "abc") "abc\0")))
 
   (ert-deftest bindat-test--strz-varlen-unpack ()
-    ;; There is no test for unpacking a string without a null
-    ;; terminator because such packed strings cannot be produced from
-    ;; the spec (packing "a" should produce "a\0", not "a").
     (should (equal (bindat-unpack spec "\0") ""))
-    (should (equal (bindat-unpack spec "abc\0") "abc"))))
+    (should (equal (bindat-unpack spec "abc\0") "abc"))
+    ;; Missing null terminator.
+    (should-error (bindat-unpack spec ""))
+    (should-error (bindat-unpack spec "a"))))
 
 (let ((spec '((x strz 2))))
   (ert-deftest bindat-test--strz-legacy-fixedlen-len ()
@@ -211,6 +240,7 @@
     (should (equal (bindat-length spec '((x . "a"))) 2)))
 
   (ert-deftest bindat-test--strz-legacy-fixedlen-len-overflow ()
+    (should (equal (bindat-length spec '((x . "ab"))) 2))
     (should (equal (bindat-length spec '((x . "abc"))) 2)))
 
   (ert-deftest bindat-test--strz-legacy-fixedlen-pack ()
@@ -219,13 +249,17 @@
 
   (ert-deftest bindat-test--strz-legacy-fixedlen-pack-overflow ()
     ;; Same comment as for b-t-s-f-pack-overflow.
+    (should (equal (bindat-pack spec '((x . "ab"))) "ab"))
     (should (equal (bindat-pack spec '((x . "abc"))) "ab")))
 
   (ert-deftest bindat-test--strz-legacy-fixedlen-unpack ()
-    ;; There are no tests for unpacking "ab" or "ab\0" because those
-    ;; packed strings cannot be produced from the spec (packing "ab"
-    ;; should produce "a\0", not "ab" or "ab\0").
     (should (equal (bindat-unpack spec "\0\0") '((x . ""))))
-    (should (equal (bindat-unpack spec "a\0") '((x . "a"))))))
+    (should (equal (bindat-unpack spec "\0X") '((x . ""))))
+    (should (equal (bindat-unpack spec "a\0") '((x . "a"))))
+    ;; Same comment as for b-t-s-f-pack-overflow.
+    (should (equal (bindat-unpack spec "ab") '((x . "ab"))))
+    ;; Missing null terminator.
+    (should-error (bindat-unpack spec ""))
+    (should-error (bindat-unpack spec "a"))))
 
 ;;; bindat-tests.el ends here
