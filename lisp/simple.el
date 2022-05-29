@@ -10519,6 +10519,14 @@ This is an integer indicating the UTC offset in seconds, i.e.,
 the number of seconds east of Greenwich.")
   )
 
+;; Document that decoded-time-dst is problematic on 6-element lists.
+;; It should return -1 indicating unknown DST, but currently returns
+;; nil indicating standard time.
+(put 'decoded-time-dst 'function-documentation
+     (append (get 'decoded-time-dst 'function-documentation)
+             "As a special case, `decoded-time-dst' returns an unspecified
+value when given a list too short to have a dst element."))
+
 (defun get-scratch-buffer-create ()
   "Return the *scratch* buffer, creating a new one if needed."
   (or (get-buffer "*scratch*")
