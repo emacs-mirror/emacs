@@ -1195,7 +1195,7 @@ Order is by depth-first search."
             (setq form (cdr form)))
           (or sym
               (and form (byte-compile--first-symbol-with-pos form))))))
-   ((vectorp form)
+   ((or (vectorp form) (recordp form))
     (let ((len (length form))
           (i 0)
           (sym nil))
