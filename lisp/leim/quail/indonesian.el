@@ -32,7 +32,7 @@
 ;; Javanese.
 
 (quail-define-package
- "balinese" "Balinese" "ᬅ" t "Balinese phonetic input method.
+ "balinese" "Balinese" "ᬩ" t "Balinese phonetic input method.
 
  `\\=`' is used to switch levels instead of Alt-Gr.
 " nil t t t t nil nil nil nil nil t)
@@ -174,7 +174,7 @@
  ("`M" ?ᬀ))
 
 (quail-define-package
- "javanese" "Javanese" "ꦄ" t "Javanese phonetic input method.
+ "javanese" "Javanese" "ꦗ" t "Javanese phonetic input method.
 
  `\\=`' is used to switch levels instead of Alt-Gr.
 " nil t t t t nil nil nil nil nil t)
@@ -287,7 +287,7 @@
  ("`m" ?ꦀ))
 
 (quail-define-package
- "sundanese" "Sundanese" "ᮃ" t "Sundanese phonetic input method.
+ "sundanese" "Sundanese" "ᮞᮥ" t "Sundanese phonetic input method.
 
  `\\=`' is used to switch levels instead of Alt-Gr.
 " nil t t t t nil nil nil nil nil t)
@@ -376,6 +376,72 @@
  ("M"  ?ᮀ)
  ("`m" ?ᮿ)
  ("`M" ?ᮬ))
+
+(quail-define-package
+ "batak" "Batak" "ᯅ" t "Batak phonetic input method,
+ used by languages such as Karo, Toba, Pakpak, Mandailing
+ and Simalungun.
+
+ `\\=`' is used to switch levels instead of Alt-Gr.
+" nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("q"  ?᯼)
+ ("Q"  ?᯽)
+ ("w"  ?ᯋ)
+ ("W"  ?ᯌ)
+ ("`w" ?ᯍ)
+ ("e"  ?ᯧ)
+ ("E"  ?ᯨ)
+ ("`e" ?ᯩ)
+ ("r"  ?ᯒ)
+ ("R"  ?ᯓ)
+ ("t"  ?ᯖ)
+ ("T"  ?ᯗ)
+ ("y"  ?ᯛ)
+ ("Y"  ?ᯜ)
+ ("u"  ?ᯮ)
+ ("U"  ?ᯥ)
+ ("`u" ?ᯯ)
+ ("i"  ?ᯪ)
+ ("I"  ?ᯫ)
+ ("`i" ?ᯤ)
+ ("o"  ?ᯬ)
+ ("O"  ?ᯭ)
+ ("p"  ?ᯇ)
+ ("P"  ?ᯈ)
+ ("a"  ?ᯀ)
+ ("A"  ?ᯁ)
+ ("s"  ?ᯘ)
+ ("S"  ?ᯙ)
+ ("`s" ?ᯚ)
+ ("d"  ?ᯑ)
+ ("f"  ?᯲)
+ ("F"  ?᯳)
+ ("g"  ?ᯎ)
+ ("G"  ?ᯏ)
+ ("h"  ?ᯂ)
+ ("H"  ?ᯃ)
+ ("`h" ?ᯄ)
+ ("`H" ?ᯱ)
+ ("j"  ?ᯐ)
+ ("k"  ?᯦)
+ ("l"  ?ᯞ)
+ ("L"  ?ᯟ)
+ ("z"  ?ᯝ)
+ ("Z"  ?ᯰ)
+ ("x"  ?ᯠ)
+ ("c"  ?ᯡ)
+ ("v"  ?᯾)
+ ("V"  ?᯿)
+ ("b"  ?ᯅ)
+ ("B"  ?ᯆ)
+ ("n"  ?ᯉ)
+ ("N"  ?ᯊ)
+ ("`n" ?ᯢ)
+ ("m"  ?ᯔ)
+ ("M"  ?ᯕ)
+ ("`m" ?ᯣ))
 
 (provide 'indonesian)
 ;;; indonesian.el ends here

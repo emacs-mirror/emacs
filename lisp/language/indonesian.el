@@ -54,6 +54,16 @@ Javanese language and its script are supported in this language environment.")))
               (documentation . "\
 Sundanese language and its script are supported in this language environment.")))
 
+(set-language-info-alist
+ "Batak" '((charset unicode)
+           (coding-system utf-8)
+           (coding-priority utf-8)
+           (input-method . "batak")
+           (sample-text . "Batak (ᯘᯮᯒᯗ᯲ᯅᯗᯂ᯲)    ᯂᯬᯒᯘ᯲")
+           (documentation . "\
+Such languages using the Batak script such as Karo, Toba, Pakpak, Mandailing
+and Simalungun are supported in this language environment.")))
+
 ;; Balinese composition rules
 (let ((consonant            "[\x1B13-\x1B33\x1B45-\x1B4B]")
       (independent-vowel    "[\x1B05-\x1B12]")
@@ -117,6 +127,20 @@ Sundanese language and its script are supported in this language environment."))
                                ;; Vowels based syllables
                                (concat independent-vowel virama "?"
                                        vowel "?" modifier-above "?" dependant-consonant "?")
+                               1 'font-shape-gstring))))
+
+;; Batak composition rules
+(let ((akshara              "[\x1BC0-\x1BE5]")
+      (vowel                "[\x1BE7-\x1BEF]")
+      (dependant-consonant  "[\x1BF0\x1BF1]")
+      (modifier-above       "\x1BE6")
+      (virama               "[\x1BF2\x1BF3]"))
+  (set-char-table-range composition-function-table
+                        '(#x1BE6 . #x1BF3)
+                        (list (vector
+                               ;; Akshara based syllables
+                               (concat akshara virama "?" vowel "*" modifier-above
+                                       "?" dependant-consonant "?")
                                1 'font-shape-gstring))))
 
 (provide 'indonesian)
