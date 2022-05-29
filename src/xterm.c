@@ -21265,7 +21265,11 @@ x_uncatch_errors (void)
       /* There is no point in making this extra sync if all requests
 	 are known to have been fully processed.  */
       && (LastKnownRequestProcessed (x_error_message->dpy)
-	  != NextRequest (x_error_message->dpy) - 1))
+	  != NextRequest (x_error_message->dpy) - 1)
+      /* Likewise if no request was made since the trap was
+	 installed.  */
+      && (NextRequest (x_error_message->dpy)
+	  > x_error_message->first_request))
     XSync (x_error_message->dpy, False);
 
   tmp = x_error_message;
@@ -21315,8 +21319,10 @@ x_had_errors_p (Display *dpy)
     emacs_abort ();
 
   /* Make sure to catch any errors incurred so far.  */
-  if (LastKnownRequestProcessed (dpy)
-      != NextRequest (dpy) - 1)
+  if ((LastKnownRequestProcessed (dpy)
+       != NextRequest (dpy) - 1)
+      && (NextRequest (dpy)
+	  > x_error_message->first_request))
     XSync (dpy, False);
 
   return x_error_message->string[0] != 0;
