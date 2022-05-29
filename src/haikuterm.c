@@ -2009,9 +2009,17 @@ haiku_set_window_size (struct frame *f, bool change_gravity,
   if (FRAME_HAIKU_WINDOW (f))
     {
       block_input ();
-      BWindow_resize (FRAME_HAIKU_WINDOW (f), width, height);
+      BWindow_resize (FRAME_HAIKU_WINDOW (f),
+		      width, height);
+
+      if (FRAME_VISIBLE_P (f)
+	  && (width != FRAME_PIXEL_WIDTH (f)
+	      || height != FRAME_PIXEL_HEIGHT (f)))
+	haiku_wait_for_event (f, FRAME_RESIZED);
       unblock_input ();
     }
+
+  do_pending_window_change (false);
 }
 
 static void
@@ -3138,6 +3146,10 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    int width = lrint (b->px_widthf);
 	    int height = lrint (b->px_heightf);
 
+	    if (FRAME_OUTPUT_DATA (f)->wait_for_event_type
+		== FRAME_RESIZED)
+	      FRAME_OUTPUT_DATA (f)->wait_for_event_type = -1;
+
 	    if (FRAME_TOOLTIP_P (f))
 	      {
 		if (FRAME_PIXEL_WIDTH (f) != width
@@ -3166,6 +3178,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		cancel_mouse_face (f);
 		haiku_clear_under_internal_border (f);
 	      }
+
 	    break;
 	  }
 	case FRAME_EXPOSED:
