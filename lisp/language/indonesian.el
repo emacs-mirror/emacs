@@ -59,7 +59,7 @@ Sundanese language and its script are supported in this language environment."))
            (coding-system utf-8)
            (coding-priority utf-8)
            (input-method . "batak")
-           (sample-text . "Batak (ᯘᯮᯒᯗ᯲ᯅᯗᯂ᯲)    ᯂᯬᯒᯘ᯲, ᯔᯧᯐᯬᯀᯱᯐᯬᯀᯱ")
+           (sample-text . "Batak (ᯘᯮᯒᯗ᯲ᯅᯗᯂ᯲)    ᯂᯬᯒᯘ᯲ / ᯔᯧᯐᯬᯀᯱᯐᯬᯀᯱ")
            (documentation . "\
 Languages that use the Batak script, such as Karo, Toba, Pakpak, Mandailing
 and Simalungun, are supported in this language environment.")))
