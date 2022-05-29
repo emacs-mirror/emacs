@@ -404,7 +404,7 @@ The format is (FUNCTION ARGS...).")
 ;;;###autoload
 (define-derived-mode help-mode special-mode "Help"
   "Major mode for viewing help text and navigating references in it.
-Also see the `help-enable-editing' variable.
+Also see the `help-enable-variable-value-editing' variable.
 
 Commands:
 \\{help-mode-map}"
