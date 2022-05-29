@@ -165,12 +165,12 @@
     (if (stringp s) s
       (apply #'unibyte-string s))))
 
-(defun bindat--unpack-strz (len)
+(defun bindat--unpack-strz (&optional len)
   (let ((i 0) s)
     (while (and (if len (< i len) t) (/= (aref bindat-raw (+ bindat-idx i)) 0))
       (setq i (1+ i)))
     (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
-    (setq bindat-idx (+ bindat-idx len))
+    (setq bindat-idx (+ bindat-idx (or len (1+ i))))
     (if (stringp s) s
       (apply #'unibyte-string s))))
 

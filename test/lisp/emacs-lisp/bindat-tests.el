@@ -199,7 +199,6 @@
     (should (equal (bindat-pack spec "abc") "abc\0")))
 
   (ert-deftest bindat-test--strz-varlen-unpack ()
-    :expected-result :failed
     ;; There is no test for unpacking a string without a null
     ;; terminator because such packed strings cannot be produced from
     ;; the spec (packing "a" should produce "a\0", not "a").
