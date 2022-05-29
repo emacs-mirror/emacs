@@ -688,18 +688,23 @@ is the name of a variable that will hold the value we need to pack.")
     ('unpack `(bindat--unpack-strz ,len))
     (`(length ,val)
      `(cl-incf bindat-idx ,(cond
+                            ;; Optimizations if len is a literal number or nil.
                             ((null len) `(1+ (length ,val)))
                             ((numberp len) len)
+                            ;; General expression support.
                             (t `(or ,len (1+ (length ,val)))))))
     (`(pack . ,args)
-     (macroexp-let2 nil len len
-       `(if (numberp ,len)
-            ;; Same as non-zero terminated strings since we don't actually add
-            ;; the terminating zero anyway (because we rely on the fact that
-            ;; `bindat-raw' was presumably initialized with all-zeroes before
-            ;; we started).
-            (bindat--pack-str ,len . ,args)
-          (bindat--pack-strz . ,args))))))
+     ;; When len is specified, behave the same as the str type since we don't
+     ;; actually add the terminating zero anyway (because we rely on the fact
+     ;; that `bindat-raw' was presumably initialized with all-zeroes before we
+     ;; started).
+     (cond ; Same optimizations as 'length above.
+      ((null len) `(bindat--pack-strz . ,args))
+      ((numberp len) `(bindat--pack-str ,len . ,args))
+      (t (macroexp-let2 nil len len
+           `(if ,len
+                (bindat--pack-str ,len . ,args)
+              (bindat--pack-strz . ,args))))))))
 
 (cl-defmethod bindat--type (op (_ (eql 'bits))  len)
   (bindat--pcase op
