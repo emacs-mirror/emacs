@@ -755,38 +755,47 @@ Make the shell buffer the current buffer, and return it.
 
 \(Type \\[describe-mode] in the shell buffer for a list of commands.)"
   (interactive
-   (list
-    (and current-prefix-arg
-	 (prog1
-	     (read-buffer "Shell buffer: "
-			  ;; If the current buffer is an inactive
-			  ;; shell buffer, use it as the default.
-			  (if (and (eq major-mode 'shell-mode)
-				   (null (get-buffer-process (current-buffer))))
-			      (buffer-name)
-			    (generate-new-buffer-name "*shell*")))
-	   (if (file-remote-p default-directory)
-	       ;; It must be possible to declare a local default-directory.
-               ;; FIXME: This can't be right: it changes the default-directory
-               ;; of the current-buffer rather than of the *shell* buffer.
-	       (setq default-directory
-		     (expand-file-name
-		      (read-directory-name
-		       "Default directory: " default-directory default-directory
-		       t nil))))))
-    ;; On remote hosts, the local `shell-file-name' might be useless.
-    (when (and (file-remote-p default-directory)
-               (null explicit-shell-file-name)
-               (null (getenv "ESHELL")))
-      ;; `expand-file-name' shall not add the MS Windows volume letter
-      ;; (Bug#49229).
-      (replace-regexp-in-string
-       "^[[:alpha:]]:" ""
-       (file-local-name
-        (expand-file-name
-         (read-file-name "Remote shell path: " default-directory
-                         shell-file-name t shell-file-name
-                         #'file-remote-p)))))))
+   (let* ((buffer
+           (and current-prefix-arg
+		(read-buffer "Shell buffer: "
+			     ;; If the current buffer is an inactive
+			     ;; shell buffer, use it as the default.
+			     (if (and (eq major-mode 'shell-mode)
+				      (null (get-buffer-process
+				             (current-buffer))))
+				 (buffer-name)
+			       (generate-new-buffer-name "*shell*")))))
+	  (buf (if (or buffer (not (derived-mode-p 'shell-mode))
+                       (comint-check-proc (current-buffer)))
+                   (get-buffer-create (or buffer "*shell*"))
+                 ;; If the current buffer is a dead shell buffer, use it.
+                 (current-buffer))))
+
+     (with-current-buffer buf
+       (when (and buffer (file-remote-p default-directory))
+	 ;; It must be possible to declare a local default-directory.
+	 (setq default-directory
+	       (expand-file-name
+		(read-directory-name
+		 "Default directory: " default-directory default-directory
+		 t nil))))
+       (list
+        buffer
+        ;; On remote hosts, the local `shell-file-name' might be useless.
+        (with-connection-local-variables
+         (when (and (file-remote-p default-directory)
+                    (null explicit-shell-file-name)
+                    (null (getenv "ESHELL")))
+           ;; `expand-file-name' shall not add the MS Windows volume letter
+           ;; (Bug#49229).
+           (replace-regexp-in-string
+            "^[[:alpha:]]:" ""
+            (file-local-name
+             (expand-file-name
+              (read-file-name "Remote shell path: " default-directory
+                              shell-file-name t shell-file-name
+                              #'file-remote-p))))))))))
+
   (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
                        (comint-check-proc (current-buffer)))
                    (get-buffer-create (or buffer "*shell*"))
