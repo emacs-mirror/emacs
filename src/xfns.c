@@ -6933,11 +6933,11 @@ that mouse buttons are being held down, such as immediately after a
 		ntargets, False, target_atoms);
   unblock_input ();
 
-  x_set_dnd_targets (target_atoms, ntargets);
   lval = x_dnd_begin_drag_and_drop (f, FRAME_DISPLAY_INFO (f)->last_user_time,
 				    xaction, return_frame, action_list,
 				    (const char **) &name_list, nnames,
-				    !NILP (allow_current_frame));
+				    !NILP (allow_current_frame), target_atoms,
+				    ntargets);
 
   SAFE_FREE ();
   return lval;

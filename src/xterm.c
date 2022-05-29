@@ -3901,7 +3901,7 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
   return true;
 }
 
-void
+static void
 x_set_dnd_targets (Atom *targets, int ntargets)
 {
   if (x_dnd_targets)
@@ -10292,13 +10292,6 @@ x_next_event_from_any_display (XEvent *event)
 
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
-static void
-x_clear_dnd_targets (void)
-{
-  if (x_dnd_unwind_flag)
-    x_set_dnd_targets (NULL, 0);
-}
-
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
@@ -10306,7 +10299,8 @@ Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   Lisp_Object return_frame, Atom *ask_action_list,
 			   const char **ask_action_names, size_t n_ask_actions,
-			   bool allow_current_frame)
+			   bool allow_current_frame, Atom *target_atoms,
+			   int ntargets)
 {
 #ifndef USE_GTK
   XEvent next_event;
@@ -10394,43 +10388,25 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     }
 
   if (!FRAME_VISIBLE_P (f))
-    {
-      x_set_dnd_targets (NULL, 0);
-      error ("Frame is invisible");
-    }
+    error ("Frame must be visible");
 
   XSETFRAME (frame, f);
   local_value = assq_no_quit (QXdndSelection,
 			      FRAME_TERMINAL (f)->Vselection_alist);
 
   if (x_dnd_in_progress || x_dnd_waiting_for_finish)
-    {
-      x_set_dnd_targets (NULL, 0);
-      error ("A drag-and-drop session is already in progress");
-    }
+    error ("A drag-and-drop session is already in progress");
 
   if (CONSP (local_value))
-    {
-      ref = SPECPDL_INDEX ();
-
-      record_unwind_protect_void (x_clear_dnd_targets);
-      x_dnd_unwind_flag = true;
-      x_own_selection (QXdndSelection,
-		       Fnth (make_fixnum (1), local_value), frame);
-      x_dnd_unwind_flag = false;
-      unbind_to (ref, Qnil);
-    }
+    x_own_selection (QXdndSelection,
+		     Fnth (make_fixnum (1), local_value), frame);
   else
-    {
-      x_set_dnd_targets (NULL, 0);
-      error ("No local value for XdndSelection");
-    }
+    error ("No local value for XdndSelection");
 
   if (popup_activated ())
-    {
-      x_set_dnd_targets (NULL, 0);
-      error ("Trying to drag-and-drop from within a menu-entry");
-    }
+    error ("Trying to drag-and-drop from within a menu-entry");
+
+  x_set_dnd_targets (target_atoms, ntargets);
 
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
 					  QXdndSelection);

@@ -1451,11 +1451,10 @@ extern void x_scroll_bar_configure (GdkEvent *);
 
 extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
 					      Lisp_Object, Atom *, const char **,
-					      size_t, bool);
+					      size_t, bool, Atom *, int);
 extern void x_dnd_do_unsupported_drop (struct x_display_info *, Lisp_Object,
 				       Lisp_Object, Lisp_Object, Window, int,
 				       int, Time);
-extern void x_set_dnd_targets (Atom *, int);
 
 extern int x_display_pixel_height (struct x_display_info *);
 extern int x_display_pixel_width (struct x_display_info *);
