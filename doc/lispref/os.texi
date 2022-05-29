@@ -1649,8 +1649,8 @@ this default may change in future Emacs releases, so callers requiring
 a particular form should specify @var{form}.
 
 @strong{Common Lisp Note:} Common Lisp has different meanings for
-@var{dow} and @var{utcoff}, and its @var{second} is an integer between
-0 and 59 inclusive.
+@var{dow}, @code{dst} and @var{utcoff}, and its @var{second} is an
+integer between 0 and 59 inclusive.
 
 To access (or alter) the elements in the calendrical information, the
 @code{decoded-time-second}, @code{decoded-time-minute},
