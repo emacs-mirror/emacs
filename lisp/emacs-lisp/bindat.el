@@ -688,9 +688,9 @@ is the name of a variable that will hold the value we need to pack.")
     ('unpack `(bindat--unpack-strz ,len))
     (`(length ,val)
      `(cl-incf bindat-idx ,(cond
-                            ((null len) `(length ,val))
+                            ((null len) `(1+ (length ,val)))
                             ((numberp len) len)
-                            (t `(or ,len (length ,val))))))
+                            (t `(or ,len (1+ (length ,val)))))))
     (`(pack . ,args)
      (macroexp-let2 nil len len
        `(if ,len

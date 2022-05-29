@@ -191,12 +191,10 @@
 
 (let ((spec (bindat-type strz)))
   (ert-deftest bindat-test--strz-varlen-len ()
-    :expected-result :failed
     (should (equal (bindat-length spec "") 1))
     (should (equal (bindat-length spec "abc") 4)))
 
   (ert-deftest bindat-test--strz-varlen-pack ()
-    :expected-result :failed
     (should (equal (bindat-pack spec "") "\0"))
     (should (equal (bindat-pack spec "abc") "abc\0")))
 
