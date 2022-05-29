@@ -693,7 +693,7 @@ is the name of a variable that will hold the value we need to pack.")
                             (t `(or ,len (1+ (length ,val)))))))
     (`(pack . ,args)
      (macroexp-let2 nil len len
-       `(if ,len
+       `(if (numberp ,len)
             ;; Same as non-zero terminated strings since we don't actually add
             ;; the terminating zero anyway (because we rely on the fact that
             ;; `bindat-raw' was presumably initialized with all-zeroes before
