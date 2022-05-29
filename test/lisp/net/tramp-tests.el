@@ -5019,6 +5019,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		     '(:unstable)))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
+  (skip-unless (not (tramp--test-windows-nt-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   ;; Since Emacs 26.1.
   (skip-unless (boundp 'interrupt-process-functions))
