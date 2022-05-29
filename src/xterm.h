@@ -708,6 +708,11 @@ struct x_display_info
      that didn't happen.  */
   int screen_width;
   int screen_height;
+
+  /* The mm width and height of the screen.  Updated on
+     RRScreenChangeNotify.  */
+  int screen_mm_width;
+  int screen_mm_height;
 };
 
 #ifdef HAVE_X_I18N

@@ -20417,8 +20417,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      notify = ((XRRScreenChangeNotifyEvent *) event);
 	      timestamp = notify->timestamp;
 
-	      dpyinfo->screen_width = notify->width;
-	      dpyinfo->screen_height = notify->height;
+	      /* Don't set screen dimensions if the notification is
+		 for a different screen.  */
+	      if (notify->root == dpyinfo->root_window)
+		{
+		  dpyinfo->screen_width = notify->width;
+		  dpyinfo->screen_height = notify->height;
+		  dpyinfo->screen_mm_width = notify->mwidth;
+		  dpyinfo->screen_mm_height = notify->mheight;
+		}
 	    }
 	  else
 	    timestamp = 0;
