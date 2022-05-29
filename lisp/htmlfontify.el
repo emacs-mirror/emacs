@@ -364,7 +364,7 @@ the etags output on stdout.
 Two canned commands are provided - they drive Emacs's etags and
 exuberant-ctags' etags respectively."
   :tag   "etags-command"
-  :type (let ((clist (list '(string))))
+  :type (let ((clist (list '(string) '(const :tag "None" nil))))
           (dolist (C hfy-etags-cmd-alist)
             (push (list 'const :tag (car C) (cdr C)) clist))
           (cons 'choice clist)))
