@@ -1576,8 +1576,14 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
      to a different window, the most recently used one, unless there is a
      valid active minibuffer in the mini-window.  */
   if (EQ (f->selected_window, f->minibuffer_window)
+      /* The following test might fail if the mini-window contains a
+	 non-active minibuffer.  */
       && NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
-    Fset_frame_selected_window (frame, call1 (Qget_mru_window, frame), Qnil);
+    {
+      Lisp_Object w = call1 (Qget_mru_window, frame);
+      if (WINDOW_LIVE_P (w)) /* W can be nil in minibuffer-only frames.  */
+        Fset_frame_selected_window (frame, w, Qnil);
+    }
 
   Fselect_window (f->selected_window, norecord);
 

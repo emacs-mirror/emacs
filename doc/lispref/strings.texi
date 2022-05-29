@@ -443,12 +443,12 @@ strings.
 @end defun
 
 @defun string-pad string length &optional padding start
-Pad @var{string} to the be of @var{length} using @var{padding} as the
-padding character (defaulting to the space character).  If
-@var{string} is shorter than @var{length}, no padding is done.  If
-@var{start} is @code{nil} (or not present), the padding is done to the
-end of the string, and if it's non-@code{nil}, to the start of the
-string.
+Pad @var{string} to be of the given @var{length} using @var{padding}
+as the padding character.  @var{padding} defaults to the space
+character.  If @var{string} is longer than @var{length}, no padding is
+done.  If @var{start} is @code{nil} or omitted, the padding is
+appended to the characters of @var{string}, and if it's
+non-@code{nil}, the padding is prepended to @var{string}'s characters.
 @end defun
 
 @defun string-chop-newline string
