@@ -863,8 +863,12 @@ interactively, include all files under the project root, except
 for VCS directories listed in `vc-directory-exclusion-list'."
   (interactive "P")
   (let* ((pr (project-current t))
-         (dirs (list (project-root pr))))
-    (project-find-file-in (thing-at-point 'filename) dirs pr include-all)))
+         (root (project-root pr))
+         (dirs (list root)))
+    (project-find-file-in
+     (or (thing-at-point 'filename)
+         (and buffer-file-name (file-relative-name buffer-file-name root)))
+     dirs pr include-all)))
 
 ;;;###autoload
 (defun project-or-external-find-file (&optional include-all)
@@ -955,7 +959,7 @@ directories listed in `vc-directory-exclusion-list'."
             (project-files project dirs)))
          (completion-ignore-case read-file-name-completion-ignore-case)
          (file (funcall project-read-file-name-function
-                        "Find file" all-files nil nil
+                        "Find file" all-files nil 'file-name-history
                         suggested-filename)))
     (if (string= file "")
         (user-error "You didn't specify the file")
@@ -992,7 +996,7 @@ directories listed in `vc-directory-exclusion-list'."
                        "Dired"
                        ;; Some completion UIs show duplicates.
                        (delete-dups all-dirs)
-                       nil nil)))
+                       nil 'file-name-history)))
     (dired dir)))
 
 ;;;###autoload
