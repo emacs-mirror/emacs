@@ -5222,6 +5222,10 @@ Convert COLOR string to a list of normalized RGB components.
 COLOR should be a color name (e.g. \"white\") or an RGB triplet
 string (e.g. \"#ffff1122eecc\").
 
+COLOR can also be the symbol `unspecified' or one of the strings
+\"unspecified-fg\" or \"unspecified-bg\", in which case the
+return value is nil.
+
 Normally the return value is a list of three floating-point
 numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
 
@@ -8595,7 +8599,7 @@ If REVERSE, look up an IP address.
 
 (autoload 'dns-mode "dns-mode" "\
 Major mode for viewing and editing DNS master files.
-This mode is inherited from text mode.  It add syntax
+This mode is derived from text mode.  It adds syntax
 highlighting, and some commands for handling DNS master files.
 Its keymap inherits from `text-mode' and it has the same
 variables for customizing indentation.  It has its own abbrev
@@ -12984,6 +12988,12 @@ Apply connection-local variables according to `default-directory'.
 Execute BODY, and unwind connection-local variables.
 
 \(fn &rest BODY)" nil t)
+
+(autoload 'with-connection-local-variables-1 "files-x" "\
+Apply connection-local variables according to `default-directory'.
+Call BODY-FUN with no args, and then unwind connection-local variables.
+
+\(fn BODY-FUN)" nil nil)
 
 (autoload 'path-separator "files-x" "\
 The connection-local value of `path-separator'." nil nil)
@@ -25386,7 +25396,7 @@ Update package NAME if a newer version exists.
 \(fn NAME)" t nil)
 
 (autoload 'package-update-all "package" "\
-Upgrade all packages.
+Refresh package list and upgrade all packages.
 If QUERY, ask the user before updating packages.  When called
 interactively, QUERY is always true.
 
@@ -31334,6 +31344,8 @@ If BUFFER exists and shell process is running, just switch to BUFFER.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
  or (if that is nil) from `shell-file-name'.
+Non-interactively, it can also be specified via the FILE-NAME arg.
+
 If a file `~/.emacs_SHELLNAME' exists, or `~/.emacs.d/init_SHELLNAME.sh',
 it is given as initial input (but this may be lost, due to a timing
 error, if the shell discards input when it starts up).
@@ -31357,7 +31369,7 @@ Make the shell buffer the current buffer, and return it.
 
 \(Type \\[describe-mode] in the shell buffer for a list of commands.)
 
-\(fn &optional BUFFER)" t nil)
+\(fn &optional BUFFER FILE-NAME)" t nil)
 
 (register-definition-prefixes "shell" '("dirs" "explicit-" "shell-"))
 
