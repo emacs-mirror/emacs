@@ -1148,8 +1148,13 @@ wait_for_property_change (struct prop_location *location)
       intmax_t secs = timeout / 1000;
       int nsecs = (timeout % 1000) * 1000000;
       TRACE2 ("  Waiting %"PRIdMAX" secs, %d nsecs", secs, nsecs);
-      wait_reading_process_output (secs, nsecs, 0, false,
-				   property_change_reply, NULL, 0);
+
+      if (!input_blocked_p ())
+	wait_reading_process_output (secs, nsecs, 0, false,
+				     property_change_reply, NULL, 0);
+      else
+	x_wait_for_cell_change (property_change_reply,
+				make_timespec (secs, nsecs));
 
       if (NILP (XCAR (property_change_reply)))
 	{
@@ -1256,8 +1261,17 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   intmax_t secs = timeout / 1000;
   int nsecs = (timeout % 1000) * 1000000;
   TRACE1 ("  Start waiting %"PRIdMAX" secs for SelectionNotify", secs);
-  wait_reading_process_output (secs, nsecs, 0, false,
-			       reading_selection_reply, NULL, 0);
+  /* This function can be called with input blocked inside Xt or GTK
+     timeouts run inside popup menus, so use a function that works
+     when input is blocked.  Prefer wait_reading_process_output
+     otherwise, or the toolkit might not get some events.
+     (bug#22214) */
+  if (!input_blocked_p ())
+    wait_reading_process_output (secs, nsecs, 0, false,
+				 reading_selection_reply, NULL, 0);
+  else
+    x_wait_for_cell_change (reading_selection_reply,
+			    make_timespec (secs, nsecs));
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
 
   if (NILP (XCAR (reading_selection_reply)))

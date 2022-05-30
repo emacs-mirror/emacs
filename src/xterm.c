@@ -14836,6 +14836,70 @@ x_display_pixel_width (struct x_display_info *dpyinfo)
   return WidthOfScreen (dpyinfo->screen);
 }
 
+/* Handle events from each display until CELL's car becomes non-nil,
+   or TIMEOUT elapses.  */
+void
+x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
+{
+  struct x_display_info *dpyinfo;
+  fd_set fds;
+  int fd, maxfd, finish;
+  XEvent event;
+  struct input_event hold_quit;
+  struct timespec current, at;
+
+  at = timespec_add (current_timespec (), timeout);
+
+  while (true)
+    {
+      FD_ZERO (&fds);
+      maxfd = -1;
+
+      for (dpyinfo = x_display_list; dpyinfo;
+	   dpyinfo = dpyinfo->next)
+	{
+	  if (XPending (dpyinfo->display))
+	    {
+	      EVENT_INIT (hold_quit);
+
+	      XNextEvent (dpyinfo->display, &event);
+	      handle_one_xevent (dpyinfo, &event,
+				 &finish, &hold_quit);
+
+	      /* Make us quit now.  */
+	      if (hold_quit.kind != NO_EVENT)
+		kbd_buffer_store_event (&hold_quit);
+
+	      if (!NILP (XCAR (cell)))
+		return;
+	    }
+
+	  fd = XConnectionNumber (dpyinfo->display);
+
+	  if (fd > maxfd)
+	    maxfd = fd;
+
+	  eassert (fd < FD_SETSIZE);
+	  FD_SET (XConnectionNumber (dpyinfo->display), &fds);
+	}
+
+      eassert (maxfd >= 0);
+
+      current = current_timespec ();
+
+      if (timespec_cmp (at, current) < 0
+	  || !NILP (XCAR (cell)))
+	return;
+
+      timeout = timespec_sub (at, current);
+
+      /* We don't have to check the return of pselect, because if an
+	 error occurs XPending will call the IO error handler, which
+	 then brings us out of this loop.  */
+      pselect (maxfd, &fds, NULL, NULL, &timeout, NULL);
+    }
+}
+
 #ifdef USE_GTK
 static void
 x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
