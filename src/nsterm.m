@@ -440,28 +440,28 @@ ev_modifiers_helper (unsigned int flags, unsigned int left_mask,
 
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
-#define EV_TRAILER(e)                                                   \
-  {                                                                     \
-    XSETFRAME (emacs_event->frame_or_window, emacsframe);               \
-    EV_TRAILER2 (e);                                                    \
+#define EV_TRAILER(e)						\
+  {								\
+    XSETFRAME (emacs_event->frame_or_window, emacsframe);	\
+    EV_TRAILER2 (e);						\
   }
 
 #define EV_TRAILER2(e)                                                  \
   {                                                                     \
-      if (e) emacs_event->timestamp = EV_TIMESTAMP (e);                 \
-      if (q_event_ptr)                                                  \
-        {                                                               \
-          Lisp_Object tem = Vinhibit_quit;                              \
-          Vinhibit_quit = Qt;                                           \
-          n_emacs_events_pending++;                                     \
-          kbd_buffer_store_event_hold (emacs_event, q_event_ptr);       \
-          Vinhibit_quit = tem;                                          \
-        }                                                               \
-      else                                                              \
-        hold_event (emacs_event);                                       \
-      EVENT_INIT (*emacs_event);                                        \
-      ns_send_appdefined (-1);                                          \
-    }
+    if (e) emacs_event->timestamp = EV_TIMESTAMP (e);			\
+    if (q_event_ptr)							\
+      {									\
+	Lisp_Object tem = Vinhibit_quit;				\
+	Vinhibit_quit = Qt;						\
+	n_emacs_events_pending++;					\
+	kbd_buffer_store_event_hold (emacs_event, q_event_ptr);		\
+	Vinhibit_quit = tem;						\
+      }									\
+    else								\
+      hold_event (emacs_event);						\
+    EVENT_INIT (*emacs_event);						\
+    ns_send_appdefined (-1);						\
+  }
 
 
 /* TODO: Get rid of need for these forward declarations.  */
@@ -5182,11 +5182,26 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
 }
 #endif
 
-/* This and next define (many of the) public functions in this file.  */
-/* gui_* are generic versions in xdisp.c that we, and other terms, get away
-         with using despite presence in the "system dependent" redisplay
-         interface.  In addition, many of the ns_ methods have code that is
-         shared with all terms, indicating need for further refactoring.  */
+static void
+ns_flush_display (struct frame *f)
+{
+  struct input_event ie;
+
+  /* Called from some of the minibuffer code.  Run the event loop once
+     to make the toolkit make changes that were made to the back
+     buffer visible again.  TODO: what should happen to ie?  */
+
+  EVENT_INIT (ie);
+  ns_read_socket (FRAME_TERMINAL (f), &ie);
+}
+
+/* This and next define (many of the) public functions in this
+   file.  */
+/* gui_* are generic versions in xdisp.c that we, and other terms, get
+   away with using despite presence in the "system dependent"
+   redisplay interface.  In addition, many of the ns_ methods have
+   code that is shared with all terms, indicating need for further
+   refactoring.  */
 extern frame_parm_handler ns_frame_parm_handlers[];
 static struct redisplay_interface ns_redisplay_interface =
 {
@@ -5203,7 +5218,7 @@ static struct redisplay_interface ns_redisplay_interface =
 #else
   ns_update_window_end,
 #endif
-  0, /* flush_display */
+  ns_flush_display,
   gui_clear_window_mouse_face,
   gui_get_glyph_overhangs,
   gui_fix_overlapping_area,
