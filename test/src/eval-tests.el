@@ -240,4 +240,31 @@ expressions works for identifiers starting with period."
       (should (equal (string-trim (buffer-string))
                      "Error: (error \"Boo\")")))))
 
+(ert-deftest eval-tests/funcall-with-delayed-message ()
+  ;; Check that `funcall-with-delayed-message' displays its message before
+  ;; its function terminates iff the timeout is short enough.
+
+  ;; This also serves as regression test for bug#55628 where a short
+  ;; timeout was rounded up to the next whole second.
+  (dolist (params '((0.8 0.4)
+                    (0.1 0.8)))
+    (let ((timeout (nth 0 params))
+          (work-time (nth 1 params)))
+      (ert-info ((prin1-to-string params) :prefix "params: ")
+        (with-current-buffer "*Messages*"
+          (let ((inhibit-read-only t))
+            (erase-buffer))
+          (let ((stop (+ (float-time) work-time)))
+            (funcall-with-delayed-message
+             timeout "timed out"
+             (lambda ()
+               (while (< (float-time) stop))
+               (message "finished"))))
+          (let ((expected-messages
+                 (if (< timeout work-time)
+                     "timed out\nfinished"
+                   "finished")))
+            (should (equal (string-trim (buffer-string))
+                           expected-messages))))))))
+
 ;;; eval-tests.el ends here

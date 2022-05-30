@@ -297,11 +297,6 @@ set_alarm (void)
 {
   if (atimers)
     {
-#ifdef HAVE_SETITIMER
-      struct itimerval it;
-#endif
-      struct timespec now, interval;
-
 #ifdef HAVE_ITIMERSPEC
       if (0 <= timerfd || alarm_timer_ok)
 	{
@@ -337,20 +332,24 @@ set_alarm (void)
 	}
 #endif
 
-      /* Determine interval till the next timer is ripe.
-	 Don't set the interval to 0; this disables the timer.  */
-      now = current_timespec ();
-      interval = (timespec_cmp (atimers->expiration, now) <= 0
-		  ? make_timespec (0, 1000 * 1000)
-		  : timespec_sub (atimers->expiration, now));
+      /* Determine interval till the next timer is ripe.  */
+      struct timespec now = current_timespec ();
+      if (timespec_cmp (atimers->expiration, now) <= 0)
+	{
+	  /* Timer is (over)due -- just trigger the signal right way.  */
+	  raise (SIGALRM);
+	}
+      else
+	{
+	  struct timespec interval = timespec_sub (atimers->expiration, now);
 
 #ifdef HAVE_SETITIMER
-
-      memset (&it, 0, sizeof it);
-      it.it_value = make_timeval (interval);
-      setitimer (ITIMER_REAL, &it, 0);
-#endif /* not HAVE_SETITIMER */
-      alarm (max (interval.tv_sec, 1));
+	  struct itimerval it = {.it_value = make_timeval (interval)};
+	  setitimer (ITIMER_REAL, &it, 0);
+#else
+	  alarm (max (interval.tv_sec, 1));
+#endif
+	}
     }
 }
 
