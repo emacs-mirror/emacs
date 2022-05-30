@@ -8647,6 +8647,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   safe_call (4, Vns_drag_motion_function, frame,
 	     make_fixnum (x), make_fixnum (y));
+
+  redisplay ();
 #endif
 
   return NSDragOperationGeneric;
