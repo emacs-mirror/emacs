@@ -6573,6 +6573,31 @@ x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
   x_clear_rectangle (s->f, s->gc, x, y, w, h, s->hl != DRAW_CURSOR);
 }
 
+#ifndef USE_CAIRO
+
+static void
+x_clear_point (struct frame *f, GC gc, int x, int y,
+	       bool respect_alpha_background)
+{
+  XGCValues xgcv;
+  Display *dpy;
+
+  dpy = FRAME_X_DISPLAY (f);
+
+  if (f->alpha_background != 1.0
+      && respect_alpha_background)
+    {
+      x_clear_rectangle (f, gc, x, y, 1, 1, true);
+      return;
+    }
+
+  XGetGCValues (dpy, gc, GCBackground | GCForeground, &xgcv);
+  XSetForeground (dpy, gc, xgcv.background);
+  XDrawPoint (dpy, FRAME_X_DRAWABLE (f), gc, x, y);
+  XSetForeground (dpy, gc, xgcv.foreground);
+}
+
+#endif
 
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
@@ -7985,25 +8010,21 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
     {
       if (left_p && top_p && x_inside_rect_p (clip_rect, 1,
 					      left_x, top_y))
-	/* This should respect `alpha-backgroun' since it's being
+	/* This should respect `alpha-background' since it's being
 	   cleared with the background color of the frame.  */
-	x_clear_rectangle (f, normal_gc, left_x, top_y, 1, 1,
-			   true);
+	x_clear_point (f, normal_gc, left_x, top_y, true);
 
       if (left_p && bot_p && x_inside_rect_p (clip_rect, 1,
 					      left_x, bottom_y))
-	x_clear_rectangle (f, normal_gc, left_x, bottom_y, 1, 1,
-			   true);
+	x_clear_point (f, normal_gc, left_x, bottom_y, true);
 
       if (right_p && top_p && x_inside_rect_p (clip_rect, 1,
 					       right_x, top_y))
-	x_clear_rectangle (f, normal_gc, right_x, top_y, 1, 1,
-			   true);
+	x_clear_point (f, normal_gc, right_x, top_y, true);
 
       if (right_p && bot_p && x_inside_rect_p (clip_rect, 1,
 					       right_x, bottom_y))
-	x_clear_rectangle (f, normal_gc, right_x, bottom_y, 1, 1,
-			   true);
+	x_clear_point (f, normal_gc, right_x, bottom_y, true);
     }
 
   x_reset_clip_rectangles (f, white_gc);
