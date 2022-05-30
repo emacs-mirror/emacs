@@ -3907,8 +3907,24 @@ x_set_dnd_targets (Atom *targets, int ntargets)
   if (x_dnd_targets)
     xfree (x_dnd_targets);
 
-  x_dnd_targets = targets;
+  block_input ();
+  x_dnd_targets = xmalloc (sizeof *targets * ntargets);
   x_dnd_n_targets = ntargets;
+
+  memcpy (x_dnd_targets, targets,
+	  sizeof *targets * ntargets);
+  unblock_input ();
+}
+
+static void
+x_free_dnd_targets (void)
+{
+  if (!x_dnd_targets)
+    return;
+
+  xfree (x_dnd_targets);
+  x_dnd_targets = NULL;
+  x_dnd_n_targets = 0;
 }
 
 static void
@@ -3962,7 +3978,6 @@ x_dnd_cleanup_drag_and_drop (void *frame)
       x_dnd_in_progress = false;
     }
 
-  x_set_dnd_targets (NULL, 0);
   x_dnd_waiting_for_finish = false;
 
   if (x_dnd_use_toplevels)
@@ -10332,7 +10347,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   struct frame *any;
   char *atom_name, *ask_actions;
   Lisp_Object action, ltimestamp;
-  specpdl_ref ref, count;
+  specpdl_ref ref, count, base;
   ptrdiff_t i, end, fill;
   XTextProperty prop;
   xm_drop_start_message dmsg;
@@ -10347,6 +10362,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   union buffered_input_event *events, *event;
   int n_events;
   struct frame *event_frame;
+
+  base = SPECPDL_INDEX ();
 
   /* Before starting drag-and-drop, walk through the keyboard buffer
      to see if there are any UNSUPPORTED_DROP_EVENTs, and run them now
@@ -10427,6 +10444,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (popup_activated ())
     error ("Trying to drag-and-drop from within a menu-entry");
 
+  record_unwind_protect_void (x_free_dnd_targets);
   x_set_dnd_targets (target_atoms, ntargets);
 
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
@@ -10738,7 +10756,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		  x_dnd_frame = NULL;
 		}
 
-	      x_set_dnd_targets (NULL, 0);
 	      x_dnd_waiting_for_finish = false;
 
 	      if (x_dnd_use_toplevels)
@@ -10810,7 +10827,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		  x_dnd_frame = NULL;
 		}
 
-	      x_set_dnd_targets (NULL, 0);
 	      x_dnd_waiting_for_finish = false;
 
 	      if (x_dnd_use_toplevels)
@@ -10850,7 +10866,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #endif
     }
 
-  x_set_dnd_targets (NULL, 0);
   x_dnd_waiting_for_finish = false;
 
 #ifdef USE_GTK
@@ -10887,7 +10902,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
       XSETFRAME (action, x_dnd_return_frame_object);
       x_dnd_return_frame_object = NULL;
-      return action;
+
+      return unbind_to (base, action);
     }
 
   x_dnd_return_frame_object = NULL;
@@ -10903,7 +10919,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       && (any = x_any_window_to_frame (FRAME_DISPLAY_INFO (f),
 				       x_dnd_end_window))
       && (allow_current_frame || any != f))
-    return QXdndActionPrivate;
+    return unbind_to (base, QXdndActionPrivate);
 
   if (x_dnd_action != None)
     {
@@ -10928,10 +10944,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	action = Qnil;
       unblock_input ();
 
-      return action;
+      return unbind_to (base, action);
     }
 
-  return Qnil;
+  return unbind_to (base, Qnil);
 }
 
 /* The focus may have changed.  Figure out if it is a real focus change,
@@ -17334,7 +17350,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    x_dnd_last_seen_window = None;
 		    x_dnd_last_seen_toplevel = None;
 		    x_dnd_frame = NULL;
-		    x_set_dnd_targets (NULL, 0);
 		  }
 	      }
 
@@ -18653,7 +18668,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  x_dnd_last_seen_window = None;
 			  x_dnd_last_seen_toplevel = None;
 			  x_dnd_frame = NULL;
-			  x_set_dnd_targets (NULL, 0);
 
 			  goto XI_OTHER;
 			}
@@ -21459,7 +21473,6 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
       x_dnd_last_seen_window = None;
       x_dnd_last_seen_toplevel = None;
       x_dnd_in_progress = false;
-      x_set_dnd_targets (NULL, 0);
       x_dnd_waiting_for_finish = false;
 
       if (x_dnd_use_toplevels)
@@ -25493,7 +25506,6 @@ x_delete_terminal (struct terminal *terminal)
 	  x_dnd_last_seen_window = None;
 	  x_dnd_last_seen_toplevel = None;
 	  x_dnd_in_progress = false;
-	  x_set_dnd_targets (NULL, 0);
 	  x_dnd_waiting_for_finish = false;
 
 	  if (x_dnd_use_toplevels)

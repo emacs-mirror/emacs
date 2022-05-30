@@ -6932,7 +6932,7 @@ that mouse buttons are being held down, such as immediately after a
   else
     signal_error ("Invalid drag-and-drop action", action);
 
-  target_atoms = xmalloc (ntargets * sizeof *target_atoms);
+  target_atoms = SAFE_ALLOCA (ntargets * sizeof *target_atoms);
 
   block_input ();
   XInternAtoms (FRAME_X_DISPLAY (f), target_names,
