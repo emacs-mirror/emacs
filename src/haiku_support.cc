@@ -542,8 +542,8 @@ public:
 
     previous_screen_frame = screen.Frame ();
 
-    /* Immediately show this window upon creation.  It will end up
-       hidden since there are no windows in its subset.  */
+    /* Immediately show this window upon creation.  It will not steal
+       the focus or become visible.  */
     Show ();
 
     if (!LockLooper ())

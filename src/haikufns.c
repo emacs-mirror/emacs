@@ -533,8 +533,12 @@ haiku_set_z_group (struct frame *f, Lisp_Object new_value,
     rc = 0;
 
   unblock_input ();
+
   if (!rc)
     error ("Invalid z-group specification");
+
+  /* Setting the Z-group can change the frame's decorator.  */
+  haiku_update_after_decoration_change (f);
 }
 
 static void
