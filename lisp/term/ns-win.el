@@ -912,6 +912,13 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
             pasteboard))
     (ns-begin-drag frame pasteboard action)))
 
+(defun ns-handle-drag-motion (frame x y)
+  "Handle mouse movement on FRAME at X and Y during drag-and-drop.
+This moves point to the current mouse position if
+ `dnd-indicate-insertion-point' is enabled."
+  (dnd-handle-movement (posn-at-x-y x y frame))
+  (print (redisplay t) 'external-debugging-output))
+
 (provide 'ns-win)
 (provide 'term/ns-win)
 
