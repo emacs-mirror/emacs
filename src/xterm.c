@@ -15260,7 +15260,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      goto OTHER;
 #ifndef USE_CAIRO
             Pixmap pixmap = (Pixmap) event->xclient.data.l[1];
+	    /* FIXME: why does this sometimes generate a BadMatch
+	       error?  */
+	    x_catch_errors (dpyinfo->display);
             x_kill_gs_process (pixmap, f);
+	    x_uncatch_errors ();
             expose_frame (f, 0, 0, 0, 0);
 #endif	/* !USE_CAIRO */
 	    goto done;
