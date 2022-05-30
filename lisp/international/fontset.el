@@ -189,6 +189,7 @@
 	(khmer #x1780)
 	(mongolian #x1826)
         (limbu #x1901 #x1920 #x1936)
+        (buginese #x1A00 #x1A1E)
         (balinese #x1B13 #x1B35 #x1B5E)
         (sundanese #x1B8A #x1BAB #x1CC4)
         (batak #x1BC2 #x1BE7 #x1BFF)
@@ -266,7 +267,7 @@
 	(marchen #x11C72)
 	(masaram-gondi #x11D00)
 	(gunjala-gondi #x11D60)
-	(makasar #x11EE0)
+	(makasar #x11EE0 #x11EF7)
 	(cuneiform #x12000)
 	(cypro-minoan #x12F90)
 	(egyptian #x13000)
@@ -762,6 +763,7 @@
                     buhid
                     tagbanwa
                     limbu
+                    buginese
                     balinese
                     sundanese
                     batak

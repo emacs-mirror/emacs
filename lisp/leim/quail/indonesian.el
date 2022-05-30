@@ -444,8 +444,8 @@
  ("`m" ?ᯣ))
 
 (quail-define-package
-   "rejang" "Rejang" "ꤽꥍ" nil "Rejang phonetic input method."
-   nil t t t t nil nil nil nil nil t)
+ "rejang" "Rejang" "ꤽꥍ" nil "Rejang phonetic input method."
+ nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
  ("q" ?꥟)
@@ -485,6 +485,73 @@
  ("N" ?ꥐ)
  ("m" ?ꤸ)
  ("M" ?ꥂ))
+
+(quail-define-package
+ "makasar" "Makasar" "𑻪" nil "Makasar phonetic input method."
+ nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("q" ?𑻷)
+ ("Q" ?𑻸)
+ ("e" ?𑻵)
+ ("r" ?𑻭)
+ ("t" ?𑻦)
+ ("y" ?𑻬)
+ ("u" ?𑻴)
+ ("i" ?𑻳)
+ ("o" ?𑻶)
+ ("p" ?𑻣)
+ ("a" ?𑻱)
+ ("s" ?𑻰)
+ ("d" ?𑻧)
+ ("g" ?𑻡)
+ ("j" ?𑻪)
+ ("k" ?𑻠)
+ ("l" ?𑻮)
+ ("z" ?𑻢)
+ ("Z" ?𑻲)
+ ("x" ?𑻫)
+ ("c" ?𑻩)
+ ("v" ?𑻯)
+ ("b" ?𑻤)
+ ("n" ?𑻨)
+ ("m" ?𑻥))
+
+(quail-define-package
+ "lontara" "Lontara" "ᨒ" nil "Lontara phonetic input method."
+ nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("q" ?᨞)
+ ("Q" ?᨟)
+ ("e" ?ᨙ)
+ ("E" ?ᨛ)
+ ("r" ?ᨑ)
+ ("t" ?ᨈ)
+ ("y" ?ᨐ)
+ ("u" ?ᨘ)
+ ("i" ?ᨗ)
+ ("o" ?ᨚ)
+ ("p" ?ᨄ)
+ ("a" ?ᨕ)
+ ("s" ?ᨔ)
+ ("d" ?ᨉ)
+ ("g" ?ᨁ)
+ ("h" ?ᨖ)
+ ("j" ?ᨍ)
+ ("k" ?ᨀ)
+ ("l" ?ᨒ)
+ ("z" ?ᨂ)
+ ("Z" ?ᨃ)
+ ("x" ?ᨎ)
+ ("X" ?ᨏ)
+ ("c" ?ᨌ)
+ ("v" ?ᨓ)
+ ("b" ?ᨅ)
+ ("n" ?ᨊ)
+ ("N" ?ᨋ)
+ ("m" ?ᨆ)
+ ("M" ?ᨇ))
 
 (provide 'indonesian)
 ;;; indonesian.el ends here
