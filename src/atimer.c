@@ -18,6 +18,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#ifdef WINDOWSNT
+#define raise(s) w32_raise(s)
+#endif
+
 #include "lisp.h"
 #include "keyboard.h"
 #include "syssignal.h"
