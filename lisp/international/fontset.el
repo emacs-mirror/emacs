@@ -205,6 +205,7 @@
 	(han #x5B57)
 	(yi #xA288)
         (syloti-nagri #xA807 #xA823 #xA82C)
+        (rejang #xA930 #xA947 #xA95F)
 	(javanese #xA98F #xA9B4 #xA9CA)
 	(cham #xAA00)
 	(tai-viet #xAA80)
@@ -768,6 +769,7 @@
 		    braille
 		    yi
                     syloti-nagri
+                    rejang
                     javanese
 		    tai-viet
 		    aegean-number
