@@ -21414,8 +21414,10 @@ x_check_errors (Display *dpy, const char *format)
 
   /* There is no point in making this extra sync if all requests
      are known to have been fully processed.  */
-  if (LastKnownRequestProcessed (dpy)
-      != NextRequest (dpy) - 1)
+  if ((LastKnownRequestProcessed (dpy)
+       != NextRequest (dpy) - 1)
+      && (NextRequest (dpy)
+	  > x_error_message->first_request))
     XSync (dpy, False);
 
   if (x_error_message->string[0])
