@@ -52,7 +52,7 @@
   "The local value of the special `XdndSelection' selection.")
 
 (defvar haiku-dnd-selection-converters '((STRING . haiku-dnd-convert-string)
-                                         (text/uri-list . haiku-dnd-convert-uri-list))
+                                         (FILE_NAME . haiku-dnd-convert-file-name))
   "Alist of X selection types to functions that act as selection converters.
 The functions should accept a single argument VALUE, describing
 the value of the drag-and-drop selection, and return a list of
@@ -141,9 +141,10 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
     (list "text/plain" (string-to-unibyte
                         (encode-coding-string value 'utf-8)))))
 
-(defun haiku-dnd-convert-uri-list (value)
+(defun haiku-dnd-convert-file-name (value)
   "Convert VALUE to a file system reference if it is a file name."
   (when (and (stringp value)
+             (not (file-remote-p value))
              (file-exists-p value))
     (list "refs" (propertize (expand-file-name value) 'type 'ref))))
 
