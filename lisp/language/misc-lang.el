@@ -212,6 +212,28 @@ thin (i.e. 1-dot width) space."
    (list (vector "[\U00013000-\U0001342E]+"
                  0 #'font-shape-gstring))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hanifi Rohingya
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Hanifi Rohingya" '((charset unicode)
+                     (coding-system utf-8)
+                     (coding-priority utf-8)
+                     (input-method . "hanifi-rohingya")
+                     (sample-text . "Hanifi Rohingya (𐴌𐴟𐴇𐴥𐴝𐴚𐴒𐴙𐴝 𐴇𐴝𐴕𐴞𐴉𐴞 𐴓𐴠𐴑𐴤𐴝)	𐴀𐴝𐴏𐴓𐴝𐴀𐴡𐴤𐴛𐴝𐴓𐴝𐴙𐴑𐴟𐴔")
+                     (documentation . "\
+Rohingya language and its script Hanifi Rohingya are supported
+in this language environment.")))
+
+;; Hanifi Rohingya composition rules
+(set-char-table-range
+ composition-function-table
+ '(#x10D1D . #x10D27)
+ (list (vector
+        "[\x10D00-\x10D27]+"
+        1 'font-shape-gstring)))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here
