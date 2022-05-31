@@ -6161,7 +6161,7 @@ variable to determine how strings should be escaped."
                  (goto-char (point-min))
                  (forward-line 1)
                  (point)))
-             (point-max) nil t)
+             (point-max))
             (buffer-string))))
        (t string)))
      (t string))))
