@@ -343,11 +343,17 @@ format."
 	   (gamegrid-colorize-glyph color))
 	  ((listp data)
 	   (find-image data)) ;untested!
-	  ((vectorp data)
-	   (gamegrid-make-image-from-vector data)))))
+          ;; Remove when `gamegrid-make-image-from-vector' is removed:
+          ((vectorp data)
+           (lwarn 'gamegrid :warning
+                  "Using obsolete XEmacs style \"glyph\"; \
+convert to an Emacs image-spec instead")
+           (with-suppressed-warnings ((obsolete gamegrid-make-image-from-vector))
+             (gamegrid-make-image-from-vector data))))))
 
 (defun gamegrid-make-image-from-vector (vect)
   "Convert an XEmacs style \"glyph\" to an image-spec."
+  (declare (obsolete nil "29.1"))
   (let ((l (list 'image :type)))
     (dotimes (n (length vect))
       (setf l (nconc l (list (aref vect n)))))
