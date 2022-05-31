@@ -58,10 +58,7 @@
 
 ;;; Code:
 
-;; From ps-print.el
-(defvar ps-printer-name)
-(defvar ps-lpr-command)
-(defvar ps-lpr-switches)
+(require 'ps-print)
 
 ;; Variables
 
@@ -235,20 +232,13 @@ Variables: `handwrite-linespace'     (default 12)
     (while (search-forward "\f" nil t)
       (replace-match "" nil t) )
     (untabify textp (point-max))	; this may result in strange tabs
-    (if (y-or-n-p "Send this to the printer? ")
-	(progn
-	  (require 'ps-print)
-	  (let* ((coding-system-for-write 'raw-text-unix)
-		 (ps-printer-name (or ps-printer-name
-				      (and (boundp 'printer-name)
-					   printer-name)))
-		 (ps-lpr-switches
-		  (if (stringp ps-printer-name)
-		      (list (concat "-P" ps-printer-name)))))
-	    (apply (or (and (boundp 'ps-print-region-function)
-			    ps-print-region-function)
-		       'call-process-region)
-		   (point-min) (point-max) ps-lpr-command nil nil nil))))
+    (when (y-or-n-p "Send this to the printer? ")
+      (let* ((coding-system-for-write 'raw-text-unix)
+	     (printer-name (or ps-printer-name printer-name))
+             (lpr-printer-switch ps-printer-name-option)
+             (print-region-function ps-print-region-function)
+             (lpr-command ps-lpr-command))
+        (lpr-print-region (point-min) (point-max) ps-lpr-switches nil)))
     (message "")
     (bury-buffer ())
     (switch-to-buffer cur-buf)
