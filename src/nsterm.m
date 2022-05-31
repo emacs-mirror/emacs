@@ -5185,14 +5185,19 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
 static void
 ns_flush_display (struct frame *f)
 {
-  struct input_event ie;
+  NSAutoreleasePool *ap;
+
+  ap = [[NSAutoreleasePool alloc] init];
 
   /* Called from some of the minibuffer code.  Run the event loop once
      to make the toolkit make changes that were made to the back
-     buffer visible again.  TODO: what should happen to ie?  */
+     buffer visible again.  */
 
-  EVENT_INIT (ie);
-  ns_read_socket (FRAME_TERMINAL (f), &ie);
+  send_appdefined = YES;
+  ns_send_appdefined (-1);
+
+  [NSApp run];
+  [ap release];
 }
 
 /* This and next define (many of the) public functions in this
