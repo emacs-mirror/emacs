@@ -15246,25 +15246,23 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 
 	    if (event->xclient.data.l[0] == dpyinfo->Xatom_net_wm_ping
+		/* Handling window stacking changes during
+		   drag-and-drop requires Emacs to select for
+		   SubstructureNotifyMask, which in turn causes the
+		   message to be sent to Emacs itself using the event
+		   mask specified by the EWMH.  To avoid an infinite
+		   loop, make sure the client message's window is not
+		   the root window if DND is in progress.  */
+		&& (!x_dnd_in_progress
+		    || !x_dnd_waiting_for_finish
+		    || event->xclient.window != dpyinfo->root_window)
 		&& event->xclient.format == 32)
 	      {
 		XEvent send_event = *event;
 
 		send_event.xclient.window = dpyinfo->root_window;
 		XSendEvent (dpyinfo->display, dpyinfo->root_window, False,
-			    /* FIXME: handling window stacking changes
-			       during drag-and-drop requires Emacs to
-			       select for SubstructureNotifyMask,
-			       which in turn causes the message to be
-			       sent to Emacs itself using the event
-			       mask specified by the EWMH.  To avoid
-			       an infinite loop, just use
-			       SubstructureRedirectMask when a
-			       drag-and-drop operation is in
-			       progress.  */
-			    ((x_dnd_in_progress || x_dnd_waiting_for_finish)
-			     ? SubstructureRedirectMask
-			     : SubstructureRedirectMask | SubstructureNotifyMask),
+			    SubstructureRedirectMask | SubstructureNotifyMask,
 			    &send_event);
 
 		*finish = X_EVENT_DROP;
