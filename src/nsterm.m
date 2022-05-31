@@ -2297,6 +2297,11 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   struct frame *f = NULL;
   struct ns_display_info *dpyinfo;
   bool return_no_frame_flag = false;
+#ifdef NS_IMPL_COCOA
+  NSPoint screen_position;
+  NSInteger window_number;
+  NSWindow *w;
+#endif
 
   NSTRACE ("ns_mouse_position");
 
@@ -2323,18 +2328,19 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
      This doesn't work on GNUstep, although in recent versions there
      is compatibility code that makes it a noop.  */
 
-  NSPoint screen_position = [NSEvent mouseLocation];
-  NSInteger window_number = 0;
+  screen_position = [NSEvent mouseLocation];
+  window_number = 0;
+
   do
     {
-      NSWindow *w;
+      window_number = [NSWindow windowNumberAtPoint: screen_position
+                        belowWindowWithWindowNumber: window_number];
+      w = [NSApp windowWithWindowNumber: window_number];
 
-      window_number = [NSWindow windowNumberAtPoint:screen_position
-                        belowWindowWithWindowNumber:window_number];
-      w = [NSApp windowWithWindowNumber:window_number];
-
-      if (w && [[w delegate] isKindOfClass:[EmacsView class]])
-        f = ((EmacsView *)[w delegate])->emacsframe;
+      if (w && [[w delegate] isKindOfClass: [EmacsView class]])
+        f = ((EmacsView *) [w delegate])->emacsframe;
+      else if (EQ (track_mouse, Qdrag_source))
+	break;
     }
   while (window_number > 0 && !f);
 #endif
@@ -8623,6 +8629,12 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 #endif
   NSPoint position;
   int x, y;
+  NSAutoreleasePool *ap;
+  specpdl_ref count;
+
+  ap = [[NSAutoreleasePool alloc] init];
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_ptr (ns_release_autorelease_pool, ap);
 
 #ifdef NS_IMPL_GNUSTEP
   EVENT_INIT (ie);
@@ -8656,6 +8668,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   redisplay ();
 #endif
 
+  unbind_to (count, Qnil);
   return NSDragOperationGeneric;
 }
 
@@ -9582,6 +9595,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 			    NSCompositingOperationCopy);
   [image unlockFocus];
 
+  block_input ();
   if (last_drag_event)
     [self dragImage: image
 		 at: NSMakePoint (0, 0)
@@ -9590,6 +9604,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 	 pasteboard: pasteboard
 	     source: self
 	  slideBack: NO];
+  unblock_input ();
 
   [image release];
 
