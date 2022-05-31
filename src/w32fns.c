@@ -10790,21 +10790,6 @@ bass-down, bass-boost, bass-up, treble-down, treble-up  */);
 	       doc: /* SKIP: real doc in xfns.c.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
 
-  DEFVAR_LISP ("w32-bdf-filename-alist",
-	       Vw32_bdf_filename_alist,
-	       doc: /* List of bdf fonts and their corresponding filenames.  */);
-  Vw32_bdf_filename_alist = Qnil;
-
-  DEFVAR_BOOL ("w32-strict-fontnames",
-	       w32_strict_fontnames,
-	       doc: /* Non-nil means only use fonts that are exact matches for those requested.
-Default is nil, which allows old fontnames that are not XLFD compliant,
-and allows third-party CJK display to work by specifying false charset
-fields to trick Emacs into translating to Big5, SJIS etc.
-Setting this to t will prevent wrong fonts being selected when
-fontsets are automatically created.  */);
-  w32_strict_fontnames = 0;
-
   DEFVAR_BOOL ("w32-strict-painting",
 	       w32_strict_painting,
 	       doc: /* Non-nil means use strict rules for repainting frames.
