@@ -7248,8 +7248,8 @@ readline_internal (linebuffer *lbp, FILE *stream, char const *filename)
 	{
 	  /* We're at the end of linebuffer: expand it. */
 	  xrnew (buffer, lbp->size, 2);
+	  p = buffer + lbp->size;
 	  lbp->size *= 2;
-	  p += buffer - lbp->buffer;
 	  pend = buffer + lbp->size;
 	  lbp->buffer = buffer;
 	}
@@ -7670,21 +7670,21 @@ relative_filename (char *file, char *dir)
 {
   char *fp, *dp, *afn, *res;
   ptrdiff_t i;
+  char *dir_last_slash UNINIT;
 
   /* Find the common root of file and dir (with a trailing slash). */
   afn = absolute_filename (file, cwd);
   fp = afn;
   dp = dir;
   while (*fp++ == *dp++)
-    continue;
-  fp--, dp--;			/* back to the first differing char */
+    if (dp[-1] == '/')
+      dir_last_slash = dp - 1;
 #ifdef DOS_NT
-  if (fp == afn && afn[0] != '/') /* cannot build a relative name */
-    return afn;
+  if (fp - 1 == afn && afn[0] != '/')
+    return afn; /* Cannot build a relative name.  */
 #endif
-  do				/* look at the equal chars until '/' */
-    fp--, dp--;
-  while (*fp != '/');
+  fp -= dp - dir_last_slash;
+  dp = dir_last_slash;
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;
