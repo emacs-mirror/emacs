@@ -14858,6 +14858,7 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
       for (dpyinfo = x_display_list; dpyinfo;
 	   dpyinfo = dpyinfo->next)
 	{
+#ifndef USE_GTK
 	  if (XPending (dpyinfo->display))
 	    {
 	      EVENT_INIT (hold_quit);
@@ -14873,6 +14874,7 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
 	      if (!NILP (XCAR (cell)))
 		return;
 	    }
+#endif
 
 	  fd = XConnectionNumber (dpyinfo->display);
 
@@ -14882,6 +14884,33 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
 	  eassert (fd < FD_SETSIZE);
 	  FD_SET (XConnectionNumber (dpyinfo->display), &fds);
 	}
+
+      /* Prevent events from being lost (from GTK's point of view) by
+	 using GDK to run the event loop.  */
+#ifdef USE_GTK
+      while (gtk_events_pending ())
+	{
+	  EVENT_INIT (hold_quit);
+	  current_count = 0;
+	  current_hold_quit = &hold_quit;
+	  current_finish = X_EVENT_NORMAL;
+
+	  gtk_main_iteration ();
+
+	  current_count = -1;
+	  current_hold_quit = NULL;
+
+	  /* Make us quit now.  */
+	  if (hold_quit.kind != NO_EVENT)
+	    kbd_buffer_store_event (&hold_quit);
+
+	  if (!NILP (XCAR (cell)))
+	    return;
+
+	  if (current_finish == X_EVENT_GOTO_OUT)
+	    break;
+	}
+#endif
 
       eassert (maxfd >= 0);
 
