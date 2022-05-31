@@ -486,11 +486,7 @@ x_get_resource (XrmDatabase rdb, const char *name, const char *class,
   if (XrmQGetResource (rdb, namelist, classlist, &type, &value) == True
       && (type == expected_type))
     {
-      if (type == x_rm_string)
-	ret_value->addr = (char *) value.addr;
-      else
-	memcpy (ret_value->addr, value.addr, ret_value->size);
-
+      *ret_value = value;
       return value.size;
     }
 
