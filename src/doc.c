@@ -569,6 +569,8 @@ the same file name is found in the `doc-directory'.  */)
       if (p)
 	{
 	  end = strchr (p, '\n');
+	  if (!end)
+	    error ("DOC file invalid at position %"pI"d", pos);
 
 	  /* We used to skip files not in build_files, so that when a
 	     function was defined several times in different files
