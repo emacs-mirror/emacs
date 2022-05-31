@@ -10642,6 +10642,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			     &next_event, &finish, &hold_quit);
 #endif
 	}
+#else
+      /* Clear these before the read_socket_hook can be called.  */
+      current_count = -1;
+      current_hold_quit = NULL;
 #endif
 
       /* The unblock_input below might try to read input, but
