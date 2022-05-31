@@ -22468,15 +22468,20 @@ x_get_current_wm_state (struct frame *f,
 #ifdef USE_XCB
   xcb_get_property_cookie_t prop_cookie;
   xcb_get_property_reply_t *prop;
-  xcb_atom_t *reply_data UNINIT;
+  typedef xcb_atom_t reply_data_object;
 #else
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned long bytes_remaining;
   int rc, actual_format;
   Atom actual_type;
   unsigned char *tmp_data = NULL;
-  Atom *reply_data UNINIT;
+  typedef Atom reply_data_object;
 #endif
+  reply_data_object *reply_data;
+# if defined GCC_LINT || defined lint
+  reply_data_object reply_data_dummy;
+  reply_data = &reply_data_dummy;
+# endif
 
   *sticky = false;
   *size_state = FULLSCREEN_NONE;
