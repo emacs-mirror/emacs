@@ -1178,12 +1178,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (setq-local outline-regexp latex-outline-regexp)
   (setq-local outline-level #'latex-outline-level)
   (setq-local forward-sexp-function #'latex-forward-sexp)
-  (setq-local skeleton-end-hook nil)
-  (setq-local comment-region-function #'latex--comment-region)
-  (setq-local comment-style 'plain))
-
-(defun latex--comment-region (beg end &optional arg)
-  (comment-region-default-1 beg end arg t))
+  (setq-local skeleton-end-hook nil))
 
 ;;;###autoload
 (define-derived-mode slitex-mode latex-mode "SliTeX"
