@@ -4107,7 +4107,7 @@ buffer.  */)
   n_end = marker_position (OVERLAY_END (overlay));
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
-  if (!EQ (buffer, obuffer))
+  if (!BASE_EQ (buffer, obuffer))
     {
       /* Redisplay where the overlay was.  */
       if (ob)
