@@ -9513,14 +9513,14 @@ This affects the commands `next-completion' and
 When the value is t, pressing TAB will switch to the completion list
 buffer when Emacs pops up a window showing that buffer.
 If the value is `second-tab', then the first TAB will pop up the
-window shwoing the completions list buffer, and the next TAB will
+window showing the completions list buffer, and the next TAB will
 switch to that window.
 See `completion-auto-help' for controlling when the window showing
 the completions is popped up and down."
   :type '(choice (const :tag "Don't auto-select completions window" nil)
                  (const :tag "Select completions window on first TAB" t)
-                 (const :tag
-                        "Select completions window on second TAB" second-tab))
+                 (const :tag "Select completions window on second TAB"
+                        second-tab))
   :version "29.1"
   :group 'completion)
 
@@ -9573,7 +9573,8 @@ Also see the `completion-wrap-movement' variable."
           ;; If at the last completion option, wrap or skip
           ;; to the minibuffer, if requested.
           (when completion-wrap-movement
-            (if (and (eq completion-auto-select t) tabcommand)
+            (if (and (eq completion-auto-select t) tabcommand
+                     (minibufferp completion-reference-buffer))
                 (throw 'bound nil)
               (first-completion))))
         (setq n (1- n)))
@@ -9596,9 +9597,9 @@ Also see the `completion-wrap-movement' variable."
           ;; If at the first completion option, wrap or skip
           ;; to the minibuffer, if requested.
           (when completion-wrap-movement
-            (if (and (eq completion-auto-select t) tabcommand)
+            (if (and (eq completion-auto-select t) tabcommand
+                     (minibufferp completion-reference-buffer))
                 (progn
-                  ;; (goto-char (next-single-property-change (point) 'mouse-face))
                   (throw 'bound nil))
               (last-completion))))
         (setq n (1+ n))))
@@ -9826,9 +9827,7 @@ Called from `temp-buffer-show-hook'."
 	    (insert "Click on a completion to select it.\n"))
 	(insert (substitute-command-keys
 		 "In this buffer, type \\[choose-completion] to \
-select the completion near point.\n\n")))))
-  (when (eq completion-auto-select t)
-    (switch-to-completions)))
+select the completion near point.\n\n"))))))
 
 (add-hook 'completion-setup-hook #'completion-setup-function)
 

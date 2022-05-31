@@ -1422,9 +1422,10 @@ scroll the window of possible completions."
     (let ((window minibuffer-scroll-window))
       (with-current-buffer (window-buffer window)
         (cond
-         ;; Here this is possible only when second-tab, so jump now.
-         (completion-auto-select
-          (switch-to-completions))
+         ;; Here this is possible only when second-tab, but instead of
+         ;; scrolling the completion list window, switch to it below,
+         ;; outside of `with-current-buffer'.
+         ((eq completion-auto-select 'second-tab))
          ;; Reverse tab
          ((equal (this-command-keys) [backtab])
           (if (pos-visible-in-window-p (point-min) window)
@@ -1438,15 +1439,22 @@ scroll the window of possible completions."
               ;; If end is in view, scroll up to the end.
               (set-window-start window (point-min) nil)
             ;; Else scroll down one screen.
-            (with-selected-window window (scroll-up)))))
-        nil)))
+            (with-selected-window window (scroll-up))))))
+      (when (eq completion-auto-select 'second-tab)
+        (switch-to-completions))
+      nil))
    ;; If we're cycling, keep on cycling.
    ((and completion-cycling completion-all-sorted-completions)
     (minibuffer-force-complete beg end)
     t)
-   (t (pcase (completion--do-completion beg end)
-        (#b000 nil)
-        (_     t)))))
+   (t (prog1 (pcase (completion--do-completion beg end)
+               (#b000 nil)
+               (_     t))
+        (when (and (eq completion-auto-select t)
+                   (window-live-p minibuffer-scroll-window)
+                   (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
+          ;; When the completion list window was displayed, select it.
+          (switch-to-completions))))))
 
 (defun completion--cache-all-sorted-completions (beg end comps)
   (add-hook 'after-change-functions
