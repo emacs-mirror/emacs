@@ -1752,6 +1752,11 @@ so using 'M-x update-file-autoloads' no longer works.  (This didn't
 work well in most files in the past, either, but it will now signal an
 error in any file.)
 
+In addition, files are scanned in a slightly different way.
+Previously ;;;### specs inside a top-level form (i.e., something like
+(when ... ;;;### ...) would be ignored.  They are now parsed as
+normal.
+
 +++
 ** 'buffer-modified-p' has been extended.
 This function was previously documented to return only nil or t.  This
