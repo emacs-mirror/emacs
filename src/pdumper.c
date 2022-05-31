@@ -1069,7 +1069,7 @@ dump_queue_enqueue (struct dump_queue *dump_queue,
         }
     }
 
-  if (!EQ (weights, orig_weights))
+  if (!BASE_EQ (weights, orig_weights))
     Fputhash (object, weights, dump_queue->link_weights);
 }
 
