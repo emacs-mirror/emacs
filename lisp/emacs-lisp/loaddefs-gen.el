@@ -442,7 +442,7 @@ FILE's name."
 	    (if lp
 		"(add-to-list 'load-path (directory-file-name
                          (or (file-name-directory #$) (car load-path))))\n\n")
-	    "\n"
+	    "\n;;; End of scraped data\n\n"
 	    ;; This is used outside of autoload.el, eg cus-dep, finder.
 	    (if feature
 		(format "(provide '%s)\n"
@@ -508,6 +508,7 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
 				 (directory-files (expand-file-name d)
                                                   t files-re))
 			       (if (consp dir) dir (list dir)))))
+         (updating (file-exists-p output-file))
          (defs nil))
 
     ;; Collect all the autoload data.
@@ -518,28 +519,31 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
           (file-count 0))
       (dolist (file files)
         (progress-reporter-update progress (setq file-count (1+ file-count)))
-        ;; Do not insert autoload entries for excluded files.
-        (setq defs (nconc
-		    (loaddefs-generate--parse-file
-                     file output-file
-                     ;; We only want the package name from the
-                     ;; excluded files.
-                     (and include-package-version
-                          (if (member (expand-file-name file) excluded-files)
-                              'only
-                            t)))
-                    defs)))
+        (when (or (not updating)
+                  (file-newer-than-file-p file output-file))
+          (setq defs (nconc
+		      (loaddefs-generate--parse-file
+                       file output-file
+                       ;; We only want the package name from the
+                       ;; excluded files.
+                       (and include-package-version
+                            (if (member (expand-file-name file) excluded-files)
+                                'only
+                              t)))
+                      defs))))
       (progress-reporter-done progress))
 
     ;; Generate the loaddef files.  First group per output file.
     (dolist (fdefs (seq-group-by #'car defs))
       (with-temp-buffer
-        (insert (loaddefs-generate--rubric (car fdefs) nil t))
-        (search-backward "\f")
-        (when extra-data
-          (insert extra-data)
-          (ensure-empty-lines 1))
-        ;; The group by source file (and sort alphabetically).
+        (if updating
+            (insert-file-contents output-file)
+          (insert (loaddefs-generate--rubric (car fdefs) nil t))
+          (search-backward "\f")
+          (when extra-data
+            (insert extra-data)
+            (ensure-empty-lines 1)))
+        ;; Then group by source file (and sort alphabetically).
         (dolist (section (sort (seq-group-by #'cadr (cdr fdefs))
                                (lambda (e1 e2)
                                  (string<
@@ -548,18 +552,33 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
                                   (file-name-sans-extension
                                    (file-name-nondirectory (car e2)))))))
           (pop section)
-          (let ((relfile (file-relative-name
-                          (cadar section)
-                          (file-name-directory (car fdefs)))))
-            (insert "\f\n;;; Generated autoloads from " relfile "\n\n")
+          (let* ((relfile (file-relative-name
+                           (cadar section)
+                           (file-name-directory (car fdefs))))
+                 (head (concat "\n\f\n;;; Generated autoloads from "
+                               relfile "\n\n")))
+            (when updating
+              ;; If we're updating an old loaddefs file, then see if
+              ;; there's a section here for this file already.
+              (goto-char (point-min))
+              (if (not (search-forward head nil t))
+                  ;; It's a new file; put the data at the end.
+                  (progn
+                    (goto-char (point-max))
+                    (search-backward "\f\n"))
+                ;; Delete the old version of the section.
+                (delete-region (match-beginning 0)
+                               (and (search-forward "\n\f\n;;;")
+                                    (match-beginning 0)))
+                (forward-line -2)))
+            (insert head)
             (dolist (def (reverse section))
               (setq def (caddr def))
               (if (stringp def)
                   (princ def (current-buffer))
                 (loaddefs-generate--print-form def))
               (unless (bolp)
-                (insert "\n")))
-            (insert "\n")))
+                (insert "\n")))))
         (write-region (point-min) (point-max) (car fdefs) nil 'silent)
         (byte-compile-info (file-relative-name (car fdefs) lisp-directory)
                            t "GEN")))))
