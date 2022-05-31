@@ -1003,6 +1003,7 @@ untar into a directory named DIR; otherwise, signal an error."
 
 (defun package-autoload-ensure-default-file (file)
   "Make sure that the autoload file FILE exists and if not create it."
+  (declare (obsolete nil "29.1"))
   (unless (file-exists-p file)
     (require 'autoload)
     (let ((coding-system-for-write 'utf-8-emacs-unix))
@@ -1021,8 +1022,11 @@ untar into a directory named DIR; otherwise, signal an error."
          (autoload-timestamps nil)
          (backup-inhibited t)
          (version-control 'never))
-    (package-autoload-ensure-default-file output-file)
-    (make-directory-autoloads pkg-dir output-file)
+    (loaddefs-generate
+     pkg-dir output-file
+     nil
+     "(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))")
     (let ((buf (find-buffer-visiting output-file)))
       (when buf (kill-buffer buf)))
     auto-name))

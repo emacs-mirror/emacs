@@ -3,6 +3,9 @@
 ;;
 ;;; Code:
 
+(autoload 'loaddefs-generate "loaddefs-gen")
+(autoload 'loaddefs-generate-batch "loaddefs-gen")
+
 
 ;;;### (autoloads nil "5x5" "play/5x5.el" (0 0 0 0))
 ;;; Generated autoloads from play/5x5.el

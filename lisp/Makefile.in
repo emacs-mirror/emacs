@@ -59,15 +59,6 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
 # The example above is just for developers, it should not be used by default.
 
-# Those automatically generated autoload files that need special rules
-# to build; i.e. not including things created via generated-autoload-file
-# (eg calc/calc-loaddefs.el).
-LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
-	$(lisp)/calendar/diary-loaddefs.el \
-	$(lisp)/calendar/hol-loaddefs.el \
-	$(lisp)/mh-e/mh-loaddefs.el \
-	$(lisp)/net/tramp-loaddefs.el
-
 # All generated autoload files.
 loaddefs = $(shell find ${srcdir} -name '*loaddefs.el' ! -name '.*')
 # Elisp files auto-generated.
@@ -84,10 +75,11 @@ compile-first: BYTE_COMPILE_FLAGS = \
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
-# the slowest-compiler on the smallest file and move to larger files as the
-# compiler gets faster.  'autoload.elc' comes last because it is not used by
-# the compiler (so its compilation does not speed up subsequent compilations),
-# it's only placed here so as to speed up generation of the loaddefs.el file.
+# the slowest-compiler on the smallest file and move to larger files
+# as the compiler gets faster.  'loaddefs-gen.elc'/'radix-tree.el'
+# comes last because they're not used by the compiler (so its
+# compilation does not speed up subsequent compilations), it's only
+# placed here so as to speed up generation of the loaddefs.el files.
 
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/macroexp.elc \
@@ -98,7 +90,8 @@ ifeq ($(HAVE_NATIVE_COMP),yes)
 COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
 COMPILE_FIRST += $(lisp)/emacs-lisp/comp-cstr.elc
 endif
-COMPILE_FIRST += $(lisp)/emacs-lisp/autoload.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/loaddefs-gen.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/radix-tree.elc
 
 # Files to compile early in compile-main.  Works around bug#25556.
 MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
@@ -186,19 +179,13 @@ $(lisp)/finder-inf.el:
 # We make $(lisp)/loaddefs.el a dependency of .PHONY to cause Make to
 # ignore its time stamp.  That's because the real dependencies of
 # loaddefs.el aren't known to Make, they are implemented in
-# batch-update-autoloads, which only updates the autoloads whose
-# sources have changed.
-
-# Use expand-file-name rather than $abs_scrdir so that Emacs does not
-# get confused when it compares file-names for equality.
+# loaddefs-generate-batch.
 
 autoloads .PHONY: $(lisp)/loaddefs.el
 $(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
-	$(AM_V_GEN)$(emacs) -l autoload \
-	    --eval '(setq autoload-ensure-writable t)' \
-	    --eval '(setq autoload-builtin-package-versions t)' \
-	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
-	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
+	$(AM_V_GEN)$(emacs) \
+            -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
+	    -f loaddefs-generate-batch $(lisp)/loaddefs.el ${SUBDIRS_ALMOST}
 
 # autoloads only runs when loaddefs.el is nonexistent, although it
 # generates a number of different files. Provide a force option to enable
@@ -455,57 +442,6 @@ compile-after-backup: backup-compiled-files compile-always
 compile-one-process: $(LOADDEFS) compile-first
 	$(emacs) $(BYTE_COMPILE_FLAGS) \
 	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
-
-# Update MH-E internal autoloads. These are not to be confused with
-# the autoloads for the MH-E entry points, which are already in loaddefs.el.
-MH_E_DIR = $(lisp)/mh-e
-MH_E_SRC = $(sort $(wildcard ${MH_E_DIR}/mh*.el))
-MH_E_SRC := $(filter-out ${MH_E_DIR}/mh-loaddefs.el,${MH_E_SRC})
-
-.PHONY: mh-autoloads
-mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
-$(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(MH_E_DIR)
-
-# Update TRAMP internal autoloads. Maybe we could move tramp*.el into
-# an own subdirectory. OTOH, it does not hurt to keep them in
-# lisp/net.
-TRAMP_DIR = $(lisp)/net
-TRAMP_SRC = $(sort $(wildcard ${TRAMP_DIR}/tramp*.el))
-TRAMP_SRC := $(filter-out ${TRAMP_DIR}/tramp-loaddefs.el,${TRAMP_SRC})
-
-$(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(TRAMP_DIR)
-
-CAL_DIR = $(lisp)/calendar
-## Those files that may contain internal calendar autoload cookies.
-CAL_SRC = $(addprefix ${CAL_DIR}/,diary-lib.el holidays.el lunar.el solar.el)
-CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal-*.el))
-CAL_SRC := $(filter-out ${CAL_DIR}/cal-loaddefs.el,${CAL_SRC})
-
-$(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(CAL_DIR)
-
-$(CAL_DIR)/diary-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/cal-loaddefs.el
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(CAL_DIR)
-
-$(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/diary-loaddefs.el
-	$(AM_V_GEN)$(emacs) -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
-	   -f batch-update-autoloads $(CAL_DIR)
 
 .PHONY: bootstrap-clean distclean maintainer-clean
 
