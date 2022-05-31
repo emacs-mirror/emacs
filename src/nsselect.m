@@ -662,7 +662,7 @@ ns_dnd_action_from_operation (NSDragOperation operation)
     }
 }
 
-DEFUN ("ns-begin-drag", Fns_begin_drag, Sns_begin_drag, 3, 3, 0,
+DEFUN ("ns-begin-drag", Fns_begin_drag, Sns_begin_drag, 3, 4, 0,
        doc: /* Begin a drag-and-drop operation on FRAME.
 
 FRAME must be a window system frame.  PBOARD is an alist of (TYPE
@@ -680,13 +680,30 @@ data inside PBOARD.
 
 Return the action that the drop target actually chose to perform, or
 nil if no action was performed (either because there was no drop
-target, or the drop was rejected).  */)
-  (Lisp_Object frame, Lisp_Object pboard, Lisp_Object action)
+target, or the drop was rejected).  If RETURN_FRAME is the symbol
+`now', also return any frame that mouse moves into during the
+drag-and-drop operation, whilst simultaneously cancelling it.  Any
+other non-nil value means to do the same, but to wait for the mouse to
+leave FRAME first.  */)
+  (Lisp_Object frame, Lisp_Object pboard, Lisp_Object action,
+   Lisp_Object return_frame)
 {
-  struct frame *f;
+  struct frame *f, *return_to;
   NSPasteboard *pasteboard;
   EmacsWindow *window;
   NSDragOperation operation;
+  enum ns_return_frame_mode mode;
+  Lisp_Object val;
+
+  if (EQ (return_frame, Qnow))
+    mode = RETURN_FRAME_NOW;
+  else if (!NILP (return_frame))
+    mode = RETURN_FRAME_EVENTUALLY;
+  else
+    mode = RETURN_FRAME_NEVER;
+
+  if (NILP (pboard))
+    signal_error ("Empty pasteboard", pboard);
 
   f = decode_window_system_frame (frame);
   pasteboard = [NSPasteboard pasteboardWithName: NSPasteboardNameDrag];
@@ -696,7 +713,15 @@ target, or the drop was rejected).  */)
   ns_lisp_to_pasteboard (pboard, pasteboard);
 
   operation = [window beginDrag: operation
-		  forPasteboard: pasteboard];
+		  forPasteboard: pasteboard
+		       withMode: mode
+		  returnFrameTo: &return_to];
+
+  if (return_to)
+    {
+      XSETFRAME (val, return_to);
+      return val;
+    }
 
   return ns_dnd_action_from_operation (operation);
 }
@@ -714,6 +739,7 @@ syms_of_nsselect (void)
   DEFSYM (QXdndActionMove, "XdndActionMove");
   DEFSYM (QXdndActionLink, "XdndActionLink");
   DEFSYM (QXdndActionPrivate, "XdndActionPrivate");
+  DEFSYM (Qnow, "now");
 
   defsubr (&Sns_disown_selection_internal);
   defsubr (&Sns_get_selection);

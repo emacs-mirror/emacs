@@ -408,6 +408,13 @@ typedef id instancetype;
 @end
 #endif
 
+enum ns_return_frame_mode
+  {
+    RETURN_FRAME_NEVER,
+    RETURN_FRAME_EVENTUALLY,
+    RETURN_FRAME_NOW,
+  };
+
 /* EmacsWindow  */
 @interface EmacsWindow : NSWindow
 {
@@ -415,6 +422,9 @@ typedef id instancetype;
   NSEvent *last_drag_event;
   NSDragOperation drag_op;
   NSDragOperation selected_op;
+
+  struct frame *dnd_return_frame;
+  enum ns_return_frame_mode dnd_mode;
 }
 
 #ifdef NS_IMPL_GNUSTEP
@@ -432,7 +442,9 @@ typedef id instancetype;
 - (void) setAppearance;
 - (void) setLastDragEvent: (NSEvent *) event;
 - (NSDragOperation) beginDrag: (NSDragOperation) op
-		forPasteboard: (NSPasteboard *) pasteboard;
+		forPasteboard: (NSPasteboard *) pasteboard
+		     withMode: (enum ns_return_frame_mode) mode
+		returnFrameTo: (struct frame **) frame_return;
 @end
 
 
