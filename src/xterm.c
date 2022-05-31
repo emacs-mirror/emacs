@@ -14843,8 +14843,11 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
 {
   struct x_display_info *dpyinfo;
   fd_set fds;
-  int fd, maxfd, finish;
+  int fd, maxfd;
+#ifndef USE_GTK
+  int finish;
   XEvent event;
+#endif
   struct input_event hold_quit;
   struct timespec current, at;
 
