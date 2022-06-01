@@ -176,6 +176,9 @@ org-manuals: main-first
 # gets created before the final emacs is dumped.  Having leim
 # dependencies in ../src as well would create a parallel race condition.
 #
+# FIXME: 2) is no longer correct, so perhaps we could add unidata to
+# gen-lisp now?
+#
 # 2) Files that are marked no-update-autoloads still get recorded in loaddefs.
 # So those files should be generated before we make autoloads, if we
 # don't want a successive make autoloads to change the output file.
