@@ -432,8 +432,9 @@ the specializer used will be the one returned by BODY."
                           ,nbody))
              (cons 'curried
                    `#'(lambda (,nm) ;Called when constructing the effective method.
-                        (let ((,nmp (if (cl--generic-isnot-nnm-p ,nm)
-                                        #'always #'ignore)))
+                        (lexical-let* ((,nm ,nm)
+                                       (,nmp (if (cl--generic-isnot-nnm-p ,nm)
+                                                 #'always #'ignore)))
                           ;; This `(λ (&rest x) .. (apply (λ (args) ..) x))'
                           ;; dance is needed because we need to get the original
                           ;; args as a list when `cl-call-next-method' is
@@ -458,8 +459,9 @@ the specializer used will be the one returned by BODY."
                                   (setcar ds (help-add-fundoc-usage (car ds)
                                                                     args)))
                                 prebody)
-                            (let ((,cnm (lambda (&rest args)
-                                          (apply ,nm (or args ,arglist)))))
+                            (lexical-let ((,nmp ,nmp)
+                                          (,cnm (lambda (&rest args)
+                                                  (apply ,nm (or args ,arglist)))))
                               ;; This `apply+lambda' basically parses
                               ;; `arglist' according to `args'.
                               ;; A destructuring-bind would do the trick
