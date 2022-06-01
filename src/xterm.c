@@ -14857,9 +14857,9 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
   struct timespec current, at;
 
   at = timespec_add (current_timespec (), timeout);
-  FD_ZERO (&rfds);
 
 #ifndef USE_GTK
+  FD_ZERO (&rfds);
   rc = 0;
 #endif
 
