@@ -543,7 +543,7 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
     (dolist (fdefs (seq-group-by #'car defs))
       (let ((loaddefs-file (car fdefs)))
         (with-temp-buffer
-          (if (file-exists-p loaddefs-file)
+          (if (and updating (file-exists-p loaddefs-file))
               (insert-file-contents loaddefs-file)
             (insert (loaddefs-generate--rubric loaddefs-file nil t))
             (search-backward "\f")
