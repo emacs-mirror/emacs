@@ -94,11 +94,11 @@ COMPILE_FIRST += $(lisp)/emacs-lisp/loaddefs-gen.elc
 COMPILE_FIRST += $(lisp)/emacs-lisp/radix-tree.elc
 
 # Files to compile early in compile-main.  Works around bug#25556.
-# Also compile the ja-dic files used to convert the Japanese
-# dictionary to speed things up.
+# Also compile the ja-dic file used to convert the Japanese dictionary
+# to speed things up.
 MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
   ./cedet/semantic/db.el ./emacs-lisp/cconv.el \
-  ./international/ja-dic-cnv.el ./international/ja-dic-utl.el
+  ./international/ja-dic-cnv.el
 
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
