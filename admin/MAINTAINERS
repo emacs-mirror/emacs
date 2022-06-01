@@ -305,7 +305,9 @@ Tramp
 
 Modus themes
         Maintainer: Protesilaos Stavrou
-        Repository and issue tracker: https://gitlab.com/protesilaos/modus-themes
+        Repository:  https://git.sr.ht/~protesilaos
+        Mailing list: https://lists.sr.ht/~protesilaos/modus-themes
+        Bug Reports: M-x modus-themes-report-bug
 
         doc/misc/modus-themes.org
         etc/themes/modus*.el

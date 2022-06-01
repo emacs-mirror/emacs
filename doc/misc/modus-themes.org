@@ -5,9 +5,9 @@
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
 
-#+macro: stable-version 2.3.0
-#+macro: release-date 2022-04-01
-#+macro: development-version 2.4.0-dev
+#+macro: stable-version 2.4.0
+#+macro: release-date 2022-06-01
+#+macro: development-version 2.5.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -33,6 +33,10 @@ feature which does not yet form part of the latest tagged commit, is
 explicitly marked as such.
 
 Current development target is {{{development-version}}}.
+
++ Homepage: https://protesilaos.com/emacs/modus-themes.
++ Git repository: https://git.sr.ht/~protesilaos/modus-themes.
++ Mailing list: https://lists.sr.ht/~protesilaos/modus-themes.
 
 #+toc: headlines 8 insert TOC here, with eight headline levels
 
@@ -165,13 +169,9 @@ The themes are now ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][
 The ~modus-themes~ package is available from the GNU ELPA archive, which
 is configured by default.
 
-Prior to querying any package archive, make sure to have updated the
-index, with {{{kbd(M-x package-refresh-contents)}}}.  Then all you need to do
+Prior to querying any package archive, make sure to update the index,
+with {{{kbd(M-x package-refresh-contents)}}}.  Then all you need to do
 is type {{{kbd(M-x package-install)}}} and specify the ~modus-themes~.
-
-Note that older versions of the themes used to be distributed as
-standalone packages.  This practice has been discontinued starting with
-version 1.0.0 of this project.
 
 Once installed, the themes are ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]].
 
@@ -210,6 +210,34 @@ guix package -i emacs-modus-themes
 #+end_src
 
 They are now ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]].
+
+** Dealing with byte compilation errors
+:properties:
+:custom_id: h:e6268471-e847-4c9d-998f-49a83257b7f1
+:end:
+
+From time to time, we receive bug reports pertaining to errors with byte
+compilation.  These seldom have to do with faulty code in the themes: it
+might be a shortcoming of =package.el=, some regression in the current
+development target of Emacs, a misconfiguration in an otherwise exotic
+setup, and the like.
+
+The common solution with a stable version of Emacs is to:
+
+1. Delete the =modus-themes= package.
+2. Close the current Emacs session.
+3. Install the =modus-themes= again.
+
+For those building Emacs directly from source, the solution may involve
+reverting to an earlier commit in emacs.git.
+
+At any rate, if you encounter such an issue please report it: we will
+either fix the bug on our end if it is truly ours, or help forward it to
+the relevant upstream maintainer.  Whatever you do, please understand
+that a build failure does not mean we are necessarily doing something
+wrong.
+
+[[#h:6536c8d5-3f98-43ab-a787-b94120e735e8][Issues you can help with]].
 
 * Enable and load
 :properties:
@@ -4053,6 +4081,44 @@ comments are gray.  Regexp constructs are adapted accordingly.
     (set-face-attribute 'font-lock-warning-face nil :inherit 'modus-themes-bold :foreground red-nuanced-fg)))
 #+end_src
 
+** Custom hl-todo colors
+:PROPERTIES:
+:CUSTOM_ID: h:2ef83a21-2f0a-441e-9634-473feb940743
+:END:
+
+The =hl-todo= package provides the user option ~hl-todo-keyword-faces~:
+it specifies a pair of keyword and corresponding color value.  The Modus
+themes configure that option in the interest of legibility.  While this
+works for our purposes, users may still prefer to apply their custom
+values, in which case the following approach is necessary:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-hl-todo-faces ()
+  (setq hl-todo-keyword-faces '(("TODO" . "#ff0000")
+                                ("HACK" . "#ffff00")
+                                ("XXX" . "#00ffff")
+                                ("NOTE" . "#ff00ff"))))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-hl-todo-faces)
+#+end_src
+
+Or include a ~let~ form, if needed:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-hl-todo-faces ()
+  (let ((red "#ff0000")
+        (blue "#0000ff"))
+    (setq hl-todo-keyword-faces `(("TODO" . ,blue)
+                                  ("HACK" . ,red)
+                                  ("XXX" . ,red)
+                                  ("NOTE" . ,blue)))))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-hl-todo-faces)
+#+end_src
+
+Normally, we do not touch user options, though this is an exception:
+otherwise the defaults are not always legible.
+
 * Face coverage
 :properties:
 :custom_id: h:a9c8f29d-7f72-4b54-b74b-ddefe15d6a19
@@ -4098,6 +4164,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + breakpoint (provided by the built-in {{{file(gdb-mi.el)}}} library)
 + calendar and diary
 + calfw
++ calibredb
 + centaur-tabs
 + cfrs
 + change-log and log-view (such as ~vc-print-log~, ~vc-print-root-log~)
@@ -4112,6 +4179,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + completions
 + consult
 + corfu
++ corfu-quick
 + counsel*
 + counsel-css
 + cov
@@ -4146,6 +4214,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + easy-jekyll
 + ebdb
 + ediff
++ ein (Emacs IPython Notebook)
 + eglot
 + el-search
 + eldoc-box
@@ -4344,6 +4413,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + tomatinho
 + transient (pop-up windows such as Magit's)
 + trashed
++ tree-sitter
 + treemacs
 + tty-menu
 + tuareg
@@ -4357,6 +4427,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + visible-mark
 + visual-regexp
 + vterm
++ vundo
 + wcheck-mode
 + web-mode
 + wgrep
@@ -4398,6 +4469,7 @@ supported by the themes.
 + dtache
 + easy-kill
 + edit-indirect
++ egerrit
 + elfeed-summary
 + evil-owl
 + flyspell-correct
@@ -4432,40 +4504,6 @@ supported by the themes.
 This section covers information that may be of interest to users of
 individual packages.
 
-** Note on avy hints
-:properties:
-:custom_id: h:2fdce705-6de7-44e6-ab7f-18f59af99e01
-:end:
-
-Hints can appear everywhere, in wildly varying contexts, hence, their
-appearance, by necessity, is a compromise.  However, there are various
-options for making them stand out. First is dimming the surroundings:
-
-#+begin_src emacs-lisp
-(setq avy-background t)
-#+end_src
-
-Dimming works well when you find it difficult to spot hints, any hint.
-Second is limiting the number of faces used by hints:
-
-#+begin_src emacs-lisp
-(setq avy-lead-faces
-      '(avy-lead-face
-        avy-lead-face-1
-        avy-lead-face-1
-        avy-lead-face-1
-        avy-lead-face-1))
-#+end_src
-
-Limiting the number of faces works well with longer hints when you find
-it difficult to identify individual hints, especially with hints
-touching each other.  The first character of the hint will have an
-intense color, the remaining ones the same neutral color.
-
-Third is preferring commands that produce fewer candidates.  Fewer hints
-is less noise: ~avy-goto-char-timer~ is an excellent alternative to
-~avy-goto-char~.
-
 ** Note on calendar.el weekday and weekend colors
 :properties:
 :custom_id: h:b2db46fb-32f4-44fd-8e11-d2b261cf51ae
@@ -4494,6 +4532,72 @@ weekends uniformly.
 
 For changes to take effect, the Calendar buffer needs to be generated
 anew.
+
+** Note on git-gutter in Doom Emacs
+:PROPERTIES:
+:CUSTOM_ID: h:a195e37c-e58c-4148-b254-8ba1ed8a731a
+:END:
+
+The =git-gutter= and =git-gutter-fr= packages default to drawing bitmaps
+for the indicators they display (e.g. bitmap of a plus sign for added
+lines).  In Doom Emacs, these bitmaps are replaced with contiguous lines
+which may look nicer, but require a change to the foreground of the
+relevant faces to yield the desired colour combinations.
+
+Since this is Doom-specific, we urge users to apply changes in their
+local setup.  Below is some sample code, based on what we cover at
+length elsewhere in this manual:
+
+[[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]].
+
+[[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-custom-faces ()
+  (modus-themes-with-colors
+    (custom-set-faces
+     ;; Replace green with blue if you use `modus-themes-deuteranopia'.
+     `(git-gutter-fr:added ((,class :foreground ,green-fringe-bg)))
+     `(git-gutter-fr:deleted ((,class :foreground ,red-fringe-bg)))
+     `(git-gutter-fr:modified ((,class :foreground ,yellow-fringe-bg))))))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-custom-faces)
+#+end_src
+
+If the above does not work, try this instead:
+
+#+begin_src emacs-lisp
+(after! modus-themes
+  (modus-themes-with-colors
+    (custom-set-faces
+     ;; Replace green with blue if you use `modus-themes-deuteranopia'.
+     `(git-gutter-fr:added ((,class :foreground ,green-fringe-bg)))
+     `(git-gutter-fr:deleted ((,class :foreground ,red-fringe-bg)))
+     `(git-gutter-fr:modified ((,class :foreground ,yellow-fringe-bg))))))
+#+end_src
+
+Replace ~green-fringe-bg~ with ~blue-fringe-bg~ if you want to optimize
+for red-green color deficiency.
+
+[[#h:3ed03a48-20d8-4ce7-b214-0eb7e4c79abe][Option for red-green color deficiency or deuteranopia]].
+
+** Note on php-mode multiline comments
+:PROPERTIES:
+:CUSTOM_ID: h:d0a3157b-9c04-46e8-8742-5fb2a7ae8798
+:END:
+
+Depending on your build of Emacs and/or the environment it runs in,
+multiline comments in PHP with the =php-mode= package use the
+~font-lock-doc-face~ instead of ~font-lock-comment-face~.
+
+This seems to make all comments use the appropriate face:
+
+#+begin_src emacs-lisp
+(defun my-multine-comments ()
+  (setq-local c-doc-face-name 'font-lock-comment-face))
+
+(add-hook 'php-mode-hook #'my-multine-comments)
+#+end_src
 
 ** Note on underlines in compilation buffers
 :properties:
@@ -4593,6 +4697,17 @@ elsewhere in this document.  For example:
 #+end_src
 
 [[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
+
+To make the line thicker, set the height to be equal to the base font
+size instead of the one pixel we use.  This is done by specifying a rate
+instead of an absolute number, as in =:height 1.0= versus =:height 1=.
+For example:
+
+#+begin_src emacs-lisp
+(modus-themes-with-colors
+  (custom-set-faces
+   `(fill-column-indicator ((,class :height 1.0 :background ,bg-inactive :foreground ,bg-inactive)))))
+#+end_src
 
 ** Note on highlight-parentheses.el
 :PROPERTIES:
@@ -5271,8 +5386,8 @@ and hints of green give us suitable shades of purple.
 
 Due to the need of maintaining some difference in hueness between
 adjacent colors, it is not possible to make red, green, and yellow the
-primary colors, because blue could not be used to control their
-luminance and, thus the relevant space would shrink considerably.
+main colors, because blue cannot be used to control their luminance and,
+thus the relevant space will shrink considerably.
 
 [[#h:5ce7ae2e-9348-4e55-b4cf-9302345b1826][Is the contrast ratio about adjacent colors?]]
 
@@ -5508,8 +5623,8 @@ in which you can contribute to their ongoing development.
 
 The ~modus-operandi~ and ~modus-vivendi~ themes are built into Emacs 28.
 
-The source code of the themes is [[https://gitlab.com/protesilaos/modus-themes/][available on GitLab]], for the time
-being.  A [[https://github.com/protesilaos/modus-themes/][mirror on GitHub]] is also on offer.
+The source code of the themes is [[https://git.sr.ht/~protesilaos/modus-themes][available on SourceHut]].  Or check the
+[[https://gitlab.com/protesilaos/modus-themes/][GitLab mirror (former main source)]] and the [[https://github.com/protesilaos/modus-themes/][GitHub mirror]].
 
 An HTML version of this manual is provided as an extension of the
 [[https://protesilaos.com/emacs/modus-themes/][author's personal website]] (does not rely on any non-free code).
@@ -5520,7 +5635,10 @@ An HTML version of this manual is provided as an extension of the
 :end:
 #+cindex: Contributing
 
-A few tasks you can help with:
+#+findex: modus-themes-report-bug
+A few tasks you can help with by sending an email to the general
+[[https://lists.sr.ht/~protesilaos/modus-themes][modus-themes public mailing list]] (or use the command
+~modus-themes-report-bug~).
 
 + Suggest refinements to packages that are covered.
 + Report packages not covered thus far.
@@ -5528,13 +5646,18 @@ A few tasks you can help with:
 + Help expand the documentation of covered-but-not-styled packages.
 + Suggest refinements to the color palette.
 + Help expand this document or any other piece of documentation.
-+ Merge requests for code refinements.
++ Send patches for code refinements (if you need, ask me for help with
+  Git---we all start out as beginners).
 
 [[#h:111773e2-f26f-4b68-8c4f-9794ca6b9633][Patches require copyright assignment to the FSF]].
 
 It is preferable that your feedback includes some screenshots, GIFs, or
 short videos, as well as further instructions to reproduce a given
 setup.  Though this is not a requirement.
+
+#+findex: modus-themes-version
+Also consider mentioning the version of the themes you are using, such
+as by invoking the command ~modus-themes-version~.
 
 Whatever you do, bear in mind the overarching objective of the Modus
 themes: to keep a contrast ratio that is greater or equal to 7:1 between
@@ -5567,7 +5690,7 @@ will send you the assignment form for your past and future changes.
 
 Please use your full legal name (in ASCII characters) as the subject
 line of the message.
-----------------------------------------------------------------------
+
 REQUEST: SEND FORM FOR PAST AND FUTURE CHANGES
 
 [What is the name of the program or package you're contributing to?]
@@ -5619,41 +5742,44 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Johansson, Basil L.{{{space()}}} Contovounesios, Björn Lindström,
   Carlo Zancanaro, Christian Tietze, Daniel Mendler, Eli Zaretskii,
   Fritz Grabo, Illia Ostapyshyn, Kévin Le Gouguec, Kostadin Ninev,
-  Madhavan Krishnan, Markus Beppler, Matthew Stevenson, Mauro Aranda,
-  Nicolas De Jaeghere, Philip Kaludercic, Pierre Téchoueyres, Rudolf
-  Adamkovič, Stephen Gildea, Shreyas Ragavan, Stefan Kangas, Utkarsh
-  Singh, Vincent Murphy, Xinglu Chen, Yuanchen Xie.
+  Madhavan Krishnan, Manuel Giraud, Markus Beppler, Matthew Stevenson,
+  Mauro Aranda, Nicolas De Jaeghere, Philip Kaludercic, Pierre
+  Téchoueyres, Rudolf Adamkovič, Stephen Gildea, Shreyas Ragavan, Stefan
+  Kangas, Utkarsh Singh, Vincent Murphy, Xinglu Chen, Yuanchen Xie.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
   Adrian Manea, Alex Griffin, Alex Koen, Alex Peitsinis, Alexey Shmalko,
-  Alok Singh, Anders Johansson, André Alexandre Gomes, Antonio Hernández
-  Blas, Arif Rezai, Augusto Stoffel, Basil L.{{{space()}}}
-  Contovounesios, Burgess Chang, Christian Tietze, Christopher Dimech,
-  Damien Cassou, Daniel Mendler, Dario Gjorgjevski, David Edmondson,
-  Davor Rotim, Divan Santana, Eliraz Kedmi, Emanuele Michele Alberto
-  Monterosso, Farasha Euker, Feng Shu, Gautier Ponsinet, Gerry Agbobada,
-  Gianluca Recchia, Guilherme Semente, Gustavo Barros, Hörmetjan Yiltiz,
-  Ilja Kocken, Iris Garcia, Jeremy Friesen, Jerry Zhang, Johannes
-  Grødem, John Haman, Jorge Morais, Joshua O'Connor, Julio
-  C. Villasante, Kenta Usami, Kevin Fleming, Kévin Le Gouguec, Kostadin
-  Ninev, Len Trigg, Lennart C. Karssen, Magne Hov, Manuel Uberti, Mark
-  Bestley, Mark Burton, Markus Beppler, Mauro Aranda, Michael
+  Alok Singh, Anders Johansson, André Alexandre Gomes, Andrew Tropin,
+  Antonio Hernández Blas, Arif Rezai, Augusto Stoffel, Basil
+  L.{{{space()}}} Contovounesios, Burgess Chang, Christian Tietze,
+  Christopher Dimech, Christopher League, Damien Cassou, Daniel Mendler,
+  Dario Gjorgjevski, David Edmondson, Davor Rotim, Divan Santana, Eliraz
+  Kedmi, Emanuele Michele Alberto Monterosso, Farasha Euker, Feng Shu,
+  Gautier Ponsinet, Gerry Agbobada, Gianluca Recchia, Gonçalo Marrafa,
+  Guilherme Semente, Gustavo Barros, Hörmetjan Yiltiz, Ilja Kocken, Iris
+  Garcia, Ivan Popovych, Jeremy Friesen, Jerry Zhang, Johannes Grødem,
+  John Haman, Jorge Morais, Joshua O'Connor, Julio C. Villasante, Kenta
+  Usami, Kevin Fleming, Kévin Le Gouguec, Kostadin Ninev, Len Trigg,
+  Lennart C. Karssen, Magne Hov, Manuel Uberti, Mark Bestley, Mark
+  Burton, Markus Beppler, Mauro Aranda, Maxime Tréca, Michael
   Goldenberg, Morgan Smith, Morgan Willcock, Murilo Pereira, Nicky van
   Foreest, Nicolas De Jaeghere, Paul Poloskov, Pengji Zhang, Pete
-  Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres, Robert
-  Hepple, Roman Rudakov, Ryan Phillips, Rytis Paškauskas, Rudolf
-  Adamkovič, Sam Kleinman, Samuel Culpepper, Saša Janiška, Shreyas
-  Ragavan, Simon Pugnet, Tassilo Horn, Thibaut Verron, Thomas Heartman,
-  Togan Muftuoglu, Tony Zorman, Trey Merkley, Tomasz Hołubowicz, Toon
-  Claes, Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as users:
-  Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik,
-  Moesasji, Nick, TheBlob42, Trey, bepolymathe, bit9tream, derek-upham,
-  doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn, pRot0ta1p.
+  Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres, Przemysław
+  Kryger, Robert Hepple, Roman Rudakov, Ryan Phillips, Rytis Paškauskas,
+  Rudolf Adamkovič, Sam Kleinman, Samuel Culpepper, Saša Janiška,
+  Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thibaut Verron, Thomas
+  Heartman, Togan Muftuoglu, Tony Zorman, Trey Merkley, Tomasz
+  Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley.  As
+  well as users: Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux,
+  Fredrik, Moesasji, Nick, TheBlob42, Trey, bepolymathe, bit9tream,
+  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn,
+  pRot0ta1p.
 
-+ Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii, Glenn
-  Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core Emacs),
-  Stefan Monnier (GNU Elpa), André Alexandre Gomes, Dimakakos Dimos,
-  Morgan Smith, Nicolas Goaziou (Guix), Dhavan Vaidya (Debian).
++ Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
+  Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core
+  Emacs), Stefan Monnier (GNU Elpa), André Alexandre Gomes, Andrew
+  Tropin, Dimakakos Dimos, Morgan Smith, Nicolas Goaziou (Guix), Dhavan
+  Vaidya (Debian).
 
 + Inspiration for certain features :: Bozhidar Batsov (zenburn-theme),
   Fabrice Niessen (leuven-theme).
@@ -5663,7 +5789,7 @@ Jaeghere, and Omar Antolín Camarena for their long time contributions
 and insightful commentary on key aspects of the themes' design and/or
 aspects of their functionality.
 
-* Meta
+* Other notes about the project
 :properties:
 :custom_id: h:13752581-4378-478c-af17-165b6e76bc1b
 :end:
@@ -5688,12 +5814,16 @@ of this sort):
 + [[https://protesilaos.com/codelog/2021-06-02-modus-themes-org-agenda/][Introducing the variable modus-themes-org-agenda]] (2021-06-02)
 + [[https://protesilaos.com/codelog/2022-01-02-review-modus-themes-org-habit-colours/][Modus themes: review of the org-habit graph colours]] (2022-01-02)
 + [[https://protesilaos.com/codelog/2022-01-03-modus-themes-port-faq/][Re: VSCode or Vim ports of the Emacs modus-themes?]] (2022-01-03)
++ [[https://protesilaos.com/codelog/2022-04-20-modus-themes-case-study-avy/][Modus themes: case study on Avy faces and colour combinations]] (2022-04-20)
++ [[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][Emacs: colour theory and techniques used in the Modus themes]] (2022-04-21)
 
-And here are the canonical sources of this project's documentation:
+And here are the canonical sources of this project:
 
 + Manual :: <https://protesilaos.com/emacs/modus-themes>
 + Change Log :: <https://protesilaos.com/emacs/modus-themes-changelog>
 + Screenshots :: <https://protesilaos.com/emacs/modus-themes-pictures>
++ Git repository :: https://git.sr.ht/~protesilaos/modus-themes
++ Mailing list :: https://lists.sr.ht/~protesilaos/modus-themes
 
 * GNU Free Documentation License
 :properties:
