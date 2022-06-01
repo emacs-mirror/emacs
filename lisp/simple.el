@@ -9802,7 +9802,7 @@ Called from `temp-buffer-show-hook'."
           ;; - With fancy completion styles, the code below will not always
           ;;   find the right base directory.
           (if minibuffer-completing-file-name
-              (file-name-as-directory
+              (file-name-directory
                (expand-file-name
                 (buffer-substring (minibuffer-prompt-end) (point)))))))
     (with-current-buffer standard-output
