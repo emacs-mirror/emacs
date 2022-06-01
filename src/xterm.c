@@ -10292,8 +10292,11 @@ static void
 x_next_event_from_any_display (XEvent *event)
 {
   struct x_display_info *dpyinfo;
-  fd_set fds;
-  int fd, maxfd;
+  fd_set fds, rfds;
+  int fd, maxfd, rc;
+
+  rc = 0;
+  FD_ZERO (&rfds);
 
   while (true)
     {
@@ -10303,27 +10306,31 @@ x_next_event_from_any_display (XEvent *event)
       for (dpyinfo = x_display_list; dpyinfo;
 	   dpyinfo = dpyinfo->next)
 	{
-	  if (XPending (dpyinfo->display))
+	  fd = ConnectionNumber (dpyinfo->display);
+
+	  if ((rc < 0 || FD_ISSET (fd, &rfds))
+	      && XPending (dpyinfo->display))
 	    {
 	      XNextEvent (dpyinfo->display, event);
 	      return;
 	    }
 
-	  fd = XConnectionNumber (dpyinfo->display);
-
 	  if (fd > maxfd)
 	    maxfd = fd;
 
 	  eassert (fd < FD_SETSIZE);
-	  FD_SET (XConnectionNumber (dpyinfo->display), &fds);
+	  FD_SET (fd, &fds);
 	}
 
       eassert (maxfd >= 0);
 
-      /* We don't have to check the return of pselect, because if an
+      /* Continue to read input even if pselect fails, because if an
 	 error occurs XPending will call the IO error handler, which
 	 then brings us out of this loop.  */
-      pselect (maxfd + 1, &fds, NULL, NULL, NULL, NULL);
+      rc = pselect (maxfd + 1, &fds, NULL, NULL, NULL, NULL);
+
+      if (rc >= 0)
+	rfds = fds;
     }
 }
 
