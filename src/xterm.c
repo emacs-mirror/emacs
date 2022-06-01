@@ -15502,7 +15502,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    && eventp->selection == dpyinfo->Xatom_XdndSelection
 	    && (eventp->target == dpyinfo->Xatom_XmTRANSFER_SUCCESS
 		|| eventp->target == dpyinfo->Xatom_XmTRANSFER_FAILURE))
-	  x_dnd_waiting_for_finish = false;
+	  {
+	    x_dnd_waiting_for_finish = false;
+
+	    /* If the transfer failed, then return nil from
+	       `x-begin-drag'.  */
+	    if (eventp->target == dpyinfo->Xatom_XmTRANSFER_FAILURE)
+	      x_dnd_action = None;
+	  }
       }
       break;
 
