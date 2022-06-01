@@ -80,7 +80,7 @@ MISC= \
 TIT_MISC = ${TIT_GB} ${TIT_BIG5} ${MISC}
 
 
-all: ${leimdir}/leim-list.el ${leimdir}/ja-dic/ja-dic.el
+all: ${leimdir}/leim-list.el
 .PHONY: all
 
 
@@ -129,6 +129,8 @@ ${leimdir}/leim-list.el: ${srcdir}/leim-ext.el ${TIT_MISC}
 
 ${leimdir}/ja-dic/ja-dic.el: | $(leimdir)/ja-dic
 
+.PHONY: generate-ja-dic
+generate-ja-dic: ${leimdir}/ja-dic/ja-dic.el
 ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	$(AM_V_GEN)$(RUN_EMACS) -batch -l ja-dic-cnv \
 	  --eval "(setq max-specpdl-size 5000)" \

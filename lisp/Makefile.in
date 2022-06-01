@@ -118,10 +118,11 @@ SUBDIRS_SUBDIRS = $(filter-out ${srcdir}/cedet% ${srcdir}/leim%,${SUBDIRS})
 
 # cus-load and finder-inf are not explicitly requested by anything, so
 # we add them here to make sure they get built.
-all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
+all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el generate-ja-dic
 
 PHONY_EXTRAS =
-.PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS)
+.PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS) \
+	generate-ja-dic
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
 # This could lead to problems in parallel builds if automatically
@@ -151,6 +152,9 @@ $(lisp)/finder-inf.el:
 	$(AM_V_GEN)$(emacs) -l finder \
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
 	  -f finder-compile-keywords-make-dist ${SUBDIRS_FINDER}
+
+generate-ja-dic:
+	$(MAKE) -C ../leim generate-ja-dic EMACS="$(EMACS)"
 
 ## Comments on loaddefs generation:
 
