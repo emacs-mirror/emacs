@@ -14912,7 +14912,7 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
 	    maxfd = fd;
 
 	  eassert (fd < FD_SETSIZE);
-	  FD_SET (XConnectionNumber (dpyinfo->display), &fds);
+	  FD_SET (fd, &fds);
 	}
 
       /* Prevent events from being lost (from GTK's point of view) by
