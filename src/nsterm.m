@@ -8608,13 +8608,30 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
 -(NSDragOperation) draggingEntered: (id <NSDraggingInfo>) sender
 {
+  id source;
+
   NSTRACE ("[EmacsView draggingEntered:]");
+
+  source = [sender draggingSource];
+
+  if (source && [source respondsToSelector: @selector(mustNotDropOn:)]
+      && [source mustNotDropOn: self])
+    return NSDragOperationNone;
+
   return NSDragOperationGeneric;
 }
 
 
--(BOOL)prepareForDragOperation: (id <NSDraggingInfo>) sender
+-(BOOL) prepareForDragOperation: (id <NSDraggingInfo>) sender
 {
+  id source;
+
+  source = [sender draggingSource];
+
+  if (source && [source respondsToSelector: @selector(mustNotDropOn:)]
+      && [source mustNotDropOn: self])
+    return NO;
+
   return YES;
 }
 
@@ -8675,25 +8692,29 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   return NSDragOperationGeneric;
 }
 
--(BOOL)performDragOperation: (id <NSDraggingInfo>) sender
+- (BOOL) performDragOperation: (id <NSDraggingInfo>) sender
 {
-  id pb;
+  id pb, source;
   int x, y;
   NSString *type;
-  NSEvent *theEvent = [[self window] currentEvent];
   NSPoint position;
   NSDragOperation op = [sender draggingSourceOperationMask];
   Lisp_Object operations = Qnil;
   Lisp_Object strings = Qnil;
   Lisp_Object type_sym;
+  struct input_event ie;
 
   NSTRACE ("[EmacsView performDragOperation:]");
 
-  if (!emacs_event)
+  source = [sender draggingSource];
+
+  if (source && [source respondsToSelector: @selector(mustNotDropOn:)]
+      && [source mustNotDropOn: self])
     return NO;
 
   position = [self convertPoint: [sender draggingLocation] fromView: nil];
-  x = lrint (position.x);  y = lrint (position.y);
+  x = lrint (position.x);
+  y = lrint (position.y);
 
   pb = [sender draggingPasteboard];
   type = [pb availableTypeFromArray: ns_drag_types];
@@ -8709,10 +8730,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   if (op & NSDragOperationGeneric || NILP (operations))
     operations = Fcons (Qns_drag_operation_generic, operations);
 
-  if (type == 0)
-    {
-      return NO;
-    }
+  if (!type)
+    return NO;
 #if NS_USE_NSPasteboardTypeFileURL != 0
   else if ([type isEqualToString: NSPasteboardTypeFileURL])
     {
@@ -8764,21 +8783,16 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
       strings = list1 ([data lispString]);
     }
   else
-    {
-      fputs ("Invalid data type in dragging pasteboard\n", stderr);
-      return NO;
-    }
+    return NO;
 
-  emacs_event->kind = DRAG_N_DROP_EVENT;
-  XSETINT (emacs_event->x, x);
-  XSETINT (emacs_event->y, y);
-  emacs_event->modifiers = 0;
+  EVENT_INIT (ie);
+  ie.kind = DRAG_N_DROP_EVENT;
+  ie.arg = Fcons (type_sym, Fcons (operations, strings));
+  XSETINT (ie.x, x);
+  XSETINT (ie.y, y);
+  XSETFRAME (ie.frame_or_window, emacsframe);
 
-  emacs_event->arg = Fcons (type_sym,
-                            Fcons (operations,
-                                   strings));
-  EV_TRAILER (theEvent);
-
+  kbd_buffer_store_event (&ie);
   return YES;
 }
 
@@ -9611,10 +9625,17 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 }
 #endif
 
+- (BOOL) mustNotDropOn: (NSView *) receiver
+{
+  return ([receiver window] == self
+	  ? !dnd_allow_same_frame : NO);
+}
+
 - (NSDragOperation) beginDrag: (NSDragOperation) op
 		forPasteboard: (NSPasteboard *) pasteboard
 		     withMode: (enum ns_return_frame_mode) mode
 		returnFrameTo: (struct frame **) frame_return
+		 prohibitSame: (BOOL) prohibit_same_frame
 {
   NSImage *image;
 #ifdef NS_IMPL_COCOA
@@ -9627,6 +9648,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   image = [[NSImage alloc] initWithSize: NSMakeSize (1.0, 1.0)];
   dnd_mode = mode;
   dnd_return_frame = NULL;
+  dnd_allow_same_frame = !prohibit_same_frame;
 
   /* Now draw transparency onto the image.  */
   [image lockFocus];
