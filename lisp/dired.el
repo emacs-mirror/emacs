@@ -1764,7 +1764,15 @@ when Emacs exits or the user drags another file.")
                       (setq dired-last-dragged-remote-file filename)
                       (add-hook 'kill-emacs-hook
                                 #'dired-remove-last-dragged-local-file))
-                    (gui-backend-set-selection 'XdndSelection filename)
+                    (gui-backend-set-selection
+                     ;; FIXME: this seems arbitrarily confusing.
+                     ;; Should drag-and-drop for common items (such as
+                     ;; files and text) should be abstracted into
+                     ;; dnd.el?
+                     'XdndSelection
+                     (propertize filename 'text/uri-list
+                                 (concat "file://"
+                                         (expand-file-name filename))))
                     (x-begin-drag '("text/uri-list" "text/x-dnd-username"
                                     "FILE_NAME" "FILE" "HOST_NAME" "_DT_NETFILE")
                                   (if (eq 'dired-mouse-drag-files 'link)

@@ -1909,6 +1909,11 @@ functions.
 
 * Lisp Changes in Emacs 29.1
 
++++
+** 'gui-set-selection' can now specify different values for different data types.
+If DATA is a string, then its text properties are searched for values
+for each specific data type while the selection is being converted.
+
 ---
 ** New eldoc function: 'elisp-eldoc-var-docstring-with-value'.
 This function includes the current value of the variable in eldoc display

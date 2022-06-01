@@ -401,11 +401,16 @@ also be a string, which stands for the symbol with that name, but
 this is considered obsolete.)  DATA may be a string, a symbol, or
 an integer.
 
-The selection may also be a cons of two markers pointing to the same buffer,
-or an overlay.  In these cases, the selection is considered to be the text
-between the markers *at whatever time the selection is examined*.
-Thus, editing done in the buffer after you specify the selection
-can alter the effective value of the selection.
+The selection may also be a cons of two markers pointing to the
+same buffer, or an overlay.  In these cases, the selection is
+considered to be the text between the markers *at whatever time
+the selection is examined*.  Thus, editing done in the buffer
+after you specify the selection can alter the effective value of
+the selection.  If DATA is a string, then its text properties can
+specify alternative values for different data types.  For
+example, the value of any property named `text/uri-list' will be
+used instead of DATA itself when another program converts TYPE to
+the target `text/uri-list'.
 
 The data may also be a vector of valid non-vector selection values.
 
@@ -692,18 +697,15 @@ This function returns the string \"emacs\"."
   (user-real-login-name))
 
 (defun xselect-convert-to-text-uri-list (_selection _type value)
-  (when (and (stringp value)
-             (file-exists-p value))
-    (concat (url-encode-url
-             ;; Uncomment the following code code in a better world where
-             ;; people write correct code that adds the hostname to the URI.
-             ;; Since most programs don't implement this properly, we omit the
-             ;; hostname so that copying files actually works.  Most properly
-             ;; written programs will look at WM_CLIENT_MACHINE to determine
-             ;; the hostname anyway.  (format "file://%s%s\n" (system-name)
-             ;; (expand-file-name value))
-             (concat "file://" (expand-file-name value)))
-            "\n")))
+  (if (stringp value)
+      (concat (url-encode-url value) "\n")
+    (when (vectorp value)
+      (with-temp-buffer
+        (cl-loop for tem across value
+                 do (progn
+                      (insert (url-encode-url tem))
+                      (insert "\n")))
+        (buffer-string)))))
 
 (defun xselect-convert-to-xm-file (selection _type value)
   (when (and (stringp value)
@@ -716,8 +718,8 @@ This function returns the string \"emacs\"."
   "Return whether or not `text/uri-list' is a valid target for SELECTION.
 VALUE is the local selection value of SELECTION."
   (and (eq selection 'XdndSelection)
-       (stringp value)
-       (file-exists-p value)))
+       (or (stringp value)
+           (vectorp value))))
 
 (defun xselect-convert-xm-special (_selection _type _value)
   "")

@@ -3943,6 +3943,13 @@ overlay or a pair of markers stands for text in the overlay or between
 the markers.  The argument @var{data} may also be a vector of valid
 non-vector selection values.
 
+If @var{data} is a string, then its text properties can specify values
+used for individual data types.  For example, if @var{data} has a
+property named @code{text/uri-list}, then a call to
+@code{gui-get-selection} with the data type @code{text/uri-list} will
+result in the value of that property being used instead of @var{data}
+itself.
+
 This function returns @var{data}.
 @end deffn
 
