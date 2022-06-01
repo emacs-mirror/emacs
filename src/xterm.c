@@ -14849,13 +14849,19 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
   fd_set fds;
   int fd, maxfd;
 #ifndef USE_GTK
-  int finish;
+  int finish, rc;
   XEvent event;
+  fd_set rfds;
 #endif
   struct input_event hold_quit;
   struct timespec current, at;
 
   at = timespec_add (current_timespec (), timeout);
+  FD_ZERO (&rfds);
+
+#ifndef USE_GTK
+  rc = 0;
+#endif
 
   while (true)
     {
@@ -14865,25 +14871,34 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
       for (dpyinfo = x_display_list; dpyinfo;
 	   dpyinfo = dpyinfo->next)
 	{
+	  fd = ConnectionNumber (dpyinfo->display);
+
 #ifndef USE_GTK
-	  if (XPending (dpyinfo->display))
+	  if ((rc < 0 || FD_ISSET (fd, &rfds))
+	      /* If pselect failed, the erroring display's IO error
+		 handler will eventually be called.  */
+	      && XPending (dpyinfo->display))
 	    {
-	      EVENT_INIT (hold_quit);
+	      while (XPending (dpyinfo->display))
+		{
+		  EVENT_INIT (hold_quit);
 
-	      XNextEvent (dpyinfo->display, &event);
-	      handle_one_xevent (dpyinfo, &event,
-				 &finish, &hold_quit);
+		  XNextEvent (dpyinfo->display, &event);
+		  handle_one_xevent (dpyinfo, &event,
+				     &finish, &hold_quit);
 
-	      /* Make us quit now.  */
-	      if (hold_quit.kind != NO_EVENT)
-		kbd_buffer_store_event (&hold_quit);
+		  if (!NILP (XCAR (cell)))
+		    return;
 
-	      if (!NILP (XCAR (cell)))
-		return;
+		  if (finish == X_EVENT_GOTO_OUT)
+		    break;
+
+		  /* Make us quit now.  */
+		  if (hold_quit.kind != NO_EVENT)
+		    kbd_buffer_store_event (&hold_quit);
+		}
 	    }
 #endif
-
-	  fd = XConnectionNumber (dpyinfo->display);
 
 	  if (fd > maxfd)
 	    maxfd = fd;
@@ -14929,10 +14944,14 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
 
       timeout = timespec_sub (at, current);
 
-      /* We don't have to check the return of pselect, because if an
-	 error occurs XPending will call the IO error handler, which
-	 then brings us out of this loop.  */
+#ifndef USE_GTK
+      rc = pselect (maxfd, &fds, NULL, NULL, &timeout, NULL);
+
+      if (rc > 0)
+	rfds = fds;
+#else
       pselect (maxfd, &fds, NULL, NULL, &timeout, NULL);
+#endif
     }
 }
 
