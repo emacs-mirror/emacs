@@ -550,6 +550,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdlib.h>
 #include <math.h>
+#include <signal.h>
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -22851,7 +22852,7 @@ x_check_expected_move (struct frame *f, int expected_left, int expected_top)
       int adjusted_left;
       int adjusted_top;
 
-        FRAME_DISPLAY_INFO (f)->wm_type = X_WMTYPE_A;
+      FRAME_DISPLAY_INFO (f)->wm_type = X_WMTYPE_A;
       FRAME_X_OUTPUT (f)->move_offset_left = expected_left - current_left;
       FRAME_X_OUTPUT (f)->move_offset_top = expected_top - current_top;
 
@@ -22868,7 +22869,6 @@ x_check_expected_move (struct frame *f, int expected_left, int expected_top)
   else
     /* It's a "Type B" window manager.  We don't have to adjust the
        frame's position. */
-
       FRAME_DISPLAY_INFO (f)->wm_type = X_WMTYPE_B;
 }
 
@@ -22882,11 +22882,17 @@ x_check_expected_move (struct frame *f, int expected_left, int expected_top)
 static void
 x_sync_with_move (struct frame *f, int left, int top, bool fuzzy)
 {
-  int count = 0;
+  sigset_t emptyset;
+  int count, current_left, current_top;
+  struct timespec fallback;
+
+  sigemptyset (&emptyset);
+  count = 0;
 
   while (count++ < 50)
     {
-      int current_left = 0, current_top = 0;
+      current_left = 0;
+      current_top = 0;
 
       /* In theory, this call to XSync only needs to happen once, but in
          practice, it doesn't seem to work, hence the need for the surrounding
@@ -22911,7 +22917,14 @@ x_sync_with_move (struct frame *f, int left, int top, bool fuzzy)
   /* As a last resort, just wait 0.5 seconds and hope that XGetGeometry
      will then return up-to-date position info. */
 
-  wait_reading_process_output (0, 500000000, 0, false, Qnil, NULL, 0);
+  fallback = dtotimespec (0.5);
+
+  /* This will hang if input is blocked, so use pselect to wait
+     instead.  */
+  if (input_blocked_p ())
+    pselect (0, NULL, NULL, NULL, &fallback, &emptyset);
+  else
+    wait_reading_process_output (0, 500000000, 0, false, Qnil, NULL, 0);
 }
 
 
