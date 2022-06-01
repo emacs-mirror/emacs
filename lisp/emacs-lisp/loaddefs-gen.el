@@ -568,7 +568,7 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
                       (search-backward "\f\n"))
                   ;; Delete the old version of the section.
                   (delete-region (match-beginning 0)
-                                 (and (search-forward "\n\f\n;;;")
+                                 (and (search-forward "\n\f\n;;;" nil t)
                                       (match-beginning 0)))
                   (forward-line -2)))
               (insert head)
