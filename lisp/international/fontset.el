@@ -250,7 +250,7 @@
         (sharada #x11191 #x111B3 #x111CD)
 	(khojki #x11200)
 	(khudawadi #x112B0)
-	(grantha #x11305)
+	(grantha #x11315 #x1133E #x11374)
 	(newa #x11400)
 	(tirhuta #x11481 #x1148F #x114D0)
 	(siddham #x1158E #x115AF #x115D4)
@@ -801,6 +801,7 @@
                     brahmi
                     kaithi
                     sharada
+                    grantha
                     tirhuta
                     siddham
                     modi

@@ -233,6 +233,17 @@ Limbu language and its script are supported in this
 language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Grantha" '((charset unicode)
+             (coding-system utf-8)
+             (coding-priority utf-8)
+             (input-method . "grantha")
+             (sample-text . "Grantha (𑌗𑍍𑌰𑌨𑍍𑌥)	𑌨𑌮𑌸𑍍𑌤𑍇 / 𑌨𑌮𑌸𑍍𑌕𑌾𑌰𑌃")
+             (documentation . "\
+Languages such as Sanskrit and Manipravalam, when they use the
+Grantha script, are supported in this language environment."))
+ '("Indian"))
+
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
 
@@ -694,6 +705,33 @@ language environment."))
                                ;; Consonant based syllables
                                (concat consonant sa-i "?" subjoined-letter "?" small-letter
                                        "?" vowel "?" other-signs "?")
+                               1 'font-shape-gstring))))
+
+;; Grantha composition rules
+(let ((consonant            "[\x11315-\x11339]")
+      (nukta                "\x1133C")
+      (independent-vowel    "[\x11305-\x11314\x11360\x11361]")
+      (vowel                "[\x1133E-\x1134C\x11357\x11362\x11363]")
+      (nasal                "[\x11300-\x11302]")
+      (bindu                "\x1133B")
+      (visarga              "\x11303")
+      (virama               "\x1134D")
+      (avagraha             "\x1133D")
+      (modifier-above       "[\x11366-\x11374]"))
+  (set-char-table-range composition-function-table
+                        '(#x1133B . #x1134D)
+                        (list (vector
+                               ;; Consonant based syllables
+                               (concat consonant nukta "?" "\\(?:" virama consonant nukta
+                                       "?\\)*\\(?:" virama "\\|" vowel "*" nukta "?" nasal
+                                       "?" bindu "?" visarga "?" modifier-above "?"
+                                       avagraha "?\\)")
+                               1 'font-shape-gstring)
+                              (vector
+                               ;; Vowels based syllables
+                               (concat independent-vowel nukta "?" virama "?" vowel "?"
+                                       nasal "?" bindu "?" visarga "?" modifier-above
+                                       "?" avagraha "?")
                                1 'font-shape-gstring))))
 
 (provide 'indian)
