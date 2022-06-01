@@ -10322,7 +10322,7 @@ x_next_event_from_any_display (XEvent *event)
       /* We don't have to check the return of pselect, because if an
 	 error occurs XPending will call the IO error handler, which
 	 then brings us out of this loop.  */
-      pselect (maxfd, &fds, NULL, NULL, NULL, NULL);
+      pselect (maxfd + 1, &fds, NULL, NULL, NULL, NULL);
     }
 }
 
@@ -14945,12 +14945,12 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
       timeout = timespec_sub (at, current);
 
 #ifndef USE_GTK
-      rc = pselect (maxfd, &fds, NULL, NULL, &timeout, NULL);
+      rc = pselect (maxfd + 1, &fds, NULL, NULL, &timeout, NULL);
 
-      if (rc > 0)
+      if (rc >= 0)
 	rfds = fds;
 #else
-      pselect (maxfd, &fds, NULL, NULL, &timeout, NULL);
+      pselect (maxfd + 1, &fds, NULL, NULL, &timeout, NULL);
 #endif
     }
 }
