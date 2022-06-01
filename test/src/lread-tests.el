@@ -317,4 +317,14 @@ literals (Bug#20852)."
   (should (equal (read-from-string "#_")
                  '(## . 2))))
 
+(ert-deftest lread-misc-2 ()
+  ;; ?\LF should produce LF (only inside string literals do we ignore \LF).
+  (should (equal (read-from-string "?\\\n") '(?\n . 3)))
+  (should (equal (read-from-string "\"a\\\nb\"") '("ab" . 6)))
+  ;; The Control modifier constructs should be idempotent.
+  (should (equal ?\C-\C-x ?\C-x))
+  (should (equal ?\^\^x ?\C-x))
+  (should (equal ?\C-\^x ?\C-x))
+  (should (equal ?\^\C-x ?\C-x)))
+
 ;;; lread-tests.el ends here
