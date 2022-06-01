@@ -153,8 +153,10 @@ $(lisp)/finder-inf.el:
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
 	  -f finder-compile-keywords-make-dist ${SUBDIRS_FINDER}
 
+# This is the OKURO-NASI compilation trigger.
 generate-ja-dic:
-	$(MAKE) -C ../leim generate-ja-dic EMACS="$(EMACS)"
+	$(AM_V_at)$(MAKE) -C ../leim generate-ja-dic EMACS="$(EMACS)"
+	$(AM_V_at)$(MAKE) compile-targets TARGETS="./leim/ja-dic/ja-dic.elc"
 
 ## Comments on loaddefs generation:
 
