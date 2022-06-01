@@ -198,7 +198,7 @@ org-manuals: main-first
 # loaddefs-generate-batch.
 
 autoloads .PHONY: $(lisp)/loaddefs.el
-$(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
+$(lisp)/loaddefs.el: gen-lisp $(LOADDEFS) $(lisp)/emacs-lisp/loaddefs-gen.elc
 	$(AM_V_GEN)$(emacs) \
             -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
 	    -f loaddefs-generate-batch $(lisp)/loaddefs.el ${SUBDIRS_ALMOST}
