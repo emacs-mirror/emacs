@@ -480,7 +480,8 @@ if `autoload-timestamps' is non-nil, otherwise a fixed fake time is inserted)."
 
 ;;;###autoload
 (defun loaddefs-generate (dir output-file &optional excluded-files
-                              extra-data include-package-version)
+                              extra-data include-package-version
+                              generate-full)
   "Generate loaddefs files for Lisp files in the directories DIRS.
 DIR can be either a single directory or a list of directories.
 
@@ -493,7 +494,9 @@ directory or directories specified.
 
 If EXTRA-DATA, include this string at the start of the generated file.
 
-If INCLUDE-PACKAGE-VERSION, include package version data."
+If INCLUDE-PACKAGE-VERSION, include package version data.
+
+If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf (get-load-suffixes))
                        ;; We don't use module-file-suffix below because
@@ -508,13 +511,7 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
 				 (directory-files (expand-file-name d)
                                                   t files-re))
 			       (if (consp dir) dir (list dir)))))
-         (updating (and (file-exists-p output-file)
-                        ;; Always do a complete update if loaddefs-gen.el
-                        ;; has been updated and we're doing a base build.
-                        include-package-version
-                        (file-newer-than-file-p
-                         output-file
-                         (expand-file-name "emacs-lisp/loaddefs-gen.el"))))
+         (updating (and (file-exists-p output-file) (not generate-full)))
          (defs nil))
 
     ;; Collect all the autoload data.
@@ -647,16 +644,26 @@ This scans for ;;;###autoload forms and related things.
 The first element on the command line should be the (main)
 loaddefs.el output file, and the rest are the directories to
 use."
-  (let* ((args command-line-args-left)
-         (output-file (expand-file-name (car args) lisp-directory)))
+  (let ((args command-line-args-left))
+    (setq command-line-args-left nil)
+    (loaddefs-generate (cdr args) (expand-file-name (car args)))))
+
+(defun loaddefs-generate--emacs-batch ()
+  "Generate the loaddefs for the Emacs build.
+This is like `loaddefs-generate-batch', but has some specific
+rules for built-in packages and excluded files."
+  (let ((args command-line-args-left)
+        (output-file (expand-file-name "loaddefs.el" lisp-directory)))
     (setq command-line-args-left nil)
     (loaddefs-generate
-     (cdr args) output-file
+     args output-file
      (loaddefs-generate--excluded-files)
-     nil
-     ;; When generating the top-level Emacs loaddefs file, we want to
-     ;; include the `package--builtin-versions' things.
-     (equal (file-name-directory output-file) lisp-directory))))
+     nil t
+     ;; Always do a complete update if loaddefs-gen.el has been
+     ;; updated.
+     (file-newer-than-file-p
+      (expand-file-name "emacs-lisp/loaddefs-gen.el" lisp-directory)
+      output-file))))
 
 (provide 'loaddefs-gen)
 
