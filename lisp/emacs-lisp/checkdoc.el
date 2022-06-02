@@ -2464,11 +2464,9 @@ Code:, and others referenced in the style guide."
 		  pos)
 	      (goto-char (point-min))
 	      ;; match ";;;###autoload" cookie to keep it with the form
-	      (require 'autoload)
 	      (while (and cont (re-search-forward
-				(concat "^\\("
-					(regexp-quote generate-autoload-cookie)
-					"\n\\)?"
+				(concat "^\\(" lisp-mode-autoload-regexp
+                                        "\n\\)?"
 					"(")
 				nil t))
 		(setq pos (match-beginning 0)
