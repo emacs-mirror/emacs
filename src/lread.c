@@ -2633,7 +2633,7 @@ enum { UNICODE_CHARACTER_NAME_LENGTH_BOUND = 200 };
    If the escape sequence forces unibyte, return eight-bit char.  */
 
 static int
-read_escape (Lisp_Object readcharfun, bool stringp)
+read_escape (Lisp_Object readcharfun)
 {
   int c = READCHAR;
   /* \u allows up to four hex digits, \U up to eight.  Default to the
@@ -2663,12 +2663,6 @@ read_escape (Lisp_Object readcharfun, bool stringp)
       return '\t';
     case 'v':
       return '\v';
-    case '\n':
-      return -1;
-    case ' ':
-      if (stringp)
-	return -1;
-      return ' ';
 
     case 'M':
       c = READCHAR;
@@ -2676,7 +2670,7 @@ read_escape (Lisp_Object readcharfun, bool stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun);
       return c | meta_modifier;
 
     case 'S':
@@ -2685,7 +2679,7 @@ read_escape (Lisp_Object readcharfun, bool stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun);
       return c | shift_modifier;
 
     case 'H':
@@ -2694,7 +2688,7 @@ read_escape (Lisp_Object readcharfun, bool stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun);
       return c | hyper_modifier;
 
     case 'A':
@@ -2703,19 +2697,19 @@ read_escape (Lisp_Object readcharfun, bool stringp)
 	error ("Invalid escape character syntax");
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun);
       return c | alt_modifier;
 
     case 's':
       c = READCHAR;
-      if (stringp || c != '-')
+      if (c != '-')
 	{
 	  UNREAD (c);
 	  return ' ';
 	}
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun);
       return c | super_modifier;
 
     case 'C':
@@ -2726,7 +2720,7 @@ read_escape (Lisp_Object readcharfun, bool stringp)
     case '^':
       c = READCHAR;
       if (c == '\\')
-	c = read_escape (readcharfun, 0);
+	c = read_escape (readcharfun);
       if ((c & ~CHAR_MODIFIER_MASK) == '?')
 	return 0177 | (c & CHAR_MODIFIER_MASK);
       else if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
@@ -3011,7 +3005,7 @@ read_char_literal (Lisp_Object readcharfun)
     }
 
   if (ch == '\\')
-    ch = read_escape (readcharfun, 0);
+    ch = read_escape (readcharfun);
 
   int modifiers = ch & CHAR_MODIFIER_MASK;
   ch &= ~CHAR_MODIFIER_MASK;
@@ -3065,14 +3059,24 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
 
       if (ch == '\\')
 	{
-	  ch = read_escape (readcharfun, 1);
-
-	  /* CH is -1 if \ newline or \ space has just been seen.  */
-	  if (ch == -1)
+	  /* First apply string-specific escape rules:  */
+	  ch = READCHAR;
+	  switch (ch)
 	    {
+	    case 's':
+	      /* `\s' is always a space in strings.  */
+	      ch = ' ';
+	      break;
+	    case ' ':
+	    case '\n':
+	      /* `\SPC' and `\LF' generate no characters at all.  */
 	      if (p == read_buffer)
 		cancel = true;
 	      continue;
+	    default:
+	      UNREAD (ch);
+	      ch = read_escape (readcharfun);
+	      break;
 	    }
 
 	  int modifiers = ch & CHAR_MODIFIER_MASK;
@@ -3084,19 +3088,13 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
 	    force_multibyte = true;
 	  else		/* I.e. ASCII_CHAR_P (ch).  */
 	    {
-	      /* Allow `\C- ' and `\C-?'.  */
-	      if (modifiers == CHAR_CTL)
+	      /* Allow `\C-SPC' and `\^SPC'.  This is done here because
+		 the literals ?\C-SPC and ?\^SPC (rather inconsistently)
+		 yield (' ' | CHAR_CTL); see bug#55738.  */
+	      if (modifiers == CHAR_CTL && ch == ' ')
 		{
-		  if (ch == ' ')
-		    {
-		      ch = 0;
-		      modifiers = 0;
-		    }
-		  else if (ch == '?')
-		    {
-		      ch = 127;
-		      modifiers = 0;
-		    }
+		  ch = 0;
+		  modifiers = 0;
 		}
 	      if (modifiers & CHAR_SHIFT)
 		{
