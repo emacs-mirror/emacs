@@ -939,7 +939,7 @@ unquoted file names."
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (load nospecial nil t)))
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
-    (should (load nospecial nil t))))
+    (should-error (load nospecial nil t))))
 
 (ert-deftest files-tests-file-name-non-special-make-auto-save-file-name ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
@@ -1838,7 +1838,6 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (should (eq major-mode 'text-mode)))
 
 (ert-deftest files-load-elc-gz-file ()
-  :expected-result :failed
   (skip-unless (executable-find "gzip"))
   (ert-with-temp-directory dir
     (let* ((pref (expand-file-name "compile-utf8" dir))

@@ -1244,10 +1244,9 @@ Return t if the file exists and loads successfully.  */)
   CHECK_STRING (file);
 
   /* If file name is magic, call the handler.  */
-  /* This shouldn't be necessary any more now that `openp' handles it right.
-    handler = Ffind_file_name_handler (file, Qload);
-    if (!NILP (handler))
-      return call5 (handler, Qload, file, noerror, nomessage, nosuffix); */
+  handler = Ffind_file_name_handler (file, Qload);
+  if (!NILP (handler))
+    return call5 (handler, Qload, file, noerror, nomessage, nosuffix);
 
   /* The presence of this call is the result of a historical accident:
      it used to be in every file-operation and when it got removed
