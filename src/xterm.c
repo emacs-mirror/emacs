@@ -16822,8 +16822,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      /* But never if `mouse-drag-and-drop-region' is in
 		 progress, since that results in the tooltip being
 		 dismissed when the mouse moves on top.  */
-	      && (!EQ (track_mouse, Qdrag_source)
-		  && gui_mouse_grabbed (dpyinfo)))
+	      && !(EQ (track_mouse, Qdrag_source)
+		   && gui_mouse_grabbed (dpyinfo)))
 	    do_help = -1;
         }
 #ifdef USE_GTK
@@ -18163,8 +18163,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 in progress, since that results in the
 			 tooltip being dismissed when the mouse moves
 			 on top.  */
-		      && (!EQ (track_mouse, Qdrag_source)
-			  && gui_mouse_grabbed (dpyinfo)))
+		      && !(EQ (track_mouse, Qdrag_source)
+			   && gui_mouse_grabbed (dpyinfo)))
 		    do_help = -1;
 		}
 #ifdef USE_GTK
