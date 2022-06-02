@@ -1956,6 +1956,9 @@ Returns the compilation buffer created."
               (and (derived-mode-p 'comint-mode)
                    (comint-term-environment))
 	      (list (format "INSIDE_EMACS=%s,compile" emacs-version))
+              ;; Some external programs (like "git grep") use a pager;
+              ;; defeat that.
+              (list "PAGER=")
 	      (copy-sequence process-environment))))
         (setq-local compilation-arguments
                     (list command mode name-function highlight-regexp))
