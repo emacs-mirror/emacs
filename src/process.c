@@ -2145,6 +2145,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       inchannel = p->open_fd[READ_FROM_SUBPROCESS];
       forkout = p->open_fd[SUBPROCESS_STDOUT];
 
+#if defined(GNU_LINUX) && defined(F_SETPIPE_SZ)
+      fcntl (inchannel, F_SETPIPE_SZ, read_process_output_max);
+#endif
+
       if (!NILP (p->stderrproc))
 	{
 	  struct Lisp_Process *pp = XPROCESS (p->stderrproc);
@@ -8631,7 +8635,10 @@ returns non-nil.  */);
   DEFVAR_INT ("read-process-output-max", read_process_output_max,
 	      doc: /* Maximum number of bytes to read from subprocess in a single chunk.
 Enlarge the value only if the subprocess generates very large (megabytes)
-amounts of data in one go.  */);
+amounts of data in one go.
+
+On GNU/Linux systems, the value should not exceed
+/proc/sys/fs/pipe-max-size.  See pipe(7) manpage for details.  */);
   read_process_output_max = 4096;
 
   DEFVAR_INT ("process-error-pause-time", process_error_pause_time,
