@@ -15077,6 +15077,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    && event->xclient.message_type == dpyinfo->Xatom_XdndStatus)
 	  {
 	    Window target;
+	    unsigned long r1, r2;
 
 	    target = event->xclient.data.l[0];
 
@@ -15084,11 +15085,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		&& target == x_dnd_last_seen_window
 		&& event->xclient.data.l[1] & 2)
 	      {
+		r1 = event->xclient.data.l[2];
+		r2 = event->xclient.data.l[2];
+
 		x_dnd_mouse_rect_target = target;
-		x_dnd_mouse_rect.x = (event->xclient.data.l[2] & 0xffff0000) >> 16;
-		x_dnd_mouse_rect.y = (event->xclient.data.l[2] & 0xffff);
-		x_dnd_mouse_rect.width = (event->xclient.data.l[3] & 0xffff0000) >> 16;
-		x_dnd_mouse_rect.height = (event->xclient.data.l[3] & 0xffff);
+		x_dnd_mouse_rect.x = (r1 & 0xffff0000) >> 16;
+		x_dnd_mouse_rect.y = (r1 & 0xffff);
+		x_dnd_mouse_rect.width = (r2 & 0xffff0000) >> 16;
+		x_dnd_mouse_rect.height = (r2 & 0xffff);
 	      }
 	    else
 	      x_dnd_mouse_rect_target = None;
