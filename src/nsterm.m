@@ -2337,10 +2337,18 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
                         belowWindowWithWindowNumber: window_number];
       w = [NSApp windowWithWindowNumber: window_number];
 
+      if (EQ (track_mouse, Qdrag_source)
+	  && w && [[w delegate] isKindOfClass: [EmacsTooltip class]])
+	continue;
+
       if (w && [[w delegate] isKindOfClass: [EmacsView class]])
         f = ((EmacsView *) [w delegate])->emacsframe;
       else if (EQ (track_mouse, Qdrag_source))
 	break;
+
+      if (f && EQ (track_mouse, Qdrag_source)
+	  && FRAME_TOOLTIP_P (f))
+	continue;
     }
   while (window_number > 0 && !f);
 #endif
@@ -2354,6 +2362,9 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   if (!FRAME_NS_P (f))
     f = NULL;
+
+  if (FRAME_TOOLTIP_P (f))
+    f = dpyinfo->last_mouse_frame;
 
   /* While dropping, use the last mouse frame only if there is no
      currently focused frame.  */
@@ -7095,6 +7106,9 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   if (!emacs_event)
     return;
 
+  if (FRAME_TOOLTIP_P (emacsframe))
+    return;
+
   dpyinfo->last_mouse_frame = emacsframe;
   /* Appears to be needed to prevent spurious movement events generated on
      button clicks.  */
@@ -7295,7 +7309,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 	  tab_bar_p = EQ (window, emacsframe->tab_bar_window);
 
 	  if (tab_bar_p)
-	    tab_bar_arg = handle_tab_bar_click (emacsframe, x, y, EV_UDMODIFIERS (theEvent) & down_modifier,
+	    tab_bar_arg = handle_tab_bar_click (emacsframe, x, y,
+						EV_UDMODIFIERS (theEvent) & down_modifier,
 						EV_MODIFIERS (theEvent) | EV_UDMODIFIERS (theEvent));
 	}
 
@@ -7369,6 +7384,9 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   Lisp_Object frame;
   NSPoint pt;
   BOOL dragging;
+
+  if (FRAME_TOOLTIP_P (emacsframe))
+    return;
 
   NSTRACE_WHEN (NSTRACE_GROUP_EVENTS, "[EmacsView mouseMoved:]");
 
