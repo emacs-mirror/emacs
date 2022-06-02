@@ -3480,7 +3480,7 @@ skip_lazy_string (Lisp_Object readcharfun)
 
       /* Copy that many bytes into saved_doc_string.  */
       ptrdiff_t i = 0;
-      int c;
+      int c = 0;
       for (int n = min (nskip, infile->lookahead); n > 0; n--)
 	saved_doc_string[i++] = c = infile->buf[--infile->lookahead];
       block_input ();
