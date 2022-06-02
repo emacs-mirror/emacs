@@ -320,72 +320,72 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 (defun bindat--length-group (struct spec)
   (if (cl-typep spec 'bindat--type)
       (funcall (bindat--type-le spec) struct)
-  (with-suppressed-warnings ((lexical struct last))
-    (defvar struct) (defvar last))
-  (let ((struct struct) last)
-    (dolist (item spec)
-      (let* ((field (car item))
-	     (type (nth 1 item))
-	     (len (nth 2 item))
-	     (vectype (and (eq type 'vec) (nth 3 item)))
-	     (tail 3))
-	(if (and type (consp type) (eq (car type) 'eval))
-	    (setq type (eval (car (cdr type)) t)))
-	(if (and len (consp len) (eq (car len) 'eval))
-	    (setq len (eval (car (cdr len)) t)))
-	(if (memq field '(eval fill align struct union))
-	    (setq tail 2
-		  len type
-		  type field
-		  field nil))
-	(if (and (consp field) (eq (car field) 'eval))
-	    (setq field (eval (car (cdr field)) t)))
-	(if (and (consp len) (not (eq type 'eval)))
-	    (setq len (apply #'bindat-get-field struct len)))
-	(if (not len)
-	    (setq len 1))
-	(while (eq type 'vec)
-	  (if (consp vectype)
-	      (setq len (* len (nth 1 vectype))
-		    type (nth 2 vectype))
-	    (setq type (or vectype 'u8)
-		  vectype nil)))
-	(pcase type
-	 ('eval
-	  (if field
-	      (setq struct (cons (cons field (eval len t)) struct))
-	    (eval len t)))
-	 ('fill
-	  (setq bindat-idx (+ bindat-idx len)))
-	 ('align
-	  (setq bindat-idx (bindat--align bindat-idx len)))
-	 ('struct
-	  (bindat--length-group
-	   (if field (bindat-get-field struct field) struct) (eval len t)))
-	 ('repeat
-	  (dotimes (index len)
-	    (bindat--length-group
-             (nth index (bindat-get-field struct field))
-             (nthcdr tail item))))
-	 ('union
-	  (with-suppressed-warnings ((lexical tag))
-	    (defvar tag))
-	  (let ((tag len) (cases (nthcdr tail item)) case cc)
-	    (while cases
-	      (setq case (car cases)
-		    cases (cdr cases)
-		    cc (car case))
-	      (if (or (equal cc tag) (equal cc t)
-		      (and (consp cc) (eval cc t)))
-		  (progn
-		    (bindat--length-group struct (cdr case))
-		    (setq cases nil))))))
-	 (_
-	  (if (setq type (assq type bindat--fixed-length-alist))
-	      (setq len (* len (cdr type))))
-	  (if field
-	      (setq last (bindat-get-field struct field)))
-	  (setq bindat-idx (+ bindat-idx len)))))))))
+    (with-suppressed-warnings ((lexical struct last))
+      (defvar struct) (defvar last))
+    (let ((struct struct) last)
+      (dolist (item spec)
+        (let* ((field (car item))
+               (type (nth 1 item))
+               (len (nth 2 item))
+               (vectype (and (eq type 'vec) (nth 3 item)))
+               (tail 3))
+          (if (and type (consp type) (eq (car type) 'eval))
+              (setq type (eval (car (cdr type)) t)))
+          (if (and len (consp len) (eq (car len) 'eval))
+              (setq len (eval (car (cdr len)) t)))
+          (if (memq field '(eval fill align struct union))
+              (setq tail 2
+                    len type
+                    type field
+                    field nil))
+          (if (and (consp field) (eq (car field) 'eval))
+              (setq field (eval (car (cdr field)) t)))
+          (if (and (consp len) (not (eq type 'eval)))
+              (setq len (apply #'bindat-get-field struct len)))
+          (if (not len)
+              (setq len 1))
+          (while (eq type 'vec)
+            (if (consp vectype)
+                (setq len (* len (nth 1 vectype))
+                      type (nth 2 vectype))
+              (setq type (or vectype 'u8)
+                    vectype nil)))
+          (pcase type
+            ('eval
+             (if field
+                 (setq struct (cons (cons field (eval len t)) struct))
+               (eval len t)))
+            ('fill
+             (setq bindat-idx (+ bindat-idx len)))
+            ('align
+             (setq bindat-idx (bindat--align bindat-idx len)))
+            ('struct
+             (bindat--length-group
+              (if field (bindat-get-field struct field) struct) (eval len t)))
+            ('repeat
+             (dotimes (index len)
+               (bindat--length-group
+                (nth index (bindat-get-field struct field))
+                (nthcdr tail item))))
+            ('union
+             (with-suppressed-warnings ((lexical tag))
+               (defvar tag))
+             (let ((tag len) (cases (nthcdr tail item)) case cc)
+               (while cases
+                 (setq case (car cases)
+                       cases (cdr cases)
+                       cc (car case))
+                 (if (or (equal cc tag) (equal cc t)
+                         (and (consp cc) (eval cc t)))
+                     (progn
+                       (bindat--length-group struct (cdr case))
+                       (setq cases nil))))))
+            (_
+             (if (setq type (assq type bindat--fixed-length-alist))
+                 (setq len (* len (cdr type))))
+             (if field
+                 (setq last (bindat-get-field struct field)))
+             (setq bindat-idx (+ bindat-idx len)))))))))
 
 (defun bindat-length (spec struct)
   "Calculate `bindat-raw' length for STRUCT according to bindat SPEC."
