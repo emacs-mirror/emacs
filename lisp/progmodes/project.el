@@ -382,6 +382,11 @@ you might have to restart Emacs to see the effect."
   :package-version '(project . "0.2.0")
   :safe #'booleanp)
 
+(defcustom project-vc-include-untracked t
+  "When non-nil, the VC project backend includes untracked files."
+  :type 'boolean
+  :safe #'booleanp)
+
 ;; FIXME: Using the current approach, major modes are supposed to set
 ;; this variable to a buffer-local value.  So we don't have access to
 ;; the "external roots" of language A from buffers of language B, which
@@ -512,8 +517,9 @@ backend implementation of `project-external-roots'.")
            (args '("-z"))
            (vc-git-use-literal-pathspecs nil)
            files)
-       ;; Include unregistered.
-       (setq args (append args '("-c" "-o" "--exclude-standard")))
+       (setq args (append args
+                          '("-c" "--exclude-standard")
+                          (when project-vc-include-untracked '("-o"))))
        (when extra-ignores
          (setq args (append args
                             (cons "--"
@@ -565,9 +571,9 @@ backend implementation of `project-external-roots'.")
        (delete-consecutive-dups files)))
     (`Hg
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
-           args)
-       ;; Include unregistered.
-       (setq args (nconc args '("-mcardu" "--no-status" "-0")))
+           (args (list (concat "-mcard" (when project-vc-include-untracked "u"))
+                       "--no-status"
+                       "-0")))
        (when extra-ignores
          (setq args (nconc args
                            (mapcan
