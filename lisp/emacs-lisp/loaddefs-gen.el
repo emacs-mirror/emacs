@@ -522,11 +522,15 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
                      (byte-compile-info
                       (concat "Scraping files for loaddefs"))
                      0 (length files) nil 10))
+          (output-time
+           (file-attribute-modification-time (file-attributes output-file)))
           (file-count 0))
       (dolist (file files)
         (progress-reporter-update progress (setq file-count (1+ file-count)))
         (when (or (not updating)
-                  (file-newer-than-file-p file output-file))
+                  (time-less-p output-time
+                               (file-attribute-modification-time
+                                (file-attributes file))))
           (setq defs (nconc
 		      (loaddefs-generate--parse-file
                        file output-file
