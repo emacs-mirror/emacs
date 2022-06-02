@@ -1367,34 +1367,50 @@ typedef struct xm_top_level_leave_message
 /* #define XM_DRAG_SIDE_EFFECT_OPERATIONS(effect)	(((effect) & 0xf00) >> 8) */
 #define XM_DRAG_SIDE_EFFECT_DROP_ACTION(effect)	(((effect) & 0xf000) >> 12)
 
-#define XM_DRAG_NOOP 0
-#define XM_DRAG_MOVE (1L << 0)
-#define XM_DRAG_COPY (1L << 1)
-#define XM_DRAG_LINK (1L << 2)
+enum xm_drag_operation
+  {
+    XM_DRAG_NOOP = 0,
+    XM_DRAG_MOVE = (1L << 0),
+    XM_DRAG_COPY = (1L << 1),
+    XM_DRAG_LINK = (1L << 2),
+  };
 
-#define XM_DROP_ACTION_DROP		0
-#define XM_DROP_ACTION_DROP_HELP	1
-#define XM_DROP_ACTION_DROP_CANCEL	2
+enum xm_drag_action
+  {
+    XM_DROP_ACTION_DROP	       = 0,
+    XM_DROP_ACTION_DROP_HELP   = 1,
+    XM_DROP_ACTION_DROP_CANCEL = 2,
+  };
 
 #define XM_DRAG_REASON(originator, code)	((code) | ((originator) << 7))
 #define XM_DRAG_REASON_ORIGINATOR(reason)	(((reason) & 0x80) ? 1 : 0)
 #define XM_DRAG_REASON_CODE(reason)		((reason) & 0x7f)
 
-#define XM_DRAG_REASON_DROP_START	5
-#define XM_DRAG_REASON_TOP_LEVEL_ENTER	0
-#define XM_DRAG_REASON_TOP_LEVEL_LEAVE	1
-#define XM_DRAG_REASON_DRAG_MOTION	2
-#define XM_DRAG_ORIGINATOR_INITIATOR	0
-#define XM_DRAG_ORIGINATOR_RECEIVER	1
+enum xm_drag_reason
+  {
+    XM_DRAG_REASON_DROP_START	   = 5,
+    XM_DRAG_REASON_TOP_LEVEL_ENTER = 0,
+    XM_DRAG_REASON_TOP_LEVEL_LEAVE = 1,
+    XM_DRAG_REASON_DRAG_MOTION	   = 2,
+  };
 
-#define XM_DRAG_STYLE_NONE		0
+enum xm_drag_originator
+  {
+    XM_DRAG_ORIGINATOR_INITIATOR = 0,
+    XM_DRAG_ORIGINATOR_RECEIVER	 = 1,
+  };
 
-#define XM_DRAG_STYLE_DROP_ONLY		1
-#define XM_DRAG_STYLE_DROP_ONLY_REC	3
-
-#define XM_DRAG_STYLE_DYNAMIC		5
-#define XM_DRAG_STYLE_DYNAMIC_REC	2
-#define XM_DRAG_STYLE_DYNAMIC_REC1	4
+enum xm_drag_style
+  {
+    /* The values ending with _REC should be treated as equivalent to
+       the ones without in messages from the receiver.  */
+    XM_DRAG_STYLE_NONE		= 0,
+    XM_DRAG_STYLE_DROP_ONLY	= 1,
+    XM_DRAG_STYLE_DROP_ONLY_REC = 3,
+    XM_DRAG_STYLE_DYNAMIC	= 5,
+    XM_DRAG_STYLE_DYNAMIC_REC	= 2,
+    XM_DRAG_STYLE_DYNAMIC_REC1	= 4,
+  };
 
 #define XM_DRAG_STYLE_IS_DROP_ONLY(n)	((n) == XM_DRAG_STYLE_DROP_ONLY	\
 					 || (n) == XM_DRAG_STYLE_DROP_ONLY_REC)
@@ -1402,9 +1418,12 @@ typedef struct xm_top_level_leave_message
 					 || (n) == XM_DRAG_STYLE_DYNAMIC_REC \
 					 || (n) == XM_DRAG_STYLE_DYNAMIC_REC1)
 
-#define XM_DROP_SITE_VALID	3
-/* #define XM_DROP_SITE_INVALID	2 */
-#define XM_DROP_SITE_NONE	1
+enum xm_drop_site_status
+  {
+    XM_DROP_SITE_VALID	 = 3,
+    XM_DROP_SITE_INVALID = 2,
+    XM_DROP_SITE_NONE	 = 1,
+  };
 
 /* The version of the Motif drag-and-drop protocols that Emacs
    supports.  */
@@ -10295,7 +10314,7 @@ x_next_event_from_any_display (XEvent *event)
   fd_set fds, rfds;
   int fd, maxfd, rc;
 
-  rc = 0;
+  rc = -1;
   FD_ZERO (&rfds);
 
   while (true)
