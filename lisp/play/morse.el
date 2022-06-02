@@ -1,6 +1,6 @@
 ;;; morse.el --- convert text to morse code and back  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Rick Farnbach <rick_farnbach@MENTORG.COM>
 ;; Keywords: games
@@ -22,11 +22,11 @@
 
 ;;; Commentary:
 
-;; Converts text to Morse code and back with M-x morse-region and
-;; M-x unmorse-region (though Morse code is no longer official :-().
+;; Convert plain text to Morse code and back with `M-x morse-region' and
+;; `M-x unmorse-region'.
 
-;; Converts text to NATO phonetic alphabet and back with M-x
-;; nato-region and M-x denato-region.
+;; Convert plain text to NATO spelling alphabet and back with
+;; `M-x nato-region' and `M-x denato-region'.
 
 ;;; Code:
 
@@ -142,14 +142,16 @@
 			("(" . "Open")
 			(")" . "Close")
 			("@" . "At"))
-  "NATO phonetic alphabet.
+  "NATO spelling alphabet.
 See “International Code of Signals” (INTERCO), United States
 Edition, 1969 Edition (Revised 2003) available from National
-Geospatial-Intelligence Agency at URL `https://www.nga.mil/'")
+Geospatial-Intelligence Agency at <https://www.nga.mil/>.
+See also <https://en.wikipedia.org/wiki/NATO_phonetic_alphabet>.")
 
 ;;;###autoload
 (defun morse-region (beg end)
-  "Convert all text in a given region to morse code."
+  "Convert plain text in region to Morse code.
+See <https://en.wikipedia.org/wiki/Morse_code>."
   (interactive "*r")
   (if (integerp end)
       (setq end (copy-marker end)))
@@ -172,7 +174,7 @@ Geospatial-Intelligence Agency at URL `https://www.nga.mil/'")
 
 ;;;###autoload
 (defun unmorse-region (beg end)
-  "Convert morse coded text in region to ordinary ASCII text."
+  "Convert Morse coded text in region to plain text."
   (interactive "*r")
   (if (integerp end)
       (setq end (copy-marker end)))
@@ -194,7 +196,7 @@ Geospatial-Intelligence Agency at URL `https://www.nga.mil/'")
 
 ;;;###autoload
 (defun nato-region (beg end)
-  "Convert all text in a given region to NATO phonetic alphabet."
+  "Convert plain text in region to NATO spelling alphabet."
   ;; Copied from morse-region. -- ashawley 2009-02-10
   (interactive "*r")
   (if (integerp end)
@@ -218,7 +220,7 @@ Geospatial-Intelligence Agency at URL `https://www.nga.mil/'")
 
 ;;;###autoload
 (defun denato-region (beg end)
-  "Convert NATO phonetic alphabet in region to ordinary ASCII text."
+  "Convert NATO spelling alphabet text in region to plain text."
   ;; Copied from unmorse-region. -- ashawley 2009-02-10
   (interactive "*r")
   (if (integerp end)
