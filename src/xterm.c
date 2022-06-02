@@ -11518,6 +11518,80 @@ x_note_mouse_movement (struct frame *frame, const XMotionEvent *event,
   return false;
 }
 
+/* Get a sibling of DPY below WINDOW at PARENT_X and PARENT_Y.  */
+static Window
+x_get_window_below (Display *dpy, Window window,
+		    int parent_x, int parent_y,
+		    int *inner_x, int *inner_y)
+{
+  int rc, i, cx, cy;
+  XWindowAttributes attrs;
+  unsigned int nchildren;
+  Window root, parent, *children, value;
+  bool window_seen;
+
+  /* TODO: rewrite to have less dependencies.  */
+
+  children = NULL;
+  window_seen = false;
+  value = None;
+
+  rc = XQueryTree (dpy, window, &root, &parent,
+		   &children, &nchildren);
+
+  if (rc)
+    {
+      if (children)
+	XFree (children);
+
+      rc = XQueryTree (dpy, parent, &root,
+		       &parent, &children, &nchildren);
+    }
+
+  if (rc)
+    {
+      for (i = nchildren - 1; i >= 0; --i)
+	{
+	  if (children[i] == window)
+	    {
+	      window_seen = true;
+	      continue;
+	    }
+
+	  if (!window_seen)
+	    continue;
+
+	  rc = XGetWindowAttributes (dpy, children[i], &attrs);
+
+	  if (rc && attrs.map_state != IsViewable)
+	    continue;
+
+	  if (rc && parent_x >= attrs.x
+	      && parent_y >= attrs.y
+	      && parent_x < attrs.x + attrs.width
+	      && parent_y < attrs.y + attrs.height)
+	    {
+	      value = children[i];
+	      cx = parent_x - attrs.x;
+	      cy = parent_y - attrs.y;
+
+	      break;
+	    }
+	}
+    }
+
+  if (children)
+    XFree (children);
+
+  if (value)
+    {
+      *inner_x = cx;
+      *inner_y = cy;
+    }
+
+  return value;
+}
+
 /* Return the current position of the mouse.
    *FP should be a frame which indicates which display to ask about.
 
@@ -11543,7 +11617,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		  enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
 		  Time *timestamp)
 {
-  struct frame *f1;
+  struct frame *f1, *maybe_tooltip;
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (*fp);
 
   block_input ();
@@ -11599,9 +11673,11 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	Window first_win = 0;
 #endif
 	int win_x, win_y;
-	int parent_x = 0, parent_y = 0;
+	int parent_x, parent_y;
 
 	win = root;
+	parent_x = root_x;
+	parent_y = root_y;
 
 	/* XTranslateCoordinates can get errors if the window
 	   structure is changing at the same time this function
@@ -11636,6 +11712,19 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 				       root_x, root_y, &win_x, &win_y,
 				       /* Child of win.  */
 				       &child);
+
+		/* If CHILD is a tooltip frame, look below it if
+		   track-mouse is drag-source.  */
+		if (child != None)
+		  {
+		    maybe_tooltip = x_any_window_to_frame (dpyinfo, child);
+
+		    if (maybe_tooltip && FRAME_TOOLTIP_P (maybe_tooltip))
+		      child = x_get_window_below (dpyinfo->display, child,
+						  parent_x, parent_y, &win_x,
+						  &win_y);
+		  }
+
 		if (child == None || child == win)
 		  {
 #ifdef USE_GTK
@@ -16729,7 +16818,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              Do it only if there's something to cancel.
              Otherwise, the startup message is cleared when
              the mouse leaves the frame.  */
-          if (any_help_event_p)
+          if (any_help_event_p
+	      /* But never if `mouse-drag-and-drop-region' is in
+		 progress, since that results in the tooltip being
+		 dismissed when the mouse moves on top.  */
+	      && (!EQ (track_mouse, Qdrag_source)
+		  && gui_mouse_grabbed (dpyinfo)))
 	    do_help = -1;
         }
 #ifdef USE_GTK
@@ -18064,7 +18158,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     Do it only if there's something to cancel.
 		     Otherwise, the startup message is cleared when
 		     the mouse leaves the frame.  */
-		  if (any_help_event_p)
+		  if (any_help_event_p
+		      /* But never if `mouse-drag-and-drop-region' is
+			 in progress, since that results in the
+			 tooltip being dismissed when the mouse moves
+			 on top.  */
+		      && (!EQ (track_mouse, Qdrag_source)
+			  && gui_mouse_grabbed (dpyinfo)))
 		    do_help = -1;
 		}
 #ifdef USE_GTK
