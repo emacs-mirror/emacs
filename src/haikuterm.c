@@ -3290,7 +3290,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		   leave notification events for this.  */
 
 		if (any_help_event_p
-		    && !(EQ (track_mouse, Qdrag_source)
+		    && !((EQ (track_mouse, Qdrag_source)
+			  || EQ (track_mouse, Qdropping))
 			 && gui_mouse_grabbed (x_display_list)))
 		  do_help = -1;
 		break;
@@ -3339,7 +3340,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		haiku_new_focus_frame (x_display_list->focused_frame);
 
 		if (any_help_event_p
-		    && !(EQ (track_mouse, Qdrag_source)
+		    && !((EQ (track_mouse, Qdrag_source)
+			  || EQ (track_mouse, Qdropping))
 			 && gui_mouse_grabbed (x_display_list)))
 		  do_help = -1;
 	      }

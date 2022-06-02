@@ -11715,7 +11715,9 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
 		/* If CHILD is a tooltip frame, look below it if
 		   track-mouse is drag-source.  */
-		if (child != None)
+		if (child != None
+		    && (EQ (track_mouse, Qdrag_source)
+			|| EQ (track_mouse, Qdropping)))
 		  {
 		    maybe_tooltip = x_any_window_to_frame (dpyinfo, child);
 
@@ -16822,7 +16824,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      /* But never if `mouse-drag-and-drop-region' is in
 		 progress, since that results in the tooltip being
 		 dismissed when the mouse moves on top.  */
-	      && !(EQ (track_mouse, Qdrag_source)
+	      && !((EQ (track_mouse, Qdrag_source)
+		    || EQ (track_mouse, Qdropping))
 		   && gui_mouse_grabbed (dpyinfo)))
 	    do_help = -1;
         }
@@ -18163,7 +18166,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 in progress, since that results in the
 			 tooltip being dismissed when the mouse moves
 			 on top.  */
-		      && !(EQ (track_mouse, Qdrag_source)
+		      && !((EQ (track_mouse, Qdrag_source)
+			    || EQ (track_mouse, Qdropping))
 			   && gui_mouse_grabbed (dpyinfo)))
 		    do_help = -1;
 		}
