@@ -1231,6 +1231,10 @@ static bool x_dnd_use_toplevels;
 
 /* Motif drag-and-drop protocol support.  */
 
+/* Pointer to a variable which stores whether or not an X error
+   occured while trying to create the Motif drag window.  */
+static volatile bool *xm_drag_window_error;
+
 typedef enum xm_byte_order
   {
     XM_BYTE_ORDER_LSB_FIRST = 'l',
@@ -1629,6 +1633,9 @@ xm_write_drag_initiator_info (Display *dpy, Window wdesc,
 static int
 xm_drag_window_error_handler (Display *display, XErrorEvent *event)
 {
+  if (xm_drag_window_error)
+    *xm_drag_window_error = true;
+
   return 0;
 }
 
@@ -1651,6 +1658,9 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
   XSetWindowAttributes attrs;
   Display *temp_display;
   void *old_handler, *old_io_handler;
+  /* These are volatile because GCC mistakenly warns about them being
+     clobbered by longjmp.  */
+  volatile bool error, created;
 
   drag_window = None;
   rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
@@ -1706,6 +1716,9 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 	  return None;
 	}
 
+      error = false;
+      xm_drag_window_error = &error;
+
       XGrabServer (temp_display);
       XSetCloseDownMode (temp_display, RetainPermanent);
 
@@ -1715,6 +1728,9 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 
       _MOTIF_DRAG_WINDOW = XInternAtom (temp_display,
 					"_MOTIF_DRAG_WINDOW", False);
+
+      if (error)
+	goto give_up;
 
       /* Some other program might've created a drag window between now
 	 and when we first looked.  Use that if it exists.  */
@@ -1733,8 +1749,12 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
       if (tmp_data)
 	XFree (tmp_data);
 
+      error = false;
+
       if (drag_window == None)
 	{
+	  created = true;
+
 	  attrs.override_redirect = True;
 	  drag_window = XCreateWindow (temp_display, DefaultRootWindow (temp_display),
 				       -1, -1, 1, 1, 0, CopyFromParent, InputOnly,
@@ -1743,6 +1763,34 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
 			   _MOTIF_DRAG_WINDOW, XA_WINDOW, 32, PropModeReplace,
 			   (unsigned char *) &drag_window, 1);
 	}
+      else
+	created = false;
+
+      /* Handle all errors now.   */
+      XSync (temp_display, False);
+
+    give_up:
+
+      /* Some part of the drag window creation process failed, so
+	 punt.  */
+      if (error)
+	{
+	  /* If the drag window was actually created, delete it now.
+	     Probably, a BadAlloc happened during the XChangeProperty
+	     request.  */
+	  if (created)
+	    {
+	      if (drag_window != None)
+		XDestroyWindow (temp_display, drag_window);
+
+	      XDeleteProperty (temp_display, DefaultRootWindow (temp_display),
+			       _MOTIF_DRAG_WINDOW);
+	    }
+
+	  drag_window = None;
+	}
+
+      xm_drag_window_error = NULL;
 
       /* FIXME: why does XCloseDisplay hang if SIGIO arrives and there
 	 are multiple displays? */
@@ -21854,11 +21902,10 @@ x_error_handler (Display *display, XErrorEvent *event)
 #endif
 
 #if defined USE_GTK && defined HAVE_GTK3
-  if ((event->error_code == BadMatch || event->error_code == BadWindow)
+  if ((event->error_code == BadMatch
+       || event->error_code == BadWindow)
       && event->request_code == X_SetInputFocus)
-    {
-      return 0;
-    }
+    return 0;
 #endif
 
   /* If we try to ungrab or grab a device that doesn't exist anymore
