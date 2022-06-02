@@ -508,6 +508,13 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
 				 (directory-files (expand-file-name d)
                                                   t files-re))
 			       (if (consp dir) dir (list dir)))))
+         (updating (and (file-exists-p output-file)
+                        ;; Always do a complete update if loaddefs-gen.el
+                        ;; has been updated and we're doing a base build.
+                        include-package-version
+                        (file-newer-than-file-p
+                         output-file
+                         (expand-file-name "emacs-lisp/loaddefs-gen.el"))))
          (defs nil))
 
     ;; Collect all the autoload data.
@@ -518,7 +525,7 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
           (file-count 0))
       (dolist (file files)
         (progress-reporter-update progress (setq file-count (1+ file-count)))
-        (when (or (not (file-exists-p output-file))
+        (when (or (not updating)
                   (file-newer-than-file-p file output-file))
           (setq defs (nconc
 		      (loaddefs-generate--parse-file
@@ -536,7 +543,7 @@ If INCLUDE-PACKAGE-VERSION, include package version data."
     (dolist (fdefs (seq-group-by #'car defs))
       (let ((loaddefs-file (car fdefs)))
         (with-temp-buffer
-          (if (file-exists-p loaddefs-file)
+          (if (and updating (file-exists-p loaddefs-file))
               (insert-file-contents loaddefs-file)
             (insert (loaddefs-generate--rubric loaddefs-file nil t))
             (search-backward "\f")

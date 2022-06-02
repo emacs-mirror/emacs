@@ -94,8 +94,14 @@ COMPILE_FIRST += $(lisp)/emacs-lisp/loaddefs-gen.elc
 COMPILE_FIRST += $(lisp)/emacs-lisp/radix-tree.elc
 
 # Files to compile early in compile-main.  Works around bug#25556.
+# Also compile the ja-dic file used to convert the Japanese dictionary
+# to speed things up.  The org files are used to convert org files to
+# texi files.
 MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
-  ./cedet/semantic/db.el ./emacs-lisp/cconv.el
+  ./cedet/semantic/db.el ./emacs-lisp/cconv.el \
+  ./international/ja-dic-cnv.el \
+  ./org/ox.el ./org/ox-texinfo.el ./org/org-macro.el ./org/org-element.el \
+  ./org/oc.el ./org/ol.el ./emacs-lisp/cl-lib.el
 
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
@@ -118,10 +124,12 @@ SUBDIRS_SUBDIRS = $(filter-out ${srcdir}/cedet% ${srcdir}/leim%,${SUBDIRS})
 
 # cus-load and finder-inf are not explicitly requested by anything, so
 # we add them here to make sure they get built.
-all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el
+all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el generate-ja-dic \
+	org-manuals
 
 PHONY_EXTRAS =
-.PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS)
+.PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS) \
+	generate-ja-dic org-manuals
 
 # custom-deps and finder-data both used to scan _all_ the *.el files.
 # This could lead to problems in parallel builds if automatically
@@ -152,6 +160,14 @@ $(lisp)/finder-inf.el:
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
 	  -f finder-compile-keywords-make-dist ${SUBDIRS_FINDER}
 
+# This is the OKURO-NASI compilation trigger.
+generate-ja-dic: main-first
+	$(AM_V_at)$(MAKE) -C ../leim generate-ja-dic EMACS="$(EMACS)"
+	$(AM_V_at)$(MAKE) compile-targets TARGETS="./leim/ja-dic/ja-dic.elc"
+
+org-manuals: main-first
+	$(AM_V_at)$(MAKE) -C ../doc/misc org.texi modus-themes.texi
+
 ## Comments on loaddefs generation:
 
 # loaddefs depends on gen-lisp for two reasons:
@@ -159,6 +175,9 @@ $(lisp)/finder-inf.el:
 # So having leim as a dependency of loaddefs (via gen-lisp) ensures leim-list
 # gets created before the final emacs is dumped.  Having leim
 # dependencies in ../src as well would create a parallel race condition.
+#
+# FIXME: 2) is no longer correct, so perhaps we could add unidata to
+# gen-lisp now?
 #
 # 2) Files that are marked no-update-autoloads still get recorded in loaddefs.
 # So those files should be generated before we make autoloads, if we
@@ -182,7 +201,7 @@ $(lisp)/finder-inf.el:
 # loaddefs-generate-batch.
 
 autoloads .PHONY: $(lisp)/loaddefs.el
-$(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
+$(lisp)/loaddefs.el: gen-lisp $(LOADDEFS) $(lisp)/emacs-lisp/loaddefs-gen.elc
 	$(AM_V_GEN)$(emacs) \
             -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
 	    -f loaddefs-generate-batch $(lisp)/loaddefs.el ${SUBDIRS_ALMOST}

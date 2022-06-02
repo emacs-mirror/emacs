@@ -662,7 +662,7 @@ ns_dnd_action_from_operation (NSDragOperation operation)
     }
 }
 
-DEFUN ("ns-begin-drag", Fns_begin_drag, Sns_begin_drag, 3, 4, 0,
+DEFUN ("ns-begin-drag", Fns_begin_drag, Sns_begin_drag, 3, 5, 0,
        doc: /* Begin a drag-and-drop operation on FRAME.
 
 FRAME must be a window system frame.  PBOARD is an alist of (TYPE
@@ -680,13 +680,16 @@ data inside PBOARD.
 
 Return the action that the drop target actually chose to perform, or
 nil if no action was performed (either because there was no drop
-target, or the drop was rejected).  If RETURN_FRAME is the symbol
+target, or the drop was rejected).  If RETURN-FRAME is the symbol
 `now', also return any frame that mouse moves into during the
 drag-and-drop operation, whilst simultaneously cancelling it.  Any
 other non-nil value means to do the same, but to wait for the mouse to
-leave FRAME first.  */)
+leave FRAME first.
+
+If ALLOW-SAME-FRAME is nil, dropping on FRAME will result in the drop
+being ignored.  */)
   (Lisp_Object frame, Lisp_Object pboard, Lisp_Object action,
-   Lisp_Object return_frame)
+   Lisp_Object return_frame, Lisp_Object allow_same_frame)
 {
   struct frame *f, *return_to;
   NSPasteboard *pasteboard;
@@ -715,7 +718,8 @@ leave FRAME first.  */)
   operation = [window beginDrag: operation
 		  forPasteboard: pasteboard
 		       withMode: mode
-		  returnFrameTo: &return_to];
+		  returnFrameTo: &return_to
+		   prohibitSame: (BOOL) NILP (allow_same_frame)];
 
   if (return_to)
     {

@@ -272,6 +272,11 @@ startup.  Previously, these functions ignored
 * Changes in Emacs 29.1
 
 +++
+** New user option 'delete-selection-temporary-region'.
+When non-nil, 'delete-selection-mode' will only delete the temporary
+regions (usually set by mouse-dragging or shift-selection).
+
++++
 ** New user option 'switch-to-prev-buffer-skip-regexp'.
 This should be a regexp or a list of regexps; buffers whose names
 match those regexps will be ignored by 'switch-to-prev-buffer' and
@@ -840,6 +845,7 @@ corresponding language environments are:
 **** Rejang script and language environment
 **** Makasar script and language environment
 **** Lontara script and language environment
+**** Hanifi Rohingya script and language environment
 
 ---
 *** The "Oriya" language environment was renamed to "Odia".
@@ -1908,6 +1914,11 @@ functions.
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** 'gui-set-selection' can now specify different values for different data types.
+If DATA is a string, then its text properties are searched for values
+for each specific data type while the selection is being converted.
 
 ---
 ** New eldoc function: 'elisp-eldoc-var-docstring-with-value'.

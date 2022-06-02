@@ -237,7 +237,7 @@
 	(lydian #x10920)
 	(kharoshthi #x10A00)
 	(manichaean #x10AC0)
-	(hanifi-rohingya #x10D00)
+	(hanifi-rohingya #x10D00 #x10D24 #x10D39)
 	(yezidi #x10E80)
 	(old-sogdian #x10F00)
 	(sogdian #x10F30)
@@ -791,6 +791,7 @@
 		    cypriot-syllabary
 		    phoenician
 		    lydian
+                    hanifi-rohingya
                     yezidi
 		    kharoshthi
 		    manichaean

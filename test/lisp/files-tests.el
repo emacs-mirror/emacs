@@ -393,6 +393,8 @@ After evaluating BODY, the temporary file or directory is deleted."
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
   `(let* ((temporary-file-directory (file-truename temporary-file-directory))
+          (temporary-file-directory
+           (file-name-as-directory (make-temp-file "files-tests" t)))
           (,name (make-temp-file "files-tests" ,dir-flag))
           (,non-special-name (file-name-quote ,name)))
      (unwind-protect
@@ -402,7 +404,9 @@ After evaluating BODY, the temporary file or directory is deleted."
            (delete-file ,name)))
        (when (file-exists-p ,non-special-name)
          (if ,dir-flag (delete-directory ,non-special-name t)
-           (delete-file ,non-special-name))))))
+           (delete-file ,non-special-name)))
+       (when (file-exists-p temporary-file-directory)
+         (delete-directory temporary-file-directory t)))))
 
 (defconst files-tests--special-file-name-extension ".special"
   "Trailing string for test file name handler.")
@@ -444,14 +448,16 @@ unquoted file names."
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
   `(let* ((temporary-file-directory (file-truename temporary-file-directory))
+          (temporary-file-directory
+           (file-name-as-directory (make-temp-file "files-tests" t)))
           (file-name-handler-alist
            `((,files-tests--special-file-name-regexp
               . files-tests--special-file-name-handler)
              . ,file-name-handler-alist))
-           (,name (concat
+          (,name (concat
                   (make-temp-file "files-tests" ,dir-flag)
                   files-tests--special-file-name-extension))
-           (,non-special-name (file-name-quote ,name)))
+          (,non-special-name (file-name-quote ,name)))
      (unwind-protect
          (progn ,@body)
        (when (file-exists-p ,name)
@@ -459,7 +465,9 @@ unquoted file names."
            (delete-file ,name)))
        (when (file-exists-p ,non-special-name)
          (if ,dir-flag (delete-directory ,non-special-name t)
-           (delete-file ,non-special-name))))))
+           (delete-file ,non-special-name)))
+       (when (file-exists-p temporary-file-directory)
+         (delete-directory temporary-file-directory t)))))
 
 (defun files-tests--new-name (name part)
   (let (file-name-handler-alist)

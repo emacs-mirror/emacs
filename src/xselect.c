@@ -399,7 +399,7 @@ static Lisp_Object
 x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 		       bool local_request, struct x_display_info *dpyinfo)
 {
-  Lisp_Object local_value;
+  Lisp_Object local_value, tem;
   Lisp_Object handler_fn, value, check;
 
   local_value = LOCAL_SELECTION (selection_symbol, dpyinfo);
@@ -426,10 +426,21 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
       if (CONSP (handler_fn))
 	handler_fn = XCDR (handler_fn);
 
+      tem = XCAR (XCDR (local_value));
+
+      if (STRINGP (tem))
+	{
+	  local_value = Fget_text_property (make_fixnum (0),
+					    target_type, tem);
+
+	  if (!NILP (local_value))
+	    tem = local_value;
+	}
+
       if (!NILP (handler_fn))
-	value = call3 (handler_fn,
-		       selection_symbol, (local_request ? Qnil : target_type),
-		       XCAR (XCDR (local_value)));
+	value = call3 (handler_fn, selection_symbol,
+		       (local_request ? Qnil : target_type),
+		       tem);
       else
 	value = Qnil;
       value = unbind_to (count, value);

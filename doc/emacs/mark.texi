@@ -291,12 +291,23 @@ instead signal an error if the mark is inactive.
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
+@vindex delete-selection-temporary-region
   By default, text insertion occurs normally even if the mark is
 active---for example, typing @kbd{a} inserts the character @samp{a},
 then deactivates the mark.  Delete Selection mode, a minor mode,
 modifies this behavior: if you enable that mode, then inserting text
 while the mark is active causes the text in the region to be deleted
-first.  To toggle Delete Selection mode on or off, type @kbd{M-x
+first.  However, you can tune this behavior by customizing the
+@code{delete-selection-temporary-region} option.  Its default value is
+@code{nil}, but you can set it to @code{t}, in which case only
+temporarily-active regions will be replaced: those which are set by
+dragging the mouse (@pxref{Setting Mark}) or by shift-selection
+(@pxref{Shift Selection}), as well as by @kbd{C-u C-x C-x} when
+Transient Mark Mode is disabled.  You can further tune the behavior by
+setting @code{delete-selection-temporary-region} to @code{selection}:
+then temporary regions by @kbd{C-u C-x C-x} won't be replaced, only
+the ones activated by dragging the mouse or shift-selection.  To
+toggle Delete Selection mode on or off, type @kbd{M-x
 delete-selection-mode}.
 
 @node Mark Ring

@@ -120,7 +120,7 @@ nil means they will be displayed in LIFO order (that is, most
 recently created ones come first, oldest ones come last).
 
 `last-modified' means that bookmarks will be displayed sorted
-from most recently set to last recently set.
+from most recently set to least recently set.
 
 Other values means that bookmarks will be displayed sorted by
 bookmark name."
@@ -520,8 +520,11 @@ is ordered from most recently created to least recently created bookmark."
            (sort copy (lambda (x y) (string-lessp (car x) (car y)))))
           ((eq bookmark-sort-flag 'last-modified)
            (sort copy (lambda (x y)
-                        (time-less-p (bookmark-get-last-modified y)
-                                     (bookmark-get-last-modified x)))))
+                        (let ((tx (bookmark-get-last-modified x))
+                              (ty (bookmark-get-last-modified y)))
+                          (cond ((null tx) nil)
+                                ((null ty) t)
+                                (t (time-less-p ty tx)))))))
           (t copy))))
 
 (defun bookmark-completing-read (prompt &optional default)

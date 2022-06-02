@@ -3943,6 +3943,13 @@ overlay or a pair of markers stands for text in the overlay or between
 the markers.  The argument @var{data} may also be a vector of valid
 non-vector selection values.
 
+If @var{data} is a string, then its text properties can specify values
+used for individual data types.  For example, if @var{data} has a
+property named @code{text/uri-list}, then a call to
+@code{gui-get-selection} with the data type @code{text/uri-list} will
+result in the value of that property being used instead of @var{data}
+itself.
+
 This function returns @var{data}.
 @end deffn
 
@@ -4029,16 +4036,46 @@ amount of different data types on the clipboard.
 @section Drag and Drop
 @cindex drag and drop
 
+  When the user drops something from another application over Emacs,
+Emacs will try to insert any text and open any URL that was dropped.
+If text was dropped, then it will always be inserted at the location
+of the mouse pointer when the drop happened, or saved in the kill ring
+if insertion failed (which can happen if the buffer is read-only).  If
+it was an URL, then Emacs tries to call an appropriate handler
+function by first matching the URL against regexps defined in
+@code{dnd-protocol-alist}, and then against @code{browse-url-handlers}
+and @code{browse-url-default-handlers}, and failing that, inserting
+the URL as plain text.
+
+@defvar dnd-protocol-alist
+  This variable is a list of cons cells of the form
+@w{@code{(@var{pattern} . @var{action})}}.  @var{pattern} is a regexp
+that URLs are matched against after being dropped.  @var{action} is a
+function that is called with two arguments should a URL being dropped
+match @var{pattern}: the URL being dropped, and the action being
+performed for the drop (one of the symbols @code{copy}, @code{move},
+@code{link}, @code{private} or @code{ask}).
+@end defvar
+
+@cindex drag and drop, X
+@cindex drag and drop, other formats
+  Emacs implements drag-and-drop for text and URLs individually for
+each window system, and does not by default support the dropping of
+anything else.  Code that wishes to support the dropping of content
+types not supported by Emacs can utilize the X-specific interface
+described below:
+
 @vindex x-dnd-test-function
 @vindex x-dnd-known-types
-  When a user drags something from another application over Emacs, that other
-application expects Emacs to tell it if Emacs can handle the data that is
-dragged.  The variable @code{x-dnd-test-function} is used by Emacs to determine
-what to reply.  The default value is @code{x-dnd-default-test-function}
-which accepts drops if the type of the data to be dropped is present in
-@code{x-dnd-known-types}.  You can customize @code{x-dnd-test-function} and/or
-@code{x-dnd-known-types} if you want Emacs to accept or reject drops based
-on some other criteria.
+  When a user drags something from another application over Emacs on
+the X Window System, that other application expects Emacs to tell it
+if Emacs can handle the data that was dragged.  The variable
+@code{x-dnd-test-function} is used by Emacs to determine what to
+reply.  The default value is @code{x-dnd-default-test-function} which
+accepts drops if the type of the data to be dropped is present in
+@code{x-dnd-known-types}.  You can customize
+@code{x-dnd-test-function} and/or @code{x-dnd-known-types} if you want
+Emacs to accept or reject drops based on some other criteria.
 
 @vindex x-dnd-types-alist
   If you want to change the way Emacs handles drop of different types
@@ -4046,16 +4083,12 @@ or add a new type, customize @code{x-dnd-types-alist}.  This requires
 detailed knowledge of what types other applications use for drag and
 drop.
 
-@vindex dnd-protocol-alist
-@vindex browse-url-handlers
-@vindex browse-url-default-handlers
-  When an URL is dropped on Emacs it may be a file, but it may also be
-another URL type (https, etc.).  Emacs first checks
-@code{dnd-protocol-alist} to determine what to do with the URL@.  If
-there is no match there, Emacs looks for a match in
-@code{browse-url-handlers} and @code{browse-url-default-handlers}.  If
-still no match has been found, the text for the URL is inserted.  If
-you want to alter Emacs behavior, you can customize these variables.
+  Those data types are typically implemented as special data types an
+X selection provided by the other application can be converted to.
+They can either be the same data types that are typically accepted by
+@code{gui-set-selection}, or they can be MIME types, depending on the
+specific drag-n-drop protocol being used.  Plain text may be
+@code{"STRING"} or @code{"text/plain"}, for example.
 
 @cindex initiating drag-and-drop
   On capable window systems, Emacs also supports dragging contents

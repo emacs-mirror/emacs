@@ -425,6 +425,7 @@ enum ns_return_frame_mode
 
   struct frame *dnd_return_frame;
   enum ns_return_frame_mode dnd_mode;
+  BOOL dnd_allow_same_frame;
 }
 
 #ifdef NS_IMPL_GNUSTEP
@@ -444,7 +445,9 @@ enum ns_return_frame_mode
 - (NSDragOperation) beginDrag: (NSDragOperation) op
 		forPasteboard: (NSPasteboard *) pasteboard
 		     withMode: (enum ns_return_frame_mode) mode
-		returnFrameTo: (struct frame **) frame_return;
+		returnFrameTo: (struct frame **) frame_return
+	    prohibitSame: (BOOL) prohibit_same_frame;
+- (BOOL) mustNotDropOn: (NSView *) receiver;
 @end
 
 

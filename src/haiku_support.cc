@@ -2403,7 +2403,8 @@ public:
     if (key_label)
       key = strdup (key_label);
 
-    this->help = strdup (help);
+    if (help)
+      this->help = strdup (help);
   }
 
   ~EmacsMenuItem ()
