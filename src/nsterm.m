@@ -2337,8 +2337,8 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
                         belowWindowWithWindowNumber: window_number];
       w = [NSApp windowWithWindowNumber: window_number];
 
-      if (EQ (EQ (track_mouse, Qdrag_source)
-	      || EQ (track_mouse, Qdropping))
+      if ((EQ (track_mouse, Qdrag_source)
+	   || EQ (track_mouse, Qdropping))
 	  && w && [[w delegate] isKindOfClass: [EmacsTooltip class]])
 	continue;
 
