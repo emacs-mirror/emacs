@@ -2365,7 +2365,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   if (!FRAME_NS_P (f))
     f = NULL;
 
-  if (FRAME_TOOLTIP_P (f))
+  if (f && FRAME_TOOLTIP_P (f))
     f = dpyinfo->last_mouse_frame;
 
   /* While dropping, use the last mouse frame only if there is no
