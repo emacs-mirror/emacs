@@ -185,7 +185,6 @@ The resources should be a list of strings in COMMAND-LINE-RESOURCES."
   "Set up the window system.  WINDOW-SYSTEM must be HAIKU.
 DISPLAY may be set to the name of a display that will be initialized."
   (cl-assert (not haiku-initialized))
-
   (create-default-fontset)
   (when x-command-line-resources
     (haiku--handle-x-command-line-resources
@@ -307,6 +306,11 @@ or a pair of markers) and turns it into a file system reference."
           (dolist (filename (cddr (assoc "refs" string)))
             (dnd-handle-one-url window 'private
                                 (concat "file:" filename)))))
+       ((assoc "text/uri-list" string)
+        (dolist (text (cddr (assoc "text/uri-list" string)))
+          (let ((uri-list (split-string text "[\0\r\n]" t)))
+            (dolist (bf uri-list)
+              (dnd-handle-one-url window 'private bf)))))
        ((assoc "text/plain" string)
         (with-selected-window window
           (raise-frame)
