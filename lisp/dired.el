@@ -1758,14 +1758,14 @@ other marked file as well.  Otherwise, unmark all files."
                     (if (and (consp filename)
                              (cdr filename))
                         (dnd-begin-drag-files filename nil
-                                              (if (eq 'dired-mouse-drag-files 'link)
-                                                  'move 'copy)
+                                              (if (eq dired-mouse-drag-files 'link)
+                                                  'link 'copy)
                                               t)
                       (dnd-begin-file-drag (if (stringp filename)
                                                filename
                                              (car filename))
-                                           nil (if (eq 'dired-mouse-drag-files 'link)
-                                                   'move 'copy)
+                                           nil (if (eq dired-mouse-drag-files 'link)
+                                                   'link 'copy)
                                            t))))
               (error (when (eq (event-basic-type new-event) 'mouse-1)
                        (push new-event unread-command-events))))))))))
