@@ -234,11 +234,11 @@ The text being displayed in the echo area is controlled by the variables
 
 (defcustom battery-update-functions nil
   "Functions run by `display-battery-mode' after updating the status.
-These functions will be called with one parameter: An alist that
-contains data about the current battery status.  The key in the
-alist is a character, and the values in the alist are strings.
-Different battery backends deliver different information, so the
-following information may or may not be available:
+These functions will be called with one parameter, an alist that
+contains data about the current battery status.  The keys in the
+alist are single characters and the values are strings.
+Different battery backends deliver different information, so some
+of the following information may or may not be available:
 
     v: driver-version
     V: bios-version
@@ -275,9 +275,9 @@ The text displayed in the mode line is controlled by
 The mode line is be updated every `battery-update-interval'
 seconds.
 
-The update function will call the functions in
-`battery-update-functions', which can be used to trigger actions
-based on battery events."
+The function which updates the mode-line display will call the
+functions in `battery-update-functions', which can be used to
+trigger actions based on battery-related events."
   :global t
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
