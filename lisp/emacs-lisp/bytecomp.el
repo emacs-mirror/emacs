@@ -1761,12 +1761,6 @@ It is too wide if it has any lines longer than the largest of
         (when (string-match-p "\\( \"\\|[ \t]\\|^\\)'[a-z(]" docs)
           (byte-compile-warn-x
            name "%s%sdocstring has wrong usage of unescaped single quotes (use \\= or different quoting)"
-           kind name))
-        ;; There's a "Unicode quote" in the string -- it should probably
-        ;; be an ASCII one instead.
-        (when (string-match-p "\\( \"\\|[ \t]\\|^\\)[‘’]" docs)
-          (byte-compile-warn-x
-           name "%s%sdocstring has wrong usage of \"fancy\" single quotation marks"
            kind name)))))
   form)
 
