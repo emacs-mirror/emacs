@@ -2866,7 +2866,7 @@ if test "${opsys}" != "mingw32"; then
     if test "${window_system}" = "x11"; then
       GTK_REQUIRED=3.10
     else
-      GTK_REQUIRED=3.20
+      GTK_REQUIRED=3.22.23
     fi
     GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 

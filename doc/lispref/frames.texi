@@ -1746,15 +1746,16 @@ fit will be clipped by the window manager.
 @item fullscreen
 This parameter specifies whether to maximize the frame's width, height
 or both.  Its value can be @code{fullwidth}, @code{fullheight},
-@code{fullboth}, or @code{maximized}.  A @dfn{fullwidth} frame is as
-wide as possible, a @dfn{fullheight} frame is as tall as possible, and
-a @dfn{fullboth} frame is both as wide and as tall as possible.  A
-@dfn{maximized} frame is like a ``fullboth'' frame, except that it
-usually keeps its title bar and the buttons for resizing and closing
-the frame.  Also, maximized frames typically avoid hiding any task bar
-or panels displayed on the desktop.  A ``fullboth'' frame, on the
-other hand, usually omits the title bar and occupies the entire
-available screen space.
+@code{fullboth}, or @code{maximized}.@footnote{On PGTK frames, setting
+the values @code{fullheight} and @code{fullwidth} has no effect.}  A
+@dfn{fullwidth} frame is as wide as possible, a @dfn{fullheight} frame
+is as tall as possible, and a @dfn{fullboth} frame is both as wide and
+as tall as possible.  A @dfn{maximized} frame is like a ``fullboth''
+frame, except that it usually keeps its title bar and the buttons for
+resizing and closing the frame.  Also, maximized frames typically
+avoid hiding any task bar or panels displayed on the desktop.  A
+``fullboth'' frame, on the other hand, usually omits the title bar and
+occupies the entire available screen space.
 
 Full-height and full-width frames are more similar to maximized
 frames in this regard.  However, these typically display an external

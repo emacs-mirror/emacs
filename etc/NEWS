@@ -85,7 +85,7 @@ after deleting lisp/leim/ja-dic/ja-dic.el.
 
 +++
 ** Emacs now supports being built with pure GTK.
-To use this option, make sure the GTK 3 (version 3.20 or later) and
+To use this option, make sure the GTK 3 (version 3.22.23 or later) and
 Cairo development files are installed, and configure Emacs with the
 option '--with-pgtk'.  Unlike the default X and GTK build, the
 resulting Emacs binary will work on any underlying window system

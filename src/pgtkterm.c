@@ -5454,7 +5454,10 @@ window_state_event (GtkWidget *widget,
 		    gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->window_state.window);
+  GdkWindowState new_state;
   union buffered_input_event inev;
+
+  new_state = event->window_state.new_window_state;
 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
@@ -5462,7 +5465,7 @@ window_state_event (GtkWidget *widget,
 
   if (f)
     {
-      if (event->window_state.new_window_state & GDK_WINDOW_STATE_FOCUSED)
+      if (new_state & GDK_WINDOW_STATE_FOCUSED)
 	{
 	  if (FRAME_ICONIFIED_P (f))
 	    {
@@ -5478,17 +5481,24 @@ window_state_event (GtkWidget *widget,
 	}
     }
 
-  if (event->window_state.new_window_state
-      & GDK_WINDOW_STATE_FULLSCREEN)
+  if (new_state & GDK_WINDOW_STATE_FULLSCREEN)
     store_frame_param (f, Qfullscreen, Qfullboth);
-  else if (event->window_state.new_window_state
-	   & GDK_WINDOW_STATE_MAXIMIZED)
+  else if (new_state & GDK_WINDOW_STATE_MAXIMIZED)
     store_frame_param (f, Qfullscreen, Qmaximized);
+  else if ((new_state & GDK_WINDOW_STATE_TOP_TILED)
+	   && (new_state & GDK_WINDOW_STATE_BOTTOM_TILED)
+	   && !(new_state & GDK_WINDOW_STATE_TOP_RESIZABLE)
+	   && !(new_state & GDK_WINDOW_STATE_BOTTOM_RESIZABLE))
+    store_frame_param (f, Qfullscreen, Qfullheight);
+  else if ((new_state & GDK_WINDOW_STATE_LEFT_TILED)
+	   && (new_state & GDK_WINDOW_STATE_RIGHT_TILED)
+	   && !(new_state & GDK_WINDOW_STATE_LEFT_RESIZABLE)
+	   && !(new_state & GDK_WINDOW_STATE_RIGHT_RESIZABLE))
+    store_frame_param (f, Qfullscreen, Qfullwidth);
   else
     store_frame_param (f, Qfullscreen, Qnil);
 
-  if (event->window_state.new_window_state
-      & GDK_WINDOW_STATE_ICONIFIED)
+  if (new_state & GDK_WINDOW_STATE_ICONIFIED)
     SET_FRAME_ICONIFIED (f, true);
   else
     {
@@ -5498,8 +5508,7 @@ window_state_event (GtkWidget *widget,
       SET_FRAME_ICONIFIED (f, false);
     }
 
-  if (event->window_state.new_window_state
-      & GDK_WINDOW_STATE_STICKY)
+  if (new_state & GDK_WINDOW_STATE_STICKY)
     store_frame_param (f, Qsticky, Qt);
   else
     store_frame_param (f, Qsticky, Qnil);
