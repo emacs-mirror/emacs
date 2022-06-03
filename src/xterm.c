@@ -10414,6 +10414,20 @@ x_next_event_from_any_display (XEvent *event)
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
+/* Implementors beware!  On most other platforms (where drag-and-drop
+   data is not provided via selections, but some kind of serialization
+   mechanism), it is usually much easier to implement a suitable
+   primitive instead of copying the C code here, and then to build
+   `x-begin-drag' on top of that, by making it a wrapper function in
+   Lisp that converts the list of targets and value of `XdndSelection'
+   to serialized data.  Also be sure to update the data types used in
+   dnd.el.
+
+   For examples of how to do this, see `haiku-drag-message' and
+   `x-begin-drag' in haikuselect.c and lisp/term/haiku-win.el, and
+   `ns-begin-drag' and `x-begin-drag' in nsselect.m and
+   lisp/term/ns-win.el.  */
+
 Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   Lisp_Object return_frame, Atom *ask_action_list,

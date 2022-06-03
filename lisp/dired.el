@@ -38,6 +38,7 @@
 (eval-when-compile (require 'cl-lib))
 ;; When bootstrapping dired-loaddefs has not been generated.
 (require 'dired-loaddefs nil t)
+(require 'dnd)
 
 (declare-function dired-buffer-more-recently-used-p
 		  "dired-x" (buffer1 buffer2))
@@ -1702,29 +1703,13 @@ see `dired-use-ls-dired' for more details.")
           beg))
         beg))))
 
-(defvar dired-last-dragged-remote-file nil
-  "If non-nil, the name of a local copy of the last remote file that was dragged.
-It can't be removed immediately after the drag-and-drop operation
-completes, since there is no way to determine when the drop
-target has finished opening it.  So instead, this file is removed
-when Emacs exits or the user drags another file.")
-
 (declare-function x-begin-drag "xfns.c")
-
-(defun dired-remove-last-dragged-local-file ()
-  "Remove the local copy of the last remote file to be dragged."
-  (when dired-last-dragged-remote-file
-    (unwind-protect
-        (delete-file dired-last-dragged-remote-file)
-      (setq dired-last-dragged-remote-file nil)))
-  (remove-hook 'kill-emacs-hook #'dired-remove-last-dragged-local-file))
 
 (defun dired-mouse-drag (event)
   "Begin a drag-and-drop operation for the file at EVENT."
   (interactive "e")
   (when mark-active
     (deactivate-mark))
-  (dired-remove-last-dragged-local-file)
   (save-excursion
     (with-selected-window (posn-window (event-end event))
       (goto-char (posn-point (event-end event))))
@@ -1753,32 +1738,10 @@ when Emacs exits or the user drags another file.")
                                                        (event-end event))
                                   (dired-file-name-at-point))))
                   (when filename
-                    ;; In theory x-dnd-username combined with a proper
-                    ;; file URI containing the hostname of the remote
-                    ;; server could be used here instead of creating a
-                    ;; local copy of the remote file, but no program
-                    ;; actually implements file DND according to the
-                    ;; spec.
-                    (when (file-remote-p filename)
-                      (setq filename (file-local-copy filename))
-                      (setq dired-last-dragged-remote-file filename)
-                      (add-hook 'kill-emacs-hook
-                                #'dired-remove-last-dragged-local-file))
-                    (gui-backend-set-selection
-                     ;; FIXME: this seems arbitrarily confusing.
-                     ;; Should drag-and-drop for common items (such as
-                     ;; files and text) should be abstracted into
-                     ;; dnd.el?
-                     'XdndSelection
-                     (propertize filename 'text/uri-list
-                                 (concat "file://"
-                                         (expand-file-name filename))))
-                    (x-begin-drag '("text/uri-list" "text/x-dnd-username"
-                                    "FILE_NAME" "FILE" "HOST_NAME" "_DT_NETFILE")
-                                  (if (eq 'dired-mouse-drag-files 'link)
-                                      'XdndActionLink
-                                    'XdndActionCopy)
-                                  nil nil t)))
+                    (dnd-begin-file-drag filename nil
+                                         (if (eq 'dired-mouse-drag-files 'link)
+                                             'move 'copy)
+                                         t)))
               (error (when (eq (event-basic-type new-event) 'mouse-1)
                        (push new-event unread-command-events))))))))))
 

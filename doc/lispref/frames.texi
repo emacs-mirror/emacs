@@ -4094,6 +4094,95 @@ specific drag-n-drop protocol being used.  Plain text may be
   On capable window systems, Emacs also supports dragging contents
 from its frames to windows of other applications.
 
+@defun dnd-begin-text-drag text &optional frame action allow-same-frame
+This function begins dragging text from @var{frame} to another program
+(the drop target), and returns until it is dropped or the
+drag-and-drop operation is cancelled.
+
+The return value is the action that the drop target actually
+performed, which can be one of the following symbols:
+
+@table @code
+@item copy
+The drop target inserted @var{text}.
+
+@item move
+The drop target inserted @var{text}, but in addition the caller should
+delete @var{text} from wherever it originated, such as a buffer.
+
+@item private
+The drop target performed an unspecified action.
+@end table
+
+@code{nil} can also be returned if the drag-and-drop operation was
+cancelled.
+
+@var{text} is the text that will be inserted by the drop target.
+
+@var{action} must be one of the symbols @code{copy} or @code{move},
+where @code{copy} means that @var{text} should be inserted by the drop
+target, and @code{move} means the same as @code{copy}, but in addition
+the caller may have to delete @var{text} from its source as explained
+above.
+
+@var{frame} is the frame where the mouse is currently held down, or
+@code{nil}, which means to use the selected frame.  This function may
+return immediately if no mouse buttons are held down, so it should be
+only called immediately after a @code{down-mouse-1} or similar event
+(@pxref{Mouse Events}), with @var{frame} set to the frame where that
+event was generated (@pxref{Click Events}).
+
+@var{allow-same-frame} specifies whether or not drops on top of
+@var{frame} itself won't be ignored.
+@end defun
+
+@defun dnd-begin-file-drag file &optional frame action allow-same-frame
+This function begins dragging @var{file} from @var{frame} to another
+program, and returns until it is dropped or the drag-and-drop
+operation is cancelled.
+
+The return value is the action that the drop target actually
+performed, which can be one of the following symbols:
+
+@table @code
+@item copy
+The drop target opened or copied @var{file} to a different location.
+
+@item move
+The drop target moved @var{file} to a different location.
+
+@item link
+The drop target (usually a file manager) created a symbolic link to
+@var{file}.
+
+@item private
+The drop target performed an unspecified action.
+@end table
+
+@code{nil} can also be returned if the drag-and-drop operation was
+cancelled.
+
+If @var{file} is a remote file, then a temporary copy will be made.
+
+@var{action} must be one of the symbols @code{copy}, @code{move} or
+@code{link}, where @code{copy} means that @var{file} should be opened
+or copied by the drop target, @code{move} means the drop target should
+move the file to another location, and @code{link} means the drop
+target should create a symbolic link to @var{file}.  It is an error to
+specify @code{link} as the action if @var{file} is a remote file.
+
+@var{frame} and @var{allow-same-frame} mean the same as in
+@code{dnd-begin-text-drag}.
+@end defun
+
+@cindex initiating drag-and-drop, low-level
+  The high-level interfaces described above are implemented on top of
+a lower-level primitive.  If you need to drag content other than files
+or text, the low-level interface @code{x-begin-drag} can be used
+instead.  However, using it will require detailed knowledge of the
+data types and actions used by the programs to transfer content via
+drag-and-drop on each platform you want to support.
+
 @defun x-begin-drag targets &optional action frame return-frame allow-current-frame
 This function begins a drag from @var{frame}, and returns when the
 drag-and-drop operation ends, either because the drop was successful,
