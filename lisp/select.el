@@ -628,10 +628,22 @@ two markers or an overlay.  Otherwise, it is nil."
   (if (not (eq selection 'XdndSelection))
       (when (setq value (xselect--selection-bounds value))
         (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value))))
-    (when (and (stringp value)
-               (file-exists-p value))
-      (xselect--encode-string 'TEXT (expand-file-name value)
-                              nil t))))
+    (if (and (stringp value)
+             (file-exists-p value))
+        (xselect--encode-string 'TEXT (expand-file-name value)
+                                nil t)
+      (when (vectorp value)
+        (with-temp-buffer
+          (cl-loop for file across value
+                   do (progn (insert (encode-coding-string
+                                      (expand-file-name file)
+                                      file-name-coding-system))
+                             (insert "\0")))
+          ;; Get rid of the last NULL byte.
+          (when (> (point) 1)
+            (delete-char -1))
+          ;; Motif wants STRING.
+          (cons 'STRING (buffer-string)))))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))

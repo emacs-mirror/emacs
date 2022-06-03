@@ -288,18 +288,24 @@ TEXT is the text as a string, WINDOW is the window where the drop happened."
 
 (defvar dnd-last-dragged-remote-file nil
   "If non-nil, the name of a local copy of the last remote file that was dragged.
+This may also be a list of files, if multiple files were dragged.
 It can't be removed immediately after the drag-and-drop operation
 completes, since there is no way to determine when the drop
 target has finished opening it.  So instead, this file is removed
 when Emacs exits or the user drags another file.")
 
 (defun dnd-remove-last-dragged-remote-file ()
-  "Remove the local copy of the last remote file to be dragged."
+  "Remove the local copy of the last remote file to be dragged.
+If `dnd-last-dragged-remote-file' is a list, remove all the files
+in that list instead."
   (when dnd-last-dragged-remote-file
     (unwind-protect
-        (delete-file dnd-last-dragged-remote-file)
+        (if (consp dnd-last-dragged-remote-file)
+            (mapc #'delete-file dnd-last-dragged-remote-file)
+          (delete-file dnd-last-dragged-remote-file))
       (setq dnd-last-dragged-remote-file nil)))
-  (remove-hook 'kill-emacs-hook #'dnd-remove-last-dragged-remote-file))
+  (remove-hook 'kill-emacs-hook
+               #'dnd-remove-last-dragged-remote-file))
 
 (declare-function x-begin-drag "xfns.c")
 
@@ -410,7 +416,7 @@ currently being held down.  It should only be called upon a
         (add-hook 'kill-emacs-hook
                   #'dnd-remove-last-dragged-remote-file)))
     (gui-set-selection 'XdndSelection
-                       (propertize file 'text/uri-list
+                       (propertize (expand-file-name file) 'text/uri-list
                                    (concat "file://"
                                            (expand-file-name file))))
     (let ((return-value
@@ -440,6 +446,67 @@ currently being held down.  It should only be called upon a
           (when (file-remote-p original-file)
             (ignore-errors
               (delete-file original-file)))))
+       ((eq return-value 'XdndActionLink) 'link)
+       ((not return-value) nil)
+       (t 'private)))))
+
+(defun dnd-begin-drag-files (files &optional frame action allow-same-frame)
+  "Begin dragging FILES from FRAME.
+This is like `dnd-begin-file-drag', except with multiple files.
+FRAME, ACTION and ALLOW-SAME-FRAME mean the same as in
+`dnd-begin-file-drag'.
+
+FILES is a list of files that will be dragged.  If the drop
+target doesn't support dropping multiple files, the first file in
+FILES will be dragged."
+  (unless (fboundp 'x-begin-drag)
+    (error "Dragging files from Emacs is not supported by this window system"))
+  (dnd-remove-last-dragged-remote-file)
+  (let* ((new-files (copy-sequence files))
+         (tem new-files))
+    (while tem
+      (setcar tem (expand-file-name (car tem)))
+      (when (file-remote-p (car tem))
+        (when (eq action 'link)
+          (error "Cannot create symbolic link to remote file"))
+        (setcar tem (file-local-copy (car tem)))
+        (push (car tem) dnd-last-dragged-remote-file))
+      (setq tem (cdr tem)))
+    (unless action
+      (setq action 'copy))
+    (gui-set-selection 'XdndSelection
+                       (propertize (car new-files)
+                                   'text/uri-list
+                                   (cl-loop for file in new-files
+                                            collect (concat "file://" file)
+                                            into targets finally return
+                                            (apply #'vector targets))
+                                   'FILE_NAME (apply #'vector new-files)))
+    (let ((return-value
+           (x-begin-drag '(;; Xdnd types used by GTK, Qt, and most other
+                           ;; modern programs that expect filenames to
+                           ;; be supplied as URIs.
+                           "text/uri-list" "text/x-dnd-username"
+                           ;; Traditional X selection targets used by
+                           ;; programs supporting the Motif
+                           ;; drag-and-drop protocols.  Also used by NS
+                           ;; and Haiku.
+                           "FILE_NAME" "HOST_NAME")
+                         (cl-ecase action
+                           ('copy 'XdndActionCopy)
+                           ('move 'XdndActionMove)
+                           ('link 'XdndActionLink))
+                         frame nil allow-same-frame)))
+      (cond
+       ((eq return-value 'XdndActionCopy) 'copy)
+       ((eq return-value 'XdndActionMove)
+        (prog1 'move
+          ;; If original-file is a remote file, delete it from the
+          ;; remote as well.
+          (dolist (original-file files)
+            (when (file-remote-p original-file)
+              (ignore-errors
+                (delete-file original-file))))))
        ((eq return-value 'XdndActionLink) 'link)
        ((not return-value) nil)
        (t 'private)))))

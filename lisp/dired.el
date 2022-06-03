@@ -253,8 +253,9 @@ The target is used in the prompt for file copy, rename etc."
 (defcustom dired-mouse-drag-files nil
   "If non-nil, allow the mouse to drag files from inside a Dired buffer.
 Dragging the mouse and then releasing it over the window of
-another program will result in that program opening the file, or
-creating a copy of it.  This feature is supported only on X
+another program will result in that program opening or creating a
+copy of the file underneath the mouse pointer (or all marked
+files if it was marked).  This feature is supported only on X
 Windows, Haiku, and Nextstep (macOS or GNUstep).
 
 If the value is `link', then a symbolic link will be created to
@@ -809,6 +810,9 @@ that commands on the next ARG (instead of the marked) files can
 be chained easily.
 For any other non-nil value of ARG, use the current file.
 
+If ARG is `marked', don't return the current file if nothing else
+is marked.
+
 If optional third arg SHOW-PROGRESS evaluates to non-nil,
 redisplay the dired buffer after each file is processed.
 
@@ -830,7 +834,7 @@ marked file, return (t FILENAME) instead of (FILENAME)."
   ;;This warning should not apply any longer, sk  2-Sep-1991 14:10.
   `(prog1
        (let ((inhibit-read-only t) case-fold-search found results)
-	 (if ,arg
+	 (if (and ,arg (not (eq ,arg 'marked)))
 	     (if (integerp ,arg)
 		 (progn	;; no save-excursion, want to move point.
 		   (dired-repeat-over-lines
@@ -841,8 +845,8 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 		   (if (< ,arg 0)
 		       (nreverse results)
 		     results))
-	       ;; non-nil, non-integer ARG means use current file:
-	       (list ,body))
+	       ;; non-nil, non-integer, non-marked ARG means use current file:
+               (list ,body))
 	   (let ((regexp (dired-marker-regexp)) next-position)
 	     (save-excursion
 	       (goto-char (point-min))
@@ -867,7 +871,8 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 		 (setq results (cons t results)))
 	     (if found
 		 results
-	       (list ,body)))))
+               (unless (eq ,arg 'marked)
+	         (list ,body))))))
      ;; save-excursion loses, again
      (dired-move-to-filename)))
 
@@ -1706,7 +1711,9 @@ see `dired-use-ls-dired' for more details.")
 (declare-function x-begin-drag "xfns.c")
 
 (defun dired-mouse-drag (event)
-  "Begin a drag-and-drop operation for the file at EVENT."
+  "Begin a drag-and-drop operation for the file at EVENT.
+If there are marked files and that file is marked, drag every
+other marked file as well.  Otherwise, unmark all files."
   (interactive "e")
   (when mark-active
     (deactivate-mark))
@@ -1736,12 +1743,30 @@ see `dired-use-ls-dired' for more details.")
             (condition-case nil
                 (let ((filename (with-selected-window (posn-window
                                                        (event-end event))
-                                  (dired-file-name-at-point))))
+                                  (let ((marked-files (dired-map-over-marks (dired-get-filename
+                                                                             nil 'no-error-if-not-filep)
+                                                                            'marked))
+                                        (file-name (dired-get-filename nil 'no-error-if-not-filep)))
+                                    (if (and marked-files
+                                             (member file-name marked-files))
+                                        marked-files
+                                      (when marked-files
+                                        (dired-map-over-marks (dired-unmark nil)
+                                                              'marked))
+                                      file-name)))))
                   (when filename
-                    (dnd-begin-file-drag filename nil
-                                         (if (eq 'dired-mouse-drag-files 'link)
-                                             'move 'copy)
-                                         t)))
+                    (if (and (consp filename)
+                             (cdr filename))
+                        (dnd-begin-drag-files filename nil
+                                              (if (eq 'dired-mouse-drag-files 'link)
+                                                  'move 'copy)
+                                              t)
+                      (dnd-begin-file-drag (if (stringp filename)
+                                               filename
+                                             (car filename))
+                                           nil (if (eq 'dired-mouse-drag-files 'link)
+                                                   'move 'copy)
+                                           t))))
               (error (when (eq (event-basic-type new-event) 'mouse-1)
                        (push new-event unread-command-events))))))))))
 
