@@ -10917,7 +10917,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_waiting_for_finish = false;
 
 	      if (x_dnd_use_toplevels)
-		x_dnd_free_toplevels ();
+		x_dnd_free_toplevels (true);
 
 	      x_dnd_return_frame_object = NULL;
 	      x_dnd_movement_frame = NULL;
