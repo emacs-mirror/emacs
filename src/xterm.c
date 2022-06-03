@@ -2288,7 +2288,7 @@ x_dnd_send_xm_leave_for_drop (struct x_display_info *dpyinfo,
 }
 
 static void
-x_dnd_free_toplevels (void)
+x_dnd_free_toplevels (bool display_alive)
 {
   struct x_client_list_window *last;
   struct x_client_list_window *tem = x_dnd_toplevels;
@@ -2298,13 +2298,16 @@ x_dnd_free_toplevels (void)
       last = tem;
       tem = tem->next;
 
-      x_catch_errors (last->dpy);
-      XSelectInput (last->dpy, last->window,
-		    last->previous_event_mask);
+      if (display_alive)
+	{
+	  x_catch_errors (last->dpy);
+	  XSelectInput (last->dpy, last->window,
+			last->previous_event_mask);
 #ifdef HAVE_XSHAPE
-      XShapeSelectInput (last->dpy, last->window, None);
+	  XShapeSelectInput (last->dpy, last->window, None);
 #endif
-      x_uncatch_errors ();
+	  x_uncatch_errors ();
+	}
 
 #ifdef HAVE_XSHAPE
       if (last->n_input_rects != -1)
@@ -4054,7 +4057,7 @@ x_dnd_cleanup_drag_and_drop (void *frame)
   x_dnd_waiting_for_finish = false;
 
   if (x_dnd_use_toplevels)
-    x_dnd_free_toplevels ();
+    x_dnd_free_toplevels (true);
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #ifdef USE_GTK
@@ -10647,7 +10650,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     {
       if (x_dnd_compute_toplevels (FRAME_DISPLAY_INFO (f)))
 	{
-	  x_dnd_free_toplevels ();
+	  x_dnd_free_toplevels (true);
 	  x_dnd_use_toplevels = false;
 	}
     }
@@ -10843,7 +10846,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_waiting_for_finish = false;
 
 	      if (x_dnd_use_toplevels)
-		x_dnd_free_toplevels ();
+		x_dnd_free_toplevels (true);
 
 	      x_dnd_return_frame_object = NULL;
 	      x_dnd_movement_frame = NULL;
@@ -10993,7 +10996,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_return_frame_object = NULL;
 
   if (x_dnd_use_toplevels)
-    x_dnd_free_toplevels ();
+    x_dnd_free_toplevels (true);
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   /* Emacs can't respond to DND events inside the nested event
@@ -15901,11 +15904,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	{
 	  if (x_dnd_use_toplevels)
 	    {
-	      x_dnd_free_toplevels ();
+	      x_dnd_free_toplevels (true);
 
 	      if (x_dnd_compute_toplevels (dpyinfo))
 		{
-		  x_dnd_free_toplevels ();
+		  x_dnd_free_toplevels (true);
 		  x_dnd_use_toplevels = false;
 		}
 	    }
@@ -21790,7 +21793,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
       x_dnd_waiting_for_finish = false;
 
       if (x_dnd_use_toplevels)
-	x_dnd_free_toplevels ();
+	x_dnd_free_toplevels (false);
 
       x_dnd_return_frame_object = NULL;
       x_dnd_movement_frame = NULL;
@@ -25838,8 +25841,10 @@ x_delete_terminal (struct terminal *terminal)
 	  x_dnd_in_progress = false;
 	  x_dnd_waiting_for_finish = false;
 
+	  /* The display is going away, so there's no point in
+	     de-selecting for input on the DND toplevels.  */
 	  if (x_dnd_use_toplevels)
-	    x_dnd_free_toplevels ();
+	    x_dnd_free_toplevels (false);
 
 	  x_dnd_return_frame_object = NULL;
 	  x_dnd_movement_frame = NULL;
