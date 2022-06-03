@@ -61,9 +61,14 @@ two elements TYPE and DATA, where TYPE is a string containing the
 MIME type of DATA, and DATA is a unibyte string, or nil if the
 data could not be converted.
 
+DATA may also be a list of items; that means to add every
+individual item in DATA to the serialized message, instead of
+DATA in its entirety.
+
 DATA can optionally have a text property `type', which specifies
 the type of DATA inside the system message (see the doc string of
-`haiku-drag-message' for more details).")
+`haiku-drag-message' for more details).  If DATA is a list, then
+that property is obtained from the first element of DATA.")
 
 (defvar haiku-normal-selection-encoders '(haiku-select-encode-xstring
                                           haiku-select-encode-utf-8-string
@@ -144,10 +149,16 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
 
 (defun haiku-dnd-convert-file-name (value)
   "Convert VALUE to a file system reference if it is a file name."
-  (when (and (stringp value)
-             (not (file-remote-p value))
-             (file-exists-p value))
-    (list "refs" (propertize (expand-file-name value) 'type 'ref))))
+  (cond ((and (stringp value)
+              (not (file-remote-p value))
+              (file-exists-p value))
+         (list "refs" (propertize (expand-file-name value)
+                                  'type 'ref)))
+        ((vectorp value)
+         (list "refs"
+               (cl-loop for item across value
+                        collect (propertize (expand-file-name item)
+                                            'type 'ref))))))
 
 (defun haiku-dnd-convert-text-uri-list (value)
   "Convert VALUE to a list of URLs."
@@ -361,28 +372,34 @@ take effect on menu items until the menu bar is updated again."
     (dolist (target targets)
       (let* ((target-atom (intern target))
              (selection-converter (cdr (assoc target-atom
-                                              haiku-dnd-selection-converters))))
+                                              haiku-dnd-selection-converters)))
+             (value (if (stringp haiku-dnd-selection-value)
+                        (or (get-text-property 0 target-atom
+                                               haiku-dnd-selection-value)
+                            haiku-dnd-selection-value)
+                      haiku-dnd-selection-value)))
         (when selection-converter
-          (let ((selection-result
-                 (funcall selection-converter
-                          (if (stringp haiku-dnd-selection-value)
-                              (or (get-text-property 0 target-atom
-                                                     haiku-dnd-selection-value)
-                                  haiku-dnd-selection-value)
-                            haiku-dnd-selection-value))))
+          (let ((selection-result (funcall selection-converter value)))
             (when selection-result
-              (let ((field (cdr (assoc (car selection-result) message))))
+              (let* ((field (cdr (assoc (car selection-result) message)))
+                     (maybe-string (if (stringp (cadr selection-result))
+                                       (cadr selection-result)
+                                     (caadr selection-result))))
                 (unless (cadr field)
                   ;; Add B_MIME_TYPE to the message if the type was not
                   ;; previously specified, or the type if it was.
-                  (push (or (get-text-property 0 'type
-                                               (cadr selection-result))
+                  (push (or (get-text-property 0 'type maybe-string)
                             1296649541)
                         (alist-get (car selection-result) message
                                    nil nil #'equal))))
-              (push (cadr selection-result)
-                    (cdr (alist-get (car selection-result) message
-                                    nil nil #'equal))))))))
+              (if (not (consp (cadr selection-result)))
+                  (push (cadr selection-result)
+                        (cdr (alist-get (car selection-result) message
+                                        nil nil #'equal)))
+                (dolist (tem (cadr selection-result))
+                  (push tem
+                        (cdr (alist-get (car selection-result) message
+                                        nil nil #'equal))))))))))
     (prog1 (or (and (symbolp action)
                     action)
                'XdndActionCopy)
