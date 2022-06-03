@@ -305,6 +305,10 @@ the current Emacs process at the end, it starts a new Emacs process
 optional parameters to restart instead of just killing the current
 process.
 
+** New user option 'mouse-drag-mode-line-buffer'.
+If non-nil, dragging on the buffer name part of the mode-line will
+drag the buffer's associated file to other programs.
+
 +++
 ** New user option 'mouse-drag-and-drop-region-cross-program'.
 If non-nil, this option allows dragging text in the region from Emacs
@@ -2083,9 +2087,9 @@ list in reported motion events if there is no frame underneath the
 mouse pointer.
 
 +++
-** New function 'x-begin-drag'.
-This function initiates a drag-and-drop request with the contents of
-the selection 'XdndSelection', and returns when a drop occurs.
+** New functions 'x-begin-drag', 'dnd-begin-text-drag' and 'dnd-begin-file-drag'.
+These functions allow dragging contents (such as files and text) from
+Emacs to other programs.
 
 ---
 ** New function 'ietf-drums-parse-date-string'.

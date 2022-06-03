@@ -108,6 +108,13 @@ down and up respectively."
                  (integer :tag "This many lines from window top or bottom"))
   :version "29.1")
 
+(defcustom mouse-drag-mode-line-buffer nil
+  "If non-nil, allow dragging files from the mode line.
+When the buffer has an associated file, it can be dragged from
+the buffer name portion of its mode line to other programs."
+  :type 'boolean
+  :version "29.1")
+
 (defvar mouse--last-down nil)
 
 (defun mouse--down-1-maybe-follows-link (&optional _prompt)
@@ -854,8 +861,29 @@ frame instead."
   (interactive "e")
   (let* ((start (event-start start-event))
 	 (window (posn-window start))
-         (frame (window-frame window)))
+         (frame (window-frame window))
+         (skip-tracking nil)
+         filename)
+    ;; FIXME: is there a better way of determining if the event
+    ;; started on a buffer name?
+    (when (and mouse-drag-mode-line-buffer
+               (eq (car (posn-string start))
+                   (car (with-selected-window window
+                          (setq filename (buffer-file-name))
+                          mode-line-buffer-identification)))
+               filename
+               (file-exists-p filename))
+      (let ((mouse-fine-grained-tracking nil))
+        (track-mouse
+          (setq track-mouse 'drag-source)
+          (let ((event (read-event)))
+            (if (not (eq (event-basic-type event)
+                         'mouse-movement))
+                (push event unread-command-events)
+              (dnd-begin-file-drag filename frame 'copy t)
+              (setq skip-tracking t))))))
     (cond
+     (skip-tracking t)
      ((not (window-live-p window)))
      ((or (not (window-at-side-p window 'bottom))
           ;; Allow resizing the minibuffer window if it's on the
