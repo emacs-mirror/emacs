@@ -3479,11 +3479,41 @@ Unsigned integer in little endian order, with @var{bitlen} bits.
 @var{bitlen} has to be a multiple of 8.
 
 @item str @var{len}
-String of bytes of length @var{len}.
+Unibyte string (@pxref{Text Representations}) of length @var{len}.
+When packing, the first @var{len} bytes of the input string are copied
+to the packed output.  If the input string is shorter than @var{len},
+the remaining bytes will be null (zero) unless a pre-allocated string
+was provided to @code{bindat-pack}, in which case the remaining bytes
+are left unmodified.  When unpacking, any null bytes in the packed
+input string will appear in the unpacked output.
 
 @item strz &optional @var{len}
-Zero-terminated string of bytes, can be of arbitrary length or in a fixed-size
-field with length @var{len}.
+If @var{len} is not provided: Variable-length null-terminated unibyte
+string (@pxref{Text Representations}).  When packing, the entire input
+string is copied to the packed output followed by a null byte.  The
+length of the packed output is the length of the input string plus one
+(for the added null byte).  The input string must not contain any null
+bytes.  When unpacking, the resulting string contains all bytes up to
+(but excluding) the null byte.
+
+If @var{len} is provided: @code{strz} behaves the same as @code{str}
+with one difference: When unpacking, the first null byte encountered
+in the packed string and all subsequent bytes are excluded from the
+unpacked result.
+
+@quotation Caution
+The packed output will not be null-terminated unless one of the
+following is true:
+@itemize
+@item
+The input string is shorter than @var{len} and either no pre-allocated
+string was provided to @code{bindat-pack} or the appropriate byte in
+the pre-allocated string was already null.
+@item
+The input string contains a null byte within the first @var{len}
+bytes.
+@end itemize
+@end quotation
 
 @item vec @var{len} [@var{type}]
 Vector of @var{len} elements.  The type of the elements is given by
