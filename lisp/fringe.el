@@ -253,7 +253,7 @@ Note that removing a right or left fringe (by setting the width
 to zero) makes Emacs reserve one column of the window body to
 display a line continuation marker.  (This happens for both the
 left and right fringe, since Emacs can display both left-to-right
-and right-to-left text.)  You can use `window-max-characters-per-line'
+and right-to-left text.)  You can use `window-max-chars-per-line'
 to check the effective width.
 
 Fringe widths set by `set-window-fringes' override the default

@@ -2022,12 +2022,6 @@ The new 'x-show-tooltip-timeout' variable allows the user to alter
 this for packages that don't use 'tooltip-show', but instead call the
 lower level function directly.
 
-+++
-** New function 'window-max-characters-per-line'.
-
-+++
-** New function 'window-char-pixel-width'.
-
 ---
 ** New function 'current-cpu-time'.
 It gives access to the CPU time used by the Emacs process, for

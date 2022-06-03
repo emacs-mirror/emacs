@@ -759,15 +759,6 @@ column and total width (@pxref{Coordinates and Windows}).  The optional
 argument @var{round} behaves as it does for @code{window-total-height}.
 @end defun
 
-@defun window-max-characters-per-line &optional window face
-The maximum width of a line that can be displayed in a window (without
-breaking the line) depends on many things, like the font used on the
-line, and whether there are fringes around the window.  This
-convenience function can be used to calculate that number.  If
-@var{window} isn't given, this defaults to the currently selected
-window.  if @var{var} isn't given, the @code{default} face is used.
-@end defun
-
 @defun window-total-size &optional window horizontal round
 This function returns either the total height in lines or the total
 width in columns of the window @var{window}.  If @var{horizontal} is
