@@ -1594,7 +1594,9 @@ charge on the mode-line, by using the command
 @code{battery-mode-line-format} determines the way the battery charge
 is displayed; the exact mode-line message depends on the operating
 system, and it usually shows the current battery charge as a
-percentage of the total charge.
+percentage of the total charge.  The functions in
+@code{battery-update-functions} are run after updating the mode line,
+and can be used to trigger actions based on the battery status.
 
 @cindex mode line, 3D appearance
 @cindex attributes of mode line, changing

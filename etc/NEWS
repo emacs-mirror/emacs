@@ -862,6 +862,12 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Battery
+
++++
+*** New user option 'battery-update-functions'.
+This can be used to trigger actions based on the battery status.
+
 ** Enriched Mode
 
 +++
