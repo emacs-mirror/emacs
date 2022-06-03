@@ -313,10 +313,10 @@ in that list instead."
   "Begin dragging TEXT from FRAME.
 Initate a drag-and-drop operation allowing the user to drag text
 from Emacs to another program (the drop target), then block until
-the drop happens or is cancelled.
+the drop is completed or is cancelled.
 
-Return the action that the drop target actually performed, which
-can be one of the following symbols:
+If the drop completed, return the action that the drop target
+actually performed, which can be one of the following symbols:
 
   - `copy', which means TEXT was inserted by the drop target.
 
@@ -331,13 +331,13 @@ Return nil if the drop was cancelled.
 
 TEXT is a string containing text that will be inserted by the
 program where the drop happened.  FRAME is the frame where the
-mouse is currently held down, or nil (which means to use the
-current frame).  ACTION is one of the symbols `copy' or `move',
+mouse is currently held down, or nil, which stands for the
+current frame.  ACTION is one of the symbols `copy' or `move',
 where `copy' means that the text should be inserted by the drop
-target, and `move' means the the same as copy, but in addition
+target, and `move' means the the same as `copy', but in addition
 the caller might have to delete TEXT from its source after this
-function returns.  If ALLOW-SAME-FRAME is nil, any drops on FRAME
-itself will be ignored.
+function returns.  If ALLOW-SAME-FRAME is nil, ignore any drops
+on FRAME itself.
 
 This function might return immediately if no mouse buttons are
 currently being held down.  It should only be called upon a
@@ -367,7 +367,7 @@ currently being held down.  It should only be called upon a
 
 (defun dnd-begin-file-drag (file &optional frame action allow-same-frame)
   "Begin dragging FILE from FRAME.
-Initate a drag-and-drop operation allowing the user to drag files
+Initate a drag-and-drop operation allowing the user to drag a file
 from Emacs to another program (the drop target), then block until
 the drop happens or is cancelled.
 
@@ -387,17 +387,17 @@ can be one of the following symbols:
 
 Return nil if the drop was cancelled.
 
-FILE is the file name that will be inserted by the program where
-the drop happened.  If it is a remote file, a temporary copy will
-be made.  FRAME is the frame where the mouse is currently held
-down, or nil (which means to use the current frame).  ACTION is
-one of the symbols `copy', `move' or `link', where `copy' means
-that the file should be opened or copied by the drop target,
-`move' means the drop target should move the file to another
-location, and `link' means the drop target should create a
-symbolic link to FILE.  It is an error to specify `link' as the
-action if FILE is a remote file.  If ALLOW-SAME-FRAME is nil, any
-drops on FRAME itself will be ignored.
+FILE is the file name that will be sent to the program where the
+drop happened.  If it is a remote file, Emacs will make a
+temporary copy and pass that.  FRAME is the frame where the mouse
+is currently held down, or nil (which means to use the current
+frame).  ACTION is one of the symbols `copy', `move' or `link',
+where `copy' means that the file should be opened or copied by
+the drop target, `move' means the drop target should move the
+file to another location, and `link' means the drop target should
+create a symbolic link to FILE.  It is an error to specify `link'
+as the action if FILE is a remote file.  If ALLOW-SAME-FRAME is
+nil, any drops on FRAME itself will be ignored.
 
 This function might return immediately if no mouse buttons are
 currently being held down.  It should only be called upon a
