@@ -149,8 +149,8 @@ if they are quoted with a backslash."
 
 (defcustom eshell-variable-aliases-list
   `(;; for eshell.el
-    ("COLUMNS" ,(lambda (_indices) (window-width)) t)
-    ("LINES" ,(lambda (_indices) (window-height)) t)
+    ("COLUMNS" ,(lambda (_indices) (window-body-width nil 'remap)) t)
+    ("LINES" ,(lambda (_indices) (window-body-height nil 'remap)) t)
 
     ;; for eshell-cmd.el
     ("_" ,(lambda (indices)

@@ -476,13 +476,15 @@ inside double-quotes"
 
 ;; Built-in variables
 
-(ert-deftest esh-var-test/window-height ()
-  "$LINES should equal (window-height)"
-  (should (eshell-test-command-result "= $LINES (window-height)")))
+(ert-deftest esh-var-test/lines-var ()
+  "$LINES should equal (window-body-height nil 'remap)"
+  (should (equal (eshell-test-command-result "echo $LINES")
+                 (window-body-height nil 'remap))))
 
-(ert-deftest esh-var-test/window-width ()
-  "$COLUMNS should equal (window-width)"
-  (should (eshell-test-command-result "= $COLUMNS (window-width)")))
+(ert-deftest esh-var-test/columns-var ()
+  "$COLUMNS should equal (window-body-width nil 'remap)"
+  (should (equal (eshell-test-command-result "echo $COLUMNS")
+                 (window-body-width nil 'remap))))
 
 (ert-deftest esh-var-test/last-result-var ()
   "Test using the \"last result\" ($$) variable"

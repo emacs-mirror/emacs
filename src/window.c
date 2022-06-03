@@ -1014,11 +1014,20 @@ WINDOW must be a valid window and defaults to the selected one.  */)
   return make_fixnum (decode_valid_window (window)->top_line);
 }
 
+static enum window_body_unit
+window_body_unit_from_symbol (Lisp_Object unit)
+{
+  return
+    (unit == Qremap ? WINDOW_BODY_IN_REMAPPED_CHARS
+     : NILP (unit) ? WINDOW_BODY_IN_CANONICAL_CHARS
+     : WINDOW_BODY_IN_PIXELS);
+}
+
 /* Return the number of lines/pixels of W's body.  Don't count any mode
    or header line or horizontal divider of W.  Rounds down to nearest
    integer when not working pixelwise. */
 static int
-window_body_height (struct window *w, bool pixelwise)
+window_body_height (struct window *w, enum window_body_unit pixelwise)
 {
   int height = (w->pixel_height
 		- WINDOW_TAB_LINE_HEIGHT (w)
@@ -1029,11 +1038,27 @@ window_body_height (struct window *w, bool pixelwise)
 		- WINDOW_MODE_LINE_HEIGHT (w)
 		- WINDOW_BOTTOM_DIVIDER_WIDTH (w));
 
+  int denom = 1;
+  if (pixelwise == WINDOW_BODY_IN_REMAPPED_CHARS)
+    {
+      if (!NILP (Vface_remapping_alist))
+	{
+	  struct frame *f = XFRAME (WINDOW_FRAME (w));
+	  int face_id = lookup_named_face (NULL, f, Qdefault, true);
+	  struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
+	  if (face && face->font && face->font->height)
+	    denom = face->font->height;
+	}
+      /* For performance, use canonical chars if no face remapping.  */
+      else
+	pixelwise = WINDOW_BODY_IN_CANONICAL_CHARS;
+    }
+
+  if (pixelwise == WINDOW_BODY_IN_CANONICAL_CHARS)
+    denom = FRAME_LINE_HEIGHT (WINDOW_XFRAME (w));
+
   /* Don't return a negative value.  */
-  return max (pixelwise
-	      ? height
-	      : height / FRAME_LINE_HEIGHT (WINDOW_XFRAME (w)),
-	      0);
+  return max (height / denom, 0);
 }
 
 /* Return the number of columns/pixels of W's body.  Don't count columns
@@ -1042,7 +1067,7 @@ window_body_height (struct window *w, bool pixelwise)
    fringes either.  Round down to nearest integer when not working
    pixelwise.  */
 int
-window_body_width (struct window *w, bool pixelwise)
+window_body_width (struct window *w, enum window_body_unit pixelwise)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
@@ -1059,24 +1084,46 @@ window_body_width (struct window *w, bool pixelwise)
 		   ? WINDOW_FRINGES_WIDTH (w)
 		   : 0));
 
+  int denom = 1;
+  if (pixelwise == WINDOW_BODY_IN_REMAPPED_CHARS)
+    {
+      if (!NILP (Vface_remapping_alist))
+	{
+	  int face_id = lookup_named_face (NULL, f, Qdefault, true);
+	  struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
+	  if (face && face->font)
+	    {
+	      if (face->font->average_width)
+		denom = face->font->average_width;
+	      else if (face->font->space_width)
+		denom = face->font->space_width;
+	    }
+	}
+      /* For performance, use canonical chars if no face remapping.  */
+      else
+	pixelwise = WINDOW_BODY_IN_CANONICAL_CHARS;
+    }
+
+  if (pixelwise == WINDOW_BODY_IN_CANONICAL_CHARS)
+    denom = FRAME_COLUMN_WIDTH (WINDOW_XFRAME (w));
+
   /* Don't return a negative value.  */
-  return max (pixelwise
-	      ? width
-	      : width / FRAME_COLUMN_WIDTH (WINDOW_XFRAME (w)),
-	      0);
+  return max (width / denom, 0);
 }
 
 DEFUN ("window-body-width", Fwindow_body_width, Swindow_body_width, 0, 2, 0,
        doc: /* Return the width of WINDOW's text area.
-WINDOW must be a live window and defaults to the selected one.  Optional
-argument PIXELWISE non-nil means return the width in pixels.  The return
-value does not include any vertical dividers, fringes or marginal areas,
-or scroll bars.
+WINDOW must be a live window and defaults to the selected one.  The
+return value does not include any vertical dividers, fringes or
+marginal areas, or scroll bars.
 
-If PIXELWISE is nil, return the largest integer smaller than WINDOW's
-pixel width divided by the character width of WINDOW's frame.  This
-means that if a column at the right of the text area is only partially
-visible, that column is not counted.
+The optional argument PIXELWISE defines the units to use for the
+width.  If nil, return the largest integer smaller than WINDOW's pixel
+width in units of the character width of WINDOW's frame.  If PIXELWISE
+is `remap' and the default face is remapped (see
+`face-remapping-alist'), use the remapped face to determine the
+character width.  For any other non-nil value, return the width in
+pixels.
 
 Note that the returned value includes the column reserved for the
 continuation glyph.
@@ -1084,25 +1131,29 @@ continuation glyph.
 Also see `window-max-chars-per-line'.  */)
   (Lisp_Object window, Lisp_Object pixelwise)
 {
-  return make_fixnum (window_body_width (decode_live_window (window),
-					 !NILP (pixelwise)));
+  return (make_fixnum
+	  (window_body_width (decode_live_window (window),
+			      window_body_unit_from_symbol (pixelwise))));
 }
 
 DEFUN ("window-body-height", Fwindow_body_height, Swindow_body_height, 0, 2, 0,
        doc: /* Return the height of WINDOW's text area.
-WINDOW must be a live window and defaults to the selected one.  Optional
-argument PIXELWISE non-nil means return the height of WINDOW's text area
-in pixels.  The return value does not include the mode line or header
-line or any horizontal divider.
+WINDOW must be a live window and defaults to the selected one.  The
+return value does not include the mode line or header line or any
+horizontal divider.
 
-If PIXELWISE is nil, return the largest integer smaller than WINDOW's
-pixel height divided by the character height of WINDOW's frame.  This
-means that if a line at the bottom of the text area is only partially
-visible, that line is not counted.  */)
+The optional argument PIXELWISE defines the units to use for the
+height.  If nil, return the largest integer smaller than WINDOW's
+pixel height in units of the character height of WINDOW's frame.  If
+PIXELWISE is `remap' and the default face is remapped (see
+`face-remapping-alist'), use the remapped face to determine the
+character height.  For any other non-nil value, return the height in
+pixels.  */)
   (Lisp_Object window, Lisp_Object pixelwise)
 {
-  return make_fixnum (window_body_height (decode_live_window (window),
-					  !NILP (pixelwise)));
+  return (make_fixnum
+	  (window_body_height (decode_live_window (window),
+			       window_body_unit_from_symbol (pixelwise))));
 }
 
 DEFUN ("window-old-body-pixel-width",
@@ -2124,7 +2175,8 @@ though when run from an idle timer with a delay of zero seconds.  */)
   struct glyph_row *row, *end_row;
   int max_y = NILP (body) ? WINDOW_PIXEL_HEIGHT (w) : window_text_bottom_y (w);
   Lisp_Object rows = Qnil;
-  int window_width = NILP (body) ? w->pixel_width : window_body_width (w, true);
+  int window_width = NILP (body)
+    ? w->pixel_width : window_body_width (w, WINDOW_BODY_IN_PIXELS);
   int tab_line_height = WINDOW_TAB_LINE_HEIGHT (w);
   int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
   int subtract = NILP (body) ? 0 : (tab_line_height + header_line_height);
@@ -3657,8 +3709,10 @@ window_change_record_windows (Lisp_Object window, int stamp, ptrdiff_t number)
 	  wset_old_buffer (w, w->contents);
 	  w->old_pixel_width = w->pixel_width;
 	  w->old_pixel_height = w->pixel_height;
-	  w->old_body_pixel_width = window_body_width (w, true);
-	  w->old_body_pixel_height = window_body_height (w, true);
+	  w->old_body_pixel_width
+	    = window_body_width (w, WINDOW_BODY_IN_PIXELS);
+	  w->old_body_pixel_height
+	    = window_body_height (w, WINDOW_BODY_IN_PIXELS);
 	}
 
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
@@ -3903,8 +3957,10 @@ run_window_change_functions (void)
 	     && (window_buffer_change
 		 || w->pixel_width != w->old_pixel_width
 		 || w->pixel_height != w->old_pixel_height
-		 || window_body_width (w, true) != w->old_body_pixel_width
-		 || window_body_height (w, true) != w->old_body_pixel_height));
+		 || (window_body_width (w, WINDOW_BODY_IN_PIXELS)
+		     != w->old_body_pixel_width)
+		 || (window_body_height (w, WINDOW_BODY_IN_PIXELS)
+		     != w->old_body_pixel_height)));
 
 	  /* The following two are needed when running the default
 	     values for this frame below.  */
@@ -4768,7 +4824,8 @@ resize_frame_windows (struct frame *f, int size, bool horflag)
   Lisp_Object mini = f->minibuffer_window;
   struct window *m = WINDOWP (mini) ? XWINDOW (mini) : NULL;
   int mini_height = ((FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
-		     ? unit + m->pixel_height - window_body_height (m, true)
+		     ? (unit + m->pixel_height
+			- window_body_height (m, WINDOW_BODY_IN_PIXELS))
 		     : 0);
 
   new_pixel_size = max (horflag ? size : size - mini_height, unit);
@@ -5255,7 +5312,7 @@ void
 grow_mini_window (struct window *w, int delta)
 {
   struct frame *f = XFRAME (w->frame);
-  int old_height = window_body_height (w, true);
+  int old_height = window_body_height (w, WINDOW_BODY_IN_PIXELS);
   int min_height = FRAME_LINE_HEIGHT (f);
 
   eassert (MINI_WINDOW_P (w));
@@ -5289,7 +5346,8 @@ void
 shrink_mini_window (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
-  int delta = window_body_height (w, true) - FRAME_LINE_HEIGHT (f);
+  int delta = (window_body_height (w, WINDOW_BODY_IN_PIXELS)
+	       - FRAME_LINE_HEIGHT (f));
 
   eassert (MINI_WINDOW_P (w));
 
@@ -6356,9 +6414,10 @@ by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   struct window *w = XWINDOW (selected_window);
-  EMACS_INT requested_arg = (NILP (arg)
-			     ? window_body_width (w, 0) - 2
-			     : XFIXNUM (Fprefix_numeric_value (arg)));
+  EMACS_INT requested_arg =
+    (NILP (arg)
+     ? window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) - 2
+     : XFIXNUM (Fprefix_numeric_value (arg)));
   Lisp_Object result = set_window_hscroll (w, w->hscroll + requested_arg);
 
   if (!NILP (set_minimum))
@@ -6381,9 +6440,10 @@ by this function.  This happens in an interactive call.  */)
   (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   struct window *w = XWINDOW (selected_window);
-  EMACS_INT requested_arg = (NILP (arg)
-			     ? window_body_width (w, 0) - 2
-			     : XFIXNUM (Fprefix_numeric_value (arg)));
+  EMACS_INT requested_arg =
+    (NILP (arg)
+     ? window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) - 2
+     : XFIXNUM (Fprefix_numeric_value (arg)));
   Lisp_Object result = set_window_hscroll (w, w->hscroll - requested_arg);
 
   if (!NILP (set_minimum))

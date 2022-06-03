@@ -829,14 +829,18 @@ This function returns the height, in lines, of the body of window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
 the selected window; otherwise it must be a live window.
 
-If the optional argument @var{pixelwise} is non-@code{nil}, this
-function returns the body height of @var{window} counted in pixels.
+The optional argument @var{pixelwise} defines the units to use for the
+height.  If @code{nil}, return the body height of @var{window} in
+characters, rounded down to the nearest integer, if necessary.  This
+means that if a line at the bottom of the text area is only partially
+visible, that line is not counted.  It also means that the height of a
+window's body can never exceed its total height as returned by
+@code{window-total-height}.
 
-If @var{pixelwise} is @code{nil}, the return value is rounded down to
-the nearest integer, if necessary.  This means that if a line at the
-bottom of the text area is only partially visible, that line is not
-counted.  It also means that the height of a window's body can never
-exceed its total height as returned by @code{window-total-height}.
+If @var{pixelwise} is @code{remap} and the default face is remapped
+(@pxref{Face Remapping}), use the remapped face to determine the
+character height.  For any other non-@code{nil} value, return the
+height in pixels.
 @end defun
 
 @cindex window body width
@@ -857,14 +861,18 @@ This function returns the width, in columns, of the body of window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
 the selected window; otherwise it must be a live window.
 
-If the optional argument @var{pixelwise} is non-@code{nil}, this
-function returns the body width of @var{window} in units of pixels.
+The optional argument @var{pixelwise} defines the units to use for the
+width.  If @code{nil}, return the body width of @var{window} in
+characters, rounded down to the nearest integer, if necessary.  This
+means that if a column on the right of the text area is only partially
+visible, that column is not counted.  It also means that the width of
+a window's body can never exceed its total width as returned by
+@code{window-total-width}.
 
-If @var{pixelwise} is @code{nil}, the return value is rounded down to
-the nearest integer, if necessary.  This means that if a column on the
-right of the text area is only partially visible, that column is not
-counted.  It also means that the width of a window's body can never
-exceed its total width as returned by @code{window-total-width}.
+If @var{pixelwise} is @code{remap} and the default face is remapped
+(@pxref{Face Remapping}), use the remapped face to determine the
+character width.  For any other non-@code{nil} value, return the width
+in pixels.
 @end defun
 
 @cindex window body size

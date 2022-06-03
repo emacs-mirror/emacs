@@ -2434,6 +2434,12 @@ Specifying a cons as the FROM argument allows to start measuring text
 from a specified amount of pixels above or below a position.
 
 +++
+** 'window-body-width' and 'window-body-height' can use remapped faces.
+Specifying 'remap' as the PIXELWISE argument now checks if the default
+face was remapped, and if so, uses the remapped face to determine the
+character width/height.
+
++++
 ** 'set-window-vscroll' now accepts a new argument PRESERVE-VSCROLL-P.
 This means the vscroll will not be reset when set on a window that is
 "frozen" due to a mini-window being resized.

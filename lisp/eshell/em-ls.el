@@ -800,7 +800,7 @@ to use, and each member of which is the width of that column
              (+ 2 (length (car file))))
 	   files))
 	 ;; must account for the added space...
-	 (max-width (+ (window-width) 2))
+	 (max-width (+ (window-body-width nil 'remap) 2))
 	 (best-width 0)
 	 col-widths)
 
@@ -845,7 +845,7 @@ to use, and each member of which is the width of that column
            (lambda (file)
              (+ 2 (length (car file))))
 	   files))
-	 (max-width (+ (window-width) 2))
+	 (max-width (+ (window-body-width nil 'remap) 2))
 	 col-widths
 	 colw)
 
