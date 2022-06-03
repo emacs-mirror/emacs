@@ -951,10 +951,16 @@ byte-compiled.  Run with dynamic binding."
                             "let-bind nonvariable")
 
 (bytecomp--define-warning-file-test "warn-variable-set-constant.el"
-                            "variable reference to constant")
+                            "attempt to set constant")
 
 (bytecomp--define-warning-file-test "warn-variable-set-nonvariable.el"
                             "variable reference to nonvariable")
+
+(bytecomp--define-warning-file-test "warn-variable-setq-nonvariable.el"
+                            "attempt to set non-variable")
+
+(bytecomp--define-warning-file-test "warn-variable-setq-odd.el"
+                            "odd number of arguments")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-autoload.el"

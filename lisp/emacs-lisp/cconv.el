@@ -555,29 +555,19 @@ places where they originally did not directly appear."
      `(,(car form) ,(cconv-convert form1 env extend)
         :fun-body ,(cconv--convert-function () body env form1)))
 
-    (`(setq . ,forms)                   ; setq special form
-     (if (= (logand (length forms) 1) 1)
-         ;; With an odd number of args, let bytecomp.el handle the error.
-         form
-       (let ((prognlist ()))
-         (while forms
-           (let* ((sym (pop forms))
-                  (sym-new (or (cdr (assq sym env)) sym))
-                  (value (cconv-convert (pop forms) env extend)))
-             (push (pcase sym-new
-                     ((pred symbolp) `(,(car form) ,sym-new ,value))
-                     (`(car-safe ,iexp) `(setcar ,iexp ,value))
-                     ;; This "should never happen", but for variables which are
-                     ;; mutated+captured+unused, we may end up trying to `setq'
-                     ;; on a closed-over variable, so just drop the setq.
-                     (_ ;; (byte-compile-report-error
-                      ;;  (format "Internal error in cconv of (setq %s ..)"
-                      ;;          sym-new))
-                      value))
-                   prognlist)))
-         (if (cdr prognlist)
-             `(progn . ,(nreverse prognlist))
-           (car prognlist)))))
+    (`(setq ,var ,expr)
+     (let ((var-new (or (cdr (assq var env)) var))
+           (value (cconv-convert expr env extend)))
+       (pcase var-new
+         ((pred symbolp) `(,(car form) ,var-new ,value))
+         (`(car-safe ,iexp) `(setcar ,iexp ,value))
+         ;; This "should never happen", but for variables which are
+         ;; mutated+captured+unused, we may end up trying to `setq'
+         ;; on a closed-over variable, so just drop the setq.
+         (_ ;; (byte-compile-report-error
+          ;;  (format "Internal error in cconv of (setq %s ..)"
+          ;;          sym-new))
+          value))))
 
     (`(,(and (or 'funcall 'apply) callsym) ,fun . ,args)
      ;; These are not special forms but we treat them separately for the needs
@@ -751,14 +741,13 @@ This function does not return anything but instead fills the
        (cconv-analyze-form (cadr (pop body-forms)) env))
      (cconv--analyze-function vrs body-forms env form))
 
-    (`(setq . ,forms)
+    (`(setq ,var ,expr)
      ;; If a local variable (member of env) is modified by setq then
      ;; it is a mutated variable.
-     (while forms
-       (let ((v (assq (car forms) env))) ; v = non nil if visible
-         (when v (setf (nth 2 v) t)))
-       (cconv-analyze-form (cadr forms) env)
-       (setq forms (cddr forms))))
+     (let ((v (assq var env))) ; v = non nil if visible
+       (when v
+         (setf (nth 2 v) t)))
+     (cconv-analyze-form expr env))
 
     (`((lambda . ,_) . ,_)             ; First element is lambda expression.
      (byte-compile-warn-x

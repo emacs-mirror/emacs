@@ -463,32 +463,21 @@ for speeding up processing.")
       ;; is a *value* and shouldn't appear in the car.
       (`((closure . ,_) . ,_) form)
 
-      (`(setq . ,args)
-       (let ((var-expr-list nil))
-         (while args
-           (unless (and (consp args)
-                        (symbolp (car args)) (consp (cdr args)))
-             (byte-compile-warn-x form "malformed setq form: %S" form))
-           (let* ((var (car args))
-                  (expr (cadr args))
-                  (lexvar (assq var byte-optimize--lexvars))
-                  (value (byte-optimize-form expr nil)))
-             (when lexvar
-               (setcar (cdr lexvar) t)    ; Mark variable to be kept.
-               (setcdr (cdr lexvar) nil)  ; Inhibit further substitution.
+      (`(setq ,var ,expr)
+       (let ((lexvar (assq var byte-optimize--lexvars))
+             (value (byte-optimize-form expr nil)))
+         (when lexvar
+           (setcar (cdr lexvar) t)    ; Mark variable to be kept.
+           (setcdr (cdr lexvar) nil)  ; Inhibit further substitution.
 
-               (when (memq var byte-optimize--aliased-vars)
-                 ;; Cancel aliasing of variables aliased to this one.
-                 (dolist (v byte-optimize--lexvars)
-                   (when (eq (nth 2 v) var)
-                     ;; V is bound to VAR but VAR is now mutated:
-                     ;; cancel aliasing.
-                     (setcdr (cdr v) nil)))))
-
-             (push var var-expr-list)
-             (push value var-expr-list))
-           (setq args (cddr args)))
-         (cons fn (nreverse var-expr-list))))
+           (when (memq var byte-optimize--aliased-vars)
+             ;; Cancel aliasing of variables aliased to this one.
+             (dolist (v byte-optimize--lexvars)
+               (when (eq (nth 2 v) var)
+                 ;; V is bound to VAR but VAR is now mutated:
+                 ;; cancel aliasing.
+                 (setcdr (cdr v) nil)))))
+         `(,fn ,var ,value)))
 
       (`(defvar ,(and (pred symbolp) name) . ,rest)
        (let ((optimized-rest (and rest
