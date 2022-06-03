@@ -1353,7 +1353,7 @@ the leftover unidentified statements containing an equal sign.")
 ;; Note that this is documented in the v18 manuals as being a string
 ;; of length one rather than a single character.
 ;; The code in this file accepts either format for compatibility.
-(defvar idlwave-comment-indent-char ?\
+(defvar idlwave-comment-indent-char ?\s
   "Character to be inserted for IDL comment indentation.
 Normally a space.")
 
