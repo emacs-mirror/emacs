@@ -2664,6 +2664,10 @@ read_escape (Lisp_Object readcharfun)
     case 'v':
       return '\v';
 
+    case '\n':
+      /* ?\LF is an error; it's probably a user mistake.  */
+      error ("Invalid escape character syntax");
+
     case 'M':
       c = READCHAR;
       if (c != '-')

@@ -1922,6 +1922,9 @@ It was previously only run by 'clone-indirect-buffer' and
 called by both of these, the hook is now run by all 3 of these
 functions.
 
+---
+** '?\' at the end of a line now signals an error.
+Previously it produced a nonsense value, -1, that was never intended.
 
 * Lisp Changes in Emacs 29.1
 

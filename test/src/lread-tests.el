@@ -318,8 +318,8 @@ literals (Bug#20852)."
                  '(## . 2))))
 
 (ert-deftest lread-escaped-lf ()
-  ;; ?\LF should produce LF (only inside string literals do we ignore \LF).
-  (should (equal (read-from-string "?\\\n") '(?\n . 3)))
+  ;; ?\LF should signal an error; \LF is ignored inside string literals.
+  (should-error (read-from-string "?\\\n x"))
   (should (equal (read-from-string "\"a\\\nb\"") '("ab" . 6))))
 
 ;;; lread-tests.el ends here
