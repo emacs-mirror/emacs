@@ -385,6 +385,7 @@ you might have to restart Emacs to see the effect."
 (defcustom project-vc-include-untracked t
   "When non-nil, the VC project backend includes untracked files."
   :type 'boolean
+  :version "29.1"
   :safe #'booleanp)
 
 ;; FIXME: Using the current approach, major modes are supposed to set
@@ -519,7 +520,7 @@ backend implementation of `project-external-roots'.")
            files)
        (setq args (append args
                           '("-c" "--exclude-standard")
-                          (when project-vc-include-untracked '("-o"))))
+                          (and project-vc-include-untracked '("-o"))))
        (when extra-ignores
          (setq args (append args
                             (cons "--"
@@ -571,7 +572,7 @@ backend implementation of `project-external-roots'.")
        (delete-consecutive-dups files)))
     (`Hg
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args (list (concat "-mcard" (when project-vc-include-untracked "u"))
+           (args (list (concat "-mcard" (and project-vc-include-untracked "u"))
                        "--no-status"
                        "-0")))
        (when extra-ignores
