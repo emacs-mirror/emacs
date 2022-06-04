@@ -485,6 +485,9 @@ This will generate compile-time constants from BINDINGS."
          ;; Words inside ‘’, '' and `' tend to be symbol names.
          (,(concat "[`‘']\\(" lisp-mode-symbol-regexp "\\)['’]")
           (1 font-lock-constant-face prepend))
+         ;; \\= tends to be an escape in doc strings.
+         ("\\\\\\\\="
+          (0 font-lock-builtin-face prepend))
          ;; Constant values.
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))
