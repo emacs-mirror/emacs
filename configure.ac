@@ -1024,6 +1024,7 @@ AS_IF([test $gl_gcc_warnings = no],
      gl_WARN_ADD([-Wno-pointer-sign])
      gl_WARN_ADD([-Wno-string-plus-int])
      gl_WARN_ADD([-Wno-unknown-attributes])
+     gl_WARN_ADD([-Wno-unknown-pragmas])
    ])
  ],[
   isystem='-isystem '
