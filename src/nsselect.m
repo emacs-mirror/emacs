@@ -562,8 +562,12 @@ ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
 			      NSPasteboard *pasteboard)
 {
   NSArray *types, *new;
+  NSMutableArray *temp;
+  Lisp_Object tem;
+  specpdl_ref count;
 
   types = [pasteboard types];
+  count = SPECPDL_INDEX ();
 
   CHECK_SYMBOL (type);
 
@@ -580,10 +584,11 @@ ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
     }
   else if (EQ (type, Qfile))
     {
-      CHECK_STRING (data);
-
 #if NS_USE_NSPasteboardTypeFileURL
-      new = [types arrayByAddingObject: NSPasteboardTypeFileURL];
+      if (CONSP (data))
+	new = [types arrayByAddingObject: NSPasteboardTypeURL];
+      else
+	new = [types arrayByAddingObject: NSPasteboardTypeFileURL];
 #else
       new = [types arrayByAddingObject: NSFilenamesPboardType];
 #endif
@@ -591,13 +596,41 @@ ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
       [pasteboard declareTypes: new
 			 owner: nil];
 
+      if (STRINGP (data))
+	{
 #if NS_USE_NSPasteboardTypeFileURL
-      [pasteboard setString: [NSString stringWithLispString: data]
-		    forType: NSPasteboardTypeFileURL];
+	  [pasteboard setString: [NSString stringWithLispString: data]
+			forType: NSPasteboardTypeFileURL];
 #else
-      [pasteboard setString: [NSString stringWithLispString: data]
-		    forType: NSFilenamesPboardType];
+	  [pasteboard setString: [NSString stringWithLispString: data]
+			forType: NSFilenamesPboardType];
 #endif
+	}
+      else
+	{
+	  CHECK_LIST (data);
+	  temp = [[NSMutableArray alloc] init];
+	  record_unwind_protect_ptr (ns_release_object, temp);
+
+	  for (tem = data; CONSP (tem); tem = XCDR (tem))
+	    {
+	      CHECK_STRING (XCAR (tem));
+
+	      [temp addObject: [NSString stringWithLispString: XCAR (tem)]];
+	    }
+	  CHECK_LIST_END (tem, data);
+#if NS_USE_NSPasteboardTypeFileURL
+	  [pasteboard setPropertyList: temp
+		      /* We have to use this deprecated pasteboard
+			 type, since Apple doesn't let us use
+			 dragImage:at: to drag multiple file URLs.  */
+			      forType: @"NSFilenamesPboardType"];
+#else
+	  [pasteboard setPropertyList: temp
+			      forType: NSFilenamesPboardType];
+#endif
+	  unbind_to (count, Qnil);
+	}
     }
   else
     signal_error ("Unknown pasteboard type", type);
@@ -673,7 +706,8 @@ the meaning of DATA:
     be dragged to another program.
 
   - `file' means DATA should be a file URL that will be dragged to
-    another program.
+    another program.  DATA may also be a list of file names; that
+    means each file in the list will be dragged to another program.
 
 ACTION is the action that will be taken by the drop target towards the
 data inside PBOARD.

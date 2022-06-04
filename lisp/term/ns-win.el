@@ -905,11 +905,21 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
       (push (cons 'string ns-dnd-selection-value) pasteboard))
     (when (and (member "FILE_NAME" targets)
                (file-exists-p ns-dnd-selection-value))
-      (push (cons 'file
-                  (url-encode-url (concat "file://"
-                                          (expand-file-name
-                                           ns-dnd-selection-value))))
-            pasteboard))
+      (let ((value (if (stringp ns-dnd-selection-value)
+                       (or (get-text-property 0 'FILE_NAME
+                                              ns-dnd-selection-value)
+                           ns-dnd-selection-value)
+                     ns-dnd-selection-value)))
+        (if (vectorp value)
+            (push (cons 'file
+                        (cl-loop for file across value
+                                 collect (expand-file-name file)))
+                  pasteboard)
+          (push (cons 'file
+                      (url-encode-url (concat "file://"
+                                              (expand-file-name
+                                               ns-dnd-selection-value))))
+                pasteboard))))
     (ns-begin-drag frame pasteboard action return-frame allow-current-frame)))
 
 (defun ns-handle-drag-motion (frame x y)
