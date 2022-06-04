@@ -10275,6 +10275,27 @@ x_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
   return 0;
 }
 
+/* Like x_any_window_to_frame but only try to find tooltip frames.  */
+static struct frame *
+x_tooltip_window_to_frame (struct x_display_info *dpyinfo,
+			   Window wdesc)
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+
+      if (FRAME_X_P (f) && FRAME_TOOLTIP_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && FRAME_X_WINDOW (f) == wdesc)
+	return f;
+    }
+
+  return NULL;
+}
+
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 
 /* Like x_window_to_frame but also compares the window with the widget's
@@ -11855,9 +11876,9 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		    && (EQ (track_mouse, Qdrag_source)
 			|| EQ (track_mouse, Qdropping)))
 		  {
-		    maybe_tooltip = x_any_window_to_frame (dpyinfo, child);
+		    maybe_tooltip = x_tooltip_window_to_frame (dpyinfo, child);
 
-		    if (maybe_tooltip && FRAME_TOOLTIP_P (maybe_tooltip))
+		    if (maybe_tooltip)
 		      child = x_get_window_below (dpyinfo->display, child,
 						  parent_x, parent_y, &win_x,
 						  &win_y);
