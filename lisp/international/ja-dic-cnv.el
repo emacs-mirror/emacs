@@ -335,7 +335,7 @@ Saves the output as `ja-dic-filename', in directory DIRNAME (if specified)."
         (insert-file-contents (expand-file-name filename)))
       (re-search-forward "^[^;]")
       (while (re-search-forward ";[^\n/]*/" nil t)
-	(replace-match "/")))
+	(replace-match "/" t t)))
     ;; Setup and generate the header part of working buffer.
     (with-current-buffer buf
       (erase-buffer)
