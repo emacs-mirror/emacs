@@ -3524,10 +3524,13 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 				  dpyinfo->Xatom_NET_WM_CM_Sn) != None)
 	    {
 	      x_catch_errors (dpyinfo->display);
+	      XGrabServer (dpyinfo->display);
 	      overlay_window = XCompositeGetOverlayWindow (dpyinfo->display,
 							   dpyinfo->root_window);
 	      XCompositeReleaseOverlayWindow (dpyinfo->display,
 					      dpyinfo->root_window);
+	      XUngrabServer (dpyinfo->display);
+
 	      if (!x_had_errors_p (dpyinfo->display))
 		{
 		  XGetWindowAttributes (dpyinfo->display, overlay_window, &attrs);
@@ -3682,10 +3685,13 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 			      dpyinfo->Xatom_NET_WM_CM_Sn) != None)
 	{
 	  x_catch_errors (dpyinfo->display);
+	  XGrabServer (dpyinfo->display);
 	  overlay_window = XCompositeGetOverlayWindow (dpyinfo->display,
 						       dpyinfo->root_window);
 	  XCompositeReleaseOverlayWindow (dpyinfo->display,
 					  dpyinfo->root_window);
+	  XUngrabServer (dpyinfo->display);
+
 	  if (!x_had_errors_p (dpyinfo->display))
 	    {
 	      XGetWindowAttributes (dpyinfo->display, overlay_window, &attrs);
