@@ -858,7 +858,22 @@ The option `delete-pair-blink-delay' can disable blinking."
       (delete-char 1))))
 
 (defun raise-sexp (&optional arg)
-  "Raise ARG sexps higher up the tree."
+  "Raise ARG sexps higher up the tree.
+This means that the ARGth enclosing form will be deleted and
+replaced with the form that follows point.
+
+For instance, if you have:
+
+  (let ((foo 2))
+    (progn
+      (setq foo 3)
+      (zot)
+      (+ foo 2)))
+
+and point is before (zot), `M-x raise-sexp' will give you
+
+  (let ((foo 2))
+    (zot))"
   (interactive "p")
   (let ((s (if (and transient-mark-mode mark-active)
                (buffer-substring (region-beginning) (region-end))
