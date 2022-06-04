@@ -9662,7 +9662,6 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   NSInteger window_number;
   NSWindow *w;
 #endif
-
   drag_op = op;
   selected_op = NSDragOperationNone;
   image = [[NSImage alloc] initWithSize: NSMakeSize (1.0, 1.0)];
@@ -9715,6 +9714,11 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
     }
 #endif
   unblock_input ();
+
+  /* Assume all buttons have been released since the drag-and-drop
+     operation is now over.  */
+  if (!dnd_return_frame)
+    x_display_list->grabbed = 0;
 
   [image release];
 
