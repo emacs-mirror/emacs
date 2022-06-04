@@ -305,9 +305,11 @@ the current Emacs process at the end, it starts a new Emacs process
 optional parameters to restart instead of just killing the current
 process.
 
++++
 ** New user option 'mouse-drag-mode-line-buffer'.
 If non-nil, dragging on the buffer name part of the mode-line will
-drag the buffer's associated file to other programs.
+drag the buffer's associated file to other programs.  This option is
+currently only available on X, Haiku and Nextstep (GNUstep or macOS).
 
 +++
 ** New user option 'mouse-drag-and-drop-region-cross-program'.

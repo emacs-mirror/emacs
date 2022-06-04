@@ -111,7 +111,10 @@ down and up respectively."
 (defcustom mouse-drag-mode-line-buffer nil
   "If non-nil, allow dragging files from the mode line.
 When the buffer has an associated file, it can be dragged from
-the buffer name portion of its mode line to other programs."
+the buffer name portion of its mode line to other programs.
+
+This option is only supported on X, Haiku and Nextstep (GNUstep
+or macOS)."
   :type 'boolean
   :version "29.1")
 

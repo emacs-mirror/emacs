@@ -136,6 +136,12 @@ entirely on the screen.  The number of lines scrolled per step depends
 on how far away from the window edge the mouse has gone; the variable
 @code{mouse-scroll-min-lines} specifies a minimum step size.
 
+@vindex mouse-drag-mode-line-buffer
+  If you enable the option @code{mouse-drag-mode-line-buffer} and
+dragging files is supported by the window system, then dragging the
+mouse on the buffer name portion of the mode line will drag that
+buffer's file to another program or frame.
+
 @findex mouse-yank-primary
 @findex mouse-yank-at-click
   Clicking with the middle mouse button, @kbd{mouse-2}, moves point to
