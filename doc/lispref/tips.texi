@@ -707,7 +707,11 @@ Note that when Emacs displays these doc strings, Emacs will usually
 display @samp{`} (grave accent) as @samp{‘} (left single quotation
 mark) and @samp{'} (apostrophe) as @samp{’} (right single quotation
 mark), if the display supports displaying these characters.
-@xref{Keys in Documentation}.
+@xref{Keys in Documentation}.  (Some previous versions of this section
+recommended using the non-@acronym{ASCII} single quotation marks
+directly in doc strings, but this is now discouraged, since that leads
+to broken help string displays on terminals that don't support
+displaying those characters.)
 
 @cindex hyperlinks in documentation strings
 Help mode automatically creates a hyperlink when a documentation string
