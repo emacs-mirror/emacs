@@ -565,6 +565,9 @@ ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
   NSMutableArray *temp;
   Lisp_Object tem;
   specpdl_ref count;
+#if !NS_USE_NSPasteboardTypeFileURL
+  NSURL *url;
+#endif
 
   types = [pasteboard types];
   count = SPECPDL_INDEX ();
@@ -602,7 +605,12 @@ ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
 	  [pasteboard setString: [NSString stringWithLispString: data]
 			forType: NSPasteboardTypeFileURL];
 #else
-	  [pasteboard setString: [NSString stringWithLispString: data]
+	  url = [NSURL URLWithString: [NSString stringWithLispString: data]];
+
+	  if (!url)
+	    signal_error ("Invalid file URL", data);
+
+	  [pasteboard setString: [url path]
 			forType: NSFilenamesPboardType];
 #endif
 	}

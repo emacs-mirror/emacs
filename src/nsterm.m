@@ -8724,7 +8724,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   Lisp_Object type_sym;
   struct input_event ie;
 
-  NSTRACE ("[EmacsView performDragOperation:]");
+  NSTRACE (@"[EmacsView performDragOperation:]");
 
   source = [sender draggingSource];
 
@@ -8752,7 +8752,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   if (!type)
     return NO;
-#if NS_USE_NSPasteboardTypeFileURL != 0
+#if NS_USE_NSPasteboardTypeFileURL
   else if ([type isEqualToString: NSPasteboardTypeFileURL])
     {
       type_sym = Qfile;
@@ -8767,18 +8767,29 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 #else  // !NS_USE_NSPasteboardTypeFileURL
   else if ([type isEqualToString: NSFilenamesPboardType])
     {
-      NSArray *files;
+      id files;
       NSEnumerator *fenum;
       NSString *file;
 
-      if (!(files = [pb propertyListForType: type]))
+      files = [pb propertyListForType: type];
+
+      if (!files)
         return NO;
 
       type_sym = Qfile;
 
-      fenum = [files objectEnumerator];
-      while ( (file = [fenum nextObject]) )
-        strings = Fcons ([file lispString], strings);
+      /* On GNUstep, files might be a string.  */
+
+      if ([files respondsToSelector: @selector (objectEnumerator:)])
+	{
+	  fenum = [files objectEnumerator];
+
+	  while ((file = [fenum nextObject]))
+	    strings = Fcons ([file lispString], strings);
+	}
+      else
+	/* Then `files' is an NSString.  */
+	strings = list1 ([files lispString]);
     }
 #endif   // !NS_USE_NSPasteboardTypeFileURL
   else if ([type isEqualToString: NSPasteboardTypeURL])
@@ -8795,11 +8806,12 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
     {
       NSString *data;
 
-      if (! (data = [pb stringForType: type]))
+      data = [pb stringForType: type];
+
+      if (!data)
         return NO;
 
       type_sym = Qnil;
-
       strings = list1 ([data lispString]);
     }
   else
@@ -8807,7 +8819,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   EVENT_INIT (ie);
   ie.kind = DRAG_N_DROP_EVENT;
-  ie.arg = Fcons (type_sym, Fcons (operations, strings));
+  ie.arg = Fcons (type_sym, Fcons (operations,
+				   strings));
   XSETINT (ie.x, x);
   XSETINT (ie.y, y);
   XSETFRAME (ie.frame_or_window, emacsframe);
