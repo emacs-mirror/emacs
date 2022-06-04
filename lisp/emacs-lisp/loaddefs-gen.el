@@ -359,42 +359,49 @@ don't include."
         (goto-char (point-min))
         ;; The cookie might be like ;;;###tramp-autoload...
         (while (re-search-forward lisp-mode-autoload-regexp nil t)
-          ;; ... and if we have one of these names, then alter outfile.
-          (let* ((aname (match-string 2))
-                 (to-file (if aname
-                              (expand-file-name
-                               (concat aname "-loaddefs.el")
-                               (file-name-directory file))
-                            (or local-outfile main-outfile))))
-            (if (eolp)
-                ;; We have a form following.
-                (let* ((form (prog1
-                                 (read (current-buffer))
-                               (unless (bolp)
-                                 (forward-line 1))))
-                       (autoload (or (loaddefs-generate--make-autoload
-                                      form load-name)
-                                     form)))
-                  ;; We get back either an autoload form, or a tree
-                  ;; structure of `(progn ...)' things, so unravel that.
-                  (let ((forms (if (eq (car autoload) 'progn)
-                                   (cdr autoload)
-                                 (list autoload))))
-                    (while forms
-                      (let ((elem (pop forms)))
-                        (if (eq (car elem) 'progn)
-                            ;; More recursion; add it to the start.
-                            (setq forms (nconc (cdr elem) forms))
-                          ;; We have something to add to the defs; do it.
-                          (push (list to-file file elem) defs))))))
-              ;; Just put the rest of the line into the loaddefs.
-              ;; FIXME: We skip the first space if there's more
-              ;; whitespace after.
-              (when (looking-at-p " [\t ]")
-                (forward-char 1))
-              (push (list to-file file
-                          (buffer-substring (point) (line-end-position)))
-                    defs))))
+          (when (or package-data
+                    ;; Outside of the main Emacs build (`package-data'
+                    ;; is set in the Emacs build), check that we don't
+                    ;; have an autoload cookie on the first column of a
+                    ;; doc string or the like.  (The Emacs tree
+                    ;; shouldn't contain any such instances.)
+                    (not (ppss-string-terminator (syntax-ppss))))
+            ;; ... and if we have one of these names, then alter outfile.
+            (let* ((aname (match-string 2))
+                   (to-file (if aname
+                                (expand-file-name
+                                 (concat aname "-loaddefs.el")
+                                 (file-name-directory file))
+                              (or local-outfile main-outfile))))
+              (if (eolp)
+                  ;; We have a form following.
+                  (let* ((form (prog1
+                                   (read (current-buffer))
+                                 (unless (bolp)
+                                   (forward-line 1))))
+                         (autoload (or (loaddefs-generate--make-autoload
+                                        form load-name)
+                                       form)))
+                    ;; We get back either an autoload form, or a tree
+                    ;; structure of `(progn ...)' things, so unravel that.
+                    (let ((forms (if (eq (car autoload) 'progn)
+                                     (cdr autoload)
+                                   (list autoload))))
+                      (while forms
+                        (let ((elem (pop forms)))
+                          (if (eq (car elem) 'progn)
+                              ;; More recursion; add it to the start.
+                              (setq forms (nconc (cdr elem) forms))
+                            ;; We have something to add to the defs; do it.
+                            (push (list to-file file elem) defs))))))
+                ;; Just put the rest of the line into the loaddefs.
+                ;; FIXME: We skip the first space if there's more
+                ;; whitespace after.
+                (when (looking-at-p " [\t ]")
+                  (forward-char 1))
+                (push (list to-file file
+                            (buffer-substring (point) (line-end-position)))
+                      defs)))))
 
         (when (and autoload-compute-prefixes
                    compute-prefixes)
