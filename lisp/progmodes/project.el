@@ -1092,7 +1092,12 @@ If you exit the `query-replace', you can later continue the
                   (query-replace-read-args "Query replace (regexp)" t t)))
        (list from to))))
   (fileloop-initialize-replace
-   from to (project-files (project-current t)) 'default)
+   from to
+   ;; XXX: Filter out Git submodules, which are not regular files.
+   ;; `project-files' can return those, which is arguably suboptimal,
+   ;; but removing them eagerly has performance cost.
+   (cl-delete-if-not #'file-regular-p (project-files (project-current t)))
+   'default)
   (fileloop-continue))
 
 (defvar compilation-read-command)
