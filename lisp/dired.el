@@ -259,7 +259,21 @@ files if it was marked).  This feature is supported only on X
 Windows, Haiku, and Nextstep (macOS or GNUstep).
 
 If the value is `link', then a symbolic link will be created to
-the file instead by the other program (usually a file manager)."
+the file instead by the other program (usually a file manager).
+
+If the value is `move', then the default action will be for the
+other program to move the file to a different location.  For this
+to work optimally, `auto-revert-mode' should be enabled in the
+Dired buffer.
+
+If the Meta key is held down when the mouse button is pressed,
+then this will always be equivalent to `link'.
+
+If the Control key is held down when the mouse button is pressed,
+then dragging the file will always copy it to the new location.
+
+If the Shift key is held down when the mouse button is pressed,
+then this will always be equivalent to `move'."
   :set (lambda (option value)
          (set-default option value)
          (dolist (buffer (buffer-list))
@@ -267,7 +281,8 @@ the file instead by the other program (usually a file manager)."
              (when (derived-mode-p 'dired-mode)
                (revert-buffer nil t)))))
   :type '(choice (const :tag "Don't allow dragging" nil)
-                 (const :tag "Copy file to other window" t)
+                 (const :tag "Copy file to new location" t)
+                 (const :tag "Move file to new location" t)
                  (const :tag "Create symbolic link to file" link))
   :group 'dired
   :version "29.1")
@@ -1717,61 +1732,73 @@ other marked file as well.  Otherwise, unmark all files."
   (interactive "e")
   (when mark-active
     (deactivate-mark))
-  (save-excursion
-    (with-selected-window (posn-window (event-end event))
-      (goto-char (posn-point (event-end event))))
-    (track-mouse
-      (let ((beginning-position (mouse-pixel-position))
-            new-event)
-        (catch 'track-again
-          (setq new-event (read-event))
-          (if (not (eq (event-basic-type new-event) 'mouse-movement))
-              (when (eq (event-basic-type new-event) 'mouse-1)
-                (push new-event unread-command-events))
-            (let ((current-position (mouse-pixel-position)))
-              ;; If the mouse didn't move far enough, don't
-              ;; inadvertently trigger a drag.
-              (when (and (eq (car current-position) (car beginning-position))
-                         (ignore-errors
-                           (and (> 3 (abs (- (cadr beginning-position)
-                                             (cadr current-position))))
-                                (> 3 (abs (- (caddr beginning-position)
-                                             (caddr current-position)))))))
-                (throw 'track-again nil)))
-            ;; We can get an error if there's by some chance no file
-            ;; name at point.
-            (condition-case nil
-                (let ((filename (with-selected-window (posn-window
-                                                       (event-end event))
-                                  (let ((marked-files (dired-map-over-marks (dired-get-filename
-                                                                             nil 'no-error-if-not-filep)
-                                                                            'marked))
-                                        (file-name (dired-get-filename nil 'no-error-if-not-filep)))
-                                    (if (and marked-files
-                                             (member file-name marked-files))
-                                        marked-files
-                                      (when marked-files
-                                        (dired-map-over-marks (dired-unmark nil)
-                                                              'marked))
-                                      file-name)))))
-                  (when filename
-                    (if (and (consp filename)
-                             (cdr filename))
-                        (dnd-begin-drag-files filename nil
-                                              (if (eq dired-mouse-drag-files 'link)
-                                                  'link 'copy)
-                                              t)
-                      (dnd-begin-file-drag (if (stringp filename)
-                                               filename
-                                             (car filename))
-                                           nil (if (eq dired-mouse-drag-files 'link)
-                                                   'link 'copy)
-                                           t))))
-              (error (when (eq (event-basic-type new-event) 'mouse-1)
-                       (push new-event unread-command-events))))))))))
+  (let* ((modifiers (event-modifiers event))
+         (action (cond ((memq 'control modifiers) 'copy)
+                       ((memq 'shift modifiers) 'move)
+                       ((memq 'meta modifiers) 'link)
+                       (t (if (memq dired-mouse-drag-files
+                                    '(copy move link))
+                              dired-mouse-drag-files
+                            'copy)))))
+    (save-excursion
+      (with-selected-window (posn-window (event-end event))
+        (goto-char (posn-point (event-end event))))
+      (track-mouse
+        (let ((beginning-position (mouse-pixel-position))
+              new-event)
+          (catch 'track-again
+            (setq new-event (read-event))
+            (if (not (eq (event-basic-type new-event) 'mouse-movement))
+                (when (eq (event-basic-type new-event) 'mouse-1)
+                  (push new-event unread-command-events))
+              (let ((current-position (mouse-pixel-position)))
+                ;; If the mouse didn't move far enough, don't
+                ;; inadvertently trigger a drag.
+                (when (and (eq (car current-position) (car beginning-position))
+                           (ignore-errors
+                             (and (> 3 (abs (- (cadr beginning-position)
+                                               (cadr current-position))))
+                                  (> 3 (abs (- (caddr beginning-position)
+                                               (caddr current-position)))))))
+                  (throw 'track-again nil)))
+              ;; We can get an error if there's by some chance no file
+              ;; name at point.
+              (condition-case error
+                  (let ((filename (with-selected-window (posn-window
+                                                         (event-end event))
+                                    (let ((marked-files (dired-map-over-marks (dired-get-filename
+                                                                               nil 'no-error-if-not-filep)
+                                                                              'marked))
+                                          (file-name (dired-get-filename nil 'no-error-if-not-filep)))
+                                      (if (and marked-files
+                                               (member file-name marked-files))
+                                          marked-files
+                                        (when marked-files
+                                          (dired-map-over-marks (dired-unmark nil)
+                                                                'marked))
+                                        file-name)))))
+                    (when filename
+                      (if (and (consp filename)
+                               (cdr filename))
+                          (dnd-begin-drag-files filename nil action t)
+                        (dnd-begin-file-drag (if (stringp filename)
+                                                 filename
+                                               (car filename))
+                                             nil action t))))
+                (error (when (eq (event-basic-type new-event) 'mouse-1)
+                         (push new-event unread-command-events))
+                       ;; Errors from `dnd-begin-drag-file' should be
+                       ;; treated as user errors, since they should
+                       ;; only occur when the user performs an invalid
+                       ;; action, such as trying to create a link to
+                       ;; an invalid file.
+                       (user-error error))))))))))
 
 (defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
                                      (define-key keymap [down-mouse-1] #'dired-mouse-drag)
+                                     (define-key keymap [C-down-mouse-1] #'dired-mouse-drag)
+                                     (define-key keymap [S-down-mouse-1] #'dired-mouse-drag)
+                                     (define-key keymap [M-down-mouse-1] #'dired-mouse-drag)
                                      keymap)
   "Keymap applied to file names when `dired-mouse-drag-files' is enabled.")
 

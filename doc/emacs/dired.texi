@@ -1711,6 +1711,9 @@ the originating program.  Dragging files out of a Dired buffer is also
 supported, by enabling the user option @code{dired-mouse-drag-files},
 the mouse can be used to drag files onto other programs.  When set to
 @code{link}, it will make the other program (typically a file manager)
-create a symbolic link to the file, and setting it to any other
-non-@code{nil} value will make the other program open or create a copy
-of the file.
+create a symbolic link to the file; when set to @code{move}, it will
+make the other program move the file to a new location, and setting it
+to any other non-@code{nil} value will make the other program open or
+create a copy of the file.  The keyboard modifiers pressed during the
+drag-and-drop operation can also control what action the other program
+takes towards the file.
