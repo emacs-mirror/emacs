@@ -2292,7 +2292,31 @@ x_dnd_free_toplevels (bool display_alive)
 {
   struct x_client_list_window *last;
   struct x_client_list_window *tem = x_dnd_toplevels;
+  ptrdiff_t n_windows, i, buffer_size;
+  Window *destroy_windows;
+  unsigned long *prev_masks;
+  specpdl_ref count;
+  Display *dpy;
 
+  if (!x_dnd_toplevels)
+    /* Probably called inside an IO error handler.  */
+    return;
+
+  /* Pacify GCC.  */
+  prev_masks = NULL;
+  destroy_windows = NULL;
+
+  if (display_alive)
+    {
+      buffer_size = 1024;
+      destroy_windows = xmalloc (sizeof *destroy_windows
+				 * buffer_size);
+      prev_masks = xmalloc (sizeof *prev_masks *
+			    buffer_size);
+      n_windows = 0;
+    }
+
+  block_input ();
   while (tem)
     {
       last = tem;
@@ -2300,13 +2324,20 @@ x_dnd_free_toplevels (bool display_alive)
 
       if (display_alive)
 	{
-	  x_catch_errors (last->dpy);
-	  XSelectInput (last->dpy, last->window,
-			last->previous_event_mask);
-#ifdef HAVE_XSHAPE
-	  XShapeSelectInput (last->dpy, last->window, None);
-#endif
-	  x_uncatch_errors ();
+	  if (++n_windows >= buffer_size)
+	    {
+	      buffer_size += 1024;
+	      destroy_windows
+		= xrealloc (destroy_windows, (sizeof *destroy_windows
+					      * buffer_size));
+	      prev_masks
+		= xrealloc (prev_masks, (sizeof *prev_masks
+					 * buffer_size));
+	    }
+
+	  dpy = last->dpy;
+	  prev_masks[n_windows - 1] = last->previous_event_mask;
+	  destroy_windows[n_windows - 1] = last->window;
 	}
 
 #ifdef HAVE_XSHAPE
@@ -2320,6 +2351,34 @@ x_dnd_free_toplevels (bool display_alive)
     }
 
   x_dnd_toplevels = NULL;
+
+  if (!display_alive)
+    {
+      unblock_input ();
+      return;
+    }
+
+  count = SPECPDL_INDEX ();
+  record_unwind_protect_ptr (xfree, destroy_windows);
+  record_unwind_protect_ptr (xfree, prev_masks);
+
+  if (display_alive)
+    {
+      x_catch_errors (dpy);
+
+      for (i = 0; i < n_windows; ++i)
+	{
+	  XSelectInput (dpy, destroy_windows[i], prev_masks[i]);
+#ifdef HAVE_XSHAPE
+	  XShapeSelectInput (dpy, destroy_windows[i], None);
+#endif
+	}
+
+      x_uncatch_errors ();
+    }
+
+  unbind_to (count, Qnil);
+  unblock_input ();
 }
 
 static int
@@ -10625,6 +10684,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       unblock_input ();
     }
 
+  /* This shouldn't happen.  */
+  if (x_dnd_toplevels)
+    x_dnd_free_toplevels (true);
+
   x_dnd_in_progress = true;
   x_dnd_frame = f;
   x_dnd_last_seen_window = None;
@@ -10990,6 +11053,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
   unblock_input ();
 
+  if (x_dnd_use_toplevels)
+    x_dnd_free_toplevels (true);
+
   if (x_dnd_return_frame == 3
       && FRAME_LIVE_P (x_dnd_return_frame_object))
     {
@@ -11008,9 +11074,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     }
 
   x_dnd_return_frame_object = NULL;
-
-  if (x_dnd_use_toplevels)
-    x_dnd_free_toplevels (true);
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   /* Emacs can't respond to DND events inside the nested event
