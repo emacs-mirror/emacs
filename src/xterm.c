@@ -2961,6 +2961,9 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
   SAFE_FREE ();
 #endif
 
+  if (data)
+    XFree (data);
+
   return 0;
 }
 
