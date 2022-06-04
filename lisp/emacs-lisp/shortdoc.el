@@ -264,7 +264,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (string-greaterp
    :eval (string-greaterp "foo" "bar"))
   (string-version-lessp
-   :eval (string-version-lessp "pic4.png" "pic32.png"))
+   :eval (string-version-lessp "pic4.png" "pic32.png")
+   :eval (string-lessp "pic4.png" "pic32.png"))
+  (string-collate-lessp
+   :eval (string-collate-lessp "1.1" "1 2")
+   :eval (string-version-lessp "1.1" "1 2")
+   :eval (string-lessp "1.1" "1 2"))
   (string-prefix-p
    :eval (string-prefix-p "foo" "foobar"))
   (string-suffix-p
