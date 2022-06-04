@@ -870,7 +870,7 @@ For instance, if you have:
       (zot)
       (+ foo 2)))
 
-and point is before (zot), `M-x raise-sexp' will give you
+and point is before (zot), \\[raise-sexp] will give you
 
   (let ((foo 2))
     (zot))"
