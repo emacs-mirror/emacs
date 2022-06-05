@@ -7109,15 +7109,15 @@ by `sh' are supported."
   :group 'dired)
 
 (defun file-expand-wildcards (pattern &optional full)
-  "Expand wildcard pattern PATTERN.
-This returns a list of file names that match the pattern.
-Files are sorted in `string<' order.
+  "Expand (a.k.a. \"glob\") file-name wildcard pattern PATTERN.
+This returns a list of file names that match PATTERN.
+The returned list of file names is sorted in the `string<' order.
 
 If PATTERN is written as an absolute file name,
-the values are absolute also.
+the expansions in the returned list are also absolute.
 
 If PATTERN is written as a relative file name, it is interpreted
-relative to the current default directory, `default-directory'.
+relative to the current `default-directory'.
 The file names returned are normally also relative to the current
 default directory.  However, if FULL is non-nil, they are absolute."
   (save-match-data
