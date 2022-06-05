@@ -974,6 +974,12 @@
   (set-fontset-font "fontset-default" 'emoji
                     '("Noto Color Emoji" . "iso10646-1") nil 'prepend)
 
+  ;; This allows the display of tamil supplement characters. As these characters
+  ;; are pretty simple and do not need reordering, ligatures, vowel signs, virama
+  ;; etc. tml2 or other OTF tags are not needed here.
+  (set-fontset-font "fontset-default" '(#x11FC0 . #x11FFF)
+                    '("Noto Sans Tamil Supplement" . "iso10646-1") nil 'append)
+
   ;; Append CJK fonts for characters other than han, kana, cjk-misc.
   ;; Append fonts for scripts whose name is also a charset name.
   (let* ((data (build-default-fontset-data))
