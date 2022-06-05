@@ -258,7 +258,8 @@ handling of autoloaded functions."
   ;; calling that.
   (let ((describe-function-orig-buffer
          (or describe-function-orig-buffer
-             (current-buffer))))
+             (current-buffer)))
+        (help-buffer-under-preparation t))
 
     (help-setup-xref
      (list (lambda (function buffer)
