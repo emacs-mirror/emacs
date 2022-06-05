@@ -31,7 +31,7 @@
 (require 'cl-extra)
 (require 'transient)
 (require 'multisession)
-(require 'generate-file)
+(require 'generate-lisp-file)
 
 (defgroup emoji nil
   "Inserting Emojis."
@@ -416,7 +416,7 @@ the name is not known."
     (dolist (glyph glyphs)
       (remhash glyph emoji--derived)))
   (with-temp-buffer
-    (generate-file-heading file)
+    (generate-lisp-file-heading file 'emoji--generate-file)
     (insert ";; Copyright © 1991-2021 Unicode, Inc.
 ;; Generated from Unicode data files by emoji.el.
 ;; The source for this file is found in the admin/unidata/emoji-test.txt
@@ -427,7 +427,7 @@ the name is not known."
       (insert (format "(defconst %s '" var))
       (pp (symbol-value var) (current-buffer))
       (insert (format "\n) ;; End %s\n\n" var)))
-    (generate-file-trailer file)
+    (generate-lisp-file-trailer file)
     (write-region (point-min) (point-max) file)))
 
 (defun emoji--base-name (name derivations)

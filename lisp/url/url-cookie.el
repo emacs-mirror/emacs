@@ -26,7 +26,7 @@
 (require 'url-util)
 (require 'url-parse)
 (require 'url-domsuf)
-(require 'generate-file)
+(require 'generate-lisp-file)
 
 (eval-when-compile (require 'cl-lib))
 
@@ -159,7 +159,7 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 	(insert ")\n(setq url-cookie-secure-storage\n '")
 	(pp url-cookie-secure-storage (current-buffer)))
       (insert ")\n")
-      (generate-file-trailer fname :inhibit-provide t :autoloads t)
+      (generate-lisp-file-trailer fname :inhibit-provide t :autoloads t)
       (setq-local version-control 'never)
       (write-file fname))
     (setq url-cookies-changed-since-last-save nil))))

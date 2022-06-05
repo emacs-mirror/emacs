@@ -40,7 +40,7 @@
 
 (require 'radix-tree)
 (require 'lisp-mnt)
-(require 'generate-file)
+(require 'generate-lisp-file)
 
 (defvar autoload-compute-prefixes t
   "If non-nil, autoload will add code to register the prefixes used in a file.
@@ -440,17 +440,18 @@ be a string naming the feature, otherwise it will be based on
 FILE's name."
   (let ((lp (and (equal type "package") (setq type "autoloads"))))
     (with-temp-buffer
-      (generate-file-heading
-       file
-       :description (concat "automatically extracted " (or type "autoloads"))
-       :text (and (string-match "/lisp/loaddefs\\.el\\'" file)
-                  "This file will be copied to ldefs-boot.el and checked in periodically."))
+      (generate-lisp-file-heading
+       file 'loaddefs-generate--rubric
+       :title (concat "automatically extracted " (or type "autoloads"))
+       :commentary (and (string-match "/lisp/loaddefs\\.el\\'" file)
+                        "This file will be copied to ldefs-boot.el and checked in periodically."))
       (when lp
         (insert "(add-to-list 'load-path (directory-file-name
                          (or (file-name-directory #$) (car load-path))))\n\n"))
       (insert "\n;;; End of scraped data\n\n")
-      (generate-file-trailer file :provide (and (stringp feature) feature)
-                             :inhibit-provide (not feature))
+      (generate-lisp-file-trailer
+       file :provide (and (stringp feature) feature)
+       :inhibit-provide (not feature))
       (buffer-string))))
 
 (defun loaddefs-generate--insert-section-header (outbuf autoloads
