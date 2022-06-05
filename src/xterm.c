@@ -4349,11 +4349,16 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 		     (unsigned char *) &opaque_region, 4);
   else
     {
-      object_class = G_OBJECT_GET_CLASS (FRAME_GTK_OUTER_WIDGET (f));
-      class = GTK_WIDGET_CLASS (object_class);
+      /* This causes child frames to not update correctly for an
+	 unknown reason.  (bug#55779) */
+      if (!FRAME_PARENT_FRAME (f))
+	{
+	  object_class = G_OBJECT_GET_CLASS (FRAME_GTK_OUTER_WIDGET (f));
+	  class = GTK_WIDGET_CLASS (object_class);
 
-      if (class->style_updated)
-	class->style_updated (FRAME_GTK_OUTER_WIDGET (f));
+	  if (class->style_updated)
+	    class->style_updated (FRAME_GTK_OUTER_WIDGET (f));
+	}
     }
 #endif
   unblock_input ();
