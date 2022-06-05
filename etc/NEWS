@@ -136,6 +136,11 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
++++
+** Setting the goal columns now also affects '<prior>' and '<next>'.
+Previously, 'C-x C-n' only affected 'next-line' and 'previous-line',
+but it now also affects 'scroll-up-command' and 'scroll-down-command'.
+
 ---
 ** The 'd' command in Dired now more consistently skip dot files.
 In previous Emacs versions, commands like `C-u 10 d' would put the "D"

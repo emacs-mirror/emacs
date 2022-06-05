@@ -8078,13 +8078,18 @@ For motion by visual lines, see `beginning-of-visual-line'."
 (put 'set-goal-column 'disabled t)
 
 (defun set-goal-column (arg)
-  "Set the current horizontal position as a goal for \\[next-line] and \\[previous-line].
+  "Set the current horizontal position as a goal column.
+This goal column will affect the \\[next-line] and \\[previous-line] commands,
+as well as the \\[scroll-up-command] and \\[scroll-down-command] commands.
+
 Those commands will move to this position in the line moved to
 rather than trying to keep the same horizontal position.
-With a non-nil argument ARG, clears out the goal column
-so that \\[next-line] and \\[previous-line] resume vertical motion.
-The goal column is stored in the variable `goal-column'.
-This is a buffer-local setting."
+
+With a non-nil argument ARG, clears out the goal column so that
+these commands resume normal motion.
+
+The goal column is stored in the variable `goal-column'.  This is
+a buffer-local setting."
   (interactive "P")
   (if arg
       (progn

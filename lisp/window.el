@@ -10103,28 +10103,45 @@ scroll window further, move cursor to the bottom line.
 When point is already on that position, then signal an error.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
-If ARG is the atom `-', scroll downward by nearly full screen."
+
+If ARG is the atom `-', scroll downward by nearly full screen.
+
+The command \\[set-goal-column] can be used to create a
+semipermanent goal column for this command."
   (interactive "^P")
-  (cond
-   ((null scroll-error-top-bottom)
-    (scroll-up arg))
-   ((eq arg '-)
-    (scroll-down-command nil))
-   ((< (prefix-numeric-value arg) 0)
-    (scroll-down-command (- (prefix-numeric-value arg))))
-   ((eobp)
-    (scroll-up arg))			; signal error
-   (t
-    (condition-case nil
-	(scroll-up arg)
-      (end-of-buffer
-       (if arg
-	   ;; When scrolling by ARG lines can't be done,
-	   ;; move by ARG lines instead.
-	   (forward-line arg)
-	 ;; When ARG is nil for full-screen scrolling,
-	 ;; move to the bottom of the buffer.
-	 (goto-char (point-max))))))))
+  (prog1
+      (cond
+       ((null scroll-error-top-bottom)
+        (scroll-up arg))
+       ((eq arg '-)
+        (scroll-down-command nil))
+       ((< (prefix-numeric-value arg) 0)
+        (scroll-down-command (- (prefix-numeric-value arg))))
+       ((eobp)
+        (scroll-up arg))                ; signal error
+       (t
+        (condition-case nil
+	    (scroll-up arg)
+          (end-of-buffer
+           (if arg
+	       ;; When scrolling by ARG lines can't be done,
+	       ;; move by ARG lines instead.
+	       (forward-line arg)
+	     ;; When ARG is nil for full-screen scrolling,
+	     ;; move to the bottom of the buffer.
+	     (goto-char (point-max)))))))
+    (scroll-command--goto-goal-column)))
+
+(defun scroll-command--goto-goal-column ()
+  (when goal-column
+    ;; Move to the desired column.
+    (if (and line-move-visual
+             (not (or truncate-lines truncate-partial-width-windows)))
+        ;; Under line-move-visual, goal-column should be
+        ;; interpreted in units of the frame's canonical character
+        ;; width, which is exactly what vertical-motion does.
+        (vertical-motion (cons goal-column 0))
+      (line-move-to-column (truncate goal-column)))))
 
 (put 'scroll-up-command 'scroll-command t)
 
@@ -10140,28 +10157,34 @@ scroll window further, move cursor to the top line.
 When point is already on that position, then signal an error.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
-If ARG is the atom `-', scroll upward by nearly full screen."
+
+If ARG is the atom `-', scroll upward by nearly full screen.
+
+The command \\[set-goal-column] can be used to create a
+semipermanent goal column for this command."
   (interactive "^P")
-  (cond
-   ((null scroll-error-top-bottom)
-    (scroll-down arg))
-   ((eq arg '-)
-    (scroll-up-command nil))
-   ((< (prefix-numeric-value arg) 0)
-    (scroll-up-command (- (prefix-numeric-value arg))))
-   ((bobp)
-    (scroll-down arg))			; signal error
-   (t
-    (condition-case nil
-	(scroll-down arg)
-      (beginning-of-buffer
-       (if arg
-	   ;; When scrolling by ARG lines can't be done,
-	   ;; move by ARG lines instead.
-	   (forward-line (- arg))
-	 ;; When ARG is nil for full-screen scrolling,
-	 ;; move to the top of the buffer.
-	 (goto-char (point-min))))))))
+  (prog1
+      (cond
+       ((null scroll-error-top-bottom)
+        (scroll-down arg))
+       ((eq arg '-)
+        (scroll-up-command nil))
+       ((< (prefix-numeric-value arg) 0)
+        (scroll-up-command (- (prefix-numeric-value arg))))
+       ((bobp)
+        (scroll-down arg))              ; signal error
+       (t
+        (condition-case nil
+	    (scroll-down arg)
+          (beginning-of-buffer
+           (if arg
+	       ;; When scrolling by ARG lines can't be done,
+	       ;; move by ARG lines instead.
+	       (forward-line (- arg))
+	     ;; When ARG is nil for full-screen scrolling,
+	     ;; move to the top of the buffer.
+	     (goto-char (point-min)))))))
+    (scroll-command--goto-goal-column)))
 
 (put 'scroll-down-command 'scroll-command t)
 
