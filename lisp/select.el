@@ -633,7 +633,8 @@ two markers or an overlay.  Otherwise, it is nil."
         ;; Motif expects this to be STRING, but it treats the data as
         ;; a sequence of bytes instead of a Latin-1 string.
         (cons 'STRING (encode-coding-string (expand-file-name value)
-                                            'raw-text-unix))
+                                            (or file-name-coding-system
+                                                default-file-name-coding-system)))
       (when (vectorp value)
         (with-temp-buffer
           (cl-loop for file across value
@@ -643,7 +644,8 @@ two markers or an overlay.  Otherwise, it is nil."
             (delete-char -1))
           ;; Motif wants STRING.
           (cons 'STRING (encode-coding-string (buffer-string)
-                                              'raw-text-unix)))))))
+                                              (or file-name-coding-system
+                                                  default-file-name-coding-system))))))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
@@ -771,8 +773,11 @@ VALUE should be SELECTION's local value."
              (stringp value)
              (file-exists-p value)
              (not (file-remote-p value)))
-    (encode-coding-string (xselect-tt-net-file value)
-                          'raw-text-unix t)))
+    (cons 'STRING
+          (encode-coding-string (xselect-tt-net-file value)
+                                (or file-name-coding-system
+                                    default-file-name-coding-system)
+                                t))))
 
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)
