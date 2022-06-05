@@ -17554,15 +17554,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 	    x_net_wm_state (f, configureEvent.xconfigure.window);
 
-#ifdef USE_X_TOOLKIT
+#if defined USE_X_TOOLKIT || defined USE_GTK
           /* Tip frames are pure X window, set size for them.  */
           if (FRAME_TOOLTIP_P (f))
             {
               if (FRAME_PIXEL_HEIGHT (f) != configureEvent.xconfigure.height
                   || FRAME_PIXEL_WIDTH (f) != configureEvent.xconfigure.width)
-                {
-                  SET_FRAME_GARBAGED (f);
-                }
+		SET_FRAME_GARBAGED (f);
+
               FRAME_PIXEL_HEIGHT (f) = configureEvent.xconfigure.height;
               FRAME_PIXEL_WIDTH (f) = configureEvent.xconfigure.width;
             }

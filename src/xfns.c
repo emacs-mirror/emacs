@@ -8156,9 +8156,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
    the display in *ROOT_X, and *ROOT_Y.  */
 
 static void
-compute_tip_xy (struct frame *f,
-		Lisp_Object parms, Lisp_Object dx, Lisp_Object dy,
-		int width, int height, int *root_x, int *root_y)
+compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
+		Lisp_Object dy, int width, int height, int *root_x,
+		int *root_y)
 {
   Lisp_Object left, top, right, bottom;
   int win_x, win_y;
@@ -8184,7 +8184,7 @@ compute_tip_xy (struct frame *f,
 		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
       unblock_input ();
 
-      XSETFRAME(frame, f);
+      XSETFRAME (frame, f);
       attributes = Fx_display_monitor_attributes_list (frame);
 
       /* Try to determine the monitor where the mouse pointer is and
@@ -8199,11 +8199,13 @@ compute_tip_xy (struct frame *f,
               min_y = XFIXNUM (Fnth (make_fixnum (2), geometry));
               max_x = min_x + XFIXNUM (Fnth (make_fixnum (3), geometry));
               max_y = min_y + XFIXNUM (Fnth (make_fixnum (4), geometry));
+
               if (min_x <= *root_x && *root_x < max_x
                   && min_y <= *root_y && *root_y < max_y)
                 {
                   break;
                 }
+
               max_y = -1;
             }
 
@@ -8213,7 +8215,7 @@ compute_tip_xy (struct frame *f,
 
   /* It was not possible to determine the monitor's geometry, so we
      assign some sane defaults here: */
-  if ( max_y < 0 )
+  if (max_y < 0)
     {
       min_x = 0;
       min_y = 0;
