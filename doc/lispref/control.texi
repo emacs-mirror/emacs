@@ -525,7 +525,7 @@ core pattern can have the following forms:
 
 @table @code
 
-@item _
+@item _@r{ (underscore)}
 Matches any @var{expval}.
 This is also known as @dfn{don't care} or @dfn{wildcard}.
 

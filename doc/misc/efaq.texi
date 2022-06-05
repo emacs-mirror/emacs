@@ -4274,75 +4274,6 @@ add the following line to your @file{~/.emacs}:
   (setq ps-multibyte-buffer 'bdf-font-except-latin)
 @end lisp
 
-A few additional steps are necessary for MS-Windows; they are listed
-below.
-
-First, make sure @emph{all} the directories with BDF font files are
-mentioned in @code{bdf-directory-list}.  On Unix and GNU/Linux
-systems, one normally runs @kbd{make install} to install the BDF fonts
-in the same directory.  By contrast, Windows users typically don't run
-the Intlfonts installation command, but unpack the distribution in
-some directory, which leaves the BDF fonts in its subdirectories.  For
-example, assume that you unpacked Intlfonts in @file{C:/Intlfonts};
-then you should set @code{bdf-directory-list} as follows:
-
-@lisp
-  (setq bdf-directory-list
-    '("C:/Intlfonts/Asian"
-      "C:/Intlfonts/Chinese" "C:/Intlfonts/Chinese.X"
-      "C:/Intlfonts/Chinese.BIG" "C:/Intlfonts/Ethiopic"
-      "C:/Intlfonts/European" "C:/Intlfonts/European.BIG"
-      "C:/Intlfonts/Japanese" "C:/Intlfonts/Japanese.X"
-      "C:/Intlfonts/Japanese.BIG" "C:/Intlfonts/Korean.X"
-      "C:/Intlfonts/Misc"))
-@end lisp
-
-@cindex @code{w32-bdf-filename-alist}
-@cindex @code{w32-find-bdf-fonts}
-Next, you need to set up the variable @code{w32-bdf-filename-alist} to
-an alist of the BDF fonts and their corresponding file names.
-Assuming you have set @code{bdf-directory-list} to name all the
-directories with the BDF font files, the following Lisp snippet will
-set up @code{w32-bdf-filename-alist}:
-
-@lisp
-  (setq w32-bdf-filename-alist
-     (w32-find-bdf-fonts bdf-directory-list))
-@end lisp
-
-Now, create fontsets for the BDF fonts:
-
-@smallexample
-  (create-fontset-from-fontset-spec
-   "-*-fixed-medium-r-normal-*-16-*-*-*-c-*-fontset-bdf,
-   japanese-jisx0208:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0208.1983-*,
-   katakana-jisx0201:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0201*-*,
-   latin-jisx0201:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0201*-*,
-   japanese-jisx0208-1978:-*-*-medium-r-normal-*-16-*-*-*-c-*-jisx0208.1978-*,
-   thai-tis620:-misc-fixed-medium-r-normal--16-160-72-72-m-80-tis620.2529-1,
-   lao:-misc-fixed-medium-r-normal--16-160-72-72-m-80-MuleLao-1,
-   tibetan-1-column:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-80-MuleTibetan-1,
-   ethiopic:-Admas-Ethiomx16f-Medium-R-Normal--16-150-100-100-M-160-Ethiopic-Unicode,
-   tibetan:-TibMdXA-fixed-medium-r-normal--16-160-72-72-m-160-MuleTibetan-0")
-@end smallexample
-
-Many of the international bdf fonts from Intlfonts are type 0, and
-therefore need to be added to font-encoding-alist:
-
-@lisp
-  (setq font-encoding-alist
-        (append '(("MuleTibetan-0" (tibetan . 0))
-                  ("GB2312"        (chinese-gb2312 . 0))
-                  ("JISX0208"      (japanese-jisx0208 . 0))
-                  ("JISX0212"      (japanese-jisx0212 . 0))
-                  ("VISCII"        (vietnamese-viscii-lower . 0))
-                  ("KSC5601"       (korean-ksc5601 . 0))
-                  ("MuleArabic-0"  (arabic-digit . 0))
-                  ("MuleArabic-1"  (arabic-1-column . 0))
-                  ("MuleArabic-2"  (arabic-2-column . 0)))
-                font-encoding-alist))
-@end lisp
-
 You can now use the Emacs font menu to select the @samp{bdf: 16-dot medium}
 fontset, or you can select it by setting the default font in your
 @file{~/.emacs}:
@@ -4350,7 +4281,6 @@ fontset, or you can select it by setting the default font in your
 @lisp
   (set-frame-font "fontset-bdf")
 @end lisp
-
 
 @c ------------------------------------------------------------
 @node Mail and news
