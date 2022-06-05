@@ -21,15 +21,6 @@
 (require 'ert)
 (require 'htmlfontify)
 
-(ert-deftest htmlfontify-autoload ()
-  "Tests to see whether reftex-auc has been autoloaded"
-  (should
-   (fboundp 'htmlfontify-load-rgb-file))
-  (should
-   (autoloadp
-    (symbol-function
-     'htmlfontify-load-rgb-file))))
-
 (ert-deftest htmlfontify-bug25468 ()
   "Tests that htmlfontify can be loaded even if no shell is
 available (Bug#25468)."

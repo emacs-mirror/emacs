@@ -81,8 +81,6 @@
 (eval-when-compile (require 'cl-lib))
 (require 'cus-edit)
 
-(require 'htmlfontify-loaddefs)
-
 (defconst htmlfontify-version 0.21)
 
 (defconst hfy-meta-tags
