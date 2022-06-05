@@ -22591,17 +22591,16 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
    https://freedesktop.org/wiki/Specifications/wm-spec/.  */
 
 bool
-x_wm_supports (struct frame *f, Atom want_atom)
+x_wm_supports_1 (struct x_display_info *dpyinfo, Atom want_atom)
 {
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
   int i, rc, actual_format;
   bool ret;
   Window wmcheck_window;
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Window target_window = dpyinfo->root_window;
   int max_len = 65536;
-  Display *dpy = FRAME_X_DISPLAY (f);
+  Display *dpy = dpyinfo->display;
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_WINDOW;
 
@@ -22673,6 +22672,13 @@ x_wm_supports (struct frame *f, Atom want_atom)
   unblock_input ();
 
   return ret;
+}
+
+bool
+x_wm_supports (struct frame *f, Atom want_atom)
+{
+  return x_wm_supports_1 (FRAME_DISPLAY_INFO (f),
+			  want_atom);
 }
 
 static void
