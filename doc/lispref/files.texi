@@ -3112,9 +3112,15 @@ except those two.  It is useful as the @var{match-regexp} argument to
 returns @code{nil}, if directory @samp{/foo} is empty.
 @end defvr
 
-@defun file-expand-wildcards pattern &optional full
+@defun file-expand-wildcards pattern &optional full regexp
 This function expands the wildcard pattern @var{pattern}, returning
 a list of file names that match it.
+
+@var{pattern} is, by default, a ``glob''/wildcard string, e.g.,
+@samp{"/tmp/*.png"} or @samp{"/*/*/foo.png"}, but can also be a
+regular expression if the optional @var{regexp} parameter is non-nil.
+In any case, the matches are applied per sub-directory, so a match
+can't span a parent/sub directory.
 
 If @var{pattern} is written as an absolute file name,
 the values are absolute also.

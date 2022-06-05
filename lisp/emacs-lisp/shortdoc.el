@@ -468,7 +468,9 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :no-eval* (directory-files-and-attributes "/tmp/foo"))
   (file-expand-wildcards
    :no-eval (file-expand-wildcards "/tmp/*.png")
-   :eg-result ("/tmp/foo.png" "/tmp/zot.png"))
+   :eg-result ("/tmp/foo.png" "/tmp/zot.png")
+   :no-eval (file-expand-wildcards "/*/foo.png")
+   :eg-result ("/tmp/foo.png" "/var/foo.png"))
   (locate-dominating-file
    :no-eval (locate-dominating-file "foo.png" "/tmp/foo/bar/zot")
    :eg-result "/tmp/foo.png")

@@ -7198,13 +7198,21 @@ by `sh' are supported."
   :type 'string
   :group 'dired)
 
-(defun file-expand-wildcards (pattern &optional full)
+(defun file-expand-wildcards (pattern &optional full regexp)
   "Expand wildcard pattern PATTERN.
 This returns a list of file names that match the pattern.
-Files are sorted in `string<' order.
 
-If PATTERN is written as an absolute file name,
-the values are absolute also.
+PATTERN is, by default, a \"glob\"/wildcard string, e.g.,
+\"/tmp/*.png\" or \"/*/*/foo.png\", but can also be a regular
+expression if the optional REGEXP parameter is non-nil.  In any
+case, the matches are applied per sub-directory, so a match can't
+span a parent/sub directory, which means that a regexp bit can't
+contain the \"/\" character.
+
+The list of files returned are sorted in `string<' order.
+
+If PATTERN is written as an absolute file name, the values are
+absolute also.
 
 If PATTERN is written as a relative file name, it is interpreted
 relative to the current default directory, `default-directory'.
@@ -7219,7 +7227,8 @@ default directory.  However, if FULL is non-nil, they are absolute."
 	   (dirs (if (and dirpart
 			  (string-match "[[*?]" (file-local-name dirpart)))
 		     (mapcar 'file-name-as-directory
-			     (file-expand-wildcards (directory-file-name dirpart)))
+			     (file-expand-wildcards
+                              (directory-file-name dirpart) nil regexp))
 		   (list dirpart)))
 	   contents)
       (dolist (dir dirs)
@@ -7233,7 +7242,9 @@ default directory.  However, if FULL is non-nil, they are absolute."
                                                        (file-name-nondirectory name))
                                    name))
 			       (directory-files (or dir ".") full
-						(wildcard-to-regexp nondir))))))
+                                                (if regexp
+                                                    nondir
+						  (wildcard-to-regexp nondir)))))))
 	    (setq contents
 		  (nconc
 		   (if (and dir (not full))
