@@ -7241,10 +7241,13 @@ default directory.  However, if FULL is non-nil, they are absolute."
                                  (unless (string-match "\\`\\.\\.?\\'"
                                                        (file-name-nondirectory name))
                                    name))
-			       (directory-files (or dir ".") full
-                                                (if regexp
-                                                    nondir
-						  (wildcard-to-regexp nondir)))))))
+			       (directory-files
+                                (or dir ".") full
+                                (if regexp
+                                    ;; We're matching each file name
+                                    ;; element separately.
+                                    (concat "\\`" nondir "\\'")
+				  (wildcard-to-regexp nondir)))))))
 	    (setq contents
 		  (nconc
 		   (if (and dir (not full))
@@ -7253,6 +7256,89 @@ default directory.  However, if FULL is non-nil, they are absolute."
 		     this-dir-contents)
 		   contents)))))
       contents)))
+
+(defcustom find-sibling-rules nil
+  "Rules for finding \"sibling\" files.
+This is used by the `find-sibling-file' command.
+
+This variable is a list of (MATCH EXPANSION...) elements.
+
+MATCH is a regular expression that should match a file name that
+has a sibling.  It can contain sub-expressions that will be used
+in EXPANSIONS.
+
+EXPANSION is a string that matches file names.  For instance, to
+define \".h\" files as siblings of any \".c\", you could say:
+
+  (\"\\\\([^/]+\\\\)\\\\.c\\\\\\='\" \"\\\\1.h\")
+
+MATCH and EXPANSION can also be fuller paths.  For instance, if
+you want to define other versions of a project as being sibling
+files, you could say something like:
+
+  (\"src/emacs/[^/]+/\\\\(.*\\\\)\\\\\\='\" \"src/emacs/.*/\\\\1\\\\\\='\")
+
+In this example, if you're in src/emacs/emacs-27/lisp/abbrev.el,
+and you an src/emacs/emacs-28/lisp/abbrev.el file exists, it's
+now defined as a sibling."
+  :type 'sexp
+  :version "29.1")
+
+(defun find-sibling-file (file)
+  "Visit a \"sibling\" file of FILE.
+By default, return only files that exist, but if ALL is non-nil,
+return all matches.
+
+When called interactively, FILE is the currently visited file.
+
+The \"sibling\" file is defined by the `find-sibling-rules' variable."
+  (interactive (progn
+                 (unless buffer-file-name
+                   (user-error "Not visiting a file"))
+                 (list buffer-file-name)))
+  (let ((siblings (find-sibling-file--search (expand-file-name file))))
+    (if (length= siblings 1)
+        (find-file (car siblings))
+      (let ((relatives (mapcar (lambda (sibling)
+                                 (file-relative-name
+                                  sibling (file-name-directory file)))
+                               siblings)))
+        (find-file
+         (completing-read (format-prompt "Find file" (car relatives))
+                          relatives nil t nil nil (car relatives)))))))
+
+(defun find-sibling-file--search (file)
+  (let ((results nil))
+    (pcase-dolist (`(,match . ,expansions) find-sibling-rules)
+      ;; Go through the list and find matches.
+      (when (string-match match file)
+        (let ((match-data (match-data)))
+          (dolist (expansion expansions)
+            (let ((start 0))
+              ;; Expand \\1 forms in the expansions.
+              (while (string-match "\\\\\\([0-9]+\\)" expansion start)
+                (let ((index (string-to-number (match-string 1 expansion))))
+                  (setq start (match-end 0)
+                        expansion
+                        (replace-match
+                         (substring file
+                                    (elt match-data (* index 2))
+                                    (elt match-data (1+ (* index 2))))
+                         t t expansion)))))
+            ;; Then see which files we have that are matching.  (And
+            ;; expand from the end of the file's match, since we might
+            ;; be doing a relative match.)
+            (let ((default-directory (substring file 0 (car match-data))))
+              ;; Keep the first matches first.
+              (setq results
+                    (nconc
+                     results
+                     (mapcar #'expand-file-name
+                             (file-expand-wildcards expansion nil t)))))))))
+    ;; Delete the file itself (in case it matched), and remove
+    ;; duplicates, in case we have several expansions and some match
+    ;; the same subsets of files.
+    (delete file (delete-dups results))))
 
 ;; Let Tramp know that `file-expand-wildcards' does not need an advice.
 (provide 'files '(remote-wildcards))

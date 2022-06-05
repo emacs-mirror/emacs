@@ -326,6 +326,45 @@ of @code{require-final-newline} (@pxref{Customize Save}).  If you have
 already visited the same file in the usual (non-literal) manner, this
 command asks you whether to visit it literally instead.
 
+@findex find-sibling-file
+@vindex find-sibling-rules
+Files are sometimes (loosely) tied to other files, and you could call
+these files @dfn{sibling files}.  For instance, when editing C files,
+if you have a file called @samp{"foo.c"}, you often also have a file
+called @samp{"foo.h"}, and that could be its sibling file.  Or you may
+have different versions of a file, for instance
+@samp{"src/emacs/emacs-27/lisp/allout.el"} and
+@samp{"src/emacs/emacs-28/lisp/allout.el"} might be considered
+siblings.  Emacs provides the @code{find-sibling-file} command to jump
+between sibling files, but it's impossible to guess at which files a
+user might want to be considered siblings, so Emacs lets you configure
+this freely by altering the @code{find-sibling-rules} user option.
+This is a list of match/expansion elements.
+
+For instance, to do the @samp{".c"} to @samp{".h"} mapping, you could
+say:
+
+@lisp
+(setq find-sibling-rules
+      '(("\\([^/]+\\)\\.c\\'" "\\1.h")))
+@end lisp
+
+Or, if you want to consider all files under
+@samp{"src/emacs/DIR/file-name"} to be siblings of other @var{dir}s,
+you could say:
+
+@lisp
+(setq find-sibling-rules
+      '(("src/emacs/[^/]+/\\(.*\\)\\'" "src/emacs/.*/\\1")))
+@end lisp
+
+As you can see, this is a list of @var{(MATCH EXPANSION...)} elements.
+The @var{match} is a regular expression that matches the visited file
+name, and each @var{expansion} may refer to match groups by using
+@samp{\\1} and so on.  The resulting expansion string is then applied
+to the file system to see if any files match this expansion
+(interpreted as a regexp).
+
 @vindex find-file-hook
 @vindex find-file-not-found-functions
   Two special hook variables allow extensions to modify the operation

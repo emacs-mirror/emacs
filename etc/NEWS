@@ -272,6 +272,11 @@ startup.  Previously, these functions ignored
 * Changes in Emacs 29.1
 
 +++
+** New command 'find-sibling-file'.
+This command jumps to a file considered a "sibling file", which is
+determined according to the new user option 'find-sibling-rules'.
+
++++
 ** New user option 'delete-selection-temporary-region'.
 When non-nil, 'delete-selection-mode' will only delete the temporary
 regions (usually set by mouse-dragging or shift-selection).
