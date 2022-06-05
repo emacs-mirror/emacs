@@ -621,14 +621,22 @@ in some standard C libraries does."
 		 (sub2 (substring s2 ni2 e2))
 		 ;; "Fraction" is a numerical sequence with leading zeros.
 		 (fr1 (string-match "\\`0+" sub1))
-		 (fr2 (string-match "\\`0+" sub2)))
+		 (efr1 (match-end 0))
+		 (fr2 (string-match "\\`0+" sub2))
+		 (efr2 (match-end 0)))
 	    (cond
-	     ((and fr1 fr2)	; two fractions, the shortest wins
-	      (setq val (- val (- (length sub1) (length sub2)))))
+             ;; Two fractions: the longer one is less than the other,
+             ;; but only if the "common prefix" is all-zeroes,
+             ;; otherwise fall back on numerical comparison.
+	     ((and fr1 fr2)
+	      (if (or (and (< efr1 (- e1 ni1)) (< efr2 (- e2 ni2))
+			   (not (eq (aref sub1 efr1) (aref sub2 efr2))))
+		      (= efr1 (- e1 ni1)) (=  efr2 (- e2 ni2)))
+		  (setq val (- val (- (length sub1) (length sub2))))))
 	     (fr1		; a fraction is always less than an integral
-	      (setq val (- ni1)))
+	      (setq val (- 0 ni1 1)))   ; make sure val is non-zero
 	     (fr2
-	      (setq val ni2)))
+	      (setq val (1+ ni2))))     ; make sure val is non-zero
 	    (if (zerop val)	; fall back on numerical comparison
 		(setq val (- (string-to-number sub1)
 			     (string-to-number sub2))))
