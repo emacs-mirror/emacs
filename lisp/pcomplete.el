@@ -802,25 +802,30 @@ this is `comint-dynamic-complete-functions'."
       (let ((begin (pcomplete-begin 'last)))
 	(if (and (listp pcomplete-stub) ;??
 		 (not pcomplete-expand-only-p))
-	    (let* ((completions pcomplete-stub) ;??
-		   (common-stub (car completions))
-		   (c completions)
-		   (len (length common-stub)))
-	      (while (and c (> len 0))
-		(while (and (> len 0)
-			    (not (string=
-				  (substring common-stub 0 len)
-				  (substring (car c) 0
-					     (min (length (car c))
-						  len)))))
-		  (setq len (1- len)))
-		(setq c (cdr c)))
-	      (setq pcomplete-stub (substring common-stub 0 len)
-		    pcomplete-autolist t)
-	      (when (and begin (> len 0) (not pcomplete-show-list))
-		(delete-region begin (point))
-		(pcomplete-insert-entry "" pcomplete-stub))
-	      (throw 'pcomplete-completions completions))
+	    ;; If `pcomplete-stub' is a list, it means it's a list of
+            ;; completions computed during parsing, e.g. Eshell uses
+            ;; that to turn globs into lists of completions.
+	    (if (not pcomplete-allow-modifications)
+	        (progn
+	          ;; FIXME: The mapping from what's in the buffer to the list
+                  ;; of completions can be arbitrary and will often fail to be
+                  ;; understood by the completion style.  See bug#50470.
+                  ;; E.g. `pcomplete-stub' may end up being "~/Down*"
+                  ;; while the completions contain entries like
+                  ;; "/home/<foo>/Downloads" which will fail to match the
+                  ;; "~/Down*" completion pattern since the completion
+                  ;; is neither told that it's a file nor a global pattern.
+	          (setq pcomplete-stub (buffer-substring begin (point)))
+                  (throw 'pcomplete-completions pcomplete-stub))
+	      (let* ((completions pcomplete-stub)
+		     (common-prefix (try-completion "" completions))
+		     (len (length common-prefix)))
+		(setq pcomplete-stub common-prefix
+		      pcomplete-autolist t)
+		(when (and begin (> len 0) (not pcomplete-show-list))
+		  (delete-region begin (point))
+		  (pcomplete-insert-entry "" pcomplete-stub))
+		(throw 'pcomplete-completions completions)))
 	  (when expand-p
 	    (if (stringp pcomplete-stub)
 		(when begin
