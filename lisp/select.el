@@ -630,20 +630,20 @@ two markers or an overlay.  Otherwise, it is nil."
         (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value))))
     (if (and (stringp value)
              (file-exists-p value))
-        (xselect--encode-string 'TEXT (expand-file-name value)
-                                nil t)
+        ;; Motif expects this to be STRING, but it treats the data as
+        ;; a sequence of bytes instead of a Latin-1 string.
+        (cons 'STRING (encode-coding-string (expand-file-name value)
+                                            'raw-text-unix))
       (when (vectorp value)
         (with-temp-buffer
           (cl-loop for file across value
-                   do (progn (insert (encode-coding-string
-                                      (expand-file-name file)
-                                      file-name-coding-system))
-                             (insert "\0")))
+                   do (insert (expand-file-name file) "\0"))
           ;; Get rid of the last NULL byte.
           (when (> (point) 1)
             (delete-char -1))
           ;; Motif wants STRING.
-          (cons 'STRING (buffer-string)))))))
+          (cons 'STRING (encode-coding-string (buffer-string)
+                                              'raw-text-unix)))))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
@@ -710,14 +710,15 @@ This function returns the string \"emacs\"."
 
 (defun xselect-convert-to-text-uri-list (_selection _type value)
   (if (stringp value)
-      (concat (url-encode-url value) "\n")
+      (xselect--encode-string 'TEXT
+                              (concat (url-encode-url value) "\n"))
     (when (vectorp value)
       (with-temp-buffer
         (cl-loop for tem across value
                  do (progn
                       (insert (url-encode-url tem))
                       (insert "\n")))
-        (buffer-string)))))
+        (xselect--encode-string 'TEXT (buffer-string))))))
 
 (defun xselect-convert-to-xm-file (selection _type value)
   (when (and (stringp value)
@@ -770,7 +771,8 @@ VALUE should be SELECTION's local value."
              (stringp value)
              (file-exists-p value)
              (not (file-remote-p value)))
-    (xselect-tt-net-file value)))
+    (encode-coding-string (xselect-tt-net-file value)
+                          'raw-text-unix t)))
 
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)

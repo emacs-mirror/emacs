@@ -25,9 +25,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 struct timespec;
 
-extern int xg_select (int max_fds,
-		      fd_set *rfds, fd_set *wfds, fd_set *efds,
-		      struct timespec *timeout, sigset_t *sigmask);
+extern int xg_select (int, fd_set *, fd_set *, fd_set *,
+		      struct timespec *, sigset_t *);
+extern void suppress_xg_select (void);
+extern void release_xg_select (void);
 
 extern void release_select_lock (void);
 

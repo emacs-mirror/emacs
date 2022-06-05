@@ -1787,12 +1787,12 @@ other marked file as well.  Otherwise, unmark all files."
                                              nil action t))))
                 (error (when (eq (event-basic-type new-event) 'mouse-1)
                          (push new-event unread-command-events))
-                       ;; Errors from `dnd-begin-drag-file' should be
+                       ;; Errors from `dnd-begin-drag-files' should be
                        ;; treated as user errors, since they should
                        ;; only occur when the user performs an invalid
                        ;; action, such as trying to create a link to
-                       ;; an invalid file.
-                       (user-error error))))))))))
+                       ;; a remote file.
+                       (user-error (cadr error)))))))))))
 
 (defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
                                      (define-key keymap [down-mouse-1] #'dired-mouse-drag)

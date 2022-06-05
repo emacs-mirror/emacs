@@ -700,6 +700,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+#ifdef USE_GTK
+#include <xgselect.h>
+#endif
+
 #include "bitmaps/gray.xbm"
 
 #ifdef HAVE_XKB
@@ -10760,6 +10764,13 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (x_dnd_toplevels)
     x_dnd_free_toplevels (true);
 
+#ifdef USE_GTK
+  /* Prevent GTK+ timeouts from being run, since they can call
+     handle_one_xevent behind our back.  */
+  suppress_xg_select ();
+  record_unwind_protect_void (release_xg_select);
+#endif
+
   x_dnd_in_progress = true;
   x_dnd_frame = f;
   x_dnd_last_seen_window = None;
@@ -15818,7 +15829,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    || (x_dnd_waiting_for_finish
 		&& dpyinfo->display == x_dnd_finish_display))
 	  {
+#ifndef USE_GTK
 	    eassume (hold_quit);
+#else
+	    /* If the debugger runs inside a selection converter, then
+	       xg_select can call handle_one_xevent with no
+	       hold_quit.  */
+	    if (!hold_quit)
+	      goto done;
+#endif
 
 	    *hold_quit = inev.ie;
 	    EVENT_INIT (inev.ie);
