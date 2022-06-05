@@ -1942,7 +1942,7 @@ Previously it produced a nonsense value, -1, that was never intended.
 * Lisp Changes in Emacs 29.1
 
 +++
-** 'file-expand-wildcards' can now also take a regexp match.
+** 'file-expand-wildcards' can now also take a regexp as PATTERN argument.
 
 ---
 ** vc-mtn (the backend for Monotone) has been made obsolete.
