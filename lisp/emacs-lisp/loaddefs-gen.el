@@ -65,6 +65,31 @@ be included.")
 More specifically those definitions will not be considered for the
 `register-definition-prefixes' call.")
 
+(defvar generated-autoload-file nil
+  "File into which to write autoload definitions.
+A Lisp file can set this in its local variables section to make
+its autoloads go somewhere else.
+
+If this is a relative file name, the directory is determined as
+follows:
+ - If a Lisp file defined `generated-autoload-file' as a
+   file-local variable, use its containing directory.
+ - Otherwise use the \"lisp\" subdirectory of `source-directory'.
+
+The autoload file is assumed to contain a trailer starting with a
+FormFeed character.")
+;;;###autoload
+(put 'generated-autoload-file 'safe-local-variable 'stringp)
+
+(defvar generated-autoload-load-name nil
+  "Load name for `autoload' statements generated from autoload cookies.
+If nil, this defaults to the file name, sans extension.
+Typically, you need to set this when the directory containing the file
+is not in `load-path'.
+This also affects the generated cus-load.el file.")
+;;;###autoload
+(put 'generated-autoload-load-name 'safe-local-variable 'stringp)
+
 (defun loaddefs-generate--file-load-name (file outfile)
   "Compute the name that will be used to load FILE.
 OUTFILE should be the name of the global loaddefs.el file, which
