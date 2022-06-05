@@ -1,5 +1,6 @@
 ;;; misc-lang.el --- support for miscellaneous languages (characters)  -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -233,6 +234,37 @@ in this language environment.")))
  (list (vector
         "[\x10D00-\x10D27]+"
         1 'font-shape-gstring)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Kharoṣṭhī
+;; Author: Stefan Baums <baums@gandhari.org>
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Kharoshthi" '((charset unicode)
+	           (coding-system utf-8)
+	           (coding-priority utf-8)
+	           (input-method . "kharoshthi")
+               (sample-text . "Kharoṣṭhī (𐨑𐨪𐨆𐨛𐨁)	𐨣𐨨𐨲𐨪𐨆 𐨐𐨪𐨅𐨨𐨁")
+	           (documentation . "\
+Language environment for Gāndhārī, Sanskrit, and other languages
+using the Kharoṣṭhī script.")))
+
+(let ((consonant     "[\U00010A00\U00010A10-\U00010A35]")
+      (vowel         "[\U00010A01-\U00010A06]")
+      (virama        "\U00010A3F")
+      (modifier      "[\U00010A0C-\U00010A0F\U00010A38-\U00010A3A]"))
+  (set-char-table-range composition-function-table
+		                '(#x10A3F . #x10A3F)
+                        (list
+                         (vector
+                          (concat consonant
+                                  "\\(?:" virama consonant "\\)*"
+                                  modifier "*"
+                                  virama "?"
+                                  vowel "*"
+                                  modifier "*")
+                          1 'font-shape-gstring))))
 
 (provide 'misc-lang)
 
