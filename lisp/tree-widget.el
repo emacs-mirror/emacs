@@ -319,6 +319,7 @@ has been found accessible."
   '(
     ("guide"     . arrow)
     ("no-guide"  . arrow)
+    ("nohandle-guide" . arrow)
     ("end-guide" . arrow)
     ("handle"    . arrow)
     ("no-handle" . arrow)
@@ -440,6 +441,12 @@ Handle mouse button 1 click on buttons.")
   :format    "%t"
   )
 
+(define-widget 'tree-widget-nohandle-guide 'item
+  "Vertical guide line, when there is no handle."
+  :tag       " |"
+  ;;:tag-glyph (tree-widget-find-image "nohandle-guide")
+  :format    "%t")
+
 (define-widget 'tree-widget-end-guide 'item
   "End of a vertical guide line."
   :tag       " \\=`"
@@ -483,6 +490,7 @@ Handle mouse button 1 click on buttons.")
   :empty-icon     'tree-widget-empty-icon
   :leaf-icon      'tree-widget-leaf-icon
   :guide          'tree-widget-guide
+  :nohandle-guide 'tree-widget-nohandle-guide
   :end-guide      'tree-widget-end-guide
   :no-guide       'tree-widget-no-guide
   :handle         'tree-widget-handle
@@ -612,11 +620,13 @@ This hook should be local in the buffer setup to display widgets.")
 ;;;; Expanded node.
         (let ((args     (widget-get tree :args))
               (guide    (widget-get tree :guide))
+              (nohandle-guide (widget-get tree :nohandle-guide))
               (noguide  (widget-get tree :no-guide))
               (endguide (widget-get tree :end-guide))
               (handle   (widget-get tree :handle))
               (nohandle (widget-get tree :no-handle))
               (guidi    (tree-widget-find-image "guide"))
+              (nohandle-guidi (tree-widget-find-image "nohandle-guide"))
               (noguidi  (tree-widget-find-image "no-guide"))
               (endguidi (tree-widget-find-image "end-guide"))
               (handli   (tree-widget-find-image "handle"))
@@ -648,8 +658,8 @@ This hook should be local in the buffer setup to display widgets.")
             ;; Insert guide lines elements from previous levels.
             (dolist (f (reverse flags))
               (widget-create-child-and-convert
-               tree (if f guide noguide)
-               :tag-glyph (if f guidi noguidi))
+               tree (if f nohandle-guide noguide)
+               :tag-glyph (if f nohandle-guidi noguidi))
               (widget-create-child-and-convert
                tree nohandle :tag-glyph nohandli))
             ;; Insert guide line element for this level.
