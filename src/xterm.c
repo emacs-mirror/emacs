@@ -10318,12 +10318,21 @@ x_tooltip_window_to_frame (struct x_display_info *dpyinfo,
       else
 	tooltip_window = NULL;
 
+#ifdef HAVE_GTK3
       if (tooltip_window
 	  && (gdk_x11_window_get_xid (tooltip_window) == wdesc))
 	{
 	  *unrelated_tooltip_p = true;
 	  break;
 	}
+#else
+      if (tooltip_window
+	  && (GDK_WINDOW_XID (tooltip_window) == wdesc))
+	{
+	  *unrelated_tooltip_p = true;
+	  break;
+	}
+#endif
 #endif
     }
 
