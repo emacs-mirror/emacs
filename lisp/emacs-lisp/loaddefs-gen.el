@@ -40,6 +40,7 @@
 
 (require 'radix-tree)
 (require 'lisp-mnt)
+(require 'generate-file)
 
 (defvar autoload-compute-prefixes t
   "If non-nil, autoload will add code to register the prefixes used in a file.
@@ -437,32 +438,20 @@ but adds an extra line to the output to modify `load-path'.
 If FEATURE is non-nil, FILE will provide a feature.  FEATURE may
 be a string naming the feature, otherwise it will be based on
 FILE's name."
-  (let ((basename (file-name-nondirectory file))
-	(lp (if (equal type "package") (setq type "autoloads"))))
-    (concat ";;; " basename
-            " --- automatically extracted " (or type "autoloads")
-            "  -*- lexical-binding: t -*-\n"
-            (when (string-match "/lisp/loaddefs\\.el\\'" file)
-              ";; This file will be copied to ldefs-boot.el and checked in periodically.\n")
-	    ";;\n"
-	    ";;; Code:\n\n"
-	    (if lp
-		"(add-to-list 'load-path (directory-file-name
-                         (or (file-name-directory #$) (car load-path))))\n\n")
-	    "\n;;; End of scraped data\n\n"
-	    ;; This is used outside of autoload.el, eg cus-dep, finder.
-	    (if feature
-		(format "(provide '%s)\n"
-			(if (stringp feature) feature
-			  (file-name-sans-extension basename))))
-	    ";; Local Variables:\n"
-	    ";; version-control: never\n"
-            ";; no-byte-compile: t\n" ;; #$ is byte-compiled into nil.
-	    ";; no-update-autoloads: t\n"
-	    ";; coding: utf-8-emacs-unix\n"
-	    ";; End:\n"
-	    ";;; " basename
-	    " ends here\n")))
+  (let ((lp (and (equal type "package") (setq type "autoloads"))))
+    (with-temp-buffer
+      (generate-file-heading
+       file
+       :description (concat "automatically extracted " (or type "autoloads"))
+       :text (and (string-match "/lisp/loaddefs\\.el\\'" file)
+                  "This file will be copied to ldefs-boot.el and checked in periodically."))
+      (when lp
+        (insert "(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))\n\n"))
+      (insert "\n;;; End of scraped data\n\n")
+      (generate-file-trailer file :provide (and (stringp feature) feature)
+                             :inhibit-provide (not feature))
+      (buffer-string))))
 
 (defun loaddefs-generate--insert-section-header (outbuf autoloads
                                                         load-name file time)
