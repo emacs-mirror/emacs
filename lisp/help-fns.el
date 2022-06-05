@@ -259,6 +259,7 @@ handling of autoloaded functions."
   (let ((describe-function-orig-buffer
          (or describe-function-orig-buffer
              (current-buffer)))
+        (key-buffer (current-buffer))
         (help-buffer-under-preparation t))
 
     (help-setup-xref
@@ -277,7 +278,7 @@ handling of autoloaded functions."
         ;; Use " is " instead of a colon so that
         ;; it is easier to get out the function name using forward-sexp.
         (princ " is ")
-        (describe-function-1 function)
+        (describe-function-1 function key-buffer)
         (with-current-buffer standard-output
           ;; Return the text we displayed.
           (buffer-string))))))
@@ -1025,7 +1026,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
   (unless (eq ?\n (char-before (1- (point)))) (insert "\n")))
 
 ;;;###autoload
-(defun describe-function-1 (function)
+(defun describe-function-1 (function &optional key-bindings-buffer)
   (let ((pt1 (with-current-buffer standard-output (point))))
     (help-fns-function-description-header function)
     (with-current-buffer standard-output
@@ -1047,7 +1048,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                             (documentation function t)
                           ;; E.g. an alias for a not yet defined function.
                           ((invalid-function void-function) nil)))
-               (key-bindings-buffer (current-buffer)))
+               (key-bindings-buffer (or key-bindings-buffer (current-buffer))))
 
     ;; If the function is autoloaded, and its docstring has
     ;; key substitution constructs, load the library.
