@@ -857,10 +857,14 @@ The option `delete-pair-blink-delay' can disable blinking."
 	  (delete-char -1)))
       (delete-char 1))))
 
-(defun raise-sexp (&optional arg)
-  "Raise ARG sexps higher up the tree.
-This means that the ARGth enclosing form will be deleted and
-replaced with the form that follows point.
+(defun raise-sexp (&optional n)
+  "Raise N sexps one level higher up the tree.
+
+This function removes the sexp enclosing the form which follows
+point, and then re-inserts N sexps that originally followe point,
+thus raising those N sexps one level up.
+
+Interactively, N is the numeric prefix argument, and defaults to 1.
 
 For instance, if you have:
 
@@ -879,7 +883,7 @@ and point is before (zot), \\[raise-sexp] will give you
                (buffer-substring (region-beginning) (region-end))
              (buffer-substring
               (point)
-              (save-excursion (forward-sexp arg) (point))))))
+              (save-excursion (forward-sexp n) (point))))))
     (backward-up-list 1)
     (delete-region (point) (save-excursion (forward-sexp 1) (point)))
     (save-excursion (insert s))))
