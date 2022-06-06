@@ -1108,7 +1108,7 @@ of characters from a single Latin-N charset.
     misc     | \" ~ /  | \"s -> ß  ~d -> ð  ~t -> þ  /a -> å  /e -> æ  /o -> ø
    symbol    |   ~    | ~> -> »  ~< -> «  ~! -> ¡  ~? -> ¿  ~~ -> ¸
    symbol    |  _ /   | _o -> º  _a -> ª  // -> °  /\\ -> ×  _y -> ¥
-   symbol    |   ^    | ^r -> ®  ^c -> ©  ^1 -> ¹  ^2 -> ²  ^3 -> ³
+   symbol    |   ^    | ^r -> ®  ^t -> ™  ^c -> ©  ^1 -> ¹  ^2 -> ²  ^3 -> ³
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1224,6 +1224,7 @@ of characters from a single Latin-N charset.
  ("^o" ?ô)
  ("^r" ?®)
  ("^s" ?ŝ)
+ ("^t" ?™)
  ("^u" ?û)
  ("^w" ?ŵ)
  ("^y" ?ŷ)
