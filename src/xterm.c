@@ -15676,8 +15676,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		   mask specified by the EWMH.  To avoid an infinite
 		   loop, make sure the client message's window is not
 		   the root window if DND is in progress.  */
-		&& (!x_dnd_in_progress
-		    || !x_dnd_waiting_for_finish
+		&& (!(x_dnd_in_progress
+		      || x_dnd_waiting_for_finish)
 		    || event->xclient.window != dpyinfo->root_window)
 		&& event->xclient.format == 32)
 	      {
@@ -17160,6 +17160,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    xm_top_level_leave_message lmsg;
 	    xm_top_level_enter_message emsg;
 	    xm_drag_motion_message dmsg;
+	    XRectangle *r;
 
 	    /* Always clear mouse face.  */
 	    clear_mouse_face (hlinfo);
@@ -17171,7 +17172,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	       visible manually.  */
 
 	    if (f)
-	      XTtoggle_invisible_pointer (f, false);
+	      {
+		XTtoggle_invisible_pointer (f, false);
+
+		r = &dpyinfo->last_mouse_glyph;
+
+		/* Also remember the mouse glyph and set
+		   mouse_moved.  */
+		if (f != dpyinfo->last_mouse_glyph_frame
+		    || event->xmotion.x < r->x
+		    || event->xmotion.x >= r->x + r->width
+		    || event->xmotion.y < r->y
+		    || event->xmotion.y >= r->y + r->height)
+		  {
+		    f->mouse_moved = true;
+		    f->last_mouse_device = Qnil;
+		    dpyinfo->last_mouse_scroll_bar = NULL;
+
+		    remember_mouse_glyph (f, event->xmotion.x,
+					  event->xmotion.y, r);
+		    dpyinfo->last_mouse_glyph_frame = f;
+		  }
+	      }
 
 	    target = x_dnd_get_target_window (dpyinfo,
 					      event->xmotion.x_root,
@@ -18814,6 +18836,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  Window target, toplevel;
 		  int target_proto, motif_style;
+		  XRectangle *r;
 
 		  /* Always clear mouse face.  */
 		  clear_mouse_face (hlinfo);
@@ -18825,7 +18848,29 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     visible manually.  */
 
 		  if (f)
-		    XTtoggle_invisible_pointer (f, false);
+		    {
+		      XTtoggle_invisible_pointer (f, false);
+
+		      r = &dpyinfo->last_mouse_glyph;
+
+		      /* Also remember the mouse glyph and set
+			 mouse_moved.  */
+		      if (f != dpyinfo->last_mouse_glyph_frame
+			  || xev->event_x < r->x
+			  || xev->event_x >= r->x + r->width
+			  || xev->event_y < r->y
+			  || xev->event_y >= r->y + r->height)
+			{
+			  f->mouse_moved = true;
+			  f->last_mouse_device = (source ? source->name
+						  : Qnil);
+			  dpyinfo->last_mouse_scroll_bar = NULL;
+
+			  remember_mouse_glyph (f, xev->event_x,
+						xev->event_y, r);
+			  dpyinfo->last_mouse_glyph_frame = f;
+			}
+		    }
 
 		  target = x_dnd_get_target_window (dpyinfo,
 						    xev->root_x,
