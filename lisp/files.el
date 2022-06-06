@@ -7303,16 +7303,22 @@ The \"sibling\" file is defined by the `find-sibling-rules' variable."
                  (unless buffer-file-name
                    (user-error "Not visiting a file"))
                  (list buffer-file-name)))
+  (unless find-sibling-rules
+    (user-error "The `find-sibling-rules' variable has not been configured"))
   (let ((siblings (find-sibling-file--search (expand-file-name file))))
-    (if (length= siblings 1)
-        (find-file (car siblings))
+    (cond
+     ((null siblings)
+      (user-error "Couldn't find any sibling files"))
+     ((length= siblings 1)
+      (find-file (car siblings)))
+     (t
       (let ((relatives (mapcar (lambda (sibling)
                                  (file-relative-name
                                   sibling (file-name-directory file)))
                                siblings)))
         (find-file
          (completing-read (format-prompt "Find file" (car relatives))
-                          relatives nil t nil nil (car relatives)))))))
+                          relatives nil t nil nil (car relatives))))))))
 
 (defun find-sibling-file--search (file)
   (let ((results nil))
