@@ -587,7 +587,7 @@ indentation."
 (put 'sequence 'scheme-indent-function 0) ; SICP, not r4rs
 (put 'let-syntax 'scheme-indent-function 1)
 (put 'letrec-syntax 'scheme-indent-function 1)
-(put 'syntax-rules 'scheme-indent-function 1)
+(put 'syntax-rules 'scheme-indent-function 'defun)
 (put 'syntax-case 'scheme-indent-function 2) ; not r5rs
 (put 'with-syntax 'scheme-indent-function 1)
 (put 'library 'scheme-indent-function 1) ; R6RS
