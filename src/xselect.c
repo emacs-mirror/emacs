@@ -928,6 +928,12 @@ x_handle_selection_clear (struct selection_input_event *event)
   /* Run the `x-lost-selection-functions' abnormal hook.  */
   CALLN (Frun_hook_with_args, Qx_lost_selection_functions, selection_symbol);
 
+  /* If Emacs lost ownership of XdndSelection during drag-and-drop,
+     there is no point in continuing the drag-and-drop session.  */
+  if (x_dnd_in_progress
+      && EQ (selection_symbol, QXdndSelection))
+    error ("Lost ownership of XdndSelection");
+
   redisplay_preserve_echo_area (20);
 }
 
