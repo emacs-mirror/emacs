@@ -41,11 +41,6 @@
       (should (equal (buffer-name (current-buffer))
                      (help-buffer))))))
 
-(ert-deftest help-mode-tests-help-buffer-current-buffer-error ()
-  (with-temp-buffer
-    (let ((help-xref-following t))
-      (should-error (help-buffer)))))
-
 (ert-deftest help-mode-tests-make-xrefs ()
   (with-temp-buffer
     (insert "car is a built-in function in ‘C source code’.

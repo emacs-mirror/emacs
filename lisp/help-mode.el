@@ -515,17 +515,16 @@ restore it properly when going back."
 ;;;###autoload
 (defun help-buffer ()
   "Return the name of a buffer for inserting help.
-If `help-xref-following' is non-nil, this is the name of the
-current buffer.  Signal an error if this buffer is not derived
-from `help-mode'.
+If `help-xref-following' is non-nil and the current buffer is
+derived from `help-mode', this is the name of the current buffer.
+
 Otherwise, return \"*Help*\", creating a buffer with that name if
 it does not already exist."
-  (buffer-name				;for with-output-to-temp-buffer
-   (if (not help-xref-following)
-       (get-buffer-create "*Help*")
-     (unless (derived-mode-p 'help-mode)
-       (error "Current buffer is not in Help mode"))
-     (current-buffer))))
+  (buffer-name                         ;for with-output-to-temp-buffer
+   (if (and help-xref-following
+            (derived-mode-p 'help-mode))
+       (current-buffer)
+     (get-buffer-create "*Help*"))))
 
 (defvar describe-symbol-backends
   `((nil ,#'fboundp ,(lambda (s _b _f) (describe-function s)))
