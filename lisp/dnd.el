@@ -469,9 +469,16 @@ FILES will be dragged."
       (when (file-remote-p (car tem))
         (when (eq action 'link)
           (error "Cannot create symbolic link to remote file"))
-        (setcar tem (file-local-copy (car tem)))
-        (push (car tem) dnd-last-dragged-remote-file))
+        (condition-case error
+            (progn (setcar tem (file-local-copy (car tem)))
+                   (push (car tem) dnd-last-dragged-remote-file))
+          (error (message "Failed to download file: %s" error)
+                 (setcar tem nil))))
       (setq tem (cdr tem)))
+    ;; Remove any files that failed to download from a remote host.
+    (setq new-files (delq nil new-files))
+    (unless new-files
+      (error "No files were specified or no remote file could be downloaded"))
     (unless action
       (setq action 'copy))
     (gui-set-selection 'XdndSelection
