@@ -137,6 +137,8 @@ Currently under control of this var:
 X can also be is a symbol."
   (eieio--class-p (if (symbolp x) (cl--find-class x) x)))
 
+(cl-deftype class () `(satisfies class-p))
+
 (defun eieio--class-print-name (class)
   "Return a printed representation of CLASS."
   (format "#<class %s>" (eieio-class-name class)))
@@ -164,6 +166,8 @@ Return nil if that option doesn't exist."
   "Return non-nil if OBJ is an EIEIO object."
   (and (recordp obj)
        (eieio--class-p (eieio--object-class obj))))
+
+(cl-deftype eieio-object () `(satisfies eieio-object-p))
 
 (define-obsolete-function-alias 'object-p #'eieio-object-p "25.1")
 

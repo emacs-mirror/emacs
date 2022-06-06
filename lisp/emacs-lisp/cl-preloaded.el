@@ -152,7 +152,7 @@ supertypes from the most specific to least specific.")
 ;;;###autoload
 (defun cl-struct-define (name docstring parent type named slots children-sym
                               tag print)
-  (cl-check-type name cl--struct-name)
+  (cl-check-type name (satisfies cl--struct-name-p))
   (unless type
     ;; Legacy defstruct, using tagged vectors.  Enable backward compatibility.
     (cl-old-struct-compat-mode 1))

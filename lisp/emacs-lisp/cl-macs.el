@@ -3412,19 +3412,23 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (cons		. consp)
                  (fixnum	. fixnump)
                  (float		. floatp)
+                 (frame		. framep)
                  (function	. functionp)
                  (integer	. integerp)
                  (keyword	. keywordp)
                  (list		. listp)
+                 (marker	. markerp)
                  (natnum	. natnump)
                  (number	. numberp)
                  (null		. null)
+                 (overlay	. overlayp)
                  (real		. numberp)
                  (sequence	. sequencep)
                  (subr		. subrp)
                  (string	. stringp)
                  (symbol	. symbolp)
                  (vector	. vectorp)
+                 (window	. windowp)
                  ;; FIXME: Do we really want to consider this a type?
                  (integer-or-marker . integer-or-marker-p)
                  ))
@@ -3475,16 +3479,19 @@ Of course, we really can't know that for sure, so it's just a heuristic."
        (inline-quote (funcall #',(get type 'cl-deftype-satisfies) ,val)))
       ((and (or 'nil 't) type) (inline-quote ',type))
       ((and (pred symbolp) type)
-       (let* ((name (symbol-name type))
-              (namep (intern (concat name "p"))))
-         (cond
-          ((cl--macroexp-fboundp namep) (inline-quote (funcall #',namep ,val)))
-          ((cl--macroexp-fboundp
-            (setq namep (intern (concat name "-p"))))
-           (inline-quote (funcall #',namep ,val)))
-          ((cl--macroexp-fboundp type) (inline-quote (funcall #',type ,val)))
-          (t (error "Unknown type %S" type)))))
-      (type (error "Bad type spec: %s" type)))))
+       (macroexp-warn-and-return
+        (format-message "Unknown type: %S" type)
+        (let* ((name (symbol-name type))
+               (namep (intern (concat name "p"))))
+          (cond
+           ((cl--macroexp-fboundp namep) (inline-quote (funcall #',namep ,val)))
+           ((cl--macroexp-fboundp
+             (setq namep (intern (concat name "-p"))))
+            (inline-quote (funcall #',namep ,val)))
+           ((cl--macroexp-fboundp type) (inline-quote (funcall #',type ,val)))
+           (t (error "Unknown type %S" type))))
+        nil nil type))
+      (type (error "Bad type spec: %S" type)))))
 
 
 ;;;###autoload
