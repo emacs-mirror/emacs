@@ -1188,6 +1188,10 @@ static sigjmp_buf x_dnd_disconnect_handler;
    happened inside the drag_and_drop event loop.  */
 static bool x_dnd_inside_handle_one_xevent;
 
+/* The recursive edit depth when the drag-and-drop operation was
+   started.  */
+static int x_dnd_recursion_depth;
+
 /* Structure describing a single window that can be the target of
    drag-and-drop operations.  */
 struct x_client_list_window
@@ -10838,6 +10842,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #endif
 
   x_dnd_in_progress = true;
+  x_dnd_recursion_depth = command_loop_level + minibuf_level;
   x_dnd_frame = f;
   x_dnd_last_seen_window = None;
   x_dnd_last_seen_toplevel = None;
@@ -17141,6 +17146,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	f = mouse_or_wdesc_frame (dpyinfo, event->xmotion.window);
 
 	if (x_dnd_in_progress
+	    /* Handle these events normally if the recursion
+	       level is higher than when the drag-and-drop
+	       operation was initiated.  This is so that mouse
+	       input works while we're in the debugger for, say,
+	       `x-dnd-movement-function`.  */
+	    && (command_loop_level + minibuf_level
+		<= x_dnd_recursion_depth)
 	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	  {
 	    Window target, toplevel;
@@ -17770,6 +17782,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	bool dnd_grab = false;
 
 	if (x_dnd_in_progress
+	    /* Handle these events normally if the recursion
+	       level is higher than when the drag-and-drop
+	       operation was initiated.  This is so that mouse
+	       input works while we're in the debugger for, say,
+	       `x-dnd-movement-function`.  */
+	    && (command_loop_level + minibuf_level
+		<= x_dnd_recursion_depth)
 	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	  {
 	    if (event->xbutton.type == ButtonPress
@@ -17895,7 +17914,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    goto OTHER;
 	  }
 
-	if (x_dnd_in_progress)
+	if (x_dnd_in_progress
+	    && (command_loop_level + minibuf_level
+		<= x_dnd_recursion_depth))
 	  goto OTHER;
 
 	memset (&compose_status, 0, sizeof (compose_status));
@@ -18782,6 +18803,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      f = mouse_or_wdesc_frame (dpyinfo, xev->event);
 
 	      if (x_dnd_in_progress
+		  /* Handle these events normally if the recursion
+		     level is higher than when the drag-and-drop
+		     operation was initiated.  This is so that mouse
+		     input works while we're in the debugger for, say,
+		     `x-dnd-movement-function`.  */
+		  && (command_loop_level + minibuf_level
+		      <= x_dnd_recursion_depth)
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  Window target, toplevel;
@@ -19079,6 +19107,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      int dnd_state;
 
 	      if (x_dnd_in_progress
+		  && (command_loop_level + minibuf_level
+		      <= x_dnd_recursion_depth)
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  if (xev->evtype == XI_ButtonPress
@@ -19224,7 +19254,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 		}
 
-	      if (x_dnd_in_progress)
+	      if (x_dnd_in_progress
+		  && (command_loop_level + minibuf_level
+		      <= x_dnd_recursion_depth))
 		goto XI_OTHER;
 
 #ifdef USE_MOTIF
