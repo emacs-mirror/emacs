@@ -481,9 +481,6 @@ kbd_buffer_store_event_hold (struct input_event *event,
   kbd_buffer_store_buffered_event ((union buffered_input_event *) event,
 				   hold_quit);
 }
-#ifdef HAVE_X11
-extern void kbd_buffer_unget_event (struct selection_input_event *);
-#endif
 extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object);

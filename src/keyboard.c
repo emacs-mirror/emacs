@@ -389,14 +389,6 @@ next_kbd_event (union buffered_input_event *ptr)
   return ptr == kbd_buffer + KBD_BUFFER_SIZE - 1 ? kbd_buffer : ptr + 1;
 }
 
-#ifdef HAVE_X11
-static union buffered_input_event *
-prev_kbd_event (union buffered_input_event *ptr)
-{
-  return ptr == kbd_buffer ? kbd_buffer + KBD_BUFFER_SIZE - 1 : ptr - 1;
-}
-#endif
-
 /* Like EVENT_START, but assume EVENT is an event.
    This pacifies gcc -Wnull-dereference, which might otherwise
    complain about earlier checks that EVENT is indeed an event.  */
@@ -3528,6 +3520,11 @@ readable_events (int flags)
 	return 1;
     }
 
+#ifdef HAVE_X_WINDOWS
+  if (x_detect_pending_selection_requests ())
+    return 1;
+#endif
+
   if (!(flags & READABLE_EVENTS_IGNORE_SQUEEZABLES) && some_mouse_moved ())
     return 1;
   if (single_kboard)
@@ -3699,25 +3696,6 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
     Vquit_flag = Vthrow_on_input;
 }
 
-
-#ifdef HAVE_X11
-
-/* Put a selection input event back in the head of the event queue.  */
-
-void
-kbd_buffer_unget_event (struct selection_input_event *event)
-{
-  /* Don't let the very last slot in the buffer become full,  */
-  union buffered_input_event *kp = prev_kbd_event (kbd_fetch_ptr);
-  if (kp != kbd_store_ptr)
-    {
-      kp->sie = *event;
-      kbd_fetch_ptr = kp;
-    }
-}
-
-#endif
-
 /* Limit help event positions to this range, to avoid overflow problems.  */
 #define INPUT_EVENT_POS_MAX \
   ((ptrdiff_t) min (PTRDIFF_MAX, min (TYPE_MAXIMUM (Time) / 2, \
@@ -3874,6 +3852,11 @@ kbd_buffer_get_event (KBOARD **kbp,
                       struct timespec *end_time)
 {
   Lisp_Object obj, str;
+#ifdef HAVE_X_WINDOWS
+  bool had_pending_selection_requests;
+
+  had_pending_selection_requests = false;
+#endif
 
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE / 4)
@@ -3926,10 +3909,18 @@ kbd_buffer_get_event (KBOARD **kbp,
 #if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
       gobble_input ();
 #endif
+
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
       if (some_mouse_moved ())
 	break;
+#ifdef HAVE_X_WINDOWS
+      if (x_detect_pending_selection_requests ())
+	{
+	  had_pending_selection_requests = true;
+	  break;
+	}
+#endif
       if (end_time)
 	{
 	  struct timespec now = current_timespec ();
@@ -3965,6 +3956,16 @@ kbd_buffer_get_event (KBOARD **kbp,
       if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	gobble_input ();
     }
+
+#ifdef HAVE_X_WINDOWS
+  /* Handle pending selection requests.  This can happen if Emacs
+     enters a recursive edit inside a nested event loop (probably
+     because the debugger opened) or someone called
+     `read-char'.  */
+
+  if (had_pending_selection_requests)
+    x_handle_pending_selection_requests ();
+#endif
 
   if (CONSP (Vunread_command_events))
     {
@@ -4345,6 +4346,10 @@ kbd_buffer_get_event (KBOARD **kbp,
 			      ? movement_frame->last_mouse_device
 			      : virtual_core_pointer_name);
     }
+#ifdef HAVE_X_WINDOWS
+  else if (had_pending_selection_requests)
+    obj = Qnil;
+#endif
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
@@ -7241,7 +7246,10 @@ lucid_event_type_list_p (Lisp_Object object)
    If READABLE_EVENTS_FILTER_EVENTS is set in FLAGS, ignore internal
    events (FOCUS_IN_EVENT).
    If READABLE_EVENTS_IGNORE_SQUEEZABLES is set in FLAGS, ignore mouse
-   movements and toolkit scroll bar thumb drags.  */
+   movements and toolkit scroll bar thumb drags.
+
+   On X, this also returns if the selection event chain is full, since
+   that's also "keyboard input".  */
 
 static bool
 get_input_pending (int flags)

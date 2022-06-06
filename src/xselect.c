@@ -116,92 +116,6 @@ selection_quantum (Display *display)
   assq_no_quit (selection_symbol, dpyinfo->terminal->Vselection_alist)
 
 
-/* Define a queue to save up SELECTION_REQUEST_EVENT events for later
-   handling.  */
-
-struct selection_event_queue
-  {
-    struct selection_input_event event;
-    struct selection_event_queue *next;
-  };
-
-static struct selection_event_queue *selection_queue;
-
-/* Nonzero means queue up SELECTION_REQUEST_EVENT events.  */
-
-static int x_queue_selection_requests;
-
-/* True if the input events are duplicates.  */
-
-static bool
-selection_input_event_equal (struct selection_input_event *a,
-			     struct selection_input_event *b)
-{
-  return (a->kind == b->kind && a->dpyinfo == b->dpyinfo
-	  && a->requestor == b->requestor && a->selection == b->selection
-	  && a->target == b->target && a->property == b->property
-	  && a->time == b->time);
-}
-
-/* Queue up an SELECTION_REQUEST_EVENT *EVENT, to be processed later.  */
-
-static void
-x_queue_event (struct selection_input_event *event)
-{
-  struct selection_event_queue *queue_tmp;
-
-  /* Don't queue repeated requests.
-     This only happens for large requests which uses the incremental protocol.  */
-  for (queue_tmp = selection_queue; queue_tmp; queue_tmp = queue_tmp->next)
-    {
-      if (selection_input_event_equal (event, &queue_tmp->event))
-	{
-	  TRACE1 ("DECLINE DUP SELECTION EVENT %p", queue_tmp);
-	  x_decline_selection_request (event);
-	  return;
-	}
-    }
-
-  queue_tmp = xmalloc (sizeof *queue_tmp);
-  TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
-  queue_tmp->event = *event;
-  queue_tmp->next = selection_queue;
-  selection_queue = queue_tmp;
-}
-
-/* Start queuing SELECTION_REQUEST_EVENT events.  */
-
-static void
-x_start_queuing_selection_requests (void)
-{
-  if (x_queue_selection_requests)
-    emacs_abort ();
-
-  x_queue_selection_requests++;
-  TRACE1 ("x_start_queuing_selection_requests %d", x_queue_selection_requests);
-}
-
-/* Stop queuing SELECTION_REQUEST_EVENT events.  */
-
-static void
-x_stop_queuing_selection_requests (void)
-{
-  TRACE1 ("x_stop_queuing_selection_requests %d", x_queue_selection_requests);
-  --x_queue_selection_requests;
-
-  /* Take all the queued events and put them back
-     so that they get processed afresh.  */
-
-  while (selection_queue != NULL)
-    {
-      struct selection_event_queue *queue_tmp = selection_queue;
-      TRACE1 ("RESTORE SELECTION EVENT %p", queue_tmp);
-      kbd_buffer_unget_event (&queue_tmp->event);
-      selection_queue = queue_tmp->next;
-      xfree (queue_tmp);
-    }
-}
-
 
 /* This converts a Lisp symbol to a server Atom, avoiding a server
    roundtrip whenever possible.  */
@@ -839,11 +753,6 @@ x_handle_selection_request (struct selection_input_event *event)
   selection_request_dpyinfo = dpyinfo;
   record_unwind_protect_void (x_selection_request_lisp_error);
 
-  /* We might be able to handle nested x_handle_selection_requests,
-     but this is difficult to test, and seems unimportant.  */
-  x_start_queuing_selection_requests ();
-  record_unwind_protect_void (x_stop_queuing_selection_requests);
-
   TRACE2 ("x_handle_selection_request: selection=%s, target=%s",
 	  SDATA (SYMBOL_NAME (selection_symbol)),
 	  SDATA (SYMBOL_NAME (target_symbol)));
@@ -1028,8 +937,6 @@ x_handle_selection_event (struct selection_input_event *event)
   TRACE0 ("x_handle_selection_event");
   if (event->kind != SELECTION_REQUEST_EVENT)
     x_handle_selection_clear (event);
-  else if (x_queue_selection_requests)
-    x_queue_event (event);
   else
     x_handle_selection_request (event);
 }

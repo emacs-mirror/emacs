@@ -789,6 +789,21 @@ static int current_finish;
 static struct input_event *current_hold_quit;
 #endif
 
+struct x_selection_request_event
+{
+  /* The selection request event.  */
+  struct selection_input_event se;
+
+  /* The next unprocessed selection request event.  */
+  struct x_selection_request_event *next;
+};
+
+/* Chain of unprocessed selection request events.  Used to handle
+   selection requests inside long-lasting modal event loops, such as
+   the drag-and-drop loop.  */
+
+struct x_selection_request_event *pending_selection_requests;
+
 /* Compare two request serials A and B with OP, handling
    wraparound.  */
 #define X_COMPARE_SERIALS(a, op ,b) \
@@ -1168,6 +1183,10 @@ static unsigned int x_dnd_keyboard_state;
 /* jmp_buf that gets us out of the IO error handler if an error occurs
    terminating DND as part of the display disconnect handler.  */
 static sigjmp_buf x_dnd_disconnect_handler;
+
+/* Whether or not the current invocation of handle_one_xevent
+   happened inside the drag_and_drop event loop.  */
+static bool x_dnd_inside_handle_one_xevent;
 
 /* Structure describing a single window that can be the target of
    drag-and-drop operations.  */
@@ -10546,6 +10565,53 @@ x_next_event_from_any_display (XEvent *event)
 
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
+static void
+x_handle_pending_selection_requests_1 (struct x_selection_request_event *tem)
+{
+  specpdl_ref count;
+  struct selection_input_event se;
+
+  count = SPECPDL_INDEX ();
+  se = tem->se;
+
+  record_unwind_protect_ptr (xfree, tem);
+  x_handle_selection_event (&se);
+  unbind_to (count, Qnil);
+}
+
+/* Handle all pending selection request events from modal event
+   loops.  */
+void
+x_handle_pending_selection_requests (void)
+{
+  struct x_selection_request_event *tem;
+
+  while (pending_selection_requests)
+    {
+      tem = pending_selection_requests;
+      pending_selection_requests = tem->next;
+
+      x_handle_pending_selection_requests_1 (tem);
+    }
+}
+
+static void
+x_push_selection_request (struct selection_input_event *se)
+{
+  struct x_selection_request_event *tem;
+
+  tem = xmalloc (sizeof *tem);
+  tem->next = pending_selection_requests;
+  tem->se = *se;
+  pending_selection_requests = tem;
+}
+
+bool
+x_detect_pending_selection_requests (void)
+{
+  return pending_selection_requests;
+}
+
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
@@ -10841,6 +10907,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   while (x_dnd_in_progress || x_dnd_waiting_for_finish)
     {
       EVENT_INIT (hold_quit);
+
 #ifdef USE_GTK
       current_finish = X_EVENT_NORMAL;
       current_hold_quit = &hold_quit;
@@ -10849,6 +10916,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #endif
 
       block_input ();
+      x_dnd_inside_handle_one_xevent = true;
 #ifdef USE_GTK
       gtk_main_iteration ();
 #elif defined USE_X_TOOLKIT
@@ -10890,6 +10958,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       current_count = -1;
       current_hold_quit = NULL;
 #endif
+      x_dnd_inside_handle_one_xevent = false;
 
       /* The unblock_input below might try to read input, but
 	 XTread_socket does nothing inside a drag-and-drop event
@@ -10942,29 +11011,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
 	  if (hold_quit.kind != NO_EVENT)
 	    {
-	      if (hold_quit.kind == SELECTION_REQUEST_EVENT)
-		{
-		  /* It's not safe to run Lisp inside this function if
-		     x_dnd_in_progress and x_dnd_waiting_for_finish
-		     are unset, so push it back into the event queue.  */
-
-		  if (!x_dnd_in_progress && !x_dnd_waiting_for_finish)
-		    kbd_buffer_store_event (&hold_quit);
-		  else
-		    {
-		      x_dnd_old_window_attrs = root_window_attrs;
-		      x_dnd_unwind_flag = true;
-
-		      ref = SPECPDL_INDEX ();
-		      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
-		      x_handle_selection_event ((struct selection_input_event *) &hold_quit);
-		      x_dnd_unwind_flag = false;
-		      unbind_to (ref, Qnil);
-		    }
-
-		  continue;
-		}
-
 	      if (x_dnd_in_progress)
 		{
 		  if (x_dnd_last_seen_window != None
@@ -11029,6 +11075,19 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
 	      quit ();
+	    }
+
+	  if (pending_selection_requests
+	      && (x_dnd_in_progress || x_dnd_waiting_for_finish))
+	    {
+	      x_dnd_old_window_attrs = root_window_attrs;
+	      x_dnd_unwind_flag = true;
+
+	      ref = SPECPDL_INDEX ();
+	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+	      x_handle_pending_selection_requests ();
+	      x_dnd_unwind_flag = false;
+	      unbind_to (ref, Qnil);
 	    }
 
 #ifdef USE_GTK
@@ -15801,6 +15860,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         SELECTION_EVENT_DPYINFO (&inev.sie) = dpyinfo;
         SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
         SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
+
+	if ((x_dnd_in_progress
+	     && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
+	    || (x_dnd_waiting_for_finish
+		&& dpyinfo->display == x_dnd_finish_display))
+	  {
+	    x_push_selection_request (&inev.sie);
+	    EVENT_INIT (inev.ie);
+	  }
       }
       break;
 
@@ -15829,17 +15897,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    || (x_dnd_waiting_for_finish
 		&& dpyinfo->display == x_dnd_finish_display))
 	  {
-#ifndef USE_GTK
-	    eassume (hold_quit);
-#else
-	    /* If the debugger runs inside a selection converter, then
-	       xg_select can call handle_one_xevent with no
-	       hold_quit.  */
-	    if (!hold_quit)
-	      goto done;
-#endif
-
-	    *hold_quit = inev.ie;
+	    x_push_selection_request (&inev.sie);
 	    EVENT_INIT (inev.ie);
 	  }
 
@@ -21120,12 +21178,16 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
      read X events while the drag-and-drop event loop is in progress,
      things can go wrong very quick.
 
+     When x_dnd_unwind_flag is true, the above doesn't apply, since
+     the surrounding code takes special precautions to keep it safe.
+
      That doesn't matter for events from displays other than the
      display of the drag-and-drop operation, though.  */
-  if ((x_dnd_in_progress
-       && dpyinfo->display == FRAME_X_DISPLAY (x_dnd_frame))
-      || (x_dnd_waiting_for_finish
-	  && dpyinfo->display == x_dnd_finish_display))
+  if (!x_dnd_unwind_flag
+      && ((x_dnd_in_progress
+	   && dpyinfo->display == FRAME_X_DISPLAY (x_dnd_frame))
+	  || (x_dnd_waiting_for_finish
+	      && dpyinfo->display == x_dnd_finish_display)))
     return 0;
 
   block_input ();
@@ -25840,6 +25902,7 @@ x_delete_display (struct x_display_info *dpyinfo)
   struct terminal *t;
   struct color_name_cache_entry *color_entry, *next_color_entry;
   int i;
+  struct x_selection_request_event *ie, *last, *temp;
 
   /* Close all frames and delete the generic struct terminal for this
      X display.  */
@@ -25854,6 +25917,30 @@ x_delete_display (struct x_display_info *dpyinfo)
         delete_terminal (t);
         break;
       }
+
+  /* Find any pending selection requests for this display and unchain
+     them.  */
+
+  last = NULL;
+
+  for (ie = pending_selection_requests; ie; ie = ie->next)
+    {
+    again:
+
+      if (SELECTION_EVENT_DPYINFO (&ie->se) == dpyinfo)
+	{
+	  if (last)
+	    last->next = ie->next;
+
+	  temp = ie;
+	  ie = ie->next;
+	  xfree (temp);
+
+	  goto again;
+	}
+
+      last = ie;
+    }
 
   if (next_noop_dpyinfo == dpyinfo)
     next_noop_dpyinfo = dpyinfo->next;
