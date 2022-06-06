@@ -2450,6 +2450,11 @@ invoking, give a prefix argument to `execute-extended-command'."
          (find-shorter nil))
     (unless (commandp function)
       (error "`%s' is not a valid command name" command-name))
+    ;; If we're executing a command that's remapped, we can't actually
+    ;; execute that command with the keymapping we've found with
+    ;; `where-is-internal'.
+    (when (and binding (command-remapping function))
+      (setq binding nil))
     ;; Some features, such as novice.el, rely on this-command-keys
     ;; including M-x COMMAND-NAME RET.
     (set--this-command-keys (concat "\M-x" (symbol-name function) "\r"))
