@@ -1396,6 +1396,7 @@ extern void x_catch_errors_with_handler (Display *, x_special_error_handler,
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern bool x_had_errors_p (Display *);
+extern void x_unwind_errors_to (int);
 extern void x_uncatch_errors (void);
 extern void x_uncatch_errors_after_check (void);
 extern void x_clear_errors (Display *);
@@ -1615,6 +1616,7 @@ extern bool x_dnd_waiting_for_finish;
 extern struct frame *x_dnd_frame;
 extern struct frame *x_dnd_finish_frame;
 extern unsigned x_dnd_unsupported_event_level;
+extern int x_error_message_count;
 
 #ifdef HAVE_XINPUT2
 extern struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
