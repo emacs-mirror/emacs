@@ -10645,7 +10645,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   Lisp_Object return_frame, Atom *ask_action_list,
 			   const char **ask_action_names, size_t n_ask_actions,
 			   bool allow_current_frame, Atom *target_atoms,
-			   int ntargets)
+			   int ntargets, Lisp_Object selection_target_list)
 {
 #ifndef USE_GTK
   XEvent next_event;
@@ -10673,6 +10673,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   struct frame *event_frame;
 
   base = SPECPDL_INDEX ();
+
+  /* Bind this here to avoid juggling bindings and SAFE_FREE in
+     Fx_begin_drag.  */
+  specbind (Qx_dnd_targets_list, selection_target_list);
 
   /* Before starting drag-and-drop, walk through the keyboard buffer
      to see if there are any UNSUPPORTED_DROP_EVENTs, and run them now
@@ -26516,6 +26520,7 @@ syms_of_xterm (void)
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
   DEFSYM (Qnow, "now");
+  DEFSYM (Qx_dnd_targets_list, "x-dnd-targets-list");
 
 #ifdef USE_GTK
   xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
@@ -26752,4 +26757,11 @@ operation, and TIME is the X server time when the drop happened.  */);
     doc: /* Max number of buckets allowed per display in the internal color cache.
 Values less than 1 mean 128.  This option is for debugging only.  */);
   x_color_cache_bucket_size = 128;
+
+  DEFVAR_LISP ("x-dnd-targets-list", Vx_dnd_targets_list,
+    doc: /* List of drag-and-drop targets.
+This variable contains the list of drag-and-drop selection targets
+during a drag-and-drop operation, in the same format as the TARGET
+argument to `x-begin-drag'.  */);
+  Vx_dnd_targets_list = Qnil;
 }

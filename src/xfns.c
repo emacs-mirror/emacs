@@ -6985,7 +6985,7 @@ that mouse buttons are being held down, such as immediately after a
 				    xaction, return_frame, action_list,
 				    (const char **) &name_list, nnames,
 				    !NILP (allow_current_frame), target_atoms,
-				    ntargets);
+				    ntargets, original);
 
   SAFE_FREE ();
   return lval;

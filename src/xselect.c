@@ -417,14 +417,6 @@ x_decline_selection_request (struct selection_input_event *event)
   unblock_input ();
 }
 
-/* This is the selection request currently being processed.
-   It is set to zero when the request is fully processed.  */
-static struct selection_input_event *x_selection_current_request;
-
-/* Display info in x_selection_request.  */
-
-static struct x_display_info *selection_request_dpyinfo;
-
 /* Raw selection data, for sending to a requestor window.  */
 
 struct selection_data
@@ -442,12 +434,59 @@ struct selection_data
   struct selection_data *next;
 };
 
-/* Linked list of the above (in support of MULTIPLE targets).  */
+struct x_selection_request
+{
+  /* The last element in this stack.  */
+  struct x_selection_request *last;
 
-static struct selection_data *converted_selections;
+  /* Its display info.  */
+  struct x_display_info *dpyinfo;
 
-/* "Data" to send a requestor for a failed MULTIPLE subtarget.  */
-static Atom conversion_fail_tag;
+  /* Its selection input event.  */
+  struct selection_input_event *request;
+
+  /* Linked list of the above (in support of MULTIPLE targets).  */
+  struct selection_data *converted_selections;
+
+  /* "Data" to send a requestor for a failed MULTIPLE subtarget.  */
+  Atom conversion_fail_tag;
+
+  /* Whether or not conversion was successful.  */
+  bool converted;
+};
+
+/* Stack of selections currently being processed.
+   NULL if all requests have been fully processed.  */
+
+struct x_selection_request *selection_request_stack;
+
+static void
+x_push_current_selection_request (struct selection_input_event *se,
+				  struct x_display_info *dpyinfo)
+{
+  struct x_selection_request *frame;
+
+  frame = xmalloc (sizeof *frame);
+  frame->converted = false;
+  frame->last = selection_request_stack;
+  frame->request = se;
+  frame->dpyinfo = dpyinfo;
+  frame->converted_selections = NULL;
+  frame->conversion_fail_tag = None;
+
+  selection_request_stack = frame;
+}
+
+static void
+x_pop_current_selection_request (void)
+{
+  struct x_selection_request *tem;
+
+  tem = selection_request_stack;
+  selection_request_stack = selection_request_stack->last;
+
+  xfree (tem);
+}
 
 /* Used as an unwind-protect clause so that, if a selection-converter signals
    an error, we tell the requestor that we were unable to do what they wanted
@@ -457,19 +496,21 @@ static void
 x_selection_request_lisp_error (void)
 {
   struct selection_data *cs, *next;
+  struct x_selection_request *frame;
 
-  for (cs = converted_selections; cs; cs = next)
+  frame = selection_request_stack;
+
+  for (cs = frame->converted_selections; cs; cs = next)
     {
       next = cs->next;
       if (! cs->nofree && cs->data)
 	xfree (cs->data);
       xfree (cs);
     }
-  converted_selections = NULL;
+  frame->converted_selections = NULL;
 
-  if (x_selection_current_request != 0
-      && selection_request_dpyinfo->display)
-    x_decline_selection_request (x_selection_current_request);
+  if (!frame->converted && frame->dpyinfo->display)
+    x_decline_selection_request (frame->request);
 }
 
 static void
@@ -535,6 +576,9 @@ x_reply_selection_request (struct selection_input_event *event,
   int max_bytes = selection_quantum (display);
   specpdl_ref count = SPECPDL_INDEX ();
   struct selection_data *cs;
+  struct x_selection_request *frame;
+
+  frame = selection_request_stack;
 
   reply->type = SelectionNotify;
   reply->display = display;
@@ -558,7 +602,7 @@ x_reply_selection_request (struct selection_input_event *event,
      (section 2.7.2 of ICCCM).  Note that we store the data for a
      MULTIPLE request in the opposite order; the ICCM says only that
      the conversion itself must be done in the same order. */
-  for (cs = converted_selections; cs; cs = cs->next)
+  for (cs = frame->converted_selections; cs; cs = cs->next)
     {
       if (cs->property == None)
 	continue;
@@ -613,7 +657,7 @@ x_reply_selection_request (struct selection_input_event *event,
      be improved; there's a chance of deadlock if more than one
      subtarget in a MULTIPLE selection requires an INCR transfer, and
      the requestor and Emacs loop waiting on different transfers.  */
-  for (cs = converted_selections; cs; cs = cs->next)
+  for (cs = frame->converted_selections; cs; cs = cs->next)
     if (cs->wait_object)
       {
 	int format_bytes = cs->format / 8;
@@ -749,9 +793,11 @@ x_handle_selection_request (struct selection_input_event *event)
       && local_selection_time > SELECTION_EVENT_TIME (event))
     goto DONE;
 
-  x_selection_current_request = event;
-  selection_request_dpyinfo = dpyinfo;
+  block_input ();
+  x_push_current_selection_request (event, dpyinfo);
+  record_unwind_protect_void (x_pop_current_selection_request);
   record_unwind_protect_void (x_selection_request_lisp_error);
+  unblock_input ();
 
   TRACE2 ("x_handle_selection_request: selection=%s, target=%s",
 	  SDATA (SYMBOL_NAME (selection_symbol)),
@@ -808,11 +854,12 @@ x_handle_selection_request (struct selection_input_event *event)
 
  DONE:
 
+  selection_request_stack->converted = true;
+
   if (success)
     x_reply_selection_request (event, dpyinfo);
   else
     x_decline_selection_request (event);
-  x_selection_current_request = 0;
 
   /* Run the `x-sent-selection-functions' abnormal hook.  */
   if (!NILP (Vx_sent_selection_functions)
@@ -837,10 +884,13 @@ x_convert_selection (Lisp_Object selection_symbol,
 {
   Lisp_Object lisp_selection;
   struct selection_data *cs;
+  struct x_selection_request *frame;
 
   lisp_selection
     = x_get_local_selection (selection_symbol, target_symbol,
 			     false, dpyinfo);
+
+  frame = selection_request_stack;
 
   /* A nil return value means we can't perform the conversion.  */
   if (NILP (lisp_selection)
@@ -849,15 +899,16 @@ x_convert_selection (Lisp_Object selection_symbol,
       if (for_multiple)
 	{
 	  cs = xmalloc (sizeof *cs);
-	  cs->data = (unsigned char *) &conversion_fail_tag;
+	  cs->data = ((unsigned char *)
+		      &selection_request_stack->conversion_fail_tag);
 	  cs->size = 1;
 	  cs->format = 32;
 	  cs->type = XA_ATOM;
 	  cs->nofree = true;
 	  cs->property = property;
 	  cs->wait_object = NULL;
-	  cs->next = converted_selections;
-	  converted_selections = cs;
+	  cs->next = frame->converted_selections;
+	  frame->converted_selections = cs;
 	}
 
       return false;
@@ -869,8 +920,8 @@ x_convert_selection (Lisp_Object selection_symbol,
   cs->nofree = true;
   cs->property = property;
   cs->wait_object = NULL;
-  cs->next = converted_selections;
-  converted_selections = cs;
+  cs->next = frame->converted_selections;
+  frame->converted_selections = cs;
   lisp_data_to_selection_data (dpyinfo, lisp_selection, cs);
   return true;
 }
@@ -2777,6 +2828,4 @@ syms_of_xselect_for_pdumper (void)
   property_change_wait_list = 0;
   prop_location_identifier = 0;
   property_change_reply = Fcons (Qnil, Qnil);
-  converted_selections = NULL;
-  conversion_fail_tag = None;
 }

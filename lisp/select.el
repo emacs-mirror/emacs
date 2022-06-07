@@ -601,19 +601,29 @@ two markers or an overlay.  Otherwise, it is nil."
     (if len
 	(xselect--int-to-cons len))))
 
+(defvar x-dnd-targets-list)
+
 (defun xselect-convert-to-targets (selection _type value)
   ;; Return a vector of atoms, but remove duplicates first.
-  (apply #'vector
-         (delete-dups
-          `( TIMESTAMP MULTIPLE
-             . ,(delq '_EMACS_INTERNAL
-                      (mapcar (lambda (conv)
-                                (if (or (not (consp (cdr conv)))
-                                        (funcall (cadr conv) selection
-                                                 (car conv) value))
-                                    (car conv)
-                                  '_EMACS_INTERNAL))
-                              selection-converter-alist))))))
+  (if (eq selection 'XdndSelection)
+      ;; This isn't required by the XDND protocol, and sure enough no
+      ;; clients seem to dependent on it, but Emacs implements the
+      ;; receiver side of the Motif drop protocol by looking at the
+      ;; initiator selection's TARGETS target (which Motif provides)
+      ;; instead of the target table on the drag window, so it seems
+      ;; plausible for other clients to rely on that as well.
+      (apply #'vector (mapcar #'intern x-dnd-targets-list))
+    (apply #'vector
+           (delete-dups
+            `( TIMESTAMP MULTIPLE
+               . ,(delq '_EMACS_INTERNAL
+                        (mapcar (lambda (conv)
+                                  (if (or (not (consp (cdr conv)))
+                                          (funcall (cadr conv) selection
+                                                   (car conv) value))
+                                      (car conv)
+                                    '_EMACS_INTERNAL))
+                                selection-converter-alist)))))))
 
 (defun xselect-convert-to-delete (selection _type _value)
   ;; This should be handled by the caller of `x-begin-drag'.

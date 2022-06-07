@@ -1460,7 +1460,8 @@ extern void x_handle_pending_selection_requests (void);
 extern bool x_detect_pending_selection_requests (void);
 extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
 					      Lisp_Object, Atom *, const char **,
-					      size_t, bool, Atom *, int);
+					      size_t, bool, Atom *, int,
+					      Lisp_Object);
 extern void x_dnd_do_unsupported_drop (struct x_display_info *, Lisp_Object,
 				       Lisp_Object, Lisp_Object, Window, int,
 				       int, Time);
