@@ -806,7 +806,7 @@ this is `comint-dynamic-complete-functions'."
             ;; completions computed during parsing, e.g. Eshell uses
             ;; that to turn globs into lists of completions.
 	    (if (not pcomplete-allow-modifications)
-	        (progn
+	        (let ((completions pcomplete-stub))
 	          ;; FIXME: The mapping from what's in the buffer to the list
                   ;; of completions can be arbitrary and will often fail to be
                   ;; understood by the completion style.  See bug#50470.
@@ -816,7 +816,7 @@ this is `comint-dynamic-complete-functions'."
                   ;; "~/Down*" completion pattern since the completion
                   ;; is neither told that it's a file nor a global pattern.
 	          (setq pcomplete-stub (buffer-substring begin (point)))
-                  (throw 'pcomplete-completions pcomplete-stub))
+                  (throw 'pcomplete-completions completions))
 	      (let* ((completions pcomplete-stub)
 		     (common-prefix (try-completion "" completions))
 		     (len (length common-prefix)))
