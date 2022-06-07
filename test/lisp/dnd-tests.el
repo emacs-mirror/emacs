@@ -29,6 +29,7 @@
 (require 'dnd)
 (require 'cl-lib)
 (require 'tramp)
+(require 'select)
 
 ;; This code was taken from tramp-tests.el: perhaps some of it isn't
 ;; strictly necessary.
@@ -54,6 +55,9 @@
       (format "/mock::%s" temporary-file-directory)))
   "Temporary directory for drag-and-drop tests involving remote files.")
 
+(defvar dnd-tests-selection-table nil
+  "Alist of selection names to their values.")
+
 ;; Substitute for x-begin-drag, which isn't present on all systems.
 (defalias 'x-begin-drag
   (lambda (_targets &optional action frame &rest _)
@@ -73,7 +77,32 @@
 
 ;; This doesn't work during tests.
 (defalias 'gui-set-selection
-  (lambda (&rest _)))
+  (lambda (type data)
+    (or (gui--valid-simple-selection-p data)
+        (and (vectorp data)
+	     (let ((valid t))
+	       (dotimes (i (length data))
+	         (or (gui--valid-simple-selection-p (aref data i))
+		     (setq valid nil)))
+	       valid))
+        (signal 'error (list "invalid selection" data)))
+    (setf (alist-get type dnd-tests-selection-table) data)))
+
+(defun dnd-tests-verify-selection-data (type)
+  "Return the data of the drag-and-drop selection converted to TYPE."
+  (let* ((basic-value (cdr (assq 'XdndSelection
+                                 dnd-tests-selection-table)))
+         (local-value (if (stringp basic-value)
+                          (or (get-text-property 0 type basic-value)
+                              basic-value)
+                        basic-value))
+         (converter-list (assq type selection-converter-alist))
+         (converter (if (consp converter-list)
+                        (cdr converter-list)
+                      converter-list)))
+    (if (and local-value converter)
+        (funcall converter 'XdndSelection type local-value)
+      (error "No selection converter or local value: %s" type))))
 
 (defun dnd-tests-remote-accessible-p ()
   "Return if a test involving remote files can proceed."
@@ -90,11 +119,30 @@ The temporary file is not created."
                     dnd-tests-temporary-file-directory))
 
 (ert-deftest dnd-tests-begin-text-drag ()
-  (should (eq (dnd-begin-text-drag "some test text that will be dragged")
-              'copy))
-  (should (eq (dnd-begin-text-drag "some test text that will be dragged"
-                                   nil 'move)
-              'move)))
+  ;;                ASCII            Latin-1       UTF-8
+  (let ((test-text "hello, everyone! sæl öllsömul! всем привет"))
+    ;; Verify that dragging works.
+    (should (eq (dnd-begin-text-drag test-text) 'copy))
+    (should (eq (dnd-begin-text-drag test-text nil 'move) 'move))
+    ;; Verify that the important data types are converted correctly.
+    (let ((string-data (dnd-tests-verify-selection-data 'STRING)))
+      ;; Check that the Latin-1 target is converted correctly.
+      (should (equal (cdr string-data)
+                     (encode-coding-string test-text
+                                           'iso-8859-1))))
+    ;; And that UTF8_STRING and the Xdnd UTF8 string are as well.
+    (let ((string-data (dnd-tests-verify-selection-data
+                        'UTF8_STRING))
+          (string-data-1 (cdr (dnd-tests-verify-selection-data
+                               'text/plain\;charset=utf-8))))
+      (should (and (stringp (cdr string-data))
+                   (stringp string-data-1)))
+      (should (equal (cdr string-data) string-data-1)))
+    ;; Now check text/plain.
+    (let ((string-data (dnd-tests-verify-selection-data
+                        'text/plain)))
+      (should (equal (cdr string-data)
+                     (encode-coding-string test-text 'ascii))))))
 
 (ert-deftest dnd-tests-begin-file-drag ()
   ;; These tests also involve handling remote file names.
