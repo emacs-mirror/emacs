@@ -32,6 +32,12 @@ leimdir = ${srcdir}/../lisp/leim
 
 EXEEXT = @EXEEXT@
 
+SMALL_JA_DIC = @SMALL_JA_DIC@
+JA_DIC_NO_REDUCTION_OPTION = --no-reduction
+ifeq ($(SMALL_JA_DIC), yes)
+	JA_DIC_NO_REDUCTION_OPTION =
+endif
+
 -include ${top_builddir}/src/verbose.mk
 
 # Prevent any settings in the user environment causing problems.
@@ -134,7 +140,7 @@ generate-ja-dic: ${leimdir}/ja-dic/ja-dic.el
 ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	$(AM_V_GEN)$(RUN_EMACS) -batch -l ja-dic-cnv \
 	  --eval "(setq max-specpdl-size 5000)" \
-	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" "$<"
+	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" $(JA_DIC_NO_REDUCTION_OPTION) "$<"
 
 ${srcdir}/../lisp/language/pinyin.el: ${srcdir}/MISC-DIC/pinyin.map
 	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv -f pinyin-convert $< $@

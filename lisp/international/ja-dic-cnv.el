@@ -297,7 +297,7 @@
       (setq skkdic-okuri-nasi-entries-count (length skkdic-okuri-nasi-entries))
       (progress-reporter-done progress))))
 
-(defun skkdic-convert-okuri-nasi (skkbuf buf)
+(defun skkdic-convert-okuri-nasi (skkbuf buf &optional no-reduction)
   (with-current-buffer buf
     (insert ";; Setting okuri-nasi entries.\n"
 	    "(skkdic-set-okuri-nasi\n")
@@ -313,7 +313,9 @@
           (setq count (1+ count))
           (progress-reporter-update progress count)
 	  (if (setq candidates
-		    (skkdic-reduced-candidates skkbuf kana candidates))
+                    (if no-reduction
+                        candidates
+                        (skkdic-reduced-candidates skkbuf kana candidates)))
 	      (progn
 		(insert "\"" kana)
 		(while candidates
@@ -324,10 +326,12 @@
       (progress-reporter-done progress))
     (insert ")\n\n")))
 
-(defun skkdic-convert (filename &optional dirname)
+(defun skkdic-convert (filename &optional dirname no-reduction)
   "Generate Emacs Lisp file from Japanese dictionary file FILENAME.
 The format of the dictionary file should be the same as SKK dictionaries.
-Saves the output as `ja-dic-filename', in directory DIRNAME (if specified)."
+Saves the output as `ja-dic-filename', in directory DIRNAME (if specified).
+When NO-REDUCTION is t, then not reduce dictionary vocabulary.
+"
   (interactive "FSKK dictionary file: ")
   (let* ((skkbuf (get-buffer-create " *skkdic-unannotated*"))
 	 (buf (get-buffer-create "*skkdic-work*")))
@@ -388,7 +392,7 @@ Saves the output as `ja-dic-filename', in directory DIRNAME (if specified)."
 	(skkdic-collect-okuri-nasi)
 
 	;; Convert okuri-nasi general entries.
-	(skkdic-convert-okuri-nasi skkbuf buf)
+	(skkdic-convert-okuri-nasi skkbuf buf no-reduction)
 
 	;; Postfix
 	(with-current-buffer buf
@@ -420,15 +424,21 @@ To get complete usage, invoke:
 	(message "To convert SKK-JISYO.L into skkdic.el:")
 	(message "  %% emacs -batch -l ja-dic-cnv -f batch-skkdic-convert SKK-JISYO.L")
 	(message "To convert SKK-JISYO.L into DIR/ja-dic.el:")
-	(message "  %% emacs -batch -l ja-dic-cnv -f batch-skkdic-convert -dir DIR SKK-JISYO.L"))
-    (let (targetdir filename)
+	(message "  %% emacs -batch -l ja-dic-cnv -f batch-skkdic-convert -dir DIR SKK-JISYO.L")
+        (message "To convert SKK-JISYO.L into skkdic.el with not reduce dictionary vocabulary:")
+        (message "  %% emacs -batch -l ja-dic-cnv -f batch-skkdic-convert --no-reduction SKK-JISYO.L"))
+    (let (targetdir filename no-reduction)
       (if (string= (car command-line-args-left) "-dir")
 	  (progn
 	    (setq command-line-args-left (cdr command-line-args-left))
 	    (setq targetdir (expand-file-name (car command-line-args-left)))
 	    (setq command-line-args-left (cdr command-line-args-left))))
+      (if (string= (car command-line-args-left) "--no-reduction")
+          (progn
+	    (setq no-reduction t)
+	    (setq command-line-args-left (cdr command-line-args-left))))
       (setq filename (expand-file-name (car command-line-args-left)))
-      (skkdic-convert filename targetdir)))
+      (skkdic-convert filename targetdir no-reduction)))
   (kill-emacs 0))
 
 
