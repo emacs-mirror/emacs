@@ -333,7 +333,10 @@ nil if not."
 	  ;; If dropping in an ordinary window which we could use,
 	  ;; let dnd-open-file-other-window specify what to do.
 	  (progn
-	    (when (not mouse-yank-at-point)
+	    (when (and (not mouse-yank-at-point)
+                       ;; If dropping on top of the mode line, insert
+                       ;; the text at point instead.
+                       (posn-point (event-start event)))
 	      (goto-char (posn-point (event-start event))))
 	    (funcall handler window action data))
 	;; If we can't display the file here,
@@ -487,7 +490,11 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(reply-action (car (rassoc (car action-type)
 					   x-dnd-xdnd-to-action)))
 		(accept ;; 1 = accept, 0 = reject
-		 (if (and reply-action action-type) 1 0))
+		 (if (and reply-action action-type
+                          ;; Only allow drops on the text area of a
+                          ;; window.
+                          (not (posn-area (event-start event))))
+                     1 0))
 		(list-to-send
 		 (list (string-to-number
 			(frame-parameter frame 'outer-window-id))
@@ -495,8 +502,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		       (x-dnd-get-drop-x-y frame window)
 		       (x-dnd-get-drop-width-height
 			frame window (eq accept 1))
-		       (or reply-action 0)
-		       )))
+		       (or reply-action 0))))
 	   (x-send-client-message
 	    frame dnd-source frame "XdndStatus" 32 list-to-send)
            (dnd-handle-movement (event-start event))))
@@ -653,13 +659,16 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		    (reply-action (car (rassoc (car action-type)
 					       x-dnd-motif-to-action)))
 		    (reply-flags
-		     (x-dnd-motif-value-to-list
-		      (if reply-action
-			  (+ reply-action
-			     ?\x30	; 30:  valid drop site
-			     ?\x700)	; 700: can do copy, move or link
-		        ?\x30)		; 30:  drop site, but noop.
-		      2 my-byteorder))
+                     (if (posn-area (event-start event))
+                         (x-dnd-motif-value-to-list ?\x20 ; 20: invalid drop site
+                                                    2 my-byteorder)
+		       (x-dnd-motif-value-to-list
+		        (if reply-action
+			    (+ reply-action
+			       ?\x30                      ; 30:  valid drop site
+			       ?\x700)                    ; 700: can do copy, move or link
+		          ?\x30)                          ; 30:  drop site, but noop.
+		        2 my-byteorder)))
 		    (reply (append
 			    (list
 			     (+ ?\x80	; 0x80 indicates a reply.
@@ -691,13 +700,16 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		    (reply-action (car (rassoc (car action-type)
 					       x-dnd-motif-to-action)))
 		    (reply-flags
-		     (x-dnd-motif-value-to-list
-		      (if reply-action
-			  (+ reply-action
-			     ?\x30	; 30:  valid drop site
-			     ?\x700)	; 700: can do copy, move or link
-		        ?\x30)		; 30:  drop site, but noop
-		      2 my-byteorder))
+		     (if (posn-area (event-start event))
+                         (x-dnd-motif-value-to-list ?\x20 ; 20: invalid drop site
+                                                    2 my-byteorder)
+		       (x-dnd-motif-value-to-list
+		        (if reply-action
+			    (+ reply-action
+			       ?\x30   ; 30:  valid drop site
+			       ?\x700) ; 700: can do copy, move or link
+		          ?\x30)       ; 30:  drop site, but noop.
+		        2 my-byteorder)))
 		    (reply (append
 			    (list
 			     (+ ?\x80	; 0x80 indicates a reply.
@@ -727,25 +739,28 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		    (action-type (x-dnd-maybe-call-test-function
 				  window
 				  source-action))
-		    (reply-action (car (rassoc (car action-type)
-					       x-dnd-motif-to-action)))
+		    (reply-action (and (not (posn-area (event-start event)))
+                                       (car (rassoc (car action-type)
+					            x-dnd-motif-to-action))))
 		    (reply-flags
 		     (x-dnd-motif-value-to-list
-		      (if reply-action
-			  (+ reply-action
-			     ?\x30	; 30:  valid drop site
-			     ?\x700)	; 700: can do copy, move or link
-		        (+ ?\x30		; 30:  drop site, but noop.
-			   ?\x200))	; 200: drop cancel.
-		      2 my-byteorder))
+                      (if (posn-area (event-start event))
+                          (+ ?\x20     ; 20: invalid drop site
+                             ?\x200)   ; 200: drop cancel
+		        (if reply-action
+			    (+ reply-action
+			       ?\x30   ; 30:  valid drop site
+			       ?\x700) ; 700: can do copy, move or link
+		          (+ ?\x30     ; 30:  drop site, but noop.
+			     ?\x200))) ; 200: drop cancel.
+		        2 my-byteorder))
 		    (reply (append
 			    (list
 			     (+ ?\x80	; 0x80 indicates a reply.
 			        5)	; DROP_START.
 			     my-byteorder)
 			    reply-flags
-			    x
-			    y))
+			    x y))
 		    (timestamp (x-dnd-get-motif-value
 			        data 4 4 source-byteorder))
 		    action)
@@ -774,7 +789,8 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 	        timestamp)
 	       (x-dnd-forget-drop frame)))
 
-            (t (message "Unknown Motif drag-and-drop message: %s" (logand (aref data 0) #x3f)))))))
+            (t (message "Unknown Motif drag-and-drop message: %s"
+                        (logand (aref data 0) #x3f)))))))
 
 
 ;;;
