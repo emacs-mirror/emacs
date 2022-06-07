@@ -5725,11 +5725,14 @@ Before and after saving the buffer, this function runs
 		     (signal (car err) (cdr err))))
 	    ;; Since we have created an entirely new file,
 	    ;; make sure it gets the right permission bits set.
-	    (setq setmodes (or setmodes
- 			       (list (or (file-modes buffer-file-name)
-					 (logand ?\666 (default-file-modes)))
-				     (file-extended-attributes buffer-file-name)
-				     buffer-file-name)))
+	    (setq setmodes
+                  (or setmodes
+                      (list (or (file-modes buffer-file-name)
+				(logand ?\666 (default-file-modes)))
+                            (with-demoted-errors
+                                "Error getting extended attributes: %s"
+			      (file-extended-attributes buffer-file-name))
+			    buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
 	    (rename-file tempname
@@ -5746,9 +5749,12 @@ Before and after saving the buffer, this function runs
 	;; (setmodes is set) because that says we're superseding.
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
-	       (setq setmodes (list (file-modes buffer-file-name)
-				    (file-extended-attributes buffer-file-name)
-				    buffer-file-name))
+	       (setq setmodes
+                     (list (file-modes buffer-file-name)
+                           (with-demoted-errors
+                               "Error getting extended attributes: %s"
+			     (file-extended-attributes buffer-file-name))
+			   buffer-file-name))
 	       ;; If set-file-extended-attributes fails, fall back on
 	       ;; set-file-modes.
 	       (unless
