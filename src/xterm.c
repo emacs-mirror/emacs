@@ -789,6 +789,22 @@ static int current_finish;
 static struct input_event *current_hold_quit;
 #endif
 
+/* Queue selection requests in `pending_selection_requests' if more
+   than 0.  */
+static int x_use_pending_selection_requests;
+
+static void
+x_defer_selection_requests (void)
+{
+  x_use_pending_selection_requests++;
+}
+
+static void
+x_release_selection_requests (void)
+{
+  x_use_pending_selection_requests--;
+}
+
 struct x_selection_request_event
 {
   /* The selection request event.  */
@@ -10748,6 +10764,14 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (x_dnd_in_progress || x_dnd_waiting_for_finish)
     error ("A drag-and-drop session is already in progress");
 
+  x_defer_selection_requests ();
+  record_unwind_protect_void (x_release_selection_requests);
+
+  /* If local_value is nil, then we lost ownership of XdndSelection.
+     Signal a more informative error than args-out-of-range.  */
+  if (NILP (local_value))
+    error ("Lost ownership of XdndSelection");
+
   if (CONSP (local_value))
     x_own_selection (QXdndSelection,
 		     Fnth (make_fixnum (1), local_value), frame);
@@ -15877,10 +15901,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
         SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
 
-	if ((x_dnd_in_progress
-	     && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
-	    || (x_dnd_waiting_for_finish
-		&& dpyinfo->display == x_dnd_finish_display))
+	if (x_use_pending_selection_requests)
 	  {
 	    x_push_selection_request (&inev.sie);
 	    EVENT_INIT (inev.ie);
@@ -15908,10 +15929,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	   events immediately, by setting hold_quit to the input
 	   event.  */
 
-	if ((x_dnd_in_progress
-	     && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
-	    || (x_dnd_waiting_for_finish
-		&& dpyinfo->display == x_dnd_finish_display))
+	if (x_use_pending_selection_requests)
 	  {
 	    x_push_selection_request (&inev.sie);
 	    EVENT_INIT (inev.ie);
