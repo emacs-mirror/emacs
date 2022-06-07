@@ -466,7 +466,7 @@ FILE's name."
   (let ((lp (and (equal type "package") (setq type "autoloads"))))
     (with-temp-buffer
       (generate-lisp-file-heading
-       file 'loaddefs-generate--rubric
+       file 'loaddefs-generate
        :title (concat "automatically extracted " (or type "autoloads"))
        :commentary (and (string-match "/lisp/loaddefs\\.el\\'" file)
                         "This file will be copied to ldefs-boot.el and checked in periodically."))
