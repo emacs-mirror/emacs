@@ -21,8 +21,8 @@
 
 ;; Tests for stuff in dnd.el that doesn't require a window system.
 
-;; At present, these tests only checks the behavior of the simplified
-;; drag APIs in dnd.el.  Actual drags are not performed.
+;; The drag API tests only check the behavior of the simplified drag
+;; APIs in dnd.el.  Actual drags are not performed.
 
 ;;; Code:
 
@@ -193,6 +193,15 @@ The temporary file is not created."
       (delete-file normal-temp-file)
       (delete-file normal-temp-file-1)
       (delete-file remote-temp-file))))
+
+(ert-deftest dnd-tests-get-local-file-uri ()
+  (should (equal (dnd-get-local-file-uri "file://localhost/path/to/foo")
+                 "file:///path/to/foo"))
+  (should (equal (dnd-get-local-file-uri
+                  (format "file://%s/path/to/" (system-name)))
+                 "file:///path/to/"))
+  (should-not (dnd-get-local-file-uri "file://some-remote-host/path/to/foo"))
+  (should-not (dnd-get-local-file-uri "file:///path/to/foo")))
 
 (provide 'dnd-tests)
 ;;; dnd-tests.el ends here
