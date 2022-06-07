@@ -4919,7 +4919,7 @@ The event, EV, is the mouse event."
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start t)))
 	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr ev-start-pos))
 	 (timer nil))
@@ -4935,7 +4935,7 @@ The event, EV, is the mouse event."
           (while (or (mouse-movement-p ev)
                      (member 'down (event-modifiers ev)))
             (setq ev-start-pos (artist-coord-win-to-buf
-                                (posn-col-row (event-start ev))))
+                                (posn-col-row (event-start ev) t)))
             (setq x1 (artist--adjust-x (car ev-start-pos)))
             (setq y1 (cdr ev-start-pos))
 
@@ -5015,7 +5015,7 @@ The event, EV, is the mouse event."
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start t)))
 	 (x1-last      (artist--adjust-x (car ev-start-pos)))
 	 (y1-last      (cdr ev-start-pos))
 	 (x2           x1-last)
@@ -5107,7 +5107,7 @@ The event, EV, is the mouse event."
 	      ;; set x2 and y2
 	      ;;
 	      (setq ev-start-pos (artist-coord-win-to-buf
-				  (posn-col-row (event-start ev))))
+				  (posn-col-row (event-start ev) t)))
 	      (setq x2 (artist--adjust-x (car ev-start-pos)))
 	      (setq y2 (cdr ev-start-pos))
 
@@ -5134,7 +5134,7 @@ The event, EV, is the mouse event."
 	  ;;
 	  ;; set x2 and y2
 	  (setq ev-start-pos (artist-coord-win-to-buf
-			      (posn-col-row (event-start ev))))
+			      (posn-col-row (event-start ev) t)))
 	  (setq x2 (artist--adjust-x (car ev-start-pos)))
 	  (setq y2 (cdr ev-start-pos))
 
@@ -5218,7 +5218,8 @@ Operation is done once.  The event, EV, is the mouse event."
 	 (arrow-pred   (artist-go-get-arrow-pred-from-symbol op))
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf
+                        (posn-col-row ev-start t)))
 	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr  ev-start-pos)))
     (select-window (posn-window ev-start))
@@ -5252,7 +5253,8 @@ The event, EV, is the mouse event."
 	 (arrow-set-fn (artist-go-get-arrow-set-fn-from-symbol op))
 	 (ev-start     (event-start ev))
 	 (initial-win  (posn-window ev-start))
-	 (ev-start-pos (artist-coord-win-to-buf (posn-col-row ev-start)))
+	 (ev-start-pos (artist-coord-win-to-buf
+                        (posn-col-row ev-start t)))
 	 (x1           (artist--adjust-x (car ev-start-pos)))
 	 (y1           (cdr ev-start-pos))
 	 (x2)
@@ -5266,7 +5268,7 @@ The event, EV, is the mouse event."
       (while (or (mouse-movement-p ev)
 		 (member 'down (event-modifiers ev)))
 	(setq ev-start-pos (artist-coord-win-to-buf
-			    (posn-col-row (event-start ev))))
+			    (posn-col-row (event-start ev) t)))
 	(setq x2 (artist--adjust-x (car ev-start-pos)))
 	(setq y2 (cdr ev-start-pos))
 
