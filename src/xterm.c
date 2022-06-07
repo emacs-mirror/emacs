@@ -2029,9 +2029,16 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	 it back to 0.  There will probably be no more updates to the
 	 protocol either.  */
       header.protocol = XM_DRAG_PROTOCOL_VERSION;
+
+      x_catch_errors (dpyinfo->display);
       xm_write_targets_table (dpyinfo->display, drag_window,
 			      dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
 			      &header, recs);
+      /* Presumably we got a BadAlloc upon writing the targets
+	 table.  */
+      if (x_had_errors_p (dpyinfo->display))
+	idx = -1;
+      x_uncatch_errors_after_check ();
     }
 
   XUngrabServer (dpyinfo->display);
