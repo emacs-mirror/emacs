@@ -129,8 +129,8 @@ struct haiku_quit_requested_event
 struct haiku_resize_event
 {
   void *window;
-  float px_heightf;
-  float px_widthf;
+  float width;
+  float height;
 };
 
 struct haiku_expose_event

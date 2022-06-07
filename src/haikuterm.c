@@ -3143,8 +3143,8 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (!f)
 	      continue;
 
-	    int width = lrint (b->px_widthf);
-	    int height = lrint (b->px_heightf);
+	    int width = lrint (b->width);
+	    int height = lrint (b->height);
 
 	    if (FRAME_OUTPUT_DATA (f)->wait_for_event_type
 		== FRAME_RESIZED)

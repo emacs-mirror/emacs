@@ -1103,8 +1103,8 @@ public:
   {
     struct haiku_resize_event rq;
     rq.window = this;
-    rq.px_heightf = newHeight + 1.0f;
-    rq.px_widthf = newWidth + 1.0f;
+    rq.width = newWidth + 1.0f;
+    rq.height = newHeight + 1.0f;
 
     haiku_write (FRAME_RESIZED, &rq);
     BWindow::FrameResized (newWidth, newHeight);
@@ -1492,25 +1492,36 @@ public:
 class EmacsView : public BView
 {
 public:
-  uint32_t previous_buttons = 0;
-  int looper_locked_count = 0;
+  uint32_t previous_buttons;
+  int looper_locked_count;
   BRegion sb_region;
   BRegion invalid_region;
 
-  BView *offscreen_draw_view = NULL;
-  BBitmap *offscreen_draw_bitmap_1 = NULL;
-  BBitmap *copy_bitmap = NULL;
+  BView *offscreen_draw_view;
+  BBitmap *offscreen_draw_bitmap_1;
+  BBitmap *copy_bitmap;
 
 #ifdef USE_BE_CAIRO
-  cairo_surface_t *cr_surface = NULL;
-  cairo_t *cr_context = NULL;
+  cairo_surface_t *cr_surface;
+  cairo_t *cr_context;
   BLocker cr_surface_lock;
 #endif
 
   BPoint tt_absl_pos;
-  BMessage *wait_for_release_message = NULL;
+  BMessage *wait_for_release_message;
 
-  EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs", B_FOLLOW_NONE, B_WILL_DRAW)
+  EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs",
+			B_FOLLOW_NONE, B_WILL_DRAW),
+		 previous_buttons (0),
+		 looper_locked_count (0),
+		 offscreen_draw_view (NULL),
+		 offscreen_draw_bitmap_1 (NULL),
+		 copy_bitmap (NULL),
+#ifdef USE_BE_CAIRO
+		 cr_surface (NULL),
+		 cr_context (NULL),
+#endif
+		 wait_for_release_message (NULL)
   {
 
   }
@@ -1658,9 +1669,7 @@ public:
 #endif
 
 	if (looper_locked_count)
-	  {
-	    offscreen_draw_bitmap_1->Lock ();
-	  }
+	  offscreen_draw_bitmap_1->Lock ();
 
 	UnlockLooper ();
       }
