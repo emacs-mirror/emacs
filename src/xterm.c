@@ -18735,12 +18735,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 So instead of that, just ignore XI wheel
 			 events which land on a scroll bar.
 
-		        Here we assume anything which isn't the edit
-		        widget window is a scroll bar.  */
+			 Here we assume anything which isn't the edit
+			 widget window is a scroll bar.  */
 
 		      if (xev->child != None
 			  && xev->child != FRAME_X_WINDOW (f))
-			goto OTHER;
+			goto XI_OTHER;
 #endif
 
 		      if (fabs (total_x) > 0 || fabs (total_y) > 0)
