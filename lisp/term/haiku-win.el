@@ -311,6 +311,9 @@ or a pair of markers) and turns it into a file system reference."
     (if (eq string 'lambda) ; This means the mouse moved.
         (dnd-handle-movement (event-start event))
       (cond
+       ;; Don't allow dropping on something other than the text area.
+       ;; It does nothing and doesn't work with text anyway.
+       ((posn-area (event-start event)))
        ((assoc "refs" string)
         (with-selected-window window
           (raise-frame)
@@ -326,7 +329,8 @@ or a pair of markers) and turns it into a file system reference."
         (with-selected-window window
           (raise-frame)
           (dolist (text (cddr (assoc "text/plain" string)))
-            (goto-char (posn-point (event-start event)))
+            (unless mouse-yank-at-point
+              (goto-char (posn-point (event-start event))))
             (dnd-insert-text window 'private
                              (if (multibyte-string-p text)
                                  text
