@@ -1355,8 +1355,6 @@ the variable `prolog-prompt-regexp'."
         (error "This Prolog system has defined no interpreter"))
     (unless (comint-check-proc "*prolog*")
       (with-current-buffer (get-buffer-create "*prolog*")
-        (prolog-inferior-mode)
-
         ;; The "INFERIOR=yes" hack is for SWI-Prolog 7.2.3 and earlier,
         ;; which assumes it is running under Emacs if either INFERIOR=yes or
         ;; if EMACS is set to a nonempty value.  The EMACS setting is
@@ -1369,6 +1367,7 @@ the variable `prolog-prompt-regexp'."
 	         (cons "INFERIOR=yes" process-environment))))
 	  (apply 'make-comint-in-buffer "prolog" (current-buffer)
 	         pname nil pswitches))
+        (prolog-inferior-mode)
 
         (unless prolog-system
           ;; Setup auto-detection.
