@@ -2615,7 +2615,7 @@ POSITION is assumed to lie in a window text area."
 @end example
 @end defun
 
-@defun posn-col-row position
+@defun posn-col-row position &optional use-window
 This function returns a cons cell @w{@code{(@var{col} .  @var{row})}},
 containing the estimated column and row corresponding to buffer
 position described by @var{position}.  The return value is given in
@@ -2623,7 +2623,11 @@ units of the frame's default character width and default line height
 (including spacing), as computed from the @var{x} and @var{y} values
 corresponding to @var{position}.  (So, if the actual characters have
 non-default sizes, the actual row and column may differ from these
-computed values.)
+computed values.)  If the optional @var{window} argument is
+non-@code{nil}, use the default character width in the window
+indicated by @var{position} instead of the frame.  (This makes a
+difference if that window is showing a buffer with a non-default
+zooming level, for instance.)
 
 Note that @var{row} is counted from the top of the text area.  If the
 window given by @var{position} possesses a header line (@pxref{Header

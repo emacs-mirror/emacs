@@ -1947,6 +1947,10 @@ Previously it produced a nonsense value, -1, that was never intended.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'posn-col-row' can now give position data based on windows.
+Previously, it reported data only based on the frame.
+
++++
 ** 'file-expand-wildcards' can now also take a regexp as PATTERN argument.
 
 ---

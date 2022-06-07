@@ -1705,13 +1705,19 @@ pixels.  POSITION should be a list of the form returned by
 
 (declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
 
-(defun posn-col-row (position)
+(defun posn-col-row (position &optional use-window)
   "Return the nominal column and row in POSITION, measured in characters.
 The column and row values are approximations calculated from the x
 and y coordinates in POSITION and the frame's default character width
 and default line height, including spacing.
+
+If USE-WINDOW is non-nil, use the typical width of a character in
+the window indicated by POSITION instead of the frame.  (This
+makes a difference is a window has a zoom level.)
+
 For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar.
+
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (let* ((pair            (posn-x-y position))
@@ -1729,20 +1735,23 @@ and `event-end' functions."
      ((eq area 'horizontal-scroll-bar)
       (cons (scroll-bar-scale pair (window-width window)) 0))
      (t
-      ;; FIXME: This should take line-spacing properties on
-      ;; newlines into account.
-      (let* ((spacing (when (display-graphic-p frame)
-                        (or (with-current-buffer
-                                (window-buffer (frame-selected-window frame))
-                              line-spacing)
-                            (frame-parameter frame 'line-spacing)))))
-	(cond ((floatp spacing)
-	       (setq spacing (truncate (* spacing
-					  (frame-char-height frame)))))
-	      ((null spacing)
-	       (setq spacing 0)))
-	(cons (/ (car pair) (frame-char-width frame))
-	      (/ (cdr pair) (+ (frame-char-height frame) spacing))))))))
+      (if use-window
+          (cons (/ (car pair) (window-font-width window))
+                (/ (cdr pair) (window-font-height window)))
+        ;; FIXME: This should take line-spacing properties on
+        ;; newlines into account.
+        (let* ((spacing (when (display-graphic-p frame)
+                          (or (with-current-buffer
+                                  (window-buffer (frame-selected-window frame))
+                                line-spacing)
+                              (frame-parameter frame 'line-spacing)))))
+	  (cond ((floatp spacing)
+	         (setq spacing (truncate (* spacing
+					    (frame-char-height frame)))))
+	        ((null spacing)
+	         (setq spacing 0)))
+	  (cons (/ (car pair) (frame-char-width frame))
+	        (/ (cdr pair) (+ (frame-char-height frame) spacing)))))))))
 
 (defun posn-actual-col-row (position)
   "Return the window row number in POSITION and character number in that row.
