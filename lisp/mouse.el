@@ -3085,6 +3085,7 @@ is copied instead of being cut."
                      (display-multi-frame-p)
                      (require 'tooltip))
             mouse-drag-and-drop-region-show-tooltip))
+         (mouse-highlight nil)
          (start (region-beginning))
          (end (region-end))
          (point (point))
