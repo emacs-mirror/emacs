@@ -582,10 +582,11 @@ Otherwise, each INT-OR-NAME refers to an element of the list value.
 Integers imply a direct index, and names, an associate lookup using
 `assoc'.
 
-If QUOTED is non-nil, this was invoked inside double-quotes.  This
-affects the behavior of splitting strings: without quoting, the
-split values are converted to Lisp forms via `eshell-convert'; with
-quoting, they're left as strings.
+If QUOTED is non-nil, this was invoked inside double-quotes.
+This affects the behavior of splitting strings: without quoting,
+the split values are converted to numbers via
+`eshell-convert-to-number' if possible; with quoting, they're
+left as strings.
 
 For example, to retrieve the second element of a user's record in
 '/etc/passwd', the variable reference would look like:
@@ -599,9 +600,9 @@ For example, to retrieve the second element of a user's record in
                      (not (get-text-property 0 'number index)))
             (setq separator index
                   refs (cdr refs)))
-	  (setq value
-		(mapcar (lambda (i) (eshell-convert i quoted))
-			(split-string value separator)))))
+	  (setq value (split-string value separator))
+          (unless quoted
+            (setq value (mapcar #'eshell-convert-to-number value)))))
       (cond
        ((< (length refs) 0)
 	(error "Invalid array variable index: %s"

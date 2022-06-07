@@ -357,11 +357,18 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/interp-convert-var-split-indices ()
   "Interpolate and convert string variable with indices"
+  ;; Check that numeric forms are converted to numbers.
   (let ((eshell-test-value "000 010 020 030 040"))
     (should (equal (eshell-test-command-result "echo $eshell-test-value[0]")
                    0))
     (should (equal (eshell-test-command-result "echo $eshell-test-value[0 2]")
-                   '(0 20)))))
+                   '(0 20))))
+  ;; Check that multiline forms are preserved as-is.
+  (let ((eshell-test-value "foo\nbar:baz\n"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[: 0]")
+                   "foo\nbar"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[: 1]")
+                   "baz\n"))))
 
 (ert-deftest esh-var-test/interp-convert-quoted-var-number ()
   "Interpolate numeric quoted numeric variable"
