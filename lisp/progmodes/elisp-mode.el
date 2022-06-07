@@ -245,6 +245,9 @@ Comments in the form will be lost."
       ;; Empty symbol.
       ("##" (0 (unless (nth 8 (syntax-ppss))
                  (string-to-syntax "_"))))
+      ;; Give ,@ a prefix syntax.
+      (",@" (0 (unless (ppss-comment-or-string-start (syntax-ppss))
+                 (string-to-syntax "'"))))
       ;; Unicode character names.  (The longest name is 88 characters
       ;; long.)
       ("\\?\\\\N{[-A-Za-z0-9 ]\\{,100\\}}"
