@@ -2239,6 +2239,7 @@ of characters from a single Latin-N charset.
   tilde      |    ~    | a~ -> ã
   cedilla    |    ,    | c, -> ç
   ogonek     |    ,    | a, -> ą
+  macron     |    -    | a- -> ā   g- -> ḡ   e/- -> ǣ   -- -> ¯
   breve      |    ~    | a~ -> ă
   caron      |    ~    | c~ -> č
   dbl. acute |    :    | o: -> ő
@@ -2256,7 +2257,7 @@ of characters from a single Latin-N charset.
 Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
-;; Fixme: ¦ § ¨ © ¬ ­ ¯ ± ´ µ ¶ · ¸ × ÷
+;; Fixme: ¦ § ¨ © ¬ ± ´ µ ¶ · ¸ × ÷
 (quail-define-rules
  ("2/" ?½)
  ("3/" ?¾)
@@ -2315,11 +2316,13 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("E-" ?Ē)
  ("E." ?Ė)
  ("E/" ?Æ)
+ ("E/-" ?Ǣ)
  ("E\"" ?Ë)
  ("E^" ?Ê)
  ("E`" ?È)
  ("E~" ?Ě)
  ("G," ?Ģ)
+ ("G-" ?Ḡ)
  ("G." ?Ġ)
  ("G^" ?Ĝ)
  ("G~" ?Ğ)
@@ -2405,12 +2408,14 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("e-" ?ē)
  ("e." ?ė)
  ("e/" ?æ)
+ ("e/-" ?ǣ)
  ("e\"" ?ë)
  ("e^" ?ê)
  ("e`" ?è)
  ("e~" ?ě)
  ("e=" ?€)
  ("g," ?ģ)
+ ("g-" ?ḡ)
  ("g." ?ġ)
  ("g^" ?ĝ)
  ("g~" ?ğ)
@@ -2475,6 +2480,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("z'" ?ź)
  ("z." ?ż)
  ("z~" ?ž)
+ ("--" ?¯)
 
  ("2//" ["2/"])
  ("3//" ["3/"])
@@ -2530,11 +2536,13 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("E--" ["E-"])
  ("E.." ["E."])
  ("E//" ["E/"])
+ ("E/--" ["E/-"])
  ("E\"\"" ["E\""])
  ("E^^" ["E^"])
  ("E``" ["E`"])
  ("E~~" ["E~"])
  ("G,," ["G,"])
+ ("G--" ["G-"])
  ("G.." ["G."])
  ("G^^" ["G^"])
  ("G~~" ["G~"])
@@ -2613,12 +2621,14 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("e--" ["e-"])
  ("e.." ["e."])
  ("e//" ["e/"])
+ ("e/--" ["e/-"])
  ("e\"\"" ["e\""])
  ("e^^" ["e^"])
  ("e``" ["e`"])
  ("e==" ["e="])
  ("e~~" ["e~"])
  ("g,," ["g,"])
+ ("g--" ["g-"])
  ("g.." ["g."])
  ("g^^" ["g^"])
  ("g~~" ["g~"])
@@ -2677,6 +2687,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("z''" ["z'"])
  ("z.." ["z."])
  ("z~~" ["z~"])
+ ("---" ["--"])
  )
 
 ;; Derived from Slovenian.kmap from Yudit

@@ -1104,6 +1104,7 @@ of characters from a single Latin-N charset.
    cedilla   |  , ~   | ,c -> ç  ~c -> ç
     caron    |   ~    | ~c -> č  ~g -> ğ
     breve    |   ~    | ~a -> ă
+    macron   |   -    | -a -> ā  -/e -> ǣ  -- -> ¯
   dot above  |   / .  | /g -> ġ   .g -> ġ
     misc     | \" ~ /  | \"s -> ß  ~d -> ð  ~t -> þ  /a -> å  /e -> æ  /o -> ø
    symbol    |   ~    | ~> -> »  ~< -> «  ~! -> ¡  ~? -> ¿  ~~ -> ¸
@@ -1112,6 +1113,23 @@ of characters from a single Latin-N charset.
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
+ ("--" ?¯)
+ ("-A" ?Ā)
+ ("-a" ?ā)
+ ("-E" ?Ē)
+ ("-e" ?ē)
+ ("-/E" ?Ǣ)
+ ("-/e" ?ǣ)
+ ("-G" ?Ḡ)
+ ("-g" ?ḡ)
+ ("-I" ?Ī)
+ ("-i" ?ī)
+ ("-O" ?Ō)
+ ("-o" ?ō)
+ ("-U" ?Ū)
+ ("-u" ?ū)
+ ("-Y" ?Ȳ)
+ ("-y" ?ȳ)
  ("' " ?')
  ("''" ?´)
  ("'A" ?Á)
