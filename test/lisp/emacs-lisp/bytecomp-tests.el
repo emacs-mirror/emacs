@@ -1553,6 +1553,27 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
   (should (byte-compile--suspicious-defcustom-choice
            '(choice (const :tag "foo" 'bar)))))
 
+(ert-deftest bytecomp-function-attributes ()
+  ;; Check that `byte-compile' keeps the declarations, interactive spec and
+  ;; doc string of the function (bug#55830).
+  (let ((fname 'bytecomp-test-fun))
+    (fset fname nil)
+    (put fname 'pure nil)
+    (put fname 'lisp-indent-function nil)
+    (eval `(defun ,fname (x)
+             "tata"
+             (declare (pure t) (indent 1))
+             (interactive "P")
+             (list 'toto x))
+          t)
+    (let ((bc (byte-compile fname)))
+      (should (byte-code-function-p bc))
+      (should (equal (funcall bc 'titi) '(toto titi)))
+      (should (equal (aref bc 5) "P"))
+      (should (equal (get fname 'pure) t))
+      (should (equal (get fname 'lisp-indent-function) 1))
+      (should (equal (aref bc 4) "tata\n\n(fn X)")))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

@@ -2926,6 +2926,7 @@ FUN should be either a `lambda' value or a `closure' value."
       (push (pop body) preamble))
     (when (eq (car-safe (car body)) 'interactive)
       (push (pop body) preamble))
+    (setq preamble (nreverse preamble))
     ;; Turn the function's closed vars (if any) into local let bindings.
     (dolist (binding env)
       (cond
