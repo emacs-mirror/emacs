@@ -22,7 +22,9 @@
 ;; Tests for stuff in dnd.el that doesn't require a window system.
 
 ;; The drag API tests only check the behavior of the simplified drag
-;; APIs in dnd.el.  Actual drags are not performed.
+;; APIs in dnd.el.  Actual drags are not performed during the
+;; automated testing process (make check), but some of the tests can
+;; also be run under X.
 
 ;;; Code:
 
@@ -35,51 +37,59 @@
 (defvar dnd-tests-selection-table nil
   "Alist of selection names to their values.")
 
-;; Substitute for x-begin-drag, which isn't present on all systems.
-(defalias 'x-begin-drag
-  (lambda (_targets &optional action frame &rest _)
-    ;; Verify that frame is either nil or a valid frame.
-    (when (and frame (not (frame-live-p frame)))
-      (signal 'wrong-type-argument frame))
-    ;; Verify that the action is valid and pretend the drag succeeded
-    ;; (by returning the action).
-    (cl-ecase action
-      ('XdndActionCopy action)
-      ('XdndActionMove action)
-      ('XdndActionLink action)
-      ;; These two are not technically valid, but x-begin-drag accepts
-      ;; them anyway.
-      ('XdndActionPrivate action)
-      ('XdndActionAsk 'XdndActionPrivate))))
+(defvar x-treat-local-requests-remotely)
 
-;; This doesn't work during tests.
-(defalias 'gui-set-selection
-  (lambda (type data)
-    (or (gui--valid-simple-selection-p data)
-        (and (vectorp data)
-	     (let ((valid t))
-	       (dotimes (i (length data))
-	         (or (gui--valid-simple-selection-p (aref data i))
-		     (setq valid nil)))
-	       valid))
-        (signal 'error (list "invalid selection" data)))
-    (setf (alist-get type dnd-tests-selection-table) data)))
+;; Define some replacements for functions used by the drag-and-drop
+;; code on X when running under something else.
+(unless (eq window-system 'x)
+  ;; Substitute for x-begin-drag, which isn't present on all systems.
+  (defalias 'x-begin-drag
+    (lambda (_targets &optional action frame &rest _)
+      ;; Verify that frame is either nil or a valid frame.
+      (when (and frame (not (frame-live-p frame)))
+        (signal 'wrong-type-argument frame))
+      ;; Verify that the action is valid and pretend the drag succeeded
+      ;; (by returning the action).
+      (cl-ecase action
+        ('XdndActionCopy action)
+        ('XdndActionMove action)
+        ('XdndActionLink action)
+        ;; These two are not technically valid, but x-begin-drag accepts
+        ;; them anyway.
+        ('XdndActionPrivate action)
+        ('XdndActionAsk 'XdndActionPrivate))))
+
+  ;; This doesn't work during tests.
+  (defalias 'gui-set-selection
+    (lambda (type data)
+      (or (gui--valid-simple-selection-p data)
+          (and (vectorp data)
+	       (let ((valid t))
+	         (dotimes (i (length data))
+	           (or (gui--valid-simple-selection-p (aref data i))
+		       (setq valid nil)))
+	         valid))
+          (signal 'error (list "invalid selection" data)))
+      (setf (alist-get type dnd-tests-selection-table) data))))
 
 (defun dnd-tests-verify-selection-data (type)
   "Return the data of the drag-and-drop selection converted to TYPE."
-  (let* ((basic-value (cdr (assq 'XdndSelection
-                                 dnd-tests-selection-table)))
-         (local-value (if (stringp basic-value)
-                          (or (get-text-property 0 type basic-value)
-                              basic-value)
-                        basic-value))
-         (converter-list (cdr (assq type selection-converter-alist)))
-         (converter (if (consp converter-list)
-                        (cdr converter-list)
-                      converter-list)))
-    (if (and local-value converter)
-        (funcall converter 'XdndSelection type local-value)
-      (error "No selection converter or local value: %s" type))))
+  (if (eq window-system 'x)
+      (let ((x-treat-local-requests-remotely t))
+        (x-get-selection-internal 'XdndSelection type))
+    (let* ((basic-value (cdr (assq 'XdndSelection
+                                   dnd-tests-selection-table)))
+           (local-value (if (stringp basic-value)
+                            (or (get-text-property 0 type basic-value)
+                                basic-value)
+                          basic-value))
+           (converter-list (cdr (assq type selection-converter-alist)))
+           (converter (if (consp converter-list)
+                          (cdr converter-list)
+                        converter-list)))
+      (if (and local-value converter)
+          (funcall converter 'XdndSelection type local-value)
+        (error "No selection converter or local value: %s" type)))))
 
 (defun dnd-tests-remote-accessible-p ()
   "Return if a test involving remote files can proceed."
@@ -119,7 +129,26 @@ Return a list of its hostname, real path, and local path."
                          (+ beg 1
                             (string-to-number (match-string 5 netfile)))))))))
 
+(defun dnd-tests-extract-selection-data (selection expect-cons)
+  "Return the selection data in SELECTION.
+SELECTION can either be the value of `gui-get-selection', or the
+return value of a selection converter.
+
+If EXPECT-CONS, then expect SELECTION to be a cons (when not
+running under X).
+
+This function only tries to handle strings."
+  (when (and expect-cons (not (eq window-system 'x)))
+    (should (and (consp selection)
+                 (stringp (cdr selection)))))
+  (if (stringp selection)
+      selection
+    (cdr selection)))
+
 (ert-deftest dnd-tests-begin-text-drag ()
+  ;; When running this test under X, please make sure to drop onto a
+  ;; program with reasonably correct behavior, such as dtpad, gedit,
+  ;; or Mozilla.
   ;;                ASCII            Latin-1       UTF-8
   (let ((test-text "hello, everyone! sæl öllsömul! всем привет"))
     ;; Verify that dragging works.
@@ -128,26 +157,29 @@ Return a list of its hostname, real path, and local path."
     ;; Verify that the important data types are converted correctly.
     (let ((string-data (dnd-tests-verify-selection-data 'STRING)))
       ;; Check that the Latin-1 target is converted correctly.
-      (should (equal (cdr string-data)
+      (should (equal (dnd-tests-extract-selection-data string-data t)
                      (encode-coding-string test-text
                                            'iso-8859-1))))
     ;; And that UTF8_STRING and the Xdnd UTF8 string are as well.
-    (let ((string-data (dnd-tests-verify-selection-data
-                        'UTF8_STRING))
-          (string-data-1 (cdr (dnd-tests-verify-selection-data
-                               'text/plain\;charset=utf-8))))
-      (should (and (stringp (cdr string-data))
-                   (stringp string-data-1)))
-      (should (equal (cdr string-data) string-data-1)))
+    (let* ((string-data (dnd-tests-verify-selection-data
+                         'UTF8_STRING))
+           (string-data-1 (dnd-tests-verify-selection-data
+                           'text/plain\;charset=utf-8))
+           (extracted-1 (dnd-tests-extract-selection-data string-data-1 t))
+           (extracted (dnd-tests-extract-selection-data string-data t)))
+      (should (and (stringp extracted) (stringp extracted-1)))
+      (should (equal extracted extracted)))
     ;; Now check text/plain.
     (let ((string-data (dnd-tests-verify-selection-data
                         'text/plain)))
-      (should (equal (cdr string-data)
+      (should (equal (dnd-tests-extract-selection-data string-data t)
                      (encode-coding-string test-text 'ascii))))))
 
 (ert-deftest dnd-tests-begin-file-drag ()
   ;; These tests also involve handling remote file names.
-  (skip-unless (dnd-tests-remote-accessible-p))
+  (skip-unless (and (dnd-tests-remote-accessible-p)
+                    ;; TODO: make these tests work under X.
+                    (not (eq window-system 'x))))
   (let ((normal-temp-file (expand-file-name (make-temp-name "dnd-test")
                                             temporary-file-directory))
         (remote-temp-file (dnd-tests-make-temp-name)))
@@ -210,7 +242,9 @@ Return a list of its hostname, real path, and local path."
       (delete-file remote-temp-file))))
 
 (ert-deftest dnd-tests-begin-drag-files ()
-  (skip-unless (dnd-tests-remote-accessible-p))
+  (skip-unless (and (dnd-tests-remote-accessible-p)
+                    ;; TODO: make these tests work under X.
+                    (not (eq window-system 'x))))
   (let ((normal-temp-file (expand-file-name (make-temp-name "dnd-test")
                                             temporary-file-directory))
         (normal-temp-file-1 (expand-file-name (make-temp-name "dnd-test")
