@@ -198,6 +198,10 @@ x_menu_wait_for_event (void *data)
       struct x_display_info *dpyinfo;
       int n = 0;
 
+      /* ISTM that if timer_check is okay, this should be too, since
+	 both can run random Lisp.  */
+      x_handle_pending_selection_requests ();
+
       FD_ZERO (&read_fds);
       for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
         {
@@ -1579,6 +1583,8 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
     }
 #endif
 
+  DEFER_SELECTIONS;
+
   /* Display the menu.  */
   gtk_widget_show_all (menu);
 
@@ -1867,6 +1873,8 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
   {
     specpdl_ref specpdl_count = SPECPDL_INDEX ();
+
+    DEFER_SELECTIONS;
 
     record_unwind_protect_int (pop_down_menu, (int) menu_id);
 #ifdef HAVE_XINPUT2
@@ -2199,6 +2207,8 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
   if (menu)
     {
       specpdl_ref specpdl_count = SPECPDL_INDEX ();
+
+      DEFER_SELECTIONS;
       record_unwind_protect_ptr (pop_down_menu, menu);
 
       /* Display the menu.  */
@@ -2254,6 +2264,8 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
      Also handle timers.  */
   {
     specpdl_ref count = SPECPDL_INDEX ();
+
+    DEFER_SELECTIONS;
 
     /* xdialog_show_unwind is responsible for popping the dialog box down.  */
 
@@ -2715,18 +2727,18 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   y = max (y, 1);
   XMenuLocate (FRAME_X_DISPLAY (f), menu, 0, 0, x, y,
 	       &ulx, &uly, &width, &height);
-  if (ulx+width > dispwidth)
+  if (ulx + width > dispwidth)
     {
       x -= (ulx + width) - dispwidth;
       ulx = dispwidth - width;
     }
-  if (uly+height > dispheight)
+  if (uly + height > dispheight)
     {
       y -= (uly + height) - dispheight;
       uly = dispheight - height;
     }
 #ifndef HAVE_X_WINDOWS
-  if (FRAME_HAS_MINIBUF_P (f) && uly+height > dispheight - 1)
+  if (FRAME_HAS_MINIBUF_P (f) && uly + height > dispheight - 1)
     {
       /* Move the menu away of the echo area, to avoid overwriting the
 	 menu with help echo messages or vice versa.  */
@@ -2750,8 +2762,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       /* If position was not given by a mouse click, adjust so upper left
          corner of the menu as a whole ends up at given coordinates.  This
          is what x-popup-menu says in its documentation.  */
-      x += width/2;
-      y += 1.5*height/(maxlines+2);
+      x += width / 2;
+      y += 1.5 * height/ (maxlines + 2);
     }
 
   XMenuSetAEQ (menu, true);
@@ -2759,6 +2771,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   pane = selidx = 0;
 
 #ifndef MSDOS
+  DEFER_SELECTIONS;
+
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
 #ifdef HAVE_XINPUT2
   XMenuActivateSetTranslateFunction (x_menu_translate_generic_event);

@@ -1456,6 +1456,12 @@ extern void x_xr_reset_ext_clip (struct frame *f);
 extern void x_scroll_bar_configure (GdkEvent *);
 #endif
 
+#define DEFER_SELECTIONS						\
+  x_defer_selection_requests ();					\
+  record_unwind_protect_void (x_release_selection_requests_and_flush)
+
+extern void x_defer_selection_requests (void);
+extern void x_release_selection_requests_and_flush (void);
 extern void x_handle_pending_selection_requests (void);
 extern bool x_detect_pending_selection_requests (void);
 extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,

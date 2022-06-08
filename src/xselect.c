@@ -1252,7 +1252,11 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   else
     x_wait_for_cell_change (reading_selection_reply,
 			    make_timespec (secs, nsecs));
-  TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
+  TRACE1 ("  Got event = %s", (!NILP (XCAR (reading_selection_reply))
+			       ? (SYMBOLP (XCAR (reading_selection_reply))
+				  ? SSDATA (SYMBOL_NAME (XCAR (reading_selection_reply)))
+				  : "YES")
+			       : "NO"));
 
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
@@ -1947,7 +1951,7 @@ x_handle_selection_notify (const XSelectionEvent *event)
   if (event->selection != reading_which_selection)
     return;
 
-  TRACE0 ("Received SelectionNotify");
+  TRACE1 ("Received SelectionNotify: %d", (int) event->property);
   XSETCAR (reading_selection_reply,
 	   (event->property != 0 ? Qt : Qlambda));
 }

@@ -793,16 +793,58 @@ static struct input_event *current_hold_quit;
    than 0.  */
 static int x_use_pending_selection_requests;
 
-static void
+static void x_push_selection_request (struct selection_input_event *);
+
+/* Defer selection requests.  Any selection requests generated after
+   this can then be processed by calling
+   `x_handle_pending_selection_requests'.
+
+   Also run through and queue all the selection events already in the
+   keyboard buffer.  */
+void
 x_defer_selection_requests (void)
 {
+  union buffered_input_event *event;
+
+  block_input ();
   x_use_pending_selection_requests++;
+
+  if (!x_use_pending_selection_requests)
+    {
+      event = kbd_fetch_ptr;
+
+      while (event != kbd_store_ptr)
+	{
+	  if (event->ie.kind == SELECTION_REQUEST_EVENT
+	      || event->ie.kind == SELECTION_CLEAR_EVENT)
+	    {
+	      x_push_selection_request (&event->sie);
+
+	      /* Mark this selection event as invalid.   */
+	      SELECTION_EVENT_DPYINFO (&event->sie) = NULL;
+	    }
+
+	  event = (event == kbd_buffer + KBD_BUFFER_SIZE - 1
+		   ? kbd_buffer : event + 1);
+	}
+    }
+
+  unblock_input ();
 }
 
 static void
 x_release_selection_requests (void)
 {
   x_use_pending_selection_requests--;
+}
+
+void
+x_release_selection_requests_and_flush (void)
+{
+  x_release_selection_requests ();
+
+  if (!x_use_pending_selection_requests)
+    x_handle_pending_selection_requests ();
 }
 
 struct x_selection_request_event
@@ -10764,8 +10806,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (x_dnd_in_progress || x_dnd_waiting_for_finish)
     error ("A drag-and-drop session is already in progress");
 
-  x_defer_selection_requests ();
-  record_unwind_protect_void (x_release_selection_requests);
+  DEFER_SELECTIONS;
 
   /* If local_value is nil, then we lost ownership of XdndSelection.
      Signal a more informative error than args-out-of-range.  */
@@ -10781,8 +10822,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (popup_activated ())
     error ("Trying to drag-and-drop from within a menu-entry");
 
-  record_unwind_protect_void (x_free_dnd_targets);
   x_set_dnd_targets (target_atoms, ntargets);
+  record_unwind_protect_void (x_free_dnd_targets);
 
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
 					  QXdndSelection);
@@ -15306,7 +15347,7 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
 
 #ifndef USE_GTK
   FD_ZERO (&rfds);
-  rc = 0;
+  rc = -1;
 #endif
 
   while (true)
@@ -15892,18 +15933,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       break;
 
     case SelectionNotify:
-#ifdef USE_X_TOOLKIT
-      if (! x_window_to_frame (dpyinfo, event->xselection.requestor))
+#if defined USE_X_TOOLKIT || defined USE_GTK
+      if (!x_window_to_frame (dpyinfo, event->xselection.requestor))
         goto OTHER;
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT and not USE_GTK */
       x_handle_selection_notify (&event->xselection);
       break;
 
     case SelectionClear:	/* Someone has grabbed ownership.  */
-#ifdef USE_X_TOOLKIT
-      if (! x_window_to_frame (dpyinfo, event->xselectionclear.window))
+#if defined USE_X_TOOLKIT || defined USE_GTK
+      if (!x_window_to_frame (dpyinfo, event->xselectionclear.window))
         goto OTHER;
-#endif /* USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT and not USE_GTK */
       {
         const XSelectionClearEvent *eventp = &event->xselectionclear;
 
