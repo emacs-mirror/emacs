@@ -2248,13 +2248,17 @@ of characters from a single Latin-N charset.
   nordic     |    /    | d/ -> ð   t/ -> þ   a/ -> å   e/ -> æ   o/ -> ø
   symbols    |    ^    | r^ -> ®   t^ -> ™
   others     |    /    | s/ -> ß   ?/ -> ¿   !/ -> ¡   // -> °   o/ -> œ
+             |    /    | 2/ -> ½   3/ -> ¾   4/ -> ?¼
              | various | << -> «   >> -> »   o_ -> º   a_ -> ª
 
 Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
-;; Fixme: ¦ § ¨ © ¬ ­ ¯ ± ² ³ ´ µ ¶ · ¸ ¹ ¼ ½ ¾ × ÷
+;; Fixme: ¦ § ¨ © ¬ ­ ¯ ± ² ³ ´ µ ¶ · ¸ ¹ × ÷
 (quail-define-rules
+ ("2/" ?½)
+ ("3/" ?¾)
+ ("4/" ?¼)
  (" _" ? )
  ("!/" ?¡)
  ("//" ?°)
@@ -2446,6 +2450,9 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("z." ?ż)
  ("z~" ?ž)
 
+ ("2//" ["2/"])
+ ("3//" ["3/"])
+ ("4//" ["4/"])
  (" __" [" _"])
  ("!//" ["!/"])
  ("///" ["//"])
