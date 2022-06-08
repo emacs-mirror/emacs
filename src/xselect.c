@@ -762,7 +762,6 @@ static void
 x_handle_selection_request (struct selection_input_event *event)
 {
   Time local_selection_time;
-
   struct x_display_info *dpyinfo = SELECTION_EVENT_DPYINFO (event);
   Atom selection = SELECTION_EVENT_SELECTION (event);
   Lisp_Object selection_symbol = x_atom_to_symbol (dpyinfo, selection);
@@ -772,8 +771,12 @@ x_handle_selection_request (struct selection_input_event *event)
   Lisp_Object local_selection_data;
   bool success = false;
   specpdl_ref count = SPECPDL_INDEX ();
+  bool pushed;
 
-  if (!dpyinfo) goto DONE;
+  pushed = false;
+
+  if (!dpyinfo)
+    goto DONE;
 
   /* This is how the XDND protocol recommends dropping text onto a
      target that doesn't support XDND.  */
@@ -794,6 +797,7 @@ x_handle_selection_request (struct selection_input_event *event)
     goto DONE;
 
   block_input ();
+  pushed = true;
   x_push_current_selection_request (event, dpyinfo);
   record_unwind_protect_void (x_pop_current_selection_request);
   record_unwind_protect_void (x_selection_request_lisp_error);
@@ -854,7 +858,8 @@ x_handle_selection_request (struct selection_input_event *event)
 
  DONE:
 
-  selection_request_stack->converted = true;
+  if (pushed)
+    selection_request_stack->converted = true;
 
   if (success)
     x_reply_selection_request (event, dpyinfo);
