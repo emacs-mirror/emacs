@@ -11116,6 +11116,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      if (x_dnd_motif_setup_p)
 		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+
+	      /* Call kbd_buffer_store event, which calls
+		 handle_interrupt and sets `last-event-frame' along
+		 with various other things.  */
+	      kbd_buffer_store_event (&hold_quit);
+	      /* Now quit anyway.  */
 	      quit ();
 	    }
 
