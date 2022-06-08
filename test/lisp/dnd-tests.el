@@ -96,7 +96,7 @@
                           (or (get-text-property 0 type basic-value)
                               basic-value)
                         basic-value))
-         (converter-list (assq type selection-converter-alist))
+         (converter-list (cdr (assq type selection-converter-alist)))
          (converter (if (consp converter-list)
                         (cdr converter-list)
                       converter-list)))
@@ -117,6 +117,30 @@
 The temporary file is not created."
   (expand-file-name (make-temp-name "dnd-test-remote")
                     dnd-tests-temporary-file-directory))
+
+(defun dnd-tests-parse-tt-netfile (netfile)
+  "Parse NETFILE and return its components.
+NETFILE should be a canonicalized ToolTalk file name.
+Return a list of its hostname, real path, and local path."
+  (save-match-data
+    (when (string-match (concat "HOST=0-\\([[:digit:]]+\\),RPATH=\\([[:digit:]]+\\)-"
+                                "\\([[:digit:]]+\\),LPATH=\\([[:digit:]]+\\)-"
+                                "\\([[:digit:]]+\\)\\(:\\)")
+                        netfile)
+      (let ((beg (match-end 6)))
+        (list (substring netfile beg
+                         (+ beg 1
+                            (string-to-number (match-string 1 netfile))))
+              (substring netfile
+                         (+ beg
+                            (string-to-number (match-string 2 netfile)))
+                         (+ beg 1
+                            (string-to-number (match-string 3 netfile))))
+              (substring netfile
+                         (+ beg
+                            (string-to-number (match-string 4 netfile)))
+                         (+ beg 1
+                            (string-to-number (match-string 5 netfile)))))))))
 
 (ert-deftest dnd-tests-begin-text-drag ()
   ;;                ASCII            Latin-1       UTF-8
@@ -159,6 +183,41 @@ The temporary file is not created."
         (progn
           ;; Now test dragging a normal file.
           (should (eq (dnd-begin-file-drag normal-temp-file) 'copy))
+          ;; Test that the selection data is correct.
+          (let ((uri-list-data (cdr (dnd-tests-verify-selection-data 'text/uri-list)))
+                (username-data (dnd-tests-verify-selection-data 'text/x-xdnd-username))
+                (file-name-data (cdr (dnd-tests-verify-selection-data 'FILE_NAME)))
+                (host-name-data (cdr (dnd-tests-verify-selection-data 'HOST_NAME)))
+                (netfile-data (cdr (dnd-tests-verify-selection-data '_DT_NETFILE))))
+            ;; Check if the URI list is formatted correctly.
+            (let* ((split-uri-list (split-string uri-list-data "[\0\r\n]" t))
+                   (decoded (dnd-get-local-file-name (car split-uri-list))))
+              (should (equal decoded normal-temp-file)))
+            ;; Test that the username reported is correct.
+            (should (equal username-data (user-real-login-name)))
+            ;; Test that the file name data is correct.
+            (let* ((split-file-names (split-string file-name-data "\0"))
+                   (file-name (car split-file-names)))
+              ;; Make sure there are no extra leading or trailing NULL bytes.
+              (should (and split-file-names (null (cdr split-file-names))))
+              ;; Make sure the file name is encoded correctly;
+              (should-not (multibyte-string-p file-name))
+              ;; Make sure decoding the file name results in the
+              ;; originals.
+              (should (equal (decode-coding-string file-name
+                                                   (or file-name-coding-system
+                                                       default-file-name-coding-system))
+                             normal-temp-file))
+              ;; Also make sure the hostname is correct.
+              (should (equal host-name-data (system-name))))
+            ;; Check that the netfile hostname, rpath and lpath are correct.
+            (let ((parsed (dnd-tests-parse-tt-netfile netfile-data))
+                  (filename (encode-coding-string normal-temp-file
+                                                  (or file-name-coding-system
+                                                      default-file-name-coding-system))))
+              (should (equal (nth 0 parsed) (system-name)))
+              (should (equal (nth 1 parsed) filename))
+              (should (equal (nth 2 parsed) filename))))
           ;; And the remote file.
           (should (eq (dnd-begin-file-drag remote-temp-file) 'copy))
           ;; Test that the remote file was added to the list of files
@@ -205,12 +264,43 @@ The temporary file is not created."
           ;; Test that the remote file produced was added to the list
           ;; of files to remove upon the next call.
           (should dnd-last-dragged-remote-file)
-          ;; Two remote files at the same time.
+          ;; Two local files at the same time.
           (should (eq (dnd-begin-drag-files (list normal-temp-file
                                                   normal-temp-file-1))
                       'copy))
           ;; Test that the remote files were removed.
           (should-not dnd-last-dragged-remote-file)
+          ;; Test the selection data is correct.
+          (let ((uri-list-data (cdr (dnd-tests-verify-selection-data 'text/uri-list)))
+                (username-data (dnd-tests-verify-selection-data 'text/x-xdnd-username))
+                (file-name-data (cdr (dnd-tests-verify-selection-data 'FILE_NAME)))
+                (host-name-data (cdr (dnd-tests-verify-selection-data 'HOST_NAME))))
+            ;; Check if the URI list is formatted correctly.
+            (let* ((split-uri-list (split-string uri-list-data "[\0\r\n]" t))
+                   (decoded (mapcar #'dnd-get-local-file-name split-uri-list)))
+              (should (equal (car decoded) normal-temp-file))
+              (should (equal (cadr decoded) normal-temp-file-1)))
+            ;; Test that the username reported is correct.
+            (should (equal username-data (user-real-login-name)))
+            ;; Test that the file name data is correct.
+            (let ((split-file-names (split-string file-name-data "\0")))
+              ;; Make sure there are no extra leading or trailing NULL bytes.
+              (should (equal (length split-file-names) 2))
+              ;; Make sure all file names are encoded correctly;
+              (dolist (name split-file-names)
+                (should-not (multibyte-string-p name)))
+              ;; Make sure decoding the file names result in the
+              ;; originals.
+              (should (equal (decode-coding-string (car split-file-names)
+                                                   (or file-name-coding-system
+                                                       default-file-name-coding-system))
+                             normal-temp-file))
+              (should (equal (decode-coding-string (cadr split-file-names)
+                                                   (or file-name-coding-system
+                                                       default-file-name-coding-system))
+                             normal-temp-file-1))
+              ;; Also make sure the hostname is correct.
+              (should (equal host-name-data (system-name)))))
           ;; Multiple local files with some remote files that will
           ;; fail, and some that won't.
           (should (and (eq (dnd-begin-drag-files (list normal-temp-file

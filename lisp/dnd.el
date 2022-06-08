@@ -423,7 +423,7 @@ currently being held down.  It should only be called upon a
            (x-begin-drag '(;; Xdnd types used by GTK, Qt, and most other
                            ;; modern programs that expect filenames to
                            ;; be supplied as URIs.
-                           "text/uri-list" "text/x-dnd-username"
+                           "text/uri-list" "text/x-xdnd-username"
                            ;; Traditional X selection targets used by
                            ;; programs supporting the Motif
                            ;; drag-and-drop protocols.  Also used by NS
@@ -493,7 +493,7 @@ FILES will be dragged."
            (x-begin-drag '(;; Xdnd types used by GTK, Qt, and most other
                            ;; modern programs that expect filenames to
                            ;; be supplied as URIs.
-                           "text/uri-list" "text/x-dnd-username"
+                           "text/uri-list" "text/x-xdnd-username"
                            ;; Traditional X selection targets used by
                            ;; programs supporting the Motif
                            ;; drag-and-drop protocols.  Also used by NS

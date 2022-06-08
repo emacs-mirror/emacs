@@ -819,8 +819,8 @@ VALUE should be SELECTION's local value."
 	(_EMACS_INTERNAL . xselect-convert-to-identity)
         (XmTRANSFER_SUCCESS . xselect-convert-xm-special)
         (XmTRANSFER_FAILURE . xselect-convert-xm-special)
-        (_DT_NETFILE . (xselect-convert-to-dt-netfile
-                        . xselect-dt-netfile-available-p))))
+        (_DT_NETFILE . (xselect-dt-netfile-available-p
+                        . xselect-convert-to-dt-netfile))))
 
 (provide 'select)
 
