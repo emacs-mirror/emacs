@@ -11030,6 +11030,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_movement_frame = NULL;
 
 	      if (!NILP (Vx_dnd_movement_function)
+		  && FRAME_LIVE_P (XFRAME (frame_object))
 		  && !FRAME_TOOLTIP_P (XFRAME (frame_object))
 		  && x_dnd_movement_x >= 0
 		  && x_dnd_movement_y >= 0
@@ -11097,7 +11098,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_return_frame_object = NULL;
 	      x_dnd_movement_frame = NULL;
 
-	      FRAME_DISPLAY_INFO (f)->grabbed = 0;
+	      /* Don't clear dpyinfo->grabbed if we're quitting.  */
+
 #ifdef USE_GTK
 	      current_hold_quit = NULL;
 #endif
@@ -11184,6 +11186,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      FRAME_DISPLAY_INFO (f)->grabbed = 0;
 	      current_hold_quit = NULL;
 
+	      block_input ();
 	      /* Restore the old event mask.  */
 	      XSelectInput (FRAME_X_DISPLAY (f),
 			    FRAME_DISPLAY_INFO (f)->root_window,
@@ -11197,6 +11200,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      if (x_dnd_motif_setup_p)
 		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+	      unblock_input ();
+
 	      quit ();
 	    }
 #else
@@ -17842,6 +17847,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		<= x_dnd_recursion_depth)
 	    && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	  {
+	    f = mouse_or_wdesc_frame (dpyinfo, event->xbutton.window);
+
+	    if (event->type == ButtonPress)
+	      {
+		dpyinfo->grabbed |= (1 << event->xbutton.button);
+		dpyinfo->last_mouse_frame = f;
+		if (f && !tab_bar_p)
+		  f->last_tab_bar_item = -1;
+#if ! defined (USE_GTK)
+		if (f && !tool_bar_p)
+		  f->last_tool_bar_item = -1;
+#endif /* not USE_GTK */
+	      }
+	    else
+	      dpyinfo->grabbed &= ~(1 << event->xbutton.button);
+
 	    if (event->xbutton.type == ButtonPress
 		&& x_dnd_last_seen_window != None
 		&& x_dnd_last_protocol_version != -1)
@@ -19185,6 +19206,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      <= x_dnd_recursion_depth)
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
+		  f = mouse_or_wdesc_frame (dpyinfo, xev->event);
+
+		  if (xev->evtype == XI_ButtonPress)
+		    {
+		      dpyinfo->grabbed |= (1 << xev->detail);
+		      dpyinfo->last_mouse_frame = f;
+		      if (f && !tab_bar_p)
+			f->last_tab_bar_item = -1;
+#if ! defined (USE_GTK)
+		      if (f && !tool_bar_p)
+			f->last_tool_bar_item = -1;
+#endif /* not USE_GTK */
+		    }
+		  else
+		    dpyinfo->grabbed &= ~(1 << xev->detail);
+
 		  if (xev->evtype == XI_ButtonPress
 		      && x_dnd_last_seen_window != None
 		      && x_dnd_last_protocol_version != -1)
