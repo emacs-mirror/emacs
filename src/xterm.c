@@ -4164,6 +4164,18 @@ x_free_dnd_targets (void)
 }
 
 static void
+x_free_dnd_toplevels (void)
+{
+  if (!x_dnd_use_toplevels || !x_dnd_toplevels)
+    return;
+
+  /* If the display is deleted, x_dnd_toplevels will already be
+     NULL, so we can always assume the display is alive here.  */
+
+  x_dnd_free_toplevels (true);
+}
+
+static void
 x_dnd_cleanup_drag_and_drop (void *frame)
 {
   struct frame *f = frame;
@@ -4215,9 +4227,6 @@ x_dnd_cleanup_drag_and_drop (void *frame)
     }
 
   x_dnd_waiting_for_finish = false;
-
-  if (x_dnd_use_toplevels)
-    x_dnd_free_toplevels (true);
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #ifdef USE_GTK
@@ -10960,6 +10969,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	  x_dnd_free_toplevels (true);
 	  x_dnd_use_toplevels = false;
 	}
+      else
+	record_unwind_protect_void (x_free_dnd_toplevels);
     }
 
   if (!NILP (return_frame))
@@ -11132,10 +11143,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		}
 
 	      x_dnd_waiting_for_finish = false;
-
-	      if (x_dnd_use_toplevels)
-		x_dnd_free_toplevels (true);
-
 	      x_dnd_return_frame_object = NULL;
 	      x_dnd_movement_frame = NULL;
 
@@ -11223,10 +11230,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		}
 
 	      x_dnd_waiting_for_finish = false;
-
-	      if (x_dnd_use_toplevels)
-		x_dnd_free_toplevels (true);
-
 	      x_dnd_return_frame_object = NULL;
 	      x_dnd_movement_frame = NULL;
 
@@ -11286,9 +11289,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
   unblock_input ();
-
-  if (x_dnd_use_toplevels)
-    x_dnd_free_toplevels (true);
 
   if (x_dnd_return_frame == 3
       && FRAME_LIVE_P (x_dnd_return_frame_object))
