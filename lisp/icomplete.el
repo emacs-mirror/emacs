@@ -141,7 +141,7 @@ See `icomplete-delay-completions-threshold'."
 (defvar icomplete-in-buffer nil
   "If non-nil, also use Icomplete when completing in non-mini buffers.
 This affects commands like `complete-in-region', but not commands
-like `dabbrev-completion', which uses its own completion setup.")
+that use their own completions setup.")
 
 (defcustom icomplete-minibuffer-setup-hook nil
   "Icomplete-specific customization of minibuffer setup.
