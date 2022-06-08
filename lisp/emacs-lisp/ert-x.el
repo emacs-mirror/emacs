@@ -491,6 +491,36 @@ The same keyword arguments are supported as in
   (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app"
                 (shell-command-to-string "gcc --version")))
 
+
+(defvar tramp-methods)
+(defvar tramp-default-host-alist)
+
+;; If this defconst is used in a test file, `tramp' shall be loaded
+;; prior `ert-x'.  There is no default value on w32 systems, which
+;; could work out of the box.
+(defconst ert-remote-temporary-file-directory
+  (when (featurep 'tramp)
+    (cond
+     ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
+     ((eq system-type 'windows-nt) null-device)
+     (t (add-to-list
+         'tramp-methods
+         '("mock"
+	   (tramp-login-program	     "sh")
+	   (tramp-login-args	     (("-i")))
+	   (tramp-remote-shell	     "/bin/sh")
+	   (tramp-remote-shell-args  ("-c"))
+	   (tramp-connection-timeout 10)))
+        (add-to-list
+         'tramp-default-host-alist
+         `("\\`mock\\'" nil ,(system-name)))
+        ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
+        ;; in batch mode only, therefore.
+        (unless (and (null noninteractive) (file-directory-p "~/"))
+          (setenv "HOME" temporary-file-directory))
+        (format "/mock::%s" temporary-file-directory))))
+    "Temporary directory for remote file tests.")
+
 (provide 'ert-x)
 
 ;;; ert-x.el ends here

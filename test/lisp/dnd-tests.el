@@ -30,30 +30,7 @@
 (require 'cl-lib)
 (require 'tramp)
 (require 'select)
-
-;; This code was taken from tramp-tests.el: perhaps some of it isn't
-;; strictly necessary.
-(defconst dnd-tests-temporary-file-directory
-  (cond
-   ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
-   ((eq system-type 'windows-nt) null-device)
-   (t (add-to-list
-       'tramp-methods
-       '("mock"
-	 (tramp-login-program        "sh")
-	 (tramp-login-args           (("-i")))
-	 (tramp-remote-shell         "/bin/sh")
-	 (tramp-remote-shell-args    ("-c"))
-	 (tramp-connection-timeout   10)))
-      (add-to-list
-       'tramp-default-host-alist
-       `("\\`mock\\'" nil ,(system-name)))
-      ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
-      ;; in batch mode only, therefore.
-      (unless (and (null noninteractive) (file-directory-p "~/"))
-        (setenv "HOME" temporary-file-directory))
-      (format "/mock::%s" temporary-file-directory)))
-  "Temporary directory for drag-and-drop tests involving remote files.")
+(require 'ert-x)
 
 (defvar dnd-tests-selection-table nil
   "Alist of selection names to their values.")
@@ -108,15 +85,15 @@
   "Return if a test involving remote files can proceed."
   (ignore-errors
     (and
-     (file-remote-p dnd-tests-temporary-file-directory)
-     (file-directory-p dnd-tests-temporary-file-directory)
-     (file-writable-p dnd-tests-temporary-file-directory))))
+     (file-remote-p ert-remote-temporary-file-directory)
+     (file-directory-p ert-remote-temporary-file-directory)
+     (file-writable-p ert-remote-temporary-file-directory))))
 
 (defun dnd-tests-make-temp-name ()
   "Return a temporary remote file name for test.
 The temporary file is not created."
   (expand-file-name (make-temp-name "dnd-test-remote")
-                    dnd-tests-temporary-file-directory))
+                    ert-remote-temporary-file-directory))
 
 (defun dnd-tests-parse-tt-netfile (netfile)
   "Parse NETFILE and return its components.

@@ -52,34 +52,9 @@
 
 ;;; Code:
 
-(require 'ert)
+(require 'tramp)
 (require 'ert-x)
 (require 'filenotify)
-(require 'tramp)
-
-;; There is no default value on w32 systems, which could work out of the box.
-(defconst file-notify-test-remote-temporary-file-directory
-  (cond
-   ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
-   ((eq system-type 'windows-nt) null-device)
-   (t (add-to-list
-       'tramp-methods
-       '("mock"
-	 (tramp-login-program        "sh")
-	 (tramp-login-args           (("-i")))
-	 (tramp-remote-shell         "/bin/sh")
-	 (tramp-remote-shell-args    ("-c"))
-	 (tramp-connection-timeout   10)))
-      (add-to-list
-       'tramp-default-host-alist
-       `("\\`mock\\'" nil ,(system-name)))
-      ;; Emacs' Makefile sets $HOME to a nonexistent value.  Needed in
-      ;; batch mode only, therefore.  `temporary-file-directory' might
-      ;; be quoted, so we unquote it just in case.
-      (unless (and (null noninteractive) (file-directory-p "~/"))
-        (setenv "HOME" (file-name-unquote temporary-file-directory)))
-      (format "/mock::%s" temporary-file-directory)))
-  "Temporary directory for Tramp tests.")
 
 ;; Filter suppressed remote file-notify libraries.
 (when (stringp (getenv "REMOTE_FILE_NOTIFY_LIBRARY"))
@@ -232,12 +207,12 @@ being the result.")
     (let (desc)
       (ignore-errors
         (and
-         (file-remote-p file-notify-test-remote-temporary-file-directory)
-         (file-directory-p file-notify-test-remote-temporary-file-directory)
-         (file-writable-p file-notify-test-remote-temporary-file-directory)
+         (file-remote-p ert-remote-temporary-file-directory)
+         (file-directory-p ert-remote-temporary-file-directory)
+         (file-writable-p ert-remote-temporary-file-directory)
          (setq desc
                (file-notify-add-watch
-                file-notify-test-remote-temporary-file-directory
+                ert-remote-temporary-file-directory
                 '(change) #'ignore))))
       (setq file-notify--test-remote-enabled-checked (cons t desc))
       (when desc (file-notify-rm-watch desc))))
@@ -297,8 +272,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   `(ert-deftest ,(intern (concat (symbol-name test) "-remote")) ()
      ,docstring
      :tags (if ,unstable '(:expensive-test :unstable) '(:expensive-test))
-     (let* ((temporary-file-directory
-	     file-notify-test-remote-temporary-file-directory)
+     (let* ((temporary-file-directory ert-remote-temporary-file-directory)
 	    (ert-test (ert-get-test ',test))
             vc-handled-backends)
        (skip-unless (file-notify--test-remote-enabled))
