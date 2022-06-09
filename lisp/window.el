@@ -8931,6 +8931,7 @@ to deactivate this overriding action."
   (let* ((old-window (or (minibuffer-selected-window) (selected-window)))
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
+         (obey-display switch-to-buffer-obey-display-actions)
          (clearfun (make-symbol "clear-display-buffer-overriding-action"))
          (postfun (make-symbol "post-display-buffer-override-next-command"))
          (action (lambda (buffer alist)
@@ -8955,6 +8956,7 @@ to deactivate this overriding action."
               (funcall post-function old-window new-window)))))
     (fset clearfun
           (lambda ()
+            (setq switch-to-buffer-obey-display-actions obey-display)
             (setcar display-buffer-overriding-action
                     (delq action (car display-buffer-overriding-action)))))
     (fset postfun
@@ -8971,6 +8973,7 @@ to deactivate this overriding action."
     (add-hook 'post-command-hook postfun)
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
+    (setq switch-to-buffer-obey-display-actions t)
     (push action (car display-buffer-overriding-action))
     exitfun))
 
