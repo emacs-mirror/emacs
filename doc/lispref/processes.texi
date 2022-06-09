@@ -3490,11 +3490,20 @@ input string will appear in the unpacked output.
 @item strz &optional @var{len}
 If @var{len} is not provided: Variable-length null-terminated unibyte
 string (@pxref{Text Representations}).  When packing, the entire input
-string is copied to the packed output followed by a null byte.  The
+string is copied to the packed output.  The following byte will be
+null (zero) unless a pre-allocated string was provided to
+@code{bindat-pack}, in which case that byte is left unmodified.  The
 length of the packed output is the length of the input string plus one
-(for the added null byte).  The input string must not contain any null
+(for the null terminator).  The input string must not contain any null
 bytes.  When unpacking, the resulting string contains all bytes up to
 (but excluding) the null byte.
+
+@quotation Caution
+If a pre-allocated string is provided to @code{bindat-pack}, the
+packed output will not be properly null-terminated unless the
+pre-allocated string already has a null byte at the appropriate
+location.
+@end quotation
 
 If @var{len} is provided: @code{strz} behaves the same as @code{str}
 with one difference: When unpacking, the first null byte encountered
