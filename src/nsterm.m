@@ -9651,7 +9651,8 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 	dnd_mode = RETURN_FRAME_NOW;
 
       if (dnd_mode != RETURN_FRAME_NOW
-	  || ![[w delegate] isKindOfClass: [EmacsView class]])
+	  || ![[w delegate] isKindOfClass: [EmacsView class]]
+	  || ((EmacsView *) [w delegate])->emacsframe->tooltip)
 	goto out;
 
       dnd_return_frame = ((EmacsView *) [w delegate])->emacsframe;
@@ -9709,7 +9710,8 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 			belowWindowWithWindowNumber: 0];
       w = [NSApp windowWithWindowNumber: window_number];
 
-      if (w && [[w delegate] isKindOfClass: [EmacsView class]])
+      if (w && [[w delegate] isKindOfClass: [EmacsView class]]
+	  && !((EmacsView *) [w delegate])->emacsframe->tooltip)
 	{
 	  *frame_return = ((EmacsView *) [w delegate])->emacsframe;
 	  [image release];
