@@ -1018,9 +1018,11 @@ static enum window_body_unit
 window_body_unit_from_symbol (Lisp_Object unit)
 {
   return
-    (unit == Qremap ? WINDOW_BODY_IN_REMAPPED_CHARS
-     : NILP (unit) ? WINDOW_BODY_IN_CANONICAL_CHARS
-     : WINDOW_BODY_IN_PIXELS);
+    EQ (unit, Qremap)
+    ? WINDOW_BODY_IN_REMAPPED_CHARS
+    : (NILP (unit)
+       ? WINDOW_BODY_IN_CANONICAL_CHARS
+       : WINDOW_BODY_IN_PIXELS);
 }
 
 /* Return the number of lines/pixels of W's body.  Don't count any mode
