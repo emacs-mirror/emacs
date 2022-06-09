@@ -1497,6 +1497,15 @@ update_frame_tool_bar (struct frame *f)
   [timer retain];
 }
 
+- (void) moveTo: (NSPoint) screen_point
+{
+  [win setFrame: NSMakeRect (screen_point.x,
+			     screen_point.y,
+			     [self frame].size.width,
+			     [self frame].size.height)
+	display: YES];
+}
+
 - (void) hide
 {
   [win close];

@@ -6884,7 +6884,8 @@ mouse buttons are released on top of FRAME.
 
 If FOLLOW-TOOLTIP is non-nil, any tooltip currently being displayed
 will be moved to follow the mouse pointer while the drag is in
-progress.
+progress.  Note that this does not work with system tooltips (tooltips
+created when `use-system-tooltips' is non-nil).
 
 This function will sometimes return immediately if no mouse buttons
 are currently held down.  It should only be called when it is known

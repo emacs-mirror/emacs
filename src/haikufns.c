@@ -50,6 +50,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* The frame of the currently visible tooltip.  */
 Lisp_Object tip_frame;
 
+/* The X and Y deltas of the last call to `x-show-tip'.  */
+Lisp_Object tip_dx, tip_dy;
+
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */
 static Window tip_window;
@@ -2352,6 +2355,9 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   else
     CHECK_FIXNUM (dy);
 
+  tip_dx = dx;
+  tip_dy = dy;
+
   if (use_system_tooltips)
     {
       int root_x, root_y;
@@ -3165,6 +3171,10 @@ syms_of_haikufns (void)
   staticpro (&tip_last_string);
   tip_last_parms = Qnil;
   staticpro (&tip_last_parms);
+  tip_dx = Qnil;
+  staticpro (&tip_dx);
+  tip_dy = Qnil;
+  staticpro (&tip_dy);
 
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
 	       doc: /* SKIP: real doc in xfns.c.  */);

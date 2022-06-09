@@ -3286,10 +3286,15 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (FRAME_TOOLTIP_P (f))
 	      {
 		/* Dismiss the tooltip if the mouse moves onto a
-		   tooltip frame.  FIXME: for some reason we don't get
-		   leave notification events for this.  */
+		   tooltip frame (except when drag-and-drop is in
+		   progress and we are trying to move the tooltip
+		   along with the mouse pointer).  FIXME: for some
+		   reason we don't get leave notification events for
+		   this.  */
 
 		if (any_help_event_p
+		    && !(be_drag_and_drop_in_progress ()
+			 && haiku_dnd_follow_tooltip)
 		    && !((EQ (track_mouse, Qdrag_source)
 			  || EQ (track_mouse, Qdropping))
 			 && gui_mouse_grabbed (x_display_list)))

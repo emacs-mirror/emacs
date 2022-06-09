@@ -33,6 +33,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    the nested event loop inside be_drag_message.  */
 struct frame *haiku_dnd_frame;
 
+/* Whether or not to move the tip frame during drag-and-drop.  */
+bool haiku_dnd_follow_tooltip;
+
 static void haiku_lisp_to_message (Lisp_Object, void *);
 
 static enum haiku_clipboard
@@ -752,10 +755,13 @@ haiku_unwind_drag_message (void *message)
 {
   haiku_dnd_frame = NULL;
   BMessage_delete (message);
+
+  if (haiku_dnd_follow_tooltip)
+    Fx_hide_tip ();
 }
 
 DEFUN ("haiku-drag-message", Fhaiku_drag_message, Shaiku_drag_message,
-       2, 3, 0,
+       2, 4, 0,
        doc: /* Begin dragging MESSAGE from FRAME.
 
 MESSAGE an alist of strings, denoting message field names, to a list
@@ -789,8 +795,12 @@ FRAME is a window system frame that must be visible, from which the
 drag will originate.
 
 ALLOW-SAME-FRAME, if nil or not specified, means that MESSAGE will be
-ignored if it is dropped on top of FRAME.  */)
-  (Lisp_Object frame, Lisp_Object message, Lisp_Object allow_same_frame)
+ignored if it is dropped on top of FRAME.
+
+FOLLOW-TOOLTIP, if non-nil, will cause any non-system tooltip
+currently being displayed to move along with the mouse pointer.  */)
+  (Lisp_Object frame, Lisp_Object message, Lisp_Object allow_same_frame,
+   Lisp_Object follow_tooltip)
 {
   specpdl_ref idx;
   void *be_message;
@@ -804,15 +814,18 @@ ignored if it is dropped on top of FRAME.  */)
     error ("Frame is invisible");
 
   haiku_dnd_frame = f;
+  haiku_dnd_follow_tooltip = !NILP (follow_tooltip);
   be_message = be_create_simple_message ();
 
   record_unwind_protect_ptr (haiku_unwind_drag_message, be_message);
   haiku_lisp_to_message (message, be_message);
+
   rc = be_drag_message (FRAME_HAIKU_VIEW (f), be_message,
 			!NILP (allow_same_frame),
 			block_input, unblock_input,
 			process_pending_signals,
 			haiku_should_quit_drag);
+
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   if (rc)
@@ -918,6 +931,44 @@ after it starts.  */)
   return SAFE_FREE_UNBIND_TO (depth, Qnil);
 }
 
+static void
+haiku_dnd_compute_tip_xy (int *root_x, int *root_y)
+{
+  int min_x, min_y, max_x, max_y;
+  int width, height;
+
+  width = FRAME_PIXEL_WIDTH (XFRAME (tip_frame));
+  height = FRAME_PIXEL_HEIGHT (XFRAME (tip_frame));
+
+  min_x = 0;
+  min_y = 0;
+  be_get_screen_dimensions (&max_x, &max_y);
+
+  if (*root_y + XFIXNUM (tip_dy) <= min_y)
+    *root_y = min_y; /* Can happen for negative dy */
+  else if (*root_y + XFIXNUM (tip_dy) + height <= max_y)
+    /* It fits below the pointer */
+    *root_y += XFIXNUM (tip_dy);
+  else if (height + XFIXNUM (tip_dy) + min_y <= *root_y)
+    /* It fits above the pointer.  */
+    *root_y -= height + XFIXNUM (tip_dy);
+  else
+    /* Put it on the top.  */
+    *root_y = min_y;
+
+  if (*root_x + XFIXNUM (tip_dx) <= min_x)
+    *root_x = 0; /* Can happen for negative dx */
+  else if (*root_x + XFIXNUM (tip_dx) + width <= max_x)
+    /* It fits to the right of the pointer.  */
+    *root_x += XFIXNUM (tip_dx);
+  else if (width + XFIXNUM (tip_dx) + min_x <= *root_x)
+    /* It fits to the left of the pointer.  */
+    *root_x -= width + XFIXNUM (tip_dx);
+  else
+    /* Put it left justified on the screen -- it ought to fit that way.  */
+    *root_x = min_x;
+}
+
 static Lisp_Object
 haiku_note_drag_motion_1 (void *data)
 {
@@ -936,6 +987,26 @@ haiku_note_drag_motion_2 (enum nonlocal_exit exit, Lisp_Object error)
 void
 haiku_note_drag_motion (void)
 {
+  struct frame *tip_f;
+  int x, y;
+
+  if (FRAMEP (tip_frame) && haiku_dnd_follow_tooltip
+      && FIXNUMP (tip_dx) && FIXNUMP (tip_dy))
+    {
+      tip_f = XFRAME (tip_frame);
+
+      if (FRAME_LIVE_P (tip_f))
+	{
+	  BView_get_mouse (FRAME_HAIKU_VIEW (haiku_dnd_frame),
+			   &x, &y);
+	  BView_convert_to_screen (FRAME_HAIKU_VIEW (haiku_dnd_frame),
+				   &x, &y);
+
+	  haiku_dnd_compute_tip_xy (&x, &y);
+	  BWindow_set_offset (FRAME_HAIKU_WINDOW (tip_f), x, y);
+	}
+    }
+
   internal_catch_all (haiku_note_drag_motion_1, NULL,
 		      haiku_note_drag_motion_2);
 }

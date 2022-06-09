@@ -219,7 +219,11 @@ extern struct haiku_display_info *x_display_list;
 extern struct font_driver const haikufont_driver;
 
 extern Lisp_Object tip_frame;
+extern Lisp_Object tip_dx;
+extern Lisp_Object tip_dy;
+
 extern struct frame *haiku_dnd_frame;
+extern bool haiku_dnd_follow_tooltip;
 
 extern frame_parm_handler haiku_frame_parm_handlers[];
 
