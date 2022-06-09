@@ -170,7 +170,7 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
 
   TRACE1 (" XInternAtom %s", SSDATA (SYMBOL_NAME (sym)));
   block_input ();
-  val = XInternAtom (dpyinfo->display, SSDATA (SYMBOL_NAME (sym)), False);
+  val = x_intern_cached_atom (dpyinfo, SSDATA (SYMBOL_NAME (sym)), false);
   unblock_input ();
   return val;
 }
@@ -233,18 +233,17 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
   if (atom == dpyinfo->Xatom_XmTRANSFER_FAILURE)
     return QXmTRANSFER_FAILURE;
 
-  block_input ();
   x_catch_errors (dpyinfo->display);
-  str = XGetAtomName (dpyinfo->display, atom);
+  str = x_get_atom_name (dpyinfo, atom, NULL);
   x_uncatch_errors ();
-  unblock_input ();
+
+  TRACE0 ("XGetAtomName --> NULL");
+  if (!str)
+    return Qnil;
   TRACE1 ("XGetAtomName --> %s", str);
-  if (! str) return Qnil;
+
   val = intern (str);
-  block_input ();
-  /* This was allocated by Xlib, so use XFree.  */
-  XFree (str);
-  unblock_input ();
+  xfree (str);
   return val;
 }
 
