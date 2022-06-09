@@ -147,7 +147,7 @@
 
 (ert-deftest esh-var-test/interp-cmd-indices ()
   "Interpolate command result with index"
-  (should (equal (eshell-test-command-result "+ ${list 1 2}[1] 3") 5)))
+  (should (equal (eshell-test-command-result "+ ${listify 1 2}[1] 3") 5)))
 
 (ert-deftest esh-var-test/interp-cmd-external ()
   "Interpolate command result from external command"
@@ -328,7 +328,8 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/quoted-interp-cmd-indices ()
   "Interpolate command result with index inside double-quotes"
-  (should (equal (eshell-test-command-result "concat \"${list 1 2}[1]\" cool")
+  (should (equal (eshell-test-command-result
+                  "concat \"${listify 1 2}[1]\" cool")
                  "2cool")))
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
