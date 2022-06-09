@@ -72,6 +72,8 @@
           (signal 'error (list "invalid selection" data)))
       (setf (alist-get type dnd-tests-selection-table) data))))
 
+(declare-function x-get-selection-internal "xselect.c")
+
 (defun dnd-tests-verify-selection-data (type)
   "Return the data of the drag-and-drop selection converted to TYPE."
   (if (eq window-system 'x)
