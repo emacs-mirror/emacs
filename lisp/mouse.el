@@ -3056,7 +3056,10 @@ Call `tooltip-show-help-non-mode' instead on non-graphical displays."
 	  (setf (alist-get 'border-color params) fg))
 	(when (stringp bg)
 	  (setf (alist-get 'background-color params) bg))
-        (x-show-tip tooltip nil params))
+        ;; Don't time out: this leads to very confusing behavior when
+        ;; Emacs isn't visible, and the only indication that the user
+        ;; is actually dragging something abruptly disappears.
+        (x-show-tip tooltip nil params most-positive-fixnum))
     (tooltip-show-help-non-mode tooltip)))
 
 (declare-function x-hide-tip "xfns.c")
