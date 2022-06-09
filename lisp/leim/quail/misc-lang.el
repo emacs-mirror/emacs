@@ -101,7 +101,7 @@
 ;; conventions for Sanskrit, extended for Kharoṣṭhī special characters.
 ;; Author: Stefan Baums <baums@gandhari.org>.
 (quail-define-package
- "kharoshthi" "Kharoshhi" "𐨑" nil
+ "kharoshthi" "Kharoshthi" "𐨑" nil
  "Kharoṣṭhī input method." nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
