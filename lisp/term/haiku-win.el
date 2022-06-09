@@ -367,7 +367,7 @@ take effect on menu items until the menu bar is updated again."
 (setq haiku-drag-track-function #'haiku-dnd-drag-handler)
 
 (defun x-begin-drag (targets &optional action frame _return-frame
-                             allow-current-frame _follow-tooltip)
+                             allow-current-frame follow-tooltip)
   "SKIP: real doc in xfns.c."
   (unless haiku-dnd-selection-value
     (error "No local value for XdndSelection"))
@@ -409,7 +409,8 @@ take effect on menu items until the menu bar is updated again."
                     action)
                'XdndActionCopy)
       (haiku-drag-message (or frame (selected-frame))
-                          message allow-current-frame))))
+                          message allow-current-frame
+                          follow-tooltip))))
 
 (add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
 
