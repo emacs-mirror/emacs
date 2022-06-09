@@ -3103,6 +3103,9 @@ is copied instead of being cut."
          ;; tooltip.
          (mouse-fine-grained-tracking t)
          (was-tooltip-mode tooltip-mode)
+         ;; System tooltips tend to flicker and in general work
+         ;; incorrectly.
+         (use-system-tooltips nil)
          ;; Whether or not some text was ``cut'' from Emacs to another
          ;; program and the cleaanup code should not try modifying the
          ;; region.
