@@ -3244,7 +3244,6 @@ is copied instead of being cut."
                                                                (cdr mouse-position)))))))
                                         (not (posn-window (event-end event))))))
                       (setq drag-again-mouse-position nil)
-                      (mouse-drag-and-drop-region-hide-tooltip)
                       (gui-set-selection 'XdndSelection value-selection)
                       (let ((drag-action-or-frame
                              (condition-case nil
@@ -3259,7 +3258,7 @@ is copied instead of being cut."
                                                ;; `return-frame' doesn't
                                                ;; work, allow dropping on
                                                ;; the drop frame.
-                                               (eq window-system 'haiku))
+                                               (eq window-system 'haiku) t)
                                (quit nil))))
                         (when (framep drag-action-or-frame)
                           ;; With some window managers `x-begin-drag'

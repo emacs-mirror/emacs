@@ -4194,7 +4194,7 @@ instead.  However, using it will require detailed knowledge of the
 data types and actions used by the programs to transfer content via
 drag-and-drop on each platform you want to support.
 
-@defun x-begin-drag targets &optional action frame return-frame allow-current-frame
+@defun x-begin-drag targets &optional action frame return-frame allow-current-frame follow-tooltip
 This function begins a drag from @var{frame}, and returns when the
 drag-and-drop operation ends, either because the drop was successful,
 or because the drop was rejected.  The drop occurs when all mouse
@@ -4230,6 +4230,12 @@ first move out of @var{frame}.  @var{return-frame} is useful when you
 want to treat dragging content from one frame to another specially,
 while also being able to drag content to other programs, but it is not
 guaranteed to work on all systems and with all window managers.
+
+If @var{follow-tooltip} is non-@code{nil}, the position of any tooltip
+(such as one shown by @code{tooltip-show}) will follow the location of
+the mouse pointer whenever it moves during the drag-and-drop
+operation.  The tooltip will be hidden once all mouse buttons are
+released.
 
 If the drop was rejected or no drop target was found, this function
 returns @code{nil}.  Otherwise, it returns a symbol describing the

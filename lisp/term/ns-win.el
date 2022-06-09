@@ -895,7 +895,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
                                          &context (window-system ns))
   (ns-get-selection selection-symbol target-type))
 
-(defun x-begin-drag (targets &optional action frame return-frame allow-current-frame)
+(defun x-begin-drag (targets &optional action frame return-frame
+                             allow-current-frame _follow-tooltip)
   "SKIP: real doc in xfns.c."
   (unless ns-dnd-selection-value
     (error "No local value for XdndSelection"))

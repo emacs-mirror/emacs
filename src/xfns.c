@@ -6831,7 +6831,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
   return Qnil;
 }
 
-DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 5, 0,
+DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 6, 0,
        doc: /* Begin dragging contents on FRAME, with targets TARGETS.
 TARGETS is a list of strings, which defines the X selection targets
 that will be available to the drop target.  Block until the mouse
@@ -6882,12 +6882,17 @@ If ALLOW-CURRENT-FRAME is not specified or nil, then the drop target
 is allowed to be FRAME.  Otherwise, no action will be taken if the
 mouse buttons are released on top of FRAME.
 
+If FOLLOW-TOOLTIP is non-nil, any tooltip currently being displayed
+will be moved to follow the mouse pointer while the drag is in
+progress.
+
 This function will sometimes return immediately if no mouse buttons
 are currently held down.  It should only be called when it is known
 that mouse buttons are being held down, such as immediately after a
 `down-mouse-1' (or similar) event.  */)
   (Lisp_Object targets, Lisp_Object action, Lisp_Object frame,
-   Lisp_Object return_frame, Lisp_Object allow_current_frame)
+   Lisp_Object return_frame, Lisp_Object allow_current_frame,
+   Lisp_Object follow_tooltip)
 {
   struct frame *f = decode_window_system_frame (frame);
   int ntargets = 0, nnames = 0;
@@ -6985,7 +6990,7 @@ that mouse buttons are being held down, such as immediately after a
 				    xaction, return_frame, action_list,
 				    (const char **) &name_list, nnames,
 				    !NILP (allow_current_frame), target_atoms,
-				    ntargets, original);
+				    ntargets, original, !NILP (follow_tooltip));
 
   SAFE_FREE ();
   return lval;
@@ -7787,11 +7792,14 @@ static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
 			    Lisp_Object, int, int, int *, int *);
 
 /* The frame of the currently visible tooltip, or nil if none.  */
-static Lisp_Object tip_frame;
+Lisp_Object tip_frame;
 
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */
 Window tip_window;
+
+/* The X and Y deltas of the last call to `x-show-tip'.  */
+Lisp_Object tip_dx, tip_dy;
 
 /* A timer that hides or deletes the currently visible tooltip when it
    fires.  */
@@ -8505,6 +8513,9 @@ Text larger than the specified size is clipped.  */)
     dy = make_fixnum (-10);
   else
     CHECK_FIXNUM (dy);
+
+  tip_dx = dx;
+  tip_dy = dy;
 
 #ifdef USE_GTK
   if (use_system_tooltips)
@@ -9931,6 +9942,10 @@ eliminated in future versions of Emacs.  */);
   staticpro (&tip_last_string);
   tip_last_parms = Qnil;
   staticpro (&tip_last_parms);
+  tip_dx = Qnil;
+  staticpro (&tip_dx);
+  tip_dy = Qnil;
+  staticpro (&tip_dy);
 
   defsubr (&Sx_uses_old_gtk_dialog);
 #if defined (USE_MOTIF) || defined (USE_GTK)
