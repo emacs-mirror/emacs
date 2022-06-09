@@ -1293,8 +1293,28 @@ SET_FRAME_VISIBLE (struct frame *f, int v)
 }
 
 /* Set iconified status of frame F.  */
-#define SET_FRAME_ICONIFIED(f, i)				\
-  (f)->iconified = (eassert (0 <= (i) && (i) <= 1), (i))
+INLINE void
+SET_FRAME_ICONIFIED (struct frame *f, int i)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  Lisp_Object frame;
+#endif
+
+  eassert (0 <= (i) && (i) <= 1);
+
+  f->iconified = i;
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Iconifying a frame might cause the frame title to change if no
+     title was explicitly specified.  Force the frame title to be
+     recomputed.  */
+
+  XSETFRAME (frame, f);
+
+  if (FRAME_WINDOW_P (f))
+    gui_consider_frame_title (frame);
+#endif
+}
 
 extern Lisp_Object selected_frame;
 extern Lisp_Object old_selected_frame;

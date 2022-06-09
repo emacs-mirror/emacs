@@ -13148,7 +13148,7 @@ store_mode_line_noprop (const char *string, int field_width, int precision)
    Vicon_title_format if FRAME is iconified, otherwise it is
    frame_title_format.  */
 
-static void
+void
 gui_consider_frame_title (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
