@@ -128,6 +128,12 @@ In addition, the text in the region becomes the primary selection
 non-@code{nil} value, dragging the mouse over a stretch of text also
 adds the text to the kill ring.  The default is @code{nil}.
 
+  If this variable is @code{non-empty}, only copy to the kill ring if
+the region is non-empty.  For instance, if you mouse drag an area that
+is less than a half a character, you'd normally get the empty string
+in your kill ring, but with @code{non-empty}, this short mouse drag
+won't affect the kill ring.
+
 @vindex mouse-scroll-min-lines
   If you move the mouse off the top or bottom of the window while
 dragging, the window scrolls at a steady rate until you move the mouse

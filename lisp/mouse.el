@@ -53,9 +53,17 @@ mouse cursor to the echo area."
 This affects `mouse-save-then-kill' (\\[mouse-save-then-kill]) in
 addition to mouse drags.
 
+If this variable is `non-empty', only copy to the kill ring if
+the region is non-empty.  For instance, if you mouse drag an area
+that is less than a half a character, you'd normally get the
+empty string in your kill ring, but with this value, this short
+mouse drag won't affect the kill ring.
+
 This variable applies only to mouse adjustments in Emacs, not
 selecting and adjusting regions in other windows."
-  :type 'boolean
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Non-empty" non-empty))
   :version "24.1")
 
 (defcustom mouse-1-click-follows-link 450
@@ -1423,7 +1431,11 @@ command alters the kill ring or not."
         (if (< end beg)
             (setq end (nth 0 range) beg (nth 1 range))
           (setq beg (nth 0 range) end (nth 1 range)))))
-    (and mouse-drag-copy-region (integerp beg) (integerp end)
+    (when (and mouse-drag-copy-region
+               (integerp beg)
+               (integerp end)
+               (or (not (eq mouse-drag-copy-region 'non-empty))
+                   (/= beg end)))
 	 ;; Don't set this-command to `kill-region', so a following
 	 ;; C-w won't double the text in the kill ring.  Ignore
 	 ;; `last-command' so we don't append to a preceding kill.
@@ -2112,7 +2124,9 @@ if `mouse-drag-copy-region' is non-nil)."
 	(if before-scroll (goto-char before-scroll)))
       (exchange-point-and-mark)
       (mouse-set-region-1)
-      (when mouse-drag-copy-region
+      (when (and mouse-drag-copy-region
+                 (or (not (eq mouse-drag-copy-region 'non-empty))
+                     (not (/= (mark t) (point)))))
         (kill-new (filter-buffer-substring (mark t) (point))))
       (setq mouse-save-then-kill-posn click-pt)))))
 
