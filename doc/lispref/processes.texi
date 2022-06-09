@@ -3479,7 +3479,7 @@ Unsigned integer in little endian order, with @var{bitlen} bits.
 @var{bitlen} has to be a multiple of 8.
 
 @item str @var{len}
-Unibyte string (@pxref{Text Representations}) of length @var{len}.
+Unibyte string (@pxref{Text Representations}) of length @var{len} bytes.
 When packing, the first @var{len} bytes of the input string are copied
 to the packed output.  If the input string is shorter than @var{len},
 the remaining bytes will be null (zero) unless a pre-allocated string
@@ -3506,7 +3506,7 @@ The packed output will not be null-terminated unless one of the
 following is true:
 @itemize
 @item
-The input string is shorter than @var{len} and either no pre-allocated
+The input string is shorter than @var{len} bytes and either no pre-allocated
 string was provided to @code{bindat-pack} or the appropriate byte in
 the pre-allocated string was already null.
 @item
