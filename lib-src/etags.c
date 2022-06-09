@@ -4166,6 +4166,9 @@ C_entries (int c_ext,		/* extension of C */
 	  if (definedef != dnone)
 	    break;
 	  bracelev -= 1;
+	  /* If we see a closing brace in column zero, and we weren't told to
+	     ignore indentation, we assume this the final brace of a function
+	     or struct definition, and reset bracelev to zero.  */
 	  if (!ignoreindent && lp == newlb.buffer + 1)
 	    {
 	      if (bracelev != 0)
