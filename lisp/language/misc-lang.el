@@ -242,11 +242,11 @@ in this language environment.")))
 
 (set-language-info-alist
  "Kharoshthi" '((charset unicode)
-	           (coding-system utf-8)
-	           (coding-priority utf-8)
-	           (input-method . "kharoshthi")
-               (sample-text . "Kharoṣṭhī (𐨑𐨪𐨆𐨛𐨁)	𐨣𐨨𐨲𐨪𐨆 𐨐𐨪𐨅𐨨𐨁")
-	           (documentation . "\
+	        (coding-system utf-8)
+	        (coding-priority utf-8)
+	        (input-method . "kharoshthi")
+                (sample-text . "Kharoṣṭhī (𐨑𐨪𐨆𐨛𐨁)	𐨣𐨨𐨲𐨪𐨆 𐨐𐨪𐨅𐨨𐨁")
+	        (documentation . "\
 Language environment for Gāndhārī, Sanskrit, and other languages
 using the Kharoṣṭhī script.")))
 
@@ -255,7 +255,7 @@ using the Kharoṣṭhī script.")))
       (virama        "\U00010A3F")
       (modifier      "[\U00010A0C-\U00010A0F\U00010A38-\U00010A3A]"))
   (set-char-table-range composition-function-table
-		                '(#x10A3F . #x10A3F)
+		        '(#x10A3F . #x10A3F)
                         (list
                          (vector
                           (concat consonant

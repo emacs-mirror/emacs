@@ -244,6 +244,17 @@ Languages such as Sanskrit and Manipravalam, when they use the
 Grantha script, are supported in this language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Lepcha" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "lepcha")
+            (sample-text . "Lepcha (ᰛᰩᰵ)	ᰂᰦᰕᰥᰬ")
+            (documentation . "\
+Lepcha language and its script are supported in this
+language environment."))
+ '("Indian"))
+
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
 
@@ -732,6 +743,20 @@ Grantha script, are supported in this language environment."))
                                (concat independent-vowel nukta "?" virama "?" vowel "?"
                                        nasal "?" bindu "?" visarga "?" modifier-above
                                        "?" avagraha "?")
+                               1 'font-shape-gstring))))
+
+;; Lepcha composition rules
+(let ((consonant            "[\x1C00-\x1C23\x1C4D-\x1C4F]")
+      (vowel                "[\x1C26-\x1C2C]")
+      (subjoined-letter     "[\x1C24\x1C25]")
+      (consonant-sign       "[\x1C2D-\x1C35]")
+      (other-signs          "[\x1C36\x1C37]"))
+  (set-char-table-range composition-function-table
+                        '(#x1C24 . #x1C37)
+                        (list (vector
+                               ;; Consonant based syllables
+                               (concat consonant other-signs "?" vowel "?"
+                                       consonant-sign "?" subjoined-letter "?")
                                1 'font-shape-gstring))))
 
 (provide 'indian)
