@@ -4467,7 +4467,7 @@ the latter is supposed to be used by the Emacs build procedure.  */)
 	}
       if (NILP (base_dir))
 	error ("Cannot find suitable directory for output in "
-	       "`comp-native-load-path'.");
+	       "`native-comp-eln-load-path'.");
     }
 
   if (!file_name_absolute_p (SSDATA (base_dir)))
