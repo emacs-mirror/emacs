@@ -9629,34 +9629,44 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   selected_op = operation;
 }
 
-#ifdef NS_IMPL_COCOA
 - (void) draggedImage: (NSImage *) dragged_image
 	      movedTo: (NSPoint) screen_point
 {
+  NSPoint mouse_loc;
+#ifdef NS_IMPL_COCOA
   NSInteger window_number;
   NSWindow *w;
-
-  if (dnd_mode == RETURN_FRAME_NEVER)
-    return;
-
-  window_number = [NSWindow windowNumberAtPoint: [NSEvent mouseLocation]
-		    belowWindowWithWindowNumber: 0];
-  w = [NSApp windowWithWindowNumber: window_number];
-
-  if (!w || w != self)
-    dnd_mode = RETURN_FRAME_NOW;
-
-  if (dnd_mode != RETURN_FRAME_NOW
-      || ![[w delegate] isKindOfClass: [EmacsView class]])
-    return;
-
-  dnd_return_frame = ((EmacsView *) [w delegate])->emacsframe;
-
-  /* FIXME: there must be a better way to leave the event loop.  */
-  [NSException raise: @""
-	      format: @"Must return DND frame"];
-}
 #endif
+
+  mouse_loc = [NSEvent mouseLocation];
+
+#ifdef NS_IMPL_COCOA
+  if (dnd_mode != RETURN_FRAME_NEVER)
+    {
+      window_number = [NSWindow windowNumberAtPoint: mouse_loc
+			belowWindowWithWindowNumber: 0];
+      w = [NSApp windowWithWindowNumber: window_number];
+
+      if (!w || w != self)
+	dnd_mode = RETURN_FRAME_NOW;
+
+      if (dnd_mode != RETURN_FRAME_NOW
+	  || ![[w delegate] isKindOfClass: [EmacsView class]])
+	goto out;
+
+      dnd_return_frame = ((EmacsView *) [w delegate])->emacsframe;
+
+      /* FIXME: there must be a better way to leave the event loop.  */
+      [NSException raise: @""
+		  format: @"Must return DND frame"];
+    }
+#endif
+
+ out:
+
+  if (dnd_move_tooltip_with_frame)
+    ns_move_tooltip_to_mouse_location (mouse_loc);
+}
 
 - (BOOL) mustNotDropOn: (NSView *) receiver
 {
@@ -9669,6 +9679,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 		     withMode: (enum ns_return_frame_mode) mode
 		returnFrameTo: (struct frame **) frame_return
 		 prohibitSame: (BOOL) prohibit_same_frame
+		followTooltip: (BOOL) follow_tooltip
 {
   NSImage *image;
 #ifdef NS_IMPL_COCOA
@@ -9681,6 +9692,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   dnd_mode = mode;
   dnd_return_frame = NULL;
   dnd_allow_same_frame = !prohibit_same_frame;
+  dnd_move_tooltip_with_frame = follow_tooltip;
 
   /* Now draw transparency onto the image.  */
   [image lockFocus];
@@ -9727,6 +9739,10 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
     }
 #endif
   unblock_input ();
+
+  /* The drop happened, so delete the tooltip.  */
+  if (follow_tooltip)
+    Fx_hide_tip ();
 
   /* Assume all buttons have been released since the drag-and-drop
      operation is now over.  */

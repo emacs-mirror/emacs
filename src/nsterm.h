@@ -426,6 +426,7 @@ enum ns_return_frame_mode
   struct frame *dnd_return_frame;
   enum ns_return_frame_mode dnd_mode;
   BOOL dnd_allow_same_frame;
+  BOOL dnd_move_tooltip_with_frame;
 }
 
 #ifdef NS_IMPL_GNUSTEP
@@ -446,7 +447,8 @@ enum ns_return_frame_mode
 		forPasteboard: (NSPasteboard *) pasteboard
 		     withMode: (enum ns_return_frame_mode) mode
 		returnFrameTo: (struct frame **) frame_return
-	    prohibitSame: (BOOL) prohibit_same_frame;
+		 prohibitSame: (BOOL) prohibit_same_frame
+		followTooltip: (BOOL) follow_tooltip;
 - (BOOL) mustNotDropOn: (NSView *) receiver;
 @end
 
@@ -630,19 +632,21 @@ enum ns_return_frame_mode
 #else
 @interface EmacsTooltip : NSObject
 #endif
-  {
-    NSWindow *win;
-    NSTextField *textField;
-    NSTimer *timer;
-  }
+{
+  NSWindow *win;
+  NSTextField *textField;
+  NSTimer *timer;
+}
+
 - (instancetype) init;
-- (void) setText: (char *)text;
-- (void) setBackgroundColor: (NSColor *)col;
-- (void) setForegroundColor: (NSColor *)col;
-- (void) showAtX: (int)x Y: (int)y for: (int)seconds;
+- (void) setText: (char *) text;
+- (void) setBackgroundColor: (NSColor *) col;
+- (void) setForegroundColor: (NSColor *) col;
+- (void) showAtX: (int) x Y: (int) y for: (int) seconds;
 - (void) hide;
 - (BOOL) isActive;
 - (NSRect) frame;
+- (void) moveTo: (NSPoint) screen_point;
 @end
 
 
@@ -1140,6 +1144,9 @@ extern const char *ns_get_pending_menu_title (void);
 #endif
 
 /* Implemented in nsfns, published in nsterm.  */
+#ifdef __OBJC__
+extern void ns_move_tooltip_to_mouse_location (NSPoint);
+#endif
 extern void ns_implicitly_set_name (struct frame *f, Lisp_Object arg,
                                     Lisp_Object oldval);
 extern void ns_set_scroll_bar_default_width (struct frame *f);

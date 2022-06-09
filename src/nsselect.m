@@ -703,7 +703,7 @@ ns_dnd_action_from_operation (NSDragOperation operation)
     }
 }
 
-DEFUN ("ns-begin-drag", Fns_begin_drag, Sns_begin_drag, 3, 5, 0,
+DEFUN ("ns-begin-drag", Fns_begin_drag, Sns_begin_drag, 3, 6, 0,
        doc: /* Begin a drag-and-drop operation on FRAME.
 
 FRAME must be a window system frame.  PBOARD is an alist of (TYPE
@@ -729,9 +729,12 @@ other non-nil value means to do the same, but to wait for the mouse to
 leave FRAME first.
 
 If ALLOW-SAME-FRAME is nil, dropping on FRAME will result in the drop
-being ignored.  */)
+being ignored.
+
+FOLLOW-TOOLTIP means the same thing it does in `x-begin-drag'.  */)
   (Lisp_Object frame, Lisp_Object pboard, Lisp_Object action,
-   Lisp_Object return_frame, Lisp_Object allow_same_frame)
+   Lisp_Object return_frame, Lisp_Object allow_same_frame,
+   Lisp_Object follow_tooltip)
 {
   struct frame *f, *return_to;
   NSPasteboard *pasteboard;
@@ -761,7 +764,8 @@ being ignored.  */)
 		  forPasteboard: pasteboard
 		       withMode: mode
 		  returnFrameTo: &return_to
-		   prohibitSame: (BOOL) NILP (allow_same_frame)];
+		   prohibitSame: (BOOL) NILP (allow_same_frame)
+		  followTooltip: (BOOL) !NILP (follow_tooltip)];
 
   if (return_to)
     {

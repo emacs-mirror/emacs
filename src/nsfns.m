@@ -63,6 +63,9 @@ static EmacsTooltip *ns_tooltip = nil;
 /* The frame of the currently visible tooltip, or nil if none.  */
 static Lisp_Object tip_frame;
 
+/* The X and Y deltas of the last call to `x-show-tip'.  */
+static Lisp_Object tip_dx, tip_dy;
+
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */
 static NSWindow *tip_window;
@@ -3243,6 +3246,9 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   else
     CHECK_FIXNUM (dy);
 
+  tip_dx = dx;
+  tip_dy = dy;
+
   if (use_system_tooltips)
     {
       NSSize size;
@@ -3794,6 +3800,45 @@ all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
 }
 @end
 
+void
+ns_move_tooltip_to_mouse_location (NSPoint screen_point)
+{
+  int root_x, root_y;
+  NSSize size;
+  NSWindow *window;
+  struct frame *tip_f;
+
+  if (!FIXNUMP (tip_dx) || !FIXNUMP (tip_dy))
+    return;
+
+  if (ns_tooltip)
+    size = [ns_tooltip frame].size;
+  else if (!FRAMEP (tip_frame)
+	   || !FRAME_LIVE_P (XFRAME (tip_frame)))
+    return;
+  else
+    {
+      tip_f = XFRAME (tip_frame);
+      window = [FRAME_NS_VIEW (tip_f) window];
+      size = [window frame].size;
+    }
+
+  root_x = screen_point.x;
+  root_y = screen_point.y;
+
+  /* We can directly use `compute_tip_xy' here, since it doesn't cons
+     nearly as much as it does on X.  */
+  compute_tip_xy (NULL, Qnil, tip_dx, tip_dy, (int) size.width,
+		  (int) size.height, &root_x, &root_y);
+
+  if (ns_tooltip)
+    [ns_tooltip moveTo: NSMakePoint (root_x, root_y)];
+  else
+    [window setFrame: NSMakeRect (root_x, root_y,
+				  size.width, size.height)
+	     display: YES];
+}
+
 /* ==========================================================================
 
     Lisp interface declaration
@@ -3902,6 +3947,10 @@ Default is t.  */);
   staticpro (&tip_last_string);
   tip_last_parms = Qnil;
   staticpro (&tip_last_parms);
+  tip_dx = Qnil;
+  staticpro (&tip_dx);
+  tip_dy = Qnil;
+  staticpro (&tip_dy);
 
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
   defsubr (&Ssystem_move_file_to_trash);
