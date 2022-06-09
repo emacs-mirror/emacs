@@ -2028,17 +2028,7 @@ Also see `ignore'."
      :type 'user-error)
     (should-error
      (expand-file-name "/method:user1@host1|ssh:user2@host2:/path/to/file")
-     :type 'user-error))
-
-  ;; Samba does not support file names with periods followed by
-  ;; spaces, and trailing periods or spaces.
-  (when (tramp--test-smb-p)
-    (dolist (file '("foo." "foo. bar" "foo "))
-      (should-error
-       (tramp-smb-get-localname
-	(tramp-dissect-file-name
-	 (expand-file-name file tramp-test-temporary-file-directory)))
-       :type 'file-error))))
+     :type 'user-error)))
 
 (ert-deftest tramp-test04-substitute-in-file-name ()
   "Check `substitute-in-file-name'."
