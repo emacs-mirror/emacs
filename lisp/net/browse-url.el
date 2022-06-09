@@ -635,9 +635,10 @@ CHARS is a regexp that matches a character."
 The annoying characters are those that can mislead a web browser
 regarding its parameter treatment."
   ;; FIXME: Is there an actual example of a web browser getting
-  ;; confused?  (This used to encode commas, but at least Firefox
-  ;; handles commas correctly and doesn't accept encoded commas.)
-  (browse-url-url-encode-chars url "[\"()$ ]"))
+  ;; confused?  (This used to encode commas and dollar signs, but at
+  ;; least Firefox handles commas correctly and doesn't accept those
+  ;; encoded.)
+  (browse-url-url-encode-chars url "[\"() ]"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
