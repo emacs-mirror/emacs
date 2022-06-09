@@ -1077,6 +1077,10 @@ static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar 
 static int x_filter_event (struct x_display_info *, XEvent *);
 #endif
 
+static struct frame *x_tooltip_window_to_frame (struct x_display_info *,
+						Window, bool *);
+static Window x_get_window_below (Display *, Window, int, int, int *, int *);
+
 /* Global state maintained during a drag-and-drop operation.  */
 
 /* Flag that indicates if a drag-and-drop operation is in progress.  */
@@ -3544,12 +3548,15 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 {
   Window child_return, child, dummy, proxy;
   int dest_x_return, dest_y_return, rc, proto, motif;
+  int parent_x, parent_y;
   bool extents_p;
 #if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
   Window overlay_window;
   XWindowAttributes attrs;
 #endif
   int wmstate;
+  struct frame *tooltip;
+  bool unrelated;
 
   child_return = dpyinfo->root_window;
   dest_x_return = root_x;
@@ -3680,6 +3687,8 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
   while (child_return != None)
     {
       child = child_return;
+      parent_x = dest_x_return;
+      parent_y = dest_y_return;
 
       x_catch_errors (dpyinfo->display);
       rc = XTranslateCoordinates (dpyinfo->display,
@@ -3696,6 +3705,23 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 
       if (child_return)
 	{
+	  /* If child_return is a tooltip frame, look beneath it.  We
+	     never want to drop anything onto a tooltip frame.  */
+
+	  tooltip = x_tooltip_window_to_frame (dpyinfo, child_return,
+					       &unrelated);
+
+	  if (tooltip || unrelated)
+	    child_return = x_get_window_below (dpyinfo->display, child_return,
+					       parent_x, parent_y, &dest_x_return,
+					       &dest_y_return);
+
+	  if (!child_return)
+	    {
+	      x_uncatch_errors ();
+	      break;
+	    }
+
 	  if (x_dnd_get_wm_state_and_proto (dpyinfo, child_return,
 					    &wmstate, &proto, &motif,
 					    &proxy)
@@ -11885,7 +11911,7 @@ x_note_mouse_movement (struct frame *frame, const XMotionEvent *event,
   return false;
 }
 
-/* Get a sibling of DPY below WINDOW at PARENT_X and PARENT_Y.  */
+/* Get a sibling below WINDOW on DPY at PARENT_X and PARENT_Y.  */
 static Window
 x_get_window_below (Display *dpy, Window window,
 		    int parent_x, int parent_y,
