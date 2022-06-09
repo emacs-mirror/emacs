@@ -9660,9 +9660,9 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
       [NSException raise: @""
 		  format: @"Must return DND frame"];
     }
-#endif
 
  out:
+#endif
 
   if (dnd_move_tooltip_with_frame)
     ns_move_tooltip_to_mouse_location (mouse_loc);

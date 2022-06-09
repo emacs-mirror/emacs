@@ -3808,6 +3808,8 @@ ns_move_tooltip_to_mouse_location (NSPoint screen_point)
   NSWindow *window;
   struct frame *tip_f;
 
+  window = nil;
+
   if (!FIXNUMP (tip_dx) || !FIXNUMP (tip_dy))
     return;
 
