@@ -450,6 +450,9 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
         ;; need to scan the input string looking for a null byte.
         (error "Null byte encountered in input strz string"))
       (aset bindat-raw (+ bindat-idx i) (aref v i)))
+    ;; Explicitly write a null terminator in case the user provided a
+    ;; pre-allocated string to bindat-pack that wasn't zeroed first.
+    (aset bindat-raw (+ bindat-idx len) 0)
     (setq bindat-idx (+ bindat-idx len 1))))
 
 (defun bindat--pack-bits (len v)
