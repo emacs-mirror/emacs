@@ -10453,6 +10453,9 @@ x_tooltip_window_to_frame (struct x_display_info *dpyinfo,
 	return f;
 
 #ifdef USE_GTK
+      if (!FRAME_X_P (f))
+	continue;
+
       if (FRAME_X_OUTPUT (f)->ttip_window)
 	widget = GTK_WIDGET (FRAME_X_OUTPUT (f)->ttip_window);
       else
