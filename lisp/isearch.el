@@ -4455,6 +4455,48 @@ LAX-WHITESPACE: The value of `isearch-lax-whitespace' and
         (funcall after-change nil nil nil)))))
 
 
+(defun isearch-search-fun-in-text-property (property &optional search-fun)
+  "Return the function that searches inside fields.
+The arg PROPERTY defines the name of the text property that
+delimits fields in the current buffer.  Then the search will be
+narrowed to match only on such text properties.  The optional arg
+SEARCH-FUN can provide the default search function which is
+by default is the same as returned by `isearch-search-fun-default'."
+  (lambda (string &optional bound noerror count)
+    (let* ((old (point))
+           ;; Check if point is already on the property.
+           (beg (when (get-text-property
+                       (if isearch-forward old (max (1- old) (point-min)))
+                       property)
+                  old))
+           end found)
+      ;; Otherwise, try to search for the next property.
+      (unless beg
+        (setq beg (if isearch-forward
+                      (next-single-property-change old property)
+                    (previous-single-property-change old property)))
+        (when beg (goto-char beg)))
+      ;; Non-nil `beg' means there are more properties.
+      (while (and beg (not found))
+        ;; Search for the end of the current property.
+        (setq end (if isearch-forward
+                      (next-single-property-change beg property)
+                    (previous-single-property-change beg property)))
+        (setq found (funcall (or search-fun (isearch-search-fun-default))
+                             string (if bound (if isearch-forward
+                                                  (min bound end)
+                                                (max bound end))
+                                      end)
+                             noerror count))
+        (unless found
+          (setq beg (if isearch-forward
+                        (next-single-property-change end property)
+                      (previous-single-property-change end property)))
+          (when beg (goto-char beg))))
+      (unless found (goto-char old))
+      found)))
+
+
 (defun isearch-resume (string regexp word forward message case-fold)
   "Resume an incremental search.
 STRING is the string or regexp searched for.

@@ -3208,41 +3208,7 @@ Intended to be added to `isearch-mode-hook'."
 The returned function narrows the search to match the search string
 only as part of a file name enclosed by the text property `dired-filename'.
 It's intended to override the default search function."
-  (let ((search-fun (funcall orig-fun))
-        (property 'dired-filename))
-    (lambda (string &optional bound noerror count)
-      (let* ((old (point))
-             ;; Check if point is already on the property.
-             (beg (when (get-text-property
-                         (if isearch-forward old (max (1- old) (point-min)))
-                         property)
-                    old))
-             end found)
-        ;; Otherwise, try to search for the next property.
-        (unless beg
-          (setq beg (if isearch-forward
-                        (next-single-property-change old property)
-                      (previous-single-property-change old property)))
-          (when beg (goto-char beg)))
-        ;; Non-nil `beg' means there are more properties.
-        (while (and beg (not found))
-          ;; Search for the end of the current property.
-          (setq end (if isearch-forward
-                        (next-single-property-change beg property)
-                      (previous-single-property-change beg property)))
-          (setq found (funcall
-                       search-fun string (if bound (if isearch-forward
-                                                       (min bound end)
-                                                     (max bound end))
-                                           end)
-                       noerror count))
-          (unless found
-            (setq beg (if isearch-forward
-                          (next-single-property-change end property)
-                        (previous-single-property-change end property)))
-            (when beg (goto-char beg))))
-        (unless found (goto-char old))
-        found))))
+  (isearch-search-fun-in-text-property 'dired-filename (funcall orig-fun)))
 
 ;;;###autoload
 (defun dired-isearch-filenames ()
