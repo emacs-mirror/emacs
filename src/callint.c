@@ -170,7 +170,7 @@ check_mark (bool for_region)
    of VALUES to do its job.  */
 
 static void
-fix_command (Lisp_Object input, Lisp_Object values)
+fix_command (Lisp_Object input, Lisp_Object function, Lisp_Object values)
 {
   /* FIXME: Instead of this ugly hack, we should provide a way for an
      interactive spec to return an expression/function that will re-build the
@@ -228,6 +228,37 @@ fix_command (Lisp_Object input, Lisp_Object values)
 		    }
 		}
 	    }
+	}
+    }
+
+  /* If the list contains a bunch of trailing nil values, and they are
+     optional, remove them from the list.  This makes navigating the
+     history less confusing, since it doesn't contain a lot of
+     parameters that aren't used.  */
+  if (CONSP (values))
+    {
+      Lisp_Object arity = Ffunc_arity (function);
+      /* We don't want to do this simplification if we have an &rest
+	 function, because (cl-defun foo (a &optional (b 'zot)) ..)
+	 etc.  */
+      if (FIXNUMP (XCAR (arity)) && FIXNUMP (XCDR (arity)))
+	{
+	  Lisp_Object final = Qnil;
+	  ptrdiff_t final_i = 0, i = 0;
+	  for (Lisp_Object tail = values;
+	       CONSP (tail);
+	       tail = XCDR (tail), ++i)
+	    {
+	      if (!NILP (XCAR (tail)))
+		{
+		  final = tail;
+		  final_i = i;
+		}
+	    }
+
+	  /* Chop the trailing optional values.  */
+	  if (final_i > 0 && final_i >= XFIXNUM (XCAR (arity)) - 1)
+	    XSETCDR (final,  Qnil);
 	}
     }
 }
@@ -340,7 +371,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	     Make a copy of the list of values, for the command history,
 	     and turn them into things we can eval.  */
 	  Lisp_Object values = quotify_args (Fcopy_sequence (specs));
-	  fix_command (input, values);
+	  fix_command (input, function, values);
           call4 (intern ("add-to-history"), intern ("command-history"),
                  Fcons (function, values), Qnil, Qt);
 	}
