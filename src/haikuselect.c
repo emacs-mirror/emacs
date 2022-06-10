@@ -995,7 +995,7 @@ haiku_note_drag_motion (void)
     {
       tip_f = XFRAME (tip_frame);
 
-      if (FRAME_LIVE_P (tip_f))
+      if (FRAME_LIVE_P (tip_f) && FRAME_VISIBLE_P (tip_f))
 	{
 	  BView_get_mouse (FRAME_HAIKU_VIEW (haiku_dnd_frame),
 			   &x, &y);
