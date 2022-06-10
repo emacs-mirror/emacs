@@ -3443,7 +3443,6 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   int dest_x, dest_y;
   Window child_return, child;
 
-  event.xbutton.type = ButtonPress;
   event.xbutton.serial = 0;
   event.xbutton.send_event = True;
   event.xbutton.display = dpyinfo->display;
@@ -3457,39 +3456,37 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   dest_x = root_x;
   dest_y = root_y;
 
-  while (XTranslateCoordinates (dpyinfo->display, child,
-				child, root_x, root_y, &dest_x,
-				&dest_y, &child_return)
-	 && child_return != None
-	 && XTranslateCoordinates (dpyinfo->display, child,
-				   child_return, root_x, root_y,
-				   &dest_x, &dest_y, &child))
-    {
-      child = child_return;
-      root_x = dest_x;
-      root_y = dest_y;
-    }
+  while (XTranslateCoordinates (dpyinfo->display, dpyinfo->root_window,
+				child, root_x, root_y, &dest_x, &dest_y,
+				&child_return)
+	 && child_return != None)
+    child = child_return;
 
   if (CONSP (value))
     x_own_selection (QPRIMARY, Fnth (make_fixnum (1), value),
 		     frame);
   else
-    x_own_selection (QPRIMARY, Qnil, frame);
+    error ("Lost ownership of XdndSelection");
 
   event.xbutton.window = child;
+  event.xbutton.subwindow = None;
   event.xbutton.x = dest_x;
   event.xbutton.y = dest_y;
   event.xbutton.state = 0;
   event.xbutton.button = 2;
   event.xbutton.same_screen = True;
-  event.xbutton.time = before + 1;
-  event.xbutton.time = before + 2;
 
   x_set_pending_dnd_time (before);
 
+  event.xbutton.type = ButtonPress;
+  event.xbutton.time = before + 1;
+
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonPressMask, &event);
+
   event.xbutton.type = ButtonRelease;
+  event.xbutton.time = before + 2;
+
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonReleaseMask, &event);
 
