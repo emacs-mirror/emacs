@@ -68,6 +68,21 @@ option '--without-xinput2' to disable this support.
 '(featurep 'xinput2)' can be used to test for the presence of XInput 2
 support from Lisp programs.
 
+---
+** Emacs now doesn't reduce the size of the Japanese dictionary.
+Building Emacs includes generation of a Japanese dictionary, which is
+used by Japanese input methods.  Previously, the build included a step
+of reducing the size of this dictionary's vocabulary.  This vocabulary
+reduction is now optional, by default off.  If you need the Emacs
+build to include the vocabulary reduction, configure Emacs with the
+option '--with-small-ja-dic'.  In an Emacs source tree already
+configured without that option, you can force the vocabulary reduction
+by saying
+
+    make -C leim generate-ja-dic JA_DIC_NO_REDUCTION_OPTION=''
+
+after deleting lisp/leim/ja-dic/ja-dic.el.
+
 +++
 ** Emacs now supports being built with pure GTK.
 To use this option, make sure the GTK 3 (version 3.20 or later) and

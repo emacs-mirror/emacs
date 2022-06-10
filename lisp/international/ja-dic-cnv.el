@@ -315,7 +315,7 @@
 	  (if (setq candidates
                     (if no-reduction
                         candidates
-                        (skkdic-reduced-candidates skkbuf kana candidates)))
+                      (skkdic-reduced-candidates skkbuf kana candidates)))
 	      (progn
 		(insert "\"" kana)
 		(while candidates
@@ -330,8 +330,7 @@
   "Generate Emacs Lisp file from Japanese dictionary file FILENAME.
 The format of the dictionary file should be the same as SKK dictionaries.
 Saves the output as `ja-dic-filename', in directory DIRNAME (if specified).
-When NO-REDUCTION is t, then not reduce dictionary vocabulary.
-"
+If NO-REDUCTION is non-nil, do not reduce the dictionary vocabulary."
   (interactive "FSKK dictionary file: ")
   (let* ((skkbuf (get-buffer-create " *skkdic-unannotated*"))
 	 (buf (get-buffer-create "*skkdic-work*")))
@@ -425,7 +424,7 @@ To get complete usage, invoke:
 	(message "  %% emacs -batch -l ja-dic-cnv -f batch-skkdic-convert SKK-JISYO.L")
 	(message "To convert SKK-JISYO.L into DIR/ja-dic.el:")
 	(message "  %% emacs -batch -l ja-dic-cnv -f batch-skkdic-convert -dir DIR SKK-JISYO.L")
-        (message "To convert SKK-JISYO.L into skkdic.el with not reduce dictionary vocabulary:")
+        (message "To convert SKK-JISYO.L into skkdic.el without reducing dictionary vocabulary:")
         (message "  %% emacs -batch -l ja-dic-cnv -f batch-skkdic-convert --no-reduction SKK-JISYO.L"))
     (let (targetdir filename no-reduction)
       (if (string= (car command-line-args-left) "-dir")
