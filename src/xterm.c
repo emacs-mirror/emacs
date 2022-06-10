@@ -15239,6 +15239,7 @@ x_dnd_update_tooltip_position (int root_x, int root_y)
   tip_f = XFRAME (tip_frame);
 
   if (!FRAME_LIVE_P (tip_f)
+      || !FRAME_VISIBLE_P (tip_f)
       || (FRAME_X_DISPLAY (tip_f)
 	  != FRAME_X_DISPLAY (x_dnd_frame)))
     return;
