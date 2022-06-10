@@ -1939,9 +1939,9 @@ default_value (Lisp_Object symbol)
 
 DEFUN ("default-boundp", Fdefault_boundp, Sdefault_boundp, 1, 1, 0,
        doc: /* Return t if SYMBOL has a non-void default value.
-A variable may have a buffer-local or a `let'-bound local value.  This
-function says whether the variable has a non-void value outside of the
-current context.  Also see `default-value'.  */)
+A variable may have a buffer-local value.  This function says whether
+the variable has a non-void value outside of the current buffer
+context.  Also see `default-value'.  */)
   (Lisp_Object symbol)
 {
   register Lisp_Object value;
