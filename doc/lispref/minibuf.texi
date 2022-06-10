@@ -1122,9 +1122,9 @@ completion command (i.e., one of the commands in
 not an element of @var{collection}.  @xref{Completion Commands}.
 
 @item
-If a function, the function is called with the input as the only
-argument.  The function should return a non-@code{nil} value of the
-input is acceptable.
+If a function, it is called with the input as the only argument.  The
+function should return a non-@code{nil} value if the input is
+acceptable.
 
 @item
 Any other value of @var{require-match} behaves like @code{t}, except

@@ -1952,7 +1952,7 @@ Previously it produced a nonsense value, -1, that was never intended.
 * Lisp Changes in Emacs 29.1
 
 +++
-** 'completing-read' now allows a function as REQUIRE-MATCH.
+** 'completing-read' now allows a function as its REQUIRE-MATCH argument.
 This function is called to see whether what the user has typed in is a
 match.  This is also available from functions that call
 'completing-read', like 'read-file-name'.
