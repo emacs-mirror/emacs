@@ -52,8 +52,7 @@ The default value for this variable is `x-dnd-default-test-function'."
 
 
 (defcustom x-dnd-types-alist
-  `(
-    (,(purecopy "text/uri-list") . x-dnd-handle-uri-list)
+  `((,(purecopy "text/uri-list") . x-dnd-handle-uri-list)
     (,(purecopy "text/x-moz-url") . x-dnd-handle-moz-url)
     (,(purecopy "_NETSCAPE_URL") . x-dnd-handle-uri-list)
     (,(purecopy "FILE_NAME") . x-dnd-handle-file-name)
@@ -64,8 +63,7 @@ The default value for this variable is `x-dnd-default-test-function'."
     (,(purecopy "text/plain") . dnd-insert-text)
     (,(purecopy "COMPOUND_TEXT") . x-dnd-insert-ctext)
     (,(purecopy "STRING") . dnd-insert-text)
-    (,(purecopy "TEXT")   . dnd-insert-text)
-    )
+    (,(purecopy "TEXT")   . dnd-insert-text))
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
 the drop is rejected.  The function takes three arguments, WINDOW, ACTION
@@ -91,8 +89,7 @@ if drop is successful, nil if not."
     "text/plain"
     "COMPOUND_TEXT"
     "STRING"
-    "TEXT"
-    ))
+    "TEXT"))
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
   :version "22.1"
@@ -588,6 +585,86 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 	(reverse bytes)
       bytes)))
 
+(defun x-dnd-xm-unpack-targets-table-header (data)
+  "Decode the header of DATA, a Motif targets table.
+Return a list of the following fields with the given types:
+
+    Field name        Type
+  - BYTE_ORDER        BYTE
+  - PROTOCOL          BYTE
+  - TARGET_LIST_COUNT CARD16
+  - TOTAL_DATA_SIZE   CARD32"
+  (let* ((byte-order (aref data 0))
+         (protocol (aref data 1))
+         (target-list-count (x-dnd-get-motif-value
+                             data 2 2 byte-order))
+         (total-data-size (x-dnd-get-motif-value
+                           data 4 4 byte-order)))
+    (list byte-order protocol target-list-count
+          total-data-size)))
+
+(defun x-dnd-xm-read-single-rec (data i)
+  "Read a single rec from DATA, a Motif targets table.
+I is the offset into DATA to begin reading at.  Return a list
+of (CONSUMED NTARGETS TARGETS), where CONSUMED is the number of
+bytes read from DATA, NTARGETS is the total number of targets
+inside the current rec, and TARGETS is a vector of atoms
+describing the selection targets in the current rec."
+  (let* ((byte-order (aref data 0))
+         (n-targets (x-dnd-get-motif-value
+                     data i 2 byte-order))
+         (targets (make-vector n-targets nil))
+         (consumed 0))
+    (while (< consumed n-targets)
+      (aset targets consumed (x-dnd-get-motif-value
+                              data (+ i 2 (* consumed 4))
+                              4 byte-order))
+      (setq consumed (1+ consumed)))
+    (list (+ 2 (* consumed 4)) n-targets targets)))
+
+(defun x-dnd-xm-read-targets-table (frame)
+  "Read the Motif targets table on FRAME.
+Return a vector of vectors of numbers (the drop targets)."
+  (let* ((drag-window (x-window-property "_MOTIF_DRAG_WINDOW"
+                                         frame "WINDOW" 0 nil t))
+         (targets-data (x-window-property "_MOTIF_DRAG_TARGETS"
+                                          frame "_MOTIF_DRAG_TARGETS"
+                                          drag-window nil t))
+         (header (x-dnd-xm-unpack-targets-table-header targets-data))
+         (vec (make-vector (nth 2 header) nil))
+         (current-byte 8)
+         (i 0))
+    (unless (stringp targets-data)
+      (error "Expected format 8, got %s" (type-of targets-data)))
+    (prog1 vec
+      (while (< i (nth 2 header))
+        (let ((rec (x-dnd-xm-read-single-rec targets-data
+                                             current-byte)))
+          (aset vec i (nth 2 rec))
+          (setq current-byte (+ current-byte (car rec)))
+          (setq i (1+ i))))
+      (unless (eq current-byte (nth 3 header))
+        (error "Targets table header says size is %d, but it is actually %d"
+               (nth 3 header) current-byte)))))
+
+(defun x-dnd-xm-read-targets (frame window selection)
+  "Read targets of SELECTION on FRAME from the targets table.
+WINDOW should be the drag-and-drop operation's initiator.
+Return a vector of atoms containing the selection targets."
+  (let* ((targets-table (x-dnd-xm-read-targets-table frame))
+         (initiator-info (x-window-property selection frame
+                                            "_MOTIF_DRAG_INITIATOR_INFO"
+                                            window nil nil))
+         (byte-order (aref initiator-info 0))
+         (idx (x-dnd-get-motif-value initiator-info
+                                     2 2 byte-order))
+         (vector (aref targets-table idx))
+         (i 0))
+    (prog1 vector
+      (while (< i (length vector))
+        (aset vector i
+              (intern (x-get-atom-name (aref vector i))))
+        (setq i (1+ i))))))
 
 (defvar x-dnd-motif-message-types
   '((0 . XmTOP_LEVEL_ENTER)
@@ -625,14 +702,12 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			         data 8 4 source-byteorder))
 		    (selection-atom (x-dnd-get-motif-value
 				     data 12 4 source-byteorder))
-		    (atom-name (x-get-atom-name selection-atom))
-		    (types (when atom-name
-			     (x-get-selection-internal (intern atom-name)
-						       'TARGETS))))
+                    (atom-name (x-get-atom-name selection-atom))
+		    (types (x-dnd-xm-read-targets frame dnd-source
+                                                  atom-name)))
 	       (x-dnd-forget-drop frame)
 	       (when types (x-dnd-save-state window nil nil
-					     types
-					     dnd-source))))
+					     types dnd-source))))
 
 	    ;; Can not forget drop here, LEAVE comes before DROP_START and
 	    ;; we need the state in DROP_START.
