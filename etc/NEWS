@@ -69,7 +69,7 @@ option '--without-xinput2' to disable this support.
 support from Lisp programs.
 
 ---
-** Emacs now doesn't reduce the size of the Japanese dictionary.
+** Emacs no longer reduces the size of the Japanese dictionary.
 Building Emacs includes generation of a Japanese dictionary, which is
 used by Japanese input methods.  Previously, the build included a step
 of reducing the size of this dictionary's vocabulary.  This vocabulary
