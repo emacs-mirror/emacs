@@ -3553,7 +3553,7 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 			 int root_x, int root_y, int *proto_out,
 			 int *motif_out, Window *toplevel_out)
 {
-  Window child_return, child, dummy, proxy;
+  Window child_return, child, proxy;
   int dest_x_return, dest_y_return, rc, proto, motif;
   int parent_x, parent_y;
   bool extents_p;
@@ -3698,11 +3698,9 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
       parent_y = dest_y_return;
 
       x_catch_errors (dpyinfo->display);
-      rc = XTranslateCoordinates (dpyinfo->display,
-				  child_return, child_return,
-				  dest_x_return, dest_y_return,
-				  &dest_x_return, &dest_y_return,
-				  &child_return);
+      rc = XTranslateCoordinates (dpyinfo->display, dpyinfo->root_window,
+				  child_return, root_x, root_y, &dest_x_return,
+				  &dest_y_return, &child_return);
 
       if (x_had_errors_p (dpyinfo->display) || !rc)
 	{
@@ -3757,23 +3755,9 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 		  return proxy;
 		}
 	    }
-
-	  rc = XTranslateCoordinates (dpyinfo->display,
-				      child, child_return,
-				      dest_x_return, dest_y_return,
-				      &dest_x_return, &dest_y_return,
-				      &dummy);
-
-	  if (x_had_errors_p (dpyinfo->display) || !rc)
-	    {
-	      x_uncatch_errors_after_check ();
-	      *proto_out = -1;
-	      *toplevel_out = dpyinfo->root_window;
-	      return None;
-	    }
 	}
 
-      x_uncatch_errors_after_check ();
+      x_uncatch_errors ();
     }
 
 #if defined HAVE_XCOMPOSITE && (XCOMPOSITE_MAJOR > 0 || XCOMPOSITE_MINOR > 2)
