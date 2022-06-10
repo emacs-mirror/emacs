@@ -1952,6 +1952,12 @@ Previously it produced a nonsense value, -1, that was never intended.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'completing-read' now allows a function as REQUIRE-MATCH.
+This function is called to see whether what the user has typed in is a
+match.  This is also available from functions that call
+'completing-read', like 'read-file-name'.
+
++++
 ** 'posn-col-row' can now give position data based on windows.
 Previously, it reported data only based on the frame.
 
