@@ -349,6 +349,9 @@ say:
       '(("\\([^/]+\\)\\.c\\'" "\\1.h")))
 @end lisp
 
+(@code{ff-find-related-file} offers similar functionality especially
+geared towards C files, @pxref{Other C Commands}.)
+
 Or, if you want to consider all files under
 @samp{"src/emacs/DIR/file-name"} to be siblings of other @var{dir}s,
 you could say:
