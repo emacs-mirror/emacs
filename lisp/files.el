@@ -7312,9 +7312,6 @@ now defined as a sibling."
 
 (defun find-sibling-file (file)
   "Visit a \"sibling\" file of FILE.
-By default, return only files that exist, but if ALL is non-nil,
-return all matches.
-
 When called interactively, FILE is the currently visited file.
 
 The \"sibling\" file is defined by the `find-sibling-rules' variable."
