@@ -6982,10 +6982,14 @@ that mouse buttons are being held down, such as immediately after a
 
   target_atoms = SAFE_ALLOCA (ntargets * sizeof *target_atoms);
 
-  block_input ();
+  /* Catch errors since interning lots of targets can potentially
+     generate a BadAlloc error.  */
+  x_catch_errors (FRAME_X_DISPLAY (f));
   XInternAtoms (FRAME_X_DISPLAY (f), target_names,
 		ntargets, False, target_atoms);
-  unblock_input ();
+  x_check_errors (FRAME_X_DISPLAY (f),
+		  "Failed to intern target atoms: %s");
+  x_uncatch_errors_after_check ();
 
   lval = x_dnd_begin_drag_and_drop (f, FRAME_DISPLAY_INFO (f)->last_user_time,
 				    xaction, return_frame, action_list,
