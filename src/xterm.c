@@ -16858,9 +16858,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             memset (&compose_status, 0, sizeof (compose_status));
 
 #ifdef HAVE_XKB
-	  if (FRAME_DISPLAY_INFO (f)->xkb_desc)
+	  if (dpyinfo->xkb_desc)
 	    {
-	      XkbDescRec *rec = FRAME_DISPLAY_INFO (f)->xkb_desc;
+	      XkbDescRec *rec = dpyinfo->xkb_desc;
 
 	      if (rec->map->modmap && rec->map->modmap[xkey.keycode])
 		goto done_keysym;
@@ -20109,9 +20109,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      state |= x_emacs_to_x_modifiers (dpyinfo, extra_keyboard_modifiers);
 
 #ifdef HAVE_XKB
-	      if (FRAME_DISPLAY_INFO (f)->xkb_desc)
+	      if (dpyinfo->xkb_desc)
 		{
-		  XkbDescRec *rec = FRAME_DISPLAY_INFO (f)->xkb_desc;
+		  XkbDescRec *rec = dpyinfo->xkb_desc;
 
 		  if (rec->map->modmap && rec->map->modmap[xev->detail])
 		    goto xi_done_keysym;
