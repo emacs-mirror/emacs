@@ -4127,7 +4127,7 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 	  lval = Fcons (intern (name), lval);
 	  lval = Fcons (QXdndSelection, lval);
 	  ie.arg = lval;
-	  ie.timestamp = CurrentTime;
+	  ie.timestamp = timestamp;
 
 	  XSETINT (ie.x, win_x);
 	  XSETINT (ie.y, win_y);
