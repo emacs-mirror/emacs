@@ -286,7 +286,7 @@ naming the shell."
   :group 'sh-script)
 
 (defcustom sh-imenu-generic-expression
-  '((sh
+  `((sh
      . ((nil
 	 ;; function FOO
 	 ;; function FOO()
@@ -295,8 +295,21 @@ naming the shell."
 	;; FOO()
 	(nil
 	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
-	 1)
-	)))
+	 1)))
+    (mksh
+     . ((nil
+         ;; function FOO
+         ;; function FOO()
+         ,(rx bol (* (syntax whitespace)) "function" (+ (syntax whitespace))
+              (group (1+ (not (any "\0\t\n \"$&'();<=>\\`|#*?[]/"))))
+              (* (syntax whitespace)) (? "()"))
+         1)
+        (nil
+         ;; FOO()
+         ,(rx bol (* (syntax whitespace))
+              (group (1+ (not (any "\0\t\n \"$&'();<=>\\`|#*?[]/"))))
+              (* (syntax whitespace)) "()")
+         1))))
   "Alist of regular expressions for recognizing shell function definitions.
 See `sh-feature' and `imenu-generic-expression'."
   :type '(alist :key-type (symbol :tag "Shell")
