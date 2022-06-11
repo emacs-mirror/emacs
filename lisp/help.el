@@ -1510,31 +1510,14 @@ in `describe-map-tree'."
     (let ((vect (sort vect 'help--describe-map-compare))
           (columns ())
           line-start key-end column)
-      ;; If we're in a <remap> section of the output, then also
-      ;; display the bindings of the keys that we've remapped from.
-      ;; This enables the user to actually see what keys to tap to
-      ;; execute the remapped commands.
-      (when (equal prefix [remap])
-        (dolist (binding (prog1 vect
-                           (setq vect nil)))
-          (push binding vect)
-          (when-let ((other (and (not (eq (car binding) 'self-insert-command))
-                                 (car (where-is-internal (car binding))))))
-            (push (list (elt other (1- (length other)))
-                        (car binding)
-                        nil
-                        (seq-into (butlast (seq-into other 'list)) 'vector))
-                  vect)))
-        (setq vect (nreverse vect)))
       ;; Now output them in sorted order.
       (while vect
         (let* ((elem (car vect))
                (start (nth 0 elem))
                (definition (nth 1 elem))
                (shadowed (nth 2 elem))
-               ;; We override the prefix for the <remap> extra commands.
-               (prefix (or (nth 3 elem) prefix))
-               (end start))
+               (end start)
+               remapped)
           ;; Find consecutive chars that are identically defined.
           (when (fixnump start)
             (while (and (cdr vect)
@@ -1558,7 +1541,19 @@ in `describe-map-tree'."
             ;; Now START .. END is the range to describe next.
             ;; Insert the string to describe the event START.
             (setq line-start (point))
-            (insert (help--key-description-fontified (vector start) prefix))
+            ;; If we're in a <remap> section of the output, then also
+            ;; display the bindings of the keys that we've remapped from.
+            ;; This enables the user to actually see what keys to tap to
+            ;; execute the remapped commands.
+            (if (setq remapped
+                      (and (equal prefix [remap])
+                           (not (eq definition 'self-insert-command))
+                           (car (where-is-internal definition))))
+                (insert (help--key-description-fontified
+                         (vector (elt remapped (1- (length remapped))))
+                         (seq-into (butlast (seq-into remapped 'list))
+                                   'vector)))
+              (insert (help--key-description-fontified (vector start) prefix)))
             (when (not (eq start end))
               (insert " .. " (help--key-description-fontified (vector end)
                                                               prefix)))
@@ -1572,9 +1567,15 @@ in `describe-map-tree'."
             ;; Print a description of the definition of this character.
             ;; elt_describer will take care of spacing out far enough for
             ;; alignment purposes.
-            (when shadowed
+            (when (or shadowed remapped)
               (goto-char (max (1- (point)) (point-min)))
-              (insert "\n  (this binding is currently shadowed)")
+              (when shadowed
+                (insert "\n  (this binding is currently shadowed)"))
+              (when remapped
+                (insert (format
+                         "\n  (Remapped via %s)"
+                         (help--key-description-fontified
+                          (vector start) prefix))))
               (goto-char (min (1+ (point)) (point-max))))))
         ;; Next item in list.
         (setq vect (cdr vect)))
