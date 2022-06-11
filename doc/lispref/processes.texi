@@ -3470,13 +3470,15 @@ type values:
 @itemx byte
 Unsigned byte, with length 1.
 
-@item uint @var{bitlen}
-Unsigned integer in network byte order, with @var{bitlen} bits.
+@item uint @var{bitlen} &optional @var{le}
+Unsigned integer in network byte order (big-endian), with @var{bitlen} bits.
 @var{bitlen} has to be a multiple of 8.
+If @var{le} is non-@code{nil}, then use little-endian byte order.
 
-@item uintr @var{bitlen}
-Unsigned integer in little endian order, with @var{bitlen} bits.
+@item sint @var{bitlen} @var{le}
+Signed integer in network byte order (big-endian), with @var{bitlen} bits.
 @var{bitlen} has to be a multiple of 8.
+If @var{le} is non-@code{nil}, then use little-endian byte order.
 
 @item str @var{len}
 Unibyte string (@pxref{Text Representations}) of length @var{len} bytes.

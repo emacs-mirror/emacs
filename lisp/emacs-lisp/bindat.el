@@ -77,7 +77,7 @@
 ;;    (bindat-type
 ;;      (type      u8)
 ;;	(opcode	   u8)
-;;	(length	   uintr 32)  ;; little endian order
+;;	(length	   uint 32 t)  ;; little endian order
 ;;	(id	   strz 8)
 ;;	(data	   vec length)
 ;;	(_         align 4)))
@@ -663,19 +663,15 @@ is the name of a variable that will hold the value we need to pack.")
     (`(length . ,_) `(cl-incf bindat-idx 1))
     (`(pack . ,args) `(bindat--pack-u8 . ,args))))
 
-(cl-defmethod bindat--type (op (_ (eql 'uint))  n)
+(cl-defmethod bindat--type (op (_ (eql 'uint))  n &optional le)
   (if (eq n 8) (bindat--type op 'byte)
     (bindat--pcase op
-      ('unpack `(bindat--unpack-uint ,n))
+      ('unpack
+       `(if ,le (bindat--unpack-uintr ,n) (bindat--unpack-uint ,n)))
       (`(length . ,_) `(cl-incf bindat-idx (/ ,n 8)))
-      (`(pack . ,args) `(bindat--pack-uint ,n . ,args)))))
-
-(cl-defmethod bindat--type (op (_ (eql 'uintr)) n)
-  (if (eq n 8) (bindat--type op 'byte)
-    (bindat--pcase op
-      ('unpack `(bindat--unpack-uintr ,n))
-      (`(length . ,_) `(cl-incf bindat-idx (/ ,n 8)))
-      (`(pack . ,args) `(bindat--pack-uintr ,n . ,args)))))
+      (`(pack . ,args)
+       `(if ,le (bindat--pack-uintr ,n . ,args)
+          (bindat--pack-uint ,n . ,args))))))
 
 (cl-defmethod bindat--type (op (_ (eql 'str))   len)
   (bindat--pcase op
@@ -829,7 +825,7 @@ is the name of a variable that will hold the value we need to pack.")
     &optional ":unpack-val" def-form))
 
 (def-edebug-elem-spec 'bindat-type
-  '(&or ["uint" def-form]
+  '(&or ["uint" def-form &optional def-form]
         ["uintr" def-form]
         ["str" def-form]
         ["strz" &optional def-form]
@@ -849,8 +845,7 @@ is the name of a variable that will hold the value we need to pack.")
   "Return the Bindat type value to pack&unpack TYPE.
 TYPE is a Bindat type expression.  It can take the following forms:
 
-  uint BITLEN		- Big-endian unsigned integer
-  uintr BITLEN		- Little-endian unsigned integer
+  uint BITLEN [LE]	- unsigned integer (big-endian if LE is nil)
   str LEN		- Byte string
   strz [LEN]		- Zero-terminated byte-string
   bits LEN		- Bit vector (LEN is counted in bytes)
@@ -877,7 +872,7 @@ controlled in the following way:
 - If the list of fields is preceded with `:pack-var VAR' then the object to
   be packed is bound to VAR when evaluating the EXPs of `:pack-val'.
 
-All the above BITLEN, LEN, COUNT, and EXP are ELisp expressions evaluated
+All the above BITLEN, LEN, LE, COUNT, and EXP are ELisp expressions evaluated
 in the current lexical context extended with the previous fields.
 
 TYPE can additionally be one of the Bindat type macros defined with
@@ -891,7 +886,7 @@ a bindat type expression."
                    :pe ,(bindat--toplevel 'pack   type))))
 
 (eval-and-compile
-  (defconst bindat--primitives '(byte uint uintr str strz bits fill align
+  (defconst bindat--primitives '(byte uint str strz bits fill align
                                  struct type vec unit)))
 
 (eval-and-compile
@@ -935,9 +930,9 @@ a bindat type expression."
         (if ud (help-add-fundoc-usage combined-doc (car ud)) combined-doc)))))
 
 (bindat-defmacro u8 () "Unsigned 8bit integer." '(byte))
-(bindat-defmacro sint (bitlen r)
+(bindat-defmacro sint (bitlen le)
   "Signed integer of size BITLEN.
-Bigendian if R is nil and little endian if not."
+Big-endian if LE is nil and little-endian if not."
   (let ((bl (make-symbol "bitlen"))
         (max (make-symbol "max"))
         (wrap (make-symbol "wrap")))
@@ -945,9 +940,13 @@ Bigendian if R is nil and little endian if not."
             (,max (ash 1 (1- ,bl)))
             (,wrap (+ ,max ,max)))
        (struct :pack-var v
-               (n if ,r (uintr ,bl) (uint ,bl)
+               (n uint ,bl ,le
                   :pack-val (if (< v 0) (+ v ,wrap) v))
                :unpack-val (if (>= n ,max) (- n ,wrap) n)))))
+
+(bindat-defmacro uintr (bitlen)
+  "(deprecated since Emacs-29) Little-endian unsigned integer."
+  `(uint ,bitlen t))
 
 (bindat-defmacro repeat (count &rest type)
   "Like `vec', but unpacks to a list rather than a vector."
