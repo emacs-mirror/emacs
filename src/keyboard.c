@@ -1567,9 +1567,15 @@ command_loop_1 (void)
 	    call0 (Qdeactivate_mark);
 	  else
 	    {
+	      Lisp_Object symval;
 	      /* Even if not deactivating the mark, set PRIMARY if
 		 `select-active-regions' is non-nil.  */
-	      if (!NILP (Fwindow_system (Qnil))
+	      if ((!NILP (Fwindow_system (Qnil))
+		   || ((symval =
+			find_symbol_value (Qxterm_select_active_regions),
+			(!EQ (symval, Qunbound) && !NILP (symval)))
+		       && !NILP (Fterminal_parameter (Qnil,
+						      Qxterm__set_selection))))
 		  /* Even if mark_active is non-nil, the actual buffer
 		     marker may not have been set yet (Bug#7044).  */
 		  && XMARKER (BVAR (current_buffer, mark))->buffer
@@ -12163,6 +12169,8 @@ syms_of_keyboard (void)
   DEFSYM (Qpolling_period, "polling-period");
 
   DEFSYM (Qgui_set_selection, "gui-set-selection");
+  DEFSYM (Qxterm__set_selection, "xterm--set-selection");
+  DEFSYM (Qxterm_select_active_regions, "xterm-select-active-regions");
 
   /* The primary selection.  */
   DEFSYM (QPRIMARY, "PRIMARY");

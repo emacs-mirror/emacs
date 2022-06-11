@@ -2149,6 +2149,9 @@ frame's display)."
 (defalias 'display-multi-frame-p #'display-graphic-p)
 (defalias 'display-multi-font-p #'display-graphic-p)
 
+;; From term/xterm.el
+(defvar xterm-select-active-regions)
+
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
@@ -2163,6 +2166,9 @@ frame's display)."
       (with-no-warnings
        (not (null dos-windows-version))))
      ((memq frame-type '(x w32 ns pgtk))
+      t)
+     ((and xterm-select-active-regions
+           (terminal-parameter nil 'xterm--set-selection))
       t)
      (t
       nil))))
