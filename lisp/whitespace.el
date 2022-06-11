@@ -880,27 +880,27 @@ C++ modes only."
 
 It's a list containing some or all of the following values:
 
-   nil			no action is taken.
+   nil                  no action is taken.
 
-   cleanup		cleanup any bogus whitespace always when local
-			whitespace is turned on.
-			See `whitespace-cleanup' and
-			`whitespace-cleanup-region'.
+   cleanup              cleanup any bogus whitespace always when local
+                        whitespace is turned on.
+                        See `whitespace-cleanup' and
+                        `whitespace-cleanup-region'.
 
-   report-on-bogus	report if there is any bogus whitespace always
-			when local whitespace is turned on.
+   report-on-bogus      report if there is any bogus whitespace always
+                        when local whitespace is turned on.
 
-   auto-cleanup		cleanup any bogus whitespace when buffer is
-			written.
-			See `whitespace-cleanup' and
-			`whitespace-cleanup-region'.
+   auto-cleanup         cleanup any bogus whitespace when buffer is
+                        written.
+                        See `whitespace-cleanup' and
+                        `whitespace-cleanup-region'.
 
-   abort-on-bogus	abort if there is any bogus whitespace and the
-			buffer is written.
+   abort-on-bogus       abort if there is any bogus whitespace and the
+                        buffer is written.
 
-   warn-if-read-only	give a warning if `cleanup' or `auto-cleanup'
-			is included in `whitespace-action' and the
-			buffer is read-only.
+   warn-if-read-only    give a warning if `cleanup' or `auto-cleanup'
+                        is included in `whitespace-action' and the
+                        buffer is read-only.
 
 Any other value is treated as nil."
   :type '(choice :tag "Actions"
