@@ -249,7 +249,7 @@ Grantha script, are supported in this language environment."))
             (coding-system utf-8)
             (coding-priority utf-8)
             (input-method . "lepcha")
-            (sample-text . "Lepcha (ᰛᰩᰵ)	ᰂᰦᰕᰥᰬ")
+            (sample-text . "Lepcha (ᰛᰩᰵᰛᰧᰵᰶ)	ᰂᰦᰕᰥᰬ")
             (documentation . "\
 Lepcha language and its script are supported in this
 language environment."))
@@ -756,7 +756,8 @@ language environment."))
                         (list (vector
                                ;; Consonant based syllables
                                (concat consonant other-signs "?" vowel "?"
-                                       consonant-sign "?" subjoined-letter "?")
+                                       consonant-sign "?" subjoined-letter "?"
+                                       other-signs "?")
                                1 'font-shape-gstring))))
 
 (provide 'indian)
