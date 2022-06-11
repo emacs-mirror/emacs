@@ -582,10 +582,11 @@ class Emacs : public BApplication
 {
 public:
   BMessage settings;
-  bool settings_valid_p = false;
+  bool settings_valid_p;
   EmacsScreenChangeMonitor *monitor;
 
-  Emacs (void) : BApplication ("application/x-vnd.GNU-emacs")
+  Emacs (void) : BApplication ("application/x-vnd.GNU-emacs"),
+		 settings_valid_p (false)
   {
     BPath settings_path;
 
@@ -1948,26 +1949,31 @@ public:
 class EmacsScrollBar : public BScrollBar
 {
 public:
-  int dragging = 0;
+  int dragging;
   bool horizontal;
   enum haiku_scroll_bar_part current_part;
   float old_value;
   scroll_bar_info info;
 
   /* True if button events should be passed to the parent.  */
-  bool handle_button = false;
-  bool in_overscroll = false;
-  bool can_overscroll = false;
-  bool maybe_overscroll = false;
+  bool handle_button;
+  bool in_overscroll;
+  bool can_overscroll;
+  bool maybe_overscroll;
   BPoint last_overscroll;
   int last_reported_overscroll_value;
   int max_value, real_max_value;
   int overscroll_start_value;
   bigtime_t repeater_start;
 
-  EmacsScrollBar (int x, int y, int x1, int y1, bool horizontal_p) :
-    BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
-		B_HORIZONTAL : B_VERTICAL)
+  EmacsScrollBar (int x, int y, int x1, int y1, bool horizontal_p)
+    : BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
+		  B_HORIZONTAL : B_VERTICAL),
+      dragging (0),
+      handle_button (false),
+      in_overscroll (false),
+      can_overscroll (false),
+      maybe_overscroll (false)
   {
     BView *vw = (BView *) this;
     vw->SetResizingMode (B_FOLLOW_NONE);
