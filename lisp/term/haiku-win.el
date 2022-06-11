@@ -316,7 +316,6 @@ or a pair of markers) and turns it into a file system reference."
        ((posn-area (event-start event)))
        ((assoc "refs" string)
         (with-selected-window window
-          (raise-frame)
           (dolist (filename (cddr (assoc "refs" string)))
             (dnd-handle-one-url window 'private
                                 (concat "file:" filename)))))
@@ -327,7 +326,6 @@ or a pair of markers) and turns it into a file system reference."
               (dnd-handle-one-url window 'private bf)))))
        ((assoc "text/plain" string)
         (with-selected-window window
-          (raise-frame)
           (dolist (text (cddr (assoc "text/plain" string)))
             (unless mouse-yank-at-point
               (goto-char (posn-point (event-start event))))

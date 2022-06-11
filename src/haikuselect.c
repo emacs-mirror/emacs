@@ -755,9 +755,6 @@ haiku_unwind_drag_message (void *message)
 {
   haiku_dnd_frame = NULL;
   BMessage_delete (message);
-
-  if (haiku_dnd_follow_tooltip)
-    Fx_hide_tip ();
 }
 
 DEFUN ("haiku-drag-message", Fhaiku_drag_message, Shaiku_drag_message,
@@ -826,10 +823,16 @@ currently being displayed to move along with the mouse pointer.  */)
 			process_pending_signals,
 			haiku_should_quit_drag);
 
-  FRAME_DISPLAY_INFO (f)->grabbed = 0;
-
+  /* Don't clear the mouse grab if the user decided to quit instead
+     of the drop finishing.  */
   if (rc)
     quit ();
+
+  /* Now dismiss the tooltip, since the drop presumably succeeded.  */
+  if (!NILP (follow_tooltip))
+    Fx_hide_tip ();
+
+  FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
   return unbind_to (idx, Qnil);
 }
