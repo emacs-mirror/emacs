@@ -697,7 +697,10 @@ functions are annotated with \"<f>\" via the
                                      (let ((c (char-after)))
                                        (if (eq c ?\() ?\(
                                          (if (memq (char-syntax c) '(?w ?_))
-                                             (read (current-buffer))))))
+                                             (let ((pt (point)))
+                                               (forward-sexp)
+                                               (intern-soft
+                                                (buffer-substring pt (point))))))))
                             (error nil))))
                      (pcase parent
                        ;; FIXME: Rather than hardcode special cases here,
