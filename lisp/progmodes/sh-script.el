@@ -319,7 +319,7 @@ See `sh-feature' and `imenu-generic-expression'."
 				   :value-type
 				   (repeat :tag "Regexp, index..." sexp)))
   :group 'sh-script
-  :version "20.4")
+  :version "29.1")
 
 (defun sh-current-defun-name ()
   "Find the name of function or variable at point.
