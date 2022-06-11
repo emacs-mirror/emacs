@@ -211,6 +211,7 @@
 	(javanese #xA98F #xA9B4 #xA9CA)
 	(cham #xAA00)
 	(tai-viet #xAA80)
+        (meetei-mayek #xABC0 #xABE3 #xAAE0 #xAAF6)
 	(hangul #xAC00)
 	(linear-b #x10000)
 	(aegean-number #x10100)
@@ -776,6 +777,7 @@
                     rejang
                     javanese
 		    tai-viet
+                    meetei-mayek
 		    aegean-number
 		    ancient-greek-number
 		    ancient-symbol
