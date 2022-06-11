@@ -4037,7 +4037,7 @@ by calling `format-decode', which see.  */)
 
       if (!NILP (beg) && !seekable)
 	xsignal2 (Qfile_error,
-		  build_string ("trying to use a start positing in a non-seekable file"),
+		  build_string ("cannot use a start position in a non-seekable file/device"),
 		  orig_filename);
 
       if (!NILP (replace))
