@@ -196,6 +196,7 @@ Also check that an encoding error can appear in a symlink."
 (ert-deftest fileio-tests--non-regular-insert ()
   (skip-unless (file-exists-p "/dev/urandom"))
   (with-temp-buffer
+    (set-buffer-multibyte nil)
     (should-error (insert-file-contents "/dev/urandom" nil 5 10))
     (insert-file-contents "/dev/urandom" nil nil 10)
     (should (= (buffer-size) 10))))
