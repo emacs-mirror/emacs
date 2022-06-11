@@ -795,9 +795,9 @@ static int x_use_pending_selection_requests;
 
 static void x_push_selection_request (struct selection_input_event *);
 
-/* Defer selection requests.  Any selection requests generated after
-   this can then be processed by calling
-   `x_handle_pending_selection_requests'.
+/* Defer selection requests.  Between this and
+   x_release_selection_requests, any selection requests can be
+   processed by calling `x_handle_pending_selection_requests'.
 
    Also run through and queue all the selection events already in the
    keyboard buffer.  */
@@ -805,10 +805,11 @@ void
 x_defer_selection_requests (void)
 {
   union buffered_input_event *event;
+  bool between;
+
+  between = false;
 
   block_input ();
-  x_use_pending_selection_requests++;
-
   if (!x_use_pending_selection_requests)
     {
       event = kbd_fetch_ptr;
@@ -822,13 +823,24 @@ x_defer_selection_requests (void)
 
 	      /* Mark this selection event as invalid.   */
 	      SELECTION_EVENT_DPYINFO (&event->sie) = NULL;
+
+	      /* Move the kbd_fetch_ptr along if doing so would not
+		 result in any other events being skipped.  This
+		 avoids exhausting the keyboard buffer with some
+		 over-enthusiastic clipboard managers.  */
+	      if (!between)
+		kbd_fetch_ptr = (event == kbd_buffer + KBD_BUFFER_SIZE - 1
+				 ? kbd_buffer : event + 1);
 	    }
+	  else
+	    between = true;
 
 	  event = (event == kbd_buffer + KBD_BUFFER_SIZE - 1
 		   ? kbd_buffer : event + 1);
 	}
     }
 
+  x_use_pending_selection_requests++;
   unblock_input ();
 }
 
