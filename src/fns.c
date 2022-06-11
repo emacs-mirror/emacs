@@ -2519,7 +2519,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
   if (SYMBOL_WITH_POS_P (o2))
     o2 = SYMBOL_WITH_POS_SYM (o2);
 
-  if (EQ (o1, o2))
+  if (BASE_EQ (o1, o2))
     return true;
   if (XTYPE (o1) != XTYPE (o2))
     return false;
