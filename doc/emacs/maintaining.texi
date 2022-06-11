@@ -2826,6 +2826,13 @@ place of a file name on the command line.  @command{etags} will read from
 standard input and mark the produced tags as belonging to the file
 @var{file}.
 
+  For C and C++, if the source files don't observe the GNU Coding
+Standards' convention if having braces (@samp{@{} and @samp{@}}) in
+column zero only for top-level definitions, like functions and
+@code{struct} definitions, we advise that you use the
+@samp{--ignore-indentation} option, to prevent @command{etags} from
+incorrectly interpreting closing braces in column zero.
+
   @samp{etags --help} outputs the list of the languages @command{etags}
 knows, and the file name rules for guessing the language.  It also prints
 a list of all the available @command{etags} options, together with a short
