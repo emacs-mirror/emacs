@@ -22379,51 +22379,55 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 
   if (x_dnd_in_progress || x_dnd_waiting_for_finish)
     {
-      /* Handle display disconnect errors here because this function
-	 is not reentrant at this particular spot.  */
-      io_error_handler = XSetIOErrorHandler (x_dnd_io_error_handler);
-
-      if (!sigsetjmp (x_dnd_disconnect_handler, 1)
-	  && x_dnd_in_progress
-	  && dpy != (x_dnd_waiting_for_finish
-		     ? x_dnd_finish_display
-		     : FRAME_X_DISPLAY (x_dnd_frame)))
+      if (!ioerror)
 	{
-	  /* Clean up drag and drop if the drag frame's display isn't
-	     the one being disconnected.  */
-	  f = x_dnd_frame;
+	  /* Handle display disconnect errors here because this function
+	     is not reentrant at this particular spot.  */
+	  io_error_handler = XSetIOErrorHandler (x_dnd_io_error_handler);
 
-	  if (x_dnd_last_seen_window != None
-	      && x_dnd_last_protocol_version != -1)
-	    x_dnd_send_leave (x_dnd_frame,
-			      x_dnd_last_seen_window);
-	  else if (x_dnd_last_seen_window != None
-		   && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
-		   && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
-		   && x_dnd_motif_setup_p)
+	  if (!!sigsetjmp (x_dnd_disconnect_handler, 1)
+	      && x_dnd_in_progress
+	      && dpy == (x_dnd_waiting_for_finish
+			 ? x_dnd_finish_display
+			 : FRAME_X_DISPLAY (x_dnd_frame)))
 	    {
-	      dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
-					    XM_DRAG_REASON_DROP_START);
-	      dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
-	      dmsg.timestamp = FRAME_DISPLAY_INFO (f)->last_user_time;
-	      dmsg.side_effects
-		= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
-								   x_dnd_wanted_action),
-				       XM_DROP_SITE_VALID, x_dnd_motif_operations,
-				       XM_DROP_ACTION_DROP_CANCEL);
-	      dmsg.x = 0;
-	      dmsg.y = 0;
-	      dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
-	      dmsg.source_window = FRAME_X_WINDOW (f);
+	      /* Clean up drag and drop if the drag frame's display isn't
+		 the one being disconnected.  */
+	      f = x_dnd_frame;
 
-	      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
-					    x_dnd_last_seen_window, 0);
-	      xm_send_drop_message (FRAME_DISPLAY_INFO (f), FRAME_X_WINDOW (f),
-				    x_dnd_last_seen_window, &dmsg);
+	      if (x_dnd_last_seen_window != None
+		  && x_dnd_last_protocol_version != -1)
+		x_dnd_send_leave (x_dnd_frame,
+				  x_dnd_last_seen_window);
+	      else if (x_dnd_last_seen_window != None
+		       && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
+		       && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
+		       && x_dnd_motif_setup_p)
+		{
+		  dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+						XM_DRAG_REASON_DROP_START);
+		  dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+		  dmsg.timestamp = FRAME_DISPLAY_INFO (f)->last_user_time;
+		  dmsg.side_effects
+		    = XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+								       x_dnd_wanted_action),
+					   XM_DROP_SITE_VALID, x_dnd_motif_operations,
+					   XM_DROP_ACTION_DROP_CANCEL);
+		  dmsg.x = 0;
+		  dmsg.y = 0;
+		  dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
+		  dmsg.source_window = FRAME_X_WINDOW (f);
+
+		  x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
+						x_dnd_last_seen_window, 0);
+		  xm_send_drop_message (FRAME_DISPLAY_INFO (f), FRAME_X_WINDOW (f),
+					x_dnd_last_seen_window, &dmsg);
+		}
 	    }
+
+	  XSetIOErrorHandler (io_error_handler);
 	}
 
-      XSetIOErrorHandler (io_error_handler);
       dpyinfo = x_display_info_for_display (dpy);
 
       x_dnd_last_seen_window = None;
@@ -22432,7 +22436,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
       x_dnd_waiting_for_finish = false;
 
       if (x_dnd_use_toplevels)
-	x_dnd_free_toplevels (false);
+	x_dnd_free_toplevels (!ioerror);
 
       x_dnd_return_frame_object = NULL;
       x_dnd_movement_frame = NULL;
