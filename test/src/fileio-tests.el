@@ -193,4 +193,11 @@ Also check that an encoding error can appear in a symlink."
   (should (equal (file-name-concat "" "bar") "bar"))
   (should (equal (file-name-concat "" "") "")))
 
+(defun test-non-regular-insert ()
+  (skip-unless (file-exists-p "/dev/urandom"))
+  (with-temp-buffer
+    (should-error (insert-file-contents "/dev/urandom" nil 5 10))
+    (insert-file-contents "/dev/urandom" nil nil 10)
+    (should (= (point-max) 10))))
+
 ;;; fileio-tests.el ends here

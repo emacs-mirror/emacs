@@ -3898,6 +3898,10 @@ The optional third and fourth arguments BEG and END specify what portion
 of the file to insert.  These arguments count bytes in the file, not
 characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
 
+When inserting data from a special file (e.g., /dev/urandom), you
+can't specify VISIT or BEG, and END should be specified to avoid
+inserting unlimited data into the buffer.
+
 If optional fifth argument REPLACE is non-nil, replace the current
 buffer contents (in the accessible portion) with the file contents.
 This is better than simply deleting and inserting the whole thing
@@ -3925,7 +3929,7 @@ by calling `format-decode', which see.  */)
   Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
   ptrdiff_t total = 0;
-  bool not_regular = 0;
+  bool regular = true;
   int save_errno = 0;
   char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
@@ -3948,6 +3952,7 @@ by calling `format-decode', which see.  */)
   /* SAME_AT_END_CHARPOS counts characters, because
      restore_window_points needs the old character count.  */
   ptrdiff_t same_at_end_charpos = ZV;
+  bool seekable = true;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -4021,7 +4026,8 @@ by calling `format-decode', which see.  */)
      least signal an error.  */
   if (!S_ISREG (st.st_mode))
     {
-      not_regular = 1;
+      regular = false;
+      seekable = lseek (fd, 0, SEEK_CUR) < 0;
 
       if (! NILP (visit))
         {
@@ -4029,7 +4035,12 @@ by calling `format-decode', which see.  */)
 	  goto notfound;
         }
 
-      if (! NILP (replace) || ! NILP (beg) || ! NILP (end))
+      if (!NILP (beg) && !seekable)
+	xsignal2 (Qfile_error,
+		  build_string ("trying to use a start positing in a non-seekable file"),
+		  orig_filename);
+
+      if (!NILP (replace))
 	xsignal2 (Qfile_error,
 		  build_string ("not a regular file"), orig_filename);
     }
@@ -4051,7 +4062,7 @@ by calling `format-decode', which see.  */)
     end_offset = file_offset (end);
   else
     {
-      if (not_regular)
+      if (!regular)
 	end_offset = TYPE_MAXIMUM (off_t);
       else
 	{
@@ -4073,7 +4084,7 @@ by calling `format-decode', which see.  */)
   /* Check now whether the buffer will become too large,
      in the likely case where the file's length is not changing.
      This saves a lot of needless work before a buffer overflow.  */
-  if (! not_regular)
+  if (regular)
     {
       /* The likely offset where we will stop reading.  We could read
 	 more (or less), if the file grows (or shrinks) as we read it.  */
@@ -4111,7 +4122,7 @@ by calling `format-decode', which see.  */)
 	{
 	  /* Don't try looking inside a file for a coding system
 	     specification if it is not seekable.  */
-	  if (! not_regular && ! NILP (Vset_auto_coding_function))
+	  if (regular && !NILP (Vset_auto_coding_function))
 	    {
 	      /* Find a coding system specified in the heading two
 		 lines or in the tailing several lines of the file.
@@ -4573,7 +4584,7 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
-  if (! not_regular)
+  if (seekable || !NILP (end))
     total = end_offset - beg_offset;
   else
     /* For a special file, all we can do is guess.  */
@@ -4619,7 +4630,7 @@ by calling `format-decode', which see.  */)
 	ptrdiff_t trytry = min (total - how_much, READ_BUF_SIZE);
 	ptrdiff_t this;
 
-	if (not_regular)
+	if (!seekable && NILP (end))
 	  {
 	    Lisp_Object nbytes;
 
@@ -4670,7 +4681,7 @@ by calling `format-decode', which see.  */)
 	   For a special file, where TOTAL is just a buffer size,
 	   so don't bother counting in HOW_MUCH.
 	   (INSERTED is where we count the number of characters inserted.)  */
-	if (! not_regular)
+	if (seekable || !NILP (end))
 	  how_much += this;
 	inserted += this;
       }
@@ -4848,7 +4859,7 @@ by calling `format-decode', which see.  */)
 	    Funlock_file (BVAR (current_buffer, file_truename));
 	  Funlock_file (filename);
 	}
-      if (not_regular)
+      if (!regular)
 	xsignal2 (Qfile_error,
 		  build_string ("not a regular file"), orig_filename);
     }
