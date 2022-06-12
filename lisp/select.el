@@ -783,11 +783,14 @@ VALUE should be SELECTION's local value."
              (stringp value)
              (file-exists-p value)
              (not (file-remote-p value)))
-    (cons 'STRING
-          (encode-coding-string (xselect-tt-net-file value)
-                                (or file-name-coding-system
-                                    default-file-name-coding-system)
-                                t))))
+    (let ((name (encode-coding-string value
+                                      (or file-name-coding-system
+                                          default-file-name-coding-system))))
+      (cons 'STRING
+            (encode-coding-string (xselect-tt-net-file name)
+                                  (or file-name-coding-system
+                                      default-file-name-coding-system)
+                                  t)))))
 
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)

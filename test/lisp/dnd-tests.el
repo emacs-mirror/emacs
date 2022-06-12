@@ -184,10 +184,15 @@ This function only tries to handle strings."
                     (not (eq window-system 'x))))
   (let ((normal-temp-file (expand-file-name (make-temp-name "dnd-test")
                                             temporary-file-directory))
+        (normal-multibyte-file (expand-file-name
+                                (make-temp-name "тест-на-перетаскивание")
+                                temporary-file-directory))
         (remote-temp-file (dnd-tests-make-temp-name)))
     ;; Touch those files if they don't exist.
     (unless (file-exists-p normal-temp-file)
       (write-region "" 0 normal-temp-file))
+    (unless (file-exists-p normal-multibyte-file)
+      (write-region "" 0 normal-multibyte-file))
     (unless (file-exists-p remote-temp-file)
       (write-region "" 0 remote-temp-file))
     (unwind-protect
@@ -239,8 +244,20 @@ This function only tries to handle strings."
                     (dnd-begin-file-drag normal-temp-file)
                     (not dnd-last-dragged-remote-file)))
           ;; Test that links to remote files can't be created.
-          (should-error (dnd-begin-file-drag remote-temp-file nil 'link)))
+          (should-error (dnd-begin-file-drag remote-temp-file nil 'link))
+          ;; Test dragging a file with a multibyte filename.
+          (should (eq (dnd-begin-file-drag normal-multibyte-file) 'copy))
+          ;; Test that the ToolTalk filename is encodes and decodes correctly.
+          (let* ((netfile-data (cdr (dnd-tests-verify-selection-data '_DT_NETFILE)))
+                 (parsed (dnd-tests-parse-tt-netfile netfile-data))
+                 (filename (encode-coding-string normal-multibyte-file
+                                                 (or file-name-coding-system
+                                                     default-file-name-coding-system))))
+            (should (equal (nth 0 parsed) (system-name)))
+            (should (equal (nth 1 parsed) filename))
+            (should (equal (nth 2 parsed) filename))))
       (delete-file normal-temp-file)
+      (delete-file normal-multibyte-file)
       (delete-file remote-temp-file))))
 
 (ert-deftest dnd-tests-begin-drag-files ()
