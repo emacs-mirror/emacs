@@ -1162,6 +1162,10 @@ static int x_dnd_waiting_for_finish_proto;
    where the drag-and-drop operation originated.  */
 static bool x_dnd_allow_current_frame;
 
+/* Whether or not the `XdndTypeList' property has already been set on
+   the drag frame.  */
+static bool x_dnd_init_type_lists;
+
 /* Whether or not to return a frame from `x_dnd_begin_drag_and_drop'.
 
    0 means to do nothing.  1 means to wait for the mouse to first exit
@@ -3987,11 +3991,15 @@ x_dnd_send_enter (struct frame *f, Window target, int supported)
   for (i = 0; i < min (3, x_dnd_n_targets); ++i)
     msg.xclient.data.l[i + 2] = x_dnd_targets[i];
 
-  if (x_dnd_n_targets > 3)
+  if (x_dnd_n_targets > 3 && !x_dnd_init_type_lists)
     XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     dpyinfo->Xatom_XdndTypeList, XA_ATOM, 32,
 		     PropModeReplace, (unsigned char *) x_dnd_targets,
 		     x_dnd_n_targets);
+
+  /* Now record that the type list has already been set (if required),
+     so we don't have to set it again.  */
+  x_dnd_init_type_lists = true;
 
   x_catch_errors (dpyinfo->display);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
@@ -11036,6 +11044,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_toplevels = NULL;
   x_dnd_allow_current_frame = allow_current_frame;
   x_dnd_movement_frame = NULL;
+  x_dnd_init_type_lists = false;
 #ifdef HAVE_XKB
   x_dnd_keyboard_state = 0;
 
