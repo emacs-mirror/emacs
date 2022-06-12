@@ -312,7 +312,11 @@ as 0, i.e. don't block at all."
   "Control the size of the Eglot events buffer.
 If a number, don't let the buffer grow larger than that many
 characters.  If 0, don't use an event's buffer at all.  If nil,
-let the buffer grow forever."
+let the buffer grow forever.
+
+For changes on this variable to take effect on a connection
+already started, you need to restart the connection.  That can be
+done by `eglot-reconnect'."
   :type '(choice (const :tag "No limit" nil)
                  (integer :tag "Number of characters")))
 
