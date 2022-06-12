@@ -3505,7 +3505,7 @@ extern unsigned row_hash (struct glyph_row *);
 
 extern bool buffer_flipping_blocked_p (void);
 
-extern void update_redisplay_ticks (int, struct it *);
+extern void update_redisplay_ticks (int, struct window *);
 
 /* Defined in image.c */
 

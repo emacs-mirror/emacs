@@ -3222,7 +3222,7 @@ init_iterator (struct it *it, struct window *w,
 
   it->cmp_it.id = -1;
 
-  update_redisplay_ticks (0, it);
+  update_redisplay_ticks (0, w);
 
   /* Extra space between lines (on window systems only).  */
   if (base_face_id == DEFAULT_FACE_ID
@@ -8177,7 +8177,7 @@ void
 set_iterator_to_next (struct it *it, bool reseat_p)
 {
 
-  update_redisplay_ticks (1, it);
+  update_redisplay_ticks (1, it->w);
 
   switch (it->method)
     {
@@ -17171,17 +17171,14 @@ redisplay_window_1 (Lisp_Object window)
 		      Aborting runaway redisplay
  ***********************************************************************/
 
-/* Update the redisplay-tick count for a window, and signal an error
+/* Update the redisplay-tick count for window W, and signal an error
    if the tick count is above some threshold, indicating that
    redisplay of the window takes "too long".
 
-   TICKS is the amount of ticks to add to the window's current count;
-   zero means to initialize the count to zero.
-
-   IT is the iterator used for redisplay work; it->w is the window we
-   are working on.  */
+   TICKS is the amount of ticks to add to the W's current count; zero
+   means to initialize the count to zero.  */
 void
-update_redisplay_ticks (int ticks, struct it *it)
+update_redisplay_ticks (int ticks, struct window *w)
 {
   /* This keeps track of the window on which redisplay is working.  */
   static struct window *cwindow;
@@ -17190,16 +17187,16 @@ update_redisplay_ticks (int ticks, struct it *it)
   /* We only initialize the count if this is a different window.
      Otherwise, this is a call from init_iterator for the same window
      we tracked before, and we should keep the count.  */
-  if (!ticks && it->w != cwindow)
+  if (!ticks && w != cwindow)
     {
-      cwindow = it->w;
+      cwindow = w;
       window_ticks = 0;
     }
   if (ticks > 0)
     window_ticks += ticks;
   if (max_redisplay_ticks > 0 && window_ticks > max_redisplay_ticks)
     error ("Window showing buffer %s takes too long to redisplay",
-	   SSDATA (BVAR (XBUFFER (it->w->contents), name)));
+	   SSDATA (BVAR (XBUFFER (w->contents), name)));
 }
 
 
