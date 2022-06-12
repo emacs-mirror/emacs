@@ -241,6 +241,8 @@ it finishes, type \\[kill-find]."
     ;; Subdir headlerline must come first because the first marker in
     ;; subdir-alist points there.
     (insert "  " dir ":\n")
+    (when dired-make-directory-clickable
+      (dired--make-directory-clickable))
     ;; Make second line a ``find'' line in analogy to the ``total'' or
     ;; ``wildcard'' line.
     (let ((point (point)))
