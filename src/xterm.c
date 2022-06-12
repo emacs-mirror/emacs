@@ -4240,6 +4240,12 @@ x_dnd_cleanup_drag_and_drop (void *frame)
   if (x_dnd_motif_setup_p)
     XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+
+  /* Remove any type list set as well.  */
+  if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
+    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		     FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
+
   unblock_input ();
 
   x_dnd_frame = NULL;
@@ -11263,6 +11269,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
 
+
+	      /* Remove any type list set as well.  */
+	      if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
+		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				 FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
+
 	      /* Call kbd_buffer_store event, which calls
 		 handle_interrupt and sets `last-event-frame' along
 		 with various other things.  */
@@ -11348,6 +11360,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      if (x_dnd_motif_setup_p)
 		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+
+
+	      /* Remove any type list set as well.  */
+	      if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
+		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				 FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
 	      unblock_input ();
 
 	      quit ();
@@ -11386,6 +11404,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   if (x_dnd_motif_setup_p)
     XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+
+  /* Remove any type list set as well.  */
+  if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
+    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		     FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
   unblock_input ();
 
   if (x_dnd_return_frame == 3
