@@ -1575,6 +1575,12 @@ If non-nil (which is the default), hitting 'RET' or 'mouse-1' on
 the directory components at the directory displayed at the start of
 the buffer will take you to that directory.
 
+---
+*** Search and replace in Dired/Wdired supports more regexps.
+For example, the regexp ".*" will match only characters that are part
+of the file name.  Also "^.*$" can be used to match at the beginning
+of the file name and at the end of the file name.
+
 ** Exif
 
 ---

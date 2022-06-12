@@ -4456,12 +4456,12 @@ LAX-WHITESPACE: The value of `isearch-lax-whitespace' and
 
 
 (defun isearch-search-fun-in-text-property (property &optional search-fun)
-  "Return the function that searches inside fields.
-The arg PROPERTY defines the name of the text property that
-delimits fields in the current buffer.  Then the search will be
-narrowed to match only on such text properties.  The optional arg
-SEARCH-FUN can provide the default search function which is
-by default is the same as returned by `isearch-search-fun-default'."
+  "Return the function that searches inside text properties.
+The arg PROPERTY defines the name of the text property, and the search
+will be narrowed to match only inside such text properties in the current
+buffer.  The optional arg SEARCH-FUN can provide the default search
+function which is by default is the same as returned by
+`isearch-search-fun-default'."
   (lambda (string &optional bound noerror count)
     (let* ((old (point))
            ;; Check if point is already on the property.
@@ -4469,7 +4469,16 @@ by default is the same as returned by `isearch-search-fun-default'."
                        (if isearch-forward old (max (1- old) (point-min)))
                        property)
                   old))
-           end found)
+           end found (i 0)
+           (subregexp
+            (and isearch-regexp
+                 (save-match-data
+                   (catch 'subregexp
+                     (while (string-match "\\^\\|\\$" string i)
+                       (setq i (match-end 0))
+                       (when (subregexp-context-p string (match-beginning 0))
+                         ;; The ^/$ is not inside a char-range or escaped.
+                         (throw 'subregexp t))))))))
       ;; Otherwise, try to search for the next property.
       (unless beg
         (setq beg (if isearch-forward
@@ -4482,12 +4491,47 @@ by default is the same as returned by `isearch-search-fun-default'."
         (setq end (if isearch-forward
                       (next-single-property-change beg property)
                     (previous-single-property-change beg property)))
-        (setq found (funcall (or search-fun (isearch-search-fun-default))
-                             string (if bound (if isearch-forward
-                                                  (min bound end)
-                                                (max bound end))
-                                      end)
+        ;; Handle ^/$ specially by matching in a temporary buffer.
+        (if subregexp
+            (let* ((prop-beg
+                    (if (or (if isearch-forward (bobp) (eobp))
+                            (null (get-text-property
+                                   (+ (point) (if isearch-forward -1 0))
+                                   property)))
+                        ;; Already at the beginning of the field.
+                        beg
+                      ;; Get the real beginning of the field when
+                      ;; the search was started in the middle.
+                      (if isearch-forward
+                          (previous-single-property-change beg property)
+                        (next-single-property-change beg property))))
+                   (substring (buffer-substring prop-beg end))
+                   (offset (if isearch-forward prop-beg end))
+                   match-data)
+              (with-temp-buffer
+                (insert substring)
+                (goto-char (- beg offset -1))
+                ;; Apply ^/$ regexp on the whole extracted substring.
+                (setq found (funcall
+                             (or search-fun (isearch-search-fun-default))
+                             string (and bound (max (point-min)
+                                                    (min (point-max)
+                                                         (- bound offset -1))))
                              noerror count))
+                ;; Adjust match data as if it's matched in original buffer.
+                (when found
+                  (setq found (+ found offset -1)
+                        match-data (mapcar (lambda (m) (+ m offset -1))
+                                           (match-data)))))
+              (when match-data (set-match-data match-data)))
+          (setq found (funcall
+                       (or search-fun (isearch-search-fun-default))
+                       string (if bound (if isearch-forward
+                                            (min bound end)
+                                          (max bound end))
+                                end)
+                       noerror count)))
+        ;; Get the next text property.
         (unless found
           (setq beg (if isearch-forward
                         (next-single-property-change end property)
