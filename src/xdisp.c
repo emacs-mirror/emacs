@@ -3222,6 +3222,8 @@ init_iterator (struct it *it, struct window *w,
 
   it->cmp_it.id = -1;
 
+  update_redisplay_ticks (0, it);
+
   /* Extra space between lines (on window systems only).  */
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
@@ -8174,6 +8176,8 @@ get_next_display_element (struct it *it)
 void
 set_iterator_to_next (struct it *it, bool reseat_p)
 {
+
+  update_redisplay_ticks (1, it);
 
   switch (it->method)
     {
@@ -16724,9 +16728,14 @@ redisplay_internal (void)
 				 list_of_error,
 				 redisplay_window_error);
       if (update_miniwindow_p)
-	internal_condition_case_1 (redisplay_window_1,
-				   FRAME_MINIBUF_WINDOW (sf), list_of_error,
-				   redisplay_window_error);
+	{
+	  Lisp_Object mini_window = FRAME_MINIBUF_WINDOW (sf);
+
+	  displayed_buffer = XBUFFER (XWINDOW (mini_window)->contents);
+	  internal_condition_case_1 (redisplay_window_1, mini_window,
+				     list_of_error,
+				     redisplay_window_error);
+	}
 
       /* Compare desired and current matrices, perform output.  */
 
@@ -17156,6 +17165,43 @@ redisplay_window_1 (Lisp_Object window)
     redisplay_window (window, true);
   return Qnil;
 }
+
+
+/***********************************************************************
+		      Aborting runaway redisplay
+ ***********************************************************************/
+
+/* Update the redisplay-tick count for a window, and signal an error
+   if the tick count is above some threshold, indicating that
+   redisplay of the window takes "too long".
+
+   TICKS is the amount of ticks to add to the window's current count;
+   zero means to initialize the count to zero.
+
+   IT is the iterator used for redisplay work; it->w is the window we
+   are working on.  */
+void
+update_redisplay_ticks (int ticks, struct it *it)
+{
+  /* This keeps track of the window on which redisplay is working.  */
+  static struct window *cwindow;
+  static EMACS_INT window_ticks;
+
+  /* We only initialize the count if this is a different window.
+     Otherwise, this is a call from init_iterator for the same window
+     we tracked before, and we should keep the count.  */
+  if (!ticks && it->w != cwindow)
+    {
+      cwindow = it->w;
+      window_ticks = 0;
+    }
+  if (ticks > 0)
+    window_ticks += ticks;
+  if (max_redisplay_ticks > 0 && window_ticks > max_redisplay_ticks)
+    error ("Window showing buffer %s takes too long to redisplay",
+	   SSDATA (BVAR (XBUFFER (it->w->contents), name)));
+}
+
 
 
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
@@ -35777,7 +35823,7 @@ be let-bound around code that needs to disable messages temporarily. */);
 
   DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 
-  list_of_error = list1 (list2 (Qerror, Qvoid_variable));
+  list_of_error = list1 (Qerror);
   staticpro (&list_of_error);
 
   /* Values of those variables at last redisplay are stored as
@@ -36667,6 +36713,22 @@ and display the most important part of the minibuffer.   */);
 This makes it easier to edit character sequences that are
 composed on display.  */);
   composition_break_at_point = false;
+
+  DEFVAR_INT ("max-redisplay-ticks", max_redisplay_ticks,
+    doc: /* Maximum number of redisplay ticks before aborting redisplay of a window.
+
+This allows to abort the display of a window if the amount of low-level
+redisplay operations exceeds the value of this variable.  When display of
+a window is aborted due to this reason, the buffer shown in that window
+will not have its windows redisplayed until the buffer is modified or until
+you type \\[recenter-top-bottom] with one of its windows selected.
+You can also decide to kill the buffer and visit it in some
+other way, like udner `so-long-mode' or literally.
+
+The default value is zero, which disables this feature.
+The recommended non-zero value is between 50000 and 200000,
+depending on your patience and the speed of your system.  */);
+  max_redisplay_ticks = 0;
 }
 
 
