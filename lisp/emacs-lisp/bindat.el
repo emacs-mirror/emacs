@@ -435,12 +435,14 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (bindat--pack-u32r (ash v -32)))
 
 (defun bindat--pack-str (len v)
-  (dotimes (i (min len (length v)))
-    (aset bindat-raw (+ bindat-idx i) (aref v i)))
-  (setq bindat-idx (+ bindat-idx len)))
+  (let ((v (string-to-unibyte v)))
+    (dotimes (i (min len (length v)))
+      (aset bindat-raw (+ bindat-idx i) (aref v i)))
+    (setq bindat-idx (+ bindat-idx len))))
 
 (defun bindat--pack-strz (v)
-  (let ((len (length v)))
+  (let* ((v (string-to-unibyte v))
+         (len (length v)))
     (dotimes (i len)
       (aset bindat-raw (+ bindat-idx i) (aref v i)))
     (setq bindat-idx (+ bindat-idx len 1))))
