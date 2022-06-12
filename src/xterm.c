@@ -10988,8 +10988,15 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   if (follow_tooltip)
     {
+#if defined HAVE_XRANDR || defined USE_GTK
       x_dnd_monitors
-	= Fx_display_monitor_attributes_list (frame);
+	= FRAME_DISPLAY_INFO (f)->last_monitor_attributes_list;
+
+      if (NILP (x_dnd_monitors))
+#endif
+	x_dnd_monitors
+	  = Fx_display_monitor_attributes_list (frame);
+
       record_unwind_protect_void (x_clear_dnd_monitors);
     }
 
