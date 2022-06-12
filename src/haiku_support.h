@@ -209,6 +209,7 @@ struct haiku_menu_bar_click_event
 struct haiku_button_event
 {
   void *window;
+  void *scroll_bar;
   int btn_no;
   int modifiers;
   int x;
@@ -575,7 +576,7 @@ extern void *be_create_cursor_from_id (int);
 extern void *be_create_pixmap_cursor (void *, int, int);
 extern void be_delete_cursor (void *);
 
-extern void *BScrollBar_make_for_view (void *, int, int, int, int, int, void *);
+extern void *be_make_scroll_bar_for_view (void *, int, int, int, int, int);
 extern void BScrollBar_delete (void *);
 extern int BScrollBar_default_size (int);
 
