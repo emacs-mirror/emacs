@@ -3816,7 +3816,8 @@ ns_move_tooltip_to_mouse_location (NSPoint screen_point)
   if (ns_tooltip)
     size = [ns_tooltip frame].size;
   else if (!FRAMEP (tip_frame)
-	   || !FRAME_LIVE_P (XFRAME (tip_frame)))
+	   || !FRAME_LIVE_P (XFRAME (tip_frame))
+	   || !FRAME_VISIBLE_P (XFRAME (tip_frame)))
     return;
   else
     {
