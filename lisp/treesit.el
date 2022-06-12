@@ -296,7 +296,7 @@ Return either ('sibling node) or ('parent node)."
     (when (treesit-node-parent node)
       (list 'parent (treesit-node-parent node)))))
 
-(defun treesit-traverse-forward-depth-first (node pred &optional step)
+(defun treesit-traverse-forward (node pred &optional step)
   "Traverse the whole tree forward from NODE depth-first.
 
 Traverse starting from NODE (i.e., NODE is passed to PRED).  For
@@ -331,7 +331,7 @@ where NODE is marked 1, traverse as numbered:
               (throw 'match (cadr next))))
           (when next
             ;; If NEXT is non-nil, it must be ('sibling node).
-            (treesit-traverse-forward-depth-first
+            (treesit-traverse-forward
              (cadr next) pred step))))))
 
 (defun treesit-node-children (node &optional named)
@@ -859,7 +859,7 @@ return the matched node.  Return nil if search failed."
            for node =
            (if-let ((starting-point (point))
                     (node (treesit-node-at (point) parser t)))
-               (treesit-traverse-forward-depth-first
+               (treesit-traverse-forward
                 node
                 (lambda (node)
                   (and (not (eq (funcall pos-fn node)
