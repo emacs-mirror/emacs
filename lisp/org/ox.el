@@ -4393,15 +4393,27 @@ tree or a file name.  Assume LINK type is either \"id\" or
 \"custom-id\".  Throw an error if no match is found."
   (let ((id (org-element-property :path link)))
     ;; First check if id is within the current parse tree.
-    (or (org-element-map (plist-get info :parse-tree) 'headline
-	  (lambda (headline)
-	    (when (or (equal (org-element-property :ID headline) id)
-		      (equal (org-element-property :CUSTOM_ID headline) id))
-	      headline))
-	  info 'first-match)
-	;; Otherwise, look for external files.
-	(cdr (assoc id (plist-get info :id-alist)))
-	(signal 'org-link-broken (list id)))))
+    (or (let ((local-ids (or (plist-get info :id-local-cache)
+                             (let ((table (make-hash-table :test #'equal)))
+                               (org-element-map
+                                   (plist-get info :parse-tree)
+                                   'headline
+                                 (lambda (headline)
+                                   (let ((id (org-element-property :ID headline))
+                                         (custom-id (org-element-property :CUSTOM_ID headline)))
+                                     (when id
+                                       (unless (gethash id table)
+                                         (puthash id headline table)))
+                                     (when custom-id
+                                       (unless (gethash custom-id table)
+                                         (puthash custom-id headline table)))))
+                                 info)
+                               (plist-put info :id-local-cache table)
+                               table))))
+          (gethash id local-ids))
+        ;; Otherwise, look for external files.
+        (cdr (assoc id (plist-get info :id-alist)))
+        (signal 'org-link-broken (list id)))))
 
 (defun org-export-resolve-radio-link (link info)
   "Return radio-target object referenced as LINK destination.
