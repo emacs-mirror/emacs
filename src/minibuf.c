@@ -760,7 +760,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* If variable is unbound, make it nil.  */
   histval = find_symbol_value (histvar);
-  if (EQ (histval, Qunbound))
+  if (BASE_EQ (histval, Qunbound))
     {
       Fset (histvar, Qnil);
       histval = Qnil;
@@ -1693,7 +1693,8 @@ or from one of the possible completions.  */)
       else /* if (type == hash_table) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && EQ (HASH_KEY (XHASH_TABLE (collection), idx), Qunbound))
+		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
+			     Qunbound))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -1930,7 +1931,8 @@ with a space are ignored unless STRING itself starts with a space.  */)
       else /* if (type == 3) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && EQ (HASH_KEY (XHASH_TABLE (collection), idx), Qunbound))
+		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
+			     Qunbound))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -2139,7 +2141,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
           {
             tem = HASH_KEY (h, i);
-            if (EQ (tem, Qunbound)) continue;
+            if (BASE_EQ (tem, Qunbound)) continue;
             Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
             if (!STRINGP (strkey)) continue;
             if (EQ (Fcompare_strings (string, Qnil, Qnil,

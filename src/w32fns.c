@@ -5548,11 +5548,11 @@ my_create_window (struct frame * f)
 				  RES_TYPE_NUMBER);
       top = gui_display_get_arg (dpyinfo, Qnil, Qtop, "top", "Top",
 				 RES_TYPE_NUMBER);
-      if (EQ (left, Qunbound))
+      if (BASE_EQ (left, Qunbound))
 	coords[0] = CW_USEDEFAULT;
       else
 	coords[0] = XFIXNUM (left);
-      if (EQ (top, Qunbound))
+      if (BASE_EQ (top, Qunbound))
 	coords[1] = CW_USEDEFAULT;
       else
 	coords[1] = XFIXNUM (top);
@@ -5668,12 +5668,12 @@ w32_icon (struct frame *f, Lisp_Object parms)
                                 RES_TYPE_NUMBER);
   icon_y = gui_display_get_arg (dpyinfo, parms, Qicon_top, 0, 0,
                                 RES_TYPE_NUMBER);
-  if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
+  if (!BASE_EQ (icon_x, Qunbound) && !BASE_EQ (icon_y, Qunbound))
     {
       CHECK_FIXNUM (icon_x);
       CHECK_FIXNUM (icon_y);
     }
-  else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
+  else if (!BASE_EQ (icon_x, Qunbound) || !BASE_EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
 
   block_input ();
@@ -5768,7 +5768,7 @@ w32_default_font_parameter (struct frame *f, Lisp_Object parms)
                                                 parms, Qfont, NULL, NULL,
                                                 RES_TYPE_STRING);
   Lisp_Object font;
-  if (EQ (font_param, Qunbound))
+  if (BASE_EQ (font_param, Qunbound))
     font_param = Qnil;
   font = !NILP (font_param) ? font_param
     : gui_display_get_arg (dpyinfo, parms, Qfont, "font", "Font",
@@ -5833,10 +5833,10 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   display = gui_display_get_arg (dpyinfo, parameters, Qterminal, 0, 0,
                                  RES_TYPE_NUMBER);
-  if (EQ (display, Qunbound))
+  if (BASE_EQ (display, Qunbound))
     display = gui_display_get_arg (dpyinfo, parameters, Qdisplay, 0, 0,
                                    RES_TYPE_STRING);
-  if (EQ (display, Qunbound))
+  if (BASE_EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
   kb = dpyinfo->terminal->kboard;
@@ -5847,7 +5847,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   name = gui_display_get_arg (dpyinfo, parameters, Qname, "name", "Name",
                               RES_TYPE_STRING);
   if (!STRINGP (name)
-      && ! EQ (name, Qunbound)
+      && ! BASE_EQ (name, Qunbound)
       && ! NILP (name))
     error ("Invalid frame name--not a string or nil");
 
@@ -5857,7 +5857,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   /* See if parent window is specified.  */
   parent = gui_display_get_arg (dpyinfo, parameters, Qparent_id, NULL, NULL,
                                 RES_TYPE_NUMBER);
-  if (EQ (parent, Qunbound))
+  if (BASE_EQ (parent, Qunbound))
     parent = Qnil;
   else if (!NILP (parent))
     CHECK_FIXNUM (parent);
@@ -5900,14 +5900,14 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   tem = gui_display_get_arg (dpyinfo, parameters, Qundecorated, NULL, NULL,
                              RES_TYPE_BOOLEAN);
-  FRAME_UNDECORATED (f) = !NILP (tem) && !EQ (tem, Qunbound);
+  FRAME_UNDECORATED (f) = !NILP (tem) && !BASE_EQ (tem, Qunbound);
   store_frame_param (f, Qundecorated, FRAME_UNDECORATED (f) ? Qt : Qnil);
 
   tem = gui_display_get_arg (dpyinfo, parameters, Qskip_taskbar, NULL, NULL,
                              RES_TYPE_BOOLEAN);
-  FRAME_SKIP_TASKBAR (f) = !NILP (tem) && !EQ (tem, Qunbound);
+  FRAME_SKIP_TASKBAR (f) = !NILP (tem) && !BASE_EQ (tem, Qunbound);
   store_frame_param (f, Qskip_taskbar,
-		     (NILP (tem) || EQ (tem, Qunbound)) ? Qnil : Qt);
+		     (NILP (tem) || BASE_EQ (tem, Qunbound)) ? Qnil : Qt);
 
   /* By default, make scrollbars the system standard width and height. */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
@@ -5963,7 +5963,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name))
     {
       fset_name (f, build_string (dpyinfo->w32_id_name));
       f->explicit_name = false;
@@ -6003,7 +6003,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
       value = gui_display_get_arg (dpyinfo, parameters, Qinternal_border_width,
                                    "internalBorder", "internalBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parameters = Fcons (Fcons (Qinternal_border_width, value),
 			    parameters);
     }
@@ -6020,7 +6020,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
       value = gui_display_get_arg (dpyinfo, parameters, Qchild_frame_border_width,
                                    "childFrameBorder", "childFrameBorder",
                                    RES_TYPE_NUMBER);
-      if (!EQ (value, Qunbound))
+      if (!BASE_EQ (value, Qunbound))
 	parameters = Fcons (Fcons (Qchild_frame_border_width, value),
 		       parameters);
     }
@@ -6219,7 +6219,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 	w32_iconify_frame (f);
       else
 	{
-	  if (EQ (visibility, Qunbound))
+	  if (BASE_EQ (visibility, Qunbound))
 	    visibility = Qt;
 
 	  if (!NILP (visibility))
@@ -7011,7 +7011,7 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
   name = gui_display_get_arg (dpyinfo, parms, Qname, "name", "Name",
                               RES_TYPE_STRING);
   if (!STRINGP (name)
-      && !EQ (name, Qunbound)
+      && !BASE_EQ (name, Qunbound)
       && !NILP (name))
     error ("Invalid frame name--not a string or nil");
   Vx_resource_name = name;
@@ -7045,7 +7045,7 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name))
     {
       fset_name (f, build_string (dpyinfo->w32_id_name));
       f->explicit_name = false;
@@ -7084,7 +7084,7 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
       value = gui_display_get_arg (dpyinfo, parms, Qinternal_border_width,
                                    "internalBorder", "internalBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }

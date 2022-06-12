@@ -731,7 +731,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
     {
       Lisp_Object prev = Qnil;
 
-      if (EQ (val, Qunbound))
+      if (BASE_EQ (val, Qunbound))
 	return val;
       while (CONSP (extra)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
@@ -745,7 +745,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
       return val;
     }
   XSETCDR (slot, val);
-  if (EQ (val, Qunbound))
+  if (BASE_EQ (val, Qunbound))
     ASET (font, FONT_EXTRA_INDEX, Fdelq (slot, extra));
   return val;
 }

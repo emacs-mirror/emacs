@@ -99,7 +99,7 @@ get_geometry_from_preferences (struct haiku_display_info *dpyinfo,
           Lisp_Object value
             = gui_display_get_arg (dpyinfo, parms, r[i].tem, r[i].val, r[i].cls,
                                    RES_TYPE_NUMBER);
-          if (! EQ (value, Qunbound))
+          if (! BASE_EQ (value, Qunbound))
             parms = Fcons (Fcons (r[i].tem, value), parms);
         }
     }
@@ -687,7 +687,7 @@ haiku_create_frame (Lisp_Object parms)
 
   display = gui_display_get_arg (dpyinfo, parms, Qterminal, 0, 0,
                                  RES_TYPE_STRING);
-  if (EQ (display, Qunbound))
+  if (BASE_EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_haiku_display_info (display);
   kb = dpyinfo->terminal->kboard;
@@ -698,7 +698,7 @@ haiku_create_frame (Lisp_Object parms)
   name = gui_display_get_arg (dpyinfo, parms, Qname, 0, 0,
                               RES_TYPE_STRING);
   if (!STRINGP (name)
-      && ! EQ (name, Qunbound)
+      && ! BASE_EQ (name, Qunbound)
       && ! NILP (name))
     error ("Invalid frame name--not a string or nil");
 
@@ -746,7 +746,7 @@ haiku_create_frame (Lisp_Object parms)
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name) || ! STRINGP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name) || ! STRINGP (name))
     {
       fset_name (f, Vinvocation_name);
       f->explicit_name = 0;
@@ -859,7 +859,7 @@ haiku_create_frame (Lisp_Object parms)
 
   tem = gui_display_get_arg (dpyinfo, parms, Qunsplittable, 0, 0,
                              RES_TYPE_BOOLEAN);
-  f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !NILP (tem));
+  f->no_split = minibuffer_only || (!BASE_EQ (tem, Qunbound) && !NILP (tem));
 
   f->terminal->reference_count++;
 
@@ -879,7 +879,7 @@ haiku_create_frame (Lisp_Object parms)
 						  Qparent_frame, NULL, NULL,
 						  RES_TYPE_SYMBOL);
 
-  if (EQ (parent_frame, Qunbound)
+  if (BASE_EQ (parent_frame, Qunbound)
       || NILP (parent_frame)
       || !FRAMEP (parent_frame)
       || !FRAME_LIVE_P (XFRAME (parent_frame)))
@@ -933,7 +933,7 @@ haiku_create_frame (Lisp_Object parms)
 
   visibility = gui_display_get_arg (dpyinfo, parms, Qvisibility, 0, 0,
 				    RES_TYPE_SYMBOL);
-  if (EQ (visibility, Qunbound))
+  if (BASE_EQ (visibility, Qunbound))
     visibility = Qt;
   if (EQ (visibility, Qicon))
     haiku_iconify_frame (f);
@@ -1006,7 +1006,7 @@ haiku_create_tip_frame (Lisp_Object parms)
   name = gui_display_get_arg (dpyinfo, parms, Qname, "name", "Name",
                               RES_TYPE_STRING);
   if (!STRINGP (name)
-      && !EQ (name, Qunbound)
+      && !BASE_EQ (name, Qunbound)
       && !NILP (name))
     error ("Invalid frame name--not a string or nil");
 
@@ -1035,7 +1035,7 @@ haiku_create_tip_frame (Lisp_Object parms)
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name))
     f->explicit_name = false;
   else
     {
@@ -1073,7 +1073,7 @@ haiku_create_tip_frame (Lisp_Object parms)
       value = gui_display_get_arg (dpyinfo, parms, Qinternal_border_width,
                                    "internalBorder", "internalBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }

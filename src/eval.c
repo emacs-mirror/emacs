@@ -707,7 +707,7 @@ DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_valu
   union specbinding *binding = default_toplevel_binding (symbol);
   Lisp_Object value
     = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
-  if (!EQ (value, Qunbound))
+  if (!BASE_EQ (value, Qunbound))
     return value;
   xsignal1 (Qvoid_variable, symbol);
 }
@@ -774,7 +774,7 @@ defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring, bool eval
     { /* Check if there is really a global binding rather than just a let
 	     binding that shadows the global unboundness of the var.  */
       union specbinding *binding = default_toplevel_binding (sym);
-      if (binding && EQ (specpdl_old_value (binding), Qunbound))
+      if (binding && BASE_EQ (specpdl_old_value (binding), Qunbound))
 	{
 	  set_specpdl_old_value (binding,
 	                         eval ? eval_sub (initvalue) : initvalue);
@@ -2765,7 +2765,7 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
   sym = args[0];
   val = find_symbol_value (sym);
 
-  if (EQ (val, Qunbound) || NILP (val))
+  if (BASE_EQ (val, Qunbound) || NILP (val))
     return ret;
   else if (!CONSP (val) || FUNCTIONP (val))
     {

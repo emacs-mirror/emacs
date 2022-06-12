@@ -341,7 +341,7 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
       for (sym = properties;
 	   PLIST_ELT_P (sym, value);
 	   sym = XCDR (value))
-	if (EQ (property_value (interval->plist, XCAR (sym)), Qunbound))
+	if (BASE_EQ (property_value (interval->plist, XCAR (sym)), Qunbound))
 	  {
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCAR (sym), Qnil,

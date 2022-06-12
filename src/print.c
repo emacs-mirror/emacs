@@ -1266,7 +1266,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
             {
               Lisp_Object key =  HASH_KEY (h, i);
-	      if (!EQ (key, Qunbound)
+	      if (!BASE_EQ (key, Qunbound)
 		  && EQ (HASH_VALUE (h, i), Qt))
 	        Fremhash (key, Vprint_number_table);
             }

@@ -870,7 +870,7 @@ x_handle_selection_request (struct selection_input_event *event)
 
   /* Run the `x-sent-selection-functions' abnormal hook.  */
   if (!NILP (Vx_sent_selection_functions)
-      && !EQ (Vx_sent_selection_functions, Qunbound))
+      && !BASE_EQ (Vx_sent_selection_functions, Qunbound))
     CALLN (Frun_hook_with_args, Qx_sent_selection_functions,
 	   selection_symbol, target_symbol, success ? Qt : Qnil);
 

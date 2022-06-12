@@ -2682,13 +2682,13 @@ w32_draw_glyph_string (struct glyph_string *s)
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_underline_at_descent_line, s->w));
 		  underline_at_descent_line
-		    = (!(NILP (val) || EQ (val, Qunbound))
+		    = (!(NILP (val) || BASE_EQ (val, Qunbound))
 		       || s->face->underline_at_descent_line_p);
 
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_use_underline_position_properties, s->w));
 		  use_underline_position_properties
-		    = !(NILP (val) || EQ (val, Qunbound));
+		    = !(NILP (val) || BASE_EQ (val, Qunbound));
 
                   /* Get the underline thickness.  Default is 1 pixel.  */
                   if (font && font->underline_thickness > 0)

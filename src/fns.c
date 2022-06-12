@@ -4478,7 +4478,7 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
   /* Store key/value in the key_and_value vector.  */
   i = h->next_free;
   eassert (NILP (HASH_HASH (h, i)));
-  eassert (EQ (Qunbound, (HASH_KEY (h, i))));
+  eassert (BASE_EQ (Qunbound, (HASH_KEY (h, i))));
   h->next_free = HASH_NEXT (h, i);
   set_hash_key_slot (h, i, key);
   set_hash_value_slot (h, i, value);
@@ -5219,7 +5219,7 @@ FUNCTION is called with two arguments, KEY and VALUE.
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
     {
       Lisp_Object k = HASH_KEY (h, i);
-      if (!EQ (k, Qunbound))
+      if (!BASE_EQ (k, Qunbound))
         call2 (function, k, HASH_VALUE (h, i));
     }
 

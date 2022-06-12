@@ -2216,7 +2216,7 @@ readevalloop (Lisp_Object readcharfun,
      lexical environment, otherwise, turn off lexical binding.  */
   lex_bound = find_symbol_value (Qlexical_binding);
   specbind (Qinternal_interpreter_environment,
-	    (NILP (lex_bound) || EQ (lex_bound, Qunbound)
+	    (NILP (lex_bound) || BASE_EQ (lex_bound, Qunbound)
 	     ? Qnil : list1 (Qt)));
   specbind (Qmacroexp__dynvars, Vmacroexp__dynvars);
 
@@ -4667,7 +4667,7 @@ define_symbol (Lisp_Object sym, char const *str)
 
   /* Qunbound is uninterned, so that it's not confused with any symbol
      'unbound' created by a Lisp program.  */
-  if (! EQ (sym, Qunbound))
+  if (! BASE_EQ (sym, Qunbound))
     {
       Lisp_Object bucket = oblookup (initial_obarray, str, len, len);
       eassert (FIXNUMP (bucket));

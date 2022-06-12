@@ -132,7 +132,7 @@ static void evict_lower_half (log_t *log)
 	  XSET_HASH_TABLE (tmp, log); /* FIXME: Use make_lisp_ptr.  */
 	  Fremhash (key, tmp);
 	}
-        eassert (EQ (Qunbound, HASH_KEY (log, i)));
+        eassert (BASE_EQ (Qunbound, HASH_KEY (log, i)));
 	eassert (log->next_free == i);
 
 	eassert (VECTORP (key));
@@ -158,7 +158,7 @@ record_backtrace (log_t *log, EMACS_INT count)
 
   /* Get a "working memory" vector.  */
   Lisp_Object backtrace = HASH_VALUE (log, index);
-  eassert (EQ (Qunbound, HASH_KEY (log, index)));
+  eassert (BASE_EQ (Qunbound, HASH_KEY (log, index)));
   get_backtrace (backtrace);
 
   { /* We basically do a `gethash+puthash' here, except that we have to be

@@ -395,7 +395,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	    if (noinherit || NILP (retval))
 	      /* If NOINHERIT, stop here, the rest is inherited.  */
 	      break;
-	    else if (!EQ (retval, Qunbound))
+	    else if (!BASE_EQ (retval, Qunbound))
 	      {
 		Lisp_Object parent_entry;
 		eassert (KEYMAPP (retval));
@@ -454,7 +454,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	  }
 
 	/* If we found a binding, clean it up and return it.  */
-	if (!EQ (val, Qunbound))
+	if (!BASE_EQ (val, Qunbound))
 	  {
 	    if (EQ (val, Qt))
 	      /* A Qt binding is just like an explicit nil binding
@@ -466,12 +466,12 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 
 	    if (!KEYMAPP (val))
 	      {
-		if (NILP (retval) || EQ (retval, Qunbound))
+		if (NILP (retval) || BASE_EQ (retval, Qunbound))
 		  retval = val;
 		if (!NILP (val))
 		  break;  /* Shadows everything that follows.  */
 	      }
-	    else if (NILP (retval) || EQ (retval, Qunbound))
+	    else if (NILP (retval) || BASE_EQ (retval, Qunbound))
 	      retval = val;
 	    else if (CONSP (retval_tail))
 	      {
@@ -487,7 +487,8 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	maybe_quit ();
       }
 
-    return EQ (Qunbound, retval) ? get_keyelt (t_binding, autoload) : retval;
+    return BASE_EQ (Qunbound, retval)
+           ? get_keyelt (t_binding, autoload) : retval;
   }
 }
 
@@ -496,7 +497,7 @@ access_keymap (Lisp_Object map, Lisp_Object idx,
 	       bool t_ok, bool noinherit, bool autoload)
 {
   Lisp_Object val = access_keymap_1 (map, idx, t_ok, noinherit, autoload);
-  return EQ (val, Qunbound) ? Qnil : val;
+  return BASE_EQ (val, Qunbound) ? Qnil : val;
 }
 
 static void
@@ -1550,7 +1551,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
       for ( ; CONSP (alist); alist = XCDR (alist))
 	if ((assoc = XCAR (alist), CONSP (assoc))
 	    && (var = XCAR (assoc), SYMBOLP (var))
-	    && (val = find_symbol_value (var), !EQ (val, Qunbound))
+	    && (val = find_symbol_value (var), !BASE_EQ (val, Qunbound))
 	    && !NILP (val))
 	  {
 	    Lisp_Object temp;

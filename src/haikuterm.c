@@ -852,13 +852,13 @@ haiku_draw_text_decoration (struct glyph_string *s, struct face *face,
 	      val = (WINDOW_BUFFER_LOCAL_VALUE
 		     (Qx_underline_at_descent_line, s->w));
 	      underline_at_descent_line
-		= (!(NILP (val) || EQ (val, Qunbound))
+		= (!(NILP (val) || BASE_EQ (val, Qunbound))
 		   || s->face->underline_at_descent_line_p);
 
 	      val = (WINDOW_BUFFER_LOCAL_VALUE
 		     (Qx_use_underline_position_properties, s->w));
 	      use_underline_position_properties
-		= !(NILP (val) || EQ (val, Qunbound));
+		= !(NILP (val) || BASE_EQ (val, Qunbound));
 
 	      /* Get the underline thickness.  Default is 1 pixel.  */
 	      if (font && font->underline_thickness > 0)
@@ -2939,7 +2939,7 @@ haiku_default_font_parameter (struct frame *f, Lisp_Object parms)
   Lisp_Object font_param = gui_display_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
                                                 RES_TYPE_STRING);
   Lisp_Object font = Qnil;
-  if (EQ (font_param, Qunbound))
+  if (BASE_EQ (font_param, Qunbound))
     font_param = Qnil;
 
   if (NILP (font_param))

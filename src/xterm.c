@@ -9376,13 +9376,13 @@ x_draw_glyph_string (struct glyph_string *s)
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_underline_at_descent_line, s->w));
 		  underline_at_descent_line
-		    = (!(NILP (val) || EQ (val, Qunbound))
+		    = (!(NILP (val) || BASE_EQ (val, Qunbound))
 		       || s->face->underline_at_descent_line_p);
 
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_use_underline_position_properties, s->w));
 		  use_underline_position_properties
-		    = !(NILP (val) || EQ (val, Qunbound));
+		    = !(NILP (val) || BASE_EQ (val, Qunbound));
 
                   /* Get the underline thickness.  Default is 1 pixel.  */
                   if (font && font->underline_thickness > 0)
@@ -25700,7 +25700,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       {
 	terminal->kboard = allocate_kboard (Qx);
 
-	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->u.s.function, Qunbound))
+	if (!BASE_EQ (XSYMBOL (Qvendor_specific_keysyms)->u.s.function,
+		      Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
 
