@@ -36723,7 +36723,7 @@ a window is aborted due to this reason, the buffer shown in that window
 will not have its windows redisplayed until the buffer is modified or until
 you type \\[recenter-top-bottom] with one of its windows selected.
 You can also decide to kill the buffer and visit it in some
-other way, like udner `so-long-mode' or literally.
+other way, like under `so-long-mode' or literally.
 
 The default value is zero, which disables this feature.
 The recommended non-zero value is between 50000 and 200000,
