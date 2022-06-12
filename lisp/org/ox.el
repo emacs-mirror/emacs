@@ -4346,17 +4346,27 @@ significant."
   (let* ((search-cells (org-export-string-to-search-cell
 			(org-element-property :path link)))
 	 (link-cache (or (plist-get info :resolve-fuzzy-link-cache)
-			 (let ((table (make-hash-table :test #'eq)))
+			 (let ((table (make-hash-table :test #'equal)))
+                           ;; Cache all the element search cells.
+                           (org-element-map (plist-get info :parse-tree)
+		               (append pseudo-types '(target) org-element-all-elements)
+	                     (lambda (datum)
+		               (dolist (cell (org-export-search-cells datum))
+		                 (if (gethash cell table)
+                                     (push datum (gethash cell table))
+                                   (puthash cell (list datum) table)))))
 			   (plist-put info :resolve-fuzzy-link-cache table)
 			   table)))
 	 (cached (gethash search-cells link-cache 'not-found)))
     (if (not (eq cached 'not-found)) cached
       (let ((matches
-	     (org-element-map (plist-get info :parse-tree)
-		 (append pseudo-types '(target) org-element-all-elements)
-	       (lambda (datum)
-		 (and (org-export-match-search-cell-p datum search-cells)
-		      datum)))))
+             (let (result)
+               (dolist (search-cell search-cells)
+                 (setq result
+                       (nconc
+                        result
+	                (gethash search-cell link-cache))))
+               (delq nil result))))
 	(unless matches
 	  (signal 'org-link-broken (list (org-element-property :path link))))
 	(puthash
