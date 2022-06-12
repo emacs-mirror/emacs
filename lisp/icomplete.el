@@ -559,7 +559,8 @@ Usually run by inclusion in `minibuffer-setup-hook'."
        ;; predicates" which may vary depending on specific
        ;; `completing-read' invocations, described below:
        for fn in (cond ((and minibuffer-default
-                             (stringp minibuffer-default) ; bug#38992
+                             (stringp (or (car-safe minibuffer-default)
+                                          minibuffer-default)) ; bug#38992 bug#55800
                              (equal (icomplete--field-string) icomplete--initial-input))
                         ;; Here, we have a non-nil string default and
                         ;; no input whatsoever.  We want to make sure
@@ -577,7 +578,9 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                           ;; Has "bar" at the top, so RET will select
                           ;; it, as desired.
                           ,(lambda (comp)
-                             (equal minibuffer-default comp))
+                             (equal (or (car-safe minibuffer-default)
+                                        minibuffer-default)
+                                    comp))
                           ;; Why do we need this second predicate?
                           ;; Because that'll make things like M-x man
                           ;; RET RET, when invoked with point on the
@@ -599,7 +602,9 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                           ;; useful for a very broad spectrum of
                           ;; cases.
                           ,(lambda (comp)
-                             (string-prefix-p minibuffer-default comp))))
+                             (string-prefix-p (or (car-safe minibuffer-default)
+                                                  minibuffer-default)
+                                              comp))))
                        ((and fido-mode
                              (not minibuffer-default)
                              (eq (icomplete--category) 'file))
