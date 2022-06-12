@@ -7321,7 +7321,8 @@ The \"sibling\" file is defined by the `find-sibling-rules' variable."
                  (list buffer-file-name)))
   (unless find-sibling-rules
     (user-error "The `find-sibling-rules' variable has not been configured"))
-  (let ((siblings (find-sibling-file--search (expand-file-name file))))
+  (let ((siblings (find-sibling-file-search (expand-file-name file)
+                                            find-sibling-rules)))
     (cond
      ((null siblings)
       (user-error "Couldn't find any sibling files"))
@@ -7336,16 +7337,19 @@ The \"sibling\" file is defined by the `find-sibling-rules' variable."
          (completing-read (format-prompt "Find file" (car relatives))
                           relatives nil t nil nil (car relatives))))))))
 
-(defun find-sibling-file--search (file)
+(defun find-sibling-file-search (file &optional rules)
+  "Return a list of FILE's \"siblings\"
+RULES should be a list on the form defined by `find-sibling-rules' (which
+see), and if nil, defaults to `find-sibling-rules'."
   (let ((results nil))
-    (pcase-dolist (`(,match . ,expansions) find-sibling-rules)
+    (pcase-dolist (`(,match . ,expansions) (or rules find-sibling-rules))
       ;; Go through the list and find matches.
       (when (string-match match file)
         (let ((match-data (match-data)))
           (dolist (expansion expansions)
             (let ((start 0))
               ;; Expand \\1 forms in the expansions.
-              (while (string-match "\\\\\\([0-9]+\\)" expansion start)
+              (while (string-match "\\\\\\([&0-9]+\\)" expansion start)
                 (let ((index (string-to-number (match-string 1 expansion))))
                   (setq start (match-end 0)
                         expansion
