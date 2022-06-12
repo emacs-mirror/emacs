@@ -3748,28 +3748,33 @@ definition can be found, raise an error."
     (if (not label) (org-element-contents footnote-reference)
       (let ((cache (or (plist-get info :footnote-definition-cache)
 		       (let ((hash (make-hash-table :test #'equal)))
+                         ;; Cache all the footnotes in document for
+                         ;; later search.
+                         (org-element-map (plist-get info :parse-tree)
+                             '(footnote-definition footnote-reference)
+                           (lambda (f)
+		             ;; Skip any standard footnote reference
+		             ;; since those cannot contain a
+		             ;; definition.
+                             (unless (eq (org-element-property :type f) 'standard)
+                               (puthash
+                                (cons :element (org-element-property :label f))
+                                f
+                                hash)))
+                           info)
 			 (plist-put info :footnote-definition-cache hash)
 			 hash))))
 	(or
 	 (gethash label cache)
 	 (puthash label
-		  (org-element-map (plist-get info :parse-tree)
-		      '(footnote-definition footnote-reference)
-		    (lambda (f)
-		      (cond
-		       ;; Skip any footnote with a different label.
-		       ;; Also skip any standard footnote reference
-		       ;; with the same label since those cannot
-		       ;; contain a definition.
-		       ((not (equal (org-element-property :label f) label)) nil)
-		       ((eq (org-element-property :type f) 'standard) nil)
-		       ((org-element-contents f))
-		       ;; Even if the contents are empty, we can not
-		       ;; return nil since that would eventually raise
-		       ;; the error.  Instead, return the equivalent
-		       ;; empty string.
-		       (t "")))
-		    info t)
+                  (let ((hashed (gethash (cons :element label) cache)))
+                    (when hashed
+                      (or (org-element-contents hashed)
+		          ;; Even if the contents are empty, we can not
+		          ;; return nil since that would eventually raise
+		          ;; the error.  Instead, return the equivalent
+		          ;; empty string.
+                          "")))
 		  cache)
 	 (error "Definition not found for footnote %s" label))))))
 
