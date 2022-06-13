@@ -1066,15 +1066,18 @@ REGEXP is used as a string in the prompt."
 	       default-extension
 	       (car grep-files-history)
 	       (car (car grep-files-aliases))))
+	 (defaults
+	   (delete-dups
+	    (delq nil
+		  (append (list default default-alias default-extension)
+			  (mapcar #'car grep-files-aliases)))))
          (files (completing-read
                  (format-prompt "Search for \"%s\" in files matching wildcard"
                                 default regexp)
-		 #'read-file-name-internal
-		 nil nil nil 'grep-files-history
-		 (delete-dups
-		  (delq nil
-                        (append (list default default-alias default-extension)
-				(mapcar #'car grep-files-aliases)))))))
+                 (completion-table-merge
+                  (lambda (_string _pred _action) defaults)
+                  #'read-file-name-internal)
+		 nil nil nil 'grep-files-history defaults)))
     (and files
 	 (or (cdr (assoc files grep-files-aliases))
 	     files))))
