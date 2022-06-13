@@ -10511,10 +10511,10 @@ This is an integer between 1 and 12 (inclusive).  January is 1.")
   (year nil :documentation "This is a four digit integer.")
   (weekday nil :documentation "\
 This is a number between 0 and 6, and 0 is Sunday.")
-  (dst nil :documentation "\
+  (dst -1 :documentation "\
 This is t if daylight saving time is in effect, nil if it is not
-in effect, and -1 if daylight saving information is not
-available.")
+in effect, and -1 if daylight saving information is not available.
+Also see `decoded-time-dst'.")
   (zone nil :documentation "\
 This is an integer indicating the UTC offset in seconds, i.e.,
 the number of seconds east of Greenwich.")
@@ -10524,9 +10524,13 @@ the number of seconds east of Greenwich.")
 ;; It should return -1 indicating unknown DST, but currently returns
 ;; nil indicating standard time.
 (put 'decoded-time-dst 'function-documentation
-     (append (get 'decoded-time-dst 'function-documentation)
-             "As a special case, `decoded-time-dst' returns an unspecified
-value when given a list too short to have a dst element."))
+     "Access slot \"dst\" of `decoded-time' struct CL-X.
+This is t if daylight saving time is in effect, nil if it is not
+in effect, and -1 if daylight saving information is not available.
+As a special case, return an unspecified value when given a list
+too short to have a dst element.
+
+(fn CL-X)")
 
 (defun get-scratch-buffer-create ()
   "Return the *scratch* buffer, creating a new one if needed."
