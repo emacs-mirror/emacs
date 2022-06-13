@@ -7017,7 +7017,15 @@ is a function used to switch to and display the mail buffer."
 	;; https://lists.gnu.org/r/emacs-devel/2011-01/msg00337.html
 	;; We need to convert any string input, eg from rmail-start-mail.
 	(dolist (h other-headers other-headers)
-	  (if (stringp (car h)) (setcar h (intern (capitalize (car h)))))))
+	  (when (stringp (car h))
+            (setcar h (intern (capitalize (car h)))))
+          ;; Firefox sends us In-Reply-To headers that are Message-IDs
+          ;; without <> around them.  Fix that.
+          (when (and (eq (car h) 'In-Reply-To)
+                     ;; Looks like a Message-ID.
+                     (string-match-p "\\`[^ @]+@[^ @]+\\'" (cdr h))
+                     (not (string-match-p "\\`<.*>\\'" (cdr h))))
+            (setcdr h (concat "<" (cdr h) ">")))))
        yank-action send-actions continue switch-function
        return-action))))
 
