@@ -1205,7 +1205,11 @@ When called programmatically and FILES is nil, REGEXP is expected
 to specify a command to run.
 
 If CONFIRM is non-nil, the user will be given an opportunity to edit the
-command before it's run."
+command before it's run.
+
+Interactively, the user can use the `M-c' command while entering
+the regexp to indicate whether the grep should be case sensitive
+or not."
   (interactive
    (progn
      (grep-compute-defaults)
@@ -1233,7 +1237,8 @@ command before it's run."
 				   grep-find-command)))
 	    (compilation-start regexp #'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
-      (let ((command (rgrep-default-command regexp files nil)))
+      (let* ((case-fold-search (read-regexp-case-fold-search regexp))
+             (command (rgrep-default-command regexp files nil)))
 	(when command
 	  (if confirm
 	      (setq command
