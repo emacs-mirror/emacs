@@ -15322,6 +15322,31 @@ x_dnd_update_tooltip_position (int root_x, int root_y)
     }
 }
 
+static void
+x_dnd_update_tooltip_now (void)
+{
+  int root_x, root_y;
+  Window root, child;
+  int win_x, win_y;
+  unsigned int mask;
+  Bool rc;
+  struct x_display_info *dpyinfo;
+
+  if (!x_dnd_in_progress || !x_dnd_update_tooltip)
+    return;
+
+  dpyinfo = FRAME_DISPLAY_INFO (XFRAME (x_dnd_frame));
+
+  rc = XQueryPointer (dpyinfo->display,
+		      dpyinfo->root_window,
+		      &root, &child, &root_x,
+		      &root_y, &win_x, &win_y,
+		      &mask);
+
+  if (rc)
+    x_dnd_update_tooltip_position (root_x, root_y);
+}
+
 /* Get the window underneath the pointer, see if it moved, and update
    the DND state accordingly.  */
 static void
@@ -15702,6 +15727,8 @@ x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
 
   if (x_dnd_in_progress && x_dnd_update_tooltip)
     x_dnd_monitors = current_monitors;
+
+  x_dnd_update_tooltip_now ();
 }
 #endif
 
@@ -21520,6 +21547,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  if (x_dnd_in_progress && x_dnd_update_tooltip)
 	    x_dnd_monitors = current_monitors;
+
+	  x_dnd_update_tooltip_now ();
 	}
 #endif
     OTHER:
