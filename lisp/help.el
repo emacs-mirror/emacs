@@ -1173,7 +1173,8 @@ Otherwise, return a new string."
                 (let ((k (buffer-substring-no-properties orig-point (point))))
                   (cond ((= (length k) 0)
                          (error "Empty key sequence in substitution"))
-                        ((not (key-valid-p k))
+                        ((and (not (string-match-p "\\`M-x " k))
+                              (not (key-valid-p k)))
                          (error "Invalid key sequence in substitution: `%s'" k))))
                 (add-text-properties orig-point (point)
                                      '( face help-key-binding
