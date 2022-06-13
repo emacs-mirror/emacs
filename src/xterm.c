@@ -15335,7 +15335,7 @@ x_dnd_update_tooltip_now (void)
   if (!x_dnd_in_progress || !x_dnd_update_tooltip)
     return;
 
-  dpyinfo = FRAME_DISPLAY_INFO (XFRAME (x_dnd_frame));
+  dpyinfo = FRAME_DISPLAY_INFO (x_dnd_frame);
 
   rc = XQueryPointer (dpyinfo->display,
 		      dpyinfo->root_window,
@@ -15721,14 +15721,14 @@ x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
       ie.arg = terminal;
 
       kbd_buffer_store_event (&ie);
+
+      if (x_dnd_in_progress && x_dnd_update_tooltip)
+	x_dnd_monitors = current_monitors;
+
+      x_dnd_update_tooltip_now ();
     }
 
   dpyinfo->last_monitor_attributes_list = current_monitors;
-
-  if (x_dnd_in_progress && x_dnd_update_tooltip)
-    x_dnd_monitors = current_monitors;
-
-  x_dnd_update_tooltip_now ();
 }
 #endif
 
@@ -21548,7 +21548,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  if (x_dnd_in_progress && x_dnd_update_tooltip)
 	    x_dnd_monitors = current_monitors;
 
-	  x_dnd_update_tooltip_now ();
+	  if (inev.ie.kind != NO_EVENT)
+	    x_dnd_update_tooltip_now ();
 	}
 #endif
     OTHER:
