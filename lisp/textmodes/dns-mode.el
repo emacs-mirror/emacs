@@ -110,11 +110,11 @@
 			"26.1" 'set)
 
 (defcustom dns-mode-font-lock-keywords
-  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities))
+  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities) "\\>")
      0 ,dns-mode-control-entity-face)
     ("^\\$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
-    (,(regexp-opt dns-mode-classes) 0 ,dns-mode-class-face)
-    (,(regexp-opt dns-mode-types) 0 ,dns-mode-type-face))
+    (,(regexp-opt dns-mode-classes 'words) 0 ,dns-mode-class-face)
+    (,(regexp-opt dns-mode-types 'words) 0 ,dns-mode-type-face))
   "Font lock keywords used to highlight text in DNS master file mode."
   :version "26.1"
   :type 'sexp)
