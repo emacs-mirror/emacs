@@ -294,6 +294,8 @@ startup.  Previously, these functions ignored
 
 * Changes in Emacs 29.1
 
+** Files with the '.eld' extension are now opened in 'lisp-data-mode'.
+
 +++
 ** New command 'find-sibling-file'.
 This command jumps to a file considered a "sibling file", which is

@@ -2797,6 +2797,9 @@ since only a single case-insensitive search through the alist is made."
      ;; .dir-locals.el is not really Elisp.  Could use the
      ;; `dir-locals-file' constant if it weren't defined below.
      ("\\.dir-locals\\(?:-2\\)?\\.el\\'" . lisp-data-mode)
+     ("\\.eld\\'" . lisp-data-mode)
+     ;; FIXME: The lisp-data-mode files below should use the `.eld' extension
+     ;; (or a -*- mode cookie) so we don't need ad-hoc entries here.
      ("eww-bookmarks\\'" . lisp-data-mode)
      ("tramp\\'" . lisp-data-mode)
      ("/archive-contents\\'" . lisp-data-mode)
