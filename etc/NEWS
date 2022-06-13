@@ -151,6 +151,10 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
++++
+** 'E' in 'query-replace' now edits the replacement with exact case.
+Previously, this command did the same as 'e'.
+
 ---
 ** '/ a' in *Packages* now limits by package name(s) instead of regexp.
 

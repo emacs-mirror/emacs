@@ -1827,11 +1827,17 @@ occurrence of @var{string}.  When done, exit the recursive editing level
 with @kbd{C-M-c} to proceed to the next occurrence.
 
 @item e
-@itemx E
 to edit the replacement string in the minibuffer.  When you exit the
 minibuffer by typing @key{RET}, the minibuffer contents replace the
 current occurrence of the pattern.  They also become the new
 replacement string for any further occurrences.
+
+@item E
+is like @kbd{e}, but the next replacement will be done with exact
+case.  I.e., if you have a @code{query-replace} from @samp{foo} to
+@samp{bar}, a text like @samp{Foo} will be normally be replaced with
+@samp{Bar}.  Use this command to do the current replacement with exact
+case.
 
 @item C-l
 to redisplay the screen.  Then you must type another character to

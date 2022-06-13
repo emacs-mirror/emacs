@@ -2506,7 +2506,8 @@ To be added to `context-menu-functions'."
 \\`^' to move point back to previous match,
 \\`u' to undo previous replacement,
 \\`U' to undo all replacements,
-\\`E' to edit the replacement string.
+\\`e' to edit the replacement string.
+\\`E' to edit the replacement string with exact case.
 In multi-buffer replacements type \\`Y' to replace all remaining
 matches in all remaining buffers with no more questions,
 \\`N' to skip to the next buffer without replacing remaining matches
@@ -2524,7 +2525,7 @@ in the current buffer."
     (define-key map "Y" 'act)
     (define-key map "N" 'skip)
     (define-key map "e" 'edit-replacement)
-    (define-key map "E" 'edit-replacement)
+    (define-key map "E" 'edit-replacement-exact-case)
     (define-key map "," 'act-and-show)
     (define-key map "q" 'exit)
     (define-key map "\r" 'exit)
@@ -2561,8 +2562,9 @@ The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
 `act-and-exit', `exit', `exit-prefix', `recenter', `scroll-up',
 `scroll-down', `scroll-other-window', `scroll-other-window-down',
-`edit', `edit-replacement', `delete-and-edit', `automatic',
-`backup', `undo', `undo-all', `quit', and `help'.
+`edit', `edit-replacement', `edit-replacement-exact-case',
+`delete-and-edit', `automatic', `backup', `undo', `undo-all',
+`quit', and `help'.
 
 This keymap is used by `y-or-n-p' as well as `query-replace'.")
 
@@ -3336,19 +3338,29 @@ characters."
 			     (setq match-again (and (looking-at search-string)
 						    (match-data)))))
 			;; Edit replacement.
-			((eq def 'edit-replacement)
+			((or (eq def 'edit-replacement)
+                             (eq def 'edit-replacement-exact-case))
 			 (setq real-match-data (replace-match-data
 						nil real-match-data
 						real-match-data)
 			       next-replacement
-			       (read-string "Edit replacement string: "
-                                            next-replacement)
+			       (read-string
+                                (format "Edit replacement string%s: "
+                                        (if (eq def
+                                                'edit-replacement-exact-case)
+                                            " (exact case)"
+                                          ""))
+                                next-replacement)
 			       noedit nil)
 			 (if replaced
 			     (set-match-data real-match-data)
 			   (setq noedit
 				 (replace-match-maybe-edit
-				  next-replacement nocasify literal noedit
+				  next-replacement
+                                  (if (eq def 'edit-replacement-exact-case)
+                                      t
+                                    nocasify)
+                                  literal noedit
 				  real-match-data backward)
 				 replaced t)
 			   (setq next-replacement-replaced next-replacement))
