@@ -240,7 +240,12 @@
 
   (ert-deftest bindat-test--strz-varlen-pack ()
     (should (equal (bindat-pack spec "") "\0"))
-    (should (equal (bindat-pack spec "abc") "abc\0")))
+    (should (equal (bindat-pack spec "abc") "abc\0"))
+    ;; Null bytes in the input string break unpacking.
+    (should-error (bindat-pack spec "\0"))
+    (should-error (bindat-pack spec "\0x"))
+    (should-error (bindat-pack spec "x\0"))
+    (should-error (bindat-pack spec "x\0y")))
 
   (ert-deftest bindat-test--strz-varlen-unpack ()
     (should (equal (bindat-unpack spec "\0") ""))
