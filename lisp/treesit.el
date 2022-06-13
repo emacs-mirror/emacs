@@ -864,17 +864,20 @@ return the matched node.  Return nil if search failed."
                 (lambda (node)
                   (and (not (eq (funcall pos-fn node)
                                 starting-point))
-                       (if (> arg 0)
-                           ;; Make sure we move forward.
-                           (> (funcall pos-fn node) starting-point)
-                         ;; Make sure we move backward.
-                         (< (funcall pos-fn node) starting-point))
-                       (cl-loop for cap-node in
-                                (mapcar
-                                 #'cdr
-                                 (treesit-query-capture node query))
-                                if (treesit-node-eq cap-node node)
-                                return t)))
+                       (cl-loop
+                        for cap-node in
+                        (mapcar
+                         #'cdr
+                         (treesit-query-capture node query))
+                        if (and (treesit-node-eq cap-node node)
+                                (if (> arg 0)
+                                    ;; Make sure we moved forward.
+                                    (> (funcall pos-fn node)
+                                       starting-point)
+                                  ;; Make sure we moved backward.
+                                  (< (funcall pos-fn node)
+                                     starting-point)))
+                        return t)))
                 arg))
            for pos = (funcall pos-fn node)
            ;; If we can find a match, jump to it.
