@@ -1135,7 +1135,10 @@ It assumes that it is called from within the control buffer."
     (setq mode-line-format
 	  (if (ediff-narrow-control-frame-p)
 	      (list "   " mode-line-buffer-identification)
-	    (list "-- " mode-line-buffer-identification "        Quick Help")))
+	    (list "-- " mode-line-buffer-identification
+                  (and (not (eq ediff-window-setup-function
+                                'ediff-setup-windows-plain))
+                       "        Quick Help"))))
     ;; control buffer id
     (setq mode-line-buffer-identification
 	  (if (ediff-narrow-control-frame-p)
@@ -1213,18 +1216,20 @@ It assumes that it is called from within the control buffer."
    ediff-control-buffer-suffix))
 
 (defun ediff-make-wide-control-buffer-id ()
-  (cond ((< ediff-current-difference 0)
-	 (list (format "%%b   At start of %d diffs"
-		       ediff-number-of-differences)))
-	((>= ediff-current-difference ediff-number-of-differences)
-	 (list (format "%%b   At end of %d diffs"
-		       ediff-number-of-differences)))
-	(t
-	 (list (format "%%b   diff %d of %d"
-		       (1+ ediff-current-difference)
-		       ediff-number-of-differences)))))
-
-
+  (list
+   (concat "%b   "
+           (propertize
+            (cond ((< ediff-current-difference 0)
+                   (format "At start of %d diffs"
+                           ediff-number-of-differences))
+                  ((>= ediff-current-difference ediff-number-of-differences)
+                   (format "At end of %d diffs"
+                           ediff-number-of-differences))
+                  (t
+                   (format "diff %d of %d"
+                           (1+ ediff-current-difference)
+                           ediff-number-of-differences)))
+            'face 'mode-line-buffer-id))))
 
 ;; If buff is not live, return nil
 (defun ediff-get-visible-buffer-window (buff)
