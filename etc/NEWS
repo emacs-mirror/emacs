@@ -151,6 +151,9 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
+---
+** '/ a' in *Packages* now limits by package name(s) instead of regexp.
+
 +++
 ** Setting the goal columns now also affects '<prior>' and '<next>'.
 Previously, 'C-x C-n' only affected 'next-line' and 'previous-line',

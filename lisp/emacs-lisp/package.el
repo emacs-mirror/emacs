@@ -3963,16 +3963,14 @@ packages."
                       (mapcar #'car package-archives)))
                package-menu-mode)
   (package--ensure-package-menu-mode)
-  (let ((re (if (listp archive)
-                (regexp-opt archive)
-              archive)))
-    (package-menu--filter-by (lambda (pkg-desc)
-                        (let ((pkg-archive (package-desc-archive pkg-desc)))
-                          (and pkg-archive
-                               (string-match-p re pkg-archive))))
-                      (concat "archive:" (if (listp archive)
-                                             (string-join archive ",")
-                                           archive)))))
+  (let ((archives (ensure-list archive)))
+    (package-menu--filter-by
+     (lambda (pkg-desc)
+       (let ((pkg-archive (package-desc-archive pkg-desc)))
+         (or (null archives)
+             (and pkg-archive
+                  (member pkg-archive archives)))))
+     (concat "archive:" (string-join archives ",")))))
 
 (defun package-menu-filter-by-description (description)
   "Filter the \"*Packages*\" buffer by DESCRIPTION regexp.
