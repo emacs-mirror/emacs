@@ -964,7 +964,9 @@ the tree."
 (defvar-local treesit-defun-query nil
   "A tree-sitter query that matches function/class definitions.
 Capture names don't matter.  This variable is used by navigation
-functions like `treesit-beginning-of-defun'.")
+functions like `treesit-beginning-of-defun'.
+
+See `treesit-query-in' for what a query should look like.")
 
 (defun treesit-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
