@@ -974,7 +974,7 @@ to the ARGth following beginning of defun.  Defun is defined
 according to `treesit-defun-query'."
   (unless treesit-defun-query
     (error "Variable `treesit-defun-query' is unset"))
-  (treesit-search-beginning treesit-defun-query (- (or arg 1))))
+  (treesit-search-beginning treesit-defun-query (- (or arg 1)) nil t))
 
 (defun treesit-end-of-defun (&optional arg)
   "Move forward to the end of a defun.
@@ -984,7 +984,7 @@ ARGth preceding end of defun.  Defun is defined according to
 `treesit-defun-query'."
   (unless treesit-defun-query
     (error "Variable `treesit-defun-query' is unset"))
-  (treesit-search-end treesit-defun-query (or arg 1)))
+  (treesit-search-end treesit-defun-query (or arg 1) nil t))
 
 ;;; Debugging
 
