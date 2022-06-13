@@ -345,7 +345,10 @@ stands for a key sequence @var{KEYSEQ}, which will use the same face
 as a command substitution.  This should be used only when a key
 sequence has no corresponding command, for example when it is read
 directly with @code{read-key-sequence}.  It must be a valid key
-sequence according to @code{key-valid-p}.
+sequence according to @code{key-valid-p}.  It can also be used with
+command names, like @samp{\`M-x foo'}, where you want this to be
+fontified like a keyboard sequence, but you want to inhibit
+translating it into a key sequence like @samp{\[foo]} does.
 
 @item `
 (grave accent) stands for a left quote.
