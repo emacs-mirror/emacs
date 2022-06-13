@@ -2837,7 +2837,6 @@ not active."
   "<down-mouse-1>" #'ignore)
 
 (define-derived-mode minibuffer-inactive-mode nil "InactiveMinibuffer"
-  :abbrev-table nil          ;abbrev.el is not loaded yet during dump.
   ;; Note: this major mode is called from minibuf.c.
   "Major mode to use in the minibuffer when it is not active.
 This is only used when the minibuffer area has no active minibuffer.
@@ -2859,7 +2858,6 @@ For customizing this mode, it is better to use
 `minibuffer-setup-hook' and `minibuffer-exit-hook' rather than
 the mode hook of this mode."
   :syntax-table nil
-  :abbrev-table nil
   :interactive nil)
 
 ;;; Completion tables.
