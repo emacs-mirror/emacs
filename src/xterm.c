@@ -1228,6 +1228,10 @@ static XRectangle x_dnd_mouse_rect;
    protocol, this is set to the atom XdndActionPrivate.  */
 static Atom x_dnd_action;
 
+/* The symbol to return from `x-begin-drag' if non-nil.  Takes
+   precedence over `x_dnd_action`.  */
+static Lisp_Object x_dnd_action_symbol;
+
 /* The action we want the drop target to perform.  The drop target may
    elect to perform some different action, which is guaranteed to be
    in `x_dnd_action' upon completion of a drop.  */
@@ -1242,7 +1246,7 @@ static uint8_t x_dnd_motif_operations;
 static uint8_t x_dnd_first_motif_operation;
 
 /* Array of selection targets available to the drop target.  */
-static Atom *x_dnd_targets = NULL;
+static Atom *x_dnd_targets;
 
 /* The number of elements in that array.  */
 static int x_dnd_n_targets;
@@ -4298,15 +4302,30 @@ x_dnd_note_self_drop (struct x_display_info *dpyinfo, Window target,
   if (!f)
     return;
 
+  if (NILP (Vx_dnd_native_test_function))
+    return;
+
   if (!XTranslateCoordinates (dpyinfo->display, dpyinfo->root_window,
 			      FRAME_X_WINDOW (f), root_x, root_y,
 			      &win_x, &win_y, &dummy))
     return;
 
-  /* Emacs can't respond to DND events inside the nested event
-     loop, so when dragging items to itself, always return
-     XdndActionPrivate.  */
-  x_dnd_action = dpyinfo->Xatom_XdndActionPrivate;
+  /* Emacs can't respond to DND events inside the nested event loop,
+     so when dragging items to itself, call the test function
+     manually.  */
+
+  XSETFRAME (lval, f);
+  x_dnd_action = None;
+  x_dnd_action_symbol
+    = safe_call2 (Vx_dnd_native_test_function,
+		  Fposn_at_x_y (make_fixnum (win_x),
+				make_fixnum (win_y),
+				lval, Qnil),
+		  x_atom_to_symbol (dpyinfo,
+				    x_dnd_wanted_action));
+
+  if (!SYMBOLP (x_dnd_action_symbol))
+    return;
 
   EVENT_INIT (ie);
 
@@ -10779,6 +10798,12 @@ x_detect_pending_selection_requests (void)
   return pending_selection_requests;
 }
 
+static void
+x_clear_dnd_action (void)
+{
+  x_dnd_action_symbol = Qnil;
+}
+
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
@@ -10922,6 +10947,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   x_set_dnd_targets (target_atoms, ntargets);
   record_unwind_protect_void (x_free_dnd_targets);
+  record_unwind_protect_void (x_clear_dnd_action);
 
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
 					  QXdndSelection);
@@ -11042,6 +11068,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_last_motif_style = XM_DRAG_STYLE_NONE;
   x_dnd_mouse_rect_target = None;
   x_dnd_action = None;
+  x_dnd_action_symbol = Qnil;
   x_dnd_wanted_action = xaction;
   x_dnd_return_frame = 0;
   x_dnd_waiting_for_finish = false;
@@ -11434,6 +11461,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
   x_dnd_return_frame_object = NULL;
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
+
+  if (!NILP (x_dnd_action_symbol))
+    return unbind_to (base, x_dnd_action_symbol);
 
   if (x_dnd_action != None)
     {
@@ -26942,6 +26972,9 @@ syms_of_xterm (void)
   x_dnd_monitors = Qnil;
   staticpro (&x_dnd_monitors);
 
+  x_dnd_action_symbol = Qnil;
+  staticpro (&x_dnd_action_symbol);
+
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
   DEFSYM (Qnow, "now");
@@ -27189,4 +27222,15 @@ This variable contains the list of drag-and-drop selection targets
 during a drag-and-drop operation, in the same format as the TARGET
 argument to `x-begin-drag'.  */);
   Vx_dnd_targets_list = Qnil;
+
+  DEFVAR_LISP ("x-dnd-native-test-function", Vx_dnd_native_test_function,
+    doc: /* Function called to determine return when dropping on Emacs itself.
+It should accept two arguments POS and ACTION, and return a symbol
+describing what to return from `x-begin-drag'.  POS is a mouse
+position list detailing the location of the drop, and ACTION is the
+action specified by the caller of `x-begin-drag'.
+
+If nil or a non-symbol value is returned, the drop will be
+cancelled.  */);
+  Vx_dnd_native_test_function = Qnil;
 }

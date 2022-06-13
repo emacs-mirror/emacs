@@ -35,21 +35,23 @@
 (defcustom x-dnd-test-function #'x-dnd-default-test-function
   "The function drag and drop uses to determine if to accept or reject a drop.
 The function takes three arguments, WINDOW, ACTION and TYPES.
-WINDOW is where the mouse is when the function is called.  WINDOW may be a
-frame if the mouse isn't over a real window (i.e. menu bar, tool bar or
-scroll bar).  ACTION is the suggested action from the drag and drop source,
-one of the symbols move, copy, link or ask.  TYPES is a list of available
-types for the drop.
+WINDOW is where the mouse is when the function is called.  WINDOW
+may be a frame if the mouse isn't over a real window (i.e. menu
+bar, tool bar or scroll bar).  ACTION is the suggested action
+from the drag and drop source, one of the symbols move, copy,
+link or ask.  TYPES is a vector of available types for the drop.
 
-The function shall return nil to reject the drop or a cons with two values,
-the wanted action as car and the wanted type as cdr.  The wanted action
-can be copy, move, link, ask or private.
+Each element of TYPE should either be a string (containing the
+name of the type's X atom), or a symbol, whose name will be used.
+
+The function shall return nil to reject the drop or a cons with
+two values, the wanted action as car and the wanted type as cdr.
+The wanted action can be copy, move, link, ask or private.
+
 The default value for this variable is `x-dnd-default-test-function'."
   :version "22.1"
   :type 'symbol
   :group 'x)
-
-
 
 (defcustom x-dnd-types-alist
   `((,(purecopy "text/uri-list") . x-dnd-handle-uri-list)
@@ -94,8 +96,7 @@ if drop is successful, nil if not."
 The types are chosen in the order they appear in the list."
   :version "22.1"
   :type '(repeat string)
-  :group 'x
-)
+  :group 'x)
 
 ;; Internal variables
 
@@ -162,7 +163,6 @@ types the drop data can have.  This function only accepts drops with
 types in `x-dnd-known-types'.  It always returns the action private."
   (let ((type (x-dnd-choose-type types)))
     (when type (cons 'private type))))
-
 
 (defun x-dnd-current-type (frame-or-window)
   "Return the type we want the DND data to be in for the current drop.
@@ -895,6 +895,23 @@ Return a vector of atoms containing the selection targets."
                 (member "UTF8_STRING" targets)
                 (member "COMPOUND_TEXT" targets)
                 (member "TEXT" targets)))))
+
+(defvar x-dnd-targets-list)
+(defvar x-dnd-native-test-function)
+
+(defun x-dnd-handle-native-drop (pos action)
+  "Compute the action for a drop at POS.
+Return the appropriate drag-and-drop action for a local drop at POS.
+ACTION is the action given to `x-begin-drag'."
+  (let ((state (funcall x-dnd-test-function
+                        (posn-window pos)
+                        (cdr (assoc (symbol-name action)
+                                    x-dnd-xdnd-to-action))
+                        (apply #'vector x-dnd-targets-list))))
+    (when state
+      (intern (car (rassq (car state) x-dnd-xdnd-to-action))))))
+
+(setq x-dnd-native-test-function #'x-dnd-handle-native-drop)
 
 (provide 'x-dnd)
 

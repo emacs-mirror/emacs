@@ -1535,6 +1535,7 @@ extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
+extern Lisp_Object x_atom_to_symbol (struct x_display_info *, Atom);
 
 extern bool x_handle_dnd_message (struct frame *,
 				  const XClientMessageEvent *,

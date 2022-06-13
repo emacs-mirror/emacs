@@ -112,7 +112,7 @@ selection_quantum (Display *display)
 	  : MAX_SELECTION_QUANTUM);
 }
 
-#define LOCAL_SELECTION(selection_symbol,dpyinfo)			\
+#define LOCAL_SELECTION(selection_symbol, dpyinfo)			\
   assq_no_quit (selection_symbol, dpyinfo->terminal->Vselection_alist)
 
 
@@ -179,7 +179,7 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
 /* This converts a server Atom to a Lisp symbol, avoiding server roundtrips
    and calls to intern whenever possible.  */
 
-static Lisp_Object
+Lisp_Object
 x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
 {
   char *str;
