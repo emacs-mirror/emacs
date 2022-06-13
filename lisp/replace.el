@@ -928,7 +928,13 @@ If the first element of DEFAULTS is non-nil (and if PROMPT does not end
 in \":\", followed by optional whitespace), DEFAULT is added to the prompt.
 
 The optional argument HISTORY is a symbol to use for the history list.
-If nil, use `regexp-history'."
+If nil, use `regexp-history'.
+
+If the user has used the `M-c' command to specify case
+sensitivity, the returned string will have a text property named
+`case-fold' that has a value of either `fold' or
+`inhibit-fold'.  (It's up to the caller of `read-regexp' to
+respect this or not; see `read-regexp-case-fold-search'.)"
   (let* ((defaults
 	   (if (and defaults (symbolp defaults))
 	       (cond
@@ -944,21 +950,50 @@ If nil, use `regexp-history'."
 	 (suggestions (delete-dups (delq nil (delete "" suggestions))))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
+         (case-fold case-fold-search)
 	 (input (read-from-minibuffer
                  (if (string-match-p ":[ \t]*\\'" prompt)
                      prompt
                    (format-prompt prompt (and (length> default 0)
                                               (query-replace-descr default))))
-		 nil nil nil (or history 'regexp-history) suggestions t)))
-    (if (equal input "")
-	;; Return the default value when the user enters empty input.
-	(prog1 (or default input)
-	  (when default
-	    (add-to-history (or history 'regexp-history) default)))
-      ;; Otherwise, add non-empty input to the history and return input.
-      (prog1 input
-	(add-to-history (or history 'regexp-history) input)))))
+		 nil
+                 (define-keymap
+                   :parent minibuffer-local-map
+                   "M-c" (lambda ()
+                           (interactive)
+                           (setq case-fold
+                                 (if (or (eq case-fold 'fold)
+                                         (and case-fold
+                                              (not (eq case-fold
+                                                       'inhibit-fold))))
+                                     'inhibit-fold
+                                   'fold))
+                           (message "Case folding is now %s"
+                                    (if (eq case-fold 'fold)
+                                        "on"
+                                      "off"))))
+                 nil (or history 'regexp-history) suggestions t))
+         (result (if (equal input "")
+	             ;; Return the default value when the user enters
+	             ;; empty input.
+                     default
+                   input)))
+    (when result
+      (add-to-history (or history 'regexp-history) result))
+    (if (and result
+             (or (eq case-fold 'fold)
+                 (eq case-fold 'inhibit-fold)))
+        (propertize result 'case-fold case-fold)
+      (or result input))))
 
+(defun read-regexp-case-fold-search (regexp)
+  "Return a value for `case-fold-search' based on REGEXP and current settings.
+REGEXP is a string as returned by `read-regexp'."
+  (let ((fold (get-text-property 0 'case-fold regexp)))
+    (cond
+     ((eq fold 'fold) t)
+     ((eq fold 'inhibit-fold) nil)
+     (t case-fold-search))))
 
 (defalias 'delete-non-matching-lines 'keep-lines)
 (defalias 'delete-matching-lines 'flush-lines)
