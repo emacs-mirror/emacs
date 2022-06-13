@@ -104,6 +104,42 @@
                                       '("#emacs" "#vi"))
             '("#e" "#v"))) ))
 
+(ert-deftest erc-track--shortened-names ()
+  (let (erc-track--shortened-names
+        erc-track--shortened-names-current-hash
+        results)
+
+    (with-memoization (erc-track--shortened-names-get
+                       '("apple" "banana" "cherries"))
+      '("a" "b" "c"))
+    (should (integerp (car erc-track--shortened-names)))
+    (should (equal (cdr erc-track--shortened-names) '("a" "b" "c")))
+    (push erc-track--shortened-names results)
+
+    ;; Redundant call doesn't run.
+    (with-memoization (erc-track--shortened-names-get
+                       '("apple" "banana" "cherries"))
+      (should-not 'run)
+      '("a" "b" "c"))
+    (should (equal erc-track--shortened-names (car results)))
+
+    ;; Change in environment or context forces run.
+    (with-temp-buffer
+      (with-memoization (erc-track--shortened-names-get
+                         '("apple" "banana" "cherries"))
+        '("x" "y" "z")))
+    (should (and (integerp (car erc-track--shortened-names))
+                 (/= (car erc-track--shortened-names) (caar results))))
+    (should (equal (cdr erc-track--shortened-names) '("x" "y" "z")))
+    (push erc-track--shortened-names results)
+
+    (with-memoization (erc-track--shortened-names-get
+                       '("apple" "banana" "cherries"))
+      '("1" "2" "3"))
+    (should (and (integerp (car erc-track--shortened-names))
+                 (/= (car erc-track--shortened-names) (caar results))))
+    (should (equal (cdr erc-track--shortened-names) '("1" "2" "3")))))
+
 (ert-deftest erc-track--erc-faces-in ()
   "`erc-faces-in' should pick up both 'face and 'font-lock-face properties."
   (let ((str0 (copy-sequence "is bold"))

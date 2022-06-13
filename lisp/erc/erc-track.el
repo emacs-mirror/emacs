@@ -378,6 +378,37 @@ See `erc-track-position-in-mode-line' for possible values."
 
 ;;; Shortening of names
 
+(defvar erc-track--shortened-names nil
+  "A cons of the last novel name-shortening params and the result.
+The CAR is a hash of environmental inputs such as options and
+parameters passed to `erc-track-shorten-function'.  Its effect is
+only really noticeable during batch processing.")
+
+(defvar erc-track--shortened-names-current-hash nil)
+
+(defun erc-track--shortened-names-set (_ shortened)
+  "Remember SHORTENED names with hash of contextual params."
+  (cl-assert erc-track--shortened-names-current-hash)
+  (setq erc-track--shortened-names
+        (cons erc-track--shortened-names-current-hash shortened)))
+
+(defun erc-track--shortened-names-get (channel-names)
+  "Cache CHANNEL-NAMES with various contextual parameters.
+For now, omit relevant options like `erc-track-shorten-start' and
+friends, even though they do affect the outcome, because they
+likely change too infrequently to matter over sub-second
+intervals and are unlikely to be let-bound or set locally."
+  (when-let ((hash (setq erc-track--shortened-names-current-hash
+                         (sxhash-equal (list channel-names
+                                             (buffer-list)
+                                             erc-track-shorten-function))))
+             (erc-track--shortened-names)
+             ((= hash (car erc-track--shortened-names))))
+    (cdr erc-track--shortened-names)))
+
+(gv-define-simple-setter erc-track--shortened-names-get
+                         erc-track--shortened-names-set)
+
 (defun erc-track-shorten-names (channel-names)
   "Call `erc-unique-channel-names' with the correct parameters.
 This function is a good value for `erc-track-shorten-function'.
@@ -793,10 +824,13 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
                                            (or (buffer-name buf)
                                                ""))
 					 buffers))
-		     (short-names (if (functionp erc-track-shorten-function)
-				      (funcall erc-track-shorten-function
-					       long-names)
-				    long-names))
+                     (erc-track--shortened-names-current-hash nil)
+                     (short-names
+                      (if (functionp erc-track-shorten-function)
+                          (with-memoization
+                              (erc-track--shortened-names-get long-names)
+                            (funcall erc-track-shorten-function long-names))
+                        long-names))
 		     strings)
 		(while buffers
 		  (when (car short-names)
