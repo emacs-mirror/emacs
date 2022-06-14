@@ -664,18 +664,19 @@ FORM is the parent form that binds this var."
     ;; Push it before recursing, so cconv-freevars-alist contains entries in
     ;; the order they'll be used by closure-convert-rec.
     (push freevars cconv-freevars-alist)
-    (dolist (arg args)
-      (cond
-       ((byte-compile-not-lexical-var-p arg)
-        (byte-compile-warn-x
-         arg
-         "Lexical argument shadows the dynamic variable %S"
-         arg))
-       ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
-       (t (let ((varstruct (list arg nil nil nil nil)))
-            (cl-pushnew arg byte-compile-lexical-variables)
-            (push (cons (list arg) (cdr varstruct)) newvars)
-            (push varstruct newenv)))))
+    (when lexical-binding
+      (dolist (arg args)
+        (cond
+         ((byte-compile-not-lexical-var-p arg)
+          (byte-compile-warn-x
+           arg
+           "Lexical argument shadows the dynamic variable %S"
+           arg))
+         ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
+         (t (let ((varstruct (list arg nil nil nil nil)))
+              (cl-pushnew arg byte-compile-lexical-variables)
+              (push (cons (list arg) (cdr varstruct)) newvars)
+              (push varstruct newenv))))))
     (dolist (form body)                   ;Analyze body forms.
       (cconv-analyze-form form newenv))
     ;; Summarize resulting data about arguments.
@@ -724,7 +725,7 @@ This function does not return anything but instead fills the
 
            (cconv-analyze-form value (if (eq letsym 'let*) env orig-env)))
 
-         (unless (byte-compile-not-lexical-var-p var)
+         (unless (or (byte-compile-not-lexical-var-p var) (not lexical-binding))
            (cl-pushnew var byte-compile-lexical-variables)
            (let ((varstruct (list var nil nil nil nil)))
              (push (cons binder (cdr varstruct)) newvars)
@@ -769,6 +770,8 @@ This function does not return anything but instead fills the
 
     (`(condition-case ,var ,protected-form . ,handlers)
      (cconv-analyze-form protected-form env)
+     (unless lexical-binding
+       (setq var nil))
      (when (and var (symbolp var) (byte-compile-not-lexical-var-p var))
        (byte-compile-warn-x
         var "Lexical variable shadows the dynamic variable %S" var))
