@@ -1501,6 +1501,11 @@ command_loop_1 (void)
             point_before_last_command_or_undo = PT;
             buffer_before_last_command_or_undo = current_buffer;
 
+	    /* Restart our counting of redisplay ticks before
+	       executing the command, so that we don't blame the new
+	       command for the sins of the previous one.  */
+	    update_redisplay_ticks (0, NULL);
+
             call1 (Qcommand_execute, Vthis_command);
 
 #ifdef HAVE_WINDOW_SYSTEM

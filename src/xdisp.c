@@ -17176,7 +17176,10 @@ redisplay_window_1 (Lisp_Object window)
    redisplay of the window takes "too long".
 
    TICKS is the amount of ticks to add to the W's current count; zero
-   means to initialize the count to zero.  */
+   means to initialize the tick count to zero.
+
+   W can be NULL if TICKS is zero: that means unconditionally
+   re-initialize the current tick count to zero.   */
 void
 update_redisplay_ticks (int ticks, struct window *w)
 {
@@ -17184,9 +17187,9 @@ update_redisplay_ticks (int ticks, struct window *w)
   static struct window *cwindow;
   static EMACS_INT window_ticks;
 
-  /* We only initialize the count if this is a different window.
-     Otherwise, this is a call from init_iterator for the same window
-     we tracked before, and we should keep the count.  */
+  /* We only initialize the count if this is a different window or
+     NULL.  Otherwise, this is a call from init_iterator for the same
+     window we tracked before, and we should keep the count.  */
   if (!ticks && w != cwindow)
     {
       cwindow = w;
@@ -17195,8 +17198,19 @@ update_redisplay_ticks (int ticks, struct window *w)
   if (ticks > 0)
     window_ticks += ticks;
   if (max_redisplay_ticks > 0 && window_ticks > max_redisplay_ticks)
-    error ("Window showing buffer %s takes too long to redisplay",
-	   SSDATA (BVAR (XBUFFER (w->contents), name)));
+    {
+      /* In addition to a buffer, this could be a window (for non-leaf
+	 windows, not expected here) or nil (for pseudo-windows like
+	 the one used for the native tool bar).  */
+      Lisp_Object contents = w ? w->contents : Qnil;
+      char *bufname =
+	BUFFERP (contents)
+	? SSDATA (BVAR (XBUFFER (contents), name))
+	: (char *) "<none>";
+
+      windows_or_buffers_changed = 177;
+      error ("Window showing buffer %s takes too long to redisplay", bufname);
+    }
 }
 
 
