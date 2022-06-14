@@ -399,6 +399,12 @@ These options allow adjusting point and scrolling a window when
 dragging items from another program.
 
 +++
+** New user option 'record-all-keys'.
+If non-nil, this option will force recording of all input keys
+including in passwords prompt (this was the previous behaviour).  It
+now defaults to NIL and inhibits recording of passwords.
+
++++
 ** New function 'command-query'.
 This function makes its argument command prompt the user for
 confirmation before executing.

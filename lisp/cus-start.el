@@ -398,6 +398,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			(const :tag " current dir" nil)
 	     ;;    			(directory :format "%v"))))
 	     (load-prefer-newer lisp boolean "24.4")
+             (record-all-keys keyboard boolean)
 	     ;; minibuf.c
 	     (minibuffer-follows-selected-frame
               minibuffer (choice (const :tag "Always" t)
