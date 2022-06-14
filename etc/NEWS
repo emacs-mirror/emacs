@@ -997,6 +997,13 @@ inadvertently delete the "*scratch*" buffer.
 
 ** Debugging
 
+---
+*** 'q' in a *Backtrace* buffer no longer clears the buffer.
+Instead it just buries the buffer and switches the mode from
+'debugger-mode' to 'backtrace-mode', since commands like 'e' are no
+longer available after exiting the recursive edit.
+
++++
 *** New user option 'debug-allow-recursive-debug'.
 This user option controls whether the 'e' (in a "*Backtrace*"
 buffer or while edebugging) and 'C-x C-e' (while edebugging) commands
