@@ -1522,8 +1522,9 @@ DEFUN ("treesit-query-compile",
 Querying a compiled query is much faster than an uncompiled one.
 LANGUAGE is the language this query is for.
 
-Signals treesit-query-error if QUERY is malformed or something
-else goes wrong.  */)
+Signals treesit-query-error if QUERY is malformed or something else
+goes wrong.  You can use `treesit-query-validate' to debug the
+query.  */)
   (Lisp_Object language, Lisp_Object query)
 {
   if (!Ftreesit_query_p (query))
@@ -1564,8 +1565,9 @@ compile your queries if it will be used over and over.
 BEG and END, if both non-nil, specifies the range in which the query
 is executed.
 
-Raise an treesit-query-error if QUERY is malformed, or something
-else goes wrong.  */)
+Signals treesit-query-error if QUERY is malformed or something else
+goes wrong.  You can use `treesit-query-validate' to debug the
+query.  */)
   (Lisp_Object node, Lisp_Object query,
    Lisp_Object beg, Lisp_Object end)
 {

@@ -1038,10 +1038,11 @@ uses the first parser in `treesit-parser-list'."
           (remove '(:eval treesit--inspect-name)
                   mode-line-misc-info))))
 
-(defun treesit-check-query (query language)
+(defun treesit-query-validate (language query)
   "Check if QUERY is valid for LANGUAGE.
 If QUERY is invalid, display the query in a popup buffer, jumps
 to the offending pattern and highlight the pattern."
+  (cl-assert (or (consp query) (stringp query)))
   (let ((buf (get-buffer-create "*tree-sitter check query*")))
     (with-temp-buffer
       (treesit-get-parser-create language)

@@ -816,7 +816,7 @@ are both non-nil, it only pattern matches nodes in that range.
 @vindex treesit-query-error
 This function raise a @var{treesit-query-error} if @var{query} is
 malformed.  The signal data contains a description of the specific
-error.
+error.  You can use @code{treesit-query-validate} to debug the query.
 @end defun
 
 @defun treesit-query-in source query &optional beg end
@@ -1111,6 +1111,10 @@ a query is accepted.
 @defun treesit-query-compile language query
 This function compiles @var{query} for @var{language} into a compiled
 query object and returns it.
+
+This function raise a @var{treesit-query-error} if @var{query} is
+malformed.  The signal data contains a description of the specific
+error.  You can use @code{treesit-query-validate} to debug the query.
 @end defun
 
 @defun treesit-expand-query query
