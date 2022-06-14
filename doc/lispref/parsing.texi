@@ -93,7 +93,7 @@ to @var{treesit-load-name-override-list}, where
 @var{library-base-name} is the base filename for the dynamic library
 (conventionally @code{libtree-sitter-@var{language}}), and
 @var{function-name} is the function provided by the library
-(conventionally @code{tree_sitter_@var{language}). For example,
+(conventionally @code{tree_sitter_@var{language}}). For example,
 
 @example
 (cool-lang "libtree-sitter-coool" "tree_sitter_cooool")
@@ -763,7 +763,7 @@ more advanced pattern syntax.
 
 @cindex Tree-sitter query syntax
 @cindex Tree-sitter query pattern
-A @dfn{query} consists of multiple @dfn{patterns}, each pattern is an
+A @dfn{query} consists of multiple @dfn{patterns}.  Each pattern is an
 s-expression that matches a certain node in the syntax node.  A
 pattern has the following shape:
 
@@ -1107,8 +1107,8 @@ query.  It is usually a good idea to expand the s-expression patterns
 into strings for font-lock queries since they are called repeatedly.
 @end defun
 
-Tree-sitter project's documentation about pattern-matching can be
-found at
+Finally, tree-sitter project's documentation about
+pattern-matching can be found at
 @uref{https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries}.
 
 @node Multiple Languages
