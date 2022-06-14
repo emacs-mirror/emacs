@@ -1540,7 +1540,8 @@ extern Lisp_Object x_atom_to_symbol (struct x_display_info *, Atom);
 extern bool x_handle_dnd_message (struct frame *,
 				  const XClientMessageEvent *,
 				  struct x_display_info *,
-				  struct input_event *);
+				  struct input_event *,
+				  bool, int, int);
 extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,
