@@ -4497,7 +4497,7 @@ Return the new class name, which is a symbol named DIR."
     (with-demoted-errors "Error reading dir-locals: %S"
       (dolist (file files)
 	(let ((file-time (file-attribute-modification-time
-			  (file-attributes file))))
+			  (file-attributes (file-chase-links file)))))
 	  (if (time-less-p latest file-time)
 	    (setq latest file-time)))
         (with-temp-buffer
