@@ -17199,6 +17199,11 @@ update_redisplay_ticks (int ticks, struct window *w)
       cwindow = w;
       window_ticks = 0;
     }
+  /* Some callers can be run in contexts unrelated to redisplay, so
+     don't abort them and don't update the tick count in those cases.  */
+  if (!w && !redisplaying_p)
+    return;
+
   if (ticks > 0)
     window_ticks += ticks;
   if (max_redisplay_ticks > 0 && window_ticks > max_redisplay_ticks)
