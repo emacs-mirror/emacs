@@ -2460,7 +2460,7 @@ during jdb initialization depending on the value of
   ;;  not supported/followed)
   (if (and gud-jdb-use-classpath
 	   (not gud-jdb-classpath-string)
-	   (or (string-match "classpath:[ \t[]+\\([^]]+\\)" gud-marker-acc)
+	   (or (string-match "classpath:[ \t[]+\\([^]]*\\)" gud-marker-acc)
 	       (string-match "-classpath[ \t\"]+\\([^ \"]+\\)" gud-marker-acc)))
       (setq gud-jdb-classpath
 	    (gud-jdb-parse-classpath-string
