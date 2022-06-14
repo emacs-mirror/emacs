@@ -27365,13 +27365,15 @@ argument to `x-begin-drag'.  */);
   Vx_dnd_targets_list = Qnil;
 
   DEFVAR_LISP ("x-dnd-native-test-function", Vx_dnd_native_test_function,
-    doc: /* Function called to determine return when dropping on Emacs itself.
-It should accept two arguments POS and ACTION, and return a symbol
-describing what to return from `x-begin-drag'.  POS is a mouse
-position list detailing the location of the drop, and ACTION is the
-action specified by the caller of `x-begin-drag'.
+    doc: /* Function that determines return value of drag-and-drop on Emacs frames.
+If the value is a function, `x-begin-drag' will call it with two
+arguments, POS and ACTION, where POS is a mouse position list
+that specifies the location of the drop, and ACTION is the
+action specified by the caller of `x-begin-drag'.  The function
+should return a symbol describing what to return from
+`x-begin-drag' if the drop happens on an Emacs frame.
 
-If nil or a non-symbol value is returned, the drop will be
-cancelled.  */);
+If the value is nil, or the function returns a value that is not
+a symbol, a drop on an Emacs frame will be canceled.  */);
   Vx_dnd_native_test_function = Qnil;
 }
