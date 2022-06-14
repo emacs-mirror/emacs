@@ -3976,23 +3976,30 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
       (setq display-it t))
     (if (and ido-completion-buffer display-it)
 	(with-output-to-temp-buffer ido-completion-buffer
-	  (let ((completion-list (sort
-				  (cond
-				   (ido-directory-too-big
-				    (message "Reading directory...")
-				    (setq ido-directory-too-big nil
-					  ido-ignored-list nil
-					  ido-cur-list (ido-all-completions)
-					  ido-rescan t)
-				    (ido-set-matches)
-				    (or ido-matches ido-cur-list))
-				   (ido-use-merged-list
-				    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
-				   ((or full-list ido-completion-buffer-all-completions)
-				    (ido-all-completions))
-				   (t
-				    (copy-sequence (or ido-matches ido-cur-list))))
-				  #'ido-file-lessp)))
+	  (let* ((comps
+		  (cond
+		   (ido-directory-too-big
+		    (message "Reading directory...")
+		    (setq ido-directory-too-big nil
+			  ido-ignored-list nil
+			  ido-cur-list (ido-all-completions)
+			  ido-rescan t)
+		    (ido-set-matches)
+		    (or ido-matches ido-cur-list))
+		   (ido-use-merged-list
+		    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
+		   ((or full-list ido-completion-buffer-all-completions)
+		    (ido-all-completions))
+		   (t
+		    (copy-sequence (or ido-matches ido-cur-list)))))
+                 (completion-list
+                  ;; If we have an alist COMPLETIONS, transform to a
+                  ;; simple list first.
+                  (sort (if (and (consp comps)
+                                 (consp (car comps)))
+                            (mapcar #'car comps)
+                          comps)
+                        #'ido-file-lessp)))
 	    ;;(add-hook 'completion-setup-hook #'completion-setup-function)
 	    (display-completion-list completion-list))))))
 
