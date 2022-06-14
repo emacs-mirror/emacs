@@ -112,7 +112,9 @@ program."
   "Handle mouse movement to POSN when receiving a drop from another program."
   (when (windowp (posn-window posn))
     (with-selected-window (posn-window posn)
-      (when dnd-scroll-margin
+      (when (and dnd-scroll-margin
+                 ;; TODO: handle scroll bars reasonably.
+                 (not (posn-area posn)))
         (ignore-errors
           (let* ((row (cdr (posn-col-row posn)))
                  (window (when (windowp (posn-window posn))
