@@ -134,37 +134,45 @@
         (setq root-node (treesit-parser-root-node
                          parser)))
 
-      (dolist (pattern
+      ;; Test `treesit-query-capture' on string, sexp and compiled
+      ;; queries.
+      (dolist (query1
+               ;; String query.
                '("(string) @string
 (pair key: (_) @keyword)
 ((_) @bob (#match \"^B.b$\" @bob))
 (number) @number
 ((number) @n3 (#equal \"3\" @n3)) "
+                 ;; Sexp query.
                  ((string) @string
                   (pair key: (_) @keyword)
                   ((_) @bob (:match "^B.b$" @bob))
                   (number) @number
                   ((number) @n3 (:equal "3" @n3)))))
-        (should
-         (equal
-          '((number . "1") (number . "2")
-            (keyword . "\"name\"")
-            (string . "\"name\"")
-            (string . "\"Bob\"")
-            (bob . "Bob")
-            (number . "3")
-            (n3 . "3"))
-          (mapcar (lambda (entry)
-                    (cons (car entry)
-                          (treesit-node-text
-                           (cdr entry))))
-                  (treesit-query-capture root-node pattern))))
-        (should
-         (equal
-          "(type field: (_) @capture .) ? * + \"return\""
-          (treesit-expand-query
-           '((type field: (_) @capture :anchor)
-             :? :* :+ "return"))))))))
+        ;; Test `treesit-query-compile'.
+        (dolist (query (list query1
+                             (treesit-query-compile 'json query1)))
+          (should
+           (equal
+            '((number . "1") (number . "2")
+              (keyword . "\"name\"")
+              (string . "\"name\"")
+              (string . "\"Bob\"")
+              (bob . "Bob")
+              (number . "3")
+              (n3 . "3"))
+            (mapcar (lambda (entry)
+                      (cons (car entry)
+                            (treesit-node-text
+                             (cdr entry))))
+                    (treesit-query-capture root-node query))))))
+      ;; Test `treesit-expand-query'.
+      (should
+       (equal
+        "(type field: (_) @capture .) ? * + \"return\""
+        (treesit-expand-query
+         '((type field: (_) @capture :anchor)
+           :? :* :+ "return")))))))
 
 (ert-deftest treesit-narrow ()
   "Tests if narrowing works."
