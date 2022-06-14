@@ -311,8 +311,8 @@ node if PRED returns non-nil.  If STEP >= 0 or nil, go forward,
 if STEP < 0, go backward.  If no node satisfies PRED, return
 nil.
 
-Traversing forward depth-first means, for a tree like the below
-where NODE is marked 1, traverse as numbered:
+Traversing forward depth-first means that for a tree like the
+below where NODE is marked 1, traverse as numbered:
 
                 16
                 |
@@ -326,11 +326,12 @@ where NODE is marked 1, traverse as numbered:
 
 DEPTH can be a positive integer, 0, nil, or 'up.  A positive
 integer or 0 means go DEPTH deep counting from NODE.  A nil means
-no limit.  And a symbol 'up means upward only: only traverse
-sibling and parent, never go down.  The difference between 0 and
-'up is subtle: in the above example, if given 0 as DEPTH, node 1
-3 4 5 6 8 9 12 16 are visited; if given t as DEPTH, only node 1 3
-4 8 16 are visited."
+no limit.  And a symbol 'up means go upwards only: only traverse
+sibling and parent, never go down to children.
+
+The difference between 0 and 'up is subtle: in the above example,
+if given 0 as DEPTH, node 1 3 4 5 6 8 9 12 16 are visited; if
+given 'up as DEPTH, only node 1 3 4 8 16 are visited."
   ;; First try NODE's subtree, but only under these conditions: if
   ;; DEPTH is a number, it has to be greater than 0, if it's a symbol,
   ;; it cannot be 'up.
