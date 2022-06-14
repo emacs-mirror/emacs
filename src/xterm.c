@@ -2396,6 +2396,30 @@ xm_read_drag_receiver_info (struct x_display_info *dpyinfo,
 }
 
 static void
+xm_read_drag_motion_message (const XEvent *msg,
+			     xm_drag_motion_message *dmsg)
+{
+  const uint8_t *data;
+
+  data = (const uint8_t *) &msg->xclient.data.b[0];
+
+  dmsg->reason = *(data++);
+  dmsg->byteorder = *(data++);
+  dmsg->side_effects = *(uint16_t *) data;
+  dmsg->timestamp = *(uint32_t *) (data + 2);
+  dmsg->x = *(uint16_t *) (data + 6);
+  dmsg->y = *(uint16_t *) (data + 8);
+
+  if (dmsg->byteorder != XM_BYTE_ORDER_CUR_FIRST)
+    {
+      SWAPCARD16 (dmsg->side_effects);
+      SWAPCARD32 (dmsg->timestamp);
+      SWAPCARD16 (dmsg->x);
+      SWAPCARD16 (dmsg->y);
+    }
+}
+
+static void
 x_dnd_send_xm_leave_for_drop (struct x_display_info *dpyinfo,
 			      struct frame *f, Window wdesc,
 			      Time timestamp)
@@ -15769,6 +15793,8 @@ static bool
 x_coords_from_dnd_message (struct x_display_info *dpyinfo,
 			   XEvent *event, int *x_out, int *y_out)
 {
+  xm_drag_motion_message dmsg;
+
   if (event->type != ClientMessage)
     return false;
 
@@ -15782,6 +15808,21 @@ x_coords_from_dnd_message (struct x_display_info *dpyinfo,
       *y_out = (event->xclient.data.l[2] & 0xffff);
 
       return true;
+    }
+
+  if ((event->xclient.message_type
+       == dpyinfo->Xatom_MOTIF_DRAG_AND_DROP_MESSAGE)
+      && event->xclient.format == 8)
+    {
+      if (event->xclient.data.b[0]
+	  == XM_DRAG_REASON_DRAG_MOTION)
+	{
+	  xm_read_drag_motion_message (event, &dmsg);
+	  *x_out = dmsg.x;
+	  *y_out = dmsg.y;
+
+	  return true;
+	}
     }
 
   return false;
