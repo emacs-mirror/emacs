@@ -1837,7 +1837,18 @@ adjust_frame_glyphs (struct frame *f)
   if (FRAME_WINDOW_P (f))
     adjust_frame_glyphs_for_window_redisplay (f);
   else
-    adjust_frame_glyphs_for_frame_redisplay (f);
+    {
+      adjust_frame_glyphs_for_frame_redisplay (f);
+      eassert (FRAME_INITIAL_P (f)
+	       || noninteractive
+	       || !initialized
+	       || (f->current_matrix
+		   && f->current_matrix->nrows > 0
+		   && f->current_matrix->rows
+		   && f->desired_matrix
+		   && f->desired_matrix->nrows > 0
+		   && f->desired_matrix->rows));
+    }
 
   /* Don't forget the buffer for decode_mode_spec.  */
   adjust_decode_mode_spec_buffer (f);
@@ -2115,6 +2126,19 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
       else
 	{
 	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
+	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
+	  SET_FRAME_GARBAGED (f);
+	}
+    }
+  else if (!FRAME_INITIAL_P (f) && !noninteractive && initialized)
+    {
+      if (!f->desired_matrix->nrows || !f->desired_matrix->rows)
+	{
+	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
+	  SET_FRAME_GARBAGED (f);
+	}
+      if (!f->current_matrix->nrows || !f->current_matrix->rows)
+	{
 	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
 	  SET_FRAME_GARBAGED (f);
 	}
@@ -3907,7 +3931,8 @@ update_marginal_area (struct window *w, struct glyph_row *updated_row,
    Value is true if display has changed.  */
 
 static bool
-update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
+update_text_area (struct window *w, struct glyph_row *updated_row, int vpos,
+		  bool *partial_p)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
@@ -4013,6 +4038,13 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 		{
 		  x += desired_glyph->pixel_width;
 		  ++desired_glyph, ++current_glyph, ++i;
+
+		  /* Say that only a partial update was performed of
+		     the current row (i.e. not all the glyphs were
+		     drawn).  This is used to preserve the stipple_p
+		     flag of the current row inside
+		     update_window_line.  */
+		  *partial_p = true;
 		}
 
 	      /* Consider the case that the current row contains "xxx
@@ -4084,8 +4116,14 @@ update_text_area (struct window *w, struct glyph_row *updated_row, int vpos)
 	      rif->write_glyphs (w, updated_row, start,
 				 TEXT_AREA, i - start_hpos);
 	      changed_p = 1;
+	      *partial_p = true;
 	    }
 	}
+
+      /* This means we will draw from the start, so no partial update
+	 is being performed.  */
+      if (!i)
+	*partial_p = false;
 
       /* Write the rest.  */
       if (i < desired_row->used[TEXT_AREA])
@@ -4159,7 +4197,9 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
-  bool changed_p = 0;
+
+  /* partial_p is true if not all of desired_row was drawn.  */
+  bool changed_p = 0, partial_p = 0, was_stipple;
 
   /* A row can be completely invisible in case a desired matrix was
      built with a vscroll and then make_cursor_line_fully_visible shifts
@@ -4183,7 +4223,7 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
 	}
 
       /* Update the display of the text area.  */
-      if (update_text_area (w, desired_row, vpos))
+      if (update_text_area (w, desired_row, vpos, &partial_p))
 	{
 	  changed_p = 1;
 	  if (current_row->mouse_face_p)
@@ -4212,7 +4252,17 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
     }
 
   /* Update current_row from desired_row.  */
+  was_stipple = current_row->stipple_p;
   make_current (w->desired_matrix, w->current_matrix, vpos);
+
+  /* If only a partial update was performed, any stipple already
+     displayed in MATRIX_ROW (w->current_matrix, vpos) might still be
+     there, so don't hurry to clear that flag if it's not in
+     desired_row.  */
+
+  if (partial_p && was_stipple)
+    current_row->stipple_p = true;
+
   return changed_p;
 }
 
@@ -4392,7 +4442,6 @@ add_row_entry (struct glyph_row *row)
   return entry;
 }
 
-
 /* Try to reuse part of the current display of W by scrolling lines.
    HEADER_LINE_P means W has a header line.
 
@@ -4438,6 +4487,14 @@ scrolling_window (struct window *w, int tab_line_p)
       struct glyph_row *d = MATRIX_ROW (desired_matrix, i);
       struct glyph_row *c = MATRIX_ROW (current_matrix, i);
 
+      /* If there is a row with a stipple currently on the glass, give
+	 up.  Stipples look different depending on where on the
+	 display they are drawn, so scrolling the display will produce
+	 incorrect results.  */
+
+      if (c->stipple_p)
+	return 0;
+
       if (c->enabled_p
 	  && d->enabled_p
 	  && !d->redraw_fringe_bitmaps_p
@@ -4466,6 +4523,16 @@ scrolling_window (struct window *w, int tab_line_p)
     return -1;
 
   first_old = first_new = i;
+
+  while (i < current_matrix->nrows - 1)
+    {
+      /* If there is a stipple after the first change, give up as
+	 well.  */
+      if (MATRIX_ROW (current_matrix, i)->stipple_p)
+	return 0;
+
+      ++i;
+    }
 
   /* Set last_new to the index + 1 of the row that reaches the
      bottom boundary in the desired matrix.  Give up if we find a

@@ -138,7 +138,7 @@ Also check that an encoding error can appear in a symlink."
     (should (and (file-name-absolute-p name)
                  (not (eq (aref name 0) ?~))))))
 
-(ert-deftest fileio-test--expand-file-name-null-bytes ()
+(ert-deftest fileio-tests--expand-file-name-null-bytes ()
   "Test that `expand-file-name' checks for null bytes in filenames."
   (should-error (expand-file-name (concat "file" (char-to-string ?\0) ".txt"))
                 :type 'wrong-type-argument)
@@ -192,5 +192,13 @@ Also check that an encoding error can appear in a symlink."
   (should (equal (file-name-concat "foo" "" "" "" nil) "foo"))
   (should (equal (file-name-concat "" "bar") "bar"))
   (should (equal (file-name-concat "" "") "")))
+
+(ert-deftest fileio-tests--non-regular-insert ()
+  (skip-unless (file-exists-p "/dev/urandom"))
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (should-error (insert-file-contents "/dev/urandom" nil 5 10))
+    (insert-file-contents "/dev/urandom" nil nil 10)
+    (should (= (buffer-size) 10))))
 
 ;;; fileio-tests.el ends here

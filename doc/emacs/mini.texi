@@ -381,16 +381,16 @@ used with the completion list:
 @vindex minibuffer-completion-auto-choose
 @item M-@key{DOWN}
 @itemx M-@key{UP}
-These keys will navigate through the completions displayed in the
-completions buffer.  When @code{minibuffer-completion-auto-choose} is
-non-@code{nil} (which is the default), using these commands will
-automatically insert the current completion candidate in the
-minibuffer.  If this user option is @code{nil}, the keys will navigate
-the same way as before, but won't automatically insert the candidate
-in the minibuffer.  Instead you have to use the @kbd{M-@key{RET}} command to
-do that.  With a prefix argument, @kbd{C-u M-@key{RET}} inserts the
-currently active candidate to the minibuffer, but doesn't exit the
-minibuffer.
+While in the minibuffer, these keys navigate through the completions
+displayed in the completions buffer.  When
+@code{minibuffer-completion-auto-choose} is non-@code{nil} (which is
+the default), using these commands also inserts the current completion
+candidate into the minibuffer.  If
+@code{minibuffer-completion-auto-choose} is @code{nil}, you can use
+the @kbd{M-@key{RET}} command to insert the completion candidates into
+the minibuffer.  By default, that exits the minibuffer, but with a
+prefix argument, @kbd{C-u M-@key{RET}} inserts the currently active
+candidate without exiting the minibuffer.
 
 @findex switch-to-completions
 @item M-v
@@ -407,7 +407,10 @@ ways (@pxref{Windows}).
 @itemx mouse-1
 @itemx mouse-2
 While in the completion list buffer, this chooses the completion at
-point (@code{choose-completion}).
+point (@code{choose-completion}).  With a prefix argument, @kbd{C-u
+@key{RET}} inserts the completion at point into the minibuffer, but
+doesn't exit the minibuffer---thus, you can change your mind and
+choose another candidate.
 
 @findex next-completion
 @item @key{TAB}
@@ -682,17 +685,20 @@ behavior only when there are @var{n} or fewer alternatives.
 
 @vindex completions-format
   When displaying completions, Emacs will normally pop up a new buffer
-to display the completions.  The completions will (by default) be
-sorted in columns horizontally in alphabetical order, but this can be
-changed by changing the @code{completions-format} user option.  If
-@code{vertical}, sort the completions vertically in columns instead,
-and if @code{one-column}, just use a single column.
+to display the completions.  The completions will by default be sorted
+horizontally, using as many columns as will fit in the window-width,
+but this can be changed by customizing the @code{completions-format}
+user option.  If its value is @code{vertical}, Emacs will sort the
+completions vertically instead, and if it's @code{one-column}, Emacs
+will use just one column.
 
 @vindex completions-sort
-  This user option controls how completions are sorted in the
-@samp{*Completions*} buffer.  The default is @code{alphabetical}, but
-it can also be a function which will be called with the list of
-completions, and should return the list in the desired order.
+  The @code{completions-sort} user option controls the order in which
+the completions are sorted in the @samp{*Completions*} buffer.  The
+default is @code{alphabetical}, which sorts in alphabetical order.
+The value @code{nil} disables sorting.  The value can also be a
+function, which will be called with the list of completions, and
+should return the list in the desired order.
 
 @vindex completions-max-height
   When @code{completions-max-height} is non-@code{nil}, it limits the

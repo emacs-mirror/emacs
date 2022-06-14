@@ -171,7 +171,7 @@ is the symbol being selected.
 
 Example value:
 
-  '((\"Emacs Lisp\" Info-goto-emacs-command-node obarray)
+  \\='((\"Emacs Lisp\" Info-goto-emacs-command-node obarray)
     (\"Common Lisp\" common-lisp-hyperspec common-lisp-hyperspec-obarray)
     (\"SCWM\" scwm-documentation scwm-obarray))"
   :group 'etags

@@ -347,11 +347,11 @@ move to the column number specified by the argument's numeric value.
 @kindex C-x C-n
 @findex set-goal-column
 Use the current column of point as the @dfn{semipermanent goal column}
-for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}) in the current
-buffer.  When a semipermanent goal column is in effect, those commands
-always try to move to this column, or as close as possible to it,
-after moving vertically.  The goal column remains in effect until
-canceled.
+(@code{set-goal-column}) in the current buffer.  When a semipermanent
+goal column is in effect, @kbd{C-n}, @kbd{C-p}, @kbd{<prior>} and
+@kbd{<next>} always try to move to this column, or as close as
+possible to it, after moving vertically.  The goal column remains in
+effect until canceled.
 
 @item C-u C-x C-n
 Cancel the goal column.  Henceforth, @kbd{C-n} and @kbd{C-p} try to
@@ -653,14 +653,14 @@ Toggle automatic display of the current line number or column number.
 displayed before each line, see @ref{Display Custom}.
 
 @item M-=
-Display the number of lines, words, and characters that are present in
-the region (@code{count-words-region}).  @xref{Mark}, for information
-about the region.
+Display the number of lines, sentences, words, and characters that are
+present in the region (@code{count-words-region}).  @xref{Mark}, for
+information about the region.
 
 @item M-x count-words
-Display the number of lines, words, and characters that are present in
-the buffer.  If the region is active (@pxref{Mark}), display the
-numbers for the region instead.
+Display the number of lines, sentences, words, and characters that are
+present in the buffer.  If the region is active (@pxref{Mark}),
+display the numbers for the region instead.
 
 @item C-x =
 Display the character code of character after point, character position of
@@ -689,7 +689,7 @@ narrowed region and the line number relative to the whole buffer.
 @kindex M-=
 @findex count-words-region
   @kbd{M-=} (@code{count-words-region}) displays a message reporting
-the number of lines, words, and characters in the region
+the number of lines, sentences, words, and characters in the region
 (@pxref{Mark}, for an explanation of the region).  With a prefix
 argument, @kbd{C-u M-=}, the command displays a count for the entire
 buffer.

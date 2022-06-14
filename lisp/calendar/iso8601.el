@@ -114,6 +114,11 @@
          iso8601--duration-week-match
          iso8601--duration-combined-match)))
 
+;; "Z" dnd "z" are standard time; nil and [-+][0-9][0-9]... are local time
+;; with unknown DST.
+(defun iso8601--zone-dst (zone)
+  (if (= (length zone) 1) nil -1))
+
 (defun iso8601-parse (string &optional form)
   "Parse an ISO 8601 date/time string and return a `decode-time' structure.
 
@@ -140,7 +145,7 @@ See `decode-time' for the meaning of FORM."
         (setf (decoded-time-zone date)
               ;; The time zone in decoded times are in seconds.
 	      (* (iso8601-parse-zone zone-string) 60))
-	(setf (decoded-time-dst date) nil))
+	(setf (decoded-time-dst date) (iso8601--zone-dst zone-string)))
       date)))
 
 (defun iso8601-parse-date (string)
@@ -256,6 +261,7 @@ See `decode-time' for the meaning of FORM."
           (iso8601--decoded-time :hour hour
                                  :minute (or minute 0)
                                  :second (or second 0)
+				 :dst (iso8601--zone-dst zone)
                                  :zone (and zone
                                             (* 60 (iso8601-parse-zone
                                                    zone)))))))))
@@ -364,7 +370,7 @@ Return the number of minutes."
 
 (cl-defun iso8601--decoded-time (&key second minute hour
                                       day month year
-                                      dst zone)
+				      (dst -1) zone)
   (list (iso8601--value second)
         (iso8601--value minute)
         (iso8601--value hour)
@@ -372,7 +378,7 @@ Return the number of minutes."
         (iso8601--value month)
         (iso8601--value year)
         nil
-	(if (or dst zone) dst -1)
+	dst
         zone))
 
 (defun iso8601--encode-time (time)

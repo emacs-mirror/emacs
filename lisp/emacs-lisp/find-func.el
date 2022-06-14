@@ -269,11 +269,7 @@ defined in C.")
 If FUNC is not a symbol, return it.  Else, if it's not advised,
 return the symbol's function definition."
   (or (and (symbolp func)
-           (featurep 'nadvice)
-           (let ((ofunc (advice--symbol-function func)))
-             (if (advice--p ofunc)
-                 (advice--cd*r ofunc)
-               ofunc)))
+           (advice--cd*r (symbol-function func)))
       func))
 
 (defun find-function-C-source (fun-or-var file type)
@@ -516,8 +512,8 @@ Return t if any PRED returns t."
 (defun find-function-library (function &optional lisp-only verbose)
   "Return the pair (ORIG-FUNCTION . LIBRARY) for FUNCTION.
 
-ORIG-FUNCTION is the original name, after removing all advice and
-resolving aliases.  LIBRARY is an absolute file name, a relative
+ORIG-FUNCTION is the original name, after resolving aliases.
+LIBRARY is an absolute file name, a relative
 file name inside the C sources directory, or a name of an
 autoloaded feature.
 

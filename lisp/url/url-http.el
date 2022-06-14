@@ -589,6 +589,13 @@ should be shown to the user."
   (url-http-debug "url-http-parse-headers called in (%s)" (buffer-name))
   (url-http-parse-response)
   (mail-narrow-to-head)
+  (when url-debug
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (url-http-debug "Response: %s"
+                        (buffer-substring (point) (line-end-position)))
+        (forward-line 1))))
   ;;(narrow-to-region (point-min) url-http-end-of-headers)
   (let ((connection (mail-fetch-field "Connection")))
     ;; In HTTP 1.0, keep the connection only if there is a

@@ -756,12 +756,12 @@ comp_hash_source_file (Lisp_Object filename)
 
 DEFUN ("comp--subr-signature", Fcomp__subr_signature,
        Scomp__subr_signature, 1, 1, 0,
-       doc: /* Support function to 'hash_native_abi'.
+       doc: /* Support function to hash_native_abi.
 For internal use.  */)
   (Lisp_Object subr)
 {
   return concat2 (Fsubr_name (subr),
-		  Fprin1_to_string (Fsubr_arity (subr), Qnil));
+		  Fprin1_to_string (Fsubr_arity (subr), Qnil, Qnil));
 }
 
 /* Produce a key hashing Vcomp_subr_list.  */
@@ -1707,7 +1707,7 @@ static gcc_jit_lvalue *
 emit_lisp_obj_reloc_lval (Lisp_Object obj)
 {
   emit_comment (format_string ("l-value for lisp obj: %s",
-			       SSDATA (Fprin1_to_string (obj, Qnil))));
+			       SSDATA (Fprin1_to_string (obj, Qnil, Qnil))));
 
   imm_reloc_t reloc = obj_to_reloc (obj);
   return gcc_jit_context_new_array_access (comp.ctxt,
@@ -1720,7 +1720,7 @@ static gcc_jit_rvalue *
 emit_lisp_obj_rval (Lisp_Object obj)
 {
   emit_comment (format_string ("const lisp obj: %s",
-			       SSDATA (Fprin1_to_string (obj, Qnil))));
+			       SSDATA (Fprin1_to_string (obj, Qnil, Qnil))));
 
   if (NILP (obj))
     {
@@ -1968,7 +1968,7 @@ emit_mvar_rval (Lisp_Object mvar)
 	    SSDATA (
 	      Fprin1_to_string (
 		NILP (func) ? value : CALL1I (comp-func-c-name, func),
-		Qnil)));
+		Qnil, Qnil)));
 	}
       if (FIXNUMP (value))
 	{
@@ -2471,7 +2471,7 @@ emit_limple_insn (Lisp_Object insn)
   else if (EQ (op, Qsetimm))
     {
       /* Ex: (setimm #s(comp-mvar 9 1 t 3 nil) a).  */
-      emit_comment (SSDATA (Fprin1_to_string (arg[1], Qnil)));
+      emit_comment (SSDATA (Fprin1_to_string (arg[1], Qnil, Qnil)));
       imm_reloc_t reloc = obj_to_reloc (arg[1]);
       emit_frame_assignment (
 	arg[0],
@@ -2647,7 +2647,7 @@ emit_static_object (const char *name, Lisp_Object obj)
   specbind (intern_c_string ("print-quoted"), Qt);
   specbind (intern_c_string ("print-gensym"), Qt);
   specbind (intern_c_string ("print-circle"), Qt);
-  Lisp_Object str = Fprin1_to_string (obj, Qnil);
+  Lisp_Object str = Fprin1_to_string (obj, Qnil, Qnil);
   unbind_to (count, Qnil);
 
   ptrdiff_t len = SBYTES (str);
@@ -4262,7 +4262,7 @@ compile_function (Lisp_Object func)
     {
       Lisp_Object block_name = HASH_KEY (ht, i);
       if (!EQ (block_name, Qentry)
-	  && !EQ (block_name, Qunbound))
+	  && !BASE_EQ (block_name, Qunbound))
 	declare_block (block_name);
     }
 
@@ -4275,7 +4275,7 @@ compile_function (Lisp_Object func)
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (ht); i++)
     {
       Lisp_Object block_name = HASH_KEY (ht, i);
-      if (!EQ (block_name, Qunbound))
+      if (!BASE_EQ (block_name, Qunbound))
 	{
 	  Lisp_Object block = HASH_VALUE (ht, i);
 	  Lisp_Object insns = CALL1I (comp-block-insns, block);
@@ -4890,12 +4890,12 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   struct Lisp_Hash_Table *func_h =
     XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
-    if (!EQ (HASH_VALUE (func_h, i), Qunbound))
+    if (!BASE_EQ (HASH_VALUE (func_h, i), Qunbound))
       declare_function (HASH_VALUE (func_h, i));
   /* Compile all functions. Can't be done before because the
      relocation structs has to be already defined.  */
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
-    if (!EQ (HASH_VALUE (func_h, i), Qunbound))
+    if (!BASE_EQ (HASH_VALUE (func_h, i), Qunbound))
       compile_function (HASH_VALUE (func_h, i));
 
   /* Work around bug#46495 (GCC PR99126). */
@@ -5342,7 +5342,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 are necessary exclusively during the first load.  Once these
 	 are collected we don't have to maintain them in the heap
 	 forever.  */
-      Lisp_Object volatile data_ephemeral_vec;
+      Lisp_Object volatile data_ephemeral_vec = Qnil;
       /* In case another load of the same CU is active on the stack
 	 all ephemeral data is hold by that frame.  Re-writing
 	 'data_ephemeral_vec' would be not only a waste of cycles but

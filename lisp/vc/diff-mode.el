@@ -2600,19 +2600,21 @@ fixed, visit it in a buffer."
 
 (defun diff--font-lock-prettify (limit)
   (when diff-font-lock-prettify
-    (save-excursion
-      ;; FIXME: Include the first space for context-style hunks!
-      (while (re-search-forward "^[-+! ]" limit t)
-        (unless (eq (get-text-property (match-beginning 0) 'face) 'diff-header)
-          (let ((spec
-                 (alist-get
-                  (char-before)
-                  '((?+ . (left-fringe diff-fringe-add diff-indicator-added))
-                    (?- . (left-fringe diff-fringe-del diff-indicator-removed))
-                    (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
-                    (?\s . (left-fringe diff-fringe-nul fringe))))))
-            (put-text-property (match-beginning 0) (match-end 0)
-                               'display spec)))))
+    (when (> (frame-parameter nil 'left-fringe) 0)
+      (save-excursion
+        ;; FIXME: Include the first space for context-style hunks!
+        (while (re-search-forward "^[-+! ]" limit t)
+          (unless (eq (get-text-property (match-beginning 0) 'face)
+                      'diff-header)
+            (put-text-property
+             (match-beginning 0) (match-end 0)
+             'display
+             (alist-get
+              (char-before)
+              '((?+ . (left-fringe diff-fringe-add diff-indicator-added))
+                (?- . (left-fringe diff-fringe-del diff-indicator-removed))
+                (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
+                (?\s . (left-fringe diff-fringe-nul fringe)))))))))
     ;; Mimicks the output of Magit's diff.
     ;; FIXME: This has only been tested with Git's diff output.
     ;; FIXME: Add support for Git's "rename from/to"?

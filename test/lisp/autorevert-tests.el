@@ -52,10 +52,9 @@
 
 ;;; Code:
 
-(require 'ert)
+(require 'tramp)
 (require 'ert-x)
 (require 'autorevert)
-(require 'tramp)
 
 (setq auto-revert-debug nil
       auto-revert-notify-exclude-dir-regexp "nothing-to-be-excluded"
@@ -69,30 +68,6 @@
 
 (defvar auto-revert--messages nil
   "Used to collect messages issued during a section of a test.")
-
-;; There is no default value on w32 systems, which could work out of the box.
-(defconst auto-revert-test-remote-temporary-file-directory
-  (cond
-   ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
-   ((eq system-type 'windows-nt) null-device)
-   (t (add-to-list
-       'tramp-methods
-       '("mock"
-	 (tramp-login-program        "sh")
-	 (tramp-login-args           (("-i")))
-	 (tramp-remote-shell         "/bin/sh")
-	 (tramp-remote-shell-args    ("-c"))
-	 (tramp-connection-timeout   10)))
-      (add-to-list
-       'tramp-default-host-alist
-       `("\\`mock\\'" nil ,(system-name)))
-      ;; Emacs' Makefile sets $HOME to a nonexistent value.  Needed in
-      ;; batch mode only, therefore.  `temporary-file-directory' might
-      ;; be quoted, so we unquote it just in case.
-      (unless (and (null noninteractive) (file-directory-p "~/"))
-        (setenv "HOME" (file-name-unquote temporary-file-directory)))
-      (format "/mock::%s" temporary-file-directory)))
-  "Temporary directory for Tramp tests.")
 
 ;; Filter suppressed remote file-notify libraries.
 (when (stringp (getenv "REMOTE_FILE_NOTIFY_LIBRARY"))
@@ -114,10 +89,9 @@ being the result.")
       t (ignore-errors
 	  (and
 	   (not (getenv "EMACS_HYDRA_CI"))
-	   (file-remote-p auto-revert-test-remote-temporary-file-directory)
-	   (file-directory-p auto-revert-test-remote-temporary-file-directory)
-	   (file-writable-p
-            auto-revert-test-remote-temporary-file-directory))))))
+	   (file-remote-p ert-remote-temporary-file-directory)
+	   (file-directory-p ert-remote-temporary-file-directory)
+	   (file-writable-p ert-remote-temporary-file-directory))))))
   ;; Return result.
   (cdr auto-revert--test-enabled-remote-checked))
 
@@ -146,7 +120,7 @@ This expects `auto-revert--messages' to be bound by
      ,docstring
      :tags '(:expensive-test :unstable)
      (let ((temporary-file-directory
-	    auto-revert-test-remote-temporary-file-directory)
+	    ert-remote-temporary-file-directory)
            (auto-revert-remote-files t)
 	   (ert-test (ert-get-test ',test))
            vc-handled-backends)

@@ -38,6 +38,7 @@
 (eval-when-compile (require 'cl-lib))
 ;; When bootstrapping dired-loaddefs has not been generated.
 (require 'dired-loaddefs nil t)
+(require 'dnd)
 
 (declare-function dired-buffer-more-recently-used-p
 		  "dired-x" (buffer1 buffer2))
@@ -252,12 +253,27 @@ The target is used in the prompt for file copy, rename etc."
 (defcustom dired-mouse-drag-files nil
   "If non-nil, allow the mouse to drag files from inside a Dired buffer.
 Dragging the mouse and then releasing it over the window of
-another program will result in that program opening the file, or
-creating a copy of it.  This feature is supported only on X
-Windows and Haiku.
+another program will result in that program opening or creating a
+copy of the file underneath the mouse pointer (or all marked
+files if it was marked).  This feature is supported only on X
+Windows, Haiku, and Nextstep (macOS or GNUstep).
 
 If the value is `link', then a symbolic link will be created to
-the file instead by the other program (usually a file manager)."
+the file instead by the other program (usually a file manager).
+
+If the value is `move', then the default action will be for the
+other program to move the file to a different location.  For this
+to work optimally, `auto-revert-mode' should be enabled in the
+Dired buffer.
+
+If the Meta key is held down when the mouse button is pressed,
+then this will always be equivalent to `link'.
+
+If the Control key is held down when the mouse button is pressed,
+then dragging the file will always copy it to the new location.
+
+If the Shift key is held down when the mouse button is pressed,
+then this will always be equivalent to `move'."
   :set (lambda (option value)
          (set-default option value)
          (dolist (buffer (buffer-list))
@@ -265,7 +281,8 @@ the file instead by the other program (usually a file manager)."
              (when (derived-mode-p 'dired-mode)
                (revert-buffer nil t)))))
   :type '(choice (const :tag "Don't allow dragging" nil)
-                 (const :tag "Copy file to other window" t)
+                 (const :tag "Copy file to new location" t)
+                 (const :tag "Move file to new location" t)
                  (const :tag "Create symbolic link to file" link))
   :group 'dired
   :version "29.1")
@@ -808,6 +825,9 @@ that commands on the next ARG (instead of the marked) files can
 be chained easily.
 For any other non-nil value of ARG, use the current file.
 
+If ARG is `marked', don't return the current file if nothing else
+is marked.
+
 If optional third arg SHOW-PROGRESS evaluates to non-nil,
 redisplay the dired buffer after each file is processed.
 
@@ -829,7 +849,7 @@ marked file, return (t FILENAME) instead of (FILENAME)."
   ;;This warning should not apply any longer, sk  2-Sep-1991 14:10.
   `(prog1
        (let ((inhibit-read-only t) case-fold-search found results)
-	 (if ,arg
+	 (if (and ,arg (not (eq ,arg 'marked)))
 	     (if (integerp ,arg)
 		 (progn	;; no save-excursion, want to move point.
 		   (dired-repeat-over-lines
@@ -840,8 +860,8 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 		   (if (< ,arg 0)
 		       (nreverse results)
 		     results))
-	       ;; non-nil, non-integer ARG means use current file:
-	       (list ,body))
+	       ;; non-nil, non-integer, non-marked ARG means use current file:
+               (list ,body))
 	   (let ((regexp (dired-marker-regexp)) next-position)
 	     (save-excursion
 	       (goto-char (point-min))
@@ -866,7 +886,8 @@ marked file, return (t FILENAME) instead of (FILENAME)."
 		 (setq results (cons t results)))
 	     (if found
 		 results
-	       (list ,body)))))
+               (unless (eq ,arg 'marked)
+	         (list ,body))))))
      ;; save-excursion loses, again
      (dired-move-to-filename)))
 
@@ -1702,80 +1723,82 @@ see `dired-use-ls-dired' for more details.")
           beg))
         beg))))
 
-(defvar dired-last-dragged-remote-file nil
-  "If non-nil, the name of a local copy of the last remote file that was dragged.
-It can't be removed immediately after the drag-and-drop operation
-completes, since there is no way to determine when the drop
-target has finished opening it.  So instead, this file is removed
-when Emacs exits or the user drags another file.")
-
 (declare-function x-begin-drag "xfns.c")
 
-(defun dired-remove-last-dragged-local-file ()
-  "Remove the local copy of the last remote file to be dragged."
-  (when dired-last-dragged-remote-file
-    (unwind-protect
-        (delete-file dired-last-dragged-remote-file)
-      (setq dired-last-dragged-remote-file nil)))
-  (remove-hook 'kill-emacs-hook #'dired-remove-last-dragged-local-file))
-
 (defun dired-mouse-drag (event)
-  "Begin a drag-and-drop operation for the file at EVENT."
+  "Begin a drag-and-drop operation for the file at EVENT.
+If there are marked files and that file is marked, drag every
+other marked file as well.  Otherwise, unmark all files."
   (interactive "e")
   (when mark-active
     (deactivate-mark))
-  (dired-remove-last-dragged-local-file)
-  (save-excursion
-    (with-selected-window (posn-window (event-end event))
-      (goto-char (posn-point (event-end event))))
-    (track-mouse
-      (let ((beginning-position (mouse-pixel-position))
-            new-event)
-        (catch 'track-again
-          (setq new-event (read-event))
-          (if (not (eq (event-basic-type new-event) 'mouse-movement))
-              (when (eq (event-basic-type new-event) 'mouse-1)
-                (push new-event unread-command-events))
-            (let ((current-position (mouse-pixel-position)))
-              ;; If the mouse didn't move far enough, don't
-              ;; inadvertently trigger a drag.
-              (when (and (eq (car current-position) (car beginning-position))
-                         (ignore-errors
-                           (and (> 3 (abs (- (cadr beginning-position)
-                                             (cadr current-position))))
-                                (> 3 (abs (- (caddr beginning-position)
-                                             (caddr current-position)))))))
-                (throw 'track-again nil)))
-            ;; We can get an error if there's by some chance no file
-            ;; name at point.
-            (condition-case nil
-                (let ((filename (with-selected-window (posn-window
-                                                       (event-end event))
-                                  (dired-file-name-at-point))))
-                  (when filename
-                    ;; In theory x-dnd-username combined with a proper
-                    ;; file URI containing the hostname of the remote
-                    ;; server could be used here instead of creating a
-                    ;; local copy of the remote file, but no program
-                    ;; actually implements file DND according to the
-                    ;; spec.
-                    (when (file-remote-p filename)
-                      (setq filename (file-local-copy filename))
-                      (setq dired-last-dragged-remote-file filename)
-                      (add-hook 'kill-emacs-hook
-                                #'dired-remove-last-dragged-local-file))
-                    (gui-backend-set-selection 'XdndSelection filename)
-                    (x-begin-drag '("text/uri-list" "text/x-dnd-username"
-                                    "FILE_NAME" "FILE" "HOST_NAME")
-                                  (if (eq 'dired-mouse-drag-files 'link)
-                                      'XdndActionLink
-                                    'XdndActionCopy)
-                                  nil nil t)))
-              (error (when (eq (event-basic-type new-event) 'mouse-1)
-                       (push new-event unread-command-events))))))))))
+  (let* ((modifiers (event-modifiers event))
+         (action (cond ((memq 'control modifiers) 'copy)
+                       ((memq 'shift modifiers) 'move)
+                       ((memq 'meta modifiers) 'link)
+                       (t (if (memq dired-mouse-drag-files
+                                    '(copy move link))
+                              dired-mouse-drag-files
+                            'copy)))))
+    (save-excursion
+      (with-selected-window (posn-window (event-end event))
+        (goto-char (posn-point (event-end event))))
+      (track-mouse
+        (let ((beginning-position (mouse-pixel-position))
+              new-event)
+          (catch 'track-again
+            (setq new-event (read-event))
+            (if (not (eq (event-basic-type new-event) 'mouse-movement))
+                (when (eq (event-basic-type new-event) 'mouse-1)
+                  (push new-event unread-command-events))
+              (let ((current-position (mouse-pixel-position)))
+                ;; If the mouse didn't move far enough, don't
+                ;; inadvertently trigger a drag.
+                (when (and (eq (car current-position) (car beginning-position))
+                           (ignore-errors
+                             (and (> 3 (abs (- (cadr beginning-position)
+                                               (cadr current-position))))
+                                  (> 3 (abs (- (caddr beginning-position)
+                                               (caddr current-position)))))))
+                  (throw 'track-again nil)))
+              ;; We can get an error if there's by some chance no file
+              ;; name at point.
+              (condition-case error
+                  (let ((filename (with-selected-window (posn-window
+                                                         (event-end event))
+                                    (let ((marked-files (dired-map-over-marks (dired-get-filename
+                                                                               nil 'no-error-if-not-filep)
+                                                                              'marked))
+                                          (file-name (dired-get-filename nil 'no-error-if-not-filep)))
+                                      (if (and marked-files
+                                               (member file-name marked-files))
+                                          marked-files
+                                        (when marked-files
+                                          (dired-map-over-marks (dired-unmark nil)
+                                                                'marked))
+                                        file-name)))))
+                    (when filename
+                      (if (and (consp filename)
+                               (cdr filename))
+                          (dnd-begin-drag-files filename nil action t)
+                        (dnd-begin-file-drag (if (stringp filename)
+                                                 filename
+                                               (car filename))
+                                             nil action t))))
+                (error (when (eq (event-basic-type new-event) 'mouse-1)
+                         (push new-event unread-command-events))
+                       ;; Errors from `dnd-begin-drag-files' should be
+                       ;; treated as user errors, since they should
+                       ;; only occur when the user performs an invalid
+                       ;; action, such as trying to create a link to
+                       ;; a remote file.
+                       (user-error (cadr error)))))))))))
 
 (defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
                                      (define-key keymap [down-mouse-1] #'dired-mouse-drag)
+                                     (define-key keymap [C-down-mouse-1] #'dired-mouse-drag)
+                                     (define-key keymap [S-down-mouse-1] #'dired-mouse-drag)
+                                     (define-key keymap [M-down-mouse-1] #'dired-mouse-drag)
                                      keymap)
   "Keymap applied to file names when `dired-mouse-drag-files' is enabled.")
 
@@ -3957,7 +3980,11 @@ this subdir."
     (let ((inhibit-read-only t))
       (dired-repeat-over-lines
        (prefix-numeric-value arg)
-       (lambda () (delete-char 1) (insert dired-marker-char)))))))
+       (lambda ()
+         (when (or (not (looking-at-p dired-re-dot))
+                   (not (equal dired-marker-char dired-del-marker)))
+           (delete-char 1)
+           (insert dired-marker-char))))))))
 
 (defun dired-unmark (arg &optional interactive)
   "Unmark the file at point in the Dired buffer.

@@ -1075,6 +1075,9 @@ struct glyph_row
      right-to-left paragraph.  */
   bool_bf reversed_p : 1;
 
+  /* Whether or not a stipple was drawn in this row at some point.  */
+  bool_bf stipple_p : 1;
+
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
 
@@ -3467,6 +3470,7 @@ extern void expose_frame (struct frame *, int, int, int, int);
 extern bool gui_intersect_rectangles (const Emacs_Rectangle *,
                                       const Emacs_Rectangle *,
                                       Emacs_Rectangle *);
+extern void gui_consider_frame_title (Lisp_Object);
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 extern void note_mouse_highlight (struct frame *, int, int);
@@ -3611,6 +3615,9 @@ void gamma_correct (struct frame *, XColor *);
 #endif
 #ifdef HAVE_NTGUI
 void gamma_correct (struct frame *, COLORREF *);
+#endif
+#ifdef HAVE_HAIKU
+void gamma_correct (struct frame *, Emacs_Color *);
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM

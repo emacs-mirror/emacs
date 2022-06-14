@@ -67,8 +67,10 @@ symbol."
 
 (defun custom-initialize-set (symbol exp)
   "Initialize SYMBOL based on EXP.
-If the symbol doesn't have a default binding already,
-then set it using its `:set' function (or `set-default' if it has none).
+If the symbol doesn't have a default binding already, then set it
+using its `:set' function (or `set-default-toplevel-value' if it
+has none).
+
 The value is either the value in the symbol's `saved-value' property,
 if any, or the value of EXP."
   (condition-case nil
@@ -81,7 +83,9 @@ if any, or the value of EXP."
 
 (defun custom-initialize-reset (symbol exp)
   "Initialize SYMBOL based on EXP.
-Set the symbol, using its `:set' function (or `set-default' if it has none).
+Set the symbol, using its `:set' function (or `set-default-toplevel-value'
+if it has none).
+
 The value is either the symbol's current value
  (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
@@ -100,7 +104,7 @@ or (last of all) the value of EXP."
   "Initialize SYMBOL with EXP.
 Like `custom-initialize-reset', but only use the `:set' function if
 not using the standard setting.
-For the standard setting, use `set-default'."
+For the standard setting, use `set-default-toplevel-value'."
   (condition-case nil
       (let ((def (default-toplevel-value symbol)))
         (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
@@ -114,7 +118,7 @@ For the standard setting, use `set-default'."
                 symbol
                 (eval (car (get symbol 'saved-value)))))
       (t
-       (set-default symbol (eval exp)))))))
+       (set-default-toplevel-value symbol (eval exp)))))))
 
 (defvar custom-delayed-init-variables nil
   "List of variables whose initialization is pending until startup.
@@ -262,11 +266,11 @@ The following keywords are meaningful:
 	when using the Customize user interface.  It takes two arguments,
 	the symbol to set and the value to give it.  The function should
 	not modify its value argument destructively.  The default choice
-	of function is `set-default'.
+	of function is `set-default-toplevel-value'.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
 	the current value for that symbol.  The default choice of function
-	is `default-value'.
+	is `default-toplevel-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your init file loads the value,
@@ -717,7 +721,7 @@ this sets the local binding in that buffer instead."
   (if custom-local-buffer
       (with-current-buffer custom-local-buffer
 	(set variable value))
-    (set-default variable value)))
+    (set-default-toplevel-value variable value)))
 
 (defun custom-set-minor-mode (variable value)
   ":set function for minor mode variables.
@@ -1422,6 +1426,22 @@ are not directories are omitted from the expansion."
 
 ;;; Enabling and disabling loaded themes.
 
+(defcustom enable-theme-functions nil
+  "Abnormal hook that is run after a theme has been enabled.
+The functions in the hook are called with one parameter -- the
+ name of the theme that's been enabled (as a symbol)."
+  :type 'hook
+  :group 'customize
+  :version "29.1")
+
+(defcustom disable-theme-functions nil
+  "Abnormal hook that is run after a theme has been disabled.
+The functions in the hook are called with one parameter -- the
+ name of the theme that's been disabled (as a symbol)."
+  :type 'hook
+  :group 'customize
+  :version "29.1")
+
 (defun enable-theme (theme)
   "Reenable all variable and face settings defined by THEME.
 THEME should be either `user', or a theme loaded via `load-theme'.
@@ -1430,7 +1450,9 @@ After this function completes, THEME will have the highest
 precedence (after `user') among enabled themes.
 
 Note that any already-enabled themes remain enabled after this
-function runs.  To disable other themes, use `disable-theme'."
+function runs.  To disable other themes, use `disable-theme'.
+
+After THEME has been enabled, runs `enable-theme-functions'."
   (interactive (list (intern
 		      (completing-read
 		       "Enable custom theme: "
@@ -1478,7 +1500,9 @@ function runs.  To disable other themes, use `disable-theme'."
     (setq custom-enabled-themes
 	  (cons theme (remq theme custom-enabled-themes)))
     ;; Give the `user' theme the highest priority.
-    (enable-theme 'user)))
+    (enable-theme 'user))
+  ;; Allow callers to react to the enabling.
+  (run-hook-with-args 'enable-theme-functions theme))
 
 (defcustom custom-enabled-themes nil
   "List of enabled Custom Themes, highest precedence first.
@@ -1523,7 +1547,9 @@ Setting this variable through Customize calls `enable-theme' or
 
 (defun disable-theme (theme)
   "Disable all variable and face settings defined by THEME.
-See `custom-enabled-themes' for a list of enabled themes."
+See `custom-enabled-themes' for a list of enabled themes.
+
+After THEME has been disabled, runs `disable-theme-functions'."
   (interactive (list (intern
 		      (completing-read
 		       "Disable custom theme: "
@@ -1567,7 +1593,9 @@ See `custom-enabled-themes' for a list of enabled themes."
                             "unspecified-fg" "black"))
       (face-set-after-frame-default frame))
     (setq custom-enabled-themes
-          (delq theme custom-enabled-themes))))
+          (delq theme custom-enabled-themes))
+    ;; Allow callers to react to the disabling.
+    (run-hook-with-args 'disable-theme-functions theme)))
 
 ;; Only used if window-system not null.
 (declare-function x-get-resource "frame.c"

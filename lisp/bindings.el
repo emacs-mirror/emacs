@@ -990,7 +990,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key esc-map "\\" 'delete-horizontal-space)
 (define-key esc-map "m" 'back-to-indentation)
 (define-key ctl-x-map "\C-o" 'delete-blank-lines)
-(define-key esc-map " " 'just-one-space)
+(define-key esc-map " " 'cycle-spacing)
 (define-key esc-map "z" 'zap-to-char)
 (define-key esc-map "=" 'count-words-region)
 (define-key ctl-x-map "=" 'what-cursor-position)

@@ -549,12 +549,12 @@ can act.  It is poor practice to depend on this behavior; quote the
 special character anyway, regardless of where it appears.
 
 As a @samp{\} is not special inside a character alternative, it can
-never remove the special meaning of @samp{-} or @samp{]}.  So you
-should not quote these characters when they have no special meaning
-either.  This would not clarify anything, since backslashes can
-legitimately precede these characters where they @emph{have} special
-meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string syntax),
-which matches any single character except a backslash.
+never remove the special meaning of @samp{-}, @samp{^} or @samp{]}.
+You should not quote these characters when they have no special
+meaning.  This would not clarify anything, since backslashes
+can legitimately precede these characters where they @emph{have}
+special meaning, as in @samp{[^\]} (@code{"[^\\]"} for Lisp string
+syntax), which matches any single character except a backslash.
 
 In practice, most @samp{]} that occur in regular expressions close a
 character alternative and hence are special.  However, occasionally a
@@ -823,21 +823,22 @@ the characters that stand for them.
 matches any character whose syntax is not @var{code}.
 
 @cindex category, regexp search for
-@item \c@var{c}
-matches any character whose category is @var{c}.  Here @var{c} is a
-character that represents a category: thus, @samp{c} for Chinese
-characters or @samp{g} for Greek characters in the standard category
-table.  You can see the list of all the currently defined categories
-with @kbd{M-x describe-categories @key{RET}}.  You can also define
-your own categories in addition to the standard ones using the
-@code{define-category} function (@pxref{Categories}).
+@item \c@var{code}
+matches any character whose category is @var{code}.  Here @var{code}
+is a character that represents a category: for example, in the standard
+category table, @samp{c} stands for Chinese characters and @samp{g}
+stands for Greek characters.  You can see the list of all the
+currently defined categories with @w{@kbd{M-x describe-categories
+@key{RET}}}.  You can also define your own categories in addition to
+the standard ones using the @code{define-category} function
+(@pxref{Categories}).
 
-@item \C@var{c}
-matches any character whose category is not @var{c}.
+@item \C@var{code}
+matches any character whose category is not @var{code}.
 @end table
 
   The following regular expression constructs match the empty string---that is,
-they don't use up any characters---but whether they match depends on the
+they don't consume any characters---but whether they match depends on the
 context.  For all, the beginning and end of the accessible portion of
 the buffer are treated as if they were the actual beginning and end of
 the buffer.

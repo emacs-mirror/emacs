@@ -369,6 +369,54 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    (macroexp--all-forms body))
                  (cdr form))
                 form)))
+            (`(setq ,(and var (pred symbolp)
+                          (pred (not booleanp)) (pred (not keywordp)))
+                    ,expr)
+             ;; Fast path for the setq common case.
+             (let ((new-expr (macroexp--expand-all expr)))
+               (if (eq new-expr expr)
+                   form
+                 `(,fn ,var ,new-expr))))
+            (`(setq . ,args)
+             ;; Normalise to a sequence of (setq SYM EXPR).
+             ;; Malformed code is translated to code that signals an error
+             ;; at run time.
+             (let ((nargs (length args)))
+               (if (/= (logand nargs 1) 0)
+                   (macroexp-warn-and-return
+                    "odd number of arguments in `setq' form"
+                    `(signal 'wrong-number-of-arguments '(setq ,nargs))
+                    nil 'compile-only fn)
+                 (let ((assignments nil))
+                   (while (consp (cdr-safe args))
+                     (let* ((var (car args))
+                            (expr (cadr args))
+                            (new-expr (macroexp--expand-all expr))
+                            (assignment
+                             (if (and (symbolp var)
+                                      (not (booleanp var)) (not (keywordp var)))
+                                 `(,fn ,var ,new-expr)
+                               (macroexp-warn-and-return
+                                (format-message "attempt to set %s `%s'"
+                                                (if (symbolp var)
+                                                    "constant"
+                                                  "non-variable")
+                                                var)
+                                (cond
+                                 ((keywordp var)
+                                  ;; Accept `(setq :a :a)' for compatibility.
+                                  `(if (eq ,var ,new-expr)
+                                       ,var
+                                     (signal 'setting-constant (list ',var))))
+                                 ((symbolp var)
+                                  `(signal 'setting-constant (list ',var)))
+                                 (t
+                                  `(signal 'wrong-type-argument
+                                           (list 'symbolp ',var))))
+                                nil 'compile-only var))))
+                       (push assignment assignments))
+                     (setq args (cddr args)))
+                   (cons 'progn (nreverse assignments))))))
             (`(,(and fun `(lambda . ,_)) . ,args)
              ;; Embedded lambda in function position.
              ;; If the byte-optimizer is loaded, try to unfold this,

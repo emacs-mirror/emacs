@@ -30,7 +30,7 @@
 ;;; Code:
 
 (require 'calendar)
-(load "hol-loaddefs" nil t)
+(load "holiday-loaddefs" nil t)
 
 (defgroup holidays nil
   "Holidays support in calendar."

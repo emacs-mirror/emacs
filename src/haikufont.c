@@ -1084,8 +1084,8 @@ haikufont_draw (struct glyph_string *s, int from, int to,
 	  s->first_glyph->slice.glyphless.lower_yoff
 	  - s->first_glyph->slice.glyphless.upper_yoff;
 
-      BView_SetHighColor (view, background);
-      BView_FillRectangle (view, x, y - ascent, s->width, height);
+      haiku_draw_background_rect (s, s->face, x, y - ascent,
+				  s->width, height);
       s->background_filled_p = 1;
     }
 

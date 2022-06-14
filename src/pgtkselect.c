@@ -323,7 +323,7 @@ nil, it defaults to the selected frame. */)
       gtk_target_list_unref (list);
     }
 
-  if (!EQ (Vpgtk_sent_selection_hooks, Qunbound))
+  if (!BASE_EQ (Vpgtk_sent_selection_hooks, Qunbound))
     {
       /* FIXME: Use run-hook-with-args!  */
       for (rest = Vpgtk_sent_selection_hooks; CONSP (rest);

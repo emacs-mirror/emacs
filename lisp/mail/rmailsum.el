@@ -1475,7 +1475,7 @@ argument says to read a file name and use that file as the inbox."
   (forward-line -1))
 
 (declare-function rmail-abort-edit "rmailedit" ())
-(declare-function rmail-cease-edit "rmailedit"())
+(declare-function rmail-cease-edit "rmailedit" (&optional abort))
 (declare-function rmail-set-label "rmailkwd" (l state &optional n))
 (declare-function rmail-output-read-file-name "rmailout" ())
 (declare-function mail-send-and-exit "sendmail" (&optional arg))

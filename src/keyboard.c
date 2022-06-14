@@ -95,8 +95,6 @@ volatile int interrupt_input_blocked;
    The maybe_quit function checks this.  */
 volatile bool pending_signals;
 
-enum { KBD_BUFFER_SIZE = 4096 };
-
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 static KBOARD *all_kboards;
@@ -290,14 +288,14 @@ bool input_was_pending;
 
 /* Circular buffer for pre-read keyboard input.  */
 
-static union buffered_input_event kbd_buffer[KBD_BUFFER_SIZE];
+union buffered_input_event kbd_buffer[KBD_BUFFER_SIZE];
 
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.  */
-static union buffered_input_event *kbd_fetch_ptr;
+union buffered_input_event *kbd_fetch_ptr;
 
 /* Pointer to next place to store character in kbd_buffer.  */
-static union buffered_input_event *kbd_store_ptr;
+union buffered_input_event *kbd_store_ptr;
 
 /* The above pair of variables forms a "queue empty" flag.  When we
    enqueue a non-hook event, we increment kbd_store_ptr.  When we
@@ -390,14 +388,6 @@ next_kbd_event (union buffered_input_event *ptr)
 {
   return ptr == kbd_buffer + KBD_BUFFER_SIZE - 1 ? kbd_buffer : ptr + 1;
 }
-
-#ifdef HAVE_X11
-static union buffered_input_event *
-prev_kbd_event (union buffered_input_event *ptr)
-{
-  return ptr == kbd_buffer ? kbd_buffer + KBD_BUFFER_SIZE - 1 : ptr - 1;
-}
-#endif
 
 /* Like EVENT_START, but assume EVENT is an event.
    This pacifies gcc -Wnull-dereference, which might otherwise
@@ -3530,6 +3520,11 @@ readable_events (int flags)
 	return 1;
     }
 
+#ifdef HAVE_X_WINDOWS
+  if (x_detect_pending_selection_requests ())
+    return 1;
+#endif
+
   if (!(flags & READABLE_EVENTS_IGNORE_SQUEEZABLES) && some_mouse_moved ())
     return 1;
   if (single_kboard)
@@ -3701,25 +3696,6 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
     Vquit_flag = Vthrow_on_input;
 }
 
-
-#ifdef HAVE_X11
-
-/* Put a selection input event back in the head of the event queue.  */
-
-void
-kbd_buffer_unget_event (struct selection_input_event *event)
-{
-  /* Don't let the very last slot in the buffer become full,  */
-  union buffered_input_event *kp = prev_kbd_event (kbd_fetch_ptr);
-  if (kp != kbd_store_ptr)
-    {
-      kp->sie = *event;
-      kbd_fetch_ptr = kp;
-    }
-}
-
-#endif
-
 /* Limit help event positions to this range, to avoid overflow problems.  */
 #define INPUT_EVENT_POS_MAX \
   ((ptrdiff_t) min (PTRDIFF_MAX, min (TYPE_MAXIMUM (Time) / 2, \
@@ -3876,6 +3852,11 @@ kbd_buffer_get_event (KBOARD **kbp,
                       struct timespec *end_time)
 {
   Lisp_Object obj, str;
+#ifdef HAVE_X_WINDOWS
+  bool had_pending_selection_requests;
+
+  had_pending_selection_requests = false;
+#endif
 
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE / 4)
@@ -3928,10 +3909,18 @@ kbd_buffer_get_event (KBOARD **kbp,
 #if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
       gobble_input ();
 #endif
+
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
       if (some_mouse_moved ())
 	break;
+#ifdef HAVE_X_WINDOWS
+      if (x_detect_pending_selection_requests ())
+	{
+	  had_pending_selection_requests = true;
+	  break;
+	}
+#endif
       if (end_time)
 	{
 	  struct timespec now = current_timespec ();
@@ -3967,6 +3956,16 @@ kbd_buffer_get_event (KBOARD **kbp,
       if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	gobble_input ();
     }
+
+#ifdef HAVE_X_WINDOWS
+  /* Handle pending selection requests.  This can happen if Emacs
+     enters a recursive edit inside a nested event loop (probably
+     because the debugger opened) or someone called
+     `read-char'.  */
+
+  if (had_pending_selection_requests)
+    x_handle_pending_selection_requests ();
+#endif
 
   if (CONSP (Vunread_command_events))
     {
@@ -4022,6 +4021,11 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  kbd_fetch_ptr = next_kbd_event (event);
 	  input_pending = readable_events (0);
 
+	  /* This means this event was already handled in
+	     `x_dnd_begin_drag_and_drop'.  */
+	  if (event->ie.modifiers < x_dnd_unsupported_event_level)
+	    break;
+
 	  f = XFRAME (event->ie.frame_or_window);
 
 	  if (!FRAME_LIVE_P (f))
@@ -4029,13 +4033,19 @@ kbd_buffer_get_event (KBOARD **kbp,
 
 	  if (!NILP (Vx_dnd_unsupported_drop_function))
 	    {
-	      if (!NILP (call6 (Vx_dnd_unsupported_drop_function,
+	      if (!NILP (call7 (Vx_dnd_unsupported_drop_function,
 				XCAR (XCDR (event->ie.arg)), event->ie.x,
 				event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
 				make_uint (event->ie.code),
-				event->ie.frame_or_window)))
+				event->ie.frame_or_window,
+				make_int (event->ie.timestamp))))
 		break;
 	    }
+
+	  /* `x-dnd-unsupported-drop-function' could have deleted the
+	     event frame.  */
+	  if (!FRAME_LIVE_P (f))
+	    break;
 
 	  x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (f),
 				     event->ie.frame_or_window,
@@ -4048,6 +4058,18 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  break;
 	}
 #endif
+
+      case MONITORS_CHANGED_EVENT:
+	{
+	  kbd_fetch_ptr = next_kbd_event (event);
+	  input_pending = readable_events (0);
+
+	  CALLN (Frun_hook_with_args,
+		 Qdisplay_monitors_changed_functions,
+		 event->ie.arg);
+
+	  break;
+	}
 
 #ifdef HAVE_EXT_MENU_BAR
       case MENU_BAR_ACTIVATE_EVENT:
@@ -4324,6 +4346,10 @@ kbd_buffer_get_event (KBOARD **kbp,
 			      ? movement_frame->last_mouse_device
 			      : virtual_core_pointer_name);
     }
+#ifdef HAVE_X_WINDOWS
+  else if (had_pending_selection_requests)
+    obj = Qnil;
+#endif
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
@@ -7220,7 +7246,10 @@ lucid_event_type_list_p (Lisp_Object object)
    If READABLE_EVENTS_FILTER_EVENTS is set in FLAGS, ignore internal
    events (FOCUS_IN_EVENT).
    If READABLE_EVENTS_IGNORE_SQUEEZABLES is set in FLAGS, ignore mouse
-   movements and toolkit scroll bar thumb drags.  */
+   movements and toolkit scroll bar thumb drags.
+
+   On X, this also returns if the selection event chain is full, since
+   that's also "keyboard input".  */
 
 static bool
 get_input_pending (int flags)
@@ -12600,6 +12629,8 @@ See also `pre-command-hook'.  */);
   DEFSYM (Qtouchscreen_end, "touchscreen-end");
   DEFSYM (Qtouchscreen_update, "touchscreen-update");
   DEFSYM (Qpinch, "pinch");
+  DEFSYM (Qdisplay_monitors_changed_functions,
+	  "display-monitors-changed-functions");
 
   DEFSYM (Qcoding, "coding");
 
@@ -12840,6 +12871,14 @@ Called with three arguments:
 - the context (a string which normally goes at the start of the message),
 - the Lisp function within which the error was signaled.
 
+For instance, to make error messages stand out more in the echo area,
+you could say something like:
+
+    (setq command-error-function
+          (lambda (data _ _)
+            (message "%s" (propertize (error-message-string data)
+                                      \\='face \\='error))))
+
 Also see `set-message-function' (which controls how non-error messages
 are displayed).  */);
   Vcommand_error_function = intern ("command-error-default-function");
@@ -12854,11 +12893,12 @@ and tool-bar buttons.  */);
 
   DEFVAR_LISP ("select-active-regions",
 	       Vselect_active_regions,
-	       doc: /* If non-nil, an active region automatically sets the primary selection.
-If the value is `only', only temporarily active regions (usually made
-by mouse-dragging or shift-selection) set the window selection.
+	       doc: /* If non-nil, any active region automatically sets the primary selection.
+This variable only has an effect when Transient Mark mode is enabled.
 
-This takes effect only when Transient Mark mode is enabled.  */);
+If the value is `only', only temporarily active regions (usually made
+by mouse-dragging or shift-selection) set the window system's primary
+selection.  */);
   Vselect_active_regions = Qt;
 
   DEFVAR_LISP ("saved-region-selection",
@@ -12942,6 +12982,15 @@ This flag may eventually be removed once this behavior is deemed safe.  */);
 Otherwise, a wheel event will be sent every time the mouse wheel is
 moved.  */);
   mwheel_coalesce_scroll_events = true;
+
+  DEFVAR_LISP ("display-monitors-changed-functions", Vdisplay_monitors_changed_functions,
+    doc: /* Abnormal hook run when the monitor configuration changes.
+This can happen if a monitor is rotated, moved, plugged in or removed
+from a multi-monitor setup, if the primary monitor changes, or if the
+resolution of a monitor changes.  The hook should accept a single
+argument, which is the terminal on which the monitor configuration
+changed.  */);
+  Vdisplay_monitors_changed_functions = Qnil;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }

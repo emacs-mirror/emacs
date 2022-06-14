@@ -404,7 +404,7 @@ The format is (FUNCTION ARGS...).")
 ;;;###autoload
 (define-derived-mode help-mode special-mode "Help"
   "Major mode for viewing help text and navigating references in it.
-Also see the `help-enable-editing' variable.
+Also see the `help-enable-variable-value-editing' variable.
 
 Commands:
 \\{help-mode-map}"
@@ -422,12 +422,14 @@ Commands:
 ;;;###autoload
 (defun help-mode-setup ()
   "Enter Help mode in the current buffer."
+  (declare (obsolete nil "29.1"))
   (help-mode)
   (setq buffer-read-only nil))
 
 ;;;###autoload
 (defun help-mode-finish ()
   "Finalize Help mode setup in current buffer."
+  (declare (obsolete nil "29.1"))
   (when (derived-mode-p 'help-mode)
     (setq buffer-read-only t)
     (help-make-xrefs (current-buffer))))
@@ -452,6 +454,7 @@ Commands:
  		    "\\(symbol\\|program\\|property\\)\\|" ; Don't link
 		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
 		    "[ \t\n]+\\)?"
+                    "\\(\\\\\\+\\)?"
                     "['`‘]\\(\\(?:\\sw\\|\\s_\\)+\\|`\\)['’]"))
   "Regexp matching doc string references to symbols.
 
@@ -512,17 +515,16 @@ restore it properly when going back."
 ;;;###autoload
 (defun help-buffer ()
   "Return the name of a buffer for inserting help.
-If `help-xref-following' is non-nil, this is the name of the
-current buffer.  Signal an error if this buffer is not derived
-from `help-mode'.
+If `help-xref-following' is non-nil and the current buffer is
+derived from `help-mode', this is the name of the current buffer.
+
 Otherwise, return \"*Help*\", creating a buffer with that name if
 it does not already exist."
-  (buffer-name				;for with-output-to-temp-buffer
-   (if (not help-xref-following)
-       (get-buffer-create "*Help*")
-     (unless (derived-mode-p 'help-mode)
-       (error "Current buffer is not in Help mode"))
-     (current-buffer))))
+  (buffer-name                         ;for with-output-to-temp-buffer
+   (if (and help-xref-following
+            (derived-mode-p 'help-mode))
+       (current-buffer)
+     (get-buffer-create "*Help*"))))
 
 (defvar describe-symbol-backends
   `((nil ,#'fboundp ,(lambda (s _b _f) (describe-function s)))
@@ -628,27 +630,28 @@ that."
                 ;; Quoted symbols
                 (save-excursion
                   (while (re-search-forward help-xref-symbol-regexp nil t)
-                    (let* ((data (match-string 8))
-                           (sym (intern-soft data)))
-                      (if sym
-                          (cond
-                           ((match-string 3) ; `variable' &c
-                            (and (or (boundp sym) ; `variable' doesn't ensure
+                    (when-let ((sym (intern-soft (match-string 9))))
+                      (if (match-string 8)
+                          (delete-region (match-beginning 8)
+                                         (match-end 8))
+                        (cond
+                         ((match-string 3)        ; `variable' &c
+                          (and (or (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
-                                     (get sym 'variable-documentation))
-                                 (help-xref-button 8 'help-variable sym)))
-                           ((match-string 4) ; `function' &c
-                            (and (fboundp sym) ; similarly
-                                 (help-xref-button 8 'help-function sym)))
-                           ((match-string 5) ; `face'
-                            (and (facep sym)
-                                 (help-xref-button 8 'help-face sym)))
-                           ((match-string 6)) ; nothing for `symbol'
-                           ((match-string 7)
-                            (help-xref-button 8 'help-function-def sym))
-                           ((cl-some (lambda (x) (funcall (nth 1 x) sym))
-                                     describe-symbol-backends)
-                            (help-xref-button 8 'help-symbol sym)))))))
+                                   (get sym 'variable-documentation))
+                               (help-xref-button 9 'help-variable sym)))
+                         ((match-string 4)     ; `function' &c
+                          (and (fboundp sym)   ; similarly
+                               (help-xref-button 9 'help-function sym)))
+                         ((match-string 5) ; `face'
+                          (and (facep sym)
+                               (help-xref-button 9 'help-face sym)))
+                         ((match-string 6)) ; nothing for `symbol'
+                         ((match-string 7)
+                          (help-xref-button 9 'help-function-def sym))
+                         ((cl-some (lambda (x) (funcall (nth 1 x) sym))
+                                   describe-symbol-backends)
+                          (help-xref-button 9 'help-symbol sym)))))))
                 ;; An obvious case of a key substitution:
                 (save-excursion
                   (while (re-search-forward

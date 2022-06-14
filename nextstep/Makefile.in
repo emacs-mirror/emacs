@@ -47,7 +47,9 @@ ns_check_file = @ns_appdir@/@ns_check_file@
 
 all: ${ns_appdir} ${ns_appbindir}/Emacs ${ns_applibexecdir}/Emacs.pdmp
 
-${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
+${ns_check_file}: ${ns_appdir}
+
+${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	rm -rf ${ns_appdir}
 	${MKDIR_P} ${ns_appdir}
 	( cd ${srcdir}/${ns_appsrc} ; tar cfh - . ) | \

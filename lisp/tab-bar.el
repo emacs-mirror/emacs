@@ -476,7 +476,7 @@ that was current before calling the command that adds a new tab
 (this is the same what `make-frame' does by default).
 If the value is the symbol `window', then keep the selected
 window as a single window on the new tab, and keep all its
-window parameters except 'window-atom' and 'window-side'.
+window parameters except `window-atom' and `window-side'.
 If the value is a string, use it as a buffer name to switch to
 if such buffer exists, or switch to a buffer visiting the file or
 directory that the string specifies.  If the value is a function,
@@ -2320,9 +2320,9 @@ Interactively, prompt for the buffer to switch to."
   (declare (advertised-calling-convention (buffer-or-name) "28.1"))
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
-  (display-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
-                  '((display-buffer-in-tab)
-                    (inhibit-same-window . nil))))
+  (pop-to-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                 '((display-buffer-in-tab)
+                   (inhibit-same-window . nil))))
 
 (defun find-file-other-tab (filename &optional wildcards)
   "Edit file FILENAME, in another tab.

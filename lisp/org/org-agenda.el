@@ -1615,7 +1615,7 @@ alpha-down         Sort headlines alphabetically, reversed.
 
 The different possibilities will be tried in sequence, and testing stops
 if one comparison returns a \"not-equal\".  For example, the default
-    '(time-up category-keep priority-down)
+    `(time-up category-keep priority-down)'
 means: Pull out all entries having a specified time of day and sort them,
 in order to make a time schedule for the current day the first thing in the
 agenda listing for the day.  Of the entries without a time indication, keep

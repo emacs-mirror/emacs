@@ -64,7 +64,7 @@
 ;; Variables for customization
 ;; ---------------------------
 ;;
-(defvar which-func-unknown "???"
+(defvar which-func-unknown "n/a"
   "String to display in the mode line when current function is unknown.")
 
 (defgroup which-func nil

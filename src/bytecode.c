@@ -627,7 +627,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object v1 = vectorp[op], v2;
 	    if (!SYMBOLP (v1)
 		|| XSYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
-		|| (v2 = SYMBOL_VAL (XSYMBOL (v1)), EQ (v2, Qunbound)))
+		|| (v2 = SYMBOL_VAL (XSYMBOL (v1)), BASE_EQ (v2, Qunbound)))
 	      v2 = Fsymbol_value (v1);
 	    PUSH (v2);
 	    NEXT;
@@ -694,7 +694,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 
 	    /* Inline the most common case.  */
 	    if (SYMBOLP (sym)
-		&& !EQ (val, Qunbound)
+		&& !BASE_EQ (val, Qunbound)
 		&& XSYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL
 		&& !SYMBOL_TRAPPED_WRITE_P (sym))
 	      SET_SYMBOL_VAL (XSYMBOL (sym), val);
@@ -1209,7 +1209,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    Lisp_Object v2 = POP;
 	    Lisp_Object v1 = TOP;
 	    if (FIXNUMP (v1) && FIXNUMP (v2))
-	      TOP = BASE_EQ(v1, v2) ? Qt : Qnil;
+	      TOP = BASE_EQ (v1, v2) ? Qt : Qnil;
 	    else
 	      TOP = arithcompare (v1, v2, ARITH_EQUAL);
 	    NEXT;

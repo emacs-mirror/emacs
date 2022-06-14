@@ -33,6 +33,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 static ptrdiff_t threads_holding_glib_lock;
 static GMainContext *glib_main_context;
 
+/* The depth of xg_select suppression.  */
+static int xg_select_suppress_count;
+
 void
 release_select_lock (void)
 {
@@ -69,6 +72,23 @@ acquire_select_lock (GMainContext *context)
 #endif
 }
 
+/* Call this to not use xg_select when using it would be a bad idea,
+   i.e. during drag-and-drop.  */
+void
+suppress_xg_select (void)
+{
+  ++xg_select_suppress_count;
+}
+
+void
+release_xg_select (void)
+{
+  if (!xg_select_suppress_count)
+    emacs_abort ();
+
+  --xg_select_suppress_count;
+}
+
 /* `xg_select' is a `pselect' replacement.  Why do we need a separate function?
    1. Timeouts.  Glib and Gtk rely on timer events.  If we did pselect
       with a greater timeout then the one scheduled by Glib, we would
@@ -99,6 +119,9 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 #ifdef USE_GTK
   bool already_has_events;
 #endif
+
+  if (xg_select_suppress_count)
+    return pselect (fds_lim, rfds, wfds, efds, timeout, sigmask);
 
   context = g_main_context_default ();
   acquire_select_lock (context);

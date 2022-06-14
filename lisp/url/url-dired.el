@@ -25,12 +25,10 @@
 
 (autoload 'dired-get-filename "dired")
 
-(defvar url-dired-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-m" 'url-dired-find-file)
-    (define-key map [mouse-2] 'url-dired-find-file-mouse)
-    map)
-  "Keymap used when browsing directories.")
+(defvar-keymap url-dired-minor-mode-map
+  :doc "Keymap used when browsing directories."
+  "C-m"       #'url-dired-find-file
+  "<mouse-2>" #'url-dired-find-file-mouse)
 
 (defun url-dired-find-file ()
   "In dired, visit the file or directory named on this line."

@@ -12442,7 +12442,7 @@ should in principle be exportable as a Beamer presentation.
   When =ignoreheading= is set, Org export ignores the entry's headline
   but not its content.  This is useful for inserting content between
   frames.  It is also useful for properly closing a =column=
-  environment.  @end itemize
+  environment.
 
   #+cindex: @samp{BEAMER_ACT}, property
   #+cindex: @samp{BEAMER_OPT}, property

@@ -124,10 +124,10 @@ screen.  It can also be a floating point number, specifying the fraction of
 a full screen to scroll.  A near full screen is `next-screen-context-lines'
 less than a full screen.
 
-If AMOUNT is the symbol 'hscroll', this means that with MODIFIER,
+If AMOUNT is the symbol `hscroll', this means that with MODIFIER,
 the mouse wheel will scroll horizontally instead of vertically.
 
-If AMOUNT is the symbol 'text-scale', this means that with
+If AMOUNT is the symbol `text-scale', this means that with
 MODIFIER, the mouse wheel will change the face height instead of
 scrolling."
   :group 'mouse

@@ -31,6 +31,7 @@
 (require 'cl-extra)
 (require 'transient)
 (require 'multisession)
+(require 'generate-lisp-file)
 
 (defgroup emoji nil
   "Inserting Emojis."
@@ -415,8 +416,8 @@ the name is not known."
     (dolist (glyph glyphs)
       (remhash glyph emoji--derived)))
   (with-temp-buffer
-    (insert ";; Generated file -- do not edit.   -*- lexical-binding:t -*-
-;; Copyright © 1991-2021 Unicode, Inc.
+    (generate-lisp-file-heading file 'emoji--generate-file)
+    (insert ";; Copyright © 1991-2021 Unicode, Inc.
 ;; Generated from Unicode data files by emoji.el.
 ;; The source for this file is found in the admin/unidata/emoji-test.txt
 ;; file in the Emacs sources.  The Unicode data files are used under the
@@ -426,18 +427,7 @@ the name is not known."
       (insert (format "(defconst %s '" var))
       (pp (symbol-value var) (current-buffer))
       (insert (format "\n) ;; End %s\n\n" var)))
-    (insert ";; Local" " Variables:
-;; coding: utf-8
-;; version-control: never
-;; no-byte-"
-            ;; Obfuscate to not inhibit compilation of this file, too.
-            "compile: t
-;; no-update-autoloads: t
-;; End:
-
-\(provide 'emoji-labels)
-
-\;;; emoji-labels.el ends here\n")
+    (generate-lisp-file-trailer file)
     (write-region (point-min) (point-max) file)))
 
 (defun emoji--base-name (name derivations)

@@ -688,7 +688,7 @@ composition_gstring_cache_clear_font (Lisp_Object font_object)
     {
       Lisp_Object k = HASH_KEY (h, i);
 
-      if (!EQ (k, Qunbound))
+      if (!BASE_EQ (k, Qunbound))
 	{
 	  Lisp_Object gstring = HASH_VALUE (h, i);
 

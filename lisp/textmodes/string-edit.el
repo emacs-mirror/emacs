@@ -47,32 +47,39 @@ called with no parameters.
 PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If PROMPT is nil, no help text
 will be inserted."
-  (pop-to-buffer-same-window (generate-new-buffer "*edit string*"))
-  (when prompt
-    (let ((inhibit-read-only t))
-      (insert prompt)
-      (ensure-empty-lines 0)
-      (add-text-properties (point-min) (point)
-                           (list 'intangible t
-                                 'face 'string-edit-prompt
-                                 'read-only t))
-      (insert (propertize (make-separator-line) 'rear-nonsticky t))
-      (add-text-properties (point-min) (point)
-                           (list 'string-edit--prompt t))))
-  (let ((start (point)))
-    (insert string)
-    (goto-char start))
-  (set-buffer-modified-p nil)
-  (setq buffer-undo-list nil)
-  (string-edit-mode)
-  (setq-local string-edit--success-callback success-callback)
-  (when abort-callback
-    (setq-local string-edit--abort-callback abort-callback))
-  (setq-local header-line-format
-              (substitute-command-keys
-               "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing or \\[string-edit-abort] to abort"))
-  (message "%s" (substitute-command-keys
-                 "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing")))
+  (with-current-buffer (generate-new-buffer "*edit string*")
+    (when prompt
+      (let ((inhibit-read-only t))
+        (insert prompt)
+        (ensure-empty-lines 0)
+        (add-text-properties (point-min) (point)
+                             (list 'intangible t
+                                   'face 'string-edit-prompt
+                                   'read-only t))
+        (insert (propertize (make-separator-line) 'rear-nonsticky t))
+        (add-text-properties (point-min) (point)
+                             (list 'string-edit--prompt t))))
+    (let ((start (point)))
+      (insert string)
+      (goto-char start))
+
+    ;; Use `fit-window-to-buffer' after the buffer is filled with text.
+    (pop-to-buffer (current-buffer)
+                   '(display-buffer-below-selected
+                     (window-height . (lambda (window)
+                                        (fit-window-to-buffer window nil 10)))))
+
+    (set-buffer-modified-p nil)
+    (setq buffer-undo-list nil)
+    (string-edit-mode)
+    (setq-local string-edit--success-callback success-callback)
+    (when abort-callback
+      (setq-local string-edit--abort-callback abort-callback))
+    (setq-local header-line-format
+                (substitute-command-keys
+                 "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing or \\[string-edit-abort] to abort"))
+    (message "%s" (substitute-command-keys
+                   "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing"))))
 
 ;;;###autoload
 (defun read-string-from-buffer (prompt string)
@@ -113,14 +120,14 @@ This will kill the current buffer."
     (goto-char (prop-match-beginning match)))
   (let ((string (buffer-substring (point) (point-max)))
         (callback string-edit--success-callback))
-    (kill-buffer (current-buffer))
+    (quit-window 'kill)
     (funcall callback string)))
 
 (defun string-edit-abort ()
   "Abort editing the current string."
   (interactive)
   (let ((callback string-edit--abort-callback))
-    (kill-buffer (current-buffer))
+    (quit-window 'kill)
     (when callback
       (funcall callback))))
 

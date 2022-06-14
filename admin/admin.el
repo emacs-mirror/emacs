@@ -351,11 +351,13 @@ Optional argument TYPE is type of output (nil means all)."
 \"https://www.w3.org/TR/html4/loose.dtd\">\n\n")
 
 (defconst manual-meta-string
-  "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
-<link rev=\"made\" href=\"mailto:bug-gnu-emacs@gnu.org\">
+  "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n")
+
+(defconst manual-links-string
+  "<link rev=\"made\" href=\"mailto:bug-gnu-emacs@gnu.org\">
 <link rel=\"icon\" type=\"image/png\" href=\"/graphics/gnu-head-mini.png\">
 <meta name=\"ICBM\" content=\"42.256233,-71.006581\">
-<meta name=\"DC.title\" content=\"gnu.org\">\n\n")
+<meta name=\"DC.title\" content=\"gnu.org\">\n")
 
 (defconst manual-style-string "<style type=\"text/css\">
 @import url('/software/emacs/manual.css');\n</style>\n")
@@ -486,6 +488,12 @@ the @import directive."
       (delete-region opoint (point))
       (search-forward "<meta http-equiv=\"Content-Style")
       (setq opoint (match-beginning 0)))
+    (search-forward "</title>\n")
+    (delete-region opoint (point))
+    (search-forward "<link href=")
+    (goto-char (match-beginning 0))
+    (insert manual-links-string)
+    (setq opoint (point))
     (search-forward "</head>")
     (goto-char (match-beginning 0))
     (delete-region opoint (point))

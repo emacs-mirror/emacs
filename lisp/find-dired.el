@@ -241,6 +241,8 @@ it finishes, type \\[kill-find]."
     ;; Subdir headlerline must come first because the first marker in
     ;; subdir-alist points there.
     (insert "  " dir ":\n")
+    (when dired-make-directory-clickable
+      (dired--make-directory-clickable))
     ;; Make second line a ``find'' line in analogy to the ``total'' or
     ;; ``wildcard'' line.
     (let ((point (point)))
@@ -323,11 +325,7 @@ specifies what to use in place of \"-ls\" as the final argument."
 	    (save-restriction
 	      (widen)
 	      (let ((buffer-read-only nil)
-		    (beg (point-max))
-		    (l-opt (and (consp find-ls-option)
-				(string-match "l" (cdr find-ls-option))))
-		    (ls-regexp (concat "^ +[^ \t\r\n]+\\( +[^ \t\r\n]+\\) +"
-				       "[^ \t\r\n]+ +[^ \t\r\n]+\\( +[^[:space:]]+\\)")))
+		    (beg (point-max)))
 		(goto-char beg)
 		(insert string)
 		(goto-char beg)
@@ -342,18 +340,6 @@ specifies what to use in place of \"-ls\" as the final argument."
 		(goto-char (- beg 3))	; no error if < 0
 		(while (search-forward " ./" nil t)
 		  (delete-region (point) (- (point) 2)))
-		;; Pad the number of links and file size.  This is a
-		;; quick and dirty way of getting the columns to line up
-		;; most of the time, but it's not foolproof.
-		(when l-opt
-		  (goto-char beg)
-		  (goto-char (line-beginning-position))
-		  (while (re-search-forward ls-regexp nil t)
-		    (replace-match (format "%4s" (match-string 1))
-				   nil nil nil 1)
-		    (replace-match (format "%9s" (match-string 2))
-				   nil nil nil 2)
-		    (forward-line 1)))
 		;; Find all the complete lines in the unprocessed
 		;; output and process it to add text properties.
 		(goto-char (point-max))

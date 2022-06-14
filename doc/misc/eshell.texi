@@ -1758,14 +1758,6 @@ alias arg=blah
 function arg () @{ blah $* @}
 @end example
 
-@item @samp{for i in 1 2 3 @{ grep -q a b && *echo has it @} | wc -l} outputs result after prompt
-
-In fact, piping to a process from a looping construct doesn't work in
-general.  If I change the call to @code{eshell-copy-handles} in
-@code{eshell-rewrite-for-command} to use @code{eshell-protect}, it seems
-to work, but the output occurs after the prompt is displayed.  The whole
-structured command thing is too complicated at present.
-
 @item Pcomplete sometimes gets stuck
 
 You press @key{TAB}, but no completions appear, even though the

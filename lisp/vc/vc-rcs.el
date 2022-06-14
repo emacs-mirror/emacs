@@ -100,7 +100,7 @@ to use --brief and sets this variable to remember whether it worked."
   "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"
-			'("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
+			("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function)))

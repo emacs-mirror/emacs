@@ -271,7 +271,8 @@ This method is obsolete."
        ;; test, so we can let typep have the CLOS documented behavior
        ;; while keeping our above predicate clean.
 
-       (define-symbol-prop ',name 'cl-deftype-satisfies #',testsym2)
+       (eval-and-compile
+         (define-symbol-prop ',name 'cl-deftype-satisfies #',testsym2))
 
        (eieio-defclass-internal ',name ',superclasses ',slots ',options-and-doc)
 

@@ -542,12 +542,26 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
-  void *bitmap = BBitmap_new (width, height, 1);
+  void *bitmap, *stipple;
+  int bytes_per_line, x, y;
+
+  bitmap = BBitmap_new (width, height, false);
 
   if (!bitmap)
     return -1;
 
-  BBitmap_import_mono_bits (bitmap, bits, width, height);
+  bytes_per_line = (width + 7) / 8;
+  stipple = xmalloc (height * bytes_per_line);
+  memcpy (stipple, bits, height * bytes_per_line);
+
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+	PUT_PIXEL (bitmap, x, y, ((bits[8] >> (x % 8)) & 1
+				  ? f->foreground_pixel
+				  : f->background_pixel));
+      bits += bytes_per_line;
+    }
 #endif
 
   id = image_allocate_bitmap_record (f);
@@ -567,6 +581,11 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #ifdef HAVE_HAIKU
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].stipple_bits = stipple;
+  dpyinfo->bitmaps[id - 1].stipple_foreground
+    = f->foreground_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_background
+    = f->background_pixel & 0xffffffff;
 #endif
 
   dpyinfo->bitmaps[id - 1].file = NULL;
@@ -592,24 +611,55 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
+#if defined HAVE_HAIKU || defined HAVE_NS
+static char *slurp_file (int, ptrdiff_t *);
+static Lisp_Object image_find_image_fd (Lisp_Object, int *);
+static bool xbm_read_bitmap_data (struct frame *, char *, char *,
+				  int *, int *, char **, bool);
+#endif
+
 /* Create bitmap from file FILE for frame F.  */
 
 ptrdiff_t
 image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 {
-#if defined (HAVE_NTGUI) || defined (HAVE_HAIKU)
+#if defined (HAVE_NTGUI)
   return -1;  /* W32_TODO : bitmap support */
 #else
   Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
 #ifdef HAVE_NS
-  ptrdiff_t id;
-  void *bitmap = ns_image_from_file (file);
+  ptrdiff_t id, size;
+  int fd, width, height, rc;
+  char *contents, *data;
+  void *bitmap;
+
+  if (!STRINGP (image_find_image_fd (file, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  bitmap = ns_image_from_XBM (data, width, height, 0, 0);
 
   if (!bitmap)
+    {
+      xfree (contents);
+      xfree (data);
       return -1;
-
+    }
 
   id = image_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].img = bitmap;
@@ -618,6 +668,9 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = ns_image_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = ns_image_height (bitmap);
+
+  xfree (contents);
+  xfree (data);
   return id;
 #endif
 
@@ -637,7 +690,6 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
-  //dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
   dpyinfo->bitmaps[id - 1].pattern
@@ -692,6 +744,89 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   return id;
 #endif /* HAVE_X_WINDOWS */
+
+#ifdef HAVE_HAIKU
+  ptrdiff_t id, size;
+  int fd, width, height, rc, bytes_per_line, x, y;
+  char *contents, *data, *tmp;
+  void *bitmap;
+  Lisp_Object found;
+
+  /* Look for an existing bitmap with the same name.  */
+  for (id = 0; id < dpyinfo->bitmaps_last; ++id)
+    {
+      if (dpyinfo->bitmaps[id].refcount
+	  && dpyinfo->bitmaps[id].file
+	  && !strcmp (dpyinfo->bitmaps[id].file, SSDATA (file)))
+	{
+	  ++dpyinfo->bitmaps[id].refcount;
+	  return id + 1;
+	}
+    }
+
+  /* Search bitmap-file-path for the file, if appropriate.  */
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
+	     make_fixnum (R_OK), false, false)
+      < 0)
+    return -1;
+
+  if (!STRINGP (image_find_image_fd (file, &fd))
+      && !STRINGP (image_find_image_fd (found, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  bitmap = BBitmap_new (width, height, false);
+
+  if (!bitmap)
+    {
+      xfree (contents);
+      xfree (data);
+      return -1;
+    }
+
+  id = image_allocate_bitmap_record (f);
+
+  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
+  dpyinfo->bitmaps[id - 1].height = height;
+  dpyinfo->bitmaps[id - 1].width = width;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].stipple_foreground
+    = f->foreground_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_background
+    = f->background_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_bits = data;
+
+  bytes_per_line = (width + 7) / 8;
+  tmp = data;
+
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+	PUT_PIXEL (bitmap, x, y, ((tmp[x / 8] >> (x % 8)) & 1
+				  ? f->foreground_pixel
+				  : f->background_pixel));
+
+      tmp += bytes_per_line;
+    }
+
+  xfree (contents);
+  return id;
+#endif
 }
 
 /* Free bitmap B.  */
@@ -724,6 +859,9 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 
 #ifdef HAVE_HAIKU
   BBitmap_free (bm->img);
+
+  if (bm->stipple_bits)
+    xfree (bm->stipple_bits);
 #endif
 
   if (bm->file)
@@ -6169,7 +6307,7 @@ image_edge_detection (struct frame *f, struct image *img,
 }
 
 
-#if defined HAVE_X_WINDOWS || defined USE_CAIRO
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_HAIKU
 static void
 image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
 			 int x, int y, unsigned int width, unsigned int height,
@@ -6203,9 +6341,11 @@ image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
   XDrawLine (dpy, pixmap, gc, x, y, x + width - 1, y + height - 1);
   XDrawLine (dpy, pixmap, gc, x, y + height - 1, x + width - 1, y);
   XFreeGC (dpy, gc);
-#endif	/* HAVE_X_WINDOWS */
+#elif HAVE_HAIKU
+  be_draw_cross_on_pixmap (pixmap, x, y, width, height, color);
+#endif
 }
-#endif	/* HAVE_X_WINDOWS || USE_CAIRO */
+#endif	/* HAVE_X_WINDOWS || USE_CAIRO || HAVE_HAIKU */
 
 /* Transform image IMG on frame F so that it looks disabled.  */
 
@@ -6247,25 +6387,23 @@ image_disable_image (struct frame *f, struct image *img)
     {
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
-#ifndef HAVE_HAIKU
 
-#ifndef USE_CAIRO
+#if !defined USE_CAIRO && !defined HAVE_HAIKU
 #define CrossForeground(f) BLACK_PIX_DEFAULT (f)
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
-#else  /* USE_CAIRO */
+#else  /* USE_CAIRO || HAVE_HAIKU */
 #define CrossForeground(f) 0
 #define MaskForeground(f)  PIX_MASK_DRAW
-#endif	/* USE_CAIRO */
+#endif	/* USE_CAIRO || HAVE_HAIKU */
 
-#ifndef USE_CAIRO
+#if !defined USE_CAIRO && !defined HAVE_HAIKU
       image_sync_to_pixmaps (f, img);
-#endif	/* !USE_CAIRO */
+#endif	/* !USE_CAIRO && !HAVE_HAIKU */
       image_pixmap_draw_cross (f, img->pixmap, 0, 0, img->width, img->height,
 			       CrossForeground (f));
       if (img->mask)
 	image_pixmap_draw_cross (f, img->mask, 0, 0, img->width, img->height,
 				 MaskForeground (f));
-#endif /* !HAVE_HAIKU */
 #endif /* !HAVE_NS */
 #else
       HDC hdc, bmpdc;
@@ -8970,7 +9108,7 @@ gif_load (struct frame *f, struct image *img)
       goto gif_error;
     }
 
-  /* It's an animated image, so initalize the cache.  */
+  /* It's an animated image, so initialize the cache.  */
   if (cache && !cache->handle)
     {
       cache->handle = gif;

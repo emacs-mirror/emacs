@@ -125,7 +125,7 @@ longer than `erc-fill-column'."
   ;; a button, it makes no sense to optimize performance by
   ;; bytecompiling lambdas in this alist.  On the other hand, it makes
   ;; things hard to maintain.
-  '(('nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
+  '((nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
     (erc-button-url-regexp 0 t browse-url-button-open-url 0)
     ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
@@ -158,12 +158,12 @@ REGEXP is the string matching text around the button or a symbol
   strings, or an alist with the strings in the car.  Note that
   entries in lists or alists are considered to be nicks or other
   complete words.  Therefore they are enclosed in \\< and \\>
-  while searching.  REGEXP can also be the quoted symbol
-  \\='nicknames, which matches the nickname of any user on the
+  while searching.  REGEXP can also be the symbol
+  `nicknames', which matches the nickname of any user on the
   current server.
 
 BUTTON is the number of the regexp grouping actually matching the
-  button.  This is ignored if REGEXP is \\='nicknames.
+  button.  This is ignored if REGEXP is `nicknames'.
 
 FORM is a Lisp expression which must eval to true for the button to
   be added.
@@ -174,17 +174,15 @@ CALLBACK is the function to call when the user push this button.
 
 PAR is a number of a regexp grouping whose text will be passed to
   CALLBACK.  There can be several PAR arguments.  If REGEXP is
-  \\='nicknames, these are ignored, and CALLBACK will be called with
+  `nicknames', these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
-  :version "24.1"                       ; remove finger (bug#4443)
+  :version "29.1"
   :type '(repeat
           (list :tag "Button"
                 (choice :tag "Matches"
                         regexp
                         (variable :tag "Variable containing regexp")
-                        ;; FIXME It really does mean 'nicknames
-                        ;; rather than just nicknames.
-                        (const :tag "Nicknames" 'nicknames))
+                        (const :tag "Nicknames" nicknames))
                 (integer :tag "Number of the regexp section that matches")
                 (choice :tag "When to buttonize"
                         (const :tag "Always" t)
@@ -256,7 +254,9 @@ specified by `erc-button-alist'."
             regexp)
         (erc-button-remove-old-buttons)
         (dolist (entry alist)
-          (if (equal (car entry) (quote (quote nicknames)))
+          (if (or (eq (car entry) 'nicknames)
+                  ;; Old form retained for backward compatibility.
+                  (equal (car entry) (quote 'nicknames)))
               (erc-button-add-nickname-buttons entry)
             (progn
               (setq regexp (or (and (stringp (car entry)) (car entry))

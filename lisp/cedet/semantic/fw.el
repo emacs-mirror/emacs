@@ -287,7 +287,8 @@ later installation should be done in MODE hook."
           (cons (intern (format "semantic-%s" name)) (cdr e)))))
     overrides)
    (list 'constant-flag (not transient)
-         'override-flag t)))
+         'override-flag t)
+   nil))
 
 ;;; User Interrupt handling
 ;;

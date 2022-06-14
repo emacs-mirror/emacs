@@ -176,7 +176,7 @@ that variable on the theory they're doing more good than harm; `repeat' does
 that, and usually does do more good than harm.  However, like all do-gooders,
 sometimes `repeat' gets surprising results from its altruism.  The value of
 this function is always whether the value of `this-command' would've been
-'repeat if `repeat' hadn't modified it."
+`repeat' if `repeat' hadn't modified it."
   (= repeat-num-input-keys-at-repeat num-input-keys))
 
 ;; An example of the use of (repeat-is-really-this-command) may still be

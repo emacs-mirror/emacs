@@ -9,7 +9,7 @@
 ;; Homepage: https://orgmode.org
 ;; Package-Requires: ((emacs "25.1"))
 
-;; Version: 9.5.3
+;; Version: 9.5.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -247,7 +247,7 @@ byte-compiled before it is loaded."
     (if compile
 	(progn
 	  (byte-compile-file tangled-file)
-	  (load tangled-file)
+	  (load-file (byte-compile-dest-file tangled-file))
 	  (message "Compiled and loaded %s" tangled-file))
       (load-file tangled-file)
       (message "Loaded %s" tangled-file))))
@@ -3301,7 +3301,7 @@ Replace format-specifiers in the command as noted below and use
 %i:     The LaTeX fragment to be converted.
 
 For example, this could be used with LaTeXML as
-\"latexmlc 'literal:%i' --profile=math --preload=siunitx.sty 2>/dev/null\"."
+\"latexmlc \\='literal:%i\\=' --profile=math --preload=siunitx.sty 2>/dev/null\"."
   :group 'org-latex
   :package-version '(Org . "9.4")
   :type '(choice
@@ -12160,7 +12160,7 @@ This works in the agenda, and also in an Org buffer."
 	 (progn
 	   (message "[s]et or [r]emove? ")
 	   (equal (read-char-exclusive) ?r))))
-  (when (fboundp 'deactivate-mark) (deactivate-mark))
+  (deactivate-mark)
   (let ((agendap (equal major-mode 'org-agenda-mode))
 	l1 l2 m buf pos newhead (cnt 0))
     (goto-char end)
@@ -15026,8 +15026,9 @@ When matching, the match groups are the following:
   (let* ((regexp
           (if extended
               (if (eq extended 'agenda)
-                  (rx (or (regexp org-ts-regexp3)
-                          (regexp org-element--timestamp-regexp)))
+                  (rx-to-string
+                   `(or (regexp ,org-ts-regexp3)
+                        (regexp ,org-element--timestamp-regexp)))
 		org-ts-regexp3)
             org-ts-regexp2))
 	 (pos (point))

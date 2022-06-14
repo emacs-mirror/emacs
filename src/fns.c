@@ -2519,7 +2519,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
   if (SYMBOL_WITH_POS_P (o2))
     o2 = SYMBOL_WITH_POS_SYM (o2);
 
-  if (EQ (o1, o2))
+  if (BASE_EQ (o1, o2))
     return true;
   if (XTYPE (o1) != XTYPE (o2))
     return false;
@@ -4113,7 +4113,7 @@ hash_table_user_defined_call (ptrdiff_t nargs, Lisp_Object *args,
   return unbind_to (count, Ffuncall (nargs, args));
 }
 
-/* Ignore HT and compare KEY1 and KEY2 using 'eql'.
+/* Ignore H and compare KEY1 and KEY2 using 'eql'.
    Value is true if KEY1 and KEY2 are the same.  */
 
 static Lisp_Object
@@ -4122,7 +4122,7 @@ cmpfn_eql (Lisp_Object key1, Lisp_Object key2, struct Lisp_Hash_Table *h)
   return Feql (key1, key2);
 }
 
-/* Ignore HT and compare KEY1 and KEY2 using 'equal'.
+/* Ignore H and compare KEY1 and KEY2 using 'equal'.
    Value is true if KEY1 and KEY2 are the same.  */
 
 static Lisp_Object
@@ -4132,7 +4132,7 @@ cmpfn_equal (Lisp_Object key1, Lisp_Object key2, struct Lisp_Hash_Table *h)
 }
 
 
-/* Given HT, compare KEY1 and KEY2 using HT->user_cmp_function.
+/* Given H, compare KEY1 and KEY2 using H->user_cmp_function.
    Value is true if KEY1 and KEY2 are the same.  */
 
 static Lisp_Object
@@ -4143,8 +4143,7 @@ cmpfn_user_defined (Lisp_Object key1, Lisp_Object key2,
   return hash_table_user_defined_call (ARRAYELTS (args), args, h);
 }
 
-/* Ignore HT and return a hash code for KEY which uses 'eq' to compare
-   keys.  */
+/* Ignore H and return a hash code for KEY which uses 'eq' to compare keys.  */
 
 static Lisp_Object
 hashfn_eq (Lisp_Object key, struct Lisp_Hash_Table *h)
@@ -4154,7 +4153,7 @@ hashfn_eq (Lisp_Object key, struct Lisp_Hash_Table *h)
   return make_ufixnum (XHASH (key) ^ XTYPE (key));
 }
 
-/* Ignore HT and return a hash code for KEY which uses 'equal' to compare keys.
+/* Ignore H and return a hash code for KEY which uses 'equal' to compare keys.
    The hash code is at most INTMASK.  */
 
 static Lisp_Object
@@ -4163,7 +4162,7 @@ hashfn_equal (Lisp_Object key, struct Lisp_Hash_Table *h)
   return make_ufixnum (sxhash (key));
 }
 
-/* Ignore HT and return a hash code for KEY which uses 'eql' to compare keys.
+/* Ignore H and return a hash code for KEY which uses 'eql' to compare keys.
    The hash code is at most INTMASK.  */
 
 static Lisp_Object
@@ -4172,7 +4171,7 @@ hashfn_eql (Lisp_Object key, struct Lisp_Hash_Table *h)
   return (FLOATP (key) || BIGNUMP (key) ? hashfn_equal : hashfn_eq) (key, h);
 }
 
-/* Given HT, return a hash code for KEY which uses a user-defined
+/* Given H, return a hash code for KEY which uses a user-defined
    function to compare keys.  */
 
 Lisp_Object
@@ -4479,7 +4478,7 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
   /* Store key/value in the key_and_value vector.  */
   i = h->next_free;
   eassert (NILP (HASH_HASH (h, i)));
-  eassert (EQ (Qunbound, (HASH_KEY (h, i))));
+  eassert (BASE_EQ (Qunbound, (HASH_KEY (h, i))));
   h->next_free = HASH_NEXT (h, i);
   set_hash_key_slot (h, i, key);
   set_hash_value_slot (h, i, value);
@@ -5220,7 +5219,7 @@ FUNCTION is called with two arguments, KEY and VALUE.
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
     {
       Lisp_Object k = HASH_KEY (h, i);
-      if (!EQ (k, Qunbound))
+      if (!BASE_EQ (k, Qunbound))
         call2 (function, k, HASH_VALUE (h, i));
     }
 
@@ -5870,9 +5869,12 @@ from the absolute start of the buffer, disregarding the narrowing.  */)
   if (!NILP (absolute))
     start = BEG_BYTE;
 
-  /* Check that POSITION is in the accessible range of the buffer. */
-  if (pos < BEGV || pos > ZV)
+  /* Check that POSITION is in the accessible range of the buffer, or,
+     if we're reporting absolute positions, in the buffer. */
+  if (NILP (absolute) && (pos < BEGV || pos > ZV))
     args_out_of_range_3 (make_int (pos), make_int (BEGV), make_int (ZV));
+  else if (!NILP (absolute) && (pos < 1 || pos > Z))
+    args_out_of_range_3 (make_int (pos), make_int (1), make_int (Z));
 
   return make_int (count_lines (start, CHAR_TO_BYTE (pos)) + 1);
 }

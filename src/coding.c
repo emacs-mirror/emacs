@@ -6528,7 +6528,7 @@ detect_coding (struct coding_system *coding)
   if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qundecided))
     {
       int c, i;
-      struct coding_detection_info detect_info;
+      struct coding_detection_info detect_info = {0};
       bool null_byte_found = 0, eight_bit_found = 0;
       bool inhibit_nbd = inhibit_flag (coding->spec.undecided.inhibit_nbd,
 				       inhibit_null_byte_detection);
@@ -6537,7 +6537,6 @@ detect_coding (struct coding_system *coding)
       bool prefer_utf_8 = coding->spec.undecided.prefer_utf_8;
 
       coding->head_ascii = 0;
-      detect_info.checked = detect_info.found = detect_info.rejected = 0;
       for (src = coding->source; src < src_end; src++)
 	{
 	  c = *src;
@@ -6712,12 +6711,8 @@ detect_coding (struct coding_system *coding)
   else if (XFIXNUM (CODING_ATTR_CATEGORY (CODING_ID_ATTRS (coding->id)))
 	   == coding_category_utf_8_auto)
     {
-      Lisp_Object coding_systems;
-      struct coding_detection_info detect_info;
-
-      coding_systems
+      Lisp_Object coding_systems
 	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_bom);
-      detect_info.found = detect_info.rejected = 0;
       if (check_ascii (coding) == coding->src_bytes)
 	{
 	  if (CONSP (coding_systems))
@@ -6725,6 +6720,7 @@ detect_coding (struct coding_system *coding)
 	}
       else
 	{
+	  struct coding_detection_info detect_info = {0};
 	  if (CONSP (coding_systems)
 	      && detect_coding_utf_8 (coding, &detect_info))
 	    {
@@ -6738,20 +6734,19 @@ detect_coding (struct coding_system *coding)
   else if (XFIXNUM (CODING_ATTR_CATEGORY (CODING_ID_ATTRS (coding->id)))
 	   == coding_category_utf_16_auto)
     {
-      Lisp_Object coding_systems;
-      struct coding_detection_info detect_info;
-
-      coding_systems
+      Lisp_Object coding_systems
 	= AREF (CODING_ID_ATTRS (coding->id), coding_attr_utf_bom);
-      detect_info.found = detect_info.rejected = 0;
       coding->head_ascii = 0;
-      if (CONSP (coding_systems)
-	  && detect_coding_utf_16 (coding, &detect_info))
+      if (CONSP (coding_systems))
 	{
-	  if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
-	    found = XCAR (coding_systems);
-	  else if (detect_info.found & CATEGORY_MASK_UTF_16_BE)
-	    found = XCDR (coding_systems);
+	  struct coding_detection_info detect_info = {0};
+	  if (detect_coding_utf_16 (coding, &detect_info))
+	    {
+	      if (detect_info.found & CATEGORY_MASK_UTF_16_LE)
+		found = XCAR (coding_systems);
+	      else if (detect_info.found & CATEGORY_MASK_UTF_16_BE)
+		found = XCDR (coding_systems);
+	    }
 	}
     }
 
@@ -8639,7 +8634,7 @@ detect_coding_system (const unsigned char *src,
   Lisp_Object val = Qnil;
   struct coding_system coding;
   ptrdiff_t id;
-  struct coding_detection_info detect_info;
+  struct coding_detection_info detect_info = {0};
   enum coding_category base_category;
   bool null_byte_found = 0, eight_bit_found = 0;
 
@@ -8657,8 +8652,6 @@ detect_coding_system (const unsigned char *src,
   coding.consumed = 0;
   coding.mode |= CODING_MODE_LAST_BLOCK;
   coding.head_ascii = 0;
-
-  detect_info.checked = detect_info.found = detect_info.rejected = 0;
 
   /* At first, detect text-format if necessary.  */
   base_category = XFIXNUM (CODING_ATTR_CATEGORY (attrs));

@@ -1071,13 +1071,24 @@ record_deleted_pid (pid_t pid, Lisp_Object filename)
 
 }
 
-DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
+DEFUN ("delete-process", Fdelete_process, Sdelete_process, 0, 1,
+       "(list 'message)",
        doc: /* Delete PROCESS: kill it and forget about it immediately.
 PROCESS may be a process, a buffer, the name of a process or buffer, or
-nil, indicating the current buffer's process.  */)
+nil, indicating the current buffer's process.
+
+Interactively, it will kill the current buffer's process.  */)
   (register Lisp_Object process)
 {
   register struct Lisp_Process *p;
+  bool mess = false;
+
+  /* We use this to see whether we were called interactively.  */
+  if (EQ (process, Qmessage))
+    {
+      mess = true;
+      process = Qnil;
+    }
 
   process = get_process (process);
   p = XPROCESS (process);
@@ -1131,6 +1142,8 @@ nil, indicating the current buffer's process.  */)
 	}
     }
   remove_process (process);
+  if (mess)
+    message ("Deleted process");
   return Qnil;
 }
 
@@ -2131,6 +2144,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       outchannel = p->open_fd[WRITE_TO_SUBPROCESS];
       inchannel = p->open_fd[READ_FROM_SUBPROCESS];
       forkout = p->open_fd[SUBPROCESS_STDOUT];
+
+#if defined(GNU_LINUX) && defined(F_SETPIPE_SZ)
+      fcntl (inchannel, F_SETPIPE_SZ, read_process_output_max);
+#endif
 
       if (!NILP (p->stderrproc))
 	{
@@ -4766,7 +4783,7 @@ corresponding connection was closed.  */)
 		 SDATA (proc->name),
 		 STRINGP (proc_thread_name)
 		 ? SDATA (proc_thread_name)
-		 : SDATA (Fprin1_to_string (proc->thread, Qt)));
+		 : SDATA (Fprin1_to_string (proc->thread, Qt, Qnil)));
 	}
     }
   else
@@ -8618,7 +8635,10 @@ returns non-nil.  */);
   DEFVAR_INT ("read-process-output-max", read_process_output_max,
 	      doc: /* Maximum number of bytes to read from subprocess in a single chunk.
 Enlarge the value only if the subprocess generates very large (megabytes)
-amounts of data in one go.  */);
+amounts of data in one go.
+
+On GNU/Linux systems, the value should not exceed
+/proc/sys/fs/pipe-max-size.  See pipe(7) manpage for details.  */);
   read_process_output_max = 4096;
 
   DEFVAR_INT ("process-error-pause-time", process_error_pause_time,
@@ -8637,6 +8657,7 @@ sentinel or a process filter function has an error.  */);
 
   DEFSYM (Qnull, "null");
   DEFSYM (Qpipe_process_p, "pipe-process-p");
+  DEFSYM (Qmessage, "message");
 
   defsubr (&Sprocessp);
   defsubr (&Sget_process);

@@ -1,0 +1,10 @@
+p.#{$name} var
+p.#{$name}:active var
+p.#{$name}::after var
+f.#{$bar}::after p::after
+p.#{$name} f.#{$bar} k.var #{$bar}  #{$bar}
+p.#{$name}
+&:hover
+> li
++ li
+~ li

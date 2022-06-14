@@ -971,5 +971,60 @@ See Bug#21722."
     ;;(should (= (length (delq nil (undo-make-selective-list 5 9))) 0))
     (should (= (length (delq nil (undo-make-selective-list 6 9))) 0))))
 
+(ert-deftest test-yank-in-context ()
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo \"foo\"")
+      (kill-new "\"bar\"")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo \"f\\\"bar\\\"oo\""))
+
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo \"foo\"")
+      (kill-new "'bar'")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo \"f'bar'oo\""))
+
+  (should
+   (equal
+    (with-temp-buffer
+      (sh-mode)
+      (insert "echo 'foo'")
+      (kill-new "'bar'")
+      (goto-char 8)
+      (yank-in-context)
+      (buffer-string))
+    "echo 'f'\\''bar'\\''oo'")))
+
+;;; Tests for `zap-to-char'
+
+(defmacro with-zap-to-char-test (original result &rest body)
+  (declare (indent 2) (debug (stringp stringp body)))
+  `(with-temp-buffer
+     (insert ,original)
+     (goto-char (point-min))
+     ,@body
+     (should (equal (buffer-string) ,result))))
+
+(ert-deftest simple-tests-zap-to-char ()
+  (with-zap-to-char-test "abcde" "de"
+    (zap-to-char 1 ?c))
+  (with-zap-to-char-test "abcde abc123" "123"
+    (zap-to-char 2 ?c))
+  (let ((case-fold-search t))
+    (with-zap-to-char-test "abcdeCXYZ" "deCXYZ"
+      (zap-to-char 1 ?C))
+    (with-zap-to-char-test "abcdeCXYZ" "XYZ"
+      (zap-to-char 1 ?C 'interactive))))
+
 (provide 'simple-test)
 ;;; simple-tests.el ends here

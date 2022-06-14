@@ -114,6 +114,51 @@ e.g. \"{(+ 1 2)} 3\" => 3"
    (eshell-wait-for-subprocess)
    (eshell-match-result "OLLEH\n")))
 
+(ert-deftest eshell-test/pipe-subcommand ()
+  "Check that piping with an asynchronous subcommand works"
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo hi} | *cat"
+                            "hi")))
+
+(ert-deftest eshell-test/pipe-subcommand-with-pipe ()
+  "Check that piping with an asynchronous subcommand with its own pipe works"
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo hi | *cat} | *cat"
+                            "hi")))
+
+(ert-deftest eshell-test/subcommand-reset-in-pipeline ()
+  "Check that subcommands reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo {%s} | *cat"
+                      "echo ${%s} | *cat"
+                      "*cat $<%s> | *cat"))
+    (should (equal (eshell-test-command-result
+                    (format template "echo $eshell-in-pipeline-p"))
+                   nil))
+    (should (equal (eshell-test-command-result
+                    (format template "echo | echo $eshell-in-pipeline-p"))
+                   "last"))
+    (should (equal (eshell-test-command-result
+                    (format template "echo $eshell-in-pipeline-p | echo"))
+                   "first"))
+    (should (equal (eshell-test-command-result
+                    (format template
+                            "echo | echo $eshell-in-pipeline-p | echo"))
+                   "t"))))
+
+(ert-deftest eshell-test/lisp-reset-in-pipeline ()
+  "Check that interpolated Lisp forms reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo (%s) | *cat"
+                      "echo $(%s) | *cat"))
+    (should (equal (eshell-test-command-result
+                    (format template "format \"%s\" eshell-in-pipeline-p"))
+                   "nil"))))
+
 (ert-deftest eshell-test/redirect-buffer ()
   "Check that piping to a buffer works"
   (with-temp-buffer

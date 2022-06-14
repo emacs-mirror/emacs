@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH EMACS 1 "2021-09-28" "GNU Emacs @version@" "GNU"
+.TH EMACS 1 "2022-06-07" "GNU Emacs @version@" "GNU"
 .
 .
 .SH NAME
@@ -116,6 +116,10 @@ This is useful for debugging problems in the init file.
 Load
 .IR user 's
 init file.
+.TP
+.BI \-\-init\-directory= "directory"
+Start emacs with user-emacs-directory set to
+.IR directory .
 .TP
 .BI \-t " file\fR,\fP " \-\-terminal= "file"
 Use specified

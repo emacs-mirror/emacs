@@ -519,16 +519,16 @@ watched for some reason, this function signals a `file-error' error.
 FILTER is a list of conditions for reporting an event.  It can include
 the following symbols:
 
-  'file-name'          -- report file creation, deletion, or renaming
-  'directory-name'     -- report directory creation, deletion, or renaming
-  'attributes'         -- report changes in attributes
-  'size'               -- report changes in file-size
-  'last-write-time'    -- report changes in last-write time
-  'last-access-time'   -- report changes in last-access time
-  'creation-time'      -- report changes in creation time
-  'security-desc'      -- report changes in security descriptor
+  `file-name'          -- report file creation, deletion, or renaming
+  `directory-name'     -- report directory creation, deletion, or renaming
+  `attributes'         -- report changes in attributes
+  `size'               -- report changes in file-size
+  `last-write-time'    -- report changes in last-write time
+  `last-access-time'   -- report changes in last-access time
+  `creation-time'      -- report changes in creation time
+  `security-desc'      -- report changes in security descriptor
 
-If FILE is a directory, and FILTER includes 'subtree', then all the
+If FILE is a directory, and FILTER includes `subtree', then all the
 subdirectories will also be watched and changes in them reported.
 
 When any event happens that satisfies the conditions specified by
@@ -541,11 +541,11 @@ DESCRIPTOR is the same object as the one returned by this function.
 ACTION is the description of the event.  It could be any one of the
 following:
 
-  'added'        -- FILE was added
-  'removed'      -- FILE was deleted
-  'modified'     -- FILE's contents or its attributes were modified
-  'renamed-from' -- a file was renamed whose old name was FILE
-  'renamed-to'   -- a file was renamed and its new name is FILE
+  `added'        -- FILE was added
+  `removed'      -- FILE was deleted
+  `modified'     -- FILE's contents or its attributes were modified
+  `renamed-from' -- a file was renamed whose old name was FILE
+  `renamed-to'   -- a file was renamed and its new name is FILE
 
 FILE is the name of the file whose event is being reported.
 

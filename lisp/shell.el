@@ -331,6 +331,12 @@ Useful for shells like zsh that has this feature."
   :group 'shell-directories
   :version "28.1")
 
+(defcustom shell-kill-buffer-on-exit nil
+  "Kill a shell buffer after the shell process terminates."
+  :type 'boolean
+  :group 'shell
+  :version "29.1")
+
 (defvar shell-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-f" 'shell-forward-command)
@@ -713,7 +719,7 @@ Sentinels will always get the two parameters PROCESS and EVENT."
         (insert (format "\nProcess %s %s\n" process event))))))
 
 ;;;###autoload
-(defun shell (&optional buffer)
+(defun shell (&optional buffer file-name)
   "Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
 Interactively, a prefix arg means to prompt for BUFFER.
 If `default-directory' is a remote file name, it is also prompted
@@ -724,6 +730,8 @@ If BUFFER exists and shell process is running, just switch to BUFFER.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
  or (if that is nil) from `shell-file-name'.
+Non-interactively, it can also be specified via the FILE-NAME arg.
+
 If a file `~/.emacs_SHELLNAME' exists, or `~/.emacs.d/init_SHELLNAME.sh',
 it is given as initial input (but this may be lost, due to a timing
 error, if the shell discards input when it starts up).
@@ -747,25 +755,47 @@ Make the shell buffer the current buffer, and return it.
 
 \(Type \\[describe-mode] in the shell buffer for a list of commands.)"
   (interactive
-   (list
-    (and current-prefix-arg
-	 (prog1
-	     (read-buffer "Shell buffer: "
-			  ;; If the current buffer is an inactive
-			  ;; shell buffer, use it as the default.
-			  (if (and (eq major-mode 'shell-mode)
-				   (null (get-buffer-process (current-buffer))))
-			      (buffer-name)
-			    (generate-new-buffer-name "*shell*")))
-	   (if (file-remote-p default-directory)
-	       ;; It must be possible to declare a local default-directory.
-               ;; FIXME: This can't be right: it changes the default-directory
-               ;; of the current-buffer rather than of the *shell* buffer.
-	       (setq default-directory
-		     (expand-file-name
-		      (read-directory-name
-		       "Default directory: " default-directory default-directory
-		       t nil))))))))
+   (let* ((buffer
+           (and current-prefix-arg
+		(read-buffer "Shell buffer: "
+			     ;; If the current buffer is an inactive
+			     ;; shell buffer, use it as the default.
+			     (if (and (eq major-mode 'shell-mode)
+				      (null (get-buffer-process
+				             (current-buffer))))
+				 (buffer-name)
+			       (generate-new-buffer-name "*shell*")))))
+	  (buf (if (or buffer (not (derived-mode-p 'shell-mode))
+                       (comint-check-proc (current-buffer)))
+                   (get-buffer-create (or buffer "*shell*"))
+                 ;; If the current buffer is a dead shell buffer, use it.
+                 (current-buffer))))
+
+     (with-current-buffer buf
+       (when (and buffer (file-remote-p default-directory))
+	 ;; It must be possible to declare a local default-directory.
+	 (setq default-directory
+	       (expand-file-name
+		(read-directory-name
+		 "Default directory: " default-directory default-directory
+		 t nil))))
+       (list
+        buffer
+        ;; On remote hosts, the local `shell-file-name' might be useless.
+        (with-connection-local-variables
+         (when (and (file-remote-p default-directory)
+                    (null explicit-shell-file-name)
+                    (null (getenv "ESHELL")))
+           ;; `expand-file-name' shall not add the MS Windows volume letter
+           ;; (Bug#49229).
+           (replace-regexp-in-string
+            "^[[:alpha:]]:" ""
+            (file-local-name
+             (expand-file-name
+              (read-file-name "Remote shell path: " default-directory
+                              shell-file-name t shell-file-name
+                              #'file-remote-p))))))))))
+
   (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
                        (comint-check-proc (current-buffer)))
                    (get-buffer-create (or buffer "*shell*"))
@@ -776,21 +806,8 @@ Make the shell buffer the current buffer, and return it.
   (pop-to-buffer buffer display-comint-buffer-action)
 
   (with-connection-local-variables
-   ;; On remote hosts, the local `shell-file-name' might be useless.
-   (when (and (file-remote-p default-directory)
-              (called-interactively-p 'any)
-              (null explicit-shell-file-name)
-              (null (getenv "ESHELL")))
-     ;; `expand-file-name' shall not add the MS Windows volume letter
-     ;; (Bug#49229).
-     (setq-local explicit-shell-file-name
-                 (replace-regexp-in-string
-                  "^[[:alpha:]]:" ""
-                  (file-local-name
-                   (expand-file-name
-                    (read-file-name "Remote shell path: " default-directory
-                                    shell-file-name t shell-file-name
-                                    #'file-remote-p))))))
+   (when file-name
+     (setq-local explicit-shell-file-name file-name))
 
    ;; Rain or shine, BUFFER must be current by now.
    (unless (comint-check-proc buffer)
@@ -818,6 +835,17 @@ Make the shell buffer the current buffer, and return it.
           (with-temp-buffer
             (insert-file-contents startfile)
             (buffer-string)))))))
+  (when shell-kill-buffer-on-exit
+    (let* ((buffer (current-buffer))
+           (process (get-buffer-process buffer))
+           (sentinel (process-sentinel process)))
+      (set-process-sentinel
+       process
+       (lambda (proc event)
+         (when sentinel
+           (funcall sentinel proc event))
+         (unless (buffer-live-p proc)
+           (kill-buffer buffer))))))
   buffer)
 
 ;;; Directory tracking

@@ -255,7 +255,9 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%n\" expands to \"2>/dev/null\".
     - \"%x\" is replaced by the `tramp-scp-strict-file-name-checking'
       argument if it is supported.
-    - \"%y\" is replaced by the `tramp-scp-direct-remote-copying'
+    - \"%y\" is replaced by the `tramp-scp-force-scp-protocol'
+      argument if it is supported.
+    - \"%z\" is replaced by the `tramp-scp-direct-remote-copying'
       argument if it is supported.
 
     The existence of `tramp-login-args', combined with the
@@ -503,7 +505,8 @@ interpreted as a regular expression which always matches."
 ;; either lower case or upper case letters.  See
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
-  (when (eq system-type 'windows-nt)
+  (when (and (eq system-type 'windows-nt)
+             (not (string-match-p "sh$" tramp-encoding-shell)))
     (list (format "\\`\\(%s\\|%s\\)\\'"
 		  (regexp-quote (downcase tramp-system-name))
 		  (regexp-quote (upcase tramp-system-name)))))
@@ -2481,7 +2484,7 @@ For definition of that list see `tramp-set-completion-function'."
 
 (defun tramp-default-file-modes (filename &optional flag)
   "Return file modes of FILENAME as integer.
-If optional FLAG is ‘nofollow’, do not follow FILENAME if it is a
+If optional FLAG is `nofollow', do not follow FILENAME if it is a
 symbolic link.  If the file modes of FILENAME cannot be
 determined, return the value of `default-file-modes', without
 execute permissions."
@@ -2523,6 +2526,7 @@ arguments to pass to the OPERATION."
 	    ,(and (eq inhibit-file-name-operation operation)
 		  inhibit-file-name-handlers)))
 	 (inhibit-file-name-operation operation)
+	 (args (if (tramp-file-name-p (car args)) (cons nil (cdr args)) args))
 	 signal-hook-function)
     (apply operation args)))
 
@@ -2705,6 +2709,7 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 			  (tramp-message
 			   v 5 "Non-essential received in operation %s"
 			   (cons operation args))
+			  (let ((tramp-verbose 10)) (tramp-backtrace v))
 			  (tramp-run-real-handler operation args))
 		         ((eq result 'suppress)
 			  (let ((inhibit-message t))
@@ -2949,7 +2954,7 @@ not in completion mode."
 	     (m (tramp-find-method method user host))
 	     all-user-hosts)
 
-	(unless localname        ;; Nothing to complete.
+	(unless localname ;; Nothing to complete.
 
 	  (if (or user host)
 
@@ -3384,8 +3389,9 @@ BODY is the backend specific code."
 	 (lockname (file-truename (or ,lockname filename)))
 	 (handler (and (stringp ,visit)
 		       (let ((inhibit-file-name-handlers
-			      (cons 'tramp-file-name-handler
-				    inhibit-file-name-handlers))
+			      `(tramp-file-name-handler
+				tramp-crypt-file-name-handler
+				. inhibit-file-name-handlers))
 			     (inhibit-file-name-operation 'write-region))
 			 (find-file-name-handler ,visit 'write-region)))))
      (with-parsed-tramp-file-name filename nil
@@ -3412,6 +3418,7 @@ BODY is the backend specific code."
 	       (gid (or (file-attribute-group-id
 			 (file-attributes filename 'integer))
 			(tramp-get-remote-gid v 'integer)))
+	       (attributes (file-extended-attributes filename))
 	       (curbuf (current-buffer)))
 
 	   ;; Lock file.
@@ -3432,7 +3439,7 @@ BODY is the backend specific code."
 
 	   ;; We must protect `last-coding-system-used', now we have
 	   ;; set it to its correct value.
-	   (let (last-coding-system-used)
+	   (let (last-coding-system-used (need-chown t))
 	     ;; Set file modification time.
 	     (when (or (eq ,visit t) (stringp ,visit))
 	       (when-let ((file-attr (file-attributes filename 'integer)))
@@ -3442,10 +3449,19 @@ BODY is the backend specific code."
 		  ;; `file-precious-flag' is set.
 		  (or (file-attribute-modification-time file-attr)
 		      (current-time)))
-		 ;; Set the ownership.
 		 (unless (and (= (file-attribute-user-id file-attr) uid)
 			      (= (file-attribute-group-id file-attr) gid))
-		   (tramp-set-file-uid-gid filename uid gid)))))
+		   (setq need-chown nil))))
+
+	     ;; Set the ownership.
+             (when need-chown
+               (tramp-set-file-uid-gid filename uid gid)))
+
+	   ;; Set extended attributes.  We ignore possible errors,
+	   ;; because ACL strings could be incompatible.
+	   (when attributes
+	     (ignore-errors
+	       (set-file-extended-attributes filename attributes)))
 
 	   ;; Unlock file.
 	   (when file-locked
@@ -4219,7 +4235,9 @@ Parsing the remote \"ps\" output is controlled by
 It is not guaranteed, that all process attributes as described in
 `process-attributes' are returned.  The additional attribute
 `pid' shall be returned always."
-  (with-tramp-file-property vec "/" "process-attributes"
+  ;; Since Emacs 27.1.
+  (when (fboundp 'connection-local-criteria-for-default-directory)
+    (with-tramp-file-property vec "/" "process-attributes"
       (ignore-errors
         (with-temp-buffer
           (hack-connection-local-variables-apply
@@ -4263,7 +4281,7 @@ It is not guaranteed, that all process attributes as described in
                   (push (append res) result))
                 (forward-line))
               ;; Return result.
-              result))))))
+              result)))))))
 
 (defun tramp-handle-list-system-processes ()
   "Like `list-system-processes' for Tramp files."
@@ -5622,7 +5640,9 @@ If FILENAME is remote, a file name handler is called."
       (setq gid (file-attribute-group-id (file-attributes dir)))))
 
   (if (tramp-tramp-file-p filename)
-      (tramp-file-name-handler #'tramp-set-file-uid-gid filename uid gid)
+      (funcall (if (tramp-crypt-file-name-p filename)
+		   #'tramp-crypt-file-name-handler #'tramp-file-name-handler)
+	       #'tramp-set-file-uid-gid filename uid gid)
     ;; On W32 systems, "chown" does not work.
     (unless (memq system-type '(ms-dos windows-nt))
       (let ((uid (or (and (natnump uid) uid) (tramp-get-local-uid 'integer)))
@@ -5728,26 +5748,29 @@ be granted."
 If USER is a string, return its home directory instead of the
 user identified by VEC.  If there is no user specified in either
 VEC or USER, or if there is no home directory, return nil."
-  (with-tramp-connection-property vec (concat "~" user)
-    (tramp-file-name-handler #'tramp-get-home-directory vec user)))
+  (and (tramp-file-name-p vec)
+       (with-tramp-connection-property vec (concat "~" user)
+	 (tramp-file-name-handler #'tramp-get-home-directory vec user))))
 
 (defun tramp-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (or (tramp-file-name-handler #'tramp-get-remote-uid vec id-format)
-	;; Ensure there is a valid result.
-	(and (equal id-format 'integer) tramp-unknown-id-integer)
-	(and (equal id-format 'string) tramp-unknown-id-string))))
+  (or (and (tramp-file-name-p vec)
+	   (with-tramp-connection-property vec (format "uid-%s" id-format)
+	     (tramp-file-name-handler #'tramp-get-remote-uid vec id-format)))
+      ;; Ensure there is a valid result.
+      (and (equal id-format 'integer) tramp-unknown-id-integer)
+      (and (equal id-format 'string) tramp-unknown-id-string)))
 
 (defun tramp-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  (with-tramp-connection-property vec (format "gid-%s" id-format)
-    (or (tramp-file-name-handler #'tramp-get-remote-gid vec id-format)
-	;; Ensure there is a valid result.
-	(and (equal id-format 'integer) tramp-unknown-id-integer)
-	(and (equal id-format 'string) tramp-unknown-id-string))))
+  (or (and (tramp-file-name-p vec)
+	   (with-tramp-connection-property vec (format "gid-%s" id-format)
+	     (tramp-file-name-handler #'tramp-get-remote-gid vec id-format)))
+      ;; Ensure there is a valid result.
+      (and (equal id-format 'integer) tramp-unknown-id-integer)
+      (and (equal id-format 'string) tramp-unknown-id-string)))
 
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise.

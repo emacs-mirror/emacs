@@ -658,7 +658,6 @@ there is no recent clock to choose from."
 		     (if (< i 10)
 			 (+ i ?0)
 		       (+ i (- ?A 10))) m))
-	    (if (fboundp 'int-to-char) (setf (car s) (int-to-char (car s))))
 	    (push s sel-list)))
 	(run-hooks 'org-clock-before-select-task-hook)
 	(goto-char (point-min))
@@ -1105,7 +1104,7 @@ to be CLOCKED OUT."))))
 		  60))
 	 (keep
 	  (or (and (memq ch '(?k ?K))
-		   (read-number "Keep how many minutes? " default))
+		   (read-number "Keep how many minutes: " default))
 	      (and (memq ch '(?t ?T))
 		   (floor
 		    (/ (float-time
@@ -1113,7 +1112,7 @@ to be CLOCKED OUT."))))
 		       60)))))
 	 (gotback
 	  (and (memq ch '(?g ?G))
-	       (read-number "Got back how many minutes ago? " default)))
+	       (read-number "Got back how many minutes ago: " default)))
 	 (subtractp (memq ch '(?s ?S)))
 	 (barely-started-p (org-time-less-p
 			    (org-time-subtract last-valid (cdr clock))

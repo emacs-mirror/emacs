@@ -1333,9 +1333,7 @@ pgtk_draw_glyph_string_background (struct glyph_string *s, bool force_p)
       if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
-
-	  fill_background (s,
-			   s->x, s->y + box_line_width,
+	  fill_background (s, s->x, s->y + box_line_width,
 			   s->background_width,
 			   s->height - 2 * box_line_width);
 	  s->background_filled_p = true;
@@ -1589,6 +1587,10 @@ pgtk_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 			     false);
       x += glyph->pixel_width;
     }
+
+  /* Pacify GCC 12 even though s->char2b is not used after this
+     function returns.  */
+  s->char2b = NULL;
 }
 
 /* Brightness beyond which a color won't have its highlight brightness
@@ -2501,9 +2503,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	      if (s->face->underline_defaulted_p)
 		pgtk_draw_underwave (s, s->xgcv.foreground);
 	      else
-		{
-		  pgtk_draw_underwave (s, s->face->underline_color);
-		}
+		pgtk_draw_underwave (s, s->face->underline_color);
 	    }
 	  else if (s->face->underline == FACE_UNDER_LINE)
 	    {
@@ -2555,7 +2555,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		    }
 
 		  /* Ignore minimum_offset if the amount of pixels was
-		     explictly specified.  */
+		     explicitly specified.  */
 		  if (!s->face->underline_pixels_above_descent_line)
 		    position = max (position, underline_minimum_offset);
 		}
@@ -2669,6 +2669,11 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	      }
 	}
     }
+
+  /* TODO: figure out in which cases the stipple is actually drawn on
+     PGTK.  */
+  if (!s->row->stipple_p)
+    s->row->stipple_p = s->face->stipple;
 
   /* Reset clipping.  */
   pgtk_end_cr_clip (s->f);
@@ -3346,15 +3351,10 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
   if (gui_mouse_grabbed (dpyinfo)
       && (!EQ (track_mouse, Qdropping)
 	  && !EQ (track_mouse, Qdrag_source)))
-    {
-      /* 1.1. use last_mouse_frame as frame where the pointer is
-	 on.  */
-      f1 = dpyinfo->last_mouse_frame;
-    }
+    f1 = dpyinfo->last_mouse_frame;
   else
     {
       f1 = *fp;
-      /* 1.2. get frame where the pointer is on.  */
       win = gtk_widget_get_window (FRAME_GTK_WIDGET (*fp));
       seat = gdk_display_get_default_seat (dpyinfo->gdpy);
       device = gdk_seat_get_pointer (seat);
@@ -3380,19 +3380,17 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object * bar_window,
       return;
     }
 
-  /* 2. get the display and the device. */
   win = gtk_widget_get_window (FRAME_GTK_WIDGET (f1));
-  GdkDisplay *gdpy = gdk_window_get_display (win);
-  seat = gdk_display_get_default_seat (gdpy);
+  seat = gdk_display_get_default_seat (dpyinfo->gdpy);
   device = gdk_seat_get_pointer (seat);
 
-  /* 3. get x, y relative to edit window of the frame. */
-  win = gdk_window_get_device_position (win, device, &win_x, &win_y, &mask);
+  win = gdk_window_get_device_position (win, device,
+					&win_x, &win_y, &mask);
 
   if (f1 != NULL)
     {
-      dpyinfo = FRAME_DISPLAY_INFO (f1);
-      remember_mouse_glyph (f1, win_x, win_y, &dpyinfo->last_mouse_glyph);
+      remember_mouse_glyph (f1, win_x, win_y,
+			    &dpyinfo->last_mouse_glyph);
       dpyinfo->last_mouse_glyph_frame = f1;
 
       *bar_window = Qnil;
@@ -3505,9 +3503,7 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
          mono-displays, the fill style may have been changed to
          FillSolid in pgtk_draw_glyph_string_background.  */
       if (face->stipple)
-	{
-	  fill_background_by_face (f, face, p->bx, p->by, p->nx, p->ny);
-	}
+	fill_background_by_face (f, face, p->bx, p->by, p->nx, p->ny);
       else
 	{
 	  pgtk_set_cr_source_with_color (f, face->background, true);
@@ -6164,6 +6160,20 @@ drag_data_received (GtkWidget *widget, GdkDragContext *context,
   gtk_drag_finish (context, TRUE, FALSE, time);
 }
 
+static void
+pgtk_monitors_changed_cb (GdkScreen *screen, gpointer user_data)
+{
+  struct terminal *terminal;
+  union buffered_input_event inev;
+
+  EVENT_INIT (inev.ie);
+  terminal = user_data;
+  inev.ie.kind = MONITORS_CHANGED_EVENT;
+  XSETTERMINAL (inev.ie.arg, terminal);
+
+  evq_enqueue (&inev);
+}
+
 void
 pgtk_set_event_handler (struct frame *f)
 {
@@ -6282,26 +6292,6 @@ same_x_server (const char *name1, const char *name2)
 	  && (*name2 == '.' || *name2 == '\0'));
 }
 
-#define GNOME_INTERFACE_SCHEMA "org.gnome.desktop.interface"
-
-static gdouble pgtk_text_scaling_factor (void)
-{
-  GSettingsSchemaSource *schema_source = g_settings_schema_source_get_default ();
-  if (schema_source != NULL)
-    {
-      GSettingsSchema *schema = g_settings_schema_source_lookup (schema_source,
-         GNOME_INTERFACE_SCHEMA, true);
-      if (schema != NULL)
-        {
-	  g_settings_schema_unref (schema);
-	  GSettings *set = g_settings_new (GNOME_INTERFACE_SCHEMA);
-	  return g_settings_get_double (set, "text-scaling-factor");
-	}
-    }
-  return 1;
-}
-
-
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -6318,6 +6308,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   char *dpy_name;
   static void *handle = NULL;
   Lisp_Object lisp_dpy_name = Qnil;
+  GdkScreen *gscr;
+  gdouble dpi;
 
   block_input ();
 
@@ -6468,21 +6460,22 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   reset_mouse_highlight (&dpyinfo->mouse_highlight);
 
-  {
-    GdkScreen *gscr = gdk_display_get_default_screen (dpyinfo->gdpy);
+  gscr = gdk_display_get_default_screen (dpyinfo->gdpy);
+  dpi = gdk_screen_get_resolution (gscr);
 
-    gdouble dpi = gdk_screen_get_resolution (gscr);
-    if (dpi < 0)
-	dpi = 96.0;
+  if (dpi < 0)
+    dpi = 96.0;
 
-    dpi *= pgtk_text_scaling_factor ();
-    dpyinfo->resx = dpi;
-    dpyinfo->resy = dpi;
-  }
+  dpyinfo->resx = dpi;
+  dpyinfo->resy = dpi;
 
-  /* smooth scroll setting */
-  dpyinfo->scroll.x_per_char = 2;
-  dpyinfo->scroll.y_per_line = 2;
+  g_signal_connect (G_OBJECT (gscr), "monitors-changed",
+		    G_CALLBACK (pgtk_monitors_changed_cb),
+		    terminal);
+
+  /* Set up scrolling increments.  */
+  dpyinfo->scroll.x_per_char = 1;
+  dpyinfo->scroll.y_per_line = 1;
 
   dpyinfo->connection = -1;
 
@@ -6608,9 +6601,9 @@ pgtk_xlfd_to_fontname (const char *xlfd)
 }
 
 bool
-pgtk_defined_color (struct frame *f,
-		    const char *name,
-		    Emacs_Color * color_def, bool alloc, bool makeIndex)
+pgtk_defined_color (struct frame *f, const char *name,
+		    Emacs_Color *color_def, bool alloc,
+		    bool makeIndex)
 /* --------------------------------------------------------------------------
          Return true if named color found, and set color_def rgb accordingly.
          If makeIndex and alloc are nonzero put the color in the color_table,

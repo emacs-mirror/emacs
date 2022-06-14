@@ -541,10 +541,12 @@ file formerly visited.
 @ref{Text}.
 
 @defun buffer-modified-p &optional buffer
-This function returns @code{t} if the buffer @var{buffer} has been modified
-since it was last read in from a file or saved, or @code{nil}
-otherwise.  If @var{buffer} is not supplied, the current buffer
-is tested.
+This function returns non-@code{nil} if @var{buffer} has
+been modified since it was last read in from a file or saved, or
+@code{nil} otherwise.  If @var{buffer} has been auto-saved since the
+time it was last modified, this function returns the symbol
+@code{autosaved}.  If @var{buffer} is @code{nil} or omitted, it
+defaults to the current buffer.
 @end defun
 
 @defun set-buffer-modified-p flag
@@ -563,8 +565,10 @@ function @code{force-mode-line-update} works by doing this:
 @end defun
 
 @defun restore-buffer-modified-p flag
-Like @code{set-buffer-modified-p}, but does not force redisplay
-of mode lines.
+Like @code{set-buffer-modified-p}, but does not force redisplay of
+mode lines.  This function also allows @var{flag}'s value to be
+the symbol @code{autosaved}, which marks the buffer as modified and
+auto-saved after the last modification.
 @end defun
 
 @deffn Command not-modified &optional arg

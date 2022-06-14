@@ -79,7 +79,9 @@
 	   (coding-priority greek-iso-8bit)
 	   (nonascii-translation . iso-8859-7)
 	   (input-method . "greek")
-	   (documentation . t)))
+	   (documentation . "Support for Greek ISO-8859-7 using the greek input method.")
+           (sample-text . "Greek (ελληνικά)	Γειά σας")
+           (tutorial . "TUTORIAL.el_GR")))
 
 (provide 'greek)
 

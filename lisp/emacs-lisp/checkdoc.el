@@ -327,7 +327,7 @@ This should be set in an Emacs Lisp file's local variables."
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
 (defcustom checkdoc-column-zero-backslash-before-paren t
-  "Non-nil means to warn if there is no '\\' before '(' in column zero.
+  "Non-nil means to warn if there is no \"\\\" before \"(\" in column zero.
 This backslash is no longer needed on Emacs 27.1 or later.
 
 See Info node `(elisp) Documentation Tips' for background."
@@ -1127,7 +1127,7 @@ When called from Lisp, FILES is a list of filenames."
    (progn
      ;; These Dired functions must be defined since we're in a Dired buffer.
      (declare-function dired-get-filename "dired"
-                       (&optional localp no-error-if-not-filep bof))
+                       (&optional localp no-error-if-not-filep))
      ;; These functions are used by the expansion of `dired-map-over-marks'.
      (declare-function dired-move-to-filename "dired"
                        (&optional raise-error eol))
@@ -2234,7 +2234,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
 ;;
 (defvar ispell-process)
 (declare-function ispell-buffer-local-words "ispell" ())
-(declare-function ispell-correct-p "ispell" ())
+(declare-function ispell-correct-p "ispell" (&optional following))
 (declare-function ispell-set-spellchecker-params "ispell" ())
 (declare-function ispell-accept-buffer-local-defs "ispell" ())
 (declare-function ispell-error-checking-word "ispell" (word))
@@ -2464,11 +2464,9 @@ Code:, and others referenced in the style guide."
 		  pos)
 	      (goto-char (point-min))
 	      ;; match ";;;###autoload" cookie to keep it with the form
-	      (require 'autoload)
 	      (while (and cont (re-search-forward
-				(concat "^\\("
-					(regexp-quote generate-autoload-cookie)
-					"\n\\)?"
+				(concat "^\\(" lisp-mode-autoload-regexp
+                                        "\n\\)?"
 					"(")
 				nil t))
 		(setq pos (match-beginning 0)

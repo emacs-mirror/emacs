@@ -767,29 +767,27 @@ Return COLUMN."
 
 ;;; Array mode.
 
-(defvar array-mode-map
-  (let ((map (make-keymap)))
-    (define-key map "\M-ad"   #'array-display-local-variables)
-    (define-key map "\M-am"   #'array-make-template)
-    (define-key map "\M-ae"   #'array-expand-rows)
-    (define-key map "\M-ar"   #'array-reconfigure-rows)
-    (define-key map "\M-a="   #'array-what-position)
-    (define-key map "\M-ag"   #'array-goto-cell)
-    (define-key map "\M-af"   #'array-fill-rectangle)
-    (define-key map "\C-n"    #'array-next-row)
-    (define-key map "\C-p"    #'array-previous-row)
-    (define-key map "\C-f"    #'array-forward-column)
-    (define-key map "\C-b"    #'array-backward-column)
-    (define-key map "\M-n"    #'array-copy-down)
-    (define-key map "\M-p"    #'array-copy-up)
-    (define-key map "\M-f"    #'array-copy-forward)
-    (define-key map "\M-b"    #'array-copy-backward)
-    (define-key map "\M-\C-n" #'array-copy-row-down)
-    (define-key map "\M-\C-p" #'array-copy-row-up)
-    (define-key map "\M-\C-f" #'array-copy-column-forward)
-    (define-key map "\M-\C-b" #'array-copy-column-backward)
-    map)
-  "Keymap used in array mode.")
+(defvar-keymap array-mode-map
+  :doc "Keymap used in array mode."
+  "M-a d"  #'array-display-local-variables
+  "M-a m"  #'array-make-template
+  "M-a e"  #'array-expand-rows
+  "M-a r"  #'array-reconfigure-rows
+  "M-a ="  #'array-what-position
+  "M-a g"  #'array-goto-cell
+  "M-a f"  #'array-fill-rectangle
+  "C-n"    #'array-next-row
+  "C-p"    #'array-previous-row
+  "C-f"    #'array-forward-column
+  "C-b"    #'array-backward-column
+  "M-n"    #'array-copy-down
+  "M-p"    #'array-copy-up
+  "M-f"    #'array-copy-forward
+  "M-b"    #'array-copy-backward
+  "C-M-n"  #'array-copy-row-down
+  "C-M-p"  #'array-copy-row-up
+  "C-M-f"  #'array-copy-column-forward
+  "C-M-b"  #'array-copy-column-backward)
 
 
 (put 'array-mode 'mode-class 'special)

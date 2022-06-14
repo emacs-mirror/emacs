@@ -1069,7 +1069,7 @@ dump_queue_enqueue (struct dump_queue *dump_queue,
         }
     }
 
-  if (!EQ (weights, orig_weights))
+  if (!BASE_EQ (weights, orig_weights))
     Fputhash (object, weights, dump_queue->link_weights);
 }
 
@@ -1383,7 +1383,7 @@ print_paths_to_root_1 (struct dump_context *ctx,
     {
       Lisp_Object referrer = XCAR (referrers);
       referrers = XCDR (referrers);
-      Lisp_Object repr = Fprin1_to_string (referrer, Qnil);
+      Lisp_Object repr = Fprin1_to_string (referrer, Qnil, Qnil);
       for (int i = 0; i < level; ++i)
 	putc (' ', stderr);
       fwrite (SDATA (repr), 1, SBYTES (repr), stderr);
@@ -3758,7 +3758,7 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
             reloc.u.dump_offset = dump_recall_object (ctx, target_value);
             if (reloc.u.dump_offset <= 0)
               {
-                Lisp_Object repr = Fprin1_to_string (target_value, Qnil);
+                Lisp_Object repr = Fprin1_to_string (target_value, Qnil, Qnil);
                 error ("relocation target was not dumped: %s", SDATA (repr));
               }
             dump_check_dump_off (ctx, reloc.u.dump_offset);
@@ -5543,7 +5543,10 @@ pdumper_load (const char *dump_filename, char *argv0)
 
   struct dump_header header_buf = { 0 };
   struct dump_header *header = &header_buf;
-  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS] = { 0 };
+  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS];
+
+  /* Use memset instead of "= { 0 }" to work around GCC bug 105961.  */
+  memset (sections, 0, sizeof sections);
 
   const struct timespec start_time = current_timespec ();
   char *dump_filename_copy;

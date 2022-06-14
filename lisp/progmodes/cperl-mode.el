@@ -558,6 +558,20 @@ This way enabling/disabling of menu items is more correct."
   :type 'boolean
   :group 'cperl-speed)
 
+(defcustom cperl-file-style nil
+  "Indentation style to use in cperl-mode."
+  :type '(choice (const "CPerl")
+                 (const "PBP")
+                 (const "PerlStyle")
+                 (const "GNU")
+                 (const "C++")
+                 (const "K&R")
+                 (const "BSD")
+                 (const "Whitesmith")
+                 (const :tag "Default" nil))
+  :version "29.1")
+;;;###autoload(put 'cperl-file-style 'safe-local-variable 'stringp)
+
 (defcustom cperl-ps-print-face-properties
   '((font-lock-keyword-face		nil nil		bold shadow)
     (font-lock-variable-name-face	nil nil		bold)
@@ -1077,7 +1091,7 @@ Unless KEEP, removes the old indentation."
     ["Debugger" cperl-db t]
     "----"
     ("Tools"
-     ["Imenu" imenu (fboundp 'imenu)]
+     ["Imenu" imenu]
      ["Imenu on Perl Info" cperl-imenu-on-info (featurep 'imenu)]
      "----"
      ["Ispell PODs" cperl-pod-spell
@@ -1660,9 +1674,11 @@ Settings for classic indent-styles: K&R BSD=C++ GNU PBP PerlStyle=Whitesmith
   `cperl-continued-statement-offset'  5   4       2   4   4
 
 CPerl knows several indentation styles, and may bulk set the
-corresponding variables.  Use \\[cperl-set-style] to do this.  Use
-\\[cperl-set-style-back] to restore the memorized preexisting values
-\(both available from menu).  See examples in `cperl-style-examples'.
+corresponding variables.  Use \\[cperl-set-style] to do this or
+set the `cperl-file-style' user option.  Use
+\\[cperl-set-style-back] to restore the memorized preexisting
+values \(both available from menu).  See examples in
+`cperl-style-examples'.
 
 Part of the indentation style is how different parts of if/elsif/else
 statements are broken into lines; in CPerl, this is reflected on how
@@ -1795,8 +1811,15 @@ or as help on variables `cperl-tips', `cperl-problems',
   (when (and cperl-pod-here-scan
              (not cperl-syntaxify-by-font-lock))
     (cperl-find-pods-heres))
+  (when cperl-file-style
+    (cperl-set-style cperl-file-style))
+  (add-hook 'hack-local-variables-hook #'cperl--set-file-style nil t)
   ;; Setup Flymake
   (add-hook 'flymake-diagnostic-functions #'perl-flymake nil t))
+
+(defun cperl--set-file-style ()
+  (when cperl-file-style
+    (cperl-set-style cperl-file-style)))
 
 ;; Fix for perldb - make default reasonable
 (defun cperl-db ()
@@ -6313,7 +6336,7 @@ else
      )
     ("Current"))
   "List of variables to set to get a particular indentation style.
-Should be used via `cperl-set-style' or via Perl menu.
+Should be used via `cperl-set-style', `cperl-file-style' or via Perl menu.
 
 See examples in `cperl-style-examples'.")
 
@@ -6359,7 +6382,8 @@ side-effect of memorizing only.  Examples in `cperl-style-examples'."
     (eval '(mode-compile))))		; Avoid a warning
 
 (declare-function Info-find-node "info"
-		  (filename nodename &optional no-going-back strict-case))
+		  (filename nodename &optional no-going-back strict-case
+                            noerror))
 
 (defun cperl-info-buffer (type)
   ;; Return buffer with documentation.  Creates if missing.
@@ -7056,9 +7080,7 @@ One may build such TAGS files from CPerl mode menu."
       (error "No items found"))
   (setq update
         ;; (imenu-choose-buffer-index "Packages: " (nth 2 cperl-hierarchy))
-	(if (if (fboundp 'display-popup-menus-p)
-		(display-popup-menus-p)
-	      window-system)
+        (if (display-popup-menus-p)
 	    (x-popup-menu t (nth 2 cperl-hierarchy))
 	  (require 'tmm)
 	  (tmm-prompt (nth 2 cperl-hierarchy))))

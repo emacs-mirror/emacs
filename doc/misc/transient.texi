@@ -2025,7 +2025,7 @@ They are defined here anyway to allow sharing certain methods.
 @code{value} The value.  Should not be accessed directly.
 
 @item
-@code{init-value} Function that is responsable for setting the object's
+@code{init-value} Function that is responsible for setting the object's
 value.  If bound, then this is called with the object as the only
 argument.  Usually this is not bound, in which case the object's
 primary @code{transient-init-value} method is called instead.

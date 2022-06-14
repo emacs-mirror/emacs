@@ -516,6 +516,7 @@ Message buffer where you can explain more about the patch."
     (view-mode 1)
     (button-mode 1))
   (message-mail-other-window report-emacs-bug-address subject)
+  (message-goto-body)
   (insert "\n\n\n")
   (emacs-bug--system-description)
   (mml-attach-file file "text/patch" nil "attachment")

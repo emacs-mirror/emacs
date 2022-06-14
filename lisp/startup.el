@@ -557,25 +557,12 @@ to `user-emacs-directory'.
 For best results, call this function in your early-init file,
 so that the rest of initialization and package loading uses
 the updated value."
-  (let ((tmp-dir (and (equal (getenv "HOME") "/nonexistent")
-                      (file-writable-p (expand-file-name
-                                        (or temporary-file-directory "")))
-                      (car native-comp-eln-load-path))))
-    (if tmp-dir
-        (setq native-comp-eln-load-path
-              (cdr native-comp-eln-load-path)))
-    ;; Remove the original eln-cache.
-    (setq native-comp-eln-load-path
-          (cdr native-comp-eln-load-path))
-    ;; Add the new eln-cache.
-    (push (expand-file-name (file-name-as-directory cache-directory)
-                            user-emacs-directory)
-          native-comp-eln-load-path)
-    (when tmp-dir
-      ;; Recompute tmp-dir, in case user-emacs-directory affects it.
-      (setq tmp-dir (make-temp-file "emacs-testsuite-" t))
-      (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
-      (push tmp-dir native-comp-eln-load-path))))
+  ;; Remove the original eln-cache.
+  (setq native-comp-eln-load-path (cdr native-comp-eln-load-path))
+  ;; Add the new eln-cache.
+  (push (expand-file-name (file-name-as-directory cache-directory)
+                          user-emacs-directory)
+        native-comp-eln-load-path))
 
 (defun startup--update-eln-cache ()
   "Update the user eln-cache directory due to user customizations."
@@ -619,18 +606,7 @@ It is the default value of the variable `top-level'."
             (unless (string= "" path)
               (push path native-comp-eln-load-path)))))
       (push (expand-file-name "eln-cache/" user-emacs-directory)
-            native-comp-eln-load-path)
-      ;; When $HOME is set to '/nonexistent' means we are running the
-      ;; testsuite, add a temporary folder in front to produce there
-      ;; new compilations.
-      (when (and (equal (getenv "HOME") "/nonexistent")
-                 ;; We may be running in a chroot environment where we
-                 ;; can't write anything.
-                 (file-writable-p (expand-file-name
-                                   (or temporary-file-directory ""))))
-        (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
-          (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
-          (push tmp-dir native-comp-eln-load-path))))
+            native-comp-eln-load-path))
 
     ;; Look in each dir in load-path for a subdirs.el file.  If we
     ;; find one, load it, which will add the appropriate subdirs of
@@ -2358,7 +2334,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)"))
   (insert "\t\t")
   (insert-button "Open *scratch* buffer"
 		 'action (lambda (_button) (switch-to-buffer
-                                       (startup--get-buffer-create-scratch)))
+                                       (get-scratch-buffer-create)))
 		 'follow-link t)
   (insert "\n")
   (save-restriction
@@ -2489,12 +2465,6 @@ A fancy display is used on graphic displays, normal otherwise."
 
 (defalias 'about-emacs 'display-about-screen)
 (defalias 'display-splash-screen 'display-startup-screen)
-
-(defun startup--get-buffer-create-scratch ()
-  (or (get-buffer "*scratch*")
-      (with-current-buffer (get-buffer-create "*scratch*")
-        (set-buffer-major-mode (current-buffer))
-        (current-buffer))))
 
 ;; This avoids byte-compiler warning in the unexec build.
 (declare-function pdumper-stats "pdumper.c" ())
@@ -2787,7 +2757,7 @@ nil default-directory" name)
     (when (eq initial-buffer-choice t)
       ;; When `initial-buffer-choice' equals t make sure that *scratch*
       ;; exists.
-      (startup--get-buffer-create-scratch))
+      (get-scratch-buffer-create))
 
     ;; If *scratch* exists and is empty, insert initial-scratch-message.
     ;; Do this before switching to *scratch* below to handle bug#9605.
@@ -2811,7 +2781,7 @@ nil default-directory" name)
 		   ((functionp initial-buffer-choice)
 		    (funcall initial-buffer-choice))
                    ((eq initial-buffer-choice t)
-                    (startup--get-buffer-create-scratch))
+                    (get-scratch-buffer-create))
                    (t
                     (error "`initial-buffer-choice' must be a string, a function, or t")))))
         (unless (buffer-live-p buf)

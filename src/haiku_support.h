@@ -38,7 +38,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 enum haiku_cursor
   {
+    CURSOR_ID_SYSTEM_DEFAULT		   = 1,
+    CURSOR_ID_CONTEXT_MENU		   = 3,
+    CURSOR_ID_COPY			   = 4,
+    CURSOR_ID_CREATE_LINK		   = 29,
+    CURSOR_ID_CROSS_HAIR		   = 5,
+    CURSOR_ID_FOLLOW_LINK		   = 6,
+    CURSOR_ID_GRAB			   = 7,
+    CURSOR_ID_GRABBING			   = 8,
+    CURSOR_ID_HELP			   = 9,
+    CURSOR_ID_I_BEAM			   = 2,
+    CURSOR_ID_I_BEAM_HORIZONTAL		   = 10,
+    CURSOR_ID_MOVE			   = 11,
     CURSOR_ID_NO_CURSOR			   = 12,
+    CURSOR_ID_NOT_ALLOWED		   = 13,
+    CURSOR_ID_PROGRESS			   = 14,
     CURSOR_ID_RESIZE_NORTH		   = 15,
     CURSOR_ID_RESIZE_EAST		   = 16,
     CURSOR_ID_RESIZE_SOUTH		   = 17,
@@ -50,7 +64,9 @@ enum haiku_cursor
     CURSOR_ID_RESIZE_NORTH_SOUTH	   = 23,
     CURSOR_ID_RESIZE_EAST_WEST		   = 24,
     CURSOR_ID_RESIZE_NORTH_EAST_SOUTH_WEST = 25,
-    CURSOR_ID_RESIZE_NORTH_WEST_SOUTH_EAST = 26
+    CURSOR_ID_RESIZE_NORTH_WEST_SOUTH_EAST = 26,
+    CURSOR_ID_ZOOM_IN			   = 27,
+    CURSOR_ID_ZOOM_OUT			   = 28
   };
 
 enum haiku_z_group
@@ -96,8 +112,14 @@ enum haiku_event_type
     DRAG_AND_DROP_EVENT,
     APP_QUIT_REQUESTED_EVENT,
     DUMMY_EVENT,
-    MENU_BAR_LEFT
+    SCREEN_CHANGED_EVENT,
+    MENU_BAR_LEFT,
   };
+
+struct haiku_screen_changed_event
+{
+  bigtime_t when;
+};
 
 struct haiku_quit_requested_event
 {
@@ -107,8 +129,8 @@ struct haiku_quit_requested_event
 struct haiku_resize_event
 {
   void *window;
-  float px_heightf;
-  float px_widthf;
+  float width;
+  float height;
 };
 
 struct haiku_expose_event
@@ -187,6 +209,7 @@ struct haiku_menu_bar_click_event
 struct haiku_button_event
 {
   void *window;
+  void *scroll_bar;
   int btn_no;
   int modifiers;
   int x;
@@ -203,8 +226,9 @@ struct haiku_iconification_event
 struct haiku_move_event
 {
   void *window;
-  int x;
-  int y;
+  int x, y;
+  int decorator_width;
+  int decorator_height;
 };
 
 struct haiku_wheel_move_event
@@ -232,7 +256,7 @@ struct haiku_menu_bar_help_event
 struct haiku_zoom_event
 {
   void *window;
-  bool zoomed;
+  int fullscreen_mode;
 };
 
 enum haiku_font_specification
@@ -297,6 +321,15 @@ enum haiku_font_weight
     HAIKU_ULTRA_HEAVY = 900,
     HAIKU_BLACK	      = 1000,
     HAIKU_MEDIUM      = 2000,
+  };
+
+enum haiku_fullscreen_mode
+  {
+    FULLSCREEN_MODE_NONE,
+    FULLSCREEN_MODE_WIDTH,
+    FULLSCREEN_MODE_HEIGHT,
+    FULLSCREEN_MODE_BOTH,
+    FULLSCREEN_MODE_MAXIMIZED,
   };
 
 struct haiku_font_pattern
@@ -421,32 +454,14 @@ struct haiku_session_manager_reply
    dimensions of a BRect, instead of relying on the broken Width and
    Height functions.  */
 
-#define BE_RECT_HEIGHT(rect) (ceil (((rect).bottom - (rect).top) + 1))
-#define BE_RECT_WIDTH(rect) (ceil (((rect).right - (rect).left) + 1))
+#define BE_RECT_HEIGHT(rect)	(ceil (((rect).bottom - (rect).top) + 1))
+#define BE_RECT_WIDTH(rect)	(ceil (((rect).right - (rect).left) + 1))
 #endif /* __cplusplus */
-
-/* C++ code cannot include lisp.h, but file dialogs need to be able
-   to bind to the specpdl and handle quitting correctly.  */
-
-#ifdef __cplusplus
-#if SIZE_MAX > 0xffffffff
-#define WRAP_SPECPDL_REF 1
-#endif
-#ifdef WRAP_SPECPDL_REF
-typedef struct { ptrdiff_t bytes; } specpdl_ref;
-#else
-typedef ptrdiff_t specpdl_ref;
-#endif
-
-#else
-#include "lisp.h"
-#endif
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-#include <pthread.h>
 #include <OS.h>
 
 #ifdef __cplusplus
@@ -477,6 +492,8 @@ extern void hsl_color_rgb (double, double, double, uint32_t *);
 extern void *BBitmap_new (int, int, int);
 extern void *BBitmap_data (void *);
 extern int BBitmap_convert (void *, void **);
+extern void be_draw_cross_on_pixmap (void *, int, int, int, int,
+				     uint32_t);
 
 extern void BBitmap_free (void *);
 
@@ -496,7 +513,6 @@ extern void BWindow_center_on_screen (void *);
 extern void BWindow_change_decoration (void *, int);
 extern void BWindow_set_tooltip_decoration (void *);
 extern void BWindow_set_avoid_focus (void *, int);
-extern void BWindow_zoom (void *);
 extern void BWindow_set_size_alignment (void *, int, int);
 extern void BWindow_sync (void *);
 extern void BWindow_send_behind (void *, void *);
@@ -541,6 +557,8 @@ extern void BView_DrawBitmap (void *, void *, int, int, int, int, int, int,
 extern void BView_DrawBitmapWithEraseOp (void *, void *, int, int, int, int);
 extern void BView_DrawMask (void *, void *, int, int, int, int,	int, int,
 			    int, int, uint32_t);
+extern void BView_DrawBitmapTiled (void *, void *, int, int,
+				   int, int, int, int, int, int);
 
 extern void BView_resize_to (void *, int, int);
 extern void BView_set_view_cursor (void *, void *);
@@ -554,15 +572,11 @@ extern void be_get_display_resolution (double *, double *);
 extern void be_get_screen_dimensions (int *, int *);
 
 /* Functions for creating and freeing cursors.  */
-extern void *BCursor_create_default (void);
-extern void *BCursor_from_id (enum haiku_cursor);
-extern void *BCursor_create_modeline (void);
-extern void *BCursor_create_i_beam (void);
-extern void *BCursor_create_progress_cursor (void);
-extern void *BCursor_create_grab (void);
-extern void BCursor_delete (void *);
+extern void *be_create_cursor_from_id (int);
+extern void *be_create_pixmap_cursor (void *, int, int);
+extern void be_delete_cursor (void *);
 
-extern void *BScrollBar_make_for_view (void *, int, int, int, int, int, void *);
+extern void *be_make_scroll_bar_for_view (void *, int, int, int, int, int);
 extern void BScrollBar_delete (void *);
 extern int BScrollBar_default_size (int);
 
@@ -570,9 +584,7 @@ extern void BView_invalidate (void *);
 extern void BView_draw_lock (void *, bool, int, int, int, int);
 extern void BView_invalidate_region (void *, int, int, int, int);
 extern void BView_draw_unlock (void *);
-
 extern void BBitmap_import_fringe_bitmap (void *, unsigned short *, int, int);
-extern void BBitmap_import_mono_bits (void *, void *, int, int);
 
 extern void haiku_font_pattern_free (struct haiku_font_pattern *);
 
@@ -628,8 +640,6 @@ extern void BAlert_delete (void *);
 extern void EmacsWindow_parent_to (void *, void *);
 extern void EmacsWindow_unparent (void *);
 extern void EmacsWindow_move_weak_child (void *, void *, int, int);
-extern void EmacsWindow_make_fullscreen (void *, int);
-extern void EmacsWindow_unzoom (void *);
 
 extern void be_get_version_string (char *, int);
 extern int be_get_display_planes (void);
@@ -690,6 +700,16 @@ extern bool be_select_font (void (*) (void), bool (*) (void),
 			    int *, bool, int, int, int);
 
 extern int be_find_font_indices (struct haiku_font_pattern *, int *, int *);
+extern status_t be_roster_launch (const char *, const char *, char **,
+				  ptrdiff_t, void *, team_id *);
+extern void be_get_window_decorator_dimensions (void *, int *, int *, int *, int *);
+extern void be_get_window_decorator_frame (void *, int *, int *, int *, int *);
+extern void be_send_move_frame_event (void *);
+extern void be_set_window_fullscreen_mode (void *, enum haiku_fullscreen_mode);
+
+extern void be_lock_window (void *);
+extern void be_unlock_window (void *);
+extern bool be_get_explicit_workarea (int *, int *, int *, int *);
 #ifdef __cplusplus
 }
 

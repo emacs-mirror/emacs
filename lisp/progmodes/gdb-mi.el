@@ -105,6 +105,7 @@
 ;; at toplevel, so the compiler doesn't know under which circumstances
 ;; they're defined.
 (declare-function gud-until  "gud" (arg))
+(declare-function gud-go     "gud" (arg))
 (declare-function gud-print  "gud" (arg))
 (declare-function gud-down   "gud" (arg))
 (declare-function gud-up     "gud" (arg))
@@ -284,8 +285,8 @@ Possible values are:
   :type '(choice
           (const :tag "Always restore" t)
           (const :tag "Don't restore" nil)
-          (const :tag "Depends on `gdb-show-main'" 'if-gdb-show-main)
-          (const :tag "Depends on `gdb-many-windows'" 'if-gdb-many-windows))
+          (const :tag "Depends on `gdb-show-main'" if-gdb-show-main)
+          (const :tag "Depends on `gdb-many-windows'" if-gdb-many-windows))
   :group 'gdb
   :version "28.1")
 
@@ -955,12 +956,16 @@ detailed description of this mode.
 			  (forward-char 2)
 			  (gud-call "-exec-until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
-  ;; TODO Why arg here?
   (gud-def
-   gud-go (gud-call (if gdb-active-process
-                        (gdb-gud-context-command "-exec-continue")
-                      "-exec-run") arg)
-   nil "Start or continue execution.")
+   gud-go (progn
+            (when arg
+              (gud-call (concat "-exec-arguments "
+                                (read-string "Arguments to exec-run: "))))
+            (gud-call
+             (if gdb-active-process
+                 (gdb-gud-context-command "-exec-continue")
+               "-exec-run")))
+   "C-v" "Start or continue execution.  Use a prefix to specify arguments.")
 
   ;; For debugging Emacs only.
   (gud-def gud-pp
@@ -1139,7 +1144,8 @@ no input, and GDB is waiting for input."
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) gdb-define-alist))))
 
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defconst gdb--string-regexp (rx "\""
                                  (* (or (seq "\\" nonl)
@@ -3081,6 +3087,45 @@ See `def-gdb-auto-update-handler'."
  'gdb-breakpoints-mode
  'gdb-invalidate-breakpoints)
 
+(defun gdb-breakpoints--add-breakpoint-row (tbl bkpt)
+  (let ((at (gdb-mi--field bkpt 'at))
+        (pending (gdb-mi--field bkpt 'pending))
+        (addr (gdb-mi--field bkpt 'addr))
+        (func (gdb-mi--field bkpt 'func))
+	(type (gdb-mi--field bkpt 'type)))
+    (if (and (not func) (string-equal addr "<MULTIPLE>"))
+        (setq func ""))
+    (gdb-table-add-row tbl
+                       (list
+                        (gdb-mi--field bkpt 'number)
+                        (or type "")
+                        (or (gdb-mi--field bkpt 'disp) "")
+                        (let ((flag (gdb-mi--field bkpt 'enabled)))
+                          (if (string-equal flag "y")
+                              (eval-when-compile
+                                (propertize "y" 'font-lock-face
+                                            font-lock-warning-face))
+                            (eval-when-compile
+                              (propertize "n" 'font-lock-face
+                                          font-lock-comment-face))))
+                        addr
+                        (or (gdb-mi--field bkpt 'times) "")
+                        (if (and type (string-match ".*watchpoint" type))
+                            (gdb-mi--field bkpt 'what)
+                          (or (and (equal func "") "")
+                              pending at
+                              (concat "in "
+                                      (propertize (or func "unknown")
+                                                  'font-lock-face
+                                                  font-lock-function-name-face)
+                                      (gdb-frame-location bkpt)))))
+                       ;; Add clickable properties only for
+                       ;; breakpoints with file:line information
+                       (append (list 'gdb-breakpoint bkpt)
+                               (when func
+                                 '(help-echo "mouse-2, RET: visit breakpoint"
+                                             mouse-face highlight))))))
+
 (defun gdb-breakpoints-list-handler-custom ()
   (let ((breakpoints-list (gdb-mi--field
                            (gdb-mi--field (gdb-mi--partial-output 'bkpt)
@@ -3093,37 +3138,14 @@ See `def-gdb-auto-update-handler'."
       (add-to-list 'gdb-breakpoints-list
                    (cons (gdb-mi--field breakpoint 'number)
                          breakpoint))
-      (let ((at (gdb-mi--field breakpoint 'at))
-            (pending (gdb-mi--field breakpoint 'pending))
-            (func (gdb-mi--field breakpoint 'func))
-	    (type (gdb-mi--field breakpoint 'type)))
-        (gdb-table-add-row table
-                           (list
-                            (gdb-mi--field breakpoint 'number)
-                            (or type "")
-                            (or (gdb-mi--field breakpoint 'disp) "")
-                            (let ((flag (gdb-mi--field breakpoint 'enabled)))
-                              (if (string-equal flag "y")
-                                  (eval-when-compile
-                                    (propertize "y" 'font-lock-face
-                                                font-lock-warning-face))
-                                (eval-when-compile
-                                  (propertize "n" 'font-lock-face
-                                              font-lock-comment-face))))
-                            (gdb-mi--field breakpoint 'addr)
-                            (or (gdb-mi--field breakpoint 'times) "")
-                            (if (and type (string-match ".*watchpoint" type))
-                                (gdb-mi--field breakpoint 'what)
-                              (or pending at
-                                  (concat "in "
-                                          (propertize (or func "unknown")
-                                                      'font-lock-face font-lock-function-name-face)
-                                          (gdb-frame-location breakpoint)))))
-                           ;; Add clickable properties only for breakpoints with file:line
-                           ;; information
-                           (append (list 'gdb-breakpoint breakpoint)
-                                   (when func '(help-echo "mouse-2, RET: visit breakpoint"
-                                                mouse-face highlight))))))
+      ;; Add the breakpoint/header row to the table.
+      (gdb-breakpoints--add-breakpoint-row table breakpoint)
+      ;; If this breakpoint has multiple locations, add them as well.
+      (when-let ((locations (gdb-mi--field breakpoint 'locations)))
+        (dolist (loc locations)
+          (add-to-list 'gdb-breakpoints-list
+                       (cons (gdb-mi--field loc 'number) loc))
+          (gdb-breakpoints--add-breakpoint-row table loc))))
     (insert (gdb-table-string table " "))
     (gdb-place-breakpoints)))
 

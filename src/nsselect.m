@@ -17,13 +17,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/*
-Originally by Carl Edman
-Updated by Christian Limpach (chris@nice.ch)
-OpenStep/Rhapsody port by Scott Bender (sbender@harmony-ds.com)
-macOS/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
-GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
-*/
+/* Originally by Carl Edman
+   Updated by Christian Limpach (chris@nice.ch)
+   OpenStep/Rhapsody port by Scott Bender (sbender@harmony-ds.com)
+   macOS/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
+   GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)  */
 
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes.  */
@@ -559,6 +557,225 @@ nxatoms_of_nsselect (void)
 	 nil] retain];
 }
 
+static void
+ns_decode_data_to_pasteboard (Lisp_Object type, Lisp_Object data,
+			      NSPasteboard *pasteboard)
+{
+  NSArray *types, *new;
+  NSMutableArray *temp;
+  Lisp_Object tem;
+  specpdl_ref count;
+#if !NS_USE_NSPasteboardTypeFileURL
+  NSURL *url;
+#endif
+
+  types = [pasteboard types];
+  count = SPECPDL_INDEX ();
+
+  CHECK_SYMBOL (type);
+
+  if (EQ (type, Qstring))
+    {
+      CHECK_STRING (data);
+
+      new = [types arrayByAddingObject: NSPasteboardTypeString];
+
+      [pasteboard declareTypes: new
+			 owner: nil];
+      [pasteboard setString: [NSString stringWithLispString: data]
+		    forType: NSPasteboardTypeString];
+    }
+  else if (EQ (type, Qfile))
+    {
+#if NS_USE_NSPasteboardTypeFileURL
+      if (CONSP (data))
+	new = [types arrayByAddingObject: NSPasteboardTypeURL];
+      else
+	new = [types arrayByAddingObject: NSPasteboardTypeFileURL];
+#else
+      new = [types arrayByAddingObject: NSFilenamesPboardType];
+#endif
+
+      [pasteboard declareTypes: new
+			 owner: nil];
+
+      if (STRINGP (data))
+	{
+#if NS_USE_NSPasteboardTypeFileURL
+	  [pasteboard setString: [NSString stringWithLispString: data]
+			forType: NSPasteboardTypeFileURL];
+#else
+	  url = [NSURL URLWithString: [NSString stringWithLispString: data]];
+
+	  if (!url)
+	    signal_error ("Invalid file URL", data);
+
+	  [pasteboard setString: [url path]
+			forType: NSFilenamesPboardType];
+#endif
+	}
+      else
+	{
+	  CHECK_LIST (data);
+	  temp = [[NSMutableArray alloc] init];
+	  record_unwind_protect_ptr (ns_release_object, temp);
+
+	  for (tem = data; CONSP (tem); tem = XCDR (tem))
+	    {
+	      CHECK_STRING (XCAR (tem));
+
+	      [temp addObject: [NSString stringWithLispString: XCAR (tem)]];
+	    }
+	  CHECK_LIST_END (tem, data);
+#if NS_USE_NSPasteboardTypeFileURL
+	  [pasteboard setPropertyList: temp
+		      /* We have to use this deprecated pasteboard
+			 type, since Apple doesn't let us use
+			 dragImage:at: to drag multiple file URLs.  */
+			      forType: @"NSFilenamesPboardType"];
+#else
+	  [pasteboard setPropertyList: temp
+			      forType: NSFilenamesPboardType];
+#endif
+	  unbind_to (count, Qnil);
+	}
+    }
+  else
+    signal_error ("Unknown pasteboard type", type);
+}
+
+static void
+ns_lisp_to_pasteboard (Lisp_Object object,
+		       NSPasteboard *pasteboard)
+{
+  Lisp_Object tem, type, data;
+
+  [pasteboard declareTypes: [NSArray array]
+		     owner: nil];
+
+  CHECK_LIST (object);
+  for (tem = object; CONSP (tem); tem = XCDR (tem))
+    {
+      maybe_quit ();
+
+      type = Fcar (Fcar (tem));
+      data = Fcdr (Fcar (tem));
+
+      ns_decode_data_to_pasteboard (type, data, pasteboard);
+    }
+  CHECK_LIST_END (tem, object);
+}
+
+static NSDragOperation
+ns_dnd_action_to_operation (Lisp_Object action)
+{
+  if (EQ (action, QXdndActionCopy))
+    return NSDragOperationCopy;
+
+  if (EQ (action, QXdndActionMove))
+    return NSDragOperationMove;
+
+  if (EQ (action, QXdndActionLink))
+    return NSDragOperationLink;
+
+  signal_error ("Unsupported drag-and-drop action", action);
+}
+
+static Lisp_Object
+ns_dnd_action_from_operation (NSDragOperation operation)
+{
+  switch (operation)
+    {
+    case NSDragOperationCopy:
+      return QXdndActionCopy;
+
+    case NSDragOperationMove:
+      return QXdndActionMove;
+
+    case NSDragOperationLink:
+      return QXdndActionLink;
+
+    case NSDragOperationNone:
+      return Qnil;
+
+    default:
+      return QXdndActionPrivate;
+    }
+}
+
+DEFUN ("ns-begin-drag", Fns_begin_drag, Sns_begin_drag, 3, 6, 0,
+       doc: /* Begin a drag-and-drop operation on FRAME.
+
+FRAME must be a window system frame.  PBOARD is an alist of (TYPE
+. DATA), where TYPE is one of the following data types that determine
+the meaning of DATA:
+
+  - `string' means DATA should be a string describing text that will
+    be dragged to another program.
+
+  - `file' means DATA should be a file URL that will be dragged to
+    another program.  DATA may also be a list of file names; that
+    means each file in the list will be dragged to another program.
+
+ACTION is the action that will be taken by the drop target towards the
+data inside PBOARD.
+
+Return the action that the drop target actually chose to perform, or
+nil if no action was performed (either because there was no drop
+target, or the drop was rejected).  If RETURN-FRAME is the symbol
+`now', also return any frame that mouse moves into during the
+drag-and-drop operation, whilst simultaneously cancelling it.  Any
+other non-nil value means to do the same, but to wait for the mouse to
+leave FRAME first.
+
+If ALLOW-SAME-FRAME is nil, dropping on FRAME will result in the drop
+being ignored.
+
+FOLLOW-TOOLTIP means the same thing it does in `x-begin-drag'.  */)
+  (Lisp_Object frame, Lisp_Object pboard, Lisp_Object action,
+   Lisp_Object return_frame, Lisp_Object allow_same_frame,
+   Lisp_Object follow_tooltip)
+{
+  struct frame *f, *return_to;
+  NSPasteboard *pasteboard;
+  EmacsWindow *window;
+  NSDragOperation operation;
+  enum ns_return_frame_mode mode;
+  Lisp_Object val;
+
+  if (EQ (return_frame, Qnow))
+    mode = RETURN_FRAME_NOW;
+  else if (!NILP (return_frame))
+    mode = RETURN_FRAME_EVENTUALLY;
+  else
+    mode = RETURN_FRAME_NEVER;
+
+  if (NILP (pboard))
+    signal_error ("Empty pasteboard", pboard);
+
+  f = decode_window_system_frame (frame);
+  pasteboard = [NSPasteboard pasteboardWithName: NSPasteboardNameDrag];
+  window = (EmacsWindow *) [FRAME_NS_VIEW (f) window];
+
+  operation = ns_dnd_action_to_operation (action);
+  ns_lisp_to_pasteboard (pboard, pasteboard);
+
+  operation = [window beginDrag: operation
+		  forPasteboard: pasteboard
+		       withMode: mode
+		  returnFrameTo: &return_to
+		   prohibitSame: (BOOL) NILP (allow_same_frame)
+		  followTooltip: (BOOL) !NILP (follow_tooltip)];
+
+  if (return_to)
+    {
+      XSETFRAME (val, return_to);
+      return val;
+    }
+
+  return ns_dnd_action_from_operation (operation);
+}
+
 void
 syms_of_nsselect (void)
 {
@@ -568,12 +785,18 @@ syms_of_nsselect (void)
   DEFSYM (QFILE_NAME, "FILE_NAME");
 
   DEFSYM (QTARGETS, "TARGETS");
+  DEFSYM (QXdndActionCopy, "XdndActionCopy");
+  DEFSYM (QXdndActionMove, "XdndActionMove");
+  DEFSYM (QXdndActionLink, "XdndActionLink");
+  DEFSYM (QXdndActionPrivate, "XdndActionPrivate");
+  DEFSYM (Qnow, "now");
 
   defsubr (&Sns_disown_selection_internal);
   defsubr (&Sns_get_selection);
   defsubr (&Sns_own_selection_internal);
   defsubr (&Sns_selection_exists_p);
   defsubr (&Sns_selection_owner_p);
+  defsubr (&Sns_begin_drag);
 
   Vselection_alist = Qnil;
   staticpro (&Vselection_alist);

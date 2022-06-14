@@ -1367,7 +1367,7 @@ The following commands are accepted by the client:
 			 ((functionp initial-buffer-choice)
 			  (funcall initial-buffer-choice)))))
 	      (switch-to-buffer
-	       (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
+	       (if (buffer-live-p buf) buf (get-scratch-buffer-create))
 	       'norecord)))
 
           ;; Delete the client if necessary.

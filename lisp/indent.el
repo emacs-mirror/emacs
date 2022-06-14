@@ -240,21 +240,23 @@ Blank lines are ignored."
                             (current-indentation))))
         indent))))
 
-(defvar indent-rigidly-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [left]  'indent-rigidly-left)
-    (define-key map [right] 'indent-rigidly-right)
-    (define-key map [S-left]  'indent-rigidly-left-to-tab-stop)
-    (define-key map [S-right] 'indent-rigidly-right-to-tab-stop)
-    map)
-  "Transient keymap for adjusting indentation interactively.
-It is activated by calling `indent-rigidly' interactively.")
+(defvar-keymap indent-rigidly-map
+  :doc   "Transient keymap for adjusting indentation interactively.
+It is activated by calling `indent-rigidly' interactively."
+  "TAB"       #'indent-rigidly-right
+  "<left>"    #'indent-rigidly-left
+  "<right>"   #'indent-rigidly-right
+  "S-<left>"  #'indent-rigidly-left-to-tab-stop
+  "S-<right>" #'indent-rigidly-right-to-tab-stop)
+(put 'indent-rigidly-right :advertised-binding (kbd "<right>"))
 
 (defun indent-rigidly (start end arg &optional interactive)
   "Indent all lines starting in the region.
 If called interactively with no prefix argument, activate a
 transient mode in which the indentation can be adjusted interactively
 by typing \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop].
+In addition, \\`TAB' is also bound (and calls `indent-rigidly-right').
+
 Typing any other key exits this mode, and this key is then
 acted upon as normally.  If `transient-mark-mode' is enabled,
 exiting also deactivates the mark.

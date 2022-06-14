@@ -41,11 +41,6 @@
       (should (equal (buffer-name (current-buffer))
                      (help-buffer))))))
 
-(ert-deftest help-mode-tests-help-buffer-current-buffer-error ()
-  (with-temp-buffer
-    (let ((help-xref-following t))
-      (should-error (help-buffer)))))
-
 (ert-deftest help-mode-tests-make-xrefs ()
   (with-temp-buffer
     (insert "car is a built-in function in ‘C source code’.
@@ -81,7 +76,7 @@ Lisp concepts such as car, cdr, cons cell and list.")
         (insert (format fmt fn))
         (goto-char (point-min))
         (re-search-forward help-xref-symbol-regexp)
-        (help-xref-button 8 'help-function)
+        (help-xref-button 9 'help-function)
         (should-not (button-at (1- beg)))
         (should-not (button-at (+ beg (length (symbol-name fn)))))
         (should (eq (button-type (button-at beg)) 'help-function))))))

@@ -41,7 +41,7 @@
 ;; See the Emacs Lisp Reference Manual for more details.
 
 ;; If you wish to change the default edebug global command prefix, change:
-;; (setq global-edebug-prefix "\C-xX")
+;; (setq edebug-global-prefix "\C-xX")
 
 ;; Edebug was written by
 ;; Daniel LaLiberte
@@ -3865,7 +3865,10 @@ be installed in `emacs-lisp-mode-map'.")
 
 (define-obsolete-variable-alias 'global-edebug-prefix
   'edebug-global-prefix "28.1")
-(defvar edebug-global-prefix "\^XX"
+(defvar edebug-global-prefix
+  (when-let ((binding
+              (car (where-is-internal 'Control-X-prefix (list global-map)))))
+    (concat binding [?X]))
   "Prefix key for global edebug commands, available from any buffer.")
 
 (define-obsolete-variable-alias 'global-edebug-map

@@ -47,8 +47,8 @@
 ;; 				     "reset" "rewrite" "write" "writeln")
 ;;       pascal-separator-keywords '("downto" "else" "mod" "div" "then"))
 
-;; KNOWN BUGS / BUGREPORTS
-;; =======================
+;; KNOWN BUGS / BUG REPORTS
+;; ========================
 ;; As far as I know, there are no bugs in the current version of this
 ;; package.  This may not be true however, since I never use this mode
 ;; myself and therefore would never notice them anyway.   If you do
@@ -1382,8 +1382,6 @@ The default is a name found in the buffer around point."
 ;;;
 (defvar pascal-outline-map
   (let ((map (make-sparse-keymap)))
-    (if (fboundp 'set-keymap-name)
-        (set-keymap-name map 'pascal-outline-map))
     (define-key map "\M-\C-a"  'pascal-outline-prev-defun)
     (define-key map "\M-\C-e"  'pascal-outline-next-defun)
     (define-key map "\C-c\C-d" 'pascal-outline-goto-defun)

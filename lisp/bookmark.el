@@ -115,10 +115,18 @@ just use the value of `version-control'."
 
 
 (defcustom bookmark-sort-flag t
-  "Non-nil means that bookmarks will be displayed sorted by bookmark name.
-Otherwise they will be displayed in LIFO order (that is, most
-recently set ones come first, oldest ones come last)."
-  :type 'boolean)
+  "This controls the bookmark display sorting.
+nil means they will be displayed in LIFO order (that is, most
+recently created ones come first, oldest ones come last).
+
+`last-modified' means that bookmarks will be displayed sorted
+from most recently modified to least recently modified.
+
+Other values means that bookmarks will be displayed sorted by
+bookmark name."
+  :type '(choice (const :tag "By name" t)
+                 (const :tag "By modified time" last-modified)
+                 (const :tag "By creation time" nil)))
 
 
 (defcustom bookmark-menu-confirm-deletion nil
@@ -460,6 +468,17 @@ In other words, return all information but the name."
   "Return the handler function for BOOKMARK-NAME-OR-RECORD, or nil if none."
   (bookmark-prop-get bookmark-name-or-record 'handler))
 
+
+(defun bookmark-get-last-modified (bookmark-name-or-record)
+  "Return the last-modified for BOOKMARK-NAME-OR-RECORD, or nil if none."
+  (bookmark-prop-get bookmark-name-or-record 'last-modified))
+
+
+(defun bookmark-update-last-modified (bookmark-name-or-record)
+  "Update the last-modified date of BOOKMARK-NAME-OR-RECORD to the current time."
+  (bookmark-prop-set bookmark-name-or-record 'last-modified (current-time)))
+
+
 (defvar bookmark-history nil
   "The history list for bookmark functions.")
 
@@ -497,6 +516,24 @@ See user option `bookmark-set-fringe'."
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))
 
+(defun bookmark-maybe-sort-alist ()
+  "Return `bookmark-alist' for display.
+If `bookmark-sort-flag' is T, then return a sorted by name copy of the alist.
+If `bookmark-sort-flag' is LAST-MODIFIED, then return a sorted by last modified
+copy of the alist.  Otherwise, just return `bookmark-alist', which by default
+is ordered from most recently created to least recently created bookmark."
+  (let ((copy (copy-alist bookmark-alist)))
+    (cond ((eq bookmark-sort-flag t)
+           (sort copy (lambda (x y) (string-lessp (car x) (car y)))))
+          ((eq bookmark-sort-flag 'last-modified)
+           (sort copy (lambda (x y)
+                        (let ((tx (bookmark-get-last-modified x))
+                              (ty (bookmark-get-last-modified y)))
+                          (cond ((null tx) nil)
+                                ((null ty) t)
+                                (t (time-less-p ty tx)))))))
+          (t copy))))
+
 (defun bookmark-completing-read (prompt &optional default)
   "Prompting with PROMPT, read a bookmark name in completion.
 PROMPT will get a \": \" stuck on the end no matter what, so you
@@ -506,10 +543,8 @@ If DEFAULT is nil then return empty string for empty input."
   (bookmark-maybe-load-default-file) ; paranoia
   (if (listp last-nonmenu-event)
       (bookmark-menu-popup-paned-menu t prompt
-				      (if bookmark-sort-flag
-					  (sort (bookmark-all-names)
-						'string-lessp)
-					(bookmark-all-names)))
+                                      (mapcar 'bookmark-name-from-full-record
+                                              (bookmark-maybe-sort-alist)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
            (default (unless (equal "" default) default)))
       (completing-read (format-prompt prompt default)
@@ -630,7 +665,8 @@ If POSN is non-nil, record POSN as the point instead of `(point)'."
                                    (point)
                                    (- (point) bookmark-search-size))
                                   nil))))
-    (position . ,(or posn (point)))))
+    (position . ,(or posn (point)))
+    (last-modified . ,(current-time))))
 
 
 ;;; File format stuff
@@ -1040,6 +1076,7 @@ Lines beginning with `#' are ignored."
         (from-bookmark-list bookmark--annotation-from-bookmark-list)
         (old-buffer (current-buffer)))
     (bookmark-set-annotation bookmark-name annotation)
+    (bookmark-update-last-modified bookmark-name)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
     (message "Annotation updated for \"%s\"" bookmark-name)
@@ -1140,15 +1177,6 @@ it to the name of the bookmark currently being set, advancing
                                   (car bookmark-bookmarks-timestamp)))))))
          (bookmark-load (car bookmark-bookmarks-timestamp) t t))))
 
-(defun bookmark-maybe-sort-alist ()
-  "Return `bookmark-alist' for display.
-If `bookmark-sort-flag' is non-nil, then return a sorted copy of the alist.
-Otherwise, just return `bookmark-alist', which by default is ordered
-from most recently created to least recently created bookmark."
-  (if bookmark-sort-flag
-      (sort (copy-alist bookmark-alist)
-            (lambda (x y) (string-lessp (car x) (car y))))
-    bookmark-alist))
 
 
 (defvar bookmark-after-jump-hook nil
@@ -1335,6 +1363,7 @@ after a bookmark was set in it."
                     (format "Relocate %s to: " bookmark-name)
                     (file-name-directory bmrk-filename))))))
     (bookmark-set-filename bookmark-name newloc)
+    (bookmark-update-last-modified bookmark-name)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
     (if (bookmark-time-to-save-p)
@@ -1397,6 +1426,7 @@ name."
               nil
               'bookmark-history))))
     (bookmark-set-name old-name final-new-name)
+    (bookmark-update-last-modified final-new-name)
     (setq bookmark-current-bookmark final-new-name)
     (bookmark-bmenu-surreptitiously-rebuild-list)
     (setq bookmark-alist-modification-count
@@ -1825,27 +1855,28 @@ Don't affect the buffer ring order."
               entries)))
     ;; The value of `bookmark-sort-flag' might have changed since the
     ;; last time the buffer contents were generated, so re-check it.
-    (if bookmark-sort-flag
-        (progn
-          (setq tabulated-list-sort-key '("Bookmark Name" . nil))
-          (setq tabulated-list-entries entries))
-      (setq tabulated-list-sort-key nil)
-      ;; And since we're not sorting by bookmark name, show bookmarks
-      ;; according to order of creation, with the most recently
-      ;; created bookmarks at the top and the least recently created
-      ;; at the bottom.
-      ;;
-      ;; Note that clicking the column sort toggle for the bookmark
-      ;; name column will invoke the `tabulated-list-mode' sort, which
-      ;; uses `bookmark-bmenu--name-predicate' to sort lexically by
-      ;; bookmark name instead of by (reverse) creation order.
-      ;; Clicking the toggle again will reverse the lexical sort, but
-      ;; the sort will still be lexical not creation-order.  However,
-      ;; if the user reverts the buffer, then the above check of
-      ;; `bookmark-sort-flag' will happen again and the buffer will
-      ;; go back to a creation-order sort.  This is all expected
-      ;; behavior, as documented in `bookmark-bmenu-mode'.
-      (setq tabulated-list-entries (reverse entries)))
+    (cond ((eq bookmark-sort-flag t)
+           (setq tabulated-list-sort-key '("Bookmark Name" . nil)
+                 tabulated-list-entries entries))
+          ((or (null bookmark-sort-flag)
+               (eq bookmark-sort-flag 'last-modified))
+           (setq tabulated-list-sort-key nil)
+           ;; And since we're not sorting by bookmark name, show bookmarks
+           ;; according to order of creation, with the most recently
+           ;; created bookmarks at the top and the least recently created
+           ;; at the bottom.
+           ;;
+           ;; Note that clicking the column sort toggle for the bookmark
+           ;; name column will invoke the `tabulated-list-mode' sort, which
+           ;; uses `bookmark-bmenu--name-predicate' to sort lexically by
+           ;; bookmark name instead of by (reverse) creation order.
+           ;; Clicking the toggle again will reverse the lexical sort, but
+           ;; the sort will still be lexical not creation-order.  However,
+           ;; if the user reverts the buffer, then the above check of
+           ;; `bookmark-sort-flag' will happen again and the buffer will
+           ;; go back to a creation-order sort.  This is all expected
+           ;; behavior, as documented in `bookmark-bmenu-mode'.
+           (setq tabulated-list-entries (reverse entries))))
     ;; Generate the header only after `tabulated-list-sort-key' is
     ;; settled, because if that's non-nil then the sort-direction
     ;; indicator will be shown in the named column, but if it's
@@ -1953,7 +1984,8 @@ At any time you may use \\[revert-buffer] to go back to sorting by creation orde
           ,@(if bookmark-bmenu-toggle-filenames
                 '(("File" 0 bookmark-bmenu--file-predicate)))])
   (setq tabulated-list-padding bookmark-bmenu-marks-width)
-  (when bookmark-sort-flag
+  (when (and bookmark-sort-flag
+             (not (eq bookmark-sort-flag 'last-modified)))
     (setq tabulated-list-sort-key '("Bookmark Name" . nil)))
   (add-hook 'tabulated-list-revert-hook #'bookmark-bmenu--revert nil t)'
   (setq revert-buffer-function 'bookmark-bmenu--revert)

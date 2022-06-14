@@ -527,10 +527,11 @@ If @var{symbol} has a buffer-local binding in the current buffer,
 rather than the buffer-local binding.  It sets the default value if
 the default value is void.  @xref{Buffer-Local Variables}.
 
-If @var{symbol} is already lexically bound (e.g., if the @code{defvar}
-form occurs in a @code{let} form with lexical binding enabled), then
-@code{defvar} sets the dynamic value.  The lexical binding remains in
-effect until its binding construct exits.  @xref{Variable Scoping}.
+If @var{symbol} is already let bound (e.g., if the @code{defvar}
+form occurs in a @code{let} form), then @code{defvar} sets the toplevel
+default value, like @code{set-default-toplevel-value}.
+The let binding remains in effect until its binding construct exits.
+@xref{Variable Scoping}.
 
 @cindex @code{eval-defun}, and @code{defvar} forms
 @cindex @code{eval-last-sexp}, and @code{defvar} forms

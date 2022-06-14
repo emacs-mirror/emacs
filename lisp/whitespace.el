@@ -276,116 +276,116 @@
 
 It's a list containing some or all of the following values:
 
-   face			enable all visualization via faces (see below).
+   face                 enable all visualization via faces (see below).
 
-   trailing		trailing blanks are visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   trailing             trailing blanks are visualized via faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   tabs			TABs are visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   tabs                 TABs are visualized via faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   spaces		SPACEs and HARD SPACEs are visualized via
-			faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   spaces               SPACEs and HARD SPACEs are visualized via
+                        faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   lines		lines which have columns beyond
-			`whitespace-line-column' are highlighted via
-			faces.
-			Whole line is highlighted.
-			It has precedence over `lines-tail' (see
-			below).
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   lines                lines which have columns beyond
+                        `whitespace-line-column' are highlighted via
+                        faces.
+                        Whole line is highlighted.
+                        It has precedence over `lines-tail' (see
+                        below).
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   lines-tail		lines which have columns beyond
-			`whitespace-line-column' are highlighted via
-			faces.
-			But only the part of line which goes
-			beyond `whitespace-line-column' column.
-			It has effect only if `lines' (see above)
-			is not present in `whitespace-style'
-			and if `face' (see above) is present in
-			`whitespace-style'.
+   lines-tail           lines which have columns beyond
+                        `whitespace-line-column' are highlighted via
+                        faces.
+                        But only the part of line which goes
+                        beyond `whitespace-line-column' column.
+                        It has effect only if `lines' (see above)
+                        is not present in `whitespace-style'
+                        and if `face' (see above) is present in
+                        `whitespace-style'.
 
-   newline		NEWLINEs are visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   newline              NEWLINEs are visualized via faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
    missing-newline-at-eof Missing newline at the end of the file is
                         visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   empty		empty lines at beginning and/or end of buffer
-			are visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   empty                empty lines at beginning and/or end of buffer
+                        are visualized via faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   indentation::tab	`tab-width' or more SPACEs at beginning of line
-			are visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   indentation::tab     `tab-width' or more SPACEs at beginning of line
+                        are visualized via faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   indentation::space	TABs at beginning of line are visualized via
-			faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   indentation::space   TABs at beginning of line are visualized via
+                        faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   indentation		`tab-width' or more SPACEs at beginning of line
-			are visualized, if `indent-tabs-mode' (which
-			see) is non-nil; otherwise, TABs at beginning
-			of line are visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   indentation          `tab-width' or more SPACEs at beginning of line
+                        are visualized, if `indent-tabs-mode' (which
+                        see) is non-nil; otherwise, TABs at beginning
+                        of line are visualized via faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   big-indent		Big indentations are visualized via faces.
-			It has effect only if `face' (see above)
-			is present in `whitespace-style'.
+   big-indent           Big indentations are visualized via faces.
+                        It has effect only if `face' (see above)
+                        is present in `whitespace-style'.
 
-   space-after-tab::tab		`tab-width' or more SPACEs after a TAB
-				are visualized via faces.
-				It has effect only if `face' (see above)
-				is present in `whitespace-style'.
+   space-after-tab::tab         `tab-width' or more SPACEs after a TAB
+                                are visualized via faces.
+                                It has effect only if `face' (see above)
+                                is present in `whitespace-style'.
 
-   space-after-tab::space	TABs are visualized when `tab-width' or
-				more SPACEs occur after a TAB, via
-				faces.
-				It has effect only if `face' (see above)
-				is present in `whitespace-style'.
+   space-after-tab::space       TABs are visualized when `tab-width' or
+                                more SPACEs occur after a TAB, via
+                                faces.
+                                It has effect only if `face' (see above)
+                                is present in `whitespace-style'.
 
-   space-after-tab		`tab-width' or more SPACEs after a TAB
-				are visualized, if `indent-tabs-mode'
-				(which see) is non-nil; otherwise,
-				the TABs are visualized via faces.
-				It has effect only if `face' (see above)
-				is present in `whitespace-style'.
+   space-after-tab              `tab-width' or more SPACEs after a TAB
+                                are visualized, if `indent-tabs-mode'
+                                (which see) is non-nil; otherwise,
+                                the TABs are visualized via faces.
+                                It has effect only if `face' (see above)
+                                is present in `whitespace-style'.
 
-   space-before-tab::tab	SPACEs before TAB are visualized via
-				faces.
-				It has effect only if `face' (see above)
-				is present in `whitespace-style'.
+   space-before-tab::tab        SPACEs before TAB are visualized via
+                                faces.
+                                It has effect only if `face' (see above)
+                                is present in `whitespace-style'.
 
-   space-before-tab::space	TABs are visualized when SPACEs occur
-				before TAB, via faces.
-				It has effect only if `face' (see above)
-				is present in `whitespace-style'.
+   space-before-tab::space      TABs are visualized when SPACEs occur
+                                before TAB, via faces.
+                                It has effect only if `face' (see above)
+                                is present in `whitespace-style'.
 
-   space-before-tab		SPACEs before TAB are visualized, if
-				`indent-tabs-mode' (which see) is
-				non-nil; otherwise, the TABs are
-				visualized via faces.
-				It has effect only if `face' (see above)
-				is present in `whitespace-style'.
+   space-before-tab             SPACEs before TAB are visualized, if
+                                `indent-tabs-mode' (which see) is
+                                non-nil; otherwise, the TABs are
+                                visualized via faces.
+                                It has effect only if `face' (see above)
+                                is present in `whitespace-style'.
 
-   space-mark		SPACEs and HARD SPACEs are visualized via
-			display table.
+   space-mark           SPACEs and HARD SPACEs are visualized via
+                        display table.
 
-   tab-mark		TABs are visualized via display table.
+   tab-mark             TABs are visualized via display table.
 
-   newline-mark		NEWLINEs are visualized via display table.
+   newline-mark         NEWLINEs are visualized via display table.
 
 Any other value is ignored.
 
@@ -808,21 +808,21 @@ Each element has the following form:
 
 Where:
 
-KIND	is the kind of character.
-	It can be one of the following symbols:
+KIND    is the kind of character.
+        It can be one of the following symbols:
 
-	tab-mark	for TAB character
+        tab-mark        for TAB character
 
-	space-mark	for SPACE or HARD SPACE character
+        space-mark      for SPACE or HARD SPACE character
 
-	newline-mark	for NEWLINE character
+        newline-mark    for NEWLINE character
 
-CHAR	is the character to be mapped.
+CHAR    is the character to be mapped.
 
-VECTOR	is a vector of characters to be displayed in place of CHAR.
-	The first display vector that can be displayed is used;
-	if no display vector for a mapping can be displayed, then
-	that character is displayed unmodified.
+VECTOR  is a vector of characters to be displayed in place of CHAR.
+        The first display vector that can be displayed is used;
+        if no display vector for a mapping can be displayed, then
+        that character is displayed unmodified.
 
 The NEWLINE character is displayed using the face given by
 `whitespace-newline' variable.
@@ -880,27 +880,27 @@ C++ modes only."
 
 It's a list containing some or all of the following values:
 
-   nil			no action is taken.
+   nil                  no action is taken.
 
-   cleanup		cleanup any bogus whitespace always when local
-			whitespace is turned on.
-			See `whitespace-cleanup' and
-			`whitespace-cleanup-region'.
+   cleanup              cleanup any bogus whitespace always when local
+                        whitespace is turned on.
+                        See `whitespace-cleanup' and
+                        `whitespace-cleanup-region'.
 
-   report-on-bogus	report if there is any bogus whitespace always
-			when local whitespace is turned on.
+   report-on-bogus      report if there is any bogus whitespace always
+                        when local whitespace is turned on.
 
-   auto-cleanup		cleanup any bogus whitespace when buffer is
-			written.
-			See `whitespace-cleanup' and
-			`whitespace-cleanup-region'.
+   auto-cleanup         cleanup any bogus whitespace when buffer is
+                        written.
+                        See `whitespace-cleanup' and
+                        `whitespace-cleanup-region'.
 
-   abort-on-bogus	abort if there is any bogus whitespace and the
-			buffer is written.
+   abort-on-bogus       abort if there is any bogus whitespace and the
+                        buffer is written.
 
-   warn-if-read-only	give a warning if `cleanup' or `auto-cleanup'
-			is included in `whitespace-action' and the
-			buffer is read-only.
+   warn-if-read-only    give a warning if `cleanup' or `auto-cleanup'
+                        is included in `whitespace-action' and the
+                        buffer is read-only.
 
 Any other value is treated as nil."
   :type '(choice :tag "Actions"

@@ -4478,6 +4478,11 @@ HP-UX SD depots
 @cindex @file{depot} file archive suffix
 @cindex file archive suffix @file{depot}
 
+@item @samp{.epub} ---
+Electronic publications
+@cindex @file{epub} file archive suffix
+@cindex file archive suffix @file{epub}
+
 @item @samp{.exe} ---
 Self extracting Microsoft Windows EXE files
 @cindex @file{exe} file archive suffix

@@ -201,20 +201,12 @@ move_minibuffers_onto_frame (struct frame *of, bool for_deletion)
     return;
   if (FRAME_LIVE_P (f)
       && !EQ (f->minibuffer_window, of->minibuffer_window)
-      && WINDOW_LIVE_P (f->minibuffer_window) /* F not a tootip frame */
+      && WINDOW_LIVE_P (f->minibuffer_window) /* F not a tooltip frame */
       && WINDOW_LIVE_P (of->minibuffer_window))
     {
       zip_minibuffer_stacks (f->minibuffer_window, of->minibuffer_window);
       if (for_deletion && XFRAME (MB_frame) != of)
 	MB_frame = selected_frame;
-      if (!for_deletion
-	  && MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (of))))
-	{
-	  Lisp_Object old_frame;
-	  XSETFRAME (old_frame, of);
-	  Fset_frame_selected_window (old_frame,
-				      Fframe_first_window (old_frame), Qnil);
-	}
     }
 }
 
@@ -265,7 +257,7 @@ without invoking the usual minibuffer commands.  */)
 
 static void read_minibuf_unwind (void);
 static void minibuffer_unwind (void);
-static void run_exit_minibuf_hook (void);
+static void run_exit_minibuf_hook (Lisp_Object minibuf);
 
 
 /* Read a Lisp object from VAL and return it.  If VAL is an empty
@@ -749,7 +741,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
      separately from read_minibuf_unwind because we need to make sure that
      read_minibuf_unwind is fully executed even if exit-minibuffer-hook
      signals an error.  --Stef  */
-  record_unwind_protect_void (run_exit_minibuf_hook);
+  record_unwind_protect (run_exit_minibuf_hook, minibuffer);
 
   /* Now that we can restore all those variables, start changing them.  */
 
@@ -768,7 +760,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* If variable is unbound, make it nil.  */
   histval = find_symbol_value (histvar);
-  if (EQ (histval, Qunbound))
+  if (BASE_EQ (histval, Qunbound))
     {
       Fset (histvar, Qnil);
       histval = Qnil;
@@ -1076,9 +1068,14 @@ static EMACS_INT minibuf_c_loop_level (EMACS_INT depth)
 }
 
 static void
-run_exit_minibuf_hook (void)
+run_exit_minibuf_hook (Lisp_Object minibuf)
 {
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_current_buffer ();
+  if (BUFFER_LIVE_P (XBUFFER (minibuf)))
+    Fset_buffer (minibuf);
   safe_run_hooks (Qminibuffer_exit_hook);
+  unbind_to (count, Qnil);
 }
 
 /* This variable records the expired minibuffer's frame between the
@@ -1696,7 +1693,8 @@ or from one of the possible completions.  */)
       else /* if (type == hash_table) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && EQ (HASH_KEY (XHASH_TABLE (collection), idx), Qunbound))
+		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
+			     Qunbound))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -1933,7 +1931,8 @@ with a space are ignored unless STRING itself starts with a space.  */)
       else /* if (type == 3) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && EQ (HASH_KEY (XHASH_TABLE (collection), idx), Qunbound))
+		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
+			     Qunbound))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -2012,6 +2011,8 @@ REQUIRE-MATCH can take the following values:
   input, but she needs to confirm her choice if she called
   `minibuffer-complete' right before `minibuffer-complete-and-exit'
   and the input is not an element of COLLECTION.
+- a function, which will be called with the input as the parameter.
+  If it returns a non-nil value, the minibuffer is exited with that value.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
@@ -2140,7 +2141,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
           {
             tem = HASH_KEY (h, i);
-            if (EQ (tem, Qunbound)) continue;
+            if (BASE_EQ (tem, Qunbound)) continue;
             Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
             if (!STRINGP (strkey)) continue;
             if (EQ (Fcompare_strings (string, Qnil, Qnil,

@@ -282,10 +282,17 @@ Stop if the top edge of the image is reached."
 (defun image-scroll-up (&optional n)
   "Scroll image in current window upward by N lines.
 Stop if the bottom edge of the image is reached.
-If ARG is omitted or nil, scroll upward by a near full screen.
+
+Interactively, giving this command a numerical prefix will scroll
+up by that many lines (and down by that many lines if the number
+is negative).  Without a prefix, scroll up by a full screen.
+If given a `C-u -' prefix, scroll a full page down instead.
+
+If N is omitted or nil, scroll upward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
-Negative ARG means scroll downward.
-If ARG is the atom `-', scroll downward by nearly full screen.
+A negative N means scroll downward.
+
+If N is the atom `-', scroll downward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'."
   (interactive "P")
   (cond ((null n)
@@ -303,10 +310,17 @@ When calling from a program, supply as argument a number, nil, or `-'."
 (defun image-scroll-down (&optional n)
   "Scroll image in current window downward by N lines.
 Stop if the top edge of the image is reached.
-If ARG is omitted or nil, scroll downward by a near full screen.
+
+Interactively, giving this command a numerical prefix will scroll
+down by that many lines (and up by that many lines if the number
+is negative).  Without a prefix, scroll down by a full screen.
+If given a `C-u -' prefix, scroll a full page up instead.
+
+If N is omitted or nil, scroll downward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
-Negative ARG means scroll upward.
-If ARG is the atom `-', scroll upward by nearly full screen.
+A negative N means scroll upward.
+
+If N is the atom `-', scroll upward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'."
   (interactive "P")
   (cond ((null n)

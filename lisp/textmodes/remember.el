@@ -653,7 +653,7 @@ to turn the *scratch* buffer into your notes buffer."
                    (remember-notes-mode 1)
                    (current-buffer)))))
     (when switch-to
-      (switch-to-buffer buf))
+      (pop-to-buffer-same-window buf))
     buf))
 
 (defun remember-notes--kill-buffer-query ()

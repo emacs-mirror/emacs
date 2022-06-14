@@ -621,7 +621,6 @@ extern Lisp_Object char_table_ref (Lisp_Object, int) ATTRIBUTE_PURE;
 extern void char_table_set (Lisp_Object, int, Lisp_Object);
 
 /* Defined in data.c.  */
-extern bool symbols_with_pos_enabled;
 extern AVOID args_out_of_range_3 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern AVOID wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object default_value (Lisp_Object symbol);
@@ -2097,19 +2096,17 @@ XSUB_CHAR_TABLE (Lisp_Object a)
 INLINE Lisp_Object
 CHAR_TABLE_REF_ASCII (Lisp_Object ct, ptrdiff_t idx)
 {
-  struct Lisp_Char_Table *tbl = NULL;
-  Lisp_Object val;
-  do
+  for (struct Lisp_Char_Table *tbl = XCHAR_TABLE (ct); ;
+       tbl = XCHAR_TABLE (tbl->parent))
     {
-      tbl = tbl ? XCHAR_TABLE (tbl->parent) : XCHAR_TABLE (ct);
-      val = (! SUB_CHAR_TABLE_P (tbl->ascii) ? tbl->ascii
-	     : XSUB_CHAR_TABLE (tbl->ascii)->contents[idx]);
+      Lisp_Object val = (SUB_CHAR_TABLE_P (tbl->ascii)
+			 ? XSUB_CHAR_TABLE (tbl->ascii)->contents[idx]
+			 : tbl->ascii);
       if (NILP (val))
 	val = tbl->defalt;
+      if (!NILP (val) || NILP (tbl->parent))
+	return val;
     }
-  while (NILP (val) && ! NILP (tbl->parent));
-
-  return val;
 }
 
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
@@ -3639,6 +3636,10 @@ struct handler
   struct bc_frame *act_rec;
   int poll_suppress_count;
   int interrupt_input_blocked;
+
+#ifdef HAVE_X_WINDOWS
+  int x_error_handler_depth;
+#endif
 };
 
 extern Lisp_Object memory_signal_data;
@@ -4492,6 +4493,7 @@ extern void dir_warning (const char *, Lisp_Object);
 extern void init_obarray_once (void);
 extern void init_lread (void);
 extern void syms_of_lread (void);
+extern void mark_lread (void);
 
 INLINE Lisp_Object
 intern (const char *str)
@@ -5098,9 +5100,7 @@ extern void syms_of_w32cygwinx (void);
 extern Lisp_Object Vface_alternative_font_family_alist;
 extern Lisp_Object Vface_alternative_font_registry_alist;
 extern void syms_of_xfaces (void);
-#ifdef HAVE_PDUMPER
 extern void init_xfaces (void);
-#endif
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c.  */
@@ -5503,7 +5503,7 @@ struct for_each_tail_internal
    intended for use only by the above macros.
 
    Use Brent’s teleporting tortoise-hare algorithm.  See:
-   Brent RP. BIT. 1980;20(2):176-84. doi:10.1007/BF01933190
+   Brent RP. BIT. 1980;20(2):176-184. doi:10.1007/BF01933190
    https://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf
 
    This macro uses maybe_quit because of an excess of caution.  The
@@ -5520,7 +5520,7 @@ struct for_each_tail_internal
 	  || ((check_quit) ? maybe_quit () : (void) 0, 0 < --li.n)	\
 	  || (li.q = li.n = li.max <<= 1, li.n >>= USHRT_WIDTH,		\
 	      li.tortoise = (tail), false))				\
-	 && EQ (tail, li.tortoise))					\
+	 && BASE_EQ (tail, li.tortoise))				\
 	? (cycle) : (void) 0))
 
 /* Do a `for' loop over alist values.  */

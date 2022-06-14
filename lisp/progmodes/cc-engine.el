@@ -3422,7 +3422,9 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
   ;; Return a good pos (in the sense of `c-state-cache-good-pos') at the
   ;; lowest[*] position between POS and HERE which is syntactically equivalent
   ;; to HERE.  This position may be HERE itself.  POS is before HERE in the
-  ;; buffer.
+  ;; buffer.  If POS and HERE are both in the same literal, return the start
+  ;; of the literal.  STATE is the parsing state at POS.
+  ;;
   ;; [*] We don't actually always determine this exact position, since this
   ;; would require a disproportionate amount of work, given that this function
   ;; deals only with a corner condition, and POS and HERE are typically on
@@ -3438,7 +3440,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	  (setq pos (point)
 		state s)))
       (if (eq (point) here)		; HERE is in the same literal as POS
-	  pos
+	  (nth 8 state)		    ; A valid good pos cannot be in a literal.
 	(setq s (parse-partial-sexp pos here (1+ (car state)) nil state nil))
 	(cond
 	 ((> (car s) (car state))  ; Moved into a paren between POS and HERE
@@ -3884,7 +3886,10 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 		  (cons (if (and ce (< bra ce) (> ce here)) ; {..} straddling HERE?
 			    bra
 			  (point-min))
-			(min here from)))))))))
+			(progn
+			  (goto-char (min here from))
+			  (c-beginning-of-macro)
+			  (point))))))))))
 
 (defsubst c-state-push-any-brace-pair (bra+1 macro-start-or-here)
   ;; If BRA+1 is nil, do nothing.  Otherwise, BRA+1 is the buffer position
@@ -6846,7 +6851,7 @@ comment at the start of cc-engine.el for more info."
   ;; checking `c-new-id-start' and `c-new-id-end'.  That's done to avoid
   ;; adding all prefixes of a type as it's being entered and font locked.
   ;; This is a bit rough and ready, but now covers adding characters into the
-  ;; middle of an identifer.
+  ;; middle of an identifier.
   ;;
   ;; This function might do hidden buffer changes.
   (if (and c-new-id-start c-new-id-end

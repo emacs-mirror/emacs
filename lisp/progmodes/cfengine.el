@@ -989,13 +989,7 @@ Intended as the value of `indent-line-function'."
 (defun cfengine-fill-paragraph (&optional justify)
   "Fill `paragraphs' in Cfengine code."
   (interactive "P")
-  (or (if (fboundp 'fill-comment-paragraph)
-          (fill-comment-paragraph justify)
-	;; else do nothing in a comment
-	(nth 4 (parse-partial-sexp (save-excursion
-				     (beginning-of-defun)
-				     (point))
-				   (point))))
+  (or (fill-comment-paragraph justify)
       (let ((paragraph-start
 	     ;; Include start of parenthesized block.
 	     "\f\\|[ \t]*$\\|.*(")

@@ -656,6 +656,8 @@ on.  Only lasts until the region is next deactivated."
   :lighter nil
   (rectangle--reset-crutches)
   (when rectangle-mark-mode
+    (advice-add 'region-beginning :around #'rectangle--region-beginning)
+    (advice-add 'region-end :around #'rectangle--region-end)
     (add-hook 'deactivate-mark-hook
               (lambda () (rectangle-mark-mode -1)))
     (unless (region-active-p)
@@ -754,17 +756,38 @@ Ignores `line-move-visual'."
     (rectangle--col-pos col 'point)))
 
 
+(defun rectangle--region-beginning (orig)
+  "Like `region-beginning' but supports rectangular regions."
+  (cond
+   ((not rectangle-mark-mode)
+    (funcall orig))
+   (t
+    (apply #'min (mapcar #'car (region-bounds))))))
+
+(defun rectangle--region-end (orig)
+  "Like `region-end' but supports rectangular regions."
+  (cond
+   ((not rectangle-mark-mode)
+    (funcall orig))
+   (t
+    (apply #'max (mapcar #'cdr (region-bounds))))))
+
 (defun rectangle--extract-region (orig &optional delete)
   (cond
    ((not rectangle-mark-mode)
     (funcall orig delete))
    ((eq delete 'bounds)
-    (extract-rectangle-bounds (region-beginning) (region-end)))
+    (extract-rectangle-bounds
+     ;; Avoid recursive calls from advice
+     (let (rectangle-mark-mode) (region-beginning))
+     (let (rectangle-mark-mode) (region-end))))
    (t
     (let* ((strs (funcall (if delete
                               #'delete-extract-rectangle
                             #'extract-rectangle)
-                          (region-beginning) (region-end)))
+                          ;; Avoid recursive calls from advice
+                          (let (rectangle-mark-mode) (region-beginning))
+                          (let (rectangle-mark-mode) (region-end))))
            (str (mapconcat #'identity strs "\n")))
       (when (eq last-command 'kill-region)
         ;; Try to prevent kill-region from appending this to some

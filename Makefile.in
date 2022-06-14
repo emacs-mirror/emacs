@@ -965,6 +965,7 @@ bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
+	rm -rf native-lisp/ lisp/leim/ja-dic/
 	${top_bootclean}
 
 ### 'maintainer-clean'

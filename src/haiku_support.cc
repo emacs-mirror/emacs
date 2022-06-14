@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <attribute.h>
 
 #include <app/Application.h>
 #include <app/Cursor.h>
 #include <app/Messenger.h>
+#include <app/Roster.h>
 
 #include <interface/GraphicsDefs.h>
 #include <interface/InterfaceDefs.h>
@@ -81,8 +83,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <csignal>
 #include <cfloat>
 
-#include <pthread.h>
-
 #ifdef USE_BE_CAIRO
 #include <cairo.h>
 #endif
@@ -107,6 +107,7 @@ enum
     SET_FONT_INDICES	  = 3012,
     SET_PREVIEW_DIALOG	  = 3013,
     UPDATE_PREVIEW_DIALOG = 3014,
+    SEND_MOVE_FRAME_EVENT = 3015,
   };
 
 /* X11 keysyms that we use.  */
@@ -142,7 +143,7 @@ struct font_selection_dialog_message
   /* Whether or not font selection was cancelled.  */
   bool_bf cancel : 1;
 
-  /* Whether or not a size was explictly specified.  */
+  /* Whether or not a size was explicitly specified.  */
   bool_bf size_specified : 1;
 
   /* The index of the selected font family.  */
@@ -155,44 +156,45 @@ struct font_selection_dialog_message
   int size;
 };
 
+/* The color space of the main screen.  B_NO_COLOR_SPACE means it has
+   not yet been computed.  */
 static color_space dpy_color_space = B_NO_COLOR_SPACE;
-static key_map *key_map = NULL;
-static char *key_chars = NULL;
+
+/* The keymap, or NULL if it has not been initialized.  */
+static key_map *key_map;
+
+/* Indices of characters into the keymap.  */
+static char *key_chars;
+
+/* Lock around keymap data, since it's touched from different
+   threads.  */
 static BLocker key_map_lock;
 
 /* The locking semantics of BWindows running in multiple threads are
    so complex that child frame state (which is the only state that is
    shared between different BWindows at runtime) does best with a
    single global lock.  */
-
 static BLocker child_frame_lock;
 
-/* A LeaveNotify event (well, the closest equivalent on Haiku, which
-   is a B_MOUSE_MOVED event with `transit' set to B_EXITED_VIEW) might
-   be sent out-of-order with regards to motion events from other
-   windows, such as when the mouse pointer rapidly moves from an
-   undecorated child frame to its parent.  This can cause a failure to
-   clear the mouse face on the former if an event for the latter is
-   read by Emacs first and ends up showing the mouse face there.
-
-   While this lock doesn't really ensure that the events will be
-   delivered in the correct order, it makes them arrive in the correct
-   order "most of the time" on my machine, which is good enough and
-   preferable to adding a lot of extra complexity to the event
-   handling code to sort motion events by their timestamps.
-
-   Obviously this depends on the number of execution units that are
-   available, and the scheduling priority of each thread involved in
-   the input handling, but it will be good enough for most people.  */
-
-static BLocker movement_locker;
-
+/* Variable where the popup menu thread returns the chosen menu
+   item.  */
 static BMessage volatile *popup_track_message;
+
+/* Variable in which alert dialog threads return the selected button
+   number.  */
 static int32 volatile alert_popup_value;
+
+/* The current window ID.  This is increased every time a frame is
+   created.  */
 static int current_window_id;
 
-static void *grab_view = NULL;
+/* The view that has the passive grab.  */
+static void *grab_view;
+
+/* The locker for that variable.  */
 static BLocker grab_view_locker;
+
+/* Whether or not a drag-and-drop operation is in progress.  */
 static bool drag_and_drop_in_progress;
 
 /* Many places require us to lock the child frame data, and then lock
@@ -448,13 +450,143 @@ map_normal (uint32_t kc, uint32_t *ch)
   key_map_lock.Unlock ();
 }
 
+static BRect
+get_zoom_rect (BWindow *window)
+{
+  BScreen screen;
+  BDeskbar deskbar;
+  BRect screen_frame;
+  BRect frame;
+  BRect deskbar_frame;
+  BRect window_frame;
+  BRect decorator_frame;
+
+  if (!screen.IsValid ())
+    gui_abort ("Failed to calculate screen rect");
+
+  screen_frame = frame = screen.Frame ();
+  deskbar_frame = deskbar.Frame ();
+
+  if (!(modifiers () & B_SHIFT_KEY) && !deskbar.IsAutoHide ())
+    {
+      switch (deskbar.Location ())
+	{
+	case B_DESKBAR_TOP:
+	  frame.top = deskbar_frame.bottom + 2;
+	  break;
+
+	case B_DESKBAR_BOTTOM:
+	case B_DESKBAR_LEFT_BOTTOM:
+	case B_DESKBAR_RIGHT_BOTTOM:
+	  frame.bottom = deskbar_frame.top - 2;
+	  break;
+
+	case B_DESKBAR_LEFT_TOP:
+	  if (!deskbar.IsExpanded ())
+	    frame.top = deskbar_frame.bottom + 2;
+	  else if (!deskbar.IsAlwaysOnTop ()
+		   && !deskbar.IsAutoRaise ())
+	    frame.left = deskbar_frame.right + 2;
+	  break;
+
+	default:
+	  if (deskbar.IsExpanded ()
+	      && !deskbar.IsAlwaysOnTop ()
+	      && !deskbar.IsAutoRaise ())
+	    frame.right = deskbar_frame.left - 2;
+	}
+    }
+
+  if (window)
+    {
+      window_frame = window->Frame ();
+      decorator_frame = window->DecoratorFrame ();
+
+      frame.top += (window_frame.top
+		    - decorator_frame.top);
+      frame.bottom -= (decorator_frame.bottom
+		       - window_frame.bottom);
+      frame.left += (window_frame.left
+		     - decorator_frame.left);
+      frame.right -= (decorator_frame.right
+		      - window_frame.right);
+
+      if (frame.top > deskbar_frame.bottom
+	  || frame.bottom < deskbar_frame.top)
+	{
+	  frame.left = screen_frame.left + (window_frame.left
+					    - decorator_frame.left);
+	  frame.right = screen_frame.right - (decorator_frame.right
+					      - window_frame.right);
+	}
+    }
+
+  return frame;
+}
+
+/* Invisible window used to get B_SCREEN_CHANGED events.  */
+class EmacsScreenChangeMonitor : public BWindow
+{
+  BRect previous_screen_frame;
+
+public:
+  EmacsScreenChangeMonitor (void) : BWindow (BRect (-100, -100, 0, 0), "",
+					     B_NO_BORDER_WINDOW_LOOK,
+					     B_FLOATING_ALL_WINDOW_FEEL,
+					     B_AVOID_FRONT | B_AVOID_FOCUS)
+  {
+    BScreen screen (this);
+
+    if (!screen.IsValid ())
+      return;
+
+    previous_screen_frame = screen.Frame ();
+
+    /* Immediately show this window upon creation.  It will not steal
+       the focus or become visible.  */
+    Show ();
+
+    if (!LockLooper ())
+      return;
+
+    Hide ();
+    UnlockLooper ();
+  }
+
+  void
+  DispatchMessage (BMessage *msg, BHandler *handler)
+  {
+    struct haiku_screen_changed_event rq;
+    BRect frame;
+
+    if (msg->what == B_SCREEN_CHANGED)
+      {
+	if (msg->FindInt64 ("when", &rq.when) != B_OK)
+	  rq.when = 0;
+
+	if (msg->FindRect ("frame", &frame) != B_OK
+	    || frame != previous_screen_frame)
+	  {
+	    haiku_write (SCREEN_CHANGED_EVENT, &rq);
+
+	    if (frame.IsValid ())
+	      previous_screen_frame = frame;
+	  }
+      }
+
+    BWindow::DispatchMessage (msg, handler);
+  }
+};
+
 class Emacs : public BApplication
 {
 public:
   BMessage settings;
-  bool settings_valid_p = false;
+  bool settings_valid_p;
+  EmacsScreenChangeMonitor *monitor;
 
-  Emacs () : BApplication ("application/x-vnd.GNU-emacs")
+  Emacs (void) : BApplication ("application/x-vnd.GNU-emacs"),
+		 settings_valid_p (false)
   {
     BPath settings_path;
 
@@ -470,6 +602,15 @@ public:
       return;
 
     settings_valid_p = true;
+    monitor = new EmacsScreenChangeMonitor;
+  }
+
+  ~Emacs (void)
+  {
+    if (monitor->LockLooper ())
+      monitor->Quit ();
+    else
+      delete monitor;
   }
 
   void
@@ -518,33 +659,42 @@ public:
     struct child_frame *next;
     int xoff, yoff;
     EmacsWindow *window;
-  } *subset_windows = NULL;
+  } *subset_windows;
 
-  EmacsWindow *parent = NULL;
+  EmacsWindow *parent;
   BRect pre_fullscreen_rect;
   BRect pre_zoom_rect;
-  int x_before_zoom = INT_MIN;
-  int y_before_zoom = INT_MIN;
-  bool fullscreen_p = false;
-  bool zoomed_p = false;
-  bool shown_flag = false;
-  volatile int was_shown_p = 0;
-  bool menu_bar_active_p = false;
-  bool override_redirect_p = false;
+  int x_before_zoom;
+  int y_before_zoom;
+  bool shown_flag;
+  volatile bool was_shown_p;
+  bool menu_bar_active_p;
+  bool override_redirect_p;
   window_look pre_override_redirect_look;
   window_feel pre_override_redirect_feel;
   uint32 pre_override_redirect_workspaces;
   int window_id;
-  bool *menus_begun = NULL;
+  bool *menus_begun;
   enum haiku_z_group z_group;
-  bool tooltip_p = false;
+  bool tooltip_p;
+  enum haiku_fullscreen_mode fullscreen_mode;
 
   EmacsWindow () : BWindow (BRect (0, 0, 0, 0), "", B_TITLED_WINDOW_LOOK,
-			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS)
+			    B_NORMAL_WINDOW_FEEL, B_NO_SERVER_SIDE_WINDOW_MODIFIERS),
+		   subset_windows (NULL),
+		   parent (NULL),
+		   x_before_zoom (INT_MIN),
+		   y_before_zoom (INT_MIN),
+		   shown_flag (false),
+		   was_shown_p (false),
+		   menu_bar_active_p (false),
+		   override_redirect_p (false),
+		   window_id (current_window_id),
+		   menus_begun (NULL),
+		   z_group (Z_GROUP_NONE),
+		   tooltip_p (false),
+		   fullscreen_mode (FULLSCREEN_MODE_NONE)
   {
-    window_id = current_window_id++;
-    z_group = Z_GROUP_NONE;
-
     /* This pulse rate is used by scroll bars for repeating a button
        action while a button is held down.  */
     SetPulseRate (30000);
@@ -581,77 +731,6 @@ public:
       SetFeel (B_FLOATING_ALL_WINDOW_FEEL);
     else
       SetFeel (B_NORMAL_WINDOW_FEEL);
-  }
-
-  BRect
-  CalculateZoomRect (void)
-  {
-    BScreen screen (this);
-    BDeskbar deskbar;
-    BRect screen_frame;
-    BRect frame;
-    BRect deskbar_frame;
-    BRect window_frame;
-    BRect decorator_frame;
-
-    if (!screen.IsValid ())
-      gui_abort ("Failed to calculate screen rect");
-
-    screen_frame = frame = screen.Frame ();
-    deskbar_frame = deskbar.Frame ();
-
-    if (!(modifiers () & B_SHIFT_KEY) && !deskbar.IsAutoHide ())
-      {
-	switch (deskbar.Location ())
-	  {
-	  case B_DESKBAR_TOP:
-	    frame.top = deskbar_frame.bottom + 2;
-	    break;
-
-	  case B_DESKBAR_BOTTOM:
-	  case B_DESKBAR_LEFT_BOTTOM:
-	  case B_DESKBAR_RIGHT_BOTTOM:
-	    frame.bottom = deskbar_frame.top - 2;
-	    break;
-
-	  case B_DESKBAR_LEFT_TOP:
-	    if (!deskbar.IsExpanded ())
-	      frame.top = deskbar_frame.bottom + 2;
-	    else if (!deskbar.IsAlwaysOnTop ()
-		     && !deskbar.IsAutoRaise ())
-	      frame.left = deskbar_frame.right + 2;
-	    break;
-
-	  default:
-	    if (deskbar.IsExpanded ()
-		&& !deskbar.IsAlwaysOnTop ()
-		&& !deskbar.IsAutoRaise ())
-	      frame.right = deskbar_frame.left - 2;
-	  }
-      }
-
-    window_frame = Frame ();
-    decorator_frame = DecoratorFrame ();
-
-    frame.top += (window_frame.top
-		  - decorator_frame.top);
-    frame.bottom -= (decorator_frame.bottom
-		     - window_frame.bottom);
-    frame.left += (window_frame.left
-		   - decorator_frame.left);
-    frame.right -= (decorator_frame.right
-		    - window_frame.right);
-
-    if (frame.top > deskbar_frame.bottom
-	|| frame.bottom < deskbar_frame.top)
-      {
-	frame.left = screen_frame.left + (window_frame.left
-					  - decorator_frame.left);
-	frame.right = screen_frame.right - (decorator_frame.right
-					    - window_frame.right);
-      }
-
-    return frame;
   }
 
   void
@@ -711,12 +790,6 @@ public:
     RecomputeFeel ();
     UpwardsUnSubsetChildren (parent);
     this->RemoveFromSubset (this);
-
-    if (fullscreen_p)
-      {
-	fullscreen_p = 0;
-	MakeFullscreen (1);
-      }
     child_frame_lock.Unlock ();
   }
 
@@ -766,11 +839,6 @@ public:
     this->AddToSubset (this);
     if (!IsHidden () && this->parent)
       UpwardsSubsetChildren (parent);
-    if (fullscreen_p)
-      {
-	fullscreen_p = 0;
-	MakeFullscreen (1);
-      }
     window->LinkChild (this);
 
     child_frame_lock.Unlock ();
@@ -797,11 +865,23 @@ public:
   }
 
   void
+  MoveToIncludingFrame (int x, int y)
+  {
+    BRect decorator, frame;
+
+    decorator = DecoratorFrame ();
+    frame = Frame ();
+
+    MoveTo (x + frame.left - decorator.left,
+	    y + frame.top - decorator.top);
+  }
+
+  void
   DoMove (struct child_frame *f)
   {
     BRect frame = this->Frame ();
-    f->window->MoveTo (frame.left + f->xoff,
-		       frame.top + f->yoff);
+    f->window->MoveToIncludingFrame (frame.left + f->xoff,
+				     frame.top + f->yoff);
   }
 
   void
@@ -982,6 +1062,15 @@ public:
 	    haiku_write (WHEEL_MOVE_EVENT, &rq);
 	  };
       }
+    else if (msg->what == SEND_MOVE_FRAME_EVENT)
+      FrameMoved (Frame ().LeftTop ());
+    else if (msg->what == B_SCREEN_CHANGED)
+      {
+	if (fullscreen_mode != FULLSCREEN_MODE_NONE)
+	  SetFullscreen (fullscreen_mode);
+
+	BWindow::DispatchMessage (msg, handler);
+      }
     else
       BWindow::DispatchMessage (msg, handler);
   }
@@ -1015,41 +1104,66 @@ public:
   {
     struct haiku_resize_event rq;
     rq.window = this;
-    rq.px_heightf = newHeight + 1.0f;
-    rq.px_widthf = newWidth + 1.0f;
+    rq.width = newWidth + 1.0f;
+    rq.height = newHeight + 1.0f;
 
     haiku_write (FRAME_RESIZED, &rq);
     BWindow::FrameResized (newWidth, newHeight);
   }
 
   void
-  FrameMoved (BPoint newPosition)
+  FrameMoved (BPoint new_position)
   {
     struct haiku_move_event rq;
+    BRect frame, decorator_frame;
+    struct child_frame *f;
+
+    if (fullscreen_mode == FULLSCREEN_MODE_WIDTH
+	&& new_position.x != 0)
+      {
+	MoveTo (0, new_position.y);
+	return;
+      }
+
+    if (fullscreen_mode == FULLSCREEN_MODE_HEIGHT
+	&& new_position.y != 0)
+      {
+	MoveTo (new_position.x, 0);
+	return;
+      }
+
     rq.window = this;
-    rq.x = std::lrint (newPosition.x);
-    rq.y = std::lrint (newPosition.y);
+    rq.x = std::lrint (new_position.x);
+    rq.y = std::lrint (new_position.y);
+
+    frame = Frame ();
+    decorator_frame = DecoratorFrame ();
+
+    rq.decorator_width
+      = std::lrint (frame.left - decorator_frame.left);
+    rq.decorator_height
+      = std::lrint (frame.top - decorator_frame.top);
 
     haiku_write (MOVE_EVENT, &rq);
 
     CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK
       {
-	for (struct child_frame *f = subset_windows;
-	     f; f = f->next)
+	for (f = subset_windows; f; f = f->next)
 	  DoMove (f);
 	child_frame_lock.Unlock ();
 
-	BWindow::FrameMoved (newPosition);
+	BWindow::FrameMoved (new_position);
       }
   }
 
   void
   WorkspacesChanged (uint32_t old, uint32_t n)
   {
+    struct child_frame *f;
+
     CHILD_FRAME_LOCK_INSIDE_LOOPER_CALLBACK
       {
-	for (struct child_frame *f = subset_windows;
-	     f; f = f->next)
+	for (f = subset_windows; f; f = f->next)
 	  DoUpdateWorkspace (f);
 
 	child_frame_lock.Unlock ();
@@ -1063,7 +1177,7 @@ public:
       gui_abort ("Failed to lock child frame state lock");
 
     if (!this->parent)
-      this->MoveTo (x, y);
+      this->MoveToIncludingFrame (x, y);
     else
       this->parent->MoveChild (this, x, y, 0);
     child_frame_lock.Unlock ();
@@ -1135,66 +1249,113 @@ public:
     child_frame_lock.Unlock ();
   }
 
+  BRect
+  ClearFullscreen (enum haiku_fullscreen_mode target_mode)
+  {
+    BRect original_frame;
+
+    switch (fullscreen_mode)
+      {
+      case FULLSCREEN_MODE_MAXIMIZED:
+	original_frame = pre_zoom_rect;
+
+	if (target_mode == FULLSCREEN_MODE_NONE)
+	  BWindow::Zoom (pre_zoom_rect.LeftTop (),
+			 BE_RECT_WIDTH (pre_zoom_rect) - 1,
+			 BE_RECT_HEIGHT (pre_zoom_rect) - 1);
+	break;
+
+      case FULLSCREEN_MODE_BOTH:
+      case FULLSCREEN_MODE_HEIGHT:
+      case FULLSCREEN_MODE_WIDTH:
+	original_frame = pre_fullscreen_rect;
+	SetFlags (Flags () & ~(B_NOT_MOVABLE
+			       | B_NOT_ZOOMABLE
+			       | B_NOT_RESIZABLE));
+
+	if (target_mode != FULLSCREEN_MODE_NONE)
+	  goto out;
+
+	MoveTo (pre_fullscreen_rect.LeftTop ());
+	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
+		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
+	break;
+
+      case FULLSCREEN_MODE_NONE:
+	original_frame = Frame ();
+	break;
+      }
+
+  out:
+    fullscreen_mode = FULLSCREEN_MODE_NONE;
+    return original_frame;
+  }
+
+  BRect
+  FullscreenRectForMode (enum haiku_fullscreen_mode mode)
+  {
+    BScreen screen (this);
+    BRect frame;
+
+    if (!screen.IsValid ())
+      return BRect (0, 0, 0, 0);
+
+    frame = screen.Frame ();
+
+    if (mode == FULLSCREEN_MODE_HEIGHT)
+      frame.right -= BE_RECT_WIDTH (frame) / 2;
+    else if (mode == FULLSCREEN_MODE_WIDTH)
+      frame.bottom -= BE_RECT_HEIGHT (frame) / 2;
+
+    return frame;
+  }
+
   void
-  Zoom (BPoint o, float w, float h)
+  SetFullscreen (enum haiku_fullscreen_mode mode)
+  {
+    BRect zoom_rect, frame;
+
+    frame = ClearFullscreen (mode);
+
+    switch (mode)
+      {
+      case FULLSCREEN_MODE_MAXIMIZED:
+	pre_zoom_rect = frame;
+	zoom_rect = get_zoom_rect (this);
+	BWindow::Zoom (zoom_rect.LeftTop (),
+		       BE_RECT_WIDTH (zoom_rect) - 1,
+		       BE_RECT_HEIGHT (zoom_rect) - 1);
+	break;
+
+      case FULLSCREEN_MODE_BOTH:
+	SetFlags (Flags () | B_NOT_MOVABLE);
+	FALLTHROUGH;
+
+      case FULLSCREEN_MODE_HEIGHT:
+      case FULLSCREEN_MODE_WIDTH:
+	SetFlags (Flags () | B_NOT_ZOOMABLE | B_NOT_RESIZABLE);
+	pre_fullscreen_rect = frame;
+	zoom_rect = FullscreenRectForMode (mode);
+	ResizeTo (BE_RECT_WIDTH (zoom_rect) - 1,
+		  BE_RECT_HEIGHT (zoom_rect) - 1);
+	MoveTo (zoom_rect.left, zoom_rect.top);
+	break;
+
+      case FULLSCREEN_MODE_NONE:
+	break;
+      }
+
+    fullscreen_mode = mode;
+  }
+
+  void
+  Zoom (BPoint origin, float width, float height)
   {
     struct haiku_zoom_event rq;
-    BRect rect;
+
     rq.window = this;
-
-    if (fullscreen_p)
-      MakeFullscreen (0);
-
-    if (!zoomed_p)
-      {
-	pre_zoom_rect = Frame ();
-	zoomed_p = true;
-	rect = CalculateZoomRect ();
-      }
-    else
-      {
-	zoomed_p = false;
-	rect = pre_zoom_rect;
-      }
-
-    rq.zoomed = zoomed_p;
+    rq.fullscreen_mode = fullscreen_mode;
     haiku_write (ZOOM_EVENT, &rq);
-
-    BWindow::Zoom (rect.LeftTop (), BE_RECT_WIDTH (rect) - 1,
-		   BE_RECT_HEIGHT (rect) - 1);
-  }
-
-  void
-  UnZoom (void)
-  {
-    if (!zoomed_p)
-      return;
-
-    BWindow::Zoom ();
-  }
-
-  void
-  GetParentWidthHeight (int *width, int *height)
-  {
-    if (!child_frame_lock.Lock ())
-      gui_abort ("Failed to lock child frame state lock");
-
-    if (parent)
-      {
-	BRect frame = parent->Frame ();
-	*width = BE_RECT_WIDTH (frame);
-	*height = BE_RECT_HEIGHT (frame);
-      }
-    else
-      {
-	BScreen s (this);
-	BRect frame = s.Frame ();
-
-	*width = BE_RECT_WIDTH (frame);
-	*height = BE_RECT_HEIGHT (frame);
-      }
-
-    child_frame_lock.Unlock ();
   }
 
   void
@@ -1216,53 +1377,6 @@ public:
 
     child_frame_lock.Lock ();
     gui_abort ("Trying to calculate offsets for a child frame that doesn't exist");
-  }
-
-  void
-  MakeFullscreen (int make_fullscreen_p)
-  {
-    BScreen screen (this);
-
-    if (!screen.IsValid ())
-      gui_abort ("Trying to make a window fullscreen without a screen");
-
-    UnZoom ();
-
-    if (make_fullscreen_p == fullscreen_p)
-      return;
-
-    fullscreen_p = make_fullscreen_p;
-    uint32 flags = Flags ();
-    if (fullscreen_p)
-      {
-	if (zoomed_p)
-	  UnZoom ();
-
-	flags |= B_NOT_MOVABLE | B_NOT_ZOOMABLE;
-	pre_fullscreen_rect = Frame ();
-
-	if (!child_frame_lock.Lock ())
-	  gui_abort ("Failed to lock child frame state lock");
-
-	if (parent)
-	  parent->OffsetChildRect (&pre_fullscreen_rect, this);
-
-	child_frame_lock.Unlock ();
-
-	int w, h;
-	EmacsMoveTo (0, 0);
-	GetParentWidthHeight (&w, &h);
-	ResizeTo (w - 1, h - 1);
-      }
-    else
-      {
-	flags &= ~(B_NOT_MOVABLE | B_NOT_ZOOMABLE);
-	EmacsMoveTo (pre_fullscreen_rect.left,
-		     pre_fullscreen_rect.top);
-	ResizeTo (BE_RECT_WIDTH (pre_fullscreen_rect) - 1,
-		  BE_RECT_HEIGHT (pre_fullscreen_rect) - 1);
-      }
-    SetFlags (flags);
   }
 };
 
@@ -1322,11 +1436,7 @@ public:
 	rq.y = std::lrint (point.y);
 	rq.window = this->Window ();
 
-	if (movement_locker.Lock ())
-	  {
-	    haiku_write (MENU_BAR_LEFT, &rq);
-	    movement_locker.Unlock ();
-	  }
+	haiku_write (MENU_BAR_LEFT, &rq);
       }
 
     BMenuBar::MouseMoved (point, transit, msg);
@@ -1383,25 +1493,36 @@ public:
 class EmacsView : public BView
 {
 public:
-  uint32_t previous_buttons = 0;
-  int looper_locked_count = 0;
+  uint32_t previous_buttons;
+  int looper_locked_count;
   BRegion sb_region;
   BRegion invalid_region;
 
-  BView *offscreen_draw_view = NULL;
-  BBitmap *offscreen_draw_bitmap_1 = NULL;
-  BBitmap *copy_bitmap = NULL;
+  BView *offscreen_draw_view;
+  BBitmap *offscreen_draw_bitmap_1;
+  BBitmap *copy_bitmap;
 
 #ifdef USE_BE_CAIRO
-  cairo_surface_t *cr_surface = NULL;
-  cairo_t *cr_context = NULL;
+  cairo_surface_t *cr_surface;
+  cairo_t *cr_context;
   BLocker cr_surface_lock;
 #endif
 
   BPoint tt_absl_pos;
-  BMessage *wait_for_release_message = NULL;
+  BMessage *wait_for_release_message;
 
-  EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs", B_FOLLOW_NONE, B_WILL_DRAW)
+  EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs",
+			B_FOLLOW_NONE, B_WILL_DRAW),
+		 previous_buttons (0),
+		 looper_locked_count (0),
+		 offscreen_draw_view (NULL),
+		 offscreen_draw_bitmap_1 (NULL),
+		 copy_bitmap (NULL),
+#ifdef USE_BE_CAIRO
+		 cr_surface (NULL),
+		 cr_context (NULL),
+#endif
+		 wait_for_release_message (NULL)
   {
 
   }
@@ -1549,9 +1670,7 @@ public:
 #endif
 
 	if (looper_locked_count)
-	  {
-	    offscreen_draw_bitmap_1->Lock ();
-	  }
+	  offscreen_draw_bitmap_1->Lock ();
 
 	UnlockLooper ();
       }
@@ -1618,15 +1737,16 @@ public:
 	copy_bitmap = NULL;
       }
     if (!copy_bitmap)
-      copy_bitmap = new BBitmap (offscreen_draw_bitmap_1);
+      {
+	copy_bitmap = new BBitmap (offscreen_draw_bitmap_1);
+	SetViewBitmap (copy_bitmap, Frame (),
+		       Frame (), B_FOLLOW_NONE, 0);
+      }
     else
       copy_bitmap->ImportBits (offscreen_draw_bitmap_1);
 
     if (copy_bitmap->InitCheck () != B_OK)
       gui_abort ("Failed to init copy bitmap during buffer flip");
-
-    SetViewBitmap (copy_bitmap,
-		   Frame (), Frame (), B_FOLLOW_NONE, 0);
 
     Invalidate (&invalid_region);
     invalid_region.MakeEmpty ();
@@ -1668,8 +1788,11 @@ public:
     struct haiku_mouse_motion_event rq;
     int32 windowid;
     EmacsWindow *window;
+    BToolTip *tooltip;
 
     window = (EmacsWindow *) Window ();
+    tooltip = ToolTip ();
+
     rq.just_exited_p = transit == B_EXITED_VIEW;
     rq.x = point.x;
     rq.y = point.y;
@@ -1684,9 +1807,9 @@ public:
     else
       rq.dnd_message = false;
 
-    if (ToolTip ())
-      ToolTip ()->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
-						    -(point.y - tt_absl_pos.y)));
+    if (tooltip)
+      tooltip->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
+						 -(point.y - tt_absl_pos.y)));
 
     if (!grab_view_locker.Lock ())
       gui_abort ("Couldn't lock grab view locker");
@@ -1699,18 +1822,14 @@ public:
 
     grab_view_locker.Unlock ();
 
-    if (movement_locker.Lock ())
-      {
-	haiku_write (MOUSE_MOTION, &rq);
-	movement_locker.Unlock ();
-      }
+    haiku_write (MOUSE_MOTION, &rq);
   }
 
   void
-  MouseDown (BPoint point)
+  BasicMouseDown (BPoint point, BView *scroll_bar)
   {
     struct haiku_button_event rq;
-    uint32 buttons;
+    uint32 mods, buttons;
 
     this->GetMouse (&point, &buttons, false);
 
@@ -1721,6 +1840,7 @@ public:
     grab_view_locker.Unlock ();
 
     rq.window = this->Window ();
+    rq.scroll_bar = scroll_bar;
 
     if (!(previous_buttons & B_PRIMARY_MOUSE_BUTTON)
 	&& (buttons & B_PRIMARY_MOUSE_BUTTON))
@@ -1739,7 +1859,7 @@ public:
     rq.x = point.x;
     rq.y = point.y;
 
-    uint32_t mods = modifiers ();
+    mods = modifiers ();
 
     rq.modifiers = 0;
     if (mods & B_SHIFT_KEY)
@@ -1754,18 +1874,25 @@ public:
     if (mods & B_OPTION_KEY)
       rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-    SetMouseEventMask (B_POINTER_EVENTS, (B_LOCK_WINDOW_FOCUS
-					  | B_NO_POINTER_HISTORY));
+    if (!scroll_bar)
+      SetMouseEventMask (B_POINTER_EVENTS, (B_LOCK_WINDOW_FOCUS
+					    | B_NO_POINTER_HISTORY));
 
     rq.time = system_time ();
     haiku_write (BUTTON_DOWN, &rq);
   }
 
   void
-  MouseUp (BPoint point)
+  MouseDown (BPoint point)
+  {
+    BasicMouseDown (point, NULL);
+  }
+
+  void
+  BasicMouseUp (BPoint point, BView *scroll_bar)
   {
     struct haiku_button_event rq;
-    uint32 buttons;
+    uint32 buttons, mods;
 
     this->GetMouse (&point, &buttons, false);
 
@@ -1786,6 +1913,7 @@ public:
       }
 
     rq.window = this->Window ();
+    rq.scroll_bar = scroll_bar;
 
     if ((previous_buttons & B_PRIMARY_MOUSE_BUTTON)
 	&& !(buttons & B_PRIMARY_MOUSE_BUTTON))
@@ -1804,7 +1932,7 @@ public:
     rq.x = point.x;
     rq.y = point.y;
 
-    uint32_t mods = modifiers ();
+    mods = modifiers ();
 
     rq.modifiers = 0;
     if (mods & B_SHIFT_KEY)
@@ -1819,37 +1947,48 @@ public:
     if (mods & B_OPTION_KEY)
       rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-    if (!buttons)
-      SetMouseEventMask (0, 0);
-
     rq.time = system_time ();
     haiku_write (BUTTON_UP, &rq);
+  }
+
+  void
+  MouseUp (BPoint point)
+  {
+    BasicMouseUp (point, NULL);
   }
 };
 
 class EmacsScrollBar : public BScrollBar
 {
 public:
-  int dragging = 0;
+  int dragging;
   bool horizontal;
   enum haiku_scroll_bar_part current_part;
   float old_value;
   scroll_bar_info info;
 
   /* True if button events should be passed to the parent.  */
-  bool handle_button = false;
-  bool in_overscroll = false;
-  bool can_overscroll = false;
-  bool maybe_overscroll = false;
+  bool handle_button;
+  bool in_overscroll;
+  bool can_overscroll;
+  bool maybe_overscroll;
   BPoint last_overscroll;
   int last_reported_overscroll_value;
   int max_value, real_max_value;
   int overscroll_start_value;
   bigtime_t repeater_start;
+  EmacsView *parent;
 
-  EmacsScrollBar (int x, int y, int x1, int y1, bool horizontal_p) :
-    BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
-		B_HORIZONTAL : B_VERTICAL)
+  EmacsScrollBar (int x, int y, int x1, int y1, bool horizontal_p,
+		  EmacsView *parent)
+    : BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
+		  B_HORIZONTAL : B_VERTICAL),
+      dragging (0),
+      handle_button (false),
+      in_overscroll (false),
+      can_overscroll (false),
+      maybe_overscroll (false),
+      parent (parent)
   {
     BView *vw = (BView *) this;
     vw->SetResizingMode (B_FOLLOW_NONE);
@@ -2050,7 +2189,6 @@ public:
     BLooper *looper;
     BMessage *message;
     int32 buttons, mods;
-    BView *parent;
 
     looper = Looper ();
     message = NULL;
@@ -2071,8 +2209,9 @@ public:
       {
 	/* Allow C-mouse-3 to split the window on a scroll bar.   */
 	handle_button = true;
-	parent = Parent ();
-	parent->MouseDown (ConvertToParent (pt));
+	SetMouseEventMask (B_POINTER_EVENTS, (B_SUSPEND_VIEW_FOCUS
+					      | B_LOCK_WINDOW_FOCUS));
+	parent->BasicMouseDown (ConvertToParent (pt), this);
 
 	return;
       }
@@ -2135,7 +2274,6 @@ public:
   MouseUp (BPoint pt)
   {
     struct haiku_scroll_bar_drag_event rq;
-    BView *parent;
 
     in_overscroll = false;
     maybe_overscroll = false;
@@ -2143,8 +2281,7 @@ public:
     if (handle_button)
       {
 	handle_button = false;
-	parent = Parent ();
-	parent->MouseUp (ConvertToParent (pt));
+	parent->BasicMouseUp (ConvertToParent (pt), this);
 
 	return;
       }
@@ -2179,11 +2316,7 @@ public:
 	rq.y = std::lrint (conv.y);
 	rq.window = this->Window ();
 
-	if (movement_locker.Lock ())
-	  {
-	    haiku_write (MENU_BAR_LEFT, &rq);
-	    movement_locker.Unlock ();
-	  }
+	haiku_write (MENU_BAR_LEFT, &rq);
       }
 
     if (in_overscroll)
@@ -2280,30 +2413,26 @@ public:
 class EmacsMenuItem : public BMenuItem
 {
 public:
-  int menu_bar_id = -1;
-  void *menu_ptr = NULL;
-  void *wind_ptr = NULL;
-  char *key = NULL;
-  char *help = NULL;
+  int menu_bar_id;
+  void *menu_ptr;
+  void *wind_ptr;
+  char *key;
+  char *help;
 
-  EmacsMenuItem (const char *ky,
-		 const char *str,
-		 const char *help,
-		 BMessage *message = NULL) : BMenuItem (str, message)
+  EmacsMenuItem (const char *key_label, const char *label,
+		 const char *help, BMessage *message = NULL)
+    : BMenuItem (label, message),
+      menu_bar_id (-1),
+      menu_ptr (NULL),
+      wind_ptr (NULL),
+      key (NULL),
+      help (NULL)
   {
-    if (ky)
-      {
-	key = strdup (ky);
-	if (!key)
-	  gui_abort ("strdup failed");
-      }
+    if (key_label)
+      key = strdup (key_label);
 
     if (help)
-      {
-	this->help = strdup (help);
-	if (!this->help)
-	  gui_abort ("strdup failed");
-      }
+      this->help = strdup (help);
   }
 
   ~EmacsMenuItem ()
@@ -2380,22 +2509,6 @@ public:
       }
 
     BMenuItem::Highlight (highlight_p);
-  }
-};
-
-class EmacsPopUpMenu : public BPopUpMenu
-{
-public:
-  EmacsPopUpMenu (const char *name) : BPopUpMenu (name, 0)
-  {
-
-  }
-
-  void
-  FrameResized (float w, float h)
-  {
-    Invalidate ();
-    BPopUpMenu::FrameResized (w, h);
   }
 };
 
@@ -2618,13 +2731,22 @@ class EmacsFontSelectionDialog : public BWindow
   void
   UpdateStylesForIndex (int idx)
   {
-    int n, i;
+    int n, i, previous_selection;
     uint32 flags;
     font_family family;
     font_style style;
     BStringItem *item;
+    char *current_style;
 
     n = all_styles.CountItems ();
+    current_style = NULL;
+    previous_selection = font_style_pane.CurrentSelection ();
+
+    if (previous_selection >= 0)
+      {
+	item = all_styles.ItemAt (previous_selection);
+	current_style = strdup (item->Text ());
+      }
 
     font_style_pane.MakeEmpty ();
     all_styles.MakeEmpty ();
@@ -2640,6 +2762,10 @@ class EmacsFontSelectionDialog : public BWindow
 	    else
 	      item = new BStringItem ("<error>");
 
+	    if (current_style && pending_selection_idx < 0
+		&& !strcmp (current_style, style))
+	      pending_selection_idx = i;
+
 	    font_style_pane.AddItem (item);
 	    all_styles.AddItem (item);
 	  }
@@ -2653,6 +2779,9 @@ class EmacsFontSelectionDialog : public BWindow
 
     pending_selection_idx = -1;
     UpdateForSelectedStyle ();
+
+    if (current_style)
+      free (current_style);
   }
 
   bool
@@ -3361,56 +3490,28 @@ BView_resize_to (void *view, int width, int height)
   vw->UnlockLooper ();
 }
 
-void *
-BCursor_create_default (void)
-{
-  return new BCursor (B_CURSOR_ID_SYSTEM_DEFAULT);
-}
-
-void *
-BCursor_create_modeline (void)
-{
-  return new BCursor (B_CURSOR_ID_CONTEXT_MENU);
-}
-
-void *
-BCursor_from_id (enum haiku_cursor cursor)
-{
-  return new BCursor ((enum BCursorID) cursor);
-}
-
-void *
-BCursor_create_i_beam (void)
-{
-  return new BCursor (B_CURSOR_ID_I_BEAM);
-}
-
-void *
-BCursor_create_progress_cursor (void)
-{
-  return new BCursor (B_CURSOR_ID_PROGRESS);
-}
-
-void *
-BCursor_create_grab (void)
-{
-  return new BCursor (B_CURSOR_ID_GRAB);
-}
-
 void
-BCursor_delete (void *cursor)
+be_delete_cursor (void *cursor)
 {
   if (cursor)
     delete (BCursor *) cursor;
 }
 
+void *
+be_create_cursor_from_id (int id)
+{
+  return new BCursor ((enum BCursorID) id);
+}
+
 void
 BView_set_view_cursor (void *view, void *cursor)
 {
-  if (!((BView *) view)->LockLooper ())
+  BView *v = (BView *) view;
+
+  if (!v->LockLooper ())
     gui_abort ("Failed to lock view setting cursor");
-  ((BView *) view)->SetViewCursor ((BCursor *) cursor);
-  ((BView *) view)->UnlockLooper ();
+  v->SetViewCursor ((BCursor *) cursor);
+  v->UnlockLooper ();
 }
 
 void
@@ -3421,20 +3522,22 @@ BWindow_Flush (void *window)
 
 /* Make a scrollbar, attach it to VIEW's window, and return it.  */
 void *
-BScrollBar_make_for_view (void *view, int horizontal_p,
-			  int x, int y, int x1, int y1,
-			  void *scroll_bar_ptr)
+be_make_scroll_bar_for_view (void *view, int horizontal_p,
+			     int x, int y, int x1, int y1)
 {
-  EmacsScrollBar *sb = new EmacsScrollBar (x, y, x1, y1, horizontal_p);
+  EmacsScrollBar *scroll_bar;
   BView *vw = (BView *) view;
-  BView *sv = (BView *) sb;
 
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock scrollbar owner");
-  vw->AddChild ((BView *) sb);
-  sv->WindowActivated (vw->Window ()->IsActive ());
+
+  scroll_bar = new EmacsScrollBar (x, y, x1, y1, horizontal_p,
+				   (EmacsView *) vw);
+
+  vw->AddChild (scroll_bar);
   vw->UnlockLooper ();
-  return sb;
+
+  return scroll_bar;
 }
 
 void
@@ -3599,17 +3702,6 @@ BBitmap_import_fringe_bitmap (void *bitmap, unsigned short *bits, int wd, int h)
     }
 }
 
-void
-BBitmap_import_mono_bits (void *bitmap, void *bits, int wd, int h)
-{
-  BBitmap *bmp = (BBitmap *) bitmap;
-
-  if (wd % 8)
-    wd += 8 - (wd % 8);
-
-  bmp->ImportBits (bits, wd / 8 * h, wd / 8, 0, B_GRAY1);
-}
-
 /* Make a scrollbar at X, Y known to the view VIEW.  */
 void
 BView_publish_scroll_bar (void *view, int x, int y, int width, int height)
@@ -3768,7 +3860,8 @@ BView_emacs_delete (void *view)
 void *
 BPopUpMenu_new (const char *name)
 {
-  BPopUpMenu *menu = new EmacsPopUpMenu (name);
+  BPopUpMenu *menu = new BPopUpMenu (name);
+
   menu->SetRadioMode (0);
   return menu;
 }
@@ -3778,9 +3871,11 @@ BPopUpMenu_new (const char *name)
 void
 BMenu_add_title (void *menu, const char *text)
 {
-  EmacsTitleMenuItem *it = new EmacsTitleMenuItem (text);
-  BMenu *mn = (BMenu *) menu;
-  mn->AddItem (it);
+  BMenu *be_menu = (BMenu *) menu;
+  EmacsTitleMenuItem *it;
+
+  it = new EmacsTitleMenuItem (text);
+  be_menu->AddItem (it);
 }
 
 /* Add an item to the menu MENU.  */
@@ -4522,30 +4617,6 @@ be_popup_file_dialog (int open_p, const char *default_dir, int must_match_p,
   return file_name;
 }
 
-/* Zoom WINDOW.  */
-void
-BWindow_zoom (void *window)
-{
-  BWindow *w = (BWindow *) window;
-  w->Zoom ();
-}
-
-/* Make WINDOW fullscreen if FULLSCREEN_P.  */
-void
-EmacsWindow_make_fullscreen (void *window, int fullscreen_p)
-{
-  EmacsWindow *w = (EmacsWindow *) window;
-  w->MakeFullscreen (fullscreen_p);
-}
-
-/* Unzoom (maximize) WINDOW.  */
-void
-EmacsWindow_unzoom (void *window)
-{
-  EmacsWindow *w = (EmacsWindow *) window;
-  w->UnZoom ();
-}
-
 /* Move the pointer into MBAR and start tracking.  Return whether the
    menu bar was opened correctly.  */
 bool
@@ -5081,4 +5152,173 @@ BWindow_set_sticky (void *window, bool sticky)
 
       w->UnlockLooper ();
     }
+}
+
+status_t
+be_roster_launch (const char *type, const char *file, char **cargs,
+		  ptrdiff_t nargs, void *message, team_id *team_id)
+{
+  BEntry entry;
+  entry_ref ref;
+
+  if (type)
+    {
+      if (message)
+	return be_roster->Launch (type, (BMessage *) message,
+				  team_id);
+
+      return be_roster->Launch (type, (nargs > INT_MAX
+				       ? INT_MAX : nargs),
+				cargs, team_id);
+    }
+
+  if (entry.SetTo (file) != B_OK)
+    return B_ERROR;
+
+  if (entry.GetRef (&ref) != B_OK)
+    return B_ERROR;
+
+  if (message)
+    return be_roster->Launch (&ref, (BMessage *) message,
+			      team_id);
+
+  return be_roster->Launch (&ref, (nargs > INT_MAX
+				   ? INT_MAX : nargs),
+			    cargs, team_id);
+}
+
+void *
+be_create_pixmap_cursor (void *bitmap, int x, int y)
+{
+  BBitmap *bm;
+  BCursor *cursor;
+
+  bm = (BBitmap *) bitmap;
+  cursor = new BCursor (bm, BPoint (x, y));
+
+  if (cursor->InitCheck () != B_OK)
+    {
+      delete cursor;
+      return NULL;
+    }
+
+  return cursor;
+}
+
+void
+be_get_window_decorator_dimensions (void *window, int *left, int *top,
+				    int *right, int *bottom)
+{
+  BWindow *wnd;
+  BRect frame, window_frame;
+
+  wnd = (BWindow *) window;
+
+  if (!wnd->LockLooper ())
+    gui_abort ("Failed to lock window looper frame");
+
+  frame = wnd->DecoratorFrame ();
+  window_frame = wnd->Frame ();
+
+  if (left)
+    *left = window_frame.left - frame.left;
+
+  if (top)
+    *top = window_frame.top - frame.top;
+
+  if (right)
+    *right = frame.right - window_frame.right;
+
+  if (bottom)
+    *bottom = frame.bottom - window_frame.bottom;
+
+  wnd->UnlockLooper ();
+}
+
+void
+be_get_window_decorator_frame (void *window, int *left, int *top,
+			       int *width, int *height)
+{
+  BWindow *wnd;
+  BRect frame;
+
+  wnd = (BWindow *) window;
+
+  if (!wnd->LockLooper ())
+    gui_abort ("Failed to lock window looper frame");
+
+  frame = wnd->DecoratorFrame ();
+
+  *left = frame.left;
+  *top = frame.top;
+  *width = BE_RECT_WIDTH (frame);
+  *height = BE_RECT_HEIGHT (frame);
+
+  wnd->UnlockLooper ();
+}
+
+/* Request that a MOVE_EVENT be sent for WINDOW.  This is so that
+   frame offsets can be updated after a frame parameter affecting
+   decorators changes.  Sending an event instead of updating the
+   offsets directly avoids race conditions where events with older
+   information are received after the update happens.  */
+void
+be_send_move_frame_event (void *window)
+{
+  BWindow *wnd = (BWindow *) window;
+  BMessenger msg (wnd);
+
+  msg.SendMessage (SEND_MOVE_FRAME_EVENT);
+}
+
+void
+be_lock_window (void *window)
+{
+  BWindow *wnd = (BWindow *) window;
+
+  if (!wnd->LockLooper ())
+    gui_abort ("Failed to lock window looper");
+}
+
+void
+be_unlock_window (void *window)
+{
+  BWindow *wnd = (BWindow *) window;
+
+  wnd->UnlockLooper ();
+}
+
+void
+be_set_window_fullscreen_mode (void *window, enum haiku_fullscreen_mode mode)
+{
+  EmacsWindow *w = (EmacsWindow *) window;
+
+  if (!w->LockLooper ())
+    gui_abort ("Failed to lock window to set fullscreen mode");
+
+  w->SetFullscreen (mode);
+  w->UnlockLooper ();
+}
+
+bool
+be_get_explicit_workarea (int *x, int *y, int *width, int *height)
+{
+  BDeskbar deskbar;
+  BRect zoom;
+  deskbar_location location;
+
+  location = deskbar.Location ();
+
+  if (location != B_DESKBAR_TOP
+      && location != B_DESKBAR_BOTTOM)
+    return false;
+
+  zoom = get_zoom_rect (NULL);
+
+  *x = zoom.left;
+  *y = zoom.top;
+  *width = BE_RECT_WIDTH (zoom);
+  *height = BE_RECT_HEIGHT (zoom);
+
+  return true;
 }

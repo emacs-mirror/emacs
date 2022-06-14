@@ -492,6 +492,7 @@ OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
 OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
 OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for input])
+OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -1025,6 +1026,7 @@ AS_IF([test $gl_gcc_warnings = no],
      gl_WARN_ADD([-Wno-pointer-sign])
      gl_WARN_ADD([-Wno-string-plus-int])
      gl_WARN_ADD([-Wno-unknown-attributes])
+     gl_WARN_ADD([-Wno-unknown-pragmas])
    ])
  ],[
   isystem='-isystem '
@@ -1080,8 +1082,12 @@ AS_IF([test $gl_gcc_warnings = no],
   # option problematic.
   nw="$nw -Wsuggest-attribute=pure"
 
+  # Emacs doesn't need this paranoia.
+  nw="$nw -Wbidi-chars=any,ucn"
+
   if test "$emacs_cv_clang" = yes; then
     nw="$nw -Wdouble-promotion"
+    nm="$nm -Wunknown-pragmas"
   fi
 
   # This causes too much noise in the MinGW build.
@@ -1101,6 +1107,7 @@ AS_IF([test $gl_gcc_warnings = no],
   gl_WARN_ADD([-Wno-type-limits])      # Too many warnings for now
   gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
   gl_WARN_ADD([-Wno-format-nonliteral])
+  gl_WARN_ADD([-Wno-bidi-chars])
 
   # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
@@ -1618,16 +1625,63 @@ AC_DEFUN([AC_TYPE_SIZE_T])
 # Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 AC_DEFUN([AC_TYPE_UID_T])
 
-# sqrt and other floating-point functions such as fmod and frexp
-# are found in -lm on many systems.
-OLD_LIBS=$LIBS
-AC_SEARCH_LIBS([sqrt], [m])
-if test "X$LIBS" = "X$OLD_LIBS"; then
-  LIB_MATH=
-else
-  LIB_MATH=$ac_cv_search_sqrt
-fi
-LIBS=$OLD_LIBS
+# Check for all math.h functions that Emacs uses; on some platforms,
+# -lm is needed for some of these functions.
+AC_CACHE_CHECK([for math library],
+  [emacs_cv_lib_math],
+  [OLD_LIBS=$LIBS
+   AC_LINK_IFELSE(
+     [AC_LANG_SOURCE([[
+	#include <math.h>
+	int
+	main (int argc, char **argv)
+	{
+	  double d = argc;
+	  float f = argc;
+	  int i = argc;
+	  long l = argc;
+	  d = acos (d);
+	  d = asin (d);
+	  d = atan (d);
+	  d = atan2 (d, d);
+	  d = ceil (d);
+	  d = copysign (d, d);
+	  d = cos (d);
+	  d = exp (d);
+	  d = fabs (d);
+	  d = floor (d);
+	  d = fmod (d, d);
+	  d = frexp (d, &i);
+	  d = ldexp (d, i);
+	  d = log (d);
+	  d = log2 (d);
+	  d = log10 (d);
+	  d = pow (d, d);
+	  d = rint (d);
+	  d = scalbn (d, l);
+	  d = sin (d);
+	  d = sqrt (d);
+	  d = tan (d);
+	  d = trunc (d);
+	  f = fabsf (f);
+	  f = powf (f, f);
+	  i = ilogb (d);
+	  i = signbit (d);
+	  l = lrint (d);
+	  l = lround (d);
+	  return d == f && i == l;
+	}
+     ]])],
+     [emacs_cv_lib_math='none required'],
+     [LIBS="-lm $LIBS"
+      AC_LINK_IFELSE([],
+        [emacs_cv_lib_math=-lm],
+	[AC_MSG_ERROR([Math library (-lm) not found])])])
+   LIBS=$OLD_LIBS])
+case $emacs_cv_lib_math in
+  -*) LIB_MATH=$emacs_cv_lib_math;;
+  *)  LIB_MATH=;;
+esac
 
 dnl Current possibilities handled by sed (aix4-2 -> aix,
 dnl gnu-linux -> gnu/linux, etc.):
@@ -2030,6 +2084,16 @@ Either fix this, or re-configure with the option '--without-ns'.])])
        AC_MSG_ERROR([Mac OS X 10.6 or newer is required]);
     fi
   fi
+
+  AC_CACHE_CHECK([for Mac OS X 12.0 or later],
+                 [emacs_cv_macosx_12_0],
+                 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <AvailabilityMacros.h>
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 120000
+Mac OS X 12.x or later.
+#endif
+                 ]])], [emacs_cv_macosx_12_0=no],
+                 [emacs_cv_macosx_12_0=yes]))
 
   if test "${with_native_image_api}" = yes; then
      AC_DEFINE(HAVE_NATIVE_IMAGE_API, 1, [Define to use native OS APIs for images.])
@@ -6203,6 +6267,9 @@ case "$opsys" in
      if test "$NS_IMPL_COCOA" = "yes"; then
         libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon \
                     -framework IOSurface -framework QuartzCore"
+        if test "$emacs_cv_macosx_12_0" = "yes"; then
+	  libs_nsgui="$libs_nsgui -framework UniformTypeIdentifiers"
+	fi
      fi
    else
      libs_nsgui=
@@ -6465,6 +6532,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Which dumping strategy does Emacs use?                  ${with_dumping}
   Does Emacs have native lisp compiler?                   ${HAVE_NATIVE_COMP}
   Does Emacs use version 2 of the the X Input Extension?  ${HAVE_XINPUT2}
+  Does Emacs generate a smaller-size Japanese dictionary? ${with_small_ja_dic}
 "])
 
 if test -n "${EMACSDATA}"; then
@@ -6562,6 +6630,9 @@ fi                              dnl -d admin
 SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
 
 AC_SUBST(SUBDIR_MAKEFILES_IN)
+
+SMALL_JA_DIC=$with_small_ja_dic
+AC_SUBST(SMALL_JA_DIC)
 
 dnl You might wonder (I did) why epaths.h is generated by running make,
 dnl rather than just letting configure generate it from epaths.in.

@@ -45,7 +45,6 @@
 (defvar pgtk-use-im-context-on-new-connection)
 
 (declare-function pgtk-use-im-context "pgtkim.c")
-(declare-function pgtk-hide-emacs "pgtkfns.c" (on))
 
 (defun pgtk-drag-n-drop (event &optional new-frame force-text)
   "Edit the files listed in the drag-n-drop EVENT.
@@ -97,7 +96,7 @@ the last file dropped is selected."
 (declare-function x-handle-args "common-win" (args))
 (declare-function x-open-connection "pgtkfns.c"
                   (display &optional xrm-string must-succeed))
-(declare-function pgtk-set-resource "pgtkfns.c" (owner name value))
+(declare-function pgtk-set-resource "pgtkfns.c" (attribute value))
 
 ;; Do the actual window system setup here; the above code just defines
 ;; functions and variables that we use now.

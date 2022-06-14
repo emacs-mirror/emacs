@@ -172,7 +172,7 @@ macro to be executed before appending to it."
     (define-key map "\C-k" #'kmacro-end-or-call-macro-repeat)
     (define-key map "r"    #'apply-macro-to-region-lines)
     (define-key map "q"    #'kbd-macro-query)  ;; Like C-x q
-    (define-key map "d"    #'kdb-macro-redisplay)
+    (define-key map "d"    #'kmacro-redisplay)
 
     ;; macro ring
     (define-key map "\C-n" #'kmacro-cycle-ring-next)
@@ -1374,12 +1374,12 @@ To customize possible responses, change the \"bindings\" in
       (kmacro-push-ring)
       (setq last-kbd-macro kmacro-step-edit-new-macro))))
 
-(defun kdb-macro-redisplay ()
-  "Force redisplay during kbd macro execution."
+(defun kmacro-redisplay ()
+  "Force redisplay during keyboard macro execution."
   (interactive)
   (or executing-kbd-macro
       defining-kbd-macro
-      (user-error "Not defining or executing kbd macro"))
+      (user-error "Not defining or executing keyboard macro"))
   (when executing-kbd-macro
     (let ((executing-kbd-macro nil))
       (redisplay))))

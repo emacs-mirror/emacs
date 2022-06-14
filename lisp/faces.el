@@ -516,6 +516,9 @@ FACES may be either a single face or a list of faces.
 
 (defun face-foreground (face &optional frame inherit)
   "Return the foreground color name of FACE, or nil if unspecified.
+On TTY frames, the returned color name can be \"unspecified-fg\",
+which stands for the unknown default foreground color of the display
+where the frame is displayed.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
@@ -537,6 +540,9 @@ merging with the `default' face (which is always completely specified)."
 
 (defun face-background (face &optional frame inherit)
   "Return the background color name of FACE, or nil if unspecified.
+On TTY frames, the returned color name can be \"unspecified-bg\",
+which stands for the unknown default background color of the display
+where the frame is displayed.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
@@ -1148,13 +1154,18 @@ returned.  Otherwise, DEFAULT is returned verbatim."
                            nil t nil 'face-name-history default))
               ;; Ignore elements that are not faces
               ;; (for example, because DEFAULT was "all faces")
-              (if (facep face) (push (intern face) faces)))
+              (if (facep face) (push (if (stringp face)
+                                         (intern face)
+                                       face)
+                                     faces)))
             (nreverse faces))
         (let ((face (completing-read
                      prompt
                      (completion-table-in-turn nonaliasfaces aliasfaces)
                      nil t nil 'face-name-history defaults)))
-          (if (facep face) (intern face)))))))
+          (when (facep face) (if (stringp face)
+                                 (intern face)
+                               face)))))))
 
 ;; Not defined without X, but behind window-system test.
 (defvar x-bitmap-file-path)
@@ -1202,8 +1213,9 @@ an integer value."
            (:height
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x ns pgtk)) ; No stipple on w32 or haiku
-                 (mapcar #'list
+            (and (memq (window-system frame) '(x ns pgtk haiku)) ; No stipple on w32
+                 (mapcar (lambda (item)
+                           (cons item item))
                          (apply #'nconc
                                 (mapcar (lambda (dir)
                                           (and (file-readable-p dir)
@@ -2091,11 +2103,17 @@ unnamed faces (e.g, `foreground-color')."
         (face-attribute 'default attribute))))
 
 (defun foreground-color-at-point ()
-  "Return the foreground color of the character after point."
+  "Return the foreground color of the character after point.
+On TTY frames, the returned color name can be \"unspecified-fg\",
+which stands for the unknown default foreground color of the
+display where the frame is displayed."
   (faces--attribute-at-point :foreground 'foreground-color))
 
 (defun background-color-at-point ()
-  "Return the background color of the character after point."
+  "Return the background color of the character after point.
+On TTY frames, the returned color name can be \"unspecified-bg\",
+which stands for the unknown default background color of the
+display where the frame is displayed."
   (faces--attribute-at-point :background 'background-color))
 
 

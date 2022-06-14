@@ -306,10 +306,9 @@ attached to and added to this list before the new frame is initialized."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value"))))
 
-(defcustom speedbar-use-imenu-flag (fboundp 'imenu)
+(defcustom speedbar-use-imenu-flag t
   "Non-nil means use imenu for file parsing, nil to use etags.
-XEmacs prior to 20.4 doesn't support imenu, therefore the default is to
-use etags instead.  Etags support is not as robust as imenu support."
+Etags support is not as robust as imenu support." ; See Bug#51102
   :tag "Use Imenu for tags"
   :group 'speedbar
   :type 'boolean)
@@ -800,15 +799,10 @@ This basically creates a sparse keymap, and makes its parent be
      ["Auto Update" speedbar-toggle-updates
       :active (not speedbar-update-flag-disable)
       :style toggle :selected speedbar-update-flag])
-   (if (and (or (fboundp 'defimage)
-		(fboundp 'make-image-specifier))
-	    (if (fboundp 'display-graphic-p)
-		(display-graphic-p)
-	      window-system))
-       (list
-	["Use Images" speedbar-toggle-images
-	 :style toggle :selected speedbar-use-images]))
-   )
+   (when (and (fboundp 'defimage) (display-graphic-p))
+     (list
+      ["Use Images" speedbar-toggle-images
+       :style toggle :selected speedbar-use-images])))
   "Base part of the speedbar menu.")
 
 (defvar speedbar-easymenu-definition-special
@@ -2276,9 +2270,7 @@ the list."
 		      (with-current-buffer (get-file-buffer f)
                         speedbar-tag-hierarchy-method)
 		    speedbar-tag-hierarchy-method))
-	 (lst (if (fboundp 'copy-tree)
-		  (copy-tree lst)
-		lst)))
+         (lst (copy-tree lst)))
     (while methods
       (setq lst (funcall (car methods) lst)
 	    methods (cdr methods)))

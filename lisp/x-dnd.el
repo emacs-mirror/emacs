@@ -35,25 +35,26 @@
 (defcustom x-dnd-test-function #'x-dnd-default-test-function
   "The function drag and drop uses to determine if to accept or reject a drop.
 The function takes three arguments, WINDOW, ACTION and TYPES.
-WINDOW is where the mouse is when the function is called.  WINDOW may be a
-frame if the mouse isn't over a real window (i.e. menu bar, tool bar or
-scroll bar).  ACTION is the suggested action from the drag and drop source,
-one of the symbols move, copy, link or ask.  TYPES is a list of available
-types for the drop.
+WINDOW is where the mouse is when the function is called.  WINDOW
+may be a frame if the mouse isn't over a real window (i.e. menu
+bar, tool bar or scroll bar).  ACTION is the suggested action
+from the drag and drop source, one of the symbols move, copy,
+link or ask.  TYPES is a vector of available types for the drop.
 
-The function shall return nil to reject the drop or a cons with two values,
-the wanted action as car and the wanted type as cdr.  The wanted action
-can be copy, move, link, ask or private.
+Each element of TYPE should either be a string (containing the
+name of the type's X atom), or a symbol, whose name will be used.
+
+The function shall return nil to reject the drop or a cons with
+two values, the wanted action as car and the wanted type as cdr.
+The wanted action can be copy, move, link, ask or private.
+
 The default value for this variable is `x-dnd-default-test-function'."
   :version "22.1"
   :type 'symbol
   :group 'x)
 
-
-
 (defcustom x-dnd-types-alist
-  `(
-    (,(purecopy "text/uri-list") . x-dnd-handle-uri-list)
+  `((,(purecopy "text/uri-list") . x-dnd-handle-uri-list)
     (,(purecopy "text/x-moz-url") . x-dnd-handle-moz-url)
     (,(purecopy "_NETSCAPE_URL") . x-dnd-handle-uri-list)
     (,(purecopy "FILE_NAME") . x-dnd-handle-file-name)
@@ -64,8 +65,7 @@ The default value for this variable is `x-dnd-default-test-function'."
     (,(purecopy "text/plain") . dnd-insert-text)
     (,(purecopy "COMPOUND_TEXT") . x-dnd-insert-ctext)
     (,(purecopy "STRING") . dnd-insert-text)
-    (,(purecopy "TEXT")   . dnd-insert-text)
-    )
+    (,(purecopy "TEXT")   . dnd-insert-text))
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
 the drop is rejected.  The function takes three arguments, WINDOW, ACTION
@@ -91,14 +91,12 @@ if drop is successful, nil if not."
     "text/plain"
     "COMPOUND_TEXT"
     "STRING"
-    "TEXT"
-    ))
+    "TEXT"))
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
   :version "22.1"
   :type '(repeat string)
-  :group 'x
-)
+  :group 'x)
 
 ;; Internal variables
 
@@ -165,7 +163,6 @@ types the drop data can have.  This function only accepts drops with
 types in `x-dnd-known-types'.  It always returns the action private."
   (let ((type (x-dnd-choose-type types)))
     (when type (cons 'private type))))
-
 
 (defun x-dnd-current-type (frame-or-window)
   "Return the type we want the DND data to be in for the current drop.
@@ -333,7 +330,10 @@ nil if not."
 	  ;; If dropping in an ordinary window which we could use,
 	  ;; let dnd-open-file-other-window specify what to do.
 	  (progn
-	    (when (not mouse-yank-at-point)
+	    (when (and (not mouse-yank-at-point)
+                       ;; If dropping on top of the mode line, insert
+                       ;; the text at point instead.
+                       (posn-point (event-start event)))
 	      (goto-char (posn-point (event-start event))))
 	    (funcall handler window action data))
 	;; If we can't display the file here,
@@ -403,7 +403,7 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 ;;;  XDND protocol.
 
 (declare-function x-change-window-property "xfns.c"
-		  (prop value &optional frame type format outer-P))
+		  (prop value &optional frame type format outer-P window-id))
 
 (defun x-dnd-init-xdnd-for-frame (frame)
   "Set the XdndAware property for FRAME to indicate that we do XDND."
@@ -487,7 +487,11 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(reply-action (car (rassoc (car action-type)
 					   x-dnd-xdnd-to-action)))
 		(accept ;; 1 = accept, 0 = reject
-		 (if (and reply-action action-type) 1 0))
+		 (if (and reply-action action-type
+                          ;; Only allow drops on the text area of a
+                          ;; window.
+                          (not (posn-area (event-start event))))
+                     1 0))
 		(list-to-send
 		 (list (string-to-number
 			(frame-parameter frame 'outer-window-id))
@@ -495,8 +499,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		       (x-dnd-get-drop-x-y frame window)
 		       (x-dnd-get-drop-width-height
 			frame window (eq accept 1))
-		       (or reply-action 0)
-		       )))
+		       (or reply-action 0))))
 	   (x-send-client-message
 	    frame dnd-source frame "XdndStatus" 32 list-to-send)
            (dnd-handle-movement (event-start event))))
@@ -582,6 +585,88 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 	(reverse bytes)
       bytes)))
 
+(defun x-dnd-xm-unpack-targets-table-header (data)
+  "Decode the header of DATA, a Motif targets table.
+Return a list of the following fields with the given types:
+
+    Field name        Type
+  - BYTE_ORDER        BYTE
+  - PROTOCOL          BYTE
+  - TARGET_LIST_COUNT CARD16
+  - TOTAL_DATA_SIZE   CARD32"
+  (let* ((byte-order (aref data 0))
+         (protocol (aref data 1))
+         (target-list-count (x-dnd-get-motif-value
+                             data 2 2 byte-order))
+         (total-data-size (x-dnd-get-motif-value
+                           data 4 4 byte-order)))
+    (list byte-order protocol target-list-count
+          total-data-size)))
+
+(defun x-dnd-xm-read-single-rec (data i)
+  "Read a single rec from DATA, a Motif targets table.
+I is the offset into DATA to begin reading at.  Return a list
+of (CONSUMED NTARGETS TARGETS), where CONSUMED is the number of
+bytes read from DATA, NTARGETS is the total number of targets
+inside the current rec, and TARGETS is a vector of atoms
+describing the selection targets in the current rec."
+  (let* ((byte-order (aref data 0))
+         (n-targets (x-dnd-get-motif-value
+                     data i 2 byte-order))
+         (targets (make-vector n-targets nil))
+         (consumed 0))
+    (while (< consumed n-targets)
+      (aset targets consumed (x-dnd-get-motif-value
+                              data (+ i 2 (* consumed 4))
+                              4 byte-order))
+      (setq consumed (1+ consumed)))
+    (list (+ 2 (* consumed 4)) n-targets targets)))
+
+(defun x-dnd-xm-read-targets-table (frame)
+  "Read the Motif targets table on FRAME.
+Return a vector of vectors of numbers, which are the atoms of the
+available selection targets for each index into the selection
+table."
+  (let* ((drag-window (x-window-property "_MOTIF_DRAG_WINDOW"
+                                         frame "WINDOW" 0 nil t))
+         (targets-data (x-window-property "_MOTIF_DRAG_TARGETS"
+                                          frame "_MOTIF_DRAG_TARGETS"
+                                          drag-window nil t))
+         (header (x-dnd-xm-unpack-targets-table-header targets-data))
+         (vec (make-vector (nth 2 header) nil))
+         (current-byte 8)
+         (i 0))
+    (unless (stringp targets-data)
+      (error "Expected format 8, got %s" (type-of targets-data)))
+    (prog1 vec
+      (while (< i (nth 2 header))
+        (let ((rec (x-dnd-xm-read-single-rec targets-data
+                                             current-byte)))
+          (aset vec i (nth 2 rec))
+          (setq current-byte (+ current-byte (car rec)))
+          (setq i (1+ i))))
+      (unless (eq current-byte (nth 3 header))
+        (error "Targets table header says size is %d, but it is actually %d"
+               (nth 3 header) current-byte)))))
+
+(defun x-dnd-xm-read-targets (frame window selection)
+  "Read targets of SELECTION on FRAME from the targets table.
+WINDOW should be the drag-and-drop operation's initiator.
+Return a vector of atoms containing the selection targets."
+  (let* ((targets-table (x-dnd-xm-read-targets-table frame))
+         (initiator-info (x-window-property selection frame
+                                            "_MOTIF_DRAG_INITIATOR_INFO"
+                                            window nil nil))
+         (byte-order (aref initiator-info 0))
+         (idx (x-dnd-get-motif-value initiator-info
+                                     2 2 byte-order))
+         (vector (aref targets-table idx))
+         (i 0))
+    (prog1 vector
+      (while (< i (length vector))
+        (aset vector i
+              (intern (x-get-atom-name (aref vector i))))
+        (setq i (1+ i))))))
 
 (defvar x-dnd-motif-message-types
   '((0 . XmTOP_LEVEL_ENTER)
@@ -619,14 +704,12 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			         data 8 4 source-byteorder))
 		    (selection-atom (x-dnd-get-motif-value
 				     data 12 4 source-byteorder))
-		    (atom-name (x-get-atom-name selection-atom))
-		    (types (when atom-name
-			     (x-get-selection-internal (intern atom-name)
-						       'TARGETS))))
+                    (atom-name (x-get-atom-name selection-atom))
+		    (types (x-dnd-xm-read-targets frame dnd-source
+                                                  atom-name)))
 	       (x-dnd-forget-drop frame)
 	       (when types (x-dnd-save-state window nil nil
-					     types
-					     dnd-source))))
+					     types dnd-source))))
 
 	    ;; Can not forget drop here, LEAVE comes before DROP_START and
 	    ;; we need the state in DROP_START.
@@ -653,13 +736,16 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		    (reply-action (car (rassoc (car action-type)
 					       x-dnd-motif-to-action)))
 		    (reply-flags
-		     (x-dnd-motif-value-to-list
-		      (if reply-action
-			  (+ reply-action
-			     ?\x30	; 30:  valid drop site
-			     ?\x700)	; 700: can do copy, move or link
-		        ?\x30)		; 30:  drop site, but noop.
-		      2 my-byteorder))
+                     (if (posn-area (event-start event))
+                         (x-dnd-motif-value-to-list ?\x20 ; 20: invalid drop site
+                                                    2 my-byteorder)
+		       (x-dnd-motif-value-to-list
+		        (if reply-action
+			    (+ reply-action
+			       ?\x30                      ; 30:  valid drop site
+			       ?\x700)                    ; 700: can do copy, move or link
+		          ?\x30)                          ; 30:  drop site, but noop.
+		        2 my-byteorder)))
 		    (reply (append
 			    (list
 			     (+ ?\x80	; 0x80 indicates a reply.
@@ -691,13 +777,16 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		    (reply-action (car (rassoc (car action-type)
 					       x-dnd-motif-to-action)))
 		    (reply-flags
-		     (x-dnd-motif-value-to-list
-		      (if reply-action
-			  (+ reply-action
-			     ?\x30	; 30:  valid drop site
-			     ?\x700)	; 700: can do copy, move or link
-		        ?\x30)		; 30:  drop site, but noop
-		      2 my-byteorder))
+		     (if (posn-area (event-start event))
+                         (x-dnd-motif-value-to-list ?\x20 ; 20: invalid drop site
+                                                    2 my-byteorder)
+		       (x-dnd-motif-value-to-list
+		        (if reply-action
+			    (+ reply-action
+			       ?\x30   ; 30:  valid drop site
+			       ?\x700) ; 700: can do copy, move or link
+		          ?\x30)       ; 30:  drop site, but noop.
+		        2 my-byteorder)))
 		    (reply (append
 			    (list
 			     (+ ?\x80	; 0x80 indicates a reply.
@@ -722,59 +811,74 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		    (selection-atom (x-dnd-get-motif-value
 				     data 12 4 source-byteorder))
 		    (atom-name (x-get-atom-name selection-atom))
-		    (dnd-source (x-dnd-get-motif-value
-			         data 16 4 source-byteorder))
-		    (action-type (x-dnd-maybe-call-test-function
-				  window
-				  source-action))
-		    (reply-action (car (rassoc (car action-type)
-					       x-dnd-motif-to-action)))
-		    (reply-flags
-		     (x-dnd-motif-value-to-list
-		      (if reply-action
-			  (+ reply-action
-			     ?\x30	; 30:  valid drop site
-			     ?\x700)	; 700: can do copy, move or link
-		        (+ ?\x30		; 30:  drop site, but noop.
-			   ?\x200))	; 200: drop cancel.
-		      2 my-byteorder))
-		    (reply (append
-			    (list
-			     (+ ?\x80	; 0x80 indicates a reply.
-			        5)	; DROP_START.
-			     my-byteorder)
-			    reply-flags
-			    x
-			    y))
-		    (timestamp (x-dnd-get-motif-value
-			        data 4 4 source-byteorder))
-		    action)
+                    (dnd-source (x-dnd-get-motif-value
+			         data 16 4 source-byteorder)))
 
-	       (x-send-client-message frame
-				      dnd-source
-				      frame
-				      "_MOTIF_DRAG_AND_DROP_MESSAGE"
-				      8
-				      reply)
-	       (setq action
-		     (when (and reply-action atom-name)
-		       (let* ((value (x-get-selection-internal
-				      (intern atom-name)
-				      (intern (x-dnd-current-type window)))))
-		         (when value
-			   (condition-case info
-			       (x-dnd-drop-data event frame window value
-					        (x-dnd-current-type window))
-			     (error
-			      (message "Error: %s" info)
-			      nil))))))
-	       (x-get-selection-internal
-	        (intern atom-name)
-	        (if action 'XmTRANSFER_SUCCESS 'XmTRANSFER_FAILURE)
-	        timestamp)
-	       (x-dnd-forget-drop frame)))
+               ;; This might be a drop from a program that doesn't use
+               ;; the Motif drag protocol.  Compute all the necessary
+               ;; state here if that is true.
+               (unless (and (x-dnd-get-state-for-frame frame)
+                            (aref (x-dnd-get-state-for-frame frame) 2))
+                 (x-dnd-forget-drop frame)
+                 (let ((types (x-dnd-xm-read-targets frame dnd-source
+                                                     atom-name)))
+                   (x-dnd-save-state window nil nil types dnd-source)))
 
-            (t (message "Unknown Motif drag-and-drop message: %s" (logand (aref data 0) #x3f)))))))
+               (let* ((action-type (x-dnd-maybe-call-test-function
+			            window
+			            source-action))
+		      (reply-action (and (not (posn-area (event-start event)))
+                                         (car (rassoc (car action-type)
+					              x-dnd-motif-to-action))))
+		      (reply-flags
+		       (x-dnd-motif-value-to-list
+                        (if (posn-area (event-start event))
+                            (+ ?\x20     ; 20: invalid drop site
+                               ?\x200)   ; 200: drop cancel
+		          (if reply-action
+			      (+ reply-action
+			         ?\x30   ; 30:  valid drop site
+			         ?\x700) ; 700: can do copy, move or link
+		            (+ ?\x30     ; 30:  drop site, but noop.
+			       ?\x200))) ; 200: drop cancel.
+		        2 my-byteorder))
+		      (reply (append
+			      (list
+			       (+ ?\x80	; 0x80 indicates a reply.
+			          5)	; DROP_START.
+			       my-byteorder)
+			      reply-flags
+			      x y))
+		      (timestamp (x-dnd-get-motif-value
+			          data 4 4 source-byteorder))
+		      action)
+
+	         (x-send-client-message frame
+				        dnd-source
+				        frame
+				        "_MOTIF_DRAG_AND_DROP_MESSAGE"
+				        8
+				        reply)
+	         (setq action
+		       (when (and reply-action atom-name)
+		         (let* ((value (x-get-selection-internal
+				        (intern atom-name)
+				        (intern (x-dnd-current-type window)))))
+		           (when value
+			     (condition-case info
+			         (x-dnd-drop-data event frame window value
+					          (x-dnd-current-type window))
+			       (error
+			        (message "Error: %s" info)
+			        nil))))))
+	         (x-get-selection-internal
+	          (intern atom-name)
+	          (if action 'XmTRANSFER_SUCCESS 'XmTRANSFER_FAILURE)
+	          timestamp)
+	         (x-dnd-forget-drop frame))))
+
+            (t (message "Unknown Motif drag-and-drop message: %s"
+                        (logand (aref data 0) #x3f)))))))
 
 
 ;;;
@@ -783,14 +887,31 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 ;;; Handling drops.
 
-(defun x-dnd-handle-unsupported-drop (targets _x _y action _window-id _frame)
-  "Return non-nil if the drop described by TARGETS and ACTION should not proceeed."
+(defun x-dnd-handle-unsupported-drop (targets _x _y action _window-id _frame _time)
+  "Return non-nil if the drop described by TARGETS and ACTION should not proceed."
   (not (and (or (eq action 'XdndActionCopy)
                 (eq action 'XdndActionMove))
             (or (member "STRING" targets)
                 (member "UTF8_STRING" targets)
                 (member "COMPOUND_TEXT" targets)
                 (member "TEXT" targets)))))
+
+(defvar x-dnd-targets-list)
+(defvar x-dnd-native-test-function)
+
+(defun x-dnd-handle-native-drop (pos action)
+  "Compute the action for a drop at POS.
+Return the appropriate drag-and-drop action for a local drop at POS.
+ACTION is the action given to `x-begin-drag'."
+  (let ((state (funcall x-dnd-test-function
+                        (posn-window pos)
+                        (cdr (assoc (symbol-name action)
+                                    x-dnd-xdnd-to-action))
+                        (apply #'vector x-dnd-targets-list))))
+    (when state
+      (intern (car (rassq (car state) x-dnd-xdnd-to-action))))))
+
+(setq x-dnd-native-test-function #'x-dnd-handle-native-drop)
 
 (provide 'x-dnd)
 

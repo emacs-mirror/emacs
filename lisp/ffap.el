@@ -1229,13 +1229,13 @@ If the region is active, return a string from the region.
 
 If the point is in a comment, ensure that the returned string does not
 contain the comment start characters (especially for major modes that
-have '//' as comment start characters).
+have \"//\" as comment start characters).
 
 Set the variables `ffap-string-at-point' and
 `ffap-string-at-point-region'.
 
 When the region is active and larger than `ffap-max-region-length',
-return an empty string, and set `ffap-string-at-point-region' to '(1 1)."
+return an empty string, and set `ffap-string-at-point-region' to `(1 1)'."
   (let* (dir-separator
          (args
 	  (cdr

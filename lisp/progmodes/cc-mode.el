@@ -997,7 +997,8 @@ Note that the style variables are always made local to the buffer."
   ;; `c-before/after-change', frame 3 is the primitive invoking the change
   ;; hook.
   (memq (cadr (backtrace-frame 3))
-	'(put-text-property remove-list-of-text-properties)))
+	'(put-text-property remove-text-properties
+			    remove-list-of-text-properties)))
 
 (defun c-depropertize-CPP (beg end)
   ;; Remove the punctuation syntax-table text property from the CPP parts of
@@ -1319,7 +1320,8 @@ Note that the style variables are always made local to the buffer."
   ;; balanced by another " is left with a '(1) syntax-table property.
   (when
       (and c-min-syn-tab-mkr c-max-syn-tab-mkr)
-    (let (s pos)
+    (c-save-buffer-state (s pos)  ; Prevent text property stuff causing change
+				  ; function invocation.
       (setq pos c-min-syn-tab-mkr)
       (while
 	  (and
@@ -1342,7 +1344,8 @@ Note that the style variables are always made local to the buffer."
 		       (c-search-backward-char-property-with-value-on-char
 			'c-fl-syn-tab '(15) ?\"
 			(max (- (point) 500) (point-min))))
-		     (not (equal (c-get-char-property (point) 'syntax-table) '(1))))
+		     (not (equal (c-get-char-property (point) 'syntax-table)
+				 '(1))))
 	    (setq pos (1+ pos))))
 	(while (< pos c-max-syn-tab-mkr)
 	  (setq pos
@@ -1372,7 +1375,9 @@ Note that the style variables are always made local to the buffer."
   ;; Restore any syntax-table text properties which are "mirrored" by
   ;; c-fl-syn-tab text properties.
   (when (and c-min-syn-tab-mkr c-max-syn-tab-mkr)
-    (let ((pos c-min-syn-tab-mkr))
+    (c-save-buffer-state ; Prevent text property stuff causing change function
+			 ; invocation.
+	((pos c-min-syn-tab-mkr))
       (while
 	  (and
 	   (< pos c-max-syn-tab-mkr)
@@ -2016,120 +2021,116 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; or a comment - "wrongly" removing a symbol from `c-found-types'
   ;; isn't critical.
   (unless (c-called-from-text-property-change-p)
-    (save-restriction
-      (widen)
-      ;; Clear the list of found types if we make a change at the start of the
-      ;; buffer, to make it easier to get rid of misspelled types and
-      ;; variables that have gotten recognized as types in malformed code.
-      (when (eq beg (point-min))
-	(c-clear-found-types))
-      (if c-just-done-before-change
-	  ;; We have two consecutive calls to `before-change-functions'
-	  ;; without an intervening `after-change-functions'.  An example of
-	  ;; this is bug #38691.  To protect CC Mode, assume that the entire
-	  ;; buffer has changed.
-	  (setq beg (point-min)
-		end (point-max)
-		c-just-done-before-change 'whole-buffer)
-	(setq c-just-done-before-change t))
-      ;; (c-new-BEG c-new-END) will be the region to fontify.
-      (setq c-new-BEG beg  c-new-END end)
-      (setq c-maybe-stale-found-type nil)
-      ;; A workaround for syntax-ppss's failure to notice syntax-table text
-      ;; property changes.
-      (when (fboundp 'syntax-ppss)
-	(setq c-syntax-table-hwm most-positive-fixnum))
-      (save-match-data
-	(widen)
-	(unwind-protect
-	    (progn
-	      (c-restore-string-fences)
-	      (save-excursion
-		;; Are we inserting/deleting stuff in the middle of an
-		;; identifier?
-		(c-unfind-enclosing-token beg)
-		(c-unfind-enclosing-token end)
-		;; Are we coalescing two tokens together, e.g. "fo o"
-		;; -> "foo"?
-		(when (< beg end)
-		  (c-unfind-coalesced-tokens beg end))
-		(c-invalidate-sws-region-before beg end)
-		;; Are we (potentially) disrupting the syntactic
-		;; context which makes a type a type?  E.g. by
-		;; inserting stuff after "foo" in "foo bar;", or
-		;; before "foo" in "typedef foo *bar;"?
-		;;
-		;; We search for appropriate c-type properties "near"
-		;; the change.  First, find an appropriate boundary
-		;; for this property search.
-		(let (lim lim-2
-		      type type-pos
-		      marked-id term-pos
-		      (end1
-		       (or (and (eq (get-text-property end 'face)
-				    'font-lock-comment-face)
-				(previous-single-property-change end 'face))
-			   end)))
-		  (when (>= end1 beg) ; Don't hassle about changes entirely in
+    (c-with-string-fences
+     (save-restriction
+       (widen)
+       ;; Clear the list of found types if we make a change at the start of the
+       ;; buffer, to make it easier to get rid of misspelled types and
+       ;; variables that have gotten recognized as types in malformed code.
+       (when (eq beg (point-min))
+	 (c-clear-found-types))
+       (if c-just-done-before-change
+	   ;; We have two consecutive calls to `before-change-functions'
+	   ;; without an intervening `after-change-functions'.  An example of
+	   ;; this is bug #38691.  To protect CC Mode, assume that the entire
+	   ;; buffer has changed.
+	   (setq beg (point-min)
+		 end (point-max)
+		 c-just-done-before-change 'whole-buffer)
+	 (setq c-just-done-before-change t))
+       ;; (c-new-BEG c-new-END) will be the region to fontify.
+       (setq c-new-BEG beg  c-new-END end)
+       (setq c-maybe-stale-found-type nil)
+       ;; A workaround for syntax-ppss's failure to notice syntax-table text
+       ;; property changes.
+       (when (fboundp 'syntax-ppss)
+	 (setq c-syntax-table-hwm most-positive-fixnum))
+       (save-match-data
+	 (save-excursion
+	   ;; Are we inserting/deleting stuff in the middle of an
+	   ;; identifier?
+	   (c-unfind-enclosing-token beg)
+	   (c-unfind-enclosing-token end)
+	   ;; Are we coalescing two tokens together, e.g. "fo o"
+	   ;; -> "foo"?
+	   (when (< beg end)
+	     (c-unfind-coalesced-tokens beg end))
+	   (c-invalidate-sws-region-before beg end)
+	   ;; Are we (potentially) disrupting the syntactic
+	   ;; context which makes a type a type?  E.g. by
+	   ;; inserting stuff after "foo" in "foo bar;", or
+	   ;; before "foo" in "typedef foo *bar;"?
+	   ;;
+	   ;; We search for appropriate c-type properties "near"
+	   ;; the change.  First, find an appropriate boundary
+	   ;; for this property search.
+	   (let (lim lim-2
+		     type type-pos
+		     marked-id term-pos
+		     (end1
+		      (or (and (eq (get-text-property end 'face)
+				   'font-lock-comment-face)
+			       (previous-single-property-change end 'face))
+			  end)))
+	     (when (>= end1 beg) ; Don't hassle about changes entirely in
 					; comments.
-		    ;; Find a limit for the search for a `c-type' property
-		    ;; Point is currently undefined.  A `goto-char' somewhere is needed.  (2020-12-06).
-		    (setq lim-2 (c-determine-limit 1000 (point) ; that is wrong.  FIXME!!!  (2020-12-06)
-						   ))
-		    (while
-			(and (/= (skip-chars-backward "^;{}" lim-2) 0)
-			     (> (point) (point-min))
-			     (memq (c-get-char-property (1- (point)) 'face)
-				   '(font-lock-comment-face font-lock-string-face))))
-		    (setq lim (max (point-min) (1- (point))))
+	       ;; Find a limit for the search for a `c-type' property
+	       ;; Point is currently undefined.  A `goto-char' somewhere is needed.  (2020-12-06).
+	       (setq lim-2 (c-determine-limit 1000 (point) ; that is wrong.  FIXME!!!  (2020-12-06)
+					      ))
+	       (while
+		   (and (/= (skip-chars-backward "^;{}" lim-2) 0)
+			(> (point) (point-min))
+			(memq (c-get-char-property (1- (point)) 'face)
+			      '(font-lock-comment-face font-lock-string-face))))
+	       (setq lim (max (point-min) (1- (point))))
 
-		    ;; Look for the latest `c-type' property before end1
-		    (when (and (> end1 (point-min))
-			       (setq type-pos
-				     (if (get-text-property (1- end1) 'c-type)
-					 end1
-				       (previous-single-property-change end1 'c-type
-									nil lim))))
-		      (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
+	       ;; Look for the latest `c-type' property before end1
+	       (when (and (> end1 (point-min))
+			  (setq type-pos
+				(if (get-text-property (1- end1) 'c-type)
+				    end1
+				  (previous-single-property-change end1 'c-type
+								   nil lim))))
+		 (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
 
-		      (when (memq type '(c-decl-id-start c-decl-type-start))
-			;; Get the identifier, if any, that the property is on.
-			(goto-char (1- type-pos))
-			(setq marked-id
-			      (when (looking-at "\\(\\sw\\|\\s_\\)")
-				(c-beginning-of-current-token)
-				(buffer-substring-no-properties (point) type-pos)))
+		 (when (memq type '(c-decl-id-start c-decl-type-start))
+		   ;; Get the identifier, if any, that the property is on.
+		   (goto-char (1- type-pos))
+		   (setq marked-id
+			 (when (looking-at "\\(\\sw\\|\\s_\\)")
+			   (c-beginning-of-current-token)
+			   (buffer-substring-no-properties (point) type-pos)))
 
-			(goto-char end1)
-			(setq lim-2 (c-determine-+ve-limit 1000))
-			(skip-chars-forward "^;{}" lim-2) ; FIXME!!!  loop for
+		   (goto-char end1)
+		   (setq lim-2 (c-determine-+ve-limit 1000))
+		   (skip-chars-forward "^;{}" lim-2) ; FIXME!!!  loop for
 					; comment, maybe
-			(setq lim (point))
-			(setq term-pos
-			      (or (c-next-single-property-change end 'c-type nil lim) lim))
-			(setq c-maybe-stale-found-type
-			      (list type marked-id
-				    type-pos term-pos
-				    (buffer-substring-no-properties type-pos
-								    term-pos)
-				    (buffer-substring-no-properties beg end)))))))
+		   (setq lim (point))
+		   (setq term-pos
+			 (or (c-next-single-property-change end 'c-type nil lim) lim))
+		   (setq c-maybe-stale-found-type
+			 (list type marked-id
+			       type-pos term-pos
+			       (buffer-substring-no-properties type-pos
+							       term-pos)
+			       (buffer-substring-no-properties beg end)))))))
 
-		(if c-get-state-before-change-functions
-		    (mapc (lambda (fn)
-			    (funcall fn beg end))
-			  c-get-state-before-change-functions))
+	   (if c-get-state-before-change-functions
+	       (mapc (lambda (fn)
+		       (funcall fn beg end))
+		     c-get-state-before-change-functions))
 
-		(c-laomib-invalidate-cache beg end)))
-	  (c-clear-string-fences))))
-    (c-truncate-lit-pos-cache beg)
-    ;; The following must be done here rather than in `c-after-change'
-    ;; because newly inserted parens would foul up the invalidation
-    ;; algorithm.
-    (c-invalidate-state-cache beg)
-    ;; The following must happen after the previous, which likely alters
-    ;; the macro cache.
-    (when c-opt-cpp-symbol
-      (c-invalidate-macro-cache beg end))))
+	   (c-laomib-invalidate-cache beg end))))
+     (c-truncate-lit-pos-cache beg)
+     ;; The following must be done here rather than in `c-after-change'
+     ;; because newly inserted parens would foul up the invalidation
+     ;; algorithm.
+     (c-invalidate-state-cache beg)
+     ;; The following must happen after the previous, which likely alters
+     ;; the macro cache.
+     (when c-opt-cpp-symbol
+       (c-invalidate-macro-cache beg end)))))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)
@@ -2181,51 +2182,48 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
       (save-restriction
 	(save-match-data	  ; c-recognize-<>-arglists changes match-data
 	  (widen)
-	  (unwind-protect
-	      (progn
-		(c-restore-string-fences)
-		(when (> end (point-max))
-		  ;; Some emacsen might return positions past the end. This
-		  ;; has been observed in Emacs 20.7 when rereading a buffer
-		  ;; changed on disk (haven't been able to minimize it, but
-		  ;; Emacs 21.3 appears to work).
-		  (setq end (point-max))
-		  (when (> beg end)
-		    (setq beg end)))
+	  (c-with-string-fences
+	   (when (> end (point-max))
+	     ;; Some emacsen might return positions past the end. This
+	     ;; has been observed in Emacs 20.7 when rereading a buffer
+	     ;; changed on disk (haven't been able to minimize it, but
+	     ;; Emacs 21.3 appears to work).
+	     (setq end (point-max))
+	     (when (> beg end)
+	       (setq beg end)))
 
-		;; C-y is capable of spuriously converting category
-		;; properties c-</>-as-paren-syntax and
-		;; c-cpp-delimiter into hard syntax-table properties.
-		;; Remove these when it happens.
-		(when (eval-when-compile (memq 'category-properties c-emacs-features))
-		  (c-save-buffer-state ()
-		    (c-clear-char-property-with-value beg end 'syntax-table
-						      c-<-as-paren-syntax)
-		    (c-clear-char-property-with-value beg end 'syntax-table
-						      c->-as-paren-syntax)
-		    (c-clear-char-property-with-value beg end 'syntax-table nil)))
+	   ;; C-y is capable of spuriously converting category
+	   ;; properties c-</>-as-paren-syntax and
+	   ;; c-cpp-delimiter into hard syntax-table properties.
+	   ;; Remove these when it happens.
+	   (when (eval-when-compile (memq 'category-properties c-emacs-features))
+	     (c-save-buffer-state ()
+	       (c-clear-char-property-with-value beg end 'syntax-table
+						 c-<-as-paren-syntax)
+	       (c-clear-char-property-with-value beg end 'syntax-table
+						 c->-as-paren-syntax)
+	       (c-clear-char-property-with-value beg end 'syntax-table nil)))
 
-		(c-update-new-id end)
-		(c-trim-found-types beg end old-len) ; maybe we don't
-						     ; need all of these.
-		(c-invalidate-sws-region-after beg end old-len)
-		;; (c-invalidate-state-cache beg) ; moved to
-		;; `c-before-change'.
-		(c-invalidate-find-decl-cache beg)
+	   (c-update-new-id end)
+	   (c-trim-found-types beg end old-len) ; maybe we don't
+					; need all of these.
+	   (c-invalidate-sws-region-after beg end old-len)
+	   ;; (c-invalidate-state-cache beg) ; moved to
+	   ;; `c-before-change'.
+	   (c-invalidate-find-decl-cache beg)
 
-		(when c-recognize-<>-arglists
-		  (c-after-change-check-<>-operators beg end))
+	   (when c-recognize-<>-arglists
+	     (c-after-change-check-<>-operators beg end))
 
-		(setq c-in-after-change-fontification t)
-		(save-excursion
-		  (mapc (lambda (fn)
-			  (funcall fn beg end old-len))
-			c-before-font-lock-functions)))
-	    (c-clear-string-fences))))))
+	   (setq c-in-after-change-fontification t)
+	   (save-excursion
+	     (mapc (lambda (fn)
+		     (funcall fn beg end old-len))
+		   c-before-font-lock-functions)))))
   ;; A workaround for syntax-ppss's failure to notice syntax-table text
   ;; property changes.
-  (when (fboundp 'syntax-ppss)
-    (syntax-ppss-flush-cache c-syntax-table-hwm)))
+      (when (fboundp 'syntax-ppss)
+	(syntax-ppss-flush-cache c-syntax-table-hwm)))))
 
 (defun c-doc-fl-decl-start (pos)
   ;; If the line containing POS is in a doc comment continued line (as defined
@@ -2457,46 +2455,42 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
     (widen)
     (let (new-beg new-end new-region case-fold-search)
       (c-save-buffer-state nil
-	;; Temporarily reapply the string fence syntax-table properties.
-	(unwind-protect
-	    (progn
-	      (c-restore-string-fences)
-	      (if (and c-in-after-change-fontification
-		       (< beg c-new-END) (> end c-new-BEG))
-		  ;; Region and the latest after-change fontification region overlap.
-		  ;; Determine the upper and lower bounds of our adjusted region
-		  ;; separately.
-		  (progn
-		    (if (<= beg c-new-BEG)
-			(setq c-in-after-change-fontification nil))
-		    (setq new-beg
-			  (if (and (>= beg (c-point 'bol c-new-BEG))
-				   (<= beg c-new-BEG))
-			      ;; Either jit-lock has accepted `c-new-BEG', or has
-			      ;; (probably) extended the change region spuriously
-			      ;; to BOL, which position likely has a
-			      ;; syntactically different position.  To ensure
-			      ;; correct fontification, we start at `c-new-BEG',
-			      ;; assuming any characters to the left of
-			      ;; `c-new-BEG' on the line do not require
-			      ;; fontification.
-			      c-new-BEG
-			    (setq new-region (c-before-context-fl-expand-region beg end)
-				  new-end (cdr new-region))
-			    (car new-region)))
-		    (setq new-end
-			  (if (and (>= end (c-point 'bol c-new-END))
-				   (<= end c-new-END))
-			      c-new-END
-			    (or new-end
-				(cdr (c-before-context-fl-expand-region beg end))))))
-		;; Context (etc.) fontification.
-		(setq new-region (c-before-context-fl-expand-region beg end)
-		      new-beg (car new-region)  new-end (cdr new-region)))
-	      ;; Finally invoke font lock's functionality.
-	      (funcall (default-value 'font-lock-fontify-region-function)
-		       new-beg new-end verbose))
-	  (c-clear-string-fences))))))
+	(c-with-string-fences
+	 (if (and c-in-after-change-fontification
+		  (< beg c-new-END) (> end c-new-BEG))
+	     ;; Region and the latest after-change fontification region overlap.
+	     ;; Determine the upper and lower bounds of our adjusted region
+	     ;; separately.
+	     (progn
+	       (if (<= beg c-new-BEG)
+		   (setq c-in-after-change-fontification nil))
+	       (setq new-beg
+		     (if (and (>= beg (c-point 'bol c-new-BEG))
+			      (<= beg c-new-BEG))
+			 ;; Either jit-lock has accepted `c-new-BEG', or has
+			 ;; (probably) extended the change region spuriously
+			 ;; to BOL, which position likely has a
+			 ;; syntactically different position.  To ensure
+			 ;; correct fontification, we start at `c-new-BEG',
+			 ;; assuming any characters to the left of
+			 ;; `c-new-BEG' on the line do not require
+			 ;; fontification.
+			 c-new-BEG
+		       (setq new-region (c-before-context-fl-expand-region beg end)
+			     new-end (cdr new-region))
+		       (car new-region)))
+	       (setq new-end
+		     (if (and (>= end (c-point 'bol c-new-END))
+			      (<= end c-new-END))
+			 c-new-END
+		       (or new-end
+			   (cdr (c-before-context-fl-expand-region beg end))))))
+	   ;; Context (etc.) fontification.
+	   (setq new-region (c-before-context-fl-expand-region beg end)
+		 new-beg (car new-region)  new-end (cdr new-region)))
+	 ;; Finally invoke font lock's functionality.
+	 (funcall (default-value 'font-lock-fontify-region-function)
+		  new-beg new-end verbose))))))
 
 (defun c-after-font-lock-init ()
   ;; Put on `font-lock-mode-hook'.  This function ensures our after-change

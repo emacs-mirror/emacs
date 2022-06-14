@@ -441,7 +441,10 @@ To signal with MESSAGE without interpreting format characters
 like `%', `\\=`' and `\\='', use (error \"%s\" MESSAGE).
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency."
+for the sake of consistency.
+
+To alter the look of the displayed error messages, you can use
+the `command-error-function' variable."
   (declare (advertised-calling-convention (string &rest args) "23.1"))
   (signal 'error (list (apply #'format-message args))))
 
@@ -457,7 +460,10 @@ To signal with MESSAGE without interpreting format characters
 like `%', `\\=`' and `\\='', use (user-error \"%s\" MESSAGE).
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency."
+for the sake of consistency.
+
+To alter the look of the displayed error messages, you can use
+the `command-error-function' variable."
   (signal 'user-error (list (apply #'format-message format args))))
 
 (defun define-error (name message &optional parent)
@@ -1699,13 +1705,19 @@ pixels.  POSITION should be a list of the form returned by
 
 (declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
 
-(defun posn-col-row (position)
+(defun posn-col-row (position &optional use-window)
   "Return the nominal column and row in POSITION, measured in characters.
 The column and row values are approximations calculated from the x
 and y coordinates in POSITION and the frame's default character width
 and default line height, including spacing.
+
+If USE-WINDOW is non-nil, use the typical width of a character in
+the window indicated by POSITION instead of the frame.  (This
+makes a difference is a window has a zoom level.)
+
 For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar.
+
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (let* ((pair            (posn-x-y position))
@@ -1723,20 +1735,23 @@ and `event-end' functions."
      ((eq area 'horizontal-scroll-bar)
       (cons (scroll-bar-scale pair (window-width window)) 0))
      (t
-      ;; FIXME: This should take line-spacing properties on
-      ;; newlines into account.
-      (let* ((spacing (when (display-graphic-p frame)
-                        (or (with-current-buffer
-                                (window-buffer (frame-selected-window frame))
-                              line-spacing)
-                            (frame-parameter frame 'line-spacing)))))
-	(cond ((floatp spacing)
-	       (setq spacing (truncate (* spacing
-					  (frame-char-height frame)))))
-	      ((null spacing)
-	       (setq spacing 0)))
-	(cons (/ (car pair) (frame-char-width frame))
-	      (/ (cdr pair) (+ (frame-char-height frame) spacing))))))))
+      (if use-window
+          (cons (/ (car pair) (window-font-width window))
+                (/ (cdr pair) (window-font-height window)))
+        ;; FIXME: This should take line-spacing properties on
+        ;; newlines into account.
+        (let* ((spacing (when (display-graphic-p frame)
+                          (or (with-current-buffer
+                                  (window-buffer (frame-selected-window frame))
+                                line-spacing)
+                              (frame-parameter frame 'line-spacing)))))
+	  (cond ((floatp spacing)
+	         (setq spacing (truncate (* spacing
+					    (frame-char-height frame)))))
+	        ((null spacing)
+	         (setq spacing 0)))
+	  (cons (/ (car pair) (frame-char-width frame))
+	        (/ (cdr pair) (+ (frame-char-height frame) spacing)))))))))
 
 (defun posn-actual-col-row (position)
   "Return the window row number in POSITION and character number in that row.
@@ -1873,6 +1888,9 @@ be a list of the form returned by `event-start' and `event-end'."
 This was used internally by quail.el and keyboard.c in Emacs 27.
 It does nothing in Emacs 28.")
 (make-obsolete-variable 'inhibit--record-char nil "28.1")
+
+(define-obsolete-function-alias 'compare-window-configurations
+  #'window-configuration-equal-p "29.1")
 
 ;; We can't actually make `values' obsolete, because that will result
 ;; in warnings when using `values' in let-bindings.
@@ -3055,7 +3073,8 @@ DEFAULT specifies a default value to return if the user just types RET.
 The value of DEFAULT is inserted into PROMPT.
 HIST specifies a history list variable.  See `read-from-minibuffer'
 for details of the HIST argument.
-This function is used by the `interactive' code letter `n'."
+
+This function is used by the `interactive' code letter \"n\"."
   (let ((n nil)
 	(default1 (if (consp default) (car default) default)))
     (when default1
@@ -4069,7 +4088,12 @@ remove properties specified by `yank-excluded-properties'."
 
 This function is like `insert', except it honors the variables
 `yank-handled-properties' and `yank-excluded-properties', and the
-`yank-handler' text property, in the way that `yank' does."
+`yank-handler' text property, in the way that `yank' does.
+
+It also runs the string through `yank-transform-functions'."
+  ;; Allow altering the yank string.
+  (run-hook-wrapped 'yank-transform-functions
+                    (lambda (f) (setq string (funcall f string)) nil))
   (let (to)
     (while (setq to (next-single-property-change 0 'yank-handler string))
       (insert-for-yank-1 (substring string 0 to))
@@ -4602,8 +4626,9 @@ of that nature."
        (unwind-protect
            (progn
              ,@body)
-         (unless ,modified
-           (restore-buffer-modified-p nil))))))
+         (when (or (not ,modified)
+                   (eq ,modified 'autosaved))
+           (restore-buffer-modified-p ,modified))))))
 
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
@@ -6033,6 +6058,10 @@ to deactivate this transient map, regardless of KEEP-PRED."
                         t)
                        ((eq t keep-pred)
                         (let ((mc (lookup-key map (this-command-keys-vector))))
+                          ;; We may have a remapped command, so chase
+                          ;; down that.
+                          (when (and mc (symbolp mc))
+                            (setq mc (or (command-remapping mc) mc)))
                           ;; If the key is unbound `this-command` is
                           ;; nil and so is `mc`.
                           (and mc (eq this-command mc))))

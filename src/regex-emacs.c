@@ -1244,21 +1244,22 @@ static int analyze_first (re_char *p, re_char *pend,
       return REG_ESIZE;							\
     ptrdiff_t b_off = b - old_buffer;					\
     ptrdiff_t begalt_off = begalt - old_buffer;				\
-    bool fixup_alt_jump_set = !!fixup_alt_jump;				\
-    bool laststart_set = !!laststart;					\
-    bool pending_exact_set = !!pending_exact;				\
-    ptrdiff_t fixup_alt_jump_off, laststart_off, pending_exact_off;	\
-    if (fixup_alt_jump_set) fixup_alt_jump_off = fixup_alt_jump - old_buffer; \
-    if (laststart_set) laststart_off = laststart - old_buffer;		\
-    if (pending_exact_set) pending_exact_off = pending_exact - old_buffer; \
+    ptrdiff_t fixup_alt_jump_off =					\
+      fixup_alt_jump ? fixup_alt_jump - old_buffer : -1;		\
+    ptrdiff_t laststart_off = laststart ? laststart - old_buffer : -1;	\
+    ptrdiff_t pending_exact_off =					\
+      pending_exact ? pending_exact - old_buffer : -1;			\
     bufp->buffer = xpalloc (bufp->buffer, &bufp->allocated,		\
 			    requested_extension, MAX_BUF_SIZE, 1);	\
     unsigned char *new_buffer = bufp->buffer;				\
     b = new_buffer + b_off;						\
     begalt = new_buffer + begalt_off;					\
-    if (fixup_alt_jump_set) fixup_alt_jump = new_buffer + fixup_alt_jump_off; \
-    if (laststart_set) laststart = new_buffer + laststart_off;		\
-    if (pending_exact_set) pending_exact = new_buffer + pending_exact_off; \
+    if (0 <= fixup_alt_jump_off)					\
+      fixup_alt_jump = new_buffer + fixup_alt_jump_off;			\
+    if (0 <= laststart_off)						\
+      laststart = new_buffer + laststart_off;				\
+    if (0 <= pending_exact_off)						\
+      pending_exact = new_buffer + pending_exact_off;			\
   } while (false)
 
 

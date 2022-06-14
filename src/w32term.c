@@ -2682,13 +2682,13 @@ w32_draw_glyph_string (struct glyph_string *s)
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_underline_at_descent_line, s->w));
 		  underline_at_descent_line
-		    = (!(NILP (val) || EQ (val, Qunbound))
+		    = (!(NILP (val) || BASE_EQ (val, Qunbound))
 		       || s->face->underline_at_descent_line_p);
 
 		  val = (WINDOW_BUFFER_LOCAL_VALUE
 			 (Qx_use_underline_position_properties, s->w));
 		  use_underline_position_properties
-		    = !(NILP (val) || EQ (val, Qunbound));
+		    = !(NILP (val) || BASE_EQ (val, Qunbound));
 
                   /* Get the underline thickness.  Default is 1 pixel.  */
                   if (font && font->underline_thickness > 0)
@@ -2720,7 +2720,7 @@ w32_draw_glyph_string (struct glyph_string *s)
 
 		  if (!(s->face->underline_at_descent_line_p
 			/* Ignore minimum_offset if the amount of pixels
-			   was explictly specified.  */
+			   was explicitly specified.  */
 			&& s->face->underline_pixels_above_descent_line))
 		    position = max (position, minimum_offset);
                 }
@@ -5911,6 +5911,29 @@ w32_read_socket (struct terminal *terminal,
 			 (short) LOWORD (msg.msg.lParam),
 			 (short) HIWORD (msg.msg.lParam)));
 	    }
+
+	  /* According to the MS documentation, this message is sent
+	     to each window whenever a monitor is added, removed, or
+	     has its resolution change.  Detect duplicate events when
+	     there are multiple frames by ensuring only one event is
+	     put in the keyboard buffer at any given time.  */
+	  {
+	    union buffered_input_event *ev;
+
+	    ev = (kbd_store_ptr == kbd_buffer
+		  ? kbd_buffer + KBD_BUFFER_SIZE - 1
+		  : kbd_store_ptr - 1);
+
+	    if (kbd_store_ptr != kbd_fetch_ptr
+		&& ev->ie.kind == MONITORS_CHANGED_EVENT
+		&& XTERMINAL (ev->ie.arg) == dpyinfo->terminal)
+	      /* Don't store a MONITORS_CHANGED_EVENT if there is
+		 already an undelivered event on the queue.  */
+	      break;
+
+	    inev.kind = MONITORS_CHANGED_EVENT;
+	    XSETTERMINAL (inev.arg, dpyinfo->terminal);
+	  }
 
 	  check_visibility = 1;
 	  break;

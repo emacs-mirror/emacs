@@ -707,7 +707,7 @@ DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_valu
   union specbinding *binding = default_toplevel_binding (symbol);
   Lisp_Object value
     = binding ? specpdl_old_value (binding) : Fdefault_value (symbol);
-  if (!EQ (value, Qunbound))
+  if (!BASE_EQ (value, Qunbound))
     return value;
   xsignal1 (Qvoid_variable, symbol);
 }
@@ -741,7 +741,9 @@ value.  */)
        and where the `foo` package only gets loaded when <foo-function>
        is called, so the outer `let` incorrectly made the binding lexical
        because the <foo-var> wasn't yet declared as dynamic at that point.  */
-    error ("Defining as dynamic an already lexical var");
+    xsignal2 (Qerror,
+	      build_string ("Defining as dynamic an already lexical var"),
+	      symbol);
 
   XSYMBOL (symbol)->u.s.declared_special = true;
   if (!NILP (doc))
@@ -752,6 +754,33 @@ value.  */)
     }
   LOADHIST_ATTACH (symbol);
   return Qnil;
+}
+
+static Lisp_Object
+defvar (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring, bool eval)
+{
+  Lisp_Object tem;
+
+  CHECK_SYMBOL (sym);
+
+  tem = Fdefault_boundp (sym);
+
+  /* Do it before evaluating the initial value, for self-references.  */
+  Finternal__define_uninitialized_variable (sym, docstring);
+
+  if (NILP (tem))
+    Fset_default (sym, eval ? eval_sub (initvalue) : initvalue);
+  else
+    { /* Check if there is really a global binding rather than just a let
+	     binding that shadows the global unboundness of the var.  */
+      union specbinding *binding = default_toplevel_binding (sym);
+      if (binding && BASE_EQ (specpdl_old_value (binding), Qunbound))
+	{
+	  set_specpdl_old_value (binding,
+	                         eval ? eval_sub (initvalue) : initvalue);
+	}
+    }
+  return sym;
 }
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
@@ -768,12 +797,10 @@ value.  If SYMBOL is buffer-local, its default value is what is set;
 buffer-local values are not affected.  If INITVALUE is missing,
 SYMBOL's value is not set.
 
-If SYMBOL has a local binding, then this form affects the local
-binding.  This is usually not what you want.  Thus, if you need to
-load a file defining variables, with this form or with `defconst' or
-`defcustom', you should always load that file _outside_ any bindings
-for these variables.  (`defconst' and `defcustom' behave similarly in
-this respect.)
+If SYMBOL is let-bound, then this form does not affect the local let
+binding but the toplevel default binding instead, like
+`set-toplevel-default-binding`.
+(`defcustom' behaves similarly in this respect.)
 
 The optional argument DOCSTRING is a documentation string for the
 variable.
@@ -784,7 +811,7 @@ To define a buffer-local variable, use `defvar-local'.
 usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   (Lisp_Object args)
 {
-  Lisp_Object sym, tem, tail;
+  Lisp_Object sym, tail;
 
   sym = XCAR (args);
   tail = XCDR (args);
@@ -796,24 +823,8 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       if (!NILP (XCDR (tail)) && !NILP (XCDR (XCDR (tail))))
 	error ("Too many arguments");
       Lisp_Object exp = XCAR (tail);
-
-      tem = Fdefault_boundp (sym);
       tail = XCDR (tail);
-
-      /* Do it before evaluating the initial value, for self-references.  */
-      Finternal__define_uninitialized_variable (sym, CAR (tail));
-
-      if (NILP (tem))
-	Fset_default (sym, eval_sub (exp));
-      else
-	{ /* Check if there is really a global binding rather than just a let
-	     binding that shadows the global unboundness of the var.  */
-	  union specbinding *binding = default_toplevel_binding (sym);
-	  if (binding && EQ (specpdl_old_value (binding), Qunbound))
-	    {
-	      set_specpdl_old_value (binding, eval_sub (exp));
-	    }
-	}
+      return defvar (sym, exp, CAR (tail), true);
     }
   else if (!NILP (Vinternal_interpreter_environment)
 	   && (SYMBOLP (sym) && !XSYMBOL (sym)->u.s.declared_special))
@@ -830,6 +841,14 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
     }
 
   return sym;
+}
+
+DEFUN ("defvar-1", Fdefvar_1, Sdefvar_1, 2, 3, 0,
+       doc: /* Like `defvar' but as a function.
+More specifically behaves like (defvar SYM 'INITVALUE DOCSTRING).  */)
+  (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring)
+{
+  return defvar (sym, initvalue, docstring, false);
 }
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
@@ -861,9 +880,18 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
 	error ("Too many arguments");
       docstring = XCAR (XCDR (XCDR (args)));
     }
-
-  Finternal__define_uninitialized_variable (sym, docstring);
   tem = eval_sub (XCAR (XCDR (args)));
+  return Fdefconst_1 (sym, tem, docstring);
+}
+
+DEFUN ("defconst-1", Fdefconst_1, Sdefconst_1, 2, 3, 0,
+       doc: /* Like `defconst' but as a function.
+More specifically, behaves like (defconst SYM 'INITVALUE DOCSTRING).  */)
+  (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring)
+{
+  CHECK_SYMBOL (sym);
+  Lisp_Object tem = initvalue;
+  Finternal__define_uninitialized_variable (sym, docstring);
   if (!NILP (Vpurify_flag))
     tem = Fpurecopy (tem);
   Fset_default (sym, tem);      /* FIXME: set-default-toplevel-value? */
@@ -1223,6 +1251,13 @@ unwind_to_catch (struct handler *catch, enum nonlocal_exit type,
   set_poll_suppress_count (catch->poll_suppress_count);
   unblock_input_to (catch->interrupt_input_blocked);
 
+#ifdef HAVE_X_WINDOWS
+  /* Restore the X error handler stack.  This is important because
+     otherwise a display disconnect won't unwind the stack of error
+     traps to the right depth.  */
+  x_unwind_errors_to (catch->x_error_handler_depth);
+#endif
+
   do
     {
       /* Unwind the specpdl stack, and then restore the proper set of
@@ -1341,7 +1376,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
 	error ("Invalid condition handler: %s",
-	       SDATA (Fprin1_to_string (tem, Qt)));
+	       SDATA (Fprin1_to_string (tem, Qt, Qnil)));
       if (CONSP (tem) && EQ (XCAR (tem), QCsuccess))
 	success_handler = XCDR (tem);
       else
@@ -1597,6 +1632,9 @@ push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
   c->act_rec = get_act_rec (current_thread);
   c->poll_suppress_count = poll_suppress_count;
   c->interrupt_input_blocked = interrupt_input_blocked;
+#ifdef HAVE_X_WINDOWS
+  c->x_error_handler_depth = x_error_message_count;
+#endif
   handlerlist = c;
   return c;
 }
@@ -2740,7 +2778,7 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
   sym = args[0];
   val = find_symbol_value (sym);
 
-  if (EQ (val, Qunbound) || NILP (val))
+  if (BASE_EQ (val, Qunbound) || NILP (val))
     return ret;
   else if (!CONSP (val) || FUNCTIONP (val))
     {
@@ -2816,7 +2854,13 @@ apply1 (Lisp_Object fn, Lisp_Object arg)
 }
 
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a function.  */)
+       doc: /* Return t if OBJECT is a function.
+
+An object is a function if it is callable via `funcall'; this includes
+symbols with function bindings, but excludes macros and special forms.
+
+Ordinarily return nil if OBJECT is not a function, although t might be
+returned in rare cases.  */)
      (Lisp_Object object)
 {
   if (FUNCTIONP (object))
@@ -4338,9 +4382,11 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefault_toplevel_value);
   defsubr (&Sset_default_toplevel_value);
   defsubr (&Sdefvar);
+  defsubr (&Sdefvar_1);
   defsubr (&Sdefvaralias);
   DEFSYM (Qdefvaralias, "defvaralias");
   defsubr (&Sdefconst);
+  defsubr (&Sdefconst_1);
   defsubr (&Sinternal__define_uninitialized_variable);
   defsubr (&Smake_var_non_special);
   defsubr (&Slet);

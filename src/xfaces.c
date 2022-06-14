@@ -6871,7 +6871,6 @@ DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
 			    Initialization
  ***********************************************************************/
 
-#ifdef HAVE_PDUMPER
 /* All the faces defined during loadup are recorded in
    face-new-frame-defaults.  We need to set next_lface_id to the next
    face ID number, so that any new faces defined in this session will
@@ -6881,26 +6880,35 @@ DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
 void
 init_xfaces (void)
 {
-  int nfaces = XFIXNAT (Fhash_table_count (Vface_new_frame_defaults));
-  if (nfaces > 0)
-    {
-      /* Allocate the lface_id_to_name[] array.  */
-      lface_id_to_name_size = next_lface_id = nfaces;
-      lface_id_to_name = xnmalloc (next_lface_id, sizeof *lface_id_to_name);
+#ifdef HAVE_PDUMPER
+  int nfaces;
 
-      /* Store the faces.  */
-      struct Lisp_Hash_Table* table = XHASH_TABLE (Vface_new_frame_defaults);
-      for (ptrdiff_t idx = 0; idx < nfaces; ++idx)
+  if (dumped_with_pdumper_p ())
+    {
+      nfaces = XFIXNAT (Fhash_table_count (Vface_new_frame_defaults));
+      if (nfaces > 0)
 	{
-	  Lisp_Object lface = HASH_KEY (table, idx);
-	  Lisp_Object face_id = CAR (HASH_VALUE (table, idx));
-          if (FIXNATP (face_id)) {
-              int id = XFIXNAT (face_id);
-              eassert (id >= 0);
-              lface_id_to_name[id] = lface;
-            }
+	  /* Allocate the lface_id_to_name[] array.  */
+	  lface_id_to_name_size = next_lface_id = nfaces;
+	  lface_id_to_name = xnmalloc (next_lface_id, sizeof *lface_id_to_name);
+
+	  /* Store the faces.  */
+	  struct Lisp_Hash_Table* table = XHASH_TABLE (Vface_new_frame_defaults);
+	  for (ptrdiff_t idx = 0; idx < nfaces; ++idx)
+	    {
+	      Lisp_Object lface = HASH_KEY (table, idx);
+	      Lisp_Object face_id = CAR (HASH_VALUE (table, idx));
+	      if (FIXNATP (face_id))
+		{
+		  int id = XFIXNAT (face_id);
+		  eassert (id >= 0);
+		  lface_id_to_name[id] = lface;
+		}
+	    }
 	}
     }
+#endif
+
   face_attr_sym[0] = Qface;
   face_attr_sym[LFACE_FOUNDRY_INDEX] = QCfoundry;
   face_attr_sym[LFACE_SWIDTH_INDEX] = QCwidth;
@@ -6921,7 +6929,6 @@ init_xfaces (void)
   face_attr_sym[LFACE_DISTANT_FOREGROUND_INDEX] = QCdistant_foreground;
   face_attr_sym[LFACE_EXTEND_INDEX] = QCextend;
 }
-#endif
 
 void
 syms_of_xfaces (void)

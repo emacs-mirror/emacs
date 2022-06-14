@@ -359,9 +359,12 @@
 (defmacro python-rx (&rest regexps)
   "Python mode specialized rx macro.
 This variant of `rx' supports common Python named REGEXPS."
-  `(rx-let ((block-start       (seq symbol-start
+  `(rx-let ((sp-bsnl (or space (and ?\\ ?\n)))
+            (block-start       (seq symbol-start
                                     (or "def" "class" "if" "elif" "else" "try"
                                         "except" "finally" "for" "while" "with"
+                                        ;; Python 3.10+ PEP634
+                                        "match" "case"
                                         ;; Python 3.5+ PEP492
                                         (and "async" (+ space)
                                              (or "def" "for" "with")))
@@ -394,7 +397,7 @@ This variant of `rx' supports common Python named REGEXPS."
             (open-paren        (or "{" "[" "("))
             (close-paren       (or "}" "]" ")"))
             (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
-            (not-simple-operator (not simple-operator))
+            (not-simple-operator (not (or simple-operator ?\n)))
             (operator          (or "==" ">=" "is" "not"
                                    "**" "//" "<<" ">>" "<=" "!="
                                    "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
@@ -538,9 +541,9 @@ the {...} holes that appear within f-strings."
         (setq ppss (syntax-ppss))))))
 
 (defvar python-font-lock-keywords-level-1
-  `((,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
+  `((,(python-rx symbol-start "def" (1+ space) (group symbol-name))
      (1 font-lock-function-name-face))
-    (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
+    (,(python-rx symbol-start "class" (1+ space) (group symbol-name))
      (1 font-lock-type-face)))
   "Font lock keywords to use in `python-mode' for level 1 decoration.
 
@@ -603,15 +606,18 @@ builtins.")
 
 (defun python-font-lock-assignment-matcher (regexp)
   "Font lock matcher for assignments based on REGEXP.
-Return nil if REGEXP matched within a `paren' context (to avoid,
-e.g., default values for arguments or passing arguments by name
-being treated as assignments) or is followed by an '=' sign (to
-avoid '==' being treated as an assignment."
+Search for next occurrence if REGEXP matched within a `paren'
+context (to avoid, e.g., default values for arguments or passing
+arguments by name being treated as assignments) or is followed by
+an '=' sign (to avoid '==' being treated as an assignment.  Set
+point to the position one character before the end of the
+occurrence found so that subsequent searches can detect the '='
+sign in chained assignment."
   (lambda (limit)
-    (let ((res (re-search-forward regexp limit t)))
-      (unless (or (python-syntax-context 'paren)
-                  (equal (char-after (point)) ?=))
-        res))))
+    (cl-loop while (re-search-forward regexp limit t)
+             unless (or (python-syntax-context 'paren)
+                        (equal (char-after) ?=))
+               return (progn (backward-char) t))))
 
 (defvar python-font-lock-keywords-maximum-decoration
   `((python--font-lock-f-strings)
@@ -673,7 +679,7 @@ avoid '==' being treated as an assignment."
     ;; and variants thereof
     ;; the cases
     ;;   (a) = 5
-    ;;   [a] = 5
+    ;;   [a] = 5,
     ;;   [*a] = 5, 6
     ;; are handled separately below
     (,(python-font-lock-assignment-matcher
@@ -703,10 +709,10 @@ avoid '==' being treated as an assignment."
      (1 font-lock-variable-name-face))
     ;; special cases
     ;;   (a) = 5
-    ;;   [a] = 5
+    ;;   [a] = 5,
     ;;   [*a] = 5, 6
     (,(python-font-lock-assignment-matcher
-       (python-rx (or line-start ?\;) (* space)
+       (python-rx (or line-start ?\; ?=) (* space)
                   (or "[" "(") (* space)
                   grouped-assignment-target (* space)
                   (or ")" "]") (* space)
@@ -1297,7 +1303,7 @@ Called from a program, START and END specify the region to indent."
                    ;; Don't mess with strings, unless it's the
                    ;; enclosing set of quotes or a docstring.
                    (or (not (python-syntax-context 'string))
-                       (eq
+                       (equal
                         (syntax-after
                          (+ (1- (point))
                             (current-indentation)
@@ -1434,7 +1440,7 @@ marks the next defun after the ones already marked."
                  function))
 
 (defvar python-nav-beginning-of-defun-regexp
-  (python-rx line-start (* space) defun (+ space) (group symbol-name))
+  (python-rx line-start (* space) defun (+ sp-bsnl) (group symbol-name))
   "Regexp matching class or function definition.
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
@@ -2646,6 +2652,7 @@ banner and the initial prompt are received separately."
 (defun python-comint-postoutput-scroll-to-bottom (output)
   "Faster version of `comint-postoutput-scroll-to-bottom'.
 Avoids `recenter' calls until OUTPUT is completely sent."
+  (declare (obsolete nil "29.1")) ; Not used.
   (when (and (not (string= "" output))
              (python-shell-comint-end-of-output-p
               (ansi-color-filter-apply output)))
@@ -2951,11 +2958,11 @@ variable.
   (setq-local comint-output-filter-functions
               '(ansi-color-process-output
                 python-shell-comint-watch-for-first-prompt-output-filter
-                python-comint-postoutput-scroll-to-bottom
                 comint-watch-for-password-prompt))
   (setq-local comint-highlight-input nil)
   (setq-local compilation-error-regexp-alist
               python-shell-compilation-regexp-alist)
+  (setq-local scroll-conservatively 1)
   (add-hook 'completion-at-point-functions
             #'python-shell-completion-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"

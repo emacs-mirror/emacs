@@ -3180,8 +3180,7 @@ Like `text-mode', but with these additional commands:
     (mail-abbrevs-setup))
    ((message-mail-alias-type-p 'ecomplete)
     (ecomplete-setup)))
-  ;; FIXME: merge the completion tables from ecomplete/bbdb/...?
-  ;;(add-hook 'completion-at-point-functions #'message-ecomplete-capf nil t)
+  (add-hook 'completion-at-point-functions #'eudc-capf-complete -1 t)
   (add-hook 'completion-at-point-functions #'message-completion-function nil t)
   (unless buffer-file-name
     (message-set-auto-save-file-name))
@@ -7018,7 +7017,15 @@ is a function used to switch to and display the mail buffer."
 	;; https://lists.gnu.org/r/emacs-devel/2011-01/msg00337.html
 	;; We need to convert any string input, eg from rmail-start-mail.
 	(dolist (h other-headers other-headers)
-	  (if (stringp (car h)) (setcar h (intern (capitalize (car h)))))))
+	  (when (stringp (car h))
+            (setcar h (intern (capitalize (car h)))))
+          ;; Firefox sends us In-Reply-To headers that are Message-IDs
+          ;; without <> around them.  Fix that.
+          (when (and (eq (car h) 'In-Reply-To)
+                     ;; Looks like a Message-ID.
+                     (string-match-p "\\`[^ @]+@[^ @]+\\'" (cdr h))
+                     (not (string-match-p "\\`<.*>\\'" (cdr h))))
+            (setcdr h (concat "<" (cdr h) ">")))))
        yank-action send-actions continue switch-function
        return-action))))
 
@@ -8364,7 +8371,8 @@ set to nil."
 	(t
 	 (expand-abbrev))))
 
-(add-to-list 'completion-category-defaults '(email (styles substring)))
+(add-to-list 'completion-category-defaults '(email (styles substring
+                                                           partial-completion)))
 
 (defun message--bbdb-query-with-words (words)
   ;; FIXME: This (or something like this) should live on the BBDB side.

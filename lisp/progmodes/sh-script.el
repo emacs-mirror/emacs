@@ -286,7 +286,7 @@ naming the shell."
   :group 'sh-script)
 
 (defcustom sh-imenu-generic-expression
-  '((sh
+  `((sh
      . ((nil
 	 ;; function FOO
 	 ;; function FOO()
@@ -295,8 +295,21 @@ naming the shell."
 	;; FOO()
 	(nil
 	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
-	 1)
-	)))
+	 1)))
+    (mksh
+     . ((nil
+         ;; function FOO
+         ;; function FOO()
+         ,(rx bol (* (syntax whitespace)) "function" (+ (syntax whitespace))
+              (group (1+ (not (any "\0\t\n \"$&'();<=>\\`|#*?[]/"))))
+              (* (syntax whitespace)) (? "()"))
+         1)
+        (nil
+         ;; FOO()
+         ,(rx bol (* (syntax whitespace))
+              (group (1+ (not (any "\0\t\n \"$&'();<=>\\`|#*?[]/"))))
+              (* (syntax whitespace)) "()")
+         1))))
   "Alist of regular expressions for recognizing shell function definitions.
 See `sh-feature' and `imenu-generic-expression'."
   :type '(alist :key-type (symbol :tag "Shell")
@@ -306,7 +319,7 @@ See `sh-feature' and `imenu-generic-expression'."
 				   :value-type
 				   (repeat :tag "Regexp, index..." sexp)))
   :group 'sh-script
-  :version "20.4")
+  :version "29.1")
 
 (defun sh-current-defun-name ()
   "Find the name of function or variable at point.
@@ -641,7 +654,12 @@ implemented as aliases.  See `sh-feature'."
   :version "24.4"                       ; bash4 additions
   :group 'sh-script)
 
-
+(defcustom sh-indent-statement-after-and t
+  "How to indent statements following && in Shell-Script mode.
+If t, indent to align with &&.
+If nil, indent to align with the previous line's indentation."
+  :type 'boolean
+  :version "29.1")
 
 (defcustom sh-leading-keywords
   '((bash sh-append sh
@@ -1410,7 +1428,7 @@ If FORCE is non-nil and no process found, create one."
   (pop-to-buffer (process-buffer (sh-shell-process t)) display-comint-buffer-action))
 
 (defun sh-send-text (text)
-  "Send the text to the `sh-shell-process'."
+  "Send TEXT to `sh-shell-process'."
   (comint-send-string (sh-shell-process t) (concat text "\n")))
 
 (defun sh-cd-here ()
@@ -1538,6 +1556,11 @@ with your script for an edit-interpret-debug cycle."
   (add-hook 'completion-at-point-functions
             #'sh-completion-at-point-function nil t)
   (setq-local outline-regexp "###")
+  (setq-local escaped-string-quote
+              (lambda (terminator)
+                (if (eq terminator ?')
+                    "'\\'"
+                  "\\")))
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell
@@ -1990,7 +2013,9 @@ May return nil if the line should not be treated as continued."
                  (current-column)
                (smie-indent-calculate)))))
     (`(:before . ,(or "|" "&&" "||"))
-     (unless (smie-rule-parent-p token)
+     (when (and (not (smie-rule-parent-p token))
+                (or (not (equal token "&&"))
+                    sh-indent-statement-after-and))
        (smie-backward-sexp token)
        `(column . ,(+ (funcall smie-rules-function :elem 'basic)
                       (smie-indent-virtual)))))

@@ -1235,33 +1235,21 @@ changed with `comment-style'."
     ;; FIXME: maybe we should call uncomment depending on ARG.
     (funcall comment-region-function beg end arg)))
 
-(defun comment-region-default-1 (beg end &optional arg noadjust)
-  "Comment region between BEG and END.
-See `comment-region' for ARG.  If NOADJUST, do not skip past
-leading/trailing space when determining the region to comment
-out."
+(defun comment-region-default-1 (beg end &optional arg)
   (let* ((numarg (prefix-numeric-value arg))
 	 (style (cdr (assoc comment-style comment-styles)))
 	 (lines (nth 2 style))
 	 (block (nth 1 style))
 	 (multi (nth 0 style)))
 
-    (if noadjust
-        (when (bolp)
-          (setq end (1- end)))
-      ;; We use `chars' instead of `syntax' because `\n' might be
-      ;; of end-comment syntax rather than of whitespace syntax.
-      ;; sanitize BEG and END
-      (goto-char beg)
-      (skip-chars-forward " \t\n\r")
-      (beginning-of-line)
-      (setq beg (max beg (point)))
-      (goto-char end)
-      (skip-chars-backward " \t\n\r")
-      (end-of-line)
-      (setq end (min end (point)))
-      (when (>= beg end)
-        (error "Nothing to comment")))
+    ;; We use `chars' instead of `syntax' because `\n' might be
+    ;; of end-comment syntax rather than of whitespace syntax.
+    ;; sanitize BEG and END
+    (goto-char beg) (skip-chars-forward " \t\n\r") (beginning-of-line)
+    (setq beg (max beg (point)))
+    (goto-char end) (skip-chars-backward " \t\n\r") (end-of-line)
+    (setq end (min end (point)))
+    (if (>= beg end) (error "Nothing to comment"))
 
     ;; sanitize LINES
     (setq lines

@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'rmail)
 (require 'undigest)
 
@@ -270,66 +271,62 @@ The footer.
 ;;; Tests:
 (ert-deftest rmail-undigest-test-rfc934-digest ()
   "Test that we can undigest a RFC 934 digest."
-  (let ((file (make-temp-file "undigest-test-")))
-    (unwind-protect
-        (with-temp-buffer
-          (insert rmail-rfc934-digest)
-          (write-region nil nil file)
-          (rmail file)
-          (undigestify-rmail-message)
-          (should (= rmail-total-messages 4))
-          (should (string= (rmail-message-content 2) "Testing the undigester.\n\n"))
-          (should (string= (rmail-message-content 3) "This is message one.\n\n"))
-          (should (string= (rmail-message-content 4) "This is message two.\n")))
-      (delete-file file))))
+  (ert-with-temp-file file
+    :text rmail-rfc934-digest
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
+    (rmail file)
+    (undigestify-rmail-message)
+    (should (= rmail-total-messages 4))
+    (should (string= (rmail-message-content 2) "Testing the undigester.\n\n"))
+    (should (string= (rmail-message-content 3) "This is message one.\n\n"))
+    (should (string= (rmail-message-content 4) "This is message two.\n"))))
 
 (ert-deftest rmail-undigest-test-rfc1153-digest-strict ()
   "Test that we can undigest a strict RFC 1153 digest."
   :expected-result :failed
-  (let ((file (make-temp-file "undigest-test-")))
-    (unwind-protect
-        (with-temp-buffer
-          (insert rmail-rfc1153-digest-strict)
-          (write-region nil nil file)
-          (rmail file)
-          (should
-           (ignore-errors
-             ;; This throws an error, because the Trailer is not recognized
-             ;; as a valid RFC 822 (or later) message.
-             (undigestify-rmail-message)
-             (should (string= (rmail-message-content 2) "Testing the undigester.\n\n"))
-             (should (string= (rmail-message-content 3) "This is message one.\n\n"))
-             (should (string= (rmail-message-content 4) "This is message two.\n"))
-             t)))
-      (delete-file file))))
+  (ert-with-temp-file file
+    :text rmail-rfc1153-digest-strict
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
+    (rmail file)
+    (should
+     (ignore-errors
+       ;; This throws an error, because the Trailer is not recognized
+       ;; as a valid RFC 822 (or later) message.
+       (undigestify-rmail-message)
+       (should (string= (rmail-message-content 2) "Testing the undigester.\n\n"))
+       (should (string= (rmail-message-content 3) "This is message one.\n\n"))
+       (should (string= (rmail-message-content 4) "This is message two.\n"))
+       t))))
 
 (ert-deftest rmail-undigest-test-rfc1153-less-strict-digest ()
   "Test that we can undigest a RFC 1153 with a Subject header in its footer."
-  (let ((file (make-temp-file "undigest-test-")))
-    (unwind-protect
-        (with-temp-buffer
-          (insert rmail-rfc1153-digest-less-strict)
-          (write-region nil nil file)
-          (rmail file)
-          (undigestify-rmail-message)
-          (should (= rmail-total-messages 5))
-          (should (string= (rmail-message-content 3) "This is message one.\n\n"))
-          (should (string= (rmail-message-content 4) "This is message two.\n\n")))
-      (delete-file file))))
+  (ert-with-temp-file file
+    :text rmail-rfc1153-digest-less-strict
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
+    (rmail file)
+    (undigestify-rmail-message)
+    (should (= rmail-total-messages 5))
+    (should (string= (rmail-message-content 3) "This is message one.\n\n"))
+    (should (string= (rmail-message-content 4) "This is message two.\n\n"))))
 
 (ert-deftest rmail-undigest-test-rfc1153-sloppy-digest ()
   "Test that we can undigest a sloppy RFC 1153 digest."
-  (let ((file (make-temp-file "undigest-test-")))
-    (unwind-protect
-        (with-temp-buffer
-          (insert rmail-rfc1153-digest-sloppy)
-          (write-region nil nil file)
-          (rmail file)
-          (undigestify-rmail-message)
-          (should (= rmail-total-messages 5))
-          (should (string= (rmail-message-content 3) "This is message one.\n\n"))
-          (should (string= (rmail-message-content 4) "This is message two.\n\n")))
-      (delete-file file))))
+  (ert-with-temp-file file
+    :text rmail-rfc1153-digest-sloppy
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
+    (rmail file)
+    (undigestify-rmail-message)
+    (should (= rmail-total-messages 5))
+    (should (string= (rmail-message-content 3) "This is message one.\n\n"))
+    (should (string= (rmail-message-content 4) "This is message two.\n\n"))))
 
 ;; This fails because `rmail-digest-parse-mime' combines the preamble with the
 ;; first message of the digest.  And then, it doesn't get rid of the last
@@ -337,28 +334,26 @@ The footer.
 (ert-deftest rmail-undigest-test-rfc1521-mime-digest ()
   "Test that we can undigest a RFC 1521 MIME digest."
   :expected-result :failed
-  (let ((file (make-temp-file "undigest-test-")))
-    (unwind-protect
-        (with-temp-buffer
-          (insert rmail-rfc1521-mime-digest)
-          (write-region nil nil file)
-          (rmail file)
-          (undigestify-rmail-message)
-          (should (= rmail-total-messages 3))
-          (should (string= (rmail-message-content 2) "Message one.\n\n"))
-          (should (string= (rmail-message-content 3) "Message two.\n\n")))
-      (delete-file file))))
+  (ert-with-temp-file file
+    :text rmail-rfc1521-mime-digest
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
+    (rmail file)
+    (undigestify-rmail-message)
+    (should (= rmail-total-messages 3))
+    (should (string= (rmail-message-content 2) "Message one.\n\n"))
+    (should (string= (rmail-message-content 3) "Message two.\n\n"))))
 
 (ert-deftest rmail-undigest-test-multipart-mixed-digest ()
   "Test that we can undigest a digest inside a multipart/mixed digest."
-  (let ((file (make-temp-file "undigest-test-")))
-    (unwind-protect
-        (with-temp-buffer
-          (insert rmail-multipart-mixed-digest)
-          (write-region nil nil file)
-          (rmail file)
-          (undigestify-rmail-message)
-          (should (= rmail-total-messages 4))
-          (should (string= (rmail-message-content 2) "Message one.\n\n"))
-          (should (string= (rmail-message-content 3) "Message two.\n\n")))
-      (delete-file file))))
+  (ert-with-temp-file file
+    :text rmail-multipart-mixed-digest
+    ;; Rmail reads mbox files literally, so we must make sure the
+    ;; temporary mbox file has Unix-style EOLs.
+    :coding 'undecided-unix
+    (rmail file)
+    (undigestify-rmail-message)
+    (should (= rmail-total-messages 4))
+    (should (string= (rmail-message-content 2) "Message one.\n\n"))
+    (should (string= (rmail-message-content 3) "Message two.\n\n"))))

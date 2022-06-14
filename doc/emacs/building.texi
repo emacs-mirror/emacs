@@ -178,7 +178,9 @@ list of customization variables and faces.
   If you change the variable
 @code{compilation-auto-jump-to-first-error} to a non-@code{nil} value,
 Emacs automatically visits the locus of the first error message that
-appears in the @file{*compilation*} buffer.
+appears in the @file{*compilation*} buffer.  (This variable can also
+have the values @code{if-location-known} and @code{first-known}, which
+modify the conditions for automatically visiting the error locus.)
 
   Compilation mode provides the following additional commands.  These
 commands can also be used in @file{*grep*} buffers, where the
@@ -286,6 +288,19 @@ the variable to an integer value @var{n}, these commands scroll the
 window so that the current error message is @var{n} lines from the
 top, whether or not there is a fringe; the default value, @code{nil},
 gives the behavior described above.
+
+@vindex compilation-hidden-output
+  Compilation output can sometimes be very verbose, and much of it isn't
+of particular interest to a user.  The
+@code{compilation-hidden-output} user option should either be a regexp
+or a list of regexps, and output that matches will be made invisible.
+For instance, to hide the verbose output from recursive makefiles, you
+can say something like:
+
+@lisp
+(setq compilation-hidden-output
+      '("^make[^\n]+\n"))
+@end lisp
 
 @vindex compilation-error-regexp-alist
 @vindex grep-regexp-alist

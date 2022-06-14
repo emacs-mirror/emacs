@@ -127,6 +127,7 @@ struct frame
   /* This frame's selected window.
      Each frame has its own window hierarchy
      and one of the windows in it is selected within the frame.
+     This window may be the mini-window of the frame, if any.
      The selected window of the selected frame is Emacs's selected window.  */
   Lisp_Object selected_window;
 
@@ -1292,8 +1293,28 @@ SET_FRAME_VISIBLE (struct frame *f, int v)
 }
 
 /* Set iconified status of frame F.  */
-#define SET_FRAME_ICONIFIED(f, i)				\
-  (f)->iconified = (eassert (0 <= (i) && (i) <= 1), (i))
+INLINE void
+SET_FRAME_ICONIFIED (struct frame *f, int i)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  Lisp_Object frame;
+#endif
+
+  eassert (0 <= (i) && (i) <= 1);
+
+  f->iconified = i;
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Iconifying a frame might cause the frame title to change if no
+     title was explicitly specified.  Force the frame title to be
+     recomputed.  */
+
+  XSETFRAME (frame, f);
+
+  if (FRAME_WINDOW_P (f))
+    gui_consider_frame_title (frame);
+#endif
+}
 
 extern Lisp_Object selected_frame;
 extern Lisp_Object old_selected_frame;

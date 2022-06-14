@@ -1813,8 +1813,7 @@ Argument EVENT is the invoking mouse event."
    "--"
    ["Describe (Wo)Man Mode" describe-mode t]
    ["Mini Help" woman-mini-help t]
-   ,@(if (fboundp 'customize-group)
-	 '(["Customize..." (customize-group 'woman) t]))
+   ["Customize..." (customize-group 'woman) t]
    "--"
    ("Advanced"
     ["View Source" (view-file woman-last-file-name) woman-last-file-name]

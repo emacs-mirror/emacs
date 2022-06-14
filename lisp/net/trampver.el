@@ -58,6 +58,7 @@
       ;; `emacs-repository-get-branch' has been introduced with Emacs 27.1.
       (with-no-warnings
 	(and (stringp dir) (file-directory-p dir)
+	     (executable-find "git")
 	     (emacs-repository-get-branch dir)))))
   "The repository branch of the Tramp sources.")
 
@@ -70,6 +71,7 @@
 	  (dir (or (locate-dominating-file (locate-library "tramp") ".git")
 		   source-directory)))
       (and (stringp dir) (file-directory-p dir)
+	   (executable-find "git")
 	   (emacs-repository-get-version dir))))
   "The repository revision of the Tramp sources.")
 

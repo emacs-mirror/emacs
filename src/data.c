@@ -705,7 +705,7 @@ global value outside of any lexical scope.  */)
     default: emacs_abort ();
     }
 
-  return (EQ (valcontents, Qunbound) ? Qnil : Qt);
+  return (BASE_EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
 
 /* It has been previously suggested to make this function an alias for
@@ -1591,7 +1591,7 @@ global value outside of any lexical scope.  */)
   Lisp_Object val;
 
   val = find_symbol_value (symbol);
-  if (!EQ (val, Qunbound))
+  if (!BASE_EQ (val, Qunbound))
     return val;
 
   xsignal1 (Qvoid_variable, symbol);
@@ -1618,7 +1618,7 @@ void
 set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
               enum Set_Internal_Bind bindflag)
 {
-  bool voide = EQ (newval, Qunbound);
+  bool voide = BASE_EQ (newval, Qunbound);
 
   /* If restoring in a dead buffer, do nothing.  */
   /* if (BUFFERP (where) && NILP (XBUFFER (where)->name))
@@ -1945,15 +1945,15 @@ default_value (Lisp_Object symbol)
 
 DEFUN ("default-boundp", Fdefault_boundp, Sdefault_boundp, 1, 1, 0,
        doc: /* Return t if SYMBOL has a non-void default value.
-A variable may have a buffer-local or a `let'-bound local value.  This
-function says whether the variable has a non-void value outside of the
-current context.  Also see `default-value'.  */)
+A variable may have a buffer-local value.  This function says whether
+the variable has a non-void value outside of the current buffer
+context.  Also see `default-value'.  */)
   (Lisp_Object symbol)
 {
   register Lisp_Object value;
 
   value = default_value (symbol);
-  return (EQ (value, Qunbound) ? Qnil : Qt);
+  return (BASE_EQ (value, Qunbound) ? Qnil : Qt);
 }
 
 DEFUN ("default-value", Fdefault_value, Sdefault_value, 1, 1, 0,
@@ -1964,7 +1964,7 @@ local bindings in certain buffers.  */)
   (Lisp_Object symbol)
 {
   Lisp_Object value = default_value (symbol);
-  if (!EQ (value, Qunbound))
+  if (!BASE_EQ (value, Qunbound))
     return value;
 
   xsignal1 (Qvoid_variable, symbol);
@@ -2144,7 +2144,7 @@ See also `defvar-local'.  */)
     case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
     case SYMBOL_PLAINVAL:
       forwarded = 0; valcontents.value = SYMBOL_VAL (sym);
-      if (EQ (valcontents.value, Qunbound))
+      if (BASE_EQ (valcontents.value, Qunbound))
 	valcontents.value = Qnil;
       break;
     case SYMBOL_LOCALIZED:

@@ -928,7 +928,13 @@ If the first element of DEFAULTS is non-nil (and if PROMPT does not end
 in \":\", followed by optional whitespace), DEFAULT is added to the prompt.
 
 The optional argument HISTORY is a symbol to use for the history list.
-If nil, use `regexp-history'."
+If nil, use `regexp-history'.
+
+If the user has used the `M-c' command to specify case
+sensitivity, the returned string will have a text property named
+`case-fold' that has a value of either `fold' or
+`inhibit-fold'.  (It's up to the caller of `read-regexp' to
+respect this or not; see `read-regexp-case-fold-search'.)"
   (let* ((defaults
 	   (if (and defaults (symbolp defaults))
 	       (cond
@@ -944,21 +950,51 @@ If nil, use `regexp-history'."
 	 (suggestions (delete-dups (delq nil (delete "" suggestions))))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
+         (case-fold case-fold-search)
 	 (input (read-from-minibuffer
                  (if (string-match-p ":[ \t]*\\'" prompt)
                      prompt
                    (format-prompt prompt (and (length> default 0)
                                               (query-replace-descr default))))
-		 nil nil nil (or history 'regexp-history) suggestions t)))
-    (if (equal input "")
-	;; Return the default value when the user enters empty input.
-	(prog1 (or default input)
-	  (when default
-	    (add-to-history (or history 'regexp-history) default)))
-      ;; Otherwise, add non-empty input to the history and return input.
-      (prog1 input
-	(add-to-history (or history 'regexp-history) input)))))
+		 nil
+                 (define-keymap
+                   :parent minibuffer-local-map
+                   "M-c" (lambda ()
+                           (interactive)
+                           (setq case-fold
+                                 (if (or (eq case-fold 'fold)
+                                         (and case-fold
+                                              (not (eq case-fold
+                                                       'inhibit-fold))))
+                                     'inhibit-fold
+                                   'fold))
+                           (minibuffer-message
+                            "Case folding is now %s"
+                            (if (eq case-fold 'fold)
+                                "on"
+                              "off"))))
+                 nil (or history 'regexp-history) suggestions t))
+         (result (if (equal input "")
+	             ;; Return the default value when the user enters
+	             ;; empty input.
+                     default
+                   input)))
+    (when result
+      (add-to-history (or history 'regexp-history) result))
+    (if (and result
+             (or (eq case-fold 'fold)
+                 (eq case-fold 'inhibit-fold)))
+        (propertize result 'case-fold case-fold)
+      (or result input))))
 
+(defun read-regexp-case-fold-search (regexp)
+  "Return a value for `case-fold-search' based on REGEXP and current settings.
+REGEXP is a string as returned by `read-regexp'."
+  (let ((fold (get-text-property 0 'case-fold regexp)))
+    (cond
+     ((eq fold 'fold) t)
+     ((eq fold 'inhibit-fold) nil)
+     (t case-fold-search))))
 
 (defalias 'delete-non-matching-lines 'keep-lines)
 (defalias 'delete-matching-lines 'flush-lines)
@@ -2471,7 +2507,8 @@ To be added to `context-menu-functions'."
 \\`^' to move point back to previous match,
 \\`u' to undo previous replacement,
 \\`U' to undo all replacements,
-\\`E' to edit the replacement string.
+\\`e' to edit the replacement string.
+\\`E' to edit the replacement string with exact case.
 In multi-buffer replacements type \\`Y' to replace all remaining
 matches in all remaining buffers with no more questions,
 \\`N' to skip to the next buffer without replacing remaining matches
@@ -2489,7 +2526,7 @@ in the current buffer."
     (define-key map "Y" 'act)
     (define-key map "N" 'skip)
     (define-key map "e" 'edit-replacement)
-    (define-key map "E" 'edit-replacement)
+    (define-key map "E" 'edit-replacement-exact-case)
     (define-key map "," 'act-and-show)
     (define-key map "q" 'exit)
     (define-key map "\r" 'exit)
@@ -2526,8 +2563,9 @@ The \"bindings\" in this map are not commands; they are answers.
 The valid answers include `act', `skip', `act-and-show',
 `act-and-exit', `exit', `exit-prefix', `recenter', `scroll-up',
 `scroll-down', `scroll-other-window', `scroll-other-window-down',
-`edit', `edit-replacement', `delete-and-edit', `automatic',
-`backup', `undo', `undo-all', `quit', and `help'.
+`edit', `edit-replacement', `edit-replacement-exact-case',
+`delete-and-edit', `automatic', `backup', `undo', `undo-all',
+`quit', and `help'.
 
 This keymap is used by `y-or-n-p' as well as `query-replace'.")
 
@@ -2684,7 +2722,7 @@ It is called with three arguments, as if it were
   "Function to convert the FROM string of query-replace commands to a regexp.
 This is used by `query-replace', `query-replace-regexp', etc. as
 the value of `isearch-regexp-function' when they search for the
-occurences of the string/regexp to be replaced.  This is intended
+occurrences of the string/regexp to be replaced.  This is intended
 to be used when the string to be replaced, as typed by the user,
 is not to be interpreted literally, but instead should be converted
 to a regexp that is actually used for the search.")
@@ -3301,19 +3339,29 @@ characters."
 			     (setq match-again (and (looking-at search-string)
 						    (match-data)))))
 			;; Edit replacement.
-			((eq def 'edit-replacement)
+			((or (eq def 'edit-replacement)
+                             (eq def 'edit-replacement-exact-case))
 			 (setq real-match-data (replace-match-data
 						nil real-match-data
 						real-match-data)
 			       next-replacement
-			       (read-string "Edit replacement string: "
-                                            next-replacement)
+			       (read-string
+                                (format "Edit replacement string%s: "
+                                        (if (eq def
+                                                'edit-replacement-exact-case)
+                                            " (exact case)"
+                                          ""))
+                                next-replacement)
 			       noedit nil)
 			 (if replaced
 			     (set-match-data real-match-data)
 			   (setq noedit
 				 (replace-match-maybe-edit
-				  next-replacement nocasify literal noedit
+				  next-replacement
+                                  (if (eq def 'edit-replacement-exact-case)
+                                      t
+                                    nocasify)
+                                  literal noedit
 				  real-match-data backward)
 				 replaced t)
 			   (setq next-replacement-replaced next-replacement))

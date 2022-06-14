@@ -3978,10 +3978,12 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 ;;; OSC escape sequences (Operating System Commands)
 ;;============================================================================
-;; Adding `comint-osc-process-output' to `comint-output-filter-functions'
-;; enables the interpretation of OSC escape sequences.  By default, only
-;; OSC 8, for hyperlinks, is acted upon.  Adding more entries to
-;; `comint-osc-handlers' allows a customized treatment of further sequences.
+;; Adding `comint-osc-process-output' to
+;; `comint-output-filter-functions' enables the interpretation of OSC
+;; escape sequences.  By default, OSC 7 and 8 (for current directory
+;; and hyperlinks respectively) are acted upon.  Adding more entries
+;; to `comint-osc-handlers' allows a customized treatment of further
+;; sequences.
 
 (defvar-local comint-osc-handlers '(("7" . comint-osc-directory-tracker)
                                     ("8" . comint-osc-hyperlink-handler))
@@ -4026,9 +4028,9 @@ arguments, with point where the escape sequence was located."
 
 ;; Current directory tracking (OSC 7)
 
-(declare-function url-host "url-parse.el")
-(declare-function url-type "url-parse.el")
-(declare-function url-filename "url-parse.el")
+(declare-function url-host "url/url-parse.el")
+(declare-function url-type "url/url-parse.el")
+(declare-function url-filename "url/url-parse.el")
 (defun comint-osc-directory-tracker (_ text)
   "Update `default-directory' from OSC 7 escape sequences.
 

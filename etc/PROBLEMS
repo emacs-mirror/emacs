@@ -805,6 +805,22 @@ to take advantage of.
 
 * Runtime problems related to font handling
 
+** Some fonts are detected but not usable under Xft.
+
+Some fonts might not be usable under Emacs even though they show up in
+the font family list when Emacs is built with Xft.  This is because
+Emacs prevents fonts that have color glyphs (such as color Emoji) from
+being used, since they typically cause Xft crashes.
+
+On some GNU/Linux systems, fonts (such as Source Code Pro) that do not
+have color glyphs are reported as color fonts, causing them to be
+unavailable when using Xft.  This is known to happen under Fedora
+GNU/Linux 36 or later, and possibly other distributions as well.
+
+If you encounter a such a font, you can enable it while ignoring other
+fonts that actually have color glyphs by adding its family name to the
+list `xft-color-font-whitelist'.
+
 ** Characters are displayed as empty boxes or with wrong font under X.
 
 *** This may be due to your local fontconfig customization.
@@ -1873,6 +1889,33 @@ use meta in modified function-keys, which confuses Emacs.  To fix
 this, you can remove the X resource or put this in your init file:
 
   (xterm-remove-modify-other-keys)
+
+** The shift TAB key combination works as meta TAB on a Linux console.
+
+This happens because on your keyboard layout, S-TAB produces the same
+keycodes as typing ESC TAB individually.  The best way to solve this
+is to modify your keyboard layout to produce different codes, and tell
+Emacs what these new codes mean.
+
+The current keyboard layout will probably be a .map.gz file somewhere
+under /usr/share/keymaps.  Identify this file, possibly from a system
+initialization file such as /etc/conf.d/keymaps.  Run gunzip on it to
+decompress it, and amend the entries for keycode 15 to look something
+like this:
+
+keycode  15 = Tab
+        alt     keycode  15 = Meta_Tab
+        shift keycode 15 = F219
+string F219 = "\033[4}\011"      # Shift+<tab>
+
+After possibly saving this file under a different name, compress it
+again using gzip.  Amend /etc/conf.d/keyamps, etc., if needed.
+Further details can be found in the man page for loadkeys.
+
+Then add the following line near the start of your site-start.el or
+.emacs or init.el file:
+
+(define-key input-decode-map "\e[4}\t" 'backtab)
 
 ** Emacs spontaneously displays "I-search: " at the bottom of the screen.
 
@@ -2981,6 +3024,23 @@ GTK_IM_MODULE.
 
 GTK does not allow programs to warp the pointer anymore.  There is
 nothing that can be done about this problem.
+
+** Certain keys such as 'C-S-u' are not reported correctly.
+
+Some keys with modifiers such as Shift and Control might not be
+reported correctly due to incorrectly written GTK input method
+modules.  This is known to happen to 'C-S-u' and 'C->', which are
+misreported as 'C-u' and '>'.
+
+To disable the use of GTK input methods, evaluate:
+
+  (pgtk-use-im-context nil)
+
+This will also cause system input methods and features such as the
+Compose key to stop working.
+
+On X Windows, users should not use Emacs configured with PGTK, since
+this and many other problems do not exist on the regular X builds.
 
 * Build-time problems
 

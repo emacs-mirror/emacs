@@ -3327,7 +3327,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      if (EQ (arg, args[n]))
 		{
 		  Lisp_Object noescape = conversion == 'S' ? Qnil : Qt;
-		  spec->argument = arg = Fprin1_to_string (arg, noescape);
+		  spec->argument = arg = Fprin1_to_string (arg, noescape, Qnil);
 		  if (STRING_MULTIBYTE (arg) && ! multibyte)
 		    {
 		      multibyte = true;

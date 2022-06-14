@@ -52,6 +52,10 @@ struct haiku_bitmap_record
   char *file;
   int refcount;
   int height, width, depth;
+
+  uint32_t stipple_foreground;
+  uint32_t stipple_background;
+  void *stipple_bits;
 };
 
 struct haiku_display_info
@@ -156,13 +160,16 @@ struct haiku_output
   int fontset;
   int baseline_offset;
 
-  bool_bf zoomed_p : 1;
+  /* Whether or not the hourglass cursor is currently being
+     displayed.  */
   bool_bf hourglass_p : 1;
+
+  /* Whether or not the menu bar is open.  */
   bool_bf menu_bar_open_p : 1;
 
   /* Whether or not there is data in a back buffer that hasn't been
      displayed yet.  */
-  bool dirty_p;
+  bool_bf dirty_p : 1;
 
   struct font *font;
 
@@ -192,6 +199,15 @@ struct haiku_output
      They are changed only when a different background is involved.
      -1 means no color has been computed.  */
   long relief_background;
+
+  /* The absolute position of this frame.  This differs from left_pos
+     and top_pos in that the decorator and parent frames are not taken
+     into account.  */
+  int frame_x, frame_y;
+
+  /* The current fullscreen mode of this frame.  This should be `enum
+     haiku_fullscreen_mode', but that isn't available here.  */
+  int fullscreen_mode;
 };
 
 struct x_output
@@ -203,7 +219,13 @@ extern struct haiku_display_info *x_display_list;
 extern struct font_driver const haikufont_driver;
 
 extern Lisp_Object tip_frame;
+extern Lisp_Object tip_dx;
+extern Lisp_Object tip_dy;
+
 extern struct frame *haiku_dnd_frame;
+extern bool haiku_dnd_follow_tooltip;
+
+extern frame_parm_handler haiku_frame_parm_handlers[];
 
 struct scroll_bar
 {
@@ -298,6 +320,7 @@ extern void haiku_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
 extern void haiku_set_internal_border_width (struct frame *, Lisp_Object, Lisp_Object);
 extern void haiku_change_tab_bar_height (struct frame *, int);
 extern void haiku_change_tool_bar_height (struct frame *, int);
+extern void haiku_free_custom_cursors (struct frame *);
 
 extern void haiku_query_color (uint32_t, Emacs_Color *);
 
@@ -322,6 +345,9 @@ extern int haiku_load_image (struct frame *, struct image *,
 			     Lisp_Object, Lisp_Object);
 extern void syms_of_haikuimage (void);
 #endif
+
+extern void haiku_draw_background_rect (struct glyph_string *, struct face *,
+					int, int, int, int);
 
 #ifdef USE_BE_CAIRO
 extern cairo_t *haiku_begin_cr_clip (struct frame *, struct glyph_string *);

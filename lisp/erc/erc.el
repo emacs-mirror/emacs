@@ -3625,12 +3625,7 @@ If S is non-nil, it will be used as the quit reason."
   "Zippy quit message.
 
 If S is non-nil, it will be used as the quit reason."
-  (or s
-      (if (fboundp 'yow)
-          (if (>= emacs-major-version 28)
-              (string-replace "\n" "" (yow))
-            (replace-regexp-in-string "\n" "" (yow)))
-        (erc-quit/part-reason-default))))
+  (or s (erc-quit/part-reason-default)))
 
 (make-obsolete 'erc-quit-reason-zippy "it will be removed." "24.4")
 
@@ -3654,12 +3649,7 @@ If S is non-nil, it will be used as the part reason."
   "Zippy part message.
 
 If S is non-nil, it will be used as the quit reason."
-  (or s
-      (if (fboundp 'yow)
-          (if (>= emacs-major-version 28)
-              (string-replace "\n" "" (yow))
-            (replace-regexp-in-string "\n" "" (yow)))
-        (erc-quit/part-reason-default))))
+  (or s (erc-quit/part-reason-default)))
 
 (make-obsolete 'erc-part-reason-zippy "it will be removed." "24.4")
 

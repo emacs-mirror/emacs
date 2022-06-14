@@ -902,10 +902,10 @@ If the value is t, the *Completions* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
 the second failed attempt to complete.
-If the value is 'always', the *Completions* buffer is always shown
+If the value is `always', the *Completions* buffer is always shown
 after a completion attempt, and the list of completions is updated if
 already visible.
-If the value is 'visible', the *Completions* buffer is displayed
+If the value is `visible', the *Completions* buffer is displayed
 whenever completion is requested but cannot be done for the first time,
 but remains visible thereafter, and the list of completions in it is
 updated for subsequent attempts to complete.."
@@ -1001,7 +1001,11 @@ and DOC describes the way this style of completion works.")
 The available styles are listed in `completion-styles-alist'.
 
 Note that `completion-category-overrides' may override these
-styles for specific categories, such as files, buffers, etc."
+styles for specific categories, such as files, buffers, etc.
+
+Note that Tramp host name completion (e.g., \"/ssh:ho<TAB>\")
+currently doesn't work if this list doesn't contain at least one
+of `basic', `emacs22' or `emacs21'."
   :type completion--styles-type
   :version "23.1")
 
@@ -1418,9 +1422,10 @@ scroll the window of possible completions."
     (let ((window minibuffer-scroll-window))
       (with-current-buffer (window-buffer window)
         (cond
-         ;; Here this is possible only when second-tab, so jump now.
-         (completion-auto-select
-          (switch-to-completions))
+         ;; Here this is possible only when second-tab, but instead of
+         ;; scrolling the completion list window, switch to it below,
+         ;; outside of `with-current-buffer'.
+         ((eq completion-auto-select 'second-tab))
          ;; Reverse tab
          ((equal (this-command-keys) [backtab])
           (if (pos-visible-in-window-p (point-min) window)
@@ -1434,15 +1439,22 @@ scroll the window of possible completions."
               ;; If end is in view, scroll up to the end.
               (set-window-start window (point-min) nil)
             ;; Else scroll down one screen.
-            (with-selected-window window (scroll-up)))))
-        nil)))
+            (with-selected-window window (scroll-up))))))
+      (when (eq completion-auto-select 'second-tab)
+        (switch-to-completions))
+      nil))
    ;; If we're cycling, keep on cycling.
    ((and completion-cycling completion-all-sorted-completions)
     (minibuffer-force-complete beg end)
     t)
-   (t (pcase (completion--do-completion beg end)
-        (#b000 nil)
-        (_     t)))))
+   (t (prog1 (pcase (completion--do-completion beg end)
+               (#b000 nil)
+               (_     t))
+        (when (and (eq completion-auto-select t)
+                   (window-live-p minibuffer-scroll-window)
+                   (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
+          ;; When the completion list window was displayed, select it.
+          (switch-to-completions))))))
 
 (defun completion--cache-all-sorted-completions (beg end comps)
   (add-hook 'after-change-functions
@@ -1714,52 +1726,57 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
   "Exit from `require-match' minibuffer.
 COMPLETION-FUNCTION is called if the current buffer's content does not
 appear to be a match."
-    (cond
-     ;; Allow user to specify null string
+  (cond
+   ;; Allow user to specify null string
    ((= beg end) (funcall exit-function))
-     ((test-completion (buffer-substring beg end)
-                       minibuffer-completion-table
-                       minibuffer-completion-predicate)
-      ;; FIXME: completion-ignore-case has various slightly
-      ;; incompatible meanings.  E.g. it can reflect whether the user
-      ;; wants completion to pay attention to case, or whether the
-      ;; string will be used in a context where case is significant.
-      ;; E.g. usually try-completion should obey the first, whereas
-      ;; test-completion should obey the second.
-      (when completion-ignore-case
-        ;; Fixup case of the field, if necessary.
-        (let* ((string (buffer-substring beg end))
-               (compl (try-completion
-                       string
-                       minibuffer-completion-table
-                       minibuffer-completion-predicate)))
-          (when (and (stringp compl) (not (equal string compl))
-                     ;; If it weren't for this piece of paranoia, I'd replace
-                     ;; the whole thing with a call to do-completion.
-                     ;; This is important, e.g. when the current minibuffer's
-                     ;; content is a directory which only contains a single
-                     ;; file, so `try-completion' actually completes to
-                     ;; that file.
-                     (= (length string) (length compl)))
-            (completion--replace beg end compl))))
-      (funcall exit-function))
-
-     ((memq minibuffer-completion-confirm '(confirm confirm-after-completion))
-      ;; The user is permitted to exit with an input that's rejected
-      ;; by test-completion, after confirming her choice.
-      (if (or (eq last-command this-command)
-              ;; For `confirm-after-completion' we only ask for confirmation
-              ;; if trying to exit immediately after typing TAB (this
-              ;; catches most minibuffer typos).
-              (and (eq minibuffer-completion-confirm 'confirm-after-completion)
-                   (not (memq last-command minibuffer-confirm-exit-commands))))
+   ;; The CONFIRM argument is a predicate.
+   ((and (functionp minibuffer-completion-confirm)
+         (funcall minibuffer-completion-confirm
+                  (buffer-substring beg end)))
+    (funcall exit-function))
+   ;; See if we have a completion from the table.
+   ((test-completion (buffer-substring beg end)
+                     minibuffer-completion-table
+                     minibuffer-completion-predicate)
+    ;; FIXME: completion-ignore-case has various slightly
+    ;; incompatible meanings.  E.g. it can reflect whether the user
+    ;; wants completion to pay attention to case, or whether the
+    ;; string will be used in a context where case is significant.
+    ;; E.g. usually try-completion should obey the first, whereas
+    ;; test-completion should obey the second.
+    (when completion-ignore-case
+      ;; Fixup case of the field, if necessary.
+      (let* ((string (buffer-substring beg end))
+             (compl (try-completion
+                     string
+                     minibuffer-completion-table
+                     minibuffer-completion-predicate)))
+        (when (and (stringp compl) (not (equal string compl))
+                   ;; If it weren't for this piece of paranoia, I'd replace
+                   ;; the whole thing with a call to do-completion.
+                   ;; This is important, e.g. when the current minibuffer's
+                   ;; content is a directory which only contains a single
+                   ;; file, so `try-completion' actually completes to
+                   ;; that file.
+                   (= (length string) (length compl)))
+          (completion--replace beg end compl))))
+    (funcall exit-function))
+   ;; The user is permitted to exit with an input that's rejected
+   ;; by test-completion, after confirming her choice.
+   ((memq minibuffer-completion-confirm '(confirm confirm-after-completion))
+    (if (or (eq last-command this-command)
+            ;; For `confirm-after-completion' we only ask for confirmation
+            ;; if trying to exit immediately after typing TAB (this
+            ;; catches most minibuffer typos).
+            (and (eq minibuffer-completion-confirm 'confirm-after-completion)
+                 (not (memq last-command minibuffer-confirm-exit-commands))))
         (funcall exit-function)
-        (minibuffer-message "Confirm")
-        nil))
+      (minibuffer-message "Confirm")
+      nil))
 
-     (t
-      ;; Call do-completion, but ignore errors.
-      (funcall completion-function))))
+   (t
+    ;; Call do-completion, but ignore errors.
+    (funcall completion-function))))
 
 (defun completion--try-word-completion (string table predicate point md)
   (let ((comp (completion-try-completion string table predicate point md)))
@@ -2070,11 +2087,11 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
       (when prefix
         (let ((beg (point))
               (end (progn (insert prefix) (point))))
-          (put-text-property beg end 'mouse-face nil)))
+          (add-text-properties beg end `(mouse-face nil completion--string ,(car str)))))
       (completion--insert (car str) group-fun)
       (let ((beg (point))
             (end (progn (insert suffix) (point))))
-        (put-text-property beg end 'mouse-face nil)
+        (add-text-properties beg end `(mouse-face nil completion--string ,(car str)))
         ;; Put the predefined face only when suffix
         ;; is added via annotation-function without prefix,
         ;; and when the caller doesn't use own face.
@@ -2543,7 +2560,10 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
   ;; FIXME: Only works if completion-in-region-mode was activated via
   ;; completion-at-point called directly.
   "M-?" #'completion-help-at-point
-  "TAB" #'completion-at-point)
+  "TAB" #'completion-at-point
+  "M-<up>"   #'minibuffer-previous-completion
+  "M-<down>" #'minibuffer-next-completion
+  "M-RET"    #'minibuffer-choose-completion)
 
 ;; It is difficult to know when to exit completion-in-region-mode (i.e. hide
 ;; the *Completions*).  Here's how previous packages did it:
@@ -2590,6 +2610,7 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
     (cl-assert completion-in-region-mode-predicate)
     (setq completion-in-region-mode--predicate
 	  completion-in-region-mode-predicate)
+    (setq-local minibuffer-completion-auto-choose nil)
     (add-hook 'post-command-hook #'completion-in-region--postch)
     (push `(completion-in-region-mode . ,completion-in-region-mode-map)
           minor-mode-overriding-map-alist)))
@@ -2816,7 +2837,6 @@ not active."
   "<down-mouse-1>" #'ignore)
 
 (define-derived-mode minibuffer-inactive-mode nil "InactiveMinibuffer"
-  :abbrev-table nil          ;abbrev.el is not loaded yet during dump.
   ;; Note: this major mode is called from minibuf.c.
   "Major mode to use in the minibuffer when it is not active.
 This is only used when the minibuffer area has no active minibuffer.
@@ -2838,7 +2858,6 @@ For customizing this mode, it is better to use
 `minibuffer-setup-hook' and `minibuffer-exit-hook' rather than
 the mode hook of this mode."
   :syntax-table nil
-  :abbrev-table nil
   :interactive nil)
 
 ;;; Completion tables.
@@ -3140,6 +3159,8 @@ Fourth arg MUSTMATCH can take the following values:
   input, but she needs to confirm her choice if she called
   `minibuffer-complete' right before `minibuffer-complete-and-exit'
   and the input is not an existing file.
+- a function, which will be called with the input as the argument.
+  If it returns a non-nil value, the minibuffer is exited with that value.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
@@ -4369,30 +4390,25 @@ selected by these commands to the minibuffer."
   :version "29.1")
 
 (defun minibuffer-next-completion (&optional n)
-  "Run `next-completion' from the minibuffer in its completions window.
+  "Move to the next item in its completions window from the minibuffer.
 When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion to the minibuffer."
   (interactive "p")
-  (with-minibuffer-completions-window
-    (when completions-highlight-face
-      (setq-local cursor-face-highlight-nonselected-window t))
-    (next-completion (or n 1))
-    (when minibuffer-completion-auto-choose
-      (let ((completion-use-base-affixes t))
-        (choose-completion nil t t)))))
+  (let ((auto-choose minibuffer-completion-auto-choose))
+    (with-minibuffer-completions-window
+      (when completions-highlight-face
+        (setq-local cursor-face-highlight-nonselected-window t))
+      (next-completion (or n 1))
+      (when auto-choose
+        (let ((completion-use-base-affixes t))
+          (choose-completion nil t t))))))
 
 (defun minibuffer-previous-completion (&optional n)
-  "Run `previous-completion' from the minibuffer in its completions window.
+  "Move to the previous item in its completions window from the minibuffer.
 When `minibuffer-completion-auto-choose' is non-nil, then also
 insert the selected completion to the minibuffer."
   (interactive "p")
-  (with-minibuffer-completions-window
-    (when completions-highlight-face
-      (setq-local cursor-face-highlight-nonselected-window t))
-    (previous-completion (or n 1))
-    (when minibuffer-completion-auto-choose
-      (let ((completion-use-base-affixes t))
-        (choose-completion nil t t)))))
+  (minibuffer-next-completion (- (or n 1))))
 
 (defun minibuffer-choose-completion (&optional no-exit no-quit)
   "Run `choose-completion' from the minibuffer in its completions window.
@@ -4406,6 +4422,36 @@ minibuffer, but don't quit the completions window."
   (with-minibuffer-completions-window
     (let ((completion-use-base-affixes t))
       (choose-completion nil no-exit no-quit))))
+
+(defun minibuffer-complete-history ()
+  "Complete the minibuffer history as far as possible.
+Like `minibuffer-complete' but completes on the history items
+instead of the default completion table."
+  (interactive)
+  (let ((completions-sort nil)
+        (history (mapcar (lambda (h)
+                           ;; Support e.g. `C-x ESC ESC TAB' as
+                           ;; a replacement of `list-command-history'
+                           (if (consp h) (format "%S" h) h))
+                         (symbol-value minibuffer-history-variable))))
+    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
+                          history nil)))
+
+(defun minibuffer-complete-defaults ()
+  "Complete minibuffer defaults as far as possible.
+Like `minibuffer-complete' but completes on the default items
+instead of the completion table."
+  (interactive)
+  (let ((completions-sort nil))
+    (when (and (not minibuffer-default-add-done)
+               (functionp minibuffer-default-add-function))
+      (setq minibuffer-default-add-done t
+            minibuffer-default (funcall minibuffer-default-add-function)))
+    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
+                          (ensure-list minibuffer-default) nil)))
+
+(define-key minibuffer-local-map [?\C-x up] 'minibuffer-complete-history)
+(define-key minibuffer-local-map [?\C-x down] 'minibuffer-complete-defaults)
 
 (defcustom minibuffer-default-prompt-format " (default %s)"
   "Format string used to output \"default\" values.

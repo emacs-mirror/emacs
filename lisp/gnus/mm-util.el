@@ -315,8 +315,7 @@ Valid elements include:
   "ISO-8859-15 exchangeable coding systems and inconvertible characters.")
 
 (defvar mm-iso-8859-x-to-15-table
-  (and (fboundp 'coding-system-p)
-       (mm-coding-system-p 'iso-8859-15)
+  (and (mm-coding-system-p 'iso-8859-15)
        (mapcar
 	(lambda (cs)
 	  (if (mm-coding-system-p (car cs))

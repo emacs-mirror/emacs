@@ -285,11 +285,32 @@ BView_DrawBitmap (void *view, void *bitmap, int x, int y,
   BView *vw = get_view (view);
   BBitmap *bm = (BBitmap *) bitmap;
 
-  vw->PushState ();
   vw->SetDrawingMode (B_OP_OVER);
   vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
 		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
-  vw->PopState ();
+  vw->SetDrawingMode (B_OP_COPY);
+}
+
+void
+BView_DrawBitmapTiled (void *view, void *bitmap, int x, int y,
+		       int width, int height, int vx, int vy,
+		       int vwidth, int vheight)
+{
+  BView *vw = get_view (view);
+  BBitmap *bm = (BBitmap *) bitmap;
+  BRect bounds = bm->Bounds ();
+
+  if (width == -1)
+    width = BE_RECT_WIDTH (bounds);
+
+  if (height == -1)
+    height = BE_RECT_HEIGHT (bounds);
+
+  vw->SetDrawingMode (B_OP_OVER);
+  vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
+		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1),
+		  B_TILE_BITMAP);
+  vw->SetDrawingMode (B_OP_COPY);
 }
 
 void
@@ -300,17 +321,22 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
   BBitmap *bm = (BBitmap *) bitmap;
   BBitmap bc (bm->Bounds (), B_RGBA32);
   BRect rect (x, y, x + width - 1, y + height - 1);
+  uint32_t *bits;
+  size_t stride;
+  rgb_color low_color;
+  BRect bounds;
 
   if (bc.InitCheck () != B_OK || bc.ImportBits (bm) != B_OK)
     return;
 
-  uint32_t *bits = (uint32_t *) bc.Bits ();
-  size_t stride = bc.BytesPerRow ();
+  bits = (uint32_t *) bc.Bits ();
+  stride = bc.BytesPerRow ();
 
   if (bm->ColorSpace () == B_GRAY1)
     {
-      rgb_color low_color = vw->LowColor ();
-      BRect bounds = bc.Bounds ();
+      low_color = vw->LowColor ();
+      bounds = bc.Bounds ();
+
       for (int y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
 	{
 	  for (int x = 0; x < BE_RECT_WIDTH (bounds); ++x)
@@ -323,10 +349,11 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
 	}
     }
 
-  vw->PushState ();
-  vw->SetDrawingMode (bm->ColorSpace () == B_GRAY1 ? B_OP_OVER : B_OP_ERASE);
+  vw->SetDrawingMode ((bm->ColorSpace ()
+		       == B_GRAY1)
+		      ? B_OP_OVER : B_OP_ERASE);
   vw->DrawBitmap (&bc, rect);
-  vw->PopState ();
+  vw->SetDrawingMode (B_OP_COPY);
 }
 
 void
@@ -357,6 +384,7 @@ BView_DrawMask (void *src, void *view,
   vw->SetDrawingMode (B_OP_OVER);
   vw->DrawBitmap (&bm, BRect (x, y, x + width - 1, y + height - 1),
 		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
+  vw->SetDrawingMode (B_OP_COPY);
 }
 
 static BBitmap *
@@ -474,4 +502,41 @@ BView_InvertRect (void *view, int x, int y, int width, int height)
   BView *vw = get_view (view);
 
   vw->InvertRect (BRect (x, y, x + width - 1, y + height - 1));
+}
+
+static void
+be_draw_cross_on_pixmap_1 (BBitmap *bitmap, int x, int y, int width,
+			   int height, uint32_t color)
+{
+  BBitmap dest (bitmap->Bounds (),
+		bitmap->ColorSpace (),
+		true, false);
+  BView view (bitmap->Bounds (), NULL, B_FOLLOW_NONE, 0);
+  rgb_color high_color;
+
+  rgb32_to_rgb_color (color, &high_color);
+  dest.ImportBits (bitmap);
+
+  if (!dest.Lock ())
+    return;
+
+  dest.AddChild (&view);
+
+  view.SetHighColor (high_color);
+  view.StrokeLine (BPoint (x, y),
+		   BPoint (x + width - 1, y + height - 1));
+  view.StrokeLine (BPoint (x, y + height - 1),
+		   BPoint (x + width - 1, y));
+  view.RemoveSelf ();
+  bitmap->ImportBits (&dest);
+}
+
+void
+be_draw_cross_on_pixmap (void *bitmap, int x, int y, int width,
+			 int height, uint32_t color)
+{
+  BBitmap *target = (BBitmap *) bitmap;
+
+  be_draw_cross_on_pixmap_1 (target, x, y, width, height,
+			     color);
 }

@@ -537,7 +537,7 @@ Examples:
 ;; Note: this is matched with case-fold-search bound to t.
 (defcustom rmail-re-abbrevs
   "\\(RE\\|رد\\|回复\\|回覆\\|SV\\|Antw\\|VS\\|REF\\|AW\\|ΑΠ\\|ΣΧΕΤ\\|השב\\|Vá\\|R\\|RIF\\|BLS\\|RES\\|Odp\\|YNT\\|ATB\\)"
-  "Regexp with localized 'Re:' abbreviations in various languages."
+  "Regexp with localized \"Re:\" abbreviations in various languages."
   :version "28.1"
   :type 'regexp)
 
@@ -4591,8 +4591,6 @@ Argument MIME is non-nil if this is a mime message."
     (list armor-start (- (point-max) after-end) mime
           armor-end-regexp
           (buffer-substring armor-start (- (point-max) after-end)))))
-
-(declare-function rmail-mime-entity-truncated "rmailmm" (entity))
 
 ;; Should this have a key-binding, or be in a menu?
 ;; There doesn't really seem to be an appropriate menu.

@@ -146,7 +146,12 @@ function:
 This function returns @code{t} if @var{object} is any kind of
 function, i.e., can be passed to @code{funcall}.  Note that
 @code{functionp} returns @code{t} for symbols that are function names,
-and returns @code{nil} for special forms.
+and returns @code{nil} for symbols that are macros or special forms.
+
+If @var{object} is not a function, this function ordinarily returns
+@code{nil}.  However, the representation of function objects is
+complicated, and for efficiency reasons in rare cases this function
+can return @code{t} even when @var{object} is not a function.
 @end defun
 
   It is also possible to find out how many arguments an arbitrary
@@ -1712,6 +1717,7 @@ ways to do it.  The added function is also called a piece of @emph{advice}.
 * Advising Named Functions::    Advising named functions.
 * Advice Combinators::          Ways to compose advice.
 * Porting Old Advice::          Adapting code using the old defadvice.
+* Advice and Byte Code::        Not all functions can be advised.
 @end menu
 
 @node Core Advising Primitives
@@ -2132,6 +2138,37 @@ Similarly old @code{after} advice could modify the returned value by
 changing @code{ad-return-value}, whereas new @code{:after} advice cannot, so
 when porting such old @code{after} advice, you'll need to turn it into new
 @code{:around} or @code{:filter-return} advice instead.
+
+@c This is its own node because we link to it from *Help* buffers.
+@node Advice and Byte Code
+@subsection Advice and Byte Code
+@cindex compiler macros, advising
+@cindex @code{byte-compile} and  @code{byte-optimize}, advising
+
+  Not all functions can be reliably advised.  The byte compiler may
+choose to replace a call to a function with a sequence of instructions
+that doesn't call the function you were interested in altering.
+
+This usually happens due to one of the three following mechanisms:
+
+@table @asis
+@item @code{byte-compile} properties
+If a function's symbol has a @code{byte-compile} property, that
+property will be used instead of the symbol's function definition.
+@xref{Compilation Functions}.
+
+@item @code{byte-optimize} properties
+If a function's symbol has a @code{byte-optimize} property, the byte
+compiler may rewrite the function arguments, or decide to use a
+different function altogether.
+
+@item @code{compiler-macro} declare forms
+A function can have a special @code{compiler-macro} @code{declare}
+form in its definition (@pxref{Declare Form}) that defines an
+@dfn{expander} to call when compiling the function.  The expander
+could then cause the produced byte-code not to call the original
+function.
+@end table
 
 @node Obsolete Functions
 @section Declaring Functions Obsolete

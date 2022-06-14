@@ -93,5 +93,44 @@
           (should (looking-back "[[:space:]]" (1- (point)))))
       (when (buffer-live-p buf) (kill-buffer buf)))))
 
+(ert-deftest ls-lisp-test-bug55787 ()
+  "Test proper sorting by version."
+  (let ((files1 (vector "34 klmn-300dpi.jpg"
+                        "34 klmn-300dpi.png"
+                        "054_xyz.jpg"
+                        "054_xyz.png"
+                        "91 opqrs.jpg"
+                        "91 opqrs.png"
+                        "0717-abcd.jpg"
+                        "0717-abcd.png"
+                        "1935 uv.jpg"
+                        "1935 uv.png"
+                        "FFFF_fghk.jpg"
+                        "FFFF_fghk.png"
+                        "hhhh.jpg"
+		        "hhhh.png"))
+        (files2 (vector "01.0" "10" "010" "01.2")))
+    (should (equal (sort files1
+                         (lambda (x y)
+                           (ls-lisp-version-lessp x y)))
+                   '["0717-abcd.jpg"
+                     "0717-abcd.png"
+                     "054_xyz.jpg"
+                     "054_xyz.png"
+                     "34 klmn-300dpi.jpg"
+                     "34 klmn-300dpi.png"
+                     "91 opqrs.jpg"
+                     "91 opqrs.png"
+                     "1935 uv.jpg"
+                     "1935 uv.png"
+                     "FFFF_fghk.jpg"
+                     "FFFF_fghk.png"
+                     "hhhh.jpg"
+                     "hhhh.png"]))
+    (should (equal (sort files2
+                         (lambda (x y)
+                           (ls-lisp-version-lessp x y)))
+                   '["01.0" "01.2" "010" "10"]))))
+
 (provide 'ls-lisp-tests)
 ;;; ls-lisp-tests.el ends here

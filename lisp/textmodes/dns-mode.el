@@ -110,11 +110,11 @@
 			"26.1" 'set)
 
 (defcustom dns-mode-font-lock-keywords
-  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities))
+  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities) "\\>")
      0 ,dns-mode-control-entity-face)
     ("^\\$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
-    (,(regexp-opt dns-mode-classes) 0 ,dns-mode-class-face)
-    (,(regexp-opt dns-mode-types) 0 ,dns-mode-type-face))
+    (,(regexp-opt dns-mode-classes 'words) 0 ,dns-mode-class-face)
+    (,(regexp-opt dns-mode-types 'words) 0 ,dns-mode-type-face))
   "Font lock keywords used to highlight text in DNS master file mode."
   :version "26.1"
   :type 'sexp)
@@ -165,7 +165,7 @@ manually with \\[dns-mode-soa-increment-serial]."
 ;;;###autoload
 (define-derived-mode dns-mode text-mode "DNS"
   "Major mode for viewing and editing DNS master files.
-This mode is inherited from text mode.  It add syntax
+This mode is derived from text mode.  It adds syntax
 highlighting, and some commands for handling DNS master files.
 Its keymap inherits from `text-mode' and it has the same
 variables for customizing indentation.  It has its own abbrev

@@ -119,6 +119,15 @@
                               t))
 			   "\\s-+\\(" lisp-mode-symbol-regexp "\\)"))
 	 2)
+   ;; Like the previous, but uses a quoted symbol as the name.
+   (list nil
+	 (purecopy (concat "^\\s-*("
+			   (eval-when-compile
+			     (regexp-opt
+			      '("defalias" "define-obsolete-function-alias")
+                              t))
+			   "\\s-+'\\(" lisp-mode-symbol-regexp "\\)"))
+	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
 			   (eval-when-compile
@@ -155,6 +164,12 @@
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
+
+(defconst lisp-mode-autoload-regexp
+  "^;;;###\\(\\([-[:alnum:]]+?\\)-\\)?\\(autoload\\)"
+  "Regexp to match autoload cookies.
+The second group matches package names used to redirect autoloads
+to a package-local <package>-loaddefs.el file.")
 
 ;; This was originally in autoload.el and is still used there.
 (put 'autoload 'doc-string-elt 3)
@@ -234,6 +249,9 @@
               ('declare nil)
               ('let
                 (forward-sexp 1)
+                (>= pos (point)))
+              ((or 'defun 'defmacro 'cl-defmethod 'cl-defun)
+                (forward-sexp 2)
                 (>= pos (point)))
               ('condition-case
                   ;; If (cdr paren-posns), then we're in the BODY
@@ -418,7 +436,8 @@ This will generate compile-time constants from BINDINGS."
              nil t))
         ;; Emacs Lisp autoload cookies.  Supports the slightly different
         ;; forms used by mh-e, calendar, etc.
-        ("^;;;###\\([-a-z]*autoload\\)" 1 font-lock-warning-face prepend))
+        (,lisp-mode-autoload-regexp (3 font-lock-warning-face prepend)
+                                    (2 font-lock-function-name-face prepend t)))
       "Subdued level highlighting for Emacs Lisp mode.")
 
     (defconst lisp-cl-font-lock-keywords-1
@@ -466,6 +485,9 @@ This will generate compile-time constants from BINDINGS."
          ;; Words inside ‘’, '' and `' tend to be symbol names.
          (,(concat "[`‘']\\(" lisp-mode-symbol-regexp "\\)['’]")
           (1 font-lock-constant-face prepend))
+         ;; \\= tends to be an escape in doc strings.
+         ("\\\\\\\\="
+          (0 font-lock-builtin-face prepend))
          ;; Constant values.
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))
@@ -648,7 +670,9 @@ font-lock keywords will not be case sensitive."
   (setq-local indent-line-function 'lisp-indent-line)
   (setq-local indent-region-function 'lisp-indent-region)
   (setq-local comment-indent-function #'lisp-comment-indent)
-  (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
+  (setq-local outline-regexp (concat ";;;;* [^ \t\n]\\|(\\|\\("
+                                     lisp-mode-autoload-regexp
+                                     "\\)"))
   (setq-local outline-level 'lisp-outline-level)
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
@@ -688,7 +712,8 @@ font-lock keywords will not be case sensitive."
   ;; Expects outline-regexp is ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|("
   ;; and point is at the beginning of a matching line.
   (let ((len (- (match-end 0) (match-beginning 0))))
-    (cond ((looking-at "(\\|;;;###autoload")
+    (cond ((or (looking-at-p "(")
+               (looking-at-p lisp-mode-autoload-regexp))
            1000)
           ((looking-at ";;\\(;+\\) ")
            (- (match-end 1) (match-beginning 1)))

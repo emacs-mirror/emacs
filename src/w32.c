@@ -10297,7 +10297,8 @@ check_windows_init_file (void)
 	openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil, 0, 0);
       if (fd < 0)
 	{
-	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path, Qnil);
+	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path,
+							  Qnil, Qnil);
 	  char *init_file_name = SSDATA (init_file);
 	  char *load_path = SSDATA (load_path_print);
 	  char *buffer = alloca (1024

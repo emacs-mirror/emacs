@@ -232,6 +232,40 @@ The text being displayed in the echo area is controlled by the variables
 				    (funcall battery-status-function))
 		  "Battery status not available")))
 
+(defcustom battery-update-functions nil
+  "Functions run by `display-battery-mode' after updating the status.
+These functions will be called with one parameter, an alist that
+contains data about the current battery status.  The keys in the
+alist are single characters and the values are strings.
+Different battery backends deliver different information, so some
+of the following information may or may not be available:
+
+    v: driver-version
+    V: bios-version
+    I: bios-interface
+    L: line-status
+    B: battery-status
+    b: battery-status-symbol
+    p: load-percentage
+    s: seconds
+    m: minutes
+    h: hours
+    t: remaining-time
+
+For instance, to play an alarm when the battery power dips below
+10%, you could use a function like the following:
+
+(defvar my-prev-battery nil)
+(defun my-battery-alarm (data)
+  (when (and my-prev-battery
+             (equal (alist-get ?L data) \"off-line\")
+             (< (string-to-number (alist-get ?p data)) 10)
+             (>= (string-to-number (alist-get ?p my-prev-battery)) 10))
+    (play-sound-file \"~/alarm.wav\" 5))
+  (setq my-prev-battery data))"
+  :version "29.1"
+  :type '(repeat function))
+
 ;;;###autoload
 (define-minor-mode display-battery-mode
   "Toggle battery status display in mode line (Display Battery mode).
@@ -239,7 +273,11 @@ The text being displayed in the echo area is controlled by the variables
 The text displayed in the mode line is controlled by
 `battery-mode-line-format' and `battery-status-function'.
 The mode line is be updated every `battery-update-interval'
-seconds."
+seconds.
+
+The function which updates the mode-line display will call the
+functions in `battery-update-functions', which can be used to
+trigger actions based on battery-related events."
   :global t
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
@@ -279,7 +317,8 @@ seconds."
             ((< percentage battery-load-low)
              (add-face-text-property 0 len 'battery-load-low t res)))
       (put-text-property 0 len 'help-echo "Battery status information" res))
-    (setq battery-mode-line-string (or res "")))
+    (setq battery-mode-line-string (or res ""))
+    (run-hook-with-args 'battery-update-functions data))
   (force-mode-line-update t))
 
 

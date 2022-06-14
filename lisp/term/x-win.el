@@ -241,7 +241,9 @@ exists."
 (defconst x-pointer-ur-angle 148)
 (defconst x-pointer-watch 150)
 (defconst x-pointer-xterm 152)
-(defconst x-pointer-invisible 255)
+(defconst x-pointer-invisible 65536) ;; This value is larger than a
+                                     ;; CARD16, so it cannot be a
+                                     ;; valid cursor.
 
 
 ;;;; Keysyms
@@ -1557,7 +1559,7 @@ EVENT is a preedit-text event."
 
 (defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
 
-(declare-function x-internal-focus-input-context (focus frame) "xfns.c")
+(declare-function x-internal-focus-input-context "xfns.c" (focus))
 
 (defun x-gtk-use-native-input-watcher (_symbol newval &rest _ignored)
   "Variable watcher for `x-gtk-use-native-input'.

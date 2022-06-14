@@ -1034,6 +1034,9 @@ text in @var{string} according to the @code{yank-handler} text
 property, as well as the variables @code{yank-handled-properties} and
 @code{yank-excluded-properties} (see below), before inserting the
 result into the current buffer.
+
+@var{string} will be run through @code{yank-transform-functions} (see
+below) before inserting.
 @end defun
 
 @defun insert-buffer-substring-as-yank buf &optional start end
@@ -1108,6 +1111,23 @@ or specifying key bindings.  It takes effect after
 @code{yank-handled-properties}.
 @end defopt
 
+@defvar yank-transform-functions
+This variable is a list of functions.  Each function is called (in
+order) with the string to be yanked as the argument, and should
+return a (possibly transformed) string.  This variable can be set
+globally, but can also be used to create new commands that are
+variations on @code{yank}.  For instance, to create a command that
+works like @code{yank}, but cleans up whitespace before inserting, you
+could say something like:
+
+@lisp
+(defun yank-with-clean-whitespace ()
+  (interactive)
+  (let ((yank-transform-functions
+	 '(string-clean-whitespace)))
+    (call-interactively #'yank)))
+@end lisp
+@end defvar
 
 @node Yank Commands
 @subsection Functions for Yanking

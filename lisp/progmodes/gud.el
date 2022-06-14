@@ -54,8 +54,8 @@
 (declare-function gdb-tooltip-print-1 "gdb-mi" (expr))
 (declare-function gud-pp "gdb-mi" (arg))
 (declare-function gdb-var-delete "gdb-mi" ())
-(declare-function speedbar-toggle-line-expansion "gud" ())
-(declare-function speedbar-edit-line "gud" ())
+(declare-function speedbar-toggle-line-expansion "speedbar" ())
+(declare-function speedbar-edit-line "speedbar" ())
 ;; FIXME: The declares below are necessary because we don't call `gud-def'
 ;; at toplevel, so the compiler doesn't know under which circumstances
 ;; they're defined.
@@ -2460,7 +2460,7 @@ during jdb initialization depending on the value of
   ;;  not supported/followed)
   (if (and gud-jdb-use-classpath
 	   (not gud-jdb-classpath-string)
-	   (or (string-match "classpath:[ \t[]+\\([^]]+\\)" gud-marker-acc)
+	   (or (string-match "classpath:[ \t[]+\\([^]]*\\)" gud-marker-acc)
 	       (string-match "-classpath[ \t\"]+\\([^ \"]+\\)" gud-marker-acc)))
       (setq gud-jdb-classpath
 	    (gud-jdb-parse-classpath-string

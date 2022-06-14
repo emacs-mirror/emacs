@@ -2213,7 +2213,6 @@ arg DO-SPACE prevents stripping the whitespace."
      :style toggle :help "Expand abbreviations while typing in this buffer"]
     ["Add Imenu Menu" imenu-add-menubar-index
      :active   (not (lookup-key (current-local-map) [menu-bar index]))
-     :included (fboundp 'imenu-add-to-menubar)
      :help "Add an index menu to the menu-bar"]))
 
 (provide 'fortran)

@@ -1482,4 +1482,53 @@ with parameters from the *Messages* buffer modification."
           (when auto-save
             (ignore-errors (delete-file auto-save))))))))
 
+(ert-deftest test-buffer-modifications ()
+  (ert-with-temp-file file
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (buffer-modified-p))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) 'autosaved))
+      (do-auto-save nil t)
+      (should (eq (buffer-modified-p) 'autosaved))
+      (with-silent-modifications
+        (put-text-property 1 3 'face 'bold))
+      (should (eq (buffer-modified-p) 'autosaved))
+      (save-buffer)
+      (should-not (buffer-modified-p))
+      (with-silent-modifications
+        (put-text-property 1 3 'face 'italic))
+      (should-not (buffer-modified-p)))))
+
+(ert-deftest test-restore-buffer-modified-p ()
+  (ert-with-temp-file file
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (buffer-modified-p))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (restore-buffer-modified-p nil)
+      (should-not (buffer-modified-p))
+      (insert "bar")
+      (do-auto-save nil t)
+      (should (eq (buffer-modified-p) 'autosaved))
+      (insert "zot")
+      (restore-buffer-modified-p 'autosaved)
+      (should (eq (buffer-modified-p) 'autosaved))
+
+      ;; Clean up.
+      (when (file-exists-p buffer-auto-save-file-name)
+        (delete-file buffer-auto-save-file-name))))
+
+  (ert-with-temp-file file
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (buffer-modified-p))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) 'autosaved))
+      (restore-buffer-modified-p 'autosaved)
+      (should (eq (buffer-modified-p) 'autosaved)))))
+
 ;;; buffer-tests.el ends here

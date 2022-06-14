@@ -312,8 +312,8 @@ names."
 
 ;;;; System name and version for emacsbug.el
 
-(declare-function w32-version "w32-win" ())
-(declare-function w32-read-registry "w32fns" (root key name))
+(declare-function w32-version "term/w32-win" ())
+(declare-function w32-read-registry "w32fns.c" (root key name))
 
 (defun w32--os-description ()
   "Return a string describing the underlying OS and its version."
@@ -358,23 +358,6 @@ names."
 
 
 ;;;; Support for build process
-
-;; From autoload.el
-(defvar autoload-make-program)
-(defvar generated-autoload-file)
-
-(defun w32-batch-update-autoloads ()
-  "Like `batch-update-autoloads', but takes the name of the autoloads file
-from the command line.
-
-This is required because some Windows build environments, such as MSYS,
-munge command-line arguments that include file names to a horrible mess
-that Emacs is unable to cope with."
-  (let ((generated-autoload-file
-	 (expand-file-name (pop command-line-args-left)))
-	;; I can only assume the same considerations may apply here...
-	(autoload-make-program (pop command-line-args-left)))
-    (batch-update-autoloads)))
 
 (defun w32-append-code-lines (orig extra)
   "Append non-empty non-comment lines in the file EXTRA to the file ORIG.

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
-;; Author: Andrea Corallo <akrl@sdf.com>
+;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Keywords: lisp
 ;; Package: emacs
 
@@ -483,7 +483,7 @@ Useful to hook into pass checkers.")
     (point-min (function () integer))
     (preceding-char (function () fixnum))
     (previous-window (function (&optional window t t) window))
-    (prin1-to-string (function (t &optional t) string))
+    (prin1-to-string (function (t &optional t t) string))
     (processp (function (t) boolean))
     (proper-list-p (function (t) integer))
     (propertize (function (string &rest t) string))
@@ -944,7 +944,7 @@ CFG is mutated by a pass.")
       :documentation "Unique id when in SSA form.")
   (slot nil :type (or fixnum symbol)
         :documentation "Slot number in the array if a number or
-        'scratch' for scratch slot."))
+        `scratch' for scratch slot."))
 
 (defun comp-mvar-type-hint-match-p (mvar type-hint)
   "Match MVAR against TYPE-HINT.
@@ -3926,22 +3926,36 @@ display a message."
                   (file-newer-than-file-p
                    source-file (comp-el-to-eln-filename source-file)))
          do (let* ((expr `((require 'comp)
-                           ,(when (boundp 'backtrace-line-length)
-                              `(setf backtrace-line-length ,backtrace-line-length))
-                           (setf comp-file-preloaded-p ,comp-file-preloaded-p
-                                 native-compile-target-directory ,native-compile-target-directory
-                                 native-comp-speed ,native-comp-speed
-                                 native-comp-debug ,native-comp-debug
-                                 native-comp-verbose ,native-comp-verbose
-                                 comp-libgccjit-reproducer ,comp-libgccjit-reproducer
-                                 comp-async-compilation t
-                                 native-comp-eln-load-path ',native-comp-eln-load-path
-                                 native-comp-compiler-options
-                                 ',native-comp-compiler-options
-                                 native-comp-driver-options
-                                 ',native-comp-driver-options
-                                 load-path ',load-path
-                                 warning-fill-column most-positive-fixnum)
+                           (setq comp-async-compilation t)
+                           (setq warning-fill-column most-positive-fixnum)
+                           ,(let ((set (list 'setq)))
+                              (dolist (var '(comp-file-preloaded-p
+                                             native-compile-target-directory
+                                             native-comp-speed
+                                             native-comp-debug
+                                             native-comp-verbose
+                                             comp-libgccjit-reproducer
+                                             native-comp-eln-load-path
+                                             native-comp-compiler-options
+                                             native-comp-driver-options
+                                             load-path
+                                             backtrace-line-length
+                                             ;; package-load-list
+                                             ;; package-user-dir
+                                             ;; package-directory-list
+                                             ))
+                                (when (boundp var)
+                                  (push var set)
+                                  (push `',(symbol-value var) set)))
+                              (nreverse set))
+                           ;; FIXME: Activating all packages would align the
+                           ;; functionality offered with what is usually done
+                           ;; for ELPA packages (and thus fix some compilation
+                           ;; issues with some ELPA packages), but it's too
+                           ;; blunt an instrument (e.g. we don't even know if
+                           ;; we're compiling such an ELPA package at
+                           ;; this point).
+                           ;;(package-activate-all)
                            ,native-comp-async-env-modifier-form
                            (message "Compiling %s..." ,source-file)
                            (comp--native-compile ,source-file ,(and load t))))
@@ -3994,7 +4008,7 @@ display a message."
     (run-hooks 'native-comp-async-all-done-hook)
     (with-current-buffer (get-buffer-create comp-async-buffer-name)
       (save-excursion
-        (let ((buffer-read-only nil))
+        (let ((inhibit-read-only t))
           (goto-char (point-max))
           (insert "Compilation finished.\n"))))
     ;; `comp-deferred-pending-h' should be empty at this stage.
@@ -4025,48 +4039,60 @@ the deferred compilation mechanism."
            (comp-ctxt (make-comp-ctxt :output output
                                       :with-late-load with-late-load)))
       (comp-log "\n\n" 1)
-      (condition-case err
-          (cl-loop
-           with report = nil
-           for t0 = (current-time)
-           for pass in comp-passes
-           unless (memq pass comp-disabled-passes)
-           do
-           (comp-log (format "(%s) Running pass %s:\n"
-                             function-or-file pass)
-                     2)
-           (setf data (funcall pass data))
-           (push (cons pass (float-time (time-since t0))) report)
-           (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                    do (funcall f data))
-           finally
-           (when comp-log-time-report
-             (comp-log (format "Done compiling %s" data) 0)
-             (cl-loop for (pass . time) in (reverse report)
-                      do (comp-log (format "Pass %s took: %fs." pass time) 0))))
-        (native-compiler-skip)
-        (t
-         (let ((err-val (cdr err)))
-           ;; If we are doing an async native compilation print the
-           ;; error in the correct format so is parsable and abort.
-           (if (and comp-async-compilation
-                    (not (eq (car err) 'native-compiler-error)))
-               (progn
-                 (message (if err-val
-                              "%s: Error: %s %s"
-                            "%s: Error %s")
-                          function-or-file
-                          (get (car err) 'error-message)
-                          (car-safe err-val))
-                 (kill-emacs -1))
-             ;; Otherwise re-signal it adding the compilation input.
-	     (signal (car err) (if (consp err-val)
-			           (cons function-or-file err-val)
-			         (list function-or-file err-val)))))))
-        (if (stringp function-or-file)
-            data
-          ;; So we return the compiled function.
-          (native-elisp-load data)))))
+      (unwind-protect
+          (progn
+            (condition-case err
+                (cl-loop
+                 with report = nil
+                 for t0 = (current-time)
+                 for pass in comp-passes
+                 unless (memq pass comp-disabled-passes)
+                 do
+                 (comp-log (format "(%s) Running pass %s:\n"
+                                   function-or-file pass)
+                           2)
+                 (setf data (funcall pass data))
+                 (push (cons pass (float-time (time-since t0))) report)
+                 (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                          do (funcall f data))
+                 finally
+                 (when comp-log-time-report
+                   (comp-log (format "Done compiling %s" data) 0)
+                   (cl-loop for (pass . time) in (reverse report)
+                            do (comp-log (format "Pass %s took: %fs."
+                                                 pass time) 0))))
+              (native-compiler-skip)
+              (t
+               (let ((err-val (cdr err)))
+                 ;; If we are doing an async native compilation print the
+                 ;; error in the correct format so is parsable and abort.
+                 (if (and comp-async-compilation
+                          (not (eq (car err) 'native-compiler-error)))
+                     (progn
+                       (message (if err-val
+                                    "%s: Error: %s %s"
+                                  "%s: Error %s")
+                                function-or-file
+                                (get (car err) 'error-message)
+                                (car-safe err-val))
+                       (kill-emacs -1))
+                   ;; Otherwise re-signal it adding the compilation input.
+	           (signal (car err) (if (consp err-val)
+			                 (cons function-or-file err-val)
+			               (list function-or-file err-val)))))))
+            (if (stringp function-or-file)
+                data
+              ;; So we return the compiled function.
+              (native-elisp-load data)))
+        ;; We may have created a temporary file when we're being
+        ;; called with something other than a file as the argument.
+        ;; Delete it.
+        (when (and (not (stringp function-or-file))
+                   (not output)
+                   comp-ctxt
+                   (comp-ctxt-output comp-ctxt)
+                   (file-exists-p (comp-ctxt-output comp-ctxt)))
+          (delete-file (comp-ctxt-output comp-ctxt)))))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
@@ -4088,6 +4114,7 @@ LOAD and SELECTOR work as described in `native--compile-async'."
                     native-comp-deferred-compilation-deny-list))))
 
 (defun native--compile-async (files &optional recursively load selector)
+  ;; BEWARE, this function is also called directly from C.
   "Compile FILES asynchronously.
 FILES is one filename or a list of filenames or directories.
 
@@ -4121,16 +4148,17 @@ bytecode definition was not changed in the meantime)."
   (unless (listp files)
     (setf files (list files)))
   (let (file-list)
-    (dolist (path files)
-      (cond ((file-directory-p path)
+    (dolist (file-or-dir files)
+      (cond ((file-directory-p file-or-dir)
              (dolist (file (if recursively
                                (directory-files-recursively
-                                path comp-valid-source-re)
-                             (directory-files path t comp-valid-source-re)))
+                                file-or-dir comp-valid-source-re)
+                             (directory-files file-or-dir
+                                              t comp-valid-source-re)))
                (push file file-list)))
-            ((file-exists-p path) (push path file-list))
+            ((file-exists-p file-or-dir) (push file-or-dir file-list))
             (t (signal 'native-compiler-error
-                       (list "Path not a file nor directory" path)))))
+                       (list "Not a file nor directory" file-or-dir)))))
     (dolist (file file-list)
       (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
           ;; Most likely the byte-compiler has requested a deferred

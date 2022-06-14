@@ -146,7 +146,7 @@ This is local in each buffer, once it is used.")
 
 ;; Some redundant "less"-like key bindings below have been commented out.
 (defvar-keymap view-mode-map
-  :doc "Keymap for ‘view-mode’."
+  :doc "Keymap for `view-mode'."
   "C"     #'View-kill-and-leave
   "c"     #'View-leave
   "Q"     #'View-quit-all

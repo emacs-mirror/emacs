@@ -305,16 +305,15 @@ the debugger will not be entered."
 		  (set-buffer debugger-old-buffer)))
               ;; Forget debugger window, it won't be back (Bug#17882).
               (setq debugger-previous-window nil))
-            ;; Restore previous state of debugger-buffer in case we were
-            ;; in a recursive invocation of the debugger, otherwise just
-            ;; erase the buffer.
+            ;; Restore previous state of debugger-buffer in case we
+            ;; were in a recursive invocation of the debugger,
+            ;; otherwise just exit (after changing the mode, since we
+            ;; can't interact with the buffer in the same way).
 	    (when (buffer-live-p debugger-buffer)
 	      (with-current-buffer debugger-buffer
 	        (if debugger-previous-state
                     (debugger--restore-buffer-state debugger-previous-state)
-                  (setq backtrace-insert-header-function nil)
-                  (setq backtrace-frames nil)
-                  (backtrace-print))))
+                  (backtrace-mode))))
 	    (with-timeout-unsuspend debugger-with-timeout-suspend)
 	    (set-match-data debugger-outer-match-data)))
         (setq debug-on-next-call debugger-step-after-exit)

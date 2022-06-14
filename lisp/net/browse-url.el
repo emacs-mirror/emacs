@@ -635,9 +635,10 @@ CHARS is a regexp that matches a character."
 The annoying characters are those that can mislead a web browser
 regarding its parameter treatment."
   ;; FIXME: Is there an actual example of a web browser getting
-  ;; confused?  (This used to encode commas, but at least Firefox
-  ;; handles commas correctly and doesn't accept encoded commas.)
-  (browse-url-url-encode-chars url "[\"()$ ]"))
+  ;; confused?  (This used to encode commas and dollar signs, but at
+  ;; least Firefox handles commas correctly and doesn't accept those
+  ;; encoded.)
+  (browse-url-url-encode-chars url "[\"() ]"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
@@ -1019,6 +1020,8 @@ instead of `browse-url-new-window-flag'."
      'browse-url-default-windows-browser)
     ((memq system-type '(darwin))
      'browse-url-default-macosx-browser)
+    ((featurep 'haiku)
+     'browse-url-default-haiku-browser)
     ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
 ;;;    ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
@@ -1238,6 +1241,24 @@ The optional argument NEW-WINDOW is not used."
     (start-process (concat "WebPositive " url) nil "WebPositive" url)))
 
 (function-put 'browse-url-webpositive 'browse-url-browser-kind 'external)
+
+(declare-function haiku-roster-launch "haikuselect.c")
+
+;;;###autoload
+(defun browse-url-default-haiku-browser (url &optional _new-window)
+  "Browse URL with the system default browser.
+Default to the URL around or before point."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let* ((scheme (save-match-data
+                   (if (string-match "\\(.+\\):/" url)
+                       (match-string 1 url)
+                     "http")))
+         (mime (concat "application/x-vnd.Be.URL." scheme)))
+    (haiku-roster-launch mime (vector url))))
+
+(function-put 'browse-url-default-haiku-browser
+              'browse-url-browser-kind 'external)
 
 ;;;###autoload
 (defun browse-url-emacs (url &optional same-window)
@@ -1613,13 +1634,11 @@ from `browse-url-elinks-wrapper'."
 
 ;;; Adding buttons to a buffer to call `browse-url' when you hit them.
 
-(defvar browse-url-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" #'browse-url-button-open)
-    (define-key map [mouse-2] #'browse-url-button-open)
-    (define-key map "w" #'browse-url-button-copy)
-    map)
-  "The keymap used for `browse-url' buttons.")
+(defvar-keymap browse-url-button-map
+  :doc "The keymap used for `browse-url' buttons."
+  "RET"       #'browse-url-button-open
+  "<mouse-2>" #'browse-url-button-open
+  "w"         #'browse-url-button-copy)
 
 (defface browse-url-button
   '((t :inherit link))

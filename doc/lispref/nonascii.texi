@@ -280,11 +280,12 @@ to the codepoints @code{#x3FFF80} through @code{#x3FFFFF}, inclusive
 
 @defun string-to-unibyte string
 This function returns a unibyte string containing the same sequence of
-characters as @var{string}.  It signals an error if @var{string}
-contains a non-@acronym{ASCII} character.  If @var{string} is a
-unibyte string, it is returned unchanged.  Use this function for
-@var{string} arguments that contain only @acronym{ASCII} and eight-bit
-characters.
+characters as @var{string}.  If @var{string} is a unibyte string, it
+is returned unchanged.  Otherwise, @acronym{ASCII} characters and
+characters in the @code{eight-bit} charset are converted to their
+corresponding byte values.  Use this function for @var{string}
+arguments that contain only @acronym{ASCII} and eight-bit characters;
+the function signals an error if any other characters are encountered.
 @end defun
 
 @defun byte-to-string byte

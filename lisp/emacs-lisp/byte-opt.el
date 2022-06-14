@@ -422,7 +422,7 @@ for speeding up processing.")
                               (byte-optimize-body (cdr clause) for-effect))))
                     clauses)))
 
-      (`(unwind-protect ,exp . ,exps)
+      (`(unwind-protect ,exp :fun-body ,f)
        ;; The unwinding part of an unwind-protect is compiled (and thus
        ;; optimized) as a top-level form, but run the optimizer for it here
        ;; anyway for lexical variable usage and substitution.  But the
@@ -430,13 +430,7 @@ for speeding up processing.")
        ;; unwind-protect itself.  (The unwinding part is always for effect,
        ;; but that isn't handled properly yet.)
        (let ((bodyform (byte-optimize-form exp for-effect)))
-         (pcase exps
-           (`(:fun-body ,f)
-            `(,fn ,bodyform
-               :fun-body ,(byte-optimize-form f nil)))
-           (_
-            `(,fn ,bodyform
-               . ,(byte-optimize-body exps t))))))
+         `(,fn ,bodyform :fun-body ,(byte-optimize-form f nil))))
 
       (`(catch ,tag . ,exps)
        `(,fn ,(byte-optimize-form tag nil)
@@ -463,32 +457,21 @@ for speeding up processing.")
       ;; is a *value* and shouldn't appear in the car.
       (`((closure . ,_) . ,_) form)
 
-      (`(setq . ,args)
-       (let ((var-expr-list nil))
-         (while args
-           (unless (and (consp args)
-                        (symbolp (car args)) (consp (cdr args)))
-             (byte-compile-warn-x form "malformed setq form: %S" form))
-           (let* ((var (car args))
-                  (expr (cadr args))
-                  (lexvar (assq var byte-optimize--lexvars))
-                  (value (byte-optimize-form expr nil)))
-             (when lexvar
-               (setcar (cdr lexvar) t)    ; Mark variable to be kept.
-               (setcdr (cdr lexvar) nil)  ; Inhibit further substitution.
+      (`(setq ,var ,expr)
+       (let ((lexvar (assq var byte-optimize--lexvars))
+             (value (byte-optimize-form expr nil)))
+         (when lexvar
+           (setcar (cdr lexvar) t)    ; Mark variable to be kept.
+           (setcdr (cdr lexvar) nil)  ; Inhibit further substitution.
 
-               (when (memq var byte-optimize--aliased-vars)
-                 ;; Cancel aliasing of variables aliased to this one.
-                 (dolist (v byte-optimize--lexvars)
-                   (when (eq (nth 2 v) var)
-                     ;; V is bound to VAR but VAR is now mutated:
-                     ;; cancel aliasing.
-                     (setcdr (cdr v) nil)))))
-
-             (push var var-expr-list)
-             (push value var-expr-list))
-           (setq args (cddr args)))
-         (cons fn (nreverse var-expr-list))))
+           (when (memq var byte-optimize--aliased-vars)
+             ;; Cancel aliasing of variables aliased to this one.
+             (dolist (v byte-optimize--lexvars)
+               (when (eq (nth 2 v) var)
+                 ;; V is bound to VAR but VAR is now mutated:
+                 ;; cancel aliasing.
+                 (setcdr (cdr v) nil)))))
+         `(,fn ,var ,value)))
 
       (`(defvar ,(and (pred symbolp) name) . ,rest)
        (let ((optimized-rest (and rest
@@ -706,13 +689,8 @@ for speeding up processing.")
     (let ((byte-optimize--lexvars nil))
       (cons
        (mapcar (lambda (binding)
-	         (if (symbolp binding)
-		     binding
-	           (when (or (atom binding) (cddr binding))
-		     (byte-compile-warn-x
-                      binding "malformed let binding: `%S'" binding))
-	           (list (car binding)
-		         (byte-optimize-form (nth 1 binding) nil))))
+	         (list (car binding)
+		       (byte-optimize-form (nth 1 binding) nil)))
 	       (car form))
        (byte-optimize-body (cdr form) for-effect)))))
 
@@ -1264,28 +1242,17 @@ See Info node `(elisp) Integer Basics'."
     ;; Body is empty or just contains a constant.
     (`(,head ,bindings . ,(or '() `(,(and const (pred macroexp-const-p)))))
      (if (eq head 'let)
-         `(progn ,@(mapcar (lambda (binding)
-                             (and (consp binding) (cadr binding)))
-                           bindings)
-                 ,const)
-       `(,head ,(butlast bindings)
-          ,@(and (consp (car (last bindings)))
-                 (cdar (last bindings)))
-          ,const)))
+         `(progn ,@(mapcar #'cadr bindings) ,const)
+       `(,head ,(butlast bindings) ,(cadar (last bindings)) ,const)))
 
     ;; Body is last variable.
     (`(,head ,(and bindings
-                   (let last-var (let ((last (car (last bindings))))
-                                   (if (consp last) (car last) last))))
+                   (let last-var (caar (last bindings))))
              ,(and last-var             ; non-linear pattern
                    (pred symbolp) (pred (not keywordp)) (pred (not booleanp))))
      (if (eq head 'let)
-         `(progn ,@(mapcar (lambda (binding)
-                             (and (consp binding) (cadr binding)))
-                           bindings))
-       `(,head ,(butlast bindings)
-          ,@(and (consp (car (last bindings)))
-                 (cdar (last bindings))))))
+         `(progn ,@(mapcar #'cadr bindings))
+       `(,head ,(butlast bindings) ,(cadar (last bindings)))))
 
     (_ form)))
 
@@ -1368,7 +1335,7 @@ See Info node `(elisp) Integer Basics'."
 	 buffer-substring byte-code-function-p
 	 capitalize car-less-than-car car cdr ceiling char-after char-before
 	 char-equal char-to-string char-width compare-strings
-	 compare-window-configurations concat coordinates-in-window-p
+	 window-configuration-equal-p concat coordinates-in-window-p
 	 copy-alist copy-sequence copy-marker copysign cos count-lines
 	 current-time-string current-time-zone
 	 decode-char

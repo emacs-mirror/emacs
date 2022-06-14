@@ -392,16 +392,23 @@ If that doesn't give a function, return nil."
 The prefix described consists of all but the last event
 of the key sequence that ran this command."
   (interactive)
-  (let ((key (this-command-keys)))
-    (describe-bindings
-     (if (stringp key)
-	 (substring key 0 (1- (length key)))
-       (let ((prefix (make-vector (1- (length key)) nil))
-	     (i 0))
-	 (while (< i (length prefix))
-	   (aset prefix i (aref key i))
-	   (setq i (1+ i)))
-	 prefix)))))
+  (let* ((key (this-command-keys))
+         (prefix
+          (if (stringp key)
+	      (substring key 0 (1- (length key)))
+            (let ((prefix (make-vector (1- (length key)) nil))
+	          (i 0))
+	      (while (< i (length prefix))
+	        (aset prefix i (aref key i))
+	        (setq i (1+ i)))
+	      prefix))))
+    (describe-bindings prefix)
+    (with-current-buffer (help-buffer)
+      (when (< (buffer-size) 10)
+        (let ((inhibit-read-only t))
+          (insert (format "No commands with a binding that start with %s."
+                          (help--key-description-fontified prefix))))))))
+
 ;; Make C-h after a prefix, when not specifically bound,
 ;; run describe-prefix-bindings.
 (setq prefix-help-command 'describe-prefix-bindings)
@@ -1090,7 +1097,7 @@ strings done by `substitute-command-keys'."
   :version "29.1"
   :group 'help)
 
-(defun substitute-command-keys (string &optional no-face)
+(defun substitute-command-keys (string &optional no-face include-menus)
   "Substitute key descriptions for command names in STRING.
 Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
@@ -1100,18 +1107,20 @@ unless the optional argument NO-FACE is non-nil.
 Each substring of the form \\\\=`KEYBINDING' will be replaced by
 KEYBINDING and use the `help-key-binding' face.
 
-Each substring of the form \\\\={MAPVAR} is replaced by a summary of
-the value of MAPVAR as a keymap.  This summary is similar to the one
-produced by ‘describe-bindings’.  The summary ends in two newlines
-(used by the helper function ‘help-make-xrefs’ to find the end of the
-summary).
+Each substring of the form \\\\={MAPVAR} is replaced by a summary
+of the value of MAPVAR as a keymap.  This summary is similar to
+the one produced by `describe-bindings'.  This will normally
+exclude menu bindings, but if the optional INCLUDE-MENUS argument
+is non-nil, also include menu bindings.  The summary ends in two
+newlines (used by the helper function `help-make-xrefs' to find
+the end of the summary).
 
 Each substring of the form \\\\=<MAPVAR> specifies the use of MAPVAR
 as the keymap for future \\\\=[COMMAND] substrings.
 
 Each grave accent \\=` is replaced by left quote, and each apostrophe \\='
 is replaced by right quote.  Left and right quote characters are
-specified by ‘text-quoting-style’.
+specified by `text-quoting-style'.
 
 \\\\== quotes the following character and is discarded; thus, \\\\==\\\\== puts \\\\==
 into the output, \\\\==\\[ puts \\[ into the output, and \\\\==\\=` puts \\=` into the
@@ -1164,7 +1173,8 @@ Otherwise, return a new string."
                 (let ((k (buffer-substring-no-properties orig-point (point))))
                   (cond ((= (length k) 0)
                          (error "Empty key sequence in substitution"))
-                        ((not (key-valid-p k))
+                        ((and (not (string-match-p "\\`M-x " k))
+                              (not (key-valid-p k)))
                          (error "Invalid key sequence in substitution: `%s'" k))))
                 (add-text-properties orig-point (point)
                                      '( face help-key-binding
@@ -1253,9 +1263,11 @@ Otherwise, return a new string."
                    (t
                     ;; Get the list of active keymaps that precede this one.
                     ;; If this one's not active, get nil.
-                    (let ((earlier-maps (cdr (memq this-keymap (reverse active-maps)))))
+                    (let ((earlier-maps
+                           (cdr (memq this-keymap (reverse active-maps)))))
                       (describe-map-tree this-keymap t (nreverse earlier-maps)
-                                         nil nil t nil nil t))))))))
+                                         nil nil (not include-menus)
+                                         nil nil t))))))))
              ;; 2. Handle quotes.
              ((and (eq (text-quoting-style) 'curve)
                    (or (and (= (following-char) ?\`)
@@ -1502,10 +1514,11 @@ in `describe-map-tree'."
       ;; Now output them in sorted order.
       (while vect
         (let* ((elem (car vect))
-               (start (car elem))
-               (definition (cadr elem))
-               (shadowed (caddr elem))
-               (end start))
+               (start (nth 0 elem))
+               (definition (nth 1 elem))
+               (shadowed (nth 2 elem))
+               (end start)
+               remapped)
           ;; Find consecutive chars that are identically defined.
           (when (fixnump start)
             (while (and (cdr vect)
@@ -1529,7 +1542,19 @@ in `describe-map-tree'."
             ;; Now START .. END is the range to describe next.
             ;; Insert the string to describe the event START.
             (setq line-start (point))
-            (insert (help--key-description-fontified (vector start) prefix))
+            ;; If we're in a <remap> section of the output, then also
+            ;; display the bindings of the keys that we've remapped from.
+            ;; This enables the user to actually see what keys to tap to
+            ;; execute the remapped commands.
+            (if (setq remapped
+                      (and (equal prefix [remap])
+                           (not (eq definition 'self-insert-command))
+                           (car (where-is-internal definition))))
+                (insert (help--key-description-fontified
+                         (vector (elt remapped (1- (length remapped))))
+                         (seq-into (butlast (seq-into remapped 'list))
+                                   'vector)))
+              (insert (help--key-description-fontified (vector start) prefix)))
             (when (not (eq start end))
               (insert " .. " (help--key-description-fontified (vector end)
                                                               prefix)))
@@ -1543,9 +1568,15 @@ in `describe-map-tree'."
             ;; Print a description of the definition of this character.
             ;; elt_describer will take care of spacing out far enough for
             ;; alignment purposes.
-            (when shadowed
+            (when (or shadowed remapped)
               (goto-char (max (1- (point)) (point-min)))
-              (insert "\n  (this binding is currently shadowed)")
+              (when shadowed
+                (insert "\n  (this binding is currently shadowed)"))
+              (when remapped
+                (insert (format
+                         "\n  (Remapped via %s)"
+                         (help--key-description-fontified
+                          (vector start) prefix))))
               (goto-char (min (1+ (point)) (point-max))))))
         ;; Next item in list.
         (setq vect (cdr vect)))
@@ -1934,40 +1965,39 @@ Return VALUE."
     ;; Return VALUE.
     value))
 
-;; `with-help-window' is a wrapper for `with-temp-buffer-window'
-;; providing the following additional twists:
-
-;; (1) It puts the buffer in `help-mode' (via `help-mode-setup') and
-;;     adds cross references (via `help-mode-finish').
-
-;; (2) It issues a message telling how to scroll and quit the help
-;;     window (via `help-window-setup').
-
-;; (3) An option (customizable via `help-window-select') to select the
-;;     help window automatically.
-
-;; (4) A marker (`help-window-point-marker') to move point in the help
-;;     window to an arbitrary buffer position.
 (defmacro with-help-window (buffer-or-name &rest body)
   "Evaluate BODY, send output to BUFFER-OR-NAME and show in a help window.
-This construct is like `with-temp-buffer-window', which see, but unlike
-that, it puts the buffer specified by BUFFER-OR-NAME in `help-mode' and
-displays a message about how to delete the help window when it's no
-longer needed.  The help window will be selected if
-`help-window-select' is non-nil.
-Most of this is done by `help-window-setup', which see."
+The return value from BODY will be returned.
+
+The help window will be selected if `help-window-select' is
+non-nil.
+
+The `temp-buffer-window-setup-hook' hook is called."
   (declare (indent 1) (debug t))
-  `(progn
-     ;; Make `help-window-point-marker' point nowhere.  The only place
-     ;; where this should be set to a buffer position is within BODY.
-     (set-marker help-window-point-marker nil)
-     (let ((temp-buffer-window-setup-hook
-	    (cons 'help-mode-setup temp-buffer-window-setup-hook))
-	   (temp-buffer-window-show-hook
-	    (cons 'help-mode-finish temp-buffer-window-show-hook)))
-       (setq help-window-old-frame (selected-frame))
-       (with-temp-buffer-window
-	,buffer-or-name nil 'help-window-setup (progn ,@body)))))
+  `(help--window-setup ,buffer-or-name (lambda () ,@body)))
+
+(defun help--window-setup (buffer callback)
+  ;; Make `help-window-point-marker' point nowhere.  The only place
+  ;; where this should be set to a buffer position is within BODY.
+  (set-marker help-window-point-marker nil)
+  (with-current-buffer (get-buffer-create buffer)
+    (unless (derived-mode-p 'help-mode)
+      (help-mode))
+    (setq buffer-read-only t
+          buffer-file-name nil)
+    (setq-local help-mode--current-data nil)
+    (buffer-disable-undo)
+    (let ((inhibit-read-only t)
+	  (inhibit-modification-hooks t))
+      (erase-buffer)
+      (delete-all-overlays)
+      (prog1
+          (let ((standard-output (current-buffer)))
+            (prog1
+                (funcall callback)
+              (run-hooks 'temp-buffer-window-setup-hook)))
+        (help-window-setup (temp-buffer-window-show (current-buffer)))
+        (help-make-xrefs (current-buffer))))))
 
 ;; Called from C, on encountering `help-char' when reading a char.
 ;; Don't print to *Help*; that would clobber Help history.

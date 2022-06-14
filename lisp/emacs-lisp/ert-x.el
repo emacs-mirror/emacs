@@ -96,7 +96,7 @@ ERT--THUNK with that buffer as current."
 
 To be used in ERT tests.  If BODY finishes successfully, the test
 buffer is killed; if there is an error, the test buffer is kept
-around on error for further inspection.  Its name is derived from
+around for further inspection.  Its name is derived from
 the name of the test and the result of NAME-FORM."
   (declare (debug ((":name" form) def-body))
            (indent 1))
@@ -338,7 +338,8 @@ unless the output is going to the echo area (when PRINTCHARFUN is
 t or PRINTCHARFUN is nil and `standard-output' is t).  If the
 output is destined for the echo area, the advice function will
 convert it to a string and pass it to COLLECTOR first."
-  (lambda (func object &optional printcharfun)
+  ;;; FIXME: Pass on OVERRIDES.
+  (lambda (func object &optional printcharfun _overrides)
     (if (not (eq t (or printcharfun standard-output)))
         (funcall func object printcharfun)
       (funcall collector (with-output-to-string
@@ -424,10 +425,15 @@ The following keyword arguments are supported:
 :text STRING    If non-nil, pass STRING to `make-temp-file' as
                 the TEXT argument.
 
+:coding CODING  If non-nil, bind `coding-system-for-write' to CODING
+                when executing BODY.  This is handy when STRING includes
+                non-ASCII characters or the temporary file must have a
+                specific encoding or end-of-line format.
+
 See also `ert-with-temp-directory'."
   (declare (indent 1) (debug (symbolp body)))
   (cl-check-type name symbol)
-  (let (keyw prefix suffix directory text extra-keywords)
+  (let (keyw prefix suffix directory text extra-keywords coding)
     (while (keywordp (setq keyw (car body)))
       (setq body (cdr body))
       (pcase keyw
@@ -435,6 +441,7 @@ See also `ert-with-temp-directory'."
         (:suffix (setq suffix (pop body)))
         (:directory (setq directory (pop body)))
         (:text (setq text (pop body)))
+        (:coding (setq coding (pop body)))
         (_ (push keyw extra-keywords) (pop body))))
     (when extra-keywords
       (error "Invalid keywords: %s" (mapconcat #'symbol-name extra-keywords " ")))
@@ -443,7 +450,8 @@ See also `ert-with-temp-directory'."
           (suffix (or suffix ert-temp-file-suffix
                       (ert--with-temp-file-generate-suffix
                        (or (macroexp-file-name) buffer-file-name)))))
-      `(let* ((,temp-file (,(if directory 'file-name-as-directory 'identity)
+      `(let* ((coding-system-for-write ,(or coding coding-system-for-write))
+              (,temp-file (,(if directory 'file-name-as-directory 'identity)
                            (make-temp-file ,prefix ,directory ,suffix ,text)))
               (,name ,(if directory
                           `(file-name-as-directory ,temp-file)
@@ -482,6 +490,36 @@ The same keyword arguments are supported as in
   ;; "/usr/bin/gcc".  So we need to check the output.
   (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app"
                 (shell-command-to-string "gcc --version")))
+
+
+(defvar tramp-methods)
+(defvar tramp-default-host-alist)
+
+;; If this defconst is used in a test file, `tramp' shall be loaded
+;; prior `ert-x'.  There is no default value on w32 systems, which
+;; could work out of the box.
+(defconst ert-remote-temporary-file-directory
+  (when (featurep 'tramp)
+    (cond
+     ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
+     ((eq system-type 'windows-nt) null-device)
+     (t (add-to-list
+         'tramp-methods
+         '("mock"
+	   (tramp-login-program	     "sh")
+	   (tramp-login-args	     (("-i")))
+	   (tramp-remote-shell	     "/bin/sh")
+	   (tramp-remote-shell-args  ("-c"))
+	   (tramp-connection-timeout 10)))
+        (add-to-list
+         'tramp-default-host-alist
+         `("\\`mock\\'" nil ,(system-name)))
+        ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
+        ;; in batch mode only, therefore.
+        (unless (and (null noninteractive) (file-directory-p "~/"))
+          (setenv "HOME" temporary-file-directory))
+        (format "/mock::%s" temporary-file-directory))))
+    "Temporary directory for remote file tests.")
 
 (provide 'ert-x)
 

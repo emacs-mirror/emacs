@@ -5,6 +5,7 @@
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
 ;; Package: vc
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 

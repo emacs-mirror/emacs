@@ -931,7 +931,7 @@ Return nil if FILENAME doesn't exist."
                         (< (float-time) (+ t0 limit)))
               (sit-for 0.1)))
           (should status)
-          (should-not (assq :error status))
+          (should-not (plist-get status ':error))
           (should buf)
           (should (> (buffer-size buf) 0))
           )

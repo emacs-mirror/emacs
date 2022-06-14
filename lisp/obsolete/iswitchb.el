@@ -1064,8 +1064,7 @@ Return the modified list with the last element prepended to it."
 	;; then create a new buffer
 	(progn
 	  (setq newbufcreated (get-buffer-create buf))
-	  (if (fboundp 'set-buffer-major-mode)
-	      (set-buffer-major-mode newbufcreated))
+          (set-buffer-major-mode newbufcreated)
 	  (iswitchb-visit-buffer newbufcreated))
       ;; else won't create new buffer
       (message "no buffer matching `%s'" buf))))

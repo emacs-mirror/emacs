@@ -196,8 +196,15 @@ extern cairo_pattern_t *x_bitmap_stipple (struct frame *, Pixmap);
 struct color_name_cache_entry
 {
   struct color_name_cache_entry *next;
+
+  /* The color values of the cached color entry.  */
   XColor rgb;
+
+  /* The name of the cached color.  */
   char *name;
+
+  /* Whether or not RGB is valid (i.e. the color actually exists).  */
+  bool_bf valid : 1;
 };
 
 #ifdef HAVE_XINPUT2
@@ -513,6 +520,9 @@ struct x_display_info
   /* A cache mapping color names to RGB values.  */
   struct color_name_cache_entry **color_names;
 
+  /* The number of buckets for each hash in that hash table.  */
+  ptrdiff_t *color_names_length;
+
   /* The size of that hash table.  */
   int color_names_size;
 
@@ -595,8 +605,17 @@ struct x_display_info
   XModifierKeymap *modmap;
 
 #ifdef HAVE_XRANDR
+  bool xrandr_supported_p;
+  int xrandr_event_base;
+  int xrandr_error_base;
   int xrandr_major_version;
   int xrandr_minor_version;
+#endif
+
+#if defined HAVE_XRANDR || defined USE_GTK
+  /* This is used to determine if the monitor configuration really
+     changed upon receiving a monitor change event.  */
+  Lisp_Object last_monitor_attributes_list;
 #endif
 
 #if defined USE_CAIRO || defined HAVE_XRENDER
@@ -683,6 +702,17 @@ struct x_display_info
   int n_protected_windows;
   int protected_windows_max;
 #endif
+
+  /* The current dimensions of the screen.  This is updated when a
+     ConfigureNotify is received for the root window, and is zero if
+     that didn't happen.  */
+  int screen_width;
+  int screen_height;
+
+  /* The mm width and height of the screen.  Updated on
+     RRScreenChangeNotify.  */
+  int screen_mm_width;
+  int screen_mm_height;
 };
 
 #ifdef HAVE_X_I18N
@@ -706,6 +736,9 @@ extern bool x_display_ok (const char *);
 extern void select_visual (struct x_display_info *);
 
 extern Window tip_window;
+extern Lisp_Object tip_dx;
+extern Lisp_Object tip_dy;
+extern Lisp_Object tip_frame;
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
@@ -924,6 +957,10 @@ struct x_output
      arrive for an unknown reason and Emacs hangs in Xt.  If this is
      false, tell Xt not to wait.  */
   bool_bf wait_for_wm : 1;
+
+  /* True if this frame's alpha value is the same for both the active
+     and inactive states.  */
+  bool_bf alpha_identical_p : 1;
 
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
@@ -1352,8 +1389,8 @@ extern const char *x_get_string_resource (void *, const char *, const char *);
 
 /* Defined in xterm.c */
 
-typedef void (*x_special_error_handler)(Display *, XErrorEvent *, char *,
-					void *);
+typedef void (*x_special_error_handler) (Display *, XErrorEvent *, char *,
+					 void *);
 
 extern bool x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
@@ -1362,6 +1399,7 @@ extern void x_catch_errors_with_handler (Display *, x_special_error_handler,
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern bool x_had_errors_p (Display *);
+extern void x_unwind_errors_to (int);
 extern void x_uncatch_errors (void);
 extern void x_uncatch_errors_after_check (void);
 extern void x_clear_errors (Display *);
@@ -1372,7 +1410,8 @@ extern void x_iconify_frame (struct frame *f);
 extern void x_free_frame_resources (struct frame *);
 extern void x_wm_set_size_hint (struct frame *, long, bool);
 
-extern void x_delete_terminal (struct terminal *terminal);
+extern void x_delete_terminal (struct terminal *);
+extern Cursor x_create_font_cursor (struct x_display_info *, int);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
@@ -1390,6 +1429,7 @@ extern void x_clear_area (struct frame *f, int, int, int, int);
   || (!defined USE_X_TOOLKIT && !defined USE_GTK)
 extern void x_mouse_leave (struct x_display_info *);
 #endif
+extern void x_wait_for_cell_change (Lisp_Object, struct timespec);
 
 #ifndef USE_GTK
 extern int x_dispatch_event (XEvent *, Display *);
@@ -1419,25 +1459,24 @@ extern void x_xr_reset_ext_clip (struct frame *f);
 extern void x_scroll_bar_configure (GdkEvent *);
 #endif
 
+#define DEFER_SELECTIONS						\
+  x_defer_selection_requests ();					\
+  record_unwind_protect_void (x_release_selection_requests_and_flush)
+
+extern void x_defer_selection_requests (void);
+extern void x_release_selection_requests_and_flush (void);
+extern void x_handle_pending_selection_requests (void);
+extern bool x_detect_pending_selection_requests (void);
 extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
 					      Lisp_Object, Atom *, const char **,
-					      size_t, bool);
+					      size_t, bool, Atom *, int,
+					      Lisp_Object, bool);
 extern void x_dnd_do_unsupported_drop (struct x_display_info *, Lisp_Object,
 				       Lisp_Object, Lisp_Object, Window, int,
 				       int, Time);
-extern void x_set_dnd_targets (Atom *, int);
 
-INLINE int
-x_display_pixel_height (struct x_display_info *dpyinfo)
-{
-  return HeightOfScreen (dpyinfo->screen);
-}
-
-INLINE int
-x_display_pixel_width (struct x_display_info *dpyinfo)
-{
-  return WidthOfScreen (dpyinfo->screen);
-}
+extern int x_display_pixel_height (struct x_display_info *);
+extern int x_display_pixel_width (struct x_display_info *);
 
 INLINE unsigned long
 x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
@@ -1471,6 +1510,7 @@ extern void x_set_shaded (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_skip_taskbar (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_z_group (struct frame *, Lisp_Object, Lisp_Object);
 extern bool x_wm_supports (struct frame *, Atom);
+extern bool x_wm_supports_1 (struct x_display_info *, Atom);
 extern void x_wait_for_event (struct frame *, int);
 extern void x_clear_under_internal_border (struct frame *f);
 
@@ -1495,11 +1535,13 @@ extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
+extern Lisp_Object x_atom_to_symbol (struct x_display_info *, Atom);
 
 extern bool x_handle_dnd_message (struct frame *,
 				  const XClientMessageEvent *,
 				  struct x_display_info *,
-				  struct input_event *);
+				  struct input_event *,
+				  bool, int, int);
 extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,
@@ -1518,6 +1560,10 @@ extern Lisp_Object x_timestamp_for_selection (struct x_display_info *,
 					      Lisp_Object);
 extern void x_set_pending_dnd_time (Time);
 extern void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object);
+extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
+				  bool);
+extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
 
 #ifdef USE_GTK
 extern bool xg_set_icon (struct frame *, Lisp_Object);
@@ -1578,7 +1624,11 @@ extern struct input_event xg_pending_quit_event;
 #endif
 
 extern bool x_dnd_in_progress;
+extern bool x_dnd_waiting_for_finish;
 extern struct frame *x_dnd_frame;
+extern struct frame *x_dnd_finish_frame;
+extern unsigned x_dnd_unsupported_event_level;
+extern int x_error_message_count;
 
 #ifdef HAVE_XINPUT2
 extern struct xi_device_t *xi_device_from_id (struct x_display_info *, int);

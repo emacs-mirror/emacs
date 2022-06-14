@@ -411,10 +411,13 @@ away in the buffer to search for an expansion.
 
 @vindex dabbrev-check-all-buffers
 @vindex dabbrev-check-other-buffers
+@vindex dabbrev-ignored-buffer-modes
   After scanning the current buffer, @kbd{M-/} normally searches other
 buffers.  The variables @code{dabbrev-check-all-buffers} and
 @code{dabbrev-check-other-buffers} can be used to determine which
-other buffers, if any, are searched.
+other buffers, if any, are searched.  Buffers that have major modes
+derived from any of the modes in @code{dabbrev-ignored-buffer-modes}
+are ignored.
 
 @vindex dabbrev-ignored-buffer-names
 @vindex dabbrev-ignored-buffer-regexps

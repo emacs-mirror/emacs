@@ -614,9 +614,18 @@ the C sources, too."
    menus))
 
 (defun help-fns--compiler-macro (function)
-  (let ((handler (function-get function 'compiler-macro)))
+  (pcase-dolist (`(,type . ,handler)
+                 (list (cons "compiler macro"
+                             (function-get function 'compiler-macro))
+                       (cons "`byte-compile' property"
+                             (function-get function 'byte-compile))
+                       (cons "byte-code optimizer"
+                             (function-get function 'byte-optimizer))))
     (when handler
-      (insert "  This function has a compiler macro")
+      (if (bolp)
+          (insert "  This function has a ")
+        (insert " and a "))
+      (insert type)
       (if (symbolp handler)
           (progn
             (insert (format-message " `%s'" handler))
@@ -631,8 +640,17 @@ the C sources, too."
             (save-excursion
               (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                   nil t)
-              (help-xref-button 1 'help-function-cmacro function lib)))))
-      (insert ".\n"))))
+              (help-xref-button 1 'help-function-cmacro function lib)))))))
+  (unless (bolp)
+    (insert ".  See "
+            (buttonize "the manual"
+                       (lambda (_) (info "(elisp)Advice and Byte Code")))
+            " for details.\n")
+    (save-restriction
+      (let ((fill-prefix "    "))
+        (narrow-to-region (line-beginning-position -1) (point))
+        (fill-region (point-min) (point-max)))
+      (goto-char (point-max)))))
 
 (defun help-fns--signature (function doc real-def real-function buffer)
   "Insert usage at point and return docstring.  With highlighting."
@@ -781,21 +799,23 @@ the C sources, too."
         (erase-buffer)
         (insert-file-contents f)
         (goto-char (point-min))
-        (search-forward "\n*")
-        (while (re-search-forward re nil t)
-          (let ((pos (match-beginning 0)))
-            (save-excursion
-              ;; Almost all entries are of the form "* ... in Emacs NN.MM."
-              ;; but there are also a few in the form "* Emacs NN.MM is a bug
-              ;; fix release ...".
-              (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
-                                           nil t))
-                  (message "Ref found in non-versioned section in %S"
-                           (file-name-nondirectory f))
-                (let ((version (match-string 1)))
-                  (when (or (null first) (version< version first))
-                    (setq place (list f pos))
-                    (setq first version)))))))))
+        ;; Failed git merges can leave empty files that look like NEWS
+        ;; in etc.  Don't error here.
+        (when (search-forward "\n*" nil t)
+          (while (re-search-forward re nil t)
+            (let ((pos (match-beginning 0)))
+              (save-excursion
+                ;; Almost all entries are of the form "* ... in Emacs NN.MM."
+                ;; but there are also a few in the form "* Emacs NN.MM is a bug
+                ;; fix release ...".
+                (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
+                                             nil t))
+                    (message "Ref found in non-versioned section in %S"
+                             (file-name-nondirectory f))
+                  (let ((version (match-string 1)))
+                    (when (or (null first) (version< version first))
+                      (setq place (list f pos))
+                      (setq first version))))))))))
     (when first
       (make-text-button first nil 'type 'help-news 'help-args place))))
 
@@ -1026,8 +1046,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                             ;; for invalid functions i.s.o. signaling an error.
                             (documentation function t)
                           ;; E.g. an alias for a not yet defined function.
-                          ((invalid-function void-function) nil)))
-               (key-bindings-buffer (current-buffer)))
+                          ((invalid-function void-function) nil))))
 
     ;; If the function is autoloaded, and its docstring has
     ;; key substitution constructs, load the library.
@@ -1044,7 +1063,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                      (help-fns--signature
                       function doc-raw
                       (if (subrp def) (indirect-function real-def) real-def)
-                      real-function key-bindings-buffer)
+                      real-function describe-function-orig-buffer)
                    ;; E.g. an alias for a not yet defined function.
                    ((invalid-function void-function) doc-raw))))
         (help-fns--ensure-empty-line)
@@ -1061,7 +1080,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 (add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
 (add-hook 'help-fns-describe-function-functions #'help-fns--interactive-only)
 (add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
-(add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro)
+(add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro 100)
 
 
 ;; Variables
@@ -1884,8 +1903,8 @@ variable with value KEYMAP."
 The heuristic to determine which keymap is most likely to be
 relevant to a user follows this order:
 
-1. 'keymap' text property at point
-2. 'local-map' text property at point
+1. `keymap' text property at point
+2. `local-map' text property at point
 3. the `current-local-map'
 
 This is used to set the default value for the interactive prompt
@@ -1904,7 +1923,10 @@ in `describe-keymap'.  See also `Searching the Active Keymaps'."
 When called interactively, prompt for a variable that has a
 keymap value."
   (interactive
-   (let* ((km (help-fns--most-relevant-active-keymap))
+   (let* ((sym (symbol-at-point))
+          (km (or (and (keymapp (ignore-errors (symbol-value sym)))
+                       sym)
+                  (help-fns--most-relevant-active-keymap)))
           (val (completing-read
                 (format-prompt "Keymap" km)
                 obarray

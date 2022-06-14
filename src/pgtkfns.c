@@ -566,15 +566,23 @@ pgtk_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 static void
 pgtk_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int border = check_int_nonnegative (arg);
+  int border;
+
+  if (NILP (arg))
+    border = -1;
+  else if (RANGED_FIXNUMP (0, arg, INT_MAX))
+    border = XFIXNAT (arg);
+  else
+    signal_error ("Invalid child frame border width", arg);
 
   if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
     {
       f->child_frame_border_width = border;
 
-      if (FRAME_X_WINDOW (f))
+      if (FRAME_GTK_WIDGET (f))
 	{
-	  adjust_frame_size (f, -1, -1, 3, false, Qchild_frame_border_width);
+	  adjust_frame_size (f, -1, -1, 3,
+			     false, Qchild_frame_border_width);
 	  pgtk_clear_under_internal_border (f);
 	}
     }
@@ -848,7 +856,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
 	error ("Unknown color.");
 
       /* On pgtk, this frame parameter should be ignored, and honor
-	 gtk theme.  (It honors the GTK theme if not explictly set, so
+	 gtk theme.  (It honors the GTK theme if not explicitly set, so
 	 I see no harm in letting users tinker a bit more.)  */
       char css[64];
       sprintf (css, "scrollbar trough { background-color: #%06x; }",
@@ -1060,7 +1068,7 @@ pgtk_default_font_parameter (struct frame *f, Lisp_Object parms)
     gui_display_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
 			 RES_TYPE_STRING);
   Lisp_Object font = Qnil;
-  if (EQ (font_param, Qunbound))
+  if (BASE_EQ (font_param, Qunbound))
     font_param = Qnil;
 
   if (NILP (font_param))
@@ -1213,10 +1221,10 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
   display =
     gui_display_get_arg (dpyinfo, parms, Qterminal, 0, 0, RES_TYPE_NUMBER);
-  if (EQ (display, Qunbound))
+  if (BASE_EQ (display, Qunbound))
     display =
       gui_display_get_arg (dpyinfo, parms, Qdisplay, 0, 0, RES_TYPE_STRING);
-  if (EQ (display, Qunbound))
+  if (BASE_EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_pgtk_display_info (display);
   kb = dpyinfo->terminal->kboard;
@@ -1227,7 +1235,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   name =
     gui_display_get_arg (dpyinfo, parms, Qname, "name", "Name",
 			 RES_TYPE_STRING);
-  if (!STRINGP (name) && !EQ (name, Qunbound) && !NILP (name))
+  if (!STRINGP (name) && !BASE_EQ (name, Qunbound) && !NILP (name))
     error ("Invalid frame name--not a string or nil");
 
   if (STRINGP (name))
@@ -1237,7 +1245,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   parent =
     gui_display_get_arg (dpyinfo, parms, Qparent_id, NULL, NULL,
 			 RES_TYPE_NUMBER);
-  if (EQ (parent, Qunbound))
+  if (BASE_EQ (parent, Qunbound))
     parent = Qnil;
   if (!NILP (parent))
     CHECK_NUMBER (parent);
@@ -1263,7 +1271,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 			 RES_TYPE_SYMBOL);
   /* Accept parent-frame iff parent-id was not specified.  */
   if (!NILP (parent)
-      || EQ (parent_frame, Qunbound)
+      || BASE_EQ (parent_frame, Qunbound)
       || NILP (parent_frame)
       || !FRAMEP (parent_frame)
       || !FRAME_LIVE_P (XFRAME (parent_frame))
@@ -1277,7 +1285,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       (tem =
        (gui_display_get_arg
 	(dpyinfo, parms, Qundecorated, NULL, NULL, RES_TYPE_BOOLEAN)))
-      && !(EQ (tem, Qunbound)))
+      && !(BASE_EQ (tem, Qunbound)))
     undecorated = true;
 
   FRAME_UNDECORATED (f) = undecorated;
@@ -1287,7 +1295,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       (tem =
        (gui_display_get_arg
 	(dpyinfo, parms, Qoverride_redirect, NULL, NULL, RES_TYPE_BOOLEAN)))
-      && !(EQ (tem, Qunbound)))
+      && !(BASE_EQ (tem, Qunbound)))
     override_redirect = true;
 
   FRAME_OVERRIDE_REDIRECT (f) = override_redirect;
@@ -1363,7 +1371,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name))
     {
       fset_name (f, build_string (dpyinfo->x_id_name));
       f->explicit_name = false;
@@ -1406,7 +1414,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       value = gui_display_get_arg (dpyinfo, parms, Qinternal_border_width,
 				   "internalBorder", "internalBorder",
 				   RES_TYPE_NUMBER);
-      if (!EQ (value, Qunbound))
+      if (!BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value), parms);
     }
 
@@ -1423,14 +1431,13 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       value = gui_display_get_arg (dpyinfo, parms, Qchild_frame_border_width,
                                    "childFrameBorder", "childFrameBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qchild_frame_border_width, value),
 		       parms);
 
     }
 
-  gui_default_parameter (f, parms, Qchild_frame_border_width,
-			 make_fixnum (0),
+  gui_default_parameter (f, parms, Qchild_frame_border_width, Qnil,
 			 "childFrameBorderWidth", "childFrameBorderWidth",
 			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
@@ -1688,7 +1695,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 	}
       else
 	{
-	  if (EQ (visibility, Qunbound))
+	  if (BASE_EQ (visibility, Qunbound))
 	    visibility = Qt;
 
 	  if (!NILP (visibility))
@@ -1702,7 +1709,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 	 from `x-create-frame-with-faces' (see above comment).  */
       f->was_invisible
 	= (f->was_invisible
-	   && (!EQ (height, Qunbound) || !EQ (width, Qunbound)));
+	   && (!BASE_EQ (height, Qunbound) || !BASE_EQ (width, Qunbound)));
 
       store_frame_param (f, Qvisibility, visibility);
     }
@@ -2670,7 +2677,7 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
   name = gui_display_get_arg (dpyinfo, parms, Qname, "name", "Name",
                               RES_TYPE_STRING);
   if (!STRINGP (name)
-      && !EQ (name, Qunbound)
+      && !BASE_EQ (name, Qunbound)
       && !NILP (name))
     error ("Invalid frame name--not a string or nil");
 
@@ -2721,7 +2728,7 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name))
     {
       fset_name (f, build_string (dpyinfo->x_id_name));
       f->explicit_name = false;
@@ -2762,7 +2769,7 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
       value = gui_display_get_arg (dpyinfo, parms, Qinternal_border_width,
                                    "internalBorder", "internalBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
@@ -2853,7 +2860,7 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
      Frame parameters may be changed if .Xdefaults contains
      specifications for the default font.  For example, if there is an
      `Emacs.default.attributeBackground: pink', the `background-color'
-     attribute of the frame get's set, which let's the internal border
+     attribute of the frame gets set, which lets the internal border
      of the tooltip frame appear in pink.  Prevent this.  */
   {
     Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);

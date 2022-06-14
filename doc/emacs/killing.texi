@@ -111,24 +111,27 @@ active (@pxref{Using Region}).
 
 @kindex M-\
 @findex delete-horizontal-space
-@kindex M-SPC
-@findex just-one-space
-@findex cycle-spacing
-  The other delete commands are those that delete only whitespace
+The other delete commands are those that delete only whitespace
 characters: spaces, tabs and newlines.  @kbd{M-\}
 (@code{delete-horizontal-space}) deletes all the spaces and tab
 characters before and after point.  With a prefix argument, this only
-deletes spaces and tab characters before point.  @kbd{M-@key{SPC}}
-(@code{just-one-space}) does likewise but leaves a single space before
+deletes spaces and tab characters before point.
+
+@findex just-one-space
+@code{just-one-space} does likewise but leaves a single space before
 point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
 leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
 is negative, it deletes newlines in addition to spaces and tabs,
-leaving @minus{}@var{n} spaces before point.  The command @code{cycle-spacing}
-acts like a more flexible version of @code{just-one-space}.  It
-does different things if you call it repeatedly in succession.
-The first call acts like @code{just-one-space}, the next removes
-all whitespace, and a third call restores the original whitespace.
+leaving @minus{}@var{n} spaces before point.
+
+@kindex M-SPC
+@findex cycle-spacing
+@vindex cycle-spacing-actions
+The command @code{cycle-spacing} (@kbd{M-@key{SPC}}) acts like a more
+flexible version of @code{just-one-space}.  It performs different
+space cleanup actions defined by @code{cycle-spacing-actions}, in a
+cyclic manner, if you call it repeatedly in succession.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all

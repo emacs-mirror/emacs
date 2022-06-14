@@ -899,6 +899,13 @@ for more information."
       (`(,name . ,pos) (imenu (list name pos imenu-default-goto-function)))
       (_ (error "Unknown imenu item: %S" index-item)))))
 
+(defun imenu-flush-cache ()
+  "Flush the current imenu cache.
+This forces a full rescan of the buffer to recreate the index alist
+next time `imenu' is invoked."
+  (imenu--cleanup)
+  (setq imenu--index-alist nil))
+
 (provide 'imenu)
 
 ;;; imenu.el ends here

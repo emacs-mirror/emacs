@@ -425,5 +425,110 @@ otherwise, use a different charset."
   (should (equal (prin1-to-string '\?bar) "\\?bar"))
   (should (equal (prin1-to-string '\?bar?) "\\?bar?")))
 
+(ert-deftest test-prin1-overrides ()
+  (with-temp-buffer
+    (let ((print-length 10))
+      (prin1 (make-list 20 t) (current-buffer) t)
+      (should (= print-length 10)))
+    (goto-char (point-min))
+    (should (= (length (read (current-buffer))) 20)))
+
+  (with-temp-buffer
+    (let ((print-length 10))
+      (prin1 (make-list 20 t) (current-buffer) '((length . 5)))
+      (should (= print-length 10)))
+    (goto-char (point-min))
+    (should (= (length (read (current-buffer))) 6)))
+
+  (with-temp-buffer
+    (let ((print-length 10))
+      (prin1 (make-list 20 t) (current-buffer) '(t (length . 5)))
+      (should (= print-length 10)))
+    (goto-char (point-min))
+    (should (= (length (read (current-buffer))) 6))))
+
+(ert-deftest test-prin1-to-string-overrides ()
+  (let ((print-length 10))
+    (should
+     (= (length (car (read-from-string
+                      (prin1-to-string (make-list 20 t) nil t))))
+        20)))
+
+  (let ((print-length 10))
+    (should
+     (= (length (car (read-from-string
+                      (prin1-to-string (make-list 20 t) nil
+                                       '((length . 5))))))
+        6)))
+
+  (should-error (prin1-to-string 'foo nil 'a))
+  (should-error (prin1-to-string 'foo nil '(a)))
+  (should-error (prin1-to-string 'foo nil '(t . b)))
+  (should-error (prin1-to-string 'foo nil '(t b)))
+  (should-error (prin1-to-string 'foo nil '((a . b) b)))
+  (should-error (prin1-to-string 'foo nil '((length . 10) . b))))
+
+(ert-deftest print-deeply-nested ()
+  ;; Check that we can print a deeply nested data structure correctly.
+  (let ((print-circle t))
+    (let ((levels 10000)
+          (x 'a)
+          (prefix nil)
+          (suffix nil))
+      (dotimes (_ levels)
+        (setq x (list (vector (record 'r x))))
+        (push "([#s(r " prefix)
+        (push ")])" suffix))
+      (let ((expected (concat (apply #'concat prefix)
+                              "a"
+                              (apply #'concat suffix))))
+        (should (equal (prin1-to-string x) expected))))))
+
+(defun print-test-rho (lead loop)
+  "A circular iota list with LEAD elements followed by LOOP in circle."
+ (let ((l (number-sequence 1 (+ lead loop))))
+   (setcdr (nthcdr (+ lead loop -1) l) (nthcdr lead l))
+   l))
+
+(ert-deftest print-circular ()
+  ;; Check printing of rho-shaped circular lists such as (1 2 3 4 5 4 5 4 . #6)
+  ;; when `print-circle' is nil.  The exact output may differ since the number
+  ;; of elements printed of the looping part can vary depending on when the
+  ;; circularity was detected.
+  (dotimes (lead 7)
+    (ert-info ((prin1-to-string lead) :prefix "lead: ")
+      (dolist (loop (number-sequence 1 7))
+        (ert-info ((prin1-to-string loop) :prefix "loop: ")
+          (let* ((rho (print-test-rho lead loop))
+                 (print-circle nil)
+                 (str (prin1-to-string rho)))
+            (should (string-match (rx "("
+                                      (group (+ (+ digit) " "))
+                                      ". #" (group (+ digit)) ")")
+                                  str))
+            (let* ((g1 (match-string 1 str))
+                   (g2 (match-string 2 str))
+                   (numbers (mapcar #'string-to-number (split-string g1)))
+                   (loopback-index (string-to-number g2)))
+              ;; Split the numbers in the lead and loop part.
+              (should (< lead (length numbers)))
+              (should (<= lead loopback-index))
+              (should (< loopback-index (length numbers)))
+              (let ((lead-part (butlast numbers (- (length numbers) lead)))
+                    (loop-part (nthcdr lead numbers)))
+                ;; The lead part must match exactly.
+                (should (equal lead-part (number-sequence 1 lead)))
+                ;; The loop part is at least LOOP long: make sure it matches.
+                (should (>= (length loop-part) loop))
+                (let ((expected-loop-part
+                       (mapcar (lambda (x) (+ lead 1 (% x loop)))
+                               (number-sequence 0 (1- (length loop-part))))))
+                  (should (equal loop-part expected-loop-part))
+                  ;; The loopback index must match the length of the
+                  ;; loop part.
+                  (should (equal (% (- (length numbers) loopback-index) loop)
+                                 0)))))))))))
+
+
 (provide 'print-tests)
 ;;; print-tests.el ends here

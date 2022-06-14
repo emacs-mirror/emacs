@@ -1409,7 +1409,7 @@ main (int argc, char **argv)
      related to the GUI system, like -font, -geometry, and -title, and
      then processes the rest of arguments whose priority is below
      those that are related to the GUI system.  The arguments
-     porcessed by 'command-line' are removed from 'command-line-args';
+     processed by 'command-line' are removed from 'command-line-args';
      the arguments processed by 'command-line-1' aren't, they are only
      removed from 'command-line-args-left'.
 
@@ -1419,54 +1419,19 @@ main (int argc, char **argv)
      should be explicitly recognized, ignored, and removed from
      'command-line-args-left' in 'command-line-1'.  */
 
+  bool only_version = false;
   sort_args (argc, argv);
   argc = 0;
   while (argv[argc]) argc++;
 
   skip_args = 0;
   if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
-    {
-      const char *version, *copyright;
-      if (initialized)
-	{
-	  Lisp_Object tem, tem2;
-	  tem = Fsymbol_value (intern_c_string ("emacs-version"));
-	  tem2 = Fsymbol_value (intern_c_string ("emacs-copyright"));
-	  if (!STRINGP (tem))
-	    {
-	      fputs ("Invalid value of 'emacs-version'\n", stderr);
-	      exit (1);
-	    }
-	  if (!STRINGP (tem2))
-	    {
-	      fputs ("Invalid value of 'emacs-copyright'\n", stderr);
-	      exit (1);
-	    }
-	  else
-	    {
-	      version = SSDATA (tem);
-	      copyright = SSDATA (tem2);
-	    }
-	}
-      else
-	{
-	  version = emacs_version;
-	  copyright = emacs_copyright;
-	}
-      printf (("%s %s\n"
-	       "%s\n"
-	       "%s comes with ABSOLUTELY NO WARRANTY.\n"
-	       "You may redistribute copies of %s\n"
-	       "under the terms of the GNU General Public License.\n"
-	       "For more information about these matters, "
-	       "see the file named COPYING.\n"),
-	      PACKAGE_NAME, version, copyright, PACKAGE_NAME, PACKAGE_NAME);
-      exit (0);
-    }
+    only_version = true;
 
 #ifdef HAVE_PDUMPER
   if (argmatch (argv, argc, "-fingerprint", "--fingerprint", 4,
-		NULL, &skip_args))
+		NULL, &skip_args)
+      && !only_version)
     {
       if (initialized)
         {
@@ -1491,7 +1456,8 @@ main (int argc, char **argv)
     pdumper_record_wd (emacs_wd);
 #endif
 
-  if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
+  if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args)
+      && !only_version)
     {
 #ifdef WINDOWSNT
       /* argv[] array is kept in its original ANSI codepage encoding,
@@ -1617,7 +1583,7 @@ main (int argc, char **argv)
   inhibit_window_system = 0;
 
   /* Handle the -t switch, which specifies filename to use as terminal.  */
-  while (1)
+  while (!only_version)
     {
       char *term;
       if (argmatch (argv, argc, "-t", "--terminal", 4, &term, &skip_args))
@@ -1655,7 +1621,8 @@ main (int argc, char **argv)
 
   /* Handle the -batch switch, which means don't do interactive display.  */
   noninteractive = 0;
-  if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args))
+  if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args)
+      || only_version)
     {
       noninteractive = 1;
       Vundo_outer_limit = Qnil;
@@ -1672,7 +1639,8 @@ main (int argc, char **argv)
     }
 
   /* Handle the --help option, which gives a usage message.  */
-  if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
+  if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args)
+      && !only_version)
     {
       int i;
       printf ("Usage: %s [OPTION-OR-FILENAME]...\n", argv[0]);
@@ -1693,19 +1661,26 @@ main (int argc, char **argv)
 
   int sockfd = -1;
 
-  if (argmatch (argv, argc, "-fg-daemon", "--fg-daemon", 10, NULL, &skip_args)
-      || argmatch (argv, argc, "-fg-daemon", "--fg-daemon", 10, &dname_arg, &skip_args))
+  if (!only_version)
     {
-      daemon_type = 1;           /* foreground */
+      if (argmatch (argv, argc, "-fg-daemon", "--fg-daemon", 10, NULL,
+		    &skip_args)
+	  || argmatch (argv, argc, "-fg-daemon", "--fg-daemon", 10, &dname_arg,
+		       &skip_args))
+	{
+	  daemon_type = 1;           /* foreground */
+	}
+      else if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args)
+	       || argmatch (argv, argc, "-daemon", "--daemon", 5, &dname_arg,
+			    &skip_args)
+	       || argmatch (argv, argc, "-bg-daemon", "--bg-daemon", 10, NULL,
+			    &skip_args)
+	       || argmatch (argv, argc, "-bg-daemon", "--bg-daemon", 10,
+			    &dname_arg, &skip_args))
+	{
+	  daemon_type = 2;          /* background */
+	}
     }
-  else if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args)
-      || argmatch (argv, argc, "-daemon", "--daemon", 5, &dname_arg, &skip_args)
-      || argmatch (argv, argc, "-bg-daemon", "--bg-daemon", 10, NULL, &skip_args)
-      || argmatch (argv, argc, "-bg-daemon", "--bg-daemon", 10, &dname_arg, &skip_args))
-    {
-      daemon_type = 2;          /* background */
-    }
-
 
   if (daemon_type > 0)
     {
@@ -1956,15 +1931,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_threads ();
   init_eval ();
 #ifdef HAVE_PGTK
-  init_pgtkterm ();   /* before init_atimer(). */
+  init_pgtkterm (); /* Must come before `init_atimer'.  */
 #endif
   running_asynch_code = 0;
   init_random ();
-
-#ifdef HAVE_PDUMPER
-  if (dumped_with_pdumper_p ())
-    init_xfaces ();
-#endif
+  init_xfaces ();
 
 #if defined HAVE_JSON && !defined WINDOWSNT
   init_json ();
@@ -1986,7 +1957,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   bool module_assertions
     = argmatch (argv, argc, "-module-assertions", "--module-assertions", 15,
                 NULL, &skip_args);
-  if (will_dump_p () && module_assertions)
+  if (will_dump_p () && module_assertions && !only_version)
     {
       fputs ("Module assertions are not supported during dumping\n", stderr);
       exit (1);
@@ -2034,7 +2005,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     int count_before = skip_args;
 
     /* Skip any number of -d options, but only use the last one.  */
-    while (1)
+    while (!only_version)
       {
 	int count_before_this = skip_args;
 
@@ -2176,6 +2147,72 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_fileio ();
   init_lread ();
+
+  /* If "-version" was specified, produce version information and
+     exit.  We do it here because the code below needs to call Lisp
+     primitives, which cannot be done safely before we call all the
+     init_FOO initialization functions above.  */
+  if (only_version)
+    {
+      const char *version, *copyright;
+
+      if (initialized)
+	{
+	  Lisp_Object tem = Fsymbol_value (intern_c_string ("emacs-version"));
+	  Lisp_Object tem2 = Fsymbol_value (intern_c_string ("emacs-copyright"));
+	  if (!STRINGP (tem))
+	    {
+	      fputs ("Invalid value of 'emacs-version'\n", stderr);
+	      exit (1);
+	    }
+	  if (!STRINGP (tem2))
+	    {
+	      fputs ("Invalid value of 'emacs-copyright'\n", stderr);
+	      exit (1);
+	    }
+	  else
+	    {
+	      version = SSDATA (tem);
+	      copyright = SSDATA (tem2);
+	    }
+	}
+      else
+	{
+	  version = emacs_version;
+	  copyright = emacs_copyright;
+	}
+      printf ("%s %s\n", PACKAGE_NAME, version);
+
+      if (initialized)
+	{
+	  Lisp_Object rversion, rbranch, rtime;
+
+	  rversion
+	    = Fsymbol_value (intern_c_string ("emacs-repository-version"));
+	  rbranch
+	    = Fsymbol_value (intern_c_string ("emacs-repository-branch"));
+	  rtime
+	    = Fsymbol_value (intern_c_string ("emacs-build-time"));
+
+	  if (!NILP (rversion) && !NILP (rbranch) && !NILP (rtime))
+	    printf ("Development version %s on %s branch; build date %s.\n",
+		    SSDATA (Fsubstring (rversion, make_fixnum (0),
+					make_fixnum (12))),
+		    SSDATA (rbranch),
+		    SSDATA (Fformat_time_string (build_string ("%Y-%m-%d"),
+						 rtime, Qnil)));
+	}
+
+      printf (("%s\n"
+	       "%s comes with ABSOLUTELY NO WARRANTY.\n"
+	       "You may redistribute copies of %s\n"
+	       "under the terms of the GNU General Public License.\n"
+	       "For more information about these matters, "
+	       "see the file named COPYING.\n"),
+	      copyright, PACKAGE_NAME, PACKAGE_NAME);
+      exit (0);
+    }
+
 #ifdef WINDOWSNT
   /* Check to see if Emacs has been installed correctly.  */
   check_windows_init_file ();
@@ -2953,6 +2990,10 @@ shut_down_emacs (int sig, Lisp_Object stuff)
       check_glyph_memory ();
       check_message_stack ();
     }
+
+#ifdef HAVE_NATIVE_COMP
+  eln_load_path_final_clean_up ();
+#endif
 
 #ifdef MSDOS
   dos_cleanup ();

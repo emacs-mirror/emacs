@@ -99,7 +99,7 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS SRC Bzr Git Hg Mtn)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS SRC Bzr Git Hg)
   ;; RCS, CVS, SVN, SCCS, and SRC come first because they are per-dir
   ;; rather than per-tree.  RCS comes first because of the multibackend
   ;; support intended to use RCS for local commits (with a remote CVS server).
@@ -966,7 +966,7 @@ In the latter case, VC mode is deactivated for this buffer."
 
 (defalias 'vc-menu-map vc-menu-map)
 
-(declare-function vc-responsible-backend "vc" (file))
+(declare-function vc-responsible-backend "vc" (file &optional no-error))
 
 (defun vc-menu-map-filter (orig-binding)
   (if (and (symbolp orig-binding) (fboundp orig-binding))

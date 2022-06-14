@@ -52,7 +52,8 @@
   "The local value of the special `XdndSelection' selection.")
 
 (defvar haiku-dnd-selection-converters '((STRING . haiku-dnd-convert-string)
-                                         (text/uri-list . haiku-dnd-convert-uri-list))
+                                         (FILE_NAME . haiku-dnd-convert-file-name)
+                                         (text/uri-list . haiku-dnd-convert-text-uri-list))
   "Alist of X selection types to functions that act as selection converters.
 The functions should accept a single argument VALUE, describing
 the value of the drag-and-drop selection, and return a list of
@@ -60,9 +61,14 @@ two elements TYPE and DATA, where TYPE is a string containing the
 MIME type of DATA, and DATA is a unibyte string, or nil if the
 data could not be converted.
 
+DATA may also be a list of items; that means to add every
+individual item in DATA to the serialized message, instead of
+DATA in its entirety.
+
 DATA can optionally have a text property `type', which specifies
 the type of DATA inside the system message (see the doc string of
-`haiku-drag-message' for more details).")
+`haiku-drag-message' for more details).  If DATA is a list, then
+that property is obtained from the first element of DATA.")
 
 (defvar haiku-normal-selection-encoders '(haiku-select-encode-xstring
                                           haiku-select-encode-utf-8-string
@@ -99,6 +105,7 @@ for more details on the structure of the associations.")
        "B_LINK_VISITED_COLOR" "B_LINK_ACTIVE_COLOR"
        "B_STATUS_BAR_COLOR" "B_SUCCESS_COLOR" "B_FAILURE_COLOR"])
 
+(defvar x-colors)
 ;; Also update `x-colors' to take that into account.
 (setq x-colors (append haiku-allowed-ui-colors x-colors))
 
@@ -140,11 +147,31 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
     (list "text/plain" (string-to-unibyte
                         (encode-coding-string value 'utf-8)))))
 
-(defun haiku-dnd-convert-uri-list (value)
+(defun haiku-dnd-convert-file-name (value)
   "Convert VALUE to a file system reference if it is a file name."
-  (when (and (stringp value)
-             (file-exists-p value))
-    (list "refs" (propertize (expand-file-name value) 'type 'ref))))
+  (cond ((and (stringp value)
+              (not (file-remote-p value))
+              (file-exists-p value))
+         (list "refs" (propertize (expand-file-name value)
+                                  'type 'ref)))
+        ((vectorp value)
+         (list "refs"
+               (cl-loop for item across value
+                        collect (propertize (expand-file-name item)
+                                            'type 'ref))))))
+
+(defun haiku-dnd-convert-text-uri-list (value)
+  "Convert VALUE to a list of URLs."
+  (cond
+   ((stringp value) (list "text/uri-list"
+                          (concat (url-encode-url value) "\n")))
+   ((vectorp value) (list "text/uri-list"
+                          (with-temp-buffer
+                            (cl-loop for tem across value
+                                     do (progn
+                                          (insert (url-encode-url tem))
+                                          (insert "\n")))
+                            (buffer-string))))))
 
 (declare-function x-open-connection "haikufns.c")
 (declare-function x-handle-args "common-win")
@@ -169,7 +196,6 @@ The resources should be a list of strings in COMMAND-LINE-RESOURCES."
   "Set up the window system.  WINDOW-SYSTEM must be HAIKU.
 DISPLAY may be set to the name of a display that will be initialized."
   (cl-assert (not haiku-initialized))
-
   (create-default-fontset)
   (when x-command-line-resources
     (haiku--handle-x-command-line-resources
@@ -285,17 +311,24 @@ or a pair of markers) and turns it into a file system reference."
     (if (eq string 'lambda) ; This means the mouse moved.
         (dnd-handle-movement (event-start event))
       (cond
+       ;; Don't allow dropping on something other than the text area.
+       ;; It does nothing and doesn't work with text anyway.
+       ((posn-area (event-start event)))
        ((assoc "refs" string)
         (with-selected-window window
-          (raise-frame)
           (dolist (filename (cddr (assoc "refs" string)))
             (dnd-handle-one-url window 'private
                                 (concat "file:" filename)))))
+       ((assoc "text/uri-list" string)
+        (dolist (text (cddr (assoc "text/uri-list" string)))
+          (let ((uri-list (split-string text "[\0\r\n]" t)))
+            (dolist (bf uri-list)
+              (dnd-handle-one-url window 'private bf)))))
        ((assoc "text/plain" string)
         (with-selected-window window
-          (raise-frame)
           (dolist (text (cddr (assoc "text/plain" string)))
-            (goto-char (posn-point (event-start event)))
+            (unless mouse-yank-at-point
+              (goto-char (posn-point (event-start event))))
             (dnd-insert-text window 'private
                              (if (multibyte-string-p text)
                                  text
@@ -331,7 +364,8 @@ take effect on menu items until the menu bar is updated again."
 
 (setq haiku-drag-track-function #'haiku-dnd-drag-handler)
 
-(defun x-begin-drag (targets &optional action frame _return-frame allow-current-frame)
+(defun x-begin-drag (targets &optional action frame _return-frame
+                             allow-current-frame follow-tooltip)
   "SKIP: real doc in xfns.c."
   (unless haiku-dnd-selection-value
     (error "No local value for XdndSelection"))
@@ -339,30 +373,42 @@ take effect on menu items until the menu bar is updated again."
         (mouse-highlight nil)
         (haiku-signal-invalid-refs nil))
     (dolist (target targets)
-      (let ((selection-converter (cdr (assoc (intern target)
-                                             haiku-dnd-selection-converters))))
+      (let* ((target-atom (intern target))
+             (selection-converter (cdr (assoc target-atom
+                                              haiku-dnd-selection-converters)))
+             (value (if (stringp haiku-dnd-selection-value)
+                        (or (get-text-property 0 target-atom
+                                               haiku-dnd-selection-value)
+                            haiku-dnd-selection-value)
+                      haiku-dnd-selection-value)))
         (when selection-converter
-          (let ((selection-result
-                 (funcall selection-converter
-                          haiku-dnd-selection-value)))
+          (let ((selection-result (funcall selection-converter value)))
             (when selection-result
-              (let ((field (cdr (assoc (car selection-result) message))))
+              (let* ((field (cdr (assoc (car selection-result) message)))
+                     (maybe-string (if (stringp (cadr selection-result))
+                                       (cadr selection-result)
+                                     (caadr selection-result))))
                 (unless (cadr field)
                   ;; Add B_MIME_TYPE to the message if the type was not
                   ;; previously specified, or the type if it was.
-                  (push (or (get-text-property 0 'type
-                                               (cadr selection-result))
+                  (push (or (get-text-property 0 'type maybe-string)
                             1296649541)
                         (alist-get (car selection-result) message
                                    nil nil #'equal))))
-              (push (cadr selection-result)
-                    (cdr (alist-get (car selection-result) message
-                                    nil nil #'equal))))))))
+              (if (not (consp (cadr selection-result)))
+                  (push (cadr selection-result)
+                        (cdr (alist-get (car selection-result) message
+                                        nil nil #'equal)))
+                (dolist (tem (cadr selection-result))
+                  (push tem
+                        (cdr (alist-get (car selection-result) message
+                                        nil nil #'equal))))))))))
     (prog1 (or (and (symbolp action)
                     action)
                'XdndActionCopy)
       (haiku-drag-message (or frame (selected-frame))
-                          message allow-current-frame))))
+                          message allow-current-frame
+                          follow-tooltip))))
 
 (add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
 
@@ -390,6 +436,37 @@ take effect on menu items until the menu bar is updated again."
     ;; The App Server will kill Emacs after receiving the reply, but
     ;; the Deskbar will not, so kill ourself here.
     (unless cancel-shutdown (kill-emacs))))
+
+
+;;;; Cursors.
+
+;; We use the same interface as X, but the cursor numbers are
+;; different, and there are also less cursors.
+
+(defconst x-pointer-X-cursor 5)			; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-arrow 1)			; B_CURSOR_ID_SYSTEM_DEFAULT
+(defconst x-pointer-bottom-left-corner 22)	; B_CURSOR_ID_RESIZE_SOUTH_WEST
+(defconst x-pointer-bottom-right-corner 21)	; B_CURSOR_ID_RESIZE_SOUTH_EAST
+(defconst x-pointer-bottom-side 17)		; B_CURSOR_ID_RESIZE_SOUTH
+(defconst x-pointer-clock 14)			; B_CURSOR_ID_PROGRESS
+(defconst x-pointer-cross 5)			; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-cross-reverse 5)		; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-crosshair 5)		; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-diamond-cross 5)		; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-hand1 7)			; B_CURSOR_ID_GRAB
+(defconst x-pointer-hand2 8)			; B_CURSOR_ID_GRABBING
+(defconst x-pointer-left-side 18)		; B_CURSOR_ID_RESIZE_WEST
+(defconst x-pointer-right-side 16)		; B_CURSOR_ID_RESIZE_EAST
+(defconst x-pointer-sb-down-arrow 17)		; B_CURSOR_ID_RESIZE_SOUTH
+(defconst x-pointer-sb-left-arrow 18)		; B_CURSOR_ID_RESIZE_WEST
+(defconst x-pointer-sb-right-arrow 16)		; B_CURSOR_ID_RESIZE_EAST
+(defconst x-pointer-sb-up-arrow 16)		; B_CURSOR_ID_RESIZE_NORTH
+(defconst x-pointer-target 5)			; B_CURSOR_ID_CROSS_HAIR
+(defconst x-pointer-top-left-corner 20)		; B_CURSOR_ID_RESIZE_NORTH_WEST
+(defconst x-pointer-top-right-corner 19)	; B_CURSOR_ID_RESIZE_NORTH_EAST
+(defconst x-pointer-top-side 16)		; B_CURSOR_ID_RESIZE_NORTH
+(defconst x-pointer-watch 14)			; B_CURSOR_ID_PROGRESS
+(defconst x-pointer-invisible 12)		; B_CURSOR_ID_NO_CURSOR
 
 (provide 'haiku-win)
 (provide 'term/haiku-win)

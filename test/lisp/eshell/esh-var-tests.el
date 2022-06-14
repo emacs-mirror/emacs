@@ -147,7 +147,7 @@
 
 (ert-deftest esh-var-test/interp-cmd-indices ()
   "Interpolate command result with index"
-  (should (equal (eshell-test-command-result "+ ${list 1 2}[1] 3") 5)))
+  (should (equal (eshell-test-command-result "+ ${listify 1 2}[1] 3") 5)))
 
 (ert-deftest esh-var-test/interp-cmd-external ()
   "Interpolate command result from external command"
@@ -328,7 +328,8 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/quoted-interp-cmd-indices ()
   "Interpolate command result with index inside double-quotes"
-  (should (equal (eshell-test-command-result "concat \"${list 1 2}[1]\" cool")
+  (should (equal (eshell-test-command-result
+                  "concat \"${listify 1 2}[1]\" cool")
                  "2cool")))
 
 (ert-deftest esh-var-test/quoted-interp-temp-cmd ()
@@ -357,11 +358,18 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/interp-convert-var-split-indices ()
   "Interpolate and convert string variable with indices"
+  ;; Check that numeric forms are converted to numbers.
   (let ((eshell-test-value "000 010 020 030 040"))
     (should (equal (eshell-test-command-result "echo $eshell-test-value[0]")
                    0))
     (should (equal (eshell-test-command-result "echo $eshell-test-value[0 2]")
-                   '(0 20)))))
+                   '(0 20))))
+  ;; Check that multiline forms are preserved as-is.
+  (let ((eshell-test-value "foo\nbar:baz\n"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[: 0]")
+                   "foo\nbar"))
+    (should (equal (eshell-test-command-result "echo $eshell-test-value[: 1]")
+                   "baz\n"))))
 
 (ert-deftest esh-var-test/interp-convert-quoted-var-number ()
   "Interpolate numeric quoted numeric variable"
@@ -469,13 +477,15 @@ inside double-quotes"
 
 ;; Built-in variables
 
-(ert-deftest esh-var-test/window-height ()
-  "$LINES should equal (window-height)"
-  (should (eshell-test-command-result "= $LINES (window-height)")))
+(ert-deftest esh-var-test/lines-var ()
+  "$LINES should equal (window-body-height nil 'remap)"
+  (should (equal (eshell-test-command-result "echo $LINES")
+                 (window-body-height nil 'remap))))
 
-(ert-deftest esh-var-test/window-width ()
-  "$COLUMNS should equal (window-width)"
-  (should (eshell-test-command-result "= $COLUMNS (window-width)")))
+(ert-deftest esh-var-test/columns-var ()
+  "$COLUMNS should equal (window-body-width nil 'remap)"
+  (should (equal (eshell-test-command-result "echo $COLUMNS")
+                 (window-body-width nil 'remap))))
 
 (ert-deftest esh-var-test/last-result-var ()
   "Test using the \"last result\" ($$) variable"

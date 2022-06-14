@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef HAVE_PGTK
 #include "dispextern.h"
 #include <X11/Xlib.h>
+#else
+#include <cairo.h>
 #endif
 
 struct x_display_info;
@@ -41,5 +43,8 @@ extern const char *xsettings_get_system_font (void);
 extern const char *xsettings_get_system_normal_font (void);
 #endif
 
+#ifdef HAVE_PGTK
+extern cairo_font_options_t *xsettings_get_font_options (void);
+#endif
 
 #endif /* XSETTINGS_H */

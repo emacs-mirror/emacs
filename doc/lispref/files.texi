@@ -581,9 +581,12 @@ contents of the file.  This is better than simply deleting the buffer
 contents and inserting the whole file, because (1) it preserves some
 marker positions and (2) it puts less data in the undo list.
 
-It is possible to read a special file (such as a FIFO or an I/O device)
-with @code{insert-file-contents}, as long as @var{replace} and
-@var{visit} are @code{nil}.
+It is possible to read a special file (such as a FIFO or an I/O
+device) with @code{insert-file-contents}, as long as @var{replace},
+and @var{visit} and @var{beg} are @code{nil}.  However, you should
+normally use an @var{end} argument for these files to avoid inserting
+(potentially) unlimited data into the buffer (for instance, when
+inserting data from @file{/dev/urandom}).
 @end defun
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
@@ -3112,9 +3115,15 @@ except those two.  It is useful as the @var{match-regexp} argument to
 returns @code{nil}, if directory @samp{/foo} is empty.
 @end defvr
 
-@defun file-expand-wildcards pattern &optional full
+@defun file-expand-wildcards pattern &optional full regexp
 This function expands the wildcard pattern @var{pattern}, returning
 a list of file names that match it.
+
+@var{pattern} is, by default, a ``glob''/wildcard string, e.g.,
+@samp{"/tmp/*.png"} or @samp{"/*/*/foo.png"}, but can also be a
+regular expression if the optional @var{regexp} parameter is non-nil.
+In any case, the matches are applied per sub-directory, so a match
+can't span a parent/sub directory.
 
 If @var{pattern} is written as an absolute file name,
 the values are absolute also.

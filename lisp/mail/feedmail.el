@@ -1619,7 +1619,8 @@ local gurus."
 		 (if (null mail-interactive) '("-oem" "-odb")))))
 
 (declare-function smtpmail-via-smtp "smtpmail"
-		  (recipient smtpmail-text-buffer &optional ask-for-password))
+		  (recipient smtpmail-text-buffer &optional ask-for-password
+                             send-attempts))
 (defvar smtpmail-smtp-server)
 
 ;; provided by jam@austin.asc.slb.com (James A. McLaughlin);

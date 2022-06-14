@@ -195,6 +195,7 @@ to continue it."
   (scheme-mode-variables)
   (setq mode-line-process '(":%s"))
   (setq comint-input-filter (function scheme-input-filter))
+  (setq-local comint-prompt-read-only t)
   (setq comint-get-old-input (function scheme-get-old-input)))
 
 (defcustom inferior-scheme-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"

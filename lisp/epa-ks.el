@@ -338,4 +338,6 @@ enough, since keyservers have strict timeout settings."
       (forward-line))
     keys))
 
+(provide 'epa-ks)
+
 ;;; epa-ks.el ends here

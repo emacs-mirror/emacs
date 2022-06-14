@@ -295,7 +295,7 @@ xfont_list_pattern (Display *display, const char *pattern,
 {
   Lisp_Object list = Qnil;
   Lisp_Object chars = Qnil;
-  struct charset *encoding, *repertory = NULL;
+  struct charset *encoding = NULL, *repertory = NULL;
   int i, limit, num_fonts;
   char **names;
   /* Large enough to decode the longest XLFD (255 bytes). */

@@ -127,8 +127,6 @@ Keywords and package names both should be symbols.")
 cus-load\\|finder-inf\\|esh-groups\\|subdirs\\|leim-list\\)\\.el$\\)"
   "Regexp matching file names not to scan for keywords.")
 
-(autoload 'autoload-rubric "autoload")
-
 (defconst finder--builtins-descriptions
   ;; I have no idea whether these are supposed to be capitalized
   ;; and/or end in a full-stop.  Existing file headers are inconsistent,
@@ -264,9 +262,9 @@ from; the default is `load-path'."
       (find-file-noselect generated-finder-keywords-file)
     (setq buffer-undo-list t)
     (erase-buffer)
-    (insert (autoload-rubric generated-finder-keywords-file
-                             "keyword-to-package mapping" t))
-    (search-backward "")
+    (generate-lisp-file-heading
+     generated-finder-keywords-file 'finder-compile-keywords
+     :title "keyword-to-package mapping")
     ;; FIXME: Now that we have package--builtin-versions, package--builtins is
     ;; only needed to get the list of unversioned packages and to get the
     ;; summary description of each package.
@@ -280,6 +278,7 @@ from; the default is `load-path'."
     (insert "(setq finder-keywords-hash\n      ")
     (prin1 finder-keywords-hash (current-buffer))
     (insert ")\n")
+    (generate-lisp-file-trailer generated-finder-keywords-file)
     (basic-save-buffer)))
 
 (defun finder-compile-keywords-make-dist ()

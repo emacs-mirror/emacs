@@ -4159,6 +4159,7 @@ must tell Emacs.  Here's how to do that in your init file:
   (setq-local abbrev-all-caps 1)
   ;; Contains the name of database objects
   (setq-local sql-contains-names t)
+  (setq-local escaped-string-quote "'")
   (setq-local syntax-propertize-function
               (syntax-propertize-rules
                ;; Handle escaped apostrophes within strings.
@@ -4179,7 +4180,7 @@ must tell Emacs.  Here's how to do that in your init file:
                      ;; start a comment.
 	             (string-to-syntax ".")
                    ;; Inside a comment, ignore it to avoid -*/ not
-                   ;; being intepreted as a comment end.
+                   ;; being interpreted as a comment end.
                    (forward-char -1)
                    nil)))))
   ;; Set syntax and font-face highlighting

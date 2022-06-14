@@ -310,7 +310,7 @@ rm -f makefile.tmp
 sed -f ../msdos/sedlibcf.inp < gnulib.mk-in > gnulib.tmp
 sed -f ../msdos/sedlibmk.inp < gnulib.tmp > gnulib.mk
 rm -f gnulib.tmp
-Rem Create directorys in lib/ that MKDIR_P is supposed to create
+Rem Create directories in lib/ that MKDIR_P is supposed to create
 Rem but I have no idea how to do that on MS-DOS.
 mkdir sys
 Rem Create .d files for new files in lib/ and lib/malloc/

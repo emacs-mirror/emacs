@@ -212,7 +212,7 @@ switches."
 (autoload 'vc-expand-dirs "vc")
 
 (defun vc-svn-dir-status-files (_dir files callback)
-  "Run 'svn status' for DIR and update BUFFER via CALLBACK.
+  "Run \"svn status\" for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; FIXME shouldn't this rather default to all the files in dir?

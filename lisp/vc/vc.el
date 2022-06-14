@@ -2654,7 +2654,10 @@ with its diffs (if the underlying VCS supports that)."
         (error "Directory is not version controlled")))
     (setq default-directory rootdir)
     (vc-print-log-internal backend (list rootdir) revision revision limit
-                           (when with-diff 'with-diff))))
+                           (when with-diff 'with-diff))
+    ;; We're looking at the root, so displaying " from <some-file>" in
+    ;; the mode line isn't helpful.
+    (setq vc-parent-buffer-name nil)))
 
 ;;;###autoload
 (defun vc-print-branch-log (branch)

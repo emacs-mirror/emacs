@@ -55,20 +55,17 @@ The field position is the field number (based at 1) where the
 name of this section is.")
 
 ;;; Code:
-(defun semantic-texi-parse-region (&rest _ignore)
+(define-mode-local-override semantic-parse-region texinfo-mode (&rest _ignore)
   "Parse the current texinfo buffer for semantic tags.
 IGNORE any arguments, always parse the whole buffer.
 Each tag returned is of the form:
  (\"NAME\" section (:members CHILDREN))
 or
- (\"NAME\" def)
-
-It is an override of `semantic-parse-region' and must be installed by the
-function `semantic-install-function-overrides'."
+ (\"NAME\" def)"
   (mapcar #'semantic-texi-expand-tag
           (semantic-texi-parse-headings)))
 
-(defun semantic-texi-parse-changes ()
+(define-mode-local-override semantic-parse-changes texinfo-mode ()
   "Parse changes in the current texinfo buffer."
   ;; NOTE: For now, just schedule a full reparse.
   ;;       To be implemented later.
@@ -445,9 +442,6 @@ that start with that symbol."
 (defun semantic-default-texi-setup ()
   "Set up a buffer for parsing of Texinfo files."
   ;; This will use our parser.
-  (semantic-install-function-overrides
-   '((semantic-parse-region . semantic-texi-parse-region)
-     (semantic-parse-changes . semantic-texi-parse-changes)))
   (setq semantic-parser-name "TEXI"
         ;; Setup a dummy parser table to enable parsing!
         semantic--parse-table t

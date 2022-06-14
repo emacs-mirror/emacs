@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <string.h>
 
 void
 fatal (const char *fmt, ...)

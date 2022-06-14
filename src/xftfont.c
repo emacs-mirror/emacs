@@ -797,6 +797,15 @@ syms_of_xftfont (void)
 This is needed with some fonts to correct vertical overlap of glyphs.  */);
   xft_font_ascent_descent_override = 0;
 
+  DEFVAR_LISP ("xft-color-font-whitelist", Vxft_color_font_whitelist,
+    doc: /* List of "color" font families that don't actually have color glyphs.
+Some fonts (such as Source Code Pro) are reported as color fonts, but
+do not actually have glyphs with colors that can cause Xft crashes.
+
+The font families in this list will not be ignored when
+`xft-ignore-color-fonts' is non-nil.  */);
+  Vxft_color_font_whitelist = list1 (build_pure_c_string ("Source Code Pro"));
+
   pdumper_do_now_and_after_load (syms_of_xftfont_for_pdumper);
 }
 

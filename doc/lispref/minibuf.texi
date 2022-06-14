@@ -309,6 +309,22 @@ The optional argument @var{history}, if non-@code{nil}, is a symbol
 specifying a minibuffer history list to use (@pxref{Minibuffer
 History}).  If it is omitted or @code{nil}, the history list defaults
 to @code{regexp-history}.
+
+@cindex @code{case-fold}, text property
+@findex read-regexp-case-fold-search
+The user can use the @kbd{M-c} command to indicate whether case
+folding should be on or off.  If the user has used this command, the
+returned string will have the text property @code{case-fold} set to
+either @code{fold} or @code{inhibit-fold}.  It is up to the caller of
+@code{read-regexp} to actually use this value, and the convenience
+function @code{read-regexp-case-fold-search} is provided for that.  A
+typical usage pattern here might look like:
+
+@lisp
+(let* ((regexp (read-regexp "Search for: "))
+       (case-fold-search (read-regexp-case-fold-search regexp)))
+  (re-search-forward regexp))
+@end lisp
 @end defun
 
 @defopt read-regexp-defaults-function
@@ -1120,6 +1136,11 @@ but is asked for confirmation if the preceding command was a
 completion command (i.e., one of the commands in
 @code{minibuffer-confirm-exit-commands}) and the resulting input is
 not an element of @var{collection}.  @xref{Completion Commands}.
+
+@item
+If a function, it is called with the input as the only argument.  The
+function should return a non-@code{nil} value if the input is
+acceptable.
 
 @item
 Any other value of @var{require-match} behaves like @code{t}, except

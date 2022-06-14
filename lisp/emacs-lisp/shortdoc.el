@@ -83,7 +83,7 @@ together:
 If EVAL is a string, it will be inserted as is, and then that
 string will be `read' and evaluated.
 
-2. Document a form or string, but manually document its evalation
+2. Document a form or string, but manually document its evaluation
    result.  The provided form will not be evaluated.
 
   (FUNC
@@ -260,11 +260,16 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :no-manual t
    :eval (string-blank-p " \n"))
   (string-lessp
-   :eval (string-lessp "foo" "bar"))
+   :eval (string-lessp "foo" "bar")
+   :eval (string-lessp "pic4.png" "pic32.png")
+   :eval (string-lessp "1.1" "1 2"))
   (string-greaterp
    :eval (string-greaterp "foo" "bar"))
   (string-version-lessp
-   :eval (string-version-lessp "pic4.png" "pic32.png"))
+   :eval (string-version-lessp "pic4.png" "pic32.png")
+   :eval (string-version-lessp "1.1" "1 2"))
+  (string-collate-lessp
+   :eval (string-collate-lessp "1.1" "1 2"))
   (string-prefix-p
    :eval (string-prefix-p "foo" "foobar"))
   (string-suffix-p
@@ -463,7 +468,9 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :no-eval* (directory-files-and-attributes "/tmp/foo"))
   (file-expand-wildcards
    :no-eval (file-expand-wildcards "/tmp/*.png")
-   :eg-result ("/tmp/foo.png" "/tmp/zot.png"))
+   :eg-result ("/tmp/foo.png" "/tmp/zot.png")
+   :no-eval (file-expand-wildcards "/*/foo.png")
+   :eg-result ("/tmp/foo.png" "/var/foo.png"))
   (locate-dominating-file
    :no-eval (locate-dominating-file "foo.png" "/tmp/foo/bar/zot")
    :eg-result "/tmp/foo.png")

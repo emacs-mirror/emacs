@@ -1572,6 +1572,19 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
     last_nonminibuf_frame = XFRAME (selected_frame);
 
+  /* If the selected window in the target frame is its mini-window, we move
+     to a different window, the most recently used one, unless there is a
+     valid active minibuffer in the mini-window.  */
+  if (EQ (f->selected_window, f->minibuffer_window)
+      /* The following test might fail if the mini-window contains a
+	 non-active minibuffer.  */
+      && NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
+    {
+      Lisp_Object w = call1 (Qget_mru_window, frame);
+      if (WINDOW_LIVE_P (w)) /* W can be nil in minibuffer-only frames.  */
+        Fset_frame_selected_window (frame, w, Qnil);
+    }
+
   Fselect_window (f->selected_window, norecord);
 
   /* We want to make sure that the next event generates a frame-switch
@@ -1988,7 +2001,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	error ("Attempt to delete the only frame");
     }
 #ifdef HAVE_X_WINDOWS
-  else if (x_dnd_in_progress && f == x_dnd_frame)
+  else if ((x_dnd_in_progress && f == x_dnd_frame)
+	   || (x_dnd_waiting_for_finish && f == x_dnd_finish_frame))
     error ("Attempt to delete the drop source frame");
 #endif
 #ifdef HAVE_HAIKU
@@ -2333,7 +2347,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	kset_default_minibuffer_frame (kb, Qnil);
     }
 
-  /* Cause frame titles to update--necessary if we now have just one frame.  */
+  /* Cause frame titles to update--necessary if we now have just one
+     frame.  */
   if (!is_tooltip_frame)
     update_mode_lines = 15;
 
@@ -3642,7 +3657,7 @@ DEFUN ("frame-fringe-width", Ffringe_width, Sfringe_width, 0, 1, 0,
 
 DEFUN ("frame-child-frame-border-width", Fframe_child_frame_border_width, Sframe_child_frame_border_width, 0, 1, 0,
        doc: /* Return width of FRAME's child-frame border in pixels.
- If FRAME's 'child-frame-border-width' parameter is nil, return FRAME's
+ If FRAME's `child-frame-border-width' parameter is nil, return FRAME's
  internal border width instead.  */)
   (Lisp_Object frame)
 {
@@ -4276,7 +4291,7 @@ gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
     }
 
   /* Don't die if just one of these was set.  */
-  if (EQ (left, Qunbound))
+  if (BASE_EQ (left, Qunbound))
     {
       left_no_change = 1;
       if (f->left_pos < 0)
@@ -4284,7 +4299,7 @@ gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
       else
 	XSETINT (left, f->left_pos);
     }
-  if (EQ (top, Qunbound))
+  if (BASE_EQ (top, Qunbound))
     {
       top_no_change = 1;
       if (f->top_pos < 0)
@@ -5442,7 +5457,7 @@ gui_frame_get_and_record_arg (struct frame *f, Lisp_Object alist,
 
   value = gui_display_get_arg (FRAME_DISPLAY_INFO (f), alist, param,
                                attribute, class, type);
-  if (! NILP (value) && ! EQ (value, Qunbound))
+  if (! NILP (value) && ! BASE_EQ (value, Qunbound))
     store_frame_param (f, param, value);
 
   return value;
@@ -5463,7 +5478,7 @@ gui_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
   Lisp_Object tem;
 
   tem = gui_frame_get_arg (f, alist, prop, xprop, xclass, type);
-  if (EQ (tem, Qunbound))
+  if (BASE_EQ (tem, Qunbound))
     tem = deflt;
   AUTO_FRAME_ARG (arg, prop, tem);
   gui_set_frame_parameters (f, arg);
@@ -5725,9 +5740,9 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
 
   height = gui_display_get_arg (dpyinfo, parms, Qheight, 0, 0, RES_TYPE_NUMBER);
   width = gui_display_get_arg (dpyinfo, parms, Qwidth, 0, 0, RES_TYPE_NUMBER);
-  if (!EQ (width, Qunbound) || !EQ (height, Qunbound))
+  if (!BASE_EQ (width, Qunbound) || !BASE_EQ (height, Qunbound))
     {
-      if (!EQ (width, Qunbound))
+      if (!BASE_EQ (width, Qunbound))
 	{
 	  if (CONSP (width) && EQ (XCAR (width), Qtext_pixels))
 	    {
@@ -5763,7 +5778,7 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
 	    }
 	}
 
-      if (!EQ (height, Qunbound))
+      if (!BASE_EQ (height, Qunbound))
 	{
 	  if (CONSP (height) && EQ (XCAR (height), Qtext_pixels))
 	    {
@@ -5801,7 +5816,7 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
 
       user_size = gui_display_get_arg (dpyinfo, parms, Quser_size, 0, 0,
                                        RES_TYPE_NUMBER);
-      if (!NILP (user_size) && !EQ (user_size, Qunbound))
+      if (!NILP (user_size) && !BASE_EQ (user_size, Qunbound))
 	window_prompting |= USSize;
       else
 	window_prompting |= PSize;
@@ -5814,7 +5829,7 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
   left = gui_display_get_arg (dpyinfo, parms, Qleft, 0, 0, RES_TYPE_NUMBER);
   user_position = gui_display_get_arg (dpyinfo, parms, Quser_position, 0, 0,
                                        RES_TYPE_NUMBER);
-  if (! EQ (top, Qunbound) || ! EQ (left, Qunbound))
+  if (! BASE_EQ (top, Qunbound) || ! BASE_EQ (left, Qunbound))
     {
       if (EQ (top, Qminus))
 	{
@@ -5837,7 +5852,7 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
       else if (FLOATP (top))
 	f->top_pos = frame_float (f, top, FRAME_FLOAT_TOP, &parent_done,
 				  &outer_done, 0);
-      else if (EQ (top, Qunbound))
+      else if (BASE_EQ (top, Qunbound))
 	f->top_pos = 0;
       else
 	{
@@ -5867,7 +5882,7 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
       else if (FLOATP (left))
 	f->left_pos = frame_float (f, left, FRAME_FLOAT_LEFT, &parent_done,
 				   &outer_done, 0);
-      else if (EQ (left, Qunbound))
+      else if (BASE_EQ (left, Qunbound))
 	f->left_pos = 0;
       else
 	{
@@ -5876,7 +5891,7 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
 	    window_prompting |= XNegative;
 	}
 
-      if (!NILP (user_position) && ! EQ (user_position, Qunbound))
+      if (!NILP (user_position) && ! BASE_EQ (user_position, Qunbound))
 	window_prompting |= USPosition;
       else
 	window_prompting |= PPosition;

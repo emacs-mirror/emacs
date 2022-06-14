@@ -2238,8 +2238,7 @@ If cursor is not at the end of the user input, move to end of input."
        (t
 	(add-to-history 'buffer-name-history buf)
 	(setq buf (get-buffer-create buf))
-	(if (fboundp 'set-buffer-major-mode)
-	    (set-buffer-major-mode buf))
+        (set-buffer-major-mode buf)
 	(ido-visit-buffer buf method t))))))
 
 (defun ido-record-work-directory (&optional dir)
@@ -3940,7 +3939,7 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
       ;; In the new buffer, go to the first completion.
       ;; FIXME: Perhaps this should be done in `ido-completion-help'.
       (when (bobp)
-	(next-completion 1)))))
+	(first-completion)))))
 
 (defun ido-completion-auto-help ()
   "Call `ido-completion-help' if `completion-auto-help' is non-nil."
@@ -3977,23 +3976,30 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
       (setq display-it t))
     (if (and ido-completion-buffer display-it)
 	(with-output-to-temp-buffer ido-completion-buffer
-	  (let ((completion-list (sort
-				  (cond
-				   (ido-directory-too-big
-				    (message "Reading directory...")
-				    (setq ido-directory-too-big nil
-					  ido-ignored-list nil
-					  ido-cur-list (ido-all-completions)
-					  ido-rescan t)
-				    (ido-set-matches)
-				    (or ido-matches ido-cur-list))
-				   (ido-use-merged-list
-				    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
-				   ((or full-list ido-completion-buffer-all-completions)
-				    (ido-all-completions))
-				   (t
-				    (copy-sequence (or ido-matches ido-cur-list))))
-				  #'ido-file-lessp)))
+	  (let* ((comps
+		  (cond
+		   (ido-directory-too-big
+		    (message "Reading directory...")
+		    (setq ido-directory-too-big nil
+			  ido-ignored-list nil
+			  ido-cur-list (ido-all-completions)
+			  ido-rescan t)
+		    (ido-set-matches)
+		    (or ido-matches ido-cur-list))
+		   (ido-use-merged-list
+		    (ido-flatten-merged-list (or ido-matches ido-cur-list)))
+		   ((or full-list ido-completion-buffer-all-completions)
+		    (ido-all-completions))
+		   (t
+		    (copy-sequence (or ido-matches ido-cur-list)))))
+                 (completion-list
+                  ;; If we have an alist COMPLETIONS, transform to a
+                  ;; simple list first.
+                  (sort (if (and (consp comps)
+                                 (consp (car comps)))
+                            (mapcar #'car comps)
+                          comps)
+                        #'ido-file-lessp)))
 	    ;;(add-hook 'completion-setup-hook #'completion-setup-function)
 	    (display-completion-list completion-list))))))
 

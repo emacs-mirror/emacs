@@ -173,7 +173,7 @@ strings with `eq', this function compares them with `equal'."
       (should (ansi-color-tests-equal-props
                propertized-str (buffer-string))))
 
-    ;; \e not followed by '[' and invalid ANSI escape seqences
+    ;; \e not followed by '[' and invalid ANSI escape sequences
     (dolist (fun (list ansi-filt ansi-app))
       (with-temp-buffer
         (should (equal (funcall fun "\e") ""))

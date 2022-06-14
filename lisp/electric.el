@@ -310,10 +310,16 @@ column specified by the function `current-left-margin'."
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
-  "Toggle on-the-fly reindentation (Electric Indent mode).
+  "Toggle on-the-fly reindentation of text lines (Electric Indent mode).
 
 When enabled, this reindents whenever the hook `electric-indent-functions'
-returns non-nil, or if you insert a character from `electric-indent-chars'.
+returns non-nil, or if you insert one of the \"electric characters\".
+The electric characters normally include the newline, but can
+also include other characters as needed by the major mode; see
+`electric-indent-chars' for the actual list.
+
+By \"reindent\" we mean remove any existing indentation, and then
+indent the line according to context and rules of the major mode.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-indent-local-mode'."
@@ -614,7 +620,7 @@ This requotes when a quoting key is typed."
 (define-minor-mode electric-quote-mode
   "Toggle on-the-fly requoting (Electric Quote mode).
 
-When enabled, as you type this replaces \\=` with ‘, \\=' with ’,
+When enabled, as you type this replaces \\=` with \\=‘, \\=' with \\=’,
 \\=`\\=` with “, and \\='\\=' with ”.  This occurs only in comments, strings,
 and text paragraphs, and these are selectively controlled with
 `electric-quote-comment', `electric-quote-string', and

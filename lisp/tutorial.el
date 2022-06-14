@@ -649,13 +649,15 @@ with some explanatory links."
         (unless (eq prop-val 'key-sequence)
 	  (delete-region prop-start prop-end))))))
 
+(defvar tutorial--starting-point)
 (defun tutorial--save-on-kill ()
   "Query the user about saving the tutorial when killing Emacs."
   (when (buffer-live-p tutorial--buffer)
     (with-current-buffer tutorial--buffer
-      (if (y-or-n-p "Save your position in the tutorial? ")
-	  (tutorial--save-tutorial-to (tutorial--saved-file))
-	(message "Tutorial position not saved"))))
+      (unless (= (point) tutorial--starting-point)
+        (if (y-or-n-p "Save your position in the tutorial? ")
+	    (tutorial--save-tutorial-to (tutorial--saved-file))
+	  (message "Tutorial position not saved")))))
   t)
 
 (defun tutorial--save-tutorial ()
@@ -733,7 +735,6 @@ See `tutorial--save-tutorial' for more information."
               (message "Saved tutorial state.")))
         (message "Can't save tutorial: %s is not a directory"
                  tutorial-dir)))))
-
 
 ;;;###autoload
 (defun help-with-tutorial (&optional arg dont-ask-for-revert)
@@ -914,6 +915,7 @@ Run the Viper tutorial? "))
               (forward-line 1)
               (newline (- n (/ n 2)))))
           (goto-char (point-min)))
+        (setq-local tutorial--starting-point (point))
         (setq buffer-undo-list nil)
         (set-buffer-modified-p nil)))))
 

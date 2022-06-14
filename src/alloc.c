@@ -1036,9 +1036,12 @@ lisp_free (void *block)
     return;
 
   MALLOC_BLOCK_INPUT;
+#ifndef GC_MALLOC_CHECK
+  struct mem_node *m = mem_find (block);
+#endif
   free (block);
 #ifndef GC_MALLOC_CHECK
-  mem_delete (mem_find (block));
+  mem_delete (m);
 #endif
   MALLOC_UNBLOCK_INPUT;
 }
@@ -6197,6 +6200,7 @@ garbage_collect (void)
 
   mark_pinned_objects ();
   mark_pinned_symbols ();
+  mark_lread ();
   mark_terminals ();
   mark_kboards ();
   mark_threads ();
@@ -6319,7 +6323,7 @@ where each entry has the form (NAME SIZE USED FREE), where:
   to return them to the OS).
 
 However, if there was overflow in pure space, and Emacs was dumped
-using the 'unexec' method, `garbage-collect' returns nil, because
+using the \"unexec\" method, `garbage-collect' returns nil, because
 real GC can't be done.
 
 Note that calling this function does not guarantee that absolutely all

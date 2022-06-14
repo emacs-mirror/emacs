@@ -303,7 +303,7 @@ generated it."
 (defun flymake-error (text &rest args)
   "Format TEXT with ARGS and signal an error for Flymake."
   (let ((msg (apply #'format-message text args)))
-    (flymake-log :error msg)
+    (flymake-log :error "%s" msg)
     (error (concat "[Flymake] " msg))))
 
 (cl-defstruct (flymake--diag
@@ -1101,6 +1101,13 @@ whereupon Flymake decides to initiate a check of the buffer.
 The commands `flymake-goto-next-error' and
 `flymake-goto-prev-error' can be used to navigate among Flymake
 diagnostics annotated in the buffer.
+
+By default, `flymake-mode' doesn't override the \\[next-error] command, but
+if you're using Flymake a lot (and don't use the regular compilation
+mechanisms that often), it can be useful to put something like
+the following in your init file:
+
+  (setq next-error-function \\='flymake-goto-next-error)
 
 The visual appearance of each type of diagnostic can be changed
 by setting properties `flymake-overlay-control', `flymake-bitmap'

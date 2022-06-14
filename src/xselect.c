@@ -112,95 +112,9 @@ selection_quantum (Display *display)
 	  : MAX_SELECTION_QUANTUM);
 }
 
-#define LOCAL_SELECTION(selection_symbol,dpyinfo)			\
+#define LOCAL_SELECTION(selection_symbol, dpyinfo)			\
   assq_no_quit (selection_symbol, dpyinfo->terminal->Vselection_alist)
 
-
-/* Define a queue to save up SELECTION_REQUEST_EVENT events for later
-   handling.  */
-
-struct selection_event_queue
-  {
-    struct selection_input_event event;
-    struct selection_event_queue *next;
-  };
-
-static struct selection_event_queue *selection_queue;
-
-/* Nonzero means queue up SELECTION_REQUEST_EVENT events.  */
-
-static int x_queue_selection_requests;
-
-/* True if the input events are duplicates.  */
-
-static bool
-selection_input_event_equal (struct selection_input_event *a,
-			     struct selection_input_event *b)
-{
-  return (a->kind == b->kind && a->dpyinfo == b->dpyinfo
-	  && a->requestor == b->requestor && a->selection == b->selection
-	  && a->target == b->target && a->property == b->property
-	  && a->time == b->time);
-}
-
-/* Queue up an SELECTION_REQUEST_EVENT *EVENT, to be processed later.  */
-
-static void
-x_queue_event (struct selection_input_event *event)
-{
-  struct selection_event_queue *queue_tmp;
-
-  /* Don't queue repeated requests.
-     This only happens for large requests which uses the incremental protocol.  */
-  for (queue_tmp = selection_queue; queue_tmp; queue_tmp = queue_tmp->next)
-    {
-      if (selection_input_event_equal (event, &queue_tmp->event))
-	{
-	  TRACE1 ("DECLINE DUP SELECTION EVENT %p", queue_tmp);
-	  x_decline_selection_request (event);
-	  return;
-	}
-    }
-
-  queue_tmp = xmalloc (sizeof *queue_tmp);
-  TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
-  queue_tmp->event = *event;
-  queue_tmp->next = selection_queue;
-  selection_queue = queue_tmp;
-}
-
-/* Start queuing SELECTION_REQUEST_EVENT events.  */
-
-static void
-x_start_queuing_selection_requests (void)
-{
-  if (x_queue_selection_requests)
-    emacs_abort ();
-
-  x_queue_selection_requests++;
-  TRACE1 ("x_start_queuing_selection_requests %d", x_queue_selection_requests);
-}
-
-/* Stop queuing SELECTION_REQUEST_EVENT events.  */
-
-static void
-x_stop_queuing_selection_requests (void)
-{
-  TRACE1 ("x_stop_queuing_selection_requests %d", x_queue_selection_requests);
-  --x_queue_selection_requests;
-
-  /* Take all the queued events and put them back
-     so that they get processed afresh.  */
-
-  while (selection_queue != NULL)
-    {
-      struct selection_event_queue *queue_tmp = selection_queue;
-      TRACE1 ("RESTORE SELECTION EVENT %p", queue_tmp);
-      kbd_buffer_unget_event (&queue_tmp->event);
-      selection_queue = queue_tmp->next;
-      xfree (queue_tmp);
-    }
-}
 
 
 /* This converts a Lisp symbol to a server Atom, avoiding a server
@@ -256,7 +170,7 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
 
   TRACE1 (" XInternAtom %s", SSDATA (SYMBOL_NAME (sym)));
   block_input ();
-  val = XInternAtom (dpyinfo->display, SSDATA (SYMBOL_NAME (sym)), False);
+  val = x_intern_cached_atom (dpyinfo, SSDATA (SYMBOL_NAME (sym)), false);
   unblock_input ();
   return val;
 }
@@ -265,7 +179,7 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
 /* This converts a server Atom to a Lisp symbol, avoiding server roundtrips
    and calls to intern whenever possible.  */
 
-static Lisp_Object
+Lisp_Object
 x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
 {
   char *str;
@@ -319,18 +233,17 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
   if (atom == dpyinfo->Xatom_XmTRANSFER_FAILURE)
     return QXmTRANSFER_FAILURE;
 
-  block_input ();
   x_catch_errors (dpyinfo->display);
-  str = XGetAtomName (dpyinfo->display, atom);
+  str = x_get_atom_name (dpyinfo, atom, NULL);
   x_uncatch_errors ();
-  unblock_input ();
+
+  TRACE0 ("XGetAtomName --> NULL");
+  if (!str)
+    return Qnil;
   TRACE1 ("XGetAtomName --> %s", str);
-  if (! str) return Qnil;
+
   val = intern (str);
-  block_input ();
-  /* This was allocated by Xlib, so use XFree.  */
-  XFree (str);
-  unblock_input ();
+  xfree (str);
   return val;
 }
 
@@ -399,7 +312,7 @@ static Lisp_Object
 x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 		       bool local_request, struct x_display_info *dpyinfo)
 {
-  Lisp_Object local_value;
+  Lisp_Object local_value, tem;
   Lisp_Object handler_fn, value, check;
 
   local_value = LOCAL_SELECTION (selection_symbol, dpyinfo);
@@ -426,10 +339,24 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
       if (CONSP (handler_fn))
 	handler_fn = XCDR (handler_fn);
 
+      tem = XCAR (XCDR (local_value));
+
+      if (STRINGP (tem))
+	{
+	  local_value = Fget_text_property (make_fixnum (0),
+					    target_type, tem);
+
+	  if (!NILP (local_value))
+	    tem = local_value;
+	}
+
       if (!NILP (handler_fn))
-	value = call3 (handler_fn,
-		       selection_symbol, (local_request ? Qnil : target_type),
-		       XCAR (XCDR (local_value)));
+	value = call3 (handler_fn, selection_symbol,
+		       ((local_request
+			 && NILP (Vx_treat_local_requests_remotely))
+			? Qnil
+			: target_type),
+		       tem);
       else
 	value = Qnil;
       value = unbind_to (count, value);
@@ -492,14 +419,6 @@ x_decline_selection_request (struct selection_input_event *event)
   unblock_input ();
 }
 
-/* This is the selection request currently being processed.
-   It is set to zero when the request is fully processed.  */
-static struct selection_input_event *x_selection_current_request;
-
-/* Display info in x_selection_request.  */
-
-static struct x_display_info *selection_request_dpyinfo;
-
 /* Raw selection data, for sending to a requestor window.  */
 
 struct selection_data
@@ -517,12 +436,59 @@ struct selection_data
   struct selection_data *next;
 };
 
-/* Linked list of the above (in support of MULTIPLE targets).  */
+struct x_selection_request
+{
+  /* The last element in this stack.  */
+  struct x_selection_request *last;
 
-static struct selection_data *converted_selections;
+  /* Its display info.  */
+  struct x_display_info *dpyinfo;
 
-/* "Data" to send a requestor for a failed MULTIPLE subtarget.  */
-static Atom conversion_fail_tag;
+  /* Its selection input event.  */
+  struct selection_input_event *request;
+
+  /* Linked list of the above (in support of MULTIPLE targets).  */
+  struct selection_data *converted_selections;
+
+  /* "Data" to send a requestor for a failed MULTIPLE subtarget.  */
+  Atom conversion_fail_tag;
+
+  /* Whether or not conversion was successful.  */
+  bool converted;
+};
+
+/* Stack of selections currently being processed.
+   NULL if all requests have been fully processed.  */
+
+struct x_selection_request *selection_request_stack;
+
+static void
+x_push_current_selection_request (struct selection_input_event *se,
+				  struct x_display_info *dpyinfo)
+{
+  struct x_selection_request *frame;
+
+  frame = xmalloc (sizeof *frame);
+  frame->converted = false;
+  frame->last = selection_request_stack;
+  frame->request = se;
+  frame->dpyinfo = dpyinfo;
+  frame->converted_selections = NULL;
+  frame->conversion_fail_tag = None;
+
+  selection_request_stack = frame;
+}
+
+static void
+x_pop_current_selection_request (void)
+{
+  struct x_selection_request *tem;
+
+  tem = selection_request_stack;
+  selection_request_stack = selection_request_stack->last;
+
+  xfree (tem);
+}
 
 /* Used as an unwind-protect clause so that, if a selection-converter signals
    an error, we tell the requestor that we were unable to do what they wanted
@@ -532,19 +498,21 @@ static void
 x_selection_request_lisp_error (void)
 {
   struct selection_data *cs, *next;
+  struct x_selection_request *frame;
 
-  for (cs = converted_selections; cs; cs = next)
+  frame = selection_request_stack;
+
+  for (cs = frame->converted_selections; cs; cs = next)
     {
       next = cs->next;
       if (! cs->nofree && cs->data)
 	xfree (cs->data);
       xfree (cs);
     }
-  converted_selections = NULL;
+  frame->converted_selections = NULL;
 
-  if (x_selection_current_request != 0
-      && selection_request_dpyinfo->display)
-    x_decline_selection_request (x_selection_current_request);
+  if (!frame->converted && frame->dpyinfo->display)
+    x_decline_selection_request (frame->request);
 }
 
 static void
@@ -610,6 +578,9 @@ x_reply_selection_request (struct selection_input_event *event,
   int max_bytes = selection_quantum (display);
   specpdl_ref count = SPECPDL_INDEX ();
   struct selection_data *cs;
+  struct x_selection_request *frame;
+
+  frame = selection_request_stack;
 
   reply->type = SelectionNotify;
   reply->display = display;
@@ -633,7 +604,7 @@ x_reply_selection_request (struct selection_input_event *event,
      (section 2.7.2 of ICCCM).  Note that we store the data for a
      MULTIPLE request in the opposite order; the ICCM says only that
      the conversion itself must be done in the same order. */
-  for (cs = converted_selections; cs; cs = cs->next)
+  for (cs = frame->converted_selections; cs; cs = cs->next)
     {
       if (cs->property == None)
 	continue;
@@ -688,7 +659,7 @@ x_reply_selection_request (struct selection_input_event *event,
      be improved; there's a chance of deadlock if more than one
      subtarget in a MULTIPLE selection requires an INCR transfer, and
      the requestor and Emacs loop waiting on different transfers.  */
-  for (cs = converted_selections; cs; cs = cs->next)
+  for (cs = frame->converted_selections; cs; cs = cs->next)
     if (cs->wait_object)
       {
 	int format_bytes = cs->format / 8;
@@ -793,7 +764,6 @@ static void
 x_handle_selection_request (struct selection_input_event *event)
 {
   Time local_selection_time;
-
   struct x_display_info *dpyinfo = SELECTION_EVENT_DPYINFO (event);
   Atom selection = SELECTION_EVENT_SELECTION (event);
   Lisp_Object selection_symbol = x_atom_to_symbol (dpyinfo, selection);
@@ -803,8 +773,12 @@ x_handle_selection_request (struct selection_input_event *event)
   Lisp_Object local_selection_data;
   bool success = false;
   specpdl_ref count = SPECPDL_INDEX ();
+  bool pushed;
 
-  if (!dpyinfo) goto DONE;
+  pushed = false;
+
+  if (!dpyinfo)
+    goto DONE;
 
   /* This is how the XDND protocol recommends dropping text onto a
      target that doesn't support XDND.  */
@@ -824,14 +798,12 @@ x_handle_selection_request (struct selection_input_event *event)
       && local_selection_time > SELECTION_EVENT_TIME (event))
     goto DONE;
 
-  x_selection_current_request = event;
-  selection_request_dpyinfo = dpyinfo;
+  block_input ();
+  pushed = true;
+  x_push_current_selection_request (event, dpyinfo);
+  record_unwind_protect_void (x_pop_current_selection_request);
   record_unwind_protect_void (x_selection_request_lisp_error);
-
-  /* We might be able to handle nested x_handle_selection_requests,
-     but this is difficult to test, and seems unimportant.  */
-  x_start_queuing_selection_requests ();
-  record_unwind_protect_void (x_stop_queuing_selection_requests);
+  unblock_input ();
 
   TRACE2 ("x_handle_selection_request: selection=%s, target=%s",
 	  SDATA (SYMBOL_NAME (selection_symbol)),
@@ -888,15 +860,17 @@ x_handle_selection_request (struct selection_input_event *event)
 
  DONE:
 
+  if (pushed)
+    selection_request_stack->converted = true;
+
   if (success)
     x_reply_selection_request (event, dpyinfo);
   else
     x_decline_selection_request (event);
-  x_selection_current_request = 0;
 
   /* Run the `x-sent-selection-functions' abnormal hook.  */
   if (!NILP (Vx_sent_selection_functions)
-      && !EQ (Vx_sent_selection_functions, Qunbound))
+      && !BASE_EQ (Vx_sent_selection_functions, Qunbound))
     CALLN (Frun_hook_with_args, Qx_sent_selection_functions,
 	   selection_symbol, target_symbol, success ? Qt : Qnil);
 
@@ -917,10 +891,13 @@ x_convert_selection (Lisp_Object selection_symbol,
 {
   Lisp_Object lisp_selection;
   struct selection_data *cs;
+  struct x_selection_request *frame;
 
   lisp_selection
     = x_get_local_selection (selection_symbol, target_symbol,
 			     false, dpyinfo);
+
+  frame = selection_request_stack;
 
   /* A nil return value means we can't perform the conversion.  */
   if (NILP (lisp_selection)
@@ -929,15 +906,16 @@ x_convert_selection (Lisp_Object selection_symbol,
       if (for_multiple)
 	{
 	  cs = xmalloc (sizeof *cs);
-	  cs->data = (unsigned char *) &conversion_fail_tag;
+	  cs->data = ((unsigned char *)
+		      &selection_request_stack->conversion_fail_tag);
 	  cs->size = 1;
 	  cs->format = 32;
 	  cs->type = XA_ATOM;
 	  cs->nofree = true;
 	  cs->property = property;
 	  cs->wait_object = NULL;
-	  cs->next = converted_selections;
-	  converted_selections = cs;
+	  cs->next = frame->converted_selections;
+	  frame->converted_selections = cs;
 	}
 
       return false;
@@ -949,8 +927,8 @@ x_convert_selection (Lisp_Object selection_symbol,
   cs->nofree = true;
   cs->property = property;
   cs->wait_object = NULL;
-  cs->next = converted_selections;
-  converted_selections = cs;
+  cs->next = frame->converted_selections;
+  frame->converted_selections = cs;
   lisp_data_to_selection_data (dpyinfo, lisp_selection, cs);
   return true;
 }
@@ -1008,6 +986,12 @@ x_handle_selection_clear (struct selection_input_event *event)
   /* Run the `x-lost-selection-functions' abnormal hook.  */
   CALLN (Frun_hook_with_args, Qx_lost_selection_functions, selection_symbol);
 
+  /* If Emacs lost ownership of XdndSelection during drag-and-drop,
+     there is no point in continuing the drag-and-drop session.  */
+  if (x_dnd_in_progress
+      && EQ (selection_symbol, QXdndSelection))
+    error ("Lost ownership of XdndSelection");
+
   redisplay_preserve_echo_area (20);
 }
 
@@ -1017,8 +1001,6 @@ x_handle_selection_event (struct selection_input_event *event)
   TRACE0 ("x_handle_selection_event");
   if (event->kind != SELECTION_REQUEST_EVENT)
     x_handle_selection_clear (event);
-  else if (x_queue_selection_requests)
-    x_queue_event (event);
   else
     x_handle_selection_request (event);
 }
@@ -1148,8 +1130,13 @@ wait_for_property_change (struct prop_location *location)
       intmax_t secs = timeout / 1000;
       int nsecs = (timeout % 1000) * 1000000;
       TRACE2 ("  Waiting %"PRIdMAX" secs, %d nsecs", secs, nsecs);
-      wait_reading_process_output (secs, nsecs, 0, false,
-				   property_change_reply, NULL, 0);
+
+      if (!input_blocked_p ())
+	wait_reading_process_output (secs, nsecs, 0, false,
+				     property_change_reply, NULL, 0);
+      else
+	x_wait_for_cell_change (property_change_reply,
+				make_timespec (secs, nsecs));
 
       if (NILP (XCAR (property_change_reply)))
 	{
@@ -1256,9 +1243,22 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   intmax_t secs = timeout / 1000;
   int nsecs = (timeout % 1000) * 1000000;
   TRACE1 ("  Start waiting %"PRIdMAX" secs for SelectionNotify", secs);
-  wait_reading_process_output (secs, nsecs, 0, false,
-			       reading_selection_reply, NULL, 0);
-  TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
+  /* This function can be called with input blocked inside Xt or GTK
+     timeouts run inside popup menus, so use a function that works
+     when input is blocked.  Prefer wait_reading_process_output
+     otherwise, or the toolkit might not get some events.
+     (bug#22214) */
+  if (!input_blocked_p ())
+    wait_reading_process_output (secs, nsecs, 0, false,
+				 reading_selection_reply, NULL, 0);
+  else
+    x_wait_for_cell_change (reading_selection_reply,
+			    make_timespec (secs, nsecs));
+  TRACE1 ("  Got event = %s", (!NILP (XCAR (reading_selection_reply))
+			       ? (SYMBOLP (XCAR (reading_selection_reply))
+				  ? SSDATA (SYMBOL_NAME (XCAR (reading_selection_reply)))
+				  : "YES")
+			       : "NO"));
 
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
@@ -1953,7 +1953,7 @@ x_handle_selection_notify (const XSelectionEvent *event)
   if (event->selection != reading_which_selection)
     return;
 
-  TRACE0 ("Received SelectionNotify");
+  TRACE1 ("Received SelectionNotify: %d", (int) event->property);
   XSETCAR (reading_selection_reply,
 	   (event->property != 0 ? Qt : Qlambda));
 }
@@ -2454,28 +2454,29 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   (Lisp_Object value, Lisp_Object frame)
 {
   struct frame *f = decode_window_system_frame (frame);
-  char *name = 0;
-  char empty[] = "";
-  Lisp_Object ret = Qnil;
   Display *dpy = FRAME_X_DISPLAY (f);
+  struct x_display_info *dpyinfo;
   Atom atom;
-  bool had_errors_p;
+  bool had_errors_p, need_sync;
+  char *name;
+  Lisp_Object ret;
 
+  dpyinfo = FRAME_DISPLAY_INFO (f);
   CONS_TO_INTEGER (value, Atom, atom);
 
-  block_input ();
   x_catch_errors (dpy);
-  name = atom ? XGetAtomName (dpy, atom) : empty;
-  had_errors_p = x_had_errors_p (dpy);
+  name = x_get_atom_name (dpyinfo, atom, &need_sync);
+  had_errors_p = need_sync && x_had_errors_p (dpy);
   x_uncatch_errors_after_check ();
 
-  if (!had_errors_p)
-    ret = build_string (name);
+  ret = empty_unibyte_string;
 
-  if (atom && name) XFree (name);
-  if (NILP (ret)) ret = empty_unibyte_string;
-
-  unblock_input ();
+  if (name)
+    {
+      if (!had_errors_p)
+	ret = build_string (name);
+      xfree (name);
+    }
 
   return ret;
 }
@@ -2492,13 +2493,13 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
   ptrdiff_t i;
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
-
   if (SYMBOLP (atom))
     x_atom = symbol_to_x_atom (dpyinfo, atom);
   else if (STRINGP (atom))
     {
       block_input ();
-      x_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (atom), False);
+      x_atom = x_intern_cached_atom (dpyinfo, SSDATA (atom),
+				     false);
       unblock_input ();
     }
   else
@@ -2521,7 +2522,8 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
 
 bool
 x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
-                      struct x_display_info *dpyinfo, struct input_event *bufp)
+                      struct x_display_info *dpyinfo, struct input_event *bufp,
+		      bool root_window_coords, int root_x, int root_y)
 {
   Lisp_Object vec;
   Lisp_Object frame;
@@ -2531,6 +2533,7 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
   unsigned char *data = (unsigned char *) event->data.b;
   int idata[5];
   ptrdiff_t i;
+  Window child_return;
 
   for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
     if (dpyinfo->x_dnd_atoms[i] == event->message_type) break;
@@ -2562,7 +2565,15 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
 					 event->format,
 					 size));
 
-  x_relative_mouse_position (f, &x, &y);
+  if (!root_window_coords)
+    x_relative_mouse_position (f, &x, &y);
+  else
+    XTranslateCoordinates (dpyinfo->display,
+			   dpyinfo->root_window,
+			   FRAME_X_WINDOW (f),
+			   root_x, root_y,
+			   &x, &y, &child_return);
+
   bufp->kind = DRAG_N_DROP_EVENT;
   bufp->frame_or_window = frame;
   bufp->timestamp = CurrentTime;
@@ -2799,6 +2810,14 @@ A value of 0 means wait as long as necessary.  This is initialized from the
 \"*selectionTimeout\" resource.  */);
   x_selection_timeout = 0;
 
+  DEFVAR_LISP ("x-treat-local-requests-remotely", Vx_treat_local_requests_remotely,
+    doc: /* Whether to treat local selection requests as remote ones.
+
+If non-nil, selection converters for string types (`STRING',
+`UTF8_STRING', `COMPOUND_TEXT', etc) will encode the strings, even
+when Emacs itself is converting the selection.  */);
+  Vx_treat_local_requests_remotely = Qnil;
+
   /* QPRIMARY is defined in keyboard.c.  */
   DEFSYM (QSECONDARY, "SECONDARY");
   DEFSYM (QSTRING, "STRING");
@@ -2838,6 +2857,4 @@ syms_of_xselect_for_pdumper (void)
   property_change_wait_list = 0;
   prop_location_identifier = 0;
   property_change_reply = Fcons (Qnil, Qnil);
-  converted_selections = NULL;
-  conversion_fail_tag = None;
 }

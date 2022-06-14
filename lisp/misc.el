@@ -64,15 +64,22 @@ The characters copied are inserted in the buffer before point."
 ;; Variation of `zap-to-char'.
 
 ;;;###autoload
-(defun zap-up-to-char (arg char)
+(defun zap-up-to-char (arg char &optional interactive)
   "Kill up to, but not including ARGth occurrence of CHAR.
+When run interactively, the argument INTERACTIVE is non-nil.
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found.
-Ignores CHAR at point."
+Ignores CHAR at point.
+If called interactively, do a case sensitive search if CHAR
+is an upper-case character."
   (interactive (list (prefix-numeric-value current-prefix-arg)
 		     (read-char-from-minibuffer "Zap up to char: "
-						nil 'read-char-history)))
-  (let ((direction (if (>= arg 0) 1 -1)))
+						nil 'read-char-history)
+                     t))
+  (let ((direction (if (>= arg 0) 1 -1))
+        (case-fold-search (if (and interactive (char-uppercase-p char))
+                              nil
+                            case-fold-search)))
     (kill-region (point)
 		 (progn
 		   (forward-char direction)

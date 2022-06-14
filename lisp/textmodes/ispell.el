@@ -3052,6 +3052,8 @@ when needed."
 ;;;###autoload
 (defun ispell-region (reg-start reg-end &optional recheckp shift)
   "Interactively check a region for spelling errors.
+Leave the mark at the last misspelled word that the user was queried about.
+
 Return nil if spell session was terminated, otherwise returns shift offset
 amount for last line processed."
   (interactive "r")			; Don't flag errors on read-only bufs.
@@ -3063,7 +3065,8 @@ amount for last line processed."
 	(region-type (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 			 (buffer-name) "region"))
 	(program-basename (file-name-nondirectory ispell-program-name))
-	(dictionary (or ispell-current-dictionary "default")))
+	(dictionary (or ispell-current-dictionary "default"))
+        max-word)
     (unwind-protect
 	(save-excursion
 	  (message "Spell-checking %s using %s with %s dictionary..."
@@ -3159,10 +3162,14 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
 			    ;; Reset `in-comment' (and indirectly `add-comment') for new line
 			    in-comment nil))
 		  (setq ispell-end (point)) ; "end" tracks region retrieved.
-		  (if string		; there is something to spell check!
-		      ;; (special start end)
-		      (setq shift (ispell-process-line string
-						       (and recheckp shift))))
+                  ;; There is something to spell check!
+		  (when string
+		    ;; (special start end)
+                    (let ((res (ispell-process-line string
+						    (and recheckp shift))))
+                      (setq shift (car res))
+                      (when (cdr res)
+                        (setq max-word (cdr res)))))
 		  (goto-char ispell-end)))))
 	  (if ispell-quit
 	      nil
@@ -3173,6 +3180,9 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
 	  (kill-buffer ispell-choices-buffer))
       (set-marker skip-region-start nil)
       (set-marker rstart nil)
+      ;; Allow the user to pop back to the last position.
+      (when max-word
+        (push-mark max-word t))
       (if ispell-quit
 	  (progn
 	    ;; preserve or clear the region for ispell-continue.
@@ -3407,9 +3417,12 @@ Returns a string with the line data."
 This will modify the buffer for spelling errors.
 Requires variables ISPELL-START and ISPELL-END to be defined in its
 dynamic scope.
-Returns the sum SHIFT due to changes in word replacements."
+
+Returns a cons cell where the `car' is sum SHIFT due to changes
+in word replacements, and the `cdr' is the location of the final
+word that was queried about."
   ;;(declare special ispell-start ispell-end)
-  (let (poss accept-list)
+  (let (poss accept-list max-word)
     (if (not (numberp shift))
 	(setq shift 0))
     ;; send string to spell process and get input.
@@ -3463,6 +3476,7 @@ Returns the sum SHIFT due to changes in word replacements."
                   (error (concat "Ispell misalignment: word "
                                  "`%s' point %d; probably incompatible versions")
                          ispell-pipe-word actual-point)))
+            (setq max-word (marker-position word-start))
             ;; ispell-cmd-loop can go recursive & change buffer
             (if ispell-keep-choices-win
                 (setq replace (ispell-command-loop
@@ -3559,7 +3573,7 @@ Returns the sum SHIFT due to changes in word replacements."
             (set-marker line-end nil)))
       ;; Finished with misspelling!
       (setq ispell-filter (cdr ispell-filter)))
-    shift))
+    (cons shift max-word)))
 
 
 ;;;###autoload
@@ -3600,7 +3614,8 @@ to limit the check."
 
 ;;;###autoload
 (defun ispell-buffer ()
-  "Check the current buffer for spelling errors interactively."
+  "Check the current buffer for spelling errors interactively.
+Leave the mark at the last misspelled word that the user was queried about."
   (interactive)
   (ispell-region (point-min) (point-max)))
 

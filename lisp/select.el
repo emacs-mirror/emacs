@@ -401,11 +401,16 @@ also be a string, which stands for the symbol with that name, but
 this is considered obsolete.)  DATA may be a string, a symbol, or
 an integer.
 
-The selection may also be a cons of two markers pointing to the same buffer,
-or an overlay.  In these cases, the selection is considered to be the text
-between the markers *at whatever time the selection is examined*.
-Thus, editing done in the buffer after you specify the selection
-can alter the effective value of the selection.
+The selection may also be a cons of two markers pointing to the
+same buffer, or an overlay.  In these cases, the selection is
+considered to be the text between the markers *at whatever time
+the selection is examined*.  Thus, editing done in the buffer
+after you specify the selection can alter the effective value of
+the selection.  If DATA is a string, then its text properties can
+specify alternative values for different data types.  For
+example, the value of any property named `text/uri-list' will be
+used instead of DATA itself when another program converts TYPE to
+the target `text/uri-list'.
 
 The data may also be a vector of valid non-vector selection values.
 
@@ -481,7 +486,8 @@ two markers or an overlay.  Otherwise, it is nil."
 (defun xselect--int-to-cons (n)
   (cons (ash n -16) (logand n 65535)))
 
-(defun xselect--encode-string (type str &optional can-modify)
+(defun xselect--encode-string (type str &optional can-modify
+                                    prefer-string-to-c-string)
   (when str
     ;; If TYPE is nil, this is a local request; return STR as-is.
     (if (null type)
@@ -574,7 +580,10 @@ two markers or an overlay.  Otherwise, it is nil."
       (setq str (string-replace "\0" "\\0" str))
 
       (setq next-selection-coding-system nil)
-      (cons type str))))
+      (cons (if (and prefer-string-to-c-string
+                     (eq type 'C_STRING))
+                'STRING type)
+            str))))
 
 (defun xselect-convert-to-string (_selection type value)
   (let ((str (cond ((stringp value) value)
@@ -592,19 +601,29 @@ two markers or an overlay.  Otherwise, it is nil."
     (if len
 	(xselect--int-to-cons len))))
 
+(defvar x-dnd-targets-list)
+
 (defun xselect-convert-to-targets (selection _type value)
   ;; Return a vector of atoms, but remove duplicates first.
-  (apply #'vector
-         (delete-dups
-          `( TIMESTAMP MULTIPLE
-             . ,(delq '_EMACS_INTERNAL
-                      (mapcar (lambda (conv)
-                                (if (or (not (consp (cdr conv)))
-                                        (funcall (cadr conv) selection
-                                                 (car conv) value))
-                                    (car conv)
-                                  '_EMACS_INTERNAL))
-                              selection-converter-alist))))))
+  (if (eq selection 'XdndSelection)
+      ;; This isn't required by the XDND protocol, and sure enough no
+      ;; clients seem to dependent on it, but Emacs implements the
+      ;; receiver side of the Motif drop protocol by looking at the
+      ;; initiator selection's TARGETS target (which Motif provides)
+      ;; instead of the target table on the drag window, so it seems
+      ;; plausible for other clients to rely on that as well.
+      (apply #'vector (mapcar #'intern x-dnd-targets-list))
+    (apply #'vector
+           (delete-dups
+            `( TIMESTAMP MULTIPLE
+               . ,(delq '_EMACS_INTERNAL
+                        (mapcar (lambda (conv)
+                                  (if (or (not (consp (cdr conv)))
+                                          (funcall (cadr conv) selection
+                                                   (car conv) value))
+                                      (car conv)
+                                    '_EMACS_INTERNAL))
+                                selection-converter-alist)))))))
 
 (defun xselect-convert-to-delete (selection _type _value)
   ;; This should be handled by the caller of `x-begin-drag'.
@@ -619,9 +638,24 @@ two markers or an overlay.  Otherwise, it is nil."
   (if (not (eq selection 'XdndSelection))
       (when (setq value (xselect--selection-bounds value))
         (xselect--encode-string 'TEXT (buffer-file-name (nth 2 value))))
-    (when (and (stringp value)
-               (file-exists-p value))
-      (xselect--encode-string 'C_STRING value))))
+    (if (and (stringp value)
+             (file-exists-p value))
+        ;; Motif expects this to be STRING, but it treats the data as
+        ;; a sequence of bytes instead of a Latin-1 string.
+        (cons 'STRING (encode-coding-string (expand-file-name value)
+                                            (or file-name-coding-system
+                                                default-file-name-coding-system)))
+      (when (vectorp value)
+        (with-temp-buffer
+          (cl-loop for file across value
+                   do (insert (expand-file-name file) "\0"))
+          ;; Get rid of the last NULL byte.
+          (when (> (point) 1)
+            (delete-char -1))
+          ;; Motif wants STRING.
+          (cons 'STRING (encode-coding-string (buffer-string)
+                                              (or file-name-coding-system
+                                                  default-file-name-coding-system))))))))
 
 (defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
@@ -687,18 +721,16 @@ This function returns the string \"emacs\"."
   (user-real-login-name))
 
 (defun xselect-convert-to-text-uri-list (_selection _type value)
-  (when (and (stringp value)
-             (file-exists-p value))
-    (concat (url-encode-url
-             ;; Uncomment the following code code in a better world where
-             ;; people write correct code that adds the hostname to the URI.
-             ;; Since most programs don't implement this properly, we omit the
-             ;; hostname so that copying files actually works.  Most properly
-             ;; written programs will look at WM_CLIENT_MACHINE to determine
-             ;; the hostname anyway.  (format "file://%s%s\n" (system-name)
-             ;; (expand-file-name value))
-             (concat "file://" (expand-file-name value)))
-            "\n")))
+  (if (stringp value)
+      (xselect--encode-string 'TEXT
+                              (concat (url-encode-url value) "\n"))
+    (when (vectorp value)
+      (with-temp-buffer
+        (cl-loop for tem across value
+                 do (progn
+                      (insert (url-encode-url tem))
+                      (insert "\n")))
+        (xselect--encode-string 'TEXT (buffer-string))))))
 
 (defun xselect-convert-to-xm-file (selection _type value)
   (when (and (stringp value)
@@ -711,11 +743,54 @@ This function returns the string \"emacs\"."
   "Return whether or not `text/uri-list' is a valid target for SELECTION.
 VALUE is the local selection value of SELECTION."
   (and (eq selection 'XdndSelection)
-       (stringp value)
-       (file-exists-p value)))
+       (or (stringp value)
+           (vectorp value))))
 
 (defun xselect-convert-xm-special (_selection _type _value)
   "")
+
+(defun xselect-dt-netfile-available-p (selection _type value)
+  "Return whether or not `_DT_NETFILE' is a valid target for SELECTION.
+VALUE is SELECTION's local selection value."
+  (and (eq selection 'XdndSelection)
+       (stringp value)
+       (file-exists-p value)
+       (not (file-remote-p value))))
+
+(defun xselect-tt-net-file (file)
+  "Get the canonical ToolTalk filename for FILE.
+FILE must be a local file, or otherwise the conversion will fail.
+The string returned has three components: the hostname of the
+machine where the file is, the real path, and the local path.
+They are encoded into a string of the form
+\"HOST=0-X,RPATH=X-Y,LPATH=Y-Z:DATA\", where X, Y, and Z are the
+positions of the hostname, rpath and lpath inside DATA."
+  (let ((hostname (system-name))
+        (rpath file)
+        (lpath file))
+    (format "HOST=0-%d,RPATH=%d-%d,LPATH=%d-%d:%s%s%s"
+            (1- (length hostname)) (length hostname)
+            (1- (+ (length hostname) (length rpath)))
+            (+ (length hostname) (length rpath))
+            (1- (+ (length hostname) (length rpath)
+                   (length lpath)))
+            hostname rpath lpath)))
+
+(defun xselect-convert-to-dt-netfile (selection _type value)
+  "Convert SELECTION to a ToolTalk filename.
+VALUE should be SELECTION's local value."
+  (when (and (eq selection 'XdndSelection)
+             (stringp value)
+             (file-exists-p value)
+             (not (file-remote-p value)))
+    (let ((name (encode-coding-string value
+                                      (or file-name-coding-system
+                                          default-file-name-coding-system))))
+      (cons 'STRING
+            (encode-coding-string (xselect-tt-net-file name)
+                                  (or file-name-coding-system
+                                      default-file-name-coding-system)
+                                  t)))))
 
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)
@@ -724,9 +799,11 @@ VALUE is the local selection value of SELECTION."
 	(UTF8_STRING . xselect-convert-to-string)
 	(text/plain . xselect-convert-to-string)
 	(text/plain\;charset=utf-8 . xselect-convert-to-string)
-        (text/uri-list . (xselect-uri-list-available-p . xselect-convert-to-text-uri-list))
+        (text/uri-list . (xselect-uri-list-available-p
+                          . xselect-convert-to-text-uri-list))
         (text/x-xdnd-username . xselect-convert-to-username)
-        (FILE . (xselect-uri-list-available-p . xselect-convert-to-xm-file))
+        (FILE . (xselect-uri-list-available-p
+                 . xselect-convert-to-xm-file))
 	(TARGETS . xselect-convert-to-targets)
 	(LENGTH . xselect-convert-to-length)
 	(DELETE . xselect-convert-to-delete)
@@ -744,7 +821,9 @@ VALUE is the local selection value of SELECTION."
 	(SAVE_TARGETS . xselect-convert-to-save-targets)
 	(_EMACS_INTERNAL . xselect-convert-to-identity)
         (XmTRANSFER_SUCCESS . xselect-convert-xm-special)
-        (XmTRANSFER_FAILURE . xselect-convert-xm-special)))
+        (XmTRANSFER_FAILURE . xselect-convert-xm-special)
+        (_DT_NETFILE . (xselect-dt-netfile-available-p
+                        . xselect-convert-to-dt-netfile))))
 
 (provide 'select)
 

@@ -1,7 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2022 Free
-;; Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.2
@@ -76,8 +75,7 @@
 Colors will be the background color.")
 
 (defvar chart-face-pixmap-list
-  (if (and (fboundp 'display-graphic-p)
-	   (display-graphic-p))
+  (if (display-graphic-p)
       '("dimple1" "scales" "dot" "cross_weave" "boxes" "dimple3"))
   "If pixmaps are allowed, display these background pixmaps.
 Useful if new Emacs is used on B&W display.")
