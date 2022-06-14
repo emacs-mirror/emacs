@@ -569,6 +569,18 @@ DEFUN ("treesit-compiled-query-p",
     return Qnil;
 }
 
+DEFUN ("treesit-query-p",
+       Ftreesit_query_p, Streesit_query_p, 1, 1, 0,
+       doc: /* Return t if OBJECT is a generic tree-sitter query.  */)
+  (Lisp_Object object)
+{
+  if (TS_COMPILED_QUERY_P (object)
+      || CONSP (object) || STRINGP (object))
+    return Qt;
+  else
+    return Qnil;
+}
+
 DEFUN ("treesit-node-parser",
        Ftreesit_node_parser, Streesit_node_parser,
        1, 1, 0,
@@ -1661,6 +1673,7 @@ dynamic libraries, in that order.  */);
   defsubr (&Streesit_parser_p);
   defsubr (&Streesit_node_p);
   defsubr (&Streesit_compiled_query_p);
+  defsubr (&Streesit_query_p);
 
   defsubr (&Streesit_node_parser);
 
