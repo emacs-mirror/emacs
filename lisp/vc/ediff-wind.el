@@ -1136,9 +1136,7 @@ It assumes that it is called from within the control buffer."
 	  (if (ediff-narrow-control-frame-p)
 	      (list "   " mode-line-buffer-identification)
 	    (list "-- " mode-line-buffer-identification
-                  (and (not (eq ediff-window-setup-function
-                                'ediff-setup-windows-plain))
-                       "        Quick Help"))))
+                  (list 'ediff-use-long-help-message "        Quick Help"))))
     ;; control buffer id
     (setq mode-line-buffer-identification
 	  (if (ediff-narrow-control-frame-p)
