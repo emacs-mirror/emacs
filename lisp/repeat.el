@@ -500,7 +500,7 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 (defun repeat-echo-message-string (keymap)
   "Return a string with a list of repeating keys."
   (let (keys)
-    (map-keymap (lambda (key _) (push key keys)) keymap)
+    (map-keymap (lambda (key cmd) (and cmd (push key keys))) keymap)
     (format-message "Repeat with %s%s"
                     (mapconcat (lambda (key)
                                  (key-description (vector key)))
