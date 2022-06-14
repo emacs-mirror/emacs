@@ -303,7 +303,10 @@ Interactively, reads the register using `register-read-with-preview'."
 (defun calc-insert-register (register)
   "Insert the contents of register REGISTER.
 
-Interactively, reads the register using `register-read-with-preview'."
+Interactively, reads the register using `register-read-with-preview'.
+
+Note that this command only works with Calc registers, and they
+have nothing to do with the Emacs-wide register mechanism."
   (interactive (list (register-read-with-preview "Insert register: ")))
   (if (eq major-mode 'calc-mode)
       (let ((val (calc-get-register register)))
