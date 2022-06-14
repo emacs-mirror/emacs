@@ -266,14 +266,16 @@ as well as set the contents of the Emacs register REGISTER to TEXT."
   "Return the CALCVAL portion of the contents of the Calc register REG,
 unless the TEXT portion doesn't match the contents of the Emacs register REG,
 in which case either return the contents of the Emacs register (if it is
-text) or nil."
+text or a number) or nil."
   (let ((cval (cdr (assq reg calc-register-alist)))
         (val (cdr (assq reg register-alist))))
-    (if (stringp val)
-        (if (and (stringp (car cval))
-                 (string= (car cval) val))
-            (cdr cval)
-          val))))
+    (cond
+     ((stringp val)
+      (if (and (stringp (car cval))
+               (string= (car cval) val))
+          (cdr cval)
+        val))
+     ((numberp val) (number-to-string val)))))
 
 (defun calc-copy-to-register (register start end &optional delete-flag)
   "Copy the lines in the region into register REGISTER.
