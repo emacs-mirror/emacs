@@ -223,6 +223,7 @@ keystrokes.  Here is a list of these events.
 
 @table @key
 @item ns-open-file
+@cindex ns-open-file event
 @vindex ns-pop-up-frames
 This event occurs when another Nextstep application requests that
 Emacs open a file.  A typical reason for this would be a user
@@ -239,44 +240,29 @@ means to always visit the file in a new frame.  A value of @code{nil}
 means to always visit the file in the selected frame.
 
 @item ns-open-temp-file
+@cindex ns-open-temp-file event
 This event occurs when another application requests that Emacs open a
 temporary file.  By default, this is handled by just generating a
 @code{ns-open-file} event, the results of which are described above.
 
 @item ns-open-file-line
+@cindex ns-open-file-line event
 Some applications, such as ProjectBuilder and gdb, request not only a
 particular file, but also a particular line or sequence of lines in
 the file.  Emacs handles this by visiting that file and highlighting
 the requested line (@code{ns-open-file-select-line}).
 
-@item ns-drag-n-drop
-This event occurs when a user drags an object from another application
-into an Emacs frame.  The default behavior is to open a file in the
-window under the mouse, or to insert text at point of the window under
-the mouse.
-
-The sending application has some limited ability to decide how Emacs
-handles the sent object, but the user may override the default
-behavior by holding one or more modifier key.
-
-@table @kbd
-@item control
-Insert as text in the current buffer.  If the object is a file, this
-will insert the filename.
-@item alt/option
-Attempt to open the object as though it is a file or URL.
-@item super/command
-Perform the default action for the type.  This can be useful when an
-application is overriding the default behavior.
-@end table
-
-The modifier keys listed above are defined by macOS and are unaffected
-by user changes to the modifiers in Emacs.
-
 @item ns-power-off
+@cindex ns-power-off event
 This event occurs when the user logs out and Emacs is still running, or when
 ``Quit Emacs'' is chosen from the application menu.
 The default behavior is to save all file-visiting buffers.
+
+@item ns-show-prefs
+@cindex ns-show-prefs event
+This event occurs when the user selects ``Preferences'' from the
+application menu.  By default, it is bound to the command
+@code{customize}.
 @end table
 
 @cindex using Nextstep services (macOS)

@@ -142,7 +142,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-p] 'ns-print-buffer)
 (define-key global-map [?\s-q] 'save-buffers-kill-emacs)
 (define-key global-map [?\s-s] 'save-buffer)
-(define-key global-map [?\s-t] 'ns-popup-font-panel)
+(define-key global-map [?\s-t] 'set-frame-font)
 (define-key global-map [?\s-u] 'revert-buffer)
 (define-key global-map [?\s-v] 'yank)
 (define-key global-map [?\s-w] 'delete-frame)
