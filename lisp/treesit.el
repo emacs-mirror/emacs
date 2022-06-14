@@ -229,21 +229,27 @@ one argument, the parent node."
 
 (defalias 'treesit-traverse-parent #'treesit-parent-until)
 
-(defun treesit-traverse-depth-first (node pred &optional step)
+(defun treesit-traverse-depth-first (node pred &optional step depth)
   "Traverse the subtree of NODE depth-first.
 
 Traverse starting from NODE (i.e., NODE is passed to PRED).  For
 each node traversed, call PRED with the node, stop and return the
 node if PRED returns non-nil.  If STEP >= 0 or nil, go forward,
 if STEP < 0, go backward.  If no node satisfies PRED, return
-nil."
-  (if (funcall pred node)
-      node
-    (cl-loop for child in (if (or (null step) (>= step 0))
-                              (treesit-node-children node)
-                            (nreverse (treesit-node-children node)))
-             if (treesit-traverse-depth-first child pred step)
-             return child)))
+nil.
+
+DEPTH can be a positive integer or 0, meaning go DEPTH deep
+counting from NODE; or nil, meaning there is no limit."
+  (if (and (numberp depth) (<= depth 0))
+      nil
+    (if (funcall pred node)
+        node
+      (cl-loop for child in (if (or (null step) (>= step 0))
+                                (treesit-node-children node)
+                              (nreverse (treesit-node-children node)))
+               if (treesit-traverse-depth-first
+                   child pred step (if (numberp depth) (1- depth) depth))
+               return child))))
 
 (defun treesit--traverse-breadth-first-1 (pred step queue tail)
   "The work horse for `treesit-traverse-breadth-first'.
@@ -296,7 +302,7 @@ Return either ('sibling node) or ('parent node)."
     (when (treesit-node-parent node)
       (list 'parent (treesit-node-parent node)))))
 
-(defun treesit-traverse-forward (node pred &optional step)
+(defun treesit-traverse-forward (node pred &optional step depth)
   "Traverse the whole tree forward from NODE depth-first.
 
 Traverse starting from NODE (i.e., NODE is passed to PRED).  For
@@ -305,8 +311,8 @@ node if PRED returns non-nil.  If STEP >= 0 or nil, go forward,
 if STEP < 0, go backward.  If no node satisfies PRED, return
 nil.
 
-Traversing forward depth-first means, for a tree like the below
-where NODE is marked 1, traverse as numbered:
+Traversing forward depth-first means that for a tree like the
+below where NODE is marked 1, traverse as numbered:
 
                 16
                 |
@@ -316,23 +322,37 @@ where NODE is marked 1, traverse as numbered:
   |  |    |        |    |         |
   o  o    2        7  +-+-+    +--+--+
                       |   |    |  |  |
-                      10  11   13 14 15"
-  ;; First try NODE's subtree.
-  (or (treesit-traverse-depth-first node pred step)
+                      10  11   13 14 15
+
+DEPTH can be a positive integer, 0, nil, or 'up.  A positive
+integer or 0 means go DEPTH deep counting from NODE.  A nil means
+no limit.  And a symbol 'up means go upwards only: only traverse
+sibling and parent, never go down to children.
+
+The difference between 0 and 'up is subtle: in the above example,
+if given 0 as DEPTH, node 1 3 4 5 6 8 9 12 16 are visited; if
+given 'up as DEPTH, only node 1 3 4 8 16 are visited."
+  ;; First try NODE's subtree, but only under these conditions: if
+  ;; DEPTH is a number, it has to be greater than 0, if it's a symbol,
+  ;; it cannot be 'up.
+  (or (and (if (numberp depth) (> depth 0) (not (eq depth 'up)))
+           (treesit-traverse-depth-first node pred step depth))
       ;; If no match, try the next node: next sibling, or parent if no
       ;; next sibling exists.
       (catch 'match
         (let ((next (list nil node)))
-          ;; If NEXT is parent, call PRED on it and keep going.
+          ;; If NEXT is parent, call PRED on it and keep going.  We
+          ;; can always go to parent, regardless the value of DEPTH.
           (while (and (setq next (treesit-next-sibling-or-up
                                   (cadr next) step))
                       (eq (car next) 'parent))
+            (when (numberp depth) (cl-incf depth))
             (when (funcall pred (cadr next))
               (throw 'match (cadr next))))
           (when next
             ;; If NEXT is non-nil, it must be ('sibling node).
             (treesit-traverse-forward
-             (cadr next) pred step))))))
+             (cadr next) pred step depth))))))
 
 (defun treesit-node-children (node &optional named)
   "Return a list of NODE's children.
@@ -841,8 +861,9 @@ indentation (target) is in green, current indentation is in red."
 
 ;;; Search
 
-(defun treesit-search-forward (pos-fn arg query &optional lang)
-  "Search forward for nodes that matches QUERY.
+;; TODO: It might be more performant if we implement this in C.
+(defun treesit-search-forward (pos-fn arg query &optional lang up-only)
+  "Search forward for nodes that matches QUERY from current point.
 
 This is a more primitive function, you might want to use
 `treesit-search-beginning' or `treesit-search-end' instead.
@@ -858,7 +879,13 @@ POS-FN can be either `treesit-node-start' or `treesit-node-end',
 or any function that takes a node and returns a position.
 
 If search succeeds, stop at the position returned by POS-FN and
-return the matched node.  Return nil if search failed."
+return the matched node.  Return nil if search failed.
+
+We search by traversing the parse tree, visiting every node
+that's after (or before) the smallest node at point (retrieved by
+`treesit-node-at').  If UP-ONLY is non-nil, only go to sibling or
+parent in the tree, never go down into children when traversing
+the tree."
   (cl-loop for idx from 1 to (abs arg)
            for parser = (if lang
                             (treesit-get-parser-create lang)
@@ -885,7 +912,8 @@ return the matched node.  Return nil if search failed."
                                   (< (funcall pos-fn node)
                                      starting-point)))
                         return t)))
-                arg))
+                ;; The AND form converts non-nil/nil into t/nil.
+                arg (and up-only t)))
            for pos = (funcall pos-fn node)
            ;; If we can find a match, jump to it.
            if pos do (goto-char pos)
@@ -893,7 +921,7 @@ return the matched node.  Return nil if search failed."
            ;; Return t to indicate that search is successful.
            finally return node))
 
-(defun treesit-search-beginning (query arg &optional lang)
+(defun treesit-search-beginning (query arg &optional lang up-only)
   "Search forward for nodes that matches QUERY.
 
 Stops at the beginning of matched node.
@@ -906,10 +934,17 @@ Move forward/backward ARG times, positive ARG means go forward,
 negative ARG means go backward.
 
 If search succeeds, return the matched node.  Return nil if
-search failed."
-  (treesit-search-forward #'treesit-node-start arg query lang))
+search failed.
 
-(defun treesit-search-end (query arg &optional lang)
+We search by traversing the parse tree, visiting every node
+that's after (or before) the smallest node at point (retrieved by
+`treesit-node-at').  If UP-ONLY is non-nil, only go to sibling or
+parent in the tree, never go down into children when traversing
+the tree."
+  (treesit-search-forward #'treesit-node-start arg query lang
+                          up-only))
+
+(defun treesit-search-end (query arg &optional lang up-only)
   "Search forward for nodes that matches QUERY.
 
 Stops at the end of matched node.
@@ -922,8 +957,15 @@ Move forward/backward ARG times, positive ARG means go forward,
 negative ARG means go backward.
 
 If search succeeds, return the matched node.  Return nil if
-search failed."
-  (treesit-search-forward #'treesit-node-end arg query lang))
+search failed.
+
+We search by traversing the parse tree, visiting every node
+that's after (or before) the smallest node at point (retrieved by
+`treesit-node-at').  If UP-ONLY is non-nil, only go to sibling or
+parent in the tree, never go down into children when traversing
+the tree."
+  (treesit-search-forward #'treesit-node-end arg query lang
+                          up-only))
 
 ;;; Navigation
 
@@ -932,7 +974,8 @@ search failed."
 Capture names don't matter.  This variable is used by navigation
 functions like `treesit-beginning-of-defun'.
 
-It is recommended to use compiled query for this variable.")
+It is recommended to use a compiled query for this variable.  See
+`treesit-query-in' for what a query should look like.")
 
 (defun treesit-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -942,7 +985,7 @@ to the ARGth following beginning of defun.  Defun is defined
 according to `treesit-defun-query'."
   (unless treesit-defun-query
     (error "Variable `treesit-defun-query' is unset"))
-  (treesit-search-beginning treesit-defun-query (- (or arg 1))))
+  (treesit-search-beginning treesit-defun-query (- (or arg 1)) nil t))
 
 (defun treesit-end-of-defun (&optional arg)
   "Move forward to the end of a defun.
@@ -952,7 +995,7 @@ ARGth preceding end of defun.  Defun is defined according to
 `treesit-defun-query'."
   (unless treesit-defun-query
     (error "Variable `treesit-defun-query' is unset"))
-  (treesit-search-end treesit-defun-query (or arg 1)))
+  (treesit-search-end treesit-defun-query (or arg 1) nil t))
 
 ;;; Debugging
 
