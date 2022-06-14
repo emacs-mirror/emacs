@@ -968,10 +968,11 @@ respect this or not; see `read-regexp-case-fold-search'.)"
                                                        'inhibit-fold))))
                                      'inhibit-fold
                                    'fold))
-                           (message "Case folding is now %s"
-                                    (if (eq case-fold 'fold)
-                                        "on"
-                                      "off"))))
+                           (minibuffer-message
+                            "Case folding is now %s"
+                            (if (eq case-fold 'fold)
+                                "on"
+                              "off"))))
                  nil (or history 'regexp-history) suggestions t))
          (result (if (equal input "")
 	             ;; Return the default value when the user enters
