@@ -17179,7 +17179,11 @@ redisplay_window_1 (Lisp_Object window)
    means to initialize the tick count to zero.
 
    W can be NULL if TICKS is zero: that means unconditionally
-   re-initialize the current tick count to zero.   */
+   re-initialize the current tick count to zero.
+
+   W can also be NULL if the caller doesn't know which window is being
+   processed by the display code.  In that case, if TICKS is non-zero,
+   we assume it's the last window that shows the current buffer.  */
 void
 update_redisplay_ticks (int ticks, struct window *w)
 {
@@ -17204,9 +17208,11 @@ update_redisplay_ticks (int ticks, struct window *w)
 	 the one used for the native tool bar).  */
       Lisp_Object contents = w ? w->contents : Qnil;
       char *bufname =
-	BUFFERP (contents)
-	? SSDATA (BVAR (XBUFFER (contents), name))
-	: (char *) "<none>";
+	NILP (contents)
+	? SSDATA (BVAR (current_buffer, name))
+	: (BUFFERP (contents)
+	   ? SSDATA (BVAR (XBUFFER (contents), name))
+	   : (char *) "<unknown>");
 
       windows_or_buffers_changed = 177;
       error ("Window showing buffer %s takes too long to redisplay", bufname);
