@@ -88,6 +88,28 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      parser of buffer changes.
    - lisp/emacs-lisp/cl-preloaded.el & data.c & lisp.h for parser and
      node type.
+
+   Because it is pretty slow (comparing to other tree-sitter
+   operations) for tree-sitter to parse the query and produce a query
+   object, it is very wasteful to reparse the query every time
+   treesit-query-capture is called, and it completely kills the
+   performance of querying in a loop for a moderate amount of times
+   (hundreds of queries takes seconds rather than milliseconds to
+   complete).  Therefore we want some caching. We can either use a
+   search.c style transparent caching, or simply expose a new type,
+   compiled-ts-query and let the user to manually compile AOT.  I
+   believe AOT compiling gives users more control, makes the
+   performance stable and easy to understand (compiled -> fast,
+   uncompiled -> slow), and avoids some edge cases transparent cache
+   could have (see below).  So I implemented the AOT compilation.
+
+   Problems a transparent cache could have: Suppose we store cache
+   entries in a fixed-length linked-list, and compare with EQ.  1)
+   One-off query could kick out useful cache.  2) if the user messed
+   up and the query doesn't EQ to the cache anymore, the performance
+   mysteriously drops.  3) what if a user uses so many stuff that the
+   default cache size (20) is not enough and we end up thrashing?
+   These are all imagined scenarios but they are not impossible :-)
  */
 
 /*** Initialization */
@@ -534,6 +556,31 @@ make_ts_node (Lisp_Object parser, TSNode node)
   lisp_node->node = node;
   lisp_node->timestamp = XTS_PARSER (parser)->timestamp;
   return make_lisp_ptr (lisp_node, Lisp_Vectorlike);
+}
+
+/* Make a compiled query struct.  Return NULL if error occurs.  QUERY
+   has to be either a cons or a string.  */
+static struct Lisp_TS_Query *
+make_ts_query (Lisp_Object query, const TSLanguage *language,
+	       uint32_t *error_offset, TSQueryError *error_type)
+{
+  if (CONSP (query))
+    query = Ftreesit_expand_query (query);
+  char *source = SSDATA (query);
+
+  TSQuery *ts_query = ts_query_new (language, source, strlen (source),
+				    error_offset, error_type);
+  TSQueryCursor *ts_cursor = ts_query_cursor_new ();
+
+  if (ts_query == NULL)
+    return NULL;
+
+  struct Lisp_TS_Query *lisp_query
+    = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_TS_Query,
+				   PVEC_TS_COMPILED_QUERY);
+  lisp_query->query = ts_query;
+  lisp_query->cursor = ts_cursor;
+  return lisp_query;
 }
 
 DEFUN ("treesit-parser-p",
@@ -1467,6 +1514,39 @@ ts_eval_predicates
   return pass;
 }
 
+DEFUN ("treesit-query-compile",
+       Ftreesit_query_compile,
+       Streesit_query_compile, 2, 2, 0,
+       doc: /* Compile QUERY to a compiled query.
+
+Querying a compiled query is much faster than an uncompiled one.
+LANGUAGE is the language this query is for.
+
+Signals treesit-query-error if QUERY is malformed or something
+else goes wrong.  */)
+  (Lisp_Object language, Lisp_Object query)
+{
+  if (!Ftreesit_query_p (query))
+    wrong_type_argument (Qtreesit_query_p, query);
+  CHECK_SYMBOL (language);
+  if (TS_COMPILED_QUERY_P (query))
+    return query;
+
+  TSLanguage *ts_lang = ts_load_language (language, true);
+  uint32_t error_offset;
+  TSQueryError error_type;
+
+  struct Lisp_TS_Query *lisp_query
+    = make_ts_query (query, ts_lang, &error_offset, &error_type);
+
+  if (lisp_query == NULL)
+    xsignal2 (Qtreesit_query_error,
+	      build_string (ts_query_error_to_string (error_type)),
+	      make_fixnum (error_offset + 1));
+
+  return make_lisp_ptr (lisp_query, Lisp_Vectorlike);
+}
+
 DEFUN ("treesit-query-capture",
        Ftreesit_query_capture,
        Streesit_query_capture, 2, 4, 0,
@@ -1475,9 +1555,11 @@ DEFUN ("treesit-query-capture",
 Return a list of (CAPTURE_NAME . NODE).  CAPTURE_NAME is the name
 assigned to the node in PATTERN.  NODE is the captured node.
 
-QUERY is either a string query or a sexp query.  See Info node
-`(elisp)Pattern Matching' for how to write a query in either string or
-s-expression form.
+QUERY is either a string query, a sexp query, or a compiled query.
+See Info node `(elisp)Pattern Matching' for how to write a query in
+either string or s-expression form.  When using repeatedly, a compiled
+query is much faster than a string or sexp one, so it is recommend to
+compile your queries if it will be used over and over.
 
 BEG and END, if both non-nil, specifies the range in which the query
 is executed.
@@ -1493,10 +1575,9 @@ else goes wrong.  */)
   if (!NILP (end))
     CHECK_INTEGER (end);
 
-  if (CONSP (query))
-    query = Ftreesit_expand_query (query);
-  else
-    CHECK_STRING (query);
+  if (!(TS_COMPILED_QUERY_P (query)
+	|| CONSP (query) || STRINGP (query)))
+    wrong_type_argument (Qtreesit_query_p, query);
 
   /* Extract C values from Lisp objects.  */
   TSNode ts_node = XTS_NODE (node)->node;
@@ -1505,25 +1586,34 @@ else goes wrong.  */)
     XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
   const TSLanguage *lang = ts_parser_language
     (XTS_PARSER (lisp_parser)->parser);
-  char *source = SSDATA (query);
 
   /* Initialize query objects, and execute query.  */
-  uint32_t error_offset;
-  TSQueryError error_type;
-  /* TODO: We could cache the query object, so that repeatedly
-     querying with the same query can reuse the query object.  It also
-     saves us from expanding the sexp query into a string.  I don't
-     know how much time that could save though.  */
-  TSQuery *ts_query = ts_query_new (lang, source, strlen (source),
-				    &error_offset, &error_type);
-  TSQueryCursor *cursor = ts_query_cursor_new ();
-
-  if (ts_query == NULL)
+  struct Lisp_TS_Query *lisp_query;
+  /* If the lisp query is temporary, we need to free it after use. */
+  bool lisp_query_temp_p;
+  if (TS_COMPILED_QUERY_P (query))
     {
-      xsignal2 (Qtreesit_query_error,
-		build_string (ts_query_error_to_string (error_type)),
-		make_fixnum (error_offset + 1));
+      lisp_query_temp_p = false;
+      lisp_query = XTS_COMPILED_QUERY (query);
     }
+  else
+    {
+      lisp_query_temp_p = true;
+      uint32_t error_offset;
+      TSQueryError error_type;
+      lisp_query = make_ts_query (query, lang,
+				  &error_offset, &error_type);
+      if (lisp_query == NULL)
+	{
+	  xsignal2 (Qtreesit_query_error,
+		    build_string
+		    (ts_query_error_to_string (error_type)),
+		    make_fixnum (error_offset + 1));
+	}
+    }
+  TSQuery *ts_query = lisp_query->query;
+  TSQueryCursor *cursor = lisp_query->cursor;
+
   if (!NILP (beg) && !NILP (end))
     {
       EMACS_INT beg_byte = XFIXNUM (beg);
@@ -1578,8 +1668,11 @@ else goes wrong.  */)
 	  result = prev_result;
 	}
     }
-  ts_query_delete (ts_query);
-  ts_query_cursor_delete (cursor);
+  if (lisp_query_temp_p)
+    {
+      ts_query_delete (ts_query);
+      ts_query_cursor_delete (cursor);
+    }
   return Fnreverse (result);
 }
 
@@ -1592,6 +1685,7 @@ syms_of_treesit (void)
   DEFSYM (Qtreesit_parser_p, "treesit-parser-p");
   DEFSYM (Qtreesit_node_p, "treesit-node-p");
   DEFSYM (Qtreesit_compiled_query_p, "treesit-compiled-query-p");
+  DEFSYM (Qtreesit_query_p, "treesit-query-p");
   DEFSYM (Qnamed, "named");
   DEFSYM (Qmissing, "missing");
   DEFSYM (Qextra, "extra");
@@ -1705,5 +1799,6 @@ dynamic libraries, in that order.  */);
 
   defsubr (&Streesit_expand_pattern);
   defsubr (&Streesit_expand_query);
+  defsubr (&Streesit_query_compile);
   defsubr (&Streesit_query_capture);
 }

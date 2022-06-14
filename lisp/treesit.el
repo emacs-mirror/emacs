@@ -366,9 +366,12 @@ language symbol, use the root node of the first parser for that
 language; if a parser, use the root node of that parser; if a
 node, use that node.
 
-QUERY is either a string query or a sexp query.  See Info node
-`(elisp)Pattern Matching' for how to write a query pattern in either
-string or s-expression form.
+QUERY is either a string query, a sexp query, or a compiled
+query.  See Info node `(elisp)Pattern Matching' for how to write
+a query in either string or s-expression form.  When using
+repeatedly, a compiled query is much faster than a string or sexp
+one, so it is recommend to compile your queries if it will be
+used over and over.
 
 BEG and END, if _both_ non-nil, specifies the range in which the query
 is executed.
@@ -442,8 +445,12 @@ Each SETTING controls one parser (often of different language).
 LANGUAGE is the language symbol.  See Info node `(elisp)Language
 Definitions'.
 
-QUERY is either a string query or a sexp query.
-See Info node `(elisp)Pattern Matching' for writing queries.
+QUERY is either a string query, a sexp query, or a compiled
+query.  See Info node `(elisp)Pattern Matching' for how to write
+a query in either string or s-expression form.  When using
+repeatedly, a compiled query is much faster than a string or sexp
+one, so it is recommend to compile your queries if it will be
+used over and over.
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
@@ -923,7 +930,9 @@ search failed."
 (defvar-local treesit-defun-query nil
   "A tree-sitter query that matches function/class definitions.
 Capture names don't matter.  This variable is used by navigation
-functions like `treesit-beginning-of-defun'.")
+functions like `treesit-beginning-of-defun'.
+
+It is recommended to use compiled query for this variable.")
 
 (defun treesit-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
