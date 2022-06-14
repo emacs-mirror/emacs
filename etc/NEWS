@@ -1090,6 +1090,12 @@ to complete.  The value 'visual' is like 'always', but only updates
 the completions if they are already visible.  The default value 't'
 always hides the completion buffer after some completion is made.
 
+*** New commands to complete the minibuffer history.
+'minibuffer-complete-history' ('C-x up') is like 'minibuffer-complete'
+but completes on the history items instead of the default completion
+table.  'minibuffer-complete-defaults' ('C-x down') completes
+on the list of default items.
+
 +++
 *** New user option 'completions-sort'.
 This option controls the sorting of the completion candidates in

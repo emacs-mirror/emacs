@@ -4425,6 +4425,36 @@ minibuffer, but don't quit the completions window."
     (let ((completion-use-base-affixes t))
       (choose-completion nil no-exit no-quit))))
 
+(defun minibuffer-complete-history ()
+  "Complete the minibuffer history as far as possible.
+Like `minibuffer-complete' but completes on the history items
+instead of the default completion table."
+  (interactive)
+  (let ((completions-sort nil)
+        (history (mapcar (lambda (h)
+                           ;; Support e.g. `C-x ESC ESC TAB' as
+                           ;; a replacement of `list-command-history'
+                           (if (consp h) (format "%S" h) h))
+                         (symbol-value minibuffer-history-variable))))
+    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
+                          history nil)))
+
+(defun minibuffer-complete-defaults ()
+  "Complete minibuffer defaults as far as possible.
+Like `minibuffer-complete' but completes on the default items
+instead of the completion table."
+  (interactive)
+  (let ((completions-sort nil))
+    (when (and (not minibuffer-default-add-done)
+               (functionp minibuffer-default-add-function))
+      (setq minibuffer-default-add-done t
+            minibuffer-default (funcall minibuffer-default-add-function)))
+    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
+                          (ensure-list minibuffer-default) nil)))
+
+(define-key minibuffer-local-map [?\C-x up] 'minibuffer-complete-history)
+(define-key minibuffer-local-map [?\C-x down] 'minibuffer-complete-defaults)
+
 (defcustom minibuffer-default-prompt-format " (default %s)"
   "Format string used to output \"default\" values.
 When prompting for input, there will often be a default value,
