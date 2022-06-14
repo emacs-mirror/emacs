@@ -1060,6 +1060,7 @@ enum pvec_type
   PVEC_NATIVE_COMP_UNIT,
   PVEC_TS_PARSER,
   PVEC_TS_NODE,
+  PVEC_TS_COMPILED_QUERY,
   PVEC_SQLITE,
 
   /* These should be last, for internal_equal and sxhash_obj.  */

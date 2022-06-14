@@ -3174,6 +3174,13 @@ cleanup_vector (struct Lisp_Vector *vector)
       ts_tree_delete(lisp_parser->tree);
       ts_parser_delete(lisp_parser->parser);
     }
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_COMPILED_QUERY))
+    {
+      struct Lisp_TS_Query *lisp_query
+	= PSEUDOVEC_STRUCT (vector, Lisp_TS_Query);
+      ts_query_delete (lisp_query->query);
+      ts_query_cursor_delete (lisp_query->cursor);
+    }
 #endif
 #ifdef HAVE_MODULES
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MODULE_FUNCTION))

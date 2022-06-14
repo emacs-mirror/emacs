@@ -1982,6 +1982,9 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 		    printcharfun, escapeflag);
       printchar ('>', printcharfun);
       break;
+    case PVEC_TS_COMPILED_QUERY:
+      print_c_string ("#<treesit-compiled-query>", printcharfun);
+      break;
 #endif
 
     case PVEC_SQLITE:

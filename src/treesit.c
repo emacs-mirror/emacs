@@ -558,6 +558,17 @@ DEFUN ("treesit-node-p",
     return Qnil;
 }
 
+DEFUN ("treesit-compiled-query-p",
+       Ftreesit_compiled_query_p, Streesit_compiled_query_p, 1, 1, 0,
+       doc: /* Return t if OBJECT is a compiled tree-sitter query.  */)
+  (Lisp_Object object)
+{
+  if (TS_COMPILED_QUERY_P (object))
+    return Qt;
+  else
+    return Qnil;
+}
+
 DEFUN ("treesit-node-parser",
        Ftreesit_node_parser, Streesit_node_parser,
        1, 1, 0,
@@ -1568,6 +1579,7 @@ syms_of_treesit (void)
 {
   DEFSYM (Qtreesit_parser_p, "treesit-parser-p");
   DEFSYM (Qtreesit_node_p, "treesit-node-p");
+  DEFSYM (Qtreesit_compiled_query_p, "treesit-compiled-query-p");
   DEFSYM (Qnamed, "named");
   DEFSYM (Qmissing, "missing");
   DEFSYM (Qextra, "extra");
@@ -1648,6 +1660,7 @@ dynamic libraries, in that order.  */);
 
   defsubr (&Streesit_parser_p);
   defsubr (&Streesit_node_p);
+  defsubr (&Streesit_compiled_query_p);
 
   defsubr (&Streesit_node_parser);
 

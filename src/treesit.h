@@ -81,6 +81,17 @@ struct Lisp_TS_Node
   ptrdiff_t timestamp;
 };
 
+/* A compiled tree-sitter query.  */
+struct Lisp_TS_Query
+{
+  union vectorlike_header header;
+  /* Pointer to the query object.  */
+  TSQuery *query;
+  /* Pointer to a cursor.  If we are storing the query object, we
+     might as well store a cursor, too.  */
+  TSQueryCursor *cursor;
+};
+
 INLINE bool
 TS_PARSERP (Lisp_Object x)
 {
@@ -107,6 +118,19 @@ XTS_NODE (Lisp_Object a)
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_TS_Node);
 }
 
+INLINE bool
+TS_COMPILED_QUERY_P (Lisp_Object x)
+{
+  return PSEUDOVECTORP (x, PVEC_TS_COMPILED_QUERY);
+}
+
+INLINE struct Lisp_TS_Query *
+XTS_COMPILED_QUERY (Lisp_Object a)
+{
+  eassert (TS_COMPILED_QUERY_P (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_TS_Query);
+}
+
 INLINE void
 CHECK_TS_PARSER (Lisp_Object parser)
 {
@@ -117,6 +141,13 @@ INLINE void
 CHECK_TS_NODE (Lisp_Object node)
 {
   CHECK_TYPE (TS_NODEP (node), Qtreesit_node_p, node);
+}
+
+INLINE void
+CHECK_TS_COMPILED_QUERY (Lisp_Object query)
+{
+  CHECK_TYPE (TS_COMPILED_QUERY_P (query),
+	      Qtreesit_compiled_query_p, query);
 }
 
 void
