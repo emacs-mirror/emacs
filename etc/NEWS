@@ -1076,16 +1076,10 @@ To enable this behavior, customize the user option
 the second one will switch to the "*Completions*" buffer.
 
 ---
-*** New user option 'completion-wrap-movement'.
+*** New user option 'completion-auto-wrap'.
 When non-nil, the commands 'next-completion' and 'previous-completion'
 automatically wrap around on reaching the beginning or the end of
 the "*Completions*" buffer.
-
-+++
-*** New user option 'completions-sort'.
-This option controls the sorting of the completion candidates in
-the "*Completions*" buffer.  Available styles are no sorting,
-alphabetical (the default), or a custom sort function.
 
 +++
 *** New values for the 'completion-auto-help' user option.
@@ -1095,6 +1089,12 @@ behaves after pressing a 'TAB' if completion is not unique.  The value
 to complete.  The value 'visual' is like 'always', but only updates
 the completions if they are already visible.  The default value 't'
 always hides the completion buffer after some completion is made.
+
++++
+*** New user option 'completions-sort'.
+This option controls the sorting of the completion candidates in
+the "*Completions*" buffer.  Available styles are no sorting,
+alphabetical (the default), or a custom sort function.
 
 +++
 *** New user option 'completions-max-height'.

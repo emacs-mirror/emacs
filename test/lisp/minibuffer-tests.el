@@ -383,7 +383,7 @@
       (should (eq (current-buffer) (get-buffer "*Completions*"))))))
 
 (ert-deftest completion-auto-wrap-test ()
-  (let ((completion-wrap-movement nil))
+  (let ((completion-auto-wrap nil))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
       (insert "a")
@@ -397,7 +397,7 @@
       (should (equal "ac" (get-text-property (point) 'completion--string)))
       (previous-completion 5)
       (should (equal "aa" (get-text-property (point) 'completion--string)))))
-  (let ((completion-wrap-movement t))
+  (let ((completion-auto-wrap t))
     (completing-read-with-minibuffer-setup
         '("aa" "ab" "ac")
       (insert "a")
@@ -453,11 +453,11 @@
       (switch-to-completions)
       (should (equal 'highlight (get-text-property (point) 'mouse-face)))
       (should (equal "aa" (get-text-property (point) 'completion--string)))
-      (let ((completion-wrap-movement t))
+      (let ((completion-auto-wrap t))
         (next-completion 3))
       (should (equal 'highlight (get-text-property (point) 'mouse-face)))
       (should (equal "aa" (get-text-property (point) 'completion--string)))
-      (let ((completion-wrap-movement nil))
+      (let ((completion-auto-wrap nil))
         (next-completion 3))
       (should (equal 'highlight (get-text-property (point) 'mouse-face)))
       (should (equal "ac" (get-text-property (point) 'completion--string)))

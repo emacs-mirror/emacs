@@ -9502,10 +9502,10 @@ Go to the window from which completion was requested."
       (if (get-buffer-window buf)
 	  (select-window (get-buffer-window buf))))))
 
-(defcustom completion-wrap-movement t
+(defcustom completion-auto-wrap t
   "Non-nil means to wrap around when selecting completion options.
-This affects the commands `next-completion' and
-`previous-completion'."
+This affects the commands `next-completion' and `previous-completion'.
+When `completion-auto-select' is t, it wraps through the minibuffer."
   :type 'boolean
   :version "29.1"
   :group 'completion)
@@ -9549,7 +9549,7 @@ the completions is popped up and down."
 With prefix argument N, move back N items (negative N means move
 forward).
 
-Also see the `completion-wrap-movement' variable."
+Also see the `completion-auto-wrap' variable."
   (interactive "p")
   (next-completion (- n)))
 
@@ -9558,7 +9558,7 @@ Also see the `completion-wrap-movement' variable."
 With prefix argument N, move N items (negative N means move
 backward).
 
-Also see the `completion-wrap-movement' variable."
+Also see the `completion-auto-wrap' variable."
   (interactive "p")
   (let ((tabcommand (member (this-command-keys) '("\t" [backtab])))
         pos)
@@ -9574,7 +9574,7 @@ Also see the `completion-wrap-movement' variable."
             (goto-char pos)
           ;; If at the last completion option, wrap or skip
           ;; to the minibuffer, if requested.
-          (when completion-wrap-movement
+          (when completion-auto-wrap
             (if (and (eq completion-auto-select t) tabcommand
                      (minibufferp completion-reference-buffer))
                 (throw 'bound nil)
@@ -9598,7 +9598,7 @@ Also see the `completion-wrap-movement' variable."
                             (point) 'mouse-face nil (point-min)))))
           ;; If at the first completion option, wrap or skip
           ;; to the minibuffer, if requested.
-          (when completion-wrap-movement
+          (when completion-auto-wrap
             (if (and (eq completion-auto-select t) tabcommand
                      (minibufferp completion-reference-buffer))
                 (progn
