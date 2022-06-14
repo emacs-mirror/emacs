@@ -25,21 +25,20 @@
 ;;; Commentary:
 
 ;; This takes a piece of Elisp code, and eliminates all free variables from
-;; lambda expressions.  The user entry points are cconv-closure-convert and
-;; cconv-closure-convert-toplevel (for toplevel forms).
+;; lambda expressions.  The user entry point is `cconv-closure-convert'.
 ;; All macros should be expanded beforehand.
 ;;
 ;; Here is a brief explanation how this code works.
-;; Firstly, we analyze the tree by calling cconv-analyze-form.
+;; Firstly, we analyze the tree by calling `cconv-analyze-form'.
 ;; This function finds all mutated variables, all functions that are suitable
 ;; for lambda lifting and all variables captured by closure.  It passes the tree
 ;; once, returning a list of three lists.
 ;;
 ;; Then we calculate the intersection of the first and third lists returned by
-;; cconv-analyze form to find all mutated variables that are captured by
+;; `cconv-analyze-form' to find all mutated variables that are captured by
 ;; closure.
 
-;; Armed with this data, we call cconv-closure-convert-rec, that rewrites the
+;; Armed with this data, we call `cconv-convert', that rewrites the
 ;; tree recursively, lifting lambdas where possible, building closures where it
 ;; is needed and eliminating mutable variables used in closure.
 ;;
@@ -141,11 +140,9 @@ is less than this number.")
 ;;;###autoload
 (defun cconv-closure-convert (form)
   "Main entry point for closure conversion.
--- FORM is a piece of Elisp code after macroexpansion.
--- TOPLEVEL(optional) is a boolean variable, true if we are at the root of AST
+FORM is a piece of Elisp code after macroexpansion.
 
 Returns a form where all lambdas don't have any free variables."
-  ;; (message "Entering cconv-closure-convert...")
   (let ((cconv-freevars-alist '())
 	(cconv-var-classification '()))
     ;; Analyze form - fill these variables with new information.
