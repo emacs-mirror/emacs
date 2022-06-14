@@ -804,10 +804,10 @@ name @code{biexp}:
 Now we can introduce the query functions.
 
 @defun treesit-query-capture node query &optional beg end
-This function matches patterns in @var{query} in @var{node}.
-Argument @var{query} can be a either string or a s-expression.  For
-now, we focus on the string syntax; s-expression syntax is described
-at the end of the section.
+This function matches patterns in @var{query} in @var{node}.  Argument
+@var{query} can be either a string, a s-expression, or a compiled
+query object.  For now, we focus on the string syntax; s-expression
+syntax and compiled query are described at the end of the section.
 
 The function returns all captured nodes in a list of
 @code{(@var{capture_name} . @var{node})}.  If @var{beg} and @var{end}
@@ -1101,10 +1101,26 @@ is written in s-expression as
 @end group
 @end example
 
+@heading Compiling queries
+
+If a query will be used repeatedly, especially in tight loops, it is
+important to compile that query, because a compiled query is much
+faster than an uncompiled one.  A compiled query can be used anywhere
+a query is accepted.
+
+@defun treesit-query-compile language query
+This function compiles @var{query} for @var{language} into a compiled
+query object and returns it.
+@end defun
+
 @defun treesit-expand-query query
 This function expands the s-expression @var{query} into a string
-query.  It is usually a good idea to expand the s-expression patterns
-into strings for font-lock queries since they are called repeatedly.
+query.
+@end defun
+
+@defun treesit-expand-pattern pattern
+This function expands the s-expression @var{pattern} into a string
+pattern.
 @end defun
 
 Finally, tree-sitter project's documentation about
