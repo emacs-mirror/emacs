@@ -89,6 +89,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    - lisp/emacs-lisp/cl-preloaded.el & data.c & lisp.h for parser and
      node type.
 
+   We don't parse at every keystroke.  Instead we only record the
+   changes at each keystroke, and only parse when requested.  It is
+   possible that lazy parsing is worse: instead of dispersed little
+   pauses, now you have less frequent but larger pauses.  I doubt
+   there will be any perceived difference, as the lazy parsing is
+   going to be pretty frequent anyway.  Also this (lazy parsing) is
+   what the mailing list guys wanted.
+
    Because it is pretty slow (comparing to other tree-sitter
    operations) for tree-sitter to parse the query and produce a query
    object, it is very wasteful to reparse the query every time
