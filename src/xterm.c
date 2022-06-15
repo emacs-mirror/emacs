@@ -1471,6 +1471,17 @@ typedef struct xm_drag_motion_message
   /* CARD16 */ uint16_t x, y;
 } xm_drag_motion_message;
 
+typedef struct xm_drag_motion_reply
+{
+  /* BYTE   */ uint8_t reason;
+  /* BYTE   */ uint8_t byte_order;
+
+  /* CARD16 */ uint16_t side_effects;
+  /* CARD32 */ uint32_t timestamp;
+  /* CARD16 */ uint16_t better_x;
+  /* CARD16 */ uint16_t better_y;
+} xm_drag_motion_reply;
+
 typedef struct xm_top_level_leave_message
 {
   /* BYTE   */ uint8_t reason;
@@ -2463,6 +2474,39 @@ xm_read_drag_motion_message (const XEvent *msg,
     }
 
   dmsg->byteorder = XM_BYTE_ORDER_CUR_FIRST;
+
+  return 0;
+}
+
+static int
+xm_read_drag_motion_reply (const XEvent *msg, xm_drag_motion_reply *reply)
+{
+  const uint8_t *data;
+
+  data = (const uint8_t *) &msg->xclient.data.b[0];
+
+  if ((XM_DRAG_REASON_CODE (data[0])
+       != XM_DRAG_REASON_DRAG_MOTION)
+      || (XM_DRAG_REASON_ORIGINATOR (data[0])
+	  != XM_DRAG_ORIGINATOR_RECEIVER))
+    return 1;
+
+  reply->reason = *(data++);
+  reply->byte_order = *(data++);
+  reply->side_effects = *(uint16_t *) data;
+  reply->timestamp = *(uint32_t *) (data + 2);
+  reply->better_x = *(uint16_t *) (data + 6);
+  reply->better_y = *(uint16_t *) (data + 8);
+
+  if (reply->byte_order != XM_BYTE_ORDER_CUR_FIRST)
+    {
+      SWAPCARD16 (reply->side_effects);
+      SWAPCARD32 (reply->timestamp);
+      SWAPCARD16 (reply->better_x);
+      SWAPCARD16 (reply->better_y);
+    }
+
+  reply->byte_order = XM_BYTE_ORDER_CUR_FIRST;
 
   return 0;
 }
@@ -15842,6 +15886,7 @@ x_coords_from_dnd_message (struct x_display_info *dpyinfo,
 			   XEvent *event, int *x_out, int *y_out)
 {
   xm_drag_motion_message dmsg;
+  xm_drag_motion_reply dreply;
   xm_drop_start_message smsg;
   xm_drop_start_reply reply;
 
@@ -15868,6 +15913,13 @@ x_coords_from_dnd_message (struct x_display_info *dpyinfo,
 	{
 	  *x_out = dmsg.x;
 	  *y_out = dmsg.y;
+
+	  return true;
+	}
+      else if (!xm_read_drag_motion_reply (event, &dreply))
+	{
+	  *x_out = dreply.better_x;
+	  *y_out = dreply.better_y;
 
 	  return true;
 	}
