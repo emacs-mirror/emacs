@@ -2956,11 +2956,12 @@ Return code as a string."
 		    (mapcar (lambda (o) (and (eq (nth 4 o) 'parse) (nth 1 o)))
 			    (append (org-export-get-all-options backend)
 				    org-export-options-alist))))
-	     tree)
+	     tree modified-tick)
 	;; Update communication channel and get parse tree.  Buffer
 	;; isn't parsed directly.  Instead, all buffer modifications
 	;; and consequent parsing are undertaken in a temporary copy.
 	(org-export-with-buffer-copy
+         (font-lock-mode -1)
 	 ;; Run first hook with current back-end's name as argument.
 	 (run-hook-with-args 'org-export-before-processing-hook
 			     (org-export-backend-name backend))
@@ -2972,6 +2973,7 @@ Return code as a string."
 	 ;; potentially invasive changes.
 	 (org-set-regexps-and-options)
 	 (org-update-radio-target-regexp)
+         (setq modified-tick (buffer-chars-modified-tick))
 	 ;;  Possibly execute Babel code.  Re-run a macro expansion
 	 ;;  specifically for {{{results}}} since inline source blocks
 	 ;;  may have generated some more.  Refresh buffer properties
@@ -2979,8 +2981,10 @@ Return code as a string."
 	 (when org-export-use-babel
 	   (org-babel-exp-process-buffer)
 	   (org-macro-replace-all '(("results" . "$1")) parsed-keywords)
-	   (org-set-regexps-and-options)
-	   (org-update-radio-target-regexp))
+           (unless (eq modified-tick (buffer-chars-modified-tick))
+	     (org-set-regexps-and-options)
+	     (org-update-radio-target-regexp))
+           (setq modified-tick (buffer-chars-modified-tick)))
 	 ;; Run last hook with current back-end's name as argument.
 	 ;; Update buffer properties and radio targets one last time
 	 ;; before parsing.
@@ -2988,8 +2992,10 @@ Return code as a string."
 	 (save-excursion
 	   (run-hook-with-args 'org-export-before-parsing-hook
 			       (org-export-backend-name backend)))
-	 (org-set-regexps-and-options)
-	 (org-update-radio-target-regexp)
+         (unless (eq modified-tick (buffer-chars-modified-tick))
+	   (org-set-regexps-and-options)
+	   (org-update-radio-target-regexp))
+         (setq modified-tick (buffer-chars-modified-tick))
 	 ;; Update communication channel with environment.
 	 (setq info
 	       (org-combine-plists
