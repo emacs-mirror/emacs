@@ -1923,28 +1923,34 @@ Return a string."
 			      (and (not greaterp)
 				   (memq type org-element-recursive-objects)))
 			     (contents
-			      (mapconcat
-			       (lambda (element) (org-export-data element info))
-			       (org-element-contents
-				(if (or greaterp objectp) data
-				  ;; Elements directly containing
-				  ;; objects must have their indentation
-				  ;; normalized first.
-				  (org-element-normalize-contents
-				   data
-				   ;; When normalizing first paragraph
-				   ;; of an item or
-				   ;; a footnote-definition, ignore
-				   ;; first line's indentation.
-				   (and
-				    (eq type 'paragraph)
-				    (memq (org-element-type parent)
-					  '(footnote-definition item))
-				    (eq (car (org-element-contents parent))
-					data)
-				    (eq (org-element-property :pre-blank parent)
-					0)))))
-			       "")))
+                              (let ((export-buffer (current-buffer)))
+                                (with-temp-buffer
+                                  (dolist (element (org-element-contents
+				                    (if (or greaterp objectp) data
+				                      ;; Elements directly containing
+				                      ;; objects must have their indentation
+				                      ;; normalized first.
+				                      (org-element-normalize-contents
+				                       data
+				                       ;; When normalizing first paragraph
+				                       ;; of an item or
+				                       ;; a footnote-definition, ignore
+				                       ;; first line's indentation.
+				                       (and
+				                        (eq type 'paragraph)
+				                        (memq (org-element-type parent)
+					                      '(footnote-definition item))
+				                        (eq (car (org-element-contents parent))
+					                    data)
+				                        (eq (org-element-property :pre-blank parent)
+					                    0))))))
+                                    (insert
+                                     ;; Use right local variable
+                                     ;; environment if there are, for
+                                     ;; example, #+BIND variables.
+                                     (with-current-buffer export-buffer
+                                       (org-export-data element info))))
+                                  (buffer-string)))))
 			(broken-link-handler
 			 (funcall transcoder data
 				  (if (not greaterp) contents
