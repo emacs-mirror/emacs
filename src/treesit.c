@@ -719,7 +719,11 @@ DEFUN ("treesit-parser-root-node",
 static void
 ts_check_range_argument (Lisp_Object ranges)
 {
-  EMACS_INT last_point = 1;
+  struct buffer *buffer = current_buffer;
+  ptrdiff_t point_min = BUF_BEGV (buffer);
+  ptrdiff_t point_max = BUF_ZV (buffer);
+  EMACS_INT last_point = point_min;
+
   for (Lisp_Object tail = ranges;
        !NILP (tail); tail = XCDR (tail))
     {
@@ -730,11 +734,10 @@ ts_check_range_argument (Lisp_Object ranges)
       CHECK_FIXNUM (XCDR (range));
       EMACS_INT beg = XFIXNUM (XCAR (range));
       EMACS_INT end = XFIXNUM (XCDR (range));
-      /* TODO: Maybe we should check for point-min/max, too?  */
-      if (!(last_point <= beg && beg <= end))
+      if (!(last_point <= beg && beg <= end && end <= point_max))
 	xsignal2 (Qtreesit_range_invalid,
 		  build_pure_c_string
-		  ("RANGE is either overlapping or out-of-order"),
+		  ("RANGE is either overlapping or out-of-order or out-of-range"),
 		  ranges);
       last_point = end;
     }
