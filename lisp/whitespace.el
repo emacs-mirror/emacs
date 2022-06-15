@@ -295,8 +295,8 @@ It's a list containing some or all of the following values:
                         `whitespace-line-column' are highlighted via
                         faces.
                         Whole line is highlighted.
-                        It has precedence over `lines-tail' (see
-                        below).
+                        It has precedence over `lines-tail' and
+                        `lines-char' (see below).
                         It has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
@@ -309,6 +309,15 @@ It's a list containing some or all of the following values:
                         is not present in `whitespace-style'
                         and if `face' (see above) is present in
                         `whitespace-style'.
+
+   lines-char           lines which have columns beyond
+                        `whitespace-line-column' are highlighted via
+                        putting a face on the first character that goes
+                        beyond the `whitespace-line-column' column.
+                        It has effect only if `lines' or
+                        `lines-tail' (see above) is not present
+                        in `whitespace-style' and if `face' (see
+                        above) is present in `whitespace-style'.
 
    newline              NEWLINEs are visualized via faces.
                         It has effect only if `face' (see above)
@@ -431,6 +440,7 @@ See also `whitespace-display-mappings' for documentation."
               (const :tag "(Face) SPACEs and HARD SPACEs" spaces)
               (const :tag "(Face) Lines" lines)
               (const :tag "(Face) Lines, only overlong part" lines-tail)
+              (const :tag "(Face) Lines, only first character" lines-char)
               (const :tag "(Face) NEWLINEs" newline)
               (const :tag "(Face) Missing newlines at EOB"
                      missing-newline-at-eof)
@@ -772,7 +782,8 @@ Used when `whitespace-style' includes `big-indent'."
 It must be an integer or nil.  If nil, the `fill-column' variable value is
 used.
 
-Used when `whitespace-style' includes `lines' or `lines-tail'."
+Used when `whitespace-style' includes `lines', `lines-tail' or
+`lines-char'."
   :type '(choice :tag "Line Length Limit"
 		 (integer :tag "Line Length")
 		 (const :tag "Use fill-column" nil))
@@ -1058,6 +1069,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
     trailing
     lines
     lines-tail
+    lines-char
     newline
     empty
     indentation
@@ -1085,6 +1097,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
     (?r    . trailing)
     (?l    . lines)
     (?L    . lines-tail)
+    (?\C-l . lines-char)
     (?n    . newline)
     (?e    . empty)
     (?\C-i . indentation)
@@ -1244,6 +1257,7 @@ Interactively, it accepts one of the following chars:
    r	toggle trailing blanks visualization
    l	toggle \"long lines\" visualization
    L	toggle \"long lines\" tail visualization
+   C-l	toggle \"long lines\" one character visualization
    n	toggle NEWLINE visualization
    e	toggle empty line at bob and/or eob visualization
    C-i	toggle indentation SPACEs visualization (via `indent-tabs-mode')
@@ -1274,6 +1288,7 @@ The valid symbols are:
    trailing		toggle trailing blanks visualization
    lines		toggle \"long lines\" visualization
    lines-tail		toggle \"long lines\" tail visualization
+   lines-char		toggle \"long lines\" one character visualization
    newline		toggle NEWLINE visualization
    empty		toggle empty line at bob and/or eob visualization
    indentation		toggle indentation SPACEs visualization
@@ -1770,6 +1785,7 @@ cleaning up these problems."
  []  r   - toggle trailing blanks visualization
  []  l   - toggle \"long lines\" visualization
  []  L   - toggle \"long lines\" tail visualization
+ []  C-l - toggle \"long lines\" one character visualization
  []  n   - toggle NEWLINE visualization
  []  e   - toggle empty line at bob and/or eob visualization
  []  C-i - toggle indentation SPACEs visualization (via `indent-tabs-mode')
@@ -1892,6 +1908,7 @@ It accepts one of the following chars:
    r	toggle trailing blanks visualization
    l	toggle \"long lines\" visualization
    L	toggle \"long lines\" tail visualization
+   C-l	toggle \"long lines\" one character visualization
    n	toggle NEWLINE visualization
    e	toggle empty line at bob and/or eob visualization
    C-i	toggle indentation SPACEs visualization (via `indent-tabs-mode')
@@ -2020,6 +2037,7 @@ resultant list will be returned."
 	   (memq 'trailing                whitespace-active-style)
 	   (memq 'lines                   whitespace-active-style)
 	   (memq 'lines-tail              whitespace-active-style)
+	   (memq 'lines-char              whitespace-active-style)
 	   (memq 'newline                 whitespace-active-style)
 	   (memq 'empty                   whitespace-active-style)
 	   (memq 'indentation             whitespace-active-style)
@@ -2066,12 +2084,17 @@ resultant list will be returned."
            ;; Show trailing blanks.
            `((,#'whitespace-trailing-regexp 1 whitespace-trailing t)))
        ,@(when (or (memq 'lines      whitespace-active-style)
-                   (memq 'lines-tail whitespace-active-style))
+                   (memq 'lines-tail whitespace-active-style)
+                   (memq 'lines-char whitespace-active-style))
            ;; Show "long" lines.
            `((,#'whitespace-lines-regexp
-              ,(if (memq 'lines whitespace-active-style)
-                   0                    ; whole line
-                 2)                     ; line tail
+              ,(cond
+                ;; whole line
+                ((memq 'lines whitespace-active-style) 0)
+                ;; line tail
+                ((memq 'lines-tail whitespace-active-style) 2)
+                ;; first overflowing character
+                ((memq 'lines-char whitespace-active-style) 3))
               whitespace-line prepend)))
        ,@(when (or (memq 'space-before-tab whitespace-active-style)
                    (memq 'space-before-tab::tab whitespace-active-style)
@@ -2182,7 +2205,7 @@ resultant list will be returned."
   (re-search-forward
    (let ((line-column (or whitespace-line-column fill-column)))
      (format
-      "^\\([^\t\n]\\{%s\\}\\|[^\t\n]\\{0,%s\\}\t\\)\\{%d\\}%s\\(.+\\)$"
+      "^\\([^\t\n]\\{%s\\}\\|[^\t\n]\\{0,%s\\}\t\\)\\{%d\\}%s\\(?2:\\(?3:.\\).*\\)$"
       tab-width
       (1- tab-width)
       (/ line-column tab-width)
