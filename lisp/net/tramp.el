@@ -2148,15 +2148,17 @@ applicable)."
 
 (put #'tramp-message 'tramp-suppress-trace t)
 
-(defsubst tramp-backtrace (&optional vec-or-proc)
+(defsubst tramp-backtrace (&optional vec-or-proc force)
   "Dump a backtrace into the debug buffer.
-If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  This
-function is meant for debugging purposes."
-  (when (>= tramp-verbose 10)
-    (if vec-or-proc
-	(tramp-message
-	 vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
-      (with-output-to-temp-buffer "*debug tramp*" (backtrace)))))
+If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  FORCE
+forces the backtrace even if `tramp-verbose' is less than 10.
+This function is meant for debugging purposes."
+  (let ((tramp-verbose (if force 10 tramp-verbose)))
+    (when (>= tramp-verbose 10)
+      (if vec-or-proc
+	  (tramp-message
+	   vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
+	(with-output-to-temp-buffer "*debug tramp*" (backtrace))))))
 
 (put #'tramp-backtrace 'tramp-suppress-trace t)
 

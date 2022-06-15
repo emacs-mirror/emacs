@@ -427,7 +427,7 @@ used to cache connection properties of the local machine."
 
 ;;;###tramp-autoload
 (defun tramp-list-connections ()
-  "Return all known `tramp-file-name' structs according to `tramp-cache'."
+  "Return all active `tramp-file-name' structs according to `tramp-cache-data'."
   (let ((tramp-verbose 0))
     (delq nil (mapcar
 	       (lambda (key)
