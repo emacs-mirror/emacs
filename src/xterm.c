@@ -520,9 +520,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   replying to the initiating client) is performed from Lisp inside
   `x-dnd.el'.
 
-  However, dragging contents from Emacs is implemented entirely in C.
-  X Windows has several competing drag-and-drop protocols, of which
-  Emacs supports two: the XDND protocol (see
+  However, dragging contents from Emacs is implemented almost entirely
+  in C.  X Windows has several competing drag-and-drop protocols, of
+  which Emacs supports two on the C level: the XDND protocol (see
   https://freedesktop.org/wiki/Specifications/XDND) and the Motif drag
   and drop protocols.  These protocols are based on the initiator
   owning a special selection, specifying an action the recipient
@@ -545,7 +545,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   released over the recipient window, Emacs sends a "drop" message to
   the target window, waits for a reply, and returns the action
   selected by the recipient to the Lisp code that initiated the
-  drag-and-drop operation.  */
+  drag-and-drop operation.
+
+  When a drop happens on a window not supporting any protocol
+  implemented on the C level, the function inside
+  `x-dnd-unsupported-drop-function' is called with some parameters of
+  the drop.  If it returns non-nil, then Emacs tries to simulate a
+  drop happening with the primary selection and synthetic button
+  events (see `x_dnd_do_unsupported_drop').  That function implements
+  the OffiX drag-and-drop protocol by default.  See
+  `x-dnd-handle-unsupported-drop' in `x-dnd.el' for more details.  */
 
 #include <config.h>
 #include <stdlib.h>
@@ -26571,7 +26580,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   x_find_modifier_meanings (dpyinfo);
 #endif
 
-  dpyinfo->x_dnd_atoms_size = 8;
+  dpyinfo->x_dnd_atoms_size = 16;
   dpyinfo->x_dnd_atoms = xmalloc (sizeof *dpyinfo->x_dnd_atoms
                                   * dpyinfo->x_dnd_atoms_size);
   dpyinfo->gray

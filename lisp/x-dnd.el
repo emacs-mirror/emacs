@@ -102,6 +102,16 @@ The types are chosen in the order they appear in the list."
   :type '(repeat string)
   :group 'x)
 
+(defcustom x-dnd-use-offix-drop nil
+  "If non-nil, use the OffiX protocol to drop files and text.
+This allows dropping (via `dired-mouse-drag-files' or
+`mouse-drag-and-drop-region-cross-program') on some old Java
+applets and old KDE programs.  Turning this off allows dropping
+only text on some other programs such as xterm and urxvt."
+  :version "29.1"
+  :type 'boolean
+  :group 'x)
+
 ;; Internal variables
 
 (defvar x-dnd-current-state nil
@@ -938,14 +948,82 @@ Return a vector of atoms containing the selection targets."
 
 ;;; Handling drops.
 
-(defun x-dnd-handle-unsupported-drop (targets _x _y action _window-id _frame _time)
-  "Return non-nil if the drop described by TARGETS and ACTION should not proceed."
+(defvar x-treat-local-requests-remotely)
+
+(defun x-dnd-convert-to-offix (targets)
+  "Convert the contents of `XdndSelection' to OffiX data.
+TARGETS should be the list of targets currently available in
+`XdndSelection'.  Return a list of an OffiX type, and data
+suitable for passing to `x-change-window-property', or nil if the
+data could not be converted."
+  (let ((x-treat-local-requests-remotely t)
+        file-name-data string-data)
+    (cond
+     ((and (member "FILE_NAME" targets)
+           (setq file-name-data
+                 (gui-get-selection 'XdndSelection 'FILE_NAME)))
+      (if (string-match-p "\0" file-name-data)
+          ;; This means there are multiple file names in
+          ;; XdndSelection.  Convert the file name data to a format
+          ;; that OffiX understands.
+          (cons 'DndTypeFiles (concat file-name-data "\0"))
+        (cons 'DndTypeFile (concat file-name-data "\0"))))
+     ((and (member "STRING" targets)
+           (setq string-data
+                 (gui-get-selection 'XdndSelection 'STRING)))
+      (cons 'DndTypeText (encode-coding-string string-data
+                                               'latin-1))))))
+
+(defun x-dnd-do-offix-drop (targets x y frame window-id)
+  "Perform an OffiX drop on WINDOW-ID with the contents of `XdndSelection'.
+Return non-nil if the drop succeeded, or nil if it did not
+happen, which can happen if TARGETS didn't contain anything that
+the OffiX protocol can represent.
+
+X and Y are the root window coordinates of the drop.  TARGETS is
+the list of targets `XdndSelection' can be converted to."
+  (if-let* ((data (x-dnd-convert-to-offix targets))
+            (type-id (car (rassq (car data)
+                                 x-dnd-offix-id-to-name)))
+            (source-id (string-to-number
+                        (frame-parameter frame 'window-id)))
+            (message-data (list type-id           ; l[0] = DataType
+                                0                 ; l[1] = event->xbutton.state
+                                source-id         ; l[2] = window
+                                (+ x (* 65536 y)) ; l[3] = drop_x + 65536 * drop_y
+                                1)))              ; l[4] = protocol version
+    (prog1 t
+      ;; Send a legacy (old KDE) message first.  Newer clients will
+      ;; ignore it, since the protocol version is 1.
+      (x-change-window-property "DndSelection"
+                                (cdr data) frame
+                                "STRING" 8 nil 0)
+      (x-send-client-message frame window-id
+                             frame "DndProtocol"
+                             32 message-data)
+      ;; Now send a modern _DND_PROTOCOL message.
+      (x-change-window-property "_DND_SELECTION"
+                                (cdr data) frame
+                                "STRING" 8 nil 0)
+      (x-send-client-message frame window-id
+                             frame "_DND_PROTOCOL"
+                             32 message-data))))
+
+(defun x-dnd-handle-unsupported-drop (targets x y action window-id frame _time)
+  "Return non-nil if the drop described by TARGETS and ACTION should not proceed.
+X and Y are the root window coordinates of the drop.
+FRAME is the frame the drop originated on.
+WINDOW-ID is the X window the drop should happen to."
   (not (and (or (eq action 'XdndActionCopy)
                 (eq action 'XdndActionMove))
-            (or (member "STRING" targets)
-                (member "UTF8_STRING" targets)
-                (member "COMPOUND_TEXT" targets)
-                (member "TEXT" targets)))))
+            (not (and x-dnd-use-offix-drop
+                      (x-dnd-do-offix-drop targets x
+                                           y frame window-id)))
+            (or
+             (member "STRING" targets)
+             (member "UTF8_STRING" targets)
+             (member "COMPOUND_TEXT" targets)
+             (member "TEXT" targets)))))
 
 (defvar x-dnd-targets-list)
 (defvar x-dnd-native-test-function)
