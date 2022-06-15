@@ -2409,6 +2409,7 @@ To work around that, do:
 	      (lambda () (char-before (match-end 0))))
   (setq-local add-log-current-defun-function #'html-current-defun-name)
   (setq-local sentence-end-base "[.?!][]\"'”)}]*\\(<[^>]*>\\)*")
+  (add-hook 'completion-at-point-functions 'html-mode--complete-at-point nil t)
 
   (when (fboundp 'libxml-parse-html-region)
     (defvar css-class-list-function)
@@ -2433,6 +2434,36 @@ To work around that, do:
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
   )
+
+(defun html-mode--complete-at-point ()
+  ;; Complete a tag like <colg etc.
+  (or
+   (when-let ((tag (save-excursion
+                     (and (looking-back "<\\([^ \t\n]*\\)"
+                                        (line-beginning-position))
+                          (match-string 1)))))
+     (list (match-beginning 1) (point)
+           (mapcar #'car html-tag-alist)))
+   ;; Complete params like <colgroup ali etc.
+   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
+              (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
+              (param (save-excursion
+                       (and (looking-back "[ \t\n]\\([^= \t\n]*\\)"
+                                          (line-beginning-position))
+                            (match-string 1)))))
+     (list (match-beginning 1) (point)
+           (mapcar #'car params)))
+   ;; Complete param values like <colgroup align=mi etc.
+   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
+              (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
+              (param (save-excursion
+                       (and (looking-back
+                             "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
+                             (line-beginning-position))
+                            (match-string 1))))
+              (values (cdr (assoc param params))))
+     (list (match-beginning 2) (point)
+           (mapcar #'car values)))))
 
 (defun html-mode--html-yank-handler (_type html)
   (save-restriction
