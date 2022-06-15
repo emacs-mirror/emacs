@@ -786,12 +786,11 @@ is nil, set PARSER to parse the whole buffer.  */)
       /* Set ranges for PARSER.  */
       ptrdiff_t len = list_length (ranges);
       TSRange *ts_ranges = malloc (sizeof(TSRange) * len);
+      struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
       for (int idx=0; !NILP (ranges); idx++, ranges = XCDR (ranges))
 	{
 	  Lisp_Object range = XCAR (ranges);
-	  struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
-
 	  EMACS_INT beg_byte = buf_charpos_to_bytepos
 	    (buffer, XFIXNUM (XCAR (range)));
 	  EMACS_INT end_byte = buf_charpos_to_bytepos
