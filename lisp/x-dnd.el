@@ -65,7 +65,9 @@ The default value for this variable is `x-dnd-default-test-function'."
     (,(purecopy "text/plain") . dnd-insert-text)
     (,(purecopy "COMPOUND_TEXT") . x-dnd-insert-ctext)
     (,(purecopy "STRING") . dnd-insert-text)
-    (,(purecopy "TEXT")   . dnd-insert-text))
+    (,(purecopy "TEXT")   . dnd-insert-text)
+    (,(purecopy "DndTypeFile") . x-dnd-handle-offix-file)
+    (,(purecopy "DndTypeText") . dnd-insert-text))
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
 the drop is rejected.  The function takes three arguments, WINDOW, ACTION
@@ -91,7 +93,9 @@ if drop is successful, nil if not."
     "text/plain"
     "COMPOUND_TEXT"
     "STRING"
-    "TEXT"))
+    "TEXT"
+    "DndTypeFile"
+    "DndTypeText"))
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
   :version "22.1"
@@ -137,6 +141,7 @@ any protocol specific data.")
     (x-register-dnd-atom "XdndPosition" frame)
     (x-register-dnd-atom "XdndLeave" frame)
     (x-register-dnd-atom "XdndDrop" frame)
+    (x-register-dnd-atom "_DND_PROTOCOL" frame)
     (x-dnd-init-xdnd-for-frame frame)
     (x-dnd-init-motif-for-frame frame)))
 
@@ -375,7 +380,8 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 	    (data (aref client-message 3)))
         (cond ((equal "DndProtocol" message-atom)	; Old KDE 1.x.
 	       (x-dnd-handle-old-kde event frame window message-atom format data))
-
+              ((equal "_DND_PROTOCOL" message-atom) ; OffiX protocol.
+               (x-dnd-handle-offix event frame window message-atom format data))
 	      ((equal "_MOTIF_DRAG_AND_DROP_MESSAGE" message-atom)	; Motif
 	       (x-dnd-handle-motif event frame window message-atom format data))
 
@@ -390,14 +396,59 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 (declare-function x-window-property "xfns.c"
 		  (prop &optional frame type source delete-p vector-ret-p))
 
-(defun x-dnd-handle-old-kde (_event frame window _message _format _data)
+(defun x-dnd-handle-old-kde (_event frame window _message _format data)
   "Open the files in a KDE 1.x drop."
-  (let ((values (x-window-property "DndSelection" frame nil 0 t)))
-    (x-dnd-handle-uri-list window 'private
-			   (replace-regexp-in-string "\0$" "" values))))
+  (let ((proto (aref data 4)))
+    ;; If PROTO > 0, this is an old KDE drop emulated by a program
+    ;; supporting a newer version of the OffiX protocol, so we should
+    ;; wait for the corresponding modern event instead.
+    (when (zerop proto)
+      (let ((values (x-window-property "DndSelection" frame nil 0 t)))
+        (x-dnd-handle-uri-list window 'private
+			       (replace-regexp-in-string "\0$" "" values))))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; New OffiX protocol.
 
+(defvar x-dnd-offix-id-to-name '((-1 . DndTypeInvalid)
+                                 (0 . DndTypeUnknown)
+                                 (1 . DndTypeRawData)
+                                 (2 . DndTypeFile)
+                                 (3 . DndTypeFiles)
+                                 (4 . DndTypeText)
+                                 (5 . DndTypeDir)
+                                 (6 . DndTypeLInk)
+                                 (7 . DndTypeExe)
+                                 (8 . DndTypeUrl)
+                                 (9 . DndTypeMime)
+                                 (10 . DndTypePixmap))
+  "Alist of OffiX protocol types to their names.")
 
+(defun x-dnd-handle-offix-file (window action string)
+  "Convert OffiX file name to a regular file name.
+Then, call `x-dnd-handle-file-name'.
+
+WINDOW and ACTION mean the same as in `x-dnd-handle-file-name'.
+STRING is the raw offiX file name data."
+  (x-dnd-handle-file-name window action
+                          (replace-regexp-in-string "\0$" "" string)))
+
+(defun x-dnd-handle-offix (event frame window _message-atom _format data)
+  "Handle OffiX drop event EVENT.
+FRAME is the frame where the drop happened.
+WINDOW is the window where the drop happened.
+_MESSAGE-ATOM and _FORMAT are unused.
+DATA is the vector containing the contents of the client
+message (format 32) that caused EVENT to be generated."
+  (let ((type (cdr (assq (aref data 0) x-dnd-offix-id-to-name)))
+        (data (x-window-property "_DND_SELECTION" frame nil 0 t)))
+    ;; First save state.
+    (x-dnd-save-state window nil nil (vector type) nil)
+    ;; Now call the test function to decide what action to perform.
+    (x-dnd-maybe-call-test-function window 'private)
+    (unwind-protect
+        (x-dnd-drop-data event frame window data
+                         (symbol-name type))
+      (x-dnd-forget-drop window))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  XDND protocol.
