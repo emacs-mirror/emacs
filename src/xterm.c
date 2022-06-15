@@ -1008,6 +1008,9 @@ static const struct x_atom_ref x_atom_refs[] =
 		    Xatom_MOTIF_DRAG_RECEIVER_INFO)
     ATOM_REFS_INIT ("XmTRANSFER_SUCCESS", Xatom_XmTRANSFER_SUCCESS)
     ATOM_REFS_INIT ("XmTRANSFER_FAILURE", Xatom_XmTRANSFER_FAILURE)
+    /* Old OffiX (a.k.a. old KDE) drop protocol support.  */
+    ATOM_REFS_INIT ("DndProtocol", Xatom_DndProtocol)
+    ATOM_REFS_INIT ("_DND_PROTOCOL", Xatom_DND_PROTOCOL)
   };
 
 enum
@@ -15893,6 +15896,7 @@ x_coords_from_dnd_message (struct x_display_info *dpyinfo,
   xm_drag_motion_reply dreply;
   xm_drop_start_message smsg;
   xm_drop_start_reply reply;
+  unsigned long kde_data;
 
   if (event->type != ClientMessage)
     return false;
@@ -15941,6 +15945,23 @@ x_coords_from_dnd_message (struct x_display_info *dpyinfo,
 
 	  return true;
 	}
+    }
+
+  if (((event->xclient.message_type
+	== dpyinfo->Xatom_DndProtocol)
+       || (event->xclient.message_type
+	   == dpyinfo->Xatom_DND_PROTOCOL))
+      && event->xclient.format == 32
+      /* Check that the version of the old KDE protocol is new
+	 enough to include coordinates.  */
+      && event->xclient.data.l[4])
+    {
+      kde_data = (unsigned long) event->xclient.data.l[3];
+
+      *x_out = (kde_data & 0xffff);
+      *y_out = (kde_data >> 16 & 0xffff);
+
+      return true;
     }
 
   return false;

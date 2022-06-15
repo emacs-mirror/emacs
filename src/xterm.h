@@ -443,11 +443,18 @@ struct x_display_info
   /* Atom used to determine whether or not the screen is composited.  */
   Atom Xatom_NET_WM_CM_Sn;
 
+  /* Atoms used by the Motif drag and drop protocols.  */
   Atom Xatom_MOTIF_WM_HINTS, Xatom_MOTIF_DRAG_WINDOW,
     Xatom_MOTIF_DRAG_TARGETS, Xatom_MOTIF_DRAG_AND_DROP_MESSAGE,
     Xatom_MOTIF_DRAG_INITIATOR_INFO, Xatom_MOTIF_DRAG_RECEIVER_INFO;
 
+  /* Special selections used by the Motif drop protocol to indicate
+     success or failure.  */
   Atom Xatom_XmTRANSFER_SUCCESS, Xatom_XmTRANSFER_FAILURE;
+
+  /* Atoms used by both versions of the OffiX DND protocol (the "old
+     KDE" protocol in x-dnd.el). */
+  Atom Xatom_DndProtocol, Xatom_DND_PROTOCOL;
 
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
