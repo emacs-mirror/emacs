@@ -3208,7 +3208,7 @@ Intended to be added to `isearch-mode-hook'."
 The returned function narrows the search to match the search string
 only as part of a file name enclosed by the text property `dired-filename'.
 It's intended to override the default search function."
-  (isearch-search-fun-in-text-property 'dired-filename (funcall orig-fun)))
+  (isearch-search-fun-in-text-property (funcall orig-fun) 'dired-filename))
 
 ;;;###autoload
 (defun dired-isearch-filenames ()

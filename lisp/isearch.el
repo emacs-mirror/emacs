@@ -4455,12 +4455,12 @@ LAX-WHITESPACE: The value of `isearch-lax-whitespace' and
         (funcall after-change nil nil nil)))))
 
 
-(defun isearch-search-fun-in-text-property (property &optional search-fun)
+(defun isearch-search-fun-in-text-property (search-fun property)
   "Return the function to search inside text that has the specified PROPERTY.
 The function will limit the search for matches only inside text which has
 this property in the current buffer.
-Optional argument SEARCH-FUN provides the function to search text, and
-defaults to the value of `isearch-search-fun-default'."
+The argument SEARCH-FUN provides the function to search text, and
+defaults to the value of `isearch-search-fun-default' when nil."
   (lambda (string &optional bound noerror count)
     (let* ((old (point))
            ;; Check if point is already on the property.
