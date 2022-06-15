@@ -1132,6 +1132,11 @@ This means that typing 'C-u RET' on a completion candidate in the
 "*Completions*" buffer inserts the completion to the minibuffer,
 but doesn't exit the minibuffer.
 
++++
+*** You can now define abbrevs for the fundamental minibuffer modes.
+'minibuffer-mode-abbrev-table' and
+'minibuffer-inactive-mode-abbrev-table' are now defined.
+
 ** Isearch and Replace
 
 +++
