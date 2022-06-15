@@ -123,7 +123,7 @@ ts_calloc_wrapper (size_t n, size_t size)
 }
 
 static void
-ts_initialize ()
+ts_initialize (void)
 {
   if (!ts_initialized)
     {
@@ -766,7 +766,7 @@ is nil, set PARSER to parse the whole buffer.  */)
       /* If RANGES is nil, make parser to parse the whole document.
 	 To do that we give tree-sitter a 0 length, the range is a
 	 dummy.  */
-      TSRange ts_range = {0, 0, 0, 0};
+      TSRange ts_range = {{0, 0}, {0, 0}, 0, 0};
       success = ts_parser_set_included_ranges
 	(XTS_PARSER (parser)->parser, &ts_range , 0);
     }
@@ -1527,7 +1527,7 @@ goes wrong.  You can use `treesit-query-validate' to debug the
 query.  */)
   (Lisp_Object language, Lisp_Object query)
 {
-  if (!Ftreesit_query_p (query))
+  if (NILP (Ftreesit_query_p (query)))
     wrong_type_argument (Qtreesit_query_p, query);
   CHECK_SYMBOL (language);
   if (TS_COMPILED_QUERY_P (query))
