@@ -501,7 +501,7 @@ ts_read_buffer (void *parser, uint32_t byte_index,
   /* This function could run from a user command, so it is better to
      do nothing instead of raising an error. (It was a pain in the a**
      to decrypt mega-if-conditions in Emacs source, so I wrote the two
-     branches separately.)  */
+     branches separately, you are welcome.)  */
   if (!BUFFER_LIVE_P (buffer))
     {
       beg = NULL;
