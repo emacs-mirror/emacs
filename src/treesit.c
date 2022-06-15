@@ -434,7 +434,7 @@ ts_check_buffer_size (struct buffer *buffer)
     (BUF_Z (buffer) - BUF_BEG (buffer));
   if (buffer_size > UINT32_MAX)
     xsignal2 (Qtreesit_buffer_too_large,
-	      build_pure_c_string ("Buffer size too large, size:"),
+	      build_pure_c_string ("Buffer size larger than 4GB, size:"),
 	      make_fixnum (buffer_size));
 }
 
