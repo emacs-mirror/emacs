@@ -1504,11 +1504,15 @@ typedef struct xm_top_level_leave_message
 
 enum xm_drag_operation
   {
-    XM_DRAG_NOOP = 0,
-    XM_DRAG_MOVE = (1L << 0),
-    XM_DRAG_COPY = (1L << 1),
-    XM_DRAG_LINK = (1L << 2),
+    XM_DRAG_NOOP     = 0,
+    XM_DRAG_MOVE     = (1L << 0),
+    XM_DRAG_COPY     = (1L << 1),
+    XM_DRAG_LINK     = (1L << 2),
+    XM_DRAG_LINK_REC = 3,
   };
+
+#define XM_DRAG_OPERATION_IS_LINK(op)	((op) == XM_DRAG_LINK		\
+					 || (op) == XM_DRAG_LINK_REC)
 
 enum xm_drag_action
   {
@@ -16097,7 +16101,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		if (operation != XM_DRAG_MOVE
 		    && operation != XM_DRAG_COPY
-		    && operation != XM_DRAG_LINK)
+		    && XM_DRAG_OPERATION_IS_LINK (operation))
 		  {
 		    x_dnd_waiting_for_finish = false;
 		    goto done;
@@ -16121,7 +16125,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    x_dnd_action = dpyinfo->Xatom_XdndActionCopy;
 		    break;
 
-		  case XM_DRAG_LINK:
+		    /* This means XM_DRAG_OPERATION_IS_LINK (operation).  */
+		  default:
 		    x_dnd_action = dpyinfo->Xatom_XdndActionLink;
 		    break;
 		  }
