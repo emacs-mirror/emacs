@@ -3509,23 +3509,24 @@ packed; other multibyte strings signal an error.  When unpacking a
 (but excluding) the null byte that terminated the input string.
 
 If @var{len} is provided, @code{strz} behaves the same as @code{str},
-but with one difference: when unpacking, the first null byte
-encountered in the packed string is interpreted as the terminating
-byte, and it and all subsequent bytes are excluded from the result of
-the unpacking.
+but with a couple of differences:
+
+@itemize @bullet
+@item
+When packing, a null terminator is written after the packed input
+string if the number of characters in the input string is less than
+@var{len}.
+
+@item
+When unpacking, the first null byte encountered in the packed string
+is interpreted as the terminating byte, and it and all subsequent
+bytes are excluded from the result of the unpacking.
+@end itemize
 
 @quotation Caution
-The packed output will not be null-terminated unless one of the
-following is true:
-@itemize
-@item
-The input string is shorter than @var{len} bytes and either no pre-allocated
-string was provided to @code{bindat-pack} or the appropriate byte in
-the pre-allocated string was already null.
-@item
-The input string contains a null byte within the first @var{len}
-bytes.
-@end itemize
+The packed output will not be null-terminated unless the input string
+is shorter than @var{len} bytes or it contains a null byte within the
+first @var{len} bytes.
 @end quotation
 
 @item vec @var{len} [@var{type}]

@@ -443,11 +443,14 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 (defun bindat--pack-strz (len v)
   (let* ((v (string-to-unibyte v))
          (vlen (length v)))
+    ;; Explicitly write a null terminator (if there's room) in case
+    ;; the user provided a pre-allocated string to `bindat-pack' that
+    ;; wasn't already zeroed.
+    (when (or (null len) (< vlen len))
+      (aset bindat-raw (+ bindat-idx vlen) 0))
     (if len
         ;; When len is specified, behave the same as the str type
-        ;; since we don't actually add the terminating zero anyway
-        ;; (because we rely on the fact that `bindat-raw' was
-        ;; presumably initialized with all-zeroes before we started).
+        ;; (except for the null terminator possibly written above).
         (bindat--pack-str len v)
       (dotimes (i vlen)
         (when (= (aref v i) 0)
@@ -456,10 +459,6 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
           ;; need to scan the input string looking for a null byte.
           (error "Null byte encountered in input strz string"))
         (aset bindat-raw (+ bindat-idx i) (aref v i)))
-      ;; Explicitly write a null terminator in case the user provided
-      ;; a pre-allocated string to `bindat-pack' that wasn't already
-      ;; zeroed.
-      (aset bindat-raw (+ bindat-idx vlen) 0)
       (setq bindat-idx (+ bindat-idx vlen 1)))))
 
 (defun bindat--pack-bits (len v)
