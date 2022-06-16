@@ -324,6 +324,9 @@ static inline void
 ts_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
 		ptrdiff_t old_end_byte, ptrdiff_t new_end_byte)
 {
+  eassert (start_byte >= 0);
+  eassert (start_byte <= old_end_byte);
+  eassert (start_byte <= new_end_byte);
   TSPoint dummy_point = {0, 0};
   TSInputEdit edit = {(uint32_t) start_byte,
 		      (uint32_t) old_end_byte,
@@ -356,24 +359,56 @@ ts_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	     insert, and think of them as moving unchanged text back
 	     and forth.  After all, the whole point of updating the
 	     tree is to update the position of unchanged text.  */
-	  ptrdiff_t bytes_del = old_end_byte - start_byte;
-	  ptrdiff_t bytes_ins = new_end_byte - start_byte;
-
 	  ptrdiff_t visible_beg = XTS_PARSER (lisp_parser)->visible_beg;
 	  ptrdiff_t visible_end = XTS_PARSER (lisp_parser)->visible_end;
+	  eassert (visible_beg >= 0);
+	  eassert (visible_beg <= visible_end);
 
-	  ptrdiff_t affected_start =
-	    max (visible_beg, start_byte) - visible_beg;
-	  ptrdiff_t affected_old_end =
-	    min (visible_end, affected_start + bytes_del);
-	  ptrdiff_t affected_new_end =
-	    affected_start + bytes_ins;
+	  /* AFFECTED_START/OLD_END/NEW_END are (0-based) offsets from
+	     VISIBLE_BEG.  min(visi_end, max(visi_beg, value)) clips
+	     value into [visi_beg, visi_end], and subtracting visi_beg
+	     gives the offset from visi_beg.  */
+	  ptrdiff_t start_offset =
+	    min (visible_end,
+		 max (visible_beg, start_byte)) - visible_beg;
+	  ptrdiff_t old_end_offset =
+	    min (visible_end,
+		 max (visible_beg, old_end_byte)) - visible_beg;
+	  ptrdiff_t new_end_offset =
+	    min (visible_end,
+		 max (visible_beg, new_end_byte)) - visible_beg;
+	  eassert (start_offset <= old_end_offset);
+	  eassert (start_offset <= new_end_offset);
 
-	  ts_tree_edit_1 (tree, affected_start, affected_old_end,
-			  affected_new_end);
-	  XTS_PARSER (lisp_parser)->visible_end = affected_new_end;
+	  ts_tree_edit_1 (tree, start_offset, old_end_offset,
+			  new_end_offset);
 	  XTS_PARSER (lisp_parser)->need_reparse = true;
 	  XTS_PARSER (lisp_parser)->timestamp++;
+
+	  /* VISIBLE_BEG/END records tree-sitter's range of view in
+	     the buffer.  Ee need to adjust them when tree-sitter's
+	     view changes.  */
+	  ptrdiff_t visi_beg_delta;
+	  if (old_end_byte > new_end_byte)
+	    {
+	      /* Move backward.  */
+	      visi_beg_delta = min (visible_beg, new_end_byte)
+		- min (visible_beg, old_end_byte);
+	    }
+	  else
+	    {
+	      /* Move forward.  */
+	      visi_beg_delta = old_end_byte < visible_beg
+		? new_end_byte - old_end_byte : 0;
+	    }
+	  XTS_PARSER (lisp_parser)->visible_beg
+	    = visible_beg + visi_beg_delta;
+	  XTS_PARSER (lisp_parser)->visible_end
+	    = visible_end + visi_beg_delta
+	    + (new_end_offset - old_end_offset);
+	  eassert (XTS_PARSER (lisp_parser)->visible_beg >= 0);
+	  eassert (XTS_PARSER (lisp_parser)->visible_beg
+		   <= XTS_PARSER (lisp_parser)->visible_end);
 	}
     }
 }
@@ -389,6 +424,9 @@ ts_ensure_position_synced (Lisp_Object parser)
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
   ptrdiff_t visible_beg = XTS_PARSER (parser)->visible_beg;
   ptrdiff_t visible_end = XTS_PARSER (parser)->visible_end;
+  eassert (0 <= visible_beg);
+  eassert (visible_beg <= visible_end);
+
   /* Before we parse or set ranges, catch up with the narrowing
      situation.  We change visible_beg and visible_end to match
      BUF_BEGV_BYTE and BUF_ZV_BYTE, and inform tree-sitter of the
@@ -403,6 +441,7 @@ ts_ensure_position_synced (Lisp_Object parser)
       /* Tree-sitter sees: insert at the beginning. */
       ts_tree_edit_1 (tree, 0, 0, visible_beg - BUF_BEGV_BYTE (buffer));
       visible_beg = BUF_BEGV_BYTE (buffer);
+      eassert (visible_beg <= visible_end);
     }
   /* 2. Make sure visible_end = BUF_ZV_BYTE.  */
   if (visible_end < BUF_ZV_BYTE (buffer))
@@ -412,6 +451,7 @@ ts_ensure_position_synced (Lisp_Object parser)
 		      visible_end - visible_beg,
 		      BUF_ZV_BYTE (buffer) - visible_beg);
       visible_end = BUF_ZV_BYTE (buffer);
+      eassert (visible_beg <= visible_end);
     }
   else if (visible_end > BUF_ZV_BYTE (buffer))
     {
@@ -420,6 +460,7 @@ ts_ensure_position_synced (Lisp_Object parser)
 		      visible_end - visible_beg,
 		      BUF_ZV_BYTE (buffer) - visible_beg);
       visible_end = BUF_ZV_BYTE (buffer);
+      eassert (visible_beg <= visible_end);
     }
   /* 3. Make sure visible_beg = BUF_BEGV_BYTE.  */
   if (visible_beg < BUF_BEGV_BYTE (buffer))
@@ -427,6 +468,7 @@ ts_ensure_position_synced (Lisp_Object parser)
       /* Tree-sitter sees: delete at the beginning.  */
       ts_tree_edit_1 (tree, 0, BUF_BEGV_BYTE (buffer) - visible_beg, 0);
       visible_beg = BUF_BEGV_BYTE (buffer);
+      eassert (visible_beg <= visible_end);
     }
   eassert (0 <= visible_beg);
   eassert (visible_beg <= visible_end);
@@ -477,7 +519,8 @@ ts_ensure_parsed (Lisp_Object parser)
       xsignal1 (Qtreesit_parse_error, buf);
     }
 
-  ts_tree_delete (tree);
+  if (tree != NULL)
+    ts_tree_delete (tree);
   XTS_PARSER (parser)->tree = new_tree;
   XTS_PARSER (parser)->need_reparse = false;
 }
@@ -551,6 +594,7 @@ make_ts_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->need_reparse = true;
   lisp_parser->visible_beg = BUF_BEGV (XBUFFER (buffer));
   lisp_parser->visible_end = BUF_ZV (XBUFFER (buffer));
+  eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
 
@@ -673,10 +717,7 @@ function provided by a tree-sitter language dynamic module, e.g.,
   ts_parser_set_language (parser, lang);
 
   Lisp_Object lisp_parser
-    = make_ts_parser (buffer, parser, NULL, language);
-
-  struct buffer *old_buffer = current_buffer;
-  set_buffer_internal (XBUFFER (buffer));
+    = make_ts_parser (Fcurrent_buffer (), parser, NULL, language);
 
   Fset (Qtreesit_parser_list,
 	Fcons (lisp_parser, Fsymbol_value (Qtreesit_parser_list)));
@@ -835,6 +876,11 @@ nil.  */)
     (XTS_PARSER (parser)->parser, &len);
   if (len == 0)
     return Qnil;
+
+  /* Our return value depends on the buffer state (BUF_BEGV_BYTE,
+     etc), so we need to sync up.  */
+  ts_ensure_position_synced (parser);
+
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
   Lisp_Object list = Qnil;
@@ -843,6 +889,9 @@ nil.  */)
       TSRange range = ranges[idx];
       uint32_t beg_byte = range.start_byte + BUF_BEGV_BYTE (buffer);
       uint32_t end_byte = range.end_byte + BUF_BEGV_BYTE (buffer);
+      eassert (BUF_BEGV_BYTE (buffer) <= beg_byte);
+      eassert (beg_byte <= end_byte);
+      eassert (end_byte <= BUF_ZV_BYTE (buffer));
 
       Lisp_Object lisp_range =
 	Fcons (make_fixnum (buf_bytepos_to_charpos (buffer, beg_byte)) ,
