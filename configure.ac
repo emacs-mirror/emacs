@@ -3436,7 +3436,7 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
     AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
     USE_TOOLKIT_SCROLL_BARS=yes
   fi
-elif test "${window_system}" != "x11" && "${window_system}" != "none"; then
+elif test "${window_system}" != "x11" && test "${window_system}" != "none"; then
   AC_MSG_ERROR(Non-toolkit scroll bars are not implemented for your system)
 fi
 
