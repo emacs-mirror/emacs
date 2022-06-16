@@ -967,7 +967,8 @@ Return a vector of atoms containing the selection targets."
 		       (when (and reply-action atom-name)
 		         (let* ((value (x-get-selection-internal
 				        (intern atom-name)
-				        (intern (x-dnd-current-type window)))))
+				        (intern (x-dnd-current-type window))
+                                        timestamp)))
 		           (when value
 			     (condition-case info
 			         (x-dnd-drop-data event frame window value
