@@ -238,7 +238,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     unchanged after expansion (i.e. no host, no user or no port
     were specified), that sublist is not used.  For e.g.
 
-    '((\"-a\" \"-b\") (\"-l\" \"%u\"))
+    \\='((\"-a\" \"-b\") (\"-l\" \"%u\"))
 
     that means that (\"-l\" \"%u\") is used only if the user was
     specified, and it is thus effectively optional.
