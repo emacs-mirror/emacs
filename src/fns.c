@@ -1045,7 +1045,7 @@ string_char_to_byte (Lisp_Object string, ptrdiff_t char_index)
   if (best_above == best_above_byte)
     return char_index;
 
-  if (EQ (string, string_char_byte_cache_string))
+  if (BASE_EQ (string, string_char_byte_cache_string))
     {
       if (string_char_byte_cache_charpos < char_index)
 	{
@@ -1105,7 +1105,7 @@ string_byte_to_char (Lisp_Object string, ptrdiff_t byte_index)
   if (best_above == best_above_byte)
     return byte_index;
 
-  if (EQ (string, string_char_byte_cache_string))
+  if (BASE_EQ (string, string_char_byte_cache_string))
     {
       if (string_char_byte_cache_bytepos < byte_index)
 	{
@@ -1576,7 +1576,7 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
     {
       /* If the tortoise just jumped (which is rare),
 	 update TORTOISE_NUM accordingly.  */
-      if (EQ (tail, li.tortoise))
+      if (BASE_EQ (tail, li.tortoise))
 	tortoise_num = num;
 
       saved_tail = XCDR (tail);
@@ -2014,7 +2014,7 @@ This function may destructively modify SEQ to produce the value.  */)
 	  next = XCDR (tail);
 	  /* If SEQ contains a cycle, attempting to reverse it
 	     in-place will inevitably come back to SEQ.  */
-	  if (EQ (next, seq))
+	  if (BASE_EQ (next, seq))
 	    circular_list (seq);
 	  Fsetcdr (tail, prev);
 	  prev = tail;

@@ -8194,7 +8194,7 @@ decode_coding_object (struct coding_system *coding,
   if (saved_pt >= 0)
     {
       /* This is the case of:
-	 (BUFFERP (src_object) && EQ (src_object, dst_object))
+	 (BUFFERP (src_object) && BASE_EQ (src_object, dst_object))
 	 As we have moved PT while replacing the original buffer
 	 contents, we must recover it now.  */
       set_buffer_internal (XBUFFER (src_object));
@@ -8298,7 +8298,7 @@ encode_coding_object (struct coding_system *coding,
   attrs = CODING_ID_ATTRS (coding->id);
 
   bool same_buffer = false;
-  if (EQ (src_object, dst_object) && BUFFERP (src_object))
+  if (BASE_EQ (src_object, dst_object) && BUFFERP (src_object))
     {
       struct Lisp_Marker *tail;
 
@@ -8379,7 +8379,7 @@ encode_coding_object (struct coding_system *coding,
   if (BUFFERP (dst_object))
     {
       coding->dst_object = dst_object;
-      if (EQ (src_object, dst_object))
+      if (BASE_EQ (src_object, dst_object))
 	{
 	  coding->dst_pos = from;
 	  coding->dst_pos_byte = from_byte;
@@ -8434,7 +8434,7 @@ encode_coding_object (struct coding_system *coding,
   if (saved_pt >= 0)
     {
       /* This is the case of:
-	 (BUFFERP (src_object) && EQ (src_object, dst_object))
+	 (BUFFERP (src_object) && BASE_EQ (src_object, dst_object))
 	 As we have moved PT while replacing the original buffer
 	 contents, we must recover it now.  */
       set_buffer_internal (XBUFFER (src_object));
@@ -9416,7 +9416,7 @@ code_convert_region (Lisp_Object start, Lisp_Object end,
   setup_coding_system (coding_system, &coding);
   coding.mode |= CODING_MODE_LAST_BLOCK;
 
-  if (BUFFERP (dst_object) && !EQ (dst_object, src_object))
+  if (BUFFERP (dst_object) && !BASE_EQ (dst_object, src_object))
     {
       struct buffer *buf = XBUFFER (dst_object);
       ptrdiff_t buf_pt = BUF_PT (buf);
@@ -10785,7 +10785,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
 	  && ((STRINGP (target)
 	       && STRINGP (XCAR (elt))
 	       && fast_string_match (XCAR (elt), target) >= 0)
-	      || (FIXNUMP (target) && EQ (target, XCAR (elt)))))
+	      || (FIXNUMP (target) && BASE_EQ (target, XCAR (elt)))))
 	{
 	  val = XCDR (elt);
 	  /* Here, if VAL is both a valid coding system and a valid

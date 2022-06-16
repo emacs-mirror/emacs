@@ -475,7 +475,7 @@ enum mem_type
 static bool
 deadp (Lisp_Object x)
 {
-  return EQ (x, dead_object ());
+  return BASE_EQ (x, dead_object ());
 }
 
 #ifdef GC_MALLOC_CHECK

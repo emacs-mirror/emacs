@@ -2786,7 +2786,7 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
 	 ? miniwin : Qnil);
   else if (EQ (*all_frames, Qvisible))
     ;
-  else if (EQ (*all_frames, make_fixnum (0)))
+  else if (BASE_EQ (*all_frames, make_fixnum (0)))
     ;
   else if (FRAMEP (*all_frames))
     ;
@@ -3083,7 +3083,7 @@ window_loop (enum window_loop type, Lisp_Object obj, bool mini,
 
   if (f)
     frame_arg = Qlambda;
-  else if (EQ (frames, make_fixnum (0)))
+  else if (BASE_EQ (frames, make_fixnum (0)))
     frame_arg = frames;
   else if (EQ (frames, Qvisible))
     frame_arg = frames;
@@ -7493,7 +7493,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, ptrdiff_t i)
 	      hare = XCDR (hare);
 	      tortoise = XCDR (tortoise);
 
-	      if (EQ (hare, tortoise))
+	      if (BASE_EQ (hare, tortoise))
 		/* Reset Vwindow_persistent_parameters to Qnil.  */
 		{
 		  Vwindow_persistent_parameters = Qnil;

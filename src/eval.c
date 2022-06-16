@@ -2195,7 +2195,7 @@ this does nothing and returns nil.  */)
       && !AUTOLOADP (XSYMBOL (function)->u.s.function))
     return Qnil;
 
-  if (!NILP (Vpurify_flag) && EQ (docstring, make_fixnum (0)))
+  if (!NILP (Vpurify_flag) && BASE_EQ (docstring, make_fixnum (0)))
     /* `read1' in lread.c has found the docstring starting with "\
        and assumed the docstring will be provided by Snarf-documentation, so it
        passed us 0 instead.  But that leads to accidental sharing in purecopy's
@@ -2216,7 +2216,7 @@ un_autoload (Lisp_Object oldqueue)
   while (CONSP (queue))
     {
       Lisp_Object first = XCAR (queue);
-      if (CONSP (first) && EQ (XCAR (first), make_fixnum (0)))
+      if (CONSP (first) && BASE_EQ (XCAR (first), make_fixnum (0)))
 	Vfeatures = XCDR (first);
       else
 	Ffset (first, Fcar (Fcdr (Fget (first, Qfunction_history))));
@@ -3451,7 +3451,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	specpdl_ptr->let.where = Fcurrent_buffer ();
 
 	eassert (sym->u.s.redirect != SYMBOL_LOCALIZED
-		 || (EQ (SYMBOL_BLV (sym)->where, Fcurrent_buffer ())));
+		 || (BASE_EQ (SYMBOL_BLV (sym)->where, Fcurrent_buffer ())));
 
 	if (sym->u.s.redirect == SYMBOL_LOCALIZED)
 	  {

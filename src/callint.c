@@ -439,7 +439,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	      && (w = XCAR (w), WINDOWP (w)))
 	    {
 	      if (MINI_WINDOW_P (XWINDOW (w))
-		  && ! (minibuf_level > 0 && EQ (w, minibuf_window)))
+		  && ! (minibuf_level > 0 && BASE_EQ (w, minibuf_window)))
 		error ("Attempt to select inactive minibuffer window");
 
 	      /* If the current buffer wants to clean up, let it.  */
@@ -509,7 +509,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 
 	case 'b':   		/* Name of existing buffer.  */
 	  args[i] = Fcurrent_buffer ();
-	  if (EQ (selected_window, minibuf_window))
+	  if (BASE_EQ (selected_window, minibuf_window))
 	    args[i] = Fother_buffer (args[i], Qnil, Qnil);
 	  args[i] = Fread_buffer (callint_message, args[i], Qt, Qnil);
 	  break;

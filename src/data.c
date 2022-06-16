@@ -2330,7 +2330,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
      forwarded objects won't work right.  */
   {
     Lisp_Object buf; XSETBUFFER (buf, current_buffer);
-    if (EQ (buf, blv->where))
+    if (BASE_EQ (buf, blv->where))
       swap_in_global_binding (sym);
   }
 
@@ -3522,7 +3522,7 @@ In this case, the sign bit is duplicated.  */)
 
   if (! FIXNUMP (count))
     {
-      if (EQ (value, make_fixnum (0)))
+      if (BASE_EQ (value, make_fixnum (0)))
 	return value;
       if (mpz_sgn (*xbignum_val (count)) < 0)
 	{
@@ -3567,11 +3567,11 @@ Lisp_Object
 expt_integer (Lisp_Object x, Lisp_Object y)
 {
   /* Special cases for -1 <= x <= 1, which never overflow.  */
-  if (EQ (x, make_fixnum (1)))
+  if (BASE_EQ (x, make_fixnum (1)))
     return x;
-  if (EQ (x, make_fixnum (0)))
-    return EQ (x, y) ? make_fixnum (1) : x;
-  if (EQ (x, make_fixnum (-1)))
+  if (BASE_EQ (x, make_fixnum (0)))
+    return BASE_EQ (x, y) ? make_fixnum (1) : x;
+  if (BASE_EQ (x, make_fixnum (-1)))
     return ((FIXNUMP (y) ? XFIXNUM (y) & 1 : mpz_odd_p (*xbignum_val (y)))
 	    ? x : make_fixnum (1));
 

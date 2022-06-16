@@ -1463,7 +1463,7 @@ w32_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     return;
 
   if (STRINGP (arg) && STRINGP (oldval)
-      && EQ (Fstring_equal (oldval, arg), Qt))
+      && BASE_EQ (Fstring_equal (oldval, arg), Qt))
     return;
 
   if (SYMBOLP (arg) && SYMBOLP (oldval) && EQ (arg, oldval))
@@ -1486,7 +1486,7 @@ w32_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   if (STRINGP (arg))
     {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+      if (STRINGP (oldval) && BASE_EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
   else if (!NILP (arg) || NILP (oldval))

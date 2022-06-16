@@ -4855,7 +4855,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   hash = hash_string (ptr, size_byte) % obsize;
   bucket = AREF (obarray, hash);
   oblookup_last_bucket_number = hash;
-  if (EQ (bucket, make_fixnum (0)))
+  if (BASE_EQ (bucket, make_fixnum (0)))
     ;
   else if (!SYMBOLP (bucket))
     /* Like CADR error message.  */

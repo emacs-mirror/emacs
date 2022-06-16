@@ -1861,7 +1861,7 @@ vmotion (ptrdiff_t from, ptrdiff_t from_byte,
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
-  if (EQ (w->contents, Fcurrent_buffer ()))
+  if (BASE_EQ (w->contents, Fcurrent_buffer ()))
     text_prop_object = window;
   else
     text_prop_object = Fcurrent_buffer ();

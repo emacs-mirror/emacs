@@ -4775,7 +4775,7 @@ corresponding connection was closed.  */)
 
       /* Can't wait for a process that is dedicated to a different
 	 thread.  */
-      if (!NILP (proc->thread) && !EQ (proc->thread, Fcurrent_thread ()))
+      if (!NILP (proc->thread) && !BASE_EQ (proc->thread, Fcurrent_thread ()))
 	{
 	  Lisp_Object proc_thread_name = XTHREAD (proc->thread)->name;
 

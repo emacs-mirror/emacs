@@ -1939,9 +1939,9 @@ clean_local_selection_data (Lisp_Object obj)
       && INTEGERP (XCAR (obj))
       && FIXNUMP (XCDR (obj)))
     {
-      if (EQ (XCAR (obj), make_fixnum (0)))
+      if (BASE_EQ (XCAR (obj), make_fixnum (0)))
 	return XCDR (obj);
-      if (EQ (XCAR (obj), make_fixnum (-1)))
+      if (BASE_EQ (XCAR (obj), make_fixnum (-1)))
 	return make_fixnum (- XFIXNUM (XCDR (obj)));
     }
   if (VECTORP (obj))

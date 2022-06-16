@@ -648,7 +648,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
   prev_new = make_fixnum (XFIXNUM (new_pos) - 1);
 
   if (NILP (Vinhibit_field_text_motion)
-      && !EQ (new_pos, old_pos)
+      && !BASE_EQ (new_pos, old_pos)
       && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
           || !NILP (Fget_char_property (old_pos, Qfield, Qnil))
           /* To recognize field boundaries, we must also look at the
@@ -797,7 +797,7 @@ save_excursion_save (union specbinding *pdl)
   pdl->unwind_excursion.marker = Fpoint_marker ();
   /* Selected window if current buffer is shown in it, nil otherwise.  */
   pdl->unwind_excursion.window
-    = (EQ (XWINDOW (selected_window)->contents, Fcurrent_buffer ())
+    = (BASE_EQ (XWINDOW (selected_window)->contents, Fcurrent_buffer ())
        ? selected_window : Qnil);
 }
 
@@ -821,7 +821,7 @@ save_excursion_restore (Lisp_Object marker, Lisp_Object window)
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
      buffer, restore point in that window.  */
-  if (WINDOWP (window) && !EQ (window, selected_window))
+  if (WINDOWP (window) && !BASE_EQ (window, selected_window))
     {
       /* Set window point if WINDOW is live and shows the current buffer.  */
       Lisp_Object contents = XWINDOW (window)->contents;
@@ -2843,7 +2843,7 @@ otherwise MSGID-PLURAL.  */)
   CHECK_INTEGER (n);
 
   /* Placeholder implementation until we get our act together.  */
-  return EQ (n, make_fixnum (1)) ? msgid : msgid_plural;
+  return BASE_EQ (n, make_fixnum (1)) ? msgid : msgid_plural;
 }
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,

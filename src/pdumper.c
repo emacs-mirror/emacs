@@ -1210,8 +1210,8 @@ dump_queue_find_score_of_one_weight_queue (struct dump_queue *dump_queue,
 static Lisp_Object
 dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 {
-  eassert (EQ (Fhash_table_count (dump_queue->sequence_numbers),
-               Fhash_table_count (dump_queue->link_weights)));
+  eassert (BASE_EQ (Fhash_table_count (dump_queue->sequence_numbers),
+		    Fhash_table_count (dump_queue->link_weights)));
 
   eassert (XFIXNUM (Fhash_table_count (dump_queue->sequence_numbers))
 	   <= (dump_tailq_length (&dump_queue->fancy_weight_objects)

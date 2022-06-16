@@ -427,8 +427,8 @@ No argument or nil as argument means use the current buffer as BUFFER.  */)
 {
   if (NILP (buffer))
     buffer = Fcurrent_buffer ();
-  return EQ (buffer, (Fcar (Fnthcdr (make_fixnum (minibuf_level),
-				     Vminibuffer_list))))
+  return BASE_EQ (buffer, (Fcar (Fnthcdr (make_fixnum (minibuf_level),
+					  Vminibuffer_list))))
     ? Qt
     : Qnil;
 }
@@ -1791,10 +1791,10 @@ or from one of the possible completions.  */)
 	      if (bestmatchsize != SCHARS (eltstring)
 		  || bestmatchsize != matchsize
 		  || (completion_ignore_case
-		      && !EQ (Fcompare_strings (old_bestmatch, zero, lcompare,
-						eltstring, zero, lcompare,
-						Qnil),
-			      Qt)))
+		      && !BASE_EQ (Fcompare_strings (old_bestmatch, zero,
+						     lcompare, eltstring, zero,
+						     lcompare, Qnil),
+				   Qt)))
 		/* Don't count the same string multiple times.  */
 		matchcount += matchcount <= 1;
 	      bestmatchsize = matchsize;
@@ -2110,10 +2110,11 @@ the values STRING, PREDICATE and `lambda'.  */)
 	      if (SYMBOLP (tail))
 		while (1)
 		  {
-		    if (EQ (Fcompare_strings (string, make_fixnum (0), Qnil,
-					      Fsymbol_name (tail),
-					      make_fixnum (0) , Qnil, Qt),
-			   Qt))
+		    if (BASE_EQ (Fcompare_strings (string, make_fixnum (0),
+						   Qnil,
+						   Fsymbol_name (tail),
+						   make_fixnum (0) , Qnil, Qt),
+				 Qt))
 		      {
 			tem = tail;
 			break;
@@ -2144,9 +2145,9 @@ the values STRING, PREDICATE and `lambda'.  */)
             if (BASE_EQ (tem, Qunbound)) continue;
             Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
             if (!STRINGP (strkey)) continue;
-            if (EQ (Fcompare_strings (string, Qnil, Qnil,
-                                      strkey, Qnil, Qnil,
-                                      completion_ignore_case ? Qt : Qnil),
+            if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
+					   strkey, Qnil, Qnil,
+					   completion_ignore_case ? Qt : Qnil),
                     Qt))
               goto found_matching_key;
           }

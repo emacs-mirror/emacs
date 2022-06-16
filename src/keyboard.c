@@ -1345,7 +1345,7 @@ command_loop_1 (void)
 
       if (minibuf_level
 	  && !NILP (echo_area_buffer[0])
-	  && EQ (minibuf_window, echo_area_window)
+	  && BASE_EQ (minibuf_window, echo_area_window)
 	  && NUMBERP (Vminibuffer_message_timeout))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
@@ -2576,7 +2576,7 @@ read_char (int commandflag, Lisp_Object map,
 	       && (input_was_pending || !redisplay_dont_pause)))
 	{
 	  input_was_pending = input_pending;
-	  if (help_echo_showing_p && !EQ (selected_window, minibuf_window))
+	  if (help_echo_showing_p && !BASE_EQ (selected_window, minibuf_window))
 	    redisplay_preserve_echo_area (5);
 	  else
 	    redisplay ();
@@ -2924,7 +2924,7 @@ read_char (int commandflag, Lisp_Object map,
           goto exit;
         }
 
-      if (EQ (c, make_fixnum (-2)))
+      if (BASE_EQ (c, make_fixnum (-2)))
 	return c;
 
       if (CONSP (c) && EQ (XCAR (c), Qt))
@@ -3249,7 +3249,7 @@ read_char (int commandflag, Lisp_Object map,
       unbind_to (count, Qnil);
 
       redisplay ();
-      if (EQ (c, make_fixnum (040)))
+      if (BASE_EQ (c, make_fixnum (040)))
 	{
 	  cancel_echoing ();
 	  do
@@ -9498,7 +9498,7 @@ read_char_minibuf_menu_prompt (int commandflag,
       if (!FIXNUMP (obj) || XFIXNUM (obj) == -2
 	  || (! EQ (obj, menu_prompt_more_char)
 	      && (!FIXNUMP (menu_prompt_more_char)
-		  || ! EQ (obj, make_fixnum (Ctl (XFIXNUM (menu_prompt_more_char)))))))
+		  || ! BASE_EQ (obj, make_fixnum (Ctl (XFIXNUM (menu_prompt_more_char)))))))
 	{
 	  if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
 	    store_kbd_macro_char (obj);

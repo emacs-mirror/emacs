@@ -4397,7 +4397,7 @@ one for the file name and another for its contents, followed by .eln.  */)
     {
       Lisp_Object match_idx =
 	Fstring_match (XCAR (lds_re_tail), filename, Qnil, Qnil);
-      if (EQ (match_idx, make_fixnum (0)))
+      if (BASE_EQ (match_idx, make_fixnum (0)))
 	{
 	  filename =
 	    Freplace_match (build_string ("//"), Qt, Qt, filename, Qnil);
