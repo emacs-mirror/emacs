@@ -573,6 +573,9 @@ struct x_display_info
   char motif_drag_atom_name[sizeof "_EMACS_ATOM_%lu" - 3
 			    + INT_STRLEN_BOUND (unsigned long)];
 
+  /* When it was owned.  */
+  Time motif_drag_atom_time;
+
   /* Extended window manager hints, Atoms supported by the window manager and
      atoms for setting the window type.  */
   Atom Xatom_net_supported, Xatom_net_supporting_wm_check;
