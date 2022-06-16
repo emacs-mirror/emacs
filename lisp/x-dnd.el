@@ -67,6 +67,7 @@ The default value for this variable is `x-dnd-default-test-function'."
     (,(purecopy "STRING") . dnd-insert-text)
     (,(purecopy "TEXT")   . dnd-insert-text)
     (,(purecopy "DndTypeFile") . x-dnd-handle-offix-file)
+    (,(purecopy "DndTypeFiles") . x-dnd-handle-offix-files)
     (,(purecopy "DndTypeText") . dnd-insert-text))
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
@@ -426,7 +427,7 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
                                  (3 . DndTypeFiles)
                                  (4 . DndTypeText)
                                  (5 . DndTypeDir)
-                                 (6 . DndTypeLInk)
+                                 (6 . DndTypeLink)
                                  (7 . DndTypeExe)
                                  (8 . DndTypeUrl)
                                  (9 . DndTypeMime)
@@ -438,9 +439,22 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 Then, call `x-dnd-handle-file-name'.
 
 WINDOW and ACTION mean the same as in `x-dnd-handle-file-name'.
-STRING is the raw offiX file name data."
+STRING is the raw OffiX file name data."
   (x-dnd-handle-file-name window action
                           (replace-regexp-in-string "\0$" "" string)))
+
+(defun x-dnd-handle-offix-files (window action string)
+  "Convert OffiX file name list to a URI list.
+Then, call `x-dnd-handle-file-name'.
+
+WINDOW and ACTION mean the same as in `x-dnd-handle-file-name'.
+STRING is the raw OffiX file name data."
+  (x-dnd-handle-file-name window action
+                          ;; OffiX file name lists contain one extra
+                          ;; NULL byte at the end.
+                          (if (string-suffix-p "\0\0" string)
+                              (substring string 0 (1- (length string)))
+                            string)))
 
 (defun x-dnd-handle-offix (event frame window _message-atom _format data)
   "Handle OffiX drop event EVENT.
@@ -966,7 +980,7 @@ data could not be converted."
           ;; This means there are multiple file names in
           ;; XdndSelection.  Convert the file name data to a format
           ;; that OffiX understands.
-          (cons 'DndTypeFiles (concat file-name-data "\0"))
+          (cons 'DndTypeFiles (concat file-name-data "\0\0"))
         (cons 'DndTypeFile (concat file-name-data "\0"))))
      ((and (member "STRING" targets)
            (setq string-data
