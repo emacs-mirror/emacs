@@ -2994,7 +2994,9 @@ See also `erc-format-message' and `erc-display-line'."
         (erc-display-line string buffer)
       (unless (erc-hide-current-message-p parsed)
         (erc-put-text-property 0 (length string) 'erc-parsed parsed string)
-        (erc-put-text-property 0 (length string) 'rear-sticky t string)
+        (put-text-property
+         0 (length string) 'erc-command
+         (erc--get-eq-comparable-cmd (erc-response.command parsed)) string)
 	(when (erc-response.tags parsed)
 	  (erc-put-text-property 0 (length string) 'tags (erc-response.tags parsed)
 				 string))
@@ -4394,6 +4396,30 @@ Eventually add a # in front of it, if that turns it into a valid channel name."
       channel
     (concat "#" channel)))
 
+(defvar erc--own-property-names
+  '( tags erc-parsed display ; core
+     ;; `erc-display-prompt'
+     rear-nonsticky erc-prompt field front-sticky read-only
+     ;; stamp
+     cursor-intangible cursor-sensor-functions isearch-open-invisible
+     ;; match
+     invisible intangible
+     ;; button
+     erc-callback erc-data mouse-face keymap
+     ;; fill-wrap
+     line-prefix wrap-prefix)
+  "Props added by ERC that should not survive killing.
+Among those left behind by default are `font-lock-face' and
+`erc-secret'.")
+
+(defun erc--remove-text-properties (string)
+  "Remove text properties in STRING added by ERC.
+Specifically, remove any that aren't members of
+`erc--own-property-names'."
+  (remove-list-of-text-properties 0 (length string)
+                                  erc--own-property-names string)
+  string)
+
 (defun erc-grab-region (start end)
   "Copy the region between START and END in a recreatable format.
 
@@ -4445,7 +4471,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
         (setq prompt (propertize prompt
                                  'rear-nonsticky t
                                  'erc-prompt t
-                                 'field t
+                                 'field 'erc-prompt
                                  'front-sticky t
                                  'read-only t))
         (erc-put-text-property 0 (1- (length prompt))
@@ -5847,7 +5873,7 @@ See also variable `erc-notice-highlight-type'."
   (erc-put-text-property 0 (length s) 'font-lock-face 'erc-error-face s)
   s)
 
-(defun erc-put-text-property (start end property value &optional object)
+(defalias 'erc-put-text-property 'put-text-property
   "Set text-property for an object (usually a string).
 START and END define the characters covered.
 PROPERTY is the text-property set, usually the symbol `face'.
@@ -5857,14 +5883,9 @@ OBJECT is a string which will be modified and returned.
 OBJECT is modified without being copied first.
 
 You can redefine or `defadvice' this function in order to add
-EmacsSpeak support."
-  (put-text-property start end property value object))
+EmacsSpeak support.")
 
-(defun erc-list (thing)
-  "Return THING if THING is a list, or a list with THING as its element."
-  (if (listp thing)
-      thing
-    (list thing)))
+(defalias 'erc-list 'ensure-list)
 
 (defun erc-parse-user (string)
   "Parse STRING as a user specification (nick!login@host).
@@ -7451,10 +7472,11 @@ This function should be on `erc-kill-channel-hook'."
 
 (defun erc-restore-text-properties ()
   "Restore the property `erc-parsed' for the region."
-  (let ((parsed-posn (erc-find-parsed-property)))
-    (put-text-property
-     (point-min) (point-max)
-     'erc-parsed (when parsed-posn (erc-get-parsed-vector parsed-posn)))))
+  (when-let* ((parsed-posn (erc-find-parsed-property))
+              (found (erc-get-parsed-vector parsed-posn)))
+    (put-text-property (point-min) (point-max) 'erc-parsed found)
+    (when-let ((tags (get-text-property parsed-posn 'tags)))
+      (put-text-property (point-min) (point-max) 'tags tags))))
 
 (defun erc-get-parsed-vector (point)
   "Return the whole parsed vector on POINT."
@@ -7473,6 +7495,13 @@ This function should be on `erc-kill-channel-hook'."
   "Return message type in the parsed vector VECT."
   (and vect
        (erc-response.command vect)))
+
+(defun erc--get-eq-comparable-cmd (command)
+  "Return a symbol or a fixnum representing a message's COMMAND.
+See also `erc-message-type'."
+  ;; IRC numerics are three-digit numbers, possibly with leading 0s.
+  ;; To invert: (if (numberp o) (format "%03d" o) (symbol-name o))
+  (if-let* ((n (string-to-number command)) ((zerop n))) (intern command) n))
 
 ;; Teach url.el how to open irc:// URLs with ERC.
 ;; To activate, customize `url-irc-function' to `url-irc-erc'.
