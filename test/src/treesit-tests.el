@@ -223,6 +223,89 @@
                (treesit-parser-root-node parser))
               "(document (array (number)))")))))
 
+(ert-deftest treesit-cross-boundary ()
+  "Tests for cross-boundary edits.
+Cross-boundary means crossing visible_beg and visible_end.  We
+don't test if parser parses correctly, instead we just check
+edits like this don't produce assertion errors.  (I inserted a
+bunch of assertions that checks e.g. visible_beg <=
+visible_end.)"
+  (with-temp-buffer
+    (let (parser root-node pattern doc-node object-node pair-node)
+      (progn
+        (insert "xxx[1,{\"name\": \"Bob\"},2,3]xxx")
+        (narrow-to-region (+ (point-min) 3) (- (point-max) 3))
+        (setq parser (treesit-parser-create 'json))
+        ;; Now visible_beg/end = visible boundary.
+        (setq root-node (treesit-parser-root-node parser)))
+      ;; Now parser knows the content of the visible region.
+      (widen)
+      ;; Now visible_beg/end don't change, but visible region expanded.
+      (delete-region 1 7)
+      ;; (1) This change is across visible_beg.  I expect
+      ;; ts_record_change to receive (start=1, old_end=7, new_end=1).
+      (treesit-parser-root-node parser)
+      ;; Above form forces a parse which calls
+      ;; `ts_ensure_position_synced'. Now visible_beg/end matches the
+      ;; visible region (whole buffer).  We want to test that this
+      ;; doesn't cause assertion error.
+
+      (should (equal "{\"name\": \"Bob\"},2,3]xxx" (buffer-string)))
+      (narrow-to-region 1 16)
+      (should (equal "{\"name\": \"Bob\"}" (buffer-string)))
+      (treesit-parser-root-node parser)
+      ;; Call `ts_ensure_position_synced' again to update visible_beg/end.
+      (widen)
+      (goto-char 14)
+      (insert "by")
+      ;; (2) This change is inside [visible_beg, visible_end].
+      (should (equal "{\"name\": \"Bobby\"},2,3]xxx" (buffer-string)))
+      (delete-region 14 23)
+      ;; This delete is across visible_end.
+      (should (equal "{\"name\": \"Bobxxx" (buffer-string)))
+      (treesit-parser-root-node parser)
+      ;; visible_beg/end synced.
+
+      (narrow-to-region 3 7)
+      (should (equal "name" (buffer-string)))
+      (treesit-parser-root-node parser)
+      ;; visible_beg/end synced.
+      (widen)
+      (goto-char (point-min))
+      (insert "zzz")
+      (should (equal "zzz{\"name\": \"Bobxxx" (buffer-string)))
+      ;; (3) Test inserting before visible_beg.
+      (treesit-parser-root-node parser)
+      ;; visible_beg/end synced.
+
+      (narrow-to-region 4 11)
+      (should (equal "{\"name\"" (buffer-string)))
+      (treesit-parser-root-node parser)
+      ;; visible_beg/end synced.
+      (widen)
+      (goto-char (point-max))
+      (insert "yyy")
+      ;; (4) This change is after visible_end.
+      (treesit-parser-root-node parser)
+      ;; Sync up visible_beg/end.
+      (should (equal "zzz{\"name\": \"Bobxxxyyy" (buffer-string)))
+
+      (narrow-to-region 1 17)
+      (should (equal "zzz{\"name\": \"Bob" (buffer-string)))
+      (treesit-parser-root-node parser)
+      ;; Sync up visible_beg/end.
+      (widen)
+      (delete-region 13 (point-max))
+      (treesit-parser-root-node parser)
+      ;; Sync up visible_beg/end.
+      (should (equal "zzz{\"name\": " (buffer-string)))
+      ;; Ideally we want to also test the case where we delete and
+      ;; insert simultaneously, but the only such use is in
+      ;; `casify_region', all others either only inserts or only
+      ;; deletes.  I'll leave it to someone to try to write a test
+      ;; that calls that.
+      )))
+
 (ert-deftest treesit-range ()
   "Tests if range works."
   (with-temp-buffer
