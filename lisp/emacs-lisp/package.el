@@ -2437,7 +2437,8 @@ object."
     ;; Delete the old .elc files to ensure that we don't inadvertently
     ;; load them (in case they contain byte code/macros that are now
     ;; invalid).
-    (dolist (elc (directory-files (package-desc-dir pkg-desc) t "\\.elc\\'"))
+    (dolist (elc (directory-files-recursively
+                  (package-desc-dir pkg-desc) "\\.elc\\'"))
       (delete-file elc))
     (package--compile pkg-desc)))
 
