@@ -115,9 +115,9 @@ If the symbol `files', use the OffiX protocol when dropping
 files, and the fallback drop method (which is used with programs
 like xterm) for text."
   :version "29.1"
-  :type '(choice (const "Don't use the OffiX protocol for drag-and-drop")
-                 (const "Only use the OffiX protocol to drop files")
-                 (const "Use the OffiX protocol for both files and text"))
+  :type '(choice (const :tag "Don't use the OffiX protocol for drag-and-drop" nil)
+                 (const :tag "Only use the OffiX protocol to drop files" files)
+                 (const :tag "Use the OffiX protocol for both files and text" t))
   :group 'x)
 
 ;; Internal variables
