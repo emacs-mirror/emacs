@@ -1663,11 +1663,11 @@ xm_read_targets_table_rec (uint8_t *bytes, ptrdiff_t length,
 
   nitems = *(uint16_t *) bytes;
 
-  if (length < 2 + nitems * 4)
-    return NULL;
-
   if (byteorder != XM_BYTE_ORDER_CUR_FIRST)
     SWAPCARD16 (nitems);
+
+  if (length < 2 + nitems * 4)
+    return NULL;
 
   rec = xmalloc (FLEXSIZEOF (struct xm_targets_table_rec,
 			     targets, nitems * 4));
