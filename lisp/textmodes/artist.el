@@ -184,7 +184,6 @@
 
 ;; Variables
 
-(defconst artist-version "1.2.6")
 (defconst artist-maintainer-address "tab@lysator.liu.se, bug-gnu-emacs@gnu.org")
 
 (defvar x-pointer-crosshair)
@@ -5361,13 +5360,16 @@ The event, EV, is the mouse event."
                (setq vars (delq x vars)))) vars)
 	(reporter-submit-bug-report
 	 artist-maintainer-address
-	 (concat "artist.el " artist-version)
+         (concat "artist.el in Emacs " emacs-version)
 	 vars
 	 nil nil
 	 (concat "Hello Tomas,\n\n"
 		 "I have a nice bug report on Artist for you! Here it is:")))))
 
 (define-obsolete-function-alias 'artist-uniq #'seq-uniq "28.1")
+
+(defconst artist-version "1.2.6")
+(make-obsolete-variable 'artist-version 'emacs-version "29.1")
 
 (provide 'artist)
 
