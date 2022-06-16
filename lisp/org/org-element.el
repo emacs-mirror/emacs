@@ -4391,6 +4391,7 @@ looking into captions:
 		       ;; every element it encounters.
 		       (and (not (eq category 'elements))
 			    (setq category 'elements))))))))
+         (--ignore-list (plist-get info :ignore-list))
 	 --acc)
     (letrec ((--walk-tree
 	      (lambda (--data)
@@ -4400,7 +4401,7 @@ looking into captions:
 		  (cond
 		   ((not --data))
 		   ;; Ignored element in an export context.
-		   ((and info (memq --data (plist-get info :ignore-list))))
+		   ((and info (memq --data --ignore-list)))
 		   ;; List of elements or objects.
 		   ((not --type) (mapc --walk-tree --data))
 		   ;; Unconditionally enter parse trees.
