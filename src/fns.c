@@ -2834,12 +2834,18 @@ FUNCTION must be a function of one argument, and must return a value
   SAFE_ALLOCA_LISP (args, args_alloc);
   ptrdiff_t nmapped = mapcar1 (leni, args, function, sequence);
   ptrdiff_t nargs = 2 * nmapped - 1;
+  eassert (nmapped == leni);
 
-  for (ptrdiff_t i = nmapped - 1; i > 0; i--)
-    args[i + i] = args[i];
+  if (!NILP (Fequal (separator, empty_multibyte_string)))
+    nargs = nmapped;
+  else
+    {
+      for (ptrdiff_t i = nmapped - 1; i > 0; i--)
+        args[i + i] = args[i];
 
-  for (ptrdiff_t i = 1; i < nargs; i += 2)
-    args[i] = separator;
+      for (ptrdiff_t i = 1; i < nargs; i += 2)
+        args[i] = separator;
+    }
 
   Lisp_Object ret = Fconcat (nargs, args);
   SAFE_FREE ();
