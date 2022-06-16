@@ -2757,20 +2757,26 @@ usage: (nconc &rest LISTS)  */)
 static EMACS_INT
 mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 {
-  if (VECTORP (seq) || COMPILEDP (seq))
+  if (NILP (seq))
+    return 0;
+  else if (CONSP (seq))
+    {
+      Lisp_Object tail = seq;
+      for (ptrdiff_t i = 0; i < leni; i++)
+	{
+	  if (! CONSP (tail))
+	    return i;
+	  Lisp_Object dummy = call1 (fn, XCAR (tail));
+	  if (vals)
+	    vals[i] = dummy;
+	  tail = XCDR (tail);
+	}
+    }
+  else if (VECTORP (seq) || COMPILEDP (seq))
     {
       for (ptrdiff_t i = 0; i < leni; i++)
 	{
 	  Lisp_Object dummy = call1 (fn, AREF (seq, i));
-	  if (vals)
-	    vals[i] = dummy;
-	}
-    }
-  else if (BOOL_VECTOR_P (seq))
-    {
-      for (EMACS_INT i = 0; i < leni; i++)
-	{
-	  Lisp_Object dummy = call1 (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
@@ -2788,17 +2794,14 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	    vals[i_before] = dummy;
 	}
     }
-  else   /* Must be a list, since Flength did not get an error */
+  else
     {
-      Lisp_Object tail = seq;
-      for (ptrdiff_t i = 0; i < leni; i++)
+      eassert (BOOL_VECTOR_P (seq));
+      for (EMACS_INT i = 0; i < leni; i++)
 	{
-	  if (! CONSP (tail))
-	    return i;
-	  Lisp_Object dummy = call1 (fn, XCAR (tail));
+	  Lisp_Object dummy = call1 (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
-	  tail = XCDR (tail);
 	}
     }
 
