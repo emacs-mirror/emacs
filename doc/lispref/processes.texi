@@ -3493,21 +3493,26 @@ any null bytes in the packed input string will appear in the unpacked
 output.
 
 @item strz &optional @var{len}
-If @var{len} is not provided: Variable-length null-terminated unibyte
-string (@pxref{Text Representations}).  When packing, the entire input
-string is copied to the packed output followed by a null (zero) byte.
-The length of the packed output is the length of the input string plus
-one (for the null terminator).  The input string must not contain any
-null bytes.  If the input string is multibyte with only ASCII and
+If @var{len} is not provided, this is a variable-length
+null-terminated unibyte string (@pxref{Text Representations}).  When
+packing into @code{strz}, the entire input string is copied to the
+packed output followed by a null (zero) byte.  (If pre-allocated
+string is provided for packing into @code{strz}, that pre-allocated
+string should have enough space for the additional null byte appended
+to the output string contents, @pxref{Bindat Functions}).  The length
+of the packed output is the length of the input string plus one (for
+the null terminator).  The input string must not contain any null
+bytes.  If the input string is multibyte with only ASCII and
 @code{eight-bit} characters, it is converted to unibyte before it is
-packed; other multibyte strings signal an error.  When unpacking, the
-resulting string contains all bytes up to (but excluding) the null
-byte.
+packed; other multibyte strings signal an error.  When unpacking a
+@code{strz}, the resulting output string will contain all bytes up to
+(but excluding) the null byte that terminated the input string.
 
-If @var{len} is provided: @code{strz} behaves the same as @code{str}
-with one difference: When unpacking, the first null byte encountered
-in the packed string and all subsequent bytes are excluded from the
-unpacked result.
+If @var{len} is provided, @code{strz} behaves the same as @code{str},
+but with one difference: when unpacking, the first null byte
+encountered in the packed string is interpreted as the terminating
+byte, and it and all subsequent bytes are excluded from the result of
+the unpacking.
 
 @quotation Caution
 The packed output will not be null-terminated unless one of the
