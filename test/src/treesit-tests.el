@@ -25,8 +25,7 @@
 (ert-deftest treesit-basic-parsing ()
   "Test basic parsing routines."
   (with-temp-buffer
-    (let ((parser (treesit-parser-create
-                   (current-buffer) 'json)))
+    (let ((parser (treesit-parser-create 'json)))
       (should
        (eq parser (car treesit-parser-list)))
       (should
@@ -55,8 +54,7 @@
     (let (parser root-node doc-node object-node pair-node)
       (progn
         (insert "[1,2,{\"name\": \"Bob\"},3]")
-        (setq parser (treesit-parser-create
-                      (current-buffer) 'json))
+        (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser)))
       ;; `treesit-node-type'.
@@ -129,8 +127,7 @@
     (let (parser root-node pattern doc-node object-node pair-node)
       (progn
         (insert "[1,2,{\"name\": \"Bob\"},3]")
-        (setq parser (treesit-parser-create
-                      (current-buffer) 'json))
+        (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser)))
 
@@ -181,8 +178,7 @@
       (progn
         (insert "xxx[1,{\"name\": \"Bob\"},2,3]xxx")
         (narrow-to-region (+ (point-min) 3) (- (point-max) 3))
-        (setq parser (treesit-parser-create
-                      (current-buffer) 'json))
+        (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser)))
       ;; This test is from the basic test.
@@ -233,8 +229,7 @@
     (let (parser root-node pattern doc-node object-node pair-node)
       (progn
         (insert "[[1],oooxxx[1,2,3],xxx[1,2]]")
-        (setq parser (treesit-parser-create
-                      (current-buffer) 'json))
+        (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser)))
       (should-error
@@ -258,9 +253,9 @@
     (let (html css js html-range css-range js-range)
       (progn
         (insert "<html><script>1</script><style>body {}</style></html>")
-        (setq html (treesit-get-parser-create 'html))
-        (setq css (treesit-get-parser-create 'css))
-        (setq js (treesit-get-parser-create 'javascript)))
+        (setq html (treesit-parser-create 'html))
+        (setq css (treesit-parser-create 'css))
+        (setq js (treesit-parser-create 'javascript)))
       ;; JavaScript.
       (setq js-range
             (treesit-query-range
@@ -287,13 +282,6 @@
 
 (ert-deftest treesit-parser-supplemental ()
   "Supplemental node functions."
-  ;; `treesit-get-parser'.
-  (with-temp-buffer
-    (should (equal (treesit-get-parser 'json) nil)))
-  ;; `treesit-get-parser-create'.
-  (with-temp-buffer
-    (should (not (equal (treesit-get-parser-create 'json)
-                        nil))))
   ;; `treesit-parse-string'.
   (should (equal (treesit-node-string
                   (treesit-parse-string
@@ -304,14 +292,10 @@
     (let (parser root-node doc-node object-node pair-node)
       (progn
         (insert "[1,2,{\"name\": \"Bob\"},3]")
-        (setq parser (treesit-parser-create
-                      (current-buffer) 'json))
+        (setq parser (treesit-parser-create 'json))
         (setq root-node (treesit-parser-root-node
                          parser))
         (setq doc-node (treesit-node-child root-node 0)))
-      ;; `treesit-get-parser'.
-      (should (not (equal (treesit-get-parser 'json)
-                          nil)))
       ;; `treesit-language-at'.
       (should (equal (treesit-language-at (point))
                      'json))
@@ -326,8 +310,7 @@
   (let (parser root-node doc-node array-node)
     (progn
       (insert "[1,2,{\"name\": \"Bob\"},3]")
-      (setq parser (treesit-parser-create
-                    (current-buffer) 'json))
+      (setq parser (treesit-parser-create 'json))
       (setq root-node (treesit-parser-root-node
                        parser))
       (setq doc-node (treesit-node-child root-node 0)))

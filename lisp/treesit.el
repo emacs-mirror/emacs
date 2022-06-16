@@ -65,27 +65,13 @@ available on the system at all."
 
 ;;; Parser API supplement
 
-(defun treesit-get-parser (language)
-  "Find the first parser using LANGUAGE in `treesit-parser-list'."
-  (catch 'found
-    (dolist (parser treesit-parser-list)
-      (when (eq language (treesit-parser-language parser))
-        (throw 'found parser)))))
-
-(defun treesit-get-parser-create (language)
-  "Find the first parser using LANGUAGE in `treesit-parser-list'.
-If none exists, create one and return it."
-  (or (treesit-get-parser language)
-      (treesit-parser-create
-       (current-buffer) language)))
-
 (defun treesit-parse-string (string language)
   "Parse STRING using a parser for LANGUAGE.
 Return the root node of the syntax tree."
   (with-temp-buffer
     (insert string)
     (treesit-parser-root-node
-     (treesit-parser-create (current-buffer) language))))
+     (treesit-parser-create language))))
 
 (defun treesit-language-at (point)
   "Return the language used at POINT."
@@ -97,7 +83,7 @@ Return the root node of the syntax tree."
   "Set the ranges of PARSER-OR-LANG to RANGES."
   (treesit-parser-set-included-ranges
    (cond ((symbolp parser-or-lang)
-          (or (treesit-get-parser parser-or-lang)
+          (or (treesit-parser-create parser-or-lang)
               (error "Cannot find a parser for %s" parser-or-lang)))
          ((treesit-parser-p parser-or-lang)
           parser-or-lang)
@@ -109,7 +95,7 @@ Return the root node of the syntax tree."
   "Get the ranges of PARSER-OR-LANG."
   (treesit-parser-included-ranges
    (cond ((symbolp parser-or-lang)
-          (or (treesit-get-parser parser-or-lang)
+          (or (treesit-parser-create parser-or-lang)
               (error "Cannot find a parser for %s" parser-or-lang)))
          ((treesit-parser-p parser-or-lang)
           parser-or-lang)
@@ -178,7 +164,7 @@ Use the first parser in `treesit-parser-list', if LANGUAGE is
 non-nil, use the first parser for LANGUAGE."
   (if-let ((parser
             (or (if language
-                    (or (treesit-get-parser language)
+                    (or (treesit-parser-create language)
                         (error "Cannot find a parser for %s" language))
                   (or (car treesit-parser-list)
                       (error "Buffer has no parser"))))))
@@ -410,7 +396,7 @@ Raise an treesit-query-error if QUERY is malformed."
 See `treesit-query-capture' for QUERY."
   (with-temp-buffer
     (insert string)
-    (let ((parser (treesit-parser-create (current-buffer) language)))
+    (let ((parser (treesit-parser-create language)))
       (treesit-query-capture
        (treesit-parser-root-node parser)
        query))))
@@ -520,7 +506,7 @@ If LOUDLY is non-nil, message some debugging information."
   (dolist (setting treesit-font-lock-settings)
     (when-let* ((language (nth 0 setting))
                 (match-pattern (nth 1 setting))
-                (parser (treesit-get-parser-create language)))
+                (parser (treesit-parser-create language)))
       (when-let ((node (treesit-node-on start end parser)))
         (let ((captures (treesit-query-capture
                          node match-pattern
@@ -888,7 +874,7 @@ parent in the tree, never go down into children when traversing
 the tree."
   (cl-loop for idx from 1 to (abs arg)
            for parser = (if lang
-                            (treesit-get-parser-create lang)
+                            (treesit-parser-create lang)
                           (car treesit-parser-list))
            for node =
            (if-let ((starting-point (point))
@@ -1088,7 +1074,7 @@ to the offending pattern and highlight the pattern."
   (cl-assert (or (consp query) (stringp query)))
   (let ((buf (get-buffer-create "*tree-sitter check query*")))
     (with-temp-buffer
-      (treesit-get-parser-create language)
+      (treesit-parser-create language)
       (condition-case err
           (progn (treesit-query-in language query)
                  (message "QUERY is valid"))

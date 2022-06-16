@@ -692,23 +692,38 @@ DEFUN ("treesit-node-parser",
 
 DEFUN ("treesit-parser-create",
        Ftreesit_parser_create, Streesit_parser_create,
-       2, 2, 0,
+       1, 3, 0,
        doc: /* Create and return a parser in BUFFER for LANGUAGE.
 
-The parser is automatically added to BUFFER's
-`treesit-parser-list'.  LANGUAGE should be the symbol of a
-function provided by a tree-sitter language dynamic module, e.g.,
-'treesit-json.  If BUFFER is nil, use the current buffer.  */)
-  (Lisp_Object buffer, Lisp_Object language)
+The parser is automatically added to BUFFER's `treesit-parser-list'.
+LANGUAGE is a language symbol.  If BUFFER is nil, use the current
+buffer.  If BUFFER already has a parser for LANGUAGE, return that
+parser.  If NO-REUSE is non-nil, always create a new parser.  */)
+  (Lisp_Object language, Lisp_Object buffer, Lisp_Object no_reuse)
 {
-  if (NILP (buffer))
-    buffer = Fcurrent_buffer ();
-
-  CHECK_BUFFER (buffer);
-  CHECK_SYMBOL (language);
-  ts_check_buffer_size (XBUFFER (buffer));
-
   ts_initialize ();
+
+  CHECK_SYMBOL (language);
+  struct buffer *old_buffer = current_buffer;
+  if (!NILP (buffer))
+    {
+      CHECK_BUFFER (buffer);
+      set_buffer_internal (XBUFFER (buffer));
+    }
+  ts_check_buffer_size (current_buffer);
+
+  /* See if we can reuse a parser.  */
+  for (Lisp_Object tail = Fsymbol_value (Qtreesit_parser_list);
+       NILP (no_reuse) && !NILP (tail);
+       tail = XCDR (tail))
+    {
+      struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
+      if (EQ (parser->language_symbol, language))
+	{
+	  set_buffer_internal (old_buffer);
+	  return XCAR (tail);
+	}
+    }
 
   TSParser *parser = ts_parser_new ();
   TSLanguage *lang = ts_load_language (language, true);
