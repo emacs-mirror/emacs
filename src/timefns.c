@@ -212,7 +212,7 @@ tzlookup (Lisp_Object zone, bool settz)
 
   if (NILP (zone))
     return local_tz;
-  else if (EQ (zone, Qt) || BASE_EQ (zone, make_fixnum (0)))
+  else if (BASE_EQ (zone, make_fixnum (0)) || BASE2_EQ (zone, Qt))
     {
       zone_string = "UTC0";
       new_tz = utc_tz;
@@ -221,7 +221,7 @@ tzlookup (Lisp_Object zone, bool settz)
     {
       bool plain_integer = FIXNUMP (zone);
 
-      if (EQ (zone, Qwall))
+      if (BASE2_EQ (zone, Qwall))
 	zone_string = 0;
       else if (STRINGP (zone))
 	zone_string = SSDATA (ENCODE_SYSTEM (zone));
@@ -729,7 +729,7 @@ decode_time_components (enum timeform form,
 
     case TIMEFORM_TICKS_HZ:
       if (INTEGERP (high)
-	  && (!NILP (Fnatnump (low)) && !BASE_EQ (low, make_fixnum (0))))
+	  && !NILP (Fnatnump (low)) && !BASE_EQ (low, make_fixnum (0)))
 	return decode_ticks_hz (high, low, result, dresult);
       return EINVAL;
 
@@ -1535,7 +1535,7 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
 
   /* Compute SEC from LOCAL_TM.tm_sec and HZ.  */
   Lisp_Object hz = lt.hz, sec;
-  if (BASE_EQ (hz, make_fixnum (1)) || !EQ (form, Qt))
+  if (BASE_EQ (hz, make_fixnum (1)) || !BASE2_EQ (form, Qt))
     sec = make_fixnum (local_tm.tm_sec);
   else
     {
@@ -1748,11 +1748,13 @@ bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
   if (NILP (form))
     form = current_time_list ? Qlist : Qt;
-  if (EQ (form, Qlist))
+  if (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (form))
+    form = SYMBOL_WITH_POS_SYM (form);
+  if (BASE_EQ (form, Qlist))
     return ticks_hz_list4 (t.ticks, t.hz);
-  if (EQ (form, Qinteger))
+  if (BASE_EQ (form, Qinteger))
     return FASTER_TIMEFNS && INTEGERP (time) ? time : lisp_time_seconds (t);
-  if (EQ (form, Qt))
+  if (BASE_EQ (form, Qt))
     form = t.hz;
   if (FASTER_TIMEFNS
       && input_form == TIMEFORM_TICKS_HZ && BASE_EQ (form, XCDR (time)))
