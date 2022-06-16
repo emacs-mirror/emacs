@@ -6901,6 +6901,7 @@ struct saved_window
   Lisp_Object left_col, top_line, total_cols, total_lines;
   Lisp_Object normal_cols, normal_lines;
   Lisp_Object hscroll, min_hscroll, hscroll_whole, suspend_auto_hscroll;
+  Lisp_Object vscroll;
   Lisp_Object parent, prev;
   Lisp_Object start_at_line_beg;
   Lisp_Object display_table;
@@ -7128,6 +7129,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->suspend_auto_hscroll = !NILP (p->suspend_auto_hscroll);
 	  w->min_hscroll = XFIXNAT (p->min_hscroll);
 	  w->hscroll_whole = XFIXNAT (p->hscroll_whole);
+	  w->vscroll = -XFIXNAT (p->vscroll);
 	  wset_display_table (w, p->display_table);
 	  w->left_margin_cols = XFIXNUM (p->left_margin_cols);
 	  w->right_margin_cols = XFIXNUM (p->right_margin_cols);
@@ -7462,6 +7464,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, ptrdiff_t i)
       p->suspend_auto_hscroll = w->suspend_auto_hscroll ? Qt : Qnil;
       XSETFASTINT (p->min_hscroll, w->min_hscroll);
       XSETFASTINT (p->hscroll_whole, w->hscroll_whole);
+      XSETFASTINT (p->vscroll, -w->vscroll);
       p->display_table = w->display_table;
       p->left_margin_cols = make_fixnum (w->left_margin_cols);
       p->right_margin_cols = make_fixnum (w->right_margin_cols);
