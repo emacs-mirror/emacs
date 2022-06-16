@@ -931,6 +931,7 @@ static const struct x_atom_ref x_atom_refs[] =
     ATOM_REFS_INIT ("CLIPBOARD_MANAGER", Xatom_CLIPBOARD_MANAGER)
     ATOM_REFS_INIT ("_XEMBED_INFO", Xatom_XEMBED_INFO)
     ATOM_REFS_INIT ("_MOTIF_WM_HINTS", Xatom_MOTIF_WM_HINTS)
+    ATOM_REFS_INIT ("_EMACS_DRAG_ATOM", Xatom_EMACS_DRAG_ATOM)
     /* For properties of font.  */
     ATOM_REFS_INIT ("PIXEL_SIZE", Xatom_PIXEL_SIZE)
     ATOM_REFS_INIT ("AVERAGE_WIDTH", Xatom_AVERAGE_WIDTH)
@@ -1296,6 +1297,11 @@ static bool x_dnd_inside_handle_one_xevent;
 /* The recursive edit depth when the drag-and-drop operation was
    started.  */
 static int x_dnd_recursion_depth;
+
+/* The cons cell containing the selection alias between the Motif drag
+   selection and `XdndSelection'.  The car and cdr are only set when
+   initiating Motif drag-and-drop for the first time.  */
+static Lisp_Object x_dnd_selection_alias_cell;
 
 /* Structure describing a single window that can be the target of
    drag-and-drop operations.  */
@@ -2172,12 +2178,95 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
   return idx;
 }
 
+static Atom
+xm_get_drag_atom_1 (struct x_display_info *dpyinfo)
+{
+  Atom actual_type, atom;
+  unsigned long nitems, bytes_remaining;
+  unsigned char *tmp_data;
+  unsigned long inumber;
+  int rc, actual_format;
+  char *buffer;
+
+  /* Make sure this operation is done atomically.  */
+  XGrabServer (dpyinfo->display);
+
+  rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
+			   dpyinfo->Xatom_EMACS_DRAG_ATOM,
+			   0, 1, False, XA_CARDINAL, &actual_type,
+			   &actual_format, &nitems, &bytes_remaining,
+			   &tmp_data);
+
+  if (rc == Success
+      && actual_format == 32 && nitems == 1
+      && actual_type == XA_CARDINAL)
+    {
+      inumber = *(unsigned long *) tmp_data;
+      inumber &= 0xffffffff;
+    }
+  else
+    inumber = 0;
+
+  if (tmp_data)
+    XFree (tmp_data);
+
+  if (X_LONG_MAX - inumber < 1)
+    inumber = 0;
+
+  inumber += 1;
+  buffer = dpyinfo->motif_drag_atom_name;
+
+  /* FIXME: this interns a unique atom for every Emacs session.
+     Eventually the atoms simply pile up.  It may be worth
+     implementing the Motif atoms table logic here.  */
+  sprintf (buffer, "_EMACS_ATOM_%lu", inumber);
+  atom = XInternAtom (dpyinfo->display, buffer, False);
+
+  XChangeProperty (dpyinfo->display, dpyinfo->root_window,
+		   dpyinfo->Xatom_EMACS_DRAG_ATOM, XA_CARDINAL, 32,
+		   PropModeReplace, (unsigned char *) &inumber, 1);
+
+  XUngrabServer (dpyinfo->display);
+  return atom;
+}
+
+static Atom
+xm_get_drag_atom (struct x_display_info *dpyinfo)
+{
+  Atom atom;
+
+  if (dpyinfo->motif_drag_atom != None)
+    atom = dpyinfo->motif_drag_atom;
+  else
+    atom = xm_get_drag_atom_1 (dpyinfo);
+
+  dpyinfo->motif_drag_atom = atom;
+  return atom;
+}
+
 static void
 xm_setup_drag_info (struct x_display_info *dpyinfo,
 		    struct frame *source_frame)
 {
+  Atom atom;
   xm_drag_initiator_info drag_initiator_info;
-  int idx;
+  int idx, rc;
+
+  atom = xm_get_drag_atom (dpyinfo);
+
+  x_catch_errors (dpyinfo->display);
+  XSetSelectionOwner (dpyinfo->display, atom,
+		      FRAME_X_WINDOW (source_frame),
+		      dpyinfo->last_user_time);
+  rc = x_had_errors_p (dpyinfo->display);
+  x_uncatch_errors_after_check ();
+
+  if (rc)
+    return;
+
+  XSETCAR (x_dnd_selection_alias_cell,
+	   x_atom_to_symbol (dpyinfo, atom));
+  XSETCDR (x_dnd_selection_alias_cell, QXdndSelection);
 
   idx = xm_setup_dnd_targets (dpyinfo, x_dnd_targets,
 			      x_dnd_n_targets);
@@ -2187,10 +2276,10 @@ xm_setup_drag_info (struct x_display_info *dpyinfo,
       drag_initiator_info.byteorder = XM_BYTE_ORDER_CUR_FIRST;
       drag_initiator_info.protocol = XM_DRAG_PROTOCOL_VERSION;
       drag_initiator_info.table_index = idx;
-      drag_initiator_info.selection = dpyinfo->Xatom_XdndSelection;
+      drag_initiator_info.selection = atom;
 
-      xm_write_drag_initiator_info (dpyinfo->display, FRAME_X_WINDOW (source_frame),
-				    dpyinfo->Xatom_XdndSelection,
+      xm_write_drag_initiator_info (dpyinfo->display,
+				    FRAME_X_WINDOW (source_frame), atom,
 				    dpyinfo->Xatom_MOTIF_DRAG_INITIATOR_INFO,
 				    &drag_initiator_info);
 
@@ -4334,7 +4423,7 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 				   XM_DROP_ACTION_DROP_CANCEL);
 	  dmsg.x = 0;
 	  dmsg.y = 0;
-	  dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
+	  dmsg.index_atom = xm_get_drag_atom (FRAME_DISPLAY_INFO (f));
 	  dmsg.source_window = FRAME_X_WINDOW (f);
 
 	  x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
@@ -11189,6 +11278,16 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   record_unwind_protect_void (release_xg_select);
 #endif
 
+  /* Set up a meaningless alias.  */
+  XSETCAR (x_dnd_selection_alias_cell, QSECONDARY);
+  XSETCDR (x_dnd_selection_alias_cell, QSECONDARY);
+
+  /* Bind this here.  The cell doesn't actually alias between
+     anything until `xm_setup_dnd_targets' is called.  */
+  specbind (Qx_selection_alias_alist,
+	    Fcons (x_dnd_selection_alias_cell,
+		   Vx_selection_alias_alist));
+
   /* Initialize most of the state for the drag-and-drop operation.  */
   x_dnd_in_progress = true;
   x_dnd_recursion_depth = command_loop_level + minibuf_level;
@@ -11392,7 +11491,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 					       XM_DROP_ACTION_DROP_CANCEL);
 		      dmsg.x = 0;
 		      dmsg.y = 0;
-		      dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
+		      dmsg.index_atom = xm_get_drag_atom (FRAME_DISPLAY_INFO (f));
 		      dmsg.source_window = FRAME_X_WINDOW (f);
 
 		      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
@@ -11430,7 +11529,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      /* Delete the Motif drag initiator info if it was set up.  */
 	      if (x_dnd_motif_setup_p)
 		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+				 xm_get_drag_atom (FRAME_DISPLAY_INFO (f)));
 
 
 	      /* Remove any type list set as well.  */
@@ -11485,7 +11584,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 					       XM_DROP_ACTION_DROP_CANCEL);
 		      dmsg.x = 0;
 		      dmsg.y = 0;
-		      dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
+		      dmsg.index_atom = xm_get_drag_atom (FRAME_DISPLAY_INFO (f));
 		      dmsg.source_window = FRAME_X_WINDOW (f);
 
 		      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
@@ -11522,7 +11621,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      /* Delete the Motif drag initiator info if it was set up.  */
 	      if (x_dnd_motif_setup_p)
 		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				 FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+				 xm_get_drag_atom (FRAME_DISPLAY_INFO (f)));
 
 
 	      /* Remove any type list set as well.  */
@@ -11566,7 +11665,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   /* Delete the Motif drag initiator info if it was set up.  */
   if (x_dnd_motif_setup_p)
     XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
+		     xm_get_drag_atom (FRAME_DISPLAY_INFO (f)));
 
   /* Remove any type list set as well.  */
   if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
@@ -15629,7 +15728,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	      emsg.zero = 0;
 	      emsg.timestamp = timestamp;
 	      emsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
-	      emsg.index_atom = dpyinfo->Xatom_XdndSelection;
+	      emsg.index_atom = xm_get_drag_atom (dpyinfo);
 
 	      if (x_dnd_motif_setup_p)
 		xm_send_top_level_enter_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
@@ -15701,8 +15800,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 				   XM_DROP_ACTION_DROP_CANCEL);
 	  dsmsg.x = 0;
 	  dsmsg.y = 0;
-	  dsmsg.index_atom
-	    = FRAME_DISPLAY_INFO (x_dnd_frame)->Xatom_XdndSelection;
+	  dsmsg.index_atom = xm_get_drag_atom (dpyinfo);
 	  dsmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
 	  x_dnd_send_xm_leave_for_drop (dpyinfo, x_dnd_frame,
@@ -16502,7 +16600,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	if (x_dnd_waiting_for_finish
 	    && x_dnd_waiting_for_motif_finish == 2
 	    && dpyinfo == x_dnd_waiting_for_motif_finish_display
-	    && eventp->selection == dpyinfo->Xatom_XdndSelection
+	    && eventp->selection == xm_get_drag_atom (dpyinfo)
 	    && (eventp->target == dpyinfo->Xatom_XmTRANSFER_SUCCESS
 		|| eventp->target == dpyinfo->Xatom_XmTRANSFER_FAILURE))
 	  {
@@ -17911,7 +18009,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    emsg.zero = 0;
 		    emsg.timestamp = event->xbutton.time;
 		    emsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
-		    emsg.index_atom = dpyinfo->Xatom_XdndSelection;
+		    emsg.index_atom = xm_get_drag_atom (dpyinfo);
 
 		    if (x_dnd_motif_setup_p)
 		      xm_send_top_level_enter_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
@@ -18525,7 +18623,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				dmsg.timestamp = event->xbutton.time;
 				dmsg.x = event->xbutton.x_root;
 				dmsg.y = event->xbutton.y_root;
-				dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
+				dmsg.index_atom = xm_get_drag_atom (dpyinfo);
 				dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
 				if (!XM_DRAG_STYLE_IS_DROP_ONLY (drag_receiver_info.protocol_style))
@@ -19636,7 +19734,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  emsg.zero = 0;
 			  emsg.timestamp = xev->time;
 			  emsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
-			  emsg.index_atom = dpyinfo->Xatom_XdndSelection;
+			  emsg.index_atom = xm_get_drag_atom (dpyinfo);
 
 			  if (x_dnd_motif_setup_p)
 			    xm_send_top_level_enter_message (dpyinfo, FRAME_X_WINDOW (x_dnd_frame),
@@ -19932,7 +20030,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					 instances of Emacs try to drag
 					 into the same window at the same
 					 time.  */
-				      dmsg.index_atom = dpyinfo->Xatom_XdndSelection;
+				      dmsg.index_atom = xm_get_drag_atom (dpyinfo);
 				      dmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
 				      if (!XM_DRAG_STYLE_IS_DROP_ONLY (drag_receiver_info.protocol_style))
@@ -22823,7 +22921,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 					   XM_DROP_ACTION_DROP_CANCEL);
 		  dmsg.x = 0;
 		  dmsg.y = 0;
-		  dmsg.index_atom = FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection;
+		  dmsg.index_atom = xm_get_drag_atom (FRAME_DISPLAY_INFO (f));
 		  dmsg.source_window = FRAME_X_WINDOW (f);
 
 		  x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
@@ -25253,6 +25351,10 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
   if (!strcmp (name, "WINDOW"))
     return XA_WINDOW;
 
+  if (dpyinfo->motif_drag_atom != None
+      && !strcmp (name, dpyinfo->motif_drag_atom_name))
+    return dpyinfo->motif_drag_atom;
+
   for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
     {
       ptr = (char *) dpyinfo;
@@ -25311,6 +25413,10 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
       return xstrdup ("WINDOW");
 
     default:
+      if (dpyinfo->motif_drag_atom
+	  && atom == dpyinfo->motif_drag_atom)
+	return xstrdup (dpyinfo->motif_drag_atom_name);
+
       if (atom == dpyinfo->Xatom_xsettings_sel)
 	{
 	  sprintf (buffer, "_XSETTINGS_S%d",
@@ -27203,6 +27309,9 @@ syms_of_xterm (void)
   x_dnd_action_symbol = Qnil;
   staticpro (&x_dnd_action_symbol);
 
+  x_dnd_selection_alias_cell = Fcons (Qnil, Qnil);
+  staticpro (&x_dnd_selection_alias_cell);
+
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
   DEFSYM (Qnow, "now");
@@ -27291,6 +27400,7 @@ With MS Windows, Haiku windowing or Nextstep, the value is t.  */);
   DEFSYM (Qsuper, "super");
   Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
   DEFSYM (QXdndSelection, "XdndSelection");
+  DEFSYM (Qx_selection_alias_alist, "x-selection-alias-alist");
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* Which keys Emacs uses for the ctrl modifier.

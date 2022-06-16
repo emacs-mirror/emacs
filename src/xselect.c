@@ -774,6 +774,25 @@ x_handle_selection_request (struct selection_input_event *event)
   bool success = false;
   specpdl_ref count = SPECPDL_INDEX ();
   bool pushed;
+  Lisp_Object alias, tem;
+
+  alias = Vx_selection_alias_alist;
+
+  FOR_EACH_TAIL_SAFE (alias)
+    {
+      tem = Qnil;
+
+      if (CONSP (alias))
+	tem = XCAR (alias);
+
+      if (CONSP (tem)
+	  && EQ (XCAR (tem), selection_symbol)
+	  && SYMBOLP (XCDR (tem)))
+	{
+	  selection_symbol = XCDR (tem);
+	  break;
+	}
+    }
 
   pushed = false;
 
@@ -2055,14 +2074,26 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
    Lisp_Object time_stamp, Lisp_Object terminal)
 {
   Lisp_Object val = Qnil;
+  Lisp_Object maybe_alias;
   struct frame *f = frame_for_x_selection (terminal);
 
   CHECK_SYMBOL (selection_symbol);
   CHECK_SYMBOL (target_type);
+
   if (EQ (target_type, QMULTIPLE))
     error ("Retrieving MULTIPLE selections is currently unimplemented");
   if (!f)
     error ("X selection unavailable for this frame");
+
+  /* Quitting inside this function is okay, so we don't have to use
+     FOR_EACH_TAIL_SAFE.  */
+  maybe_alias = Fassq (selection_symbol, Vx_selection_alias_alist);
+
+  if (!NILP (maybe_alias))
+    {
+      selection_symbol = XCDR (maybe_alias);
+      CHECK_SYMBOL (selection_symbol);
+    }
 
   val = x_get_local_selection (selection_symbol, target_type, true,
 			       FRAME_DISPLAY_INFO (f));
@@ -2817,6 +2848,15 @@ If non-nil, selection converters for string types (`STRING',
 `UTF8_STRING', `COMPOUND_TEXT', etc) will encode the strings, even
 when Emacs itself is converting the selection.  */);
   Vx_treat_local_requests_remotely = Qnil;
+
+  DEFVAR_LISP ("x-selection-alias-alist", Vx_selection_alias_alist,
+    doc: /* List of selections to alias to another.
+It should be an alist of a selection name to another.  When a
+selection request arrives for the first selection, Emacs will respond
+as if the request was meant for the other.
+
+Note that this does not affect setting or owning selections.  */);
+  Vx_selection_alias_alist = Qnil;
 
   /* QPRIMARY is defined in keyboard.c.  */
   DEFSYM (QSECONDARY, "SECONDARY");
