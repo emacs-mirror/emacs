@@ -983,6 +983,11 @@ list-packages'.
 This command allows updating all packages without any queries.
 
 +++
+*** New commands 'package-recompile' and 'package-recompile-all'.
+These commands can be useful if the .elc files are out of date
+(invalid byte code and macros).
+
++++
 *** New DWIM action on 'x' in "*Packages*" buffer.
 If no packages are marked, 'x' will install the package under point if
 it isn't already, and remove it if it is installed.
