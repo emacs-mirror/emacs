@@ -1559,8 +1559,8 @@ return value is suitable for appending to an image spec."
 
 (defun image-transform-fit-to-height ()
   "Fit the current image to the height of the current window."
-  (interactive)
   (declare (obsolete nil "29.1"))
+  (interactive)
   (setq image-transform-resize 'fit-height)
   (image-toggle-display-image))
 

@@ -303,8 +303,7 @@ Prepend remote identification of `default-directory', if any."
 
 (defmacro eshell-for (for-var for-list &rest forms)
   "Iterate through a list."
-  (declare (obsolete dolist "24.1"))
-  (declare (indent 2))
+  (declare (obsolete dolist "24.1") (indent 2))
   `(let ((list-iter ,for-list))
      (while list-iter
        (let ((,for-var (car list-iter)))

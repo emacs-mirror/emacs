@@ -1372,8 +1372,8 @@ it is displayed along with the global value."
 (put 'help-fns-edit-variable 'disabled t)
 (defun help-fns-edit-variable ()
   "Edit the variable under point."
-  (interactive)
   (declare (completion ignore))
+  (interactive)
   (let ((var (get-text-property (point) 'help-fns--edit-variable)))
     (unless var
       (error "No variable under point"))
