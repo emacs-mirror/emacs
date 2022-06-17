@@ -301,7 +301,7 @@ the lexically-bound variable `buffer'."
        (bookmark-set "foo")
        (should (equal major-mode 'bookmark-edit-annotation-mode))
        ;; Should return to the original buffer
-       (bookmark-send-edited-annotation)
+       (bookmark-edit-annotation-confirm)
        (should (equal (current-buffer) buffer))))))
 
 (ert-deftest bookmark-tests-kill-line ()
@@ -334,7 +334,7 @@ the lexically-bound variable `buffer'."
   (with-bookmark-test
    (bookmark-edit-annotation "name")
    (insert "new text")
-   (bookmark-send-edited-annotation)
+   (bookmark-edit-annotation-confirm)
    (should (equal (bookmark-get-annotation "name") "new text"))))
 
 (ert-deftest bookmark-tests-jump ()
@@ -471,7 +471,7 @@ testing `bookmark-bmenu-list'."
   (with-bookmark-bmenu-test
    (bookmark-bmenu-edit-annotation)
    (insert "foo")
-   (bookmark-send-edited-annotation)
+   (bookmark-edit-annotation-confirm)
    (should (equal (bookmark-get-annotation "name") "foo"))))
 
 (ert-deftest bookmark-test-bmenu-send-edited-annotation/restore-focus ()
@@ -479,7 +479,7 @@ testing `bookmark-bmenu-list'."
   (with-bookmark-bmenu-test
    (bookmark-bmenu-edit-annotation)
    (insert "foo")
-   (bookmark-send-edited-annotation)
+   (bookmark-edit-annotation-confirm)
    (should (equal (buffer-name (current-buffer)) bookmark-bmenu-buffer))
    (beginning-of-line)
    (forward-char 4)
