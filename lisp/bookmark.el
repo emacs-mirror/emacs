@@ -1028,10 +1028,12 @@ annotations."
 	  (format-message
            "#  All lines which start with a `#' will be deleted.\n")
           (substitute-command-keys
-           "#  Type \\[bookmark-send-edited-annotation] when done.\n#\n")
+           (concat
+            "#  Type \\[bookmark-send-edited-annotation] when done.  Type "
+            "\\[bookmark-edit-annotation-cancel] to cancel.\n#\n"))
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
 	  (system-name) ">\n"
-	  "#  Date:    " (current-time-string) "\n"))
+          "#  Date:   " (current-time-string) "\n"))
 
 
 (defvar bookmark-edit-annotation-text-func 'bookmark-default-annotation-text
@@ -1041,7 +1043,8 @@ It takes one argument, the name of the bookmark, as a string.")
 (defvar-keymap bookmark-edit-annotation-mode-map
   :doc "Keymap for editing an annotation of a bookmark."
   :parent text-mode-map
-  "C-c C-c" #'bookmark-send-edited-annotation)
+  "C-c C-c" #'bookmark-send-edited-annotation
+  "C-c C-k" #'bookmark-edit-annotation-cancel)
 
 (defun bookmark-insert-annotation (bookmark-name-or-record)
   "Insert annotation for BOOKMARK-NAME-OR-RECORD at point."
@@ -1055,10 +1058,30 @@ It takes one argument, the name of the bookmark, as a string.")
 (define-derived-mode bookmark-edit-annotation-mode
   text-mode "Edit Bookmark Annotation"
   "Mode for editing the annotation of bookmarks.
-When you have finished composing, type \\[bookmark-send-edited-annotation].
+\\<bookmark-edit-annotation-mode-map>\
+When you have finished composing, type \\[bookmark-send-edited-annotation] \
+or \\[bookmark-edit-annotation-cancel] to cancel.
 
 \\{bookmark-edit-annotation-mode-map}")
 
+(defmacro bookmark-edit-annotation--maybe-display-list (&rest body)
+  "Display bookmark list after editing if appropriate."
+  `(let ((from-bookmark-list bookmark--annotation-from-bookmark-list)
+         (old-buffer (current-buffer)))
+     ,@body
+     (quit-window)
+     (bookmark-bmenu-surreptitiously-rebuild-list)
+     (when from-bookmark-list
+       (pop-to-buffer (get-buffer bookmark-bmenu-buffer))
+       (goto-char (point-min))
+       (bookmark-bmenu-bookmark))
+     (kill-buffer old-buffer)))
+
+(defun bookmark-edit-annotation-cancel ()
+  "Cancel the current annotation edit."
+  (interactive nil bookmark-edit-annotation-mode)
+  (bookmark-edit-annotation--maybe-display-list
+   (message "Canceled by user")))
 
 (defun bookmark-send-edited-annotation ()
   "Use buffer contents as annotation for a bookmark.
@@ -1072,22 +1095,14 @@ Lines beginning with `#' are ignored."
         (bookmark-kill-line t)
       (forward-line 1)))
   ;; Take no chances with text properties.
-  (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
-        (bookmark-name bookmark-annotation-name)
-        (from-bookmark-list bookmark--annotation-from-bookmark-list)
-        (old-buffer (current-buffer)))
-    (bookmark-set-annotation bookmark-name annotation)
-    (bookmark-update-last-modified bookmark-name)
-    (setq bookmark-alist-modification-count
-          (1+ bookmark-alist-modification-count))
-    (message "Annotation updated for \"%s\"" bookmark-name)
-    (quit-window)
-    (bookmark-bmenu-surreptitiously-rebuild-list)
-    (when from-bookmark-list
-      (pop-to-buffer (get-buffer bookmark-bmenu-buffer))
-      (goto-char (point-min))
-      (bookmark-bmenu-bookmark))
-    (kill-buffer old-buffer)))
+  (bookmark-edit-annotation--maybe-display-list
+   (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
+         (bookmark-name bookmark-annotation-name))
+     (bookmark-set-annotation bookmark-name annotation)
+     (bookmark-update-last-modified bookmark-name)
+     (setq bookmark-alist-modification-count
+           (1+ bookmark-alist-modification-count))
+     (message "Annotation updated for \"%s\"" bookmark-name))))
 
 
 (defun bookmark-edit-annotation (bookmark-name-or-record &optional from-bookmark-list)

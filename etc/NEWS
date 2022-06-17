@@ -1786,6 +1786,10 @@ This will display bookmark list from most recently set to least
 recently set.
 
 ---
+*** When editing a bookmark annotation, 'C-c C-k' will now cancel.
+It is bound to the new command 'bookmark-edit-annotation-cancel'.
+
+---
 *** New minor mode 'elide-head-mode'.
 Enabling this minor mode turns on hiding header material, like
 'elide-head' does; disabling it shows the header.  The commands
