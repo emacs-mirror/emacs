@@ -9478,7 +9478,10 @@ DEFUN ("x-display-set-last-user-time", Fx_display_last_user_time,
 TIME-OBJECT is the X server time, in milliseconds, of the last user
 interaction.  This is the timestamp that `x-get-selection-internal'
 will use by default to fetch selection data.
-TERMINAL is the terminal on which the user interaction occurred.  */)
+The optional second argument TERMINAL specifies which display to act
+on.  TERMINAL should be a terminal object, a frame or a display name
+(a string).  If TERMINAL is omitted or nil, that stands for the
+selected frame's display.  */)
   (Lisp_Object time_object, Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo;
