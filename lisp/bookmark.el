@@ -1027,7 +1027,8 @@ annotations."
            bookmark-name)
 	  (format-message
            "#  All lines which start with a `#' will be deleted.\n")
-	  "#  Type C-c C-c when done.\n#\n"
+          (substitute-command-keys
+           "#  Type \\[bookmark-send-edited-annotation] when done.\n#\n")
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
 	  (system-name) ">\n"
 	  "#  Date:    " (current-time-string) "\n"))
@@ -1094,8 +1095,8 @@ Lines beginning with `#' are ignored."
 If optional argument FROM-BOOKMARK-LIST is non-nil, return to the
 bookmark list when editing is done."
   (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
-  (bookmark-insert-annotation bookmark-name-or-record)
   (bookmark-edit-annotation-mode)
+  (bookmark-insert-annotation bookmark-name-or-record)
   (setq bookmark--annotation-from-bookmark-list from-bookmark-list)
   (setq bookmark-annotation-name bookmark-name-or-record))
 
