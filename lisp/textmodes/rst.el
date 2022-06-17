@@ -522,7 +522,7 @@ argument list for `rst-re'.")
 
 (defvar rst-re-alist) ; Forward declare to use it in `rst-re'.
 
-;; FIXME: Use `sregex' or `rx' instead of re-inventing the wheel.
+;; FIXME: Use `rx' instead of re-inventing the wheel.
 (rst-testcover-add-compose 'rst-re)
 (defun rst-re (&rest args)
   ;; testcover: ok.

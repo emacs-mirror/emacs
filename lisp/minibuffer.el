@@ -1677,8 +1677,8 @@ DONT-CYCLE tells the function not to setup cycling."
                    map)))))))))
 
 (defvar minibuffer-confirm-exit-commands
-  '(completion-at-point minibuffer-complete
-    minibuffer-complete-word PC-complete PC-complete-word)
+  '( completion-at-point minibuffer-complete
+     minibuffer-complete-word)
   "List of commands which cause an immediately following
 `minibuffer-complete-and-exit' to ask for extra confirmation.")
 
