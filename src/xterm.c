@@ -1063,6 +1063,7 @@ static void x_frame_rehighlight (struct x_display_info *);
 static void x_clip_to_row (struct window *, struct glyph_row *,
 			   enum glyph_row_area, GC);
 static struct scroll_bar *x_window_to_scroll_bar (Display *, Window, int);
+static struct frame *x_window_to_frame (struct x_display_info *, int);
 static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
                                         enum scroll_bar_part *,
                                         Lisp_Object *, Lisp_Object *,
@@ -2197,6 +2198,7 @@ xm_get_drag_atom_1 (struct x_display_info *dpyinfo,
   int rc, actual_format;
   unsigned long i;
   char *buffer;
+  Window owner;
 
   /* Make sure this operation is done atomically.  */
   XGrabServer (dpyinfo->display);
@@ -2221,11 +2223,18 @@ xm_get_drag_atom_1 (struct x_display_info *dpyinfo,
 
       for (i = 0; i < nitems; ++i)
 	{
-	  if (XGetSelectionOwner (dpyinfo->display,
-				  atoms[i]) == None
-	      && !x_had_errors_p (dpyinfo->display))
+	  owner = XGetSelectionOwner (dpyinfo->display, atoms[i]);
+
+	  if (!x_had_errors_p (dpyinfo->display)
+	      && (owner == None
+		  /* If we already own this selection (even if another
+		     frame owns it), use it.  There is no way of
+		     knowing when ownership was asserted, so it still
+		     has to be owned again.  */
+		  || x_window_to_frame (dpyinfo, owner)))
 	    {
 	      atom = atoms[i];
+
 	      break;
 	    }
 	}
