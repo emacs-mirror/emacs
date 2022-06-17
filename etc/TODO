@@ -806,7 +806,7 @@ kermit, log-edit, makesum, midnight [other than in Kill Buffer node],
 mouse-copy [?], mouse-drag, mouse-sel, net-utils, rcompile, snmp-mode
 [?], soundex [should be interactive?], strokes [start from the web
 page], talk, thingatpt [interactive functions?], type-break, vcursor,
-xscheme, zone-mode [?], mlconvert [?], iso-cvt, feedmail [?], uce,
+xscheme, zone-mode [?], mlconvert [?], iso-cvt, feedmail [?],
 gametree, page-ext, refbib, refer, scribe, texinfo, underline,
 cmacexp, hideif, pcomplete, xml, cvs-status (should be described in
 PCL-CVS manual); other progmodes, probably in separate manual.

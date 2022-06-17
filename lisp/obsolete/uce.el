@@ -5,6 +5,7 @@
 ;; Author: stanislav shalunov <shalunov@mccme.ru>
 ;; Created: 10 Dec 1996
 ;; Keywords: mail, uce, unsolicited commercial email
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
