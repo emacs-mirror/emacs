@@ -942,7 +942,8 @@ implementation will be used."
 		  (or (null program) tramp-process-connection-type))
 		 (bmp (and (buffer-live-p buffer) (buffer-modified-p buffer)))
 		 (name1 name)
-		 (i 0))
+		 (i 0)
+		 p)
 
 	    (when (string-match-p "[[:multibyte:]]" command)
 	      (tramp-error
@@ -953,9 +954,6 @@ implementation will be used."
 	      (setq i (1+ i)
 		    name1 (format "%s<%d>" name i)))
 	    (setq name name1)
-	    ;; Set the new process properties.
-	    (tramp-set-connection-property v "process-name" name)
-	    (tramp-set-connection-property v "process-buffer" buffer)
 
 	    (with-current-buffer (tramp-get-connection-buffer v)
 	      (unwind-protect
@@ -963,45 +961,52 @@ implementation will be used."
 		  ;; could be called on the local host.
 		  (save-excursion
 		    (save-restriction
-		      ;; Activate narrowing in order to save BUFFER
-		      ;; contents.  Clear also the modification time;
-		      ;; otherwise we might be interrupted by
-		      ;; `verify-visited-file-modtime'.
-		      (let ((buffer-undo-list t)
-			    (inhibit-read-only t)
-			    (coding-system-for-write
-			     (if (symbolp coding) coding (car coding)))
-			    (coding-system-for-read
-			     (if (symbolp coding) coding (cdr coding))))
-			(clear-visited-file-modtime)
-			(narrow-to-region (point-max) (point-max))
-			;; We call `tramp-adb-maybe-open-connection',
-			;; in order to cleanup the prompt afterwards.
-			(tramp-adb-maybe-open-connection v)
-			(delete-region (point-min) (point-max))
-			;; Send the command.
-			(let* ((p (tramp-get-connection-process v)))
-                          (tramp-adb-send-command v command nil t) ; nooutput
-			  ;; Set sentinel and filter.
-			  (when sentinel
-			    (set-process-sentinel p sentinel))
-			  (when filter
-			    (set-process-filter p filter))
-			  (process-put p 'remote-command orig-command)
+		      (with-tramp-saved-connection-property v "process-name"
+			(with-tramp-saved-connection-property v "process-buffer"
+			  ;; Set the new process properties.
+			  (tramp-set-connection-property v "process-name" name)
 			  (tramp-set-connection-property
-			   p "remote-command" orig-command)
-			  ;; Set query flag and process marker for
-			  ;; this process.  We ignore errors, because
-			  ;; the process could have finished already.
-			  (ignore-errors
-			    (set-process-query-on-exit-flag p (null noquery))
-			    (set-marker (process-mark p) (point)))
-			  ;; We must flush them here already;
+			   v "process-buffer" buffer)
+			  ;; Activate narrowing in order to save
+			  ;; BUFFER contents.  Clear also the
+			  ;; modification time; otherwise we might be
+			  ;; interrupted by `verify-visited-file-modtime'.
+			  (let ((buffer-undo-list t)
+				(inhibit-read-only t)
+				(coding-system-for-write
+				 (if (symbolp coding) coding (car coding)))
+				(coding-system-for-read
+				 (if (symbolp coding) coding (cdr coding))))
+			    (clear-visited-file-modtime)
+			    (narrow-to-region (point-max) (point-max))
+			    ;; We call `tramp-adb-maybe-open-connection',
+			    ;; in order to cleanup the prompt
+			    ;; afterwards.
+			    (tramp-adb-maybe-open-connection v)
+			    (delete-region (point-min) (point-max))
+			    ;; Send the command.
+			    (setq p (tramp-get-connection-process v))
+                            (tramp-adb-send-command v command nil t) ; nooutput
+			    ;; Set sentinel and filter.
+			    (when sentinel
+			      (set-process-sentinel p sentinel))
+			    (when filter
+			      (set-process-filter p filter))
+			    (process-put p 'remote-command orig-command)
+			    (tramp-set-connection-property
+			     p "remote-command" orig-command)
+			    ;; Set query flag and process marker for
+			    ;; this process.  We ignore errors,
+			    ;; because the process could have finished
+			    ;; already.
+			    (ignore-errors
+			      (set-process-query-on-exit-flag p (null noquery))
+			      (set-marker (process-mark p) (point))))
+
+			  ;; Copy tmpstderr file.  "process-buffer"
+			  ;; and "process-name" must be reset already;
 			  ;; otherwise `rename-file', `delete-file' or
 			  ;; `insert-file-contents' will fail.
-			  (tramp-flush-connection-property v "process-name")
-			  (tramp-flush-connection-property v "process-buffer")
-			  ;; Copy tmpstderr file.
 			  (when (and (stringp stderr)
 				     (not (tramp-tramp-file-p stderr)))
 			    (add-function
@@ -1038,13 +1043,13 @@ implementation will be used."
 			  p))))
 
 		;; Save exit.
+		;; FIXME: Does `tramp-get-connection-process' return
+		;; the proper value?
 		(if (string-prefix-p tramp-temp-buffer-name (buffer-name))
 		    (ignore-errors
 		      (set-process-buffer (tramp-get-connection-process v) nil)
 		      (kill-buffer (current-buffer)))
-		  (set-buffer-modified-p bmp))
-		(tramp-flush-connection-property v "process-name")
-		(tramp-flush-connection-property v "process-buffer")))))))))
+		  (set-buffer-modified-p bmp))))))))))
 
 (defun tramp-adb-handle-exec-path ()
   "Like `exec-path' for Tramp files."
@@ -1360,7 +1365,7 @@ connection if a previous connection has died for some reason."
     (funcall orig-fun)))
 
 (add-function
- :around  (symbol-function #'shell-mode) #'tramp-adb-tolerate-tilde)
+ :around (symbol-function #'shell-mode) #'tramp-adb-tolerate-tilde)
 (add-hook 'tramp-adb-unload-hook
 	  (lambda ()
 	    (remove-function

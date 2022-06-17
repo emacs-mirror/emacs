@@ -522,11 +522,12 @@ host runs a restricted shell, it shall be added to this list, too."
   (concat
    "\\`"
    (regexp-opt
-    (list "localhost" "localhost6" tramp-system-name "127.0.0.1" "::1") t)
+    `("localhost" "localhost4" "localhost6" ,tramp-system-name "127.0.0.1" "::1")
+    t)
    "\\'")
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
-  :version "27.1"
+  :version "29.1"
   :type '(choice (const :tag "Chrooted environment" nil)
 		 (regexp :tag "Host regexp")))
 
@@ -2392,6 +2393,16 @@ FILE must be a local file name on a connection identified via VEC."
        (setq value (progn ,@body))
        (tramp-set-connection-property ,key ,property value))
      value))
+
+(defmacro with-tramp-saved-connection-property (key property &rest body)
+  "Save PROPERTY, run BODY, reset PROPERTY."
+  (declare (indent 2) (debug t))
+  `(let ((value (tramp-get-connection-property
+		 ,key ,property tramp-cache-undefined)))
+     (unwind-protect (progn ,@body)
+       (if (eq value tramp-cache-undefined)
+	   (tramp-flush-connection-property ,key ,property)
+	 (tramp-set-connection-property ,key ,property value)))))
 
 (defun tramp-drop-volume-letter (name)
   "Cut off unnecessary drive letter from file NAME.

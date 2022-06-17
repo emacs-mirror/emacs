@@ -519,50 +519,50 @@ arguments to pass to the OPERATION."
 					    "tar qx -")))))
 
 		(unwind-protect
-		    (with-temp-buffer
-		      ;; Set the transfer process properties.
-		      (tramp-set-connection-property
-		       v "process-name" (buffer-name (current-buffer)))
-		      (tramp-set-connection-property
-		       v "process-buffer" (current-buffer))
+		    (with-tramp-saved-connection-property v "process-name"
+		      (with-tramp-saved-connection-property v "process-buffer"
+			(with-temp-buffer
+			  ;; Set the transfer process properties.
+			  (tramp-set-connection-property
+			   v "process-name" (buffer-name (current-buffer)))
+			  (tramp-set-connection-property
+			   v "process-buffer" (current-buffer))
 
-		      (when t1
-			;; The smbclient tar command creates always
-			;; complete paths.  We must emulate the
-			;; directory structure, and symlink to the
-			;; real target.
-			(make-directory
-			 (expand-file-name
-			  ".." (concat tmpdir localname))
-			 'parents)
-			(make-symbolic-link
-			 newname
-			 (directory-file-name (concat tmpdir localname))))
+			  (when t1
+			    ;; The smbclient tar command creates
+			    ;; always complete paths.  We must emulate
+			    ;; the directory structure, and symlink to
+			    ;; the real target.
+			    (make-directory
+			     (expand-file-name
+			      ".." (concat tmpdir localname))
+			     'parents)
+			    (make-symbolic-link
+			     newname
+			     (directory-file-name (concat tmpdir localname))))
 
-		      ;; Use an asynchronous processes.  By this,
-		      ;; password can be handled.
-		      (let* ((default-directory tmpdir)
-			     (p (apply
-				 #'start-process
-				 (tramp-get-connection-name v)
-				 (tramp-get-connection-buffer v)
-				 tramp-smb-program args)))
+			  ;; Use an asynchronous processes.  By this,
+			  ;; password can be handled.
+			  (let* ((default-directory tmpdir)
+				 (p (apply
+				     #'start-process
+				     (tramp-get-connection-name v)
+				     (tramp-get-connection-buffer v)
+				     tramp-smb-program args)))
 
-			(tramp-message
-			 v 6 "%s" (string-join (process-command p) " "))
-			(process-put p 'vector v)
-			(process-put p 'adjust-window-size-function #'ignore)
-			(set-process-query-on-exit-flag p nil)
-			(tramp-process-actions
-			 p v nil tramp-smb-actions-with-tar)
+			    (tramp-message
+			     v 6 "%s" (string-join (process-command p) " "))
+			    (process-put p 'vector v)
+			    (process-put p 'adjust-window-size-function #'ignore)
+			    (set-process-query-on-exit-flag p nil)
+			    (tramp-process-actions
+			     p v nil tramp-smb-actions-with-tar)
 
-			(while (process-live-p p)
-			  (sleep-for 0.1))
-			(tramp-message v 6 "\n%s" (buffer-string))))
+			    (while (process-live-p p)
+			      (sleep-for 0.1))
+			    (tramp-message v 6 "\n%s" (buffer-string))))))
 
-		  ;; Reset the transfer process properties.
-		  (tramp-flush-connection-property v "process-name")
-		  (tramp-flush-connection-property v "process-buffer")
+		  ;; Save exit.
 		  (when t1 (delete-directory tmpdir 'recursive))))
 
 	      ;; Handle KEEP-DATE argument.
@@ -824,33 +824,31 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 				(concat "2>" (tramp-get-remote-null-device v)))))
 
 	    (unwind-protect
-		(with-temp-buffer
-		  ;; Set the transfer process properties.
-		  (tramp-set-connection-property
-		   v "process-name" (buffer-name (current-buffer)))
-		  (tramp-set-connection-property
-		   v "process-buffer" (current-buffer))
+		(with-tramp-saved-connection-property v "process-name"
+		  (with-tramp-saved-connection-property v "process-buffer"
+		    (with-temp-buffer
+		      ;; Set the transfer process properties.
+		      (tramp-set-connection-property
+		       v "process-name" (buffer-name (current-buffer)))
+		      (tramp-set-connection-property
+		       v "process-buffer" (current-buffer))
 
-		  ;; Use an asynchronous process.  By this, password can
-		  ;; be handled.
-		  (let ((p (apply
-			    #'start-process
-			    (tramp-get-connection-name v)
-			    (tramp-get-connection-buffer v)
-			    tramp-smb-acl-program args)))
+		      ;; Use an asynchronous process.  By this,
+		      ;; password can be handled.
+		      (let ((p (apply
+				#'start-process
+				(tramp-get-connection-name v)
+				(tramp-get-connection-buffer v)
+				tramp-smb-acl-program args)))
 
-		    (tramp-message
-		     v 6 "%s" (string-join (process-command p) " "))
-		    (process-put p 'vector v)
-		    (process-put p 'adjust-window-size-function #'ignore)
-		    (set-process-query-on-exit-flag p nil)
-		    (tramp-process-actions p v nil tramp-smb-actions-get-acl)
-		    (when (> (point-max) (point-min))
-		      (substring-no-properties (buffer-string)))))
-
-	      ;; Reset the transfer process properties.
-	      (tramp-flush-connection-property v "process-name")
-	      (tramp-flush-connection-property v "process-buffer"))))))))
+			(tramp-message
+			 v 6 "%s" (string-join (process-command p) " "))
+			(process-put p 'vector v)
+			(process-put p 'adjust-window-size-function #'ignore)
+			(set-process-query-on-exit-flag p nil)
+			(tramp-process-actions p v nil tramp-smb-actions-get-acl)
+			(when (> (point-max) (point-min))
+			  (substring-no-properties (buffer-string))))))))))))))
 
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -1342,33 +1340,34 @@ component is used as the target of the symlink."
 	(setq i (1+ i)
 	      name1 (format "%s<%d>" name i)))
 
-      ;; Set the new process properties.
-      (tramp-set-connection-property v "process-name" name1)
-      (tramp-set-connection-property
-       v "process-buffer"
-       (or outbuf (generate-new-buffer tramp-temp-buffer-name)))
-
       ;; Call it.
       (condition-case nil
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    ;; Preserve buffer contents.
-	    (narrow-to-region (point-max) (point-max))
-	    (tramp-smb-call-winexe v)
-	    (when (tramp-smb-get-share v)
-	      (tramp-smb-send-command
-	       v (format "cd //%s%s" host
-			 (tramp-smb-shell-quote-argument
-			  (file-name-directory localname)))))
-	    (tramp-smb-send-command v command)
-	    ;; Preserve command output.
-	    (narrow-to-region (point-max) (point-max))
-	    (let ((p (tramp-get-connection-process v)))
-	      (tramp-smb-send-command v "exit $lasterrorcode")
-	      (while (process-live-p p)
-		(sleep-for 0.1)
-		(setq ret (process-exit-status p))))
-	    (delete-region (point-min) (point-max))
-	    (widen))
+	  (with-tramp-saved-connection-property v "process-name"
+	    (with-tramp-saved-connection-property v "process-buffer"
+	      ;; Set the new process properties.
+	      (tramp-set-connection-property v "process-name" name1)
+	      (tramp-set-connection-property
+	       v "process-buffer"
+	       (or outbuf (generate-new-buffer tramp-temp-buffer-name)))
+	      (with-current-buffer (tramp-get-connection-buffer v)
+		;; Preserve buffer contents.
+		(narrow-to-region (point-max) (point-max))
+		(tramp-smb-call-winexe v)
+		(when (tramp-smb-get-share v)
+		  (tramp-smb-send-command
+		   v (format "cd //%s%s" host
+			     (tramp-smb-shell-quote-argument
+			      (file-name-directory localname)))))
+		(tramp-smb-send-command v command)
+		;; Preserve command output.
+		(narrow-to-region (point-max) (point-max))
+		(let ((p (tramp-get-connection-process v)))
+		  (tramp-smb-send-command v "exit $lasterrorcode")
+		  (while (process-live-p p)
+		    (sleep-for 0.1)
+		    (setq ret (process-exit-status p))))
+		(delete-region (point-min) (point-max))
+		(widen))))
 
 	;; When the user did interrupt, we should do it also.  We use
 	;; return code -1 as marker.
@@ -1383,9 +1382,8 @@ component is used as the target of the symlink."
 
       ;; Cleanup.  We remove all file cache values for the connection,
       ;; because the remote process could have changed them.
-      (tramp-flush-connection-property v "process-name")
-      (tramp-flush-connection-property v "process-buffer")
       (when tmpinput (delete-file tmpinput))
+      ;; FIXME: Does connection-property "process-buffer" still exist?
       (unless outbuf
 	(kill-buffer (tramp-get-connection-property v "process-buffer" nil)))
       (when process-file-side-effects
@@ -1488,42 +1486,44 @@ component is used as the target of the symlink."
 			      "||" "echo" "tramp_exit_status" "1")))
 
 	  (unwind-protect
-	      (with-temp-buffer
-		;; Set the transfer process properties.
-		(tramp-set-connection-property
-		 v "process-name" (buffer-name (current-buffer)))
-		(tramp-set-connection-property
-		 v "process-buffer" (current-buffer))
+	      (with-tramp-saved-connection-property v "process-name"
+		(with-tramp-saved-connection-property v "process-buffer"
+		  (with-temp-buffer
+		    ;; Set the transfer process properties.
+		    (tramp-set-connection-property
+		     v "process-name" (buffer-name (current-buffer)))
+		    (tramp-set-connection-property
+		     v "process-buffer" (current-buffer))
 
-		;; Use an asynchronous process.  By this, password can
-		;; be handled.
-		(let ((p (apply
-			  #'start-process
-			  (tramp-get-connection-name v)
-			  (tramp-get-connection-buffer v)
-			  tramp-smb-acl-program args)))
+		    ;; Use an asynchronous process.  By this, password
+		    ;; can be handled.
+		    (let ((p (apply
+			      #'start-process
+			      (tramp-get-connection-name v)
+			      (tramp-get-connection-buffer v)
+			      tramp-smb-acl-program args)))
 
-		  (tramp-message v 6 "%s" (string-join (process-command p) " "))
-		  (process-put p 'vector v)
-		  (process-put p 'adjust-window-size-function #'ignore)
-		  (set-process-query-on-exit-flag p nil)
-		  (tramp-process-actions p v nil tramp-smb-actions-set-acl)
-		  ;; This is meant for traces, and returning from the
-		  ;; function.  No error is propagated outside, due to
-		  ;; the `ignore-errors' closure.
-		  (unless (tramp-search-regexp "tramp_exit_status [[:digit:]]+")
-		    (tramp-error
-		     v 'file-error
-		     "Couldn't find exit status of `%s'" tramp-smb-acl-program))
-		  (skip-chars-forward "^ ")
-		  (when (zerop (read (current-buffer)))
-		    ;; Success.
-		    (tramp-set-file-property v localname "file-acl" acl-string)
-		    t)))
-
-	    ;; Reset the transfer process properties.
-	    (tramp-flush-connection-property v "process-name")
-	    (tramp-flush-connection-property v "process-buffer")))))))
+		      (tramp-message
+		       v 6 "%s" (string-join (process-command p) " "))
+		      (process-put p 'vector v)
+		      (process-put p 'adjust-window-size-function #'ignore)
+		      (set-process-query-on-exit-flag p nil)
+		      (tramp-process-actions p v nil tramp-smb-actions-set-acl)
+		      ;; This is meant for traces, and returning from
+		      ;; the function.  No error is propagated
+		      ;; outside, due to the `ignore-errors' closure.
+		      (unless
+			  (tramp-search-regexp "tramp_exit_status [[:digit:]]+")
+			(tramp-error
+			 v 'file-error
+			 "Couldn't find exit status of `%s'"
+			 tramp-smb-acl-program))
+		      (skip-chars-forward "^ ")
+		      (when (zerop (read (current-buffer)))
+			;; Success.
+			(tramp-set-file-property
+			 v localname "file-acl" acl-string)
+			t)))))))))))
 
 (defun tramp-smb-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
@@ -1555,46 +1555,47 @@ component is used as the target of the symlink."
 	   (i 0)
 	   p)
       (unwind-protect
-	  (save-excursion
-	    (save-restriction
-	      (while (get-process name1)
-		;; NAME must be unique as process name.
-		(setq i (1+ i)
-		      name1 (format "%s<%d>" name i)))
-	      ;; Set the new process properties.
-	      (tramp-set-connection-property v "process-name" name1)
-	      (tramp-set-connection-property v "process-buffer" buffer)
-	      ;; Activate narrowing in order to save BUFFER contents.
-	      (with-current-buffer (tramp-get-connection-buffer v)
-		(let ((buffer-undo-list t))
-		  (narrow-to-region (point-max) (point-max))
-		  (tramp-smb-call-winexe v)
-		  (when (tramp-smb-get-share v)
-		    (tramp-smb-send-command
-		     v (format
-			"cd //%s%s"
-			host
-			(tramp-smb-shell-quote-argument
-			 (file-name-directory localname)))))
-		  (tramp-message v 6 "(%s); exit" command)
-		  (tramp-send-string v command)))
-	      (setq p (tramp-get-connection-process v))
-	      (when program
-		(process-put p 'remote-command (cons program args))
-		(tramp-set-connection-property
-	       p "remote-command" (cons program args)))
-	      ;; Return value.
-	      p))
+	  (with-tramp-saved-connection-property v "process-name"
+	    (with-tramp-saved-connection-property v "process-buffer"
+	      (save-excursion
+		(save-restriction
+		  (while (get-process name1)
+		    ;; NAME must be unique as process name.
+		    (setq i (1+ i)
+			  name1 (format "%s<%d>" name i)))
+		  ;; Set the new process properties.
+		  (tramp-set-connection-property v "process-name" name1)
+		  (tramp-set-connection-property v "process-buffer" buffer)
+		  ;; Activate narrowing in order to save BUFFER contents.
+		  (with-current-buffer (tramp-get-connection-buffer v)
+		    (let ((buffer-undo-list t))
+		      (narrow-to-region (point-max) (point-max))
+		      (tramp-smb-call-winexe v)
+		      (when (tramp-smb-get-share v)
+			(tramp-smb-send-command
+			 v (format
+			    "cd //%s%s"
+			    host
+			    (tramp-smb-shell-quote-argument
+			     (file-name-directory localname)))))
+		      (tramp-message v 6 "(%s); exit" command)
+		      (tramp-send-string v command)))
+		  (setq p (tramp-get-connection-process v))
+		  (when program
+		    (process-put p 'remote-command (cons program args))
+		    (tramp-set-connection-property
+		     p "remote-command" (cons program args)))
+		  ;; Return value.
+		  p))))
 
 	;; Save exit.
+	;; FIXME: Does `tramp-get-connection-buffer' return the proper value?
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (if (tramp-compat-string-search tramp-temp-buffer-name (buffer-name))
 	      (progn
 		(set-process-buffer (tramp-get-connection-process v) nil)
 		(kill-buffer (current-buffer)))
-	    (set-buffer-modified-p bmp)))
-	(tramp-flush-connection-property v "process-name")
-	(tramp-flush-connection-property v "process-buffer")))))
+	    (set-buffer-modified-p bmp)))))))
 
 (defun tramp-smb-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
