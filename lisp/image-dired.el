@@ -2795,7 +2795,7 @@ tags to their respective image file.  Internal function used by
     ;; (bookmark-prop-get bookmark 'image-dired-file)
     (goto-char (point-min))))
 
-(put 'image-dired-bookmark-jump 'bookmark-handler-type "Image")
+(put 'image-dired-bookmark-jump 'bookmark-handler-type "Image-Dired")
 
 ;;; Obsolete
 
