@@ -30,7 +30,6 @@
 
 (ert-deftest inversion-unit-test ()
   "Test inversion to make sure it can identify different version strings."
-  (interactive)
   (let ((c1 (inversion-package-version 'inversion))
         (c1i (inversion-package-incompatibility-version 'inversion))
         (c2 (inversion-decode-version  "1.3alpha2"))
