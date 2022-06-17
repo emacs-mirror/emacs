@@ -337,6 +337,11 @@ and other things:
            0))
     (pixel-fill-width)))
 
+(defmacro shr-string-pixel-width (string)
+  `(if (not shr-use-fonts)
+       (length ,string)
+     (string-pixel-width ,string)))
+
 ;;;###autoload
 (defun shr-insert-document (dom)
   "Render the parsed document DOM into the current buffer.
@@ -676,19 +681,6 @@ size, and full-buffer size."
      (save-excursion
        (goto-char (mark))
        (shr-pixel-column))))
-
-(defun shr-string-pixel-width (string)
-  (if (not shr-use-fonts)
-      (length string)
-    ;; Save and restore point across with-temp-buffer, since
-    ;; shr-pixel-column uses save-window-excursion, which can reset
-    ;; point to 1.
-    (let ((pt (point)))
-      (prog1
-	  (with-temp-buffer
-	    (insert string)
-	    (shr-pixel-column))
-	(goto-char pt)))))
 
 (defsubst shr--translate-insertion-chars ()
   ;; Remove soft hyphens.
