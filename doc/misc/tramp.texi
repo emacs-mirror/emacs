@@ -4985,6 +4985,7 @@ minibuffer:
   (before my-minibuffer-complete activate)
   (expand-abbrev))
 @end group
+@end lisp
 
 The reduced typing: @kbd{C-x C-f xy @key{TAB}}.
 
