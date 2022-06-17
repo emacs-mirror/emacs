@@ -521,7 +521,15 @@ non-nil means return old filename."
                     files-renamed))))
 	(forward-line -1)))
     (when files-renamed
-      (setq errors (+ errors (wdired-do-renames files-renamed))))
+      (pcase-let ((`(,errs . ,successful-renames)
+                   (wdired-do-renames files-renamed)))
+        (cl-incf errors errs)
+        ;; Some of the renames may fail -- in that case, don't mark an
+        ;; already-existing file with the same name as renamed.
+        (pcase-dolist (`(,file . _) wdired--old-marks)
+          (unless (member file successful-renames)
+            (setq wdired--old-marks
+                  (assoc-delete-all file wdired--old-marks #'equal))))))
     ;; We have to be in wdired-mode when wdired-do-renames is executed
     ;; so that wdired--restore-properties runs, but we have to change
     ;; back to dired-mode before reverting the buffer to avoid using
@@ -566,7 +574,8 @@ non-nil means return old filename."
          (errors 0)
          (total (1- (length renames)))
          (prep (make-progress-reporter "Renaming" 0 total))
-         (overwrite (or (not wdired-confirm-overwrite) 1)))
+         (overwrite (or (not wdired-confirm-overwrite) 1))
+         (successful-renames nil))
     (while (or renames
                ;; We've done one round through the renames, we have found
                ;; some residue, but we also made some progress, so maybe
@@ -617,13 +626,15 @@ non-nil means return old filename."
                          (wdired-create-parentdirs file-new))
                     (dired-rename-file file-ori file-new
                                        overwrite))
+                (:success
+                 (push file-new successful-renames))
                 (error
                  (setq errors (1+ errors))
                  (dired-log "Rename `%s' to `%s' failed:\n%s\n"
                             file-ori file-new
                             err)))))))))
     (progress-reporter-done prep)
-    errors))
+    (cons errors successful-renames)))
 
 (defun wdired-create-parentdirs (file-new)
   "Create parent directories for FILE-NEW if they don't exist."
