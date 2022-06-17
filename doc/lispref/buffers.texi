@@ -981,13 +981,18 @@ of
 Satisfied if @var{expr} doesn't satisfy @code{buffer-match-p} with
 the same buffer and @code{arg}.
 @item or
-Satisfied if @var{oper} is a list and @emph{any} condition if
+Satisfied if @var{expr} is a list and @emph{any} condition in
 @var{expr} satisfies @code{buffer-match-p}, with the same buffer and
 @code{arg}.
 @item and
-Satisfied if @var{oper} is a list and @emph{all} condition if
-@var{expr} satisfies @code{buffer-match-p}, with the same buffer and
+Satisfied if @var{expr} is a list and @emph{all} conditions in
+@var{expr} satisfy @code{buffer-match-p}, with the same buffer and
 @code{arg}.
+@item derived-mode
+Satisfied if the buffer's major mode derives from @var{expr}.
+@item major-mode
+Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
+using @code{derived-mode} instead when both can work.
 @end table
 @end itemize
 @end defun

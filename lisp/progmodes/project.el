@@ -1221,22 +1221,18 @@ displayed."
   (display-buffer-other-frame buffer-or-name))
 
 (defcustom project-kill-buffer-conditions
-  `(buffer-file-name    ; All file-visiting buffers are included.
+  '(buffer-file-name    ; All file-visiting buffers are included.
     ;; Most of the temp buffers in the background:
-    ,(lambda (buf)
-       (not (eq (buffer-local-value 'major-mode buf)
-                'fundamental-mode)))
+    (major-mode . fundamental-mode)
     ;; non-text buffer such as xref, occur, vc, log, ...
-    (and (major-mode . special-mode)
-         ,(lambda (buf)
-            (not (eq (buffer-local-value 'major-mode buf)
-                     'help-mode))))
-    (major-mode . compilation-mode)
-    (major-mode . dired-mode)
-    (major-mode . diff-mode)
-    (major-mode . comint-mode)
-    (major-mode . eshell-mode)
-    (major-mode . change-log-mode))
+    (and (derived-mode . special-mode)
+         (not (major-mode . help-mode)))
+    (derived-mode . compilation-mode)
+    (derived-mode . dired-mode)
+    (derived-mode . diff-mode)
+    (derived-mode . comint-mode)
+    (derived-mode . eshell-mode)
+    (derived-mode . change-log-mode))
   "List of conditions to kill buffers related to a project.
 This list is used by `project-kill-buffers'.
 Each condition is either:
@@ -1246,11 +1242,9 @@ Each condition is either:
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
   * `major-mode': the buffer is killed if the buffer's major
-    mode is derived from the major mode denoted by the cons-cell's
-    cdr.
+    mode is eq to the cons-cell's cdr.
   * `derived-mode': the buffer is killed if the buffer's major
-    mode is eq to the cons-cell's cdr (this is deprecated and will
-    result in a warning if used).
+    mode is derived from the major mode in the cons-cell's cdr.
   * `not': the cdr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.
@@ -1308,15 +1302,12 @@ form of CONDITIONS."
       (when (cond
              ((stringp c)
               (string-match-p c (buffer-name buf)))
-             ((symbolp c)
+             ((functionp c)
               (funcall c buf))
-             ((eq (car-safe c) 'derived-mode)
-              (warn "The use of `derived-mode' in \
-`project--buffer-check' is deprecated.")
-              (provided-mode-derived-p
-               (buffer-local-value 'major-mode buf)
-               (cdr c)))
              ((eq (car-safe c) 'major-mode)
+              (eq (buffer-local-value 'major-mode buf)
+                  (cdr c)))
+             ((eq (car-safe c) 'derived-mode)
               (provided-mode-derived-p
                (buffer-local-value 'major-mode buf)
                (cdr c)))
