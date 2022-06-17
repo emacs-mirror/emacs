@@ -166,7 +166,7 @@ The return value of this function is not used."
 (defalias 'byte-run--set-obsolete
   #'(lambda (f _args new-name when)
       (list 'make-obsolete
-            (list 'quote f) (list 'quote new-name) (list 'quote when))))
+            (list 'quote f) (list 'quote new-name) when)))
 
 (defalias 'byte-run--set-interactive-only
   #'(lambda (f _args instead)
