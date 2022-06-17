@@ -1580,6 +1580,69 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
       (should (equal (get fname 'lisp-indent-function) 1))
       (should (equal (aref bc 4) "tata\n\n(fn X)")))))
 
+(ert-deftest bytecomp-fun-attr-warn ()
+  ;; Check that warnings are emitted when doc strings, `declare' and
+  ;; `interactive' forms don't come in the proper order, or more than once.
+  (let* ((filename "fun-attr-warn.el")
+         (el (ert-resource-file filename))
+         (elc (concat el "c"))
+         (text-quoting-style 'grave))
+    (with-current-buffer (get-buffer-create "*Compile-Log*")
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      (byte-compile-file el)
+      (let ((expected
+             '("70:4: Warning: `declare' after `interactive'"
+               "74:4: Warning: Doc string after `interactive'"
+               "79:4: Warning: Doc string after `interactive'"
+               "84:4: Warning: Doc string after `declare'"
+               "89:4: Warning: Doc string after `declare'"
+               "96:4: Warning: `declare' after `interactive'"
+               "102:4: Warning: `declare' after `interactive'"
+               "108:4: Warning: `declare' after `interactive'"
+               "106:4: Warning: Doc string after `interactive'"
+               "114:4: Warning: `declare' after `interactive'"
+               "112:4: Warning: Doc string after `interactive'"
+               "118:4: Warning: Doc string after `interactive'"
+               "119:4: Warning: `declare' after `interactive'"
+               "124:4: Warning: Doc string after `interactive'"
+               "125:4: Warning: `declare' after `interactive'"
+               "130:4: Warning: Doc string after `declare'"
+               "136:4: Warning: Doc string after `declare'"
+               "142:4: Warning: Doc string after `declare'"
+               "148:4: Warning: Doc string after `declare'"
+               "159:4: Warning: More than one doc string"
+               "165:4: Warning: More than one doc string"
+               "171:4: Warning: More than one doc string"
+               "178:4: Warning: More than one doc string"
+               "186:4: Warning: More than one doc string"
+               "192:4: Warning: More than one doc string"
+               "200:4: Warning: More than one doc string"
+               "206:4: Warning: More than one doc string"
+               "215:4: Warning: More than one `declare' form"
+               "222:4: Warning: More than one `declare' form"
+               "230:4: Warning: More than one `declare' form"
+               "237:4: Warning: More than one `declare' form"
+               "244:4: Warning: More than one `interactive' form"
+               "251:4: Warning: More than one `interactive' form"
+               "258:4: Warning: More than one `interactive' form"
+               "257:4: Warning: `declare' after `interactive'"
+               "265:4: Warning: More than one `interactive' form"
+               "264:4: Warning: `declare' after `interactive'")))
+        (goto-char (point-min))
+        (let ((actual nil))
+          (while (re-search-forward
+                  (rx bol (* (not ":")) ":"
+                      (group (+ digit) ":" (+ digit) ": Warning: "
+                             (or "More than one " (+ nonl) " form"
+                                 (: (+ nonl) " after " (+ nonl))))
+                      eol)
+                  nil t)
+            (push (match-string 1) actual))
+          (setq actual (nreverse actual))
+          (should (equal actual expected)))))))
+
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

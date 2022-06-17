@@ -272,6 +272,75 @@ This is used by `declare'.")
       (list 'function-put (list 'quote name)
 	    ''no-font-lock-keyword (list 'quote val))))
 
+(defalias 'byte-run--parse-body
+  #'(lambda (body allow-interactive)
+      "Decompose BODY into (DOCSTRING DECLARE INTERACTIVE BODY-REST WARNINGS)."
+      (let* ((top body)
+             (docstring nil)
+             (declare-form nil)
+             (interactive-form nil)
+             (warnings nil)
+             (warn #'(lambda (msg form)
+                       (push (macroexp-warn-and-return msg nil nil t form)
+                             warnings))))
+        (while
+            (and body
+                 (let* ((form (car body))
+                        (head (car-safe form)))
+                   (cond
+                    ((or (and (stringp form) (cdr body))
+                         (eq head :documentation))
+                     (cond
+                      (docstring (funcall warn "More than one doc string" top))
+                      (declare-form
+                       (funcall warn "Doc string after `declare'" declare-form))
+                      (interactive-form
+                       (funcall warn "Doc string after `interactive'"
+                                interactive-form))
+                      (t (setq docstring form)))
+                     t)
+                    ((eq head 'declare)
+                     (cond
+                      (declare-form
+                       (funcall warn "More than one `declare' form" form))
+                      (interactive-form
+                       (funcall warn "`declare' after `interactive'" form))
+                      (t (setq declare-form form)))
+                     t)
+                    ((eq head 'interactive)
+                     (cond
+                      ((not allow-interactive)
+                       (funcall warn "No `interactive' form allowed here" form))
+                      (interactive-form
+                       (funcall warn "More than one `interactive' form" form))
+                      (t (setq interactive-form form)))
+                     t))))
+          (setq body (cdr body)))
+        (list docstring declare-form interactive-form body warnings))))
+
+(defalias 'byte-run--parse-declarations
+  #'(lambda (name arglist clauses construct declarations-alist)
+      (let* ((cl-decls nil)
+             (actions
+              (mapcar
+               #'(lambda (x)
+                   (let ((f (cdr (assq (car x) declarations-alist))))
+                     (cond
+                      (f (apply (car f) name arglist (cdr x)))
+                      ;; Yuck!!
+                      ((and (featurep 'cl)
+                            (memq (car x)  ;C.f. cl--do-proclaim.
+                                  '(special inline notinline optimize warn)))
+                       (push (list 'declare x) cl-decls)
+                       nil)
+                      (t
+                       (macroexp-warn-and-return
+                        (format-message "Unknown %s property `%S'"
+                                        construct (car x))
+                        nil nil nil (car x))))))
+               clauses)))
+        (cons actions cl-decls))))
+
 (defvar macro-declarations-alist
   (cons
    (list 'debug #'byte-run--set-debug)
@@ -289,7 +358,7 @@ This is used by `declare'.")
 (defalias 'defmacro
   (cons
    'macro
-   #'(lambda (name arglist &optional docstring &rest body)
+   #'(lambda (name arglist &rest body)
        "Define NAME as a macro.
 When the macro is called, as in (NAME ARGS...),
 the function (lambda ARGLIST BODY...) is applied to
@@ -300,116 +369,73 @@ DECLS is a list of elements of the form (PROP . VALUES).  These are
 interpreted according to `macro-declarations-alist'.
 The return value is undefined.
 
-\(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
-       ;; We can't just have `decl' as an &optional argument, because we need
-       ;; to distinguish
-       ;;    (defmacro foo (arg) (bar) nil)
-       ;; from
-       ;;    (defmacro foo (arg) (bar)).
-       (let ((decls (cond
-		     ((eq (car-safe docstring) 'declare)
-		      (prog1 (cdr docstring) (setq docstring nil)))
-		     ((and (stringp docstring)
-			   (eq (car-safe (car body)) 'declare))
-		      (prog1 (cdr (car body)) (setq body (cdr body)))))))
-	 (if docstring (setq body (cons docstring body))
-	   (if (null body) (setq body '(nil))))
-	 ;; Can't use backquote because it's not defined yet!
-	 (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
-		(def (list 'defalias
-			   (list 'quote name)
-			   (list 'cons ''macro fun)))
-		(declarations
-		 (mapcar
-		  #'(lambda (x)
-		      (let ((f (cdr (assq (car x) macro-declarations-alist))))
-			(if f (apply (car f) name arglist (cdr x))
-                          (macroexp-warn-and-return
-			   (format-message
-			    "Unknown macro property %S in %S"
-			    (car x) name)
-			   nil nil nil (car x)))))
-		  decls)))
-	   ;; Refresh font-lock if this is a new macro, or it is an
-	   ;; existing macro whose 'no-font-lock-keyword declaration
-	   ;; has changed.
-	   (if (and
-		;; If lisp-mode hasn't been loaded, there's no reason
-		;; to flush.
-		(fboundp 'lisp--el-font-lock-flush-elisp-buffers)
-		(or (not (fboundp name)) ;; new macro
-		    (and (fboundp name)  ;; existing macro
-			 (member `(function-put ',name 'no-font-lock-keyword
-						',(get name 'no-font-lock-keyword))
-				 declarations))))
-	       (lisp--el-font-lock-flush-elisp-buffers))
-	   (if declarations
-	       (cons 'prog1 (cons def declarations))
+\(fn NAME ARGLIST [DOCSTRING] [DECL] BODY...)"
+       (let* ((parse (byte-run--parse-body body nil))
+              (docstring (nth 0 parse))
+              (declare-form (nth 1 parse))
+              (body (nth 3 parse))
+              (warnings (nth 4 parse))
+              (declarations
+               (and declare-form (byte-run--parse-declarations
+                                  name arglist (cdr declare-form) 'macro
+                                  macro-declarations-alist))))
+         (setq body (nconc warnings body))
+         (setq body (nconc (cdr declarations) body))
+         (if docstring
+             (setq body (cons docstring body)))
+         (if (null body)
+             (setq body '(nil)))
+         (let* ((fun (list 'function (cons 'lambda (cons arglist body))))
+	        (def (list 'defalias
+		           (list 'quote name)
+		           (list 'cons ''macro fun))))
+           (if declarations
+	       (cons 'prog1 (cons def (car declarations)))
 	     def))))))
 
 ;; Now that we defined defmacro we can use it!
-(defmacro defun (name arglist &optional docstring &rest body)
+(defmacro defun (name arglist &rest body)
   "Define NAME as a function.
-The definition is (lambda ARGLIST [DOCSTRING] BODY...).
-See also the function `interactive'.
+The definition is (lambda ARGLIST [DOCSTRING] [INTERACTIVE] BODY...).
 DECL is a declaration, optional, of the form (declare DECLS...) where
 DECLS is a list of elements of the form (PROP . VALUES).  These are
 interpreted according to `defun-declarations-alist'.
+INTERACTIVE is an optional `interactive' specification.
 The return value is undefined.
 
-\(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
-  ;; We can't just have `decl' as an &optional argument, because we need
-  ;; to distinguish
-  ;;    (defun foo (arg) (toto) nil)
-  ;; from
-  ;;    (defun foo (arg) (toto)).
+\(fn NAME ARGLIST [DOCSTRING] [DECL] [INTERACTIVE] BODY...)"
   (declare (doc-string 3) (indent 2))
   (or name (error "Cannot define '%s' as a function" name))
   (if (null
        (and (listp arglist)
             (null (delq t (mapcar #'symbolp arglist)))))
       (error "Malformed arglist: %s" arglist))
-  (let ((decls (cond
-                ((eq (car-safe docstring) 'declare)
-                 (prog1 (cdr docstring) (setq docstring nil)))
-                ((and (stringp docstring)
-		      (eq (car-safe (car body)) 'declare))
-                 (prog1 (cdr (car body)) (setq body (cdr body)))))))
-    (if docstring (setq body (cons docstring body))
-      (if (null body) (setq body '(nil))))
-    (let ((declarations
-           (mapcar
-            #'(lambda (x)
-                (let ((f (cdr (assq (car x) defun-declarations-alist))))
-                  (cond
-                   (f (apply (car f) name arglist (cdr x)))
-                   ;; Yuck!!
-                   ((and (featurep 'cl)
-                         (memq (car x)  ;C.f. cl-do-proclaim.
-                               '(special inline notinline optimize warn)))
-                    (push (list 'declare x)
-                          (if (stringp docstring)
-                              (if (eq (car-safe (cadr body)) 'interactive)
-                                  (cddr body)
-                                (cdr body))
-                            (if (eq (car-safe (car body)) 'interactive)
-                                (cdr body)
-                              body)))
-                    nil)
-                   (t
-                    (macroexp-warn-and-return
-                     (format-message "Unknown defun property `%S' in %S"
-                                     (car x) name)
-                     nil nil nil (car x))))))
-            decls))
-          (def (list 'defalias
+  (let* ((parse (byte-run--parse-body body t))
+         (docstring (nth 0 parse))
+         (declare-form (nth 1 parse))
+         (interactive-form (nth 2 parse))
+         (body (nth 3 parse))
+         (warnings (nth 4 parse))
+         (declarations
+          (and declare-form (byte-run--parse-declarations
+                             name arglist (cdr declare-form) 'defun
+                             defun-declarations-alist))))
+    (setq body (nconc warnings body))
+    (setq body (nconc (cdr declarations) body))
+    (if interactive-form
+        (setq body (cons interactive-form body)))
+    (if docstring
+        (setq body (cons docstring body)))
+    (if (null body)
+        (setq body '(nil)))
+    (let ((def (list 'defalias
                      (list 'quote name)
                      (list 'function
                            (cons 'lambda
                                  (cons arglist body))))))
       (if declarations
-          (cons 'prog1 (cons def declarations))
-          def))))
+          (cons 'prog1 (cons def (car declarations)))
+        def))))
 
 
 ;; Redefined in byte-opt.el.
