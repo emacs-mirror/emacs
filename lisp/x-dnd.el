@@ -137,6 +137,7 @@ any protocol specific data.")
 
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp terminal))
+(declare-function x-display-set-last-user-time "xfns.c")
 
 (defconst x-dnd-xdnd-to-action
   '(("XdndActionPrivate" . private)
@@ -621,7 +622,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			     (intern (x-dnd-current-type window))
 			     timestamp)))
 		success action)
-
+           (x-display-set-last-user-time timestamp)
 	   (setq action (if value
 			    (condition-case info
 				(x-dnd-drop-data event frame window value
@@ -861,6 +862,7 @@ Return a vector of atoms containing the selection targets."
 			    timestamp
 			    x
 			    y)))
+               (x-display-set-last-user-time timestamp)
 	       (x-send-client-message frame
 				      dnd-source
 				      frame
@@ -898,6 +900,7 @@ Return a vector of atoms containing the selection targets."
 			     my-byteorder)
 			    reply-flags
 			    timestamp)))
+               (x-display-set-last-user-time timestamp)
 	       (x-send-client-message frame
 				      dnd-source
 				      frame
@@ -956,7 +959,7 @@ Return a vector of atoms containing the selection targets."
 		      (timestamp (x-dnd-get-motif-value
 			          data 4 4 source-byteorder))
 		      action)
-
+                 (x-display-set-last-user-time timestamp)
 	         (x-send-client-message frame
 				        dnd-source
 				        frame
