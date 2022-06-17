@@ -2836,7 +2836,7 @@ FUNCTION must be a function of one argument, and must return a value
   ptrdiff_t nargs = 2 * nmapped - 1;
   eassert (nmapped == leni);
 
-  if (!NILP (Fequal (separator, empty_multibyte_string)))
+  if (NILP (separator) || (STRINGP (separator) && SCHARS (separator) == 0))
     nargs = nmapped;
   else
     {
