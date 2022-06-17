@@ -231,6 +231,13 @@ bset_extra_line_spacing (struct buffer *b, Lisp_Object val)
 {
   b->extra_line_spacing_ = val;
 }
+#ifdef HAVE_TREE_SITTER
+static void
+bset_ts_parser_list (struct buffer *b, Lisp_Object val)
+{
+  b->ts_parser_list_ = val;
+}
+#endif
 static void
 bset_file_format (struct buffer *b, Lisp_Object val)
 {
@@ -1004,6 +1011,9 @@ reset_buffer (register struct buffer *b)
     (b, BVAR (&buffer_defaults, enable_multibyte_characters));
   bset_cursor_type (b, BVAR (&buffer_defaults, cursor_type));
   bset_extra_line_spacing (b, BVAR (&buffer_defaults, extra_line_spacing));
+#ifdef HAVE_TREE_SITTER
+  bset_ts_parser_list (b, Qnil);
+#endif
 
   b->display_error_modiff = 0;
 }
@@ -5273,6 +5283,9 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, tab_line_format), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_type), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, extra_line_spacing), idx); ++idx;
+#ifdef HAVE_TREE_SITTER
+  XSETFASTINT (BVAR (&buffer_local_flags, ts_parser_list), idx); ++idx;
+#endif
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_in_non_selected_windows), idx); ++idx;
 
   /* buffer_local_flags contains no pointers, so it's safe to treat it
@@ -5343,6 +5356,9 @@ init_buffer_once (void)
   bset_bidi_paragraph_separate_re (&buffer_defaults, Qnil);
   bset_cursor_type (&buffer_defaults, Qt);
   bset_extra_line_spacing (&buffer_defaults, Qnil);
+#ifdef HAVE_TREE_SITTER
+  bset_ts_parser_list (&buffer_defaults, Qnil);
+#endif
   bset_cursor_in_non_selected_windows (&buffer_defaults, Qt);
 
   bset_enable_multibyte_characters (&buffer_defaults, Qt);

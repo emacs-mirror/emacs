@@ -75,7 +75,7 @@ Return the root node of the syntax tree."
 
 (defun treesit-language-at (point)
   "Return the language used at POINT."
-  (cl-loop for parser in treesit-parser-list
+  (cl-loop for parser in (treesit-parser-list)
            if (treesit-node-on point point parser)
            return (treesit-parser-language parser)))
 
@@ -122,7 +122,7 @@ greater or larger than POINT.  Return nil if none find.  If NAMED
 non-nil, only look for named node.
 
 If PARSER-OR-LANG is nil, use the first parser in
-`treesit-parser-list'; if PARSER-OR-LANG is a parser, use
+(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
 that parser; if PARSER-OR-LANG is a language, find a parser using
 that language in the current buffer, and use that."
   (let ((node (if (treesit-parser-p parser-or-lang)
@@ -150,7 +150,7 @@ Return nil if none find.  If NAMED non-nil, only look for named
 node.
 
 If PARSER-OR-LANG is nil, use the first parser in
-`treesit-parser-list'; if PARSER-OR-LANG is a parser, use
+(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
 that parser; if PARSER-OR-LANG is a language, find a parser using
 that language in the current buffer, and use that."
   (let ((root (if (treesit-parser-p parser-or-lang)
@@ -160,13 +160,13 @@ that language in the current buffer, and use that."
 
 (defun treesit-buffer-root-node (&optional language)
   "Return the root node of the current buffer.
-Use the first parser in `treesit-parser-list', if LANGUAGE is
+Use the first parser in (`treesit-parser-list'), if LANGUAGE is
 non-nil, use the first parser for LANGUAGE."
   (if-let ((parser
             (or (if language
                     (or (treesit-parser-create language)
                         (error "Cannot find a parser for %s" language))
-                  (or (car treesit-parser-list)
+                  (or (car (treesit-parser-list))
                       (error "Buffer has no parser"))))))
       (treesit-parser-root-node parser)))
 
@@ -770,7 +770,7 @@ of the current line.")
                 (skip-chars-forward " \t")
                 (point)))
          (smallest-node
-          (cl-loop for parser in treesit-parser-list
+          (cl-loop for parser in (treesit-parser-list)
                    for node = (treesit-node-at bol parser)
                    if node return node))
          (node (treesit-parent-while
@@ -856,7 +856,7 @@ This is a more primitive function, you might want to use
 
 QUERY has to capture the node to match.  LANG specifies the
 language in which we search for nodes.  If LANG is nil, use the
-first parser in `treesit-parser-list'.
+first parser in (`treesit-parser-list').
 
 Move forward/backward ARG times, positive ARG means go forward,
 negative ARG means go backward.
@@ -875,7 +875,7 @@ the tree."
   (cl-loop for idx from 1 to (abs arg)
            for parser = (if lang
                             (treesit-parser-create lang)
-                          (car treesit-parser-list))
+                          (car (treesit-parser-list)))
            for node =
            (if-let ((starting-point (point))
                     (node (treesit-node-at (point) parser t)))
@@ -914,7 +914,7 @@ Stops at the beginning of matched node.
 
 QUERY has to capture the node to match.  LANG specifies the
 language in which we search for nodes.  If LANG is nil, use the
-first parser in `treesit-parser-list'.
+first parser in (`treesit-parser-list').
 
 Move forward/backward ARG times, positive ARG means go forward,
 negative ARG means go backward.
@@ -937,7 +937,7 @@ Stops at the end of matched node.
 
 QUERY has to capture the node to match.  LANG specifies the
 language in which we search for nodes.  If LANG is nil, use the
-first parser in `treesit-parser-list'.
+first parser in (`treesit-parser-list').
 
 Move forward/backward ARG times, positive ARG means go forward,
 negative ARG means go backward.
@@ -993,7 +993,7 @@ ARGth preceding end of defun.  Defun is defined according to
 If called interactively, show in echo area, otherwise set
 `treesit--inspect-name' (which will appear in the mode-line
 if `treesit-inspect-mode' is enabled).  Uses the first parser
-in `treesit-parser-list'."
+in (`treesit-parser-list')."
   (interactive "p")
   ;; NODE-LIST contains all the node that starts at point.
   (let* ((node-list
@@ -1053,7 +1053,7 @@ node, then we just display the smallest node that spans point and
 its immediate parent.
 
 This minor mode doesn't create parsers on its own.  It simply
-uses the first parser in `treesit-parser-list'."
+uses the first parser in (`treesit-parser-list')."
   :lighter nil
   (if treesit-inspect-mode
       (progn

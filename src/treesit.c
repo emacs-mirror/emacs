@@ -342,8 +342,8 @@ void
 ts_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 		  ptrdiff_t new_end_byte)
 {
-  for (Lisp_Object parser_list =
-	 Fsymbol_value (Qtreesit_parser_list);
+  for (Lisp_Object parser_list
+	 = BVAR (current_buffer, ts_parser_list);
        !NILP (parser_list);
        parser_list = XCDR (parser_list))
     {
@@ -704,23 +704,24 @@ parser.  If NO-REUSE is non-nil, always create a new parser.  */)
   ts_initialize ();
 
   CHECK_SYMBOL (language);
-  struct buffer *old_buffer = current_buffer;
-  if (!NILP (buffer))
+  struct buffer *buf;
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
     {
       CHECK_BUFFER (buffer);
-      set_buffer_internal (XBUFFER (buffer));
+      buf = XBUFFER (buffer);
     }
-  ts_check_buffer_size (current_buffer);
+  ts_check_buffer_size (buf);
 
   /* See if we can reuse a parser.  */
-  for (Lisp_Object tail = Fsymbol_value (Qtreesit_parser_list);
+  for (Lisp_Object tail = BVAR (buf, ts_parser_list);
        NILP (no_reuse) && !NILP (tail);
        tail = XCDR (tail))
     {
       struct Lisp_TS_Parser *parser = XTS_PARSER (XCAR (tail));
       if (EQ (parser->language_symbol, language))
 	{
-	  set_buffer_internal (old_buffer);
 	  return XCAR (tail);
 	}
     }
@@ -734,11 +735,51 @@ parser.  If NO-REUSE is non-nil, always create a new parser.  */)
   Lisp_Object lisp_parser
     = make_ts_parser (Fcurrent_buffer (), parser, NULL, language);
 
-  Fset (Qtreesit_parser_list,
-	Fcons (lisp_parser, Fsymbol_value (Qtreesit_parser_list)));
+  BVAR (buf, ts_parser_list)
+    = Fcons (lisp_parser, BVAR (buf, ts_parser_list));
 
-  set_buffer_internal (old_buffer);
   return lisp_parser;
+}
+
+DEFUN ("treesit-parser-delete",
+       Ftreesit_parser_delete, Streesit_parser_delete,
+       1, 1, 0,
+       doc: /* Delete PARSER from its buffer.  */)
+  (Lisp_Object parser)
+{
+  CHECK_TS_PARSER (parser);
+  Lisp_Object buffer = XTS_PARSER (parser)->buffer;
+  struct buffer *buf = XBUFFER (buffer);
+  BVAR (buf, ts_parser_list)
+    = Fdelete (parser, BVAR (buf, ts_parser_list));
+  return Qnil;
+}
+
+DEFUN ("treesit-parser-list",
+       Ftreesit_parser_list, Streesit_parser_list,
+       0, 1, 0,
+       doc: /* Return BUFFER's parser list.
+BUFFER defaults to the current buffer.  */)
+  (Lisp_Object buffer)
+{
+  struct buffer *buf;
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer);
+      buf = XBUFFER (buffer);
+    }
+  /* Return a fresh list so messing with that list doesn't affect our
+     internal data.  */
+  Lisp_Object return_list = Qnil;
+  for (Lisp_Object tail = BVAR (buf, ts_parser_list);
+       !NILP (tail);
+       tail = XCDR (tail))
+    {
+      return_list = Fcons (XCAR (tail), return_list);
+    }
+  return Freverse (return_list);
 }
 
 DEFUN ("treesit-parser-buffer",
@@ -1799,17 +1840,6 @@ syms_of_treesit (void)
 		"This node is outdated, please retrieve a new one",
 		Qtreesit_error);
 
-  DEFSYM (Qtreesit_parser_list, "treesit-parser-list");
-  DEFVAR_LISP ("treesit-parser-list", Vtreesit_parser_list,
-	       doc: /* A list of tree-sitter parsers.
-
-If you removed a parser from this list, do not put it back in.  Emacs
-keeps the parser in this list updated with any change in the buffer.
-If removed and put back in, there is no guarantee that the parser is in
-sync with the buffer's content.  */);
-  Vtreesit_parser_list = Qnil;
-  Fmake_variable_buffer_local (Qtreesit_parser_list);
-
   DEFVAR_LISP ("treesit-load-name-override-list",
 	       Vtreesit_load_name_override_list,
 	       doc:
@@ -1848,6 +1878,8 @@ dynamic libraries, in that order.  */);
   defsubr (&Streesit_node_parser);
 
   defsubr (&Streesit_parser_create);
+  defsubr (&Streesit_parser_delete);
+  defsubr (&Streesit_parser_list);
   defsubr (&Streesit_parser_buffer);
   defsubr (&Streesit_parser_language);
 

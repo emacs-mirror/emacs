@@ -27,7 +27,7 @@
   (with-temp-buffer
     (let ((parser (treesit-parser-create 'json)))
       (should
-       (eq parser (car treesit-parser-list)))
+       (eq parser (car (treesit-parser-list))))
       (should
        (equal (treesit-node-string
                (treesit-parser-root-node parser))
