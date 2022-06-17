@@ -1557,7 +1557,7 @@ value of `generated-autoload-file'.  If any Lisp file binds
 autoloads into the specified file instead.
 
 (fn &rest DIRS)" t nil)
-(make-obsolete 'update-directory-autoloads 'make-directory-autoloads '"28.1")
+(make-obsolete 'update-directory-autoloads 'make-directory-autoloads "28.1")
 (autoload 'make-directory-autoloads "autoload" "\
 Update autoload definitions for Lisp files in the directories DIRS.
 DIR can be either a single directory or a list of
@@ -2509,7 +2509,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'.
 
 (fn URL &optional NEW-WINDOW)" t nil)
-(make-obsolete 'browse-url-gnome-moz 'nil '"25.1")
+(make-obsolete 'browse-url-gnome-moz 'nil "25.1")
 (autoload 'browse-url-conkeror "browse-url" "\
 Ask the Conkeror WWW browser to load URL.
 Default to the URL around or before point.  Also pass the strings
@@ -2529,7 +2529,7 @@ When called non-interactively, use optional second argument
 NEW-WINDOW instead of `browse-url-new-window-flag'.
 
 (fn URL &optional NEW-WINDOW)" t nil)
-(make-obsolete 'browse-url-conkeror 'nil '"28.1")
+(make-obsolete 'browse-url-conkeror 'nil "28.1")
 (autoload 'browse-url-w3 "browse-url" "\
 Ask the w3 WWW browser to load URL.
 Default to the URL around or before point.
@@ -2548,7 +2548,7 @@ The `browse-url-gnudoit-program' program is used with options given by
 `browse-url-gnudoit-args'.  Default to the URL around or before point.
 
 (fn URL &optional NEW-WINDOW)" t nil)
-(make-obsolete 'browse-url-w3-gnudoit 'nil '"25.1")
+(make-obsolete 'browse-url-w3-gnudoit 'nil "25.1")
 (autoload 'browse-url-text-xterm "browse-url" "\
 Ask a text browser to load URL.
 URL defaults to the URL around or before point.
@@ -9204,7 +9204,7 @@ an elided material again.
 This is suitable as an entry on `find-file-hook' or appropriate mode hooks.
 
 (fn &optional ARG)" t nil)
-(make-obsolete 'elide-head 'elide-head-mode '"29.1")
+(make-obsolete 'elide-head 'elide-head-mode "29.1")
 (register-definition-prefixes "elide-head" '("elide-head-"))
 
 
@@ -9862,7 +9862,7 @@ version requirement is met.
 (fn PROTOCOL &optional NO-CACHE PROGRAM-ALIST)" nil nil)
 (autoload 'epg-configuration "epg-config" "\
 Return a list of internal configuration parameters of `epg-gpg-program'." nil nil)
-(make-obsolete 'epg-configuration 'epg-find-configuration '"25.1")
+(make-obsolete 'epg-configuration 'epg-find-configuration "25.1")
 (autoload 'epg-check-configuration "epg-config" "\
 Verify that a sufficient version of GnuPG is installed.
 CONFIG should be a `epg-configuration' object (a plist).
@@ -10436,7 +10436,7 @@ Contrast this with the ring of marks gone to by the command.
 See documentation of variable `tags-file-name'.
 
 (fn TAGNAME &optional NEXT-P REGEXP-P)" t nil)
-(make-obsolete 'find-tag 'xref-find-definitions '"25.1")
+(make-obsolete 'find-tag 'xref-find-definitions "25.1")
 (autoload 'find-tag-other-window "etags" "\
 Find tag (in current tags table) whose name contains TAGNAME.
 Select the buffer containing the tag's definition in another window, and
@@ -10458,7 +10458,7 @@ Contrast this with the ring of marks gone to by the command.
 See documentation of variable `tags-file-name'.
 
 (fn TAGNAME &optional NEXT-P REGEXP-P)" t nil)
-(make-obsolete 'find-tag-other-window 'xref-find-definitions-other-window '"25.1")
+(make-obsolete 'find-tag-other-window 'xref-find-definitions-other-window "25.1")
 (autoload 'find-tag-other-frame "etags" "\
 Find tag (in current tags table) whose name contains TAGNAME.
 Select the buffer containing the tag's definition in another frame, and
@@ -10480,7 +10480,7 @@ Contrast this with the ring of marks gone to by the command.
 See documentation of variable `tags-file-name'.
 
 (fn TAGNAME &optional NEXT-P)" t nil)
-(make-obsolete 'find-tag-other-frame 'xref-find-definitions-other-frame '"25.1")
+(make-obsolete 'find-tag-other-frame 'xref-find-definitions-other-frame "25.1")
 (autoload 'find-tag-regexp "etags" "\
 Find tag (in current tags table) whose name matches REGEXP.
 Select the buffer containing the tag's definition and move point there.
@@ -10500,7 +10500,7 @@ Contrast this with the ring of marks gone to by the command.
 See documentation of variable `tags-file-name'.
 
 (fn REGEXP &optional NEXT-P OTHER-WINDOW)" t nil)
-(make-obsolete 'find-tag-regexp 'xref-find-apropos '"25.1")
+(make-obsolete 'find-tag-regexp 'xref-find-apropos "25.1")
 (defalias 'pop-tag-mark 'xref-go-back)
 (defalias 'next-file 'tags-next-file)
 (autoload 'tags-next-file "etags" "\
@@ -10523,7 +10523,7 @@ Used noninteractively with non-nil argument to begin such a command (the
 argument is passed to `next-file', which see).
 
 (fn &optional FIRST-TIME)" t nil)
-(make-obsolete 'tags-loop-continue 'fileloop-continue '"27.1")
+(make-obsolete 'tags-loop-continue 'fileloop-continue "27.1")
 (autoload 'tags-search "etags" "\
 Search through all files listed in tags table for match for REGEXP.
 Stops when a match is found.
@@ -10563,7 +10563,7 @@ buffer.
 Display list of all tags in tags table REGEXP matches.
 
 (fn REGEXP)" t nil)
-(make-obsolete 'tags-apropos 'xref-find-apropos '"25.1")
+(make-obsolete 'tags-apropos 'xref-find-apropos "25.1")
 (autoload 'select-tags-table "etags" "\
 Select a tags table file from a menu of those you have already used.
 The list of tags tables to select from is stored in `tags-table-set-list';
@@ -13028,7 +13028,7 @@ regular expression that can be used as an element of
 `font-lock-keywords'.
 
 (fn KEYWORD-LIST FACE &optional PREFIX SUFFIX)" nil nil)
-(make-obsolete 'generic-make-keywords-list 'regexp-opt '"24.4")
+(make-obsolete 'generic-make-keywords-list 'regexp-opt "24.4")
 (register-definition-prefixes "generic" '("generic-"))
 
 
@@ -13758,7 +13758,7 @@ Both lists have to be sorted over <.
 
 
 (fn LIST1 LIST2)" nil nil)
-(make-obsolete 'gnus-intersection 'seq-intersection '"28.1")
+(make-obsolete 'gnus-intersection 'seq-intersection "28.1")
 (autoload 'gnus-sorted-intersection "gnus-range" "\
 Return intersection of LIST1 and LIST2.
 LIST1 and LIST2 have to be sorted over <.
@@ -14809,10 +14809,10 @@ Commands:
 (fn)" t nil)
 (autoload 'help-mode-setup "help-mode" "\
 Enter Help mode in the current buffer." nil nil)
-(make-obsolete 'help-mode-setup 'nil '"29.1")
+(make-obsolete 'help-mode-setup 'nil "29.1")
 (autoload 'help-mode-finish "help-mode" "\
 Finalize Help mode setup in current buffer." nil nil)
-(make-obsolete 'help-mode-finish 'nil '"29.1")
+(make-obsolete 'help-mode-finish 'nil "29.1")
 (autoload 'help-setup-xref "help-mode" "\
 Invoked from commands using the \"*Help*\" buffer to install some xref info.
 
@@ -16566,7 +16566,7 @@ Value is a symbol specifying the image type, or nil if type cannot
 be determined.
 
 (fn FILE)" nil nil)
-(make-obsolete 'image-type-from-file-name 'image-supported-file-p '"29.1")
+(make-obsolete 'image-type-from-file-name 'image-supported-file-p "29.1")
 (autoload 'image-type "image" "\
 Determine and return image type.
 SOURCE is an image file name or image data.
@@ -18217,7 +18217,7 @@ KEYS should be a vector or a string that obeys `key-valid-p'.
 
 
 (fn MAC &optional COUNTER FORMAT)" nil nil)
-(make-obsolete 'kmacro-lambda-form 'kmacro '"29.1")
+(make-obsolete 'kmacro-lambda-form 'kmacro "29.1")
 (register-definition-prefixes "kmacro" '("kmacro-"))
 
 
@@ -19075,7 +19075,7 @@ Completable headers are according to `mail-complete-alist'.  If none matches
 current header, calls `mail-complete-function' and passes prefix ARG if any.
 
 (fn ARG)" t nil)
-(make-obsolete 'mail-complete 'mail-completion-at-point-function '"24.1")
+(make-obsolete 'mail-complete 'mail-completion-at-point-function "24.1")
 (register-definition-prefixes "mailalias" '("build-mail-aliases" "mail-"))
 
 
@@ -23121,7 +23121,7 @@ To use this function, just bind the TAB key to it, or add it to your
 completion functions list (it should occur fairly early in the list).
 
 (fn &optional INTERACTIVELY)" t nil)
-(make-obsolete 'pcomplete '"use completion-at-point and pcomplete-completions-at-point" '"27.1")
+(make-obsolete 'pcomplete '"use completion-at-point and pcomplete-completions-at-point" "27.1")
 (autoload 'pcomplete-reverse "pcomplete" "\
 If cycling completion is in use, cycle backwards." t nil)
 (autoload 'pcomplete-expand-and-complete "pcomplete" "\
@@ -23134,7 +23134,7 @@ Expand the textual value of the current argument.
 This will modify the current buffer." t nil)
 (autoload 'pcomplete-help "pcomplete" "\
 Display any help information relative to the current argument." t nil)
-(make-obsolete 'pcomplete-help '"use completion-help-at-point and pcomplete-completions-at-point" '"27.1")
+(make-obsolete 'pcomplete-help '"use completion-help-at-point and pcomplete-completions-at-point" "27.1")
 (autoload 'pcomplete-list "pcomplete" "\
 Show the list of possible completions for the current argument." t nil)
 (autoload 'pcomplete-comint-setup "pcomplete" "\
@@ -33201,7 +33201,7 @@ By default, this command cycles through the registered backends.
 To get a prompt, use a prefix argument.
 
 (fn FILE BACKEND)" t nil)
-(make-obsolete 'vc-switch-backend 'nil '"28.1")
+(make-obsolete 'vc-switch-backend 'nil "28.1")
 (autoload 'vc-transfer-file "vc" "\
 Transfer FILE to another version control system NEW-BACKEND.
 If NEW-BACKEND has a higher precedence than FILE's current backend
@@ -34456,7 +34456,7 @@ entry for the selected window, purge that entry from
 `view-return-to-alist' before adding ITEM.
 
 (fn BUFFER &optional ITEM)" nil nil)
-(make-obsolete 'view-return-to-alist-update '"this function has no effect." '"24.1")
+(make-obsolete 'view-return-to-alist-update '"this function has no effect." "24.1")
 (autoload 'view-mode-enter "view" "\
 Enter View mode and set up exit from view mode depending on optional arguments.
 Optional argument QUIT-RESTORE if non-nil must specify a valid
