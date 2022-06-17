@@ -2260,7 +2260,7 @@ See the command `doc-view-mode' for more information on this mode."
     (add-hook 'bookmark-after-jump-hook show-fn-sym)
     (bookmark-default-handler bmk)))
 
-(put 'doc-view-bookmark-jump 'bookmark-handler-type "Docview")
+(put 'doc-view-bookmark-jump 'bookmark-handler-type "DocView")
 
 ;; Obsolete.
 
