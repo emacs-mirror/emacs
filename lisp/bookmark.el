@@ -1029,7 +1029,7 @@ annotations."
            "#  All lines which start with a `#' will be deleted.\n")
           (substitute-command-keys
            (concat
-            "#  Type \\[bookmark-send-edited-annotation] when done.  Type "
+            "#  Type \\[bookmark-edit-annotation-confirm] when done.  Type "
             "\\[bookmark-edit-annotation-cancel] to cancel.\n#\n"))
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
 	  (system-name) ">\n"
@@ -1043,7 +1043,7 @@ It takes one argument, the name of the bookmark, as a string.")
 (defvar-keymap bookmark-edit-annotation-mode-map
   :doc "Keymap for editing an annotation of a bookmark."
   :parent text-mode-map
-  "C-c C-c" #'bookmark-send-edited-annotation
+  "C-c C-c" #'bookmark-edit-annotation-confirm
   "C-c C-k" #'bookmark-edit-annotation-cancel)
 
 (defun bookmark-insert-annotation (bookmark-name-or-record)
@@ -1059,7 +1059,7 @@ It takes one argument, the name of the bookmark, as a string.")
   text-mode "Edit Bookmark Annotation"
   "Mode for editing the annotation of bookmarks.
 \\<bookmark-edit-annotation-mode-map>\
-When you have finished composing, type \\[bookmark-send-edited-annotation] \
+When you have finished composing, type \\[bookmark-edit-annotation-confirm] \
 or \\[bookmark-edit-annotation-cancel] to cancel.
 
 \\{bookmark-edit-annotation-mode-map}")
@@ -1083,7 +1083,7 @@ or \\[bookmark-edit-annotation-cancel] to cancel.
   (bookmark-edit-annotation--maybe-display-list
    (message "Canceled by user")))
 
-(defun bookmark-send-edited-annotation ()
+(defun bookmark-edit-annotation-confirm ()
   "Use buffer contents as annotation for a bookmark.
 Lines beginning with `#' are ignored."
   (interactive nil bookmark-edit-annotation-mode)
@@ -2570,6 +2570,12 @@ This also runs `bookmark-exit-hook'."
 
 
 (run-hooks 'bookmark-load-hook)
+
+
+;;; Obsolete:
+
+(define-obsolete-function-alias 'bookmark-send-edited-annotation
+  #'bookmark-edit-annotation-confirm "29.1")
 
 (provide 'bookmark)
 
