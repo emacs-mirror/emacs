@@ -210,12 +210,16 @@ The return value of this function is not used."
 (defalias 'byte-run--set-doc-string
   #'(lambda (f _args pos)
       (list 'function-put (list 'quote f)
-            ''doc-string-elt (list 'quote pos))))
+            ''doc-string-elt (if (numberp pos)
+                                 pos
+                               (list 'quote pos)))))
 
 (defalias 'byte-run--set-indent
   #'(lambda (f _args val)
       (list 'function-put (list 'quote f)
-            ''lisp-indent-function (list 'quote val))))
+            ''lisp-indent-function (if (numberp val)
+                                       val
+                                     (list 'quote val)))))
 
 (defalias 'byte-run--set-speed
   #'(lambda (f _args val)
