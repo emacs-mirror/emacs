@@ -1708,7 +1708,10 @@ extracted."
       (setq rcirc-parent-buffer parent)
       (insert text)
       (and (> pos 0) (goto-char pos))
-      (message "Type C-c C-c to return text to %s, or C-c C-k to cancel" parent))))
+      (message "Type %s to return text to %s, or %s to cancel"
+               (substitute-command-keys "\\[rcirc-multiline-minor-submit]")
+               parent
+               (substitute-command-keys "\\[rcirc-multiline-minor-cancel]")))))
 
 (defvar rcirc-multiline-minor-mode-map
   (let ((map (make-sparse-keymap)))

@@ -1272,10 +1272,11 @@ This gets refreshed in every phrases command.")
 ;;;###autoload
 (defun reftex-index-phrase-selection-or-word (arg)
   "Add current selection or word at point to the phrases buffer.
+\\<reftex-index-phrases-mode-map>
 When you are in transient-mark-mode and the region is active, the
 selection will be used - otherwise the word at point.
 You get a chance to edit the entry in the phrases buffer - finish with
-`C-c C-c'."
+\\[reftex-index-phrases-save-and-return]."
   (interactive "P")
   (set-marker reftex-index-return-marker (point))
   (reftex-index-selection-or-word arg 'phrase)
@@ -1373,7 +1374,7 @@ If the buffer is non-empty, delete the old header first."
 ;;;###autoload
 (define-derived-mode reftex-index-phrases-mode fundamental-mode "Phrases"
   "Major mode for managing the Index phrases of a LaTeX document.
-This buffer was created with RefTeX.
+This buffer was created with RefTeX. \\<reftex-index-phrases-mode-map>
 
 To insert new phrases, use
  - `C-c \\' in the LaTeX document to copy selection or word
