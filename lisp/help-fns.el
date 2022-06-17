@@ -135,6 +135,11 @@ with the current prefix.  The files are chosen according to
 
 (defcustom help-enable-variable-value-editing nil
   "If non-nil, allow editing values in *Help* buffers.
+
+To edit the value of a variable, use \\[describe-variable] to
+display a \"*Help*\" buffer, move point after the text
+\"Its value is\" and type \\`e'.
+
 Values that aren't readable by the Emacs Lisp reader can't be
 edited even if this option is enabled."
   :type 'boolean
@@ -1376,9 +1381,10 @@ it is displayed along with the global value."
     (prin1 (nth 1 var) (current-buffer))
     (pp-buffer)
     (goto-char (point-min))
-    (insert (format ";; Edit the `%s' variable.\n" (nth 0 var))
-            ";; C-c C-c to update the value and exit.\n\n")
     (help-fns--edit-value-mode)
+    (insert (format ";; Edit the `%s' variable.\n" (nth 0 var))
+            (substitute-command-keys
+             ";; \\[help-fns-edit-mode-done] to update the value and exit.\n\n"))
     (setq-local help-fns--edit-variable var)))
 
 (defvar-keymap help-fns--edit-value-mode-map
