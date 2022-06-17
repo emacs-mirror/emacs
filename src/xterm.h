@@ -495,9 +495,8 @@ struct x_display_info
   struct scroll_bar *last_mouse_scroll_bar;
 
   /* Time of last user interaction as returned in X events on this
-     display, and time where WM support for `_NET_WM_USER_TIME_WINDOW'
-     was last checked.  */
-  Time last_user_time, last_user_check_time;
+     display.  */
+  Time last_user_time;
 
   /* Position where the mouse was last time we reported a motion.
      This is a position on last_mouse_motion_frame.  */
