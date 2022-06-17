@@ -1463,7 +1463,7 @@ usage: (format-time-string FORMAT-STRING &optional TIME ZONE)  */)
 }
 
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 3, 0,
-       doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).
+       doc: /* Decode a timestamp into (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).
 The optional TIME is the time value to convert.  See
 `format-time-string' for the various forms of a time value.
 

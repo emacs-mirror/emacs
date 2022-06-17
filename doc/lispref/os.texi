@@ -1754,9 +1754,10 @@ at the 15th of the month when adding months.  Alternatively, you can use the
 @cindex time formatting
 @cindex formatting time values
 
-  These functions convert time values to text in a string, and vice versa.
-Time values include @code{nil}, finite numbers, and Lisp timestamps
-(@pxref{Time of Day}).
+  These functions convert time values to text in a string, and vice
+versa.  Time values are either represented as a Lisp timestamp
+(@pxref{Time of Day}) or a decoded time structure (@pxref{Time
+Conversion}).
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the
@@ -1769,22 +1770,11 @@ The operating system limits the range of time and zone values.
 @end defun
 
 @defun parse-time-string string
-This function parses the time-string @var{string} into a list of the
-following form:
-
-@example
-(@var{sec} @var{min} @var{hour} @var{day} @var{mon} @var{year} @var{dow} @var{dst} @var{tz})
-@end example
-
-@noindent
-The format of this list is the same as what @code{decode-time} accepts
-(@pxref{Time Conversion}), and is described in more detail there.  Any
-@code{dst} element that cannot be determined from the input is set to
-@minus{}1, and any other unknown element is set to
-@code{nil}.  The argument @var{string} should resemble an RFC 822 (or later) or
-ISO 8601 string, like ``Fri, 25 Mar 2016 16:24:56 +0100'' or
-``1998-09-12T12:21:54-0200'', but this function will attempt to parse
-less well-formed time strings as well.
+This function parses the time-string @var{string} into a decoded time
+structure (@pxref{Time Conversion}).  The argument @var{string} should
+resemble an RFC 822 (or later) or ISO 8601 string, like ``Fri, 25 Mar
+2016 16:24:56 +0100'' or ``1998-09-12T12:21:54-0200'', but this
+function will attempt to parse less well-formed time strings as well.
 @end defun
 
 @vindex ISO 8601 date/time strings
@@ -1801,11 +1791,11 @@ time structures, except the final one, which returns three of them
 @end defun
 
 @defun format-time-string format-string &optional time zone
-
-This function converts @var{time} (or the current time, if
-@var{time} is omitted or @code{nil}) to a string according to
-@var{format-string}.  The conversion uses the time zone rule @var{zone}, which
-defaults to the current time zone rule.  @xref{Time Zone Rules}.  The argument
+This function converts @var{time} (which should be a Lisp timestamp,
+and defaults to the current time if @var{time} is omitted or
+@code{nil}) to a string according to @var{format-string}.  The
+conversion uses the time zone rule @var{zone}, which defaults to the
+current time zone rule.  @xref{Time Zone Rules}.  The argument
 @var{format-string} may contain @samp{%}-sequences which say to
 substitute parts of the time.  Here is a table of what the
 @samp{%}-sequences mean:
