@@ -3707,30 +3707,44 @@ Return the result of the last expression."
 (defalias 'edebug-format #'format-message)
 (defalias 'edebug-message #'message)
 
-(defun edebug-eval-expression (expr)
+(defun edebug-eval-expression (expr &optional pp)
   "Evaluate an expression in the outside environment.
 If interactive, prompt for the expression.
-Print result in minibuffer."
-  (interactive (list (read--expression "Eval: ")))
+
+Print result in minibuffer by default, but if PP is non-nil open
+a new window and pretty-print the result there.  (Interactively,
+this is the prefix key.)"
+  (interactive (list (read--expression "Edebug eval: ")
+                     current-prefix-arg))
   (let* ((errored nil)
-         (result
+         (value
           (edebug-outside-excursion
-           (let ((result (if debug-allow-recursive-debug
-                             (edebug-eval expr)
-                           (condition-case err
-                               (edebug-eval expr)
-                             (error
-                              (setq errored
-                                    (format "%s: %s"
-			                    (get (car err) 'error-message)
-			                    (car (cdr err)))))))))
-             (unless errored
-               (values--store-value result)
-               (concat (edebug-safe-prin1-to-string result)
-                       (eval-expression-print-format result)))))))
-    (if errored
-        (message "Error: %s" errored)
-      (princ result))))
+           (if debug-allow-recursive-debug
+               (edebug-eval expr)
+             (condition-case err
+                 (edebug-eval expr)
+               (error
+                (setq errored
+                      (format "%s: %s"
+		              (get (car err) 'error-message)
+		              (car (cdr err)))))))))
+         (result
+          (unless errored
+            (values--store-value value)
+            (concat (edebug-safe-prin1-to-string value)
+                    (eval-expression-print-format value)))))
+    (cond
+     (errored
+      (message "Error: %s" errored))
+     (pp
+      (save-selected-window
+        (pop-to-buffer "*Edebug Results*")
+        (erase-buffer)
+        (pp value (current-buffer))
+        (goto-char (point-min))
+        (lisp-data-mode)))
+     (t
+      (princ result)))))
 
 (defun edebug-eval-last-sexp (&optional no-truncate)
   "Evaluate sexp before point in the outside environment.

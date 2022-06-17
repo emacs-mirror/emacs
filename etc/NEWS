@@ -1019,6 +1019,9 @@ buffer or while edebugging) and 'C-x C-e' (while edebugging) commands
 lead to a (further) backtrace.  By default, this variable is nil,
 which is a change in behaviour from previous Emacs versions.
 
++++
+*** 'e' in edebug can now take a prefix to pretty-print the results.
+
 ** Compile
 
 +++
