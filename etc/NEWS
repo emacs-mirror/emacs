@@ -2016,7 +2016,7 @@ Previously it produced a nonsense value, -1, that was never intended.
 ** Some libraries obsolete since Emacs 24.1 and 24.3 have been removed:
 abbrevlist.el, assoc.el, complete.el, cust-print.el,
 erc-hecomplete.el, mailpost.el, mouse-sel.el, old-emacs-lock.el,
-patcomp.el, pc-select.el, s-region.el, and sregex.el.
+patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 
 
 * Lisp Changes in Emacs 29.1
