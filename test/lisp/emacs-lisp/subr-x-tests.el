@@ -743,6 +743,13 @@
           (with-current-buffer inner
             (should-not (buffer-modified-p))))))))
 
+(ert-deftest subr-x--hash-table-keys-and-values ()
+  (let ((h (make-hash-table)))
+    (puthash 'a 1 h)
+    (puthash 'c 3 h)
+    (puthash 'b 2 h)
+    (should (equal (sort (hash-table-keys h) #'string<) '(a b c)))
+    (should (equal (sort (hash-table-values h) #'<) '(1 2 3)))))
 
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

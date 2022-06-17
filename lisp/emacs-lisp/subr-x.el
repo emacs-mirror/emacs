@@ -87,11 +87,15 @@ threading."
 
 (defsubst hash-table-keys (hash-table)
   "Return a list of keys in HASH-TABLE."
-  (cl-loop for k being the hash-keys of hash-table collect k))
+  (let ((keys nil))
+    (maphash (lambda (k _) (push k keys)) hash-table)
+    keys))
 
 (defsubst hash-table-values (hash-table)
   "Return a list of values in HASH-TABLE."
-  (cl-loop for v being the hash-values of hash-table collect v))
+  (let ((values nil))
+    (maphash (lambda (_ v) (push v values)) hash-table)
+    values))
 
 (defsubst string-empty-p (string)
   "Check whether STRING is empty."
