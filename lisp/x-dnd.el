@@ -572,19 +572,23 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(version (x-dnd-version-from-flags flags))
 		(more-than-3 (x-dnd-more-than-3-from-flags flags))
 		(dnd-source (aref data 0)))
-	   (if version  ;; If flags is bad, version will be nil.
-	       (x-dnd-save-state
-		window nil nil
-		(if (> more-than-3 0)
-		    (x-window-property "XdndTypeList"
-				       frame "AnyPropertyType"
-				       dnd-source nil t)
-		  (vector (x-get-atom-name (aref data 2))
-			  (x-get-atom-name (aref data 3))
-			  (x-get-atom-name (aref data 4))))))))
+	   (when version  ;; If flags is bad, version will be nil.
+	     (x-dnd-save-state
+	      window nil nil
+	      (if (> more-than-3 0)
+		  (x-window-property "XdndTypeList"
+				     frame "AnyPropertyType"
+				     dnd-source nil t)
+		(vector (x-get-atom-name (aref data 2))
+			(x-get-atom-name (aref data 3))
+			(x-get-atom-name (aref data 4))))
+              version))))
 
 	((equal "XdndPosition" message)
-	 (let* ((action (x-get-atom-name (aref data 4)))
+	 (let* ((state (x-dnd-get-state-for-frame window))
+                (version (aref state 6))
+                (action (if (< version 2) 'copy ; `copy' is the default action.
+                          (x-get-atom-name (aref data 4))))
 		(dnd-source (aref data 0))
 		(action-type (x-dnd-maybe-call-test-function
 			      window
@@ -604,7 +608,14 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		       (x-dnd-get-drop-x-y frame window)
 		       (x-dnd-get-drop-width-height
 			frame window (eq accept 1))
-		       (or reply-action 0))))
+                       ;; The no-toolkit Emacs build can actually
+                       ;; receive drops from programs that speak
+                       ;; versions of XDND earlier than 3 (such as
+                       ;; GNUstep), since the toplevel window is the
+                       ;; innermost window.
+		       (if (>= version 2)
+                           (or reply-action 0)
+                         0))))
 	   (x-send-client-message
 	    frame dnd-source frame "XdndStatus" 32 list-to-send)
            (dnd-handle-movement (event-start event))))
@@ -614,7 +625,9 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 	((equal "XdndDrop" message)
 	 (if (windowp window) (select-window window))
-	 (let* ((dnd-source (aref data 0))
+	 (let* ((state (x-dnd-get-state-for-frame frame))
+                (version (aref state 6))
+                (dnd-source (aref data 0))
 		(timestamp (aref data 2))
 		(value (and (x-dnd-current-type window)
 			    (x-get-selection-internal
@@ -630,15 +643,17 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			      (error
 			       (message "Error: %s" info)
 			       nil))))
-
 	   (setq success (if action 1 0))
-
-	   (x-send-client-message
-	    frame dnd-source frame "XdndFinished" 32
-	    (list (string-to-number (frame-parameter frame 'outer-window-id))
-		  success	;; 1 = Success, 0 = Error
-		  (if success "XdndActionPrivate" 0)
-		  ))
+           (when (>= version 2)
+	     (x-send-client-message
+	      frame dnd-source frame "XdndFinished" 32
+	      (list (string-to-number
+                     (frame-parameter frame 'outer-window-id))
+		    (if (>= version 5) success 0) ;; 1 = Success, 0 = Error
+                    (when (>= version 5)
+		      (if (not success) 0
+                        (car (rassoc action
+                                     x-dnd-xdnd-to-action)))))))
 	   (x-dnd-forget-drop window)))
 
 	(t (error "Unknown XDND message %s %s" message data))))
