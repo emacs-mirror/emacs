@@ -3474,8 +3474,8 @@ be_get_screen_dimensions (int *width, int *height)
 
   frame = screen.Frame ();
 
-  *width = 1 + frame.right - frame.left;
-  *height = 1 + frame.bottom - frame.top;
+  *width = BE_RECT_WIDTH (frame);
+  *height = BE_RECT_HEIGHT (frame);
 }
 
 /* Resize VIEW to WIDTH, HEIGHT.  */
