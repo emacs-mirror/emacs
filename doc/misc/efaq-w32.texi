@@ -2102,9 +2102,9 @@ suggestions} for improving the interaction of perldb and Emacs.
 
 @menu
 * Cygwin::
-* MinGW::
-* EZWinPorts::
 * MinGW-w64::
+* EZWinPorts::
+* MinGW::
 * GnuWin32::
 * GTK::
 * Read man pages::
