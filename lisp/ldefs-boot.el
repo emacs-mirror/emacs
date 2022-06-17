@@ -1348,25 +1348,25 @@ Variables
  This is a brief overview of the different variables.  For more info,
  see the documentation for the variables (type \\[describe-variable] <variable> RET).
 
- artist-rubber-banding		Interactively do rubber-banding or not
- artist-first-char		What to set at first/second point...
- artist-second-char		...when not rubber-banding
- artist-interface-with-rect	If cut/copy/paste should interface with rect
- artist-arrows			The arrows to use when drawing arrows
- artist-aspect-ratio		Character height-to-width for squares
- artist-trim-line-endings	Trimming of line endings
- artist-flood-fill-right-border	Right border when flood-filling
- artist-flood-fill-show-incrementally	Update display while filling
- artist-pointer-shape		Pointer shape to use while drawing
- artist-ellipse-left-char	Character to use for narrow ellipses
- artist-ellipse-right-char	Character to use for narrow ellipses
- artist-borderless-shapes       If shapes should have borders
- artist-picture-compatibility   Whether or not to be picture mode compatible
- artist-vaporize-fuzziness      Tolerance when recognizing lines
- artist-spray-interval          Seconds between repeated sprayings
- artist-spray-radius            Size of the spray-area
- artist-spray-chars             The spray-\"color\"
- artist-spray-new-chars         Initial spray-\"color\"
+ `artist-rubber-banding'              Interactively do rubber-banding or not
+ `artist-first-char'                  What to set at first/second point...
+ `artist-second-char'                 ...when not rubber-banding
+ `artist-interface-with-rect'         Should cut/copy/paste interface with rect
+ `artist-arrows'                      The arrows to use when drawing arrows
+ `artist-aspect-ratio'                Character height-to-width for squares
+ `artist-trim-line-endings'           Trimming of line endings
+ `artist-flood-fill-right-border'     Right border when flood-filling
+ `artist-flood-fill-show-incrementally'  Update display while filling
+ `artist-pointer-shape'               Pointer shape to use while drawing
+ `artist-ellipse-left-char'           Character to use for narrow ellipses
+ `artist-ellipse-right-char'          Character to use for narrow ellipses
+ `artist-borderless-shapes'           If shapes should have borders
+ `artist-picture-compatibility'       Picture mode compatibility on or off
+ `artist-vaporize-fuzziness'          Tolerance when recognizing lines
+ `artist-spray-interval'              Seconds between repeated sprayings
+ `artist-spray-radius'                Size of the spray-area
+ `artist-spray-chars'                 The spray-\"color\"
+ `artist-spray-new-char'              Initial spray-\"color\"
 
 Hooks
 
@@ -3951,8 +3951,7 @@ See the documentation of `define-ccl-program' for the detail of CCL program.
 
 (autoload 'cconv-closure-convert "cconv" "\
 Main entry point for closure conversion.
--- FORM is a piece of Elisp code after macroexpansion.
--- TOPLEVEL(optional) is a boolean variable, true if we are at the root of AST
+FORM is a piece of Elisp code after macroexpansion.
 
 Returns a form where all lambdas don't have any free variables.
 
@@ -14209,6 +14208,10 @@ to specify a command to run.
 If CONFIRM is non-nil, the user will be given an opportunity to edit the
 command before it's run.
 
+Interactively, the user can use the `M-c' command while entering
+the regexp to indicate whether the grep should be case sensitive
+or not.
+
 (fn REGEXP &optional FILES DIR CONFIRM)" t nil)
 (autoload 'zrgrep "grep" "\
 Recursively grep for REGEXP in gzipped FILES in tree rooted at DIR.
@@ -18506,7 +18509,9 @@ its autoloads into the specified file instead.
 The function does NOT recursively descend into subdirectories of the
 directory or directories specified.
 
-If EXTRA-DATA, include this string at the start of the generated file.
+If EXTRA-DATA, include this string at the start of the generated
+file.  This will also force generation of OUTPUT-FILE even if
+there are no autoloads to put into the file.
 
 If INCLUDE-PACKAGE-VERSION, include package version data.
 
@@ -22741,6 +22746,16 @@ PKG should be either a symbol, the package name, or a `package-desc'
 object.
 
 (fn PKG)" t nil)
+(autoload 'package-recompile "package" "\
+Byte-compile package PKG again.
+PKG should be either a symbol, the package name, or a `package-desc'
+object.
+
+(fn PKG)" t nil)
+(autoload 'package-recompile-all "package" "\
+Byte-compile all installed packages.
+This is meant to be used only in the case the byte-compiled files
+are invalid due to changed byte-code, macros or the like." t nil)
 (autoload 'package-autoremove "package" "\
 Remove packages that are no longer needed.
 
@@ -32065,18 +32080,6 @@ FRAC should be the inverse of the fractional value; for example, a value of
 (register-definition-prefixes "type-break" '("timep" "type-break-"))
 
 
-;;; Generated autoloads from mail/uce.el
-
-(autoload 'uce-reply-to-uce "uce" "\
-Compose a reply to unsolicited commercial email (UCE).
-Sets up a reply buffer addressed to: the sender, his postmaster,
-his abuse@ address, and the postmaster of the mail relay used.
-You might need to set `uce-mail-reader' before using this.
-
-(fn &optional IGNORED)" t nil)
-(register-definition-prefixes "uce" '("uce-"))
-
-
 ;;; Generated autoloads from international/ucs-normalize.el
 
 (autoload 'string-glyph-compose "ucs-normalize" "\
@@ -34903,6 +34906,7 @@ Interactively, it accepts one of the following chars:
    r	toggle trailing blanks visualization
    l	toggle \"long lines\" visualization
    L	toggle \"long lines\" tail visualization
+   C-l	toggle \"long lines\" one character visualization
    n	toggle NEWLINE visualization
    e	toggle empty line at bob and/or eob visualization
    C-i	toggle indentation SPACEs visualization (via `indent-tabs-mode')
@@ -34933,6 +34937,7 @@ The valid symbols are:
    trailing		toggle trailing blanks visualization
    lines		toggle \"long lines\" visualization
    lines-tail		toggle \"long lines\" tail visualization
+   lines-char		toggle \"long lines\" one character visualization
    newline		toggle NEWLINE visualization
    empty		toggle empty line at bob and/or eob visualization
    indentation		toggle indentation SPACEs visualization
