@@ -299,6 +299,10 @@ startup.  Previously, these functions ignored
 * Changes in Emacs 29.1
 
 ---
+** New command 'duplicate-line'.
+This command duplicates the current line the specified number of times.
+
+---
 ** Files with the '.eld' extension are now visited in 'lisp-data-mode'.
 
 +++

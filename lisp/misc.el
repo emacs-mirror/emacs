@@ -33,7 +33,9 @@
   "Copy characters from previous nonblank line, starting just above point.
 Copy ARG characters, but not past the end of that line.
 If no argument given, copy the entire rest of the line.
-The characters copied are inserted in the buffer before point."
+The characters copied are inserted in the buffer before point.
+
+Also see the `copy-line' command."
   (interactive "P")
   (let ((cc (current-column))
 	n
@@ -60,6 +62,19 @@ The characters copied are inserted in the buffer before point."
 			    (min (line-end-position)
 				 (+ n (point)))))))
     (insert string)))
+
+;;;###autoload
+(defun duplicate-line (&optional n)
+  "Duplicate the current line N times.
+Also see the `copy-from-above-command' command."
+  (interactive "p")
+  (let ((line (buffer-substring (line-beginning-position) (line-end-position))))
+    (save-excursion
+      (forward-line 1)
+      (unless (bolp)
+        (insert "\n"))
+      (dotimes (_ n)
+        (insert line "\n")))))
 
 ;; Variation of `zap-to-char'.
 
