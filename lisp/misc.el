@@ -35,7 +35,7 @@ Copy ARG characters, but not past the end of that line.
 If no argument given, copy the entire rest of the line.
 The characters copied are inserted in the buffer before point.
 
-Also see the `copy-line' command."
+Also see the `duplicate-line' command."
   (interactive "P")
   (let ((cc (current-column))
 	n
