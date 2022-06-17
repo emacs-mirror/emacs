@@ -154,8 +154,10 @@ With a prefix argument, format the macro in a more concise way."
         (setq-local edmacro-finish-hook finish-hook)
         (setq-local edmacro-store-hook store-hook)
 	(erase-buffer)
-	(insert ";; Keyboard Macro Editor.  Press C-c C-c to finish; "
-		"press C-x k RET to cancel.\n")
+        (insert (substitute-command-keys
+                 (concat
+                  ";; Keyboard Macro Editor.  Press \\[edmacro-finish-edit] "
+                  "to finish; press \\`C-x k RET' to cancel.\n")))
 	(insert ";; Original keys: " fmt "\n")
 	(unless store-hook
 	  (insert "\nCommand: " (if cmd (symbol-name cmd) "none") "\n")
