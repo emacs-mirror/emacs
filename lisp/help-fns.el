@@ -1352,9 +1352,6 @@ it is displayed along with the global value."
 
 (defun help-fns--editable-variable (start end variable value buffer)
   (when (and (readablep value)
-             (or (not (symbolp value))
-                 (and (not (and (symbolp value) (boundp value)))
-                      (not (and (symbolp value) (fboundp value)))))
              help-enable-variable-value-editing)
     (add-text-properties
      start end
@@ -1362,6 +1359,7 @@ it is displayed along with the global value."
            'help-fns--edit-variable (list variable value buffer
                                           (current-buffer))
            'keymap (define-keymap
+                     :parent button-map
                      "e" #'help-fns-edit-variable)))))
 
 (defvar help-fns--edit-variable)
