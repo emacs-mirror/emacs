@@ -1034,5 +1034,7 @@ This function could be in the list `eshell-output-filter-functions'."
   (let ((default-directory (bookmark-prop-get bookmark 'location)))
     (eshell)))
 
+(put 'eshell-bookmark-jump 'bookmark-handler-type "Eshell")
+
 (provide 'esh-mode)
 ;;; esh-mode.el ends here
