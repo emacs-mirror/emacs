@@ -1636,6 +1636,22 @@ For example, the regexp ".*" will match only characters that are part
 of the file name.  Also "^.*$" can be used to match at the beginning
 of the file name and at the end of the file name.
 
+** Bookmarks
+
+---
+*** 'list-bookmarks' now includes a type column.
+Types are registered via a 'bookmark-handler-type' symbol property on
+the jumping function.
+
++++
+*** 'bookmark-sort-flag' can now be set to 'last-modified'.
+This will display bookmark list from most recently set to least
+recently set.
+
+---
+*** When editing a bookmark annotation, 'C-c C-k' will now cancel.
+It is bound to the new command 'bookmark-edit-annotation-cancel'.
+
 ** Exif
 
 ---
@@ -1795,20 +1811,6 @@ This package allows formatting data using variable-pitch fonts.
 The resulting tables can display text in variable pitch fonts, text
 using fonts of different sizes, and images.  See the "(vtable) Top"
 manual for more details.
-
----
-*** 'list-bookmarks' now includes a type column.
-Types are registered via a 'bookmark-handler-type' symbol property on
-the jumping function.
-
-+++
-*** 'bookmark-sort-flag' can now be set to 'last-modified'.
-This will display bookmark list from most recently set to least
-recently set.
-
----
-*** When editing a bookmark annotation, 'C-c C-k' will now cancel.
-It is bound to the new command 'bookmark-edit-annotation-cancel'.
 
 ---
 *** New minor mode 'elide-head-mode'.
