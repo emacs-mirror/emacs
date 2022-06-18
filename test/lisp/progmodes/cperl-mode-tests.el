@@ -5,7 +5,7 @@
 ;; Author: Harald Jörg <haj@posteo.de>
 ;; Maintainer: Harald Jörg
 ;; Keywords: internal
-;; Homepage: https://github.com/HaraldJoerg/cperl-mode
+;; URL: https://github.com/HaraldJoerg/cperl-mode
 
 ;; This file is part of GNU Emacs.
 

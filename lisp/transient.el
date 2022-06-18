@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Homepage: https://github.com/magit/transient
+;; URL: https://github.com/magit/transient
 ;; Keywords: bindings
 
 ;; Package-Requires: ((emacs "25.1"))
