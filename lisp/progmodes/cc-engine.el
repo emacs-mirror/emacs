@@ -6837,7 +6837,7 @@ comment at the start of cc-engine.el for more info."
   (let ((type (c-syntactic-content from to c-recognize-<>-arglists)))
     (unless (gethash type c-found-types)
       (puthash type t c-found-types)
-      (when (and (not c-record-found-types) ; Only call `c-fontify-new-fount-type'
+      (when (and (not c-record-found-types) ; Only call `c-fontify-new-found-type'
 					; when we haven't "bound" c-found-types
 					; to itself in c-forward-<>-arglist.
 		 (eq (string-match c-symbol-key type) 0)

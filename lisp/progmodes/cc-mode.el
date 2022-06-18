@@ -1979,6 +1979,87 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 (defvar c-new-id-is-type nil)
 (make-variable-buffer-local 'c-new-id-is-type)
 
+(defun c-before-change-fix-comment-escapes (beg end)
+  "Remove punctuation syntax-table text properties from C/C++ comment markers.
+This is to handle the rare case of two or more backslashes at an
+end of line in a // comment or the equally rare case of a
+backslash preceding the terminator of a /* comment, as \\*/.
+
+This function is used solely as a member of
+`c-get-state-before-change-functions', where it should appear
+late in that variable, and it must be used only together with
+`c-after-change-fix-comment-escapes'.
+
+Note that the function currently only handles comments beginning
+with // and /*, not more generic line and block comments."
+  (c-save-buffer-state (end-state)
+    (setq end-state (c-full-pp-to-literal end))
+    (when (memq (cadr end-state) '(c c++))
+      (goto-char (max (- beg 2) (point-min)))
+      (if (eq (cadr end-state) 'c)
+	  (when (search-forward "\\*/"
+				(or (cdr (caddr end-state)) (point-max)) t)
+	    (c-clear-char-property (match-beginning 0) 'syntax-table)
+	    (c-truncate-lit-pos-cache (match-beginning 0)))
+	(while (search-forward "\\\\\n"
+			       (or (cdr (caddr end-state)) (point-max)) t)
+	  (c-clear-char-property (match-beginning 0) 'syntax-table)
+	  (c-truncate-lit-pos-cache (match-beginning 0)))))))
+
+(defun c-after-change-fix-comment-escapes (beg end _old-len)
+  "Apply punctuation syntax-table text properties to C/C++ comment markers.
+This is to handle the rare case of two or more backslashes at an
+end of line in a // comment or the equally rare case of a
+backslash preceding the terminator of a /* comment, as \\*/.
+
+This function is used solely as a member of
+`c-before-font-lock-functions', where it should appear early in
+that variable, and it must be used only together with
+`c-before-change-fix-comment-escapes'.
+
+Note that the function currently only handles comments beginning
+with // and /*, not more generic line and block comments."
+  (c-save-buffer-state (state)
+    ;; We cannot use `c-full-pp-to-literal' in this function, since the
+    ;; `syntax-table' text properties after point are not yet in a consistent
+    ;; state.
+    (setq state (c-semi-pp-to-literal beg))
+    (goto-char (if (memq (cadr state) '(c c++))
+		   (caddr state)
+		 (max (- beg 2) (point-min))))
+    (while
+	(re-search-forward "\\\\\\(\\(\\\\\n\\)\\|\\(\\*/\\)\\)"
+			   (min (+ end 2) (point-max)) t)
+      (setq state (c-semi-pp-to-literal (match-beginning 0)))
+      (when (cond
+	     ((eq (cadr state) 'c)
+	      (match-beginning 3))
+	     ((eq (cadr state) 'c++)
+	      (match-beginning 2)))
+	(c-put-char-property (match-beginning 0) 'syntax-table '(1))
+	(c-truncate-lit-pos-cache (match-beginning 0))))
+
+    (goto-char end)
+    (setq state (c-semi-pp-to-literal (point)))
+    (cond
+     ((eq (cadr state) 'c)
+      (when (search-forward "*/" nil t)
+	(when (eq (char-before (match-beginning 0)) ?\\)
+	  (c-put-char-property (1- (match-beginning 0)) 'syntax-table '(1))
+	  (c-truncate-lit-pos-cache (1- (match-beginning 0))))))
+     ((eq (cadr state) 'c++)
+      (while
+	  (progn
+	    (end-of-line)
+	    (and (eq (char-before) ?\\)
+		 (progn
+		   (when (eq (char-before (1- (point))) ?\\)
+		     (c-put-char-property (- (point) 2) 'syntax-table '(1))
+		     (c-truncate-lit-pos-cache (1- (point))))
+		   t)
+		 (not (eobp))))
+	(forward-char))))))
+
 (defun c-update-new-id (end)
   ;; Note the bounds of any identifier that END is in or just after, in
   ;; `c-new-id-start' and `c-new-id-end'.  Otherwise set these variables to
@@ -1989,7 +2070,6 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
       (setq c-new-id-start id-beg
 	    c-new-id-end (and id-beg
 			      (progn (c-end-of-current-token) (point)))))))
-
 
 (defun c-post-command ()
   ;; If point was inside of a new identifier and no longer is, record that
