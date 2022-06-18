@@ -286,11 +286,16 @@ haiku_clear_frame (struct frame *f)
 static Lisp_Object
 haiku_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
-  struct font *font = XFONT_OBJECT (font_object);
+  struct font *font;
+  int ascent, descent, unit;
+
+  font = XFONT_OBJECT (font_object);
+
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
 
   FRAME_FONTSET (f) = fontset;
+
   if (FRAME_FONT (f) == font)
     return font_object;
 
@@ -298,12 +303,11 @@ haiku_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
 
-  int ascent, descent;
   get_font_ascent_descent (font, &ascent, &descent);
   FRAME_LINE_HEIGHT (f) = ascent + descent;
   FRAME_TAB_BAR_HEIGHT (f) = FRAME_TAB_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 
-  int unit = FRAME_COLUMN_WIDTH (f);
+  unit = FRAME_COLUMN_WIDTH (f);
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
     FRAME_CONFIG_SCROLL_BAR_COLS (f)
       = (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + unit - 1) / unit;
@@ -311,13 +315,10 @@ haiku_new_font (struct frame *f, Lisp_Object font_object, int fontset)
     FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
 
   if (FRAME_HAIKU_WINDOW (f) && !FRAME_TOOLTIP_P (f))
-    {
-      adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-			 FRAME_LINES (f) * FRAME_LINE_HEIGHT (f),
-			 3, false, Qfont);
+    adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+		       FRAME_LINES (f) * FRAME_LINE_HEIGHT (f),
+		       3, false, Qfont);
 
-      haiku_clear_under_internal_border (f);
-    }
   return font_object;
 }
 
