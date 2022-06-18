@@ -2115,13 +2115,12 @@ with a brace block."
 	  (c-forward-syntactic-ws)
 	  (when (eq (char-after) ?\")
 	    (forward-sexp 1)
+	    (c-forward-syntactic-ws)
 	    (c-forward-token-2))	; over the comma and following WS.
-	  (buffer-substring-no-properties
-	   (point)
-	   (progn
-	     (c-forward-token-2)
-	     (c-backward-syntactic-ws)
-	     (point))))
+	  (setq pos (point))
+	  (and (zerop (c-forward-token-2))
+	       (progn (c-backward-syntactic-ws) t)
+	       (buffer-substring-no-properties pos (point))))
 
 	 ((and (c-major-mode-is 'objc-mode) (looking-at "[-+]\\s-*("))     ; Objective-C method
 	  ;; Move to the beginning of the method name.
