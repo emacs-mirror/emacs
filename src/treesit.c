@@ -1706,16 +1706,10 @@ query.  */)
 
   /* Initialize query objects, and execute query.  */
   struct Lisp_TS_Query *lisp_query;
-  /* If the lisp query is temporary, we need to free it after use. */
-  bool lisp_query_temp_p;
   if (TS_COMPILED_QUERY_P (query))
-    {
-      lisp_query_temp_p = false;
       lisp_query = XTS_COMPILED_QUERY (query);
-    }
   else
     {
-      lisp_query_temp_p = true;
       uint32_t error_offset;
       TSQueryError error_type;
       lisp_query = make_ts_query (query, lang,
@@ -1727,6 +1721,8 @@ query.  */)
 		    (ts_query_error_to_string (error_type)),
 		    make_fixnum (error_offset + 1));
 	}
+      /* We don't need need to free TS_QUERY and CURSOR, they are stored
+	 in a lisp object, which is tracked by gc.  */
     }
   TSQuery *ts_query = lisp_query->query;
   TSQueryCursor *cursor = lisp_query->cursor;
@@ -1784,11 +1780,6 @@ query.  */)
 	  /* Predicates didn't pass, roll back.  */
 	  result = prev_result;
 	}
-    }
-  if (lisp_query_temp_p)
-    {
-      ts_query_delete (ts_query);
-      ts_query_cursor_delete (cursor);
     }
   return Fnreverse (result);
 }
