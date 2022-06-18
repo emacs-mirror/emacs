@@ -72,11 +72,9 @@ Default nil means to write characters above \\177 in octal notation."
   :type 'boolean
   :group 'kmacro)
 
-(defvar edmacro-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" #'edmacro-finish-edit)
-    (define-key map "\C-c\C-q" #'edmacro-insert-key)
-    map))
+(defvar-keymap edmacro-mode-map
+  "C-c C-c" #'edmacro-finish-edit
+  "C-c C-q" #'edmacro-insert-key)
 
 (defvar edmacro-store-hook)
 (defvar edmacro-finish-hook)
