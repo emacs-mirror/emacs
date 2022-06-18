@@ -1183,7 +1183,6 @@ The Emacs Initialization File
 
 Dealing with Emacs Trouble
 
-* DEL Does Not Delete:: What to do if @key{DEL} doesn't delete.
 * Stuck Recursive::     '[...]' in mode line around the parentheses.
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
@@ -1192,6 +1191,7 @@ Dealing with Emacs Trouble
 * After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    What to do if Emacs stops responding.
 * Long Lines::          Mitigating slowness due to extremely long lines.
+* DEL Does Not Delete:: What to do if @key{DEL} doesn't delete.
 
 Reporting Bugs
 
