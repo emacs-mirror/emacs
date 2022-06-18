@@ -3481,7 +3481,8 @@ do { prev_from = from;				\
      means we consider 10 buffer positions examined by this function
      roughly equivalent to the display engine iterating over a single
      buffer position.  */
-  update_redisplay_ticks ((from - started_from) / 10 + 1, NULL);
+  if (from > started_from)
+    update_redisplay_ticks ((from - started_from) / 10 + 1, NULL);
 }
 
 /* Convert a (lisp) parse state to the internal form used in
