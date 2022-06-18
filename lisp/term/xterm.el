@@ -80,14 +80,6 @@ capabilities, and only when that terminal understands bracketed paste."
   :version "28.1"
   :type 'boolean)
 
-(defcustom xterm-select-active-regions nil
-  "If non-nil, update PRIMARY X selection on text-mode frames.
-On a text-mode terminal that supports setSelection command, if
-this variable is non-nil, Emacs will set the PRIMARY selection
-from the active region, according to `select-active-regions'."
-  :version "29.1"
-  :type 'boolean)
-
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters sent by the terminal to end a bracketed paste.")
 

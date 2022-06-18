@@ -509,8 +509,8 @@ the 'COLORTERM' environment variable is set to the value "truecolor".
 *** Select active regions with xterm selection support.
 On terminals with xterm setSelection support, the active region may be
 saved to the X primary selection, following the
-'select-active-regions' variable.  This support is enabled with
-'xterm-select-active-regions'.
+'select-active-regions' variable.  This support is enabled when
+'tty-select-active-regions' is non-nil.
 
 ** ERT
 
