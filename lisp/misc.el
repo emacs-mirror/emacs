@@ -66,6 +66,7 @@ Also see the `duplicate-line' command."
 ;;;###autoload
 (defun duplicate-line (&optional n)
   "Duplicate the current line N times.
+Interactively, N is the prefix numeric argument, and defaults to 1.
 Also see the `copy-from-above-command' command."
   (interactive "p")
   (let ((line (buffer-substring (line-beginning-position) (line-end-position))))
