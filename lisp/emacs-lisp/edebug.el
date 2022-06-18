@@ -3746,21 +3746,25 @@ this is the prefix key.)"
      (t
       (princ result)))))
 
-(defun edebug-eval-last-sexp (&optional no-truncate)
+(defun edebug-eval-last-sexp (&optional display-type)
   "Evaluate sexp before point in the outside environment.
-Print value in minibuffer.
-
-If NO-TRUNCATE is non-nil (or interactively with a prefix
-argument of zero), show the full length of the expression, not
-limited by `edebug-print-length' or `edebug-print-level'."
+If DISPLAY-TYPE is `pretty-print' (interactively, a non-zero
+prefix argument), pretty-print the value in a separate buffer.
+Otherwise, print the value in minibuffer.  If DISPLAY-TYPE is any
+other non-nil value (or interactively with a prefix argument of
+zero), show the full length of the expression, not limited by
+`edebug-print-length' or `edebug-print-level'."
   (interactive
    (list (and current-prefix-arg
-              (zerop (prefix-numeric-value current-prefix-arg)))))
-  (if no-truncate
-      (let ((edebug-print-length nil)
-            (edebug-print-level nil))
-        (edebug-eval-expression (edebug-last-sexp)))
-    (edebug-eval-expression (edebug-last-sexp))))
+              (if (zerop (prefix-numeric-value current-prefix-arg))
+                  'no-truncate
+                'pretty-print))))
+  (if (or (null display-type)
+          (eq display-type 'pretty-print))
+      (edebug-eval-expression (edebug-last-sexp) display-type)
+    (let ((edebug-print-length nil)
+          (edebug-print-level nil))
+      (edebug-eval-expression (edebug-last-sexp)))))
 
 (defun edebug-eval-print-last-sexp (&optional no-truncate)
   "Evaluate sexp before point in outside environment; insert value.

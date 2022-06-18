@@ -719,7 +719,8 @@ Evaluate expression @var{exp} in the context of Edebug itself
 Evaluate the expression before point, in the context outside of Edebug
 (@code{edebug-eval-last-sexp}).  With the prefix argument of zero
 (@kbd{C-u 0 C-x C-e}), don't shorten long items (like strings and
-lists).
+lists).  Any other prefix will result in the value being
+pretty-printed in a separate buffer.
 @end table
 
 @cindex lexical binding (Edebug)

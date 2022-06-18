@@ -1030,6 +1030,12 @@ which is a change in behaviour from previous Emacs versions.
 When invoked with a prefix argument, as in 'C-u e', this command will
 pop up a new buffer and show the full pretty-printed value there.
 
++++
+*** 'C-x C-e' now interprets a non-zero prefix arg to pretty-print the results.
+When invoked with a non-zero prefix argument, as in 'C-u C-x C-e',
+this command will pop up a new buffer and show the full pretty-printed
+value there.
+
 ** Compile
 
 +++
