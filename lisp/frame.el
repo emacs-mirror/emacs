@@ -2155,6 +2155,8 @@ On a text-mode terminal that supports setSelection command, if
 this variable is non-nil, Emacs will set the PRIMARY selection
 from the active region, according to `select-active-regions'.
 This is currently supported only on xterm."
+  :group 'frames
+  :group 'killing
   :version "29.1"
   :type 'boolean)
 

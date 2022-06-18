@@ -1572,7 +1572,7 @@ command_loop_1 (void)
 		 `select-active-regions' is non-nil.  */
 	      if ((!NILP (Fwindow_system (Qnil))
 		   || ((symval =
-			find_symbol_value (Qxterm_select_active_regions),
+			find_symbol_value (Qtty_select_active_regions),
 			(!EQ (symval, Qunbound) && !NILP (symval)))
 		       && !NILP (Fterminal_parameter (Qnil,
 						      Qxterm__set_selection))))
@@ -12170,7 +12170,7 @@ syms_of_keyboard (void)
 
   DEFSYM (Qgui_set_selection, "gui-set-selection");
   DEFSYM (Qxterm__set_selection, "xterm--set-selection");
-  DEFSYM (Qxterm_select_active_regions, "xterm-select-active-regions");
+  DEFSYM (Qtty_select_active_regions, "tty-select-active-regions");
 
   /* The primary selection.  */
   DEFSYM (QPRIMARY, "PRIMARY");
