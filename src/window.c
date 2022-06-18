@@ -5568,7 +5568,11 @@ window_scroll (Lisp_Object window, EMACS_INT n, bool whole, bool noerror)
   /* On GUI frames, use the pixel-based version which is much slower
      than the line-based one but can handle varying line heights.  */
   if (FRAME_WINDOW_P (XFRAME (XWINDOW (window)->frame)))
-    window_scroll_pixel_based (window, n, whole, noerror);
+    {
+      record_unwind_protect_void (unwind_display_working_on_window);
+      display_working_on_window_p = true;
+      window_scroll_pixel_based (window, n, whole, noerror);
+    }
   else
     window_scroll_line_based (window, n, whole, noerror);
 
@@ -6496,9 +6500,14 @@ displayed_window_lines (struct window *w)
   CLIP_TEXT_POS_FROM_MARKER (start, w->start);
 
   itdata = bidi_shelve_cache ();
+
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_protect_void (unwind_display_working_on_window);
+  display_working_on_window_p = true;
   start_display (&it, w, start);
   move_it_vertically (&it, height);
   bottom_y = line_bottom_y (&it);
+  unbind_to (count, Qnil);
   bidi_unshelve_cache (itdata, false);
 
   /* Add in empty lines at the bottom of the window.  */
@@ -6592,6 +6601,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
      data structures might not be set up yet then.  */
   if (!FRAME_INITIAL_P (XFRAME (w->frame)))
     {
+      specpdl_ref count = SPECPDL_INDEX ();
+
+      record_unwind_protect_void (unwind_display_working_on_window);
+      display_working_on_window_p = true;
       if (center_p)
 	{
 	  struct it it;
@@ -6708,6 +6721,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
 	  bidi_unshelve_cache (itdata, false);
 	}
+      unbind_to (count, Qnil);
     }
   else
     {

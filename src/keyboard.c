@@ -1505,8 +1505,10 @@ command_loop_1 (void)
 	       executing the command, so that we don't blame the new
 	       command for the sins of the previous one.  */
 	    update_redisplay_ticks (0, NULL);
+	    display_working_on_window_p = false;
 
             call1 (Qcommand_execute, Vthis_command);
+	    display_working_on_window_p = false;
 
 #ifdef HAVE_WINDOW_SYSTEM
 	  /* Do not check display_hourglass_p here, because

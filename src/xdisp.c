@@ -1030,6 +1030,15 @@ static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 bool redisplaying_p;
 
+/* True while some display-engine code is working on layout of some
+   window.
+
+   WARNING: Use sparingly, preferably only in top level of commands
+   and important functions, because using it in nested calls might
+   reset the flag when the inner call returns, behind the back of
+   the callers.  */
+bool display_working_on_window_p;
+
 /* If a string, XTread_socket generates an event to display that string.
    (The display is done in read_char.)  */
 
@@ -10961,6 +10970,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
     max_y = XFIXNUM (y_limit);
 
   itdata = bidi_shelve_cache ();
+
   start_display (&it, w, startp);
 
   int start_y = it.current_y;
@@ -16970,6 +16980,13 @@ unwind_redisplay (void)
   unblock_buffer_flips ();
 }
 
+/* Function registered with record_unwind_protect before calling
+   start_display outside of redisplay_internal.  */
+void
+unwind_display_working_on_window (void)
+{
+  display_working_on_window_p = false;
+}
 
 /* Mark the display of leaf window W as accurate or inaccurate.
    If ACCURATE_P, mark display of W as accurate.
@@ -17199,9 +17216,9 @@ update_redisplay_ticks (int ticks, struct window *w)
       cwindow = w;
       window_ticks = 0;
     }
-  /* Some callers can be run in contexts unrelated to redisplay, so
+  /* Some callers can be run in contexts unrelated to display code, so
      don't abort them and don't update the tick count in those cases.  */
-  if (!w && !redisplaying_p)
+  if (!w && !redisplaying_p && !display_working_on_window_p)
     return;
 
   if (ticks > 0)

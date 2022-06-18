@@ -2177,6 +2177,8 @@ whether or not it is currently displayed in some window.  */)
 	line_number_display_width (w, &lnum_width, &lnum_pixel_width);
       SET_TEXT_POS (pt, PT, PT_BYTE);
       itdata = bidi_shelve_cache ();
+      record_unwind_protect_void (unwind_display_working_on_window);
+      display_working_on_window_p = true;
       start_display (&it, w, pt);
       it.lnum_width = lnum_width;
       first_x = it.first_visible_x;
