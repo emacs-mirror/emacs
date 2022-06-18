@@ -100,11 +100,19 @@
   (should-error (substitute-command-keys "\\`c-c'"))
   (should-error (substitute-command-keys "\\`<foo bar baz>'")))
 
-(ert-deftest help-tests-substitute-key-bindings/face-help-key-binding ()
-  (should (eq (get-text-property 0 'face (substitute-command-keys "\\[next-line]"))
-              'help-key-binding))
-  (should (eq (get-text-property 0 'face (substitute-command-keys "\\`f'"))
-              'help-key-binding)))
+(ert-deftest help-tests-substitute-key-bindings/help-key-binding-face ()
+  (let ((A (substitute-command-keys "\\[next-line]"))
+        (B (substitute-command-keys "\\`f'")))
+    (should (eq (get-text-property 0 'face A) 'help-key-binding))
+    (should (eq (get-text-property 0 'face B) 'help-key-binding))))
+
+(ert-deftest help-tests-substitute-key-bindings/help-key-binding-no-face ()
+  (let ((A (substitute-command-keys "\\[next-line]" t))
+        (B (substitute-command-keys "\\`f'" t)))
+    (should (eq (get-text-property 0 'face A) nil))
+    (should (eq (get-text-property 0 'face B) nil))
+    (should (equal A "C-n"))
+    (should (equal B "f"))))
 
 (defvar-keymap help-tests--test-keymap
   :doc "Just some keymap for testing."

@@ -1176,9 +1176,10 @@ Otherwise, return a new string."
                         ((and (not (string-match-p "\\`M-x " k))
                               (not (key-valid-p k)))
                          (error "Invalid key sequence in substitution: `%s'" k))))
-                (add-text-properties orig-point (point)
-                                     '( face help-key-binding
-                                        font-lock-face help-key-binding)))
+                (unless no-face
+                  (add-text-properties orig-point (point)
+                                       '( face help-key-binding
+                                          font-lock-face help-key-binding))))
                ;; 1C. \[foo] is replaced with the keybinding.
                ((and (= (following-char) ?\[)
                      (save-excursion
