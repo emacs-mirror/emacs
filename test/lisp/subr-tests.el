@@ -112,7 +112,7 @@
   (should (equal (kbd "C-x C-f") "\C-x\C-f"))
   (should (equal (kbd "C-M-<down>") [C-M-down]))
   (should (equal (kbd "<C-M-down>") [C-M-down]))
-  (should (equal (kbd "C-RET") [?\C-\C-m]))
+  (should (equal (kbd "C-RET") [?\C-\r]))
   (should (equal (kbd "C-SPC") [?\C- ]))
   (should (equal (kbd "C-TAB") [?\C-\t]))
   (should (equal (kbd "C-<down>") [C-down]))

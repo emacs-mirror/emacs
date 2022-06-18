@@ -532,8 +532,8 @@ doubt, use whitespace."
                               ((integerp ch)
                                (concat
                                 (cl-loop for pf across "ACHMsS"
-                                         for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
-                                                              ?\M-\^@ ?\s-\^@ ?\S-\^@)
+                                         for bit in '( ?\A-\0 ?\C-\0 ?\H-\0
+                                                       ?\M-\0 ?\s-\0 ?\S-\0)
                                          when (/= (logand ch bit) 0)
                                          concat (format "%c-" pf))
                                 (let ((ch2 (logand ch (1- (ash 1 18)))))
