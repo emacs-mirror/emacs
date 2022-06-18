@@ -515,7 +515,7 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	      unblock_input ();
 
 	      if (rc)
-		signal_error ("Invalid message", msg_data);
+		signal_error ("Invalid message", data);
 	      unbind_to (ref, Qnil);
 	      break;
 
