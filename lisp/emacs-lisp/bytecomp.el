@@ -2521,13 +2521,12 @@ list that represents a doc string reference.
 (defun byte-compile-keep-pending (form &optional handler)
   (if (memq byte-optimize '(t source))
       (setq form (byte-optimize-one-form form t)))
+  ;; To avoid consing up monstrously large forms at load time, we split
+  ;; the output regularly.
+  (when (nthcdr 300 byte-compile-output)
+    (byte-compile-flush-pending))
   (if handler
       (let ((byte-compile--for-effect t))
-	;; To avoid consing up monstrously large forms at load time, we split
-	;; the output regularly.
-	(and (memq (car-safe form) '(fset defalias))
-	     (nthcdr 300 byte-compile-output)
-	     (byte-compile-flush-pending))
 	(funcall handler form)
 	(if byte-compile--for-effect
 	    (byte-compile-discard)))
