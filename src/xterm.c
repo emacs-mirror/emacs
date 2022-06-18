@@ -11094,6 +11094,30 @@ x_clear_dnd_action (void)
   x_dnd_action_symbol = Qnil;
 }
 
+/* Delete action descriptions from F after drag-and-drop.  */
+static void
+x_dnd_delete_action_list (Lisp_Object frame)
+{
+  struct frame *f;
+
+  /* Delete those two properties, since some clients look at them and
+     not the action to decide whether or not the user should be
+     prompted to select an action.  This can be called with FRAME no
+     longer alive (or its display dead).  */
+
+  f = XFRAME (frame);
+
+  if (!FRAME_LIVE_P (f) || !FRAME_DISPLAY_INFO (f)->display)
+    return;
+
+  block_input ();
+  XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		   FRAME_DISPLAY_INFO (f)->Xatom_XdndActionList);
+  XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		   FRAME_DISPLAY_INFO (f)->Xatom_XdndActionDescription);
+  unblock_input ();
+}
+
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
@@ -11262,6 +11286,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	= xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
 				      ask_action_list[0]);
 
+      record_unwind_protect (x_dnd_delete_action_list, frame);
+
       ask_actions = NULL;
       end = 0;
       count = SPECPDL_INDEX ();
@@ -11305,19 +11331,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       unblock_input ();
 
       unbind_to (count, Qnil);
-    }
-  else
-    {
-      /* Delete those two properties, since some clients look at them
-	 and not the action to decide whether or not the user should
-	 be prompted to select an action.  */
-
-      block_input ();
-      XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionList);
-      XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		       FRAME_DISPLAY_INFO (f)->Xatom_XdndActionDescription);
-      unblock_input ();
     }
 
   if (follow_tooltip)
