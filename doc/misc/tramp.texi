@@ -5325,13 +5325,6 @@ minibuffer:
   (before my-minibuffer-complete activate)
   (expand-abbrev))
 @end group
-
-@group
-;; If you use partial-completion-mode
-(defadvice PC-do-completion
-  (before my-PC-do-completion activate)
-  (expand-abbrev))
-@end group
 @end lisp
 
 The reduced typing: @kbd{C-x C-f xy @key{TAB}}.

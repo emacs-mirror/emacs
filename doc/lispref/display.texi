@@ -2706,6 +2706,13 @@ doesn't specify an explicit value for a face, the value from the
 original face definition by @code{defface} is inherited
 (@pxref{Defining Faces}).
 
+Some modes, like @code{hl-line-mode}, use a face with an
+@code{:extend} property to mark the entire current line.  Note,
+however, that Emacs will always allow you to move point after the
+final character in a buffer, and if the buffer ends with a newline
+character, point can be placed on what is seemingly a line at the end
+of the buffer---but Emacs can't highlight that ``line'', because it
+doesn't really exist.
 @end table
 
 @defun font-family-list &optional frame
