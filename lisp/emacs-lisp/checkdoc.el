@@ -2628,7 +2628,7 @@ a space as a style error."
          (checkdoc-autofix-ask-replace
           (match-beginning 0) (match-end 0)
           (format-message
-           "`y-or-n-p' argument should end with \"? \".  Fix?")
+           "`y-or-n-p' argument should end with \"?\".  Fix?")
           "?\"" t))
         nil
       (checkdoc-create-error
