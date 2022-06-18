@@ -1015,6 +1015,12 @@ haiku_note_drag_motion (void)
 }
 
 void
+init_haiku_select (void)
+{
+  be_clipboard_init ();
+}
+
+void
 syms_of_haikuselect (void)
 {
   DEFVAR_BOOL ("haiku-signal-invalid-refs", haiku_signal_invalid_refs,

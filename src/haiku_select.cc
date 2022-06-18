@@ -111,53 +111,6 @@ be_find_clipboard_data_1 (BClipboard *cb, const char *type, ssize_t *len)
 }
 
 static void
-be_get_clipboard_targets_1 (BClipboard *cb, char **buf, int buf_size)
-{
-  BMessage *data;
-  char *name;
-  int32 count_found;
-  type_code type;
-  int32 i;
-  int index;
-
-  if (!cb->Lock ())
-    {
-      buf[0] = NULL;
-      return;
-    }
-
-  data = cb->Data ();
-  index = 0;
-
-  if (!data)
-    {
-      buf[0] = NULL;
-      cb->Unlock ();
-      return;
-    }
-
-  for (i = 0; (data->GetInfo (B_ANY_TYPE, i, &name,
-			     &type, &count_found)
-	       == B_OK); ++i)
-    {
-      if (type == B_MIME_TYPE)
-	{
-	  if (index < (buf_size - 1))
-	    {
-	      buf[index++] = strdup (name);
-
-	      if (!buf[index - 1])
-		break;
-	    }
-	}
-    }
-
-  buf[index] = NULL;
-
-  cb->Unlock ();
-}
-
-static void
 be_set_clipboard_data_1 (BClipboard *cb, const char *type, const char *data,
 			 ssize_t len, bool clear)
 {
@@ -227,14 +180,6 @@ be_set_clipboard_data (enum haiku_clipboard id, const char *type,
 			   data, len, clear);
 }
 
-void
-be_get_clipboard_targets (enum haiku_clipboard id, char **targets,
-			  int len)
-{
-  be_get_clipboard_targets_1 (get_clipboard_object (id), targets,
-			      len);
-}
-
 static bool
 clipboard_owner_p (void)
 {
@@ -278,7 +223,7 @@ be_clipboard_owner_p (enum haiku_clipboard clipboard)
 }
 
 void
-init_haiku_select (void)
+be_clipboard_init (void)
 {
   system_clipboard = new BClipboard ("system");
   primary = new BClipboard ("primary");
