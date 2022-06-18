@@ -575,6 +575,11 @@ as the variable documentation string.
        (define-keymap ,@(nreverse opts) ,@defs)
        ,@(and doc (list doc)))))
 
+(defun make-non-key-event (symbol)
+  "Mark SYMBOL as an event that shouldn't be returned from `where-is'."
+  (put symbol 'non-key-event t)
+  symbol)
+
 (provide 'keymap)
 
 ;;; keymap.el ends here

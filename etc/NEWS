@@ -2364,6 +2364,12 @@ option.
 ** Keymaps and key definitions
 
 +++
+*** 'where-is-internal' can now filter events marked as non key events.
+If a command maps to a key binding like [some-event], and 'some-event'
+has a symbol plist containing a non-nil 'non-key-event' property, then
+that binding is ignored by 'where-is-internal'.
+
++++
 *** New functions for defining and manipulating keystrokes.
 These all take the syntax defined by 'key-valid-p'.  None of the older
 functions have been deprecated or altered, but they are now

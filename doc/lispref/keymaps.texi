@@ -2209,6 +2209,11 @@ If @var{no-remap} is @code{nil}, return the bindings for
 non-@code{nil}, return the bindings for @var{command}, ignoring the
 fact that it is remapped.
 @end table
+
+If a command maps to a key binding like @code{[some-event]}, and
+@code{some-event} has a symbol plist containing a non-@code{nil}
+@code{non-key-event} property, then that binding is ignored by
+@code{where-is-internal}.
 @end defun
 
 @deffn Command describe-bindings &optional prefix buffer-or-name

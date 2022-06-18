@@ -418,6 +418,16 @@ g .. h		foo
   (should-error (text-char-description ?\M-c))
   (should-error (text-char-description ?\s-c)))
 
+(ert-deftest test-non-key-events ()
+  (should (null (where-is-internal 'keymap-tests-command)))
+  (keymap-set global-map "C-c g" #'keymap-tests-command)
+  (should (equal (where-is-internal 'keymap-tests-command) '([3 103])))
+  (keymap-set global-map "<keymap-tests-event>" #'keymap-tests-command)
+  (should (equal (where-is-internal 'keymap-tests-command)
+                 '([keymap-tests-event] [3 103])))
+  (make-non-key-event 'keymap-tests-event)
+  (should (equal (where-is-internal 'keymap-tests-command) '([3 103]))))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here
