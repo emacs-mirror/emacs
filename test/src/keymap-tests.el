@@ -419,6 +419,8 @@ g .. h		foo
   (should-error (text-char-description ?\s-c)))
 
 (ert-deftest test-non-key-events ()
+  ;; Dummy command.
+  (declare-function keymap-tests-command nil)
   (should (null (where-is-internal 'keymap-tests-command)))
   (keymap-set global-map "C-c g" #'keymap-tests-command)
   (should (equal (where-is-internal 'keymap-tests-command) '([3 103])))
