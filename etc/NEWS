@@ -1020,7 +1020,9 @@ lead to a (further) backtrace.  By default, this variable is nil,
 which is a change in behaviour from previous Emacs versions.
 
 +++
-*** 'e' in edebug can now take a prefix to pretty-print the results.
+*** 'e' in edebug can now take a prefix arg to pretty-print the results.
+When invoked with a prefix argument, as in 'C-u e', this command will
+pop up a new buffer and show the full pretty-printed value there.
 
 ** Compile
 
