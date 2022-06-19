@@ -4161,28 +4161,33 @@ must tell Emacs.  Here's how to do that in your init file:
   (setq-local sql-contains-names t)
   (setq-local escaped-string-quote "'")
   (setq-local syntax-propertize-function
-              (syntax-propertize-rules
-               ;; Handle escaped apostrophes within strings.
-               ("''"
-                (0
-                 (if (save-excursion (nth 3 (syntax-ppss (match-beginning 0))))
-	             (string-to-syntax ".")
-                   (forward-char -1)
-                   nil)))
-               ;; Propertize rules to not have /- and -* start comments.
-               ("\\(/-\\)" (1 "."))
-               ("\\(-\\*\\)"
-                (1
-                 (if (save-excursion
-                       (not (ppss-comment-depth
-                             (syntax-ppss (match-beginning 1)))))
-                     ;; If we're outside a comment, we don't let -*
-                     ;; start a comment.
-	             (string-to-syntax ".")
-                   ;; Inside a comment, ignore it to avoid -*/ not
-                   ;; being interpreted as a comment end.
-                   (forward-char -1)
-                   nil)))))
+              (eval
+               '(syntax-propertize-rules
+                 ;; Handle escaped apostrophes within strings.
+                 ((if (eq sql-product 'mysql)
+                      "\\\\'"
+                    "''")
+                  (0
+                   (if (save-excursion
+                         (nth 3 (syntax-ppss (match-beginning 0))))
+	               (string-to-syntax ".")
+                     (forward-char -1)
+                     nil)))
+                 ;; Propertize rules to not have /- and -* start comments.
+                 ("\\(/-\\)" (1 "."))
+                 ("\\(-\\*\\)"
+                  (1
+                   (if (save-excursion
+                         (not (ppss-comment-depth
+                               (syntax-ppss (match-beginning 1)))))
+                       ;; If we're outside a comment, we don't let -*
+                       ;; start a comment.
+	               (string-to-syntax ".")
+                     ;; Inside a comment, ignore it to avoid -*/ not
+                     ;; being interpreted as a comment end.
+                     (forward-char -1)
+                     nil))))
+               t))
   ;; Set syntax and font-face highlighting
   ;; Catch changes to sql-product and highlight accordingly
   (sql-set-product (or sql-product 'ansi)) ; Fixes bug#13591
