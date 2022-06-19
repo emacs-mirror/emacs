@@ -151,6 +151,14 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
+---
+** Previously, the X reverseVideo value at startup was heeded for all frames.
+This meant that if you had a reverseVideo resource on the initial
+display, and then opened up a new frame on a display without any
+explicit reverseVideo setting, it would get heeded there, too.  (This
+included terminal frames.)  In Emacs 29, the reverseVideo X resource
+is handled like all the other X resources, and set on a per-frame basis.
+
 +++
 ** 'E' in 'query-replace' now edits the replacement with exact case.
 Previously, this command did the same as 'e'.
