@@ -636,24 +636,26 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			     timestamp)))
 		success action)
            (x-display-set-last-user-time timestamp)
-	   (setq action (if value
-			    (condition-case info
-				(x-dnd-drop-data event frame window value
-						 (x-dnd-current-type window))
-			      (error
-			       (message "Error: %s" info)
-			       nil))))
-	   (setq success (if action 1 0))
-           (when (>= version 2)
-	     (x-send-client-message
-	      frame dnd-source frame "XdndFinished" 32
-	      (list (string-to-number
-                     (frame-parameter frame 'outer-window-id))
-		    (if (>= version 5) success 0) ;; 1 = Success, 0 = Error
-                    (when (>= version 5)
-		      (if (not success) 0
-                        (car (rassoc action
-                                     x-dnd-xdnd-to-action)))))))
+           (unwind-protect
+               (setq action (if value
+			        (condition-case info
+				    (x-dnd-drop-data
+                                     event frame window value
+				     (x-dnd-current-type window))
+			          (error
+			           (message "Error: %s" info)
+			           nil))))
+	     (setq success (if action 1 0))
+             (when (>= version 2)
+	       (x-send-client-message
+	        frame dnd-source frame "XdndFinished" 32
+	        (list (string-to-number
+                       (frame-parameter frame 'outer-window-id))
+		      (if (>= version 5) success 0) ;; 1 = Success, 0 = Error
+		      (if (or (not success) (< version 5)) 0
+                        (or (car (rassoc action
+                                         x-dnd-xdnd-to-action))
+                            0))))))
 	   (x-dnd-forget-drop window)))
 
 	(t (error "Unknown XDND message %s %s" message data))))
@@ -981,24 +983,25 @@ Return a vector of atoms containing the selection targets."
 				        "_MOTIF_DRAG_AND_DROP_MESSAGE"
 				        8
 				        reply)
-	         (setq action
-		       (when (and reply-action atom-name)
-		         (let* ((value (x-get-selection-internal
-				        (intern atom-name)
-				        (intern (x-dnd-current-type window))
-                                        timestamp)))
-		           (when value
-			     (condition-case info
-			         (x-dnd-drop-data event frame window value
-					          (x-dnd-current-type window))
-			       (error
-			        (message "Error: %s" info)
-			        nil))))))
-	         (x-get-selection-internal
-	          (intern atom-name)
-	          (if action 'XmTRANSFER_SUCCESS 'XmTRANSFER_FAILURE)
-	          timestamp)
-	         (x-dnd-forget-drop frame))))
+	         (unwind-protect
+                     (setq action
+		           (when (and reply-action atom-name)
+		             (let* ((value (x-get-selection-internal
+				            (intern atom-name)
+				            (intern (x-dnd-current-type window))
+                                            timestamp)))
+		               (when value
+			         (condition-case info
+			             (x-dnd-drop-data event frame window value
+					              (x-dnd-current-type window))
+			           (error
+			            (message "Error: %s" info)
+			            nil))))))
+	           (x-get-selection-internal
+	            (intern atom-name)
+	            (if action 'XmTRANSFER_SUCCESS 'XmTRANSFER_FAILURE)
+	            timestamp)
+	           (x-dnd-forget-drop frame)))))
 
             (t (message "Unknown Motif drag-and-drop message: %s"
                         (logand (aref data 0) #x3f)))))))
