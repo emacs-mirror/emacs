@@ -645,9 +645,15 @@ SELECT is `quit', also quit the *xref* window."
              (xref-buffer (current-buffer)))
         (cond (select
                (if (eq select 'quit) (quit-window nil nil))
-               (select-window
-                (with-current-buffer xref-buffer
-                  (xref--show-pos-in-buf marker buf))))
+               (let* ((old-frame (selected-frame))
+                      (window (with-current-buffer xref-buffer
+                                (xref--show-pos-in-buf marker buf)))
+                      (frame (window-frame window)))
+                 ;; If we chose another frame, make sure it gets input
+                 ;; focus.
+                 (unless (eq frame old-frame)
+                   (select-frame-set-input-focus frame))
+                 (select-window window)))
               (t
                (save-selected-window
                  (xref--with-dedicated-window
