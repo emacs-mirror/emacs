@@ -361,7 +361,11 @@ and the hook `eshell-exit-hook'."
       (unless module-shortname
 	(error "Invalid Eshell module name: %s" module-fullname))
       (unless (featurep (intern module-shortname))
-	(load module-shortname))))
+        (condition-case nil
+            (load module-shortname)
+          (error (lwarn 'eshell :error
+                        "Unable to load module `%s' (defined in `eshell-modules-list')"
+                        module-fullname))))))
 
   (unless (file-exists-p eshell-directory-name)
     (eshell-make-private-directory eshell-directory-name t))
