@@ -1439,7 +1439,8 @@ command alters the kill ring or not."
 	 ;; Don't set this-command to `kill-region', so a following
 	 ;; C-w won't double the text in the kill ring.  Ignore
 	 ;; `last-command' so we don't append to a preceding kill.
-	 (let (this-command last-command deactivate-mark)
+	 (let ((last-command last-command)
+               this-command deactivate-mark)
 	   (copy-region-as-kill beg end)))
     (if (numberp beg) (goto-char beg))
     ;; On a text terminal, bounce the cursor.
@@ -1542,6 +1543,7 @@ is dragged over to."
       (mouse-drag-and-drop-region start-event)
     ;; Give temporary modes such as isearch a chance to turn off.
     (run-hooks 'mouse-leave-buffer-hook)
+    (ignore-preserving-kill-region)
     (mouse-drag-track start-event)))
 
 ;; Inhibit the region-confinement when undoing mouse-drag-region
@@ -1751,7 +1753,8 @@ The region will be defined with mark and point."
                                             nil start-point))
                         ((>= mouse-row bottom)
                          (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
-                                            nil start-point))))))))
+                                            nil start-point))))))
+                 (ignore-preserving-kill-region)))
              map)
            t (lambda ()
                (funcall cleanup)
