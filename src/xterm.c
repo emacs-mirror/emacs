@@ -2299,8 +2299,9 @@ xm_get_drag_atom_1 (struct x_display_info *dpyinfo,
 
       XChangeProperty (dpyinfo->display, dpyinfo->root_window,
 		       dpyinfo->Xatom_EMACS_DRAG_ATOM, XA_ATOM, 32,
-		       (rc == Success && (actual_format != 32
-					  || actual_type != XA_ATOM)
+		       (rc != Success
+			|| (actual_format != 32
+			    || actual_type != XA_ATOM)
 			? PropModeReplace : PropModeAppend),
 		       (unsigned char *) &atom, 1);
 
