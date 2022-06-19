@@ -487,9 +487,9 @@ modified or until you type @kbd{C-l} (@pxref{Recentering}) in one of
 that buffer's windows.
 
   If you decide to customize this variable to a non-zero value, we
-recommend to use a value between 50,000 and 200,000, depending on your
-patience and the speed of your system.  The default value is zero,
-which disables this feature.
+recommend to use a value between 100,000 and 1,000,000, depending on
+your patience and the speed of your system.  The default value is
+zero, which disables this feature.
 
 @node DEL Does Not Delete
 @subsection If @key{DEL} Fails to Delete

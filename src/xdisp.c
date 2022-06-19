@@ -17218,7 +17218,10 @@ update_redisplay_ticks (int ticks, struct window *w)
     }
   /* Some callers can be run in contexts unrelated to display code, so
      don't abort them and don't update the tick count in those cases.  */
-  if (!w && !redisplaying_p && !display_working_on_window_p)
+  if ((!w && !redisplaying_p && !display_working_on_window_p)
+      /* We never disable redisplay of a mini-window, since that is
+	 absolutely essential for communicating with Emacs.  */
+      || (w && MINI_WINDOW_P (w)))
     return;
 
   if (ticks > 0)
@@ -36765,7 +36768,7 @@ You can also decide to kill the buffer and visit it in some
 other way, like under `so-long-mode' or literally.
 
 The default value is zero, which disables this feature.
-The recommended non-zero value is between 50000 and 200000,
+The recommended non-zero value is between 100000 and 1000000,
 depending on your patience and the speed of your system.  */);
   max_redisplay_ticks = 0;
 }
