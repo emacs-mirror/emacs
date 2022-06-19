@@ -576,7 +576,7 @@ and nil means \"don't use\".  There's an implicit nil at the end of the
 list."
                       mode)
              :type '(repeat sexp)
-             :group ,group))
+             ,@group))
 
        ;; Autoloading define-globalized-minor-mode autoloads everything
        ;; up-to-here.
