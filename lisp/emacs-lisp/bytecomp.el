@@ -299,10 +299,10 @@ The information is logged to `byte-compile-log-buffer'."
   '(redefine callargs free-vars unresolved
              obsolete noruntime interactive-only
              make-local mapcar constants suspicious lexical lexical-dynamic
-             docstrings not-unused)
+             docstrings docstrings-non-ascii-quotes not-unused)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
-  "List of warnings that the byte-compiler should issue (t for all).
+  "List of warnings that the byte-compiler should issue (t for almost all).
 
 Elements of the list may be:
 
@@ -327,14 +327,27 @@ Elements of the list may be:
               `byte-compile-docstring-max-column' or
               `fill-column' characters, whichever is bigger) or
               have other stylistic issues.
+  docstrings-non-ascii-quotes docstrings that have non-ASCII quotes.
+                              This depends on the `docstrings' warning type.
   suspicious  constructs that usually don't do what the coder wanted.
 
 If the list begins with `not', then the remaining elements specify warnings to
-suppress.  For example, (not mapcar) will suppress warnings about mapcar."
+suppress.  For example, (not mapcar) will suppress warnings about mapcar.
+
+The t value means \"all non experimental warning types\", and
+excludes the types in `byte-compile--emacs-build-warning-types'.
+A value of `all' really means all."
   :type `(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
                       ,@(mapcar (lambda (x) `(const ,x))
                                 byte-compile-warning-types))))
+
+(defconst byte-compile--emacs-build-warning-types
+  '(docstrings-non-ascii-quotes)
+  "List of warning types that are only enabled during Emacs builds.
+This is typically either warning types that are being phased in
+(but shouldn't be enabled for packages yet), or that are only relevant
+for the Emacs build itself.")
 
 (defvar byte-compile--suppressed-warnings nil
   "Dynamically bound by `with-suppressed-warnings' to suppress warnings.")
@@ -354,10 +367,15 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
                  (memq symbol (cdr elem)))
         (setq suppress t)))
     (and (not suppress)
-         (or (eq byte-compile-warnings t)
-             (if (eq (car byte-compile-warnings) 'not)
-                 (not (memq warning byte-compile-warnings))
-               (memq warning byte-compile-warnings))))))
+         ;; During an Emacs build, we want all warnings.
+         (or (eq byte-compile-warnings 'all)
+             ;; If t, we want almost all the warnings, but not the
+             ;; ones that are Emacs build specific.
+             (and (not (memq warning byte-compile--emacs-build-warning-types))
+                  (or (eq byte-compile-warnings t)
+                      (if (eq (car byte-compile-warnings) 'not)
+                          (not (memq warning byte-compile-warnings))
+                        (memq warning byte-compile-warnings))))))))
 
 ;;;###autoload
 (defun byte-compile-disable-warning (warning)
@@ -1761,7 +1779,14 @@ It is too wide if it has any lines longer than the largest of
         (when (string-match-p "\\( \"\\|[ \t]\\|^\\)'[a-z(]" docs)
           (byte-compile-warn-x
            name "%s%sdocstring has wrong usage of unescaped single quotes (use \\= or different quoting)"
-           kind name)))))
+           kind name))
+        ;; There's a "Unicode quote" in the string -- it should probably
+        ;; be an ASCII one instead.
+        (when (byte-compile-warning-enabled-p 'docstrings-non-ascii-quotes)
+          (when (string-match-p "\\( \"\\|[ \t]\\|^\\)[‘’]" docs)
+            (byte-compile-warn-x
+             name "%s%sdocstring has wrong usage of \"fancy\" single quotation marks"
+             kind name))))))
   form)
 
 ;; If we have compiled any calls to functions which are not known to be
