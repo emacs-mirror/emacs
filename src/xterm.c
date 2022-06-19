@@ -1805,7 +1805,7 @@ xm_drag_window_io_error_handler (Display *dpy)
 }
 
 static Window
-xm_get_drag_window (struct x_display_info *dpyinfo)
+xm_get_drag_window_1 (struct x_display_info *dpyinfo)
 {
   Atom actual_type, _MOTIF_DRAG_WINDOW;
   int rc, actual_format;
@@ -1975,6 +1975,16 @@ xm_get_drag_window (struct x_display_info *dpyinfo)
   return drag_window;
 }
 
+static Window
+xm_get_drag_window (struct x_display_info *dpyinfo)
+{
+  if (dpyinfo->motif_drag_window != None)
+    return dpyinfo->motif_drag_window;
+
+  dpyinfo->motif_drag_window = xm_get_drag_window_1 (dpyinfo);
+  return dpyinfo->motif_drag_window;
+}
+
 static int
 xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 		      Atom *targets, int ntargets)
@@ -1984,12 +1994,15 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
   unsigned char *tmp_data = NULL;
   unsigned long nitems, bytes_remaining;
   int rc, actual_format, idx;
+  bool had_errors;
   xm_targets_table_header header;
   xm_targets_table_rec **recs;
   xm_byte_order byteorder;
   uint8_t *data;
   ptrdiff_t total_bytes, total_items, i;
   uint32_t size, target_count;
+
+ retry_drag_window:
 
   drag_window = xm_get_drag_window (dpyinfo);
 
@@ -2003,12 +2016,26 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 	 sizeof (Atom), x_atoms_compare);
 
   XGrabServer (dpyinfo->display);
+
+  x_catch_errors (dpyinfo->display);
   rc = XGetWindowProperty (dpyinfo->display, drag_window,
 			   dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
 			   0L, LONG_MAX, False,
 			   dpyinfo->Xatom_MOTIF_DRAG_TARGETS,
 			   &actual_type, &actual_format, &nitems,
 			   &bytes_remaining, &tmp_data) == Success;
+  had_errors = x_had_errors_p (dpyinfo->display);
+  x_uncatch_errors ();
+
+  /* The drag window is probably invalid, so remove our record of
+     it.  */
+  if (had_errors)
+    {
+      dpyinfo->motif_drag_window = None;
+      XUngrabServer (dpyinfo->display);
+
+      goto retry_drag_window;
+    }
 
   if (rc && tmp_data && !bytes_remaining
       && actual_type == dpyinfo->Xatom_MOTIF_DRAG_TARGETS

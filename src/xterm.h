@@ -578,6 +578,9 @@ struct x_display_info
   /* The frame that currently owns `motif_drag_atom'.  */
   struct frame *motif_drag_atom_owner;
 
+  /* The drag window for this display.  */
+  Window motif_drag_window;
+
   /* Extended window manager hints, Atoms supported by the window manager and
      atoms for setting the window type.  */
   Atom Xatom_net_supported, Xatom_net_supporting_wm_check;
