@@ -18662,6 +18662,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	    if (event->type == ButtonPress)
 	      {
+		x_display_set_last_user_time (dpyinfo, event->xbutton.time,
+					      event->xbutton.send_event);
+
 		dpyinfo->grabbed |= (1 << event->xbutton.button);
 		dpyinfo->last_mouse_frame = f;
 		if (f && !tab_bar_p)
@@ -20059,6 +20062,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 		      if (xev->evtype == XI_ButtonPress)
 			{
+			  x_display_set_last_user_time (dpyinfo, xev->time,
+							xev->send_event);
+
 			  dpyinfo->grabbed |= (1 << xev->detail);
 			  dpyinfo->last_mouse_frame = f;
 			  if (f && !tab_bar_p)
