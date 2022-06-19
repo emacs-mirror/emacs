@@ -2299,7 +2299,7 @@ This function uses the `read-extended-command-predicate' user option."
 (defun command-completion-using-modes-p (symbol buffer)
   "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
   ;; Check the modes.
-  (let ((modes (command-modes symbol)))
+  (when-let ((modes (command-modes symbol)))
     ;; Common fast case: Just a single mode.
     (if (null (cdr modes))
         (or (provided-mode-derived-p
@@ -2539,7 +2539,16 @@ maps."
           (read-extended-command-predicate
            (lambda (symbol buffer)
              (or (command-completion-using-modes-p symbol buffer)
-                 (where-is-internal symbol keymaps)))))
+                 ;; Include commands that are bound in a keymap in the
+                 ;; current buffer.
+                 (and (where-is-internal symbol keymaps)
+                      ;; But not if they have a command predicate that
+                      ;; says that they shouldn't.  (This is the case
+                      ;; for `ignore' and `undefined' and similar
+                      ;; commands commonly found in keymaps.)
+                      (or (null (get symbol 'completion-predicate))
+                          (funcall (get symbol 'completion-predicate)
+                                   symbol buffer)))))))
      (list current-prefix-arg
            (read-extended-command)
            execute-extended-command--last-typed)))
