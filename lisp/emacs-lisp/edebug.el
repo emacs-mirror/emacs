@@ -675,7 +675,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
 	     (or (and (eq (aref edebug-read-syntax-table (following-char))
 			  'symbol)
 		      (not (= (following-char) ?\;)))
-		 (memq (following-char) '(?\, ?\.)))))
+		 (eq (following-char) ?.))))
       'symbol
     (aref edebug-read-syntax-table (following-char))))
 

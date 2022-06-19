@@ -1104,5 +1104,14 @@ This avoids potential duplicate definitions (Bug#41988)."
           (edebug-initial-mode 'Go-nonstop))
       (eval-buffer))))
 
+(ert-deftest edebug-test-dot-reader ()
+  (with-temp-buffer
+    (insert "(defun x () `(t .,t))")
+    (goto-char (point-min))
+    (should (equal (save-excursion
+                     (edebug-read-storing-offsets (current-buffer)))
+                   (save-excursion
+                     (read (current-buffer)))))))
+
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here
