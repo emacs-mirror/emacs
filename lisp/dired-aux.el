@@ -1095,45 +1095,46 @@ With a prefix argument, kill that many lines starting with the current line.
     (dired-move-to-filename)))
 
 ;;;###autoload
-(defun dired-do-kill-lines (&optional arg fmt)
-  "Kill all marked lines (not the files).
-With a prefix argument, kill that many lines starting with the current line.
-\(A negative argument kills backward.)
+(defun dired-do-kill-lines (&optional arg fmt init-count)
+  "Remove all marked lines, or the next ARG lines.
+The files or directories on those lines are _not_ deleted.  Only the
+Dired listing is affected.  To restore the removals, use `\\[revert-buffer]'.
 
-If you use this command with a prefix argument to kill the line
-for a file that is a directory, which you have inserted in the
-Dired buffer as a subdirectory, then it deletes that subdirectory
-from the buffer as well.
+With a numeric prefix arg, remove that many lines going forward,
+starting with the current line.  (A negative prefix arg removes lines
+going backward.)
 
-To kill an entire subdirectory \(without killing its line in the
-parent directory), go to its directory header line and use this
-command with a prefix argument (the value does not matter).
+If you use a prefix arg to remove the line for a subdir whose listing
+you have inserted into the Dired buffer, then that subdir listing is
+also removed.
 
-To undo the killing, the undo command can be used as normally.
+To remove a subdir listing _without_ removing the subdir's line in its
+parent listing, go to the header line of the subdir listing and use
+this command with any prefix arg.
 
-This function returns the number of killed lines.
+When called from Lisp, non-nil INIT-COUNT is added to the number of
+lines removed by this invocation, for the reporting message.
 
-FMT is a format string used for messaging the user about the
-killed lines, and defaults to \"Killed %d line%s.\" if not
-present.  A FMT of \"\" will suppress the messaging."
+A FMT of \"\" will suppress the messaging."
+  ;; Returns count of killed lines.
   (interactive "P")
   (if arg
       (if (dired-get-subdir)
-	  (dired-kill-subdir)
-	(dired-kill-line arg))
+          (dired-kill-subdir)
+        (dired-kill-line arg))
     (save-excursion
       (goto-char (point-min))
-      (let (buffer-read-only
-	    (count 0)
-	    (regexp (dired-marker-regexp)))
-	(while (and (not (eobp))
-		    (re-search-forward regexp nil t))
-	  (setq count (1+ count))
-	  (delete-region (line-beginning-position)
-			 (progn (forward-line 1) (point))))
-	(or (equal "" fmt)
-	    (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
-	count))))
+      (let ((count (or init-count  0))
+            (regexp (dired-marker-regexp))
+            (inhibit-read-only t))
+        (while (and (not (eobp))
+                    (re-search-forward regexp nil t))
+          (setq count (1+ count))
+          (delete-region (line-beginning-position)
+                         (progn (forward-line 1) (point))))
+        (unless (equal "" fmt)
+          (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
+        count))))
 
 
 ;;; Compression

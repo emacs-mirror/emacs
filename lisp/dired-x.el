@@ -125,14 +125,49 @@ folding to be used on case-insensitive filesystems only."
       (file-name-case-insensitive-p dir)
     dired-omit-case-fold))
 
+(defcustom dired-omit-line-regexp nil
+  "Regexp matching lines to be omitted by `dired-omit-mode'.
+The value can also be a variable whose value is such a regexp.
+The value can also be nil, which means do no line matching.
+
+Some predefined regexp variables for Dired, which you can use as the
+option value:
+
+* `dired-re-inode-size'
+* `dired-re-mark'
+* `dired-re-maybe-mark'
+* `dired-re-dir'
+* `dired-re-sym'
+* `dired-re-exe'
+* `dired-re-perms'
+* `dired-re-dot'
+* `dired-re-no-dot'"
+  :type `(choice
+          (const :tag "Do not match lines to omit" nil)
+          (regexp
+           :tag "Regexp to match lines to omit (default omits executables)"
+           :value ,dired-re-exe)
+          (restricted-sexp
+           :tag "Variable with regexp value (default: `dired-re-exe')"
+           :match-alternatives
+           ((lambda (obj) (and (symbolp obj) (boundp obj))))
+           :value dired-re-exe))
+  :group 'dired-x)
+
 ;;;###autoload
 (define-minor-mode dired-omit-mode
   "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
+With prefix argument ARG, enable Dired-Omit mode if ARG is positive,
+and disable it otherwise.
 
-Dired-Omit mode is a buffer-local minor mode.  When enabled in a
-Dired buffer, Dired does not list files whose filenames match
-regexp `dired-omit-files', nor files ending with extensions in
-`dired-omit-extensions'.
+If called from Lisp, enable the mode if ARG is omitted or nil.
+
+Dired-Omit mode is a buffer-local minor mode.
+
+When enabled in a Dired buffer, Dired does not list files whose
+filenames match regexp `dired-omit-files', files ending with
+extensions in `dired-omit-extensions', or files listed on lines
+matching `dired-omit-line-regexp'.
 
 To enable omitting in every Dired buffer, you can put this in
 your init file:
@@ -141,10 +176,16 @@ your init file:
 
 See Info node `(dired-x) Omitting Variables' for more information."
   :group 'dired-x
-  (if dired-omit-mode
-      ;; This will mention how many lines were omitted:
-      (let ((dired-omit-size-limit nil)) (dired-omit-expunge))
-    (revert-buffer)))
+  (if (not dired-omit-mode)
+      (revert-buffer)
+    (let ((dired-omit-size-limit  nil)
+          (file-count 0))
+      ;; Omit by file-name match, then omit by line match.
+      ;; Use count of file-name match as INIT-COUNT for line match.
+      ;; Return total count.  (Return value is not used anywhere, so far).
+      (setq file-count (dired-omit-expunge))
+      (when dired-omit-line-regexp
+        (dired-omit-expunge dired-omit-line-regexp 'LINEP file-count)))))
 
 (put 'dired-omit-mode 'safe-local-variable 'booleanp)
 
@@ -486,45 +527,61 @@ variables `dired-omit-mode' and `dired-omit-files'."
   :type '(repeat string)
   :group 'dired-x)
 
-(defun dired-omit-expunge (&optional regexp)
-  "Erases all unmarked files matching REGEXP.
-Does nothing if global variable `dired-omit-mode' is nil, or if called
-  non-interactively and buffer is bigger than `dired-omit-size-limit'.
-If REGEXP is nil or not specified, uses `dired-omit-files', and also omits
-  filenames ending in `dired-omit-extensions'.
-If REGEXP is the empty string, this function is a no-op.
+(defun dired-omit-expunge (&optional regexp linep init-count)
+  "Erase all unmarked files whose names match REGEXP.
+With a prefix arg (non-nil LINEP when called from Lisp), match REGEXP
+against the whole line.  Otherwise, match it against the file name.
 
-This functions works by temporarily binding `dired-marker-char' to
-`dired-omit-marker-char' and calling `dired-do-kill-lines'."
-  (interactive "sOmit files (regexp): ")
+If REGEXP is nil, use `dired-omit-files', and also omit file names
+ending in `dired-omit-extensions'.
+
+Do nothing if REGEXP is the empty string, `dired-omit-mode' is nil, or
+if called from Lisp and buffer is bigger than `dired-omit-size-limit'.
+
+Optional arg INIT-COUNT is an initial count tha'is added to the number
+of lines omitted by this invocation of `dired-omit-expunge', in the
+status message."
+  (interactive "sOmit files (regexp): \nP")
+  ;; Bind `dired-marker-char' to `dired-omit-marker-char',
+  ;; then call `dired-do-kill-lines'.
   (if (and dired-omit-mode
            (or (called-interactively-p 'interactive)
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
-	       (progn
-		 (when dired-omit-verbose
-		   (message "Not omitting: directory larger than %d characters."
-			    dired-omit-size-limit))
-		 (setq dired-omit-mode nil)
-		 nil)))
+               (progn
+                 (when dired-omit-verbose
+                   (message "Not omitting: directory larger than %d characters."
+                            dired-omit-size-limit))
+                 (setq dired-omit-mode nil)
+                 nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
             (old-modified-p (buffer-modified-p))
-            count)
-        (or (string= omit-re "")
-            (let ((dired-marker-char dired-omit-marker-char))
-              (when dired-omit-verbose (message "Omitting..."))
-              (if (dired-mark-unmarked-files omit-re nil nil dired-omit-localp
-                                             (dired-omit-case-fold-p (if (stringp dired-directory)
-                                                                         dired-directory
-                                                                       (car dired-directory))))
-                  (progn
-                    (setq count (dired-do-kill-lines
-				 nil
-				 (if dired-omit-verbose "Omitted %d line%s." "")))
-                    (force-mode-line-update))
-                (when dired-omit-verbose (message "(Nothing to omit)")))))
-        ;; Try to preserve modified state of buffer.  So `%*' doesn't appear
-        ;; in mode-line of omitted buffers.
+            (count (or init-count 0)))
+        (unless (string= omit-re "")
+          (let ((dired-marker-char dired-omit-marker-char))
+            (when dired-omit-verbose (message "Omitting..."))
+            (if (not (if linep
+                         (dired-mark-if
+                          (and (= (following-char) ?\s) ; Not already marked
+                               (string-match-p
+                                omit-re (buffer-substring
+                                         (line-beginning-position)
+                                         (line-end-position))))
+                          nil)
+                       (dired-mark-unmarked-files
+                        omit-re nil nil dired-omit-localp
+                        (dired-omit-case-fold-p (if (stringp dired-directory)
+                                                    dired-directory
+                                                  (car dired-directory))))))
+                (when dired-omit-verbose (message "(Nothing to omit)"))
+              (setq count  (+ count
+                              (dired-do-kill-lines
+                               nil
+                               (if dired-omit-verbose "Omitted %d line%s" "")
+                               init-count)))
+              (force-mode-line-update))))
+        ;; Try to preserve modified state, so `%*' doesn't appear in
+        ;; `mode-line'.
         (set-buffer-modified-p (and old-modified-p
                                     (save-excursion
                                       (goto-char (point-min))
