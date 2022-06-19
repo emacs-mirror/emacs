@@ -2454,8 +2454,13 @@ xm_send_top_level_leave_message (struct x_display_info *dpyinfo, Window source,
 					       XM_DROP_SITE_NONE, x_dnd_motif_operations,
 					       XM_DROP_ACTION_DROP_CANCEL);
       mmsg.timestamp = dmsg->timestamp;
-      mmsg.x = 65535;
-      mmsg.y = 65535;
+
+      /* Use X_SHRT_MAX instead of the max value of uint16_t since
+	 that will be interpreted as a plausible position by Motif,
+	 and as such breaks if the drop target is beneath that
+	 position.  */
+      mmsg.x = X_SHRT_MAX;
+      mmsg.y = X_SHRT_MAX;
 
       xm_send_drag_motion_message (dpyinfo, source, target, &mmsg);
     }
@@ -19757,7 +19762,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							    XM_DRAG_REASON_TOP_LEVEL_LEAVE);
 			      lmsg.byteorder = XM_BYTE_ORDER_CUR_FIRST;
 			      lmsg.zero = 0;
-			      lmsg.timestamp = event->xmotion.time;
+			      lmsg.timestamp = xev->time;
 			      lmsg.source_window = FRAME_X_WINDOW (x_dnd_frame);
 
 			      if (x_dnd_motif_setup_p)
