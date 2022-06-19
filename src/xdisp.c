@@ -17161,9 +17161,19 @@ redisplay_windows (Lisp_Object window)
 }
 
 static Lisp_Object
-redisplay_window_error (Lisp_Object ignore)
+redisplay_window_error (Lisp_Object error_data)
 {
   displayed_buffer->display_error_modiff = BUF_MODIFF (displayed_buffer);
+
+  /* When in redisplay, the error is captured and not shown.  Arrange
+     for it to be shown later.  */
+  if (max_redisplay_ticks > 0
+      && CONSP (error_data)
+      && EQ (XCAR (error_data), Qerror)
+      && STRINGP (XCAR (XCDR (error_data))))
+    Vdelayed_warnings_list = Fcons (list2 (XCAR (error_data),
+					   XCAR (XCDR (error_data))),
+				    Vdelayed_warnings_list);
   return Qnil;
 }
 
