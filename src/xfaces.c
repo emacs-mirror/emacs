@@ -5951,8 +5951,20 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	    emacs_abort ();
 	}
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
-	attrs[LFACE_FONT_INDEX]
-	  = font_load_for_lface (f, attrs, Ffont_spec (0, NULL));
+	{
+	  /* We want attrs to allow overriding most elements in the
+	     spec, but we don't want to start with an all-nil font,
+	     either, because then we lose attributes like
+	     antialiasing.  This should probably be fixed in a
+	     different way, see bug#17973 and bug#37473.  */
+	  Lisp_Object spec = copy_font_spec (attrs[LFACE_FONT_INDEX]);
+	  Ffont_put (spec, QCfoundry, Qnil);
+	  Ffont_put (spec, QCfamily, Qnil);
+	  Ffont_put (spec, QCregistry, Qnil);
+	  Ffont_put (spec, QCadstyle, Qnil);
+	  attrs[LFACE_FONT_INDEX]
+	    = font_load_for_lface (f, attrs, spec);
+	}
       if (FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	{
 	  face->font = XFONT_OBJECT (attrs[LFACE_FONT_INDEX]);
