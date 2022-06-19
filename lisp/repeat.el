@@ -557,21 +557,24 @@ Used in `repeat-mode'."
                          (push s (alist-get (get s 'repeat-map) keymaps)))))
       (with-help-window (help-buffer)
         (with-current-buffer standard-output
-          (princ "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
+          (insert "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
 
-          (dolist (keymap (sort keymaps (lambda (a b) (string-lessp (car a) (car b)))))
-            (princ (format-message "`%s' keymap is repeatable by these commands:\n"
-                                   (car keymap)))
-            (dolist (command (sort (cdr keymap) 'string-lessp))
+          (dolist (keymap (sort keymaps (lambda (a b)
+                                          (string-lessp (car a) (car b)))))
+            (insert (format-message
+                     "`%s' keymap is repeatable by these commands:\n"
+                     (car keymap)))
+            (dolist (command (sort (cdr keymap) #'string-lessp))
               (let* ((info (help-fns--analyze-function command))
                      (map (list (symbol-value (car keymap))))
                      (desc (mapconcat (lambda (key)
-                                        (format-message "`%s'" (key-description key)))
+                                        (propertize (key-description key)
+                                                    'face 'help-key-binding))
                                       (or (where-is-internal command map)
                                           (where-is-internal (nth 3 info) map))
                                       ", ")))
-                (princ (format-message " `%s' (bound to %s)\n" command desc))))
-            (princ "\n")))))))
+                (insert (format-message " `%s' (bound to %s)\n" command desc))))
+            (insert "\n")))))))
 
 (provide 'repeat)
 
