@@ -5909,7 +5909,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 #ifdef HAVE_WINDOW_SYSTEM
   struct face *default_face;
   struct frame *f;
-  Lisp_Object stipple, underline, overline, strike_through, box;
+  Lisp_Object stipple, underline, overline, strike_through, box, temp_spec;
 
   eassert (FRAME_WINDOW_P (cache->f));
 
@@ -5953,17 +5953,18 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	{
 	  /* We want attrs to allow overriding most elements in the
-	     spec, but we don't want to start with an all-nil font,
-	     either, because then we lose attributes like
-	     antialiasing.  This should probably be fixed in a
-	     different way, see bug#17973 and bug#37473.  */
-	  Lisp_Object spec = copy_font_spec (attrs[LFACE_FONT_INDEX]);
-	  Ffont_put (spec, QCfoundry, Qnil);
-	  Ffont_put (spec, QCfamily, Qnil);
-	  Ffont_put (spec, QCregistry, Qnil);
-	  Ffont_put (spec, QCadstyle, Qnil);
+	     spec (IOW, to start out as an empty font spec), but
+	     preserve the antialiasing attribute.  (bug#17973,
+	     bug#37473).  */
+	  temp_spec = Ffont_spec (0, NULL);
+
+	  if (FONTP (attrs[LFACE_FONT_INDEX]))
+	    Ffont_put (temp_spec, QCantialias,
+		       Ffont_get (attrs[LFACE_FONT_INDEX],
+				  QCantialias));
+
 	  attrs[LFACE_FONT_INDEX]
-	    = font_load_for_lface (f, attrs, spec);
+	    = font_load_for_lface (f, attrs, temp_spec);
 	}
       if (FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	{
