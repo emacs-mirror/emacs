@@ -2060,9 +2060,9 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	 ((and (memq (car lap0) byte-goto-ops)
 	       (memq (car (setq tmp (nth 1 (memq (cdr lap0) lap))))
 		     '(byte-goto byte-return)))
-	  (cond ((and (not (eq tmp lap0))
-		      (or (eq (car lap0) 'byte-goto)
-			  (eq (car tmp) 'byte-goto)))
+	  (cond ((and (or (eq (car lap0) 'byte-goto)
+			  (eq (car tmp) 'byte-goto))
+                      (not (eq (cdr tmp) (cdr lap0))))
 		 (byte-compile-log-lap "  %s [%s]\t-->\t%s"
 				       (car lap0) tmp tmp)
 		 (if (eq (car tmp) 'byte-return)
