@@ -5,6 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp
 ;; Package: eieio
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
