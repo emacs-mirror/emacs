@@ -128,8 +128,9 @@ If AMOUNT is the symbol `hscroll', this means that with MODIFIER,
 the mouse wheel will scroll horizontally instead of vertically.
 
 If AMOUNT is the symbol `text-scale', this means that with
-MODIFIER, the mouse wheel will change the face height instead of
-scrolling."
+MODIFIER, the mouse wheel will change the font size instead of
+scrolling (by adjusting the font height of the default face).
+For more information, see `text-scale-adjust'."
   :group 'mouse
   :type '(cons
 	  (choice :tag "Normal"
@@ -417,7 +418,8 @@ value of ARG, and the command uses it in subsequent scrolls."
 (put 'mwheel-scroll 'scroll-command t)
 
 (defun mouse-wheel-text-scale (event)
-  "Increase or decrease the height of the default face according to the EVENT."
+  "Adjust font size of the default face according to EVENT.
+See also `text-scale-adjust'."
   (interactive (list last-input-event))
   (let ((selected-window (selected-window))
         (scroll-window (mouse-wheel--get-scroll-window event))

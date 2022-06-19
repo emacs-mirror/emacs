@@ -854,7 +854,8 @@ would be selected if you click a mouse or press @key{RET}.
 @node Text Scale
 @section Text Scale
 
-@cindex adjust buffer face height
+@cindex adjust buffer font size
+@cindex font size, increase or decrease
 @findex text-scale-adjust
 @kindex C-x C-+
 @kindex C-x C--
@@ -862,17 +863,21 @@ would be selected if you click a mouse or press @key{RET}.
 @kindex C-x C-0
 @kindex C-wheel-down
 @kindex C-wheel-up
-  To increase the height of the default face in the current buffer,
-type @kbd{C-x C-+} or @kbd{C-x C-=}.  To decrease it, type @kbd{C-x
-C--}.  To restore the default (global) face height, type @kbd{C-x
-C-0}.  These keys are all bound to the same command,
-@code{text-scale-adjust}, which looks at the last key typed to
-determine which action to take.
+  To increase the font size in the current buffer, type @kbd{C-x C-+}
+or @kbd{C-x C-=}.  To decrease it, type @kbd{C-x C--}.  To restore the
+default (global) font size, type @kbd{C-x C-0}.  These keys are all
+bound to the same command, @code{text-scale-adjust}, which looks at
+the last key typed to determine which action to take and adjusts the
+font size accordingly by changing the height of the default face.
+
+  Most faces are affected by these font size changes, but not faces
+that have an explicit @code{:height} setting.  The two exceptions to
+this are the @code{default} and @code{header} faces: They will both be
+scaled even if they have an explicit @code{:height} setting.
 
   Similarly, scrolling the mouse wheel with the @kbd{Ctrl} modifier
 pressed, when the mouse pointer is above buffer text, will increase or
-decrease the height of the default face, depending on the direction of
-the scrolling.
+decrease the font size, depending on the direction of the scrolling.
 
   The final key of these commands may be repeated without the leading
 @kbd{C-x}.  For instance, @kbd{C-x C-= C-= C-=} increases the face
@@ -882,21 +887,20 @@ of 1.2; to change this factor, customize the variable
 to the @code{text-scale-adjust} command restores the default height,
 the same as typing @kbd{C-x C-0}.
 
-@cindex increase buffer face height
+@cindex increase buffer font size
 @findex text-scale-increase
-@cindex decrease buffer face height
+@cindex decrease buffer font size
 @findex text-scale-decrease
   The commands @code{text-scale-increase} and
-@code{text-scale-decrease} increase or decrease the height of the
-default face, just like @kbd{C-x C-+} and @kbd{C-x C--} respectively.
-You may find it convenient to bind to these commands, rather than
-@code{text-scale-adjust}.
+@code{text-scale-decrease} increase or decrease the size of the font
+in the current buffer, just like @kbd{C-x C-+} and @kbd{C-x C--}
+respectively.  You may find it convenient to bind to these commands,
+rather than @code{text-scale-adjust}.
 
-@cindex set buffer face height
+@cindex set buffer font size
 @findex text-scale-set
-  The command @code{text-scale-set} scales the height of the default
-face in the current buffer to an absolute level specified by its
-prefix argument.
+  The command @code{text-scale-set} scales the size of the font in the
+current buffer to an absolute level specified by its prefix argument.
 
 @findex text-scale-mode
   The above commands automatically enable the minor mode

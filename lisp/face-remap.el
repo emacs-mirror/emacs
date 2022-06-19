@@ -230,7 +230,8 @@ not to inherit from the global definition of FACE at all."
 
 (defcustom text-scale-mode-step 1.2
   "Scale factor used by `text-scale-mode'.
-Each positive or negative step scales the default face height by this amount."
+Each positive or negative step scales the size of the `default'
+face's font by this amount."
   :group 'display
   :type 'number
   :version "23.1")
@@ -335,7 +336,7 @@ the same amount)."
 
 ;;;###autoload
 (defun text-scale-increase (inc)
-  "Increase the height of the default face in the current buffer by INC steps.
+  "Increase the font size of the default face in current buffer by INC steps.
 If the new height is other than the default, `text-scale-mode' is enabled.
 
 Each step scales the height of the default face by the variable
@@ -347,14 +348,14 @@ will remove any scaling currently active."
          (new-value (if (= inc 0) 0 (+ current-value inc))))
     (if (or (> new-value (text-scale-max-amount))
             (< new-value (text-scale-min-amount)))
-        (user-error "Cannot %s the default face height more than it already is"
+        (user-error "Cannot %s the font size any further"
                     (if (> inc 0) "increase" "decrease")))
     (setq text-scale-mode-amount new-value))
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload
 (defun text-scale-decrease (dec)
-  "Decrease the height of the default face in the current buffer by DEC steps.
+  "Decrease the font size of the default face in the current buffer by DEC steps.
 See `text-scale-increase' for more details."
   (interactive "p")
   (text-scale-increase (- dec)))
@@ -365,19 +366,18 @@ See `text-scale-increase' for more details."
 ;;;###autoload (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 ;;;###autoload
 (defun text-scale-adjust (inc)
-  "Adjust the height of the default face by INC.
-
+  "Adjust the font size in the current buffer by INC steps.
 INC may be passed as a numeric prefix argument.
 
 The actual adjustment made depends on the final component of the
 keybinding used to invoke the command, with all modifiers removed:
 
-   +, =   Increase the height of the default face by one step
-   -      Decrease the height of the default face by one step
-   0      Reset the height of the default face to the global default
+   +, =   Increase font size in current buffer by one step
+   -      Decrease font size in current buffer by one step
+   0      Reset the font size to the global default
 
 After adjusting, continue to read input events and further adjust
-the face height as long as the input event read
+the font size as long as the input event read
 \(with all modifiers removed) is one of the above characters.
 
 Each step scales the height of the default face by the variable
@@ -389,7 +389,12 @@ This command is a special-purpose wrapper around the
 `text-scale-increase' command which makes repetition convenient
 even when it is bound in a non-top-level keymap.  For binding in
 a top-level keymap, `text-scale-increase' or
-`text-scale-decrease' may be more appropriate."
+`text-scale-decrease' may be more appropriate.
+
+Most faces are affected by these font size changes, but not faces
+that have an explicit `:height' setting.  The two exceptions to
+this are the `default' and `header' faces: They will both be
+scaled even if they have an explicit `:height' setting."
   (interactive "p")
   (let ((ev last-command-event)
 	(echo-keystrokes nil))

@@ -458,6 +458,7 @@ convert to an Emacs image-spec instead")
     ;; Adjust the height of the default face to the height of the
     ;; images. Unlike XEmacs, Emacs doesn't allow making the default
     ;; face buffer-local; so we do this with an overlay.
+    ;; FIXME: This is not correct.  See face-remap.el.
     (when (eq gamegrid-display-mode 'glyph)
       (overlay-put (make-overlay (point-min) (point-max))
 		   'face gamegrid-face))

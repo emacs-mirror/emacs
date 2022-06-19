@@ -223,8 +223,8 @@ mouse-wheel-mode}.  The variables @code{mouse-wheel-follow-mouse} and
 buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.  This mode also
-supports increasing or decreasing the height of the default face, by
-default bound to scrolling with the @key{Ctrl} modifier.
+supports increasing or decreasing the font size, by default bound to
+scrolling with the @key{Ctrl} modifier.
 
 @vindex mouse-wheel-scroll-amount-horizontal
 Emacs also supports horizontal scrolling with the @key{Shift}

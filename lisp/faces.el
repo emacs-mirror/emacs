@@ -709,14 +709,14 @@ a.k.a. `regular'), `semi-expanded' (a.k.a. `demi-expanded'),
 
 `:height'
 
-VALUE specifies the relative or absolute height of the font.  An
-absolute height is an integer, and specifies font height in units
-of 1/10 pt.  A relative height is either a floating point number,
-which specifies a scaling factor for the underlying face height;
-or a function that takes a single argument (the underlying face
-height) and returns the new height.  Note that for the `default'
-face, you must specify an absolute height (since there is nothing
-for it to be relative to).
+VALUE specifies the relative or absolute font size (height of the
+font).  An absolute height is an integer, and specifies font height in
+units of 1/10 pt.  A relative height is either a floating point
+number, which specifies a scaling factor for the underlying face
+height; or a function that takes a single argument (the underlying
+face height) and returns the new height.  Note that for the `default'
+face, you must specify an absolute height (since there is nothing for
+it to be relative to).
 
 `:weight'
 
