@@ -1245,12 +1245,17 @@ Put first the functions more likely to cause a change and cheaper to compute.")
       (setq font-lock-beg (or (previous-single-property-change
                                font-lock-beg 'font-lock-multiline)
                               (point-min))))
-    ;;
-    (when (get-text-property font-lock-end 'font-lock-multiline)
-      (setq changed t)
-      (setq font-lock-end (or (text-property-any font-lock-end (point-max)
-                                                 'font-lock-multiline nil)
-                              (point-max))))
+    ;; If `font-lock-multiline' starts at `font-lock-end', do not
+    ;; extend the region.
+    (let ((before-end (max (point-min) (1- font-lock-end)))
+          (new-end nil))
+      (when (get-text-property before-end 'font-lock-multiline)
+        (setq new-end (or (text-property-any before-end (point-max)
+                                             'font-lock-multiline nil)
+                          (point-max)))
+        (when (/= new-end font-lock-end)
+          (setq changed t)
+          (setq font-lock-end new-end))))
     changed))
 
 (defun font-lock-extend-region-wholelines ()
