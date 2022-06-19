@@ -20050,19 +20050,29 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  f = mouse_or_wdesc_frame (dpyinfo, xev->event);
 
-		  if (xev->evtype == XI_ButtonPress)
+		  /* Don't track grab status for emulated pointer
+		     events, because they are ignored by the regular
+		     mouse click processing code.  */
+#ifdef XIPointerEmulated
+		  if (!(xev->flags & XIPointerEmulated))
 		    {
-		      dpyinfo->grabbed |= (1 << xev->detail);
-		      dpyinfo->last_mouse_frame = f;
-		      if (f && !tab_bar_p)
-			f->last_tab_bar_item = -1;
+#endif
+		      if (xev->evtype == XI_ButtonPress)
+			{
+			  dpyinfo->grabbed |= (1 << xev->detail);
+			  dpyinfo->last_mouse_frame = f;
+			  if (f && !tab_bar_p)
+			    f->last_tab_bar_item = -1;
 #if ! defined (USE_GTK)
-		      if (f && !tool_bar_p)
-			f->last_tool_bar_item = -1;
+			  if (f && !tool_bar_p)
+			    f->last_tool_bar_item = -1;
 #endif /* not USE_GTK */
+			}
+		      else
+			dpyinfo->grabbed &= ~(1 << xev->detail);
+#ifdef XIPointerEmulated
 		    }
-		  else
-		    dpyinfo->grabbed &= ~(1 << xev->detail);
+#endif
 
 		  if (xev->evtype == XI_ButtonPress
 		      && x_dnd_last_seen_window != None
