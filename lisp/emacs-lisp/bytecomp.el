@@ -1246,8 +1246,7 @@ Order is by depth-first search."
                                      load-file-name dir)))
 		     (t "")))
          (offset (byte-compile--warning-source-offset))
-	 (pos (if (and byte-compile-current-file
-                       (or offset (not symbols-with-pos-enabled)))
+	 (pos (if (and byte-compile-current-file offset)
 		  (with-current-buffer byte-compile-current-buffer
                     (let (new-l new-c)
                       (save-excursion
