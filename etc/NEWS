@@ -1880,6 +1880,12 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 * Incompatible Lisp Changes in Emacs 29.1
 
+---
+** 'find-image' now uses 'create-image'.
+This means that images found through 'find-image' also has
+auto-scaling applied.  (This only makes a difference on HiDPI
+displays.)
+
 +++
 ** Changes to "raw" in-memory xbm images are specified.
 Some years back Emacs gained the ability to scale images, and you

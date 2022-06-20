@@ -764,13 +764,15 @@ SPECS is a list of image specifications.
 
 Each image specification in SPECS is a property list.  The contents of
 a specification are image type dependent.  All specifications must at
-least contain the properties `:type TYPE' and either `:file FILE' or
-`:data DATA', where TYPE is a symbol specifying the image type,
-e.g. `xbm', FILE is the file to load the image from, and DATA is a
-string containing the actual image data.  The specification whose TYPE
-is supported, and FILE exists, is used to construct the image
-specification to be returned.  Return nil if no specification is
-satisfied.
+least contain the either the property `:file FILE' or `:data DATA',
+where FILE is the file to load the image from, and DATA is a string
+containing the actual image data.  If the property `:type TYPE' is
+omitted or nil, try to determine the image type from its first few
+bytes of image data.  If that doesn’t work, and the property `:file
+FILE' provide a file name, use its file extension as image type. If
+the property `:type TYPE' is provided, it must match the actual type
+determined for FILE or DATA by `create-image'.  Return nil if no
+specification is satisfied.
 
 If CACHE is non-nil, results are cached and returned on subsequent calls.
 
@@ -785,21 +787,43 @@ Image files should not be larger than specified by `max-image-size'."
           (let* ((spec (car specs))
 	         (type (plist-get spec :type))
 	         (data (plist-get spec :data))
-	         (file (plist-get spec :file))
-	         found)
-	    (when (image-type-available-p type)
-	      (cond ((stringp file)
-		     (if (setq found (image-search-load-path file))
-		         (setq image
-			       (cons 'image (plist-put (copy-sequence spec)
-						       :file found)))))
-		    ((not (null data))
-		     (setq image (cons 'image spec)))))
+	         (file (plist-get spec :file)))
+	    (cond
+             ((stringp file)
+	      (when (setq file (image-search-load-path file))
+                ;; At this point, remove the :type and :file properties.
+                ;; `create-image' will set them depending on image file.
+                (setq image (cons 'image (copy-sequence spec)))
+                (setf (image-property image :type) nil)
+                (setf (image-property image :file) nil)
+                (and (setq image (ignore-errors
+                                   (apply #'create-image file nil nil
+                                          (cdr image))))
+                     ;; Ensure, if a type has been provided, it is
+                     ;; consistent with the type returned by
+                     ;; `create-image'. If not, return nil.
+                     (not (null type))
+                     (not (eq type (image-property image :type)))
+                     (setq image nil))))
+	     ((not (null data))
+              ;; At this point, remove the :type and :data properties.
+              ;; `create-image' will set them depending on image data.
+              (setq image (cons 'image (copy-sequence spec)))
+              (setf (image-property image :type) nil)
+              (setf (image-property image :data) nil)
+	      (and (setq image (ignore-errors
+                                 (apply #'create-image data nil t
+                                        (cdr image))))
+                   ;; Ensure, if a type has been provided, it is
+                   ;; consistent with the type returned by
+                   ;; `create-image'. If not, return nil.
+                   (not (null type))
+                   (not (eq type (image-property image :type)))
+                   (setq image nil))))
 	    (setq specs (cdr specs))))
         (when cache
           (setf (gethash orig-specs find-image--cache) image))
         image)))
-
 
 ;;;###autoload
 (defmacro defimage (symbol specs &optional doc)
