@@ -2112,16 +2112,7 @@ resultant list will be returned."
        ,@(when (or (memq 'indentation whitespace-active-style)
                    (memq 'indentation::tab whitespace-active-style)
                    (memq 'indentation::space whitespace-active-style))
-           `((,(cond
-                ((memq 'indentation whitespace-active-style)
-                 ;; Show indentation SPACEs (indent-tabs-mode).
-                 (whitespace-indentation-regexp))
-                ((memq 'indentation::tab whitespace-active-style)
-                 ;; Show indentation SPACEs (SPACEs).
-                 (whitespace-indentation-regexp 'tab))
-                ((memq 'indentation::space whitespace-active-style)
-                 ;; Show indentation SPACEs (TABs).
-                 (whitespace-indentation-regexp 'space)))
+           `((,#'whitespace--indentation-matcher
               1 whitespace-indentation t)))
        ,@(when (memq 'big-indent whitespace-active-style)
            ;; Show big indentation.
@@ -2356,6 +2347,26 @@ Also refontify when necessary."
         (font-lock-flush ostart (overlay-end whitespace-point--used))
         (delete-overlay whitespace-point--used))))))
 
+(defun whitespace--indentation-matcher (limit)
+  "Indentation matcher for `font-lock-keywords'.
+This matcher is a function instead of a static regular expression
+so that the next call to `font-lock-flush' picks up any changes
+to `indent-tabs-mode' and `tab-width'."
+  (re-search-forward
+   (whitespace-indentation-regexp
+    (cond
+     ((memq 'indentation whitespace-active-style) nil)
+     ((memq 'indentation::tab whitespace-active-style) 'tab)
+     ((memq 'indentation::space whitespace-active-style) 'space)))
+   limit t))
+
+(defun whitespace--variable-watcher (_symbol _newval _op buffer)
+  "Variable watcher that calls `font-lock-flush' for BUFFER."
+  (when buffer
+    (with-current-buffer buffer
+      (when whitespace-mode
+        (font-lock-flush)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Hacked from visws.el (Miles Bader <miles@gnu.org>)
@@ -2468,9 +2479,16 @@ It should be added buffer-locally to `write-file-functions'."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar whitespace--watched-vars
+  '(fill-column indent-tabs-mode tab-width whitespace-line-column))
+
+(dolist (var whitespace--watched-vars)
+  (add-variable-watcher var #'whitespace--variable-watcher))
 
 (defun whitespace-unload-function ()
   "Unload the whitespace library."
+  (dolist (var whitespace--watched-vars)
+    (remove-variable-watcher var #'whitespace--variable-watcher))
   (global-whitespace-mode -1)
   ;; be sure all local whitespace mode is turned off
   (save-current-buffer
