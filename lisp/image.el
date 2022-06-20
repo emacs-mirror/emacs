@@ -764,13 +764,13 @@ SPECS is a list of image specifications.
 
 Each image specification in SPECS is a property list.  The contents of
 a specification are image type dependent.  All specifications must at
-least contain the either the property `:file FILE' or `:data DATA',
+least contain either the property `:file FILE' or `:data DATA',
 where FILE is the file to load the image from, and DATA is a string
 containing the actual image data.  If the property `:type TYPE' is
 omitted or nil, try to determine the image type from its first few
-bytes of image data.  If that doesn’t work, and the property `:file
-FILE' provide a file name, use its file extension as image type. If
-the property `:type TYPE' is provided, it must match the actual type
+bytes of image data.  If that doesn't work, and the property `:file
+FILE' provide a file name, use its file extension as image type.
+If `:type TYPE' is provided, it must match the actual type
 determined for FILE or DATA by `create-image'.  Return nil if no
 specification is satisfied.
 
