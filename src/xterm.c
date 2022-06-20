@@ -21685,7 +21685,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
-	      any = x_any_window_to_frame (dpyinfo, pev->event);
+	      any = x_window_to_frame (dpyinfo, pev->event);
 	      if (any)
 		{
 		  inev.ie.kind = PINCH_EVENT;
