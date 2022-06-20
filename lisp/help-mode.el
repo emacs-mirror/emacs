@@ -543,6 +543,12 @@ Each element has the form (NAME TESTFUN DESCFUN) where:
     and a frame), inserts the description of that symbol in the current buffer
     and returns that text as well.")
 
+(defcustom help-clean-buttons nil
+  "If non-nil, remove quotes around link buttons."
+  :version "29.1"
+  :type 'boolean
+  :group 'help)
+
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)
   "Parse and hyperlink documentation cross-references in the given BUFFER.
@@ -691,12 +697,26 @@ that."
 MATCH-NUMBER is the subexpression of interest in the last matched
 regexp.  TYPE is the type of button to use.  Any remaining arguments are
 passed to the button's help-function when it is invoked.
-See `help-make-xrefs'."
+See `help-make-xrefs'.
+
+This function heeds the `help-clean-buttons' variable and will
+remove quotes surrounding the match if non-nil."
   ;; Don't mung properties we've added specially in some instances.
-  (unless (button-at (match-beginning match-number))
-    (make-text-button (match-beginning match-number)
-		      (match-end match-number)
-		      'type type 'help-args args)))
+  (let ((beg (match-beginning match-number))
+        (end (match-end match-number)))
+    (unless (button-at beg)
+      (make-text-button beg end 'type type 'help-args args)
+      (when (and help-clean-buttons
+                 (> beg (point-min))
+                 (save-excursion
+                   (goto-char (1- beg))
+                   (looking-at "['`‘]"))
+                 (< end (point-max))
+                 (save-excursion
+                   (goto-char end)
+                   (looking-at "['’]")))
+        (delete-region end (1+ end))
+        (delete-region (1- beg) beg)))))
 
 ;;;###autoload
 (defun help-insert-xref-button (string type &rest args)
