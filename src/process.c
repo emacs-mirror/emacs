@@ -5492,7 +5492,17 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 triggered by processing X events).  In the latter case, set
 	 nfds to 1 to avoid breaking the loop.  */
       no_avail = 0;
-      if ((read_kbd || !NILP (wait_for_cell))
+      if ((read_kbd
+	   /* The following code doesn't make any sense for just the
+	      wait_or_cell case, because detect_input_pending returns
+	      whether or not the keyboard buffer isn't empty or there
+	      is mouse movement.  Any keyboard input that arrives
+	      while waiting for a cell will cause the select call to
+	      be skipped, and gobble_input to be called even when
+	      there is no input available from the terminal itself.
+	      Skipping the call to select also causes the timeout to
+	      be ignored.  (bug#46935) */
+	   /* || !NILP (wait_for_cell) */)
 	  && detect_input_pending ())
 	{
 	  nfds = read_kbd ? 0 : 1;

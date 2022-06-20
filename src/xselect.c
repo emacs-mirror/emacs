@@ -1261,7 +1261,13 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   intmax_t timeout = max (0, x_selection_timeout);
   intmax_t secs = timeout / 1000;
   int nsecs = (timeout % 1000) * 1000000;
-  TRACE1 ("  Start waiting %"PRIdMAX" secs for SelectionNotify", secs);
+  TRACE1 ("  Start waiting %"PRIdMAX" secs for SelectionNotify.", secs);
+
+  if (input_blocked_p ())
+    TRACE0 ("    Input is blocked.");
+  else
+    TRACE1 ("    Waiting for %d nsecs in addition.", nsecs);
+
   /* This function can be called with input blocked inside Xt or GTK
      timeouts run inside popup menus, so use a function that works
      when input is blocked.  Prefer wait_reading_process_output
