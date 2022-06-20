@@ -855,7 +855,7 @@ would be selected if you click a mouse or press @key{RET}.
 @section Text Scale
 
 @cindex adjust buffer font size
-@cindex font size, increase or decrease
+@cindex font size of @code{default} face, increase or decrease
 @findex text-scale-adjust
 @kindex C-x C-+
 @kindex C-x C--
@@ -863,21 +863,27 @@ would be selected if you click a mouse or press @key{RET}.
 @kindex C-x C-0
 @kindex C-wheel-down
 @kindex C-wheel-up
-  To increase the font size in the current buffer, type @kbd{C-x C-+}
-or @kbd{C-x C-=}.  To decrease it, type @kbd{C-x C--}.  To restore the
-default (global) font size, type @kbd{C-x C-0}.  These keys are all
-bound to the same command, @code{text-scale-adjust}, which looks at
-the last key typed to determine which action to take and adjusts the
-font size accordingly by changing the height of the default face.
+  To increase the font size of the @code{default} face in the current
+buffer, type @kbd{C-x C-+} or @kbd{C-x C-=}.  To decrease it, type
+@kbd{C-x C--}.  To restore the default (global) font size, type
+@kbd{C-x C-0}.  These keys are all bound to the same command,
+@code{text-scale-adjust}, which looks at the last key typed to
+determine which action to take and adjusts the font size accordingly
+by changing the height of the default face.
 
-  Most faces are affected by these font size changes, but not faces
-that have an explicit @code{:height} setting.  The two exceptions to
-this are the @code{default} and @code{header} faces: They will both be
-scaled even if they have an explicit @code{:height} setting.
+  Most faces don't have an explicit setting of the @code{:height}
+attribute, and thus inherit the height from the @code{default} face.
+Those faces are also scaled by the above commands.
+
+  Faces other than @code{default} that have an explicit setting of the
+@code{:height} attribute are not affected by these font size changes.
+The @code{header-line} face is an exception: it will be scaled even if
+it has an explicit setting of the @code{:height} attribute.
 
   Similarly, scrolling the mouse wheel with the @kbd{Ctrl} modifier
 pressed, when the mouse pointer is above buffer text, will increase or
-decrease the font size, depending on the direction of the scrolling.
+decrease the font size of the affected faces, depending on the
+direction of the scrolling.
 
   The final key of these commands may be repeated without the leading
 @kbd{C-x}.  For instance, @kbd{C-x C-= C-= C-=} increases the face

@@ -393,7 +393,7 @@ a top-level keymap, `text-scale-increase' or
 
 Most faces are affected by these font size changes, but not faces
 that have an explicit `:height' setting.  The two exceptions to
-this are the `default' and `header' faces: They will both be
+this are the `default' and `header-line' faces: they will both be
 scaled even if they have an explicit `:height' setting."
   (interactive "p")
   (let ((ev last-command-event)
