@@ -622,7 +622,7 @@ the C sources, too."
   (pcase-dolist (`(,type . ,handler)
                  (list (cons "compiler macro"
                              (function-get function 'compiler-macro))
-                       (cons "`byte-compile' property"
+                       (cons (substitute-command-keys "`byte-compile' property")
                              (function-get function 'byte-compile))
                        (cons "byte-code optimizer"
                              (function-get function 'byte-optimizer))))
