@@ -29,22 +29,25 @@
 
 (ert-deftest image-test-duplicate-keywords ()
   "Test that duplicate keywords in an image spec lead to rejection."
-  (should-error (image-size `(image :type xbm :type xbm :width 1 :height 1
+  (should-error (image-size `(image :type xbm :type xbm
+                                    :data-width 1 :data-height 1
                                     :data ,(bool-vector t))
                             t)))
 
 (ert-deftest image-test-circular-plist ()
   "Test that a circular image spec is rejected."
   (should-error
-   (let ((l `(image :type xbm :width 1 :height 1 :data ,(bool-vector t))))
+   (let ((l `(image :type xbm :data-width 1 :data-height 1
+                    :data ,(bool-vector t))))
      (setcdr (last l) '#1=(:invalid . #1#))
      (image-size l t))))
 
 (ert-deftest image-test-:type-property-value ()
   "Test that :type is allowed as a property value in an image spec."
-  (should (equal (image-size `(image :dummy :type :type xbm :width 1 :height 1
-                                        :data ,(bool-vector t))
-                                t)
+  (should (equal (image-size `(image :dummy :type :type xbm
+                                     :data-width 1 :data-height 1
+                                     :data ,(bool-vector t))
+                             t)
                  (cons 1 1))))
 
 (ert-deftest image-test-circular-specs ()
@@ -52,9 +55,9 @@
   (should
    (let* ((circ1 (cons :dummy nil))
           (circ2 (cons :dummy nil))
-          (spec1 `(image :type xbm :width 1 :height 1
+          (spec1 `(image :type xbm :data-width 1 :data-height 1
                          :data ,(bool-vector 1) :ignored ,circ1))
-          (spec2 `(image :type xbm :width 1 :height 1
+          (spec2 `(image :type xbm :data-width 1 :data-height 1
                         :data ,(bool-vector 1) :ignored ,circ2)))
      (setcdr circ1 circ1)
      (setcdr circ2 circ2)

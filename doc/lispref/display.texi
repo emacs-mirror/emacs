@@ -5930,13 +5930,10 @@ There are three formats you can use for @var{data}:
 @itemize @bullet
 @item
 A vector of strings or bool-vectors, each specifying one line of the
-image.  Do specify @code{:height} and @code{:width}.
+image.  Do specify @code{:data-height} and @code{:data-width}.
 
 @item
 A string containing the same byte sequence as an XBM file would contain.
-You must not specify @code{:height} and @code{:width} in this case,
-because omitting them is what indicates the data has the format of an
-XBM file.  The file contents specify the height and width of the image.
 
 @item
 A string or a bool-vector containing the bits of the image (plus
@@ -5944,25 +5941,10 @@ perhaps some extra bits at the end that will not be used).  It should
 contain at least @w{@code{@var{stride} * @var{height}}} bits, where
 @var{stride} is the smallest multiple of 8 greater than or equal to
 the width of the image.  In this case, you should specify
-@code{:height}, @code{:width} and @code{:stride}, both to indicate
-that the string contains just the bits rather than a whole XBM file,
-and to specify the size of the image.
+@code{:data-height}, @code{:data-width} and @code{:stride}, both to
+indicate that the string contains just the bits rather than a whole
+XBM file, and to specify the size of the image.
 @end itemize
-
-@item :width @var{width}
-The value, @var{width}, specifies the width of the image, in pixels.
-
-@item :height @var{height}
-The value, @var{height}, specifies the height of the image, in pixels.
-
-Note that @code{:width} and @code{:height} can only be used if passing
-in data that doesn't specify the width and height (e.g., a string or a
-vector containing the bits of the image).  @acronym{XBM} files usually
-specify this themselves, and it's an error to use these two properties
-on these files.  Also note that @code{:width} and @code{:height} are
-used by most other image formats to specify what the displayed image
-is supposed to be, which usually means performing some sort of
-scaling.  This isn't supported for @acronym{XBM} images.
 
 @item :stride @var{stride}
 The number of bool vector entries stored for each row; the smallest

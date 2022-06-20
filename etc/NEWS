@@ -1881,6 +1881,18 @@ Emacs buffers, like indentation and the like.  The new ert function
 * Incompatible Lisp Changes in Emacs 29.1
 
 +++
+** Changes to "raw" in-memory xbm images are specified.
+Some years back Emacs gained the ability to scale images, and you
+could then specify :width and :height when using 'create-image' on all
+image types -- except xbm images, because this format already used the
+:width and :height arguments to specify the width/height of the "raw"
+in-memory format.  This meant that if you used these specifications
+on, for instance, xbm files, Emacs would refuse to display them.  This
+has been changed, and :width/:height now works as with all other image
+formats, and the way to specify the width/height of the "raw"
+in-memory format is now by using :data-width and :data-height.
+
++++
 ** loaddefs.el generation has been reimplemented.
 The various loaddefs.el files in the Emacs tree (which contain
 information about autoloads, built-in packages and package prefixes)

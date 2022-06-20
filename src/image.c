@@ -3723,6 +3723,8 @@ enum xbm_keyword_index
   XBM_ALGORITHM,
   XBM_HEURISTIC_MASK,
   XBM_MASK,
+  XBM_DATA_WIDTH,
+  XBM_DATA_HEIGHT,
   XBM_LAST
 };
 
@@ -3744,7 +3746,9 @@ static const struct image_keyword xbm_format[XBM_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":data-width",	IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":data-height",	IMAGE_POSITIVE_INTEGER_VALUE,		0}
 };
 
 /* Tokens returned from xbm_scan.  */
@@ -3766,8 +3770,8 @@ enum xbm_token
    an entry `:file FILENAME' where FILENAME is a string.
 
    If the specification is for a bitmap loaded from memory it must
-   contain `:width WIDTH', `:height HEIGHT', and `:data DATA', where
-   WIDTH and HEIGHT are integers > 0.  DATA may be:
+   contain `:data-width WIDTH', `:data-height HEIGHT', and `:data DATA',
+   where WIDTH and HEIGHT are integers > 0.  DATA may be:
 
    1. a string large enough to hold the bitmap data, i.e. it must
    have a size >= (WIDTH + 7) / 8 * HEIGHT
@@ -3777,9 +3781,7 @@ enum xbm_token
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
-   4. a string containing an in-memory XBM file.  WIDTH and HEIGHT
-   may not be specified in this case because they are defined in the
-   XBM file.
+   4. a string containing an in-memory XBM file.
 
    Both the file and data forms may contain the additional entries
    `:background COLOR' and `:foreground COLOR'.  If not present,
@@ -3799,13 +3801,13 @@ xbm_image_p (Lisp_Object object)
 
   if (kw[XBM_FILE].count)
     {
-      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_DATA].count)
+      if (kw[XBM_DATA].count)
 	return 0;
     }
   else if (kw[XBM_DATA].count && xbm_file_p (kw[XBM_DATA].value))
     {
       /* In-memory XBM file.  */
-      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_FILE].count)
+      if (kw[XBM_FILE].count)
 	return 0;
     }
   else
@@ -3814,14 +3816,14 @@ xbm_image_p (Lisp_Object object)
       int width, height, stride;
 
       /* Entries for `:width', `:height' and `:data' must be present.  */
-      if (!kw[XBM_WIDTH].count
-	  || !kw[XBM_HEIGHT].count
+      if (!kw[XBM_DATA_WIDTH].count
+	  || !kw[XBM_DATA_HEIGHT].count
 	  || !kw[XBM_DATA].count)
 	return 0;
 
       data = kw[XBM_DATA].value;
-      width = XFIXNAT (kw[XBM_WIDTH].value);
-      height = XFIXNAT (kw[XBM_HEIGHT].value);
+      width = XFIXNAT (kw[XBM_DATA_WIDTH].value);
+      height = XFIXNAT (kw[XBM_DATA_HEIGHT].value);
 
       if (!kw[XBM_STRIDE].count)
 	stride = width;
@@ -4445,8 +4447,8 @@ xbm_load (struct frame *f, struct image *img)
       /* Get specified width, and height.  */
       if (!in_memory_file_p)
 	{
-	  img->width = XFIXNAT (fmt[XBM_WIDTH].value);
-	  img->height = XFIXNAT (fmt[XBM_HEIGHT].value);
+	  img->width = XFIXNAT (fmt[XBM_DATA_WIDTH].value);
+	  img->height = XFIXNAT (fmt[XBM_DATA_HEIGHT].value);
 	  eassert (img->width > 0 && img->height > 0);
 	  if (!check_image_size (f, img->width, img->height))
 	    {
