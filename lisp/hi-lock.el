@@ -69,12 +69,12 @@
 ;;    You might also want to bind the hi-lock commands to more
 ;;    finger-friendly sequences:
 
-;;    (define-key hi-lock-map "\C-z\C-h" 'highlight-lines-matching-regexp)
-;;    (define-key hi-lock-map "\C-zi" 'hi-lock-find-patterns)
-;;    (define-key hi-lock-map "\C-zh" 'highlight-regexp)
-;;    (define-key hi-lock-map "\C-zp" 'highlight-phrase)
-;;    (define-key hi-lock-map "\C-zr" 'unhighlight-regexp)
-;;    (define-key hi-lock-map "\C-zb" 'hi-lock-write-interactive-patterns))
+;;    (keymap-set hi-lock-map "C-z C-h" 'highlight-lines-matching-regexp)
+;;    (keymap-set hi-lock-map "C-z i" 'hi-lock-find-patterns)
+;;    (keymap-set hi-lock-map "C-z h" 'highlight-regexp)
+;;    (keymap-set hi-lock-map "C-z p" 'highlight-phrase)
+;;    (keymap-set hi-lock-map "C-z r" 'unhighlight-regexp)
+;;    (keymap-set hi-lock-map "C-z b" 'hi-lock-write-interactive-patterns))
 
 ;;    See the documentation for hi-lock-mode `C-h f hi-lock-mode' for
 ;;    additional instructions.
@@ -276,17 +276,16 @@ a library is being loaded.")
     ["Patterns from Buffer" hi-lock-find-patterns
      :help "Use patterns (if any) near top of buffer."]))
 
-(defvar hi-lock-map
-  (let ((map (make-sparse-keymap "Hi Lock")))
-    (define-key map "\C-xwi" 'hi-lock-find-patterns)
-    (define-key map "\C-xwl" 'highlight-lines-matching-regexp)
-    (define-key map "\C-xwp" 'highlight-phrase)
-    (define-key map "\C-xwh" 'highlight-regexp)
-    (define-key map "\C-xw." 'highlight-symbol-at-point)
-    (define-key map "\C-xwr" 'unhighlight-regexp)
-    (define-key map "\C-xwb" 'hi-lock-write-interactive-patterns)
-    map)
-  "Key map for hi-lock.")
+(defvar-keymap hi-lock-map
+  :doc "Keymap for `hi-lock-mode'."
+  :name "Hi Lock"
+  "C-x w i" #'hi-lock-find-patterns
+  "C-x w l" #'highlight-lines-matching-regexp
+  "C-x w p" #'highlight-phrase
+  "C-x w h" #'highlight-regexp
+  "C-x w ." #'highlight-symbol-at-point
+  "C-x w r" #'unhighlight-regexp
+  "C-x w b" #'hi-lock-write-interactive-patterns)
 
 ;; Visible Functions
 
