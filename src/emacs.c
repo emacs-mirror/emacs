@@ -2412,11 +2412,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #if defined WINDOWSNT || defined HAVE_NTGUI
       globals_of_w32select ();
 #endif
+    }
 
 #ifdef HAVE_HAIKU
-      init_haiku_select ();
+  init_haiku_select ();
 #endif
-    }
 
   init_charset ();
 
