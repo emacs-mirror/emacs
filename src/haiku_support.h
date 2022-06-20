@@ -271,6 +271,7 @@ enum haiku_font_specification
     FSPEC_WIDTH	      = 1 << 7,
     FSPEC_LANGUAGE    = 1 << 8,
     FSPEC_INDICES     = 1 << 9,
+    FSPEC_ANTIALIAS   = 1 << 10,
   };
 
 typedef char haiku_font_family_or_style[64];
@@ -390,6 +391,10 @@ struct haiku_font_pattern
 
   /* Temporary field used during font enumeration.  */
   int oblique_seen_p;
+
+  /* Whether or not to enable antialising in the font.  This field is
+     special in that it's not handled by `BFont_open_pattern'.  */
+  int use_antialiasing;
 };
 
 struct haiku_scroll_bar_value_event
@@ -684,6 +689,7 @@ extern const char *be_find_setting (const char *);
 extern haiku_font_family_or_style *be_list_font_families (size_t *);
 extern void be_font_style_to_flags (char *, struct haiku_font_pattern *);
 extern void *be_open_font_at_index (int, int, float);
+extern void be_set_font_antialiasing (void *, bool);
 extern int be_get_ui_color (const char *, uint32_t *);
 
 extern void BMessage_delete (void *);

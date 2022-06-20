@@ -381,54 +381,67 @@ haikufont_maybe_handle_special_family (Lisp_Object family,
 static Lisp_Object
 haikufont_pattern_to_entity (struct haiku_font_pattern *ptn)
 {
-  Lisp_Object ent;
+  Lisp_Object entity, extras;
 
-  ent = font_make_entity ();
-  ASET (ent, FONT_TYPE_INDEX, Qhaiku);
-  ASET (ent, FONT_FOUNDRY_INDEX, Qhaiku);
-  ASET (ent, FONT_FAMILY_INDEX, Qdefault);
-  ASET (ent, FONT_ADSTYLE_INDEX, Qnil);
-  ASET (ent, FONT_REGISTRY_INDEX, Qiso10646_1);
-  ASET (ent, FONT_SIZE_INDEX, make_fixnum (0));
-  ASET (ent, FONT_AVGWIDTH_INDEX, make_fixnum (0));
-  ASET (ent, FONT_SPACING_INDEX, make_fixnum (FONT_SPACING_MONO));
+  entity = font_make_entity ();
+  extras = Qnil;
 
-  /* FONT_EXTRA_INDEX in a font entity can be a cons of two numbers
-     (STYLE . IDX) that tell Emacs how to open a font.  */
+  ASET (entity, FONT_TYPE_INDEX, Qhaiku);
+  ASET (entity, FONT_FOUNDRY_INDEX, Qhaiku);
+  ASET (entity, FONT_FAMILY_INDEX, Qdefault);
+  ASET (entity, FONT_ADSTYLE_INDEX, Qnil);
+  ASET (entity, FONT_REGISTRY_INDEX, Qiso10646_1);
+  ASET (entity, FONT_SIZE_INDEX, make_fixnum (0));
+  ASET (entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
+  ASET (entity, FONT_SPACING_INDEX, make_fixnum (FONT_SPACING_MONO));
+
+  /* FONT_EXTRA_INDEX in a font entity can contain a cons of two
+     numbers (STYLE . IDX) under the key :indices that tell Emacs how
+     to open a font.  */
   if (ptn->specified & FSPEC_INDICES)
-    ASET (ent, FONT_EXTRA_INDEX,
-	  Fcons (make_fixnum (ptn->family_index),
-		 make_fixnum (ptn->style_index)));
+    extras = Fcons (Fcons (QCindices,
+			   Fcons (make_fixnum (ptn->family_index),
+				  make_fixnum (ptn->style_index))),
+		    extras);
 
-  FONT_SET_STYLE (ent, FONT_WIDTH_INDEX, Qnormal);
-  FONT_SET_STYLE (ent, FONT_WEIGHT_INDEX, Qnormal);
-  FONT_SET_STYLE (ent, FONT_SLANT_INDEX, Qnormal);
+  if (ptn->specified & FSPEC_ANTIALIAS)
+    extras = Fcons (Fcons (QCantialias,
+			   ptn->use_antialiasing ? Qt : Qnil),
+		    extras);
+
+  ASET (entity, FONT_EXTRA_INDEX, extras);
+
+  FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, Qnormal);
+  FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX, Qnormal);
+  FONT_SET_STYLE (entity, FONT_SLANT_INDEX, Qnormal);
 
   if (ptn->specified & FSPEC_FAMILY)
-    ASET (ent, FONT_FAMILY_INDEX, intern (ptn->family));
+    ASET (entity, FONT_FAMILY_INDEX, intern (ptn->family));
   else
-    ASET (ent, FONT_FAMILY_INDEX, Qdefault);
+    ASET (entity, FONT_FAMILY_INDEX, Qdefault);
 
   if (ptn->specified & FSPEC_STYLE)
-    ASET (ent, FONT_ADSTYLE_INDEX, intern (ptn->style));
+    ASET (entity, FONT_ADSTYLE_INDEX, intern (ptn->style));
   else
     {
       if (ptn->specified & FSPEC_WEIGHT)
-	FONT_SET_STYLE (ent, FONT_WEIGHT_INDEX,
+	FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
 			haikufont_weight_to_lisp (ptn->weight));
       if (ptn->specified & FSPEC_SLANT)
-	FONT_SET_STYLE (ent, FONT_SLANT_INDEX,
+	FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
 			haikufont_slant_to_lisp (ptn->slant));
       if (ptn->specified & FSPEC_WIDTH)
-	FONT_SET_STYLE (ent, FONT_WIDTH_INDEX,
+	FONT_SET_STYLE (entity, FONT_WIDTH_INDEX,
 			haikufont_width_to_lisp (ptn->width));
     }
 
   if (ptn->specified & FSPEC_SPACING)
-    ASET (ent, FONT_SPACING_INDEX,
-	  make_fixnum (ptn->mono_spacing_p ?
-		       FONT_SPACING_MONO : FONT_SPACING_PROPORTIONAL));
-  return ent;
+    ASET (entity, FONT_SPACING_INDEX,
+	  make_fixnum (ptn->mono_spacing_p
+		       ? FONT_SPACING_MONO
+		       : FONT_SPACING_PROPORTIONAL));
+
+  return entity;
 }
 
 static void
@@ -613,6 +626,13 @@ haikufont_spec_or_entity_to_pattern (Lisp_Object ent, int list_p,
 	}
     }
 
+  tem = assq_no_quit (QCantialias, AREF (ent, FONT_EXTRA_INDEX));
+  if (CONSP (tem))
+    {
+      ptn->specified |= FSPEC_ANTIALIAS;
+      ptn->use_antialiasing = !NILP (XCDR (tem));
+    }
+
   tem = AREF (ent, FONT_REGISTRY_INDEX);
   if (SYMBOLP (tem))
     haikufont_apply_registry (ptn, tem);
@@ -732,10 +752,10 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
   struct haiku_font_pattern ptn;
   struct font *font;
   void *be_font;
-  Lisp_Object font_object, tem, extra;
-  int px_size, min_width, max_width,
-    avg_width, height, space_width, ascent,
-    descent, underline_pos, underline_thickness;
+  Lisp_Object font_object, tem, extra, indices, antialias;
+  int px_size, min_width, max_width;
+  int avg_width, height, space_width, ascent;
+  int descent, underline_pos, underline_thickness;
 
   if (x <= 0)
     {
@@ -746,15 +766,21 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
 
   extra = AREF (font_entity, FONT_EXTRA_INDEX);
 
+  indices = assq_no_quit (QCindices, extra);
+  antialias = assq_no_quit (QCantialias, extra);
+
+  if (CONSP (indices))
+    indices = XCDR (indices);
+
   /* If the font's indices is already available, open the font using
      those instead.  */
 
-  if (CONSP (extra) && FIXNUMP (XCAR (extra))
-      && FIXNUMP (XCDR (extra)))
+  if (CONSP (indices) && FIXNUMP (XCAR (indices))
+      && FIXNUMP (XCDR (indices)))
     {
       block_input ();
-      be_font = be_open_font_at_index (XFIXNUM (XCAR (extra)),
-				       XFIXNUM (XCDR (extra)), x);
+      be_font = be_open_font_at_index (XFIXNUM (XCAR (indices)),
+				       XFIXNUM (XCDR (indices)), x);
       unblock_input ();
 
       if (!be_font)
@@ -778,13 +804,8 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
 
   block_input ();
 
-  /* `font_make_object' tries to treat the extra data as an alist.
-     There is never any real data here, so clear that field.  */
-
-  ASET (font_entity, FONT_EXTRA_INDEX, Qnil);
   font_object = font_make_object (VECSIZE (struct haikufont_info),
 				  font_entity, x);
-  ASET (font_entity, FONT_EXTRA_INDEX, extra);
 
   ASET (font_object, FONT_TYPE_INDEX, Qhaiku);
   font_info = (struct haikufont_info *) XFONT_OBJECT (font_object);
@@ -798,6 +819,9 @@ haikufont_open (struct frame *f, Lisp_Object font_entity, int x)
 
   font_info->be_font = be_font;
   font_info->glyphs = xzalloc (0x100 * sizeof *font_info->glyphs);
+
+  if (CONSP (antialias))
+    be_set_font_antialiasing (be_font, !NILP (XCDR (antialias)));
 
   font->pixel_size = 0;
   font->driver = &haikufont_driver;
@@ -1269,6 +1293,8 @@ syms_of_haikufont (void)
   DEFSYM (Qzh, "zh");
   DEFSYM (Qko, "ko");
   DEFSYM (Qjp, "jp");
+
+  DEFSYM (QCindices, ":indices");
 
 #ifdef USE_BE_CAIRO
   Fput (Qhaiku, Qfont_driver_superseded_by, Qftcr);

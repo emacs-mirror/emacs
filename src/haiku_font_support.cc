@@ -598,6 +598,12 @@ BFont_find (struct haiku_font_pattern *pt)
 	      p->last = NULL;
 	      p->next_family = r;
 	      r = p;
+
+	      if (pt->specified & FSPEC_ANTIALIAS)
+		{
+		  p->specified |= FSPEC_ANTIALIAS;
+		  p->use_antialiasing = pt->use_antialiasing;
+		}
 	    }
 	  else if (sty_count)
 	    {
@@ -622,6 +628,12 @@ BFont_find (struct haiku_font_pattern *pt)
 			  p->specified |= FSPEC_INDICES;
 			  p->family_index = fi;
 			  p->style_index = si;
+
+			  if (pt->specified & FSPEC_ANTIALIAS)
+			    {
+			      p->specified |= FSPEC_ANTIALIAS;
+			      p->use_antialiasing = pt->use_antialiasing;
+			    }
 
 			  if (p->specified & FSPEC_SLANT
 			      && (p->slant == SLANT_OBLIQUE
@@ -915,4 +927,15 @@ be_find_font_indices (struct haiku_font_pattern *pattern,
     }
 
   return 1;
+}
+
+void
+be_set_font_antialiasing (void *font, bool antialias_p)
+{
+  BFont *font_object;
+
+  font_object = (BFont *) font;
+  font_object->SetFlags (antialias_p
+			 ? B_FORCE_ANTIALIASING
+			 : B_DISABLE_ANTIALIASING);
 }
