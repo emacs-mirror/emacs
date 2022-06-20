@@ -930,6 +930,27 @@ Ignores `line-move-visual'."
     (mapc #'delete-overlay (nthcdr 5 rol))
     (setcar (cdr rol) nil)))
 
+(defun rectangle--duplicate-right (n)
+  "Duplicate the rectangular region N times on the right-hand side."
+  (let ((cols (rectangle--pos-cols (point) (mark))))
+    (apply-on-rectangle
+     (lambda (startcol endcol)
+       (let ((lines (list nil)))
+         (extract-rectangle-line startcol endcol lines)
+         (move-to-column endcol t)
+         (dotimes (_ n)
+           (insert (cadr lines)))))
+     (region-beginning) (region-end))
+    ;; Recompute the rectangle state; no crutches should be needed now.
+    (let ((p (point))
+          (m (mark)))
+      (rectangle--reset-crutches)
+      (goto-char m)
+      (move-to-column (cdr cols) t)
+      (set-mark (point))
+      (goto-char p)
+      (move-to-column (car cols) t))))
+
 (provide 'rect)
 
 ;;; rect.el ends here

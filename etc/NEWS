@@ -401,8 +401,11 @@ between these modes while the user is inputting a command by hitting
 ** Interactively, 'kill-buffer' will now offer to save the buffer if unsaved.
 
 ---
-** New command 'duplicate-line'.
-This command duplicates the current line the specified number of times.
+** New commands 'duplicate-line' and 'duplicate-dwim'.
+'duplicate-line' duplicates the current line the specified number of times.
+'duplicate-dwim' duplicates the region if it is active.  If not, it
+works like 'duplicate-line'.  An active rectangular region is
+duplicated on its right-hand side.
 
 ---
 ** Files with the ".eld" extension are now visited in 'lisp-data-mode'.

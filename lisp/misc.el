@@ -79,6 +79,43 @@ Also see the `copy-from-above-command' command."
       (dotimes (_ n)
         (insert line "\n")))))
 
+(declare-function rectangle--duplicate-right "rect" (n))
+
+;; `duplicate-dwim' preserves an active region and changes the buffer
+;; outside of it: disregard the region when immediately undoing the
+;; actions of this command.
+(put 'duplicate-dwim 'undo-inhibit-region t)
+
+;;;###autoload
+(defun duplicate-dwim (&optional n)
+  "Duplicate the current line or region N times.
+If the region is inactive, duplicate the current line (like `duplicate-line').
+Otherwise, duplicate the region, which remains active afterwards.
+If the region is rectangular, duplicate on its right-hand side.
+Interactively, N is the prefix numeric argument, and defaults to 1."
+  (interactive "p")
+  (unless n
+    (setq n 1))
+  (cond
+   ;; Duplicate rectangle.
+   ((bound-and-true-p rectangle-mark-mode)
+    (rectangle--duplicate-right n)
+    (setq deactivate-mark nil))
+
+   ;; Duplicate (contiguous) region.
+   ((use-region-p)
+    (let* ((beg (region-beginning))
+           (end (region-end))
+           (text (buffer-substring beg end)))
+      (save-excursion
+        (goto-char end)
+        (dotimes (_ n)
+          (insert text))))
+    (setq deactivate-mark nil))
+
+   ;; Duplicate line.
+   (t (duplicate-line n))))
+
 ;; Variation of `zap-to-char'.
 
 ;;;###autoload
