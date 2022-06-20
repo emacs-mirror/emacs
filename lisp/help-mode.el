@@ -699,8 +699,8 @@ regexp.  TYPE is the type of button to use.  Any remaining arguments are
 passed to the button's help-function when it is invoked.
 See `help-make-xrefs'.
 
-This function heeds the `help-clean-buttons' variable and will
-remove quotes surrounding the match if non-nil."
+This function removes quotes surrounding the match if the
+variable `help-clean-buttons' is non-nil."
   ;; Don't mung properties we've added specially in some instances.
   (let ((beg (match-beginning match-number))
         (end (match-end match-number)))
