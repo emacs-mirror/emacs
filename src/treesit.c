@@ -594,6 +594,7 @@ make_ts_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->need_reparse = true;
   lisp_parser->visible_beg = BUF_BEGV (XBUFFER (buffer));
   lisp_parser->visible_end = BUF_ZV (XBUFFER (buffer));
+  lisp_parser->timestamp = 0;
   eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
