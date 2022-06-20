@@ -19609,6 +19609,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      x_display_set_last_user_time (dpyinfo, xev->time,
 						    xev->send_event);
 
+
 #if defined USE_GTK && !defined HAVE_GTK3
 		      /* Unlike on Motif, we can't select for XI
 			 events on the scroll bar window under GTK+ 2.
@@ -19622,6 +19623,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  && xev->child != FRAME_X_WINDOW (f))
 			goto XI_OTHER;
 #endif
+
+		      /* If this happened during a drag-and-drop
+			 operation, don't send an event.  We only have
+			 to set the user time.  */
+		      if (x_dnd_in_progress
+			  && (command_loop_level + minibuf_level
+			      <= x_dnd_recursion_depth)
+			  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
+			goto XI_OTHER;
 
 		      if (fabs (total_x) > 0 || fabs (total_y) > 0)
 			{
@@ -20853,8 +20863,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 		  XSETFRAME (inev.ie.frame_or_window, f);
-		  inev.ie.modifiers
-		    = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), state);
+		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo, state);
 		  inev.ie.timestamp = xev->time;
 
 #ifdef HAVE_X_I18N
