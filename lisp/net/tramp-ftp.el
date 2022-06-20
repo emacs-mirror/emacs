@@ -135,12 +135,21 @@ pass to the OPERATION."
        ;; completion.  We don't use `with-parsed-tramp-file-name',
        ;; because this returns another user but the one declared in
        ;; "~/.netrc".
+       ;; For file names which look like Tramp archive files like
+       ;; "/ftp:anonymous@ftp.gnu.org:/gnu/tramp/tramp-2.0.39.tar.gz",
+       ;; we must disable tramp-archive.el, because in
+       ;; `ange-ftp-get-files' this is "normalized" by
+       ;; `file-name-as-directory' with unwelcome side side-effects.
+       ;; This disables the file archive functionality, perhaps we
+       ;; could fix this otherwise.  (Bug#56078)
        ((memq operation '(file-directory-p file-exists-p))
-	(if (apply #'ange-ftp-hook-function operation args)
+	(cl-letf (((symbol-function #'tramp-archive-file-name-handler)
+		   (lambda (operation &rest args)
+		     (tramp-archive-run-real-handler operation args))))
+	  (prog1 (apply #'ange-ftp-hook-function operation args)
 	    (let ((v (tramp-dissect-file-name (car args) t)))
 	      (setf (tramp-file-name-method v) tramp-ftp-method)
-	      (tramp-set-connection-property v "started" t))
-	  nil))
+	      (tramp-set-connection-property v "started" t)))))
 
        ;; If the second argument of `copy-file' or `rename-file' is a
        ;; remote file name but via FTP, ange-ftp doesn't check this.

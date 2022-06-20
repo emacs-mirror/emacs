@@ -309,7 +309,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 	     #'tramp-archive-file-name-p))
     (apply #'tramp-file-name-for-operation operation args)))
 
-(defun tramp-archive-run-real-handler (operation args)
+;;;###tramp-autoload
+(progn (defun tramp-archive-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
 First arg specifies the OPERATION, second arg ARGS is a list of
 arguments to pass to the OPERATION."
@@ -319,7 +320,7 @@ arguments to pass to the OPERATION."
 	    ,(and (eq inhibit-file-name-operation operation)
 		  inhibit-file-name-handlers)))
 	 (inhibit-file-name-operation operation))
-    (apply operation args)))
+    (apply operation args))))
 
 ;;;###tramp-autoload
 (defun tramp-archive-file-name-handler (operation &rest args)
