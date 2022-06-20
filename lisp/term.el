@@ -1052,11 +1052,10 @@ underlying shell."
   "Change `term-escape-char' and keymaps that depend on it."
   (when term-escape-char
     ;; Undo previous term-set-escape-char.
-    (define-key term-raw-map term-escape-char 'term-send-raw))
+    (define-key term-raw-map term-escape-char 'term-send-raw)
+    (define-key term-raw-escape-map term-escape-char nil t))
   (setq term-escape-char (if (vectorp key) key (vector key)))
   (define-key term-raw-map term-escape-char term-raw-escape-map)
-  ;; FIXME: If we later call term-set-escape-char again with another key,
-  ;; we should undo this binding.
   (define-key term-raw-escape-map term-escape-char 'term-send-raw))
 
 (term-set-escape-char (or term-escape-char ?\C-c))
