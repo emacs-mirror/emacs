@@ -3589,8 +3589,8 @@ font_open_by_name (struct frame *f, Lisp_Object name)
 
    The second is with frame F NULL.  In this case, DRIVER is globally
    registered in the variable `font_driver_list'.  All font-driver
-   implementations must call this function in its syms_of_XXXX
-   (e.g. syms_of_xfont).  */
+   implementations must call this function in its
+   syms_of_XXXX_for_pdumper (e.g. syms_of_xfont_for_pdumper).  */
 
 void
 register_font_driver (struct font_driver const *driver, struct frame *f)

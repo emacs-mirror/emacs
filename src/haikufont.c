@@ -1173,6 +1173,24 @@ haikufont_list_family (struct frame *f)
   return list;
 }
 
+/* List of boolean properties in font names accepted by this font
+   driver.  */
+static const char *const haikufont_booleans[] =
+  {
+    ":antialias",
+    NULL,
+  };
+
+/* List of non-boolean properties.  Currently empty.  */
+static const char *const haikufont_non_booleans[1];
+
+static void
+haikufont_filter_properties (Lisp_Object font, Lisp_Object alist)
+{
+  font_filter_properties (font, alist, haikufont_booleans,
+			  haikufont_non_booleans);
+}
+
 struct font_driver const haikufont_driver =
   {
     .type = LISPSYM_INITIALLY (Qhaiku),
@@ -1187,7 +1205,8 @@ struct font_driver const haikufont_driver =
     .encode_char = haikufont_encode_char,
     .text_extents = haikufont_text_extents,
     .shape = haikufont_shape,
-    .list_family = haikufont_list_family
+    .list_family = haikufont_list_family,
+    .filter_properties = haikufont_filter_properties,
   };
 
 static bool
@@ -1270,6 +1289,12 @@ in the font selection dialog.  */)
 		QCsize, lsize);
 }
 
+static void
+syms_of_haikufont_for_pdumper (void)
+{
+  register_font_driver (&haikufont_driver, NULL);
+}
+
 void
 syms_of_haikufont (void)
 {
@@ -1299,6 +1324,7 @@ syms_of_haikufont (void)
 #ifdef USE_BE_CAIRO
   Fput (Qhaiku, Qfont_driver_superseded_by, Qftcr);
 #endif
+  pdumper_do_now_and_after_load (syms_of_haikufont_for_pdumper);
 
   font_cache = list (Qnil);
   staticpro (&font_cache);
