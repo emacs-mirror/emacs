@@ -975,20 +975,24 @@ load_pdump (int argc, char **argv)
   sprintf (dump_file, "%s%c%s-%s%s",
            path_exec, DIRECTORY_SEP, argv0_base, hexbuf, suffix);
 #if !defined (NS_SELF_CONTAINED)
-  /* Assume the Emacs binary lives in a sibling directory as set up by
-     the default installation configuration.  */
-  const char *go_up = "../../../../bin/";
-  needed += (strip_suffix ? strlen (strip_suffix) : 0)
-    - strlen (suffix) + strlen (go_up);
-  if (exec_bufsize < needed)
+  if (!(emacs_executable && *emacs_executable))
     {
-      xfree (emacs_executable);
-      emacs_executable = xpalloc (NULL, &exec_bufsize, needed - exec_bufsize,
-				  -1, 1);
+      /* If we didn't find the Emacs binary, assume that it lives in a
+	 sibling directory as set up by the default installation
+	 configuration.  */
+      const char *go_up = "../../../../bin/";
+      needed += (strip_suffix ? strlen (strip_suffix) : 0)
+	- strlen (suffix) + strlen (go_up);
+      if (exec_bufsize < needed)
+	{
+	  xfree (emacs_executable);
+	  emacs_executable = xpalloc (NULL, &exec_bufsize,
+				      needed - exec_bufsize, -1, 1);
+	}
+      sprintf (emacs_executable, "%s%c%s%s%s",
+	       path_exec, DIRECTORY_SEP, go_up, argv0_base,
+	       strip_suffix ? strip_suffix : "");
     }
-  sprintf (emacs_executable, "%s%c%s%s%s",
-	   path_exec, DIRECTORY_SEP, go_up, argv0_base,
-	   strip_suffix ? strip_suffix : "");
 #endif
   result = pdumper_load (dump_file, emacs_executable);
 
