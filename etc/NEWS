@@ -117,6 +117,14 @@ Emacs Sessions" node in the Emacs manual for more details.
 * Startup Changes in Emacs 29.1
 
 +++
+** -batch and -script now adjusts the garbage collection levels.
+These switches now set 'gc-cons-percentage' to 1.0 (up from the
+default of 0.1).  This means that batch processes will typically use
+more memory than before, but use less time doing garbage collection.
+Batch jobs that are supposed to run for a long time should adjust the
+limit back down again.
+
++++
 ** Emacs can now be used more easily in an executable script.
 If you start an executable script with
 

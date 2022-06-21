@@ -1944,6 +1944,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   if (!initialized)
     syms_of_comp ();
 
+  /* Do less garbage collection in batch mode (since these tend to be
+     more short-lived, and the memory is returned to the OS on exit
+     anyway).  */
+  if (noninteractive)
+    Vgc_cons_percentage = make_float (1.0);
+
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 

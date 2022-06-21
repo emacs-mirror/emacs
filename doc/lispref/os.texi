@@ -2738,6 +2738,12 @@ if it is non-@code{nil}; this can be overridden by binding
 @code{coding-system-for-write} to a coding system of you choice
 (@pxref{Explicit Encoding}).
 
+In batch mode, Emacs will adjust the @code{gc-cons-threshold} variable
+up from a default of @samp{0.1} to @samp{1.0}.  Batch jobs that are
+supposed to run for a long time should adjust the limit back down
+again, because this means that less garbage collection will be
+performed by default (and more memory consumed).
+
 @defvar noninteractive
 This variable is non-@code{nil} when Emacs is running in batch mode.
 @end defvar
