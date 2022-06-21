@@ -125,7 +125,7 @@ folding to be used on case-insensitive filesystems only."
       (file-name-case-insensitive-p dir)
     dired-omit-case-fold))
 
-(defcustom dired-omit-line-regexp nil
+(defcustom dired-omit-lines nil
   "Regexp matching lines to be omitted by `dired-omit-mode'.
 The value can also be a variable whose value is such a regexp.
 The value can also be nil, which means do no line matching.
@@ -167,7 +167,7 @@ Dired-Omit mode is a buffer-local minor mode.
 When enabled in a Dired buffer, Dired does not list files whose
 filenames match regexp `dired-omit-files', files ending with
 extensions in `dired-omit-extensions', or files listed on lines
-matching `dired-omit-line-regexp'.
+matching `dired-omit-lines'.
 
 To enable omitting in every Dired buffer, you can put this in
 your init file:
@@ -184,8 +184,8 @@ See Info node `(dired-x) Omitting Variables' for more information."
       ;; Use count of file-name match as INIT-COUNT for line match.
       ;; Return total count.  (Return value is not used anywhere, so far).
       (setq file-count (dired-omit-expunge))
-      (when dired-omit-line-regexp
-        (dired-omit-expunge dired-omit-line-regexp 'LINEP file-count)))))
+      (when dired-omit-lines
+        (dired-omit-expunge dired-omit-lines 'LINEP file-count)))))
 
 (put 'dired-omit-mode 'safe-local-variable 'booleanp)
 

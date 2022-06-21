@@ -1623,7 +1623,7 @@ the thumbnail file.
 ** Dired
 
 ---
-*** New user option 'dired-omit-line-regexp'.
+*** New user option 'dired-omit-lines'.
 This is used by 'dired-omit-mode', and now allows you to hide based on
 other things than just the file names.
 
