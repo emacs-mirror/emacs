@@ -1455,11 +1455,17 @@ With positive ARG search backwards, else search forwards."
          (line-beg-pos (line-beginning-position))
          (line-content-start (+ line-beg-pos (current-indentation)))
          (pos (point-marker))
+         (min-indentation (+ (current-indentation)
+                             (if (python-info-looking-at-beginning-of-defun)
+                                 python-indent-offset 0)))
          (body-indentation
           (and (> arg 0)
                (save-excursion
                  (while (and
-                         (not (python-info-looking-at-beginning-of-defun))
+                         (or (not (python-info-looking-at-beginning-of-defun))
+                             (>= (current-indentation) min-indentation))
+                         (setq min-indentation
+                               (min min-indentation (current-indentation)))
                          (python-nav-backward-block)))
                  (or (and (python-info-looking-at-beginning-of-defun)
                           (+ (current-indentation) python-indent-offset))

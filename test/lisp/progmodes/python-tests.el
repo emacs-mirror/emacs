@@ -1736,6 +1736,27 @@ class C:
      (should (= (marker-position (mark-marker))
                 expected-mark-end-position)))))
 
+(ert-deftest python-mark-defun-4 ()
+  "Test `python-mark-defun' with nested functions."
+  (python-tests-with-temp-buffer
+   "
+def foo(x):
+    def bar():
+        return x
+    if True:
+        return bar
+"
+   (let ((expected-mark-beginning-position
+          (progn
+            (python-tests-look-at "def foo(x):")
+            (1- (line-beginning-position))))
+         (expected-mark-end-position (point-max)))
+     (python-tests-look-at "return bar")
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position)))))
+
 
 ;;; Navigation
 
@@ -1762,12 +1783,20 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
         return wrapped_f
     return wwrap
 "
-   (python-tests-look-at "return wrap")
+   (python-tests-look-at "return wwrap")
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
                 (point))
               (save-excursion
-                (python-tests-look-at "def wrapped_f(*args):" -1)
+                (python-tests-look-at "def decoratorFunctionWithArguments" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "return wrap" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def wwrap(f):" -1)
                 (beginning-of-line)
                 (point))))
    (python-tests-look-at "def wrapped_f(*args):" -1)
@@ -1801,11 +1830,23 @@ class C(object):
         def a():
             pass
 
+        if True:
+            return a
+
     def c(self):
         pass
 "
    ;; Nested defuns, are handled with care.
    (python-tests-look-at "def c(self):")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def m(self):" -1)
+                (beginning-of-line)
+                (point))))
+   ;; Nested defuns shuld be skipped.
+   (python-tests-look-at "return a" -1)
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
                 (point))
