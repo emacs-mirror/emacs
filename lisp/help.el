@@ -903,6 +903,9 @@ Describe the following key, mouse click, or menu item: "
         (setq yank-menu (copy-sequence saved-yank-menu))
         (fset 'yank-menu (cons 'keymap yank-menu))))))
 
+;; Defined in help-fns.el.
+(defvar describe-function-orig-buffer)
+
 (defun describe-key (&optional key-list buffer up-event)
   "Display documentation of the function invoked by KEY-LIST.
 KEY-LIST can be any kind of a key sequence; it can include keyboard events,
