@@ -4003,14 +4003,19 @@ kbd_buffer_get_event (KBOARD **kbp,
       case SELECTION_REQUEST_EVENT:
       case SELECTION_CLEAR_EVENT:
 	{
-#ifdef HAVE_X11
+#if defined HAVE_X11 || HAVE_PGTK
 	  /* Remove it from the buffer before processing it,
 	     since otherwise swallow_events will see it
 	     and process it again.  */
 	  struct selection_input_event copy = event->sie;
 	  kbd_fetch_ptr = next_kbd_event (event);
 	  input_pending = readable_events (0);
+
+#ifdef HAVE_X11
 	  x_handle_selection_event (&copy);
+#else
+	  pgtk_handle_selection_event (&copy);
+#endif
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -4381,7 +4386,7 @@ process_special_events (void)
       if (event->kind == SELECTION_REQUEST_EVENT
 	  || event->kind == SELECTION_CLEAR_EVENT)
 	{
-#ifdef HAVE_X11
+#if defined HAVE_X11 || defined HAVE_PGTK
 
 	  /* Remove the event from the fifo buffer before processing;
 	     otherwise swallow_events called recursively could see it
@@ -4406,7 +4411,12 @@ process_special_events (void)
 		   moved_events * sizeof *kbd_fetch_ptr);
 	  kbd_fetch_ptr = next_kbd_event (kbd_fetch_ptr);
 	  input_pending = readable_events (0);
+
+#ifdef HAVE_X11
 	  x_handle_selection_event (&copy);
+#else
+	  pgtk_handle_selection_event (&copy);
+#endif
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */

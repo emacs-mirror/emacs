@@ -127,8 +127,14 @@ struct pgtk_display_info
   /* The generic display parameters corresponding to this PGTK display. */
   struct terminal *terminal;
 
-  /* This says how to access this display in Gdk.  */
-  GdkDisplay *gdpy;
+  union
+  {
+    /* This says how to access this display through GDK.  */
+    GdkDisplay *gdpy;
+
+    /* An alias defined to make porting X code easier.  */
+    GdkDisplay *display;
+  };
 
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
@@ -209,6 +215,9 @@ struct pgtk_display_info
 
   /* Time of last mouse movement.  */
   Time last_mouse_movement_time;
+
+  /* Time of last user interaction.  */
+  guint32 last_user_time;
 
   /* The scroll bar in which the last motion event occurred.  */
   void *last_mouse_scroll_bar;
@@ -443,10 +452,11 @@ enum
                                    FRAME_GTK_OUTER_WIDGET (f) :		\
                                    FRAME_GTK_WIDGET (f))
 
-/* aliases */
 #define FRAME_PGTK_VIEW(f)         FRAME_GTK_WIDGET (f)
 #define FRAME_X_WINDOW(f)          FRAME_GTK_OUTER_WIDGET (f)
 #define FRAME_NATIVE_WINDOW(f)     GTK_WINDOW (FRAME_X_WINDOW (f))
+#define FRAME_GDK_WINDOW(f)			\
+  (gtk_widget_get_window (FRAME_GTK_WIDGET (f)))
 
 #define FRAME_X_DISPLAY(f)        (FRAME_DISPLAY_INFO (f)->gdpy)
 
@@ -484,6 +494,49 @@ enum
 #define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
   ((f)->output_data.pgtk->cr_surface_desired_height)
 
+
+/* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
+   or SELECTION_CLEAR_EVENT, then its contents are really described
+   by this structure.  */
+
+/* For an event of kind SELECTION_REQUEST_EVENT,
+   this structure really describes the contents.  */
+
+struct selection_input_event
+{
+  ENUM_BF (event_kind) kind : EVENT_KIND_WIDTH;
+  struct pgtk_display_info *dpyinfo;
+  /* We spell it with an "o" here because X does.  */
+  GdkWindow *requestor;
+  GdkAtom selection, target, property;
+  guint32 time;
+};
+
+/* Unlike macros below, this can't be used as an lvalue.  */
+INLINE GdkDisplay *
+SELECTION_EVENT_DISPLAY (struct selection_input_event *ev)
+{
+  return ev->dpyinfo->display;
+}
+#define SELECTION_EVENT_DPYINFO(eventp) \
+  ((eventp)->dpyinfo)
+/* We spell it with an "o" here because X does.  */
+#define SELECTION_EVENT_REQUESTOR(eventp)	\
+  ((eventp)->requestor)
+#define SELECTION_EVENT_SELECTION(eventp)	\
+  ((eventp)->selection)
+#define SELECTION_EVENT_TARGET(eventp)	\
+  ((eventp)->target)
+#define SELECTION_EVENT_PROPERTY(eventp)	\
+  ((eventp)->property)
+#define SELECTION_EVENT_TIME(eventp)	\
+  ((eventp)->time)
+
+extern void pgtk_handle_selection_event (struct selection_input_event *);
+extern void pgtk_clear_frame_selections (struct frame *);
+extern void pgtk_handle_property_notify (GdkEventProperty *);
+extern void pgtk_handle_selection_notify (GdkEventSelection *);
+
 /* Display init/shutdown functions implemented in pgtkterm.c */
 extern struct pgtk_display_info *pgtk_term_init (Lisp_Object display_name,
 						 char *resource_name);
@@ -493,7 +546,7 @@ extern void pgtk_term_shutdown (int sig);
 extern void pgtk_clear_frame (struct frame *f);
 extern char *pgtk_xlfd_to_fontname (const char *xlfd);
 
-/* Implemented in pgtkfns. */
+/* Implemented in pgtkfns.c.  */
 extern void pgtk_set_doc_edited (void);
 extern const char *pgtk_get_defaults_value (const char *key);
 extern const char *pgtk_get_string_resource (XrmDatabase rdb,

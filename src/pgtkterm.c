@@ -61,7 +61,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "font.h"
 #include "xsettings.h"
-#include "pgtkselect.h"
 #include "emacsgtkfixed.h"
 
 #ifdef GDK_WINDOWING_WAYLAND
@@ -290,6 +289,9 @@ static void
 evq_enqueue (union buffered_input_event *ev)
 {
   struct event_queue_t *evq = &event_q;
+  struct frame *frame;
+  struct pgtk_display_info *dpyinfo;
+
   if (evq->cap == 0)
     {
       evq->cap = 4;
@@ -303,6 +305,27 @@ evq_enqueue (union buffered_input_event *ev)
     }
 
   evq->q[evq->nr++] = *ev;
+
+  if (ev->ie.kind != SELECTION_REQUEST_EVENT
+      && ev->ie.kind != SELECTION_CLEAR_EVENT)
+    {
+      frame = NULL;
+
+      if (WINDOWP (ev->ie.frame_or_window))
+	frame = WINDOW_XFRAME (XWINDOW (ev->ie.frame_or_window));
+
+      if (FRAMEP (ev->ie.frame_or_window))
+	frame = XFRAME (ev->ie.frame_or_window);
+
+      if (frame)
+	{
+	  dpyinfo = FRAME_DISPLAY_INFO (frame);
+
+	  if (dpyinfo->last_user_time < ev->ie.timestamp)
+	    dpyinfo->last_user_time = ev->ie.timestamp;
+	}
+    }
+
   raise (SIGIO);
 }
 
@@ -4809,16 +4832,16 @@ pgtk_any_window_to_frame (GdkWindow *window)
     return NULL;
 
   FOR_EACH_FRAME (tail, frame)
-  {
-    if (found)
-      break;
-    f = XFRAME (frame);
-    if (FRAME_PGTK_P (f))
-      {
-	if (pgtk_window_is_of_frame (f, window))
-	  found = f;
-      }
-  }
+    {
+      if (found)
+	break;
+      f = XFRAME (frame);
+      if (FRAME_PGTK_P (f))
+	{
+	  if (pgtk_window_is_of_frame (f, window))
+	    found = f;
+	}
+    }
 
   return found;
 }
@@ -5868,8 +5891,7 @@ construct_mouse_click (struct input_event *result,
 }
 
 static gboolean
-button_event (GtkWidget *widget,
-	      GdkEvent *event,
+button_event (GtkWidget *widget, GdkEvent *event,
 	      gpointer *user_data)
 {
   union buffered_input_event inev;
@@ -6174,6 +6196,8 @@ pgtk_monitors_changed_cb (GdkScreen *screen, gpointer user_data)
   evq_enqueue (&inev);
 }
 
+static gboolean pgtk_selection_event (GtkWidget *, GdkEvent *, gpointer);
+
 void
 pgtk_set_event_handler (struct frame *f)
 {
@@ -6225,14 +6249,20 @@ pgtk_set_event_handler (struct frame *f)
 		    G_CALLBACK (button_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "scroll-event",
 		    G_CALLBACK (scroll_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-clear-event",
-		    G_CALLBACK (pgtk_selection_lost), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "configure-event",
 		    G_CALLBACK (configure_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "drag-data-received",
 		    G_CALLBACK (drag_data_received), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "draw",
 		    G_CALLBACK (pgtk_handle_draw), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "property-notify-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-clear-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-request-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-notify-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "event",
 		    G_CALLBACK (pgtk_handle_event), NULL);
 }
@@ -6290,6 +6320,73 @@ same_x_server (const char *name1, const char *name2)
   return (seen_colon
 	  && (*name1 == '.' || *name1 == '\0')
 	  && (*name2 == '.' || *name2 == '\0'));
+}
+
+static struct frame *
+pgtk_find_selection_owner (GdkWindow *window)
+{
+  Lisp_Object tail, tem;
+  struct frame *f;
+
+  FOR_EACH_FRAME (tail, tem)
+    {
+      f = XFRAME (tem);
+
+      if (FRAME_PGTK_P (f)
+	  && (FRAME_GDK_WINDOW (f) == window))
+	return f;
+    }
+
+  return NULL;
+}
+
+static gboolean
+pgtk_selection_event (GtkWidget *widget, GdkEvent *event,
+		      gpointer user_data)
+{
+  struct frame *f;
+  union buffered_input_event inev;
+
+  if (event->type == GDK_PROPERTY_NOTIFY)
+    pgtk_handle_property_notify (&event->property);
+  else if (event->type == GDK_SELECTION_CLEAR
+	   || event->type == GDK_SELECTION_REQUEST)
+    {
+      f = pgtk_find_selection_owner (event->selection.window);
+
+      if (f)
+	{
+	  EVENT_INIT (inev.ie);
+
+	  inev.sie.kind = (event->type == GDK_SELECTION_CLEAR
+			   ? SELECTION_CLEAR_EVENT
+			   : SELECTION_REQUEST_EVENT);
+
+	  SELECTION_EVENT_DPYINFO (&inev.sie) = FRAME_DISPLAY_INFO (f);
+	  SELECTION_EVENT_SELECTION (&inev.sie) = event->selection.selection;
+	  SELECTION_EVENT_TIME (&inev.sie) = event->selection.time;
+
+	  if (event->type == GDK_SELECTION_REQUEST)
+	    {
+	      /* FIXME: when does GDK destroy the requestor GdkWindow
+	         object?
+
+		 It would make sense to wait for the transfer to
+	         complete.  But I don't know if GDK actually does
+	         that.  */
+	      SELECTION_EVENT_REQUESTOR (&inev.sie) = event->selection.requestor;
+	      SELECTION_EVENT_TARGET (&inev.sie) = event->selection.target;
+	      SELECTION_EVENT_PROPERTY (&inev.sie) = event->selection.property;
+	    }
+
+	  evq_enqueue (&inev);
+	  return TRUE;
+	}
+    }
+  else if (event->type == GDK_SELECTION_NOTIFY)
+    pgtk_handle_selection_notify (&event->selection);
+
+  return FALSE;
 }
 
 /* Open a connection to X display DISPLAY_NAME, and return
@@ -6524,8 +6621,6 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
     = gdk_cursor_new_for_display (dpyinfo->gdpy, GDK_BLANK_CURSOR);
 
   xsettings_initialize (dpyinfo);
-
-  pgtk_selection_init ();
 
   pgtk_im_init (dpyinfo);
 
