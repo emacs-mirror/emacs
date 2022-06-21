@@ -371,5 +371,18 @@ This function only tries to handle strings."
   (should-not (dnd-get-local-file-uri "file://some-remote-host/path/to/foo"))
   (should-not (dnd-get-local-file-uri "file:///path/to/foo")))
 
+(ert-deftest dnd-tests-open-remote-url ()
+  ;; Expensive test to make sure opening an FTP URL during
+  ;; drag-and-drop works.
+  :tags '(:expensive-test)
+  ;; Don't run this test if the FTP server isn't reachable.
+  (skip-unless (and (fboundp 'network-lookup-address-info)
+                    (network-lookup-address-info "ftp.gnu.org")))
+  ;; Make sure bug#56078 doesn't happen again.
+  (let ((url "ftp://anonymous@ftp.gnu.org/")
+        ;; This prints a bunch of annoying spaces to stdout.
+        (inhibit-message t))
+    (should (prog1 t (dnd-open-remote-url url 'private)))))
+
 (provide 'dnd-tests)
 ;;; dnd-tests.el ends here
