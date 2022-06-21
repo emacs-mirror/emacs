@@ -802,6 +802,10 @@ static struct input_event *current_hold_quit;
    than 0.  */
 static int x_use_pending_selection_requests;
 
+/* Like `next_kbd_event', but for use in X code.  */
+#define X_NEXT_KBD_EVENT(ptr) \
+  ((ptr) == kbd_buffer + KBD_BUFFER_SIZE - 1 ? kbd_buffer : (ptr) + 1)
+
 static void x_push_selection_request (struct selection_input_event *);
 
 /* Defer selection requests.  Between this and
@@ -838,14 +842,12 @@ x_defer_selection_requests (void)
 		 avoids exhausting the keyboard buffer with some
 		 over-enthusiastic clipboard managers.  */
 	      if (!between)
-		kbd_fetch_ptr = (event == kbd_buffer + KBD_BUFFER_SIZE - 1
-				 ? kbd_buffer : event + 1);
+		kbd_fetch_ptr = X_NEXT_KBD_EVENT (event);
 	    }
 	  else
 	    between = true;
 
-	  event = (event == kbd_buffer + KBD_BUFFER_SIZE - 1
-		   ? kbd_buffer : event + 1);
+	  event = X_NEXT_KBD_EVENT (event);
 	}
     }
 
@@ -26969,7 +26971,54 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   return dpyinfo;
 }
+
 
+
+/* Remove all the selection input events on the keyboard buffer
+   intended for DPYINFO.  */
+
+static void
+x_delete_selection_requests (struct x_display_info *dpyinfo)
+{
+  union buffered_input_event *event;
+  int moved_events;
+
+  for (event = kbd_fetch_ptr; event != kbd_store_ptr;
+       event = X_NEXT_KBD_EVENT (event))
+    {
+      if (event->kind == SELECTION_REQUEST_EVENT
+	  || event->kind == SELECTION_CLEAR_EVENT)
+	{
+	  if (SELECTION_EVENT_DPYINFO (&event->sie) != dpyinfo)
+	    continue;
+
+	  /* Remove the event from the fifo buffer before processing;
+	     otherwise swallow_events called recursively could see it
+	     and process it again.  To do this, we move the events
+	     between kbd_fetch_ptr and EVENT one slot to the right,
+	     cyclically.  */
+
+	  if (event < kbd_fetch_ptr)
+	    {
+	      memmove (kbd_buffer + 1, kbd_buffer,
+		       (event - kbd_buffer) * sizeof *kbd_buffer);
+	      kbd_buffer[0] = kbd_buffer[KBD_BUFFER_SIZE - 1];
+	      moved_events = kbd_buffer + KBD_BUFFER_SIZE - 1 - kbd_fetch_ptr;
+	    }
+	  else
+	    moved_events = event - kbd_fetch_ptr;
+
+	  memmove (kbd_fetch_ptr + 1, kbd_fetch_ptr,
+		   moved_events * sizeof *kbd_fetch_ptr);
+	  kbd_fetch_ptr = X_NEXT_KBD_EVENT (kbd_fetch_ptr);
+
+	  /* `detect_input_pending' will then recompute whether or not
+	     pending input events exist.  */
+	  input_pending = false;
+	}
+    }
+}
+
 /* Get rid of display DPYINFO, deleting all frames on it,
    and without sending any more commands to the X server.  */
 
@@ -27018,6 +27067,8 @@ x_delete_display (struct x_display_info *dpyinfo)
 
       last = ie;
     }
+
+  x_delete_selection_requests (dpyinfo);
 
   if (next_noop_dpyinfo == dpyinfo)
     next_noop_dpyinfo = dpyinfo->next;
