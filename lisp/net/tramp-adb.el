@@ -1048,8 +1048,7 @@ implementation will be used."
 		    ;; Save exit.
 		    (if (string-prefix-p tramp-temp-buffer-name (buffer-name))
 		        (ignore-errors
-		          (set-process-buffer
-			   (tramp-get-connection-process v) nil)
+		          (set-process-buffer p nil)
 		          (kill-buffer (current-buffer)))
 		      (set-buffer-modified-p bmp))))))))))))
 

@@ -2977,13 +2977,13 @@ implementation will be used."
 		    name1 (format "%s<%d>" name i)))
 	    (setq name name1)
 
-	    (with-current-buffer (tramp-get-connection-buffer v)
-	      (unwind-protect
-		  (with-tramp-saved-connection-property v "process-name"
-		    (with-tramp-saved-connection-property v "process-buffer"
-		      ;; Set the new process properties.
-		      (tramp-set-connection-property v "process-name" name)
-		      (tramp-set-connection-property v "process-buffer" buffer)
+	    (with-tramp-saved-connection-property v "process-name"
+	      (with-tramp-saved-connection-property v "process-buffer"
+		;; Set the new process properties.
+		(tramp-set-connection-property v "process-name" name)
+		(tramp-set-connection-property v "process-buffer" buffer)
+		(with-current-buffer (tramp-get-connection-buffer v)
+		  (unwind-protect
 		      ;; We catch this event.  Otherwise,
 		      ;; `make-process' could be called on the local
 		      ;; host.
@@ -3049,6 +3049,10 @@ implementation will be used."
 			    (ignore-errors
 			      (set-process-query-on-exit-flag p (null noquery))
 			      (set-marker (process-mark p) (point)))
+			    ;; We must flush them here already;
+			    ;; otherwise `delete-file' will fail.
+			    (tramp-flush-connection-property v "process-name")
+			    (tramp-flush-connection-property v "process-buffer")
 			    ;; Kill stderr process and delete named pipe.
 			    (when (bufferp stderr)
 			      (add-function
@@ -3061,14 +3065,14 @@ implementation will be used."
 				 (ignore-errors
 				   (delete-file remote-tmpstderr)))))
 			    ;; Return process.
-			    p)))))
+			    p)))
 
-		;; Save exit.
-		(if (string-prefix-p tramp-temp-buffer-name (buffer-name))
-		    (ignore-errors
-		      (set-process-buffer p nil)
-		      (kill-buffer (current-buffer)))
-		  (set-buffer-modified-p bmp))))))))))
+		    ;; Save exit.
+		    (if (string-prefix-p tramp-temp-buffer-name (buffer-name))
+			(ignore-errors
+			  (set-process-buffer p nil)
+			  (kill-buffer (current-buffer)))
+		      (set-buffer-modified-p bmp))))))))))))
 
 (defun tramp-sh-get-signal-strings (vec)
   "Strings to return by `process-file' in case of signals."
