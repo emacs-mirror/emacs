@@ -724,6 +724,7 @@ enum ns_return_frame_mode
    int em_whole;
    }
 
+- (void) mark;
 - (instancetype) initFrame: (NSRect )r window: (Lisp_Object)win;
 - (void)setFrame: (NSRect)r;
 
@@ -1373,4 +1374,7 @@ enum NSWindowTabbingMode
 #define NSBezelStyleRounded NSRoundedBezelStyle
 #define NSButtonTypeMomentaryPushIn NSMomentaryPushInButton
 #endif
+
+extern void mark_nsterm (void);
+
 #endif	/* HAVE_NS */
