@@ -92,22 +92,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Some messages that Emacs sends to itself.  */
 enum
   {
-    SCROLL_BAR_UPDATE	  = 3000,
-    WAIT_FOR_RELEASE	  = 3001,
-    RELEASE_NOW		  = 3002,
-    CANCEL_DROP		  = 3003,
-    SHOW_MENU_BAR	  = 3004,
-    BE_MENU_BAR_OPEN	  = 3005,
-    QUIT_APPLICATION	  = 3006,
-    REPLAY_MENU_BAR	  = 3007,
-    FONT_FAMILY_SELECTED  = 3008,
-    FONT_STYLE_SELECTED	  = 3009,
-    FILE_PANEL_SELECTION  = 3010,
-    QUIT_PREVIEW_DIALOG	  = 3011,
-    SET_FONT_INDICES	  = 3012,
-    SET_PREVIEW_DIALOG	  = 3013,
-    UPDATE_PREVIEW_DIALOG = 3014,
-    SEND_MOVE_FRAME_EVENT = 3015,
+    SCROLL_BAR_UPDATE	     = 3000,
+    WAIT_FOR_RELEASE	     = 3001,
+    RELEASE_NOW		     = 3002,
+    CANCEL_DROP		     = 3003,
+    SHOW_MENU_BAR	     = 3004,
+    BE_MENU_BAR_OPEN	     = 3005,
+    QUIT_APPLICATION	     = 3006,
+    REPLAY_MENU_BAR	     = 3007,
+    FONT_FAMILY_SELECTED     = 3008,
+    FONT_STYLE_SELECTED	     = 3009,
+    FILE_PANEL_SELECTION     = 3010,
+    QUIT_PREVIEW_DIALOG	     = 3011,
+    SET_FONT_INDICES	     = 3012,
+    SET_PREVIEW_DIALOG	     = 3013,
+    UPDATE_PREVIEW_DIALOG    = 3014,
+    SEND_MOVE_FRAME_EVENT    = 3015,
+    SET_DISABLE_ANTIALIASING = 3016,
   };
 
 /* X11 keysyms that we use.  */
@@ -145,6 +146,9 @@ struct font_selection_dialog_message
 
   /* Whether or not a size was explicitly specified.  */
   bool_bf size_specified : 1;
+
+  /* Whether or not antialiasing should be disabled.  */
+  bool_bf disable_antialias : 1;
 
   /* The index of the selected font family.  */
   int family_idx;
@@ -2574,6 +2578,9 @@ class EmacsFontPreviewDialog : public BWindow
 	current_font = new BFont;
 	current_font->SetFamilyAndStyle (name, sname);
 
+	if (message->GetBool ("emacs:disable_antialiasing", false))
+	  current_font->SetFlags (B_DISABLE_ANTIALIASING);
+
 	if (size_name && strlen (size_name))
 	  {
 	    size = atoi (size_name);
@@ -2615,26 +2622,32 @@ public:
   }
 };
 
-class DualLayoutView : public BView
+class TripleLayoutView : public BView
 {
   BScrollView *view_1;
-  BView *view_2;
+  BView *view_2, *view_3;
 
   void
   FrameResized (float new_width, float new_height)
   {
     BRect frame;
-    float width, height;
+    float width, height, height_1, width_1;
+    float basic_height;
 
     frame = Frame ();
 
     view_2->GetPreferredSize (&width, &height);
+    view_3->GetPreferredSize (&width_1, &height_1);
+
+    basic_height = height + height_1;
 
     view_1->MoveTo (0, 0);
     view_1->ResizeTo (BE_RECT_WIDTH (frame),
-		      BE_RECT_HEIGHT (frame) - height);
-    view_2->MoveTo (2, BE_RECT_HEIGHT (frame) - height);
+		      BE_RECT_HEIGHT (frame) - basic_height);
+    view_2->MoveTo (2, BE_RECT_HEIGHT (frame) - basic_height);
     view_2->ResizeTo (BE_RECT_WIDTH (frame) - 4, height);
+    view_3->MoveTo (2, BE_RECT_HEIGHT (frame) - height_1);
+    view_3->ResizeTo (BE_RECT_WIDTH (frame) - 4, height_1);
 
     BView::FrameResized (new_width, new_height);
   }
@@ -2644,19 +2657,24 @@ class DualLayoutView : public BView
   MinSize (void)
   {
     float width, height;
+    float width_1, height_1;
     BSize size_1;
 
     size_1 = view_1->MinSize ();
     view_2->GetPreferredSize (&width, &height);
+    view_3->GetPreferredSize (&width_1, &height_1);
 
-    return BSize (std::max (size_1.width, width),
-		  std::max (size_1.height, height));
+    return BSize (std::max (size_1.width,
+			    std::max (width_1, width)),
+		  std::max (size_1.height, height + height_1));
   }
 
 public:
-  DualLayoutView (BScrollView *first, BView *second) : BView (NULL, B_FRAME_EVENTS),
-						       view_1 (first),
-						       view_2 (second)
+  TripleLayoutView (BScrollView *first, BView *second,
+		    BView *third) : BView (NULL, B_FRAME_EVENTS),
+				    view_1 (first),
+				    view_2 (second),
+				    view_3 (third)
   {
     FrameResized (801, 801);
   }
@@ -2665,13 +2683,14 @@ public:
 class EmacsFontSelectionDialog : public BWindow
 {
   BView basic_view;
+  BCheckBox antialias_checkbox;
   BCheckBox preview_checkbox;
   BSplitView split_view;
   BListView font_family_pane;
   BListView font_style_pane;
   BScrollView font_family_scroller;
   BScrollView font_style_scroller;
-  DualLayoutView style_view;
+  TripleLayoutView style_view;
   BObjectList<BStringItem> all_families;
   BObjectList<BStringItem> all_styles;
   BButton cancel_button, ok_button;
@@ -2706,6 +2725,9 @@ class EmacsFontSelectionDialog : public BWindow
     message.what = SET_FONT_INDICES;
     message.AddInt32 ("emacs:family", family);
     message.AddInt32 ("emacs:style", style);
+
+    if (antialias_checkbox.Value () == B_CONTROL_ON)
+      message.AddBool ("emacs:disable_antialiasing", true);
 
     message.AddString ("emacs:size",
 		       size_entry.Text ());
@@ -2834,6 +2856,11 @@ class EmacsFontSelectionDialog : public BWindow
 	rq.size = atoi (text);
 	rq.size_specified = rq.size > 0 || strlen (text);
 
+	if (antialias_checkbox.Value () == B_CONTROL_ON)
+	  rq.disable_antialias = true;
+	else
+	  rq.disable_antialias = false;
+
 	write_port (comm_port, 0, &rq, sizeof rq);
       }
     else if (msg->what == B_CANCEL)
@@ -2855,6 +2882,11 @@ class EmacsFontSelectionDialog : public BWindow
 	HidePreview ();
       }
     else if (msg->what == UPDATE_PREVIEW_DIALOG)
+      {
+	if (preview)
+	  UpdatePreview ();
+      }
+    else if (msg->what == SET_DISABLE_ANTIALIASING)
       {
 	if (preview)
 	  UpdatePreview ();
@@ -2881,6 +2913,7 @@ public:
 
     font_family_pane.RemoveSelf ();
     font_style_pane.RemoveSelf ();
+    antialias_checkbox.RemoveSelf ();
     preview_checkbox.RemoveSelf ();
     style_view.RemoveSelf ();
     font_family_scroller.RemoveSelf ();
@@ -2897,12 +2930,15 @@ public:
   EmacsFontSelectionDialog (bool monospace_only,
 			    int initial_family_idx,
 			    int initial_style_idx,
-			    int initial_size)
+			    int initial_size,
+			    bool initial_antialias)
     : BWindow (BRect (0, 0, 500, 500),
 	       "Select font from list",
 	       B_TITLED_WINDOW_LOOK,
 	       B_MODAL_APP_WINDOW_FEEL, 0),
       basic_view (NULL, 0),
+      antialias_checkbox ("Disable antialiasing", "Disable antialiasing",
+			  new BMessage (SET_DISABLE_ANTIALIASING)),
       preview_checkbox ("Show preview", "Show preview",
 			new BMessage (SET_PREVIEW_DIALOG)),
       font_family_pane (BRect (0, 0, 0, 0), NULL,
@@ -2917,7 +2953,8 @@ public:
       font_style_scroller (NULL, &font_style_pane,
 			   B_FOLLOW_ALL_SIDES,
 			   B_SUPPORTS_LAYOUT, false, true),
-      style_view (&font_style_scroller, &preview_checkbox),
+      style_view (&font_style_scroller, &antialias_checkbox,
+		  &preview_checkbox),
       all_families (20, true),
       all_styles (20, true),
       cancel_button ("Cancel", "Cancel",
@@ -2946,6 +2983,7 @@ public:
     split_view.AddChild (&font_family_scroller, 0.7);
     split_view.AddChild (&style_view, 0.3);
     style_view.AddChild (&font_style_scroller);
+    style_view.AddChild (&antialias_checkbox);
     style_view.AddChild (&preview_checkbox);
 
     basic_view.SetViewUIColor (B_PANEL_BACKGROUND_COLOR);
@@ -3007,6 +3045,9 @@ public:
 	sprintf (format_buffer, "%d", initial_size);
 	size_entry.SetText (format_buffer);
       }
+
+    if (!initial_antialias)
+      antialias_checkbox.SetValue (B_CONTROL_ON);
   }
 
   void
@@ -5096,7 +5137,8 @@ be_select_font (void (*process_pending_signals_function) (void),
 		haiku_font_family_or_style *style,
 		int *size, bool allow_monospace_only,
 		int initial_family, int initial_style,
-		int initial_size)
+		int initial_size, bool initial_antialias,
+		bool *disable_antialias)
 {
   EmacsFontSelectionDialog *dialog;
   struct font_selection_dialog_message msg;
@@ -5106,7 +5148,7 @@ be_select_font (void (*process_pending_signals_function) (void),
 
   dialog = new EmacsFontSelectionDialog (allow_monospace_only,
 					 initial_family, initial_style,
-					 initial_size);
+					 initial_size, initial_antialias);
   dialog->CenterOnScreen ();
 
   if (dialog->InitCheck () < B_OK)
@@ -5135,6 +5177,7 @@ be_select_font (void (*process_pending_signals_function) (void),
   memcpy (family, family_buffer, sizeof *family);
   memcpy (style, style_buffer, sizeof *style);
   *size = msg.size_specified ? msg.size : -1;
+  *disable_antialias = msg.disable_antialias;
 
   return true;
 }

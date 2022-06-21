@@ -492,6 +492,14 @@ haikufont_pattern_from_object (struct haiku_font_pattern *pattern,
       pattern->specified |= FSPEC_WIDTH;
       pattern->width = haikufont_lisp_to_width (val);
     }
+
+  val = assq_no_quit (QCantialias,
+		      AREF (font_object, FONT_EXTRA_INDEX));
+  if (CONSP (val))
+    {
+      pattern->specified |= FSPEC_ANTIALIAS;
+      pattern->use_antialiasing = !NILP (XCDR (val));
+    }
 }
 
 static void
@@ -1232,6 +1240,7 @@ in the font selection dialog.  */)
   int rc, size, initial_family, initial_style, initial_size;
   struct haiku_font_pattern pattern;
   Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle, lsize;
+  bool disable_antialiasing, initial_antialias;
 
   f = decode_window_system_frame (frame);
 
@@ -1241,6 +1250,7 @@ in the font selection dialog.  */)
   initial_style = -1;
   initial_family = -1;
   initial_size = -1;
+  initial_antialias = true;
 
   font = FRAME_FONT (f);
 
@@ -1254,6 +1264,11 @@ in the font selection dialog.  */)
       haikufont_done_with_query_pattern (&pattern);
 
       initial_size = font->pixel_size;
+
+      /* This field is safe to access even after
+	 haikufont_done_with_query_pattern.  */
+      if (pattern.specified & FSPEC_ANTIALIAS)
+	initial_antialias = pattern.use_antialiasing;
     }
 
   popup_activated_p++;
@@ -1263,7 +1278,8 @@ in the font selection dialog.  */)
 		       &family, &style, &size,
 		       !NILP (exclude_proportional),
 		       initial_family, initial_style,
-		       initial_size);
+		       initial_size, initial_antialias,
+		       &disable_antialiasing);
   request_sigio ();
   popup_activated_p--;
 
@@ -1280,8 +1296,14 @@ in the font selection dialog.  */)
   lwidth = (pattern.specified & FSPEC_WIDTH
 	    ? haikufont_width_to_lisp (pattern.width) : Qnil);
   ladstyle = (pattern.specified & FSPEC_STYLE
-	     ? intern (pattern.style) : Qnil);
+	      ? intern (pattern.style) : Qnil);
   lsize = (size >= 0 ? make_fixnum (size) : Qnil);
+
+  if (disable_antialiasing)
+    return CALLN (Ffont_spec, QCfamily, lfamily,
+		  QCweight, lweight, QCslant, lslant,
+		  QCwidth, lwidth, QCadstyle, ladstyle,
+		  QCsize, lsize, QCantialias, Qnil);
 
   return CALLN (Ffont_spec, QCfamily, lfamily,
 		QCweight, lweight, QCslant, lslant,
