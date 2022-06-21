@@ -716,7 +716,6 @@ to the results."
 	value-list)
 
     (with-current-buffer (get-buffer-create extraction-buffer)
-      (fundamental-mode)
       (buffer-disable-undo extraction-buffer)
       (set-syntax-table mail-extr-address-syntax-table)
       (widen)
@@ -738,7 +737,6 @@ to the results."
       (set-text-properties (point-min) (point-max) nil)
 
       (with-current-buffer (get-buffer-create canonicalization-buffer)
-	(fundamental-mode)
 	(buffer-disable-undo canonicalization-buffer)
 	(setq case-fold-search nil))
 
