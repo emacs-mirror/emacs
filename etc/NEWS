@@ -1841,6 +1841,11 @@ If non-nil, files untracked by a VCS are considered to be part of
 the project by a VC project based on that VCS.
 
 ---
+*** The 'recentf-mode' menu can now use shortened filenames.
+Set the user option 'recentf-menu-filter' to
+'recentf-show-abbreviated' to enable it.
+
+---
 ** The autoarg.el library is now marked obsolete.
 This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.

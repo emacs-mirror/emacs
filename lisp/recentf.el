@@ -186,6 +186,8 @@ A nil value means no filter.  The following functions are predefined:
     Sort menu items by directories in ascending order.
 - `recentf-sort-directories-descending'
     Sort menu items by directories in descending order.
+- `recentf-show-abbreviated'
+    Show shortened filenames.
 - `recentf-show-basenames'
     Show filenames sans directory in menu items.
 - `recentf-show-basenames-ascending'
@@ -214,6 +216,7 @@ elements (see `recentf-make-menu-element' for menu element form)."
                 (function-item recentf-sort-basenames-descending)
                 (function-item recentf-sort-directories-ascending)
                 (function-item recentf-sort-directories-descending)
+                (function-item recentf-show-abbreviated)
                 (function-item recentf-show-basenames)
                 (function-item recentf-show-basenames-ascending)
                 (function-item recentf-show-basenames-descending)
@@ -724,14 +727,11 @@ Compares directories then filenames to order the list."
            (recentf-menu-element-value e2)
            (recentf-menu-element-value e1)))))
 
-(defun recentf-show-basenames (l &optional no-dir)
-  "Filter the list of menu elements L to show filenames sans directory.
-When a filename is duplicated, it is appended a sequence number if
-optional argument NO-DIR is non-nil, or its directory otherwise."
+(defun recentf--filter-names (l no-dir fun)
   (let (filtered-names filtered-list full name counters sufx)
     (dolist (elt l (nreverse filtered-list))
       (setq full (recentf-menu-element-value elt)
-            name (file-name-nondirectory full))
+            name (funcall fun full))
       (if (not (member name filtered-names))
           (push name filtered-names)
         (if no-dir
@@ -742,6 +742,18 @@ optional argument NO-DIR is non-nil, or its directory otherwise."
           (setq sufx (file-name-directory full)))
         (setq name (format "%s(%s)" name sufx)))
       (push (recentf-make-menu-element name full) filtered-list))))
+
+(defun recentf-show-abbreviated (l &optional no-dir)
+  "Filter the list of menu elements L to show shortened filenames.
+When a filename is duplicated, it is appended a sequence number if
+optional argument NO-DIR is non-nil, or its directory otherwise."
+  (recentf--filter-names l no-dir #'abbreviate-file-name))
+
+(defun recentf-show-basenames (l &optional no-dir)
+  "Filter the list of menu elements L to show filenames sans directory.
+When a filename is duplicated, it is appended a sequence number if
+optional argument NO-DIR is non-nil, or its directory otherwise."
+  (recentf--filter-names l no-dir #'file-name-nondirectory))
 
 (defsubst recentf-show-basenames-ascending (l)
   "Filter the list of menu elements L to show filenames sans directory.
