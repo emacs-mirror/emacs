@@ -1467,10 +1467,10 @@ process."
       (when (> (point) pmark)
 	(unwind-protect
 	    (progn
-	      (add-function :override term-input-sender #'term-send-string)
+	      (add-function :override (local 'term-input-sender) #'term-send-string)
 	      (end-of-line)
 	      (term-send-input))
-	  (remove-function term-input-sender #'term-send-string))))
+	  (remove-function (local 'term-input-sender) #'term-send-string))))
     (term-update-mode-line)))
 
 (defun term-line-mode  ()
