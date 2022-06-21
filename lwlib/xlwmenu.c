@@ -254,7 +254,7 @@ static void
 ungrab_all (Widget w, Time ungrabtime)
 {
   XtUngrabPointer (w, ungrabtime);
-  if (!lucid__menu_grab_keyboard)
+  if (lucid__menu_grab_keyboard)
     XtUngrabKeyboard (w, ungrabtime);
 }
 
