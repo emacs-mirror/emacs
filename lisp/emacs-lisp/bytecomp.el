@@ -1756,7 +1756,8 @@ It is too wide if it has any lines longer than the largest of
       (pcase (car form)
         ((or 'autoload 'custom-declare-variable 'defalias
              'defconst 'define-abbrev-table
-             'defvar 'defvaralias)
+             'defvar 'defvaralias
+             'custom-declare-face)
          (setq kind (nth 0 form))
          (setq name (nth 1 form))
          (setq docs (nth 3 form)))
@@ -2705,11 +2706,10 @@ list that represents a doc string reference.
   (byte-compile-keep-pending form))
 
 (put 'custom-declare-variable 'byte-hunk-handler
-     'byte-compile-file-form-custom-declare-variable)
-(defun byte-compile-file-form-custom-declare-variable (form)
-  (when (byte-compile-warning-enabled-p 'callargs)
-    (byte-compile-nogroup-warn form))
-  (byte-compile-file-form-defvar-function form))
+     'byte-compile-file-form-defvar-function)
+
+(put 'custom-declare-face 'byte-hunk-handler
+     'byte-compile-docstring-style-warn)
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)
