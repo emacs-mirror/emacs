@@ -933,6 +933,7 @@ current buffer."
     (setq buffer nil))
   (let* ((help-buffer-under-preparation t)
          (buf (or buffer (current-buffer)))
+         (describe-function-orig-buffer buf)
          (on-link
           (mapcar (lambda (kr)
                     (let ((raw (cdr kr)))
