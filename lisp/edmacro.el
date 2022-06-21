@@ -62,6 +62,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'kmacro)
 
 ;;; The user-level commands for editing macros.
