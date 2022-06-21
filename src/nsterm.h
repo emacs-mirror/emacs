@@ -683,6 +683,7 @@ typedef id instancetype;
    int em_whole;
    }
 
+- (void) mark;
 - (instancetype) initFrame: (NSRect )r window: (Lisp_Object)win;
 - (void)setFrame: (NSRect)r;
 
@@ -1347,4 +1348,7 @@ enum NSWindowTabbingMode
 #define NSControlStateValueOff NSOffState
 #define NSBezelStyleRounded NSRoundedBezelStyle
 #endif
+
+extern void mark_nsterm (void);
+
 #endif	/* HAVE_NS */
