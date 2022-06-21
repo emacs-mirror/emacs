@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "keyboard.h"
 #include "pdumper.h"
+#include "atimer.h"
 
 #include <X11/Xproto.h>
 
@@ -1198,6 +1199,20 @@ x_handle_property_notify (const XPropertyEvent *event)
     }
 }
 
+static void
+x_display_selection_waiting_message (struct atimer *timer)
+{
+  Lisp_Object val;
+
+  val = build_string ("Waiting for reply from selection owner...");
+  message3_nolog (val);
+}
+
+static void
+x_cancel_atimer (void *atimer)
+{
+  cancel_atimer (atimer);
+}
 
 
 /* Variables for communication with x_handle_selection_notify.  */
@@ -1223,9 +1238,14 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   Atom type_atom = (CONSP (target_type)
 		    ? symbol_to_x_atom (dpyinfo, XCAR (target_type))
 		    : symbol_to_x_atom (dpyinfo, target_type));
+  struct atimer *delayed_message;
+  struct timespec message_interval;
+  specpdl_ref count;
+
+  count = SPECPDL_INDEX ();
 
   if (!FRAME_LIVE_P (f))
-    return Qnil;
+    return unbind_to (count, Qnil);
 
   if (! NILP (time_stamp))
     CONS_TO_INTEGER (time_stamp, Time, requestor_time);
@@ -1256,6 +1276,12 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 #endif
 
   unblock_input ();
+
+  message_interval = make_timespec (1, 0);
+  delayed_message = start_atimer (ATIMER_RELATIVE, message_interval,
+				  x_display_selection_waiting_message,
+				  NULL);
+  record_unwind_protect_ptr (x_cancel_atimer, delayed_message);
 
   /* This allows quits.  Also, don't wait forever.  */
   intmax_t timeout = max (0, x_selection_timeout);
@@ -1288,13 +1314,16 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
   if (EQ (XCAR (reading_selection_reply), Qlambda))
-    return Qnil;
+    return unbind_to (count, Qnil);
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
-  return
-    x_get_window_property_as_lisp_data (dpyinfo, requestor_window,
-					target_property, target_type,
-					selection_atom, false);
+  return unbind_to (count,
+		    x_get_window_property_as_lisp_data (dpyinfo,
+							requestor_window,
+							target_property,
+							target_type,
+							selection_atom,
+							false));
 }
 
 /* Subroutines of x_get_window_property_as_lisp_data */
