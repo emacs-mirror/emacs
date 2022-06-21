@@ -48,6 +48,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif /* not emacs */
 
 static int pointer_grabbed;
+static int keyboard_grabbed;
 static XEvent menu_post_event;
 
 static char
@@ -254,7 +255,8 @@ static void
 ungrab_all (Widget w, Time ungrabtime)
 {
   XtUngrabPointer (w, ungrabtime);
-  if (lucid__menu_grab_keyboard)
+
+  if (keyboard_grabbed)
     XtUngrabKeyboard (w, ungrabtime);
 }
 
@@ -2100,6 +2102,7 @@ XlwMenuDestroy (Widget w)
   if (pointer_grabbed)
     ungrab_all ((Widget)w, CurrentTime);
   pointer_grabbed = 0;
+  keyboard_grabbed = 0;
 
   if (!XtIsShell (XtParent (w)))
     submenu_destroyed = 1;
@@ -2717,15 +2720,22 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
                      mw->menu.cursor_shape,
                      event->time) == Success)
     {
-      if (!lucid__menu_grab_keyboard
-          || XtGrabKeyboard ((Widget)mw, False, GrabModeAsync,
-                             GrabModeAsync, event->time) == Success)
+      if (true
+#ifdef emacs
+	  && lucid__menu_grab_keyboard
+#endif
+	  && XtGrabKeyboard ((Widget) mw, False, GrabModeAsync,
+			     GrabModeAsync, event->time) == Success)
         {
-          XtSetKeyboardFocus((Widget)mw, None);
+          XtSetKeyboardFocus ((Widget) mw, None);
           pointer_grabbed = 1;
+	  keyboard_grabbed = 1;
         }
       else
-        XtUngrabPointer ((Widget)mw, event->time);
+	{
+	  XtUngrabPointer ((Widget) mw, event->time);
+	  keyboard_grabbed = 0;
+	}
     }
 
 #ifdef emacs
