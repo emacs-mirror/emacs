@@ -245,11 +245,6 @@ WidgetClass xlwMenuWidgetClass = (WidgetClass) &xlwMenuClassRec;
 
 int submenu_destroyed;
 
-/* For debug, if installation-directory is non-nil this is not an installed
-   Emacs.   In that case we do not grab the keyboard to make it easier to
-   debug. */
-#define GRAB_KEYBOARD  (EQ (Vinstallation_directory, Qnil))
-
 static int next_release_must_exit;
 
 /* Utilities */
@@ -259,7 +254,8 @@ static void
 ungrab_all (Widget w, Time ungrabtime)
 {
   XtUngrabPointer (w, ungrabtime);
-  if (GRAB_KEYBOARD) XtUngrabKeyboard (w, ungrabtime);
+  if (!lucid__menu_grab_keyboard)
+    XtUngrabKeyboard (w, ungrabtime);
 }
 
 /* Like abort, but remove grabs from widget W before.  */
@@ -2721,7 +2717,7 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
                      mw->menu.cursor_shape,
                      event->time) == Success)
     {
-      if (! GRAB_KEYBOARD
+      if (!lucid__menu_grab_keyboard
           || XtGrabKeyboard ((Widget)mw, False, GrabModeAsync,
                              GrabModeAsync, event->time) == Success)
         {
