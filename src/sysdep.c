@@ -3869,7 +3869,7 @@ system_process_attributes (Lisp_Object pid)
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
-  int proc_id, nentries, fscale, i;
+  int proc_id, fscale, i;
   int pagesize = getpagesize ();
   int mib[6];
   size_t len;
