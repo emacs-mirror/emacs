@@ -375,6 +375,8 @@ This function only tries to handle strings."
   ;; Expensive test to make sure opening an FTP URL during
   ;; drag-and-drop works.
   :tags '(:expensive-test)
+  ;; Don't run if there is no ftp client.
+  (skip-unless (executable-find "ftp"))
   ;; Don't run this test if the FTP server isn't reachable.
   (skip-unless (and (fboundp 'network-lookup-address-info)
                     (network-lookup-address-info "ftp.gnu.org")))
