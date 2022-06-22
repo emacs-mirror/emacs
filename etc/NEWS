@@ -941,6 +941,13 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Games
+
+---
+*** New user option 'tetris-allow-repetitions'.
+This controls how randomness is implemented (whether to use pure
+randomness as before or whether to use a bag).
+
 ** Battery
 
 +++
