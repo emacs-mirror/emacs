@@ -255,7 +255,7 @@ or nil, use a compact 80-column format."
 ;;; Commands for *Edit Macro* buffer.
 
 (defun edmacro-finish-edit ()
-  (interactive)
+  (interactive nil edmacro-mode)
   (unless (eq major-mode 'edmacro-mode)
     (error
      "This command is valid only in buffers created by `edit-kbd-macro'"))
@@ -366,7 +366,7 @@ or nil, use a compact 80-column format."
 
 (defun edmacro-insert-key (key)
   "Insert the written name of a KEY in the buffer."
-  (interactive "kKey to insert: ")
+  (interactive "kKey to insert: " edmacro-mode)
   (if (bolp)
       (insert (edmacro-format-keys key t) "\n")
     (insert (edmacro-format-keys key) " ")))
