@@ -186,8 +186,10 @@ allowed."
 	    (set-process-sentinel proc #'eshell-term-sentinel)
 	  (error "Failed to invoke visual command")))
       (term-char-mode)
-      (if eshell-escape-control-x
-	  (term-set-escape-char ?\C-x))))
+      (when eshell-escape-control-x
+        ;; Don't drop existing escape char.
+        (let (term-escape-char)
+          (term-set-escape-char ?\C-x)))))
   nil)
 
 ;; Process sentinels receive two arguments.
