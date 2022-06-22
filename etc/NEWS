@@ -1856,9 +1856,9 @@ If non-nil, files untracked by a VCS are considered to be part of
 the project by a VC project based on that VCS.
 
 ---
-*** The 'recentf-mode' menu can now use shortened filenames.
-Set the user option 'recentf-menu-filter' to
-'recentf-show-abbreviated' to enable it.
+*** The 'recentf-mode' menu now uses shortened filenames by default.
+They are shortened with 'abbreviate-file-name'.  Customize the user
+option 'recentf-menu-filter' to nil to get unabbreviated file names.
 
 ---
 ** The autoarg.el library is now marked obsolete.
