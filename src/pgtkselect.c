@@ -154,8 +154,8 @@ pgtk_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
   if (timestamp == GDK_CURRENT_TIME)
     timestamp = dpyinfo->last_user_time;
 
-  /* Assert ownership over the selection.  Ideally we would use the
-     GDK selection API for this as well, but it just doesn't work on
+  /* Assert ownership over the selection.  Ideally we would use only
+     the GDK selection API for this, but it just doesn't work on
      Wayland.  */
 
   if (!gdk_selection_owner_set_for_display (dpyinfo->display,
@@ -911,7 +911,7 @@ wait_for_property_change (struct prop_location *location)
      property_change_reply, because property_change_reply_object says so.  */
   if (! location->arrived)
     {
-      intmax_t timeout = max (0, 5000);
+      intmax_t timeout = max (0, pgtk_selection_timeout);
       intmax_t secs = timeout / 1000;
       int nsecs = (timeout % 1000) * 1000000;
 
@@ -1027,7 +1027,7 @@ pgtk_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_typ
   record_unwind_protect_ptr (pgtk_cancel_atimer, delayed_message);
 
   /* This allows quits.  Also, don't wait forever.  */
-  intmax_t timeout = max (0, 5000);
+  intmax_t timeout = max (0, pgtk_selection_timeout);
   intmax_t secs = timeout / 1000;
   int nsecs = (timeout % 1000) * 1000000;
 
@@ -1835,12 +1835,11 @@ This hook doesn't let you change the behavior of Emacs's selection replies,
 it merely informs you that they have happened.  */);
   Vpgtk_sent_selection_hooks = Qnil;
 
-  DEFVAR_BOOL ("pgtk-enable-selection-on-multi-display", pgtk_enable_selection_on_multi_display,
-	       doc: /* Enable selections when connected to multiple displays.
-This may cause crashes due to a GTK bug, which assumes that clients
-will connect to a single display.  It might also cause selections to
-not arrive at the correct display.  */);
-  pgtk_enable_selection_on_multi_display = false;
+  DEFVAR_INT ("pgtk-selection-timeout", pgtk_selection_timeout,
+	      doc: /* Number of milliseconds to wait for a selection reply.
+If the selection owner doesn't reply in this time, we give up.
+A value of 0 means wait as long as necessary.  */);
+  pgtk_selection_timeout = 0;
 
   DEFVAR_LISP ("pgtk-selection-alias-alist", Vpgtk_selection_alias_alist,
     doc: /* List of selections to alias to another.
