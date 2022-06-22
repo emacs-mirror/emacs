@@ -1129,24 +1129,24 @@ SYMBOL	is a valid symbol associated with CHAR.
 	See `whitespace-style-value-list'.")
 
 
-(defvar whitespace-active-style nil
+(defvar-local whitespace-active-style nil
   "Used to save locally `whitespace-style' value.")
 
-(defvar whitespace-point (point)
+(defvar-local whitespace-point (point)
   "Used to save locally current point value.
 Used by function `whitespace-trailing-regexp' (which see).")
 (defvar-local whitespace-point--used nil
   "Region whose highlighting depends on `whitespace-point'.")
 
-(defvar whitespace-bob-marker nil
+(defvar-local whitespace-bob-marker nil
   "Used to save locally the bob marker value.
 Used by function `whitespace-post-command-hook' (which see).")
 
-(defvar whitespace-eob-marker nil
+(defvar-local whitespace-eob-marker nil
   "Used to save locally the eob marker value.
 Used by function `whitespace-post-command-hook' (which see).")
 
-(defvar whitespace-buffer-changed nil
+(defvar-local whitespace-buffer-changed nil
   "Used to indicate locally if buffer changed.
 Used by `whitespace-post-command-hook' and `whitespace-buffer-changed'
 functions (which see).")
@@ -1766,7 +1766,7 @@ cleaning up these problems."
 ;;;; Internal functions
 
 
-(defvar whitespace-font-lock-keywords nil
+(defvar-local whitespace-font-lock-keywords nil
   "Used to save the value `whitespace-color-on' adds to `font-lock-keywords'.")
 
 
@@ -1993,10 +1993,10 @@ resultant list will be returned."
   the-list)
 
 
-(defvar whitespace-display-table nil
+(defvar-local whitespace-display-table nil
   "Used to save a local display table.")
 
-(defvar whitespace-display-table-was-local nil
+(defvar-local whitespace-display-table-was-local nil
   "Used to remember whether a buffer initially had a local display table.")
 
 (defun whitespace-turn-on ()
