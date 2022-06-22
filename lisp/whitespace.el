@@ -2292,6 +2292,7 @@ buffer."
 Also refontify when necessary."
   (unless (and (eq whitespace-point (point))
                (not whitespace-buffer-changed))
+    (setq-local whitespace-buffer-changed nil)
     (setq whitespace-point (point))	; current point position
     (let ((refontify
            (cond
