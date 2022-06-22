@@ -1138,10 +1138,6 @@ Used by function `whitespace-trailing-regexp' (which see).")
 (defvar-local whitespace-point--used nil
   "Region whose highlighting depends on `whitespace-point'.")
 
-(defvar whitespace-font-lock-refontify nil
-  "Used to save locally the font-lock refontify state.
-Used by function `whitespace-post-command-hook' (which see).")
-
 (defvar whitespace-bob-marker nil
   "Used to save locally the bob marker value.
 Used by function `whitespace-post-command-hook' (which see).")
@@ -2061,7 +2057,6 @@ resultant list will be returned."
     (setq whitespace-point--used
           (let ((ol (make-overlay (point) (point) nil nil t)))
             (delete-overlay ol) ol))
-    (setq-local whitespace-font-lock-refontify 0)
     (setq-local whitespace-bob-marker (point-min-marker))
     (setq-local whitespace-eob-marker (point-max-marker))
     (setq-local whitespace-buffer-changed nil)
