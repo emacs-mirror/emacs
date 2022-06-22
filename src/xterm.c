@@ -4888,6 +4888,14 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 
 
 #if defined USE_CAIRO || defined HAVE_XRENDER
+static int
+x_gc_free_ext_data_private (XExtData *extension)
+{
+  xfree (extension->private_data);
+
+  return 0;
+}
+
 static struct x_gc_ext_data *
 x_gc_get_ext_data (struct frame *f, GC gc, int create_if_not_found_p)
 {
@@ -4907,6 +4915,7 @@ x_gc_get_ext_data (struct frame *f, GC gc, int create_if_not_found_p)
 	  ext_data = xzalloc (sizeof (*ext_data));
 	  ext_data->number = dpyinfo->ext_codes->extension;
 	  ext_data->private_data = xzalloc (sizeof (struct x_gc_ext_data));
+	  ext_data->free_private = x_gc_free_ext_data_private;
 	  XAddToExtensionList (head, ext_data);
 	}
     }
