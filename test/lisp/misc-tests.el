@@ -80,5 +80,21 @@
     (backward-to-word 3)
     (should (equal (point) 1))))
 
+(ert-deftest misc--duplicate-line ()
+  ;; Duplicate a line (twice).
+  (with-temp-buffer
+    (insert "abc\ndefg\nh\n")
+    (goto-char 7)
+    (duplicate-line 2)
+    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
+    (should (equal (point) 7)))
+  ;; Duplicate a non-terminated line.
+  (with-temp-buffer
+    (insert "abc")
+    (goto-char 2)
+    (duplicate-line)
+    (should (equal (buffer-string) "abc\nabc\n"))
+    (should (equal (point) 2))))
+
 (provide 'misc-tests)
 ;;; misc-tests.el ends here

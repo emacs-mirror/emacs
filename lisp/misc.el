@@ -69,6 +69,8 @@ Also see the `duplicate-line' command."
 Interactively, N is the prefix numeric argument, and defaults to 1.
 Also see the `copy-from-above-command' command."
   (interactive "p")
+  (unless n
+    (setq n 1))
   (let ((line (buffer-substring (line-beginning-position) (line-end-position))))
     (save-excursion
       (forward-line 1)
