@@ -15078,7 +15078,7 @@ x_scroll_bar_note_movement (struct scroll_bar *bar,
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   dpyinfo->last_mouse_movement_time = event->time;
-  dpyinfo->last_mouse_movement_send_event = event->send_event;
+  dpyinfo->last_mouse_movement_time_send_event = event->send_event;
   dpyinfo->last_mouse_scroll_bar = bar;
   f->mouse_moved = true;
 
