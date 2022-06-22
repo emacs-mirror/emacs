@@ -515,10 +515,6 @@ If non-nil it must contain a list of valid menu-items to be appended
 to the recent file list part of the menu.  Before calling a menu
 filter function this variable is reset to nil.")
 
-(defun recentf-elements (n)
-  "Return a list of the first N elements of the recent list."
-  (seq-take recentf-list n))
-
 (defsubst recentf-make-menu-element (menu-item menu-value)
   "Create a new menu-element.
 A menu element is a pair (MENU-ITEM . MENU-VALUE), where MENU-ITEM is
@@ -558,7 +554,7 @@ This a menu element (FILE . FILE)."
   "Return a list of the first N default menu elements from the recent list.
 See also `recentf-make-default-menu-element'."
   (mapcar #'recentf-make-default-menu-element
-          (recentf-elements n)))
+          (seq-take recentf-list n)))
 
 (defun recentf-apply-menu-filter (filter l)
   "Apply function FILTER to the list of menu-elements L.
@@ -1394,6 +1390,11 @@ buffers you switch to a lot, you can say something like the following:
 ;; Obsolete.
 
 (define-obsolete-function-alias 'recentf-trunc-list #'seq-take "28.1")
+
+(defun recentf-elements (n)
+  "Return a list of the first N elements of the recent list."
+  (declare (obsolete "use `(seq-take recentf-list n)'." "29.1"))
+  (seq-take recentf-list n))
 
 (provide 'recentf)
 
