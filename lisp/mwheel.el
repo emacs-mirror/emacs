@@ -1,6 +1,7 @@
 ;;; mwheel.el --- Mouse wheel support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+
 ;; Keywords: mouse
 ;; Package: emacs
 
@@ -22,7 +23,7 @@
 ;;; Commentary:
 
 ;; This enables the use of the mouse wheel (or scroll wheel) in Emacs.
-;; Under X11/X.Org, the wheel events are sent as button4/button5
+;; Under X11/X.Org, the wheel events are sent as mouse-4/mouse-5
 ;; events.
 
 ;; Mouse wheel support is already enabled by default on most graphical
@@ -32,7 +33,7 @@
 
 ;; Implementation note:
 ;;
-;; I for one would prefer some way of converting the button4/button5
+;; I for one would prefer some way of converting the mouse-4/mouse-5
 ;; events into different event types, like 'mwheel-up' or
 ;; 'mwheel-down', but I cannot find a way to do this very easily (or
 ;; portably), so for now I just live with it.
