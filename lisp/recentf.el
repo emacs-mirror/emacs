@@ -1050,7 +1050,7 @@ That is, remove a non kept file from the recent list."
 (defun recentf-cancel-dialog (&rest _ignore)
   "Cancel the current dialog.
 IGNORE arguments."
-  (interactive)
+  (interactive nil recentf-dialog-mode)
   (kill-buffer (current-buffer))
   (message "Dialog canceled"))
 
@@ -1068,19 +1068,20 @@ Go to the beginning of buffer if not found."
     (error
      (goto-char (point-min)))))
 
-(defvar recentf-dialog-mode-map
-  (let ((km (copy-keymap recentf--shortcuts-keymap)))
-    (set-keymap-parent km widget-keymap)
-    (define-key km "q" #'recentf-cancel-dialog)
-    (define-key km "n" #'next-line)
-    (define-key km "p" #'previous-line)
-    km)
-  "Keymap used in recentf dialogs.")
+(defvar-keymap recentf-dialog-mode-map
+  :doc "Keymap used in recentf dialogs."
+  :parent (make-composed-keymap recentf--shortcuts-keymap widget-keymap)
+  "q"       #'recentf-cancel-dialog
+  "n"       #'next-line
+  "p"       #'previous-line
+  "C-c C-c" #'recentf-edit-list-validate
+  "C-c C-k" #'recentf-cancel-dialog)
 
 (define-derived-mode recentf-dialog-mode nil "recentf-dialog"
   "Major mode of recentf dialogs.
 
 \\{recentf-dialog-mode-map}"
+  :interactive nil
   :syntax-table nil
   :abbrev-table nil
   (setq truncate-lines t))
@@ -1117,6 +1118,7 @@ IGNORE other arguments."
 (defun recentf-edit-list-validate (&rest _ignore)
   "Process the recent list when the edit list dialog is committed.
 IGNORE arguments."
+  (interactive nil recentf-dialog-mode)
   (if recentf-edit-list
       (let ((i 0))
         (dolist (e recentf-edit-list)
@@ -1136,8 +1138,8 @@ IGNORE arguments."
     (widget-insert
      (format-message
       (substitute-command-keys
-       "Click on OK to delete selected files from the recent list.
-Click on Cancel or type \\[recentf-cancel-dialog] to cancel.\n")))
+       "Click on \"OK\" or type \\[recentf-edit-list-validate] to delete selected files from the recent list.
+Click on \"Cancel\" or type \\[recentf-cancel-dialog] to cancel.\n")))
     ;; Insert the list of files as checkboxes
     (dolist (item recentf-list)
       (widget-create 'checkbox
