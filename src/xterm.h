@@ -515,6 +515,9 @@ struct x_display_info
      received, and return that in hopes that it's somewhat accurate.  */
   Time last_mouse_movement_time;
 
+  /* Whether or not the last mouse motion was synthetic.  */
+  bool last_mouse_movement_time_send_event;
+
   /* The gray pixmap.  */
   Pixmap gray;
 

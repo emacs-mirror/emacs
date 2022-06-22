@@ -12335,10 +12335,11 @@ x_construct_mouse_click (struct input_event *result,
    The XMotionEvent structure passed as EVENT might not come from the
    X server, and instead be artificially constructed from input
    extension events.  In these special events, the only fields that
-   are initialized are `time', `window', and `x' and `y'.  This
-   function should not access any other fields in EVENT without also
-   initializing the corresponding fields in `ev' under the XI_Motion,
-   XI_Enter and XI_Leave labels inside `handle_one_xevent'.  */
+   are initialized are `time', `window', `send_event', `x' and `y'.
+   This function should not access any other fields in EVENT without
+   also initializing the corresponding fields in `ev' under the
+   XI_Motion, XI_Enter and XI_Leave labels inside
+   `handle_one_xevent'.  */
 
 static bool
 x_note_mouse_movement (struct frame *frame, const XMotionEvent *event,
@@ -12352,6 +12353,7 @@ x_note_mouse_movement (struct frame *frame, const XMotionEvent *event,
 
   dpyinfo = FRAME_DISPLAY_INFO (frame);
   dpyinfo->last_mouse_movement_time = event->time;
+  dpyinfo->last_mouse_movement_time_send_event = event->send_event;
   dpyinfo->last_mouse_motion_frame = frame;
   dpyinfo->last_mouse_motion_x = event->x;
   dpyinfo->last_mouse_motion_y = event->y;
@@ -12667,7 +12669,8 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	    && (dpyinfo->last_user_time
 		< dpyinfo->last_mouse_movement_time))
 	  x_display_set_last_user_time (dpyinfo,
-					dpyinfo->last_mouse_movement_time, false);
+					dpyinfo->last_mouse_movement_time,
+					dpyinfo->last_mouse_movement_time_send_event);
 
 	if ((!f1 || FRAME_TOOLTIP_P (f1))
 	    && (EQ (track_mouse, Qdropping)
@@ -15075,6 +15078,7 @@ x_scroll_bar_note_movement (struct scroll_bar *bar,
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
   dpyinfo->last_mouse_movement_time = event->time;
+  dpyinfo->last_mouse_movement_send_event = event->send_event;
   dpyinfo->last_mouse_scroll_bar = bar;
   f->mouse_moved = true;
 
@@ -19168,10 +19172,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      any = x_top_window_to_frame (dpyinfo, enter->event);
 	      source = xi_device_from_id (dpyinfo, enter->sourceid);
+
 	      ev.x = lrint (enter->event_x);
 	      ev.y = lrint (enter->event_y);
 	      ev.window = enter->event;
 	      ev.time = enter->time;
+	      ev.send_event = enter->send_event;
 
 	      x_display_set_last_user_time (dpyinfo, enter->time,
 					    enter->send_event);
@@ -19262,6 +19268,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ev.y = lrint (leave->event_y);
 	      ev.window = leave->event;
 	      ev.time = leave->time;
+	      ev.send_event = leave->send_event;
 #endif
 
 	      any = x_top_window_to_frame (dpyinfo, leave->event);
@@ -19680,6 +19687,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ev.y = lrint (xev->event_y);
 	      ev.window = xev->event;
 	      ev.time = xev->time;
+	      ev.send_event = xev->send_event;
 
 #ifdef USE_MOTIF
 	      use_copy = true;
