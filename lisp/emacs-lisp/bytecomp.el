@@ -1174,18 +1174,6 @@ message buffer `default-directory'."
 	    (t
 	     (insert (format "%s\n" string)))))))
 
-;; copied from gnus-util.el
-(defsubst byte-compile-delete-first (elt list)
-  (if (eq (car list) elt)
-      (cdr list)
-    (let ((total list))
-      (while (and (cdr list)
-		  (not (eq (cadr list) elt)))
-	(setq list (cdr list)))
-      (when (cdr list)
-	(setcdr list (cddr list)))
-      total)))
-
 (defvar byte-compile-last-warned-form nil)
 (defvar byte-compile-last-logged-file nil)
 (defvar byte-compile-root-dir nil
