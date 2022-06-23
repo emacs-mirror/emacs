@@ -4416,7 +4416,6 @@ x_dnd_send_leave (struct frame *f, Window target)
   msg.xclient.data.l[3] = 0;
   msg.xclient.data.l[4] = 0;
 
-  puts ("RESET PENDING");
   x_dnd_waiting_for_status_window = None;
 
   x_catch_errors (dpyinfo->display);
