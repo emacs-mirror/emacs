@@ -478,7 +478,7 @@ See also the command `recentf-open-most-recent-file'."
         ;; Define a shortcut command.
         (defalias cmd
           `(lambda ()
-             (interactive)
+             (interactive nil recentf-dialog-mode)
              (recentf-open-most-recent-file ,k)))
         ;; Bind it to a digit key.
         (keymap-set km (format "%d" k) cmd)))
