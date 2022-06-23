@@ -1762,6 +1762,86 @@ pgtk_handle_selection_notify (GdkEventSelection *event)
 	   (event->property != GDK_NONE ? Qt : Qlambda));
 }
 
+
+/***********************************************************************
+                      Drag and drop support
+***********************************************************************/
+
+DEFUN ("pgtk-register-dnd-targets", Fpgtk_register_dnd_targets,
+       Spgtk_register_dnd_targets, 2, 2, 0,
+       doc: /* Register TARGETS on FRAME.
+TARGETS should be a list of strings describing data types (selection
+targets) that can be dropped on top of FRAME.  */)
+  (Lisp_Object frame, Lisp_Object targets)
+{
+  struct frame *f;
+  GtkTargetEntry *entries;
+  GtkTargetList *list;
+  ptrdiff_t length, n;
+  Lisp_Object tem, t;
+  char *buf;
+  USE_SAFE_ALLOCA;
+
+  f = decode_window_system_frame (frame);
+  CHECK_LIST (targets);
+  length = list_length (targets);
+  n = 0;
+  entries = SAFE_ALLOCA (sizeof *entries * length);
+  memset (entries, 0, sizeof *entries * length);
+  tem = targets;
+
+  FOR_EACH_TAIL (tem)
+    {
+      if (!CONSP (tem))
+	continue;
+
+      t = XCAR (tem);
+
+      CHECK_STRING (t);
+      SAFE_ALLOCA_STRING (buf, t);
+
+      entries[n++].target = buf;
+    }
+  CHECK_LIST_END (tem, targets);
+
+  if (n != length)
+    emacs_abort ();
+
+  list = gtk_target_list_new (entries, n);
+  gtk_drag_dest_set_target_list (FRAME_GTK_WIDGET (f), list);
+  gtk_target_list_unref (list);
+
+  SAFE_FREE ();
+
+  return Qnil;
+}
+
+DEFUN ("pgtk-drop-finish", Fpgtk_drop_finish, Spgtk_drop_finish, 3, 3, 0,
+       doc: /* Finish the drag-n-drop event that happened at TIMESTAMP.
+SUCCESS is whether or not the drop was successful, i.e. the action
+chosen in the last call to `pgtk-update-drop-status' was performed.
+TIMESTAMP is the time associated with the drag-n-drop event that is
+being finished.
+DELETE is whether or not the action was `move'.  */)
+  (Lisp_Object success, Lisp_Object timestamp, Lisp_Object delete)
+{
+  pgtk_finish_drop (success, timestamp, delete);
+
+  return Qnil;
+}
+
+DEFUN ("pgtk-update-drop-status", Fpgtk_update_drop_status,
+       Spgtk_update_drop_status, 2, 2, 0,
+       doc: /* Update the status of the current drag-and-drop operation.
+ACTION is the action the drop source should take.
+TIMESTAMP is the same as in `pgtk-drop-finish'.  */)
+  (Lisp_Object action, Lisp_Object timestamp)
+{
+  pgtk_update_drop_status (action, timestamp);
+
+  return Qnil;
+}
+
 void
 syms_of_pgtkselect (void)
 {
@@ -1777,23 +1857,22 @@ syms_of_pgtkselect (void)
   DEFSYM (QNULL, "NULL");
   DEFSYM (QATOM, "ATOM");
   DEFSYM (QTARGETS, "TARGETS");
-
-  DEFSYM (Qpgtk_sent_selection_functions,
-	  "pgtk-sent-selection-functions");
-  DEFSYM (Qpgtk_lost_selection_functions,
-	  "pgtk-lost-selection-functions");
+  DEFSYM (QUTF8_STRING, "UTF8_STRING");
+  DEFSYM (QCOMPOUND_TEXT, "COMPOUND_TEXT");
 
   DEFSYM (Qforeign_selection, "foreign-selection");
-  DEFSYM (QUTF8_STRING, "UTF8_STRING");
-  DEFSYM (QSTRING, "STRING");
-  DEFSYM (QCOMPOUND_TEXT, "COMPOUND_TEXT");
-  DEFSYM (Qtext_plain_charset_utf_8, "text/plain;charset=utf-8");
+
+  DEFSYM (Qpgtk_sent_selection_functions, "pgtk-sent-selection-functions");
+  DEFSYM (Qpgtk_lost_selection_functions, "pgtk-lost-selection-functions");
 
   defsubr (&Spgtk_disown_selection_internal);
   defsubr (&Spgtk_get_selection_internal);
   defsubr (&Spgtk_own_selection_internal);
   defsubr (&Spgtk_selection_exists_p);
   defsubr (&Spgtk_selection_owner_p);
+  defsubr (&Spgtk_register_dnd_targets);
+  defsubr (&Spgtk_update_drop_status);
+  defsubr (&Spgtk_drop_finish);
 
   DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
 	       doc: /* SKIP: real doc in xselect.c.  */);
@@ -1817,7 +1896,7 @@ The functions are called with three arguments:
 We might have failed (and declined the request) for any number of reasons,
 including being asked for a selection that we no longer own, or being asked
 to convert into a type that we don't know about or that is inappropriate.
-This hook doesn't let you change the behavior of Emacs's selection replies,
+xThis hook doesn't let you change the behavior of Emacs's selection replies,
 it merely informs you that they have happened.  */);
   Vpgtk_sent_selection_functions = Qnil;
 

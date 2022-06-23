@@ -1930,9 +1930,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_bignum ();
   init_threads ();
   init_eval ();
-#ifdef HAVE_PGTK
-  init_pgtkterm (); /* Must come before `init_atimer'.  */
-#endif
   running_asynch_code = 0;
   init_random ();
   init_xfaces ();
