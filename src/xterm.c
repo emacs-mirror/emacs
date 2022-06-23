@@ -11928,8 +11928,8 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
          really has focus, and these kinds of focus event don't
          correspond to real user input changes.  GTK+ uses the same
          filtering. */
-      if (event->xfocus.mode == NotifyGrab ||
-          event->xfocus.mode == NotifyUngrab)
+      if (event->xfocus.mode == NotifyGrab
+          || event->xfocus.mode == NotifyUngrab)
         return;
       x_focus_changed (event->type,
 		       (event->xfocus.detail == NotifyPointer ?
@@ -20081,6 +20081,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  f = mouse_or_wdesc_frame (dpyinfo, xev->event);
+		  device = xi_device_from_id (dpyinfo, xev->deviceid);
 
 		  /* Don't track grab status for emulated pointer
 		     events, because they are ignored by the regular
@@ -20096,6 +20097,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  dpyinfo->grabbed |= (1 << xev->detail);
 			  dpyinfo->last_mouse_frame = f;
+
+			  if (device)
+			    device->grab |= (1 << xev->detail);
+
 			  if (f && !tab_bar_p)
 			    f->last_tab_bar_item = -1;
 #if ! defined (USE_GTK)
@@ -20104,7 +20109,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif /* not USE_GTK */
 			}
 		      else
-			dpyinfo->grabbed &= ~(1 << xev->detail);
+			{
+			  dpyinfo->grabbed &= ~(1 << xev->detail);
+			  device->grab &= ~(1 << xev->detail);
+			}
 #ifdef XIPointerEmulated
 		    }
 #endif
