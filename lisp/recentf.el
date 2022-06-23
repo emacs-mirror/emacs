@@ -160,7 +160,7 @@ If nil add it at end of menu (see also `easy-menu-add-item')."
                  (const :tag "Last" nil))
   :set 'recentf-menu-customization-changed)
 
-(defcustom recentf-menu-action 'find-file
+(defcustom recentf-menu-action #'find-file
   "Function to invoke with a filename item of the recentf menu.
 The default is to call `find-file' to edit the selected file."
   :group 'recentf
@@ -481,7 +481,7 @@ See also the command `recentf-open-most-recent-file'."
              (interactive)
              (recentf-open-most-recent-file ,k)))
         ;; Bind it to a digit key.
-        (define-key km (vector (+ k ?0)) cmd)))
+        (keymap-set km (format "%d" k) cmd)))
     km)
   "Digit shortcuts keymap.")
 
@@ -1337,8 +1337,8 @@ That is, remove duplicates, non-kept, and excluded files."
 
 ;;; The minor mode
 ;;
-(defvar recentf-mode-map (make-sparse-keymap)
-  "Keymap to use in recentf mode.")
+(defvar-keymap recentf-mode-map
+  :doc "Keymap to use in `recentf-mode'.")
 
 ;;;###autoload
 (define-minor-mode recentf-mode
