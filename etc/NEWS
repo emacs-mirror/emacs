@@ -1856,6 +1856,12 @@ If non-nil, files untracked by a VCS are considered to be part of
 the project by a VC project based on that VCS.
 
 ---
+*** 'recentf-mode' now uses shortened filenames by default.
+This means that e.g. "/home/foo/bar" is now displayed as "~/bar".
+Customize the user option 'recentf-filename-handlers' to nil to get
+back the old behavior.
+
+---
 ** The autoarg.el library is now marked obsolete.
 This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.

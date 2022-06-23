@@ -285,7 +285,7 @@ If `file-name-history' is not empty, do nothing."
 (make-obsolete-variable 'recentf-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 
-(defcustom recentf-filename-handlers nil
+(defcustom recentf-filename-handlers '(abbreviate-file-name)
   "Functions to post process recent file names.
 They are successively passed a file name to transform it."
   :group 'recentf
@@ -295,7 +295,8 @@ They are successively passed a file name to transform it."
            (choice
             (const file-truename)
             (const abbreviate-file-name)
-            (function :tag "Other function")))))
+            (function :tag "Other function"))))
+  :version "29.1")
 
 (defcustom recentf-show-file-shortcuts-flag t
   "Non-nil means to show \"[N]\" for the Nth item up to 10.
