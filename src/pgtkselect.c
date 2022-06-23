@@ -1108,7 +1108,7 @@ pgtk_get_window_property (GdkWindow *window, unsigned char **data_ret,
       eassert (actual_format == 32);
 
       length = length / sizeof (GdkAtom);
-      xdata = xmalloc (sizeof (GdkAtom) * length);
+      xdata = xmalloc (sizeof (GdkAtom) * length + 1);
       memcpy (xdata, data, 1 + length * sizeof (GdkAtom));
 
       g_free (data);

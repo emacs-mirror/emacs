@@ -6259,6 +6259,8 @@ drag_leave (GtkWidget *widget, GdkDragContext *context,
 		       g_object_unref);
     }
 
+  EVENT_INIT (inev.ie);
+
   inev.ie.kind = DRAG_N_DROP_EVENT;
   inev.ie.modifiers = 0;
   inev.ie.arg = Qnil;
