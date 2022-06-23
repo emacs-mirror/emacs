@@ -373,15 +373,27 @@ message."
              (time (nth 2 client-message))
              (action-type (pgtk-dnd-maybe-call-test-function window
                                                              action)))
+        ;; Get the selection contents now.  GdkWaylandSelection
+        ;; becomes unavailable immediately after `drag-drop' is sent.
+        (let* ((current-type (pgtk-dnd-current-type window))
+               (current-action-type (car-safe (aref state 6))))
+          (when (and current-type
+                     (not (equal current-action-type action-type)))
+            (aset state 6 (cons action-type
+                                (pgtk-get-selection-internal
+                                 (nth 1 client-message)
+                                 (intern current-type))))))
         (pgtk-update-drop-status (car action-type) time)
         (dnd-handle-movement (event-start event)))))
    ((eq (car client-message) 'quote) ; drag-drop
-    (let* ((timestamp (nth 2 client-message))
+    (let* ((state (pgtk-dnd-get-state-for-frame frame))
+           (timestamp (nth 2 client-message))
            (value (and (pgtk-dnd-current-type window)
-                       (pgtk-get-selection-internal
-                        (nth 1 client-message)
-                        (intern (pgtk-dnd-current-type window))
-                        timestamp)))
+                       (or (cdr-safe (aref state 6))
+                           (pgtk-get-selection-internal
+                            (nth 1 client-message)
+                            (intern (pgtk-dnd-current-type window))
+                            timestamp))))
            action)
       (unwind-protect
           (setq action (when value
