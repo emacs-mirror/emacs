@@ -91,18 +91,18 @@
 
 ;; Bind the browse-url commands to keys with the `C-c C-z' prefix
 ;; (as used by html-helper-mode):
-;;	(global-set-key "\C-c\C-z." 'browse-url-at-point)
-;;	(global-set-key "\C-c\C-zb" 'browse-url-of-buffer)
-;;	(global-set-key "\C-c\C-zr" 'browse-url-of-region)
-;;	(global-set-key "\C-c\C-zu" 'browse-url)
-;;	(global-set-key "\C-c\C-zv" 'browse-url-of-file)
+;;	(keymap-global-set "C-c C-z ." 'browse-url-at-point)
+;;	(keymap-global-set "C-c C-z b" 'browse-url-of-buffer)
+;;	(keymap-global-set "C-c C-z r" 'browse-url-of-region)
+;;	(keymap-global-set "C-c C-z u" 'browse-url)
+;;	(keymap-global-set "C-c C-z v" 'browse-url-of-file)
 ;;	(add-hook 'dired-mode-hook
 ;;		  (lambda ()
-;;	             (local-set-key "\C-c\C-zf" 'browse-url-of-dired-file)))
+;;	             (keymap-local-set "C-c C-z f" 'browse-url-of-dired-file)))
 
 ;; Browse URLs in mail messages under RMAIL by clicking mouse-2:
 ;;	(add-hook 'rmail-mode-hook (lambda () ; rmail-mode startup
-;;	  (define-key rmail-mode-map [mouse-2] 'browse-url-at-mouse)))
+;;	  (keymap-set rmail-mode-map [mouse-2] 'browse-url-at-mouse)))
 ;; Alternatively, add `goto-address' to `rmail-show-message-hook'.
 
 ;; Gnus provides a standard feature to activate URLs in article
