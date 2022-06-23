@@ -1710,7 +1710,7 @@ which see."
 (defalias 'elisp-eldoc-documentation-function 'elisp--documentation-one-liner
   "Return Elisp documentation for the thing at point as one-line string.
 This is meant as a backward compatibility aide to the \"old\"
-Elisp eldoc behaviour.  Consider variable docstrings and function
+Elisp eldoc behavior.  Consider variable docstrings and function
 signatures only, in this order.  If none applies, returns nil.
 Changes to `eldoc-documentation-functions' and
 `eldoc-documentation-strategy' are _not_ reflected here.  As such
