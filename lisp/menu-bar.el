@@ -792,6 +792,7 @@ The selected font will be the default on both the existing and future frames."
     (dolist (elt '(scroll-bar-mode
 		   debug-on-quit debug-on-error
 		   ;; Somehow this works, when tool-bar and menu-bar don't.
+                   desktop-save-mode
 		   tooltip-mode window-divider-mode
 		   save-place-mode uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
