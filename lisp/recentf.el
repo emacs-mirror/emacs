@@ -171,7 +171,7 @@ The default is to call `find-file' to edit the selected file."
   :group 'recentf
   :type 'integer)
 
-(defcustom recentf-menu-filter #'recentf-show-abbreviated
+(defcustom recentf-menu-filter nil
   "Function used to filter files displayed in the recentf menu.
 A nil value means no filter.  The following functions are predefined:
 
@@ -226,8 +226,7 @@ elements (see `recentf-make-menu-element' for menu element form)."
                 (function-item recentf-arrange-by-mode)
                 (function-item recentf-arrange-by-dir)
                 (function-item recentf-filter-changer)
-                function)
-  :version "29.1")
+                function))
 
 (defcustom recentf-menu-open-all-flag nil
   "Non-nil means to show an \"All...\" item in the menu.
