@@ -238,6 +238,8 @@ This item will replace the \"More...\" item."
 
 (defcustom recentf-auto-cleanup 'mode
   "Define when to automatically cleanup the recent list.
+That is, remove duplicates, non-kept, and excluded files.
+
 The following values can be set:
 
 - `mode'
