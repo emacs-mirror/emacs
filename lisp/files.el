@@ -30,7 +30,8 @@
 
 (eval-when-compile
   (require 'pcase)
-  (require 'easy-mmode)) ; For `define-minor-mode'.
+  (require 'easy-mmode) ; For `define-minor-mode'.
+  (require 'subr-x))
 
 (defvar font-lock-keywords)
 
