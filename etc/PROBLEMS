@@ -1770,9 +1770,9 @@ restart the X server after the monitor configuration has been changed.
 
 *** Touchpad gestures don't work and/or emit warning messages.
 
-Support for touch gestures in Emacs requires version 21.1.0 or later
-of the X.Org server, and it requires that Emacs be built with the
-xf86-input-libinput library that is new enough
+Support for touch gestures in Emacs requires a sufficiently new X
+server.  We currently know of only one: version 21.1.0 or later of the
+X.Org server, coupled with the xf86-input-libinput input driver.
 
 Type 'M-: (x-server-input-extension-version) RET'; if that doesn't
 return '(2 4)' (version 2.4) or later, your version of the X server
