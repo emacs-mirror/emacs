@@ -877,6 +877,13 @@ struct terminal
      MENU_BAR_P if X and Y are in FRAME's toolkit menu bar, and true
      into TOOL_BAR_P if X and Y are in FRAME's toolkit tool bar.  */
   void (*toolkit_position_hook) (struct frame *, int, int, bool *, bool *);
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Called to determine if the mouse is grabbed on the given display.
+     If either dpyinfo->grabbed or this returns true, then the display
+     will be considered as grabbed.  */
+  bool (*any_grab_hook) (Display_Info *);
+#endif
 } GCALIGNED_STRUCT;
 
 INLINE bool

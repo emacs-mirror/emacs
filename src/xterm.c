@@ -27320,6 +27320,25 @@ x_delete_terminal (struct terminal *terminal)
   unblock_input ();
 }
 
+#ifdef HAVE_XINPUT2
+static bool
+x_have_any_grab (struct x_display_info *dpyinfo)
+{
+  int i;
+
+  if (!dpyinfo->supports_xi2)
+    return false;
+
+  for (i = 0; i < dpyinfo->num_devices; ++i)
+    {
+      if (dpyinfo->devices[i].grab)
+	return true;
+    }
+
+  return false;
+}
+#endif
+
 /* Create a struct terminal, initialize it with the X11 specific
    functions and make DISPLAY->TERMINAL point to it.  */
 
@@ -27387,6 +27406,9 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = x_delete_terminal;
   terminal->toolkit_position_hook = x_toolkit_position;
+#ifdef HAVE_XINPUT2
+  terminal->any_grab_hook = x_have_any_grab;
+#endif
   /* Other hooks are NULL by default.  */
 
   return terminal;
