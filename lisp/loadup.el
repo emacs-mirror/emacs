@@ -253,6 +253,7 @@
   ;; A particularly demanding file to load; 1600 does not seem to be enough.
   (load "emacs-lisp/cl-generic"))
 (load "simple")
+(load "emacs-lisp/seq")
 (load "emacs-lisp/nadvice")
 (load "minibuffer") ;Needs cl-generic (and define-minor-mode).
 (load "frame")
