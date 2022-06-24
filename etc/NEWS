@@ -315,6 +315,9 @@ startup.  Previously, these functions ignored
 * Changes in Emacs 29.1
 
 ---
+** Interactively, 'kill-buffer' will now offer to save the buffer if unsaved.
+
+---
 ** New command 'duplicate-line'.
 This command duplicates the current line the specified number of times.
 
