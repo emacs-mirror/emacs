@@ -681,10 +681,13 @@ Each element is (INDEX . VALUE)")
     (put 'byte-stack+-info 'tmp-compile-time-value nil)))
 
 
-;; These opcodes are special in that they pack their argument into the
-;; opcode word.
-;;
+;; The following opcodes (1-47) use the 3 lowest bits for an immediate
+;; argument.
+
 (byte-defop   0  1 byte-stack-ref "for stack reference")
+;; Code 0 is actually unused but reserved as invalid code for detecting
+;; corrupted bytecode.  Codes 1-7 are stack-ref.
+
 (byte-defop   8  1 byte-varref	"for variable reference")
 (byte-defop  16 -1 byte-varset	"for setting a variable")
 (byte-defop  24 -1 byte-varbind	"for binding a variable")
@@ -692,11 +695,9 @@ Each element is (INDEX . VALUE)")
 (byte-defop  40  0 byte-unbind	"for unbinding special bindings")
 ;; codes 8-47 are consumed by the preceding opcodes
 
-;; New (in Emacs-24.4) bytecodes for more efficient handling of non-local exits
-;; (especially useful in lexical-binding code).
 (byte-defop  48  0 byte-pophandler)
-(byte-defop  50 -1 byte-pushcatch)
 (byte-defop  49 -1 byte-pushconditioncase)
+(byte-defop  50 -1 byte-pushcatch)
 
 ;; unused: 51-55
 
@@ -719,9 +720,9 @@ Each element is (INDEX . VALUE)")
 (byte-defop  72 -1 byte-aref)
 (byte-defop  73 -2 byte-aset)
 (byte-defop  74  0 byte-symbol-value)
-(byte-defop  75  0 byte-symbol-function) ; this was commented out
+(byte-defop  75  0 byte-symbol-function)
 (byte-defop  76 -1 byte-set)
-(byte-defop  77 -1 byte-fset) ; this was commented out
+(byte-defop  77 -1 byte-fset)
 (byte-defop  78 -1 byte-get)
 (byte-defop  79 -2 byte-substring)
 (byte-defop  80 -1 byte-concat2)
@@ -739,8 +740,9 @@ Each element is (INDEX . VALUE)")
 (byte-defop  92 -1 byte-plus)
 (byte-defop  93 -1 byte-max)
 (byte-defop  94 -1 byte-min)
-(byte-defop  95 -1 byte-mult) ; v19 only
+(byte-defop  95 -1 byte-mult)
 (byte-defop  96  1 byte-point)
+(byte-defop  97  0 byte-save-current-buffer-OBSOLETE) ; unused since v20
 (byte-defop  98  0 byte-goto-char)
 (byte-defop  99  0 byte-insert)
 (byte-defop 100  1 byte-point-max)
@@ -762,7 +764,6 @@ Each element is (INDEX . VALUE)")
 (byte-defop 115  0 byte-set-mark-OBSOLETE)
 (byte-defop 116  1 byte-interactive-p-OBSOLETE)
 
-;; These ops are new to v19
 (byte-defop 117  0 byte-forward-char)
 (byte-defop 118  0 byte-forward-word)
 (byte-defop 119 -1 byte-skip-chars-forward)
@@ -819,7 +820,6 @@ the unwind-action")
 
 ;; unused: 146
 
-;; these ops are new to v19
 (byte-defop 147 -2 byte-set-marker)
 (byte-defop 148  0 byte-match-beginning)
 (byte-defop 149  0 byte-match-end)
@@ -866,10 +866,11 @@ the unwind-action")
  "to take a hash table and a value from the stack, and jump to
 the address the value maps to, if any.")
 
-;; unused: 182-191
+;; unused: 184-191
 
 (byte-defop 192  1 byte-constant	"for reference to a constant")
-;; codes 193-255 are consumed by byte-constant.
+;; Codes 193-255 are consumed by `byte-constant', which uses the 6
+;; lowest bits for an immediate argument.
 (defconst byte-constant-limit 64
   "Exclusive maximum index usable in the `byte-constant' opcode.")
 
