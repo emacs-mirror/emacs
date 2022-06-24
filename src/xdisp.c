@@ -17250,6 +17250,11 @@ update_redisplay_ticks (int ticks, struct window *w)
 	   : (char *) "<unknown>");
 
       windows_or_buffers_changed = 177;
+      /* scrolling_window depends too much on the glyph matrices being
+	 correct, and we cannot guarantee that if we abort the
+	 redisplay of this window.  */
+      if (w && w->desired_matrix)
+	w->desired_matrix->no_scrolling_p = true;
       error ("Window showing buffer %s takes too long to redisplay", bufname);
     }
 }
