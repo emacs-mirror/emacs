@@ -3462,8 +3462,8 @@ BODY is the backend specific code."
 		  ;; `file-precious-flag' is set.
 		  (or (file-attribute-modification-time file-attr)
 		      (current-time)))
-		 (unless (and (= (file-attribute-user-id file-attr) uid)
-			      (= (file-attribute-group-id file-attr) gid))
+		 (when (and (= (file-attribute-user-id file-attr) uid)
+			    (= (file-attribute-group-id file-attr) gid))
 		   (setq need-chown nil))))
 
 	     ;; Set the ownership.
