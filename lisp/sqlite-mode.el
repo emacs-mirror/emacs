@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(eval-when-compile (require 'subr-x))
 
 (declare-function sqlite-execute "sqlite.c")
 (declare-function sqlite-more-p "sqlite.c")

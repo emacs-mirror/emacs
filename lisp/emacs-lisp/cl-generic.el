@@ -658,8 +658,10 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
   ;; compiled.  Otherwise the byte-compiler and all the code on
   ;; which it depends needs to be usable before cl-generic is loaded,
   ;; which imposes a significant burden on the bootstrap.
-  (if (consp (lambda (x) (+ x 1)))
-      (lambda (exp) (eval exp t)) #'byte-compile))
+  (if (or (consp (lambda (x) (+ x 1)))
+          (not (featurep 'bytecomp)))
+      (lambda (exp) (eval exp t))
+    #'byte-compile))
 
 (defun cl--generic-get-dispatcher (dispatch)
   (with-memoization
@@ -708,9 +710,6 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (funcall
        cl--generic-compiler
        `(lambda (generic dispatches-left methods)
-          ;; FIXME: We should find a way to expand `with-memoize' once
-          ;; and forall so we don't need `subr-x' when we get here.
-          (eval-when-compile (require 'subr-x))
           (let ((method-cache (make-hash-table :test #'eql)))
             (lambda (,@fixedargs &rest args)
               (let ,bindings
