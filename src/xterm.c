@@ -4960,7 +4960,38 @@ x_extension_initialize (struct x_display_info *dpyinfo)
 
 #ifdef HAVE_XINPUT2
 
-/* Free all XI2 devices on dpyinfo.  */
+/* Convert XI2 button state IN to a standard X button modifier
+   mask, and place it in OUT.  */
+static void
+xi_convert_button_state (XIButtonState *in, unsigned int *out)
+{
+  int i;
+
+  if (in->mask_len)
+    {
+      for (i = 1; i <= 8; ++i)
+	{
+	  if (XIMaskIsSet (in->mask, i))
+	    *out |= (Button1Mask << (i - 1));
+	}
+    }
+}
+
+/* Return the modifier state in XEV as a standard X modifier mask.  */
+static unsigned int
+xi_convert_event_state (XIDeviceEvent *xev)
+{
+  unsigned int mods, buttons;
+
+  mods = xev->mods.effective;
+  buttons = 0;
+
+  xi_convert_button_state (&xev->buttons, &buttons);
+
+  return mods | buttons;
+}
+
+/* Free all XI2 devices on DPYINFO.  */
 static void
 x_free_xi_devices (struct x_display_info *dpyinfo)
 {
@@ -19462,7 +19493,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      xm_top_level_leave_message lmsg;
 	      xm_top_level_enter_message emsg;
 	      xm_drag_motion_message dmsg;
-	      int dnd_state;
+	      unsigned int dnd_state;
 
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 
@@ -19628,19 +19659,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XWIDGETS
 	      if (xv)
 		{
-		  uint state = xev->mods.effective;
+		  unsigned int state;
+
+		  state = xi_convert_event_state (xev);
 		  x_display_set_last_user_time (dpyinfo, xev->time,
 						xev->send_event);
-
-		  if (xev->buttons.mask_len)
-		    {
-		      if (XIMaskIsSet (xev->buttons.mask, 1))
-			state |= Button1Mask;
-		      if (XIMaskIsSet (xev->buttons.mask, 2))
-			state |= Button2Mask;
-		      if (XIMaskIsSet (xev->buttons.mask, 3))
-			state |= Button3Mask;
-		    }
 
 		  if (found_valuator)
 		    xwidget_scroll (xv, xev->event_x, xev->event_y,
@@ -19748,17 +19771,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      copy.xmotion.y = lrint (xev->event_y);
 	      copy.xmotion.x_root = lrint (xev->root_x);
 	      copy.xmotion.y_root = lrint (xev->root_y);
-	      copy.xmotion.state = 0;
-
-	      if (xev->buttons.mask_len)
-		{
-		  if (XIMaskIsSet (xev->buttons.mask, 1))
-		    copy.xmotion.state |= Button1Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 2))
-		    copy.xmotion.state |= Button2Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 3))
-		    copy.xmotion.state |= Button3Mask;
-		}
+	      copy.xmotion.state = xi_convert_event_state (xev);
 
 	      copy.xmotion.is_hint = False;
 	      copy.xmotion.same_screen = True;
@@ -19962,17 +19975,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					      xev->root_x, xev->root_y);
 		  else if (x_dnd_last_protocol_version != -1 && target != None)
 		    {
-		      dnd_state = xev->mods.effective;
-
-		      if (xev->buttons.mask_len)
-			{
-			  if (XIMaskIsSet (xev->buttons.mask, 1))
-			    dnd_state |= Button1Mask;
-			  if (XIMaskIsSet (xev->buttons.mask, 2))
-			    dnd_state |= Button2Mask;
-			  if (XIMaskIsSet (xev->buttons.mask, 3))
-			    dnd_state |= Button3Mask;
-			}
+		      dnd_state = xi_convert_event_state (xev);
 
 		      x_dnd_send_position (x_dnd_frame, target,
 					   x_dnd_last_protocol_version,
@@ -20156,17 +20159,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      && x_dnd_last_seen_window != None
 		      && x_dnd_last_protocol_version != -1)
 		    {
-		      dnd_state = xev->mods.effective;
-
-		      if (xev->buttons.mask_len)
-			{
-			  if (XIMaskIsSet (xev->buttons.mask, 1))
-			    dnd_state |= Button1Mask;
-			  if (XIMaskIsSet (xev->buttons.mask, 2))
-			    dnd_state |= Button2Mask;
-			  if (XIMaskIsSet (xev->buttons.mask, 3))
-			    dnd_state |= Button3Mask;
-			}
+		      dnd_state = xi_convert_event_state (xev);
 
 		      x_dnd_send_position (x_dnd_frame, x_dnd_last_seen_window,
 					   x_dnd_last_protocol_version, xev->root_x,
@@ -20339,19 +20332,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      copy.xbutton.y = lrint (xev->event_y);
 	      copy.xbutton.x_root = lrint (xev->root_x);
 	      copy.xbutton.y_root = lrint (xev->root_y);
-	      copy.xbutton.state = xev->mods.effective;
+	      copy.xbutton.state = xi_convert_event_state (xev);
 	      copy.xbutton.button = xev->detail;
 	      copy.xbutton.same_screen = True;
 
-	      if (xev->buttons.mask_len)
-		{
-		  if (XIMaskIsSet (xev->buttons.mask, 1))
-		    copy.xbutton.state |= Button1Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 2))
-		    copy.xbutton.state |= Button2Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 3))
-		    copy.xbutton.state |= Button3Mask;
-		}
 #elif defined USE_GTK && !defined HAVE_GTK3
 	      copy = gdk_event_new (xev->evtype == XI_ButtonPress
 				    ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
@@ -20363,18 +20347,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      copy->button.y = xev->event_y;
 	      copy->button.x_root = xev->root_x;
 	      copy->button.y_root = xev->root_y;
-	      copy->button.state = xev->mods.effective;
+	      copy->button.state = xi_convert_event_state (xev);
 	      copy->button.button = xev->detail;
-
-	      if (xev->buttons.mask_len)
-		{
-		  if (XIMaskIsSet (xev->buttons.mask, 1))
-		    copy->button.state |= GDK_BUTTON1_MASK;
-		  if (XIMaskIsSet (xev->buttons.mask, 2))
-		    copy->button.state |= GDK_BUTTON2_MASK;
-		  if (XIMaskIsSet (xev->buttons.mask, 3))
-		    copy->button.state |= GDK_BUTTON3_MASK;
-		}
 
 	      if (!copy->button.window)
 		emacs_abort ();
@@ -20738,22 +20712,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  copy.xkey.time = xev->time;
 		  copy.xkey.state = ((xev->mods.effective & ~(1 << 13 | 1 << 14))
 				     | (xev->group.effective << 13));
+		  xi_convert_button_state (&xev->buttons, &copy.xkey.state);
 
 		  copy.xkey.x = lrint (xev->event_x);
 		  copy.xkey.y = lrint (xev->event_y);
 		  copy.xkey.x_root = lrint (xev->root_x);
 		  copy.xkey.y_root = lrint (xev->root_y);
-
-		  if (xev->buttons.mask_len)
-		    {
-		      if (XIMaskIsSet (xev->buttons.mask, 1))
-			copy.xkey.state |= Button1Mask;
-		      if (XIMaskIsSet (xev->buttons.mask, 2))
-			copy.xkey.state |= Button2Mask;
-		      if (XIMaskIsSet (xev->buttons.mask, 3))
-			copy.xkey.state |= Button3Mask;
-		    }
-
 		  copy.xkey.keycode = xev->detail;
 		  copy.xkey.same_screen = True;
 #endif
@@ -20789,15 +20753,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      /* Some input methods react differently depending on the
 		 buttons that are pressed.  */
-	      if (xev->buttons.mask_len)
-		{
-		  if (XIMaskIsSet (xev->buttons.mask, 1))
-		    xkey.state |= Button1Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 2))
-		    xkey.state |= Button2Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 3))
-		    xkey.state |= Button3Mask;
-		}
+	      xi_convert_button_state (&xev->buttons, &xkey.state);
 
 	      xkey.keycode = xev->detail;
 	      xkey.same_screen = True;
@@ -21228,15 +21184,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      /* Some input methods react differently depending on the
 		 buttons that are pressed.  */
-	      if (xev->buttons.mask_len)
-		{
-		  if (XIMaskIsSet (xev->buttons.mask, 1))
-		    xkey.state |= Button1Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 2))
-		    xkey.state |= Button2Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 3))
-		    xkey.state |= Button3Mask;
-		}
+	      xi_convert_button_state (&xev->buttons, &xkey.state);
 
 	      xkey.keycode = xev->detail;
 	      xkey.same_screen = True;
