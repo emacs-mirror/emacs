@@ -2698,16 +2698,16 @@ for which LSP on-type-formatting should be requested."
                                        (eglot--range-region range)))
                             (delete-region beg end)
                             (goto-char beg)
-                            (funcall (or snippet-fn #'insert) newText)))
-                        (when (cl-plusp (length additionalTextEdits))
-                          (eglot--apply-text-edits additionalTextEdits)))
+                            (funcall (or snippet-fn #'insert) newText))))
                        (snippet-fn
                         ;; A snippet should be inserted, but using plain
                         ;; `insertText'.  This requires us to delete the
                         ;; whole completion, since `insertText' is the full
                         ;; completion's text.
                         (delete-region (- (point) (length proxy)) (point))
-                        (funcall snippet-fn (or insertText label)))))
+                        (funcall snippet-fn (or insertText label))))
+                 (when (cl-plusp (length additionalTextEdits))
+                   (eglot--apply-text-edits additionalTextEdits)))
                (eglot--signal-textDocument/didChange)
                (eldoc)))))))))
 
