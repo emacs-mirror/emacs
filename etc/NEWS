@@ -1545,6 +1545,10 @@ This controls whether or not to show a message when opening certain
 image formats saying how to edit it as text.  The default is to show
 this message for SVG and XPM.
 
++++
+*** New commands: 'image-flip-horizontally' and 'image-flip-vertically'.
+These commands horizontally and vertically flip the image under point.
+
 ** Image-Dired
 
 +++

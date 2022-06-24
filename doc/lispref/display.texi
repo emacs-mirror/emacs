@@ -5717,6 +5717,12 @@ are supported, unless the image type is @code{imagemagick}.  Positive
 values rotate clockwise, negative values counter-clockwise.  Rotation
 is performed after scaling and cropping.
 
+@item :flip @var{flip}
+If this is @code{t}, the image will be horizontally flipped.
+Currently it has no effect if the image type is @code{imagemagick}.
+Vertical flipping can be achieved by rotating the image 180 degrees
+and toggling this value.
+
 @item :transform-smoothing @var{smooth}
 If this is @code{t}, any image transform will have smoothing applied;
 if @code{nil}, no smoothing will be applied.  The exact algorithm used

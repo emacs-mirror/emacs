@@ -2587,6 +2587,11 @@ image_set_transform (struct frame *f, struct image *img)
   double rotation = 0.0;
   compute_image_rotation (img, &rotation);
 
+  /* Determine flipping.  */
+  bool flip;
+  Lisp_Object m = image_spec_value (img->spec, QCflip, NULL);
+  flip = !NILP (m);
+
 #ifndef HAVE_HAIKU
 # if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS
   /* We want scale up operations to use a nearest neighbor filter to
@@ -2626,14 +2631,25 @@ image_set_transform (struct frame *f, struct image *img)
   /* Perform rotation transformation.  */
 
   int rotate_flag = -1;
-  if (rotation == 0)
+  if (rotation == 0 && !flip)
     rotate_flag = 0;
   else
     {
 # if (defined USE_CAIRO || defined HAVE_XRENDER \
       || defined HAVE_NTGUI || defined HAVE_NS)
       int cos_r, sin_r;
-      if (rotation == 90)
+      if (rotation == 0)
+	{
+	  /* FLIP is always true here.  As this will rotate by 0
+	     degrees, it has no visible effect.  Applying only
+	     translation matrix to the image would be sufficient for
+	     horizontal flipping, but writing special handling for
+	     this case would increase code complexity somewhat.  */
+	  cos_r = 1;
+	  sin_r = 0;
+	  rotate_flag = 1;
+	}
+      else if (rotation == 90)
 	{
 	  width = img->height;
 	  height = img->width;
@@ -2674,9 +2690,14 @@ image_set_transform (struct frame *f, struct image *img)
 	  matrix3x3 v;
 	  matrix3x3_mult (rot, u, v);
 
-	  /* 3. Translate back.  */
+	  /* 3. Translate back.  Flip horizontally if requested.  */
 	  t[2][0] = width * -.5;
 	  t[2][1] = height * -.5;
+	  if (flip)
+	    {
+	      t[0][0] = -t[0][0];
+	      t[2][0] = -t[2][0];
+	    }
 	  matrix3x3_mult (t, v, matrix);
 #  else
 	  /* 1. Translate so (0, 0) is in the center of the image.  */
@@ -2694,9 +2715,10 @@ image_set_transform (struct frame *f, struct image *img)
 	  matrix3x3 v;
 	  matrix3x3_mult (u, rot, v);
 
-	  /* 3. Translate back.  */
+	  /* 3. Translate back.  Flip horizontally if requested.  */
 	  t[2][0] = width * .5;
 	  t[2][1] = height * .5;
+	  if (flip) t[0][0] = -t[0][0];
 	  matrix3x3_mult (v, t, matrix);
 #  endif
 	  img->width = width;
@@ -11940,6 +11962,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCtransform_smoothing, ":transform-smoothing");
   DEFSYM (QCcolor_adjustment, ":color-adjustment");
   DEFSYM (QCmask, ":mask");
+  DEFSYM (QCflip, ":flip");
 
   /* Other symbols.  */
   DEFSYM (Qlaplace, "laplace");

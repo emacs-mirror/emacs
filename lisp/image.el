@@ -177,6 +177,8 @@ or \"ffmpeg\") is installed."
   "+" #'image-increase-size
   "r" #'image-rotate
   "o" #'image-save
+  "h" #'image-flip-horizontally
+  "v" #'image-flip-vertically
   "C-<wheel-down>" #'image-mouse-decrease-size
   "C-<mouse-5>"    #'image-mouse-decrease-size
   "C-<wheel-up>"   #'image-mouse-increase-size
@@ -1287,6 +1289,22 @@ changing the displayed image size does not affect the saved image."
           (insert (plist-get (cdr image) :data))))
       (write-region (point-min) (point-max)
                     (read-file-name "Write image to file: ")))))
+
+(defun image-flip-horizontally ()
+  "Horizontally flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-flush image)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
+
+(defun image-flip-vertically ()
+  "Vertically flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-rotate 180)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
 
 (provide 'image)
 
