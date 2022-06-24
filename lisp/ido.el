@@ -3205,12 +3205,18 @@ instead removed from the current item list."
 ;; File list sorting
 
 (defun ido-file-lessp (a b)
-  ;; Simple compare two file names.
+  "Simple compare two file names."
+  (when ido-case-fold
+    (setq a (downcase a)
+          b (downcase b)))
   (string-lessp (ido-no-final-slash a) (ido-no-final-slash b)))
 
 
 (defun ido-file-extension-lessp (a b)
-  ;; Compare file names according to ido-file-extensions-order list.
+  "Compare file names according to ido-file-extensions-order list."
+  (when ido-case-fold
+    (setq a (downcase a)
+          b (downcase b)))
   (let ((n (compare-strings a 0 nil b 0 nil nil))
 	lessp p)
     (if (eq n t)
