@@ -1768,7 +1768,15 @@ This happens on the proprietary X server ASTEC-X when the number of
 monitors is changed after the server has started.  A workaround is to
 restart the X server after the monitor configuration has been changed.
 
-*** Touchpad gestures don't work and emit warning messages.
+*** Touchpad gestures don't work and/or emit warning messages.
+
+Support for touch gestures in Emacs requires version 21.1.0 or later
+of the X.Org server, and it requires that Emacs be built with the
+xf86-input-libinput library that is new enough
+
+Type 'M-: (x-server-input-extension-version) RET'; if that doesn't
+return '(2 4)' (version 2.4) or later, your version of the X server
+and libraries are too old and need to be upgraded.
 
 When pinching or swiping on your touchpad, you might see a warning
 message that looks like:
