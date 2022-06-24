@@ -2273,8 +2273,13 @@ it defines a macro.  */)
   /* This is to make sure that loadup.el gives a clear picture
      of what files are preloaded and when.  */
   if (will_dump_p () && !will_bootstrap_p ())
-    error ("Attempt to autoload %s while preparing to dump",
-	   SDATA (SYMBOL_NAME (funname)));
+    {
+      /* Avoid landing here recursively while outputting the
+	 backtrace from the error.  */
+      gflags.will_dump_ = false;
+      error ("Attempt to autoload %s while preparing to dump",
+	     SDATA (SYMBOL_NAME (funname)));
+    }
 
   CHECK_SYMBOL (funname);
 
