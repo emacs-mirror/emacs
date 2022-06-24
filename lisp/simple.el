@@ -10560,6 +10560,23 @@ If the buffer doesn't exist, create it first."
   (interactive)
   (pop-to-buffer-same-window (get-scratch-buffer-create)))
 
+(defun kill-buffer--possibly-save (buffer)
+  (let ((response
+         (cadr
+          (read-multiple-choice
+           (format "Buffer %s modified; kill anyway?"
+                   (buffer-name))
+           '((?y "yes" "kill buffer without saving")
+             (?n "no" "exit without doing anything")
+             (?s "save and then kill" "save the buffer and then kill it"))
+           nil nil (not use-short-answers)))))
+    (if (equal response "no")
+        nil
+      (unless (equal response "yes")
+        (with-current-buffer buffer
+          (save-buffer)))
+      t)))
+
 
 
 (provide 'simple)

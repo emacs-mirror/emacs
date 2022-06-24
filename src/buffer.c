@@ -1809,10 +1809,12 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     /* Query if the buffer is still modified.  */
     if (INTERACTIVE && modified)
       {
-	AUTO_STRING (format, "Buffer %s modified; kill anyway? ");
-	tem = do_yes_or_no_p (CALLN (Fformat, format, BVAR (b, name)));
-	if (NILP (tem))
+	/* Ask whether to kill the buffer, and exit if the user says
+	   "no".  */
+	if (NILP (call1 (Qkill_buffer__possibly_save, buffer)))
 	  return unbind_to (count, Qnil);
+	/* Recheck modified.  */
+	modified = BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
       }
 
     /* Delete the autosave file, if requested. */
@@ -6473,6 +6475,8 @@ will run for `clone-indirect-buffer' calls as well.  */);
   defsubr (&Srestore_buffer_modified_p);
 
   DEFSYM (Qautosaved, "autosaved");
+
+  DEFSYM (Qkill_buffer__possibly_save, "kill-buffer--possibly-save");
 
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }

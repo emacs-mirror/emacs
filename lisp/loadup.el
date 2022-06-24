@@ -397,6 +397,9 @@
       (message "Warning: Change in load-path due to site-load will be \
 lost after dumping")))
 
+;; Used by `kill-buffer', for instance.
+(load "emacs-lisp/rmc")
+
 ;; Make sure default-directory is unibyte when dumping.  This is
 ;; because we cannot decode and encode it correctly (since the locale
 ;; environment is not, and should not be, set up).  default-directory
