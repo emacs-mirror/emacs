@@ -2207,9 +2207,53 @@ in that buffer."
                         command-completion-default-include-p)
                  (function :tag "Other function")))
 
-(defun read-extended-command ()
+(defun execute-extended-command-cycle ()
+  "Choose the next version of the extended command predicates.
+See `extended-command-versions'."
+  (interactive)
+  (throw 'cycle
+         (cons (minibuffer-contents)
+               (- (point) (minibuffer-prompt-end)))))
+
+(defvar extended-command-versions
+  (list (list "M-x " (lambda () read-extended-command-predicate))
+        (list "M-X " #'command-completion--command-for-this-buffer-function))
+  "Alist of prompts and what the extended command predicate should be.
+This is used by the \\<minibuffer-local-must-match-map>\\[execute-extended-command-cycle] command when reading an extended command.")
+
+(defun read-extended-command (&optional prompt)
   "Read command name to invoke in `execute-extended-command'.
 This function uses the `read-extended-command-predicate' user option."
+  (let ((default-predicate read-extended-command-predicate)
+        (read-extended-command-predicate read-extended-command-predicate)
+        already-typed ret)
+    ;; If we have a prompt (which is the name of the version of the
+    ;; command), then set up the predicate from
+    ;; `extended-command-versions'.
+    (if (not prompt)
+        (setq prompt (caar extended-command-versions))
+      (setq read-extended-command-predicate
+            (funcall (cadr (assoc prompt extended-command-versions)))))
+    ;; Normally this will only execute once.
+    (while (not (stringp ret))
+      (when (consp (setq ret (catch 'cycle
+                               (read-extended-command-1 prompt
+                                                        already-typed))))
+        ;; But if the user hit `M-X', then we `throw'ed out to that
+        ;; `catch', and we cycle to the next setting.
+        (let ((next (or (cadr (memq (assoc prompt extended-command-versions)
+                                    extended-command-versions))
+                        ;; Last one; cycle back to the first.
+                        (car extended-command-versions))))
+          ;; Restore the user's default predicate.
+          (setq read-extended-command-predicate default-predicate)
+          ;; Then calculate the next.
+          (setq prompt (car next)
+                read-extended-command-predicate (funcall (cadr next))
+                already-typed ret))))
+    ret))
+
+(defun read-extended-command-1 (prompt initial-input)
   (let ((buffer (current-buffer)))
     (minibuffer-with-setup-hook
         (lambda ()
@@ -2234,8 +2278,8 @@ This function uses the `read-extended-command-predicate' user option."
 		              (cons def (delete def all))
 		            all)))))
       ;; Read a string, completing from and restricting to the set of
-      ;; all defined commands.  Don't provide any initial input.
-      ;; Save the command read on the extended-command history list.
+      ;; all defined commands.  Save the command read on the
+      ;; extended-command history list.
       (completing-read
        (concat (cond
 	        ((eq current-prefix-arg '-) "- ")
@@ -2253,9 +2297,7 @@ This function uses the `read-extended-command-predicate' user option."
 	       ;; but actually a prompt other than "M-x" would be confusing,
 	       ;; because "M-x" is a well-known prompt to read a command
 	       ;; and it serves as a shorthand for "Extended command: ".
-               (if (memq 'shift (event-modifiers last-command-event))
-	           "M-X "
-	         "M-x "))
+               (or prompt "M-x "))
        (lambda (string pred action)
          (if (and suggest-key-bindings (eq action 'metadata))
 	     '(metadata
@@ -2294,7 +2336,7 @@ This function uses the `read-extended-command-predicate' user option."
                          (funcall read-extended-command-predicate sym buffer)
                        (error (message "read-extended-command-predicate: %s: %s"
                                        sym (error-message-string err))))))))
-       t nil 'extended-command-history))))
+       t initial-input 'extended-command-history))))
 
 (defun command-completion-using-modes-p (symbol buffer)
   "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
@@ -2525,35 +2567,36 @@ minor modes), as well as commands bound in the active local key
 maps."
   (declare (interactive-only command-execute))
   (interactive
-   (let* ((execute-extended-command--last-typed nil)
-          (keymaps
-           ;; The major mode's keymap and any active minor modes.
-           (nconc
-            (and (current-local-map) (list (current-local-map)))
-            (mapcar
-             #'cdr
-             (seq-filter
-              (lambda (elem)
-                (symbol-value (car elem)))
-              minor-mode-map-alist))))
-          (read-extended-command-predicate
-           (lambda (symbol buffer)
-             (or (command-completion-using-modes-p symbol buffer)
-                 ;; Include commands that are bound in a keymap in the
-                 ;; current buffer.
-                 (and (where-is-internal symbol keymaps)
-                      ;; But not if they have a command predicate that
-                      ;; says that they shouldn't.  (This is the case
-                      ;; for `ignore' and `undefined' and similar
-                      ;; commands commonly found in keymaps.)
-                      (or (null (get symbol 'completion-predicate))
-                          (funcall (get symbol 'completion-predicate)
-                                   symbol buffer)))))))
+   (let ((execute-extended-command--last-typed nil))
      (list current-prefix-arg
-           (read-extended-command)
+           (read-extended-command "M-X ")
            execute-extended-command--last-typed)))
   (with-suppressed-warnings ((interactive-only execute-extended-command))
     (execute-extended-command prefixarg command-name typed)))
+
+(defun command-completion--command-for-this-buffer-function ()
+  (let ((keymaps
+         ;; The major mode's keymap and any active minor modes.
+         (nconc
+          (and (current-local-map) (list (current-local-map)))
+          (mapcar
+           #'cdr
+           (seq-filter
+            (lambda (elem)
+              (symbol-value (car elem)))
+            minor-mode-map-alist)))))
+    (lambda (symbol buffer)
+      (or (command-completion-using-modes-p symbol buffer)
+          ;; Include commands that are bound in a keymap in the
+          ;; current buffer.
+          (and (where-is-internal symbol keymaps)
+               ;; But not if they have a command predicate that
+               ;; says that they shouldn't.  (This is the case
+               ;; for `ignore' and `undefined' and similar
+               ;; commands commonly found in keymaps.)
+               (or (null (get symbol 'completion-predicate))
+                   (funcall (get symbol 'completion-predicate)
+                            symbol buffer)))))))
 
 (cl-defgeneric function-documentation (function)
   "Extract the raw docstring info from FUNCTION.

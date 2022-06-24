@@ -2780,6 +2780,7 @@ The completion method is determined by `completion-at-point-functions'."
 (defvar-keymap minibuffer-local-must-match-map
   :doc "Local keymap for minibuffer input with completion, for exact match."
   :parent minibuffer-local-completion-map
+  "M-X" #'execute-extended-command-cycle
   "RET" #'minibuffer-complete-and-exit
   "C-j" #'minibuffer-complete-and-exit)
 

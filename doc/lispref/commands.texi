@@ -897,6 +897,10 @@ keymaps.  This command is the normal definition of @kbd{M-S-x}
 (that's ``meta shift x'').
 @end deffn
 
+Both these commands prompt for a command name, but with different
+completion rules.  You can toggle between these two modes by using the
+@kbd{M-S-x} command while being prompted.
+
 @node Distinguish Interactive
 @section Distinguish Interactive Calls
 @cindex distinguish interactive calls

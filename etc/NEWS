@@ -314,6 +314,16 @@ startup.  Previously, these functions ignored
 
 * Changes in Emacs 29.1
 
++++
+** New key binding after 'M-x' or 'M-X': 'M-X'.
+Emacs allows different completion predicates to be used with 'M-x'
+(i.e., 'execute-extended-command') via the
+'read-extended-command-predicate' user option.  Emacs also has the
+'M-X' (note upper case) command, which only displays commands
+especially relevant to the current buffer.  Emacs now allows toggling
+between these modes while the user is inputting a command by hitting
+'M-X' while in the minibuffer.
+
 ---
 ** Interactively, 'kill-buffer' will now offer to save the buffer if unsaved.
 
