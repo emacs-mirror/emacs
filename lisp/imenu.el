@@ -464,7 +464,7 @@ Non-nil arguments are in recursive calls."
   `(keymap ,title
            ,@(mapcar
               (lambda (item)
-                `(,(car item) ,(car item)
+                `(,(intern (car item)) ,(car item)
                   ,@(cond
                      ((imenu--subalist-p item)
                       (imenu--create-keymap (car item) (cdr item) cmd))
