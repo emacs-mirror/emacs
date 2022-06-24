@@ -62,7 +62,8 @@ In case URL is not convertible, nil is returned."
 (defun url-tramp-convert-tramp-to-url (file)
   "Convert FILE, a Tramp file name, to a URL.
 In case FILE is not convertible, nil is returned."
-  (let* ((obj (and (tramp-tramp-file-p file) (tramp-dissect-file-name file)))
+  (let* ((obj (and (tramp-tramp-file-p file)
+                   (ignore-errors (tramp-dissect-file-name file))))
          (port
           (and obj (stringp (tramp-file-name-port obj))
                (string-to-number (tramp-file-name-port obj)))))
