@@ -31,7 +31,6 @@
 (require 'cl-generic)
 (require 'lisp-mode)
 (eval-when-compile (require 'cl-lib))
-(eval-when-compile (require 'subr-x))
 
 (define-abbrev-table 'emacs-lisp-mode-abbrev-table ()
   "Abbrev table for Emacs Lisp mode.
