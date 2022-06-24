@@ -370,7 +370,6 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
 		bool posix, bool modify_data)
 {
   ptrdiff_t val;
-  struct re_pattern_buffer *bufp;
   EMACS_INT pos;
   ptrdiff_t pos_byte, i;
   bool modify_match_data = NILP (Vinhibit_changing_match_data) && modify_data;
@@ -401,17 +400,22 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
   set_char_table_extras (BVAR (current_buffer, case_canon_table), 2,
 			 BVAR (current_buffer, case_eqv_table));
 
-  bufp = &compile_pattern (regexp,
-                           (modify_match_data ? &search_regs : NULL),
-                           (!NILP (BVAR (current_buffer, case_fold_search))
-                            ? BVAR (current_buffer, case_canon_table) : Qnil),
-                           posix,
-                           STRING_MULTIBYTE (string))->buf;
+  specpdl_ref count = SPECPDL_INDEX ();
+  struct regexp_cache *cache_entry
+    = compile_pattern (regexp,
+		       modify_match_data ? &search_regs : NULL,
+		       (!NILP (BVAR (current_buffer, case_fold_search))
+			? BVAR (current_buffer, case_canon_table)
+			: Qnil),
+		       posix,
+		       STRING_MULTIBYTE (string));
+  freeze_pattern (cache_entry);
   re_match_object = string;
-  val = re_search (bufp, SSDATA (string),
+  val = re_search (&cache_entry->buf, SSDATA (string),
 		   SBYTES (string), pos_byte,
 		   SBYTES (string) - pos_byte,
 		   (modify_match_data ? &search_regs : NULL));
+  unbind_to (count, Qnil);
 
   /* Set last_thing_searched only when match data is changed.  */
   if (modify_match_data)
@@ -480,15 +484,15 @@ ptrdiff_t
 fast_string_match_internal (Lisp_Object regexp, Lisp_Object string,
 			    Lisp_Object table)
 {
-  ptrdiff_t val;
-  struct re_pattern_buffer *bufp;
-
-  bufp = &compile_pattern (regexp, 0, table,
-                           0, STRING_MULTIBYTE (string))->buf;
   re_match_object = string;
-  val = re_search (bufp, SSDATA (string),
-		   SBYTES (string), 0,
-		   SBYTES (string), 0);
+  specpdl_ref count = SPECPDL_INDEX ();
+  struct regexp_cache *cache_entry
+    = compile_pattern (regexp, 0, table, 0, STRING_MULTIBYTE (string));
+  freeze_pattern (cache_entry);
+  ptrdiff_t val = re_search (&cache_entry->buf, SSDATA (string),
+			     SBYTES (string), 0,
+			     SBYTES (string), 0);
+  unbind_to (count, Qnil);
   return val;
 }
 
@@ -501,15 +505,14 @@ ptrdiff_t
 fast_c_string_match_ignore_case (Lisp_Object regexp,
 				 const char *string, ptrdiff_t len)
 {
-  ptrdiff_t val;
-  struct re_pattern_buffer *bufp;
-
   regexp = string_make_unibyte (regexp);
-  bufp = &compile_pattern (regexp, 0,
-                           Vascii_canon_table, 0,
-                           0)->buf;
+  specpdl_ref count = SPECPDL_INDEX ();
+  struct regexp_cache *cache_entry
+    = compile_pattern (regexp, 0, Vascii_canon_table, 0, 0);
+  freeze_pattern (cache_entry);
   re_match_object = Qt;
-  val = re_search (bufp, string, len, 0, len, 0);
+  ptrdiff_t val = re_search (&cache_entry->buf, string, len, 0, len, 0);
+  unbind_to (count, Qnil);
   return val;
 }
 
