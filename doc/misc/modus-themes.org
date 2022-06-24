@@ -618,7 +618,7 @@ By default, customizing a theme-related user option through the Custom
 interfaces or with {{{kbd(M-x customize-set-variable)}}} will not reload the
 currently active Modus theme.
 
-Enable this behaviour by setting this variable to ~nil~.
+Enable this behavior by setting this variable to ~nil~.
 
 Regardless of this option, the active theme must be reloaded for changes
 to user options to take effect ([[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]]).
@@ -2624,7 +2624,7 @@ contrast on an on-demand basis.
 
 One way to achieve this is to design a command that cycles through three
 distinct levels of intensity, though the following can be adapted to any
-kind of cyclic behaviour, such as to switch between red, green, and
+kind of cyclic behavior, such as to switch between red, green, and
 blue.
 
 In the following example, we employ the ~modus-themes-color~ function

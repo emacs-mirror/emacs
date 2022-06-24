@@ -595,7 +595,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                           ;; select it -- again, as desired.
                           ;;
                           ;; FIXME: it's arguable that this second
-                          ;; behaviour should be a property of the
+                          ;; behavior should be a property of the
                           ;; completion table and not the completion
                           ;; frontend such as we have done
                           ;; here. However, it seems generically

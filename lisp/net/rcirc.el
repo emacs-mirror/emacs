@@ -3482,7 +3482,7 @@ form \"PARAMETER\" to enable a feature, \"PARAMETER=VALUE\" to
 configure a specific option or \"-PARAMETER\" to disable a
 previously specified feature.  SENDER is passed on to
 `rcirc-handler-generic'.  PROCESS is the process object for the
-current connection.  Note that this is not the behaviour as
+current connection.  Note that this is not the behavior as
 specified in RFC2812, where 005 stood for RPL_BOUNCE."
   (rcirc-handler-generic process "005" sender args text)
   (with-rcirc-process-buffer process
