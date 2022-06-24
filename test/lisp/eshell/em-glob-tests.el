@@ -160,6 +160,21 @@ component ending in \"symlink\" is treated as a symbolic link."
     (should (equal (eshell-extended-glob "[[:digit:]]##~4?")
                    '("1" "12" "123")))))
 
+(ert-deftest em-glob-test/match-dot-files ()
+  "Test that dot files are matched correctly."
+  (with-fake-files '("foo.el" ".emacs")
+    (should (equal (eshell-extended-glob ".*")
+                   '("../" "./" ".emacs")))
+    (let (eshell-glob-include-dot-dot)
+      (should (equal (eshell-extended-glob ".*")
+                     '(".emacs"))))
+    (let ((eshell-glob-include-dot-files t))
+      (should (equal (eshell-extended-glob "*")
+                     '("../" "./" ".emacs" "foo.el")))
+      (let (eshell-glob-include-dot-dot)
+        (should (equal (eshell-extended-glob "*")
+                       '(".emacs" "foo.el")))))))
+
 (ert-deftest em-glob-test/no-matches ()
   "Test behavior when a glob fails to match any files."
   (with-fake-files '("foo.el" "bar.el")
