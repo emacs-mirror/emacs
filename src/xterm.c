@@ -3894,6 +3894,18 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
 }
 
 static Window
+x_dnd_fill_empty_target (int *proto_out, int *motif_out,
+			 Window *toplevel_out, bool *was_frame)
+{
+  *proto_out = -1;
+  *motif_out = XM_DRAG_STYLE_NONE;
+  *toplevel_out = None;
+  *was_frame = false;
+
+  return None;
+}
+
+static Window
 x_dnd_get_target_window (struct x_display_info *dpyinfo,
 			 int root_x, int root_y, int *proto_out,
 			 int *motif_out, Window *toplevel_out,
@@ -18111,12 +18123,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  }
 	      }
 
-	    target = x_dnd_get_target_window (dpyinfo,
-					      event->xmotion.x_root,
-					      event->xmotion.y_root,
-					      &target_proto,
-					      &motif_style, &toplevel,
-					      &was_frame);
+	    if (event->xmotion.same_screen)
+	      target = x_dnd_get_target_window (dpyinfo,
+						event->xmotion.x_root,
+						event->xmotion.y_root,
+						&target_proto,
+						&motif_style, &toplevel,
+						&was_frame);
+	    else
+	      target = x_dnd_fill_empty_target (&target_proto, &motif_style,
+						&toplevel, &was_frame);
 
 	    if (toplevel != x_dnd_last_seen_toplevel)
 	      {
@@ -19837,13 +19853,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			}
 		    }
 
-		  target = x_dnd_get_target_window (dpyinfo,
-						    xev->root_x,
-						    xev->root_y,
-						    &target_proto,
-						    &motif_style,
-						    &toplevel,
-						    &was_frame);
+		  if (xev->root == dpyinfo->root_window)
+		    target = x_dnd_get_target_window (dpyinfo,
+						      xev->root_x,
+						      xev->root_y,
+						      &target_proto,
+						      &motif_style,
+						      &toplevel,
+						      &was_frame);
+		  else
+		    target = x_dnd_fill_empty_target (&target_proto,
+						      &motif_style,
+						      &toplevel,
+						      &was_frame);
 
 		  if (toplevel != x_dnd_last_seen_toplevel)
 		    {
