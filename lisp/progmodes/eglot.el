@@ -368,7 +368,7 @@ This can be useful when using docker to run a language server.")
   `((1 . eglot-diagnostic-tag-unnecessary-face)
     (2 . eglot-diagnostic-tag-deprecated-face)))
 
-(defconst eglot--{} (make-hash-table) "The empty JSON object.")
+(defconst eglot--{} (make-hash-table :size 1) "The empty JSON object.")
 
 (defun eglot--executable-find (command &optional remote)
   "Like Emacs 27's `executable-find', ignore REMOTE on Emacs 26."
