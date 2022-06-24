@@ -59,8 +59,8 @@
 (eval-when-compile (require 'cl-generic))
 
 ;; We used to use some sequence functions from cl-lib, but this
-;; dependency was swapped around so that it will be easier to make
-;; seq.el preloaded in the future.  See also Bug#39761#26.
+;; dependency was swapped around so that it's easier to make seq.el
+;; preloaded.  See also Bug#39761#26.
 
 (defmacro seq-doseq (spec &rest body)
   "Loop over a sequence.
