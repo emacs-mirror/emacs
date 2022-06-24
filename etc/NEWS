@@ -2105,6 +2105,9 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
+** 'read-multiple-choice' can now use long-form answers.
+
++++
 ** 'read-regexp' now allows the user to indicate whether to use case folding.
 
 +++

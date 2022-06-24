@@ -23,8 +23,6 @@
 
 ;;; Code:
 
-(require 'seq)
-
 (defun rmc--add-key-description (elem)
   (let* ((char (car elem))
          (name (cadr elem))
@@ -125,7 +123,8 @@
     buf))
 
 ;;;###autoload
-(defun read-multiple-choice (prompt choices &optional help-string show-help)
+(defun read-multiple-choice (prompt choices &optional help-string show-help
+                                    long-form)
   "Ask user to select an entry from CHOICES, promting with PROMPT.
 This function allows to ask the user a multiple-choice question.
 
@@ -163,12 +162,21 @@ dialogs.  Otherwise, the function will always use text-mode dialogs.
 
 The return value is the matching entry from the CHOICES list.
 
+If LONG-FORM, do a `completing-read' over the NAME elements in
+CHOICES instead.
+
 Usage example:
 
 \(read-multiple-choice \"Continue connecting?\"
                       \\='((?a \"always\")
                         (?s \"session only\")
                         (?n \"no\")))"
+  (if long-form
+      (read-multiple-choice--long-answers prompt choices)
+    (read-multiple-choice--short-answers
+     prompt choices help-string show-help)))
+
+(defun read-multiple-choice--short-answers (prompt choices help-string show-help)
   (let* ((prompt-choices
           (if show-help choices (append choices '((?? "?")))))
          (altered-names (mapcar #'rmc--add-key-description prompt-choices))
@@ -243,6 +251,17 @@ Usage example:
     (when (buffer-live-p buf)
       (kill-buffer buf))
     (assq tchar choices)))
+
+(defun read-multiple-choice--long-answers (prompt choices)
+  (let ((answer
+         (completing-read
+          (concat prompt " ("
+                  (mapconcat #'identity (mapcar #'cadr choices) "/")
+                  ") ")
+          (mapcar #'cadr choices) nil t)))
+    (seq-find (lambda (elem)
+                (equal (cadr elem) answer))
+              choices)))
 
 (provide 'rmc)
 
