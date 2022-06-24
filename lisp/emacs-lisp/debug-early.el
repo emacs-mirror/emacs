@@ -45,7 +45,13 @@ of the build process."
       (let ((print-escape-newlines t)
             (print-escape-control-characters t)
             (print-escape-nonascii t)
-            (prin1 (if (fboundp 'cl-prin1) #'cl-prin1 #'prin1)))
+            (prin1 (if (and (fboundp 'cl-prin1)
+                            ;; If we're being called while
+                            ;; bootstrapping, we won't be able to load
+                            ;; cl-print.
+                            (require 'cl-print nil t))
+                       #'cl-prin1
+                     #'prin1)))
         (mapbacktrace
          #'(lambda (evald func args _flags)
              (let ((args args))
