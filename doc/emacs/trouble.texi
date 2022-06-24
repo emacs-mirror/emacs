@@ -151,7 +151,6 @@ garbled displays, running out of memory, and crashes and hangs.
 Emacs.
 
 @menu
-* DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
 * Stuck Recursive::       '[...]' in mode line around the parentheses.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
@@ -160,64 +159,8 @@ Emacs.
 * After a Crash::         Recovering editing in an Emacs session that crashed.
 * Emergency Escape::      What to do if Emacs stops responding.
 * Long Lines::            Mitigating slowness due to extremely long lines.
+* DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
 @end menu
-
-@node DEL Does Not Delete
-@subsection If @key{DEL} Fails to Delete
-@cindex @key{DEL} vs @key{BACKSPACE}
-@cindex @key{BACKSPACE} vs @key{DEL}
-@cindex @key{DEL} does not delete
-
-  Every keyboard has a large key, usually labeled @key{BACKSPACE},
-which is ordinarily used to erase the last character that you typed.
-In Emacs, this key is supposed to be equivalent to @key{DEL}.
-
-  When Emacs starts up on a graphical display, it determines
-automatically which key should be @key{DEL}.  In some unusual cases,
-Emacs gets the wrong information from the system, and @key{BACKSPACE}
-ends up deleting forwards instead of backwards.
-
-  Some keyboards also have a @key{Delete} key, which is ordinarily
-used to delete forwards.  If this key deletes backward in Emacs, that
-too suggests Emacs got the wrong information---but in the opposite
-sense.
-
-  On a text terminal, if you find that @key{BACKSPACE} prompts for a
-Help command, like @kbd{Control-h}, instead of deleting a character,
-it means that key is actually sending the @samp{BS} character.  Emacs
-ought to be treating @key{BS} as @key{DEL}, but it isn't.
-
-@findex normal-erase-is-backspace-mode
-  In all of those cases, the immediate remedy is the same: use the
-command @kbd{M-x normal-erase-is-backspace-mode}.  This toggles
-between the two modes that Emacs supports for handling @key{DEL}, so
-if Emacs starts in the wrong mode, this should switch to the right
-mode.  On a text terminal, if you want to ask for help when @key{BS}
-is treated as @key{DEL}, use @key{F1} instead of @kbd{C-h}; @kbd{C-?}
-may also work, if it sends character code 127.
-
-  To fix the problem in every Emacs session, put one of the following
-lines into your initialization file (@pxref{Init File}).  For the
-first case above, where @key{BACKSPACE} deletes forwards instead of
-backwards, use this line to make @key{BACKSPACE} act as @key{DEL}:
-
-@lisp
-(normal-erase-is-backspace-mode 0)
-@end lisp
-
-@noindent
-For the other two cases, use this line:
-
-@lisp
-(normal-erase-is-backspace-mode 1)
-@end lisp
-
-@vindex normal-erase-is-backspace
-  Another way to fix the problem for every Emacs session is to
-customize the variable @code{normal-erase-is-backspace}: the value
-@code{t} specifies the mode where @key{BS} or @key{BACKSPACE} is
-@key{DEL}, and @code{nil} specifies the other mode.  @xref{Easy
-Customization}.
 
 @node Stuck Recursive
 @subsection Recursive Editing Levels
@@ -524,6 +467,86 @@ be substantial.
 @findex so-long-commentary
   Use @kbd{M-x so-long-commentary} to view the documentation for this
 library and learn more about how to enable and configure it.
+
+@vindex max-redisplay-ticks
+  If even @code{so-long-mode} doesn't help making Emacs responsive
+enough, or if you'd rather not disable the display-related features
+that @code{so-long-mode} turns off, you can instead customize the
+variable @code{max-redisplay-ticks} to a non-zero value.  Then Emacs
+will abort redisplay of a window and commands, like @kbd{C-n} and
+@kbd{M-v}, which use the display code to do their job, if processing a
+window needs more low-level display operations than the value of this
+variable.  The display of the offending window will then remain
+outdated, and possibly incomplete, on the screen, but Emacs should
+otherwise be responsive, and you could then switch to another buffer,
+or kill the problematic buffer, or turn on @code{so-long-mode} or
+@code{sol-long-minor-mode} in that buffer.  When the display of a
+window is aborted due to this reason, the buffer shown in that window
+will not have any of its windows redisplayed until the buffer is
+modified or until you type @kbd{C-l} (@pxref{Recentering}) in one of
+that buffer's windows.
+
+  If you decide to customize this variable to a non-zero value, we
+recommend to use a value between 100,000 and 1,000,000, depending on
+your patience and the speed of your system.  The default value is
+zero, which disables this feature.
+
+@node DEL Does Not Delete
+@subsection If @key{DEL} Fails to Delete
+@cindex @key{DEL} vs @key{BACKSPACE}
+@cindex @key{BACKSPACE} vs @key{DEL}
+@cindex @key{DEL} does not delete
+
+  Every keyboard has a large key, usually labeled @key{BACKSPACE},
+which is ordinarily used to erase the last character that you typed.
+In Emacs, this key is supposed to be equivalent to @key{DEL}.
+
+  When Emacs starts up on a graphical display, it determines
+automatically which key should be @key{DEL}.  In some unusual cases,
+Emacs gets the wrong information from the system, and @key{BACKSPACE}
+ends up deleting forwards instead of backwards.
+
+  Some keyboards also have a @key{Delete} key, which is ordinarily
+used to delete forwards.  If this key deletes backward in Emacs, that
+too suggests Emacs got the wrong information---but in the opposite
+sense.
+
+  On a text terminal, if you find that @key{BACKSPACE} prompts for a
+Help command, like @kbd{Control-h}, instead of deleting a character,
+it means that key is actually sending the @samp{BS} character.  Emacs
+ought to be treating @key{BS} as @key{DEL}, but it isn't.
+
+@findex normal-erase-is-backspace-mode
+  In all of those cases, the immediate remedy is the same: use the
+command @kbd{M-x normal-erase-is-backspace-mode}.  This toggles
+between the two modes that Emacs supports for handling @key{DEL}, so
+if Emacs starts in the wrong mode, this should switch to the right
+mode.  On a text terminal, if you want to ask for help when @key{BS}
+is treated as @key{DEL}, use @key{F1} instead of @kbd{C-h}; @kbd{C-?}
+may also work, if it sends character code 127.
+
+  To fix the problem in every Emacs session, put one of the following
+lines into your initialization file (@pxref{Init File}).  For the
+first case above, where @key{BACKSPACE} deletes forwards instead of
+backwards, use this line to make @key{BACKSPACE} act as @key{DEL}:
+
+@lisp
+(normal-erase-is-backspace-mode 0)
+@end lisp
+
+@noindent
+For the other two cases, use this line:
+
+@lisp
+(normal-erase-is-backspace-mode 1)
+@end lisp
+
+@vindex normal-erase-is-backspace
+  Another way to fix the problem for every Emacs session is to
+customize the variable @code{normal-erase-is-backspace}: the value
+@code{t} specifies the mode where @key{BS} or @key{BACKSPACE} is
+@key{DEL}, and @code{nil} specifies the other mode.  @xref{Easy
+Customization}.
 
 @node Bugs
 @section Reporting Bugs

@@ -788,6 +788,14 @@ available options can be restored by enabling this option.
 Use it if you want Imenu to forget the buffer's index alist and
 recreate it anew next time 'imenu' is invoked.
 
++++
+** Emacs is now capable of abandoning a window's redisplay that takes too long.
+This is controlled by the new variable 'max-redisplay-ticks'.  If that
+variable is set to a non-zero value, display of a window will be
+aborted after that many low-level redisplay operations, thus
+preventing Emacs from becoming wedged when visiting files with very
+long lines.
+
 * Editing Changes in Emacs 29.1
 
 +++

@@ -2732,11 +2732,24 @@ set_frame_matrix_frame (struct frame *f)
    operations in window matrices of frame_matrix_frame.  */
 
 static void
-make_current (struct glyph_matrix *desired_matrix, struct glyph_matrix *current_matrix, int row)
+make_current (struct glyph_matrix *desired_matrix,
+	      struct glyph_matrix *current_matrix, int row)
 {
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, row);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, row);
   bool mouse_face_p = current_row->mouse_face_p;
+
+  /* If we aborted redisplay of this window, a row in the desired
+     matrix might not have its hash computed.  But update_window
+     relies on each row having its correct hash, so do it here if
+     needed.  */
+  if (!desired_row->hash
+      /* A glyph row that is not completely empty is unlikely to have
+	 a zero hash value.  */
+      && !(!desired_row->used[0]
+	   && !desired_row->used[1]
+	   && !desired_row->used[2]))
+    desired_row->hash = row_hash (desired_row);
 
   /* Do current_row = desired_row.  This exchanges glyph pointers
      between both rows, and does a structure assignment otherwise.  */
