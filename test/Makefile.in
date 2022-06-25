@@ -240,7 +240,8 @@ $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 ## Get the tests for only a specific directory.
 SUBDIRS = $(sort $(shell cd ${srcdir} && find lib-src lisp misc src -type d \
-                 ! \( -path "*resources*" -o -path "*auto-save-list" \) -print))
+		\( -name '*resources*' -prune \
+		   -o ! -name '*auto-save-list' -print \)))
 SUBDIR_TARGETS =
 
 define subdir_template
