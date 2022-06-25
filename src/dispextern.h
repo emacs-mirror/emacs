@@ -3070,7 +3070,7 @@ struct image
      Non-NULL means it and its Pixmap counterpart may be out of sync
      and the latter is outdated.  NULL means the X image has been
      synchronized to Pixmap.  */
-v  XImage *ximg, *mask_img;
+  XImage *ximg, *mask_img;
 
 # if !defined USE_CAIRO && defined HAVE_XRENDER
   /* Picture versions of pixmap and mask for compositing.  */
