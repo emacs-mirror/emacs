@@ -1481,8 +1481,8 @@ and initial semicolons."
                           (progn
                             (forward-sexp 1)
                             t))
-                    (narrow-to-region (ppss-comment-or-string-start ppss)
-                                      (point))))
+                    (narrow-to-region (1+ (ppss-comment-or-string-start ppss))
+                                      (1- (point)))))
                 ;; Move back to where we were.
                 (goto-char start)
 	        (fill-paragraph justify)))))))
