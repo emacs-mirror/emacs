@@ -719,6 +719,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/XKBlib.h>
 #endif
 
+/* Although X11/Xlib.h commonly defines the types XErrorHandler and
+   XIOErrorHandler, they are not in the Xlib spec so for portability
+   define and use names with a leading lower-case 'x' instead.  */
+typedef int (*xErrorHandler) (Display *, XErrorEvent *);
+typedef int (*xIOErrorHandler) (Display *);
+
 #if defined USE_XCB && defined USE_CAIRO_XCB
 #define USE_CAIRO_XCB_SURFACE
 #endif
@@ -1830,7 +1836,9 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
   Window drag_window;
   XSetWindowAttributes attrs;
   Display *temp_display;
-  void *old_handler, *old_io_handler;
+  xErrorHandler old_handler;
+  xIOErrorHandler old_io_handler;
+
   /* These are volatile because GCC mistakenly warns about them being
      clobbered by longjmp.  */
   volatile bool error, created;
@@ -1893,9 +1901,7 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
       XGrabServer (temp_display);
       XSetCloseDownMode (temp_display, RetainPermanent);
 
-      /* We can't use XErrorHandler since it's not in the Xlib
-	 specification, and Emacs tries to be portable.  */
-      old_handler = (void *) XSetErrorHandler (xm_drag_window_error_handler);
+      old_handler = XSetErrorHandler (xm_drag_window_error_handler);
 
       _MOTIF_DRAG_WINDOW = XInternAtom (temp_display,
 					"_MOTIF_DRAG_WINDOW", False);
@@ -11202,7 +11208,7 @@ x_push_selection_request (struct selection_input_event *se)
 bool
 x_detect_pending_selection_requests (void)
 {
-  return pending_selection_requests;
+  return !!pending_selection_requests;
 }
 
 static void
@@ -23024,7 +23030,7 @@ x_had_errors_p (Display *dpy)
 	  > x_error_message->first_request))
     XSync (dpy, False);
 
-  return x_error_message->string;
+  return !!x_error_message->string;
 }
 
 /* Forget about any errors we have had, since we did x_catch_errors on
@@ -23084,7 +23090,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
   struct x_display_info *dpyinfo;
   Lisp_Object frame, tail;
   specpdl_ref idx = SPECPDL_INDEX ();
-  void *io_error_handler;
+  xIOErrorHandler io_error_handler;
   xm_drop_start_message dmsg;
   struct frame *f;
 
@@ -23479,14 +23485,14 @@ xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
 
       if (xim)
 	{
-#ifdef HAVE_X11R6
+#ifdef HAVE_X11R6_XIM
 	  XIMCallback destroy;
 #endif
 
 	  /* Get supported styles and XIM values.  */
 	  XGetIMValues (xim, XNQueryInputStyle, &dpyinfo->xim_styles, NULL);
 
-#ifdef HAVE_X11R6
+#ifdef HAVE_X11R6_XIM
 	  destroy.callback = xim_destroy_callback;
 	  destroy.client_data = (XPointer)dpyinfo;
 	  XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
