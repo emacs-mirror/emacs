@@ -560,8 +560,6 @@ extern void BView_InvertRect (void *, int, int, int, int);
 extern void BView_DrawBitmap (void *, void *, int, int, int, int, int, int,
 			      int, int);
 extern void BView_DrawBitmapWithEraseOp (void *, void *, int, int, int, int);
-extern void BView_DrawMask (void *, void *, int, int, int, int,	int, int,
-			    int, int, uint32_t);
 extern void BView_DrawBitmapTiled (void *, void *, int, int,
 				   int, int, int, int, int, int);
 
@@ -570,8 +568,13 @@ extern void BView_set_view_cursor (void *, void *);
 extern void BView_move_frame (void *, int, int, int, int);
 extern void BView_scroll_bar_update (void *, int, int, int, int, bool);
 
-extern void *BBitmap_transform_bitmap (void *, void *, uint32_t, double,
-				       int, int);
+extern void *be_transform_bitmap (void *, void *, uint32_t, double,
+				  int, int, bool);
+extern void be_apply_affine_transform (void *, double, double, double,
+				       double, double, double);
+extern void be_apply_inverse_transform (double (*)[3], int, int, int *, int *);
+extern void be_draw_image_mask (void *, void *, int, int, int, int, int, int,
+				int, int, uint32_t);
 
 extern void be_get_display_resolution (double *, double *);
 extern void be_get_screen_dimensions (int *, int *);

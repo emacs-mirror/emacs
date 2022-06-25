@@ -357,134 +357,64 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
 }
 
 void
-BView_DrawMask (void *src, void *view,
-		int x, int y, int width, int height,
-		int vx, int vy, int vwidth, int vheight,
-		uint32_t color)
+be_draw_image_mask (void *src, void *view, int x, int y, int width,
+		    int height, int vx, int vy, int vwidth, int vheight,
+		    uint32_t color)
 {
   BBitmap *source = (BBitmap *) src;
   BBitmap bm (source->Bounds (), B_RGBA32);
   BRect bounds = bm.Bounds ();
+  int bx, by, bit;
+  BView *vw;
 
   if (bm.InitCheck () != B_OK)
     return;
-  for (int y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
+
+  /* Fill the background color or transparency into the bitmap,
+     depending on the value of the mask.  */
+  for (by = 0; by < BE_RECT_HEIGHT (bounds); ++by)
     {
-      for (int x = 0; x < BE_RECT_WIDTH (bounds); ++x)
+      for (bx = 0; bx < BE_RECT_WIDTH (bounds); ++bx)
 	{
-	  int bit = haiku_get_pixel ((void *) source, x, y);
+	  bit = haiku_get_pixel ((void *) source, bx, by);
 
 	  if (!bit)
-	    haiku_put_pixel ((void *) &bm, x, y, ((uint32_t) 255 << 24) | color);
+	    haiku_put_pixel ((void *) &bm, bx, by,
+			     ((uint32_t) 255 << 24) | color);
 	  else
-	    haiku_put_pixel ((void *) &bm, x, y, 0);
+	    haiku_put_pixel ((void *) &bm, bx, by, 0);
 	}
     }
-  BView *vw = get_view (view);
+
+  vw = get_view (view);
   vw->SetDrawingMode (B_OP_OVER);
   vw->DrawBitmap (&bm, BRect (x, y, x + width - 1, y + height - 1),
 		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
   vw->SetDrawingMode (B_OP_COPY);
 }
 
-static BBitmap *
-rotate_bitmap_270 (BBitmap *bmp)
+void
+be_apply_affine_transform (void *view, double m0, double m1, double tx,
+			   double m2, double m3, double ty)
 {
-  BRect r = bmp->Bounds ();
-  BBitmap *bm = new BBitmap (BRect (r.top, r.left, r.bottom, r.right),
-			     bmp->ColorSpace (), true);
-  if (bm->InitCheck () != B_OK)
-    gui_abort ("Failed to init bitmap for rotate");
-  int w = BE_RECT_WIDTH (r);
-  int h = BE_RECT_HEIGHT (r);
+  BAffineTransform transform (m0, m2, m1, m3, tx, ty);
 
-  for (int y = 0; y < h; ++y)
-    for (int x = 0; x < w; ++x)
-      haiku_put_pixel ((void *) bm, y, w - x - 1,
-		       haiku_get_pixel ((void *) bmp, x, y));
-
-  return bm;
+  get_view (view)->SetTransform (transform);
 }
 
-static BBitmap *
-rotate_bitmap_90 (BBitmap *bmp)
+void
+be_apply_inverse_transform (double (*matrix3x3)[3], int x, int y,
+			    int *x_out, int *y_out)
 {
-  BRect r = bmp->Bounds ();
-  BBitmap *bm = new BBitmap (BRect (r.top, r.left, r.bottom, r.right),
-			     bmp->ColorSpace (), true);
-  if (bm->InitCheck () != B_OK)
-    gui_abort ("Failed to init bitmap for rotate");
-  int w = BE_RECT_WIDTH (r);
-  int h = BE_RECT_HEIGHT (r);
+  BAffineTransform transform (matrix3x3[0][0], matrix3x3[1][0],
+			      matrix3x3[0][1], matrix3x3[1][1],
+			      matrix3x3[0][2], matrix3x3[1][2]);
+  BPoint point (x, y);
 
-  for (int y = 0; y < h; ++y)
-    for (int x = 0; x < w; ++x)
-      haiku_put_pixel ((void *) bm, h - y - 1, x,
-		       haiku_get_pixel ((void *) bmp, x, y));
+  transform.ApplyInverse (&point);
 
-  return bm;
-}
-
-void *
-BBitmap_transform_bitmap (void *bitmap, void *mask, uint32_t m_color,
-			  double rot, int desw, int desh)
-{
-  BBitmap *bm = (BBitmap *) bitmap;
-  BBitmap *mk = (BBitmap *) mask;
-  int copied_p = 0;
-
-  if (rot == 90)
-    {
-      copied_p = 1;
-      bm = rotate_bitmap_90 (bm);
-      if (mk)
-	mk = rotate_bitmap_90 (mk);
-    }
-
-  if (rot == 270)
-    {
-      copied_p = 1;
-      bm = rotate_bitmap_270 (bm);
-      if (mk)
-	mk = rotate_bitmap_270 (mk);
-    }
-
-  BRect n = BRect (0, 0, desw - 1, desh - 1);
-  BView vw (n, NULL, B_FOLLOW_NONE, 0);
-  BBitmap *dst = new BBitmap (n, bm->ColorSpace (), true);
-  if (dst->InitCheck () != B_OK)
-    if (bm->InitCheck () != B_OK)
-      gui_abort ("Failed to init bitmap for scale");
-  dst->AddChild (&vw);
-
-  if (!vw.LockLooper ())
-    gui_abort ("Failed to lock offscreen view for scale");
-
-  if (rot != 90 && rot != 270)
-    {
-      BAffineTransform tr;
-      tr.RotateBy (BPoint (desw / 2, desh / 2), rot * M_PI / 180.0);
-      vw.SetTransform (tr);
-    }
-
-  vw.MovePenTo (0, 0);
-  vw.DrawBitmap (bm, n);
-  if (mk)
-    {
-      BRect k = mk->Bounds ();
-      BView_DrawMask ((void *) mk, (void *) &vw,
-		      0, 0, BE_RECT_WIDTH (k),
-		      BE_RECT_HEIGHT (k),
-		      0, 0, desw, desh, m_color);
-    }
-  vw.Sync ();
-  vw.RemoveSelf ();
-
-  if (copied_p)
-    delete bm;
-  if (copied_p && mk)
-    delete mk;
-  return dst;
+  *x_out = std::floor (point.x);
+  *y_out = std::floor (point.y);
 }
 
 void

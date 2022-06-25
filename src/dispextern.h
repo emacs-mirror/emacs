@@ -3070,7 +3070,7 @@ struct image
      Non-NULL means it and its Pixmap counterpart may be out of sync
      and the latter is outdated.  NULL means the X image has been
      synchronized to Pixmap.  */
-  XImage *ximg, *mask_img;
+v  XImage *ximg, *mask_img;
 
 # if !defined USE_CAIRO && defined HAVE_XRENDER
   /* Picture versions of pixmap and mask for compositing.  */
@@ -3085,12 +3085,11 @@ struct image
   XFORM xform;
 #endif
 #ifdef HAVE_HAIKU
-  /* Non-zero if the image has not yet been transformed for display.  */
-  int have_be_transforms_p;
+  /* The affine transformation to apply to this image.  */
+  double transform[3][3];
 
-  double be_rotate;
-  double be_scale_x;
-  double be_scale_y;
+  /* The original width and height of the image.  */
+  int original_width, original_height;
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */

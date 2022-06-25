@@ -1630,6 +1630,14 @@ haiku_draw_image_relief (struct glyph_string *s)
 }
 
 static void
+haiku_translate_transform (double (*transform)[3], double dx,
+			   double dy)
+{
+  transform[0][2] += dx;
+  transform[1][2] += dy;
+}
+
+static void
 haiku_draw_image_glyph_string (struct glyph_string *s)
 {
   struct face *face = s->face;
@@ -1640,6 +1648,7 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
   struct haiku_rect nr;
   Emacs_Rectangle cr, ir, r;
   unsigned long background;
+  double image_transform[3][3];
 
   height = s->height;
   if (s->slice.y == 0)
@@ -1701,34 +1710,51 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 
       if (gui_intersect_rectangles (&cr, &ir, &r))
 	{
-	  if (s->img->have_be_transforms_p)
+	  memcpy (&image_transform, &s->img->transform,
+		  sizeof image_transform);
+
+	  if (s->slice.x != x || s->slice.y != y
+	      || s->slice.width != s->img->width
+	      || s->slice.height != s->img->height)
 	    {
-	      bitmap = BBitmap_transform_bitmap (bitmap,
-						 s->img->mask,
-						 face->background,
-						 s->img->be_rotate,
-						 s->img->width,
-						 s->img->height);
-	      mask = NULL;
+	      BView_StartClip (view);
+	      BView_ClipToRect (view, r.x, r.y, r.width, r.height);
 	    }
 
-	  BView_DrawBitmap (view, bitmap,
-			    s->slice.x + r.x - x,
-			    s->slice.y + r.y - y,
-			    r.width, r.height,
-			    r.x, r.y, r.width, r.height);
+	  haiku_translate_transform (image_transform,
+				     x - s->slice.x,
+				     y - s->slice.y);
+
+	  be_apply_affine_transform (view,
+				     image_transform[0][0],
+				     image_transform[0][1],
+				     image_transform[0][2],
+				     image_transform[1][0],
+				     image_transform[1][1],
+				     image_transform[1][2]);
+
+	  BView_DrawBitmap (view, bitmap, 0, 0,
+			    s->img->original_width,
+			    s->img->original_height,
+			    0, 0,
+			    s->img->original_width,
+			    s->img->original_height);
+
 	  if (mask)
-	    {
-	      BView_DrawMask (mask, view,
-			      s->slice.x + r.x - x,
-			      s->slice.y + r.y - y,
-			      r.width, r.height,
-			      r.x, r.y, r.width, r.height,
-			      face->background);
-	    }
+	    be_draw_image_mask (mask, view, 0, 0,
+				s->img->original_width,
+				s->img->original_height,
+				0, 0,
+				s->img->original_width,
+				s->img->original_height,
+				face->background);
 
-	  if (s->img->have_be_transforms_p)
-	    BBitmap_free (bitmap);
+	  if (s->slice.x != x || s->slice.y != y
+	      || s->slice.width != s->img->width
+	      || s->slice.height != s->img->height)
+	    BView_EndClip (view);
+
+	  be_apply_affine_transform (view, 1, 0, 0, 0, 1, 0);
 	}
 
       if (!s->img->mask)

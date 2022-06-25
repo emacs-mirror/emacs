@@ -2503,17 +2503,17 @@ compute_image_size (double width, double height,
    finally move the origin back to the top left of the image, which
    may now be a different corner.
 
-   Note that different GUI backends (X, Cairo, w32, NS) want the
-   transform matrix defined as transform from the original image to
-   the transformed image, while others want the matrix to describe the
-   transform of the space, which boils down to inverting the matrix.
+   Note that different GUI backends (X, Cairo, w32, NS, Haiku) want
+   the transform matrix defined as transform from the original image
+   to the transformed image, while others want the matrix to describe
+   the transform of the space, which boils down to inverting the
+   matrix.
 
    It's possible to pre-calculate the matrix multiplications and just
    generate one transform matrix that will do everything we need in a
    single step, but the maths for each element is much more complex
    and performing the steps separately makes for more readable code.  */
 
-#ifndef HAVE_HAIKU
 typedef double matrix3x3[3][3];
 
 static void
@@ -2528,7 +2528,6 @@ matrix3x3_mult (matrix3x3 a, matrix3x3 b, matrix3x3 result)
 	result[i][j] = sum;
       }
 }
-#endif /* not HAVE_HAIKU */
 
 static void
 compute_image_rotation (struct image *img, double *rotation)
@@ -2553,6 +2552,21 @@ compute_image_rotation (struct image *img, double *rotation)
 static void
 image_set_transform (struct frame *f, struct image *img)
 {
+  bool flip;
+
+#if defined HAVE_HAIKU
+  matrix3x3 identity = {
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, 0, 1 },
+  };
+
+  img->original_width = img->width;
+  img->original_height = img->height;
+
+  memcpy (&img->transform, identity, sizeof identity);
+#endif
+
 # if (defined HAVE_IMAGEMAGICK \
       && !defined DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE)
   /* ImageMagick images already have the correct transform.  */
@@ -2588,11 +2602,8 @@ image_set_transform (struct frame *f, struct image *img)
   compute_image_rotation (img, &rotation);
 
   /* Determine flipping.  */
-  bool flip;
-  Lisp_Object m = image_spec_value (img->spec, QCflip, NULL);
-  flip = !NILP (m);
+  flip = !NILP (image_spec_value (img->spec, QCflip, NULL));
 
-#ifndef HAVE_HAIKU
 # if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
@@ -2616,7 +2627,7 @@ image_set_transform (struct frame *f, struct image *img)
 		  : img->width / (double) width),
 	[1][1] = (!IEEE_FLOATING_POINT && height == 0 ? DBL_MAX
 		  : img->height / (double) height),
-# elif defined HAVE_NTGUI || defined HAVE_NS
+# elif defined HAVE_NTGUI || defined HAVE_NS || defined HAVE_HAIKU
 	[0][0] = (!IEEE_FLOATING_POINT && img->width == 0 ? DBL_MAX
 		  : width / (double) img->width),
 	[1][1] = (!IEEE_FLOATING_POINT && img->height == 0 ? DBL_MAX
@@ -2631,12 +2642,23 @@ image_set_transform (struct frame *f, struct image *img)
   /* Perform rotation transformation.  */
 
   int rotate_flag = -1;
+
+  /* Haiku needs this, since the transformation is done on the basis
+     of the view, and not the image.  */
+#ifdef HAVE_HAIKU
+  int extra_tx, extra_ty;
+
+  extra_tx = 0;
+  extra_ty = 0;
+#endif
+
   if (rotation == 0 && !flip)
     rotate_flag = 0;
   else
     {
 # if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NTGUI || defined HAVE_NS)
+      || defined HAVE_NTGUI || defined HAVE_NS \
+      || defined HAVE_HAIKU)
       int cos_r, sin_r;
       if (rotation == 0)
 	{
@@ -2648,6 +2670,11 @@ image_set_transform (struct frame *f, struct image *img)
 	  cos_r = 1;
 	  sin_r = 0;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  extra_tx = width;
+	  extra_ty = 0;
+#endif
 	}
       else if (rotation == 90)
 	{
@@ -2656,12 +2683,24 @@ image_set_transform (struct frame *f, struct image *img)
 	  cos_r = 0;
 	  sin_r = 1;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  if (!flip)
+	    extra_ty = height;
+	  extra_tx = 0;
+#endif
 	}
       else if (rotation == 180)
 	{
 	  cos_r = -1;
 	  sin_r = 0;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  if (!flip)
+	    extra_tx = width;
+	  extra_ty = height;
+#endif
 	}
       else if (rotation == 270)
 	{
@@ -2670,6 +2709,13 @@ image_set_transform (struct frame *f, struct image *img)
 	  cos_r = 0;
 	  sin_r = -1;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  extra_tx = width;
+
+	  if (flip)
+	    extra_ty = height;
+#endif
 	}
 
       if (0 < rotate_flag)
@@ -2779,35 +2825,17 @@ image_set_transform (struct frame *f, struct image *img)
   img->xform.eM22 = matrix[1][1];
   img->xform.eDx  = matrix[2][0];
   img->xform.eDy  = matrix[2][1];
-# endif
-#else
-  if (rotation != 0 &&
-      rotation != 90 &&
-      rotation != 180 &&
-      rotation != 270 &&
-      rotation != 360)
+# elif defined HAVE_HAIKU
+  /* Store the transform in the struct image for later.  */
+  memcpy (&img->transform, &matrix, sizeof matrix);
+
+  /* Also add the extra translations.   */
+  if (rotate_flag)
     {
-      image_error ("No native support for rotation by %g degrees",
-		   make_float (rotation));
-      return;
+      img->transform[0][2] = extra_tx;
+      img->transform[1][2] = extra_ty;
     }
-
-  rotation = fmod (rotation, 360.0);
-
-  if (rotation == 90 || rotation == 270)
-    {
-      int w = width;
-      width = height;
-      height = w;
-    }
-
-  img->have_be_transforms_p = rotation != 0 || (img->width != width) || (img->height != height);
-  img->be_rotate = rotation;
-  img->be_scale_x = 1.0 / (img->width / (double) width);
-  img->be_scale_y = 1.0 / (img->height / (double) height);
-  img->width = width;
-  img->height = height;
-#endif /* not HAVE_HAIKU */
+#endif
 }
 
 #endif /* HAVE_IMAGEMAGICK || HAVE_NATIVE_TRANSFORMS */
