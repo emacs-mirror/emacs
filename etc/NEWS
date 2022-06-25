@@ -400,9 +400,10 @@ dragging items from another program.
 
 +++
 ** New user option 'record-all-keys'.
-If non-nil, this option will force recording of all input keys
-including in passwords prompt (this was the previous behaviour).  It
-now defaults to NIL and inhibits recording of passwords.
+If non-nil, this option will force recording of all input keys,
+including those typed in response to passwords prompt (this was the
+previous behavior).  The default is nil, which inhibits recording of
+passwords.
 
 +++
 ** New function 'command-query'.

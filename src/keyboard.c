@@ -13040,8 +13040,10 @@ Internal use only.  */);
   inhibit_record_char = false;
 
   DEFVAR_BOOL ("record-all-keys", record_all_keys,
-	       doc: /* Non-nil means to record all typed keys.  When
-nil, only passwords' keys are not recorded.  */);
+	       doc: /* Non-nil means record all keys you type.
+When nil, the default, characters typed as part of passwords are
+not recorded.  The non-nil value countermands `inhibit--record-char',
+which see.  */);
   record_all_keys = false;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
