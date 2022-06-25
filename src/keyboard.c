@@ -3738,7 +3738,7 @@ Time_to_position (Time encoded_pos)
 {
   if (encoded_pos <= INPUT_EVENT_POS_MAX)
     return encoded_pos;
-  Time encoded_pos_min = INPUT_EVENT_POS_MIN;
+  Time encoded_pos_min = position_to_Time (INPUT_EVENT_POS_MIN);
   eassert (encoded_pos_min <= encoded_pos);
   ptrdiff_t notpos = -1 - encoded_pos;
   return -1 - notpos;
