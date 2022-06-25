@@ -97,10 +97,6 @@ threading."
     (maphash (lambda (_ v) (push v values)) hash-table)
     values))
 
-(defsubst string-empty-p (string)
-  "Check whether STRING is empty."
-  (string= string ""))
-
 (defsubst string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR.
 Optional argument SEPARATOR must be a string, a vector, or a list of

@@ -24,6 +24,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 (unless (featurep 'haiku)
   (error "%s: Loading haiku-win without having Haiku"
          invocation-name))
