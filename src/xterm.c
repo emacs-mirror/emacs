@@ -842,7 +842,13 @@ x_defer_selection_requests (void)
 		 avoids exhausting the keyboard buffer with some
 		 over-enthusiastic clipboard managers.  */
 	      if (!between)
-		kbd_fetch_ptr = X_NEXT_KBD_EVENT (event);
+		{
+		  kbd_fetch_ptr = X_NEXT_KBD_EVENT (event);
+
+		  /* `detect_input_pending' will then recompute
+		     whether or not pending input events exist.  */
+		  input_pending = false;
+		}
 	    }
 	  else
 	    between = true;
