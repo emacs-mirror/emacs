@@ -30,6 +30,7 @@
 
 (require 'text-mode)
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 (defcustom case-replace t
   "Non-nil means `query-replace' should preserve case in replacements."
