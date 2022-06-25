@@ -95,10 +95,12 @@
    (test "\\`C-m'\\`C-j'" "C-mC-j")
    (test "foo\\`C-m'bar\\`C-j'baz" "fooC-mbarC-jbaz")))
 
-(ert-deftest help-tests-substitute-command-keys/literal-key-sequence-errors ()
-  (should-error (substitute-command-keys "\\`'"))
-  (should-error (substitute-command-keys "\\`c-c'"))
-  (should-error (substitute-command-keys "\\`<foo bar baz>'")))
+(ert-deftest help-tests-substitute-command-keys/literal-key-sequence-ignore-invalid ()
+  "Ignore any invalid literal key sequence."
+  (with-substitute-command-keys-test
+   (test-re "ab\\`'cd" "ab\\\\[`'‘]['’]cd")
+   (test-re "\\`c-c'" "\\\\[`'‘]c-c['’]")
+   (test-re "\\`<foo bar baz>'" "\\\\[`'‘]<foo bar baz>['’]")))
 
 (ert-deftest help-tests-substitute-key-bindings/help-key-binding-face ()
   (let ((A (substitute-command-keys "\\[next-line]"))
