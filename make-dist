@@ -485,6 +485,8 @@ if [ "${make_tar}" = yes ]; then
   esac
   echo "Creating tar file"
   taropt='--numeric-owner --owner=0 --group=0 --mode=go+u,go-w'
+  tar -H ustar -cf /dev/null $tempdir/src/lisp.h 2>/dev/null &&
+    taropt="$taropt -H ustar"
   tar --sort=name -cf /dev/null $tempdir/src/lisp.h 2>/dev/null &&
     taropt="$taropt --sort=name"
   [ "$verbose" = "yes" ] && taropt="$taropt --verbose"
