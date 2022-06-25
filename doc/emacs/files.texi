@@ -2222,13 +2222,16 @@ recently-opened files, reading file names from a buffer.
 
 @findex recentf-mode
 @vindex recentf-mode
+@findex recentf-open
 @findex recentf-save-list
 @findex recentf-edit-list
-  If you enable Recentf mode, with @kbd{M-x recentf-mode}, the
-@samp{File} menu includes a submenu containing a list of recently
-opened files.  @kbd{M-x recentf-save-list} saves the current
-@code{recentf-list} to a file, and @kbd{M-x recentf-edit-list} edits
-it.
+  If you enable Recentf mode, with @kbd{M-x recentf-mode}, Emacs
+maintains a list of recently opened files.  To open a file from this
+list, use the @kbd{M-x recentf-open} command.  When this mode is
+enabled, the @samp{File} menu will include a submenu that you can use
+to visit one of these files.  @kbd{M-x recentf-save-list} saves the
+current @code{recentf-list} to a file, and @kbd{M-x recentf-edit-list}
+edits it.
 
 @c FIXME partial-completion-mode (complete.el) is obsolete.
   The @kbd{M-x ffap} command generalizes @code{find-file} with more

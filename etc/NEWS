@@ -1894,6 +1894,11 @@ Customize the user option 'recentf-filename-handlers' to nil to get
 back the old behavior.
 
 ---
+*** New command 'recentf-open'.
+This command prompts for a recently opened file in the minibuffer, and
+visits it.
+
+---
 ** The autoarg.el library is now marked obsolete.
 This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.

@@ -1,4 +1,4 @@
-;;; recentf.el --- setup a menu of recently opened files  -*- lexical-binding: t -*-
+;;; recentf.el --- keep track of recently opened files  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
@@ -23,10 +23,19 @@
 
 ;;; Commentary:
 
-;; This package maintains a menu for visiting files that were operated
-;; on recently.  When enabled a new "Open Recent" submenu is
-;; displayed in the "File" menu.  The recent files list is
-;; automatically saved across Emacs sessions.
+;; This package maintains a list of recently opened files and makes it
+;; easy to visit them.  The recent files list is automatically saved
+;; across Emacs sessions.
+
+;; There are three ways to access recent files:
+;;
+;; (1) `M-x recentf-open' prompts for a recently opened file.
+;;
+;; (2) When this mode is enabled, a new "Open Recent" submenu is
+;;     displayed in the "File" menu.
+;;
+;; (3) `M-x recentf-open-files' lists recently visited files in a
+;;     buffer.
 
 ;; You can customize the number of recent files displayed, the
 ;; location of the menu and other options.  Type:
@@ -45,17 +54,17 @@
 ;;; Internal data
 ;;
 (defvar recentf-list nil
-  "List of recently opened files.")
+  "List of recently opened files for `recentf-mode'.")
 
 (defun recentf-enabled-p ()
-  "Return non-nil if recentf mode is currently enabled."
+  "Return non-nil if `recentf-mode' is currently enabled."
   (memq 'recentf-save-list kill-emacs-hook))
 
 
 ;;; Customization
 ;;
 (defgroup recentf nil
-  "Maintain a menu of recently opened files."
+  "Maintain a list of recently opened files."
   :version "21.1"
   :group 'files)
 
@@ -465,6 +474,26 @@ Return non-nil if F1 is less than F2."
         (recentf-string-lessp (file-name-nondirectory f1)
                               (file-name-nondirectory f2))
       (recentf-string-lessp d1 d2))))
+
+
+;;; Open files
+;;
+
+;;;###autoload
+(defun recentf-open (file)
+  "Prompt for FILE in `recentf-list' and visit it.
+Enable `recentf-mode' if it isn't already."
+  (interactive
+   (list
+    (progn (unless recentf-mode (recentf-mode 1))
+           (completing-read (format-prompt "Open recent file" nil)
+                            recentf-list nil t))))
+  (when file
+    (funcall recentf-menu-action file)))
+
+;;;###autoload
+(defalias 'recentf 'recentf-open)
+
 
 ;;; Menu building
 ;;
@@ -1344,7 +1373,13 @@ That is, remove duplicates, non-kept, and excluded files."
 
 ;;;###autoload
 (define-minor-mode recentf-mode
-  "Toggle \"Open Recent\" menu (Recentf mode).
+  "Toggle keeping track of opened files (Recentf mode).
+This mode maintains a list of recently opened files and makes it
+easy to visit them.  The recent files list is automatically saved
+across Emacs sessions.
+
+You can use `recentf-open' or `recentf-open-files' to visit
+files.
 
 When Recentf mode is enabled, a \"Open Recent\" submenu is
 displayed in the \"File\" menu, containing a list of files that
