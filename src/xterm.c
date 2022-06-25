@@ -16806,9 +16806,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	SELECTION_EVENT_PROPERTY (&inev.sie) = eventp->property;
 	SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
 
-	/* If drag-and-drop is in progress, handle SelectionRequest
-	   events immediately, by setting hold_quit to the input
-	   event.  */
+	/* If drag-and-drop or another modal dialog/menu is in
+	   progress, handle SelectionRequest events immediately, by
+	   pushing it onto the selecction queue.  */
 
 	if (x_use_pending_selection_requests)
 	  {
@@ -22064,7 +22064,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
-	    XRRUpdateConfiguration (event);
+	    XRRUpdateConfiguration ((XEvent *) event);
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
