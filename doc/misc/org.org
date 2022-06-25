@@ -8544,8 +8544,8 @@ commands:
   Search for a regular expression in all agenda files and additionally
   in the files listed in ~org-agenda-text-search-extra-files~.  This
   uses the Emacs command ~multi-occur~.  A prefix argument can be used
-  to specify the number of context lines for each match, default is
-  1.
+  to specify the number of context lines for each match, the default
+  is 1.
 
 - {{{kbd(#)}}} ::
 
