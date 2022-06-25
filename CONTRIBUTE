@@ -314,11 +314,42 @@ them right the first time, so here are guidelines for formatting them:
   with Emacs commands like 'C-x 4 a', and commit the change using the
   shell command 'vc-dwim --commit'.  Type 'vc-dwim --help' for more.
 
+** Committing your changes.
+
+When you commit changes, Git invokes several scripts that test the
+commit for validity, and may abort the commit of some of the tests
+fail.  These scripts live in the '.git/hooks/' subdirectory of the
+top-level directory of the repository, and they perform the following
+tests:
+
+- commit log message must not be empty;
+- the first line of the commit log message doesn't start with
+  whitespace characters;
+- the second line of the commit log message must be empty;
+- commit log message should include only valid printable ASCII and
+  UTF-8 characters;
+- commit log message lines must be shorter than 79 characters, unless
+  a line consists of a single long word, in which case that word can
+  be up to 140 characters long;
+- there shouldn't be any "Signed-off-by:" tags in the commit log
+  message, and "git commit" should not be invoked with the '-s' option
+  (which automatically adds "Signed-off-by:");
+- if the commit adds new files, the file names must not begin with
+  '-' and must consist of ASCII letters, digits, and characters of the
+  set [-+./_];
+- the changes don't include unresolved merge conflict markers;
+- the changes don't introduce whitespace errors: trailing whitespace,
+  lines that include nothing but whitespace characters, and indented
+  lines where a SPC character is immediately followed by a TAB in the
+  line's initial indentation
+
 ** Committing changes by others
 
 If committing changes written by someone else, commit in their name,
 not yours.  You can use 'git commit --author="AUTHOR"' to specify a
-change's author.
+change's author.  Note that the validity checks described in the
+previous section are still applied, so you will have to correct any
+problems they uncover in the changes submitted by others.
 
 ** Branches
 
