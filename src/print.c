@@ -1727,10 +1727,10 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 
     case PVEC_USER_PTR:
       {
-	void *finalizer = XUSER_PTR (obj)->finalizer;
 	print_c_string ("#<user-ptr ", printcharfun);
 	int i = sprintf (buf, "ptr=%p finalizer=%p",
-			 XUSER_PTR (obj)->p, finalizer);
+			 XUSER_PTR (obj)->p,
+			 (void *) XUSER_PTR (obj)->finalizer);
 	strout (buf, i, i, printcharfun);
 	printchar ('>', printcharfun);
       }
