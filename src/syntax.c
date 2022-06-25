@@ -3481,7 +3481,7 @@ do { prev_from = from;				\
      means we consider 10 buffer positions examined by this function
      roughly equivalent to the display engine iterating over a single
      buffer position.  */
-  if (from > started_from)
+  if (max_redisplay_ticks > 0 && from > started_from)
     update_redisplay_ticks ((from - started_from) / 10 + 1, NULL);
 }
 

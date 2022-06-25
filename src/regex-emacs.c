@@ -4217,7 +4217,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	     means we consider 50 buffer positions examined by this function
 	     roughly equivalent to the display engine iterating over a single
 	     buffer position.  */
-	  if (nchars > 0)
+	  if (max_redisplay_ticks > 0 && nchars > 0)
 	    update_redisplay_ticks (nchars / 50 + 1, NULL);
 	  return dcnt;
 	}
@@ -5087,7 +5087,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
   unbind_to (count, Qnil);
   SAFE_FREE ();
 
-  if (nchars > 0)
+  if (max_redisplay_ticks > 0 && nchars > 0)
     update_redisplay_ticks (nchars / 50 + 1, NULL);
 
   return -1;				/* Failure to match.  */

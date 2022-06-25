@@ -1281,7 +1281,7 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 	 tuned.  It means we consider 100 buffer positions examined by
 	 the above call roughly equivalent to the display engine
 	 iterating over a single buffer position.  */
-      if (*disp_pos > charpos)
+      if (max_redisplay_ticks > 0 && *disp_pos > charpos)
 	update_redisplay_ticks ((*disp_pos - charpos) / 100 + 1, w);
     }
 
@@ -1391,7 +1391,7 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
       SET_TEXT_POS (pos, charpos + *nchars, bytepos + *ch_len);
       *disp_pos = compute_display_string_pos (&pos, string, w, frame_window_p,
 					      disp_prop);
-      if (*disp_pos > charpos + *nchars)
+      if (max_redisplay_ticks > 0 && *disp_pos > charpos + *nchars)
 	update_redisplay_ticks ((*disp_pos - charpos - *nchars) / 100 + 1, w);
     }
 
@@ -1822,7 +1822,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
      roughly equivalent to the display engine iterating over a single
      buffer position.  */
   ptrdiff_t nexamined = bidi_it->charpos - pos + nsearch_for_strong;
-  if (nexamined > 0)
+  if (max_redisplay_ticks > 0 && nexamined > 0)
     update_redisplay_ticks (nexamined / 50, bidi_it->w);
 }
 
@@ -2825,7 +2825,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
      means we consider 20 buffer positions examined by this function
      roughly equivalent to the display engine iterating over a single
      buffer position.  */
-  if (n > 0)
+  if (max_redisplay_ticks > 0 && n > 0)
     update_redisplay_ticks (n / 20 + 1, bidi_it->w);
   return retval;
 }
@@ -3436,7 +3436,7 @@ bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, bool end_flag)
 	 tuned.  It means we consider 50 buffer positions examined by
 	 the above call roughly equivalent to the display engine
 	 iterating over a single buffer position.  */
-      if (bidi_it->charpos > pos0)
+      if (max_redisplay_ticks > 0 && bidi_it->charpos > pos0)
 	update_redisplay_ticks ((bidi_it->charpos - pos0) / 50 + 1, bidi_it->w);
     }
 }
