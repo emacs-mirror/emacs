@@ -280,14 +280,19 @@ hsl_color_rgb (double h, double s, double l, uint32_t *rgb)
 void
 BView_DrawBitmap (void *view, void *bitmap, int x, int y,
 		  int width, int height, int vx, int vy, int vwidth,
-		  int vheight)
+		  int vheight, bool use_bilinear_filtering)
 {
   BView *vw = get_view (view);
   BBitmap *bm = (BBitmap *) bitmap;
 
   vw->SetDrawingMode (B_OP_OVER);
-  vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
-		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
+  if (!use_bilinear_filtering)
+    vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
+  else
+    vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1),
+		    B_FILTER_BITMAP_BILINEAR);
   vw->SetDrawingMode (B_OP_COPY);
 }
 

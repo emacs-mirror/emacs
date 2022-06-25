@@ -3090,6 +3090,10 @@ struct image
 
   /* The original width and height of the image.  */
   int original_width, original_height;
+
+  /* Whether or not bilinear filtering should be used to "smooth" the
+     image.  */
+  bool use_bilinear_filtering;
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */

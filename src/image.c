@@ -2563,6 +2563,7 @@ image_set_transform (struct frame *f, struct image *img)
 
   img->original_width = img->width;
   img->original_height = img->height;
+  img->use_bilinear_filtering = false;
 
   memcpy (&img->transform, identity, sizeof identity);
 #endif
@@ -2604,7 +2605,7 @@ image_set_transform (struct frame *f, struct image *img)
   /* Determine flipping.  */
   flip = !NILP (image_spec_value (img->spec, QCflip, NULL));
 
-# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
      operations to use a blended filter, to avoid aliasing and the like.
@@ -2617,6 +2618,10 @@ image_set_transform (struct frame *f, struct image *img)
   else
     smoothing = !NILP (s);
 # endif
+
+#ifdef HAVE_HAIKU
+  img->use_bilinear_filtering = smoothing;
+#endif
 
   /* Perform scale transformation.  */
 

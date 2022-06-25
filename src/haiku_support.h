@@ -558,7 +558,7 @@ extern void BView_StrokeLine (void *, int, int, int, int);
 extern void BView_CopyBits (void *, int, int, int, int, int, int, int, int);
 extern void BView_InvertRect (void *, int, int, int, int);
 extern void BView_DrawBitmap (void *, void *, int, int, int, int, int, int,
-			      int, int);
+			      int, int, bool);
 extern void BView_DrawBitmapWithEraseOp (void *, void *, int, int, int, int);
 extern void BView_DrawBitmapTiled (void *, void *, int, int,
 				   int, int, int, int, int, int);

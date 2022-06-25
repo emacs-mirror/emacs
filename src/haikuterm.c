@@ -1738,7 +1738,8 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 			    s->img->original_height,
 			    0, 0,
 			    s->img->original_width,
-			    s->img->original_height);
+			    s->img->original_height,
+			    s->img->use_bilinear_filtering);
 
 	  if (mask)
 	    be_draw_image_mask (mask, view, 0, 0,
