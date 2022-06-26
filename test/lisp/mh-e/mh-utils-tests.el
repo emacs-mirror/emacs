@@ -48,8 +48,10 @@
 ;;; Code:
 
 (require 'ert)
-(eval-when-compile (require 'cl-lib))
 (require 'mh-utils)
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (ert-deftest mh-quote-pick-expr ()
   "Test `mh-quote-pick-expr'."
