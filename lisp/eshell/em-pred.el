@@ -233,6 +233,8 @@ Each element is of the form (OPEN . CLOSE), where OPEN and CLOSE
 are characters representing the opening and closing delimiter,
 respectively.")
 
+(defvar eshell-error-if-no-glob)        ; Defined in em-glob.el.
+
 (defvar-keymap eshell-pred-mode-map
   "C-c M-q" #'eshell-display-predicate-help
   "C-c M-m" #'eshell-display-modifier-help)
@@ -263,14 +265,19 @@ respectively.")
 	    #'eshell-parse-arg-modifier t t)
   (eshell-pred-mode))
 
-(defun eshell-apply-modifiers (lst predicates modifiers)
-  "Apply to list LST a series of PREDICATES and MODIFIERS."
+(defun eshell-apply-modifiers (lst predicates modifiers string-desc)
+  "Apply to list LST a series of PREDICATES and MODIFIERS.
+STRING-DESC is the original string defining these predicates and
+modifiers."
   (let (stringified)
     (if (stringp lst)
 	(setq lst (list lst)
 	      stringified t))
     (when (listp lst)
-      (setq lst (eshell-winnow-list lst nil predicates))
+      (when lst
+        (setq lst (or (eshell-winnow-list lst nil predicates)
+                      (when eshell-error-if-no-glob
+                        (error "No matches found: (%s)" string-desc)))))
       (while modifiers
 	(setq lst (funcall (car modifiers) lst)
 	      modifiers (cdr modifiers)))
@@ -290,7 +297,8 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
 	(when (eshell-arg-delimiter (1+ end))
 	  (save-restriction
 	    (narrow-to-region (point) end)
-	    (let* ((modifiers (eshell-parse-modifiers))
+	    (let* ((modifier-string (buffer-string))
+                   (modifiers (eshell-parse-modifiers))
 		   (preds (car modifiers))
 		   (mods (cdr modifiers)))
 	      (if (or preds mods)
@@ -302,7 +310,7 @@ This function is specially for adding onto `eshell-parse-argument-hook'."
 			 (list
 			  (lambda (lst)
 			    (eshell-apply-modifiers
-			     lst preds mods))))))))
+			     lst preds mods modifier-string))))))))
 	  (goto-char (1+ end))
 	  (eshell-finish-arg))))))
 

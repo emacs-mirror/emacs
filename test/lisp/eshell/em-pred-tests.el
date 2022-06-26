@@ -26,6 +26,7 @@
 (require 'ert)
 (require 'esh-mode)
 (require 'eshell)
+(require 'em-glob)
 (require 'em-pred)
 
 (require 'eshell-tests-helpers
@@ -39,10 +40,9 @@
   "Evaluate PREDICATE on INITIAL-VALUE, returning the result.
 PREDICATE is an Eshell argument predicate/modifier."
   (let ((eshell-test-value initial-value))
-    (with-temp-eshell
-     (eshell-insert-command
-      (format "setq eshell-test-value $eshell-test-value(%s)" predicate)))
-    eshell-test-value))
+    (ignore-errors
+      (eshell-test-command-result
+       (format "echo $eshell-test-value(%s)" predicate)))))
 
 (defun eshell-parse-file-name-attributes (file)
   "Parse a fake FILE name to determine its attributes.
@@ -544,5 +544,23 @@ PREDICATE is the predicate used to query that attribute."
   ;; Escaping a different character should keep the backslash.
   (should (equal (eshell-eval-predicate '("foo" "bar" "baz") ":j'\\\"'")
                  "foo\\\"bar\\\"baz")))
+
+(ert-deftest em-pred-test/no-matches ()
+  "Test behavior when a predicate fails to match any files."
+  (eshell-with-file-attributes-from-name
+    (let ((files '("/fake/modes=0666" "/fake/type=d,modes=0777"
+                   "/fake/type=l,modes=0777")))
+      (should (equal (eshell-eval-predicate files "*") nil))
+      (let ((eshell-error-if-no-glob t))
+        ;; Don't signal an error if the original list is empty.
+        (should (equal (eshell-eval-predicate nil "*") nil))
+        ;; Ensure this signals an error.  This test case is a bit
+        ;; clumsy, since `eshell-do-eval' makes it hard to catch
+        ;; errors otherwise.
+        (let ((modifiers (with-temp-eshell
+                          (eshell-with-temp-command "*"
+                            (eshell-parse-modifiers)))))
+          (should-error (eshell-apply-modifiers files (car modifiers)
+                                                (cdr modifiers) "*")))))))
 
 ;; em-pred-tests.el ends here

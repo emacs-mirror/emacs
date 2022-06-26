@@ -1902,11 +1902,6 @@ glob match.
 
 At the moment, this is not supported.
 
-@item Error if a glob doesn't expand due to a predicate
-
-An error should be generated only if @code{eshell-error-if-no-glob} is
-non-@code{nil}.
-
 @item @samp{(+ @key{RET} @key{SPC} @key{TAB}} does not cause @code{indent-according-to-mode} to occur
 
 @item Create @code{eshell-auto-accumulate-list}
