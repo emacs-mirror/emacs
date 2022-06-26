@@ -1116,6 +1116,8 @@ static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar 
 #ifdef HAVE_X_I18N
 static int x_filter_event (struct x_display_info *, XEvent *);
 #endif
+static void x_ignore_errors_for_next_request (struct x_display_info *);
+static void x_clean_failable_requests (struct x_display_info *);
 
 static struct frame *x_tooltip_window_to_frame (struct x_display_info *,
 						Window, bool *);
@@ -2417,9 +2419,8 @@ xm_send_drop_message (struct x_display_info *dpyinfo, Window source,
   *((uint32_t *) &msg.xclient.data.b[12]) = dmsg->index_atom;
   *((uint32_t *) &msg.xclient.data.b[16]) = dmsg->source_window;
 
-  x_catch_errors (dpyinfo->display);
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
-  x_uncatch_errors ();
 }
 
 static void
@@ -2444,9 +2445,8 @@ xm_send_top_level_enter_message (struct x_display_info *dpyinfo, Window source,
   msg.xclient.data.b[18] = 0;
   msg.xclient.data.b[19] = 0;
 
-  x_catch_errors (dpyinfo->display);
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
-  x_uncatch_errors ();
 }
 
 static void
@@ -2475,9 +2475,8 @@ xm_send_drag_motion_message (struct x_display_info *dpyinfo, Window source,
   msg.xclient.data.b[18] = 0;
   msg.xclient.data.b[19] = 0;
 
-  x_catch_errors (dpyinfo->display);
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
-  x_uncatch_errors ();
 }
 
 static void
@@ -2534,9 +2533,8 @@ xm_send_top_level_leave_message (struct x_display_info *dpyinfo, Window source,
   msg.xclient.data.b[18] = 0;
   msg.xclient.data.b[19] = 0;
 
-  x_catch_errors (dpyinfo->display);
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
-  x_uncatch_errors ();
 }
 
 static int
@@ -4353,9 +4351,8 @@ x_dnd_send_enter (struct frame *f, Window target, int supported)
      so we don't have to set it again.  */
   x_dnd_init_type_lists = true;
 
-  x_catch_errors (dpyinfo->display);
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
-  x_uncatch_errors ();
 }
 
 static void
@@ -4416,9 +4413,8 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
     x_dnd_pending_send_position = msg;
   else
     {
-      x_catch_errors (dpyinfo->display);
+      x_ignore_errors_for_next_request (dpyinfo);
       XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
-      x_uncatch_errors ();
 
       x_dnd_waiting_for_status_window = target;
     }
@@ -4442,9 +4438,8 @@ x_dnd_send_leave (struct frame *f, Window target)
 
   x_dnd_waiting_for_status_window = None;
 
-  x_catch_errors (dpyinfo->display);
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
-  x_uncatch_errors ();
 }
 
 static bool
@@ -4475,9 +4470,8 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
   if (supported >= 1)
     msg.xclient.data.l[2] = timestamp;
 
-  x_catch_errors (dpyinfo->display);
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
-  x_uncatch_errors ();
   return true;
 }
 
@@ -11625,6 +11619,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #endif
       x_dnd_inside_handle_one_xevent = false;
 
+      /* Clean up any event handlers that are now out of date.  */
+      x_clean_failable_requests (FRAME_DISPLAY_INFO (f));
+
       /* The unblock_input below might try to read input, but
 	 XTread_socket does nothing inside a drag-and-drop event
 	 loop, so don't let it clear the pending_signals flag.  */
@@ -16405,11 +16402,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      {
 		if (x_dnd_pending_send_position.type != 0)
 		  {
-		    x_catch_errors (dpyinfo->display);
+		    x_ignore_errors_for_next_request (dpyinfo);
 		    XSendEvent (dpyinfo->display, target,
 				False, NoEventMask,
 				&x_dnd_pending_send_position);
-		    x_uncatch_errors ();
 		  }
 
 		x_dnd_pending_send_position.type = 0;
@@ -22274,6 +22270,8 @@ XTread_socket (struct terminal *terminal, struct input_event *hold_quit)
 	      && dpyinfo->display == x_dnd_finish_display)))
     return 0;
 
+  x_clean_failable_requests (dpyinfo);
+
   block_input ();
 
   /* For debugging, this gives a way to fake an I/O error.  */
@@ -22896,7 +22894,12 @@ x_error_catcher (Display *display, XErrorEvent *event,
    always skips an XSync to the server, and should be used only
    immediately after x_had_errors_p or x_check_errors, or when it is
    known that no requests have been made since the last x_catch_errors
-   call for DPY.  */
+   call for DPY.
+
+   There is no need to use this mechanism for ignoring errors from
+   single asynchronous requests, such as sending a ClientMessage to a
+   window that might no longer exist.  Use
+   x_ignore_errors_for_next_request instead.  */
 
 void
 x_catch_errors_with_handler (Display *dpy, x_special_error_handler handler,
@@ -22919,6 +22922,76 @@ void
 x_catch_errors (Display *dpy)
 {
   x_catch_errors_with_handler (dpy, NULL, NULL);
+}
+
+/* Return if errors for REQUEST should be ignored even if there is no
+   error handler applied.  */
+static unsigned long *
+x_request_can_fail (struct x_display_info *dpyinfo,
+		    unsigned long request)
+{
+  unsigned long *failable_requests;
+
+  for (failable_requests = dpyinfo->failable_requests;
+       failable_requests < dpyinfo->next_failable_request;
+       failable_requests++)
+    {
+      if (*failable_requests == request)
+	return failable_requests;
+    }
+
+  return NULL;
+}
+
+/* Remove outdated request serials from
+   dpyinfo->failable_requests.  */
+static void
+x_clean_failable_requests (struct x_display_info *dpyinfo)
+{
+  unsigned long *first, *last;
+
+  last = dpyinfo->next_failable_request;
+
+  for (first = dpyinfo->failable_requests; first < last; first++)
+    {
+      if (*first > LastKnownRequestProcessed (dpyinfo->display))
+	break;
+    }
+
+  memmove (&dpyinfo->failable_requests, first,
+	   sizeof *first * (last - first));
+
+  dpyinfo->next_failable_request = (dpyinfo->failable_requests
+				    + (last - first));
+}
+
+static void
+x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
+{
+  unsigned long *request, *max;
+
+  request = dpyinfo->next_failable_request;
+  max = dpyinfo->failable_requests + N_FAILABLE_REQUESTS;
+
+  if (request > max)
+    {
+      /* There is no point in making this extra sync if all requests
+	 are known to have been fully processed.  */
+      if ((LastKnownRequestProcessed (x_error_message->dpy)
+	   != NextRequest (x_error_message->dpy) - 1))
+	XSync (dpyinfo->display, False);
+
+      x_clean_failable_requests (dpyinfo);
+      request = dpyinfo->next_failable_request;
+    }
+
+  if (request >= max)
+    /* A request should always be made immediately after calling this
+       function.  */
+    emacs_abort ();
+
+  *request = NextRequest (dpyinfo->display);
+  dpyinfo->next_failable_request++;
 }
 
 /* Undo the last x_catch_errors call.
@@ -22949,6 +23022,7 @@ void
 x_uncatch_errors (void)
 {
   struct x_error_message_stack *tmp;
+  struct x_display_info *dpyinfo;
 
   /* In rare situations when running Emacs run in daemon mode,
      shutting down an emacsclient via delete-frame can cause
@@ -22959,9 +23033,11 @@ x_uncatch_errors (void)
 
   block_input ();
 
+  dpyinfo = x_display_info_for_display (x_error_message->dpy);
+
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
-  if (x_display_info_for_display (x_error_message->dpy) != 0
+  if (dpyinfo != 0
       /* There is no point in making this extra sync if all requests
 	 are known to have been fully processed.  */
       && (LastKnownRequestProcessed (x_error_message->dpy)
@@ -22970,7 +23046,10 @@ x_uncatch_errors (void)
 	 installed.  */
       && (NextRequest (x_error_message->dpy)
 	  > x_error_message->first_request))
-    XSync (x_error_message->dpy, False);
+    {
+      XSync (x_error_message->dpy, False);
+      x_clean_failable_requests (dpyinfo);
+    }
 
   tmp = x_error_message;
   x_error_message = x_error_message->prev;
@@ -23280,9 +23359,8 @@ static int
 x_error_handler (Display *display, XErrorEvent *event)
 {
   struct x_error_message_stack *stack;
-#ifdef HAVE_XINPUT2
   struct x_display_info *dpyinfo;
-#endif
+  unsigned long *fail, *last;
 
 #if defined USE_GTK && defined HAVE_GTK3
   if ((event->error_code == BadMatch
@@ -23291,12 +23369,30 @@ x_error_handler (Display *display, XErrorEvent *event)
     return 0;
 #endif
 
+  dpyinfo = x_display_info_for_display (display);
+
+  if (dpyinfo)
+    {
+      fail = x_request_can_fail (dpyinfo, event->serial);
+
+      if (fail)
+	{
+	  /* Now that this request has been handled, remove it from
+	     the list of requests that can fail.  */
+	  last = dpyinfo->next_failable_request;
+	  memmove (&dpyinfo->failable_requests, fail,
+		   sizeof *fail * (last - fail));
+	  dpyinfo->next_failable_request = (dpyinfo->failable_requests
+					    + (last - fail));
+
+	  return 0;
+	}
+    }
+
   /* If we try to ungrab or grab a device that doesn't exist anymore
      (that happens a lot in xmenu.c), just ignore the error.  */
 
 #ifdef HAVE_XINPUT2
-  dpyinfo = x_display_info_for_display (display);
-
   /* 51 is X_XIGrabDevice and 52 is X_XIUngrabDevice.
 
      53 is X_XIAllowEvents.  We handle errors from that here to avoid
@@ -26271,6 +26367,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo = xzalloc (sizeof *dpyinfo);
   terminal = x_create_terminal (dpyinfo);
+
+  dpyinfo->next_failable_request = dpyinfo->failable_requests;
 
   {
     struct x_display_info *share;
