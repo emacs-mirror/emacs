@@ -2615,15 +2615,18 @@ Optional REFRESH will unhighlighted then highlight, using block cursor
 	(text (buffer-substring-no-properties start end))
 					; Save highlight region.
 	(inhibit-quit t)		; inhibit interrupt processing here.
-	(buffer-undo-list t))		; don't clutter the undo list.
+	(buffer-undo-list t)		; don't clutter the undo list.
+        (end1 (if (markerp end) (marker-position end) end)))
     (goto-char end)
     (delete-region start end)
-    (insert-char ?  (- end start))	; minimize amount of redisplay
+    (insert-char ?  (- end1 start))	; minimize amount of redisplay
     (sit-for 0)				; update display
     (if highlight (setq inverse-video (not inverse-video))) ; toggle video
-    (delete-region start end)		; delete whitespace
+    (delete-region start end1)		; delete whitespace
     (insert text)			; insert text in inverse video.
     (sit-for 0)				; update display showing inverse video.
+    (if (markerp end)
+        (set-marker end end1))          ; restore marker position
     (if (not highlight)
 	(goto-char end)
       (setq inverse-video (not inverse-video)) ; toggle video
