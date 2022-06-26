@@ -3184,11 +3184,10 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 
 	  if (dpyinfo->xshape_supported_p)
 	    {
-	      x_catch_errors (dpyinfo->display);
+	      x_ignore_errors_for_next_request (dpyinfo);
 	      XShapeSelectInput (dpyinfo->display,
 				 toplevels[i],
 				 ShapeNotifyMask);
-	      x_uncatch_errors ();
 
 #ifndef HAVE_XCB_SHAPE
 	      x_catch_errors (dpyinfo->display);
@@ -24770,12 +24769,12 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 			      FRAME_X_WINDOW (f),
 			      &deviceid))
 	{
-	  x_catch_errors (FRAME_X_DISPLAY (f));
+	  x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
+
 	  XIWarpPointer (FRAME_X_DISPLAY (f),
 			 deviceid, None,
 			 FRAME_X_WINDOW (f),
 			 0, 0, 0, 0, pix_x, pix_y);
-	  x_uncatch_errors ();
 	}
     }
   else
@@ -24889,7 +24888,7 @@ x_get_focus_frame (struct frame *f)
 
 /* In certain situations, when the window manager follows a
    click-to-focus policy, there seems to be no way around calling
-   XSetInputFocus to give another frame the input focus .
+   XSetInputFocus to give another frame the input focus.
 
    In an ideal world, XSetInputFocus should generally be avoided so
    that applications don't interfere with the window manager's focus
@@ -24899,28 +24898,25 @@ x_get_focus_frame (struct frame *f)
 static void
 x_focus_frame (struct frame *f, bool noactivate)
 {
-  Display *dpy = FRAME_X_DISPLAY (f);
+  struct x_display_info *dpyinfo;
 
-  block_input ();
-  x_catch_errors (dpy);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (FRAME_X_EMBEDDED_P (f))
-    {
-      /* For Xembedded frames, normally the embedder forwards key
-	 events.  See XEmbed Protocol Specification at
-	 https://freedesktop.org/wiki/Specifications/xembed-spec/  */
-      xembed_request_focus (f);
-    }
+    /* For Xembedded frames, normally the embedder forwards key
+       events.  See XEmbed Protocol Specification at
+       https://freedesktop.org/wiki/Specifications/xembed-spec/  */
+    xembed_request_focus (f);
   else
     {
+      /* Ignore any BadMatch error this request might result in.  */
+      x_ignore_errors_for_next_request (dpyinfo);
       XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		      RevertToParent, CurrentTime);
+
       if (!noactivate)
 	x_ewmh_activate_frame (f);
     }
-
-  x_uncatch_errors ();
-  unblock_input ();
 }
 
 
