@@ -720,10 +720,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 /* Although X11/Xlib.h commonly defines the types XErrorHandler and
-   XIOErrorHandler, they are not in the Xlib spec so for portability
-   define and use names with a leading lower-case 'x' instead.  */
-typedef int (*xErrorHandler) (Display *, XErrorEvent *);
-typedef int (*xIOErrorHandler) (Display *);
+   XIOErrorHandler, they are not in the Xlib spec, so for portability
+   define and use names with an Emacs_ prefix instead.  */
+typedef int (*Emacs_XErrorHandler) (Display *, XErrorEvent *);
+typedef int (*Emacs_XIOErrorHandler) (Display *);
 
 #if defined USE_XCB && defined USE_CAIRO_XCB
 #define USE_CAIRO_XCB_SURFACE
@@ -1838,8 +1838,8 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
   Window drag_window;
   XSetWindowAttributes attrs;
   Display *temp_display;
-  xErrorHandler old_handler;
-  xIOErrorHandler old_io_handler;
+  Emacs_XErrorHandler old_handler;
+  Emacs_XIOErrorHandler old_io_handler;
 
   /* These are volatile because GCC mistakenly warns about them being
      clobbered by longjmp.  */
@@ -23168,7 +23168,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
   struct x_display_info *dpyinfo;
   Lisp_Object frame, tail;
   specpdl_ref idx = SPECPDL_INDEX ();
-  xIOErrorHandler io_error_handler;
+  Emacs_XIOErrorHandler io_error_handler;
   xm_drop_start_message dmsg;
   struct frame *f;
 
