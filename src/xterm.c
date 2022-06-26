@@ -25631,11 +25631,26 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
   if (!strcmp (name, "ATOM"))
     return XA_ATOM;
 
+  if (!strcmp (name, "WINDOW"))
+    return XA_WINDOW;
+
+  if (!strcmp (name, "DRAWABLE"))
+    return XA_DRAWABLE;
+
+  if (!strcmp (name, "BITMAP"))
+    return XA_BITMAP;
+
   if (!strcmp (name, "CARDINAL"))
     return XA_CARDINAL;
 
-  if (!strcmp (name, "WINDOW"))
-    return XA_WINDOW;
+  if (!strcmp (name, "COLORMAP"))
+    return XA_COLORMAP;
+
+  if (!strcmp (name, "CURSOR"))
+    return XA_CURSOR;
+
+  if (!strcmp (name, "FONT"))
+    return XA_FONT;
 
   if (dpyinfo->motif_drag_atom != None
       && !strcmp (name, dpyinfo->motif_drag_atom_name))
@@ -25697,6 +25712,18 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
 
     case XA_WINDOW:
       return xstrdup ("WINDOW");
+
+    case XA_DRAWABLE:
+      return xstrdup ("DRAWABLE");
+
+    case XA_BITMAP:
+      return xstrdup ("BITMAP");
+
+    case XA_COLORMAP:
+      return xstrdup ("COLORMAP");
+
+    case XA_FONT:
+      return xstrdup ("FONT");
 
     default:
       if (dpyinfo->motif_drag_atom
