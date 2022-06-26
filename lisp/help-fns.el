@@ -1239,10 +1239,11 @@ it is displayed along with the global value."
 		    (terpri)
                     (let ((buf (current-buffer)))
                       (with-temp-buffer
-                        (lisp-mode-variables nil)
+                        (lisp-data-mode)
                         (set-syntax-table emacs-lisp-mode-syntax-table)
                         (insert print-rep)
                         (pp-buffer)
+                        (font-lock-ensure)
                         (let ((pp-buffer (current-buffer)))
                           (with-current-buffer buf
                             (insert-buffer-substring pp-buffer)))))
