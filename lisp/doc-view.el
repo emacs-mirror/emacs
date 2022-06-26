@@ -144,6 +144,7 @@
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
+(require 'filenotify)
 (eval-when-compile (require 'subr-x))
 
 ;;;; Customization Options
@@ -226,16 +227,48 @@ are available (see Info node `(emacs)Document View')"
 Higher values result in larger images."
   :type 'number)
 
-(defcustom doc-view-mutool-user-stylesheet nil
-  "User stylesheet to use when converting EPUB documents to PDF."
-  :type '(choice (const nil)
-                 (file :must-match t))
-  :version "29.1")
-
 (defvar doc-view-doc-type nil
   "The type of document in the current buffer.
 Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
 `xps' or `oxps'.")
+
+(defvar doc-view--epub-stylesheet-watcher nil
+  "File watcher for `doc-view-epub-user-stylesheet'.")
+
+(defun doc-view--epub-reconvert (&optional _event)
+  "Reconvert all epub buffers.
+
+EVENT is unused, but neccesary to work with the filenotify API"
+  (dolist (x (buffer-list))
+    (with-current-buffer x
+      (when (eq doc-view-doc-type 'epub)
+        (doc-view-reconvert-doc)))))
+
+(defun doc-view-custom-set-epub-user-stylesheet (option-name new-value)
+  "Setter for `doc-view-epub-user-stylesheet'.
+
+Reconverts existing epub buffers when the file used as a user
+stylesheet is switched, or its contents modified."
+  (set-default option-name new-value)
+  (file-notify-rm-watch doc-view--epub-stylesheet-watcher)
+  (doc-view--epub-reconvert)
+  (setq doc-view--epub-stylesheet-watcher
+         (when new-value
+           (file-notify-add-watch new-value '(change) #'doc-view--epub-reconvert))))
+
+(defcustom doc-view-epub-user-stylesheet nil
+  "User stylesheet to use when converting EPUB documents to PDF."
+  :type '(choice (const nil)
+                 (file :must-match t))
+  :version "29.1"
+  :set #'doc-view-custom-set-epub-user-stylesheet)
+
+(defvar-local doc-view--current-cache-dir nil
+  "Only used internally.")
+
+(defun doc-view-custom-set-epub-font-size (option-name new-value)
+  (set-default option-name new-value)
+  (doc-view--epub-reconvert))
 
 ;; FIXME: The doc-view-current-* definitions below are macros because they
 ;; map to accessors which we want to use via `setf' as well!
@@ -248,15 +281,6 @@ Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
 
 (defvar-local doc-view--current-cache-dir nil
   "Only used internally.")
-
-(defun doc-view-custom-set-epub-font-size (option-name new-value)
-  (set-default option-name new-value)
-  (dolist (x (buffer-list))
-    (with-current-buffer x
-      (when (eq doc-view-doc-type 'epub)
-        (delete-directory doc-view--current-cache-dir t)
-        (doc-view-initiate-display)
-        (doc-view-goto-page (doc-view-current-page))))))
 
 (defcustom doc-view-epub-font-size nil
   "Font size in points for EPUB layout."
@@ -1178,12 +1202,12 @@ The test is performed using `doc-view-pdfdraw-program'."
       (when doc-view-epub-font-size
         (setq options (append options
                               (list (format "-S%s" doc-view-epub-font-size)))))
-      (when doc-view-mutool-user-stylesheet
+      (when doc-view-epub-user-stylesheet
         (setq options
               (append options
                       (list (format "-U%s"
                                     (expand-file-name
-                                     doc-view-mutool-user-stylesheet)))))))
+                                     doc-view-epub-user-stylesheet)))))))
     (doc-view-start-process
      "pdf->png" doc-view-pdfdraw-program
      `(,@(doc-view-pdfdraw-program-subcommand)
