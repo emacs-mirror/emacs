@@ -687,10 +687,13 @@ This command must be bound to a mouse click."
     (switch-to-buffer buf)
     (delete-window window)))
 
-(defun mouse-delete-other-windows ()
+(defun mouse-delete-other-windows (click)
   "Delete all windows except the one you click on."
-  (interactive "@")
-  (delete-other-windows))
+  (interactive "e")
+  (when (and (eq (posn-area (event-end click)) 'mode-line)
+             (eq (posn-window (event-start click))
+                 (posn-window (event-end click))))
+    (delete-other-windows (posn-window (event-start click)))))
 
 (defun mouse-split-window-vertically (click)
   "Select Emacs window mouse is on, then split it vertically in half.
