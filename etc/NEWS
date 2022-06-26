@@ -2880,7 +2880,7 @@ invocation.  Such shells are POSIX conformant by default.
 This is to determine which function has to be called in order to
 deliver the signal.  This allows Tramp to send the signal to remote
 asynchronous processes.  The hitherto existing implementation has been
-moved to 'signal-default-interrupt-process'.
+moved to 'internal-default-signal-process'.
 
 +++
 ** 'list-system-processes' now returns remote process IDs.

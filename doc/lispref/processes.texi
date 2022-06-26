@@ -1512,7 +1512,7 @@ This variable is a list of functions to be called for
 for @code{signal-process}.  These functions are called in the order of
 the list, until one of them returns non-@code{nil}.  The default
 function, which shall always be the last in this list, is
-@code{signal-default-interrupt-process}.
+@code{internal-default-signal-process}.
 
 This is the mechanism, how Tramp implements @code{signal-process}.
 @end defvar
