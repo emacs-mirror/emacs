@@ -7109,7 +7109,7 @@ See function `signal-process' for more details on usage.  */)
 }
 
 DEFUN ("signal-process", Fsignal_process, Ssignal_process,
-       2, 3, "sProcess (name or number): \nnSignal code: ",
+       2, 3, "(list (read-string \"Process (name or number): \") (read-signal-name))",
        doc: /* Send PROCESS the signal with code SIGCODE.
 PROCESS may also be a number specifying the process id of the
 process to signal; in this case, the process need not be a child of
@@ -8317,6 +8317,22 @@ If QUERY is `all', also count processors not available.  */)
 #endif
 }
 
+DEFUN ("signal-names", Fsignal_names, Ssignal_names, 0, 0, 0,
+       doc: /* Return a list of known signal names on this system.  */)
+  (void)
+{
+  char name[SIG2STR_MAX];
+  Lisp_Object names = Qnil;
+  for (int i = 0; i < 255; ++i)
+    {
+      if (!sig2str (i, name))
+	{
+	  names = Fcons (build_string (name), names);
+	}
+    }
+  return names;
+}
+
 #ifdef subprocesses
 /* Arrange to catch SIGCHLD if this hasn't already been arranged.
    Invoke this after init_process_emacs, and after glib and/or GNUstep
@@ -8770,4 +8786,5 @@ sentinel or a process filter function has an error.  */);
   defsubr (&Slist_system_processes);
   defsubr (&Sprocess_attributes);
   defsubr (&Snum_processors);
+  defsubr (&Ssignal_names);
 }

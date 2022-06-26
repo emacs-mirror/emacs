@@ -10627,6 +10627,19 @@ If the buffer doesn't exist, create it first."
   "Check whether STRING is empty."
   (string= string ""))
 
+(defun read-signal-name ()
+  "Read a signal number or name."
+  (let ((value
+         (completing-read "Signal code or name: "
+                          (signal-names)
+                          nil
+                          (lambda (value)
+                            (or (string-match "\\`[0-9]+\\'" value)
+                                (member value (signal-names)))))))
+    (if (string-match "\\`[0-9]+\\'" value)
+        (string-to-number value)
+      (intern (concat "sig" (downcase value))))))
+
 
 
 (provide 'simple)
