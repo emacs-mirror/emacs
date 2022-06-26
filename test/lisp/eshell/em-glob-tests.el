@@ -60,6 +60,12 @@ component ending in \"symlink\" is treated as a symbolic link."
     (should (equal (eshell-extended-glob "*.el")
                    '("a.el" "b.el")))))
 
+(ert-deftest em-glob-test/match-any-directory ()
+  "Test that \"*/\" pattern matches any directory."
+  (with-fake-files '("a.el" "b.el" "dir/a.el" "dir/sub/a.el" "symlink/")
+    (should (equal (eshell-extended-glob "*/")
+                   '("dir/" "symlink/")))))
+
 (ert-deftest em-glob-test/match-any-character ()
   "Test that \"?\" pattern matches any character."
   (with-fake-files '("a.el" "b.el" "ccc.el" "d.txt" "dir/a.el")
@@ -71,7 +77,9 @@ component ending in \"symlink\" is treated as a symbolic link."
   (with-fake-files '("a.el" "b.el" "ccc.el" "d.txt" "dir/a.el" "dir/sub/a.el"
                      "dir/symlink/a.el" "symlink/a.el" "symlink/sub/a.el")
     (should (equal (eshell-extended-glob "**/a.el")
-                   '("a.el" "dir/a.el" "dir/sub/a.el")))))
+                   '("a.el" "dir/a.el" "dir/sub/a.el")))
+    (should (equal (eshell-extended-glob "**/")
+                   '("dir/" "dir/sub/")))))
 
 (ert-deftest em-glob-test/match-recursive-follow-symlinks ()
   "Test that \"***/\" recursively matches directories, following symlinks."
@@ -79,7 +87,10 @@ component ending in \"symlink\" is treated as a symbolic link."
                      "dir/symlink/a.el" "symlink/a.el" "symlink/sub/a.el")
     (should (equal (eshell-extended-glob "***/a.el")
                    '("a.el" "dir/a.el" "dir/sub/a.el" "dir/symlink/a.el"
-                     "symlink/a.el" "symlink/sub/a.el")))))
+                     "symlink/a.el" "symlink/sub/a.el")))
+    (should (equal (eshell-extended-glob "***/")
+                   '("dir/" "dir/sub/" "dir/symlink/" "symlink/"
+                     "symlink/sub/")))))
 
 (ert-deftest em-glob-test/match-recursive-mixed ()
   "Test combination of \"**/\" and \"***/\"."
