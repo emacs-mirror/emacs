@@ -71,7 +71,6 @@
        (skip-unless shell-file-name)
        (skip-unless shell-command-switch)
        (skip-unless (executable-find shell-file-name))
-       (skip-unless (not (getenv "EMACS_EMBA_CI")))
        (let ((input ,input))
          (with-temp-eshell ,@body)))))
 
