@@ -1426,6 +1426,9 @@ and initial semicolons."
       ;; a comment: Point is on a program line; we are interested
       ;; particularly in docstring lines.
       ;;
+      ;; FIXME: The below bindings are probably mostly irrelevant
+      ;; since we're now narrowing to a region before filling.
+      ;;
       ;; We bind `paragraph-start' and `paragraph-separate' temporarily.  They
       ;; are buffer-local, but we avoid changing them so that they can be set
       ;; to make `forward-paragraph' and friends do something the user wants.
@@ -1485,6 +1488,15 @@ and initial semicolons."
                                       (1- (point)))))
                 ;; Move back to where we were.
                 (goto-char start)
+                ;; We should fill the first line of a string
+                ;; separately (since it's usually a doc string).
+                (if (= (line-number-at-pos) 1)
+                    (narrow-to-region (line-beginning-position)
+                                      (line-beginning-position 2))
+                  (save-excursion
+                    (goto-char (point-min))
+                    (forward-line 1)
+                    (narrow-to-region (point) (point-max))))
 	        (fill-paragraph justify)))))))
   ;; Never return nil.
   t)
