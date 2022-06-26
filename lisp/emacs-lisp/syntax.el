@@ -345,10 +345,16 @@ END) suitable for `syntax-propertize-function'."
 (defvar-local syntax-ppss-table nil
   "Syntax-table to use during `syntax-ppss', if any.")
 
-(defvar-local syntax-propertize--inhibit-flush nil
-  "If non-nil, `syntax-ppss-flush-cache' only flushes the ppss cache.
-Otherwise it flushes both the ppss cache and the properties
-set by `syntax-propertize'")
+(defun syntax-propertize--in-process-p ()
+  "Non-nil if we're inside `syntax-propertize'.
+This is used to avoid infinite recursion as well as to handle cases where
+`syntax-ppss' is called when the final `syntax-table' properties have not
+yet been setup, in which case we may end up putting invalid info into the cache.
+It's also used so that `syntax-ppss-flush-cache' can be used from within
+`syntax-propertize' without ruining the `syntax-table' already set."
+  (eq syntax-propertize--done most-positive-fixnum))
+
+(defvar-local syntax-ppss--updated-cache nil)
 
 (defun syntax-propertize (pos)
   "Ensure that syntax-table properties are set until POS (a buffer point)."
@@ -370,21 +376,24 @@ set by `syntax-propertize'")
         (with-silent-modifications
           (with-syntax-table (or syntax-ppss-table (syntax-table))
             (make-local-variable 'syntax-propertize--done) ;Just in case!
+            ;; Make sure we let-bind it only buffer-locally.
+            (make-local-variable 'syntax-ppss--updated-cache)
             (let* ((start (max (min syntax-propertize--done (point-max))
                                (point-min)))
                    (end (max pos
                              (min (point-max)
                                   (+ start syntax-propertize-chunk-size))))
                    (first t)
-                   (repeat t))
+                   (repeat t)
+                   (syntax-ppss--updated-cache nil))
               (while repeat
                 (setq repeat nil)
                 (run-hook-wrapped
                  'syntax-propertize-extend-region-functions
                  (lambda (f)
-                   (let ((new (funcall f start end))
-                         ;; Avoid recursion!
-                         (syntax-propertize--done most-positive-fixnum))
+                   ;; Bind `syntax-propertize--done' to avoid recursion!
+                   (let* ((syntax-propertize--done most-positive-fixnum)
+                          (new (funcall f start end)))
                      (if (or (null new)
                              (and (>= (car new) start) (<= (cdr new) end)))
                          nil
@@ -399,20 +408,26 @@ set by `syntax-propertize'")
               ;; Flush ppss cache between the original value of `start' and that
               ;; set above by syntax-propertize-extend-region-functions.
               (syntax-ppss-flush-cache start)
-              ;; Move the limit before calling the function, so the function
-              ;; can use syntax-ppss.
+              ;; Move the limit before calling the function, so it's
+              ;; done in case of errors.
               (setq syntax-propertize--done end)
               ;; (message "syntax-propertizing from %s to %s" start end)
               (remove-text-properties start end
                                       '(syntax-table nil syntax-multiline nil))
-              ;; Make sure we only let-bind it buffer-locally.
-              (make-local-variable 'syntax-propertize--inhibit-flush)
-              ;; Let-bind `syntax-propertize--done' to avoid infinite recursion!
-              (let ((syntax-propertize--done most-positive-fixnum)
-                    ;; Let `syntax-propertize-function' call
-                    ;; `syntax-ppss-flush-cache' without worries.
-                    (syntax-propertize--inhibit-flush t))
-                (funcall syntax-propertize-function start end)))))))))
+              ;; Bind `syntax-propertize--done' to avoid recursion!
+              (let ((syntax-propertize--done most-positive-fixnum))
+                (funcall syntax-propertize-function start end)
+                (when syntax-ppss--updated-cache
+                  ;; `syntax-ppss' was called and updated the cache while we
+                  ;; were propertizing so we need to flush the part of the
+                  ;; cache that may have been rendered out-of-date by the new
+                  ;; properties.
+                  ;; We used to require syntax-propertize-functions to do that
+                  ;; manually when applicable, but nowadays the `syntax-ppss'
+                  ;; cache can be updated by too many functions, so the author
+                  ;; of the syntax-propertize-function may not be aware it
+                  ;; can happen.
+                  (syntax-ppss-flush-cache start))))))))))
 
 ;;; Link syntax-propertize with syntax.c.
 
@@ -487,10 +502,10 @@ These are valid when the buffer has no restriction.")
 
 (define-obsolete-function-alias 'syntax-ppss-after-change-function
   #'syntax-ppss-flush-cache "27.1")
-(defun syntax-ppss-flush-cache (beg &rest ignored)
+(defun syntax-ppss-flush-cache (beg &rest _ignored)
   "Flush the cache of `syntax-ppss' starting at position BEG."
   ;; Set syntax-propertize to refontify anything past beg.
-  (unless syntax-propertize--inhibit-flush
+  (unless (syntax-propertize--in-process-p)
     (setq syntax-propertize--done (min beg syntax-propertize--done)))
   ;; Flush invalid cache entries.
   (dolist (cell (list syntax-ppss-wide syntax-ppss-narrow))
@@ -517,10 +532,16 @@ These are valid when the buffer has no restriction.")
        (setcdr cell cache)))
     ))
 
-;;; FIXME: Explain this variable.  Currently only its last (5th) slot is used.
-;;; Perhaps the other slots should be removed?
+;; FIXME: Explain this variable.  Currently only its last (5th) slot is used.
+;; Perhaps the other slots should be removed?
+;; This variable is only used when `syntax-begin-function' is used and
+;; will hence be removed together with `syntax-begin-function'.
 (defvar syntax-ppss-stats
-  [(0 . 0) (0 . 0) (0 . 0) (0 . 0) (0 . 0) (2 . 2500)])
+  [(0 . 0) (0 . 0) (0 . 0) (0 . 0) (0 . 0) (2 . 2500)]
+  "Statistics about which case is more/less frequent in `syntax-ppss'.
+The 5th slot drives the heuristic to use `syntax-begin-function'.
+The rest is only useful if you're interested in tweaking the algorithm.")
+
 (defun syntax-ppss-stats ()
   (mapcar (lambda (x)
 	    (condition-case nil
@@ -658,6 +679,7 @@ running the hook."
 	       ;; populate the cache so we won't need to do it again soon.
 	       (t
 		(syntax-ppss--update-stats 3 pt-min pos)
+                (setq syntax-ppss--updated-cache t)
 
 		;; If `pt-min' is too far, add a few intermediate entries.
 		(while (> (- pos pt-min) (* 2 syntax-ppss-max-span))
@@ -692,6 +714,7 @@ running the hook."
 			(push pair ppss-cache)
 		      (setcar ppss-cache pair)))))))))
 
+          (setq syntax-ppss--updated-cache t)
 	  (setq ppss-last (cons pos ppss))
           (setcar cell ppss-last)
           (setcdr cell ppss-cache)
