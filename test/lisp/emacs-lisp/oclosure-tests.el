@@ -69,6 +69,7 @@
     ))
 
 (ert-deftest oclosure-test-limits ()
+  (defvar byte-compile-debug)
   (should
    (condition-case err
        (let ((lexical-binding t)
