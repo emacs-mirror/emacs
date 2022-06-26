@@ -21192,6 +21192,12 @@ try_window_id (struct window *w)
 						w->frame))))
     GIVE_UP (24);
 
+  /* composition-break-at-point is incompatible with the optimizations
+     in this function, because we need to recompose characters when
+     point moves off their positions.  */
+  if (composition_break_at_point)
+    GIVE_UP (27);
+
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
      only if buffer has really changed.  The reason is that the gap is
      initially at Z for freshly visited files.  The code below would
