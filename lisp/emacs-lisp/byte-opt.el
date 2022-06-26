@@ -406,7 +406,7 @@ for speeding up processing.")
       (`(function . ,_)
        ;; This forms is compiled as constant or by breaking out
        ;; all the subexpressions and compiling them separately.
-       form)
+       (and (not for-effect) form))
 
       (`(condition-case ,var ,exp . ,clauses)
        `(,fn ,var          ;Not evaluated.
@@ -422,15 +422,13 @@ for speeding up processing.")
                               (byte-optimize-body (cdr clause) for-effect))))
                     clauses)))
 
-      (`(unwind-protect ,exp :fun-body ,f)
-       ;; The unwinding part of an unwind-protect is compiled (and thus
-       ;; optimized) as a top-level form, but run the optimizer for it here
-       ;; anyway for lexical variable usage and substitution.  But the
-       ;; protected part has the same for-effect status as the
-       ;; unwind-protect itself.  (The unwinding part is always for effect,
-       ;; but that isn't handled properly yet.)
-       (let ((bodyform (byte-optimize-form exp for-effect)))
-         `(,fn ,bodyform :fun-body ,(byte-optimize-form f nil))))
+      ;; `unwind-protect' is a special form which here takes the shape
+      ;; (unwind-protect EXPR :fun-body UNWIND-FUN).
+      ;; We can treat it as if it were a plain function at this point,
+      ;; although there are specific optimisations possible.
+      ;; In particular, the return value of UNWIND-FUN is never used
+      ;; so its body should really be compiled for-effect, but we
+      ;; don't do that right now.
 
       (`(catch ,tag . ,exps)
        `(,fn ,(byte-optimize-form tag nil)
@@ -438,13 +436,15 @@ for speeding up processing.")
 
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure . ,_)
-       ;; Look up free vars and mark them to be kept, so that they
-       ;; won't be optimised away.
-       (dolist (var (caddr form))
-         (let ((lexvar (assq var byte-optimize--lexvars)))
-           (when lexvar
-             (setcar (cdr lexvar) t))))
-       form)
+       (and (not for-effect)
+            (progn
+              ;; Look up free vars and mark them to be kept, so that they
+              ;; won't be optimised away.
+              (dolist (var (caddr form))
+                (let ((lexvar (assq var byte-optimize--lexvars)))
+                  (when lexvar
+                    (setcar (cdr lexvar) t))))
+              form)))
 
       (`((lambda . ,_) . ,_)
        (let ((newform (macroexp--unfold-lambda form)))
