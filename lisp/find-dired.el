@@ -209,13 +209,7 @@ it finishes, type \\[kill-find]."
 			  " " args " "
 			  (shell-quote-argument ")")
 			  " "))
-		       (if (string-match "\\`\\(.*\\) {} \\(\\\\;\\|\\+\\)\\'"
-					 (car find-ls-option))
-			   (format "%s %s %s"
-				   (match-string 1 (car find-ls-option))
-				   (shell-quote-argument "{}")
-				   find-exec-terminator)
-			 (car find-ls-option))))
+		       (find-dired--escaped-ls-option)))
     ;; Start the find process.
     (shell-command (concat args "&") (current-buffer))
     (dired-mode dir (cdr find-ls-option))
@@ -255,6 +249,16 @@ it finishes, type \\[kill-find]."
       ;; Initialize the process marker; it is used by the filter.
       (move-marker (process-mark proc) (point) (current-buffer)))
     (setq mode-line-process '(":%s"))))
+
+(defun find-dired--escaped-ls-option ()
+  "Return the car of `find-ls-option' escaped for a shell command."
+  (if (string-match "\\`\\(.*\\) {} \\(\\\\;\\|\\+\\)\\'"
+		    (car find-ls-option))
+      (format "%s %s %s"
+	      (match-string 1 (car find-ls-option))
+	      (shell-quote-argument "{}")
+	      find-exec-terminator)
+    (car find-ls-option)))
 
 (defun kill-find ()
   "Kill the `find' process running in the current buffer."
