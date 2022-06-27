@@ -8323,7 +8323,7 @@ DEFUN ("signal-names", Fsignal_names, Ssignal_names, 0, 0, 0,
 {
   char name[SIG2STR_MAX];
   Lisp_Object names = Qnil;
-  for (int i = 0; i < 255; ++i)
+  for (int i = 0; i < 256; ++i)
     {
       if (!sig2str (i, name))
 	names = Fcons (build_string (name), names);
