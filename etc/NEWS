@@ -1381,6 +1381,13 @@ doesn't work on other systems.  Also see etc/PROBLEMS.
 These are used to alter an URL before using it.  By default it removes
 the common "utm_" trackers from URLs.
 
+** Find-Dired
+
+*** New command 'find-dired-with-command'.
+This enables users to run 'find-dired' with an arbitrary command,
+enabling running commands previously unsupported and also enabling new
+commands to be built on top.
+
 ** Gnus
 
 +++

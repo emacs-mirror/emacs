@@ -154,6 +154,9 @@ output of `find' (one file per line) when this function is called."
 ;; History of find-args values entered in the minibuffer.
 (defvar find-args-history nil)
 
+(defvar find-command-history nil
+  "History of commands passed interactively to `find-dired-with-command'.")
+
 (defvar dired-sort-inhibit)
 
 ;;;###autoload
@@ -171,6 +174,38 @@ it finishes, type \\[kill-find]."
   (interactive (list (read-directory-name "Run find in directory: " nil "" t)
 		     (read-string "Run find (with args): " find-args
 				  '(find-args-history . 1))))
+  (setq find-args args                ; save for next interactive call
+	args (concat find-program " . "
+		     (if (string= args "")
+			 ""
+		       (concat
+			(shell-quote-argument "(")
+			" " args " "
+			(shell-quote-argument ")")
+			" "))
+		     (find-dired--escaped-ls-option)))
+  (find-dired-with-command dir args))
+
+;;;###autoload
+(defun find-dired-with-command (dir command)
+  "Run `find' and go into Dired mode on a buffer of the output.
+The user-supplied COMMAND is run after changing into DIR and should look like
+
+    find . GLOBALARGS \\( ARGS \\) -ls
+
+The car of the variable `find-ls-option' specifies what to
+use in place of \"-ls\" as the starting input.
+
+Collect output in the \"*Find*\" buffer.  To kill the job before
+it finishes, type \\[kill-find]."
+  (interactive
+   (list (read-directory-name "Run find in directory: " nil "" t)
+	 (read-string "Run find command: "
+                      (cons (concat find-program
+                                    " . \\(  \\) "
+                                    (find-dired--escaped-ls-option))
+                            (+ 1 (length find-program) (length " . \\( ")))
+		      find-command-history)))
   (let ((dired-buffers dired-buffers))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
@@ -199,19 +234,9 @@ it finishes, type \\[kill-find]."
     (kill-all-local-variables)
     (setq buffer-read-only nil)
     (erase-buffer)
-    (setq default-directory dir
-	  find-args args	      ; save for next interactive call
-	  args (concat find-program " . "
-		       (if (string= args "")
-			   ""
-			 (concat
-			  (shell-quote-argument "(")
-			  " " args " "
-			  (shell-quote-argument ")")
-			  " "))
-		       (find-dired--escaped-ls-option)))
+    (setq default-directory dir)
     ;; Start the find process.
-    (shell-command (concat args "&") (current-buffer))
+    (shell-command (concat command "&") (current-buffer))
     (dired-mode dir (cdr find-ls-option))
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map (current-local-map))
@@ -220,7 +245,7 @@ it finishes, type \\[kill-find]."
     (setq-local dired-sort-inhibit t)
     (setq-local revert-buffer-function
                 (lambda (_ignore-auto _noconfirm)
-                  (find-dired dir find-args)))
+                  (find-dired-with-command dir command)))
     ;; Set subdir-alist so that Tree Dired will work:
     (if (fboundp 'dired-simple-subdir-alist)
 	;; will work even with nested dired format (dired-nstd.el,v 1.15
@@ -240,7 +265,7 @@ it finishes, type \\[kill-find]."
     ;; Make second line a ``find'' line in analogy to the ``total'' or
     ;; ``wildcard'' line.
     (let ((point (point)))
-      (insert "  " args "\n")
+      (insert "  " command "\n")
       (dired-insert-set-properties point (point)))
     (setq buffer-read-only t)
     (let ((proc (get-buffer-process (current-buffer))))
