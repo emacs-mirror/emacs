@@ -2309,8 +2309,8 @@ postprocess_image (struct frame *f, struct image *img)
 	  tem = XCDR (conversion);
 	  if (CONSP (tem))
 	    image_edge_detection (f, img,
-                                  Fplist_get (tem, QCmatrix),
-                                  Fplist_get (tem, QCcolor_adjustment));
+                                  plist_get (tem, QCmatrix),
+                                  plist_get (tem, QCcolor_adjustment));
 	}
     }
 }

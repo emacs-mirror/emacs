@@ -1361,7 +1361,7 @@ See Info node `(elisp) Integer Basics'."
          match-beginning match-end
 	 member memq memql min minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
-	 parse-colon-path plist-get plist-member
+	 parse-colon-path
 	 prefix-numeric-value previous-window prin1-to-string propertize
 	 degrees-to-radians
 	 radians-to-degrees rassq rassoc read-from-string regexp-opt
@@ -1483,7 +1483,7 @@ See Info node `(elisp) Integer Basics'."
          ;; `assoc' and `assoc-default' are excluded since they are
          ;; impure if the test function is (consider `string-match').
          assq rassq rassoc
-         plist-get lax-plist-get plist-member
+         lax-plist-get
          aref elt
          base64-decode-string base64-encode-string base64url-encode-string
          bool-vector-subsetp

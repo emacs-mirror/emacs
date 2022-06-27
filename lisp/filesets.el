@@ -208,7 +208,7 @@ COND-FN takes one argument: the current element."
 (defun filesets-reset-fileset (&optional fileset no-cache)
   "Reset the cached values for one or all filesets."
   (setq filesets-submenus (if fileset
-                              (lax-plist-put filesets-submenus fileset nil)
+                              (plist-put filesets-submenus fileset nil #'equal)
                             nil))
   (setq filesets-has-changed-flag t)
   (setq filesets-update-cache-file-flag (or filesets-update-cache-file-flag
@@ -1999,7 +1999,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 
 (defun filesets-ingroup-cache-get (master)
   "Access to `filesets-ingroup-cache'."
-  (lax-plist-get filesets-ingroup-cache master))
+  (plist-get filesets-ingroup-cache master #'equal))
 
 (defun filesets-ingroup-cache-put (master file)
   "Access to `filesets-ingroup-cache'."
@@ -2008,7 +2008,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 		      (cons file (filesets-ingroup-cache-get emaster))
 		    nil)))
     (setq filesets-ingroup-cache
-	  (lax-plist-put filesets-ingroup-cache emaster this))))
+	  (plist-put filesets-ingroup-cache emaster this #'equal))))
 
 (defun filesets-ingroup-collect-files (fs &optional remdupl-flag master depth)
   "Helper function for `filesets-ingroup-collect'.  Collect file names."
@@ -2305,12 +2305,12 @@ bottom up, set `filesets-submenus' to nil, first.)"
 	((null data))
       (let* ((this    (car data))
 	     (name    (filesets-data-get-name this))
-	     (cached  (lax-plist-get filesets-submenus name))
+	     (cached  (plist-get filesets-submenus name #'equal))
 	     (submenu (or cached
 			  (filesets-build-submenu count name this))))
 	(unless cached
 	  (setq filesets-submenus
-		(lax-plist-put filesets-submenus name submenu)))
+		(plist-put filesets-submenus name submenu #'equal)))
 	(unless (filesets-entry-get-dormant-flag this)
 	  (setq filesets-menu-cache
 		(append filesets-menu-cache (list submenu))))))

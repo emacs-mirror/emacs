@@ -484,15 +484,15 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	     : MOST_POSITIVE_FIXNUM);
 
 	  plist = XCDR (val);
-	  if ((prop = Fplist_get (plist, QCwidth),
+	  if ((prop = plist_get (plist, QCwidth),
 	       RANGED_FIXNUMP (0, prop, INT_MAX))
-	      || (prop = Fplist_get (plist, QCrelative_width),
+	      || (prop = plist_get (plist, QCrelative_width),
 		  RANGED_FIXNUMP (0, prop, INT_MAX)))
 	    width = XFIXNUM (prop);
 	  else if (FLOATP (prop) && 0 <= XFLOAT_DATA (prop)
 		   && XFLOAT_DATA (prop) <= INT_MAX)
 	    width = (int)(XFLOAT_DATA (prop) + 0.5);
-	  else if ((prop = Fplist_get (plist, QCalign_to),
+	  else if ((prop = plist_get (plist, QCalign_to),
 		    RANGED_FIXNUMP (col, prop, align_to_max)))
 	    width = XFIXNUM (prop) - col;
 	  else if (FLOATP (prop) && col <= XFLOAT_DATA (prop)
@@ -514,7 +514,7 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	  /* For :relative-width, we need to multiply by the column
 	     width of the character at POS, if it is greater than 1.  */
 	  if (!NILP (plist)
-	      && !NILP (Fplist_get (plist, QCrelative_width))
+	      && !NILP (plist_get (plist, QCrelative_width))
 	      && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    {
 	      int b, wd;

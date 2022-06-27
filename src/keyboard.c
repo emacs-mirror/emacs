@@ -5601,7 +5601,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       if (IMAGEP (object))
 	{
 	  Lisp_Object image_map, hotspot;
-	  if ((image_map = Fplist_get (XCDR (object), QCmap),
+	  if ((image_map = plist_get (XCDR (object), QCmap),
 	       !NILP (image_map))
 	      && (hotspot = find_hot_spot (image_map, dx, dy),
 		  CONSP (hotspot))

@@ -1281,7 +1281,7 @@ Return BUFFER.  */)
       update_process_mark (p);
     }
   if (NETCONN1_P (p) || SERIALCONN1_P (p) || PIPECONN1_P (p))
-    pset_childp (p, Fplist_put (p->childp, QCbuffer, buffer));
+    pset_childp (p, plist_put (p->childp, QCbuffer, buffer));
   setup_process_coding_systems (process);
   return buffer;
 }
@@ -1360,7 +1360,7 @@ The string argument is normally a multibyte string, except:
   pset_filter (p, filter);
 
   if (NETCONN1_P (p) || SERIALCONN1_P (p) || PIPECONN1_P (p))
-    pset_childp (p, Fplist_put (p->childp, QCfilter, filter));
+    pset_childp (p, plist_put (p->childp, QCfilter, filter));
   setup_process_coding_systems (process);
   return filter;
 }
@@ -1392,7 +1392,7 @@ It gets two arguments: the process, and a string describing the change.  */)
 
   pset_sentinel (p, sentinel);
   if (NETCONN1_P (p) || SERIALCONN1_P (p) || PIPECONN1_P (p))
-    pset_childp (p, Fplist_put (p->childp, QCsentinel, sentinel));
+    pset_childp (p, plist_put (p->childp, QCsentinel, sentinel));
   return sentinel;
 }
 
@@ -1553,25 +1553,25 @@ waiting for the process to be fully set up.*/)
 
   if (DATAGRAM_CONN_P (process)
       && (EQ (key, Qt) || EQ (key, QCremote)))
-    contact = Fplist_put (contact, QCremote,
-			  Fprocess_datagram_address (process));
+    contact = plist_put (contact, QCremote,
+			 Fprocess_datagram_address (process));
 #endif
 
   if ((!NETCONN_P (process) && !SERIALCONN_P (process) && !PIPECONN_P (process))
       || EQ (key, Qt))
     return contact;
   if (NILP (key) && NETCONN_P (process))
-    return list2 (Fplist_get (contact, QChost),
-		  Fplist_get (contact, QCservice));
+    return list2 (plist_get (contact, QChost),
+		  plist_get (contact, QCservice));
   if (NILP (key) && SERIALCONN_P (process))
-    return list2 (Fplist_get (contact, QCport),
-		  Fplist_get (contact, QCspeed));
+    return list2 (plist_get (contact, QCport),
+		  plist_get (contact, QCspeed));
   /* FIXME: Return a meaningful value (e.g., the child end of the pipe)
      if the pipe process is useful for purposes other than receiving
      stderr.  */
   if (NILP (key) && PIPECONN_P (process))
     return Qt;
-  return Fplist_get (contact, key);
+  return plist_get (contact, key);
 }
 
 DEFUN ("process-plist", Fprocess_plist, Sprocess_plist,
@@ -1773,7 +1773,7 @@ usage: (make-process &rest ARGS)  */)
   /* Save arguments for process-contact and clone-process.  */
   contact = Flist (nargs, args);
 
-  if (!NILP (Fplist_get (contact, QCfile_handler)))
+  if (!NILP (plist_get (contact, QCfile_handler)))
     {
       Lisp_Object file_handler
         = Ffind_file_name_handler (BVAR (current_buffer, directory),
@@ -1782,7 +1782,7 @@ usage: (make-process &rest ARGS)  */)
         return CALLN (Fapply, file_handler, Qmake_process, contact);
     }
 
-  buffer = Fplist_get (contact, QCbuffer);
+  buffer = plist_get (contact, QCbuffer);
   if (!NILP (buffer))
     buffer = Fget_buffer_create (buffer, Qnil);
 
@@ -1792,10 +1792,10 @@ usage: (make-process &rest ARGS)  */)
      chdir, since it's in a vfork.  */
   current_dir = get_current_directory (true);
 
-  name = Fplist_get (contact, QCname);
+  name = plist_get (contact, QCname);
   CHECK_STRING (name);
 
-  command = Fplist_get (contact, QCcommand);
+  command = plist_get (contact, QCcommand);
   if (CONSP (command))
     program = XCAR (command);
   else
@@ -1804,10 +1804,10 @@ usage: (make-process &rest ARGS)  */)
   if (!NILP (program))
     CHECK_STRING (program);
 
-  bool query_on_exit = NILP (Fplist_get (contact, QCnoquery));
+  bool query_on_exit = NILP (plist_get (contact, QCnoquery));
 
   stderrproc = Qnil;
-  xstderr = Fplist_get (contact, QCstderr);
+  xstderr = plist_get (contact, QCstderr);
   if (PROCESSP (xstderr))
     {
       if (!PIPECONN_P (xstderr))
@@ -1833,18 +1833,18 @@ usage: (make-process &rest ARGS)  */)
   eassert (NILP (XPROCESS (proc)->plist));
   pset_type (XPROCESS (proc), Qreal);
   pset_buffer (XPROCESS (proc), buffer);
-  pset_sentinel (XPROCESS (proc), Fplist_get (contact, QCsentinel));
-  pset_filter (XPROCESS (proc), Fplist_get (contact, QCfilter));
+  pset_sentinel (XPROCESS (proc), plist_get (contact, QCsentinel));
+  pset_filter (XPROCESS (proc), plist_get (contact, QCfilter));
   pset_command (XPROCESS (proc), Fcopy_sequence (command));
 
   if (!query_on_exit)
     XPROCESS (proc)->kill_without_query = 1;
-  tem = Fplist_get (contact, QCstop);
+  tem = plist_get (contact, QCstop);
   /* Normal processes can't be started in a stopped state, see
      Bug#30460.  */
   CHECK_TYPE (NILP (tem), Qnull, tem);
 
-  tem = Fplist_get (contact, QCconnection_type);
+  tem = plist_get (contact, QCconnection_type);
   if (EQ (tem, Qpty))
     XPROCESS (proc)->pty_flag = true;
   else if (EQ (tem, Qpipe))
@@ -1886,7 +1886,7 @@ usage: (make-process &rest ARGS)  */)
     Lisp_Object coding_systems = Qt;
     Lisp_Object val, *args2;
 
-    tem = Fplist_get (contact, QCcoding);
+    tem = plist_get (contact, QCcoding);
     if (!NILP (tem))
       {
 	val = tem;
@@ -2364,7 +2364,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 
   contact = Flist (nargs, args);
 
-  name = Fplist_get (contact, QCname);
+  name = plist_get (contact, QCname);
   CHECK_STRING (name);
   proc = make_process (name);
   specpdl_ref specpdl_count = SPECPDL_INDEX ();
@@ -2396,21 +2396,21 @@ usage:  (make-pipe-process &rest ARGS)  */)
   if (inchannel > max_desc)
     max_desc = inchannel;
 
-  buffer = Fplist_get (contact, QCbuffer);
+  buffer = plist_get (contact, QCbuffer);
   if (NILP (buffer))
     buffer = name;
   buffer = Fget_buffer_create (buffer, Qnil);
   pset_buffer (p, buffer);
 
   pset_childp (p, contact);
-  pset_plist (p, Fcopy_sequence (Fplist_get (contact, QCplist)));
+  pset_plist (p, Fcopy_sequence (plist_get (contact, QCplist)));
   pset_type (p, Qpipe);
-  pset_sentinel (p, Fplist_get (contact, QCsentinel));
-  pset_filter (p, Fplist_get (contact, QCfilter));
+  pset_sentinel (p, plist_get (contact, QCsentinel));
+  pset_filter (p, plist_get (contact, QCfilter));
   eassert (NILP (p->log));
-  if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
+  if (tem = plist_get (contact, QCnoquery), !NILP (tem))
     p->kill_without_query = 1;
-  if (tem = Fplist_get (contact, QCstop), !NILP (tem))
+  if (tem = plist_get (contact, QCstop), !NILP (tem))
     pset_command (p, Qt);
   eassert (! p->pty_flag);
 
@@ -2431,7 +2431,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
     Lisp_Object coding_systems = Qt;
     Lisp_Object val;
 
-    tem = Fplist_get (contact, QCcoding);
+    tem = plist_get (contact, QCcoding);
     val = Qnil;
     if (!NILP (tem))
       {
@@ -2918,7 +2918,7 @@ set up yet, this function will block until socket setup has completed. */)
 
   if (set_socket_option (s, option, value))
     {
-      pset_childp (p, Fplist_put (p->childp, option, value));
+      pset_childp (p, plist_put (p->childp, option, value));
       return Qt;
     }
 
@@ -2996,19 +2996,19 @@ usage: (serial-process-configure &rest ARGS)  */)
 
   contact = Flist (nargs, args);
 
-  proc = Fplist_get (contact, QCprocess);
+  proc = plist_get (contact, QCprocess);
   if (NILP (proc))
-    proc = Fplist_get (contact, QCname);
+    proc = plist_get (contact, QCname);
   if (NILP (proc))
-    proc = Fplist_get (contact, QCbuffer);
+    proc = plist_get (contact, QCbuffer);
   if (NILP (proc))
-    proc = Fplist_get (contact, QCport);
+    proc = plist_get (contact, QCport);
   proc = get_process (proc);
   p = XPROCESS (proc);
   if (!EQ (p->type, Qserial))
     error ("Not a serial process");
 
-  if (NILP (Fplist_get (p->childp, QCspeed)))
+  if (NILP (plist_get (p->childp, QCspeed)))
     return Qnil;
 
   serial_configure (p, contact);
@@ -3101,17 +3101,17 @@ usage:  (make-serial-process &rest ARGS)  */)
 
   contact = Flist (nargs, args);
 
-  port = Fplist_get (contact, QCport);
+  port = plist_get (contact, QCport);
   if (NILP (port))
     error ("No port specified");
   CHECK_STRING (port);
 
-  if (NILP (Fplist_member (contact, QCspeed)))
+  if (NILP (plist_member (contact, QCspeed)))
     error (":speed not specified");
-  if (!NILP (Fplist_get (contact, QCspeed)))
-    CHECK_FIXNUM (Fplist_get (contact, QCspeed));
+  if (!NILP (plist_get (contact, QCspeed)))
+    CHECK_FIXNUM (plist_get (contact, QCspeed));
 
-  name = Fplist_get (contact, QCname);
+  name = plist_get (contact, QCname);
   if (NILP (name))
     name = port;
   CHECK_STRING (name);
@@ -3131,21 +3131,21 @@ usage:  (make-serial-process &rest ARGS)  */)
   eassert (0 <= fd && fd < FD_SETSIZE);
   chan_process[fd] = proc;
 
-  buffer = Fplist_get (contact, QCbuffer);
+  buffer = plist_get (contact, QCbuffer);
   if (NILP (buffer))
     buffer = name;
   buffer = Fget_buffer_create (buffer, Qnil);
   pset_buffer (p, buffer);
 
   pset_childp (p, contact);
-  pset_plist (p, Fcopy_sequence (Fplist_get (contact, QCplist)));
+  pset_plist (p, Fcopy_sequence (plist_get (contact, QCplist)));
   pset_type (p, Qserial);
-  pset_sentinel (p, Fplist_get (contact, QCsentinel));
-  pset_filter (p, Fplist_get (contact, QCfilter));
+  pset_sentinel (p, plist_get (contact, QCsentinel));
+  pset_filter (p, plist_get (contact, QCfilter));
   eassert (NILP (p->log));
-  if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
+  if (tem = plist_get (contact, QCnoquery), !NILP (tem))
     p->kill_without_query = 1;
-  if (tem = Fplist_get (contact, QCstop), !NILP (tem))
+  if (tem = plist_get (contact, QCstop), !NILP (tem))
     pset_command (p, Qt);
   eassert (! p->pty_flag);
 
@@ -3155,7 +3155,7 @@ usage:  (make-serial-process &rest ARGS)  */)
 
   update_process_mark (p);
 
-  tem = Fplist_get (contact, QCcoding);
+  tem = plist_get (contact, QCcoding);
 
   val = Qnil;
   if (!NILP (tem))
@@ -3209,7 +3209,7 @@ set_network_socket_coding_system (Lisp_Object proc, Lisp_Object host,
   Lisp_Object coding_systems = Qt;
   Lisp_Object val;
 
-  tem = Fplist_get (contact, QCcoding);
+  tem = plist_get (contact, QCcoding);
 
   /* Setup coding systems for communicating with the network stream.  */
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
@@ -3297,8 +3297,8 @@ finish_after_tls_connection (Lisp_Object proc)
   if (!NILP (Ffboundp (Qnsm_verify_connection)))
     result = call3 (Qnsm_verify_connection,
 		    proc,
-		    Fplist_get (contact, QChost),
-		    Fplist_get (contact, QCservice));
+		    plist_get (contact, QChost),
+		    plist_get (contact, QCservice));
 
   eassert (p->outfd < FD_SETSIZE);
   if (NILP (result))
@@ -3479,7 +3479,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	      if (getsockname (s, psa1, &len1) == 0)
 		{
 		  Lisp_Object service = make_fixnum (ntohs (sa1.sin_port));
-		  contact = Fplist_put (contact, QCservice, service);
+		  contact = plist_put (contact, QCservice, service);
 		  /* Save the port number so that we can stash it in
 		     the process object later.  */
 		  DECLARE_POINTER_ALIAS (psa, struct sockaddr_in, sa);
@@ -3570,7 +3570,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	    {
 	      Lisp_Object remote;
 	      memset (datagram_address[s].sa, 0, addrlen);
-	      if (remote = Fplist_get (contact, QCremote), !NILP (remote))
+	      if (remote = plist_get (contact, QCremote), !NILP (remote))
 		{
 		  int rfamily;
 		  ptrdiff_t rlen = get_lisp_to_sockaddr_size (remote, &rfamily);
@@ -3585,8 +3585,8 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	}
 #endif
 
-      contact = Fplist_put (contact, p->is_server? QClocal: QCremote,
-			    conv_sockaddr_to_lisp (sa, addrlen));
+      contact = plist_put (contact, p->is_server? QClocal: QCremote,
+			   conv_sockaddr_to_lisp (sa, addrlen));
 #ifdef HAVE_GETSOCKNAME
       if (!p->is_server)
 	{
@@ -3594,8 +3594,8 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	  socklen_t len1 = sizeof (sa1);
 	  DECLARE_POINTER_ALIAS (psa1, struct sockaddr, &sa1);
 	  if (getsockname (s, psa1, &len1) == 0)
-	    contact = Fplist_put (contact, QClocal,
-				  conv_sockaddr_to_lisp (psa1, len1));
+	    contact = plist_put (contact, QClocal,
+				 conv_sockaddr_to_lisp (psa1, len1));
 	}
 #endif
     }
@@ -3908,7 +3908,7 @@ usage: (make-network-process &rest ARGS)  */)
 #endif
 
   /* :type TYPE  (nil: stream, datagram */
-  tem = Fplist_get (contact, QCtype);
+  tem = plist_get (contact, QCtype);
   if (NILP (tem))
     socktype = SOCK_STREAM;
 #ifdef DATAGRAM_SOCKETS
@@ -3922,13 +3922,13 @@ usage: (make-network-process &rest ARGS)  */)
   else
     error ("Unsupported connection type");
 
-  name = Fplist_get (contact, QCname);
-  buffer = Fplist_get (contact, QCbuffer);
-  filter = Fplist_get (contact, QCfilter);
-  sentinel = Fplist_get (contact, QCsentinel);
-  use_external_socket_p = Fplist_get (contact, QCuse_external_socket);
-  Lisp_Object server = Fplist_get (contact, QCserver);
-  bool nowait = !NILP (Fplist_get (contact, QCnowait));
+  name = plist_get (contact, QCname);
+  buffer = plist_get (contact, QCbuffer);
+  filter = plist_get (contact, QCfilter);
+  sentinel = plist_get (contact, QCsentinel);
+  use_external_socket_p = plist_get (contact, QCuse_external_socket);
+  Lisp_Object server = plist_get (contact, QCserver);
+  bool nowait = !NILP (plist_get (contact, QCnowait));
 
   if (!NILP (server) && nowait)
     error ("`:server' is incompatible with `:nowait'");
@@ -3936,9 +3936,9 @@ usage: (make-network-process &rest ARGS)  */)
 
   /* :local ADDRESS or :remote ADDRESS */
   if (NILP (server))
-    address = Fplist_get (contact, QCremote);
+    address = plist_get (contact, QCremote);
   else
-    address = Fplist_get (contact, QClocal);
+    address = plist_get (contact, QClocal);
   if (!NILP (address))
     {
       host = service = Qnil;
@@ -3951,7 +3951,7 @@ usage: (make-network-process &rest ARGS)  */)
     }
 
   /* :family FAMILY -- nil (for Inet), local, or integer.  */
-  tem = Fplist_get (contact, QCfamily);
+  tem = plist_get (contact, QCfamily);
   if (NILP (tem))
     {
 #ifdef AF_INET6
@@ -3976,10 +3976,10 @@ usage: (make-network-process &rest ARGS)  */)
     error ("Unknown address family");
 
   /* :service SERVICE -- string, integer (port number), or t (random port).  */
-  service = Fplist_get (contact, QCservice);
+  service = plist_get (contact, QCservice);
 
   /* :host HOST -- hostname, ip address, or 'local for localhost.  */
-  host = Fplist_get (contact, QChost);
+  host = plist_get (contact, QChost);
   if (NILP (host))
     {
       /* The "connection" function gets it bind info from the address we're
@@ -4018,7 +4018,7 @@ usage: (make-network-process &rest ARGS)  */)
       if (!NILP (host))
 	{
 	  message (":family local ignores the :host property");
-	  contact = Fplist_put (contact, QChost, Qnil);
+	  contact = plist_put (contact, QChost, Qnil);
 	  host = Qnil;
 	}
       CHECK_STRING (service);
@@ -4172,16 +4172,16 @@ usage: (make-network-process &rest ARGS)  */)
   record_unwind_protect (remove_process, proc);
   p = XPROCESS (proc);
   pset_childp (p, contact);
-  pset_plist (p, Fcopy_sequence (Fplist_get (contact, QCplist)));
+  pset_plist (p, Fcopy_sequence (plist_get (contact, QCplist)));
   pset_type (p, Qnetwork);
 
   pset_buffer (p, buffer);
   pset_sentinel (p, sentinel);
   pset_filter (p, filter);
-  pset_log (p, Fplist_get (contact, QClog));
-  if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
+  pset_log (p, plist_get (contact, QClog));
+  if (tem = plist_get (contact, QCnoquery), !NILP (tem))
     p->kill_without_query = 1;
-  if ((tem = Fplist_get (contact, QCstop), !NILP (tem)))
+  if ((tem = plist_get (contact, QCstop), !NILP (tem)))
     pset_command (p, Qt);
   eassert (p->pid == 0);
   p->backlog = 5;
@@ -4193,7 +4193,7 @@ usage: (make-network-process &rest ARGS)  */)
   eassert (! p->dns_request);
 #endif
 #ifdef HAVE_GNUTLS
-  tem = Fplist_get (contact, QCtls_parameters);
+  tem = plist_get (contact, QCtls_parameters);
   CHECK_LIST (tem);
   p->gnutls_boot_parameters = tem;
 #endif
@@ -4969,17 +4969,17 @@ server_accept_connection (Lisp_Object server, int channel)
 
   /* Build new contact information for this setup.  */
   contact = Fcopy_sequence (ps->childp);
-  contact = Fplist_put (contact, QCserver, Qnil);
-  contact = Fplist_put (contact, QChost, host);
+  contact = plist_put (contact, QCserver, Qnil);
+  contact = plist_put (contact, QChost, host);
   if (!NILP (service))
-    contact = Fplist_put (contact, QCservice, service);
-  contact = Fplist_put (contact, QCremote,
-			conv_sockaddr_to_lisp (&saddr.sa, len));
+    contact = plist_put (contact, QCservice, service);
+  contact = plist_put (contact, QCremote,
+		       conv_sockaddr_to_lisp (&saddr.sa, len));
 #ifdef HAVE_GETSOCKNAME
   len = sizeof saddr;
   if (getsockname (s, &saddr.sa, &len) == 0)
-    contact = Fplist_put (contact, QClocal,
-			  conv_sockaddr_to_lisp (&saddr.sa, len));
+    contact = plist_put (contact, QClocal,
+			 conv_sockaddr_to_lisp (&saddr.sa, len));
 #endif
 
   pset_childp (p, contact);

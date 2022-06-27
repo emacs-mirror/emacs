@@ -11499,7 +11499,7 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
     }
 
   ASET (attrs, coding_attr_plist,
-	Fplist_put (CODING_ATTR_PLIST (attrs), prop, val));
+	plist_put (CODING_ATTR_PLIST (attrs), prop, val));
   return val;
 }
 

@@ -852,24 +852,6 @@
     (should-not (plist-get d1 3))
     (should-not (plist-get d2 3))))
 
-(ert-deftest test-cycle-lax-plist-get ()
-  (let ((c1 (cyc1 1))
-        (c2 (cyc2 1 2))
-        (d1 (dot1 1))
-        (d2 (dot2 1 2)))
-    (should (lax-plist-get c1 1))
-    (should (lax-plist-get c2 1))
-    (should (lax-plist-get d1 1))
-    (should (lax-plist-get d2 1))
-    (should-error (lax-plist-get c1 2) :type 'circular-list)
-    (should (lax-plist-get c2 2))
-    (should-error (lax-plist-get d1 2) :type 'wrong-type-argument)
-    (should (lax-plist-get d2 2))
-    (should-error (lax-plist-get c1 3) :type 'circular-list)
-    (should-error (lax-plist-get c2 3) :type 'circular-list)
-    (should-error (lax-plist-get d1 3) :type 'wrong-type-argument)
-    (should-error (lax-plist-get d2 3) :type 'wrong-type-argument)))
-
 (ert-deftest test-cycle-plist-member ()
   (let ((c1 (cyc1 1))
         (c2 (cyc2 1 2))
@@ -906,24 +888,6 @@
     (should-error (plist-put d1 3 3) :type 'wrong-type-argument)
     (should-error (plist-put d2 3 3) :type 'wrong-type-argument)))
 
-(ert-deftest test-cycle-lax-plist-put ()
-  (let ((c1 (cyc1 1))
-        (c2 (cyc2 1 2))
-        (d1 (dot1 1))
-        (d2 (dot2 1 2)))
-    (should (lax-plist-put c1 1 1))
-    (should (lax-plist-put c2 1 1))
-    (should (lax-plist-put d1 1 1))
-    (should (lax-plist-put d2 1 1))
-    (should-error (lax-plist-put c1 2 2) :type 'circular-list)
-    (should (lax-plist-put c2 2 2))
-    (should-error (lax-plist-put d1 2 2) :type 'wrong-type-argument)
-    (should (lax-plist-put d2 2 2))
-    (should-error (lax-plist-put c1 3 3) :type 'circular-list)
-    (should-error (lax-plist-put c2 3 3) :type 'circular-list)
-    (should-error (lax-plist-put d1 3 3) :type 'wrong-type-argument)
-    (should-error (lax-plist-put d2 3 3) :type 'wrong-type-argument)))
-
 (ert-deftest test-cycle-equal ()
   (should-error (equal (cyc1 1) (cyc1 1)))
   (should-error (equal (cyc2 1 2) (cyc2 1 2))))
@@ -936,21 +900,9 @@
   "Test that `plist-get' doesn't signal an error on degenerate plists."
   (should-not (plist-get '(:foo 1 :bar) :bar)))
 
-(ert-deftest lax-plist-get/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (lax-plist-get '(:foo 1 :bar) :bar)
-                               :type 'wrong-type-argument)
-                 '(wrong-type-argument plistp (:foo 1 :bar)))))
-
 (ert-deftest plist-put/odd-number-of-elements ()
   "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
   (should (equal (should-error (plist-put '(:foo 1 :bar) :zot 2)
-                               :type 'wrong-type-argument)
-                 '(wrong-type-argument plistp (:foo 1 :bar)))))
-
-(ert-deftest lax-plist-put/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (lax-plist-put '(:foo 1 :bar) :zot 2)
                                :type 'wrong-type-argument)
                  '(wrong-type-argument plistp (:foo 1 :bar)))))
 
@@ -1374,5 +1326,22 @@
     (setcdr (cdr loop) loop)
     (should-error (append loop '(end))
                   :type 'circular-list)))
+
+(ert-deftest test-plist ()
+  (let ((plist '(:a "b")))
+    (setq plist (plist-put plist :b "c"))
+    (should (equal (plist-get plist :b) "c"))
+    (should (equal (plist-member plist :b) '(:b "c"))))
+
+  (let ((plist '("1" "2" "a" "b")))
+    (setq plist (plist-put plist (copy-sequence "a") "c"))
+    (should-not (equal (plist-get plist (copy-sequence "a")) "c"))
+    (should-not (equal (plist-member plist (copy-sequence "a")) '("a" "c"))))
+
+  (let ((plist '("1" "2" "a" "b")))
+    (setq plist (plist-put plist (copy-sequence "a") "c" #'equal))
+    (should (equal (plist-get plist (copy-sequence "a") #'equal) "c"))
+    (should (equal (plist-member plist (copy-sequence "a") #'equal)
+                   '("a" "c")))))
 
 ;;; fns-tests.el ends here

@@ -482,8 +482,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      decoded names in order to filter false positives, such as "a"
      falsely matching "a-ring".  */
   if (!NILP (file_encoding)
-      && !NILP (Fplist_get (Fcoding_system_plist (file_encoding),
-			    Qdecomposed_characters)))
+      && !NILP (plist_get (Fcoding_system_plist (file_encoding),
+			   Qdecomposed_characters)))
     {
       check_decoded = true;
       if (STRING_MULTIBYTE (file))

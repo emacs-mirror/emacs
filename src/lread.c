@@ -3175,7 +3175,7 @@ hash_table_from_plist (Lisp_Object plist)
   /* This is repetitive but fast and simple.  */
 #define ADDPARAM(name)					\
   do {							\
-    Lisp_Object val = Fplist_get (plist, Q ## name);	\
+    Lisp_Object val = plist_get (plist, Q ## name);	\
     if (!NILP (val))					\
       {							\
 	*par++ = QC ## name;				\
@@ -3190,7 +3190,7 @@ hash_table_from_plist (Lisp_Object plist)
   ADDPARAM (rehash_threshold);
   ADDPARAM (purecopy);
 
-  Lisp_Object data = Fplist_get (plist, Qdata);
+  Lisp_Object data = plist_get (plist, Qdata);
 
   /* Now use params to make a new hash table and fill it.  */
   Lisp_Object ht = Fmake_hash_table (par - params, params);

@@ -691,11 +691,6 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (plist-put
    :no-eval (setq plist (plist-put plist 'd 4))
    :eq-result (a 1 b 2 c 3 d 4))
-  (lax-plist-get
-   :eval (lax-plist-get '("a" 1 "b" 2 "c" 3) "b"))
-  (lax-plist-put
-   :no-eval (setq plist (lax-plist-put plist "d" 4))
-   :eq-result '("a" 1 "b" 2 "c" 3 "d" 4))
   (plist-member
    :eval (plist-member '(a 1 b 2 c 3) 'b))
   "Data About Lists"

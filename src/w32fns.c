@@ -10212,21 +10212,21 @@ usage: (w32-notification-notify &rest PARAMS)  */)
   arg_plist = Flist (nargs, args);
 
   /* Icon.  */
-  lres = Fplist_get (arg_plist, QCicon);
+  lres = plist_get (arg_plist, QCicon);
   if (STRINGP (lres))
     icon = SSDATA (ENCODE_FILE (Fexpand_file_name (lres, Qnil)));
   else
     icon = (char *)"";
 
   /* Tip.  */
-  lres = Fplist_get (arg_plist, QCtip);
+  lres = plist_get (arg_plist, QCtip);
   if (STRINGP (lres))
     tip = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
     tip = (char *)"Emacs notification";
 
   /* Severity.  */
-  lres = Fplist_get (arg_plist, QClevel);
+  lres = plist_get (arg_plist, QClevel);
   if (NILP (lres))
     severity = Ni_None;
   else if (EQ (lres, Qinfo))
@@ -10239,14 +10239,14 @@ usage: (w32-notification-notify &rest PARAMS)  */)
     severity = Ni_Info;
 
   /* Title.  */
-  lres = Fplist_get (arg_plist, QCtitle);
+  lres = plist_get (arg_plist, QCtitle);
   if (STRINGP (lres))
     title = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
     title = (char *)"";
 
   /* Notification body text.  */
-  lres = Fplist_get (arg_plist, QCbody);
+  lres = plist_get (arg_plist, QCbody);
   if (STRINGP (lres))
     msg = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
