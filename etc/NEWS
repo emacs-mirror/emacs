@@ -609,6 +609,10 @@ or ':scream:'.
 
 ** Help
 
+---
+*** Variable values displayed by 'C-h v' in *Help* are now font-locked.
+
++++
 *** New user option 'help-clean-buttons'.
 If non-nil, link buttons in *Help* will have any surrounding quotes
 removed.
