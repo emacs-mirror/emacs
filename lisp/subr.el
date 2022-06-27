@@ -4006,6 +4006,12 @@ Otherwise, return nil."
       (setq object (indirect-function object)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
+(defun plistp (object)
+  "Non-nil if and only if OBJECT is a valid plist."
+  (and (listp object)
+       (proper-list-p object)
+       (zerop (mod (length object) 2))))
+
 (defun macrop (object)
   "Non-nil if and only if OBJECT is a macro."
   (let ((def (indirect-function object)))

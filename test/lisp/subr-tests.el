@@ -1081,5 +1081,14 @@ final or penultimate step during initialization."))
   (dolist (c (list ?a ?b ?α ?β))
     (should-not (char-uppercase-p c))))
 
+(ert-deftest test-plistp ()
+  (should (plistp nil))
+  (should-not (plistp 1))
+  (should (plistp '(1 2)))
+  (should-not (plistp '(1 . 2)))
+  (should (plistp '(1 2 3 4)))
+  (should-not (plistp '(1 2 3)))
+  (should-not (plistp '(1 2 3 . 4))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
