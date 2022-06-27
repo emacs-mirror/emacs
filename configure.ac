@@ -3622,7 +3622,7 @@ if test "${HAVE_X11}" = "yes"; then
 	CFLAGS="$CFLAGS $XFT_CFLAGS"
 	LIBS="$XFT_LIBS $LIBS"
 	AC_CHECK_HEADER(X11/Xft/Xft.h,
-	  AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS) , ,
+          [AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS)] , ,
           [[#include <X11/X.h>]])
 
 	if test "${HAVE_XFT}" = "yes"; then
@@ -3818,7 +3818,7 @@ AC_SUBST(M17N_FLT_LIBS)
 XCB_LIBS=
 if test "${HAVE_X11}" = "yes"; then
   AC_CHECK_HEADER(X11/Xlib-xcb.h,
-    AC_CHECK_LIB(xcb, xcb_translate_coordinates, HAVE_XCB=yes))
+    [AC_CHECK_LIB(xcb, xcb_translate_coordinates, HAVE_XCB=yes)])
   if test "${HAVE_XCB}" = "yes"; then
     AC_CHECK_LIB(X11-xcb, XGetXCBConnection, HAVE_X11_XCB=yes)
     if test "${HAVE_X11_XCB}" = "yes"; then
@@ -4597,7 +4597,7 @@ XSYNC_CFLAGS=
 HAVE_XSYNC=no
 if test "${HAVE_X11}" = "yes"; then
    AC_CHECK_HEADER(X11/extensions/sync.h,
-     AC_CHECK_LIB(Xext, XSyncQueryExtension, HAVE_XSYNC=yes),
+     [AC_CHECK_LIB(Xext, XSyncQueryExtension, HAVE_XSYNC=yes)],
      [], [#include <X11/Xlib.h>])
 
   if test "${HAVE_XSYNC}" = "yes"; then
