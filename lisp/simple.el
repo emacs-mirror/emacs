@@ -1507,12 +1507,22 @@ the actual saved text might be different from what was killed."
            (while (> n 0)
              ;; 'find-composition' will return (FROM TO ....) or nil.
              (setq cmp (find-composition pos))
-             (if cmp
-                 ;; TO can be at POS, in which case we want to make
-                 ;; sure we advance at least by 1 character.
-                 (let ((cmp-end (cadr cmp)))
-                   (setq pos (max (1+ pos) cmp-end)))
-               (setq pos (1+ pos)))
+             (setq pos
+                   (if cmp
+                       (let ((from (car cmp))
+                             (to (cadr cmp)))
+                         (cond
+                          ((= (length cmp) 2) ; static composition
+                           to)
+                          ;; TO can be at POS, in which case we want
+                          ;; to make sure we advance at least by 1
+                          ;; character.
+                          ((<= to pos)
+                           (1+ pos))
+                          (t
+                           (lgstring-glyph-boundary (nth 2 cmp)
+                                                    from (1+ pos)))))
+                     (1+ pos)))
              (setq n (1- n)))
            (delete-char (- pos start) killflag)))
 
