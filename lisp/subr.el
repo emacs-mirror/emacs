@@ -4008,9 +4008,8 @@ Otherwise, return nil."
 
 (defun plistp (object)
   "Non-nil if and only if OBJECT is a valid plist."
-  (and (listp object)
-       (proper-list-p object)
-       (zerop (mod (length object) 2))))
+  (let ((len (proper-list-p object)))
+    (and len (zerop (% len 2)))))
 
 (defun macrop (object)
   "Non-nil if and only if OBJECT is a macro."
