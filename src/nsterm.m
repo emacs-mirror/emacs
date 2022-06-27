@@ -358,7 +358,7 @@ mod_of_kind (Lisp_Object modifier, Lisp_Object kind)
     return modifier;
   else
     {
-      Lisp_Object val = Fplist_get (modifier, kind);
+      Lisp_Object val = plist_get (modifier, kind);
       return SYMBOLP (val) ? val : Qnil;
     }
 }
