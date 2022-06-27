@@ -1515,12 +1515,13 @@ Binding direction based on `dired-x-hands-off-my-keys'."
   (interactive)
   (if (called-interactively-p 'interactive)
       (setq dired-x-hands-off-my-keys
-            (not (y-or-n-p "Bind dired-x-find-file over find-file? "))))
+            (not (y-or-n-p (format-message
+                            "Bind `dired-x-find-file' over `find-file'?")))))
   (unless dired-x-hands-off-my-keys
-    (define-key (current-global-map) [remap find-file]
-      'dired-x-find-file)
-    (define-key (current-global-map) [remap find-file-other-window]
-      'dired-x-find-file-other-window)))
+    (keymap-set (current-global-map) "<remap> <find-file>"
+                #'dired-x-find-file)
+    (keymap-set (current-global-map) "<remap> <find-file-other-window>"
+                #'dired-x-find-file-other-window)))
 
 ;; Now call it so binding is correct.  This could go in the :initialize
 ;; slot, but then dired-x-bind-find-file has to be defined before the
