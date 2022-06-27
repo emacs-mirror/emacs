@@ -1749,7 +1749,7 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 				    0, 0,
 				    s->img->original_width,
 				    s->img->original_height,
-				    face->background);
+				    background);
 	    }
 	  else
 	    /* In order to make sure the stipple background remains
