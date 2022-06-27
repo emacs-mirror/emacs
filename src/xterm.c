@@ -20424,7 +20424,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  xwidget_button (xvw, xev->evtype == XI_ButtonPress,
 				  lrint (xev->event_x), lrint (xev->event_y),
-				  xev->detail, xev->mods.effective, xev->time);
+				  xev->detail, xi_convert_event_state (xev),
+				  xev->time);
 
 		  if (!EQ (selected_window, xvw->w) && (xev->detail < 4))
 		    {
@@ -20450,7 +20451,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      bv.x = lrint (xev->event_x);
 	      bv.y = lrint (xev->event_y);
 	      bv.window = xev->event;
-	      bv.state = xev->mods.effective;
+	      bv.state = xi_convert_event_state (xev);
 	      bv.time = xev->time;
 
 	      dpyinfo->last_mouse_glyph_frame = NULL;
