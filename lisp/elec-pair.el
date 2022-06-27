@@ -498,7 +498,7 @@ The decision is taken by order of preference:
   corresponding delimiter for C;
 
 * According to C alone, by looking C up in the tables
-  `electric-pair-paris' or `electric-pair-text-pairs' (which
+  `electric-pair-pairs' or `electric-pair-text-pairs' (which
   see);
 
 * According to C's syntax and the syntactic state of the buffer
