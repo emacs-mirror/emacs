@@ -1672,7 +1672,6 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
   view = FRAME_HAIKU_VIEW (s->f);
   bitmap = s->img->pixmap;
 
-  /* TODO: implement stipples for images with masks.  */
   s->stippled_p = face->stipple != 0;
 
   if (s->hl == DRAW_CURSOR)
@@ -1680,8 +1679,8 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
   else
     background = face->background;
 
-  BView_SetHighColor (view, background);
-  BView_FillRectangle (view, x, y, width, height);
+  haiku_draw_background_rect (s, face, x, y,
+			      width, height);
 
   if (bitmap)
     {
@@ -1733,22 +1732,36 @@ haiku_draw_image_glyph_string (struct glyph_string *s)
 				     image_transform[1][1],
 				     image_transform[1][2]);
 
-	  BView_DrawBitmap (view, bitmap, 0, 0,
-			    s->img->original_width,
-			    s->img->original_height,
-			    0, 0,
-			    s->img->original_width,
-			    s->img->original_height,
-			    s->img->use_bilinear_filtering);
-
-	  if (mask)
-	    be_draw_image_mask (mask, view, 0, 0,
+	  if (!s->stippled_p || !mask)
+	    {
+	      BView_DrawBitmap (view, bitmap, 0, 0,
 				s->img->original_width,
 				s->img->original_height,
 				0, 0,
 				s->img->original_width,
 				s->img->original_height,
-				face->background);
+				s->img->use_bilinear_filtering);
+
+	      if (mask)
+		be_draw_image_mask (mask, view, 0, 0,
+				    s->img->original_width,
+				    s->img->original_height,
+				    0, 0,
+				    s->img->original_width,
+				    s->img->original_height,
+				    face->background);
+	    }
+	  else
+	    /* In order to make sure the stipple background remains
+	       visible, use the mask for the alpha channel of BITMAP
+	       and composite it onto the view instead.  */
+	    be_draw_bitmap_with_mask (view, bitmap, mask, 0, 0,
+				      s->img->original_width,
+				      s->img->original_height,
+				      0, 0,
+				      s->img->original_width,
+				      s->img->original_height,
+				      s->img->use_bilinear_filtering);
 
 	  if (s->slice.x != x || s->slice.y != y
 	      || s->slice.width != s->img->width
@@ -1949,10 +1962,8 @@ haiku_draw_glyph_string (struct glyph_string *s)
   /* Set the stipple_p flag indicating whether or not a stipple was
      drawn in s->row.  That is the case either when s is a stretch
      glyph string and s->face->stipple is not NULL, or when
-     s->face->stipple exists and s->hl is not DRAW_CURSOR, and s is
-     not an image.  This is different from X.  */
-  if (s->first_glyph->type != IMAGE_GLYPH
-      && s->face->stipple
+     s->face->stipple exists and s->hl is not DRAW_CURSOR.  */
+  if (s->face->stipple
       && (s->first_glyph->type == STRETCH_GLYPH
 	  || s->hl != DRAW_CURSOR))
     s->row->stipple_p = true;

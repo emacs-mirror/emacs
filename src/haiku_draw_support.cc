@@ -475,3 +475,62 @@ be_draw_cross_on_pixmap (void *bitmap, int x, int y, int width,
   be_draw_cross_on_pixmap_1 (target, x, y, width, height,
 			     color);
 }
+
+void
+be_draw_bitmap_with_mask (void *view, void *bitmap, void *mask,
+			  int dx, int dy, int width, int height,
+			  int vx, int vy, int vwidth, int vheight,
+			  bool use_bilinear_filtering)
+{
+  BBitmap *source ((BBitmap *) bitmap);
+  BBitmap combined (source->Bounds (), B_RGBA32);
+  BRect bounds;
+  int x, y, bit;
+  BView *vw;
+  uint32_t source_mask;
+  unsigned long pixel;
+
+  if (combined.InitCheck () != B_OK)
+    return;
+
+  if (combined.ImportBits (source) != B_OK)
+    return;
+
+  bounds = source->Bounds ();
+
+  if (source->ColorSpace () == B_RGB32)
+    source_mask = 255u << 24;
+  else
+    source_mask = 0;
+
+  for (y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
+    {
+      for (x = 0; x < BE_RECT_WIDTH (bounds); ++x)
+	{
+	  bit = haiku_get_pixel (mask, x, y);
+
+	  if (bit)
+	    {
+	      pixel = haiku_get_pixel (bitmap, x, y);
+	      haiku_put_pixel ((void *) &combined, x, y,
+			       source_mask | pixel);
+	    }
+	  else
+	    haiku_put_pixel ((void *) &combined, x, y, 0);
+	}
+    }
+
+  vw = get_view (view);
+
+  vw->SetDrawingMode (B_OP_OVER);
+  if (!use_bilinear_filtering)
+    vw->DrawBitmap (&combined,
+		    BRect (dx, dy, dx + width - 1, dy + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
+  else
+    vw->DrawBitmap (&combined,
+		    BRect (dx, dy, dx + width - 1, dy + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1),
+		    B_FILTER_BITMAP_BILINEAR);
+  vw->SetDrawingMode (B_OP_COPY);
+}

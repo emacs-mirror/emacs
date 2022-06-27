@@ -575,6 +575,8 @@ extern void be_apply_affine_transform (void *, double, double, double,
 extern void be_apply_inverse_transform (double (*)[3], int, int, int *, int *);
 extern void be_draw_image_mask (void *, void *, int, int, int, int, int, int,
 				int, int, uint32_t);
+extern void be_draw_bitmap_with_mask (void *, void *, void *, int, int, int,
+				      int, int, int, int, int, bool);
 
 extern void be_get_display_resolution (double *, double *);
 extern void be_get_screen_dimensions (int *, int *);
