@@ -10959,7 +10959,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     tem = plist_get (p->childp, QCspeed);
   CHECK_FIXNUM (tem);
   dcb.BaudRate = XFIXNUM (tem);
-  childp2 = Fplist_put (childp2, QCspeed, tem);
+  childp2 = plist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
   if (!NILP (plist_member (contact, QCbytesize)))
@@ -10973,7 +10973,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     error (":bytesize must be nil (8), 7, or 8");
   dcb.ByteSize = XFIXNUM (tem);
   summary[0] = XFIXNUM (tem) + '0';
-  childp2 = Fplist_put (childp2, QCbytesize, tem);
+  childp2 = plist_put (childp2, QCbytesize, tem);
 
   /* Configure parity.  */
   if (!NILP (plist_member (contact, QCparity)))
@@ -11003,7 +11003,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
       dcb.Parity = ODDPARITY;
       dcb.fErrorChar = TRUE;
     }
-  childp2 = Fplist_put (childp2, QCparity, tem);
+  childp2 = plist_put (childp2, QCparity, tem);
 
   /* Configure stopbits.  */
   if (!NILP (plist_member (contact, QCstopbits)))
@@ -11020,7 +11020,7 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     dcb.StopBits = ONESTOPBIT;
   else if (XFIXNUM (tem) == 2)
     dcb.StopBits = TWOSTOPBITS;
-  childp2 = Fplist_put (childp2, QCstopbits, tem);
+  childp2 = plist_put (childp2, QCstopbits, tem);
 
   /* Configure flowcontrol.  */
   if (!NILP (plist_member (contact, QCflowcontrol)))
@@ -11053,13 +11053,13 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
       dcb.fOutX = TRUE;
       dcb.fInX = TRUE;
     }
-  childp2 = Fplist_put (childp2, QCflowcontrol, tem);
+  childp2 = plist_put (childp2, QCflowcontrol, tem);
 
   /* Activate configuration.  */
   if (!SetCommState (hnd, &dcb))
     error ("SetCommState() failed");
 
-  childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
+  childp2 = plist_put (childp2, QCsummary, build_string (summary));
   pset_childp (p, childp2);
 }
 
