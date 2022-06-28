@@ -725,19 +725,22 @@ the C sources, too."
   ;; Ignore lambda constructs, keyboard macros, etc.
   (let* ((obsolete (and (symbolp function)
 			(get function 'byte-obsolete-info)))
-         (use (car obsolete)))
+         (use (car obsolete))
+         (start (point)))
     (when obsolete
-      (insert "  This "
+      (insert "This "
 	      (if (eq (car-safe (symbol-function function)) 'macro)
 		  "macro"
 		"function")
 	      " is obsolete")
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
-      (insert (cond ((stringp use) (concat ";\n  " use))
-                    (use (format-message ";\n  use `%s' instead." use))
+      (insert (cond ((stringp use) (concat "; " use))
+                    (use (format-message "; use `%s' instead." use))
                     (t "."))
-              "\n"))))
+              "\n")
+      (fill-region-as-paragraph start (point))
+      (ensure-empty-lines))))
 
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--globalized-minor-mode)
@@ -1044,6 +1047,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
          nil t)
         (ensure-empty-lines))))
 
+  (help-fns--obsolete function)
+
   (pcase-let* ((`(,real-function ,def ,_aliased ,real-def)
                 (help-fns--analyze-function function))
                (doc-raw (condition-case nil
@@ -1082,7 +1087,6 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
         (set-buffer-file-coding-system 'utf-8)))))
 
 ;; Add defaults to `help-fns-describe-function-functions'.
-(add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
 (add-hook 'help-fns-describe-function-functions #'help-fns--interactive-only)
 (add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
 (add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro 100)
@@ -1338,6 +1342,7 @@ it is displayed along with the global value."
                              alias 'variable-documentation))))
 
 	      (with-current-buffer standard-output
+                (help-fns--var-obsolete variable)
 		(insert (or doc "Not documented as a variable.")))
 
               ;; Output the indented administrative bits.
@@ -1531,19 +1536,21 @@ variable.\n")))
       (princ watchpoints)
       (terpri))))
 
-(add-hook 'help-fns-describe-variable-functions #'help-fns--var-obsolete)
 (defun help-fns--var-obsolete (variable)
   (let* ((obsolete (get variable 'byte-obsolete-variable))
-	 (use (car obsolete)))
+	 (use (car obsolete))
+         (start (point)))
     (when obsolete
-      (princ "  This variable is obsolete")
+      (insert "This variable is obsolete")
       (if (nth 2 obsolete)
-          (princ (format " since %s" (nth 2 obsolete))))
-      (princ (cond ((stringp use) (concat ";\n  " use))
-		   (use (format-message ";\n  use `%s' instead."
-                                        (car obsolete)))
-		   (t ".")))
-      (terpri))))
+          (insert (format " since %s" (nth 2 obsolete))))
+      (insert (cond ((stringp use) (concat "; " use))
+		    (use (format-message "; use `%s' instead."
+                                         (car obsolete)))
+		    (t "."))
+              "\n")
+      (fill-region-as-paragraph start (point))
+      (ensure-empty-lines))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-alias)
 (defun help-fns--var-alias (variable)
