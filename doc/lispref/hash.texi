@@ -289,9 +289,13 @@ If two objects @var{obj1} and @var{obj2} are @code{equal}, then
 are the same integer.
 
 If the two objects are not @code{equal}, the values returned by
-@code{sxhash-equal} are usually different, but not always; once in a
-rare while, by luck, you will encounter two distinct-looking objects
-that give the same result from @code{sxhash-equal}.
+@code{sxhash-equal} are usually different, but not always.
+@code{sxhash-equal} is designed to be reasonably fast (since it's used
+for indexing hash tables) so it won't recurse deeply into nested
+structures.  In addition; once in a rare while, by luck, you will
+encounter two distinct-looking simple objects that give the same
+result from @code{sxhash-equal}.  So you can't, in general, use
+@code{sxhash-equal} to check whether an object has changed.
 
 @b{Common Lisp note:} In Common Lisp a similar function is called
 @code{sxhash}.  Emacs provides this name as a compatibility alias for
