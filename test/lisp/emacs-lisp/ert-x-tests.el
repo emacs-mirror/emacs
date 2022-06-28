@@ -82,6 +82,21 @@
         (should-not (buffer-live-p buffer-1))
         (should (buffer-live-p buffer-2))))))
 
+(ert-deftest ert-test-with-test-buffer-selected/selected ()
+  (ert-with-test-buffer-selected ()
+    (should (eq (window-buffer) (current-buffer)))))
+
+(ert-deftest ert-test-with-test-buffer-selected/modification-hooks ()
+  (ert-with-test-buffer-selected ()
+    (should (null inhibit-modification-hooks))))
+
+(ert-deftest ert-test-with-test-buffer-selected/return-value ()
+  (should (equal (ert-with-test-buffer-selected () "foo") "foo")))
+
+(ert-deftest ert-test-with-test-buffer-selected/buffer-name ()
+  (should (equal (ert-with-test-buffer (:name "foo") (buffer-name))
+                 (ert-with-test-buffer-selected (:name "foo")
+                   (buffer-name)))))
 
 (ert-deftest ert-filter-string ()
   (should (equal (ert-filter-string "foo bar baz" "quux")

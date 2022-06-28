@@ -102,6 +102,35 @@ the name of the test and the result of NAME-FORM."
            (indent 1))
   `(ert--call-with-test-buffer ,name-form (lambda () ,@body)))
 
+(cl-defmacro ert-with-test-buffer-selected ((&key name)
+                                            &body body)
+  "Create a test buffer, switch to it, and run BODY.
+
+This extends `ert-with-test-buffer' by displaying the test
+buffer (whose name is derived from NAME) in a temporary window.
+The temporary window becomes the `selected-window' before BODY is
+evaluated.  The modification hooks `before-change-functions' and
+`after-change-functions' are not inhibited during the evaluation
+of BODY, which makes it easier to use `execute-kbd-macro' to
+simulate user interaction.  The window configuration is restored
+before returning, even if BODY exits nonlocally.  The return
+value is the last form in BODY."
+  (declare (debug ((":name" form) def-body))
+           (indent 1))
+  (let ((ret (make-symbol "ert--with-test-buffer-selected-ret")))
+    `(save-window-excursion
+       (let (,ret)
+         (ert-with-test-buffer (:name ,name)
+           (with-current-buffer-window (current-buffer)
+               `(display-buffer-below-selected
+                 (body-function
+                  . ,(lambda (window)
+                       (select-window window t)
+                       (let ((inhibit-modification-hooks nil))
+                         (setq ,ret (progn ,@body))))))
+             nil))
+         ,ret))))
+
 ;;;###autoload
 (defun ert-kill-all-test-buffers ()
   "Kill all test buffers that are still live."
