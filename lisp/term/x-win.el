@@ -1182,8 +1182,12 @@ as returned by `x-server-vendor'."
   (interactive "*")
   (let ((clipboard-text (gui--selection-value-internal 'CLIPBOARD))
 	(select-enable-clipboard t))
-    (if (and clipboard-text (> (length clipboard-text) 0))
-	(kill-new clipboard-text))
+    (when (and clipboard-text (> (length clipboard-text) 0))
+      ;; Avoid asserting ownership of CLIPBOARD, which will cause
+      ;; `gui-selection-value' to return nil in the future.
+      ;; (bug#56273)
+      (let ((select-enable-clipboard nil))
+        (kill-new clipboard-text)))
     (yank)))
 
 (declare-function accelerate-menu "xmenu.c" (&optional frame) t)
