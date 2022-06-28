@@ -352,6 +352,10 @@ match those regexps will be ignored by 'switch-to-prev-buffer' and
 
 ** Menus
 
+** New command 'rename-visited-file'.
+This command renames the file visited by the current buffer by moving
+it to a new location, and also makes the buffer visit this new file.
+
 ---
 *** The entries following the buffers in the "Buffers" menu can now be altered.
 Change the 'menu-bar-buffers-menu-command-entries' variable to alter

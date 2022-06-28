@@ -420,6 +420,9 @@ With prefix argument (@kbd{C-u}), mark the current buffer as changed.
 Save the current buffer with a specified file name (@code{write-file}).
 @item M-x set-visited-file-name
 Change the file name under which the current buffer will be saved.
+@item M-x rename-visited-file
+The same as @kbd{M-x set-visited-file-name}, but also rename the file
+the buffer if visiting (if any).
 @end table
 
 @kindex C-x C-s
