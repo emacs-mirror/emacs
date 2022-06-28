@@ -441,10 +441,10 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
   int rc;
   specpdl_ref ref;
 
-  CHECK_LIST (obj);
-  for (tem = obj; CONSP (tem); tem = XCDR (tem))
+  tem = obj;
+
+  FOR_EACH_TAIL (tem)
     {
-      maybe_quit ();
       t1 = XCAR (tem);
       CHECK_CONS (t1);
 
@@ -490,9 +490,9 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 	signal_error ("Unknown data type", type_sym);
 
       CHECK_LIST (t1);
-      for (t2 = XCDR (t1); CONSP (t2); t2 = XCDR (t2))
+      t2 = XCDR (t1);
+      FOR_EACH_TAIL (t2)
 	{
-	  maybe_quit ();
 	  data = XCAR (t2);
 
 	  if (FIXNUMP (type_sym) || BIGNUMP (type_sym))
