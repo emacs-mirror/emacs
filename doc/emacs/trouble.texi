@@ -480,7 +480,7 @@ variable.  The display of the offending window will then remain
 outdated, and possibly incomplete, on the screen, but Emacs should
 otherwise be responsive, and you could then switch to another buffer,
 or kill the problematic buffer, or turn on @code{so-long-mode} or
-@code{sol-long-minor-mode} in that buffer.  When the display of a
+@code{so-long-minor-mode} in that buffer.  When the display of a
 window is aborted due to this reason, the buffer shown in that window
 will not have any of its windows redisplayed until the buffer is
 modified or until you type @kbd{C-l} (@pxref{Recentering}) in one of
