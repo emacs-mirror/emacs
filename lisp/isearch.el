@@ -2522,11 +2522,12 @@ If no input items have been entered yet, just beep."
   (if (null (cdr isearch-cmds))
       (ding)
     (isearch-pop-state))
-  ;; When going back to the hidden match, reopen it.
-  (when (and (eq search-invisible 'open) isearch-hide-immediately
-             isearch-other-end)
-    (isearch-range-invisible (min (point) isearch-other-end)
-                             (max (point) isearch-other-end)))
+  ;; When going back to the hidden match, reopen it and close other overlays.
+  (when (and (eq search-invisible 'open) isearch-hide-immediately)
+    (if isearch-other-end
+        (isearch-range-invisible (min (point) isearch-other-end)
+                                 (max (point) isearch-other-end))
+      (isearch-close-unnecessary-overlays (point) (point))))
   (isearch-update))
 
 (defun isearch-del-char (&optional arg)
@@ -3756,11 +3757,11 @@ Optional third argument, if t, means if fail just return nil (no error).
 ;; Verify if the current match is outside of each element of
 ;; `isearch-opened-overlays', if so close that overlay.
 
-(defun isearch-close-unnecessary-overlays (begin end)
+(defun isearch-close-unnecessary-overlays (beg end)
   (let ((overlays isearch-opened-overlays))
     (setq isearch-opened-overlays nil)
     (dolist (ov overlays)
-      (if (isearch-intersects-p begin end (overlay-start ov) (overlay-end ov))
+      (if (isearch-intersects-p beg end (overlay-start ov) (overlay-end ov))
 	  (push ov isearch-opened-overlays)
 	(let ((fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
 	  (if fct-temp
