@@ -2223,7 +2223,7 @@ where you were with @kbd{M-,}.
 @kindex C-M-,
 @findex xref-go-forward
   If you previously went back too far with @kbd{M-,}, @kbd{C-M-,}
-(@code{xref-go-forward} can be used to go forward again.
+(@code{xref-go-forward}) can be used to go forward again.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might
