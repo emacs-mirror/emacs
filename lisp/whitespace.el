@@ -730,7 +730,7 @@ Used when `whitespace-style' includes `indentation',
   :group 'whitespace)
 
 
-(defcustom whitespace-empty-at-bob-regexp "\\`\\(\\([ \t]*\n\\)+\\)"
+(defcustom whitespace-empty-at-bob-regexp "\\`\\([ \t\n]*\\(?:\n\\|$\\)\\)"
   "Specify regexp for empty lines at beginning of buffer.
 
 Used when `whitespace-style' includes `empty'."
