@@ -17635,7 +17635,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					    &consumed, &keysym))
 		    goto done_keysym;
 
-		  modifiers &= ~consumed;
 		  overflow = 0;
 
 		  nbytes = XkbTranslateKeySym (dpyinfo->display, &keysym,
@@ -20791,10 +20790,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
-#ifdef HAVE_XKB
-	      mods_rtrn = 0;
-#endif
-
 	      x_display_set_last_user_time (dpyinfo, xev->time,
 					    xev->send_event);
 	      ignore_next_mouse_click_timeout = 0;
@@ -21029,12 +21024,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			}
 		    }
 
-#ifndef HAVE_XKB
 		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo, state);
-#else
-		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo,
-							      state & ~mods_rtrn);
-#endif
 
 #ifdef XK_F1
 		  if (x_dnd_in_progress && keysym == XK_F1)
