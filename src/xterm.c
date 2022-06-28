@@ -17622,14 +17622,50 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                 emacs_abort ();
             }
           else
-            nbytes = XLookupString (&xkey, (char *) copy_bufptr,
-                                    copy_bufsiz, &keysym,
-                                    &compose_status);
-#else
-          nbytes = XLookupString (&xkey, (char *) copy_bufptr,
-                                  copy_bufsiz, &keysym,
-                                  &compose_status);
 #endif
+	    {
+#ifdef HAVE_XKB
+	      int overflow;
+	      unsigned int consumed;
+
+	      if (dpyinfo->xkb_desc)
+		{
+		  if (!XkbTranslateKeyCode (dpyinfo->xkb_desc,
+					    xkey.keycode, xkey.state,
+					    &consumed, &keysym))
+		    goto done_keysym;
+
+		  modifiers &= ~consumed;
+		  overflow = 0;
+
+		  nbytes = XkbTranslateKeySym (dpyinfo->display, &keysym,
+					       xkey.state & ~consumed,
+					       (char *) copy_bufptr,
+					       copy_bufsiz, &overflow);
+
+		  if (overflow)
+		    {
+		      copy_bufptr = SAFE_ALLOCA ((copy_bufsiz += overflow)
+						 * sizeof *copy_bufptr);
+		      overflow = 0;
+		      nbytes = XkbTranslateKeySym (dpyinfo->display, &keysym,
+						   xkey.state & ~consumed,
+						   (char *) copy_bufptr,
+						   copy_bufsiz, &overflow);
+
+		      if (overflow)
+			nbytes = 0;
+		    }
+
+		  if (nbytes)
+		    coding = Qnil;
+		}
+	      else
+#endif
+		nbytes = XLookupString (&xkey, (char *) copy_bufptr,
+					copy_bufsiz, &keysym,
+					&compose_status);
+	    }
 
 #ifdef XK_F1
 	  if (x_dnd_in_progress && keysym == XK_F1)
@@ -20755,6 +20791,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 #endif
 
+#ifdef HAVE_XKB
+	      mods_rtrn = 0;
+#endif
+
 	      x_display_set_last_user_time (dpyinfo, xev->time,
 					    xev->send_event);
 	      ignore_next_mouse_click_timeout = 0;
@@ -20911,7 +20951,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 		  XSETFRAME (inev.ie.frame_or_window, f);
-		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo, state);
 		  inev.ie.timestamp = xev->time;
 
 #ifdef HAVE_X_I18N
@@ -20989,6 +21028,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  xkey.state = old_state;
 			}
 		    }
+
+#ifndef HAVE_XKB
+		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo, state);
+#else
+		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo,
+							      state & ~mods_rtrn);
+#endif
 
 #ifdef XK_F1
 		  if (x_dnd_in_progress && keysym == XK_F1)
