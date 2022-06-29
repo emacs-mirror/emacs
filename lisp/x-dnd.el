@@ -522,7 +522,7 @@ message (format 32) that caused EVENT to be generated."
 			    frame "ATOM" 32 t))
 
 (defun x-dnd-get-drop-width-height (frame w accept)
-  "Return the width/height to be sent in a XDndStatus message.
+  "Return the width/height to be sent in a XdndStatus message.
 FRAME is the frame and W is the window where the drop happened.
 If ACCEPT is nil return 0 (empty rectangle),
 otherwise if W is a window, return its width/height,
@@ -539,7 +539,7 @@ otherwise return the frame width/height."
     0))
 
 (defun x-dnd-get-drop-x-y (frame w)
-  "Return the x/y coordinates to be sent in a XDndStatus message.
+  "Return the x/y coordinates to be sent in a XdndStatus message.
 Coordinates are required to be absolute.
 FRAME is the frame and W is the window where the drop happened.
 If W is a window, return its absolute coordinates,
@@ -609,10 +609,13 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(list-to-send
 		 (list (string-to-number
 			(frame-parameter frame 'outer-window-id))
-		       accept ;; 1 = Accept, 0 = reject.
-		       (x-dnd-get-drop-x-y frame window)
-		       (x-dnd-get-drop-width-height
-			frame window (eq accept 1))
+		       (+ 2 accept) ;; 1 = accept, 0 = reject.  2 =
+                                    ;; "want position updates".
+                       (if dnd-indicate-insertion-point 0
+		         (x-dnd-get-drop-x-y frame window))
+                       (if dnd-indicate-insertion-point 0
+		         (x-dnd-get-drop-width-height
+			  frame window (eq accept 1)))
                        ;; The no-toolkit Emacs build can actually
                        ;; receive drops from programs that speak
                        ;; versions of XDND earlier than 3 (such as
