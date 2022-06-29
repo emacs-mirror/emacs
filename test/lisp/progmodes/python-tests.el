@@ -2565,6 +2565,18 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (python-tests-look-at "print 'After f(*args)'")
                 (line-end-position))))))
 
+(ert-deftest python-nav-end-of-block-2 ()
+  "Ensure that `python-nav-end-of-block' does not enter an infinite loop."
+  (python-tests-with-temp-buffer
+   "def
+    =''
+ '
+\"\"\"\"\"\"
+ #
+''
+"
+   (python-nav-end-of-block)))
+
 (ert-deftest python-nav-forward-block-1 ()
   "This also accounts as a test for `python-nav-backward-block'."
   (python-tests-with-temp-buffer
