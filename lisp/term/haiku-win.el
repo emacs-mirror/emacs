@@ -174,25 +174,26 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
                                           (insert "\n")))
                             (buffer-string))))))
 
-(defun haiku-get-numeric-enum (name)
-  "Return the numeric value of the system enumerator NAME."
-  (or (get name 'haiku-numeric-enum)
-      (let ((value 0)
-            (offset 0)
-            (string (symbol-name name)))
-        (cl-loop for octet across string
-                 do (progn
-                      (when (or (< octet 0)
-                                (> octet 255))
-                        (error "Out of range octet: %d" octet))
-                      (setq value
-                            (logior value
-                                    (lsh octet
-                                         (- (* (1- (length string)) 8)
-                                            offset))))
-                      (setq offset (+ offset 8))))
-        (prog1 value
-          (put name 'haiku-enumerator-id value)))))
+(eval-and-compile
+  (defun haiku-get-numeric-enum (name)
+    "Return the numeric value of the system enumerator NAME."
+    (or (get name 'haiku-numeric-enum)
+        (let ((value 0)
+              (offset 0)
+              (string (symbol-name name)))
+          (cl-loop for octet across string
+                   do (progn
+                        (when (or (< octet 0)
+                                  (> octet 255))
+                          (error "Out of range octet: %d" octet))
+                        (setq value
+                              (logior value
+                                      (lsh octet
+                                           (- (* (1- (length string)) 8)
+                                              offset))))
+                        (setq offset (+ offset 8))))
+          (prog1 value
+            (put name 'haiku-enumerator-id value))))))
 
 (defmacro haiku-numeric-enum (name)
   "Expand to the numeric value NAME as a system identifier."
