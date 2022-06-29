@@ -2682,7 +2682,17 @@ fixed, visit it in a buffer."
                    ((and (null (match-string 4)) (match-string 5))
                     (concat "New " kind filemode newfile))
                    ((null (match-string 2))
-                    (concat "Deleted" kind filemode oldfile))
+                    ;; We used to use
+                    ;;     (concat "Deleted" kind filemode oldfile)
+                    ;; here but that misfires for `diff-buffers'
+                    ;; (see 24 Jun 2022 message in bug#54034).
+                    ;; AFAIK if (match-string 2) is nil then so is
+                    ;; (match-string 1), so "Deleted" doesn't sound right,
+                    ;; so better just let the header in plain sight for now.
+                    ;; FIXME: `diff-buffers' should maybe try to better
+                    ;; mimic Git's format with "a/" and "b/" so prettification
+                    ;; can "just work!"
+                    nil)
                    (t
                     (concat "Modified" kind filemode oldfile)))
                   'face '(diff-file-header diff-header))
