@@ -242,10 +242,17 @@ This function only tries to handle strings."
           ;; Test that the remote file was added to the list of files
           ;; to remove later.
           (should dnd-last-dragged-remote-file)
+          ;; Make sure the appropriate hook is added so the remote
+          ;; files are removed when Emacs exits.
+          (should (memq #'dnd-remove-last-dragged-remote-file
+                        kill-emacs-hook))
           ;; Test that the remote file was removed.
           (should (progn
                     (dnd-begin-file-drag normal-temp-file)
                     (not dnd-last-dragged-remote-file)))
+          ;; Make sure the remote file removal hook was deleted.
+          (should-not (memq #'dnd-remove-last-dragged-remote-file
+                            kill-emacs-hook))
           ;; Test that links to remote files can't be created.
           (should-error (dnd-begin-file-drag remote-temp-file nil 'link))
           ;; Test dragging a file with a multibyte filename.
@@ -298,12 +305,19 @@ This function only tries to handle strings."
           ;; Test that the remote file produced was added to the list
           ;; of files to remove upon the next call.
           (should dnd-last-dragged-remote-file)
+          ;; Make sure the appropriate hook is added so the remote
+          ;; files are removed when Emacs exits.
+          (should (memq #'dnd-remove-last-dragged-remote-file
+                        kill-emacs-hook))
           ;; Two local files at the same time.
           (should (eq (dnd-begin-drag-files (list normal-temp-file
                                                   normal-temp-file-1))
                       'copy))
           ;; Test that the remote files were removed.
           (should-not dnd-last-dragged-remote-file)
+          ;; And so was the hook.
+          (should-not (memq #'dnd-remove-last-dragged-remote-file
+                            kill-emacs-hook))
           ;; Test the selection data is correct.
           (let ((uri-list-data (cdr (dnd-tests-verify-selection-data 'text/uri-list)))
                 (username-data (dnd-tests-verify-selection-data 'text/x-xdnd-username))
@@ -347,6 +361,10 @@ This function only tries to handle strings."
                        ;; Make sure exactly two valid remote files
                        ;; were downloaded.
                        (eq (length dnd-last-dragged-remote-file) 2)))
+          ;; Make sure the appropriate hook is added so the remote
+          ;; files are removed when Emacs exits.
+          (should (memq #'dnd-remove-last-dragged-remote-file
+                        kill-emacs-hook))
           ;; Make sure links can't be created to remote files.
           (should-error (dnd-begin-drag-files (list normal-temp-file
                                                     remote-temp-file
@@ -357,6 +375,9 @@ This function only tries to handle strings."
                                                   normal-temp-file-1)
                                             nil 'link)
                       'link))
+          ;; Make sure the remote file removal hook was deleted.
+          (should-not (memq #'dnd-remove-last-dragged-remote-file
+                            kill-emacs-hook))
           ;; Make sure you can't drag an empty list of files.
           (should-error (dnd-begin-drag-files nil))
           ;; And when all remote files are inaccessible.
