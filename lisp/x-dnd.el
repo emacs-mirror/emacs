@@ -1128,6 +1128,8 @@ ACTION is the action given to `x-begin-drag'."
 ;;; XDS protocol support.
 
 (declare-function x-begin-drag "xfns.c")
+(declare-function x-delete-window-property "xfns.c")
+(defvar selection-converter-alist)
 
 (defvar x-dnd-xds-current-file nil
   "The file name for which a direct save is currently being performed.")
