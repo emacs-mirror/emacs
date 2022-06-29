@@ -443,6 +443,8 @@ EVENT, FRAME, WINDOW and DATA mean the same thing they do in
         ;; Now call the test function to decide what action to perform.
         (x-dnd-maybe-call-test-function window 'private)
         (unwind-protect
+            (when (windowp window)
+              (select-window window))
             (x-dnd-drop-data event frame window data
                              (symbol-name type))
           (x-dnd-forget-drop window))))))
@@ -500,6 +502,8 @@ message (format 32) that caused EVENT to be generated."
     ;; Now call the test function to decide what action to perform.
     (x-dnd-maybe-call-test-function window 'private)
     (unwind-protect
+        (when (windowp window)
+          (select-window window))
         (x-dnd-drop-data event frame window data
                          (symbol-name type))
       (x-dnd-forget-drop window))))
@@ -926,6 +930,8 @@ Return a vector of atoms containing the selection targets."
 				      reply)))
 
 	    ((eq message-type 'XmDROP_START)
+             (when (windowp window)
+               (select-window window))
 	     (let* ((x (x-dnd-motif-value-to-list
 		        (x-dnd-get-motif-value data 8 2 source-byteorder)
 		        2 my-byteorder))
@@ -1014,19 +1020,22 @@ Return a vector of atoms containing the selection targets."
 ;;; Handling drops.
 
 (defvar x-treat-local-requests-remotely)
+(declare-function x-get-local-selection "xfns.c")
 
-(defun x-dnd-convert-to-offix (targets)
-  "Convert the contents of `XdndSelection' to OffiX data.
+(defun x-dnd-convert-to-offix (targets local-selection)
+  "Convert local selection data to OffiX data.
 TARGETS should be the list of targets currently available in
 `XdndSelection'.  Return a list of an OffiX type, and data
 suitable for passing to `x-change-window-property', or nil if the
-data could not be converted."
+data could not be converted.
+LOCAL-SELECTION should be the local selection data describing the
+selection data to convert."
   (let ((x-treat-local-requests-remotely t)
         file-name-data string-data)
     (cond
      ((and (member "FILE_NAME" targets)
            (setq file-name-data
-                 (gui-get-selection 'XdndSelection 'FILE_NAME)))
+                 (x-get-local-selection local-selection 'FILE_NAME)))
       (if (string-match-p "\0" file-name-data)
           ;; This means there are multiple file names in
           ;; XdndSelection.  Convert the file name data to a format
@@ -1035,19 +1044,23 @@ data could not be converted."
         (cons 'DndTypeFile (concat file-name-data "\0"))))
      ((and (member "STRING" targets)
            (setq string-data
-                 (gui-get-selection 'XdndSelection 'STRING)))
+                 (x-get-local-selection local-selection 'STRING)))
       (cons 'DndTypeText (encode-coding-string string-data
                                                'latin-1))))))
 
-(defun x-dnd-do-offix-drop (targets x y frame window-id)
-  "Perform an OffiX drop on WINDOW-ID with the contents of `XdndSelection'.
+(defun x-dnd-do-offix-drop (targets x y frame window-id contents)
+  "Perform an OffiX drop on WINDOW-ID with the given selection contents.
 Return non-nil if the drop succeeded, or nil if it did not
 happen, which can happen if TARGETS didn't contain anything that
 the OffiX protocol can represent.
 
 X and Y are the root window coordinates of the drop.  TARGETS is
-the list of targets `XdndSelection' can be converted to."
-  (if-let* ((data (x-dnd-convert-to-offix targets))
+the list of targets CONTENTS can be converted to, and CONTENTS is
+the local selection data to drop onto the target window.
+
+FRAME is the frame that will act as a source window for the
+drop."
+  (if-let* ((data (x-dnd-convert-to-offix targets contents))
             (type-id (car (rassq (car data)
                                  x-dnd-offix-id-to-name)))
             (source-id (string-to-number
@@ -1074,18 +1087,20 @@ the list of targets `XdndSelection' can be converted to."
                              frame "_DND_PROTOCOL"
                              32 message-data))))
 
-(defun x-dnd-handle-unsupported-drop (targets x y action window-id frame _time)
+(defun x-dnd-handle-unsupported-drop (targets x y action window-id frame _time local-selection-data)
   "Return non-nil if the drop described by TARGETS and ACTION should not proceed.
 X and Y are the root window coordinates of the drop.
 FRAME is the frame the drop originated on.
-WINDOW-ID is the X window the drop should happen to."
+WINDOW-ID is the X window the drop should happen to.
+LOCAL-SELECTION-DATA is the local selection data of the drop."
   (not (and (or (eq action 'XdndActionCopy)
                 (eq action 'XdndActionMove))
-            (not (and x-dnd-use-offix-drop
+            (not (and x-dnd-use-offix-drop local-selection-data
                       (or (not (eq x-dnd-use-offix-drop 'files))
                           (member "FILE_NAME" targets))
                       (x-dnd-do-offix-drop targets x
-                                           y frame window-id)))
+                                           y frame window-id
+                                           local-selection-data)))
             (or
              (member "STRING" targets)
              (member "UTF8_STRING" targets)

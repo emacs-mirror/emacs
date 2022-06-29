@@ -307,18 +307,30 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
    This function is used both for remote requests (LOCAL_REQUEST is zero)
    and for local x-get-selection-internal (LOCAL_REQUEST is nonzero).
 
+   If LOCAL_VALUE is non-nil, use it as the local copy.  Also allow
+   quitting in that case, and let DPYINFO be NULL.
+
    This calls random Lisp code, and may signal or gc.  */
 
 static Lisp_Object
 x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
-		       bool local_request, struct x_display_info *dpyinfo)
+		       bool local_request, struct x_display_info *dpyinfo,
+		       Lisp_Object local_value)
 {
-  Lisp_Object local_value, tem;
+  Lisp_Object tem;
   Lisp_Object handler_fn, value, check;
+  bool may_quit;
+  specpdl_ref count;
 
-  local_value = LOCAL_SELECTION (selection_symbol, dpyinfo);
+  may_quit = false;
 
-  if (NILP (local_value)) return Qnil;
+  if (NILP (local_value))
+    local_value = LOCAL_SELECTION (selection_symbol, dpyinfo);
+  else
+    may_quit = true;
+
+  if (NILP (local_value))
+    return Qnil;
 
   /* TIMESTAMP is a special case.  */
   if (EQ (target_type, QTIMESTAMP))
@@ -331,8 +343,10 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
       /* Don't allow a quit within the converter.
 	 When the user types C-g, he would be surprised
 	 if by luck it came during a converter.  */
-      specpdl_ref count = SPECPDL_INDEX ();
-      specbind (Qinhibit_quit, Qt);
+      count = SPECPDL_INDEX ();
+
+      if (!may_quit)
+	specbind (Qinhibit_quit, Qt);
 
       CHECK_SYMBOL (target_type);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
@@ -804,7 +818,9 @@ x_handle_selection_request (struct selection_input_event *event)
      target that doesn't support XDND.  */
   if (SELECTION_EVENT_TIME (event) == pending_dnd_time + 1
       || SELECTION_EVENT_TIME (event) == pending_dnd_time + 2)
-    selection_symbol = QXdndSelection;
+    /* Always reply with the contents of PRIMARY, since that's where
+       the selection data is.  */
+    selection_symbol = QPRIMARY;
 
   local_selection_data = LOCAL_SELECTION (selection_symbol, dpyinfo);
 
@@ -915,7 +931,7 @@ x_convert_selection (Lisp_Object selection_symbol,
 
   lisp_selection
     = x_get_local_selection (selection_symbol, target_symbol,
-			     false, dpyinfo);
+			     false, dpyinfo, Qnil);
 
   frame = selection_request_stack;
 
@@ -2131,7 +2147,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
     }
 
   val = x_get_local_selection (selection_symbol, target_type, true,
-			       FRAME_DISPLAY_INFO (f));
+			       FRAME_DISPLAY_INFO (f), Qnil);
 
   if (NILP (val) && FRAME_LIVE_P (f))
     {
@@ -2271,6 +2287,45 @@ On Nextstep, TERMINAL is unused.  */)
   owner = XGetSelectionOwner (dpyinfo->display, atom);
   unblock_input ();
   return (owner ? Qt : Qnil);
+}
+
+DEFUN ("x-get-local-selection", Fx_get_local_selection, Sx_get_local_selection,
+       0, 2, 0,
+       doc: /* Run selection converters for VALUE, and return the result.
+TARGET is the selection target that is used to find a suitable
+converter.  VALUE is a list of 4 values NAME, SELECTION-VALUE,
+TIMESTAMP and FRAME.  NAME is the name of the selection that will be
+passed to selection converters, SELECTION-VALUE is the value of the
+selection used by the converter, TIMESTAMP is not meaningful (but must
+be a number that fits in an X timestamp), and FRAME is the frame
+describing the terminal for which the selection converter will be
+run.  */)
+  (Lisp_Object value, Lisp_Object target)
+{
+  Time time;
+  Lisp_Object name, timestamp, frame, result;
+
+  CHECK_SYMBOL (target);
+  name = Fnth (make_fixnum (0), value);
+  timestamp = Fnth (make_fixnum (2), value);
+  frame = Fnth (make_fixnum (3), value);
+
+  CHECK_SYMBOL (name);
+  CONS_TO_INTEGER (timestamp, Time, time);
+  check_window_system (decode_live_frame (frame));
+
+  result = x_get_local_selection (name, target, true,
+				  NULL, value);
+
+  if (CONSP (result) && SYMBOLP (XCAR (result)))
+    {
+      result = XCDR (result);
+
+      if (CONSP (result) && NILP (XCDR (result)))
+	result = XCAR (result);
+    }
+
+  return clean_local_selection_data (result);
 }
 
 
@@ -2809,6 +2864,7 @@ syms_of_xselect (void)
   defsubr (&Sx_get_atom_name);
   defsubr (&Sx_send_client_message);
   defsubr (&Sx_register_dnd_atom);
+  defsubr (&Sx_get_local_selection);
 
   reading_selection_reply = Fcons (Qnil, Qnil);
   staticpro (&reading_selection_reply);

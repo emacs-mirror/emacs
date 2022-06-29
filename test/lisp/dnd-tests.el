@@ -38,6 +38,7 @@
   "Alist of selection names to their values.")
 
 (defvar x-treat-local-requests-remotely)
+(defvar x-dnd-preserve-selection-data)
 
 ;; Define some replacements for functions used by the drag-and-drop
 ;; code on X when running under something else.
@@ -152,7 +153,8 @@ This function only tries to handle strings."
   ;; program with reasonably correct behavior, such as dtpad, gedit,
   ;; or Mozilla.
   ;;                ASCII            Latin-1       UTF-8
-  (let ((test-text "hello, everyone! sæl öllsömul! всем привет"))
+  (let ((test-text "hello, everyone! sæl öllsömul! всем привет")
+        (x-dnd-preserve-selection-data t))
     ;; Verify that dragging works.
     (should (eq (dnd-begin-text-drag test-text) 'copy))
     (should (eq (dnd-begin-text-drag test-text nil 'move) 'move))
@@ -187,7 +189,8 @@ This function only tries to handle strings."
         (normal-multibyte-file (expand-file-name
                                 (make-temp-name "тест-на-перетаскивание")
                                 temporary-file-directory))
-        (remote-temp-file (dnd-tests-make-temp-name)))
+        (remote-temp-file (dnd-tests-make-temp-name))
+        (x-dnd-preserve-selection-data t))
     ;; Touch those files if they don't exist.
     (unless (file-exists-p normal-temp-file)
       (write-region "" 0 normal-temp-file))
@@ -273,7 +276,8 @@ This function only tries to handle strings."
          (expand-file-name (make-temp-name "dnd-test")
                            temporary-file-directory))
         (nonexistent-remote-file (dnd-tests-make-temp-name))
-        (nonexistent-remote-file-1 (dnd-tests-make-temp-name)))
+        (nonexistent-remote-file-1 (dnd-tests-make-temp-name))
+        (x-dnd-preserve-selection-data t))
     ;; Touch those files if they don't exist.
     (unless (file-exists-p normal-temp-file)
       (write-region "" 0 normal-temp-file))

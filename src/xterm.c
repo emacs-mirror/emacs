@@ -11234,6 +11234,19 @@ x_dnd_delete_action_list (Lisp_Object frame)
   unblock_input ();
 }
 
+static void
+x_dnd_lose_ownership (Lisp_Object timestamp_and_frame)
+{
+  struct frame *f;
+
+  f = XFRAME (XCDR (timestamp_and_frame));
+
+  if (FRAME_LIVE_P (f))
+    Fx_disown_selection_internal (QXdndSelection,
+				  XCAR (timestamp_and_frame),
+				  XCDR (timestamp_and_frame));
+}
+
 /* This function is defined far away from the rest of the XDND code so
    it can utilize `x_any_window_to_frame'.  */
 
@@ -11324,12 +11337,13 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
       if (!NILP (Vx_dnd_unsupported_drop_function))
 	{
-	  if (!NILP (call7 (Vx_dnd_unsupported_drop_function,
+	  if (!NILP (call8 (Vx_dnd_unsupported_drop_function,
 			    XCAR (XCDR (event->ie.arg)), event->ie.x,
 			    event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
 			    make_uint (event->ie.code),
 			    event->ie.frame_or_window,
-			    make_int (event->ie.timestamp))))
+			    make_int (event->ie.timestamp),
+			    Fcopy_sequence (XCAR (event->ie.arg)))))
 	    continue;
 	}
 
@@ -11364,12 +11378,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   /* If local_value is nil, then we lost ownership of XdndSelection.
      Signal a more informative error than args-out-of-range.  */
   if (NILP (local_value))
-    error ("Lost ownership of XdndSelection");
-
-  if (CONSP (local_value))
-    x_own_selection (QXdndSelection,
-		     Fnth (make_fixnum (1), local_value), frame);
-  else
     error ("No local value for XdndSelection");
 
   if (popup_activated ())
@@ -11386,6 +11394,14 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
     x_dnd_selection_timestamp = bignum_to_intmax (ltimestamp);
   else
     x_dnd_selection_timestamp = XFIXNUM (ltimestamp);
+
+  /* Release ownership of XdndSelection after this function returns.
+     VirtualBox uses the owner of XdndSelection to determine whether
+     or not mouse motion is part of a drag-and-drop operation.  */
+
+  if (!x_dnd_preserve_selection_data)
+    record_unwind_protect (x_dnd_lose_ownership,
+			   Fcons (ltimestamp, frame));
 
   x_dnd_motif_operations
     = xm_side_effect_from_action (FRAME_DISPLAY_INFO (f), xaction);
@@ -27959,17 +27975,21 @@ mouse position list.  */);
 
   DEFVAR_LISP ("x-dnd-unsupported-drop-function", Vx_dnd_unsupported_drop_function,
     doc: /* Function called when trying to drop on an unsupported window.
+
 This function is called whenever the user tries to drop something on a
 window that does not support either the XDND or Motif protocols for
 drag-and-drop.  It should return a non-nil value if the drop was
 handled by the function, and nil if it was not.  It should accept
-several arguments TARGETS, X, Y, ACTION, WINDOW-ID, FRAME and TIME,
-where TARGETS is the list of targets that was passed to
-`x-begin-drag', WINDOW-ID is the numeric XID of the window that is
+several arguments TARGETS, X, Y, ACTION, WINDOW-ID, FRAME, TIME and
+LOCAL-SELECTION, where TARGETS is the list of targets that was passed
+to `x-begin-drag', WINDOW-ID is the numeric XID of the window that is
 being dropped on, X and Y are the root window-relative coordinates
 where the drop happened, ACTION is the action that was passed to
 `x-begin-drag', FRAME is the frame which initiated the drag-and-drop
-operation, and TIME is the X server time when the drop happened.  */);
+operation, TIME is the X server time when the drop happened, and
+LOCAL-SELECTION is the contents of the `XdndSelection' when
+`x-begin-drag' was run, which can be passed to
+`x-get-local-selection'.  */);
   Vx_dnd_unsupported_drop_function = Qnil;
 
   DEFVAR_INT ("x-color-cache-bucket-size", x_color_cache_bucket_size,
@@ -27996,4 +28016,11 @@ should return a symbol describing what to return from
 If the value is nil, or the function returns a value that is not
 a symbol, a drop on an Emacs frame will be canceled.  */);
   Vx_dnd_native_test_function = Qnil;
+
+  DEFVAR_BOOL ("x-dnd-preserve-selection-data", x_dnd_preserve_selection_data,
+    doc: /* Preserve selection data after `x-begin-drag' returns.
+This lets you inspect the contents of `XdndSelection' after a
+drag-and-drop operation, which is useful when writing tests for
+drag-and-drop code.  */);
+  x_dnd_preserve_selection_data = false;
 }

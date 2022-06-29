@@ -4056,12 +4056,13 @@ kbd_buffer_get_event (KBOARD **kbp,
 
 	  if (!NILP (Vx_dnd_unsupported_drop_function))
 	    {
-	      if (!NILP (call7 (Vx_dnd_unsupported_drop_function,
+	      if (!NILP (call8 (Vx_dnd_unsupported_drop_function,
 				XCAR (XCDR (event->ie.arg)), event->ie.x,
 				event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
 				make_uint (event->ie.code),
 				event->ie.frame_or_window,
-				make_int (event->ie.timestamp))))
+				make_int (event->ie.timestamp),
+				Fcopy_sequence (XCAR (event->ie.arg)))))
 		break;
 	    }
 
