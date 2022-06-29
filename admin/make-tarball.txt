@@ -158,13 +158,15 @@ General steps (for each step, check for possible errors):
 
 5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
-    Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the
-    files changed by M-x set-version.  The easiest way of doing that
-    is "C-x v d ROOT-DIR RET", then go to the first modified file,
-    press 'M' to mark all modified files, and finally 'v' to commit
-    them.  Make sure the commit log message mentions all the changes
-    in all modified files, as by default 'v' doesn't necessarily do
-    so.
+    Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the files
+    changed by M-x set-version.  Note that the set-version changes
+    should be committed separately, as described in step 3 above.
+
+    The easiest way of doing that is "C-x v d ROOT-DIR RET", then go
+    to the first modified file, press 'M' to mark all modified files,
+    and finally 'v' to commit them.  Make sure the commit log message
+    mentions all the changes in all modified files, as by default 'v'
+    doesn't necessarily do so.
 
     If someone else made a commit between step 1 and now,
     you need to repeat from step 4 onwards.  (You can commit the files
