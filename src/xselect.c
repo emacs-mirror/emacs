@@ -812,7 +812,7 @@ x_handle_selection_request (struct selection_input_event *event)
   pushed = false;
 
   if (!dpyinfo)
-    goto DONE;
+    goto REALLY_DONE;
 
   /* This is how the XDND protocol recommends dropping text onto a
      target that doesn't support XDND.  */
@@ -909,6 +909,9 @@ x_handle_selection_request (struct selection_input_event *event)
       && !BASE_EQ (Vx_sent_selection_functions, Qunbound))
     CALLN (Frun_hook_with_args, Qx_sent_selection_functions,
 	   selection_symbol, target_symbol, success ? Qt : Qnil);
+
+  /* Used to punt when dpyinfo is NULL.  */
+ REALLY_DONE:
 
   unbind_to (count, Qnil);
 }
