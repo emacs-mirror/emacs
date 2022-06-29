@@ -24183,7 +24183,7 @@ display_line (struct it *it, int cursor_vpos)
   row->displays_text_p = true;
   row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
   it->starts_in_middle_of_char_p = false;
-  it->tab_offset = 0;
+  it->stretch_adjust = 0;
   it->line_number_produced_p = false;
 
   /* Arrange the overlays nicely for our purposes.  Usually, we call
@@ -28371,6 +28371,11 @@ static bool
 calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 			    struct font *font, bool width_p, int *align_to)
 {
+  /* Don't adjust for line number if we didn't yet produce it for this
+     screen line.  This is for when this function is called from
+     move_it_in_display_line_to that was called by display_line to get
+     past the glyphs hscrolled off the left side of the window.  */
+  int lnum_pixel_width = it->line_number_produced_p ? it->lnum_pixel_width : 0;
   double pixels;
 
 # define OK_PIXELS(val) (*res = (val), true)
@@ -28427,7 +28432,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
       if (EQ (prop, Qtext))
 	  return OK_PIXELS (width_p
 			    ? (window_box_width (it->w, TEXT_AREA)
-			       - it->lnum_pixel_width)
+			       - lnum_pixel_width)
 			    : WINDOW_BOX_HEIGHT_NO_MODE_LINE (it->w));
 
       /* ':align_to'.  First time we compute the value, window
@@ -28439,14 +28444,14 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	  /* 'left': left edge of the text area.  */
 	  if (EQ (prop, Qleft))
 	    return OK_ALIGN_TO (window_box_left_offset (it->w, TEXT_AREA)
-				+ it->lnum_pixel_width);
+				+ lnum_pixel_width);
 	  /* 'right': right edge of the text area.  */
 	  if (EQ (prop, Qright))
 	    return OK_ALIGN_TO (window_box_right_offset (it->w, TEXT_AREA));
 	  /* 'center': the center of the text area.  */
 	  if (EQ (prop, Qcenter))
 	    return OK_ALIGN_TO (window_box_left_offset (it->w, TEXT_AREA)
-				+ it->lnum_pixel_width
+				+ lnum_pixel_width
 				+ window_box_width (it->w, TEXT_AREA) / 2);
 	  /* 'left-fringe': left edge of the left fringe.  */
 	  if (EQ (prop, Qleft_fringe))
@@ -28499,7 +28504,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 		       ? FRAME_COLUMN_WIDTH (it->f)
 		       : FRAME_LINE_HEIGHT (it->f));
       if (width_p && align_to && *align_to < 0)
-	return OK_PIXELS (XFLOATINT (prop) * base_unit + it->lnum_pixel_width);
+	return OK_PIXELS (XFLOATINT (prop) * base_unit + lnum_pixel_width);
       return OK_PIXELS (XFLOATINT (prop) * base_unit);
     }
 
@@ -28561,7 +28566,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	{
 	  double fact;
 	  int offset =
-	    width_p && align_to && *align_to < 0 ? it->lnum_pixel_width : 0;
+	    width_p && align_to && *align_to < 0 ? lnum_pixel_width : 0;
 	  pixels = XFLOATINT (car);
 	  if (NILP (cdr))
 	    return OK_PIXELS (pixels + offset);
@@ -30778,13 +30783,39 @@ produce_stretch_glyph (struct it *it)
 	   && calc_pixel_width_or_height (&tem, it, prop, font, true,
 					  &align_to))
     {
+      int x = it->current_x + it->continuation_lines_width;
+      int x0 = x;
+      /* Adjust for line numbers, if needed.   */
+      if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
+	{
+	  x -= it->lnum_pixel_width;
+	  /* Restore the original width, if required.  */
+	  if (x + it->stretch_adjust >= it->first_visible_x)
+	    x += it->stretch_adjust;
+	}
+
       if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
 	align_to = (align_to < 0
 		    ? 0
 		    : align_to - window_box_left_offset (it->w, TEXT_AREA));
       else if (align_to < 0)
 	align_to = window_box_left_offset (it->w, TEXT_AREA);
-      width = max (0, (int)tem + align_to - it->current_x);
+      width = max (0, (int)tem + align_to - x);
+
+      int next_x = x + width;
+      if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
+	{
+	  /* If the line is hscrolled, and the stretch starts before
+	     the first visible pixel, simulate negative row->x.  */
+	  if (x < it->first_visible_x)
+	    {
+	      next_x -= it->first_visible_x - x;
+	      it->stretch_adjust = it->first_visible_x - x;
+	    }
+	  else
+	    next_x -= it->stretch_adjust;
+	}
+      width = next_x - x0;
       zero_width_ok_p = true;
     }
   else
@@ -31574,8 +31605,8 @@ gui_produce_glyphs (struct it *it)
 		{
 		  x -= it->lnum_pixel_width;
 		  /* Restore the original TAB width, if required.  */
-		  if (x + it->tab_offset >= it->first_visible_x)
-		    x += it->tab_offset;
+		  if (x + it->stretch_adjust >= it->first_visible_x)
+		    x += it->stretch_adjust;
 		}
 
 	      int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
@@ -31593,10 +31624,10 @@ gui_produce_glyphs (struct it *it)
 		  if (x < it->first_visible_x)
 		    {
 		      next_tab_x -= it->first_visible_x - x;
-		      it->tab_offset = it->first_visible_x - x;
+		      it->stretch_adjust = it->first_visible_x - x;
 		    }
 		  else
-		    next_tab_x -= it->tab_offset;
+		    next_tab_x -= it->stretch_adjust;
 		}
 
 	      it->pixel_width = next_tab_x - x0;

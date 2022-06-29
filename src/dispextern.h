@@ -2742,11 +2742,11 @@ struct it
   /* The line number of point's line, or zero if not computed yet.  */
   ptrdiff_t pt_lnum;
 
-  /* Number of pixels to offset tab stops due to width fixup of the
-     first glyph that crosses first_visible_x.  This is only needed on
-     GUI frames, only when display-line-numbers is in effect, and only
-     in hscrolled windows.  */
-  int tab_offset;
+  /* Number of pixels to adjust tab stops and stretch glyphs due to
+     width fixup of the first stretch glyph that crosses first_visible_x.
+     This is only needed on GUI frames, only when display-line-numbers
+     is in effect, and only in hscrolled windows.  */
+  int stretch_adjust;
 
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
