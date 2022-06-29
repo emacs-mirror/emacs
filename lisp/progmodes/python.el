@@ -1636,11 +1636,15 @@ of the statement."
     (while (and (or noend (goto-char (line-end-position)))
                 (not (eobp))
                 (cond ((setq string-start (python-syntax-context 'string))
-                       ;; The assertion can only fail if syntax table
+                       ;; The condition can be nil if syntax table
                        ;; text properties and the `syntax-ppss' cache
                        ;; are somehow out of whack.  This has been
                        ;; observed when using `syntax-ppss' during
                        ;; narrowing.
+                       ;; It can also fail in cases where the buffer is in
+                       ;; the process of being modified, e.g. when creating
+                       ;; a string with `electric-pair-mode' disabled such
+                       ;; that there can be an unmatched single quote
                        (when (>= string-start last-string-end)
                          (goto-char string-start)
                          (if (python-syntax-context 'paren)
@@ -1723,7 +1727,10 @@ backward to previous statement."
       (while (and (forward-line 1)
                   (not (eobp))
                   (or (and (> (current-indentation) block-indentation)
-                           (or (python-nav-end-of-statement) t))
+                           (let ((start (point)))
+                             (python-nav-end-of-statement)
+                             ;; must move forward otherwise infinite loop
+                             (> (point) start)))
                       (python-info-current-line-comment-p)
                       (python-info-current-line-empty-p))))
       (python-util-forward-comment -1)
