@@ -203,7 +203,8 @@ association in @var{table}.
 @defun puthash key value table
 This function enters an association for @var{key} in @var{table}, with
 value @var{value}.  If @var{key} already has an association in
-@var{table}, @var{value} replaces the old associated value.
+@var{table}, @var{value} replaces the old associated value.  This
+function always returns @var{value}.
 @end defun
 
 @defun remhash key table
@@ -219,10 +220,7 @@ otherwise.  In Emacs Lisp, @code{remhash} always returns @code{nil}.
 @defun clrhash table
 This function removes all the associations from hash table @var{table},
 so that it becomes empty.  This is also called @dfn{clearing} the hash
-table.
-
-@b{Common Lisp note:} In Common Lisp, @code{clrhash} returns the empty
-@var{table}.  In Emacs Lisp, it returns @code{nil}.
+table.  @code{clrhash} returns the empty @var{table}.
 @end defun
 
 @defun maphash function table

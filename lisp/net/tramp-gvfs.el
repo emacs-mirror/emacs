@@ -839,6 +839,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
     (let ((method (tramp-file-name-method vec)))
       (and (stringp method) (member method tramp-gvfs-methods)))))
 
+(defvar tramp-gvfs-dbus-event-vector)
+
 ;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
   "Invoke the GVFS related OPERATION and ARGS.
@@ -846,7 +848,11 @@ First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
   (unless tramp-gvfs-enabled
     (tramp-user-error nil "Package `tramp-gvfs' not supported"))
-  (if-let ((fn (assoc operation tramp-gvfs-file-name-handler-alist)))
+  (if-let ((filename (apply #'tramp-file-name-for-operation operation args))
+           (tramp-gvfs-dbus-event-vector
+            (and (tramp-tramp-file-p filename)
+                 (tramp-dissect-file-name filename)))
+           (fn (assoc operation tramp-gvfs-file-name-handler-alist)))
       (save-match-data (apply (cdr fn) args))
     (tramp-run-real-handler operation args)))
 
@@ -936,7 +942,8 @@ The call will be traced by Tramp with trace level 6."
 (defvar tramp-gvfs-dbus-event-vector nil
   "Current Tramp file name to be used, as vector.
 It is needed when D-Bus signals or errors arrive, because there
-is no information where to trace the message.")
+is no information where to trace the message.
+Globally, the value shall always be nil; it is bound where needed.")
 
 (defun tramp-gvfs-dbus-event-error (event err)
   "Called when a D-Bus error message arrives, see `dbus-event-error-functions'."
@@ -2134,10 +2141,6 @@ connection if a previous connection has died for some reason."
   ;; During completion, don't reopen a new connection.
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
-
-  ;; We set the file name, in case there are incoming D-Bus signals or
-  ;; D-Bus errors.
-  (setq tramp-gvfs-dbus-event-vector vec)
 
   ;; For password handling, we need a process bound to the connection
   ;; buffer.  Therefore, we create a dummy process.  Maybe there is a
