@@ -92,22 +92,6 @@ The types are chosen in the order they appear in the list."
   :type '(repeat string)
   :group 'pgtk)
 
-(defcustom pgtk-dnd-use-offix-drop 'files
-  "If non-nil, use the OffiX protocol to drop files and text.
-This allows dropping (via `dired-mouse-drag-files' or
-`mouse-drag-and-drop-region-cross-program') on some old Java
-applets and old KDE programs.  Turning this off allows dropping
-only text on some other programs such as xterm and urxvt.
-
-If the symbol `files', use the OffiX protocol when dropping
-files, and the fallback drop method (which is used with programs
-like xterm) for text."
-  :version "29.1"
-  :type '(choice (const :tag "Don't use the OffiX protocol for drag-and-drop" nil)
-                 (const :tag "Only use the OffiX protocol to drop files" files)
-                 (const :tag "Use the OffiX protocol for both files and text" t))
-  :group 'pgtk)
-
 ;; Internal variables
 
 (defvar pgtk-dnd-current-state nil
