@@ -1468,11 +1468,11 @@ candidates:
       (memq feature message-shoot-gnksa-feet)))
 
 (defcustom message-hidden-headers '("^References:" "^Face:" "^X-Face:"
-				    "^X-Draft-From:")
+				    "^X-Draft-From:" "^In-Reply-To:")
   "Regexp of headers to be hidden when composing new messages.
 This can also be a list of regexps to match headers.  Or a list
 starting with `not' and followed by regexps."
-  :version "22.1"
+  :version "29.1"
   :group 'message
   :link '(custom-manual "(message)Message Headers")
   :type '(choice
@@ -6881,13 +6881,14 @@ are not included."
     (or (bolp) (insert ?\n)))
   (insert (concat mail-header-separator "\n"))
   (forward-line -1)
-  ;; If a crash happens while replying, the auto-save file would *not* have a
-  ;; `References:' header if `message-generate-headers-first' was nil.
-  ;; Therefore, always generate it first.
+  ;; If a crash happens while replying, the auto-save file would *not*
+  ;; have a `References:' header if `message-generate-headers-first'
+  ;; was nil.  Therefore, always generate it first.  (And why not
+  ;; include the `In-Reply-To' header as well.)
   (let ((message-generate-headers-first
          (if (eq message-generate-headers-first t)
              t
-           (append message-generate-headers-first '(References)))))
+           (append message-generate-headers-first '(References In-Reply-To)))))
     (when (message-news-p)
       (when message-default-news-headers
         (insert message-default-news-headers)
