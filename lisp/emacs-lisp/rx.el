@@ -1110,6 +1110,14 @@ can expand to any number of values."
   (append rx--builtin-forms rx--builtin-symbols)
   "List of built-in rx names.  These cannot be redefined by the user.")
 
+;; Declare Lisp indentation rules for constructs that take 1 or 2
+;; parameters before a body of RX forms.
+(dolist (sym '( group-n submatch-n = >=))
+  (put sym 'lisp-indent-function 1))
+(dolist (sym '( ** repeat))
+  (put sym 'lisp-indent-function 2))
+
+
 (defun rx--translate (item)
   "Translate the rx-expression ITEM.  Return (REGEXP . PRECEDENCE)."
   (cond
