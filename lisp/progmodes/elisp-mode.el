@@ -1679,7 +1679,10 @@ Return the result of evaluation."
     elisp--eval-defun-result))
 
 (defun eval-defun (edebug-it)
-  "Evaluate the top-level form containing point, or after point.
+  "Evaluate the top-level form containing point.
+If point isn't in a top-level form, evaluate the first top-level
+form after point.  If there is no top-level form after point,
+eval the first preceeding top-level form.
 
 If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
