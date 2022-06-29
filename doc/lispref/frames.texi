@@ -4186,6 +4186,13 @@ This function is like @code{dnd-begin-file-drag}, except that
 dropping multiple files, then the first file will be used instead.
 @end defun
 
+@defun dnd-direct-save file name &optional frame allow-same-frame
+This function is similar to @code{dnd-begin-file-drag} (with the
+default action of copy), but instead of specifying the action you
+specify the name of the copy created by the target program in
+@code{name}.
+@end defun
+
 @cindex initiating drag-and-drop, low-level
   The high-level interfaces described above are implemented on top of
 a lower-level primitive.  If you need to drag content other than files

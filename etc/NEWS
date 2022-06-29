@@ -2343,9 +2343,10 @@ list in reported motion events if there is no frame underneath the
 mouse pointer.
 
 +++
-** New functions 'x-begin-drag', 'dnd-begin-text-drag' and 'dnd-begin-file-drag'.
-These functions allow dragging contents (such as files and text) from
-Emacs to other programs.
+** New functions for dragging items from Emacs to other programs.
+The new functions 'x-begin-drag', 'dnd-begin-file-drag',
+'dnd-begin-drag-files', and 'dnd-direct-save' allow dragging contents
+(such as files and text) from Emacs to other programs.
 
 ---
 ** New function 'ietf-drums-parse-date-string'.

@@ -121,7 +121,7 @@ selection_quantum (Display *display)
 /* This converts a Lisp symbol to a server Atom, avoiding a server
    roundtrip whenever possible.  */
 
-static Atom
+Atom
 symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
 {
   Atom val;

@@ -106,6 +106,18 @@ program."
   :version "29.1"
   :group 'dnd)
 
+(defcustom dnd-direct-save-remote-files 'x
+  "Whether or not to perform a direct save of remote files.
+This is compatible with less programs, but means dropped files
+will be saved with their actual file names, and not a temporary
+file name provided by TRAMP.
+
+This defaults to `x', which means only to drop that way on X
+Windows."
+  :type '(choice (const :tag "Only use direct save on X Windows" x)
+                 (const :tag "Use direct save everywhere" t)
+                 (const :tag "Don't use direct save")))
+
 ;; Functions
 
 (defun dnd-handle-movement (posn)
@@ -409,48 +421,58 @@ currently being held down.  It should only be called upon a
   (dnd-remove-last-dragged-remote-file)
   (unless action
     (setq action 'copy))
-  (let ((original-file file))
-    (when (file-remote-p file)
-      (if (eq action 'link)
-          (error "Cannot create symbolic link to remote file")
-        (setq file (file-local-copy file))
-        (setq dnd-last-dragged-remote-file file)
-        (add-hook 'kill-emacs-hook
-                  #'dnd-remove-last-dragged-remote-file)))
-    (gui-set-selection 'XdndSelection
-                       (propertize (expand-file-name file) 'text/uri-list
-                                   (concat "file://"
-                                           (expand-file-name file))))
-    (let ((return-value
-           (x-begin-drag '(;; Xdnd types used by GTK, Qt, and most other
-                           ;; modern programs that expect filenames to
-                           ;; be supplied as URIs.
-                           "text/uri-list" "text/x-xdnd-username"
-                           ;; Traditional X selection targets used by
-                           ;; programs supporting the Motif
-                           ;; drag-and-drop protocols.  Also used by NS
-                           ;; and Haiku.
-                           "FILE_NAME" "FILE" "HOST_NAME"
-                           ;; ToolTalk filename.  Mostly used by CDE
-                           ;; programs.
-                           "_DT_NETFILE")
-                         (cl-ecase action
-                           ('copy 'XdndActionCopy)
-                           ('move 'XdndActionMove)
-                           ('link 'XdndActionLink))
-                         frame nil allow-same-frame)))
-      (cond
-       ((eq return-value 'XdndActionCopy) 'copy)
-       ((eq return-value 'XdndActionMove)
-        (prog1 'move
-          ;; If original-file is a remote file, delete it from the
-          ;; remote as well.
-          (when (file-remote-p original-file)
-            (ignore-errors
-              (delete-file original-file)))))
-       ((eq return-value 'XdndActionLink) 'link)
-       ((not return-value) nil)
-       (t 'private)))))
+  (if (and (or (and (eq dnd-direct-save-remote-files 'x)
+                    (eq (framep (or frame
+                                    (selected-frame)))
+                        'x))
+               (and dnd-direct-save-remote-files
+                    (not (eq dnd-direct-save-remote-files 'x))))
+           (eq action 'copy)
+           (file-remote-p file))
+      (dnd-direct-save file (file-name-nondirectory file)
+                       frame allow-same-frame)
+    (let ((original-file file))
+      (when (file-remote-p file)
+        (if (eq action 'link)
+            (error "Cannot create symbolic link to remote file")
+          (setq file (file-local-copy file))
+          (setq dnd-last-dragged-remote-file file)
+          (add-hook 'kill-emacs-hook
+                    #'dnd-remove-last-dragged-remote-file)))
+      (gui-set-selection 'XdndSelection
+                         (propertize (expand-file-name file) 'text/uri-list
+                                     (concat "file://"
+                                             (expand-file-name file))))
+      (let ((return-value
+             (x-begin-drag '(;; Xdnd types used by GTK, Qt, and most other
+                             ;; modern programs that expect filenames to
+                             ;; be supplied as URIs.
+                             "text/uri-list" "text/x-xdnd-username"
+                             ;; Traditional X selection targets used by
+                             ;; programs supporting the Motif
+                             ;; drag-and-drop protocols.  Also used by NS
+                             ;; and Haiku.
+                             "FILE_NAME" "FILE" "HOST_NAME"
+                             ;; ToolTalk filename.  Mostly used by CDE
+                             ;; programs.
+                             "_DT_NETFILE")
+                           (cl-ecase action
+                             ('copy 'XdndActionCopy)
+                             ('move 'XdndActionMove)
+                             ('link 'XdndActionLink))
+                           frame nil allow-same-frame)))
+        (cond
+         ((eq return-value 'XdndActionCopy) 'copy)
+         ((eq return-value 'XdndActionMove)
+          (prog1 'move
+            ;; If original-file is a remote file, delete it from the
+            ;; remote as well.
+            (when (file-remote-p original-file)
+              (ignore-errors
+                (delete-file original-file)))))
+         ((eq return-value 'XdndActionLink) 'link)
+         ((not return-value) nil)
+         (t 'private))))))
 
 (defun dnd-begin-drag-files (files &optional frame action allow-same-frame)
   "Begin dragging FILES from FRAME.
@@ -477,6 +499,9 @@ FILES will be dragged."
           (error (message "Failed to download file: %s" error)
                  (setcar tem nil))))
       (setq tem (cdr tem)))
+    (when dnd-last-dragged-remote-file
+      (add-hook 'kill-emacs-hook
+                #'dnd-remove-last-dragged-remote-file))
     ;; Remove any files that failed to download from a remote host.
     (setq new-files (delq nil new-files))
     (unless new-files
@@ -519,6 +544,27 @@ FILES will be dragged."
        ((eq return-value 'XdndActionLink) 'link)
        ((not return-value) nil)
        (t 'private)))))
+
+(declare-function x-dnd-do-direct-save "x-dnd.el")
+
+(defun dnd-direct-save (file name &optional frame allow-same-frame)
+  "Drag FILE from FRAME, but do not treat it as an actual file.
+Instead, ask the target window to insert the file with NAME.
+File managers will create a file in the displayed directory with
+the contents of FILE and the name NAME, while text editors will
+insert the contents of FILE in a new document named
+NAME.
+
+ALLOW-SAME-FRAME means the same as in `dnd-begin-file-drag'.
+Return `copy' if the drop was successful, else nil."
+  (setq file (expand-file-name file))
+  (cond ((eq window-system 'x)
+         (when (x-dnd-do-direct-save file name frame
+                                     allow-same-frame)
+           'copy))
+        ;; Avoid infinite recursion.
+        (t (let ((dnd-direct-save-remote-files nil))
+             (dnd-begin-file-drag file frame nil allow-same-frame)))))
 
 (provide 'dnd)
 

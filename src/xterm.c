@@ -4699,6 +4699,9 @@ x_dnd_note_self_drop (struct x_display_info *dpyinfo, Window target,
       XFree (atom_names[i - 1]);
     }
 
+  lval = Fcons (assq_no_quit (QXdndSelection,
+			      FRAME_TERMINAL (f)->Vselection_alist),
+		lval);
   lval = Fcons (intern (name), lval);
   lval = Fcons (QXdndSelection, lval);
   ie.arg = lval;
@@ -23030,8 +23033,8 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
     {
       /* There is no point in making this extra sync if all requests
 	 are known to have been fully processed.  */
-      if ((LastKnownRequestProcessed (x_error_message->dpy)
-	   != NextRequest (x_error_message->dpy) - 1))
+      if ((LastKnownRequestProcessed (dpyinfo->display)
+	   != NextRequest (dpyinfo->display) - 1))
 	XSync (dpyinfo->display, False);
 
       x_clean_failable_requests (dpyinfo);
