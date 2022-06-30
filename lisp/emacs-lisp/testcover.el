@@ -677,4 +677,6 @@ The list is 1valued if all of its constituent elements are also 1valued."
     (testcover-analyze-coverage (cadr form)))
    (t (testcover-analyze-coverage-backquote form))))
 
+(provide 'testcover)
+
 ;;; testcover.el ends here
