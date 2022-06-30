@@ -276,7 +276,16 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
           "): ")
      3 4 5 (1 . 2))
 
-    (iar
+    (gradle-android
+     ,(rx bol (* " ") "ERROR:"
+          (group-n 1                    ; file
+                   (+ (not (in ":\n"))))
+          ":"
+          (group-n 2 (+ digit))         ; line
+          ": ")
+     1 2)
+
+   (iar
      "^\"\\(.*\\)\",\\([0-9]+\\)\\s-+\\(?:Error\\|Warnin\\(g\\)\\)\\[[0-9]+\\]:"
      1 2 nil (3))
 
