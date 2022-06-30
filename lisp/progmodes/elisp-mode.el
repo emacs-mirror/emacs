@@ -1230,6 +1230,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   :parent lisp-mode-shared-map
   "C-M-x" #'eval-defun
   "C-M-q" #'indent-pp-sexp
+  "C-c C-e" #'elisp-eval-buffer
+  "C-c C-b" #'elisp-byte-compile-buffer
   "M-TAB" #'completion-at-point
   "C-j"   #'eval-print-last-sexp)
 
