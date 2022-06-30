@@ -267,11 +267,11 @@
      ?த nil nil nil ?ந ?ன              ;; DENTALS
      ?ப nil nil nil ?ம                  ;; LABIALS
      ?ய ?ர ?ற ?ல ?ள ?ழ ?வ          ;; SEMIVOWELS
-     nil ?ஷ ?ஸ ?ஹ                    ;; SIBILANTS
+     ?ஶ ?ஷ ?ஸ ?ஹ                    ;; SIBILANTS
      nil nil nil nil nil nil nil nil      ;; NUKTAS
-     "ஜ்ஞ" "க்ஷ")
+     "ஜ்ஞ" "க்ஷ" "க்‌ஷ்")
     (;; Misc Symbols
-     nil ?ஂ ?ஃ nil ?் nil nil)
+     nil ?ஂ ?ஃ nil ?் ?ௐ nil)
     (;; Digits
      nil nil nil nil nil nil nil nil nil nil)
     (;; Inscript-extra (4)  (#, $, ^, *, ])
@@ -290,11 +290,11 @@
      ?த nil nil nil ?ந ?ன              ;; DENTALS
      ?ப nil nil nil ?ம                  ;; LABIALS
      ?ய ?ர ?ற ?ல ?ள ?ழ ?வ          ;; SEMIVOWELS
-     nil ?ஷ ?ஸ ?ஹ                    ;; SIBILANTS
+     ?ஶ ?ஷ ?ஸ ?ஹ                    ;; SIBILANTS
      nil nil nil nil nil nil nil nil      ;; NUKTAS
-     "ஜ்ஞ" "க்ஷ")
+     "ஜ்ஞ" "க்ஷ" "க்‌ஷ்")
     (;; Misc Symbols
-     nil ?ஂ ?ஃ nil ?் nil nil)
+     nil ?ஂ ?ஃ nil ?் ?ௐ nil)
     (;; Digits
      ?௦ ?௧ ?௨ ?௩ ?௪ ?௫ ?௬ ?௭ ?௮ ?௯)
     (;; Inscript-extra (4)  (#, $, ^, *, ])
