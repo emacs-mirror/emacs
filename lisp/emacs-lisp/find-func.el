@@ -800,7 +800,10 @@ See `find-function-on-key'."
   (define-key ctl-x-5-map "K" 'find-function-on-key-other-frame)
   (define-key ctl-x-map "V" 'find-variable)
   (define-key ctl-x-4-map "V" 'find-variable-other-window)
-  (define-key ctl-x-5-map "V" 'find-variable-other-frame))
+  (define-key ctl-x-5-map "V" 'find-variable-other-frame)
+  (define-key ctl-x-map "L" 'find-library)
+  (define-key ctl-x-4-map "L" 'find-library-other-window)
+  (define-key ctl-x-5-map "L" 'find-library-other-frame))
 
 (provide 'find-func)
 

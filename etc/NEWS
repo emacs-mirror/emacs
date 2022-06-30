@@ -314,6 +314,11 @@ startup.  Previously, these functions ignored
 
 * Changes in Emacs 29.1
 
+** New bindings in 'find-function-setup-keys' for 'find-library'.
+When 'find-function-setup-keys' is enabled, 'C-x L' is now bound to
+'find-library', 'C-x 4 L' is now bound to 'find-library-other-window'
+and 'C-x 5 L' is now bound to 'find-library-other-frame'.
+
 +++
 ** New key binding after 'M-x' or 'M-X': 'M-X'.
 Emacs allows different completion predicates to be used with 'M-x'
