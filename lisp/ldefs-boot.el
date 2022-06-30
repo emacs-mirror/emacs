@@ -5930,8 +5930,7 @@ The value of PACKAGE needs to be unique and it needs to match the
 PACKAGE value appearing in the :package-version keyword.  Since
 the user might see the value in an error message, a good choice is
 the official name of the package, such as MH-E or Gnus.")
-(define-obsolete-function-alias 'customize-changed-options #'customize-changed "\
-28.1")
+(define-obsolete-function-alias 'customize-changed-options #'customize-changed "28.1")
 (autoload 'customize-changed "cus-edit" "\
 Customize all settings whose meanings have changed in Emacs itself.
 This includes new user options and faces, and new customization
@@ -6140,8 +6139,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t nil)
-(define-obsolete-function-alias 'turn-on-cwarn-mode 'cwarn-mode "\
-24.1")
+(define-obsolete-function-alias 'turn-on-cwarn-mode 'cwarn-mode "24.1")
 (put 'global-cwarn-mode 'globalized-minor-mode t)
 (defvar global-cwarn-mode nil "\
 Non-nil if Global Cwarn mode is enabled.
@@ -11879,10 +11877,8 @@ Variables of interest include:
    List of functions to be called if the other file has been created.
 
 (fn &optional IN-OTHER-WINDOW IGNORE-INCLUDE EVENT)" t nil)
-(define-obsolete-function-alias 'ff-mouse-find-other-file #'ff-find-other-file "\
-28.1")
-(define-obsolete-function-alias 'ff-mouse-find-other-file-other-window #'ff-find-other-file-other-window "\
-28.1")
+(define-obsolete-function-alias 'ff-mouse-find-other-file #'ff-find-other-file "28.1")
+(define-obsolete-function-alias 'ff-mouse-find-other-file-other-window #'ff-find-other-file-other-window "28.1")
 (autoload 'ff-find-other-file-other-window "find-file" "\
 Visit the file you point at in another window.
 
@@ -14908,8 +14904,7 @@ See `help-make-xrefs'.
 Add xrefs for symbols in `pp's output between FROM and TO.
 
 (fn FROM TO)" nil nil)
-(define-obsolete-function-alias 'help-xref-interned 'describe-symbol "\
-25.1")
+(define-obsolete-function-alias 'help-xref-interned 'describe-symbol "25.1")
 (autoload 'help-bookmark-jump "help-mode" "\
 Jump to `help-mode' bookmark BOOKMARK.
 Handler function for record returned by `help-bookmark-make-record'.
@@ -16553,8 +16548,7 @@ See `inferior-emacs-lisp-mode' for details.
 
 ;;; Generated autoloads from iimage.el
 
-(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "\
-24.1")
+(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
 (autoload 'iimage-mode "iimage" "\
 Toggle Iimage mode on or off.
 
@@ -16907,10 +16901,8 @@ easy-to-use form." t nil)
 Default bookmark handler for Image-Dired buffers.
 
 (fn BOOKMARK)" nil nil)
-(define-obsolete-function-alias 'tumme #'image-dired "\
-24.4")
-(define-obsolete-function-alias 'image-dired-setup-dired-keybindings #'image-dired-minor-mode "\
-26.1")
+(define-obsolete-function-alias 'tumme #'image-dired "24.4")
+(define-obsolete-function-alias 'image-dired-setup-dired-keybindings #'image-dired-minor-mode "26.1")
 (register-definition-prefixes "image-dired" '("image-dired-"))
 
 
@@ -18149,8 +18141,7 @@ and the return value is the length of the conversion.
  (global-set-key [f4] #'kmacro-end-or-call-macro)
  (global-set-key "\C-x\C-k" #'kmacro-keymap)
  (autoload 'kmacro-keymap "kmacro" "Keymap for keyboard macro commands." t 'keymap)
-(define-obsolete-function-alias 'kmacro-exec-ring-item #'funcall "\
-29.1" "Execute item ITEM from the macro ring.
+(define-obsolete-function-alias 'kmacro-exec-ring-item #'funcall "29.1" "Execute item ITEM from the macro ring.
 ARG is the number of times to execute the item.")
 (autoload 'kmacro-start-macro "kmacro" "\
 Record subsequent keyboard input, defining a keyboard macro.
@@ -20140,8 +20131,7 @@ Major mode for the mixal asm language.
 
 ;;; Generated autoloads from gnus/mm-encode.el
 
-(define-obsolete-function-alias 'mm-default-file-encoding #'mm-default-file-type "\
-28.1")
+(define-obsolete-function-alias 'mm-default-file-encoding #'mm-default-file-type "28.1")
 (autoload 'mm-default-file-type "mm-encode" "\
 Return a default content type for FILE.
 
@@ -20999,8 +20989,7 @@ remaining elements should be a keyword list accepted by
 gnutls-boot (as returned by `gnutls-boot-parameters').
 
 (fn NAME BUFFER HOST SERVICE &rest PARAMETERS)" nil nil)
-(define-obsolete-function-alias 'open-protocol-stream #'open-network-stream "\
-26.1")
+(define-obsolete-function-alias 'open-protocol-stream #'open-network-stream "26.1")
 (register-definition-prefixes "network-stream" '("network-stream-"))
 
 
@@ -21739,8 +21728,7 @@ startup file, `~/.emacs-octave'.
 
 ;;; Generated autoloads from progmodes/opascal.el
 
-(define-obsolete-function-alias 'delphi-mode #'opascal-mode "\
-24.4")
+(define-obsolete-function-alias 'delphi-mode #'opascal-mode "24.4")
 (autoload 'opascal-mode "opascal" "\
 Major mode for editing OPascal code.
 \\<opascal-mode-map>
@@ -29345,8 +29333,7 @@ Query the user for a process and return the process object.
 
 ;;; Generated autoloads from progmodes/subword.el
 
-(define-obsolete-function-alias 'capitalized-words-mode 'subword-mode "\
-25.1")
+(define-obsolete-function-alias 'capitalized-words-mode 'subword-mode "25.1")
 (autoload 'subword-mode "subword" "\
 Toggle subword movement and editing (Subword mode).
 
@@ -31128,8 +31115,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t nil)
-(define-obsolete-function-alias 'display-time-world #'world-clock "\
-28.1")
+(define-obsolete-function-alias 'display-time-world #'world-clock "28.1")
 (autoload 'world-clock "time" "\
 Display a world clock buffer with times in various time zones.
 The variable `world-clock-list' specifies which time zones to use.
@@ -31170,8 +31156,7 @@ Return the time elapsed since TIME.
 TIME should be either a time value or a date-time string.
 
 (fn TIME)" nil nil)
-(define-obsolete-function-alias 'subtract-time 'time-subtract "\
-26.1")
+(define-obsolete-function-alias 'subtract-time 'time-subtract "26.1")
 (autoload 'date-to-day "time-date" "\
 Return the absolute date of DATE, a date-time string.
 The absolute date is the number of days elapsed since the imaginary
@@ -34639,8 +34624,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
  (put 'which-func-format 'risky-local-variable t)
  (put 'which-func-current 'risky-local-variable t)
-(define-obsolete-function-alias 'which-func-mode 'which-function-mode "\
-24.1")
+(define-obsolete-function-alias 'which-func-mode 'which-function-mode "24.1")
 (defvar which-function-mode nil "\
 Non-nil if Which-Function mode is enabled.
 See the `which-function-mode' command
@@ -35549,8 +35533,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 (push (purecopy '(xref 1 4 1)) package--builtin-versions)
 (autoload 'xref-find-backend "xref" nil nil nil)
-(define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "\
-29.1")
+(define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 (autoload 'xref-go-back "xref" "\
 Go back to the previous position in xref history.
 To undo, use \\[xref-go-forward]." t nil)
