@@ -721,7 +721,7 @@ server for future sessions."
 (defun eudc-get-email (name &optional error)
   "Get the email field of NAME from the directory server.
 If ERROR is non-nil, report an error if there is none."
-  (interactive "sName: \np")
+  (interactive "sSurname: \np")
   (or eudc-server
       (call-interactively 'eudc-set-server))
   (let ((result (eudc-query (list (cons 'name name)) '(email)))
@@ -739,7 +739,7 @@ If ERROR is non-nil, report an error if there is none."
 (defun eudc-get-phone (name &optional error)
   "Get the phone field of NAME from the directory server.
 If ERROR is non-nil, report an error if there is none."
-  (interactive "sName: \np")
+  (interactive "sSurname: \np")
   (or eudc-server
       (call-interactively 'eudc-set-server))
   (let ((result (eudc-query (list (cons 'name name)) '(phone)))

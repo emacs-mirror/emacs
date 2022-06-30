@@ -283,6 +283,7 @@ If nil, query all servers available from `eudc-inline-expansion-servers'."
 					     (firstname . "First Name")
 					     (cn . "Full Name")
 					     (sn . "Surname")
+					     (name . "Surname")
 					     (givenname . "First Name")
 					     (ou . "Unit")
 					     (labeledurl . "URL")
