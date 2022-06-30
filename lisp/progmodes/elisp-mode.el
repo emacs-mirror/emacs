@@ -2214,12 +2214,13 @@ interactively, this is the prefix argument."
   (when load
     (load (funcall byte-compile-dest-file-function buffer-file-name))))
 
-(defun elisp-byte-compile-buffer (&optional load)
+(defun elisp-byte-compile-buffero (&optional load)
   "Byte compile the current buffer, but don't write a file.
 If LOAD is non-nil, load byte-compiled data.  When called
 interactively, this is the prefix argument."
   (interactive "P")
-  (let (file elc)
+  (let ((bfn buffer-file-name)
+        file elc)
     (unwind-protect
         (progn
           (setq file (make-temp-file "compile" nil ".el")
@@ -2228,8 +2229,25 @@ interactively, this is the prefix argument."
           (let ((set-message-function
                  (lambda (message)
                    (when (string-match-p "\\`Wrote " message)
-                     'ignore))))
+                     'ignore)))
+                (byte-compile-log-warning-function
+                 (lambda (string position &optional fill level)
+                   (if bfn
+                       ;; Massage the warnings to that they point to
+                       ;; this file, not the one in /tmp.
+                       (let ((byte-compile-current-file bfn)
+                             (byte-compile-root-dir (file-name-directory bfn)))
+                         (byte-compile--log-warning-for-byte-compile
+                          string position fill level))
+                     ;; We don't have a file name, so the warnings
+                     ;; will point to a file that doesn't exist.  This
+                     ;; should be fixed in some way.
+                     (byte-compile--log-warning-for-byte-compile
+                      string position fill level)))))
             (byte-compile-file file))
+          (when (and bfn (get-buffer "*Compile-Log*"))
+            (with-current-buffer "*Compile-Log*"
+              (setq default-directory (file-name-directory bfn))))
           (if load
               (load elc)
             (message "Byte-compiled the current buffer")))
