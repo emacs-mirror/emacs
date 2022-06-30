@@ -796,7 +796,7 @@ test of free variables in the following ways:
         (if (eq (car-safe (car bt)) 'macroexpand-all) (setq bt (cdr bt)))
         (if macroexp--debug-eager
             (debug 'eager-macroexp-cycle)
-          (error "Warning: Eager macro-expansion skipped due to cycle:\n  %s"
+          (error "Eager macro-expansion skipped due to cycle:\n  %s"
                  (mapconcat #'prin1-to-string (nreverse bt) " => ")))
         (push 'skip macroexp--pending-eager-loads)
         form))
