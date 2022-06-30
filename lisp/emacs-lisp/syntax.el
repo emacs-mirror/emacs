@@ -124,15 +124,49 @@ When the last position scanned holds the first character of a
 otherwise nil.  That construct can be a two character comment
 delimiter or an Escaped or Char-quoted character."))
 
-(defun syntax-propertize-wholelines (start end)
-  "Extend the region delimited by START and END to whole lines.
+(defvar syntax-wholeline-max 10000
+  "Maximum line length for syntax operations.
+If lines are longer than that, syntax operations will treat them as chunks
+of this size.  Misfontification may then occur.
+This is a tradeoff between correctly applying the syntax rules,
+and avoiding major slowdown on pathologically long lines.")
+
+(defun syntax--lbp (&optional arg)
+  "Like `line-beginning-position' but obeying `syntax-wholeline-max'."
+  (let ((pos (point))
+        (res (line-beginning-position arg)))
+    (cond
+     ((< (abs (- pos res)) syntax-wholeline-max) res)
+     ;; For lines that are too long, round to the nearest multiple of
+     ;; `syntax-wholeline-max'.  We use rounding rather than just
+     ;; (min res (+ pos syntax-wholeline-max)) so that repeated calls
+     ;; to `syntax-propertize-wholelines' don't keep growing the bounds,
+     ;; i.e. it really behaves like additional line-breaks.
+     ((< res pos)
+      (let ((max syntax-wholeline-max))
+        (max (point-min) (* max (truncate pos max)))))
+     (t
+      (let ((max syntax-wholeline-max))
+        (min (point-max) (* max (ceiling pos max))))))))
+
+(defun syntax-propertize-wholelines (beg end)
+  "Extend the region delimited by BEG and END to whole lines.
 This function is useful for
 `syntax-propertize-extend-region-functions';
 see Info node `(elisp) Syntax Properties'."
-  (goto-char start)
-  (cons (line-beginning-position)
-        (progn (goto-char end)
-               (if (bolp) (point) (line-beginning-position 2)))))
+  ;; This let-binding was taken from
+  ;; `font-lock-extend-region-wholelines' where it was used to avoid
+  ;; inf-looping (Bug#21615) but for some reason it was not applied
+  ;; here in syntax.el and was used only for the "beg" side.
+  (let ((inhibit-field-text-motion t))
+    (let ((new-beg (progn (goto-char beg)
+                          (if (bolp) beg
+                            (syntax--lbp))))
+          (new-end (progn (goto-char end)
+                          (if (bolp) end
+                            (syntax--lbp 2)))))
+      (unless (and (eql beg new-beg) (eql end new-end))
+        (cons new-beg new-end)))))
 
 (defun syntax-propertize-multiline (beg end)
   "Let `syntax-propertize' pay attention to the syntax-multiline property."

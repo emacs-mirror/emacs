@@ -242,20 +242,20 @@ If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
     (when (and jit-lock-stealth-time (null jit-lock-stealth-timer))
       (setq jit-lock-stealth-timer
             (run-with-idle-timer jit-lock-stealth-time t
-                                 'jit-lock-stealth-fontify)))
+                                 #'jit-lock-stealth-fontify)))
 
     ;; Create, but do not activate, the idle timer for repeated
     ;; stealth fontification.
     (when (and jit-lock-stealth-time (null jit-lock-stealth-repeat-timer))
       (setq jit-lock-stealth-repeat-timer (timer-create))
       (timer-set-function jit-lock-stealth-repeat-timer
-                          'jit-lock-stealth-fontify '(t)))
+                          #'jit-lock-stealth-fontify '(t)))
 
     ;; Init deferred fontification timer.
     (when (and jit-lock-defer-time (null jit-lock-defer-timer))
       (setq jit-lock-defer-timer
             (run-with-idle-timer jit-lock-defer-time t
-                                 'jit-lock-deferred-fontify)))
+                                 #'jit-lock-deferred-fontify)))
 
     ;; Initialize contextual fontification if requested.
     (when (eq jit-lock-contextually t)
@@ -265,13 +265,13 @@ If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
                                    (lambda ()
                                      (unless jit-lock--antiblink-grace-timer
                                        (jit-lock-context-fontify))))))
-      (add-hook 'post-command-hook 'jit-lock--antiblink-post-command nil t)
+      (add-hook 'post-command-hook #'jit-lock--antiblink-post-command nil t)
       (setq jit-lock-context-unfontify-pos
             (or jit-lock-context-unfontify-pos (point-max))))
 
     ;; Setup our hooks.
-    (add-hook 'after-change-functions 'jit-lock-after-change nil t)
-    (add-hook 'fontification-functions 'jit-lock-function nil t))
+    (add-hook 'after-change-functions #'jit-lock-after-change nil t)
+    (add-hook 'fontification-functions #'jit-lock-function nil t))
 
    ;; Turn Just-in-time Lock mode off.
    (t
@@ -294,8 +294,9 @@ If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
         (setq jit-lock-defer-timer nil)))
 
     ;; Remove hooks.
-    (remove-hook 'after-change-functions 'jit-lock-after-change t)
-    (remove-hook 'fontification-functions 'jit-lock-function))))
+    (remove-hook 'post-command-hook #'jit-lock--antiblink-post-command t)
+    (remove-hook 'after-change-functions #'jit-lock-after-change t)
+    (remove-hook 'fontification-functions #'jit-lock-function))))
 
 (define-minor-mode jit-lock-debug-mode
   "Minor mode to help debug code run from jit-lock.
@@ -707,8 +708,8 @@ will take place when text is fontified stealthily."
               (min jit-lock-context-unfontify-pos jit-lock-start))))))
 
 (defun jit-lock--antiblink-post-command ()
-  (let* ((new-l-b-p (copy-marker (line-beginning-position)))
-         (l-b-p-2 (line-beginning-position 2))
+  (let* ((new-l-b-p (copy-marker (syntax--lbp)))
+         (l-b-p-2 (syntax--lbp 2))
          (same-line
           (and jit-lock-antiblink-grace
                (not (= new-l-b-p l-b-p-2))

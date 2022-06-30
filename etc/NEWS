@@ -317,6 +317,17 @@ startup.  Previously, these functions ignored
 
 * Changes in Emacs 29.1
 
+** New config variable 'syntax-wholeline-max' to reduce the cost of long lines.
+This variable is used by some operations (mostly syntax-propertization
+and font-locking) to treat lines longer than this variable as if they
+were made up of various smaller lines.  This can help reduce the
+pathological slowdowns seen in buffers made of a single long line, but
+can also cause misbehavior in the presence of such long lines (tho
+most of that misbehavior should usually be limited to mis-highlighting).
+You can recover the previous behavior with:
+
+    (setq syntax-wholeline-max most-positive-fixnum)
+
 ---
 ** New bindings in 'find-function-setup-keys' for 'find-library'.
 When 'find-function-setup-keys' is enabled, 'C-x L' is now bound to
