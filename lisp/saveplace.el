@@ -346,7 +346,12 @@ may have changed) back to `save-place-alist'."
 	  (save-place-to-alist))
 	(setq buf-list (cdr buf-list))))))
 
+(defvar save-place-after-find-file-hook nil
+  "Hook run at the end of `save-place-find-file-hook'.")
+
 (defun save-place-find-file-hook ()
+  "Function added to `find-file-hook' by `save-place-mode'.
+It runs the hook `save-place-after-find-file-hook'."
   (or save-place-loaded (load-save-place-alist-from-file))
   (let ((cell (assoc buffer-file-name save-place-alist)))
     (if cell
@@ -355,7 +360,8 @@ may have changed) back to `save-place-alist'."
 	      (and (integerp (cdr cell))
 		   (goto-char (cdr cell))))
           ;; and make sure it will be saved again for later
-          (setq save-place-mode t)))))
+          (setq save-place-mode t))))
+  (run-hooks 'save-place-after-find-file-hook))
 
 (declare-function dired-goto-file "dired" (file))
 
