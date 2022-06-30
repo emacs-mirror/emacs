@@ -1315,7 +1315,7 @@ The following commands are accepted by the client:
 		   ;; When resuming on a tty, tty-name is nil.
 		   (tty-name
 		    (server-create-tty-frame tty-name tty-type proc
-                                             frame-parameters))))
+                                             frame-parameters))
 
                    ;; If there won't be a current frame to use, fall
                    ;; back to trying to create a new one.
