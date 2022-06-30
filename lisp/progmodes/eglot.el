@@ -2711,13 +2711,10 @@ for which LSP on-type-formatting should be requested."
                (eglot--signal-textDocument/didChange)
                (eldoc)))))))))
 
-(defun eglot--hover-info (contents &optional range)
-  (let ((heading (and range (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                              (concat (buffer-substring beg end)  ": "))))
-        (body (mapconcat #'eglot--format-markup
-                         (if (vectorp contents) contents (list contents)) "\n")))
-    (when (or heading (cl-plusp (length body))) (concat heading body))))
-
+(defun eglot--hover-info (contents &optional _range)
+  (mapconcat #'eglot--format-markup
+             (if (vectorp contents) contents (list contents)) "\n"))
+ 
 (defun eglot--sig-info (sigs active-sig sig-help-active-param)
   (cl-loop
    for (sig . moresigs) on (append sigs nil) for i from 0
