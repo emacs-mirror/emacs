@@ -633,7 +633,8 @@ If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
   "Print DEF in the way make-docfile.c expects it."
   (if (or (not (consp def))
           (not (symbolp (car def)))
-          (eq (car def) 'make-obsolete)
+          (memq (car def) '( make-obsolete
+                             define-obsolete-function-alias))
           (not (stringp (nth 3 def))))
       (prin1 def (current-buffer) t)
     ;; The salient point here is that we have to have the doc string
