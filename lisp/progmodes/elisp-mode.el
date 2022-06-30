@@ -2214,7 +2214,7 @@ interactively, this is the prefix argument."
   (when load
     (load (funcall byte-compile-dest-file-function buffer-file-name))))
 
-(defun elisp-byte-compile-buffero (&optional load)
+(defun elisp-byte-compile-buffer (&optional load)
   "Byte compile the current buffer, but don't write a file.
 If LOAD is non-nil, load byte-compiled data.  When called
 interactively, this is the prefix argument."
