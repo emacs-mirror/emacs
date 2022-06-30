@@ -159,6 +159,9 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
++++
+** Warning about "eager macro-expansion failure" is changed into an error.
+
 ---
 ** Previously, the X reverseVideo value at startup was heeded for all frames.
 This meant that if you had a reverseVideo resource on the initial

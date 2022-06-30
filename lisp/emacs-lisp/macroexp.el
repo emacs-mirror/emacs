@@ -796,8 +796,8 @@ test of free variables in the following ways:
         (if (eq (car-safe (car bt)) 'macroexpand-all) (setq bt (cdr bt)))
         (if macroexp--debug-eager
             (debug 'eager-macroexp-cycle)
-          (message "Warning: Eager macro-expansion skipped due to cycle:\n  %s"
-                   (mapconcat #'prin1-to-string (nreverse bt) " => ")))
+          (error "Warning: Eager macro-expansion skipped due to cycle:\n  %s"
+                 (mapconcat #'prin1-to-string (nreverse bt) " => ")))
         (push 'skip macroexp--pending-eager-loads)
         form))
      (t
@@ -811,7 +811,7 @@ test of free variables in the following ways:
          ;; Hopefully this shouldn't happen thanks to the cycle detection,
          ;; but in case it does happen, let's catch the error and give the
          ;; code a chance to macro-expand later.
-         (message "Eager macro-expansion failure: %S" err)
+         (error "Eager macro-expansion failure: %S" err)
          form))))))
 
 ;; ¡¡¡ Big Ugly Hack !!!

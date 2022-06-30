@@ -149,10 +149,9 @@ up the execution of uncompiled code.  Sometimes, this macro expansion
 cannot be done, owing to a cyclic dependency.  In the simplest
 example of this, the file you are loading refers to a macro defined
 in another file, and that file in turn requires the file you are
-loading.  This is generally harmless.  Emacs prints a warning
+loading.  Emacs will issue an error about
 (@samp{Eager macro-expansion skipped due to cycle@dots{}})
-giving details of the problem, but it still loads the file, just
-leaving the macro unexpanded for now.  You may wish to restructure
+giving details of the problem.  You have to restructure
 your code so that this does not happen.  Loading a compiled file does
 not cause macroexpansion, because this should already have happened
 during compilation.  @xref{Compiling Macros}.
