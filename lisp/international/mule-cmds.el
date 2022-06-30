@@ -3257,7 +3257,9 @@ as names, not numbers."
               "s" #'emoji-search
               "d" #'emoji-describe
               "r" #'emoji-recent
-              "l" #'emoji-list))
+              "l" #'emoji-list
+              "+" #'emoji-zoom-increase
+              "-" #'emoji-zoom-decrease))
 
 (defface confusingly-reordered
   '((((supports :underline (:style wave)))

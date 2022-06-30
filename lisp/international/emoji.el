@@ -700,6 +700,46 @@ We prefer the earliest unique letter."
              (emoji--define-transient
               (cons "Choose Emoji" (cons glyph derived))))))))))
 
+(defvar-keymap emoji-zoom-map
+  "+" #'emoji-zoom-increase
+  "-" #'emoji-zoom-decrease)
+
+;;;###autoload
+(defun emoji-zoom-increase (&optional factor)
+  "Increase the size of the character under point.
+FACTOR is the multiplication factor for the size.
+
+This command will be repeatable if `repeat-mode' is switched on."
+  (interactive)
+  (let* ((factor (or factor 1.1))
+         (old (get-text-property (point) 'face))
+         (height (or (and (consp old)
+                          (plist-get old :height))
+                     1.0))
+         (inhibit-read-only t))
+    (with-silent-modifications
+      (if (consp old)
+          (add-text-properties
+           (point) (1+ (point))
+           (list 'face (plist-put (copy-sequence old) :height (* height factor))
+                 'rear-nonsticky t))
+        (add-face-text-property (point) (1+ (point))
+                                (list :height (* height factor)))
+        (put-text-property (point) (1+ (point))
+                           'rear-nonsticky t)))))
+
+(put 'emoji-zoom-increase 'repeat-map 'emoji-zoom-map)
+
+;;;###autoload
+(defun emoji-zoom-decrease ()
+  "Decrease the size of the character under point.
+
+This command will be repeatable if `repeat-mode' is switched on."
+  (interactive)
+  (emoji-zoom-increase 0.9))
+
+(put 'emoji-zoom-decrease 'repeat-map 'emoji-zoom-map)
+
 (provide 'emoji)
 
 ;;; emoji.el ends here

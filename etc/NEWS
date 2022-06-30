@@ -608,6 +608,11 @@ This command will tell you the name of the Emoji at point.  (This
 command also works for non-Emoji characters.)
 
 ---
+*** New commands 'emoji-zoom-increase' and 'emoji-zoom-decrease'.
+These are bound to 'C-x 8 e +' and 'C-x 8 e -', respectively.  They
+can be used on any character, but are mainly useful for emoji.
+
+---
 *** New input method 'emoji'.
 This allows you to enter emoji using short strings, eg ':face_palm:'
 or ':scream:'.
