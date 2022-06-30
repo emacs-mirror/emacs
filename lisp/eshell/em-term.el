@@ -56,7 +56,7 @@ which commands are considered visual in nature."
   :type 'hook)
 
 (defcustom eshell-visual-commands
-  '("vi"                                ; what is going on??
+  '("vi" "vim"                          ; what is going on??
     "screen" "tmux" "top" "htop"        ; ok, a valid program...
     "less" "more"                       ; M-x view-file
     "lynx" "links" "ncftp"              ; eww, ange-ftp
@@ -67,7 +67,7 @@ Commands listed here are run in a term buffer.
 
 See also `eshell-visual-subcommands' and `eshell-visual-options'."
   :type '(repeat string)
-  :version "27.1")
+  :version "29.1")
 
 (defcustom eshell-visual-subcommands
   nil
