@@ -1143,6 +1143,8 @@ ACTION is the action given to `x-begin-drag'."
 (defvar x-dnd-xds-performed nil
   "Whether or not the drop target made a request for `XdndDirectSave0'.")
 
+(defvar x-dnd-disable-motif-protocol)
+
 (defun x-dnd-handle-direct-save (_selection _type _value)
   "Handle a selection request for `XdndDirectSave'."
   (setq x-dnd-xds-performed t)
@@ -1198,6 +1200,10 @@ was taken, or the direct save failed."
         (x-dnd-xds-current-file nil)
         (x-dnd-xds-source-frame frame)
         (x-dnd-xds-performed nil)
+        ;; The XDS protocol is built on top of XDND, and cannot
+        ;; possibly work with Motif or OffiX programs.
+        (x-dnd-disable-motif-protocol t)
+        (x-dnd-use-offix-drop nil)
         (prop-deleted nil)
         encoded-name)
     (unwind-protect

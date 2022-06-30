@@ -3542,6 +3542,7 @@ x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
      root_x and root_y are.  */
 
   *motif_out = XM_DRAG_STYLE_NONE;
+
   for (tem = x_dnd_toplevels; tem; tem = tem->next)
     {
       if (!tem->mapped_p || tem->wm_state != NormalState)
@@ -3616,7 +3617,9 @@ x_dnd_get_target_window_1 (struct x_display_info *dpyinfo,
 
   if (chosen)
     {
-      *motif_out = chosen->xm_protocol_style;
+      *motif_out = (x_dnd_disable_motif_protocol
+		    ? XM_DRAG_STYLE_NONE
+		    : chosen->xm_protocol_style);
       return chosen->window;
     }
   else
@@ -4147,7 +4150,8 @@ x_dnd_get_target_window (struct x_display_info *dpyinfo,
 	      || proto != -1 || motif != XM_DRAG_STYLE_NONE)
 	    {
 	      *proto_out = proto;
-	      *motif_out = motif;
+	      *motif_out = (x_dnd_disable_motif_protocol
+			    ? XM_DRAG_STYLE_NONE : motif);
 	      *toplevel_out = child_return;
 	      x_uncatch_errors ();
 
@@ -18925,6 +18929,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
 							 &drag_receiver_info)
+			    && !x_dnd_disable_motif_protocol
 			    && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
 			    && (x_dnd_allow_current_frame
 				|| x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame)))
@@ -20330,6 +20335,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			      if (!xm_read_drag_receiver_info (dpyinfo, x_dnd_last_seen_window,
 							       &drag_receiver_info)
+				  && !x_dnd_disable_motif_protocol
 				  && drag_receiver_info.protocol_style != XM_DRAG_STYLE_NONE
 				  && (x_dnd_allow_current_frame
 				      || x_dnd_last_seen_window != FRAME_OUTER_WINDOW (x_dnd_frame)))
@@ -28063,4 +28069,10 @@ This lets you inspect the contents of `XdndSelection' after a
 drag-and-drop operation, which is useful when writing tests for
 drag-and-drop code.  */);
   x_dnd_preserve_selection_data = false;
+
+  DEFVAR_BOOL ("x-dnd-disable-motif-protocol", x_dnd_disable_motif_protocol,
+    doc: /* Disable the Motif drag-and-drop protocols.
+When non-nil, `x-begin-drag' will not drop onto any window that only
+supports the Motif drag-and-drop protocols.  */);
+  x_dnd_disable_motif_protocol = false;
 }

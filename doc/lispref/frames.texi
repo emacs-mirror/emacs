@@ -4258,6 +4258,28 @@ chosen by the target.  For example, callers should delete the buffer
 text that was dragged if this function returns @code{XdndActionMove}.
 @end defun
 
+@cindex drag and drop protocols, X
+
+  On X Windows, several different drag-and-drop protocols are
+supported by @code{x-begin-drag}.  When dragging content that is known
+to not be supported by a specific drag-and-drop protocol, it might be
+desirable to turn that protocol off, by changing the values of the
+following variables:
+
+@defvar x-dnd-disable-motif-protocol
+When this is non-@code{nil}, the Motif drag and drop protocols are
+disabled, and dropping onto programs that only understand them will
+not work.
+@end defvar
+
+@defvar x-dnd-use-offix-drop
+When this is @code{nil}, the OffiX (old KDE) drag and drop protocol is
+disabled.  When this is the symbol @code{files}, the OffiX protocol
+will only be used if @code{"FILE_NAME"} is one of the targets given to
+@code{x-begin-drag}.  Any other value means to use the OffiX protocol
+to drop all supported content.
+@end defvar
+
 @node Color Names
 @section Color Names
 
