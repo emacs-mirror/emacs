@@ -983,6 +983,15 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Elisp
+
+*** New command 'elisp-eval-buffer' (bound to 'C-c C-e').
+This command evals the forms in the the current buffer.
+
+*** New commands 'elisp-byte-compile-file' and 'elisp-byte-compile-buffer'.
+These commands (bound to 'C-c C-f' and 'C-c C-b', respectively)
+byte-compile the visited file and the current buffer, respectively.
+
 ** Games
 
 ---

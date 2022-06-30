@@ -52,6 +52,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
   :parent lisp-mode-shared-map
   "M-TAB" #'completion-at-point
   "C-M-x" #'eval-defun
+  "C-c C-e" #'elisp-eval-buffer
+  "C-c C-f" #'elisp-byte-compile-file
+  "C-c C-b" #'elisp-byte-compile-buffer
   "C-M-q" #'indent-pp-sexp)
 
 (easy-menu-define emacs-lisp-mode-menu emacs-lisp-mode-map
@@ -2193,6 +2196,48 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (prin1 :elisp-flymake-output-start)
     (terpri)
     (pp collected)))
+
+(defun elisp-eval-buffer ()
+  "Evaluate the forms in the current buffer."
+  (interactive)
+  (eval-buffer)
+  (message "Evaluated the %s buffer" (buffer-name)))
+
+(defun elisp-byte-compile-file (&optional load)
+  "Byte compile the file the current buffer is visiting.
+If LOAD is non-nil, load the resulting .elc file.  When called
+interactively, this is the prefix argument."
+  (interactive "P")
+  (unless buffer-file-name
+    (error "This buffer is not visiting a file"))
+  (byte-compile-file buffer-file-name)
+  (when load
+    (load (funcall byte-compile-dest-file-function buffer-file-name))))
+
+(defun elisp-byte-compile-buffer (&optional load)
+  "Byte compile the current buffer, but don't write a file.
+If LOAD is non-nil, load byte-compiled data.  When called
+interactively, this is the prefix argument."
+  (interactive "P")
+  (let (file elc)
+    (unwind-protect
+        (progn
+          (setq file (make-temp-file "compile" nil ".el")
+                elc (funcall byte-compile-dest-file-function file))
+          (write-region (point-min) (point-max) file nil 'silent)
+          (let ((set-message-function
+                 (lambda (message)
+                   (when (string-match-p "\\`Wrote " message)
+                     'ignore))))
+            (byte-compile-file file))
+          (if load
+              (load elc)
+            (message "Byte-compiled the current buffer")))
+      (when file
+        (when (file-exists-p file)
+          (delete-file file))
+        (when (file-exists-p elc)
+          (delete-file elc))))))
 
 
 (put 'read-symbol-shorthands 'safe-local-variable #'consp)
