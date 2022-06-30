@@ -227,19 +227,21 @@ Only suffixes that map to `image-mode' are returned."
        (cadr (split-string (symbol-name image-format) "/"))))
 
 (defun image-converter--convert-magick (type source image-format)
-  (let ((command (image-converter--value type :command)))
+  (let ((command (image-converter--value type :command))
+        (coding-system-for-read 'no-conversion))
     (unless (zerop (if image-format
                        ;; We have the image data in SOURCE.
                        (progn
                          (insert source)
-                         (apply #'call-process-region (point-min) (point-max)
-                                (car command) t t nil
-                                (append
-                                 (cdr command)
-                                 (list (format "%s:-"
-                                               (image-converter--mime-type
-                                                image-format))
-                                       "png:-"))))
+                         (let ((coding-system-for-write 'no-conversion))
+                           (apply #'call-process-region (point-min) (point-max)
+                                  (car command) t t nil
+                                  (append
+                                   (cdr command)
+                                   (list (format "%s:-"
+                                                 (image-converter--mime-type
+                                                  image-format))
+                                         "png:-")))))
                      ;; SOURCE is a file name.
                      (apply #'call-process (car command)
                             nil t nil
@@ -252,18 +254,20 @@ Only suffixes that map to `image-mode' are returned."
 (cl-defmethod image-converter--convert ((type (eql 'ffmpeg)) source
                                         image-format)
   "Convert using ffmpeg."
-  (let ((command (image-converter--value type :command)))
+  (let ((command (image-converter--value type :command))
+        (coding-system-for-read 'no-conversion))
     (unless (zerop (if image-format
                        (progn
                          (insert source)
-                         (apply #'call-process-region
-                                (point-min) (point-max) (car command)
-                                t '(t nil) nil
-                                (append
-                                 (cdr command)
-                                 (list "-i" "-"
-                                       "-c:v" "png"
-                                       "-f" "image2pipe" "-"))))
+                         (let ((coding-system-for-write 'no-conversion))
+                           (apply #'call-process-region
+                                  (point-min) (point-max) (car command)
+                                  t '(t nil) nil
+                                  (append
+                                   (cdr command)
+                                   (list "-i" "-"
+                                         "-c:v" "png"
+                                         "-f" "image2pipe" "-")))))
                      (apply #'call-process
                             (car command)
                             nil '(t nil) nil
