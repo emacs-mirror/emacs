@@ -1999,8 +1999,10 @@ The `temp-buffer-window-setup-hook' hook is called."
             (prog1
                 (funcall callback)
               (run-hooks 'temp-buffer-window-setup-hook)))
-        (help-window-setup (temp-buffer-window-show (current-buffer)))
-        (help-make-xrefs (current-buffer))))))
+        (help-make-xrefs (current-buffer))
+        ;; This must be done after the buffer has been completely
+        ;; generated, since `temp-buffer-resize-mode' may be enabled.
+        (help-window-setup (temp-buffer-window-show (current-buffer)))))))
 
 ;; Called from C, on encountering `help-char' when reading a char.
 ;; Don't print to *Help*; that would clobber Help history.
