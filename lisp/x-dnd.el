@@ -1140,23 +1140,43 @@ ACTION is the action given to `x-begin-drag'."
 (defvar x-dnd-xds-source-frame nil
   "The frame from which a direct save is currently being performed.")
 
+(defvar x-dnd-xds-performed nil
+  "Whether or not the drop target made a request for `XdndDirectSave0'.")
+
 (defun x-dnd-handle-direct-save (_selection _type _value)
   "Handle a selection request for `XdndDirectSave'."
+  (setq x-dnd-xds-performed t)
   (let* ((uri (x-window-property "XdndDirectSave0"
                                  x-dnd-xds-source-frame
                                  "AnyPropertyType" nil t))
-         (local-name (dnd-get-local-file-name uri nil)))
+         (local-file-uri (if (and (string-match "^file://\\([^/]*\\)" uri)
+                                  (not (equal (match-string 1 uri) "")))
+                             (dnd-get-local-file-uri uri)
+                           uri))
+         (local-name (dnd-get-local-file-name local-file-uri)))
     (if (not local-name)
         '(STRING . "F")
       (condition-case nil
           (progn
-            (rename-file x-dnd-xds-current-file
-                         local-name t)
+            (copy-file x-dnd-xds-current-file
+                       local-name t)
             (when (equal x-dnd-xds-current-file
                          dnd-last-dragged-remote-file)
               (dnd-remove-last-dragged-remote-file)))
         (:success '(STRING . "S"))
-        (error '(STRING . "F"))))))
+        (error '(STRING . "E"))))))
+
+(defun x-dnd-handle-octet-stream (_selection _type _value)
+  "Handle a selecton request for `application/octet-stream'.
+Return the contents of the XDS file."
+  (cons 'application/octet-stream
+        (ignore-errors
+          (with-temp-buffer
+            (set-buffer-multibyte nil)
+            (setq buffer-file-coding-system 'binary)
+            (insert-file-contents-literally x-dnd-xds-current-file)
+            (buffer-substring-no-properties (point-min)
+                                            (point-max))))))
 
 (defun x-dnd-do-direct-save (file name frame allow-same-frame)
   "Perform a direct save operation on FILE, from FRAME.
@@ -1166,16 +1186,19 @@ FRAME is the frame from which the drop will originate.
 ALLOW-SAME-FRAME means whether or not dropping will be allowed
 on FRAME.
 
-Return the action taken by the drop target, or nil."
+Return the action taken by the drop target, or nil if no action
+was taken, or the direct save failed."
   (dnd-remove-last-dragged-remote-file)
   (let ((file-name file)
         (original-file-name file)
         (selection-converter-alist
-         (cons (cons 'XdndDirectSave0
-                     #'x-dnd-handle-direct-save)
-               selection-converter-alist))
+         (append '((XdndDirectSave0 . x-dnd-handle-direct-save)
+                   (application/octet-stream . x-dnd-handle-octet-stream))
+                 selection-converter-alist))
         (x-dnd-xds-current-file nil)
         (x-dnd-xds-source-frame frame)
+        (x-dnd-xds-performed nil)
+        (prop-deleted nil)
         encoded-name)
     (unwind-protect
         (progn
@@ -1195,12 +1218,23 @@ Return the action taken by the drop target, or nil."
           ;; FIXME: this does not work with GTK file managers, since
           ;; they always reach for `text/uri-list' first, contrary to
           ;; the spec.
-          (x-begin-drag '("XdndDirectSave0" "text/uri-list")
-                        'XdndActionDirectSave
-                        frame nil allow-same-frame))
+          (let ((action (x-begin-drag '("XdndDirectSave0" "text/uri-list")
+                                      'XdndActionDirectSave
+                                      frame nil allow-same-frame)))
+            (if (not x-dnd-xds-performed)
+                action
+              (let ((property (x-window-property "XdndDirectSave0" frame
+                                                 "AnyPropertyType" nil t)))
+                (setq prop-deleted t)
+                ;; "System-G" deletes the property upon success.
+                (and (or (null property)
+                         (and (stringp property)
+                              (not (equal property ""))))
+                     action)))))
       ;; TODO: check for failure and implement selection-based file
       ;; transfer.
-      (x-delete-window-property "XdndDirectSave0" frame)
+      (unless prop-deleted
+        (x-delete-window-property "XdndDirectSave0" frame))
       ;; Delete any remote copy that was made.
       (when (not (equal file-name original-file-name))
         (delete-file file-name)))))

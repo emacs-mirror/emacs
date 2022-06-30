@@ -721,16 +721,18 @@ This function returns the string \"emacs\"."
   (user-real-login-name))
 
 (defun xselect-convert-to-text-uri-list (_selection _type value)
-  (if (stringp value)
-      (xselect--encode-string 'TEXT
-                              (concat (url-encode-url value) "\n"))
-    (when (vectorp value)
-      (with-temp-buffer
-        (cl-loop for tem across value
-                 do (progn
-                      (insert (url-encode-url tem))
-                      (insert "\n")))
-        (xselect--encode-string 'TEXT (buffer-string))))))
+  (let ((string
+         (if (stringp value)
+             (xselect--encode-string 'TEXT
+                                     (concat (url-encode-url value) "\n"))
+           (when (vectorp value)
+             (with-temp-buffer
+               (cl-loop for tem across value
+                        do (progn
+                             (insert (url-encode-url tem))
+                             (insert "\n")))
+               (xselect--encode-string 'TEXT (buffer-string)))))))
+    (cons 'text/uri-list (cdr string))))
 
 (defun xselect-convert-to-xm-file (selection _type value)
   (when (and (stringp value)
