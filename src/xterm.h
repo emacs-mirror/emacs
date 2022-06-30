@@ -1600,7 +1600,8 @@ extern void x_clipboard_manager_save_all (void);
 extern Lisp_Object x_timestamp_for_selection (struct x_display_info *,
 					      Lisp_Object);
 extern void x_set_pending_dnd_time (Time);
-extern void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object);
+extern void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object,
+			     Lisp_Object, Time);
 extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
 				  bool);
 extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)

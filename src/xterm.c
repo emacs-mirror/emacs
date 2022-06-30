@@ -3798,7 +3798,14 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
 {
   XEvent event;
   int dest_x, dest_y;
-  Window child_return, child;
+  Window child_return, child, owner;
+  Lisp_Object current_value;
+  struct frame *f;
+
+  f = decode_window_system_frame (frame);
+
+  if (NILP (value))
+    return;
 
   event.xbutton.serial = 0;
   event.xbutton.send_event = True;
@@ -3806,7 +3813,6 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   event.xbutton.root = dpyinfo->root_window;
   event.xbutton.x_root = root_x;
   event.xbutton.y_root = root_y;
-
   x_catch_errors (dpyinfo->display);
 
   child = dpyinfo->root_window;
@@ -3819,11 +3825,25 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
 	 && child_return != None)
     child = child_return;
 
-  if (CONSP (value))
-    x_own_selection (QPRIMARY, Fnth (make_fixnum (1), value),
-		     frame);
-  else
-    error ("Lost ownership of XdndSelection");
+  if (!CONSP (value))
+    goto cancel;
+
+  current_value = assq_no_quit (QPRIMARY,
+				dpyinfo->terminal->Vselection_alist);
+
+  if (!NILP (current_value))
+    current_value = XCAR (XCDR (current_value));
+
+  x_own_selection (QPRIMARY, current_value, frame,
+		   XCAR (XCDR (value)), before);
+
+  owner = XGetSelectionOwner (dpyinfo->display, XA_PRIMARY);
+
+  /* If we didn't successfully obtain selection ownership, refrain
+     from generating events that will insert something else.  */
+
+  if (owner != FRAME_X_WINDOW (f))
+    goto cancel;
 
   event.xbutton.window = child;
   event.xbutton.subwindow = None;
@@ -3847,6 +3867,7 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonReleaseMask, &event);
 
+ cancel:
   x_uncatch_errors ();
 }
 

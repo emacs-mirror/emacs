@@ -47,7 +47,7 @@ struct selection_data;
 
 static void x_decline_selection_request (struct selection_input_event *);
 static bool x_convert_selection (Lisp_Object, Lisp_Object, Atom, bool,
-				 struct x_display_info *);
+				 struct x_display_info *, bool);
 static bool waiting_for_other_props_on_window (Display *, Window);
 static struct prop_location *expect_property_change (Display *, Window,
                                                      Atom, int);
@@ -250,19 +250,25 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
 
 /* Do protocol to assert ourself as a selection owner.
    FRAME shall be the owner; it must be a valid X frame.
+   TIMESTAMP should be the timestamp where selection ownership will be
+   assumed.
+   DND_DATA is the local value that will be used for selection requests
+   with `pending_dnd_time'.
    Update the Vselection_alist so that we can reply to later requests for
    our selection.  */
 
 void
 x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
-		 Lisp_Object frame)
+		 Lisp_Object frame, Lisp_Object dnd_data, Time timestamp)
 {
   struct frame *f = XFRAME (frame);
   Window selecting_window = FRAME_X_WINDOW (f);
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
-  Time timestamp = dpyinfo->last_user_time;
   Atom selection_atom = symbol_to_x_atom (dpyinfo, selection_name);
+
+  if (!timestamp)
+    timestamp = dpyinfo->last_user_time;
 
   block_input ();
   x_catch_errors (display);
@@ -276,8 +282,9 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
     Lisp_Object selection_data;
     Lisp_Object prev_value;
 
-    selection_data = list4 (selection_name, selection_value,
-			    INT_TO_INTEGER (timestamp), frame);
+    selection_data = list5 (selection_name, selection_value,
+			    INT_TO_INTEGER (timestamp), frame,
+			    dnd_data);
     prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
 
     tset_selection_alist
@@ -310,12 +317,15 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
    If LOCAL_VALUE is non-nil, use it as the local copy.  Also allow
    quitting in that case, and let DPYINFO be NULL.
 
+   If NEED_ALTERNATE is true, use the drag-and-drop local value
+   instead.
+
    This calls random Lisp code, and may signal or gc.  */
 
 static Lisp_Object
 x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 		       bool local_request, struct x_display_info *dpyinfo,
-		       Lisp_Object local_value)
+		       Lisp_Object local_value, bool need_alternate)
 {
   Lisp_Object tem;
   Lisp_Object handler_fn, value, check;
@@ -354,7 +364,10 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
       if (CONSP (handler_fn))
 	handler_fn = XCDR (handler_fn);
 
-      tem = XCAR (XCDR (local_value));
+      if (!need_alternate)
+	tem = XCAR (XCDR (local_value));
+      else
+	tem = XCAR (XCDR (XCDR (XCDR (XCDR (local_value)))));
 
       if (STRINGP (tem))
 	{
@@ -788,7 +801,7 @@ x_handle_selection_request (struct selection_input_event *event)
   Lisp_Object local_selection_data;
   bool success = false;
   specpdl_ref count = SPECPDL_INDEX ();
-  bool pushed;
+  bool pushed, use_alternate;
   Lisp_Object alias, tem;
 
   alias = Vx_selection_alias_alist;
@@ -814,14 +827,6 @@ x_handle_selection_request (struct selection_input_event *event)
   if (!dpyinfo)
     goto REALLY_DONE;
 
-  /* This is how the XDND protocol recommends dropping text onto a
-     target that doesn't support XDND.  */
-  if (SELECTION_EVENT_TIME (event) == pending_dnd_time + 1
-      || SELECTION_EVENT_TIME (event) == pending_dnd_time + 2)
-    /* Always reply with the contents of PRIMARY, since that's where
-       the selection data is.  */
-    selection_symbol = QPRIMARY;
-
   local_selection_data = LOCAL_SELECTION (selection_symbol, dpyinfo);
 
   /* Decline if we don't own any selections.  */
@@ -833,6 +838,14 @@ x_handle_selection_request (struct selection_input_event *event)
   if (SELECTION_EVENT_TIME (event) != CurrentTime
       && local_selection_time > SELECTION_EVENT_TIME (event))
     goto DONE;
+
+  use_alternate = false;
+
+  /* This is how the XDND protocol recommends dropping text onto a
+     target that doesn't support XDND.  */
+  if (SELECTION_EVENT_TIME (event) == pending_dnd_time + 1
+      || SELECTION_EVENT_TIME (event) == pending_dnd_time + 2)
+    use_alternate = true;
 
   block_input ();
   pushed = true;
@@ -874,7 +887,8 @@ x_handle_selection_request (struct selection_input_event *event)
 
 	  if (subproperty != None)
 	    subsuccess = x_convert_selection (selection_symbol, subtarget,
-					      subproperty, true, dpyinfo);
+					      subproperty, true, dpyinfo,
+					      use_alternate);
 	  if (!subsuccess)
 	    ASET (multprop, 2*j+1, Qnil);
 	}
@@ -891,7 +905,8 @@ x_handle_selection_request (struct selection_input_event *event)
 	property = SELECTION_EVENT_TARGET (event);
       success = x_convert_selection (selection_symbol,
 				     target_symbol, property,
-				     false, dpyinfo);
+				     false, dpyinfo,
+				     use_alternate);
     }
 
  DONE:
@@ -926,7 +941,8 @@ x_handle_selection_request (struct selection_input_event *event)
 static bool
 x_convert_selection (Lisp_Object selection_symbol,
 		     Lisp_Object target_symbol, Atom property,
-		     bool for_multiple, struct x_display_info *dpyinfo)
+		     bool for_multiple, struct x_display_info *dpyinfo,
+		     bool use_alternate)
 {
   Lisp_Object lisp_selection;
   struct selection_data *cs;
@@ -934,7 +950,7 @@ x_convert_selection (Lisp_Object selection_symbol,
 
   lisp_selection
     = x_get_local_selection (selection_symbol, target_symbol,
-			     false, dpyinfo, Qnil);
+			     false, dpyinfo, Qnil, use_alternate);
 
   frame = selection_request_stack;
 
@@ -2100,7 +2116,7 @@ On Nextstep, FRAME is unused.  */)
 
   CHECK_SYMBOL (selection);
   if (NILP (value)) error ("VALUE may not be nil");
-  x_own_selection (selection, value, frame);
+  x_own_selection (selection, value, frame, Qnil, 0);
   return value;
 }
 
@@ -2150,7 +2166,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
     }
 
   val = x_get_local_selection (selection_symbol, target_type, true,
-			       FRAME_DISPLAY_INFO (f), Qnil);
+			       FRAME_DISPLAY_INFO (f), Qnil, false);
 
   if (NILP (val) && FRAME_LIVE_P (f))
     {
@@ -2318,7 +2334,7 @@ run.  */)
   check_window_system (decode_live_frame (frame));
 
   result = x_get_local_selection (name, target, true,
-				  NULL, value);
+				  NULL, value, false);
 
   if (CONSP (result) && SYMBOLP (XCAR (result)))
     {
