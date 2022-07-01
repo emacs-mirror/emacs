@@ -39,8 +39,32 @@
 
 ;;; Code:
 
-(require 'erc)
 (eval-when-compile (require 'cl-lib))
+(require 'erc-common)
+
+(defvar erc--target)
+(defvar erc-insert-marker)
+(defvar erc-kill-buffer-hook)
+(defvar erc-kill-server-hook)
+(defvar erc-modules)
+(defvar erc-rename-buffers)
+(defvar erc-reuse-buffers)
+(defvar erc-server-announced-name)
+(defvar erc-server-connected)
+(defvar erc-server-parameters)
+(defvar erc-server-process)
+(defvar erc-session-server)
+
+(declare-function erc--default-target "erc" nil)
+(declare-function erc--get-isupport-entry "erc-backend" (key &optional single))
+(declare-function erc-buffer-filter "erc" (predicate &optional proc))
+(declare-function erc-current-nick "erc" nil)
+(declare-function erc-display-error-notice "erc" (parsed string))
+(declare-function erc-error "erc" (&rest args))
+(declare-function erc-get-buffer "erc" (target &optional proc))
+(declare-function erc-server-buffer "erc" nil)
+(declare-function erc-server-process-alive "erc-backend" (&optional buffer))
+(declare-function erc-set-active-buffer "erc" (buffer))
 
 ;; Variables
 
@@ -813,7 +837,7 @@ This may have originated from an `:id' arg to entry-point commands
   (erc-networks--id-symbol nid))
 
 (cl-generic-define-context-rewriter erc-obsolete-var (var spec)
-  `((with-suppressed-warnings ((obsolete ,var)) ,var) ,spec))
+  `((with-suppressed-warnings ((obsolete ,var) (free-vars ,var)) ,var) ,spec))
 
 ;; As a catch-all, derive the symbol from the unquoted printed repr.
 (cl-defgeneric erc-networks--id-create (id)
