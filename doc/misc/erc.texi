@@ -789,7 +789,7 @@ If ERC can't find a suitable server password, it will just skip the IRC
 CertFP or engaging NickServ via ERC's ``services'' module.  If that is
 what you'd like to do, you can also customize the option
 @code{erc-auth-source-server-function} to @code{nil} to skip
-server-passwork lookup for all servers.  Note that some networks and
+server-password lookup for all servers.  Note that some networks and
 IRCds may accept account-services authentication via server password
 using the nonstandard @samp{mynick:sEcReT} convention.
 
