@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'x-dnd)
+(require 'cl-lib)
 
 (when (display-graphic-p)
   (error "This test cannot be run under X"))
@@ -32,6 +33,9 @@
 
 (defconst x-dnd-tests-drag-window-xid 3948573
   "XID of the drag window returned during the test.")
+
+(defvar x-dnd-tests-xds-property-value nil
+  "The value of the `XdndDirectSave0' window property.")
 
 (defconst x-dnd-tests-targets-table
   (base64-decode-string
@@ -62,7 +66,7 @@ AgAABQMAAAYDAAATGwAAGhsAAA==")
   "The expected result of parsing that targets table.")
 
 (defalias 'x-window-property
-  (lambda (prop &optional _frame type window-id _delete-p _vector-ret-p)
+  (lambda (prop &optional _frame type window-id delete-p _vector-ret-p)
     (cond
      ((and (equal prop "_MOTIF_DRAG_WINDOW")
            (zerop window-id) (equal type "WINDOW"))
@@ -70,13 +74,130 @@ AgAABQMAAAYDAAATGwAAGhsAAA==")
      ((and (equal prop "_MOTIF_DRAG_TARGETS")
            (equal type "_MOTIF_DRAG_TARGETS")
            (equal window-id x-dnd-tests-drag-window-xid))
-      x-dnd-tests-targets-table))))
+      x-dnd-tests-targets-table)
+     ((and (equal prop "XdndDirectSave0")
+           (or (equal type "text/plain")
+               (equal type "AnyPropertyType")))
+      (prog1 x-dnd-tests-xds-property-value
+        (when delete-p
+          (setq x-dnd-tests-xds-property-value nil)))))))
 
 ;; This test also serves to exercise most of the Motif value
 ;; extraction code.
 (ert-deftest x-dnd-tests-read-xm-targets-table ()
   (should (equal (x-dnd-xm-read-targets-table nil)
                  x-dnd-tests-lispy-targets-table)))
+
+;;; XDS tests.
+
+(defvar x-dnd-tests-xds-target-dir nil
+  "The name of the target directory where the file will be saved.")
+
+(defvar x-dnd-tests-xds-name nil
+  "The name that the dragged file should be saved under.")
+
+(defvar x-dnd-tests-xds-include-hostname nil
+  "Whether or not to include the hostname inside the XDS URI.")
+
+(defun x-dnd-tests-call-xds-converter ()
+  "Look up the XDS selection converter and call it.
+Return the result of the selection."
+  (let ((conv (cdr (assq 'XdndDirectSave0
+                         selection-converter-alist))))
+    (should (functionp conv))
+    (funcall conv 'XdndDirectSave0 'XdndDirectSave0 nil)))
+
+(defalias 'x-begin-drag
+  (lambda (_targets &optional action frame &rest _)
+    ;; Verify that frame is either nil or a valid frame.
+    (when (and frame (not (frame-live-p frame)))
+      (signal 'wrong-type-argument frame))
+    (prog1 'XdndActionDirectSave
+      ;; Verify that the action is `XdndActionDirectSave'.
+      (should (eq action 'XdndActionDirectSave))
+      ;; Set the property value to the URI of the new file.
+      (should (and (stringp x-dnd-tests-xds-property-value)
+                   (not (multibyte-string-p x-dnd-tests-xds-property-value))))
+      (let ((uri (if x-dnd-tests-xds-include-hostname
+                     (format "file://%s%s" (system-name)
+                             (expand-file-name x-dnd-tests-xds-property-value
+                                               x-dnd-tests-xds-target-dir))
+                   (concat "file:///" (expand-file-name x-dnd-tests-xds-property-value
+                                                        x-dnd-tests-xds-target-dir)))))
+        (setq x-dnd-tests-xds-property-value
+              (encode-coding-string (url-encode-url uri)
+                                    'raw-text)))
+      ;; Convert the selection and verify its success.
+      (should (equal (x-dnd-tests-call-xds-converter)
+                     '(STRING . "S"))))))
+
+(defalias 'x-change-window-property
+  (lambda (prop value &optional _frame type format outer-p _window-id)
+    ;; Check that the properties are the right type.
+    (should (equal prop "XdndDirectSave0"))
+    (should (equal value (encode-coding-string
+                          x-dnd-tests-xds-name
+                          (or file-name-coding-system
+                              default-file-name-coding-system))))
+    (should (equal type "text/plain"))
+    (should (equal format 8))
+    (should (not outer-p))
+    (setq x-dnd-tests-xds-property-value value)))
+
+(defalias 'x-delete-window-property
+  (lambda (&rest _args)
+    ;; This function shouldn't ever be reached during XDS.
+    (setq x-dnd-tests-xds-property-value nil)))
+
+(defun x-dnd-tests-do-direct-save-internal (include-hostname)
+  "Test the behavior of `x-dnd-do-direct-save'.
+Make it perform a direct save to a randomly generated directory,
+and check that the file exists.  If INCLUDE-HOSTNAME, include the
+hostname in the target URI."
+  (let ((x-dnd-tests-xds-include-hostname include-hostname)
+        (x-dnd-tests-xds-target-dir
+         (file-name-as-directory (expand-file-name
+                                  (make-temp-name "x-dnd-test")
+                                  temporary-file-directory)))
+        (original-file (expand-file-name
+                        (make-temp-name "x-dnd-test")
+                        temporary-file-directory))
+        (x-dnd-tests-xds-name (make-temp-name "x-dnd-test-target")))
+    ;; The call to `gui-set-selection' is only used for providing the
+    ;; conventional `text/uri-list' target and can be ignored.
+    (cl-flet ((gui-set-selection #'ignore))
+      (unwind-protect
+          (progn
+            ;; Touch `original-file' if it doesn't exist.
+            (unless (file-exists-p original-file)
+              (write-region "" 0 original-file))
+            ;; Create `x-dnd-tests-xds-target-dir'.
+            (make-directory x-dnd-tests-xds-target-dir)
+            ;; Start the direct save and verify it returns the correct action.
+            (should (eq (x-dnd-do-direct-save original-file
+                                              x-dnd-tests-xds-name
+                                              nil nil)
+                        'XdndActionDirectSave))
+            ;; Now verify that the new file exists.
+            (should (file-exists-p
+                     (expand-file-name x-dnd-tests-xds-name
+                                       x-dnd-tests-xds-target-dir)))
+            ;; The XDS protocol makes very clear that the window
+            ;; property must be deleted after the drag-and-drop
+            ;; operation completes.
+            (should (not x-dnd-tests-xds-property-value)))
+        ;; Clean up after ourselves.
+        (ignore-errors
+          (delete-file original-file))
+        (ignore-errors
+          (delete-directory x-dnd-tests-xds-target-dir t))))))
+
+(ert-deftest x-dnd-tests-do-direct-save ()
+  ;; TODO: add tests for application/octet-stream transfer.
+  (x-dnd-tests-do-direct-save-internal nil)
+  ;; Test with both kinds of file: URIs, since different programs
+  ;; generate different kinds.
+  (x-dnd-tests-do-direct-save-internal t))
 
 (provide 'x-dnd-tests)
 ;;; x-dnd-tests.el ends here
