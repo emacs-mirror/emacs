@@ -1187,7 +1187,7 @@
                                     nil (make-erc-response)))))
             (should (string-match-p "failed" (cadr err)))
             (should (eq (car err) 'error)))
-          (should (string-match-p "*** Failed" (car (pop calls)))))))
+          (should (string-match-p (rx "*** Failed") (car (pop calls)))))))
 
     (erc-networks-tests--clean-bufs)))
 
