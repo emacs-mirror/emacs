@@ -16456,10 +16456,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    XSendEvent (dpyinfo->display, target,
 				False, NoEventMask,
 				&x_dnd_pending_send_position);
-		  }
+		    x_dnd_pending_send_position.type = 0;
 
-		x_dnd_pending_send_position.type = 0;
-		x_dnd_waiting_for_status_window = None;
+		    /* Since we sent another XdndPosition message, we
+		       have to wait for another one in reply, so don't
+		       reset `x_dnd_waiting_for_status_window'
+		       here.  */
+		  }
+		else
+		  x_dnd_waiting_for_status_window = None;
 	      }
 
 	    goto done;
