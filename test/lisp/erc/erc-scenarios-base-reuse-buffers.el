@@ -226,7 +226,7 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
       (should chan-buffer-foo))))
 
 (ert-deftest erc-scenarios-base-reuse-buffers-channel-buffers--disabled ()
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   (with-suppressed-warnings ((obsolete erc-reuse-buffers))
     (should erc-reuse-buffers)
     (let ((erc-scenarios-common-dialog "base/reuse-buffers/channel")
