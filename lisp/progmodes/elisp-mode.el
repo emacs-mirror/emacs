@@ -2223,6 +2223,7 @@ interactively, this is the prefix argument."
   (interactive "P")
   (let ((bfn buffer-file-name)
         file elc)
+    (require 'bytecomp)
     (unwind-protect
         (progn
           (setq file (make-temp-file "compile" nil ".el")
