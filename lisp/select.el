@@ -112,19 +112,27 @@ E.g. it doesn't exist under MS-Windows."
 ;; We keep track of the last selection here, so we can check the
 ;; current selection against it, and avoid passing back with
 ;; gui-selection-value the same text we previously killed or
-;; yanked. We track both
-;; separately in case another X application only sets one of them
-;; we aren't fooled by the PRIMARY or CLIPBOARD selection staying the same.
+;; yanked. We track both separately in case another X application only
+;; sets one of them we aren't fooled by the PRIMARY or CLIPBOARD
+;; selection staying the same.
 
 (defvar gui--last-selected-text-clipboard nil
   "The value of the CLIPBOARD selection last seen.")
+
 (defvar gui--last-selected-text-primary nil
   "The value of the PRIMARY selection last seen.")
 
 (defvar gui--last-selection-timestamp-clipboard nil
   "The timestamp of the CLIPBOARD selection last seen.")
+
 (defvar gui--last-selection-timestamp-primary nil
   "The timestamp of the PRIMARY selection last seen.")
+
+(defvar gui-last-cut-in-clipboard nil
+  "Whether or not the last call to `interprogram-cut-function' owned CLIPBOARD.")
+
+(defvar gui-last-cut-in-primary nil
+  "Whether or not the last call to `interprogram-cut-function' owned PRIMARY.")
 
 (defun gui--set-last-clipboard-selection (text)
   "Save last clipboard selection.
@@ -182,7 +190,10 @@ MS-Windows does not have a \"primary\" selection."
     ;; should not be reset by cut (Bug#16382).
     (setq saved-region-selection text)
     (gui-set-selection 'CLIPBOARD text)
-    (gui--set-last-clipboard-selection text)))
+    (gui--set-last-clipboard-selection text))
+  ;; Record which selections we now have ownership over.
+  (setq gui-last-cut-in-clipboard select-enable-clipboard
+        gui-last-cut-in-primary select-enable-primary))
 (define-obsolete-function-alias 'x-select-text 'gui-select-text "25.1")
 
 (defcustom x-select-request-type nil
@@ -218,13 +229,13 @@ decided by `x-select-request-type'.  The return value is already
 decoded.  If `gui-get-selection' signals an error, return nil."
   ;; The doc string of `interprogram-paste-function' says to return
   ;; nil if no other program has provided text to paste.
-  (unless (and
-           ;; `gui-backend-selection-owner-p' might be unreliable on
-           ;; some other window systems.
-           (memq window-system '(x haiku))
-           (eq type 'CLIPBOARD)
-           ;; Should we unify this with gui--clipboard-selection-unchanged-p?
-           (gui-backend-selection-owner-p type))
+  (unless (and gui-last-cut-in-clipboard
+               ;; `gui-backend-selection-owner-p' might be unreliable on
+               ;; some other window systems.
+               (memq window-system '(x haiku))
+               (eq type 'CLIPBOARD)
+               ;; Should we unify this with gui--clipboard-selection-unchanged-p?
+               (gui-backend-selection-owner-p type))
     (let ((request-type (if (memq window-system '(x pgtk haiku))
                             (or x-select-request-type
                                 '(UTF8_STRING COMPOUND_TEXT STRING text/plain\;charset=utf-8))
@@ -254,7 +265,15 @@ decoded.  If `gui-get-selection' signals an error, return nil."
              ;; (bug#53894) for further discussion about this DWIM
              ;; action, and possible ways to make this check less
              ;; fragile, if so desired.
-             (unless (gui--clipboard-selection-unchanged-p text)
+
+             ;; Don't check the "newness" of CLIPBOARD if the last
+             ;; call to `gui-select-text' didn't cause us to become
+             ;; its owner.  This lets the user yank text killed by
+             ;; `clipboard-kill-region' with `clipboard-yank' without
+             ;; interference from text killed by other means when
+             ;; `select-enable-clipboard' is nil.
+             (unless (and gui-last-cut-in-clipboard
+                          (gui--clipboard-selection-unchanged-p text))
                (gui--set-last-clipboard-selection text)
                text))))
         (primary-text
@@ -264,7 +283,8 @@ decoded.  If `gui-get-selection' signals an error, return nil."
              ;; Check the PRIMARY selection for 'newness', is it different
              ;; from what we remembered them to be last time we did a
              ;; cut/paste operation.
-             (unless (gui--primary-selection-unchanged-p text)
+             (unless (and gui-last-cut-in-primary
+                          (gui--primary-selection-unchanged-p text))
                (gui--set-last-primary-selection text)
                text)))))
 
