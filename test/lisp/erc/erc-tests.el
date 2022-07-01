@@ -664,6 +664,7 @@
            (erc-server-current-nick "tester")
            (erc-last-input-time 0)
            erc-accidental-paste-threshold-seconds
+           erc-send-modify-hook
            ;;
            calls)
       (cl-letf (((symbol-function 'erc-process-input-line)
