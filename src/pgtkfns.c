@@ -2043,7 +2043,7 @@ use `(length \(display-monitor-attributes-list TERMINAL))' instead.  */)
 
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
-       doc: /* Return the height in millimeters of the the display TERMINAL.
+       doc: /* Return the height in millimeters of the display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
@@ -2084,7 +2084,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-       doc: /* Return the width in millimeters of the the display TERMINAL.
+       doc: /* Return the width in millimeters of the display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
@@ -2125,7 +2125,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store, Sx_display_backing_store, 0, 1, 0,
-       doc: /* Return an indication of whether the the display TERMINAL does backing store.
+       doc: /* Return an indication of whether the display TERMINAL does backing store.
 The value may be `buffered', `retained', or `non-retained'.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
@@ -2138,7 +2138,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class, Sx_display_visual_class, 0, 1, 0,
-       doc: /* Return the visual class of the the display TERMINAL.
+       doc: /* Return the visual class of the display TERMINAL.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 

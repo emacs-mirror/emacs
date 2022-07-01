@@ -348,7 +348,7 @@ program where the drop happened.  FRAME is the frame where the
 mouse is currently held down, or nil, which stands for the
 current frame.  ACTION is one of the symbols `copy' or `move',
 where `copy' means that the text should be inserted by the drop
-target, and `move' means the the same as `copy', but in addition
+target, and `move' means the same as `copy', but in addition
 the caller might have to delete TEXT from its source after this
 function returns.  If ALLOW-SAME-FRAME is nil, ignore any drops
 on FRAME itself.

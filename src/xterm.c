@@ -497,7 +497,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     data.l[1] = timestamp
     data.l[2] = low 32 bits of a provided frame counter value
     data.l[3] = high 32 bits of a provided frame counter value
-    data.l[4] = 1 if the the extended frame counter should be updated,
+    data.l[4] = 1 if the extended frame counter should be updated,
     otherwise 0
 
   Upon receiving such an event, Emacs constructs and saves a counter
