@@ -707,10 +707,12 @@ We prefer the earliest unique letter."
 ;;;###autoload
 (defun emoji-zoom-increase (&optional factor)
   "Increase the size of the character under point.
-FACTOR is the multiplication factor for the size.
-
-This command will be repeatable if `repeat-mode' is switched on."
+FACTOR is the multiplication factor for the size."
   (interactive)
+  (message
+   (substitute-command-keys
+    "Zoom with with \\<emoji-zoom-map>\\[emoji-zoom-increase] and \\[emoji-zoom-decrease]"))
+  (set-transient-map emoji-zoom-map t)
   (let* ((factor (or factor 1.1))
          (old (get-text-property (point) 'face))
          (height (or (and (consp old)
@@ -728,17 +730,11 @@ This command will be repeatable if `repeat-mode' is switched on."
         (put-text-property (point) (1+ (point))
                            'rear-nonsticky t)))))
 
-(put 'emoji-zoom-increase 'repeat-map 'emoji-zoom-map)
-
 ;;;###autoload
 (defun emoji-zoom-decrease ()
-  "Decrease the size of the character under point.
-
-This command will be repeatable if `repeat-mode' is switched on."
+  "Decrease the size of the character under point."
   (interactive)
   (emoji-zoom-increase 0.9))
-
-(put 'emoji-zoom-decrease 'repeat-map 'emoji-zoom-map)
 
 (provide 'emoji)
 
