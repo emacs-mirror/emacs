@@ -261,15 +261,16 @@ node `(auth) Top' and info node `(erc) Connecting'.")
   :type 'boolean)
 
 (defcustom erc-inhibit-multiline-input nil
-  "Conditionally disallow input consisting of multiple lines.
+  "When non-nil, conditionally disallow input consisting of multiple lines.
 Issue an error when the number of input lines submitted for
-sending exceeds this value."
+sending exceeds this value.  The value t means disallow more
+than 1 line of input."
   :package-version '(ERC . "5.4.1") ; FIXME match to next release
   :group 'erc
   :type '(choice integer boolean))
 
 (defcustom erc-ask-about-multiline-input nil
-  "Ask to ignore `erc-inhibit-multiline-input' when tripped."
+  "Whether to ask to ignore `erc-inhibit-multiline-input' when tripped."
   :package-version '(ERC . "5.4.1") ; FIXME match to next release
   :group 'erc
   :type 'boolean)
