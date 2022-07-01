@@ -39,14 +39,14 @@ UTF-8 text before parsing, which is nonstandard."
 (defconst erc-d-i--tag-escapes
   '((";" . "\\:") (" " . "\\s") ("\\" . "\\\\") ("\r" . "\\r") ("\n" . "\\n")))
 
-;; XXX these are not mirror inverses; unescaping may degenerate
-;; original by dropping stranded/misplaced backslashes.
+;; These are not mirror inverses; unescaping may drop stranded or
+;; misplaced backslashes.
 
 (defconst erc-d-i--tag-escaped-regexp (rx (or ?\; ?\  ?\\ ?\r ?\n)))
 
 (defconst erc-d-i--tag-unescaped-regexp
   (rx (or "\\:" "\\s" "\\\\" "\\r" "\\n"
-          (seq "\\" (or string-end (not (or ":" "n" "r" "\\")))))))
+          (seq "\\" (or string-end (not (or ":" "s" "n" "r" "\\")))))))
 
 (defun erc-d-i--unescape-tag-value (str)
   "Undo substitution of char placeholders in raw tag value STR."
@@ -64,8 +64,6 @@ UTF-8 text before parsing, which is nonstandard."
                             str t t))
 
 (defconst erc-d-i--invalid-tag-regexp (rx (any "\0\7\r\n; ")))
-
-;; This is `erc-v3-message-tags' with fatal errors.
 
 (defun erc-d-i--validate-tags (raw)
   "Validate tags portion of some RAW incoming message.
