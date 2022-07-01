@@ -875,8 +875,8 @@ KEYS should be a vector or a string that obeys `key-valid-p'."
 
 (defun kmacro-bind-to-key (_arg)
   "When not defining or executing a macro, offer to bind last macro to a key.
-The key sequences `C-x C-k 0' through `C-x C-k 9' and `C-x C-k A'
-through `C-x C-k Z' are reserved for user bindings, and to bind to
+The key sequences \\`C-x C-k 0' through \\`C-x C-k 9' and \\`C-x C-k A'
+through \\`C-x C-k Z' are reserved for user bindings, and to bind to
 one of these sequences, just enter the digit or letter, rather than
 the whole sequence.
 
@@ -1002,7 +1002,7 @@ The ARG parameter is unused."
   "Display the last keyboard macro.
 If repeated, it shows previous elements in the macro ring.
 To execute the displayed macro ring item without changing the macro ring,
-just enter C-k.
+just enter \\`C-k'.
 This is like `kmacro-view-macro', but allows repeating macro commands
 without repeating the prefix."
   (interactive)
