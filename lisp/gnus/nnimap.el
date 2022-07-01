@@ -233,6 +233,8 @@ during splitting, which may be slow."
 	  params)
     (format "%s" (nreverse params))))
 
+(defvar nnimap--max-retrieve-headers 200)
+
 (deffoo nnimap-retrieve-headers (articles &optional group server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -249,9 +251,10 @@ during splitting, which may be slow."
             (setq sequence
 	          (nnimap-send-command
 	           "UID FETCH %s %s"
-	           (nnimap-article-ranges (seq-take ranges 200))
+	           (nnimap-article-ranges
+                    (seq-take ranges nnimap--max-retrieve-headers))
 	           (nnimap-header-parameters)))
-            (setq ranges (nthcdr 200 ranges)))
+            (setq ranges (nthcdr nnimap--max-retrieve-headers ranges)))
           ;; Wait for the final one.
 	  (nnimap-wait-for-response sequence t))
 	(unless (process-live-p (get-buffer-process (current-buffer)))
