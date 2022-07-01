@@ -1673,12 +1673,15 @@ Then display the welcome message."
          (split-string value ",")
        (list value)))))
 
-;; FIXME move to erc-compat (once we decide how to load it)
-(defalias 'erc--with-memoization
-  (cond
-   ((fboundp 'with-memoization) #'with-memoization) ; 29.1
-   ((fboundp 'cl--generic-with-memoization) #'cl--generic-with-memoization)
-   (t (lambda (_ v) v))))
+(defmacro erc--with-memoization (table &rest forms)
+  "Adapter to be migrated to erc-compat."
+  (declare (indent defun))
+  `(cond
+    ((fboundp 'with-memoization)
+     (with-memoization ,table ,@forms)) ; 29.1
+    ((fboundp 'cl--generic-with-memoization)
+     (cl--generic-with-memoization ,table ,@forms))
+    (t ,@forms)))
 
 (defun erc--get-isupport-entry (key &optional single)
   "Return an item for \"ISUPPORT\" token KEY, a symbol.
