@@ -423,6 +423,7 @@ This inhibits putting empty strings onto the kill ring.
 These options allow adjusting point and scrolling a window when
 dragging items from another program.
 
++++
 ** The X Direct Save (XDS) protocol is now supported.
 This means dropping an image or file link from programs such as
 Firefox will no longer create a temporary file in a random directory,

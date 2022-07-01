@@ -1249,6 +1249,13 @@ To drag text from Emacs to other programs, set the option
 @code{mouse-drag-and-drop-region-cross-program} to a non-@code{nil}
 value.
 
+  On the X window system, some programs can drop files on Emacs,
+expecting Emacs to save them.  Normally, Emacs will prompt for a file
+name under which the file will be saved, and then open the file, but
+that behavior can be changed by changing the variable
+@code{x-dnd-direct-save-function}.  @xref{Drag and Drop,,, elisp, The
+Emacs Lisp Reference Manual}.
+
 @node Menu Bars
 @section Menu Bars
 @cindex menu bar mode

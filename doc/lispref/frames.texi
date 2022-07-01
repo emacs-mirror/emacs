@@ -4090,6 +4090,20 @@ They can either be the same data types that are typically accepted by
 specific drag-n-drop protocol being used.  Plain text may be
 @code{"STRING"} or @code{"text/plain"}, for example.
 
+@vindex x-dnd-direct-save-function
+  However, @code{x-dnd-types-alist} does not handle a special kind of
+drop sent by a program which wants Emacs to save a file in a location
+Emacs must determine by itself.  These drops are handled via the
+variable @code{x-dnd-direct-save-function}, which should be a function
+that accepts two arguments.  If the first argument is non-@code{nil},
+then the second argument is a string describing the name (with no
+leading directory) that the other program recommends the file be saved
+under, and the function should return the complete file name under
+which it will be saved.  Otherwise, the file has already been saved,
+and the second argument is the complete name of the file.  The
+function should then perform whatever action is appropriate (i.e.,
+open the file or refresh the directory listing.)
+
 @cindex initiating drag-and-drop
   On capable window systems, Emacs also supports dragging contents
 from its frames to windows of other applications.
