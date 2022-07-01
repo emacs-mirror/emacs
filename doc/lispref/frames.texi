@@ -4280,6 +4280,18 @@ will only be used if @code{"FILE_NAME"} is one of the targets given to
 to drop all supported content.
 @end defvar
 
+@defvar x-dnd-use-unsupported-drop
+When one of the @code{"STRING"}, @code{"UTF8_STRING"},
+@code{"COMPOUND_TEXT"} or @code{"TEXT"} targets is present in the list
+given to @code{x-begin-drag}, Emacs will try to use synthesized mouse
+events and the primary selection to insert the text if the drop target
+doesn't support any drag-and-drop protocol at all.
+
+A side effect is that Emacs will become the owner of the primary
+selection upon such a drop.  If that is not desired, then the drop
+emulation can be disabled by setting this variable to @code{nil}.
+@end defvar
+
 @node Color Names
 @section Color Names
 

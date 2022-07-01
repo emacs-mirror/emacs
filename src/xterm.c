@@ -3810,6 +3810,9 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   if (NILP (value))
     return;
 
+  if (!x_dnd_use_unsupported_drop)
+    return;
+
   event.xbutton.serial = 0;
   event.xbutton.send_event = True;
   event.xbutton.display = dpyinfo->display;
@@ -3914,9 +3917,10 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   ie.kind = UNSUPPORTED_DROP_EVENT;
   ie.code = (unsigned) target_window;
   ie.modifiers = x_dnd_unsupported_event_level;
-  ie.arg = list3 (assq_no_quit (QXdndSelection,
+  ie.arg = list4 (assq_no_quit (QXdndSelection,
 				dpyinfo->terminal->Vselection_alist),
-		  targets, arg);
+		  targets, arg, (x_dnd_use_unsupported_drop
+				 ? Qt : Qnil));
   ie.timestamp = before;
 
   XSETINT (ie.x, root_x);
@@ -11377,7 +11381,10 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
       /* `x-dnd-unsupported-drop-function' could have deleted the
 	 event frame.  */
-      if (!FRAME_LIVE_P (event_frame))
+      if (!FRAME_LIVE_P (event_frame)
+	  /* This means `x-dnd-use-unsupported-drop' was nil when the
+	     event was generated.  */
+	  || NILP (XCAR (XCDR (XCDR (XCDR (event->ie.arg))))))
 	continue;
 
       x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (event_frame),
@@ -28075,4 +28082,11 @@ drag-and-drop code.  */);
 When non-nil, `x-begin-drag' will not drop onto any window that only
 supports the Motif drag-and-drop protocols.  */);
   x_dnd_disable_motif_protocol = false;
+
+  DEFVAR_BOOL ("x-dnd-use-unsupported-drop", x_dnd_use_unsupported_drop,
+    doc: /* Enable the emulation of drag-and-drop based on the primary selection.
+When nil, do not use the primary selection and synthetic mouse clicks
+to emulate the drag-and-drop of `STRING', `UTF8_STRING',
+`COMPOUND_TEXT' or `TEXT'.  */);
+  x_dnd_use_unsupported_drop = true;
 }

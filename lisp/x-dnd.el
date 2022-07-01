@@ -1144,6 +1144,7 @@ ACTION is the action given to `x-begin-drag'."
   "Whether or not the drop target made a request for `XdndDirectSave0'.")
 
 (defvar x-dnd-disable-motif-protocol)
+(defvar x-dnd-use-unsupported-drop)
 
 (defun x-dnd-handle-direct-save (_selection _type _value)
   "Handle a selection request for `XdndDirectSave'."
@@ -1204,6 +1205,7 @@ was taken, or the direct save failed."
         ;; possibly work with Motif or OffiX programs.
         (x-dnd-disable-motif-protocol t)
         (x-dnd-use-offix-drop nil)
+        (x-dnd-use-unsupported-drop nil)
         (prop-deleted nil)
         encoded-name)
     (unwind-protect
