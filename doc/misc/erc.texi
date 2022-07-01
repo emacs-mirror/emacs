@@ -813,7 +813,7 @@ machine irc.libera.chat login MyNick password sEcReT
 @noindent
 Remember that field labels vary per backend, so @samp{machine} (in
 netrc's case) maps to auth-source's generalized notion of a host,
-hence the @samp{:host} keyword property.  Also, be sure and mind the
+hence the @samp{:host} keyword property.  Also, be sure to mind the
 syntax of your chosen backend medium.  For example, always quote
 channel names in a netrc file.
 
