@@ -232,6 +232,11 @@ temporarily blinks with this face."
   "Face used for rendering <code> blocks."
   :version "29.1")
 
+(defface shr-mark
+  '((t :background "yellow" :foreground "black"))
+  "Face used for <mark> elements."
+  :version "29.1")
+
 (defcustom shr-inhibit-images nil
   "If non-nil, inhibit loading images."
   :version "28.1"
@@ -1421,6 +1426,14 @@ ones, in case fg and bg are nil."
 (defun shr-tag-tt (dom)
   ;; The `tt' tag is deprecated in favor of `code'.
   (shr-tag-code dom))
+
+(defun shr-tag-mark (dom)
+  (when (and (not (bobp))
+             (not (= (char-after (1- (point))) ?\s)))
+    (insert " "))
+  (let ((start (point)))
+    (shr-generic dom)
+    (shr-add-font start (point) 'shr-mark)))
 
 (defun shr-tag-ins (cont)
   (let* ((start (point))
