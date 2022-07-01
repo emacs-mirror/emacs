@@ -1340,7 +1340,7 @@ tt.im
 tv.im
 
 // in : https://en.wikipedia.org/wiki/.in
-// see also: https://registry.in/Policies
+// see also: https://registry.in/policies
 // Please note, that nic.in is not an official eTLD, but used by most
 // government institutions.
 in
@@ -7130,7 +7130,7 @@ org.zw
 
 // newGTLDs
 
-// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2022-05-18T15:16:02Z
+// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2022-06-14T15:15:19Z
 // This list is auto-generated, don't edit it manually.
 // aaa : 2015-02-26 American Automobile Association, Inc.
 aaa
@@ -7687,7 +7687,7 @@ chanel
 // channel : 2014-05-08 Charleston Road Registry Inc.
 channel
 
-// charity : 2018-04-11 Binky Moon, LLC
+// charity : 2018-04-11 Public Interest Registry
 charity
 
 // chase : 2015-04-30 JPMorgan Chase Bank, National Association
@@ -7834,7 +7834,7 @@ coupon
 // coupons : 2015-03-26 Binky Moon, LLC
 coupons
 
-// courses : 2014-12-04 OPEN UNIVERSITIES AUSTRALIA PTY LTD
+// courses : 2014-12-04 Registry Services, LLC
 courses
 
 // cpa : 2019-06-10 American Institute of Certified Public Accountants
@@ -8227,7 +8227,7 @@ forsale
 // forum : 2015-04-02 Fegistry, LLC
 forum
 
-// foundation : 2013-12-05 Binky Moon, LLC
+// foundation : 2013-12-05 Public Interest Registry
 foundation
 
 // fox : 2015-09-11 FOX Registry, LLC
@@ -8326,7 +8326,7 @@ gift
 // gifts : 2014-07-03 Binky Moon, LLC
 gifts
 
-// gives : 2014-03-06 Dog Beach, LLC
+// gives : 2014-03-06 Public Interest Registry
 gives
 
 // giving : 2014-11-13 Giving Limited
@@ -8452,7 +8452,7 @@ health
 // healthcare : 2014-06-12 Binky Moon, LLC
 healthcare
 
-// help : 2014-06-26 UNR Corp.
+// help : 2014-06-26 Innovation service Limited
 help
 
 // helsinki : 2015-02-05 City of Helsinki
@@ -8866,7 +8866,7 @@ living
 // llc : 2017-12-14 Afilias Limited
 llc
 
-// llp : 2019-08-26 UNR Corp.
+// llp : 2019-08-26 Intercap Registry Inc.
 llp
 
 // loan : 2014-11-20 dot Loan Limited
@@ -9841,7 +9841,7 @@ stream
 // studio : 2015-02-11 Dog Beach, LLC
 studio
 
-// study : 2014-12-11 OPEN UNIVERSITIES AUSTRALIA PTY LTD
+// study : 2014-12-11 Registry Services, LLC
 study
 
 // style : 2014-12-04 Binky Moon, LLC
@@ -12111,6 +12111,7 @@ kill.jp
 kilo.jp
 kuron.jp
 littlestar.jp
+lolipopmc.jp
 lolitapunk.jp
 lomo.jp
 lovepop.jp
@@ -12378,6 +12379,11 @@ moonscale.net
 // Submitted by Hannu Aronsson <haa@iki.fi>
 iki.fi
 
+// iliad italia: https://www.iliad.it
+// Submitted by Marios Makassikis <mmakassikis@freebox.fr>
+ibxos.it
+iliadboxos.it
+
 // Impertrix Solutions : <https://impertrixcdn.com>
 // Submitted by Zhixiang Zhao <csuite@impertrix.com>
 impertrixcdn.com
@@ -12458,9 +12464,11 @@ iopsys.se
 // Submitted by Matthew Hardeman <mhardeman@ipifony.com>
 ipifony.net
 
-// IServ GmbH : https://iserv.eu
-// Submitted by Kim-Alexander Brodowski <info@iserv.eu>
+// IServ GmbH : https://iserv.de
+// Submitted by Mario Hoberg <info@iserv.de>
+iservschule.de
 mein-iserv.de
+schulplattform.de
 schulserver.de
 test-iserv.de
 iserv.dev
@@ -12781,6 +12789,10 @@ hra.health
 // Submitted by Tom Whitwell <domains@memset.com>
 miniserver.com
 memset.net
+
+// Messerli Informatik AG : https://www.messerli.ch/
+// Submitted by Ruben Schmidmeister <psl-maintainers@messerli.ch>
+messerli.app
 
 // MetaCentrum, CESNET z.s.p.o. : https://www.metacentrum.cz/en/
 // Submitted by Zdeněk Šustr <zdenek.sustr@cesnet.cz>
@@ -13394,9 +13406,9 @@ rocky.page
 
 // Salesforce.com, Inc. https://salesforce.com/
 // Submitted by Michael Biven <mbiven@salesforce.com>
-builder.code.com
-dev-builder.code.com
-stg-builder.code.com
+*.builder.code.com
+*.dev-builder.code.com
+*.stg-builder.code.com
 
 // Sandstorm Development Group, Inc. : https://sandcats.io/
 // Submitted by Asheesh Laroia <asheesh@sandstorm.io>
