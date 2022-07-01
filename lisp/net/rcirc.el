@@ -267,6 +267,7 @@ The ARGUMENTS for each METHOD symbol are:
 Examples:
  ((\"Libera.Chat\" nickserv \"bob\" \"p455w0rd\")
   (\"Libera.Chat\" chanserv \"bob\" \"#bobland\" \"passwd99\")
+  (\"Libera.Chat\" certfp \"/path/to/key\" \"/path/to/cert\")
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
   (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\")
   (\"quakenet.org\" quakenet \"bobby\" \"sekrit\")

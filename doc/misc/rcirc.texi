@@ -639,9 +639,9 @@ password to use.
 @item certfp
 @cindex certfp authentication
 Use this symbol if you want to use CertFP authentication.  The
-necessary arguments are the path to the client certificate key and
-password.  The CertFP authentication requires a @acronym{TLS}
-connection.
+necessary arguments are the path to the key and to the client
+certificate associated with the account.  The CertFP authentication
+requires a @acronym{TLS} connection.
 
 @end table
 
