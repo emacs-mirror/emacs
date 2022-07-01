@@ -3485,7 +3485,7 @@ This will give you a list of all those URLs.
 @end defun
 
 @defun text-property-search-backward prop &optional value predicate not-current
-This is just like @code{text-property-search-backward}, but searches
+This is just like @code{text-property-search-forward}, but searches
 backward instead.  Point is placed at the beginning of the matched
 region instead of the end, though.
 @end defun
