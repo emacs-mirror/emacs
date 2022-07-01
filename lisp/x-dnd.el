@@ -84,7 +84,8 @@ if drop is successful, nil if not."
 
 (defcustom x-dnd-known-types
   (mapcar 'purecopy
-          '("text/uri-list"
+          '("XdndDirectSave0"
+            "text/uri-list"
             "text/x-moz-url"
             "_NETSCAPE_URL"
             "FILE_NAME"
@@ -120,6 +121,24 @@ like xterm) for text."
                  (const :tag "Use the OffiX protocol for both files and text" t))
   :group 'x)
 
+(defcustom x-dnd-direct-save-function #'x-dnd-save-direct
+  "Function called when a file is dropped that Emacs must save.
+It is called with two arguments: the first is either nil or t,
+and the second is a string.
+
+If the first argument is t, the second argument is the name the
+dropped file should be saved under.  The function should return a
+complete local file name describing where the file should be
+saved.
+
+It can also return nil, which means to cancel the drop.
+
+If the first argument is nil, the second is the name of the file
+that was dropped."
+  :version "29.1"
+  :type 'function
+  :group 'x)
+
 ;; Internal variables
 
 (defvar x-dnd-current-state nil
@@ -144,7 +163,8 @@ any protocol specific data.")
     ("XdndActionCopy" . copy)
     ("XdndActionMove" . move)
     ("XdndActionLink" . link)
-    ("XdndActionAsk" . ask))
+    ("XdndActionAsk" . ask)
+    ("XdndActionDirectSave" . direct-save))
   "Mapping from XDND action types to Lisp symbols.")
 
 (defvar x-dnd-empty-state [nil nil nil nil nil nil nil])
@@ -199,29 +219,49 @@ FRAME-OR-WINDOW is the frame or window that the mouse is over."
   (setcdr (x-dnd-get-state-cons-for-frame frame-or-window)
 	  (copy-sequence x-dnd-empty-state)))
 
-(defun x-dnd-maybe-call-test-function (window action)
+(defun x-dnd-find-type (target types)
+  "Find the type TARGET in an array of types TYPES.
+TARGET must be a string, but TYPES can contain either symbols or
+strings."
+  (catch 'done
+    (dotimes (i (length types))
+      (let* ((type (aref types i))
+	     (typename (if (symbolp type)
+			   (symbol-name type) type)))
+	(when (equal target typename)
+	  (throw 'done t))))
+    nil))
+
+(defun x-dnd-maybe-call-test-function (window action &optional xdnd)
   "Call `x-dnd-test-function' if something has changed.
 WINDOW is the window the mouse is over.  ACTION is the suggested
 action from the source.  If nothing has changed, return the last
-action and type we got from `x-dnd-test-function'."
+action and type we got from `x-dnd-test-function'.
+
+XDND means the XDND protocol is being used."
   (let ((buffer (when (window-live-p window)
 		  (window-buffer window)))
 	(current-state (x-dnd-get-state-for-frame window)))
-    (unless (and (equal buffer (aref current-state 0))
-                 (equal window (aref current-state 1))
-                 (equal action (aref current-state 3)))
-      (save-current-buffer
-	(when buffer (set-buffer buffer))
-	(let* ((action-type (funcall x-dnd-test-function
-				     window
-				     action
-				     (aref current-state 2)))
-	       (handler (cdr (assoc (cdr action-type) x-dnd-types-alist))))
-	  ;; Ignore action-type if we have no handler.
-	  (setq current-state
-		(x-dnd-save-state window
-				  action
-				  (when handler action-type)))))))
+    (if (and xdnd (x-dnd-find-type "XdndDirectSave0"
+                                   (aref current-state 2)))
+        (setq current-state
+              (x-dnd-save-state window 'direct-save
+                                '(direct-save . "XdndDirectSave0")))
+      (unless (and (equal buffer (aref current-state 0))
+                   (equal window (aref current-state 1))
+                   (equal action (aref current-state 3)))
+        (save-current-buffer
+	  (when buffer (set-buffer buffer))
+	  (let* ((action-type (funcall x-dnd-test-function
+				       window
+				       action
+				       (aref current-state 2)))
+	         (handler (cdr (assoc (cdr action-type) x-dnd-types-alist))))
+	    ;; Ignore action-type if we have no handler.
+	    (setq current-state
+		  (x-dnd-save-state window
+				    action
+				    (when handler action-type))))))))
   (let ((current-state (x-dnd-get-state-for-frame window)))
     (cons (aref current-state 5)
 	  (aref current-state 4))))
@@ -597,9 +637,21 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(dnd-source (aref data 0))
 		(action-type (x-dnd-maybe-call-test-function
 			      window
-			      (cdr (assoc action x-dnd-xdnd-to-action))))
-		(reply-action (car (rassoc (car action-type)
-					   x-dnd-xdnd-to-action)))
+			      (cdr (assoc action x-dnd-xdnd-to-action)) t))
+		(reply-action (car (rassoc
+                                    ;; Mozilla and some other programs
+                                    ;; support XDS, but only if we
+                                    ;; reply with `copy'.  We can
+                                    ;; recognize these broken programs
+                                    ;; by checking to see if
+                                    ;; `XdndActionDirectSave' was
+                                    ;; originally specified.
+                                    (if (and (eq (car action-type)
+                                                 'direct-save)
+                                             (not (eq action 'direct-save)))
+                                        'copy
+                                      (car action-type))
+				    x-dnd-xdnd-to-action)))
 		(accept ;; 1 = accept, 0 = reject
 		 (if (and reply-action action-type
                           ;; Only allow drops on the text area of a
@@ -637,34 +689,39 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
                 (version (aref state 6))
                 (dnd-source (aref data 0))
 		(timestamp (aref data 2))
-		(value (and (x-dnd-current-type window)
-			    (x-get-selection-internal
-			     'XdndSelection
-			     (intern (x-dnd-current-type window))
-			     timestamp)))
-		success action)
+                (current-action (aref state 5))
+                (current-type (aref state 4))
+		success action value)
            (x-display-set-last-user-time timestamp)
-           (unwind-protect
-               (setq action (if value
-			        (condition-case info
-				    (x-dnd-drop-data
-                                     event frame window value
-				     (x-dnd-current-type window))
-			          (error
-			           (message "Error: %s" info)
-			           nil))))
-	     (setq success (if action 1 0))
-             (when (>= version 2)
-	       (x-send-client-message
-	        frame dnd-source frame "XdndFinished" 32
-	        (list (string-to-number
-                       (frame-parameter frame 'outer-window-id))
-		      (if (>= version 5) success 0) ;; 1 = Success, 0 = Error
-		      (if (or (not success) (< version 5)) 0
-                        (or (car (rassoc action
-                                         x-dnd-xdnd-to-action))
-                            0))))))
-	   (x-dnd-forget-drop window)))
+           (if (and (eq current-action 'direct-save)
+                    (equal current-type "XdndDirectSave0"))
+               (x-dnd-handle-xds-drop event window dnd-source version)
+             (setq value (and (x-dnd-current-type window)
+			      (x-get-selection-internal
+			       'XdndSelection
+			       (intern (x-dnd-current-type window))
+			       timestamp)))
+             (unwind-protect
+                 (setq action (if value
+			          (condition-case info
+				      (x-dnd-drop-data
+                                       event frame window value
+				       (x-dnd-current-type window))
+			            (error
+			             (message "Error: %s" info)
+			             nil))))
+	       (setq success (if action 1 0))
+               (when (>= version 2)
+	         (x-send-client-message
+	          frame dnd-source frame "XdndFinished" 32
+	          (list (string-to-number
+                         (frame-parameter frame 'outer-window-id))
+		        (if (>= version 5) success 0) ;; 1 = Success, 0 = Error
+		        (if (or (not action) (< version 5)) 0
+                          (or (car (rassoc action
+                                           x-dnd-xdnd-to-action))
+                              0)))))
+	       (x-dnd-forget-drop window)))))
 
 	(t (error "Unknown XDND message %s %s" message data))))
 
@@ -1156,7 +1213,8 @@ ACTION is the action given to `x-begin-drag'."
                                   (not (equal (match-string 1 uri) "")))
                              (dnd-get-local-file-uri uri)
                            uri))
-         (local-name (dnd-get-local-file-name local-file-uri)))
+         (local-name (and local-file-uri
+                          (dnd-get-local-file-name local-file-uri))))
     (if (not local-name)
         '(STRING . "F")
       (condition-case nil
@@ -1239,13 +1297,117 @@ was taken, or the direct save failed."
                          (and (stringp property)
                               (not (equal property ""))))
                      action)))))
-      ;; TODO: check for failure and implement selection-based file
-      ;; transfer.
       (unless prop-deleted
         (x-delete-window-property "XdndDirectSave0" frame))
       ;; Delete any remote copy that was made.
       (when (not (equal file-name original-file-name))
         (delete-file file-name)))))
+
+(defun x-dnd-save-direct (need-name name)
+  "Handle dropping a file that should be saved immediately.
+NEED-NAME tells whether or not the file was not yet saved.  NAME
+is either the name of the file, or the name the drop source wants
+us to save under.
+
+Prompt the user for a file name, then open it."
+  (if (file-remote-p default-directory)
+      ;; TODO: figure out what to do with remote files.
+      nil
+    (if need-name
+        (let ((file-name (read-file-name "Write file: "
+                                         default-directory
+                                         nil nil name)))
+          (when (file-exists-p file-name)
+            (unless (y-or-n-p (format-message
+                               "File `%s' exists; overwrite? " file-name))
+              (setq file-name nil)))
+          file-name)
+      ;; TODO: move this to dired.el once a platform-agonistic
+      ;; interface can be found.
+      (if (derived-mode-p 'dired-mode)
+          (revert-buffer)
+        (find-file name)))))
+
+(defun x-dnd-handle-octet-stream-for-drop (save-to)
+  "Save the contents of the XDS selection to SAVE-TO.
+Return non-nil if successful, nil otherwise."
+  (ignore-errors
+    (let ((coding-system-for-write 'raw-text)
+          (data (x-get-selection-internal 'XdndSelection
+                                          'application/octet-stream)))
+      (when data
+        (write-region data nil save-to)
+        t))))
+
+(defun x-dnd-handle-xds-drop (event window source version)
+  "Handle an XDS (X Direct Save) protocol drop.
+EVENT is the drag-n-drop event containing the drop.
+WINDOW is the window on top of which the drop is supposed to happen.
+SOURCE is the X window that sent the drop.
+VERSION is the version of the XDND protocol understood by SOURCE."
+  (if (not (windowp window))
+      ;; We can't perform an XDS drop if there's no window from which
+      ;; to determine the current directory.
+      (let* ((start (event-start event))
+             (frame (posn-window start)))
+        (x-send-client-message frame source frame
+                               "XdndFinished" 32
+                               (list (string-to-number
+                                      (frame-parameter frame
+                                                       'outer-window-id)))))
+    (let ((desired-name (x-window-property "XdndDirectSave0"
+                                           (window-frame window)
+                                           ;; We currently don't handle
+                                           ;; any alternative character
+                                           ;; encodings.
+                                           "text/plain" source))
+          (frame (window-frame window))
+          (success nil) save-to)
+      (unwind-protect
+          (when (stringp desired-name)
+            (setq desired-name (decode-coding-string
+                                desired-name
+                                (or file-name-coding-system
+                                    default-file-name-coding-system)))
+            (setq save-to (funcall x-dnd-direct-save-function
+                                   t desired-name))
+            (when save-to
+              (with-selected-window window
+                (let ((uri (format "file://%s%s" (system-name) save-to)))
+                  (x-change-window-property "XdndDirectSave0"
+                                            (encode-coding-string
+                                             (url-encode-url uri) 'ascii)
+                                            frame "text/plain" 8 nil source)
+                  (let ((result (x-get-selection-internal 'XdndSelection
+                                                          'XdndDirectSave0)))
+                    (cond ((equal result "F")
+                           (setq success (x-dnd-handle-octet-stream-for-drop save-to))
+                           (unless success
+                             (x-change-window-property "XdndDirectSave0" ""
+                                                       frame "text/plain" 8
+                                                       nil source)))
+                          ((equal result "S")
+                           (setq success t))
+                          ((equal result "E")
+                           (setq success nil))
+                          (t (error "Broken implementation of XDS: got %s in reply"
+                                    result)))
+                    (when success
+                      (funcall x-dnd-direct-save-function nil save-to)))))))
+        ;; We assume XDS always comes from a client supporting version 2
+        ;; or later, since custom actions aren't present before.
+        (x-send-client-message frame source frame
+                               "XdndFinished" 32
+                               (list (string-to-number
+                                      (frame-parameter frame
+                                                       'outer-window-id))
+                                     (if (>= version 5)
+                                         (if success 1 0)
+                                       0)
+                                     (if (or (not success)
+                                             (< version 5))
+                                         0
+                                       "XdndDirectSave0")))))))
 
 (provide 'x-dnd)
 
