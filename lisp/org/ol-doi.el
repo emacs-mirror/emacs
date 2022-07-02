@@ -44,7 +44,7 @@ PATH is a the path to search for, as a string."
   "Export a \"doi\" type link.
 PATH is the DOI name.  DESC is the description of the link, or
 nil.  BACKEND is a symbol representing the backend used for
-export.  INFO is a a plist containing the export parameters."
+export.  INFO is a plist containing the export parameters."
   (let ((uri (concat org-link-doi-server-url path)))
     (pcase backend
       (`html

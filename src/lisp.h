@@ -3451,7 +3451,7 @@ union specbinding
 #define WRAP_SPECPDL_REF 1
 #endif
 
-/* Abstract reference to to a specpdl entry.
+/* Abstract reference to a specpdl entry.
    The number is always a multiple of sizeof (union specbinding).  */
 #ifdef WRAP_SPECPDL_REF
 /* Use a proper type for specpdl_ref if it does not make the code slower,

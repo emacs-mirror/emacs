@@ -2112,7 +2112,7 @@ is running."
            (not (null gdb-running-threads-count))
            (> gdb-running-threads-count 0))))
 
-;; GUD displays the selected GDB frame.  This might might not be the current
+;; GUD displays the selected GDB frame.  This might not be the current
 ;; GDB frame (after up, down etc).  If no GDB frame is visible but the last
 ;; visited breakpoint is, use that window.
 (defun gdb-display-source-buffer (buffer)

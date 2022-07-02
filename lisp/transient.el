@@ -246,7 +246,7 @@ for infix argument are highlighted when only a long argument
 In the rare case that a short-hand is specified but does not
 match the key binding, then it is highlighed differently.
 
-The highlighting is done using using `transient-mismatched-key'
+The highlighting is done using `transient-mismatched-key'
 and `transient-nonstandard-key'."
   :package-version '(transient . "0.1.0")
   :group 'transient

@@ -503,8 +503,8 @@ The decision is taken by order of preference:
 
 * According to C's syntax and the syntactic state of the buffer
   (both as defined by the major mode's syntax table).  This is
-  done by looking up up the variables
-  `electric-pair-inhibit-predicate', `electric-pair-skip-self'
+  done by looking up the variables
+ `electric-pair-inhibit-predicate', `electric-pair-skip-self'
   and `electric-pair-skip-whitespace' (which see)."
   (let* ((pos (and electric-pair-mode (electric--after-char-pos)))
          (skip-whitespace-info))

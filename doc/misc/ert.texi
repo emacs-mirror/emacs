@@ -321,7 +321,7 @@ Show the list of @code{should} forms executed in the test
 @kindex m@r{, in ert results buffer}
 @findex ert-results-pop-to-messages-for-test-at-point
 Show any messages that were generated (with the Lisp function
-@code{message}) in in a test or any of the code that it invoked
+@code{message}) in a test or any of the code that it invoked
 (@code{ert-results-pop-to-messages-for-test-at-point}).
 
 @item L
