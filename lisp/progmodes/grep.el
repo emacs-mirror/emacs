@@ -885,6 +885,14 @@ The value depends on `grep-command', `grep-template',
   (setq-local compilation-disable-input t)
   (setq-local compilation-error-screen-columns
               grep-error-screen-columns)
+  ;; We normally use a nul byte to separate the file name from the
+  ;; contents, but display it as ":".  That's fine, but when yanking
+  ;; to other buffers, it's annoying to have the nul byte there.
+  (unless kill-transform-function
+    (setq-local kill-transform-function #'identity))
+  (add-function :filter-return (local 'kill-transform-function)
+                (lambda (string)
+                  (string-replace "\0" ":" string)))
   (add-hook 'compilation-filter-hook #'grep-filter nil t))
 
 (defun grep--save-buffers ()
