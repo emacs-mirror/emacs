@@ -1735,13 +1735,24 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 	{
 	  if (!NILP (find_symbol_value (
 		       Qnative_comp_warning_on_missing_source)))
-	    call2 (intern_c_string ("display-warning"),
-		   Qcomp,
-		   CALLN (Fformat,
-			  build_string ("Cannot look-up eln file as no source "
-					"file was found for %s"),
-			  *filename));
-	  return;
+	    {
+	      /* If we have an installation without any .el files,
+		 there's really no point in giving a warning here,
+		 because that will trigger a cascade of warnings.  So
+		 just do a sanity check and refuse to do anything if we
+		 can't find even central .el files.  */
+	      if (NILP (Flocate_file_internal (build_string ("simple.el"),
+					       Vload_path,
+					       Qnil, Qnil)))
+		return;
+	      call2 (intern_c_string ("display-warning"),
+		     Qcomp,
+		     CALLN (Fformat,
+			    build_string ("Cannot look up eln file as "
+					  "no source file was found for %s"),
+			    *filename));
+	      return;
+	    }
 	}
     }
   Lisp_Object eln_rel_name = Fcomp_el_to_eln_rel_filename (src_name);
