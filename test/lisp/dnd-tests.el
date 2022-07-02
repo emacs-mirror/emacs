@@ -411,5 +411,31 @@ This function only tries to handle strings."
         (inhibit-message t))
     (should (prog1 t (dnd-open-remote-url url 'private)))))
 
+(ert-deftest dnd-tests-direct-save ()
+  ;; This test just verifies that a direct save works; the window
+  ;; system specific test is in x-dnd-tests.el.  When running this
+  ;; interactively, keep in mind that there are only two file managers
+  ;; which are known to implement XDS correctly: System G (see
+  ;; http://nps-systemg.sourceforge.net), and Emacs itself.  GTK file
+  ;; managers such as Nautilus will not work, since they prefer the
+  ;; `text/uri-list' selection target to `XdndDirectSave0', contrary
+  ;; to the XDS specification.
+  (let ((window-system window-system)
+        (normal-temp-file (expand-file-name (make-temp-name "dnd-test")
+                                            temporary-file-directory)))
+    (unwind-protect
+        (progn
+          (unless (file-exists-p normal-temp-file)
+            (write-region "" 0 normal-temp-file))
+          (unless (eq window-system 'x)
+            ;; Use a window system that isn't X, since we only want to test
+            ;; the fallback code when run non-interactively.
+            (setq window-system 'haiku))
+          (should (eq (dnd-direct-save normal-temp-file
+                                       (make-temp-name "target-file-name"))
+                      'copy)))
+      (ignore-errors
+        (delete-file normal-temp-file)))))
+
 (provide 'dnd-tests)
 ;;; dnd-tests.el ends here
