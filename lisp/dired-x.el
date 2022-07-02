@@ -1,7 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1997, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -68,29 +67,11 @@ mbox format, and so cannot be distinguished in this way."
 (defvar dired-bind-jump t)
 (make-obsolete-variable 'dired-bind-jump "not used." "28.1")
 
-(defcustom dired-bind-man t
-  "Non-nil means bind `dired-man' to \"N\" in Dired, otherwise do not.
-Setting this variable directly after dired-x is loaded has no effect -
-use \\[customize]."
-  :type 'boolean
-  :set (lambda (sym val)
-         (if (set sym val)
-             (define-key dired-mode-map "N" 'dired-man)
-           (if (eq 'dired-man (lookup-key dired-mode-map "N"))
-               (define-key dired-mode-map "N" nil))))
-  :group 'dired-keys)
+(defvar dired-bind-man t)
+(make-obsolete-variable 'dired-bind-man "not used." "29.1")
 
-(defcustom dired-bind-info t
-  "Non-nil means bind `dired-info' to \"I\" in Dired, otherwise do not.
-Setting this variable directly after dired-x is loaded has no effect -
-use \\[customize]."
-  :type 'boolean
-  :set (lambda (sym val)
-         (if (set sym val)
-             (define-key dired-mode-map "I" 'dired-info)
-           (if (eq 'dired-info (lookup-key dired-mode-map "I"))
-               (define-key dired-mode-map "I" nil))))
-  :group 'dired-keys)
+(defvar dired-bind-info t)
+(make-obsolete-variable 'dired-bind-info "not used." "29.1")
 
 (defcustom dired-vm-read-only-folders nil
   "If non-nil, \\[dired-vm] will visit all folders read-only.
@@ -328,8 +309,6 @@ files"]
   "Automatically put on `dired-mode-hook' to get extra Dired features:
 \\<dired-mode-map>
   \\[dired-do-run-mail]\t-- run mail on folder (see `dired-bind-vm')
-  \\[dired-info]\t-- run info on file
-  \\[dired-man]\t-- run man on file
   \\[dired-do-find-marked-files]\t-- visit all marked files simultaneously
   \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
@@ -338,10 +317,8 @@ To see the options you can set, use \\[customize-group] RET dired-x RET.
 See also the functions:
   `dired-flag-extension'
   `dired-virtual'
-  `dired-man'
   `dired-vm'
   `dired-rmail'
-  `dired-info'
   `dired-do-find-marked-files'"
   (interactive)
   ;; These must be done in each new dired buffer.
@@ -1238,31 +1215,6 @@ NOSELECT the files are merely found but not selected."
 
 ;;; Miscellaneous commands
 
-;; Run man on files.
-
-(declare-function Man-getpage-in-background "man" (topic))
-
-(defvar manual-program) ; from man.el
-
-(defun dired-man ()
-  "Run `man' on this file."
-  ;; Used also to say: "Display old buffer if buffer name matches filename."
-  ;; but I have no idea what that means.
-  (interactive)
-  (require 'man)
-  (let* ((file (dired-get-filename))
-         (manual-program (string-replace "*" "%s"
-                          (dired-guess-shell-command
-                           "Man command: " (list file)))))
-    (Man-getpage-in-background file)))
-
-;; Run Info on files.
-
-(defun dired-info ()
-  "Run `info' on this file."
-  (interactive)
-  (info (dired-get-filename)))
-
 ;; Run mail on mail folders.
 
 (declare-function vm-visit-folder "ext:vm" (folder &optional read-only))
@@ -1596,6 +1548,8 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 ;;; Epilog
 
 (define-obsolete-function-alias 'dired-x-submit-report 'report-emacs-bug "24.1")
+(define-obsolete-function-alias 'dired-man #'dired-do-man "29.1")
+(define-obsolete-function-alias 'dired-info #'dired-do-info "29.1")
 
 
 ;; As Barry Warsaw would say: "This might be useful..."

@@ -1028,6 +1028,25 @@ so automatically.
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** Dired
+
+*** 'dired-info' and 'dired-man' moved from dired-x to dired.
+The 'dired-info' and 'dired-man' commands have been moved from the
+'dired-x' package to 'dired'.  They have also been renamed to
+'dired-do-info' and 'dired-do-man'; the old command names are obsolete
+aliases.
+
+They keys 'I' ('dired-do-info') and 'N' ('dired-do-man') are now bound
+in Dired mode by default.  The user options 'dired-bind-man' and
+'dired-bind-info' no longer have any effect and are obsolete.
+
+To get the old behavior back and unbind these keys in Dired mode, add
+the following to your Init file:
+
+(with-eval-after-load 'dired
+  (keymap-set dired-mode-map "N" nil)
+  (keymap-set dired-mode-map "I" nil))
+
 ** Elisp
 
 *** New command 'elisp-eval-buffer' (bound to 'C-c C-e').

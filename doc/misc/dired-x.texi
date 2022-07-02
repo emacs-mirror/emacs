@@ -921,28 +921,6 @@ to @kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
 Bound to @kbd{V} if @code{dired-bind-vm} is @code{nil}.  Run Rmail on this
 file (assumed to be mail folder in Rmail format).
 
-@item dired-info
-@kindex I
-@cindex running info.
-@findex dired-info
-Bound to @kbd{I}.  Run Info on this file (assumed to be a file in Info
-format).
-
-@vindex dired-bind-info
-If the variable @code{dired-bind-info} is @code{nil}, @code{dired-info} will
-not be bound to @kbd{I}.
-
-@item dired-man
-@cindex running man.
-@kindex N
-@findex dired-man
-Bound to @kbd{N}.  Run man on this file (assumed to be a file in @code{nroff}
-format).
-
-@vindex dired-bind-man
-If the variable @code{dired-bind-man} is @code{nil}, @code{dired-man} will not
-be bound to @kbd{N}.
-
 @item dired-do-relsymlink
 @cindex relative symbolic links.
 @kindex Y

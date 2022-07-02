@@ -963,6 +963,18 @@ Byte compile the specified Emacs Lisp files
 (@code{dired-do-byte-compile}).  @xref{Byte Compilation,, Byte
 Compilation, elisp, The Emacs Lisp Reference Manual}.
 
+@findex dired-do-info
+@kindex I @r{(Dired)}
+@cindex running info on files (in Dired)
+@item I
+Run Info on this file (assumed to be a file in Info format).
+
+@findex dired-do-man
+@kindex N @r{(Dired)}
+@cindex running man on files (in Dired)
+@item N
+Run man on this file (assumed to be a file in @code{nroff} format).
+
 @kindex A @r{(Dired)}
 @findex dired-do-find-regexp
 @cindex search multiple files (in Dired)

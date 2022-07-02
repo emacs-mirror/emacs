@@ -2079,8 +2079,10 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "D"       #'dired-do-delete
   "G"       #'dired-do-chgrp
   "H"       #'dired-do-hardlink
+  "I"       #'dired-do-info
   "L"       #'dired-do-load
   "M"       #'dired-do-chmod
+  "N"       #'dired-do-man
   "O"       #'dired-do-chown
   "P"       #'dired-do-print
   "Q"       #'dired-do-find-regexp-and-replace
@@ -4794,6 +4796,31 @@ Interactively with prefix argument, read FILE-NAME."
    (list (and current-prefix-arg
 	      (read-file-name "Jump to Dired file: "))))
   (dired-jump t file-name))
+
+
+;;; Miscellaneous commands
+
+(declare-function Man-getpage-in-background "man" (topic))
+(declare-function dired-guess-shell-command "dired-x" (prompt files))
+(defvar manual-program) ; from man.el
+
+(defun dired-do-man ()
+  "Run `man' on this file."
+  (interactive)
+  (require 'man)
+  ;; FIXME: Move `dired-guess-shell-command' to dired.el to remove the
+  ;;        need for requiring `dired-x'.
+  (require 'dired-x)
+  (let* ((file (dired-get-filename))
+         (manual-program (string-replace "*" "%s"
+                                         (dired-guess-shell-command
+                                          "Man command: " (list file)))))
+    (Man-getpage-in-background file)))
+
+(defun dired-do-info ()
+  "Run `info' on this file."
+  (interactive)
+  (info (dired-get-filename)))
 
 (provide 'dired)
 
