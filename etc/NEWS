@@ -328,7 +328,7 @@ startup.  Previously, these functions ignored
 ** 'longlines-mode' is no longer obsolete.
 
 +++
-** New command to change the fond sized globally.
+** New command to change the font size globally.
 To increase the font size, type 'C-x C-M-+' or 'C-x C-M-='; to
 decrease it, type 'C-x C-M--'; to restore the font size, type 'C-x
 C-M-0'.  The final key in these commands may be repeated without the
