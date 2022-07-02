@@ -161,7 +161,7 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
   if (XFIXNUM (byte) < 0 || XFIXNUM (byte) > 255)
     error ("Invalid byte");
   b = XFIXNUM (byte);
-  return make_string_from_bytes ((char *) &b, 1, 1);
+  return make_unibyte_string ((char *) &b, 1);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
