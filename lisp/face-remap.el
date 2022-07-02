@@ -394,7 +394,9 @@ a top-level keymap, `text-scale-increase' or
 Most faces are affected by these font size changes, but not faces
 that have an explicit `:height' setting.  The two exceptions to
 this are the `default' and `header-line' faces: they will both be
-scaled even if they have an explicit `:height' setting."
+scaled even if they have an explicit `:height' setting.
+
+See also the related command `global-text-scale-adjust'."
   (interactive "p")
   (let ((ev last-command-event)
 	(echo-keystrokes nil))
@@ -444,6 +446,82 @@ scaled even if they have an explicit `:height' setting."
       (text-scale-set
        (+ text-scale--pinch-start-scale
           (round (log scale text-scale-mode-step)))))))
+
+(defcustom global-text-scale-adjust-resizes-frames nil
+  "Whether `global-text-scale-adjust' resizes the frames."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On" t))
+  :group 'display
+  :version "28.1")
+
+(defcustom global-text-scale-adjust-limits '(10 . 500)
+  "Min/max values for `global-text-scale-adjust'.
+This is a cons cell where the `car' has the minimum font size and
+the `cdr' has the max font size."
+  :version "29.1"
+  :group 'display
+  :type '(cons (integer :tag "Min")
+               (integer :tag "Max")))
+
+(defvar global-text-scale-adjust--default-height nil)
+
+;;;###autoload (define-key ctl-x-map [(control meta ?+)] 'global-text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control meta ?=)] 'global-text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control meta ?-)] 'global-text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control meta ?0)] 'global-text-scale-adjust)
+;;;###autoload
+(defun global-text-scale-adjust (increment)
+  "Globally adjust the font size by INCREMENT.
+
+Interactively, INCREMENT may be passed as a numeric prefix argument.
+
+The adjustment made depends on the final component of the key binding
+used to invoke the command, with all modifiers removed:
+
+   +, =   Globally increase the height of the default face
+   -      Globally decrease the height of the default face
+   0      Globally reset the height of the default face
+
+After adjusting, further adjust the font size as long as the key,
+with all modifiers removed, is one of the above characters.
+
+Buffer-local face adjustements have higher priority than global
+face adjustments.
+
+The variable `global-text-scale-adjust-resizes-frames' controls
+whether the frames are resized to keep the same number of lines
+and characters per line when the font size is adjusted.
+
+See also the related command `text-scale-adjust'."
+  (interactive "p")
+  (when (display-graphic-p)
+    (unless global-text-scale-adjust--default-height
+      (setq global-text-scale-adjust--default-height
+            (face-attribute 'default :height)))
+    (let* ((key (event-basic-type last-command-event))
+           (echo-keystrokes nil)
+           (cur (face-attribute 'default :height))
+           (inc
+            (pcase key
+              (?- (* (- increment) 5))
+              (?0 (- global-text-scale-adjust--default-height cur))
+              (_ (* increment 5))))
+           (new (+ cur inc)))
+      (when (< (car global-text-scale-adjust-limits)
+               new
+               (cdr global-text-scale-adjust-limits))
+        (let ((frame-inhibit-implied-resize
+               (not global-text-scale-adjust-resizes-frames)))
+          (set-face-attribute 'default nil :height new)))
+      (when (characterp key)
+        (message "Use +,-,0 for further adjustment")
+        (set-transient-map
+         (let ((map (make-sparse-keymap)))
+           (dolist (mod '(() (control meta)))
+             (dolist (key '(?+ ?= ?- ?0))
+               (define-key map (vector (append mod (list key)))
+                 'global-text-scale-adjust)))
+           map))))))
 
 
 ;; ----------------------------------------------------------------

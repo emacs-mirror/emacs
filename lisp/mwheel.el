@@ -41,6 +41,17 @@
 (require 'timer)
 
 (defvar mouse-wheel-mode)
+
+(defun mouse-wheel-global-text-scale (event)
+  "Increase or decrease the global font size according to the EVENT."
+  (interactive (list last-input-event))
+  (let ((button (mwheel-event-button event)))
+    (unwind-protect
+        (cond ((eq button mouse-wheel-down-event)
+               (global-text-scale-adjust 1))
+              ((eq button mouse-wheel-up-event)
+               (global-text-scale-adjust -1))))))
+
 (defvar mouse-wheel--installed-bindings-alist nil
   "Alist of all installed mouse wheel key bindings.")
 
@@ -113,7 +124,10 @@ set to the event sent when clicking on the mouse wheel button."
   :type 'number)
 
 (defcustom mouse-wheel-scroll-amount
-  '(1 ((shift) . hscroll) ((meta) . nil) ((control) . text-scale))
+  '(1 ((shift) . hscroll)
+      ((meta) . nil)
+      ((control meta) . global-text-scale)
+      ((control) . text-scale))
   "Amount to scroll windows by when spinning the mouse wheel.
 This is an alist mapping the modifier key to the amount to scroll when
 the wheel is moved with the modifier key depressed.
@@ -489,6 +503,10 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
         (when event
           (mouse-wheel--add-binding `[,(list (caar binding) event)]
                                     'mouse-wheel-text-scale))))
+       ((and (consp binding) (eq (cdr binding) 'global-text-scale))
+        (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
+          (mouse-wheel--add-binding `[,(append (car binding) (list event))]
+                                    'mouse-wheel-global-text-scale)))
      ;; Bindings for scrolling.
      (t
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event

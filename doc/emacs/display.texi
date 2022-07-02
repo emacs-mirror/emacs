@@ -893,6 +893,22 @@ of 1.2; to change this factor, customize the variable
 to the @code{text-scale-adjust} command restores the default height,
 the same as typing @kbd{C-x C-0}.
 
+@cindex ajust global font size
+@findex global-text-scale-adjust
+@kindex C-x C-M-+
+@kindex C-x C-M-=
+@kindex C-x C-M--
+@kindex C-x C-M-0
+@kindex C-M-wheel-down
+@kindex C-M-wheel-up
+  Similarly, to change the sizes of the fonts globally, type @kbd{C-x
+C-M-+}, @kbd{C-x C-M-=}, @kbd{C-x C-M--} or @kbd{C-x C-M-0}, or scroll
+the mouse wheel with both the @kbd{Ctrl} and @kbd{Meta} modifiers
+pressed.  To enable frame resizing when the font size is changed
+globally, customize the variable
+@code{global-text-scale-adjust-resizes-frames} (@pxref{Easy
+Customization}).
+
 @cindex increase buffer font size
 @findex text-scale-increase
 @cindex decrease buffer font size
