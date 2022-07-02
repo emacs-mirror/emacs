@@ -1036,7 +1036,7 @@ The 'dired-info' and 'dired-man' commands have been moved from the
 'dired-do-info' and 'dired-do-man'; the old command names are obsolete
 aliases.
 
-They keys 'I' ('dired-do-info') and 'N' ('dired-do-man') are now bound
+The keys 'I' ('dired-do-info') and 'N' ('dired-do-man') are now bound
 in Dired mode by default.  The user options 'dired-bind-man' and
 'dired-bind-info' no longer have any effect and are obsolete.
 
