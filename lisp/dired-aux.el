@@ -1056,18 +1056,19 @@ Return the result of `process-file' - zero for success."
         (dir default-directory))
     (with-current-buffer (get-buffer-create out-buffer)
       (erase-buffer)
-      (let* ((default-directory dir)
-             (res (process-file
-                   shell-file-name
-                   nil
-                   t
-                   nil
-                   shell-command-switch
-                   cmd)))
-        (dired-uncache dir)
-        (unless (zerop res)
-          (pop-to-buffer out-buffer))
-        res))))
+      (let ((default-directory dir) res)
+        (with-connection-local-variables
+         (setq res (process-file
+                    shell-file-name
+                    nil
+                    t
+                    nil
+                    shell-command-switch
+                    cmd))
+         (dired-uncache dir)
+         (unless (zerop res)
+           (pop-to-buffer out-buffer))
+         res)))))
 
 
 ;;; Commands that delete or redisplay part of the dired buffer
