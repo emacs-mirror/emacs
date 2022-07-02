@@ -1838,10 +1838,47 @@ xm_drag_window_io_error_handler (Display *dpy)
   siglongjmp (x_dnd_disconnect_handler, 1);
 }
 
+/* Determine whether or not WINDOW exists on DPYINFO by selecting for
+   input from it.  */
+static bool
+x_special_window_exists_p (struct x_display_info *dpyinfo,
+			   Window window)
+{
+  bool rc;
+
+  x_catch_errors (dpyinfo->display);
+  XSelectInput (dpyinfo->display, window,
+		StructureNotifyMask);
+  rc = !x_had_errors_p (dpyinfo->display);
+  x_uncatch_errors_after_check ();
+
+  return rc;
+}
+
+/* Drag window creation strategy (very tricky, but race-free):
+
+   First look for _MOTIF_DRAG_WINDOW.  If it is already present,
+   return it immediately to avoid the overhead of new display
+   connections.
+
+   Otherwise, create a new connection to the display. In that
+   connection, create a window, which will be the new drag window. Set
+   the client disconnect mode of the new connection to
+   RetainPermanent, and close it.
+
+   Grab the current display.  Look up _MOTIF_DRAG_WINDOW, the current
+   drag window.  If it exists (which means _MOTIF_DRAG_WINDOW was
+   created between the first step and now), kill the client that
+   created the new drag window to free the client slot on the X
+   server.  Otherwise, set _MOTIF_DRAG_WINDOW to the new drag window.
+
+   Ungrab the display and return whichever window is currently in
+   _MOTIF_DRAG_WINDOW.  */
+
 static Window
 xm_get_drag_window_1 (struct x_display_info *dpyinfo)
 {
-  Atom actual_type, _MOTIF_DRAG_WINDOW;
+  Atom actual_type;
   int rc, actual_format;
   unsigned long nitems, bytes_remaining;
   unsigned char *tmp_data = NULL;
@@ -1851,9 +1888,9 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
   Emacs_XErrorHandler old_handler;
   Emacs_XIOErrorHandler old_io_handler;
 
-  /* These are volatile because GCC mistakenly warns about them being
+  /* This is volatile because GCC mistakenly warns about them being
      clobbered by longjmp.  */
-  volatile bool error, created;
+  volatile bool error;
 
   drag_window = None;
   rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
@@ -1862,25 +1899,19 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
 			   &actual_format, &nitems, &bytes_remaining,
 			   &tmp_data) == Success;
 
-  if (rc)
+  if (rc && actual_type == XA_WINDOW
+      && actual_format == 32 && nitems == 1
+      && tmp_data)
     {
-      if (actual_type == XA_WINDOW
-	  && actual_format == 32 && nitems == 1)
-	{
-	  drag_window = *(Window *) tmp_data;
-	  x_catch_errors (dpyinfo->display);
-	  XSelectInput (dpyinfo->display, drag_window,
-			StructureNotifyMask);
-	  rc = !x_had_errors_p (dpyinfo->display);
-	  x_uncatch_errors_after_check ();
+      drag_window = *(Window *) tmp_data;
+      rc = x_special_window_exists_p (dpyinfo, drag_window);
 
-	  if (!rc)
-	    drag_window = None;
-	}
-
-      if (tmp_data)
-	XFree (tmp_data);
+      if (!rc)
+	drag_window = None;
     }
+
+  if (tmp_data)
+    XFree (tmp_data);
 
   if (drag_window == None)
     {
@@ -1910,74 +1941,22 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
       error = false;
       xm_drag_window_error = &error;
 
-      XGrabServer (temp_display);
       XSetCloseDownMode (temp_display, RetainPermanent);
-
       old_handler = XSetErrorHandler (xm_drag_window_error_handler);
 
-      _MOTIF_DRAG_WINDOW = XInternAtom (temp_display,
-					"_MOTIF_DRAG_WINDOW", False);
-
-      if (error)
-	goto give_up;
-
-      /* Some other program might've created a drag window between now
-	 and when we first looked.  Use that if it exists.  */
-
-      tmp_data = NULL;
-      rc = XGetWindowProperty (temp_display, DefaultRootWindow (temp_display),
-			       _MOTIF_DRAG_WINDOW, 0, 1, False, XA_WINDOW,
-			       &actual_type, &actual_format, &nitems,
-			       &bytes_remaining, &tmp_data) == Success;
-
-      if (rc && actual_type == XA_WINDOW
-	  && actual_format == 32 && nitems == 1
-	  && tmp_data)
-	drag_window = *(Window *) tmp_data;
-
-      if (tmp_data)
-	XFree (tmp_data);
-
-      error = false;
-
-      if (drag_window == None)
-	{
-	  created = true;
-
-	  attrs.override_redirect = True;
-	  drag_window = XCreateWindow (temp_display, DefaultRootWindow (temp_display),
-				       -1, -1, 1, 1, 0, CopyFromParent, InputOnly,
-				       CopyFromParent, CWOverrideRedirect, &attrs);
-	  XChangeProperty (temp_display, DefaultRootWindow (temp_display),
-			   _MOTIF_DRAG_WINDOW, XA_WINDOW, 32, PropModeReplace,
-			   (unsigned char *) &drag_window, 1);
-	}
-      else
-	created = false;
+      attrs.override_redirect = True;
+      drag_window = XCreateWindow (temp_display, DefaultRootWindow (temp_display),
+				   -1, -1, 1, 1, 0, CopyFromParent, InputOnly,
+				   CopyFromParent, CWOverrideRedirect, &attrs);
 
       /* Handle all errors now.   */
       XSync (temp_display, False);
 
-    give_up:
-
       /* Some part of the drag window creation process failed, so
-	 punt.  */
+	 punt.  Release all resources too.  */
       if (error)
 	{
 	  XSetCloseDownMode (temp_display, DestroyAll);
-
-	  /* If the drag window was actually created, delete it now.
-	     Probably, a BadAlloc happened during the XChangeProperty
-	     request.  */
-	  if (created)
-	    {
-	      if (drag_window != None)
-		XDestroyWindow (temp_display, drag_window);
-
-	      XDeleteProperty (temp_display, DefaultRootWindow (temp_display),
-			       _MOTIF_DRAG_WINDOW);
-	    }
-
 	  drag_window = None;
 	}
 
@@ -1995,15 +1974,49 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
       /* Make sure the drag window created is actually valid for the
 	 current display, and the XOpenDisplay above didn't
 	 accidentally connect to some other display.  */
-      x_catch_errors (dpyinfo->display);
-      XSelectInput (dpyinfo->display, drag_window, StructureNotifyMask);
-      rc = !x_had_errors_p (dpyinfo->display);
-      x_uncatch_errors_after_check ();
+      if (!x_special_window_exists_p (dpyinfo, drag_window))
+	drag_window = None;
       unblock_input ();
 
-      /* We connected to the wrong display, so just give up.  */
-      if (!rc)
-	drag_window = None;
+      if (drag_window != None)
+	{
+	  XGrabServer (dpyinfo->display);
+
+	  x_catch_errors (dpyinfo->display);
+	  tmp_data = NULL;
+
+	  rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
+				   dpyinfo->Xatom_MOTIF_DRAG_WINDOW,
+				   0, 1, False, XA_WINDOW, &actual_type,
+				   &actual_format, &nitems, &bytes_remaining,
+				   &tmp_data) == Success;
+
+	  if (rc && actual_type == XA_WINDOW
+	      && actual_format == 32 && nitems == 1
+	      && tmp_data
+	      && x_special_window_exists_p (dpyinfo,
+					    *(Window *) tmp_data))
+	    {
+	      /* Kill the client now to avoid leaking a client slot,
+		 which is a limited resource.  */
+	      XKillClient (dpyinfo->display, drag_window);
+	      drag_window = *(Window *) tmp_data;
+	    }
+	  else
+	    XChangeProperty (dpyinfo->display, dpyinfo->root_window,
+			     dpyinfo->Xatom_MOTIF_DRAG_WINDOW,
+			     XA_WINDOW, 32, PropModeReplace,
+			     (unsigned char *) &drag_window, 1);
+
+	  if (tmp_data)
+	    XFree (tmp_data);
+
+	  if (x_had_errors_p (dpyinfo->display))
+	    drag_window = None;
+	  x_uncatch_errors ();
+
+	  XUngrabServer (dpyinfo->display);
+	}
     }
 
   return drag_window;
