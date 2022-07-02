@@ -409,7 +409,8 @@ See also the related command `global-text-scale-adjust'."
               (_ inc))))
       (text-scale-increase step)
       ;; (unless (zerop step)
-      (message "Use +,-,0 for further adjustment")
+      (message (substitute-command-keys
+                "Use \\`+',\\`-',\\`0' for further adjustment"))
       (set-transient-map
        (let ((map (make-sparse-keymap)))
          (dolist (mods '(() (control)))
@@ -514,7 +515,8 @@ See also the related command `text-scale-adjust'."
                (not global-text-scale-adjust-resizes-frames)))
           (set-face-attribute 'default nil :height new)))
       (when (characterp key)
-        (message "Use +,-,0 for further adjustment")
+        (message (substitute-command-keys
+                  "Use \\`+',\\`-',\\`0' for further adjustment"))
         (set-transient-map
          (let ((map (make-sparse-keymap)))
            (dolist (mod '(() (control meta)))
