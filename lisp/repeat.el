@@ -503,7 +503,9 @@ See `describe-repeat-maps' for a list of all repeatable commands."
     (map-keymap (lambda (key cmd) (and cmd (push key keys))) keymap)
     (format-message "Repeat with %s%s"
                     (mapconcat (lambda (key)
-                                 (key-description (vector key)))
+                                 (substitute-command-keys
+                                  (format "\\`%s'"
+                                          (key-description (vector key)))))
                                keys ", ")
                     (if repeat-exit-key
                         (format ", or exit with %s"
