@@ -2074,7 +2074,7 @@ For use in `add-log-current-defun-function'."
       (re-search-forward "^[^ ]" nil t))
     (pcase-let ((`(,buf ,_line-offset ,pos ,src ,dst ,switched)
                  (ignore-errors         ;Signals errors in place of prompting.
-                   ;; Use `noprompt' since this is used in which-func-mode
+                   ;; Use `noprompt' since this is used in which-function-mode
                    ;; and such.
                    (diff-find-source-location nil nil 'noprompt))))
       (when buf

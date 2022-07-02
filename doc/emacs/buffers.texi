@@ -616,10 +616,11 @@ select it in another window (@code{clone-indirect-buffer-other-window}).
 
   The text of the indirect buffer is always identical to the text of its
 base buffer; changes made by editing either one are visible immediately
-in the other.  But in all other respects, the indirect buffer and its
+in the other.  ``Text'' here includes both the characters and their text
+properties.  But in all other respects, the indirect buffer and its
 base buffer are completely separate.  They can have different names,
 different values of point, different narrowing, different markers,
-different major modes, and different local variables.
+different overlays, different major modes, and different local variables.
 
   An indirect buffer cannot visit a file, but its base buffer can.  If
 you try to save the indirect buffer, that actually works by saving the
@@ -648,6 +649,14 @@ both using the minibuffer.
 @code{clone-indirect-buffer-hook} after creating the indirect buffer.
 When this hook runs, the newly created indirect buffer is the current
 buffer.
+
+Note: When a modification is made to the text of a buffer, the
+modification hooks are run only in the base buffer, because most of
+the functions on those hooks are not prepared to work correctly in
+indirect buffers.  So if you need a modification hook function in an
+indirect buffer, you need to manually add that function to the hook
+@emph{in the base buffer} and then make the function operate in the
+desired indirect buffer.
 
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling

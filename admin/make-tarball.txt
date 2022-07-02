@@ -15,8 +15,8 @@ Steps to take before starting on the first pretest in any release sequence:
 2.  Consider increasing the value of the variable
     'customize-changed-options-previous-release' in cus-edit.el to
     refer to a newer version of Emacs.  (This is now done when cutting
-    the release branch, see admin/release-branch.txt.)
-    Commit cus-edit.el if changed.
+    the release branch, see admin/release-branch.txt, but it can't
+    hurt to double check its value.)  Commit cus-edit.el if changed.
 
 3.  Remove any old pretests from https://alpha.gnu.org/gnu/emacs/pretest.
     You can use 'gnupload --delete' (see below for more gnupload details).
@@ -24,8 +24,8 @@ Steps to take before starting on the first pretest in any release sequence:
 
 General steps (for each step, check for possible errors):
 
-1.   git pull     # fetch from the repository
-     git status   # check for locally modified files
+1.    git pull     # fetch from the repository
+      git status   # check for locally modified files
 
     Ensure that you have a clean, unmodified state.
     If you switched in-place from another branch to the release branch,
@@ -48,6 +48,9 @@ General steps (for each step, check for possible errors):
     native-compilation enabled, to ensure all the pertinent *.elc
     files will end up in the tarball.  Otherwise, the *.eln files
     might not build correctly on the user's system.
+
+      ./autogen.sh
+      ./configure --with-native-compilation && make
 
     For a release (as opposed to pretest), delete any left-over "---"
     and "+++" markers from etc/NEWS, as well as the "Temporary note"
@@ -284,7 +287,8 @@ General steps (for each step, check for possible errors):
     https://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, or
     https://ftp.gnu.org/gnu/emacs/ for a release.
 
-    Download them and check the signatures.  Check they build.
+    Download them and check the signatures and SHA1/SHA256 checksums.
+    Check they build.
 
 11. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
     For a pretest, also bcc: platform-testers@gnu.org.
@@ -302,12 +306,20 @@ General steps (for each step, check for possible errors):
 
     To create the included SHA1 and SHA256 checksums, run:
 
-     sha1sum emacs-NEW.tar.xz
-     sha256sum emacs-NEW.tar.xz
+      sha1sum emacs-NEW.tar.xz
+      sha256sum emacs-NEW.tar.xz
+
+    You can optionally sign the announcement email, probably using the
+    same PGP key that you used for signing the tarball.
+    (Use e.g. `M-x mml-secure-message-sign' in `message-mode' to sign
+    an email.)
 
 12. After a release, update the Emacs pages as described below.
 
-13. Bump the Emacs version on the release branch.
+13. After a release, bump the Emacs version on the release branch.
+    There is no need to bump the version after a pretest; the version
+    is bumped before the next pretest or release instead.
+
     If the released version was XX.Y, use 'set-version' from
     admin/admin.el to bump the version on the release branch to
     XX.Y.50.  Commit the changes.
@@ -315,8 +327,8 @@ General steps (for each step, check for possible errors):
 UPDATING THE EMACS WEB PAGES AFTER A RELEASE
 
 As soon as possible after a release, the Emacs web pages at
-https://www.gnu.org/software/emacs/ should be updated.  (See
-admin/notes/www for general information.)
+https://www.gnu.org/software/emacs/ should be updated.
+(See admin/notes/www for general information.)
 
 The pages to update are:
 
@@ -332,7 +344,7 @@ looks like this:
 
     <div class="release-banner">
 	<div class="container">
-	    <h2><em>Emacs 27.1 is out</em>, download it <a href="download.html">here</a>!</h2>
+	    <h2><em>Emacs 28.1 is out</em>, download it <a href="download.html">here</a>!</h2>
 	</div>
     </div>
 

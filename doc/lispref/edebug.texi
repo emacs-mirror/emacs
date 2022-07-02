@@ -841,7 +841,6 @@ you continue execution, and recreated next time it is needed.
 
 @cindex printing (Edebug)
 @cindex printing circular structures
-@pindex cust-print
   If an expression in your program produces a value containing circular
 list structure, you may get an error when Edebug attempts to print it.
 

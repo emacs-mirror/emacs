@@ -701,6 +701,7 @@ The character information includes:
                                                   (looking-at-p "[ \t]+$")))
                              'trailing-whitespace)
                             ((and nobreak-char-display char
+                                  (> char 127)
                                   (eq (get-char-code-property char 'general-category) 'Zs))
                              'nobreak-space)
                             ((and nobreak-char-display char

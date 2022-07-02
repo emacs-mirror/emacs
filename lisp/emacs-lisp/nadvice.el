@@ -313,7 +313,7 @@ different, but `function-equal' will hopefully ignore those differences.")
 (defmacro add-function (how place function &optional props)
   ;; TODO:
   ;; - maybe let `how' specify some kind of predicate and use it
-  ;;   to implement things like mode-local or eieio-defmethod.
+  ;;   to implement things like mode-local or cl-defmethod.
   ;;   Of course, that only makes sense if the predicates of all advices can
   ;;   be combined and made more efficient.
   ;; :before is like a normal add-hook on a normal hook.
@@ -352,7 +352,7 @@ is also interactive.  There are 3 cases:
   (declare
    ;;(indent 2)
    (debug (form [&or symbolp ("local" form) ("var" sexp) gv-place]
-           form &optional form)))
+                form &optional form)))
   `(advice--add-function ,how (gv-ref ,(advice--normalize-place place))
                          ,function ,props))
 
