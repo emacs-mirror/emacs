@@ -3160,8 +3160,9 @@ Fourth arg MUSTMATCH can take the following values:
   input, but she needs to confirm her choice if she called
   `minibuffer-complete' right before `minibuffer-complete-and-exit'
   and the input is not an existing file.
-- a function, which will be called with the input as the argument.
-  If it returns a non-nil value, the minibuffer is exited with that value.
+- a function, which will be called with the input as the
+  argument.  If the function returns a non-nil value, the
+  minibuffer is exited with that argument as the value.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
