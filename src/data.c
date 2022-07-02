@@ -1546,8 +1546,13 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 /* Find the value of a symbol, returning Qunbound if it's not bound.
    This is helpful for code which just wants to get a variable's value
    if it has one, without signaling an error.
-   Note that it must not be possible to quit
-   within this function.  Great care is required for this.  */
+
+   This function is very similar to buffer_local_value, but we have
+   two separate code paths here since find_symbol_value has to be very
+   efficient, while buffer_local_value doesn't have to be.
+
+   Note that it must not be possible to quit within this function.
+   Great care is required for this.  */
 
 Lisp_Object
 find_symbol_value (Lisp_Object symbol)
