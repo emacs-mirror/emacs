@@ -5387,9 +5387,9 @@ DEFUN ("x-server-input-extension-version", Fx_server_input_extension_version,
        doc: /* Return the version of the X Input Extension supported by TERMINAL.
 The value is nil if TERMINAL's X server doesn't support the X Input
 Extension extension, or if Emacs doesn't support the version present
-on that server.  Otherwise, the return value is a list of the the
-major and minor versions of the X Input Extension extension running on
-that server.  */)
+on that server.  Otherwise, the return value is a list of the major
+and minor versions of the X Input Extension extension running on that
+server.  */)
   (Lisp_Object terminal)
 {
 #ifdef HAVE_XINPUT2
