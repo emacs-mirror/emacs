@@ -681,7 +681,7 @@ Full key sequences are listed below:")
 (quail-define-package "malayalam-mozhi" "Malayalam" "MlmMI" t
                       "Malayalam transliteration by Mozhi method."
                       nil nil t nil nil nil t nil
-                      #'indian-mlm-mozhi-update-translation)
+                      #'indian-mlm-mozhi-update-translation nil t)
 
 (maphash
  (lambda (key val)
