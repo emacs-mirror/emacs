@@ -895,6 +895,7 @@ the same as typing @kbd{C-x C-0}.
 
 @cindex ajust global font size
 @findex global-text-scale-adjust
+@vindex global-text-scale-adjust-resizes-frames
 @kindex C-x C-M-+
 @kindex C-x C-M-=
 @kindex C-x C-M--

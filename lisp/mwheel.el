@@ -43,7 +43,8 @@
 (defvar mouse-wheel-mode)
 
 (defun mouse-wheel-global-text-scale (event)
-  "Increase or decrease the global font size according to the EVENT."
+  "Increase or decrease the global font size according to the EVENT.
+This invokes `global-text-scale-adjust', which see."
   (interactive (list last-input-event))
   (let ((button (mwheel-event-button event)))
     (unwind-protect

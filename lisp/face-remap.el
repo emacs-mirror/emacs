@@ -452,12 +452,12 @@ See also the related command `global-text-scale-adjust'."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" t))
   :group 'display
-  :version "28.1")
+  :version "29.1")
 
 (defcustom global-text-scale-adjust-limits '(10 . 500)
   "Min/max values for `global-text-scale-adjust'.
 This is a cons cell where the `car' has the minimum font size and
-the `cdr' has the max font size."
+the `cdr' has the maximum font size, in units of 1/10 pt."
   :version "29.1"
   :group 'display
   :type '(cons (integer :tag "Min")
