@@ -2515,8 +2515,9 @@ This function could be in the list `comint-output-filter-functions'."
                 (1+ comint--prompt-recursion-depth)))
            (if (> comint--prompt-recursion-depth 10)
                (message "Password prompt recursion too deep")
-             (comint-send-invisible
-              (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+"))))))
+             (when (get-buffer-process (current-buffer))
+               (comint-send-invisible
+                (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+")))))))
      (current-buffer))))
 
 ;; Low-level process communication
