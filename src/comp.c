@@ -5781,7 +5781,7 @@ For internal use.  */);
   DEFVAR_LISP ("native-comp-eln-load-path", Vnative_comp_eln_load_path,
 	       doc: /* List of eln cache directories.
 
-If a directory is non absolute is assumed to be relative to
+If a directory is non absolute it is assumed to be relative to
 `invocation-directory'.
 `comp-native-version-dir' value is used as a sub-folder name inside
 each eln cache directory.
