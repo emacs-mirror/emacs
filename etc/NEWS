@@ -148,8 +148,15 @@ This is run at the end of the Emacs startup process, and is meant to
 be used to reinitialize structures that would normally be done at load
 time.
 
+** Native Compilation
+
 ---
-** New function 'startup-redirect-eln-cache'.
+*** New command 'native-compile-prune-cache'.
+This command deletes older .eln cache entries (but not the ones for
+the current Emacs version).
+
+---
+*** New function 'startup-redirect-eln-cache'.
 This function can be called in your init files to change the
 user-specific directory where Emacs stores the "*.eln" files produced
 by native compilation of Lisp packages Emacs loads.  The default
