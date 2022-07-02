@@ -261,6 +261,16 @@ struct xi_device_t
 Status x_parse_color (struct frame *f, const char *color_name,
 		      XColor *color);
 
+struct x_failable_request
+{
+  /* The first request making up this sequence.  */
+  unsigned long start;
+
+  /* If this is zero, then the request has not yet been made.
+     Otherwise, this is the request that ends this sequence.  */
+  unsigned long end;
+};
+
 
 /* For each X display, we have a structure that records
    information about it.  */
@@ -746,12 +756,12 @@ struct x_display_info
   int screen_mm_width;
   int screen_mm_height;
 
-  /* Circular buffer of request serials to ignore inside an error
-     handler in increasing order.  */
-  unsigned long failable_requests[N_FAILABLE_REQUESTS];
+  /* Circular buffer of request serial ranges to ignore inside an
+     error handler in increasing order.  */
+  struct x_failable_request failable_requests[N_FAILABLE_REQUESTS];
 
   /* Pointer to the next request in `failable_requests'.  */
-  unsigned long *next_failable_request;
+  struct x_failable_request *next_failable_request;
 };
 
 #ifdef HAVE_X_I18N

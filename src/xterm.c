@@ -1117,6 +1117,7 @@ static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar 
 static int x_filter_event (struct x_display_info *, XEvent *);
 #endif
 static void x_ignore_errors_for_next_request (struct x_display_info *);
+static void x_stop_ignoring_errors (struct x_display_info *);
 static void x_clean_failable_requests (struct x_display_info *);
 
 static struct frame *x_tooltip_window_to_frame (struct x_display_info *,
@@ -2444,6 +2445,7 @@ xm_send_drop_message (struct x_display_info *dpyinfo, Window source,
 
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 static void
@@ -2470,6 +2472,7 @@ xm_send_top_level_enter_message (struct x_display_info *dpyinfo, Window source,
 
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 static void
@@ -2500,6 +2503,7 @@ xm_send_drag_motion_message (struct x_display_info *dpyinfo, Window source,
 
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 static void
@@ -2558,6 +2562,7 @@ xm_send_top_level_leave_message (struct x_display_info *dpyinfo, Window source,
 
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, target, False, NoEventMask, &msg);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 static int
@@ -3211,6 +3216,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	      XShapeSelectInput (dpyinfo->display,
 				 toplevels[i],
 				 ShapeNotifyMask);
+	      x_stop_ignoring_errors (dpyinfo);
 
 #ifndef HAVE_XCB_SHAPE
 	      x_catch_errors (dpyinfo->display);
@@ -4397,6 +4403,7 @@ x_dnd_send_enter (struct frame *f, Window target, int supported)
 
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 static void
@@ -4459,6 +4466,7 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
     {
       x_ignore_errors_for_next_request (dpyinfo);
       XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
+      x_stop_ignoring_errors (dpyinfo);
 
       x_dnd_waiting_for_status_window = target;
     }
@@ -4484,6 +4492,7 @@ x_dnd_send_leave (struct frame *f, Window target)
 
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
+  x_stop_ignoring_errors (dpyinfo);
 }
 
 static bool
@@ -4516,6 +4525,7 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
 
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
+  x_stop_ignoring_errors (dpyinfo);
   return true;
 }
 
@@ -16454,6 +16464,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    XSendEvent (dpyinfo->display, target,
 				False, NoEventMask,
 				&x_dnd_pending_send_position);
+		    x_stop_ignoring_errors (dpyinfo);
 		    x_dnd_pending_send_position.type = 0;
 
 		    /* Since we sent another XdndPosition message, we
@@ -22991,7 +23002,8 @@ x_error_catcher (Display *display, XErrorEvent *event,
    There is no need to use this mechanism for ignoring errors from
    single asynchronous requests, such as sending a ClientMessage to a
    window that might no longer exist.  Use
-   x_ignore_errors_for_next_request instead.  */
+   x_ignore_errors_for_next_request (paired with
+   x_stop_ignoring_errors) instead.  */
 
 void
 x_catch_errors_with_handler (Display *dpy, x_special_error_handler handler,
@@ -23004,7 +23016,7 @@ x_catch_errors_with_handler (Display *dpy, x_special_error_handler handler,
   data->handler = handler;
   data->handler_data = handler_data;
   data->prev = x_error_message;
-  data->first_request = NextRequest (dpy);
+  data->first_request = XNextRequest (dpy);
   x_error_message = data;
 
   ++x_error_message_count;
@@ -23018,17 +23030,21 @@ x_catch_errors (Display *dpy)
 
 /* Return if errors for REQUEST should be ignored even if there is no
    error handler applied.  */
-static unsigned long *
+static struct x_failable_request *
 x_request_can_fail (struct x_display_info *dpyinfo,
 		    unsigned long request)
 {
-  unsigned long *failable_requests;
+  struct x_failable_request *failable_requests;
 
   for (failable_requests = dpyinfo->failable_requests;
        failable_requests < dpyinfo->next_failable_request;
        failable_requests++)
     {
-      if (*failable_requests == request)
+      if (X_COMPARE_SERIALS (request, >=,
+			     failable_requests->start)
+	  && (!failable_requests->end
+	      || X_COMPARE_SERIALS (request, <=,
+				    failable_requests->end)))
 	return failable_requests;
     }
 
@@ -23040,13 +23056,17 @@ x_request_can_fail (struct x_display_info *dpyinfo,
 static void
 x_clean_failable_requests (struct x_display_info *dpyinfo)
 {
-  unsigned long *first, *last;
+  struct x_failable_request *first, *last;
 
   last = dpyinfo->next_failable_request;
 
   for (first = dpyinfo->failable_requests; first < last; first++)
     {
-      if (*first > LastKnownRequestProcessed (dpyinfo->display))
+      if (X_COMPARE_SERIALS (first->start, >,
+			     LastKnownRequestProcessed (dpyinfo->display))
+	  || !first->end
+	  || X_COMPARE_SERIALS (first->end, >,
+				LastKnownRequestProcessed (dpyinfo->display)))
 	break;
     }
 
@@ -23061,7 +23081,14 @@ x_clean_failable_requests (struct x_display_info *dpyinfo)
 static void
 x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
 {
-  unsigned long *request, *max;
+  struct x_failable_request *request, *max;
+
+  if ((dpyinfo->next_failable_request
+       != dpyinfo->failable_requests)
+      && (dpyinfo->next_failable_request - 1)->end == 0)
+    /* A new sequence should never be started before an old one
+       finishes.  Use `x_catch_errors' to nest error handlers.  */
+    emacs_abort ();
 
   request = dpyinfo->next_failable_request;
   max = dpyinfo->failable_requests + N_FAILABLE_REQUESTS;
@@ -23071,7 +23098,7 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
       /* There is no point in making this extra sync if all requests
 	 are known to have been fully processed.  */
       if ((LastKnownRequestProcessed (dpyinfo->display)
-	   != NextRequest (dpyinfo->display) - 1))
+	   != XNextRequest (dpyinfo->display) - 1))
 	XSync (dpyinfo->display, False);
 
       x_clean_failable_requests (dpyinfo);
@@ -23083,8 +23110,19 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
        function.  */
     emacs_abort ();
 
-  *request = NextRequest (dpyinfo->display);
+  request->start = XNextRequest (dpyinfo->display);
+  request->end = 0;
+
   dpyinfo->next_failable_request++;
+}
+
+static void
+x_stop_ignoring_errors (struct x_display_info *dpyinfo)
+{
+  struct x_failable_request *range;
+
+  range = dpyinfo->next_failable_request - 1;
+  range->end = XNextRequest (dpyinfo->display) - 1;
 }
 
 /* Undo the last x_catch_errors call.
@@ -23134,10 +23172,10 @@ x_uncatch_errors (void)
       /* There is no point in making this extra sync if all requests
 	 are known to have been fully processed.  */
       && (LastKnownRequestProcessed (x_error_message->dpy)
-	  != NextRequest (x_error_message->dpy) - 1)
+	  != XNextRequest (x_error_message->dpy) - 1)
       /* Likewise if no request was made since the trap was
 	 installed.  */
-      && (NextRequest (x_error_message->dpy)
+      && (XNextRequest (x_error_message->dpy)
 	  > x_error_message->first_request))
     {
       XSync (x_error_message->dpy, False);
@@ -23171,8 +23209,8 @@ x_check_errors (Display *dpy, const char *format)
   /* There is no point in making this extra sync if all requests
      are known to have been fully processed.  */
   if ((LastKnownRequestProcessed (dpy)
-       != NextRequest (dpy) - 1)
-      && (NextRequest (dpy)
+       != XNextRequest (dpy) - 1)
+      && (XNextRequest (dpy)
 	  > x_error_message->first_request))
     XSync (dpy, False);
 
@@ -23206,8 +23244,8 @@ x_had_errors_p (Display *dpy)
 
   /* Make sure to catch any errors incurred so far.  */
   if ((LastKnownRequestProcessed (dpy)
-       != NextRequest (dpy) - 1)
-      && (NextRequest (dpy)
+       != XNextRequest (dpy) - 1)
+      && (XNextRequest (dpy)
 	  > x_error_message->first_request))
     XSync (dpy, False);
 
@@ -23471,7 +23509,7 @@ x_error_handler (Display *display, XErrorEvent *event)
 {
   struct x_error_message_stack *stack;
   struct x_display_info *dpyinfo;
-  unsigned long *fail, *last;
+  struct x_failable_request *fail, *last;
 
 #if defined USE_GTK && defined HAVE_GTK3
   if ((event->error_code == BadMatch
@@ -23488,13 +23526,17 @@ x_error_handler (Display *display, XErrorEvent *event)
 
       if (fail)
 	{
-	  /* Now that this request has been handled, remove it from
-	     the list of requests that can fail.  */
-	  last = dpyinfo->next_failable_request;
-	  memmove (&dpyinfo->failable_requests, fail,
-		   sizeof *fail * (last - fail));
-	  dpyinfo->next_failable_request = (dpyinfo->failable_requests
-					    + (last - fail));
+	  /* Now that this request sequence has been fully handled,
+	     remove it from the list of requests that can fail.  */
+
+	  if (event->serial == fail->end)
+	    {
+	      last = dpyinfo->next_failable_request;
+	      memmove (&dpyinfo->failable_requests, fail,
+		       sizeof *fail * (last - fail));
+	      dpyinfo->next_failable_request = (dpyinfo->failable_requests
+						+ (last - fail));
+	    }
 
 	  return 0;
 	}
@@ -24882,11 +24924,9 @@ frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 			      &deviceid))
 	{
 	  x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
-
-	  XIWarpPointer (FRAME_X_DISPLAY (f),
-			 deviceid, None,
-			 FRAME_X_WINDOW (f),
-			 0, 0, 0, 0, pix_x, pix_y);
+	  XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
+			 FRAME_X_WINDOW (f), 0, 0, 0, 0, pix_x, pix_y);
+	  x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
 	}
     }
   else
@@ -25025,6 +25065,7 @@ x_focus_frame (struct frame *f, bool noactivate)
       x_ignore_errors_for_next_request (dpyinfo);
       XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		      RevertToParent, CurrentTime);
+      x_stop_ignoring_errors (dpyinfo);
 
       if (!noactivate)
 	x_ewmh_activate_frame (f);
