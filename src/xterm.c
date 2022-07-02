@@ -1128,10 +1128,6 @@ static Window x_get_window_below (Display *, Window, int, int, int *, int *);
 /* Flag that indicates if a drag-and-drop operation is in progress.  */
 bool x_dnd_in_progress;
 
-/* Number that indicates the last "generation" of
-   UNSUPPORTED_DROP_EVENTs handled.  */
-unsigned x_dnd_unsupported_event_level;
-
 /* The frame where the drag-and-drop operation originated.  */
 struct frame *x_dnd_frame;
 
@@ -1145,6 +1141,20 @@ struct frame *x_dnd_finish_frame;
    handle_one_xevent is waiting for the drop target to return some
    important information.  */
 bool x_dnd_waiting_for_finish;
+
+/* Flag that means (when set in addition to
+   `x_dnd_waiting_for_finish') to run the unsupported drop function
+   with the given arguments.  */
+static bool x_dnd_run_unsupported_drop_function;
+
+/* The "before"-time of the unsupported drop.  */
+static Time x_dnd_unsupported_drop_time;
+
+/* The target window of the unsupported drop.  */
+static Window x_dnd_unsupported_drop_window;
+
+/* The Lisp data associated with the unsupported drop function.  */
+static Lisp_Object x_dnd_unsupported_drop_data;
 
 /* Whether or not to move the tooltip along with the mouse pointer
    during drag-and-drop.  */
@@ -3881,20 +3891,16 @@ static void
 x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_window,
 			     int root_x, int root_y, Time before)
 {
-  struct input_event ie;
   Lisp_Object targets, arg;
   int i;
   char **atom_names, *name;
 
-  EVENT_INIT (ie);
   targets = Qnil;
   atom_names = alloca (sizeof *atom_names * x_dnd_n_targets);
 
   if (!XGetAtomNames (dpyinfo->display, x_dnd_targets,
 		      x_dnd_n_targets, atom_names))
       return;
-
-  x_dnd_action = dpyinfo->Xatom_XdndActionPrivate;
 
   for (i = x_dnd_n_targets; i > 0; --i)
     {
@@ -3914,20 +3920,17 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   else
     arg = Qnil;
 
-  ie.kind = UNSUPPORTED_DROP_EVENT;
-  ie.code = (unsigned) target_window;
-  ie.modifiers = x_dnd_unsupported_event_level;
-  ie.arg = list4 (assq_no_quit (QXdndSelection,
-				dpyinfo->terminal->Vselection_alist),
-		  targets, arg, (x_dnd_use_unsupported_drop
-				 ? Qt : Qnil));
-  ie.timestamp = before;
+  x_dnd_run_unsupported_drop_function = true;
+  x_dnd_unsupported_drop_time = before;
+  x_dnd_unsupported_drop_window = target_window;
+  x_dnd_unsupported_drop_data
+    = listn (5, assq_no_quit (QXdndSelection,
+			      dpyinfo->terminal->Vselection_alist),
+	     targets, arg, make_fixnum (root_x),
+	     make_fixnum (root_y));
 
-  XSETINT (ie.x, root_x);
-  XSETINT (ie.y, root_y);
-  XSETFRAME (ie.frame_or_window, x_dnd_frame);
-
-  kbd_buffer_store_event (&ie);
+  x_dnd_waiting_for_finish = true;
+  x_dnd_finish_display = dpyinfo->display;
 }
 
 static Window
@@ -4529,10 +4532,14 @@ x_free_dnd_targets (void)
   x_dnd_n_targets = 0;
 }
 
+/* Clear some Lisp variables after the drop finishes, so they are
+   freed by the GC.  */
+
 static void
-x_clear_dnd_monitors (void)
+x_clear_dnd_variables (void)
 {
   x_dnd_monitors = Qnil;
+  x_dnd_unsupported_drop_data = Qnil;
 }
 
 static void
@@ -11311,7 +11318,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   XWindowAttributes root_window_attrs;
   struct input_event hold_quit;
   char *atom_name, *ask_actions;
-  Lisp_Object action, ltimestamp;
+  Lisp_Object action, ltimestamp, val;
   specpdl_ref ref, count, base;
   ptrdiff_t i, end, fill;
   XTextProperty prop;
@@ -11324,79 +11331,12 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #ifndef USE_GTK
   struct x_display_info *event_display;
 #endif
-  union buffered_input_event *events, *event;
-  int n_events;
-  struct frame *event_frame;
 
   base = SPECPDL_INDEX ();
 
   /* Bind this here to avoid juggling bindings and SAFE_FREE in
      Fx_begin_drag.  */
   specbind (Qx_dnd_targets_list, selection_target_list);
-
-  /* Before starting drag-and-drop, walk through the keyboard buffer
-     to see if there are any UNSUPPORTED_DROP_EVENTs, and run them now
-     if they exist, to prevent race conditions from happening due to
-     multiple unsupported drops running at once.  */
-
-  block_input ();
-  events = alloca (sizeof *events * KBD_BUFFER_SIZE);
-  n_events = 0;
-  event = kbd_fetch_ptr;
-
-  while (event != kbd_store_ptr)
-    {
-      if (event->ie.kind == UNSUPPORTED_DROP_EVENT
-	  && event->ie.modifiers < x_dnd_unsupported_event_level)
-	events[n_events++] = *event;
-
-      event = (event == kbd_buffer + KBD_BUFFER_SIZE - 1
-	       ? kbd_buffer : event + 1);
-    }
-
-  x_dnd_unsupported_event_level += 1;
-  unblock_input ();
-
-  for (i = 0; i < n_events; ++i)
-    {
-      maybe_quit ();
-
-      event = &events[i];
-      event_frame = XFRAME (event->ie.frame_or_window);
-
-      if (!FRAME_LIVE_P (event_frame))
-	continue;
-
-      if (!NILP (Vx_dnd_unsupported_drop_function))
-	{
-	  if (!NILP (call8 (Vx_dnd_unsupported_drop_function,
-			    XCAR (XCDR (event->ie.arg)), event->ie.x,
-			    event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
-			    make_uint (event->ie.code),
-			    event->ie.frame_or_window,
-			    make_int (event->ie.timestamp),
-			    Fcopy_sequence (XCAR (event->ie.arg)))))
-	    continue;
-	}
-
-      /* `x-dnd-unsupported-drop-function' could have deleted the
-	 event frame.  */
-      if (!FRAME_LIVE_P (event_frame)
-	  /* This means `x-dnd-use-unsupported-drop' was nil when the
-	     event was generated.  */
-	  || NILP (XCAR (XCDR (XCDR (XCDR (event->ie.arg))))))
-	continue;
-
-      x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (event_frame),
-				 event->ie.frame_or_window,
-				 XCAR (event->ie.arg),
-				 XCAR (XCDR (event->ie.arg)),
-				 (Window) event->ie.code,
-				 XFIXNUM (event->ie.x),
-				 XFIXNUM (event->ie.y),
-				 event->ie.timestamp);
-      break;
-    }
 
   if (!FRAME_VISIBLE_P (f))
     error ("Frame must be visible");
@@ -11500,6 +11440,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       unbind_to (count, Qnil);
     }
 
+  record_unwind_protect_void (x_clear_dnd_variables);
+
   if (follow_tooltip)
     {
 #if defined HAVE_XRANDR || defined USE_GTK
@@ -11510,8 +11452,6 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 #endif
 	x_dnd_monitors
 	  = Fx_display_monitor_attributes_list (frame);
-
-      record_unwind_protect_void (x_clear_dnd_monitors);
     }
 
   x_dnd_update_tooltip = follow_tooltip;
@@ -11558,6 +11498,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_xm_use_help = false;
   x_dnd_motif_setup_p = false;
   x_dnd_end_window = None;
+  x_dnd_run_unsupported_drop_function = false;
   x_dnd_use_toplevels
     = x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_client_list_stacking);
   x_dnd_toplevels = NULL;
@@ -11810,6 +11751,50 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_handle_pending_selection_requests ();
 	      x_dnd_unwind_flag = false;
 	      unbind_to (ref, Qnil);
+	    }
+
+	  if (x_dnd_run_unsupported_drop_function
+	      && x_dnd_waiting_for_finish)
+	    {
+	      x_dnd_run_unsupported_drop_function = false;
+	      x_dnd_waiting_for_finish = false;
+	      x_dnd_unwind_flag = true;
+
+	      ref = SPECPDL_INDEX ();
+	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+
+	      if (!NILP (Vx_dnd_unsupported_drop_function))
+		val = call8 (Vx_dnd_unsupported_drop_function,
+			     XCAR (XCDR (x_dnd_unsupported_drop_data)),
+			     Fnth (make_fixnum (3), x_dnd_unsupported_drop_data),
+			     Fnth (make_fixnum (4), x_dnd_unsupported_drop_data),
+			     Fnth (make_fixnum (2), x_dnd_unsupported_drop_data),
+			     make_uint (x_dnd_unsupported_drop_window),
+			     frame, make_uint (x_dnd_unsupported_drop_time),
+			     Fcopy_sequence (XCAR (x_dnd_unsupported_drop_data)));
+	      else
+		val = Qnil;
+
+	      if (NILP (val))
+		x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (f),
+					   frame, XCAR (x_dnd_unsupported_drop_data),
+					   XCAR (XCDR (x_dnd_unsupported_drop_data)),
+					   x_dnd_unsupported_drop_window,
+					   XFIXNUM (Fnth (make_fixnum (3),
+							  x_dnd_unsupported_drop_data)),
+					   XFIXNUM (Fnth (make_fixnum (4),
+							  x_dnd_unsupported_drop_data)),
+					   x_dnd_unsupported_drop_time);
+
+	      if (SYMBOLP (val))
+		x_dnd_action_symbol = val;
+
+	      x_dnd_unwind_flag = false;
+	      unbind_to (ref, Qnil);
+
+	      /* Break out of the loop now, since DND has
+		 completed.  */
+	      break;
 	    }
 
 #ifdef USE_GTK
@@ -27809,6 +27794,9 @@ syms_of_xterm (void)
   x_dnd_selection_alias_cell = Fcons (Qnil, Qnil);
   staticpro (&x_dnd_selection_alias_cell);
 
+  x_dnd_unsupported_drop_data = Qnil;
+  staticpro (&x_dnd_unsupported_drop_data);
+
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
   DEFSYM (Qnow, "now");
@@ -28033,7 +28021,6 @@ mouse position list.  */);
 
   DEFVAR_LISP ("x-dnd-unsupported-drop-function", Vx_dnd_unsupported_drop_function,
     doc: /* Function called when trying to drop on an unsupported window.
-
 This function is called whenever the user tries to drop something on a
 window that does not support either the XDND or Motif protocols for
 drag-and-drop.  It should return a non-nil value if the drop was
@@ -28046,8 +28033,11 @@ where the drop happened, ACTION is the action that was passed to
 `x-begin-drag', FRAME is the frame which initiated the drag-and-drop
 operation, TIME is the X server time when the drop happened, and
 LOCAL-SELECTION is the contents of the `XdndSelection' when
-`x-begin-drag' was run, which can be passed to
-`x-get-local-selection'.  */);
+`x-begin-drag' was run; its contents can be retrieved by calling the
+function `x-get-local-selection'.
+
+If a symbol is returned, then it will be used as the return value of
+`x-begin-drag'.  */);
   Vx_dnd_unsupported_drop_function = Qnil;
 
   DEFVAR_INT ("x-color-cache-bucket-size", x_color_cache_bucket_size,

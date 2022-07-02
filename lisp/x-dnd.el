@@ -422,6 +422,8 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
                                     x-dnd-xdnd-to-action)))
                 (targets (cddr client-message))
                 (local-value (nth 2 client-message)))
+            (when (windowp window)
+              (select-window window))
             (x-dnd-save-state window nil nil
                               (apply #'vector targets))
             (x-dnd-maybe-call-test-function window action)
@@ -1154,19 +1156,25 @@ X and Y are the root window coordinates of the drop.
 FRAME is the frame the drop originated on.
 WINDOW-ID is the X window the drop should happen to.
 LOCAL-SELECTION-DATA is the local selection data of the drop."
-  (not (and (or (eq action 'XdndActionCopy)
-                (eq action 'XdndActionMove))
-            (not (and x-dnd-use-offix-drop local-selection-data
-                      (or (not (eq x-dnd-use-offix-drop 'files))
-                          (member "FILE_NAME" targets))
-                      (x-dnd-do-offix-drop targets x
-                                           y frame window-id
-                                           local-selection-data)))
-            (or
-             (member "STRING" targets)
-             (member "UTF8_STRING" targets)
-             (member "COMPOUND_TEXT" targets)
-             (member "TEXT" targets)))))
+  (let ((chosen-action nil))
+    (not (and (or (eq action 'XdndActionCopy)
+                  (eq action 'XdndActionMove))
+              (not (and x-dnd-use-offix-drop local-selection-data
+                        (or (not (eq x-dnd-use-offix-drop 'files))
+                            (member "FILE_NAME" targets))
+                        (when (x-dnd-do-offix-drop targets x
+                                                   y frame window-id
+                                                   local-selection-data)
+                          (setq chosen-action 'XdndActionCopy))))
+              (let ((delegate-p (or (member "STRING" targets)
+                                    (member "UTF8_STRING" targets)
+                                    (member "COMPOUND_TEXT" targets)
+                                    (member "TEXT" targets))))
+                (prog1 delegate-p
+                  ;; A string will avoid the drop emulation done in C
+                  ;; code, but won't be returned from `x-begin-drag'.
+                  (setq chosen-action (unless delegate-p ""))))))
+    chosen-action))
 
 (defvar x-dnd-targets-list)
 (defvar x-dnd-native-test-function)

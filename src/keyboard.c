@@ -4036,56 +4036,6 @@ kbd_buffer_get_event (KBOARD **kbp,
 	}
         break;
 
-#ifdef HAVE_X_WINDOWS
-      case UNSUPPORTED_DROP_EVENT:
-	{
-	  struct frame *f;
-
-	  kbd_fetch_ptr = next_kbd_event (event);
-	  input_pending = readable_events (0);
-
-	  /* This means this event was already handled in
-	     `x_dnd_begin_drag_and_drop'.  */
-	  if (event->ie.modifiers < x_dnd_unsupported_event_level)
-	    break;
-
-	  f = XFRAME (event->ie.frame_or_window);
-
-	  if (!FRAME_LIVE_P (f))
-	    break;
-
-	  if (!NILP (Vx_dnd_unsupported_drop_function))
-	    {
-	      if (!NILP (call8 (Vx_dnd_unsupported_drop_function,
-				XCAR (XCDR (event->ie.arg)), event->ie.x,
-				event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
-				make_uint (event->ie.code),
-				event->ie.frame_or_window,
-				make_int (event->ie.timestamp),
-				Fcopy_sequence (XCAR (event->ie.arg)))))
-		break;
-	    }
-
-	  /* `x-dnd-unsupported-drop-function' could have deleted the
-	     event frame.  */
-	  if (!FRAME_LIVE_P (f)
-	      /* This means `x-dnd-use-unsupported-drop' was nil when the
-		 event was generated.  */
-	      || NILP (XCAR (XCDR (XCDR (XCDR (event->ie.arg))))))
-	    break;
-
-	  x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (f),
-				     event->ie.frame_or_window,
-				     XCAR (event->ie.arg),
-				     XCAR (XCDR (event->ie.arg)),
-				     (Window) event->ie.code,
-				     XFIXNUM (event->ie.x),
-				     XFIXNUM (event->ie.y),
-				     event->ie.timestamp);
-	  break;
-	}
-#endif
-
       case MONITORS_CHANGED_EVENT:
 	{
 	  kbd_fetch_ptr = next_kbd_event (event);
