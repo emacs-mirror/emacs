@@ -476,8 +476,14 @@ This will generate compile-time constants from BINDINGS."
                    "[ \t']*\\(" lisp-mode-symbol-regexp "\\)?")
            (1 font-lock-keyword-face)
            (2 font-lock-constant-face nil t))
-         ;; Words inside \\[] tend to be for `substitute-command-keys'.
-         (,(concat "\\\\\\\\\\[\\(" lisp-mode-symbol-regexp "\\)\\]")
+         ;; Words inside \\[] or \\`' tend to be for `substitute-command-keys'.
+         (,(rx "\\\\[" (group (regexp lisp-mode-symbol-regexp)) "]")
+          (1 font-lock-constant-face prepend))
+         (,(rx "\\\\`" (group
+                        (+ (regexp lisp-mode-symbol-regexp)
+                           ;; allow multiple words, e.g. "C-x a"
+                           (? " ")))
+               "'")
           (1 font-lock-constant-face prepend))
          ;; Ineffective backslashes (typically in need of doubling).
          ("\\(\\\\\\)\\([^\"\\]\\)"
