@@ -509,36 +509,21 @@ START-EVENT is the mouse click event."
   (setq ruler-mode-show-tab-stops (not ruler-mode-show-tab-stops))
   (force-mode-line-update))
 
-(defvar ruler-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km [header-line down-mouse-1]
-      #'ignore)
-    (define-key km [header-line down-mouse-3]
-      #'ignore)
-    (define-key km [header-line down-mouse-2]
-      #'ruler-mode-mouse-grab-any-column)
-    (define-key km [header-line (shift down-mouse-1)]
-      #'ruler-mode-mouse-set-left-margin)
-    (define-key km [header-line (shift down-mouse-3)]
-      #'ruler-mode-mouse-set-right-margin)
-    (define-key km [header-line (control down-mouse-1)]
-      #'ruler-mode-mouse-add-tab-stop)
-    (define-key km [header-line (control down-mouse-3)]
-      #'ruler-mode-mouse-del-tab-stop)
-    (define-key km [header-line (control down-mouse-2)]
-      #'ruler-mode-toggle-show-tab-stops)
-    (define-key km [header-line (shift mouse-1)]
-      #'ignore)
-    (define-key km [header-line (shift mouse-3)]
-      #'ignore)
-    (define-key km [header-line (control mouse-1)]
-      #'ignore)
-    (define-key km [header-line (control mouse-3)]
-      #'ignore)
-    (define-key km [header-line (control mouse-2)]
-      #'ignore)
-    km)
-  "Keymap for ruler minor mode.")
+(defvar-keymap ruler-mode-map
+  :doc "Keymap for `ruler-mode'."
+  "<header-line> <down-mouse-1>"   #'ignore
+  "<header-line> <down-mouse-3>"   #'ignore
+  "<header-line> <down-mouse-2>"   #'ruler-mode-mouse-grab-any-column
+  "<header-line> S-<down-mouse-1>" #'ruler-mode-mouse-set-left-margin
+  "<header-line> S-<down-mouse-3>" #'ruler-mode-mouse-set-right-margin
+  "<header-line> C-<down-mouse-1>" #'ruler-mode-mouse-add-tab-stop
+  "<header-line> C-<down-mouse-3>" #'ruler-mode-mouse-del-tab-stop
+  "<header-line> C-<down-mouse-2>" #'ruler-mode-toggle-show-tab-stops
+  "<header-line> S-<mouse-1>"      #'ignore
+  "<header-line> S-<mouse-3>"      #'ignore
+  "<header-line> C-<mouse-1>"      #'ignore
+  "<header-line> C-<mouse-3>"      #'ignore
+  "<header-line> C-<mouse-2>"      #'ignore)
 
 (defvar ruler-mode-header-line-format-old nil
   "Hold previous value of `header-line-format'.")
