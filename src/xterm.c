@@ -23280,6 +23280,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
   Emacs_XIOErrorHandler io_error_handler;
   xm_drop_start_message dmsg;
   struct frame *f;
+  Lisp_Object minibuf_frame, tmp;
 
   dpyinfo = x_display_info_for_display (dpy);
   error_msg = alloca (strlen (error_message) + 1);
@@ -23379,9 +23380,14 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
      that are on the dead display.  */
   FOR_EACH_FRAME (tail, frame)
     {
-      Lisp_Object minibuf_frame;
+      /* Tooltip frames don't have these, so avoid crashing.  */
+
+      if (FRAME_TOOLTIP_P (XFRAME (frame)))
+	continue;
+
       minibuf_frame
 	= WINDOW_FRAME (XWINDOW (FRAME_MINIBUF_WINDOW (XFRAME (frame))));
+
       if (FRAME_X_P (XFRAME (frame))
 	  && FRAME_X_P (XFRAME (minibuf_frame))
 	  && ! EQ (frame, minibuf_frame)
@@ -23432,11 +23438,8 @@ For details, see etc/PROBLEMS.\n",
         /* We have just closed all frames on this display. */
         emacs_abort ();
 
-      {
-	Lisp_Object tmp;
-	XSETTERMINAL (tmp, dpyinfo->terminal);
-	Fdelete_terminal (tmp, Qnoelisp);
-      }
+      XSETTERMINAL (tmp, dpyinfo->terminal);
+      Fdelete_terminal (tmp, Qnoelisp);
     }
 
   unblock_input ();
