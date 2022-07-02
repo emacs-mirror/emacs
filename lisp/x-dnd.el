@@ -139,6 +139,16 @@ that was dropped."
   :type 'function
   :group 'x)
 
+(defcustom x-dnd-copy-types '("chromium/x-renderer-taint")
+  "List of data types offered by programs that don't support `private'.
+Some programs (such as Chromium) do not support
+`XdndActionPrivate'.  The default `x-dnd-test-function' will
+always return `copy' instead, for programs offering one of the
+data types in this list."
+  :version "29.1"
+  :type '(repeat string)
+  :group 'x)
+
 ;; Internal variables
 
 (defvar x-dnd-current-state nil
@@ -200,13 +210,22 @@ any protocol specific data.")
 
 (defun x-dnd-default-test-function (_window _action types)
   "The default test function for drag and drop.
-WINDOW is where the mouse is when this function is called.  It may be
-a frame if the mouse is over the menu bar, scroll bar or tool bar.
-ACTION is the suggested action from the source, and TYPES are the
-types the drop data can have.  This function only accepts drops with
-types in `x-dnd-known-types'.  It always returns the action private."
+WINDOW is where the mouse is when this function is called.  It
+may be a frame if the mouse is over the menu bar, scroll bar or
+tool bar.  ACTION is the suggested action from the source, and
+TYPES are the types the drop data can have.  This function only
+accepts drops with types in `x-dnd-known-types'.  It always
+returns the action `private', unless `types' contains a value
+inside `x-dnd-copy-types'."
   (let ((type (x-dnd-choose-type types)))
-    (when type (cons 'private type))))
+    (when type (let ((list x-dnd-copy-types))
+                 (catch 'out
+                   (while t
+                     (if (not list)
+                         (throw 'out (cons 'private type))
+                       (if (x-dnd-find-type (car list) types)
+                           (throw 'out (cons 'copy type))
+                         (setq list (cdr list))))))))))
 
 (defun x-dnd-current-type (frame-or-window)
   "Return the type we want the DND data to be in for the current drop.
@@ -1292,7 +1311,8 @@ was taken, or the direct save failed."
           ;; FIXME: this does not work with GTK file managers, since
           ;; they always reach for `text/uri-list' first, contrary to
           ;; the spec.
-          (let ((action (x-begin-drag '("XdndDirectSave0" "text/uri-list")
+          (let ((action (x-begin-drag '("XdndDirectSave0" "text/uri-list"
+                                        "application/octet-stream")
                                       'XdndActionDirectSave
                                       frame nil allow-same-frame)))
             (if (not x-dnd-xds-performed)
