@@ -3247,7 +3247,7 @@ ignored."
         ;; In the following while statements, after one iteration
         ;; point will be at the beginning of a line in which case
         ;; the while will not be executed for the
-        ;; the first paragraph line and thus will not affect the
+        ;; first paragraph line and thus will not affect the
         ;; indentation.
         ;;
         ;; First check to see if indentation is based on hanging indent.

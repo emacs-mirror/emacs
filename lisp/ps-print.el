@@ -6415,7 +6415,7 @@ If FACE is not a valid face name, use default face."
 		(ps-end-job needs-begin-file)
 
 		;; Setting this variable tells the unwind form that the
-		;; the PostScript was generated without error.
+		;; PostScript was generated without error.
 		(setq completed-safely t))
 
 	    ;; Unwind form: If some bad mojo occurred while generating

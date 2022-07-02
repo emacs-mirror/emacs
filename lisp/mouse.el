@@ -1200,7 +1200,7 @@ frame with the mouse."
                            (<= (- right parent-right) snap-width)
                            snap-x (<= (- last-x snap-x) snap-width))
                       ;; Stay snapped when the mouse moved rightward but
-                      ;; not more more than `snap-width' pixels from the
+                      ;; not more than `snap-width' pixels from the
                       ;; time FRAME snapped.
                       (setq left (- parent-right native-width)))
                      (t
@@ -1222,7 +1222,7 @@ frame with the mouse."
                            (<= (- parent-top top) snap-width)
                            snap-y (<= (- snap-y last-y) snap-width))
                       ;; Stay snapped when the mouse moved upward but
-                      ;; not more more than `snap-width' pixels from the
+                      ;; not more than `snap-width' pixels from the
                       ;; time FRAME snapped.
                       (setq top parent-top))
                      (t
@@ -1244,7 +1244,7 @@ frame with the mouse."
                            (<= (- bottom parent-bottom) snap-width)
                            snap-y (<= (- last-y snap-y) snap-width))
                       ;; Stay snapped when the mouse moved downward but
-                      ;; not more more than `snap-width' pixels from the
+                      ;; not more than `snap-width' pixels from the
                       ;; time FRAME snapped.
                       (setq top (- parent-bottom native-height)))
                      (t

@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Allout outline minor mode provides extensive outline formatting and
-;; and manipulation beyond standard Emacs outline mode.  Some features:
+;; manipulation beyond standard Emacs outline mode.  Some features:
 ;;
 ;;  - Classic outline-mode topic-oriented navigation and exposure adjustment
 ;;  - Topic-oriented editing including coherent topic and subtopic

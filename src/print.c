@@ -727,7 +727,7 @@ Optional argument OVERRIDES should be a list of settings for print-related
 variables.  An element in this list can be the symbol t, which means "reset
 all the values to their defaults".  Otherwise, an element should be a pair,
 where the `car' or the pair is the setting symbol, and the `cdr' is the
-value of of the setting to use for this `prin1' call.
+value of the setting to use for this `prin1' call.
 
 For instance:
 

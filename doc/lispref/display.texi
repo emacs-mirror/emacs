@@ -8551,7 +8551,7 @@ displayed in the echo area.
 @vindex use-system-tooltips
 When Emacs is built with the GTK+ toolkit or Haiku windowing support,
 it by default displays tooltips using toolkit functions, and the
-appearance of the tooltips is then controlled by by the toolkit's
+appearance of the tooltips is then controlled by the toolkit's
 settings.  Toolkit-provided tooltips can be disabled by changing the
 value of the variable @code{use-system-tooltips} to @code{nil}.  The
 rest of this subsection describes how to control non-toolkit tooltips,

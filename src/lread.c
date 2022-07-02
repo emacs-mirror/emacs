@@ -4877,7 +4877,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
 
 /* Like 'oblookup', but considers 'Vread_symbol_shorthands',
    potentially recognizing that IN is shorthand for some other
-   longhand name, which is then then placed in OUT.  In that case,
+   longhand name, which is then placed in OUT.  In that case,
    memory is malloc'ed for OUT (which the caller must free) while
    SIZE_OUT and SIZE_BYTE_OUT respectively hold the character and byte
    sizes of the transformed symbol name.  If IN is not recognized

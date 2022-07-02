@@ -1074,7 +1074,7 @@ and variable state from the current buffer."
 	    ))
 
 	;; Second Cheat: copy key variables regarding macro state from the
-	;; the originating buffer we are parsing.  We need to do this every time
+	;; originating buffer we are parsing.  We need to do this every time
 	;; since the state changes.
 	(dolist (V important-vars)
 	  (set V (buffer-local-value V origbuff)))

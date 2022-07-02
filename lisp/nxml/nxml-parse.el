@@ -246,7 +246,7 @@ same way as well-formedness error."
 		    parsed-attributes)))
       (setq atts (cdr atts)))
     ;; We want to end up with the attributes followed by the
-    ;; the namespace attributes in the same order as
+    ;; namespace attributes in the same order as
     ;; xmltok-attributes and xmltok-namespace-attributes respectively.
     (when parsed-namespace-attributes
       (setq parsed-attributes

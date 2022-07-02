@@ -408,7 +408,7 @@ or call the function `%s'."))))
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
                        modefun)))
-       ;; Allow using using `M-x customize-variable' on the hook.
+       ;; Allow using `M-x customize-variable' on the hook.
        (put ',hook 'custom-type 'hook)
        (put ',hook 'standard-value (list nil))
 

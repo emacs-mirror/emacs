@@ -1322,7 +1322,7 @@ name, and one for the discovery of a following BLOCK.")
                ,cperl--ws+-rx
                (group-n 2 ,cperl--normal-identifier-rx))
     "A regular expression to detect a subroutine start.
-Contains three groups: One one to distinguish lexical from
+Contains three groups: One to distinguish lexical from
 \"normal\" subroutines, for the keyword \"sub\", and one for the
 subroutine name.")
 

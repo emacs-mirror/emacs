@@ -1697,7 +1697,7 @@ cleaning up these problems."
            (rstart    (min start end))
            (rend      (max start end))
            ;; Fall back to whitespace-style so we can run before
-           ;; before the mode is active.
+           ;; the mode is active.
            (style     (copy-sequence
                        (or whitespace-active-style whitespace-style)))
            (bogus-list

@@ -728,7 +728,7 @@ variables to control this:
 The value of this constant is a regexp that matches autoload cookies.
 @code{loaddefs-generate} copies the Lisp form that follows the
 cookie into the autoload file it generates.  This will match comments
-like like @samp{;;;###autoload} and @samp{;;;###calc-autoload}.
+like @samp{;;;###autoload} and @samp{;;;###calc-autoload}.
 @end defvar
 
 @defvar generated-autoload-file

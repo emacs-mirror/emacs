@@ -3547,7 +3547,7 @@ and @code{#x1c} @code{#x28} to @w{@code{(3 5 10 11 12)}}.
 
 @item fill @var{len}
 @var{len} bytes used as a mere filler.  In packing, these bytes are
-are left unchanged, which normally means they remain zero.
+left unchanged, which normally means they remain zero.
 When unpacking, this just returns nil.
 
 @item align @var{len}

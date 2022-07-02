@@ -2361,7 +2361,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;; e.g. assembler code and GNU linker script in Linux kernel.
 ;; `cpp-font-lock-keywords' is handy for modes for the files.
 ;;
-;; Here we cannot use `regexp-opt' because because regex-opt is not preloaded
+;; Here we cannot use `regexp-opt' because regex-opt is not preloaded
 ;; while font-lock.el is preloaded to emacs. So values pre-calculated with
 ;; regexp-opt are used here.
 

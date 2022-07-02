@@ -1949,7 +1949,7 @@ Redefine the corresponding command."
 
 ;; The variable math-exp-env is local to math-define-body, but is
 ;; used by math-define-exp, which is called (indirectly) by
-;; by math-define-body.
+;; math-define-body.
 (defvar math-exp-env)
 
 (defun math-define-body (body exp-env)

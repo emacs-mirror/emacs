@@ -711,7 +711,7 @@ FACTOR is the multiplication factor for the size."
   (interactive)
   (message
    (substitute-command-keys
-    "Zoom with with \\<emoji-zoom-map>\\[emoji-zoom-increase] and \\[emoji-zoom-decrease]"))
+    "Zoom with \\<emoji-zoom-map>\\[emoji-zoom-increase] and \\[emoji-zoom-decrease]"))
   (set-transient-map emoji-zoom-map t)
   (let* ((factor (or factor 1.1))
          (old (get-text-property (point) 'face))
