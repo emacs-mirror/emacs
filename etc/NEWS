@@ -324,6 +324,9 @@ startup.  Previously, these functions ignored
 
 * Changes in Emacs 29.1
 
+---
+** 'longlines-mode' is no longer obsolete.
+
 +++
 ** New command to change the fond sized globally.
 To increase the font size, type 'C-x C-M-+' or 'C-x C-M-='; to
