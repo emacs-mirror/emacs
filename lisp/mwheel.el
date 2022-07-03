@@ -134,9 +134,9 @@ the mouse wheel will scroll horizontally instead of vertically.
 
 If AMOUNT is the symbol `text-scale' or `global-text-scale', this
 means that with MODIFIER, the mouse wheel will change the font size
-instead of scrolling (by adjusting the font height of the buffer or
-global face).  For more information, see `text-scale-adjust' and
-`global-text-scale-adjust'."
+instead of scrolling (by adjusting the font height of the default
+face, either locally in the buffer or globally).  For more
+information, see `text-scale-adjust' and `global-text-scale-adjust'."
   :group 'mouse
   :type '(cons
 	  (choice :tag "Normal"
