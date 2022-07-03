@@ -841,8 +841,8 @@ Interactively, BEG and END are the mark/point of the current region.
 
 Many modes define specific alignment rules, and some of these
 rules in some modes react to the current prefix argument.  For
-instance, in `text-mode', `M-x align' will align into columns
-based on space delimiters, while `C-u - M-x align' will align
+instance, in `text-mode', \\`M-x align' will align into columns
+based on space delimiters, while \\`C-u -' \\`M-x align' will align
 into columns based on the \"$\" character.  See the
 `align-rules-list' variable definition for the specific rules.
 

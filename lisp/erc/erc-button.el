@@ -71,7 +71,7 @@
   "Face used for highlighting buttons in ERC buffers.
 
 A button is a piece of text that you can activate by pressing
-`RET' or `mouse-2' above it.  See also `erc-button-keymap'."
+\\`RET' or `mouse-2' above it.  See also `erc-button-keymap'."
   :type 'face
   :group 'erc-faces)
 

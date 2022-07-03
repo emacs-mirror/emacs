@@ -286,7 +286,7 @@ Stop if the bottom edge of the image is reached.
 Interactively, giving this command a numerical prefix will scroll
 up by that many lines (and down by that many lines if the number
 is negative).  Without a prefix, scroll up by a full screen.
-If given a `C-u -' prefix, scroll a full page down instead.
+If given a \\`C-u -' prefix, scroll a full page down instead.
 
 If N is omitted or nil, scroll upward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -314,7 +314,7 @@ Stop if the top edge of the image is reached.
 Interactively, giving this command a numerical prefix will scroll
 down by that many lines (and up by that many lines if the number
 is negative).  Without a prefix, scroll down by a full screen.
-If given a `C-u -' prefix, scroll a full page up instead.
+If given a \\`C-u -' prefix, scroll a full page up instead.
 
 If N is omitted or nil, scroll downward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.

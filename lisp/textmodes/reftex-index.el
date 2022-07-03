@@ -1685,8 +1685,8 @@ this function repeatedly."
 (defun reftex-index-phrases-set-macro-key ()
   "Change the macro key for the current line.
 Prompts for a macro key and insert is at the beginning of the line.
-If you reply with SPACE, the macro keyn will be removed, so that the
-default macro will be used.  If you reply with `RET', just prints
+If you reply with \\`SPC', the macro key will be removed, so that the
+default macro will be used.  If you reply with \\`RET', just prints
 information about the currently selected macro."
   (interactive)
   (reftex-index-phrases-parse-header)

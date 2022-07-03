@@ -2469,7 +2469,7 @@ Type \\[dired-do-copy] to Copy files.
 Type \\[dired-sort-toggle-or-edit] to toggle Sorting by name/date or change the `ls' switches.
 Type \\[revert-buffer] to read all currently expanded directories aGain.
   This retains all marks and hides subdirs again that were hidden before.
-Use `SPC' and `DEL' to move down and up by lines.
+Use \\`SPC' and \\`DEL' to move down and up by lines.
 
 If Dired ever gets confused, you can either type \\[revert-buffer] \
 to read the

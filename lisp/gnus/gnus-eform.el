@@ -92,7 +92,7 @@ The optional LAYOUT overrides the `edit-form' window layout."
       (insert ";;; ")
       (forward-line 1))
     (insert (substitute-command-keys
-	     ";; Type `C-c C-c' after you've finished editing.\n"))
+             ";; Type \\`C-c C-c' after you've finished editing.\n"))
     (insert "\n")
     (let ((p (point)))
       (gnus-pp form)

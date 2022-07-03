@@ -343,8 +343,8 @@ Winner mode is a global minor mode that records the changes in
 the window configuration (i.e. how the frames are partitioned
 into windows) so that the changes can be \"undone\" using the
 command `winner-undo'.  By default this one is bound to the key
-sequence `C-c <left>'.  If you change your mind (while undoing),
-you can press `C-c <right>' (calling `winner-redo')."
+sequence \\`C-c <left>'.  If you change your mind (while undoing),
+you can press \\`C-c <right>' (calling `winner-redo')."
   :global t
   (if winner-mode
       (progn

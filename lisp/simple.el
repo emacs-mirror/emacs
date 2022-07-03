@@ -2211,7 +2211,7 @@ to get different commands to edit and resubmit."
 If it's nil, include all the commands.
 If it's a function, it will be called with two parameters: the
 symbol of the command and a buffer.  The predicate should return
-non-nil if the command should be present when doing `M-x TAB'
+non-nil if the command should be present when doing \\`M-x TAB'
 in that buffer."
   :version "28.1"
   :group 'completion

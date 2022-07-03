@@ -1013,7 +1013,7 @@ if `inhibit-field-text-motion' is non-nil."
   (let ((map (make-sparse-keymap)))
     (define-key map "u" 'undo)
     map)
-  "Keymap to repeat undo key sequences `C-x u u'.  Used in `repeat-mode'.")
+  "Keymap to repeat undo key sequences \\`C-x u u'.  Used in `repeat-mode'.")
 (put 'undo 'repeat-map 'undo-repeat-map)
 
 (define-key global-map '[(control ??)] 'undo-redo)

@@ -97,7 +97,7 @@ See `gnus-group-goto-unread'."
   :type 'boolean)
 
 (defcustom gnus-summary-stop-at-end-of-message nil
-  "If non-nil, don't select the next message when using `SPC'."
+  "If non-nil, don't select the next message when using \\`SPC'."
   :link '(custom-manual "(gnus)Group Maneuvering")
   :group 'gnus-summary-maneuvering
   :version "24.1"
@@ -264,8 +264,8 @@ This variable will only be used if the value of
 (defcustom gnus-summary-goto-unread nil
   "If t, many commands will go to the next unread article.
 This applies to marking commands as well as other commands that
-\"naturally\" select the next article, like, for instance, `SPC' at
-the end of an article.
+\"naturally\" select the next article, like, for instance, \\`SPC'
+at the end of an article.
 
 If nil, the marking commands do NOT go to the next unread article
 \(they go to the next article instead).  If `never', commands that

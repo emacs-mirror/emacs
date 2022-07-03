@@ -743,7 +743,7 @@ Each element is a regular expression."
   "Face used for highlighting buttons in the article buffer.
 
 An article button is a piece of text that you can activate by pressing
-`RET' or `mouse-2' above it."
+\\`RET' or `mouse-2' above it."
   :type 'face
   :group 'gnus-article-buttons)
 

@@ -375,12 +375,12 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 
 (defun iso-transl-set-language (lang)
   "Set shorter key bindings for some characters relevant for LANG.
-This affects the `C-x 8' prefix.
+This affects the \\`C-x 8' prefix.
 
 Note that only a few languages are supported, and for more
 rigorous support it is recommended to use an input method
 instead.  Also note that many of these characters can be input
-with the regular `C-x 8' map without having to specify a language
+with the regular \\`C-x 8' map without having to specify a language
 here."
   (interactive (list (let ((completion-ignore-case t))
 		       (completing-read "Set which language? "

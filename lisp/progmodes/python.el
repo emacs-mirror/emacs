@@ -3110,7 +3110,8 @@ of `error' with a user-friendly message."
   (or (python-shell-get-process)
       (if interactivep
           (user-error
-           "Start a Python process first with `M-x run-python' or `%s'"
+           (substitute-command-keys
+            "Start a Python process first with \\`M-x run-python' or `%s'")
            ;; Get the binding.
            (key-description
             (where-is-internal

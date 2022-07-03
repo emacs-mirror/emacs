@@ -335,7 +335,8 @@
 	  (message (concat
                     "Embedded Calc mode enabled; "
                     (if calc-embedded-quiet
-                        "Type `C-x * x'"
+                        (substitute-command-keys
+                         "Type \\`C-x * x'")
                       "Give this command again")
                     " to return to normal")))))
   (scroll-down 0)))    ; fix a bug which occurs when truncate-lines is changed.

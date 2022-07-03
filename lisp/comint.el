@@ -1466,7 +1466,7 @@ A useful command to bind to SPC.  See `comint-replace-by-expanded-history'."
 
 (defcustom comint-history-isearch nil
   "Non-nil to Isearch in input history only, not in comint buffer output.
-If t, usual Isearch keys like `C-r' and `C-M-r' in comint mode search
+If t, usual Isearch keys like \\`C-r' and \\`C-M-r' in comint mode search
 in the input history.
 If `dwim', Isearch keys search in the input history only when initial
 point position is at the comint command line.  When starting Isearch
@@ -2812,7 +2812,7 @@ Interactively, if no prefix argument is given, the last argument is inserted.
 Repeated interactive invocations will cycle through the same argument
 from progressively earlier commands (using the value of INDEX specified
 with the first command).  Values of INDEX < 0 count from the end, so
-INDEX = -1 is the last argument.  This command is like `M-.' in
+INDEX = -1 is the last argument.  This command is like \"M-.\" in
 Bash and zsh."
   (interactive "P")
   (unless (null index)

@@ -1,7 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986, 1993-1995, 1997, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: outlines
@@ -182,7 +181,7 @@ in the file it applies to.")
 This option controls, in Outline minor mode, where on a heading typing
 the key sequences bound to visibility-cycling commands like `outline-cycle'
 and `outline-cycle-buffer' will invoke those commands.  By default, you can
-invoke these commands by typing `TAB' and `S-TAB' anywhere on a heading line,
+invoke these commands by typing \\`TAB' and \\`S-TAB' anywhere on a heading line,
 but customizing this option can make those bindings be in effect only at
 specific positions on the heading, like only at the line's beginning or
 line's end.  This allows these keys to be bound to their usual commands,
@@ -381,9 +380,9 @@ After that, changing the prefix key requires manipulating keymaps."
 
 (defcustom outline-minor-mode-cycle nil
   "Enable visibility-cycling commands on headings in `outline-minor-mode'.
-If enabled, typing `TAB' on a heading line cycles the visibility
+If enabled, typing \\`TAB' on a heading line cycles the visibility
 state of that heading's body between `hide all', `headings only'
-and `show all' (`outline-cycle'), and typing `S-TAB' on a heading
+and `show all' (`outline-cycle'), and typing \\`S-TAB' on a heading
 line likewise cycles the visibility state of the whole buffer
 \(`outline-cycle-buffer').
 Typing these keys anywhere outside heading lines invokes their default

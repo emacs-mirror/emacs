@@ -46,7 +46,7 @@
 
 (defcustom erc-track-enable-keybindings 'ask
   "Whether to enable the ERC track keybindings, namely:
-`C-c C-SPC' and `C-c C-@', which both do the same thing.
+\\`C-c C-SPC' and \\`C-c C-@', which both do the same thing.
 
 The default is to check to see whether these keys are used
 already: if not, then enable the ERC track minor mode, which

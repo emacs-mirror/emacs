@@ -644,7 +644,7 @@ Default value of MODIFIERS is `shift-meta'."
 (defun windmove-delete-in-direction (dir &optional arg)
   "Delete the window at direction DIR.
 If prefix ARG is `\\[universal-argument]', also kill the buffer in that window.
-With `M-0' prefix, delete the selected window and
+With \\`M-0' prefix, delete the selected window and
 select the window at direction DIR.
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."

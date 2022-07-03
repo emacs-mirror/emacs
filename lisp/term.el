@@ -4373,7 +4373,7 @@ the process.  Any more args are arguments to PROGRAM."
 (defun ansi-term (program &optional new-buffer-name)
   "Start a terminal-emulator in a new buffer.
 This is almost the same as `term' apart from always creating a new buffer,
-and `C-x' being marked as a `term-escape-char'."
+and \\`C-x' being marked as a `term-escape-char'."
   (interactive (list (read-from-minibuffer "Run program: "
 					   (or explicit-shell-file-name
 					       (getenv "ESHELL")

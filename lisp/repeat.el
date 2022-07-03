@@ -368,8 +368,8 @@ When non-nil and the last typed key (with or without modifiers)
 doesn't exist in the keymap attached by the `repeat-map' property,
 then don't activate that keymap for the next command.  So only the
 same keys among repeatable keys are allowed in the repeating sequence.
-For example, with a non-nil value, only `C-x u u' repeats undo,
-whereas `C-/ u' doesn't.
+For example, with a non-nil value, only \\`C-x u u' repeats undo,
+whereas \\`C-/ u' doesn't.
 
 You can also set the property `repeat-check-key' on the command symbol.
 This property can override the value of this variable.

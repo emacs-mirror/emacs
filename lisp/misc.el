@@ -151,7 +151,7 @@ ripples outward, changing the flow of the eddy currents in the
 upper atmosphere.  These cause momentary pockets of higher-pressure
 air to form, which act as lenses that deflect incoming cosmic rays,
 focusing them to strike the drive platter and flip the desired bit.
-You can type `M-x butterfly C-M-c' to run it.  This is a permuted
+You can type \\`M-x butterfly C-M-c' to run it.  This is a permuted
 variation of `C-x M-c M-butterfly' from url `https://xkcd.com/378/'."
   (interactive)
   (if (yes-or-no-p "Do you really want to unleash the powers of the butterfly? ")

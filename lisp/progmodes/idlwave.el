@@ -1001,9 +1001,9 @@ Obsolete, if the IDL Assistant is being used for help."
   "List of modifiers to be used for the debugging commands.
 Will be used to bind debugging commands in the shell buffer and in all
 source buffers.  These are additional convenience bindings, the debugging
-commands are always available with the `C-c C-d' prefix.
+commands are always available with the \\`C-c C-d' prefix.
 If you set this to (control shift), this means setting a breakpoint will
-be on `C-S-b', compiling a source file on `C-S-c' etc.  Possible modifiers
+be on \\`C-S-b', compiling a source file on \\`C-S-c' etc.  Possible modifiers
 are `control', `meta', `super', `hyper', `alt', and `shift'."
   :group 'idlwave-shell-general-setup
   :type '(set :tag "Specify modifiers"
@@ -8421,7 +8421,7 @@ was pressed."
 (defun idlwave-list-shell-load-path-shadows (&optional _arg)
   "List the load path shadows of all routines compiled under the shell.
 This is very useful for checking an IDL application.  Just compile the
-application, do RESOLVE_ALL, and `C-c C-i' to compile all referenced
+application, do RESOLVE_ALL, and \\`C-c C-i' to compile all referenced
 routines and update IDLWAVE internal info.  Then check for shadowing
 with this command."
   (interactive)

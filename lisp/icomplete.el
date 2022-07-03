@@ -81,7 +81,7 @@ selection process starts again from the user's $HOME.")
 This means to show completions even when the current minibuffer contents
 is the same as was the initial input after minibuffer activation.
 This also means that if you traverse the list of completions with
-commands like `C-.' and just hit RET without typing any
+commands like \\`C-.' and just hit \\`RET' without typing any
 characters, the match under point will be chosen instead of the
 default."
   :type 'boolean

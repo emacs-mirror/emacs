@@ -231,7 +231,7 @@ because these are used as separators by IDL."
 
 (defcustom idlwave-shell-graphics-window-size '(500 400)
   "Size of IDL graphics windows popped up by special IDLWAVE command.
-The command is `C-c C-d C-f' and accepts as a prefix the window nr.
+The command is \\`C-c C-d C-f' and accepts as a prefix the window nr.
 A command like `WINDOW,N,xsize=XX,ysize=YY' is sent to IDL."
   :group 'idlwave-shell-general-setup
   :type '(list
@@ -844,7 +844,7 @@ IDL has currently stepped.")
    ---------
    A complete set of commands for compiling and debugging IDL programs
    is available from the menu.  Also keybindings starting with a
-   `C-c C-d' prefix are available for most commands in the *idl* buffer
+   \\`C-c C-d' prefix are available for most commands in the *idl* buffer
    and also in source buffers.  The best place to learn about the
    keybindings is again the menu.
 
