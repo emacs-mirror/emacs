@@ -4190,12 +4190,6 @@ Default face attributes override any local face attributes.  */)
 	     the previously-cached vector.  */
 	  memcpy (attrs, oldface->lface, sizeof attrs);
 
-	  /* Make explicit any attributes whose value is 'reset'.  */
-	  int i;
-	  for (i = 1; i < LFACE_VECTOR_SIZE; i++)
-	    if (EQ (lvec[i], Qreset))
-	      lvec[i] = attrs[i];
-
 	  merge_face_vectors (NULL, f, lvec, attrs, 0);
 	  vcopy (local_lface, 0, attrs, LFACE_VECTOR_SIZE);
 	  newface = realize_face (c, lvec, DEFAULT_FACE_ID);
@@ -5193,55 +5187,60 @@ gui_supports_face_attributes_p (struct frame *f,
                                 struct face *def_face)
 {
   Lisp_Object *def_attrs = def_face->lface;
+  Lisp_Object lattrs[LFACE_VECTOR_SIZE];
 
   /* Make explicit any attributes whose value is 'reset'.  */
   int i;
   for (i = 1; i < LFACE_VECTOR_SIZE; i++)
-    if (EQ (attrs[i], Qreset))
-      attrs[i] = def_attrs[i];
+    {
+      if (EQ (attrs[i], Qreset))
+	lattrs[i] = def_attrs[i];
+      else
+	lattrs[i] = attrs[i];
+    }
 
   /* Check that other specified attributes are different from the
      default face.  */
-  if ((!UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
-       && face_attr_equal_p (attrs[LFACE_UNDERLINE_INDEX],
+  if ((!UNSPECIFIEDP (lattrs[LFACE_UNDERLINE_INDEX])
+       && face_attr_equal_p (lattrs[LFACE_UNDERLINE_INDEX],
 			     def_attrs[LFACE_UNDERLINE_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_INVERSE_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_INVERSE_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_INVERSE_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_INVERSE_INDEX],
 				def_attrs[LFACE_INVERSE_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_EXTEND_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_EXTEND_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_EXTEND_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_EXTEND_INDEX],
 				def_attrs[LFACE_EXTEND_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_FOREGROUND_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_FOREGROUND_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_FOREGROUND_INDEX],
 				def_attrs[LFACE_FOREGROUND_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_DISTANT_FOREGROUND_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_DISTANT_FOREGROUND_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_DISTANT_FOREGROUND_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_DISTANT_FOREGROUND_INDEX],
 				def_attrs[LFACE_DISTANT_FOREGROUND_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_BACKGROUND_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_BACKGROUND_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_BACKGROUND_INDEX],
 				def_attrs[LFACE_BACKGROUND_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_STIPPLE_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_STIPPLE_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_STIPPLE_INDEX],
 				def_attrs[LFACE_STIPPLE_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_OVERLINE_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_OVERLINE_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_OVERLINE_INDEX],
 				def_attrs[LFACE_OVERLINE_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_STRIKE_THROUGH_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_STRIKE_THROUGH_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_STRIKE_THROUGH_INDEX],
 				def_attrs[LFACE_STRIKE_THROUGH_INDEX]))
-      || (!UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
-	  && face_attr_equal_p (attrs[LFACE_BOX_INDEX],
+      || (!UNSPECIFIEDP (lattrs[LFACE_BOX_INDEX])
+	  && face_attr_equal_p (lattrs[LFACE_BOX_INDEX],
 				def_attrs[LFACE_BOX_INDEX])))
     return false;
 
   /* Check font-related attributes, as those are the most commonly
      "unsupported" on a window-system (because of missing fonts).  */
-  if (!UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_FOUNDRY_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
-      || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX]))
+  if (!UNSPECIFIEDP (lattrs[LFACE_FAMILY_INDEX])
+      || !UNSPECIFIEDP (lattrs[LFACE_FOUNDRY_INDEX])
+      || !UNSPECIFIEDP (lattrs[LFACE_HEIGHT_INDEX])
+      || !UNSPECIFIEDP (lattrs[LFACE_WEIGHT_INDEX])
+      || !UNSPECIFIEDP (lattrs[LFACE_SLANT_INDEX])
+      || !UNSPECIFIEDP (lattrs[LFACE_SWIDTH_INDEX]))
     {
       int face_id;
       struct face *face;
