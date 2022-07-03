@@ -1445,6 +1445,11 @@ extern bool x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
 extern void x_catch_errors_with_handler (Display *, x_special_error_handler,
 					 void *);
+extern void x_catch_errors_for_lisp (struct x_display_info *);
+extern void x_uncatch_errors_for_lisp (struct x_display_info *);
+extern void x_check_errors_for_lisp (struct x_display_info *,
+				     const char *)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern bool x_had_errors_p (Display *);

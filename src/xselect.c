@@ -2749,7 +2749,11 @@ to send.  If a value is a string, it is converted to an Atom and the value of
 the Atom is sent.  If a value is a cons, it is converted to a 32 bit number
 with the high 16 bits from the car and the lower 16 bit from the cdr.
 If more values than fits into the event is given, the excessive values
-are ignored.  */)
+are ignored.
+
+Wait for the event to be sent and signal any error, unless
+`x-fast-protocol-requests' is non-nil, in which case errors will be
+silently ignored.  */)
   (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
    Lisp_Object message_type, Lisp_Object format, Lisp_Object values)
 {
@@ -2830,7 +2834,7 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
      the destination window.  But if we are sending to the root window,
      there is no such client.  Then we set the event mask to 0xffffff.  The
      event then goes to clients selecting for events on the root window.  */
-  x_catch_errors (dpyinfo->display);
+  x_catch_errors_for_lisp (dpyinfo);
   {
     bool propagate = !to_root;
     long mask = to_root ? 0xffffff : 0;
@@ -2838,7 +2842,8 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
     XSendEvent (dpyinfo->display, wdest, propagate, mask, &event);
     XFlush (dpyinfo->display);
   }
-  x_uncatch_errors ();
+  x_check_errors_for_lisp (dpyinfo, "Failed to send client event: %s");
+  x_uncatch_errors_for_lisp (dpyinfo);
   unblock_input ();
 }
 

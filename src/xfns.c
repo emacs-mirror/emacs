@@ -7339,18 +7339,23 @@ If VALUE is a string and FORMAT is 32, then the format of VALUE is
 system-specific.  VALUE must contain unsigned integer data in native
 endian-ness in multiples of the size of the C type 'long': the low 32
 bits of each such number are used as the value of each element of the
-property.  */)
+property.
+
+Wait for the request to complete and signal any error, unless
+`x-fast-protocol-requests' is non-nil, in which case errors will be
+silently ignored.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
    Lisp_Object type, Lisp_Object format, Lisp_Object outer_p,
    Lisp_Object window_id)
 {
-  struct frame *f = decode_window_system_frame (frame);
+  struct frame *f;
   Atom prop_atom;
   Atom target_type = XA_STRING;
   int element_format = 8;
   unsigned char *data;
   int nelements;
   Window target_window;
+  struct x_display_info *dpyinfo;
 #ifdef USE_XCB
   bool intern_prop;
   bool intern_target;
@@ -7360,6 +7365,9 @@ property.  */)
   xcb_generic_error_t *generic_error;
   bool rc;
 #endif
+
+  f = decode_window_system_frame (frame);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   CHECK_STRING (prop);
 
@@ -7412,7 +7420,7 @@ property.  */)
     {
       CONS_TO_INTEGER (window_id, Window, target_window);
       if (! target_window)
-        target_window = FRAME_DISPLAY_INFO (f)->root_window;
+        target_window = dpyinfo->root_window;
     }
   else
     {
@@ -7424,47 +7432,47 @@ property.  */)
 
   block_input ();
 #ifndef USE_XCB
-  prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-				    SSDATA (prop), false);
+  prop_atom = x_intern_cached_atom (dpyinfo, SSDATA (prop),
+				    false);
   if (! NILP (type))
     {
       CHECK_STRING (type);
-      target_type = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-					  SSDATA (type), false);
+      target_type = x_intern_cached_atom (dpyinfo, SSDATA (type),
+					  false);
     }
 #else
   rc = true;
   intern_target = true;
   intern_prop = true;
 
-  prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-				    SSDATA (prop), true);
+  prop_atom = x_intern_cached_atom (dpyinfo, SSDATA (prop),
+				    true);
 
   if (prop_atom != None)
     intern_prop = false;
   else
     prop_atom_cookie
-      = xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
+      = xcb_intern_atom (dpyinfo->xcb_connection,
 			 0, SBYTES (prop), SSDATA (prop));
 
   if (!NILP (type))
     {
       CHECK_STRING (type);
 
-      target_type = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
-					  SSDATA (type), true);
+      target_type = x_intern_cached_atom (dpyinfo, SSDATA (type),
+					  true);
 
       if (target_type)
 	intern_target = false;
       else
 	target_type_cookie
-	  = xcb_intern_atom (FRAME_DISPLAY_INFO (f)->xcb_connection,
+	  = xcb_intern_atom (dpyinfo->xcb_connection,
 			     0, SBYTES (type), SSDATA (type));
     }
 
   if (intern_prop)
     {
-      reply = xcb_intern_atom_reply (FRAME_DISPLAY_INFO (f)->xcb_connection,
+      reply = xcb_intern_atom_reply (dpyinfo->xcb_connection,
 				     prop_atom_cookie, &generic_error);
 
       if (reply)
@@ -7481,7 +7489,7 @@ property.  */)
 
   if (!NILP (type) && intern_target)
     {
-      reply = xcb_intern_atom_reply (FRAME_DISPLAY_INFO (f)->xcb_connection,
+      reply = xcb_intern_atom_reply (dpyinfo->xcb_connection,
 				     target_type_cookie, &generic_error);
 
       if (reply)
@@ -7500,15 +7508,18 @@ property.  */)
     error ("Failed to intern type or property atom");
 #endif
 
-  x_catch_errors (FRAME_X_DISPLAY (f));
-  XChangeProperty (FRAME_X_DISPLAY (f), target_window,
-		   prop_atom, target_type, element_format, PropModeReplace,
-		   data, nelements);
+  x_catch_errors_for_lisp (dpyinfo);
 
-  if (CONSP (value)) xfree (data);
-  x_check_errors (FRAME_X_DISPLAY (f),
-		  "Couldn't change window property: %s");
-  x_uncatch_errors_after_check ();
+  XChangeProperty (dpyinfo->display, target_window,
+		   prop_atom, target_type, element_format,
+		   PropModeReplace, data, nelements);
+
+  if (CONSP (value))
+    xfree (data);
+
+  x_check_errors_for_lisp (dpyinfo,
+			   "Couldn't change window property: %s");
+  x_uncatch_errors_for_lisp (dpyinfo);
 
   unblock_input ();
   return value;
@@ -7525,7 +7536,11 @@ If WINDOW-ID is non-nil, remove property from that window instead
  across X displays or screens on the same display, so FRAME provides
  context for the window ID.
 
-Value is PROP.  */)
+Value is PROP.
+
+Wait for the request to complete and signal any error, unless
+`x-fast-protocol-requests' is non-nil, in which case errors will be
+silently ignored.  */)
   (Lisp_Object prop, Lisp_Object frame, Lisp_Object window_id)
 {
   struct frame *f = decode_window_system_frame (frame);
@@ -7545,11 +7560,11 @@ Value is PROP.  */)
   prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
 				    SSDATA (prop), false);
 
-  x_catch_errors (FRAME_X_DISPLAY (f));
+  x_catch_errors_for_lisp (FRAME_DISPLAY_INFO (f));
   XDeleteProperty (FRAME_X_DISPLAY (f), target_window, prop_atom);
-  x_check_errors (FRAME_X_DISPLAY (f),
-		  "Couldn't delete window property: %s");
-  x_uncatch_errors_after_check ();
+  x_check_errors_for_lisp (FRAME_DISPLAY_INFO (f),
+			   "Couldn't delete window property: %s");
+  x_uncatch_errors_for_lisp (FRAME_DISPLAY_INFO (f));
 
   unblock_input ();
   return prop;

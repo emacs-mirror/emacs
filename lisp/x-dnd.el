@@ -151,6 +151,12 @@ data types in this list."
 
 ;; Internal variables
 
+(defvar x-dnd-debug-errors nil
+  "Whether or not to signal protocol errors during drag-and-drop.
+This is useful for debugging errors in the DND code, but makes
+drag-and-drop much slower over network connections with high
+latency.")
+
 (defvar x-dnd-current-state nil
   "The current state for a drop.
 This is an alist with one entry for each display.  The value for each display
@@ -425,11 +431,14 @@ nil if not."
 	  (select-frame frame)
 	  (funcall handler window action data))))))
 
+(defvar x-fast-protocol-requests)
+
 (defun x-dnd-handle-drag-n-drop-event (event)
   "Receive drag and drop events (X client messages).
 Currently XDND, Motif and old KDE 1.x protocols are recognized."
   (interactive "e")
   (let* ((client-message (car (cdr (cdr event))))
+         (x-fast-protocol-requests (not x-dnd-debug-errors))
 	 (window (posn-window (event-start event))))
     (if (eq (and (consp client-message)
                  (car client-message))

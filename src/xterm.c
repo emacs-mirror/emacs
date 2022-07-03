@@ -27836,6 +27836,36 @@ mark_xterm (void)
 #endif
 }
 
+/* Error handling functions for Lisp functions that expose X protocol
+   requests.  They are mostly like `x_catch_errors' and friends, but
+   respect `x-fast-protocol-requests'.  */
+
+void
+x_catch_errors_for_lisp (struct x_display_info *dpyinfo)
+{
+  if (!x_fast_protocol_requests)
+    x_catch_errors (dpyinfo->display);
+  else
+    x_ignore_errors_for_next_request (dpyinfo);
+}
+
+void
+x_check_errors_for_lisp (struct x_display_info *dpyinfo,
+			 const char *format)
+{
+  if (!x_fast_protocol_requests)
+    x_check_errors (dpyinfo->display, format);
+}
+
+void
+x_uncatch_errors_for_lisp (struct x_display_info *dpyinfo)
+{
+  if (!x_fast_protocol_requests)
+    x_uncatch_errors ();
+  else
+    x_stop_ignoring_errors (dpyinfo);
+}
+
 void
 syms_of_xterm (void)
 {
@@ -28141,4 +28171,13 @@ When nil, do not use the primary selection and synthetic mouse clicks
 to emulate the drag-and-drop of `STRING', `UTF8_STRING',
 `COMPOUND_TEXT' or `TEXT'.  */);
   x_dnd_use_unsupported_drop = true;
+
+  DEFVAR_BOOL ("x-fast-protocol-requests", x_fast_protocol_requests,
+    doc: /* Whether or not X protocol-related functions should wait for errors.
+When this is nil, functions such as `x-delete-window-property',
+`x-change-window-property' and `x-send-client-message' will wait for a
+reply from the X server, and signal any errors that occurred while
+executing the protocol request.  Otherwise, errors will be silently
+ignored without waiting, which is generally faster.  */);
+  x_fast_protocol_requests = false;
 }
