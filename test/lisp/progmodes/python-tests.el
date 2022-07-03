@@ -1757,6 +1757,36 @@ def foo(x):
      (should (= (marker-position (mark-marker))
                 expected-mark-end-position)))))
 
+(ert-deftest python-mark-defun-5 ()
+  "Test `python-mark-defun' with point inside backslash escaped defun."
+  (python-tests-with-temp-buffer
+   "
+def \\
+        foo(x):
+    return x
+"
+   (let ((transient-mark-mode t)
+         (expected-mark-beginning-position
+          (progn
+            (python-tests-look-at "def ")
+            (1- (line-beginning-position))))
+         (expected-mark-end-position
+          (save-excursion
+            (python-tests-look-at "return x")
+            (forward-line)
+            (point))))
+     (python-tests-look-at "def ")
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position))
+     (deactivate-mark)
+     (python-tests-look-at "foo(x)")
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position)))))
+
 
 ;;; Navigation
 
@@ -1905,16 +1935,46 @@ class C(object):
 (ert-deftest python-nav-beginning-of-defun-4 ()
   (python-tests-with-temp-buffer
    "
+def a():
+    pass
+
 def \\
-        a():
+        b():
     return 0
+
+def c():
+    pass
 "
-   (python-tests-look-at "return 0")
+   (python-tests-look-at "def c():")
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
                 (point))
               (save-excursion
                 (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "return 0" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "b():" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "def a():" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun -1)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\")
                 (beginning-of-line)
                 (point))))))
 
@@ -5241,6 +5301,23 @@ def decorat0r(deff):
    (should (python-info-looking-at-beginning-of-defun))
    (python-tests-look-at "deff()")
    (should (not (python-info-looking-at-beginning-of-defun)))))
+
+(ert-deftest python-info-looking-at-beginning-of-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        foo(arg):
+    pass
+"
+   (python-tests-look-at "def \\")
+   (should (python-info-looking-at-beginning-of-defun))
+   (should (python-info-looking-at-beginning-of-defun nil t))
+   (python-tests-look-at "foo(arg):")
+   (should (not (python-info-looking-at-beginning-of-defun)))
+   (should (python-info-looking-at-beginning-of-defun nil t))
+   (python-tests-look-at "pass")
+   (should (not (python-info-looking-at-beginning-of-defun)))
+   (should (not (python-info-looking-at-beginning-of-defun nil t)))))
 
 (ert-deftest python-info-current-line-comment-p-1 ()
   (python-tests-with-temp-buffer

@@ -1472,15 +1472,17 @@ With positive ARG search backwards, else search forwards."
                      0))))
          (found
           (progn
-            (when (and (python-info-looking-at-beginning-of-defun)
+            (when (and (python-info-looking-at-beginning-of-defun nil t)
                        (or (< arg 0)
                            ;; If looking at beginning of defun, and if
                            ;; pos is > line-content-start, ensure a
                            ;; backward re search match this defun by
                            ;; going to end of line before calling
                            ;; re-search-fn bug#40563
-                           (and (> arg 0) (> pos line-content-start))))
-              (end-of-line 1))
+                           (and (> arg 0)
+                                (or (python-info-continuation-line-p)
+                                    (> pos line-content-start)))))
+              (python-nav-end-of-statement))
 
             (while (and (funcall re-search-fn
                                  python-nav-beginning-of-defun-regexp nil t)
@@ -1490,14 +1492,18 @@ With positive ARG search backwards, else search forwards."
                             (and (> arg 0)
                                  (not (= (current-indentation) 0))
                                  (>= (current-indentation) body-indentation)))))
-            (and (python-info-looking-at-beginning-of-defun)
+            (and (python-info-looking-at-beginning-of-defun nil t)
                  (or (not (= (line-number-at-pos pos)
                              (line-number-at-pos)))
                      (and (>= (point) line-beg-pos)
                           (<= (point) line-content-start)
                           (> pos line-content-start)))))))
     (if found
-        (or (beginning-of-line 1) t)
+        (progn
+          (when (< arg 0)
+            (python-nav-beginning-of-statement))
+          (beginning-of-line 1)
+          t)
       (and (goto-char pos) nil))))
 
 (defun python-nav-beginning-of-defun (&optional arg)
@@ -5299,10 +5305,15 @@ operator."
       (forward-line -1)
       (python-info-assignment-statement-p t))))
 
-(defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
-  "Check if point is at `beginning-of-defun' using SYNTAX-PPSS."
+(defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss
+                                                            check-statement)
+  "Check if point is at `beginning-of-defun' using SYNTAX-PPSS.
+When CHECK-STATEMENT is non-nil, the current statement is checked
+instead of the current physical line."
   (and (not (python-syntax-context-type (or syntax-ppss (syntax-ppss))))
        (save-excursion
+         (when check-statement
+           (python-nav-beginning-of-statement))
          (beginning-of-line 1)
          (looking-at python-nav-beginning-of-defun-regexp))))
 
