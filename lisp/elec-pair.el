@@ -188,24 +188,29 @@ be considered.")
    ;; I also find it often preferable not to pair next to a word.
    (eq (char-syntax (following-char)) ?w)))
 
-(cl-defmacro electric-pair--with-text-syntax ((&optional start) &rest body)
-  "Run BODY with `electric-pair-text-syntax-table' active.
-This ensures that all syntax related values are set properly and the
-`syntax-ppss' cache is cleared before and after.
-In particular, this must be used when BODY contains code which may
-update the `syntax-ppss' cache.  This includes calling
-`parse-partial-sexp' and any sexp-based movement functions when
-`parse-sexp-lookup-properties' is non-nil.  The cache is flushed from
-position START, defaulting to point."
-  (declare (debug ((&optional form) body)) (indent 1))
-  (let ((start-var (make-symbol "start")))
-    `(let ((syntax-propertize-function nil)
-           (,start-var ,(or start '(point))))
-       (syntax-ppss-flush-cache ,start-var)
+(defmacro electric-pair--with-syntax (string-or-comment &rest body)
+  "Run BODY with appropriate syntax table active.
+STRING-OR-COMMENT is the start position of the string/comment
+in which we are, if applicable.
+Uses the text-mode syntax table if within a string or a comment."
+  (declare (debug t) (indent 1))
+  `(electric-pair--with-syntax-1 ,string-or-comment (lambda () ,@body)))
+
+(defun electric-pair--with-syntax-1 (string-or-comment body-fun)
+  (if (not string-or-comment)
+      (funcall body-fun)
+    ;; Here we assume that the `syntax-ppss' cache has already been filled
+    ;; past `string-or-comment' with data corresponding to the "normal" syntax
+    ;; (this should be the case because STRING-OR-COMMENT was returned
+    ;; in the `nth 8' of `syntax-ppss').
+    ;; Maybe we should narrow-to-region so that `syntax-ppss' uses the narrow
+    ;; cache?
+    (syntax-ppss-flush-cache string-or-comment)
+    (let ((syntax-propertize-function nil))
        (unwind-protect
            (with-syntax-table electric-pair-text-syntax-table
-             ,@body)
-         (syntax-ppss-flush-cache ,start-var)))))
+             (funcall body-fun))
+         (syntax-ppss-flush-cache string-or-comment)))))
 
 (defun electric-pair-syntax-info (command-event)
   "Calculate a list (SYNTAX PAIR UNCONDITIONAL STRING-OR-COMMENT-START).
@@ -222,13 +227,10 @@ inside a comment or string."
          (string-or-comment (and post-string-or-comment
                                  pre-string-or-comment))
          (table-syntax-and-pair
-          (cl-flet ((f ()
-                      (list (char-syntax command-event)
-                            (or (matching-paren command-event)
-                                command-event))))
-            (if string-or-comment
-                (electric-pair--with-text-syntax () (f))
-              (f))))
+          (electric-pair--with-syntax string-or-comment
+            (list (char-syntax command-event)
+                  (or (matching-paren command-event)
+                      command-event))))
          (fallback (if string-or-comment
                        (append electric-pair-text-pairs
                                electric-pair-pairs)
@@ -275,7 +277,7 @@ when to fallback to `parse-partial-sexp'."
                               (skip-syntax-forward " >!")
                               (point)))))
     (if s-or-c-start
-        (electric-pair--with-text-syntax (s-or-c-start)
+        (electric-pair--with-syntax s-or-c-start
           (parse-partial-sexp s-or-c-start pos))
       ;; HACK! cc-mode apparently has some `syntax-ppss' bugs
       (if (memq major-mode '(c-mode c++ mode))
@@ -293,7 +295,8 @@ when to fallback to `parse-partial-sexp'."
 (defun electric-pair--balance-info (direction string-or-comment)
   "Examine lists forward or backward according to DIRECTION's sign.
 
-STRING-OR-COMMENT is info suitable for running `parse-partial-sexp'.
+STRING-OR-COMMENT is the position of the start of the comment/string
+in which we are, if applicable.
 
 Return a cons of two descriptions (MATCHED-P . PAIR) for the
 innermost and outermost lists that enclose point.  The outermost
@@ -325,14 +328,11 @@ If point is not enclosed by any lists, return ((t) . (t))."
                       (cond ((< direction 0)
                              (condition-case nil
                                  (eq (char-after pos)
-                                     (cl-flet ((f ()
-                                                 (matching-paren
-                                                  (char-before
-                                                   (scan-sexps (point) 1)))))
-                                       (if string-or-comment
-                                           (electric-pair--with-text-syntax ()
-                                             (f))
-                                         (f))))
+                                     (electric-pair--with-syntax
+                                         string-or-comment
+                                       (matching-paren
+                                        (char-before
+                                         (scan-sexps (point) 1)))))
                                (scan-error nil)))
                             (t
                              ;; In this case, no need to use
@@ -346,9 +346,8 @@ If point is not enclosed by any lists, return ((t) . (t))."
                                     (opener (char-after start)))
                                (and start
                                     (eq (char-before pos)
-                                        (or (if string-or-comment
-                                                (electric-pair--with-text-syntax ()
-                                                  (matching-paren opener))
+                                        (or (electric-pair--with-syntax
+                                                string-or-comment
                                               (matching-paren opener))
                                             opener))))))))
                    (actual-pair (if (> direction 0)
@@ -361,14 +360,11 @@ If point is not enclosed by any lists, return ((t) . (t))."
     (save-excursion
       (while (not outermost)
         (condition-case err
-            (cl-flet ((f ()
-                        (scan-sexps (point) (if (> direction 0)
-                                                (point-max)
-                                              (- (point-max))))
-                        (funcall at-top-level-or-equivalent-fn)))
-              (if string-or-comment
-                  (electric-pair--with-text-syntax () (f))
-                (f)))
+            (electric-pair--with-syntax string-or-comment
+              (scan-sexps (point) (if (> direction 0)
+                                      (point-max)
+                                    (- (point-max))))
+              (funcall at-top-level-or-equivalent-fn))
           (scan-error
            (cond ((or
                    ;; some error happened and it is not of the "ended
