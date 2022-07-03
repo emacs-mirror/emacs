@@ -932,9 +932,9 @@ The renaming scheme is performed in accordance with
 
 (defun eww-links-at-point ()
   "Return list of URIs, if any, linked at point."
-  (remq nil
-	(list (get-text-property (point) 'shr-url)
-	      (get-text-property (point) 'image-url))))
+  (seq-filter #'stringp
+	      (list (get-text-property (point) 'shr-url)
+	            (get-text-property (point) 'image-url))))
 
 (defun eww-view-source ()
   "View the HTML source code of the current page."
