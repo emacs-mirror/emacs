@@ -1053,6 +1053,7 @@ customize the user option 'dired-clean-up-buffers-too' to nil.  The
 related user option 'dired-clean-confirm-killing-deleted-buffers'
 (which see) has also been moved to 'dired'.
 
++++
 *** 'dired-info' and 'dired-man' moved from dired-x to dired.
 The 'dired-info' and 'dired-man' commands have been moved from the
 'dired-x' package to 'dired'.  They have also been renamed to
@@ -1070,6 +1071,7 @@ the following to your Init file:
   (keymap-set dired-mode-map "N" nil)
   (keymap-set dired-mode-map "I" nil))
 
+---
 *** New command 'dired-do-eww'.
 This command visits the file on the current line with EWW.
 
