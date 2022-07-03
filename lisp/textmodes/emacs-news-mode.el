@@ -24,6 +24,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'outline)
 
 (defgroup emacs-news-mode nil
   "Major mode for editing and viewing the Emacs NEWS file."
