@@ -3536,7 +3536,7 @@ FRAME 0 means change the face on all frames, and change the default
 #ifdef HAVE_WINDOW_SYSTEM
       if (EQ (frame, Qt) || FRAME_WINDOW_P (f))
 	{
-	  Lisp_Object tmp;
+	  Lisp_Object tmp = value;
 
 	  old_value = LFACE_FONTSET (lface);
 	  if (!RESET_P (value))
