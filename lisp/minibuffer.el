@@ -3091,7 +3091,8 @@ such as making the current buffer visit no file in the case of
   :type 'boolean)
 
 (defcustom minibuffer-beginning-of-buffer-movement nil
-  "Control how the `M-<' command in the minibuffer behaves.
+  "Control how the \\<minibuffer-local-map>\\[minibuffer-beginning-of-buffer] \
+command in the minibuffer behaves.
 If non-nil, the command will go to the end of the prompt (if
 point is after the end of the prompt).  If nil, it will behave
 like the `beginning-of-buffer' command."

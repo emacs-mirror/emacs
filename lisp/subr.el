@@ -964,7 +964,7 @@ side-effects, and the argument LIST is not modified."
 (defun kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string in the format returned by commands such
-as `C-h k' (`describe-key').
+as \\[describe-key] (`describe-key').
 
 This is the same format used for saving keyboard macros (see
 `edmacro-mode').

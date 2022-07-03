@@ -394,7 +394,9 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
                 (frame-parameter  frame 'name))
               "RefTeX TOC Frame")))
     (if (and res error)
-        (error "This frame is view-only.  Use `C-c =' to create TOC window for commands"))
+        (error (substitute-command-keys
+                "This frame is view-only.  Use \\[reftex-toc] \
+to create TOC window for commands")))
     res))
 
 (defun reftex-toc-show-help ()
