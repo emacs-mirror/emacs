@@ -82,11 +82,12 @@ files not writable by you are visited read-only."
 		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
-(defcustom dired-omit-size-limit 30000
+(defcustom dired-omit-size-limit 100000
   "Maximum size for the \"omitting\" feature.
 If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
-  :group 'dired-x)
+  :group 'dired-x
+  :version "29.1")
 
 (defcustom dired-omit-case-fold 'filesystem
   "Determine whether \"omitting\" patterns are case-sensitive.
