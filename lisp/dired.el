@@ -3692,13 +3692,21 @@ See `dired-delete-file' in case you wish that."
   (dired-remove-entry file)
   (dired-clean-up-after-deletion file))
 
-(defvar dired-clean-up-buffers-too)
-(defvar dired-clean-confirm-killing-deleted-buffers)
+(defcustom dired-clean-up-buffers-too t
+  "Non-nil means offer to kill buffers visiting files and dirs deleted in Dired."
+  :type 'boolean
+  :group 'dired)
+
+(defcustom dired-clean-confirm-killing-deleted-buffers t
+  "If nil, don't ask whether to kill buffers visiting deleted files."
+  :type 'boolean
+  :group 'dired
+  :version "26.1")
 
 (defun dired-clean-up-after-deletion (fn)
   "Clean up after a deleted file or directory FN.
-Removes any expanded subdirectory of deleted directory.  If
-`dired-x' is loaded and `dired-clean-up-buffers-too' is non-nil,
+Removes any expanded subdirectory of deleted directory.
+If `dired-clean-up-buffers-too' is non-nil,
 kill any buffers visiting those files, prompting for
 confirmation.  To disable the confirmation, see
 `dired-clean-confirm-killing-deleted-buffers'."
