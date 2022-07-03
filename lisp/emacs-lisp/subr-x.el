@@ -167,9 +167,9 @@ non-nil, return the last LENGTH characters instead.
 If CODING-SYSTEM is non-nil, STRING will be encoded before
 limiting, and LENGTH is interpreted as the number of bytes to
 limit the string to.  The result will be a unibyte string that is
-shorter than LENGTH, but will not contain \"partial\" characters,
-even if CODING-SYSTEM encodes characters with several bytes per
-character.
+shorter than LENGTH, but will not contain \"partial\"
+characters (or glyphs), even if CODING-SYSTEM encodes characters
+with several bytes per character.
 
 When shortening strings for display purposes,
 `truncate-string-to-width' is almost always a better alternative
@@ -177,34 +177,55 @@ than this function."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (if coding-system
-      (let ((result nil)
-            (result-length 0)
-            (index (if end (1- (length string)) 0)))
-        ;; FIXME: This implementation, which uses encode-coding-char
-        ;; to encode the string one character at a time, is in general
-        ;; incorrect: coding-systems that produce prefix or suffix
-        ;; bytes, such as ISO-2022-based or UTF-8/16 with BOM, will
-        ;; produce those bytes for each character, instead of just
-        ;; once for the entire string.  encode-coding-char attempts to
-        ;; remove those extra bytes at least in some situations, but
-        ;; it cannot do that in all cases.  And in any case, producing
-        ;; what is supposed to be a UTF-16 or ISO-2022-CN encoded
-        ;; string which lacks the BOM bytes at the beginning and the
-        ;; charset designation sequences at the head and tail of the
-        ;; result will definitely surprise the callers in some cases.
-        (while (let ((encoded (encode-coding-char
-                               (aref string index) coding-system)))
-                 (and (<= (+ (length encoded) result-length) length)
-                      (progn
-                        (push encoded result)
-                        (cl-incf result-length (length encoded))
-                        (setq index (if end (1- index)
-                                      (1+ index))))
-                      (if end (> index -1)
-                        (< index (length string)))))
-          ;; No body.
-          )
-        (apply #'concat (if end result (nreverse result))))
+      ;; The previous implementation here tried to encode char by
+      ;; char, and then adding up the length of the encoded octets,
+      ;; but that's not reliably in the presence of BOM marks and
+      ;; ISO-2022-CN which may add charset designations at the
+      ;; start/end of each encoded char (which we don't want).  So
+      ;; iterate (with a binary search) instead to find the desired
+      ;; length.
+      (let* ((glyphs (string-glyph-split string))
+             (nglyphs (length glyphs))
+             (too-long (1+ nglyphs))
+             (stop (max (/ nglyphs 2) 1))
+             (gap stop)
+             candidate encoded found candidate-stop)
+        ;; We're returning the end of the string.
+        (when end
+          (setq glyphs (nreverse glyphs)))
+        (while (and (not found)
+                    (< stop too-long))
+          (setq encoded
+                (encode-coding-string (string-join (seq-take glyphs stop))
+                                      coding-system))
+          (cond
+           ((= (length encoded) length)
+            (setq found encoded
+                  candidate-stop stop))
+           ;; Too long; try shortening.
+           ((> (length encoded) length)
+            (setq too-long stop
+                  stop (max (- stop gap) 1)))
+           ;; Too short; try lengthening.
+           (t
+            (setq candidate encoded
+                  candidate-stop stop)
+            (setq stop
+                  (if (>= stop nglyphs)
+                      too-long
+                    (min (+ stop gap) nglyphs)))))
+          (setq gap (max (/ gap 2) 1)))
+        (cond
+         ((not (or found candidate))
+          "")
+         ;; We're returning the end, so redo the encoding.
+         (end
+          (encode-coding-string
+           (string-join (nreverse (seq-take glyphs candidate-stop)))
+           coding-system))
+         (t
+          (or found candidate))))
+    ;; Char-based version.
     (cond
      ((<= (length string) length) string)
      (end (substring string (- (length string) length)))
