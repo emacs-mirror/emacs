@@ -424,7 +424,7 @@ symbol: oracle
 
 This stupid precompiler wraps lines at column 80 in the middle of a file name.
 There is no obvious way of detecting this or turning it off.  But if you
-delete the newline (probably needs M-x toggle-read-only), the file name will
+delete the newline (probably needs M-x read-only-mode), the file name will
 automatically be reparsed, so that you can then go there.
 
 Semantic error at line 528, column 5, file erosacqdb.pc:

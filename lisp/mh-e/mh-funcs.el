@@ -95,9 +95,9 @@ RANGE is read in interactive use."
 Remove all of the messages (files) within the current folder, and
 then remove the folder (directory) itself.
 
-Run the abnormal hook `mh-kill-folder-suppress-prompt-hooks'. The
-hook functions are called with no arguments and should return a
-non-nil value to suppress the normal prompt when you remove a
+Run the abnormal hook `mh-kill-folder-suppress-prompt-functions'.
+The hook functions are called with no arguments and should return
+a non-nil value to suppress the normal prompt when you remove a
 folder. This is useful for folders that are easily regenerated."
   (interactive)
   (if (or (run-hook-with-args-until-success
