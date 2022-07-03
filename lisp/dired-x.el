@@ -230,17 +230,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 		 (string :tag "Switches"))
   :group 'dired-x)
 
-(defcustom dired-clean-up-buffers-too t
-  "Non-nil means offer to kill buffers visiting files and dirs deleted in Dired."
-  :type 'boolean
-  :group 'dired-x)
-
-(defcustom dired-clean-confirm-killing-deleted-buffers t
-  "If nil, don't ask whether to kill buffers visiting deleted files."
-  :version "26.1"
-  :type 'boolean
-  :group 'dired-x)
-
 
 ;;; Key bindings
 

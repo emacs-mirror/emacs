@@ -1044,6 +1044,16 @@ so automatically.
 
 ** Dired
 
+---
+*** 'dired-clean-up-buffers-too' moved from dired-x to dired.
+This means that Dired now offers to kill buffers visiting files and
+dirs when they are deleted in Dired.  Before, you had to require
+'dired-x' to enable this behavior.  To disable this behavior,
+customize the user option 'dired-clean-up-buffers-too' to nil.  The
+related user option 'dired-clean-confirm-killing-deleted-buffers'
+(which see) has also been moved to 'dired'.
+
++++
 *** 'dired-info' and 'dired-man' moved from dired-x to dired.
 The 'dired-info' and 'dired-man' commands have been moved from the
 'dired-x' package to 'dired'.  They have also been renamed to
@@ -1061,6 +1071,7 @@ the following to your Init file:
   (keymap-set dired-mode-map "N" nil)
   (keymap-set dired-mode-map "I" nil))
 
+---
 *** New command 'dired-do-eww'.
 This command visits the file on the current line with EWW.
 
