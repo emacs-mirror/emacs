@@ -3712,6 +3712,16 @@ setup_xi_event_mask (struct frame *f)
   XIEventMask mask;
   ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
   unsigned char *m;
+#ifndef HAVE_XINPUT2_1
+  /* Set up fallback values, since XIGetSelectedEvents doesn't work
+     with this version of libXi.  */
+  XIEventMask *selected;
+
+  selected = xzalloc (sizeof *selected + l);
+  selected->mask = ((unsigned char *) selected) + sizeof *selected;
+  selected->mask_len = l;
+  selected->deviceid = XIAllMasterDevices;
+#endif
 
   mask.mask = m = alloca (l);
   memset (m, 0, l);
@@ -3735,6 +3745,12 @@ setup_xi_event_mask (struct frame *f)
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
+
+  /* Fortunately `xi_masks' isn't used on GTK 3, where we really have
+     to get the event mask from the X server.  */
+#ifndef HAVE_XINPUT2_1
+  memcpy (selected->mask, m, l);
+#endif
 
   memset (m, 0, l);
 #endif /* !HAVE_GTK3 */
@@ -3775,6 +3791,12 @@ setup_xi_event_mask (struct frame *f)
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
+
+#ifndef HAVE_XINPUT2_1
+  FRAME_X_OUTPUT (f)->xi_masks = selected;
+  FRAME_X_OUTPUT (f)->num_xi_masks = 1;
+#endif
+
   unblock_input ();
 }
 #endif
@@ -4935,7 +4957,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_icon (f, parms);
   x_make_gc (f);
 
-#ifdef HAVE_XINPUT2
+  /* While this function is present in versions of libXi that only
+     support 2.0, it does not release the display lock after
+     finishing, leading to a deadlock.  */
+#if defined HAVE_XINPUT2 && defined HAVE_XINPUT2_1
   if (dpyinfo->supports_xi2)
     FRAME_X_OUTPUT (f)->xi_masks
       = XIGetSelectedEvents (dpyinfo->display, FRAME_X_WINDOW (f),

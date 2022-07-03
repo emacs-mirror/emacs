@@ -25728,8 +25728,15 @@ x_destroy_window (struct frame *f)
 #endif
 
 #ifdef HAVE_XINPUT2
+#ifdef HAVE_XINPUT2_1
   if (f->output_data.x->xi_masks)
     XFree (f->output_data.x->xi_masks);
+#else
+  /* This is allocated by us under very old versions of libXi; see
+     `setup_xi_event_mask'.  */
+  if (f->output_data.x->xi_masks)
+    xfree (f->output_data.x->xi_masks);
+#endif
 #endif
 
   xfree (f->output_data.x);
