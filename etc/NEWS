@@ -516,6 +516,12 @@ This inherits from the 'mode-line' face, but is the face actually used
 on the mode lines (along with 'mode-line-inactive').
 
 +++
+** New face attribute pseudo-value 'reset'.
+This value stands for the value of the corresponding attribute of the
+'default' face.  It can be used to reset attribute values produced by
+inheriting from other faces.
+
++++
 ** New function 'buffer-text-pixel-size'.
 This is similar to 'window-text-pixel-size', but can be used when the
 buffer isn't displayed.

@@ -2474,6 +2474,7 @@ Otherwise, it returns @code{nil}.
 The following table lists all the face attributes, their possible
 values, and their effects.
 
+@cindex unspecified, face attribute value
   Apart from the values given below, each face attribute can have the
 value @code{unspecified}.  This special value means that the face
 doesn't specify that attribute directly.  An @code{unspecified}
@@ -2482,7 +2483,13 @@ description @code{:inherit} attribute below); or, failing that, to an
 underlying face (@pxref{Displaying Faces}).  (However,
 @code{unspecified} is not a valid value in @code{defface}.)
 
-  The @code{default} face must specify all attributes.
+@cindex reset, face attribute value
+  A face attribute can also have the value @code{reset}.  This special
+value stands for the value of the corresponding attribute of the
+@code{default} face.
+
+  The @code{default} face must explicitly specify all attributes, and
+cannot use the special value @code{reset}.
 
   Some of these attributes are meaningful only on certain kinds of
 displays.  If your display cannot handle a certain attribute, the
