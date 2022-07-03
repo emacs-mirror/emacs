@@ -1146,8 +1146,8 @@ component is used as the target of the symlink."
 
 	    ;; Use Perl implementation.
 	    ((and (tramp-get-remote-perl v)
-		  (tramp-get-connection-property v "perl-file-spec" nil)
-		  (tramp-get-connection-property v "perl-cwd-realpath" nil))
+		  (tramp-get-connection-property v "perl-file-spec")
+		  (tramp-get-connection-property v "perl-cwd-realpath"))
 	     (tramp-maybe-send-script
 	      v tramp-perl-file-truename "tramp_perl_file_truename")
 	     (setq result
@@ -1185,9 +1185,9 @@ component is used as the target of the symlink."
     (with-parsed-tramp-file-name filename nil
       (with-tramp-file-property v localname "file-exists-p"
 	(or (not (null (tramp-get-file-property
-			v localname "file-attributes-integer" nil)))
+			v localname "file-attributes-integer")))
             (not (null (tramp-get-file-property
-			v localname "file-attributes-string" nil)))
+			v localname "file-attributes-string")))
 	    (tramp-send-command-and-check
 	     v
 	     (format
@@ -1463,7 +1463,7 @@ of."
 	 v (format
 	    "env TZ=UTC %s %s %s %s"
 	    (tramp-get-remote-touch v)
-	    (if (tramp-get-connection-property v "touch-t" nil)
+	    (if (tramp-get-connection-property v "touch-t")
 		(format "-t %s" (format-time-string "%Y%m%d%H%M.%S" time t))
 	      "")
 	    (if (eq flag 'nofollow) "-h" "")
@@ -2350,7 +2350,7 @@ The method used must be an out-of-band method."
 		  ?h (or (tramp-file-name-host v) "")
 		  ?u (or (tramp-file-name-user v)
 			 ;; There might be an interactive setting.
-			 (tramp-get-connection-property v "login-as" nil)
+			 (tramp-get-connection-property v "login-as")
 			 "")
 		  ;; For direct remote copying, the port must be the
 		  ;; same for source and target.
@@ -2771,7 +2771,7 @@ the result will be a local, non-Tramp, file name."
     (with-parsed-tramp-file-name name nil
       ;; If connection is not established yet, run the real handler.
       (if (not (tramp-connectable-p v))
-	  (tramp-run-real-handler #'expand-file-name (list name nil))
+	  (tramp-run-real-handler #'expand-file-name (list name))
 	(unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	  (setq localname (concat "~/" localname)))
 	;; Tilde expansion if necessary.  This needs a shell which
@@ -3976,7 +3976,7 @@ Only send the definition if it has not already been done."
   ;; We cannot let-bind (tramp-get-connection-process vec) because it
   ;; might be nil.
   (let ((scripts (tramp-get-connection-property
-		  (tramp-get-connection-process vec) "scripts" nil)))
+		  (tramp-get-connection-process vec) "scripts")))
     (unless (member name scripts)
       (with-tramp-progress-reporter
 	  vec 5 (format-message "Sending script `%s'" name)
@@ -4226,7 +4226,7 @@ file exists and nonzero exit status otherwise."
 (defun tramp-find-shell (vec)
   "Open a shell on the remote host which groks tilde expansion."
   ;; If we are in `make-process', we don't need another shell.
-  (unless (tramp-get-connection-property vec "process-name" nil)
+  (unless (tramp-get-connection-property vec "process-name")
     (with-current-buffer (tramp-get-buffer vec)
       (let ((default-shell (tramp-get-method-parameter vec 'tramp-remote-shell))
 	    shell)
@@ -4323,11 +4323,10 @@ process to set up.  VEC specifies the connection."
   ;; connection properties.  We start again with
   ;; `tramp-maybe-open-connection', it will be caught there.
   (tramp-message vec 5 "Checking system information")
-  (let* ((old-uname (tramp-get-connection-property vec "uname" nil))
+  (let* ((old-uname (tramp-get-connection-property vec "uname"))
 	 (uname
 	  ;; If we are in `make-process', we don't need to recompute.
-	  (if (and old-uname
-		   (tramp-get-connection-property vec "process-name" nil))
+	  (if (and old-uname (tramp-get-connection-property vec "process-name"))
 	      old-uname
 	    (tramp-set-connection-property
 	     vec "uname"
@@ -4935,7 +4934,7 @@ Goes through the list `tramp-inline-compress-commands'."
   "Close the connection VEC after a session timeout.
 If there is just some editing, retry it after 5 seconds."
   (if (and (tramp-get-connection-property
-	    (tramp-get-connection-process vec) "locked" nil)
+	    (tramp-get-connection-process vec) "locked")
 	   (tramp-file-name-equal-p vec (car tramp-current-connection)))
       (progn
 	(tramp-message
@@ -4954,7 +4953,7 @@ connection if a previous connection has died for some reason."
     (throw 'non-essential 'non-essential))
 
   (let ((p (tramp-get-connection-process vec))
-	(process-name (tramp-get-connection-property vec "process-name" nil))
+	(process-name (tramp-get-connection-property vec "process-name"))
 	(process-environment (copy-sequence process-environment))
 	(pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
 
@@ -5168,9 +5167,9 @@ connection if a previous connection has died for some reason."
 			  previous-hop hop)))
 
 		;; Activate session timeout.
-		(when (tramp-get-connection-property p "session-timeout" nil)
+		(when (tramp-get-connection-property p "session-timeout")
 		  (run-at-time
-		   (tramp-get-connection-property p "session-timeout" nil) nil
+		   (tramp-get-connection-property p "session-timeout") nil
 		   #'tramp-timeout-session vec))
 
 		;; Make initial shell settings.
@@ -5192,7 +5191,7 @@ is meant to be used from `tramp-maybe-open-connection' only.  The
 function waits for output unless NOOUTPUT is set."
   (unless neveropen (tramp-maybe-open-connection vec))
   (let ((p (tramp-get-connection-process vec)))
-    (when (tramp-get-connection-property p "remote-echo" nil)
+    (when (tramp-get-connection-property p "remote-echo")
       ;; We mark the command string that it can be erased in the output buffer.
       (tramp-set-connection-property p "check-remote-echo" t)
       ;; If we put `tramp-echo-mark' after a trailing newline (which
@@ -5959,7 +5958,7 @@ If no corresponding command is found, nil is returned."
 	     (> size tramp-inline-compress-start-size))
     (with-tramp-connection-property (tramp-get-process vec) prop
       (tramp-find-inline-compress vec)
-      (tramp-get-connection-property (tramp-get-process vec) prop nil))))
+      (tramp-get-connection-property (tramp-get-process vec) prop))))
 
 (defun tramp-get-inline-coding (vec prop size)
   "Return the coding command related to PROP.
@@ -5979,7 +5978,7 @@ function cell is returned to be applied on a buffer."
     (let ((coding
 	   (with-tramp-connection-property (tramp-get-process vec) prop
 	     (tramp-find-inline-encoding vec)
-	     (tramp-get-connection-property (tramp-get-process vec) prop nil)))
+	     (tramp-get-connection-property (tramp-get-process vec) prop)))
 	  (prop1 (if (tramp-compat-string-search "encoding" prop)
 		     "inline-compress" "inline-decompress"))
 	  compress)

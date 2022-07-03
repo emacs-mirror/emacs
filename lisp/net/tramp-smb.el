@@ -748,7 +748,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (setq name (tramp-compat-file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
-      (tramp-run-real-handler #'expand-file-name (list name nil))
+      (tramp-run-real-handler #'expand-file-name (list name))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
       ;; Tilde expansion if necessary.
@@ -1385,7 +1385,7 @@ component is used as the target of the symlink."
       (when tmpinput (delete-file tmpinput))
       ;; FIXME: Does connection-property "process-buffer" still exist?
       (unless outbuf
-	(kill-buffer (tramp-get-connection-property v "process-buffer" nil)))
+	(kill-buffer (tramp-get-connection-property v "process-buffer")))
       (when process-file-side-effects
 	(tramp-flush-directory-properties v ""))
 
@@ -1700,7 +1700,7 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
     (setq localname (or localname "/"))
     (with-tramp-file-property v localname "file-entries"
       (let* ((share (tramp-smb-get-share v))
-	     (cache (tramp-get-connection-property v "share-cache" nil))
+	     (cache (tramp-get-connection-property v "share-cache"))
 	     res entry)
 
 	(if (and (not share) cache)
@@ -2029,7 +2029,7 @@ If ARGUMENT is non-nil, use it as argument for
 		      (if (not (zerop (length user))) (concat user "@") "")
 		      host (or share ""))
 
-	    (let* ((coding-system-for-read nil)
+	    (let* (coding-system-for-read
 		   (process-connection-type tramp-process-connection-type)
 		   (p (let ((default-directory
 			      tramp-compat-temporary-file-directory)

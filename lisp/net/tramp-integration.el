@@ -108,7 +108,7 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 		     end))
 	     (point-max))
 	    (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
-		  (rfn-eshadow-update-overlay-hook nil)
+		  rfn-eshadow-update-overlay-hook
 		  file-name-handler-alist)
 	      (move-overlay rfn-eshadow-overlay (point-max) (point-max))
 	      (rfn-eshadow-update-overlay))))))))

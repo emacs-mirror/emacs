@@ -1020,7 +1020,7 @@ file names."
 
 	 ;; We cannot copy or rename directly.
 	 ((or (and equal-remote
-		   (tramp-get-connection-property v "direct-copy-failed" nil))
+		   (tramp-get-connection-property v "direct-copy-failed"))
 	      (and t1 (not (tramp-gvfs-file-name-p filename)))
 	      (and t2 (not (tramp-gvfs-file-name-p newname))))
 	  (let ((tmpfile (tramp-compat-make-temp-file filename)))
@@ -1057,7 +1057,7 @@ file names."
 		(if (or (not equal-remote)
 			(and equal-remote
 			     (tramp-get-connection-property
-			      v "direct-copy-failed" nil)))
+			      v "direct-copy-failed")))
 		    ;; Propagate the error.
 		    (with-current-buffer (tramp-get-connection-buffer v)
 		      (goto-char (point-min))
@@ -1145,7 +1145,7 @@ file names."
     (setq name (tramp-compat-file-name-concat dir name)))
   ;; If NAME is not a Tramp file, run the real handler.
   (if (not (tramp-tramp-file-p name))
-      (tramp-run-real-handler #'expand-file-name (list name nil))
+      (tramp-run-real-handler #'expand-file-name (list name))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
       ;; If there is a default location, expand tilde.
@@ -1336,32 +1336,29 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	     (or (cdr (assoc "standard::size" attributes)) "0")))
       ;; ... file mode flags
       (setq res-filemodes
-	    (let ((n (cdr (assoc "unix::mode" attributes))))
-	      (if n
-		  (tramp-file-mode-from-int (string-to-number n))
-		(format
-		 "%s%s%s%s------"
-		 (if dirp "d" (if res-symlink-target "l" "-"))
-		 (if (equal (cdr (assoc "access::can-read" attributes))
-			    "FALSE")
-		     "-" "r")
-		 (if (equal (cdr (assoc "access::can-write" attributes))
-			    "FALSE")
-		     "-" "w")
-		 (if (equal (cdr (assoc "access::can-execute" attributes))
-			    "FALSE")
-		     "-" "x")))))
+	    (if-let ((n (cdr (assoc "unix::mode" attributes))))
+		(tramp-file-mode-from-int (string-to-number n))
+	      (format
+	       "%s%s%s%s------"
+	       (if dirp "d" (if res-symlink-target "l" "-"))
+	       (if (equal (cdr (assoc "access::can-read" attributes))
+			  "FALSE")
+		   "-" "r")
+	       (if (equal (cdr (assoc "access::can-write" attributes))
+			  "FALSE")
+		   "-" "w")
+	       (if (equal (cdr (assoc "access::can-execute" attributes))
+			  "FALSE")
+		   "-" "x"))))
       ;; ... inode and device
       (setq res-inode
-	    (let ((n (cdr (assoc "unix::inode" attributes))))
-	      (if n
-		  (string-to-number n)
-		(tramp-get-inode (tramp-dissect-file-name filename)))))
+	    (if-let ((n (cdr (assoc "unix::inode" attributes))))
+		(string-to-number n)
+	      (tramp-get-inode (tramp-dissect-file-name filename))))
       (setq res-device
-	    (let ((n (cdr (assoc "unix::device" attributes))))
-	      (if n
-		  (string-to-number n)
-		(tramp-get-device (tramp-dissect-file-name filename)))))
+	    (if-let ((n (cdr (assoc "unix::device" attributes))))
+		(string-to-number n)
+	      (tramp-get-device (tramp-dissect-file-name filename))))
 
       ;; Return data gathered.
       (list
@@ -1582,8 +1579,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	  (with-current-buffer (tramp-get-connection-buffer vec)
 	    (goto-char (point-min))
 	    (when (looking-at-p "gio: Operation not supported")
-	      (tramp-set-connection-property vec key nil)))
-	  nil))))
+	      (tramp-set-connection-property vec key nil)))))))
 
 (defun tramp-gvfs-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
@@ -1612,12 +1608,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 If USER is a string, return its home directory instead of the
 user identified by VEC.  If there is no user specified in either
 VEC or USER, or if there is no home directory, return nil."
-  (let ((localname
-	 (tramp-get-connection-property vec "default-location" nil))
+  (let ((localname (tramp-get-connection-property vec "default-location"))
 	result)
     (cond
      ((zerop (length localname))
-      (tramp-get-connection-property (tramp-get-process vec) "share" nil))
+      (tramp-get-connection-property (tramp-get-process vec) "share"))
      ;; Google-drive.
      ((not (string-prefix-p "/" localname))
       (dolist (item
@@ -1634,8 +1629,7 @@ ID-FORMAT valid values are `string' and `integer'."
   (if (equal id-format 'string)
       (tramp-file-name-user vec)
     (when-let ((localname
-		(tramp-get-connection-property
-		 (tramp-get-process vec) "share" nil)))
+		(tramp-get-connection-property (tramp-get-process vec) "share")))
       (file-attribute-user-id
        (file-attributes (tramp-make-tramp-file-name vec localname) id-format)))))
 
@@ -1643,8 +1637,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
   (when-let ((localname
-	      (tramp-get-connection-property
-	       (tramp-get-process vec) "share" nil)))
+	      (tramp-get-connection-property (tramp-get-process vec) "share")))
     (file-attribute-group-id
      (file-attributes (tramp-make-tramp-file-name vec localname) id-format))))
 
@@ -1682,7 +1675,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		  (concat (tramp-gvfs-get-remote-prefix v) localname)))
 	  (when (string-equal "mtp" method)
 	    (when-let
-		((media (tramp-get-connection-property v "media-device" nil)))
+		((media (tramp-get-connection-property v "media-device")))
 	      (setq method (tramp-media-device-method media)
 		    host (tramp-media-device-host media)
 		    port (tramp-media-device-port media))))
@@ -1757,7 +1750,7 @@ a downcased host name only."
 	    (setq domain (read-string "Domain name: ")))
 
 	  (tramp-message l 6 "%S %S %S %d" message user domain flags)
-	  (unless (tramp-get-connection-property l "first-password-request" nil)
+	  (unless (tramp-get-connection-property l "first-password-request")
 	    (tramp-clear-passwd l))
 
 	  (setq password (tramp-read-passwd
@@ -1879,14 +1872,13 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	(when (member method tramp-media-methods)
 	  ;; Ensure that media devices are cached.
 	  (tramp-get-media-devices nil)
-	  (let ((v (tramp-get-connection-property
-		    (make-tramp-media-device
-		     :method method :host host :port port)
-		    "vector" nil)))
-	    (when v
-	      (setq method (tramp-file-name-method v)
-		    host (tramp-file-name-host v)
-		    port (tramp-file-name-port v)))))
+	  (when-let ((v (tramp-get-connection-property
+			 (make-tramp-media-device
+			  :method method :host host :port port)
+			 "vector" nil)))
+	    (setq method (tramp-file-name-method v)
+		  host (tramp-file-name-host v)
+		  port (tramp-file-name-port v))))
 	(when (member method tramp-gvfs-methods)
 	  (let ((v (make-tramp-file-name
 		    :method method :user user :domain domain
@@ -1924,15 +1916,14 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 (defun tramp-gvfs-connection-mounted-p (vec)
   "Check, whether the location is already mounted."
   (or
-   (tramp-get-file-property vec "/" "fuse-mountpoint" nil)
+   (tramp-get-file-property vec "/" "fuse-mountpoint")
    (catch 'mounted
      (dolist
 	 (elt
 	  (with-tramp-file-property vec "/" "list-mounts"
 	    (with-tramp-dbus-call-method vec t
 	      :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
-	      tramp-gvfs-interface-mounttracker tramp-gvfs-listmounts))
-	  nil)
+	      tramp-gvfs-interface-mounttracker tramp-gvfs-listmounts)))
        ;; Jump over the first elements of the mount info.  Since there
        ;; were changes in the entries, we cannot access dedicated
        ;; elements.
@@ -1981,14 +1972,13 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	 (when (member method tramp-media-methods)
 	   ;; Ensure that media devices are cached.
 	   (tramp-get-media-devices vec)
-	   (let ((v (tramp-get-connection-property
-		     (make-tramp-media-device
-		      :method method :host host :port port)
-		     "vector" nil)))
-	     (when v
-	       (setq method (tramp-file-name-method v)
-		     host (tramp-file-name-host v)
-		     port (tramp-file-name-port v)))))
+	   (when-let ((v (tramp-get-connection-property
+			  (make-tramp-media-device
+			   :method method :host host :port port)
+			  "vector")))
+	     (setq method (tramp-file-name-method v)
+		   host (tramp-file-name-host v)
+		   port (tramp-file-name-port v))))
 	 (when (and
 		(string-equal method (tramp-file-name-method vec))
 		(string-equal user (tramp-file-name-user vec))
@@ -2244,7 +2234,7 @@ connection if a previous connection has died for some reason."
 	       (tramp-error
 		vec 'file-error
 		"Timeout reached mounting %s@%s using %s" user host method)))
-	  (while (not (tramp-get-file-property vec "/" "fuse-mountpoint" nil))
+	  (while (not (tramp-get-file-property vec "/" "fuse-mountpoint"))
 	    (read-event nil nil 0.1)))
 
 	;; If `tramp-gvfs-handler-askquestion' has returned "No", it
@@ -2382,11 +2372,11 @@ It checks for registered GNOME Online Accounts."
 (defun tramp-get-media-device (vec)
   "Transform VEC into a `tramp-media-device' structure.
 Check, that respective cache values do exist."
-  (if-let ((media (tramp-get-connection-property vec "media-device" nil))
-	   (prop (tramp-get-connection-property media "vector" nil)))
+  (if-let ((media (tramp-get-connection-property vec "media-device"))
+	   (prop (tramp-get-connection-property media "vector")))
       media
     (tramp-get-media-devices vec)
-    (tramp-get-connection-property vec "media-device" nil)))
+    (tramp-get-connection-property vec "media-device")))
 
 (defun tramp-get-media-devices (vec)
   "Retrieve media devices, and cache them.
@@ -2431,9 +2421,9 @@ It checks for mounted media devices."
    (lambda (key)
      (and (tramp-media-device-p key)
 	  (string-equal service (tramp-media-device-method key))
-	  (tramp-get-connection-property key "vector" nil)
+	  (tramp-get-connection-property key "vector")
 	  (list nil (tramp-file-name-host
-		     (tramp-get-connection-property key "vector" nil)))))
+		     (tramp-get-connection-property key "vector")))))
    (hash-table-keys tramp-cache-data)))
 
 

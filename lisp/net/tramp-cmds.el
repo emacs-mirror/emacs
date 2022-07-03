@@ -135,7 +135,7 @@ When called interactively, a Tramp connection has to be selected."
 		     (get-buffer (tramp-debug-buffer-name vec)))
 		   (unless keep-debug
 		     (get-buffer (tramp-trace-buffer-name vec)))
-		   (tramp-get-connection-property vec "process-buffer" nil)))
+		   (tramp-get-connection-property vec "process-buffer")))
       (when (bufferp buf) (kill-buffer buf)))
 
     ;; Flush file cache.
@@ -722,7 +722,7 @@ the debug buffer(s).")
 
 	(when (y-or-n-p "Do you want to append the buffer(s)?")
 	  ;; OK, let's send.  First we delete the buffer list.
-	  (kill-buffer nil)
+	  (kill-buffer)
 	  (switch-to-buffer curbuf)
 	  (goto-char (point-max))
 	  (insert (propertize "\n" 'display "\n\

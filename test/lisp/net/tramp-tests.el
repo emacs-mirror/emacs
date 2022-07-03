@@ -6570,7 +6570,7 @@ Additionally, ls does not support \"--dired\"."
 	 ;; This fails for tramp-crypt.el, so we ignore that.
 	 (ignore-errors
 	   (insert-directory ert-remote-temporary-file-directory "-al"))
-	 (not (tramp-get-connection-property tramp-test-vec "ls--dired" nil)))))
+	 (not (tramp-get-connection-property tramp-test-vec "ls--dired")))))
 
 (defun tramp--test-share-p ()
   "Check, whether the method needs a share."
@@ -7141,13 +7141,13 @@ The values are derived from PROC.  Run BODY.
 This is needed in timer functions as well as process filters and sentinels."
   ;; FIXME: For tramp-sshfs.el, `processp' does not work.
   (declare (indent 1) (debug (processp body)))
-  `(let* ((v (tramp-get-connection-property ,proc "vector" nil))
-	  (pname (tramp-get-connection-property v "process-name" nil))
-	  (pbuffer (tramp-get-connection-property v "process-buffer" nil)))
+  `(let* ((v (tramp-get-connection-property ,proc "vector"))
+	  (pname (tramp-get-connection-property v "process-name"))
+	  (pbuffer (tramp-get-connection-property v "process-buffer")))
      (tramp--test-message
       "tramp--test-with-proper-process-name-and-buffer before %s %s"
-      (tramp-get-connection-property v "process-name" nil)
-      (tramp-get-connection-property v "process-buffer" nil))
+      (tramp-get-connection-property v "process-name")
+      (tramp-get-connection-property v "process-buffer"))
      (if (process-name ,proc)
 	 (tramp-set-connection-property v "process-name" (process-name ,proc))
        (tramp-flush-connection-property v "process-name"))
@@ -7157,8 +7157,8 @@ This is needed in timer functions as well as process filters and sentinels."
        (tramp-flush-connection-property v "process-buffer"))
      (tramp--test-message
       "tramp--test-with-proper-process-name-and-buffer changed %s %s"
-      (tramp-get-connection-property v "process-name" nil)
-      (tramp-get-connection-property v "process-buffer" nil))
+      (tramp-get-connection-property v "process-name")
+      (tramp-get-connection-property v "process-buffer"))
      (unwind-protect
 	 (progn ,@body)
        (if pname

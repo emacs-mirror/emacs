@@ -270,7 +270,7 @@ arguments to pass to the OPERATION."
   "Parse `file-attributes' for Tramp files using the ls(1) command."
   (with-current-buffer (tramp-get-buffer vec)
     (goto-char (point-min))
-    (let ((file-properties nil))
+    (let (file-properties)
       (while (re-search-forward tramp-adb-ls-toolbox-regexp nil t)
 	(let* ((mod-string (match-string 1))
 	       (is-dir (eq ?d (aref mod-string 0)))
@@ -1289,8 +1289,7 @@ connection if a previous connection has died for some reason."
 	      "echo \\\"`getprop ro.product.model` "
 	      "`getprop ro.product.version` "
 	      "`getprop ro.build.version.release`\\\""))
-	    (let ((old-getprop
-		   (tramp-get-connection-property vec "getprop" nil))
+	    (let ((old-getprop (tramp-get-connection-property vec "getprop"))
 		  (new-getprop
 		   (tramp-set-connection-property
 		    vec "getprop"

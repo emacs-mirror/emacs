@@ -52,9 +52,9 @@
     ;; Suppress message from `emacs-repository-get-branch'.  We must
     ;; also handle out-of-tree builds.
     (let ((inhibit-message t)
-	  (debug-on-error nil)
 	  (dir (or (locate-dominating-file (locate-library "tramp") ".git")
-		   source-directory)))
+		   source-directory))
+	  debug-on-error)
       ;; `emacs-repository-get-branch' has been introduced with Emacs 27.1.
       (with-no-warnings
 	(and (stringp dir) (file-directory-p dir)
@@ -67,9 +67,9 @@
     ;; Suppress message from `emacs-repository-get-version'.  We must
     ;; also handle out-of-tree builds.
     (let ((inhibit-message t)
-	  (debug-on-error nil)
 	  (dir (or (locate-dominating-file (locate-library "tramp") ".git")
-		   source-directory)))
+		   source-directory))
+	  debug-on-error)
       (and (stringp dir) (file-directory-p dir)
 	   (executable-find "git")
 	   (emacs-repository-get-version dir))))

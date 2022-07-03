@@ -31,7 +31,7 @@
 
 (require 'auth-source)
 (require 'format-spec)
-(require 'ls-lisp)  ;; Due to `tramp-handle-insert-directory'.
+(require 'ls-lisp) ;; Due to `tramp-handle-insert-directory'.
 (require 'parse-time)
 (require 'shell)
 (require 'subr-x)
@@ -234,7 +234,7 @@ CONDITION can also be a list of error conditions."
   (if (fboundp 'string-replace)
       #'string-replace
     (lambda (from-string to-string in-string)
-      (let ((case-fold-search nil))
+      (let (case-fold-search)
         (replace-regexp-in-string
          (regexp-quote from-string) to-string in-string t t)))))
 
@@ -243,7 +243,7 @@ CONDITION can also be a list of error conditions."
   (if (fboundp 'string-search)
       #'string-search
     (lambda (needle haystack &optional start-pos)
-      (let ((case-fold-search nil))
+      (let (case-fold-search)
         (string-match-p (regexp-quote needle) haystack start-pos)))))
 
 ;; Function `make-lock-file-name' is new in Emacs 28.1.

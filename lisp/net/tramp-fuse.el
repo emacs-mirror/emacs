@@ -153,7 +153,7 @@
 
 (defun tramp-fuse-mount-point (vec)
   "Return local mount point of VEC."
-  (or (tramp-get-connection-property vec "mount-point" nil)
+  (or (tramp-get-connection-property vec "mount-point")
       (expand-file-name
        (concat
 	tramp-temp-name-prefix
@@ -177,7 +177,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
   ;; cannot use `with-tramp-file-property', because we don't want to
   ;; cache a nil result.
   (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
-    (or (tramp-get-file-property vec "/" "mounted" nil)
+    (or (tramp-get-file-property vec "/" "mounted")
         (let* ((default-directory tramp-compat-temporary-file-directory)
                (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
 	       (mount (shell-command-to-string command)))

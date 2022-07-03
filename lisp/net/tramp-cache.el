@@ -129,7 +129,7 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 	  hash))))
 
 ;;;###tramp-autoload
-(defun tramp-get-file-property (key file property default)
+(defun tramp-get-file-property (key file property &optional default)
   "Get the PROPERTY of FILE from the cache context of KEY.
 Return DEFAULT if not set."
   ;; Unify localname.  Remove hop from `tramp-file-name' structure.
@@ -240,7 +240,7 @@ Return VALUE."
 (defun tramp-flush-file-properties (key file)
   "Remove all properties of FILE in the cache context of KEY."
   (let* ((file (tramp-run-real-handler #'directory-file-name (list file)))
-	 (truename (tramp-get-file-property key file "file-truename" nil)))
+	 (truename (tramp-get-file-property key file "file-truename")))
     ;; Unify localname.  Remove hop from `tramp-file-name' structure.
     (setq file (tramp-compat-file-name-unquote file)
 	  key (copy-tramp-file-name key))
@@ -262,7 +262,7 @@ Remove also properties of all files in subdirectories."
   (setq directory (tramp-compat-file-name-unquote directory))
   (let* ((directory (tramp-run-real-handler
 		    #'directory-file-name (list directory)))
-	 (truename (tramp-get-file-property key directory "file-truename" nil)))
+	 (truename (tramp-get-file-property key directory "file-truename")))
     (tramp-message key 8 "%s" directory)
     (dolist (key (hash-table-keys tramp-cache-data))
       (when (and (tramp-file-name-p key)
@@ -311,7 +311,7 @@ This is suppressed for temporary buffers."
 ;;; -- Properties --
 
 ;;;###tramp-autoload
-(defun tramp-get-connection-property (key property default)
+(defun tramp-get-connection-property (key property &optional default)
   "Get the named PROPERTY for the connection.
 KEY identifies the connection, it is either a process or a
 `tramp-file-name' structure.  A special case is nil, which is

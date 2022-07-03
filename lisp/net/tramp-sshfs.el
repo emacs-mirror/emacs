@@ -449,7 +449,7 @@ connection if a previous connection has died for some reason."
     (funcall orig-fun)))
 
 (add-function
- :around  (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)
+ :around (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)
 (add-hook 'tramp-sshfs-unload-hook
 	  (lambda ()
 	    (remove-function

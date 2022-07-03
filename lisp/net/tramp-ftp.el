@@ -125,7 +125,7 @@ pass to the OPERATION."
 	  ;; "ftp" method is used in the Tramp file name.  So we unset
 	  ;; those values.
 	  (ange-ftp-ftp-name-arg "")
-	  (ange-ftp-ftp-name-res nil))
+	  ange-ftp-ftp-name-res)
       (cond
        ;; If argument is a symlink, `file-directory-p' and
        ;; `file-exists-p' call the traversed file recursively.  So we

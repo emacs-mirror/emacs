@@ -151,7 +151,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
 	 (dolist (dir tramp-crypt-directories)
 	   (and (string-prefix-p
 		 dir (file-name-as-directory (expand-file-name name)))
-		(throw  'crypt-file-name-p dir))))))
+		(throw 'crypt-file-name-p dir))))))
 
 
 ;; New handlers should be added here.
