@@ -10633,6 +10633,10 @@ x_scroll_run (struct window *w, struct run *run)
 static void
 x_frame_highlight (struct frame *f)
 {
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the
@@ -10642,10 +10646,10 @@ x_frame_highlight (struct frame *f)
      the window-manager in use, tho something more is at play since I've been
      using that same window-manager binary for ever.  Let's not crash just
      because of this (bug#9310).  */
-  x_catch_errors (FRAME_X_DISPLAY (f));
+  x_ignore_errors_for_next_request (dpyinfo);
   XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    f->output_data.x->border_pixel);
-  x_uncatch_errors ();
+  x_stop_ignoring_errors (dpyinfo);
   unblock_input ();
   gui_update_cursor (f, true);
   x_set_frame_alpha (f);
@@ -10654,17 +10658,23 @@ x_frame_highlight (struct frame *f)
 static void
 x_frame_unhighlight (struct frame *f)
 {
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the
      client", so we can always change it to whatever we want.  */
+
   block_input ();
   /* Same as above for XSetWindowBorder (bug#9310).  */
-  x_catch_errors (FRAME_X_DISPLAY (f));
+  x_ignore_errors_for_next_request (dpyinfo);
   XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			  f->output_data.x->border_tile);
-  x_uncatch_errors ();
+  x_stop_ignoring_errors (dpyinfo);
   unblock_input ();
+
   gui_update_cursor (f, true);
   x_set_frame_alpha (f);
 }
