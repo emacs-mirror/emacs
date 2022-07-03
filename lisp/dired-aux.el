@@ -3023,18 +3023,20 @@ When called interactively and not on a subdir line, go to this subdir's line."
 
 ;;;###autoload
 (defun dired-goto-subdir (dir)
-  "Go to end of header line of DIR in this dired buffer.
+  "Go to end of header line of inserted directory DIR in this Dired buffer.
+When called interactively, prompt for the inserted subdirectory
+to go to.
+
 Return value of point on success, otherwise return nil.
 The next char is \\n."
   (interactive
    (prog1				; let push-mark display its message
        (list (expand-file-name
-	      (completing-read "Goto in situ directory: " ; prompt
-			       dired-subdir-alist ; table
-			       nil	; predicate
-			       t	; require-match
-			       (dired-current-directory))))
-     (push-mark)))
+              (completing-read "Goto inserted directory: "
+                               dired-subdir-alist nil t
+                               (dired-current-directory))))
+     (push-mark))
+   dired-mode)
   (setq dir (file-name-as-directory dir))
   (let ((elt (assoc dir dired-subdir-alist)))
     (and elt
