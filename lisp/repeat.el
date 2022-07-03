@@ -508,8 +508,9 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                                           (key-description (vector key)))))
                                keys ", ")
                     (if repeat-exit-key
-                        (format ", or exit with %s"
-                                (key-description repeat-exit-key))
+                        (substitute-command-keys
+                         (format ", or exit with \\`%s'"
+                                 (key-description repeat-exit-key)))
                       ""))))
 
 (defun repeat-echo-message (keymap)
