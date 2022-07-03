@@ -188,6 +188,25 @@ be considered.")
    ;; I also find it often preferable not to pair next to a word.
    (eq (char-syntax (following-char)) ?w)))
 
+(cl-defmacro electric-pair--with-text-syntax ((&optional start) &rest body)
+  "Run BODY with `electric-pair-text-syntax-table' active.
+This ensures that all syntax related values are set properly and the
+`syntax-ppss' cache is cleared before and after.
+In particular, this must be used when BODY contains code which may
+update the `syntax-ppss' cache.  This includes calling
+`parse-partial-sexp' and any sexp-based movement functions when
+`parse-sexp-lookup-properties' is non-nil.  The cache is flushed from
+position START, defaulting to point."
+  (declare (debug ((&optional form) body)) (indent 1))
+  (let ((start-var (make-symbol "start")))
+    `(let ((syntax-propertize-function nil)
+           (,start-var ,(or start '(point))))
+       (syntax-ppss-flush-cache ,start-var)
+       (unwind-protect
+           (with-syntax-table electric-pair-text-syntax-table
+             ,@body)
+         (syntax-ppss-flush-cache ,start-var)))))
+
 (defun electric-pair-syntax-info (command-event)
   "Calculate a list (SYNTAX PAIR UNCONDITIONAL STRING-OR-COMMENT-START).
 
@@ -202,13 +221,14 @@ inside a comment or string."
          (post-string-or-comment (nth 8 (syntax-ppss (point))))
          (string-or-comment (and post-string-or-comment
                                  pre-string-or-comment))
-         (table (if string-or-comment
-                    electric-pair-text-syntax-table
-                  (syntax-table)))
-         (table-syntax-and-pair (with-syntax-table table
-                                  (list (char-syntax command-event)
-                                        (or (matching-paren command-event)
-                                            command-event))))
+         (table-syntax-and-pair
+          (cl-flet ((f ()
+                      (list (char-syntax command-event)
+                            (or (matching-paren command-event)
+                                command-event))))
+            (if string-or-comment
+                (electric-pair--with-text-syntax () (f))
+              (f))))
          (fallback (if string-or-comment
                        (append electric-pair-text-pairs
                                electric-pair-pairs)
@@ -237,22 +257,6 @@ inside a comment or string."
         (electric-layout-allow-duplicate-newlines t))
     (self-insert-command 1)))
 
-(cl-defmacro electric-pair--with-uncached-syntax ((table &optional start) &rest body)
-  "Like `with-syntax-table', but flush the `syntax-ppss' cache afterwards.
-Use this instead of (with-syntax-table TABLE BODY) when BODY
-contains code which may update the `syntax-ppss' cache.  This
-includes calling `parse-partial-sexp' and any sexp-based movement
-functions when `parse-sexp-lookup-properties' is non-nil.  The
-cache is flushed from position START, defaulting to point."
-  (declare (debug ((form &optional form) body)) (indent 1))
-  (let ((start-var (make-symbol "start")))
-    `(let ((syntax-propertize-function #'ignore)
-           (,start-var ,(or start '(point))))
-       (unwind-protect
-           (with-syntax-table ,table
-             ,@body)
-         (syntax-ppss-flush-cache ,start-var)))))
-
 (defun electric-pair--syntax-ppss (&optional pos where)
   "Like `syntax-ppss', but sometimes fallback to `parse-partial-sexp'.
 
@@ -271,8 +275,7 @@ when to fallback to `parse-partial-sexp'."
                               (skip-syntax-forward " >!")
                               (point)))))
     (if s-or-c-start
-        (electric-pair--with-uncached-syntax (electric-pair-text-syntax-table
-                                              s-or-c-start)
+        (electric-pair--with-text-syntax (s-or-c-start)
           (parse-partial-sexp s-or-c-start pos))
       ;; HACK! cc-mode apparently has some `syntax-ppss' bugs
       (if (memq major-mode '(c-mode c++ mode))
@@ -301,9 +304,6 @@ If the outermost list is matched, don't rely on its PAIR.
 If point is not enclosed by any lists, return ((t) . (t))."
   (let* (innermost
          outermost
-         (table (if string-or-comment
-                    electric-pair-text-syntax-table
-                  (syntax-table)))
          (at-top-level-or-equivalent-fn
           ;; called when `scan-sexps' ran perfectly, when it found
           ;; a parenthesis pointing in the direction of travel.
@@ -325,11 +325,14 @@ If point is not enclosed by any lists, return ((t) . (t))."
                       (cond ((< direction 0)
                              (condition-case nil
                                  (eq (char-after pos)
-                                     (electric-pair--with-uncached-syntax
-                                      (table)
-                                      (matching-paren
-                                       (char-before
-                                        (scan-sexps (point) 1)))))
+                                     (cl-flet ((f ()
+                                                 (matching-paren
+                                                  (char-before
+                                                   (scan-sexps (point) 1)))))
+                                       (if string-or-comment
+                                           (electric-pair--with-text-syntax ()
+                                             (f))
+                                         (f))))
                                (scan-error nil)))
                             (t
                              ;; In this case, no need to use
@@ -343,7 +346,9 @@ If point is not enclosed by any lists, return ((t) . (t))."
                                     (opener (char-after start)))
                                (and start
                                     (eq (char-before pos)
-                                        (or (with-syntax-table table
+                                        (or (if string-or-comment
+                                                (electric-pair--with-text-syntax ()
+                                                  (matching-paren opener))
                                               (matching-paren opener))
                                             opener))))))))
                    (actual-pair (if (> direction 0)
@@ -356,11 +361,14 @@ If point is not enclosed by any lists, return ((t) . (t))."
     (save-excursion
       (while (not outermost)
         (condition-case err
-            (electric-pair--with-uncached-syntax (table)
-              (scan-sexps (point) (if (> direction 0)
-                                      (point-max)
-                                    (- (point-max))))
-              (funcall at-top-level-or-equivalent-fn))
+            (cl-flet ((f ()
+                        (scan-sexps (point) (if (> direction 0)
+                                                (point-max)
+                                              (- (point-max))))
+                        (funcall at-top-level-or-equivalent-fn)))
+              (if string-or-comment
+                  (electric-pair--with-text-syntax () (f))
+                (f)))
           (scan-error
            (cond ((or
                    ;; some error happened and it is not of the "ended
