@@ -6667,6 +6667,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  if (h <= 0)
 	    {
 	      bidi_unshelve_cache (itdata, false);
+	      unbind_to (count, Qnil);
 	      return Qnil;
 	    }
 
