@@ -889,6 +889,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-subseq '(a b c d e) 2 4))
   (seq-take
    :eval (seq-take '(a b c d e) 3))
+  (seq-split
+   :eval (seq-split [0 1 2 3 5] 2))
   (seq-take-while
    :eval (seq-take-while #'cl-evenp [2 4 9 6 5]))
   (seq-uniq

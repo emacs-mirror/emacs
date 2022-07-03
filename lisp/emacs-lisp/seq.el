@@ -632,5 +632,20 @@ Signal an error if SEQUENCE is empty."
   ;; we automatically highlight macros.
   (add-hook 'emacs-lisp-mode-hook #'seq--activate-font-lock-keywords))
 
+(defun seq-split (sequence length)
+  "Split SEQUENCE into a list of sub-sequences of at most LENGTH.
+All the sub-sequences will be of LENGTH, except the last one,
+which may be shorter."
+  (when (< length 1)
+    (error "Sub-sequence length must be larger than zero"))
+  (let ((result nil)
+        (seq-length (length sequence))
+        (start 0))
+    (while (< start seq-length)
+      (push (seq-subseq sequence start
+                        (setq start (min seq-length (+ start length))))
+            result))
+    (nreverse result)))
+
 (provide 'seq)
 ;;; seq.el ends here

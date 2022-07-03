@@ -2251,6 +2251,10 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New function 'seq-split'.
+This returns a list of sub-sequences of the specified sequence.
+
++++
 ** 'plist-get', 'plist-put' and 'plist-member' are no longer limited to 'eq'.
 These function now take an optional comparison predicate argument.
 
