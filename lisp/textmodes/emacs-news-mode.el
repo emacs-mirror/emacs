@@ -39,12 +39,24 @@
   "Face used for displaying the \"does not need documentation\" tag."
   :version "29.1")
 
+(defvar-keymap emacs-news-common-map
+  ;; Navigation like `org-mode'/`outline-minor-mode'.
+  "C-c C-f" #'outline-forward-same-level
+  "C-c C-b" #'outline-backward-same-level
+  "C-c C-n" #'outline-next-visible-heading
+  "C-c C-p" #'outline-previous-visible-heading
+  "C-c C-u" #'outline-up-heading)
+
 (defvar-keymap emacs-news-mode-map
+  :parent emacs-news-common-map
   "C-c C-s" #'emacs-news-next-untagged-entry
   "C-c C-r" #'emacs-news-previous-untagged-entry
   "C-c C-g" #'emacs-news-goto-section
-  "C-c C-f" #'emacs-news-find-heading
-  "C-c C-n" #'emacs-news-count-untagged-entries)
+  "C-c C-j" #'emacs-news-find-heading
+  "C-c C-e" #'emacs-news-count-untagged-entries)
+
+(defvar-keymap emacs-news-view-mode-map
+  :parent emacs-news-common-map)
 
 (defvar emacs-news-mode-font-lock-keywords
   `(("^---$" 0 'emacs-news-does-not-need-documentation)
