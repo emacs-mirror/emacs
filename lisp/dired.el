@@ -4827,6 +4827,11 @@ Interactively with prefix argument, read FILE-NAME."
   (interactive nil dired-mode)
   (info (dired-get-file-for-visit)))
 
+(defun dired-do-eww ()
+  "In Dired, visit file in EWW."
+  (interactive nil dired-mode)
+  (eww-open-file (dired-get-file-for-visit)))
+
 (provide 'dired)
 
 (run-hooks 'dired-load-hook)		; for your customizations

@@ -1061,6 +1061,9 @@ the following to your Init file:
   (keymap-set dired-mode-map "N" nil)
   (keymap-set dired-mode-map "I" nil))
 
+*** New command 'dired-do-eww'.
+This command visits the file on the current line with EWW.
+
 ** Elisp
 
 *** New command 'elisp-eval-buffer' (bound to 'C-c C-e').
