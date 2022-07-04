@@ -339,6 +339,10 @@ increase and decrease the font size globally.  Additionally, the
 variable 'global-text-scale-adjust-resizes-frames' controls whether
 the frames are resized when the font size is changed.
 
++++
+** New function 'file-parent-directory'.
+Get the parent directory of a file.
+
 ** New config variable 'syntax-wholeline-max' to reduce the cost of long lines.
 This variable is used by some operations (mostly syntax-propertization
 and font-locking) to treat lines longer than this variable as if they

@@ -353,6 +353,13 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (abbreviate-file-name
    :no-eval (abbreviate-file-name "/home/some-user")
    :eg-result "~some-user")
+  (file-parent-directory
+   :eval (file-parent-directory "/foo/bar")
+   :eval (file-parent-directory "~")
+   :eval (file-parent-directory "/tmp/")
+   :eval (file-parent-directory "foo/bar")
+   :eval (file-parent-directory "foo")
+   :eval (file-parent-directory "/"))
   "Quoted File Names"
   (file-name-quote
    :args (name)

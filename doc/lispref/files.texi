@@ -2445,6 +2445,12 @@ You can use this function for directory names and for file names,
 because it recognizes abbreviations even as part of the name.
 @end defun
 
+@defun file-parent-directory filename
+This function returns the parent directory of @var{filename}.  If
+@var{filename} is at the top level, return @code{nil}.  @var{filename}
+can be relative to @code{default-directory}.
+@end defun
+
 @node File Name Expansion
 @subsection Functions that Expand Filenames
 @cindex expansion of file names

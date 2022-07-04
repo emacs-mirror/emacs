@@ -5145,6 +5145,23 @@ On most systems, this will be true:
           (setq filename nil))))
     components))
 
+(defun file-parent-directory (filename)
+  "Return the parent directory of FILENAME.
+If FILENAME is at the top level, return nil.  FILENAME can be
+relative to `default-directory'."
+  (let* ((expanded-filename (expand-file-name filename))
+         (parent (file-name-directory (directory-file-name expanded-filename))))
+    (cond
+     ;; filename is at top-level, therefore no parent
+     ((or (null parent)
+          (file-equal-p parent expanded-filename))
+      nil)
+     ;; filename is relative, return relative parent
+     ((not (file-name-absolute-p filename))
+      (file-relative-name parent))
+     (t
+      parent))))
+
 (defcustom make-backup-file-name-function
   #'make-backup-file-name--default-function
   "A function that `make-backup-file-name' uses to create backup file names.
