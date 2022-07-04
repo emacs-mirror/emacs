@@ -1268,6 +1268,13 @@ static Window x_dnd_waiting_for_status_window;
    upon receiving an XdndStatus event from said window.  */
 static XEvent x_dnd_pending_send_position;
 
+/* If true, send a drop from `x_dnd_finish_frame' to the pending
+   status window after receiving all pending XdndStatus events.  */
+static bool x_dnd_need_send_drop;
+
+/* The protocol version of any such drop.  */
+static int x_dnd_send_drop_proto;
+
 /* The action the drop target actually chose to perform.
 
    Under XDND, this is set upon receiving the XdndFinished or
@@ -4526,6 +4533,19 @@ x_dnd_send_drop (struct frame *f, Window target, Time timestamp,
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (FRAME_X_DISPLAY (f), target, False, NoEventMask, &msg);
   x_stop_ignoring_errors (dpyinfo);
+  return true;
+}
+
+static bool
+x_dnd_do_drop (Window target, int supported)
+{
+  if (x_dnd_waiting_for_status_window != target)
+    return x_dnd_send_drop (x_dnd_frame, target,
+			    x_dnd_selection_timestamp, supported);
+
+  x_dnd_need_send_drop = true;
+  x_dnd_send_drop_proto = supported;
+
   return true;
 }
 
@@ -11398,6 +11418,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   ltimestamp = x_timestamp_for_selection (FRAME_DISPLAY_INFO (f),
 					  QXdndSelection);
 
+  if (NILP (ltimestamp))
+    error ("No local value for XdndSelection");
+
   if (BIGNUMP (ltimestamp))
     x_dnd_selection_timestamp = bignum_to_intmax (ltimestamp);
   else
@@ -11538,6 +11561,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_allow_current_frame = allow_current_frame;
   x_dnd_movement_frame = NULL;
   x_dnd_init_type_lists = false;
+  x_dnd_need_send_drop = false;
 #ifdef HAVE_XKB
   x_dnd_keyboard_state = 0;
 
@@ -16426,8 +16450,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       {
 	int rc;
 
-	if (x_dnd_in_progress
-	    && FRAME_DISPLAY_INFO (x_dnd_frame) == dpyinfo
+	if (((x_dnd_in_progress
+	      && FRAME_DISPLAY_INFO (x_dnd_frame) == dpyinfo)
+	     || (x_dnd_waiting_for_finish
+		 && FRAME_DISPLAY_INFO (x_dnd_finish_frame) == dpyinfo))
 	    && event->xclient.message_type == dpyinfo->Xatom_XdndStatus)
 	  {
 	    Window target;
@@ -16436,6 +16462,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    target = event->xclient.data.l[0];
 
 	    if (x_dnd_last_protocol_version != -1
+		&& x_dnd_in_progress
 		&& target == x_dnd_last_seen_window
 		&& event->xclient.data.l[1] & 2)
 	      {
@@ -16452,7 +16479,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      x_dnd_mouse_rect_target = None;
 
 	    if (x_dnd_last_protocol_version != -1
-		&& target == x_dnd_last_seen_window)
+		&& (x_dnd_in_progress
+		    && target == x_dnd_last_seen_window))
 	      {
 		if (event->xclient.data.l[1] & 1)
 		  {
@@ -16484,6 +16512,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  }
 		else
 		  x_dnd_waiting_for_status_window = None;
+
+		/* Send any pending drop if warranted.  */
+		if (x_dnd_waiting_for_finish && x_dnd_need_send_drop
+		    && x_dnd_waiting_for_status_window == None)
+		  {
+		    if (event->xclient.data.l[1] & 1)
+		      {
+			if (x_dnd_send_drop_proto >= 2)
+			  x_dnd_action = event->xclient.data.l[4];
+			else
+			  x_dnd_action = dpyinfo->Xatom_XdndActionCopy;
+		      }
+		    else
+		      x_dnd_action = None;
+
+		    x_dnd_waiting_for_finish
+		      = x_dnd_send_drop (x_dnd_finish_frame,
+					 target, x_dnd_selection_timestamp,
+					 x_dnd_send_drop_proto);
+		  }
 	      }
 
 	    goto done;
@@ -18948,9 +18996,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
 			x_dnd_waiting_for_finish
-			  = x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-					     x_dnd_selection_timestamp,
-					     x_dnd_last_protocol_version);
+			  = x_dnd_do_drop (x_dnd_last_seen_window,
+					   x_dnd_last_protocol_version);
 			x_dnd_finish_display = dpyinfo->display;
 		      }
 		    else if (x_dnd_last_seen_window != None)
@@ -20354,9 +20401,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      x_dnd_waiting_for_finish_proto = x_dnd_last_protocol_version;
 
 			      x_dnd_waiting_for_finish
-				= x_dnd_send_drop (x_dnd_frame, x_dnd_last_seen_window,
-						   x_dnd_selection_timestamp,
-						   x_dnd_last_protocol_version);
+				= x_dnd_do_drop (x_dnd_last_seen_window,
+						 x_dnd_last_protocol_version);
 			      x_dnd_finish_display = dpyinfo->display;
 			    }
 			  else if (x_dnd_last_seen_window != None)
