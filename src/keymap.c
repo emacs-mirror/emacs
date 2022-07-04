@@ -1026,8 +1026,14 @@ DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
        doc: /* Return a copy of the keymap KEYMAP.
 
 Note that this is almost never needed.  If you want a keymap that's like
-another yet with a few changes, you should use map inheritance rather
-than copying.  I.e. something like:
+another yet with a few changes, you should use keymap inheritance rather
+than copying.  That is, something like:
+
+    (defvar-keymap foo-map
+      :parent <theirmap>
+      ...)
+
+Or, if you need to support Emacs versions older than 29:
 
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map <theirmap>)
