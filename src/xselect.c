@@ -2325,9 +2325,13 @@ run.  */)
   Lisp_Object name, timestamp, frame, result;
 
   CHECK_SYMBOL (target);
-  name = Fnth (make_fixnum (0), value);
-  timestamp = Fnth (make_fixnum (2), value);
-  frame = Fnth (make_fixnum (3), value);
+
+  /* Check that VALUE has 4 elements, for x_get_local_selection.  */
+  Lisp_Object v = value; CHECK_CONS (v);
+  name = XCAR (v); v = XCDR (v); CHECK_CONS (v);
+  v = XCDR (v); CHECK_CONS (v);
+  timestamp = XCAR (v); v = XCDR (v); CHECK_CONS (v);
+  frame = XCAR (v);
 
   CHECK_SYMBOL (name);
   CONS_TO_INTEGER (timestamp, Time, time);
