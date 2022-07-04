@@ -36,10 +36,10 @@
   (car list))
 (make-obsolete 'gnus-last-element "use `car' of `last' instead." "27.1")
 
-(define-obsolete-function-alias 'gnus-copy-sequence 'copy-tree "27.1")
+(define-obsolete-function-alias 'gnus-copy-sequence #'copy-tree "27.1")
 
-;;; We could be using `seq-difference' here, but it's much slower
-;;; on these data sets.  See bug#50877.
+;; We could be using `seq-difference' here, but it's much slower
+;; on these data sets.  See bug#50877.
 (defun gnus-set-difference (list1 list2)
   "Return a list of elements of LIST1 that do not appear in LIST2."
   (let ((hash2 (make-hash-table :test 'eq))
@@ -163,7 +163,7 @@ LIST1 and LIST2 have to be sorted over <."
   #'range-intersection "29.1")
 
 ;;;###autoload
-(defalias 'gnus-set-sorted-intersection 'gnus-sorted-nintersection)
+(defalias 'gnus-set-sorted-intersection #'gnus-sorted-nintersection)
 
 ;;;###autoload
 (defun gnus-sorted-nintersection (list1 list2)
@@ -241,7 +241,7 @@ ranges."
       (range-compress-list numbers)
     (range-denormalize (range-compress-list numbers))))
 
-(defalias 'gnus-uncompress-sequence 'gnus-uncompress-range)
+(defalias 'gnus-uncompress-sequence #'gnus-uncompress-range)
 (define-obsolete-function-alias 'gnus-uncompress-range
   #'range-uncompress "29.1")
 
@@ -256,7 +256,7 @@ ranges."
 (define-obsolete-function-alias 'gnus-list-range-intersection
   #'range-list-intersection "29.1")
 
-(defalias 'gnus-inverse-list-range-intersection 'gnus-list-range-difference)
+(defalias 'gnus-inverse-list-range-intersection #'range-list-difference)
 
 (define-obsolete-function-alias 'gnus-list-range-difference
   #'range-list-difference "29.1")
