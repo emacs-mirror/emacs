@@ -579,11 +579,10 @@ override any non-@code{nil} binding in any other of the @var{maps}.
 @code{button-buffer-map} and @code{special-mode-map}:
 
 @example
-(defvar help-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map
-      (make-composed-keymap button-buffer-map special-mode-map))
-    ... map) ... )
+(defvar-keymap help-mode-map
+  :parent (make-composed-keymap button-buffer-map
+                                special-mode-map)
+  ...)
 @end example
 
 

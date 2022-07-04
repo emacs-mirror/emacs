@@ -31,25 +31,23 @@
 
 (require 'cl-lib)
 
-(defvar help-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap button-buffer-map
-                                                 special-mode-map))
-    (define-key map "n" 'help-goto-next-page)
-    (define-key map "p" 'help-goto-previous-page)
-    (define-key map "l" 'help-go-back)
-    (define-key map "r" 'help-go-forward)
-    (define-key map "\C-c\C-b" 'help-go-back)
-    (define-key map "\C-c\C-f" 'help-go-forward)
-    (define-key map [XF86Back] 'help-go-back)
-    (define-key map [XF86Forward] 'help-go-forward)
-    (define-key map "\C-c\C-c" 'help-follow-symbol)
-    (define-key map "s" 'help-view-source)
-    (define-key map "I" 'help-goto-lispref-info)
-    (define-key map "i" 'help-goto-info)
-    (define-key map "c" 'help-customize)
-    map)
-  "Keymap for Help mode.")
+(defvar-keymap help-mode-map
+  :doc "Keymap for Help mode."
+  :parent (make-composed-keymap button-buffer-map
+                                special-mode-map)
+  "n"             #'help-goto-next-page
+  "p"             #'help-goto-previous-page
+  "l"             #'help-go-back
+  "r"             #'help-go-forward
+  "C-c C-b"       #'help-go-back
+  "C-c C-f"       #'help-go-forward
+  "<XF86Back>"    #'help-go-back
+  "<XF86Forward>" #'help-go-forward
+  "C-c C-c"       #'help-follow-symbol
+  "s"             #'help-view-source
+  "I"             #'help-goto-lispref-info
+  "i"             #'help-goto-info
+  "c"             #'help-customize)
 
 (easy-menu-define help-mode-menu help-mode-map
   "Menu for Help mode."
