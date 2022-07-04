@@ -215,16 +215,17 @@ FILEIN is the input file,
 FILEOUT is the output file,
 ACTION is the command to send to convert.
 Optional arguments are:
-ARG any arguments to the ACTION command,
+ARG if non-nil, the argument of the ACTION command,
 OUTPUT-FORMAT is the file format to output (default is jpeg),
 ACTION-PREFIX is the symbol to place before the ACTION command
               (defaults to `-' but can sometimes be `+')."
-  (call-process thumbs-conversion-program nil nil nil
-		(or action-prefix "-")
-		action
-		(or arg "")
-		filein
-		(format "%s:%s"	(or output-format "jpeg") fileout)))
+  (let ((action-param (concat (or action-prefix "-") action))
+	(fileout-param (format "%s:%s" (or output-format "jpeg") fileout)))
+    (if arg
+	(call-process thumbs-conversion-program nil nil nil
+		      action-param arg filein fileout-param)
+      (call-process thumbs-conversion-program nil nil nil
+		    action-param filein fileout-param))))
 
 (defun thumbs-new-image-size (s increment)
   "New image (a cons of width x height)."
@@ -610,7 +611,7 @@ ACTION and ARG should be a valid convert command."
     (thumbs-call-convert (or old thumbs-current-image-filename)
 			 tmp
 			 action
-			 (or arg ""))
+			 arg)
     (save-excursion
       (thumbs-insert-image tmp 'jpeg 0))
     (setq thumbs-current-tmp-filename tmp)))
