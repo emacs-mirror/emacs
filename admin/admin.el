@@ -617,7 +617,7 @@ style=\"text-align:left\">")
       ;; its original form.
       (when (or (search-forward "<ul class=\"menu\">" nil t)
 	        ;; FIXME?  The following search seems dangerously lax.
-	        (search-forward "<ul>"))
+	        (search-forward "<ul>" nil t))
         ;; Convert the list that Makeinfo made into a table.
         (replace-match "<table style=\"float:left\" width=\"100%\">")
         (forward-line 1)
