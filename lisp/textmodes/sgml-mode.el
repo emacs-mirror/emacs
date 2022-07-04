@@ -600,12 +600,11 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (setq-local tildify-foreach-region-function
               (apply-partially
                'tildify-foreach-ignore-environments
-               `((,(eval-when-compile
-                     (concat
-                      "<\\("
-                      (regexp-opt '("pre" "dfn" "code" "samp" "kbd" "var"
-                                    "PRE" "DFN" "CODE" "SAMP" "KBD" "VAR"))
-                      "\\)\\>[^>]*>"))
+               `((,(concat
+                    "<\\("
+                    (regexp-opt '("pre" "dfn" "code" "samp" "kbd" "var"
+                                  "PRE" "DFN" "CODE" "SAMP" "KBD" "VAR"))
+                    "\\)\\>[^>]*>")
                   . ("</" 1 ">"))
                  ("<! *--" . "-- *>")
                  ("<" . ">"))))

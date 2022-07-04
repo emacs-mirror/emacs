@@ -100,48 +100,45 @@
   (list
    (list nil
 	 (purecopy (concat "^\\s-*("
-			   (eval-when-compile
-			     (regexp-opt
-			      '("defun" "defmacro"
-                                ;; Elisp.
-                                "defun*" "defsubst" "define-inline"
-				"define-advice" "defadvice" "define-skeleton"
-				"define-compilation-mode" "define-minor-mode"
-				"define-global-minor-mode"
-				"define-globalized-minor-mode"
-				"define-derived-mode" "define-generic-mode"
-				"ert-deftest"
-				"cl-defun" "cl-defsubst" "cl-defmacro"
-				"cl-define-compiler-macro" "cl-defgeneric"
-				"cl-defmethod"
-                                ;; CL.
-				"define-compiler-macro" "define-modify-macro"
-				"defsetf" "define-setf-expander"
-				"define-method-combination"
-                                ;; CLOS and EIEIO
-				"defgeneric" "defmethod")
-                              t))
+			   (regexp-opt
+			    '("defun" "defmacro"
+                              ;; Elisp.
+                              "defun*" "defsubst" "define-inline"
+			      "define-advice" "defadvice" "define-skeleton"
+			      "define-compilation-mode" "define-minor-mode"
+			      "define-global-minor-mode"
+			      "define-globalized-minor-mode"
+			      "define-derived-mode" "define-generic-mode"
+			      "ert-deftest"
+			      "cl-defun" "cl-defsubst" "cl-defmacro"
+			      "cl-define-compiler-macro" "cl-defgeneric"
+			      "cl-defmethod"
+                              ;; CL.
+			      "define-compiler-macro" "define-modify-macro"
+			      "defsetf" "define-setf-expander"
+			      "define-method-combination"
+                              ;; CLOS and EIEIO
+			      "defgeneric" "defmethod")
+                            t)
 			   "\\s-+\\(" (rx lisp-mode-symbol) "\\)"))
 	 2)
    ;; Like the previous, but uses a quoted symbol as the name.
    (list nil
 	 (purecopy (concat "^\\s-*("
-			   (eval-when-compile
-			     (regexp-opt
-			      '("defalias" "define-obsolete-function-alias")
-                              t))
+			   (regexp-opt
+			    '("defalias" "define-obsolete-function-alias")
+                            t)
 			   "\\s-+'\\(" (rx lisp-mode-symbol) "\\)"))
 	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
-			   (eval-when-compile
-			     (regexp-opt
-			      '(;; Elisp
-                                "defconst" "defcustom"
-                                ;; CL
-                                "defconstant"
-				"defparameter" "define-symbol-macro")
-                              t))
+			   (regexp-opt
+			    '(;; Elisp
+                              "defconst" "defcustom"
+                              ;; CL
+                              "defconstant"
+			      "defparameter" "define-symbol-macro")
+                            t)
 			   "\\s-+\\(" (rx lisp-mode-symbol) "\\)"))
 	 2)
    ;; For `defvar'/`defvar-local', we ignore (defvar FOO) constructs.
@@ -152,18 +149,17 @@
 	 1)
    (list (purecopy "Types")
 	 (purecopy (concat "^\\s-*("
-			   (eval-when-compile
-			     (regexp-opt
-			      '(;; Elisp
-                                "defgroup" "deftheme"
-                                "define-widget" "define-error"
-				"defface" "cl-deftype" "cl-defstruct"
-                                ;; CL
-                                "deftype" "defstruct"
-				"define-condition" "defpackage"
-                                ;; CLOS and EIEIO
-                                "defclass")
-                              t))
+			   (regexp-opt
+			    '(;; Elisp
+                              "defgroup" "deftheme"
+                              "define-widget" "define-error"
+			      "defface" "cl-deftype" "cl-defstruct"
+                              ;; CL
+                              "deftype" "defstruct"
+			      "define-condition" "defpackage"
+                              ;; CLOS and EIEIO
+                              "defclass")
+                            t)
 			   "\\s-+'?\\(" (rx lisp-mode-symbol) "\\)"))
 	 2))
 
@@ -273,8 +269,7 @@ to a package-local <package>-loaddefs.el file.")
   ;; FIXME: Move to elisp-mode.el.
   (catch 'found
     (while (re-search-forward
-            (eval-when-compile
-              (concat "(\\(" (rx lisp-mode-symbol) "\\)\\_>"))
+            (concat "(\\(" (rx lisp-mode-symbol) "\\)\\_>")
             limit t)
       (let ((sym (intern-soft (match-string 1))))
 	(when (and (or (special-form-p sym) (macrop sym))
@@ -591,16 +586,15 @@ This will generate compile-time constants from BINDINGS."
   "Gaudy highlighting from Emacs Lisp mode used in Backtrace mode.")
 
 (defun lisp-string-in-doc-position-p (listbeg startpos)
-   "Return non-nil if a doc string may occur at STARTPOS inside a list.
+  "Return non-nil if a doc string may occur at STARTPOS inside a list.
 LISTBEG is the position of the start of the innermost list
 containing STARTPOS."
   (let* ((firstsym (and listbeg
                         (save-excursion
                           (goto-char listbeg)
                           (and (looking-at
-                                (eval-when-compile
-                                  (concat "([ \t\n]*\\("
-                                          (rx lisp-mode-symbol) "\\)")))
+                                (concat "([ \t\n]*\\("
+                                        (rx lisp-mode-symbol) "\\)"))
                                (match-string 1)))))
          (docelt (and firstsym
                       (function-get (intern-soft firstsym)

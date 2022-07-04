@@ -171,13 +171,12 @@ file:///foo/bar.jpg"
 ;; https://www.freedesktop.org/wiki/Software/xdg-user-dirs/
 
 (defconst xdg-line-regexp
-  (eval-when-compile
-    (rx "XDG_"
-        (group-n 1 (or "DESKTOP" "DOWNLOAD" "TEMPLATES" "PUBLICSHARE"
-                       "DOCUMENTS" "MUSIC" "PICTURES" "VIDEOS"))
-        "_DIR=\""
-        (group-n 2 (or "/" "$HOME/") (*? (or (not (any "\"")) "\\\"")))
-        "\""))
+  (rx "XDG_"
+      (group-n 1 (or "DESKTOP" "DOWNLOAD" "TEMPLATES" "PUBLICSHARE"
+                     "DOCUMENTS" "MUSIC" "PICTURES" "VIDEOS"))
+      "_DIR=\""
+      (group-n 2 (or "/" "$HOME/") (*? (or (not (any "\"")) "\\\"")))
+      "\"")
   "Regexp matching non-comment lines in `xdg-user-dirs' config files.")
 
 (defvar xdg-user-dirs nil

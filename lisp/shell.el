@@ -440,12 +440,11 @@ Useful for shells like zsh that has this feature."
 	(push (point) begins)
         (let ((arg ()))
           (while (looking-at
-                  (eval-when-compile
-                    (concat
-                     "\\(?:[^\s\t\n\\\"';]+"
-                     "\\|'\\([^']*\\)'?"
-                     "\\|\"\\(\\(?:[^\"\\]\\|\\\\.\\)*\\)\"?"
-                     "\\|\\\\\\(\\(?:.\\|\n\\)?\\)\\)")))
+                  (concat
+                   "\\(?:[^\s\t\n\\\"';]+"
+                   "\\|'\\([^']*\\)'?"
+                   "\\|\"\\(\\(?:[^\"\\]\\|\\\\.\\)*\\)\"?"
+                   "\\|\\\\\\(\\(?:.\\|\n\\)?\\)\\)"))
             (goto-char (match-end 0))
             (cond
              ((match-beginning 3)       ;Backslash escape.
