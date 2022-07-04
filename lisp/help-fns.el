@@ -1402,7 +1402,7 @@ it is displayed along with the global value."
   :interactive nil)
 
 (defun help-fns-edit-mode-done (&optional kill)
-  "Update the value of the variable and kill the buffer.
+  "Update the value of the variable being edited and kill the edit buffer.
 If KILL (the prefix), don't update the value, but just kill the
 current buffer."
   (interactive "P" help-fns--edit-value-mode)
@@ -1423,7 +1423,8 @@ current buffer."
         (revert-buffer)))))
 
 (defun help-fns-edit-mode-cancel ()
-  "Kill the buffer without updating the value."
+  "Kill the edit buffer and cancel editing of the value.
+This cancels value editing without updating the value."
   (interactive nil help-fns--edit-value-mode)
   (help-fns-edit-mode-done t))
 
