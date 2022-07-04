@@ -354,11 +354,11 @@ Giving the command @kbd{cd -} changes back to the previous working
 directory (this is the same as @kbd{cd $-}).
 
 @item
-The command @kbd{cd =} shows the directory stack.  Each line is
+The command @kbd{cd =} shows the directory ring.  Each line is
 numbered.
 
 @item
-With @kbd{cd =foo}, Eshell searches the directory stack for a directory
+With @kbd{cd =foo}, Eshell searches the directory ring for a directory
 matching the regular expression @samp{foo}, and changes to that
 directory.
 
@@ -845,23 +845,40 @@ For example, you could handle a subset of the options for the
 
 @end defmac
 
+@node Variables
+@section Variables
+Since Eshell is just an Emacs REPL@footnote{Read-Eval-Print Loop}, it
+does not have its own scope, and simply stores variables the same you
+would in an Elisp program.  Eshell provides a command version of
+@code{setq} for convenience.
+
 @subsection Built-in variables
 Eshell knows a few built-in variables:
 
 @table @code
 
+@item $PWD
 @item $+
+@vindex $PWD
 @vindex $+
 This variable always contains the current working directory.
 
+@item $OLDPWD
 @item $-
+@vindex $OLDPWD
 @vindex $-
 This variable always contains the previous working directory (the
 current working directory from before the last @code{cd} command).
+When using @code{$-}, you can also access older directories in the
+directory ring via subscripting, e.g. @samp{$-[1]} refers to the
+working directory @emph{before} the previous one.
 
 @item $_
 @vindex $_
-It refers to the last argument of the last command.
+This refers to the last argument of the last command.  With a
+subscript, you can access any argument of the last command.  For
+example, @samp{$_[1]} refers to the second argument of the last
+command (excluding the command name itself).
 
 @item $$
 @vindex $$
@@ -870,20 +887,28 @@ command, it is @code{t} or @code{nil}.
 
 @item $?
 @vindex $?
-This variable contains the exit code of the last command (0 or 1 for
-Lisp functions, based on successful completion).
+This variable contains the exit code of the last command.  If the last
+command was a Lisp function, it is 0 for successful completion or 1
+otherwise.
+
+@item $COLUMNS
+@item $LINES
+@vindex $COLUMNS
+@vindex $LINES
+These variables tell the number of columns and lines, respectively,
+that are currently visible in the Eshell window.  They are both
+copied to the environment, so external commands invoked from
+Eshell can consult them to do the right thing.
+
+@item $INSIDE_EMACS
+This variable indicates to external commands that they are being
+invoked from within Emacs so they can adjust their behavior if
+necessary.  Its value is @code{@var{emacs-version},eshell}.
 
 @end table
 
 @xref{Aliases}, for the built-in variables @samp{$*}, @samp{$1},
 @samp{$2}, @dots{}, in alias definitions.
-
-@node Variables
-@section Variables
-Since Eshell is just an Emacs REPL@footnote{Read-Eval-Print Loop}, it
-does not have its own scope, and simply stores variables the same you
-would in an Elisp program.  Eshell provides a command version of
-@code{setq} for convenience.
 
 @node Aliases
 @section Aliases

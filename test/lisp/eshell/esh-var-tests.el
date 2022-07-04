@@ -487,6 +487,13 @@ inside double-quotes"
   (should (equal (eshell-test-command-result "echo $COLUMNS")
                  (window-body-width nil 'remap))))
 
+(ert-deftest esh-var-test/inside-emacs-var ()
+  "Test presence of \"INSIDE_EMACS\" in subprocesses"
+  (with-temp-eshell
+   (eshell-command-result-p "env"
+                            (format "INSIDE_EMACS=%s,eshell"
+                                    emacs-version))))
+
 (ert-deftest esh-var-test/last-result-var ()
   "Test using the \"last result\" ($$) variable"
   (with-temp-eshell
@@ -497,12 +504,26 @@ inside double-quotes"
   "Test using the \"last result\" ($$) variable twice"
   (with-temp-eshell
    (eshell-command-result-p "+ 1 2; + $$ $$"
-                             "3\n6\n")))
+                            "3\n6\n")))
 
 (ert-deftest esh-var-test/last-arg-var ()
   "Test using the \"last arg\" ($_) variable"
   (with-temp-eshell
    (eshell-command-result-p "+ 1 2; + $_ 4"
-                             "3\n6\n")))
+                            "3\n6\n")))
+
+(ert-deftest esh-var-test/last-arg-var-indices ()
+  "Test using the \"last arg\" ($_) variable with indices"
+  (with-temp-eshell
+   (eshell-command-result-p "+ 1 2; + $_[0] 4"
+                            "3\n5\n")
+   (eshell-command-result-p "+ 1 2; + $_[1] 4"
+                            "3\n6\n")))
+
+(ert-deftest esh-var-test/last-arg-var-split-indices ()
+  "Test using the \"last arg\" ($_) variable with split indices"
+  (with-temp-eshell
+   (eshell-command-result-p "concat 01:02 03:04; echo $_[0][: 1]"
+                            "01:0203:04\n2\n")))
 
 ;; esh-var-tests.el ends here

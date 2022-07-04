@@ -113,6 +113,9 @@
 (require 'pcomplete)
 (require 'ring)
 
+(defconst eshell-inside-emacs (format "%s,eshell" emacs-version)
+  "Value for the `INSIDE_EMACS' environment variable.")
+
 (defgroup eshell-var nil
   "Variable interpolation is introduced whenever the `$' character
 appears unquoted in any argument (except when that argument is
@@ -151,6 +154,7 @@ if they are quoted with a backslash."
   `(;; for eshell.el
     ("COLUMNS" ,(lambda (_indices) (window-body-width nil 'remap)) t)
     ("LINES" ,(lambda (_indices) (window-body-height nil 'remap)) t)
+    ("INSIDE_EMACS" eshell-inside-emacs t)
 
     ;; for eshell-cmd.el
     ("_" ,(lambda (indices)
@@ -160,6 +164,8 @@ if they are quoted with a backslash."
 				    indices))))
     ("?" eshell-last-command-status)
     ("$" eshell-last-command-result)
+
+    ;; for em-alias.el and em-script.el
     ("0" eshell-command-name)
     ("1" ,(lambda (_indices) (nth 0 eshell-command-arguments)))
     ("2" ,(lambda (_indices) (nth 1 eshell-command-arguments)))
@@ -180,13 +186,11 @@ Each member defines the name of a variable, and a Lisp value used to
 compute the string value that will be returned when the variable is
 accessed via the syntax `$NAME'.
 
-If the value is a function, call that function with two arguments: the
-list of the indices that was used in the reference, and whether the
-user is requesting the length of the ultimate element.  For example, a
-reference of `$NAME[10][20]' would result in the function for alias
-`NAME' being called (assuming it were aliased to a function), and the
-arguments passed to this function would be the list `(10 20)', and
-nil.
+If the value is a function, call that function with one argument: the
+list of the indices that was used in the reference.  For example, if
+`NAME' were aliased to a function, a reference of `$NAME[10][20]'
+would result in that function being called with the argument
+`((\"10\") (\"20\"))'.  (For more details, see `eshell-apply-indices').
 
 If the value is a string, return the value for the variable with that
 name in the current environment.  If no variable with that name exists
