@@ -23501,6 +23501,38 @@ For details, see etc/PROBLEMS.\n",
         /* We have just closed all frames on this display. */
         emacs_abort ();
 
+      /* This was the last terminal remaining, so print the error
+	 message and associated error handlers and kill Emacs.  */
+      if (dpyinfo->terminal == terminal_list
+	  && !terminal_list->next_terminal)
+	{
+	  fprintf (stderr, "%s\n", error_msg);
+
+	  if (!ioerror && dpyinfo)
+	    {
+	      /* Dump the list of error handlers for debugging
+		 purposes.  */
+
+	      fprintf (stderr, "X error handlers currently installed:\n");
+
+	      for (failable = dpyinfo->failable_requests;
+		   failable < dpyinfo->next_failable_request;
+		   ++failable)
+		{
+		  if (failable->end)
+		    fprintf (stderr, "Ignoring errors between %lu to %lu\n",
+			     failable->start, failable->end);
+		  else
+		    fprintf (stderr, "Ignoring errors from %lu onwards\n",
+			     failable->start);
+		}
+
+	      for (stack = x_error_message; stack; stack = stack->prev)
+		fprintf (stderr, "Trapping errors from %lu\n",
+			 stack->first_request);
+	    }
+	}
+
       XSETTERMINAL (tmp, dpyinfo->terminal);
       Fdelete_terminal (tmp, Qnoelisp);
     }
@@ -23508,35 +23540,7 @@ For details, see etc/PROBLEMS.\n",
   unblock_input ();
 
   if (terminal_list == 0)
-    {
-      fprintf (stderr, "%s\n", error_msg);
-
-      if (!ioerror)
-	{
-	  /* Dump the list of error handlers for debugging
-	     purposes.  */
-
-	  fprintf (stderr, "X error handlers currently installed:\n");
-
-	  for (failable = dpyinfo->failable_requests;
-	       failable < dpyinfo->next_failable_request;
-	       ++failable)
-	    {
-	      if (failable->end)
-		fprintf (stderr, "Ignoring errors between %lu to %lu\n",
-			 failable->start, failable->end);
-	      else
-		fprintf (stderr, "Ignoring errors from %lu onwards\n",
-			 failable->start);
-	    }
-
-	  for (stack = x_error_message; stack; stack = stack->prev)
-	    fprintf (stderr, "Trapping errors from %lu\n",
-		     stack->first_request);
-	}
-
-      Fkill_emacs (make_fixnum (70), Qnil);
-    }
+    Fkill_emacs (make_fixnum (70), Qnil);
 
   totally_unblock_input ();
 
