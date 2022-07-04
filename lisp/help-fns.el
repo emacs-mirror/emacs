@@ -1390,11 +1390,13 @@ it is displayed along with the global value."
     (help-fns--edit-value-mode)
     (insert (format ";; Edit the `%s' variable.\n" (nth 0 var))
             (substitute-command-keys
-             ";; \\[help-fns-edit-mode-done] to update the value and exit.\n\n"))
+             ";; `\\[help-fns-edit-mode-done]' to update the value and exit; \
+`\\[help-fns-edit-mode-cancel]' to cancel.\n\n"))
     (setq-local help-fns--edit-variable var)))
 
 (defvar-keymap help-fns--edit-value-mode-map
-  "C-c C-c" #'help-fns-edit-mode-done)
+  "C-c C-c" #'help-fns-edit-mode-done
+  "C-c C-k" #'help-fns-edit-mode-cancel)
 
 (define-derived-mode help-fns--edit-value-mode emacs-lisp-mode "Elisp"
   :interactive nil)
@@ -1419,6 +1421,11 @@ current buffer."
     (when (buffer-live-p help-buffer)
       (with-current-buffer help-buffer
         (revert-buffer)))))
+
+(defun help-fns-edit-mode-cancel ()
+  "Kill the buffer without updating the value."
+  (interactive nil help-fns--edit-value-mode)
+  (help-fns-edit-mode-done t))
 
 (defun help-fns--run-describe-functions (functions &rest args)
   (with-current-buffer standard-output
