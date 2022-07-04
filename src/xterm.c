@@ -23342,6 +23342,8 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
   xm_drop_start_message dmsg;
   struct frame *f;
   Lisp_Object minibuf_frame, tmp;
+  struct x_failable_request *failable;
+  struct x_error_message_stack *stack;
 
   dpyinfo = x_display_info_for_display (dpy);
   error_msg = alloca (strlen (error_message) + 1);
@@ -23508,6 +23510,31 @@ For details, see etc/PROBLEMS.\n",
   if (terminal_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
+
+      if (!ioerror)
+	{
+	  /* Dump the list of error handlers for debugging
+	     purposes.  */
+
+	  fprintf (stderr, "X error handlers currently installed:\n");
+
+	  for (failable = dpyinfo->failable_requests;
+	       failable < dpyinfo->next_failable_request;
+	       ++failable)
+	    {
+	      if (failable->end)
+		fprintf (stderr, "Ignoring errors between %lu to %lu\n",
+			 failable->start, failable->end);
+	      else
+		fprintf (stderr, "Ignoring errors from %lu onwards\n",
+			 failable->start);
+	    }
+
+	  for (stack = x_error_message; stack; stack = stack->prev)
+	    fprintf (stderr, "Trapping errors from %lu\n",
+		     stack->first_request);
+	}
+
       Fkill_emacs (make_fixnum (70), Qnil);
     }
 
@@ -23599,7 +23626,8 @@ x_error_handler (Display *display, XErrorEvent *event)
 static void NO_INLINE
 x_error_quitter (Display *display, XErrorEvent *event)
 {
-  char buf[256], buf1[356];
+  char buf[256], buf1[400 + INT_STRLEN_BOUND (int)
+		      + INT_STRLEN_BOUND (unsigned long)];
 
   /* Ignore BadName errors.  They can happen because of fonts
      or colors that are not defined.  */
@@ -23611,8 +23639,9 @@ x_error_quitter (Display *display, XErrorEvent *event)
      original error handler.  */
 
   XGetErrorText (display, event->error_code, buf, sizeof (buf));
-  sprintf (buf1, "X protocol error: %s on protocol request %d",
-	   buf, event->request_code);
+  sprintf (buf1, "X protocol error: %s on protocol request %d\n"
+	   "Serial no: %lu\n", buf, event->request_code,
+	   event->serial);
   x_connection_closed (display, buf1, false);
 }
 
