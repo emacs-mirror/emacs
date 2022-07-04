@@ -1,7 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -26,9 +25,11 @@
 
 ;; This package provides the `view' minor mode documented in the Emacs
 ;; user's manual.
+;;
 ;; View mode entry and exit is done through the functions `view-mode-enter'
 ;; and `view-mode-exit'.  Use these functions to enter or exit `view-mode' from
 ;; Emacs Lisp programs.
+;;
 ;; We use both view- and View- as prefix for symbols.  View- is used as
 ;; prefix for commands that have a key binding.  view- is used for commands
 ;; without key binding.  The purpose of this is to make it easier for a
@@ -100,8 +101,6 @@ functions that enable or disable view mode.")
   :type 'hook)
 
 (defvar-local view-old-buffer-read-only nil)
-
-(defvar-local view-old-Helper-return-blurb nil)
 
 (defvar-local view-page-size nil
   "Default number of lines to scroll by View page commands.
@@ -454,15 +453,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   (setq view-page-size nil
 	view-half-page-size nil
 	view-old-buffer-read-only buffer-read-only
-	buffer-read-only t)
-  (if (boundp 'Helper-return-blurb)
-      (setq view-old-Helper-return-blurb (and (boundp 'Helper-return-blurb)
-					      Helper-return-blurb)
-	    Helper-return-blurb
-	    (format "continue viewing %s"
-		    (if (buffer-file-name)
-			(file-name-nondirectory (buffer-file-name))
-		      (buffer-name))))))
+        buffer-read-only t))
 
 
 (define-obsolete-function-alias 'view-mode-enable 'view-mode "24.4")
@@ -482,8 +473,6 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; so that View mode stays off if read-only-mode is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))
-  (if (boundp 'Helper-return-blurb)
-      (setq Helper-return-blurb view-old-Helper-return-blurb))
   (if buffer-read-only
       (setq buffer-read-only view-old-buffer-read-only)))
 
@@ -987,6 +976,9 @@ If TIMES is negative, search backwards."
             (setq times (1- times))))))
   (and (zerop times)
        (looking-at ".*")))
+
+(defvar-local view-old-Helper-return-blurb nil)
+(make-obsolete 'view-old-Helper-return-blurb nil "29.1")
 
 (provide 'view)
 
