@@ -85,7 +85,8 @@
   "c" #'timer-list-cancel
   :menu
   '("Timers"
-    ["Cancel" timer-list-cancel t]))
+    ["Cancel" timer-list-cancel t]
+    ["Quit" quit-window]))
 
 (define-derived-mode timer-list-mode tabulated-list-mode "Timer-List"
   "Mode for listing and controlling timers."
