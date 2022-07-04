@@ -441,6 +441,7 @@ See also `text-scale-adjust'."
                (text-scale-decrease 1)))
       (select-window selected-window))))
 
+(declare-function global-text-scale-adjust "face-remap.el" (increment))
 (defun mouse-wheel-global-text-scale (event)
   "Increase or decrease the global font size according to the EVENT.
 This invokes `global-text-scale-adjust', which see."
