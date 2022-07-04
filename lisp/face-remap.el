@@ -372,9 +372,9 @@ INC may be passed as a numeric prefix argument.
 The actual adjustment made depends on the final component of the
 keybinding used to invoke the command, with all modifiers removed:
 
-   +, =   Increase font size in current buffer by one step
-   -      Decrease font size in current buffer by one step
-   0      Reset the font size to the global default
+   \\`+', \\`='   Increase font size in current buffer by one step
+   \\`-'      Decrease font size in current buffer by one step
+   \\`0'      Reset the font size to the global default
 
 After adjusting, continue to read input events and further adjust
 the font size as long as the input event read
@@ -479,9 +479,9 @@ Interactively, INCREMENT may be passed as a numeric prefix argument.
 The adjustment made depends on the final component of the key binding
 used to invoke the command, with all modifiers removed:
 
-   +, =   Globally increase the height of the default face
-   -      Globally decrease the height of the default face
-   0      Globally reset the height of the default face
+   \\`+', \\`='   Globally increase the height of the default face
+   \\`-'      Globally decrease the height of the default face
+   \\`0'      Globally reset the height of the default face
 
 After adjusting, further adjust the font size as long as the key,
 with all modifiers removed, is one of the above characters.
