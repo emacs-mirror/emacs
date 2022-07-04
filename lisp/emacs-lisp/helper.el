@@ -77,9 +77,11 @@
 	  (setq continue (read-event))
 	  (cond ((and (memq continue '(?\s ?\C-v)) (< state 2))
 		 (scroll-up))
-		((= continue ?\C-l)
+                ((eq continue ?\C-l)
 		 (recenter))
-		((and (= continue ?\177) (zerop (% state 2)))
+                ((and (or (eq continue 'backspace)
+                          (eq continue ?\177))
+                      (zerop (% state 2)))
 		 (scroll-down))
 		(t (setq continue nil))))))))
 
