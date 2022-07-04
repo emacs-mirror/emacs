@@ -1689,6 +1689,9 @@ extern int x_error_message_count;
 #ifdef HAVE_XINPUT2
 extern struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
 extern bool xi_frame_selected_for (struct frame *, unsigned long);
+#ifndef USE_GTK
+extern unsigned int xi_convert_event_state (XIDeviceEvent *);
+#endif
 #endif
 
 extern void mark_xterm (void);

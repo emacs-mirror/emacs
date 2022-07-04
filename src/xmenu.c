@@ -261,19 +261,9 @@ x_menu_translate_generic_event (XEvent *event)
 	      copy.xbutton.y = lrint (xev->event_y);
 	      copy.xbutton.x_root = lrint (xev->root_x);
 	      copy.xbutton.y_root = lrint (xev->root_y);
-	      copy.xbutton.state = xev->mods.effective;
+	      copy.xbutton.state = xi_convert_event_state (xev);
 	      copy.xbutton.button = xev->detail;
 	      copy.xbutton.same_screen = True;
-
-	      if (xev->buttons.mask_len)
-		{
-		  if (XIMaskIsSet (xev->buttons.mask, 1))
-		    copy.xbutton.state |= Button1Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 2))
-		    copy.xbutton.state |= Button2Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 3))
-		    copy.xbutton.state |= Button3Mask;
-		}
 
 	      XPutBackEvent (dpyinfo->display, &copy);
 
@@ -397,7 +387,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		    copy.xbutton.y = lrint (xev->event_y);
 		    copy.xbutton.x_root = lrint (xev->root_x);
 		    copy.xbutton.y_root = lrint (xev->root_y);
-		    copy.xbutton.state = xev->mods.effective;
+		    copy.xbutton.state = xi_convert_event_state (xev);
 		    copy.xbutton.button = xev->detail;
 		    copy.xbutton.same_screen = True;
 
@@ -411,16 +401,6 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 			so Motif thinks this is the case.  */
 		    copy.xbutton.state = 0;
 #endif
-
-		    if (xev->buttons.mask_len)
-		      {
-			if (XIMaskIsSet (xev->buttons.mask, 1))
-			  copy.xbutton.state |= Button1Mask;
-			if (XIMaskIsSet (xev->buttons.mask, 2))
-			  copy.xbutton.state |= Button2Mask;
-			if (XIMaskIsSet (xev->buttons.mask, 3))
-			  copy.xbutton.state |= Button3Mask;
-		      }
 
 		    break;
 		  }
@@ -442,7 +422,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		    copy.xkey.y = lrint (xev->event_y);
 		    copy.xkey.x_root = lrint (xev->root_x);
 		    copy.xkey.y_root = lrint (xev->root_y);
-		    copy.xkey.state = xev->mods.effective;
+		    copy.xkey.state = xi_convert_event_state (xev);
 		    copy.xkey.keycode = xev->detail;
 		    copy.xkey.same_screen = True;
 
