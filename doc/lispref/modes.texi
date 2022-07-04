@@ -3473,7 +3473,8 @@ fontification functions, and gives it two arguments, @var{start} and
 @var{end}, which specify the region to be fontified or refontified.
 If @var{function} performs fontifications, it can return a list of the
 form @w{@code{(jit-lock-bounds @var{beg} . @var{end})}}, to indicate
-the bounds of the region it actually fontified; JIT font-lock will use
+the bounds of the region it actually fontified; Just-In-Time (a.k.a.@:
+@acronym{``JIT''}) font-lock will use
 this information to optimize subsequent redisplay cycles and regions
 of buffer text it will pass to future calls to @var{function}.
 
@@ -3492,6 +3493,19 @@ non-@code{nil} value of @var{contextual} if the value of
 If @var{function} was previously registered as a fontification
 function using @code{jit-lock-register}, this function unregisters it.
 @end defun
+
+@cindex debugging font-lock
+@cindex jit-lock functions, debugging
+@deffn Command jit-lock-debug-mode &optional arg
+This is a minor mode whose purpose is to help in debugging code that
+is run by JIT font-lock.  When this mode is enabled, most of the code
+that JIT font-lock normally runs during redisplay cycles, where Lisp
+errors are suppressed, is instead run by a timer.  Thus, this mode
+allows using debugging aids such as @code{debug-on-error}
+(@pxref{Error Debugging}) and Edebug (@pxref{Edebug}) for finding and
+fixing problems in font-lock code and any other code run by JIT
+font-lock.
+@end deffn
 
 @node Levels of Font Lock
 @subsection Levels of Font Lock
