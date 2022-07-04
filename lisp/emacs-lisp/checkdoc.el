@@ -165,7 +165,7 @@
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
-(require 'lisp-mode) ;; for lisp-mode-symbol-regexp
+(require 'lisp-mode) ;; for lisp-mode-symbol regexp
 (eval-when-compile (require 'dired))     ;; for dired-map-over-marks
 (require 'lisp-mnt)
 
@@ -2604,13 +2604,13 @@ The correct format is \"Foo\" or \"some-symbol: Foo\".  See also
     (unless (let ((case-fold-search nil))
               (looking-at (rx (or upper-case "%s"))))
       ;; A defined Lisp symbol is always okay.
-      (unless (and (looking-at (rx (group (regexp lisp-mode-symbol-regexp))))
+      (unless (and (looking-at (rx (group lisp-mode-symbol)))
                    (or (fboundp (intern (match-string 1)))
                        (boundp (intern (match-string 1)))))
         ;; Other Lisp symbols are sometimes okay.
         (rx-let ((c (? "\\\n")))        ; `c' is for a continued line
           (let ((case-fold-search nil)
-                (some-symbol (rx (regexp lisp-mode-symbol-regexp)
+                (some-symbol (rx lisp-mode-symbol
                                  c ":" c (+ (any " \t\n"))))
                 (lowercase-str (rx c (group (any "a-z") (+ wordchar)))))
             (if (looking-at some-symbol)
