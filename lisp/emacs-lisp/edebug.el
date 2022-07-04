@@ -3809,74 +3809,72 @@ be installed in `emacs-lisp-mode-map'.")
   ;; The following isn't a GUD binding.
   (define-key emacs-lisp-mode-map "\C-x\C-a\C-m" 'edebug-set-initial-mode))
 
-(defvar edebug-mode-map
-  (let ((map (copy-keymap emacs-lisp-mode-map)))
-    ;; control
-    (define-key map " " 'edebug-step-mode)
-    (define-key map "n" 'edebug-next-mode)
-    (define-key map "g" 'edebug-go-mode)
-    (define-key map "G" 'edebug-Go-nonstop-mode)
-    (define-key map "t" 'edebug-trace-mode)
-    (define-key map "T" 'edebug-Trace-fast-mode)
-    (define-key map "c" 'edebug-continue-mode)
-    (define-key map "C" 'edebug-Continue-fast-mode)
+(defvar-keymap edebug-mode-map
+  :parent emacs-lisp-mode-map
+  ;; control
+  "SPC"     #'edebug-step-mode
+  "n"       #'edebug-next-mode
+  "g"       #'edebug-go-mode
+  "G"       #'edebug-Go-nonstop-mode
+  "t"       #'edebug-trace-mode
+  "T"       #'edebug-Trace-fast-mode
+  "c"       #'edebug-continue-mode
+  "C"       #'edebug-Continue-fast-mode
 
-    ;;(define-key map "f" 'edebug-forward) not implemented
-    (define-key map "f" 'edebug-forward-sexp)
-    (define-key map "h" 'edebug-goto-here)
+  ;;"f"       #'edebug-forward ; not implemented
+  "f"       #'edebug-forward-sexp
+  "h"       #'edebug-goto-here
 
-    (define-key map "I" 'edebug-instrument-callee)
-    (define-key map "i" 'edebug-step-in)
-    (define-key map "o" 'edebug-step-out)
+  "I"       #'edebug-instrument-callee
+  "i"       #'edebug-step-in
+  "o"       #'edebug-step-out
 
-    ;; quitting and stopping
-    (define-key map "q" 'top-level)
-    (define-key map "Q" 'edebug-top-level-nonstop)
-    (define-key map "a" 'abort-recursive-edit)
-    (define-key map "S" 'edebug-stop)
+  ;; quitting and stopping
+  "q"       #'top-level
+  "Q"       #'edebug-top-level-nonstop
+  "a"       #'abort-recursive-edit
+  "S"       #'edebug-stop
 
-    ;; breakpoints
-    (define-key map "b" 'edebug-set-breakpoint)
-    (define-key map "u" 'edebug-unset-breakpoint)
-    (define-key map "U" 'edebug-unset-breakpoints)
-    (define-key map "B" 'edebug-next-breakpoint)
-    (define-key map "x" 'edebug-set-conditional-breakpoint)
-    (define-key map "X" 'edebug-set-global-break-condition)
-    (define-key map "D" 'edebug-toggle-disable-breakpoint)
+  ;; breakpoints
+  "b"       #'edebug-set-breakpoint
+  "u"       #'edebug-unset-breakpoint
+  "U"       #'edebug-unset-breakpoints
+  "B"       #'edebug-next-breakpoint
+  "x"       #'edebug-set-conditional-breakpoint
+  "X"       #'edebug-set-global-break-condition
+  "D"       #'edebug-toggle-disable-breakpoint
 
-    ;; evaluation
-    (define-key map "r" 'edebug-previous-result)
-    (define-key map "e" 'edebug-eval-expression)
-    (define-key map "\C-x\C-e" 'edebug-eval-last-sexp)
-    (define-key map "E" 'edebug-visit-eval-list)
+  ;; evaluation
+  "r"       #'edebug-previous-result
+  "e"       #'edebug-eval-expression
+  "C-x C-e" #'edebug-eval-last-sexp
+  "E"       #'edebug-visit-eval-list
 
-    ;; views
-    (define-key map "w" 'edebug-where)
-    (define-key map "v" 'edebug-view-outside) ;; maybe obsolete??
-    (define-key map "p" 'edebug-bounce-point)
-    (define-key map "P" 'edebug-view-outside) ;; same as v
-    (define-key map "W" 'edebug-toggle-save-windows)
+  ;; views
+  "w"       #'edebug-where
+  "v"       #'edebug-view-outside        ; maybe obsolete??
+  "p"       #'edebug-bounce-point
+  "P"       #'edebug-view-outside        ; same as v
+  "W"       #'edebug-toggle-save-windows
 
-    ;; misc
-    (define-key map "?" 'edebug-help)
-    (define-key map "d" 'edebug-pop-to-backtrace)
+  ;; misc
+  "?"       #'edebug-help
+  "d"       #'edebug-pop-to-backtrace
 
-    (define-key map "-" 'negative-argument)
+  "-"       #'negative-argument
 
-    ;; statistics
-    (define-key map "=" 'edebug-temp-display-freq-count)
+  ;; statistics
+  "="       #'edebug-temp-display-freq-count
 
-    ;; GUD bindings
-    (define-key map "\C-c\C-s" 'edebug-step-mode)
-    (define-key map "\C-c\C-n" 'edebug-next-mode)
-    (define-key map "\C-c\C-c" 'edebug-go-mode)
+  ;; GUD bindings
+  "C-c C-s" #'edebug-step-mode
+  "C-c C-n" #'edebug-next-mode
+  "C-c C-c" #'edebug-go-mode
 
-    (define-key map "\C-x " 'edebug-set-breakpoint)
-    (define-key map "\C-c\C-d" 'edebug-unset-breakpoint)
-    (define-key map "\C-c\C-t"
-      (lambda () (interactive) (edebug-set-breakpoint t)))
-    (define-key map "\C-c\C-l" 'edebug-where)
-    map))
+  "C-x SPC" #'edebug-set-breakpoint
+  "C-c C-d" #'edebug-unset-breakpoint
+  "C-c C-t" (lambda () (interactive) (edebug-set-breakpoint t))
+  "C-c C-l" #'edebug-where)
 
 ;; Autoloading these global bindings doesn't make sense because
 ;; they cannot be used anyway unless Edebug is already loaded and active.
@@ -3891,38 +3889,35 @@ be installed in `emacs-lisp-mode-map'.")
 
 (define-obsolete-variable-alias 'global-edebug-map
   'edebug-global-map "28.1")
-(defvar edebug-global-map
-  (let ((map (make-sparse-keymap)))
+(defvar-keymap edebug-global-map
+  :doc "Global map of edebug commands, available from any buffer."
+  "SPC" #'edebug-step-mode
+  "g"   #'edebug-go-mode
+  "G"   #'edebug-Go-nonstop-mode
+  "t"   #'edebug-trace-mode
+  "T"   #'edebug-Trace-fast-mode
+  "c"   #'edebug-continue-mode
+  "C"   #'edebug-Continue-fast-mode
 
-    (define-key map " " 'edebug-step-mode)
-    (define-key map "g" 'edebug-go-mode)
-    (define-key map "G" 'edebug-Go-nonstop-mode)
-    (define-key map "t" 'edebug-trace-mode)
-    (define-key map "T" 'edebug-Trace-fast-mode)
-    (define-key map "c" 'edebug-continue-mode)
-    (define-key map "C" 'edebug-Continue-fast-mode)
+  ;; breakpoints
+  "b"   #'edebug-set-breakpoint
+  "u"   #'edebug-unset-breakpoint
+  "U"   #'edebug-unset-breakpoints
+  "x"   #'edebug-set-conditional-breakpoint
+  "X"   #'edebug-set-global-break-condition
+  "D"   #'edebug-toggle-disable-breakpoint
 
-    ;; breakpoints
-    (define-key map "b" 'edebug-set-breakpoint)
-    (define-key map "u" 'edebug-unset-breakpoint)
-    (define-key map "U" 'edebug-unset-breakpoints)
-    (define-key map "x" 'edebug-set-conditional-breakpoint)
-    (define-key map "X" 'edebug-set-global-break-condition)
-    (define-key map "D" 'edebug-toggle-disable-breakpoint)
+  ;; views
+  "w"   #'edebug-where
+  "W"   #'edebug-toggle-save-windows
 
-    ;; views
-    (define-key map "w" 'edebug-where)
-    (define-key map "W" 'edebug-toggle-save-windows)
+  ;; quitting
+  "q"   #'top-level
+  "Q"   #'edebug-top-level-nonstop
+  "a"   #'abort-recursive-edit
 
-    ;; quitting
-    (define-key map "q" 'top-level)
-    (define-key map "Q" 'edebug-top-level-nonstop)
-    (define-key map "a" 'abort-recursive-edit)
-
-    ;; statistics
-    (define-key map "=" 'edebug-display-freq-count)
-    map)
-  "Global map of edebug commands, available from any buffer.")
+  ;; statistics
+  "="   #'edebug-display-freq-count)
 
 (when edebug-global-prefix
   (global-unset-key edebug-global-prefix)
@@ -4093,16 +4088,14 @@ May only be called from within `edebug--recursive-edit'."
 
 
 
-(defvar edebug-eval-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map lisp-interaction-mode-map)
-    (define-key map "\C-c\C-w" 'edebug-where)
-    (define-key map "\C-c\C-d" 'edebug-delete-eval-item)
-    (define-key map "\C-c\C-u" 'edebug-update-eval-list)
-    (define-key map "\C-x\C-e" 'edebug-eval-last-sexp)
-    (define-key map "\C-j" 'edebug-eval-print-last-sexp)
-    map)
-  "Keymap for Edebug Eval mode.  Superset of Lisp Interaction mode.")
+(defvar-keymap edebug-eval-mode-map
+  :doc "Keymap for Edebug Eval mode.  Superset of Lisp Interaction mode."
+  :parent lisp-interaction-mode-map
+  "C-c C-w" #'edebug-where
+  "C-c C-d" #'edebug-delete-eval-item
+  "C-c C-u" #'edebug-update-eval-list
+  "C-x C-e" #'edebug-eval-last-sexp
+  "C-j"     #'edebug-eval-print-last-sexp)
 
 (put 'edebug-eval-mode 'mode-class 'special)
 

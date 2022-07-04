@@ -472,13 +472,11 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	(insert atstr))
       (insert "\n"))))
 
-(defvar elp-results-symname-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'elp-results-jump-to-definition)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map "\C-m" 'elp-results-jump-to-definition)
-    map)
-  "Keymap used on the function name column." )
+(defvar-keymap elp-results-symname-map
+  :doc "Keymap used on the function name column."
+  "<mouse-2>"     #'elp-results-jump-to-definition
+  "<follow-link>" 'mouse-face
+  "RET"           #'elp-results-jump-to-definition)
 
 (defun elp-results-jump-to-definition (&optional event)
   "Jump to the definition of the function at point."

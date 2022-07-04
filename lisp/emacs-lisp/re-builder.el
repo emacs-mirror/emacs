@@ -216,19 +216,17 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Buffer to use for the RE Builder.")
 
 ;; Define the local "\C-c" keymap
-(defvar reb-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'reb-toggle-case)
-    (define-key map "\C-c\C-q" 'reb-quit)
-    (define-key map "\C-c\C-w" 'reb-copy)
-    (define-key map "\C-c\C-s" 'reb-next-match)
-    (define-key map "\C-c\C-r" 'reb-prev-match)
-    (define-key map "\C-c\C-i" 'reb-change-syntax)
-    (define-key map "\C-c\C-e" 'reb-enter-subexp-mode)
-    (define-key map "\C-c\C-b" 'reb-change-target-buffer)
-    (define-key map "\C-c\C-u" 'reb-force-update)
-    map)
-  "Keymap used by the RE Builder.")
+(defvar-keymap reb-mode-map
+  :doc "Keymap used by the RE Builder."
+  "C-c C-c" #'reb-toggle-case
+  "C-c C-q" #'reb-quit
+  "C-c C-w" #'reb-copy
+  "C-c C-s" #'reb-next-match
+  "C-c C-r" #'reb-prev-match
+  "C-c C-i" #'reb-change-syntax
+  "C-c C-e" #'reb-enter-subexp-mode
+  "C-c C-b" #'reb-change-target-buffer
+  "C-c C-u" #'reb-force-update)
 
 (easy-menu-define reb-mode-menu reb-mode-map
   "Menu for the RE Builder."
@@ -263,12 +261,10 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (setq-local blink-matching-paren nil)
   (reb-mode-common))
 
-(defvar reb-lisp-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
-    ;; `emacs-lisp-mode'
-    (define-key map "\C-c" (lookup-key reb-mode-map "\C-c"))
-    map))
+(defvar-keymap reb-lisp-mode-map
+  ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
+  ;; `emacs-lisp-mode'
+  "C-c" (keymap-lookup reb-mode-map "C-c"))
 
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
@@ -278,16 +274,22 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     (require 'rx))                      ; require rx anyway
   (reb-mode-common))
 
-(defvar reb-subexp-mode-map
-  (let ((m (make-keymap)))
-    (suppress-keymap m)
-    ;; Again share the "\C-c" keymap for the commands
-    (define-key m "\C-c" (lookup-key reb-mode-map "\C-c"))
-    (define-key m "q" 'reb-quit-subexp-mode)
-    (dotimes (digit 10)
-      (define-key m (int-to-string digit) 'reb-display-subexp))
-    m)
-  "Keymap used by the RE Builder for the subexpression mode.")
+(defvar-keymap reb-subexp-mode-map
+  :doc "Keymap used by the RE Builder for the subexpression mode."
+  :full t :suppress t
+  ;; Again share the "\C-c" keymap for the commands
+  "C-c" (keymap-lookup reb-mode-map "C-c")
+  "q" #'reb-quit-subexp-mode
+  "0" #'reb-display-subexp
+  "1" #'reb-display-subexp
+  "2" #'reb-display-subexp
+  "3" #'reb-display-subexp
+  "4" #'reb-display-subexp
+  "5" #'reb-display-subexp
+  "6" #'reb-display-subexp
+  "7" #'reb-display-subexp
+  "8" #'reb-display-subexp
+  "9" #'reb-display-subexp)
 
 (defun reb-mode-common ()
   "Setup functions common to functions `reb-mode' and `reb-lisp-mode'."

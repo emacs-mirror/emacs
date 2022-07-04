@@ -216,33 +216,28 @@ If ADVANCE is non-nil, move forward by one line afterwards."
       (while (re-search-forward re nil 'noerror)
         (tabulated-list-put-tag empty)))))
 
-(defvar tabulated-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap
-                            button-buffer-map
-                            special-mode-map))
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map (kbd "M-<left>") 'tabulated-list-previous-column)
-    (define-key map (kbd "M-<right>") 'tabulated-list-next-column)
-    (define-key map "S" 'tabulated-list-sort)
-    (define-key map "}" 'tabulated-list-widen-current-column)
-    (define-key map "{" 'tabulated-list-narrow-current-column)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'mouse-select-window)
-    map)
-  "Local keymap for `tabulated-list-mode' buffers.")
+(defvar-keymap tabulated-list-mode-map
+  :doc "Local keymap for `tabulated-list-mode' buffers."
+  :parent (make-composed-keymap button-buffer-map
+                                special-mode-map)
+  "n"             #'next-line
+  "p"             #'previous-line
+  "M-<left>"      #'tabulated-list-previous-column
+  "M-<right>"     #'tabulated-list-next-column
+  "S"             #'tabulated-list-sort
+  "}"             #'tabulated-list-widen-current-column
+  "{"             #'tabulated-list-narrow-current-column
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'mouse-select-window)
 
-(defvar tabulated-list-sort-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [header-line mouse-1] 'tabulated-list-col-sort)
-    (define-key map [header-line mouse-2] 'tabulated-list-col-sort)
-    (define-key map [mouse-1] 'tabulated-list-col-sort)
-    (define-key map [mouse-2] 'tabulated-list-col-sort)
-    (define-key map "\C-m" 'tabulated-list-sort)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Local keymap for `tabulated-list-mode' sort buttons.")
+(defvar-keymap tabulated-list-sort-button-map
+  :doc "Local keymap for `tabulated-list-mode' sort buttons."
+  "<header-line> <mouse-1>" #'tabulated-list-col-sort
+  "<header-line> <mouse-2>" #'tabulated-list-col-sort
+  "<mouse-1>"               #'tabulated-list-col-sort
+  "<mouse-2>"               #'tabulated-list-col-sort
+  "RET"                     #'tabulated-list-sort
+  "<follow-link>"           'mouse-face)
 
 (defun tabulated-list-make-glyphless-char-display-table ()
   "Make the `glyphless-char-display' table used for text-mode frames.

@@ -753,17 +753,16 @@ font-lock keywords will not be case sensitive."
 					(progn (forward-sexp 1)
 					       (point)))))))
 
-(defvar lisp-mode-shared-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map prog-mode-map)
-    (define-key map "\e\C-q" 'indent-sexp)
-    (define-key map "\177" 'backward-delete-char-untabify)
-    ;; This gets in the way when viewing a Lisp file in view-mode.  As
-    ;; long as [backspace] is mapped into DEL via the
-    ;; function-key-map, this should remain disabled!!
-    ;;;(define-key map [backspace] 'backward-delete-char-untabify)
-    map)
-  "Keymap for commands shared by all sorts of Lisp modes.")
+(defvar-keymap lisp-mode-shared-map
+  :doc "Keymap for commands shared by all sorts of Lisp modes."
+  :parent prog-mode-map
+  "C-M-q" #'indent-sexp
+  "DEL"   #'backward-delete-char-untabify
+  ;; This gets in the way when viewing a Lisp file in view-mode.  As
+  ;; long as [backspace] is mapped into DEL via the
+  ;; function-key-map, this should remain disabled!!
+  ;;;"<backspace>" #'backward-delete-char-untabify
+  )
 
 (defcustom lisp-mode-hook nil
   "Hook run when entering Lisp mode."
@@ -779,14 +778,12 @@ font-lock keywords will not be case sensitive."
 
 ;;; Generic Lisp mode.
 
-(defvar lisp-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map lisp-mode-shared-map)
-    (define-key map "\e\C-x" 'lisp-eval-defun)
-    (define-key map "\C-c\C-z" 'run-lisp)
-    map)
-  "Keymap for ordinary Lisp mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
+(defvar-keymap lisp-mode-map
+  :doc "Keymap for ordinary Lisp mode.
+All commands in `lisp-mode-shared-map' are inherited by this map."
+  :parent lisp-mode-shared-map
+  "C-M-x"   #'lisp-eval-defun
+  "C-c C-z" #'run-lisp)
 
 (easy-menu-define lisp-mode-menu lisp-mode-map
   "Menu for ordinary Lisp mode."
