@@ -23144,6 +23144,19 @@ static void
 x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
 {
   struct x_failable_request *request, *max;
+#ifdef HAVE_GTK3
+  GdkDisplay *gdpy;
+
+  /* GTK 3 tends to override our own error handler inside certain
+     callbacks, which this can be called from.  Instead of trying to
+     restore our own, add a trap for the following requests with
+     GDK as well.  */
+
+  gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
+
+  if (gdpy)
+    gdk_x11_display_error_trap_push (gdpy);
+#endif
 
   if ((dpyinfo->next_failable_request
        != dpyinfo->failable_requests)
@@ -23182,6 +23195,9 @@ static void
 x_stop_ignoring_errors (struct x_display_info *dpyinfo)
 {
   struct x_failable_request *range;
+#ifdef HAVE_GTK3
+  GdkDisplay *gdpy;
+#endif
 
   range = dpyinfo->next_failable_request - 1;
   range->end = XNextRequest (dpyinfo->display) - 1;
@@ -23192,6 +23208,13 @@ x_stop_ignoring_errors (struct x_display_info *dpyinfo)
   if (X_COMPARE_SERIALS (range->end, <,
 			 range->start))
     emacs_abort ();
+
+#ifdef HAVE_GTK3
+  gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
+
+  if (gdpy)
+    gdk_x11_display_error_trap_pop_ignored (gdpy);
+#endif
 }
 
 /* Undo the last x_catch_errors call.
