@@ -478,10 +478,10 @@ This will generate compile-time constants from BINDINGS."
          ;; Words inside \\[], \\<>, \\{} or \\`' tend to be for
          ;; `substitute-command-keys'.
          (,(rx "\\\\" (or (seq "[" (group-n 1 lisp-mode-symbol) "]")
-                          (seq "`" (group-n 1 (+ lisp-mode-symbol
-                                                 ;; allow multiple words, e.g. "C-x a"
-                                                 (? " ")))
-                           "'")))
+                          (seq "`" (group-n 1
+                                     ;; allow multiple words, e.g. "C-x a"
+                                     lisp-mode-symbol (* " " lisp-mode-symbol))
+                               "'")))
           (1 font-lock-constant-face prepend))
          (,(rx "\\\\" (or (seq "<" (group-n 1 lisp-mode-symbol) ">")
                           (seq "{" (group-n 1 lisp-mode-symbol) "}")))
