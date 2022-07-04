@@ -23139,6 +23139,13 @@ x_stop_ignoring_errors (struct x_display_info *dpyinfo)
 
   range = dpyinfo->next_failable_request - 1;
   range->end = XNextRequest (dpyinfo->display) - 1;
+
+  /* Abort if no request was made since
+     `x_ignore_errors_for_next_request'.  */
+
+  if (X_COMPARE_SERIALS (range->end, <,
+			 range->start))
+    emacs_abort ();
 }
 
 /* Undo the last x_catch_errors call.
