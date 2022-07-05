@@ -3378,7 +3378,6 @@ Motif version prior to 2.1.
       REAL_CPPFLAGS="-I/usr/include/openmotif $REAL_CPPFLAGS"
     fi
   else
-    AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
     # We put this in CFLAGS temporarily to precede other -I options
     # that might be in CFLAGS temporarily.
     # We put this in CPPFLAGS where it precedes the other -I options.
@@ -3386,6 +3385,7 @@ Motif version prior to 2.1.
     OLD_CFLAGS=$CFLAGS
     CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
     CFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CFLAGS"
+    AC_CACHE_CHECK(for LessTif where some systems put it, emacs_cv_lesstif,
     [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>]],
       [[int x = 5;]])],
       emacs_cv_lesstif=yes, emacs_cv_lesstif=no)])
