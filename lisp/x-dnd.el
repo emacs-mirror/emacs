@@ -135,7 +135,11 @@ It can also return nil, which means to cancel the drop.
 If the first argument is nil, the second is the name of the file
 that was dropped."
   :version "29.1"
-  :type 'function
+  :type '(choice (const :tag "Prompt for name before saving"
+                        x-dnd-save-direct)
+                 (const :tag "Save and open immediately without prompting"
+                        x-dnd-save-direct-immediately)
+                 (function :tag "Other function"))
   :group 'x)
 
 (defcustom x-dnd-copy-types '("chromium/x-renderer-taint")
@@ -186,18 +190,21 @@ any protocol specific data.")
 
 (declare-function x-register-dnd-atom "xselect.c")
 
+(defvar x-fast-protocol-requests)
+
 (defun x-dnd-init-frame (&optional frame)
   "Setup drag and drop for FRAME (i.e. create appropriate properties)."
   (when (eq 'x (window-system frame))
-    (x-register-dnd-atom "DndProtocol" frame)
-    (x-register-dnd-atom "_MOTIF_DRAG_AND_DROP_MESSAGE" frame)
-    (x-register-dnd-atom "XdndEnter" frame)
-    (x-register-dnd-atom "XdndPosition" frame)
-    (x-register-dnd-atom "XdndLeave" frame)
-    (x-register-dnd-atom "XdndDrop" frame)
-    (x-register-dnd-atom "_DND_PROTOCOL" frame)
-    (x-dnd-init-xdnd-for-frame frame)
-    (x-dnd-init-motif-for-frame frame)))
+    (let ((x-fast-protocol-requests (not x-dnd-debug-errors)))
+      (x-register-dnd-atom "DndProtocol" frame)
+      (x-register-dnd-atom "_MOTIF_DRAG_AND_DROP_MESSAGE" frame)
+      (x-register-dnd-atom "XdndEnter" frame)
+      (x-register-dnd-atom "XdndPosition" frame)
+      (x-register-dnd-atom "XdndLeave" frame)
+      (x-register-dnd-atom "XdndDrop" frame)
+      (x-register-dnd-atom "_DND_PROTOCOL" frame)
+      (x-dnd-init-xdnd-for-frame frame)
+      (x-dnd-init-motif-for-frame frame))))
 
 (defun x-dnd-get-state-cons-for-frame (frame-or-window)
   "Return the entry in `x-dnd-current-state' for a frame or window."
@@ -429,8 +436,6 @@ nil if not."
 	(let ((dnd-open-file-other-window t))
 	  (select-frame frame)
 	  (funcall handler window action data))))))
-
-(defvar x-fast-protocol-requests)
 
 (defun x-dnd-handle-drag-n-drop-event (event)
   "Receive drag and drop events (X client messages).
@@ -1361,6 +1366,27 @@ Prompt the user for a file name, then open it."
         (revert-buffer)
       (find-file name))))
 
+(defun x-dnd-save-direct-immediately (need-name name)
+  "Save and open a dropped file, like `x-dnd-save-direct'.
+NEED-NAME tells whether or not the file was not yet saved.  NAME
+is either the name of the file, or the name the drop source wants
+us to save under.
+
+Unlike `x-dnd-save-direct', do not prompt for the name by which
+to save the file.  Simply save it in the current directory."
+  (if need-name
+      (let ((file-name (expand-file-name name)))
+        (when (file-exists-p file-name)
+          (unless (y-or-n-p (format-message
+                             "File `%s' exists; overwrite? " file-name))
+            (setq file-name nil)))
+        file-name)
+    ;; TODO: move this to dired.el once a platform-agonistic
+    ;; interface can be found.
+    (if (derived-mode-p 'dired-mode)
+        (revert-buffer)
+      (find-file name))))
+
 (defun x-dnd-handle-octet-stream-for-drop (save-to)
   "Save the contents of the XDS selection to SAVE-TO.
 Return non-nil if successful, nil otherwise."
@@ -1402,15 +1428,14 @@ VERSION is the version of the XDND protocol understood by SOURCE."
                                 desired-name
                                 (or file-name-coding-system
                                     default-file-name-coding-system)))
-            (setq save-to (expand-file-name
-                           (funcall x-dnd-direct-save-function
-                                    t desired-name))
-                  save-to-remote save-to)
-            (if (file-remote-p save-to)
-                (setq hostname (file-remote-p save-to 'host)
-                      save-to (file-local-name save-to))
-              (setq hostname (system-name)))
+            (let ((name (funcall x-dnd-direct-save-function
+                                 t desired-name)))
+              (setq save-to name save-to-remote name))
             (when save-to
+              (if (file-remote-p save-to)
+                  (setq hostname (file-remote-p save-to 'host)
+                        save-to (file-local-name save-to))
+                (setq hostname (system-name)))
               (with-selected-window window
                 (let ((uri (format "file://%s%s" hostname save-to)))
                   (x-change-window-property "XdndDirectSave0"
