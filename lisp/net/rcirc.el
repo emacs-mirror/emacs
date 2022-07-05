@@ -3302,7 +3302,7 @@ PROCESS is the process object for the current connection."
       (with-current-buffer chat-buffer
 	(rcirc-print process sender "NICK" old-nick new-nick)
 	(setq rcirc-target new-nick)
-	(rename-buffer (rcirc-generate-new-buffer-name process new-nick)))
+	(rename-buffer (rcirc-generate-new-buffer-name process new-nick) t))
       (setf rcirc-buffer-alist
             (cons (cons new-nick chat-buffer)
                   (delq (assoc-string old-nick rcirc-buffer-alist t)
