@@ -2011,7 +2011,7 @@ example buffers using a particular mode or in some directory.
 ---
 *** New user option 'auto-save-visited-remote-files'.
 This user option controls whether or not 'auto-save-visited-mode' will
-save remote buffers.  The default is t.
+auto-save remote buffers.  The default is t.
 
 +++
 *** New package vtable.el for formatting tabular data.

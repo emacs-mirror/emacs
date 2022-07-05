@@ -469,7 +469,7 @@ true."
   :version "29.1")
 
 (defcustom auto-save-visited-remote-files t
-  "If non-nil, `auto-save-visited-mode' will save remote files."
+  "If non-nil, `auto-save-visited-mode' will auto-save remote files."
   :group 'auto-save
   :type 'boolean
   :version "29.1")
