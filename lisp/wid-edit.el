@@ -880,6 +880,7 @@ The child is converted, using the keyword arguments ARGS."
   "Make a deep copy of WIDGET."
   (widget-apply (copy-sequence widget) :copy))
 
+;;;###autoload
 (defun widget-convert (type &rest args)
   "Convert TYPE to a widget without inserting it in the buffer.
 The optional ARGS are additional keyword arguments."

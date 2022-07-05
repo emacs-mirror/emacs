@@ -90,6 +90,16 @@ The value is either the symbol's current value
  (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
 or (last of all) the value of EXP."
+  ;; If this value has been set with `setopt' (for instance in
+  ;; ~/.emacs), we didn't necessarily know the type of the user option
+  ;; then.  So check now, and issue a warning if it's wrong.
+  (when-let ((value (get symbol 'custom-check-value))
+             (type (get symbol 'custom-type)))
+    (when (and (boundp symbol)
+               (eq (car value) (symbol-value symbol))
+               ;; Check that the type is correct.
+               (not (widget-apply (widget-convert type) :match (car value))))
+      (warn "Value `%S' for `%s' does not match type %s" value symbol type)))
   (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
            symbol
            (condition-case nil
