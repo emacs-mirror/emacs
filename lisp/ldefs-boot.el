@@ -313,8 +313,8 @@ Interactively, BEG and END are the mark/point of the current region.
 
 Many modes define specific alignment rules, and some of these
 rules in some modes react to the current prefix argument.  For
-instance, in `text-mode', `M-x align' will align into columns
-based on space delimiters, while `C-u - M-x align' will align
+instance, in `text-mode', \\`M-x align' will align into columns
+based on space delimiters, while \\`C-u -' \\`M-x align' will align
 into columns based on the \"$\" character.  See the
 `align-rules-list' variable definition for the specific rules.
 
@@ -2119,10 +2119,10 @@ a reflection.
 
 ;;; Generated autoloads from bookmark.el
 
- (define-key ctl-x-r-map "b" 'bookmark-jump)
- (define-key ctl-x-r-map "m" 'bookmark-set)
- (define-key ctl-x-r-map "M" 'bookmark-set-no-overwrite)
- (define-key ctl-x-r-map "l" 'bookmark-bmenu-list)
+ (keymap-set ctl-x-r-map "b" #'bookmark-jump)
+ (keymap-set ctl-x-r-map "m" #'bookmark-set)
+ (keymap-set ctl-x-r-map "M" #'bookmark-set-no-overwrite)
+ (keymap-set ctl-x-r-map "l" #'bookmark-bmenu-list)
 (defvar-keymap bookmark-map :doc "\
 Keymap containing bindings to bookmark functions.
 It is not bound to any key by default: to bind it
@@ -4289,11 +4289,11 @@ The buffer is left in Command History mode." t nil)
 Examine commands from variable `command-history' in a buffer.
 The number of commands listed is controlled by `list-command-history-max'.
 The command history is filtered by `list-command-history-filter' if non-nil.
-Use \\<command-history-map>\\[command-history-repeat] to repeat the command on the current line.
+Use \\<command-history-mode-map>\\[command-history-repeat] to repeat the command on the current line.
 
 Otherwise much like Emacs-Lisp Mode except that there is no self-insertion
 and digits provide prefix arguments.  Tab does not indent.
-\\{command-history-map}
+\\{command-history-mode-map}
 
 This command always recompiles the Command History listing
 and runs the normal hook `command-history-hook'." t nil)
@@ -7382,7 +7382,7 @@ Type \\[dired-do-copy] to Copy files.
 Type \\[dired-sort-toggle-or-edit] to toggle Sorting by name/date or change the `ls' switches.
 Type \\[revert-buffer] to read all currently expanded directories aGain.
   This retains all marks and hides subdirs again that were hidden before.
-Use `SPC' and `DEL' to move down and up by lines.
+Use \\`SPC' and \\`DEL' to move down and up by lines.
 
 If Dired ever gets confused, you can either type \\[revert-buffer] to read the
 directories again, type \\[dired-do-redisplay] to relist the file at point or the marked files or a
@@ -8368,7 +8368,7 @@ Major mode for Ebrowse class tree buffers.
 Each line corresponds to a class in a class tree.
 Letters do not insert themselves, they are commands.
 File operations in the tree buffer work on class tree data structures.
-E.g.\\[save-buffer] writes the tree to the file it was loaded from.
+E.g. \\[save-buffer] writes the tree to the file it was loaded from.
 
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}
@@ -9477,12 +9477,7 @@ Emerge two RCS revisions of a file, with another revision as ancestor.
 ;;; Generated autoloads from international/emoji.el
 
 (autoload 'emoji-insert "emoji" "\
-Choose and insert an emoji glyph.
-If TEXT (interactively, the prefix argument), choose the emoji
-by typing its Unicode Standard name (with completion), instead
-of selecting from emoji display.
-
-(fn &optional TEXT)" t nil)
+Choose and insert an emoji glyph." t nil)
 (autoload 'emoji-recent "emoji" "\
 Choose and insert one of the recently-used emoji glyphs." t nil)
 (autoload 'emoji-search "emoji" "\
@@ -9509,13 +9504,9 @@ the name is not known.
 Increase the size of the character under point.
 FACTOR is the multiplication factor for the size.
 
-This command will be repeatable if `repeat-mode' is switched on.
-
 (fn &optional FACTOR)" t nil)
 (autoload 'emoji-zoom-decrease "emoji" "\
-Decrease the size of the character under point.
-
-This command will be repeatable if `repeat-mode' is switched on." t nil)
+Decrease the size of the character under point." t nil)
 (register-definition-prefixes "emoji" '("emoji-"))
 
 
@@ -9906,8 +9897,10 @@ Non-interactively, it takes the keyword arguments
    (server (erc-compute-server))
    (port   (erc-compute-port))
    (nick   (erc-compute-nick))
+   (user   (erc-compute-user))
    password
    (full-name (erc-compute-full-name))
+   id
 
 That is, if called with
 
@@ -9917,7 +9910,11 @@ then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
 for the values of the other parameters.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) PASSWORD (FULL-NAME (erc-compute-full-name)))" '((erc-select-read-args)) nil)
+When present, ID should be an opaque object used to identify the
+connection unequivocally.  This is rarely needed and not available
+interactively.
+
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" '((erc-select-read-args)) nil)
 (defalias 'erc-select #'erc)
 (autoload 'erc-tls "erc" "\
 ERC is a powerful, modular, and extensible IRC client.
@@ -9933,6 +9930,7 @@ Non-interactively, it takes the keyword arguments
    password
    (full-name (erc-compute-full-name))
    client-certificate
+   id
 
 That is, if called with
 
@@ -9957,7 +9955,13 @@ Example usage:
              \\='(\"/home/bandali/my-cert.key\"
                \"/home/bandali/my-cert.crt\"))
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE)" '((let ((erc-default-port erc-default-port-tls)) (erc-select-read-args))) nil)
+When present, ID should be an opaque object for identifying the
+connection unequivocally.  (In most cases, this would be a string or a
+symbol composed of letters from the Latin alphabet.)  This option is
+generally unneeded, however.  See info node `(erc) Connecting' for use
+cases.  Not available interactively.
+
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" '((let ((erc-default-port erc-default-port-tls)) (erc-select-read-args))) nil)
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
@@ -10073,6 +10077,7 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 Return the name of the network or \"Unknown\" as a symbol.
 Use the server parameter NETWORK if provided, otherwise parse the
 server name and search for a match in `erc-networks-alist'." nil nil)
+(make-obsolete 'erc-determine-network '"maybe see `erc-networks--determine'" "29.1")
 (autoload 'erc-server-select "erc-networks" "\
 Interactively select a server to connect to using `erc-server-alist'." t nil)
 (register-definition-prefixes "erc-networks" '("erc-"))
@@ -11244,9 +11249,9 @@ INC may be passed as a numeric prefix argument.
 The actual adjustment made depends on the final component of the
 keybinding used to invoke the command, with all modifiers removed:
 
-   +, =   Increase font size in current buffer by one step
-   -      Decrease font size in current buffer by one step
-   0      Reset the font size to the global default
+   \\`+', \\`='   Increase font size in current buffer by one step
+   \\`-'      Decrease font size in current buffer by one step
+   \\`0'      Reset the font size to the global default
 
 After adjusting, continue to read input events and further adjust
 the font size as long as the input event read
@@ -11268,12 +11273,43 @@ that have an explicit `:height' setting.  The two exceptions to
 this are the `default' and `header-line' faces: they will both be
 scaled even if they have an explicit `:height' setting.
 
+See also the related command `global-text-scale-adjust'.
+
 (fn INC)" t nil)
  (define-key global-map [pinch] 'text-scale-pinch)
 (autoload 'text-scale-pinch "face-remap" "\
 Adjust the height of the default face by the scale in the pinch event EVENT.
 
 (fn EVENT)" t nil)
+ (define-key ctl-x-map [(control meta ?+)] 'global-text-scale-adjust)
+ (define-key ctl-x-map [(control meta ?=)] 'global-text-scale-adjust)
+ (define-key ctl-x-map [(control meta ?-)] 'global-text-scale-adjust)
+ (define-key ctl-x-map [(control meta ?0)] 'global-text-scale-adjust)
+(autoload 'global-text-scale-adjust "face-remap" "\
+Globally adjust the font size by INCREMENT.
+
+Interactively, INCREMENT may be passed as a numeric prefix argument.
+
+The adjustment made depends on the final component of the key binding
+used to invoke the command, with all modifiers removed:
+
+   \\`+', \\`='   Globally increase the height of the default face
+   \\`-'      Globally decrease the height of the default face
+   \\`0'      Globally reset the height of the default face
+
+After adjusting, further adjust the font size as long as the key,
+with all modifiers removed, is one of the above characters.
+
+Buffer-local face adjustements have higher priority than global
+face adjustments.
+
+The variable `global-text-scale-adjust-resizes-frames' controls
+whether the frames are resized to keep the same number of lines
+and characters per line when the font size is adjusted.
+
+See also the related command `text-scale-adjust'.
+
+(fn INCREMENT)" t nil)
 (autoload 'buffer-face-mode "face-remap" "\
 Minor mode for a buffer-specific default face.
 
@@ -11329,7 +11365,7 @@ An interface to `buffer-face-mode' which uses the `variable-pitch' face.
 Besides the choice of face, it is the same as `buffer-face-mode'.
 
 (fn &optional ARG)" t nil)
-(register-definition-prefixes "face-remap" '("buffer-face-mode-" "face-" "internal-lisp-face-attributes" "text-scale-"))
+(register-definition-prefixes "face-remap" '("buffer-face-mode-" "face-" "global-text-scale-adjust-" "internal-lisp-face-attributes" "text-scale-"))
 
 
 ;;; Generated autoloads from facemenu.el
@@ -13791,7 +13827,7 @@ Return intersection of LIST1 and LIST2.
 LIST1 and LIST2 have to be sorted over <.
 
 (fn LIST1 LIST2)" nil nil)
-(defalias 'gnus-set-sorted-intersection 'gnus-sorted-nintersection)
+(defalias 'gnus-set-sorted-intersection #'gnus-sorted-nintersection)
 (autoload 'gnus-sorted-nintersection "gnus-range" "\
 Return intersection of LIST1 and LIST2 by modifying cdr pointers of LIST1.
 LIST1 and LIST2 have to be sorted over <.
@@ -14235,7 +14271,7 @@ to specify a command to run.
 If CONFIRM is non-nil, the user will be given an opportunity to edit the
 command before it's run.
 
-Interactively, the user can use the `M-c' command while entering
+Interactively, the user can use the \\`M-c' command while entering
 the regexp to indicate whether the grep should be case sensitive
 or not.
 
@@ -18676,6 +18712,41 @@ Major mode for browsing CVS log output.
 (register-definition-prefixes "log-view" '("log-view-"))
 
 
+;;; Generated autoloads from longlines.el
+
+(autoload 'longlines-mode "longlines" "\
+Toggle Long Lines mode in this buffer.
+
+When Long Lines mode is enabled, long lines are wrapped if they
+extend beyond `fill-column'.  The soft newlines used for line
+wrapping will not show up when the text is yanked or saved to
+disk.
+
+If the variable `longlines-auto-wrap' is non-nil, lines are
+automatically wrapped whenever the buffer is changed.  You can
+always call `fill-paragraph' to fill individual paragraphs.
+
+If the variable `longlines-show-hard-newlines' is non-nil, hard
+newlines are indicated with a symbol.
+
+This is a minor mode.  If called interactively, toggle the
+`Longlines mode' mode.  If the prefix argument is positive,
+enable the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable
+the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `longlines-mode'.
+
+The mode's hook is called both when the mode is enabled and when
+it is disabled.
+
+(fn &optional ARG)" t nil)
+(register-definition-prefixes "longlines" '("longlines-"))
+
+
 ;;; Generated autoloads from lpr.el
 
 (defvar lpr-windows-system (memq system-type '(ms-dos windows-nt)) "\
@@ -20011,7 +20082,7 @@ ripples outward, changing the flow of the eddy currents in the
 upper atmosphere.  These cause momentary pockets of higher-pressure
 air to form, which act as lenses that deflect incoming cosmic rays,
 focusing them to strike the drive platter and flip the desired bit.
-You can type `M-x butterfly C-M-c' to run it.  This is a permuted
+You can type \\`M-x butterfly C-M-c' to run it.  This is a permuted
 variation of `C-x M-c M-butterfly' from url `https://xkcd.com/378/'." t nil)
 (autoload 'list-dynamic-libraries "misc" "\
 Display a list of all dynamic libraries known to Emacs.
@@ -30309,7 +30380,7 @@ commands to use in that buffer.
 (autoload 'ansi-term "term" "\
 Start a terminal-emulator in a new buffer.
 This is almost the same as `term' apart from always creating a new buffer,
-and `C-x' being marked as a `term-escape-char'.
+and \\`C-x' being marked as a `term-escape-char'.
 
 (fn PROGRAM &optional NEW-BUFFER-NAME)" t nil)
 (autoload 'serial-term "term" "\
@@ -35114,6 +35185,11 @@ The optional ARGS are additional keyword arguments.
 Delete WIDGET.
 
 (fn WIDGET)" nil nil)
+(autoload 'widget-convert "wid-edit" "\
+Convert TYPE to a widget without inserting it in the buffer.
+The optional ARGS are additional keyword arguments.
+
+(fn TYPE &rest ARGS)" nil nil)
 (autoload 'widget-insert "wid-edit" "\
 Call `insert' with ARGS even if surrounding text is read only.
 
@@ -35321,8 +35397,8 @@ Winner mode is a global minor mode that records the changes in
 the window configuration (i.e. how the frames are partitioned
 into windows) so that the changes can be \"undone\" using the
 command `winner-undo'.  By default this one is bound to the key
-sequence `C-c <left>'.  If you change your mind (while undoing),
-you can press `C-c <right>' (calling `winner-redo').
+sequence \\`C-c <left>'.  If you change your mind (while undoing),
+you can press \\`C-c <right>' (calling `winner-redo').
 
 This is a global minor mode.  If called interactively, toggle the
 `Winner mode' mode.  If the prefix argument is positive, enable
