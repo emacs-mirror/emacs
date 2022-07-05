@@ -1957,7 +1957,7 @@ The outline level is equal to the verbosity of the Tramp message."
 They are completed by \"M-x TAB\" only in Tramp debug buffers."
   (with-current-buffer buffer
     (string-equal
-     (buffer-substring (point-min) (min 10 (point-max))) ";; Emacs:")))
+     (buffer-substring (point-min) (min (+ (point-min) 10) (point-max))) ";; Emacs:")))
 
 (put #'tramp-debug-buffer-command-completion-p 'tramp-suppress-trace t)
 
