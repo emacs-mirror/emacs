@@ -2009,9 +2009,9 @@ You can use it to automatically save only specific buffers, for
 example buffers using a particular mode or in some directory.
 
 ---
-*** New user option 'auto-save-visited-remote-files'.
-This user option controls whether or not 'auto-save-visited-mode' will
-auto-save remote buffers.  The default is t.
+*** New user option 'remote-file-name-inhibit-auto-save-visited'.
+If this user option is non-nil, 'auto-save-visited-mode' will not
+auto-save remote buffers.  The default is nil.
 
 +++
 *** New package vtable.el for formatting tabular data.

@@ -469,8 +469,9 @@ non-nil."
   :risky t
   :version "29.1")
 
-(defcustom auto-save-visited-remote-files t
-  "If non-nil, `auto-save-visited-mode' will auto-save remote files."
+(defcustom remote-file-name-inhibit-auto-save-visited nil
+  "When nil, `auto-save-visited-mode' will auto-save remote files.
+Any other value means that it will not."
   :group 'auto-save
   :type 'boolean
   :version "29.1")
@@ -509,7 +510,7 @@ For more details, see Info node `(emacs) Auto Save Files'."
                   (not (and buffer-auto-save-file-name
                             auto-save-visited-file-name))
                   (or (not (file-remote-p buffer-file-name))
-                      auto-save-visited-remote-files)
+                      (not remote-file-name-inhibit-auto-save-visited))
                   (or (not (functionp auto-save-visited-predicate))
                       (funcall auto-save-visited-predicate))))))))
 
