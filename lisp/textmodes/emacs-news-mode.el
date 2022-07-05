@@ -54,7 +54,8 @@
   "C-c C-r" #'emacs-news-previous-untagged-entry
   "C-c C-g" #'emacs-news-goto-section
   "C-c C-j" #'emacs-news-find-heading
-  "C-c C-e" #'emacs-news-count-untagged-entries)
+  "C-c C-e" #'emacs-news-count-untagged-entries
+  "<remap> <open-line>" #'emacs-news-mode-open-line)
 
 (defvar-keymap emacs-news-view-mode-map
   :parent emacs-news-common-map)
@@ -231,6 +232,16 @@ untagged NEWS entry."
   (goto-char (point-min))
   (when (re-search-forward (concat "^*+ " (regexp-quote heading)) nil t)
     (beginning-of-line)))
+
+(defun emacs-news-mode-open-line (n)
+  "Open a new line in a NEWS file.
+This is like `open-line', but skips any temporary NEWS-style
+documentation marks on the previous line."
+  (interactive "*p" emacs-news-mode)
+  (when (save-excursion (forward-line -1)
+                        (looking-at (rx bol (or "---" "+++") eol)))
+    (forward-line -1))
+  (open-line n))
 
 (provide 'emacs-news-mode)
 
