@@ -443,6 +443,31 @@ idle for `auto-save-visited-interval' seconds."
          (when auto-save--timer
            (timer-set-idle-time auto-save--timer value :repeat))))
 
+(defcustom auto-save-visited-predicate nil
+  "Predicate function for `auto-save-visited-mode'.
+
+This function is called (with no argument) once in each
+file-visiting buffer.  Only those buffers are saved, where
+the predicate function returns a non-nil value.
+
+For example, you could add this to your Init file to only save
+files that are both in Org mode and in a particular directory:
+
+    (setq auto-save-visited-predicate
+          (lambda () (and (eq major-mode \\='org-mode)
+                          (string-match \"^/home/skangas/org/\"
+                                        buffer-file-name))))
+
+If the value of this variable is not a function, it is ignored.
+This is the same as having a predicate that always returns
+true."
+  :group 'auto-save
+  :type '(choice :tag "Function:"
+                 (const :tag "No extra predicate" :value nil)
+                 (function :tag "Predicate function" :value always))
+  :risky t
+  :version "29.1")
+
 (define-minor-mode auto-save-visited-mode
   "Toggle automatic saving to file-visiting buffers on or off.
 
@@ -452,6 +477,9 @@ The user option `auto-save-visited-interval' controls how often.
 Unlike `auto-save-mode', this mode will auto-save buffer contents
 to the visited files directly and will also run all save-related
 hooks.  See Info node `Saving' for details of the save process.
+
+You can use `auto-save-visited-predicate' to control which
+buffers are saved.
 
 You can also set the buffer-local value of the variable
 `auto-save-visited-mode' to nil.  A buffer where the buffer-local
@@ -472,7 +500,9 @@ For more details, see Info node `(emacs) Auto Save Files'."
              (and buffer-file-name
                   auto-save-visited-mode
                   (not (and buffer-auto-save-file-name
-                            auto-save-visited-file-name))))))))
+                            auto-save-visited-file-name))
+                  (or (not (functionp auto-save-visited-predicate))
+                      (funcall auto-save-visited-predicate))))))))
 
 ;; The 'set' part is so we don't get a warning for using this variable
 ;; above, while still catching code that _sets_ the variable to get

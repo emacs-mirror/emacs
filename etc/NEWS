@@ -2001,6 +2001,13 @@ Set it to nil to exclude line numbering from kills and copies.
 This option provides a mechanism to selectively disable font-lock
 keyword-driven fontifications.
 
+---
+*** New user option 'auto-save-visited-predicate'.
+This user option is a predicate function which is called by
+'auto-save-visited-mode' to decide whether or not to save a buffer.
+You can use it to automatically save only specific buffers, for
+example buffers using a particular mode or in some directory.
+
 +++
 *** New package vtable.el for formatting tabular data.
 This package allows formatting data using variable-pitch fonts.
