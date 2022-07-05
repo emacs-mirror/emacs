@@ -446,9 +446,10 @@ idle for `auto-save-visited-interval' seconds."
 (defcustom auto-save-visited-predicate nil
   "Predicate function for `auto-save-visited-mode'.
 
-This function is called (with no argument) once in each
-file-visiting buffer.  Only those buffers are saved, where
-the predicate function returns a non-nil value.
+If non-nil, the value should be a function of no arguments; it
+will be called once in each file-visiting buffer when the time
+comes to auto-save.  A buffer will be saved only if the predicate
+function returns a non-nil value.
 
 For example, you could add this to your Init file to only save
 files that are both in Org mode and in a particular directory:
@@ -460,7 +461,7 @@ files that are both in Org mode and in a particular directory:
 
 If the value of this variable is not a function, it is ignored.
 This is the same as having a predicate that always returns
-true."
+non-nil."
   :group 'auto-save
   :type '(choice :tag "Function:"
                  (const :tag "No extra predicate" :value nil)
