@@ -360,7 +360,7 @@ to run the `url-cookie-setup-save-timer' function manually."
          (set-default var val)
          (if (bound-and-true-p url-setup-done)
              (url-cookie-setup-save-timer)))
-  :type 'integer
+  :type 'natnum
   :group 'url-cookie)
 
 (defun url-cookie-setup-save-timer ()

@@ -260,7 +260,7 @@ This only has an effect if `Info-hide-note-references' is non-nil."
   "Depth of breadcrumbs to display.
 0 means do not display breadcrumbs."
   :version "23.1"
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom Info-search-whitespace-regexp "\\s-+"
   "If non-nil, regular expression to match a sequence of whitespace chars.

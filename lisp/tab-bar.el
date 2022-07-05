@@ -618,7 +618,7 @@ Also add the number of windows in the window configuration."
   "Maximum length of the tab name from the current buffer.
 Effective when `tab-bar-tab-name-function' is customized
 to `tab-bar-tab-name-truncated'."
-  :type 'integer
+  :type 'natnum
   :group 'tab-bar
   :version "27.1")
 

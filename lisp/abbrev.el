@@ -885,8 +885,8 @@ longer than the abbrev, the benefit of informing the user is not
 significant.  If you always want to be informed about existing
 abbrevs for the text you type, set this value to zero or less.
 This setting only applies if `abbrev-suggest' is non-nil."
-    :type 'number
-    :version "28.1")
+  :type 'natnum
+  :version "28.1")
 
 (defun abbrev--suggest-get-active-tables-including-parents ()
   "Return a list of all active abbrev tables, including parent tables."

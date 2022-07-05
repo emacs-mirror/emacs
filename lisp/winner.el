@@ -50,7 +50,7 @@
 
 (defcustom winner-ring-size 200
   "Maximum number of stored window configurations per frame."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom winner-boring-buffers '("*Completions*")
   "List of buffer names whose windows `winner-undo' will not restore.

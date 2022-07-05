@@ -131,7 +131,7 @@ for doing the actual authentication."
 
 (defcustom sieve-manage-default-port "sieve"
   "Default port number or service name for managesieve protocol."
-  :type '(choice integer string)
+  :type '(choice natnum string)
   :version "24.4")
 
 (defcustom sieve-manage-default-stream 'network

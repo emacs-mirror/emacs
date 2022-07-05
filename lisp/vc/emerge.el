@@ -221,7 +221,7 @@ depend on the flags."
 
 (defcustom emerge-min-visible-lines 3
   "Number of lines to show above and below the flags when displaying a difference."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom emerge-temp-file-prefix
   (expand-file-name "emerge" temporary-file-directory)

@@ -412,7 +412,7 @@ and deleted by `calc-pop'."
 
 (defcustom calc-undo-length 100
   "The number of undo steps that will be preserved when Calc is quit."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom calc-highlight-selections-with-faces nil
   "If non-nil, use a separate face to indicate selected sub-formulas.

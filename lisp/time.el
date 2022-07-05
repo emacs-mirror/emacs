@@ -93,7 +93,7 @@ Non-nil means \\[display-time] should display day and date as well as time."
 
 (defcustom display-time-interval 60
   "Seconds between updates of time in the mode line."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom display-time-24hr-format nil
   "Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
@@ -519,7 +519,7 @@ If the value is t instead of an alist, use the value of
 
 (defcustom world-clock-timer-second 60
   "Interval in seconds for updating the `world-clock' buffer."
-  :type 'integer
+  :type 'natnum
   :version "28.1")
 
 (defface world-clock-label

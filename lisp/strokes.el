@@ -252,7 +252,7 @@ WARNING: Changing the value of this variable will gravely affect the
          figure out what it should be based on your needs and on how
          quick the particular platform(s) you're operating on, and
          only then start programming in your custom strokes."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
   "File containing saved strokes for Strokes mode."

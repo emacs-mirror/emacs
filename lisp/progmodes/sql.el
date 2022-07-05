@@ -274,8 +274,8 @@ file.  Since that is a plaintext file, this could be dangerous."
 (defcustom sql-port 0
   "Default port for connecting to a MySQL or Postgres server."
   :version "24.1"
-  :type 'number
-  :safe 'numberp)
+  :type 'natnum
+  :safe 'natnump)
 
 (defcustom sql-default-directory nil
   "Default directory for SQL processes."

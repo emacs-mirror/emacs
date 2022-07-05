@@ -330,12 +330,12 @@ This variable is buffer-local in all Comint buffers."
   "The maximum size in lines for Comint buffers.
 Comint buffers are truncated from the top to be no greater than this number, if
 the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
-  :type 'integer
+  :type 'natnum
   :group 'comint)
 
 (defcustom comint-input-ring-size 500
   "Size of the input history ring in `comint-mode'."
-  :type 'integer
+  :type 'natnum
   :group 'comint
   :version "23.2")
 

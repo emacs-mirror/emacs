@@ -451,7 +451,7 @@ window to a height less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
 shorter, explicitly specify the SIZE argument of that function."
-  :type 'integer
+  :type 'natnum
   :version "24.1"
   :group 'windows)
 
@@ -483,7 +483,7 @@ window to a width less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
 narrower, explicitly specify the SIZE argument of that function."
-  :type 'integer
+  :type 'natnum
   :version "24.1"
   :group 'windows)
 

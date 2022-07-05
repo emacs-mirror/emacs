@@ -418,22 +418,22 @@ synchronously."
 
 (defcustom package-name-column-width 30
   "Column width for the Package name in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom package-version-column-width 14
   "Column width for the Package version in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom package-status-column-width 12
   "Column width for the Package status in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom package-archive-column-width 8
   "Column width for the Package archive in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 

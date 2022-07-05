@@ -97,7 +97,8 @@ This is decimal, not octal.  The default is 384 (0600 in octal).
 Set to nil to use the default permissions that Emacs uses, typically
 mandated by umask.  The default is a bit more restrictive to protect
 the user's privacy."
-  :type 'integer)
+  :type '(choice (natnum :tag "Specify")
+                 (const :tag "Use default" :value nil)))
 
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.

@@ -225,7 +225,7 @@ are available (see Info node `(emacs)Document View')"
 (defcustom doc-view-resolution 100
   "Dots per inch resolution used to render the documents.
 Higher values result in larger images."
-  :type 'number)
+  :type 'natnum)
 
 (defvar doc-view-doc-type nil
   "The type of document in the current buffer.
@@ -301,7 +301,7 @@ scaling."
 Has only an effect if `doc-view-scale-internally' is non-nil and support for
 scaling is compiled into Emacs."
   :version "24.1"
-  :type 'number)
+  :type 'natnum)
 
 (defcustom doc-view-dvipdfm-program "dvipdfm"
   "Program to convert DVI files to PDF.

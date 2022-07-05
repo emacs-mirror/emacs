@@ -51,7 +51,7 @@ This variable controls both `display-time' and stealth fontification.
 
 The optimum value is a little over the typical number of buffer
 characters which fit in a typical window."
-  :type 'integer)
+  :type 'natnum)
 
 
 (defcustom jit-lock-stealth-time nil

@@ -95,27 +95,27 @@ If the return value is a number, it is used as the timer period."
 
 (defcustom tetris-buffer-width 30
   "Width of used portion of buffer."
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-buffer-height 22
   "Height of used portion of buffer."
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-width 10
   "Width of playing area."
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-height 20
   "Height of playing area."
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-top-left-x 3
   "X position of top left of playing area."
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-top-left-y 1
   "Y position of top left of playing area."
-  :type 'number)
+  :type 'natnum)
 
 (defcustom tetris-allow-repetitions t
   "If non-nil, use a random selection for each shape.

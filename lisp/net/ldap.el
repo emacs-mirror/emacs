@@ -54,7 +54,7 @@ a separator."
 Initialized from the LDAP library at build time.
 Default value is 389."
   :type '(choice (const :tag "Use library default" nil)
-		 (integer :tag "Port number")))
+                 (natnum :tag "Port number")))
 
 (defcustom ldap-default-base nil
   "Default base for LDAP searches.

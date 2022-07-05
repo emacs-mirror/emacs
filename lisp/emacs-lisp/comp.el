@@ -63,7 +63,7 @@ This is intended for debugging the compiler itself.
   2 emit debug symbols and dump pseudo C code.
   3 emit debug symbols and dump: pseudo C code, GCC intermediate
   passes and libgccjit log file."
-  :type 'integer
+  :type 'natnum
   :safe #'natnump
   :version "28.1")
 
@@ -74,7 +74,7 @@ This is intended for debugging the compiler itself.
   1 final LIMPLE is logged.
   2 LAP, final LIMPLE, and some pass info are logged.
   3 max verbosity."
-  :type 'integer
+  :type 'natnum
   :risky t
   :version "28.1")
 
@@ -111,7 +111,7 @@ during bootstrap."
   "Default number of subprocesses used for async native compilation.
 Value of zero means to use half the number of the CPU's execution units,
 or one if there's just one execution unit."
-  :type 'integer
+  :type 'natnum
   :risky t
   :version "28.1")
 

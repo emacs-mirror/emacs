@@ -1725,8 +1725,8 @@ The byte-compiler will emit a warning for documentation strings
 containing lines wider than this.  If `fill-column' has a larger
 value, it will override this variable."
   :group 'bytecomp
-  :type 'integer
-  :safe #'integerp
+  :type 'natnum
+  :safe #'natnump
   :version "28.1")
 
 (define-obsolete-function-alias 'byte-compile-docstring-length-warn

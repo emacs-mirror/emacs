@@ -297,7 +297,7 @@ get the first available language (as opposed to the default)."
 (defcustom url-max-password-attempts 5
   "Maximum number of times a password will be prompted for.
 Applies when a protected document is denied by the server."
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-show-status t
@@ -330,7 +330,7 @@ undefined."
 (defcustom url-max-redirections 30
   "The maximum number of redirection requests to honor in a HTTP connection.
 A negative number means to honor an unlimited number of redirection requests."
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-confirmation-func 'y-or-n-p

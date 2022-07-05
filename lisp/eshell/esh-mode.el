@@ -146,7 +146,7 @@ See variable `eshell-scroll-to-bottom-on-output' and function
 Eshell buffers are truncated from the top to be no greater than this
 number, if the function `eshell-truncate-buffer' is on
 `eshell-output-filter-functions'."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom eshell-output-filter-functions
   '(eshell-postoutput-scroll-to-bottom

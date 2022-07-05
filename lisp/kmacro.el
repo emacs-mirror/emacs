@@ -129,7 +129,7 @@ Set to nil if no mouse binding is desired."
 
 (defcustom kmacro-ring-max 8
   "Maximum number of keyboard macros to save in macro ring."
-  :type 'integer)
+  :type 'natnum)
 
 
 (defcustom kmacro-execute-before-append t

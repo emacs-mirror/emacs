@@ -130,7 +130,7 @@ be displayed instead."
 
 (defcustom rcirc-default-port 6667
   "The default port to connect to."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom rcirc-default-nick (user-login-name)
   "Your nick."

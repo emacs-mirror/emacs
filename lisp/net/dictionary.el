@@ -89,7 +89,7 @@ You can specify here:
 This port is probably always 2628 so there should be no need to modify it."
   :group 'dictionary
   :set #'dictionary-set-server-var
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom dictionary-identification
@@ -206,7 +206,7 @@ where the current word was found."
   "The port of the proxy server, used only when `dictionary-use-http-proxy' is set."
   :group 'dictionary-proxy
   :set #'dictionary-set-server-var
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom dictionary-use-single-buffer
