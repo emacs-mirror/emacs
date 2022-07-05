@@ -468,6 +468,12 @@ true."
   :risky t
   :version "29.1")
 
+(defcustom auto-save-visited-remote-files t
+  "If non-nil, `auto-save-visited-mode' will save remote files."
+  :group 'auto-save
+  :type 'boolean
+  :version "29.1")
+
 (define-minor-mode auto-save-visited-mode
   "Toggle automatic saving to file-visiting buffers on or off.
 
@@ -501,6 +507,8 @@ For more details, see Info node `(emacs) Auto Save Files'."
                   auto-save-visited-mode
                   (not (and buffer-auto-save-file-name
                             auto-save-visited-file-name))
+                  (or (not (file-remote-p buffer-file-name))
+                      auto-save-visited-remote-files)
                   (or (not (functionp auto-save-visited-predicate))
                       (funcall auto-save-visited-predicate))))))))
 
