@@ -73,18 +73,13 @@ representing names.  For instance:
 (defvar emoji--insert-buffer)
 
 ;;;###autoload
-(defun emoji-insert (&optional text)
-  "Choose and insert an emoji glyph.
-If TEXT (interactively, the prefix argument), choose the emoji
-by typing its Unicode Standard name (with completion), instead
-of selecting from emoji display."
-  (interactive "*P")
+(defun emoji-insert ()
+  "Choose and insert an emoji glyph."
+  (interactive "*")
   (emoji--init)
-  (if text
-      (emoji--choose-emoji)
-    (unless (fboundp 'emoji--command-Emoji)
-      (emoji--define-transient))
-    (funcall (intern "emoji--command-Emoji"))))
+  (unless (fboundp 'emoji--command-Emoji)
+    (emoji--define-transient))
+  (funcall (intern "emoji--command-Emoji")))
 
 ;;;###autoload
 (defun emoji-recent ()
