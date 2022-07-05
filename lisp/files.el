@@ -446,6 +446,9 @@ idle for `auto-save-visited-interval' seconds."
 (define-minor-mode auto-save-visited-mode
   "Toggle automatic saving to file-visiting buffers on or off.
 
+When this mode is enabled, visited files are saved automatically.
+The user option `auto-save-visited-interval' controls how often.
+
 Unlike `auto-save-mode', this mode will auto-save buffer contents
 to the visited files directly and will also run all save-related
 hooks.  See Info node `Saving' for details of the save process.
@@ -454,7 +457,9 @@ You can also set the buffer-local value of the variable
 `auto-save-visited-mode' to nil.  A buffer where the buffer-local
 value of this variable is nil is ignored for the purpose of
 `auto-save-visited-mode', even if `auto-save-visited-mode' is
-enabled."
+enabled.
+
+For more details, see Info node `(emacs) Auto Save Files'."
   :group 'auto-save
   :global t
   (when auto-save--timer (cancel-timer auto-save--timer))
