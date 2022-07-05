@@ -458,7 +458,7 @@ START is the minimum length of the name used."
     (define-key map (kbd "C-c C-@")   #'erc-track-switch-buffer)
     (define-key map (kbd "C-c C-SPC") #'erc-track-switch-buffer)
     map)
-  "Keymap for rcirc track minor mode.")
+  "Keymap for ERC track minor mode.")
 
 ;;;###autoload
 (define-minor-mode erc-track-minor-mode
