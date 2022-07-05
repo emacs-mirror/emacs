@@ -128,8 +128,7 @@ and the second is a string.
 
 If the first argument is t, the second argument is the name the
 dropped file should be saved under.  The function should return a
-complete local file name describing where the file should be
-saved.
+complete file name describing where the file should be saved.
 
 It can also return nil, which means to cancel the drop.
 
@@ -1347,23 +1346,20 @@ is either the name of the file, or the name the drop source wants
 us to save under.
 
 Prompt the user for a file name, then open it."
-  (if (file-remote-p default-directory)
-      ;; TODO: figure out what to do with remote files.
-      nil
-    (if need-name
-        (let ((file-name (read-file-name "Write file: "
-                                         default-directory
-                                         nil nil name)))
-          (when (file-exists-p file-name)
-            (unless (y-or-n-p (format-message
-                               "File `%s' exists; overwrite? " file-name))
-              (setq file-name nil)))
-          file-name)
-      ;; TODO: move this to dired.el once a platform-agonistic
-      ;; interface can be found.
-      (if (derived-mode-p 'dired-mode)
-          (revert-buffer)
-        (find-file name)))))
+  (if need-name
+      (let ((file-name (read-file-name "Write file: "
+                                       default-directory
+                                       nil nil name)))
+        (when (file-exists-p file-name)
+          (unless (y-or-n-p (format-message
+                             "File `%s' exists; overwrite? " file-name))
+            (setq file-name nil)))
+        file-name)
+    ;; TODO: move this to dired.el once a platform-agonistic
+    ;; interface can be found.
+    (if (derived-mode-p 'dired-mode)
+        (revert-buffer)
+      (find-file name))))
 
 (defun x-dnd-handle-octet-stream-for-drop (save-to)
   "Save the contents of the XDS selection to SAVE-TO.
@@ -1399,7 +1395,7 @@ VERSION is the version of the XDND protocol understood by SOURCE."
                                            ;; encodings.
                                            "text/plain" source))
           (frame (window-frame window))
-          (success nil) save-to)
+          (success nil) save-to save-to-remote hostname)
       (unwind-protect
           (when (stringp desired-name)
             (setq desired-name (decode-coding-string
@@ -1408,10 +1404,15 @@ VERSION is the version of the XDND protocol understood by SOURCE."
                                     default-file-name-coding-system)))
             (setq save-to (expand-file-name
                            (funcall x-dnd-direct-save-function
-                                    t desired-name)))
+                                    t desired-name))
+                  save-to-remote save-to)
+            (if (file-remote-p save-to)
+                (setq hostname (file-remote-p save-to 'host)
+                      save-to (file-local-name save-to))
+              (setq hostname (system-name)))
             (when save-to
               (with-selected-window window
-                (let ((uri (format "file://%s%s" (system-name) save-to)))
+                (let ((uri (format "file://%s%s" hostname save-to)))
                   (x-change-window-property "XdndDirectSave0"
                                             (encode-coding-string
                                              (url-encode-url uri) 'ascii)
@@ -1419,7 +1420,8 @@ VERSION is the version of the XDND protocol understood by SOURCE."
                   (let ((result (x-get-selection-internal 'XdndSelection
                                                           'XdndDirectSave0)))
                     (cond ((equal result "F")
-                           (setq success (x-dnd-handle-octet-stream-for-drop save-to))
+                           (setq success
+                                 (x-dnd-handle-octet-stream-for-drop save-to-remote))
                            (unless success
                              (x-change-window-property "XdndDirectSave0" ""
                                                        frame "text/plain" 8
@@ -1431,7 +1433,7 @@ VERSION is the version of the XDND protocol understood by SOURCE."
                           (t (error "Broken implementation of XDS: got %s in reply"
                                     result)))
                     (when success
-                      (funcall x-dnd-direct-save-function nil save-to)))))))
+                      (funcall x-dnd-direct-save-function nil save-to-remote)))))))
         ;; We assume XDS always comes from a client supporting version 2
         ;; or later, since custom actions aren't present before.
         (x-send-client-message frame source frame
