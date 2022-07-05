@@ -16908,7 +16908,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         const XSelectionClearEvent *eventp = &event->xselectionclear;
 
 	if (eventp->selection == dpyinfo->motif_drag_atom
-	    && dpyinfo->motif_drag_atom_time <= eventp->time)
+	    && (eventp->time == CurrentTime
+		|| dpyinfo->motif_drag_atom_time <= eventp->time))
 	  dpyinfo->motif_drag_atom = None;
 
         inev.sie.kind = SELECTION_CLEAR_EVENT;
