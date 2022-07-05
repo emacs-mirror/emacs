@@ -16468,10 +16468,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (x_dnd_last_protocol_version != -1
 		&& x_dnd_in_progress
 		&& target == x_dnd_last_seen_window
-		&& event->xclient.data.l[1] & 2)
+		/* The XDND documentation is not very clearly worded.
+		   But this should be the correct behavior, since
+		   "kDNDStatusSendHereFlag" in the reference
+		   implementation is 2, and means the mouse rect
+		   should be ignored.  */
+		&& !(event->xclient.data.l[1] & 2))
 	      {
 		r1 = event->xclient.data.l[2];
-		r2 = event->xclient.data.l[2];
+		r2 = event->xclient.data.l[3];
 
 		x_dnd_mouse_rect_target = target;
 		x_dnd_mouse_rect.x = (r1 & 0xffff0000) >> 16;

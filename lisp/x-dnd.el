@@ -695,13 +695,13 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 		(list-to-send
 		 (list (string-to-number
 			(frame-parameter frame 'outer-window-id))
-		       (+ 2 accept) ;; 1 = accept, 0 = reject.  2 =
-                                    ;; "want position updates".
-                       (if dnd-indicate-insertion-point 0
-		         (x-dnd-get-drop-x-y frame window))
-                       (if dnd-indicate-insertion-point 0
-		         (x-dnd-get-drop-width-height
-			  frame window (eq accept 1)))
+                       ;; 1 = accept, 0 = reject.  2 = "want position
+                       ;; updates even for movement inside the given
+                       ;; widget bounds".
+		       (+ (if dnd-indicate-insertion-point 2 0) accept)
+		       (x-dnd-get-drop-x-y frame window)
+		       (x-dnd-get-drop-width-height
+			frame window (eq accept 1))
                        ;; The no-toolkit Emacs build can actually
                        ;; receive drops from programs that speak
                        ;; versions of XDND earlier than 3 (such as
