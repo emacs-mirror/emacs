@@ -23148,6 +23148,7 @@ static void
 x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
 {
   struct x_failable_request *request, *max;
+  unsigned long next_request;
 #ifdef HAVE_GTK3
   GdkDisplay *gdpy;
 
@@ -23171,13 +23172,14 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
 
   request = dpyinfo->next_failable_request;
   max = dpyinfo->failable_requests + N_FAILABLE_REQUESTS;
+  next_request = XNextRequest (dpyinfo->display);
 
   if (request >= max)
     {
       /* There is no point in making this extra sync if all requests
 	 are known to have been fully processed.  */
       if ((LastKnownRequestProcessed (dpyinfo->display)
-	   != XNextRequest (dpyinfo->display) - 1))
+	   != next_request - 1))
 	XSync (dpyinfo->display, False);
 
       x_clean_failable_requests (dpyinfo);
@@ -23189,7 +23191,7 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
        function.  */
     emacs_abort ();
 
-  request->start = XNextRequest (dpyinfo->display);
+  request->start = next_request;
   request->end = 0;
 
   dpyinfo->next_failable_request++;
@@ -23271,7 +23273,7 @@ x_uncatch_errors (void)
 	  != XNextRequest (x_error_message->dpy) - 1)
       /* Likewise if no request was made since the trap was
 	 installed.  */
-      && (XNextRequest (x_error_message->dpy)
+      && (NextRequest (x_error_message->dpy)
 	  > x_error_message->first_request))
     {
       XSync (x_error_message->dpy, False);
@@ -23306,7 +23308,7 @@ x_check_errors (Display *dpy, const char *format)
      are known to have been fully processed.  */
   if ((LastKnownRequestProcessed (dpy)
        != XNextRequest (dpy) - 1)
-      && (XNextRequest (dpy)
+      && (NextRequest (dpy)
 	  > x_error_message->first_request))
     XSync (dpy, False);
 
@@ -23341,7 +23343,7 @@ x_had_errors_p (Display *dpy)
   /* Make sure to catch any errors incurred so far.  */
   if ((LastKnownRequestProcessed (dpy)
        != XNextRequest (dpy) - 1)
-      && (XNextRequest (dpy)
+      && (NextRequest (dpy)
 	  > x_error_message->first_request))
     XSync (dpy, False);
 
