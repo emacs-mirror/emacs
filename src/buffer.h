@@ -561,6 +561,9 @@ struct buffer
      in the display of this buffer.  */
   Lisp_Object extra_line_spacing_;
 
+  /* Narrowing state when auto-narrow mode is in effect.  */
+  Lisp_Object auto_narrow__narrowing_state_;
+
   /* Cursor type to display in non-selected windows.
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */
@@ -831,6 +834,11 @@ INLINE void
 bset_width_table (struct buffer *b, Lisp_Object val)
 {
   b->width_table_ = val;
+}
+INLINE void
+bset_auto_narrow__narrowing_state (struct buffer *b, Lisp_Object val)
+{
+  b->auto_narrow__narrowing_state_ = val;
 }
 
 /* BUFFER_CEILING_OF (resp. BUFFER_FLOOR_OF), when applied to n, return
@@ -1110,6 +1118,12 @@ BUFFER_CHECK_INDIRECTION (struct buffer *b)
       else
 	eassert (b->indirections >= 0);
     }
+}
+
+INLINE bool
+BUFFER_AUTO_NARROWED_P (struct buffer *b)
+{
+  return EQ (BVAR (b, auto_narrow__narrowing_state), Qauto);
 }
 
 /* This structure holds the default values of the buffer-local variables

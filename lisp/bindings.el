@@ -400,10 +400,14 @@ mouse-1: Display minor mode menu\n\
 mouse-2: Show help for minor mode\n\
 mouse-3: Toggle minor modes"
 			local-map ,mode-line-minor-mode-keymap)
-	  (propertize "%n" 'help-echo "mouse-2: Remove narrowing from buffer"
-		      'mouse-face 'mode-line-highlight
-		      'local-map (make-mode-line-mouse-map
-				  'mouse-2 #'mode-line-widen))
+          '(:eval
+            (if (not (eq auto-narrow--narrowing-state 'auto))
+                (propertize "%n"
+                            'help-echo "mouse-2: Remove narrowing from buffer"
+                            'mouse-face 'mode-line-highlight
+                            'local-map (make-mode-line-mouse-map
+                                        'mouse-2 #'mode-line-widen))
+              "%n"))
 	  ")"
 	  (propertize "%]" 'help-echo recursive-edit-help-echo)
 	  " "))

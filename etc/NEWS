@@ -324,9 +324,6 @@ startup.  Previously, these functions ignored
 
 * Changes in Emacs 29.1
 
----
-** 'longlines-mode' is no longer obsolete.
-
 +++
 ** New command to change the font size globally.
 To increase the font size, type 'C-x C-M-+' or 'C-x C-M-='; to
@@ -900,6 +897,18 @@ long lines.
 Formerly it invoked 'just-one-space'.  The actions performed by
 'cycle-spacing' and their order can now be customized via the user
 option 'cycle-spacing-actions'.
+
++++
+** Emacs is now capable of editing files with arbitarily long lines.
+When a file with long lines is opened or inserted in a buffer, Emacs
+automatically enters auto-narrow mode.  This means that Emacs
+restricts display, but not editing, to a portion of the buffer above
+and below point.  All editing commands, including narrowing commands,
+remain available, and they act on the whole buffer.  The behavior of
+that mode is controlled by three variables:
+auto-narrow-long-line-threshold, auto-narrow-display-length and
+auto-narrow-widen-automatically.  To disable that feature, set
+auto-narrow-long-line-threshold to nil in your init file.
 
 ---
 ** 'zap-to-char' and 'zap-up-to-char' are case-sensitive for upper-case chars.

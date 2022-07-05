@@ -5276,6 +5276,9 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, tab_line_format), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_type), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, extra_line_spacing), idx); ++idx;
+  XSETFASTINT (BVAR (&buffer_local_flags, auto_narrow__narrowing_state), idx);
+  /* Make this one a permanent local.  */
+  buffer_permanent_local_flags[idx++] = 1;
   XSETFASTINT (BVAR (&buffer_local_flags, cursor_in_non_selected_windows), idx); ++idx;
 
   /* buffer_local_flags contains no pointers, so it's safe to treat it
@@ -5662,7 +5665,7 @@ A string is printed verbatim in the mode line except for %-constructs:
   %p -- print percent of buffer above top of window, or Top, Bot or All.
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
-  %n -- print Narrow if appropriate.
+  %n -- print Narrow or Auto-Narrow if appropriate.
   %t -- visited file is text or binary (if OS supports this distinction).
   %z -- print mnemonics of keyboard, terminal, and buffer coding systems.
   %Z -- like %z, but including the end-of-line format.
@@ -6362,6 +6365,10 @@ The space is measured in pixels, and put below lines on graphic displays,
 see `display-graphic-p'.
 If value is a floating point number, it specifies the spacing relative
 to the default frame line height.  A value of nil means add no extra space.  */);
+
+  DEFVAR_PER_BUFFER ("auto-narrow--narrowing-state",
+		     &BVAR (current_buffer, auto_narrow__narrowing_state), Qnil,
+		     doc: /* Internal variable used by `auto-narrow-mode'.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &BVAR (current_buffer, cursor_in_non_selected_windows), Qnil,

@@ -1290,6 +1290,9 @@ command_loop_1 (void)
 
   if (NILP (Vmemory_full))
     {
+      if (!NILP (Vauto_narrow_post_command_function) && !NILP (Vrun_hooks))
+	safe_run_hooks (Qauto_narrow_post_command_function);
+
       /* Make sure this hook runs after commands that get errors and
 	 throw to top level.  */
       /* Note that the value cell will never directly contain nil
@@ -1472,6 +1475,8 @@ command_loop_1 (void)
       Vreal_this_command = cmd;
       safe_run_hooks (Qpre_command_hook);
 
+      safe_run_hooks (Qauto_narrow_pre_command_function);
+
       already_adjusted = 0;
 
       if (NILP (Vthis_command))
@@ -1521,6 +1526,8 @@ command_loop_1 (void)
 #endif
           }
       kset_last_prefix_arg (current_kboard, Vcurrent_prefix_arg);
+
+      safe_run_hooks (Qauto_narrow_post_command_function);
 
       safe_run_hooks (Qpost_command_hook);
 
@@ -12040,6 +12047,11 @@ syms_of_keyboard (void)
   DEFSYM (Qpre_command_hook, "pre-command-hook");
   DEFSYM (Qpost_command_hook, "post-command-hook");
 
+  DEFSYM (Qauto_narrow_pre_command_function,
+	  "auto-narrow-pre-command-function");
+  DEFSYM (Qauto_narrow_post_command_function,
+	  "auto-narrow-post-command-function");
+
   DEFSYM (Qundo_auto__add_boundary, "undo-auto--add-boundary");
   DEFSYM (Qundo_auto__undoably_changed_buffers,
           "undo-auto--undoably-changed-buffers");
@@ -12603,6 +12615,22 @@ avoid making Emacs unresponsive while the user types.
 
 See also `pre-command-hook'.  */);
   Vpost_command_hook = Qnil;
+
+  DEFVAR_LISP ("auto-narrow-pre-command-function",
+	       Vauto_narrow_pre_command_function,
+	       doc: /* Function executed before each command is executed in `auto-narrow-mode'.
+If non-nil, and `auto-narrow-mode' is enabled, the function is
+called before each command is executed, after `pre-command-hook'.
+It is called without arguments.  */);
+  Vauto_narrow_pre_command_function = Qnil;
+
+  DEFVAR_LISP ("auto-narrow-post-command-function",
+	       Vauto_narrow_post_command_function,
+	       doc: /* Function executed after each command is executed in `auto-narrow-mode'.
+If non-nil, and `auto-narrow-mode' is enabled, the function is
+called after each command is executed, before `post-command-hook'.
+It is called without arguments.  */);
+  Vauto_narrow_post_command_function = Qnil;
 
 #if 0
   DEFVAR_LISP ("echo-area-clear-hook", ...,
