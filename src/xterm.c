@@ -27099,6 +27099,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	}
       else
 	x_uncatch_errors_after_check ();
+
+      /* But don't delude ourselves into thinking that we can use
+	 features provided by a version of the input extension that
+	 libXi itself doesn't support.  */
+
+      if (minor > original_minor)
+	minor = original_minor;
 #else
       if (x_had_errors_p (dpyinfo->display))
 	rc = BadRequest;
