@@ -9179,10 +9179,11 @@ present.  See also `fit-frame-to-buffer-sizes'."
 
 (defcustom fit-frame-to-buffer-sizes '(nil nil nil nil)
   "Size boundaries of frame for `fit-frame-to-buffer'.
-This list specifies the total maximum and minimum lines and
-maximum and minimum columns of the root window of any frame that
-shall be fit to its buffer.  If any of these values is non-nil,
-it overrides the corresponding argument of `fit-frame-to-buffer'.
+This list specifies the total maximum and minimum numbers of
+lines and the maximum and minimum numbers of columns of the body
+of the root window of any frame that shall be fit to its buffer.
+Any value specified by ths variable will be overridden by the
+corresponding argument of `fit-frame-to-buffer', if non-nil.
 
 On window systems where the menubar can wrap, fitting a frame to
 its buffer may swallow the last line(s).  Specifying an
@@ -9378,30 +9379,30 @@ for `fit-frame-to-buffer'."
               (t parent-or-display-height))
              ;; The following is the maximum height that fits into the
              ;; top and bottom margins.
-             (max (- bottom-margin top-margin outer-minus-body-height))))
+             (max (- bottom-margin top-margin outer-minus-body-height) 0)))
            (min-height
             (cond
              ((numberp min-height) (* min-height line-height))
              ((numberp (nth 1 sizes)) (* (nth 1 sizes) line-height))
-             (t (window-min-size window nil nil t))))
+             (t (window-safe-min-size window nil t))))
            (max-width
-            (min
-             (cond
-              ((numberp max-width) (* max-width char-width))
-              ((numberp (nth 2 sizes)) (* (nth 2 sizes) char-width))
-              (t parent-or-display-width))
-             ;; The following is the maximum width that fits into the
-             ;; left and right margins.
-             (max (- right-margin left-margin outer-minus-body-width))))
+            (unless (eq only 'vertically)
+              (min
+               (cond
+                ((numberp max-width) (* max-width char-width))
+                ((numberp (nth 2 sizes)) (* (nth 2 sizes) char-width))
+                (t parent-or-display-width))
+               ;; The following is the maximum width that fits into the
+               ;; left and right margins.
+               (max (- right-margin left-margin outer-minus-body-width) 0))))
            (min-width
             (cond
              ((numberp min-width) (* min-width char-width))
-             ((numberp (nth 3 sizes)) (nth 3 sizes))
-             (t (window-min-size window t nil t))))
+             ((numberp (nth 3 sizes)) (* (nth 3 sizes) char-width))
+             (t (window-safe-min-size window t t))))
            ;; Note: Currently, for a new frame the sizes of the header
            ;; and mode line may be estimated incorrectly
-           (size
-            (window-text-pixel-size window from to max-width max-height))
+           (size (window-text-pixel-size window from to max-width max-height))
            (width (max (car size) min-width))
            (height (max (cdr size) min-height)))
       ;; Don't change height or width when the window's size is fixed

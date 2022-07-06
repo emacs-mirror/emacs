@@ -1158,11 +1158,13 @@ frame to its buffer using the command @code{fit-frame-to-buffer}.
 This command adjusts the size of @var{frame} to display the contents of
 its buffer exactly.  @var{frame} can be any live frame and defaults to
 the selected one.  Fitting is done only if @var{frame}'s root window is
-live.  The arguments @var{max-height}, @var{min-height}, @var{max-width}
-and @var{min-width} specify bounds on the new total size of
-@var{frame}'s root window.  @var{min-height} and @var{min-width} default
-to the values of @code{window-min-height} and @code{window-min-width}
-respectively.
+live.
+
+The arguments @var{max-height}, @var{min-height}, @var{max-width} and
+@var{min-width}, if non-@code{nil}, specify bounds on the new body size
+of @var{frame}'s root window.  A non-@code{nil} value specified by any
+of these arguments overrides the corresponding value specified by
+the option @code{fit-frame-to-buffer-sizes} described below.
 
 If the optional argument @var{only} is @code{vertically}, this function
 may resize the frame vertically only.  If @var{only} is
@@ -1187,10 +1189,10 @@ here can be overridden for a specific frame by that frame's
 
 @defopt fit-frame-to-buffer-sizes
 This option specifies size boundaries for @code{fit-frame-to-buffer}.
-It specifies the total maximum and minimum lines and maximum and minimum
-columns of the root window of any frame that shall be fit to its buffer.
-If any of these values is non-@code{nil}, it overrides the corresponding
-argument of @code{fit-frame-to-buffer}.
+It specifies the maximum and minimum lines and maximum and minimum
+columns of the root window's body of any frame that shall be fit to its
+buffer.  Any value this option specifies will be overridden by the
+corresponding argument of @code{fit-frame-to-buffer}, if non-@code{nil}.
 @end defopt
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
