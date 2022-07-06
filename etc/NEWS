@@ -2278,6 +2278,13 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New arguments MESSAGE and TIMEOUT of 'set-transient-map'.
+MESSAGE specifies a string that lists available keys,
+and TIMEOUT deactivates the transient map after the specified
+number of seconds.  The default timeout is defined by
+the new variable 'set-transient-map-timeout'.
+
++++
 ** New function 'seq-split'.
 This returns a list of sub-sequences of the specified sequence.
 

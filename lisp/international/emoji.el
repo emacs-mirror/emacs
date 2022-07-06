@@ -704,10 +704,7 @@ We prefer the earliest unique letter."
   "Increase the size of the character under point.
 FACTOR is the multiplication factor for the size."
   (interactive)
-  (message
-   (substitute-command-keys
-    "Zoom with \\<emoji-zoom-map>\\[emoji-zoom-increase] and \\[emoji-zoom-decrease]"))
-  (set-transient-map emoji-zoom-map t)
+  (set-transient-map emoji-zoom-map t nil "Zoom with %k")
   (let* ((factor (or factor 1.1))
          (old (get-text-property (point) 'face))
          (height (or (and (consp old)

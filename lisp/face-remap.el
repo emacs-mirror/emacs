@@ -408,20 +408,15 @@ See also the related command `global-text-scale-adjust'."
               (?0 0)
               (_ inc))))
       (text-scale-increase step)
-      ;; (unless (zerop step)
-      (message (substitute-command-keys
-                "Use \\`+',\\`-',\\`0' for further adjustment"))
       (set-transient-map
        (let ((map (make-sparse-keymap)))
          (dolist (mods '(() (control)))
-           (dolist (key '(?- ?+ ?= ?0)) ;; = is often unshifted +.
+           (dolist (key '(?+ ?= ?- ?0)) ;; = is often unshifted +.
              (define-key map (vector (append mods (list key)))
                (lambda () (interactive) (text-scale-adjust (abs inc))))))
          map)
-       nil
-       ;; Clear the prompt after exiting.
-       (lambda ()
-         (message ""))))))
+       nil nil
+       "Use %k for further adjustment"))))
 
 (defvar-local text-scale--pinch-start-scale 0
   "The text scale at the start of a pinch sequence.")
@@ -515,15 +510,15 @@ See also the related command `text-scale-adjust'."
                (not global-text-scale-adjust-resizes-frames)))
           (set-face-attribute 'default nil :height new)))
       (when (characterp key)
-        (message (substitute-command-keys
-                  "Use \\`+',\\`-',\\`0' for further adjustment"))
         (set-transient-map
          (let ((map (make-sparse-keymap)))
            (dolist (mod '(() (control meta)))
              (dolist (key '(?+ ?= ?- ?0))
                (define-key map (vector (append mod (list key)))
                  'global-text-scale-adjust)))
-           map))))))
+           map)
+       nil nil
+       "Use %k for further adjustment")))))
 
 
 ;; ----------------------------------------------------------------

@@ -6013,7 +6013,15 @@ To test whether a function can be called interactively, use
 (define-obsolete-function-alias
   'set-temporary-overlay-map #'set-transient-map "24.4")
 
-(defun set-transient-map (map &optional keep-pred on-exit)
+(defvar set-transient-map-timeout nil
+  "Deactivate the transient map after specified timeout.
+When a number, after idle time of the specified number of seconds
+deactivate the map set by the previous call of `set-transient-map'.")
+
+(defvar set-transient-map-timer nil
+  "Timer for `set-transient-map-timeout'.")
+
+(defun set-transient-map (map &optional keep-pred on-exit message timeout)
   "Set MAP as a temporary keymap taking precedence over other keymaps.
 Normally, MAP is used only once, to look up the very next key.
 However, if the optional argument KEEP-PRED is t, MAP stays
@@ -6024,24 +6032,50 @@ if it returns non-nil, then MAP stays active.
 Optional arg ON-EXIT, if non-nil, specifies a function that is
 called, with no arguments, after MAP is deactivated.
 
-This uses `overriding-terminal-local-map', which takes precedence over all
-other keymaps.  As usual, if no match for a key is found in MAP, the normal
-key lookup sequence then continues.
+Optional arg MESSAGE, if a string, specifies the format string for the
+message to display after activating the transient map.  When the string
+contains the specifier %k, it's replaced with the list of keys from the
+transient map.  Other non-nil values of MESSAGE use the message format
+\"Repeat with %k\".  On deactivating the map the displayed message
+is cleared out.
+
+Optional arg TIMEOUT, if a number, specifies the number of seconds
+of idle time after which the map is deactivated.  The variable
+`set-transient-map-timeout' overrides the argument TIMEOUT.
+
+This function uses `overriding-terminal-local-map', which takes precedence
+over all other keymaps.  As usual, if no match for a key is found in MAP,
+the normal key lookup sequence then continues.
 
 This returns an \"exit function\", which can be called with no argument
 to deactivate this transient map, regardless of KEEP-PRED."
-  (let* ((clearfun (make-symbol "clear-transient-map"))
+  (let* ((timeout (or set-transient-map-timeout timeout))
+         (message
+          (when message
+            (let (keys)
+              (map-keymap (lambda (key cmd) (and cmd (push key keys))) map)
+              (format-spec (if (stringp message) message "Repeat with %k")
+                           `((?k . ,(mapconcat
+                                     (lambda (key)
+                                       (substitute-command-keys
+                                        (format "\\`%s'"
+                                                (key-description (vector key)))))
+                                     keys ", ")))))))
+         (clearfun (make-symbol "clear-transient-map"))
          (exitfun
           (lambda ()
             (internal-pop-keymap map 'overriding-terminal-local-map)
             (remove-hook 'pre-command-hook clearfun)
+            ;; Clear the prompt after exiting.
+            (when message (message ""))
+            (when set-transient-map-timer (cancel-timer set-transient-map-timer))
             (when on-exit (funcall on-exit)))))
     ;; Don't use letrec, because equal (in add/remove-hook) could get trapped
     ;; in a cycle. (bug#46326)
     (fset clearfun
           (lambda ()
             (with-demoted-errors "set-transient-map PCH: %S"
-              (unless (cond
+              (if (cond
                        ((null keep-pred) nil)
                        ((and (not (eq map (cadr overriding-terminal-local-map)))
                              (memq map (cddr overriding-terminal-local-map)))
@@ -6066,9 +6100,15 @@ to deactivate this transient map, regardless of KEEP-PRED."
                           ;; nil and so is `mc`.
                           (and mc (eq this-command mc))))
                        (t (funcall keep-pred)))
+                  ;; Repeat the message for the next command.
+                  (when message (message "%s" message))
                 (funcall exitfun)))))
     (add-hook 'pre-command-hook clearfun)
     (internal-push-keymap map 'overriding-terminal-local-map)
+    (when timeout
+      (when set-transient-map-timer (cancel-timer set-transient-map-timer))
+      (setq set-transient-map-timer (run-with-idle-timer timeout nil exitfun)))
+    (when message (message "%s" message))
     exitfun))
 
 ;;;; Progress reporters.
