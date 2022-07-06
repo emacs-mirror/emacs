@@ -118,7 +118,6 @@ newlines are indicated with a symbol."
         (add-to-list 'buffer-file-format 'longlines)
         (add-hook 'change-major-mode-hook #'longlines-mode-off nil t)
 	(add-hook 'before-revert-hook #'longlines-before-revert-hook nil t)
-        (make-local-variable 'buffer-substring-filters)
         (make-local-variable 'longlines-auto-wrap)
 	(set (make-local-variable 'isearch-search-fun-function)
 	     #'longlines-search-function)
@@ -126,7 +125,8 @@ newlines are indicated with a symbol."
 	     #'longlines-search-forward)
 	(set (make-local-variable 'replace-re-search-function)
 	     #'longlines-re-search-forward)
-        (add-to-list 'buffer-substring-filters 'longlines-encode-string)
+        (add-function :filter-return (local 'filter-buffer-substring-function)
+                      #'longlines-encode-string)
         (when longlines-wrap-follows-window-size
 	  (let ((dw (if (and (integerp longlines-wrap-follows-window-size)
 			     (>= longlines-wrap-follows-window-size 0)
@@ -143,7 +143,7 @@ newlines are indicated with a symbol."
 	      (inhibit-modification-hooks t)
               (mod (buffer-modified-p))
 	      buffer-file-name buffer-file-truename)
-          ;; Turning off undo is OK since (spaces + newlines) is
+          ;; Turning off undo is OK since (separators + newlines) is
           ;; conserved, except for a corner case in
           ;; longlines-wrap-lines that we'll never encounter from here
 	  (save-restriction
@@ -202,7 +202,8 @@ newlines are indicated with a symbol."
     (kill-local-variable 'replace-search-function)
     (kill-local-variable 'replace-re-search-function)
     (kill-local-variable 'require-final-newline)
-    (kill-local-variable 'buffer-substring-filters)
+    (remove-function (local 'filter-buffer-substring-function)
+                     #'longlines-encode-string)
     (kill-local-variable 'use-hard-newlines)))
 
 (defun longlines-mode-off ()
@@ -385,15 +386,22 @@ compatibility with `format-alist', and is ignored."
       end)))
 
 (defun longlines-encode-string (string)
-  "Return a copy of STRING with each soft newline replaced by a space.
+  "Return a copy of STRING with each soft newline removed.
 Hard newlines are left intact."
-  (let* ((str (copy-sequence string))
-         (pos (string-search "\n" str)))
-    (while pos
-      (if (null (get-text-property pos 'hard str))
-          (aset str pos ? ))
-      (setq pos (string-search "\n" str (1+ pos))))
-    str))
+  (let ((start 0)
+        (result nil)
+        pos)
+    (while (setq pos (string-search "\n" string start))
+      (unless (= start pos)
+        (push (substring string start pos) result))
+      (when (get-text-property pos 'hard string)
+        (push (substring string pos (1+ pos)) result))
+      (setq start (1+ pos)))
+    (if (null result)
+        (copy-sequence string)
+      (unless (= start (length string))
+        (push (substring string start) result))
+      (apply #'concat (nreverse result)))))
 
 ;;; Auto wrap
 
