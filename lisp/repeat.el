@@ -563,13 +563,17 @@ Used in `repeat-mode'."
           (insert "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
 
           (dolist (keymap (sort keymaps (lambda (a b)
-                                          (string-lessp (car a) (car b)))))
+                                          (when (and (symbolp (car a))
+                                                     (symbolp (car b)))
+                                            (string-lessp (car a) (car b))))))
             (insert (format-message
                      "`%s' keymap is repeatable by these commands:\n"
                      (car keymap)))
             (dolist (command (sort (cdr keymap) #'string-lessp))
               (let* ((info (help-fns--analyze-function command))
-                     (map (list (symbol-value (car keymap))))
+                     (map (list (if (symbolp (car keymap))
+                                    (symbol-value (car keymap))
+                                  (car keymap))))
                      (desc (mapconcat (lambda (key)
                                         (propertize (key-description key)
                                                     'face 'help-key-binding))
