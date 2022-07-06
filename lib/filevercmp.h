@@ -61,7 +61,9 @@
    without them, using version sort without special priority;
    if they do not compare equal, this comparison result is used and
    the suffixes are effectively ignored.  Otherwise, the entire
-   strings are compared using version sort.
+   strings are compared using version sort.  When removing a suffix
+   from a nonempty string, remove the maximal-length suffix such that
+   the remaining string is nonempty.
 
    This function is intended to be a replacement for strverscmp.  */
 int filevercmp (char const *a, char const *b) _GL_ATTRIBUTE_PURE;
