@@ -843,7 +843,7 @@ Only useful when run on a graphic display such as X or MS-Windows."
 
 (defcustom woman-fill-column 65
   "Right margin for formatted text -- default is 65."
-  :type 'integer
+  :type 'natnum
   :group 'woman-formatting)
 
 (defcustom woman-fill-frame nil

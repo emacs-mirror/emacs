@@ -915,7 +915,7 @@ Term buffers are truncated from the top to be no greater than this number.
 Notice that a setting of 0 means \"don't truncate anything\".  This variable
 is buffer-local."
   :group 'term
-  :type 'integer
+  :type 'natnum
   :version "27.1")
 
 (defcustom term-bind-function-keys nil
@@ -2473,7 +2473,7 @@ Checks if STRING contains a password prompt as defined by
   "Long inputs send to term processes are broken up into chunks of this size.
 If your process is choking on big inputs, try lowering the value."
   :group 'term
-  :type 'integer)
+  :type 'natnum)
 
 (defun term-send-string (proc str)
   "Send to PROC the contents of STR as input.

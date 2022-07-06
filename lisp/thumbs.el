@@ -73,16 +73,16 @@
 
 (defcustom thumbs-per-line 4
   "Number of thumbnails per line to show in directory."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-max-image-number 16
- "Maximum number of images initially displayed in thumbs buffer."
-  :type 'integer)
+  "Maximum number of images initially displayed in thumbs buffer."
+  :type 'natnum)
 
 (defcustom thumbs-thumbsdir-max-size 50000000
   "Maximum size for thumbnails directory.
-When it reaches that size (in bytes), a warning is sent."
-  :type 'integer)
+When it reaches that size (in bytes), a warning is displayed."
+  :type 'natnum)
 
 ;; Unfortunately Windows XP has a program called CONVERT.EXE in
 ;; C:/WINDOWS/SYSTEM32/ for partitioning NTFS systems.  So Emacs
@@ -106,12 +106,12 @@ This must be the ImageMagick \"convert\" utility."
 
 (defcustom thumbs-relief 5
   "Size of button-like border around thumbnails."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-margin 2
   "Size of the margin around thumbnails.
 This is where you see the cursor."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-thumbsdir-auto-clean t
   "If set, delete older file in the thumbnails directory.
@@ -121,7 +121,7 @@ than `thumbs-thumbsdir-max-size'."
 
 (defcustom thumbs-image-resizing-step 10
   "Step by which to resize image as a percentage."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-temp-dir temporary-file-directory
   "Temporary directory to use.

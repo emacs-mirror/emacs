@@ -481,7 +481,7 @@ If value is t, all buffers are restored immediately."
 (defcustom desktop-lazy-idle-delay 5
   "Idle delay before starting to create buffers.
 See `desktop-restore-eager'."
-  :type 'integer
+  :type 'natnum
   :group 'desktop
   :version "22.1")
 

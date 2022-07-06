@@ -58,7 +58,8 @@ Backtrace mode will attempt to abbreviate printing of backtrace
 frames by setting `print-level' and `print-length' to make them
 shorter than this, but success is not guaranteed.  If set to nil
 or zero, backtrace mode will not abbreviate the forms it prints."
-  :type 'integer
+  :type '(choice natnum
+                 (const :value nil :tag "Don't abbreviate"))
   :group 'backtrace
   :version "27.1")
 

@@ -299,7 +299,7 @@ If the value is not a number, then the value 10 is used."
 (defcustom msb-display-most-recently-used 15
   "How many buffers should be in the most-recently-used menu.
 No buffers at all if less than 1 or nil (or any non-number)."
-  :type 'integer
+  :type 'natnum
   :set #'msb-custom-set)
 
 (defcustom msb-most-recently-used-title "Most recently used (%d)"

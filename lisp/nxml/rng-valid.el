@@ -110,14 +110,14 @@
 
 (defcustom rng-state-cache-distance 2000
   "Distance in characters between each parsing and validation state cache."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom rng-validate-chunk-size 8000
   "Number of characters in a RELAX NG validation chunk.
 A validation chunk will be the smallest chunk that is at least this
 size and ends with a tag.  After validating a chunk, validation will
 continue only if Emacs is still idle."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom rng-validate-delay 1.5
   "Time in seconds that Emacs must be idle before starting a full validation.

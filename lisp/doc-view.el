@@ -378,7 +378,8 @@ After such a refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
 pages won't be displayed before conversion of the whole document
 has finished."
-  :type 'integer)
+  :type '(choice natnum
+                 (const :value nil :tag "No refreshes")))
 
 (defcustom doc-view-continuous nil
   "In Continuous mode reaching the page edge advances to next/previous page.

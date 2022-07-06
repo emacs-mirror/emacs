@@ -316,7 +316,7 @@ The value `never' means do not make them."
 
 (defcustom dired-kept-versions 2
   "When cleaning directory, number of versions to keep."
-  :type 'integer
+  :type 'natnum
   :group 'backup
   :group 'dired)
 
@@ -330,16 +330,16 @@ If nil, ask confirmation.  Any other value prevents any trimming."
 
 (defcustom kept-old-versions 2
   "Number of oldest versions to keep when a new numbered backup is made."
-  :type 'integer
+  :type 'natnum
+  :safe #'natnump
   :group 'backup)
-(put 'kept-old-versions 'safe-local-variable 'integerp)
 
 (defcustom kept-new-versions 2
   "Number of newest versions to keep when a new numbered backup is made.
 Includes the new backup.  Must be greater than 0."
-  :type 'integer
+  :type 'natnum
+  :safe #'natnump
   :group 'backup)
-(put 'kept-new-versions 'safe-local-variable 'integerp)
 
 (defcustom require-final-newline nil
   "Whether to add a newline automatically at the end of the file.

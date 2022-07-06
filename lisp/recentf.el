@@ -837,7 +837,7 @@ corresponding sub-menu items are displayed in the main recent files
 menu or in the `recentf-arrange-by-rule-others' sub-menu if
 defined."
   :group 'recentf-filters
-  :type 'number)
+  :type 'natnum)
 
 (defcustom recentf-arrange-by-rule-subfilter nil
   "Function called by a rule based filter to filter sub-menu elements.

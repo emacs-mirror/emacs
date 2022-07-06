@@ -414,12 +414,12 @@ time to time or if the fileset cache causes troubles."
 Set this value to 0 to turn menu splitting off.  BTW, parts of submenus
 will not be rewrapped if their length exceeds this value."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom filesets-max-entry-length 50
   "Truncate names of split submenus to this length."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom filesets-browse-dir-function #'dired
   "A function or command used for browsing directories.
@@ -518,7 +518,7 @@ i.e. how deep the menu should be.  Try something like
 and it should become clear what this option is about.  In any case,
 including directory trees to the menu can take a lot of memory."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom filesets-commands
   '(("Isearch"
@@ -1027,7 +1027,7 @@ defined in `filesets-ingroup-patterns'."
 (defcustom filesets-query-user-limit 15
   "Query the user before opening a fileset with that many files."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 
 (defun filesets-filter-dir-names (lst &optional negative)

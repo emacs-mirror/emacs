@@ -1,7 +1,6 @@
 ;;; compare-w.el --- compare text between windows for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience files vc
@@ -99,7 +98,7 @@ may fail by finding the wrong match.  The bigger number makes
 difference regions more coarse-grained.
 
 The default value 32 is good for the most cases."
-  :type 'integer
+  :type 'natnum
   :version "22.1")
 
 (defcustom compare-windows-recenter nil

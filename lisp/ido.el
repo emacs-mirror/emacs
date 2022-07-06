@@ -554,7 +554,7 @@ See `ido-last-directory-list' and `ido-save-directory-list-file'."
   "Maximum number of working directories to record.
 This is the list of directories where files have most recently been opened.
 See `ido-work-directory-list' and `ido-save-directory-list-file'."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom ido-work-directory-list-ignore-regexps nil
   "List of regexps matching directories which should not be recorded.

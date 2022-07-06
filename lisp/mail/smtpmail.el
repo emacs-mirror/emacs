@@ -171,7 +171,7 @@ attempt."
   "The number of times smtpmail will retry sending when getting transient errors.
 These are errors with a code of 4xx from the SMTP server, which
 mean \"try again\"."
-  :type 'integer
+  :type 'natnum
   :version "27.1")
 
 (defcustom smtpmail-store-queue-variables nil

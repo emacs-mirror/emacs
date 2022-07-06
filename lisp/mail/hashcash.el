@@ -57,7 +57,7 @@
   "The default number of bits to pay to unknown users.
 If this is zero, no payment header will be generated.
 See `hashcash-payment-alist'."
-  :type 'integer
+  :type 'natnum
   :group 'hashcash)
 
 (defcustom hashcash-payment-alist '()
@@ -77,7 +77,7 @@ present, is the string to be hashed; if not present ADDR will be used."
 
 (defcustom hashcash-default-accept-payment 20
   "The default minimum number of bits to accept on incoming payments."
-  :type 'integer
+  :type 'natnum
   :group 'hashcash)
 
 (defcustom hashcash-accept-resources `((,user-mail-address nil))
