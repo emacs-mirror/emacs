@@ -31,18 +31,18 @@
 
 (ert-deftest autoconf-tests-current-defun-function-define ()
   (with-temp-buffer
-    (insert "AC_DEFINE(HAVE_RSVG, 1, [Define to 1 if using librsvg.])")
+    (insert "AC_DEFINE([HAVE_RSVG], [1], [Define to 1 if using librsvg.])")
     (goto-char (point-min))
     (should-not (autoconf-current-defun-function))
-    (forward-char 10)
+    (forward-char 11)
     (should (equal (autoconf-current-defun-function) "HAVE_RSVG"))))
 
 (ert-deftest autoconf-tests-current-defun-function-subst ()
   (with-temp-buffer
-    (insert "AC_SUBST(srcdir)")
+    (insert "AC_SUBST([srcdir])")
     (goto-char (point-min))
     (should-not (autoconf-current-defun-function))
-    (forward-char 9)
+    (forward-char 10)
     (should (equal (autoconf-current-defun-function) "srcdir"))))
 
 (ert-deftest autoconf-tests-autoconf-mode-comment-syntax ()

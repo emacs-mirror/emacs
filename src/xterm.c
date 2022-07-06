@@ -233,18 +233,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
        EMACS_CHECK_MODULES([XFIXES], [$XFIXES_MODULES])
        if test $HAVE_XFIXES = no; then
 	 # Test old way in case pkg-config doesn't have it (older machines).
-	 AC_CHECK_HEADER(X11/extensions/Xfixes.h,
-	   [AC_CHECK_LIB(Xfixes, XFixesHideCursor, HAVE_XFIXES=yes)])
+	 AC_CHECK_HEADER([X11/extensions/Xfixes.h],
+	   [AC_CHECK_LIB([Xfixes], [XFixesHideCursor], [HAVE_XFIXES=yes])])
 	 if test $HAVE_XFIXES = yes; then
 	   XFIXES_LIBS=-lXfixes
 	 fi
        fi
        if test $HAVE_XFIXES = yes; then
-	 AC_DEFINE(HAVE_XFIXES, 1, [Define to 1 if you have the Xfixes extension.])
+	 AC_DEFINE([HAVE_XFIXES], [1],
+	   [Define to 1 if you have the Xfixes extension.])
        fi
      fi
-     AC_SUBST(XFIXES_CFLAGS)
-     AC_SUBST(XFIXES_LIBS)
+     AC_SUBST([XFIXES_CFLAGS])
+     AC_SUBST([XFIXES_LIBS])
 
   Then, make sure to adjust CFLAGS and LIBES in src/Makefile.in and
   add the new XFIXES_CFLAGS and XFIXES_LIBS variables to
