@@ -2726,6 +2726,9 @@ beginning and end of the buffer."
 (defvar-local auto-narrow--isearch-widen-automatically nil
   "Internal variable used by `auto-narrow-mode'.")
 
+(defvar-local auto-narrow--isearch-lazy-highlight nil
+  "Internal variable used by `auto-narrow-mode'.")
+
 (defvar-local auto-narrow--initialized nil
   "Internal variable used by `auto-narrow-mode'.")
 
@@ -2733,7 +2736,8 @@ beginning and end of the buffer."
   "Conditionally widen display when `auto-narrow-mode' is in effect."
   (when auto-narrow-mode
     (setq-local widen-automatically t
-                isearch-widen-automatically t)
+                isearch-widen-automatically t
+                isearch-lazy-highlight auto-narrow--isearch-lazy-highlight)
     (if (memq this-command '(narrow-to-region narrow-to-defun narrow-to-page))
         (setq auto-narrow--narrowing-state 'explicit
               widen-automatically auto-narrow--widen-automatically
@@ -2752,6 +2756,7 @@ beginning and end of the buffer."
       (run-hooks 'auto-narrow-hook)
       (setq auto-narrow--widen-automatically widen-automatically
             auto-narrow--isearch-widen-automatically isearch-widen-automatically
+            auto-narrow--isearch-lazy-highlight isearch-lazy-highlight
             auto-narrow--narrowing-state 'auto
             auto-narrow--initialized t))
     (let (point cur-point-min buf-point-min buf-point-max size)
