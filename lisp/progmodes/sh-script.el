@@ -1156,8 +1156,8 @@ Can be set to a number, or to nil which means leave it as is."
   "The default indentation increment.
 This value is used for the `+' and `-' symbols in an indentation variable."
   :type 'integer
+  :safe #'integerp
   :group 'sh-indentation)
-(put 'sh-basic-offset 'safe-local-variable 'integerp)
 
 (defcustom sh-indent-comment t
   "How a comment line is to be indented.

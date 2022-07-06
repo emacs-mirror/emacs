@@ -304,15 +304,13 @@ When nil, make them for files that have some already.
 The value `never' means do not make them."
   :type '(choice (const :tag "Never" never)
 		 (const :tag "If existing" nil)
-		 (other :tag "Always" t))
+                 (other :tag "Always" t))
+  :safe #'version-control-safe-local-p
   :group 'backup)
 
 (defun version-control-safe-local-p (x)
   "Return whether X is safe as local value for `version-control'."
   (or (booleanp x) (equal x 'never)))
-
-(put 'version-control 'safe-local-variable
-     #'version-control-safe-local-p)
 
 (defcustom dired-kept-versions 2
   "When cleaning directory, number of versions to keep."

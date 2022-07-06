@@ -46,8 +46,8 @@ A value of nil means that any change in indentation starts a new paragraph."
 
 (defcustom colon-double-space nil
   "Non-nil means put two spaces after a colon when filling."
-  :type 'boolean)
-(put 'colon-double-space 'safe-local-variable #'booleanp)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
   "Non-nil means to use a space to separate words of a different kind.

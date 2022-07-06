@@ -248,9 +248,9 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 (defcustom tex-fontify-script t
   "If non-nil, fontify subscript and superscript strings."
   :type 'boolean
+  :safe #'booleanp
   :group 'tex
   :version "23.1")
-(put 'tex-fontify-script 'safe-local-variable #'booleanp)
 
 (defcustom tex-font-script-display '(-0.2 0.2)
   "How much to lower and raise subscript and superscript content.

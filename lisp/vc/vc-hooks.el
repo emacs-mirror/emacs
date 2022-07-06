@@ -141,9 +141,9 @@ confirmation whether it should follow the link.  If nil, the link is
 visited and a warning displayed."
   :type '(choice (const :tag "Ask for confirmation" ask)
 		 (const :tag "Visit link and warn" nil)
-		 (const :tag "Follow link" t))
+                 (const :tag "Follow link" t))
+  :safe #'null
   :group 'vc)
-(put 'vc-follow-symlinks 'safe-local-variable #'null)
 
 (defcustom vc-display-status t
   "If non-nil, display revision number and lock status in mode line.

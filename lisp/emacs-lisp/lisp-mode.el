@@ -838,9 +838,8 @@ or to switch back to an existing one."
 (defcustom lisp-indent-offset nil
   "If non-nil, indent second line of expressions that many more columns."
   :group 'lisp
-  :type '(choice (const nil) integer))
-(put 'lisp-indent-offset 'safe-local-variable
-     (lambda (x) (or (null x) (integerp x))))
+  :type '(choice (const nil) integer)
+  :safe (lambda (x) (or (null x) (integerp x))))
 
 (defcustom lisp-indent-function 'lisp-indent-function
   "A function to be called by `calculate-lisp-indent'.
@@ -1252,8 +1251,8 @@ Lisp function does not specify a special indentation."
 (defcustom lisp-body-indent 2
   "Number of columns to indent the second line of a `(def...)' form."
   :group 'lisp
-  :type 'integer)
-(put 'lisp-body-indent 'safe-local-variable 'integerp)
+  :type 'integer
+  :safe #'integerp)
 
 (defun lisp-indent-specform (count state indent-point normal-indent)
   (let ((containing-form-start (elt state 1))
@@ -1414,9 +1413,8 @@ Any non-integer value means do not use a different value of
 `fill-column' when filling docstrings."
   :type '(choice (integer)
                  (const :tag "Use the current `fill-column'" t))
+  :safe (lambda (x) (or (eq x t) (integerp x)))
   :group 'lisp)
-(put 'emacs-lisp-docstring-fill-column 'safe-local-variable
-     (lambda (x) (or (eq x t) (integerp x))))
 
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.

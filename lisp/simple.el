@@ -8609,10 +8609,10 @@ constitute a word."
 (defcustom fill-prefix nil
   "String for filling to insert at front of new line, or nil for none."
   :type '(choice (const :tag "None" nil)
-		 string)
+                 string)
+  :safe #'string-or-null-p
   :group 'fill)
 (make-variable-buffer-local 'fill-prefix)
-(put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
 (defcustom auto-fill-inhibit-regexp nil
   "Regexp to match lines that should not be auto-filled."
