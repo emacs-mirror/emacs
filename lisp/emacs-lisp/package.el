@@ -355,10 +355,10 @@ More specifically the value can be:
 
 This also applies to the \"archive-contents\" file that lists the
 contents of the archive."
-  :type '(choice (const nil :tag "Never")
-                 (const allow-unsigned :tag "Allow unsigned")
-                 (const t :tag "Check always")
-                 (const all :tag "Check all signatures"))
+  :type '(choice (const :value nil            :tag "Never")
+                 (const :value allow-unsigned :tag "Allow unsigned")
+                 (const :value t              :tag "Check always")
+                 (const :value all            :tag "Check all signatures"))
   :risky t
   :version "27.1")
 

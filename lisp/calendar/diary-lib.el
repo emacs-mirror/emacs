@@ -100,11 +100,11 @@ are: `string', `symbol', `int', `tnil', `stringtnil'."
   :type '(repeat (list (regexp :tag "Regular expression")
                        (integer :tag "Sub-expression")
                        (symbol :tag "Attribute (e.g. :foreground)")
-                       (choice (const string :tag "A string")
-                               (const symbol :tag "A symbol")
-                               (const int :tag "An integer")
-                               (const tnil :tag "t or nil")
-                               (const stringtnil
+                       (choice (const :value string :tag "A string")
+                               (const :value symbol :tag "A symbol")
+                               (const :value int    :tag "An integer")
+                               (const :value tnil   :tag "t or nil")
+                               (const :value stringtnil
                                       :tag "A string, t, or nil"))))
   :group 'diary)
 

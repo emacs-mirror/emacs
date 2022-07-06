@@ -1091,9 +1091,9 @@ positive (negative), move point forward (backwards) this many
 parts.  When nil, redisplay article."
   :version "23.1" ;; No Gnus
   :group 'gnus-article-mime
-  :type '(choice (const nil :tag "Redisplay article.")
-		 (const 1 :tag "Next part.")
-		 (const 0 :tag "Current part.")
+  :type '(choice (const :value nil :tag "Redisplay article")
+                 (const :value 1   :tag "Next part")
+                 (const :value 0   :tag "Current part")
 		 integer))
 
 ;;;

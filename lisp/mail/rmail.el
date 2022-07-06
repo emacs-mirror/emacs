@@ -388,7 +388,7 @@ If nil, display all header fields except those matched by
 ;;;###autoload
 (defcustom rmail-retry-ignored-headers (purecopy "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:\\|message-id:")
   "Headers that should be stripped when retrying a failed message."
-  :type '(choice regexp (const nil :tag "None"))
+  :type '(choice regexp (const :value nil :tag "None"))
   :group 'rmail-headers
   :version "23.2")	   ; added x-detected-operating-system, x-spam
 

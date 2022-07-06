@@ -1926,9 +1926,9 @@ With t, you get the latter as long as that would indent the continuation line
 deeper than the initial line."
   :version "25.1"
   :type '(choice
-          (const nil :tag "Never")
-          (const t   :tag "Only if needed to make it deeper")
-          (const always :tag "Always"))
+          (const :value nil    :tag "Never")
+          (const :value t      :tag "Only if needed to make it deeper")
+          (const :value always :tag "Always"))
   :group 'sh-indentation)
 
 (defun sh-smie--continuation-start-indent ()

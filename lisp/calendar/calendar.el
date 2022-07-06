@@ -565,7 +565,7 @@ See `calendar-intermonth-text'."
   :set (lambda (sym val)
          (set sym val)
          (calendar-redraw))
-  :type '(choice (const nil :tag "Nothing")
+  :type '(choice (const :value nil :tag "Nothing")
                  (string :tag "Fixed string")
                  (sexp :value
                        (propertize "WK" 'font-lock-face
@@ -597,7 +597,7 @@ See also `calendar-intermonth-header'."
   :set (lambda (sym val)
          (set sym val)
          (calendar-redraw))
-  :type '(choice (const nil :tag "Nothing")
+  :type '(choice (const :value nil :tag "Nothing")
                  (string :tag "Fixed string")
                  (sexp :value
                        (propertize
@@ -742,9 +742,9 @@ Setting this variable directly does not take effect (if the
 calendar package is already loaded).  Rather, use either
 \\[customize] or the function `calendar-set-date-style'."
   :version "23.1"
-  :type '(choice (const american :tag "Month/Day/Year")
-                 (const european :tag "Day/Month/Year")
-                 (const iso      :tag "Year/Month/Day"))
+  :type '(choice (const :value american :tag "American (Month/Day/Year)")
+                 (const :value european :tag "European (Day/Month/Year)")
+                 (const :value iso      :tag "ISO 8601 (Year/Month/Day)"))
   :initialize 'custom-initialize-default
   :set (lambda (_symbol value)
          (calendar-set-date-style value))

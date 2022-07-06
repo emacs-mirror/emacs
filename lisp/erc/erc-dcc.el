@@ -391,7 +391,7 @@ the accepted connection."
 (defcustom erc-dcc-get-default-directory nil
   "Default directory for incoming DCC file transfers.
 If this is nil, then the current value of `default-directory' is used."
-  :type '(choice (const nil :tag "Default directory") directory))
+  :type '(choice (const :value nil :tag "Default directory") directory))
 
 ;;;###autoload
 (defun erc-cmd-DCC (cmd &rest args)
