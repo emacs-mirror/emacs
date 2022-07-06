@@ -422,11 +422,13 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
   BView_convert_to_screen (view, &x, &y);
   unblock_input ();
 
+  unrequest_sigio ();
   popup_activated_p++;
   menu_item_selection = BMenu_run (menu, x, y,  haiku_menu_show_help,
 				   block_input, unblock_input,
 				   haiku_process_pending_signals_for_menu, NULL);
   popup_activated_p--;
+  request_sigio ();
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
