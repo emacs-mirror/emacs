@@ -2045,6 +2045,11 @@ Sets various variables using `font-lock-defaults' and
 	(setq font-lock-keywords
               (font-lock-compile-keywords font-lock-keywords))))
     (font-lock-flush)))
+
+(defun turn-off-font-lock-mode ()
+  "Unconditionally turn off `font-lock-mode'."
+  (interactive)
+  (font-lock-mode -1))
 
 ;;; Color etc. support.
 

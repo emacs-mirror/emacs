@@ -1120,10 +1120,26 @@ BUFFER_CHECK_INDIRECTION (struct buffer *b)
     }
 }
 
+/* Check the state of auto-narrowed buffers.  */
+
+INLINE bool
+BUFFER_NEEDS_AUTO_NARROWING_P (struct buffer *b)
+{
+  return EQ (BVAR (b, auto_narrow__narrowing_state), Qneeded);
+}
+
 INLINE bool
 BUFFER_AUTO_NARROWED_P (struct buffer *b)
 {
   return EQ (BVAR (b, auto_narrow__narrowing_state), Qauto);
+}
+
+INLINE bool
+BUFFER_AUTO_NARROWED_NON_NARROWED_P (struct buffer *b)
+{
+  return BUFFER_AUTO_NARROWED_P (b)
+    && BUF_BEG (b) == BUF_BEGV (b)
+    && BUF_Z (b) == BUF_ZV (b);
 }
 
 /* This structure holds the default values of the buffer-local variables

@@ -18872,7 +18872,7 @@ set_vertical_scroll_bar (struct window *w)
 	  && NILP (echo_area_buffer[0])))
     {
       struct buffer *buf = XBUFFER (w->contents);
-      if (! BUFFER_AUTO_NARROWED_P (current_buffer))
+      if (! BUFFER_AUTO_NARROWED_P (buf))
 	{
 	  whole = BUF_ZV (buf) - BUF_BEGV (buf);
 	  start = marker_position (w->start) - BUF_BEGV (buf);
@@ -19142,7 +19142,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
      variables.  */
   set_buffer_internal_1 (XBUFFER (w->contents));
 
-  if (EQ (BVAR (current_buffer, auto_narrow__narrowing_state), Qneeded))
+  if (BUFFER_NEEDS_AUTO_NARROWING_P (current_buffer))
     {
       safe_call (1, Qauto_narrow_mode);
       /* Normally set by auto-narrow-mode, set it here anyway as a safety measure.  */

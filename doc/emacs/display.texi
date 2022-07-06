@@ -474,9 +474,10 @@ it.  @xref{Disabling}.
 @vindex auto-narrow-long-line-threshold
 @vindex auto-narrow-display-length
 @vindex auto-narrow-widen-automatically
+@vindex auto-narrow-hook
 
   When a file with extremely long lines is opened or inserted in a
-buffer, Emacs automatically enters auto-narrow mode, and the word
+buffer, Emacs automatically enters Auto-Narrow mode, and the word
 @samp{Auto-Narrow} appears in the mode line.  This means that Emacs
 restricts display, but not editing, to a portion of the buffer above
 and below point.  All editing commands, including narrowing commands,
@@ -485,12 +486,21 @@ remain available, and they act on the whole buffer.  For example,
 happen with ordinary narrowing, to the end of the portion of the
 buffer to which display is currently restricted.
 
-  The behavior of auto-narrow mode is controlled by three variables:
+  The behavior of Auto-Narrow mode is controlled by four variables:
 @code{auto-narrow-long-line-threshold} is the line length above which
-auto-narrow move is entered, @code{auto-narrow-display-length} is the
-number of characters to which display is restricted, and
+Auto-Narrow move is entered, @code{auto-narrow-display-length} is the
+number of characters to which display is restricted,
 @code{auto-narrow-widen-automatically} is a list of commands for which
-display is widened before they are executed.
+display is widened before they are executed, and
+@code{auto-narrow-hook} is a list of functions that are called when
+Auto-Narrow mode is entered.  By default, Font Lock mode is disabled
+in Auto-Narrow mode.
+
+  If you still experience slowdowns while editing a file when
+Auto-Narrow mode is enabled, this is not due to Emacs itself, but to
+the current major mode or one of the enabled minor modes, and you
+should open the file with @kbd{M-x find-file-literally} instead of
+@kbd{C-x C-f}.
 
 @node View Mode
 @section View Mode
