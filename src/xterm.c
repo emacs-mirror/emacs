@@ -25208,9 +25208,14 @@ xembed_send_message (struct frame *f, Time t, enum xembed_message msg,
   event.xclient.data.l[3] = data1;
   event.xclient.data.l[4] = data2;
 
+  /* XXX: the XEmbed spec tells us to trap errors around this request,
+     but I don't understand why: there is no way for clients to
+     survive the death of the parent anyway.  */
+
+  x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
   XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_OUTPUT (f)->parent_desc,
 	      False, NoEventMask, &event);
-  XSync (FRAME_X_DISPLAY (f), False);
+  x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
 }
 
 /* Change of visibility.  */
