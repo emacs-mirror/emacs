@@ -230,7 +230,7 @@ current IRC process is still alive.")
 (defvar-local erc-server-lines-sent nil
   "Line counter.")
 
-(defvar-local erc-server-last-peers '(nil . nil)
+(defvar-local erc-server-last-peers nil
   "Last peers used, both sender and receiver.
 Those are used for /MSG destination shortcuts.")
 
@@ -562,7 +562,7 @@ TLS (see `erc-session-client-certificate' for more details)."
         (setq erc-server-last-received-time time))
       (setq erc-server-lines-sent 0)
       ;; last peers (sender and receiver)
-      (setq erc-server-last-peers '(nil . nil)))
+      (setq erc-server-last-peers (cons nil nil)))
     ;; we do our own encoding and decoding
     (when (fboundp 'set-process-coding-system)
       (set-process-coding-system process 'raw-text))
@@ -939,21 +939,20 @@ be used.  If the target is \".\", the last person you've sent a message
 to will be used."
   (cond
    ((string-match "^\\s-*\\(\\S-+\\) ?\\(.*\\)" line)
-    (let ((tgt (match-string 1 line))
-          (s (match-string 2 line)))
+    (let* ((tgt (match-string 1 line))
+           (s (match-string 2 line))
+           (server-buffer (erc-server-buffer))
+           (peers (buffer-local-value 'erc-server-last-peers server-buffer)))
       (erc-log (format "cmd: MSG(%s): [%s] %s" message-command tgt s))
       (cond
        ((string= tgt ",")
-        (if (car erc-server-last-peers)
-            (setq tgt (car erc-server-last-peers))
-          (setq tgt nil)))
+        (setq tgt (car peers)))
        ((string= tgt ".")
-        (if (cdr erc-server-last-peers)
-            (setq tgt (cdr erc-server-last-peers))
-          (setq tgt nil))))
+        (setq tgt (cdr peers))))
       (cond
        (tgt
-        (setcdr erc-server-last-peers tgt)
+        (with-current-buffer server-buffer
+          (setq erc-server-last-peers (cons (car peers) tgt)))
         (erc-server-send (format "%s %s :%s" message-command tgt s)
                          force))
        (t
@@ -1552,7 +1551,7 @@ add things to `%s' instead."
                     (erc-process-ctcp-reply proc parsed nick login host
                                             (match-string 1 msg)))))
          (t
-          (setcar erc-server-last-peers nick)
+          (setq erc-server-last-peers (cons nick (cdr erc-server-last-peers)))
           (setq s (erc-format-privmessage
                    (or fnick nick) msg
                    ;; If buffer is a query buffer,
