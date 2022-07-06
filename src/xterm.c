@@ -1022,6 +1022,10 @@ static const struct x_atom_ref x_atom_refs[] =
     ATOM_REFS_INIT ("XdndLeave", Xatom_XdndLeave)
     ATOM_REFS_INIT ("XdndDrop", Xatom_XdndDrop)
     ATOM_REFS_INIT ("XdndFinished", Xatom_XdndFinished)
+    /* XDS source and target.  */
+    ATOM_REFS_INIT ("XdndDirectSave0", Xatom_XdndDirectSave0)
+    ATOM_REFS_INIT ("XdndActionDirectSave", Xatom_XdndActionDirectSave)
+    ATOM_REFS_INIT ("text/plain", Xatom_text_plain)
     /* Motif drop protocol support.  */
     ATOM_REFS_INIT ("_MOTIF_DRAG_WINDOW", Xatom_MOTIF_DRAG_WINDOW)
     ATOM_REFS_INIT ("_MOTIF_DRAG_TARGETS", Xatom_MOTIF_DRAG_TARGETS)

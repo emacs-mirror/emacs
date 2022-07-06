@@ -165,6 +165,12 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Lisp_Object sym)
     return dpyinfo->Xatom_XmTRANSFER_SUCCESS;
   if (EQ (sym, QXmTRANSFER_FAILURE))
     return dpyinfo->Xatom_XmTRANSFER_FAILURE;
+  if (EQ (sym, QXdndDirectSave0))
+    return dpyinfo->Xatom_XdndDirectSave0;
+  if (EQ (sym, Qtext_plain))
+    return dpyinfo->Xatom_text_plain;
+  if (EQ (sym, QXdndActionDirectSave))
+    return dpyinfo->Xatom_XdndActionDirectSave;
 
   if (!SYMBOLP (sym))
     emacs_abort ();
@@ -233,6 +239,12 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
     return QXmTRANSFER_SUCCESS;
   if (atom == dpyinfo->Xatom_XmTRANSFER_FAILURE)
     return QXmTRANSFER_FAILURE;
+  if (atom == dpyinfo->Xatom_XdndDirectSave0)
+    return QXdndDirectSave0;
+  if (atom == dpyinfo->Xatom_text_plain)
+    return Qtext_plain;
+  if (atom == dpyinfo->Xatom_XdndActionDirectSave)
+    return QXdndActionDirectSave;
 
   x_catch_errors (dpyinfo->display);
   str = x_get_atom_name (dpyinfo, atom, NULL);
@@ -2998,6 +3010,9 @@ Note that this does not affect setting or owning selections.  */);
   DEFSYM (QCLIPBOARD_MANAGER, "CLIPBOARD_MANAGER");
   DEFSYM (QSAVE_TARGETS, "SAVE_TARGETS");
   DEFSYM (QNULL, "NULL");
+  DEFSYM (QXdndDirectSave0, "XdndDirectSave0");
+  DEFSYM (QXdndActionDirectSave, "XdndActionDirectSave");
+  DEFSYM (Qtext_plain, "text/plain");
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (Qx_lost_selection_functions, "x-lost-selection-functions");
   DEFSYM (Qx_sent_selection_functions, "x-sent-selection-functions");

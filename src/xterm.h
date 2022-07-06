@@ -638,6 +638,9 @@ struct x_display_info
     Xatom_XdndPosition, Xatom_XdndStatus, Xatom_XdndLeave, Xatom_XdndDrop,
     Xatom_XdndFinished;
 
+  /* XDS source and target.  */
+  Atom Xatom_XdndDirectSave0, Xatom_XdndActionDirectSave, Xatom_text_plain;
+
 #ifdef HAVE_XKB
   /* Virtual modifiers */
   Atom Xatom_Meta, Xatom_Super, Xatom_Hyper, Xatom_ShiftLock, Xatom_Alt;
