@@ -192,6 +192,9 @@ s/@PACKAGE@/emacs/
 /^GL_GNULIB_TIMEGM *=/s/@GL_GNULIB_TIMEGM@/1/
 /^GL_GNULIB_TIME_RZ *=/s/@GL_GNULIB_TIME_RZ@/1/
 /^GL_GNULIB_UNSETENV *=/s/@GL_GNULIB_UNSETENV@/1/
+# Apparently without this `rawmemchr' isn't declared, so
+# we get warnings building canonicalize-lgpl.o
+/^GL_GNULIB_RAWMEMCHR *=/s/@GL_GNULIB_RAWMEMCHR@/1/
 /^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
 /^GL_GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
 /^GL_GSETTINGS_LIBS *=/s/@[^@\n]*@//

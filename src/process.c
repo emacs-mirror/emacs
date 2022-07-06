@@ -8321,14 +8321,21 @@ DEFUN ("signal-names", Fsignal_names, Ssignal_names, 0, 0, 0,
        doc: /* Return a list of known signal names on this system.  */)
   (void)
 {
+#ifndef MSDOS
+  int i;
   char name[SIG2STR_MAX];
   Lisp_Object names = Qnil;
-  for (int i = 0; i < 256; ++i)
+
+  for (i = 0; i <= SIGNUM_BOUND; ++i)
     {
       if (!sig2str (i, name))
 	names = Fcons (build_string (name), names);
     }
+
   return names;
+#else
+  return Qnil;
+#endif
 }
 
 #ifdef subprocesses
