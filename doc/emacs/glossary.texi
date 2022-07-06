@@ -182,6 +182,7 @@ corresponding Control character.  @xref{User Input,C-M-}.
 Case conversion means changing text from upper case to lower case or
 vice versa.  @xref{Case}.
 
+@cindex ignore case
 @item Case Folding
 Case folding means ignoring the differences between case variants of
 the same letter: upper-case, lower-case, and title-case.  Emacs

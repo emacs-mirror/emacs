@@ -1295,8 +1295,8 @@ Tip: You can use this expansion of remote identifier components
 
 (defcustom remote-file-name-inhibit-cache 10
   "Whether to use the remote file-name cache for read access.
-When nil, never expire cached values (caution)
-When t, never use the cache (safe, but may be slow)
+When nil, never expire cached values (caution).
+When t, never use the cache (safe, but may be slow).
 A number means use cached values for that amount of seconds since caching.
 
 The attributes of remote files are cached for better performance.
