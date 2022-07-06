@@ -4597,6 +4597,34 @@ x_free_dnd_toplevels (void)
   x_dnd_free_toplevels (true);
 }
 
+/* Restore event masks and window properties changed during a
+   drag-and-drop operation, after it finishes.  */
+static void
+x_restore_events_after_dnd (struct frame *f, XWindowAttributes *wa)
+{
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* Restore the old event mask.  */
+  XSelectInput (dpyinfo->display, dpyinfo->root_window,
+		wa->your_event_mask);
+#ifdef HAVE_XKB
+  if (dpyinfo->supports_xkb)
+    XkbSelectEvents (dpyinfo->display, XkbUseCoreKbd,
+		     XkbStateNotifyMask, 0);
+#endif
+  /* Delete the Motif drag initiator info if it was set up.  */
+  if (x_dnd_motif_setup_p)
+    XDeleteProperty (dpyinfo->display, FRAME_X_WINDOW (f),
+		     x_dnd_motif_atom);
+
+  /* Remove any type list set as well.  */
+  if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
+    XDeleteProperty (dpyinfo->display, FRAME_X_WINDOW (f),
+		     dpyinfo->Xatom_XdndTypeList);
+}
+
 static void
 x_dnd_cleanup_drag_and_drop (void *frame)
 {
@@ -4656,32 +4684,9 @@ x_dnd_cleanup_drag_and_drop (void *frame)
 #endif
   x_dnd_return_frame_object = NULL;
   x_dnd_movement_frame = NULL;
-
-  block_input ();
-  /* Restore the old event mask.  */
-  XSelectInput (FRAME_X_DISPLAY (f),
-		FRAME_DISPLAY_INFO (f)->root_window,
-		x_dnd_old_window_attrs.your_event_mask);
-
-#ifdef HAVE_XKB
-  if (FRAME_DISPLAY_INFO (f)->supports_xkb)
-    XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-		     XkbStateNotifyMask, 0);
-#endif
-
-  /* Delete the Motif drag initiator info if it was set up.  */
-  if (x_dnd_motif_setup_p)
-    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     FRAME_DISPLAY_INFO (f)->Xatom_XdndSelection);
-
-  /* Remove any type list set as well.  */
-  if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
-    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
-
-  unblock_input ();
-
   x_dnd_frame = NULL;
+
+  x_restore_events_after_dnd (f, &x_dnd_old_window_attrs);
 }
 
 static void
@@ -11779,24 +11784,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      current_hold_quit = NULL;
 #endif
 	      /* Restore the old event mask.  */
-	      XSelectInput (FRAME_X_DISPLAY (f),
-			    FRAME_DISPLAY_INFO (f)->root_window,
-			    root_window_attrs.your_event_mask);
-#ifdef HAVE_XKB
-	      if (FRAME_DISPLAY_INFO (f)->supports_xkb)
-		XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-				 XkbStateNotifyMask, 0);
-#endif
-	      /* Delete the Motif drag initiator info if it was set up.  */
-	      if (x_dnd_motif_setup_p)
-		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				 x_dnd_motif_atom);
-
-
-	      /* Remove any type list set as well.  */
-	      if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
-		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				 FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
+	      x_restore_events_after_dnd (f, &root_window_attrs);
 
 	      /* Call kbd_buffer_store event, which calls
 		 handle_interrupt and sets `last-event-frame' along
@@ -11913,27 +11901,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      FRAME_DISPLAY_INFO (f)->grabbed = 0;
 	      current_hold_quit = NULL;
 
-	      block_input ();
 	      /* Restore the old event mask.  */
-	      XSelectInput (FRAME_X_DISPLAY (f),
-			    FRAME_DISPLAY_INFO (f)->root_window,
-			    root_window_attrs.your_event_mask);
-#ifdef HAVE_XKB
-	      if (FRAME_DISPLAY_INFO (f)->supports_xkb)
-		XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-				 XkbStateNotifyMask, 0);
-#endif
-	      /* Delete the Motif drag initiator info if it was set up.  */
-	      if (x_dnd_motif_setup_p)
-		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				 x_dnd_motif_atom);
-
-
-	      /* Remove any type list set as well.  */
-	      if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
-		XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				 FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
-	      unblock_input ();
+	      x_restore_events_after_dnd (f, &root_window_attrs);
 
 	      quit ();
 	    }
@@ -11956,27 +11925,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   current_hold_quit = NULL;
 #endif
   x_dnd_movement_frame = NULL;
-
-  block_input ();
-  /* Restore the old event mask.  */
-  XSelectInput (FRAME_X_DISPLAY (f),
-		FRAME_DISPLAY_INFO (f)->root_window,
-		root_window_attrs.your_event_mask);
-#ifdef HAVE_XKB
-  if (FRAME_DISPLAY_INFO (f)->supports_xkb)
-    XkbSelectEvents (FRAME_X_DISPLAY (f), XkbUseCoreKbd,
-		     XkbStateNotifyMask, 0);
-#endif
-  /* Delete the Motif drag initiator info if it was set up.  */
-  if (x_dnd_motif_setup_p)
-    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     x_dnd_motif_atom);
-
-  /* Remove any type list set as well.  */
-  if (x_dnd_init_type_lists && x_dnd_n_targets > 3)
-    XDeleteProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     FRAME_DISPLAY_INFO (f)->Xatom_XdndTypeList);
-  unblock_input ();
+  x_restore_events_after_dnd (f, &root_window_attrs);
 
   if (x_dnd_return_frame == 3
       && FRAME_LIVE_P (x_dnd_return_frame_object))
