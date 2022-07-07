@@ -790,8 +790,8 @@ pgtk_handle_selection_event (struct selection_input_event *event)
 void
 pgtk_clear_frame_selections (struct frame *f)
 {
-  Lisp_Object frame;
-  Lisp_Object rest;
+  Lisp_Object frame, rest, timestamp, symbol;
+  guint32 time;
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   struct terminal *t = dpyinfo->terminal;
 
@@ -801,9 +801,22 @@ pgtk_clear_frame_selections (struct frame *f)
   while (CONSP (t->Vselection_alist)
 	 && EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (t->Vselection_alist)))))))
     {
+      symbol = Fcar (Fcar (t->Vselection_alist));
+
       /* Run the `pgtk-lost-selection-functions' abnormal hook.  */
       CALLN (Frun_hook_with_args, Qpgtk_lost_selection_functions,
-	     Fcar (Fcar (t->Vselection_alist)));
+	     symbol);
+
+      timestamp = Fcar (Fcdr (Fcdr (Fcar (t->Vselection_alist))));
+      CONS_TO_INTEGER (timestamp, guint32, time);
+
+      /* On Wayland, GDK will still ask the (now non-existent) frame for
+	 selection data, even though we no longer think the selection is
+	 owned by us.  Manually relinquish ownership of the selection.  */
+      gdk_selection_owner_set_for_display (dpyinfo->display,
+					   NULL,
+					   symbol_to_gdk_atom (symbol),
+					   time, TRUE);
 
       tset_selection_alist (t, XCDR (t->Vselection_alist));
     }
@@ -813,8 +826,18 @@ pgtk_clear_frame_selections (struct frame *f)
     if (CONSP (XCDR (rest))
 	&& EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (XCDR (rest))))))))
       {
+	symbol = XCAR (XCAR (XCDR (rest)));
 	CALLN (Frun_hook_with_args, Qpgtk_lost_selection_functions,
-	       XCAR (XCAR (XCDR (rest))));
+	       symbol);
+
+	timestamp = XCAR (XCDR (XCDR (XCAR (XCDR (rest)))));
+	CONS_TO_INTEGER (timestamp, guint32, time);
+
+	gdk_selection_owner_set_for_display (dpyinfo->display,
+					     NULL,
+					     symbol_to_gdk_atom (symbol),
+					     time, TRUE);
+
 	XSETCDR (rest, XCDR (XCDR (rest)));
 	break;
       }
