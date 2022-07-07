@@ -437,11 +437,13 @@ These might set its size, for instance."
 (defcustom browse-url-gnudoit-program "gnudoit"
   "The name of the `gnudoit' program used by `browse-url-w3-gnudoit'."
   :type 'string)
+(make-obsolete-variable 'browse-url-gnudoit-program nil "29.1")
 
 (defcustom browse-url-gnudoit-args '("-q")
   "A list of strings defining options for `browse-url-gnudoit-program'.
 These might set the port, for instance."
   :type '(repeat (string :tag "Argument")))
+(make-obsolete-variable 'browse-url-gnudoit-args nil "29.1")
 
 (defcustom browse-url-generic-program nil
   "The name of the browser program used by `browse-url-generic'."
