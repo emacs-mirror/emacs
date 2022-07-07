@@ -1672,43 +1672,6 @@ Namazu provides a little more information, for instance a score."
       (format "date:%s.." (notmuch-date (cdr expr))))
      (t (ignore-errors (cl-call-next-method))))))
 
-(cl-defmethod gnus-search-run-search :around ((engine gnus-search-notmuch)
-					      server query groups)
-  "Handle notmuch's thread-search routine."
-  ;; Notmuch allows for searching threads, but only using its own
-  ;; thread ids.  That means a thread search is a \"double-bounce\":
-  ;; once to find the relevant thread ids, and again to find the
-  ;; actual messages.  This method performs the first \"bounce\".
-  (if (alist-get 'thread query)
-      (with-slots (program proc-buffer) engine
-	(let* ((qstring
-		(gnus-search-make-query-string engine query))
-	       (cp-list (gnus-search-indexed-search-command
-			 engine qstring query groups))
-	       thread-ids proc)
-	  (with-current-buffer proc-buffer
-	    (erase-buffer)
-	    (setq proc (apply #'start-process (format "search-%s" server)
-			      proc-buffer program cp-list))
-	    (while (process-live-p proc)
-	      (accept-process-output proc))
-            (goto-char (point-min))
-	    (while (re-search-forward
-                    "^thread:\\([^[:space:]\n]+\\)"
-                    (point-max) t)
-	      (cl-pushnew (match-string 1) thread-ids :test #'equal)))
-	  (cl-call-next-method
-	   engine server
-	   ;; If we found threads, completely replace the query with
-	   ;; our new thread-based one.
-           (if thread-ids
-               `((query . ,(mapconcat (lambda (thrd)
-                                        (concat "thread:" thrd))
-                                      thread-ids " or ")))
-             query)
-	   nil)))
-    (cl-call-next-method engine server query groups)))
-
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-notmuch)
 						  (qstring string)
 						  query &optional _groups)
@@ -1721,13 +1684,14 @@ Namazu provides a little more information, for instance a score."
       (append
        (list (format "--config=%s" config-file)
              "search"
-             (if thread
-                 "--output=threads"
-             "--output=files"))
+             "--output=files")
        (unless thread '("--duplicate=1"))
        (when limit (list (format "--limit=%d" limit)))
        switches
-       (list qstring)))))
+       (list (if thread
+                 (format "thread:\"{%s}\""
+                         (string-replace "\"" "\"\"" qstring))
+               qstring))))))
 
 ;;; Mairix interface
 
