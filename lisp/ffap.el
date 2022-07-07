@@ -544,6 +544,7 @@ The optional NOMODIFY argument suppresses the extra search."
 	   (string-match ffap-rfs-regexp filename)
 	   filename)))
 
+;;;###autoload
 (defun ffap-machine-at-point ()
   "Return machine name at point if it exists, or nil."
   (let ((mach (ffap-string-at-point 'machine)))
@@ -1329,6 +1330,7 @@ Assumes the buffer has not changed."
 ;; External.
 (declare-function w3-view-this-url "ext:w3" (&optional no-show))
 
+;;;###autoload
 (defun ffap-url-at-point ()
   "Return URL from around point if it exists, or nil.
 

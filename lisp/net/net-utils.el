@@ -280,31 +280,6 @@ This variable is only used if the variable
 ;; Utility functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Simplified versions of some at-point functions from ffap.el.
-;; It's not worth loading all of ffap just for these.
-(defun net-utils-machine-at-point ()
-  (let ((pt (point)))
-    (buffer-substring-no-properties
-     (save-excursion
-       (skip-chars-backward "-a-zA-Z0-9.")
-       (point))
-     (save-excursion
-       (skip-chars-forward "-a-zA-Z0-9.")
-       (skip-chars-backward "." pt)
-       (point)))))
-
-(defun net-utils-url-at-point ()
-  (let ((pt (point)))
-    (buffer-substring-no-properties
-     (save-excursion
-       (skip-chars-backward "--:=&?$+@-Z_a-z~#,%")
-       (skip-chars-forward "^A-Za-z0-9" pt)
-       (point))
-     (save-excursion
-       (skip-chars-forward "--:=&?$+@-Z_a-z~#,%")
-       (skip-chars-backward ":;.,!?" pt)
-       (point)))))
-
 (defun net-utils-remove-ctrl-m-filter (process output-string)
   "Remove trailing control Ms."
   (with-current-buffer (process-buffer process)
@@ -456,7 +431,7 @@ This variable is only used if the variable
 If your system's ping continues until interrupted, you can try setting
 `ping-program-options'."
   (interactive
-   (list (read-from-minibuffer "Ping host: " (net-utils-machine-at-point))))
+   (list (read-from-minibuffer "Ping host: " (ffap-machine-at-point))))
   (let ((options
 	 (if ping-program-options
 	     (append ping-program-options (list host))
@@ -489,7 +464,7 @@ See also: `nslookup-host-ipv4', `nslookup-host-ipv6' for
 non-interactive versions of this function more suitable for use
 in Lisp code."
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
+   (list (read-from-minibuffer "Lookup host: " (ffap-machine-at-point))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (let ((options
          (append nslookup-program-options (list host)
@@ -601,7 +576,7 @@ Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 
 This command uses `dns-lookup-program' for looking up the DNS information."
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
+   (list (read-from-minibuffer "Lookup host: " (ffap-machine-at-point))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (let ((options
          (append dns-lookup-program-options (list host)
@@ -625,7 +600,7 @@ Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 This command uses `dig-program' for looking up the DNS information."
   (declare (obsolete dig "29.1"))
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
+   (list (read-from-minibuffer "Lookup host: " (ffap-machine-at-point))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (dig host nil nil nil nil name-server))
 
@@ -639,7 +614,7 @@ This command uses `dig-program' for looking up the DNS information."
   (interactive
    (list
     (read-from-minibuffer
-     "Ftp to Host: " (net-utils-machine-at-point))))
+     "Ftp to Host: " (ffap-machine-at-point))))
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
     (set-buffer buf)
     (ftp-mode)
@@ -675,7 +650,7 @@ This command uses `smbclient-program' to connect to HOST."
   (interactive
    (list
     (read-from-minibuffer
-     "Connect to Host: " (net-utils-machine-at-point))
+     "Connect to Host: " (ffap-machine-at-point))
     (read-from-minibuffer "SMB Service: ")))
   (let* ((name (format "smbclient [%s\\%s]" host service))
 	 (buf (get-buffer-create (concat "*" name "*")))
@@ -694,7 +669,7 @@ This command uses `smbclient-program' to connect to HOST."
   (interactive
    (list
     (read-from-minibuffer
-     "Connect to Host: " (net-utils-machine-at-point))))
+     "Connect to Host: " (ffap-machine-at-point))))
   (let ((buf (get-buffer-create (format "*SMB Shares on %s*" host))))
     (set-buffer buf)
     (smbclient-mode)
@@ -794,14 +769,14 @@ and `network-connection-service-alist', which see."
   ;; host name. If we don't see an "@", we'll prompt for the host.
   (interactive
     (let* ((answer (read-from-minibuffer "Finger User: "
-					 (net-utils-url-at-point)))
+                                         (ffap-url-at-point)))
 	   (index  (string-match (regexp-quote "@") answer)))
       (if index
 	  (list (substring answer 0 index)
 		(substring answer (1+ index)))
 	(list answer
 	      (read-from-minibuffer "At Host: "
-				    (net-utils-machine-at-point))))))
+                                    (ffap-machine-at-point))))))
   (let* ((user-and-host (concat user "@" host))
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
@@ -934,7 +909,7 @@ The port is deduced from `network-connection-service-alist'."
 This command uses `network-connection-service-alist', which see."
   (interactive
    (list
-    (read-from-minibuffer "Host: " (net-utils-machine-at-point))
+    (read-from-minibuffer "Host: " (ffap-machine-at-point))
     (completing-read "Service: "
 		     (mapcar
                       (lambda (elt)
@@ -986,6 +961,9 @@ This command uses `network-connection-service-alist', which see."
 			    (cdr (assoc service network-connection-service-alist))))
       (and old-comint-input-ring
 	   (setq comint-input-ring old-comint-input-ring)))))
+
+(define-obsolete-function-alias 'net-utils-machine-at-point #'ffap-machine-at-point "29.1")
+(define-obsolete-function-alias 'net-utils-url-at-point #'ffap-url-at-point "29.1")
 
 (provide 'net-utils)
 
