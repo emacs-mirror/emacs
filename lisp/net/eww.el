@@ -1207,6 +1207,8 @@ instead of `browse-url-new-window-flag'."
   (let ((url-allow-non-local-files t))
     (eww url)))
 
+(function-put 'eww-browse-url 'browse-url-browser-kind 'internal)
+
 (defun eww-back-url ()
   "Go to the previously displayed page."
   (interactive nil eww-mode)
