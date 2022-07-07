@@ -271,6 +271,7 @@ This variable is only used if the variable
 
 (define-derived-mode net-utils-mode special-mode "NetworkUtil"
   "Major mode for interacting with an external network utility."
+  :interactive nil
   (setq-local font-lock-defaults
               '((net-utils-font-lock-keywords)))
   (setq-local revert-buffer-function #'net-utils--revert-function))
@@ -580,14 +581,12 @@ This command uses `nslookup-program' to look up DNS records."
 
 (autoload 'comint-mode "comint" nil t)
 
-(defvar nslookup-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\t" #'completion-at-point)
-    map))
+(defvar-keymap nslookup-mode-map
+  "TAB" #'completion-at-point)
 
-;; Using a derived mode gives us keymaps, hooks, etc.
 (define-derived-mode nslookup-mode comint-mode "Nslookup"
   "Major mode for interacting with the nslookup program."
+  :interactive nil
   (setq-local font-lock-defaults
               '((nslookup-font-lock-keywords)))
   (setq comint-prompt-regexp nslookup-prompt-regexp)
@@ -650,14 +649,12 @@ This command uses `dig-program' for looking up the DNS information."
 		   (list host)))
     (pop-to-buffer buf)))
 
-(defvar ftp-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Occasionally useful
-    (define-key map "\t" #'completion-at-point)
-    map))
+(defvar-keymap ftp-mode-map
+  "TAB" #'completion-at-point)
 
 (define-derived-mode ftp-mode comint-mode "FTP"
   "Major mode for interacting with the ftp program."
+  :interactive nil
   (setq comint-prompt-regexp ftp-prompt-regexp)
   (setq comint-input-autoexpand t)
   ;; Only add the password-prompting hook if it's not already in the
@@ -707,6 +704,7 @@ This command uses `smbclient-program' to connect to HOST."
 
 (define-derived-mode smbclient-mode comint-mode "smbclient"
   "Major mode for interacting with the smbclient program."
+  :interactive nil
   (setq comint-prompt-regexp smbclient-prompt-regexp)
   (setq comint-input-autoexpand t)
   ;; Only add the password-prompting hook if it's not already in the
@@ -922,10 +920,9 @@ The port is deduced from `network-connection-service-alist'."
 ;;; General Network connection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Using a derived mode gives us keymaps, hooks, etc.
-(define-derived-mode
-  network-connection-mode comint-mode "Network-Connection"
-  "Major mode for interacting with the `network-connection' program.")
+(define-derived-mode network-connection-mode comint-mode "Network-Connection"
+  "Major mode for interacting with the `network-connection' program."
+  :interactive nil)
 
 (defun network-connection-mode-setup (host service)
   (setq-local network-connection-host host)
