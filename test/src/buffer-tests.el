@@ -1503,9 +1503,12 @@ with parameters from the *Messages* buffer modification."
 
 (ert-deftest test-restore-buffer-modified-p ()
   (ert-with-temp-file file
+    ;; This avoids the annoying "foo and bar are the same file" on
+    ;; MS-Windows.
+    (setq file (file-truename file))
     (with-current-buffer (find-file file)
       (auto-save-mode 1)
-      (should-not (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) t))
       (insert "foo")
       (should (buffer-modified-p))
       (restore-buffer-modified-p nil)
@@ -1522,9 +1525,10 @@ with parameters from the *Messages* buffer modification."
         (delete-file buffer-auto-save-file-name))))
 
   (ert-with-temp-file file
+    (setq file (file-truename file))
     (with-current-buffer (find-file file)
       (auto-save-mode 1)
-      (should-not (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) t))
       (insert "foo")
       (should (buffer-modified-p))
       (should-not (eq (buffer-modified-p) 'autosaved))
