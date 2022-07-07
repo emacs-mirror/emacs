@@ -47,6 +47,23 @@
    (eshell-insert-command "alias show-args 'printnl $0 \"$1 $2\"'")
    (eshell-command-result-p "show-args one two" "show-args\none two\n")))
 
+(ert-deftest em-alias-test/alias-arg-vars-indices ()
+  "Test alias with $1, $2, ... variables using indices"
+  (with-temp-eshell
+   (eshell-insert-command "alias funny-sum '+ $1[0] $2[1]'")
+   (eshell-command-result-p "funny-sum (list 1 2) (list 3 4)"
+                            "5\n")))
+
+(ert-deftest em-alias-test/alias-arg-vars-split-indices ()
+  "Test alias with $0, $1, ... variables using split indices"
+  (with-temp-eshell
+   (eshell-insert-command "alias my-prefix 'echo $0[- 0]'")
+   (eshell-command-result-p "my-prefix"
+                            "my\n")
+   (eshell-insert-command "alias funny-sum '+ $1[: 0] $2[: 1]'")
+   (eshell-command-result-p "funny-sum 1:2 3:4"
+                            "5\n")))
+
 (ert-deftest em-alias-test/alias-all-args-var ()
   "Test alias with the $* variable"
   (with-temp-eshell
@@ -60,5 +77,11 @@
   (with-temp-eshell
    (eshell-insert-command "alias add-pair '+ $*[0] $*[1]'")
    (eshell-command-result-p "add-pair 1 2" "3\n")))
+
+(ert-deftest em-alias-test/alias-all-args-var-split-indices ()
+  "Test alias with the $* variable using split indices"
+  (with-temp-eshell
+   (eshell-insert-command "alias add-funny-pair '+ $*[0][: 0] $*[1][: 1]'")
+   (eshell-command-result-p "add-funny-pair 1:2 3:4" "5\n")))
 
 ;; em-alias-tests.el ends here

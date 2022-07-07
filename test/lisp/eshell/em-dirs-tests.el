@@ -40,6 +40,14 @@
     (should (equal (eshell-test-command-result "echo $PWD")
                    (expand-file-name default-directory)))))
 
+(ert-deftest em-dirs-test/pwd-var-indices ()
+  "Test using the $PWD variable with indices."
+  (let ((default-directory "/some/path/here"))
+    (should (equal (eshell-test-command-result "echo $PWD[/ 1]")
+                   "some"))
+    (should (equal (eshell-test-command-result "echo $PWD[/ 1 3]")
+                   '("some" "here")))))
+
 (ert-deftest em-dirs-test/short-pwd-var ()
   "Test using the $+ (current directory) variable."
   (let ((default-directory "/some/path"))
@@ -56,6 +64,16 @@
      (eshell-command-result-p "echo $OLDPWD"
                               "/some/path\n"))))
 
+(ert-deftest em-dirs-test/oldpwd-var-indices ()
+  "Test using the $OLDPWD variable with indices."
+  (let (eshell-last-dir-ring-file-name)
+    (with-temp-eshell
+     (ring-insert eshell-last-dir-ring "/some/path/here")
+     (eshell-command-result-p "echo $OLDPWD[/ 1]"
+                              "some\n")
+     (eshell-command-result-p "echo $OLDPWD[/ 1 3]"
+                              "(\"some\" \"here\")\n"))))
+
 (ert-deftest em-dirs-test/directory-ring-var ()
   "Test using the $- (directory ring) variable."
   (let (eshell-last-dir-ring-file-name)
@@ -70,5 +88,15 @@
                               "/other/path\n")
      (eshell-command-result-p "echo $-[1]"
                               "/some/path\n"))))
+
+(ert-deftest em-dirs-test/directory-ring-var-indices ()
+  "Test using the $- (directory ring) variable with multiple indices."
+  (let (eshell-last-dir-ring-file-name)
+    (with-temp-eshell
+     (ring-insert eshell-last-dir-ring "/some/path/here")
+     (eshell-command-result-p "echo $-[0][/ 1]"
+                              "some\n")
+     (eshell-command-result-p "echo $-[1][/ 1 3]"
+                              "(\"some\" \"here\")\n"))))
 
 ;; em-dirs-tests.el ends here
