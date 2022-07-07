@@ -3170,6 +3170,17 @@ If NOERROR, return predicate, else erroring function."
   `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
 
 
+;;; Hacks
+;;;
+;; FIXME: Although desktop.el compatibility is Emacs bug#56407, the
+;; optimal solution agreed to there is a bit more work than what I
+;; have time to right now.  See
+;; e.g. https://debbugs.gnu.org/cgi/bugreport.cgi?bug=bug%2356407#68.
+;; For now, just use `with-eval-after-load'
+(with-eval-after-load 'desktop
+  (add-to-list 'desktop-minor-mode-handlers '(eglot--managed-mode . ignore)))
+
+
 ;;; Obsolete
 ;;;
 
