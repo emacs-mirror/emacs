@@ -471,7 +471,7 @@ Non-nil arguments are in recursive calls."
                      (t
                       (lambda () (interactive)
                         (if cmd (funcall cmd item) item))))))
-              alist)))
+              (seq-filter #'identity alist))))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."
