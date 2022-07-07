@@ -224,8 +224,8 @@
           (goto-char (point-min))
           (prog1
               (funcall search-func match nil t)
-            (widen)))
-        (when handles (mm-destroy-parts handles))))))
+            (widen)
+            (when handles (mm-destroy-parts handles))))))))
 
 (provide 'gnus-logic)
 
