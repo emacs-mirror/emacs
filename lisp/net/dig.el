@@ -154,10 +154,12 @@ for the QUERY-TYPE parameter.
 If given a \\[universal-argument] \\[universal-argument] \
 prefix, also prompt for the SERVER parameter."
   (interactive
-   (list (read-string "Host: ")
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Host" default) nil nil default))
          (and current-prefix-arg
               (read-string "Query type: "))))
-  (when (>= (car current-prefix-arg) 16)
+  (when (and (numberp (car current-prefix-arg))
+             (>= (car current-prefix-arg) 16))
     (let ((serv (read-from-minibuffer "Name server: ")))
       (when (not (equal serv ""))
         (setq server serv))))
