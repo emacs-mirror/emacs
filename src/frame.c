@@ -1477,59 +1477,6 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
   else if (f == sf)
     return frame;
 
-  /* If a frame's focus has been redirected toward the currently
-     selected frame, we should change the redirection to point to the
-     newly selected frame.  This means that if the focus is redirected
-     from a minibufferless frame to a surrogate minibuffer frame, we
-     can use `other-window' to switch between all the frames using
-     that minibuffer frame, and the focus redirection will follow us
-     around.  */
-#if 0
-  /* This is too greedy; it causes inappropriate focus redirection
-     that's hard to get rid of.  */
-  if (track)
-    {
-      Lisp_Object tail;
-
-      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-	{
-	  Lisp_Object focus;
-
-	  if (!FRAMEP (XCAR (tail)))
-	    emacs_abort ();
-
-	  focus = FRAME_FOCUS_FRAME (XFRAME (XCAR (tail)));
-
-	  if (FRAMEP (focus) && XFRAME (focus) == SELECTED_FRAME ())
-	    Fredirect_frame_focus (XCAR (tail), frame);
-	}
-    }
-#else /* ! 0 */
-  /* Instead, apply it only to the frame we're pointing to.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  if (track && FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->get_focus_frame)
-    {
-      Lisp_Object focus, gfocus;
-
-      gfocus = FRAME_TERMINAL (f)->get_focus_frame (f);
-      if (FRAMEP (gfocus))
-	{
-	  focus = FRAME_FOCUS_FRAME (XFRAME (gfocus));
-	  if (FRAMEP (focus) && XFRAME (focus) == SELECTED_FRAME ())
-	      /* Redirect frame focus also when FRAME has its minibuffer
-		 window on the selected frame (see Bug#24500).
-
-		 Don't do that: It causes redirection problem with a
-		 separate minibuffer frame (Bug#24803) and problems
-		 when updating the cursor on such frames.
-	      || (NILP (focus)
-		  && EQ (FRAME_MINIBUF_WINDOW (f), sf->selected_window)))  */
-	    Fredirect_frame_focus (gfocus, frame);
-	}
-    }
-#endif /* HAVE_X_WINDOWS */
-#endif /* ! 0 */
-
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
 
