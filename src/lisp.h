@@ -4733,6 +4733,7 @@ extern bool internal_delete_file (Lisp_Object);
 extern Lisp_Object check_emacs_readlinkat (int, Lisp_Object, char const *);
 extern bool file_directory_p (Lisp_Object);
 extern bool file_accessible_directory_p (Lisp_Object);
+extern Lisp_Object buffer_visited_file_modtime (struct buffer *);
 extern void init_fileio (void);
 extern void syms_of_fileio (void);
 

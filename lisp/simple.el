@@ -3525,12 +3525,22 @@ Return what remains of the list."
            ;; If this records an obsolete save
            ;; (not matching the actual disk file)
            ;; then don't mark unmodified.
-           (when (or (equal time (visited-file-modtime))
-                     (and (consp time)
-                          (equal (list (car time) (cdr time))
-                                 (visited-file-modtime))))
-             (unlock-buffer)
-             (set-buffer-modified-p nil)))
+           (let ((visited-file-time (visited-file-modtime)))
+             ;; Indirect buffers don't have a visited file, so their
+             ;; file-modtime can be bogus.  In that case, use the
+             ;; modtime of the base buffer instead.
+             (if (and (numberp visited-file-time)
+                      (= visited-file-time 0)
+                      (buffer-base-buffer))
+                 (setq visited-file-time
+                      (with-current-buffer (buffer-base-buffer)
+                        (visited-file-modtime))))
+             (when (or (equal time visited-file-time)
+                       (and (consp time)
+                            (equal (list (car time) (cdr time))
+                                   visited-file-time)))
+               (unlock-buffer)
+               (set-buffer-modified-p nil))))
           ;; Element (nil PROP VAL BEG . END) is property change.
           (`(nil . ,(or `(,prop ,val ,beg . ,end) pcase--dontcare))
            (when (or (> (point-min) beg) (< (point-max) end))

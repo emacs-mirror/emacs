@@ -5832,6 +5832,15 @@ See Info node `(elisp)Modification Time' for more details.  */)
   return Qnil;
 }
 
+Lisp_Object
+buffer_visited_file_modtime (struct buffer *buf)
+{
+  int ns = buf->modtime.tv_nsec;
+  if (ns < 0)
+    return make_fixnum (UNKNOWN_MODTIME_NSECS - ns);
+  return make_lisp_time (buf->modtime);
+}
+
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
@@ -5841,10 +5850,7 @@ visited file doesn't exist.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
-  int ns = current_buffer->modtime.tv_nsec;
-  if (ns < 0)
-    return make_fixnum (UNKNOWN_MODTIME_NSECS - ns);
-  return make_lisp_time (current_buffer->modtime);
+  return buffer_visited_file_modtime (current_buffer);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
@@ -5871,6 +5877,8 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
       current_buffer->modtime = mtime;
       current_buffer->modtime_size = -1;
     }
+  else if (current_buffer->base_buffer)
+    error ("An indirect buffer does not have a visited file");
   else
     {
       register Lisp_Object filename;

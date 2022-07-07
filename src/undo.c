@@ -218,7 +218,7 @@ record_first_change (void)
     base_buffer = base_buffer->base_buffer;
 
   bset_undo_list (current_buffer,
-		  Fcons (Fcons (Qt, Fvisited_file_modtime ()),
+		  Fcons (Fcons (Qt, buffer_visited_file_modtime (base_buffer)),
 			 BVAR (current_buffer, undo_list)));
 }
 
