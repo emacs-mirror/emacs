@@ -502,12 +502,13 @@ from the MODE alist ignoring the input argument VALUE."
 		       ((and (symbolp (car b)) (stringp (car a))) nil)
 		       (t (string< (car a) (car b)))))))
              (current-buffer))
+      (when (eobp) (insert "\n"))
       (goto-char (point-min))
       (indent-sexp))))
 
 (defun dir-locals-to-string (variables)
   "Output alists of VARIABLES to string in dotted pair notation syntax."
-  (format "(%s)\n"
+  (format "(%s)"
           (mapconcat
            (lambda (mode-variables)
              (format "(%S . %s)"
