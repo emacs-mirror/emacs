@@ -273,7 +273,7 @@ If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
                               (if default (symbol-name default)))))
    (when current-prefix-arg
      (list
-      (read-buffer (format-prompt "Output to buffer" trace-buffer))
+      (read-buffer "Output to buffer" trace-buffer)
       (let ((exp
              (let ((minibuffer-completing-symbol t))
                (read-from-minibuffer "Context expression: "
