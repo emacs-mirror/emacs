@@ -103,7 +103,7 @@
     ((eq major-mode 'Man-mode)
      4090
      "Manuals (%d)")
-    ((eq major-mode 'w3-mode)
+    ((eq major-mode 'eww-mode)
      4020
      "WWW (%d)")
     ((or (memq major-mode
@@ -154,7 +154,7 @@
     ((eq major-mode 'Man-mode)
      5030
      "Manuals (%d)")
-    ((eq major-mode 'w3-mode)
+    ((eq major-mode 'eww-mode)
      5020
      "WWW (%d)")
     ((or (memq major-mode

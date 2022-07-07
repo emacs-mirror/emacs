@@ -252,7 +252,6 @@ their id stays constant."
 
 (declare-function w3m-toggle-inline-images "ext:w3m" (&optional force no-cache))
 (defvar w3m-fill-column)
-(defvar w3-maximum-line-length)
 
 (defun newsticker--treeview-render-text (start end)
   "Render text between markers START and END."
@@ -272,17 +271,13 @@ their id stays constant."
                      "</?[A-Za-z1-6]*\\|&#?[A-Za-z0-9]+;" end t)
                 ;; (message "%s" (newsticker--title item))
                 (let ((w3m-fill-column (if newsticker-use-full-width
-                                           -1 fill-column))
-                      (w3-maximum-line-length
-                       (if newsticker-use-full-width nil fill-column)))
+                                           -1 fill-column)))
                   (select-window (newsticker--treeview-item-window))
                   (save-excursion
                     (funcall newsticker-html-renderer start end)))
                 ;;(cond ((eq newsticker-html-renderer 'w3m-region)
                 ;;     (add-text-properties start end (list 'keymap
                 ;;                                        w3m-minor-mode-map)))
-                ;;((eq newsticker-html-renderer 'w3-region)
-                ;;(add-text-properties start end (list 'keymap w3-mode-map))))
                 (if (eq newsticker-html-renderer 'w3m-region)
                     (w3m-toggle-inline-images t))
                 t)))

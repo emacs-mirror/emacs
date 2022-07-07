@@ -1580,14 +1580,6 @@ non-nil."
 			      nil nil nil))))
 	  (org-link-store-props :type "calendar" :date cd)))
 
-       ((eq major-mode 'w3-mode)
-	(setq cpltxt (if (and (buffer-name)
-			      (not (string-match "Untitled" (buffer-name))))
-			 (buffer-name)
-		       (url-view-url t))
-	      link (url-view-url t))
-	(org-link-store-props :type "w3" :url (url-view-url t)))
-
        ((eq major-mode 'image-mode)
 	(setq cpltxt (concat "file:"
 			     (abbreviate-file-name buffer-file-name))

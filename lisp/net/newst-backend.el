@@ -40,7 +40,6 @@
 
 ;; Silence warnings
 (defvar newsticker-groups)
-(defvar w3-mode-map)
 (defvar w3m-minor-mode-map)
 
 (defvar newsticker--retrieval-timer-list nil

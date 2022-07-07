@@ -40,7 +40,6 @@
 ;; browse-url-chromium                Chromium    3.0
 ;; browse-url-epiphany                GNOME Web (Epiphany)    Don't know
 ;; browse-url-webpositive             WebPositive 1.2-alpha (Haiku R1/beta3)
-;; browse-url-w3                      w3          0
 ;; browse-url-text-*	              Any text browser     0
 ;; browse-url-generic                 arbitrary
 ;; browse-url-default-windows-browser MS-Windows browser
@@ -108,9 +107,9 @@
 ;; Gnus provides a standard feature to activate URLs in article
 ;; buffers for invocation of browse-url.
 
-;; Use the Emacs w3 browser when not running under X11:
+;; Use the Emacs Web Wowser (EWW) when not running under X11:
 ;;	(or (eq window-system 'x)
-;;	    (setq browse-url-browser-function 'browse-url-w3))
+;;	    (setq browse-url-browser-function #'eww-browse-url))
 
 ;; To always save modified buffers before displaying the file in a browser:
 ;;	(setq browse-url-save-file t)
@@ -150,7 +149,6 @@
 
 (defvar browse-url--browser-defcustom-type
   '(choice
-    (function-item :tag "Emacs W3" :value  browse-url-w3)
     (function-item :tag "eww" :value  eww-browse-url)
     (function-item :tag "Mozilla" :value  browse-url-mozilla)
     (function-item :tag "Firefox" :value browse-url-firefox)
@@ -1033,7 +1031,6 @@ instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-chrome-program) 'browse-url-chrome)
     ((executable-find browse-url-webpositive-program) 'browse-url-webpositive)
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
-    ((locate-library "w3") 'browse-url-w3)
     (t
      (lambda (&rest _ignore) (error "No usable browser found"))))
    url args))
@@ -1367,6 +1364,7 @@ prefix argument reverses the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
+  (declare (obsolete nil "29.1"))
   (interactive (browse-url-interactive-arg "W3 URL: "))
   (require 'w3)			; w3-fetch-other-window not autoloaded
   (if (browse-url-maybe-new-window new-window)

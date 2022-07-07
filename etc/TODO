@@ -722,8 +722,6 @@ bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed
 
-*** W3 (development version needs significant work)
-
 *** PSGML, _possibly_ ECB
 https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html Check the
 assignments file for other packages which might go in and have been

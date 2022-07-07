@@ -68,8 +68,8 @@
 ;; If you do not like these bindings, modify the variable
 ;; `ffap-bindings', or write your own.
 ;;
-;; If you use ange-ftp, browse-url, complete, efs, or w3, it is best
-;; to load or autoload them before ffap.  If you use ff-paths, load it
+;; If you use ange-ftp, browse-url, complete, efs, it is best to load
+;; or autoload them before ffap.  If you use ff-paths, load it
 ;; afterwards.  Try apropos {C-h a ffap RET} to get a list of the many
 ;; option variables.  In particular, if ffap is slow, try these:
 ;;
@@ -79,7 +79,7 @@
 ;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
 ;; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
 ;;
-;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URLs.
+;; ffap uses `browse-url' to fetch URLs.
 ;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
 ;; Also, you can add `ffap-menu-rescan' to various hooks to fontify
 ;; the file and URL references within a buffer.
@@ -97,7 +97,6 @@
 ;; * break long menus into multiple panes (like imenu?)
 ;; * notice node in "(dired)Virtual Dired" (quotes, parentheses, whitespace)
 ;; * notice "machine.dom blah blah blah dir/file" (how?)
-;; * as w3 becomes standard, rewrite to rely more on its functions
 ;; * regexp options for ffap-string-at-point, like font-lock (MCOOK)
 ;; * v19: could replace `ffap-locate-file' with a quieter `locate-library'
 ;; * handle "$(VAR)" in Makefiles
@@ -1339,30 +1338,25 @@ Assumes the buffer has not changed."
       ;; Older: (apply 'copy-region-as-kill ffap-string-at-point-region)
       (message "Copied to kill ring: %s"  str))))
 
-;; External.
-(declare-function w3-view-this-url "ext:w3" (&optional no-show))
-
 ;;;###autoload
 (defun ffap-url-at-point ()
   "Return URL from around point if it exists, or nil.
 
 Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any."
   (when ffap-url-regexp
-    (or (and (eq major-mode 'w3-mode) ; In a w3 buffer button?
-	     (w3-view-this-url t))
-	(let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
-	      (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix)
-              val)
-	  (setq val (thing-at-point-url-at-point ffap-lax-url
-                                                 (if (use-region-p)
-                                                     (cons (region-beginning)
-                                                           (region-end)))))
-          (if val
-              (let ((bounds (thing-at-point-bounds-of-url-at-point
-                             ffap-lax-url)))
-                (setq ffap-string-at-point-region
-                      (list (car bounds) (cdr bounds)))))
-          val))))
+    (let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
+          (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix)
+          val)
+      (setq val (thing-at-point-url-at-point ffap-lax-url
+                                             (if (use-region-p)
+                                                 (cons (region-beginning)
+                                                       (region-end)))))
+      (if val
+          (let ((bounds (thing-at-point-bounds-of-url-at-point
+                         ffap-lax-url)))
+            (setq ffap-string-at-point-region
+                  (list (car bounds) (cdr bounds)))))
+      val)))
 
 (defvar ffap-gopher-regexp
   "\\<\\(Type\\|Name\\|Path\\|Host\\|Port\\) *= *"
@@ -1503,12 +1497,7 @@ which may actually result in an URL rather than a filename."
 		   ((and (eq major-mode 'internal-ange-ftp-mode)
 			 (string-match "^\\*ftp \\(.*\\)@\\(.*\\)\\*$"
 				       (buffer-name)))
-		    (concat "/" (substring (buffer-name) 5 -1) ":"))
-		   ;; This is too often a bad idea:
-		   ;;((and (eq major-mode 'w3-mode)
-		   ;;	   (stringp url-current-server))
-		   ;; (host-to-ange-path url-current-server))
-		   )))
+                    (concat "/" (substring (buffer-name) 5 -1) ":")))))
 	    (and remote-dir
 		 (or
 		  (and (string-match "\\`\\(/?~?ftp\\)/" name)
@@ -1882,7 +1871,7 @@ Return value:
 ;;; ffap-other-*, ffap-read-only-*, ffap-alternate-* commands:
 
 ;; There could be a real `ffap-noselect' function, but we would need
-;; at least two new user variables, and there is no w3-fetch-noselect.
+;; at least two new user variables.
 ;; So instead, we just fake it with a slow save-window-excursion.
 
 (defun ffap-other-window (filename)

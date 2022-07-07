@@ -3352,7 +3352,7 @@ current buffer:
   ~org-link-email-description-format~.  By default, it refers to the
   addressee and the subject.
 
-- /Web browsers: W3, W3M and EWW/ ::
+- /Web browsers: W3M and EWW/ ::
 
   Here the link is the current URL, with the page title as the
   description.

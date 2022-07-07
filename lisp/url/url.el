@@ -158,7 +158,7 @@ If URL is a multibyte string, it will be encoded as utf-8 and
 URL-encoded before it's used."
   ;; XXX: There is code in Emacs that does dynamic binding
   ;; of the following variables around url-retrieve:
-  ;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
+  ;; url-standalone-mode, url-gateway-unplugged,
   ;; url-confirmation-func, url-cookie-multiple-line,
   ;; url-cookie-{{,secure-}storage,confirmation}
   ;; url-standalone-mode and url-gateway-unplugged should work as
