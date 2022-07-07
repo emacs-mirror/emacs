@@ -77,6 +77,12 @@ now collapse into an alternate form designated by the option
 but can be fine-tuned via the repurposed, formerly abandoned option
 'erc-hide-prompt'.
 
+Certain commands provided by the 'erc-match' module, such as
+'erc-add-keyword', 'erc-add-pal', and others, now optionally ask
+whether to 'regexp-quote' the current input.  A new option,
+'erc-match-quote-when-adding', has been added to allow for retaining
+the old behavior, if desired.
+
 A bug has been fixed affecting users of the Soju bouncer: outgoing
 messages during periods of heavy traffic no longer disappear.
 

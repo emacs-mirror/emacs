@@ -6284,9 +6284,7 @@ The addressed target is the string before the first colon in MSG."
 
 (defun erc-list-match (lst str)
   "Return non-nil if any regexp in LST matches STR."
-  (memq nil (mapcar (lambda (regexp)
-                      (not (string-match regexp str)))
-                    lst)))
+  (and lst (string-match (string-join lst "\\|") str)))
 
 ;; other "toggles"
 

@@ -240,6 +240,15 @@ server and other miscellaneous functions."
   :version "24.3"
   :type 'boolean)
 
+(defcustom erc-match-quote-when-adding 'ask
+  "Whether to `regexp-quote' when adding to a match list interactively.
+When the value is a boolean, the opposite behavior will be made
+available via universal argument."
+  :package-version '(ERC . "5.4.1") ; FIXME increment on next release
+  :type '(choice (const ask)
+                 (const t)
+                 (const nil)))
+
 ;; Internal variables:
 
 ;; This is exactly the same as erc-button-syntax-table.  Should we
@@ -290,7 +299,7 @@ Note that this is the default face to use if
 
 ;; Functions:
 
-(defun erc-add-entry-to-list (list prompt &optional completions)
+(defun erc-add-entry-to-list (list prompt &optional completions alt)
   "Add an entry interactively to a list.
 LIST must be passed as a symbol
 The query happens using PROMPT.
@@ -299,7 +308,16 @@ Completion is performed on the optional alist COMPLETIONS."
 		prompt
 		completions
 		(lambda (x)
-		  (not (erc-member-ignore-case (car x) (symbol-value list)))))))
+                  (not (erc-member-ignore-case (car x) (symbol-value list))))))
+        quoted)
+    (setq quoted (regexp-quote entry))
+    (when (pcase erc-match-quote-when-adding
+            ('ask (unless (string= quoted entry)
+                    (y-or-n-p
+                     (format "Use regexp-quoted form (%s) instead? " quoted))))
+            ('t (not alt))
+            ('nil alt))
+      (setq entry quoted))
     (if (erc-member-ignore-case entry (symbol-value list))
 	(error "\"%s\" is already on the list" entry)
       (set list (cons entry (symbol-value list))))))
@@ -327,10 +345,11 @@ car is the string."
 			(symbol-value list))))))
 
 ;;;###autoload
-(defun erc-add-pal ()
+(defun erc-add-pal (&optional arg)
   "Add pal interactively to `erc-pals'."
-  (interactive)
-  (erc-add-entry-to-list 'erc-pals "Add pal: " (erc-get-server-nickname-alist)))
+  (interactive "P")
+  (erc-add-entry-to-list 'erc-pals "Add pal: "
+                         (erc-get-server-nickname-alist) arg))
 
 ;;;###autoload
 (defun erc-delete-pal ()
@@ -339,11 +358,11 @@ car is the string."
   (erc-remove-entry-from-list 'erc-pals "Delete pal: "))
 
 ;;;###autoload
-(defun erc-add-fool ()
+(defun erc-add-fool (&optional arg)
   "Add fool interactively to `erc-fools'."
-  (interactive)
+  (interactive "P")
   (erc-add-entry-to-list 'erc-fools "Add fool: "
-			 (erc-get-server-nickname-alist)))
+                         (erc-get-server-nickname-alist) arg))
 
 ;;;###autoload
 (defun erc-delete-fool ()
@@ -352,10 +371,10 @@ car is the string."
   (erc-remove-entry-from-list 'erc-fools "Delete fool: "))
 
 ;;;###autoload
-(defun erc-add-keyword ()
+(defun erc-add-keyword (&optional arg)
   "Add keyword interactively to `erc-keywords'."
-  (interactive)
-  (erc-add-entry-to-list 'erc-keywords "Add keyword: "))
+  (interactive "P")
+  (erc-add-entry-to-list 'erc-keywords "Add keyword: " nil arg))
 
 ;;;###autoload
 (defun erc-delete-keyword ()
@@ -364,10 +383,10 @@ car is the string."
   (erc-remove-entry-from-list 'erc-keywords "Delete keyword: "))
 
 ;;;###autoload
-(defun erc-add-dangerous-host ()
+(defun erc-add-dangerous-host (&optional arg)
   "Add dangerous-host interactively to `erc-dangerous-hosts'."
-  (interactive)
-  (erc-add-entry-to-list 'erc-dangerous-hosts "Add dangerous-host: "))
+  (interactive "P")
+  (erc-add-entry-to-list 'erc-dangerous-hosts "Add dangerous-host: " nil arg))
 
 ;;;###autoload
 (defun erc-delete-dangerous-host ()
@@ -388,19 +407,19 @@ NICKUSERHOST will be ignored."
 (defun erc-match-pal-p (nickuserhost _msg)
   "Check whether NICKUSERHOST is in `erc-pals'.
 MSG will be ignored."
-  (and nickuserhost
+  (and nickuserhost erc-pals
        (erc-list-match erc-pals nickuserhost)))
 
 (defun erc-match-fool-p (nickuserhost msg)
   "Check whether NICKUSERHOST is in `erc-fools' or MSG is directed at a fool."
-  (and msg nickuserhost
+  (and msg nickuserhost erc-fools
        (or (erc-list-match erc-fools nickuserhost)
 	   (erc-match-directed-at-fool-p msg))))
 
 (defun erc-match-keyword-p (_nickuserhost msg)
   "Check whether any keyword of `erc-keywords' matches for MSG.
 NICKUSERHOST will be ignored."
-  (and msg
+  (and msg erc-keywords
        (erc-list-match
 	(mapcar (lambda (x)
 		  (if (listp x)
@@ -412,7 +431,7 @@ NICKUSERHOST will be ignored."
 (defun erc-match-dangerous-host-p (nickuserhost _msg)
   "Check whether NICKUSERHOST is in `erc-dangerous-hosts'.
 MSG will be ignored."
-  (and nickuserhost
+  (and nickuserhost erc-dangerous-hosts
        (erc-list-match erc-dangerous-hosts nickuserhost)))
 
 (defun erc-match-directed-at-fool-p (msg)
