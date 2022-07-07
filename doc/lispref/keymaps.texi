@@ -1063,15 +1063,19 @@ The optional argument @var{on-exit}, if non-@code{nil}, specifies a
 function that is called, with no arguments, after @var{keymap} is
 deactivated.
 
-The optional argument @var{message}, if a string, specifies the format
-string for the message to display after activating the transient map.
-When the string contains the specifier @samp{%k}, it's replaced with
-the list of keys from the transient map.
+The optional argument @var{message} specifies the message to display
+after activating the transient map.  If @var{message} is a string, it
+is the format string for the message, and any @samp{%k} specifier in
+that string is replaced with the list of keys from the transient map.
+Any other non-@code{nil} value of @var{message} stands for the default
+message format @samp{Repeat with %k}.
 
-The optional argument @var{timeout}, if a number, specifies the number
-of seconds of idle time after which @var{keymap} is deactivated.  The
-value of the argument @var{timeout} can be overridden by the variable
-@code{set-transient-map-timeout}.
+@vindex set-transient-map-timeout
+If the optional argument @var{timeout} is non-@code{nil}, it should be
+a number that specifies how many seconds of idle time to wait before
+deactivating @var{keymap}.  The value of the variable
+@code{set-transient-map-timeout}, if non-@code{nil}, overrides the
+value of this argument.
 
 This function works by adding and removing @var{keymap} from the
 variable @code{overriding-terminal-local-map}, which takes precedence

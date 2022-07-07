@@ -6014,9 +6014,10 @@ To test whether a function can be called interactively, use
   'set-temporary-overlay-map #'set-transient-map "24.4")
 
 (defvar set-transient-map-timeout nil
-  "Deactivate the transient map after specified timeout.
-When a number, after idle time of the specified number of seconds
-deactivate the map set by the previous call of `set-transient-map'.")
+  "Timeout in seconds for deactivation of a transient keymap.
+If this is a number, it specifies the amount of idle time
+after which to deactivate the keymap set by `set-transient-map',
+thus overriding the value of the TIMEOUT argument to that function.")
 
 (defvar set-transient-map-timer nil
   "Timer for `set-transient-map-timeout'.")
@@ -6032,16 +6033,18 @@ if it returns non-nil, then MAP stays active.
 Optional arg ON-EXIT, if non-nil, specifies a function that is
 called, with no arguments, after MAP is deactivated.
 
-Optional arg MESSAGE, if a string, specifies the format string for the
-message to display after activating the transient map.  When the string
-contains the specifier %k, it's replaced with the list of keys from the
-transient map.  Other non-nil values of MESSAGE use the message format
-\"Repeat with %k\".  On deactivating the map the displayed message
-is cleared out.
+Optional arg MESSAGE, if non-nil, requests display of an informative
+message after activating the transient map.  If MESSAGE is a string,
+it specifies the format string for the message to display, and the %k
+specifier in the string is replaced with the list of keys from the
+transient map.  Any other non-nil value of MESSAGE means to use the
+message format string \"Repeat with %k\".  Upon deactivating the map,
+the displayed message will be cleared out.
 
-Optional arg TIMEOUT, if a number, specifies the number of seconds
-of idle time after which the map is deactivated.  The variable
-`set-transient-map-timeout' overrides the argument TIMEOUT.
+Optional arg TIMEOUT, if non-nil, should be a number specifying the
+number of seconds of idle time after which the map is deactivated.
+The variable `set-transient-map-timeout', if non-nil, overrides the
+value of TIMEOUT.
 
 This function uses `overriding-terminal-local-map', which takes precedence
 over all other keymaps.  As usual, if no match for a key is found in MAP,
