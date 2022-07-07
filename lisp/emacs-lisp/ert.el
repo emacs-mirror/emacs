@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -46,12 +46,10 @@
 ;; processing further, this is useful for checking the test
 ;; environment (like availability of features, external binaries, etc).
 ;;
-;; See ERT's info manual as well as the docstrings for more details.
-;;
-;; To see some examples of tests written in ERT, see its self-tests in
-;; ert-tests.el.  Some of these are tricky due to the bootstrapping
-;; problem of writing tests for a testing tool, others test simple
-;; functions and are straightforward.
+;; See ERT's Info manual `(ert) Top' as well as the docstrings for
+;; more details.  To see some examples of tests written in ERT, see
+;; the test suite distributed with the Emacs source distribution (in
+;; the "test" directory).
 
 ;;; Code:
 
