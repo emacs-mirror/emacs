@@ -176,15 +176,6 @@ This variable is only used if the variable
 `comint-use-prompt-regexp' is non-nil."
   :type  'regexp)
 
-(defcustom dig-program "dig"
-  "Program to query DNS information."
-  :type  'string)
-
-(defcustom dig-program-options nil
-  "Options for the dig program."
-  :type '(repeat string)
-  :version "26.1")
-
 (defcustom ftp-program "ftp"
   "Program to run to do FTP transfers."
   :type  'string)
@@ -633,20 +624,11 @@ DNS resolution.
 Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 
 This command uses `dig-program' for looking up the DNS information."
+  (declare (obsolete dig "29.1"))
   (interactive
    (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
-  (let ((options
-         (append dig-program-options (list host)
-                 (if name-server (list (concat "@" name-server))))))
-  (net-utils-run-program
-   "Dig"
-   (concat "** "
-	   (mapconcat #'identity
-		      (list "Dig" host dig-program)
-		      " ** "))
-   dig-program
-   options)))
+  (dig host nil nil nil nil name-server))
 
 (autoload 'comint-exec "comint")
 (declare-function comint-watch-for-password-prompt "comint" (string))
