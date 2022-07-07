@@ -3860,6 +3860,7 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   event.xbutton.root = dpyinfo->root_window;
   event.xbutton.x_root = root_x;
   event.xbutton.y_root = root_y;
+
   x_catch_errors (dpyinfo->display);
 
   child = dpyinfo->root_window;
@@ -3892,6 +3893,8 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   if (owner != FRAME_X_WINDOW (f))
     goto cancel;
 
+  x_uncatch_errors ();
+
   event.xbutton.window = child;
   event.xbutton.subwindow = None;
   event.xbutton.x = dest_x;
@@ -3905,14 +3908,20 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   event.xbutton.type = ButtonPress;
   event.xbutton.time = before + 1;
 
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonPressMask, &event);
+  x_stop_ignoring_errors (dpyinfo);
 
   event.xbutton.type = ButtonRelease;
   event.xbutton.time = before + 2;
 
+  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonReleaseMask, &event);
+  x_stop_ignoring_errors (dpyinfo);
+
+  return;
 
  cancel:
   x_uncatch_errors ();
