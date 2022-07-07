@@ -357,4 +357,6 @@ extern void haiku_end_cr_clip (cairo_t *);
 
 extern void haiku_merge_cursor_foreground (struct glyph_string *, unsigned long *,
 					   unsigned long *);
+extern void haiku_handle_selection_clear (struct input_event *);
+extern void haiku_start_watching_selections (void);
 #endif /* _HAIKU_TERM_H_ */

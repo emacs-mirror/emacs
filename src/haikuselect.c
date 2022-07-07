@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haikuselect.h"
 #include "haikuterm.h"
 #include "haiku_support.h"
+#include "keyboard.h"
 
 #include <stdlib.h>
 
@@ -1021,6 +1022,47 @@ init_haiku_select (void)
 }
 
 void
+haiku_handle_selection_clear (struct input_event *ie)
+{
+  CALLN (Frun_hook_with_args,
+	 Qhaiku_lost_selection_functions, ie->arg);
+}
+
+void
+haiku_selection_disowned (enum haiku_clipboard id)
+{
+  struct input_event ie;
+
+  EVENT_INIT (ie);
+  ie.kind = SELECTION_CLEAR_EVENT;
+
+  switch (id)
+    {
+    case CLIPBOARD_CLIPBOARD:
+      ie.arg = QCLIPBOARD;
+      break;
+
+    case CLIPBOARD_PRIMARY:
+      ie.arg = QPRIMARY;
+      break;
+
+    case CLIPBOARD_SECONDARY:
+      ie.arg = QSECONDARY;
+      break;
+    }
+
+  kbd_buffer_store_event (&ie);
+}
+
+void
+haiku_start_watching_selections (void)
+{
+  be_start_watching_selection (CLIPBOARD_CLIPBOARD);
+  be_start_watching_selection (CLIPBOARD_PRIMARY);
+  be_start_watching_selection (CLIPBOARD_SECONDARY);
+}
+
+void
 syms_of_haikuselect (void)
 {
   DEFVAR_BOOL ("haiku-signal-invalid-refs", haiku_signal_invalid_refs,
@@ -1035,12 +1077,21 @@ The function is called without any arguments.  `mouse-position' can be
 used to retrieve the current position of the mouse.  */);
   Vhaiku_drag_track_function = Qnil;
 
+  DEFVAR_LISP ("haiku-lost-selection-functions", Vhaiku_lost_selection_functions,
+    doc: /* A list of functions to be called when Emacs loses an X selection.
+These are only called if a connection to the Haiku display was opened.  */);
+  Vhaiku_lost_selection_functions = Qnil;
+
   DEFSYM (QSECONDARY, "SECONDARY");
   DEFSYM (QCLIPBOARD, "CLIPBOARD");
   DEFSYM (QSTRING, "STRING");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (QTARGETS, "TARGETS");
+
+  DEFSYM (Qhaiku_lost_selection_functions,
+	  "haiku-lost-selection-functions");
+
   DEFSYM (Qmessage, "message");
   DEFSYM (Qstring, "string");
   DEFSYM (Qref, "ref");

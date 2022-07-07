@@ -38,7 +38,10 @@ enum haiku_clipboard
 extern "C"
 {
 #endif
+/* Defined in haikuselect.c.  */
+extern void haiku_selection_disowned (enum haiku_clipboard);
 
+/* Defined in haiku_select.cc.  */
 extern void be_clipboard_init (void);
 extern char *be_find_clipboard_data (enum haiku_clipboard, const char *, ssize_t *);
 extern void be_set_clipboard_data (enum haiku_clipboard, const char *, const char *,
@@ -61,6 +64,8 @@ extern int be_add_point_data (void *, const char *, float, float);
 extern int be_add_message_message (void *, const char *, void *);
 extern int be_lock_clipboard_message (enum haiku_clipboard, void **, bool);
 extern void be_unlock_clipboard (enum haiku_clipboard, bool);
+extern void be_handle_clipboard_changed_message (void);
+extern void be_start_watching_selection (enum haiku_clipboard);
 
 #ifdef __cplusplus
 };

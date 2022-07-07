@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "haiku_support.h"
 #include "thread.h"
 #include "window.h"
+#include "haikuselect.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -4010,6 +4011,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    inev.timestamp = b->when / 1000;
 	    break;
 	  }
+	case CLIPBOARD_CHANGED_EVENT:
+	  be_handle_clipboard_changed_message ();
+	  break;
 	case APP_QUIT_REQUESTED_EVENT:
 	  inev.kind = SAVE_SESSION_EVENT;
 	  inev.arg = Qt;
@@ -4403,6 +4407,7 @@ haiku_term_init (void)
   else
     dpyinfo->default_name = build_string ("GNU Emacs");
 
+  haiku_start_watching_selections ();
   unblock_input ();
 
   return dpyinfo;

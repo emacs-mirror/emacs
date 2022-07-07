@@ -114,7 +114,13 @@ enum haiku_event_type
     DUMMY_EVENT,
     SCREEN_CHANGED_EVENT,
     MENU_BAR_LEFT,
+    CLIPBOARD_CHANGED_EVENT,
   };
+
+struct haiku_clipboard_changed_event
+{
+  char dummy;
+};
 
 struct haiku_screen_changed_event
 {

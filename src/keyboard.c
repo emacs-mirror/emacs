@@ -4012,6 +4012,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	 We return nil for them.  */
       switch (event->kind)
       {
+#ifndef HAVE_HAIKU
       case SELECTION_REQUEST_EVENT:
       case SELECTION_CLEAR_EVENT:
 	{
@@ -4035,6 +4036,20 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
 	}
         break;
+#else
+      case SELECTION_REQUEST_EVENT:
+	emacs_abort ();
+
+      case SELECTION_CLEAR_EVENT:
+	{
+	  struct input_event copy = event->ie;
+
+	  kbd_fetch_ptr = next_kbd_event (event);
+	  input_pending = readable_events (0);
+	  haiku_handle_selection_clear (&copy);
+	}
+	break;
+#endif
 
       case MONITORS_CHANGED_EVENT:
 	{
@@ -4345,8 +4360,16 @@ kbd_buffer_get_event (KBOARD **kbp,
 static void
 process_special_events (void)
 {
-  for (union buffered_input_event *event = kbd_fetch_ptr;
-       event != kbd_store_ptr; event = next_kbd_event (event))
+  union buffered_input_event *event;
+#ifndef HAVE_HAIKU
+  struct selection_input_event copy;
+#else
+  struct input_event copy;
+#endif
+  int moved_events;
+
+  for (event = kbd_fetch_ptr;  event != kbd_store_ptr;
+       event = next_kbd_event (event))
     {
       /* If we find a stored X selection request, handle it now.  */
       if (event->kind == SELECTION_REQUEST_EVENT
@@ -4360,8 +4383,7 @@ process_special_events (void)
 	     between kbd_fetch_ptr and EVENT one slot to the right,
 	     cyclically.  */
 
-	  struct selection_input_event copy = event->sie;
-	  int moved_events;
+	  copy = event->sie;
 
 	  if (event < kbd_fetch_ptr)
 	    {
@@ -4383,6 +4405,27 @@ process_special_events (void)
 #else
 	  pgtk_handle_selection_event (&copy);
 #endif
+#elif defined HAVE_HAIKU
+	  if (event->ie.kind != SELECTION_CLEAR_EVENT)
+	    emacs_abort ();
+
+	  copy = event->ie;
+
+	  if (event < kbd_fetch_ptr)
+	    {
+	      memmove (kbd_buffer + 1, kbd_buffer,
+		       (event - kbd_buffer) * sizeof *kbd_buffer);
+	      kbd_buffer[0] = kbd_buffer[KBD_BUFFER_SIZE - 1];
+	      moved_events = kbd_buffer + KBD_BUFFER_SIZE - 1 - kbd_fetch_ptr;
+	    }
+	  else
+	    moved_events = event - kbd_fetch_ptr;
+
+	  memmove (kbd_fetch_ptr + 1, kbd_fetch_ptr,
+		   moved_events * sizeof *kbd_fetch_ptr);
+	  kbd_fetch_ptr = next_kbd_event (kbd_fetch_ptr);
+	  input_pending = readable_events (0);
+	  haiku_handle_selection_clear (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -13149,7 +13192,10 @@ mark_kboards (void)
     {
       /* These two special event types have no Lisp_Objects to mark.  */
       if (event->kind != SELECTION_REQUEST_EVENT
-	  && event->kind != SELECTION_CLEAR_EVENT)
+#ifndef HAVE_HAIKU
+	  && event->kind != SELECTION_CLEAR_EVENT
+#endif
+	  )
 	{
 	  mark_object (event->ie.x);
 	  mark_object (event->ie.y);

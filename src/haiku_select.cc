@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <Application.h>
 #include <Clipboard.h>
 #include <Message.h>
 #include <Path.h>
@@ -46,6 +47,16 @@ static int64 count_primary = -1;
 
 /* The number of times the secondary selection has changed.  */
 static int64 count_secondary = -1;
+
+/* Whether or not we currently think Emacs owns the primary
+   selection.  */
+static bool owned_primary;
+
+/* Likewise for the secondary selection.  */
+static bool owned_secondary;
+
+/* And the clipboard.  */
+static bool owned_clipboard;
 
 static BClipboard *
 get_clipboard_object (enum haiku_clipboard clipboard)
@@ -150,14 +161,17 @@ be_update_clipboard_count (enum haiku_clipboard id)
     {
     case CLIPBOARD_CLIPBOARD:
       count_clipboard = system_clipboard->SystemCount ();
+      owned_clipboard = true;
       break;
 
     case CLIPBOARD_PRIMARY:
       count_primary = primary->SystemCount ();
+      owned_primary = true;
       break;
 
     case CLIPBOARD_SECONDARY:
       count_secondary = secondary->SystemCount ();
+      owned_secondary = true;
       break;
     }
 }
@@ -432,4 +446,44 @@ be_unlock_clipboard (enum haiku_clipboard clipboard, bool discard)
     board->Commit ();
 
   board->Unlock ();
+}
+
+void
+be_handle_clipboard_changed_message (void)
+{
+  if (count_clipboard != -1
+      && (system_clipboard->SystemCount ()
+	  > count_clipboard + 1)
+      && owned_clipboard)
+    {
+      owned_clipboard = false;
+      haiku_selection_disowned (CLIPBOARD_CLIPBOARD);
+    }
+
+  if (count_primary != -1
+      && (primary->SystemCount ()
+	  > count_primary + 1)
+      && owned_primary)
+    {
+      owned_primary = false;
+      haiku_selection_disowned (CLIPBOARD_PRIMARY);
+    }
+
+  if (count_secondary != -1
+      && (secondary->SystemCount ()
+	  > count_secondary + 1)
+      && owned_secondary)
+    {
+      owned_secondary = false;
+      haiku_selection_disowned (CLIPBOARD_SECONDARY);
+    }
+}
+
+void
+be_start_watching_selection (enum haiku_clipboard id)
+{
+  BClipboard *clipboard;
+
+  clipboard = get_clipboard_object (id);
+  clipboard->StartWatching (be_app);
 }

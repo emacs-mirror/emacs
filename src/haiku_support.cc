@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <app/Application.h>
 #include <app/Cursor.h>
+#include <app/Clipboard.h>
 #include <app/Messenger.h>
 #include <app/Roster.h>
 
@@ -648,8 +649,12 @@ public:
   void
   MessageReceived (BMessage *msg)
   {
+    struct haiku_clipboard_changed_event rq;
+
     if (msg->what == QUIT_APPLICATION)
       Quit ();
+    else if (msg->what == B_CLIPBOARD_CHANGED)
+      haiku_write (CLIPBOARD_CHANGED_EVENT, &rq);
     else
       BApplication::MessageReceived (msg);
   }
