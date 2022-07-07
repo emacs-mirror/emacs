@@ -1031,12 +1031,11 @@ instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-chrome-program) 'browse-url-chrome)
     ((executable-find browse-url-webpositive-program) 'browse-url-webpositive)
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
-    (t
-     (lambda (&rest _ignore) (error "No usable browser found"))))
+    (t #'eww-browse-url))
    url args))
 
 (function-put 'browse-url-default-browser 'browse-url-browser-kind
-              ;; Well, most probably external if we ignore w3.
+              ;; Well, most probably external if we ignore EWW.
               'external)
 
 (defun browse-url-can-use-xdg-open ()
