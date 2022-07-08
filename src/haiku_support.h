@@ -648,8 +648,7 @@ extern int32 BAlert_go (void *, void (*) (void), void (*) (void),
 extern void BButton_set_enabled (void *, int);
 extern void BView_set_tooltip (void *, const char *);
 extern void BView_show_tooltip (void *);
-extern void BView_set_and_show_sticky_tooltip (void *, const char *,
-					       int, int);
+extern void be_show_sticky_tooltip (void *, const char *, int, int);
 
 extern void BAlert_delete (void *);
 

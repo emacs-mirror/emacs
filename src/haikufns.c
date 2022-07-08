@@ -2392,8 +2392,8 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 		      reliable way to get it.  */
       compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
       BView_convert_from_screen (FRAME_HAIKU_VIEW (f), &root_x, &root_y);
-      BView_set_and_show_sticky_tooltip (FRAME_HAIKU_VIEW (f), SSDATA (string),
-					 root_x, root_y);
+      be_show_sticky_tooltip (FRAME_HAIKU_VIEW (f), SSDATA (string),
+			      root_x, root_y);
       unblock_input ();
       goto start_timer;
     }
