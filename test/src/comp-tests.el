@@ -513,6 +513,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (eq (comp-test-47868-1-f) (comp-test-47868-3-f)))
   (should (eq (comp-test-47868-2-f) (comp-test-47868-4-f))))
 
+(comp-deftest 48029-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2022-07/msg00666.html>"
+  (should (subr-native-elisp-p
+           (symbol-function 'comp-test-48029-nonascii-žžž-f))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
