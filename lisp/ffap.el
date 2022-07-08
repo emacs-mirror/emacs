@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -394,7 +394,7 @@ Value should be a symbol, one of `ping', `accept', and `reject'."
   :safe #'ffap--accept-or-reject-p
   :group 'ffap)
 
-(defcustom ffap-machine-p-known 'ping	; `accept' for higher speed
+(defcustom ffap-machine-p-known 'accept
   "What `ffap-machine-p' does with hostnames that have a known domain.
 Value should be a symbol, one of `ping', `accept', and `reject'.
 See `mail-extr.el' for the known domains."
@@ -402,7 +402,8 @@ See `mail-extr.el' for the known domains."
 		 (const accept)
                  (const reject))
   :safe #'ffap--accept-or-reject-p
-  :group 'ffap)
+  :group 'ffap
+  :version "29.1")
 
 (defcustom ffap-machine-p-unknown 'reject
   "What `ffap-machine-p' does with hostnames that have an unknown domain.

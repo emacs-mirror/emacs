@@ -2043,6 +2043,12 @@ This command prompts for a recently opened file in the minibuffer, and
 visits it.
 
 ---
+*** 'ffap-machine-at-point' no longer pings hosts by default.
+It will now simply look at a hostname to determine if it is valid,
+instead of also trying to ping it.  Customize the user option
+'ffap-machine-p-known' to 'ping' to get the old behavior back.
+
+---
 *** The 'run-dig' command is now obsolete; use 'dig' instead.
 
 ---
