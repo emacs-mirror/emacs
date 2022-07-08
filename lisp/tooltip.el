@@ -140,15 +140,6 @@ When using the GTK toolkit, this face will only be used if
   :group 'tooltip
   :group 'basic-faces)
 
-(defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of tooltip frames for help and GUD tooltips.
-This variable is obsolete; instead of setting it to t, disable
-`tooltip-mode' (which has a similar effect)."
-  :type 'boolean)
-
-(make-obsolete-variable 'tooltip-use-echo-area
-			"disable Tooltip mode instead" "24.1" 'set)
-
 (defcustom tooltip-resize-echo-area nil
   "If non-nil, using the echo area for tooltips will resize the echo area.
 By default, when the echo area is used for displaying tooltips,
@@ -427,7 +418,7 @@ This is installed on the hook `tooltip-functions', which
 is run when the timer with id `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
-    (tooltip-show tooltip-help-message tooltip-use-echo-area)
+    (tooltip-show tooltip-help-message (not tooltip-mode))
     t))
 
 (provide 'tooltip)

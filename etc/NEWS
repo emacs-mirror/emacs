@@ -2304,8 +2304,8 @@ This change is now applied in 'dired-insert-directory'.
 'semantic-grammar-syntax-table', 'set-register-value',
 'speedbar-key-map', 'speedbar-syntax-table',
 'starttls-any-program-available', 'strokes-report-bug',
-'toggle-emacs-lock', 'turn-on-cwarn-mode', 'turn-on-iimage-mode',
-'vc-toggle-read-only', 'view-return-to-alist',
+'toggle-emacs-lock', 'tooltip-use-echo-area', 'turn-on-cwarn-mode',
+'turn-on-iimage-mode', 'vc-toggle-read-only', 'view-return-to-alist',
 'view-return-to-alist-update', 'w32-default-color-map' (function),
 'which-func-mode' (function), 'x-cut-buffer-or-selection-value'.
 

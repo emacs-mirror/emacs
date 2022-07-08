@@ -3694,7 +3694,6 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
   (message "Dereferencing is now %s."
 	   (if gud-tooltip-dereference "on" "off")))
 
-(defvar tooltip-use-echo-area)
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 (declare-function tooltip-strip-prompt "tooltip" (process output))
 
@@ -3708,8 +3707,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
   "Process debugger output and show it in a tooltip window."
   (remove-function (process-filter process) #'gud-tooltip-process-output)
   (tooltip-show (tooltip-strip-prompt process output)
-		(or gud-tooltip-echo-area tooltip-use-echo-area
-                    (not tooltip-mode))))
+                (or gud-tooltip-echo-area (not tooltip-mode))))
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
@@ -3753,8 +3751,7 @@ This function must return nil if it doesn't handle EVENT."
 		    (unless (null define-elt)
 		      (tooltip-show
 		       (cdr define-elt)
-		       (or gud-tooltip-echo-area tooltip-use-echo-area
-                           (not tooltip-mode)))
+                       (or gud-tooltip-echo-area (not tooltip-mode)))
 		      expr))))
 	    (when gud-tooltip-dereference
 	      (setq expr (concat "*" expr)))
