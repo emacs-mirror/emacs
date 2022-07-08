@@ -1193,6 +1193,7 @@ enum window_body_unit
     WINDOW_BODY_IN_REMAPPED_CHARS
   };
 extern int window_body_width (struct window *w, enum window_body_unit);
+extern int window_body_height (struct window *w, enum window_body_unit);
 enum margin_unit { MARGIN_IN_LINES, MARGIN_IN_PIXELS };
 extern int window_scroll_margin (struct window *, enum margin_unit);
 extern void temp_output_buffer_show (Lisp_Object);

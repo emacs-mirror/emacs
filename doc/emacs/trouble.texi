@@ -158,7 +158,6 @@ Emacs.
 * Crashing::              What Emacs does when it crashes.
 * After a Crash::         Recovering editing in an Emacs session that crashed.
 * Emergency Escape::      What to do if Emacs stops responding.
-* Long Lines::            Mitigating slowness due to extremely long lines.
 * DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
 @end menu
 
@@ -432,64 +431,6 @@ program.
   On MS-DOS, you must type @kbd{C-@key{Break}} (twice) to cause
 emergency escape---but there are cases where it won't work, when a
 system call hangs or when Emacs is stuck in a tight loop in C code.
-
-@node Long Lines
-@subsection Long Lines
-@cindex long lines
-
-  For a variety of reasons (some of which are fundamental to the Emacs
-redisplay code and the complex range of possibilities it handles;
-others of which are due to modes and features which do not scale well
-in unusual circumstances), Emacs can perform poorly when extremely
-long lines are present (where ``extremely long'' usually means at
-least many thousands of characters).
-
-@cindex @code{so-long} mode
-@findex global-so-long-mode
-@vindex so-long-action
-  A particular problem is that Emacs may ``hang'' for a long time at
-the point of visiting a file with extremely long lines.  This can be
-mitigated by enabling the @file{so-long} library, which detects when a
-visited file contains abnormally long lines, and takes steps to
-disable features which are liable to cause slowness in that situation.
-To enable this library, type @kbd{M-x global-so-long-mode @key{RET}},
-or turn on the @code{global-so-long-mode} in your init file
-(@pxref{Init File}), or customize the @code{global-so-long-mode}
-option.  You can tailor this mode's operation by customizing the
-variable @code{so-long-action}.
-
-  The @file{so-long} library can also significantly improve
-performance when moving and editing in a buffer with long lines.
-Performance is still likely to degrade as you get deeper into the long
-lines, but the improvements from using this library can nevertheless
-be substantial.
-
-@findex so-long-commentary
-  Use @kbd{M-x so-long-commentary} to view the documentation for this
-library and learn more about how to enable and configure it.
-
-@vindex max-redisplay-ticks
-  If even @code{so-long-mode} doesn't help making Emacs responsive
-enough, or if you'd rather not disable the display-related features
-that @code{so-long-mode} turns off, you can instead customize the
-variable @code{max-redisplay-ticks} to a non-zero value.  Then Emacs
-will abort redisplay of a window and commands, like @kbd{C-n} and
-@kbd{M-v}, which use the display code to do their job, if processing a
-window needs more low-level display operations than the value of this
-variable.  The display of the offending window will then remain
-outdated, and possibly incomplete, on the screen, but Emacs should
-otherwise be responsive, and you could then switch to another buffer,
-or kill the problematic buffer, or turn on @code{so-long-mode} or
-@code{so-long-minor-mode} in that buffer.  When the display of a
-window is aborted due to this reason, the buffer shown in that window
-will not have any of its windows redisplayed until the buffer is
-modified or until you type @kbd{C-l} (@pxref{Recentering}) in one of
-that buffer's windows.
-
-  If you decide to customize this variable to a non-zero value, we
-recommend to use a value between 100,000 and 1,000,000, depending on
-your patience and the speed of your system.  The default value is
-zero, which disables this feature.
 
 @node DEL Does Not Delete
 @subsection If @key{DEL} Fails to Delete

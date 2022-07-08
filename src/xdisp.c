@@ -3425,6 +3425,8 @@ init_iterator (struct it *it, struct window *w,
 	}
     }
 
+  it->narrowed_begv = get_narrowed_begv (w);
+
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
   if (charpos >= BUF_BEG (current_buffer))
@@ -3491,6 +3493,19 @@ init_iterator (struct it *it, struct window *w,
   CHECK_IT (it);
 }
 
+/* Compute a suitable value for BEGV that can be used temporarily, to
+   optimize display, for the buffer in window W.  */
+
+ptrdiff_t
+get_narrowed_begv (struct window *w)
+{
+  int len, begv;
+  len = (1 + ((window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
+	       window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS)) /
+	      10000)) * 10000;
+  begv = max ((PT / len - 2) * len, BEGV);
+  return begv == BEGV ? 0 : begv;
+}
 
 /* Initialize IT for the display of window W with window start POS.  */
 
@@ -6992,7 +7007,8 @@ back_to_previous_line_start (struct it *it)
   ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
   dec_both (&cp, &bp);
-  IT_CHARPOS (*it) = find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it));
+  WITH_NARROWED_BEGV (IT_CHARPOS (*it) =
+		      find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it)));
 }
 
 
@@ -8623,7 +8639,9 @@ get_visually_first_element (struct it *it)
 {
   bool string_p = STRINGP (it->string) || it->s;
   ptrdiff_t eob = (string_p ? it->bidi_it.string.schars : ZV);
-  ptrdiff_t bob = (string_p ? 0 : BEGV);
+  ptrdiff_t bob;
+
+  WITH_NARROWED_BEGV (bob = (string_p ? 0 : BEGV));
 
   if (STRINGP (it->string))
     {
@@ -8663,9 +8681,10 @@ get_visually_first_element (struct it *it)
       if (string_p)
 	it->bidi_it.charpos = it->bidi_it.bytepos = 0;
       else
-	it->bidi_it.charpos = find_newline_no_quit (IT_CHARPOS (*it),
-						    IT_BYTEPOS (*it), -1,
-						    &it->bidi_it.bytepos);
+	WITH_NARROWED_BEGV (it->bidi_it.charpos =
+			    find_newline_no_quit (IT_CHARPOS (*it),
+						  IT_BYTEPOS (*it), -1,
+						  &it->bidi_it.bytepos));
       bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
       do
 	{
@@ -10583,7 +10602,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	  ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
 	  dec_both (&cp, &bp);
-	  cp = find_newline_no_quit (cp, bp, -1, NULL);
+	  WITH_NARROWED_BEGV (cp = find_newline_no_quit (cp, bp, -1, NULL));
 	  move_it_to (it, cp, -1, -1, -1, MOVE_TO_POS);
 	}
       bidi_unshelve_cache (it3data, true);
