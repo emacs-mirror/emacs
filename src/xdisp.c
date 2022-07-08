@@ -3499,7 +3499,7 @@ init_iterator (struct it *it, struct window *w,
 ptrdiff_t
 get_narrowed_begv (struct window *w)
 {
-  int len, begv;
+  int len; ptrdiff_t begv;
   len = (1 + ((window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
 	       window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS)) /
 	      10000)) * 10000;
