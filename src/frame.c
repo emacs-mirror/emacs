@@ -1444,10 +1444,6 @@ affects all frames on the same terminal device.  */)
    If FRAME is a switch-frame event `(switch-frame FRAME1)', use
    FRAME1 as frame.
 
-   If TRACK is non-zero and the frame that currently has the focus
-   redirects its focus to the selected frame, redirect that focused
-   frame's focus to FRAME instead.
-
    FOR_DELETION non-zero means that the selected frame is being
    deleted, which includes the possibility that the frame's terminal
    is dead.
@@ -1455,7 +1451,7 @@ affects all frames on the same terminal device.  */)
    The value of NORECORD is passed as argument to Fselect_window.  */
 
 Lisp_Object
-do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object norecord)
+do_switch_frame (Lisp_Object frame, int for_deletion, Lisp_Object norecord)
 {
   struct frame *sf = SELECTED_FRAME (), *f;
 
@@ -1574,7 +1570,7 @@ This function returns FRAME, or nil if FRAME has been deleted.  */)
     /* Do not select a tooltip frame (Bug#47207).  */
     error ("Cannot select a tooltip frame");
   else
-    return do_switch_frame (frame, 1, 0, norecord);
+    return do_switch_frame (frame, 0, norecord);
 }
 
 DEFUN ("handle-switch-frame", Fhandle_switch_frame,
@@ -1590,7 +1586,7 @@ necessarily represent user-visible input focus.  */)
   kset_prefix_arg (current_kboard, Vcurrent_prefix_arg);
   run_hook (Qmouse_leave_buffer_hook);
 
-  return do_switch_frame (event, 0, 0, Qnil);
+  return do_switch_frame (event, 0, Qnil);
 }
 
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
@@ -2105,7 +2101,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	Fraise_frame (frame1);
 #endif
 
-      do_switch_frame (frame1, 0, 1, Qnil);
+      do_switch_frame (frame1, 1, Qnil);
       sf = SELECTED_FRAME ();
     }
   else

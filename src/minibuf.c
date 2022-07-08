@@ -1123,8 +1123,8 @@ read_minibuf_unwind (void)
  found:
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (exp_MB_frame, 0, 0, Qt); /* This also sets
-					     minibuf_window */
+    do_switch_frame (exp_MB_frame, 0, Qt); /* This also sets
+					      minibuf_window */
 
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  Don't depend on
@@ -1236,7 +1236,7 @@ read_minibuf_unwind (void)
   /* Restore the selected frame. */
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (saved_selected_frame, 0, 0, Qt);
+    do_switch_frame (saved_selected_frame, 0, Qt);
 }
 
 /* Replace the expired minibuffer in frame exp_MB_frame with the next less
