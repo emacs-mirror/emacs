@@ -489,11 +489,6 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (string= (comp-test-45635-f :height 180 :family "PragmataPro Liga")
                    "PragmataPro Liga")))
 
-(comp-deftest 45603-1 ()
-  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01994.html>"
-  (load (native-compile (ert-resource-file "comp-test-45603.el")))
-  (should (fboundp #'comp-test-45603--file-local-name)))
-
 (comp-deftest 46670-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01413.html>"
   (should (string= (comp-test-46670-2-f "foo") "foo"))
