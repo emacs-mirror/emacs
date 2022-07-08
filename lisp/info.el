@@ -133,8 +133,6 @@ orientation.  See `Info-nth-menu-item'.")
   :version "22.1"
   :type 'boolean)
 
-;; It's unfortunate that nil means no fontification, as opposed to no limit,
-;; since that differs from font-lock-maximum-size.
 (defcustom Info-fontify-maximum-menu-size 400000
   "Maximum size of menu to fontify if `font-lock-mode' is non-nil.
 Set to nil to disable node fontification; set to t for no limit."

@@ -47,9 +47,9 @@
 ;;
 ;; Fontification for a particular mode may be available in a number of levels
 ;; of decoration.  The higher the level, the more decoration, but the more time
-;; it takes to fontify.  See the variable `font-lock-maximum-decoration', and
-;; also the variable `font-lock-maximum-size'.  Support modes for Font Lock
-;; mode can be used to speed up Font Lock mode.  See `font-lock-support-mode'.
+;; it takes to fontify.  See the variable `font-lock-maximum-decoration'.
+;; Support modes for Font Lock mode can be used to speed up Font Lock
+;; mode.  See `font-lock-support-mode'.
 
 ;;;; How Font Lock mode fontifies:
 
@@ -227,32 +227,6 @@
   :group 'font-lock)
 
 ;; User variables.
-
-(defcustom font-lock-maximum-size 256000
-  "Maximum buffer size for unsupported buffer fontification.
-When `font-lock-support-mode' is nil, only buffers smaller than
-this are fontified.  This variable has no effect if a Font Lock
-support mode (usually `jit-lock-mode') is enabled.
-
-If nil, means size is irrelevant.
-If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
-where MAJOR-MODE is a symbol or t (meaning the default).  For example:
- ((c-mode . 256000) (c++-mode . 256000) (rmail-mode . 1048576))
-means that the maximum size is 250K for buffers in C or C++ modes, one megabyte
-for buffers in Rmail mode, and size is irrelevant otherwise."
-  :type '(choice (const :tag "none" nil)
-		 (integer :tag "size")
-		 (repeat :menu-tag "mode specific" :tag "mode specific"
-			 :value ((t . nil))
-			 (cons :tag "Instance"
-			       (radio :tag "Mode"
-				      (const :tag "all" t)
-				      (symbol :tag "name"))
-			       (radio :tag "Size"
-				      (const :tag "none" nil)
-				      (integer :tag "size")))))
-  :group 'font-lock)
-(make-obsolete-variable 'font-lock-maximum-size nil "24.1")
 
 (defcustom font-lock-maximum-decoration t
   "Maximum decoration level for fontification.
@@ -695,15 +669,9 @@ be enabled."
   ;; The first fontification after turning the mode on.  This must
   ;;  only be called after the mode hooks have been run.
   (when (and font-lock-mode
-	     (font-lock-specified-p t))
-    (let ((max-size (font-lock-value-in-major-mode font-lock-maximum-size)))
-      (cond (font-lock-fontified
-	     nil)
-	    ((or (null max-size) (> max-size (buffer-size)))
-             (with-no-warnings (font-lock-fontify-buffer)))
-	    (font-lock-verbose
-	     (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
-		      (buffer-name)))))))
+             (font-lock-specified-p t)
+             (not font-lock-fontified))
+    (with-no-warnings (font-lock-fontify-buffer))))
 
 (defun font-lock-mode-internal (arg)
   ;; Turn on Font Lock mode.
