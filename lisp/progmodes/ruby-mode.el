@@ -2457,6 +2457,13 @@ If there is no Rubocop config file, Rubocop will be passed a flag
   (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
   (setq-local end-of-defun-function #'ruby-end-of-defun)
 
+  ;; `outline-regexp' contains the first part of `ruby-indent-beg-re'
+  (setq-local outline-regexp (concat "^\\s *"
+                                     (regexp-opt '("class" "module" "def"))
+                                     "\\_>"))
+  (setq-local outline-level (lambda () (1+ (/ (current-indentation)
+                                              ruby-indent-level))))
+
   (add-hook 'after-save-hook #'ruby-mode-set-encoding nil 'local)
   (add-hook 'electric-indent-functions #'ruby--electric-indent-p nil 'local)
   (add-hook 'flymake-diagnostic-functions #'ruby-flymake-auto nil 'local)
