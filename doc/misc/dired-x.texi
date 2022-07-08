@@ -165,10 +165,8 @@ When @file{dired-x.el} is loaded, some standard Dired functions from
 Dired}), if it is active.  @code{dired-find-buffer-nocreate} and
 @code{dired-initial-position} respect the value of
 @code{dired-find-subdir} (@pxref{Miscellaneous Commands}).
-@code{dired-clean-up-after-deletion} respects the value of
-@code{dired-clean-up-buffers-too}.  @code{dired-read-shell-command} uses
-@code{dired-guess-shell-command} (@pxref{Shell Command Guessing}) to
-offer a smarter default command.
+@code{dired-read-shell-command} uses @code{dired-guess-shell-command}
+(@pxref{Shell Command Guessing}) to offer a smarter default command.
 
 @node Installation
 @chapter Installation
