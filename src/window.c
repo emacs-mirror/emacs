@@ -6557,11 +6557,6 @@ and redisplay normally--don't erase and redraw the frame.  */)
   if (buf != current_buffer)
     error ("`recenter'ing a window that does not display current-buffer.");
 
-  /* Refuse to recenter auto-narrowed buffers that are not actually narrowed,
-     as this can be very slow.  */
-  if (BUFFER_AUTO_NARROWED_NON_NARROWED_P (buf))
-    return Qnil;
-
   /* If redisplay is suppressed due to an error, try again.  */
   buf->display_error_modiff = 0;
 

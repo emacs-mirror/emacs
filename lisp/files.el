@@ -2692,9 +2692,9 @@ the file contents into it using `insert-file-contents-literally'."
   "Number of characters to which display is restricted in `auto-narrow-mode'.
 
 When `auto-narrow-mode' is in effect, the number of characters
-displayed above and below point is at least one third and at most
-two thirds of `auto-narrow-display-line-length', except at the
-beginning and end of the buffer."
+displayed above and below point is one third of
+`auto-narrow-display-line-length', except at the beginning and
+end of the buffer."
   :group 'files
   :group 'find-file
   :version "29.1"
@@ -2706,17 +2706,10 @@ beginning and end of the buffer."
      beginning-of-buffer end-of-buffer goto-char goto-line
      mark-sexp mark-defun mark-paragraph mark-whole-buffer mark-page
      exchange-point-and-mark pop-global-mark set-mark-command jump-to-register
-     bookmark-jump undo)
+     bookmark-jump)
   "Commands for which display is automatically widened in `auto-narrow-mode'."
   :group 'files
   :group 'find-file
-  :version "29.1"
-  :type '(repeat function))
-
-(defcustom auto-narrow-hook '(turn-off-font-lock-mode)
-  "List of functions to be called when `auto-narrow-mode' is entered."
-  :group 'find-file
-  :type 'hook
   :version "29.1"
   :type '(repeat function))
 
@@ -2726,20 +2719,17 @@ beginning and end of the buffer."
 (defvar-local auto-narrow--isearch-widen-automatically nil
   "Internal variable used by `auto-narrow-mode'.")
 
-(defvar-local auto-narrow--isearch-lazy-highlight nil
-  "Internal variable used by `auto-narrow-mode'.")
-
-(defun auto-narrow--reset-isearch-lazy-highlight ()
-  "Internal function used by `auto-narrow-mode'."
-  (when auto-narrow-mode
-    (setq-local isearch-lazy-highlight auto-narrow--isearch-lazy-highlight)))
-
 (defvar-local auto-narrow--initialized nil
   "Internal variable used by `auto-narrow-mode'.")
 
 (defun auto-narrow-pre-command-function ()
   "Conditionally widen display when `auto-narrow-mode' is in effect."
   (when auto-narrow-mode
+    (unless auto-narrow--initialized
+      (setq auto-narrow--widen-automatically widen-automatically
+            auto-narrow--isearch-widen-automatically isearch-widen-automatically
+            auto-narrow--narrowing-state 'auto
+            auto-narrow--initialized t))
     (setq-local widen-automatically t
                 isearch-widen-automatically t)
     (if (memq this-command '(narrow-to-region narrow-to-defun narrow-to-page))
@@ -2757,13 +2747,7 @@ beginning and end of the buffer."
   (when (and auto-narrow-mode
              (not (eq auto-narrow--narrowing-state 'explicit)))
     (unless auto-narrow--initialized
-      (run-hooks 'auto-narrow-hook)
-      (add-hook 'isearch-mode-end-hook #'auto-narrow--reset-isearch-lazy-highlight)
-      (setq auto-narrow--widen-automatically widen-automatically
-            auto-narrow--isearch-widen-automatically isearch-widen-automatically
-            auto-narrow--isearch-lazy-highlight isearch-lazy-highlight
-            auto-narrow--narrowing-state 'auto
-            auto-narrow--initialized t))
+      (setq auto-narrow--narrowing-state 'auto))
     (let (point cur-point-min buf-point-min buf-point-max size)
       (setq point (point) cur-point-min (point-min)
             size (/ auto-narrow-display-length 3))
@@ -2793,6 +2777,7 @@ in a buffer.  It restricts display, but not editing, to
 executing any of the commands listed in `auto-narrow-widen-automatically'."
   :group 'files
   :version "29.1"
+  :after-hook (progn (put 'auto-narrow-mode 'permanent-local t))
   (if auto-narrow-mode
       (auto-narrow-post-command-function)
     (when (not (eq auto-narrow--narrowing-state 'explicit))

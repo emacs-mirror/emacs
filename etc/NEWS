@@ -905,15 +905,10 @@ automatically enters auto-narrow mode.  This means that Emacs
 restricts display, but not editing, to a portion of the buffer above
 and below point.  All editing commands, including narrowing commands,
 remain available, and they act on the whole buffer.  The behavior of
-that mode is controlled by four variables:
-auto-narrow-long-line-threshold, auto-narrow-display-length,
-auto-narrow-widen-automatically and auto-narrow-hook (which by default
-disables font-lock-mode).  To disable that feature, set
-auto-narrow-long-line-threshold to nil in your init file.  If you
-still experience slowdowns while editing a file in auto-narrow mode,
-this is due to the current major mode or one of the enabled minor
-modes: you should open the file with M-x find-file-literally instead
-of C-x C-f.
+that mode is controlled by three variables:
+auto-narrow-long-line-threshold, auto-narrow-display-length and
+auto-narrow-widen-automatically.  To disable that feature, set
+auto-narrow-long-line-threshold to nil in your init file.
 
 ---
 ** 'zap-to-char' and 'zap-up-to-char' are case-sensitive for upper-case chars.

@@ -3658,10 +3658,7 @@ Optional third argument, if t, means if fail just return nil (no error).
 		(isearch-search-string isearch-string nil t))
           (if (and (not isearch-success) (buffer-narrowed-p)
                    isearch-widen-automatically widen-automatically)
-              (progn
-                (when auto-narrow-mode
-                  (setq-local isearch-lazy-highlight nil))
-                (widen))
+              (widen)
 	    ;; Clear RETRY unless the search predicate says
 	    ;; to skip this search hit.
 	    (if (or (not isearch-success)
