@@ -844,6 +844,26 @@ This is like @samp{ln -s}.  The argument @var{new} is the directory to
 make the links in, or (if making just one link) the name to give the
 link.
 
+@findex dired-do-relsymlink
+@kindex Y @r{(Dired)}
+@item Y @var{new} @key{RET}
+Make relative symbolic links to the specified files
+(@code{dired-do-relsymlink}).  The argument @var{new} is the directory
+to make the links in, or (if making just one link) the name to give
+the link.  This is like @code{dired-do-symlink} but creates relative
+symbolic links.  For example:
+
+@example
+    foo -> ../bar/foo
+@end example
+
+@noindent
+It does not create absolute ones like:
+
+@example
+    foo -> /path/that/may/change/any/day/bar/foo
+@end example
+
 @findex dired-do-chmod
 @kindex M @r{(Dired)}
 @cindex changing file permissions (in Dired)
@@ -1150,9 +1170,12 @@ Rename each of the selected files to a lower-case name
 @itemx % S @var{from} @key{RET} @var{to} @key{RET}
 @kindex % S @r{(Dired)}
 @findex dired-do-symlink-regexp
-These four commands rename, copy, make hard links and make soft links,
-in each case computing the new name by regular-expression substitution
-from the name of the old file.
+@itemx % Y @var{from} @key{RET} @var{to} @key{RET}
+@kindex % Y @r{(Dired)}
+@findex dired-do-relsymlink-regexp
+These five commands rename, copy, make hard links, make soft links,
+and make relative soft links, in each case computing the new name by
+regular-expression substitution from the name of the old file.
 @end table
 
   The four regular-expression substitution commands effectively

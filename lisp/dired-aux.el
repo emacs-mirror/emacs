@@ -2522,6 +2522,73 @@ Also see `dired-do-revert-buffer'."
                          "Symlink" arg dired-keep-marker-symlink))
 
 ;;;###autoload
+(defun dired-do-relsymlink (&optional arg)
+  "Relative symlink all marked (or next ARG) files into a directory.
+Otherwise make a relative symbolic link to the current file.
+This creates relative symbolic links like
+
+    foo -> ../bar/foo
+
+not absolute ones like
+
+    foo -> /ugly/file/name/that/may/change/any/day/bar/foo
+
+For absolute symlinks, use \\[dired-do-symlink]."
+  (interactive "P")
+  (dired-do-create-files 'relsymlink #'dired-make-relative-symlink
+                         "RelSymLink" arg dired-keep-marker-relsymlink))
+
+(defun dired-make-relative-symlink (file1 file2 &optional ok-if-already-exists)
+  "Make a symbolic link (pointing to FILE1) in FILE2.
+The link is relative (if possible), for example
+
+    \"/vol/tex/bin/foo\" \"/vol/local/bin/foo\"
+
+results in
+
+    \"../../tex/bin/foo\" \"/vol/local/bin/foo\""
+  (interactive "FRelSymLink: \nFRelSymLink %s: \np")
+  (let (name1 name2 len1 len2 (index 0) sub)
+    (setq file1 (expand-file-name file1)
+          file2 (expand-file-name file2)
+          len1 (length file1)
+          len2 (length file2))
+    ;; Find common initial file name components:
+    (let (next)
+      (while (and (setq next (string-search "/" file1 index))
+                  (< (setq next (1+ next)) (min len1 len2))
+                  ;; For the comparison, both substrings must end in
+                  ;; `/', so NEXT is *one plus* the result of the
+                  ;; string-search.
+                  ;; E.g., consider the case of linking "/tmp/a/abc"
+                  ;; to "/tmp/abc" erroneously giving "/tmp/a" instead
+                  ;; of "/tmp/" as common initial component
+                  (string-equal (substring file1 0 next)
+                                (substring file2 0 next)))
+        (setq index next))
+      (setq name2 file2
+            sub (substring file1 0 index)
+            name1 (substring file1 index)))
+    (if (string-equal sub "/")
+        ;; No common initial file name found
+        (setq name1 file1)
+      ;; Else they have a common parent directory
+      (let ((tem (substring file2 index))
+            (start 0)
+            (count 0))
+        ;; Count number of slashes we must compensate for ...
+        (while (setq start (string-search "/" tem start))
+          (setq count (1+ count)
+                start (1+ start)))
+        ;; ... and prepend a "../" for each slash found:
+        (dotimes (_ count)
+          (setq name1 (concat "../" name1)))))
+    (make-symbolic-link
+     (directory-file-name name1)        ; must not link to foo/
+                                        ; (trailing slash!)
+     name2 ok-if-already-exists)))
+
+;;;###autoload
 (defun dired-do-hardlink (&optional arg)
   "Add names (hard links) current file or all marked (or next ARG) files.
 When operating on just the current file, you specify the new name.
@@ -2680,6 +2747,16 @@ See function `dired-do-rename-regexp' for more info."
   (dired-do-create-files-regexp
    #'make-symbolic-link
    "SymLink" arg regexp newname whole-name dired-keep-marker-symlink))
+
+;;;###autoload
+(defun dired-do-relsymlink-regexp (regexp newname &optional arg whole-name)
+  "RelSymlink all marked files containing REGEXP to NEWNAME.
+See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
+for more info."
+  (interactive (dired-mark-read-regexp "RelSymLink"))
+  (dired-do-create-files-regexp
+   #'dired-make-relative-symlink
+   "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
 
 
 ;;; Change case of file names

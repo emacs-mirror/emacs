@@ -920,33 +920,6 @@ to @kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
 @findex dired-rmail
 Bound to @kbd{V} if @code{dired-bind-vm} is @code{nil}.  Run Rmail on this
 file (assumed to be mail folder in Rmail format).
-
-@item dired-do-relsymlink
-@cindex relative symbolic links.
-@kindex Y
-@findex dired-do-relsymlink
-Bound to @kbd{Y}.  Relative symlink all marked (or next ARG) files into a
-directory, or make a relative symbolic link to the current file.  This creates
-relative symbolic links like
-
-@example
-    foo -> ../bar/foo
-@end example
-
-@noindent
-not absolute ones like
-
-@example
-    foo -> /ugly/path/that/may/change/any/day/bar/foo
-@end example
-
-@item dired-do-relsymlink-regexp
-@kindex %Y
-@findex dired-do-relsymlink-regexp
-Bound to @kbd{%Y}.  Relative symlink all marked files containing
-@var{regexp} to @var{newname}.  See functions
-@code{dired-do-rename-regexp} and @code{dired-do-relsymlink} for more
-info.
 @end table
 
 @node Bugs

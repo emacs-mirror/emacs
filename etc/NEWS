@@ -1058,6 +1058,14 @@ related user option 'dired-clean-confirm-killing-deleted-buffers'
 (which see) has also been moved to 'dired'.
 
 +++
+*** 'dired-do-relsymlink' moved from dired-x to dired.
+The corresponding key "Y" is now bound by default in Dired.
+
++++
+*** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
+The corresponding key "% Y" is now bound by default in Dired.
+
++++
 *** 'dired-info' and 'dired-man' moved from dired-x to dired.
 The 'dired-info' and 'dired-man' commands have been moved from the
 'dired-x' package to 'dired'.  They have also been renamed to
