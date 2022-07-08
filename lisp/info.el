@@ -2208,7 +2208,7 @@ and is not in the header line or a tag table."
     (let ((backward (< found beg-found)))
       (not
        (or
-	(and (not search-invisible)
+	(and (not (eq search-invisible t))
 	     (if backward
 		 (or (text-property-not-all found beg-found 'invisible nil)
 		     (text-property-not-all found beg-found 'display nil))
