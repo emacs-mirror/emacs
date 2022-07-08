@@ -3921,6 +3921,8 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
 	      True, ButtonReleaseMask, &event);
   x_stop_ignoring_errors (dpyinfo);
 
+  x_dnd_action_symbol = QXdndActionPrivate;
+
   return;
 
  cancel:
@@ -11873,8 +11875,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 					   XFIXNUM (Fnth (make_fixnum (4),
 							  x_dnd_unsupported_drop_data)),
 					   x_dnd_unsupported_drop_time);
-
-	      if (SYMBOLP (val))
+	      else if (SYMBOLP (val))
 		x_dnd_action_symbol = val;
 
 	      x_dnd_unwind_flag = false;
