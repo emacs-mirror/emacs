@@ -243,10 +243,8 @@ using a function specified by the variable
 The default filter function consults the obsolete wrapper hook
 @code{filter-buffer-substring-functions} (see the documentation string
 of the macro @code{with-wrapper-hook} for the details about this
-obsolete facility), and the obsolete variable
-@code{buffer-substring-filters}.  If both of these are @code{nil}, it
-returns the unaltered text from the buffer, i.e., what
-@code{buffer-substring} would return.
+obsolete facility).  If it is @code{nil}, it returns the unaltered
+text from the buffer, i.e., what @code{buffer-substring} would return.
 
 If @var{delete} is non-@code{nil}, the function deletes the text
 between @var{start} and @var{end} after copying it, like
@@ -282,22 +280,12 @@ the same as those of @code{filter-buffer-substring}.
 
 The first hook function is passed a @var{fun} that is equivalent to
 the default operation of @code{filter-buffer-substring}, i.e., it
-returns the buffer-substring between @var{start} and @var{end}
-(processed by any @code{buffer-substring-filters}) and optionally
-deletes the original text from the buffer.  In most cases, the hook
-function will call @var{fun} once, and then do its own processing of
-the result.  The next hook function receives a @var{fun} equivalent to
-this, and so on.  The actual return value is the result of all the
-hook functions acting in sequence.
-@end defvar
-
-@defvar buffer-substring-filters
-The value of this obsolete variable should be a list of functions
-that accept a single string argument and return another string.
-The default @code{filter-buffer-substring} function passes the buffer
-substring to the first function in this list, and the return value of
-each function is passed to the next function.  The return value of the
-last function is passed to @code{filter-buffer-substring-functions}.
+returns the buffer-substring between @var{start} and @var{end} and
+optionally deletes the original text from the buffer.  In most cases,
+the hook function will call @var{fun} once, and then do its own
+processing of the result.  The next hook function receives a @var{fun}
+equivalent to this, and so on.  The actual return value is the result
+of all the hook functions acting in sequence.
 @end defvar
 
 @defun current-word &optional strict really-word

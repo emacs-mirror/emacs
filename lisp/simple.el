@@ -5352,17 +5352,6 @@ that `filter-buffer-substring' received.  It should return the
 buffer substring between BEG and END, after filtering.  If DELETE is
 non-nil, it should delete the text between BEG and END from the buffer.")
 
-(defvar buffer-substring-filters nil
-  "List of filter functions for `buffer-substring--filter'.
-Each function must accept a single argument, a string, and return a string.
-The buffer substring is passed to the first function in the list,
-and the return value of each function is passed to the next.
-As a special convention, point is set to the start of the buffer text
-being operated on (i.e., the first argument of `buffer-substring--filter')
-before these functions are called.")
-(make-obsolete-variable 'buffer-substring-filters
-                        'filter-buffer-substring-function "24.1")
-
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
 If DELETE is non-nil, delete the text between BEG and END from the buffer.
@@ -5383,20 +5372,15 @@ that are special to a buffer, and should not be copied into other buffers."
   "Default function to use for `filter-buffer-substring-function'.
 Its arguments and return value are as specified for `filter-buffer-substring'.
 Also respects the obsolete wrapper hook `filter-buffer-substring-functions'
-\(see `with-wrapper-hook' for details about wrapper hooks),
-and the abnormal hook `buffer-substring-filters'.
+(see `with-wrapper-hook' for details about wrapper hooks).
 No filtering is done unless a hook says to."
   (subr--with-wrapper-hook-no-warnings
     filter-buffer-substring-functions (beg end delete)
     (cond
-     ((or delete buffer-substring-filters)
+     (delete
       (save-excursion
         (goto-char beg)
-        (let ((string (if delete (delete-and-extract-region beg end)
-                        (buffer-substring beg end))))
-          (dolist (filter buffer-substring-filters)
-            (setq string (funcall filter string)))
-          string)))
+        (delete-and-extract-region beg end)))
      (t
       (buffer-substring beg end)))))
 
