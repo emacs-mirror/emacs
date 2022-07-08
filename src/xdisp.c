@@ -18942,8 +18942,6 @@ set_vertical_scroll_bar (struct window *w)
 
       whole = BUF_ZV (buf) - BUF_BEGV (buf);
       start = marker_position (w->start) - BUF_BEGV (buf);
-      /* I don't think this is guaranteed to be right.  For the
-	 moment, we'll pretend it is.  */
       end = BUF_Z (buf) - window_end_pos - BUF_BEGV (buf);
 
       if (end < start)
