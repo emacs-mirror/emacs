@@ -1232,7 +1232,7 @@ WINDOW must be a live window and defaults to the selected one.
 Clip the number to a reasonable value if out of range.
 Return the new number.  NCOL should be zero or positive.
 
-Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
+Note that if `auto-hscroll-mode' is non-nil, you cannot scroll the
 window so that the location of point moves off-window.  */)
   (Lisp_Object window, Lisp_Object ncol)
 {
