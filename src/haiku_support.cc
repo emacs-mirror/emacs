@@ -1517,7 +1517,7 @@ public:
   BLocker cr_surface_lock;
 #endif
 
-  BPoint tt_absl_pos;
+  BPoint tooltip_position;
   BMessage *wait_for_release_message;
 
   EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs",
@@ -1798,11 +1798,16 @@ public:
     int32 windowid;
     EmacsWindow *window;
     BToolTip *tooltip;
+    BPoint target_tooltip_position;
 
     window = (EmacsWindow *) Window ();
     tooltip = ToolTip ();
 
-    rq.just_exited_p = transit == B_EXITED_VIEW;
+    if (transit == B_EXITED_VIEW)
+      rq.just_exited_p = true;
+    else
+      rq.just_exited_p = false;
+
     rq.x = point.x;
     rq.y = point.y;
     rq.window = window;
@@ -1817,8 +1822,14 @@ public:
       rq.dnd_message = false;
 
     if (tooltip)
-      tooltip->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
-						 -(point.y - tt_absl_pos.y)));
+      {
+	target_tooltip_position
+	  = BPoint (-(point.x - tooltip_position.x),
+		    -(point.y - tooltip_position.y));
+	tooltip->SetMouseRelativeLocation (target_tooltip_position);
+	tooltip->SetSticky (true);
+	ShowToolTip (tooltip);
+      }
 
     if (!grab_view_locker.Lock ())
       gui_abort ("Couldn't lock grab view locker");
@@ -4309,19 +4320,26 @@ BView_set_tooltip (void *view, const char *tooltip)
 
 /* Set VIEW's tooltip to a sticky tooltip at X by Y.  */
 void
-BView_set_and_show_sticky_tooltip (void *view, const char *tooltip,
+BView_set_and_show_sticky_tooltip (void *view, const char *tooltip_text,
 				   int x, int y)
 {
-  BToolTip *tip;
-  BView *vw = (BView *) view;
+  BToolTip *tooltip;
+  BView *vw;
+  EmacsView *ev;
+  BPoint pt;
+
+  vw = (BView *) view;
+
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock view while showing sticky tooltip");
-  vw->SetToolTip (tooltip);
-  tip = vw->ToolTip ();
-  BPoint pt;
-  EmacsView *ev = dynamic_cast<EmacsView *> (vw);
+
+  vw->SetToolTip (tooltip_text);
+  tooltip = vw->ToolTip ();
+
+  ev = dynamic_cast<EmacsView *> (vw);
+
   if (ev)
-    ev->tt_absl_pos = BPoint (x, y);
+    ev->tooltip_position = BPoint (x, y);
 
   vw->GetMouse (&pt, NULL, 1);
   pt.x -= x;
@@ -4330,9 +4348,10 @@ BView_set_and_show_sticky_tooltip (void *view, const char *tooltip,
   pt.x = -pt.x;
   pt.y = -pt.y;
 
-  tip->SetMouseRelativeLocation (pt);
-  tip->SetSticky (1);
-  vw->ShowToolTip (tip);
+  tooltip->SetMouseRelativeLocation (pt);
+  tooltip->SetSticky (true);
+
+  vw->ShowToolTip (tooltip);
   vw->UnlockLooper ();
 }
 

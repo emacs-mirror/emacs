@@ -1290,16 +1290,17 @@ compute_tip_xy (struct frame *f,
 static Lisp_Object
 haiku_hide_tip (bool delete)
 {
+  Lisp_Object it, frame;
+
   if (!NILP (tip_timer))
     {
       call1 (Qcancel_timer, tip_timer);
       tip_timer = Qnil;
     }
 
-  Lisp_Object it, frame;
   FOR_EACH_FRAME (it, frame)
-    if (FRAME_WINDOW_P (XFRAME (frame)) &&
-	FRAME_HAIKU_VIEW (XFRAME (frame)))
+    if (FRAME_WINDOW_P (XFRAME (frame))
+	&& FRAME_HAIKU_VIEW (XFRAME (frame)))
       BView_set_tooltip (FRAME_HAIKU_VIEW (XFRAME (frame)), NULL);
 
   if (NILP (tip_frame)
