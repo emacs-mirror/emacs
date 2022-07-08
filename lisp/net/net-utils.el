@@ -430,7 +430,8 @@ This variable is only used if the variable
 If your system's ping continues until interrupted, you can try setting
 `ping-program-options'."
   (interactive
-   (list (read-from-minibuffer "Ping host: " (ffap-machine-at-point))))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Ping host" default) nil nil default))))
   (let ((options
 	 (if ping-program-options
 	     (append ping-program-options (list host))
@@ -463,7 +464,8 @@ See also: `nslookup-host-ipv4', `nslookup-host-ipv6' for
 non-interactive versions of this function more suitable for use
 in Lisp code."
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (ffap-machine-at-point))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Lookup host" default) nil nil default))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (let ((options
          (append nslookup-program-options (list host)
@@ -575,7 +577,8 @@ Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 
 This command uses `dns-lookup-program' for looking up the DNS information."
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (ffap-machine-at-point))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Lookup host" default) nil nil default))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (let ((options
          (append dns-lookup-program-options (list host)
@@ -599,7 +602,8 @@ Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 This command uses `dig-program' for looking up the DNS information."
   (declare (obsolete dig "29.1"))
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (ffap-machine-at-point))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Lookup host" default) nil nil default))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (dig host nil nil nil nil name-server))
 
@@ -611,9 +615,8 @@ This command uses `dig-program' for looking up the DNS information."
 (defun ftp (host)
   "Run `ftp-program' to connect to HOST."
   (interactive
-   (list
-    (read-from-minibuffer
-     "Ftp to Host: " (ffap-machine-at-point))))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Ftp to Host" default) nil nil default))))
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
     (set-buffer buf)
     (ftp-mode)
@@ -648,8 +651,8 @@ This command uses `dig-program' for looking up the DNS information."
 This command uses `smbclient-program' to connect to HOST."
   (interactive
    (list
-    (read-from-minibuffer
-     "Connect to Host: " (ffap-machine-at-point))
+    (let ((default (ffap-machine-at-point)))
+      (read-string (format-prompt "Connect to Host" default) nil nil default))
     (read-from-minibuffer "SMB Service: ")))
   (let* ((name (format "smbclient [%s\\%s]" host service))
 	 (buf (get-buffer-create (concat "*" name "*")))
@@ -667,8 +670,8 @@ This command uses `smbclient-program' to connect to HOST."
 This command uses `smbclient-program' to connect to HOST."
   (interactive
    (list
-    (read-from-minibuffer
-     "Connect to Host: " (ffap-machine-at-point))))
+    (let ((default (ffap-machine-at-point)))
+      (read-string (format-prompt "Connect to Host" default) nil nil default))))
   (let ((buf (get-buffer-create (format "*SMB Shares on %s*" host))))
     (set-buffer buf)
     (smbclient-mode)
@@ -767,15 +770,15 @@ and `network-connection-service-alist', which see."
   ;; uses a string like "pbreton@cs.umb.edu", we won't ask for the
   ;; host name. If we don't see an "@", we'll prompt for the host.
   (interactive
-    (let* ((answer (read-from-minibuffer "Finger User: "
-                                         (ffap-url-at-point)))
+    (let* ((answer (let ((default (ffap-url-at-point)))
+                     (read-string (format-prompt "Finger User" default) nil nil default)))
 	   (index  (string-match (regexp-quote "@") answer)))
       (if index
 	  (list (substring answer 0 index)
 		(substring answer (1+ index)))
 	(list answer
-	      (read-from-minibuffer "At Host: "
-                                    (ffap-machine-at-point))))))
+              (let ((default (ffap-machine-at-point)))
+                (read-string (format-prompt "At Host" default) nil nil default))))))
   (let* ((user-and-host (concat user "@" host))
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
@@ -908,7 +911,8 @@ The port is deduced from `network-connection-service-alist'."
 This command uses `network-connection-service-alist', which see."
   (interactive
    (list
-    (read-from-minibuffer "Host: " (ffap-machine-at-point))
+    (let ((default (ffap-machine-at-point)))
+      (read-string (format-prompt "Host" default) nil nil default))
     (completing-read "Service: "
 		     (mapcar
                       (lambda (elt)
