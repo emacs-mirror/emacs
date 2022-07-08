@@ -24067,6 +24067,11 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 		      && FRAME_X_OUTPUT (f)->move_offset_top == 0))))
 	x_check_expected_move (f, modified_left, modified_top);
     }
+  /* Instead, just wait for the last ConfigureWindow request to
+     complete.  No window manager is involved when moving child
+     frames.  */
+  else
+    XSync (FRAME_X_DISPLAY (f), False);
 
   unblock_input ();
 }
@@ -24768,7 +24773,6 @@ x_sync_with_move (struct frame *f, int left, int top, bool fuzzy)
   else
     wait_reading_process_output (0, 500000000, 0, false, Qnil, NULL, 0);
 }
-
 
 /* Wait for an event on frame F matching EVENTTYPE.  */
 void
