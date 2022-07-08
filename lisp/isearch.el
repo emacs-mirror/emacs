@@ -3037,13 +3037,6 @@ search.  This option is ignored \(presumed t) when
   :type 'boolean
   :group 'isearch)
 
-(defcustom isearch-widen-automatically nil
-  "Whether a narrowed buffer can be widened when isearch fails.
-This option has no effect when `widen-automatically' is nil."
-  :version "29.1"
-  :type 'boolean
-  :group 'isearch)
-
 (defun isearch-string-out-of-window (isearch-point)
   "Test whether the search string is currently outside of the window.
 Return nil if it's completely visible, or if point is visible,
@@ -3656,20 +3649,17 @@ Optional third argument, if t, means if fail just return nil (no error).
 	(while retry
 	  (setq isearch-success
 		(isearch-search-string isearch-string nil t))
-          (if (and (not isearch-success) (buffer-narrowed-p)
-                   isearch-widen-automatically widen-automatically)
-              (widen)
-	    ;; Clear RETRY unless the search predicate says
-	    ;; to skip this search hit.
-	    (if (or (not isearch-success)
-		    (funcall isearch-filter-predicate
-			     (match-beginning 0) (match-end 0)))
-	        (setq retry nil)
-	      ;; Advance point on empty matches before retrying
-	      (when (= (match-beginning 0) (match-end 0))
-	        (if (if isearch-forward (eobp) (bobp))
-		    (setq retry nil isearch-success nil)
-		  (forward-char (if isearch-forward 1 -1)))))))
+	  ;; Clear RETRY unless the search predicate says
+	  ;; to skip this search hit.
+	  (if (or (not isearch-success)
+		  (funcall isearch-filter-predicate
+			   (match-beginning 0) (match-end 0)))
+	      (setq retry nil)
+	    ;; Advance point on empty matches before retrying
+	    (when (= (match-beginning 0) (match-end 0))
+	      (if (if isearch-forward (eobp) (bobp))
+		  (setq retry nil isearch-success nil)
+		(forward-char (if isearch-forward 1 -1))))))
 	(setq isearch-just-started nil)
 	(when isearch-success
 	  (setq isearch-other-end

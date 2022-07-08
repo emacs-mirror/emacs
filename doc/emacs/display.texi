@@ -19,8 +19,6 @@ the text is displayed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Narrowing::              Restricting display and editing to a portion
                              of the buffer.
-* Auto-Narrowing::         Automatically restrict display to a portion of
-                             the buffer.
 * View Mode::              Viewing read-only buffers.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
@@ -468,29 +466,6 @@ to using the @kbd{C-x =} command.  @xref{Position Info}.
 this command asks for confirmation and gives you the option of enabling it;
 if you enable the command, confirmation will no longer be required for
 it.  @xref{Disabling}.
-
-@node Auto-Narrowing
-@findex auto-narrow-mode
-@vindex auto-narrow-long-line-threshold
-@vindex auto-narrow-display-length
-@vindex auto-narrow-widen-automatically
-
-  When a file with extremely long lines is opened or inserted in a
-buffer, Emacs automatically enters auto-narrow mode, and the word
-@samp{Auto-Narrow} appears in the mode line.  This means that Emacs
-restricts display, but not editing, to a portion of the buffer above
-and below point.  All editing commands, including narrowing commands,
-remain available, and they act on the whole buffer.  For example,
-@kbd{M->} moves point to the end of the buffer, and not, as would
-happen with ordinary narrowing, to the end of the portion of the
-buffer to which display is currently restricted.
-
-  The behavior of auto-narrow mode is controlled by three variables:
-@code{auto-narrow-long-line-threshold} is the line length above which
-auto-narrow move is entered, @code{auto-narrow-display-length} is the
-number of characters to which display is restricted, and
-@code{auto-narrow-widen-automatically} is a list of commands for which
-display is widened before they are executed.
 
 @node View Mode
 @section View Mode

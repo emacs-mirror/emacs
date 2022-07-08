@@ -4997,16 +4997,6 @@ by calling `format-decode', which see.  */)
 	   Otherwise start with an empty undo_list.  */
 	bset_undo_list (current_buffer, EQ (old_undo, Qt) ? Qt : Qnil);
 
-      if (!noninteractive
-	  && !NILP (Vauto_narrow_long_line_threshold)
-	  && !NILP (CALLN
-		    (Fgtr,
-		     Fcar (Fcdr (Fbuffer_line_statistics (Fcurrent_buffer ()))),
-		     Vauto_narrow_long_line_threshold)))
-	{
-	  bset_auto_narrow__narrowing_state (current_buffer, Qneeded);
-	}
-
       unbind_to (count1, Qnil);
     }
 
@@ -6647,17 +6637,6 @@ This includes interactive calls to `delete-file' and
 
   /* Lisp function for recursively deleting directories.  */
   DEFSYM (Qdelete_directory, "delete-directory");
-
-  DEFVAR_LISP ("auto-narrow-long-line-threshold",
-	       Vauto_narrow_long_line_threshold,
-	       doc: /* Line length above which `auto-narrow-mode' is entered.
-When non-nil, and when a file with one or more lines longer than
-`auto-narrow-long-line-threshold' is opened or inserted in a buffer,
-`auto-narrow-mode' is automatically enabled.
-When nil, `auto-narrow-mode' is disabled.  */);
-  Vauto_narrow_long_line_threshold = Qnil;
-
-  DEFSYM (Qauto_narrow_mode, "auto-narrow-mode");
 
   DEFSYM (Qsubstitute_env_in_file_name, "substitute-env-in-file-name");
   DEFSYM (Qget_buffer_window_list, "get-buffer-window-list");

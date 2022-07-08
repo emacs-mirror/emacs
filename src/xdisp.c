@@ -18872,20 +18872,11 @@ set_vertical_scroll_bar (struct window *w)
 	  && NILP (echo_area_buffer[0])))
     {
       struct buffer *buf = XBUFFER (w->contents);
-      if (! BUFFER_AUTO_NARROWED_P (current_buffer))
-	{
-	  whole = BUF_ZV (buf) - BUF_BEGV (buf);
-	  start = marker_position (w->start) - BUF_BEGV (buf);
-	  /* I don't think this is guaranteed to be right.  For the
-	     moment, we'll pretend it is.  */
-	  end = BUF_Z (buf) - w->window_end_pos - BUF_BEGV (buf);
-	}
-      else
-	{
-	  whole = BUF_Z (buf) - BUF_BEG (buf);
-	  start = marker_position (w->start) - BUF_BEG (buf);
-	  end = BUF_Z (buf) - w->window_end_pos - BUF_BEG (buf);
-	}
+      whole = BUF_ZV (buf) - BUF_BEGV (buf);
+      start = marker_position (w->start) - BUF_BEGV (buf);
+      /* I don't think this is guaranteed to be right.  For the
+	 moment, we'll pretend it is.  */
+      end = BUF_Z (buf) - w->window_end_pos - BUF_BEGV (buf);
 
       if (end < start)
 	end = start;
@@ -19141,14 +19132,6 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* Really select the buffer, for the sake of buffer-local
      variables.  */
   set_buffer_internal_1 (XBUFFER (w->contents));
-
-  if (EQ (BVAR (current_buffer, auto_narrow__narrowing_state), Qneeded))
-    {
-      safe_call (1, Qauto_narrow_mode);
-      /* Normally set by auto-narrow-mode, set it here anyway as a safety measure.  */
-      bset_auto_narrow__narrowing_state (current_buffer, Qauto);
-      message1 ("Auto-Narrow mode enabled in current buffer");
-    }
 
   current_matrix_up_to_date_p
     = (w->window_end_valid
@@ -27684,12 +27667,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 
     case 'n':
       if (BUF_BEGV (b) > BUF_BEG (b) || BUF_ZV (b) < BUF_Z (b))
-	{
-	  if (! BUFFER_AUTO_NARROWED_P (b))
-	    return " Narrow";
-	  else
-	    return " Auto-Narrow";
-	}
+	return " Narrow";
       break;
 
       /* Display the "degree of travel" of the window through the buffer.  */
@@ -27697,27 +27675,17 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       {
         ptrdiff_t toppos = marker_position (w->start);
         ptrdiff_t botpos = BUF_Z (b) - w->window_end_pos;
-	ptrdiff_t beg, z;
+        ptrdiff_t begv = BUF_BEGV (b);
+        ptrdiff_t zv = BUF_ZV (b);
 
-	if (! BUFFER_AUTO_NARROWED_P (b))
-	  {
-	    beg = BUF_BEGV (b);
-	    z = BUF_ZV (b);
-	  }
-	else
-	  {
-	    beg = BUF_BEG (b);
-	    z = BUF_Z (b);
-	  }
-
-        if (z <= botpos)
-          return toppos <= beg ? "All" : "Bottom";
-        else if (toppos <= beg)
+        if (zv <= botpos)
+          return toppos <= begv ? "All" : "Bottom";
+        else if (toppos <= begv)
           return "Top";
         else
           {
           sprintf (decode_mode_spec_buf, "%2d%%",
-                   percent99 (toppos - beg, (toppos - beg) + (z - botpos)));
+                   percent99 (toppos - begv, (toppos - begv) + (zv - botpos)));
           return decode_mode_spec_buf;
           }
       }
@@ -27726,27 +27694,17 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'p':
       {
 	ptrdiff_t pos = marker_position (w->start);
-	ptrdiff_t beg, z;
+	ptrdiff_t begv = BUF_BEGV (b);
+	ptrdiff_t zv = BUF_ZV (b);
 
-	if (! BUFFER_AUTO_NARROWED_P (b))
-	  {
-	    beg = BUF_BEGV (b);
-	    z = BUF_ZV (b);
-	  }
-	else
-	  {
-	    beg = BUF_BEG (b);
-	    z = BUF_Z (b);
-	  }
-
-	if (w->window_end_pos <= BUF_Z (b) - z)
-	  return pos <= beg ? "All" : "Bottom";
-	else if (pos <= beg)
+	if (w->window_end_pos <= BUF_Z (b) - zv)
+	  return pos <= begv ? "All" : "Bottom";
+	else if (pos <= begv)
 	  return "Top";
 	else
 	  {
 	    sprintf (decode_mode_spec_buf, "%2d%%",
-		     percent99 (pos - beg, z - beg));
+		     percent99 (pos - begv, zv - begv));
 	    return decode_mode_spec_buf;
 	  }
       }
@@ -27756,26 +27714,16 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       {
 	ptrdiff_t toppos = marker_position (w->start);
 	ptrdiff_t botpos = BUF_Z (b) - w->window_end_pos;
-	ptrdiff_t beg, z;
+	ptrdiff_t begv = BUF_BEGV (b);
+	ptrdiff_t zv = BUF_ZV (b);
 
-	if (! BUFFER_AUTO_NARROWED_P (b))
-	  {
-	    beg = BUF_BEGV (b);
-	    z = BUF_ZV (b);
-	  }
-	else
-	  {
-	    beg = BUF_BEG (b);
-	    z = BUF_Z (b);
-	  }
-
-	if (z <= botpos)
-	  return toppos <= beg ? "All" : "Bottom";
+	if (zv <= botpos)
+	  return toppos <= begv ? "All" : "Bottom";
 	else
 	  {
 	    sprintf (decode_mode_spec_buf,
-		     &"Top%2d%%"[beg < toppos ? sizeof "Top" - 1 : 0],
-		     percent99 (botpos - beg, z - beg));
+		     &"Top%2d%%"[begv < toppos ? sizeof "Top" - 1 : 0],
+		     percent99 (botpos - begv, zv - begv));
 	    return decode_mode_spec_buf;
 	  }
       }
@@ -27786,25 +27734,15 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       {
         ptrdiff_t toppos = marker_position (w->start);
         ptrdiff_t botpos = BUF_Z (b) - w->window_end_pos;
-        ptrdiff_t beg, z;
+        ptrdiff_t begv = BUF_BEGV (b);
+        ptrdiff_t zv = BUF_ZV (b);
         int top_perc, bot_perc;
 
-	if (! BUFFER_AUTO_NARROWED_P (b))
-	  {
-	    beg = BUF_BEGV (b);
-	    z = BUF_ZV (b);
-	  }
-	else
-	  {
-	    beg = BUF_BEG (b);
-	    z = BUF_Z (b);
-	  }
-
-        if ((toppos <= beg) && (z <= botpos))
+        if ((toppos <= begv) && (zv <= botpos))
           return "All   ";
 
-        top_perc = toppos <= beg ? 0 : percent99 (toppos - beg, z - beg);
-        bot_perc = z <= botpos ? 100 : percent99 (botpos - beg, z - beg);
+        top_perc = toppos <= begv ? 0 : percent99 (toppos - begv, zv - begv);
+        bot_perc = zv <= botpos ? 100 : percent99 (botpos - begv, zv - begv);
 
         if (top_perc == bot_perc)
           sprintf (decode_mode_spec_buf, "%d%%", top_perc);
@@ -35892,8 +35830,6 @@ be let-bound around code that needs to disable messages temporarily. */);
   DEFSYM (Qinhibit_point_motion_hooks, "inhibit-point-motion-hooks");
   DEFSYM (Qeval, "eval");
   DEFSYM (QCdata, ":data");
-  DEFSYM (Qneeded, "needed");
-  DEFSYM (Qauto, "auto");
 
   /* Names of text properties relevant for redisplay.  */
   DEFSYM (Qdisplay, "display");
