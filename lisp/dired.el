@@ -4807,6 +4807,7 @@ Interactively with prefix argument, read FILE-NAME."
 
 (defvar-keymap dired-jump-map
   :doc "Keymap to repeat `dired-jump'.  Used in `repeat-mode'."
+  "j"   #'dired-jump
   "C-j" #'dired-jump)
 (put 'dired-jump 'repeat-map 'dired-jump-map)
 
