@@ -50,11 +50,6 @@
   "Extended directory editing (dired-x)."
   :group 'dired)
 
-(defgroup dired-keys nil
-  "Dired keys customizations."
-  :prefix "dired-"
-  :group 'dired-x)
-
 (defcustom dired-bind-vm nil
   "Non-nil means \"V\" runs `dired-vm', otherwise \"V\" runs `dired-rmail'.
 RMAIL files in the old Babyl format (used before Emacs 23.1)
@@ -62,7 +57,7 @@ contain \"-*- rmail -*-\" at the top, so `dired-find-file'
 will run `rmail' on these files.  New RMAIL files use the standard
 mbox format, and so cannot be distinguished in this way."
   :type 'boolean
-  :group 'dired-keys)
+  :group 'dired-x)
 
 (defvar dired-bind-jump t)
 (make-obsolete-variable 'dired-bind-jump "not used." "28.1")
