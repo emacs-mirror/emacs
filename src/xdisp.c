@@ -18924,11 +18924,27 @@ set_vertical_scroll_bar (struct window *w)
 	  && NILP (echo_area_buffer[0])))
     {
       struct buffer *buf = XBUFFER (w->contents);
+      ptrdiff_t window_end_pos = w->window_end_pos;
+
+      /* If w->window_end_pos cannot be trusted, recompute it "the
+	 hard way".  */
+      if (!w->window_end_valid)
+	{
+	  struct it it;
+	  struct text_pos start_pos;
+
+	  SET_TEXT_POS_FROM_MARKER (start_pos, w->start);
+	  start_display (&it, w, start_pos);
+	  move_it_to (&it, -1, it.last_visible_x, window_box_height (w), -1,
+		      MOVE_TO_X | MOVE_TO_Y);
+	  window_end_pos = BUF_Z (buf) - IT_CHARPOS (it);
+	}
+
       whole = BUF_ZV (buf) - BUF_BEGV (buf);
       start = marker_position (w->start) - BUF_BEGV (buf);
       /* I don't think this is guaranteed to be right.  For the
 	 moment, we'll pretend it is.  */
-      end = BUF_Z (buf) - w->window_end_pos - BUF_BEGV (buf);
+      end = BUF_Z (buf) - window_end_pos - BUF_BEGV (buf);
 
       if (end < start)
 	end = start;
