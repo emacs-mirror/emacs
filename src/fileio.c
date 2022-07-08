@@ -2601,9 +2601,9 @@ is case-insensitive.  */)
       if (err <= 0)
 	return err < 0 ? Qt : Qnil;
       Lisp_Object parent = file_name_directory (filename);
-      /* Avoid infinite loop if the root has trouble
-	 (impossible?).  */
-      if (!NILP (Fstring_equal (parent, filename)))
+      /* Avoid infinite loop if the root has trouble (if that's even possible).
+	 Without a parent, we just don't know and return nil as well.  */
+      if (!STRINGP (parent) || !NILP (Fstring_equal (parent, filename)))
 	return Qnil;
       filename = parent;
     }

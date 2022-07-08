@@ -201,4 +201,20 @@ Also check that an encoding error can appear in a symlink."
     (insert-file-contents "/dev/urandom" nil nil 10)
     (should (= (buffer-size) 10))))
 
+(defun fileio-tests--identity-expand-handler (_ file &rest _)
+  file)
+(put 'fileio-tests--identity-expand-handler 'operations '(expand-file-name))
+
+(ert-deftest fileio--file-name-case-insensitive-p ()
+  ;; Check that we at least don't crash if given nonexisting files
+  ;; without a directory (bug#56443).
+
+  ;; Use an identity file-name handler, as if called by `ffap'.
+  (let* ((file-name-handler-alist
+          '(("^mailto:" . fileio-tests--identity-expand-handler)))
+         (file "mailto:snowball@hell.com"))
+    ;; Check that `expand-file-name' is identity for this name.
+    (should (equal (expand-file-name file nil) file))
+    (file-name-case-insensitive-p file)))
+
 ;;; fileio-tests.el ends here
