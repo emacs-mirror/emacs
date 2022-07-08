@@ -377,6 +377,11 @@ Actual search is done by the function `ffap-next-guess'."
 
 ;;; Machines (`ffap-machine-p'):
 
+(defun ffap--accept-or-reject-p (symbol)
+  "Return non-nil if SYMBOL is `accept' or `reject'.
+Otherwise, return nil."
+  (memq symbol '(accept reject)))
+
 ;; I cannot decide a "best" strategy here, so these are variables.  In
 ;; particular, if `Pinging...' is broken or takes too long on your
 ;; machine, try setting these all to accept or reject.
@@ -385,16 +390,20 @@ Actual search is done by the function `ffap-next-guess'."
 Value should be a symbol, one of `ping', `accept', and `reject'."
   :type '(choice (const ping)
 		 (const accept)
-		 (const reject))
+                 (const reject))
+  :safe #'ffap--accept-or-reject-p
   :group 'ffap)
+
 (defcustom ffap-machine-p-known 'ping	; `accept' for higher speed
   "What `ffap-machine-p' does with hostnames that have a known domain.
 Value should be a symbol, one of `ping', `accept', and `reject'.
 See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
-		 (const reject))
+                 (const reject))
+  :safe #'ffap--accept-or-reject-p
   :group 'ffap)
+
 (defcustom ffap-machine-p-unknown 'reject
   "What `ffap-machine-p' does with hostnames that have an unknown domain.
 Value should be a symbol, one of `ping', `accept', and `reject'.
@@ -402,6 +411,7 @@ See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
 		 (const reject))
+  :safe #'ffap--accept-or-reject-p
   :group 'ffap)
 
 (defun ffap-what-domain (domain)
