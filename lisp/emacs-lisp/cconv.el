@@ -267,8 +267,7 @@ Returns a form where all lambdas don't have any free variables."
 
 (define-inline cconv--var-classification (binder form)
   (inline-quote
-   (alist-get (cons ,binder ,form) cconv-var-classification
-              nil nil #'equal)))
+   (cdr (assoc (cons ,binder ,form) cconv-var-classification))))
 
 (defun cconv--convert-funcbody (funargs funcbody env parentform)
   "Run `cconv-convert' on FUNCBODY, the forms of a lambda expression.
