@@ -19215,6 +19215,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case DestroyNotify:
+      if (event->xdestroywindow.window
+	  == dpyinfo->net_supported_window)
+	dpyinfo->net_supported_window = None;
+
       xft_settings_event (dpyinfo, event);
       break;
 
@@ -24076,6 +24080,36 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
   unblock_input ();
 }
 
+static Window
+x_get_wm_check_window (struct x_display_info *dpyinfo)
+{
+  Window result;
+  unsigned char *tmp_data = NULL;
+  int rc, actual_format;
+  unsigned long actual_size, bytes_remaining;
+  Atom actual_type;
+
+  rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
+			   dpyinfo->Xatom_net_supporting_wm_check,
+                           0, 1, False, XA_WINDOW, &actual_type,
+			   &actual_format, &actual_size,
+                           &bytes_remaining, &tmp_data);
+
+  if (rc != Success || actual_type != XA_WINDOW
+      || actual_format != 32 || actual_size != 1)
+    {
+      if (tmp_data)
+	XFree (tmp_data);
+
+      return None;
+    }
+
+  result = *(Window *) tmp_data;
+  XFree (tmp_data);
+
+  return result;
+}
+
 /* Return true if _NET_SUPPORTING_WM_CHECK window exists and _NET_SUPPORTED
    on the root window for frame F contains ATOMNAME.
    This is how a WM check shall be done according to the Window Manager
@@ -24099,30 +24133,32 @@ x_wm_supports_1 (struct x_display_info *dpyinfo, Atom want_atom)
   block_input ();
 
   x_catch_errors (dpy);
-  rc = XGetWindowProperty (dpy, target_window,
-                           dpyinfo->Xatom_net_supporting_wm_check,
-                           0, max_len, False, target_type,
-                           &actual_type, &actual_format, &actual_size,
-                           &bytes_remaining, &tmp_data);
 
-  if (rc != Success || actual_type != XA_WINDOW || x_had_errors_p (dpy))
+  wmcheck_window = dpyinfo->net_supported_window;
+
+  if (wmcheck_window == None)
+    wmcheck_window = x_get_wm_check_window (dpyinfo);
+
+  if (!x_special_window_exists_p (dpyinfo, wmcheck_window))
     {
-      if (tmp_data) XFree (tmp_data);
-      x_uncatch_errors ();
-      unblock_input ();
-      return false;
-    }
+      if (dpyinfo->net_supported_window != None)
+	{
+	  dpyinfo->net_supported_window = None;
+	  wmcheck_window = x_get_wm_check_window (dpyinfo);
 
-  wmcheck_window = *(Window *) tmp_data;
-  XFree (tmp_data);
-
-  /* Check if window exists. */
-  XSelectInput (dpy, wmcheck_window, StructureNotifyMask);
-  if (x_had_errors_p (dpy))
-    {
-      x_uncatch_errors_after_check ();
-      unblock_input ();
-      return false;
+	  if (!x_special_window_exists_p (dpyinfo, wmcheck_window))
+	    {
+	      x_uncatch_errors ();
+	      unblock_input ();
+	      return false;
+	    }
+	}
+      else
+	{
+	  x_uncatch_errors ();
+	  unblock_input ();
+	  return false;
+	}
     }
 
   if (dpyinfo->net_supported_window != wmcheck_window)
