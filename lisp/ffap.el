@@ -377,9 +377,10 @@ Actual search is done by the function `ffap-next-guess'."
 
 ;;; Machines (`ffap-machine-p'):
 
-(defun ffap--accept-or-reject-p (symbol)
+(defun ffap-accept-or-reject-p (symbol)
   "Return non-nil if SYMBOL is `accept' or `reject'.
-Otherwise, return nil."
+Otherwise, return nil.  This is intended for use as the
+predicate in the `:safe' property of user options."
   (memq symbol '(accept reject)))
 
 ;; I cannot decide a "best" strategy here, so these are variables.  In
@@ -391,7 +392,7 @@ Value should be a symbol, one of `ping', `accept', and `reject'."
   :type '(choice (const ping)
 		 (const accept)
                  (const reject))
-  :safe #'ffap--accept-or-reject-p
+  :safe #'ffap-accept-or-reject-p
   :group 'ffap)
 
 (defcustom ffap-machine-p-known 'accept
@@ -401,7 +402,7 @@ See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
                  (const reject))
-  :safe #'ffap--accept-or-reject-p
+  :safe #'ffap-accept-or-reject-p
   :group 'ffap
   :version "29.1")
 
@@ -412,7 +413,7 @@ See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
 		 (const reject))
-  :safe #'ffap--accept-or-reject-p
+  :safe #'ffap-accept-or-reject-p
   :group 'ffap)
 
 (defun ffap-what-domain (domain)
