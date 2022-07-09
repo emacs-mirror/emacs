@@ -419,14 +419,15 @@ idle for `auto-save-visited-interval' seconds."
            (timer-set-idle-time auto-save--timer value :repeat))))
 
 (define-minor-mode auto-save-visited-mode
-  "Toggle automatic saving to file-visiting buffers on or off.
+  "Toggle automatic saving of file-visiting buffers to their files.
 
-When this mode is enabled, visited files are saved automatically.
-The user option `auto-save-visited-interval' controls how often.
+When this mode is enabled, file-visiting buffers are automatically
+saved to their files.  This is in contrast to `auto-save-mode', which
+auto-saves those buffers to a separate file, leaving the original
+file intact.  See Info node `Saving' for details of the save process.
 
-Unlike `auto-save-mode', this mode will auto-save buffer contents
-to the visited files directly and will also run all save-related
-hooks.  See Info node `Saving' for details of the save process.
+The user option `auto-save-visited-interval' controls how often to
+auto-save a buffer into its visited file.
 
 You can also set the buffer-local value of the variable
 `auto-save-visited-mode' to nil.  A buffer where the buffer-local
