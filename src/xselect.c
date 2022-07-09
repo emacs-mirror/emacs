@@ -40,8 +40,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <X11/Xproto.h>
 
-static Time pending_dnd_time;
-
 struct prop_location;
 struct selection_data;
 
@@ -265,7 +263,7 @@ x_atom_to_symbol (struct x_display_info *dpyinfo, Atom atom)
    TIMESTAMP should be the timestamp where selection ownership will be
    assumed.
    DND_DATA is the local value that will be used for selection requests
-   with `pending_dnd_time'.
+   with `dpyinfo->pending_dnd_time'.
    Update the Vselection_alist so that we can reply to later requests for
    our selection.  */
 
@@ -855,8 +853,11 @@ x_handle_selection_request (struct selection_input_event *event)
 
   /* This is how the XDND protocol recommends dropping text onto a
      target that doesn't support XDND.  */
-  if (SELECTION_EVENT_TIME (event) == pending_dnd_time + 1
-      || SELECTION_EVENT_TIME (event) == pending_dnd_time + 2)
+  if (dpyinfo->pending_dnd_time
+      && ((SELECTION_EVENT_TIME (event)
+	   == dpyinfo->pending_dnd_time + 1)
+	  || (SELECTION_EVENT_TIME (event)
+	      == dpyinfo->pending_dnd_time + 2)))
     use_alternate = true;
 
   block_input ();
@@ -2882,12 +2883,6 @@ x_timestamp_for_selection (struct x_display_info *dpyinfo,
   value = XCAR (XCDR (XCDR (local_value)));
 
   return value;
-}
-
-void
-x_set_pending_dnd_time (Time time)
-{
-  pending_dnd_time = time;
 }
 
 static void syms_of_xselect_for_pdumper (void);

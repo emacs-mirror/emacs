@@ -3873,8 +3873,10 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
 	 && child_return != None)
     child = child_return;
 
+  x_uncatch_errors ();
+
   if (!CONSP (value))
-    goto cancel;
+    return;
 
   current_value = assq_no_quit (QPRIMARY,
 				dpyinfo->terminal->Vselection_alist);
@@ -3891,9 +3893,7 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
      from generating events that will insert something else.  */
 
   if (owner != FRAME_X_WINDOW (f))
-    goto cancel;
-
-  x_uncatch_errors ();
+    return;
 
   event.xbutton.window = child;
   event.xbutton.subwindow = None;
@@ -3903,7 +3903,7 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   event.xbutton.button = 2;
   event.xbutton.same_screen = True;
 
-  x_set_pending_dnd_time (before);
+  dpyinfo->pending_dnd_time = before;
 
   event.xbutton.type = ButtonPress;
   event.xbutton.time = before + 1;
@@ -3924,9 +3924,6 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   x_dnd_action_symbol = QXdndActionPrivate;
 
   return;
-
- cancel:
-  x_uncatch_errors ();
 }
 
 static void
@@ -18934,23 +18931,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			      }
 			  }
 			else
-			  {
-			    x_set_pending_dnd_time (event->xbutton.time);
-			    x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
-								   ? x_dnd_last_seen_toplevel
-								   : x_dnd_last_seen_window),
-							 event->xbutton.x_root, event->xbutton.y_root,
-							 event->xbutton.time);
-			  }
+			  x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
+								 ? x_dnd_last_seen_toplevel
+								 : x_dnd_last_seen_window),
+						       event->xbutton.x_root, event->xbutton.y_root,
+						       event->xbutton.time);
 		      }
 		    else if (x_dnd_last_seen_toplevel != None)
-		      {
-			x_set_pending_dnd_time (event->xbutton.time);
-			x_dnd_send_unsupported_drop (dpyinfo, x_dnd_last_seen_toplevel,
-						     event->xbutton.x_root,
-						     event->xbutton.y_root,
-						     event->xbutton.time);
-		      }
+		      x_dnd_send_unsupported_drop (dpyinfo, x_dnd_last_seen_toplevel,
+						   event->xbutton.x_root,
+						   event->xbutton.y_root,
+						   event->xbutton.time);
 
 
 		    x_dnd_last_protocol_version = -1;
@@ -20352,22 +20343,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				    }
 				}
 			      else
-				{
-				  x_set_pending_dnd_time (xev->time);
-				  x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
-									 ? x_dnd_last_seen_toplevel
-									 : x_dnd_last_seen_window),
-							       xev->root_x, xev->root_y, xev->time);
-				}
+				x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
+								       ? x_dnd_last_seen_toplevel
+								       : x_dnd_last_seen_window),
+							     xev->root_x, xev->root_y, xev->time);
 			    }
 			  else if (x_dnd_last_seen_toplevel != None)
-			    {
-			      x_set_pending_dnd_time (xev->time);
-			      x_dnd_send_unsupported_drop (dpyinfo,
-							   x_dnd_last_seen_toplevel,
-							   xev->root_x, xev->root_y,
-							   xev->time);
-			    }
+			    x_dnd_send_unsupported_drop (dpyinfo,
+							 x_dnd_last_seen_toplevel,
+							 xev->root_x, xev->root_y,
+							 xev->time);
 
 			  x_dnd_last_protocol_version = -1;
 			  x_dnd_last_motif_style = XM_DRAG_STYLE_NONE;

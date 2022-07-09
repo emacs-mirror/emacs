@@ -765,6 +765,10 @@ struct x_display_info
 
   /* Pointer to the next request in `failable_requests'.  */
   struct x_failable_request *next_failable_request;
+
+  /* The pending drag-and-drop time for middle-click based
+     drag-and-drop emulation.  */
+  Time pending_dnd_time;
 };
 
 #ifdef HAVE_X_I18N
@@ -1617,7 +1621,6 @@ extern void x_clipboard_manager_save_all (void);
 
 extern Lisp_Object x_timestamp_for_selection (struct x_display_info *,
 					      Lisp_Object);
-extern void x_set_pending_dnd_time (Time);
 extern void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object,
 			     Lisp_Object, Time);
 extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
