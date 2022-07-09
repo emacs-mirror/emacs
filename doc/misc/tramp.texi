@@ -50,13 +50,10 @@ This file documents @w{@value{tramp} @value{trampver}}, a remote file
 editing package for Emacs.
 
 @value{tramp} stands for ``Transparent Remote (file) Access, Multiple
-Protocol''.  This package provides remote file editing, similar to
-Ange FTP@.
-
-The difference is that Ange FTP uses FTP to transfer files between the
-local and the remote host, whereas @value{tramp} uses a combination of
-@command{rsh} and @command{rcp} or other work-alike programs, such as
-@command{ssh}/@command{scp}.
+Protocol''.  This package provides an easy, convenient, and consistent
+interface to editing remote files transparently, just as if they are
+local files.  This extends to editing, version control, @code{dired},
+and more.
 
 You can find the latest version of this document on the web at
 @uref{@value{trampurl}}.
@@ -182,10 +179,11 @@ interface to remote files as if they are local files.  @value{tramp}'s
 transparency extends to editing, version control, and @code{dired}.
 
 @value{tramp} can access remote hosts using any number of access
-methods, such as @command{rsh}, @command{rlogin}, @command{telnet},
-and related programs.  If these programs can successfully pass
-@acronym{ASCII} characters, @value{tramp} can use them.
-@value{tramp} does not require or mandate 8-bit clean connections.
+methods, such as @command{ssh}, @command{rsh}, @command{rlogin},
+@command{telnet}, and related programs.  If these programs can
+successfully pass @acronym{ASCII} characters, @value{tramp} can use
+them.  @value{tramp} does not require or mandate 8-bit clean
+connections.
 
 @value{tramp}'s most common access method is through @command{ssh}, a
 more secure alternative to @command{ftp} and other older access
@@ -5680,6 +5678,15 @@ local host's root directory as @file{/ssh:example.com:}.
 To unload @value{tramp}, type @kbd{M-x tramp-unload-tramp @key{RET}}.
 Unloading @value{tramp} resets Ange FTP plugins also.
 @end itemize
+
+
+@item
+What is the difference between Ange FTP and TRAMP?
+
+The difference is that Ange FTP uses FTP to transfer files between the
+local and the remote host, whereas @value{tramp} uses a combination of
+@command{rsh} and @command{rcp} or other work-alike programs, such as
+@command{ssh}/@command{scp}.
 @end itemize
 
 
