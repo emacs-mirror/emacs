@@ -822,7 +822,7 @@ that's pretty difficult to read and write, especially when the text in
 question is multi-line.
 
 So ert provides a function called @code{ert-test-erts-file} that takes
-two parameters: The name of a specially-formatted @dfn{erts} file, and
+two parameters: the name of a specially-formatted @dfn{erts} file, and
 (optionally) a function that performs the transform.
 
 @findex erts-mode

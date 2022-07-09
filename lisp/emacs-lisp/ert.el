@@ -2880,8 +2880,14 @@ To be used in the ERT results buffer."
   nil)
 
 (defun ert-test-erts-file (file &optional transform)
-  "Parse FILE as a file containing before/after parts.
-TRANSFORM will be called to get from before to after."
+  "Parse FILE as a file containing before/after parts (an erts file).
+
+This function puts the \"before\" section of an .erts file into a
+temporary buffer, calls the TRANSFORM function, and then compares
+the result with the \"after\" section.
+
+See Info node `(ert) erts files' for more information on how to
+write erts files."
   (with-temp-buffer
     (insert-file-contents file)
     (let ((gen-specs (list (cons 'dummy t)
