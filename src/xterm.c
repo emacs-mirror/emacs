@@ -16471,16 +16471,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		switch (operation)
 		  {
 		  case XM_DRAG_MOVE:
-		    x_dnd_action = dpyinfo->Xatom_XdndActionMove;
+		    x_dnd_action_symbol = QXdndActionMove;
 		    break;
 
 		  case XM_DRAG_COPY:
-		    x_dnd_action = dpyinfo->Xatom_XdndActionCopy;
+		    x_dnd_action_symbol = QXdndActionCopy;
 		    break;
 
 		    /* This means XM_DRAG_OPERATION_IS_LINK (operation).  */
 		  default:
-		    x_dnd_action = dpyinfo->Xatom_XdndActionLink;
+		    x_dnd_action_symbol = QXdndActionLink;
 		    break;
 		  }
 
