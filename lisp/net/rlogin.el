@@ -1,7 +1,6 @@
 ;;; rlogin.el --- remote login interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1995, 1997-1998, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
@@ -118,19 +117,15 @@ this variable is set from that."
   :type '(choice (const nil) string)
   :group 'rlogin)
 
-(defvar rlogin-mode-map
-  (let ((map (if (consp shell-mode-map)
-                 (cons 'keymap shell-mode-map)
-               (copy-keymap shell-mode-map))))
-    (define-key map "\C-c\C-c" 'rlogin-send-Ctrl-C)
-    (define-key map "\C-c\C-d" 'rlogin-send-Ctrl-D)
-    (define-key map "\C-c\C-z" 'rlogin-send-Ctrl-Z)
-    (define-key map "\C-c\C-\\" 'rlogin-send-Ctrl-backslash)
-    (define-key map "\C-d" 'rlogin-delchar-or-send-Ctrl-D)
-    (define-key map "\C-i" 'rlogin-tab-or-complete)
-    map)
-  "Keymap for `rlogin-mode'.")
-
+(defvar-keymap rlogin-mode-map
+  :doc "Keymap for `rlogin-mode'."
+  :parent shell-mode-map
+  "C-c C-c"  #'rlogin-send-Ctrl-C
+  "C-c C-d"  #'rlogin-send-Ctrl-D
+  "C-c C-z"  #'rlogin-send-Ctrl-Z
+  "C-c C-\\" #'rlogin-send-Ctrl-backslash
+  "C-d"      #'rlogin-delchar-or-send-Ctrl-D
+  "TAB"      #'rlogin-tab-or-complete)
 
 
 (defvar rlogin-history nil)

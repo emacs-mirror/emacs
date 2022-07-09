@@ -741,14 +741,13 @@ ITEM can also be an object path, which is used if contained in COLLECTION."
 
 ;;; Visualization.
 
-(defvar secrets-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap special-mode-map widget-keymap))
-    (define-key map "n" #'next-line)
-    (define-key map "p" #'previous-line)
-    (define-key map "z" #'kill-current-buffer)
-    map)
-  "Keymap used in `secrets-mode' buffers.")
+(defvar-keymap secrets-mode-map
+  :doc "Keymap used in `secrets-mode' buffers."
+  :parent (make-composed-keymap special-mode-map
+                                widget-keymap)
+  "n" #'next-line
+  "p" #'previous-line
+  "z" #'kill-current-buffer)
 
 (define-derived-mode secrets-mode special-mode "Secrets"
   "Major mode for presenting password entries retrieved by Security Service.

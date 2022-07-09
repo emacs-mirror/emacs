@@ -248,14 +248,12 @@ This is used during Tempo template completion."
 
 ;; Set up our keymap
 ;;
-(defvar snmp-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\177"         'backward-delete-char-untabify)
-    (define-key map "\C-c\C-i"     'tempo-complete-tag)
-    (define-key map "\C-c\C-f"     'tempo-forward-mark)
-    (define-key map "\C-c\C-b"     'tempo-backward-mark)
-    map)
-  "Keymap used in SNMP mode.")
+(defvar-keymap snmp-mode-map
+  :doc "Keymap used in SNMP mode."
+  "DEL"     #'backward-delete-char-untabify
+  "C-c TAB" #'tempo-complete-tag
+  "C-c C-f" #'tempo-forward-mark
+  "C-c C-b" #'tempo-backward-mark)
 
 
 ;; Set up our syntax table

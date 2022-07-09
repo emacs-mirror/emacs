@@ -163,19 +163,17 @@ in your init file (after loading/requiring quickurl).")
 (defvar quickurl-urls nil
   "URL alist for use with `quickurl' and `quickurl-ask'.")
 
-(defvar quickurl-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a"           #'quickurl-list-add-url)
-    (define-key map [(control m)] #'quickurl-list-insert-url)
-    (define-key map "u"           #'quickurl-list-insert-naked-url)
-    (define-key map " "           #'quickurl-list-insert-with-lookup)
-    (define-key map "l"           #'quickurl-list-insert-lookup)
-    (define-key map "d"           #'quickurl-list-insert-with-desc)
-    (define-key map [(control g)] #'quickurl-list-quit)
-    (define-key map "q"           #'quickurl-list-quit)
-    (define-key map [mouse-2]     #'quickurl-list-mouse-select)
-    map)
-  "Local keymap for a `quickurl-list-mode' buffer.")
+(defvar-keymap quickurl-list-mode-map
+  :doc "Local keymap for a `quickurl-list-mode' buffer."
+  "a"   #'quickurl-list-add-url
+  "RET" #'quickurl-list-insert-url
+  "u"   #'quickurl-list-insert-naked-url
+  "SPC" #'quickurl-list-insert-with-lookup
+  "l"   #'quickurl-list-insert-lookup
+  "d"   #'quickurl-list-insert-with-desc
+  "C-g" #'quickurl-list-quit
+  "q"   #'quickurl-list-quit
+  "<mouse-2>" #'quickurl-list-mouse-select)
 
 (defvar quickurl-list-buffer-name "*quickurl-list*"
   "Name for the URL listing buffer.")

@@ -1346,33 +1346,30 @@ The list is updated automatically by `defun-rcirc-command'.")
   'set-rcirc-encode-coding-system
   "28.1")
 
-(defvar rcirc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'rcirc-send-input)
-    (define-key map (kbd "M-p") 'rcirc-insert-prev-input)
-    (define-key map (kbd "M-n") 'rcirc-insert-next-input)
-    (define-key map (kbd "TAB") 'completion-at-point)
-    (define-key map (kbd "C-c C-b") 'rcirc-browse-url)
-    (define-key map (kbd "C-c C-c") 'rcirc-edit-multiline)
-    (define-key map (kbd "C-c C-j") 'rcirc-cmd-join)
-    (define-key map (kbd "C-c C-k") 'rcirc-cmd-kick)
-    (define-key map (kbd "C-c C-l") 'rcirc-toggle-low-priority)
-    (define-key map (kbd "C-c C-d") 'rcirc-cmd-mode)
-    (define-key map (kbd "C-c C-m") 'rcirc-cmd-msg)
-    (define-key map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
-    (define-key map (kbd "C-c C-o") 'rcirc-omit-mode)
-    (define-key map (kbd "C-c C-p") 'rcirc-cmd-part)
-    (define-key map (kbd "C-c C-q") 'rcirc-cmd-query)
-    (define-key map (kbd "C-c C-t") 'rcirc-cmd-topic)
-    (define-key map (kbd "C-c C-n") 'rcirc-cmd-names)
-    (define-key map (kbd "C-c C-w") 'rcirc-cmd-whois)
-    (define-key map (kbd "C-c C-x") 'rcirc-cmd-quit)
-    (define-key map (kbd "C-c TAB") ; C-i
-      'rcirc-toggle-ignore-buffer-activity)
-    (define-key map (kbd "C-c C-s") 'rcirc-switch-to-server-buffer)
-    (define-key map (kbd "C-c C-a") 'rcirc-jump-to-first-unread-line)
-    map)
-  "Keymap for rcirc mode.")
+(defvar-keymap rcirc-mode-map
+  :doc "Keymap for rcirc mode."
+  "RET"     #'rcirc-send-input
+  "M-p"     #'rcirc-insert-prev-input
+  "M-n"     #'rcirc-insert-next-input
+  "TAB"     #'completion-at-point
+  "C-c C-b" #'rcirc-browse-url
+  "C-c C-c" #'rcirc-edit-multiline
+  "C-c C-j" #'rcirc-cmd-join
+  "C-c C-k" #'rcirc-cmd-kick
+  "C-c C-l" #'rcirc-toggle-low-priority
+  "C-c C-d" #'rcirc-cmd-mode
+  "C-c C-m" #'rcirc-cmd-msg
+  "C-c C-r" #'rcirc-cmd-nick ; rename
+  "C-c C-o" #'rcirc-omit-mode
+  "C-c C-p" #'rcirc-cmd-part
+  "C-c C-q" #'rcirc-cmd-query
+  "C-c C-t" #'rcirc-cmd-topic
+  "C-c C-n" #'rcirc-cmd-names
+  "C-c C-w" #'rcirc-cmd-whois
+  "C-c C-x" #'rcirc-cmd-quit
+  "C-c C-i" #'rcirc-toggle-ignore-buffer-activity
+  "C-c C-s" #'rcirc-switch-to-server-buffer
+  "C-c C-a" #'rcirc-jump-to-first-unread-line)
 
 (defvar-local rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")
@@ -1714,14 +1711,12 @@ extracted."
                parent
                (substitute-command-keys "\\[rcirc-multiline-minor-cancel]")))))
 
-(defvar rcirc-multiline-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-c") 'rcirc-multiline-minor-submit)
-    (define-key map (kbd "C-x C-s") 'rcirc-multiline-minor-submit)
-    (define-key map (kbd "C-c C-k") 'rcirc-multiline-minor-cancel)
-    (define-key map (kbd "ESC ESC ESC") 'rcirc-multiline-minor-cancel)
-    map)
-  "Keymap for multiline mode in rcirc.")
+(defvar-keymap rcirc-multiline-minor-mode-map
+  :doc "Keymap for multiline mode in rcirc."
+  "C-c C-c"     #'rcirc-multiline-minor-submit
+  "C-x C-s"     #'rcirc-multiline-minor-submit
+  "C-c C-k"     #'rcirc-multiline-minor-cancel
+  "ESC ESC ESC" #'rcirc-multiline-minor-cancel)
 
 (define-minor-mode rcirc-multiline-minor-mode
   "Minor mode for editing multiple lines in rcirc."
@@ -2269,12 +2264,10 @@ This function does not alter the INPUT string."
     (mapconcat rcirc-nick-filter sorted sep)))
 
 ;;; activity tracking
-(defvar rcirc-track-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-@") 'rcirc-next-active-buffer)
-    (define-key map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
-    map)
-  "Keymap for rcirc track minor mode.")
+(defvar-keymap rcirc-track-minor-mode-map
+  :doc "Keymap for rcirc track minor mode."
+  "C-c C-@"   #'rcirc-next-active-buffer
+  "C-c C-SPC" #'rcirc-next-active-buffer)
 
 (defcustom rcirc-track-abbrevate-flag t
   "Non-nil means `rcirc-track-minor-mode' should abbreviate names."

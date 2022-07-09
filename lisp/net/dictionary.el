@@ -326,26 +326,22 @@ is utf-8"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar dictionary-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (set-keymap-parent map button-buffer-map)
-
-    (define-key map "q" #'dictionary-close)
-    (define-key map "h" #'dictionary-help)
-    (define-key map "s" #'dictionary-search)
-    (define-key map "d" #'dictionary-lookup-definition)
-    (define-key map "D" #'dictionary-select-dictionary)
-    (define-key map "M" #'dictionary-select-strategy)
-    (define-key map "m" #'dictionary-match-words)
-    (define-key map "l" #'dictionary-previous)
-    (define-key map "n" #'forward-button)
-    (define-key map "p" #'backward-button)
-    (define-key map " " #'scroll-up-command)
-    (define-key map [?\S-\ ] #'scroll-down-command)
-    (define-key map (read-kbd-macro "M-SPC") #'scroll-down-command)
-    map)
-  "Keymap for the dictionary mode.")
+(defvar-keymap dictionary-mode-map
+  :doc "Keymap for the dictionary mode."
+  :suppress t :parent button-buffer-map
+  "q"     #'dictionary-close
+  "h"     #'dictionary-help
+  "s"     #'dictionary-search
+  "d"     #'dictionary-lookup-definition
+  "D"     #'dictionary-select-dictionary
+  "M"     #'dictionary-select-strategy
+  "m"     #'dictionary-match-words
+  "l"     #'dictionary-previous
+  "n"     #'forward-button
+  "p"     #'backward-button
+  "SPC"   #'scroll-up-command
+  "S-SPC" #'scroll-down-command
+  "M-SPC" #'scroll-down-command)
 
 (defvar dictionary-connection
   nil
