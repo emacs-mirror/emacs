@@ -610,14 +610,14 @@ yanks the contents of the clipboard at point.
 @cindex primary selection
 @cindex selection, primary
 
-  Under the X Window System, there exists a @dfn{primary selection}
-containing the last stretch of text selected in an X application
-(usually by dragging the mouse).  Typically, this text can be inserted
-into other X applications by @kbd{mouse-2} clicks.  The primary
-selection is separate from the clipboard.  Its contents are more
-fragile; they are overwritten each time you select text with the
-mouse, whereas the clipboard is only overwritten by explicit cut
-or copy commands.
+  Under the X Window System, PGTK and Haiku, there exists a
+@dfn{primary selection} containing the last stretch of text selected
+in an X application (usually by dragging the mouse).  Typically, this
+text can be inserted into other X applications by @kbd{mouse-2}
+clicks.  The primary selection is separate from the clipboard.  Its
+contents are more fragile; they are overwritten each time you select
+text with the mouse, whereas the clipboard is only overwritten by
+explicit cut or copy commands.
 
   Under X, whenever the region is active (@pxref{Mark}), the text in
 the region is saved in the primary selection.  This applies regardless
@@ -638,6 +638,13 @@ regions to the primary selection entirely.
 @xref{Mouse Commands}.  You can also use the normal Emacs yank command
 (@kbd{C-y}) to insert this text if @code{select-enable-primary} is set
 (@pxref{Clipboard}).
+
+@cindex lost-selection-mode
+  By default, Emacs keeps the region active even after text is
+selected in another program; this is contrary to typical X behavior.
+To make Emacs deactivate the region after another program places data
+in the primary selection, enable the global minor mode
+@code{lost-selection-mode}.
 
 @cindex MS-Windows, and primary selection
   MS-Windows provides no primary selection, but Emacs emulates it

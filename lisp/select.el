@@ -475,6 +475,45 @@ are not available to other programs."
       (symbolp data)
       (integerp data)))
 
+
+;; Minor mode to make losing ownership of PRIMARY behave more like
+;; other X programs.
+
+(defun lost-selection-function (selection)
+  "Handle losing of ownership of SELECTION.
+If SELECTION is `PRIMARY', deactivate the mark in every
+non-temporary buffer."
+  (let ((select-active-regions nil))
+    (when (eq selection 'PRIMARY)
+      (dolist (buffer (buffer-list))
+        (unless (string-match-p "^ "
+                                (buffer-name buffer))
+          (with-current-buffer buffer
+            (deactivate-mark t)))))))
+
+(define-minor-mode lost-selection-mode
+  "Toggle `lost-selection-mode'.
+
+When this is enabled, selecting some text in another program will
+cause the mark to be deactivated in all buffers, mimicking the
+behavior of most X Windows programs."
+  :global t
+  :group 'x
+  (if lost-selection-mode
+      (cond ((featurep 'x) (add-hook 'x-lost-selection-functions
+                                     #'lost-selection-function))
+            ((featurep 'pgtk) (add-hook 'pgtk-lost-selection-functions
+                                        #'lost-selection-function))
+            ((featurep 'haiku) (add-hook 'haiku-lost-selection-functions
+                                         #'lost-selection-function)))
+    (cond ((featurep 'x) (remove-hook 'x-lost-selection-functions
+                                      #'lost-selection-function))
+          ((featurep 'pgtk) (remove-hook 'pgtk-lost-selection-functions
+                                         #'lost-selection-function))
+          ((featurep 'haiku) (remove-hook 'haiku-lost-selection-functions
+                                          #'lost-selection-function)))))
+
+
 ;; Functions to convert the selection into various other selection types.
 ;; Every selection type that Emacs handles is implemented this way, except
 ;; for TIMESTAMP, which is a special case.

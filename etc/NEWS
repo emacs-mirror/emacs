@@ -2422,6 +2422,11 @@ be kept aligned with the buffer contents when the user switches
 'display-line-numbers-mode' on or off.
 
 +++
+** New minor mode 'lost-selection-mode'.
+This minor mode makes Emacs deactivate the mark in all buffers when
+the primary selection is obtained by another program.
+
++++
 ** New predicate 'char-uppercase-p'.
 This returns non-nil if its argument its an uppercase character.
 
