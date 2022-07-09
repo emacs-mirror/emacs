@@ -1141,7 +1141,7 @@ this ;-)"
   "Check if show buffer is small.
 This is used to decide if smileys and graphical emphasis should be
 displayed."
-  (>= 32000 (buffer-size)))
+  (>= 64000 (buffer-size)))
 
 
 
