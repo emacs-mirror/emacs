@@ -6699,8 +6699,6 @@ w32_display_info_for_name (Lisp_Object name)
   if (dpyinfo == 0)
     error ("Cannot connect to server %s", SDATA (name));
 
-  XSETFASTINT (Vwindow_system_version, w32_major_version);
-
   return dpyinfo;
 }
 
@@ -6781,7 +6779,6 @@ DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
 	error ("Cannot connect to server %s", SDATA (display));
     }
 
-  XSETFASTINT (Vwindow_system_version, w32_major_version);
   return Qnil;
 }
 

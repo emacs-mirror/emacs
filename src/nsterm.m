@@ -5607,17 +5607,6 @@ ns_term_init (Lisp_Object display_name)
 
   NSTRACE_MSG ("Versions");
 
-  {
-#ifdef NS_IMPL_GNUSTEP
-    Vwindow_system_version = build_string (gnustep_base_version);
-#else
-    /* PSnextrelease (128, c); */
-    char c[DBL_BUFSIZE_BOUND];
-    int len = dtoastr (c, sizeof c, 0, 0, NSAppKitVersionNumber);
-    Vwindow_system_version = make_unibyte_string (c, len);
-#endif
-  }
-
   delete_keyboard_wait_descriptor (0);
 
   ns_app_name = [[NSProcessInfo processInfo] processName];

@@ -2715,8 +2715,8 @@ but switching to `ash` is generally much preferable.
 'url-recreate-url-attributes', 'user-variable-p',
 'vc-string-prefix-p', 'vc-toggle-read-only', 'view-return-to-alist',
 'view-return-to-alist-update', 'w32-default-color-map' (function),
-'which-func-mode' (function), 'winner-mode-leave-hook',
-'x-cut-buffer-or-selection-value'.
+'which-func-mode' (function), 'window-system-version',
+'winner-mode-leave-hook', 'x-cut-buffer-or-selection-value'.
 
 ---
 ** Some functions and variables obsolete since Emacs 23 have been removed:

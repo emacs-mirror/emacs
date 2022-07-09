@@ -124,9 +124,6 @@ Root must be the root of an Emacs source tree."
   ;; Major version only.
   (when (string-match "\\([0-9]\\{2,\\}\\)" version)
     (let ((newmajor (match-string 1 version)))
-      (set-version-in-file root "src/msdos.c" newmajor
-                           (rx (and "Vwindow_system_version" (1+ not-newline)
-                                    ?\( (submatch (1+ (in "0-9"))) ?\))))
       (set-version-in-file root "etc/refcards/ru-refcard.tex" newmajor
                            "\\\\newcommand{\\\\versionemacs}\\[0\\]\
 {\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")))

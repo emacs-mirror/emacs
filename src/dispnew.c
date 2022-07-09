@@ -6504,9 +6504,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && display_arg)
     {
       Vinitial_window_system = Qx;
-#ifdef HAVE_X11
-      Vwindow_system_version = make_fixnum (11);
-#endif
 #ifdef USE_NCURSES
       /* In some versions of ncurses,
 	 tputs crashes if we have not called tgetent.
@@ -6521,7 +6518,6 @@ init_display_interactive (void)
   if (!inhibit_window_system)
     {
       Vinitial_window_system = Qw32;
-      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif /* HAVE_NTGUI */
@@ -6530,7 +6526,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qns;
-      Vwindow_system_version = make_fixnum (10);
       return;
     }
 #endif
@@ -6539,7 +6534,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qpgtk;
-      Vwindow_system_version = make_fixnum (3);
       return;
     }
 #endif
@@ -6548,7 +6542,6 @@ init_display_interactive (void)
   if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qhaiku;
-      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif
@@ -6766,10 +6759,6 @@ Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
 predicates which report frame's specific UI-related capabilities.  */);
 
-  DEFVAR_LISP ("window-system-version", Vwindow_system_version,
-	       doc: /* The version number of the window system in use.
-For X windows, this is 11.  */);
-
   DEFVAR_BOOL ("cursor-in-echo-area", cursor_in_echo_area,
 	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
 
@@ -6817,5 +6806,4 @@ static void
 syms_of_display_for_pdumper (void)
 {
   Vinitial_window_system = Qnil;
-  Vwindow_system_version = Qnil;
 }

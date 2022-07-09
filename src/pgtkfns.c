@@ -164,8 +164,6 @@ pgtk_display_info_for_name (Lisp_Object name)
   if (dpyinfo == 0)
     error ("Cannot connect to display server %s", SDATA (name));
 
-  XSETFASTINT (Vwindow_system_version, 11);
-
   return dpyinfo;
 }
 

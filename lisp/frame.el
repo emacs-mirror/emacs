@@ -3050,10 +3050,6 @@ See also `toggle-frame-maximized'."
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 
-;; Defined in dispnew.c.
-(make-obsolete-variable
- 'window-system-version "it does not give useful information." "24.3")
-
 (defun set-frame-property--interactive (prompt number)
   "Get a value for `set-frame-width' or `set-frame-height', prompting with PROMPT.
 Offer NUMBER as default value, if it is a natural number."
