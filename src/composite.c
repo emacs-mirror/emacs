@@ -1871,7 +1871,8 @@ should be ignored.  */)
   else
     {
       CHECK_STRING (string);
-      validate_subarray (string, from, to, SCHARS (string), &frompos, &topos);
+      ptrdiff_t chars = SCHARS (string);
+      validate_subarray (string, from, to, chars, &frompos, &topos);
       if (! STRING_MULTIBYTE (string))
 	{
 	  ptrdiff_t i;
@@ -1881,9 +1882,10 @@ should be ignored.  */)
 	      error ("Attempt to shape unibyte text");
 	  /* STRING is a pure-ASCII string, so we can convert it (or,
 	     rather, its copy) to multibyte and use that thereafter.  */
-	  Lisp_Object string_copy = Fconcat (1, &string);
-	  STRING_SET_MULTIBYTE (string_copy);
-	  string = string_copy;
+	  /* FIXME: Not clear why we need to do that: AFAICT the rest of
+             the code should work on an ASCII-only unibyte string just
+             as well (bug#56347).  */
+	  string = make_multibyte_string (SDATA (string), chars, chars);
 	}
       frombyte = string_char_to_byte (string, frompos);
     }

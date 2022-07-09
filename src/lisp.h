@@ -1640,13 +1640,13 @@ STRING_MULTIBYTE (Lisp_Object str)
 
 /* Mark STR as a multibyte string.  Assure that STR contains only
    ASCII characters in advance.  */
-#define STRING_SET_MULTIBYTE(STR)			\
-  do {							\
-    if (XSTRING (STR)->u.s.size == 0)			\
-      (STR) = empty_multibyte_string;			\
-    else						\
-      XSTRING (STR)->u.s.size_byte = XSTRING (STR)->u.s.size; \
-  } while (false)
+INLINE void
+STRING_SET_MULTIBYTE (Lisp_Object str)
+{
+  /* The 0-length strings are unique&shared so we can't modify them.  */
+  eassert (XSTRING (str)->u.s.size > 0);
+  XSTRING (str)->u.s.size_byte = XSTRING (str)->u.s.size;
+}
 
 /* Convenience functions for dealing with Lisp strings.  */
 
