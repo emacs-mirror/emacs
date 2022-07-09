@@ -1659,6 +1659,40 @@ Redirect output to @var{dest}, inserting it at the current mark if
 @var{dest} is a buffer, at the beginning of the file if @var{dest} is
 a file, or otherwise behaving the same as @code{>>}.
 
+@item &> @var{file}
+@itemx >& @var{file}
+Redirect both standard output and standard error to @var{dest},
+overwriting its contents with the new output.
+
+@item &>> @var{file}
+@itemx >>& @var{file}
+Redirect both standard output and standard error to @var{dest},
+appending it to the existing contents of @var{dest}.
+
+@item &>>> @var{file}
+@itemx >>>& @var{file}
+Redirect both standard output and standard error to @var{dest},
+inserting it like with @code{>>> @var{file}}.
+
+@item >&@var{other-fd}
+@itemx @var{fd}>&@var{other-fd}
+Duplicate the file descriptor @var{other-fd} to @var{fd} (or 1 if
+unspecified).  The order in which this is used is signficant, so
+
+@example
+@var{command} > @var{file} 2>&1
+@end example
+
+redirects both standard output and standard error to @var{file},
+whereas
+
+@example
+@var{command} 2>&1 > @var{file}
+@end example
+
+only redirects standard output to @var{file} (and sends standard error
+to the display via standard output's original handle).
+
 @end table
 
 Eshell supports redirecting output to several different types of
@@ -1721,13 +1755,17 @@ The output function is called once on each line of output until
 @node Pipelines
 @section Pipelines
 As with most other shells, Eshell supports pipelines to pass the
-output of one command the input of the next command.  You can pipe
-commands to each other using the @code{|} operator.  For example,
+output of one command the input of the next command.  You can send the
+standard output of one command to the standard input of another using
+the @code{|} operator.  For example,
 
 @example
 ~ $ echo hello | rev
 olleh
 @end example
+
+To send both the standard output and standard error of a command to
+another command's input, you can use the @code{|&} operator.
 
 @subsection Running Shell Pipelines Natively
 When constructing shell pipelines that will move a lot of data, it is
@@ -2217,10 +2255,9 @@ current being used.
 
 @item How can Eshell learn if a background process has requested input?
 
-@item Support @samp{2>&1} and @samp{>&} and @samp{2>} and @samp{|&}
+@item Make a customizable syntax table for redirects
 
-The syntax table for parsing these should be customizable, such that the
-user could change it to use rc syntax: @samp{>[2=1]}.
+This way, the user could change it to use rc syntax: @samp{>[2=1]}.
 
 @item Allow @samp{$_[-1]}, which would indicate the last element of the array
 

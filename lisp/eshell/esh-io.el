@@ -154,6 +154,14 @@ not be added to this variable."
 
 ;;; Internal Variables:
 
+(defconst eshell-redirection-operators-alist
+  '(("<"   . input)                     ; FIXME: Not supported yet.
+    (">"   . overwrite)
+    (">>"  . append)
+    (">>>" . insert))
+  "An association list of redirection operators to symbols
+describing the mode, e.g. for using with `eshell-get-target'.")
+
 (defvar eshell-current-handles nil)
 
 (defvar eshell-last-command-status 0
@@ -173,53 +181,104 @@ not be added to this variable."
 (defun eshell-io-initialize ()      ;Called from `eshell-mode' via intern-soft!
   "Initialize the I/O subsystem code."
   (add-hook 'eshell-parse-argument-hook
-	    'eshell-parse-redirection nil t)
+            #'eshell-parse-redirection nil t)
   (make-local-variable 'eshell-current-redirections)
   (add-hook 'eshell-pre-rewrite-command-hook
-	    'eshell-strip-redirections nil t)
+            #'eshell-strip-redirections nil t)
   (add-function :filter-return (local 'eshell-post-rewrite-command-function)
                 #'eshell--apply-redirections))
 
 (defun eshell-parse-redirection ()
-  "Parse an output redirection, such as `2>'."
-  (if (and (not eshell-current-quoted)
-	   (looking-at "\\([0-9]\\)?\\(<\\|>+\\)&?\\([0-9]\\)?\\s-*"))
+  "Parse an output redirection, such as `2>' or `>&'."
+  (when (not eshell-current-quoted)
+    (cond
+     ;; Copying a handle (e.g. `2>&1').
+     ((looking-at (rx (? (group digit))
+                      (group (or "<" ">"))
+                      "&" (group digit)
+                      (* (syntax whitespace))))
+      (let ((source (string-to-number (or (match-string 1) "1")))
+            (mode (cdr (assoc (match-string 2)
+                              eshell-redirection-operators-alist)))
+            (target (string-to-number (match-string 3))))
+        (when (eq mode 'input)
+          (error "Eshell does not support input redirection"))
+        (goto-char (match-end 0))
+        (eshell-finish-arg (list 'eshell-copy-output-handle
+                                 source target))))
+     ;; Shorthand for redirecting both stdout and stderr (e.g. `&>').
+     ((looking-at (rx (or (seq (group (** 1 3 ">")) "&")
+                          (seq "&" (group-n 1 (** 1 3 ">"))))
+                      (* (syntax whitespace))))
       (if eshell-current-argument
-	  (eshell-finish-arg)
-	(let ((sh (match-string 1))
-	      (oper (match-string 2))
-;	      (th (match-string 3))
-	      )
-	  (if (string= oper "<")
-	      (error "Eshell does not support input redirection"))
-	  (eshell-finish-arg
-	   (prog1
-	       (list 'eshell-set-output-handle
-		     (or (and sh (string-to-number sh)) 1)
-		     (list 'quote
-			   (aref [overwrite append insert]
-				 (1- (length oper)))))
-	     (goto-char (match-end 0))))))))
+          (eshell-finish-arg)
+        (goto-char (match-end 0))
+        (eshell-finish-arg
+         (let ((mode (cdr (assoc (match-string 1)
+                                 eshell-redirection-operators-alist))))
+           (list 'eshell-set-all-output-handles
+                 (list 'quote mode))))))
+     ;; Shorthand for piping both stdout and stderr (i.e. `|&').
+     ((looking-at (rx "|&" (* (syntax whitespace))))
+      (if eshell-current-argument
+          (eshell-finish-arg)
+        (goto-char (match-end 0))
+        (eshell-finish-arg
+         '(eshell-copy-output-handle eshell-error-handle
+                                     eshell-output-handle)
+         '(eshell-operator "|"))))
+     ;; Regular redirecting (e.g. `2>').
+     ((looking-at (rx (? (group digit))
+                      (group (or "<" (** 1 3 ">")))
+                      (* (syntax whitespace))))
+      (if eshell-current-argument
+          (eshell-finish-arg)
+        (let ((source (if (match-string 1)
+                          (string-to-number (match-string 1))
+                        eshell-output-handle))
+              (mode (cdr (assoc (match-string 2)
+                                eshell-redirection-operators-alist))))
+          (when (eq mode 'input)
+            (error "Eshell does not support input redirection"))
+          (goto-char (match-end 0))
+          (eshell-finish-arg
+           ;; Note: the target will be set later by
+           ;; `eshell-strip-redirections'.
+           (list 'eshell-set-output-handle
+                 source (list 'quote mode)))))))))
 
 (defun eshell-strip-redirections (terms)
   "Rewrite any output redirections in TERMS."
   (setq eshell-current-redirections (list t))
   (let ((tl terms)
-	(tt (cdr terms)))
+        (tt (cdr terms)))
     (while tt
-      (if (not (and (consp (car tt))
-		    (eq (caar tt) 'eshell-set-output-handle)))
-	  (setq tt (cdr tt)
-		tl (cdr tl))
-	(unless (cdr tt)
-	  (error "Missing redirection target"))
-	(nconc eshell-current-redirections
-	       (list (list 'ignore
-			   (append (car tt) (list (cadr tt))))))
-	(setcdr tl (cddr tt))
-	(setq tt (cddr tt))))
+      (cond
+       ;; Strip `eshell-copy-output-handle'.
+       ((and (consp (car tt))
+             (eq (caar tt) 'eshell-copy-output-handle))
+        (nconc eshell-current-redirections
+               (list (car tt)))
+        (setcdr tl (cddr tt))
+        (setq tt (cdr tt)))
+       ;; Strip `eshell-set-output-handle' or
+       ;; `eshell-set-all-output-handles' and the term immediately
+       ;; after (the redirection target).
+       ((and (consp (car tt))
+             (memq (caar tt) '(eshell-set-output-handle
+                               eshell-set-all-output-handles)))
+        (unless (cdr tt)
+          (error "Missing redirection target"))
+        (nconc eshell-current-redirections
+               (list (list 'ignore
+                           (append (car tt) (list (cadr tt))))))
+        (setcdr tl (cddr tt))
+        (setq tt (cddr tt)))
+       (t
+        (setq tt (cdr tt)
+              tl (cdr tl)))))
     (setq eshell-current-redirections
-	  (cdr eshell-current-redirections))))
+          (cdr eshell-current-redirections))))
 
 (defun eshell--apply-redirections (cmd)
   "Apply any redirection which were specified for COMMAND."
@@ -294,6 +353,22 @@ If HANDLES is nil, use `eshell-current-handles'."
           (if (not (aref handles index))
               (aset handles index (cons nil 1)))
           (setcar (aref handles index) current))))))
+
+(defun eshell-copy-output-handle (index index-to-copy &optional handles)
+  "Copy the handle INDEX-TO-COPY to INDEX for the current HANDLES.
+If HANDLES is nil, use `eshell-current-handles'."
+  (let* ((handles (or handles eshell-current-handles))
+         (handle-to-copy (car (aref handles index-to-copy))))
+    (setcar (aref handles index)
+            (if (listp handle-to-copy)
+                (copy-sequence handle-to-copy)
+              handle-to-copy))))
+
+(defun eshell-set-all-output-handles (mode &optional target handles)
+  "Set output and error HANDLES to point to TARGET using MODE.
+If HANDLES is nil, use `eshell-current-handles'."
+  (eshell-set-output-handle eshell-output-handle mode target handles)
+  (eshell-copy-output-handle eshell-error-handle eshell-output-handle handles))
 
 (defun eshell-close-target (target status)
   "Close an output TARGET, passing STATUS as the result.

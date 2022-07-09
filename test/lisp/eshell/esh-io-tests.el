@@ -199,6 +199,78 @@
       (should (equal (buffer-string) "stderr\n")))
     (should (equal (buffer-string) "stdout\n"))))
 
+(ert-deftest esh-io-test/redirect-all/overwrite ()
+  "Check that redirecting to stdout and stderr via shorthand works."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output &> #<%s>" bufname)
+                                  "\\`\\'"))
+    (should (equal (buffer-string) "stdout\nstderr\n")))
+  ;; Also check the alternate (and less-preferred in Bash) `>&' syntax.
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output >& #<%s>" bufname)
+                                  "\\`\\'"))
+    (should (equal (buffer-string) "stdout\nstderr\n"))))
+
+(ert-deftest esh-io-test/redirect-all/append ()
+  "Check that redirecting to stdout and stderr via shorthand works."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output &>> #<%s>" bufname)
+                                  "\\`\\'"))
+    (should (equal (buffer-string) "oldstdout\nstderr\n")))
+  ;; Also check the alternate (and less-preferred in Bash) `>>&' syntax.
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output >>& #<%s>" bufname)
+                                  "\\`\\'"))
+    (should (equal (buffer-string) "oldstdout\nstderr\n"))))
+
+(ert-deftest esh-io-test/redirect-all/insert ()
+  "Check that redirecting to stdout and stderr via shorthand works."
+  (eshell-with-temp-buffer bufname "old"
+    (goto-char (point-min))
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output &>>> #<%s>" bufname)
+                                  "\\`\\'"))
+    (should (equal (buffer-string) "stdout\nstderr\nold")))
+  ;; Also check the alternate `>>>&' syntax.
+  (eshell-with-temp-buffer bufname "old"
+    (goto-char (point-min))
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output >>>& #<%s>" bufname)
+                                  "\\`\\'"))
+    (should (equal (buffer-string) "stdout\nstderr\nold"))))
+
+(ert-deftest esh-io-test/redirect-copy ()
+  "Check that redirecting stdout and then copying stdout to stderr works.
+This should redirect both stdout and stderr to the same place."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output > #<%s> 2>&1" bufname)
+                                  "\\`\\'"))
+    (should (equal (buffer-string) "stdout\nstderr\n"))))
+
+(ert-deftest esh-io-test/redirect-copy-first ()
+  "Check that copying stdout to stderr and then redirecting stdout works.
+This should redirect stdout to a buffer, and stderr to where
+stdout originally pointed (the terminal)."
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output (format "test-output 2>&1 > #<%s>" bufname)
+                                  "stderr\n"))
+    (should (equal (buffer-string) "stdout\n"))))
+
+(ert-deftest esh-io-test/redirect-pipe ()
+  "Check that \"redirecting\" to a pipe works."
+  ;; `|' should only redirect stdout.
+  (eshell-command-result-equal "test-output | rev"
+                               "stderr\ntuodts\n")
+  ;; `|&' should redirect stdout and stderr.
+  (eshell-command-result-equal "test-output |& rev"
+                               "tuodts\nrredts\n"))
+
 
 ;; Virtual targets
 

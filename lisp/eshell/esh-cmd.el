@@ -810,8 +810,6 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 	   `(let ((nextproc
 		   (eshell-do-pipelines (quote ,(cdr pipeline)) t)))
               (eshell-set-output-handle ,eshell-output-handle
-                                        'append nextproc)
-              (eshell-set-output-handle ,eshell-error-handle
                                         'append nextproc)))
 	,(let ((head (car pipeline)))
 	   (if (memq (car head) '(let progn))
@@ -842,8 +840,6 @@ This is used on systems where async subprocesses are not supported."
        ,(when (cdr pipeline)
           `(let ((output-marker ,(point-marker)))
              (eshell-set-output-handle ,eshell-output-handle
-                                       'append output-marker)
-             (eshell-set-output-handle ,eshell-error-handle
                                        'append output-marker)))
        ,(let ((head (car pipeline)))
           (if (memq (car head) '(let progn))

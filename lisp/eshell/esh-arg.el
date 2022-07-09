@@ -29,6 +29,9 @@
 
 (require 'esh-util)
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (defgroup eshell-arg nil
   "Argument parsing involves transforming the arguments passed on the
 command line into equivalent Lisp forms that, when evaluated, will
@@ -248,10 +251,16 @@ convert the result to a number as well."
 	    eshell-current-modifiers (cdr eshell-current-modifiers))))
   (setq eshell-current-modifiers nil))
 
-(defun eshell-finish-arg (&optional argument)
-  "Finish the current ARGUMENT being processed."
-  (if argument
-      (setq eshell-current-argument argument))
+(defun eshell-finish-arg (&rest arguments)
+  "Finish the current argument being processed.
+If any ARGUMENTS are specified, they will be added to the final
+argument list in place of the value of the current argument."
+  (when arguments
+    (if (= (length arguments) 1)
+        (setq eshell-current-argument (car arguments))
+      (cl-assert (and (not eshell-arg-listified)
+                      (not eshell-current-modifiers)))
+      (setq eshell-current-argument (cons 'eshell-flatten-args arguments))))
   (throw 'eshell-arg-done t))
 
 (defun eshell-quote-argument (string)
@@ -291,7 +300,11 @@ Point is left at the end of the arguments."
                      (if (= (point) here)
                          (error "Failed to parse argument `%s'"
                                 (buffer-substring here (point-max))))
-                     (and arg (nconc args (list arg)))))))
+                     (when arg
+                       (nconc args
+                              (if (eq (car-safe arg) 'eshell-flatten-args)
+                                  (cdr arg)
+                                (list arg))))))))
               (throw 'eshell-incomplete (if (listp delim)
                                             delim
                                           (list delim (point) (cdr args)))))

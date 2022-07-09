@@ -321,6 +321,10 @@ been restricted to "...", '...', /.../, |...|, (...), [...], <...>,
 and {...}.  See the "(eshell) Argument Predication and Modification"
 node in the Eshell manual for more details.
 
++++
+*** Eshell pipelines now only pipe stdout by default.
+To pipe both stdout and stderr, use the '|&' operator instead of '|'.
+
 ---
 ** The 'delete-forward-char' command now deletes by grapheme clusters.
 This command is by default bound to the <Delete> function key
@@ -2236,6 +2240,13 @@ applies only when 'default-directory' is remote and the command is a
 Lisp function.  This frees you from having to keep track of whether
 commands are Lisp function or external when supplying absolute file
 name arguments.  See "Electric forward slash" in the Eshell manual.
+
++++
+*** Improved support for redirection operators in Eshell.
+Eshell now supports a wider variety of redirection operators.  For
+example, you can now redirect both stdout and stderr via '&>' or
+duplicate one output handle to another via 'NEW-FD>&OLD-FD'.  For more
+information, see "Redirections" in the Eshell manual.
 
 +++
 *** Double-quoting an Eshell expansion now treats the result as a single string.
