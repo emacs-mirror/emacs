@@ -148,14 +148,15 @@
   :group 'comm)
 
 (defvar browse-url--browser-defcustom-type
-  '(choice
-    (function-item :tag "eww" :value  eww-browse-url)
+  `(choice
+    (function-item :tag "Emacs Web Wowser (EWW)" :value  eww-browse-url)
     (function-item :tag "Mozilla" :value  browse-url-mozilla)
     (function-item :tag "Firefox" :value browse-url-firefox)
     (function-item :tag "Google Chrome" :value browse-url-chrome)
     (function-item :tag "Chromium" :value browse-url-chromium)
     (function-item :tag "GNOME Web (Epiphany)" :value  browse-url-epiphany)
-    (function-item :tag "WebPositive" :value browse-url-webpositive)
+    ,@(when (eq system-type 'haiku)
+        (list '(function-item :tag "WebPositive" :value browse-url-webpositive)))
     (function-item :tag "Text browser in an xterm window"
 		   :value browse-url-text-xterm)
     (function-item :tag "Text browser in an Emacs window"
@@ -163,11 +164,13 @@
     (function-item :tag "KDE" :value browse-url-kde)
     (function-item :tag "Elinks" :value browse-url-elinks)
     (function-item :tag "Specified by `Browse Url Generic Program'"
-		   :value browse-url-generic)
-    (function-item :tag "Default Windows browser"
-		   :value browse-url-default-windows-browser)
-    (function-item :tag "Default macOS browser"
-		   :value browse-url-default-macosx-browser)
+                   :value browse-url-generic)
+    ,@(when (eq system-type 'windows-nt)
+        (list '(function-item :tag "Default Windows browser"
+                              :value browse-url-default-windows-browser)))
+    ,@(when (eq system-type 'darwin)
+        (list '(function-item :tag "Default macOS browser"
+                              :value browse-url-default-macosx-browser)))
     (function-item :tag "Default browser"
 		   :value browse-url-default-browser)
     (function :tag "Your own function")
