@@ -7226,7 +7226,8 @@ back_to_previous_visible_line_start (struct it *it)
   it->continuation_lines_width = 0;
 
   eassert (IT_CHARPOS (*it) >= BEGV);
-  eassert (IT_CHARPOS (*it) == BEGV
+  eassert (it->narrowed_begv > BEGV
+	   || IT_CHARPOS (*it) == BEGV
 	   || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
   CHECK_IT (it);
 }
