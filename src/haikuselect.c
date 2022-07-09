@@ -1026,6 +1026,10 @@ haiku_handle_selection_clear (struct input_event *ie)
 {
   CALLN (Frun_hook_with_args,
 	 Qhaiku_lost_selection_functions, ie->arg);
+
+  /* This is required for redisplay to happen if something changed the
+     display inside the selection loss functions.  */
+  redisplay_preserve_echo_area (20);
 }
 
 void
