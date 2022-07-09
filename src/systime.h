@@ -26,6 +26,9 @@ INLINE_HEADER_BEGIN
 
 #ifdef HAVE_X_WINDOWS
 # include <X11/X.h>
+#elif defined HAVE_HAIKU
+# include <support/SupportDefs.h>
+typedef int64 Time;
 #else
 typedef unsigned long Time;
 #endif

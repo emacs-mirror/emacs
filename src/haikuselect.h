@@ -39,7 +39,7 @@ extern "C"
 {
 #endif
 /* Defined in haikuselect.c.  */
-extern void haiku_selection_disowned (enum haiku_clipboard);
+extern void haiku_selection_disowned (enum haiku_clipboard, int64);
 
 /* Defined in haiku_select.cc.  */
 extern void be_clipboard_init (void);
@@ -66,6 +66,7 @@ extern int be_lock_clipboard_message (enum haiku_clipboard, void **, bool);
 extern void be_unlock_clipboard (enum haiku_clipboard, bool);
 extern void be_handle_clipboard_changed_message (void);
 extern void be_start_watching_selection (enum haiku_clipboard);
+extern bool be_selection_outdated_p (enum haiku_clipboard, int64);
 
 #ifdef __cplusplus
 };
