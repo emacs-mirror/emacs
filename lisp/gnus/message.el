@@ -1411,7 +1411,7 @@ text and it replaces `self-insert-command' with the other command, e.g.
       (file-name-as-directory (expand-file-name "drafts" message-directory))
     "~/")
   "Directory where Message auto-saves buffers if Gnus isn't running.
-If nil, Message won't auto-save."
+If nil, Message won't auto-save, whether or not Gnus is running."
   :group 'message-buffers
   :link '(custom-manual "(message)Various Message Variables")
   :type '(choice directory (const :tag "Don't auto-save" nil)))
