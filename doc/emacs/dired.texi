@@ -1333,6 +1333,12 @@ parent directory.
 @kindex > @r{(Dired)}
 @item >
 Move down to the next directory-file line (@code{dired-next-dirline}).
+
+@findex dired-goto-subdir
+@kindex M-G @r{(Dired)}
+@item M-G
+Prompt for a directory and move to its directory-file line
+(@code{dired-goto-subdir}).
 @end table
 
 @node Hiding Subdirectories

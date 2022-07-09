@@ -1065,6 +1065,11 @@ The corresponding key "Y" is now bound by default in Dired.
 *** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
 The corresponding key "% Y" is now bound by default in Dired.
 
+---
+*** 'M-G' is now bound to 'dired-goto-subdir'.
+Before, that binding was only available if the 'dired-x' package was
+loaded.
+
 +++
 *** 'dired-info' and 'dired-man' moved from dired-x to dired.
 The 'dired-info' and 'dired-man' commands have been moved from the

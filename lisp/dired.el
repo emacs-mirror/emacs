@@ -2174,6 +2174,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "S-SPC"   #'dired-previous-line
   "<remap> <next-line>"        #'dired-next-line
   "<remap> <previous-line>"    #'dired-previous-line
+  "M-G"    #'dired-goto-subdir
   ;; hiding
   "$"       #'dired-hide-subdir
   "M-$"     #'dired-hide-all
