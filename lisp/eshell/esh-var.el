@@ -549,27 +549,26 @@ For example, \"[0 1][2]\" becomes:
   "Get the value for the variable NAME.
 INDICES is a list of index-lists (see `eshell-parse-indices').
 If QUOTED is non-nil, this was invoked inside double-quotes."
-  (let* ((alias (assoc name eshell-variable-aliases-list))
-	 (var (if alias
-		  (cadr alias)
-		name)))
-    (if (and alias (functionp var))
-	(funcall var indices)
-      (eshell-apply-indices
-       (cond
-	((stringp var)
-	 (let ((sym (intern-soft var)))
-	   (if (and sym (boundp sym)
-		    (or eshell-prefer-lisp-variables
-			(memq sym eshell--local-vars) ; bug#15372
-			(not (getenv var))))
-	       (symbol-value sym)
-	     (getenv var))))
-	((symbolp var)
-	 (symbol-value var))
-	(t
-	 (error "Unknown variable `%s'" (eshell-stringify var))))
-       indices quoted))))
+  (if-let ((alias (assoc name eshell-variable-aliases-list)))
+      (let ((target (cadr alias)))
+        (cond
+         ((functionp target)
+          (funcall target indices))
+         ((symbolp target)
+          (eshell-apply-indices (symbol-value target) indices quoted))
+         (t
+          (eshell-get-variable target indices quoted))))
+    (unless (stringp name)
+      (error "Unknown variable `%s'" (eshell-stringify name)))
+    (eshell-apply-indices
+     (let ((sym (intern-soft name)))
+       (if (and sym (boundp sym)
+		(or eshell-prefer-lisp-variables
+		    (memq sym eshell--local-vars) ; bug#15372
+		    (not (getenv name))))
+	   (symbol-value sym)
+	 (getenv name)))
+     indices quoted)))
 
 (defun eshell-apply-indices (value indices &optional quoted)
   "Apply to VALUE all of the given INDICES, returning the sub-result.
