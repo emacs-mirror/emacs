@@ -236,22 +236,21 @@ The default location for standard output and standard error will go to
 STDOUT and STDERR, respectively.
 OUTPUT-MODE and ERROR-MODE are either `overwrite', `append' or `insert';
 a nil value of mode defaults to `insert'."
-  (let ((handles (make-vector eshell-number-of-handles nil))
-	(output-target (eshell-get-target stdout output-mode))
-        (error-target (eshell-get-target stderr error-mode)))
+  (let* ((handles (make-vector eshell-number-of-handles nil))
+         (output-target (eshell-get-target stdout output-mode))
+         (error-target (if stderr
+                           (eshell-get-target stderr error-mode)
+                         output-target)))
     (aset handles eshell-output-handle (cons output-target 1))
-    (aset handles eshell-error-handle
-          (cons (if stderr error-target output-target) 1))
+    (aset handles eshell-error-handle (cons error-target 1))
     handles))
 
 (defun eshell-protect-handles (handles)
   "Protect the handles in HANDLES from a being closed."
-  (let ((idx 0))
-    (while (< idx eshell-number-of-handles)
-      (if (aref handles idx)
-	  (setcdr (aref handles idx)
-		  (1+ (cdr (aref handles idx)))))
-      (setq idx (1+ idx))))
+  (dotimes (idx eshell-number-of-handles)
+    (when (aref handles idx)
+      (setcdr (aref handles idx)
+              (1+ (cdr (aref handles idx))))))
   handles)
 
 (defun eshell-close-handles (&optional exit-code result handles)
@@ -277,6 +276,24 @@ the value already set in `eshell-last-command-result'."
           (dolist (target (ensure-list (car (aref handles idx))))
             (eshell-close-target target (= eshell-last-command-status 0)))
           (setcar handle nil))))))
+
+(defun eshell-set-output-handle (index mode &optional target handles)
+  "Set handle INDEX for the current HANDLES to point to TARGET using MODE.
+If HANDLES is nil, use `eshell-current-handles'."
+  (when target
+    (let ((handles (or handles eshell-current-handles)))
+      (if (and (stringp target)
+               (string= target (null-device)))
+          (aset handles index nil)
+        (let ((where (eshell-get-target target mode))
+              (current (car (aref handles index))))
+          (if (listp current)
+              (unless (member where current)
+                (setq current (append current (list where))))
+            (setq current (list where)))
+          (if (not (aref handles index))
+              (aset handles index (cons nil 1)))
+          (setcar (aref handles index) current))))))
 
 (defun eshell-close-target (target status)
   "Close an output TARGET, passing STATUS as the result.
@@ -389,22 +406,6 @@ it defaults to `insert'."
    (t
     (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
-
-(defun eshell-set-output-handle (index mode &optional target)
-  "Set handle INDEX, using MODE, to point to TARGET."
-  (when target
-    (if (and (stringp target)
-             (string= target (null-device)))
-	(aset eshell-current-handles index nil)
-      (let ((where (eshell-get-target target mode))
-	    (current (car (aref eshell-current-handles index))))
-	(if (and (listp current)
-		 (not (member where current)))
-	    (setq current (append current (list where)))
-	  (setq current (list where)))
-	(if (not (aref eshell-current-handles index))
-	    (aset eshell-current-handles index (cons nil 1)))
-	(setcar (aref eshell-current-handles index) current)))))
 
 (defun eshell-interactive-output-p ()
   "Return non-nil if current handles are bound for interactive display."

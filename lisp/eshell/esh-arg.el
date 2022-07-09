@@ -147,6 +147,10 @@ return the result of the parse as a sexp.  It is also responsible for
 moving the point forward to reflect the amount of input text that was
 parsed.
 
+If the hook determines that it has reached the end of an argument, it
+should call `eshell-finish-arg' to complete processing of the current
+argument and proceed to the next.
+
 If no function handles the current character at point, it will be
 treated as a literal character."
   :type 'hook

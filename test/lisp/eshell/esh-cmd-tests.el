@@ -74,6 +74,25 @@ e.g. \"{(+ 1 2)} 3\" => 3"
   (eshell-command-result-equal "{(+ 1 2)} 3" 3))
 
 
+;; Lisp forms
+
+(ert-deftest esh-cmd-test/quoted-lisp-form ()
+  "Test parsing of a quoted Lisp form."
+  (eshell-command-result-equal "echo #'(1 2)" '(1 2)))
+
+(ert-deftest esh-cmd-test/backquoted-lisp-form ()
+  "Test parsing of a backquoted Lisp form."
+  (let ((eshell-test-value 42))
+    (eshell-command-result-equal "echo `(answer ,eshell-test-value)"
+                                 '(answer 42))))
+
+(ert-deftest esh-cmd-test/backquoted-lisp-form/splice ()
+  "Test parsing of a backquoted Lisp form using splicing."
+  (let ((eshell-test-value '(2 3)))
+    (eshell-command-result-equal "echo `(1 ,@eshell-test-value)"
+                                 '(1 2 3))))
+
+
 ;; Logical operators
 
 (ert-deftest esh-cmd-test/and-operator ()
