@@ -40,9 +40,6 @@
 (require 'dired-loaddefs nil t)
 (require 'dnd)
 
-(declare-function dired-buffer-more-recently-used-p
-		  "dired-x" (buffer1 buffer2))
-
 
 ;;; Customizable variables
 
@@ -3504,6 +3501,14 @@ is the directory where the file on this line resides."
     (if (or (null (cdr dired-subdir-alist)) (not (dired-next-subdir 1 t t)))
 	(point-max)
       (point))))
+
+;; This should be a builtin
+(defun dired-buffer-more-recently-used-p (buffer1 buffer2)
+  "Return t if BUFFER1 is more recently used than BUFFER2.
+Considers buffers closer to the car of `buffer-list' to be more recent."
+  (and (not (equal buffer1 buffer2))
+       (memq buffer1 (buffer-list))
+       (not (memq buffer1 (memq buffer2 (buffer-list))))))
 
 
 ;;; Deleting files

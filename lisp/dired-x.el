@@ -1138,14 +1138,6 @@ otherwise."
 
 ;;; Miscellaneous internal functions
 
-;; This should be a builtin
-(defun dired-buffer-more-recently-used-p (buffer1 buffer2)
-  "Return t if BUFFER1 is more recently used than BUFFER2.
-Considers buffers closer to the car of `buffer-list' to be more recent."
-  (and (not (equal buffer1 buffer2))
-       (memq buffer1 (buffer-list))
-       (not (memq buffer1 (memq buffer2 (buffer-list))))))
-
 ;; Needed if ls -lh is supported and also for GNU ls -ls.
 (defun dired-x--string-to-number (str)
   "Like `string-to-number' but recognize a trailing unit prefix.
