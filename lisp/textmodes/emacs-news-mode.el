@@ -52,6 +52,7 @@
   :parent emacs-news-common-map
   "C-c C-s" #'emacs-news-next-untagged-entry
   "C-c C-r" #'emacs-news-previous-untagged-entry
+  "C-c C-t" #'emacs-news-toggle-tag
   "C-c C-g" #'emacs-news-goto-section
   "C-c C-j" #'emacs-news-find-heading
   "C-c C-e" #'emacs-news-count-untagged-entries
@@ -161,6 +162,26 @@ untagged NEWS entry."
   "Go to the previous untagged NEWS entry."
   (interactive nil emacs-news-mode)
   (emacs-news-next-untagged-entry t))
+
+(defun emacs-news-toggle-tag ()
+  "Toggle documentation tag of current headline in the Emacs NEWS file."
+  (interactive nil emacs-news-mode)
+  (save-excursion
+    (goto-char (line-beginning-position))
+    (cond ((or (looking-at (rx bol (or "---" "+++") eol)))
+           (forward-line 2))
+          ((or (looking-at (rx bol "*** ")))
+           (forward-line 1)))
+    (outline-previous-visible-heading 1)
+    (forward-line -1)
+    (cond ((not (looking-at (rx bol (or "---" "+++") eol)))
+           (insert "\n---"))
+          ((looking-at (rx bol "---" eol))
+           (delete-char 3)
+           (insert "+++"))
+          ((looking-at (rx bol "+++" eol))
+           (delete-char 4))
+          (t (user-error "Invalid headline tag; can't toggle")))))
 
 (defun emacs-news-count-untagged-entries ()
   "Say how many untagged entries there are in the current NEWS buffer."
