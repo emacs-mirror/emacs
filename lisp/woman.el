@@ -841,10 +841,12 @@ Only useful when run on a graphic display such as X or MS-Windows."
   :tag "WoMan Formatting"
   :group 'woman)
 
-(defcustom woman-fill-column 65
-  "Right margin for formatted text -- default is 65."
+;; This could probably be 80 to match 'Man-width'.
+(defcustom woman-fill-column 70
+  "Right margin for formatted text -- default is 70."
   :type 'natnum
-  :group 'woman-formatting)
+  :group 'woman-formatting
+  :version "29.1")
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
