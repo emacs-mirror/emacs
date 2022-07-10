@@ -3475,6 +3475,35 @@ ns_draw_box (NSRect r, CGFloat hthickness, CGFloat vthickness,
     }
 }
 
+/* Set up colors for the relief lines around glyph string S.  */
+
+static void
+ns_setup_relief_colors (struct glyph_string *s)
+{
+  struct ns_output *di = FRAME_OUTPUT_DATA (s->f);
+  NSColor *color;
+
+  if (s->face->use_box_color_for_shadows_p)
+    color = [NSColor colorWithUnsignedLong: s->face->box_color];
+  else
+    color = [NSColor colorWithUnsignedLong: s->face->background];
+
+  if (s->hl == DRAW_CURSOR)
+    color = FRAME_CURSOR_COLOR (s->f);
+
+  if (color == nil)
+    color = [NSColor grayColor];
+
+  if (color != di->relief_background_color)
+    {
+      [di->relief_background_color release];
+      di->relief_background_color = [color retain];
+      [di->light_relief_color release];
+      di->light_relief_color = [[color highlightWithLevel: 0.4] retain];
+      [di->dark_relief_color release];
+      di->dark_relief_color = [[color shadowWithLevel: 0.4] retain];
+    }
+}
 
 static void
 ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
@@ -3486,40 +3515,13 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
     of some sides not being drawn, and because the rect will be filled.
    -------------------------------------------------------------------------- */
 {
-  static NSColor *baseCol, *lightCol, *darkCol;
-  NSColor *newBaseCol;
   NSRect inner;
-  NSBezierPath *p;
-
-  baseCol = nil;
-  lightCol = nil;
-  newBaseCol = nil;
-  p = nil;
+  NSBezierPath *p = nil;
 
   NSTRACE ("ns_draw_relief");
 
   /* set up colors */
-
-  if (s->face->use_box_color_for_shadows_p)
-    newBaseCol = [NSColor colorWithUnsignedLong: s->face->box_color];
-  else
-    newBaseCol = [NSColor colorWithUnsignedLong: s->face->background];
-
-  if (s->hl == DRAW_CURSOR)
-    newBaseCol = FRAME_CURSOR_COLOR (s->f);
-
-  if (newBaseCol == nil)
-    newBaseCol = [NSColor grayColor];
-
-  if (newBaseCol != baseCol)  /* TODO: better check */
-    {
-      [baseCol release];
-      baseCol = [newBaseCol retain];
-      [lightCol release];
-      lightCol = [[baseCol highlightWithLevel: 0.4] retain];
-      [darkCol release];
-      darkCol = [[baseCol shadowWithLevel: 0.4] retain];
-    }
+  ns_setup_relief_colors (s);
 
   /* Calculate the inner rectangle.  */
   inner = outer;
@@ -3542,7 +3544,9 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
   if (bottom_p)
     inner.size.height -= hthickness;
 
-  [(raised_p ? lightCol : darkCol) set];
+  struct ns_output *di = FRAME_OUTPUT_DATA (s->f);
+
+  [(raised_p ? di->light_relief_color : di->dark_relief_color) set];
 
   if (top_p || left_p)
     {
@@ -3564,7 +3568,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
       [p fill];
     }
 
-  [(raised_p ? darkCol : lightCol) set];
+  [(raised_p ? di->dark_relief_color : di->light_relief_color) set];
 
   if (bottom_p || right_p)
     {
@@ -3626,7 +3630,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
 				   NSMaxY (outer) - 0.5)];
     }
 
-  [darkCol set];
+  [di->dark_relief_color set];
   [p stroke];
 
   if (vthickness > 1 && hthickness > 1)

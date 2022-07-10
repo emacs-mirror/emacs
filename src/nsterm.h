@@ -927,6 +927,9 @@ struct ns_output
   NSColor *cursor_color;
   NSColor *foreground_color;
   NSColor *background_color;
+  NSColor *relief_background_color;
+  NSColor *light_relief_color;
+  NSColor *dark_relief_color;
   EmacsToolbar *toolbar;
 #else
   void *view;
@@ -934,6 +937,9 @@ struct ns_output
   void *cursor_color;
   void *foreground_color;
   void *background_color;
+  void *relief_background_color;
+  void *light_relief_color;
+  void *dark_relief_color;
   void *toolbar;
 #endif
 
