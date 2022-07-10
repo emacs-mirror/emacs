@@ -800,10 +800,12 @@ It is the default value of the variable `top-level'."
 	  ;; face-font-rescale-alist into account.  For such
 	  ;; situations, we ought to have a way to find all font
 	  ;; objects and regenerate them; currently we do not.  As a
-	  ;; workaround, we specifically reset te default face's :font
-	  ;; attribute here.  See bug#1785.
-	  (unless (eq face-font-rescale-alist
-		      old-face-font-rescale-alist)
+	  ;; workaround, we specifically reset the default face's :font
+	  ;; attribute here, if it was rescaled.  See bug#1785.
+	  (when (and (not (eq face-font-rescale-alist
+		              old-face-font-rescale-alist))
+                     (assoc (font-xlfd-name (face-attribute 'default :font))
+                            face-font-rescale-alist #'string-match-p))
 	    (set-face-attribute 'default nil :font (font-spec)))
 
 	  ;; Modify the initial frame based on what .emacs puts into
@@ -2839,6 +2841,14 @@ nil default-directory" name)
         ;; run this hook now, and there may be some need to do it
         ;; before doing any output.
         (run-hooks 'emacs-startup-hook 'term-setup-hook)
+
+        ;; See the commentary in `normal-top-level' for why we do
+        ;; this.
+	(when (and (not (eq face-font-rescale-alist
+		            old-face-font-rescale-alist))
+                   (assoc (font-xlfd-name (face-attribute 'default :font))
+                          face-font-rescale-alist #'string-match-p))
+	  (set-face-attribute 'default nil :font (font-spec)))
 
         ;; It's important to notice the user settings before we
         ;; display the startup message; otherwise, the settings
