@@ -7113,6 +7113,23 @@ x_update_frame_user_time_window (struct frame *f)
   output = FRAME_X_OUTPUT (f);
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
+  if (!NILP (Vx_no_window_manager))
+    {
+      if (output->user_time_window != None
+	  && output->user_time_window != FRAME_OUTER_WINDOW (f))
+	{
+	  XDestroyWindow (dpyinfo->display, output->user_time_window);
+	  XDeleteProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+			   dpyinfo->Xatom_net_wm_user_time_window);
+	}
+      else
+	XDeleteProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+			 dpyinfo->Xatom_net_wm_user_time);
+
+      output->user_time_window = None;
+      return;
+    }
+
   if (!x_wm_supports (f, dpyinfo->Xatom_net_wm_user_time_window))
     {
       if (output->user_time_window == None)
@@ -24114,6 +24131,11 @@ x_wm_supports_1 (struct x_display_info *dpyinfo, Atom want_atom)
   Display *dpy = dpyinfo->display;
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_WINDOW;
+
+  /* The user says there's no window manager, so take him up on
+     it.  */
+  if (!NILP (Vx_no_window_manager))
+    return false;
 
   block_input ();
 
