@@ -296,16 +296,18 @@ be printed along with the arguments in the trace."
 Autoloaded functions are traceable."
   (or (functionp sym) (macrop sym)))
 
-(defun trace-is-traced (function)
+(defun trace-is-traced-p (function)
   "Whether FUNCTION is currently traced."
   (advice-member-p trace-advice-name function))
+
+(define-obsolete-function-alias 'trace-is-traced 'trace-is-traced-p "29.1")
 
 (defun trace-currently-traced (&optional display-message)
   "Return the list of currently traced function symbols.
 Interactively, display the list as a message."
   (interactive "p")
   (let ((tracelist (cl-loop for sym being the symbols
-                            if (trace-is-traced sym)
+                            if (trace-is-traced-p sym)
                             collect sym)))
     (when display-message
       (message "%S" tracelist))
@@ -386,7 +388,7 @@ the output buffer or changing the window configuration."
   "Remove trace from FUNCTION.  If FUNCTION was not traced this is a noop."
   (interactive
    (list (intern (completing-read "Untrace function: "
-                                  obarray #'trace-is-traced t))))
+                                  obarray #'trace-is-traced-p t))))
   (advice-remove function trace-advice-name))
 
 ;;;###autoload
@@ -436,13 +438,13 @@ See also `untrace-package'."
 See also `trace-package'."
   (interactive
    (list (completing-read "Prefix of package to untrace: "
-                          obarray #'trace-is-traced)))
+                          obarray #'trace-is-traced-p)))
   (if (and (zerop (length prefix))
            (y-or-n-p "Remove all function traces?"))
       (untrace-all)
     (mapc (lambda (name)
             (untrace-function (intern name)))
-          (all-completions prefix obarray #'trace-is-traced)))
+          (all-completions prefix obarray #'trace-is-traced-p)))
   ;; Remove any `after-load' behaviour.
   (trace--remove-after-load 'prefix prefix))
 
@@ -502,7 +504,7 @@ See also `trace-regexp'."
       (untrace-all)
     (mapatoms
      (lambda (sym)
-       (and (trace-is-traced sym)
+       (and (trace-is-traced-p sym)
             (string-match-p regexp (symbol-name sym))
             (untrace-function sym)))))
   ;; Remove any `after-load' behaviour.
@@ -589,7 +591,7 @@ See also `trace-library'."
   (let ((defs (nconc (trace--library-defuns library)
                      (trace--library-autoloads library))))
     (mapc (lambda (func)
-            (when (trace-is-traced func)
+            (when (trace-is-traced-p func)
               (untrace-function func)))
           defs))
   ;; Remove any `after-load' behaviour.
