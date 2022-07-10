@@ -274,7 +274,6 @@ This function only tries to handle strings."
   (skip-unless (and (dnd-tests-remote-accessible-p)
                     ;; TODO: make these tests work under X.
                     (not (eq window-system 'x))))
-  (let ((tramp-verbose (if (getenv "EMACS_HYDRA_CI") 10 3)))
   (let ((normal-temp-file (expand-file-name (make-temp-name "dnd-test")
                                             temporary-file-directory))
         (normal-temp-file-1 (expand-file-name (make-temp-name "dnd-test")
@@ -384,14 +383,9 @@ This function only tries to handle strings."
           ;; And when all remote files are inaccessible.
           (should-error (dnd-begin-drag-files (list nonexistent-remote-file
                                                     nonexistent-remote-file-1))))
-      (when (getenv "EMACS_HYDRA_CI")
-        (dolist (buf (tramp-list-tramp-buffers))
-	  (message ";; %s\n%s" buf (tramp-get-buffer-string buf))
-	  (kill-buffer buf)))
       (delete-file normal-temp-file)
       (delete-file normal-temp-file-1)
       (delete-file remote-temp-file))))
-  )
 
 (ert-deftest dnd-tests-get-local-file-uri ()
   (should (equal (dnd-get-local-file-uri "file://localhost/path/to/foo")

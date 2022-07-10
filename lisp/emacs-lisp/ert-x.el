@@ -488,9 +488,13 @@ The same keyword arguments are supported as in
   (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app"
                 (shell-command-to-string "gcc --version")))
 
-
-(defvar tramp-methods)
 (defvar tramp-default-host-alist)
+(defvar tramp-methods)
+(defvar tramp-remote-path)
+
+;; This should happen on hydra only.
+(when (getenv "EMACS_HYDRA_CI")
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 ;; If this defconst is used in a test file, `tramp' shall be loaded
 ;; prior `ert-x'.  There is no default value on w32 systems, which

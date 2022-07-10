@@ -128,6 +128,7 @@ A resource file is in the resource directory as per
       `(expand-file-name ,file (ert-resource-directory)))))
 
 ;; `ert-remote-temporary-file-directory' was introduced in Emacs 29.1.
+;; Adapting `tramp-remote-path' happens also there.
 (unless (boundp 'ert-remote-temporary-file-directory)
   (eval-and-compile
     ;; There is no default value on w32 systems, which could work out
@@ -152,7 +153,11 @@ A resource file is in the resource directory as per
           (unless (and (null noninteractive) (file-directory-p "~/"))
             (setenv "HOME" temporary-file-directory))
           (format "/mock::%s" temporary-file-directory)))
-      "Temporary directory for remote file tests.")))
+      "Temporary directory for remote file tests.")
+
+    ;; This should happen on hydra only.
+    (when (getenv "EMACS_HYDRA_CI")
+      (add-to-list 'tramp-remote-path 'tramp-own-remote-path))))
 
 ;; Beautify batch mode.
 (when noninteractive
@@ -177,10 +182,6 @@ A resource file is in the resource directory as per
       tramp-error-show-message-timeout nil
       tramp-persistency-file-name nil
       tramp-verbose 0)
-
-;; This should happen on hydra only.
-(when (getenv "EMACS_HYDRA_CI")
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 (defvar tramp--test-enabled-checked nil
   "Cached result of `tramp--test-enabled'.
