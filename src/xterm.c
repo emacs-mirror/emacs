@@ -2085,7 +2085,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
 			   &actual_type, &actual_format, &nitems,
 			   &bytes_remaining, &tmp_data) == Success;
   had_errors = x_had_errors_p (dpyinfo->display);
-  x_uncatch_errors ();
+  x_uncatch_errors_after_check ();
 
   /* The drag window is probably invalid, so remove our record of
      it.  */
@@ -2798,6 +2798,7 @@ x_dnd_free_toplevels (bool display_alive)
   unsigned long *prev_masks;
   specpdl_ref count;
   Display *dpy;
+  struct x_display_info *dpyinfo;
 
   if (!x_dnd_toplevels)
     /* Probably called inside an IO error handler.  */
@@ -2865,17 +2866,22 @@ x_dnd_free_toplevels (bool display_alive)
 
   if (display_alive)
     {
-      x_catch_errors (dpy);
+      dpyinfo = x_display_info_for_display (dpy);
 
-      for (i = 0; i < n_windows; ++i)
+      if (n_windows)
 	{
-	  XSelectInput (dpy, destroy_windows[i], prev_masks[i]);
-#ifdef HAVE_XSHAPE
-	  XShapeSelectInput (dpy, destroy_windows[i], None);
-#endif
-	}
+	  x_ignore_errors_for_next_request (dpyinfo);
 
-      x_uncatch_errors ();
+	  for (i = 0; i < n_windows; ++i)
+	    {
+	      XSelectInput (dpy, destroy_windows[i], prev_masks[i]);
+#ifdef HAVE_XSHAPE
+	      XShapeSelectInput (dpy, destroy_windows[i], None);
+#endif
+	    }
+
+	  x_stop_ignoring_errors (dpyinfo);
+	}
     }
 
   unbind_to (count, Qnil);
@@ -3389,12 +3395,12 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
 	    }
 #endif
 
-	  x_catch_errors (dpyinfo->display);
+	  x_ignore_errors_for_next_request (dpyinfo);
 	  XSelectInput (dpyinfo->display, toplevels[i],
 			(attrs.your_event_mask
 			 | StructureNotifyMask
 			 | PropertyChangeMask));
-	  x_uncatch_errors ();
+	  x_stop_ignoring_errors (dpyinfo);
 
 	  x_dnd_toplevels = tem;
 	}
