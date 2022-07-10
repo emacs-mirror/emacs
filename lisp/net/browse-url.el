@@ -40,7 +40,6 @@
 ;; following browsers, as well as some other obsolete ones:
 
 ;; Function                           Browser     Earliest version
-;; browse-url-mozilla                 Mozilla     Don't know
 ;; browse-url-firefox                 Firefox     Don't know (tried with 1.0.1)
 ;; browse-url-chrome                  Chrome      47.0.2526.111
 ;; browse-url-chromium                Chromium    3.0
@@ -154,7 +153,6 @@
 (defvar browse-url--browser-defcustom-type
   `(choice
     (function-item :tag "Emacs Web Wowser (EWW)" :value  eww-browse-url)
-    (function-item :tag "Mozilla" :value  browse-url-mozilla)
     (function-item :tag "Firefox" :value browse-url-firefox)
     (function-item :tag "Google Chrome" :value browse-url-chrome)
     (function-item :tag "Chromium" :value browse-url-chromium)
@@ -252,16 +250,19 @@ be used instead."
 (defcustom browse-url-mozilla-program "mozilla"
   "The name by which to invoke Mozilla."
   :type 'string)
+(make-obsolete-variable 'browse-url-mozilla-program nil "29.1")
 
 (defcustom browse-url-mozilla-arguments nil
   "A list of strings to pass to Mozilla as arguments."
   :type '(repeat (string :tag "Argument")))
+(make-obsolete-variable 'browse-url-mozilla-arguments nil "29.1")
 
 (defcustom browse-url-mozilla-startup-arguments browse-url-mozilla-arguments
   "A list of strings to pass to Mozilla when it starts up.
 Defaults to the value of `browse-url-mozilla-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument")))
+(make-obsolete-variable 'browse-url-mozilla-startup-arguments nil "29.1")
 
 (defun browse-url--find-executable (candidates default)
   (while (and candidates (not (executable-find (car candidates))))
@@ -345,6 +346,7 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-mozilla' is asked to open it in a new window."
   :type 'boolean)
+(make-obsolete-variable 'browse-url-mozilla-new-window-is-tab nil "29.1")
 
 (defcustom browse-url-firefox-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
@@ -1031,7 +1033,6 @@ instead of `browse-url-new-window-flag'."
      'browse-url-default-haiku-browser)
     ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
 ;;;    ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
-    ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
     ((executable-find browse-url-chromium-program) 'browse-url-chromium)
     ((executable-find browse-url-kde-program) 'browse-url-kde)
@@ -1083,6 +1084,7 @@ new tab in an existing window instead.
 
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
+  (declare (obsolete nil "29.1"))
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
@@ -1109,6 +1111,7 @@ used instead of `browse-url-new-window-flag'."
 
 (defun browse-url-mozilla-sentinel (process url)
   "Handle a change to the process communicating with Mozilla."
+  (declare (obsolete nil "29.1"))
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Mozilla is not running - start it
