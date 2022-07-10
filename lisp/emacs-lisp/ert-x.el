@@ -493,7 +493,7 @@ The same keyword arguments are supported as in
 (defvar tramp-remote-path)
 
 ;; This should happen on hydra only.
-(when (getenv "EMACS_HYDRA_CI")
+(when (and (featurep 'tramp) (getenv "EMACS_HYDRA_CI"))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 ;; If this defconst is used in a test file, `tramp' shall be loaded
