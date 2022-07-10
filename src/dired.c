@@ -219,6 +219,13 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
     }
 #endif
 
+  if (!NILP (full) && !STRING_MULTIBYTE (directory))
+    { /* We will be concatenating 'directory' with local file name.
+         We always decode local file names, so in order to safely concatenate
+         them we need 'directory' to be decoded as well (bug#56469).  */
+      directory = DECODE_FILE (directory);
+    }
+
   ptrdiff_t directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
 
@@ -263,9 +270,10 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	  ptrdiff_t name_nbytes = SBYTES (name);
 	  ptrdiff_t nbytes = directory_nbytes + needsep + name_nbytes;
 	  ptrdiff_t nchars = SCHARS (directory) + needsep + SCHARS (name);
-	  finalname = make_uninit_multibyte_string (nchars, nbytes);
-	  if (nchars == nbytes)
-	    STRING_SET_UNIBYTE (finalname);
+	  /* FIXME: Why not make them all multibyte?  */
+	  finalname = (nchars == nbytes)
+	              ? make_uninit_string (nbytes)
+	              : make_uninit_multibyte_string (nchars, nbytes);
 	  memcpy (SDATA (finalname), SDATA (directory), directory_nbytes);
 	  if (needsep)
 	    SSET (finalname, directory_nbytes, DIRECTORY_SEP);
