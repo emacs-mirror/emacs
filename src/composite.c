@@ -1513,10 +1513,11 @@ struct position_record
 /* Similar to find_composition, but find an automatic composition instead.
 
    This function looks for automatic composition at or near position
-   POS of OBJECT (a buffer or a string).  OBJECT defaults to the
-   current buffer.  It must be assured that POS is not within a static
-   composition.  Also, the current buffer must be displayed in some
-   window, otherwise the function will return FALSE.
+   POS of STRING object, either a buffer or a Lisp string.  If STRING
+   is nil, it defaults to the current buffer.  It must be assured that
+   POS is not within a static composition.  Also, the current buffer
+   must be displayed in some window, otherwise the function will
+   return FALSE.
 
    If LIMIT is negative, and there's no composition that includes POS
    (i.e. starts at or before POS and ends at or after POS), return
@@ -1525,8 +1526,8 @@ struct position_record
    MAX_AUTO_COMPOSITION_LOOKBACK, the maximum number of look-back for
    automatic compositions (3) -- this is a limitation imposed by
    composition rules in composition-function-table, which see.  If
-   BACKLIM is negative, it stands for the beginning of OBJECT: BEGV
-   for a buffer or position zero for a string.
+   BACKLIM is negative, it stands for the beginning of STRING object:
+   BEGV for a buffer or position zero for a string.
 
    If LIMIT is positive, search for a composition forward (LIMIT >
    POS) or backward (LIMIT < POS).  In this case, LIMIT bounds the
@@ -1535,18 +1536,21 @@ struct position_record
    function can find a composition that starts after POS.
 
    BACKLIM limits how far back is the function allowed to look in
-   OBJECT while trying to find a position where it is safe to start
-   searching forward for compositions.  Such a safe place is generally
-   the position after a character that can never be composed.
+   STRING object while trying to find a position where it is safe to
+   start searching forward for compositions.  Such a safe place is
+   generally the position after a character that can never be
+   composed.
 
    If BACKLIM is negative, that means the first character position of
-   OBJECT; this is useful when calling the function for the first time
-   for a given buffer or string, since it is possible that a
-   composition begins before POS.  However, if POS is very far from
-   the beginning of OBJECT, a negative value of BACKLIM could make the
-   function slow.  Also, in this case the function may return START
-   and END that do not include POS, something that is not necessarily
-   wanted, and needs to be explicitly checked by the caller.
+   STRING object; this is useful when calling the function for the
+   first time for a given buffer or string, since it is possible that
+   a composition begins before POS.  However, if POS is very far from
+   the beginning of STRING object, a negative value of BACKLIM could
+   make the function slow.  For that reason, when STRING is a buffer
+   or nil, we restrict the search back to the first newline before
+   POS.  Also, in this case the function may return START and END that
+   do not include POS, something that is not necessarily wanted, and
+   needs to be explicitly checked by the caller.
 
    When calling the function in a loop for the same buffer/string, the
    caller should generally set BACKLIM equal to POS, to avoid costly
@@ -1585,7 +1589,15 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
   cur.pos = pos;
   if (NILP (string))
     {
-      head = backlim < 0 ? BEGV : backlim, tail = ZV, stop = GPT;
+      if (backlim < 0)
+	{
+	  /* This assumes a newline can never be composed.  */
+	  head = find_newline (pos, -1, 0, -1, -1, NULL, NULL, false) + 1;
+	}
+      else
+	head = backlim;
+      tail = ZV;
+      stop = GPT;
       cur.pos_byte = CHAR_TO_BYTE (cur.pos);
       cur.p = BYTE_POS_ADDR (cur.pos_byte);
     }
