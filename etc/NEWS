@@ -463,8 +463,8 @@ previous behavior).  The default is nil, which inhibits recording of
 passwords.
 
 +++
-** New user option 'longlines-breakpoint-chars'.
-This is a string containing chars that could be used as breakpoint in
+** New user option 'longlines-break-chars'.
+This is a string containing chars that could be used as break point in
 longlines mode.
 
 +++

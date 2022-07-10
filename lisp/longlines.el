@@ -72,8 +72,9 @@ You can also enable the display temporarily, using the command
 This is used when `longlines-show-hard-newlines' is on."
   :type 'string)
 
-(defcustom longlines-breakpoint-chars " ;,|"
+(defcustom longlines-break-chars " ;,|"
   "A bag of separator chars for longlines."
+  :version "29.1"
   :type 'string)
 
 ;;; Internal variables
@@ -303,8 +304,8 @@ not need to be wrapped, move point to the next line and return t."
 If the line should not be broken, return nil; point remains on the
 line."
   (move-to-column target-column)
-  (let ((non-breakpoint-re (format "[^%s]" longlines-breakpoint-chars)))
-    (if (and (re-search-forward non-breakpoint-re (line-end-position) t 1)
+  (let ((non-break-re (format "[^%s]" longlines-break-chars)))
+    (if (and (re-search-forward non-break-re (line-end-position) t 1)
              (> (current-column) target-column))
         ;; This line is too long.  Can we break it?
         (or (longlines-find-break-backward)
@@ -314,17 +315,17 @@ line."
 (defun longlines-find-break-backward ()
   "Move point backward to the first available breakpoint and return t.
 If no breakpoint is found, return nil."
-  (let ((breakpoint-re (format "[%s]" longlines-breakpoint-chars)))
-    (when (and (re-search-backward breakpoint-re (line-beginning-position) t 1)
+  (let ((break-re (format "[%s]" longlines-break-chars)))
+    (when (and (re-search-backward break-re (line-beginning-position) t 1)
                (save-excursion
-                 (skip-chars-backward longlines-breakpoint-chars
+                 (skip-chars-backward longlines-break-chars
                                       (line-beginning-position))
                  (null (bolp))))
       (forward-char 1)
       (if (and fill-nobreak-predicate
                (run-hook-with-args-until-success 'fill-nobreak-predicate))
           (progn
-            (skip-chars-backward longlines-breakpoint-chars
+            (skip-chars-backward longlines-break-chars
                                  (line-beginning-position))
             (longlines-find-break-backward))
         t))))
@@ -332,10 +333,10 @@ If no breakpoint is found, return nil."
 (defun longlines-find-break-forward ()
   "Move point forward to the first available breakpoint and return t.
 If no break point is found, return nil."
-  (let ((breakpoint-re (format "[%s]" longlines-breakpoint-chars)))
-    (and (re-search-forward breakpoint-re (line-end-position) t 1)
+  (let ((break-re (format "[%s]" longlines-break-chars)))
+    (and (re-search-forward break-re (line-end-position) t 1)
          (progn
-           (skip-chars-forward longlines-breakpoint-chars (line-end-position))
+           (skip-chars-forward longlines-break-chars (line-end-position))
            (null (eolp)))
          (if (and fill-nobreak-predicate
                   (run-hook-with-args-until-success 'fill-nobreak-predicate))
