@@ -1925,6 +1925,12 @@ related 'auth-sources' entry were wrong.
 ** Browse URL
 
 ---
+*** New user option 'browse-url-guess-default-scheme'.
+This user option affects the URL scheme that 'browse-url' and related
+functions will assume when it has to guess.  You could customize this
+to "https" to always prefer HTTPS URLs.
+
+---
 *** Support for the Netscape web browser has been removed.
 This support has been obsolete since Emacs 25.1.  The final version of
 the Netscape web browser was released in February, 2008.
