@@ -1036,6 +1036,42 @@ recovering the contents of Emacs buffers from a core dump file.  You
 might also find those commands useful for displaying the list of
 buffers in human-readable format from within the debugger.
 
+*** Debugging Emacs with LLDB
+
+On systems where GDB is not available, like macOS with M1 chip, you
+can also use LLDB for Emacs debugging.
+
+To start LLDB to debug Emacs, you can simply type "lldb ./emacs RET"
+at the shell prompt in directory of the Emacs executable, usually the
+'src' sub-directory of the Emacs tree).
+
+When you debug Emacs with LLDB, you should start LLDB in the directory
+where the Emacs executable was built.  That directory has an .lldbinit
+file that loads a Python module emacs_lldb.py from the 'etc' directory
+of the Emacs source tree.  The Python module defines "user-defined"
+commands for debugging Emacs.
+
+LLDB by default does not automatically load .lldbinit files in the
+current directory.  The simplest way to fix this is to add the
+following line to your ~/.lldbinit file (creating such a file if it
+doesn't already exist):
+
+  settings set target.load-cwd-lldbinit true
+
+Alternatively, you can type "lldb --local-lldbinit ./emacs RET".
+
+If everything worked, you should see something like "Emacs debugging
+support has been installed" after starting LLDB.  You can see which
+Emacs-specific commands are defined with
+
+  (lldb) help
+
+User-defined commands for Emacs debugging start with an "x".
+
+Please refer to the LLDB reference on the web for more information
+about LLDB.  If you already know GDB, you will also find a mapping
+from GDB commands to corresponding LLDB commands there.
+
 
 This file is part of GNU Emacs.
 
