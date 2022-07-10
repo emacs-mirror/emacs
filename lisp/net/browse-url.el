@@ -411,7 +411,7 @@ address to an HTTP URL:
 
     (setq browse-url-filename-alist
 	  \\='((\"/webmaster@webserver:/home/www/html/\" .
-	     \"http://www.acme.co.uk/\")
+             \"https://www.example.org/\")
             (\"^/\\(ftp@\\|anonymous@\\)?\\([^:/]+\\):/*\" . \"ftp://\\2/\")
             (\"^/\\([^:@/]+@\\)?\\([^:/]+\\):/*\" . \"ftp://\\1\\2/\")
 	    (\"^/+\" . \"file:/\")))"
