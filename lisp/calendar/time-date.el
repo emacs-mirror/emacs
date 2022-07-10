@@ -590,7 +590,7 @@ TIME is modified and returned."
   time)
 
 (defun decoded-time-period (time)
-  "Interpret DECODED as a period and return its length in seconds.
+  "Interpret TIME as a period and return its length in seconds.
 For computational purposes, years are 365 days long and months
 are 30 days long."
   (+ (if (consp (decoded-time-second time))
