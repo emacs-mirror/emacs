@@ -755,31 +755,31 @@ of matching words."
       (progn
         (insert-button "[Back]" :type 'dictionary-button
                        'callback 'dictionary-restore-state
-                       'help-echo (purecopy "Mouse-2 to go backwards in history"))
+                       'help-echo "Mouse-2 to go backwards in history")
 	(insert " ")
         (insert-button "[Search definition]" :type 'dictionary-button
                        'callback 'dictionary-search
-                       'help-echo (purecopy "Mouse-2 to look up a new word"))
+                       'help-echo "Mouse-2 to look up a new word")
 	(insert "         ")
 
 	(insert-button "[Matching words]" :type 'dictionary-button
                        'callback 'dictionary-match-words
-                       'help-echo (purecopy "Mouse-2 to find matches for a pattern"))
+                       'help-echo "Mouse-2 to find matches for a pattern")
 	(insert "        ")
 
 	(insert-button "[Quit]" :type 'dictionary-button
                        'callback 'dictionary-close
-                       'help-echo (purecopy "Mouse-2 to close this window"))
+                       'help-echo "Mouse-2 to close this window")
 
 	(insert "\n       ")
 
         (insert-button "[Select dictionary]" :type 'dictionary-button
                        'callback 'dictionary-select-dictionary
-                       'help-echo (purecopy "Mouse-2 to select dictionary for future searches"))
+                       'help-echo "Mouse-2 to select dictionary for future searches")
 	(insert "         ")
         (insert-button "[Select match strategy]" :type 'dictionary-button
                        'callback 'dictionary-select-strategy
-                       'help-echo (purecopy "Mouse-2 to select matching algorithm"))
+                       'help-echo "Mouse-2 to select matching algorithm")
 	(insert "\n\n")))
   (setq dictionary-marker (point-marker)))
 
@@ -928,13 +928,13 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
           (insert-button (concat dictionary ": " translated) :type 'dictionary-link
                          'callback 'dictionary-set-dictionary
                          'data (cons dictionary description)
-                         'help-echo (purecopy "Mouse-2 to select this dictionary"))
+                         'help-echo "Mouse-2 to select this dictionary")
           (unless (dictionary-special-dictionary dictionary)
             (insert " ")
             (insert-button "(Details)" :type 'dictionary-link
                            'callback 'dictionary-set-dictionary
                            'list-data (list (cons dictionary description) t)
-                           'help-echo (purecopy "Mouse-2 to get more information")))
+                           'help-echo "Mouse-2 to get more information"))
 	  (insert "\n")))))
 
 (defun dictionary-set-dictionary (param &optional more)
@@ -972,7 +972,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
           (insert-button description :type 'dictionary-link
                          'callback 'dictionary-set-dictionary
                          'data (cons dictionary description)
-                         'help-echo (purecopy "Mouse-2 to select this dictionary"))
+                         'help-echo "Mouse-2 to select this dictionary")
 	  (insert "\n\n")
 	  (setq reply (dictionary-read-answer))
 	  (insert reply)
@@ -1023,7 +1023,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
           (insert-button description :type 'dictionary-link
                          'callback 'dictionary-set-strategy
                          'data strategy
-                         'help-echo (purecopy "Mouse-2 to select this matching algorithm"))
+                         'help-echo "Mouse-2 to select this matching algorithm")
 	  (insert "\n")))))
 
 (defun dictionary-set-strategy (strategy &rest _ignored)
@@ -1124,7 +1124,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
                     (insert-button word :type 'dictionary-link
                                    'callback 'dictionary-new-search
                                    'data (cons word dictionary)
-                                   'help-echo (purecopy "Mouse-2 to lookup word"))
+                                   'help-echo "Mouse-2 to lookup word")
 		    (insert "\n")) (reverse word-list))
 	    (insert "\n")))
 	list))
