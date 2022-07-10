@@ -569,8 +569,6 @@ extern ptrdiff_t str_as_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t *);
 extern ptrdiff_t str_to_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t);
 extern ptrdiff_t str_as_unibyte (unsigned char *, ptrdiff_t);
-extern ptrdiff_t str_to_unibyte (const unsigned char *, unsigned char *,
-                                 ptrdiff_t);
 extern ptrdiff_t strwidth (const char *, ptrdiff_t);
 extern ptrdiff_t c_string_width (const unsigned char *, ptrdiff_t, int,
 				 ptrdiff_t *, ptrdiff_t *);

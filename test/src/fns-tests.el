@@ -1344,4 +1344,19 @@
     (should (equal (plist-member plist (copy-sequence "a") #'equal)
                    '("a" "c")))))
 
+(ert-deftest fns--string-to-unibyte ()
+  (dolist (str '("" "a" "abc" "a\x00\x7fz" "a\xaa\xbbz ""\x80\xdd\xff"))
+    (ert-info ((prin1-to-string str) :prefix "str: ")
+      (should-not (multibyte-string-p str))
+      (let* ((u (string-to-unibyte str))   ; should be identity
+             (m (string-to-multibyte u))   ; lossless conversion
+             (uu (string-to-unibyte m)))   ; also lossless
+        (should-not (multibyte-string-p u))
+        (should (multibyte-string-p m))
+        (should-not (multibyte-string-p uu))
+        (should (equal str u))
+        (should (equal str uu)))))
+  (should-error (string-to-unibyte "å"))
+  (should-error (string-to-unibyte "ABC∀BC")))
+
 ;;; fns-tests.el ends here

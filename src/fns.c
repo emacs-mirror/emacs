@@ -1413,19 +1413,24 @@ an error is signaled.  */)
   (Lisp_Object string)
 {
   CHECK_STRING (string);
+  if (!STRING_MULTIBYTE (string))
+    return string;
 
-  if (STRING_MULTIBYTE (string))
+  ptrdiff_t chars = SCHARS (string);
+  Lisp_Object ret = make_uninit_string (chars);
+  unsigned char *src = SDATA (string);
+  unsigned char *dst = SDATA (ret);
+  for (ptrdiff_t i = 0; i < chars; i++)
     {
-      ptrdiff_t chars = SCHARS (string);
-      unsigned char *str = xmalloc (chars);
-      ptrdiff_t converted = str_to_unibyte (SDATA (string), str, chars);
-
-      if (converted < chars)
-	error ("Can't convert the %"pD"dth character to unibyte", converted);
-      string = make_unibyte_string ((char *) str, chars);
-      xfree (str);
+      unsigned char b = *src++;
+      if (b <= 0x7f)
+	*dst++ = b;					 /* ASCII */
+      else if (CHAR_BYTE8_HEAD_P (b))
+	*dst++ = 0x80 | (b & 1) << 6 | (*src++ & 0x3f);	 /* raw byte */
+      else
+	error ("Cannot convert character at index %"pD"d to unibyte", i);
     }
-  return string;
+  return ret;
 }
 
 
