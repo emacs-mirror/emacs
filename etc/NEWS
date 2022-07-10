@@ -1925,10 +1925,10 @@ related 'auth-sources' entry were wrong.
 ** Browse URL
 
 ---
-*** New user option 'browse-url-guess-default-scheme'.
-This user option affects the URL scheme that 'browse-url' and related
-functions will assume when it has to guess.  You could customize this
-to "https" to always prefer HTTPS URLs.
+*** New user option 'browse-url-default-scheme'.
+This user option decides which URL scheme that 'browse-url' and
+related functions will use by default.  For example, you could
+customize this to "https" to always prefer HTTPS URLs.
 
 ---
 *** Support for the Netscape web browser has been removed.

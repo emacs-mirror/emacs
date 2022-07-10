@@ -652,8 +652,8 @@ regarding its parameter treatment."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
-(defcustom browse-url-guess-default-scheme "http"
-  "URL scheme to use when `browse-url' (and related commands) has to guess.
+(defcustom browse-url-default-scheme "http"
+  "URL scheme that `browse-url' (and related commands) will use by default.
 
 For example, when point is on an URL fragment like
 \"www.example.org\", `browse-url' will assume that this is an
@@ -669,7 +669,7 @@ websites are increasingly rare, but they do still exist."
   (or (thing-at-point 'url t)
       ;; assume that the user is pointing at something like gnu.org/gnu
       (let ((f (thing-at-point 'filename t)))
-        (and f (concat browse-url-guess-default-scheme "://" f)))))
+        (and f (concat browse-url-default-scheme "://" f)))))
 
 ;; Having this as a separate function called by the browser-specific
 ;; functions allows them to be stand-alone commands, making it easier
