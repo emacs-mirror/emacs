@@ -2798,7 +2798,8 @@ nil default-directory" name)
           ;; `nondisplayed-buffers-p' is true if there exist buffers
           ;; in `displayable-buffers' that were not displayed to the
           ;; user.
-          (nondisplayed-buffers-p nil))
+          (nondisplayed-buffers-p nil)
+          (old-face-font-rescale-alist face-font-rescale-alist))
       (when (> displayable-buffers-len 0)
         (switch-to-buffer (car displayable-buffers)))
       (cond
