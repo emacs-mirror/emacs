@@ -5681,12 +5681,12 @@ Unloading @value{tramp} resets Ange FTP plugins also.
 
 
 @item
-What is the difference between Ange FTP and TRAMP?
+What is the difference between Ange FTP and @value{tramp}?
 
-The difference is that Ange FTP uses FTP to transfer files between the
-local and the remote host, whereas @value{tramp} uses a combination of
-@command{rsh} and @command{rcp} or other work-alike programs, such as
-@command{ssh}/@command{scp}.
+The difference is that Ange FTP uses @command{ftp} to transfer files
+between the local and the remote host, whereas @value{tramp} uses a
+combination of @command{rsh} and @command{rcp} or other work-alike
+programs, such as @command{ssh}/@command{scp}.
 @end itemize
 
 
