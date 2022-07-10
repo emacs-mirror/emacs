@@ -16593,11 +16593,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
             if (event->xclient.data.l[0] == dpyinfo->Xatom_wm_delete_window)
               {
-                f = any;
+                f = x_top_window_to_frame (dpyinfo,
+					   event->xclient.window);
+
                 if (!f)
 		  goto OTHER; /* May be a dialog that is to be removed  */
 
 		inev.ie.kind = DELETE_WINDOW_EVENT;
+		inev.ie.timestamp = event->xclient.data.l[1];
 		XSETFRAME (inev.ie.frame_or_window, f);
 		goto done;
               }
