@@ -1897,7 +1897,7 @@ should be ignored.  */)
 	  /* FIXME: Not clear why we need to do that: AFAICT the rest of
              the code should work on an ASCII-only unibyte string just
              as well (bug#56347).  */
-	  string = make_multibyte_string (SDATA (string), chars, chars);
+	  string = make_multibyte_string (SSDATA (string), chars, chars);
 	}
       frombyte = string_char_to_byte (string, frompos);
     }
