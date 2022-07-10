@@ -8926,15 +8926,15 @@ presented."
 (define-minor-mode auto-save-mode
   "Toggle auto-saving in the current buffer (Auto Save mode).
 
-When this mode is enabled, Emacs periodically saves each visited
-file in a separate file called the \"auto-save file\".  This is a
-safety measure to prevent you from losing more than a limited
-amount of work if the system crashes.
+When this mode is enabled, Emacs periodically saves each file-visiting
+buffer in a separate \"auto-save file\".  This is a safety measure to
+prevent you from losing more than a limited amount of work if the
+system crashes.
 
-Auto-saving does not alter the file you actually use: the visited
-file is changed only when you request saving it explicitly (such
-as with \\[save-buffer]).  If you want to save visited files
-automatically, use \\[auto-save-visited-mode]).
+Auto-saving does not alter the file visited by the buffer: the visited
+file is changed only when you request saving it explicitly (such as
+with \\[save-buffer]).  If you want to save the buffer into its
+visited files automatically, use \\[auto-save-visited-mode]).
 
 For more details, see Info node `(emacs) Auto Save'."
   :variable ((and buffer-auto-save-file-name
