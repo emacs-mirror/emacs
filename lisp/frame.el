@@ -3048,10 +3048,6 @@ See also `toggle-frame-maximized'."
 
 ;; Misc.
 
-;; Only marked as obsolete in 24.3.
-(define-obsolete-variable-alias 'automatic-hscrolling
-  'auto-hscroll-mode "22.1")
-
 (make-variable-buffer-local 'show-trailing-whitespace)
 
 ;; Defined in dispnew.c.

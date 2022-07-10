@@ -350,8 +350,6 @@ See `rcirc-bright-nick' face."
 See `rcirc-dim-nick' face."
   :type '(repeat string))
 
-(define-obsolete-variable-alias 'rcirc-print-hooks
-  'rcirc-print-functions "24.3")
 (defcustom rcirc-print-functions nil
   "Hook run after text is printed.
 Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
@@ -832,8 +830,6 @@ is moved to after the text inserted.  Otherwise the point is not moved."
                   text))
         (goto-char old)))))
 
-(define-obsolete-variable-alias 'rcirc-sentinel-hooks
-  'rcirc-sentinel-functions "24.3")
 (defvar rcirc-sentinel-functions nil
   "Hook functions called when the process sentinel is called.
 Functions are called with PROCESS and SENTINEL arguments.")
@@ -974,8 +970,6 @@ If BUFFER is nil, default to the current buffer."
           (process-list))
     ps))
 
-(define-obsolete-variable-alias 'rcirc-receive-message-hooks
-  'rcirc-receive-message-functions "24.3")
 (defvar rcirc-receive-message-functions nil
   "Hook functions run when a message is received from server.
 Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
@@ -2375,8 +2369,6 @@ With prefix ARG, go to the next low priority buffer with activity."
                  ""))))
   (rcirc-update-activity-string))
 
-(define-obsolete-variable-alias 'rcirc-activity-hooks
-  'rcirc-activity-functions "24.3")
 (defvar rcirc-activity-functions nil
   "Hook to be run when there is channel activity.
 

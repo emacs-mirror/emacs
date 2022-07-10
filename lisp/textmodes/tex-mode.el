@@ -1596,10 +1596,6 @@ Puts point on a blank line between them."
 ;;;; LaTeX completion.
 
 (defvar latex-complete-bibtex-cache nil)
-
-(define-obsolete-function-alias 'latex-string-prefix-p
-  #'string-prefix-p "24.3")
-
 (defvar bibtex-reference-key)
 (declare-function reftex-get-bibfile-list "reftex-cite.el" ())
 
@@ -2173,8 +2169,6 @@ IN can be either a string (with the same % escapes in it) indicating
   the TeX files of the document, or nil if we don't know.
 OUT describes the output file and is either a %-escaped string
   or nil to indicate that there is no output file.")
-
-(define-obsolete-function-alias 'tex-string-prefix-p #'string-prefix-p "24.3")
 
 (defun tex-guess-main-file (&optional all)
   "Find a likely `tex-main-file'.

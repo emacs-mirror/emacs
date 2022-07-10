@@ -3183,8 +3183,6 @@ function used to insert the signature with
   :group 'mh-letter
   :package-version '(MH-E . "8.0"))
 
-(define-obsolete-variable-alias 'mh-kill-folder-suppress-prompt-hooks
-  'mh-kill-folder-suppress-prompt-functions "24.3")
 (defcustom mh-kill-folder-suppress-prompt-functions '(mh-search-p)
   "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
 

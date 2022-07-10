@@ -755,25 +755,8 @@ Buffer local variable.")
    term-color-bright-cyan
    term-color-bright-white])
 
-(defcustom term-default-fg-color nil
-  "If non-nil, default color for foreground in Term mode."
-  :group 'term
-  :type '(choice (const nil) (string :tag "color")))
-(make-obsolete-variable 'term-default-fg-color "use the face `term' instead."
-                        "24.3")
-
-(defcustom term-default-bg-color nil
-  "If non-nil, default color for foreground in Term mode."
-  :group 'term
-  :type '(choice (const nil) (string :tag "color")))
-(make-obsolete-variable 'term-default-bg-color "use the face `term' instead."
-                        "24.3")
-
 (defface term
-  `((t
-     :foreground ,term-default-fg-color
-     :background ,term-default-bg-color
-     :inherit default))
+  `((t :inherit default))
   "Default face to use in Term mode."
   :group 'term)
 

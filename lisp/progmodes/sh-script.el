@@ -2982,14 +2982,6 @@ option followed by a colon `:' if the option accepts an argument."
 	   (match-string 1))))))
 
 
-(defun sh-maybe-here-document (arg)
-  "Insert self.  Without prefix, following unquoted `<' inserts here document.
-The document is bounded by `sh-here-document-word'."
-  (declare (obsolete sh-electric-here-document-mode "24.3"))
-  (interactive "*P")
-  (self-insert-command (prefix-numeric-value arg))
-  (or arg (sh--maybe-here-document)))
-
 (defun sh--maybe-here-document ()
   (when (and (looking-back "[^<]<<[ E-]" (line-beginning-position))
              (save-excursion

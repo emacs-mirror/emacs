@@ -318,9 +318,6 @@ You may want to include buffer names such as *Help*, *Apropos*,
   "Functions to run whenever Winner mode is turned on or off."
   :type 'hook)
 
-(define-obsolete-variable-alias 'winner-mode-leave-hook
-  'winner-mode-off-hook "24.3")
-
 (defcustom winner-mode-off-hook nil
   "Functions to run whenever Winner mode is turned off."
   :type 'hook)

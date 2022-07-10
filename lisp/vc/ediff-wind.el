@@ -36,14 +36,6 @@
   :group 'ediff
   :group 'frames)
 
-
-;; Determine which window setup function to use based on current window system.
-(defun ediff-choose-window-setup-function-automatically ()
-  (declare (obsolete ediff-setup-windows-default "24.3"))
-  (if (display-graphic-p)
-      #'ediff-setup-windows-multiframe
-    #'ediff-setup-windows-plain))
-
 (defcustom ediff-window-setup-function #'ediff-setup-windows-default
   "Function called to set up windows.
 Ediff provides a choice of three functions:

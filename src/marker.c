@@ -759,23 +759,6 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
   return type;
 }
 
-DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
-       1, 1, 0,
-       doc: /* Return t if there are markers pointing at POSITION in the current buffer.  */)
-  (Lisp_Object position)
-{
-  register struct Lisp_Marker *tail;
-  register ptrdiff_t charpos;
-
-  charpos = clip_to_bounds (BEG, XFIXNUM (position), Z);
-
-  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-    if (tail->charpos == charpos)
-      return Qt;
-
-  return Qnil;
-}
-
 #ifdef MARKER_DEBUG
 
 /* For debugging -- count the markers in buffer BUF.  */
@@ -821,5 +804,4 @@ syms_of_marker (void)
   defsubr (&Scopy_marker);
   defsubr (&Smarker_insertion_type);
   defsubr (&Sset_marker_insertion_type);
-  defsubr (&Sbuffer_has_markers_at);
 }

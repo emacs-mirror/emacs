@@ -194,17 +194,6 @@ shells such as bash, zsh, rc, 4dos."
 ;; The following user options modify the behavior of Eshell overall.
 (defvar eshell-buffer-name)
 
-(defun eshell-add-to-window-buffer-names ()
-  "Add `eshell-buffer-name' to `same-window-buffer-names'."
-  (declare (obsolete nil "24.3"))
-  (add-to-list 'same-window-buffer-names eshell-buffer-name))
-
-(defun eshell-remove-from-window-buffer-names ()
-  "Remove `eshell-buffer-name' from `same-window-buffer-names'."
-  (declare (obsolete nil "24.3"))
-  (setq same-window-buffer-names
-	(delete eshell-buffer-name same-window-buffer-names)))
-
 (defcustom eshell-load-hook nil
   "A hook run once Eshell has been loaded."
   :type 'hook

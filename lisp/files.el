@@ -2079,12 +2079,6 @@ this function prepends a \"|\" to the final result if necessary."
     (uniquify--create-file-buffer-advice buf filename)
     buf))
 
-(defcustom automount-dir-prefix (purecopy "^/tmp_mnt/")
-  "Regexp to match the automounter prefix in a directory name."
-  :group 'files
-  :type 'regexp)
-(make-obsolete-variable 'automount-dir-prefix 'directory-abbrev-alist "24.3")
-
 (defvar abbreviated-home-dir nil
   "Regexp matching the user's homedir at the beginning of file name.
 The value includes abbreviation according to `directory-abbrev-alist'.")
@@ -2092,8 +2086,7 @@ The value includes abbreviation according to `directory-abbrev-alist'.")
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using `directory-abbrev-alist'.
 This also substitutes \"~\" for the user's home directory (unless the
-home directory is a root directory) and removes automounter prefixes
-\(see the variable `automount-dir-prefix').
+home directory is a root directory).
 
 When this function is first called, it caches the user's home
 directory as a regexp in `abbreviated-home-dir', and reuses it
@@ -2104,11 +2097,6 @@ started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
   (save-match-data                      ;FIXME: Why?
     (if-let ((handler (find-file-name-handler filename 'abbreviate-file-name)))
         (funcall handler 'abbreviate-file-name filename)
-      (if (and automount-dir-prefix
-               (string-match automount-dir-prefix filename)
-               (file-exists-p (file-name-directory
-                               (substring filename (1- (match-end 0))))))
-          (setq filename (substring filename (1- (match-end 0)))))
       ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
       (let ((case-fold-search (file-name-case-insensitive-p filename)))
         ;; If any elt of directory-abbrev-alist matches this name,
@@ -6099,14 +6087,6 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   (files--message (if arg "Modification-flag set"
                     "Modification-flag cleared"))
   (set-buffer-modified-p arg))
-
-(defun toggle-read-only (&optional arg interactive)
-  "Change whether this buffer is read-only."
-  (declare (obsolete read-only-mode "24.3"))
-  (interactive (list current-prefix-arg t))
-  (if interactive
-      (call-interactively 'read-only-mode)
-    (read-only-mode (or arg 'toggle))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.

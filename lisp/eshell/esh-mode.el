@@ -175,9 +175,6 @@ This is used by `eshell-watch-for-password-prompt'."
   "A function called from beginning of line to skip the prompt."
   :type '(choice (const nil) function))
 
-(define-obsolete-variable-alias 'eshell-status-in-modeline
-  'eshell-status-in-mode-line "24.3")
-
 (defcustom eshell-status-in-mode-line t
   "If non-nil, let the user know a command is running in the mode line."
   :type 'boolean)

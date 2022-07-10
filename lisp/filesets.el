@@ -358,8 +358,6 @@ Don't forget to check out `filesets-menu-ensure-use-cached'."
 			 :value filesets-be-docile-flag)
 		  (sexp :tag "Other" :value nil))))
 
-(define-obsolete-variable-alias 'filesets-cache-fill-content-hooks
-  'filesets-cache-fill-content-hook "24.3")
 (defcustom filesets-cache-fill-content-hook nil
   "Hook run when writing the contents of filesets' cache file.
 

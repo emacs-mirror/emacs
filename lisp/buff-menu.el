@@ -54,21 +54,6 @@
   :group 'Buffer-menu)
 (put 'Buffer-menu-buffer 'face-alias 'buffer-menu-buffer)
 
-(defcustom Buffer-menu-buffer+size-width nil
-  "Combined width of buffer name and size columns in Buffer Menu.
-If nil, use `Buffer-menu-name-width' and `Buffer-menu-size-width'.
-
-If non-nil, the value of `Buffer-menu-name-width' is overridden;
-the name column is assigned width `Buffer-menu-buffer+size-width'
-minus `Buffer-menu-size-width'.  This use is deprecated."
-  :type '(choice (const nil) number)
-  :group 'Buffer-menu
-  :version "24.3")
-
-(make-obsolete-variable 'Buffer-menu-buffer+size-width
-			"use `Buffer-menu-name-width' and `Buffer-menu-size-width' instead."
-			"24.3")
-
 (defun Buffer-menu--dynamic-name-width (buffers)
   "Return a name column width based on the current window width.
 The width will never exceed the actual width of the buffer names,
@@ -679,9 +664,6 @@ means list those buffers and no others."
     (setq name-width (if (functionp Buffer-menu-name-width)
                          (funcall Buffer-menu-name-width (mapcar #'car entries))
                        Buffer-menu-name-width))
-    ;; Handle obsolete variable:
-    (if Buffer-menu-buffer+size-width
-	(setq name-width (- Buffer-menu-buffer+size-width size-width)))
     (setq tabulated-list-format
 	  (vector '("C" 1 t :pad-right 0)
 		  '("R" 1 t :pad-right 0)

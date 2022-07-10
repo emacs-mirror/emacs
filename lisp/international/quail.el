@@ -540,8 +540,6 @@ This function runs the normal hook `quail-deactivate-hook'."
   (interactive)
   (quail-activate -1))
 
-(define-obsolete-function-alias 'quail-inactivate 'quail-deactivate "24.3")
-
 (defun quail-activate (&optional arg)
   "Activate Quail input method.
 With ARG, activate Quail input method if and only if arg is positive.
@@ -582,10 +580,6 @@ While this input method is active, the variable
       (add-hook 'post-command-hook #'quail-show-guidance nil t))
     (run-hooks 'quail-activate-hook)
     (setq-local input-method-function #'quail-input-method)))
-
-(define-obsolete-variable-alias
-  'quail-inactivate-hook
-  'quail-deactivate-hook "24.3")
 
 (defun quail-exit-from-minibuffer ()
   (deactivate-input-method)

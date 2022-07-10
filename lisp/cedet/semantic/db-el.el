@@ -342,9 +342,6 @@ Return a list of tags."
 	     )
 	taglst))))
 
-(define-obsolete-function-alias 'semanticdb-elisp-sym-function-arglist
-  #'help-function-arglist "24.3")
-
 (provide 'semantic/db-el)
 
 ;;; semantic/db-el.el ends here

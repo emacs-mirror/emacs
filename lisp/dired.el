@@ -508,15 +508,6 @@ This is what the do-commands look for, and what the mark-commands store.")
 (defvar dired-del-marker ?D
   "Character used to flag files for deletion.")
 
-(defvar dired-shrink-to-fit t
-  ;; I see no reason ever to make this nil -- rms.
-  ;;  (> baud-rate search-slow-speed)
-  "Non-nil means Dired shrinks the display buffer to fit the marked files.")
-(make-obsolete-variable 'dired-shrink-to-fit
-			"use the Customization interface to add a new rule
-to `display-buffer-alist' where condition regexp is \"^ \\*Marked Files\\*$\",
-action argument symbol is `window-height' and its value is nil." "24.3")
-
 (defvar dired-file-version-alist)
 
 ;;;###autoload
@@ -2259,8 +2250,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "M-s f C-M-s" #'dired-isearch-filenames-regexp
   ;; misc
   "<remap> <read-only-mode>"   #'dired-toggle-read-only
-  ;; `toggle-read-only' is an obsolete alias for `read-only-mode'
-  "<remap> <toggle-read-only>" #'dired-toggle-read-only
   "?"       #'dired-summary
   "DEL"     #'dired-unmark-backward
   "<remap> <undo>"             #'dired-undo
@@ -3879,28 +3868,6 @@ or \"* [3 files]\"."
 	  (format "[next %d files]" arg)
 	(format "%c [%d files]" dired-marker-char count)))))
 
-(defun dired-pop-to-buffer (buf)
-  "Pop up buffer BUF in a way suitable for Dired."
-  (declare (obsolete pop-to-buffer "24.3"))
-  (let ((split-window-preferred-function
-	 (lambda (window)
-	   (or (and (let ((split-height-threshold 0))
-		      (window-splittable-p (selected-window)))
-		    ;; Try to split the selected window vertically if
-		    ;; that's possible.  (Bug#1806)
-		    (split-window-below))
-	       ;; Otherwise, try to split WINDOW sensibly.
-	       (split-window-sensibly window))))
-	pop-up-frames)
-    (pop-to-buffer (get-buffer-create buf)))
-  ;; See Bug#12281.
-  (set-window-start nil (point-min))
-  ;; If dired-shrink-to-fit is t, make its window fit its contents.
-  (when dired-shrink-to-fit
-    ;; Try to not delete window when we want to display less than
-    ;; `window-min-height' lines.
-    (fit-window-to-buffer (get-buffer-window buf) nil 1 nil nil t)))
-
 (defcustom dired-no-confirm nil
   "A list of symbols for commands Dired should not confirm, or t.
 Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
@@ -4589,9 +4556,6 @@ Possible values:
                      "Dired by date")
                     (t (concat "Dired " dired-actual-switches))))))
     (force-mode-line-update)))
-
-(define-obsolete-function-alias 'dired-sort-set-modeline
-  #'dired-sort-set-mode-line "24.3")
 
 (defun dired-sort-toggle-or-edit (&optional arg)
   "Toggle sorting by date, and refresh the Dired buffer.

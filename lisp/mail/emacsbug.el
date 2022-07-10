@@ -414,8 +414,6 @@ copy text to your preferred mail program.\n"
 	    system-configuration-options "'\n\n")
     (fill-region (line-beginning-position -1) (point))))
 
-(define-obsolete-function-alias 'report-emacs-bug-info #'info-emacs-bug "24.3")
-
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
   (goto-char (point-max))

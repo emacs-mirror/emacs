@@ -3273,8 +3273,6 @@ to provide the `find-revision' operation instead."
 
 
 ;; These things should probably be generally available
-(define-obsolete-function-alias 'vc-string-prefix-p 'string-prefix-p "24.3")
-
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.
 Invoke FUNC f ARGS on each VC-managed file f underneath it."

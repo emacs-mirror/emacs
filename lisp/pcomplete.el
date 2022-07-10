@@ -155,9 +155,6 @@ This mirrors the optional behavior of tcsh.
 A non-nil value is useful if `pcomplete-autolist' is non-nil too."
   :type 'boolean)
 
-(define-obsolete-variable-alias
-  'pcomplete-arg-quote-list 'comint-file-name-quote-list "24.3")
-
 (defcustom pcomplete-man-function #'man
   "A function to that will be called to display a manual page.
 It will be passed the name of the command to document."
@@ -364,11 +361,10 @@ modified to be an empty string, or the desired separation string."
 
 ;;; Alternative front-end using the standard completion facilities.
 
-;; The way pcomplete-parse-arguments, pcomplete-stub, and
-;; pcomplete-quote-argument work only works because of some deep
-;; hypothesis about the way the completion work.  Basically, it makes
-;; it pretty much impossible to have completion other than
-;; prefix-completion.
+;; The way pcomplete-parse-arguments and pcomplete-stub work only
+;; works because of some deep hypothesis about the way the completion
+;; work.  Basically, it makes it pretty much impossible to have
+;; completion other than prefix-completion.
 ;;
 ;; pcomplete--common-suffix and completion-table-subvert try to work around
 ;; this difficulty with heuristics, but it's really a hack.
@@ -840,9 +836,6 @@ this is `comint-dynamic-complete-functions'."
 	  (if pcomplete-expand-only-p
 	      (throw 'pcompleted t)
 	    pcomplete-args))))))
-
-(define-obsolete-function-alias
-  'pcomplete-quote-argument #'comint-quote-filename "24.3")
 
 ;; file-system completion lists
 

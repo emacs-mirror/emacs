@@ -294,8 +294,6 @@ claim them."
 		function
 		(repeat function)))
 
-(define-obsolete-variable-alias 'gnus-subscribe-newsgroup-hooks
-  'gnus-subscribe-newsgroup-functions "24.3")
 (defcustom gnus-subscribe-newsgroup-functions nil
   "Hooks run after you subscribe to a new group.
 The hooks will be called with new group's name as argument."

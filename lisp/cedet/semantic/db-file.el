@@ -70,8 +70,6 @@ passes a list of predicates in `semanticdb-project-predicate-functions'."
   :type '(repeat (choice (string :tag "Directory") (const never) (const always)
                          (const project))))
 
-(define-obsolete-variable-alias 'semanticdb-save-database-hooks
-  'semanticdb-save-database-functions "24.3")
 (defcustom semanticdb-save-database-functions nil
   "Abnormal hook run after a database is saved.
 Each function is called with one argument, the object representing

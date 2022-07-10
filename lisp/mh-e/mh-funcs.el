@@ -101,7 +101,7 @@ a non-nil value to suppress the normal prompt when you remove a
 folder. This is useful for folders that are easily regenerated."
   (interactive)
   (if (or (run-hook-with-args-until-success
-           'mh-kill-folder-suppress-prompt-hooks)
+           'mh-kill-folder-suppress-prompt-functions)
           (yes-or-no-p (format "Remove folder %s (and all included messages)? "
                                mh-current-folder)))
       (let ((folder mh-current-folder)

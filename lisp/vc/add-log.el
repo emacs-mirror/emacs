@@ -208,8 +208,6 @@ a case simply use the directory containing the changed file."
   '((t (:inherit font-lock-comment-face)))
   "Face for highlighting acknowledgments."
   :version "21.1")
-(define-obsolete-face-alias 'change-log-acknowledgement
-  'change-log-acknowledgment "24.3")
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
 (defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")

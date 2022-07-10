@@ -3268,8 +3268,6 @@ See `comint-word'."
 
 (defun comint--unquote-argument (str)
   (car (comint--unquote&requote-argument str)))
-(define-obsolete-function-alias 'comint--unquote&expand-filename
-  #'comint--unquote-argument "24.3")
 
 (defun comint-match-partial-filename ()
   "Return the unquoted&expanded filename at point, or nil if none is found.
@@ -3289,14 +3287,6 @@ Magic characters are those in `comint-file-name-quote-list'."
 	    (setq filename (replace-match "\\\\\\&" nil nil filename))
 	    (setq i (1+ (match-end 0)))))
 	filename))))
-
-(defun comint-unquote-filename (filename)
-  "Return FILENAME with quoted characters unquoted."
-  (declare (obsolete nil "24.3"))
-  (if (null comint-file-name-quote-list)
-      filename
-    (save-match-data
-      (replace-regexp-in-string "\\\\\\(.\\)" "\\1" filename t))))
 
 (defun comint--requote-argument (upos qstr)
   ;; See `completion-table-with-quoting'.

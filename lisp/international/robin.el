@@ -393,8 +393,6 @@ A nil value means no package is selected.")
   (interactive)
   (robin-activate -1))
 
-(define-obsolete-function-alias 'robin-inactivate 'robin-deactivate "24.3")
-
 (defun robin-activate (&optional arg)
   "Activate robin input method.
 
@@ -422,10 +420,6 @@ While this input method is active, the variable
     (run-hooks 'input-method-activate-hook
 	       'robin-activate-hook)
     (setq-local input-method-function 'robin-input-method)))
-
-(define-obsolete-variable-alias
-  'robin-inactivate-hook
-  'robin-deactivate-hook "24.3")
 
 (defun robin-exit-from-minibuffer ()
   (deactivate-input-method)

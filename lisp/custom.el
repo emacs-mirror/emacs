@@ -674,8 +674,6 @@ property, or (ii) an alias for another customizable variable."
   "Return the standard value of VARIABLE."
   (eval (car (get variable 'standard-value)) t))
 
-(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.3")
-
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).
 VARIABLE is a symbol that names a user option.

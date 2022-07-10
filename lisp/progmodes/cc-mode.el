@@ -3148,8 +3148,6 @@ Key bindings:
   (message "Using CC Mode version %s" c-version)
   (c-keep-region-active))
 
-(define-obsolete-variable-alias 'c-prepare-bug-report-hooks
-  'c-prepare-bug-report-hook "24.3")
 (defvar c-prepare-bug-report-hook nil)
 
 ;; Dynamic variables used by reporter.

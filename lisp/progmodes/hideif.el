@@ -196,9 +196,7 @@ Effective only if `hide-ifdef-expand-reinclusion-guard' is t."
   "C"   #'hif-clear-all-ifdef-defined
   "C-q" #'hide-ifdef-toggle-read-only
   "C-w" #'hide-ifdef-toggle-shadowing
-  "<remap> <read-only-mode>" #'hide-ifdef-toggle-outside-read-only
-  ;; `toggle-read-only' is obsoleted by `read-only-mode'.
-  "<remap> <toggle-read-only>" #'hide-ifdef-toggle-outside-read-only)
+  "<remap> <read-only-mode>" #'hide-ifdef-toggle-outside-read-only)
 
 (defcustom hide-ifdef-mode-prefix-key "\C-c@"
   "Prefix key for all Hide-Ifdef mode commands."

@@ -1352,8 +1352,6 @@ their settings before `allout-mode' was started."
   "Symbol for use as allout invisible-text overlay category.")
 
 ;;;_   = allout-exposure-change-functions
-(define-obsolete-variable-alias 'allout-exposure-change-hook
-  'allout-exposure-change-functions "24.3")
 (defcustom allout-exposure-change-functions nil
   "Abnormal hook run after allout outline subtree exposure changes.
 It is run at the conclusion of `allout-flag-region'.
@@ -1370,8 +1368,6 @@ This hook might be invoked multiple times by a single command."
   :version "24.3")
 
 ;;;_   = allout-structure-added-functions
-(define-obsolete-variable-alias 'allout-structure-added-hook
-  'allout-structure-added-functions "24.3")
 (defcustom allout-structure-added-functions nil
   "Abnormal hook run after adding items to an Allout outline.
 Functions on the hook should take two arguments:
@@ -1385,8 +1381,6 @@ This hook might be invoked multiple times by a single command."
   :version "24.3")
 
 ;;;_   = allout-structure-deleted-functions
-(define-obsolete-variable-alias 'allout-structure-deleted-hook
-  'allout-structure-deleted-functions "24.3")
 (defcustom allout-structure-deleted-functions nil
   "Abnormal hook run after deleting subtrees from an Allout outline.
 Functions on the hook must take two arguments:
@@ -1403,8 +1397,6 @@ This hook might be invoked multiple times by a single command."
   :version "24.3")
 
 ;;;_   = allout-structure-shifted-functions
-(define-obsolete-variable-alias 'allout-structure-shifted-hook
-  'allout-structure-shifted-functions "24.3")
 (defcustom allout-structure-shifted-functions nil
   "Abnormal hook run after shifting items in an Allout outline.
 Functions on the hook should take two arguments:

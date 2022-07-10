@@ -3791,9 +3791,6 @@ limited by `edebug-print-length' or `edebug-print-level'."
 
 ;;; Edebug Minor Mode
 
-(define-obsolete-variable-alias 'gud-inhibit-global-bindings
-  'edebug-inhibit-emacs-lisp-mode-bindings "24.3")
-
 (defvar edebug-inhibit-emacs-lisp-mode-bindings nil
   "If non-nil, inhibit Edebug bindings on the C-x C-a key.
 By default, loading the `edebug' library causes these bindings to
