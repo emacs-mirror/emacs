@@ -127,47 +127,34 @@
  indian-mlm-itrans-v5-hash "malayalam-itrans" "Malayalam" "MlmIT"
  "Malayalam transliteration by ITRANS method.")
 
-(defvar quail-tamil-itrans-syllable-table
-  (let ((vowels
-	 '(("அ" nil "a")
-	   ("ஆ" "ா" "A")
-	   ("இ" "ி" "i")
-	   ("ஈ" "ீ" "I")
-	   ("உ" "ு" "u")
-	   ("ஊ" "ூ" "U")
-	   ("எ" "ெ" "e")
-	   ("ஏ" "ே" "E")
-	   ("ஐ" "ை" "ai")
-	   ("ஒ" "ொ" "o")
-	   ("ஓ" "ோ" "O")
-	   ("ஔ" "ௌ" "au")))
-	(consonants
-	 '(("க" "k")			; U+0B95
-	   ("ங" "N^")			; U+0B99
-	   ("ச" "ch")			; U+0B9A
-	   ("ஞ" "JN")			; U+0B9E
-	   ("ட" "T")			; U+0B9F
-	   ("ண" "N")			; U+0BA3
-	   ("த" "t")			; U+0BA4
-	   ("ந" "n")			; U+0BA8
-	   ("ப" "p")			; U+0BAA
-	   ("ம" "m")			; U+0BAE
-	   ("ய" "y")			; U+0BAF
-	   ("ர" "r")			; U+0BB0
-	   ("ல" "l")			; U+0BB2
-	   ("வ" "v")			; U+0BB5
-	   ("ழ" "z")			; U+0BB4
-	   ("ள" "L")			; U+0BB3
-	   ("ற" "rh")			; U+0BB1
-	   ("ன" "nh")			; U+0BA9
-	   ("ஜ" "j")			; U+0B9C
-	   ("ஶ" nil)			; U+0BB6
-	   ("ஷ" "Sh")			; U+0BB7
-	   ("ஸ" "s")			; U+0BB8
-	   ("ஹ" "h")			; U+0BB9
-	   ("க்ஷ" "x" )			; U+0B95
-	   ))
-	(virama #x0BCD)
+;; This is needed since the Unicode codepoint order does not reflect
+;; the actual order in the Tamil language.
+(defvar quail-tamil-itrans--consonant-order
+  '("க" "ங" "ச" "ஞ" "ட" "ண"
+    "த" "ந" "ப" "ம" "ய" "ர"
+    "ல" "வ" "ழ" "ள" "ற" "ன"
+    "ஜ" "ஸ" "ஷ" "ஹ" "க்ஷ"
+    "க்‌ஷ" "ஶ"))
+
+(defun quail-tamil-itrans-compute-syllable-table (vowels consonants)
+  "Return the syllable table for the input method as a string.
+VOWELS is a list of (VOWEL SIGN INPUT-SEQ) where VOWEL is the
+Tamil vowel character, SIGN is the vowel sign corresponding to
+that vowel character or nil for none, and INPUT-SEQ is the input
+sequence to insert VOWEL.
+
+CONSONANTS is a list of (CONSONANT INPUT-SEQ...) where CONSONANT
+is the Tamil consonant character, and INPUT-SEQ is one or more
+strings that describe how to insert CONSONANT."
+  (setq vowels (sort vowels
+                     (lambda (x y)
+                       (string-lessp (car x) (car y)))))
+  (setq consonants
+     (sort consonants
+         (lambda (x y)
+           (or (seq-position (car x) quail-tamil-itrans--consonant-order) 1000)
+           (or (seq-position (car y) quail-tamil-itrans--consonant-order) 1000))))
+  (let ((virama #x0BCD)
 	clm)
     (with-temp-buffer
       (insert "\n")
@@ -197,20 +184,44 @@
 	  (insert (propertize "\t" 'display (list 'space :align-to clm))
 		  (car c) (or (nth 1 v) ""))
 	  (setq clm (+ clm 6)))
-	(insert "\n" (or (nth 1 c) "")
-		(propertize "\t" 'display '(space :align-to 4))
-		"|")
-	(setq clm 6)
-
-	(dolist (v vowels)
-	  (apply #'insert (propertize "\t" 'display (list 'space :align-to clm))
-		 (if (nth 1 c) (list (nth 1 c) (nth 2 v)) (list "")))
-	  (setq clm (+ clm 6))))
+        (dolist (ct (cdr c))
+	  (insert "\n" (or ct "")
+		  (propertize "\t" 'display '(space :align-to 4))
+		  "|")
+	  (setq clm 6)
+          (dolist (v vowels)
+	    (apply #'insert (propertize "\t" 'display (list 'space :align-to clm))
+		   (if ct (list ct (nth 2 v)) (list "")))
+	    (setq clm (+ clm 6)))))
       (insert "\n")
       (insert "----+")
       (insert-char ?- 74)
       (insert "\n")
       (buffer-string))))
+
+(defvar quail-tamil-itrans-syllable-table
+  (quail-tamil-itrans-compute-syllable-table
+   (let ((vowels (car indian-tml-base-table))
+         trans v ret)
+     (dotimes (i (length vowels))
+       (when (setq v (nth i vowels))
+         (when (characterp (car v))
+           (setcar v (string (car v))))
+         (setq trans (nth i (car indian-itrans-v5-table-for-tamil)))
+         (push (append v (list (if (listp trans) (car trans) trans)))
+               ret)))
+     ret)
+   (let ((consonants (cadr indian-tml-base-table))
+         trans c ret)
+     (dotimes (i (length consonants))
+       (when (setq c (nth i consonants))
+         (when (characterp c)
+           (setq c (string c)))
+         (setq trans (nth i (cadr indian-itrans-v5-table-for-tamil)))
+         (push (cons c (if (listp trans) trans (list trans)))
+               ret)))
+     (setq ret (nreverse ret))
+     ret)))
 
 (defvar quail-tamil-itrans-numerics-and-symbols-table
   (let ((numerics '((?௰ "பத்து") (?௱ "நூறு") (?௲ "ஆயிரம்")))
@@ -244,25 +255,28 @@
       (insert "\n")
       (buffer-string))))
 
-(defun quail-tamil-itrans-compute-signs-table (digitp)
+(defun quail-tamil-itrans-compute-signs-table (digitp various)
   "Compute the signs table for the tamil-itrans input method.
-If DIGITP is non-nil, include the digits translation as well."
-  (let ((various '((?ஃ . "H") ("ஸ்ரீ" . "srii") (?ௐ)))
-	(digits "௦௧௨௩௪௫௬௭௮௯")
+If DIGITP is non-nil, include the digits translation as well.
+If VARIOUS is non-nil, then it should a list of (CHAR TRANS)
+where CHAR is the character/string to translate and TRANS is
+CHAR's translation."
+  (let ((digits "௦௧௨௩௪௫௬௭௮௯")
 	(width 6) clm)
     (with-temp-buffer
-      (insert "\n" (make-string 18 ?-) "+")
-      (when digitp (insert (make-string 60 ?-)))
+      (insert "\n" (make-string 18 ?-))
+      (when digitp
+        (insert "+" (make-string 60 ?-)))
       (insert "\n")
       (insert
        (propertize "\t" 'display '(space :align-to 5)) "various"
-       (propertize "\t" 'display '(space :align-to 18)) "|")
+       (propertize "\t" 'display '(space :align-to 18)))
       (when digitp
         (insert
-         (propertize "\t" 'display '(space :align-to 45)) "digits"))
-      (insert "\n" (make-string 18 ?-) "+")
+          "|" (propertize "\t" 'display '(space :align-to 45)) "digits"))
+      (insert "\n" (make-string 18 ?-))
       (when digitp
-        (insert (make-string 60 ?-)))
+        (insert "+" (make-string 60 ?-)))
       (insert "\n")
       (setq clm 0)
 
@@ -270,7 +284,8 @@ If DIGITP is non-nil, include the digits translation as well."
 	(insert (propertize "\t" 'display (list 'space :align-to clm))
 		(car (nth i various)))
 	(setq clm (+ clm width)))
-      (insert (propertize "\t" 'display '(space :align-to 18)) "|")
+      (when digitp
+        (insert (propertize "\t" 'display '(space :align-to 18)) "|"))
       (setq clm 20)
       (when digitp
         (dotimes (i 10)
@@ -281,25 +296,28 @@ If DIGITP is non-nil, include the digits translation as well."
       (setq clm 0)
       (dotimes (i (length various))
 	(insert (propertize "\t" 'display (list 'space :align-to clm))
-		(or (cdr (nth i various)) ""))
+		(or (cadr (nth i various)) ""))
 	(setq clm (+ clm width)))
-      (insert (propertize "\t" 'display '(space :align-to 18)) "|")
+      (when digitp
+        (insert (propertize "\t" 'display '(space :align-to 18)) "|"))
       (setq clm 20)
       (when digitp
         (dotimes (i 10)
 	  (insert (propertize "\t" 'display (list 'space :align-to clm))
 		  (format "%d" i))
 	  (setq clm (+ clm width))))
-      (insert "\n" (make-string 18 ?-) "+")
+      (insert "\n" (make-string 18 ?-))
       (when digitp
-        (insert (make-string 60 ?-) "\n"))
+        (insert "+" (make-string 60 ?-) "\n"))
       (buffer-string))))
 
 (defvar quail-tamil-itrans-various-signs-and-digits-table
-  (quail-tamil-itrans-compute-signs-table t))
+  (quail-tamil-itrans-compute-signs-table
+   t '((?ஃ "H") ("ஸ்ரீ" "srii") (?ௐ "OM"))))
 
 (defvar quail-tamil-itrans-various-signs-table
-  (quail-tamil-itrans-compute-signs-table nil))
+  (quail-tamil-itrans-compute-signs-table
+   nil '((?ஃ "H") ("ஸ்ரீ" "srii") (?ௐ "OM"))))
 
 (if nil
     (quail-define-package "tamil-itrans" "Tamil" "TmlIT" t "Tamil ITRANS"))
@@ -346,6 +364,160 @@ Their descriptions are included for easy reference.
 \\=\\<quail-tamil-itrans-numerics-and-symbols-table>
 
 Full key sequences are listed below:")
+
+;;;
+;;; Tamil phonetic input method
+;;;
+
+;; Define the input method straightaway.
+(quail-define-package "tamil-phonetic" "Tamil" "ழ" t
+ "Customisable Tamil phonetic input method.
+To change the translation rules of the input method, customize
+`tamil-translation-rules'.
+
+To use native Tamil digits, customize `tamil-translation-rules'
+accordingly.
+
+To end the current translation process, say \\<quail-translation-keymap>\\[quail-select-current] (defined in
+`quail-translation-keymap').  This is useful when there's a
+conflict between two possible translation.
+
+The current input scheme is:
+
+### Basic syllables (உயிர்மெய் எழுத்துக்கள்) ###
+\\=\\<tamil--syllable-table>
+
+### Miscellaneous ####
+\\=\\<tamil--signs-table>
+
+The following characters have NO input sequence associated with
+them by default.  Their descriptions are included for easy
+reference.
+\\=\\<quail-tamil-itrans-numerics-and-symbols-table>
+
+Full key sequences are listed below:"
+ nil nil nil nil nil nil t)
+
+(defvar tamil--syllable-table nil)
+(defvar tamil--signs-table nil)
+(defvar tamil--hashtables
+  (cons (make-hash-table :test #'equal)
+        (make-hash-table :test #'equal)))
+(defvar tamil--vowel-signs
+  '(("அ" . t) ("ஆ" . ?ா) ("இ" . ?ி) ("ஈ" . ?ீ)
+    ("உ" . ?ு) ("ஊ" . ?ூ) ("எ" . ?ெ) ("ஏ" . ?ே)
+    ("ஐ" . ?ை) ("ஒ" . ?ொ) ("ஓ" . ?ோ) ("ஔ" . ?ௌ)))
+
+(defun tamil--setter (sym val)
+  (set-default sym val)
+  (tamil--update-quail-rules val))
+
+(defun tamil--make-tables (rules)
+  (let (v v-table v-trans
+          c-table c-trans
+          m-table m-trans)
+    (dolist (ch rules)
+      (cond
+       ;; Vowel.
+       ((setq v (assoc-default (car ch) tamil--vowel-signs))
+        (push (list (car ch) (and (characterp v) v)) v-table)
+        (push (cdr ch) v-trans))
+       ;; Consonant.  It needs to end with pulli.
+       ((string-suffix-p "்" (car ch))
+        ;; Strip the pulli now.
+        (push (substring (car ch) 0 -1) c-table)
+        (push (cdr ch) c-trans))
+       ;; If nothing else, then consider it a misc character.
+       (t (push (car ch) m-table)
+          (push (cdr ch) m-trans))))
+    (list v-table v-trans c-table c-trans m-table m-trans)))
+
+(defun tamil--update-quail-rules (rules &optional name)
+  ;; This function does pretty much what `indian-make-hash' does
+  ;; except that we don't try to copy the structure of
+  ;; `indian-tml-base-table' which leads to less code hassle.
+  (let* ((quail-current-package (assoc (or name "tamil-phonetic") quail-package-alist))
+         (tables (tamil--make-tables rules))
+         (v (nth 0 tables))
+         (v-trans (nth 1 tables))
+         (c (nth 2 tables))
+         (c-trans (nth 3 tables))
+         (m (nth 4 tables))
+         (m-trans (nth 5 tables))
+         (pulli (string #x0BCD)))
+    (clrhash (car tamil--hashtables))
+    (clrhash (cdr tamil--hashtables))
+    (indian--puthash-v v v-trans tamil--hashtables)
+    (indian--puthash-c c c-trans pulli tamil--hashtables)
+    (indian--puthash-cv c c-trans v v-trans tamil--hashtables)
+    (indian--puthash-m m m-trans tamil--hashtables)
+    ;; Now override the current translation rules.
+    ;; Empty quail map is '(list nil)'.
+    (setf (nth 2 quail-current-package) '(nil))
+    (maphash (lambda (k v)
+               (quail-defrule k (if (length= v 1)
+                                    (string-to-char v)
+                                  (vector v))))
+             (cdr tamil--hashtables))
+    (setq  tamil--syllable-table
+           (quail-tamil-itrans-compute-syllable-table
+            (mapcar (lambda (ch) (append ch (pop v-trans))) v)
+            (mapcar (lambda (ch) (cons ch (pop c-trans))) c))
+           tamil--signs-table
+           (quail-tamil-itrans-compute-signs-table
+            nil
+            (append (mapcar (lambda (ch) (cons ch (pop m-trans))) m)
+                    (and (gethash "ஸ்" (car tamil--hashtables))
+                         `(("ஸ்ரீ" ,(concat (gethash "ஸ்" (car tamil--hashtables))
+                                          (gethash "ரீ" (car tamil--hashtables)))))))))))
+
+(defgroup tamil-input nil
+  "Translation rules for the Tamil input method."
+  :prefix "tamil-"
+  :group 'leim)
+
+(defcustom tamil-translation-rules
+  ;; Vowels.
+  '(("அ" "a") ("ஆ" "aa") ("இ" "i") ("ஈ" "ii")
+    ("உ" "u") ("ஊ" "uu") ("எ" "e") ("ஏ" "ee")
+    ("ஐ" "ai") ("ஒ" "o") ("ஓ" "oo") ("ஔ" "au" "ow")
+
+    ;; Consonants.
+    ("க்" "k" "g") ("ங்" "ng") ("ச்" "ch" "s") ("ஞ்" "nj") ("ட்" "t" "d")
+    ("ண்" "N") ("த்" "th" "dh") ("ந்" "nh") ("ப்" "p" "b") ("ம்" "m")
+    ("ய்" "y") ("ர்" "r") ("ல்" "l") ("வ்" "v") ("ழ்" "z" "zh")
+    ("ள்" "L") ("ற்" "rh") ("ன்" "n")
+    ;; Sanskrit.
+    ("ஜ்" "j") ("ஸ்" "S") ("ஷ்" "sh") ("ஹ்" "h")
+    ("க்‌ஷ்" "ksh") ("க்ஷ்" "ksH") ("ஶ்" "Z")
+
+    ;; Misc.  ஃ is neither a consonant nor a vowel.
+    ("ஃ" "F" "q")
+    ("ௐ" "OM"))
+  "List of input sequences to translate to Tamil characters.
+Each element should be (CHARACTER INPUT-SEQUENCES...) where
+CHARACTER is the Tamil character, and INPUT-SEQUENCES is a list
+of input sequences which produce that character.
+
+CHARACTER is considered as a consonant (மெய் எழுத்து) if it ends
+with a pulli (virama).
+
+CHARACTER that is neither a vowel nor a consonant are inserted as
+is."
+  :group 'tamil-input
+  :type '(alist :key-type string :value-type (repeat string))
+  :set #'tamil--setter
+  :version "29.1"
+  :options
+  (delq nil
+        (append (mapcar #'car tamil--vowel-signs)
+                (mapcar (lambda (x) (if (characterp x)
+                                        (string x #x0BCD)
+                                      (and x (concat x "்"))))
+                        (nth 1 indian-tml-base-table))
+                '("ஃ" "ௐ")
+                ;; Digits.
+                (mapcar #'string (nth 3 indian-tml-base-digits-table)))))
 
 ;;;
 ;;; Input by Inscript

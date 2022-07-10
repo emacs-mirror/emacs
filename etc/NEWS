@@ -1047,6 +1047,13 @@ supported.
 Type 'C-u C-h t' to select it in case your language setup does not do
 so automatically.
 
+---
+*** New default phonetic input method for the Tamil language environment.
+The default input method for the Tamil language environment is now
+"tamil-phonetic" which is a customizable phonetic input method.  To
+change the input method's translation rules, customize the user option
+'tamil-translation-rules'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
