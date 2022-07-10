@@ -868,7 +868,7 @@ the C sources, too."
                       (shortdoc-display-group group object
                                               help-window-keep-selected))
             'follow-link t
-            'help-echo (purecopy "mouse-1, RET: show documentation group")))
+            'help-echo "mouse-1, RET: show documentation group"))
          groups)
         (insert (if (= (length groups) 1)
                     " group.\n"

@@ -1367,15 +1367,15 @@ If SAME-WINDOW, don't pop to a new window."
          'action (lambda (_)
                    (describe-function function))
          'follow-link t
-         'help-echo (purecopy "mouse-1, RET: describe function"))
+         'help-echo "mouse-1, RET: describe function")
       (insert-text-button
        (symbol-name function)
        'face 'button
        'action (lambda (_)
                  (info-lookup-symbol function 'emacs-lisp-mode))
        'follow-link t
-       'help-echo (purecopy "mouse-1, RET: show \
-function's documentation in the Info manual")))
+       'help-echo "mouse-1, RET: show \
+function's documentation in the Info manual"))
     (setq arglist-start (point))
     (insert ")\n")
     ;; Doc string.

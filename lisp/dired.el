@@ -103,10 +103,10 @@ If `dired-maybe-use-globstar' is non-nil, then `dired-insert-directory'
 checks this alist to enable globstar in the shell subprocess.")
 
 (defcustom dired-chown-program
-  (purecopy (cond ((executable-find "chown") "chown")
-                  ((file-executable-p "/usr/sbin/chown") "/usr/sbin/chown")
-                  ((file-executable-p "/etc/chown") "/etc/chown")
-                  (t "chown")))
+  (cond ((executable-find "chown") "chown")
+        ((file-executable-p "/usr/sbin/chown") "/usr/sbin/chown")
+        ((file-executable-p "/etc/chown") "/etc/chown")
+        (t "chown"))
   "Name of chown command (usually `chown')."
   :group 'dired
   :type 'file)
@@ -161,7 +161,7 @@ always set this variable to t."
   :type 'boolean
   :group 'dired-mark)
 
-(defcustom dired-trivial-filenames (purecopy "\\`\\.\\.?\\'\\|\\`\\.?#")
+(defcustom dired-trivial-filenames "\\`\\.\\.?\\'\\|\\`\\.?#"
   "Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
 A value of t means move to first file."
