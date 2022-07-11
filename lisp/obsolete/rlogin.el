@@ -4,6 +4,7 @@
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +23,9 @@
 
 ;;; Commentary:
 
+;; This library is obsolete.
+;; See: https://debbugs.gnu.org/56461
+
 ;; Support for remote logins using `rlogin'.
 ;; This program is layered on top of shell.el; the code here only accounts
 ;; for the variations needed to handle a remote process, e.g. directory
@@ -33,11 +37,6 @@
 ;; `comint-password-prompt-regexp' to match your password prompt).
 
 ;;; Code:
-
-;; FIXME?
-;; Maybe this file should be obsolete.
-;; https://lists.gnu.org/r/emacs-devel/2013-02/msg00517.html
-;; It only adds rlogin-directory-tracking-mode.  Is that useful?
 
 (require 'comint)
 (require 'shell)
