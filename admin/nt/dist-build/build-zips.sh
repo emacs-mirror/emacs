@@ -148,7 +148,7 @@ done
 if [ -z $ACTUAL_VERSION ];
 then
     ACTUAL_VERSION=`
-  sed -n 's/^AC_INIT(GNU Emacs,[	 ]*\([^	 ,)]*\).*/\1/p' < ../../../configure.ac
+  sed -n 's/^AC_INIT(\[*GNU Emacs]*,[	 ]*\[*\([^]	 ,)]*\).*/\1/p' < ../../../configure.ac
 `
 fi
 

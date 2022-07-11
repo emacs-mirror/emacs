@@ -1925,9 +1925,10 @@ and later discarded; this is not possible with a property list.
   The following functions can be used to manipulate property lists.
 They all compare property names using @code{eq}.
 
-@defun plist-get plist property
+@defun plist-get plist property &optional predicate
 This returns the value of the @var{property} property stored in the
-property list @var{plist}.  It accepts a malformed @var{plist}
+property list @var{plist}.  Comparisons are done with @var{predicate},
+and defaults to @code{eq}.  It accepts a malformed @var{plist}
 argument.  If @var{property} is not found in the @var{plist}, it
 returns @code{nil}.  For example,
 
@@ -1943,9 +1944,10 @@ returns @code{nil}.  For example,
 @end example
 @end defun
 
-@defun plist-put plist property value
+@defun plist-put plist property value &optional predicate
 This stores @var{value} as the value of the @var{property} property in
-the property list @var{plist}.  It may modify @var{plist} destructively,
+the property list @var{plist}.  Comparisons are done with @var{predicate},
+and defaults to @code{eq}.  It may modify @var{plist} destructively,
 or it may construct a new list structure without altering the old.  The
 function returns the modified property list, so you can store that back
 in the place where you got @var{plist}.  For example,
@@ -1961,19 +1963,20 @@ in the place where you got @var{plist}.  For example,
 @end defun
 
 @defun lax-plist-get plist property
-Like @code{plist-get} except that it compares properties
-using @code{equal} instead of @code{eq}.
+This obsolete function is like @code{plist-get} except that it
+compares properties using @code{equal} instead of @code{eq}.
 @end defun
 
 @defun lax-plist-put plist property value
-Like @code{plist-put} except that it compares properties
-using @code{equal} instead of @code{eq}.
+This obsolete function is like @code{plist-put} except that it
+compares properties using @code{equal} instead of @code{eq}.
 @end defun
 
-@defun plist-member plist property
+@defun plist-member plist property &optional predicate
 This returns non-@code{nil} if @var{plist} contains the given
-@var{property}.  Unlike @code{plist-get}, this allows you to distinguish
-between a missing property and a property with the value @code{nil}.
-The value is actually the tail of @var{plist} whose @code{car} is
-@var{property}.
+@var{property}.  Comparisons are done with @var{predicate}, and
+defaults to @code{eq}.  Unlike @code{plist-get}, this allows you to
+distinguish between a missing property and a property with the value
+@code{nil}.  The value is actually the tail of @var{plist} whose
+@code{car} is @var{property}.
 @end defun

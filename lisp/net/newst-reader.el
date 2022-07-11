@@ -112,18 +112,18 @@ window is used when filling.  See also `newsticker-justification'."
   "Function for rendering HTML contents.
 If non-nil, newsticker.el will call this function whenever it
 finds HTML-like tags in item descriptions.
-Possible functions include `shr-render-region', `w3m-region', `w3-region', and
+Possible functions include `shr-render-region', `w3m-region', and
 `newsticker-htmlr-render'.
-Newsticker automatically loads the respective package w3m, w3, or
+Newsticker automatically loads the respective package w3m, or
 htmlr if this option is set."
   :type '(choice :tag "Function"
                  (const :tag "None" nil)
                  (const :tag "SHR" shr-render-region)
-                 (const :tag "w3" w3-region)
                  (const :tag "w3m" w3m-region)
                  (const :tag "htmlr" newsticker-htmlr-render))
   :set #'newsticker--set-customvar-formatting
-  :group 'newsticker-reader)
+  :group 'newsticker-reader
+  :version "29.1")
 
 (defcustom newsticker-date-format
   "(%A, %H:%M)"
@@ -315,8 +315,6 @@ Return the image."
   (if newsticker-html-renderer
       (cond ((eq newsticker-html-renderer 'w3m-region)
              (require 'w3m))
-            ((eq newsticker-html-renderer 'w3-region)
-             (require 'w3-auto))
             ((eq newsticker-html-renderer 'newsticker-htmlr-render)
              (require 'htmlr))))
   (funcall newsticker-frontend))

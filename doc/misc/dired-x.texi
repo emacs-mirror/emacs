@@ -165,10 +165,8 @@ When @file{dired-x.el} is loaded, some standard Dired functions from
 Dired}), if it is active.  @code{dired-find-buffer-nocreate} and
 @code{dired-initial-position} respect the value of
 @code{dired-find-subdir} (@pxref{Miscellaneous Commands}).
-@code{dired-clean-up-after-deletion} respects the value of
-@code{dired-clean-up-buffers-too}.  @code{dired-read-shell-command} uses
-@code{dired-guess-shell-command} (@pxref{Shell Command Guessing}) to
-offer a smarter default command.
+@code{dired-read-shell-command} uses @code{dired-guess-shell-command}
+(@pxref{Shell Command Guessing}) to offer a smarter default command.
 
 @node Installation
 @chapter Installation
@@ -884,15 +882,6 @@ normal and a wildcard buffer for the same directory, @kbd{C-x d @key{RET}}
 will toggle between those two.
 @end table
 
-@table @kbd
-@findex dired-goto-subdir
-@kindex M-G
-@item M-G
-(@code{dired-goto-subdir}) Go to the header line of an inserted directory.
-This command reads its argument, with completion derived from the names of the
-inserted subdirectories.
-@end table
-
 @table @code
 
 @item dired-vm
@@ -920,55 +909,6 @@ to @kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
 @findex dired-rmail
 Bound to @kbd{V} if @code{dired-bind-vm} is @code{nil}.  Run Rmail on this
 file (assumed to be mail folder in Rmail format).
-
-@item dired-info
-@kindex I
-@cindex running info.
-@findex dired-info
-Bound to @kbd{I}.  Run Info on this file (assumed to be a file in Info
-format).
-
-@vindex dired-bind-info
-If the variable @code{dired-bind-info} is @code{nil}, @code{dired-info} will
-not be bound to @kbd{I}.
-
-@item dired-man
-@cindex running man.
-@kindex N
-@findex dired-man
-Bound to @kbd{N}.  Run man on this file (assumed to be a file in @code{nroff}
-format).
-
-@vindex dired-bind-man
-If the variable @code{dired-bind-man} is @code{nil}, @code{dired-man} will not
-be bound to @kbd{N}.
-
-@item dired-do-relsymlink
-@cindex relative symbolic links.
-@kindex Y
-@findex dired-do-relsymlink
-Bound to @kbd{Y}.  Relative symlink all marked (or next ARG) files into a
-directory, or make a relative symbolic link to the current file.  This creates
-relative symbolic links like
-
-@example
-    foo -> ../bar/foo
-@end example
-
-@noindent
-not absolute ones like
-
-@example
-    foo -> /ugly/path/that/may/change/any/day/bar/foo
-@end example
-
-@item dired-do-relsymlink-regexp
-@kindex %Y
-@findex dired-do-relsymlink-regexp
-Bound to @kbd{%Y}.  Relative symlink all marked files containing
-@var{regexp} to @var{newname}.  See functions
-@code{dired-do-rename-regexp} and @code{dired-do-relsymlink} for more
-info.
 @end table
 
 @node Bugs

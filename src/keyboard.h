@@ -27,6 +27,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include "xterm.h"		/* for struct selection_input_event */
 #endif
 
+#ifdef HAVE_PGTK
+#include "pgtkterm.h"		/* for struct selection_input_event */
+#endif
+
 INLINE_HEADER_BEGIN
 
 /* Most code should use this macro to access Lisp fields in struct kboard.  */
@@ -226,7 +230,7 @@ union buffered_input_event
 {
   ENUM_BF (event_kind) kind : EVENT_KIND_WIDTH;
   struct input_event ie;
-#ifdef HAVE_X11
+#if defined HAVE_X11 || defined HAVE_PGTK
   struct selection_input_event sie;
 #endif
 };
@@ -358,6 +362,11 @@ enum menu_item_idx
   MENU_ITEMS_ITEM_LENGTH
 };
 
+enum
+  {
+    KBD_BUFFER_SIZE = 4096
+  };
+
 extern void unuse_menu_items (void);
 
 /* This is how to deal with multibyte text if HAVE_MULTILINGUAL_MENU
@@ -419,6 +428,10 @@ extern void unuse_menu_items (void);
    happens.  */
 extern struct timespec *input_available_clear_time;
 
+extern union buffered_input_event kbd_buffer[KBD_BUFFER_SIZE];
+extern union buffered_input_event *kbd_fetch_ptr;
+extern union buffered_input_event *kbd_store_ptr;
+
 extern bool ignore_mouse_drag_p;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
@@ -472,9 +485,6 @@ kbd_buffer_store_event_hold (struct input_event *event,
   kbd_buffer_store_buffered_event ((union buffered_input_event *) event,
 				   hold_quit);
 }
-#ifdef HAVE_X11
-extern void kbd_buffer_unget_event (struct selection_input_event *);
-#endif
 extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object);
@@ -486,8 +496,6 @@ extern bool kbd_buffer_events_waiting (void);
 extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, struct input_event *);
-extern bool volatile pending_signals;
-extern void process_pending_signals (void);
 extern struct timespec timer_check (void);
 extern void mark_kboards (void);
 

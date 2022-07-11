@@ -82,7 +82,11 @@ equivalent of `echo' can always be achieved by using `identity'."
 It returns a formatted value that should be passed to `eshell-print'
 or `eshell-printn' for display."
   (if eshell-plain-echo-behavior
-      (concat (apply 'eshell-flatten-and-stringify args) "\n")
+      (progn
+        ;; If the output does not end in a newline, do not emit one.
+        (setq eshell-ensure-newline-p nil)
+        (concat (apply #'eshell-flatten-and-stringify args)
+                (when output-newline "\n")))
     (let ((value
 	   (cond
 	    ((= (length args) 0) "")
@@ -109,18 +113,33 @@ or `eshell-printn' for display."
   "Implementation of `echo'.  See `eshell-plain-echo-behavior'."
   (eshell-eval-using-options
    "echo" args
-   '((?n nil nil output-newline "terminate with a newline")
-     (?h "help" nil nil "output this help screen")
+   '((?n nil (nil) output-newline
+         "do not output the trailing newline")
+     (?N nil (t)   output-newline
+         "terminate with a newline")
+     (?E nil nil   _disable-escapes
+         "don't interpret backslash escapes (default)")
+     (?h "help" nil nil
+         "output this help screen")
      :preserve-args
-     :usage "[-n] [object]")
-   (eshell-echo args output-newline)))
+     :usage "[OPTION]... [OBJECT]...")
+   (if eshell-plain-echo-behavior
+       (eshell-echo args (if output-newline (car output-newline) t))
+     ;; In Emacs 28.1 and earlier, "-n" was used to add a newline to
+     ;; non-plain echo in Eshell.  This caused confusion due to "-n"
+     ;; generally having the opposite meaning for echo.  Retain this
+     ;; compatibility for the time being.  For more info, see
+     ;; bug#27361.
+     (when (equal output-newline '(nil))
+       (display-warning
+        :warning "To terminate with a newline, you should use -N instead."))
+     (eshell-echo args output-newline))))
 
 (defun eshell/printnl (&rest args)
-  "Print out each of the arguments, separated by newlines."
+  "Print out each of the arguments as strings, separated by newlines."
   (let ((elems (flatten-tree args)))
-    (while elems
-      (eshell-printn (eshell-echo (list (car elems))))
-      (setq elems (cdr elems)))))
+    (dolist (elem elems)
+      (eshell-printn (eshell-stringify elem)))))
 
 (defun eshell/listify (&rest args)
   "Return the argument(s) as a single list."
@@ -136,38 +155,36 @@ or `eshell-printn' for display."
    "umask" args
    '((?S "symbolic" nil symbolic-p "display umask symbolically")
      (?h "help" nil nil  "display this usage message")
+     :preserve-args
      :usage "[-S] [mode]")
-   (if (or (not args) symbolic-p)
-       (let ((modstr
-	      (concat "000"
-		      (format "%o"
-			      (logand (lognot (default-file-modes))
-				      511)))))
-	 (setq modstr (substring modstr (- (length modstr) 3)))
-	 (when symbolic-p
-	   (let ((mode (default-file-modes)))
-	     (setq modstr
-		   (format
-		    "u=%s,g=%s,o=%s"
-		    (concat (and (= (logand mode 64) 64) "r")
-			    (and (= (logand mode 128) 128) "w")
-			    (and (= (logand mode 256) 256) "x"))
-		    (concat (and (= (logand mode 8) 8) "r")
-			    (and (= (logand mode 16) 16) "w")
-			    (and (= (logand mode 32) 32) "x"))
-		    (concat (and (= (logand mode 1) 1) "r")
-			    (and (= (logand mode 2) 2) "w")
-			    (and (= (logand mode 4) 4) "x"))))))
-	 (eshell-printn modstr))
-     (setcar args (eshell-convert (car args)))
-     (if (numberp (car args))
-	 (set-default-file-modes
-	  (- 511 (car (read-from-string
-		       (concat "?\\" (number-to-string (car args)))))))
-       (error "Setting umask symbolically is not yet implemented"))
+   (cond
+    (symbolic-p
+     (let ((mode (default-file-modes)))
+       (eshell-printn
+        (format "u=%s,g=%s,o=%s"
+                (concat (and (= (logand mode 64) 64) "r")
+                        (and (= (logand mode 128) 128) "w")
+                        (and (= (logand mode 256) 256) "x"))
+                (concat (and (= (logand mode 8) 8) "r")
+                        (and (= (logand mode 16) 16) "w")
+                        (and (= (logand mode 32) 32) "x"))
+                (concat (and (= (logand mode 1) 1) "r")
+                        (and (= (logand mode 2) 2) "w")
+                        (and (= (logand mode 4) 4) "x"))))))
+    ((not args)
+     (eshell-printn (format "%03o" (logand (lognot (default-file-modes))
+                                           #o777))))
+    (t
+     (when (stringp (car args))
+       (if (string-match "^[0-7]+$" (car args))
+           (setcar args (string-to-number (car args) 8))
+         (error "Setting umask symbolically is not yet implemented")))
+     (set-default-file-modes (- #o777 (car args)))
      (eshell-print
-      "Warning: umask changed for all new files created by Emacs.\n"))
+      "Warning: umask changed for all new files created by Emacs.\n")))
    nil))
+
+(put 'eshell/umask 'eshell-no-numeric-conversions t)
 
 (provide 'em-basic)
 

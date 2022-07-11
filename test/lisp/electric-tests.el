@@ -79,7 +79,7 @@
     (should (equal (point)
                    expected-point))))
 
-(eval-when-compile
+(eval-and-compile
   (defun electric-pair-define-test-form (name fixture
                                               char
                                               pos

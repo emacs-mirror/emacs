@@ -287,7 +287,12 @@ type \"nil\" to use `elp-function-list'."
   "Instrument for profiling, all functions which start with PREFIX.
 For example, to instrument all ELP functions, do the following:
 
-    \\[elp-instrument-package] RET elp- RET"
+    \\[elp-instrument-package] RET elp- RET
+
+Note that only functions that are currently loaded will be
+instrumented.  If you run this function, and then later load
+further functions that start with PREFIX, they will not be
+instrumented automatically."
   (interactive
    (list (completing-read "Prefix of package to instrument: "
                           obarray 'elp-profilable-p)))
@@ -467,13 +472,11 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	(insert atstr))
       (insert "\n"))))
 
-(defvar elp-results-symname-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'elp-results-jump-to-definition)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map "\C-m" 'elp-results-jump-to-definition)
-    map)
-  "Keymap used on the function name column." )
+(defvar-keymap elp-results-symname-map
+  :doc "Keymap used on the function name column."
+  "<mouse-2>"     #'elp-results-jump-to-definition
+  "<follow-link>" 'mouse-face
+  "RET"           #'elp-results-jump-to-definition)
 
 (defun elp-results-jump-to-definition (&optional event)
   "Jump to the definition of the function at point."

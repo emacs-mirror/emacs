@@ -1599,7 +1599,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (declare-function grep-read-regexp "grep" ())
 (declare-function grep-read-files "grep" (regexp))
 (declare-function grep-expand-template "grep"
-                 (template &optional regexp files dir excl))
+                 (template &optional regexp files dir excl more-opts))
 (defvar compilation-environment)
 
 ;; Derived from `lgrep'.
@@ -1695,8 +1695,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (vc-setup-buffer "*vc-git-stash*")
   (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
   (set-buffer "*vc-git-stash*")
-  (diff-mode)
   (setq buffer-read-only t)
+  (diff-mode)
   (pop-to-buffer (current-buffer)))
 
 (defun vc-git-stash-apply (name)

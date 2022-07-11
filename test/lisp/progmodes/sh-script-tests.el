@@ -23,6 +23,7 @@
 
 (require 'sh-script)
 (require 'ert)
+(require 'ert-x)
 
 (ert-deftest test-sh-script-indentation ()
   (with-temp-buffer
@@ -47,5 +48,25 @@
     echo foo
 }
 "))))
+
+(ert-deftest test-indentation ()
+  (ert-test-erts-file (ert-resource-file "sh-indents.erts")))
+
+(defun test-sh-back (string &optional pos)
+  (with-temp-buffer
+    (shell-script-mode)
+    (insert string)
+    (sh-smie--default-backward-token)
+    (= (point) (or pos 1))))
+
+(ert-deftest test-backward-token ()
+  (should (test-sh-back "foo"))
+  (should (test-sh-back "foo.bar"))
+  (should (test-sh-back "foo\\1bar"))
+  (should (test-sh-back "foo\\\nbar"))
+  (should (test-sh-back "foo\\\n\\\n\\\nbar"))
+  (should (test-sh-back "foo"))
+  (should-not (test-sh-back "foo;bar"))
+  (should (test-sh-back "foo#zot")))
 
 ;;; sh-script-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; cl-preloaded.el --- Preloaded part of the CL library  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2021 Free Software Foundation, Inc
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -53,13 +53,23 @@
 (defconst cl--typeof-types
   ;; Hand made from the source code of `type-of'.
   '((integer number number-or-marker atom)
-    (symbol atom) (string array sequence atom)
+    (symbol-with-pos symbol atom) (symbol atom) (string array sequence atom)
     (cons list sequence)
     ;; Markers aren't `numberp', yet they are accepted wherever integers are
     ;; accepted, pretty much.
     (marker number-or-marker atom)
     (overlay atom) (float number atom) (window-configuration atom)
-    (process atom) (window atom) (subr atom) (compiled-function function atom)
+    (process atom) (window atom)
+    ;; FIXME: We'd want to put `function' here, but that's only true
+    ;; for those `subr's which aren't special forms!
+    (subr atom)
+    ;; FIXME: We should probably reverse the order between
+    ;; `compiled-function' and `byte-code-function' since arguably
+    ;; `subr' and also "compiled functions" but not "byte code functions",
+    ;; but it would require changing the value returned by `type-of' for
+    ;; byte code objects, which risks breaking existing code, which doesn't
+    ;; seem worth the trouble.
+    (compiled-function byte-code-function function atom)
     (module-function function atom)
     (buffer atom) (char-table array sequence atom)
     (bool-vector array sequence atom)
@@ -136,13 +146,13 @@ supertypes from the most specific to least specific.")
   (while (recordp parent)
     (add-to-list (cl--struct-class-children-sym parent) tag)
     ;; Only register ourselves as a child of the leftmost parent since structs
-    ;; can only only have one parent.
+    ;; can only have one parent.
     (setq parent (car (cl--struct-class-parents parent)))))
 
 ;;;###autoload
 (defun cl-struct-define (name docstring parent type named slots children-sym
                               tag print)
-  (cl-check-type name cl--struct-name)
+  (cl-check-type name (satisfies cl--struct-name-p))
   (unless type
     ;; Legacy defstruct, using tagged vectors.  Enable backward compatibility.
     (cl-old-struct-compat-mode 1))
@@ -304,6 +314,17 @@ supertypes from the most specific to least specific.")
 (cl-assert (cl-struct-p (cl--find-class 'cl-structure-object)))
 (cl-assert (cl--class-p (cl--find-class 'cl-structure-class)))
 (cl-assert (cl--class-p (cl--find-class 'cl-structure-object)))
+
+(defun cl--class-allparents (class)
+  (let ((parents ())
+        (classes (list class)))
+    ;; BFS precedence.  FIXME: Use a topological sort.
+    (while (let ((class (pop classes)))
+             (cl-pushnew (cl--class-name class) parents)
+             (setq classes
+                   (append classes
+                           (cl--class-parents class)))))
+    (nreverse parents)))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie

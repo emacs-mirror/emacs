@@ -316,8 +316,6 @@ If parsing fails, try to set this variable to nil."
                                        (option (choice :tag "Alternative" :value nil
                                                        (const nil) integer)))))))
 
-(define-obsolete-variable-alias 'bibtex-entry-field-alist
-  'bibtex-BibTeX-entry-alist "24.1")
 (defcustom bibtex-BibTeX-entry-alist
   '(("Article" "Article in Journal"
      (("author")
@@ -764,6 +762,20 @@ for a new entry."
       ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
       ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
       ("url") ("urldate")))
+    ("Conference" "Article in Conference Proceedings" ; same as InProceedings
+     (("author")
+      ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)"))
+     (("booktitle" "Name of the conference proceedings")
+      ("year"))
+     (("editor")
+      ("volume" "Volume of the conference proceedings in the series")
+      ("number" "Number of the conference proceedings in a small series (overwritten by volume)")
+      ("series" "Series in which the conference proceedings appeared")
+      ("pages" "Pages in the conference proceedings")
+      ("month") ("address")
+      ("organization" "Sponsoring organization of the conference")
+      ("publisher" "Publishing company, its location")
+      ("note")))
     ("Reference" "Single-Volume Work of Reference" ; same as @collection
      (("editor") ("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
@@ -846,6 +858,15 @@ for a new entry."
       ("year"))
      nil
      (("type" "Type of the PhD thesis")
+      ("address" "Address of the school (if not part of field \"school\") or country")
+      ("month") ("note")))
+    ("MastersThesis" "Master's Thesis"
+     (("author")
+      ("title" "Title of the master's thesis (BibTeX converts it to lowercase)")
+      ("school" "School where the master's thesis was written")
+      ("year"))
+     nil
+     (("type" "Type of the master's thesis (if other than \"Master's thesis\")")
       ("address" "Address of the school (if not part of field \"school\") or country")
       ("month") ("note")))
     ("TechReport" "Technical Report"
@@ -2275,11 +2296,17 @@ is non-nil, FUN is not called for @String entries."
     (set-marker-insertion-type end-marker t)
     (save-excursion
       (goto-char (point-min))
-      (while (setq found (bibtex-skip-to-valid-entry))
-        (set-marker end-marker (cdr found))
-        (looking-at bibtex-any-entry-maybe-empty-head)
-        (funcall fun (bibtex-key-in-head "") (car found) end-marker)
-        (goto-char end-marker)))))
+      (let ((prev nil))
+        (while (setq found (bibtex-skip-to-valid-entry))
+          ;; If we have invalid entries, ensure that we have forward
+          ;; progress so that we don't infloop.
+          (if (equal (point) prev)
+              (forward-line 1)
+            (setq prev (point))
+            (set-marker end-marker (cdr found))
+            (looking-at bibtex-any-entry-maybe-empty-head)
+            (funcall fun (bibtex-key-in-head "") (car found) end-marker)
+            (goto-char end-marker)))))))
 
 (defun bibtex-progress-message (&optional flag interval)
   "Echo a message about progress of current buffer.
@@ -3644,14 +3671,6 @@ if that value is non-nil.
     (if (not (consp (nth 1 (car entry-alist))))
         ;; new format
         entry-alist
-      ;; Convert old format of `bibtex-entry-field-alist'
-      (unless (get var 'entry-list-format)
-        (put var 'entry-list-format "pre-24")
-        (message "Old format of `%s' (pre GNU Emacs 24).
-Please convert to the new format."
-                 (if (eq (indirect-variable 'bibtex-entry-field-alist) var)
-                     'bibtex-entry-field-alist var))
-        (sit-for 3))
       (let (lst)
         (dolist (entry entry-alist)
           (let ((fl (nth 1 entry)) req xref opt)
@@ -4119,11 +4138,11 @@ Optional arg POS is the position of the BibTeX entry to use."
         (goto-char pnt)))))
 
 (defun bibtex-mark-entry ()
-  "Put mark at beginning, point at end of current BibTeX entry.
+  "Put mark at end, point at beginning of current BibTeX entry.
 Activate mark in Transient Mark mode."
   (interactive)
-  (push-mark (bibtex-beginning-of-entry) t t)
-  (bibtex-end-of-entry))
+  (push-mark (bibtex-end-of-entry) t t)
+  (bibtex-beginning-of-entry))
 
 (defun bibtex-count-entries (&optional count-string-entries)
   "Count number of entries in current buffer or region.
@@ -5010,7 +5029,7 @@ on the value of `bibtex-entry-format'.
 If the reference key of the entry is empty or a prefix argument is given,
 calculate a new reference key.  (Note: this works only if fields in entry
 begin on separate lines prior to calling `bibtex-clean-entry' or if
-'realign is contained in `bibtex-entry-format'.)
+`realign' is contained in `bibtex-entry-format'.)
 Don't call `bibtex-clean-entry' on @Preamble entries.
 At end of the cleaning process, the functions in
 `bibtex-clean-entry-hook' are called with region narrowed to entry."
@@ -5289,7 +5308,6 @@ entries from minibuffer."
     (goto-char (point-max))
     (message "Buffer is now parsable.  Please save it.")))
 
-(define-obsolete-function-alias 'bibtex-complete #'completion-at-point "24.1")
 (defun bibtex-completion-at-point-function ()
   (let ((pnt (point))
         (case-fold-search t)

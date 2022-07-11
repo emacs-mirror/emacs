@@ -251,7 +251,7 @@ extern void traverse_intervals_noorder (INTERVAL,
 					void (*) (INTERVAL, void *), void *);
 extern INTERVAL split_interval_right (INTERVAL, ptrdiff_t)
   ATTRIBUTE_RETURNS_NONNULL;
-extern INTERVAL split_interval_left (INTERVAL, ptrdiff_t);
+extern INTERVAL split_interval_left (INTERVAL, ptrdiff_t) ATTRIBUTE_RETURNS_NONNULL;
 extern INTERVAL find_interval (INTERVAL, ptrdiff_t);
 extern INTERVAL next_interval (INTERVAL);
 extern INTERVAL previous_interval (INTERVAL);

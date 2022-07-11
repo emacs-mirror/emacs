@@ -29,45 +29,10 @@
 (require 'ert-x)
 (require 'esh-mode)
 (require 'eshell)
-
-(defmacro with-temp-eshell (&rest body)
-  "Evaluate BODY in a temporary Eshell buffer."
-  `(ert-with-temp-directory eshell-directory-name
-     (let* (;; We want no history file, so prevent Eshell from falling
-            ;; back on $HISTFILE.
-            (process-environment (cons "HISTFILE" process-environment))
-            (eshell-history-file-name nil)
-            (eshell-buffer (eshell t)))
-       (unwind-protect
-           (with-current-buffer eshell-buffer
-             ,@body)
-         (let (kill-buffer-query-functions)
-           (kill-buffer eshell-buffer))))))
-
-(defun eshell-insert-command (text &optional func)
-  "Insert a command at the end of the buffer."
-  (goto-char eshell-last-output-end)
-  (insert-and-inherit text)
-  (funcall (or func 'eshell-send-input)))
-
-(defun eshell-match-result (regexp)
-  "Check that text after `eshell-last-input-end' matches REGEXP."
-  (goto-char eshell-last-input-end)
-  (should (string-match-p regexp (buffer-substring-no-properties
-                                  (point) (point-max)))))
-
-(defun eshell-command-result-p (text regexp &optional func)
-  "Insert a command at the end of the buffer."
-  (eshell-insert-command text func)
-  (eshell-match-result regexp))
-
-(defvar eshell-history-file-name)
-
-(defun eshell-test-command-result (command)
-  "Like `eshell-command-result', but not using HOME."
-  (ert-with-temp-directory eshell-directory-name
-    (let ((eshell-history-file-name nil))
-      (eshell-command-result command))))
+(require 'eshell-tests-helpers
+         (expand-file-name "eshell-tests-helpers"
+                           (file-name-directory (or load-file-name
+                                                    default-directory))))
 
 ;;; Tests:
 
@@ -78,6 +43,10 @@
 (ert-deftest eshell-test/lisp-command ()
   "Test `eshell-command-result' with an elisp command."
   (should (equal (eshell-test-command-result "(+ 1 2)") 3)))
+
+(ert-deftest eshell-test/lisp-command-with-quote ()
+  "Test `eshell-command-result' with an elisp command containing a quote."
+  (should (equal (eshell-test-command-result "(eq 'foo nil)") nil)))
 
 (ert-deftest eshell-test/for-loop ()
   "Test `eshell-command-result' with a for loop.."
@@ -120,55 +89,94 @@ Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{(+ 1 2)} 3\" => 3"
   (should (equal (eshell-test-command-result "{(+ 1 2)} 3") 3)))
 
-(ert-deftest eshell-test/interp-cmd ()
-  "Interpolate command result"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2} 3") 6)))
-
-(ert-deftest eshell-test/interp-lisp ()
-  "Interpolate Lisp form evaluation"
-  (should (equal (eshell-test-command-result "+ $(+ 1 2) 3") 6)))
-
-(ert-deftest eshell-test/interp-concat ()
-  "Interpolate and concat command"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2}3 3") 36)))
-
-(ert-deftest eshell-test/interp-concat-lisp ()
-  "Interpolate and concat Lisp form"
-  (should (equal (eshell-test-command-result "+ $(+ 1 2)3 3") 36)))
-
-(ert-deftest eshell-test/interp-concat2 ()
-  "Interpolate and concat two commands"
-  (should (equal (eshell-test-command-result "+ ${+ 1 2}${+ 1 2} 3") 36)))
-
-(ert-deftest eshell-test/interp-concat-lisp2 ()
-  "Interpolate and concat two Lisp forms"
-  (should (equal (eshell-test-command-result "+ $(+ 1 2)$(+ 1 2) 3") 36)))
-
-(ert-deftest eshell-test/window-height ()
-  "$LINES should equal (window-height)"
-  (should (eshell-test-command-result "= $LINES (window-height)")))
-
-(ert-deftest eshell-test/window-width ()
-  "$COLUMNS should equal (window-width)"
-  (should (eshell-test-command-result "= $COLUMNS (window-width)")))
-
-(ert-deftest eshell-test/last-result-var ()
-  "Test using the \"last result\" ($$) variable"
+(ert-deftest eshell-test/pipe-headproc ()
+  "Check that piping a non-process to a process command waits for the process"
+  (skip-unless (executable-find "cat"))
   (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $$ 2"
-                            "3\n5\n")))
+   (eshell-command-result-p "echo hi | *cat"
+                            "hi")))
 
-(ert-deftest eshell-test/last-result-var2 ()
-  "Test using the \"last result\" ($$) variable twice"
+(ert-deftest eshell-test/pipe-tailproc ()
+  "Check that piping a process to a non-process command waits for the process"
+  (skip-unless (executable-find "echo"))
   (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $$ $$"
-                             "3\n6\n")))
+   (eshell-command-result-p "*echo hi | echo bye"
+                            "bye\nhi\n")))
 
-(ert-deftest eshell-test/last-arg-var ()
-  "Test using the \"last arg\" ($_) variable"
+(ert-deftest eshell-test/pipe-headproc-stdin ()
+  "Check that standard input is sent to the head process in a pipeline"
+  (skip-unless (and (executable-find "tr")
+                    (executable-find "rev")))
   (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $_ 4"
-                             "3\n6\n")))
+   (eshell-insert-command "tr a-z A-Z | rev")
+   (eshell-insert-command "hello")
+   (eshell-send-eof-to-process)
+   (eshell-wait-for-subprocess)
+   (eshell-match-result "OLLEH\n")))
+
+(ert-deftest eshell-test/pipe-subcommand ()
+  "Check that piping with an asynchronous subcommand works"
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo hi} | *cat"
+                            "hi")))
+
+(ert-deftest eshell-test/pipe-subcommand-with-pipe ()
+  "Check that piping with an asynchronous subcommand with its own pipe works"
+  (skip-unless (and (executable-find "echo")
+                    (executable-find "cat")))
+  (with-temp-eshell
+   (eshell-command-result-p "echo ${*echo hi | *cat} | *cat"
+                            "hi")))
+
+(ert-deftest eshell-test/subcommand-reset-in-pipeline ()
+  "Check that subcommands reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo {%s} | *cat"
+                      "echo ${%s} | *cat"
+                      "*cat $<%s> | *cat"))
+    (should (equal (eshell-test-command-result
+                    (format template "echo $eshell-in-pipeline-p"))
+                   nil))
+    (should (equal (eshell-test-command-result
+                    (format template "echo | echo $eshell-in-pipeline-p"))
+                   "last"))
+    (should (equal (eshell-test-command-result
+                    (format template "echo $eshell-in-pipeline-p | echo"))
+                   "first"))
+    (should (equal (eshell-test-command-result
+                    (format template
+                            "echo | echo $eshell-in-pipeline-p | echo"))
+                   "t"))))
+
+(ert-deftest eshell-test/lisp-reset-in-pipeline ()
+  "Check that interpolated Lisp forms reset `eshell-in-pipeline-p'."
+  (skip-unless (executable-find "cat"))
+  (dolist (template '("echo (%s) | *cat"
+                      "echo $(%s) | *cat"))
+    (should (equal (eshell-test-command-result
+                    (format template "format \"%s\" eshell-in-pipeline-p"))
+                   "nil"))))
+
+(ert-deftest eshell-test/redirect-buffer ()
+  "Check that piping to a buffer works"
+  (with-temp-buffer
+    (rename-buffer "eshell-temp-buffer" t)
+    (let ((bufname (buffer-name)))
+      (with-temp-eshell
+       (eshell-insert-command (format "echo hi > #<%s>" bufname)))
+      (should (equal (buffer-string) "hi")))))
+
+(ert-deftest eshell-test/redirect-buffer-escaped ()
+  "Check that piping to a buffer with escaped characters works"
+  (with-temp-buffer
+    (rename-buffer "eshell\\temp\\buffer" t)
+    (let ((bufname (buffer-name)))
+      (with-temp-eshell
+       (eshell-insert-command (format "echo hi > #<%s>"
+                                      (string-replace "\\" "\\\\" bufname))))
+      (should (equal (buffer-string) "hi")))))
 
 (ert-deftest eshell-test/inside-emacs-var ()
   "Test presence of \"INSIDE_EMACS\" in subprocesses"
@@ -204,9 +212,9 @@ chars"
   "Test that the backslash is not preserved for escaped special
 chars"
   (with-temp-eshell
-   (eshell-command-result-p "echo \"h\\\\i\""
+   (eshell-command-result-p "echo \"\\\"hi\\\\\""
                             ;; Backslashes are doubled for regexp.
-                            "h\\\\i\n")))
+                            "\\\"hi\\\\\n")))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
@@ -247,9 +255,8 @@ chars"
   (with-temp-eshell
    (eshell-insert-command "echo alpha")
    (eshell-kill-output)
-   (eshell-match-result (regexp-quote "*** output flushed ***\n"))
-   (should (forward-line))
-   (should (= (point) eshell-last-output-start))))
+   (eshell-match-result
+    (concat "^" (regexp-quote "*** output flushed ***\n") "$"))))
 
 (ert-deftest eshell-test/run-old-command ()
   "Re-run an old command"

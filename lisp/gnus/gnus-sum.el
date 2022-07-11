@@ -97,7 +97,7 @@ See `gnus-group-goto-unread'."
   :type 'boolean)
 
 (defcustom gnus-summary-stop-at-end-of-message nil
-  "If non-nil, don't select the next message when using `SPC'."
+  "If non-nil, don't select the next message when using \\`SPC'."
   :link '(custom-manual "(gnus)Group Maneuvering")
   :group 'gnus-summary-maneuvering
   :version "24.1"
@@ -264,8 +264,8 @@ This variable will only be used if the value of
 (defcustom gnus-summary-goto-unread nil
   "If t, many commands will go to the next unread article.
 This applies to marking commands as well as other commands that
-\"naturally\" select the next article, like, for instance, `SPC' at
-the end of an article.
+\"naturally\" select the next article, like, for instance, \\`SPC'
+at the end of an article.
 
 If nil, the marking commands do NOT go to the next unread article
 \(they go to the next article instead).  If `never', commands that
@@ -2887,45 +2887,11 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 
 (defvar gnus-summary-tool-bar-map nil)
 
-;; Note: The :set function in the `gnus-summary-tool-bar*' variables will only
-;; affect _new_ message buffers.  We might add a function that walks thru all
-;; summary-mode buffers and force the update.
-(defun gnus-summary-tool-bar-update (&optional symbol value)
-  "Update summary mode toolbar.
-Setter function for custom variables."
-  (setq-default gnus-summary-tool-bar-map nil)
-  (when symbol
-    ;; When used as ":set" function:
-    (set-default symbol value))
-  (when (gnus-buffer-live-p gnus-summary-buffer)
-    (with-current-buffer gnus-summary-buffer
-      (gnus-summary-make-tool-bar))))
-
-(defcustom gnus-summary-tool-bar (if (eq gmm-tool-bar-style 'gnome)
-				     'gnus-summary-tool-bar-gnome
-				   'gnus-summary-tool-bar-retro)
-  "Specifies the Gnus summary tool bar.
-
-It can be either a list or a symbol referring to a list.  See
-`gmm-tool-bar-from-list' for the format of the list.  The
-default key map is `gnus-summary-mode-map'.
-
-Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
-`gnus-summary-tool-bar-retro'."
-  :type '(choice (const :tag "GNOME style" gnus-summary-tool-bar-gnome)
-		 (const :tag "Retro look"  gnus-summary-tool-bar-retro)
-		 (repeat :tag "User defined list" gmm-tool-bar-item)
-		 (symbol))
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
-  :group 'gnus-summary)
-
-(defcustom gnus-summary-tool-bar-gnome
+(defcustom gnus-summary-tool-bar
   '((gnus-summary-post-news "mail/compose" nil)
-    (gnus-summary-insert-new-articles "mail/inbox" nil
-				      :visible (or (not gnus-agent)
-						   gnus-plugged))
+    (gnus-summary-insert-new-articles
+     "mail/inbox" nil
+     :visible (or (not gnus-agent) gnus-plugged))
     (gnus-summary-reply-with-original "mail/reply")
     (gnus-summary-reply "mail/reply" nil :visible nil)
     (gnus-summary-followup-with-original "mail/reply-all")
@@ -2935,17 +2901,10 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
     (gnus-summary-search-article-forward "search" nil :visible nil)
     (gnus-summary-print-article "print")
     (gnus-summary-tick-article-forward "flag-followup" nil :visible nil)
-    ;; Some new commands that may need more suitable icons:
     (gnus-summary-save-newsrc "save" nil :visible nil)
-    ;; (gnus-summary-show-article "stock_message-display" nil :visible nil)
     (gnus-summary-prev-article "left-arrow")
     (gnus-summary-next-article "right-arrow")
     (gnus-summary-next-page "next-page")
-    ;; (gnus-summary-enter-digest-group "right_arrow" nil :visible nil)
-    ;;
-    ;; Maybe some sort-by-... could be added:
-    ;; (gnus-summary-sort-by-author "sort-a-z" nil :visible nil)
-    ;; (gnus-summary-sort-by-date "sort-1-9" nil :visible nil)
     (gnus-summary-mark-as-expirable
      "delete" nil
      :visible (gnus-check-backend-function 'request-expire-articles
@@ -2959,64 +2918,25 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
      "mail/not-spam" nil
      :visible (and (fboundp 'spam-group-spam-contents-p)
 		   (spam-group-spam-contents-p gnus-newsgroup-name)))
-    ;;
     (gnus-summary-exit "exit")
     (gmm-customize-mode "preferences" t :help "Edit mode preferences")
     (gnus-info-find-node "help"))
-  "List of functions for the summary tool bar (GNOME style).
+  "Specifies the Gnus summary tool bar.
 
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
+It can be either a list or a symbol referring to a list.  See
+`gmm-tool-bar-from-list' for the format of the list.  The
+default key map is `gnus-summary-mode-map'."
+  :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
+		 (symbol))
+  :version "29.1"
   :group 'gnus-summary)
 
-(defcustom gnus-summary-tool-bar-retro
-  '((gnus-summary-prev-unread-article "gnus/prev-ur")
-    (gnus-summary-next-unread-article "gnus/next-ur")
-    (gnus-summary-post-news "gnus/post")
-    (gnus-summary-followup-with-original "gnus/fuwo")
-    (gnus-summary-followup "gnus/followup")
-    (gnus-summary-reply-with-original "gnus/reply-wo")
-    (gnus-summary-reply "gnus/reply")
-    (gnus-summary-caesar-message "gnus/rot13")
-    (gnus-uu-decode-uu "gnus/uu-decode")
-    (gnus-summary-save-article-file "gnus/save-aif")
-    (gnus-summary-save-article "gnus/save-art")
-    (gnus-uu-post-news "gnus/uu-post")
-    (gnus-summary-catchup "gnus/catchup")
-    (gnus-summary-catchup-and-exit "gnus/cu-exit")
-    (gnus-summary-exit "gnus/exit-summ")
-    ;; Some new command that may need more suitable icons:
-    (gnus-summary-print-article "gnus/print" nil :visible nil)
-    (gnus-summary-mark-as-expirable "gnus/close" nil :visible nil)
-    (gnus-summary-save-newsrc "gnus/save" nil :visible nil)
-    ;; (gnus-summary-enter-digest-group "gnus/right_arrow" nil :visible nil)
-    (gnus-summary-search-article-forward "gnus/search" nil :visible nil)
-    ;; (gnus-summary-insert-new-articles "gnus/paste" nil :visible nil)
-    ;; (gnus-summary-toggle-threads "gnus/open" nil :visible nil)
-    ;;
-    (gnus-info-find-node "gnus/help" nil :visible nil))
-  "List of functions for the summary tool bar (retro look).
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
-  :group 'gnus-summary)
-
-(defcustom gnus-summary-tool-bar-zap-list t
-  "List of icon items from the global tool bar.
-These items are not displayed in the Gnus summary mode tool bar.
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type 'gmm-tool-bar-zap-list
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-summary-tool-bar-update
-  :group 'gnus-summary)
+(defvar gnus-summary-tool-bar-gnome nil)
+(make-obsolete-variable 'gnus-summary-tool-bar-gnome nil "29.1")
+(defvar gnus-summary-tool-bar-retro nil)
+(make-obsolete-variable 'gnus-summary-tool-bar-retro nil "29.1")
+(defvar gnus-summary-tool-bar-zap-list t)
+(make-obsolete-variable 'gnus-summary-tool-bar-zap-list nil "29.1")
 
 (defvar image-load-path)
 (defvar tool-bar-map)
@@ -5755,7 +5675,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	      ;;  (let ((n (cdr (gnus-active group))))
 	      ;;    (lambda () (> number (- n display))))
 	      (setq select-articles
-		    (gnus-uncompress-range
+		    (range-uncompress
 		     (cons (let ((tmp (- (cdr (gnus-active group)) display)))
 			     (if (> tmp 0)
 				 tmp
@@ -5928,7 +5848,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
   "Find out what articles the user wants to read."
   (let* ((only-read-p t)
 	 (articles
-	  (gnus-list-range-difference
+	  (range-list-difference
 	  ;; Select all articles if `read-all' is non-nil, or if there
 	  ;; are no unread articles.
 	  (if (or read-all
@@ -5943,13 +5863,13 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	      (or
 	       (if gnus-newsgroup-maximum-articles
 		   (let ((active (gnus-active group)))
-		     (gnus-uncompress-range
+		     (range-uncompress
 		      (cons (max (car active)
 				 (- (cdr active)
 				    gnus-newsgroup-maximum-articles
 				    -1))
 			    (cdr active))))
-		 (gnus-uncompress-range (gnus-active group)))
+		 (range-uncompress (gnus-active group)))
 	       (gnus-cache-articles-in-group group))
 	    ;; Select only the "normal" subset of articles.
 	    (setq only-read-p nil)
@@ -6040,7 +5960,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 (defun gnus-killed-articles (killed articles)
   (let (out)
     (while articles
-      (when (inline (gnus-member-of-range (car articles) killed))
+      (when (inline (range-member-p (car articles) killed))
 	(push (car articles) out))
       (setq articles (cdr articles)))
     out))
@@ -6078,7 +5998,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
        ;; Adjust "simple" lists - compressed yet unsorted
        ((eq mark-type 'list)
         ;; Simultaneously uncompress and clip to active range
-        ;; See gnus-uncompress-range for a description of possible marks
+        ;; See range-uncompress for a description of possible marks
         (let (l lh)
           (if (not (cadr marks))
               (set var nil)
@@ -6177,10 +6097,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	;; When exiting the group, everything that's previously been
 	;; unseen is now seen.
 	(when (eq (cdr type) 'seen)
-	  (setq list (gnus-range-add list gnus-newsgroup-unseen)))
+	  (setq list (range-concat list gnus-newsgroup-unseen)))
 
 	(when (eq (gnus-article-mark-to-type (cdr type)) 'list)
-	  (setq list (gnus-compress-sequence (set symbol (sort list #'<)) t)))
+	  (setq list (range-compress-list (set symbol (sort list #'<)))))
 
 	(when (and (gnus-check-backend-function
 		    'request-set-mark gnus-newsgroup-name)
@@ -6189,20 +6109,19 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 ;; Don't do anything about marks for articles we
 		 ;; didn't actually get any headers for.
 		 (del
-		  (gnus-list-range-intersection
+		  (range-list-intersection
 		   gnus-newsgroup-articles
-		   (gnus-remove-from-range (copy-tree old) list)))
+		   (range-remove (copy-tree old) list)))
 		 (add
-		  (gnus-list-range-intersection
+		  (range-list-intersection
 		   gnus-newsgroup-articles
-		   (gnus-remove-from-range
-		    (copy-tree list) old))))
+		   (range-remove (copy-tree list) old))))
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del
 	      ;; Don't delete marks from outside the active range.
 	      ;; This shouldn't happen, but is a sanity check.
-	      (setq del (gnus-sorted-range-intersection
+	      (setq del (range-intersection
 			 (gnus-active gnus-newsgroup-name) del))
 	      (push (list del 'del (list (cdr type))) delta-marks))))
 
@@ -6386,7 +6305,7 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	  (setq ninfo (cons 1 (1- (car active))))
 	(setq ninfo (gnus-info-read info)))
       ;; Then we add the read articles to the range.
-      (gnus-add-to-range
+      (range-add-list
        ninfo (setq articles (sort articles #'<))))))
 
 (defun gnus-group-make-articles-read (group articles)
@@ -6967,10 +6886,10 @@ displayed, no centering will be performed."
 	 (marked (gnus-info-marks info))
 	 (active (gnus-active group)))
     (and info active
-	 (gnus-list-range-difference
-	  (gnus-list-range-difference
+	 (range-list-difference
+	  (range-list-difference
 	   (gnus-sorted-complement
-	    (gnus-uncompress-range
+	    (range-uncompress
 	     (if gnus-newsgroup-maximum-articles
 		 (cons (max (car active)
 			    (- (cdr active)
@@ -7129,12 +7048,11 @@ The prefix argument ALL means to select all articles."
       (when group
 	(when gnus-newsgroup-kill-headers
 	  (setq gnus-newsgroup-killed
-		(gnus-compress-sequence
+		(range-compress-list
 		 (gnus-sorted-union
-		  (gnus-list-range-intersection
+		  (range-list-intersection
 		   gnus-newsgroup-unselected gnus-newsgroup-killed)
-		  gnus-newsgroup-unreads)
-		 t)))
+		  gnus-newsgroup-unreads))))
 	(unless (listp (cdr gnus-newsgroup-killed))
 	  (setq gnus-newsgroup-killed (list gnus-newsgroup-killed)))
 	(let ((headers gnus-newsgroup-headers)
@@ -8665,7 +8583,7 @@ these articles."
         (when matching-subject
           (gnus-summary-limit-include-matching-articles
            "subject"
-           matching-subject)
+           (regexp-quote matching-subject))
           ;; Each of the previous two limit calls push a limit onto
           ;; the limit stack. Presumably we want to think of the
           ;; thread and its associated subject matches as a single
@@ -9447,6 +9365,16 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
       (push primary urls))
     (delete-dups urls)))
 
+(defun gnus-collect-urls-from-article ()
+  "Select the article and return the list of URLs in it.
+See `gnus-collect-urls'."
+  (gnus-summary-select-article)
+  (gnus-with-article-buffer
+    (article-goto-body)
+    ;; Back up a char, in case body starts with a button.
+    (backward-char)
+    (gnus-collect-urls)))
+
 (defun gnus-shorten-url (url max)
   "Return an excerpt from URL not exceeding MAX characters."
   (if (<= (length url) max)
@@ -9462,33 +9390,27 @@ The 1st element is the button named by `gnus-collect-urls-primary-text'."
   "Scan the current article body for links, and offer to browse them.
 
 Links are opened using `browse-url' unless a prefix argument is
-given: Then `browse-url-secondary-browser-function' is used instead.
+given: then `browse-url-secondary-browser-function' is used instead.
 
 If only one link is found, browse that directly, otherwise use
 completion to select a link.  The first link marked in the
 article text with `gnus-collect-urls-primary-text' is the
 default."
   (interactive "P" gnus-summary-mode)
-  (let (urls target)
-    (gnus-summary-select-article)
-    (gnus-with-article-buffer
-      (article-goto-body)
-      ;; Back up a char, in case body starts with a button.
-      (backward-char)
-      (setq urls (gnus-collect-urls))
-      (setq target
-	    (cond ((= (length urls) 1)
-		   (car urls))
-		  ((> (length urls) 1)
-		   (completing-read
-		    (format-prompt "URL to browse"
-				   (gnus-shorten-url (car urls) 40))
-		    urls nil t nil nil (car urls)))))
-      (if target
-	  (if external
-	      (funcall browse-url-secondary-browser-function target)
-	    (browse-url target))
-	(message "No URLs found.")))))
+  (let* ((urls (gnus-collect-urls-from-article))
+         (target
+	  (cond ((= (length urls) 1)
+		 (car urls))
+		((> (length urls) 1)
+		 (completing-read
+		  (format-prompt "URL to browse"
+				 (gnus-shorten-url (car urls) 40))
+		  urls nil t nil nil (car urls))))))
+    (if target
+	(if external
+	    (funcall browse-url-secondary-browser-function target)
+	  (browse-url target))
+      (message "No URLs found."))))
 
 (defun gnus-summary-isearch-article (&optional regexp-p)
   "Do incremental search forward on the current article.
@@ -10241,8 +10163,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		       (cdr art-group))
 	      (push 'read to-marks)
 	      (setf (gnus-info-read info)
-		    (gnus-add-to-range (gnus-info-read info)
-				       (list (cdr art-group)))))
+		    (range-add-list (gnus-info-read info)
+				    (list (cdr art-group)))))
 
 	    ;; See whether the article is to be put in the cache.
 	    (let* ((expirable (gnus-group-auto-expirable-p to-group))
@@ -10525,7 +10447,7 @@ This will be the case if the article has both been mailed and posted."
     ;; This backend supports expiry.
     (let* ((total (gnus-group-total-expirable-p gnus-newsgroup-name))
 	   (expirable
-	    (gnus-list-range-difference
+	    (range-list-difference
 	     (if total
 		 (progn
 		   ;; We need to update the info for
@@ -11898,7 +11820,8 @@ Returns nil if no threads were there to be hidden."
   (beginning-of-line)
   (let ((start (point))
 	(starteol (line-end-position))
-	(article (gnus-summary-article-number)))
+	(article (unless (gnus-summary-article-intangible-p)
+                   (gnus-summary-article-number))))
     ;; Go forward until either the buffer ends or the subthread ends.
     (when (and (not (eobp))
 	       (or (zerop (gnus-summary-next-thread 1 t))
@@ -11912,7 +11835,9 @@ Returns nil if no threads were there to be hidden."
 	      (let ((ol (make-overlay starteol (point) nil t nil)))
 		(overlay-put ol 'invisible 'gnus-sum)
 		(overlay-put ol 'evaporate t)))
-	    (gnus-summary-goto-subject article)
+	    (if article
+                (gnus-summary-goto-subject article)
+              (gnus-summary-position-point))
 	    ;; We moved backward past the start point (invisible thread?)
             (when (> start (point))
               (goto-char starteol)))
@@ -12871,8 +12796,8 @@ UNREAD is a sorted list."
 			(gnus-find-method-for-group group)
 			'server-marks)
 		       (gnus-check-backend-function 'request-set-mark group))
-	      (let ((del (gnus-remove-from-range (gnus-info-read info) read))
-		    (add (gnus-remove-from-range read (gnus-info-read info))))
+	      (let ((del (range-remove (gnus-info-read info) read))
+		    (add (range-remove read (gnus-info-read info))))
 		(when (or add del)
 		  (unless (gnus-check-group group)
 		    (error "Can't open server for %s" group))
@@ -13130,10 +13055,10 @@ If ALL is a number, fetch this number of articles."
 	      ;; Some nntp servers lie about their active range.  When
 	      ;; this happens, the active range can be in the millions.
 	      ;; Use a compressed range to avoid creating a huge list.
-	      (gnus-range-difference
-	       (gnus-range-difference (list gnus-newsgroup-active) old)
+	      (range-difference
+	       (range-difference (list gnus-newsgroup-active) old)
 	       gnus-newsgroup-unexist))
-	(setq len (gnus-range-length older))
+	(setq len (range-length older))
 	(cond
 	 ((null older) nil)
 	 ((numberp all)
@@ -13150,9 +13075,9 @@ If ALL is a number, fetch this number of articles."
 		      (push max older)
 		      (setq all (1- all)
 			    max (1- max))))))
-	    (setq older (gnus-uncompress-range older))))
+	    (setq older (range-uncompress older))))
 	 (all
-	  (setq older (gnus-uncompress-range older)))
+	  (setq older (range-uncompress older)))
 	 (t
 	  (when (and (numberp gnus-large-newsgroup)
 		   (> len gnus-large-newsgroup))
@@ -13187,7 +13112,7 @@ If ALL is a number, fetch this number of articles."
 			      (push max older)
 			      (setq all (1- all)
 				    max (1- max))))))))))
-	  (setq older (gnus-uncompress-range older))))
+	  (setq older (range-uncompress older))))
 	(if (not older)
 	    (message "No old news.")
 	  (gnus-summary-insert-articles older)
@@ -13276,6 +13201,8 @@ BOOKMARK is a bookmark name or a bookmark record."
      `(""
        (buffer . ,(current-buffer))
        . ,(bookmark-get-bookmark-record bookmark)))))
+
+(put 'gnus-summary-bookmark-jump 'bookmark-handler-type "Gnus")
 
 (gnus-summary-make-all-marking-commands)
 

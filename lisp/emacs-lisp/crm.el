@@ -87,28 +87,23 @@
 It should be a regexp that does not match the list of completion candidates.
 The default value is `crm-default-separator'.")
 
-(defvar crm-local-completion-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-completion-map)
-    (define-key map [remap minibuffer-complete] #'crm-complete)
-    (define-key map [remap minibuffer-complete-word] #'crm-complete-word)
-    (define-key map [remap minibuffer-completion-help] #'crm-completion-help)
-    map)
-  "Local keymap for minibuffer multiple input with completion.
-Analog of `minibuffer-local-completion-map'.")
+(defvar-keymap crm-local-completion-map
+  :doc "Local keymap for minibuffer multiple input with completion.
+Analog of `minibuffer-local-completion-map'."
+  :parent minibuffer-local-completion-map
+  "<remap> <minibuffer-complete>"        #'crm-complete
+  "<remap> <minibuffer-complete-word>"   #'crm-complete-word
+  "<remap> <minibuffer-completion-help>" #'crm-completion-help)
 
-(defvar crm-local-must-match-map
-  (let ((map (make-sparse-keymap)))
-    ;; We'd want to have multiple inheritance here.
-    (set-keymap-parent map minibuffer-local-must-match-map)
-    (define-key map [remap minibuffer-complete] #'crm-complete)
-    (define-key map [remap minibuffer-complete-word] #'crm-complete-word)
-    (define-key map [remap minibuffer-completion-help] #'crm-completion-help)
-    (define-key map [remap minibuffer-complete-and-exit]
-      #'crm-complete-and-exit)
-    map)
-  "Local keymap for minibuffer multiple input with exact match completion.
-Analog of `minibuffer-local-must-match-map' for crm.")
+(defvar-keymap crm-local-must-match-map
+  :doc "Local keymap for minibuffer multiple input with exact match completion.
+Analog of `minibuffer-local-must-match-map' for crm."
+  ;; We'd want to have multiple inheritance here.
+  :parent minibuffer-local-must-match-map
+  "<remap> <minibuffer-complete>"          #'crm-complete
+  "<remap> <minibuffer-complete-word>"     #'crm-complete-word
+  "<remap> <minibuffer-completion-help>"   #'crm-completion-help
+  "<remap> <minibuffer-complete-and-exit>" #'crm-complete-and-exit)
 
 (defvar crm-completion-table nil
   "An alist whose elements' cars are strings, or an obarray.
@@ -254,6 +249,23 @@ with empty strings removed."
                     'crm--choose-completion-string nil 'local)
           (setq-local minibuffer-completion-table #'crm--collection-fn)
           (setq-local minibuffer-completion-predicate predicate)
+          (setq-local completion-list-insert-choice-function
+                      (lambda (start end choice)
+                        (if (and (stringp start) (stringp end))
+                            (let* ((beg (save-excursion
+                                          (goto-char (minibuffer-prompt-end))
+                                          (or (search-forward start nil t)
+                                              (search-forward-regexp crm-separator nil t)
+                                              (minibuffer-prompt-end))))
+                                   (end (save-excursion
+                                          (goto-char (point-max))
+                                          (or (search-backward end nil t)
+                                              (progn
+                                                (goto-char beg)
+                                                (search-forward-regexp crm-separator nil t))
+                                              (point-max)))))
+                              (completion--replace beg end choice))
+                          (completion--replace start end choice))))
           ;; see completing_read in src/minibuf.c
           (setq-local minibuffer-completion-confirm
                       (unless (eq require-match t) require-match))

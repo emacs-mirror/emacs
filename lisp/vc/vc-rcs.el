@@ -40,6 +40,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'vc))
+(require 'log-view)
 
 (declare-function vc-read-revision "vc"
                   (prompt &optional files backend default initial-input))
@@ -99,7 +100,7 @@ to use --brief and sets this variable to remember whether it worked."
   "Where to look for RCS master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard RCS file names"
-			'("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
+			("%sRCS/%s,v" "%s%s,v" "%sRCS/%s"))
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function)))
@@ -288,7 +289,7 @@ to the RCS command."
 			   (match-string 1))))))
 
 (defun vc-rcs-responsible-p (file)
-  "Return non-nil if RCS thinks it would be responsible for registering FILE."
+  "Return the directory if RCS thinks it would be responsible for FILE."
   ;; TODO: check for all the patterns in vc-rcs-master-templates
   (let ((dir (if (file-directory-p file)
 	         file
@@ -1062,9 +1063,9 @@ file."
 (defun vc-rcs-consult-headers (file)
   "Search for RCS headers in FILE, and set properties accordingly.
 
-Returns: nil            if no headers were found
-         'rev           if a workfile revision was found
-         'rev-and-lock  if revision and lock info was found"
+Returns: nil             if no headers were found
+         `rev'           if a workfile revision was found
+         `rev-and-lock'  if revision and lock info was found"
   (cond
    ((not (get-file-buffer file)) nil)
    ((let (status version)
@@ -1455,6 +1456,14 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
       ;; rv
       `((headers ,desc ,@headers)
         (revisions ,@revs)))))
+
+(defvar-keymap vc-rcs-log-view-mode-map
+  "N" #'log-view-file-next
+  "P" #'log-view-file-prev
+  "M-n" #'log-view-file-next
+  "M-p" #'log-view-file-prev)
+
+(define-derived-mode vc-rcs-log-view-mode log-view-mode "RCS-Log-View")
 
 (provide 'vc-rcs)
 

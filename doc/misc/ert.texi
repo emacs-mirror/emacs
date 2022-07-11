@@ -321,7 +321,7 @@ Show the list of @code{should} forms executed in the test
 @kindex m@r{, in ert results buffer}
 @findex ert-results-pop-to-messages-for-test-at-point
 Show any messages that were generated (with the Lisp function
-@code{message}) in in a test or any of the code that it invoked
+@code{message}) in a test or any of the code that it invoked
 (@code{ert-results-pop-to-messages-for-test-at-point}).
 
 @item L
@@ -444,8 +444,9 @@ emacs -batch -l ert -l my-tests.el \
 @vindex EMACS_TEST_VERBOSE@r{, environment variable}
 By default, ERT test failure summaries are quite brief in batch
 mode---only the names of the failed tests are listed.  If the
-@env{EMACS_TEST_VERBOSE} environment variable is set, the failure
-summaries will also include the data from the failing test.
+@env{EMACS_TEST_VERBOSE} environment variable is set and is non-empty,
+the failure summaries will also include the data from the failing
+test.
 
 @vindex EMACS_TEST_JUNIT_REPORT@r{, environment variable}
 ERT can produce JUnit test reports in batch mode.  If the environment
@@ -821,7 +822,7 @@ that's pretty difficult to read and write, especially when the text in
 question is multi-line.
 
 So ert provides a function called @code{ert-test-erts-file} that takes
-two parameters: The name of a specially-formatted @dfn{erts} file, and
+two parameters: the name of a specially-formatted @dfn{erts} file, and
 (optionally) a function that performs the transform.
 
 @findex erts-mode

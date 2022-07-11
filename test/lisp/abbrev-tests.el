@@ -301,6 +301,10 @@
         (inverse-add-abbrev table "Global" -1)))
     (should (string= (abbrev-expansion "text" table) "bar"))))
 
+(ert-deftest test-abbrev-table-p ()
+  (should-not (abbrev-table-p translation-table-vector))
+  (should (abbrev-table-p (make-abbrev-table))))
+
 (provide 'abbrev-tests)
 
 ;;; abbrev-tests.el ends here

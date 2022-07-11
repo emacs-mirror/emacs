@@ -273,7 +273,7 @@ DOC is a documentation string for the parameter.")
        gnus-agent-cat-predicate)
       (agent-score
        (choice :tag "Score File" :value nil
-               (const file :tag "Use group's score files")
+               (const :value file :tag "Use group's score files")
                (repeat (list (string :format "%v" :tag "File name"))))
        "Which score files to use when using score to select articles to fetch.
 

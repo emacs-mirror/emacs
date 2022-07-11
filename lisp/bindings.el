@@ -654,6 +654,18 @@ By default, this shows the information specified by `global-mode-string'.")
   (with-selected-window (posn-window (event-start event))
     (previous-buffer)))
 
+(defun mode-line-window-selected-p ()
+  "Return non-nil if we're updating the mode line for the selected window.
+This function is meant to be called in `:eval' mode line
+constructs to allow altering the look of the mode line depending
+on whether the mode line belongs to the currently selected window
+or not."
+  (let ((window (selected-window)))
+    (or (eq window (old-selected-window))
+	(and (minibuffer-window-active-p (minibuffer-window))
+	     (with-selected-window (minibuffer-window)
+	       (eq window (minibuffer-selected-window)))))))
+
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil.
 Note that if `lexical-binding' is in effect, this function isn't
@@ -978,7 +990,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key esc-map "\\" 'delete-horizontal-space)
 (define-key esc-map "m" 'back-to-indentation)
 (define-key ctl-x-map "\C-o" 'delete-blank-lines)
-(define-key esc-map " " 'just-one-space)
+(define-key esc-map " " 'cycle-spacing)
 (define-key esc-map "z" 'zap-to-char)
 (define-key esc-map "=" 'count-words-region)
 (define-key ctl-x-map "=" 'what-cursor-position)
@@ -1001,7 +1013,7 @@ if `inhibit-field-text-motion' is non-nil."
   (let ((map (make-sparse-keymap)))
     (define-key map "u" 'undo)
     map)
-  "Keymap to repeat undo key sequences `C-x u u'.  Used in `repeat-mode'.")
+  "Keymap to repeat undo key sequences \\`C-x u u'.  Used in `repeat-mode'.")
 (put 'undo 'repeat-map 'undo-repeat-map)
 
 (define-key global-map '[(control ??)] 'undo-redo)
@@ -1115,6 +1127,7 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key goto-map    "p" 'previous-error)
 (define-key goto-map "\M-p" 'previous-error)
 (define-key goto-map   "\t" 'move-to-column)
+(define-key goto-map    "i" 'imenu)
 
 (defvar search-map (make-sparse-keymap)
   "Keymap for search related commands.")
@@ -1148,7 +1161,9 @@ if `inhibit-field-text-motion' is non-nil."
 ;(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
-(define-key global-map [Scroll_Lock]    'scroll-lock-mode)
+(define-key global-map
+            (if (eq system-type 'windows-nt) [scroll] [Scroll_Lock])
+            #'scroll-lock-mode)
 (define-key global-map [C-S-backspace]  'kill-whole-line)
 (define-key global-map [home]		'move-beginning-of-line)
 (define-key global-map [C-home]		'beginning-of-buffer)
@@ -1324,7 +1339,15 @@ if `inhibit-field-text-motion' is non-nil."
 ;; can use S-tab instead to access that binding.
 (define-key function-key-map [S-tab] [backtab])
 
-(define-key global-map [mouse-movement] 'ignore)
+(defun ignore-preserving-kill-region (&rest _)
+  "Like `ignore', but don't overwrite `last-event' if it's `kill-region'."
+  (declare (completion ignore))
+  (interactive)
+  (when (eq last-command 'kill-region)
+    (setq this-command 'kill-region))
+  nil)
+
+(define-key global-map [mouse-movement] #'ignore-preserving-kill-region)
 
 (define-key global-map "\C-t" 'transpose-chars)
 (define-key esc-map "t" 'transpose-words)
@@ -1388,10 +1411,8 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key esc-map [?\C-\ ] 'mark-sexp)
 (define-key esc-map "\C-d" 'down-list)
 (define-key esc-map "\C-k" 'kill-sexp)
-;;; These are dangerous in various situations,
-;;; so let's not encourage anyone to use them.
-;;;(define-key global-map [C-M-delete] 'backward-kill-sexp)
-;;;(define-key global-map [C-M-backspace] 'backward-kill-sexp)
+(define-key global-map [C-M-delete] 'backward-kill-sexp)
+(define-key global-map [C-M-backspace] 'backward-kill-sexp)
 (define-key esc-map [C-delete] 'backward-kill-sexp)
 (define-key esc-map [C-backspace] 'backward-kill-sexp)
 (define-key esc-map "\C-n" 'forward-list)

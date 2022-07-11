@@ -34,7 +34,7 @@
 #ifndef __cplusplus
 # if (201112L <= __STDC_VERSION__ \
       || (!defined __STRICT_ANSI__ \
-          && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || 4 <= __clang_major__)))
+          && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || 5 <= __clang_major__)))
 #  define _GL_HAVE__STATIC_ASSERT 1
 # endif
 # if (202000L <= __STDC_VERSION__ \
@@ -215,6 +215,9 @@ template <int w>
 # define _GL_VERIFY(R, DIAGNOSTIC, ...)                                \
     extern int (*_GL_GENSYM (_gl_verify_function) (void))	       \
       [_GL_VERIFY_TRUE (R, DIAGNOSTIC)]
+# if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+#  pragma GCC diagnostic ignored "-Wnested-externs"
+# endif
 #endif
 
 /* _GL_STATIC_ASSERT_H is defined if this code is copied into assert.h.  */

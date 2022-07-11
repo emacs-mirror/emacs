@@ -269,7 +269,7 @@ QUAIL-KEYMAP is a cons that satisfies `quail-map-p'; TO-PREPEND is a
 string."
   (when (consp quail-keymap) (setq quail-keymap (cdr quail-keymap)))
   (if (or (integerp quail-keymap)
-	  (and (fboundp 'characterp) (characterp quail-keymap)))
+          (characterp quail-keymap))
       (setq quail-keymap (list (string quail-keymap)))
     (if (stringp quail-keymap)
 	(setq quail-keymap (list quail-keymap))

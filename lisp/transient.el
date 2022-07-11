@@ -3,7 +3,7 @@
 ;; Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
-;; Homepage: https://github.com/magit/transient
+;; URL: https://github.com/magit/transient
 ;; Keywords: bindings
 
 ;; Package-Requires: ((emacs "25.1"))
@@ -61,10 +61,10 @@
 (eval-when-compile
   (require 'subr-x))
 
-(declare-function info 'info)
-(declare-function Man-find-section 'man)
-(declare-function Man-next-section 'man)
-(declare-function Man-getpage-in-background 'man)
+(declare-function info "info")
+(declare-function Man-find-section "man")
+(declare-function Man-next-section "man")
+(declare-function Man-getpage-in-background "man")
 
 (defvar Man-notify-method)
 
@@ -246,7 +246,7 @@ for infix argument are highlighted when only a long argument
 In the rare case that a short-hand is specified but does not
 match the key binding, then it is highlighed differently.
 
-The highlighting is done using using `transient-mismatched-key'
+The highlighting is done using `transient-mismatched-key'
 and `transient-nonstandard-key'."
   :package-version '(transient . "0.1.0")
   :group 'transient
@@ -1384,7 +1384,7 @@ The optional argument COMMAND is intended for internal use.  If
 you are contemplating using it in your own code, then you should
 probably use this instead:
 
-  (get COMMAND 'transient--suffix)"
+  (get COMMAND \\='transient--suffix)"
   (when command
     (cl-check-type command command))
   (if (or transient--prefix

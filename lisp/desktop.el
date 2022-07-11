@@ -44,10 +44,11 @@
 ;; (info "(emacs)Saving Emacs Sessions") in the GNU Emacs Manual.
 
 ;; When the desktop module is loaded, the function `desktop-kill' is
-;; added to the `kill-emacs-hook'.  This function is responsible for
-;; saving the desktop when Emacs is killed.  Furthermore an anonymous
-;; function is added to the `after-init-hook'.  This function is
-;; responsible for loading the desktop when Emacs is started.
+;; added to the `kill-emacs-query-functions'.  This function is
+;; responsible for saving the desktop and deleting the desktop lock
+;; file when Emacs is killed.  In addition, an anonymous function is
+;; added to the `after-init-hook'.  This function is responsible for
+;; loading the desktop when Emacs is started.
 
 ;; Special handling.
 ;; -----------------
@@ -230,16 +231,26 @@ Zero or nil means disable auto-saving due to idleness."
 (defcustom desktop-load-locked-desktop 'ask
   "Specifies whether the desktop should be loaded if locked.
 Possible values are:
-   t    -- load anyway.
-   nil  -- don't load.
-   ask  -- ask the user.
-If the value is nil, or `ask' and the user chooses not to load the desktop,
-the normal hook `desktop-not-loaded-hook' is run."
+   t          -- load anyway.
+   nil        -- don't load.
+   ask        -- ask the user.
+   check-pid  -- load if locking Emacs process is missing locally.
+
+If the value is nil, or `ask' and the user chooses not to load
+the desktop, the normal hook `desktop-not-loaded-hook' is run.
+
+If the value is `check-pid', load the desktop if the Emacs
+process that has locked it is not running on the local machine.
+This should not be used in circumstances where the locking Emacs
+might still be running on another machine.  That could be the
+case if you have remotely mounted (NFS) paths in
+`desktop-dirname'."
   :type
   '(choice
     (const :tag "Load anyway" t)
     (const :tag "Don't load" nil)
-    (const :tag "Ask the user" ask))
+    (const :tag "Ask the user" ask)
+    (const :tag "Load if no local process" check-pid))
   :group 'desktop
   :version "22.2")
 
@@ -424,7 +435,9 @@ If `all', also restores frames that are partially offscreen onscreen.
 Note that checking of frame boundaries is only approximate.
 It can fail to reliably detect frames whose onscreen/offscreen state
 depends on a few pixels, especially near the right / bottom borders
-of the screen."
+of the screen.
+Text-mode frames are always considered onscreen, so this option has
+no effect on restoring frames in a non-GUI session."
   :type '(choice (const :tag "Only fully offscreen frames" t)
 		 (const :tag "Also partially offscreen frames" all)
 		 (const :tag "Do not force frames onscreen" nil))
@@ -468,7 +481,7 @@ If value is t, all buffers are restored immediately."
 (defcustom desktop-lazy-idle-delay 5
   "Idle delay before starting to create buffers.
 See `desktop-restore-eager'."
-  :type 'integer
+  :type 'natnum
   :group 'desktop
   :version "22.1")
 
@@ -635,6 +648,14 @@ Only valid during frame saving & restoring; intended for internal use.")
   "When the desktop file was last modified to the knowledge of this Emacs.
 Used to detect desktop file conflicts.")
 
+(defun desktop--get-file-modtime ()
+  "Get desktop file modtime, in list form for desktop format version 208."
+  (setq desktop-file-modtime
+	(time-convert (file-attribute-modification-time
+		       (file-attributes
+			(desktop-full-file-name)))
+		      'list)))
+
 (defvar desktop-var-serdes-funs
   (list (list
 	 'mark-ring
@@ -661,6 +682,44 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 	     (setq owner (read (current-buffer)))
 	     (integerp owner)))
 	 owner)))
+
+(defun desktop--emacs-pid-running-p (pid)
+  "Return non-nil if an Emacs process whose ID is PID might still be running."
+  (when-let ((attr (process-attributes pid)))
+    (let ((proc-cmd (alist-get 'comm attr))
+          (my-cmd (file-name-nondirectory (car command-line-args)))
+          (case-fold-search t))
+      (or (equal proc-cmd my-cmd)
+          (and (eq system-type 'windows-nt)
+               (eq t (compare-strings proc-cmd
+                                      nil
+                                      (if (string-suffix-p ".exe" proc-cmd t)
+                                          -4)
+                                      my-cmd
+                                      nil
+                                      (if (string-suffix-p ".exe" my-cmd t)
+                                          -4))))
+          ;; We should err on the safe side here: if any of the
+          ;; executables is something like "emacs-nox" or "emacs-42.1"
+          ;; or "gemacs" or "xemacs", let's recognize them as well.
+          (and (string-match-p "emacs" proc-cmd)
+               (string-match-p "emacs" my-cmd))))))
+
+(defun desktop--load-locked-desktop-p (owner)
+  "Return t if a locked desktop should be loaded.
+OWNER is the pid in the lock file.
+The return value of this function depends on the value of
+`desktop-load-locked-desktop'."
+  (pcase desktop-load-locked-desktop
+    ('ask
+     (unless (daemonp)
+       (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
+Using it may cause conflicts.  Use it anyway? " owner))))
+    ('check-pid
+     (or (eq (emacs-pid) owner)
+         (not (desktop--emacs-pid-running-p owner))))
+    ('nil nil)
+    (_ t)))
 
 (defun desktop-claim-lock (&optional dirname)
   "Record this Emacs process as the owner of the desktop file in DIRNAME.
@@ -799,15 +858,16 @@ buffer, which is (in order):
     ,(buffer-name)
     ,major-mode
     ;; minor modes
-    ,(let (ret)
-       (dolist (minor-mode (mapcar #'car minor-mode-alist) ret)
-         (and (boundp minor-mode)
-              (symbol-value minor-mode)
-              (let* ((special (assq minor-mode desktop-minor-mode-table))
-                     (value (cond (special (cadr special))
-                                  ((get minor-mode :minor-mode-function))
-                                  ((functionp minor-mode) minor-mode))))
-                (when value (cl-pushnew value ret))))))
+    ,(seq-filter
+      (lambda (minor-mode)
+        ;; Just two sanity checks.
+        (and (boundp minor-mode)
+             (symbol-value minor-mode)
+             (let ((special
+                    (assq minor-mode desktop-minor-mode-table)))
+               (or (not special)
+                   (cadr special)))))
+      local-minor-modes)
     ;; point and mark, and read-only status
     ,(point)
     ,(list (mark t) mark-active)
@@ -1072,7 +1132,7 @@ no questions asked."
 			(file-attributes (desktop-full-file-name)))))
       (when
 	  (or (not new-modtime)		; nothing to overwrite
-	      (equal desktop-file-modtime new-modtime)
+	      (time-equal-p desktop-file-modtime new-modtime)
 	      (yes-or-no-p (if desktop-file-modtime
 			       (if (time-less-p desktop-file-modtime
 						new-modtime)
@@ -1172,9 +1232,7 @@ no questions asked."
 		(write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
 	      (setq desktop-file-checksum checksum)
 	      ;; We remember when it was modified (which is presumably just now).
-	      (setq desktop-file-modtime (file-attribute-modification-time
-					  (file-attributes
-					   (desktop-full-file-name)))))))))))
+	      (desktop--get-file-modtime))))))))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -1196,7 +1254,11 @@ This function also sets `desktop-dirname' to nil."
 ;; ----------------------------------------------------------------------------
 (defun desktop-restoring-frameset-p ()
   "True if calling `desktop-restore-frameset' will actually restore it."
-  (and desktop-restore-frames desktop-saved-frameset (display-graphic-p) t))
+  (and desktop-restore-frames desktop-saved-frameset
+       ;; Don't restore frames when the selected frame is the daemon's
+       ;; initial frame.
+       (not (and (daemonp) (not (frame-parameter nil 'client))))
+       t))
 
 (defun desktop-restore-frameset ()
   "Restore the state of a set of frames.
@@ -1207,7 +1269,17 @@ being set (usually, by reading it from the desktop)."
 		      :reuse-frames (eq desktop-restore-reuses-frames t)
 		      :cleanup-frames (not (eq desktop-restore-reuses-frames 'keep))
 		      :force-display desktop-restore-in-current-display
-		      :force-onscreen desktop-restore-forces-onscreen)))
+		      :force-onscreen (and desktop-restore-forces-onscreen
+                                           (display-graphic-p)))
+    ;; When at least one restored frame contains a tab bar,
+    ;; enable `tab-bar-mode' that takes care about recalculating
+    ;; the correct values of the frame parameter `tab-bar-lines'
+    ;; (that depends on `tab-bar-show'), and also loads graphical buttons.
+    (when (seq-some
+           (lambda (frame)
+             (menu-bar-positive-p (frame-parameter frame 'tab-bar-lines)))
+           (frame-list))
+      (tab-bar-mode 1))))
 
 ;; Just to silence the byte compiler.
 ;; Dynamically bound in `desktop-read'.
@@ -1263,11 +1335,7 @@ It returns t if a desktop file was loaded, nil otherwise.
 	      (desktop-save nil)
 	      (desktop-autosave-was-enabled))
 	  (if (and owner
-		   (memq desktop-load-locked-desktop '(nil ask))
-		   (or (null desktop-load-locked-desktop)
-		       (daemonp)
-		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
-Using it may cause conflicts.  Use it anyway? " owner)))))
+                   (not (desktop--load-locked-desktop-p owner)))
 	      (let ((default-directory desktop-dirname))
 		(setq desktop-dirname nil)
 		(run-hooks 'desktop-not-loaded-hook)
@@ -1287,9 +1355,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
                           'window-configuration-change-hook)))
 	    (desktop-auto-save-disable)
 	    ;; Evaluate desktop buffer and remember when it was modified.
-	    (setq desktop-file-modtime (file-attribute-modification-time
-					(file-attributes
-					 (desktop-full-file-name))))
+	    (desktop--get-file-modtime)
 	    (load (desktop-full-file-name) t t t)
 	    ;; If it wasn't already, mark it as in-use, to bother other
 	    ;; desktop instances.

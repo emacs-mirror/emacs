@@ -128,6 +128,7 @@
 (set-buffer "*scratch*")
 (setq buffer-undo-list t)
 
+(load "emacs-lisp/debug-early")
 (load "emacs-lisp/byte-run")
 (load "emacs-lisp/backquote")
 (load "subr")
@@ -195,11 +196,10 @@
   (setq definition-prefixes new))
 
 (load "button")                  ;After loaddefs, because of define-minor-mode!
-(load "emacs-lisp/nadvice")
 (load "emacs-lisp/cl-preloaded")
+(load "emacs-lisp/oclosure")          ;Used by cl-generic
 (load "obarray")        ;abbrev.el is implemented in terms of obarrays.
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
-(load "simple")
 
 (load "help")
 
@@ -245,11 +245,16 @@
 (load "language/khmer")
 (load "language/burmese")
 (load "language/cham")
+(load "language/philippine")
+(load "language/indonesian")
 
 (load "indent")
 (let ((max-specpdl-size (max max-specpdl-size 1800)))
   ;; A particularly demanding file to load; 1600 does not seem to be enough.
   (load "emacs-lisp/cl-generic"))
+(load "simple")
+(load "emacs-lisp/seq")
+(load "emacs-lisp/nadvice")
 (load "minibuffer") ;Needs cl-generic (and define-minor-mode).
 (load "frame")
 (load "startup")
@@ -342,10 +347,8 @@
         (load "term/ns-win"))))
 (if (featurep 'pgtk)
     (progn
+      (load "pgtk-dnd")
       (load "term/common-win")
-      ;; Don't load ucs-normalize.el unless uni-*.el files were
-      ;; already produced, because it needs uni-*.el files that might
-      ;; not be built early enough during bootstrap.
       (load "term/pgtk-win")))
 (if (fboundp 'x-create-frame)
     ;; Do it after loading term/foo-win.el since the value of the
@@ -393,6 +396,9 @@
   (or (equal lp load-path)
       (message "Warning: Change in load-path due to site-load will be \
 lost after dumping")))
+
+;; Used by `kill-buffer', for instance.
+(load "emacs-lisp/rmc")
 
 ;; Make sure default-directory is unibyte when dumping.  This is
 ;; because we cannot decode and encode it correctly (since the locale

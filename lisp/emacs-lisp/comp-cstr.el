@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2020-2022 Free Software Foundation, Inc.
 
-;; Author: Andrea Corallo <akrl@sdf.com>
+;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Keywords: lisp
 ;; Package: emacs
 
@@ -454,18 +454,20 @@ Return them as multiple value."
   (declare (debug (range-body))
            (indent defun))
   `(with-comp-cstr-accessors
-     (when-let ((r1 (range ,src1))
-                (r2 (range ,src2)))
-       (let* ((l1 (comp-cstr-smallest-in-range r1))
-              (l2 (comp-cstr-smallest-in-range r2))
-              (h1 (comp-cstr-greatest-in-range r1))
-              (h2 (comp-cstr-greatest-in-range r2)))
-         (setf (typeset ,dst) (when (cl-some (lambda (x)
-                                               (comp-subtype-p 'float x))
-                                             (append (typeset src1)
-                                                     (typeset src2)))
-                                '(float))
-               (range ,dst) ,@range-body)))))
+     (if (or (neg src1) (neg src2))
+         (setf (typeset ,dst) '(number))
+       (when-let ((r1 (range ,src1))
+                  (r2 (range ,src2)))
+         (let* ((l1 (comp-cstr-smallest-in-range r1))
+                (l2 (comp-cstr-smallest-in-range r2))
+                (h1 (comp-cstr-greatest-in-range r1))
+                (h2 (comp-cstr-greatest-in-range r2)))
+           (setf (typeset ,dst) (when (cl-some (lambda (x)
+                                                 (comp-subtype-p 'float x))
+                                               (append (typeset src1)
+                                                       (typeset src2)))
+                                  '(float))
+                 (range ,dst) ,@range-body))))))
 
 (defun comp-cstr-add-2 (dst src1 src2)
   "Sum SRC1 and SRC2 into DST."

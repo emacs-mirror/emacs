@@ -413,14 +413,20 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
    Return 0 if successful, an error number on failure.  */
 
 static int
-lock_file_1 (char *lfname, bool force)
+lock_file_1 (Lisp_Object lfname, bool force)
 {
-  /* Call this first because it can GC.  */
   intmax_t boot = get_boot_time ();
-
   Lisp_Object luser_name = Fuser_login_name (Qnil);
-  char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
   Lisp_Object lhost_name = Fsystem_name ();
+
+  /* Protect against the extremely unlikely case of the host name
+     containing an @ character.  */
+  if (!NILP (lhost_name) && strchr (SSDATA (lhost_name), '@'))
+    lhost_name = CALLN (Ffuncall, intern ("string-replace"),
+			build_string ("@"), build_string ("-"),
+			lhost_name);
+
+  char const *user_name = STRINGP (luser_name) ? SSDATA (luser_name) : "";
   char const *host_name = STRINGP (lhost_name) ? SSDATA (lhost_name) : "";
   char lock_info_str[MAX_LFINFO + 1];
   intmax_t pid = getpid ();
@@ -439,7 +445,7 @@ lock_file_1 (char *lfname, bool force)
                         user_name, host_name, pid))
     return ENAMETOOLONG;
 
-  return create_lock_file (lfname, lock_info_str, force);
+  return create_lock_file (SSDATA (lfname), lock_info_str, force);
 }
 
 /* Return true if times A and B are no more than one second apart.  */
@@ -490,15 +496,29 @@ read_lock_data (char *lfname, char lfinfo[MAX_LFINFO + 1])
   return nbytes;
 }
 
+/* True if errno values are negative.  Although the C standard
+   requires them to be positive, they are negative in Haiku.  */
+enum { NEGATIVE_ERRNO = EDOM < 0 };
+
+/* Nonzero values that are not errno values.  */
+enum
+  {
+    /* Another process on this machine owns it.  */
+    ANOTHER_OWNS_IT = NEGATIVE_ERRNO ? 1 : -1,
+
+    /* This Emacs process owns it.  */
+    I_OWN_IT = 2 * ANOTHER_OWNS_IT
+  };
+
 /* Return 0 if nobody owns the lock file LFNAME or the lock is obsolete,
-   -1 if another process owns it (and set OWNER (if non-null) to info),
-   -2 if the current process owns it,
+   ANOTHER_OWNS_IT if another process owns it
+     (and set OWNER (if non-null) to info),
+   I_OWN_IT if the current process owns it,
    or an errno value if something is wrong with the locking mechanism.  */
 
 static int
-current_lock_owner (lock_info_type *owner, char *lfname)
+current_lock_owner (lock_info_type *owner, Lisp_Object lfname)
 {
-  int ret;
   lock_info_type local_owner;
   ptrdiff_t lfinfolen;
   intmax_t pid, boot_time;
@@ -510,7 +530,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
     owner = &local_owner;
 
   /* If nonexistent lock file, all is well; otherwise, got strange error. */
-  lfinfolen = read_lock_data (lfname, owner->user);
+  lfinfolen = read_lock_data (SSDATA (lfname), owner->user);
   if (lfinfolen < 0)
     return errno == ENOENT || errno == ENOTDIR ? 0 : errno;
   if (MAX_LFINFO < lfinfolen)
@@ -564,65 +584,78 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   if (lfinfo_end != owner->user + lfinfolen)
     return EINVAL;
 
-  /* On current host?  */
   Lisp_Object system_name = Fsystem_name ();
+  /* If `system-name' returns nil, that means we're in a
+     --no-build-details Emacs, and the name part of the link (e.g.,
+     .#test.txt -> larsi@.118961:1646577954) is an empty string.  */
+  if (NILP (system_name))
+    system_name = build_string ("");
+  /* Protect against the extremely unlikely case of the host name
+     containing an @ character.  */
+  else if (strchr (SSDATA (system_name), '@'))
+    system_name = CALLN (Ffuncall, intern ("string-replace"),
+			 build_string ("@"), build_string ("-"),
+			 system_name);
+  /* On current host?  */
   if (STRINGP (system_name)
       && dot - (at + 1) == SBYTES (system_name)
       && memcmp (at + 1, SSDATA (system_name), SBYTES (system_name)) == 0)
     {
       if (pid == getpid ())
-        ret = -2; /* We own it.  */
+        return I_OWN_IT;
       else if (0 < pid && pid <= TYPE_MAXIMUM (pid_t)
                && (kill (pid, 0) >= 0 || errno == EPERM)
 	       && (boot_time == 0
 		   || (boot_time <= TYPE_MAXIMUM (time_t)
 		       && within_one_second (boot_time, get_boot_time ()))))
-        ret = -1; /* An existing process on this machine owns it.  */
+        return ANOTHER_OWNS_IT;
       /* The owner process is dead or has a strange pid, so try to
          zap the lockfile.  */
       else
-        return unlink (lfname) < 0 ? errno : 0;
+        return unlink (SSDATA (lfname)) < 0 ? errno : 0;
     }
   else
     { /* If we wanted to support the check for stale locks on remote machines,
          here's where we'd do it.  */
-      ret = -1;
+      return ANOTHER_OWNS_IT;
     }
-
-  return ret;
 }
 
 
 /* Lock the lock named LFNAME if possible.
    Return 0 in that case.
-   Return negative if some other process owns the lock, and info about
+   Return ANOTHER_OWNS_IT if some other process owns the lock, and info about
      that process in CLASHER.
-   Return positive errno value if cannot lock for any other reason.  */
+   Return errno value if cannot lock for any other reason.  */
 
 static int
-lock_if_free (lock_info_type *clasher, char *lfname)
+lock_if_free (lock_info_type *clasher, Lisp_Object lfname)
 {
   int err;
   while ((err = lock_file_1 (lfname, 0)) == EEXIST)
     {
       err = current_lock_owner (clasher, lfname);
-      if (err != 0)
-	{
-	  if (err < 0)
-	    return -2 - err; /* We locked it, or someone else has it.  */
-	  break; /* current_lock_owner returned strange error.  */
-	}
 
-      /* We deleted a stale lock; try again to lock the file.  */
+      /* Return if we locked it, or another process owns it, or it is
+	 a strange error.  */
+      if (err != 0)
+	return err == I_OWN_IT ? 0 : err;
+
+      /* We deleted a stale lock or some other process deleted the lock;
+	 try again to lock the file.  */
     }
 
   return err;
 }
 
+/* Return the encoded name of the lock file for FN, or nil if none.  */
+
 static Lisp_Object
 make_lock_file_name (Lisp_Object fn)
 {
-  return call1 (Qmake_lock_file_name, Fexpand_file_name (fn, Qnil));
+  Lisp_Object lock_file_name = call1 (Qmake_lock_file_name,
+				      Fexpand_file_name (fn, Qnil));
+  return !NILP (lock_file_name) ? ENCODE_FILE (lock_file_name) : Qnil;
 }
 
 /* lock_file locks file FN,
@@ -654,19 +687,14 @@ lock_file (Lisp_Object fn)
   if (will_dump_p ())
     return Qnil;
 
-  /* If the file name has special constructs in it,
-     call the corresponding file name handler.  */
-  Lisp_Object handler;
-  handler = Ffind_file_name_handler (fn, Qlock_file);
-  if (!NILP (handler))
+  Lisp_Object lfname = Qnil;
+  if (create_lockfiles)
     {
-      return call2 (handler, Qlock_file, fn);
+      /* Create the name of the lock-file for file fn */
+      lfname = make_lock_file_name (fn);
+      if (NILP (lfname))
+	return Qnil;
     }
-
-  Lisp_Object lock_filename = make_lock_file_name (fn);
-  if (NILP (lock_filename))
-    return Qnil;
-  char *lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   /* See if this file is visited and has changed on disk since it was
      visited.  */
@@ -674,27 +702,31 @@ lock_file (Lisp_Object fn)
   if (!NILP (subject_buf)
       && NILP (Fverify_visited_file_modtime (subject_buf))
       && !NILP (Ffile_exists_p (fn))
-      && current_lock_owner (NULL, lfname) != -2)
+      && !(!NILP (lfname) && current_lock_owner (NULL, lfname) == I_OWN_IT))
     call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
-  /* Try to lock the lock.  FIXME: This ignores errors when
-     lock_if_free returns a positive errno value.  */
-  if (lock_if_free (&lock_info, lfname) < 0)
+  /* Don't do locking if the user has opted out.  */
+  if (!NILP (lfname))
     {
-      /* Someone else has the lock.  Consider breaking it.  */
-      Lisp_Object attack;
-      char *dot = lock_info.dot;
-      ptrdiff_t pidlen = lock_info.colon - (dot + 1);
-      static char const replacement[] = " (pid ";
-      int replacementlen = sizeof replacement - 1;
-      memmove (dot + replacementlen, dot + 1, pidlen);
-      strcpy (dot + replacementlen + pidlen, ")");
-      memcpy (dot, replacement, replacementlen);
-      attack = call2 (intern ("ask-user-about-lock"), fn,
-		      build_string (lock_info.user));
-      /* Take the lock if the user said so.  */
-      if (!NILP (attack))
-	lock_file_1 (lfname, 1);
+      /* Try to lock the lock.  FIXME: This ignores errors when
+	 lock_if_free returns an errno value.  */
+      if (lock_if_free (&lock_info, lfname) == ANOTHER_OWNS_IT)
+	{
+	  /* Someone else has the lock.  Consider breaking it.  */
+	  Lisp_Object attack;
+	  char *dot = lock_info.dot;
+	  ptrdiff_t pidlen = lock_info.colon - (dot + 1);
+	  static char const replacement[] = " (pid ";
+	  int replacementlen = sizeof replacement - 1;
+	  memmove (dot + replacementlen, dot + 1, pidlen);
+	  strcpy (dot + replacementlen + pidlen, ")");
+	  memcpy (dot, replacement, replacementlen);
+	  attack = call2 (intern ("ask-user-about-lock"), fn,
+			  build_string (lock_info.user));
+	  /* Take the lock if the user said so.  */
+	  if (!NILP (attack))
+	    lock_file_1 (lfname, 1);
+	}
     }
   return Qnil;
 }
@@ -702,17 +734,14 @@ lock_file (Lisp_Object fn)
 static Lisp_Object
 unlock_file (Lisp_Object fn)
 {
-  char *lfname;
-
-  Lisp_Object lock_filename = make_lock_file_name (fn);
-  if (NILP (lock_filename))
+  Lisp_Object lfname = make_lock_file_name (fn);
+  if (NILP (lfname))
     return Qnil;
-  lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   int err = current_lock_owner (0, lfname);
-  if (err == -2 && unlink (lfname) != 0 && errno != ENOENT)
-    err = errno;
-  if (0 < err)
+  if (! (err == 0 || err == ANOTHER_OWNS_IT
+	 || (err == I_OWN_IT
+	     && (unlink (SSDATA (lfname)) == 0 || (err = errno) == ENOENT))))
     report_file_errno ("Unlocking file", fn, err);
 
   return Qnil;
@@ -748,12 +777,16 @@ If the option `create-lockfiles' is nil, this does nothing.  */)
   (Lisp_Object file)
 {
 #ifndef MSDOS
-  /* Don't do locking if the user has opted out.  */
-  if (create_lockfiles)
-    {
-      CHECK_STRING (file);
-      lock_file (file);
-    }
+  CHECK_STRING (file);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file name handler.  */
+  Lisp_Object handler;
+  handler = Ffind_file_name_handler (file, Qlock_file);
+  if (!NILP (handler))
+    return call2 (handler, Qlock_file, file);
+
+  lock_file (file);
 #endif	/* MSDOS */
   return Qnil;
 }
@@ -850,16 +883,17 @@ t if it is locked by you, else a string saying which user has locked it.  */)
       return call2 (handler, Qfile_locked_p, filename);
     }
 
-  Lisp_Object lock_filename = make_lock_file_name (filename);
-  if (NILP (lock_filename))
+  Lisp_Object lfname = make_lock_file_name (filename);
+  if (NILP (lfname))
     return Qnil;
-  char *lfname = SSDATA (ENCODE_FILE (lock_filename));
 
   owner = current_lock_owner (&locker, lfname);
   switch (owner)
     {
-    case -2: ret = Qt; break;
-    case -1: ret = make_string (locker.user, locker.at - locker.user); break;
+    case I_OWN_IT: ret = Qt; break;
+    case ANOTHER_OWNS_IT:
+      ret = make_string (locker.user, locker.at - locker.user);
+      break;
     case  0: ret = Qnil; break;
     default: report_file_errno ("Testing file lock", filename, owner);
     }
@@ -877,8 +911,8 @@ syms_of_filelock (void)
 
   DEFVAR_BOOL ("create-lockfiles", create_lockfiles,
 	       doc: /* Non-nil means use lockfiles to avoid editing collisions.
-The name of the (per-buffer) lockfile is constructed by prepending a
-'.#' to the name of the file being locked.  See also `lock-buffer' and
+The name of the (per-buffer) lockfile is constructed by prepending
+".#" to the name of the file being locked.  See also `lock-buffer' and
 Info node `(emacs)Interlocking'.  */);
   create_lockfiles = true;
 

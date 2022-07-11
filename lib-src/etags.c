@@ -112,6 +112,7 @@ University of California, as described above. */
 # define O_CLOEXEC O_NOINHERIT
 #endif /* WINDOWSNT */
 
+#include <attribute.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <unistd.h>
@@ -1427,14 +1428,30 @@ main (int argc, char **argv)
   if (CTAGS)
     if (append_to_tagfile || update)
       {
-	char *cmd = xmalloc (2 * strlen (tagfile) + sizeof "sort -u -o..");
 	/* Maybe these should be used:
 	   setenv ("LC_COLLATE", "C", 1);
 	   setenv ("LC_ALL", "C", 1); */
-	char *z = stpcpy (cmd, "sort -u -o ");
+	char *cmd = xmalloc (8 * strlen (tagfile) + sizeof "sort -u -o '' ''");
+#if defined WINDOWSNT || defined MSDOS
+	/* Quote "like this".  No need to escape the quotes in the file name,
+	   since it is not allowed in file names on these systems.  */
+	char *z = stpcpy (cmd, "sort -u -o \"");
 	z = stpcpy (z, tagfile);
-	*z++ = ' ';
-	strcpy (z, tagfile);
+	z = stpcpy (z, "\" \"");
+	z = stpcpy (z, tagfile);
+	stpcpy (z, "\"");
+#else
+	/* Quote 'like this', and escape the apostrophe in the file name.  */
+	char *z = stpcpy (cmd, "sort -u -o '");
+	char *escaped_tagfile = z;
+	for (; *tagfile; *z++ = *tagfile++)
+	  if (*tagfile == '\'')
+	    z = stpcpy (z, "'\\'");
+	ptrdiff_t escaped_tagfile_len = z - escaped_tagfile;
+	z = stpcpy (z, "' '");
+	z = mempcpy (z, escaped_tagfile, escaped_tagfile_len);
+	strcpy (z, "'");
+#endif
 	return system (cmd);
       }
   return EXIT_SUCCESS;
@@ -4161,6 +4178,9 @@ C_entries (int c_ext,		/* extension of C */
 	  if (definedef != dnone)
 	    break;
 	  bracelev -= 1;
+	  /* If we see a closing brace in column zero, and we weren't told to
+	     ignore indentation, we assume this the final brace of a function
+	     or struct definition, and reset bracelev to zero.  */
 	  if (!ignoreindent && lp == newlb.buffer + 1)
 	    {
 	      if (bracelev != 0)
@@ -6396,7 +6416,8 @@ mercury_decl (char *s, size_t pos)
   size_t origpos;
   origpos = pos;
 
-  while (s + pos != NULL && (c_isalnum (s[pos]) || s[pos] == '_')) ++pos;
+  while (c_isalnum (s[pos]) || s[pos] == '_')
+    pos++;
 
   unsigned char decl_type_length = pos - origpos;
   char buf[decl_type_length + 1];
@@ -6440,9 +6461,9 @@ mercury_decl (char *s, size_t pos)
 	       so this is the hard case.  */
 	    if (strcmp (buf, "solver") == 0)
 	      {
-		++pos;
-		while (s + pos != NULL && (c_isalnum (s[pos]) || s[pos] == '_'))
-		  ++pos;
+		do
+		  pos++;
+		while (c_isalnum (s[pos]) || s[pos] == '_');
 
 		decl_type_length = pos - origpos;
 		char buf2[decl_type_length + 1];
@@ -6492,7 +6513,6 @@ mercury_decl (char *s, size_t pos)
       while (c_isalnum (s[pos])
              || s[pos] == '_'
              || (s[pos] == '.' /* A module dot.  */
-                 && s + pos + 1 != NULL
                  && (c_isalnum (s[pos + 1]) || s[pos + 1] == '_')
 		 && (module_dot_pos = pos)))  /* Record module dot position.
 				                 Erase module from name.  */
@@ -6536,10 +6556,10 @@ mercury_decl (char *s, size_t pos)
     }
   else if (is_mercury_quantifier && s[pos] == '[')   /* :- some [T] pred/func.  */
     {
-      for (++pos; s + pos != NULL && s[pos] != ']'; ++pos) {}
-      if (s + pos == NULL) return null_pos;
-      ++pos;
-      pos = skip_spaces (s + pos) - s;
+      char *close_bracket = strchr (s + pos + 1, ']');
+      if (!close_bracket)
+	return null_pos;
+      pos = skip_spaces (close_bracket + 1) - s;
       mercury_pos_t position = mercury_decl (s, pos);
       position.totlength += pos - origpos;
       return position;
@@ -7243,8 +7263,8 @@ readline_internal (linebuffer *lbp, FILE *stream, char const *filename)
 	{
 	  /* We're at the end of linebuffer: expand it. */
 	  xrnew (buffer, lbp->size, 2);
+	  p = buffer + lbp->size;
 	  lbp->size *= 2;
-	  p += buffer - lbp->buffer;
 	  pend = buffer + lbp->size;
 	  lbp->buffer = buffer;
 	}
@@ -7665,21 +7685,21 @@ relative_filename (char *file, char *dir)
 {
   char *fp, *dp, *afn, *res;
   ptrdiff_t i;
+  char *dir_last_slash UNINIT;
 
   /* Find the common root of file and dir (with a trailing slash). */
   afn = absolute_filename (file, cwd);
   fp = afn;
   dp = dir;
   while (*fp++ == *dp++)
-    continue;
-  fp--, dp--;			/* back to the first differing char */
+    if (dp[-1] == '/')
+      dir_last_slash = dp - 1;
 #ifdef DOS_NT
-  if (fp == afn && afn[0] != '/') /* cannot build a relative name */
-    return afn;
+  if (fp - 1 == afn && afn[0] != '/')
+    return afn; /* Cannot build a relative name.  */
 #endif
-  do				/* look at the equal chars until '/' */
-    fp--, dp--;
-  while (*fp != '/');
+  fp -= dp - dir_last_slash;
+  dp = dir_last_slash;
 
   /* Build a sequence of "../" strings for the resulting relative file name. */
   i = 0;

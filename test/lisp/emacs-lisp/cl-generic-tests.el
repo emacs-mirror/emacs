@@ -27,7 +27,7 @@
 (require 'edebug)
 
 ;; Don't indirectly require `cl-lib' at run-time.
-(eval-when-compile (require 'ert))
+(require 'ert)
 (declare-function ert--should-signal-hook "ert")
 (declare-function ert--signal-should-execution "ert")
 (declare-function ert-fail "ert")

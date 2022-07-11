@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Old-Version: 0.1
 ;; URL: https://www.emacswiki.org/emacs/ErcList
 ;; Keywords: comm

@@ -796,6 +796,15 @@ offer a smarter default choice of shell command."
 			 'read-shell-command prompt nil nil))))
 
 ;;;###autoload
+(defcustom dired-confirm-shell-command t
+  "Whether to prompt for confirmation for `dired-do-shell-command'.
+If non-nil, prompt for confirmation if the command contains potentially
+dangerous characters.  If nil, never prompt for confirmation."
+  :type 'boolean
+  :group 'dired
+  :version "29.1")
+
+;;;###autoload
 (defun dired-do-async-shell-command (command &optional arg file-list)
   "Run a shell command COMMAND on the marked files asynchronously.
 
@@ -810,7 +819,9 @@ are executed in the background on each file sequentially waiting
 for each command to terminate before running the next command.
 In shell syntax this means separating the individual commands with `;'.
 
-The output appears in the buffer named by `shell-command-buffer-name-async'."
+The output appears in the buffer named by `shell-command-buffer-name-async'.
+
+Commands that are run asynchronously do not accept user input."
   (interactive
    (let ((files (dired-get-marked-files t current-prefix-arg nil nil t)))
      (list
@@ -873,7 +884,9 @@ can be produced by `dired-get-marked-files', for example.
 
 `dired-guess-shell-alist-default' and
 `dired-guess-shell-alist-user' are consulted when the user is
-prompted for the shell command to use interactively."
+prompted for the shell command to use interactively.
+
+Also see the `dired-confirm-shell-command' variable."
   ;; Functions dired-run-shell-command and dired-shell-stuff-it do the
   ;; actual work and can be redefined for customization.
   (interactive
@@ -891,6 +904,8 @@ prompted for the shell command to use interactively."
          (ok (cond
               ((not (or on-each no-subst))
                (error "You can not combine `*' and `?' substitution marks"))
+              ((not dired-confirm-shell-command)
+               t)
               ((setq confirmations (dired--need-confirm-positions command "*"))
                (dired--no-subst-confirm confirmations command))
               ((setq confirmations (dired--need-confirm-positions command "?"))
@@ -954,6 +969,13 @@ prompted for the shell command to use interactively."
 		    (setq retval (replace-match x t t retval 2)))
 		  retval))
 	    (lambda (x) (concat cmd-prefix command dired-mark-separator x)))))
+    ;; If a file name starts with "-", add a "./" to avoid the command
+    ;; interpreting it as a command line switch.
+    (setq file-list (mapcar (lambda (file)
+                              (if (string-match "\\`-" file)
+                                  (concat "./" file)
+                                file))
+                            file-list))
     (concat
      (cond
       (on-each
@@ -976,8 +998,15 @@ prompted for the shell command to use interactively."
                                file-list dired-mark-separator)))
          (when (cdr file-list)
            (setq files (concat dired-mark-prefix files dired-mark-postfix)))
-         (funcall stuff-it files))))
-     (or (and in-background "&") ""))))
+         (concat
+          (funcall stuff-it files)
+          ;; Be consistent in how we treat inputs to commands -- do
+          ;; the same here as in the `on-each' case.
+          (if (and in-background (not w32-shell))
+              "&wait"
+            "")))))
+     (or (and in-background "&")
+         ""))))
 
 ;; This is an extra function so that it can be redefined by ange-ftp.
 ;;;###autoload
@@ -1027,18 +1056,19 @@ Return the result of `process-file' - zero for success."
         (dir default-directory))
     (with-current-buffer (get-buffer-create out-buffer)
       (erase-buffer)
-      (let* ((default-directory dir)
-             (res (process-file
-                   shell-file-name
-                   nil
-                   t
-                   nil
-                   shell-command-switch
-                   cmd)))
-        (dired-uncache dir)
-        (unless (zerop res)
-          (pop-to-buffer out-buffer))
-        res))))
+      (let ((default-directory dir) res)
+        (with-connection-local-variables
+         (setq res (process-file
+                    shell-file-name
+                    nil
+                    t
+                    nil
+                    shell-command-switch
+                    cmd))
+         (dired-uncache dir)
+         (unless (zerop res)
+           (pop-to-buffer out-buffer))
+         res)))))
 
 
 ;;; Commands that delete or redisplay part of the dired buffer
@@ -1066,45 +1096,46 @@ With a prefix argument, kill that many lines starting with the current line.
     (dired-move-to-filename)))
 
 ;;;###autoload
-(defun dired-do-kill-lines (&optional arg fmt)
-  "Kill all marked lines (not the files).
-With a prefix argument, kill that many lines starting with the current line.
-\(A negative argument kills backward.)
+(defun dired-do-kill-lines (&optional arg fmt init-count)
+  "Remove all marked lines, or the next ARG lines.
+The files or directories on those lines are _not_ deleted.  Only the
+Dired listing is affected.  To restore the removals, use `\\[revert-buffer]'.
 
-If you use this command with a prefix argument to kill the line
-for a file that is a directory, which you have inserted in the
-Dired buffer as a subdirectory, then it deletes that subdirectory
-from the buffer as well.
+With a numeric prefix arg, remove that many lines going forward,
+starting with the current line.  (A negative prefix arg removes lines
+going backward.)
 
-To kill an entire subdirectory \(without killing its line in the
-parent directory), go to its directory header line and use this
-command with a prefix argument (the value does not matter).
+If you use a prefix arg to remove the line for a subdir whose listing
+you have inserted into the Dired buffer, then that subdir listing is
+also removed.
 
-To undo the killing, the undo command can be used as normally.
+To remove a subdir listing _without_ removing the subdir's line in its
+parent listing, go to the header line of the subdir listing and use
+this command with any prefix arg.
 
-This function returns the number of killed lines.
+When called from Lisp, non-nil INIT-COUNT is added to the number of
+lines removed by this invocation, for the reporting message.
 
-FMT is a format string used for messaging the user about the
-killed lines, and defaults to \"Killed %d line%s.\" if not
-present.  A FMT of \"\" will suppress the messaging."
+A FMT of \"\" will suppress the messaging."
+  ;; Returns count of killed lines.
   (interactive "P")
   (if arg
       (if (dired-get-subdir)
-	  (dired-kill-subdir)
-	(dired-kill-line arg))
+          (dired-kill-subdir)
+        (dired-kill-line arg))
     (save-excursion
       (goto-char (point-min))
-      (let (buffer-read-only
-	    (count 0)
-	    (regexp (dired-marker-regexp)))
-	(while (and (not (eobp))
-		    (re-search-forward regexp nil t))
-	  (setq count (1+ count))
-	  (delete-region (line-beginning-position)
-			 (progn (forward-line 1) (point))))
-	(or (equal "" fmt)
-	    (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
-	count))))
+      (let ((count (or init-count  0))
+            (regexp (dired-marker-regexp))
+            (inhibit-read-only t))
+        (while (and (not (eobp))
+                    (re-search-forward regexp nil t))
+          (setq count (1+ count))
+          (delete-region (line-beginning-position)
+                         (progn (forward-line 1) (point))))
+        (unless (equal "" fmt)
+          (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
+        count))))
 
 
 ;;; Compression
@@ -1244,7 +1275,8 @@ and `dired-compress-files-alist'."
            (when (zerop
                   (dired-shell-command
                    (format-spec (cdr rule)
-                                `((?o . ,(shell-quote-argument out-file))
+                                `((?o . ,(shell-quote-argument
+                                          (file-local-name out-file)))
                                   (?i . ,(mapconcat
                                           (lambda (in-file)
                                             (shell-quote-argument
@@ -1876,22 +1908,23 @@ rename them using `vc-rename-file'."
   "Rename FILE to NEWNAME.
 Signal a `file-already-exists' error if a file NEWNAME already exists
 unless OK-IF-ALREADY-EXISTS is non-nil."
-  (dired-handle-overwrite newname)
-  (dired-maybe-create-dirs (file-name-directory newname))
-  (if (and dired-vc-rename-file
-           (vc-backend file)
-           (ignore-errors (vc-responsible-backend newname)))
-      (vc-rename-file file newname)
-    ;; error is caught in -create-files
-    (rename-file file newname ok-if-already-exists))
-  ;; Silently rename the visited file of any buffer visiting this file.
-  (and (get-file-buffer file)
-       (with-current-buffer (get-file-buffer file)
-	 (set-visited-file-name newname nil t)))
-  (dired-remove-file file)
-  ;; See if it's an inserted subdir, and rename that, too.
-  (when (file-directory-p file)
-    (dired-rename-subdir file newname)))
+  (let ((file-is-dir-p (file-directory-p file)))
+    (dired-handle-overwrite newname)
+    (dired-maybe-create-dirs (file-name-directory newname))
+    (if (and dired-vc-rename-file
+             (vc-backend file)
+             (ignore-errors (vc-responsible-backend newname)))
+        (vc-rename-file file newname)
+      ;; error is caught in -create-files
+      (rename-file file newname ok-if-already-exists))
+    ;; Silently rename the visited file of any buffer visiting this file.
+    (and (get-file-buffer file)
+         (with-current-buffer (get-file-buffer file)
+	   (set-visited-file-name newname nil t)))
+    (dired-remove-file file)
+    ;; See if it's an inserted subdir, and rename that, too.
+    (when file-is-dir-p
+      (dired-rename-subdir file newname))))
 
 (defun dired-rename-subdir (from-dir to-dir)
   (setq from-dir (file-name-as-directory from-dir)
@@ -1904,7 +1937,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while blist
       (with-current-buffer (car blist)
 	(if (and buffer-file-name
-		 (file-in-directory-p buffer-file-name expanded-from-dir))
+		 (dired-in-this-tree-p buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
 		  (to-file (replace-regexp-in-string
 			    (concat "^" (regexp-quote from-dir))
@@ -1923,7 +1956,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (while alist
       (setq elt (car alist)
 	    alist (cdr alist))
-      (if (file-in-directory-p (car elt) expanded-dir)
+      (if (dired-in-this-tree-p (car elt) expanded-dir)
 	  ;; ELT's subdir is affected by the rename
 	  (dired-rename-subdir-2 elt dir to)))
     (if (equal dir default-directory)
@@ -2145,18 +2178,23 @@ Prompt user for a target directory in which to create the new
   one file is marked.  The initial suggestion for target is the
   Dired buffer's current directory (or, if `dired-dwim-target' is
   non-nil, the current directory of a neighboring Dired window).
+
 OP-SYMBOL is the symbol for the operation.  Function `dired-mark-pop-up'
   will determine whether pop-ups are appropriate for this OP-SYMBOL.
+
 FILE-CREATOR and OPERATION as in `dired-create-files'.
+
 ARG as in `dired-get-marked-files'.
+
 Optional arg MARKER-CHAR as in `dired-create-files'.
+
 Optional arg OP1 is an alternate form for OPERATION if there is
   only one file.
+
 Optional arg HOW-TO determines how to treat the target.
   If HOW-TO is nil, use `file-directory-p' to determine if the
    target is a directory.  If so, the marked file(s) are created
-   inside that directory.  Otherwise, the target is a plain file;
-   an error is raised unless there is exactly one marked file.
+   inside that directory.
   If HOW-TO is t, target is always treated as a plain file.
   Otherwise, HOW-TO should be a function of one argument, TARGET.
    If its return value is nil, TARGET is regarded as a plain file.
@@ -2169,6 +2207,11 @@ Optional arg HOW-TO determines how to treat the target.
       target    - the name of the target itself.
     The rest of elements of the list returned by HOW-TO are optional
     arguments for the function that is the first element of the list.
+
+    This can be useful because by default, copying a single file
+    would replace the tar file.  But this could be overridden to
+    add or replace entries in the tar file.
+
    For any other return value, TARGET is treated as a directory."
   (or op1 (setq op1 operation))
   (let* ((fn-list (dired-get-marked-files nil arg nil nil t))
@@ -2417,7 +2460,7 @@ If FILE already exists, signal an error."
 
 (defvar dired-copy-how-to-fn nil
   "Either nil or a function used by `dired-do-copy' to determine target.
-See HOW-TO argument for `dired-do-create-files'.")
+See HOW-TO argument for `dired-do-create-files' for an explanation.")
 
 ;;;###autoload
 (defun dired-do-copy (&optional arg)
@@ -2437,6 +2480,10 @@ neighboring Dired window).
 If `dired-copy-preserve-time' is non-nil, this command preserves
 the modification time of each old file in the copy, similar to
 the \"-p\" option for the \"cp\" shell command.
+
+The `dired-keep-marker-copy' user option controls how this
+command handles file marking.  The default is to mark all new
+copies of files with a \"C\" mark.
 
 This command copies symbolic links by creating new ones,
 similar to the \"-d\" option for the \"cp\" shell command.
@@ -2473,6 +2520,73 @@ Also see `dired-do-revert-buffer'."
   (interactive "P")
   (dired-do-create-files 'symlink #'make-symbolic-link
                          "Symlink" arg dired-keep-marker-symlink))
+
+;;;###autoload
+(defun dired-do-relsymlink (&optional arg)
+  "Relative symlink all marked (or next ARG) files into a directory.
+Otherwise make a relative symbolic link to the current file.
+This creates relative symbolic links like
+
+    foo -> ../bar/foo
+
+not absolute ones like
+
+    foo -> /ugly/file/name/that/may/change/any/day/bar/foo
+
+For absolute symlinks, use \\[dired-do-symlink]."
+  (interactive "P")
+  (dired-do-create-files 'relsymlink #'dired-make-relative-symlink
+                         "RelSymLink" arg dired-keep-marker-relsymlink))
+
+(defun dired-make-relative-symlink (file1 file2 &optional ok-if-already-exists)
+  "Make a symbolic link (pointing to FILE1) in FILE2.
+The link is relative (if possible), for example
+
+    \"/vol/tex/bin/foo\" \"/vol/local/bin/foo\"
+
+results in
+
+    \"../../tex/bin/foo\" \"/vol/local/bin/foo\""
+  (interactive "FRelSymLink: \nFRelSymLink %s: \np")
+  (let (name1 name2 len1 len2 (index 0) sub)
+    (setq file1 (expand-file-name file1)
+          file2 (expand-file-name file2)
+          len1 (length file1)
+          len2 (length file2))
+    ;; Find common initial file name components:
+    (let (next)
+      (while (and (setq next (string-search "/" file1 index))
+                  (< (setq next (1+ next)) (min len1 len2))
+                  ;; For the comparison, both substrings must end in
+                  ;; `/', so NEXT is *one plus* the result of the
+                  ;; string-search.
+                  ;; E.g., consider the case of linking "/tmp/a/abc"
+                  ;; to "/tmp/abc" erroneously giving "/tmp/a" instead
+                  ;; of "/tmp/" as common initial component
+                  (string-equal (substring file1 0 next)
+                                (substring file2 0 next)))
+        (setq index next))
+      (setq name2 file2
+            sub (substring file1 0 index)
+            name1 (substring file1 index)))
+    (if (string-equal sub "/")
+        ;; No common initial file name found
+        (setq name1 file1)
+      ;; Else they have a common parent directory
+      (let ((tem (substring file2 index))
+            (start 0)
+            (count 0))
+        ;; Count number of slashes we must compensate for ...
+        (while (setq start (string-search "/" tem start))
+          (setq count (1+ count)
+                start (1+ start)))
+        ;; ... and prepend a "../" for each slash found:
+        (dotimes (_ count)
+          (setq name1 (concat "../" name1)))))
+    (make-symbolic-link
+     (directory-file-name name1)        ; must not link to foo/
+                                        ; (trailing slash!)
+     name2 ok-if-already-exists)))
 
 ;;;###autoload
 (defun dired-do-hardlink (&optional arg)
@@ -2634,6 +2748,16 @@ See function `dired-do-rename-regexp' for more info."
    #'make-symbolic-link
    "SymLink" arg regexp newname whole-name dired-keep-marker-symlink))
 
+;;;###autoload
+(defun dired-do-relsymlink-regexp (regexp newname &optional arg whole-name)
+  "RelSymlink all marked files containing REGEXP to NEWNAME.
+See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
+for more info."
+  (interactive (dired-mark-read-regexp "RelSymLink"))
+  (dired-do-create-files-regexp
+   #'dired-make-relative-symlink
+   "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
+
 
 ;;; Change case of file names
 
@@ -2771,7 +2895,7 @@ This function takes some pains to conform to `ls -lR' output."
       (setq switches (string-replace "R" "" switches))
       (dolist (cur-ass dired-subdir-alist)
 	(let ((cur-dir (car cur-ass)))
-	  (and (file-in-directory-p cur-dir dirname)
+	  (and (dired-in-this-tree-p cur-dir dirname)
 	       (let ((cur-cons (assoc-string cur-dir dired-switches-alist)))
 		 (if cur-cons
 		     (setcdr cur-cons switches)
@@ -2783,7 +2907,7 @@ This function takes some pains to conform to `ls -lR' output."
 (defun dired-insert-subdir-validate (dirname &optional switches)
   ;; Check that it is valid to insert DIRNAME with SWITCHES.
   ;; Signal an error if invalid (e.g. user typed `i' on `..').
-  (or (file-in-directory-p dirname (expand-file-name default-directory))
+  (or (dired-in-this-tree-p dirname (expand-file-name default-directory))
       (error  "%s: Not in this directory tree" dirname))
   (let ((real-switches (or switches dired-subdir-switches)))
     (when real-switches
@@ -2976,18 +3100,20 @@ When called interactively and not on a subdir line, go to this subdir's line."
 
 ;;;###autoload
 (defun dired-goto-subdir (dir)
-  "Go to end of header line of DIR in this dired buffer.
+  "Go to end of header line of inserted directory DIR in this Dired buffer.
+When called interactively, prompt for the inserted subdirectory
+to go to.
+
 Return value of point on success, otherwise return nil.
 The next char is \\n."
   (interactive
    (prog1				; let push-mark display its message
        (list (expand-file-name
-	      (completing-read "Goto in situ directory: " ; prompt
-			       dired-subdir-alist ; table
-			       nil	; predicate
-			       t	; require-match
-			       (dired-current-directory))))
-     (push-mark)))
+              (completing-read "Goto inserted directory: "
+                               dired-subdir-alist nil t
+                               (dired-current-directory))))
+     (push-mark))
+   dired-mode)
   (setq dir (file-name-as-directory dir))
   (let ((elt (assoc dir dired-subdir-alist)))
     (and elt
@@ -3125,16 +3251,16 @@ a file name.  Otherwise, it searches the whole buffer without restrictions."
 
 (define-minor-mode dired-isearch-filenames-mode
   "Toggle file names searching on or off.
-When on, Isearch skips matches outside file names using the predicate
-`dired-isearch-filter-filenames' that matches only at file names.
-When off, it uses the original predicate."
+When on, Isearch skips matches outside file names using the search function
+`dired-isearch-search-filenames' that matches only at file names.
+When off, it uses the default search function."
   :lighter nil
   (if dired-isearch-filenames-mode
-      (add-function :before-while (local 'isearch-filter-predicate)
-                    #'dired-isearch-filter-filenames
+      (add-function :around (local 'isearch-search-fun-function)
+                    #'dired-isearch-search-filenames
                     '((isearch-message-prefix . "filename ")))
-    (remove-function (local 'isearch-filter-predicate)
-                     #'dired-isearch-filter-filenames))
+    (remove-function (local 'isearch-search-fun-function)
+                     #'dired-isearch-search-filenames))
   (when isearch-mode
     (setq isearch-success t isearch-adjusted t)
     (isearch-update)))
@@ -3158,12 +3284,12 @@ Intended to be added to `isearch-mode-hook'."
   (unless isearch-suspended
     (kill-local-variable 'dired-isearch-filenames)))
 
-(defun dired-isearch-filter-filenames (beg end)
-  "Test whether some part of the current search match is inside a file name.
-This function returns non-nil if some part of the text between BEG and END
-is part of a file name (i.e., has the text property `dired-filename')."
-  (text-property-not-all (min beg end) (max beg end)
-			 'dired-filename nil))
+(defun dired-isearch-search-filenames (orig-fun)
+  "Return the function that searches inside file names.
+The returned function narrows the search to match the search string
+only as part of a file name enclosed by the text property `dired-filename'.
+It's intended to override the default search function."
+  (isearch-search-fun-in-text-property (funcall orig-fun) 'dired-filename))
 
 ;;;###autoload
 (defun dired-isearch-filenames ()
@@ -3216,9 +3342,14 @@ To continue searching for next match, use command \\[fileloop-continue]."
 ;;;###autoload
 (defun dired-do-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
-If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue]."
+If you exit the query-replace loop (\\[keyboard-quit], RET or q), you can
+resume the query replace with the command \\[fileloop-continue]."
   (interactive
    (let ((common
 	  (query-replace-read-args
@@ -3235,7 +3366,6 @@ with the command \\[tags-loop-continue]."
    delimited)
   (fileloop-continue))
 
-(declare-function xref--show-xrefs "xref")
 (declare-function xref-query-replace-in-results "xref")
 (declare-function project--files-in-directory "project")
 
@@ -3271,7 +3401,7 @@ REGEXP should use constructs supported by your local `grep' command."
                                   (project--files-in-directory mark ignores "*")
                                   files))
                    (push mark files)))
-               (nreverse marks))
+               (reverse marks))
               (message "Searching...")
               (setq xrefs
                     (xref-matches-in-files regexp files))
@@ -3279,11 +3409,16 @@ REGEXP should use constructs supported by your local `grep' command."
                 (user-error "No matches for: %s" regexp))
               (message "Searching...done")
               xrefs))))
-    (xref--show-xrefs fetcher nil)))
+    (xref-show-xrefs fetcher nil)))
 
 ;;;###autoload
 (defun dired-do-find-regexp-and-replace (from to)
   "Replace matches of FROM with TO, in all marked files.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
 
 If no files are marked, use the file under point.
 
@@ -3292,7 +3427,10 @@ recursively.  However, files matching `grep-find-ignored-files'
 and subdirectories matching `grep-find-ignored-directories' are skipped
 in the marked directories.
 
-REGEXP should use constructs supported by your local `grep' command."
+REGEXP should use constructs supported by your local `grep' command.
+
+Also see `query-replace' for user options that affect how this
+function works."
   (interactive
    (let ((common
           (query-replace-read-args

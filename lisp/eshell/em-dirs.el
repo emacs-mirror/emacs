@@ -313,7 +313,7 @@ With the following piece of advice, you can make this functionality
 available in most of Emacs, with the exception of filename completion
 in the minibuffer:
 
-    (advice-add 'expand-file-name :around #'my-expand-multiple-dots)
+    (advice-add \\='expand-file-name :around #\\='my-expand-multiple-dots)
     (defun my-expand-multiple-dots (orig-fun filename &rest args)
       (apply orig-fun (eshell-expand-multiple-dots filename) args))"
   (while (string-match "\\(?:\\`\\|/\\)\\.\\.\\(\\.+\\)\\(?:\\'\\|/\\)"
@@ -391,6 +391,10 @@ in the minibuffer:
 	(unless (equal curdir newdir)
 	  (eshell-add-to-dir-ring curdir))
 	(let ((result (cd newdir)))
+          ;; If we're in "/" and cd to ".." or the like, make things
+          ;; less confusing by changing "/.." to "/".
+          (when (equal (file-truename result) "/")
+            (setq result (cd "/")))
 	  (and eshell-cd-shows-directory
 	       (eshell-printn result)))
 	(run-hooks 'eshell-directory-change-hook)

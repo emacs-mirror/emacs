@@ -955,9 +955,9 @@ this variable represents.")
     (((class color))
      (:foreground "red3" :background "green"))
     (t (:underline t :stipple "gray3")))
-  "Face for highlighting the refinement of the selected diff in the ancestor buffer.
-At present, this face is not used and no fine differences are computed for the
-ancestor buffer."
+  "Face for highlighting refinement of the selected diff in the ancestor buffer.
+At present, this face is not used and no fine differences are
+computed for the ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
@@ -1055,7 +1055,7 @@ this variable represents.")
      (:foreground "cyan3" :background "light grey"
 		  :weight bold :extend t))
     (t (:italic t :stipple ,stipple-pixmap :extend t)))
-  "Face for highlighting even-numbered non-current differences in the ancestor buffer."
+  "Face for highlighting even-numbered non-current differences in ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
@@ -1146,7 +1146,7 @@ this variable represents.")
     (((class color))
      (:foreground "green3" :background "black" :weight bold :extend t))
     (t (:italic t :stipple "gray1" :extend t)))
-  "Face for highlighting odd-numbered non-current differences in the ancestor buffer."
+  "Face for highlighting odd-numbered non-current differences in ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.

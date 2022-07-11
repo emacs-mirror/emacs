@@ -434,18 +434,21 @@ display purposes; use @code{truncate-string-to-width} or
 (@pxref{Size of Displayed Text}).
 @end defun
 
-@defun string-lines string &optional omit-nulls
+@defun string-lines string &optional omit-nulls keep-newlines
 Split @var{string} into a list of strings on newline boundaries.  If
-@var{omit-nulls}, remove empty lines from the results.
+the optional argument @var{omit-nulls} is non-@code{nil}, remove empty
+lines from the results.  If the optional argument @var{keep-newlines}
+is non-@code{nil}, don't remove the trailing newlines from the result
+strings.
 @end defun
 
 @defun string-pad string length &optional padding start
-Pad @var{string} to the be of @var{length} using @var{padding} as the
-padding character (defaulting to the space character).  If
-@var{string} is shorter than @var{length}, no padding is done.  If
-@var{start} is @code{nil} (or not present), the padding is done to the
-end of the string, and if it's non-@code{nil}, to the start of the
-string.
+Pad @var{string} to be of the given @var{length} using @var{padding}
+as the padding character.  @var{padding} defaults to the space
+character.  If @var{string} is longer than @var{length}, no padding is
+done.  If @var{start} is @code{nil} or omitted, the padding is
+appended to the characters of @var{string}, and if it's
+non-@code{nil}, the padding is prepended to @var{string}'s characters.
 @end defun
 
 @defun string-chop-newline string
@@ -461,23 +464,29 @@ Remove the final newline, if any, from @var{string}.
 described in this section.  @xref{Mutability}.
 
   The most basic way to alter the contents of an existing string is with
-@code{aset} (@pxref{Array Functions}).  @code{(aset @var{string}
-@var{idx} @var{char})} stores @var{char} into @var{string} at index
-@var{idx}.  Each character occupies one or more bytes, and if @var{char}
-needs a different number of bytes from the character already present at
-that index, @code{aset} signals an error.
+@code{aset} (@pxref{Array Functions}).  @w{@code{(aset @var{string}
+@var{idx} @var{char})}} stores @var{char} into @var{string} at character
+index @var{idx}.  It will automatically convert a pure-@acronym{ASCII}
+@var{string} to a multibyte string (@pxref{Text Representations}) if
+needed, but we recommend to always make sure @var{string} is multibyte
+(e.g., by using @code{string-to-multibyte}, @pxref{Converting
+Representations}), if @var{char} is a non-@acronym{ASCII} character, not
+a raw byte.
 
   A more powerful function is @code{store-substring}:
 
 @defun store-substring string idx obj
-This function alters part of the contents of the string @var{string}, by
-storing @var{obj} starting at index @var{idx}.  The argument @var{obj}
-may be either a character or a (smaller) string.
+This function alters part of the contents of the specified @var{string},
+by storing @var{obj} starting at character index @var{idx}.  The
+argument @var{obj} may be either a character (in which case the function
+behaves exactly as @code{aset}) or a (smaller) string.  If @var{obj}
+is a multibyte string, we recommend to make sure @var{string} is also
+multibyte, even if it's pure-@acronym{ASCII}.
 
-Since it is impossible to change the length of an existing string, it is
-an error if @var{obj} doesn't fit within @var{string}'s actual length,
-or if any new character requires a different number of bytes from the
-character currently present at that point in @var{string}.
+Since it is impossible to change the number of characters in an
+existing string, it is en error if @var{obj} consists of more
+characters than would fit in @var{string} starting at character index
+@var{idx}.
 @end defun
 
   To clear out a string that contained a password, use
@@ -853,9 +862,7 @@ between 2 and 16 (inclusive), and integers are converted in that base.
 If @var{base} is @code{nil}, then base ten is used.  Floating-point
 conversion only works in base ten; we have not implemented other
 radices for floating-point numbers, because that would be much more
-work and does not seem useful.  If @var{string} looks like an integer
-but its value is too large to fit into a Lisp integer,
-@code{string-to-number} returns a floating-point result.
+work and does not seem useful.
 
 The parsing skips spaces and tabs at the beginning of @var{string},
 then reads as much of @var{string} as it can interpret as a number in
@@ -1347,7 +1354,7 @@ given width, if specified.
 This flag converts the substituted text to upper case (@pxref{Case
 Conversion}).
 
-@item _
+@item _@r{ (underscore)}
 This flag converts the substituted text to lower case (@pxref{Case
 Conversion}).
 @end table

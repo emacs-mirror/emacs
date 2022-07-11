@@ -1094,5 +1094,24 @@ This avoids potential duplicate definitions (Bug#41988)."
               (edebug-new-definition name))))
       (should-error (eval-buffer) :type 'invalid-read-syntax))))
 
+(ert-deftest edebug-tests-inline ()
+  "Check that Edebug can instrument inline functions (Bug#53068)."
+  (with-temp-buffer
+    (print '(define-inline edebug-tests-inline (arg)
+              (inline-quote ,arg))
+           (current-buffer))
+    (let ((edebug-all-defs t)
+          (edebug-initial-mode 'Go-nonstop))
+      (eval-buffer))))
+
+(ert-deftest edebug-test-dot-reader ()
+  (with-temp-buffer
+    (insert "(defun x () `(t .,t))")
+    (goto-char (point-min))
+    (should (equal (save-excursion
+                     (edebug-read-storing-offsets (current-buffer)))
+                   (save-excursion
+                     (read (current-buffer)))))))
+
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

@@ -39,7 +39,7 @@
 ;; first time you access a crypted remote directory.  It is kept in
 ;; your user directory "~/.emacs.d/" with the url-encoded directory
 ;; name as part of the basename, and ".encfs6.xml" as suffix.  Do not
-;; loose this file and the corresponding password; otherwise there is
+;; lose this file and the corresponding password; otherwise there is
 ;; no way to decrypt your crypted files.
 
 ;; If the user option `tramp-crypt-save-encfs-config-remote' is
@@ -151,7 +151,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
 	 (dolist (dir tramp-crypt-directories)
 	   (and (string-prefix-p
 		 dir (file-name-as-directory (expand-file-name name)))
-		(throw  'crypt-file-name-p dir))))))
+		(throw 'crypt-file-name-p dir))))))
 
 
 ;; New handlers should be added here.
@@ -193,9 +193,9 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     ;; `file-name-nondirectory' performed by default handler.
     ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
-    (file-notify-add-watch . ignore)
-    (file-notify-rm-watch . ignore)
-    (file-notify-valid-p . ignore)
+    (file-notify-add-watch . tramp-handle-file-notify-add-watch)
+    (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . tramp-crypt-handle-file-ownership-preserved-p)
     (file-readable-p . tramp-crypt-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
@@ -208,7 +208,8 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-crypt-handle-insert-directory)
-    ;; `insert-file-contents' performed by default handler.
+    (insert-file-contents . tramp-handle-insert-file-contents)
+    (list-system-processes . ignore)
     (load . tramp-handle-load)
     (lock-file . tramp-crypt-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
@@ -218,6 +219,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (process-attributes . ignore)
     (process-file . ignore)
     (rename-file . tramp-crypt-handle-rename-file)
     (set-file-acl . ignore)
@@ -229,6 +231,7 @@ If NAME doesn't belong to a crypted remote directory, retun nil."
     (start-file-process . ignore)
     ;; `substitute-in-file-name' performed by default handler.
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    ;; `tramp-get-home-directory' performed by default-handler.
     ;; `tramp-get-remote-gid' performed by default handler.
     ;; `tramp-get-remote-uid' performed by default handler.
     (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
-;; Keywords: files, pdf, ps, dvi
+;; Keywords: files, pdf, ps, dvi, djvu, epub, cbz, fb2, xps, openxps
 
 ;; This file is part of GNU Emacs.
 
@@ -25,17 +25,19 @@
 ;; Viewing PS/PDF/DVI files requires Ghostscript, `dvipdf' (comes with
 ;; Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive) and
 ;; `pdftotext', which comes with xpdf (https://www.foolabs.com/xpdf/)
-;; or poppler (https://poppler.freedesktop.org/).
-;; Djvu documents require `ddjvu' (from DjVuLibre).
-;; ODF files require `soffice' (from LibreOffice).
+;; or poppler (https://poppler.freedesktop.org/). EPUB, CBZ, FB2, XPS
+;; and OXPS documents require `mutool' which comes with mupdf
+;; (https://mupdf.com/index.html). Djvu documents require `ddjvu'
+;; (from DjVuLibre).  ODF files require `soffice' (from LibreOffice).
 
 ;;; Commentary:
 
 ;; DocView is a document viewer for Emacs.  It converts a number of
-;; document formats (including PDF, PS, DVI, Djvu and ODF files) to a
-;; set of PNG files, one PNG for each page, and displays the PNG
-;; images inside an Emacs buffer.  This buffer uses `doc-view-mode'
-;; which provides convenient key bindings for browsing the document.
+;; document formats (including PDF, PS, DVI, Djvu, ODF, EPUB, CBZ,
+;; FB2, XPS and OXPS files) to a set of PNG (or TIFF for djvu) files,
+;; one image for each page, and displays the images inside an Emacs
+;; buffer.  This buffer uses `doc-view-mode' which provides convenient
+;; key bindings for browsing the document.
 ;;
 ;; To use it simply open a document file with
 ;;
@@ -142,12 +144,16 @@
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
+(require 'filenotify)
 (eval-when-compile (require 'subr-x))
 
 ;;;; Customization Options
 
 (defgroup doc-view nil
-  "In-buffer viewer for PDF, PostScript, DVI, and DJVU files."
+  "In-buffer document viewer.
+The viewer handles PDF, PostScript, DVI, DJVU, ODF, EPUB, CBZ,
+FB2, XPS and OXPS files, if the appropriate converter programs
+are available (see Info node `(emacs)Document View')"
   :link '(function-link doc-view)
   :version "22.2"
   :group 'applications
@@ -219,7 +225,68 @@
 (defcustom doc-view-resolution 100
   "Dots per inch resolution used to render the documents.
 Higher values result in larger images."
-  :type 'number)
+  :type 'natnum)
+
+(defvar doc-view-doc-type nil
+  "The type of document in the current buffer.
+Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
+`xps' or `oxps'.")
+
+(defvar doc-view--epub-stylesheet-watcher nil
+  "File watcher for `doc-view-epub-user-stylesheet'.")
+
+(defun doc-view--epub-reconvert (&optional _event)
+  "Reconvert all epub buffers.
+
+EVENT is unused, but neccesary to work with the filenotify API"
+  (dolist (x (buffer-list))
+    (with-current-buffer x
+      (when (eq doc-view-doc-type 'epub)
+        (doc-view-reconvert-doc)))))
+
+(defun doc-view-custom-set-epub-user-stylesheet (option-name new-value)
+  "Setter for `doc-view-epub-user-stylesheet'.
+
+Reconverts existing epub buffers when the file used as a user
+stylesheet is switched, or its contents modified."
+  (set-default option-name new-value)
+  (file-notify-rm-watch doc-view--epub-stylesheet-watcher)
+  (doc-view--epub-reconvert)
+  (setq doc-view--epub-stylesheet-watcher
+         (when new-value
+           (file-notify-add-watch new-value '(change) #'doc-view--epub-reconvert))))
+
+(defcustom doc-view-epub-user-stylesheet nil
+  "User stylesheet to use when converting EPUB documents to PDF."
+  :type '(choice (const nil)
+                 (file :must-match t))
+  :version "29.1"
+  :set #'doc-view-custom-set-epub-user-stylesheet)
+
+(defvar-local doc-view--current-cache-dir nil
+  "Only used internally.")
+
+(defun doc-view-custom-set-epub-font-size (option-name new-value)
+  (set-default option-name new-value)
+  (doc-view--epub-reconvert))
+
+;; FIXME: The doc-view-current-* definitions below are macros because they
+;; map to accessors which we want to use via `setf' as well!
+(defmacro doc-view-current-page (&optional win)
+  `(image-mode-window-get 'page ,win))
+(defmacro doc-view-current-info () '(image-mode-window-get 'info))
+(defmacro doc-view-current-overlay () '(image-mode-window-get 'overlay))
+(defmacro doc-view-current-image () '(image-mode-window-get 'image))
+(defmacro doc-view-current-slice () '(image-mode-window-get 'slice))
+
+(defvar-local doc-view--current-cache-dir nil
+  "Only used internally.")
+
+(defcustom doc-view-epub-font-size nil
+  "Font size in points for EPUB layout."
+  :type '(choice (const nil) integer)
+  :set #'doc-view-custom-set-epub-font-size
+  :version "29.1")
 
 (defcustom doc-view-scale-internally t
   "Whether we should try to rescale images ourselves.
@@ -234,7 +301,7 @@ scaling."
 Has only an effect if `doc-view-scale-internally' is non-nil and support for
 scaling is compiled into Emacs."
   :version "24.1"
-  :type 'number)
+  :type 'natnum)
 
 (defcustom doc-view-dvipdfm-program "dvipdfm"
   "Program to convert DVI files to PDF.
@@ -256,9 +323,7 @@ If this and `doc-view-dvipdfm-program' are set,
 `doc-view-dvipdf-program' will be preferred."
   :type 'file)
 
-(define-obsolete-variable-alias 'doc-view-unoconv-program
-                                'doc-view-odf->pdf-converter-program
-                                "24.4")
+(define-obsolete-variable-alias 'doc-view-unoconv-program 'doc-view-odf->pdf-converter-program "24.4")
 
 (defcustom doc-view-odf->pdf-converter-program
   (cond
@@ -313,7 +378,8 @@ After such a refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
 pages won't be displayed before conversion of the whole document
 has finished."
-  :type 'integer)
+  :type '(choice natnum
+                 (const :value nil :tag "No refreshes")))
 
 (defcustom doc-view-continuous nil
   "In Continuous mode reaching the page edge advances to next/previous page.
@@ -363,9 +429,6 @@ of the page moves to the previous page."
 (defvar-local doc-view--current-timer nil
   "Only used internally.")
 
-(defvar-local doc-view--current-cache-dir nil
-  "Only used internally.")
-
 (defvar-local doc-view--current-search-matches nil
   "Only used internally.")
 
@@ -379,10 +442,6 @@ The file name used for conversion.  Normally it's the same as
 files inside an archive it is a temporary copy of
 the (uncompressed, extracted) file residing in
 `doc-view-cache-directory'.")
-
-(defvar doc-view-doc-type nil
-  "The type of document in the current buffer.
-Can be `dvi', `pdf', `ps', `djvu' or `odf'.")
 
 (defvar doc-view-single-page-converter-function nil
   "Function to call to convert a single page of the document to a bitmap file.
@@ -464,17 +523,17 @@ Typically \"page-%s.png\".")
       ;; It's normal for this operation to result in a very large undo entry.
       (setq-local undo-outer-limit (* 2 (buffer-size))))
   (cl-labels ((revert ()
-                      (let ((revert-buffer-preserve-modes t))
-                        (apply orig-fun args)
-                        ;; Update the cached version of the pdf file,
-                        ;; too.  This is the one that's used when
-                        ;; rendering (bug#26996).
-                        (unless (equal buffer-file-name
-                                       doc-view--buffer-file-name)
-                          ;; FIXME: Lars says he needed to recreate
-                          ;; the dir, we should figure out why.
-                          (doc-view-make-safe-dir doc-view-cache-directory)
-                          (write-region nil nil doc-view--buffer-file-name)))))
+                (let ((revert-buffer-preserve-modes t))
+                  (apply orig-fun args)
+                  ;; Update the cached version of the pdf file,
+                  ;; too.  This is the one that's used when
+                  ;; rendering (bug#26996).
+                  (unless (equal buffer-file-name
+                                 doc-view--buffer-file-name)
+                    ;; FIXME: Lars says he needed to recreate
+                    ;; the dir, we should figure out why.
+                    (doc-view-make-safe-dir doc-view-cache-directory)
+                    (write-region nil nil doc-view--buffer-file-name)))))
     (if (and (eq 'pdf doc-view-doc-type)
              (executable-find "pdfinfo"))
         ;; We don't want to revert if the PDF file is corrupted which
@@ -577,15 +636,6 @@ Typically \"page-%s.png\".")
 
 ;;;; Navigation Commands
 
-;; FIXME: The doc-view-current-* definitions below are macros because they
-;; map to accessors which we want to use via `setf' as well!
-(defmacro doc-view-current-page (&optional win)
-  `(image-mode-window-get 'page ,win))
-(defmacro doc-view-current-info () '(image-mode-window-get 'info))
-(defmacro doc-view-current-overlay () '(image-mode-window-get 'overlay))
-(defmacro doc-view-current-image () '(image-mode-window-get 'image))
-(defmacro doc-view-current-slice () '(image-mode-window-get 'slice))
-
 (defun doc-view-last-page-number ()
   (length doc-view--current-files))
 
@@ -607,17 +657,16 @@ Typically \"page-%s.png\".")
 	   (propertize
 	    (format "Page %d of %d." page len) 'face 'bold)
 	   ;; Tell user if converting isn't finished yet
-	   (if doc-view--current-converter-processes
-	       " (still converting...)\n"
-	     "\n")
-	   ;; Display context infos if this page matches the last search
-	   (when (and doc-view--current-search-matches
-		      (assq page doc-view--current-search-matches))
-	     (concat (propertize "Search matches:\n" 'face 'bold)
+           (and doc-view--current-converter-processes
+                " (still converting...)")
+           ;; Display context infos if this page matches the last search
+           (when (and doc-view--current-search-matches
+                      (assq page doc-view--current-search-matches))
+             (concat "\n" (propertize "Search matches:" 'face 'bold)
 		     (let ((contexts ""))
 		       (dolist (m (cdr (assq page
 					     doc-view--current-search-matches)))
-			 (setq contexts (concat contexts "  - \"" m "\"\n")))
+			 (setq contexts (concat contexts "\n  - \"" m "\"")))
 		       contexts)))))
     ;; Update the buffer
     ;; We used to find the file name from doc-view--current-files but
@@ -738,7 +787,7 @@ at the top edge of the page moves to the previous page."
   (interactive)
   (while (consp doc-view--current-converter-processes)
     (ignore-errors ;; Some entries might not be processes, and maybe
-		   ;; some are dead already?
+                    ; some are dead already?
       (kill-process (pop doc-view--current-converter-processes))))
   (when doc-view--current-timer
     (cancel-timer doc-view--current-timer)
@@ -799,8 +848,8 @@ It's a subdirectory of `doc-view-cache-directory'."
 ;;;###autoload
 (defun doc-view-mode-p (type)
   "Return non-nil if document type TYPE is available for `doc-view'.
-Document types are symbols like `dvi', `ps', `pdf', or `odf' (any
-OpenDocument format)."
+Document types are symbols like `dvi', `ps', `pdf', `epub',
+`cbz', `fb2', `xps', `oxps', or`odf' (any OpenDocument format)."
   (and (display-graphic-p)
        (image-type-available-p 'png)
        (cond
@@ -811,16 +860,22 @@ OpenDocument format)."
 		  (and doc-view-dvipdfm-program
 		       (executable-find doc-view-dvipdfm-program)))))
 	((memq type '(postscript ps eps pdf))
-	 (or (and doc-view-ghostscript-program
+         (or (and doc-view-ghostscript-program
 	          (executable-find doc-view-ghostscript-program))
-             (and doc-view-pdfdraw-program
-                  (executable-find doc-view-pdfdraw-program))))
+             ;; for pdf also check for `doc-view-pdfdraw-program'
+             (when (eq type 'pdf)
+               (and doc-view-pdfdraw-program
+                    (executable-find doc-view-pdfdraw-program)))))
 	((eq type 'odf)
 	 (and doc-view-odf->pdf-converter-program
 	      (executable-find doc-view-odf->pdf-converter-program)
 	      (doc-view-mode-p 'pdf)))
 	((eq type 'djvu)
 	 (executable-find "ddjvu"))
+        ((memq type '(epub cbz fb2 xps oxps))
+         ;; first check if `doc-view-pdfdraw-program' is set to mutool
+         (and (string= doc-view-pdfdraw-program "mutool")
+              (executable-find "mutool")))
 	(t ;; unknown image type
 	 nil))))
 
@@ -1053,7 +1108,7 @@ Should be invoked when the cached images aren't up-to-date."
   ;; some file-name-handler-managed dir, for example).
   (let* ((default-directory (or (unhandled-file-name-directory
                                  default-directory)
-			      (expand-file-name "~/")))
+			        (expand-file-name "~/")))
          (proc (apply #'start-process name doc-view-conversion-buffer
                       program args)))
     (push proc doc-view--current-converter-processes)
@@ -1139,14 +1194,25 @@ The test is performed using `doc-view-pdfdraw-program'."
     (search-forward "error: cannot authenticate password" nil t)))
 
 (defun doc-view-pdf->png-converter-mupdf (pdf png page callback)
-  (let ((pdf-passwd (if (doc-view-pdf-password-protected-pdfdraw-p pdf)
-                        (read-passwd "Enter password for PDF file: "))))
+  (let* ((pdf-passwd (if (doc-view-pdf-password-protected-pdfdraw-p pdf)
+                         (read-passwd "Enter password for PDF file: ")))
+         (options `(,(concat "-o" png)
+                    ,(format "-r%d" (round doc-view-resolution))
+                    ,@(if pdf-passwd `("-p" ,pdf-passwd)))))
+    (when (eq doc-view-doc-type 'epub)
+      (when doc-view-epub-font-size
+        (setq options (append options
+                              (list (format "-S%s" doc-view-epub-font-size)))))
+      (when doc-view-epub-user-stylesheet
+        (setq options
+              (append options
+                      (list (format "-U%s"
+                                    (expand-file-name
+                                     doc-view-epub-user-stylesheet)))))))
     (doc-view-start-process
      "pdf->png" doc-view-pdfdraw-program
      `(,@(doc-view-pdfdraw-program-subcommand)
-       ,(concat "-o" png)
-       ,(format "-r%d" (round doc-view-resolution))
-       ,@(if pdf-passwd `("-p" ,pdf-passwd))
+       ,@options
        ,pdf
        ,@(if page `(,(format "%d" page))))
      callback)))
@@ -1189,7 +1255,8 @@ is named like ODF with the extension turned to pdf."
   "Convert PDF-PS to PNG asynchronously."
   (funcall
    (pcase doc-view-doc-type
-     ('pdf doc-view-pdf->png-converter-function)
+     ((or 'pdf 'odf 'epub 'cbz 'fb2 'xps 'oxps)
+      doc-view-pdf->png-converter-function)
      ('djvu #'doc-view-djvu->tiff-converter-ddjvu)
      (_ #'doc-view-ps->png-converter-ghostscript))
    pdf-ps png nil
@@ -1227,20 +1294,20 @@ Start by converting PAGES, and then the rest."
     (let ((rest (cdr pages)))
       (funcall doc-view-single-page-converter-function
 	       pdf (format png (car pages)) (car pages)
-       (lambda ()
-         (if rest
-             (doc-view-document->bitmap pdf png rest)
-           ;; Yippie, the important pages are done, update the display.
-           (clear-image-cache)
-           ;; For the windows that have a message (like "Welcome to
-           ;; DocView") display property, clearing the image cache is
-           ;; not sufficient.
-           (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
-             (with-selected-window win
-	       (when (stringp (overlay-get (doc-view-current-overlay) 'display))
-		 (doc-view-goto-page (doc-view-current-page)))))
-           ;; Convert the rest of the pages.
-           (doc-view-pdf/ps->png pdf png)))))))
+               (lambda ()
+                 (if rest
+                     (doc-view-document->bitmap pdf png rest)
+                   ;; Yippie, the important pages are done, update the display.
+                   (clear-image-cache)
+                   ;; For the windows that have a message (like "Welcome to
+                   ;; DocView") display property, clearing the image cache is
+                   ;; not sufficient.
+                   (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
+                     (with-selected-window win
+	               (when (stringp (overlay-get (doc-view-current-overlay) 'display))
+		         (doc-view-goto-page (doc-view-current-page)))))
+                   ;; Convert the rest of the pages.
+                   (doc-view-pdf/ps->png pdf png)))))))
 
 (defun doc-view-pdf->txt (pdf txt callback)
   "Convert PDF to TXT asynchronously and call CALLBACK when finished."
@@ -1337,7 +1404,9 @@ Those files are saved in the directory given by the function
 		    ;; Rename to doc.pdf
 		    (rename-file opdf pdf)
 		    (doc-view-pdf/ps->png pdf png-file)))))
-      ((or 'pdf 'djvu)
+      ;; The doc-view-mode-p check ensures that epub, cbz, fb2 and
+      ;; (o)xps are handled with mutool
+      ((or 'pdf 'djvu 'epub 'cbz 'fb2 'xps 'oxps)
        (let ((pages (doc-view-active-pages)))
          ;; Convert doc to bitmap images starting with the active pages.
          (doc-view-document->bitmap doc-view--buffer-file-name png-file pages)))
@@ -1432,7 +1501,7 @@ dragging it to its bottom-right corner.  See also
 (defun doc-view-guess-paper-size (iw ih)
   "Guess the paper size according to the aspect ratio."
   (cl-labels ((div (x y)
-		   (round (/ (* 100.0 x) y))))
+		(round (/ (* 100.0 x) y))))
     (let ((ar (div iw ih))
 	  (al (mapcar (lambda (l)
 			(list (div (nth 1 l) (nth 2 l)) (car l)))
@@ -1597,7 +1666,8 @@ For now these keys are useful:
 \\[image-kill-buffer] : Kill the conversion process and this buffer.
 \\[doc-view-kill-proc] : Kill the conversion process.\n")))))
 
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defun doc-view-show-tooltip ()
   (interactive)
@@ -1869,6 +1939,8 @@ If BACKWARD is non-nil, jump to the previous match."
                    ("dvi" dvi)
                    ;; PDF
                    ("pdf" pdf) ("epdf" pdf)
+                   ;; EPUB
+                   ("epub" epub)
                    ;; PostScript
                    ("ps" ps) ("eps" ps)
                    ;; DjVu
@@ -1880,7 +1952,13 @@ If BACKWARD is non-nil, jump to the previous match."
                    ;; Microsoft Office formats (also handled by the odf
                    ;; conversion chain).
                    ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
-                   ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf))
+                   ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf)
+                   ;; CBZ
+                   ("cbz" cbz)
+                   ;; FB2
+                   ("fb2" fb2)
+                   ;; (Open)XPS
+                   ("xps" xps) ("oxps" oxps))
 		 t))))
 	(content-types
 	 (save-excursion
@@ -1889,7 +1967,12 @@ If BACKWARD is non-nil, jump to the previous match."
 	    ((looking-at "%!") '(ps))
 	    ((looking-at "%PDF") '(pdf))
 	    ((looking-at "\367\002") '(dvi))
-	    ((looking-at "AT&TFORM") '(djvu))))))
+	    ((looking-at "AT&TFORM") '(djvu))
+            ;; The following pattern actually is for recognizing
+            ;; zip-archives, so that this same association is used for
+            ;; cbz files. This is fine, as cbz files should be handled
+            ;; like epub anyway.
+            ((looking-at "PK") '(epub odf))))))
     (setq-local
      doc-view-doc-type
      (car (or (nreverse (seq-intersection name-types content-types #'eq))
@@ -2201,6 +2284,8 @@ See the command `doc-view-mode' for more information on this mode."
 	      (doc-view-goto-page page))))
     (add-hook 'bookmark-after-jump-hook show-fn-sym)
     (bookmark-default-handler bmk)))
+
+(put 'doc-view-bookmark-jump 'bookmark-handler-type "DocView")
 
 ;; Obsolete.
 

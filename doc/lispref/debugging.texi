@@ -196,6 +196,17 @@ echo area.  For example, this can be useful when trying to find the
 cause of a particular message.
 @end defvar
 
+@defvar debug-allow-recursive-debug
+You can evaluate forms in the current stack frame in the
+@samp{*Backtrace*} buffer with the @key{e} command, and while
+edebugging you can use the @key{e} and @key{C-x C-e} commands to do
+something similar.  By default, the debugger is inhibited by these
+commands (because (re-)entering the debugger at this point will
+usually take you out of the debugging context you're in).  Set
+@code{debug-allow-recursive-debug} to a non-@code{nil} value to allow
+these commands to enter the debugger recursively.
+@end defvar
+
   To debug an error that happens during loading of the init
 file, use the option @samp{--debug-init}.  This binds
 @code{debug-on-error} to @code{t} while loading the init file, and
@@ -387,11 +398,9 @@ possibilities.)
 variable is temporarily set according to
 @code{eval-expression-debug-on-error}.  If the latter variable is
 non-@code{nil}, @code{debug-on-error} will temporarily be set to
-@code{t}.  This means that any further errors that occur while doing a
-debugging session will (by default) trigger another backtrace.  If
-this is not what you want, you can either set
-@code{eval-expression-debug-on-error} to @code{nil}, or set
-@code{debug-on-error} to @code{nil} in @code{debugger-mode-hook}.
+@code{t}.  However, further errors that occur while debugging won't
+(by default) trigger another debugger, because @code{inhibit-debugger}
+will also be bound to non-@code{nil}.
 
   The debugger itself must be run byte-compiled, since it makes
 assumptions about the state of the Lisp interpreter.  These
@@ -522,6 +531,7 @@ Flag the current frame like @kbd{b}.  Then continue execution like
 @kbd{c}, but temporarily disable break-on-entry for all functions that
 are set up to do so by @code{debug-on-entry}.
 
+@vindex debug-allow-recursive-debug
 @item e
 Read a Lisp expression in the minibuffer, evaluate it (with the
 relevant lexical environment, if applicable), and print the
@@ -530,7 +540,11 @@ variables, and the current buffer, as part of its operation; @kbd{e}
 temporarily restores their values from outside the debugger, so you can
 examine and change them.  This makes the debugger more transparent.  By
 contrast, @kbd{M-:} does nothing special in the debugger; it shows you
-the variable values within the debugger.
+the variable values within the debugger.  By default, this command
+suppresses the debugger during evaluation, so that an error in the
+evaluated expression won't add a new error on top of the existing one.
+Set the @code{debug-allow-recursive-debug} user option to a
+non-@code{nil} value to override this.
 
 @item R
 Like @kbd{e}, but also save the result of evaluation in the

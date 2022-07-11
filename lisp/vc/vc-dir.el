@@ -325,6 +325,7 @@ See `run-hooks'."
     (define-key map "U" #'vc-dir-unmark-all-files)
     (define-key map "\C-?" #'vc-dir-unmark-file-up)
     (define-key map "\M-\C-?" #'vc-dir-unmark-all-files)
+    (define-key map "%" #'vc-dir-mark-by-regexp)
     ;; Movement.
     (define-key map "n" #'vc-dir-next-line)
     (define-key map " " #'vc-dir-next-line)
@@ -750,6 +751,23 @@ share the same state."
 		(vc-dir-mark-file crt)))
 	    (setq crt (ewoc-next vc-ewoc crt))))))))
 
+(defun vc-dir-mark-by-regexp (regexp &optional unmark)
+  "Mark all files that match REGEXP.
+If UNMARK (interactively, the prefix), unmark instead."
+  (interactive "sMark files matching: \nP")
+  (ewoc-map
+   (lambda (filearg)
+     (when (and (not (vc-dir-fileinfo->directory filearg))
+                (eq (not unmark)
+                    (not (vc-dir-fileinfo->marked filearg)))
+                ;; We don't want to match on the part of the file
+                ;; that's above the current directory.
+                (string-match-p regexp (file-relative-name
+                                        (vc-dir-fileinfo->name filearg))))
+       (setf (vc-dir-fileinfo->marked filearg) (not unmark))
+       t))
+   vc-ewoc))
+
 (defun vc-dir-mark-files (mark-files)
   "Mark files specified by file names in the argument MARK-FILES.
 MARK-FILES should be a list of absolute filenames."
@@ -924,7 +942,7 @@ system."
   "Search through all marked files for a match for REGEXP.
 For marked directories, use the files displayed from those directories.
 Stops when a match is found.
-To continue searching for next match, use command \\[tags-loop-continue]."
+To continue searching for next match, use command \\[fileloop-continue]."
   (interactive "sSearch marked files (regexp): ")
   (tags-search regexp
                (mapcar #'car (vc-dir-marked-only-files-and-states))))
@@ -933,8 +951,14 @@ To continue searching for next match, use command \\[tags-loop-continue]."
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
 If a directory is marked, then use the files displayed for that directory.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time.
+
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue]."
+with the command \\[fileloop-continue]."
   ;; FIXME: this is almost a copy of `dired-do-query-replace-regexp'.  This
   ;; should probably be made generic and used in both places instead of
   ;; duplicating it here.
@@ -1538,9 +1562,8 @@ These are the commands available for use in the file status buffer:
 This implements the `bookmark-make-record-function' type for
 `vc-dir' buffers."
   (let* ((bookmark-name
-          (concat "(" (symbol-name vc-dir-backend) ") "
-                  (file-name-nondirectory
-                   (directory-file-name default-directory))))
+          (file-name-nondirectory
+           (directory-file-name default-directory)))
          (defaults (list bookmark-name default-directory)))
     `(,bookmark-name
       ,@(bookmark-make-record-default 'no-file)
@@ -1559,6 +1582,8 @@ type returned by `vc-dir-bookmark-make-record'."
                 (current-buffer))))
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
+
+(put 'vc-dir-bookmark-jump 'bookmark-handler-type "VC")
 
 
 (provide 'vc-dir)

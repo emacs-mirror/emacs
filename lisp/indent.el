@@ -77,10 +77,11 @@ This variable has no effect unless `tab-always-indent' is `complete'."
   :group 'indent
   :type '(choice
           (const :tag "Always complete" nil)
-          (const :tag "Unless at the end of a line" 'eol)
-          (const :tag "Unless looking at a word" 'word)
-          (const :tag "Unless at a word or parenthesis" 'word-or-paren)
-          (const :tag "Unless at a word, parenthesis, or punctuation." 'word-or-paren-or-punct))
+          (const :tag "Only complete at the end of a line" eol)
+          (const :tag "Unless looking at a word" word)
+          (const :tag "Unless at a word or parenthesis" word-or-paren)
+          (const :tag "Unless at a word, parenthesis, or punctuation."
+                 word-or-paren-or-punct))
   :version "28.1")
 
 (defvar indent-line-ignored-functions '(indent-relative
@@ -170,7 +171,7 @@ prefix argument is ignored."
     (let ((old-tick (buffer-chars-modified-tick))
           (old-point (point))
 	  (old-indent (current-indentation))
-          (syn `(,(syntax-after (point)))))
+          (syn (syntax-after (point))))
 
       ;; Indent the line.
       (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
@@ -182,21 +183,21 @@ prefix argument is ignored."
       (cond
        ;; If the text was already indented right, try completion.
        ((and (eq tab-always-indent 'complete)
-             (eq old-point (point))
-             (eq old-tick (buffer-chars-modified-tick))
+             (eql old-point (point))
+             (eql old-tick (buffer-chars-modified-tick))
              (or (null tab-first-completion)
                  (eq last-command this-command)
-                 (and (equal tab-first-completion 'eol)
+                 (and (eq tab-first-completion 'eol)
                       (eolp))
-                 (and (member tab-first-completion
-                              '(word word-or-paren word-or-paren-or-punct))
-                      (not (member 2 syn)))
-                 (and (member tab-first-completion
-                              '(word-or-paren word-or-paren-or-punct))
-                      (not (or (member 4 syn)
-                               (member 5 syn))))
-                 (and (equal tab-first-completion 'word-or-paren-or-punct)
-                      (not (member 1 syn)))))
+                 (and (memq tab-first-completion
+                            '(word word-or-paren word-or-paren-or-punct))
+                      (not (eql 2 syn)))
+                 (and (memq tab-first-completion
+                            '(word-or-paren word-or-paren-or-punct))
+                      (not (or (eql 4 syn)
+                               (eql 5 syn))))
+                 (and (eq tab-first-completion 'word-or-paren-or-punct)
+                      (not (eql 1 syn)))))
         (completion-at-point))
 
        ;; If a prefix argument was given, rigidly indent the following
@@ -239,21 +240,23 @@ Blank lines are ignored."
                             (current-indentation))))
         indent))))
 
-(defvar indent-rigidly-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [left]  'indent-rigidly-left)
-    (define-key map [right] 'indent-rigidly-right)
-    (define-key map [S-left]  'indent-rigidly-left-to-tab-stop)
-    (define-key map [S-right] 'indent-rigidly-right-to-tab-stop)
-    map)
-  "Transient keymap for adjusting indentation interactively.
-It is activated by calling `indent-rigidly' interactively.")
+(defvar-keymap indent-rigidly-map
+  :doc   "Transient keymap for adjusting indentation interactively.
+It is activated by calling `indent-rigidly' interactively."
+  "TAB"       #'indent-rigidly-right
+  "<left>"    #'indent-rigidly-left
+  "<right>"   #'indent-rigidly-right
+  "S-<left>"  #'indent-rigidly-left-to-tab-stop
+  "S-<right>" #'indent-rigidly-right-to-tab-stop)
+(put 'indent-rigidly-right :advertised-binding (kbd "<right>"))
 
 (defun indent-rigidly (start end arg &optional interactive)
   "Indent all lines starting in the region.
 If called interactively with no prefix argument, activate a
 transient mode in which the indentation can be adjusted interactively
 by typing \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop].
+In addition, \\`TAB' is also bound (and calls `indent-rigidly-right').
+
 Typing any other key exits this mode, and this key is then
 acted upon as normally.  If `transient-mark-mode' is enabled,
 exiting also deactivates the mark.
@@ -267,11 +270,8 @@ Negative values of ARG indent backward, so you can remove all
 indentation by specifying a large negative ARG."
   (interactive "r\nP\np")
   (if (and (not arg) interactive)
-      (progn
-        (message
-	 (substitute-command-keys
-	  "Indent region with \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop]."))
-        (set-transient-map indent-rigidly-map t #'deactivate-mark))
+      (set-transient-map indent-rigidly-map t #'deactivate-mark
+                         "Indent region with %k")
     (save-excursion
       (goto-char end)
       (setq end (point-marker))

@@ -1479,6 +1479,14 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
 
+(defvar-local diff-mode-read-only nil
+  "Non-nil when read-only diff buffer uses short keys.")
+
+;; It should be lower than `outline-minor-mode' and `view-mode'.
+(or (assq 'diff-mode-read-only minor-mode-map-alist)
+    (nconc minor-mode-map-alist
+           (list (cons 'diff-mode-read-only diff-mode-shared-map))))
+
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
@@ -1516,23 +1524,23 @@ a diff with \\[diff-reverse-direction].
 
   (diff-setup-whitespace)
 
-  (if diff-default-read-only
-      (setq buffer-read-only t))
+  ;; read-only setup
+  (when diff-default-read-only
+    (setq buffer-read-only t))
+  (when buffer-read-only
+    (setq diff-mode-read-only t))
+  (add-hook 'read-only-mode-hook
+            (lambda ()
+              (setq diff-mode-read-only buffer-read-only))
+            nil t)
+
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-functions #'diff-write-contents-hooks nil t)
     (make-local-variable 'diff-unhandled-changes)
     (add-hook 'after-change-functions #'diff-after-change-function nil t)
     (add-hook 'post-command-hook #'diff-post-command-hook nil t))
-  ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
-    (add-to-list 'minor-mode-overriding-map-alist ro-bind)
-    ;; Turn off this little trick in case the buffer is put in view-mode.
-    (add-hook 'view-mode-hook
-	      (lambda ()
-		(setq minor-mode-overriding-map-alist
-		      (delq ro-bind minor-mode-overriding-map-alist)))
-	      nil t))
+
   ;; add-log support
   (setq-local add-log-current-defun-function #'diff-current-defun)
   (setq-local add-log-buffer-file-name-function
@@ -1588,8 +1596,8 @@ modified lines of the diff."
                   nil)))
   (when (eq diff-buffer-type 'git)
     (setq diff-outline-regexp
-          (concat "\\(^diff --git.*\n\\|" diff-hunk-header-re "\\)"))
-    (setq-local outline-level #'diff--outline-level))
+          (concat "\\(^diff --git.*\n\\|" diff-hunk-header-re "\\)")))
+  (setq-local outline-level #'diff--outline-level)
   (setq-local outline-regexp diff-outline-regexp))
 
 (defun diff-delete-if-empty ()
@@ -2066,7 +2074,7 @@ For use in `add-log-current-defun-function'."
       (re-search-forward "^[^ ]" nil t))
     (pcase-let ((`(,buf ,_line-offset ,pos ,src ,dst ,switched)
                  (ignore-errors         ;Signals errors in place of prompting.
-                   ;; Use `noprompt' since this is used in which-func-mode
+                   ;; Use `noprompt' since this is used in which-function-mode
                    ;; and such.
                    (diff-find-source-location nil nil 'noprompt))))
       (when buf
@@ -2264,21 +2272,24 @@ Return new point, if it was moved."
   "Iterate over all hunks between point and MAX.
 Call FUN with two args (BEG and END) for each hunk."
   (save-excursion
-    (let* ((beg (or (ignore-errors (diff-beginning-of-hunk))
-                    (ignore-errors (diff-hunk-next) (point))
-                    max)))
-      (while (< beg max)
-        (goto-char beg)
-        (cl-assert (looking-at diff-hunk-header-re))
-        (let ((end
-               (save-excursion (diff-end-of-hunk) (point))))
-          (cl-assert (< beg end))
-          (funcall fun beg end)
-          (goto-char end)
-          (setq beg (if (looking-at diff-hunk-header-re)
-                        end
-                      (or (ignore-errors (diff-hunk-next) (point))
-                          max))))))))
+    (catch 'malformed
+      (let* ((beg (or (ignore-errors (diff-beginning-of-hunk))
+                      (ignore-errors (diff-hunk-next) (point))
+                      max)))
+        (while (< beg max)
+          (goto-char beg)
+          (unless (looking-at diff-hunk-header-re)
+            (throw 'malformed nil))
+          (let ((end
+                 (save-excursion (diff-end-of-hunk) (point))))
+            (unless (< beg end)
+              (throw 'malformed nil))
+            (funcall fun beg end)
+            (goto-char end)
+            (setq beg (if (looking-at diff-hunk-header-re)
+                          end
+                        (or (ignore-errors (diff-hunk-next) (point))
+                            max)))))))))
 
 (defun diff--font-lock-refined (max)
   "Apply hunk refinement from font-lock."
@@ -2589,40 +2600,103 @@ fixed, visit it in a buffer."
 
 (defun diff--font-lock-prettify (limit)
   (when diff-font-lock-prettify
-    (save-excursion
-      ;; FIXME: Include the first space for context-style hunks!
-      (while (re-search-forward "^[-+! ]" limit t)
-        (let ((spec (alist-get (char-before)
-                               '((?+ . (left-fringe diff-fringe-add diff-indicator-added))
-                                 (?- . (left-fringe diff-fringe-del diff-indicator-removed))
-                                 (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
-                                 (?\s . (left-fringe diff-fringe-nul fringe))))))
-          (put-text-property (match-beginning 0) (match-end 0) 'display spec))))
+    (when (> (frame-parameter nil 'left-fringe) 0)
+      (save-excursion
+        ;; FIXME: Include the first space for context-style hunks!
+        (while (re-search-forward "^[-+! ]" limit t)
+          (unless (eq (get-text-property (match-beginning 0) 'face)
+                      'diff-header)
+            (put-text-property
+             (match-beginning 0) (match-end 0)
+             'display
+             (alist-get
+              (char-before)
+              '((?+ . (left-fringe diff-fringe-add diff-indicator-added))
+                (?- . (left-fringe diff-fringe-del diff-indicator-removed))
+                (?! . (left-fringe diff-fringe-rep diff-indicator-changed))
+                (?\s . (left-fringe diff-fringe-nul fringe)))))))))
     ;; Mimicks the output of Magit's diff.
     ;; FIXME: This has only been tested with Git's diff output.
+    ;; FIXME: Add support for Git's "rename from/to"?
     (while (re-search-forward "^diff " limit t)
-      ;; FIXME: Switching between context<->unified leads to messed up
-      ;; file headers by cutting the `display' property in chunks!
+      ;; We split the regexp match into a search plus a looking-at because
+      ;; we want to use LIMIT for the search but we still want to match
+      ;; all the header's lines even if LIMIT falls in the middle of it.
       (when (save-excursion
               (forward-line 0)
               (looking-at
                (eval-when-compile
-                 (concat "diff.*\n"
-                         "\\(?:\\(?:new file\\|deleted\\).*\n\\)?"
-                         "\\(?:index.*\n\\)?"
-                         "--- \\(?:" null-device "\\|a/\\(.*\\)\\)\n"
-                         "\\+\\+\\+ \\(?:" null-device "\\|b/\\(.*\\)\\)\n"))))
-        (put-text-property (match-beginning 0) (1- (match-end 0))
-                           'display
-                           (propertize
-                            (cond
-                             ((null (match-string 1))
-                              (concat "new file  " (match-string 2)))
-                             ((null (match-string 2))
-                              (concat "deleted  " (match-string 1)))
-                             (t
-                              (concat "modified  " (match-string 1))))
-                            'face '(diff-file-header diff-header))))))
+                 (let* ((index "\\(?:index.*\n\\)?")
+                        (file4 (concat
+                                "\\(?:" null-device "\\|[ab]/\\(?4:.*\\)\\)"))
+                        (file5 (concat
+                                "\\(?:" null-device "\\|[ab]/\\(?5:.*\\)\\)"))
+                        (header (concat "--- " file4 "\n"
+                                        "\\+\\+\\+ " file5 "\n"))
+                        (binary (concat
+                                 "Binary files " file4
+                                 " and " file5 " \\(?7:differ\\)\n"))
+                        (horb (concat "\\(?:" header "\\|" binary "\\)?")))
+                   (concat "diff.*?\\(?: a/\\(.*?\\) b/\\(.*\\)\\)?\n"
+                           "\\(?:"
+                           ;; For new/deleted files, there might be no
+                           ;; header (and no hunk) if the file is/was empty.
+                           "\\(?3:new\\(?6:\\)\\|deleted\\) file mode \\(?10:[0-7]\\{6\\}\\)\n"
+                           index horb
+                           ;; Normal case. There might be no header
+                           ;; (and no hunk) if only the file mode
+                           ;; changed.
+                           "\\|"
+                           "\\(?:old mode \\(?8:[0-7]\\{6\\}\\)\n\\)?"
+                           "\\(?:new mode \\(?9:[0-7]\\{6\\}\\)\n\\)?"
+                           index horb "\\)")))))
+        ;; The file names can be extracted either from the `diff' line
+        ;; or from the two header lines.  Prefer the header line info if
+        ;; available since the `diff' line is ambiguous in case the
+        ;; file names include " b/" or " a/".
+        ;; FIXME: This prettification throws away all the information
+        ;; about the index hashes.
+        (let ((oldfile (or (match-string 4) (match-string 1)))
+              (newfile (or (match-string 5) (match-string 2)))
+              (kind (if (match-beginning 7) " BINARY"
+                      (unless (or (match-beginning 4)
+                                  (match-beginning 5)
+                                  (not (match-beginning 3)))
+                        " empty")))
+              (filemode
+               (cond
+                ((match-beginning 10)
+                 (concat " file with mode " (match-string 10) "  "))
+                ((and (match-beginning 8) (match-beginning 9))
+                 (concat " file (mode changed from "
+                         (match-string 8) " to " (match-string 9) ")  "))
+                (t " file  "))))
+          (add-text-properties
+           (match-beginning 0) (1- (match-end 0))
+           (list 'display
+                 (propertize
+                  (cond
+                   ((match-beginning 3)
+                    (concat (capitalize (match-string 3)) kind filemode
+                            (if (match-beginning 6) newfile oldfile)))
+                   ((and (null (match-string 4)) (match-string 5))
+                    (concat "New " kind filemode newfile))
+                   ((null (match-string 2))
+                    ;; We used to use
+                    ;;     (concat "Deleted" kind filemode oldfile)
+                    ;; here but that misfires for `diff-buffers'
+                    ;; (see 24 Jun 2022 message in bug#54034).
+                    ;; AFAIK if (match-string 2) is nil then so is
+                    ;; (match-string 1), so "Deleted" doesn't sound right,
+                    ;; so better just let the header in plain sight for now.
+                    ;; FIXME: `diff-buffers' should maybe try to better
+                    ;; mimic Git's format with "a/" and "b/" so prettification
+                    ;; can "just work!"
+                    nil)
+                   (t
+                    (concat "Modified" kind filemode oldfile)))
+                  'face '(diff-file-header diff-header))
+                 'font-lock-multiline t))))))
   nil)
 
 ;;; Syntax highlighting from font-lock
@@ -2667,7 +2741,8 @@ When OLD is non-nil, highlight the hunk from the old source."
          ;; Trim a trailing newline to find hunk in diff-syntax-fontify-props
          ;; in diffs that have no newline at end of diff file.
          (text (string-trim-right
-                (or (with-demoted-errors (diff-hunk-text hunk (not old) nil))
+                (or (with-demoted-errors "Error getting hunk text: %S"
+                      (diff-hunk-text hunk (not old) nil))
                     "")))
 	 (line (if (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?")
 		   (if old (match-string 1)

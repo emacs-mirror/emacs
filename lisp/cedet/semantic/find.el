@@ -591,7 +591,7 @@ in the new list.
 If optional argument SEARCH-PARTS is non-nil, all sub-parts of tags
 are searched.  The overloadable function `semantic-tag-components' is
 used for the searching child lists.  If SEARCH-PARTS is the symbol
-'positiononly, then only children that have positional information are
+`positiononly', then only children that have positional information are
 searched.
 
 If SEARCH-INCLUDES has not been implemented.

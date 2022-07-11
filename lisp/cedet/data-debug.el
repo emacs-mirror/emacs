@@ -854,7 +854,6 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
     table)
   "Syntax table used in data-debug macro buffers.")
 
-(define-obsolete-variable-alias 'data-debug-map 'data-debug-mode-map "24.1")
 (defvar data-debug-mode-map
   (let ((km (make-sparse-keymap)))
     (suppress-keymap km)
@@ -1028,11 +1027,9 @@ Do nothing if already contracted."
 (defun data-debug-edebug-expr (expr)
   "Dump out the contents of some expression EXPR in edebug with ddebug."
   (interactive
-   (list (let ((minibuffer-completing-symbol t))
-	   (read-from-minibuffer "Eval: "
-				 nil read-expression-map t
-				 'read-expression-history))
-	 ))
+   (list (read-from-minibuffer "Eval: "
+                               nil read-expression-map t
+                               'read-expression-history)))
   (let ((v (eval expr t)))
     (if (not v)
 	(message "Expression %s is nil." expr)
@@ -1043,10 +1040,9 @@ Do nothing if already contracted."
 If the result is something simple, show it in the echo area.
 If the result is a list or vector, then use the data debugger to display it."
   (interactive
-   (list (let ((minibuffer-completing-symbol t))
-	   (read-from-minibuffer "Eval: "
-				 nil read-expression-map t
-				 'read-expression-history))))
+   (list (read-from-minibuffer "Eval: "
+                               nil read-expression-map t
+                               'read-expression-history)))
 
   (let (result)
     (if (null eval-expression-debug-on-error)

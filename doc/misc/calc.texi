@@ -29877,6 +29877,12 @@ with no argument copies only the number itself into the kill ring, whereas
 @kbd{C-k} with a prefix argument of 1 copies the number with its trailing
 newline.
 
+You can customize @code{calc-kill-line-numbering} to nil to exclude
+line numbering from kills and copies made by @code{calc-kill} and
+@code{calc-copy-as-kill}.  This option does not affect calc kill and
+copy commands which operate on the region, as that would not make
+sense.
+
 @node Yanking Into Stack
 @section Yanking into the Stack
 

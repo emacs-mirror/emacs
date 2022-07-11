@@ -36,7 +36,7 @@
 (nnoo-declare nnregistry)
 
 (deffoo nnregistry-server-opened (_server)
-  gnus-registry-enabled)
+  gnus-registry-db)
 
 (deffoo nnregistry-close-server (_server &optional _defs)
   t)
@@ -45,7 +45,7 @@
   nil)
 
 (deffoo nnregistry-open-server (_server &optional _defs)
-  gnus-registry-enabled)
+  gnus-registry-db)
 
 (defvar nnregistry-within-nnregistry nil)
 

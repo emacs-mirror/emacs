@@ -52,6 +52,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef HAVE_XINPUT2
+#include <math.h>
 #include <X11/extensions/XInput2.h>
 #endif
 
@@ -183,8 +184,8 @@ x_menu_wait_for_event (void *data)
      instead of the small ifdefs below.  */
 
   while (
-#ifdef USE_X_TOOLKIT
-         ! XtAppPending (Xt_app_con)
+#if defined USE_X_TOOLKIT
+         ! (data ? XPending (data) : XtAppPending (Xt_app_con))
 #elif defined USE_GTK
          ! gtk_events_pending ()
 #else
@@ -196,6 +197,10 @@ x_menu_wait_for_event (void *data)
       fd_set read_fds;
       struct x_display_info *dpyinfo;
       int n = 0;
+
+      /* ISTM that if timer_check is okay, this should be too, since
+	 both can run random Lisp.  */
+      x_handle_pending_selection_requests ();
 
       FD_ZERO (&read_fds);
       for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
@@ -221,6 +226,62 @@ x_menu_wait_for_event (void *data)
 #endif
     }
 }
+
+#if !defined USE_GTK && !defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+static void
+x_menu_translate_generic_event (XEvent *event)
+{
+  struct x_display_info *dpyinfo;
+  XEvent copy;
+  XIDeviceEvent *xev;
+
+  dpyinfo = x_display_info_for_display (event->xgeneric.display);
+
+  if (event->xgeneric.extension == dpyinfo->xi2_opcode)
+    {
+      eassert (!event->xcookie.data);
+
+      if (XGetEventData (dpyinfo->display, &event->xcookie))
+	{
+	  switch (event->xcookie.evtype)
+	    {
+	    case XI_ButtonPress:
+	    case XI_ButtonRelease:
+	      xev = (XIDeviceEvent *) event->xcookie.data;
+	      copy.xbutton.type = (event->xcookie.evtype == XI_ButtonPress
+				   ? ButtonPress : ButtonRelease);
+	      copy.xbutton.serial = xev->serial;
+	      copy.xbutton.send_event = xev->send_event;
+	      copy.xbutton.display = dpyinfo->display;
+	      copy.xbutton.window = xev->event;
+	      copy.xbutton.root = xev->root;
+	      copy.xbutton.subwindow = xev->child;
+	      copy.xbutton.time = xev->time;
+	      copy.xbutton.x = lrint (xev->event_x);
+	      copy.xbutton.y = lrint (xev->event_y);
+	      copy.xbutton.x_root = lrint (xev->root_x);
+	      copy.xbutton.y_root = lrint (xev->root_y);
+	      copy.xbutton.state = xi_convert_event_state (xev);
+	      copy.xbutton.button = xev->detail;
+	      copy.xbutton.same_screen = True;
+
+	      XPutBackEvent (dpyinfo->display, &copy);
+
+	      break;
+	    }
+	  XFreeEventData (dpyinfo->display, &event->xcookie);
+	}
+    }
+}
+#endif
+
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+static void
+x_menu_expose_event (XEvent *event)
+{
+  x_dispatch_event (event, event->xexpose.display);
+}
+#endif
 #endif /* ! MSDOS */
 
 
@@ -240,18 +301,25 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		     LWLIB_ID id, bool do_timers)
 {
   XEvent event;
+  XEvent copy;
+#ifdef HAVE_XINPUT2
+  bool cookie_claimed_p = false;
+  XIDeviceEvent *xev;
+  struct xi_device_t *device;
+#endif
 
   while (popup_activated_flag)
     {
       if (initial_event)
         {
-          event = *initial_event;
+          copy = event = *initial_event;
           initial_event = 0;
         }
       else
         {
           if (do_timers) x_menu_wait_for_event (0);
           XtAppNextEvent (Xt_app_con, &event);
+	  copy = event;
         }
 
       /* Make sure we don't consider buttons grabbed after menu goes.
@@ -271,6 +339,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
               so Motif thinks this is the case.  */
           event.xbutton.state = 0;
 #endif
+	  copy = event;
         }
       /* Pop down on C-g and Escape.  */
       else if (event.type == KeyPress
@@ -281,9 +350,100 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
           if ((keysym == XK_g && (event.xkey.state & ControlMask) != 0)
               || keysym == XK_Escape) /* Any escape, ignore modifiers.  */
             popup_activated_flag = 0;
-        }
 
-      x_dispatch_event (&event, event.xany.display);
+	  copy = event;
+        }
+#ifdef HAVE_XINPUT2
+      else if (event.type == GenericEvent
+	       && dpyinfo->supports_xi2
+	       && event.xgeneric.display == dpyinfo->display
+	       && event.xgeneric.extension == dpyinfo->xi2_opcode)
+	{
+	  if (!event.xcookie.data
+	      && XGetEventData (dpyinfo->display, &event.xcookie))
+	    cookie_claimed_p = true;
+
+	  if (event.xcookie.data)
+	    {
+	      switch (event.xgeneric.evtype)
+		{
+		case XI_ButtonRelease:
+		  {
+		    xev = (XIDeviceEvent *) event.xcookie.data;
+		    device = xi_device_from_id (dpyinfo, xev->deviceid);
+
+		    dpyinfo->grabbed &= ~(1 << xev->detail);
+		    device->grab &= ~(1 << xev->detail);
+
+		    copy.xbutton.type = ButtonRelease;
+		    copy.xbutton.serial = xev->serial;
+		    copy.xbutton.send_event = xev->send_event;
+		    copy.xbutton.display = dpyinfo->display;
+		    copy.xbutton.window = xev->event;
+		    copy.xbutton.root = xev->root;
+		    copy.xbutton.subwindow = xev->child;
+		    copy.xbutton.time = xev->time;
+		    copy.xbutton.x = lrint (xev->event_x);
+		    copy.xbutton.y = lrint (xev->event_y);
+		    copy.xbutton.x_root = lrint (xev->root_x);
+		    copy.xbutton.y_root = lrint (xev->root_y);
+		    copy.xbutton.state = xi_convert_event_state (xev);
+		    copy.xbutton.button = xev->detail;
+		    copy.xbutton.same_screen = True;
+
+#ifdef USE_MOTIF /* Pretending that the event came from a
+                    Btn1Down seems the only way to convince Motif to
+                    activate its callbacks; setting the XmNmenuPost
+                    isn't working. --marcus@sysc.pdx.edu.  */
+		    copy.xbutton.button = 1;
+		    /*  Motif only pops down menus when no Ctrl, Alt or Mod
+			key is pressed and the button is released.  So reset key state
+			so Motif thinks this is the case.  */
+		    copy.xbutton.state = 0;
+#endif
+
+		    break;
+		  }
+		case XI_KeyPress:
+		  {
+		    KeySym keysym;
+
+		    xev = (XIDeviceEvent *) event.xcookie.data;
+
+		    copy.xkey.type = KeyPress;
+		    copy.xkey.serial = xev->serial;
+		    copy.xkey.send_event = xev->send_event;
+		    copy.xkey.display = dpyinfo->display;
+		    copy.xkey.window = xev->event;
+		    copy.xkey.root = xev->root;
+		    copy.xkey.subwindow = xev->child;
+		    copy.xkey.time = xev->time;
+		    copy.xkey.x = lrint (xev->event_x);
+		    copy.xkey.y = lrint (xev->event_y);
+		    copy.xkey.x_root = lrint (xev->root_x);
+		    copy.xkey.y_root = lrint (xev->root_y);
+		    copy.xkey.state = xi_convert_event_state (xev);
+		    copy.xkey.keycode = xev->detail;
+		    copy.xkey.same_screen = True;
+
+		    keysym = XLookupKeysym (&copy.xkey, 0);
+
+		    if ((keysym == XK_g
+			 && (copy.xkey.state & ControlMask) != 0)
+			|| keysym == XK_Escape) /* Any escape, ignore modifiers.  */
+		      popup_activated_flag = 0;
+
+		    break;
+		  }
+		}
+	    }
+	}
+
+      if (cookie_claimed_p)
+	XFreeEventData (dpyinfo->display, &event.xcookie);
+#endif
+
+      x_dispatch_event (&copy, copy.xany.display);
     }
 }
 
@@ -293,6 +453,9 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
 {
   XEvent ev;
   struct frame *f = decode_window_system_frame (frame);
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+#endif
   Widget menubar;
   block_input ();
 
@@ -305,12 +468,44 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
       Window child;
       bool error_p = false;
 
+#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
+      /* Clear the XI2 grab so Motif or lwlib can set a core grab.
+	 Otherwise some versions of Motif will emit a warning and hang,
+	 and lwlib will fail to destroy the menu window.  */
+
+      if (dpyinfo->supports_xi2
+	  && xi_frame_selected_for (f, XI_ButtonPress))
+	{
+	  for (int i = 0; i < dpyinfo->num_devices; ++i)
+	    {
+	      /* The keyboard grab matters too, in this specific
+		 case.  */
+#ifndef USE_LUCID
+	      if (dpyinfo->devices[i].grab)
+#endif
+		{
+		  XIUngrabDevice (dpyinfo->display,
+				  dpyinfo->devices[i].device_id,
+				  CurrentTime);
+		  dpyinfo->devices[i].grab = 0;
+		}
+	    }
+	}
+#endif
+
       x_catch_errors (FRAME_X_DISPLAY (f));
       memset (&ev, 0, sizeof ev);
       ev.xbutton.display = FRAME_X_DISPLAY (f);
       ev.xbutton.window = XtWindow (menubar);
       ev.xbutton.root = FRAME_DISPLAY_INFO (f)->root_window;
+#ifndef HAVE_XINPUT2
       ev.xbutton.time = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
+#else
+      ev.xbutton.time = ((dpyinfo->supports_xi2
+			  && xi_frame_selected_for (f, XI_KeyPress))
+			 ? dpyinfo->last_user_time
+			 : XtLastTimestampProcessed (dpyinfo->display));
+#endif
       ev.xbutton.button = Button1;
       ev.xbutton.x = ev.xbutton.y = FRAME_MENUBAR_HEIGHT (f) / 2;
       ev.xbutton.same_screen = True;
@@ -454,14 +649,22 @@ x_activate_menubar (struct frame *f)
      Otherwise some versions of Motif will emit a warning and hang,
      and lwlib will fail to destroy the menu window.  */
 
-  if (dpyinfo->num_devices)
+  if (dpyinfo->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
-	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			CurrentTime);
+	{
+	  if (dpyinfo->devices[i].grab)
+	    XIUngrabDevice (dpyinfo->display,
+			    dpyinfo->devices[i].device_id,
+			    CurrentTime);
+	}
     }
 #endif
-  XtDispatchEvent (f->output_data.x->saved_menu_event);
+  /* The cascade button might have been deleted, so don't activate the
+     popup if it no widget was found to dispatch to.  */
+  popup_activated_flag
+    = XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
   unblock_input ();
 
@@ -742,7 +945,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= alloca (previous_menu_items_used * sizeof *previous_items);
@@ -1282,7 +1485,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   GtkWidget *menu;
   GtkMenuPositionFunc pos_func = 0;  /* Pop up at pointer.  */
   struct next_popup_x_y popup_x_y;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
   bool use_pos_func = ! for_click;
 
 #ifdef HAVE_GTK3
@@ -1342,6 +1545,26 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
       if (i == 5) i = 0;
     }
 
+#if !defined HAVE_GTK3 && defined HAVE_XINPUT2
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
+    {
+      for (int i = 0; i < FRAME_DISPLAY_INFO (f)->num_devices; ++i)
+	{
+	  if (FRAME_DISPLAY_INFO (f)->devices[i].grab)
+	    {
+	      FRAME_DISPLAY_INFO (f)->devices[i].grab = 0;
+
+	      XIUngrabDevice (FRAME_X_DISPLAY (f),
+			      FRAME_DISPLAY_INFO (f)->devices[i].device_id,
+			      CurrentTime);
+	    }
+	}
+    }
+#endif
+
+  DEFER_SELECTIONS;
+
   /* Display the menu.  */
   gtk_widget_show_all (menu);
 
@@ -1384,6 +1607,84 @@ popup_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
   menu_item_selection = client_data;
 }
 
+
+#ifdef HAVE_XINPUT2
+static void
+prepare_for_entry_into_toolkit_menu (struct frame *f)
+{
+  XIEventMask mask;
+  ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+  unsigned char *m;
+  Lisp_Object tail, frame;
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  if (!dpyinfo->supports_xi2)
+    return;
+
+  mask.mask = m = alloca (l);
+  memset (m, 0, l);
+  mask.mask_len = l;
+
+  mask.deviceid = XIAllMasterDevices;
+
+  XISetMask (m, XI_Motion);
+  XISetMask (m, XI_Enter);
+  XISetMask (m, XI_Leave);
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+
+      if (FRAME_X_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && !FRAME_TOOLTIP_P (f))
+	XISelectEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			&mask, 1);
+    }
+}
+
+static void
+leave_toolkit_menu (void *data)
+{
+  XIEventMask mask;
+  ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
+  unsigned char *m;
+  Lisp_Object tail, frame;
+  struct x_display_info *dpyinfo;
+  struct frame *f;
+
+  dpyinfo = FRAME_DISPLAY_INFO ((struct frame *) data);
+
+  if (!dpyinfo->supports_xi2)
+    return;
+
+  mask.mask = m = alloca (l);
+  memset (m, 0, l);
+  mask.mask_len = l;
+
+  mask.deviceid = XIAllMasterDevices;
+
+  XISetMask (m, XI_ButtonPress);
+  XISetMask (m, XI_ButtonRelease);
+  XISetMask (m, XI_Motion);
+  XISetMask (m, XI_Enter);
+  XISetMask (m, XI_Leave);
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+
+      if (FRAME_X_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && !FRAME_TOOLTIP_P (f))
+	XISelectEvents (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			&mask, 1);
+    }
+}
+#endif
+
 /* ID is the LWLIB ID of the dialog box.  */
 
 static void
@@ -1394,6 +1695,23 @@ pop_down_menu (int id)
   unblock_input ();
   popup_activated_flag = 0;
 }
+
+#if defined HAVE_XINPUT2 && defined USE_MOTIF
+static Bool
+server_timestamp_predicate (Display *display,
+			    XEvent *xevent,
+			    XPointer arg)
+{
+  XID *args = (XID *) arg;
+
+  if (xevent->type == PropertyNotify
+      && xevent->xproperty.window == args[0]
+      && xevent->xproperty.atom == args[1])
+    return True;
+
+  return False;
+}
+#endif
 
 /* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
    menu pops down.
@@ -1410,6 +1728,10 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   LWLIB_ID menu_id;
   Widget menu;
   Window dummy_window;
+#if defined HAVE_XINPUT2 && defined USE_MOTIF
+  XEvent property_dummy;
+  Atom property_atom;
+#endif
 
   eassert (FRAME_X_P (f));
 
@@ -1462,26 +1784,82 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   /* Don't allow any geometry request from the user.  */
   XtSetArg (av[ac], (char *) XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
-#if defined HAVE_XINPUT2 && defined USE_LUCID
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  /* Clear the XI2 grab so lwlib can set a core grab.  */
 
-  if (dpyinfo->num_devices)
+#ifdef HAVE_XINPUT2
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* Clear the XI2 grab, and if any XI2 grab was set, place a core
+     grab on the frame's edit widget.  */
+  if (dpyinfo->supports_xi2)
+    XGrabServer (dpyinfo->display);
+
+  if (dpyinfo->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
     {
       for (int i = 0; i < dpyinfo->num_devices; ++i)
-	XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
-			CurrentTime);
+	{
+	  if (dpyinfo->devices[i].grab)
+	    {
+	      dpyinfo->devices[i].grab = 0;
+
+	      XIUngrabDevice (dpyinfo->display,
+			      dpyinfo->devices[i].device_id,
+			      CurrentTime);
+	    }
+	}
     }
+
+#ifdef USE_MOTIF
+  if (dpyinfo->supports_xi2)
+    {
+      /* Dispatch a PropertyNotify to Xt with the current server time.
+	 Motif tries to set a grab with the timestamp of the last event
+	 processed by Xt, but Xt doesn't consider GenericEvents, so the
+	 timestamp is always less than the last grab time.  */
+
+      property_atom = dpyinfo->Xatom_EMACS_SERVER_TIME_PROP;
+
+      XChangeProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+		       property_atom, XA_ATOM, 32,
+		       PropModeReplace, (unsigned char *) &property_atom, 1);
+
+      XIfEvent (dpyinfo->display, &property_dummy, server_timestamp_predicate,
+		(XPointer) &(XID[]) {FRAME_OUTER_WINDOW (f), property_atom});
+
+      XtDispatchEvent (&property_dummy);
+    }
+#endif
+#endif
+
+#ifdef HAVE_XINPUT2
+  prepare_for_entry_into_toolkit_menu (f);
+
+#ifdef USE_LUCID
+  if (dpyinfo->supports_xi2)
+    x_mouse_leave (dpyinfo);
+#endif
 #endif
   /* Display the menu.  */
   lw_popup_menu (menu, &dummy);
+
+#ifdef HAVE_XINPUT2
+  if (dpyinfo->supports_xi2)
+    XUngrabServer (dpyinfo->display);
+#endif
+
   popup_activated_flag = 1;
+
   x_activate_timeout_atimer ();
 
   {
-    ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+    specpdl_ref specpdl_count = SPECPDL_INDEX ();
+
+    DEFER_SELECTIONS;
 
     record_unwind_protect_int (pop_down_menu, (int) menu_id);
+#ifdef HAVE_XINPUT2
+    record_unwind_protect_ptr (leave_toolkit_menu, f);
+#endif
 
     /* Process events that apply to the menu.  */
     popup_get_selection (0, FRAME_DISPLAY_INFO (f), menu_id, true);
@@ -1504,13 +1882,19 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
-  widget_value **submenu_stack
-    = alloca (menu_items_used * sizeof *submenu_stack);
-  Lisp_Object *subprefix_stack
-    = alloca (menu_items_used * sizeof *subprefix_stack);
+  widget_value **submenu_stack;
+  Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
+  specpdl_ref specpdl_count;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  USE_SAFE_ALLOCA;
+
+  submenu_stack = SAFE_ALLOCA (menu_items_used
+			       * sizeof *submenu_stack);
+  subprefix_stack = SAFE_ALLOCA (menu_items_used
+				 * sizeof *subprefix_stack);
+
+  specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f));
 
@@ -1519,6 +1903,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
       *error_name = "Empty menu";
+      SAFE_FREE ();
       return Qnil;
     }
 
@@ -1751,6 +2136,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
 		  unblock_input ();
+
+		  SAFE_FREE ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -1765,6 +2152,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 
   unblock_input ();
+
+  SAFE_FREE ();
   return Qnil;
 }
 
@@ -1797,7 +2186,9 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
 
   if (menu)
     {
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
+
+      DEFER_SELECTIONS;
       record_unwind_protect_ptr (pop_down_menu, menu);
 
       /* Display the menu.  */
@@ -1852,7 +2243,9 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
   /* Process events that apply to the dialog box.
      Also handle timers.  */
   {
-    ptrdiff_t count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
+
+    DEFER_SELECTIONS;
 
     /* xdialog_show_unwind is responsible for popping the dialog box down.  */
 
@@ -1884,7 +2277,7 @@ x_dialog_show (struct frame *f, Lisp_Object title,
   /* Whether we've seen the boundary between left-hand elts and right-hand.  */
   bool boundary_seen = false;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f));
 
@@ -2036,7 +2429,7 @@ xw_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object title;
   const char *error_name;
   Lisp_Object selection;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   check_window_system (f);
 
@@ -2157,7 +2550,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   int maxwidth;
   int dummy_int;
   unsigned int dummy_uint;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f) || FRAME_MSDOS_P (f));
 
@@ -2314,18 +2707,18 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   y = max (y, 1);
   XMenuLocate (FRAME_X_DISPLAY (f), menu, 0, 0, x, y,
 	       &ulx, &uly, &width, &height);
-  if (ulx+width > dispwidth)
+  if (ulx + width > dispwidth)
     {
       x -= (ulx + width) - dispwidth;
       ulx = dispwidth - width;
     }
-  if (uly+height > dispheight)
+  if (uly + height > dispheight)
     {
       y -= (uly + height) - dispheight;
       uly = dispheight - height;
     }
 #ifndef HAVE_X_WINDOWS
-  if (FRAME_HAS_MINIBUF_P (f) && uly+height > dispheight - 1)
+  if (FRAME_HAS_MINIBUF_P (f) && uly + height > dispheight - 1)
     {
       /* Move the menu away of the echo area, to avoid overwriting the
 	 menu with help echo messages or vice versa.  */
@@ -2349,8 +2742,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       /* If position was not given by a mouse click, adjust so upper left
          corner of the menu as a whole ends up at given coordinates.  This
          is what x-popup-menu says in its documentation.  */
-      x += width/2;
-      y += 1.5*height/(maxlines+2);
+      x += width / 2;
+      y += 1.5 * height/ (maxlines + 2);
     }
 
   XMenuSetAEQ (menu, true);
@@ -2358,7 +2751,13 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   pane = selidx = 0;
 
 #ifndef MSDOS
+  DEFER_SELECTIONS;
+
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
+#ifdef HAVE_XINPUT2
+  XMenuActivateSetTranslateFunction (x_menu_translate_generic_event);
+#endif
+  XMenuActivateSetExposeFunction (x_menu_expose_event);
 #endif
 
   record_unwind_protect_ptr (pop_down_menu,
@@ -2367,6 +2766,23 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */
   menu_help_frame = f;
+
+#ifdef HAVE_XINPUT2
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  /* Clear the XI2 grab so a core grab can be set.  */
+
+  if (dpyinfo->supports_xi2
+      && xi_frame_selected_for (f, XI_ButtonPress))
+    {
+      for (int i = 0; i < dpyinfo->num_devices; ++i)
+	{
+	  if (dpyinfo->devices[i].grab)
+	    XIUngrabDevice (dpyinfo->display, dpyinfo->devices[i].device_id,
+			    CurrentTime);
+	}
+    }
+#endif
+
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);

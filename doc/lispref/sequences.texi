@@ -577,6 +577,20 @@ starting from the first one for which @var{predicate} returns @code{nil}.
 @end example
 @end defun
 
+@defun seq-split sequence length
+  This function returns a list consisting of sub-sequences of
+@var{sequence} of (at most) length @var{length}.  (The final element
+may be shorter than @var{length} if the length of @var{sequence} isn't
+a multiple of @var{length}.
+
+@example
+@group
+(seq-split [0 1 2 3 4] 2)
+@result{} ([0 1] [2 3] [4])
+@end group
+@end example
+@end defun
+
 @defun seq-do function sequence
   This function applies @var{function} to each element of
 @var{sequence} in turn (presumably for side effects), and returns

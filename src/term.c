@@ -1632,9 +1632,13 @@ produce_glyphs (struct it *it)
     }
   else
     {
-      Lisp_Object charset_list = FRAME_TERMINAL (it->f)->charset_list;
+      struct terminal *t = FRAME_TERMINAL (it->f);
+      Lisp_Object charset_list = t->charset_list, char_glyph;
 
-      if (char_charset (it->char_to_display, charset_list, NULL))
+      if (char_charset (it->char_to_display, charset_list, NULL)
+	  && (char_glyph = terminal_glyph_code (t, it->char_to_display),
+	      NILP (char_glyph)
+	      || (FIXNUMP (char_glyph) && XFIXNUM (char_glyph) >= 0)))
 	{
 	  it->pixel_width = CHARACTER_WIDTH (it->char_to_display);
 	  it->nglyphs = it->pixel_width;
@@ -2283,9 +2287,9 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       delete_keyboard_wait_descriptor (fileno (f));
 
 #ifndef MSDOS
-      fclose (f);
       if (f != t->display_info.tty->output)
         fclose (t->display_info.tty->output);
+      fclose (f);
 #endif
 
       t->display_info.tty->input = 0;
@@ -3500,7 +3504,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   int dispwidth, dispheight;
   int i, j, lines, maxlines;
   int maxwidth;
-  ptrdiff_t specpdl_count;
+  specpdl_ref specpdl_count;
 
   eassert (FRAME_TERMCAP_P (f));
 

@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
 
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 
-; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ These arguments are sent to this function when called as a hook in
              ;; could possibly check for '("IRCD" . "dancer") in
              ;; `erc-server-parameters' instead of looking for a specific name
              ;; in `erc-server-version'
-             (assoc "CAPAB" erc-server-parameters))
+             (erc--get-isupport-entry 'CAPAB))
     (erc-log "Sending CAPAB IDENTIFY-MSG and IDENTIFY-CTCP")
     (erc-server-send "CAPAB IDENTIFY-MSG")
     (erc-server-send "CAPAB IDENTIFY-CTCP")

@@ -295,11 +295,7 @@
             (setq found (apply #'auth-source-search parameters))
             (when (listp found)
               (dolist (f found)
-                (setf f (plist-put f :secret
-                                   (let ((secret (plist-get f :secret)))
-                                     (if (functionp secret)
-                                         (funcall secret)
-                                       secret))))))
+                (setf f (plist-put f :secret (auth-info-password f)))))
 
             (setq found-as-string (format "%s: %S" testname found))
             ;; (message "With parameters %S found: [%s] needed: [%s]"
@@ -326,10 +322,7 @@
                   auth-info
                   (car (auth-source-search
                         :max 1 :host host :require '(:user :secret) :create t))
-	          auth-passwd (plist-get auth-info :secret)
-	          auth-passwd (if (functionp auth-passwd)
-			          (funcall auth-passwd)
-			        auth-passwd))
+	          auth-passwd (auth-info-password auth-info))
             (should (string-equal (plist-get auth-info :user) (user-login-name)))
             (should (string-equal (plist-get auth-info :host) host))
             (should (equal auth-passwd passwd))
@@ -339,10 +332,7 @@
             ;; Check, that the item has been created indeed.
             (auth-source-forget+ :host t)
             (setq auth-info (car (auth-source-search :host host))
-	          auth-passwd (plist-get auth-info :secret)
-	          auth-passwd (if (functionp auth-passwd)
-			          (funcall auth-passwd)
-			        auth-passwd))
+	          auth-passwd (auth-info-password auth-info))
             (if (zerop (length passwd))
                 (progn
                   (should-not (plist-get auth-info :user))
@@ -377,10 +367,7 @@
                 auth-info
                 (car (auth-source-search
                       :max 1 :host host :require '(:user :secret) :create t))
-                auth-passwd (plist-get auth-info :secret)
-                auth-passwd (if (functionp auth-passwd)
-                                (funcall auth-passwd)
-                              auth-passwd))
+                auth-passwd (auth-info-password auth-info))
           (should (string-equal (plist-get auth-info :user) (user-login-name)))
           (should (string-equal (plist-get auth-info :host) host))
           (should (equal auth-passwd passwd))
@@ -391,10 +378,7 @@
           (auth-source-forget+ :host t)
           (setq auth-source-netrc-cache nil)
           (setq auth-info (car (auth-source-search :host host))
-                auth-passwd (plist-get auth-info :secret)
-                auth-passwd (if (functionp auth-passwd)
-                                (funcall auth-passwd)
-                              auth-passwd))
+                auth-passwd (auth-info-password auth-info))
           (with-temp-buffer
             (insert-file-contents netrc-file)
             (if (zerop (length passwd))
@@ -421,9 +405,7 @@ machine c1 port c2 user c3 password c4\n"
            (parameters '(:max 1 :host t))
            (found (apply #'auth-source-delete parameters)))
       (dolist (f found)
-        (let ((s (plist-get f :secret)))
-          (setf f (plist-put f :secret
-                             (if (functionp s) (funcall s) s)))))
+        (setf f (plist-put f :secret (auth-info-password f))))
       ;; Note: The netrc backend doesn't delete anything, so
       ;; this is actually the same as `auth-source-search'.
       (should (equal found expected)))))

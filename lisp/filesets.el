@@ -208,7 +208,7 @@ COND-FN takes one argument: the current element."
 (defun filesets-reset-fileset (&optional fileset no-cache)
   "Reset the cached values for one or all filesets."
   (setq filesets-submenus (if fileset
-                              (lax-plist-put filesets-submenus fileset nil)
+                              (plist-put filesets-submenus fileset nil #'equal)
                             nil))
   (setq filesets-has-changed-flag t)
   (setq filesets-update-cache-file-flag (or filesets-update-cache-file-flag
@@ -414,12 +414,12 @@ time to time or if the fileset cache causes troubles."
 Set this value to 0 to turn menu splitting off.  BTW, parts of submenus
 will not be rewrapped if their length exceeds this value."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom filesets-max-entry-length 50
   "Truncate names of split submenus to this length."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom filesets-browse-dir-function #'dired
   "A function or command used for browsing directories.
@@ -518,7 +518,7 @@ i.e. how deep the menu should be.  Try something like
 and it should become clear what this option is about.  In any case,
 including directory trees to the menu can take a lot of memory."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom filesets-commands
   '(("Isearch"
@@ -1027,7 +1027,7 @@ defined in `filesets-ingroup-patterns'."
 (defcustom filesets-query-user-limit 15
   "Query the user before opening a fileset with that many files."
   :set #'filesets-set-default
-  :type 'integer)
+  :type 'natnum)
 
 
 (defun filesets-filter-dir-names (lst &optional negative)
@@ -1761,7 +1761,7 @@ Use LOOKUP-NAME for deducing the save-function, if provided."
 
 (defun filesets-add-buffer (&optional name buffer)
   "Add BUFFER (or current buffer) to the fileset called NAME.
-User will be queried, if no fileset name is provided."
+If no fileset name is provided, prompt for NAME."
   (interactive)
   (let* ((buffer (or buffer
 		     (current-buffer)))
@@ -1796,8 +1796,8 @@ User will be queried, if no fileset name is provided."
 	    (message "Filesets: Can't add `%s' to fileset `%s'" this name)))))))
 
 (defun filesets-remove-buffer (&optional name buffer)
-  "Remove BUFFER (or current buffer) to fileset NAME.
-User will be queried, if no fileset name is provided."
+  "Remove BUFFER (or current buffer) from the fileset called NAME.
+If no fileset name is provided, prompt for NAME."
   (interactive)
   (let* ((buffer (or buffer
 		     (current-buffer)))
@@ -1999,7 +1999,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 
 (defun filesets-ingroup-cache-get (master)
   "Access to `filesets-ingroup-cache'."
-  (lax-plist-get filesets-ingroup-cache master))
+  (plist-get filesets-ingroup-cache master #'equal))
 
 (defun filesets-ingroup-cache-put (master file)
   "Access to `filesets-ingroup-cache'."
@@ -2008,7 +2008,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 		      (cons file (filesets-ingroup-cache-get emaster))
 		    nil)))
     (setq filesets-ingroup-cache
-	  (lax-plist-put filesets-ingroup-cache emaster this))))
+	  (plist-put filesets-ingroup-cache emaster this #'equal))))
 
 (defun filesets-ingroup-collect-files (fs &optional remdupl-flag master depth)
   "Helper function for `filesets-ingroup-collect'.  Collect file names."
@@ -2305,12 +2305,12 @@ bottom up, set `filesets-submenus' to nil, first.)"
 	((null data))
       (let* ((this    (car data))
 	     (name    (filesets-data-get-name this))
-	     (cached  (lax-plist-get filesets-submenus name))
+	     (cached  (plist-get filesets-submenus name #'equal))
 	     (submenu (or cached
 			  (filesets-build-submenu count name this))))
 	(unless cached
 	  (setq filesets-submenus
-		(lax-plist-put filesets-submenus name submenu)))
+		(plist-put filesets-submenus name submenu #'equal)))
 	(unless (filesets-entry-get-dormant-flag this)
 	  (setq filesets-menu-cache
 		(append filesets-menu-cache (list submenu))))))

@@ -178,21 +178,36 @@ Return a hash table with citation references as keys and fields alist as values.
                                      " and ")))
                              ('issued
                               ;; Date are expressed as an array
-                              ;; (`date-parts') or a "string (`raw').
-                              ;; In both cases, extract the year and
-                              ;; associate it to `year' field, for
-                              ;; compatibility with BibTeX format.
+                              ;; (`date-parts') or a "string (`raw'
+                              ;; or `literal'). In both cases,
+                              ;; extract the year and associate it
+                              ;; to `year' field, for compatibility
+                              ;; with BibTeX format.
                               (let ((date (or (alist-get 'date-parts value)
+                                              (alist-get 'literal value)
                                               (alist-get 'raw value))))
                                 (cons 'year
                                       (cond
                                        ((consp date)
-                                        (caar date))
+                                         (let ((year (caar date)))
+                                           (cond
+                                             ((numberp year) (number-to-string year))
+                                             ((stringp year) year)
+                                             (t
+                                               (error
+                                                 "First element of CSL-JSON date-parts should be a number or string, got %s: %S"
+                                                 (type-of year) year)))))
                                        ((stringp date)
-                                        (car (split-string date "-")))
+                                        (replace-regexp-in-string
+                                          (rx
+                                            (minimal-match (zero-or-more anything))
+                                            (group-n 1 (repeat 4 digit))
+                                            (zero-or-more anything))
+                                          (rx (backref 1))
+                                          date))
                                        (t
                                         (error "Unknown CSL-JSON date format: %S"
-                                               date))))))
+                                               value))))))
                              (_
                               (cons field value))))
                          item)
@@ -225,6 +240,8 @@ Return a hash table with citation references as keys and fields alist as values.
                 entries)))
     entries))
 
+(defvar org-cite-basic--file-id-cache nil
+  "Hash table linking files to their hash.")
 (defun org-cite-basic--parse-bibliography (&optional info)
   "List all entries available in the buffer.
 
@@ -237,14 +254,19 @@ table where keys are references and values are association lists between fields,
 as symbols, and values as strings or nil.
 
 Optional argument INFO is the export state, as a property list."
+  (unless (hash-table-p org-cite-basic--file-id-cache)
+    (setq org-cite-basic--file-id-cache (make-hash-table :test #'equal)))
   (if (plist-member info :cite-basic/bibliography)
       (plist-get info :cite-basic/bibliography)
     (let ((results nil))
       (dolist (file (org-cite-list-bibliography-files))
         (when (file-readable-p file)
           (with-temp-buffer
-            (insert-file-contents file)
-	    (let* ((file-id (cons file (org-buffer-hash)))
+            (when (or (org-file-has-changed-p file)
+                      (not (gethash file org-cite-basic--file-id-cache)))
+              (insert-file-contents file)
+              (puthash file (org-buffer-hash) org-cite-basic--file-id-cache))
+	    (let* ((file-id (cons file (gethash file org-cite-basic--file-id-cache)))
                    (entries
                     (or (cdr (assoc file-id org-cite-basic--bibliography-cache))
                         (let ((table
@@ -719,19 +741,24 @@ Return nil if there are no bibliography files or no entries."
      (t
       (clrhash org-cite-basic--completion-cache)
       (dolist (key (org-cite-basic--all-keys))
-        (let ((completion
-               (concat
-                (let ((author (org-cite-basic--get-field 'author key nil t)))
-                  (if author
-                      (truncate-string-to-width
-                       (replace-regexp-in-string " and " "; " author)
-                       org-cite-basic-author-column-end nil ?\s)
-                    (make-string org-cite-basic-author-column-end ?\s)))
-                org-cite-basic-column-separator
-                (let ((date (org-cite-basic--get-year key nil 'no-suffix)))
-                  (format "%4s" (or date "")))
-                org-cite-basic-column-separator
-                (org-cite-basic--get-field 'title key nil t))))
+        (let* ((entry (org-cite-basic--get-entry
+                       key
+                       ;; Supply pre-calculated bibliography to avoid
+                       ;; performance degradation.
+                       (list :cite-basic/bibliography entries)))
+               (completion
+                (concat
+                 (let ((author (org-cite-basic--get-field 'author entry nil 'raw)))
+                   (if author
+                       (truncate-string-to-width
+                        (replace-regexp-in-string " and " "; " author)
+                        org-cite-basic-author-column-end nil ?\s)
+                     (make-string org-cite-basic-author-column-end ?\s)))
+                 org-cite-basic-column-separator
+                 (let ((date (org-cite-basic--get-year entry nil 'no-suffix)))
+                   (format "%4s" (or date "")))
+                 org-cite-basic-column-separator
+                 (org-cite-basic--get-field 'title entry nil t))))
           (puthash completion key org-cite-basic--completion-cache)))
       (unless (map-empty-p org-cite-basic--completion-cache) ;no key
         (puthash entries t org-cite-basic--completion-cache)

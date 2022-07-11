@@ -29,10 +29,6 @@
 ;;
 ;; To do:
 ;; - Interactive temporary customizability of flags in `proced-grammar-alist'
-;; - Allow "sudo kill PID", "sudo renice PID"
-;;   `proced-send-signal' operates on multiple processes one by one.
-;;   With "sudo" we want to execute one "kill" or "renice" command
-;;   for all marked processes.  Is there a `sudo-call-process'?
 ;;
 ;; Thoughts and Ideas
 ;; - Currently, `process-attributes' returns the list of
@@ -55,12 +51,19 @@
   :group 'unix
   :prefix "proced-")
 
+(defcustom proced-show-remote-processes nil
+  "Whether processes of the remote host shall be shown.
+This happens only when `default-directory' is remote."
+  :version "29.1"
+  :type 'boolean)
+
 (defcustom proced-signal-function #'signal-process
   "Name of signal function.
 It can be an elisp function (usually `signal-process') or a string specifying
 the external command (usually \"kill\")."
   :type '(choice (function :tag "function")
                  (string :tag "command")))
+(make-obsolete-variable 'proced-signal-function "no longer used." "29.1")
 
 (defcustom proced-renice-command "renice"
   "Name of renice command."
@@ -275,8 +278,8 @@ It can also be a list of keys appearing in `proced-grammar-alist'."
 ;; FIXME: is there a better name for filter `user' that does not coincide
 ;; with an attribute key?
 (defcustom proced-filter-alist
-  `((user (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'")))
-    (user-running (user . ,(concat "\\`" (regexp-quote (user-real-login-name)) "\\'"))
+  `((user (user . proced-user-name))
+    (user-running (user . proced-user-name)
                   (state . "\\`[Rr]\\'"))
     (all)
     (all-running (state . "\\`[Rr]\\'"))
@@ -366,7 +369,7 @@ May be used to revert the process listing."
 
 ;; Internal variables
 
-(defvar proced-available (not (null (list-system-processes)))
+(defvar proced-available t;(not (null (list-system-processes)))
   "Non-nil means Proced is known to work on this system.")
 
 (defvar-local proced-process-alist nil
@@ -565,6 +568,12 @@ Important: the match ends just after the marker.")
      :help "Renice Marked Processes"]))
 
 ;; helper functions
+(defun proced-user-name (user)
+  "Check the `user' attribute with user name `proced' is running for."
+  (string-equal user (if (file-remote-p default-directory)
+                         (file-remote-p default-directory 'user)
+                       (user-real-login-name))))
+
 (defun proced-marker-regexp ()
   "Return regexp matching `proced-marker-char'."
   ;; `proced-marker-char' must appear in column zero
@@ -626,6 +635,7 @@ Return nil if point is not on a process line."
 Type \\[proced] to start a Proced session.  In a Proced buffer
 type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
+Type \\[proced-renice] to renice marked processes.
 
 The initial content of a listing is defined by the variable `proced-filter'
 and the variable `proced-format'.
@@ -677,8 +687,13 @@ After displaying or updating a Proced buffer, Proced runs the normal hook
 (defun proced (&optional arg)
   "Generate a listing of UNIX system processes.
 \\<proced-mode-map>
-If invoked with optional ARG, do not select the window displaying
-the process information.
+If invoked with optional non-negative ARG, do not select the
+window displaying the process information.
+
+If `proced-show-remote-processes' is non-nil or the command is
+invoked with a negative ARG `\\[universal-argument] \\[negative-argument]', \
+and `default-directory'
+points to a remote host, the system processes of that host are shown.
 
 This function runs the normal hook `proced-post-display-hook'.
 
@@ -689,6 +704,11 @@ Proced buffers."
     (error "Proced is not available on this system"))
   (let ((buffer (get-buffer-create "*Proced*")) new)
     (set-buffer buffer)
+    (when (and (file-remote-p default-directory)
+               (not
+                (or proced-show-remote-processes
+                    (eq arg '-))))
+      (setq default-directory temporary-file-directory))
     (setq new (zerop (buffer-size)))
     (when new
       (proced-mode)
@@ -1406,7 +1426,7 @@ Replace newline characters by \"^J\" (two characters)."
   ;; If none of the alternatives is non-nil, the attribute is ignored
   ;; in the listing.
   (let ((standard-attributes
-         (car (proced-process-attributes (list (emacs-pid)))))
+         (car (proced-process-attributes (list-system-processes))))
         new-format fmi)
     (if (and proced-tree-flag
              (assq 'ppid standard-attributes))
@@ -1821,7 +1841,8 @@ supported but discouraged.  It will be removed in a future version of Emacs."
           (dolist (process process-alist)
             (condition-case err
                 (unless (zerop (funcall
-                                proced-signal-function (car process) signal))
+                                proced-signal-function (car process) signal
+                                (file-remote-p default-directory)))
                   (proced-log "%s\n" (cdr process))
                   (push (cdr process) failures))
               (error ; catch errors from failed signals
@@ -1833,7 +1854,7 @@ supported but discouraged.  It will be removed in a future version of Emacs."
         (dolist (process process-alist)
           (with-temp-buffer
             (condition-case nil
-                (unless (zerop (call-process
+                (unless (zerop (process-file
                                 proced-signal-function nil t nil
                                 signal (number-to-string (car process))))
                   (proced-log (current-buffer))
@@ -1875,7 +1896,7 @@ the normal hook `proced-after-send-signal-hook'."
     (dolist (process process-alist)
       (with-temp-buffer
         (condition-case nil
-            (unless (zerop (call-process
+            (unless (zerop (process-file
                             proced-renice-command nil t nil
                             priority (number-to-string (car process))))
               (proced-log (current-buffer))

@@ -1540,6 +1540,19 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
     || physical_font->ntmFontSig.fsUsb[1]
     || physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff;
 
+  /* Kludgey fix for Arial Unicode MS font that claims support for
+     scripts it doesn't actually cover.  */
+  if (strncmp (logical_font->elfLogFont.lfFaceName,
+	       "Arial Unicode MS", 16) == 0)
+    {
+      /* Reset bits 4 (Phonetic), 12 (Vai), 14 (Nko), 27 (Balinese).  */
+      physical_font->ntmFontSig.fsUsb[0] &= 0xf7ffafef;
+      /* Reset bits 53 (Phags-pa) and 58 (Phoenician).  */
+      physical_font->ntmFontSig.fsUsb[1] &= 0xfbdfffff;
+      /* Set bit 70 (Tibetan).  */
+      physical_font->ntmFontSig.fsUsb[2] |= 0x00000040;
+    }
+
   /* Skip non matching fonts.  */
 
   /* For uniscribe backend, consider only truetype or opentype fonts
@@ -2385,7 +2398,6 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (108, Qkharoshthi);
   SUBRANGE (109, Qtai_xuan_jing_symbol);
   SUBRANGE (110, Qcuneiform);
-  SUBRANGE (111, Qcuneiform_numbers_and_punctuation);
   SUBRANGE (111, Qcounting_rod_numeral);
   SUBRANGE (112, Qsundanese);
   SUBRANGE (113, Qlepcha);
@@ -2661,7 +2673,7 @@ in the font selection dialog. */)
   ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 
   {
-    int count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
     Lisp_Object value = Qnil;
 
     w32_dialog_in_progress (Qt);
@@ -2828,8 +2840,6 @@ syms_of_w32font (void)
   DEFSYM (Qbuginese, "buginese");
   DEFSYM (Qbuhid, "buhid");
   DEFSYM (Qcuneiform, "cuneiform");
-  DEFSYM (Qcuneiform_numbers_and_punctuation,
-	  "cuneiform-numbers-and-punctuation");
   DEFSYM (Qcypriot, "cypriot");
   DEFSYM (Qdeseret, "deseret");
   DEFSYM (Qglagolitic, "glagolitic");
@@ -2837,18 +2847,18 @@ syms_of_w32font (void)
   DEFSYM (Qhanunoo, "hanunoo");
   DEFSYM (Qkharoshthi, "kharoshthi");
   DEFSYM (Qlimbu, "limbu");
-  DEFSYM (Qlinear_b, "linear_b");
+  DEFSYM (Qlinear_b, "linear-b");
   DEFSYM (Qaegean_number, "aegean-number");
-  DEFSYM (Qold_italic, "old_italic");
-  DEFSYM (Qold_persian, "old_persian");
+  DEFSYM (Qold_italic, "old-italic");
+  DEFSYM (Qold_persian, "old-persian");
   DEFSYM (Qosmanya, "osmanya");
   DEFSYM (Qphags_pa, "phags-pa");
   DEFSYM (Qphoenician, "phoenician");
   DEFSYM (Qshavian, "shavian");
-  DEFSYM (Qsyloti_nagri, "syloti_nagri");
+  DEFSYM (Qsyloti_nagri, "syloti-nagri");
   DEFSYM (Qtagalog, "tagalog");
   DEFSYM (Qtagbanwa, "tagbanwa");
-  DEFSYM (Qtai_le, "tai_le");
+  DEFSYM (Qtai_le, "tai-le");
   DEFSYM (Qtifinagh, "tifinagh");
   DEFSYM (Qugaritic, "ugaritic");
   DEFSYM (Qlycian, "lycian");

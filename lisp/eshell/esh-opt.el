@@ -97,10 +97,10 @@ let-bound variable `args'."
   (declare (debug (form form sexp body)))
   `(let* ((temp-args
            ,(if (memq ':preserve-args (cadr options))
-                macro-args
+                (list 'copy-tree macro-args)
               (list 'eshell-stringify-list
                     (list 'flatten-tree macro-args))))
-          (processed-args (eshell--do-opts ,name ,options temp-args))
+          (processed-args (eshell--do-opts ,name ,options temp-args ,macro-args))
           ,@(delete-dups
              (delq nil (mapcar (lambda (opt)
                                  (and (listp opt) (nth 3 opt)
@@ -117,7 +117,7 @@ let-bound variable `args'."
 ;; Documented part of the interface; see eshell-eval-using-options.
 (defvar eshell--args)
 
-(defun eshell--do-opts (name options args)
+(defun eshell--do-opts (name options args orig-args)
   "Helper function for `eshell-eval-using-options'.
 This code doesn't really need to be macro expanded everywhere."
   (require 'esh-ext)
@@ -135,7 +135,7 @@ This code doesn't really need to be macro expanded everywhere."
                (error "%s" usage-msg))))))
     (if ext-command
         (throw 'eshell-external
-               (eshell-external-command ext-command args))
+               (eshell-external-command ext-command orig-args))
       args)))
 
 (defun eshell-show-usage (name options)
@@ -187,49 +187,82 @@ passed to this command, the external version `%s'
 will be called instead." extcmd)))))
     (throw 'eshell-usage usage)))
 
-(defun eshell--set-option (name ai opt options opt-vals)
+(defun eshell--split-switch (switch kind)
+  "Split SWITCH into its option name and potential value, if any.
+KIND should be the integer 0 if SWITCH is a short option, or 1 if it's
+a long option."
+  (if (eq kind 0)
+      ;; Short option
+      (cons (aref switch 0)
+            (and (> (length switch) 1) (substring switch 1)))
+    ;; Long option
+    (save-match-data
+      (string-match "\\([^=]*\\)\\(?:=\\(.*\\)\\)?" switch)
+      (cons (match-string 1 switch) (match-string 2 switch)))))
+
+(defun eshell--set-option (name ai opt value options opt-vals)
   "Using NAME's remaining args (index AI), set the OPT within OPTIONS.
-If the option consumes an argument for its value, the argument list
-will be modified."
+VALUE is the potential value of the OPT, coming from args like
+\"-fVALUE\" or \"--foo=VALUE\", or nil if no value was supplied.  If
+OPT doesn't consume a value, return VALUE unchanged so that it can be
+processed later; otherwise, return nil.
+
+If the OPT consumes an argument for its value and VALUE is nil, the
+argument list will be modified."
   (if (not (nth 3 opt))
       (eshell-show-usage name options)
-    (setcdr (assq (nth 3 opt) opt-vals)
-            (if (eq (nth 2 opt) t)
-                (if (> ai (length eshell--args))
-                    (error "%s: missing option argument" name)
-                  (pop (nthcdr ai eshell--args)))
-              (or (nth 2 opt) t)))))
+    (if (eq (nth 2 opt) t)
+        (progn
+          (setcdr (assq (nth 3 opt) opt-vals)
+                  (or value
+                      (if (> ai (length eshell--args))
+                          (error "%s: missing option argument" name)
+                        (pop (nthcdr ai eshell--args)))))
+          nil)
+      (setcdr (assq (nth 3 opt) opt-vals)
+              (or (nth 2 opt) t))
+      value)))
 
 (defun eshell--process-option (name switch kind ai options opt-vals)
   "For NAME, process SWITCH (of type KIND), from args at index AI.
 The SWITCH will be looked up in the set of OPTIONS.
 
-SWITCH should be either a string or character.  KIND should be the
-integer 0 if it's a character, or 1 if it's a string.
+SWITCH should be a string starting with the option to process,
+possibly followed by its value, e.g. \"u\" or \"uUSER\".  KIND should
+be the integer 0 if it's a short option, or 1 if it's a long option.
 
-The SWITCH is then be matched against OPTIONS.  If no matching handler
-is found, and an :external command is defined (and available), it will
-be called; otherwise, an error will be triggered to say that the
-switch is unrecognized."
-  (let* ((opts options)
-	 found)
+The SWITCH is then be matched against OPTIONS.  If KIND is 0 and the
+SWITCH matches an option that doesn't take a value, return the
+remaining characters in SWITCH to be processed later as further short
+options.
+
+If no matching handler is found, and an :external command is defined
+(and available), it will be called; otherwise, an error will be
+triggered to say that the switch is unrecognized."
+  (let ((switch (eshell--split-switch switch kind))
+        (opts options)
+	found remaining)
     (while opts
       (if (and (listp (car opts))
-               (nth kind (car opts))
-               (equal switch (nth kind (car opts))))
+               (equal (car switch) (nth kind (car opts))))
 	  (progn
-	    (eshell--set-option name ai (car opts) options opt-vals)
+	    (setq remaining (eshell--set-option name ai (car opts)
+                                                (cdr switch) options opt-vals))
+            (when (and remaining (eq kind 1))
+              (error "%s: option --%s doesn't allow an argument"
+                     name (car switch)))
 	    (setq found t opts nil))
 	(setq opts (cdr opts))))
-    (unless found
+    (if found
+        remaining
       (let ((extcmd (memq ':external options)))
 	(when extcmd
-	  (setq extcmd (eshell-search-path (cadr extcmd)))
-	  (if extcmd
-	      (throw 'eshell-ext-command extcmd)
-            (error (if (characterp switch) "%s: unrecognized option -%c"
-                     "%s: unrecognized option --%s")
-                   name switch)))))))
+	  (setq extcmd (eshell-search-path (cadr extcmd))))
+	(if extcmd
+	    (throw 'eshell-ext-command extcmd)
+          (error (if (characterp (car switch)) "%s: unrecognized option -%c"
+                   "%s: unrecognized option --%s")
+                 name (car switch)))))))
 
 (defun eshell--process-args (name args options)
   "Process the given ARGS using OPTIONS."
@@ -250,6 +283,9 @@ switch is unrecognized."
                           (memq :parse-leading-options-only options))))
       (setq arg (nth ai eshell--args))
       (if (not (and (stringp arg)
+                    ;; A string of length 1 can't be an option; (if
+                    ;; it's "-", that generally means stdin).
+                    (> (length arg) 1)
 		    (string-match "^-\\(-\\)?\\(.*\\)" arg)))
           ;; Positional argument found, skip
 	  (setq ai (1+ ai)
@@ -262,12 +298,9 @@ switch is unrecognized."
 	      (if (> (length switch) 0)
 		  (eshell--process-option name switch 1 ai options opt-vals)
 		(setq ai (length eshell--args)))
-	    (let ((len (length switch))
-		  (index 0))
-	      (while (< index len)
-		(eshell--process-option name (aref switch index)
-                                        0 ai options opt-vals)
-		(setq index (1+ index))))))))
+	    (while (> (length switch) 0)
+	      (setq switch (eshell--process-option name switch 0
+                                                   ai options opt-vals)))))))
     (nconc (mapcar #'cdr opt-vals) eshell--args)))
 
 (provide 'esh-opt)

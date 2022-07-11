@@ -474,6 +474,25 @@ after a sequence of character events."
     (aset gstring (1- len) nil))
   gstring)
 
+(defun lgstring-glyph-boundary (gstring startpos endpos)
+  "Return buffer position at or after ENDPOS where grapheme from GSTRING ends.
+STARTPOS is the position where the grapheme cluster starts; it is returned
+by `find-composition'."
+  (let ((nglyphs (lgstring-glyph-len gstring))
+        (idx 0)
+        glyph found)
+    (while (and (not found) (< idx nglyphs))
+      (setq glyph (lgstring-glyph gstring idx))
+      (cond
+       ((or (null glyph)
+            (= (+ startpos (lglyph-from glyph)) endpos))
+        (setq found endpos))
+       ((>= (+ startpos (lglyph-to glyph)) endpos)
+        (setq found (+ startpos (lglyph-to glyph) 1)))
+       (t
+        (setq idx (1+ idx)))))
+    (or found endpos)))
+
 (defun compose-glyph-string (gstring from to)
   (let ((glyph (lgstring-glyph gstring from))
 	from-pos to-pos)

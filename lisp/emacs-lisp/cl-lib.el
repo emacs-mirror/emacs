@@ -114,7 +114,10 @@ a future Emacs interpreter will be able to use it.")
 (defmacro cl-incf (place &optional x)
   "Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
-The return value is the incremented value of PLACE."
+The return value is the incremented value of PLACE.
+
+If X is specified, it should be an expression that should
+evaluate to a number."
   (declare (debug (place &optional form)))
   (if (symbolp place)
       (list 'setq place (if x (list '+ place x) (list '1+ place)))
@@ -123,7 +126,10 @@ The return value is the incremented value of PLACE."
 (defmacro cl-decf (place &optional x)
   "Decrement PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
-The return value is the decremented value of PLACE."
+The return value is the decremented value of PLACE.
+
+If X is specified, it should be an expression that should
+evaluate to a number."
   (declare (debug cl-incf))
   (if (symbolp place)
       (list 'setq place (if x (list '- place x) (list '1- place)))

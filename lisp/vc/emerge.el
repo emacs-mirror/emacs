@@ -221,7 +221,7 @@ depend on the flags."
 
 (defcustom emerge-min-visible-lines 3
   "Number of lines to show above and below the flags when displaying a difference."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom emerge-temp-file-prefix
   (expand-file-name "emerge" temporary-file-directory)
@@ -1647,7 +1647,7 @@ the height of the merge window.
 (defun emerge-scroll-left (&optional arg)
   "Scroll left all three merge buffers, if they are in windows.
 If an argument is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  `C-u -' alone as argument scrolls half the
+the width of the A and B windows.  \\`C-u -' alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows
@@ -1675,7 +1675,7 @@ width of the A and B windows."
 (defun emerge-scroll-right (&optional arg)
   "Scroll right all three merge buffers, if they are in windows.
 If an argument is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  `C-u -' alone as argument scrolls half the
+the width of the A and B windows.  \\`C-u -' alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows

@@ -30,10 +30,9 @@
   (let ((faces hi-lock-face-defaults))
     (with-temp-buffer
       (insert "a A b B\n")
-      (cl-letf (((symbol-function 'completing-read)
-                   (lambda (_prompt _coll
-                                    &optional _x _y _z _hist defaults _inherit)
-                     (car defaults))))
+      (cl-letf (((symbol-function 'read-face-name)
+                   (lambda (_prompt &optional defaults)
+                     (intern (car defaults)))))
         (dotimes (_ 2)
           (let ((face (hi-lock-read-face-name)))
             (hi-lock-set-pattern "a" face))))
@@ -43,10 +42,9 @@
   (let ((faces hi-lock-face-defaults))
     (with-temp-buffer
       (insert "foo bar")
-      (cl-letf (((symbol-function 'completing-read)
-                 (lambda (_prompt _coll
-                                  &optional _x _y _z _hist defaults _inherit)
-                   (car defaults))))
+      (cl-letf (((symbol-function 'read-face-name)
+                   (lambda (_prompt &optional defaults)
+                     (intern (car defaults)))))
         (hi-lock-set-pattern "9999" (hi-lock-read-face-name)) ; No match
         (hi-lock-set-pattern "foo" (hi-lock-read-face-name)))
       ;; Only one match, then we have used just 1 face

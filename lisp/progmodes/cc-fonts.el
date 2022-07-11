@@ -1820,7 +1820,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
-  (let (mode capture-default id-start id-end declaration sub-begin sub-end)
+  (let (mode capture-default id-start id-end declaration sub-begin sub-end tem)
     (while (and (< (point) limit)
 		(search-forward "[" limit t))
       (when (progn (backward-char)
@@ -1832,15 +1832,18 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			(char-after)))
 	;; Is the first element of the list a bare "=" or "&"?
 	(when mode
-	  (forward-char)
-	  (c-forward-syntactic-ws)
-	  (if (memq (char-after) '(?, ?\]))
-	      (progn
-		(setq capture-default mode)
-		(when (eq (char-after) ?,)
-		  (forward-char)
-		  (c-forward-syntactic-ws)))
-	    (c-backward-token-2)))
+	  (setq tem nil)
+	  (save-excursion
+	    (forward-char)
+	    (c-forward-syntactic-ws)
+	    (if (memq (char-after) '(?, ?\]))
+		(progn
+		  (setq capture-default mode)
+		  (when (eq (char-after) ?,)
+		    (forward-char)
+		    (c-forward-syntactic-ws))
+		  (setq tem (point)))))
+	  (if tem (goto-char tem)))
 
 	;; Go round the following loop once per captured item.  We use "\\s)"
 	;; rather than "\\]" here to avoid infinite looping in this situation:
@@ -2253,12 +2256,13 @@ higher."
 ;; redisplay.
 (defvar c-re-redisplay-timer nil)
 
-(defun c-force-redisplay (start end)
+(defun c-force-redisplay (buffer start end)
   ;; Force redisplay immediately.  This assumes `font-lock-support-mode' is
   ;; 'jit-lock-mode.  Set the variable `c-re-redisplay-timer' to nil.
-  (save-excursion (c-font-lock-fontify-region start end))
-  (jit-lock-force-redisplay (copy-marker start) (copy-marker end))
-  (setq c-re-redisplay-timer nil))
+  (with-current-buffer buffer
+    (save-excursion (c-font-lock-fontify-region start end))
+    (jit-lock-force-redisplay (copy-marker start) (copy-marker end))
+    (setq c-re-redisplay-timer nil)))
 
 (defun c-fontify-new-found-type (type)
   ;; Cause the fontification of TYPE, a string, wherever it occurs in the
@@ -2288,6 +2292,7 @@ higher."
 			 (not c-re-redisplay-timer))
 		(setq c-re-redisplay-timer
 		      (run-with-timer 0 nil #'c-force-redisplay
+				      (current-buffer)
 				      (match-beginning 0) (match-end 0)))))))))))
 
 

@@ -121,7 +121,11 @@ result.  The overhead of the `lambda's is accounted for."
   (unless (or (natnump repetitions) (and repetitions (symbolp repetitions)))
     (setq forms (cons repetitions forms)
 	  repetitions 1))
-  `(benchmark-call (byte-compile '(lambda () ,@forms)) ,repetitions))
+  `(benchmark-call (,(if (native-comp-available-p)
+                         'native-compile
+                       'byte-compile)
+                    '(lambda () ,@forms))
+                   ,repetitions))
 
 ;;;###autoload
 (defun benchmark (repetitions form)

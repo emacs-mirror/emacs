@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -68,8 +68,8 @@
 ;; If you do not like these bindings, modify the variable
 ;; `ffap-bindings', or write your own.
 ;;
-;; If you use ange-ftp, browse-url, complete, efs, or w3, it is best
-;; to load or autoload them before ffap.  If you use ff-paths, load it
+;; If you use ange-ftp, browse-url, complete, efs, it is best to load
+;; or autoload them before ffap.  If you use ff-paths, load it
 ;; afterwards.  Try apropos {C-h a ffap RET} to get a list of the many
 ;; option variables.  In particular, if ffap is slow, try these:
 ;;
@@ -79,7 +79,7 @@
 ;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
 ;; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
 ;;
-;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URL's.
+;; ffap uses `browse-url' to fetch URLs.
 ;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
 ;; Also, you can add `ffap-menu-rescan' to various hooks to fontify
 ;; the file and URL references within a buffer.
@@ -97,7 +97,6 @@
 ;; * break long menus into multiple panes (like imenu?)
 ;; * notice node in "(dired)Virtual Dired" (quotes, parentheses, whitespace)
 ;; * notice "machine.dom blah blah blah dir/file" (how?)
-;; * as w3 becomes standard, rewrite to rely more on its functions
 ;; * regexp options for ffap-string-at-point, like font-lock (MCOOK)
 ;; * v19: could replace `ffap-locate-file' with a quieter `locate-library'
 ;; * handle "$(VAR)" in Makefiles
@@ -282,7 +281,7 @@ For a fancy alternative, get `ffap-url.el'."
   :risky t)
 
 (defcustom ffap-next-regexp
-  ;; If you want ffap-next to find URL's only, try this:
+  ;; If you want ffap-next to find URLs only, try this:
   ;; (and ffap-url-regexp (string-match "\\\\`" ffap-url-regexp)
   ;;	  (concat "\\<" (substring ffap-url-regexp 2))))
   ;;
@@ -315,7 +314,7 @@ disable ffap most of the time."
 
 ;;; Find Next Thing in buffer (`ffap-next'):
 ;;
-;; Original ffap-next-url (URL's only) from RPECK 30 Mar 1995.  Since
+;; Original ffap-next-url (URLs only) from RPECK 30 Mar 1995.  Since
 ;; then, broke it up into ffap-next-guess (noninteractive) and
 ;; ffap-next (a command).  It now work on files as well as url's.
 
@@ -363,7 +362,7 @@ Actual search is done by the function `ffap-next-guess'."
 	  (sit-for 0)			; display point movement
 	  (find-file-at-point (ffap-prompter guess)))
       (goto-char pt)			; restore point
-      (message "No %sfiles or URL's found"
+      (message "No %sfiles or URLs found"
 	       (if wrap "" "more ")))))
 
 (defun ffap-next-url (&optional back wrap)
@@ -377,6 +376,12 @@ Actual search is done by the function `ffap-next-guess'."
 
 ;;; Machines (`ffap-machine-p'):
 
+(defun ffap-accept-or-reject-p (symbol)
+  "Return non-nil if SYMBOL is `accept' or `reject'.
+Otherwise, return nil.  This is intended for use as the
+predicate in the `:safe' property of user options."
+  (memq symbol '(accept reject)))
+
 ;; I cannot decide a "best" strategy here, so these are variables.  In
 ;; particular, if `Pinging...' is broken or takes too long on your
 ;; machine, try setting these all to accept or reject.
@@ -385,16 +390,21 @@ Actual search is done by the function `ffap-next-guess'."
 Value should be a symbol, one of `ping', `accept', and `reject'."
   :type '(choice (const ping)
 		 (const accept)
-		 (const reject))
+                 (const reject))
+  :safe #'ffap-accept-or-reject-p
   :group 'ffap)
-(defcustom ffap-machine-p-known 'ping	; `accept' for higher speed
+
+(defcustom ffap-machine-p-known 'accept
   "What `ffap-machine-p' does with hostnames that have a known domain.
 Value should be a symbol, one of `ping', `accept', and `reject'.
 See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
-		 (const reject))
-  :group 'ffap)
+                 (const reject))
+  :safe #'ffap-accept-or-reject-p
+  :group 'ffap
+  :version "29.1")
+
 (defcustom ffap-machine-p-unknown 'reject
   "What `ffap-machine-p' does with hostnames that have an unknown domain.
 Value should be a symbol, one of `ping', `accept', and `reject'.
@@ -402,6 +412,7 @@ See `mail-extr.el' for the known domains."
   :type '(choice (const ping)
 		 (const accept)
 		 (const reject))
+  :safe #'ffap-accept-or-reject-p
   :group 'ffap)
 
 (defun ffap-what-domain (domain)
@@ -544,6 +555,7 @@ The optional NOMODIFY argument suppresses the extra search."
 	   (string-match ffap-rfs-regexp filename)
 	   filename)))
 
+;;;###autoload
 (defun ffap-machine-at-point ()
   "Return machine name at point if it exists, or nil."
   (let ((mach (ffap-string-at-point 'machine)))
@@ -1229,13 +1241,13 @@ If the region is active, return a string from the region.
 
 If the point is in a comment, ensure that the returned string does not
 contain the comment start characters (especially for major modes that
-have '//' as comment start characters).
+have \"//\" as comment start characters).
 
 Set the variables `ffap-string-at-point' and
 `ffap-string-at-point-region'.
 
 When the region is active and larger than `ffap-max-region-length',
-return an empty string, and set `ffap-string-at-point-region' to '(1 1)."
+return an empty string, and set `ffap-string-at-point-region' to `(1 1)'."
   (let* (dir-separator
          (args
 	  (cdr
@@ -1326,29 +1338,25 @@ Assumes the buffer has not changed."
       ;; Older: (apply 'copy-region-as-kill ffap-string-at-point-region)
       (message "Copied to kill ring: %s"  str))))
 
-;; External.
-(declare-function w3-view-this-url "ext:w3" (&optional no-show))
-
+;;;###autoload
 (defun ffap-url-at-point ()
   "Return URL from around point if it exists, or nil.
 
 Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any."
   (when ffap-url-regexp
-    (or (and (eq major-mode 'w3-mode) ; In a w3 buffer button?
-	     (w3-view-this-url t))
-	(let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
-	      (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix)
-              val)
-	  (setq val (thing-at-point-url-at-point ffap-lax-url
-                                                 (if (use-region-p)
-                                                     (cons (region-beginning)
-                                                           (region-end)))))
-          (if val
-              (let ((bounds (thing-at-point-bounds-of-url-at-point
-                             ffap-lax-url)))
-                (setq ffap-string-at-point-region
-                      (list (car bounds) (cdr bounds)))))
-          val))))
+    (let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
+          (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix)
+          val)
+      (setq val (thing-at-point-url-at-point ffap-lax-url
+                                             (if (use-region-p)
+                                                 (cons (region-beginning)
+                                                       (region-end)))))
+      (if val
+          (let ((bounds (thing-at-point-bounds-of-url-at-point
+                         ffap-lax-url)))
+            (setq ffap-string-at-point-region
+                  (list (car bounds) (cdr bounds)))))
+      val)))
 
 (defvar ffap-gopher-regexp
   "\\<\\(Type\\|Name\\|Path\\|Host\\|Port\\) *= *"
@@ -1449,10 +1457,13 @@ which may actually result in an URL rather than a filename."
 	       (ffap-file-exists-string (substring name 0 (match-beginning 0)))))
 	 ;; If it contains a colon, get rid of it (and return if exists)
 	 ((and (string-match path-separator name)
-	       (setq name (ffap-string-at-point 'nocolon))
-	       (> (length name) 0)
-	       (ffap-file-exists-string name)))
-	 ;; File does not exist, try the alist:
+	       (let ((this-name (ffap-string-at-point 'nocolon)))
+                 ;; But don't interpret the first part if ":/bin" as
+                 ;; the empty string.
+	         (when (> (length this-name) 0)
+                   (setq name this-name)
+	           (ffap-file-exists-string name)))))
+         ;; File does not exist, try the alist:
 	 ((let ((alist ffap-alist) tem try case-fold-search)
 	    (while (and alist (not try))
 	      (setq tem (car alist) alist (cdr alist))
@@ -1486,12 +1497,7 @@ which may actually result in an URL rather than a filename."
 		   ((and (eq major-mode 'internal-ange-ftp-mode)
 			 (string-match "^\\*ftp \\(.*\\)@\\(.*\\)\\*$"
 				       (buffer-name)))
-		    (concat "/" (substring (buffer-name) 5 -1) ":"))
-		   ;; This is too often a bad idea:
-		   ;;((and (eq major-mode 'w3-mode)
-		   ;;	   (stringp url-current-server))
-		   ;; (host-to-ange-path url-current-server))
-		   )))
+                    (concat "/" (substring (buffer-name) 5 -1) ":")))))
 	    (and remote-dir
 		 (or
 		  (and (string-match "\\`\\(/?~?ftp\\)/" name)
@@ -1865,7 +1871,7 @@ Return value:
 ;;; ffap-other-*, ffap-read-only-*, ffap-alternate-* commands:
 
 ;; There could be a real `ffap-noselect' function, but we would need
-;; at least two new user variables, and there is no w3-fetch-noselect.
+;; at least two new user variables.
 ;; So instead, we just fake it with a slow save-window-excursion.
 
 (defun ffap-other-window (filename)

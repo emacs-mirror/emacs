@@ -86,6 +86,8 @@
 (declare-function org-capture "org-capture" (&optional goto keys))
 (declare-function org-clock-modify-effort-estimate "org-clock" (&optional value))
 
+(declare-function org-element-type "org-element" (&optional element))
+
 (defvar calendar-mode-map)
 (defvar org-clock-current-task)
 (defvar org-current-tag-alist)
@@ -97,8 +99,8 @@
 
 ;; Defined somewhere in this file, but used before definition.
 (defvar org-agenda-buffer-name "*Org Agenda*")
-(defvar org-agenda-overriding-header nil)
 (defvar org-agenda-title-append nil)
+(defvar org-agenda-overriding-header)
 ;; (with-no-warnings (defvar entry)) ;; unprefixed, from calendar.el
 ;; (with-no-warnings (defvar date))  ;; unprefixed, from calendar.el
 (defvar original-date) ; dynamically scoped, calendar.el does scope this
@@ -1613,7 +1615,7 @@ alpha-down         Sort headlines alphabetically, reversed.
 
 The different possibilities will be tried in sequence, and testing stops
 if one comparison returns a \"not-equal\".  For example, the default
-    '(time-up category-keep priority-down)
+    `(time-up category-keep priority-down)'
 means: Pull out all entries having a specified time of day and sort them,
 in order to make a time schedule for the current day the first thing in the
 agenda listing for the day.  Of the entries without a time indication, keep
@@ -2156,7 +2158,7 @@ string that it returns."
 (org-remap org-agenda-mode-map 'move-end-of-line 'org-agenda-end-of-line)
 
 (defvar org-agenda-menu) ; defined later in this file.
-(defvar org-agenda-restrict nil) ; defined later in this file.
+(defvar org-agenda-restrict nil)
 (defvar org-agenda-follow-mode nil)
 (defvar org-agenda-entry-text-mode nil)
 (defvar org-agenda-clockreport-mode nil)
@@ -4122,7 +4124,7 @@ dimming them."                   ;FIXME: The arg isn't used, actually!
 
 If the header at `org-hd-marker' is blocked according to
 `org-entry-blocked-p', then if `org-agenda-dim-blocked-tasks' is
-'invisible and the header is not blocked by checkboxes, set the
+`invisible' and the header is not blocked by checkboxes, set the
 text property `org-todo-blocked' to `invisible', otherwise set it
 to t."
   (when (get-text-property 0 'todo-state entry)
@@ -4857,7 +4859,7 @@ Press `\\[org-agenda-manipulate-query-add]', \
 
 ;;;###autoload
 (defun org-todo-list (&optional arg)
-  "Show all (not done) TODO entries from all agenda file in a single list.
+  "Show all (not done) TODO entries from all agenda files in a single list.
 The prefix arg can be used to select a specific TODO keyword and limit
 the list to these.  When using `\\[universal-argument]', you will be prompted
 for a keyword.  A numeric prefix directly selects the Nth keyword in
@@ -5729,7 +5731,8 @@ displayed in agenda view."
 		    (org-at-planning-p)
 		    (org-before-first-heading-p)
 		    (and org-agenda-include-inactive-timestamps
-			 (org-at-clock-log-p)))
+			 (org-at-clock-log-p))
+                    (not (org-at-timestamp-p 'agenda)))
 	    (throw :skip nil))
 	  (org-agenda-skip))
 	(let* ((pos (match-beginning 0))
@@ -7177,12 +7180,13 @@ The optional argument TYPE tells the agenda type."
 		  (concat
 		   (substring x 0 (match-end 1))
                    (unless (string= org-agenda-todo-keyword-format "")
-		     (format org-agenda-todo-keyword-format
-			     (match-string 2 x)))
-                   ;; Remove `display' property as the icon could leak
-		   ;; on the white space.
-		   (org-add-props " " (org-plist-delete (text-properties-at 0 x)
-                                                        'display))
+                     (format org-agenda-todo-keyword-format
+                             (match-string 2 x)))
+                   (unless (string= org-agenda-todo-keyword-format "")
+                     ;; Remove `display' property as the icon could leak
+                     ;; on the white space.
+                     (org-add-props " " (org-plist-delete (text-properties-at 0 x)
+                                                          'display)))
                    (substring x (match-end 3)))))))
       x)))
 
@@ -7285,7 +7289,7 @@ When TYPE is \"scheduled\", \"deadline\", \"timestamp\" or
 \"timestamp_ia\", compare within each of these type.  When TYPE
 is the empty string, compare all timestamps without respect of
 their type."
-  (let* ((def (and (not org-agenda-sort-notime-is-late) -1))
+  (let* ((def (if org-agenda-sort-notime-is-late 99999999 -1))
 	 (ta (or (and (string-match type (or (get-text-property 1 'type a) ""))
 		      (get-text-property 1 'ts-date a))
 		 def))
@@ -7395,7 +7399,7 @@ Argument ARG is the prefix argument."
 When in a restricted subtree, remove it.
 
 The restriction will span over the entire file if TYPE is `file',
-or if type is '(4), or if the cursor is before the first headline
+or if type is \\='(4), or if the cursor is before the first headline
 in the file.  Otherwise, only apply the restriction to the current
 subtree."
   (interactive "P")

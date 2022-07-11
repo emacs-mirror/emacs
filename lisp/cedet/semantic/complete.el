@@ -1761,7 +1761,8 @@ Return a cons cell (X . Y)."
 
 
 (defvar tooltip-frame-parameters)
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defun semantic-displayer-tooltip-show (text)
   "Display a tooltip with TEXT near cursor."

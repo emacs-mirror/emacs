@@ -31,12 +31,13 @@
 
 (require 'auth-source)
 (require 'format-spec)
-(require 'ls-lisp)  ;; Due to `tramp-handle-insert-directory'.
+(require 'ls-lisp) ;; Due to `tramp-handle-insert-directory'.
 (require 'parse-time)
 (require 'shell)
 (require 'subr-x)
 
 (declare-function tramp-error "tramp")
+(declare-function tramp-file-name-handler "tramp")
 (declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 
@@ -133,8 +134,8 @@ NAME is unquoted."
       #'exec-path
     (lambda ()
       "List of directories to search programs to run in remote subprocesses."
-      (if-let ((handler (find-file-name-handler default-directory 'exec-path)))
-	  (funcall handler 'exec-path)
+      (if (tramp-tramp-file-p default-directory)
+	  (tramp-file-name-handler 'exec-path)
 	exec-path))))
 
 ;; `time-equal-p' has appeared in Emacs 27.1.
@@ -233,7 +234,7 @@ CONDITION can also be a list of error conditions."
   (if (fboundp 'string-replace)
       #'string-replace
     (lambda (from-string to-string in-string)
-      (let ((case-fold-search nil))
+      (let (case-fold-search)
         (replace-regexp-in-string
          (regexp-quote from-string) to-string in-string t t)))))
 
@@ -242,7 +243,7 @@ CONDITION can also be a list of error conditions."
   (if (fboundp 'string-search)
       #'string-search
     (lambda (needle haystack &optional start-pos)
-      (let ((case-fold-search nil))
+      (let (case-fold-search)
         (string-match-p (regexp-quote needle) haystack start-pos)))))
 
 ;; Function `make-lock-file-name' is new in Emacs 28.1.
@@ -282,6 +283,16 @@ CONDITION can also be a list of error conditions."
   (if (get 'permission-denied 'error-conditions)
       (tramp-error vec tramp-permission-denied file)
     (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
+
+;; Function `auth-info-password' is new in Emacs 29.1.
+(defalias 'tramp-compat-auth-info-password
+  (if (fboundp 'auth-info-password)
+      #'auth-info-password
+    (lambda (auth-info)
+      (let ((secret (plist-get auth-info :secret)))
+	(while (functionp secret)
+          (setq secret (funcall secret)))
+	secret))))
 
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))

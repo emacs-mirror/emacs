@@ -439,6 +439,7 @@ If NODISPLAY is non-nil, don't redisplay the article buffer."
     (unless nodisplay (gnus-outlook-display-article-buffer))
     attrib-start))
 
+;;;###autoload
 (defun gnus-article-outlook-rearrange-citation (&optional nodisplay)
   "Repair broken citations.
 If NODISPLAY is non-nil, don't redisplay the article buffer."

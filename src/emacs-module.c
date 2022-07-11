@@ -411,7 +411,7 @@ module_global_reference_p (emacs_value v, ptrdiff_t *n)
      reference that's identical to some global reference.  */
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
     {
-      if (!EQ (HASH_KEY (h, i), Qunbound)
+      if (!BASE_EQ (HASH_KEY (h, i), Qunbound)
           && &XMODULE_GLOBAL_REFERENCE (HASH_VALUE (h, i))->value == v)
         return true;
     }
@@ -955,11 +955,9 @@ single memcpy to convert the magnitude.  This way we largely avoid the
 import/export overhead on most platforms.
 */
 
-enum
-{
-  /* Documented maximum count of magnitude elements. */
-  module_bignum_count_max = min (SIZE_MAX, PTRDIFF_MAX) / sizeof (emacs_limb_t)
-};
+/* Documented maximum count of magnitude elements. */
+#define module_bignum_count_max \
+  ((ptrdiff_t) min (SIZE_MAX, PTRDIFF_MAX) / sizeof (emacs_limb_t))
 
 /* Verify that emacs_limb_t indeed has unique object
    representations.  */
@@ -1137,7 +1135,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   rt->private_members = &rt_priv;
   rt->get_environment = module_get_environment;
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect_module (SPECPDL_MODULE_RUNTIME, rt);
   record_unwind_protect_module (SPECPDL_MODULE_ENVIRONMENT, rt_priv.env);
 
@@ -1166,7 +1164,7 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
   emacs_env pub;
   struct emacs_env_private priv;
   emacs_env *env = initialize_environment (&pub, &priv);
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   record_unwind_protect_module (SPECPDL_MODULE_ENVIRONMENT, env);
 
   USE_SAFE_ALLOCA;

@@ -84,17 +84,14 @@
 
 (defcustom ses-initial-size '(1 . 1)
   "Initial size of a new spreadsheet, as a cons (NUMROWS . NUMCOLS)."
-  :group 'ses
   :type '(cons (integer :tag "numrows") (integer :tag "numcols")))
 
 (defcustom ses-initial-column-width 7
   "Initial width of columns in a new spreadsheet."
-  :group 'ses
   :type '(integer :match (lambda (widget value) (> value 0))))
 
 (defcustom ses-initial-default-printer "%.7g"
   "Initial default printer for a new spreadsheet."
-  :group 'ses
   :type  '(choice string
 		  (list :tag "Parenthesized string" string)
 		  function))
@@ -103,14 +100,29 @@
   "Things to do after entering a value into a cell.
 An abnormal hook that usually runs a cursor-movement function.
 Each function is called with ARG=1."
-  :group 'ses
   :type 'hook
   :options '(forward-char backward-char next-line previous-line))
 
 (defcustom ses-mode-hook nil
   "Hook functions to be run upon entering SES mode."
-  :group 'ses
   :type 'hook)
+
+(defcustom ses-jump-cell-name-function #'upcase
+  "Function to process the string passed to function `ses-jump'.
+Set it to `identity' to make no change.
+Set it to `upcase' to make cell name change case isensitive.
+
+ May return
+
+* a string, in this case this must be a cell name.
+* a (row . col) cons cell, in this case that must be valid cell coordinates."
+  :type 'function)
+
+(defcustom ses-jump-prefix-function #'ses-jump-prefix
+  "Function that takes the prefix argument passed to function `ses-jump'.
+It may return the same sort of thing as `ses-jump-cell-name-function'."
+  :type 'function)
+
 
 
 ;;----------------------------------------------------------------------------
@@ -233,7 +245,7 @@ Used for listing local printers or renamed cells.")
     (suppress-keymap newmap t)
     ;;These keys insert themselves as the beginning of a numeric value
     (dotimes (x (length numeric))
-      (define-key newmap (substring numeric x (1+ x)) 'ses-read-cell))
+      (define-key newmap (substring numeric x (1+ x)) #'ses-read-cell))
     (define-key newmap [remap clipboard-kill-region] #'ses-kill-override)
     (define-key newmap [remap end-of-line]           #'ses-end-of-line)
     (define-key newmap [remap kill-line]             #'ses-delete-row)
@@ -345,7 +357,7 @@ printer and then modify its output.")
      (t (error "Unexpected elements `%S' in list `ses-localvars'" x)))))
 
 ;;; This variable is documented as being permitted in file-locals:
-(put 'ses--symbolic-formulas 'safe-local-variable 'consp)
+(put 'ses--symbolic-formulas 'safe-local-variable #'consp)
 
 (defconst ses-paramlines-plist
   '(ses--col-widths  -5 ses--col-printers -4 ses--default-printer -3
@@ -1056,8 +1068,7 @@ the old and FORCE is nil."
 (defcustom ses-self-reference-early-detection nil
   "Non-nil if cycle detection is early for cells that refer to themselves."
   :version "24.1"
-  :type 'boolean
-  :group 'ses)
+  :type 'boolean)
 
 (defun ses-update-cells (list &optional force)
   "Recalculate cells in LIST, checking for dependency loops.
@@ -2064,8 +2075,8 @@ formula:
 	  ;; Not to use tab characters for safe (tabs may do bad for column
 	  ;; calculation).
 	  indent-tabs-mode	 nil)
-    (1value (add-hook 'change-major-mode-hook 'ses-cleanup nil t))
-    (1value (add-hook 'kill-buffer-hook 'ses-killbuffer-hook nil t))
+    (1value (add-hook 'change-major-mode-hook #'ses-cleanup nil t))
+    (1value (add-hook 'kill-buffer-hook #'ses-killbuffer-hook nil t))
     (cl-pushnew (current-buffer) ses--ses-buffer-list :test 'eq)
     ;; This makes revert impossible if the buffer is read-only.
     ;; (1value (add-hook 'before-revert-hook 'ses-cleanup nil t))
@@ -2116,8 +2127,8 @@ formula:
     ;; find-alternate-file, post-command-hook doesn't get run for some reason,
     ;; so use an idle timer to make sure.
     (setq ses--deferred-narrow 'ses-mode)
-    (1value (add-hook 'post-command-hook 'ses-command-hook nil t))
-    (run-with-idle-timer 0.01 nil 'ses-command-hook)
+    (1value (add-hook 'post-command-hook #'ses-command-hook nil t))
+    (run-with-idle-timer 0.01 nil #'ses-command-hook)
     (run-mode-hooks 'ses-mode-hook)))
 
 (put 'ses-mode 'mode-class 'special)
@@ -2233,24 +2244,43 @@ Based on the current set of columns and `window-hscroll' position."
 ;;----------------------------------------------------------------------------
 ;; Redisplay and recalculation
 ;;----------------------------------------------------------------------------
+(defun ses-jump-prefix (prefix-int)
+  "Convert an integer (unversal prefix) into a (ROW . COL).
+Does it by numbering cells starting from 0 from top left to bottom right,
+going row by row."
+  (and (>= prefix-int 0)
+       (<  prefix-int (* ses--numcols ses--numrows))
+       (cons (/ prefix-int ses--numcols) (% prefix-int ses--numcols))))
 
-(defun ses-jump (sym)
+
+(defun ses-jump (&optional sym)
   "Move point to cell SYM."
-  (interactive (let* (names
-		      (s (completing-read
-			  "Jump to cell: "
-			  (and ses--named-cell-hashmap
-			       (progn (maphash (lambda (key _val)
-                                                 (push (symbol-name key) names))
-					       ses--named-cell-hashmap)
-				      names)))))
-		 (if (string= s "")
-		     (user-error "Invalid cell name")
-		   (list (intern s)))))
-  (let ((rowcol (ses-sym-rowcol sym)))
+  (interactive "P")
+  (setq sym
+        (if current-prefix-arg
+            (funcall ses-jump-prefix-function (prefix-numeric-value sym))
+          (or sym
+            (completing-read
+             "Jump to cell: "
+             (and ses--named-cell-hashmap
+                  (let (names)
+                    (maphash (lambda (key _val)
+                               (push (symbol-name key) names))
+                             ses--named-cell-hashmap)
+                    names))))))
+  (and (stringp sym)
+       (not (and ses--named-cell-hashmap (gethash (intern sym) ses--named-cell-hashmap)))
+       (setq sym  (funcall ses-jump-cell-name-function sym)))
+  (if (stringp sym)
+      (if (string= sym "")
+          (user-error "Empty cell name")
+        (setq sym (intern sym))))
+  (let ((rowcol (if (consp sym)
+                    (prog1 sym (setq sym (ses-cell-symbol (car sym) (cdr sym))))
+                  (ses-sym-rowcol sym))))
     (or rowcol (error "Invalid cell name"))
     (if (eq (symbol-value sym) '*skip*)
-	(error "Cell is covered by preceding cell"))
+        (error "Cell is covered by preceding cell"))
     (ses-goto-print (car rowcol) (cdr rowcol))))
 
 (defun ses-jump-safe (cell)
@@ -2301,7 +2331,7 @@ Narrow to print area if optional argument NONARROW is nil."
   "Recalculate and reprint the current cell or range.
 
 If CURCELL is non nil use it as current cell or range
-without any check, otherwise function (ses-check-curcell 'range)
+without any check, otherwise function (ses-check-curcell \\='range)
 is called.
 
 For an individual cell, shows the error if the formula or printer
@@ -2507,7 +2537,7 @@ Return nil if cell formula was unsafe and user declined confirmation."
 	   ;; Position cursor inside close-quote.
 	   (setq initial (cons initial (length initial))))
        (dolist (key ses-completion-keys)
-         (define-key ses-mode-edit-map key 'ses-edit-cell-complete-symbol))
+         (define-key ses-mode-edit-map key #'ses-edit-cell-complete-symbol))
        ;; make it globally visible, so that it can be visible from the minibuffer.
        (setq ses--completion-table ses--named-cell-hashmap)
        (list row col
@@ -2604,8 +2634,9 @@ With prefix, deletes several cells."
 ;;----------------------------------------------------------------------------
 (defun ses-read-printer-complete-symbol ()
   (interactive)
-  (let ((completion-at-point-functions (cons 'ses--read-printer-completion-at-point-function
-                                             completion-at-point-functions)))
+  (let ((completion-at-point-functions
+         (cons #'ses--read-printer-completion-at-point-function
+               completion-at-point-functions)))
     (completion-at-point)))
 
 (defun ses--read-printer-completion-at-point-function ()
@@ -2647,7 +2678,7 @@ canceled."
       (setq default "")
     (setq prompt (format-prompt prompt default)))
   (dolist (key ses-completion-keys)
-    (define-key ses-mode-edit-map key 'ses-read-printer-complete-symbol))
+    (define-key ses-mode-edit-map key #'ses-read-printer-complete-symbol))
   ;; make it globally visible, so that it can be visible from the minibuffer.
   (setq ses--completion-table ses--local-printer-hashmap)
   (let ((new (read-from-minibuffer prompt
@@ -3743,15 +3774,15 @@ DEFINITION shall be either a string formatter, e.g.:
   \"%.2f\" or (\"%.2f\")  for left alignment.
 
 or a lambda expression, e.g. for formatting in ISO format dates
-created with a '(calcFunc-date YEAR MONTH DAY)' formula:
+created with a `(calcFunc-date YEAR MONTH DAY)' formula:
 
   (lambda (x)
      (cond
       ((null val) \"\")
-      ((eq (car-safe x) 'date)
-       (let ((calc-format-date '(X YYYY \"-\" MM \"-\" DD)))
+      ((eq (car-safe x) \\='date)
+       (let ((calc-format-date \\='(X YYYY \"-\" MM \"-\" DD)))
          (math-format-date x)))
-      (t (ses-center-span val ?# 'ses-prin1))))
+      (t (ses-center-span val ?# \\='ses-prin1))))
 
 If NAME is already used to name a local printer function, then
 the current definition is proposed as default value, and the
@@ -4079,17 +4110,19 @@ SPAN indicates how many rightward columns to include in width (default = 0)."
   (ses-center value span ?- printer))
 
 (defun ses-dashfill-span (value &optional printer)
-  "Print VALUE, centered using dashes within the span that starts in the
-current column and continues until the next nonblank column."
+  "Print VALUE, centered using dashes.
+Centers within the span that starts in the current column and continues
+until the next nonblank column."
   (ses-center-span value ?- printer))
 
 (defun ses-tildefill-span (value &optional printer)
-  "Print VALUE, centered using tildes within the span that starts in the
-current column and continues until the next nonblank column."
+  "Print VALUE, centered using tildes.
+Centers within the span that starts in the current column and continues
+until the next nonblank column."
   (ses-center-span value ?~ printer))
 
 (defun ses-prin1 (value)
-  "Shorthand for  '(prin1-to-string VALUE t)'.
+  "Shorthand for `(prin1-to-string VALUE t)'.
 Useful to handle the default behavior in custom lambda based
 printer functions."
   (prin1-to-string value t))

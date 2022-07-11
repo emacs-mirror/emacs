@@ -35,8 +35,6 @@
   "Test old comment extraction.
 Dump out the extracted dictionary."
   :tags '(:unstable)
-  (interactive)
-
   (srecode-load-tables-for-mode major-mode)
   (srecode-load-tables-for-mode major-mode 'document)
 

@@ -120,9 +120,7 @@
   :prefix "dframe-"
   :group 'dframe)
 
-(defvar dframe-have-timer-flag (if (fboundp 'display-graphic-p)
-				   (display-graphic-p)
-				 window-system)
+(defvar dframe-have-timer-flag (display-graphic-p)
   "Non-nil means that timers are available for this Emacs.
 This is nil for terminals, since updating a frame in a terminal
 is not useful to the user.")

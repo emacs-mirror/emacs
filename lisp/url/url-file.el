@@ -29,6 +29,12 @@
 (require 'url-dired)
 (declare-function mm-disable-multibyte "mm-util" ())
 
+(defvar url-allow-non-local-files nil
+  "If non-nil, allow URL to fetch non-local files.
+By default, this is not allowed, since that would allow rendering
+HTML to fetch files on other systems if given a <img
+src=\"/ssh:host...\"> element, which can be disturbing.")
+
 (defconst url-file-default-port 21 "Default FTP port.")
 (defconst url-file-asynchronous-p t "FTP transfers are asynchronous.")
 (defalias 'url-file-expand-file-name 'url-default-expander)
@@ -70,18 +76,15 @@ to them."
 	    buff func
 	    func args
 	    args efs))
-  (let ((size (file-attribute-size (file-attributes name))))
-    (with-current-buffer buff
-      (goto-char (point-max))
-      (if (/= -1 size)
-	  (insert (format "Content-length: %d\n" size)))
-      (insert "\n")
-      (insert-file-contents-literally name)
-      (if (not (url-file-host-is-local-p (url-host url-current-object)))
-	  (condition-case ()
-	      (delete-file name)
-	    (error nil)))
-      (apply func args))))
+  (with-current-buffer buff
+    (goto-char (point-max))
+    (insert-file-contents-literally name)
+    (insert (format "Content-length: %d\n\n" (buffer-size)))
+    (if (not (url-file-host-is-local-p (url-host url-current-object)))
+	(condition-case ()
+	    (delete-file name)
+	  (error nil)))
+    (apply func args)))
 
 (declare-function ange-ftp-set-passwd "ange-ftp" (host user passwd))
 (declare-function ange-ftp-copy-file-internal "ange-ftp"
@@ -111,7 +114,8 @@ to them."
 			  (memq system-type '(ms-dos windows-nt)))
 		     (substring file 1))
 		    ;; file: URL with a file:/bar:/foo-like spec.
-		    ((string-match "\\`/[^/]+:/" file)
+		    ((and (not url-allow-non-local-files)
+                          (string-match "\\`/[^/]+:/" file))
 		     (concat "/:" file))
 		    (t
 		     file))))

@@ -36,12 +36,11 @@
 ;; make lisp/so-long-tests/spelling-tests SELECTOR=t
 
 ;; Only define the test if spell-checking is possible.
-(when (and ispell-program-name
-           (executable-find ispell-program-name)
-           (condition-case ()
-               (progn (ispell-check-version) t)
-             (error nil))
-           (member "british" (ispell-valid-dictionary-list)))
+(when (ignore-errors
+        (and ispell-program-name
+             (executable-find ispell-program-name)
+             (progn (ispell-check-version) t)
+             (member "british" (ispell-valid-dictionary-list))))
   (ert-deftest so-long-spelling ()
     "Check the spelling in the source code."
     :tags '(:unstable) ;; It works for me, but I'm not sure about others.
@@ -51,8 +50,9 @@
     ;; The Emacs test Makefile's use of HOME=/nonexistent triggers an error
     ;; when starting the inferior ispell process, so we set HOME to a valid
     ;; (but empty) temporary directory for this test.
-    (ert-with-temp-file tmpdir
-      :suffix "so-long.ispell"
+    (ert-with-temp-directory tmpdir
+      :prefix "so-long."
+      :suffix ".ispell"
       (let* ((process-environment (cons (format "HOME=%s" tmpdir)
                                         process-environment))
              (find-spelling-mistake

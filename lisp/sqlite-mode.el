@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(eval-when-compile (require 'subr-x))
 
 (declare-function sqlite-execute "sqlite.c")
 (declare-function sqlite-more-p "sqlite.c")
@@ -129,15 +130,23 @@
             (insert (format "  %s\n" column))))))))
 
 (defun sqlite-mode--column-names (table)
+  "Return a list of the column names for TABLE."
   (let ((sql
          (caar
           (sqlite-select
            sqlite--db
            "select sql from sqlite_master where tbl_name = ? AND type = 'table'"
            (list table)))))
-    (mapcar
-     #'string-trim
-     (split-string (replace-regexp-in-string "^.*(\\|)$" "" sql) ","))))
+    (with-temp-buffer
+      (insert sql)
+      (mapcar #'string-trim
+              (split-string
+               ;; Extract the args to CREATE TABLE.  Point is
+               ;; currently at its end.
+               (buffer-substring
+                (1- (point))                          ; right before )
+                (1+ (progn (backward-sexp) (point)))) ; right after (
+               ",")))))
 
 (defun sqlite-mode-list-data ()
   "List the data from the table under point."

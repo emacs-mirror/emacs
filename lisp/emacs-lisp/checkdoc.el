@@ -165,8 +165,8 @@
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
-(require 'lisp-mode) ;; for lisp-mode-symbol-regexp
-(require 'dired)     ;; for dired-get-filename and dired-map-over-marks
+(require 'lisp-mode) ;; for lisp-mode-symbol regexp
+(eval-when-compile (require 'dired))     ;; for dired-map-over-marks
 (require 'lisp-mnt)
 
 (defvar compilation-error-regexp-alist)
@@ -327,7 +327,7 @@ This should be set in an Emacs Lisp file's local variables."
 ;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
 (defcustom checkdoc-column-zero-backslash-before-paren t
-  "Non-nil means to warn if there is no '\\' before '(' in column zero.
+  "Non-nil means to warn if there is no \"\\\" before \"(\" in column zero.
 This backslash is no longer needed on Emacs 27.1 or later.
 
 See Info node `(elisp) Documentation Tips' for background."
@@ -1124,12 +1124,20 @@ Skip anything that doesn't have the Emacs Lisp library file
 extension (\".el\").
 When called from Lisp, FILES is a list of filenames."
   (interactive
-   (list
-    (delq nil
-          (mapcar
-           ;; skip anything that doesn't look like an Emacs Lisp library
-           (lambda (f) (if (equal (file-name-extension f) "el") f nil))
-           (nreverse (dired-map-over-marks (dired-get-filename) nil)))))
+   (progn
+     ;; These Dired functions must be defined since we're in a Dired buffer.
+     (declare-function dired-get-filename "dired"
+                       (&optional localp no-error-if-not-filep))
+     ;; These functions are used by the expansion of `dired-map-over-marks'.
+     (declare-function dired-move-to-filename "dired"
+                       (&optional raise-error eol))
+     (declare-function dired-marker-regexp "dired" ())
+     (list
+      (delq nil
+            (mapcar
+             ;; skip anything that doesn't look like an Emacs Lisp library
+             (lambda (f) (if (equal (file-name-extension f) "el") f nil))
+             (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
    dired-mode)
   (if (null files)
       (error "No files to run checkdoc on")
@@ -1271,38 +1279,30 @@ TEXT, START, END and UNFIXABLE conform to
 ;;; Minor Mode specification
 ;;
 
-(defvar checkdoc-minor-mode-map
-  (let ((map (make-sparse-keymap))
-	(pmap (make-sparse-keymap)))
-    ;; Override some bindings
-    (define-key map "\C-\M-x" 'checkdoc-eval-defun)
-    (define-key map "\C-x`" 'checkdoc-continue)
-    (define-key map [menu-bar emacs-lisp eval-buffer]
-      'checkdoc-eval-current-buffer)
-    ;; Add some new bindings under C-c ?
-    (define-key pmap "x" 'checkdoc-defun)
-    (define-key pmap "X" 'checkdoc-ispell-defun)
-    (define-key pmap "`" 'checkdoc-continue)
-    (define-key pmap "~" 'checkdoc-ispell-continue)
-    (define-key pmap "s" 'checkdoc-start)
-    (define-key pmap "S" 'checkdoc-ispell-start)
-    (define-key pmap "d" 'checkdoc)
-    (define-key pmap "D" 'checkdoc-ispell)
-    (define-key pmap "b" 'checkdoc-current-buffer)
-    (define-key pmap "B" 'checkdoc-ispell-current-buffer)
-    (define-key pmap "e" 'checkdoc-eval-current-buffer)
-    (define-key pmap "m" 'checkdoc-message-text)
-    (define-key pmap "M" 'checkdoc-ispell-message-text)
-    (define-key pmap "c" 'checkdoc-comments)
-    (define-key pmap "C" 'checkdoc-ispell-comments)
-    (define-key pmap " " 'checkdoc-rogue-spaces)
+(defvar-keymap checkdoc-minor-mode-map
+  :doc "Keymap used to override evaluation key-bindings for documentation checking."
+  ;; Override some bindings
+  "C-M-x"     #'checkdoc-eval-defun
+  "C-x `"     #'checkdoc-continue
+  "<menu-bar> <emacs-lisp> <eval-buffer>"  #'checkdoc-eval-current-buffer
 
-    ;; bind our submap into map
-    (define-key map "\C-c?" pmap)
-    map)
-  "Keymap used to override evaluation key-bindings for documentation checking.")
-
-;; Add in a menubar with easy-menu
+  ;; Add some new bindings under C-c ?
+  "C-c ? x"   #'checkdoc-defun
+  "C-c ? X"   #'checkdoc-ispell-defun
+  "C-c ? `"   #'checkdoc-continue
+  "C-c ? ~"   #'checkdoc-ispell-continue
+  "C-c ? s"   #'checkdoc-start
+  "C-c ? S"   #'checkdoc-ispell-start
+  "C-c ? d"   #'checkdoc
+  "C-c ? D"   #'checkdoc-ispell
+  "C-c ? b"   #'checkdoc-current-buffer
+  "C-c ? B"   #'checkdoc-ispell-current-buffer
+  "C-c ? e"   #'checkdoc-eval-current-buffer
+  "C-c ? m"   #'checkdoc-message-text
+  "C-c ? M"   #'checkdoc-ispell-message-text
+  "C-c ? c"   #'checkdoc-comments
+  "C-c ? C"   #'checkdoc-ispell-comments
+  "C-c ? SPC" #'checkdoc-rogue-spaces)
 
 (easy-menu-define nil checkdoc-minor-mode-map
   "Checkdoc Minor Mode Menu."
@@ -1999,6 +1999,7 @@ from the comment."
     (let ((defun (looking-at
                   "(\\(?:cl-\\)?def\\(un\\|macro\\|subst\\|advice\\|generic\\|method\\)"))
 	  (is-advice (looking-at "(defadvice"))
+          (defun-depth (ppss-depth (syntax-ppss)))
 	  (lst nil)
 	  (ret nil)
 	  (oo (make-vector 3 0)))	;substitute obarray for `read'
@@ -2014,11 +2015,17 @@ from the comment."
 	(setq ret (cons nil ret))
 	;; Interactive
 	(save-excursion
-	  (setq ret (cons
-		     (re-search-forward "^\\s-*(interactive"
-					(save-excursion (end-of-defun) (point))
-					t)
-		     ret)))
+          (push (and (re-search-forward "^\\s-*(interactive"
+				        (save-excursion
+                                          (end-of-defun)
+                                          (point))
+				        t)
+                     ;; Disregard `interactive' from other parts of
+                     ;; the function.
+                     (= (ppss-depth (syntax-ppss))
+                        (+ defun-depth 2))
+                     (point))
+                ret))
 	(skip-chars-forward " \t\n")
 	(let ((bss (buffer-substring (point) (save-excursion (forward-sexp 1)
 							     (point))))
@@ -2226,7 +2233,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
 ;;
 (defvar ispell-process)
 (declare-function ispell-buffer-local-words "ispell" ())
-(declare-function ispell-correct-p "ispell" ())
+(declare-function ispell-correct-p "ispell" (&optional following))
 (declare-function ispell-set-spellchecker-params "ispell" ())
 (declare-function ispell-accept-buffer-local-defs "ispell" ())
 (declare-function ispell-error-checking-word "ispell" (word))
@@ -2456,11 +2463,9 @@ Code:, and others referenced in the style guide."
 		  pos)
 	      (goto-char (point-min))
 	      ;; match ";;;###autoload" cookie to keep it with the form
-	      (require 'autoload)
 	      (while (and cont (re-search-forward
-				(concat "^\\("
-					(regexp-quote generate-autoload-cookie)
-					"\n\\)?"
+				(concat "^\\(" lisp-mode-autoload-regexp
+                                        "\n\\)?"
 					"(")
 				nil t))
 		(setq pos (match-beginning 0)
@@ -2591,13 +2596,13 @@ The correct format is \"Foo\" or \"some-symbol: Foo\".  See also
     (unless (let ((case-fold-search nil))
               (looking-at (rx (or upper-case "%s"))))
       ;; A defined Lisp symbol is always okay.
-      (unless (and (looking-at (rx (group (regexp lisp-mode-symbol-regexp))))
+      (unless (and (looking-at (rx (group lisp-mode-symbol)))
                    (or (fboundp (intern (match-string 1)))
                        (boundp (intern (match-string 1)))))
         ;; Other Lisp symbols are sometimes okay.
         (rx-let ((c (? "\\\n")))        ; `c' is for a continued line
           (let ((case-fold-search nil)
-                (some-symbol (rx (regexp lisp-mode-symbol-regexp)
+                (some-symbol (rx lisp-mode-symbol
                                  c ":" c (+ (any " \t\n"))))
                 (lowercase-str (rx c (group (any "a-z") (+ wordchar)))))
             (if (looking-at some-symbol)
@@ -2622,7 +2627,7 @@ a space as a style error."
          (checkdoc-autofix-ask-replace
           (match-beginning 0) (match-end 0)
           (format-message
-           "`y-or-n-p' argument should end with \"? \".  Fix?")
+           "`y-or-n-p' argument should end with \"?\".  Fix?")
           "?\"" t))
         nil
       (checkdoc-create-error

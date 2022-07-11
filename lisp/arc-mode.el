@@ -101,6 +101,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Configuration.
@@ -1063,7 +1064,8 @@ NEW-NAME."
            #'archive--file-desc-ext-file-name
            (or (archive-get-marked ?*) (list (archive-get-descr))))))
      (list names
-           (read-file-name (format "Copy %s to: " (string-join names ", "))))))
+           (read-file-name (format "Copy %s to: " (string-join names ", "))
+                           nil default-directory))))
   (unless (consp files)
     (setq files (list files)))
   (when (and (> (length files) 1)
@@ -1340,7 +1342,8 @@ NEW-NAME."
   t)
 
 (defun archive-*-write-file-member (archive descr command)
-  (let* ((ename (archive--file-desc-ext-file-name descr))
+  (let* ((archive (expand-file-name archive))
+         (ename (archive--file-desc-ext-file-name descr))
          (tmpfile (expand-file-name ename archive-tmpdir))
          (top (directory-file-name (file-name-as-directory archive-tmpdir)))
 	 (default-directory (file-name-as-directory top)))
@@ -1364,6 +1367,7 @@ NEW-NAME."
 	  (setq ename
 		(encode-coding-string ename archive-file-name-coding-system))
           (let* ((coding-system-for-write 'no-conversion)
+		 (default-directory (file-name-as-directory archive-tmpdir))
 		 (exitcode (apply #'call-process
 				  (car command)
 				  nil

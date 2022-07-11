@@ -829,14 +829,18 @@ This function returns the height, in lines, of the body of window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
 the selected window; otherwise it must be a live window.
 
-If the optional argument @var{pixelwise} is non-@code{nil}, this
-function returns the body height of @var{window} counted in pixels.
+The optional argument @var{pixelwise} defines the units to use for the
+height.  If @code{nil}, return the body height of @var{window} in
+characters, rounded down to the nearest integer, if necessary.  This
+means that if a line at the bottom of the text area is only partially
+visible, that line is not counted.  It also means that the height of a
+window's body can never exceed its total height as returned by
+@code{window-total-height}.
 
-If @var{pixelwise} is @code{nil}, the return value is rounded down to
-the nearest integer, if necessary.  This means that if a line at the
-bottom of the text area is only partially visible, that line is not
-counted.  It also means that the height of a window's body can never
-exceed its total height as returned by @code{window-total-height}.
+If @var{pixelwise} is @code{remap} and the default face is remapped
+(@pxref{Face Remapping}), use the remapped face to determine the
+character height.  For any other non-@code{nil} value, return the
+height in pixels.
 @end defun
 
 @cindex window body width
@@ -857,14 +861,18 @@ This function returns the width, in columns, of the body of window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
 the selected window; otherwise it must be a live window.
 
-If the optional argument @var{pixelwise} is non-@code{nil}, this
-function returns the body width of @var{window} in units of pixels.
+The optional argument @var{pixelwise} defines the units to use for the
+width.  If @code{nil}, return the body width of @var{window} in
+characters, rounded down to the nearest integer, if necessary.  This
+means that if a column on the right of the text area is only partially
+visible, that column is not counted.  It also means that the width of
+a window's body can never exceed its total width as returned by
+@code{window-total-width}.
 
-If @var{pixelwise} is @code{nil}, the return value is rounded down to
-the nearest integer, if necessary.  This means that if a column on the
-right of the text area is only partially visible, that column is not
-counted.  It also means that the width of a window's body can never
-exceed its total width as returned by @code{window-total-width}.
+If @var{pixelwise} is @code{remap} and the default face is remapped
+(@pxref{Face Remapping}), use the remapped face to determine the
+character width.  For any other non-@code{nil} value, return the width
+in pixels.
 @end defun
 
 @cindex window body size
@@ -1150,11 +1158,13 @@ frame to its buffer using the command @code{fit-frame-to-buffer}.
 This command adjusts the size of @var{frame} to display the contents of
 its buffer exactly.  @var{frame} can be any live frame and defaults to
 the selected one.  Fitting is done only if @var{frame}'s root window is
-live.  The arguments @var{max-height}, @var{min-height}, @var{max-width}
-and @var{min-width} specify bounds on the new total size of
-@var{frame}'s root window.  @var{min-height} and @var{min-width} default
-to the values of @code{window-min-height} and @code{window-min-width}
-respectively.
+live.
+
+The arguments @var{max-height}, @var{min-height}, @var{max-width} and
+@var{min-width}, if non-@code{nil}, specify bounds on the new body size
+of @var{frame}'s root window.  A non-@code{nil} value specified by any
+of these arguments overrides the corresponding value specified by
+the option @code{fit-frame-to-buffer-sizes} described below.
 
 If the optional argument @var{only} is @code{vertically}, this function
 may resize the frame vertically only.  If @var{only} is
@@ -1179,10 +1189,10 @@ here can be overridden for a specific frame by that frame's
 
 @defopt fit-frame-to-buffer-sizes
 This option specifies size boundaries for @code{fit-frame-to-buffer}.
-It specifies the total maximum and minimum lines and maximum and minimum
-columns of the root window of any frame that shall be fit to its buffer.
-If any of these values is non-@code{nil}, it overrides the corresponding
-argument of @code{fit-frame-to-buffer}.
+It specifies the maximum and minimum lines and maximum and minimum
+columns of the root window's body of any frame that shall be fit to its
+buffer.  Any value this option specifies will be overridden by the
+corresponding argument of @code{fit-frame-to-buffer}, if non-@code{nil}.
 @end defopt
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
@@ -2596,13 +2606,11 @@ default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 
 @defopt display-buffer-alist
 The value of this option is an alist mapping conditions to display
-actions.  Each condition may be either a regular expression matching a
-buffer name or a function that takes two arguments: a buffer name and
-the @var{action} argument passed to @code{display-buffer}.  If either
-the name of the buffer passed to @code{display-buffer} matches a
-regular expression in this alist, or the function specified by a
-condition returns non-@code{nil}, then @code{display-buffer} uses the
-corresponding display action to display the buffer.
+actions.  Each condition is passed to @code{buffer-match-p}, along
+with the buffer name and the @var{action} argument passed to
+@code{display-buffer}.  If it returns a non-nil value, then
+@code{display-buffer} uses the corresponding display action to display
+the buffer.
 @end defopt
 
 @defopt display-buffer-base-action
@@ -2838,6 +2846,11 @@ the function specified in @code{pop-up-frame-function}
 the newly created frame's parameters.
 @end defun
 
+@defun display-buffer-full-frame buffer alist
+This function displays the buffer on the current frame, deleting all
+other windows so that it takes up the full frame.
+@end defun
+
 @defun display-buffer-in-child-frame buffer alist
 This function tries to display @var{buffer} in a child frame
 (@pxref{Child Frames}) of the selected frame, either reusing an
@@ -2968,13 +2981,14 @@ follows:
 @code{nil} means consider only windows on the selected frame.
 (Actually, the last frame used that is not a minibuffer-only frame.)
 @item
-@code{t} means consider windows on all frames.
-@item
 @code{visible} means consider windows on all visible frames.
 @item
 0 means consider windows on all visible or iconified frames.
 @item
 A frame means consider windows on that frame only.
+@item
+@code{t} means consider windows on all frames.  (Note that this value
+is rarely the right thing to use---it might also return a tooltip frame.)
 @end itemize
 
 Note that the meaning of @code{nil} differs slightly from that of the
@@ -3292,6 +3306,13 @@ window has at least that many columns.  If the value is @code{nil},
 that means not to split this way.
 @end defopt
 
+@defopt display-buffer-avoid-small-windows
+If non-@code{nil}, this should be a number.  Windows that have fewer
+lines than that will be avoided when choosing an existing window.  The
+value is interpreted in units of the frame's canonical line height,
+like @code{window-total-height} does (@pxref{Window Sizes}).
+@end defopt
+
 @defopt even-window-sizes
 This variable, if non-@code{nil}, causes @code{display-buffer} to even
 window sizes whenever it reuses an existing window, and that window is
@@ -3377,8 +3398,8 @@ functions it should try instead as, for example:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-base-action
+(setopt
+ display-buffer-base-action
  '((display-buffer-reuse-window display-buffer-same-window
     display-buffer-in-previous-window
     display-buffer-use-some-window)))
@@ -3392,8 +3413,8 @@ Instead of customizing this variable to @code{t}, customize
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-base-action
+(setopt
+ display-buffer-base-action
  '((display-buffer-reuse-window display-buffer-pop-up-frame)
    (reusable-frames . 0)))
 @end group
@@ -3409,8 +3430,8 @@ specifying the action function @code{display-buffer-same-window}.
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  (cons '("\\*foo\\*" (display-buffer-same-window))
         display-buffer-alist))
 @end group
@@ -3483,8 +3504,8 @@ another frame.  Such a user might provide the following customization:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-base-action
+(setopt
+ display-buffer-base-action
  '((display-buffer-reuse-window display-buffer-pop-up-frame)
    (reusable-frames . 0)))
 @end group
@@ -3529,8 +3550,8 @@ In fact, this:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-base-action
+(setopt
+ display-buffer-base-action
  '(display-buffer-pop-up-frame (reusable-frames . 0)))
 @end group
 @end example
@@ -3586,8 +3607,8 @@ by customizing the option @code{display-buffer-alist} as follows:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*foo\\*"
     (display-buffer-reuse-window display-buffer-pop-up-frame))))
 @end group
@@ -3609,8 +3630,8 @@ we would have to specify that separately, however:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*foo\\*"
     (display-buffer-reuse-window display-buffer-pop-up-frame)
     (reusable-frames . visible))))
@@ -3716,8 +3737,8 @@ written that as
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*foo\\*"
     (display-buffer-reuse-window display-buffer-pop-up-frame)
     (inhibit-same-window . t)
@@ -3860,8 +3881,8 @@ follows:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*foo\\*"
     (display-buffer-below-selected display-buffer-at-bottom)
     (inhibit-same-window . t)
@@ -3874,8 +3895,8 @@ To add a customization for a second buffer one would then write:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*foo\\*"
     (display-buffer-below-selected display-buffer-at-bottom)
     (inhibit-same-window . t)
@@ -4165,6 +4186,13 @@ ignore this option, for example, when there is only one buffer left
 these functions can switch to.
 @end defopt
 
+@defopt switch-to-prev-buffer-skip-regexp
+This user option should be either a regular expression or a list of
+regular expressions.  Buffers whose names match one of those regular
+expressions will be ignored by @code{switch-to-prev-buffer} and
+@code{switch-to-next-buffer} (except when there's no other buffer to
+switch to).
+@end defopt
 
 @node Dedicated Windows
 @section Dedicated Windows
@@ -5281,13 +5309,6 @@ other window is selected.  When it is non-@code{nil} and the
 minibuffer is selected, it takes precedence over
 @code{other-window-scroll-buffer}.  @xref{Definition of
 minibuffer-scroll-window}.
-
-When the minibuffer is active, it is the next window if the selected
-window is the one at the bottom right corner.  In this case,
-@code{scroll-other-window} attempts to scroll the minibuffer.  If the
-minibuffer contains just one line, it has nowhere to scroll to, so the
-line reappears after the echo area momentarily displays the message
-@samp{End of buffer}.
 @end deffn
 
 @deffn Command scroll-other-window-down &optional count
@@ -5507,7 +5528,7 @@ pixels, rather than in units of the normal line height.
 @end example
 @end defun
 
-@defun set-window-vscroll window lines &optional pixels-p
+@defun set-window-vscroll window lines &optional pixels-p preserve-vscroll-p
 This function sets @var{window}'s vertical scroll position to
 @var{lines}.  If @var{window} is @code{nil}, the selected window is
 used.  The argument @var{lines} should be zero or positive; if not, it
@@ -5529,6 +5550,12 @@ The return value is the result of this rounding.
 
 If @var{pixels-p} is non-@code{nil}, @var{lines} specifies a number of
 pixels.  In this case, the return value is @var{lines}.
+
+Normally, the vscroll does not take effect on windows that aren't the
+@code{minibuffer-scroll-window} or the selected window when the
+mini-window is resized (@pxref{Minibuffer Windows}).  This ``frozen''
+behavior is disabled when the @var{preserve-vscroll-p} parameter is
+non-@code{nil}, which means to set the vscroll as usual.
 @end defun
 
 @defvar auto-window-vscroll
@@ -6122,11 +6149,10 @@ configuration on the current frame.
 This function returns @code{t} if @var{object} is a window configuration.
 @end defun
 
-@defun compare-window-configurations config1 config2
-This function compares two window configurations as regards the
-structure of windows, but ignores the values of point and the
-saved scrolling positions---it can return @code{t} even if those
-aspects differ.
+@defun window-configuration-equal-p config1 config2
+This function says whether two window configurations have the same
+window layout, but ignores the values of point and the saved scrolling
+positions---it can return @code{t} even if those aspects differ.
 @end defun
 
 @defun window-configuration-frame config

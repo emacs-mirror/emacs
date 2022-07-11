@@ -76,6 +76,34 @@ typedef struct pgtk_output xp_output;
 #define XG_TEXT_OPEN   GTK_STOCK_OPEN
 #endif
 
+#ifdef HAVE_GTK3
+static void emacs_menu_bar_get_preferred_width (GtkWidget *, gint *, gint *);
+static GType emacs_menu_bar_get_type (void);
+
+typedef struct _EmacsMenuBar
+{
+  GtkMenuBar parent;
+} EmacsMenuBar;
+
+typedef struct _EmacsMenuBarClass
+{
+  GtkMenuBarClass parent;
+} EmacsMenuBarClass;
+
+G_DEFINE_TYPE (EmacsMenuBar, emacs_menu_bar, GTK_TYPE_MENU_BAR)
+#endif
+
+#ifndef HAVE_PGTK
+static void xg_im_context_commit (GtkIMContext *, gchar *, gpointer);
+static void xg_im_context_preedit_changed (GtkIMContext *, gpointer);
+static void xg_im_context_preedit_end (GtkIMContext *, gpointer);
+static bool xg_widget_key_press_event_cb (GtkWidget *, GdkEvent *, gpointer);
+#endif
+
+#if GTK_CHECK_VERSION (3, 10, 0)
+static void xg_widget_style_updated (GtkWidget *, gpointer);
+#endif
+
 #ifndef HAVE_GTK3
 
 #ifdef HAVE_FREETYPE
@@ -114,7 +142,46 @@ struct xg_frame_tb_info
 bool xg_gtk_initialized;        /* Used to make sure xwidget calls are possible */
 #endif
 
-static GtkWidget * xg_get_widget_from_map (ptrdiff_t idx);
+static GtkWidget *xg_get_widget_from_map (ptrdiff_t idx, Display *dpy);
+
+
+
+#ifdef HAVE_GTK3
+static void
+emacs_menu_bar_init (EmacsMenuBar *menu_bar)
+{
+  return;
+}
+
+static void
+emacs_menu_bar_class_init (EmacsMenuBarClass *klass)
+{
+  GtkWidgetClass *widget_class;
+
+  widget_class = GTK_WIDGET_CLASS (klass);
+  widget_class->get_preferred_width = emacs_menu_bar_get_preferred_width;
+}
+
+static void
+emacs_menu_bar_get_preferred_width (GtkWidget *widget,
+				    gint *minimum, gint *natural)
+{
+  GtkWidgetClass *widget_class;
+
+  widget_class = GTK_WIDGET_CLASS (emacs_menu_bar_parent_class);
+  widget_class->get_preferred_width (widget, minimum, natural);
+
+  if (minimum)
+    *minimum = 0;
+}
+
+static GtkWidget *
+emacs_menu_bar_new (void)
+{
+  return GTK_WIDGET (g_object_new (emacs_menu_bar_get_type (), NULL));
+}
+
+#endif
 
 
 /***********************************************************************
@@ -199,6 +266,7 @@ xg_display_open (char *display_name, GdkDisplay **dpy)
 static int
 xg_get_gdk_scale (void)
 {
+#ifdef HAVE_GTK3
   const char *sscale = getenv ("GDK_SCALE");
 
   if (sscale)
@@ -207,6 +275,7 @@ xg_get_gdk_scale (void)
       if (0 < scale)
 	return min (scale, INT_MAX);
     }
+#endif
 
   return 1;
 }
@@ -667,67 +736,74 @@ xg_check_special_colors (struct frame *f,
                          const char *color_name,
                          Emacs_Color *color)
 {
-  bool success_p = 0;
-  bool get_bg = strcmp ("gtk_selection_bg_color", color_name) == 0;
-  bool get_fg = !get_bg && strcmp ("gtk_selection_fg_color", color_name) == 0;
+  bool success_p;
+  bool get_bg;
+  bool get_fg;
+#ifdef HAVE_GTK3
+  GtkStyleContext *gsty;
+  GdkRGBA col;
+  char buf[sizeof "rgb://rrrr/gggg/bbbb"];
+  int state;
+  GdkRGBA *c;
+  unsigned short r, g, b;
+#else
+  GtkStyle *gsty;
+  GdkColor *grgb;
+#endif
 
-  if (! FRAME_GTK_WIDGET (f) || ! (get_bg || get_fg))
+  get_bg = !strcmp ("gtk_selection_bg_color", color_name);
+  get_fg = !get_bg && !strcmp ("gtk_selection_fg_color", color_name);
+  success_p = false;
+
+#ifdef HAVE_PGTK
+  while (FRAME_PARENT_FRAME (f))
+    f = FRAME_PARENT_FRAME (f);
+#endif
+
+  if (!FRAME_GTK_WIDGET (f) || !(get_bg || get_fg))
     return success_p;
 
   block_input ();
-  {
 #ifdef HAVE_GTK3
+  gsty = gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+  state = GTK_STATE_FLAG_SELECTED | GTK_STATE_FLAG_FOCUSED;
+
+  if (get_fg)
+    gtk_style_context_get_color (gsty, state, &col);
+  else
+    {
+      /* FIXME: Retrieving the background color is deprecated in
+	 GTK+ 3.16.  New versions of GTK+ don't use the concept of a
+	 single background color any more, so we shouldn't query for
+	 it.  */
+      gtk_style_context_get (gsty, state,
+			     GTK_STYLE_PROPERTY_BACKGROUND_COLOR, &c,
+			     NULL);
+      col = *c;
+      gdk_rgba_free (c);
+    }
+
+  r = col.red * 65535;
+  g = col.green * 65535;
+  b = col.blue * 65535;
 #ifndef HAVE_PGTK
-    GtkStyleContext *gsty
-      = gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
+  sprintf (buf, "rgb:%04x/%04x/%04x", r, g, b);
+  success_p = x_parse_color (f, buf, color) != 0;
 #else
-    GtkStyleContext *gsty
-      = gtk_widget_get_style_context (FRAME_WIDGET (f));
-#endif
-    GdkRGBA col;
-    char buf[sizeof "rgb://rrrr/gggg/bbbb"];
-    int state = GTK_STATE_FLAG_SELECTED|GTK_STATE_FLAG_FOCUSED;
-    if (get_fg)
-      gtk_style_context_get_color (gsty, state, &col);
-    else
-      {
-        GdkRGBA *c;
-        /* FIXME: Retrieving the background color is deprecated in
-           GTK+ 3.16.  New versions of GTK+ don't use the concept of a
-           single background color any more, so we shouldn't query for
-           it.  */
-        gtk_style_context_get (gsty, state,
-                               GTK_STYLE_PROPERTY_BACKGROUND_COLOR, &c,
-                               NULL);
-        col = *c;
-        gdk_rgba_free (c);
-      }
-
-    unsigned short
-      r = col.red * 65535,
-      g = col.green * 65535,
-      b = col.blue * 65535;
-#ifndef HAVE_PGTK
-    sprintf (buf, "rgb:%04x/%04x/%04x", r, g, b);
-    success_p = x_parse_color (f, buf, color) != 0;
-#else
-    sprintf (buf, "#%04x%04x%04x", r, g, b);
-    success_p = pgtk_parse_color (f, buf, color) != 0;
+  sprintf (buf, "#%04x%04x%04x", r, g, b);
+  success_p = pgtk_parse_color (f, buf, color) != 0;
 #endif
 #else
-    GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
-    GdkColor *grgb = get_bg
-      ? &gsty->bg[GTK_STATE_SELECTED]
-      : &gsty->fg[GTK_STATE_SELECTED];
+  gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
+  grgb = (get_bg ? &gsty->bg[GTK_STATE_SELECTED]
+	  : &gsty->fg[GTK_STATE_SELECTED]);
 
-    color->red = grgb->red;
-    color->green = grgb->green;
-    color->blue = grgb->blue;
-    color->pixel = grgb->pixel;
-    success_p = 1;
+  color->red = grgb->red;
+  color->green = grgb->green;
+  color->blue = grgb->blue;
+  color->pixel = grgb->pixel;
+  success_p = 1;
 #endif
-
-  }
   unblock_input ();
   return success_p;
 }
@@ -992,6 +1068,7 @@ xg_set_geometry (struct frame *f)
 	  /* Handle negative positions without consulting
 	     gtk_window_parse_geometry (Bug#25851).  The position will
 	     be off by scrollbar width + window manager decorations.  */
+#ifndef HAVE_PGTK
 	  if (f->size_hint_flags & XNegative)
 	    f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
 			   - FRAME_PIXEL_WIDTH (f) + f->left_pos);
@@ -999,6 +1076,15 @@ xg_set_geometry (struct frame *f)
 	  if (f->size_hint_flags & YNegative)
 	    f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
 			  - FRAME_PIXEL_HEIGHT (f) + f->top_pos);
+#else
+	  if (f->size_hint_flags & XNegative)
+	    f->left_pos = (pgtk_display_pixel_width (FRAME_DISPLAY_INFO (f))
+			   - FRAME_PIXEL_WIDTH (f) + f->left_pos);
+
+	  if (f->size_hint_flags & YNegative)
+	    f->top_pos = (pgtk_display_pixel_height (FRAME_DISPLAY_INFO (f))
+			  - FRAME_PIXEL_HEIGHT (f) + f->top_pos);
+#endif
 
 	  /* GTK works in scaled pixels, so convert from X pixels.  */
 	  gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
@@ -1113,7 +1199,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   outer_height /= xg_get_scale (f);
   outer_width /= xg_get_scale (f);
 
-  x_wm_set_size_hint (f, 0, 0);
+  xg_wm_set_size_hint (f, 0, 0);
 
   /* Resize the top level widget so rows and columns remain constant.
 
@@ -1159,7 +1245,11 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
     {
       was_visible = true;
+#ifndef HAVE_PGTK
       hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
+#else
+      hide_child_frame = false;
+#endif
 
       if (outer_width != gwidth || outer_height != gheight)
 	{
@@ -1437,6 +1527,9 @@ xg_create_frame_widgets (struct frame *f)
 #ifndef HAVE_GTK3
   GtkRcStyle *style;
 #endif
+#ifndef HAVE_PGTK
+  GtkIMContext *imc;
+#endif
   GtkWindowType type = GTK_WINDOW_TOPLEVEL;
   char *title = 0;
 
@@ -1457,6 +1550,12 @@ xg_create_frame_widgets (struct frame *f)
     }
   wtop = gtk_window_new (type);
   gtk_widget_add_events (wtop, GDK_ALL_EVENTS_MASK);
+#endif
+
+  gtk_widget_set_app_paintable (wtop, f->alpha_background != 1.0);
+#if GTK_CHECK_VERSION (3, 10, 0)
+  g_signal_connect (G_OBJECT (wtop), "style-updated",
+		    G_CALLBACK (xg_widget_style_updated), f);
 #endif
 
   /* gtk_window_set_has_resize_grip is a Gtk+ 3.0 function but Ubuntu
@@ -1530,10 +1629,7 @@ xg_create_frame_widgets (struct frame *f)
      with regular X drawing primitives, so from a GTK/GDK point of
      view, the widget is totally blank.  When an expose comes, this
      will make the widget blank, and then Emacs redraws it.  This flickers
-     a lot, so we turn off double buffering.
-     FIXME: gtk_widget_set_double_buffered is deprecated and might stop
-     working in the future.  We need to migrate away from combining
-     X and GTK+ drawing to a pure GTK+ build.  */
+     a lot, so we turn off double buffering.  */
 
 #ifndef HAVE_PGTK
   gtk_widget_set_double_buffered (wfixed, FALSE);
@@ -1577,6 +1673,21 @@ xg_create_frame_widgets (struct frame *f)
 #endif
                          | GDK_VISIBILITY_NOTIFY_MASK);
 
+  GdkScreen *screen = gtk_widget_get_screen (wtop);
+
+#if !defined HAVE_PGTK
+  GdkVisual *visual = gdk_x11_screen_lookup_visual (screen,
+						    XVisualIDFromVisual (FRAME_X_VISUAL (f)));
+
+  if (!visual)
+    emacs_abort ();
+#else
+  GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
+#endif
+
+  gtk_widget_set_visual (wtop, visual);
+  gtk_widget_set_visual (wfixed, visual);
+
 #ifndef HAVE_PGTK
   /* Must realize the windows so the X window gets created.  It is used
      by callers of this function.  */
@@ -1598,6 +1709,7 @@ xg_create_frame_widgets (struct frame *f)
   /* Must use g_strdup because gtk_widget_modify_style does g_free.  */
   style->bg_pixmap_name[GTK_STATE_NORMAL] = g_strdup ("<none>");
   gtk_widget_modify_style (wfixed, style);
+  gtk_widget_set_can_focus (wfixed, TRUE);
 #else
   gtk_widget_set_can_focus (wfixed, TRUE);
 #ifdef HAVE_PGTK
@@ -1621,10 +1733,25 @@ xg_create_frame_widgets (struct frame *f)
 #ifndef HAVE_PGTK
   gtk_widget_set_tooltip_text (wtop, "Dummy text");
   g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
+
+  imc = gtk_im_multicontext_new ();
+  g_object_ref (imc);
+  gtk_im_context_set_use_preedit (imc, TRUE);
+
+  g_signal_connect (G_OBJECT (imc), "commit",
+		    G_CALLBACK (xg_im_context_commit), f);
+  g_signal_connect (G_OBJECT (imc), "preedit-changed",
+		    G_CALLBACK (xg_im_context_preedit_changed), NULL);
+  g_signal_connect (G_OBJECT (imc), "preedit-end",
+		    G_CALLBACK (xg_im_context_preedit_end), NULL);
+  FRAME_X_OUTPUT (f)->im_context = imc;
+
+  g_signal_connect (G_OBJECT (wfixed), "key-press-event",
+		    G_CALLBACK (xg_widget_key_press_event_cb),
+		    NULL);
 #endif
 
   {
-    GdkScreen *screen = gtk_widget_get_screen (wtop);
     GtkSettings *gs = gtk_settings_get_for_screen (screen);
     /* Only connect this signal once per screen.  */
     if (! g_signal_handler_find (G_OBJECT (gs),
@@ -1761,6 +1888,7 @@ xg_free_frame_widgets (struct frame *f)
       /* x_free_frame_resources should have taken care of it */
 #ifndef HAVE_PGTK
       eassert (!FRAME_X_DOUBLE_BUFFERED_P (f));
+      g_object_unref (FRAME_X_OUTPUT (f)->im_context);
 #endif
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
@@ -1787,7 +1915,7 @@ xg_free_frame_widgets (struct frame *f)
    flag (this is useful when FLAGS is 0).  */
 
 void
-x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
+xg_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 {
   /* Must use GTK routines here, otherwise GTK resets the size hints
      to its own defaults.  */
@@ -1875,12 +2003,12 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   else if (win_gravity == StaticGravity)
     size_hints.win_gravity = GDK_GRAVITY_STATIC;
 
-  if (x_gtk_use_window_move)
-    {
-      if (flags & PPosition) hint_flags |= GDK_HINT_POS;
-      if (flags & USPosition) hint_flags |= GDK_HINT_USER_POS;
-      if (flags & USSize) hint_flags |= GDK_HINT_USER_SIZE;
-    }
+  if (flags & PPosition)
+    hint_flags |= GDK_HINT_POS;
+  if (flags & USPosition)
+    hint_flags |= GDK_HINT_USER_POS;
+  if (flags & USSize)
+    hint_flags |= GDK_HINT_USER_SIZE;
 
   if (user_position)
     {
@@ -1927,8 +2055,8 @@ xg_set_background_color (struct frame *f, unsigned long bg)
            !NILP (bar);
            bar = XSCROLL_BAR (bar)->next)
         {
-          GtkWidget *scrollbar =
-            xg_get_widget_from_map (XSCROLL_BAR (bar)->x_window);
+          GtkWidget *scrollbar = xg_get_widget_from_map (XSCROLL_BAR (bar)->x_window,
+							 FRAME_X_DISPLAY (f));
           GtkWidget *webox = gtk_widget_get_parent (scrollbar);
           xg_set_widget_bg (f, webox, FRAME_BACKGROUND_PIXEL (f));
         }
@@ -2326,7 +2454,7 @@ xg_maybe_add_timer (gpointer data)
 static int
 xg_dialog_run (struct frame *f, GtkWidget *w)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   struct xg_dialog_data dd;
 
   xg_set_screen (w, f);
@@ -2928,6 +3056,16 @@ xg_mark_data (void)
             }
         }
     }
+
+#ifndef HAVE_PGTK
+  if (xg_pending_quit_event.kind != NO_EVENT)
+    {
+      eassert (xg_pending_quit_event.kind == ASCII_KEYSTROKE_EVENT);
+
+      mark_object (xg_pending_quit_event.frame_or_window);
+      mark_object (xg_pending_quit_event.arg);
+    }
+#endif
 }
 
 /* Callback called when a menu item is destroyed.  Used to free data.
@@ -3158,8 +3296,13 @@ menu_bar_button_pressed_cb (GtkWidget *widget, GdkEvent *event,
 {
   struct frame *f = user_data;
 
-  if (event->button.button < 4)
-    set_frame_menubar (f, true);
+  if (event->button.button < 4
+      && event->button.window != gtk_widget_get_window (widget)
+      && !popup_activated ())
+    {
+      pgtk_menu_set_in_use (true);
+      set_frame_menubar (f, true);
+    }
 
   return false;
 }
@@ -3221,7 +3364,12 @@ create_menus (widget_value *data,
       }
       else
         {
+#ifndef HAVE_GTK3
           wmenu = gtk_menu_bar_new ();
+#else
+	  wmenu = emacs_menu_bar_new ();
+#endif
+
 #ifdef HAVE_PGTK
 	  g_signal_connect (G_OBJECT (wmenu), "button-press-event",
 			    G_CALLBACK (menu_bar_button_pressed_cb), f);
@@ -3974,6 +4122,7 @@ xg_update_frame_menubar (struct frame *f)
 {
   xp_output *x = f->output_data.xp;
   GtkRequisition req;
+  int scale = xg_get_scale (f);
 
   if (!x->menubar_widget || gtk_widget_get_mapped (x->menubar_widget))
     return;
@@ -3991,9 +4140,21 @@ xg_update_frame_menubar (struct frame *f)
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_get_preferred_size (x->menubar_widget, NULL, &req);
   req.height *= xg_get_scale (f);
-  if (FRAME_MENUBAR_HEIGHT (f) != req.height)
+
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+  if (FRAME_DISPLAY_INFO (f)->n_planes == 32)
     {
-      FRAME_MENUBAR_HEIGHT (f) = req.height;
+      GdkScreen *screen = gtk_widget_get_screen (x->menubar_widget);
+      GdkVisual *visual = gdk_screen_get_system_visual (screen);
+
+      gtk_widget_realize (x->menubar_widget);
+      gtk_widget_set_visual (x->menubar_widget, visual);
+    }
+#endif
+
+  if (FRAME_MENUBAR_HEIGHT (f) != (req.height * scale))
+    {
+      FRAME_MENUBAR_HEIGHT (f) = req.height * scale;
       adjust_frame_size (f, -1, -1, 2, 0, Qmenu_bar_lines);
     }
   unblock_input ();
@@ -4083,13 +4244,13 @@ xg_event_is_for_menubar (struct frame *f, const XEvent *event)
     }
   else
     {
-#else
+#endif
       rec.x = event->xbutton.x / scale;
       rec.y = event->xbutton.y / scale;
-#endif
 #ifdef HAVE_XINPUT2
     }
 #endif
+
   rec.width = 1;
   rec.height = 1;
 
@@ -4119,6 +4280,8 @@ bool xg_ignore_gtk_scrollbar;
 /* Width and height of scroll bars for the current theme.  */
 static int scroll_bar_width_for_theme;
 static int scroll_bar_height_for_theme;
+
+#if defined HAVE_PGTK || !defined HAVE_GTK3
 
 /* Xlib's `Window' fits in 32 bits.  But we want to store pointers, and they
    may be larger than 32 bits.  Keep a mapping from integer index to widget
@@ -4191,13 +4354,49 @@ xg_remove_widget_from_map (ptrdiff_t idx)
 /* Get the widget pointer at IDX from id_to_widget. */
 
 static GtkWidget *
-xg_get_widget_from_map (ptrdiff_t idx)
+xg_get_widget_from_map (ptrdiff_t idx, Display *dpy)
 {
   if (idx < id_to_widget.max_size && id_to_widget.widgets[idx] != 0)
     return id_to_widget.widgets[idx];
 
   return 0;
 }
+
+#else
+static void
+find_scrollbar_cb (GtkWidget *widget, gpointer user_data)
+{
+  GtkWidget **scroll_bar = user_data;
+
+  if (GTK_IS_SCROLLBAR (widget))
+    *scroll_bar = widget;
+}
+
+static GtkWidget *
+xg_get_widget_from_map (ptrdiff_t window, Display *dpy)
+{
+  GtkWidget *gwdesc, *scroll_bar = NULL;
+  GdkWindow *gdkwin;
+
+  gdkwin = gdk_x11_window_lookup_for_display (gdk_x11_lookup_xdisplay (dpy),
+                                              (Window) window);
+  if (gdkwin)
+    {
+      GdkEvent event;
+      event.any.window = gdkwin;
+      event.any.type = GDK_NOTHING;
+      gwdesc = gtk_get_event_widget (&event);
+
+      if (gwdesc && GTK_IS_EVENT_BOX (gwdesc))
+	gtk_container_forall (GTK_CONTAINER (gwdesc),
+			      find_scrollbar_cb, &scroll_bar);
+    }
+  else
+    return NULL;
+
+  return scroll_bar;
+}
+#endif
 
 static void
 update_theme_scrollbar_width (void)
@@ -4258,7 +4457,7 @@ xg_get_default_scrollbar_height (struct frame *f)
   return scroll_bar_width_for_theme * xg_get_scale (f);
 }
 
-#ifndef HAVE_PGTK
+#ifndef HAVE_GTK3
 /* Return the scrollbar id for X Window WID on display DPY.
    Return -1 if WID not in id_to_widget.  */
 
@@ -4285,12 +4484,40 @@ xg_get_scroll_id_for_window (Display *dpy, Window wid)
    DATA is the index into id_to_widget for WIDGET.
    We free pointer to last scroll bar values here and remove the index.  */
 
+#if !defined HAVE_GTK3 || defined HAVE_PGTK
 static void
 xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
 {
   intptr_t id = (intptr_t) data;
   xg_remove_widget_from_map (id);
 }
+#endif
+
+#if defined HAVE_GTK3 && !defined HAVE_PGTK
+static void
+xg_scroll_bar_size_allocate_cb (GtkWidget *widget,
+				GdkRectangle *allocation,
+				gpointer user_data)
+{
+  GdkEvent *event = gtk_get_current_event ();
+  GdkEvent dummy;
+
+  if (event && event->any.type == GDK_CONFIGURE)
+    x_scroll_bar_configure (event);
+  else
+    {
+      /* These are the only fields used by x_scroll_bar_configure.  */
+      dummy.configure.send_event = FALSE;
+      dummy.configure.x = allocation->x;
+      dummy.configure.y = allocation->y;
+      dummy.configure.width = allocation->width;
+      dummy.configure.height = allocation->height;
+      dummy.configure.window = gtk_widget_get_window (widget);
+
+      x_scroll_bar_configure (&dummy);
+    }
+}
+#endif
 
 static void
 xg_finish_scroll_bar_creation (struct frame *f,
@@ -4301,19 +4528,32 @@ xg_finish_scroll_bar_creation (struct frame *f,
                                const char *scroll_bar_name)
 {
   GtkWidget *webox = gtk_event_box_new ();
+#ifdef HAVE_GTK3
+  GtkCssProvider *foreground_provider;
+  GtkCssProvider *background_provider;
+#endif
 
   gtk_widget_set_name (wscroll, scroll_bar_name);
 #ifndef HAVE_GTK3
   gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
 #endif
-  g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
+  g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer) f);
 
+#if defined HAVE_GTK3 && !defined HAVE_PGTK
+  g_signal_connect (G_OBJECT (webox), "size-allocate",
+		    G_CALLBACK (xg_scroll_bar_size_allocate_cb),
+		    NULL);
+#endif
+
+#if defined HAVE_PGTK || !defined HAVE_GTK3
   ptrdiff_t scroll_id = xg_store_widget_in_map (wscroll);
 
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
                     (gpointer) scroll_id);
+#endif
+
   g_signal_connect (G_OBJECT (wscroll),
                     "change-value",
                     scroll_callback,
@@ -4341,27 +4581,35 @@ xg_finish_scroll_bar_creation (struct frame *f,
   gtk_widget_realize (webox);
 #ifdef HAVE_PGTK
   gtk_widget_show_all (webox);
-#endif
-#ifndef HAVE_PGTK
+#elif defined HAVE_GTK3
+  bar->x_window = GTK_WIDGET_TO_X_WIN (webox);
+  gtk_widget_show_all (webox);
+#else
   GTK_WIDGET_TO_X_WIN (webox);
 #endif
 
   /* Set the cursor to an arrow.  */
   xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
 
-#ifdef HAVE_PGTK
+#ifdef HAVE_GTK3
   GtkStyleContext *ctxt = gtk_widget_get_style_context (wscroll);
-  gtk_style_context_add_provider (ctxt,
-				  GTK_STYLE_PROVIDER (FRAME_OUTPUT_DATA (f)->
-						      scrollbar_foreground_css_provider),
+  foreground_provider = FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider;
+  background_provider = FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider;
+
+  gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (foreground_provider),
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
-  gtk_style_context_add_provider (ctxt,
-				  GTK_STYLE_PROVIDER (FRAME_OUTPUT_DATA (f)->
-						      scrollbar_background_css_provider),
+  gtk_style_context_add_provider (ctxt, GTK_STYLE_PROVIDER (background_provider),
 				  GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+#ifndef HAVE_PGTK
+  gtk_widget_add_events (webox, GDK_STRUCTURE_MASK);
+  gtk_widget_set_double_buffered (wscroll, FALSE);
+#endif
 #endif
 
+#if defined HAVE_PGTK || !defined HAVE_GTK3
   bar->x_window = scroll_id;
+#endif
 }
 
 /* Create a scroll bar widget for frame F.  Store the scroll bar
@@ -4435,7 +4683,8 @@ xg_create_horizontal_scroll_bar (struct frame *f,
 void
 xg_remove_scroll_bar (struct frame *f, ptrdiff_t scrollbar_id)
 {
-  GtkWidget *w = xg_get_widget_from_map (scrollbar_id);
+  GtkWidget *w = xg_get_widget_from_map (scrollbar_id,
+					 FRAME_X_DISPLAY (f));
   if (w)
     {
       GtkWidget *wparent = gtk_widget_get_parent (w);
@@ -4458,11 +4707,15 @@ xg_update_scrollbar_pos (struct frame *f,
                          int width,
                          int height)
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
+  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id,
+					       FRAME_X_DISPLAY (f));
   if (wscroll)
     {
       GtkWidget *wfixed = f->output_data.xp->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+      GdkWindow *wdesc = gtk_widget_get_window (wparent);
+#endif
       gint msl;
       int scale = xg_get_scale (f);
 
@@ -4495,7 +4748,18 @@ xg_update_scrollbar_pos (struct frame *f,
         {
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
+
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+	  if (wdesc)
+	    {
+	      gdk_window_move_resize (wdesc, left, top, width, height);
+#if GTK_CHECK_VERSION (3, 20, 0)
+	      gtk_widget_queue_allocate (wparent);
+#endif
+	    }
+#endif
         }
+
       if (oldx != -1 && oldw > 0 && oldh > 0)
         {
           /* Clear under old scroll bar position.  */
@@ -4510,7 +4774,8 @@ xg_update_scrollbar_pos (struct frame *f,
 
       if (!hidden)
 	{
-	  GtkWidget *scrollbar = xg_get_widget_from_map (scrollbar_id);
+	  GtkWidget *scrollbar = xg_get_widget_from_map (scrollbar_id,
+							 FRAME_X_DISPLAY (f));
 	  GtkWidget *webox = gtk_widget_get_parent (scrollbar);
 
 #ifndef HAVE_PGTK
@@ -4549,13 +4814,16 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 				    int width,
 				    int height)
 {
-
-  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
+  GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id,
+					       FRAME_X_DISPLAY (f));
 
   if (wscroll)
     {
       GtkWidget *wfixed = f->output_data.xp->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+      GdkWindow *wdesc = gtk_widget_get_window (wparent);
+#endif
       gint msl;
       int scale = xg_get_scale (f);
 
@@ -4587,6 +4855,16 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
         {
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
+
+#if !defined HAVE_PGTK && defined HAVE_GTK3
+	  if (wdesc)
+	    {
+	      gdk_window_move_resize (wdesc, left, top, width, height);
+#if GTK_CHECK_VERSION (3, 20, 0)
+	      gtk_widget_queue_allocate (wparent);
+#endif
+	    }
+#endif
         }
       if (oldx != -1 && oldw > 0 && oldh > 0)
         /* Clear under old scroll bar position.  */
@@ -4602,7 +4880,7 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 
       {
 	GtkWidget *scrollbar =
-	  xg_get_widget_from_map (scrollbar_id);
+	  xg_get_widget_from_map (scrollbar_id, FRAME_X_DISPLAY (f));
 	GtkWidget *webox = gtk_widget_get_parent (scrollbar);
 
 #ifndef HAVE_PGTK
@@ -4642,9 +4920,10 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
                                  int position,
                                  int whole)
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
-
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window,
+					       FRAME_X_DISPLAY (f));
+
 
   if (wscroll && bar->dragging == -1)
     {
@@ -4729,7 +5008,9 @@ xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
 					    int position,
 					    int whole)
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
+  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window,
+					       FRAME_X_DISPLAY (f));
 
   if (wscroll && bar->dragging == -1)
     {
@@ -4761,7 +5042,8 @@ xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
    frame.  This function does additional checks.  */
 
 bool
-xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
+xg_event_is_for_scrollbar (struct frame *f, const EVENT *event,
+			   bool for_valuator)
 {
   bool retval = 0;
 
@@ -4771,11 +5053,11 @@ xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
 	     && event->type == GenericEvent
 	     && (event->xgeneric.extension
 		 == FRAME_DISPLAY_INFO (f)->xi2_opcode)
-	     && ((event->xgeneric.evtype == XI_ButtonPress
-		  && xev->detail < 4)
-		 || (event->xgeneric.evtype == XI_Motion)))
+	     && (event->xgeneric.evtype == XI_ButtonPress
+		 && xev->detail < 4))
 	    || (event->type == ButtonPress
-		&& event->xbutton.button < 4)))
+		&& event->xbutton.button < 4)
+	    || for_valuator))
 #else
   if (f
 #ifndef HAVE_PGTK
@@ -4805,19 +5087,7 @@ xg_event_is_for_scrollbar (struct frame *f, const EVENT *event)
 #else
       gwin = gdk_display_get_window_at_pointer (gdpy, NULL, NULL);
 #endif
-#ifndef HAVE_XINPUT2
       retval = gwin != gtk_widget_get_window (f->output_data.xp->edit_widget);
-#else
-      retval = (gwin
-		&& (gwin
-		    != gtk_widget_get_window (f->output_data.xp->edit_widget)));
-#endif
-#ifdef HAVE_XINPUT2
-      GtkWidget *grab = gtk_grab_get_current ();
-      if (event->type == GenericEvent
-	  && event->xgeneric.evtype == XI_Motion)
-	retval = retval || (grab && GTK_IS_SCROLLBAR (grab));
-#endif
     }
 #ifdef HAVE_XINPUT2
   else if (f && ((FRAME_DISPLAY_INFO (f)->supports_xi2
@@ -5423,6 +5693,7 @@ xg_update_tool_bar_sizes (struct frame *f)
   GtkRequisition req;
   int nl = 0, nr = 0, nt = 0, nb = 0;
   GtkWidget *top_widget = x->toolbar_widget;
+  int scale = xg_get_scale (f);
 
   gtk_widget_get_preferred_size (GTK_WIDGET (top_widget), NULL, &req);
   if (x->toolbar_in_hbox)
@@ -5431,8 +5702,10 @@ xg_update_tool_bar_sizes (struct frame *f)
       gtk_container_child_get (GTK_CONTAINER (x->hbox_widget),
                                top_widget,
                                "position", &pos, NULL);
-      if (pos == 0) nl = req.width;
-      else nr = req.width;
+      if (pos == 0)
+	nl = req.width * scale;
+      else
+	nr = req.width * scale;
     }
   else
     {
@@ -5440,8 +5713,10 @@ xg_update_tool_bar_sizes (struct frame *f)
       gtk_container_child_get (GTK_CONTAINER (x->vbox_widget),
                                top_widget,
                                "position", &pos, NULL);
-      if (pos == 0 || (pos == 1 && x->menubar_widget)) nt = req.height;
-      else nb = req.height;
+      if (pos == 0 || (pos == 1 && x->menubar_widget))
+	nt = req.height * scale;
+      else
+	nb = req.height * scale;
     }
 
   if (nl != FRAME_TOOLBAR_LEFT_WIDTH (f)
@@ -5914,8 +6189,10 @@ xg_initialize (void)
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
     xg_menu_item_cb_list.prev = xg_menu_item_cb_list.next = 0;
 
+#if defined HAVE_PGTK || !defined HAVE_GTK3
   id_to_widget.max_size = id_to_widget.used = 0;
   id_to_widget.widgets = 0;
+#endif
 
   settings = gtk_settings_get_for_screen (gdk_display_get_default_screen
                                           (gdk_display_get_default ()));
@@ -5963,4 +6240,443 @@ xg_initialize (void)
 #endif
 }
 
+#ifndef HAVE_PGTK
+static void
+xg_add_virtual_mods (struct x_display_info *dpyinfo, GdkEventKey *key)
+{
+  guint modifiers = key->state;
+
+  if (modifiers & dpyinfo->meta_mod_mask)
+    {
+      /* GDK always assumes Mod1 is alt, but that's no reason for
+	 us to make that mistake as well.  */
+      if (!dpyinfo->alt_mod_mask)
+	key->state |= GDK_MOD1_MASK;
+      else
+	key->state |= GDK_META_MASK;
+    }
+
+  if (modifiers & dpyinfo->alt_mod_mask)
+    key->state |= GDK_MOD1_MASK;
+  if (modifiers & dpyinfo->super_mod_mask)
+    key->state |= GDK_SUPER_MASK;
+  if (modifiers & dpyinfo->hyper_mod_mask)
+    key->state |= GDK_HYPER_MASK;
+}
+
+static unsigned int
+xg_virtual_mods_to_x (struct x_display_info *dpyinfo, guint virtual)
+{
+  unsigned int modifiers = virtual & ~(GDK_SUPER_MASK
+				       | GDK_META_MASK
+				       | GDK_HYPER_MASK
+				       | GDK_MOD2_MASK
+				       | GDK_MOD3_MASK
+				       | GDK_MOD4_MASK
+				       | GDK_MOD5_MASK);
+
+  if (virtual & GDK_META_MASK)
+    modifiers |= dpyinfo->meta_mod_mask;
+  if (virtual & GDK_SUPER_MASK)
+    modifiers |= dpyinfo->super_mod_mask;
+  if (virtual & GDK_HYPER_MASK)
+    modifiers |= dpyinfo->hyper_mod_mask;
+
+  return modifiers;
+}
+
+static void
+xg_im_context_commit (GtkIMContext *imc, gchar *str,
+		      gpointer user_data)
+{
+  struct frame *f = user_data;
+  struct input_event ie;
+#ifdef HAVE_XINPUT2
+  struct xi_device_t *source;
+  struct x_display_info *dpyinfo;
+#endif
+
+  EVENT_INIT (ie);
+  /* This used to use g_utf8_to_ucs4_fast, which led to bad results
+     when STR wasn't actually a UTF-8 string, which some input method
+     modules commit.  */
+
+  ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+  ie.arg = decode_string_utf_8 (Qnil, str, strlen (str),
+				Qnil, false, Qnil, Qnil);
+
+  /* STR is invalid and not really encoded in UTF-8.  */
+  if (NILP (ie.arg))
+    ie.arg = build_unibyte_string (str);
+
+  Fput_text_property (make_fixnum (0),
+		      make_fixnum (SCHARS (ie.arg)),
+		      Qcoding, Qt, ie.arg);
+
+#ifdef HAVE_XINPUT2
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* There is no timestamp associated with commit events, so use the
+     device that sent the last event to be filtered.  */
+  if (dpyinfo->pending_keystroke_time)
+    {
+      dpyinfo->pending_keystroke_time = 0;
+      source = xi_device_from_id (dpyinfo,
+				  dpyinfo->pending_keystroke_source);
+
+      if (source)
+	ie.device = source->name;
+    }
+#endif
+
+  XSETFRAME (ie.frame_or_window, f);
+  ie.modifiers = 0;
+  ie.timestamp = 0;
+
+  kbd_buffer_store_event (&ie);
+}
+
+static void
+xg_im_context_preedit_changed (GtkIMContext *imc, gpointer user_data)
+{
+  PangoAttrList *list;
+  gchar *str;
+  gint cursor;
+  struct input_event inev;
+
+  gtk_im_context_get_preedit_string (imc, &str, &list, &cursor);
+
+  EVENT_INIT (inev);
+  inev.kind = PREEDIT_TEXT_EVENT;
+  inev.arg = build_string_from_utf8 (str);
+
+  if (SCHARS (inev.arg))
+    Fput_text_property (make_fixnum (min (SCHARS (inev.arg) - 1,
+					  max (0, cursor))),
+			make_fixnum (min (SCHARS (inev.arg),
+					  max (0, cursor) + 1)),
+			Qcursor, Qt, inev.arg);
+
+  kbd_buffer_store_event (&inev);
+
+  g_free (str);
+  pango_attr_list_unref (list);
+}
+
+static void
+xg_im_context_preedit_end (GtkIMContext *imc, gpointer user_data)
+{
+  struct input_event inev;
+
+  EVENT_INIT (inev);
+  inev.kind = PREEDIT_TEXT_EVENT;
+  inev.arg = Qnil;
+  kbd_buffer_store_event (&inev);
+}
+
+static bool
+xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
+			      gpointer user_data)
+{
+  Lisp_Object tail, tem;
+  struct frame *f = NULL;
+  union buffered_input_event inev;
+  guint keysym = event->key.keyval;
+  unsigned int xstate;
+  gunichar uc;
+#ifdef HAVE_XINPUT2
+  Time pending_keystroke_time;
+  struct xi_device_t *source;
+#endif
+
+  FOR_EACH_FRAME (tail, tem)
+    {
+      if (FRAME_X_P (XFRAME (tem))
+	  && (FRAME_GTK_WIDGET (XFRAME (tem)) == widget))
+	{
+	  f = XFRAME (tem);
+	  break;
+	}
+    }
+
+  if (!f)
+    return true;
+
+  if (popup_activated ())
+    return true;
+
+#ifdef HAVE_XINPUT2
+  pending_keystroke_time
+    = FRAME_DISPLAY_INFO (f)->pending_keystroke_time;
+
+  if (event->key.time >= pending_keystroke_time)
+    FRAME_DISPLAY_INFO (f)->pending_keystroke_time = 0;
+#endif
+
+  if (!x_gtk_use_native_input
+      && !FRAME_DISPLAY_INFO (f)->prefer_native_input)
+    return true;
+
+  EVENT_INIT (inev.ie);
+  XSETFRAME (inev.ie.frame_or_window, f);
+
+  xstate = xg_virtual_mods_to_x (FRAME_DISPLAY_INFO (f),
+				 event->key.state);
+
+  inev.ie.modifiers
+    |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), xstate);
+  inev.ie.timestamp = event->key.time;
+
+#ifdef HAVE_XINPUT2
+  if (event->key.time == pending_keystroke_time)
+    {
+      source = xi_device_from_id (FRAME_DISPLAY_INFO (f),
+				  FRAME_DISPLAY_INFO (f)->pending_keystroke_source);
+
+      if (source)
+	inev.ie.device = source->name;
+    }
+#endif
+
+  if (event->key.is_modifier)
+    goto done;
+
+#ifndef HAVE_GTK3
+  /* FIXME: event->key.is_modifier is not accurate on GTK 2.  */
+
+  if (keysym >= GDK_KEY_Shift_L && keysym <= GDK_KEY_Hyper_R)
+    goto done;
+#endif
+
+  /* First deal with keysyms which have defined
+     translations to characters.  */
+  if (keysym >= 32 && keysym < 128)
+    /* Avoid explicitly decoding each ASCII character.  */
+    {
+      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
+      goto done;
+    }
+
+  /* Keysyms directly mapped to Unicode characters.  */
+  if (keysym >= 0x01000000 && keysym <= 0x0110FFFF)
+    {
+      if (keysym < 0x01000080)
+	inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+      else
+	inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+      inev.ie.code = keysym & 0xFFFFFF;
+      goto done;
+    }
+
+  /* Random non-modifier sorts of keysyms.  */
+  if (((keysym >= GDK_KEY_BackSpace && keysym <= GDK_KEY_Escape)
+       || keysym == GDK_KEY_Delete
+#ifdef GDK_KEY_ISO_Left_Tab
+       || (keysym >= GDK_KEY_ISO_Left_Tab && keysym <= GDK_KEY_ISO_Enter)
+#endif
+       || IsCursorKey (keysym)	/* 0xff50 <= x < 0xff60 */
+       || IsMiscFunctionKey (keysym)	/* 0xff60 <= x < VARIES */
+#ifdef GDK_KEY_dead_circumflex
+       || keysym == GDK_KEY_dead_circumflex
+#endif
+#ifdef GDK_KEY_dead_grave
+       || keysym == GDK_KEY_dead_grave
+#endif
+#ifdef GDK_KEY_dead_tilde
+       || keysym == GDK_KEY_dead_tilde
+#endif
+#ifdef GDK_KEY_dead_diaeresis
+       || keysym == GDK_KEY_dead_diaeresis
+#endif
+#ifdef GDK_KEY_dead_macron
+       || keysym == GDK_KEY_dead_macron
+#endif
+#ifdef GDK_KEY_dead_degree
+       || keysym == GDK_KEY_dead_degree
+#endif
+#ifdef GDK_KEY_dead_acute
+       || keysym == GDK_KEY_dead_acute
+#endif
+#ifdef GDK_KEY_dead_cedilla
+       || keysym == GDK_KEY_dead_cedilla
+#endif
+#ifdef GDK_KEY_dead_breve
+       || keysym == GDK_KEY_dead_breve
+#endif
+#ifdef GDK_KEY_dead_ogonek
+       || keysym == GDK_KEY_dead_ogonek
+#endif
+#ifdef GDK_KEY_dead_caron
+       || keysym == GDK_KEY_dead_caron
+#endif
+#ifdef GDK_KEY_dead_doubleacute
+       || keysym == GDK_KEY_dead_doubleacute
+#endif
+#ifdef GDK_KEY_dead_abovedot
+       || keysym == GDK_KEY_dead_abovedot
+#endif
+       || IsKeypadKey (keysym)	/* 0xff80 <= x < 0xffbe */
+       || IsFunctionKey (keysym)	/* 0xffbe <= x < 0xffe1 */
+       /* Any "vendor-specific" key is ok.  */
+       || (keysym & (1 << 28))))
+    {
+      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
+      goto done;
+    }
+
+  uc = gdk_keyval_to_unicode (keysym);
+
+  if (uc)
+    {
+      inev.ie.kind = (SINGLE_BYTE_CHAR_P (uc)
+		      ? ASCII_KEYSTROKE_EVENT
+		      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+      inev.ie.code = uc;
+    }
+  else
+    {
+      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
+    }
+
+ done:
+  if (inev.ie.kind != NO_EVENT)
+    {
+      xg_pending_quit_event.kind = NO_EVENT;
+      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
+    }
+
+  XNoOp (FRAME_X_DISPLAY (f));
+#ifdef USABLE_SIGIO
+  raise (SIGIO);
+#endif
+  return true;
+}
+
+bool
+xg_filter_key (struct frame *frame, XEvent *xkey)
+{
+  GdkEvent *xg_event = gdk_event_new ((xkey->type == KeyPress
+#ifdef HAVE_XINPUT2
+				       || (xkey->type == GenericEvent
+					   && xkey->xgeneric.evtype == XI_KeyPress)
+#endif
+				       ) ? GDK_KEY_PRESS : GDK_KEY_RELEASE);
+  GdkDisplay *dpy = gtk_widget_get_display (FRAME_GTK_WIDGET (frame));
+  GdkKeymap *keymap = gdk_keymap_get_for_display (dpy);
+  GdkModifierType consumed;
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (frame);
+  bool result;
+
+  xg_event->any.window = gtk_widget_get_window (FRAME_GTK_WIDGET (frame));
+  g_object_ref (xg_event->any.window);
+
+#if GTK_CHECK_VERSION (3, 20, 0)
+  GdkSeat *seat = gdk_display_get_default_seat (dpy);
+
+  gdk_event_set_device (xg_event,
+			gdk_seat_get_keyboard (seat));
+#elif GTK_CHECK_VERSION (3, 16, 0)
+  GdkDeviceManager *manager = gdk_display_get_device_manager (dpy);
+  GList *devices = gdk_device_manager_list_devices (manager,
+						    GDK_DEVICE_TYPE_MASTER);
+  GdkDevice *device;
+  GList *tem;
+  for (tem = devices; tem; tem = tem->next)
+    {
+      device = GDK_DEVICE (tem->data);
+
+      if (gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD)
+	{
+	  gdk_event_set_device (xg_event, device);
+	  break;
+	}
+    }
+
+  g_list_free (devices);
+#endif
+
+#ifdef HAVE_XINPUT2
+  if (xkey->type != GenericEvent)
+    {
+#endif
+      xg_event->key.hardware_keycode = xkey->xkey.keycode;
+
+#ifdef HAVE_XKB
+      if (dpyinfo->supports_xkb)
+	xg_event->key.group = XkbGroupForCoreState (xkey->xkey.state);
+#endif
+      xg_event->key.state = xkey->xkey.state;
+      gdk_keymap_translate_keyboard_state (keymap,
+					   xkey->xkey.keycode,
+					   xkey->xkey.state,
+					   xg_event->key.group,
+					   &xg_event->key.keyval,
+					   NULL, NULL, &consumed);
+      xg_add_virtual_mods (dpyinfo, &xg_event->key);
+      xg_event->key.state &= ~consumed;
+      xg_event->key.time = xkey->xkey.time;
+#if GTK_CHECK_VERSION (3, 6, 0)
+      xg_event->key.is_modifier = gdk_x11_keymap_key_is_modifier (keymap,
+								  xg_event->key.hardware_keycode);
+#endif
+#ifdef HAVE_XINPUT2
+    }
+  else
+    {
+      XIDeviceEvent *xev = (XIDeviceEvent *) xkey->xcookie.data;
+
+      xg_event->key.hardware_keycode = xev->detail;
+      xg_event->key.group = xev->group.effective;
+      xg_event->key.state = xev->mods.effective;
+      xg_event->key.time = xev->time;
+      gdk_keymap_translate_keyboard_state (keymap,
+					   xev->detail,
+					   xev->mods.effective,
+					   xg_event->key.group,
+					   &xg_event->key.keyval,
+					   NULL, NULL, &consumed);
+      xg_add_virtual_mods (dpyinfo, &xg_event->key);
+      xg_event->key.state &= ~consumed;
+#if GTK_CHECK_VERSION (3, 6, 0)
+      xg_event->key.is_modifier = gdk_x11_keymap_key_is_modifier (keymap,
+								  xg_event->key.hardware_keycode);
+#endif
+    }
+#endif
+
+  result = gtk_im_context_filter_keypress (FRAME_X_OUTPUT (frame)->im_context,
+					   &xg_event->key);
+
+  gdk_event_free (xg_event);
+
+  return result;
+}
+#endif
+
+#if GTK_CHECK_VERSION (3, 10, 0)
+static void
+xg_widget_style_updated (GtkWidget *widget, gpointer user_data)
+{
+  struct frame *f = user_data;
+
+  if (f->alpha_background < 1.0)
+    {
+#ifndef HAVE_PGTK
+      XChangeProperty (FRAME_X_DISPLAY (f),
+		       FRAME_X_WINDOW (f),
+		       FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
+		       XA_CARDINAL, 32, PropModeReplace,
+		       NULL, 0);
+#else
+      if (FRAME_GTK_OUTER_WIDGET (f)
+	  && gtk_widget_get_realized (FRAME_GTK_OUTER_WIDGET (f)))
+	gdk_window_set_opaque_region (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
+				      NULL);
+#endif
+    }
+}
+#endif
 #endif /* USE_GTK */

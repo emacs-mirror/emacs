@@ -225,17 +225,26 @@ or matched by `dabbrev-ignored-buffer-regexps'."
 
 (defcustom dabbrev-ignored-buffer-names '("*Messages*" "*Buffer List*")
   "List of buffer names that dabbrev should not check.
-See also `dabbrev-ignored-buffer-regexps'."
+See also `dabbrev-ignored-buffer-regexps' and
+`dabbrev-ignored-buffer-modes'."
   :type '(repeat (string :tag "Buffer name"))
   :group 'dabbrev
   :version "20.3")
 
 (defcustom dabbrev-ignored-buffer-regexps nil
   "List of regexps matching names of buffers that dabbrev should not check.
-See also `dabbrev-ignored-buffer-names'."
+See also `dabbrev-ignored-buffer-names' and
+`dabbrev-ignored-buffer-modes'."
   :type '(repeat regexp)
   :group 'dabbrev
   :version "21.1")
+
+(defcustom dabbrev-ignored-buffer-modes '(archive-mode image-mode)
+  "Inhibit looking for abbreviations in buffers derived from these modes.
+See also `dabbrev-ignored-buffer-names' and
+`dabbrev-ignored-buffer-regexps'."
+  :type '(repeat symbol)
+  :version "29.1")
 
 (defcustom dabbrev-check-other-buffers t
   "Should \\[dabbrev-expand] look in other buffers?
@@ -383,6 +392,14 @@ If the prefix argument is 16 (which comes from \\[universal-argument] \\[univers
 then it searches *all* buffers."
   (interactive "*P")
   (dabbrev--reset-global-variables)
+  (setq dabbrev--check-other-buffers (and arg t))
+  (setq dabbrev--check-all-buffers
+        (and arg (= (prefix-numeric-value arg) 16)))
+  (let ((completion-at-point-functions '(dabbrev-capf)))
+    (completion-at-point)))
+
+(defun dabbrev-capf ()
+  "Dabbrev completion function for `completion-at-point-functions'."
   (let* ((abbrev (dabbrev--abbrev-at-point))
          (beg (progn (search-backward abbrev) (point)))
          (end (progn (search-forward abbrev) (point)))
@@ -420,10 +437,7 @@ then it searches *all* buffers."
                            (t
                             (mapcar #'downcase completion-list)))))))
               (complete-with-action a list s p)))))
-    (setq dabbrev--check-other-buffers (and arg t))
-    (setq dabbrev--check-all-buffers
-          (and arg (= (prefix-numeric-value arg) 16)))
-    (completion-in-region beg end table)))
+    (list beg end table)))
 
 ;;;###autoload
 (defun dabbrev-expand (arg)
@@ -537,8 +551,9 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (if (not (or (eq dabbrev--last-buffer dabbrev--last-buffer-found)
 		   (minibuffer-window-active-p (selected-window))))
 	  (progn
-	    (message "Expansion found in `%s'"
-		     (buffer-name dabbrev--last-buffer))
+            (when (buffer-name dabbrev--last-buffer)
+	      (message "Expansion found in `%s'"
+		       (buffer-name dabbrev--last-buffer)))
 	    (setq dabbrev--last-buffer-found dabbrev--last-buffer))
 	(message nil))
       (if (and (or (eq (current-buffer) dabbrev--last-buffer)
@@ -632,18 +647,28 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
   "Return a list of other buffers to search for a possible abbrev.
 The current buffer is not included in the list.
 
-This function makes a list of all the buffers returned by `buffer-list',
-then discards buffers whose names match `dabbrev-ignored-buffer-names'
-or `dabbrev-ignored-buffer-regexps'.  It also discards buffers for which
-`dabbrev-friend-buffer-function', if it is bound, returns nil when called
-with the buffer as argument.
-It returns the list of the buffers that are not discarded."
+This function makes a list of all the buffers returned by
+`buffer-list', then discards buffers whose names match
+`dabbrev-ignored-buffer-names' or
+`dabbrev-ignored-buffer-regexps', and major modes that match
+`dabbrev-ignored-buffer-modes'.  It also discards buffers for
+which `dabbrev-friend-buffer-function', if it is bound, returns
+nil when called with the buffer as argument.  It returns the list
+of the buffers that are not discarded."
   (dabbrev-filter-elements
-   buffer (buffer-list)
+   buffer (dabbrev--filter-buffer-modes)
    (and (not (eq (current-buffer) buffer))
 	(not (dabbrev--ignore-buffer-p buffer))
 	(boundp 'dabbrev-friend-buffer-function)
 	(funcall dabbrev-friend-buffer-function buffer))))
+
+(defun dabbrev--filter-buffer-modes ()
+  (seq-filter (lambda (buffer)
+                (not (apply
+                      #'provided-mode-derived-p
+                      (buffer-local-value 'major-mode buffer)
+                      dabbrev-ignored-buffer-modes)))
+              (buffer-list)))
 
 (defun dabbrev--try-find (abbrev reverse n ignore-case)
   "Search for ABBREV, backwards if REVERSE, N times.
@@ -746,17 +771,41 @@ of the start of the occurrence."
                  (make-progress-reporter
                   "Scanning for dabbrevs..."
                   (- (length dabbrev--friend-buffer-list)) 0 0 1 1.5))))
-       ;; Walk through the buffers till we find a match.
-       (let (expansion)
-	 (while (and (not expansion) dabbrev--friend-buffer-list)
-	   (setq dabbrev--last-buffer (pop dabbrev--friend-buffer-list))
-	   (set-buffer dabbrev--last-buffer)
-           (progress-reporter-update dabbrev--progress-reporter
-                                     (- (length dabbrev--friend-buffer-list)))
-	   (setq dabbrev--last-expansion-location (point-min))
-	   (setq expansion (dabbrev--try-find abbrev nil 1 ignore-case)))
-	 (progress-reporter-done dabbrev--progress-reporter)
-	 expansion)))))
+       (let ((file-name (buffer-file-name))
+             file-name-buffer)
+         (unwind-protect
+             (progn
+               ;; Include the file name components into the abbrev
+               ;; list (because if you have a file name "foobar", it's
+               ;; somewhat likely that you'll be talking about foobar
+               ;; stuff in the file itself).
+               (when file-name
+                 (setq file-name-buffer (generate-new-buffer " *abbrev-file*"))
+                 (with-current-buffer file-name-buffer
+                   (dolist (part (file-name-split file-name))
+                     (insert part "\n")))
+                 (setq dabbrev--friend-buffer-list
+                       (append dabbrev--friend-buffer-list
+                               (list file-name-buffer))))
+               ;; Walk through the buffers till we find a match.
+               (let (expansion)
+	         (while (and (not expansion) dabbrev--friend-buffer-list)
+	           (setq dabbrev--last-buffer
+                         (pop dabbrev--friend-buffer-list))
+	           (set-buffer dabbrev--last-buffer)
+                   (progress-reporter-update
+                    dabbrev--progress-reporter
+                    (- (length dabbrev--friend-buffer-list)))
+	           (setq dabbrev--last-expansion-location (point-min))
+	           (setq expansion (dabbrev--try-find
+                                    abbrev nil 1 ignore-case)))
+	         (progress-reporter-done dabbrev--progress-reporter)
+	         expansion))
+           (when (buffer-live-p file-name-buffer)
+             (kill-buffer file-name-buffer))
+           (setq dabbrev--friend-buffer-list
+                 (seq-filter #'buffer-live-p
+                             dabbrev--friend-buffer-list))))))))
 
 ;; Compute the list of buffers to scan.
 ;; If dabbrev-search-these-buffers-only, then the current buffer
@@ -779,7 +828,7 @@ of the start of the occurrence."
 	  (setq list
 		(append list
 			(dabbrev-filter-elements
-			 buffer (buffer-list)
+			 buffer (dabbrev--filter-buffer-modes)
 			 (and (not (memq buffer list))
 			      (not (dabbrev--ignore-buffer-p buffer)))))))
       ;; Remove the current buffer.

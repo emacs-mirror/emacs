@@ -118,6 +118,12 @@ struct xwidget_view
 #ifndef HAVE_PGTK
   Display *dpy;
   Window wdesc;
+
+  GdkWindow *last_crossing_window;
+  guint last_crossing_cursor_signal;
+  GtkWidget *passive_grab;
+  guint passive_grab_destruction_signal;
+  guint passive_grab_drag_signal;
 #else
   struct pgtk_display_info *dpyinfo;
   GtkWidget *widget;
@@ -217,7 +223,7 @@ extern void xwidget_motion_notify (struct xwidget_view *, double,
 				   double, double, double, uint, Time);
 extern void xwidget_scroll (struct xwidget_view *, double, double,
                             double, double, uint, Time, bool);
-#ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
+#ifdef HAVE_XINPUT2_4
 extern void xwidget_pinch (struct xwidget_view *, XIGesturePinchEvent *);
 #endif
 #endif

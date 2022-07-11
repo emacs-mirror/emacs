@@ -58,7 +58,8 @@ Backtrace mode will attempt to abbreviate printing of backtrace
 frames by setting `print-level' and `print-length' to make them
 shorter than this, but success is not guaranteed.  If set to nil
 or zero, backtrace mode will not abbreviate the forms it prints."
-  :type 'integer
+  :type '(choice natnum
+                 (const :value nil :tag "Don't abbreviate"))
   :group 'backtrace
   :version "27.1")
 
@@ -199,63 +200,63 @@ functions returns non-nil.  When adding a function to this hook,
 you should also set the :source-available flag for the backtrace
 frames where the source code location is known.")
 
-(defvar backtrace-mode-map
-  (let ((map (copy-keymap special-mode-map)))
-    (set-keymap-parent map button-buffer-map)
-    (define-key map "n" 'backtrace-forward-frame)
-    (define-key map "p" 'backtrace-backward-frame)
-    (define-key map "v" 'backtrace-toggle-locals)
-    (define-key map "#" 'backtrace-toggle-print-circle)
-    (define-key map ":" 'backtrace-toggle-print-gensym)
-    (define-key map "s" 'backtrace-goto-source)
-    (define-key map "\C-m" 'backtrace-help-follow-symbol)
-    (define-key map "+" 'backtrace-multi-line)
-    (define-key map "-" 'backtrace-single-line)
-    (define-key map "." 'backtrace-expand-ellipses)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'mouse-select-window)
-    (easy-menu-define nil map ""
-      '("Backtrace"
-        ["Next Frame" backtrace-forward-frame
-         :help "Move cursor forwards to the start of a backtrace frame"]
-        ["Previous Frame" backtrace-backward-frame
-         :help "Move cursor backwards to the start of a backtrace frame"]
-        "--"
-        ["Show Variables" backtrace-toggle-locals
-         :style toggle
-         :active (backtrace-get-index)
-         :selected (plist-get (backtrace-get-view) :show-locals)
-         :help "Show or hide the local variables for the frame at point"]
-        ["Show Circular Structures" backtrace-toggle-print-circle
-         :style toggle
-         :active (backtrace-get-index)
-         :selected (plist-get (backtrace-get-view) :print-circle)
-         :help
-         "Condense or expand shared or circular structures in the frame at point"]
-        ["Show Uninterned Symbols" backtrace-toggle-print-gensym
-         :style toggle
-         :active (backtrace-get-index)
-         :selected (plist-get (backtrace-get-view) :print-gensym)
-         :help
-         "Toggle unique printing of uninterned symbols in the frame at point"]
-        ["Expand \"...\"s" backtrace-expand-ellipses
-         :help "Expand all the abbreviated forms in the current frame"]
-        ["Show on Multiple Lines" backtrace-multi-line
-         :help "Use line breaks and indentation to make a form more readable"]
-        ["Show on Single Line" backtrace-single-line]
-        "--"
-        ["Go to Source" backtrace-goto-source
-         :active (and (backtrace-get-index)
-                      (plist-get (backtrace-frame-flags
-                                  (nth (backtrace-get-index) backtrace-frames))
-                                 :source-available))
-         :help "Show the source code for the current frame"]
-        ["Help for Symbol" backtrace-help-follow-symbol
-         :help "Show help for symbol at point"]
-        ["Describe Backtrace Mode" describe-mode
-         :help "Display documentation for backtrace-mode"]))
-    map)
-  "Local keymap for `backtrace-mode' buffers.")
+(defvar-keymap backtrace-mode-map
+  :doc "Local keymap for `backtrace-mode' buffers."
+  :parent (make-composed-keymap special-mode-map
+                                button-buffer-map)
+  "n"   #'backtrace-forward-frame
+  "p"   #'backtrace-backward-frame
+  "v"   #'backtrace-toggle-locals
+  "#"   #'backtrace-toggle-print-circle
+  ":"   #'backtrace-toggle-print-gensym
+  "s"   #'backtrace-goto-source
+  "RET" #'backtrace-help-follow-symbol
+  "+"   #'backtrace-multi-line
+  "-"   #'backtrace-single-line
+  "."   #'backtrace-expand-ellipses
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'mouse-select-window
+
+  :menu
+  '("Backtrace"
+    ["Next Frame" backtrace-forward-frame
+     :help "Move cursor forwards to the start of a backtrace frame"]
+    ["Previous Frame" backtrace-backward-frame
+     :help "Move cursor backwards to the start of a backtrace frame"]
+    "--"
+    ["Show Variables" backtrace-toggle-locals
+     :style toggle
+     :active (backtrace-get-index)
+     :selected (plist-get (backtrace-get-view) :show-locals)
+     :help "Show or hide the local variables for the frame at point"]
+    ["Show Circular Structures" backtrace-toggle-print-circle
+     :style toggle
+     :active (backtrace-get-index)
+     :selected (plist-get (backtrace-get-view) :print-circle)
+     :help
+     "Condense or expand shared or circular structures in the frame at point"]
+    ["Show Uninterned Symbols" backtrace-toggle-print-gensym
+     :style toggle
+     :active (backtrace-get-index)
+     :selected (plist-get (backtrace-get-view) :print-gensym)
+     :help
+     "Toggle unique printing of uninterned symbols in the frame at point"]
+    ["Expand \"...\"s" backtrace-expand-ellipses
+     :help "Expand all the abbreviated forms in the current frame"]
+    ["Show on Multiple Lines" backtrace-multi-line
+     :help "Use line breaks and indentation to make a form more readable"]
+    ["Show on Single Line" backtrace-single-line]
+    "--"
+    ["Go to Source" backtrace-goto-source
+     :active (and (backtrace-get-index)
+                  (plist-get (backtrace-frame-flags
+                              (nth (backtrace-get-index) backtrace-frames))
+                             :source-available))
+     :help "Show the source code for the current frame"]
+    ["Help for Symbol" backtrace-help-follow-symbol
+     :help "Show help for symbol at point"]
+    ["Describe Backtrace Mode" describe-mode
+     :help "Display documentation for backtrace-mode"]))
 
 (defconst backtrace--flags-width 2
   "Width in characters of the flags for a backtrace frame.")

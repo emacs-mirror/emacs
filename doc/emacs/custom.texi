@@ -844,6 +844,21 @@ otherwise stated, affects only the current Emacs session.  The only
 way to alter the variable in future sessions is to put something in
 your initialization file (@pxref{Init File}).
 
+  If you're setting a customizable variable in your initialization
+file, and you don't want to use the Customize interface, you can use
+the @code{setopt} macro.  For instance:
+
+@findex setopt
+@example
+(setopt fill-column 75)
+@end example
+
+This works the same as @code{setq}, but if the variable has any
+special setter functions, they will be run automatically when using
+@code{setopt}.  You can also use @code{setopt} on other,
+non-customizable variables, but this is less efficient than using
+@code{setq}.
+
 @node Hooks
 @subsection Hooks
 @cindex hook
@@ -1216,6 +1231,28 @@ Manual}.
 @noindent
 These four keywords are not really variables; setting them in any
 other context has no special meaning.
+
+  If you're editing a file across Emacs versions, and a new mode has
+been introduced to handle a file in a newer Emacs version, you can use
+several @code{mode} entries to use the new mode (called
+@code{my-new-mode}) in the new Emacs, and fall back to the old mode
+(called @code{my-old-mode}) in older Emacs versions.  If you're
+enabling the modes in the first line of the file, can say:
+
+@example
+-*- mode: my-old; mode: my-new -*-
+@end example
+
+  Emacs will use the final defined mode it finds, so in older Emacs
+versions it will ignore @code{my-new-mode}, while in Emacs versions
+where @code{my-new-mode} is defined, it'll ignore @code{my-old-mode}.
+Similarly, in a local variable block at the end of the file:
+
+@example
+Local variables:
+mode: my-old
+mode: my-new
+@end example
 
   Do not use the @code{mode} keyword for minor modes.  To enable or
 disable a minor mode in a local variables list, use the @code{eval}
@@ -2219,6 +2256,22 @@ is included in the message displayed when the command is used:
      "It's better to use `kill-region' instead.\n")
 @end example
 
+@findex command-query
+  As a less heavy-handed alternative to disabling commands, you may
+want to be queried before executing a command.  For instance, to be
+queried before executing the @kbd{M->} (@code{end-of-buffer})
+command, you could put something like the following in your init file:
+
+@example
+(command-query
+ 'end-of-buffer
+ "Do you really want to go to the end of the buffer?")
+@end example
+
+By default, you'll be queried with a @kbd{y}/@kbd{n} question, but if
+you give a non-@code{nil} value to the third, optional argument,
+you'll be queried with @kbd{yes}/@kbd{no} instead.
+
 @findex disable-command
 @findex enable-command
   You can make a command disabled either by editing the initialization
@@ -2338,8 +2391,8 @@ mode when you set them with Customize, but ordinary @code{setq} won't
 do that; to enable the mode in your init file, call the minor mode
 command.  Finally, a few customizable user options are initialized in
 complex ways, and these have to be set either via the customize
-interface (@pxref{Customization}) or by using
-@code{customize-set-variable} (@pxref{Examining}).
+interface (@pxref{Customization}), or by using
+@code{customize-set-variable}/@code{setopt} (@pxref{Examining}).
 
   The second argument to @code{setq} is an expression for the new
 value of the variable.  This can be a constant, a variable, or a
@@ -2492,7 +2545,7 @@ Change the coding system used when using the clipboard
 (@pxref{Communication Coding}).
 
 @example
-(customize-set-variable 'selection-coding-system 'utf-8)
+(setopt selection-coding-system 'utf-8)
 @end example
 
 @item

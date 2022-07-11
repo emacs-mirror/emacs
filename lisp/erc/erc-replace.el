@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcReplace
 ;; Keywords: comm, IRC, client, Internet
 

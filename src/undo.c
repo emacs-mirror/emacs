@@ -218,7 +218,7 @@ record_first_change (void)
     base_buffer = base_buffer->base_buffer;
 
   bset_undo_list (current_buffer,
-		  Fcons (Fcons (Qt, Fvisited_file_modtime ()),
+		  Fcons (Fcons (Qt, buffer_visited_file_modtime (base_buffer)),
 			 BVAR (current_buffer, undo_list)));
 }
 
@@ -295,7 +295,7 @@ truncate_undo_list (struct buffer *b)
 
   /* Make sure that calling undo-outer-limit-function
      won't cause another GC.  */
-  ptrdiff_t count = inhibit_garbage_collection ();
+  specpdl_ref count = inhibit_garbage_collection ();
 
   /* Make the buffer current to get its local values of variables such
      as undo_limit.  Also so that Vundo_outer_limit_function can

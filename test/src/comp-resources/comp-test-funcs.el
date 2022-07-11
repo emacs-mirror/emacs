@@ -189,7 +189,7 @@
   ;; Bnumberp
   (numberp x))
 
-(defun comp-tests-discardn-f (x)
+(defun comp-tests-discardn-f (_x)
   ;; BdiscardN
   (1+ (let ((a 1)
             (_b)
@@ -297,8 +297,8 @@
   ;; potentially use all registers and that is modifying local
   ;; variables inside condition-case.
   (let ((str-len (length str))
-	(str-width 14)
-	(ellipsis-width 3)
+        (_str-width 14)
+        (_ellipsis-width 3)
 	(idx 0)
 	(column 0)
 	(head-padding "") (tail-padding "")
@@ -489,7 +489,7 @@
 (cl-defun comp-test-46824-1-f ()
   (let ((next-repos '(1)))
     (while t
-      (let ((recipe (car next-repos)))
+      (let ((_recipe (car next-repos)))
         (cl-block loop
           (while t
             (let ((err
@@ -640,7 +640,7 @@
           (2 2))
         3))))
 
-(defun comp-test-silly-frame2 (token)
+(defun comp-test-silly-frame2 (_token)
   ;; Check robustness against dead code.
   (while c
     (cl-case c
@@ -677,7 +677,7 @@
         (progn
           (if (and noninteractive (not byte-compile-verbose))
               (message "Compiling %s..." filename))
-          (byte-compile-file filename load))
+          (byte-compile-file filename))
       (when load
 	(load (if (file-exists-p dest) dest filename)))
       'no-byte-compile)))

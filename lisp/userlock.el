@@ -65,7 +65,7 @@ in any way you like."
 	      opponent))
       (while (null answer)
         (message (substitute-command-keys
-                  "%s locked by %s: (\\`s', \\`q', \\`p', \\`?'? ")
+                  "%s locked by %s: (\\`s', \\`q', \\`p', \\`?')? ")
                  short-file short-opponent)
 	(if noninteractive (error "Cannot resolve lock conflict in batch mode"))
 	(let ((tem (let ((inhibit-quit t)

@@ -1866,7 +1866,8 @@ These variables specify the options to pass to the above utilities.
 In @code{ediff-diff-options}, it may be useful to specify options
 such as @samp{-w} that ignore certain kinds of changes.  However,
 Ediff does not let you use the option @samp{-c}, as it doesn't recognize this
-format yet.
+format yet.  (If you alter this variable, it should be done via the
+Customize interface instead of using @code{setq} directly.)
 
 @item ediff-coding-system-for-read
 @vindex ediff-coding-system-for-read

@@ -137,9 +137,9 @@ It should return a status of either 0 (no differences found), or
   )
 
 (defun vc-dav-responsible-p (url)
-  "Return non-nil if DAV considers itself `responsible' for URL."
+  "Return the URL if DAV considers itself `responsible' for URL."
   ;; Check for DAV support on the web server.
-  (and t url))
+  url)
 
 ;;; Unimplemented functions
 ;;

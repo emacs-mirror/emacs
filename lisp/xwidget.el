@@ -36,7 +36,7 @@
 (require 'format-spec)
 
 (declare-function make-xwidget "xwidget.c"
-                  (type title width height arguments &optional buffer related))
+                  (type title width height &optional arguments buffer related))
 (declare-function xwidget-buffer "xwidget.c" (xwidget))
 (declare-function set-xwidget-buffer "xwidget.c" (xwidget buffer))
 (declare-function xwidget-size-request "xwidget.c" (xwidget))
@@ -451,7 +451,7 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                          xwidget-webkit--progress-update-timer
                          (run-at-time 0.5 0.5 #'xwidget-webkit--update-progress-timer-function
                                       xwidget)))))
-             ;; This funciton will be called multi times, so only
+             ;; This function will be called multi times, so only
              ;; change buffer name when the load actually completes
              ;; this can limit buffer-name flicker in mode-line.
              (when (or (string-equal (nth 3 last-input-event)
@@ -987,6 +987,7 @@ You can retrieve the value with `xwidget-get'."
 (define-key xwidget-webkit-edit-mode-map [M-up] 'xwidget-webkit-pass-command-event)
 (define-key xwidget-webkit-edit-mode-map [M-down] 'xwidget-webkit-pass-command-event)
 (define-key xwidget-webkit-edit-mode-map [M-return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-backspace] 'xwidget-webkit-pass-command-event)
 
 (define-minor-mode xwidget-webkit-edit-mode
   "Minor mode for editing the content of WebKit buffers.

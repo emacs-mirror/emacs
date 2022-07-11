@@ -208,7 +208,7 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	      (setq mail-from (or (let ((from (mail-fetch-field "Mail-From")))
 				    ;; mail-mbox-from (below) returns a
 				    ;; string that ends in a newline, but
-				    ;; but mail-fetch-field does not, so
+				    ;; mail-fetch-field does not, so
 				    ;; we append a newline here.
 				    (if from
 					(format "%s\n" from)))

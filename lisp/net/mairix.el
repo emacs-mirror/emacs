@@ -743,21 +743,20 @@ VALUES may contain values for editable fields from current article."
 
 ;;;; Major mode for editing/deleting/saving searches
 
-(defvar mairix-searches-mode-map
-  (let ((map (make-keymap)))
-    (define-key map [(return)] 'mairix-select-search)
-    (define-key map [(down)] 'mairix-next-search)
-    (define-key map [(up)] 'mairix-previous-search)
-    (define-key map [(right)] 'mairix-next-search)
-    (define-key map [(left)] 'mairix-previous-search)
-    (define-key map "\C-p" 'mairix-previous-search)
-    (define-key map "\C-n" 'mairix-next-search)
-    (define-key map [(q)] 'mairix-select-quit)
-    (define-key map [(e)] 'mairix-select-edit)
-    (define-key map [(d)] 'mairix-select-delete)
-    (define-key map [(s)] 'mairix-select-save)
-    map)
-  "`mairix-searches-mode' keymap.")
+(defvar-keymap mairix-searches-mode-map
+  :doc "`mairix-searches-mode' keymap."
+  :full t
+  "<return>" #'mairix-select-search
+  "<down>"   #'mairix-next-search
+  "<up>"     #'mairix-previous-search
+  "<right>"  #'mairix-next-search
+  "<left>"   #'mairix-previous-search
+  "C-p"      #'mairix-previous-search
+  "C-n"      #'mairix-next-search
+  "q"        #'mairix-select-quit
+  "e"        #'mairix-select-edit
+  "d"        #'mairix-select-delete
+  "s"        #'mairix-select-save)
 
 (defvar mairix-searches-mode-font-lock-keywords
   '(("^\\([0-9]+\\)"

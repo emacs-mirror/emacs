@@ -163,7 +163,9 @@ nnmairix groups are specifically excluded because they are ephemeral."
   :type 'boolean
   :version "28.1")
 
-(defvar gnus-registry-enabled nil)
+(make-obsolete-variable
+ 'gnus-registry-enabled
+ "Check for non-nil value of `gnus-registry-db'" "29.1")
 
 (defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
 
@@ -355,8 +357,12 @@ This is not required after changing `gnus-registry-cache-file'."
   "Load the registry from the cache file."
   (interactive)
   (let ((file gnus-registry-cache-file))
+    (gnus-message 5 "Initializing the registry")
     (condition-case nil
-        (gnus-registry-read file)
+        (progn
+          (gnus-registry-read file)
+          (gnus-registry-install-hooks)
+          (gnus-registry-install-shortcuts))
       (file-error
        ;; Fix previous mis-naming of the registry file.
        (let ((old-file-name
@@ -846,9 +852,9 @@ Overrides existing keywords with FORCE set non-nil."
 
 (defun gnus-registry-register-message-ids ()
   "Register the Message-ID of every article in the group."
-  (unless (or (gnus-parameter-registry-ignore gnus-newsgroup-name)
-	      (null gnus-registry-register-all)
-              (null (eieio-object-p gnus-registry-db)))
+  (unless (or (null gnus-registry-db)
+              (null gnus-registry-register-all)
+	      (gnus-parameter-registry-ignore gnus-newsgroup-name))
     (dolist (article gnus-newsgroup-articles)
       (let* ((id (gnus-registry-fetch-message-id-fast article))
              (groups (gnus-registry-get-id-key id 'group)))
@@ -949,13 +955,12 @@ FUNCTION should take two parameters, a mark symbol and the cell value."
 (defun gnus-registry-install-shortcuts ()
   "Install the keyboard shortcuts and menus for the registry.
 Uses `gnus-registry-marks' to find what shortcuts to install."
-  (let (keys-plist)
-    (setq gnus-registry-misc-menus nil)
-    (gnus-registry-do-marks
-     :char
-     (lambda (mark data)
-       (let ((function-format
-              (format "gnus-registry-%%s-article-%s-mark" mark)))
+  (setq gnus-registry-misc-menus nil)
+  (gnus-registry-do-marks
+   :char
+   (lambda (mark data)
+     (let ((function-format
+            (format "gnus-registry-%%s-article-%s-mark" mark)))
 
 ;;;  The following generates these functions:
 ;;;  (defun gnus-registry-set-article-Important-mark (&rest articles)
@@ -967,48 +972,43 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;;;    (interactive (gnus-summary-work-articles current-prefix-arg))
 ;;;    (gnus-registry-set-article-mark-internal 'Important articles t t))
 
-         (dolist (remove '(t nil))
-           (let* ((variant-name (if remove "remove" "set"))
-                  (function-name
-                   (intern (format function-format variant-name)))
-                  (shortcut (format "%c" (if remove (upcase data) data))))
-             (defalias function-name
-               (lambda (&rest articles)
-                 (:documentation
-                  (format
-                   "%s the %s mark over process-marked ARTICLES."
-                   (upcase-initials variant-name)
-                   mark))
-                 (interactive
-                  (gnus-summary-work-articles current-prefix-arg))
-                 (gnus-registry--set/remove-mark mark remove articles)))
-             (push function-name keys-plist)
-             (push shortcut keys-plist)
-             (push (vector (format "%s %s"
-                                   (upcase-initials variant-name)
-                                   (symbol-name mark))
-                           function-name t)
-                   gnus-registry-misc-menus)
-             (gnus-message 9 "Defined mark handling function %s"
-                           function-name))))))
-    (define-key gnus-summary-mark-map "M"
-      (apply #'define-keymap :prefix 'gnus-summary-mark-map
-             keys-plist))
-    (add-hook 'gnus-summary-menu-hook
-              (lambda ()
-                (easy-menu-add-item
-                 gnus-summary-misc-menu
-                 nil
-                 (cons "Registry Marks" gnus-registry-misc-menus))))))
-
-(define-obsolete-function-alias 'gnus-registry-user-format-function-M
-  #'gnus-registry-article-marks-to-chars "24.1")
+       (dolist (remove '(t nil))
+         (let* ((variant-name (if remove "remove" "set"))
+                (function-name
+                 (intern (format function-format variant-name)))
+                (shortcut (format "%c" (if remove (upcase data) data))))
+           (defalias function-name
+             (lambda (&rest articles)
+               (:documentation
+                (format
+                 "%s the %s mark over process-marked ARTICLES."
+                 (upcase-initials variant-name)
+                 mark))
+               (interactive
+                (gnus-summary-work-articles current-prefix-arg))
+               (gnus-registry--set/remove-mark mark remove articles)))
+           (keymap-set gnus-summary-mark-map
+                       (concat "M " shortcut)
+                       function-name)
+           (push (vector (format "%s %s"
+                                 (upcase-initials variant-name)
+                                 (symbol-name mark))
+                         function-name t)
+                 gnus-registry-misc-menus)
+           (gnus-message 9 "Defined mark handling function %s"
+                         function-name))))))
+  (add-hook 'gnus-summary-menu-hook
+            (lambda ()
+              (easy-menu-add-item
+               gnus-summary-misc-menu
+               nil
+               (cons "Registry Marks" gnus-registry-misc-menus)))))
 
 ;; use like this:
 ;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-chars)
 (defun gnus-registry-article-marks-to-chars (headers)
   "Show the marks for an article by the :char property."
-  (if gnus-registry-enabled
+  (if gnus-registry-db
       (let* ((id (mail-header-message-id headers))
              (marks (when id (gnus-registry-get-id-key id 'mark))))
 	(concat (delq nil
@@ -1024,7 +1024,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 ;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-names)
 (defun gnus-registry-article-marks-to-names (headers)
   "Show the marks for an article by name."
-  (if gnus-registry-enabled
+  (if gnus-registry-db
       (let* ((id (mail-header-message-id headers))
              (marks (when id (gnus-registry-get-id-key id 'mark))))
 	(mapconcat #'symbol-name marks ","))
@@ -1183,16 +1183,12 @@ non-nil."
 (defun gnus-registry-initialize ()
   "Initialize the Gnus registry."
   (interactive)
-  (gnus-message 5 "Initializing the registry")
-  (gnus-registry-install-hooks)
-  (gnus-registry-install-shortcuts)
   (if (gnus-alive-p)
       (gnus-registry-load)
     (add-hook 'gnus-read-newsrc-el-hook #'gnus-registry-load)))
 
 (defun gnus-registry-install-hooks ()
   "Install the registry hooks."
-  (setq gnus-registry-enabled t)
   (add-hook 'gnus-summary-article-move-hook #'gnus-registry-action)
   (add-hook 'gnus-summary-article-delete-hook #'gnus-registry-action)
   (add-hook 'gnus-summary-article-expire-hook #'gnus-registry-action)
@@ -1212,17 +1208,16 @@ non-nil."
   (remove-hook 'gnus-save-newsrc-hook #'gnus-registry-save)
   (remove-hook 'gnus-read-newsrc-el-hook #'gnus-registry-load)
 
-  (remove-hook 'gnus-summary-prepare-hook #'gnus-registry-register-message-ids)
-  (setq gnus-registry-enabled nil))
+  (remove-hook 'gnus-summary-prepare-hook #'gnus-registry-register-message-ids))
 
-(add-hook 'gnus-registry-unload-hook #'gnus-registry-unload-hook)
+(add-hook 'gnus-registry-unload-hook #'gnus-registry-clear)
 
 (defun gnus-registry-install-p ()
   "Return non-nil if the registry is enabled (and maybe enable it first).
 If the registry is not already enabled, then if `gnus-registry-install'
 is `ask', ask the user; or if `gnus-registry-install' is non-nil, enable it."
   (interactive)
-  (unless gnus-registry-enabled
+  (unless gnus-registry-db
     (when (if (eq gnus-registry-install 'ask)
               (gnus-y-or-n-p
                (concat "Enable the Gnus registry?  "
@@ -1230,7 +1225,7 @@ is `ask', ask the user; or if `gnus-registry-install' is non-nil, enable it."
                        "to get rid of this query permanently. "))
             gnus-registry-install)
       (gnus-registry-initialize)))
-  gnus-registry-enabled)
+  (null (null gnus-registry-db)))
 
 ;; largely based on nnselect-warp-to-article
 (defun gnus-try-warping-via-registry ()

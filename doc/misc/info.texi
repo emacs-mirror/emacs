@@ -1083,7 +1083,9 @@ If you aren't sure which manual documents the topic you are looking
 for, try the @kbd{M-x info-apropos} command in Emacs, or the @kbd{M-x
 index-apropos} command in the stand-alone reader.  It prompts for
 a string and then looks up that string in all the indices of all the
-Info documents installed on your system.
+Info documents installed on your system.  In Emacs, giving a prefix
+argument to the command will try to search for a regular expression
+instead of a string.
 
 @node Go to node
 @section @kbd{g} goes to a node by name
@@ -1191,8 +1193,9 @@ info-stnd, GNU Info}.
 The list of directories to search for Info files.  Each element is a
 string (directory name) or @code{nil} (try default directory).  If not
 initialized Info uses the environment variable @env{INFOPATH} to
-initialize it, or @code{Info-default-directory-list} if there is no
-@env{INFOPATH} variable in the environment.
+initialize it, or @code{Info-default-directory-list} in addition to
+the value returned by the @code{Info--default-directory-list} function
+if there is no @env{INFOPATH} variable in the environment.
 
 If you wish to customize the Info directory search list for both Emacs
 Info and stand-alone Info, it is best to set the @env{INFOPATH}

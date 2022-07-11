@@ -435,7 +435,7 @@ expansion.
 @cindex forms, special
 @cindex evaluation of special forms
 
-  A @dfn{special form} is a primitive function specially marked so that
+  A @dfn{special form} is a primitive specially marked so that
 its arguments are not all evaluated.  Most special forms define control
 structures or perform variable bindings---things which functions cannot
 do.

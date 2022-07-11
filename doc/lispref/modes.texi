@@ -762,6 +762,9 @@ uncompression packages: an entry of the form @code{("\\.gz\\'"
 @var{function} t)} can uncompress the file and then put the uncompressed
 file in the proper mode according to the name sans @samp{.gz}.
 
+If @code{auto-mode-alist} has more than one element whose @var{regexp}
+matches the file name, Emacs will use the first match.
+
 Here is an example of how to prepend several pattern pairs to
 @code{auto-mode-alist}.  (You might use this sort of expression in your
 init file.)
@@ -1058,11 +1061,21 @@ very end of every properly-written major mode command.
 @cindex Tabulated List mode
 
   Tabulated List mode is a major mode for displaying tabulated data,
-i.e., data consisting of @dfn{entries}, each entry occupying one row of
-text with its contents divided into columns.  Tabulated List mode
+i.e., data consisting of @dfn{entries}, each entry occupying one row
+of text with its contents divided into columns.  Tabulated List mode
 provides facilities for pretty-printing rows and columns, and sorting
 the rows according to the values in each column.  It is derived from
 Special mode (@pxref{Basic Major Modes}).
+
+@findex make-vtable
+@cindex variable pitch tables
+  Tabulated List mode is geared towards displaying text using
+monospaced fonts, using a single font and text size.  If you want to
+display a table using variable pitch fonts or images,
+@code{make-vtable} can be used instead.  vtable also support having
+more than a single table in a buffer, or having a buffer that contains
+both a table and additional text in it.  @xref{Introduction,,, vtable},
+for more information.
 
   Tabulated List mode is intended to be used as a parent mode by a more
 specialized major mode.  Examples include Process Menu mode
@@ -1899,6 +1912,16 @@ This means ``use in modes derived from @code{text-mode}, but nowhere
 else''.  (There's an implicit @code{nil} element at the end.)
 @end defmac
 
+@findex buffer-local-restore-state
+@defmac buffer-local-set-state variable value...
+Minor modes often set buffer-local variables that affect some features
+in Emacs.  When a minor mode is switched off, the mode is expected to
+restore the previous state of these variables.  This convenience macro
+helps with doing that: It works much like @code{setq-local}, but
+returns an object that can be used to restore these values back to
+their previous values/states (using the companion function
+@code{buffer-local-restore-state}).
+@end defmac
 
 @node Mode Line Format
 @section Mode Line Format
@@ -1961,8 +1984,26 @@ This function also forces an update of the menu bar and frame title.
 @end defun
 
   The selected window's mode line is usually displayed in a different
-color using the face @code{mode-line}.  Other windows' mode lines appear
-in the face @code{mode-line-inactive} instead.  @xref{Faces}.
+color using the face @code{mode-line-active}.  Other windows' mode
+lines appear in the face @code{mode-line-inactive} instead.
+@xref{Faces}.
+
+@defun mode-line-window-selected-p
+If you want to have more extensive differences between the mode lines
+in selected and non-selected windows, you can use this predicate in an
+@code{:eval} construct.  For instance, if you want to display the
+buffer name in bold in selected windows, but in italics in the other
+windows, you can say something like:
+
+@lisp
+(setq-default
+ mode-line-buffer-identification
+ '(:eval (propertize "%12b"
+		     'face (if (mode-line-window-selected-p)
+			       'bold
+			     'italic))))
+@end lisp
+@end defun
 
 @vindex mode-line-compact
   Some modes put a lot of data in the mode line, pushing elements at
@@ -2534,7 +2575,23 @@ mode line feature, except that it's controlled by
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
-It is normally @code{nil}, so that ordinary buffers have no header line.
+It is normally @code{nil}, so that ordinary buffers have no header
+line.
+
+@findex header-line-indent-mode
+If @code{display-line-numbers-mode} is used, and you want the header
+line to be indented by the same amount as the buffer contents, you can
+use the @code{header-line-indent-mode} minor mode.  This minor mode
+keeps the @code{header-line-indent} variable updated, so that you can
+say something like:
+
+@lisp
+(setq header-line-format
+      `("" header-line-format ,my-header-line))
+@end lisp
+
+This can be useful if you're displaying columnar data, and the header
+line should align with that data in the buffer.
 @end defvar
 
 @defun window-header-line-height &optional window
@@ -3173,7 +3230,9 @@ Non-@code{nil} means that regular expression matching for the sake of
 
   You can use @code{font-lock-add-keywords} to add additional
 search-based fontification rules to a major mode, and
-@code{font-lock-remove-keywords} to remove rules.
+@code{font-lock-remove-keywords} to remove rules.  You can also
+customize the @code{font-lock-ignore} option to selectively disable
+fontification rules for keywords that match certain criteria.
 
 @defun font-lock-add-keywords mode keywords &optional how
 This function adds highlighting @var{keywords}, for the current buffer
@@ -3242,6 +3301,99 @@ mode @emph{and} all modes derived from it, do this instead:
      ("\\<\\(and\\|or\\|not\\)\\>" .
       font-lock-keyword-face)))))
 @end smallexample
+
+@defopt font-lock-ignore
+@cindex selectively disabling font-lock fontifications
+This option defines conditions for selectively disabling
+fontifications due to certain Font Lock keywords.  If non-@code{nil},
+its value is a list of elements of the following form:
+
+@example
+(@var{symbol} @var{condition} @dots{})
+@end example
+
+Here, @var{symbol} is a symbol, usually a major or minor mode.  The
+subsequent @var{condition}s of a @var{symbol}'s list element will be in
+effect if @var{symbol} is bound and its value is non-@code{nil}.  For
+a mode's symbol, it means that the current major mode is derived from
+that mode, or that minor mode is enabled in the buffer.  When a
+@var{condition} is in effect, any fontifications caused by
+@code{font-lock-keywords} elements that match the @var{condition} will
+be disabled.
+
+Each @var{condition} can be one of the following:
+
+@table @asis
+@item a symbol
+This condition matches any element of Font Lock keywords that
+references the symbol.  This is usually a face, but can be any symbol
+referenced by an element of the @code{font-lock-keywords} list.  The
+symbol can contain wildcards: @code{*} matches any string in the
+symbol'ss name, @code{?} matches a single character, and
+@code{[@var{char-set}]}, where @var{char-set} is a string of one or
+more characters, matches a single character from the set.
+
+@item a string
+This condition matches any element of Font Lock keywords whose
+@var{matcher} is a regexp which matches the string.  In other words,
+this condition matches a Font Lock rule which highlights the string.
+Thus, the string could be a specific program keyword whose
+highlighting you want to disable.
+
+@item @code{(pred @var{function})}
+This condition matches any element of Font Lock keywords for which
+@var{function}, when called with the element as the argument, returns
+non-@code{nil}.
+
+@item @code{(not @var{condition})}
+This matches if @var{condition} doesn’t.
+
+@item @code{(and @var{condition} @dots{})}
+This matches if each of the @var{condition}s matches.
+
+@item @code{(or @var{condition} @dots{})}
+This matches if at least one of the @var{condition}s matches.
+
+@item @code{(except @var{condition})}
+This condition can only be used at top level or inside an
+@code{or} clause.  It undoes the effect of a previously matching
+condition on the same level.
+@end table
+@end defopt
+
+As an example, consider the following setting:
+
+@smallexample
+(setq font-lock-ignore
+      '((prog-mode font-lock-*-face
+                   (except help-echo))
+        (emacs-lisp-mode (except ";;;###autoload)")
+        (whitespace-mode whitespace-empty-at-bob-regexp)
+        (makefile-mode (except *))))
+@end smallexample
+
+Line by line, this does the following:
+
+@enumerate
+@item
+In all programming modes, disable fontifications due to all font-lock
+keywords that apply one of the standard font-lock faces (excluding
+strings and comments, which are covered by syntactic Font Lock).
+
+@item
+However, keep any keywords that add a @code{help-echo} text property.
+
+@item
+In Emacs Lisp mode, also keep the highlighting of autoload cookies,
+which would have been excluded by the first condition.
+
+@item
+When @code{whitespace-mode} (a minor mode) is enabled, also don't
+highlight an empty line at beginning of buffer.
+
+@item
+Finally, in Makefile mode, don't apply any conditions.
+@end enumerate
 
 @node Other Font Lock Variables
 @subsection Other Font Lock Variables
@@ -3321,7 +3473,8 @@ fontification functions, and gives it two arguments, @var{start} and
 @var{end}, which specify the region to be fontified or refontified.
 If @var{function} performs fontifications, it can return a list of the
 form @w{@code{(jit-lock-bounds @var{beg} . @var{end})}}, to indicate
-the bounds of the region it actually fontified; JIT font-lock will use
+the bounds of the region it actually fontified; Just-In-Time (a.k.a.@:
+@acronym{``JIT''}) font-lock will use
 this information to optimize subsequent redisplay cycles and regions
 of buffer text it will pass to future calls to @var{function}.
 
@@ -3340,6 +3493,19 @@ non-@code{nil} value of @var{contextual} if the value of
 If @var{function} was previously registered as a fontification
 function using @code{jit-lock-register}, this function unregisters it.
 @end defun
+
+@cindex debugging font-lock
+@cindex jit-lock functions, debugging
+@deffn Command jit-lock-debug-mode &optional arg
+This is a minor mode whose purpose is to help in debugging code that
+is run by JIT font-lock.  When this mode is enabled, most of the code
+that JIT font-lock normally runs during redisplay cycles, where Lisp
+errors are suppressed, is instead run by a timer.  Thus, this mode
+allows using debugging aids such as @code{debug-on-error}
+(@pxref{Error Debugging}) and Edebug (@pxref{Edebug}) for finding and
+fixing problems in font-lock code and any other code run by JIT
+font-lock.
+@end deffn
 
 @node Levels of Font Lock
 @subsection Levels of Font Lock
@@ -3513,6 +3679,10 @@ the value is @code{nil}, Font Lock will call @code{jit-lock-register}
 (@pxref{Other Font Lock Variables}) to set up for automatic
 refontification of buffer text following a modified line to reflect
 the new syntactic context due to the change.
+
+To use only syntactic fontification, this variable should
+be non-@code{nil}, while @code{font-lock-keywords} should be set to
+@code{nil} (@pxref{Font Lock Basics}).
 @end defvar
 
 @defvar font-lock-syntax-table

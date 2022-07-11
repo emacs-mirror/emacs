@@ -143,7 +143,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 ;;; Support Routines
 
 (defun mh-subject-to-sequence (all)
-  "Put all following messages with same subject in sequence 'subject.
+  "Put all following messages with same subject in sequence `subject'.
 If arg ALL is t, move to beginning of folder buffer to collect all
 messages.
 If arg ALL is nil, collect only messages from current one on forward.
@@ -161,7 +161,7 @@ Return number of messages put in the sequence:
     (mh-subject-to-sequence-unthreaded all)))
 
 (defun mh-subject-to-sequence-threaded (all)
-  "Put all messages with the same subject in the 'subject sequence.
+  "Put all messages with the same subject in the `subject' sequence.
 
 This function works when the folder is threaded. In this
 situation the subject could get truncated and so the normal
@@ -192,7 +192,7 @@ are taken into account."
 It would be desirable to avoid hard-coding this.")
 
 (defun mh-subject-to-sequence-unthreaded (all)
-  "Put all following messages with same subject in sequence 'subject.
+  "Put all following messages with same subject in sequence `subject'.
 
 This function only works with an unthreaded folder. If arg ALL is
 t, move to beginning of folder buffer to collect all messages. If

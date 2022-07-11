@@ -996,7 +996,7 @@ if for some reason a circle is in the inheritance graph."
 Each line corresponds to a class in a class tree.
 Letters do not insert themselves, they are commands.
 File operations in the tree buffer work on class tree data structures.
-E.g.\\[save-buffer] writes the tree to the file it was loaded from.
+E.g. \\[save-buffer] writes the tree to the file it was loaded from.
 
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}"
@@ -3633,7 +3633,12 @@ If regular expression is nil, repeat last search."
 ;;;###autoload
 (defun ebrowse-tags-query-replace (from to)
   "Query replace FROM with TO in all files of a class tree.
-With prefix arg, process files of marked classes only."
+With prefix arg, process files of marked classes only.
+
+As each match is found, the user must type a character saying
+what to do with it.  Type SPC or `y' to replace the match,
+DEL or `n' to skip and go to the next match.  For more directions,
+type \\[help-command] at that time."
   (interactive
    "sTree query replace (regexp): \nsTree query replace %s by: ")
   (setq ebrowse-tags-loop-call

@@ -290,13 +290,13 @@ create_terminal (enum output_method type, struct redisplay_interface *rif)
   keyboard_coding =
     find_symbol_value (intern ("default-keyboard-coding-system"));
   if (NILP (keyboard_coding)
-      || EQ (keyboard_coding, Qunbound)
+      || BASE_EQ (keyboard_coding, Qunbound)
       || NILP (Fcoding_system_p (keyboard_coding)))
     keyboard_coding = Qno_conversion;
   terminal_coding =
     find_symbol_value (intern ("default-terminal-coding-system"));
   if (NILP (terminal_coding)
-      || EQ (terminal_coding, Qunbound)
+      || BASE_EQ (terminal_coding, Qunbound)
       || NILP (Fcoding_system_p (terminal_coding)))
     terminal_coding = Qundecided;
 
@@ -622,6 +622,8 @@ init_initial_terminal (void)
     emacs_abort ();
 
   initial_terminal = create_terminal (output_initial, NULL);
+  /* Note: menu-bar.el:menu-bar-update-buffers knows about this
+     special name of the initial terminal.  */
   initial_terminal->name = xstrdup ("initial_terminal");
   initial_terminal->kboard = initial_kboard;
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;

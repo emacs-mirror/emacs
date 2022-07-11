@@ -26,12 +26,12 @@
 ;; notices) in file headers to avoid clutter when you know what it
 ;; says.
 ;;
-;; `elide-head-headers-to-hide' controls what is elided by the command
-;; `elide-head'.  A buffer-local invisible overlay manages the
-;; elision.
+;; `elide-head-headers-to-hide' controls what is elided by the minor
+;; mode `elide-head-mode'.  A buffer-local invisible overlay manages
+;; the elision.
 
-;; You might add `elide-head' to appropriate major mode hooks or to
-;; `find-file-hook'.  Please do not do this in site init files.  If
+;; You might add `elide-head-mode' to appropriate major mode hooks or
+;; to `find-file-hook'.  Please do not do this in site init files.  If
 ;; you do, information may be hidden from users who don't know it
 ;; already.
 
@@ -73,12 +73,75 @@
 The cars of elements of the list are searched for in order.  Text is
 elided with an invisible overlay from the end of the line where the
 first match is found to the end of the match for the corresponding
-cdr."
+cdr.
+
+This affects `elide-head-mode'."
   :type '(alist :key-type  (regexp :tag "Start regexp")
                 :value-type (regexp :tag "End regexp"))
   :version "29.1")
 
 (defvar-local elide-head-overlay nil)
+
+(defun elide-head--delete-overlay ()
+  "Delete the overlay in `elide-head-overlay'."
+  (when (overlayp elide-head-overlay)
+    (delete-overlay elide-head-overlay)))
+
+(defun elide-head--hide ()
+  "Hide elided (hidden) headers."
+  (save-excursion
+    (save-restriction
+      (let ((rest elide-head-headers-to-hide)
+            beg end)
+        (widen)
+        (goto-char (point-min))
+        (while rest
+          (save-excursion
+            (when (re-search-forward (caar rest) nil t)
+              (setq beg (point))
+              (when (re-search-forward (cdar rest) nil t)
+                (setq end (point-marker)
+                      rest nil))))
+          (if rest (setq rest (cdr rest))))
+        (if (not (and beg end))
+            (if (called-interactively-p 'interactive)
+                (message "No header found"))
+          (goto-char beg)
+          (end-of-line)
+          (if (overlayp elide-head-overlay)
+              (move-overlay elide-head-overlay (point-marker) end)
+            (setq elide-head-overlay (make-overlay (point-marker) end)))
+          (overlay-put elide-head-overlay 'invisible t)
+          (overlay-put elide-head-overlay 'evaporate t)
+          (overlay-put elide-head-overlay 'after-string "..."))))))
+
+(defun elide-head--show ()
+  "Show elided (hidden) headers."
+  (if (and (overlayp elide-head-overlay)
+           (overlay-buffer elide-head-overlay))
+      (elide-head--delete-overlay)
+    (if (called-interactively-p 'interactive)
+        (message "No header hidden"))))
+
+;;;###autoload
+(define-minor-mode elide-head-mode
+  "Toggle eliding (hiding) header material in the current buffer.
+
+When Elide Header mode is enabled, headers are hidden according
+to `elide-head-headers-to-hide'.
+
+This is suitable as an entry on `find-file-hook' or appropriate
+mode hooks."
+  :group 'elide-head
+  (if elide-head-mode
+      (progn
+        (elide-head--hide)
+        (add-hook 'change-major-mode-hook 'elide-head--delete-overlay nil 'local))
+    (elide-head--show)
+    (remove-hook 'change-major-mode-hook 'elide-head--delete-overlay 'local)))
+
+
+;;; Obsolete
 
 ;;;###autoload
 (defun elide-head (&optional arg)
@@ -88,43 +151,17 @@ The header is made invisible with an overlay.  With a prefix arg, show
 an elided material again.
 
 This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
+  (declare (obsolete elide-head-mode "29.1"))
   (interactive "P")
   (if arg
-      (elide-head-show)
-    (save-excursion
-      (save-restriction
-	(let ((rest elide-head-headers-to-hide)
-	      beg end)
-	  (widen)
-	  (goto-char (point-min))
-	  (while rest
-	    (save-excursion
-	      (when (re-search-forward (caar rest) nil t)
-		(setq beg (point))
-		(when (re-search-forward (cdar rest) nil t)
-		  (setq end (point-marker)
-			rest nil))))
-	    (if rest (setq rest (cdr rest))))
-	  (if (not (and beg end))
-	      (if (called-interactively-p 'interactive)
-		  (message "No header found"))
-	    (goto-char beg)
-	    (end-of-line)
-	    (if (overlayp elide-head-overlay)
-		(move-overlay elide-head-overlay (point-marker) end)
-	      (setq elide-head-overlay (make-overlay (point-marker) end)))
-	    (overlay-put elide-head-overlay 'invisible t)
-	    (overlay-put elide-head-overlay 'evaporate t)
-	    (overlay-put elide-head-overlay 'after-string "...")))))))
+      (elide-head-mode -1)
+    (elide-head-mode 1)))
 
 (defun elide-head-show ()
   "Show a header in the current buffer elided by \\[elide-head]."
+  (declare (obsolete elide-head-mode "29.1"))
   (interactive)
-  (if (and (overlayp elide-head-overlay)
-	   (overlay-buffer elide-head-overlay))
-      (delete-overlay elide-head-overlay)
-    (if (called-interactively-p 'interactive)
-	(message "No header hidden"))))
+  (elide-head-mode -1))
 
 (provide 'elide-head)
 

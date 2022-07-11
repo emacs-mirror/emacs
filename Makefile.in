@@ -319,6 +319,9 @@ GLIB_COMPILE_SCHEMAS = glib-compile-schemas
 # Program name transformation.
 TRANSFORM = @program_transform_name@
 
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
+
 # What emacs should be called when installed.
 EMACS_NAME = `echo emacs | sed '$(TRANSFORM)'`
 EMACS = ${EMACS_NAME}${EXEEXT}
@@ -691,8 +694,6 @@ install-etcdoc: src install-arch-indep
 	   printf 'Copying %s to %s ...\n' "etc/$$docfile" \
 	     "$(DESTDIR)${etcdocdir}"; \
 	   ${INSTALL_DATA} etc/$${docfile} "$(DESTDIR)${etcdocdir}/$${docfile}"; \
-	   $(set_installuser); \
-	     chown $${installuser} "$(DESTDIR)${etcdocdir}/$${docfile}" || true ; \
 	else true; fi
 
 ## FIXME:
@@ -964,6 +965,7 @@ bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
+	rm -rf native-lisp/ lisp/leim/ja-dic/
 	${top_bootclean}
 
 ### 'maintainer-clean'

@@ -393,4 +393,29 @@
   (let ((th (make-thread 'ignore)))
     (should-not (equal th main-thread))))
 
+(defvar threads-test--var 'global)
+
+(ert-deftest threads-test-bug48990 ()
+  (skip-unless (fboundp 'make-thread))
+  (let ((buf1 (generate-new-buffer " thread-test"))
+        (buf2 (generate-new-buffer " thread-test")))
+    (with-current-buffer buf1
+      (setq-local threads-test--var 'local1))
+    (with-current-buffer buf2
+      (setq-local threads-test--var 'local2))
+    (let ((seen nil))
+      (with-current-buffer buf1
+        (should (eq threads-test--var 'local1))
+        (make-thread (lambda () (setq seen threads-test--var))))
+      (with-current-buffer buf2
+        (should (eq threads-test--var 'local2))
+        (let ((threads-test--var 'let2))
+          (should (eq threads-test--var 'let2))
+          (while (not seen)
+            (thread-yield))
+          (should (eq threads-test--var 'let2))
+          (should (eq seen 'local1)))
+        (should (eq threads-test--var 'local2)))
+      (should (eq threads-test--var 'global)))))
+
 ;;; thread-tests.el ends here

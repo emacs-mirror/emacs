@@ -220,7 +220,7 @@
 ;;
 ;; - responsible-p (file)
 ;;
-;;   Return non-nil if this backend considers itself "responsible" for
+;;   Return the directory if this backend considers itself "responsible" for
 ;;   FILE, which can also be a directory.  This function is used to find
 ;;   out what backend to use for registration of new files and for things
 ;;   like change log generation.  The default implementation always
@@ -824,7 +824,7 @@ for the backend you use."
   "Limit the number of items shown by the VC log commands.
 Zero means unlimited.
 Not all VC backends are able to support this feature."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom vc-allow-async-revert nil
   "Specifies whether the diff during \\[vc-revert] may be asynchronous.
@@ -1004,13 +1004,14 @@ responsible for the given file."
       ;;
       ;; First try: find a responsible backend.  If this is for registration,
       ;; it must be a backend under which FILE is not yet registered.
-      (let ((dirs (delq nil
-                        (mapcar
-                         (lambda (backend)
-                           (when-let ((dir (vc-call-backend
-                                            backend 'responsible-p file)))
-                             (cons backend dir)))
-                         vc-handled-backends))))
+      (let* ((file (expand-file-name file))
+             (dirs (delq nil
+                         (mapcar
+                          (lambda (backend)
+                            (when-let ((dir (vc-call-backend
+                                             backend 'responsible-p file)))
+                              (cons backend dir)))
+                          vc-handled-backends))))
         ;; Just a single response (or none); use it.
         (if (< (length dirs) 2)
             (caar dirs)
@@ -1730,12 +1731,35 @@ to override the value of `vc-diff-switches' and `diff-switches'."
       ;; any switches in diff-switches.
       (when (listp switches) switches))))
 
-(defun vc-diff-finish (buffer messages)
+(defun vc-shrink-buffer-window (&optional buffer)
+  "Call `shrink-window-if-larger-than-buffer' only when BUFFER is visible.
+BUFFER defaults to the current buffer."
+  (let ((window (get-buffer-window buffer t)))
+    (when window
+      (shrink-window-if-larger-than-buffer window))))
+
+(defvar vc-diff-finish-functions '(vc-shrink-buffer-window)
+  "Functions run at the end of the diff command.
+Each function runs in the diff output buffer without args.")
+
+(defun vc-diff-restore-buffer (original new)
+  "Restore point in buffer NEW to where it was in ORIGINAL.
+
+This function works by updating buffer ORIGINAL with the contents
+of NEW (without destroying existing markers), swapping their text
+objects, and finally killing buffer ORIGINAL."
+  (with-current-buffer original
+    (let ((inhibit-read-only t))
+      (replace-buffer-contents new)))
+  (with-current-buffer new
+    (buffer-swap-text original))
+  (kill-buffer original))
+
+(defun vc-diff-finish (buffer messages &optional oldbuf)
   ;; The empty sync output case has already been handled, so the only
   ;; possibility of an empty output is for an async process.
   (when (buffer-live-p buffer)
-    (let ((window (get-buffer-window buffer t))
-	  (emptyp (zerop (buffer-size buffer))))
+    (let ((emptyp (zerop (buffer-size buffer))))
       (with-current-buffer buffer
 	(and messages emptyp
 	     (let ((inhibit-read-only t))
@@ -1743,9 +1767,12 @@ to override the value of `vc-diff-switches' and `diff-switches'."
 	       (message "%s" (cdr messages))))
 	(diff-setup-whitespace)
 	(diff-setup-buffer-type)
-	(goto-char (point-min))
-	(when window
-	  (shrink-window-if-larger-than-buffer window)))
+        ;; `oldbuf' is the buffer that used to show this diff.  Make
+        ;; sure that we restore point in it if it's given.
+	(if oldbuf
+            (vc-diff-restore-buffer oldbuf buffer)
+          (goto-char (point-min)))
+	(run-hooks 'vc-diff-finish-functions))
       (when (and messages (not emptyp))
 	(message "%sdone" (car messages))))))
 
@@ -1769,7 +1796,11 @@ Return t if the buffer had changes, nil otherwise."
 	 ;; but the only way to set it for each file included would
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
-	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
+	  (if files (vc-coding-system-for-diff (car files)) 'undecided))
+         (orig-diff-buffer-clone
+          (if revert-buffer-in-progress-p
+              (clone-buffer
+               (generate-new-buffer-name " *vc-diff-clone*") nil))))
     ;; On MS-Windows and MS-DOS, Diff is likely to produce DOS-style
     ;; EOLs, which will look ugly if (car files) happens to have Unix
     ;; EOLs.
@@ -1808,16 +1839,16 @@ Return t if the buffer had changes, nil otherwise."
         (setq files (nreverse filtered))))
     (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer async)
     (set-buffer buffer)
+    ;; Make the *vc-diff* buffer read only, the diff-mode key
+    ;; bindings are nicer for read only buffers. pcl-cvs does the
+    ;; same thing.
+    (setq buffer-read-only t)
     (diff-mode)
     (setq-local diff-vc-backend (car vc-fileset))
     (setq-local diff-vc-revisions (list rev1 rev2))
     (setq-local revert-buffer-function
                 (lambda (_ignore-auto _noconfirm)
                   (vc-diff-internal async vc-fileset rev1 rev2 verbose)))
-    ;; Make the *vc-diff* buffer read only, the diff-mode key
-    ;; bindings are nicer for read only buffers. pcl-cvs does the
-    ;; same thing.
-    (setq buffer-read-only t)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
@@ -1830,7 +1861,8 @@ Return t if the buffer had changes, nil otherwise."
       ;; after `pop-to-buffer'; the former assumes the diff buffer is
       ;; shown in some window.
       (let ((buf (current-buffer)))
-        (vc-run-delayed (vc-diff-finish buf (when verbose messages))))
+        (vc-run-delayed (vc-diff-finish buf (when verbose messages)
+                                        orig-diff-buffer-clone)))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))
@@ -2498,6 +2530,10 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
 (put 'vc-log-view-type 'permanent-local t)
 (defvar vc-sentinel-movepoint)
 
+(defvar vc-log-finish-functions '(vc-shrink-buffer-window)
+  "Functions run at the end of the log command.
+Each function runs in the log output buffer without args.")
+
 (defun vc-log-internal-common (backend
 			       buffer-name
 			       files
@@ -2529,11 +2565,11 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
     (vc-run-delayed
      (let ((inhibit-read-only t))
        (funcall setup-buttons-func backend files retval)
-       (shrink-window-if-larger-than-buffer)
        (when goto-location-func
          (funcall goto-location-func backend)
          (setq vc-sentinel-movepoint (point)))
-       (set-buffer-modified-p nil)))))
+       (set-buffer-modified-p nil)
+       (run-hooks 'vc-log-finish-functions)))))
 
 (defun vc-incoming-outgoing-internal (backend remote-location buffer-name type)
   (vc-log-internal-common
@@ -2618,7 +2654,10 @@ with its diffs (if the underlying VCS supports that)."
         (error "Directory is not version controlled")))
     (setq default-directory rootdir)
     (vc-print-log-internal backend (list rootdir) revision revision limit
-                           (when with-diff 'with-diff))))
+                           (when with-diff 'with-diff))
+    ;; We're looking at the root, so displaying " from <some-file>" in
+    ;; the mode line isn't helpful.
+    (setq vc-parent-buffer-name nil)))
 
 ;;;###autoload
 (defun vc-print-branch-log (branch)

@@ -111,24 +111,27 @@ active (@pxref{Using Region}).
 
 @kindex M-\
 @findex delete-horizontal-space
-@kindex M-SPC
-@findex just-one-space
-@findex cycle-spacing
-  The other delete commands are those that delete only whitespace
+The other delete commands are those that delete only whitespace
 characters: spaces, tabs and newlines.  @kbd{M-\}
 (@code{delete-horizontal-space}) deletes all the spaces and tab
 characters before and after point.  With a prefix argument, this only
-deletes spaces and tab characters before point.  @kbd{M-@key{SPC}}
-(@code{just-one-space}) does likewise but leaves a single space before
+deletes spaces and tab characters before point.
+
+@findex just-one-space
+@code{just-one-space} does likewise but leaves a single space before
 point, regardless of the number of spaces that existed previously
 (even if there were none before).  With a numeric argument @var{n}, it
 leaves @var{n} spaces before point if @var{n} is positive; if @var{n}
 is negative, it deletes newlines in addition to spaces and tabs,
-leaving @minus{}@var{n} spaces before point.  The command @code{cycle-spacing}
-acts like a more flexible version of @code{just-one-space}.  It
-does different things if you call it repeatedly in succession.
-The first call acts like @code{just-one-space}, the next removes
-all whitespace, and a third call restores the original whitespace.
+leaving @minus{}@var{n} spaces before point.
+
+@kindex M-SPC
+@findex cycle-spacing
+@vindex cycle-spacing-actions
+The command @code{cycle-spacing} (@kbd{M-@key{SPC}}) acts like a more
+flexible version of @code{just-one-space}.  It performs different
+space cleanup actions defined by @code{cycle-spacing-actions}, in a
+cyclic manner, if you call it repeatedly in succession.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all
@@ -540,11 +543,11 @@ clipboard.
 clipboard contents are normally lost.  Optionally, Emacs can save the
 existing clipboard contents to the kill ring, preventing you from
 losing the old clipboard data.  If
-@code{save-interprogram-paste-before-kill} changed to a number, then
-this data is copied over if it's smaller (in characters) than this
-number.  If this variable is any other non-@code{nil} value, it's
-always copied over---at the risk of high memory consumption if that
-data turns out to be large.
+@code{save-interprogram-paste-before-kill} has been set to a number,
+then the data is copied over if it's smaller (in characters) than
+this number.  If this variable is any other non-@code{nil} value, the
+data is always copied over---at the risk of high memory consumption if
+that data turns out to be large.
 
   Yank commands, such as @kbd{C-y} (@code{yank}), also use the
 clipboard.  If another application ``owns'' the clipboard---i.e., if
@@ -567,8 +570,8 @@ change the variable @code{select-enable-clipboard} to @code{nil}.
 instance, a web browser will usually let you choose ``Copy Image'' on
 images, and this image will be put on the clipboard.  On capable
 platforms, Emacs can yank these objects with the @code{yank-media}
-command---but only in modes that have support for it (@pxref{Yanking
-Media,,, elisp, The Emacs Lisp Reference Manual}).
+command---but only in modes that have support for it (@w{@pxref{Yanking
+Media,,, elisp, The Emacs Lisp Reference Manual}}).
 
 @cindex clipboard manager
 @vindex x-select-enable-clipboard-manager
@@ -607,14 +610,14 @@ yanks the contents of the clipboard at point.
 @cindex primary selection
 @cindex selection, primary
 
-  Under the X Window System, there exists a @dfn{primary selection}
-containing the last stretch of text selected in an X application
-(usually by dragging the mouse).  Typically, this text can be inserted
-into other X applications by @kbd{mouse-2} clicks.  The primary
-selection is separate from the clipboard.  Its contents are more
-fragile; they are overwritten each time you select text with the
-mouse, whereas the clipboard is only overwritten by explicit cut
-or copy commands.
+  Under the X Window System, PGTK and Haiku, there exists a
+@dfn{primary selection} containing the last stretch of text selected
+in an X application (usually by dragging the mouse).  Typically, this
+text can be inserted into other X applications by @kbd{mouse-2}
+clicks.  The primary selection is separate from the clipboard.  Its
+contents are more fragile; they are overwritten each time you select
+text with the mouse, whereas the clipboard is only overwritten by
+explicit cut or copy commands.
 
   Under X, whenever the region is active (@pxref{Mark}), the text in
 the region is saved in the primary selection.  This applies regardless
@@ -635,6 +638,13 @@ regions to the primary selection entirely.
 @xref{Mouse Commands}.  You can also use the normal Emacs yank command
 (@kbd{C-y}) to insert this text if @code{select-enable-primary} is set
 (@pxref{Clipboard}).
+
+@cindex lost-selection-mode
+  By default, Emacs keeps the region active even after text is
+selected in another program; this is contrary to typical X behavior.
+To make Emacs deactivate the region after another program places data
+in the primary selection, enable the global minor mode
+@code{lost-selection-mode}.
 
 @cindex MS-Windows, and primary selection
   MS-Windows provides no primary selection, but Emacs emulates it
@@ -698,6 +708,9 @@ lines, much like @kbd{mouse-1}.
 If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-mouse-2} yanks
 at point.  Then it does not matter precisely where you click, or even
 which of the frame's windows you click on.  @xref{Mouse Commands}.
+This user option also effects interactive search: if it is
+non-@code{nil}, yanking with the mouse anywhere in the frame will add
+the text to the search string.
 
 @node Accumulating Text
 @section Accumulating Text

@@ -71,8 +71,8 @@
              "doskey" "echo" "endlocal" "erase" "fc" "find" "findstr" "format"
              "ftype" "label" "md" "mkdir" "more" "move" "net" "path" "pause"
              "popd" "prompt" "pushd" "rd" "ren" "rename" "replace" "rmdir" "set"
-             "setlocal" "shift" "sort" "subst" "time" "title" "tree" "type"
-             "ver" "vol" "xcopy"))
+             "setlocal" "setx" "shift" "sort" "subst" "time" "title" "tree"
+             "type" "ver" "vol" "xcopy"))
           (CONTROLFLOW
            '("call" "cmd" "defined" "do" "else" "equ" "exist" "exit" "for" "geq"
              "goto" "gtr" "if" "in" "leq" "lss" "neq" "not" "start"))
@@ -82,7 +82,7 @@
          (2 font-lock-constant-face t))
         ("^:[^:].*"
          . 'bat-label-face)
-        ("\\_<\\(defined\\|set\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
+        ("\\_<\\(defined\\|set\\|setx\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
          (2 font-lock-variable-name-face))
         ("%~\\([0-9]\\)"
          (1 font-lock-variable-name-face))

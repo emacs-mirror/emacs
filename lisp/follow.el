@@ -1552,7 +1552,7 @@ non-first windows in Follow mode."
 (declare-function scroll-bar-drag "scroll-bar" (event))
 (declare-function scroll-bar-scroll-up "scroll-bar" (event))
 (declare-function scroll-bar-scroll-down "scroll-bar" (event))
-(declare-function mwheel-scroll "mwheel" (event))
+(declare-function mwheel-scroll "mwheel" (event &optional arg))
 
 (defun follow-scroll-bar-toolkit-scroll (event)
   (interactive "e")

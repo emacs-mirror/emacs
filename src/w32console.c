@@ -716,10 +716,10 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
 
   if (cur_screen == INVALID_HANDLE_VALUE)
     {
-      printf ("CreateConsoleScreenBuffer failed in ResetTerm\n");
+      printf ("CreateConsoleScreenBuffer failed in initialize_w32_display\n");
       printf ("LastError = 0x%lx\n", GetLastError ());
       fflush (stdout);
-      exit (0);
+      exit (1);
     }
 #else
   cur_screen = prev_screen;
@@ -760,7 +760,13 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
       }
   }
 
-  GetConsoleScreenBufferInfo (cur_screen, &info);
+  if (!GetConsoleScreenBufferInfo (cur_screen, &info))
+    {
+      printf ("GetConsoleScreenBufferInfo failed in initialize_w32_display\n");
+      printf ("LastError = 0x%lx\n", GetLastError ());
+      fflush (stdout);
+      exit (1);
+    }
 
   char_attr_normal = info.wAttributes;
 

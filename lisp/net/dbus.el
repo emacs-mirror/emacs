@@ -1871,13 +1871,7 @@ name and cdr is the list of properties as returned by
 
 \(dbus-get-all-managed-objects :session \"org.gnome.SettingsDaemon\" \"/\")
 
-  => ((\"/org/gnome/SettingsDaemon/MediaKeys\"
-       (\"org.gnome.SettingsDaemon.MediaKeys\")
-       (\"org.freedesktop.DBus.Peer\")
-       (\"org.freedesktop.DBus.Introspectable\")
-       (\"org.freedesktop.DBus.Properties\")
-       (\"org.freedesktop.DBus.ObjectManager\"))
-      (\"/org/gnome/SettingsDaemon/Power\"
+  => ((\"/org/gnome/SettingsDaemon/Power\"
        (\"org.gnome.SettingsDaemon.Power.Keyboard\")
        (\"org.gnome.SettingsDaemon.Power.Screen\")
        (\"org.gnome.SettingsDaemon.Power\"

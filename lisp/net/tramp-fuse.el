@@ -44,6 +44,17 @@
     (delete-file (tramp-fuse-local-file-name filename) trash)
     (tramp-flush-file-properties v localname)))
 
+(defvar tramp-fuse-remove-hidden-files nil
+  "Remove hidden files from directory listings.")
+
+(defsubst tramp-fuse-remove-hidden-files (files)
+  "Remove hidden files from FILES."
+  (if tramp-fuse-remove-hidden-files
+      (cl-remove-if
+       (lambda (x) (and (stringp x) (string-match-p "\\.fuse_hidden" x)))
+       files)
+    files))
+
 (defun tramp-fuse-handle-directory-files
     (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
@@ -75,7 +86,8 @@
 			      result)))
 	    (setq result (cons item result))))
 	;; Return result.
-	(if nosort result (sort result #'string<))))))
+	(tramp-fuse-remove-hidden-files
+	 (if nosort result (sort result #'string<)))))))
 
 (defun tramp-fuse-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -92,20 +104,21 @@
 
 (defun tramp-fuse-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
-  (all-completions
-   filename
-   (delete-dups
-    (append
-     (file-name-all-completions
-      filename (tramp-fuse-local-file-name directory))
-     ;; Some storage systems do not return "." and "..".
-     (let (result)
-       (dolist (item '(".." ".") result)
-	 (when (string-prefix-p filename item)
-	   (catch 'match
-	     (dolist (elt completion-regexp-list)
-	       (unless (string-match-p elt item) (throw 'match nil)))
-	     (setq result (cons (concat item "/") result))))))))))
+  (tramp-fuse-remove-hidden-files
+   (all-completions
+    filename
+    (delete-dups
+     (append
+      (file-name-all-completions
+       filename (tramp-fuse-local-file-name directory))
+      ;; Some storage systems do not return "." and "..".
+      (let (result)
+	(dolist (item '(".." ".") result)
+	  (when (string-prefix-p filename item)
+	    (catch 'match
+	      (dolist (elt completion-regexp-list)
+		(unless (string-match-p elt item) (throw 'match nil)))
+	      (setq result (cons (concat item "/") result)))))))))))
 
 ;; This function isn't used.
 (defun tramp-fuse-handle-insert-directory
@@ -140,7 +153,7 @@
 
 (defun tramp-fuse-mount-point (vec)
   "Return local mount point of VEC."
-  (or (tramp-get-connection-property vec "mount-point" nil)
+  (or (tramp-get-connection-property vec "mount-point")
       (expand-file-name
        (concat
 	tramp-temp-name-prefix
@@ -164,7 +177,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
   ;; cannot use `with-tramp-file-property', because we don't want to
   ;; cache a nil result.
   (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
-    (or (tramp-get-file-property vec "/" "mounted" nil)
+    (or (tramp-get-file-property vec "/" "mounted")
         (let* ((default-directory tramp-compat-temporary-file-directory)
                (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
 	       (mount (shell-command-to-string command)))

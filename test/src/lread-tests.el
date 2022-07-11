@@ -258,5 +258,68 @@ literals (Bug#20852)."
   (should (equal (read "-0.e-5") -0.0))
   )
 
+(defun lread-test-read-and-print (str)
+  (let* ((read-circle t)
+         (print-circle t)
+         (val (read-from-string str)))
+    (if (consp val)
+        (prin1-to-string (car val))
+      (error "reading %S failed: %S" str val))))
+
+(defconst lread-test-circle-cases
+  '("#1=(#1# . #1#)"
+    "#1=[#1# a #1#]"
+    "#1=(#2=[#1# #2#] . #1#)"
+    "#1=(#2=[#1# #2#] . #2#)"
+    "#1=[#2=(#1# . #2#)]"
+    "#1=(#2=[#3=(#1# . #2#) #4=(#3# . #4#)])"
+    ))
+
+(ert-deftest lread-circle ()
+  (dolist (str lread-test-circle-cases)
+    (ert-info (str :prefix "input: ")
+      (should (equal (lread-test-read-and-print str) str))))
+  (should-error (read-from-string "#1=#1#") :type 'invalid-read-syntax))
+
+(ert-deftest lread-deeply-nested ()
+  ;; Check that we can read a deeply nested data structure correctly.
+  (let ((levels 10000)
+        (prefix nil)
+        (suffix nil))
+    (dotimes (_ levels)
+      (push "([#s(r " prefix)
+      (push ")])" suffix))
+    (let ((str (concat (apply #'concat prefix)
+                       "a"
+                       (apply #'concat suffix))))
+      (let* ((read-circle t)
+             (result (read-from-string str)))
+        (should (equal (cdr result) (length str)))
+        ;; Check the result.  (We can't build a reference value and compare
+        ;; using `equal' because that function is currently depth-limited.)
+        (named-let check ((x (car result)) (level 0))
+          (if (equal level levels)
+              (should (equal x 'a))
+            (should (and (consp x) (null (cdr x))))
+            (let ((x2 (car x)))
+              (should (and (vectorp x2) (equal (length x2) 1)))
+              (let ((x3 (aref x2 0)))
+                (should (and (recordp x3) (equal (length x3) 2)
+                             (equal (aref x3 0) 'r)))
+                (check (aref x3 1) (1+ level))))))))))
+
+(ert-deftest lread-misc ()
+  ;; Regression tests for issues found and fixed in bug#55676:
+  ;; Non-breaking space after a dot makes it a dot token.
+  (should (equal (read-from-string "(a .\u00A0b)")
+                 '((a . b) . 7)))
+  ;; #_ without symbol following is the interned empty symbol.
+  (should (equal (read-from-string "#_")
+                 '(## . 2))))
+
+(ert-deftest lread-escaped-lf ()
+  ;; ?\LF should signal an error; \LF is ignored inside string literals.
+  (should-error (read-from-string "?\\\n x"))
+  (should (equal (read-from-string "\"a\\\nb\"") '("ab" . 6))))
 
 ;;; lread-tests.el ends here

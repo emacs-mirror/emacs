@@ -238,6 +238,8 @@ that is, with a prefix arg, you get the default behavior."
 ;; Functions
 
 (defun locate-default-make-command-line (search-string)
+  (unless (executable-find locate-command)
+    (error "Can't find the %s command" locate-command))
   (list locate-command search-string))
 
 (defun locate-word-at-point ()
@@ -461,13 +463,11 @@ Specific `locate-mode' commands, such as \\[locate-find-directory],
 do not work in subdirectories.
 
 \\{locate-mode-map}"
-  ;; Avoid clobbering this variable
-  (make-local-variable 'dired-subdir-alist)
   (setq default-directory   "/"
 	buffer-read-only    t)
   (add-to-invisibility-spec '(dired . t))
   (dired-alist-add-1 default-directory (point-min-marker))
-  (setq-local dired-directory "/")
+  (setq dired-directory "/")
   (setq-local dired-subdir-switches locate-ls-subdir-switches)
   (setq dired-switches-alist nil)
   ;; This should support both Unix and Windoze style names

@@ -40,6 +40,7 @@
 
 (autoload 'auth-source-forget+ "auth-source")
 (autoload 'auth-source-search "auth-source")
+(autoload 'auth-info-password "auth-source")
 
 (nnoo-declare nnimap)
 
@@ -93,9 +94,6 @@ Uses the same syntax as `nnmail-split-methods'.")
 
 (defvoo nnimap-unsplittable-articles '(%Deleted %Seen)
   "Articles with the flags in the list will not be considered when splitting.")
-
-(make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'."
-                        "24.1")
 
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
@@ -232,20 +230,30 @@ during splitting, which may be slow."
 	  params)
     (format "%s" (nreverse params))))
 
+(defvar nnimap--max-retrieve-headers 200)
+
 (deffoo nnimap-retrieve-headers (articles &optional group server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (when (nnimap-change-group group server)
       (with-current-buffer (nnimap-buffer)
 	(erase-buffer)
-	(nnimap-wait-for-response
-	 (nnimap-send-command
-	  "UID FETCH %s %s"
-	  (nnimap-article-ranges (gnus-compress-sequence articles))
-	  (nnimap-header-parameters))
-	 t)
+        ;; If we have a lot of ranges, split them up to avoid
+        ;; generating too-long lines.  (The limit is 8192 octects,
+        ;; and this should guarantee that it's (much) shorter than
+        ;; that.)  We don't stream the requests, since the server
+        ;; may respond to the requests out-of-order:
+        ;; https://datatracker.ietf.org/doc/html/rfc3501#section-5.5
+        (dolist (ranges (seq-split (gnus-compress-sequence articles t)
+                                   nnimap--max-retrieve-headers))
+          (nnimap-wait-for-response
+	   (nnimap-send-command
+	    "UID FETCH %s %s"
+	    (nnimap-article-ranges ranges)
+	    (nnimap-header-parameters))
+           t))
 	(unless (process-live-p (get-buffer-process (current-buffer)))
-	  (error "Server closed connection"))
+	  (error "IMAP server %S closed connection" nnimap-address))
 	(nnimap-transform-headers)
 	(nnheader-remove-cr-followed-by-lf))
       (insert-buffer-substring
@@ -407,10 +415,7 @@ during splitting, which may be slow."
                                            :create t))))
     (if found
         (list (plist-get found :user)
-	      (let ((secret (plist-get found :secret)))
-		(if (functionp secret)
-		    (funcall secret)
-		  secret))
+	      (auth-info-password found)
 	      (plist-get found :save-function))
       nil)))
 
@@ -1662,13 +1667,13 @@ If LIMIT, first try to limit the search to the N last articles."
 			(cdr (assoc '%Seen flags))
 			(cdr (assoc '%Deleted flags))))
 		      (cdr (assoc '%Flagged flags)))))
-		   (read (gnus-range-difference
+		   (read (range-difference
 			  (cons start-article high) unread)))
 	      (when (> start-article 1)
 		(setq read
 		      (gnus-range-nconcat
 		       (if (> start-article 1)
-			   (gnus-sorted-range-intersection
+			   (range-intersection
 			    (cons 1 (1- start-article))
 			    (gnus-info-read info))
 			 (gnus-info-read info))
@@ -1693,7 +1698,7 @@ If LIMIT, first try to limit the search to the N last articles."
 		    (pop old-marks)
 		    (when (and old-marks
 			       (> start-article 1))
-		      (setq old-marks (gnus-range-difference
+		      (setq old-marks (range-difference
 				       old-marks
 				       (cons start-article high)))
 		      (setq new-marks (gnus-range-nconcat old-marks new-marks)))
@@ -1704,15 +1709,15 @@ If LIMIT, first try to limit the search to the N last articles."
 		     (active (gnus-active group))
 		     (unexists
 		      (if completep
-			  (gnus-range-difference
+			  (range-difference
 			   active
 			   (gnus-compress-sequence existing))
-			(gnus-add-to-range
+			(range-add-list
 			 (cdr old-unexists)
-			 (gnus-list-range-difference
+			 (range-list-difference
 			  existing (gnus-active group))))))
 		(when (> (car active) 1)
-		  (setq unexists (gnus-range-add
+		  (setq unexists (range-concat
 				  (cons 1 (1- (car active)))
 				  unexists)))
 		(if old-unexists
@@ -1735,10 +1740,9 @@ If LIMIT, first try to limit the search to the N last articles."
 (defun nnimap-update-qresync-info (info existing vanished flags)
   ;; Add all the vanished articles to the list of read articles.
   (setf (gnus-info-read info)
-        (gnus-add-to-range
-         (gnus-add-to-range
-          (gnus-range-add (gnus-info-read info)
-			  vanished)
+        (range-add-list
+         (range-add-list
+          (range-concat (gnus-info-read info) vanished)
 	  (cdr (assq '%Flagged flags)))
 	 (cdr (assq '%Seen flags))))
   (let ((marks (gnus-info-marks info)))
@@ -1752,9 +1756,9 @@ If LIMIT, first try to limit the search to the N last articles."
 	  (setq marks (delq ticks marks))
 	  (pop ticks)
 	  ;; Add the new marks we got.
-	  (setq ticks (gnus-add-to-range ticks new-marks))
+	  (setq ticks (range-add-list ticks new-marks))
 	  ;; Remove the marks from messages that don't have them.
-	  (setq ticks (gnus-remove-from-range
+	  (setq ticks (range-remove
 		       ticks
 		       (gnus-compress-sequence
 			(gnus-sorted-complement existing new-marks))))
@@ -1764,7 +1768,7 @@ If LIMIT, first try to limit the search to the N last articles."
     ;; Add vanished to the list of unexisting articles.
     (when vanished
       (let* ((old-unexists (assq 'unexist marks))
-	     (unexists (gnus-range-add (cdr old-unexists) vanished)))
+	     (unexists (range-concat (cdr old-unexists) vanished)))
 	(if old-unexists
 	    (setcdr old-unexists unexists)
 	  (push (cons 'unexist unexists) marks)))
@@ -2244,7 +2248,7 @@ Return the server's response to the SELECT or EXAMINE command."
     (while (re-search-forward "^\\([0-9]+\\) OK\\b" nil t)
       (setq sequence (string-to-number (match-string 1)))
       (when (setq range (cadr (assq sequence sequences)))
-	(push (gnus-uncompress-range range) copied)))
+	(push (range-uncompress range) copied)))
     (gnus-compress-sequence (sort (apply #'nconc copied) #'<))))
 
 (defun nnimap-new-articles (flags)

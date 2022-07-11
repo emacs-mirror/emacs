@@ -69,7 +69,7 @@ Indices
 @chapter Overview
 @dfn{EWW}, the Emacs Web Wowser, is a web browser for GNU Emacs.  It
 can load, parse, and display various web pages using @dfn{shr.el}.
-However a GNU Emacs with @code{libxml2} support is required.
+However, a GNU Emacs with @code{libxml2} support is required.
 
 @node Basics
 @chapter Basic Usage
@@ -213,7 +213,7 @@ switch EWW buffers through a minibuffer prompt, press @kbd{s}
 @cindex External Browser
   Although EWW and shr.el do their best to render webpages in GNU
 Emacs some websites use features which can not be properly represented
-or are not implemented (E.g., JavaScript).  If you have trouble
+or are not implemented (e.g., JavaScript).  If you have trouble
 viewing a website with EWW then hit @kbd{&}
 (@code{eww-browse-with-external-browser}) inside the EWW buffer to
 open the website in the external browser specified by
@@ -311,11 +311,9 @@ state the directionality.
 size or content.  By customizing @code{shr-max-image-proportion} you
 can set the maximal image proportion in relation to the window they
 are displayed in.  E.g., 0.7 means an image is allowed to take up 70%
-of the width and height.  If Emacs supports image scaling (ImageMagick
-support required) then larger images are scaled down.  You can block
-specific images completely by customizing @code{shr-blocked-images},
-or, if you want to only allow some specific images, customize
-@code{shr-allowed-images}.
+of the width and height.  If Emacs supports image scaling, then larger
+images are scaled down.  You can block specific images completely by
+customizing @code{shr-blocked-images}.
 
 @vindex shr-inhibit-images
   You can control image display by customizing

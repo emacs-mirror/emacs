@@ -189,6 +189,16 @@ and how is entirely up to the behavior of the
 `pcomplete-parse-arguments-function'."
   :type 'boolean)
 
+(defvar pcomplete-allow-modifications nil
+  "If non-nil, allow effects in `pcomplete-parse-arguments-function'.
+For the `pcomplete' command, it was common for functions in
+`pcomplete-parse-arguments-function' to make modifications to the
+buffer, like expanding variables are such.
+For `completion-at-point-functions', this is not an option any more, so
+this variable is used to tell `pcomplete-parse-arguments-function'
+whether it can do the modifications like it used to, or whether
+it should refrain from doing so.")
+
 (defcustom pcomplete-parse-arguments-function
   #'pcomplete-parse-buffer-arguments
   "A function to call to parse the current line's arguments.
@@ -392,6 +402,9 @@ Same as `pcomplete' but using the standard completion UI."
   ;; imposing the pcomplete UI over the standard UI.
   (catch 'pcompleted
     (let* ((pcomplete-stub)
+           (buffer-read-only
+            ;; Make sure the function obeys `pcomplete-allow-modifications'.
+            (if pcomplete-allow-modifications buffer-read-only t))
            pcomplete-seen pcomplete-norm-func
            pcomplete-args pcomplete-last pcomplete-index
            (pcomplete-autolist pcomplete-autolist)
@@ -526,6 +539,7 @@ completion functions list (it should occur fairly early in the list)."
 	  pcomplete-last-completion-raw nil)
     (catch 'pcompleted
       (let* ((pcomplete-stub)
+	     (pcomplete-allow-modifications t)
 	     pcomplete-seen pcomplete-norm-func
 	     pcomplete-args pcomplete-last pcomplete-index
 	     (pcomplete-autolist pcomplete-autolist)
@@ -551,7 +565,8 @@ completion functions list (it should occur fairly early in the list)."
   "Expand the textual value of the current argument.
 This will modify the current buffer."
   (interactive)
-  (let ((pcomplete-expand-before-complete t))
+  (let ((pcomplete-expand-before-complete t)
+	(pcomplete-allow-modifications t))
     (with-suppressed-warnings ((obsolete pcomplete))
       (pcomplete))))
 
@@ -569,6 +584,7 @@ This will modify the current buffer."
 This will modify the current buffer."
   (interactive)
   (let ((pcomplete-expand-before-complete t)
+	(pcomplete-allow-modifications t)
 	(pcomplete-expand-only-p t))
     (with-suppressed-warnings ((obsolete pcomplete))
       (pcomplete))
@@ -786,25 +802,30 @@ this is `comint-dynamic-complete-functions'."
       (let ((begin (pcomplete-begin 'last)))
 	(if (and (listp pcomplete-stub) ;??
 		 (not pcomplete-expand-only-p))
-	    (let* ((completions pcomplete-stub) ;??
-		   (common-stub (car completions))
-		   (c completions)
-		   (len (length common-stub)))
-	      (while (and c (> len 0))
-		(while (and (> len 0)
-			    (not (string=
-				  (substring common-stub 0 len)
-				  (substring (car c) 0
-					     (min (length (car c))
-						  len)))))
-		  (setq len (1- len)))
-		(setq c (cdr c)))
-	      (setq pcomplete-stub (substring common-stub 0 len)
-		    pcomplete-autolist t)
-	      (when (and begin (> len 0) (not pcomplete-show-list))
-		(delete-region begin (point))
-		(pcomplete-insert-entry "" pcomplete-stub))
-	      (throw 'pcomplete-completions completions))
+	    ;; If `pcomplete-stub' is a list, it means it's a list of
+            ;; completions computed during parsing, e.g. Eshell uses
+            ;; that to turn globs into lists of completions.
+	    (if (not pcomplete-allow-modifications)
+	        (let ((completions pcomplete-stub))
+	          ;; FIXME: The mapping from what's in the buffer to the list
+                  ;; of completions can be arbitrary and will often fail to be
+                  ;; understood by the completion style.  See bug#50470.
+                  ;; E.g. `pcomplete-stub' may end up being "~/Down*"
+                  ;; while the completions contain entries like
+                  ;; "/home/<foo>/Downloads" which will fail to match the
+                  ;; "~/Down*" completion pattern since the completion
+                  ;; is neither told that it's a file nor a global pattern.
+	          (setq pcomplete-stub (buffer-substring begin (point)))
+                  (throw 'pcomplete-completions completions))
+	      (let* ((completions pcomplete-stub)
+		     (common-prefix (try-completion "" completions))
+		     (len (length common-prefix)))
+		(setq pcomplete-stub common-prefix
+		      pcomplete-autolist t)
+		(when (and begin (> len 0) (not pcomplete-show-list))
+		  (delete-region begin (point))
+		  (pcomplete-insert-entry "" pcomplete-stub))
+		(throw 'pcomplete-completions completions)))
 	  (when expand-p
 	    (if (stringp pcomplete-stub)
 		(when begin

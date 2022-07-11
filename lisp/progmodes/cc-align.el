@@ -202,6 +202,58 @@ Works with: arglist-cont-nonempty, arglist-close."
 	    (skip-chars-forward " \t"))
 	  (vector (current-column)))))))
 
+(defun c-lineup-argcont-1 (elem)
+  ;; Move to the start of the current arg and return non-nil, otherwise
+  ;; return nil.
+  (beginning-of-line)
+
+  (when (eq (car elem) 'arglist-cont-nonempty)
+    ;; Our argument list might not be the innermost one.  If it
+    ;; isn't, go back to the first position in it.  We do this by
+    ;; stepping back over open parens until we get to the open paren
+    ;; of our argument list.
+    (let ((open-paren (c-langelem-2nd-pos c-syntactic-element))
+	  (paren-state (c-parse-state)))
+      (while (not (eq (car paren-state) open-paren))
+	(unless (consp (car paren-state)) ;; ignore matched braces
+	  (goto-char (car paren-state)))
+	(setq paren-state (cdr paren-state)))))
+
+  (let ((start (point)) c)
+
+    (when (bolp)
+      ;; Previous line ending in a comma means we're the start of an
+      ;; argument.  This should quickly catch most cases not for us.
+      ;; This case is only applicable if we're the innermost arglist.
+      (c-backward-syntactic-ws)
+      (setq c (char-before)))
+
+    (unless (eq c ?,)
+      ;; In a gcc asm, ":" on the previous line means the start of an
+      ;; argument.  And lines starting with ":" are not for us, don't
+      ;; want them to indent to the preceding operand.
+      (let ((gcc-asm (save-excursion
+		       (goto-char start)
+		       (c-in-gcc-asm-p))))
+	(unless (and gcc-asm
+		     (or (eq c ?:)
+			 (save-excursion
+			   (goto-char start)
+			   (looking-at "[ \t]*:"))))
+
+	  (c-lineup-argcont-scan (if gcc-asm ?:))
+	  t)))))
+
+(defun c-lineup-argcont-scan (&optional other-match)
+  ;; Find the start of an argument, for `c-lineup-argcont'.
+  (when (zerop (c-backward-token-2 1 t))
+    (let ((c (char-after)))
+      (if (or (eq c ?,) (eq c other-match))
+	  (progn
+	    (forward-char)
+	    (c-forward-syntactic-ws))
+	(c-lineup-argcont-scan other-match)))))
+
 ;; Contributed by Kevin Ryde <user42@zip.com.au>.
 (defun c-lineup-argcont (elem)
   "Line up a continued argument.
@@ -217,56 +269,30 @@ but of course only between operand specifications, not in the expressions
 for the operands.
 
 Works with: arglist-cont, arglist-cont-nonempty."
-
   (save-excursion
-    (beginning-of-line)
+    (when (c-lineup-argcont-1 elem)
+      (vector (current-column)))))
 
-    (when (eq (car elem) 'arglist-cont-nonempty)
-      ;; Our argument list might not be the innermost one.  If it
-      ;; isn't, go back to the last position in it.  We do this by
-      ;; stepping back over open parens until we get to the open paren
-      ;; of our argument list.
-      (let ((open-paren (c-langelem-2nd-pos c-syntactic-element))
-	    (paren-state (c-parse-state)))
-	(while (not (eq (car paren-state) open-paren))
-	  (unless (consp (car paren-state)) ;; ignore matched braces
-	    (goto-char (car paren-state)))
-	  (setq paren-state (cdr paren-state)))))
+(defun c-lineup-argcont-+ (langelem)
+  "Indent an argument continuation `c-basic-offset' in from the first argument.
 
-    (let ((start (point)) c)
+This first argument is that on a previous line at the same level of nesting.
 
-      (when (bolp)
-	;; Previous line ending in a comma means we're the start of an
-	;; argument.  This should quickly catch most cases not for us.
-	;; This case is only applicable if we're the innermost arglist.
-	(c-backward-syntactic-ws)
-	(setq c (char-before)))
+foo (xyz, uvw, aaa + bbb + ccc
+         + ddd + eee + fff);    <- c-lineup-argcont-+
+     <-->                          c-basic-offset
 
-      (unless (eq c ?,)
-	;; In a gcc asm, ":" on the previous line means the start of an
-	;; argument.  And lines starting with ":" are not for us, don't
-	;; want them to indent to the preceding operand.
-	(let ((gcc-asm (save-excursion
-			 (goto-char start)
-			 (c-in-gcc-asm-p))))
-	  (unless (and gcc-asm
-		       (or (eq c ?:)
-			   (save-excursion
-			     (goto-char start)
-			     (looking-at "[ \t]*:"))))
+Only continuation lines like this are touched, nil being returned
+on lines which are the start of an argument.
 
-	    (c-lineup-argcont-scan (if gcc-asm ?:))
-	    (vector (current-column))))))))
-
-(defun c-lineup-argcont-scan (&optional other-match)
-  ;; Find the start of an argument, for `c-lineup-argcont'.
-  (when (zerop (c-backward-token-2 1 t))
-    (let ((c (char-after)))
-      (if (or (eq c ?,) (eq c other-match))
-	  (progn
-	    (forward-char)
-	    (c-forward-syntactic-ws))
-	(c-lineup-argcont-scan other-match)))))
+Works with: arglist-cont, arglist-cont-nonempty."
+  (save-excursion
+    (when (c-lineup-argcont-1 langelem)	; Check we've got a continued argument...
+      ;; ... but ignore the position found.
+      (goto-char (c-langelem-2nd-pos c-syntactic-element))
+      (forward-char)
+      (c-forward-syntactic-ws)
+      (vector (+ (current-column) c-basic-offset)))))
 
 (defun c-lineup-arglist-intro-after-paren (_langelem)
   "Line up a line to just after the open paren of the surrounding paren

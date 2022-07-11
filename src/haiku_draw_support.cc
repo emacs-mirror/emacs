@@ -280,16 +280,42 @@ hsl_color_rgb (double h, double s, double l, uint32_t *rgb)
 void
 BView_DrawBitmap (void *view, void *bitmap, int x, int y,
 		  int width, int height, int vx, int vy, int vwidth,
-		  int vheight)
+		  int vheight, bool use_bilinear_filtering)
 {
   BView *vw = get_view (view);
   BBitmap *bm = (BBitmap *) bitmap;
 
-  vw->PushState ();
+  vw->SetDrawingMode (B_OP_OVER);
+  if (!use_bilinear_filtering)
+    vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
+  else
+    vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1),
+		    B_FILTER_BITMAP_BILINEAR);
+  vw->SetDrawingMode (B_OP_COPY);
+}
+
+void
+BView_DrawBitmapTiled (void *view, void *bitmap, int x, int y,
+		       int width, int height, int vx, int vy,
+		       int vwidth, int vheight)
+{
+  BView *vw = get_view (view);
+  BBitmap *bm = (BBitmap *) bitmap;
+  BRect bounds = bm->Bounds ();
+
+  if (width == -1)
+    width = BE_RECT_WIDTH (bounds);
+
+  if (height == -1)
+    height = BE_RECT_HEIGHT (bounds);
+
   vw->SetDrawingMode (B_OP_OVER);
   vw->DrawBitmap (bm, BRect (x, y, x + width - 1, y + height - 1),
-		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
-  vw->PopState ();
+		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1),
+		  B_TILE_BITMAP);
+  vw->SetDrawingMode (B_OP_COPY);
 }
 
 void
@@ -300,20 +326,25 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
   BBitmap *bm = (BBitmap *) bitmap;
   BBitmap bc (bm->Bounds (), B_RGBA32);
   BRect rect (x, y, x + width - 1, y + height - 1);
+  uint32_t *bits;
+  size_t stride;
+  rgb_color low_color;
+  BRect bounds;
 
   if (bc.InitCheck () != B_OK || bc.ImportBits (bm) != B_OK)
     return;
 
-  uint32_t *bits = (uint32_t *) bc.Bits ();
-  size_t stride = bc.BytesPerRow ();
+  bits = (uint32_t *) bc.Bits ();
+  stride = bc.BytesPerRow ();
 
   if (bm->ColorSpace () == B_GRAY1)
     {
-      rgb_color low_color = vw->LowColor ();
-      BRect bounds = bc.Bounds ();
+      low_color = vw->LowColor ();
+      bounds = bc.Bounds ();
+
       for (int y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
 	{
-	  for (int x = 0; x <= BE_RECT_WIDTH (bounds); ++x)
+	  for (int x = 0; x < BE_RECT_WIDTH (bounds); ++x)
 	    {
 	      if (bits[y * (stride / 4) + x] == 0xFF000000)
 		bits[y * (stride / 4) + x] = RGB_COLOR_UINT32 (low_color);
@@ -323,140 +354,72 @@ BView_DrawBitmapWithEraseOp (void *view, void *bitmap, int x,
 	}
     }
 
-  vw->PushState ();
-  vw->SetDrawingMode (bm->ColorSpace () == B_GRAY1 ? B_OP_OVER : B_OP_ERASE);
+  vw->SetDrawingMode ((bm->ColorSpace ()
+		       == B_GRAY1)
+		      ? B_OP_OVER : B_OP_ERASE);
   vw->DrawBitmap (&bc, rect);
-  vw->PopState ();
+  vw->SetDrawingMode (B_OP_COPY);
 }
 
 void
-BView_DrawMask (void *src, void *view,
-		int x, int y, int width, int height,
-		int vx, int vy, int vwidth, int vheight,
-		uint32_t color)
+be_draw_image_mask (void *src, void *view, int x, int y, int width,
+		    int height, int vx, int vy, int vwidth, int vheight,
+		    uint32_t color)
 {
   BBitmap *source = (BBitmap *) src;
   BBitmap bm (source->Bounds (), B_RGBA32);
   BRect bounds = bm.Bounds ();
+  int bx, by, bit;
+  BView *vw;
 
   if (bm.InitCheck () != B_OK)
     return;
-  for (int y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
+
+  /* Fill the background color or transparency into the bitmap,
+     depending on the value of the mask.  */
+  for (by = 0; by < BE_RECT_HEIGHT (bounds); ++by)
     {
-      for (int x = 0; x < BE_RECT_WIDTH (bounds); ++x)
+      for (bx = 0; bx < BE_RECT_WIDTH (bounds); ++bx)
 	{
-	  int bit = haiku_get_pixel ((void *) source, x, y);
+	  bit = haiku_get_pixel ((void *) source, bx, by);
 
 	  if (!bit)
-	    haiku_put_pixel ((void *) &bm, x, y, ((uint32_t) 255 << 24) | color);
+	    haiku_put_pixel ((void *) &bm, bx, by,
+			     ((uint32_t) 255 << 24) | color);
 	  else
-	    haiku_put_pixel ((void *) &bm, x, y, 0);
+	    haiku_put_pixel ((void *) &bm, bx, by, 0);
 	}
     }
-  BView *vw = get_view (view);
+
+  vw = get_view (view);
   vw->SetDrawingMode (B_OP_OVER);
   vw->DrawBitmap (&bm, BRect (x, y, x + width - 1, y + height - 1),
 		  BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
+  vw->SetDrawingMode (B_OP_COPY);
 }
 
-static BBitmap *
-rotate_bitmap_270 (BBitmap *bmp)
+void
+be_apply_affine_transform (void *view, double m0, double m1, double tx,
+			   double m2, double m3, double ty)
 {
-  BRect r = bmp->Bounds ();
-  BBitmap *bm = new BBitmap (BRect (r.top, r.left, r.bottom, r.right),
-			     bmp->ColorSpace (), true);
-  if (bm->InitCheck () != B_OK)
-    gui_abort ("Failed to init bitmap for rotate");
-  int w = BE_RECT_WIDTH (r);
-  int h = BE_RECT_HEIGHT (r);
+  BAffineTransform transform (m0, m2, m1, m3, tx, ty);
 
-  for (int y = 0; y < h; ++y)
-    for (int x = 0; x < w; ++x)
-      haiku_put_pixel ((void *) bm, y, w - x - 1,
-		       haiku_get_pixel ((void *) bmp, x, y));
-
-  return bm;
+  get_view (view)->SetTransform (transform);
 }
 
-static BBitmap *
-rotate_bitmap_90 (BBitmap *bmp)
+void
+be_apply_inverse_transform (double (*matrix3x3)[3], int x, int y,
+			    int *x_out, int *y_out)
 {
-  BRect r = bmp->Bounds ();
-  BBitmap *bm = new BBitmap (BRect (r.top, r.left, r.bottom, r.right),
-			     bmp->ColorSpace (), true);
-  if (bm->InitCheck () != B_OK)
-    gui_abort ("Failed to init bitmap for rotate");
-  int w = BE_RECT_WIDTH (r);
-  int h = BE_RECT_HEIGHT (r);
+  BAffineTransform transform (matrix3x3[0][0], matrix3x3[1][0],
+			      matrix3x3[0][1], matrix3x3[1][1],
+			      matrix3x3[0][2], matrix3x3[1][2]);
+  BPoint point (x, y);
 
-  for (int y = 0; y < h; ++y)
-    for (int x = 0; x < w; ++x)
-      haiku_put_pixel ((void *) bm, h - y - 1, x,
-		       haiku_get_pixel ((void *) bmp, x, y));
+  transform.ApplyInverse (&point);
 
-  return bm;
-}
-
-void *
-BBitmap_transform_bitmap (void *bitmap, void *mask, uint32_t m_color,
-			  double rot, int desw, int desh)
-{
-  BBitmap *bm = (BBitmap *) bitmap;
-  BBitmap *mk = (BBitmap *) mask;
-  int copied_p = 0;
-
-  if (rot == 90)
-    {
-      copied_p = 1;
-      bm = rotate_bitmap_90 (bm);
-      if (mk)
-	mk = rotate_bitmap_90 (mk);
-    }
-
-  if (rot == 270)
-    {
-      copied_p = 1;
-      bm = rotate_bitmap_270 (bm);
-      if (mk)
-	mk = rotate_bitmap_270 (mk);
-    }
-
-  BRect n = BRect (0, 0, desw - 1, desh - 1);
-  BView vw (n, NULL, B_FOLLOW_NONE, 0);
-  BBitmap *dst = new BBitmap (n, bm->ColorSpace (), true);
-  if (dst->InitCheck () != B_OK)
-    if (bm->InitCheck () != B_OK)
-      gui_abort ("Failed to init bitmap for scale");
-  dst->AddChild (&vw);
-
-  if (!vw.LockLooper ())
-    gui_abort ("Failed to lock offscreen view for scale");
-
-  if (rot != 90 && rot != 270)
-    {
-      BAffineTransform tr;
-      tr.RotateBy (BPoint (desw / 2, desh / 2), rot * M_PI / 180.0);
-      vw.SetTransform (tr);
-    }
-
-  vw.MovePenTo (0, 0);
-  vw.DrawBitmap (bm, n);
-  if (mk)
-    {
-      BRect k = mk->Bounds ();
-      BView_DrawMask ((void *) mk, (void *) &vw,
-		      0, 0, BE_RECT_WIDTH (k),
-		      BE_RECT_HEIGHT (k),
-		      0, 0, desw, desh, m_color);
-    }
-  vw.Sync ();
-  vw.RemoveSelf ();
-
-  if (copied_p)
-    delete bm;
-  if (copied_p && mk)
-    delete mk;
-  return dst;
+  *x_out = std::floor (point.x);
+  *y_out = std::floor (point.y);
 }
 
 void
@@ -469,20 +432,105 @@ BView_FillTriangle (void *view, int x1, int y1,
 }
 
 void
-BView_SetHighColorForVisibleBell (void *view, uint32_t color)
+BView_InvertRect (void *view, int x, int y, int width, int height)
 {
-  BView *vw = (BView *) view;
-  rgb_color col;
-  rgb32_to_rgb_color (color, &col);
+  BView *vw = get_view (view);
 
-  vw->SetHighColor (col);
+  vw->InvertRect (BRect (x, y, x + width - 1, y + height - 1));
+}
+
+static void
+be_draw_cross_on_pixmap_1 (BBitmap *bitmap, int x, int y, int width,
+			   int height, uint32_t color)
+{
+  BBitmap dest (bitmap->Bounds (),
+		bitmap->ColorSpace (),
+		true, false);
+  BView view (bitmap->Bounds (), NULL, B_FOLLOW_NONE, 0);
+  rgb_color high_color;
+
+  rgb32_to_rgb_color (color, &high_color);
+  dest.ImportBits (bitmap);
+
+  if (!dest.Lock ())
+    return;
+
+  dest.AddChild (&view);
+
+  view.SetHighColor (high_color);
+  view.StrokeLine (BPoint (x, y),
+		   BPoint (x + width - 1, y + height - 1));
+  view.StrokeLine (BPoint (x, y + height - 1),
+		   BPoint (x + width - 1, y));
+  view.RemoveSelf ();
+  bitmap->ImportBits (&dest);
 }
 
 void
-BView_FillRectangleForVisibleBell (void *view, int x, int y, int width, int height)
+be_draw_cross_on_pixmap (void *bitmap, int x, int y, int width,
+			 int height, uint32_t color)
 {
-  BView *vw = (BView *) view;
-  BRect rect = BRect (x, y, x + width - 1, y + height - 1);
+  BBitmap *target = (BBitmap *) bitmap;
 
-  vw->FillRect (rect);
+  be_draw_cross_on_pixmap_1 (target, x, y, width, height,
+			     color);
+}
+
+void
+be_draw_bitmap_with_mask (void *view, void *bitmap, void *mask,
+			  int dx, int dy, int width, int height,
+			  int vx, int vy, int vwidth, int vheight,
+			  bool use_bilinear_filtering)
+{
+  BBitmap *source ((BBitmap *) bitmap);
+  BBitmap combined (source->Bounds (), B_RGBA32);
+  BRect bounds;
+  int x, y, bit;
+  BView *vw;
+  uint32_t source_mask;
+  unsigned long pixel;
+
+  if (combined.InitCheck () != B_OK)
+    return;
+
+  if (combined.ImportBits (source) != B_OK)
+    return;
+
+  bounds = source->Bounds ();
+
+  if (source->ColorSpace () == B_RGB32)
+    source_mask = 255u << 24;
+  else
+    source_mask = 0;
+
+  for (y = 0; y < BE_RECT_HEIGHT (bounds); ++y)
+    {
+      for (x = 0; x < BE_RECT_WIDTH (bounds); ++x)
+	{
+	  bit = haiku_get_pixel (mask, x, y);
+
+	  if (bit)
+	    {
+	      pixel = haiku_get_pixel (bitmap, x, y);
+	      haiku_put_pixel ((void *) &combined, x, y,
+			       source_mask | pixel);
+	    }
+	  else
+	    haiku_put_pixel ((void *) &combined, x, y, 0);
+	}
+    }
+
+  vw = get_view (view);
+
+  vw->SetDrawingMode (B_OP_OVER);
+  if (!use_bilinear_filtering)
+    vw->DrawBitmap (&combined,
+		    BRect (dx, dy, dx + width - 1, dy + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1));
+  else
+    vw->DrawBitmap (&combined,
+		    BRect (dx, dy, dx + width - 1, dy + height - 1),
+		    BRect (vx, vy, vx + vwidth - 1, vy + vheight - 1),
+		    B_FILTER_BITMAP_BILINEAR);
+  vw->SetDrawingMode (B_OP_COPY);
 }

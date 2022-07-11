@@ -1,6 +1,6 @@
 ;;; helper.el --- utility help package supporting help in electric modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -39,19 +39,16 @@
 ;; keymap either.
 
 
-(defvar Helper-help-map
-  (let ((map (make-sparse-keymap)))
-  ;(fillarray map 'undefined)
-  (define-key map "m" 'Helper-describe-mode)
-  (define-key map "b" 'Helper-describe-bindings)
-  (define-key map "c" 'Helper-describe-key-briefly)
-  (define-key map "k" 'Helper-describe-key)
-  ;(define-key map "f" 'Helper-describe-function)
-  ;(define-key map "v" 'Helper-describe-variable)
-  (define-key map "?" 'Helper-help-options)
-  (define-key map (char-to-string help-char) 'Helper-help-options)
-  (fset 'Helper-help-map map)
-  map))
+(defvar-keymap Helper-help-map
+  "m" #'Helper-describe-mode
+  "b" #'Helper-describe-bindings
+  "c" #'Helper-describe-key-briefly
+  "k" #'Helper-describe-key
+  ;;"f" #'Helper-describe-function
+  ;;"v" #'Helper-describe-variable
+  "?" #'Helper-help-options
+  (key-description (char-to-string help-char)) #'Helper-help-options)
+(fset 'Helper-help-map Helper-help-map)
 
 (defun Helper-help-scroller ()
   (let ((blurb (or (and (boundp 'Helper-return-blurb)
@@ -68,26 +65,30 @@
 	  (setq state (+ (* 2 (if (pos-visible-in-window-p (point-max)) 1 0))
 			 (if (pos-visible-in-window-p (point-min)) 1 0)))
 	  (message
-	    (nth state
-		 '("Space forward, Delete back. Other keys %s"
-		   "Space scrolls forward. Other keys %s"
-		   "Delete scrolls back. Other keys %s"
-		   "Type anything to %s"))
+            (nth state
+                 (mapcar
+                  #'substitute-command-keys
+                  '("\\`SPC' forward, \\`DEL' back.  Other keys %s"
+                    "\\`SPC' scrolls forward.  Other keys %s"
+                    "\\`DEL' scrolls back.  Other keys %s"
+                    "Type anything to %s")))
 	    blurb)
 	  (setq continue (read-event))
 	  (cond ((and (memq continue '(?\s ?\C-v)) (< state 2))
 		 (scroll-up))
-		((= continue ?\C-l)
+                ((eq continue ?\C-l)
 		 (recenter))
-		((and (= continue ?\177) (zerop (% state 2)))
+                ((and (or (eq continue 'backspace)
+                          (eq continue ?\177))
+                      (zerop (% state 2)))
 		 (scroll-down))
 		(t (setq continue nil))))))))
 
 (defun Helper-help-options ()
   "Describe help options."
   (interactive)
-  (message "c (key briefly), m (mode), k (key), b (bindings)")
-  ;(message "c (key briefly), m (mode), k (key), v (variable), f (function)")
+  (message (substitute-command-keys
+            "\\`c' (key briefly), \\`m' (mode), \\`k' (key), \\`b' (bindings)"))
   (sit-for 4))
 
 (defun Helper-describe-key-briefly (key)
@@ -140,7 +141,8 @@
   (interactive)
   (let ((continue t) c)
     (while continue
-      (message "Help (Type ? for further options)")
+      (message (substitute-command-keys
+                "Help (Type \\`?' for further options)"))
       (setq c (read-key-sequence nil))
       (setq c (lookup-key Helper-help-map c))
       (cond ((eq c 'Helper-help-options)

@@ -22,12 +22,24 @@
 ;;; Code:
 
 (require 'ert)
+(eval-when-compile (require 'ert-x))
 (require 'ses)
 
 ;; Silence byte-compiler.
-(with-suppressed-warnings ((lexical A2) (lexical A3))
+(with-suppressed-warnings ((lexical ses--cells)
+                           (lexical A2)
+                           (lexical A3)
+                           (lexical ses--foo)
+                           (lexical ses--bar)
+                           (lexical B2)
+                           (lexical ses--toto))
+  (defvar ses--cells)
   (defvar A2)
-  (defvar A3))
+  (defvar A3)
+  (defvar ses--foo)
+  (defvar ses--bar)
+  (defvar B2)
+  (defvar ses--toto))
 
 ;; PLAIN FORMULA TESTS
 ;; ======================================================================
@@ -57,9 +69,6 @@ equal to 2. This is done  using interactive calls."
 
 ;; PLAIN CELL RENAMING TESTS
 ;; ======================================================================
-
-(defvar ses--foo)
-(defvar ses--cells)
 
 (ert-deftest ses-tests-lowlevel-renamed-cell ()
   "Check that renaming A1 to `ses--foo' and setting `ses--foo' to 1 and A2 to (1+ ses--foo), makes A2 value equal to 2.
@@ -154,7 +163,6 @@ to A2 and inserting a row, makes A2 value empty, and A3 equal to
       (should-not (bound-and-true-p A2))
       (should (eq (bound-and-true-p A3) 2)))))
 
-(defvar ses--bar)
 
 (ert-deftest ses-tests-renamed-cells-row-insertion ()
   "Check that setting A1 to 1 and A2 to (1+ A1), and then renaming A1 to `ses--foo' and A2 to `ses--bar' jumping
@@ -177,6 +185,61 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (should-not (bound-and-true-p A2))
       (should (eq ses--bar 2)))))
 
+
+;; JUMP tests
+;; ======================================================================
+(ert-deftest ses-jump-B2-prefix-arg ()
+  "Test jumping to cell B2 by use of prefix argument"
+  (let ((ses-initial-size '(3 . 3))
+        ses-after-entry-functions)
+    (with-temp-buffer
+      (ses-mode)
+      ;; C-u 4 M-x ses-jump
+      (let ((current-prefix-arg 4))
+        (call-interactively 'ses-jump))
+      (should (eq (ses--cell-at-pos (point)) 'B2)))))
+
+
+(ert-deftest ses-jump-B2-lowcase ()
+  "Test jumping to cell B2 by use of lowcase cell name string"
+    (let ((ses-initial-size '(3 . 3))
+          ses-after-entry-functions)
+      (with-temp-buffer
+        (ses-mode)
+        (funcall-interactively 'ses-jump "b2")
+        (ses-command-hook)
+        (should (eq (ses--cell-at-pos (point)) 'B2)))))
+
+(ert-deftest ses-jump-B2-lowcase-keys ()
+  "Test jumping to cell B2 by use of lowcase cell name string with simulating keys"
+    (let ((ses-initial-size '(3 . 3))
+          ses-after-entry-functions)
+      (with-temp-buffer
+        (ses-mode)
+        (ert-simulate-keys [ ?b ?2 return] (ses-jump))
+        (ses-command-hook)
+        (should (eq (ses--cell-at-pos (point)) 'B2)))))
+
+(ert-deftest ses-jump-B2-symbol ()
+  "Test jumping to cell B2 by use of cell name symbol"
+  (let ((ses-initial-size '(3 . 3))
+        ses-after-entry-functions)
+    (with-temp-buffer
+      (ses-mode)
+      (funcall-interactively 'ses-jump 'B2)
+      (ses-command-hook)
+      (should (eq (ses--cell-at-pos (point)) 'B2)))))
+
+(ert-deftest ses-jump-B2-renamed ()
+  "Test jumping to cell B2 after renaming it `ses--toto'."
+  (let ((ses-initial-size '(3 . 3))
+        ses-after-entry-functions)
+    (with-temp-buffer
+      (ses-mode)
+      (ses-rename-cell 'ses--toto (ses-get-cell 1 1))
+      (ses-jump 'ses--toto)
+      (ses-command-hook)
+      (should (eq (ses--cell-at-pos (point)) 'ses--toto)))))
 
 (provide 'ses-tests)
 

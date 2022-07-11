@@ -1,7 +1,6 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: emacs-devel@gnu.org
@@ -61,14 +60,13 @@ PROGRAM says which program to run, to talk to that machine.
 LOGIN-NAME, which is optional, says what to log in as on that machine.")
 
 (defvar telnet-new-line "\r")
-(defvar telnet-mode-map
-  (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
-    (define-key map "\C-m" #'telnet-send-input)
-    ;; (define-key map "\C-j" #'telnet-send-input)
-    (define-key map "\C-c\C-q" #'send-process-next-char)
-    (define-key map "\C-c\C-c" #'telnet-interrupt-subjob)
-    (define-key map "\C-c\C-z" #'telnet-c-z)
-    map))
+(defvar-keymap telnet-mode-map
+  :parent comint-mode-map
+  "RET"     #'telnet-send-input
+  ;; "C-j"  #'telnet-send-input
+  "C-c C-q" #'send-process-next-char
+  "C-c C-c" #'telnet-interrupt-subjob
+  "C-c C-z" #'telnet-c-z)
 
 (defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
 (defvar telnet-replace-c-g nil)

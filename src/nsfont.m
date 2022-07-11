@@ -1176,15 +1176,12 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
   face = s->face;
 
-  r.origin.x = s->x;
-  if (s->face->box != FACE_NO_BOX && s->first_glyph->left_box_line_p)
-    r.origin.x += max (s->face->box_vertical_line_width, 0);
-
-  r.origin.y = s->y;
+  r.origin.x = x;
+  r.origin.y = y;
   r.size.height = FONT_HEIGHT (font);
 
-  for (int i = from; i < to; ++i)
-    c[i] = s->char2b[i];
+  for (int i = 0; i < len; ++i)
+    c[i] = s->char2b[i + from];
 
   /* Fill background if requested.  */
   if (with_background && !isComposite)
@@ -1210,8 +1207,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     }
 
   /* set up for character rendering */
-  r.origin.y = y;
-
   if (s->hl == DRAW_CURSOR)
     col = FRAME_BACKGROUND_COLOR (s->f);
   else
@@ -1721,8 +1716,8 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned int block)
       metrics->rbearing = lrint (rb);
       metrics->lbearing = lrint (lb);
 
-      metrics->descent = NSMinY (r);
-      metrics->ascent = NSMaxY (r);
+      metrics->descent = - NSMaxY (r);
+      metrics->ascent = - NSMinY (r);
     }
   unblock_input ();
 }
@@ -1768,8 +1763,11 @@ syms_of_nsfont (void)
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qmedium, "medium");
+
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
-               doc: /* Internal use: maps font registry to Unicode script.  */);
+    doc: /* Internal map of font registry to Unicode script.  */);
+  Vns_reg_to_script = Qnil;
+
   pdumper_do_now_and_after_load (syms_of_nsfont_for_pdumper);
 }
 

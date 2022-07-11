@@ -50,5 +50,47 @@
   (dolist (test copyright-tests--data)
     (with-copyright-test (car test) (cdr test))))
 
+(ert-deftest test-end-chop ()
+  (should
+   (equal
+    (with-temp-buffer
+      (let ((copyright-query nil))
+        (insert (make-string (- copyright-limit 14) ?x) "\n"
+                "\nCopyright 2006, 2007, 2008 Foo Bar\n\n")
+        (copyright-update)
+        (buffer-substring (- (point-max) 42) (point-max))))
+    "Copyright 2006, 2007, 2008, 2022 Foo Bar\n\n")))
+
+(ert-deftest test-correct-notice ()
+  (should (equal
+           (with-temp-buffer
+             (dotimes (_ 2)
+               (insert "Copyright 2021 FSF\n"))
+             (let ((copyright-at-end-flag t)
+                   (copyright-query nil))
+               (copyright-update))
+             (buffer-string))
+           "Copyright 2021 FSF\nCopyright 2021, 2022 FSF\n")))
+
+(defmacro with-copyright-fix-years-test (orig result)
+  `(let ((copyright-year-ranges t))
+     (with-temp-buffer
+       (insert ,orig)
+       (copyright-fix-years)
+       (should (equal (buffer-string) ,result)))))
+
+(defvar copyright-fix-years-tests--data
+  '((";; Copyright (C) 2008, 2010, 2012"
+     . ";; Copyright (C) 2008, 2010, 2012")
+    (";; Copyright (C) 2008, 2009, 2010, 2013, 2014, 2015, 2016, 2018"
+     . ";; Copyright (C) 2008-2010, 2013-2016, 2018")
+    (";; Copyright (C) 2008-2010, 2011, 2015, 2016, 2017"
+     . ";; Copyright (C) 2008-2010, 2011, 2015-2017")))
+
+(ert-deftest text-copyright-fix-years ()
+  "Test basics of \\[copyright-fix-years]."
+  (dolist (test copyright-fix-years-tests--data)
+    (with-copyright-fix-years-test (car test) (cdr test))))
+
 (provide 'copyright-tests)
 ;;; copyright-tests.el ends here

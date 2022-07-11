@@ -71,7 +71,7 @@
 
 (defmacro inline-quote (_exp)
   "Similar to backquote, but quotes code and only accepts , and not ,@."
-  (declare (debug backquote-form))
+  (declare (debug (backquote-form)))
   (error "inline-quote can only be used within define-inline"))
 
 (defmacro inline-const-p (_exp)

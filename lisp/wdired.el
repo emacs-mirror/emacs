@@ -155,6 +155,11 @@ nonexistent directory will fail."
   :version "26.1"
   :type 'boolean)
 
+(defcustom wdired-search-replace-filenames t
+  "Non-nil to search and replace in file names only."
+  :version "29.1"
+  :type 'boolean)
+
 (defvar-keymap wdired-mode-map
   :doc "Keymap used in `wdired-mode'."
   "C-x C-s" #'wdired-finish-edit
@@ -169,6 +174,7 @@ nonexistent directory will fail."
   "C-p"     #'wdired-previous-line
   "<down>"  #'wdired-next-line
   "C-n"     #'wdired-next-line
+  "C-("     #'dired-hide-details-mode
   "<remap> <upcase-word>"         #'wdired-upcase-word
   "<remap> <capitalize-word>"     #'wdired-capitalize-word
   "<remap> <downcase-word>"       #'wdired-downcase-word
@@ -216,6 +222,7 @@ symbolic link targets, and filenames permission."
   (error "This mode can be enabled only by `wdired-change-to-wdired-mode'"))
 (put 'wdired-mode 'mode-class 'special)
 
+(declare-function dired-isearch-search-filenames "dired-aux")
 
 ;;;###autoload
 (defun wdired-change-to-wdired-mode ()
@@ -236,9 +243,16 @@ See `wdired-mode'."
               (dired-remember-marks (point-min) (point-max)))
   (setq-local wdired--old-point (point))
   (wdired--set-permission-bounds)
-  (setq-local query-replace-skip-read-only t)
-  (add-function :after-while (local 'isearch-filter-predicate)
-                #'wdired-isearch-filter-read-only)
+  (when wdired-search-replace-filenames
+    (add-function :around (local 'isearch-search-fun-function)
+                  #'dired-isearch-search-filenames
+                  '((isearch-message-prefix . "filename ")))
+    (setq-local replace-search-function
+                (setq-local replace-re-search-function
+                            (funcall isearch-search-fun-function)))
+    ;; Original dired hook removes dired-isearch-search-filenames that
+    ;; is needed outside isearch for lazy-highlighting in query-replace.
+    (remove-hook 'isearch-mode-hook #'dired-isearch-filenames-setup t))
   (use-local-map wdired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only nil)
@@ -317,11 +331,6 @@ or \\[wdired-abort-changes] to abort changes")))
           (with-silent-modifications
             ;; Is this good enough? Assumes no extra white lines from dired.
             (put-text-property (1- (point-max)) (point-max) 'read-only t)))))))
-
-(defun wdired-isearch-filter-read-only (beg end)
-  "Skip matches that have a read-only property."
-  (not (text-property-not-all (min beg end) (max beg end)
-			      'read-only nil)))
 
 ;; Protect the buffer so only the filenames can be changed, and put
 ;; properties so filenames (old and new) can be easily found.
@@ -437,8 +446,13 @@ non-nil means return old filename."
     (remove-text-properties
      (point-min) (point-max)
      '(front-sticky nil rear-nonsticky nil read-only nil keymap nil)))
-  (remove-function (local 'isearch-filter-predicate)
-                   #'wdired-isearch-filter-read-only)
+  (when wdired-search-replace-filenames
+    (remove-function (local 'isearch-search-fun-function)
+                     #'dired-isearch-search-filenames)
+    (kill-local-variable 'replace-search-function)
+    (kill-local-variable 'replace-re-search-function)
+    ;; Restore dired hook
+    (add-hook 'isearch-mode-hook #'dired-isearch-filenames-setup nil t))
   (use-local-map dired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only t)
@@ -507,7 +521,15 @@ non-nil means return old filename."
                     files-renamed))))
 	(forward-line -1)))
     (when files-renamed
-      (setq errors (+ errors (wdired-do-renames files-renamed))))
+      (pcase-let ((`(,errs . ,successful-renames)
+                   (wdired-do-renames files-renamed)))
+        (cl-incf errors errs)
+        ;; Some of the renames may fail -- in that case, don't mark an
+        ;; already-existing file with the same name as renamed.
+        (pcase-dolist (`(,file . _) wdired--old-marks)
+          (unless (member file successful-renames)
+            (setq wdired--old-marks
+                  (assoc-delete-all file wdired--old-marks #'equal))))))
     ;; We have to be in wdired-mode when wdired-do-renames is executed
     ;; so that wdired--restore-properties runs, but we have to change
     ;; back to dired-mode before reverting the buffer to avoid using
@@ -552,7 +574,8 @@ non-nil means return old filename."
          (errors 0)
          (total (1- (length renames)))
          (prep (make-progress-reporter "Renaming" 0 total))
-         (overwrite (or (not wdired-confirm-overwrite) 1)))
+         (overwrite (or (not wdired-confirm-overwrite) 1))
+         (successful-renames nil))
     (while (or renames
                ;; We've done one round through the renames, we have found
                ;; some residue, but we also made some progress, so maybe
@@ -603,13 +626,15 @@ non-nil means return old filename."
                          (wdired-create-parentdirs file-new))
                     (dired-rename-file file-ori file-new
                                        overwrite))
+                (:success
+                 (push file-new successful-renames))
                 (error
                  (setq errors (1+ errors))
                  (dired-log "Rename `%s' to `%s' failed:\n%s\n"
                             file-ori file-new
                             err)))))))))
     (progress-reporter-done prep)
-    errors))
+    (cons errors successful-renames)))
 
 (defun wdired-create-parentdirs (file-new)
   "Create parent directories for FILE-NEW if they don't exist."

@@ -35,6 +35,7 @@
 (require 'gnus-undo)
 (require 'gmm-utils)
 (require 'time-date)
+(require 'range)
 
 (eval-when-compile
   (require 'mm-url)
@@ -512,8 +513,8 @@ simple manner."
 	      ((numberp number)
 	       (int-to-string
 		(+ number
-		   (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked)))
-		   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))))
+		   (range-length (cdr (assq 'dormant gnus-tmp-marked)))
+		   (range-length (cdr (assq 'tick gnus-tmp-marked))))))
 	      (t number))
 	?s)
     (?R gnus-tmp-number-of-read ?s)
@@ -523,10 +524,10 @@ simple manner."
 	?s)
     (?t gnus-tmp-number-total ?d)
     (?y gnus-tmp-number-of-unread ?s)
-    (?I (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked))) ?d)
-    (?T (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))) ?d)
-    (?i (+ (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked)))
-	   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))
+    (?I (range-length (cdr (assq 'dormant gnus-tmp-marked))) ?d)
+    (?T (range-length (cdr (assq 'tick gnus-tmp-marked))) ?d)
+    (?i (+ (range-length (cdr (assq 'dormant gnus-tmp-marked)))
+	   (range-length (cdr (assq 'tick gnus-tmp-marked))))
 	?d)
     (?g gnus-tmp-group ?s)
     (?G gnus-tmp-qualified-group ?s)
@@ -982,66 +983,36 @@ simple manner."
 
     (gnus-run-hooks 'gnus-group-menu-hook)))
 
-
 (defvar gnus-group-tool-bar-map nil)
 
-(defun gnus-group-tool-bar-update (&optional symbol value)
-  "Update group buffer toolbar.
-Setter function for custom variables."
-  (when symbol
-    (set-default symbol value))
-  ;; (setq-default gnus-group-tool-bar-map nil)
-  ;; (use-local-map gnus-group-mode-map)
-  (when (gnus-alive-p)
-    (with-current-buffer gnus-group-buffer
-      (gnus-group-make-tool-bar t))))
-
-(defcustom gnus-group-tool-bar (if (eq gmm-tool-bar-style 'gnome)
-				   'gnus-group-tool-bar-gnome
-				 'gnus-group-tool-bar-retro)
-  "Specifies the Gnus group tool bar.
-
-It can be either a list or a symbol referring to a list.  See
-`gmm-tool-bar-from-list' for the format of the list.  The
-default key map is `gnus-group-mode-map'.
-
-Pre-defined symbols include `gnus-group-tool-bar-gnome' and
-`gnus-group-tool-bar-retro'."
-  :type '(choice (const :tag "GNOME style" gnus-group-tool-bar-gnome)
-		 (const :tag "Retro look" gnus-group-tool-bar-retro)
-		 (repeat :tag "User defined list" gmm-tool-bar-item)
-		 (symbol))
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
-  :group 'gnus-group)
-
-(defcustom gnus-group-tool-bar-gnome
+(defcustom gnus-group-tool-bar
   '((gnus-group-post-news "mail/compose")
     ;; Some useful agent icons?  I don't use the agent so agent users should
     ;; suggest useful commands:
-    (gnus-agent-toggle-plugged "unplugged" t
-			       :help "Gnus is currently unplugged.  Click to work online."
-     			       :visible (and gnus-agent (not gnus-plugged)))
-    (gnus-agent-toggle-plugged "plugged" t
-			       :help "Gnus is currently plugged.  Click to work offline."
-     			       :visible (and gnus-agent gnus-plugged))
-    ;; FIXME: gnus-agent-toggle-plugged (in gnus-agent-group-make-menu-bar)
-    ;; should have a better help text.
-    (gnus-group-send-queue "mail/outbox" t
-			   :visible (and gnus-agent gnus-plugged)
-			   :help "Send articles from the queue group")
-    (gnus-group-get-new-news "mail/inbox" nil
-			     :visible (or (not gnus-agent)
-					  gnus-plugged))
-    ;; FIXME: gnus-*-read-group should have a better help text.
-    (gnus-topic-read-group "open" nil
-			   :visible (and (boundp 'gnus-topic-mode)
-					 gnus-topic-mode))
-    (gnus-group-read-group "open" nil
-			   :visible (not (and (boundp 'gnus-topic-mode)
-					      gnus-topic-mode)))
-    ;; (gnus-group-find-new-groups "???" nil)
+    (gnus-agent-toggle-plugged
+     "unplugged" t
+     :help "Gnus is currently unplugged.  Click to work online."
+     :visible (and gnus-agent (not gnus-plugged)))
+    (gnus-agent-toggle-plugged
+     "plugged" t
+     :help "Gnus is currently plugged.  Click to work offline."
+     :visible (and gnus-agent gnus-plugged))
+    (gnus-group-send-queue
+     "mail/outbox" t
+     :visible (and gnus-agent gnus-plugged)
+     :help "Send articles from the queue group")
+    (gnus-group-get-new-news
+     "mail/inbox" nil
+     :visible (or (not gnus-agent)
+		  gnus-plugged))
+    (gnus-topic-read-group
+     "open" nil
+     :visible (and (boundp 'gnus-topic-mode)
+		   gnus-topic-mode))
+    (gnus-group-read-group
+     "open" nil
+     :visible (not (and (boundp 'gnus-topic-mode)
+			gnus-topic-mode)))
     (gnus-group-save-newsrc "save")
     (gnus-group-describe-group "describe")
     (gnus-group-toggle-subscription-at-point "gnus/toggle-subscription")
@@ -1050,44 +1021,22 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
     (gnus-group-exit "exit")
     (gmm-customize-mode "preferences" t :help "Edit mode preferences")
     (gnus-info-find-node "help"))
-  "List of functions for the group tool bar (GNOME style).
+  "Specifies the Gnus group tool bar.
 
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
+It can be either a list or a symbol referring to a list.  See
+`gmm-tool-bar-from-list' for the format of the list.  The
+default key map is `gnus-group-mode-map'."
+  :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
+		 (symbol))
+  :version "29.1"
   :group 'gnus-group)
 
-(defcustom gnus-group-tool-bar-retro
-  '((gnus-group-get-new-news "gnus/get-news")
-    (gnus-group-get-new-news-this-group "gnus/gnntg")
-    (gnus-group-catchup-current "gnus/catchup")
-    (gnus-group-describe-group "gnus/describe-group")
-    (gnus-group-subscribe "gnus/subscribe" t
-			  :help "Subscribe to the current group")
-    (gnus-group-unsubscribe "gnus/unsubscribe" t
-			    :help "Unsubscribe from the current group")
-    (gnus-group-exit "gnus/exit-gnus" gnus-group-mode-map))
-  "List of functions for the group tool bar (retro look).
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
-  :group 'gnus-group)
-
-(defcustom gnus-group-tool-bar-zap-list t
-  "List of icon items from the global tool bar.
-These items are not displayed in the Gnus group mode tool bar.
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type 'gmm-tool-bar-zap-list
-  :version "23.1" ;; No Gnus
-  :initialize 'custom-initialize-default
-  :set 'gnus-group-tool-bar-update
-  :group 'gnus-group)
+(defvar gnus-group-tool-bar-gnome nil)
+(make-obsolete-variable 'gnus-group-tool-bar-gnome nil "29.1")
+(defvar gnus-group-tool-bar-retro nil)
+(make-obsolete-variable 'gnus-group-tool-bar-retro nil "29.1")
+(defvar gnus-group-tool-bar-zap-list t)
+(make-obsolete-variable 'gnus-group-tool-bar-zap-list nil "29.1")
 
 (defvar image-load-path)
 (defvar tool-bar-map)
@@ -1482,9 +1431,9 @@ if it is a string, only list groups matching REGEXP."
 	 (active (gnus-active group)))
     (if (not active)
 	0
-      (length (gnus-uncompress-range
-	       (gnus-range-difference
-		(gnus-range-difference (list active) (gnus-info-read info))
+      (length (range-uncompress
+	       (range-difference
+		(range-difference (list active) (gnus-info-read info))
 		seen))))))
 
 ;; Moving through the Group buffer (in topic mode) e.g. with C-n doesn't
@@ -1642,7 +1591,7 @@ Some value are bound so the form can use them."
 			    '(mail post-mail))))
 	     (cons 'level (or (gnus-info-level info) gnus-level-killed))
 	     (cons 'score (or (gnus-info-score info) 0))
-	     (cons 'ticked (gnus-range-length (cdr (assq 'tick marked))))
+	     (cons 'ticked (range-length (cdr (assq 'tick marked))))
 	     (cons 'group-age (gnus-group-timestamp-delta group)))))
       (while (and list
                   (not (eval (caar list) env)))
@@ -2065,9 +2014,9 @@ that group."
 		 (- (1+ (cdr active)) (car active)))))
     (gnus-summary-read-group
      group (or all (and (numberp number)
-			(zerop (+ number (gnus-range-length
+			(zerop (+ number (range-length
 					  (cdr (assq 'tick marked)))
-				  (gnus-range-length
+				  (range-length
 				   (cdr (assq 'dormant marked)))))))
      no-article nil no-display nil select-articles)))
 
@@ -2832,7 +2781,7 @@ according to the expiry settings.  Note that this will delete old
 not-expirable articles, too."
   (interactive (list (gnus-group-group-name) current-prefix-arg)
 	       gnus-group-mode)
-  (let ((articles (gnus-uncompress-range (gnus-active group))))
+  (let ((articles (range-uncompress (gnus-active group))))
     (when (gnus-yes-or-no-p
 	   (format "Do you really want to delete these %d articles forever? "
 		   (length articles)))
@@ -3134,9 +3083,9 @@ If SOLID (the prefix), create a solid group."
 	     (if (derived-mode-p 'gnus-summary-mode) 'summary 'group))))))
 
 (defvar nnrss-group-alist)
-(eval-when-compile
-  (defun nnrss-discover-feed (_arg))
-  (defun nnrss-save-server-data (_arg)))
+(declare-function nnrss-discover-feed "nnrss" (url))
+(declare-function nnrss-save-server-data "nnrss" (server))
+
 (defun gnus-group-make-rss-group (&optional url)
   "Given a URL, discover if there is an RSS feed.
 If there is, use Gnus to create an nnrss group"
@@ -3225,7 +3174,11 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	       (if (gnus-server-server-name)
 		   (list (list (gnus-server-server-name)))
 		 (seq-group-by
-		  (lambda (elt) (gnus-group-server elt))
+                  (lambda (elt)
+                    (if (gnus-group-native-p elt)
+                        (gnus-group-server elt)
+                      (gnus-method-to-server
+                       (gnus-find-method-for-group elt))))
 		  (or gnus-group-marked
 		      (if (gnus-group-group-name)
 			  (list (gnus-group-group-name))
@@ -3276,7 +3229,11 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	      (if (gnus-server-server-name)
 		  (list (list (gnus-server-server-name)))
 		(seq-group-by
-		 (lambda (elt) (gnus-group-server elt))
+                 (lambda (elt)
+                   (if (gnus-group-native-p elt)
+                       (gnus-group-server elt)
+                     (gnus-method-to-server
+                      (gnus-find-method-for-group elt))))
 		 (or gnus-group-marked
 		     (if (gnus-group-group-name)
 			 (list (gnus-group-group-name))
@@ -3755,15 +3712,15 @@ or nil if no action could be taken."
 						 'del '(tick))
 					   (list (cdr (assq 'dormant marks))
 						 'del '(dormant))))
-	(setq unread (gnus-range-add (gnus-range-add
-                                      unread (cdr (assq 'dormant marks)))
-                                     (cdr (assq 'tick marks))))
+	(setq unread (range-concat (range-concat
+                                    unread (cdr (assq 'dormant marks)))
+                                   (cdr (assq 'tick marks))))
 	(gnus-add-marked-articles group 'tick nil nil 'force)
 	(gnus-add-marked-articles group 'dormant nil nil 'force))
       ;; Do auto-expirable marks if that's required.
       (when (and (gnus-group-auto-expirable-p group)
 		 (not (gnus-group-read-only-p group)))
-        (gnus-range-map
+        (range-map
 	 (lambda (article)
 	   (gnus-add-marked-articles group 'expire (list article))
 	   (gnus-request-set-mark group (list (list (list article)
@@ -3795,7 +3752,7 @@ Uses the process/prefix convention."
 			  (cons nil (gnus-list-of-read-articles group))
 			(assq 'expire (gnus-info-marks info))))
 	   (articles-to-expire
-	    (gnus-list-range-difference
+	    (range-list-difference
 	     (gnus-uncompress-sequence (cdr expirable))
 	     (cdr (assq 'unexist (gnus-info-marks info)))))
 	   (expiry-wait (gnus-group-find-parameter group 'expiry-wait))
@@ -4671,23 +4628,22 @@ and the second element is the address."
 	(and (not (setq marked (nthcdr 3 info)))
 	     (or (null articles)
 		 (setcdr (nthcdr 2 info)
-			 (list (list (cons type (gnus-compress-sequence
-						 articles t)))))))
+			 (list (list (cons type (range-compress-list
+                                                 articles)))))))
 	(and (not (setq m (assq type (car marked))))
 	     (or (null articles)
 		 (setcar marked
-			 (cons (cons type (gnus-compress-sequence articles t) )
+			 (cons (cons type (range-compress-list articles))
 			       (car marked)))))
 	(if force
 	    (if (null articles)
 		(setcar (nthcdr 3 info)
 			(assq-delete-all type (car marked)))
-	      (setcdr m (gnus-compress-sequence articles t)))
-	  (setcdr m (gnus-compress-sequence
-		     (sort (nconc (gnus-uncompress-range (cdr m))
+	      (setcdr m (range-compress-list articles)))
+	  (setcdr m (range-compress-list
+		     (sort (nconc (range-uncompress (cdr m))
 				  (copy-sequence articles))
-			   #'<)
-		     t))))))
+			   #'<)))))))
 
 (declare-function gnus-summary-add-mark "gnus-sum" (article type))
 

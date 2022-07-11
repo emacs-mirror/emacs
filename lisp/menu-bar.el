@@ -96,18 +96,28 @@
     (bindings--define-key menu [separator-print]
       menu-bar-separator)
 
-    (unless (featurep 'ns)
-      (bindings--define-key menu [close-tab]
-        '(menu-item "Close Tab" tab-close
-                    :visible (fboundp 'tab-close)
-                    :help "Close currently selected tab"))
-      (bindings--define-key menu [make-tab]
-        '(menu-item "New Tab" tab-new
-                    :visible (fboundp 'tab-new)
-                    :help "Open a new tab"))
+    (bindings--define-key menu [close-tab]
+      '(menu-item "Close Tab" tab-close
+                  :visible (fboundp 'tab-close)
+                  :help "Close currently selected tab"))
+    (bindings--define-key menu [make-tab]
+      '(menu-item "New Tab" tab-new
+                  :visible (fboundp 'tab-new)
+                  :help "Open a new tab"))
 
-      (bindings--define-key menu [separator-tab]
-        menu-bar-separator))
+    (bindings--define-key menu [separator-tab]
+      menu-bar-separator)
+
+    (bindings--define-key menu [undelete-frame-mode]
+      '(menu-item "Allow Undeleting Frames" undelete-frame-mode
+                  :help "Allow frames to be restored after deletion"
+                  :button (:toggle . undelete-frame-mode)))
+
+    (bindings--define-key menu [undelete-last-deleted-frame]
+      '(menu-item "Undelete Frame" undelete-frame
+                  :enable (and undelete-frame-mode
+                                (car undelete-frame--deleted-frames))
+                  :help "Undelete the most recently deleted frame"))
 
     ;; Don't use delete-frame as event name because that is a special
     ;; event.
@@ -121,9 +131,9 @@
                   :visible (fboundp 'make-frame-on-monitor)
                   :help "Open a new frame on another monitor"))
     (bindings--define-key menu [make-frame-on-display]
-      '(menu-item "New Frame on Display..." make-frame-on-display
+      '(menu-item "New Frame on Display Server..." make-frame-on-display
                   :visible (fboundp 'make-frame-on-display)
-                  :help "Open a new frame on another display"))
+                  :help "Open a new frame on a display server"))
     (bindings--define-key menu [make-frame]
       '(menu-item "New Frame" make-frame-command
                   :visible (fboundp 'make-frame-command)
@@ -168,17 +178,23 @@
                         t))
                   :help "Recover edits from a crashed session"))
     (bindings--define-key menu [revert-buffer]
-      '(menu-item "Revert Buffer" revert-buffer
-                  :enable (or (not (eq revert-buffer-function
-                                       'revert-buffer--default))
-                              (not (eq
-                                    revert-buffer-insert-file-contents-function
-                                    'revert-buffer-insert-file-contents--default-function))
-                              (and buffer-file-number
-                                   (or (buffer-modified-p)
-                                       (not (verify-visited-file-modtime
-                                             (current-buffer))))))
-                  :help "Re-read current buffer from its file"))
+      '(menu-item
+        "Revert Buffer" revert-buffer
+        :enable
+        (or (not (eq revert-buffer-function
+                     'revert-buffer--default))
+            (not (eq
+                  revert-buffer-insert-file-contents-function
+                  'revert-buffer-insert-file-contents--default-function))
+            (and buffer-file-number
+                 (or (buffer-modified-p)
+                     (not (verify-visited-file-modtime
+                           (current-buffer)))
+                     ;; Enable if the buffer has a different
+                     ;; writeability than the file.
+                     (not (eq (not buffer-read-only)
+                              (file-writable-p buffer-file-name))))))
+        :help "Re-read current buffer from its file"))
     (bindings--define-key menu [write-file]
       '(menu-item "Save As..." write-file
                   :enable (and (menu-bar-menu-frame-live-and-visible-p)
@@ -295,7 +311,7 @@
     (isearch-update-ring string t)
     (re-search-backward string)))
 
-;; The Edit->Search->Incremental Search menu
+;; The Edit->Incremental Search menu
 (defvar menu-bar-i-search-menu
   (let ((menu (make-sparse-keymap "Incremental Search")))
     (bindings--define-key menu [isearch-forward-symbol-at-point]
@@ -323,12 +339,6 @@
 
 (defvar menu-bar-search-menu
   (let ((menu (make-sparse-keymap "Search")))
-
-    (bindings--define-key menu [i-search]
-      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
-    (bindings--define-key menu [separator-tag-isearch]
-      menu-bar-separator)
-
     (bindings--define-key menu [tags-continue]
       '(menu-item "Continue Tags Search" fileloop-continue
                   :enable (and (featurep 'fileloop)
@@ -485,6 +495,9 @@
     (bindings--define-key menu [replace]
       `(menu-item "Replace" ,menu-bar-replace-menu))
 
+    (bindings--define-key menu [i-search]
+      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
+
     (bindings--define-key menu [search]
       `(menu-item "Search" ,menu-bar-search-menu))
 
@@ -571,9 +584,6 @@
 
     menu))
 
-(define-obsolete-function-alias
-  'menu-bar-kill-ring-save 'kill-ring-save "24.1")
-
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard.
 
@@ -590,7 +600,8 @@
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
   (let ((select-enable-clipboard t)
-        ;; Ensure that we defeat the DWIM login in `gui-selection-value'.
+        ;; Ensure that we defeat the DWIM logic in `gui-selection-value'
+        ;; (i.e., that gui--clipboard-selection-unchanged-p returns nil).
         (gui--last-selected-text-clipboard nil))
     (yank)))
 
@@ -735,7 +746,11 @@ by \"Save Options\" in Custom buffers.")
        ;; interactively, because the purpose is to mark the variable as a
        ;; candidate for `Save Options', and we do not want to save options that
        ;; the user has already set explicitly in the init file.
-       (when interactively (customize-mark-as-set ',variable)))
+       (when interactively
+         (customize-mark-as-set ',variable))
+       ;; Toggle menu items must make sure that the menu is updated so
+       ;; that toggle marks are drawn in the right state.
+       (force-mode-line-update t))
      '(menu-item ,item-name ,command :help ,help
                  :button (:toggle . (and (default-boundp ',variable)
                                          (default-value ',variable)))
@@ -778,6 +793,7 @@ The selected font will be the default on both the existing and future frames."
     (dolist (elt '(scroll-bar-mode
 		   debug-on-quit debug-on-error
 		   ;; Somehow this works, when tool-bar and menu-bar don't.
+                   desktop-save-mode
 		   tooltip-mode window-divider-mode
 		   save-place-mode uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
@@ -2175,12 +2191,12 @@ otherwise it could decide to silently do nothing."
 
 (defcustom yank-menu-length 20
   "Text of items in `yank-menu' longer than this will be truncated."
-  :type 'integer
+  :type 'natnum
   :group 'menu)
 
 (defcustom yank-menu-max-items 60
   "Maximum number of entries to display in the `yank-menu'."
-  :type 'integer
+  :type 'natnum
   :group 'menu
   :version "29.1")
 
@@ -2306,8 +2322,29 @@ Buffers menu is regenerated."
 	      (cdr elt)))
 	  buf)))
 
-;; Used to cache the menu entries for commands in the Buffers menu
-(defvar menu-bar-buffers-menu-command-entries nil)
+(defvar menu-bar-buffers-menu-command-entries
+  (list '(command-separator "--")
+	(list 'next-buffer
+	      'menu-item
+	      "Next Buffer"
+	      'next-buffer
+	      :help "Switch to the \"next\" buffer in a cyclic order")
+	(list 'previous-buffer
+	      'menu-item
+	      "Previous Buffer"
+	      'previous-buffer
+	      :help "Switch to the \"previous\" buffer in a cyclic order")
+	(list 'select-named-buffer
+	      'menu-item
+	      "Select Named Buffer..."
+	      'switch-to-buffer
+	      :help "Prompt for a buffer name, and select that buffer in the current window")
+	(list 'list-all-buffers
+	      'menu-item
+	      "List All Buffers"
+	      'list-buffers
+	      :help "Pop up a window listing all Emacs buffers"))
+  "Entries to be included at the end of the \"Buffers\" menu.")
 
 (defvar menu-bar-select-buffer-function 'switch-to-buffer
   "Function to select the buffer chosen from the `Buffers' menu-bar menu.
@@ -2332,9 +2369,13 @@ It must accept a buffer as its only required argument.")
   (and (lookup-key (current-global-map) [menu-bar buffer])
        (or force (frame-or-buffer-changed-p))
        (let ((buffers (buffer-list))
-	     (frames (frame-list))
-	     buffers-menu)
-
+	     frames buffers-menu)
+         ;; Ignore the initial frame if present.  It can happen if
+         ;; Emacs was started as a daemon.  (bug#53740)
+         (dolist (frame (frame-list))
+           (unless (equal (terminal-name (frame-terminal frame))
+                          "initial_terminal")
+             (push frame frames)))
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
                (let ((i 0)
@@ -2388,35 +2429,7 @@ It must accept a buffer as its only required argument.")
 			  `((frames-separator "--")
 			    (frames menu-item "Frames" ,frames-menu))))))
 
-	 ;; Add in some normal commands at the end of the menu.  We use
-	 ;; the copy cached in `menu-bar-buffers-menu-command-entries'
-	 ;; if it's been set already.  Note that we can't use constant
-	 ;; lists for the menu-entries, because the low-level menu-code
-	 ;; modifies them.
-	 (unless menu-bar-buffers-menu-command-entries
-	   (setq menu-bar-buffers-menu-command-entries
-		 (list '(command-separator "--")
-		       (list 'next-buffer
-			     'menu-item
-			     "Next Buffer"
-			     'next-buffer
-			     :help "Switch to the \"next\" buffer in a cyclic order")
-		       (list 'previous-buffer
-			     'menu-item
-			     "Previous Buffer"
-			     'previous-buffer
-			     :help "Switch to the \"previous\" buffer in a cyclic order")
-		       (list 'select-named-buffer
-			     'menu-item
-			     "Select Named Buffer..."
-			     'switch-to-buffer
-			     :help "Prompt for a buffer name, and select that buffer in the current window")
-		       (list 'list-all-buffers
-			     'menu-item
-			     "List All Buffers"
-			     'list-buffers
-			     :help "Pop up a window listing all Emacs buffers"
-			     ))))
+	 ;; Add in some normal commands at the end of the menu.
 	 (setq buffers-menu
 	       (nconc buffers-menu menu-bar-buffers-menu-command-entries))
 
@@ -2527,7 +2540,7 @@ Use \\[menu-bar-mode] to make the menu bar appear."))))
 (put 'menu-bar-mode 'standard-value '(t))
 
 (defun toggle-menu-bar-mode-from-frame (&optional arg)
-  "Toggle display of the menu bar of the current frame.
+  "Toggle display of the menu bar.
 See `menu-bar-mode' for more information."
   (interactive (list (or current-prefix-arg 'toggle)))
   (if (eq arg 'toggle)
@@ -2619,8 +2632,11 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
       ;; `setup-specified-language-environment', for instance,
       ;; expects this to be set from a menu keymap.
       (setq last-command-event (car (last event)))
-      ;; mouse-major-mode-menu was using `command-execute' instead.
-      (call-interactively cmd))))
+      (setq from--tty-menu-p nil)
+      ;; Signal use-dialog-box-p this command was invoked from a menu.
+      (let ((from--tty-menu-p t))
+        ;; mouse-major-mode-menu was using `command-execute' instead.
+        (call-interactively cmd)))))
 
 (defun popup-menu-normalize-position (position)
   "Convert the POSITION to the form which `popup-menu' expects internally.

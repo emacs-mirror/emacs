@@ -81,131 +81,21 @@ Note how the single `-' got converted into a list before
 threading."
   (declare (indent 0) (debug thread-first))
   `(internal--thread-argument nil ,@forms))
-
-(defsubst internal--listify (elt)
-  "Wrap ELT in a list if it is not one.
-If ELT is of the form ((EXPR)), listify (EXPR) with a dummy symbol."
-  (cond
-   ((symbolp elt) (list elt elt))
-   ((null (cdr elt))
-    (list (make-symbol "s") (car elt)))
-   (t elt)))
-
-(defsubst internal--check-binding (binding)
-  "Check BINDING is properly formed."
-  (when (> (length binding) 2)
-    (signal
-     'error
-     (cons "`let' bindings can have only one value-form" binding)))
-  binding)
-
-(defsubst internal--build-binding-value-form (binding prev-var)
-  "Build the conditional value form for BINDING using PREV-VAR."
-  (let ((var (car binding)))
-    `(,var (and ,prev-var ,(cadr binding)))))
-
-(defun internal--build-binding (binding prev-var)
-  "Check and build a single BINDING with PREV-VAR."
-  (thread-first
-    binding
-    internal--listify
-    internal--check-binding
-    (internal--build-binding-value-form prev-var)))
-
-(defun internal--build-bindings (bindings)
-  "Check and build conditional value forms for BINDINGS."
-  (let ((prev-var t))
-    (mapcar (lambda (binding)
-              (let ((binding (internal--build-binding binding prev-var)))
-                (setq prev-var (car binding))
-                binding))
-            bindings)))
-
-(defmacro if-let* (varlist then &rest else)
-  "Bind variables according to VARLIST and evaluate THEN or ELSE.
-This is like `if-let' but doesn't handle a VARLIST of the form
-\(SYMBOL SOMETHING) specially."
-  (declare (indent 2)
-           (debug ((&rest [&or symbolp (symbolp form) (form)])
-                   body)))
-  (if varlist
-      `(let* ,(setq varlist (internal--build-bindings varlist))
-         (if ,(caar (last varlist))
-             ,then
-           ,@else))
-    `(let* () ,then)))
-
-(defmacro when-let* (varlist &rest body)
-  "Bind variables according to VARLIST and conditionally evaluate BODY.
-This is like `when-let' but doesn't handle a VARLIST of the form
-\(SYMBOL SOMETHING) specially."
-  (declare (indent 1) (debug if-let*))
-  (list 'if-let* varlist (macroexp-progn body)))
-
-(defmacro and-let* (varlist &rest body)
-  "Bind variables according to VARLIST and conditionally evaluate BODY.
-Like `when-let*', except if BODY is empty and all the bindings
-are non-nil, then the result is non-nil."
-  (declare (indent 1) (debug if-let*))
-  (let (res)
-    (if varlist
-        `(let* ,(setq varlist (internal--build-bindings varlist))
-           (when ,(setq res (caar (last varlist)))
-             ,@(or body `(,res))))
-      `(let* () ,@(or body '(t))))))
-
-;;;###autoload
-(defmacro if-let (spec then &rest else)
-  "Bind variables according to SPEC and evaluate THEN or ELSE.
-Evaluate each binding in turn, as in `let*', stopping if a
-binding value is nil.  If all are non-nil return the value of
-THEN, otherwise the last form in ELSE.
-
-Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
-SYMBOL to the value of VALUEFORM.  An element can additionally be
-of the form (VALUEFORM), which is evaluated and checked for nil;
-i.e. SYMBOL can be omitted if only the test result is of
-interest.  It can also be of the form SYMBOL, then the binding of
-SYMBOL is checked for nil.
-
-As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
-like \((SYMBOL SOMETHING)).  This exists for backward compatibility
-with an old syntax that accepted only one binding."
-  (declare (indent 2)
-           (debug ([&or (symbolp form)  ; must be first, Bug#48489
-                        (&rest [&or symbolp (symbolp form) (form)])]
-                   body)))
-  (when (and (<= (length spec) 2)
-             (not (listp (car spec))))
-    ;; Adjust the single binding case
-    (setq spec (list spec)))
-  (list 'if-let* spec then (macroexp-progn else)))
-
-;;;###autoload
-(defmacro when-let (spec &rest body)
-  "Bind variables according to SPEC and conditionally evaluate BODY.
-Evaluate each binding in turn, stopping if a binding value is nil.
-If all are non-nil, return the value of the last form in BODY.
-
-The variable list SPEC is the same as in `if-let'."
-  (declare (indent 1) (debug if-let))
-  (list 'if-let spec (macroexp-progn body)))
-
 (defsubst hash-table-empty-p (hash-table)
   "Check whether HASH-TABLE is empty (has 0 elements)."
   (zerop (hash-table-count hash-table)))
 
 (defsubst hash-table-keys (hash-table)
   "Return a list of keys in HASH-TABLE."
-  (cl-loop for k being the hash-keys of hash-table collect k))
+  (let ((keys nil))
+    (maphash (lambda (k _) (push k keys)) hash-table)
+    keys))
 
 (defsubst hash-table-values (hash-table)
   "Return a list of values in HASH-TABLE."
-  (cl-loop for v being the hash-values of hash-table collect v))
-
-(defsubst string-empty-p (string)
-  "Check whether STRING is empty."
-  (string= string ""))
+  (let ((values nil))
+    (maphash (lambda (_ v) (push v values)) hash-table)
+    values))
 
 (defsubst string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR.
@@ -277,9 +167,13 @@ non-nil, return the last LENGTH characters instead.
 If CODING-SYSTEM is non-nil, STRING will be encoded before
 limiting, and LENGTH is interpreted as the number of bytes to
 limit the string to.  The result will be a unibyte string that is
-shorter than LENGTH, but will not contain \"partial\" characters,
-even if CODING-SYSTEM encodes characters with several bytes per
-character.
+shorter than LENGTH, but will not contain \"partial\"
+characters (or glyphs), even if CODING-SYSTEM encodes characters
+with several bytes per character.  If the coding system specifies
+prefix like the byte order mark (aka \"BOM\") or a shift-in sequence,
+their bytes will be normally counted as part of LENGTH.  This is
+the case, for instance, with `utf-16'.  If this isn't desired, use a
+coding system that doesn't specify a BOM, like `utf-16le' or `utf-16be'.
 
 When shortening strings for display purposes,
 `truncate-string-to-width' is almost always a better alternative
@@ -287,44 +181,59 @@ than this function."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (if coding-system
-      (let ((result nil)
-            (result-length 0)
-            (index (if end (1- (length string)) 0)))
-        ;; FIXME: This implementation, which uses encode-coding-char
-        ;; to encode the string one character at a time, is in general
-        ;; incorrect: coding-systems that produce prefix or suffix
-        ;; bytes, such as ISO-2022-based or UTF-8/16 with BOM, will
-        ;; produce those bytes for each character, instead of just
-        ;; once for the entire string.  encode-coding-char attempts to
-        ;; remove those extra bytes at least in some situations, but
-        ;; it cannot do that in all cases.  And in any case, producing
-        ;; what is supposed to be a UTF-16 or ISO-2022-CN encoded
-        ;; string which lacks the BOM bytes at the beginning and the
-        ;; charset designation sequences at the head and tail of the
-        ;; result will definitely surprise the callers in some cases.
-        (while (let ((encoded (encode-coding-char
-                               (aref string index) coding-system)))
-                 (and (<= (+ (length encoded) result-length) length)
-                      (progn
-                        (push encoded result)
-                        (cl-incf result-length (length encoded))
-                        (setq index (if end (1- index)
-                                      (1+ index))))
-                      (if end (> index -1)
-                        (< index (length string)))))
-          ;; No body.
-          )
-        (apply #'concat (if end result (nreverse result))))
+      ;; The previous implementation here tried to encode char by
+      ;; char, and then adding up the length of the encoded octets,
+      ;; but that's not reliably in the presence of BOM marks and
+      ;; ISO-2022-CN which may add charset designations at the
+      ;; start/end of each encoded char (which we don't want).  So
+      ;; iterate (with a binary search) instead to find the desired
+      ;; length.
+      (let* ((glyphs (string-glyph-split string))
+             (nglyphs (length glyphs))
+             (too-long (1+ nglyphs))
+             (stop (max (/ nglyphs 2) 1))
+             (gap stop)
+             candidate encoded found candidate-stop)
+        ;; We're returning the end of the string.
+        (when end
+          (setq glyphs (nreverse glyphs)))
+        (while (and (not found)
+                    (< stop too-long))
+          (setq encoded
+                (encode-coding-string (string-join (seq-take glyphs stop))
+                                      coding-system))
+          (cond
+           ((= (length encoded) length)
+            (setq found encoded
+                  candidate-stop stop))
+           ;; Too long; try shortening.
+           ((> (length encoded) length)
+            (setq too-long stop
+                  stop (max (- stop gap) 1)))
+           ;; Too short; try lengthening.
+           (t
+            (setq candidate encoded
+                  candidate-stop stop)
+            (setq stop
+                  (if (>= stop nglyphs)
+                      too-long
+                    (min (+ stop gap) nglyphs)))))
+          (setq gap (max (/ gap 2) 1)))
+        (cond
+         ((not (or found candidate))
+          "")
+         ;; We're returning the end, so redo the encoding.
+         (end
+          (encode-coding-string
+           (string-join (nreverse (seq-take glyphs candidate-stop)))
+           coding-system))
+         (t
+          (or found candidate))))
+    ;; Char-based version.
     (cond
      ((<= (length string) length) string)
      (end (substring string (- (length string) length)))
      (t (substring string 0 length)))))
-
-;;;###autoload
-(defun string-lines (string &optional omit-nulls)
-  "Split STRING into a list of lines.
-If OMIT-NULLS, empty lines will be removed from the results."
-  (split-string string "\n" omit-nulls))
 
 (defun string-pad (string length &optional padding start)
   "Pad STRING to LENGTH using PADDING.
@@ -402,51 +311,17 @@ as the new values of the bound variables in the recursive invocation."
       (cl-labels ((,name ,fargs . ,body)) #',name)
       . ,aargs)))
 
-(defmacro with-memoization (place &rest code)
-  "Return the value of CODE and stash it in PLACE.
-If PLACE's value is non-nil, then don't bother evaluating CODE
-and return the value found in PLACE instead."
-  (declare (indent 1) (debug (gv-place body)))
-  (gv-letplace (getter setter) place
-    `(or ,getter
-         ,(macroexp-let2 nil val (macroexp-progn code)
-            `(progn
-               ,(funcall setter val)
-               ,val)))))
-
-;;;###autoload
-(defun ensure-empty-lines (&optional lines)
-  "Ensure that there are LINES number of empty lines before point.
-If LINES is nil or omitted, ensure that there is a single empty
-line before point.
-
-If called interactively, LINES is given by the prefix argument.
-
-If there are more than LINES empty lines before point, the number
-of empty lines is reduced to LINES.
-
-If point is not at the beginning of a line, a newline character
-is inserted before adjusting the number of empty lines."
-  (interactive "p")
-  (unless (bolp)
-    (insert "\n"))
-  (let ((lines (or lines 1))
-        (start (save-excursion
-                 (if (re-search-backward "[^\n]" nil t)
-                     (+ (point) 2)
-                   (point-min)))))
-    (cond
-     ((> (- (point) start) lines)
-      (delete-region (point) (- (point) (- (point) start lines))))
-     ((< (- (point) start) lines)
-      (insert (make-string (- lines (- (point) start)) ?\n))))))
-
 ;;;###autoload
 (defun string-pixel-width (string)
   "Return the width of STRING in pixels."
-  (with-temp-buffer
-    (insert string)
-    (car (buffer-text-pixel-size nil nil t))))
+  (if (zerop (length string))
+      0
+    ;; Keeping a work buffer around is more efficient than creating a
+    ;; new temporary buffer.
+    (with-current-buffer (get-buffer-create " *string-pixel-width*")
+      (delete-region (point-min) (point-max))
+      (insert string)
+      (car (buffer-text-pixel-size nil nil t)))))
 
 ;;;###autoload
 (defun string-glyph-split (string)
@@ -510,6 +385,85 @@ this defaults to the current buffer."
           ;; Finally update the range.
           (put-text-property sub-start sub-end 'display disp)))
       (setq sub-start sub-end))))
+
+;;;###autoload
+(defun read-process-name (prompt)
+  "Query the user for a process and return the process object."
+  ;; Currently supports only the PROCESS argument.
+  ;; Must either return a list containing a process, or signal an error.
+  ;; (Returning `nil' would mean the current buffer's process.)
+  (unless (fboundp 'process-list)
+    (error "Asynchronous subprocesses are not supported on this system"))
+  ;; Local function to return cons of a complete-able name, and the
+  ;; associated process object, for use with `completing-read'.
+  (cl-flet ((procitem
+             (p) (when (process-live-p p)
+                   (let ((pid (process-id p))
+                         (procname (process-name p))
+                         (procbuf (process-buffer p)))
+                     (and (eq (process-type p) 'real)
+                          (cons (if procbuf
+                                    (format "%s (%s) in buffer %s"
+                                            procname pid
+                                            (buffer-name procbuf))
+                                  (format "%s (%s)" procname pid))
+                                p))))))
+    ;; Perform `completing-read' for a process.
+    (let* ((currproc (get-buffer-process (current-buffer)))
+           (proclist (or (process-list)
+                         (error "No processes found")))
+           (collection (delq nil (mapcar #'procitem proclist)))
+           (selection (completing-read
+                       (format-prompt prompt
+                                      (and currproc
+                                           (eq (process-type currproc) 'real)
+                                           (procitem currproc)))
+                       collection nil :require-match nil nil
+                       (car (seq-find (lambda (proc)
+                                        (eq currproc (cdr proc)))
+                                      collection))))
+           (process (and selection
+                         (cdr (assoc selection collection)))))
+      (unless process
+        (error "No process selected"))
+      process)))
+
+(defmacro with-buffer-unmodified-if-unchanged (&rest body)
+  "Like `progn', but change buffer-modified status only if buffer text changes.
+If the buffer was unmodified before execution of BODY, and
+buffer text after execution of BODY is identical to what it was
+before, ensure that buffer is still marked unmodified afterwards.
+For example, the following won't change the buffer's modification
+status:
+
+  (with-buffer-unmodified-if-unchanged
+    (insert \"a\")
+    (delete-char -1))
+
+Note that only changes in the raw byte sequence of the buffer text,
+as stored in the internal representation, are monitored for the
+purpose of detecting the lack of changes in buffer text.  Any other
+changes that are normally perceived as \"buffer modifications\", such
+as changes in text properties, `buffer-file-coding-system', buffer
+multibyteness, etc. -- will not be noticed, and the buffer will still
+be marked unmodified, effectively ignoring those changes."
+  (declare (debug t) (indent 0))
+  (let ((hash (gensym))
+        (buffer (gensym)))
+    `(let ((,hash (and (not (buffer-modified-p))
+                       (buffer-hash)))
+           (,buffer (current-buffer)))
+       (prog1
+           (progn
+             ,@body)
+         ;; If we didn't change anything in the buffer (and the buffer
+         ;; was previously unmodified), then flip the modification status
+         ;; back to "unchanged".
+         (when (and ,hash (buffer-live-p ,buffer))
+           (with-current-buffer ,buffer
+             (when (and (buffer-modified-p)
+                        (equal ,hash (buffer-hash)))
+               (restore-buffer-modified-p nil))))))))
 
 (provide 'subr-x)
 

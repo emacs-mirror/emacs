@@ -29,6 +29,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <Application.h>
 #include <Catalog.h>
 #include <Roster.h>
+#include <Bitmap.h>
+#include <Rect.h>
+#include <View.h>
 
 using namespace std;
 
@@ -79,10 +82,24 @@ main (int argc, char **argv)
   BApplication app ("application/x-vnd.GNU-emacs-resource-helper");
   BFile file;
   BBitmap *icon;
+  BBitmap scale32 (BRect (0, 0, 31, 31), B_RGBA32, true);
+  BBitmap scale16 (BRect (0, 0, 15, 15), B_RGBA32, true);
   BAppFileInfo info;
   status_t code;
   struct version_info vinfo;
   char *v = strdup (PACKAGE_VERSION);
+
+  if (scale32.InitCheck () != B_OK
+      || scale16.InitCheck () != B_OK)
+    {
+      fprintf (stderr, "Bitmap initialization ran out of memory\n");
+      return EXIT_FAILURE;
+    }
+
+  BView scale32view (scale32.Bounds (), NULL,
+		     B_FOLLOW_NONE, B_WILL_DRAW);
+  BView scale16view (scale16.Bounds (), NULL,
+		     B_FOLLOW_NONE, B_WILL_DRAW);
 
   if (argc != 3)
     {
@@ -117,8 +134,24 @@ main (int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-  info.SetIcon (icon, B_MINI_ICON);
-  info.SetIcon (icon, B_LARGE_ICON);
+  scale32.AddChild (&scale32view);
+  scale16.AddChild (&scale16view);
+
+  if (!scale32view.LockLooper ()
+      || !scale16view.LockLooper ())
+    {
+      fprintf (stderr, "Failed to lock bitmap looper\n");
+      return EXIT_FAILURE;
+    }
+
+  scale32view.DrawBitmapAsync (icon, scale32.Bounds ());
+  scale16view.DrawBitmapAsync (icon, scale16.Bounds ());
+
+  scale32view.Sync ();
+  scale16view.Sync ();
+
+  info.SetIcon (&scale16, B_MINI_ICON);
+  info.SetIcon (&scale32, B_LARGE_ICON);
   info.SetSignature ("application/x-vnd.GNU-emacs");
 
   v = strtok (v, ".");
@@ -140,5 +173,5 @@ main (int argc, char **argv)
 
   info.SetVersionInfo (&vinfo, B_APP_VERSION_KIND);
 
-  return EXIT_SUCCESS;
+  exit (EXIT_SUCCESS);
 }

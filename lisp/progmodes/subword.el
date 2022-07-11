@@ -264,8 +264,8 @@ Optional argument ARG is the same as for `capitalize-word'."
   "Toggle superword movement and editing (Superword mode).
 
 Superword mode is a buffer-local minor mode.  Enabling it changes
-the definition of words such that symbols characters are treated
-as parts of words: e.g., in `superword-mode',
+the definition of words such that characters which have symbol
+syntax are treated as parts of words: e.g., in `superword-mode',
 \"this_is_a_symbol\" counts as one word.
 
 \\{superword-mode-map}"

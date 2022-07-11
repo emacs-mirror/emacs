@@ -153,7 +153,7 @@ For backends which dont support it, it is emulated."
       (delete-directory "module" 'recursive)
       ;; We must cleanup the "remote" CVS repo as well.
       (add-hook 'vc-test--cleanup-hook
-		`(lambda () (delete-directory ,tmp-dir 'recursive)))))
+		(lambda () (delete-directory tmp-dir 'recursive)))))
 
    ((eq backend 'Arch)
     (let ((archive-name (format "%s--%s" user-mail-address (random))))
@@ -196,7 +196,8 @@ For backends which dont support it, it is emulated."
             ;; Cleanup.
             (add-hook
              'vc-test--cleanup-hook
-             `(lambda () (delete-directory ,default-directory 'recursive)))
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
 
             ;; Check the revision granularity.
             (should (memq (vc-test--revision-granularity-function backend)
@@ -249,7 +250,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ;; Cleanup.
             (add-hook
              'vc-test--cleanup-hook
-             `(lambda () (delete-directory ,default-directory 'recursive)))
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
 
             ;; Create empty repository.
             (make-directory default-directory)
@@ -329,7 +331,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ;; Cleanup.
             (add-hook
              'vc-test--cleanup-hook
-             `(lambda () (delete-directory ,default-directory 'recursive)))
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
 
             ;; Create empty repository.
             (make-directory default-directory)
@@ -394,7 +397,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ;; Cleanup.
             (add-hook
              'vc-test--cleanup-hook
-             `(lambda () (delete-directory ,default-directory 'recursive)))
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
 
             ;; Create empty repository.  Check working revision of
             ;; repository, should be nil.
@@ -471,7 +475,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ;; Cleanup.
             (add-hook
              'vc-test--cleanup-hook
-             `(lambda () (delete-directory ,default-directory 'recursive)))
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
 
             ;; Create empty repository.  Check repository checkout model.
             (make-directory default-directory)
@@ -553,7 +558,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ;; Cleanup.
             (add-hook
              'vc-test--cleanup-hook
-             `(lambda () (delete-directory ,default-directory 'recursive)))
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
 
             ;; Create empty repository.
             (make-directory default-directory)
@@ -613,7 +619,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ;; Cleanup.
             (add-hook
              'vc-test--cleanup-hook
-             `(lambda () (delete-directory ,default-directory 'recursive)))
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
 
             ;; Create empty repository.  Check repository checkout model.
             (make-directory default-directory)
@@ -771,8 +778,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               ',(intern
                  (format "vc-test-%s01-register" backend-string))))))
           ;; CVS calls vc-delete-file, which insists on prompting
-          ;; "Really want to delete ...?"
-          (skip-unless (not (eq 'CVS ',backend)))
+          ;; "Really want to delete ...?", and `vc-mtn.el' does not implement
+          ;; `delete-file' at all.
+          (skip-unless (not (memq ',backend '(CVS Mtn))))
           (vc-test--rename-file ',backend))
 
         (ert-deftest
@@ -785,6 +793,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (ert-get-test
               ',(intern
                  (format "vc-test-%s01-register" backend-string))))))
+          ;; `vc-mtn.el' gives me:
+          ;; "Failed (status 1): mtn commit -m Testing vc-version-diff\n\n foo"
+          (skip-unless (not (memq ',backend '(Mtn))))
           (vc-test--version-diff ',backend))
         ))))
 

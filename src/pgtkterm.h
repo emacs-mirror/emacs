@@ -40,8 +40,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <cairo-svg.h>
 #endif
 
-/* could use list to store these, but rest of emacs has a big infrastructure
-   for managing a table of bitmap "records" */
 struct pgtk_bitmap_record
 {
   void *img;
@@ -51,13 +49,22 @@ struct pgtk_bitmap_record
   cairo_pattern_t *pattern;
 };
 
+struct pgtk_device_t
+{
+  GdkSeat *seat;
+  GdkDevice *device;
+
+  Lisp_Object name;
+  struct pgtk_device_t *next;
+};
+
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
 #define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
 
 #define ALPHA_FROM_ULONG(color) ((color) >> 24)
-#define RED_FROM_ULONG(color) (((color) >> 16) & 0xff)
+#define RED_FROM_ULONG(color)	(((color) >> 16) & 0xff)
 #define GREEN_FROM_ULONG(color) (((color) >> 8) & 0xff)
-#define BLUE_FROM_ULONG(color) ((color) & 0xff)
+#define BLUE_FROM_ULONG(color)	((color) & 0xff)
 
 struct scroll_bar
 {
@@ -89,7 +96,7 @@ struct scroll_bar
      editing large files, we establish a minimum height by always
      drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
-     different co-ordinate system.  */
+     different coordinate system.  */
   int start, end;
 
   /* If the scroll bar handle is currently being dragged by the user,
@@ -112,8 +119,6 @@ struct scroll_bar
   bool horizontal;
 };
 
-
-/* init'd in pgtk_initialize_display_info () */
 struct pgtk_display_info
 {
   /* Chain of all pgtk_display_info structures.  */
@@ -122,8 +127,14 @@ struct pgtk_display_info
   /* The generic display parameters corresponding to this PGTK display. */
   struct terminal *terminal;
 
-  /* This says how to access this display in Gdk.  */
-  GdkDisplay *gdpy;
+  union
+  {
+    /* This says how to access this display through GDK.  */
+    GdkDisplay *gdpy;
+
+    /* An alias defined to make porting X code easier.  */
+    GdkDisplay *display;
+  };
 
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
@@ -205,30 +216,28 @@ struct pgtk_display_info
   /* Time of last mouse movement.  */
   Time last_mouse_movement_time;
 
+  /* Time of last user interaction.  */
+  guint32 last_user_time;
+
   /* The scroll bar in which the last motion event occurred.  */
   void *last_mouse_scroll_bar;
 
-  /* The invisible cursor used for pointer blanking.
-     Unused if this display supports Xfixes extension.  */
+  /* The invisible cursor used for pointer blanking.  */
   Emacs_Cursor invisible_cursor;
-
-  /* Function used to toggle pointer visibility on this display.  */
-  void (*toggle_visible_pointer) (struct frame *, bool);
 
   /* The GDK cursor for scroll bars and popup menus.  */
   GdkCursor *xg_cursor;
 
+  /* List of all devices for all seats on this display.  */
+  struct pgtk_device_t *devices;
 
   /* The frame where the mouse was last time we reported a mouse position.  */
   struct frame *last_mouse_glyph_frame;
 
-  /* Modifier masks in gdk */
-  int meta_mod_mask, alt_mod_mask, super_mod_mask, hyper_mod_mask;
-
   /* The last click event. */
   GdkEvent *last_click_event;
 
-  /* input method */
+  /* IM context data.  */
   struct
   {
     GtkIMContext *context;
@@ -249,10 +258,6 @@ extern struct pgtk_display_info *x_display_list;
 
 struct pgtk_output
 {
-#if 0
-  void *view;
-  void *miniimage;
-#endif
   unsigned long foreground_color;
   unsigned long background_color;
   void *toolbar;
@@ -396,6 +401,10 @@ struct pgtk_output
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
 
+  /* Whether or not a relief background has been computed for this
+     frame.  */
+  bool_bf relief_background_valid_p : 1;
+
   /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
      frame, or IMPLICIT if we received an EnterNotify.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
@@ -409,7 +418,7 @@ struct pgtk_output
   struct atimer *scale_factor_atimer;
 };
 
-/* this dummy decl needed to support TTYs */
+/* Satisfy term.c.  */
 struct x_output
 {
   int unused;
@@ -439,14 +448,15 @@ enum
 #define FRAME_FONT(f)             (FRAME_X_OUTPUT (f)->font)
 #define FRAME_GTK_OUTER_WIDGET(f) (FRAME_X_OUTPUT (f)->widget)
 #define FRAME_GTK_WIDGET(f)       (FRAME_X_OUTPUT (f)->edit_widget)
-#define FRAME_WIDGET(f)           (FRAME_GTK_OUTER_WIDGET (f) ?		\
-                                   FRAME_GTK_OUTER_WIDGET (f) :		\
-                                   FRAME_GTK_WIDGET (f))
+#define FRAME_WIDGET(f)           (FRAME_GTK_OUTER_WIDGET (f)	\
+                                   ? FRAME_GTK_OUTER_WIDGET (f)	\
+                                   : FRAME_GTK_WIDGET (f))
 
-/* aliases */
 #define FRAME_PGTK_VIEW(f)         FRAME_GTK_WIDGET (f)
 #define FRAME_X_WINDOW(f)          FRAME_GTK_OUTER_WIDGET (f)
 #define FRAME_NATIVE_WINDOW(f)     GTK_WINDOW (FRAME_X_WINDOW (f))
+#define FRAME_GDK_WINDOW(f)			\
+  (gtk_widget_get_window (FRAME_GTK_WIDGET (f)))
 
 #define FRAME_X_DISPLAY(f)        (FRAME_DISPLAY_INFO (f)->gdpy)
 
@@ -455,59 +465,8 @@ enum
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
-#define PGTK_FACE_FOREGROUND(f) ((f)->foreground)
-#define PGTK_FACE_BACKGROUND(f) ((f)->background)
 #define FRAME_DEFAULT_FACE(f) FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID)
-
-/* Compute pixel height of the frame's titlebar. */
-#define FRAME_PGTK_TITLEBAR_HEIGHT(f)                                     0
-
-/* Compute pixel size for vertical scroll bars */
-#define PGTK_SCROLL_BAR_WIDTH(f)					\
-  (FRAME_HAS_VERTICAL_SCROLL_BARS (f)					\
-   ? rint (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0			\
-	   ? FRAME_CONFIG_SCROLL_BAR_WIDTH (f)				\
-	   : (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)))	\
-   : 0)
-
-/* Compute pixel size for horizontal scroll bars */
-#define PGTK_SCROLL_BAR_HEIGHT(f)					\
-  (FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)					\
-   ? rint (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) > 0			\
-	   ? FRAME_CONFIG_SCROLL_BAR_HEIGHT (f)				\
-	   : (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)))	\
-   : 0)
-
-/* Difference btwn char-column-calculated and actual SB widths.
-   This is only a concern for rendering when SB on left. */
-#define PGTK_SCROLL_BAR_ADJUST(w, f)				\
-  (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w) ?			\
-   (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)		\
-    - PGTK_SCROLL_BAR_WIDTH (f)) : 0)
-
-/* Difference btwn char-line-calculated and actual SB heights.
-   This is only a concern for rendering when SB on top. */
-#define PGTK_SCROLL_BAR_ADJUST_HORIZONTALLY(w, f)		\
-  (WINDOW_HAS_HORIZONTAL_SCROLL_BARS (w) ?		\
-   (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)	\
-    - PGTK_SCROLL_BAR_HEIGHT (f)) : 0)
-
 #define FRAME_MENUBAR_HEIGHT(f) (FRAME_X_OUTPUT (f)->menubar_height)
-
-/* Calculate system coordinates of the left and top of the parent
-   window or, if there is no parent window, the screen. */
-#define PGTK_PARENT_WINDOW_LEFT_POS(f)                                    \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? [[FRAME_PGTK_VIEW (f) window] parentWindow].frame.origin.x : 0)
-#define PGTK_PARENT_WINDOW_TOP_POS(f)                                     \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? ([[FRAME_PGTK_VIEW (f) window] parentWindow].frame.origin.y          \
-      + [[FRAME_PGTK_VIEW (f) window] parentWindow].frame.size.height     \
-      - FRAME_PGTK_TITLEBAR_HEIGHT (FRAME_PARENT_FRAME (f)))              \
-   : [[[PGTKScreen screepgtk] objectAtIndex: 0] frame].size.height)
-
-#define FRAME_PGTK_FONT_TABLE(f) (FRAME_DISPLAY_INFO (f)->font_table)
-
 #define FRAME_TOOLBAR_TOP_HEIGHT(f) ((f)->output_data.pgtk->toolbar_top_height)
 #define FRAME_TOOLBAR_BOTTOM_HEIGHT(f) \
   ((f)->output_data.pgtk->toolbar_bottom_height)
@@ -535,78 +494,101 @@ enum
 #define FRAME_CR_SURFACE_DESIRED_HEIGHT(f) \
   ((f)->output_data.pgtk->cr_surface_desired_height)
 
+
+/* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
+   or SELECTION_CLEAR_EVENT, then its contents are really described
+   by this structure.  */
+
+/* For an event of kind SELECTION_REQUEST_EVENT,
+   this structure really describes the contents.  */
+
+struct selection_input_event
+{
+  ENUM_BF (event_kind) kind : EVENT_KIND_WIDTH;
+  struct pgtk_display_info *dpyinfo;
+  /* We spell it with an "o" here because X does.  */
+  GdkWindow *requestor;
+  GdkAtom selection, target, property;
+  guint32 time;
+};
+
+/* Unlike macros below, this can't be used as an lvalue.  */
+INLINE GdkDisplay *
+SELECTION_EVENT_DISPLAY (struct selection_input_event *ev)
+{
+  return ev->dpyinfo->display;
+}
+#define SELECTION_EVENT_DPYINFO(eventp) \
+  ((eventp)->dpyinfo)
+/* We spell it with an "o" here because X does.  */
+#define SELECTION_EVENT_REQUESTOR(eventp)	\
+  ((eventp)->requestor)
+#define SELECTION_EVENT_SELECTION(eventp)	\
+  ((eventp)->selection)
+#define SELECTION_EVENT_TARGET(eventp)	\
+  ((eventp)->target)
+#define SELECTION_EVENT_PROPERTY(eventp)	\
+  ((eventp)->property)
+#define SELECTION_EVENT_TIME(eventp)	\
+  ((eventp)->time)
+
+extern void pgtk_handle_selection_event (struct selection_input_event *);
+extern void pgtk_clear_frame_selections (struct frame *);
+extern void pgtk_handle_property_notify (GdkEventProperty *);
+extern void pgtk_handle_selection_notify (GdkEventSelection *);
+
 /* Display init/shutdown functions implemented in pgtkterm.c */
-extern struct pgtk_display_info *pgtk_term_init (Lisp_Object display_name,
-						 char *resource_name);
-extern void pgtk_term_shutdown (int sig);
+extern struct pgtk_display_info *pgtk_term_init (Lisp_Object, char *);
+extern void pgtk_term_shutdown (int);
 
 /* Implemented in pgtkterm, published in or needed from pgtkfns. */
-extern void pgtk_clear_frame (struct frame *f);
-extern char *pgtk_xlfd_to_fontname (const char *xlfd);
+extern void pgtk_clear_frame (struct frame *);
+extern char *pgtk_xlfd_to_fontname (const char *);
 
-/* Implemented in pgtkfns. */
+/* Implemented in pgtkfns.c.  */
 extern void pgtk_set_doc_edited (void);
-extern const char *pgtk_get_defaults_value (const char *key);
-extern const char *pgtk_get_string_resource (XrmDatabase rdb,
-					     const char *name,
-					     const char *class);
-extern void pgtk_implicitly_set_name (struct frame *f, Lisp_Object arg,
-				      Lisp_Object oldval);
+extern const char *pgtk_get_defaults_value (const char *);
+extern const char *pgtk_get_string_resource (XrmDatabase, const char *, const char *);
+extern void pgtk_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Color management implemented in pgtkterm. */
-extern bool pgtk_defined_color (struct frame *f,
-				const char *name,
-				Emacs_Color * color_def, bool alloc,
-				bool makeIndex);
-extern void pgtk_query_color (struct frame *f, Emacs_Color * color);
-extern void pgtk_query_colors (struct frame *f, Emacs_Color * colors,
-			       int ncolors);
-extern int pgtk_parse_color (struct frame *f, const char *color_name,
-			     Emacs_Color * color);
+extern bool pgtk_defined_color (struct frame *, const char *,
+				Emacs_Color *, bool, bool);
+extern void pgtk_query_color (struct frame *, Emacs_Color *);
+extern void pgtk_query_colors (struct frame *, Emacs_Color *, int);
+extern int pgtk_parse_color (struct frame *, const char *, Emacs_Color *);
 
 /* Implemented in pgtkterm.c */
-extern void pgtk_clear_area (struct frame *f, int x, int y, int width,
-			     int height);
-extern int pgtk_gtk_to_emacs_modifiers (struct pgtk_display_info *dpyinfo,
-					int state);
-extern void pgtk_clear_under_internal_border (struct frame *f);
-extern void pgtk_set_event_handler (struct frame *f);
+extern void pgtk_clear_area (struct frame *, int, int, int, int);
+extern int pgtk_gtk_to_emacs_modifiers (struct pgtk_display_info *, int);
+extern void pgtk_clear_under_internal_border (struct frame *);
+extern void pgtk_set_event_handler (struct frame *);
 
 /* Implemented in pgtkterm.c */
-extern int x_display_pixel_height (struct pgtk_display_info *);
-extern int x_display_pixel_width (struct pgtk_display_info *);
+extern int pgtk_display_pixel_height (struct pgtk_display_info *);
+extern int pgtk_display_pixel_width (struct pgtk_display_info *);
 
-/* Implemented in pgtkterm.c */
-extern void x_destroy_window (struct frame *f);
-extern void x_set_parent_frame (struct frame *f, Lisp_Object new_value,
-				Lisp_Object old_value);
-extern void x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
-				   Lisp_Object old_value);
-extern void x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
-				   Lisp_Object old_value);
-extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
-			   Lisp_Object old_value);
+extern void pgtk_destroy_window (struct frame *);
+extern void pgtk_set_parent_frame (struct frame *, Lisp_Object, Lisp_Object);
+extern void pgtk_set_no_focus_on_map (struct frame *, Lisp_Object, Lisp_Object);
+extern void pgtk_set_no_accept_focus (struct frame *, Lisp_Object, Lisp_Object);
+extern void pgtk_set_z_group (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Cairo related functions implemented in pgtkterm.c */
 extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int, bool);
-extern cairo_t *pgtk_begin_cr_clip (struct frame *f);
-extern void pgtk_end_cr_clip (struct frame *f);
-extern void pgtk_set_cr_source_with_gc_foreground (struct frame *f,
-						   Emacs_GC * gc);
-extern void pgtk_set_cr_source_with_gc_background (struct frame *f,
-						   Emacs_GC * gc);
-extern void pgtk_set_cr_source_with_color (struct frame *f,
-					   unsigned long color);
-extern void pgtk_cr_draw_frame (cairo_t * cr, struct frame *f);
-extern void pgtk_cr_destroy_frame_context (struct frame *f);
-extern Lisp_Object pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type);
+extern cairo_t *pgtk_begin_cr_clip (struct frame *);
+extern void pgtk_end_cr_clip (struct frame *);
+extern void pgtk_set_cr_source_with_gc_foreground (struct frame *, Emacs_GC *, bool);
+extern void pgtk_set_cr_source_with_gc_background (struct frame *, Emacs_GC *, bool);
+extern void pgtk_set_cr_source_with_color (struct frame *, unsigned long, bool);
+extern void pgtk_cr_draw_frame (cairo_t *, struct frame *);
+extern void pgtk_cr_destroy_frame_context (struct frame *);
+extern Lisp_Object pgtk_cr_export_frames (Lisp_Object , cairo_surface_type_t);
 
 /* Defined in pgtkmenu.c */
-extern Lisp_Object pgtk_popup_dialog (struct frame *f, Lisp_Object header,
-				      Lisp_Object contents);
-extern Lisp_Object pgtk_dialog_show (struct frame *f, Lisp_Object title,
-				     Lisp_Object header,
-				     const char **error_name);
+extern Lisp_Object pgtk_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
+extern Lisp_Object pgtk_dialog_show (struct frame *, Lisp_Object, Lisp_Object,
+				     const char **);
 extern void initialize_frame_menubar (struct frame *);
 
 
@@ -617,49 +599,47 @@ extern void syms_of_pgtkmenu (void);
 extern void syms_of_pgtkselect (void);
 extern void syms_of_pgtkim (void);
 
-/* Implemented in pgtkselect. */
-extern void nxatoms_of_pgtkselect (void);
-
 /* Initialization and marking implemented in pgtkterm.c */
-extern void init_pgtkterm (void);
 extern void mark_pgtkterm (void);
-extern void pgtk_delete_terminal (struct terminal *terminal);
+extern void pgtk_delete_terminal (struct terminal *);
 
-extern void pgtk_make_frame_visible (struct frame *f);
-extern void pgtk_make_frame_invisible (struct frame *f);
-extern void x_wm_set_size_hint (struct frame *, long, bool);
-extern void x_free_frame_resources (struct frame *);
-extern void pgtk_iconify_frame (struct frame *f);
-extern void pgtk_focus_frame (struct frame *f, bool noactivate);
-extern void pgtk_set_scroll_bar_default_width (struct frame *f);
-extern void pgtk_set_scroll_bar_default_height (struct frame *f);
-extern Lisp_Object x_get_focus_frame (struct frame *frame);
+extern void pgtk_make_frame_visible (struct frame *);
+extern void pgtk_make_frame_invisible (struct frame *);
+extern void pgtk_free_frame_resources (struct frame *);
+extern void pgtk_iconify_frame (struct frame *);
+extern void pgtk_focus_frame (struct frame *, bool);
+extern void pgtk_set_scroll_bar_default_width (struct frame *);
+extern void pgtk_set_scroll_bar_default_height (struct frame *);
+extern Lisp_Object pgtk_get_focus_frame (struct frame *);
 
-extern void pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo);
+extern void pgtk_frame_rehighlight (struct pgtk_display_info *);
 
-extern void x_change_tab_bar_height (struct frame *, int);
+extern void pgtk_change_tab_bar_height (struct frame *, int);
 
-extern struct pgtk_display_info *check_pgtk_display_info (Lisp_Object object);
+extern struct pgtk_display_info *check_pgtk_display_info (Lisp_Object);
 
-extern void pgtk_default_font_parameter (struct frame *f, Lisp_Object parms);
+extern void pgtk_default_font_parameter (struct frame *, Lisp_Object);
 
-extern void pgtk_menu_set_in_use (bool in_use);
+extern void pgtk_menu_set_in_use (bool);
 
+/* Drag and drop functions used by Lisp.  */
+extern void pgtk_update_drop_status (Lisp_Object, Lisp_Object);
+extern void pgtk_finish_drop (Lisp_Object, Lisp_Object, Lisp_Object);
 
-extern void pgtk_enqueue_string (struct frame *f, gchar * str);
-extern void pgtk_enqueue_preedit (struct frame *f, Lisp_Object image_data);
-extern void pgtk_im_focus_in (struct frame *f);
-extern void pgtk_im_focus_out (struct frame *f);
-extern bool pgtk_im_filter_keypress (struct frame *f, GdkEventKey * ev);
-extern void pgtk_im_set_cursor_location (struct frame *f, int x, int y,
-					 int width, int height);
-extern void pgtk_im_init (struct pgtk_display_info *dpyinfo);
-extern void pgtk_im_finish (struct pgtk_display_info *dpyinfo);
+extern void pgtk_enqueue_string (struct frame *, gchar *);
+extern void pgtk_enqueue_preedit (struct frame *, Lisp_Object);
+extern void pgtk_im_focus_in (struct frame *);
+extern void pgtk_im_focus_out (struct frame *);
+extern bool pgtk_im_filter_keypress (struct frame *, GdkEventKey *);
+extern void pgtk_im_set_cursor_location (struct frame *, int, int,
+					 int, int);
+extern void pgtk_im_init (struct pgtk_display_info *);
+extern void pgtk_im_finish (struct pgtk_display_info *);
 
 extern bool xg_set_icon (struct frame *, Lisp_Object);
-extern bool xg_set_icon_from_xpm_data (struct frame *f, const char **data);
+extern bool xg_set_icon_from_xpm_data (struct frame *, const char **);
 
-extern bool pgtk_text_icon (struct frame *f, const char *icon_name);
+extern bool pgtk_text_icon (struct frame *, const char *);
 
 extern double pgtk_frame_scale_factor (struct frame *);
 extern int pgtk_emacs_to_gtk_modifiers (struct pgtk_display_info *, int);

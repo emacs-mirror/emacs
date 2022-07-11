@@ -3352,7 +3352,7 @@ current buffer:
   ~org-link-email-description-format~.  By default, it refers to the
   addressee and the subject.
 
-- /Web browsers: W3, W3M and EWW/ ::
+- /Web browsers: W3M and EWW/ ::
 
   Here the link is the current URL, with the page title as the
   description.
@@ -6405,7 +6405,7 @@ special repeaters =++= and =.+=.  For example:
    Marking this DONE shifts the date to one month after today.
 
 ,** TODO Wash my hands
-   DEADLINE: <2019-04-05 08:00 Sun .+1h>
+   DEADLINE: <2019-04-05 08:00 Fri .+1h>
    Marking this DONE shifts the date to exactly one hour from now.
 #+end_example
 
@@ -8544,8 +8544,8 @@ commands:
   Search for a regular expression in all agenda files and additionally
   in the files listed in ~org-agenda-text-search-extra-files~.  This
   uses the Emacs command ~multi-occur~.  A prefix argument can be used
-  to specify the number of context lines for each match, default is
-  1.
+  to specify the number of context lines for each match, the default
+  is 1.
 
 - {{{kbd(#)}}} ::
 
@@ -12442,7 +12442,7 @@ should in principle be exportable as a Beamer presentation.
   When =ignoreheading= is set, Org export ignores the entry's headline
   but not its content.  This is useful for inserting content between
   frames.  It is also useful for properly closing a =column=
-  environment.  @end itemize
+  environment.
 
   #+cindex: @samp{BEAMER_ACT}, property
   #+cindex: @samp{BEAMER_OPT}, property

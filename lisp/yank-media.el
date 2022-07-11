@@ -155,30 +155,7 @@ non-supported selection data types."
     (format "%s" data))
    ((string-match-p "\\`text/" (symbol-name data-type))
     ;; We may have utf-16, which Emacs won't detect automatically.
-    (let ((coding-system
-           (and (zerop (mod (length data) 2))
-                (let ((stats (vector 0 0)))
-                  (dotimes (i (length data))
-                    (when (zerop (elt data i))
-                      (setf (aref stats (mod i 2))
-                            (1+ (aref stats (mod i 2))))))
-                  ;; If we have more than 90% every-other nul, then it's
-                  ;; pretty likely to be utf-16.
-                  (cond
-                   ((> (if (zerop (elt stats 1))
-                           1
-                         (/ (float (elt stats 0))
-                            (float (elt stats 1))))
-                       0.9)
-                    ;; Big endian.
-                    'utf-16-be)
-                   ((> (if (zerop (elt stats 0))
-                           1
-                         (/ (float (elt stats 1))
-                            (float (elt stats 0))))
-                       0.9)
-                    ;; Little endian.
-                    'utf-16-le))))))
+    (let ((coding-system (yank-media--utf-16-p data)))
       (if coding-system
           (decode-coding-string data coding-system)
         ;; Some programs add a nul character at the end of text/*
@@ -188,6 +165,25 @@ non-supported selection data types."
           data))))
    (t
     data)))
+
+(defun yank-media--utf-16-p (data)
+  (and (zerop (mod (length data) 2))
+       (let ((stats (vector 0 0)))
+         (dotimes (i (length data))
+           (when (zerop (elt data i))
+             (setf (aref stats (mod i 2))
+                   (1+ (aref stats (mod i 2))))))
+         ;; If we have more than 90% every-other nul, then it's
+         ;; pretty likely to be utf-16.
+         (cond
+          ((> (/ (float (elt stats 0)) (/ (length data) 2))
+              0.9)
+           ;; Big endian.
+           'utf-16-be)
+          ((> (/ (float (elt stats 1)) (/ (length data) 2))
+              0.9)
+           ;; Little endian.
+           'utf-16-le)))))
 
 (provide 'yank-media)
 

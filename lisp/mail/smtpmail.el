@@ -171,7 +171,7 @@ attempt."
   "The number of times smtpmail will retry sending when getting transient errors.
 These are errors with a code of 4xx from the SMTP server, which
 mean \"try again\"."
-  :type 'integer
+  :type 'natnum
   :version "27.1")
 
 (defcustom smtpmail-store-queue-variables nil
@@ -342,8 +342,6 @@ for `smtpmail-try-auth-method'.")
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
-	    (if (eval mail-mailer-swallows-blank-line t)
-		(newline))
 	    ;; Find and handle any Fcc fields.
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Fcc:" delimline t)
@@ -554,11 +552,9 @@ for `smtpmail-try-auth-method'.")
 		      :create ask-for-password)))
          (mech (or (plist-get auth-info :smtp-auth) (car mechs)))
          (user (plist-get auth-info :user))
-         (password (plist-get auth-info :secret))
+         (password (auth-info-password auth-info))
 	 (save-function (and ask-for-password
 			     (plist-get auth-info :save-function))))
-    (when (functionp password)
-      (setq password (funcall password)))
     (when (and user
 	       (not password))
       ;; The user has stored the user name, but not the password, so
@@ -573,9 +569,7 @@ for `smtpmail-try-auth-method'.")
 	      :user smtpmail-smtp-user
 	      :require '(:user :secret)
 	      :create t))
-	    password (plist-get auth-info :secret)))
-    (when (functionp password)
-      (setq password (funcall password)))
+	    password (auth-info-password auth-info)))
     (let ((result (catch 'done
                     (if (and mech user password)
 		        (smtpmail-try-auth-method process mech user password)

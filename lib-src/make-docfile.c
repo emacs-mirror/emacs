@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 #include <string.h>
 
+#include <attribute.h>
 #include <binary-io.h>
 #include <c-ctype.h>
 #include <intprops.h>
@@ -1067,7 +1068,7 @@ scan_c_stream (FILE *infile)
 		   attributes: attribute1 attribute2 ...)
 	       (Lisp_Object arg...)
 
-	     Now only ’const’, ’noinline’ and 'noreturn' attributes
+	     Now only `const', `noinline' and `noreturn' attributes
 	     are used.  */
 
 	  /* Advance to the end of docstring.  */

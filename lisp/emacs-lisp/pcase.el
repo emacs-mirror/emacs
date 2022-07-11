@@ -328,7 +328,7 @@ PATTERNS are normal `pcase' patterns, and VALUES are expression.
 
 Evaluation happens sequentially as in `setq' (not in parallel).
 
-An example: (pcase-setq `((,a) [(,b)]) '((1) [(2)]))
+An example: (pcase-setq \\=`((,a) [(,b)]) \\='((1) [(2)]))
 
 VAL is presumed to match PAT.  Failure to match may signal an error or go
 undetected, binding variables to arbitrary values, such as nil.
@@ -435,7 +435,7 @@ how many time this CODEGEN is called."
                 (macroexp-warn-and-return
                  (format "pcase pattern %S shadowed by previous pcase pattern"
                          (car case))
-                 main))))
+                 main nil nil (car case)))))
       main)))
 
 (defun pcase--expand (exp cases)
@@ -941,7 +941,7 @@ Otherwise, it defers to REST which is a list of branches of the form
           (if (eq upat '_) code
             (macroexp-warn-and-return
              "Pattern t is deprecated.  Use `_' instead"
-             code))))
+             code nil nil upat))))
        ((eq upat 'pcase--dontcare) :pcase--dontcare)
        ((memq (car-safe upat) '(guard pred))
         (if (eq (car upat) 'pred) (pcase--mark-used sym))

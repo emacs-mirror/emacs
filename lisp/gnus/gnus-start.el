@@ -329,10 +329,10 @@ with the subscription method in this variable."
   "If non-nil, Gnus will offer to subscribe hierarchically.
 When a new hierarchy appears, Gnus will ask the user:
 
-'alt.binaries': Do you want to subscribe to this hierarchy? ([d]ys):
+Descend hierarchy alt.binaries? ([y]nsq):
 
-If the user pressed `d', Gnus will descend the hierarchy, `y' will
-subscribe to all newsgroups in the hierarchy and `s' will skip this
+If the user pressed `y', Gnus will descend the hierarchy, `s' will
+subscribe to all newsgroups in the hierarchy and `n' will skip this
 hierarchy in its entirety."
   :group 'gnus-group-new
   :type 'boolean)
@@ -1884,13 +1884,12 @@ The info element is shared with the same element of
 	 (ranges (gnus-info-read info))
 	 news article)
     (while articles
-      (when (gnus-member-of-range
-	     (setq article (pop articles)) ranges)
+      (when (range-member-p (setq article (pop articles)) ranges)
 	(push article news)))
     (when news
       ;; Enter this list into the group info.
       (setf (gnus-info-read info)
-            (gnus-remove-from-range (gnus-info-read info) (nreverse news)))
+            (range-remove (gnus-info-read info) (nreverse news)))
 
       ;; Set the number of unread articles in gnus-newsrc-hashtb.
       (gnus-get-unread-articles-in-group info (gnus-active group))
@@ -2362,10 +2361,10 @@ The form should return either t or nil."
 	      ticked (cdr (assq 'tick marks)))
 	(when (or dormant ticked)
 	  (setf (gnus-info-read info)
-	        (gnus-add-to-range
+	        (range-add-list
 	         (gnus-info-read info)
-	         (nconc (gnus-uncompress-range dormant)
-		        (gnus-uncompress-range ticked)))))))))
+	         (nconc (range-uncompress dormant)
+		        (range-uncompress ticked)))))))))
 
 (defun gnus-load (file)
   "Load FILE, but in such a way that read errors can be reported."
@@ -2457,8 +2456,7 @@ The form should return either t or nil."
 	  (unless (nthcdr 3 info)
 	    (nconc info (list nil)))
 	  (setf (gnus-info-marks info)
-		(list (cons 'tick (gnus-compress-sequence
-				   (sort (cdr m) #'<) t))))))
+		(list (cons 'tick (range-compress-list (sort (cdr m) #'<)))))))
       (setq newsrc killed)
       (while newsrc
 	(setcar newsrc (caar newsrc))
@@ -2869,12 +2867,6 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
       (princ "(setq gnus-newsrc-file-version ")
       (princ (gnus-prin1-to-string gnus-version))
       (princ ")\n"))
-    ;; Sort `gnus-newsrc-alist' according to order in
-    ;; `gnus-group-list'.
-    (setq gnus-newsrc-alist
-	  (mapcar (lambda (g)
-		    (nth 1 (gethash g gnus-newsrc-hashtb)))
-		  (delete "dummy.group" gnus-group-list)))
     (let* ((print-quoted t)
            (print-escape-multibyte nil)
            (print-escape-nonascii t)
@@ -2893,17 +2885,20 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 		  ;; Remove the `gnus-killed-list' from the list of variables
 		  ;; to be saved, if required.
 		  (delq 'gnus-killed-list (copy-sequence gnus-variable-list)))))
-	   ;; Encode group names in `gnus-newsrc-alist' and
-	   ;; `gnus-topic-alist' in order to keep newsrc.eld files
-	   ;; compatible with older versions of Gnus.  At some point,
-	   ;; if/when a new version of Gnus is released, stop doing
-	   ;; this and move the corresponding decode in
-	   ;; `gnus-read-newsrc-el-file' into a conversion routine.
+           ;; Sort `gnus-newsrc-alist' according to order in
+           ;; `gnus-group-list'.  Encode group names in
+           ;; `gnus-newsrc-alist' and `gnus-topic-alist' in order to
+           ;; keep newsrc.eld files compatible with older versions of
+           ;; Gnus.  At some point, if/when a new version of Gnus is
+           ;; released, stop doing this and move the corresponding
+           ;; decode in `gnus-read-newsrc-el-file' into a conversion
+           ;; routine.
 	   (gnus-newsrc-alist
-	    (mapcar (lambda (info)
-		      (cons (encode-coding-string (car info) 'utf-8-emacs)
-			    (cdr info)))
-		    gnus-newsrc-alist))
+	    (mapcar (lambda (group)
+		      (cons (encode-coding-string group 'utf-8-emacs)
+			    (cdadr (gethash group
+			    gnus-newsrc-hashtb))))
+		    (remove "dummy.group" gnus-group-list)))
 	   (gnus-topic-alist
 	    (when (memq 'gnus-topic-alist variables)
 	     (mapcar (lambda (elt)

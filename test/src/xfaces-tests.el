@@ -47,7 +47,10 @@
                  '(0 32768 6554)))
   (should (equal (color-values-from-color-spec "rgbi:1e-3/1.0e-2/1e0")
                  '(66 655 65535)))
-  (should (equal (color-values-from-color-spec "rgbi:0/0.5/10") nil)))
+  (should (equal (color-values-from-color-spec "rgbi:0/0.5/10") nil))
+  (should (equal (color-values-from-color-spec "rgbi:0/0/ 0") nil))
+  (should (equal (color-values-from-color-spec "rgbi:0/0x0/0") nil))
+  (should (equal (color-values-from-color-spec "rgbi:0/+0x1/0") nil)))
 
 (provide 'xfaces-tests)
 

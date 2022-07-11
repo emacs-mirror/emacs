@@ -408,23 +408,48 @@ typedef id instancetype;
 @end
 #endif
 
+enum ns_return_frame_mode
+  {
+    RETURN_FRAME_NEVER,
+    RETURN_FRAME_EVENTUALLY,
+    RETURN_FRAME_NOW,
+  };
+
 /* EmacsWindow  */
 @interface EmacsWindow : NSWindow
 {
   NSPoint grabOffset;
+  NSEvent *last_drag_event;
+  NSDragOperation drag_op;
+  NSDragOperation selected_op;
+
+  struct frame *dnd_return_frame;
+  enum ns_return_frame_mode dnd_mode;
+  BOOL dnd_allow_same_frame;
+  BOOL dnd_move_tooltip_with_frame;
 }
 
 #ifdef NS_IMPL_GNUSTEP
 - (NSInteger) orderedIndex;
 #endif
 
-- (instancetype)initWithEmacsFrame:(struct frame *)f;
-- (instancetype)initWithEmacsFrame:(struct frame *)f fullscreen:(BOOL)fullscreen screen:(NSScreen *)screen;
-- (void)createToolbar:(struct frame *)f;
-- (void)setParentChildRelationships;
-- (NSInteger)borderWidth;
-- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
-- (void)setAppearance;
+- (instancetype) initWithEmacsFrame: (struct frame *) f;
+- (instancetype) initWithEmacsFrame: (struct frame *) f
+			 fullscreen: (BOOL) fullscreen
+			     screen: (NSScreen *) screen;
+- (void) createToolbar: (struct frame *) f;
+- (void) setParentChildRelationships;
+- (NSInteger) borderWidth;
+- (BOOL) restackWindow: (NSWindow *) win above: (BOOL) above;
+- (void) setAppearance;
+- (void) setLastDragEvent: (NSEvent *) event;
+- (NSDragOperation) beginDrag: (NSDragOperation) op
+		forPasteboard: (NSPasteboard *) pasteboard
+		     withMode: (enum ns_return_frame_mode) mode
+		returnFrameTo: (struct frame **) frame_return
+		 prohibitSame: (BOOL) prohibit_same_frame
+		followTooltip: (BOOL) follow_tooltip;
+- (BOOL) mustNotDropOn: (NSView *) receiver;
 @end
 
 
@@ -442,23 +467,25 @@ typedef id instancetype;
 #else
 @interface EmacsView : NSView <NSTextInput>
 #endif
-   {
+{
 #ifdef NS_IMPL_COCOA
-   char *old_title;
-   BOOL maximizing_resize;
+  char *old_title;
+  BOOL maximizing_resize;
 #endif
-   BOOL windowClosing;
-   NSString *workingText;
-   BOOL processingCompose;
-   int fs_state, fs_before_fs, next_maximized;
-   int maximized_width, maximized_height;
-   EmacsWindow *nonfs_window;
-   BOOL fs_is_native;
+  BOOL font_panel_active;
+  NSFont *font_panel_result;
+  BOOL windowClosing;
+  NSString *workingText;
+  BOOL processingCompose;
+  int fs_state, fs_before_fs, next_maximized;
+  int maximized_width, maximized_height;
+  EmacsWindow *nonfs_window;
+  BOOL fs_is_native;
 @public
-   struct frame *emacsframe;
-   int scrollbarsNeedingUpdate;
-   NSRect ns_userRect;
-   }
+  struct frame *emacsframe;
+  int scrollbarsNeedingUpdate;
+  NSRect ns_userRect;
+}
 
 /* AppKit-side interface */
 - (instancetype)menuDown: (id)sender;
@@ -485,9 +512,10 @@ typedef id instancetype;
 #ifdef NS_IMPL_GNUSTEP
 - (void)windowDidMove: (id)sender;
 #endif
+- (Lisp_Object) showFontPanel;
 - (int)fullscreenState;
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 - (void)lockFocus;
 - (void)unlockFocus;
 #endif
@@ -571,22 +599,32 @@ typedef id instancetype;
    ========================================================================== */
 
 @interface EmacsDialogPanel : NSPanel
-   {
-   NSTextField *command;
-   NSTextField *title;
-   NSMatrix *matrix;
-   int rows, cols;
-   BOOL timer_fired, window_closed;
-   Lisp_Object dialog_return;
-   Lisp_Object *button_values;
-   }
-- (instancetype)initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
-- (void)process_dialog: (Lisp_Object)list;
-- (void)addButton: (char *)str value: (int)tag row: (int)row;
-- (void)addString: (char *)str row: (int)row;
-- (void)addSplit;
-- (Lisp_Object)runDialogAt: (NSPoint)p;
-- (void)timeout_handler: (NSTimer *)timedEntry;
+{
+  NSTextField *command;
+  NSTextField *title;
+  NSMatrix *matrix;
+  int rows, cols;
+  BOOL timer_fired, window_closed;
+  Lisp_Object dialog_return;
+}
+
+- (instancetype) initWithTitle: (char *) title_str
+		    isQuestion: (BOOL) is_question;
+- (void) processMenuItems: (Lisp_Object) menu_items
+		     used: (ptrdiff_t) menu_items_used
+	  withErrorOutput: (const char **) error_name;
+
+- (void) addButton: (char *) str
+	     value: (NSInteger) tag
+	       row: (int) row
+	    enable: (BOOL) enable;
+- (void) addString: (char *) str
+	       row: (int) row;
+- (void) addSplit;
+- (void) resizeBoundsPriorToDisplay;
+
+- (Lisp_Object) runDialogAt: (NSPoint) p;
+- (void) timeout_handler: (NSTimer *) timedEntry;
 @end
 
 #ifdef NS_IMPL_COCOA
@@ -594,19 +632,21 @@ typedef id instancetype;
 #else
 @interface EmacsTooltip : NSObject
 #endif
-  {
-    NSWindow *win;
-    NSTextField *textField;
-    NSTimer *timer;
-  }
+{
+  NSWindow *win;
+  NSTextField *textField;
+  NSTimer *timer;
+}
+
 - (instancetype) init;
-- (void) setText: (char *)text;
-- (void) setBackgroundColor: (NSColor *)col;
-- (void) setForegroundColor: (NSColor *)col;
-- (void) showAtX: (int)x Y: (int)y for: (int)seconds;
+- (void) setText: (char *) text;
+- (void) setBackgroundColor: (NSColor *) col;
+- (void) setForegroundColor: (NSColor *) col;
+- (void) showAtX: (int) x Y: (int) y for: (int) seconds;
 - (void) hide;
 - (BOOL) isActive;
 - (NSRect) frame;
+- (void) moveTo: (NSPoint) screen_point;
 @end
 
 
@@ -684,6 +724,7 @@ typedef id instancetype;
    int em_whole;
    }
 
+- (void) mark;
 - (instancetype) initFrame: (NSRect )r window: (Lisp_Object)win;
 - (void)setFrame: (NSRect)r;
 
@@ -698,7 +739,7 @@ typedef id instancetype;
 + (CGFloat)scrollerWidth;
 @end
 
-#ifdef NS_IMPL_COCOA
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
 @interface EmacsLayer : CALayer
 {
   NSMutableArray *cache;
@@ -1104,6 +1145,9 @@ extern const char *ns_get_pending_menu_title (void);
 #endif
 
 /* Implemented in nsfns, published in nsterm.  */
+#ifdef __OBJC__
+extern void ns_move_tooltip_to_mouse_location (NSPoint);
+#endif
 extern void ns_implicitly_set_name (struct frame *f, Lisp_Object arg,
                                     Lisp_Object oldval);
 extern void ns_set_scroll_bar_default_width (struct frame *f);
@@ -1173,6 +1217,7 @@ extern size_t ns_image_size_in_bytes (void *img);
 /* This in nsterm.m */
 extern float ns_antialias_threshold;
 extern void ns_make_frame_visible (struct frame *f);
+extern void ns_make_frame_invisible (struct frame *f);
 extern void ns_iconify_frame (struct frame *f);
 extern void ns_set_undecorated (struct frame *f, Lisp_Object new_value,
                                 Lisp_Object old_value);
@@ -1290,6 +1335,7 @@ extern char gnustep_base_version[];  /* version tracking */
 #define NSAlertStyleCritical               NSCriticalAlertStyle
 #define NSControlSizeRegular               NSRegularControlSize
 #define NSCompositingOperationCopy         NSCompositeCopy
+#define NSTextAlignmentRight               NSRightTextAlignment
 
 /* And adds NSWindowStyleMask.  */
 #ifdef __OBJC__
@@ -1308,6 +1354,7 @@ enum NSWindowTabbingMode
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_13)
 /* Deprecated in macOS 10.13.  */
 #define NSPasteboardNameGeneral NSGeneralPboard
+#define NSPasteboardNameDrag NSDragPboard
 #endif
 
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_14)
@@ -1325,5 +1372,9 @@ enum NSWindowTabbingMode
 #define NSControlStateValueOn NSOnState
 #define NSControlStateValueOff NSOffState
 #define NSBezelStyleRounded NSRoundedBezelStyle
+#define NSButtonTypeMomentaryPushIn NSMomentaryPushInButton
 #endif
+
+extern void mark_nsterm (void);
+
 #endif	/* HAVE_NS */

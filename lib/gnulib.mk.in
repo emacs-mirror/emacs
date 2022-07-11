@@ -3,7 +3,7 @@
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
+# the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This file is distributed in the hope that it will be useful,
@@ -35,6 +35,7 @@
 #  --macro-prefix=gl \
 #  --no-vc-files \
 #  --avoid=btowc \
+#  --avoid=chmod \
 #  --avoid=close \
 #  --avoid=crypto/af_alg \
 #  --avoid=dup \
@@ -129,6 +130,7 @@
 #  minmax \
 #  mkostemp \
 #  mktime \
+#  nanosleep \
 #  nproc \
 #  nstrftime \
 #  pathmax \
@@ -191,6 +193,10 @@ BUILD_DETAILS = @BUILD_DETAILS@
 BYTESWAP_H = @BYTESWAP_H@
 CAIRO_CFLAGS = @CAIRO_CFLAGS@
 CAIRO_LIBS = @CAIRO_LIBS@
+CAIRO_XCB_CFLAGS = @CAIRO_XCB_CFLAGS@
+CAIRO_XCB_LIBS = @CAIRO_XCB_LIBS@
+CAIRO_XLIB_CFLAGS = @CAIRO_XLIB_CFLAGS@
+CAIRO_XLIB_LIBS = @CAIRO_XLIB_LIBS@
 CC = @CC@
 CFLAGS = @CFLAGS@
 CFLAGS_SOUND = @CFLAGS_SOUND@
@@ -203,7 +209,6 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CRYPTOLIB = @CRYPTOLIB@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
 CXXFLAGS = @CXXFLAGS@
 CYGWIN_OBJ = @CYGWIN_OBJ@
 C_SWITCH_MACHINE = @C_SWITCH_MACHINE@
@@ -247,7 +252,60 @@ GETOPT_CDEFS_H = @GETOPT_CDEFS_H@
 GETOPT_H = @GETOPT_H@
 GFILENOTIFY_CFLAGS = @GFILENOTIFY_CFLAGS@
 GFILENOTIFY_LIBS = @GFILENOTIFY_LIBS@
+GL_CFLAG_ALLOW_WARNINGS = @GL_CFLAG_ALLOW_WARNINGS@
+GL_CFLAG_GNULIB_WARNINGS = @GL_CFLAG_GNULIB_WARNINGS@
 GL_COND_LIBTOOL_CONDITION = @GL_COND_LIBTOOL_CONDITION@
+GL_COND_OBJ_CANONICALIZE_LGPL_CONDITION = @GL_COND_OBJ_CANONICALIZE_LGPL_CONDITION@
+GL_COND_OBJ_COPY_FILE_RANGE_CONDITION = @GL_COND_OBJ_COPY_FILE_RANGE_CONDITION@
+GL_COND_OBJ_DIRFD_CONDITION = @GL_COND_OBJ_DIRFD_CONDITION@
+GL_COND_OBJ_DUP2_CONDITION = @GL_COND_OBJ_DUP2_CONDITION@
+GL_COND_OBJ_EUIDACCESS_CONDITION = @GL_COND_OBJ_EUIDACCESS_CONDITION@
+GL_COND_OBJ_EXECINFO_CONDITION = @GL_COND_OBJ_EXECINFO_CONDITION@
+GL_COND_OBJ_EXPLICIT_BZERO_CONDITION = @GL_COND_OBJ_EXPLICIT_BZERO_CONDITION@
+GL_COND_OBJ_FACCESSAT_CONDITION = @GL_COND_OBJ_FACCESSAT_CONDITION@
+GL_COND_OBJ_FCHMODAT_CONDITION = @GL_COND_OBJ_FCHMODAT_CONDITION@
+GL_COND_OBJ_FCNTL_CONDITION = @GL_COND_OBJ_FCNTL_CONDITION@
+GL_COND_OBJ_FDOPENDIR_CONDITION = @GL_COND_OBJ_FDOPENDIR_CONDITION@
+GL_COND_OBJ_FPENDING_CONDITION = @GL_COND_OBJ_FPENDING_CONDITION@
+GL_COND_OBJ_FREE_CONDITION = @GL_COND_OBJ_FREE_CONDITION@
+GL_COND_OBJ_FSTATAT_CONDITION = @GL_COND_OBJ_FSTATAT_CONDITION@
+GL_COND_OBJ_FSUSAGE_CONDITION = @GL_COND_OBJ_FSUSAGE_CONDITION@
+GL_COND_OBJ_FSYNC_CONDITION = @GL_COND_OBJ_FSYNC_CONDITION@
+GL_COND_OBJ_FUTIMENS_CONDITION = @GL_COND_OBJ_FUTIMENS_CONDITION@
+GL_COND_OBJ_GETDTABLESIZE_CONDITION = @GL_COND_OBJ_GETDTABLESIZE_CONDITION@
+GL_COND_OBJ_GETGROUPS_CONDITION = @GL_COND_OBJ_GETGROUPS_CONDITION@
+GL_COND_OBJ_GETLOADAVG_CONDITION = @GL_COND_OBJ_GETLOADAVG_CONDITION@
+GL_COND_OBJ_GETOPT_CONDITION = @GL_COND_OBJ_GETOPT_CONDITION@
+GL_COND_OBJ_GETRANDOM_CONDITION = @GL_COND_OBJ_GETRANDOM_CONDITION@
+GL_COND_OBJ_GETTIMEOFDAY_CONDITION = @GL_COND_OBJ_GETTIMEOFDAY_CONDITION@
+GL_COND_OBJ_GROUP_MEMBER_CONDITION = @GL_COND_OBJ_GROUP_MEMBER_CONDITION@
+GL_COND_OBJ_LCHMOD_CONDITION = @GL_COND_OBJ_LCHMOD_CONDITION@
+GL_COND_OBJ_LSTAT_CONDITION = @GL_COND_OBJ_LSTAT_CONDITION@
+GL_COND_OBJ_MEMPCPY_CONDITION = @GL_COND_OBJ_MEMPCPY_CONDITION@
+GL_COND_OBJ_MEMRCHR_CONDITION = @GL_COND_OBJ_MEMRCHR_CONDITION@
+GL_COND_OBJ_MINI_GMP_GNULIB_CONDITION = @GL_COND_OBJ_MINI_GMP_GNULIB_CONDITION@
+GL_COND_OBJ_MKOSTEMP_CONDITION = @GL_COND_OBJ_MKOSTEMP_CONDITION@
+GL_COND_OBJ_NANOSLEEP_CONDITION = @GL_COND_OBJ_NANOSLEEP_CONDITION@
+GL_COND_OBJ_OPEN_CONDITION = @GL_COND_OBJ_OPEN_CONDITION@
+GL_COND_OBJ_PSELECT_CONDITION = @GL_COND_OBJ_PSELECT_CONDITION@
+GL_COND_OBJ_PTHREAD_SIGMASK_CONDITION = @GL_COND_OBJ_PTHREAD_SIGMASK_CONDITION@
+GL_COND_OBJ_RAWMEMCHR_CONDITION = @GL_COND_OBJ_RAWMEMCHR_CONDITION@
+GL_COND_OBJ_READLINKAT_CONDITION = @GL_COND_OBJ_READLINKAT_CONDITION@
+GL_COND_OBJ_READLINK_CONDITION = @GL_COND_OBJ_READLINK_CONDITION@
+GL_COND_OBJ_REGEX_CONDITION = @GL_COND_OBJ_REGEX_CONDITION@
+GL_COND_OBJ_SIG2STR_CONDITION = @GL_COND_OBJ_SIG2STR_CONDITION@
+GL_COND_OBJ_SIGDESCR_NP_CONDITION = @GL_COND_OBJ_SIGDESCR_NP_CONDITION@
+GL_COND_OBJ_STDIO_READ_CONDITION = @GL_COND_OBJ_STDIO_READ_CONDITION@
+GL_COND_OBJ_STDIO_WRITE_CONDITION = @GL_COND_OBJ_STDIO_WRITE_CONDITION@
+GL_COND_OBJ_STPCPY_CONDITION = @GL_COND_OBJ_STPCPY_CONDITION@
+GL_COND_OBJ_STRNLEN_CONDITION = @GL_COND_OBJ_STRNLEN_CONDITION@
+GL_COND_OBJ_STRTOIMAX_CONDITION = @GL_COND_OBJ_STRTOIMAX_CONDITION@
+GL_COND_OBJ_STRTOLL_CONDITION = @GL_COND_OBJ_STRTOLL_CONDITION@
+GL_COND_OBJ_SYMLINK_CONDITION = @GL_COND_OBJ_SYMLINK_CONDITION@
+GL_COND_OBJ_TIMEGM_CONDITION = @GL_COND_OBJ_TIMEGM_CONDITION@
+GL_COND_OBJ_TIME_RZ_CONDITION = @GL_COND_OBJ_TIME_RZ_CONDITION@
+GL_COND_OBJ_TIME_R_CONDITION = @GL_COND_OBJ_TIME_R_CONDITION@
+GL_COND_OBJ_UTIMENSAT_CONDITION = @GL_COND_OBJ_UTIMENSAT_CONDITION@
 GL_GENERATE_ALLOCA_H_CONDITION = @GL_GENERATE_ALLOCA_H_CONDITION@
 GL_GENERATE_BYTESWAP_H_CONDITION = @GL_GENERATE_BYTESWAP_H_CONDITION@
 GL_GENERATE_ERRNO_H_CONDITION = @GL_GENERATE_ERRNO_H_CONDITION@
@@ -270,6 +328,7 @@ GL_GNULIB_CALLOC_GNU = @GL_GNULIB_CALLOC_GNU@
 GL_GNULIB_CALLOC_POSIX = @GL_GNULIB_CALLOC_POSIX@
 GL_GNULIB_CANONICALIZE_FILE_NAME = @GL_GNULIB_CANONICALIZE_FILE_NAME@
 GL_GNULIB_CHDIR = @GL_GNULIB_CHDIR@
+GL_GNULIB_CHMOD = @GL_GNULIB_CHMOD@
 GL_GNULIB_CHOWN = @GL_GNULIB_CHOWN@
 GL_GNULIB_CLOSE = @GL_GNULIB_CLOSE@
 GL_GNULIB_CLOSEDIR = @GL_GNULIB_CLOSEDIR@
@@ -873,6 +932,7 @@ LIB_EXECINFO = @LIB_EXECINFO@
 LIB_GETRANDOM = @LIB_GETRANDOM@
 LIB_HAS_ACL = @LIB_HAS_ACL@
 LIB_MATH = @LIB_MATH@
+LIB_NANOSLEEP = @LIB_NANOSLEEP@
 LIB_PTHREAD = @LIB_PTHREAD@
 LIB_PTHREAD_SIGMASK = @LIB_PTHREAD_SIGMASK@
 LIB_TIMER_TIME = @LIB_TIMER_TIME@
@@ -971,9 +1031,11 @@ REPLACE_ALIGNED_ALLOC = @REPLACE_ALIGNED_ALLOC@
 REPLACE_CALLOC_FOR_CALLOC_GNU = @REPLACE_CALLOC_FOR_CALLOC_GNU@
 REPLACE_CALLOC_FOR_CALLOC_POSIX = @REPLACE_CALLOC_FOR_CALLOC_POSIX@
 REPLACE_CANONICALIZE_FILE_NAME = @REPLACE_CANONICALIZE_FILE_NAME@
+REPLACE_CHMOD = @REPLACE_CHMOD@
 REPLACE_CHOWN = @REPLACE_CHOWN@
 REPLACE_CLOSE = @REPLACE_CLOSE@
 REPLACE_CLOSEDIR = @REPLACE_CLOSEDIR@
+REPLACE_COPY_FILE_RANGE = @REPLACE_COPY_FILE_RANGE@
 REPLACE_CREAT = @REPLACE_CREAT@
 REPLACE_CTIME = @REPLACE_CTIME@
 REPLACE_DIRFD = @REPLACE_DIRFD@
@@ -1137,6 +1199,7 @@ SETTINGS_LIBS = @SETTINGS_LIBS@
 SHELL = @SHELL@
 SIG_ATOMIC_T_SUFFIX = @SIG_ATOMIC_T_SUFFIX@
 SIZE_T_SUFFIX = @SIZE_T_SUFFIX@
+SMALL_JA_DIC = @SMALL_JA_DIC@
 SQLITE3_LIBS = @SQLITE3_LIBS@
 STDALIGN_H = @STDALIGN_H@
 STDDEF_H = @STDDEF_H@
@@ -1179,6 +1242,8 @@ WINDRES = @WINDRES@
 WINT_T_SUFFIX = @WINT_T_SUFFIX@
 XARGS_LIMIT = @XARGS_LIMIT@
 XCB_LIBS = @XCB_LIBS@
+XCOMPOSITE_CFLAGS = @XCOMPOSITE_CFLAGS@
+XCOMPOSITE_LIBS = @XCOMPOSITE_LIBS@
 XCRUN = @XCRUN@
 XDBE_CFLAGS = @XDBE_CFLAGS@
 XDBE_LIBS = @XDBE_LIBS@
@@ -1197,6 +1262,10 @@ XOBJ = @XOBJ@
 XRANDR_CFLAGS = @XRANDR_CFLAGS@
 XRANDR_LIBS = @XRANDR_LIBS@
 XRENDER_LIBS = @XRENDER_LIBS@
+XSHAPE_CFLAGS = @XSHAPE_CFLAGS@
+XSHAPE_LIBS = @XSHAPE_LIBS@
+XSYNC_CFLAGS = @XSYNC_CFLAGS@
+XSYNC_LIBS = @XSYNC_LIBS@
 XWIDGETS_OBJ = @XWIDGETS_OBJ@
 X_TOOLKIT_TYPE = @X_TOOLKIT_TYPE@
 ac_ct_CC = @ac_ct_CC@
@@ -1251,8 +1320,10 @@ gl_GNULIB_ENABLED_rawmemchr_CONDITION = @gl_GNULIB_ENABLED_rawmemchr_CONDITION@
 gl_GNULIB_ENABLED_scratch_buffer_CONDITION = @gl_GNULIB_ENABLED_scratch_buffer_CONDITION@
 gl_GNULIB_ENABLED_strtoll_CONDITION = @gl_GNULIB_ENABLED_strtoll_CONDITION@
 gl_GNULIB_ENABLED_utimens_CONDITION = @gl_GNULIB_ENABLED_utimens_CONDITION@
+gl_LIBOBJDEPS = @gl_LIBOBJDEPS@
 gl_LIBOBJS = @gl_LIBOBJS@
 gl_LTLIBOBJS = @gl_LTLIBOBJS@
+gltests_LIBOBJDEPS = @gltests_LIBOBJDEPS@
 gltests_LIBOBJS = @gltests_LIBOBJS@
 gltests_LTLIBOBJS = @gltests_LTLIBOBJS@
 gltests_WITNESS = @gltests_WITNESS@
@@ -1303,6 +1374,7 @@ x_default_search_path = @x_default_search_path@
 noinst_LIBRARIES += libgnu.a
 
 libgnu_a_SOURCES =
+libgnu_a_CFLAGS = $(AM_CFLAGS) $(GL_CFLAG_GNULIB_WARNINGS)
 libgnu_a_LIBADD = $(gl_LIBOBJS)
 libgnu_a_DEPENDENCIES = $(gl_LIBOBJS)
 EXTRA_libgnu_a_SOURCES =
@@ -1432,10 +1504,9 @@ endif
 ## begin gnulib module canonicalize-lgpl
 ifeq (,$(OMIT_GNULIB_MODULE_canonicalize-lgpl))
 
-
-EXTRA_DIST += canonicalize-lgpl.c
-
-EXTRA_libgnu_a_SOURCES += canonicalize-lgpl.c
+ifneq (,$(GL_COND_OBJ_CANONICALIZE_LGPL_CONDITION))
+libgnu_a_SOURCES += canonicalize-lgpl.c
+endif
 
 endif
 ## end   gnulib module canonicalize-lgpl
@@ -1475,10 +1546,9 @@ endif
 ## begin gnulib module copy-file-range
 ifeq (,$(OMIT_GNULIB_MODULE_copy-file-range))
 
-
-EXTRA_DIST += copy-file-range.c
-
-EXTRA_libgnu_a_SOURCES += copy-file-range.c
+ifneq (,$(GL_COND_OBJ_COPY_FILE_RANGE_CONDITION))
+libgnu_a_SOURCES += copy-file-range.c
+endif
 
 endif
 ## end   gnulib module copy-file-range
@@ -1621,12 +1691,11 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_dirfd))
 
 ifneq (,$(gl_GNULIB_ENABLED_dirfd_CONDITION))
+ifneq (,$(GL_COND_OBJ_DIRFD_CONDITION))
+libgnu_a_SOURCES += dirfd.c
+endif
 
 endif
-EXTRA_DIST += dirfd.c
-
-EXTRA_libgnu_a_SOURCES += dirfd.c
-
 endif
 ## end   gnulib module dirfd
 
@@ -1653,10 +1722,9 @@ endif
 ## begin gnulib module dup2
 ifeq (,$(OMIT_GNULIB_MODULE_dup2))
 
-
-EXTRA_DIST += dup2.c
-
-EXTRA_libgnu_a_SOURCES += dup2.c
+ifneq (,$(GL_COND_OBJ_DUP2_CONDITION))
+libgnu_a_SOURCES += dup2.c
+endif
 
 endif
 ## end   gnulib module dup2
@@ -1747,12 +1815,11 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_euidaccess))
 
 ifneq (,$(gl_GNULIB_ENABLED_euidaccess_CONDITION))
+ifneq (,$(GL_COND_OBJ_EUIDACCESS_CONDITION))
+libgnu_a_SOURCES += euidaccess.c
+endif
 
 endif
-EXTRA_DIST += euidaccess.c
-
-EXTRA_libgnu_a_SOURCES += euidaccess.c
-
 endif
 ## end   gnulib module euidaccess
 
@@ -1773,9 +1840,11 @@ execinfo.h: $(top_builddir)/config.status
 endif
 MOSTLYCLEANFILES += execinfo.h execinfo.h-t
 
-EXTRA_DIST += execinfo.c execinfo.in.h
+ifneq (,$(GL_COND_OBJ_EXECINFO_CONDITION))
+libgnu_a_SOURCES += execinfo.c
+endif
 
-EXTRA_libgnu_a_SOURCES += execinfo.c
+EXTRA_DIST += execinfo.in.h
 
 endif
 ## end   gnulib module execinfo
@@ -1783,10 +1852,9 @@ endif
 ## begin gnulib module explicit_bzero
 ifeq (,$(OMIT_GNULIB_MODULE_explicit_bzero))
 
-
-EXTRA_DIST += explicit_bzero.c
-
-EXTRA_libgnu_a_SOURCES += explicit_bzero.c
+ifneq (,$(GL_COND_OBJ_EXPLICIT_BZERO_CONDITION))
+libgnu_a_SOURCES += explicit_bzero.c
+endif
 
 endif
 ## end   gnulib module explicit_bzero
@@ -1794,10 +1862,13 @@ endif
 ## begin gnulib module faccessat
 ifeq (,$(OMIT_GNULIB_MODULE_faccessat))
 
+ifneq (,$(GL_COND_OBJ_FACCESSAT_CONDITION))
+libgnu_a_SOURCES += faccessat.c
+endif
 
-EXTRA_DIST += at-func.c faccessat.c
+EXTRA_DIST += at-func.c
 
-EXTRA_libgnu_a_SOURCES += at-func.c faccessat.c
+EXTRA_libgnu_a_SOURCES += at-func.c
 
 endif
 ## end   gnulib module faccessat
@@ -1805,10 +1876,13 @@ endif
 ## begin gnulib module fchmodat
 ifeq (,$(OMIT_GNULIB_MODULE_fchmodat))
 
+ifneq (,$(GL_COND_OBJ_FCHMODAT_CONDITION))
+libgnu_a_SOURCES += fchmodat.c
+endif
 
-EXTRA_DIST += at-func.c fchmodat.c
+EXTRA_DIST += at-func.c
 
-EXTRA_libgnu_a_SOURCES += at-func.c fchmodat.c
+EXTRA_libgnu_a_SOURCES += at-func.c
 
 endif
 ## end   gnulib module fchmodat
@@ -1816,10 +1890,9 @@ endif
 ## begin gnulib module fcntl
 ifeq (,$(OMIT_GNULIB_MODULE_fcntl))
 
-
-EXTRA_DIST += fcntl.c
-
-EXTRA_libgnu_a_SOURCES += fcntl.c
+ifneq (,$(GL_COND_OBJ_FCNTL_CONDITION))
+libgnu_a_SOURCES += fcntl.c
+endif
 
 endif
 ## end   gnulib module fcntl
@@ -1866,10 +1939,9 @@ endif
 ## begin gnulib module fdopendir
 ifeq (,$(OMIT_GNULIB_MODULE_fdopendir))
 
-
-EXTRA_DIST += fdopendir.c
-
-EXTRA_libgnu_a_SOURCES += fdopendir.c
+ifneq (,$(GL_COND_OBJ_FDOPENDIR_CONDITION))
+libgnu_a_SOURCES += fdopendir.c
+endif
 
 endif
 ## end   gnulib module fdopendir
@@ -1925,10 +1997,11 @@ endif
 ## begin gnulib module fpending
 ifeq (,$(OMIT_GNULIB_MODULE_fpending))
 
+ifneq (,$(GL_COND_OBJ_FPENDING_CONDITION))
+libgnu_a_SOURCES += fpending.c
+endif
 
-EXTRA_DIST += fpending.c fpending.h stdio-impl.h
-
-EXTRA_libgnu_a_SOURCES += fpending.c
+EXTRA_DIST += fpending.h stdio-impl.h
 
 endif
 ## end   gnulib module fpending
@@ -1936,10 +2009,9 @@ endif
 ## begin gnulib module free-posix
 ifeq (,$(OMIT_GNULIB_MODULE_free-posix))
 
-
-EXTRA_DIST += free.c
-
-EXTRA_libgnu_a_SOURCES += free.c
+ifneq (,$(GL_COND_OBJ_FREE_CONDITION))
+libgnu_a_SOURCES += free.c
+endif
 
 endif
 ## end   gnulib module free-posix
@@ -1947,10 +2019,13 @@ endif
 ## begin gnulib module fstatat
 ifeq (,$(OMIT_GNULIB_MODULE_fstatat))
 
+ifneq (,$(GL_COND_OBJ_FSTATAT_CONDITION))
+libgnu_a_SOURCES += fstatat.c
+endif
 
-EXTRA_DIST += at-func.c fstatat.c
+EXTRA_DIST += at-func.c
 
-EXTRA_libgnu_a_SOURCES += at-func.c fstatat.c
+EXTRA_libgnu_a_SOURCES += at-func.c
 
 endif
 ## end   gnulib module fstatat
@@ -1958,10 +2033,11 @@ endif
 ## begin gnulib module fsusage
 ifeq (,$(OMIT_GNULIB_MODULE_fsusage))
 
+ifneq (,$(GL_COND_OBJ_FSUSAGE_CONDITION))
+libgnu_a_SOURCES += fsusage.c
+endif
 
-EXTRA_DIST += fsusage.c fsusage.h
-
-EXTRA_libgnu_a_SOURCES += fsusage.c
+EXTRA_DIST += fsusage.h
 
 endif
 ## end   gnulib module fsusage
@@ -1969,10 +2045,9 @@ endif
 ## begin gnulib module fsync
 ifeq (,$(OMIT_GNULIB_MODULE_fsync))
 
-
-EXTRA_DIST += fsync.c
-
-EXTRA_libgnu_a_SOURCES += fsync.c
+ifneq (,$(GL_COND_OBJ_FSYNC_CONDITION))
+libgnu_a_SOURCES += fsync.c
+endif
 
 endif
 ## end   gnulib module fsync
@@ -1980,10 +2055,9 @@ endif
 ## begin gnulib module futimens
 ifeq (,$(OMIT_GNULIB_MODULE_futimens))
 
-
-EXTRA_DIST += futimens.c
-
-EXTRA_libgnu_a_SOURCES += futimens.c
+ifneq (,$(GL_COND_OBJ_FUTIMENS_CONDITION))
+libgnu_a_SOURCES += futimens.c
+endif
 
 endif
 ## end   gnulib module futimens
@@ -2013,12 +2087,11 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_getdtablesize))
 
 ifneq (,$(gl_GNULIB_ENABLED_getdtablesize_CONDITION))
+ifneq (,$(GL_COND_OBJ_GETDTABLESIZE_CONDITION))
+libgnu_a_SOURCES += getdtablesize.c
+endif
 
 endif
-EXTRA_DIST += getdtablesize.c
-
-EXTRA_libgnu_a_SOURCES += getdtablesize.c
-
 endif
 ## end   gnulib module getdtablesize
 
@@ -2026,22 +2099,20 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_getgroups))
 
 ifneq (,$(gl_GNULIB_ENABLED_getgroups_CONDITION))
+ifneq (,$(GL_COND_OBJ_GETGROUPS_CONDITION))
+libgnu_a_SOURCES += getgroups.c
+endif
 
 endif
-EXTRA_DIST += getgroups.c
-
-EXTRA_libgnu_a_SOURCES += getgroups.c
-
 endif
 ## end   gnulib module getgroups
 
 ## begin gnulib module getloadavg
 ifeq (,$(OMIT_GNULIB_MODULE_getloadavg))
 
-
-EXTRA_DIST += getloadavg.c
-
-EXTRA_libgnu_a_SOURCES += getloadavg.c
+ifneq (,$(GL_COND_OBJ_GETLOADAVG_CONDITION))
+libgnu_a_SOURCES += getloadavg.c
+endif
 
 endif
 ## end   gnulib module getloadavg
@@ -2083,9 +2154,11 @@ endif
 
 MOSTLYCLEANFILES += getopt.h getopt.h-t getopt-cdefs.h getopt-cdefs.h-t
 
-EXTRA_DIST += getopt-cdefs.in.h getopt-core.h getopt-ext.h getopt-pfx-core.h getopt-pfx-ext.h getopt.c getopt.in.h getopt1.c getopt_int.h
+ifneq (,$(GL_COND_OBJ_GETOPT_CONDITION))
+libgnu_a_SOURCES += getopt.c getopt1.c
+endif
 
-EXTRA_libgnu_a_SOURCES += getopt.c getopt1.c
+EXTRA_DIST += getopt-cdefs.in.h getopt-core.h getopt-ext.h getopt-pfx-core.h getopt-pfx-ext.h getopt.in.h getopt_int.h
 
 endif
 ## end   gnulib module getopt-posix
@@ -2093,10 +2166,9 @@ endif
 ## begin gnulib module getrandom
 ifeq (,$(OMIT_GNULIB_MODULE_getrandom))
 
-
-EXTRA_DIST += getrandom.c
-
-EXTRA_libgnu_a_SOURCES += getrandom.c
+ifneq (,$(GL_COND_OBJ_GETRANDOM_CONDITION))
+libgnu_a_SOURCES += getrandom.c
+endif
 
 endif
 ## end   gnulib module getrandom
@@ -2122,10 +2194,9 @@ endif
 ## begin gnulib module gettimeofday
 ifeq (,$(OMIT_GNULIB_MODULE_gettimeofday))
 
-
-EXTRA_DIST += gettimeofday.c
-
-EXTRA_libgnu_a_SOURCES += gettimeofday.c
+ifneq (,$(GL_COND_OBJ_GETTIMEOFDAY_CONDITION))
+libgnu_a_SOURCES += gettimeofday.c
+endif
 
 endif
 ## end   gnulib module gettimeofday
@@ -2143,12 +2214,11 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_group-member))
 
 ifneq (,$(gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_CONDITION))
+ifneq (,$(GL_COND_OBJ_GROUP_MEMBER_CONDITION))
+libgnu_a_SOURCES += group-member.c
+endif
 
 endif
-EXTRA_DIST += group-member.c
-
-EXTRA_libgnu_a_SOURCES += group-member.c
-
 endif
 ## end   gnulib module group-member
 
@@ -2249,12 +2319,11 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_lchmod))
 
 ifneq (,$(gl_GNULIB_ENABLED_lchmod_CONDITION))
+ifneq (,$(GL_COND_OBJ_LCHMOD_CONDITION))
+libgnu_a_SOURCES += lchmod.c
+endif
 
 endif
-EXTRA_DIST += lchmod.c
-
-EXTRA_libgnu_a_SOURCES += lchmod.c
-
 endif
 ## end   gnulib module lchmod
 
@@ -2291,9 +2360,13 @@ gmp.h: $(top_builddir)/config.status
 endif
 MOSTLYCLEANFILES += gmp.h gmp.h-t
 
-EXTRA_DIST += mini-gmp-gnulib.c mini-gmp.c mini-gmp.h
+ifneq (,$(GL_COND_OBJ_MINI_GMP_GNULIB_CONDITION))
+libgnu_a_SOURCES += mini-gmp-gnulib.c
+endif
 
-EXTRA_libgnu_a_SOURCES += mini-gmp-gnulib.c mini-gmp.c
+EXTRA_DIST += mini-gmp.c mini-gmp.h
+
+EXTRA_libgnu_a_SOURCES += mini-gmp.c
 
 endif
 ## end   gnulib module libgmp
@@ -2329,10 +2402,9 @@ endif
 ## begin gnulib module lstat
 ifeq (,$(OMIT_GNULIB_MODULE_lstat))
 
-
-EXTRA_DIST += lstat.c
-
-EXTRA_libgnu_a_SOURCES += lstat.c
+ifneq (,$(GL_COND_OBJ_LSTAT_CONDITION))
+libgnu_a_SOURCES += lstat.c
+endif
 
 endif
 ## end   gnulib module lstat
@@ -2377,10 +2449,9 @@ endif
 ## begin gnulib module mempcpy
 ifeq (,$(OMIT_GNULIB_MODULE_mempcpy))
 
-
-EXTRA_DIST += mempcpy.c
-
-EXTRA_libgnu_a_SOURCES += mempcpy.c
+ifneq (,$(GL_COND_OBJ_MEMPCPY_CONDITION))
+libgnu_a_SOURCES += mempcpy.c
+endif
 
 endif
 ## end   gnulib module mempcpy
@@ -2388,10 +2459,9 @@ endif
 ## begin gnulib module memrchr
 ifeq (,$(OMIT_GNULIB_MODULE_memrchr))
 
-
-EXTRA_DIST += memrchr.c
-
-EXTRA_libgnu_a_SOURCES += memrchr.c
+ifneq (,$(GL_COND_OBJ_MEMRCHR_CONDITION))
+libgnu_a_SOURCES += memrchr.c
+endif
 
 endif
 ## end   gnulib module memrchr
@@ -2407,10 +2477,9 @@ endif
 ## begin gnulib module mkostemp
 ifeq (,$(OMIT_GNULIB_MODULE_mkostemp))
 
-
-EXTRA_DIST += mkostemp.c
-
-EXTRA_libgnu_a_SOURCES += mkostemp.c
+ifneq (,$(GL_COND_OBJ_MKOSTEMP_CONDITION))
+libgnu_a_SOURCES += mkostemp.c
+endif
 
 endif
 ## end   gnulib module mkostemp
@@ -2439,6 +2508,16 @@ EXTRA_libgnu_a_SOURCES += mktime.c
 endif
 ## end   gnulib module mktime-internal
 
+## begin gnulib module nanosleep
+ifeq (,$(OMIT_GNULIB_MODULE_nanosleep))
+
+ifneq (,$(GL_COND_OBJ_NANOSLEEP_CONDITION))
+libgnu_a_SOURCES += nanosleep.c
+endif
+
+endif
+## end   gnulib module nanosleep
+
 ## begin gnulib module nproc
 ifeq (,$(OMIT_GNULIB_MODULE_nproc))
 
@@ -2463,12 +2542,11 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_open))
 
 ifneq (,$(gl_GNULIB_ENABLED_open_CONDITION))
+ifneq (,$(GL_COND_OBJ_OPEN_CONDITION))
+libgnu_a_SOURCES += open.c
+endif
 
 endif
-EXTRA_DIST += open.c
-
-EXTRA_libgnu_a_SOURCES += open.c
-
 endif
 ## end   gnulib module open
 
@@ -2503,10 +2581,9 @@ endif
 ## begin gnulib module pselect
 ifeq (,$(OMIT_GNULIB_MODULE_pselect))
 
-
-EXTRA_DIST += pselect.c
-
-EXTRA_libgnu_a_SOURCES += pselect.c
+ifneq (,$(GL_COND_OBJ_PSELECT_CONDITION))
+libgnu_a_SOURCES += pselect.c
+endif
 
 endif
 ## end   gnulib module pselect
@@ -2514,10 +2591,9 @@ endif
 ## begin gnulib module pthread_sigmask
 ifeq (,$(OMIT_GNULIB_MODULE_pthread_sigmask))
 
-
-EXTRA_DIST += pthread_sigmask.c
-
-EXTRA_libgnu_a_SOURCES += pthread_sigmask.c
+ifneq (,$(GL_COND_OBJ_PTHREAD_SIGMASK_CONDITION))
+libgnu_a_SOURCES += pthread_sigmask.c
+endif
 
 endif
 ## end   gnulib module pthread_sigmask
@@ -2534,11 +2610,12 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_rawmemchr))
 
 ifneq (,$(gl_GNULIB_ENABLED_rawmemchr_CONDITION))
+ifneq (,$(GL_COND_OBJ_RAWMEMCHR_CONDITION))
+libgnu_a_SOURCES += rawmemchr.c
+endif
 
 endif
-EXTRA_DIST += rawmemchr.c rawmemchr.valgrind
-
-EXTRA_libgnu_a_SOURCES += rawmemchr.c
+EXTRA_DIST += rawmemchr.valgrind
 
 endif
 ## end   gnulib module rawmemchr
@@ -2546,10 +2623,9 @@ endif
 ## begin gnulib module readlink
 ifeq (,$(OMIT_GNULIB_MODULE_readlink))
 
-
-EXTRA_DIST += readlink.c
-
-EXTRA_libgnu_a_SOURCES += readlink.c
+ifneq (,$(GL_COND_OBJ_READLINK_CONDITION))
+libgnu_a_SOURCES += readlink.c
+endif
 
 endif
 ## end   gnulib module readlink
@@ -2557,10 +2633,13 @@ endif
 ## begin gnulib module readlinkat
 ifeq (,$(OMIT_GNULIB_MODULE_readlinkat))
 
+ifneq (,$(GL_COND_OBJ_READLINKAT_CONDITION))
+libgnu_a_SOURCES += readlinkat.c
+endif
 
-EXTRA_DIST += at-func.c readlinkat.c
+EXTRA_DIST += at-func.c
 
-EXTRA_libgnu_a_SOURCES += at-func.c readlinkat.c
+EXTRA_libgnu_a_SOURCES += at-func.c
 
 endif
 ## end   gnulib module readlinkat
@@ -2594,10 +2673,13 @@ endif
 ## begin gnulib module regex
 ifeq (,$(OMIT_GNULIB_MODULE_regex))
 
+ifneq (,$(GL_COND_OBJ_REGEX_CONDITION))
+libgnu_a_SOURCES += regex.c
+endif
 
-EXTRA_DIST += regcomp.c regex.c regex.h regex_internal.c regex_internal.h regexec.c
+EXTRA_DIST += regcomp.c regex.h regex_internal.c regex_internal.h regexec.c
 
-EXTRA_libgnu_a_SOURCES += regcomp.c regex.c regex_internal.c regexec.c
+EXTRA_libgnu_a_SOURCES += regcomp.c regex_internal.c regexec.c
 
 endif
 ## end   gnulib module regex
@@ -2641,10 +2723,11 @@ endif
 ## begin gnulib module sig2str
 ifeq (,$(OMIT_GNULIB_MODULE_sig2str))
 
+ifneq (,$(GL_COND_OBJ_SIG2STR_CONDITION))
+libgnu_a_SOURCES += sig2str.c
+endif
 
-EXTRA_DIST += sig2str.c sig2str.h
-
-EXTRA_libgnu_a_SOURCES += sig2str.c
+EXTRA_DIST += sig2str.h
 
 endif
 ## end   gnulib module sig2str
@@ -2652,10 +2735,9 @@ endif
 ## begin gnulib module sigdescr_np
 ifeq (,$(OMIT_GNULIB_MODULE_sigdescr_np))
 
-
-EXTRA_DIST += sigdescr_np.c
-
-EXTRA_libgnu_a_SOURCES += sigdescr_np.c
+ifneq (,$(GL_COND_OBJ_SIGDESCR_NP_CONDITION))
+libgnu_a_SOURCES += sigdescr_np.c
+endif
 
 endif
 ## end   gnulib module sigdescr_np
@@ -3004,6 +3086,13 @@ stdio.h: stdio.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) 
 	$(AM_V_at)mv $@-t $@
 MOSTLYCLEANFILES += stdio.h stdio.h-t
 
+ifneq (,$(GL_COND_OBJ_STDIO_READ_CONDITION))
+libgnu_a_SOURCES += stdio-read.c
+endif
+ifneq (,$(GL_COND_OBJ_STDIO_WRITE_CONDITION))
+libgnu_a_SOURCES += stdio-write.c
+endif
+
 EXTRA_DIST += stdio.in.h
 
 endif
@@ -3163,10 +3252,9 @@ endif
 ## begin gnulib module stpcpy
 ifeq (,$(OMIT_GNULIB_MODULE_stpcpy))
 
-
-EXTRA_DIST += stpcpy.c
-
-EXTRA_libgnu_a_SOURCES += stpcpy.c
+ifneq (,$(GL_COND_OBJ_STPCPY_CONDITION))
+libgnu_a_SOURCES += stpcpy.c
+endif
 
 endif
 ## end   gnulib module stpcpy
@@ -3287,10 +3375,9 @@ endif
 ## begin gnulib module strnlen
 ifeq (,$(OMIT_GNULIB_MODULE_strnlen))
 
-
-EXTRA_DIST += strnlen.c
-
-EXTRA_libgnu_a_SOURCES += strnlen.c
+ifneq (,$(GL_COND_OBJ_STRNLEN_CONDITION))
+libgnu_a_SOURCES += strnlen.c
+endif
 
 endif
 ## end   gnulib module strnlen
@@ -3298,10 +3385,9 @@ endif
 ## begin gnulib module strtoimax
 ifeq (,$(OMIT_GNULIB_MODULE_strtoimax))
 
-
-EXTRA_DIST += strtoimax.c
-
-EXTRA_libgnu_a_SOURCES += strtoimax.c
+ifneq (,$(GL_COND_OBJ_STRTOIMAX_CONDITION))
+libgnu_a_SOURCES += strtoimax.c
+endif
 
 endif
 ## end   gnulib module strtoimax
@@ -3310,11 +3396,14 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_strtoll))
 
 ifneq (,$(gl_GNULIB_ENABLED_strtoll_CONDITION))
+ifneq (,$(GL_COND_OBJ_STRTOLL_CONDITION))
+libgnu_a_SOURCES += strtoll.c
+endif
 
 endif
-EXTRA_DIST += strtol.c strtoll.c
+EXTRA_DIST += strtol.c
 
-EXTRA_libgnu_a_SOURCES += strtol.c strtoll.c
+EXTRA_libgnu_a_SOURCES += strtol.c
 
 endif
 ## end   gnulib module strtoll
@@ -3322,10 +3411,9 @@ endif
 ## begin gnulib module symlink
 ifeq (,$(OMIT_GNULIB_MODULE_symlink))
 
-
-EXTRA_DIST += symlink.c
-
-EXTRA_libgnu_a_SOURCES += symlink.c
+ifneq (,$(GL_COND_OBJ_SYMLINK_CONDITION))
+libgnu_a_SOURCES += symlink.c
+endif
 
 endif
 ## end   gnulib module symlink
@@ -3413,6 +3501,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''NEXT_SYS_STAT_H''@|$(NEXT_SYS_STAT_H)|g' \
 	      -e 's|@''WINDOWS_64_BIT_ST_SIZE''@|$(WINDOWS_64_BIT_ST_SIZE)|g' \
 	      -e 's|@''WINDOWS_STAT_TIMESPEC''@|$(WINDOWS_STAT_TIMESPEC)|g' \
+	      -e 's/@''GNULIB_CHMOD''@/$(GL_GNULIB_CHMOD)/g' \
 	      -e 's/@''GNULIB_FCHMODAT''@/$(GL_GNULIB_FCHMODAT)/g' \
 	      -e 's/@''GNULIB_FSTAT''@/$(GL_GNULIB_FSTAT)/g' \
 	      -e 's/@''GNULIB_FSTATAT''@/$(GL_GNULIB_FSTATAT)/g' \
@@ -3444,6 +3533,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''HAVE_MKNOD''@|$(HAVE_MKNOD)|g' \
 	      -e 's|@''HAVE_MKNODAT''@|$(HAVE_MKNODAT)|g' \
 	      -e 's|@''HAVE_UTIMENSAT''@|$(HAVE_UTIMENSAT)|g' \
+	      -e 's|@''REPLACE_CHMOD''@|$(REPLACE_CHMOD)|g' \
 	      -e 's|@''REPLACE_FCHMODAT''@|$(REPLACE_FCHMODAT)|g' \
 	      -e 's|@''REPLACE_FSTAT''@|$(REPLACE_FSTAT)|g' \
 	      -e 's|@''REPLACE_FSTATAT''@|$(REPLACE_FSTATAT)|g' \
@@ -3602,10 +3692,9 @@ endif
 ## begin gnulib module time_r
 ifeq (,$(OMIT_GNULIB_MODULE_time_r))
 
-
-EXTRA_DIST += time_r.c
-
-EXTRA_libgnu_a_SOURCES += time_r.c
+ifneq (,$(GL_COND_OBJ_TIME_R_CONDITION))
+libgnu_a_SOURCES += time_r.c
+endif
 
 endif
 ## end   gnulib module time_r
@@ -3613,10 +3702,11 @@ endif
 ## begin gnulib module time_rz
 ifeq (,$(OMIT_GNULIB_MODULE_time_rz))
 
+ifneq (,$(GL_COND_OBJ_TIME_RZ_CONDITION))
+libgnu_a_SOURCES += time_rz.c
+endif
 
-EXTRA_DIST += time-internal.h time_rz.c
-
-EXTRA_libgnu_a_SOURCES += time_rz.c
+EXTRA_DIST += time-internal.h
 
 endif
 ## end   gnulib module time_rz
@@ -3624,10 +3714,11 @@ endif
 ## begin gnulib module timegm
 ifeq (,$(OMIT_GNULIB_MODULE_timegm))
 
+ifneq (,$(GL_COND_OBJ_TIMEGM_CONDITION))
+libgnu_a_SOURCES += timegm.c
+endif
 
-EXTRA_DIST += mktime-internal.h timegm.c
-
-EXTRA_libgnu_a_SOURCES += timegm.c
+EXTRA_DIST += mktime-internal.h
 
 endif
 ## end   gnulib module timegm
@@ -3821,6 +3912,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	  sed -e 's|@''REPLACE_ACCESS''@|$(REPLACE_ACCESS)|g' \
 	      -e 's|@''REPLACE_CHOWN''@|$(REPLACE_CHOWN)|g' \
 	      -e 's|@''REPLACE_CLOSE''@|$(REPLACE_CLOSE)|g' \
+	      -e 's|@''REPLACE_COPY_FILE_RANGE''@|$(REPLACE_COPY_FILE_RANGE)|g' \
 	      -e 's|@''REPLACE_DUP''@|$(REPLACE_DUP)|g' \
 	      -e 's|@''REPLACE_DUP2''@|$(REPLACE_DUP2)|g' \
 	      -e 's|@''REPLACE_EXECL''@|$(REPLACE_EXECL)|g' \
@@ -3909,10 +4001,13 @@ endif
 ## begin gnulib module utimensat
 ifeq (,$(OMIT_GNULIB_MODULE_utimensat))
 
+ifneq (,$(GL_COND_OBJ_UTIMENSAT_CONDITION))
+libgnu_a_SOURCES += utimensat.c
+endif
 
-EXTRA_DIST += at-func.c utimensat.c
+EXTRA_DIST += at-func.c
 
-EXTRA_libgnu_a_SOURCES += at-func.c utimensat.c
+EXTRA_libgnu_a_SOURCES += at-func.c
 
 endif
 ## end   gnulib module utimensat
@@ -3954,3 +4049,7 @@ mostlyclean-local: mostlyclean-generic
 	  fi; \
 	done; \
 	:
+distclean-local: distclean-gnulib-libobjs
+distclean-gnulib-libobjs:
+	-rm -f @gl_LIBOBJDEPS@
+maintainer-clean-local: distclean-gnulib-libobjs

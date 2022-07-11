@@ -51,6 +51,7 @@ SYNTAX can be one of the symbols `default' (default),
   (when syntax
     (customize-set-variable 'tramp-syntax syntax)))
 
+;;;###tramp-autoload
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
   (append
@@ -61,6 +62,7 @@ SYNTAX can be one of the symbols `default' (default),
    (all-completions
     "*trace tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
 
+;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
   "Return a list of all buffers with remote `default-directory'."
   (delq
@@ -133,7 +135,7 @@ When called interactively, a Tramp connection has to be selected."
 		     (get-buffer (tramp-debug-buffer-name vec)))
 		   (unless keep-debug
 		     (get-buffer (tramp-trace-buffer-name vec)))
-		   (tramp-get-connection-property vec "process-buffer" nil)))
+		   (tramp-get-connection-property vec "process-buffer")))
       (when (bufferp buf) (kill-buffer buf)))
 
     ;; Flush file cache.
@@ -720,7 +722,7 @@ the debug buffer(s).")
 
 	(when (y-or-n-p "Do you want to append the buffer(s)?")
 	  ;; OK, let's send.  First we delete the buffer list.
-	  (kill-buffer nil)
+	  (kill-buffer)
 	  (switch-to-buffer curbuf)
 	  (goto-char (point-max))
 	  (insert (propertize "\n" 'display "\n\

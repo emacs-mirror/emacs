@@ -170,4 +170,13 @@ int main () {
     (should (equal (get-display-property 2 'height) 2.0))
     (should (equal (get-display-property 2 'space-width) 20))))
 
+(ert-deftest test-messages-buffer-name ()
+  (should
+   (equal
+    (let ((messages-buffer-name "test-message"))
+      (message "foo")
+      (with-current-buffer messages-buffer-name
+        (buffer-string)))
+    "foo\n")))
+
 ;;; xdisp-tests.el ends here

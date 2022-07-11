@@ -2437,7 +2437,6 @@ the default language."
        #'antlr-imenu-create-index-function)
   (set (make-local-variable 'imenu-generic-expression) t) ; fool stupid test
   (and antlr-imenu-name			; there should be a global variable...
-       (fboundp 'imenu-add-to-menubar)
        (imenu-add-to-menubar
 	(if (stringp antlr-imenu-name) antlr-imenu-name "Index")))
   (antlr-set-tabs))

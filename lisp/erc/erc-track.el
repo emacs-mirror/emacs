@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: Amin Bandali <bandali@gnu.org>
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Keywords: comm
 ;; URL: https://www.emacswiki.org/emacs/ErcChannelTracking
 
@@ -46,7 +46,7 @@
 
 (defcustom erc-track-enable-keybindings 'ask
   "Whether to enable the ERC track keybindings, namely:
-`C-c C-SPC' and `C-c C-@', which both do the same thing.
+\\`C-c C-SPC' and \\`C-c C-@', which both do the same thing.
 
 The default is to check to see whether these keys are used
 already: if not, then enable the ERC track minor mode, which
@@ -353,8 +353,6 @@ of `erc-track-shorten-start' characters."
      (> (length s) erc-track-shorten-cutoff))
    erc-track-shorten-start))
 
-(defvar erc-default-recipients)
-
 (defun erc-all-buffer-names ()
   "Return all channel or query buffer names.
 Note that we cannot use `erc-channel-list' with a nil argument,
@@ -455,12 +453,12 @@ START is the minimum length of the name used."
 ;; Play nice with other IRC clients (and Emacs development rules) by
 ;; making this a minor mode
 
-(defvar erc-track-minor-mode-map (make-sparse-keymap)
-  "Keymap for rcirc track minor mode.")
-
-(define-key erc-track-minor-mode-map (kbd "C-c C-@") #'erc-track-switch-buffer)
-(define-key erc-track-minor-mode-map (kbd "C-c C-SPC")
-  #'erc-track-switch-buffer)
+(defvar erc-track-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-@")   #'erc-track-switch-buffer)
+    (define-key map (kbd "C-c C-SPC") #'erc-track-switch-buffer)
+    map)
+  "Keymap for ERC track minor mode.")
 
 ;;;###autoload
 (define-minor-mode erc-track-minor-mode

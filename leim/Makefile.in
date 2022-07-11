@@ -32,18 +32,23 @@ leimdir = ${srcdir}/../lisp/leim
 
 EXEEXT = @EXEEXT@
 
+SMALL_JA_DIC = @SMALL_JA_DIC@
+JA_DIC_NO_REDUCTION_OPTION = --no-reduction
+ifeq ($(SMALL_JA_DIC), yes)
+	JA_DIC_NO_REDUCTION_OPTION =
+endif
+
 -include ${top_builddir}/src/verbose.mk
 
 # Prevent any settings in the user environment causing problems.
-unexport EMACSDATA EMACSDOC EMACSPATH
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,
 # and generate the file leim-list.el.
 EMACS = ../src/emacs${EXEEXT}
 
 # How to run Emacs.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-RUN_EMACS = EMACSLOADPATH= '$(EMACS)' -batch --no-site-file --no-site-lisp
+RUN_EMACS = '$(EMACS)' -batch --no-site-file --no-site-lisp
 
 MKDIR_P = @MKDIR_P@
 
@@ -81,7 +86,7 @@ MISC= \
 TIT_MISC = ${TIT_GB} ${TIT_BIG5} ${MISC}
 
 
-all: ${leimdir}/leim-list.el ${leimdir}/ja-dic/ja-dic.el
+all: ${leimdir}/leim-list.el
 .PHONY: all
 
 
@@ -123,15 +128,19 @@ leim-list.el: ${leimdir}/leim-list.el
 ${leimdir}/leim-list.el: ${srcdir}/leim-ext.el ${TIT_MISC}
 	$(AM_V_GEN)rm -f $@
 	$(AM_V_at)${RUN_EMACS} -l international/quail \
+	  --eval "(setq max-specpdl-size 5000)" \
 	  --eval "(update-leim-list-file (unmsys--file-name \"${leimdir}\"))"
 	$(AM_V_at)sed -n -e '/^[^;]/p' -e 's/^;\(;*\)inc /;\1 /p' < $< >> $@
 
 
 ${leimdir}/ja-dic/ja-dic.el: | $(leimdir)/ja-dic
 
+.PHONY: generate-ja-dic
+generate-ja-dic: ${leimdir}/ja-dic/ja-dic.el
 ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	$(AM_V_GEN)$(RUN_EMACS) -batch -l ja-dic-cnv \
-	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" "$<"
+	  --eval "(setq max-specpdl-size 5000)" \
+	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" $(JA_DIC_NO_REDUCTION_OPTION) "$<"
 
 ${srcdir}/../lisp/language/pinyin.el: ${srcdir}/MISC-DIC/pinyin.map
 	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv -f pinyin-convert $< $@

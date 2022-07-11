@@ -133,9 +133,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 (defun gnus-pick-start-reading (&optional catch-up)
   "Start reading the picked articles.
 If given a prefix, mark all unpicked articles as read."
-  (interactive "P")
-  (declare (completion (lambda (s b)
-			 (completion-minor-mode-active-p s b 'gnus-pick-mode))))
+  (interactive "P" gnus-pick-mode)
   (if gnus-newsgroup-processable
       (progn
 	(gnus-summary-limit-to-articles nil)

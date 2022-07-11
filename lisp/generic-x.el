@@ -1847,4 +1847,8 @@ like an INI file.  You can add this hook to `find-file-hook'."
 
 (provide 'generic-x)
 
+;; Local Variables:
+;; autoload-compute-prefixes: nil
+;; End:
+
 ;;; generic-x.el ends here

@@ -229,7 +229,7 @@ a list of frames to update."
 
 (defun tab-bar--key-to-number (key)
   "Return the tab number represented by KEY.
-If KEY is a symbol 'tab-N', where N is a tab number, the value is N.
+If KEY is a symbol `tab-N', where N is a tab number, the value is N.
 If KEY is \\='current-tab, the value is nil.
 For any other value of KEY, the value is t."
   (cond
@@ -426,7 +426,7 @@ on each new frame when the global `tab-bar-mode' is disabled,
 or if you want to disable the tab bar individually on each
 new frame when the global `tab-bar-mode' is enabled, by using
 
-  (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
+  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)"
   (interactive)
   (set-frame-parameter frame 'tab-bar-lines
                        (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
@@ -474,18 +474,22 @@ you can use the command `toggle-frame-tab-bar'."
 If t, start a new tab with the current buffer, i.e. the buffer
 that was current before calling the command that adds a new tab
 (this is the same what `make-frame' does by default).
+If the value is the symbol `window', then keep the selected
+window as a single window on the new tab, and keep all its
+window parameters except `window-atom' and `window-side'.
 If the value is a string, use it as a buffer name to switch to
 if such buffer exists, or switch to a buffer visiting the file or
 directory that the string specifies.  If the value is a function,
 call it with no arguments and switch to the buffer that it returns.
-If nil, duplicate the contents of the tab that was active
+If `clone', duplicate the contents of the tab that was active
 before calling the command that adds a new tab."
   :type '(choice (const     :tag "Current buffer" t)
+                 (const     :tag "Current window" window)
                  (string    :tag "Buffer" "*scratch*")
                  (directory :tag "Directory" :value "~/")
                  (file      :tag "File" :value "~/.emacs")
                  (function  :tag "Function")
-                 (const     :tag "Duplicate tab" nil))
+                 (const     :tag "Duplicate tab" clone))
   :group 'tab-bar
   :version "27.1")
 
@@ -614,7 +618,7 @@ Also add the number of windows in the window configuration."
   "Maximum length of the tab name from the current buffer.
 Effective when `tab-bar-tab-name-function' is customized
 to `tab-bar-tab-name-truncated'."
-  :type 'integer
+  :type 'natnum
   :group 'tab-bar
   :version "27.1")
 
@@ -751,9 +755,13 @@ Used by `tab-bar-format-menu-bar'."
                 (menu-bar-keymap))
     (popup-menu menu event)))
 
+(defvar tab-bar-menu-bar-button
+  (propertize "Menu" 'face 'tab-bar-tab-inactive)
+  "Button for the menu bar.")
+
 (defun tab-bar-format-menu-bar ()
   "Produce the Menu button for the tab bar that shows the menu bar."
-  `((menu-bar menu-item (propertize "Menu" 'face 'tab-bar-tab-inactive)
+  `((menu-bar menu-item ,tab-bar-menu-bar-button
      tab-bar-menu-bar :help "Menu Bar")))
 
 (defun tab-bar-format-history ()
@@ -907,8 +915,8 @@ when the tab is current.  Return the result as a keymap."
   (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
          (rest (tab-bar-format-list rest))
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
-         (hpos (length rest))
-         (str (propertize " " 'display `(space :align-to (- right ,hpos)))))
+         (hpos (string-pixel-width (propertize rest 'face 'tab-bar)))
+         (str (propertize " " 'display `(space :align-to (- right (,hpos))))))
     `((align-right menu-item ,str ignore))))
 
 (defun tab-bar-format-global ()
@@ -918,7 +926,7 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((global menu-item ,(string-trim-right (format-mode-line global-mode-string)) ignore)))
+  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))
@@ -1310,7 +1318,8 @@ configuration."
   (let ((tab-bar-new-tab-choice 'window))
     (tab-bar-new-tab))
   (tab-bar-switch-to-recent-tab)
-  (delete-window)
+  (let ((ignore-window-parameters t))
+    (delete-window))
   (tab-bar-switch-to-recent-tab))
 
 
@@ -1357,14 +1366,26 @@ After the tab is created, the hooks in
       ;; Handle the case when it's called in the active minibuffer.
       (when (minibuffer-selected-window)
         (select-window (minibuffer-selected-window)))
+      ;; Remove window parameters that can cause problems
+      ;; with `delete-other-windows' and `split-window'.
+      (unless (eq tab-bar-new-tab-choice 'clone)
+        (set-window-parameter nil 'window-atom nil)
+        (set-window-parameter nil 'window-side nil))
       (let ((ignore-window-parameters t))
-        (delete-other-windows))
-      (unless (eq tab-bar-new-tab-choice 'window)
-        ;; Create a new window to get rid of old window parameters
-        ;; (e.g. prev/next buffers) of old window.
-        (split-window) (delete-window))
+        (if (eq tab-bar-new-tab-choice 'clone)
+            ;; Create new unique windows with the same layout
+            (window-state-put (window-state-get))
+          (delete-other-windows)
+          (if (eq tab-bar-new-tab-choice 'window)
+              ;; Create new unique window from remaining window
+              (window-state-put (window-state-get))
+            ;; Create a new window to get rid of old window parameters
+            ;; (e.g. prev/next buffers) of old window.
+            (split-window) (delete-window))))
+
       (let ((buffer
-             (if (functionp tab-bar-new-tab-choice)
+             (if (and (functionp tab-bar-new-tab-choice)
+                      (not (memq tab-bar-new-tab-choice '(clone window))))
                  (funcall tab-bar-new-tab-choice)
                (if (stringp tab-bar-new-tab-choice)
                    (or (get-buffer tab-bar-new-tab-choice)
@@ -1440,7 +1461,7 @@ If FROM-NUMBER is a tab number, a new tab is created from that tab."
   "Clone the current tab to ARG positions to the right.
 ARG and FROM-NUMBER have the same meaning as in `tab-bar-new-tab'."
   (interactive "P")
-  (let ((tab-bar-new-tab-choice nil)
+  (let ((tab-bar-new-tab-choice 'clone)
         (tab-bar-new-tab-group t))
     (tab-bar-new-tab arg from-number)))
 
@@ -1638,9 +1659,10 @@ happens interactively)."
           (setq index (max 0 (min index (length tabs))))
           (cl-pushnew tab (nthcdr index tabs))
           (when (eq index 0)
-            ;; pushnew handles the head of tabs but not frame-parameter
+            ;; `pushnew' handles the head of tabs but not frame-parameter
             (tab-bar-tabs-set tabs))
-          (tab-bar-select-tab (1+ index))))
+          (tab-bar-select-tab (1+ index)))
+        (tab-bar--update-tab-bar-lines))
 
     (message "No more closed tabs to undo")))
 
@@ -2298,9 +2320,9 @@ Interactively, prompt for the buffer to switch to."
   (declare (advertised-calling-convention (buffer-or-name) "28.1"))
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other tab: ")))
-  (display-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
-                  '((display-buffer-in-tab)
-                    (inhibit-same-window . nil))))
+  (pop-to-buffer (window-normalize-buffer-to-switch-to buffer-or-name)
+                 '((display-buffer-in-tab)
+                   (inhibit-same-window . nil))))
 
 (defun find-file-other-tab (filename &optional wildcards)
   "Edit file FILENAME, in another tab.
@@ -2403,7 +2425,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
     (define-key map "o" 'tab-next)
     (define-key map "O" 'tab-previous)
     map)
-  "Keymap to repeat tab switch key sequences `C-x t o o O'.
+  "Keymap to repeat tab switch key sequences \\`C-x t o o O'.
 Used in `repeat-mode'.")
 (put 'tab-next 'repeat-map 'tab-bar-switch-repeat-map)
 (put 'tab-previous 'repeat-map 'tab-bar-switch-repeat-map)
@@ -2413,7 +2435,7 @@ Used in `repeat-mode'.")
     (define-key map "m" 'tab-move)
     (define-key map "M" 'tab-bar-move-tab-backward)
     map)
-  "Keymap to repeat tab move key sequences `C-x t m m M'.
+  "Keymap to repeat tab move key sequences \\`C-x t m m M'.
 Used in `repeat-mode'.")
 (put 'tab-move 'repeat-map 'tab-bar-move-repeat-map)
 (put 'tab-bar-move-tab-backward 'repeat-map 'tab-bar-move-repeat-map)

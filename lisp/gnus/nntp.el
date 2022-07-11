@@ -36,6 +36,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (autoload 'auth-source-search "auth-source")
+(autoload 'auth-info-password "auth-source")
 
 (defgroup nntp nil
   "NNTP access for Gnus."
@@ -305,7 +306,7 @@ backend doesn't catch this error.")
     (nntp-record-command string))
   (process-send-string process (concat string nntp-end-of-line))
   (or (memq (process-status process) '(open run))
-      (nntp-report "Server closed connection")))
+      (nntp-report "NNTP server %S closed connection" nntp-address)))
 
 (defun nntp-record-command (string)
   "Record the command STRING."
@@ -368,7 +369,7 @@ retried once before actually displaying the error report."
 	    (nntp-snarf-error-message)
 	    nil))
 	 ((not (memq (process-status process) '(open run)))
-	  (nntp-report "Server closed connection"))
+	  (nntp-report "NNTP server %S closed connection" nntp-address))
 	 (t
 	  (goto-char (point-max))
 	  (let ((limit (point-min))
@@ -1175,10 +1176,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 			  "563" "nntps" "snews"))))
          (auth-user (plist-get auth-info :user))
          (auth-force (plist-get auth-info :force))
-         (auth-passwd (plist-get auth-info :secret))
-         (auth-passwd (if (functionp auth-passwd)
-                          (funcall auth-passwd)
-                        auth-passwd))
+         (auth-passwd (auth-info-password auth-info))
 	 (force (or (netrc-get alist "force")
                     nntp-authinfo-force
                     auth-force))
@@ -1227,6 +1225,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       (generate-new-buffer
        (format " *server %s %s %s*"
                nntp-address nntp-port-number buffer))
+    (gnus-add-buffer)
     (mm-disable-multibyte)
     (setq-local after-change-functions nil
 		nntp-process-wait-for nil
@@ -1433,7 +1432,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       ;; be the process's former output buffer (i.e. now killed)
       (or (and process
 	       (memq (process-status process) '(open run)))
-          (nntp-report "Server closed connection")))))
+          (nntp-report "NNTP server %S closed connection" nntp-address)))))
 
 (defun nntp-accept-response ()
   "Wait for output from the process that outputs to BUFFER."
@@ -1452,7 +1451,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (when group
     (let ((entry (nntp-find-connection-entry nntp-server-buffer)))
       (cond ((not entry)
-             (nntp-report "Server closed connection"))
+             (nntp-report "NNTP server %S closed connection" nntp-address))
             ((not (equal group (caddr entry)))
              (with-current-buffer (process-buffer (car entry))
                (erase-buffer)

@@ -63,7 +63,7 @@ to run the `url-history-setup-save-timer' function manually."
          (set-default var val)
          (if (bound-and-true-p url-setup-done)
              (url-history-setup-save-timer)))
-  :type 'integer
+  :type 'natnum
   :group 'url-history)
 
 (defvar url-history-timer nil)

@@ -751,6 +751,15 @@ Print $ as a overlay pointer.
 This command assumes that $ is an Emacs Lisp overlay value.
 end
 
+define xsymwithpos
+  xgetptr $
+  print (struct Lisp_Symbol_With_Pos *) $ptr
+end
+document xsymwithpos
+Print $ as a symbol with position.
+This command assumes that $ is an Emacs Lisp symbol with position value.
+end
+
 define xsymbol
   set $sym = $
   xgetsym $sym
@@ -1015,6 +1024,9 @@ define xpr
       end
       if $vec == PVEC_OVERLAY
         xoverlay
+      end
+      if $vec == PVEC_SYMBOL_WITH_POS
+        xsymwithpos
       end
       if $vec == PVEC_PROCESS
 	xprocess

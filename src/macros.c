@@ -273,9 +273,15 @@ pop_kbd_macro (Lisp_Object info)
 }
 
 DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,
-       doc: /* Execute MACRO as string of editor command characters.
-MACRO can also be a vector of keyboard events.  If MACRO is a symbol,
-its function definition is used.
+       doc: /* Execute MACRO as a sequence of events.
+If MACRO is a string or vector, then the events in it are executed
+exactly as if they had been input by the user.
+
+If MACRO is a symbol, its function definition is used.  If that is
+another symbol, this process repeats.  Eventually the result should be
+a string or vector.  If the result is not a symbol, string, or vector,
+an error is signaled.
+
 COUNT is a repeat count, or nil for once, or 0 for infinite loop.
 
 Optional third arg LOOPFUNC may be a function that is called prior to
@@ -287,7 +293,7 @@ buffer before the macro is executed.  */)
 {
   Lisp_Object final;
   Lisp_Object tem;
-  ptrdiff_t pdlcount = SPECPDL_INDEX ();
+  specpdl_ref pdlcount = SPECPDL_INDEX ();
   EMACS_INT repeat = 1;
   EMACS_INT success_count = 0;
 

@@ -522,7 +522,7 @@ Do not call this function yourself. */)
     {
       /* We should not do user interaction here, but it is not easy to
          prevent.  Fix this in next version.  */
-      Fkill_emacs (Qnil);
+      Fkill_emacs (Qnil, Qnil);
 
 #if false
       /* This will not be reached, but we want kill-emacs-hook to be run.  */

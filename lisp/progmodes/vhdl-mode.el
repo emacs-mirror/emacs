@@ -153,7 +153,11 @@
 (defvar lazy-lock-defer-on-scrolling)
 (defvar lazy-lock-defer-on-the-fly)
 (defvar speedbar-attached-frame)
-
+(defvar arch-alist)
+(defvar pack-alist)
+(defvar file-alist)
+(defvar unit-alist)
+(defvar rule-alist)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Variables
@@ -8396,30 +8400,30 @@ buffer."
 	    ((visible-list (vhdl-get-visible-signals))
 	     ;; define syntactic regions where signals are read
 	     (scan-regions-list
-	      '(;; right-hand side of signal/variable assignment
+	      `(;; right-hand side of signal/variable assignment
 		;; (special case: "<=" is relational operator in a condition)
-		((vhdl-re-search-forward "[<:]=" proc-end t)
-		 (vhdl-re-search-forward ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>" proc-end t))
+		((vhdl-re-search-forward "[<:]=" ,proc-end t)
+		 (vhdl-re-search-forward ";\\|\\<\\(then\\|loop\\|report\\|severity\\|is\\)\\>" ,proc-end t))
 		;; if condition
-		((vhdl-re-search-forward "^\\s-*if\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" proc-end t))
+		((vhdl-re-search-forward "^\\s-*if\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
 		;; elsif condition
-		((vhdl-re-search-forward "\\<elsif\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<then\\>" proc-end t))
+		((vhdl-re-search-forward "\\<elsif\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<then\\>" ,proc-end t))
 		;; while loop condition
-		((vhdl-re-search-forward "^\\s-*while\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<loop\\>" proc-end t))
+		((vhdl-re-search-forward "^\\s-*while\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<loop\\>" ,proc-end t))
 		;; exit/next condition
-		((vhdl-re-search-forward "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" proc-end t)
-		 (vhdl-re-search-forward ";" proc-end t))
+		((vhdl-re-search-forward "\\<\\(exit\\|next\\)\\s-+\\w+\\s-+when\\>" ,proc-end t)
+		 (vhdl-re-search-forward ";" ,proc-end t))
 		;; assert condition
-		((vhdl-re-search-forward "\\<assert\\>" proc-end t)
-		 (vhdl-re-search-forward "\\(\\<report\\>\\|\\<severity\\>\\|;\\)" proc-end t))
+		((vhdl-re-search-forward "\\<assert\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\(\\<report\\>\\|\\<severity\\>\\|;\\)" ,proc-end t))
 		;; case expression
-		((vhdl-re-search-forward "^\\s-*case\\>" proc-end t)
-		 (vhdl-re-search-forward "\\<is\\>" proc-end t))
+		((vhdl-re-search-forward "^\\s-*case\\>" ,proc-end t)
+		 (vhdl-re-search-forward "\\<is\\>" ,proc-end t))
 		;; parameter list of procedure call, array index
-		((and (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" proc-end t)
+		((and (re-search-forward "^\\s-*\\(\\w\\|\\.\\)+[ \t\n\r\f]*(" ,proc-end t)
 		      (1- (point)))
 		 (progn (backward-char) (forward-sexp)
 			(while (looking-at "(") (forward-sexp)) (point)))))
@@ -8785,7 +8789,10 @@ project is defined."
 (defun vhdl-electric-period (count) "`..' --> ` => '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) vhdl-last-input-event)
+      ;; We use this-command-keys below to account for translation of
+      ;; kp-decimal into '.'; vhdl-last-input-event doesn't catch
+      ;; that.
+      (cond ((eq (preceding-char) (aref (this-command-keys) 0))
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "=> ")))
@@ -14949,10 +14956,10 @@ otherwise use cached data."
   (vhdl-speedbar-expand-units directory)
   (vhdl-aput 'vhdl-directory-alist directory (list (list directory))))
 
-(defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg pack-alist
-					ent-inst-list depth)
-  "Insert hierarchy of ENT-ALIST, CONF-ALIST, and PACK-ALIST."
-  (if (not (or ent-alist conf-alist pack-alist))
+(defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg
+                                        package-alist ent-inst-list depth)
+  "Insert hierarchy of ENT-ALIST, CONF-ALIST, and PACKAGE-ALIST."
+  (if (not (or ent-alist conf-alist package-alist))
       (vhdl-speedbar-make-title-line "No VHDL design units!" depth)
     (let ((ent-alist ent-alist-arg)
           (conf-alist conf-alist-arg)
@@ -14982,15 +14989,15 @@ otherwise use cached data."
 	 'vhdl-speedbar-configuration-face depth)
 	(setq conf-alist (cdr conf-alist)))
       ;; insert packages
-      (when pack-alist (vhdl-speedbar-make-title-line "Packages:" depth))
-      (while pack-alist
-	(setq pack-entry (car pack-alist))
+      (when package-alist (vhdl-speedbar-make-title-line "Packages:" depth))
+      (while package-alist
+	(setq pack-entry (car package-alist))
 	(vhdl-speedbar-make-pack-line
 	 (nth 0 pack-entry) (nth 1 pack-entry)
 	 (cons (nth 2 pack-entry) (nth 3 pack-entry))
 	 (cons (nth 7 pack-entry) (nth 8 pack-entry))
 	 depth)
-	(setq pack-alist (cdr pack-alist))))))
+	(setq package-alist (cdr package-alist))))))
 
 (declare-function speedbar-line-directory "speedbar" (&optional depth))
 
@@ -17209,6 +17216,7 @@ specified by a target."
       (unless (or (assoc directory vhdl-file-alist)
 		  (vhdl-load-cache directory))
 	(vhdl-scan-directory-contents directory))))
+  (defvar rule-alist) ; we need it to be dynamically bound
   (let* ((directory (abbreviate-file-name (vhdl-default-directory)))
 	 (project (vhdl-project-p))
 	 (ent-alist (vhdl-aget vhdl-entity-alist (or project directory)))

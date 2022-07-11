@@ -1118,10 +1118,10 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
   Lisp_Object title;
   const char *error_name = NULL;
   Lisp_Object selection = Qnil;
-  struct frame *f = NULL;
+  struct frame *f;
   Lisp_Object x, y, window;
   int menuflags = 0;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   if (NILP (position))
     /* This is an obsolete call, which wants us to precompute the
@@ -1269,9 +1269,9 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	  }
       }
     else
-      /* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
+      /* ??? Not really clean; should be Qwindow_or_framep
 	 but I don't want to make one now.  */
-      CHECK_WINDOW (window);
+      wrong_type_argument (Qwindowp, window);
 
     xpos += check_integer_range (x,
 				 (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
@@ -1391,9 +1391,9 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
     }
 #endif
 
-#ifdef HAVE_NS			/* FIXME: ns-specific, why? --Stef  */
   record_unwind_protect_void (discard_menu_items);
-#endif
+
+  run_hook (Qx_pre_popup_menu_hook);
 
   /* Display them in a menu, but not if F is the initial frame that
      doesn't have its hooks set (e.g., in a batch session), because
@@ -1402,13 +1402,13 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
     selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
 						    title, &error_name);
 
-#ifdef HAVE_NS
   unbind_to (specpdl_count, Qnil);
-#else
-  discard_menu_items ();
-#endif
 
-#ifdef HAVE_NTGUI     /* FIXME: Is it really w32-specific?  --Stef  */
+#ifdef HAVE_NTGUI     /* W32 specific because other terminals clear
+			 the grab inside their `menu_show_hook's if
+			 it's actually required (i.e. there isn't a
+			 way to query the buttons currently held down
+			 after XMenuActivate). */
   if (FRAME_W32_P (f))
     FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #endif
@@ -1602,6 +1602,14 @@ syms_of_menu (void)
   staticpro (&menu_items);
 
   DEFSYM (Qhide, "hide");
+  DEFSYM (Qx_pre_popup_menu_hook, "x-pre-popup-menu-hook");
+
+  DEFVAR_LISP ("x-pre-popup-menu-hook", Vx_pre_popup_menu_hook,
+	       doc: /* Hook run before `x-popup-menu' displays a popup menu.
+It is only run before the menu is really going to be displayed.  It
+won't be run if `x-popup-menu' fails or returns for some other reason
+(such as the keymap is invalid).  */);
+  Vx_pre_popup_menu_hook = Qnil;
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);

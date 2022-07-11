@@ -40,6 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <JavaScriptCore/JavaScript.h>
 #include <cairo.h>
 #ifndef HAVE_PGTK
+#include <cairo-xlib.h>
 #include <X11/Xlib.h>
 #else
 #include <gtk/gtk.h>
@@ -61,6 +62,9 @@ static uint32_t xwidget_counter = 0;
 #ifdef USE_GTK
 #ifdef HAVE_X_WINDOWS
 static Lisp_Object x_window_to_xwv_map;
+#if WEBKIT_CHECK_VERSION (2, 34, 0)
+static Lisp_Object dummy_tooltip_string;
+#endif
 #endif
 static gboolean offscreen_damage_event (GtkWidget *, GdkEvent *, gpointer);
 static void synthesize_focus_in_event (GtkWidget *);
@@ -106,7 +110,8 @@ webkit_decide_policy_cb (WebKitWebView *,
                          WebKitPolicyDecision *,
                          WebKitPolicyDecisionType,
                          gpointer);
-static GtkWidget *find_widget_at_pos (GtkWidget *, int, int, int *, int *);
+static GtkWidget *find_widget_at_pos (GtkWidget *, int, int, int *, int *, bool,
+				      struct xwidget_view *);
 static gboolean run_file_chooser_cb (WebKitWebView *,
 				     WebKitFileChooserRequest *,
 				     gpointer);
@@ -121,11 +126,12 @@ struct widget_search_data
 };
 
 static void find_widget (GtkWidget *t, struct widget_search_data *);
-static void mouse_target_changed (WebKitWebView *, WebKitHitTestResult *, guint,
-				  gpointer);
 #endif
 
 #ifdef HAVE_PGTK
+static void mouse_target_changed (WebKitWebView *, WebKitHitTestResult *, guint,
+				  gpointer);
+
 static int
 xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
 			    struct xwidget *xw)
@@ -142,7 +148,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->button.x - xv->clip_left),
 				   lrint (event->button.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
@@ -155,7 +161,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->scroll.x - xv->clip_left),
 				   lrint (event->scroll.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
@@ -168,7 +174,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->motion.x - xv->clip_left),
 				   lrint (event->motion.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
@@ -182,7 +188,7 @@ xw_forward_event_translate (GdkEvent *event, struct xwidget_view *xv,
       widget = find_widget_at_pos (xw->widgetwindow_osr,
 				   lrint (event->crossing.x - xv->clip_left),
 				   lrint (event->crossing.y - xv->clip_top),
-				   &new_x, &new_y);
+				   &new_x, &new_y, false, NULL);
       if (widget)
 	{
 	  event->any.window = gtk_widget_get_window (widget);
@@ -223,6 +229,13 @@ xw_forward_event_from_view (GtkWidget *widget, GdkEvent *event,
 #endif
 
 #ifdef HAVE_X_WINDOWS
+enum xw_crossing_mode
+  {
+    XW_CROSSING_LEFT,
+    XW_CROSSING_ENTERED,
+    XW_CROSSING_NONE
+  };
+
 static guint
 xw_translate_x_modifiers (struct x_display_info *dpyinfo,
 			  unsigned int modifiers)
@@ -252,6 +265,17 @@ xw_translate_x_modifiers (struct x_display_info *dpyinfo,
 
   return mods;
 }
+
+static bool xw_maybe_synthesize_crossing (struct xwidget_view *,
+					  GdkWindow *, int, int, int,
+					  Time, unsigned int,
+					  GdkCrossingMode, GdkCrossingMode);
+static void xw_notify_virtual_upwards_until (struct xwidget_view *, GdkWindow *,
+					     GdkWindow *, GdkWindow *, unsigned int,
+					     int, int, Time, GdkEventType, bool,
+					     GdkCrossingMode);
+static void window_coords_from_toplevel (GdkWindow *, GdkWindow *, int,
+					 int, int *, int *);
 #endif
 
 DEFUN ("make-xwidget",
@@ -402,11 +426,12 @@ fails.  */)
                             G_CALLBACK
                             (webkit_decide_policy_cb),
                             xw);
-
+#ifdef HAVE_PGTK
 	  g_signal_connect (G_OBJECT (xw->widget_osr),
 			    "mouse-target-changed",
 			    G_CALLBACK (mouse_target_changed),
 			    xw);
+#endif
 	  g_signal_connect (G_OBJECT (xw->widget_osr),
 			    "create",
 			    G_CALLBACK (webkit_create_cb),
@@ -709,7 +734,7 @@ pick_embedded_child (GdkWindow *window, double x, double y,
     return NULL;
 
   child = find_widget_at_pos (widget, lrint (x), lrint (y),
-			      &xout, &yout);
+			      &xout, &yout, false, NULL);
 
   if (!child)
     return NULL;
@@ -832,15 +857,34 @@ to_embedder (GdkWindow *window, double x, double y,
 }
 
 static GdkDevice *
-find_suitable_pointer (struct frame *f)
+find_suitable_pointer (struct frame *f, bool need_smooth)
 {
   GdkSeat *seat = gdk_display_get_default_seat
     (gtk_widget_get_display (FRAME_GTK_WIDGET (f)));
+  GList *devices, *tem;
+  GdkDevice *device;
 
   if (!seat)
     return NULL;
 
-  return gdk_seat_get_pointer (seat);
+  devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL_POINTING);
+  device = NULL;
+  tem = NULL;
+
+  if (need_smooth)
+    {
+      for (tem = devices; tem; tem = tem->next)
+	{
+	  device = GDK_DEVICE (tem->data);
+
+	  if (gdk_device_get_source (device) == GDK_SOURCE_TOUCHPAD)
+	    break;
+	}
+    }
+
+  g_list_free (devices);
+
+  return !tem ? gdk_seat_get_pointer (seat) : device;
 }
 
 static GdkDevice *
@@ -918,9 +962,9 @@ find_widget (GtkWidget *widget,
 	}
     }
 
-  if ((data->x >= new_allocation.x) && (data->y >= new_allocation.y) &&
-      (data->x < new_allocation.x + new_allocation.width) &&
-      (data->y < new_allocation.y + new_allocation.height))
+  if ((data->x >= new_allocation.x) && (data->y >= new_allocation.y)
+      && (data->x < new_allocation.x + new_allocation.width)
+      && (data->y < new_allocation.y + new_allocation.height))
     {
       /* First, check if the drag is in a valid drop site in one of
 	 our children.	*/
@@ -954,9 +998,27 @@ find_widget (GtkWidget *widget,
 
 static GtkWidget *
 find_widget_at_pos (GtkWidget *w, int x, int y,
-		    int *new_x, int *new_y)
+		    int *new_x, int *new_y,
+		    bool pointer_grabs,
+		    struct xwidget_view *vw)
 {
   struct widget_search_data data;
+#ifdef HAVE_X_WINDOWS
+  GtkWidget *grab = NULL;
+
+  if (pointer_grabs)
+    {
+      grab = vw->passive_grab;
+
+      if (grab && gtk_widget_get_window (grab))
+	{
+	  gtk_widget_translate_coordinates (w, grab, x,
+					    y, new_x, new_y);
+
+	  return grab;
+	}
+    }
+#endif
 
   data.x = x;
   data.y = y;
@@ -978,6 +1040,7 @@ find_widget_at_pos (GtkWidget *w, int x, int y,
   return NULL;
 }
 
+#ifdef HAVE_PGTK
 static Emacs_Cursor
 cursor_for_hit (guint result, struct frame *frame)
 {
@@ -1001,9 +1064,7 @@ static void
 define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
 {
   struct xwidget_view *xvw;
-#ifdef HAVE_PGTK
   GdkWindow *wdesc;
-#endif
 
   xw->hit_result = webkit_hit_test_result_get_context (res);
 
@@ -1017,16 +1078,12 @@ define_cursors (struct xwidget *xw, WebKitHitTestResult *res)
 	  if (XXWIDGET (xvw->model) == xw)
 	    {
 	      xvw->cursor = cursor_for_hit (xw->hit_result, xvw->frame);
-#ifdef HAVE_X_WINDOWS
-	      if (xvw->wdesc != None)
-		XDefineCursor (xvw->dpy, xvw->wdesc, xvw->cursor);
-#else
+
 	      if (gtk_widget_get_realized (xvw->widget))
 		{
 		  wdesc = gtk_widget_get_window (xvw->widget);
 		  gdk_window_set_cursor (wdesc, xvw->cursor);
 		}
-#endif
 	    }
 	}
     }
@@ -1039,6 +1096,7 @@ mouse_target_changed (WebKitWebView *webview,
 {
   define_cursors (xw, hitresult);
 }
+#endif
 
 static gboolean
 run_file_chooser_cb (WebKitWebView *webview,
@@ -1103,22 +1161,48 @@ run_file_chooser_cb (WebKitWebView *webview,
 #ifdef HAVE_X_WINDOWS
 
 static void
+xv_drag_begin_cb (GtkWidget *widget,
+		  GdkDragContext *context,
+		  gpointer user_data)
+{
+  struct xwidget_view *view = user_data;
+
+  if (view->passive_grab)
+    {
+      g_signal_handler_disconnect (view->passive_grab,
+				   view->passive_grab_destruction_signal);
+      g_signal_handler_disconnect (view->passive_grab,
+				   view->passive_grab_drag_signal);
+      view->passive_grab = NULL;
+    }
+}
+
+static void
 xwidget_button_1 (struct xwidget_view *view,
 		  bool down_p, int x, int y, int button,
 		  int modifier_state, Time time)
 {
-  GdkEvent *xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
+  GdkEvent *xg_event;
   struct xwidget *model = XXWIDGET (view->model);
   GtkWidget *target;
+  GtkWidget *ungrab_target;
+  GdkWindow *toplevel, *target_window;
+  int view_x, view_y;
 
   /* X and Y should be relative to the origin of view->wdesc.  */
   x += view->clip_left;
   y += view->clip_top;
 
-  target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y);
+  view_x = x;
+  view_y = y;
+
+  target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y,
+			       true, view);
 
   if (!target)
     target = model->widget_osr;
+
+  xg_event = gdk_event_new (down_p ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
 
   xg_event->any.window = gtk_widget_get_window (target);
   g_object_ref (xg_event->any.window); /* The window will be unrefed
@@ -1131,10 +1215,92 @@ xwidget_button_1 (struct xwidget_view *view,
   xg_event->button.button = button;
   xg_event->button.state = modifier_state;
   xg_event->button.time = time;
-  xg_event->button.device = find_suitable_pointer (view->frame);
+  xg_event->button.device = find_suitable_pointer (view->frame, false);
 
   gtk_main_do_event (xg_event);
   gdk_event_free (xg_event);
+
+
+  if (down_p && !view->passive_grab)
+    {
+      view->passive_grab = target;
+      view->passive_grab_destruction_signal
+	= g_signal_connect (G_OBJECT (view->passive_grab),
+			    "destroy", G_CALLBACK (gtk_widget_destroyed),
+			    &view->passive_grab);
+      view->passive_grab_drag_signal
+	= g_signal_connect (G_OBJECT (view->passive_grab),
+			    "drag-begin", G_CALLBACK (xv_drag_begin_cb),
+			    view);
+    }
+  else
+    {
+      ungrab_target = find_widget_at_pos (model->widgetwindow_osr,
+					  view_x, view_y, &x, &y,
+					  false, NULL);
+
+      if (view->last_crossing_window && ungrab_target)
+	{
+	  xw_maybe_synthesize_crossing (view, gtk_widget_get_window (ungrab_target),
+					view_x, view_y, XW_CROSSING_NONE,
+					time, modifier_state, GDK_CROSSING_UNGRAB,
+					GDK_CROSSING_UNGRAB);
+	}
+      else
+	{
+	  toplevel = gtk_widget_get_window (model->widgetwindow_osr);
+	  xg_event = gdk_event_new (GDK_LEAVE_NOTIFY);
+	  target_window = gtk_widget_get_window (target);
+	  window_coords_from_toplevel (target_window, toplevel, view_x,
+				       view_y, &x, &y);
+
+	  xg_event->crossing.x = x;
+	  xg_event->crossing.y = y;
+	  xg_event->crossing.time = time;
+	  xg_event->crossing.focus = FALSE;
+	  xg_event->crossing.detail = GDK_NOTIFY_ANCESTOR;
+	  xg_event->crossing.mode = GDK_CROSSING_UNGRAB;
+	  xg_event->crossing.window = g_object_ref (target_window);
+	  gdk_event_set_device (xg_event,
+				find_suitable_pointer (view->frame, false));
+
+	  gtk_main_do_event (xg_event);
+	  gdk_event_free (xg_event);
+
+	  xw_notify_virtual_upwards_until (view, target_window, toplevel, toplevel,
+					   modifier_state, view_x, view_y, time,
+					   GDK_LEAVE_NOTIFY, false,
+					   GDK_CROSSING_UNGRAB);
+
+	  if (target_window != toplevel)
+	    {
+	      xg_event = gdk_event_new (GDK_LEAVE_NOTIFY);
+
+	      xg_event->crossing.x = view_y;
+	      xg_event->crossing.y = view_y;
+	      xg_event->crossing.time = time;
+	      xg_event->crossing.focus = FALSE;
+	      xg_event->crossing.detail = GDK_NOTIFY_VIRTUAL;
+	      xg_event->crossing.mode = GDK_CROSSING_UNGRAB;
+	      xg_event->crossing.window = g_object_ref (toplevel);
+
+	      gdk_event_set_device (xg_event,
+				    find_suitable_pointer (view->frame, false));
+	      gtk_main_do_event (xg_event);
+	      gdk_event_free (xg_event);
+	    }
+
+	}
+
+      if (view->passive_grab)
+	{
+	  g_signal_handler_disconnect (view->passive_grab,
+				       view->passive_grab_destruction_signal);
+	  g_signal_handler_disconnect (view->passive_grab,
+				       view->passive_grab_drag_signal);
+	  view->passive_grab = NULL;
+	}
+    }
 }
 
 void
@@ -1149,51 +1315,51 @@ xwidget_button (struct xwidget_view *view,
 
   if (button < 4 || button > 8)
     xwidget_button_1 (view, down_p, x, y, button, modifier_state, time);
-#ifndef HAVE_XINPUT2
   else
-#else
-  else if (!FRAME_DISPLAY_INFO (view->frame)->supports_xi2
-	   || FRAME_DISPLAY_INFO (view->frame)->xi2_version < 1)
-#endif
     {
-      GdkEvent *xg_event = gdk_event_new (GDK_SCROLL);
-      struct xwidget *model = XXWIDGET (view->model);
-      GtkWidget *target;
+      if (!down_p)
+	{
+	  GdkEvent *xg_event = gdk_event_new (GDK_SCROLL);
+	  struct xwidget *model = XXWIDGET (view->model);
+	  GtkWidget *target;
 
-      x += view->clip_left;
-      y += view->clip_top;
+	  x += view->clip_left;
+	  y += view->clip_top;
 
-      target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y);
+	  target = find_widget_at_pos (model->widgetwindow_osr, x, y, &x, &y,
+				       true, view);
 
-      if (!target)
-	target = model->widget_osr;
+	  if (!target)
+	    target = model->widget_osr;
 
-      xg_event->any.window = gtk_widget_get_window (target);
-      g_object_ref (xg_event->any.window); /* The window will be unrefed
-					      later by gdk_event_free.  */
-      if (button == 4)
-	xg_event->scroll.direction = GDK_SCROLL_UP;
-      else if (button == 5)
-	xg_event->scroll.direction = GDK_SCROLL_DOWN;
-      else if (button == 6)
-	xg_event->scroll.direction = GDK_SCROLL_LEFT;
-      else
-	xg_event->scroll.direction = GDK_SCROLL_RIGHT;
+	  xg_event->any.window = gtk_widget_get_window (target);
+	  g_object_ref (xg_event->any.window); /* The window will be unrefed
+						  later by gdk_event_free.  */
+	  if (button == 4)
+	    xg_event->scroll.direction = GDK_SCROLL_UP;
+	  else if (button == 5)
+	    xg_event->scroll.direction = GDK_SCROLL_DOWN;
+	  else if (button == 6)
+	    xg_event->scroll.direction = GDK_SCROLL_LEFT;
+	  else
+	    xg_event->scroll.direction = GDK_SCROLL_RIGHT;
 
-      xg_event->scroll.device = find_suitable_pointer (view->frame);
+	  xg_event->scroll.device = find_suitable_pointer (view->frame,
+							   false);
 
-      xg_event->scroll.x = x;
-      xg_event->scroll.x_root = x;
-      xg_event->scroll.y = y;
-      xg_event->scroll.y_root = y;
-      xg_event->scroll.state = modifier_state;
-      xg_event->scroll.time = time;
+	  xg_event->scroll.x = x;
+	  xg_event->scroll.x_root = x;
+	  xg_event->scroll.y = y;
+	  xg_event->scroll.y_root = y;
+	  xg_event->scroll.state = modifier_state;
+	  xg_event->scroll.time = time;
 
-      xg_event->scroll.delta_x = 0;
-      xg_event->scroll.delta_y = 0;
+	  xg_event->scroll.delta_x = 0;
+	  xg_event->scroll.delta_y = 0;
 
-      gtk_main_do_event (xg_event);
-      gdk_event_free (xg_event);
+	  gtk_main_do_event (xg_event);
+	  gdk_event_free (xg_event);
+	}
     }
 }
 
@@ -1217,14 +1383,23 @@ xwidget_motion_notify (struct xwidget_view *view,
   target = find_widget_at_pos (model->widgetwindow_osr,
 			       lrint (x + view->clip_left),
 			       lrint (y + view->clip_top),
-			       &target_x, &target_y);
+			       &target_x, &target_y,
+			       true, view);
 
   if (!target)
     {
-      target_x = lrint (x);
-      target_y = lrint (y);
+      target_x = lrint (x + view->clip_left);
+      target_y = lrint (y + view->clip_top);
       target = model->widget_osr;
     }
+  else if (xw_maybe_synthesize_crossing (view, gtk_widget_get_window (target),
+					 x + view->clip_left, y + view->clip_top,
+					 XW_CROSSING_NONE, time, state,
+					 (view->passive_grab
+					  ? GDK_CROSSING_GRAB
+					  : GDK_CROSSING_NORMAL),
+					 GDK_CROSSING_NORMAL))
+    return;
 
   xg_event = gdk_event_new (GDK_MOTION_NOTIFY);
   xg_event->any.window = gtk_widget_get_window (target);
@@ -1234,7 +1409,7 @@ xwidget_motion_notify (struct xwidget_view *view,
   xg_event->motion.y_root = root_y;
   xg_event->motion.time = time;
   xg_event->motion.state = state;
-  xg_event->motion.device = find_suitable_pointer (view->frame);
+  xg_event->motion.device = find_suitable_pointer (view->frame, false);
 
   g_object_ref (xg_event->any.window);
 
@@ -1260,7 +1435,8 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   target = find_widget_at_pos (model->widgetwindow_osr,
 			       lrint (x + view->clip_left),
 			       lrint (y + view->clip_top),
-			       &target_x, &target_y);
+			       &target_x, &target_y,
+			       true, view);
 
   if (!target)
     {
@@ -1280,7 +1456,7 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   xg_event->scroll.state = state;
   xg_event->scroll.delta_x = dx;
   xg_event->scroll.delta_y = dy;
-  xg_event->scroll.device = find_suitable_pointer (view->frame);
+  xg_event->scroll.device = find_suitable_pointer (view->frame, true);
   xg_event->scroll.is_stop = stop_p;
 
   g_object_ref (xg_event->any.window);
@@ -1289,7 +1465,7 @@ xwidget_scroll (struct xwidget_view *view, double x, double y,
   gdk_event_free (xg_event);
 }
 
-#ifdef HAVE_USABLE_XI_GESTURE_PINCH_EVENT
+#ifdef HAVE_XINPUT2_4
 void
 xwidget_pinch (struct xwidget_view *view, XIGesturePinchEvent *xev)
 {
@@ -1309,7 +1485,8 @@ xwidget_pinch (struct xwidget_view *view, XIGesturePinchEvent *xev)
   target = find_widget_at_pos (model->widgetwindow_osr,
 			       lrint (x + view->clip_left),
 			       lrint (y + view->clip_top),
-			       &target_x, &target_y);
+			       &target_x, &target_y,
+			       true, view);
 
   if (!target)
     {
@@ -1344,7 +1521,7 @@ xwidget_pinch (struct xwidget_view *view, XIGesturePinchEvent *xev)
       break;
     }
 
-  gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+  gdk_event_set_device (xg_event, find_suitable_pointer (view->frame, false));
 
   g_object_ref (xg_event->any.window);
   gtk_main_do_event (xg_event);
@@ -1376,13 +1553,379 @@ xi_translate_notify_detail (int detail)
 }
 #endif
 
+static void
+window_coords_from_toplevel (GdkWindow *window, GdkWindow *toplevel,
+			     int x, int y, int *out_x, int *out_y)
+{
+  GdkWindow *parent;
+  GList *children, *l;
+  gdouble x_out, y_out;
+
+  if (window == toplevel)
+    {
+      *out_x = x;
+      *out_y = y;
+      return;
+    }
+
+  children = NULL;
+  while ((parent = gdk_window_get_parent (window)) != toplevel)
+    {
+      children = g_list_prepend (children, window);
+      window = parent;
+    }
+
+  for (l = children; l != NULL; l = l->next)
+    gdk_window_coords_from_parent (l->data, x, y, &x_out, &y_out);
+
+  g_list_free (children);
+
+  *out_x = x_out;
+  *out_y = y_out;
+}
+
+static GdkWindow *
+xw_find_common_ancestor (GdkWindow *window,
+			 GdkWindow *other,
+			 GdkWindow *toplevel)
+{
+  GdkWindow *tem;
+  GList *l1 = NULL;
+  GList *l2 = NULL;
+  GList *i1, *i2;
+
+  tem = window;
+  while (tem && tem != toplevel)
+    {
+      l1 = g_list_prepend (l1, tem);
+      tem = gdk_window_get_parent (tem);
+    }
+
+  tem = other;
+  while (tem && tem != toplevel)
+    {
+      l2 = g_list_prepend (l2, tem);
+      tem = gdk_window_get_parent (tem);
+    }
+
+  tem = NULL;
+  i1 = l1;
+  i2 = l2;
+
+  while (i1 && i2 && (i1->data == i2->data))
+    {
+      tem = i1->data;
+      i1 = i1->next;
+      i2 = i2->next;
+    }
+
+  g_list_free (l1);
+  g_list_free (l2);
+
+  return tem;
+}
+
+static void
+xw_notify_virtual_upwards_until (struct xwidget_view *xv,
+				 GdkWindow *window,
+				 GdkWindow *until,
+				 GdkWindow *toplevel,
+				 unsigned int state,
+				 int x, int y, Time time,
+				 GdkEventType type,
+				 bool nonlinear_p,
+				 GdkCrossingMode crossing)
+{
+  GdkEvent *xg_event;
+  GdkWindow *tem;
+  int cx, cy;
+
+  for (tem = gdk_window_get_parent (window);
+       tem && (tem != until);
+       tem = gdk_window_get_parent (tem))
+    {
+      xg_event = gdk_event_new (type);
+
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (xv->frame, false));
+      window_coords_from_toplevel (tem, toplevel, x, y, &cx, &cy);
+      xg_event->crossing.x = cx;
+      xg_event->crossing.y = cy;
+      xg_event->crossing.time = time;
+      xg_event->crossing.focus = FALSE;
+      xg_event->crossing.detail = (nonlinear_p
+				   ? GDK_NOTIFY_NONLINEAR_VIRTUAL
+				   : GDK_NOTIFY_VIRTUAL);
+      xg_event->crossing.mode = crossing;
+      xg_event->crossing.window = g_object_ref (tem);
+
+      gtk_main_do_event (xg_event);
+      gdk_event_free (xg_event);
+    }
+}
+
+static void
+xw_notify_virtual_downwards_until (struct xwidget_view *xv,
+				   GdkWindow *window,
+				   GdkWindow *until,
+				   GdkWindow *toplevel,
+				   unsigned int state,
+				   int x, int y, Time time,
+				   GdkEventType type,
+				   bool nonlinear_p,
+				   GdkCrossingMode crossing)
+{
+  GdkEvent *xg_event;
+  GdkWindow *tem;
+  int cx, cy;
+  GList *path = NULL, *it;
+
+  tem = gdk_window_get_parent (window);
+
+  while (tem && tem != until)
+    {
+      path = g_list_prepend (path, tem);
+      tem = gdk_window_get_parent (tem);
+    }
+
+  for (it = path; it; it = it->next)
+    {
+      tem = it->data;
+      xg_event = gdk_event_new (type);
+
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (xv->frame, false));
+      window_coords_from_toplevel (tem, toplevel, x, y, &cx, &cy);
+      xg_event->crossing.x = cx;
+      xg_event->crossing.y = cy;
+      xg_event->crossing.time = time;
+      xg_event->crossing.focus = FALSE;
+      xg_event->crossing.detail = (nonlinear_p
+				   ? GDK_NOTIFY_NONLINEAR_VIRTUAL
+				   : GDK_NOTIFY_VIRTUAL);
+      xg_event->crossing.mode = crossing;
+      xg_event->crossing.window = g_object_ref (tem);
+
+      gtk_main_do_event (xg_event);
+      gdk_event_free (xg_event);
+    }
+
+  g_list_free (path);
+}
+
+static void
+xw_update_cursor_for_view (struct xwidget_view *xv,
+			   GdkWindow *crossing_window)
+{
+  GdkCursor *xg_cursor;
+  Cursor cursor;
+
+  xg_cursor = gdk_window_get_cursor (crossing_window);
+
+  if (xg_cursor)
+    {
+      cursor = gdk_x11_cursor_get_xcursor (xg_cursor);
+
+      if (gdk_x11_cursor_get_xdisplay (xg_cursor) == xv->dpy)
+	xv->cursor = cursor;
+    }
+  else
+    xv->cursor = FRAME_OUTPUT_DATA (xv->frame)->nontext_cursor;
+
+  if (xv->wdesc != None)
+    XDefineCursor (xv->dpy, xv->wdesc, xv->cursor);
+}
+
+static void
+xw_last_crossing_cursor_cb (GdkWindow *window,
+			    GParamSpec *spec,
+			    gpointer user_data)
+{
+  xw_update_cursor_for_view (user_data, window);
+}
+
+static bool
+xw_maybe_synthesize_crossing (struct xwidget_view *view,
+			      GdkWindow *current_window,
+			      int x, int y, int crossing,
+			      Time time, unsigned int state,
+			      GdkCrossingMode entry_crossing,
+			      GdkCrossingMode exit_crossing)
+{
+  GdkWindow *last_crossing, *toplevel, *ancestor;
+  GdkEvent *xg_event;
+  int cx, cy;
+  bool nonlinear_p;
+  bool retention_flag;
+
+#if WEBKIT_CHECK_VERSION (2, 34, 0)
+  /* Work around a silly bug in WebKitGTK+ that tries to make tooltip
+     windows transient for our offscreen window.  */
+  int tooltip_width, tooltip_height;
+
+  xg_prepare_tooltip (view->frame, dummy_tooltip_string,
+		      &tooltip_width, &tooltip_height);
+#endif
+
+  toplevel = gtk_widget_get_window (XXWIDGET (view->model)->widgetwindow_osr);
+  retention_flag = false;
+
+  if (crossing == XW_CROSSING_LEFT
+      && (view->last_crossing_window
+	  && !gdk_window_is_destroyed (view->last_crossing_window)))
+    {
+      xw_notify_virtual_upwards_until (view, view->last_crossing_window,
+				       toplevel, toplevel,
+				       state, x, y, time,
+				       GDK_LEAVE_NOTIFY, false,
+				       exit_crossing);
+    }
+
+  if (view->last_crossing_window
+      && (gdk_window_is_destroyed (view->last_crossing_window)
+	  || crossing == XW_CROSSING_LEFT))
+    {
+      if (!gdk_window_is_destroyed (view->last_crossing_window)
+	  && view->last_crossing_window != toplevel)
+	{
+	  xg_event = gdk_event_new (GDK_LEAVE_NOTIFY);
+	  window_coords_from_toplevel (view->last_crossing_window,
+				       toplevel, x, y, &cx, &cy);
+
+	  xg_event->crossing.x = cx;
+	  xg_event->crossing.y = cy;
+	  xg_event->crossing.time = time;
+	  xg_event->crossing.focus = FALSE;
+	  xg_event->crossing.detail = GDK_NOTIFY_ANCESTOR;
+	  xg_event->crossing.mode = exit_crossing;
+	  xg_event->crossing.window = g_object_ref (view->last_crossing_window);
+	  gdk_event_set_device (xg_event,
+				find_suitable_pointer (view->frame, false));
+
+	  gtk_main_do_event (xg_event);
+	  gdk_event_free (xg_event);
+
+	  xw_notify_virtual_upwards_until (view, view->last_crossing_window,
+					   gdk_window_get_parent (toplevel),
+					   toplevel, state, x, y, time,
+					   GDK_LEAVE_NOTIFY, false, exit_crossing);
+	  retention_flag = true;
+	}
+
+      g_signal_handler_disconnect (view->last_crossing_window,
+				   view->last_crossing_cursor_signal);
+      g_clear_pointer (&view->last_crossing_window,
+		       g_object_unref);
+    }
+  last_crossing = view->last_crossing_window;
+
+  if (!last_crossing)
+    {
+      if (current_window)
+	{
+	  view->last_crossing_window = g_object_ref (current_window);
+	  xw_update_cursor_for_view (view, current_window);
+	  view->last_crossing_cursor_signal
+	    = g_signal_connect (G_OBJECT (current_window), "notify::cursor",
+				G_CALLBACK (xw_last_crossing_cursor_cb), view);
+
+	  xw_notify_virtual_downwards_until (view, current_window,
+					     toplevel, toplevel,
+					     state, x, y, time,
+					     GDK_ENTER_NOTIFY,
+					     false, entry_crossing);
+	}
+      return retention_flag;
+    }
+
+  if (last_crossing != current_window)
+    {
+      view->last_crossing_window = g_object_ref (current_window);
+      g_signal_handler_disconnect (last_crossing, view->last_crossing_cursor_signal);
+
+      xw_update_cursor_for_view (view, current_window);
+      view->last_crossing_cursor_signal
+	= g_signal_connect (G_OBJECT (current_window), "notify::cursor",
+			    G_CALLBACK (xw_last_crossing_cursor_cb), view);
+
+      ancestor = xw_find_common_ancestor (last_crossing, current_window, toplevel);
+
+      if (!ancestor)
+	emacs_abort ();
+
+      nonlinear_p = (last_crossing != ancestor) && (current_window != ancestor);
+
+      if (nonlinear_p || (last_crossing != ancestor))
+	xw_notify_virtual_upwards_until (view, last_crossing,
+					 ancestor, toplevel,
+					 state, x, y, time,
+					 GDK_LEAVE_NOTIFY,
+					 nonlinear_p,
+					 exit_crossing);
+
+      xg_event = gdk_event_new (GDK_LEAVE_NOTIFY);
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
+      window_coords_from_toplevel (last_crossing, toplevel,
+				   x, y, &cx, &cy);
+      xg_event->crossing.x = cx;
+      xg_event->crossing.y = cy;
+      xg_event->crossing.time = time;
+      xg_event->crossing.focus = FALSE;
+      xg_event->crossing.state = state;
+      xg_event->crossing.detail = (nonlinear_p
+				   ? GDK_NOTIFY_NONLINEAR
+				   : (last_crossing == ancestor
+				      ? GDK_NOTIFY_INFERIOR
+				      : GDK_NOTIFY_ANCESTOR));
+      xg_event->crossing.mode = exit_crossing;
+      xg_event->crossing.window = g_object_ref (last_crossing);
+
+      gtk_main_do_event (xg_event);
+      gdk_event_free (xg_event);
+
+      if (nonlinear_p || (current_window != ancestor))
+	xw_notify_virtual_downwards_until (view, current_window,
+					   ancestor, toplevel,
+					   state, x, y, time,
+					   GDK_ENTER_NOTIFY,
+					   nonlinear_p,
+					   entry_crossing);
+
+      xg_event = gdk_event_new (GDK_ENTER_NOTIFY);
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
+      window_coords_from_toplevel (current_window, toplevel,
+				   x, y, &cx, &cy);
+      xg_event->crossing.x = cx;
+      xg_event->crossing.y = cy;
+      xg_event->crossing.time = time;
+      xg_event->crossing.focus = FALSE;
+      xg_event->crossing.state = state;
+      xg_event->crossing.detail = (nonlinear_p
+				   ? GDK_NOTIFY_NONLINEAR
+				   : (current_window == ancestor
+				      ? GDK_NOTIFY_INFERIOR
+				      : GDK_NOTIFY_ANCESTOR));
+      xg_event->crossing.mode = entry_crossing;
+      xg_event->crossing.window = g_object_ref (current_window);
+
+      gtk_main_do_event (xg_event);
+      gdk_event_free (xg_event);
+      g_object_unref (last_crossing);
+
+      return true;
+    }
+
+  return false;
+}
+
 void
 xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 {
   GdkEvent *xg_event;
   struct xwidget *model = XXWIDGET (view->model);
-  int x;
-  int y;
+  int x, y, toplevel_x, toplevel_y;
   GtkWidget *target;
 #ifdef HAVE_XINPUT2
   XIEnterEvent *xev = NULL;
@@ -1400,14 +1943,15 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 				: (event->type == LeaveNotify
 				   ? GDK_LEAVE_NOTIFY
 				   : GDK_ENTER_NOTIFY));
+      toplevel_x = (event->type == MotionNotify
+		    ? event->xmotion.x + view->clip_left
+		    : event->xcrossing.x + view->clip_left);
+      toplevel_y = (event->type == MotionNotify
+		    ? event->xmotion.y + view->clip_top
+		    : event->xcrossing.y + view->clip_top);
       target = find_widget_at_pos (model->widgetwindow_osr,
-				   (event->type == MotionNotify
-				    ? event->xmotion.x + view->clip_left
-				    : event->xcrossing.x + view->clip_left),
-				   (event->type == MotionNotify
-				    ? event->xmotion.y + view->clip_top
-				    : event->xcrossing.y + view->clip_top),
-				   &x, &y);
+				   toplevel_x, toplevel_y, &x, &y,
+				   true, view);
     }
 #ifdef HAVE_XINPUT2
   else
@@ -1420,9 +1964,11 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 				? GDK_ENTER_NOTIFY
 				: GDK_LEAVE_NOTIFY);
       target = find_widget_at_pos (model->widgetwindow_osr,
-				   lrint (xev->event_x + view->clip_left),
-				   lrint (xev->event_y + view->clip_top),
-				   &x, &y);
+				   (toplevel_x
+				    = lrint (xev->event_x + view->clip_left)),
+				   (toplevel_y
+				    = lrint (xev->event_y + view->clip_top)),
+				   &x, &y, true, view);
     }
 #endif
 
@@ -1436,19 +1982,35 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 
   if (event->type == MotionNotify)
     {
-      xg_event->motion.x = x;
-      xg_event->motion.y = y;
-      xg_event->motion.x_root = event->xmotion.x_root;
-      xg_event->motion.y_root = event->xmotion.y_root;
-      xg_event->motion.time = event->xmotion.time;
-      xg_event->motion.state = event->xmotion.state;
-      xg_event->motion.device = find_suitable_pointer (view->frame);
+      if (!xw_maybe_synthesize_crossing (view, xg_event->any.window,
+					 toplevel_x, toplevel_y,
+					 XW_CROSSING_NONE, event->xmotion.time,
+					 event->xmotion.state,
+					 (view->passive_grab
+					  ? GDK_CROSSING_GRAB
+					  : GDK_CROSSING_NORMAL),
+					 GDK_CROSSING_NORMAL))
+	{
+	  xg_event->motion.x = x;
+	  xg_event->motion.y = y;
+	  xg_event->motion.x_root = event->xmotion.x_root;
+	  xg_event->motion.y_root = event->xmotion.y_root;
+	  xg_event->motion.time = event->xmotion.time;
+	  xg_event->motion.state = event->xmotion.state;
+	  xg_event->motion.device
+	    = find_suitable_pointer (view->frame, false);
+	}
+      else
+	{
+	  gdk_event_free (xg_event);
+	  return;
+	}
     }
 #ifdef HAVE_XINPUT2
   else if (event->type == GenericEvent)
     {
-      xg_event->crossing.x = (gdouble) xev->event_x;
-      xg_event->crossing.y = (gdouble) xev->event_y;
+      xg_event->crossing.x = x;
+      xg_event->crossing.y = y;
       xg_event->crossing.x_root = (gdouble) xev->root_x;
       xg_event->crossing.y_root = (gdouble) xev->root_y;
       xg_event->crossing.time = xev->time;
@@ -1467,11 +2029,45 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
 	    xg_event->crossing.state |= GDK_BUTTON3_MASK;
 	}
 
-      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      if (view->passive_grab
+	  || xw_maybe_synthesize_crossing (view, xg_event->any.window,
+					   toplevel_x, toplevel_y,
+					   (xev->type == XI_Enter
+					    ? XW_CROSSING_ENTERED
+					    : XW_CROSSING_LEFT),
+					   xev->time, xg_event->crossing.state,
+					   (view->passive_grab
+					    ? GDK_CROSSING_GRAB
+					    : GDK_CROSSING_NORMAL),
+					   GDK_CROSSING_NORMAL))
+	{
+	  gdk_event_free (xg_event);
+	  return;
+	}
+
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
     }
 #endif
   else
     {
+      if (view->passive_grab
+	  || xw_maybe_synthesize_crossing (view, xg_event->any.window,
+					   toplevel_x, toplevel_y,
+					   (event->type == EnterNotify
+					    ? XW_CROSSING_ENTERED
+					    : XW_CROSSING_LEFT),
+					   event->xcrossing.time,
+					   event->xcrossing.state,
+					   (view->passive_grab
+					    ? GDK_CROSSING_GRAB
+					    : GDK_CROSSING_NORMAL),
+					   GDK_CROSSING_NORMAL))
+	{
+	  gdk_event_free (xg_event);
+	  return;
+	}
+
       xg_event->crossing.detail = min (5, event->xcrossing.detail);
       xg_event->crossing.time = event->xcrossing.time;
       xg_event->crossing.x = x;
@@ -1479,7 +2075,8 @@ xwidget_motion_or_crossing (struct xwidget_view *view, const XEvent *event)
       xg_event->crossing.x_root = event->xcrossing.x_root;
       xg_event->crossing.y_root = event->xcrossing.y_root;
       xg_event->crossing.focus = event->xcrossing.focus;
-      gdk_event_set_device (xg_event, find_suitable_pointer (view->frame));
+      gdk_event_set_device (xg_event,
+			    find_suitable_pointer (view->frame, false));
     }
 
   gtk_main_do_event (xg_event);
@@ -1505,7 +2102,8 @@ synthesize_focus_in_event (GtkWidget *offscreen_window)
 
   if (FRAME_WINDOW_P (SELECTED_FRAME ()))
     gdk_event_set_device (focus_event,
-			  find_suitable_pointer (SELECTED_FRAME ()));
+			  find_suitable_pointer (SELECTED_FRAME (),
+						 false));
 
   g_object_ref (wnd);
 
@@ -1855,7 +2453,7 @@ webkit_js_to_lisp (JSCValue *value)
       const gint32 dlen = jsc_value_to_int32 (len);
 
       Lisp_Object obj;
-      if (! (0 <= dlen && dlen < PTRDIFF_MAX + 1.0))
+      if (! (0 <= dlen && dlen < G_MAXINT32))
 	memory_full (SIZE_MAX);
 
       ptrdiff_t n = dlen;
@@ -2132,8 +2730,10 @@ xwidget_init_view (struct xwidget *xww,
 
   xv->wdesc = None;
   xv->frame = s->f;
-  xv->cursor = cursor_for_hit (xww->hit_result, s->f);
+  xv->cursor = FRAME_OUTPUT_DATA (s->f)->nontext_cursor;
   xv->just_resized = false;
+  xv->last_crossing_window = NULL;
+  xv->passive_grab = NULL;
 #elif defined HAVE_PGTK
   xv->dpyinfo = FRAME_DISPLAY_INFO (s->f);
   xv->widget = gtk_drawing_area_new ();
@@ -2284,7 +2884,7 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 	  XISetMask (m, XI_ButtonRelease);
 	  XISetMask (m, XI_Enter);
 	  XISetMask (m, XI_Leave);
-#ifdef XI_GesturePinchBegin
+#ifdef HAVE_XINPUT2_4
 	  if (FRAME_DISPLAY_INFO (s->f)->xi2_version >= 4)
 	    {
 	      XISetMask (m, XI_GesturePinchBegin);
@@ -2406,8 +3006,11 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
 #endif
 
 #if defined HAVE_XINPUT2 || defined HAVE_PGTK
-  record_osr_embedder (xv);
-  synthesize_focus_in_event (xww->widget_osr);
+  if (!NILP (xww->buffer))
+    {
+      record_osr_embedder (xv);
+      synthesize_focus_in_event (xww->widget_osr);
+    }
 #endif
 
 #ifdef USE_GTK
@@ -2756,6 +3359,22 @@ DEFUN ("delete-xwidget-view",
       XDestroyWindow (xv->dpy, xv->wdesc);
       Fremhash (make_fixnum (xv->wdesc), x_window_to_xwv_map);
     }
+
+  if (xv->last_crossing_window)
+    g_signal_handler_disconnect (xv->last_crossing_window,
+				 xv->last_crossing_cursor_signal);
+  g_clear_pointer (&xv->last_crossing_window,
+		   g_object_unref);
+
+  if (xv->passive_grab)
+    {
+      g_signal_handler_disconnect (xv->passive_grab,
+				   xv->passive_grab_destruction_signal);
+      g_signal_handler_disconnect (xv->passive_grab,
+				   xv->passive_grab_drag_signal);
+      xv->passive_grab = NULL;
+    }
+
 #else
   gtk_widget_destroy (xv->widget);
 #endif
@@ -3355,6 +3974,11 @@ syms_of_xwidget (void)
   x_window_to_xwv_map = CALLN (Fmake_hash_table, QCtest, Qeq);
 
   staticpro (&x_window_to_xwv_map);
+
+#if WEBKIT_CHECK_VERSION (2, 34, 0)
+  dummy_tooltip_string = build_string ("");
+  staticpro (&dummy_tooltip_string);
+#endif
 #endif
 }
 

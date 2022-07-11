@@ -103,7 +103,7 @@
     ((eq major-mode 'Man-mode)
      4090
      "Manuals (%d)")
-    ((eq major-mode 'w3-mode)
+    ((eq major-mode 'eww-mode)
      4020
      "WWW (%d)")
     ((or (memq major-mode
@@ -154,7 +154,7 @@
     ((eq major-mode 'Man-mode)
      5030
      "Manuals (%d)")
-    ((eq major-mode 'w3-mode)
+    ((eq major-mode 'eww-mode)
      5020
      "WWW (%d)")
     ((or (memq major-mode
@@ -299,7 +299,7 @@ If the value is not a number, then the value 10 is used."
 (defcustom msb-display-most-recently-used 15
   "How many buffers should be in the most-recently-used menu.
 No buffers at all if less than 1 or nil (or any non-number)."
-  :type 'integer
+  :type 'natnum
   :set #'msb-custom-set)
 
 (defcustom msb-most-recently-used-title "Most recently used (%d)"
@@ -352,9 +352,6 @@ Set this to nil or t if you don't want any sorting (faster)."
 This is instead of the groups in `msb-menu-cond'."
   :type 'boolean
   :set #'msb-custom-set)
-
-(define-obsolete-variable-alias 'msb-after-load-hooks
-  'msb-after-load-hook "24.1")
 
 (defcustom msb-after-load-hook nil
   "Hook run after the msb package has been loaded."

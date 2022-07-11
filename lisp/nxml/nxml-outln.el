@@ -129,20 +129,18 @@ See the variable `nxml-section-element-name-regexp' for more details."
 (defvar nxml-heading-scan-distance 1000
   "Maximum distance from section to scan for heading.")
 
-(defvar nxml-outline-prefix-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-a" 'nxml-show-all)
-    (define-key map "\C-t" 'nxml-hide-all-text-content)
-    (define-key map "\C-r" 'nxml-refresh-outline)
-    (define-key map "\C-c" 'nxml-hide-direct-text-content)
-    (define-key map "\C-e" 'nxml-show-direct-text-content)
-    (define-key map "\C-d" 'nxml-hide-subheadings)
-    (define-key map "\C-s" 'nxml-show)
-    (define-key map "\C-k" 'nxml-show-subheadings)
-    (define-key map "\C-l" 'nxml-hide-text-content)
-    (define-key map "\C-i" 'nxml-show-direct-subheadings)
-    (define-key map "\C-o" 'nxml-hide-other)
-    map))
+(defvar-keymap nxml-outline-prefix-map
+  "C-a" #'nxml-show-all
+  "C-t" #'nxml-hide-all-text-content
+  "C-r" #'nxml-refresh-outline
+  "C-c" #'nxml-hide-direct-text-content
+  "C-e" #'nxml-show-direct-text-content
+  "C-d" #'nxml-hide-subheadings
+  "C-s" #'nxml-show
+  "C-k" #'nxml-show-subheadings
+  "C-l" #'nxml-hide-text-content
+  "C-i" #'nxml-show-direct-subheadings
+  "C-o" #'nxml-hide-other)
 
 ;;; Commands for changing visibility
 
@@ -693,11 +691,9 @@ non-transparent child section."
 			 (nxml-highlighted-qname (xmltok-end-tag-qname))
 			 nxml-highlighted-greater-than))))
 
-(defvar nxml-outline-show-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-m" 'nxml-show-direct-text-content)
-    (define-key map [mouse-2] 'nxml-mouse-show-direct-text-content)
-    map))
+(defvar-keymap nxml-outline-show-map
+  "RET" #'nxml-show-direct-text-content
+  "<mouse-2>" #'nxml-mouse-show-direct-text-content)
 
 (defvar nxml-outline-show-help "mouse-2: show")
 
@@ -724,12 +720,10 @@ non-transparent child section."
 (put 'nxml-outline-display-heading 'evaporate t)
 (put 'nxml-outline-display-heading 'face 'nxml-heading)
 
-(defvar nxml-outline-hiding-tag-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'nxml-mouse-show-direct-subheadings)
-    (define-key map [mouse-2] 'nxml-mouse-show-direct-text-content)
-    (define-key map "\C-m" 'nxml-show-direct-text-content)
-    map))
+(defvar-keymap nxml-outline-hiding-tag-map
+  "<mouse-1>" #'nxml-mouse-show-direct-subheadings
+  "<mouse-2>" #'nxml-mouse-show-direct-text-content
+  "RET" #'nxml-show-direct-text-content)
 
 (defvar nxml-outline-hiding-tag-help
   "mouse-1: show subheadings, mouse-2: show text content")
@@ -739,12 +733,10 @@ non-transparent child section."
 (put 'nxml-outline-display-hiding-tag 'keymap nxml-outline-hiding-tag-map)
 (put 'nxml-outline-display-hiding-tag 'help-echo nxml-outline-hiding-tag-help)
 
-(defvar nxml-outline-showing-tag-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'nxml-mouse-hide-subheadings)
-    (define-key map [mouse-2] 'nxml-mouse-show-direct-text-content)
-    (define-key map "\C-m" 'nxml-show-direct-text-content)
-    map))
+(defvar-keymap nxml-outline-showing-tag-map
+  "<mouse-1>" #'nxml-mouse-hide-subheadings
+  "<mouse-2>" #'nxml-mouse-show-direct-text-content
+  "RET" #'nxml-show-direct-text-content)
 
 (defvar nxml-outline-showing-tag-help
   "mouse-1: hide subheadings, mouse-2: show text content")

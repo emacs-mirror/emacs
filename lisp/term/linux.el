@@ -17,6 +17,10 @@
 
   (ignore-errors (when gpm-mouse-mode (require 't-mouse) (gpm-mouse-enable)))
 
+  ;; Don't translate ESC TAB to backtab as directed
+  ;; by ncurses-6.3.
+  (define-key input-decode-map "\e\t" nil)
+  
   ;; Make Latin-1 input characters work, too.
   ;; Meta will continue to work, because the kernel
   ;; turns that into Escape.

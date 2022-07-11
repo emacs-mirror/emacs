@@ -53,6 +53,8 @@
 
 ;;;; image-test-size
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
+
 (ert-deftest image-tests-image-size/gif ()
   (image-skip-unless 'gif)
   (pcase (image-size (create-image (cdr (assq 'gif image-tests--images))))
@@ -126,6 +128,8 @@
 
 ;;;; image-mask-p
 
+(declare-function image-mask-p "image.c" (spec &optional frame))
+
 (ert-deftest image-tests-image-mask-p/gif ()
   (image-skip-unless 'gif)
   (should-not (image-mask-p (create-image
@@ -175,6 +179,8 @@
   (should-error (image-mask-p (cdr (assq 'xpm image-tests--images)))))
 
 ;;;; image-metadata
+
+(declare-function image-metadata "image.c" (spec &optional frame))
 
 ;; TODO: These tests could be expanded with files that actually
 ;;       contain metadata.
@@ -238,6 +244,7 @@
 
 (ert-deftest image-tests-init-image-library ()
   (skip-unless (fboundp 'init-image-library))
+  (declare-function init-image-library "image.c" (type))
   (should (init-image-library 'pbm)) ; built-in
   (should-not (init-image-library 'invalid-image-type)))
 

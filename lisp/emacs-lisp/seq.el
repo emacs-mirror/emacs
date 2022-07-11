@@ -59,8 +59,8 @@
 (eval-when-compile (require 'cl-generic))
 
 ;; We used to use some sequence functions from cl-lib, but this
-;; dependency was swapped around so that it will be easier to make
-;; seq.el preloaded in the future.  See also Bug#39761#26.
+;; dependency was swapped around so that it's easier to make seq.el
+;; preloaded.  See also Bug#39761#26.
 
 (defmacro seq-doseq (spec &rest body)
   "Loop over a sequence.
@@ -299,6 +299,7 @@ sorted.  FUNCTION must be a function of one argument."
 TYPE must be one of following symbols: vector, string or list.
 
 \n(fn TYPE SEQUENCE...)"
+  (setq sequences (mapcar #'seq-into-sequence sequences))
   (pcase type
     ('vector (apply #'vconcat sequences))
     ('string (apply #'concat sequences))
@@ -402,23 +403,23 @@ found or not."
         (setq count (+ 1 count))))
     count))
 
-(with-suppressed-warnings ((obsolete seq-contains))
-  (cl-defgeneric seq-contains (sequence elt &optional testfn)
-    "Return the first element in SEQUENCE that is equal to ELT.
+(cl-defgeneric seq-contains (sequence elt &optional testfn)
+  "Return the first element in SEQUENCE that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
-    (declare (obsolete seq-contains-p "27.1"))
-    (seq-some (lambda (e)
-                (when (funcall (or testfn #'equal) elt e)
-                  e))
-              sequence)))
+  (declare (obsolete seq-contains-p "27.1"))
+  (seq-some (lambda (e)
+              (when (funcall (or testfn #'equal) elt e)
+                e))
+            sequence))
 
 (cl-defgeneric seq-contains-p (sequence elt &optional testfn)
   "Return non-nil if SEQUENCE contains an element equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
     (catch 'seq--break
       (seq-doseq (e sequence)
-        (when (funcall (or testfn #'equal) e elt)
-          (throw 'seq--break t)))
+        (let ((r (funcall (or testfn #'equal) e elt)))
+          (when r
+            (throw 'seq--break r))))
       nil))
 
 (cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)
@@ -630,6 +631,21 @@ Signal an error if SEQUENCE is empty."
   ;; In Emacs≥25, (via elisp--font-lock-flush-elisp-buffers and a few others)
   ;; we automatically highlight macros.
   (add-hook 'emacs-lisp-mode-hook #'seq--activate-font-lock-keywords))
+
+(defun seq-split (sequence length)
+  "Split SEQUENCE into a list of sub-sequences of at most LENGTH.
+All the sub-sequences will be of LENGTH, except the last one,
+which may be shorter."
+  (when (< length 1)
+    (error "Sub-sequence length must be larger than zero"))
+  (let ((result nil)
+        (seq-length (length sequence))
+        (start 0))
+    (while (< start seq-length)
+      (push (seq-subseq sequence start
+                        (setq start (min seq-length (+ start length))))
+            result))
+    (nreverse result)))
 
 (provide 'seq)
 ;;; seq.el ends here

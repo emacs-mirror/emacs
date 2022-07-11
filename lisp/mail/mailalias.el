@@ -72,8 +72,7 @@ When t this still needs to be initialized.")
     )
   "Alist of header field and expression to return alist for completion.
 The expression may reference the variable `pattern'
-which will hold the string being completed.
-If not on matching header, `mail-complete-function' gets called instead."
+which will hold the string being completed."
   :type 'alist
   :group 'mailalias)
 (put 'mail-complete-alist 'risky-local-variable t)
@@ -89,13 +88,6 @@ If `angles', they look like:
 	Elvis Parsley <king@grassland.com>"
   :type '(choice (const angles) (const parens) (const nil))
   :group 'mailalias)
-
-(defcustom mail-complete-function 'ispell-complete-word
-  "Function to call when completing outside `mail-complete-alist'-header."
-  :type '(choice function (const nil))
-  :group 'mailalias)
-(make-obsolete-variable 'mail-complete-function
-                        'completion-at-point-functions "24.1")
 
 (defcustom mail-directory-function nil
   "Function to get completions from directory service or nil for none.
@@ -432,25 +424,6 @@ For use on `completion-at-point-functions'."
                        (lambda (prefix)
                          (let ((pattern prefix)) (eval list-exp))))))
           (list beg end table)))))
-
-;;;###autoload
-(defun mail-complete (arg)
-  "Perform completion on header field or word preceding point.
-Completable headers are according to `mail-complete-alist'.  If none matches
-current header, calls `mail-complete-function' and passes prefix ARG if any."
-  (declare (obsolete mail-completion-at-point-function "24.1"))
-  (interactive "P")
-  ;; Read the defaults first, if we have not done so.
-  (sendmail-sync-aliases)
-  (if (eq mail-aliases t)
-      (progn
-	(setq mail-aliases nil)
-	(if (file-exists-p mail-personal-alias-file)
-	    (build-mail-aliases))))
-  (let ((data (mail-completion-at-point-function)))
-    (if data
-        (apply #'completion-in-region data)
-      (funcall mail-complete-function arg))))
 
 (defun mail-completion-expand (table)
   "Build new completion table that expands aliases.

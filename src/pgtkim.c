@@ -25,7 +25,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pgtkterm.h"
 
 static void
-im_context_commit_cb (GtkIMContext * imc, gchar * str, gpointer user_data)
+im_context_commit_cb (GtkIMContext *imc,
+		      gchar *str,
+		      gpointer user_data)
 {
   struct pgtk_display_info *dpyinfo = user_data;
   struct frame *f = dpyinfo->im.focused_frame;
@@ -39,21 +41,21 @@ im_context_commit_cb (GtkIMContext * imc, gchar * str, gpointer user_data)
 }
 
 static gboolean
-im_context_retrieve_surrounding_cb (GtkIMContext * imc, gpointer user_data)
+im_context_retrieve_surrounding_cb (GtkIMContext *imc, gpointer user_data)
 {
   gtk_im_context_set_surrounding (imc, "", -1, 0);
   return TRUE;
 }
 
 static gboolean
-im_context_delete_surrounding_cb (GtkIMContext * imc, int offset, int n_chars,
+im_context_delete_surrounding_cb (GtkIMContext *imc, int offset, int n_chars,
 				  gpointer user_data)
 {
   return TRUE;
 }
 
 static Lisp_Object
-make_color_string (PangoAttrColor * pac)
+make_color_string (PangoAttrColor *pac)
 {
   char buf[256];
   sprintf (buf, "#%02x%02x%02x",
@@ -62,7 +64,7 @@ make_color_string (PangoAttrColor * pac)
 }
 
 static void
-im_context_preedit_changed_cb (GtkIMContext * imc, gpointer user_data)
+im_context_preedit_changed_cb (GtkIMContext *imc, gpointer user_data)
 {
   struct pgtk_display_info *dpyinfo = user_data;
   struct frame *f = dpyinfo->im.focused_frame;
@@ -149,7 +151,7 @@ im_context_preedit_changed_cb (GtkIMContext * imc, gpointer user_data)
 }
 
 static void
-im_context_preedit_end_cb (GtkIMContext * imc, gpointer user_data)
+im_context_preedit_end_cb (GtkIMContext *imc, gpointer user_data)
 {
   struct pgtk_display_info *dpyinfo = user_data;
   struct frame *f = dpyinfo->im.focused_frame;
@@ -163,7 +165,7 @@ im_context_preedit_end_cb (GtkIMContext * imc, gpointer user_data)
 }
 
 static void
-im_context_preedit_start_cb (GtkIMContext * imc, gpointer user_data)
+im_context_preedit_start_cb (GtkIMContext *imc, gpointer user_data)
 {
 }
 

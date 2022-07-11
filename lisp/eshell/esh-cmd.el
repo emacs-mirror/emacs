@@ -107,6 +107,7 @@
 (require 'esh-module)
 (require 'esh-io)
 (require 'esh-ext)
+(require 'generator)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -255,6 +256,7 @@ the command."
 
 (defcustom eshell-subcommand-bindings
   '((eshell-in-subcommand-p t)
+    (eshell-in-pipeline-p nil)
     (default-directory default-directory)
     (process-environment (eshell-copy-environment)))
   "A list of `let' bindings for subcommand environments."
@@ -278,14 +280,33 @@ otherwise t.")
 (defvar eshell-in-subcommand-p nil)
 (defvar eshell-last-arguments nil)
 (defvar eshell-last-command-name nil)
-(defvar eshell-last-async-proc nil
-  "When this foreground process completes, resume command evaluation.")
+(defvar eshell-last-async-procs nil
+  "The currently-running foreground process(es).
+When executing a pipeline, this is a cons cell whose CAR is the
+first process (usually reading from stdin) and whose CDR is the
+last process (usually writing to stdout).  Otherwise, the CAR and
+CDR are the same process.
+
+When the process in the CDR completes, resume command evaluation.")
 
 ;;; Functions:
 
-(defsubst eshell-interactive-process ()
-  "Return currently running command process, if non-Lisp."
-  eshell-last-async-proc)
+(defsubst eshell-interactive-process-p ()
+  "Return non-nil if there is a currently running command process."
+  eshell-last-async-procs)
+
+(defsubst eshell-head-process ()
+  "Return the currently running process at the head of any pipeline.
+This only returns external (non-Lisp) processes."
+  (car-safe eshell-last-async-procs))
+
+(defsubst eshell-tail-process ()
+  "Return the currently running process at the tail of any pipeline.
+This only returns external (non-Lisp) processes."
+  (cdr-safe eshell-last-async-procs))
+
+(define-obsolete-function-alias 'eshell-interactive-process
+  'eshell-tail-process "29.1")
 
 (defun eshell-cmd-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the Eshell command processing module."
@@ -294,7 +315,7 @@ otherwise t.")
   (setq-local eshell-command-arguments nil)
   (setq-local eshell-last-arguments nil)
   (setq-local eshell-last-command-name nil)
-  (setq-local eshell-last-async-proc nil)
+  (setq-local eshell-last-async-procs nil)
 
   (add-hook 'eshell-kill-hook #'eshell-resume-command nil t)
 
@@ -305,7 +326,7 @@ otherwise t.")
   (add-hook 'eshell-post-command-hook
             (lambda ()
               (setq eshell-current-command nil
-                    eshell-last-async-proc nil))
+                    eshell-last-async-procs nil))
             nil t)
 
   (add-hook 'eshell-parse-argument-hook
@@ -330,6 +351,39 @@ otherwise t.")
 
 (defvar eshell--sep-terms)
 
+(defmacro eshell-with-temp-command (region &rest body)
+  "Narrow the buffer to REGION and execute the forms in BODY.
+
+REGION is a cons cell (START . END) that specifies the region to
+which to narrow the buffer.  REGION can also be a string, in
+which case the macro temporarily inserts it into the buffer at
+point, and narrows the buffer to the inserted string.  Before
+executing BODY, point is set to the beginning of the narrowed
+REGION.
+
+The value returned is the last form in BODY."
+  (declare (indent 1))
+  `(let ((reg ,region))
+     (if (stringp reg)
+         ;; Since parsing relies partly on buffer-local state
+         ;; (e.g. that of `eshell-parse-argument-hook'), we need to
+         ;; perform the parsing in the Eshell buffer.
+         (let ((begin (point)) end
+	       (inhibit-point-motion-hooks t))
+           (with-silent-modifications
+             (insert reg)
+             (setq end (point))
+             (unwind-protect
+                 (save-restriction
+                   (narrow-to-region begin end)
+                   (goto-char begin)
+                   ,@body)
+               (delete-region begin end))))
+       (save-restriction
+         (narrow-to-region (car reg) (cdr reg))
+         (goto-char (car reg))
+         ,@body))))
+
 (defun eshell-parse-command (command &optional args toplevel)
   "Parse the COMMAND, adding ARGS if given.
 COMMAND can either be a string, or a cons cell demarcating a buffer
@@ -341,15 +395,9 @@ hooks should be run before and after the command."
 	  (append
 	   (if (consp command)
 	       (eshell-parse-arguments (car command) (cdr command))
-	     (let ((here (point))
-		   (inhibit-point-motion-hooks t))
-               (with-silent-modifications
-                 ;; FIXME: Why not use a temporary buffer and avoid this
-                 ;; "insert&delete" business?  --Stef
-                 (insert command)
-                 (prog1
-                     (eshell-parse-arguments here (point))
-                   (delete-region here (point))))))
+             (eshell-with-temp-command command
+               (goto-char (point-max))
+               (eshell-parse-arguments (point-min) (point-max))))
 	   args))
 	 (commands
 	  (mapcar
@@ -763,8 +811,7 @@ This macro calls itself recursively, with NOTFIRST non-nil."
               (eshell-set-output-handle ,eshell-output-handle
                                         'append nextproc)
               (eshell-set-output-handle ,eshell-error-handle
-                                        'append nextproc)
-              (setq tailproc (or tailproc nextproc))))
+                                        'append nextproc)))
 	,(let ((head (car pipeline)))
 	   (if (memq (car head) '(let progn))
 	       (setq head (car (last head))))
@@ -780,7 +827,10 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 	       ,(cond ((not notfirst) (quote 'first))
 		      ((cdr pipeline) t)
 		      (t (quote 'last)))))
-	  ,(car pipeline))))))
+          (let ((proc ,(car pipeline)))
+            (set headproc (or proc (symbol-value headproc)))
+            (set tailproc (or (symbol-value tailproc) proc))
+            proc))))))
 
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.
@@ -812,7 +862,7 @@ This is used on systems where async subprocesses are not supported."
        (let ((result ,(car pipeline)))
          ;; tailproc gets the result of the last successful process in
          ;; the pipeline.
-         (setq tailproc (or result tailproc))
+         (set tailproc (or result (symbol-value tailproc)))
          ,(if (cdr pipeline)
               `(eshell-do-pipelines-synchronously (quote ,(cdr pipeline))))
          result))))
@@ -821,7 +871,11 @@ This is used on systems where async subprocesses are not supported."
 
 (defmacro eshell-execute-pipeline (pipeline)
   "Execute the commands in PIPELINE, connecting each to one another."
-  `(let ((eshell-in-pipeline-p t) tailproc)
+  `(let ((eshell-in-pipeline-p t)
+         (headproc (make-symbol "headproc"))
+         (tailproc (make-symbol "tailproc")))
+     (set headproc nil)
+     (set tailproc nil)
      (progn
        ,(if (fboundp 'make-process)
 	    `(eshell-do-pipelines ,pipeline)
@@ -831,7 +885,8 @@ This is used on systems where async subprocesses are not supported."
 				(car (aref eshell-current-handles
 					   ,eshell-error-handle)) nil)))
 	     (eshell-do-pipelines-synchronously ,pipeline)))
-       (eshell-process-identity tailproc))))
+       (eshell-process-identity (cons (symbol-value headproc)
+                                      (symbol-value tailproc))))))
 
 (defmacro eshell-as-subcommand (command)
   "Execute COMMAND using a temp buffer.
@@ -853,7 +908,8 @@ This avoids the need to use `let*'."
 (defmacro eshell-command-to-value (object)
   "Run OBJECT synchronously, returning its result as a string.
 Returns a string comprising the output from the command."
-  `(let ((value (make-symbol "eshell-temp")))
+  `(let ((value (make-symbol "eshell-temp"))
+         (eshell-in-pipeline-p nil))
      (eshell-do-command-to-value ,object)))
 
 ;;;_* Iterative evaluation
@@ -903,21 +959,63 @@ at the moment are:
   "Completion for the `debug' command."
   (while (pcomplete-here '("errors" "commands"))))
 
+(iter-defun eshell--find-subcommands (haystack)
+  "Recursively search for subcommand forms in HAYSTACK.
+This yields the SUBCOMMANDs when found in forms like
+\"(eshell-as-subcommand SUBCOMMAND)\"."
+  (dolist (elem haystack)
+    (cond
+     ((eq (car-safe elem) 'eshell-as-subcommand)
+      (iter-yield (cdr elem)))
+     ((listp elem)
+      (iter-yield-from (eshell--find-subcommands elem))))))
+
+(defun eshell--invoke-command-directly (command)
+  "Determine whether the given COMMAND can be invoked directly.
+COMMAND should be a non-top-level Eshell command in parsed form.
+
+A command can be invoked directly if all of the following are true:
+
+* The command is of the form
+  \"(eshell-trap-errors (eshell-named-command NAME ARGS))\",
+  where ARGS is optional.
+
+* NAME is a string referring to an alias function and isn't a
+  complex command (see `eshell-complex-commands').
+
+* Any subcommands in ARGS can also be invoked directly."
+  (when (and (eq (car command) 'eshell-trap-errors)
+             (eq (car (cadr command)) 'eshell-named-command))
+    (let ((name (cadr (cadr command)))
+          (args (cdr-safe (nth 2 (cadr command)))))
+      (and name (stringp name)
+	   (not (member name eshell-complex-commands))
+	   (catch 'simple
+	     (dolist (pred eshell-complex-commands t)
+	       (when (and (functionp pred)
+		          (funcall pred name))
+	         (throw 'simple nil))))
+	   (eshell-find-alias-function name)
+           (catch 'indirect-subcommand
+             (iter-do (subcommand (eshell--find-subcommands args))
+               (unless (eshell--invoke-command-directly subcommand)
+                 (throw 'indirect-subcommand nil)))
+             t)))))
+
 (defun eshell-invoke-directly (command)
-  (let ((base (cadr (nth 2 (nth 2 (cadr command))))) name)
-    (if (and (eq (car base) 'eshell-trap-errors)
-	     (eq (car (cadr base)) 'eshell-named-command))
-	(setq name (cadr (cadr base))))
-    (and name (stringp name)
-	 (not (member name eshell-complex-commands))
-	 (catch 'simple
-	   (progn
-	    (dolist (pred eshell-complex-commands)
-	      (if (and (functionp pred)
-		       (funcall pred name))
-		  (throw 'simple nil)))
-	    t))
-	 (eshell-find-alias-function name))))
+  "Determine whether the given COMMAND can be invoked directly.
+COMMAND should be a top-level Eshell command in parsed form, as
+produced by `eshell-parse-command'."
+  (let ((base (cadr (nth 2 (nth 2 (cadr command))))))
+    (eshell--invoke-command-directly base)))
+
+(defun eshell-eval-argument (argument)
+  "Evaluate a single Eshell ARGUMENT and return the result."
+  (let* ((form (eshell-with-temp-command argument
+                 (eshell-parse-argument)))
+         (result (eshell-do-eval form t)))
+    (cl-assert (eq (car result) 'quote))
+    (cadr result)))
 
 (defun eshell-eval-command (command &optional input)
   "Evaluate the given COMMAND iteratively."
@@ -957,24 +1055,24 @@ at the moment are:
     (unless (or (not (stringp status))
 		(string= "stopped" status)
 		(string-match eshell-reset-signals status))
-      (if (eq proc (eshell-interactive-process))
+      (if (eq proc (eshell-tail-process))
 	  (eshell-resume-eval)))))
 
 (defun eshell-resume-eval ()
   "Destructively evaluate a form which may need to be deferred."
   (eshell-condition-case err
       (progn
-	(setq eshell-last-async-proc nil)
+	(setq eshell-last-async-procs nil)
 	(when eshell-current-command
 	  (let* (retval
-		 (proc (catch 'eshell-defer
+		 (procs (catch 'eshell-defer
 			 (ignore
 			  (setq retval
 				(eshell-do-eval
 				 eshell-current-command))))))
-	    (if (eshell-processp proc)
-		(ignore (setq eshell-last-async-proc proc))
-	      (cadr retval)))))
+           (if (eshell-process-pair-p procs)
+               (ignore (setq eshell-last-async-procs procs))
+             (cadr retval)))))
     (error
      (error (error-message-string err)))))
 
@@ -1137,17 +1235,16 @@ be finished later after the completion of an asynchronous subprocess."
 		    (setcar form (car new-form))
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
-	      (if (and (memq (car form) eshell-deferrable-commands)
-		       (not eshell-current-subjob-p)
-		       result
-		       (eshell-processp result))
-		  (if synchronous-p
-		      (eshell/wait result)
+              (if-let (((memq (car form) eshell-deferrable-commands))
+                       ((not eshell-current-subjob-p))
+                       (procs (eshell-make-process-pair result)))
+                  (if synchronous-p
+		      (eshell/wait (cdr procs))
 		    (eshell-manipulate "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
-		    (throw 'eshell-defer result))
-		(list 'quote result))))))))))))
+		    (throw 'eshell-defer procs))
+                (list 'quote result))))))))))))
 
 ;; command invocation
 
@@ -1237,8 +1334,9 @@ or an external command."
 (defun eshell-exec-lisp (printer errprint func-or-form args form-p)
   "Execute a Lisp FUNC-OR-FORM, maybe passing ARGS.
 PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors.  FORM-P should be non-nil if FUNC-OR-FORM
-represent a Lisp form; ARGS will be ignored in that case."
+messages and errors, respectively.  FORM-P should be non-nil if
+FUNC-OR-FORM represent a Lisp form; ARGS will be ignored in that
+case."
   (eshell-condition-case err
       (let ((result
              (save-current-buffer
@@ -1261,44 +1359,56 @@ represent a Lisp form; ARGS will be ignored in that case."
 (defsubst eshell-apply* (printer errprint func args)
   "Call FUNC, with ARGS, trapping errors and return them as output.
 PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors."
+messages and errors, respectively."
   (eshell-exec-lisp printer errprint func args nil))
 
 (defsubst eshell-funcall* (printer errprint func &rest args)
-  "Call FUNC, with ARGS, trapping errors and return them as output."
+  "Call FUNC, with ARGS, trapping errors and return them as output.
+PRINTER and ERRPRINT are functions to use for printing regular
+messages and errors, respectively."
   (eshell-apply* printer errprint func args))
 
 (defsubst eshell-eval* (printer errprint form)
-  "Evaluate FORM, trapping errors and returning them."
+  "Evaluate FORM, trapping errors and returning them.
+PRINTER and ERRPRINT are functions to use for printing regular
+messages and errors, respectively."
   (eshell-exec-lisp printer errprint form nil t))
 
 (defsubst eshell-apply (func args)
   "Call FUNC, with ARGS, trapping errors and return them as output.
-PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors."
-  (eshell-apply* 'eshell-print 'eshell-error func args))
+Print the result using `eshell-print'; if an error occurs, print
+it via `eshell-error'."
+  (eshell-apply* #'eshell-print #'eshell-error func args))
 
 (defsubst eshell-funcall (func &rest args)
-  "Call FUNC, with ARGS, trapping errors and return them as output."
+  "Call FUNC, with ARGS, trapping errors and return them as output.
+Print the result using `eshell-print'; if an error occurs, print
+it via `eshell-error'."
   (eshell-apply func args))
 
 (defsubst eshell-eval (form)
-  "Evaluate FORM, trapping errors and returning them."
-  (eshell-eval* 'eshell-print 'eshell-error form))
+  "Evaluate FORM, trapping errors and returning them.
+Print the result using `eshell-print'; if an error occurs, print
+it via `eshell-error'."
+  (eshell-eval* #'eshell-print #'eshell-error form))
 
 (defsubst eshell-applyn (func args)
   "Call FUNC, with ARGS, trapping errors and return them as output.
-PRINTER and ERRPRINT are functions to use for printing regular
-messages, and errors."
-  (eshell-apply* 'eshell-printn 'eshell-errorn func args))
+Print the result using `eshell-printn'; if an error occurs, print it
+via `eshell-errorn'."
+  (eshell-apply* #'eshell-printn #'eshell-errorn func args))
 
 (defsubst eshell-funcalln (func &rest args)
-  "Call FUNC, with ARGS, trapping errors and return them as output."
+  "Call FUNC, with ARGS, trapping errors and return them as output.
+Print the result using `eshell-printn'; if an error occurs, print it
+via `eshell-errorn'."
   (eshell-applyn func args))
 
 (defsubst eshell-evaln (form)
-  "Evaluate FORM, trapping errors and returning them."
-  (eshell-eval* 'eshell-printn 'eshell-errorn form))
+  "Evaluate FORM, trapping errors and returning them.
+Print the result using `eshell-printn'; if an error occurs, print it
+via `eshell-errorn'."
+  (eshell-eval* #'eshell-printn #'eshell-errorn form))
 
 (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
 

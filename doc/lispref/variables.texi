@@ -527,10 +527,11 @@ If @var{symbol} has a buffer-local binding in the current buffer,
 rather than the buffer-local binding.  It sets the default value if
 the default value is void.  @xref{Buffer-Local Variables}.
 
-If @var{symbol} is already lexically bound (e.g., if the @code{defvar}
-form occurs in a @code{let} form with lexical binding enabled), then
-@code{defvar} sets the dynamic value.  The lexical binding remains in
-effect until its binding construct exits.  @xref{Variable Scoping}.
+If @var{symbol} is already let bound (e.g., if the @code{defvar}
+form occurs in a @code{let} form), then @code{defvar} sets the toplevel
+default value, like @code{set-default-toplevel-value}.
+The let binding remains in effect until its binding construct exits.
+@xref{Variable Scoping}.
 
 @cindex @code{eval-defun}, and @code{defvar} forms
 @cindex @code{eval-last-sexp}, and @code{defvar} forms
@@ -860,6 +861,40 @@ error is signaled.
 @error{} Wrong type argument: symbolp, (x y)
 @end example
 @end defun
+
+@defmac setopt [symbol form]@dots{}
+This is like @code{setq} (see above), but meant for user options.
+This macro uses the Customize machinery to set the variable(s).  In
+particular, @code{setopt} will run the setter function associated with
+the variable.  For instance, if you have:
+
+@example
+@group
+(defcustom my-var 1
+  "My var."
+  :type 'number
+  :set (lambda (var val)
+         (set-default var val)
+         (message "We set %s to %s" var val)))
+@end group
+@end example
+
+@noindent
+then the following, in addition to setting @code{my-var} to @samp{2},
+will also issue a message:
+
+@example
+(setopt my-var 2)
+@end example
+
+@code{setopt} also checks whether the value is valid for the user
+option.  For instance, using @code{setopt} to set a user option
+defined with a @code{number} type to a string will signal an error.
+
+The @code{setopt} macro can be used on regular, non-user option
+variables, but is much less efficient than @code{setq}.  The main use
+case for this macro is setting user options in the user's init file.
+@end defmac
 
 @node Watching Variables
 @section Running a function when a variable is changed.
@@ -2261,13 +2296,28 @@ list in @var{variables} is an alist of the form
   '((null-device . "/dev/null")))
 @end group
 @end example
+
+@findex connection-local-get-profile-variables
+If you want to append variable settings to an existing profile, you
+could use the function @code{connection-local-get-profile-variables}
+in order to retrieve the existing settings, like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'remote-bash
+  (append
+   (connection-local-get-profile-variables 'remote-bash)
+   '((shell-command-dont-erase-buffer . t))))
+@end group
+@end example
 @end defun
 
-@defvar connection-local-profile-alist
+@deffn {User Option} connection-local-profile-alist
 This alist holds the connection profile symbols and the associated
 variable settings.  It is updated by
 @code{connection-local-set-profile-variables}.
-@end defvar
+@end deffn
 
 @defun connection-local-set-profiles criteria &rest profiles
 This function assigns @var{profiles}, which are symbols, to all remote
@@ -2321,11 +2371,11 @@ Therefore, the example above would be equivalent to
 defined by @code{connection-local-set-profile-variables}.
 @end defun
 
-@defvar connection-local-criteria-alist
+@deffn {User Option} connection-local-criteria-alist
 This alist contains connection criteria and their assigned profile
 names.  The function @code{connection-local-set-profiles} updates this
 list.
-@end defvar
+@end deffn
 
 @defun hack-connection-local-variables criteria
 This function collects applicable connection-local variables
@@ -2383,6 +2433,37 @@ are unwound.  Example:
 @end group
 @end example
 @end defmac
+
+@defvar connection-local-default-application
+The default application, a symbol, to be applied in
+@code{with-connection-local-variables}.  It defaults to @code{tramp},
+but in case you want to overwrite Tramp's settings temporarily, you
+could let-bind it like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'my-remote-perl
+  '((perl-command-name . "/usr/local/bin/perl5")
+    (perl-command-switch . "-e %s")))
+@end group
+
+@group
+(connection-local-set-profiles
+  '(:application 'my-app :protocol "ssh" :machine "remotehost")
+  'my-remote-perl)
+@end group
+
+@group
+(let ((default-directory "/ssh:remotehost:/working/dir/")
+      (connection-local-default-application 'my-app))
+  (with-connection-local-variables
+    do something useful))
+@end group
+@end example
+
+This variable must not be changed globally.
+@end defvar
 
 @defvar enable-connection-local-variables
 If @code{nil}, connection-local variables are ignored.  This variable
@@ -2709,13 +2790,13 @@ implemented this way:
 (gv-define-expander substring
   (lambda (do place from &optional to)
     (gv-letplace (getter setter) place
-      (macroexp-let2* nil ((start from) (end to))
-        (funcall do `(substring ,getter ,start ,end)
+      (macroexp-let2* (from to)
+        (funcall do `(substring ,getter ,from ,to)
                  (lambda (v)
-                   (macroexp-let2 nil v v
+                   (macroexp-let2* (v)
                      `(progn
                         ,(funcall setter `(cl--set-substring
-                                           ,getter ,start ,end ,v))
+                                           ,getter ,from ,to ,v))
                         ,v))))))))
 @end example
 @end defmac
@@ -2728,7 +2809,7 @@ of Common Lisp could be implemented this way:
 @example
 (defmacro incf (place &optional n)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (or n 1)
+    (macroexp-let2* ((v (or n 1)))
       (funcall setter `(+ ,v ,getter)))))
 @end example
 

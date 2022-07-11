@@ -38,7 +38,7 @@
 ;; be used to compare such calc expressions.
 (defun calc-tests-equal (a b)
   "Like `equal' but allow for different representations of numbers.
-For example: (calc-tests-equal 10 '(float 1 1)) => t.
+For example: (calc-tests-equal 10 \\='(float 1 1)) => t.
 A and B should be calc expressions."
   (cond ((math-numberp a)
 	 (and (math-numberp b)

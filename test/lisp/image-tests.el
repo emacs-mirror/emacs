@@ -74,10 +74,24 @@
   (should (listp (find-image '((:type png :file "newsticker/rss-feed.png" :ascent center)))))
   (should-not (find-image '((:type png :file "does-not-exist-foo-bar.png")))))
 
+(ert-deftest image-supported-file-p/built-in ()
+  ;; (skip-unless (image-type-available-p 'pbm)) ; Always built-in
+  (skip-unless (display-images-p))               ; (except in nox builds).
+  (should (eq (image-supported-file-p "foo.pbm") 'pbm)))
+
+(ert-deftest image-supported-file-p/optional ()
+  (if (image-type-available-p 'jpeg)
+      (should (eq (image-supported-file-p "foo.jpg") 'jpeg))
+    (should-not (image-supported-file-p "foo.jpg"))))
+
+(ert-deftest image-supported-file-p/unsupported-returns-nil ()
+  (should-not (image-supported-file-p "foo.some-unsupported-format")))
+
 (ert-deftest image-type-from-file-name ()
-  (should (eq (image-type-from-file-name "foo.jpg") 'jpeg))
-  (should (eq (image-type-from-file-name "foo.png") 'png))
-  (should (eq (image-type-from-file-name "foo.webp") 'webp)))
+  (with-suppressed-warnings ((obsolete image-type-from-file-name))
+    (should (eq (image-type-from-file-name "foo.jpg") 'jpeg))
+    (should (eq (image-type-from-file-name "foo.png") 'png))
+    (should (eq (image-type-from-file-name "foo.webp") 'webp))))
 
 (ert-deftest image-type/from-filename ()
   ;; On emba, `image-types' and `image-load-path' do not exist.

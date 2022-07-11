@@ -181,9 +181,11 @@ and reference them using the function `class-option'."
 
 	;; Is there an initarg, but allocation of class?
 	(when (and initarg (eq alloc :class))
-	  (push (format "Meaningless :initarg for class allocated slot '%S'"
-	                sname)
-	        warnings))
+	  (push
+           (cons sname
+                 (format "Meaningless :initarg for class allocated slot '%S'"
+	                 sname))
+	   warnings))
 
         (let ((init (plist-get soptions :initform)))
           (unless (or (macroexp-const-p init)
@@ -194,8 +196,9 @@ and reference them using the function `class-option'."
             ;; heuristic says and if it disagrees with normal evaluation
             ;; then tweak the initform to make it fit and emit
             ;; a warning accordingly.
-            (push (format "Ambiguous initform needs quoting: %S" init)
-                  warnings)))
+            (push
+             (cons init (format "Ambiguous initform needs quoting: %S" init))
+             warnings)))
 
 	;; Anyone can have an accessor function.  This creates a function
 	;; of the specified name, and also performs a `defsetf' if applicable
@@ -242,7 +245,8 @@ This method is obsolete."
 
     `(progn
        ,@(mapcar (lambda (w)
-                   (macroexp-warn-and-return w `(progn ',w) nil 'compile-only))
+                   (macroexp-warn-and-return
+                    (cdr w) `(progn ',(cdr w)) nil 'compile-only (car w)))
                  warnings)
        ;; This test must be created right away so we can have self-
        ;; referencing classes.  ei, a class whose slot can contain only
@@ -256,7 +260,7 @@ This method is obsolete."
            (let ((f (intern (format "%s-child-p" name))))
              `((defalias ',f #',testsym2)
                (make-obsolete
-                ',f ,(format "use (cl-typep ... \\='%s) instead" name)
+                ',f ,(format "use (cl-typep ... '%s) instead" name)
                 "25.1"))))
 
        ;; When using typep, (typep OBJ 'myclass) returns t for objects which
@@ -267,7 +271,8 @@ This method is obsolete."
        ;; test, so we can let typep have the CLOS documented behavior
        ;; while keeping our above predicate clean.
 
-       (define-symbol-prop ',name 'cl-deftype-satisfies #',testsym2)
+       (eval-and-compile
+         (define-symbol-prop ',name 'cl-deftype-satisfies #',testsym2))
 
        (eieio-defclass-internal ',name ',superclasses ',slots ',options-and-doc)
 
@@ -297,7 +302,8 @@ This method is obsolete."
                             ;; Keep the name arg, for backward compatibility,
                             ;; but hide it so we don't trigger indefinitely.
                             `(,(car whole) (identity ,(car slots))
-                              ,@(cdr slots)))))))
+                              ,@(cdr slots))
+                            nil nil (car slots))))))
              (apply #'make-instance ',name slots))))))
 
 

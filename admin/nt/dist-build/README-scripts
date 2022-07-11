@@ -131,7 +131,7 @@ The process is the same as for building from the master branch, except
 that the release branch should already exist as a worktree, and the
 version number must be added to the command line with `build-zips.sh
 -V 27 -s`.  The final zips will be named after the branch rather than
-the version (e.g emacs-27-2019-12-26.zip) rather than than the Emacs
+the version (e.g emacs-27-2019-12-26.zip) rather than the Emacs
 version (e.g emacs-27.0.50.zip).
 
 

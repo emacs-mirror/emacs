@@ -559,10 +559,10 @@ and improving upon much of it.
    2. Vi exit functions (e.g., :wq, ZZ) work on INDIVIDUAL files -- they
       do not cause Emacs to quit, except at user level 1 (for a novice).
    3. ^X^C EXITS EMACS.
-   4. Viper supports multiple undo: `u' will undo.  Typing `.' will repeat
-      undo.  Another `u' changes direction.
+   4. Viper supports multiple undo: \\`u' will undo.  Typing \\`.' will repeat
+      undo.  Another \\`u' changes direction.
 
-   6. Emacs Meta key is `C-\\' (in all modes) or `\\ ESC' (in Vi command mode).
+   6. Emacs Meta key is \\`C-\\' (in all modes) or \\`\\ ESC' (in Vi command mode).
       On a window system, the best way is to use the Meta-key on your keyboard.
    7. Try \\[keyboard-quit] and \\[abort-recursive-edit] repeatedly,if
       something funny happens.  This would abort the current editing command.
@@ -573,12 +573,12 @@ For more information on Viper:
    b. Print Viper manual, found in ./etc/viper.dvi
    c. Print the Quick Reference, found in ./etc/viperCard.dvi
 
-To submit a bug report or to contact the author, type :submitReport in Vi
+To submit a bug report or to contact the author, type \\`:submitReport' in Vi
 command mode.  To shoo Viper away and return to pure Emacs (horror!), type:
 
    \\[viper-go-away]
 
-This startup message appears whenever you load Viper, unless you type `y' now."
+This startup message appears whenever you load Viper, unless you type \\`y' now."
 		      ))
 		    (goto-char (point-min))
 		    (if (y-or-n-p "Inhibit Viper startup message? ")

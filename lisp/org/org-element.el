@@ -396,31 +396,25 @@ still has an entry since one of its properties (`:title') does.")
   "Alist between element types and locations of secondary values.")
 
 (defconst org-element--pair-round-table
-  (let ((table (make-syntax-table)))
+  (let ((table (make-char-table 'syntax-table '(2))))
     (modify-syntax-entry ?\( "()" table)
     (modify-syntax-entry ?\) ")(" table)
-    (dolist (char '(?\{ ?\} ?\[ ?\] ?\< ?\>) table)
-      (modify-syntax-entry char " " table)))
-  "Table used internally to pair only round brackets.
-Other brackets are treated as spaces.")
+    table)
+  "Table used internally to pair only round brackets.")
 
 (defconst org-element--pair-square-table
-  (let ((table (make-syntax-table)))
+  (let ((table (make-char-table 'syntax-table '(2))))
     (modify-syntax-entry ?\[ "(]" table)
     (modify-syntax-entry ?\] ")[" table)
-    (dolist (char '(?\{ ?\} ?\( ?\) ?\< ?\>) table)
-      (modify-syntax-entry char " " table)))
-  "Table used internally to pair only square brackets.
-Other brackets are treated as spaces.")
+    table)
+  "Table used internally to pair only square brackets.")
 
 (defconst org-element--pair-curly-table
-  (let ((table (make-syntax-table)))
+  (let ((table (make-char-table 'syntax-table '(2))))
     (modify-syntax-entry ?\{ "(}" table)
     (modify-syntax-entry ?\} "){" table)
-    (dolist (char '(?\[ ?\] ?\( ?\) ?\< ?\>) table)
-      (modify-syntax-entry char " " table)))
-  "Table used internally to pair only curly brackets.
-Other brackets are treated as spaces.")
+    table)
+  "Table used internally to pair only curly brackets.")
 
 (defun org-element--parse-paired-brackets (char)
   "Parse paired brackets at point.
@@ -4397,6 +4391,7 @@ looking into captions:
 		       ;; every element it encounters.
 		       (and (not (eq category 'elements))
 			    (setq category 'elements))))))))
+         (--ignore-list (plist-get info :ignore-list))
 	 --acc)
     (letrec ((--walk-tree
 	      (lambda (--data)
@@ -4406,7 +4401,7 @@ looking into captions:
 		  (cond
 		   ((not --data))
 		   ;; Ignored element in an export context.
-		   ((and info (memq --data (plist-get info :ignore-list))))
+		   ((and info (memq --data --ignore-list)))
 		   ;; List of elements or objects.
 		   ((not --type) (mapc --walk-tree --data))
 		   ;; Unconditionally enter parse trees.

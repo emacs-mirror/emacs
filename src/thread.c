@@ -83,6 +83,22 @@ release_global_lock (void)
   sys_mutex_unlock (&global_lock);
 }
 
+static void
+rebind_for_thread_switch (void)
+{
+  ptrdiff_t distance
+    = current_thread->m_specpdl_ptr - current_thread->m_specpdl;
+  specpdl_unrewind (specpdl_ptr, -distance, true);
+}
+
+static void
+unbind_for_thread_switch (struct thread_state *thr)
+{
+  ptrdiff_t distance = thr->m_specpdl_ptr - thr->m_specpdl;
+  specpdl_unrewind (thr->m_specpdl_ptr, distance, true);
+}
+
+
 /* You must call this after acquiring the global lock.
    acquire_global_lock does it for you.  */
 static void
@@ -329,7 +345,7 @@ Note that calls to `mutex-lock' and `mutex-unlock' must be paired.  */)
   (Lisp_Object mutex)
 {
   struct Lisp_Mutex *lmutex;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   CHECK_MUTEX (mutex);
   lmutex = XMUTEX (mutex);
@@ -639,7 +655,7 @@ mark_one_thread (struct thread_state *thread)
 
   mark_specpdl (thread->m_specpdl, thread->m_specpdl_ptr);
 
-  mark_stack (thread->m_stack_bottom, stack_top);
+  mark_c_stack (thread->m_stack_bottom, stack_top);
 
   for (struct handler *handler = thread->m_handlerlist;
        handler; handler = handler->next)
@@ -654,6 +670,8 @@ mark_one_thread (struct thread_state *thread)
       XSETBUFFER (tem, thread->m_current_buffer);
       mark_object (tem);
     }
+
+  mark_bytecode (&thread->bc);
 
   /* No need to mark Lisp_Object members like m_last_thing_searched,
      as mark_threads_callback does that by calling mark_object.  */
@@ -709,7 +727,7 @@ DEFUN ("thread-yield", Fthread_yield, Sthread_yield, 0, 0, 0,
 static Lisp_Object
 invoke_thread_function (void)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   current_thread->result = Ffuncall (1, &current_thread->function);
   return unbind_to (count, Qnil);
@@ -774,7 +792,7 @@ run_thread (void *state)
   xfree (self->m_specpdl - 1);
   self->m_specpdl = NULL;
   self->m_specpdl_ptr = NULL;
-  self->m_specpdl_size = 0;
+  self->m_specpdl_end = NULL;
 
   {
     struct handler *c, *c_next;
@@ -823,6 +841,7 @@ finalize_one_thread (struct thread_state *state)
   free_search_regs (&state->m_search_regs);
   free_search_regs (&state->m_saved_search_regs);
   sys_cond_destroy (&state->thread_condvar);
+  free_bc_thread (&state->bc);
 }
 
 DEFUN ("make-thread", Fmake_thread, Smake_thread, 1, 2, 0,
@@ -846,12 +865,13 @@ If NAME is given, it must be a string; it names the new thread.  */)
   /* Perhaps copy m_last_thing_searched from parent?  */
   new_thread->m_current_buffer = current_thread->m_current_buffer;
 
-  new_thread->m_specpdl_size = 50;
-  new_thread->m_specpdl = xmalloc ((1 + new_thread->m_specpdl_size)
-				   * sizeof (union specbinding));
-  /* Skip the dummy entry.  */
-  ++new_thread->m_specpdl;
+  ptrdiff_t size = 50;
+  union specbinding *pdlvec = xmalloc ((1 + size) * sizeof (union specbinding));
+  new_thread->m_specpdl = pdlvec + 1;  /* Skip the dummy entry.  */
+  new_thread->m_specpdl_end = new_thread->m_specpdl + size;
   new_thread->m_specpdl_ptr = new_thread->m_specpdl;
+
+  init_bc_thread (&new_thread->bc);
 
   sys_cond_init (&new_thread->thread_condvar);
 
@@ -1112,6 +1132,7 @@ init_threads (void)
   sys_mutex_lock (&global_lock);
   current_thread = &main_thread.s;
   main_thread.s.thread_id = sys_thread_self ();
+  init_bc_thread (&main_thread.s.bc);
 }
 
 void

@@ -62,7 +62,7 @@
                   ((numberp repeat)
                    (propertize
                     (format "%12s" (format-seconds
-                                    "%dd %hh %mm %z%,1ss" repeat))
+                                    "%x%dd %hh %mm %z%,1ss" repeat))
                     'help-echo "Repeat interval"))
                   ((null repeat)
                    (propertize "           -" 'help-echo "Runs once"))
@@ -81,13 +81,12 @@
 ;; doing.  Kids, don't try this at home!
 ;;;###autoload (put 'list-timers 'disabled "Beware: manually canceling timers can ruin your Emacs session.")
 
-(defvar timer-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "c" 'timer-list-cancel)
-    (easy-menu-define nil map ""
-      '("Timers"
-	["Cancel" timer-list-cancel t]))
-    map))
+(defvar-keymap timer-list-mode-map
+  "c" #'timer-list-cancel
+  :menu
+  '("Timers"
+    ["Cancel" timer-list-cancel t]
+    ["Quit" quit-window]))
 
 (define-derived-mode timer-list-mode tabulated-list-mode "Timer-List"
   "Mode for listing and controlling timers."

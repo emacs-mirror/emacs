@@ -146,7 +146,7 @@ See variable `eshell-scroll-to-bottom-on-output' and function
 Eshell buffers are truncated from the top to be no greater than this
 number, if the function `eshell-truncate-buffer' is on
 `eshell-output-filter-functions'."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom eshell-output-filter-functions
   '(eshell-postoutput-scroll-to-bottom
@@ -361,7 +361,11 @@ and the hook `eshell-exit-hook'."
       (unless module-shortname
 	(error "Invalid Eshell module name: %s" module-fullname))
       (unless (featurep (intern module-shortname))
-	(load module-shortname))))
+        (condition-case nil
+            (load module-shortname)
+          (error (lwarn 'eshell :error
+                        "Unable to load module `%s' (defined in `eshell-modules-list')"
+                        module-fullname))))))
 
   (unless (file-exists-p eshell-directory-name)
     (eshell-make-private-directory eshell-directory-name t))
@@ -423,13 +427,13 @@ and the hook `eshell-exit-hook'."
 (defun eshell-self-insert-command ()
   (interactive)
   (process-send-string
-   (eshell-interactive-process)
+   (eshell-head-process)
    (char-to-string (if (symbolp last-command-event)
 		       (get last-command-event 'ascii-character)
 		     last-command-event))))
 
 (defun eshell-intercept-commands ()
-  (when (and (eshell-interactive-process)
+  (when (and (eshell-interactive-process-p)
 	     (not (and (integerp last-input-event)
 		       (memq last-input-event '(?\C-x ?\C-c)))))
     (let ((possible-events (where-is-internal this-command))
@@ -595,13 +599,13 @@ If NO-NEWLINE is non-nil, the input is sent without an implied final
 newline."
   (interactive "P")
   ;; Note that the input string does not include its terminal newline.
-  (let ((proc-running-p (and (eshell-interactive-process)
+  (let ((proc-running-p (and (eshell-head-process)
 			     (not queue-p)))
 	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t))
     (unless (and proc-running-p
 		 (not (eq (process-status
-			   (eshell-interactive-process))
+			   (eshell-head-process))
                           'run)))
       (if (or proc-running-p
 	      (>= (point) eshell-last-output-end))
@@ -627,8 +631,8 @@ newline."
 	    (if (or eshell-send-direct-to-subprocesses
 		    (= eshell-last-input-start eshell-last-input-end))
 		(unless no-newline
-		  (process-send-string (eshell-interactive-process) "\n"))
-	      (process-send-region (eshell-interactive-process)
+		  (process-send-string (eshell-head-process) "\n"))
+	      (process-send-region (eshell-head-process)
 				   eshell-last-input-start
 				   eshell-last-input-end)))
 	(if (= eshell-last-output-end (point))
@@ -664,6 +668,16 @@ newline."
 		(concat (error-message-string err) "\n"))
 	       (run-hooks 'eshell-post-command-hook)
 	       (insert-and-inherit input)))))))))
+
+(defun eshell-send-eof-to-process ()
+  "Send EOF to the currently-running \"head\" process."
+  (interactive)
+  (require 'esh-mode)
+  (declare-function eshell-send-input "esh-mode"
+                    (&optional use-region queue-p no-newline))
+  (eshell-send-input nil nil t)
+  (when (eshell-head-process)
+    (process-send-eof (eshell-head-process))))
 
 (defsubst eshell-kill-new ()
   "Add the last input text to the kill ring."
@@ -924,9 +938,9 @@ Then send it to the process running in the current buffer."
   (interactive) ; Don't pass str as argument, to avoid snooping via C-x ESC ESC
   (let ((str (read-passwd
 	      (format "%s Password: "
-		      (process-name (eshell-interactive-process))))))
+		      (process-name (eshell-head-process))))))
     (if (stringp str)
-	(process-send-string (eshell-interactive-process)
+	(process-send-string (eshell-head-process)
 			     (concat str "\n"))
       (message "Warning: text will be echoed"))))
 
@@ -937,7 +951,7 @@ buffer's process if STRING contains a password prompt defined by
 `eshell-password-prompt-regexp'.
 
 This function could be in the list `eshell-output-filter-functions'."
-  (when (eshell-interactive-process)
+  (when (eshell-interactive-process-p)
     (save-excursion
       (let ((case-fold-search t))
 	(goto-char eshell-last-output-block-begin)
@@ -1023,6 +1037,8 @@ This function could be in the list `eshell-output-filter-functions'."
   "Default bookmark handler for Eshell buffers."
   (let ((default-directory (bookmark-prop-get bookmark 'location)))
     (eshell)))
+
+(put 'eshell-bookmark-jump 'bookmark-handler-type "Eshell")
 
 (provide 'esh-mode)
 ;;; esh-mode.el ends here

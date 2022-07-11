@@ -631,7 +631,7 @@ validate_coding_system (Lisp_Object coding_system)
   eol_type = Fcoding_system_eol_type (coding_system);
 
   /* Already a DOS coding system? */
-  if (EQ (eol_type, make_fixnum (1)))
+  if (BASE_EQ (eol_type, make_fixnum (1)))
     return coding_system;
 
   /* Get EOL_TYPE vector of the base of CODING_SYSTEM.  */

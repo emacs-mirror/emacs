@@ -73,7 +73,7 @@ left alone when opening a URL in an external browser."
              (urls nil)
              (ffap-url-fetcher (lambda (url) (push url urls) nil)))
     (should-not (ffap-other-window "https://www.gnu.org"))
-    (should (compare-window-configurations (current-window-configuration) old))
+    (should (window-configuration-equal-p (current-window-configuration) old))
     (should (equal urls '("https://www.gnu.org")))))
 
 (defun ffap-test-string (space string)
@@ -140,6 +140,23 @@ left alone when opening a URL in an external browser."
         (save-excursion (insert "ffap-tests.el"))
         (let (kill-buffer-query-functions)
           (kill-buffer (call-interactively #'find-file-at-point)))))))
+
+(ert-deftest ffap-test-path ()
+  (skip-unless (file-exists-p "/bin"))
+  (skip-unless (file-exists-p "/usr/bin"))
+  (with-temp-buffer
+    (insert "/usr/bin:/bin")
+    (goto-char (point-min))
+    (should (equal (ffap-file-at-point) "/usr/bin")))
+  (with-temp-buffer
+    (insert "/usr/bin:/bin")
+    (goto-char (point-min))
+    (search-forward ":")
+    (should (equal (ffap-file-at-point) "/bin")))
+  (with-temp-buffer
+    (insert ":/bin")
+    (goto-char (point-min))
+    (should (equal (ffap-file-at-point) nil))))
 
 (provide 'ffap-tests)
 

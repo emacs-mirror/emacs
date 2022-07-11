@@ -442,8 +442,8 @@ selected window write:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*scratch\\*" (display-buffer-same-window))))
 @end group
 @end example
@@ -468,8 +468,8 @@ Lisp Reference Manual}) as follows:
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-base-action
+(setopt
+ display-buffer-base-action
  '((display-buffer-reuse-window display-buffer-pop-up-frame)
    (reusable-frames . 0)))
 @end group
@@ -535,8 +535,8 @@ the following form in your initialization file (@pxref{Init File}):
 
 @example
 @group
-(customize-set-variable
- 'display-buffer-alist
+(setopt
+ display-buffer-alist
  '(("\\*Completions\\*" display-buffer-below-selected)))
 @end group
 @end example

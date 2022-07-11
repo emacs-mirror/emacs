@@ -150,6 +150,8 @@ not be added to this variable."
   :risky t
   :group 'eshell-io)
 
+(define-error 'eshell-pipe-broken "Pipe broken")
+
 ;;; Internal Variables:
 
 (defvar eshell-current-handles nil)
@@ -274,8 +276,20 @@ STATUS should be non-nil on successful termination of the output."
    ;; If we're redirecting to a process (via a pipe, or process
    ;; redirection), send it EOF so that it knows we're finished.
    ((eshell-processp target)
-    (if (eq (process-status target) 'run)
-	(process-send-eof target)))
+    ;; According to POSIX.1-2017, section 11.1.9, sending EOF causes
+    ;; all bytes waiting to be read to be sent to the process
+    ;; immediately.  Thus, if there are any bytes waiting, we need to
+    ;; send EOF twice: once to flush the buffer, and a second time to
+    ;; cause the next read() to return a size of 0, indicating
+    ;; end-of-file to the reading process.  However, some platforms
+    ;; (e.g. Solaris) actually require sending a *third* EOF.  Since
+    ;; sending extra EOFs while the process is running shouldn't break
+    ;; anything, we'll just send the maximum we'd ever need.  See
+    ;; bug#56025 for further details.
+    (let ((i 0))
+      (while (and (<= (cl-incf i) 3)
+                  (eq (process-status target) 'run))
+        (process-send-eof target))))
 
    ;; A plain function redirection needs no additional arguments
    ;; passed.
@@ -374,8 +388,6 @@ it defaults to `insert'."
    (t
     (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
-
-(defvar grep-null-device)
 
 (defun eshell-set-output-handle (index mode &optional target)
   "Set handle INDEX, using MODE, to point to TARGET."
@@ -483,24 +495,31 @@ Returns what was actually sent, or nil if nothing was sent."
 		(goto-char target))))))
 
    ((eshell-processp target)
-    (when (eq (process-status target) 'run)
-      (unless (stringp object)
-	(setq object (eshell-stringify object)))
-      (process-send-string target object)))
+    (unless (stringp object)
+      (setq object (eshell-stringify object)))
+    (condition-case nil
+        (process-send-string target object)
+      ;; If `process-send-string' raises an error, treat it as a broken pipe.
+      (error (signal 'eshell-pipe-broken target))))
 
    ((consp target)
     (apply (car target) object (cdr target))))
   object)
 
 (defun eshell-output-object (object &optional handle-index handles)
-  "Insert OBJECT, using HANDLE-INDEX specifically)."
+  "Insert OBJECT, using HANDLE-INDEX specifically.
+If HANDLE-INDEX is nil, output to `eshell-output-handle'.
+HANDLES is the set of file handles to use; if nil, use
+`eshell-current-handles'."
   (let ((target (car (aref (or handles eshell-current-handles)
 			   (or handle-index eshell-output-handle)))))
-    (if (and target (not (listp target)))
-	(eshell-output-object-to-target object target)
-      (while target
-	(eshell-output-object-to-target object (car target))
-	(setq target (cdr target))))))
+    (if (listp target)
+        (while target
+	  (eshell-output-object-to-target object (car target))
+	  (setq target (cdr target)))
+      (eshell-output-object-to-target object target)
+      ;; Explicitly return nil to match the list case above.
+      nil)))
 
 (provide 'esh-io)
 ;;; esh-io.el ends here

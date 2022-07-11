@@ -128,7 +128,7 @@
 (defconst ediff-meta-buffer-verbose-message "Ediff Session Group Panel: %s
 
 Useful commands (type ? to hide them and free up screen):
-     button2, v, or RET over session record:   start that Ediff session
+     mouse-2, v, or RET over session record:   start that Ediff session
      M:\tin sessions invoked from here, brings back this group panel
      R:\tdisplay the registry of active Ediff sessions
      h:\tmark session for hiding (toggle)
@@ -1236,7 +1236,7 @@ behavior."
       (insert "\t\t*** Directory Differences ***\n")
       (insert "
 Useful commands:
-  C,button2: over file name -- copy this file to directory that doesn't have it
+  C,mouse-2: over file name -- copy this file to directory that doesn't have it
           q: hide this buffer
       n,SPC: next line
       p,DEL: previous line\n\n")
@@ -1429,7 +1429,7 @@ Useful commands:
 This is a registry of all active Ediff sessions.
 
 Useful commands:
-     button2, `v', RET over a session record:  switch to that session
+     mouse-2, `v', RET over a session record:  switch to that session
      M over a session record:  display the associated session group
      R in any Ediff session:   display session registry
      n,SPC: next session

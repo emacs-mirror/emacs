@@ -581,9 +581,12 @@ contents of the file.  This is better than simply deleting the buffer
 contents and inserting the whole file, because (1) it preserves some
 marker positions and (2) it puts less data in the undo list.
 
-It is possible to read a special file (such as a FIFO or an I/O device)
-with @code{insert-file-contents}, as long as @var{replace} and
-@var{visit} are @code{nil}.
+It is possible to read a special file (such as a FIFO or an I/O
+device) with @code{insert-file-contents}, as long as @var{replace},
+and @var{visit} and @var{beg} are @code{nil}.  However, you should
+normally use an @var{end} argument for these files to avoid inserting
+(potentially) unlimited data into the buffer (for instance, when
+inserting data from @file{/dev/urandom}).
 @end defun
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
@@ -1450,13 +1453,19 @@ is owned by the user with name @samp{lh}.
 is in the group with name @samp{users}.
 
 @item (20614 64019 50040 152000)
-was last accessed on October 23, 2012, at 20:12:03.050040152 UTC.
+was last accessed on October 23, 2012, at 20:12:03.050040152 UTC@.
+(This timestamp is @code{(1351023123050040152 . 1000000000)}
+if @code{current-time-list} is @code{nil}.)
 
 @item (20000 23 0 0)
-was last modified on July 15, 2001, at 08:53:43 UTC.
+was last modified on July 15, 2001, at 08:53:43.000000000 UTC@.
+(This timestamp is @code{(1310720023000000000 . 1000000000)}
+if @code{current-time-list} is @code{nil}.)
 
 @item (20614 64555 902289 872000)
-last had its status changed on October 23, 2012, at 20:20:59.902289872 UTC.
+last had its status changed on October 23, 2012, at 20:20:59.902289872 UTC@.
+(This timestamp is @code{(1351023659902289872 . 1000000000)}
+if @code{current-time-list} is @code{nil}.)
 
 @item 122295
 is 122295 bytes long.  (It may not contain 122295 characters, though,
@@ -2436,6 +2445,15 @@ You can use this function for directory names and for file names,
 because it recognizes abbreviations even as part of the name.
 @end defun
 
+@defun file-parent-directory filename
+This function returns the directory name of the parent directory of
+@var{filename}.  If @var{filename} is at the root directory of the
+filesystem, it returns @code{nil}.  A relative @var{filename} is
+assumed to be relative to @code{default-directory}, and the return
+value will also be relative in that case.  If the return value is
+non-@code{nil}, it ends in a slash.
+@end defun
+
 @node File Name Expansion
 @subsection Functions that Expand Filenames
 @cindex expansion of file names
@@ -3106,9 +3124,15 @@ except those two.  It is useful as the @var{match-regexp} argument to
 returns @code{nil}, if directory @samp{/foo} is empty.
 @end defvr
 
-@defun file-expand-wildcards pattern &optional full
+@defun file-expand-wildcards pattern &optional full regexp
 This function expands the wildcard pattern @var{pattern}, returning
 a list of file names that match it.
+
+@var{pattern} is, by default, a ``glob''/wildcard string, e.g.,
+@samp{"/tmp/*.png"} or @samp{"/*/*/foo.png"}, but can also be a
+regular expression if the optional @var{regexp} parameter is non-nil.
+In any case, the matches are applied per sub-directory, so a match
+can't span a parent/sub directory.
 
 If @var{pattern} is written as an absolute file name,
 the values are absolute also.
@@ -3344,6 +3368,7 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},@*
+@code{list-system-processes},
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-directory},
@@ -3352,7 +3377,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},@*
-@code{process-file},
+@code{process-attributes}, @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
 @code{set-file-selinux-context}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},
@@ -3405,6 +3430,7 @@ first, before handlers for jobs such as remote file access.
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},
+@code{list-system-processes},
 @code{load}, @code{lock-file},
 @code{make-auto-save-file-name},
 @code{make-direc@discretionary{}{}{}tory},
@@ -3413,7 +3439,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-nearby-temp-file},
 @code{make-process},
 @code{make-symbolic-link},
-@code{process-file},
+@code{process-attributes}, @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
 @code{set-file-selinux-context}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},

@@ -265,6 +265,9 @@ This section summarizes customization variables used for the
 configuration of the Flymake user interface.
 
 @vtable @code
+@item flymake-mode-line-lighter
+The name of the mode.  Defaults to @samp{Flymake}.
+
 @item flymake-mode-line-format
 Format to use for the Flymake mode line indicator.
 

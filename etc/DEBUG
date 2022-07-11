@@ -947,16 +947,21 @@ several kinds of low-level problems in C code, including:
   * Passing invalid values to some builtin functions, e.g., __builtin_clz (0).
   * Reaching __builtin_unreachable calls (in Emacs, 'eassume' failure).
 
-To use UndefinedBehaviorSanitizer with GCC and similar compilers,
-append '-fsanitize=undefined' to CFLAGS, either when running
-'configure' or running 'make'.  When supported, you can also specify
-'bound-strict' and 'float-cast-overflow'.  For example:
+To use GCC's UndefinedBehaviorSanitizer, append '-fsanitize=undefined'
+to CFLAGS, either when running 'configure' or running 'make'.
+When supported, you can also specify 'bound-strict' and
+'float-cast-overflow'.  For example:
 
   ./configure \
     CFLAGS='-O0 -g3 -fsanitize=undefined,bounds-strict,float-cast-overflow'
 
 You may need to append '-static-libubsan' to CFLAGS if your version of
 GCC is installed in an unusual location.
+
+Clang's UB sanitizer can also be used, but has coverage problems.
+You'll need '-fsanitize=undefined -fno-sanitize=pointer-overflow' to
+suppress misguided warnings about adding zero to a null pointer,
+although this also suppresses any valid pointer overflow warnings.
 
 When using GDB to debug an executable with undefined-behavior
 sanitization, the GDB command:

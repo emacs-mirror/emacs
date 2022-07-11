@@ -81,8 +81,7 @@ Intended to be used in the `interactive' spec of
     (let ((default (format "%S"
                            (cond ((eq variable 'unibyte) t)
                                  ((boundp variable)
-                                  (symbol-value variable)))))
-          (minibuffer-completing-symbol t))
+                                  (symbol-value variable))))))
       (read-from-minibuffer (format "Add %s with value: " variable)
                             nil read-expression-map t
                             'set-variable-value-history
@@ -502,24 +501,26 @@ from the MODE alist ignoring the input argument VALUE."
 		       ((and (symbolp (car b)) (stringp (car a))) nil)
 		       (t (string< (car a) (car b)))))))
              (current-buffer))
+      (when (eobp) (insert "\n"))
       (goto-char (point-min))
       (indent-sexp))))
 
 (defun dir-locals-to-string (variables)
   "Output alists of VARIABLES to string in dotted pair notation syntax."
-  (format "(%s)" (mapconcat
-                  (lambda (mode-variables)
-                    (format "(%S . %s)"
-                            (car mode-variables)
-                            (format "(%s)" (mapconcat
-                                            (lambda (variable-value)
-                                              (format "(%S . %s)"
-                                                      (car variable-value)
-                                                      (string-trim-right
-                                                       (pp-to-string
-                                                        (cdr variable-value)))))
-                                            (cdr mode-variables) "\n"))))
-                  variables "\n")))
+  (format "(%s)"
+          (mapconcat
+           (lambda (mode-variables)
+             (format "(%S . %s)"
+                     (car mode-variables)
+                     (format "(%s)" (mapconcat
+                                     (lambda (variable-value)
+                                       (format "(%S . %s)"
+                                               (car variable-value)
+                                               (string-trim-right
+                                                (pp-to-string
+                                                 (cdr variable-value)))))
+                                     (cdr mode-variables) "\n"))))
+           variables "\n")))
 
 ;;;###autoload
 (defun add-dir-local-variable (mode variable value)
@@ -579,15 +580,22 @@ changed by the user.")
 (setq ignored-local-variables
       (cons 'connection-local-variables-alist ignored-local-variables))
 
-(defvar connection-local-profile-alist nil
+(defcustom connection-local-profile-alist nil
   "Alist mapping connection profiles to variable lists.
 Each element in this list has the form (PROFILE VARIABLES).
 PROFILE is the name of a connection profile (a symbol).
 VARIABLES is a list that declares connection-local variables for
 PROFILE.  An element in VARIABLES is an alist whose elements are
-of the form (VAR . VALUE).")
+of the form (VAR . VALUE)."
+  :type '(repeat (cons (symbol :tag "Profile")
+                       (repeat :tag "Variables"
+                               (cons (symbol :tag "Variable")
+                                     (sexp :tag "Value")))))
+  :group 'files
+  :group 'tramp
+  :version "29.1")
 
-(defvar connection-local-criteria-alist nil
+(defcustom connection-local-criteria-alist nil
   "Alist mapping connection criteria to connection profiles.
 Each element in this list has the form (CRITERIA PROFILES).
 CRITERIA is a plist identifying a connection and the application
@@ -596,7 +604,19 @@ using this connection.  Property names might be `:application',
 `:application' is a symbol, all other property values are
 strings.  All properties are optional; if CRITERIA is nil, it
 always applies.
-PROFILES is a list of connection profiles (symbols).")
+PROFILES is a list of connection profiles (symbols)."
+  :type '(repeat (cons (plist :tag "Criteria"
+                              ;; Give the most common options as checkboxes.
+			      :options (((const :format "%v " :application)
+                                         symbol)
+				        ((const :format "%v " :protocol) string)
+				        ((const :format "%v " :user) string)
+				        ((const :format "%v " :machine) string)))
+                       (repeat :tag "Profiles"
+                               (symbol :tag "Profile"))))
+  :group 'files
+  :group 'tramp
+  :version "29.1")
 
 (defsubst connection-local-normalize-criteria (criteria)
   "Normalize plist CRITERIA according to properties.
@@ -649,7 +669,9 @@ variables for a connection profile are defined using
         (setcdr slot (delete-dups (append (cdr slot) profiles)))
       (setq connection-local-criteria-alist
             (cons (cons criteria (delete-dups profiles))
-		  connection-local-criteria-alist)))))
+		  connection-local-criteria-alist))))
+  (customize-set-variable
+   'connection-local-criteria-alist connection-local-criteria-alist))
 
 (defsubst connection-local-get-profile-variables (profile)
   "Return the connection-local variable list for PROFILE."
@@ -668,7 +690,9 @@ connection profile using `connection-local-set-profiles'.  Then
 variables are set in the server's process buffer according to the
 VARIABLES list of the connection profile.  The list is processed
 in order."
-  (setf (alist-get profile connection-local-profile-alist) variables))
+  (setf (alist-get profile connection-local-profile-alist) variables)
+  (customize-set-variable
+   'connection-local-profile-alist connection-local-profile-alist))
 
 (defun hack-connection-local-variables (criteria)
   "Read connection-local variables according to CRITERIA.
@@ -699,36 +723,46 @@ will not be changed."
         (copy-tree connection-local-variables-alist)))
    (hack-local-variables-apply)))
 
+(defvar connection-local-default-application 'tramp
+  "Default application in connection-local functions, a symbol.
+This variable must not be changed globally.")
+
 (defsubst connection-local-criteria-for-default-directory (&optional application)
   "Return a connection-local criteria, which represents `default-directory'.
-If APPLICATION is nil, the symbol `tramp' is used."
+If APPLICATION is nil, `connection-local-default-application' is used."
   (when (file-remote-p default-directory)
-    `(:application ,(or application 'tramp)
-       :protocol   ,(file-remote-p default-directory 'method)
-       :user       ,(file-remote-p default-directory 'user)
-       :machine    ,(file-remote-p default-directory 'host))))
+    `(:application ,(or application connection-local-default-application)
+      :protocol    ,(file-remote-p default-directory 'method)
+      :user        ,(file-remote-p default-directory 'user)
+      :machine     ,(file-remote-p default-directory 'host))))
 
 ;;;###autoload
 (defmacro with-connection-local-variables (&rest body)
   "Apply connection-local variables according to `default-directory'.
 Execute BODY, and unwind connection-local variables."
   (declare (debug t))
-  `(if (file-remote-p default-directory)
-       (let ((enable-connection-local-variables t)
-             (old-buffer-local-variables (buffer-local-variables))
-	     connection-local-variables-alist)
-	 (hack-connection-local-variables-apply
-	  (connection-local-criteria-for-default-directory))
-	 (unwind-protect
-             (progn ,@body)
-	   ;; Cleanup.
-	   (dolist (variable connection-local-variables-alist)
-	     (let ((elt (assq (car variable) old-buffer-local-variables)))
-	       (if elt
-		   (set (make-local-variable (car elt)) (cdr elt))
-		 (kill-local-variable (car variable)))))))
-     ;; No connection-local variables to apply.
-     ,@body))
+  `(with-connection-local-variables-1 (lambda () ,@body)))
+
+;;;###autoload
+(defun with-connection-local-variables-1 (body-fun)
+  "Apply connection-local variables according to `default-directory'.
+Call BODY-FUN with no args, and then unwind connection-local variables."
+  (if (file-remote-p default-directory)
+      (let ((enable-connection-local-variables t)
+            (old-buffer-local-variables (buffer-local-variables))
+	    connection-local-variables-alist)
+	(hack-connection-local-variables-apply
+	 (connection-local-criteria-for-default-directory))
+	(unwind-protect
+            (funcall body-fun)
+	  ;; Cleanup.
+	  (dolist (variable connection-local-variables-alist)
+	    (let ((elt (assq (car variable) old-buffer-local-variables)))
+	      (if elt
+		  (set (make-local-variable (car elt)) (cdr elt))
+		(kill-local-variable (car variable)))))))
+    ;; No connection-local variables to apply.
+    (funcall body-fun)))
 
 ;;;###autoload
 (defun path-separator ()

@@ -61,6 +61,7 @@
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 foo\\|\\(?:[^icfgv]\\|g[^r]\\)\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
+cl-\\(?:defun\\|defmethod\\|defgeneric\\)\\|\
 menu-bar-make-toggle\\|menu-bar-make-toggle-command\\)"
    find-function-space-re
    "\\('\\|(quote \\)?%s\\(\\s-\\|$\\|[()]\\)")
@@ -123,6 +124,15 @@ should insert the feature name."
   :group 'xref
   :version "25.1")
 
+(defcustom find-ert-deftest-regexp
+  "(ert-deftest +'%s"
+  "The regexp used to search for an ert-deftest definition.
+Note it must contain a `%s' at the place where `format'
+should insert the feature name."
+  :type 'regexp
+  :group 'xref
+  :version "29.1")
+
 (defun find-function--defface (symbol)
   (catch 'found
     (while (re-search-forward (format find-face-regexp symbol) nil t)
@@ -136,7 +146,8 @@ should insert the feature name."
     (defvar . find-variable-regexp)
     (defface . find-function--defface)
     (feature . find-feature-regexp)
-    (defalias . find-alias-regexp))
+    (defalias . find-alias-regexp)
+    (ert-deftest . find-ert-deftest-regexp))
   "Alist mapping definition types into regexp variables.
 Each regexp variable's value should actually be a format string
 to be used to substitute the desired symbol name into the regexp.
@@ -172,6 +183,16 @@ See the functions `find-function' and `find-variable'."
   :type 'hook
   :group 'find-function
   :version "20.3")
+
+(defcustom find-library-include-other-files t
+  "If non-nil, `read-library-name' will also include non-library files.
+This affects commands like `read-library'.
+
+If nil, only library files (i.e., \".el\" files) will be offered
+for completion."
+  :type 'boolean
+  :version "29.1"
+  :group 'find-function)
 
 ;;; Functions:
 
@@ -248,11 +269,7 @@ defined in C.")
 If FUNC is not a symbol, return it.  Else, if it's not advised,
 return the symbol's function definition."
   (or (and (symbolp func)
-           (featurep 'nadvice)
-           (let ((ofunc (advice--symbol-function func)))
-             (if (advice--p ofunc)
-                 (advice--cd*r ofunc)
-               ofunc)))
+           (advice--cd*r (symbol-function func)))
       func))
 
 (defun find-function-C-source (fun-or-var file type)
@@ -292,7 +309,10 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 Interactively, prompt for LIBRARY using the one at or near point.
 
 This function searches `find-library-source-path' if non-nil, and
-`load-path' otherwise."
+`load-path' otherwise.
+
+See the `find-library-include-other-files' user option for
+customizing the candidate completions."
   (interactive (list (read-library-name)))
   (prog1
       (switch-to-buffer (find-file-noselect (find-library-name library)))
@@ -307,8 +327,6 @@ in a directory under `load-path' (or `find-library-source-path',
 if non-nil)."
   (let* ((dirs (or find-library-source-path load-path))
          (suffixes (find-library-suffixes))
-         (table (apply-partially 'locate-file-completion-table
-                                 dirs suffixes))
          (def (if (eq (function-called-at-point) 'require)
                   ;; `function-called-at-point' may return 'require
                   ;; with `point' anywhere on this line.  So wrap the
@@ -322,10 +340,28 @@ if non-nil)."
                         (thing-at-point 'symbol))
                     (error nil))
                 (thing-at-point 'symbol))))
-    (when (and def (not (test-completion def table)))
-      (setq def nil))
-    (completing-read (format-prompt "Library name" def)
-                     table nil nil nil nil def)))
+    (if find-library-include-other-files
+        (let ((table (apply-partially #'locate-file-completion-table
+                                      dirs suffixes)))
+          (when (and def (not (test-completion def table)))
+            (setq def nil))
+          (completing-read (format-prompt "Library name" def)
+                           table nil nil nil nil def))
+      (let ((files (read-library-name--find-files dirs suffixes)))
+        (when (and def (not (member def files)))
+          (setq def nil))
+        (completing-read (format-prompt "Library name" def)
+                         files nil t nil nil def)))))
+
+(defun read-library-name--find-files (dirs suffixes)
+  "Return a list of all files in DIRS that match SUFFIXES."
+  (let ((files nil)
+        (regexp (concat (regexp-opt suffixes) "\\'")))
+    (dolist (dir dirs)
+      (dolist (file (ignore-errors (directory-files dir nil regexp t)))
+        (and (string-match regexp file)
+             (push (substring file 0 (match-beginning 0)) files))))
+    files))
 
 ;;;###autoload
 (defun find-library-other-window (library)
@@ -476,8 +512,8 @@ Return t if any PRED returns t."
 (defun find-function-library (function &optional lisp-only verbose)
   "Return the pair (ORIG-FUNCTION . LIBRARY) for FUNCTION.
 
-ORIG-FUNCTION is the original name, after removing all advice and
-resolving aliases.  LIBRARY is an absolute file name, a relative
+ORIG-FUNCTION is the original name, after resolving aliases.
+LIBRARY is an absolute file name, a relative
 file name inside the C sources directory, or a name of an
 autoloaded feature.
 
@@ -764,7 +800,10 @@ See `find-function-on-key'."
   (define-key ctl-x-5-map "K" 'find-function-on-key-other-frame)
   (define-key ctl-x-map "V" 'find-variable)
   (define-key ctl-x-4-map "V" 'find-variable-other-window)
-  (define-key ctl-x-5-map "V" 'find-variable-other-frame))
+  (define-key ctl-x-5-map "V" 'find-variable-other-frame)
+  (define-key ctl-x-map "L" 'find-library)
+  (define-key ctl-x-4-map "L" 'find-library-other-window)
+  (define-key ctl-x-5-map "L" 'find-library-other-frame))
 
 (provide 'find-func)
 

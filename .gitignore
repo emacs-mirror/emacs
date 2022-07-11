@@ -221,6 +221,7 @@ lisp/international/emoji-zwj.el
 lisp/international/emoji-labels.el
 lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
+lisp/international/idna-mapping.el
 lisp/language/pinyin.el
 
 # Documentation.

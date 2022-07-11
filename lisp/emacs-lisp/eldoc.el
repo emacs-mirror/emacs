@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.11.0
+;; Version: 1.12.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -102,7 +102,7 @@ put in the echo area.  If a positive integer, the number is used
 directly, while a float specifies the number of lines as a
 proportion of the echo area frame's height.
 
-If value is the symbol `truncate-sym-name-if-fit' t, the part of
+If value is the symbol `truncate-sym-name-if-fit', the part of
 the doc string that represents a symbol's name may be truncated
 if it will enable the rest of the doc string to fit on a single
 line, without resizing the echo area.
@@ -387,6 +387,10 @@ Also store it in `eldoc-last-message' and return that value."
            ;; conflicts with eldoc.
            (and (boundp 'show-paren-context-when-offscreen)
                 show-paren-context-when-offscreen
+                ;; There's no conflict with the child-frame and
+                ;; overlay versions.
+                (not (memq show-paren-context-when-offscreen
+                           '(child-frame overlay)))
                 (not (pos-visible-in-window-p
                       (overlay-end show-paren--overlay)))))))
 
@@ -460,19 +464,22 @@ directly from the user or from ElDoc's automatic mechanisms'.")
 
 (defvar eldoc--doc-buffer-docs nil "Documentation items in `eldoc--doc-buffer'.")
 
-(defun eldoc-doc-buffer ()
-  "Display ElDoc documentation buffer.
+(defun eldoc-doc-buffer (&optional interactive)
+  "Get or display ElDoc documentation buffer.
 
-This holds the results of the last documentation request."
-  (interactive)
+The buffer holds the results of the last documentation request.
+If INTERACTIVE, display it.  Else, return said buffer."
+  (interactive (list t))
   (unless (buffer-live-p eldoc--doc-buffer)
     (user-error (format
                  "ElDoc buffer doesn't exist, maybe `%s' to produce one."
                  (substitute-command-keys "\\[eldoc]"))))
   (with-current-buffer eldoc--doc-buffer
-    (rename-buffer (replace-regexp-in-string "^ *" ""
-                                             (buffer-name)))
-    (display-buffer (current-buffer))))
+    (cond (interactive
+           (rename-buffer (replace-regexp-in-string "^ *" ""
+                                                    (buffer-name)))
+           (display-buffer (current-buffer)))
+          (t (current-buffer)))))
 
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
@@ -521,7 +528,8 @@ Helper for `eldoc-display-in-echo-area'."
                         (goto-char (point-min))
                         (skip-chars-forward " \t\n")
                         (point))
-                 (goto-char (line-end-position available))
+                 (forward-visible-line (1- available))
+                 (end-of-visible-line)
                  (skip-chars-backward " \t\n")))
         (truncated (save-excursion
                      (skip-chars-forward " \t\n")
@@ -531,7 +539,8 @@ Helper for `eldoc-display-in-echo-area'."
           ((and truncated
                 (> available 1)
                 eldoc-echo-area-display-truncation-message)
-           (goto-char (line-end-position 0))
+           (forward-visible-line -1)
+           (end-of-visible-line)
            (concat (buffer-substring start (point))
                    (format
                     "\n(Documentation truncated. Use `%s' to see rest)"
@@ -606,7 +615,8 @@ Honor `eldoc-echo-area-use-multiline-p' and
                (let ((string
                       (with-current-buffer (eldoc--format-doc-buffer docs)
                         (buffer-substring (goto-char (point-min))
-                                          (line-end-position 1)))))
+                                          (progn (end-of-visible-line)
+                                                 (point))))))
                  (if (> (length string) width)  ; truncation to happen
                      (unless (eldoc--echo-area-prefer-doc-buffer-p t)
                        (truncate-string-to-width string width))

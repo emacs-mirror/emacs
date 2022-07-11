@@ -21,6 +21,7 @@ reading) or where to put it (if printing).
 * Output Streams::    Various data types that can be used as output streams.
 * Output Functions::  Functions to print Lisp objects as text.
 * Output Variables::  Variables that control what the printing functions do.
+* Output Overrides::  Overriding output variables.
 @end menu
 
 @node Streams Intro
@@ -327,6 +328,15 @@ For example:
 @end example
 @end defun
 
+@defun read-positioning-symbols &optional stream
+This function reads one textual expression from @var{stream}, like
+@code{read} does, but additionally positions the read symbols to the
+positions in @var{stream} where they occurred.  Only the symbol
+@code{nil} is not positioned, this for efficiency reasons.
+@xref{Symbols with Position}.  This function is used by the byte
+compiler.
+@end defun
+
 @defvar standard-input
 This variable holds the default input stream---the stream that
 @code{read} uses when the @var{stream} argument is @code{nil}.
@@ -356,6 +366,15 @@ or @code{stderr}.  This function flushes any pending output data of
 @var{stream} as a side effect, and returns the previous value of I/O
 mode for @var{stream}.  On POSIX hosts, it always returns a
 non-@code{nil} value and does nothing except flushing pending output.
+@end defun
+
+@defun readablep object
+@cindex readable syntax
+This predicate says whether @var{object} has @dfn{readable syntax},
+i.e., it can be written out and then read back by the Emacs Lisp
+reader.  If it can't, this function returns @code{nil}; if it can,
+this function returns a printed representation (via @code{prin1},
+@pxref{Output Functions}) of @var{object}.
 @end defun
 
 @node Output Streams
@@ -616,7 +635,7 @@ characters are used.  @code{print} returns @var{object}.  For example:
 @end example
 @end defun
 
-@defun prin1 object &optional stream
+@defun prin1 object &optional stream overrides
 This function outputs the printed representation of @var{object} to
 @var{stream}.  It does not print newlines to separate output as
 @code{print} does, but it does use quoting characters just like
@@ -631,6 +650,10 @@ This function outputs the printed representation of @var{object} to
      @result{} " came back"
 @end group
 @end example
+
+If @var{overrides} is non-@code{nil}, it should either be @code{t}
+(which tells @code{prin1} to use the defaults for all printer related
+variables), or a list of settings.  @xref{Output Overrides}, for details.
 @end defun
 
 @defun princ object &optional stream
@@ -667,7 +690,16 @@ This function outputs @var{character} to @var{stream}.  It returns
 @var{character}.
 @end defun
 
-@defun prin1-to-string object &optional noescape
+@defun flush-standard-output
+If you have Emacs-based batch scripts that send output to the
+terminal, Emacs will automatically display the output whenever you
+write a newline characters to @code{standard-output}.  This function
+allows you to flush to @code{standard-output} without sending a
+newline character first, which enables you to display incomplete
+lines.
+@end defun
+
+@defun prin1-to-string object &optional noescape overrides
 @cindex object to string
 This function returns a string containing the text that @code{prin1}
 would have printed for the same argument.
@@ -681,6 +713,10 @@ would have printed for the same argument.
 (prin1-to-string (mark-marker))
      @result{} "#<marker at 2773 in strings.texi>"
 @end group
+
+If @var{overrides} is non-@code{nil}, it should either be @code{t}
+(which tells @code{prin1} to use the defaults for all printer related
+variables), or a list of settings.  @xref{Output Overrides}, for details.
 @end example
 
 If @var{noescape} is non-@code{nil}, that inhibits use of quoting
@@ -872,6 +908,32 @@ If non-@code{nil}, this variable enables detection of circular and
 shared structure in printing.  @xref{Circular Objects}.
 @end defvar
 
+@defvar print-unreadable-function
+By default, Emacs prints unreadable objects as @samp{#<...>"}.  For
+instance:
+
+@example
+(prin1-to-string (make-marker))
+     @result{} "#<marker in no buffer>"
+@end example
+
+If this variable is non-@code{nil}, it should be a function that will
+be called to handle printing of these objects.  The function will be
+called with two arguments: the object and the @var{noescape} flag used by
+the printing functions (@pxref{Output Functions}).
+
+The function should return either @code{nil} (print the object as
+usual), or a string (which will be printed), or any other object
+(don't print the object).  For instance:
+
+@example
+(let ((print-unreadable-function
+       (lambda (object escape) "hello")))
+  (prin1-to-string (make-marker)))
+     @result{} "hello"
+@end example
+@end defvar
+
 @defvar print-gensym
 If non-@code{nil}, this variable enables detection of uninterned symbols
 (@pxref{Creating Symbols}) in printing.  When this is enabled,
@@ -918,3 +980,84 @@ Letter, Number, Punctuation, Symbol and Private-use
 (@pxref{Character Properties}), as well as the control characters
 having their own escape syntax such as newline.
 @end defvar
+
+@node Output Overrides
+@section Overriding Output Variables
+@cindex overrides, in output functions
+@cindex output variables, overriding
+
+The previous section (@pxref{Output Functions}) lists the numerous
+variables that control how the Emacs Lisp printer formats data for
+outputs.  These are generally available for users to change, but
+sometimes you want to output data in the default format, or override
+the user settings in some other way.  For instance, if you're storing
+Emacs Lisp data in a file, you don't want that data to be shortened by
+a @code{print-length} setting.
+
+The @code{prin1} and @code{prin1-to-string} functions therefore have
+an optional @var{overrides} argument.  This argument can either be
+@code{t} (which means that all printing variables should be reset to
+the default values), or a list of settings for some of the variables.
+Each element in the list can be either @code{t} (which means ``reset
+to defaults'', and will usually be the first element of the list), or
+a pair whose @code{car} is a symbol that stands for an output variable
+and whose @code{cdr} is the value for that variable.
+
+For instance, this prints using nothing but defaults:
+
+@lisp
+(prin1 object nil t)
+@end lisp
+
+This prints @var{object} using the current printing settings, but
+overrides the value of @code{print-length} to be 5:
+
+@lisp
+(prin1 object nil '((length . 5)))
+@end lisp
+
+And finally, this prints @var{object} using only default settings, but
+with @code{print-length} bound to 5:
+
+@lisp
+(prin1 object nil '(t (length . 5)))
+@end lisp
+
+Below is a list of symbols that can be used, and which variables they
+map to:
+
+@table @code
+@item length
+This overrides @code{print-length}.
+@item level
+This overrides @code{print-level}.
+@item circle
+This overrides @code{print-circle}.
+@item quoted
+This overrides @code{print-quoted}.
+@item escape-newlines
+This overrides @code{print-escape-newlines}.
+@item escape-control-characters
+This overrides @code{print-escape-control-characters}.
+@item escape-nonascii
+This overrides @code{print-escape-nonascii}.
+@item escape-multibyte
+This overrides @code{print-escape-multibyte}.
+@item charset-text-property
+This overrides @code{print-charset-text-property}.
+@item unreadeable-function
+This overrides @code{print-unreadable-function}.
+@item gensym
+This overrides @code{print-gensym}.
+@item continuous-numbering
+This overrides @code{print-continuous-numbering}.
+@item number-table
+This overrides @code{print-number-table}.
+@item float-format
+This overrides @code{float-output-format}.
+@item integers-as-characters
+This overrides @code{print-integers-as-characters}.
+@end table
+
+In the future, more overrides may be offered that do not map directly
+to a variable, but can only be used via this parameter.

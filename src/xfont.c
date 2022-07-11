@@ -295,7 +295,7 @@ xfont_list_pattern (Display *display, const char *pattern,
 {
   Lisp_Object list = Qnil;
   Lisp_Object chars = Qnil;
-  struct charset *encoding, *repertory = NULL;
+  struct charset *encoding = NULL, *repertory = NULL;
   int i, limit, num_fonts;
   char **names;
   /* Large enough to decode the longest XLFD (255 bytes). */
@@ -1002,6 +1002,32 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       XSetFont (display, gc, xfont->fid);
       unblock_input ();
     }
+
+#if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+  if (with_background
+      && FRAME_DISPLAY_INFO (s->f)->alpha_bits
+      && FRAME_CHECK_XR_VERSION (s->f, 0, 2))
+    {
+      x_xr_ensure_picture (s->f);
+
+      if (FRAME_X_PICTURE (s->f) != None)
+	{
+	  XRenderColor xc;
+	  int height = FONT_HEIGHT (s->font), ascent = FONT_BASE (s->font);
+
+	  x_xr_apply_ext_clip (s->f, gc);
+	  x_xrender_color_from_gc_background (s->f, gc, &xc,
+					      s->hl != DRAW_CURSOR);
+	  XRenderFillRectangle (FRAME_X_DISPLAY (s->f),
+				PictOpSrc, FRAME_X_PICTURE (s->f),
+				&xc, x, y - ascent, s->width, height);
+	  x_xr_reset_ext_clip (s->f);
+	  x_mark_frame_dirty (s->f);
+
+	  with_background = false;
+	}
+    }
+#endif
 
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
     {

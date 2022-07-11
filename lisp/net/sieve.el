@@ -106,33 +106,31 @@ require \"fileinto\";
 ;; FIXME: This is arguably a bug/problem in `easy-menu-define'.
 (declare-function sieve-manage-mode-menu "sieve")
 
-(defvar sieve-manage-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; various
-    (define-key map "?" #'sieve-help)
-    (define-key map "h" #'sieve-help)
-    ;; activating
-    (define-key map "m" #'sieve-activate)
-    (define-key map "u" #'sieve-deactivate)
-    (define-key map "\M-\C-?" #'sieve-deactivate-all)
-    ;; navigation keys
-    (define-key map "\C-p" #'sieve-prev-line)
-    (define-key map [up] #'sieve-prev-line)
-    (define-key map "\C-n" #'sieve-next-line)
-    (define-key map [down] #'sieve-next-line)
-    (define-key map " " #'sieve-next-line)
-    (define-key map "n" #'sieve-next-line)
-    (define-key map "p" #'sieve-prev-line)
-    (define-key map "\C-m" #'sieve-edit-script)
-    (define-key map "f" #'sieve-edit-script)
-    ;; (define-key map "o" #'sieve-edit-script-other-window)
-    (define-key map "r" #'sieve-remove)
-    (define-key map "q" #'sieve-bury-buffer)
-    (define-key map "Q" #'sieve-manage-quit)
-    (define-key map [(down-mouse-2)] #'sieve-edit-script)
-    (define-key map [(down-mouse-3)] #'sieve-manage-mode-menu)
-    map)
-  "Keymap for `sieve-manage-mode'.")
+(defvar-keymap sieve-manage-mode-map
+  :doc "Keymap for `sieve-manage-mode'."
+  ;; various
+  "?"      #'sieve-help
+  "h"      #'sieve-help
+  ;; activating
+  "m"      #'sieve-activate
+  "u"      #'sieve-deactivate
+  "M-DEL"  #'sieve-deactivate-all
+  ;; navigation keys
+  "C-p"    #'sieve-prev-line
+  "<up>"   #'sieve-prev-line
+  "C-n"    #'sieve-next-line
+  "<down>" #'sieve-next-line
+  "SPC"    #'sieve-next-line
+  "n"      #'sieve-next-line
+  "p"      #'sieve-prev-line
+  "RET"    #'sieve-edit-script
+  "f"      #'sieve-edit-script
+  ;; "o"   #'sieve-edit-script-other-window
+  "r"      #'sieve-remove
+  "q"      #'sieve-bury-buffer
+  "Q"      #'sieve-manage-quit
+  "<down-mouse-2>" #'sieve-edit-script
+  "<down-mouse-3>" #'sieve-manage-mode-menu)
 
 (easy-menu-define sieve-manage-mode-menu sieve-manage-mode-map
   "Sieve Menu."

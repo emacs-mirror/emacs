@@ -32,13 +32,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* To help make dependencies clearer elsewhere, this file typically
    does not #include other files.  The exceptions are stdbool.h
    because it is unlikely to interfere with configuration and bool is
-   such a core part of the C language, attribute.h because its
-   ATTRIBUTE_* macros are used here, and ms-w32.h (DOS_NT
+   such a core part of the C language, and ms-w32.h (DOS_NT
    only) because it historically was included here and changing that
    would take some work.  */
 
 #include <stdbool.h>
-#include <attribute.h>
 
 #if defined WINDOWSNT && !defined DEFER_MS_W32_H
 # include <ms-w32.h>
@@ -182,6 +180,26 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 # define SIZE_MAX  4294967295U
 #endif
 
+/* Things that lib/reg* wants.  */
+
+#define mbrtowc(pwc, s, n, ps) mbtowc ((pwc), (s), (n))
+#define wcrtomb(s, wc, ps) wctomb ((s), (wc))
+#define btowc(b) ((wchar_t) (b))
+#define towupper(chr) toupper (chr)
+#define towlower(chr) tolower (chr)
+#define iswalnum(chr) isalnum (chr)
+#define wctype(name) ((wctype_t) 0)
+#define iswctype(wc, type) false
+#define mbsinit(ps) 1
+
+/* Some things that lib/at-func.c wants.  */
+#define GNULIB_SUPPORT_ONLY_AT_FDCWD
+
+/* Needed by lib/lchmod.c.  */
+#define EOPNOTSUPP EINVAL
+
+#define MALLOC_0_IS_NONNULL 1
+
 /* We must intercept 'opendir' calls to stash away the directory name,
    so we could reuse it in readlinkat; see msdos.c.  */
 #define opendir sys_opendir
@@ -249,7 +267,7 @@ extern void _DebPrint (const char *fmt, ...);
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
-#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_fixnum (0)))
+#define RE_TRANSLATE_P(TBL) (!BASE_EQ (TBL, make_fixnum (0)))
 #endif
 
 /* Tell time_rz.c to use Emacs's getter and setter for TZ.
@@ -259,8 +277,8 @@ extern void _DebPrint (const char *fmt, ...);
 extern char *emacs_getenv_TZ (void);
 extern int emacs_setenv_TZ (char const *);
 
-#define NO_INLINE ATTRIBUTE_NOINLINE
-#define EXTERNALLY_VISIBLE ATTRIBUTE_EXTERNALLY_VISIBLE
+#define NO_INLINE _GL_ATTRIBUTE_NOINLINE
+#define EXTERNALLY_VISIBLE _GL_ATTRIBUTE_EXTERNALLY_VISIBLE
 
 #if GNUC_PREREQ (4, 4, 0) && defined __GLIBC_MINOR__
 # define PRINTF_ARCHETYPE __gnu_printf__
@@ -290,9 +308,9 @@ extern int emacs_setenv_TZ (char const *);
 # define PRINTF_ARCHETYPE __printf__
 #endif
 #define ATTRIBUTE_FORMAT_PRINTF(string_index, first_to_check) \
-  ATTRIBUTE_FORMAT ((PRINTF_ARCHETYPE, string_index, first_to_check))
+  _GL_ATTRIBUTE_FORMAT ((PRINTF_ARCHETYPE, string_index, first_to_check))
 
-#define ARG_NONNULL ATTRIBUTE_NONNULL
+#define ARG_NONNULL _GL_ATTRIBUTE_NONNULL
 
 /* Declare NAME to be a pointer to an object of type TYPE, initialized
    to the address ADDR, which may be of a different type.  Accesses
@@ -300,15 +318,16 @@ extern int emacs_setenv_TZ (char const *);
    behavior, even if options like gcc -fstrict-aliasing are used.  */
 
 #define DECLARE_POINTER_ALIAS(name, type, addr) \
-  type ATTRIBUTE_MAY_ALIAS *name = (type *) (addr)
+  type _GL_ATTRIBUTE_MAY_ALIAS *name = (type *) (addr)
 
 #if 3 <= __GNUC__
 # define ATTRIBUTE_SECTION(name) __attribute__((section (name)))
 #else
-#define ATTRIBUTE_SECTION(name)
+# define ATTRIBUTE_SECTION(name)
 #endif
 
-#define ATTRIBUTE_MALLOC_SIZE(args) ATTRIBUTE_MALLOC ATTRIBUTE_ALLOC_SIZE (args)
+#define ATTRIBUTE_MALLOC_SIZE(args) \
+  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_ALLOC_SIZE (args)
 
 /* Work around GCC bug 59600: when a function is inlined, the inlined
    code may have its addresses sanitized even if the function has the
@@ -351,6 +370,19 @@ extern int emacs_setenv_TZ (char const *);
    For now, assume that this problem occurs on all platforms.  */
 #if ADDRESS_SANITIZER && !defined vfork
 # define vfork fork
+#endif
+
+/* vfork is deprecated on at least macOS 11.6 and later, but it still works
+   and is faster than fork, so silence the warning as if we knew what we
+   are doing.  */
+#ifdef DARWIN_OS
+#define VFORK()								\
+  (_Pragma("clang diagnostic push")					\
+   _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\"")	\
+   vfork ()								\
+   _Pragma("clang diagnostic pop"))
+#else
+#define VFORK() vfork ()
 #endif
 
 #if ! (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__)

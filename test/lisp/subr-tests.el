@@ -112,7 +112,7 @@
   (should (equal (kbd "C-x C-f") "\C-x\C-f"))
   (should (equal (kbd "C-M-<down>") [C-M-down]))
   (should (equal (kbd "<C-M-down>") [C-M-down]))
-  (should (equal (kbd "C-RET") [?\C-\C-m]))
+  (should (equal (kbd "C-RET") [?\C-\r]))
   (should (equal (kbd "C-SPC") [?\C- ]))
   (should (equal (kbd "C-TAB") [?\C-\t]))
   (should (equal (kbd "C-<down>") [C-down]))
@@ -1006,6 +1006,89 @@ final or penultimate step during initialization."))
   (should (equal (ensure-list nil) nil))
   (should (equal (ensure-list :foo) '(:foo)))
   (should (equal (ensure-list '(1 2 3)) '(1 2 3))))
+
+(ert-deftest test-alias-p ()
+  (should-not (function-alias-p 1))
+
+  (defun subr-tests--fun ())
+  (should-not (function-alias-p 'subr-tests--fun))
+
+  (defalias 'subr-tests--a 'subr-tests--b)
+  (defalias 'subr-tests--b 'subr-tests--c)
+  (should (equal (function-alias-p 'subr-tests--a)
+                 '(subr-tests--b subr-tests--c)))
+
+  (defalias 'subr-tests--d 'subr-tests--e)
+  (defalias 'subr-tests--e 'subr-tests--d)
+  (should-error (function-alias-p 'subr-tests--d))
+  (should (equal (function-alias-p 'subr-tests--d t)
+                 '(subr-tests--e))))
+
+(ert-deftest test-readablep ()
+  (should (readablep "foo"))
+  (should-not (readablep (list (make-marker)))))
+
+(ert-deftest test-string-lines ()
+  (should (equal (string-lines "") '("")))
+  (should (equal (string-lines "" t) '()))
+
+  (should (equal (string-lines "foo") '("foo")))
+  (should (equal (string-lines "foo\n") '("foo")))
+  (should (equal (string-lines "foo\nbar") '("foo" "bar")))
+
+  (should (equal (string-lines "foo" t) '("foo")))
+  (should (equal (string-lines "foo\n" t) '("foo")))
+  (should (equal (string-lines "foo\nbar" t) '("foo" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t) '("foo" "bar")))
+
+  (should (equal (string-lines "foo" nil t) '("foo")))
+  (should (equal (string-lines "foo\n" nil t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" nil t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" nil t)
+                 '("foo\n" "\n" "\n" "bar")))
+
+  (should (equal (string-lines "foo" t t) '("foo")))
+  (should (equal (string-lines "foo\n" t t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" t t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t t)
+                 '("foo\n" "bar"))))
+
+(ert-deftest test-keymap-parse-macros ()
+  (should (equal (key-parse "C-x ( C-d C-x )") [24 40 4 24 41]))
+  (should (equal (kbd "C-x ( C-d C-x )") ""))
+  (should (equal (kbd "C-x ( C-x )") "")))
+
+(defvar subr-test--global)
+(ert-deftest test-local-set-state ()
+  (setq subr-test--global 1)
+  (with-temp-buffer
+    (setq-local subr-test--local 2)
+    (let ((state (buffer-local-set-state subr-test--global 10
+                                         subr-test--local 20
+                                         subr-test--unexist 30)))
+      (should (= subr-test--global 10))
+      (should (= subr-test--local 20))
+      (should (= subr-test--unexist 30))
+      (buffer-local-restore-state state)
+      (should (= subr-test--global 1))
+      (should (= subr-test--local 2))
+      (should-not (boundp 'subr-test--unexist)))))
+
+(ert-deftest test-char-uppercase-p ()
+  "Tests for `char-uppercase-p'."
+  (dolist (c (list ?R ?S ?Ω ?Ψ))
+    (should (char-uppercase-p c)))
+  (dolist (c (list ?a ?b ?α ?β))
+    (should-not (char-uppercase-p c))))
+
+(ert-deftest test-plistp ()
+  (should (plistp nil))
+  (should-not (plistp 1))
+  (should (plistp '(1 2)))
+  (should-not (plistp '(1 . 2)))
+  (should (plistp '(1 2 3 4)))
+  (should-not (plistp '(1 2 3)))
+  (should-not (plistp '(1 2 3 . 4))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

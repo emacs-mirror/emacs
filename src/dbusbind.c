@@ -1690,29 +1690,30 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
       /* Loop over the registered functions.  Construct an event.  */
-      while (!NILP (value))
+      for (; !NILP (value); value = CDR_SAFE (value))
 	{
 	  key = CAR_SAFE (value);
+	  Lisp_Object key_uname = CAR_SAFE (key);
 	  /* key has the structure (UNAME SERVICE PATH HANDLER).  */
-	  if (((uname == NULL)
-	       || (NILP (CAR_SAFE (key)))
-	       || (strcmp (uname, SSDATA (CAR_SAFE (key))) == 0))
-	      && ((path == NULL)
-		  || (NILP (CAR_SAFE (CDR_SAFE (CDR_SAFE (key)))))
-		  || (strcmp (path,
-			      SSDATA (CAR_SAFE (CDR_SAFE (CDR_SAFE (key)))))
-		      == 0))
-	      && (!NILP (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))))))
-	    {
-	      EVENT_INIT (event);
-	      event.kind = DBUS_EVENT;
-	      event.frame_or_window = Qnil;
-	      /* Handler.  */
-	      event.arg
-		= Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))), args);
-	      break;
-	    }
-	  value = CDR_SAFE (value);
+	  if (uname && !NILP (key_uname)
+	      && strcmp (uname, SSDATA (key_uname)) != 0)
+	    continue;
+	  Lisp_Object key_service_etc = CDR_SAFE (key);
+	  Lisp_Object key_path_etc = CDR_SAFE (key_service_etc);
+	  Lisp_Object key_path = CAR_SAFE (key_path_etc);
+	  if (path && !NILP (key_path)
+	      && strcmp (path, SSDATA (key_path)) != 0)
+	    continue;
+	  Lisp_Object handler = CAR_SAFE (CDR_SAFE (key_path_etc));
+	  if (NILP (handler))
+	    continue;
+
+	  /* Construct an event and exit the loop.  */
+	  EVENT_INIT (event);
+	  event.kind = DBUS_EVENT;
+	  event.frame_or_window = Qnil;
+	  event.arg = Fcons (handler, args);
+	  break;
 	}
 
       if (NILP (value))

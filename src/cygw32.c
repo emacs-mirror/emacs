@@ -56,7 +56,7 @@ conv_filename_to_w32_unicode (Lisp_Object in, int absolute_p)
   ssize_t converted_len;
   Lisp_Object converted;
   unsigned flags;
-  int count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   chdir_to_default_directory ();
 
@@ -85,7 +85,7 @@ conv_filename_from_w32_unicode (const wchar_t* in, int absolute_p)
   ssize_t converted_len;
   Lisp_Object converted;
   unsigned flags;
-  int count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   chdir_to_default_directory ();
 
@@ -115,7 +115,7 @@ For the reverse operation, see `cygwin-convert-file-name-from-windows'.  */)
   (Lisp_Object file, Lisp_Object absolute_p)
 {
   return from_unicode (
-    conv_filename_to_w32_unicode (file, EQ (absolute_p, Qnil) ? 0 : 1));
+    conv_filename_to_w32_unicode (file, NILP (absolute_p) ? 0 : 1));
 }
 
 DEFUN ("cygwin-convert-file-name-from-windows",
@@ -128,7 +128,7 @@ For the reverse operation, see `cygwin-convert-file-name-to-windows'.  */)
   (Lisp_Object file, Lisp_Object absolute_p)
 {
   return conv_filename_from_w32_unicode (to_unicode (file, &file),
-                                         EQ (absolute_p, Qnil) ? 0 : 1);
+					 NILP (absolute_p) ? 0 : 1);
 }
 
 void

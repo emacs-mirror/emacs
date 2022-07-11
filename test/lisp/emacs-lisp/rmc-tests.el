@@ -66,5 +66,26 @@
       (should (equal (list char str)
                      (read-multiple-choice "Do it? " '((?y "yes") (?n "no"))))))))
 
-(provide 'rmc-tests)
+(ert-deftest test-read-multiple-choice-help ()
+  (let ((chars '(?o ?a))
+        help)
+    (cl-letf* (((symbol-function #'read-event)
+                (lambda ()
+                  (message "chars %S" chars)
+                  (when (= 1 (length chars))
+                    (with-current-buffer "*Multiple Choice Help*"
+                      (setq help (buffer-string))))
+                  (pop chars))))
+      (read-multiple-choice
+       "Choose:"
+       '((?a "aaa")
+         (?b "bbb")
+         (?c "ccc" "a really long description of ccc")))
+      (should (equal help "Choose:
+
+a: [A]aa                 b: [B]bb                 c: [C]cc
+                                                  a really long
+                                                  description of ccc
+                                                  \n")))))
+
 ;;; rmc-tests.el ends here

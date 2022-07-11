@@ -1,0 +1,56 @@
+#firstname
+*
+p
+p.intro
+div, p
+div p
+div > p
+div + p
+p ~ ul
+[target]
+[target=_blank]
+[title~=flower]
+[lang|=en]
+a[href^="https"]
+a[href$=".pdf"]
+a[href*="w3schools"]
+a:active
+p::after
+p::before
+input:checked
+input:default
+input:disabled
+p:empty
+input:enabled
+p:first-child
+p::first-letter
+p::first-line
+p:first-of-type
+input:focus
+:fullscreen
+a:hover
+input:in-range
+input:indeterminate
+input:invalid
+p:lang(it)
+p:last-child
+p:last-of-type
+a:link
+::marker
+:not(p)
+p:nth-child(2)
+p:nth-last-child(2)
+p:nth-last-of-type(2)
+p:nth-of-type(2)
+p:only-of-type
+p:only-child
+input:optional
+input:out-of-range
+input:read-only
+input:read-write
+input:required
+:root
+::selection
+#news:target
+input:valid
+a:visited

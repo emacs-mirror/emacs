@@ -468,31 +468,40 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 {
   Lisp_Object val, overlay;
 
-  if (CONSP (val = get_char_property_and_overlay
-	     (make_fixnum (pos), Qdisplay, Qnil, &overlay))
-      && EQ (Qspace, XCAR (val)))
-    { /* FIXME: Use calc_pixel_width_or_height.  */
-      Lisp_Object plist = XCDR (val), prop;
+  if (!NILP (val = get_char_property_and_overlay (make_fixnum (pos), Qdisplay,
+						  Qnil, &overlay)))
+    {
       int width = -1;
-      EMACS_INT align_to_max =
-	(col < MOST_POSITIVE_FIXNUM - INT_MAX
-	 ? (EMACS_INT) INT_MAX + col
-	 : MOST_POSITIVE_FIXNUM);
+      Lisp_Object plist = Qnil;
 
-      if ((prop = Fplist_get (plist, QCwidth),
-	   RANGED_FIXNUMP (0, prop, INT_MAX))
-	  || (prop = Fplist_get (plist, QCrelative_width),
-	      RANGED_FIXNUMP (0, prop, INT_MAX)))
-	width = XFIXNUM (prop);
-      else if (FLOATP (prop) && 0 <= XFLOAT_DATA (prop)
-	       && XFLOAT_DATA (prop) <= INT_MAX)
-	width = (int)(XFLOAT_DATA (prop) + 0.5);
-      else if ((prop = Fplist_get (plist, QCalign_to),
-		RANGED_FIXNUMP (col, prop, align_to_max)))
-	width = XFIXNUM (prop) - col;
-      else if (FLOATP (prop) && col <= XFLOAT_DATA (prop)
-	       && (XFLOAT_DATA (prop) <= align_to_max))
-	width = (int)(XFLOAT_DATA (prop) + 0.5) - col;
+      /* Handle '(space ...)' display specs.  */
+      if (CONSP (val) && EQ (Qspace, XCAR (val)))
+	{ /* FIXME: Use calc_pixel_width_or_height.  */
+	  Lisp_Object prop;
+	  EMACS_INT align_to_max =
+	    (col < MOST_POSITIVE_FIXNUM - INT_MAX
+	     ? (EMACS_INT) INT_MAX + col
+	     : MOST_POSITIVE_FIXNUM);
+
+	  plist = XCDR (val);
+	  if ((prop = plist_get (plist, QCwidth),
+	       RANGED_FIXNUMP (0, prop, INT_MAX))
+	      || (prop = plist_get (plist, QCrelative_width),
+		  RANGED_FIXNUMP (0, prop, INT_MAX)))
+	    width = XFIXNUM (prop);
+	  else if (FLOATP (prop) && 0 <= XFLOAT_DATA (prop)
+		   && XFLOAT_DATA (prop) <= INT_MAX)
+	    width = (int)(XFLOAT_DATA (prop) + 0.5);
+	  else if ((prop = plist_get (plist, QCalign_to),
+		    RANGED_FIXNUMP (col, prop, align_to_max)))
+	    width = XFIXNUM (prop) - col;
+	  else if (FLOATP (prop) && col <= XFLOAT_DATA (prop)
+		   && (XFLOAT_DATA (prop) <= align_to_max))
+	    width = (int)(XFLOAT_DATA (prop) + 0.5) - col;
+	}
+      /* Handle 'display' strings.   */
+      else if (STRINGP (val))
+	width = XFIXNUM (Fstring_width (val, Qnil, Qnil));
 
       if (width >= 0)
 	{
@@ -504,7 +513,8 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 
 	  /* For :relative-width, we need to multiply by the column
 	     width of the character at POS, if it is greater than 1.  */
-	  if (!NILP (Fplist_get (plist, QCrelative_width))
+	  if (!NILP (plist)
+	      && !NILP (plist_get (plist, QCrelative_width))
 	      && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    {
 	      int b, wd;
@@ -516,6 +526,7 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	  return width;
 	}
     }
+
   return -1;
 }
 
@@ -1193,7 +1204,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
   /* Negative width means use all available text columns.  */
   if (width < 0)
     {
-      width = window_body_width (win, 0);
+      width = window_body_width (win, WINDOW_BODY_IN_CANONICAL_CHARS);
       /* We must make room for continuation marks if we don't have fringes.  */
 #ifdef HAVE_WINDOW_SYSTEM
       if (!FRAME_WINDOW_P (XFRAME (win->frame)))
@@ -1803,7 +1814,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 			 ? window_internal_height (w)
 			 : XFIXNUM (XCDR (topos))),
 			(NILP (topos)
-			 ? (window_body_width (w, 0)
+			 ? (window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS)
 			    - (
 #ifdef HAVE_WINDOW_SYSTEM
 			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :
@@ -1850,7 +1861,7 @@ vmotion (ptrdiff_t from, ptrdiff_t from_byte,
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
-  if (EQ (w->contents, Fcurrent_buffer ()))
+  if (BASE_EQ (w->contents, Fcurrent_buffer ()))
     text_prop_object = window;
   else
     text_prop_object = Fcurrent_buffer ();
@@ -1968,7 +1979,7 @@ line_number_display_width (struct window *w, int *width, int *pixel_width)
       struct text_pos startpos;
       bool saved_restriction = false;
       struct buffer *old_buf = current_buffer;
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
       SET_TEXT_POS_FROM_MARKER (startpos, w->start);
       void *itdata = bidi_shelve_cache ();
 
@@ -2105,7 +2116,7 @@ whether or not it is currently displayed in some window.  */)
   struct window *w;
   Lisp_Object lcols = Qnil;
   void *itdata = NULL;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines))
@@ -2166,6 +2177,8 @@ whether or not it is currently displayed in some window.  */)
 	line_number_display_width (w, &lnum_width, &lnum_pixel_width);
       SET_TEXT_POS (pt, PT, PT_BYTE);
       itdata = bidi_shelve_cache ();
+      record_unwind_protect_void (unwind_display_working_on_window);
+      display_working_on_window_p = true;
       start_display (&it, w, pt);
       it.lnum_width = lnum_width;
       first_x = it.first_visible_x;
@@ -2198,7 +2211,10 @@ whether or not it is currently displayed in some window.  */)
 	}
       else
 	it_overshoot_count =
-	  !(it.method == GET_FROM_IMAGE || it.method == GET_FROM_STRETCH);
+	  /* If image_id is negative, it's a fringe bitmap, which by
+	     definition doesn't affect display in the text area.  */
+	  !((it.method == GET_FROM_IMAGE && it.image_id >= 0)
+	    || it.method == GET_FROM_STRETCH);
 
       if (start_x_given)
 	{

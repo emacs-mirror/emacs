@@ -462,14 +462,14 @@ This may be useful when columns have been shrunk."
     (when pos (goto-char pos))
     (goto-char (line-beginning-position))
     (let ((end (line-end-position)) str)
-      (backward-char)
+      (goto-char (1- pos))
       (while (progn (forward-char 1) (< (point) end))
 	(let ((ov (car (overlays-at (point)))))
 	  (if (not ov)
 	      (push (char-to-string (char-after)) str)
 	    (push (overlay-get ov 'display) str)
 	    (goto-char (1- (overlay-end ov))))))
-      (format "%s" (mapconcat #'identity (reverse str) "")))))
+      (format "|%s" (mapconcat #'identity (reverse str) "")))))
 
 (defvar-local org-table-header-overlay nil)
 (defun org-table-header-set-header ()
@@ -2606,7 +2606,7 @@ location of point."
 		     (format-time-string
 		      (org-time-stamp-format
 		       (string-match-p "[0-9]\\{1,2\\}:[0-9]\\{2\\}" ts))
-		      (encode-time
+		      (apply #'encode-time
 			     (save-match-data (org-parse-time-string ts))))))
 		 form t t))
 
@@ -5465,7 +5465,7 @@ The table is taken from the parameter TXT, or from the buffer at point."
         (nreverse table)))))
 
 (defun org-table-collapse-header (table &optional separator max-header-lines)
-  "Collapse the lines before 'hline into a single header.
+  "Collapse the lines before `hline' into a single header.
 
 The given TABLE is a list of lists as returned by `org-table-to-lisp'.
 The leading lines before the first `hline' symbol are considered

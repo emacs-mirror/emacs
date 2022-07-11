@@ -218,10 +218,9 @@ DOC should be a doc string, and ARGS are keywords as applicable to
            (let ((print-length nil)
                  (print-circle t)
                  (print-level nil))
-             (prin1-to-string value))))
-      (condition-case nil
-          (ignore (read-from-string pvalue))
-        (error (error "Unable to store unreadable value: %s" pvalue)))
+             (readablep value))))
+      (when (and value (not pvalue))
+        (error "Unable to store unreadable value: %s" value))
       (sqlite-execute
        multisession--db
        "insert into multisession(package, key, sequence, value) values(?, ?, 1, ?) on conflict(package, key) do update set sequence = sequence + 1, value = ?"
@@ -434,10 +433,16 @@ storage method to list."
                multisession-edit-mode)
   (unless id
     (error "No value on the current line"))
-  (let* ((object (make-multisession
-                  :package (car id)
-                  :key (cdr id)
-                  :storage multisession-storage))
+  (let* ((object (or
+                  ;; If the multisession variable already exists, use
+                  ;; it (so that we update it).
+                  (and (intern-soft (cdr id))
+                       (bound-and-true-p (intern (cdr id))))
+                  ;; Create a new object.
+                  (make-multisession
+                   :package (car id)
+                   :key (cdr id)
+                   :storage multisession-storage)))
          (value (multisession-value object)))
     (setf (multisession-value object)
           (car (read-from-string

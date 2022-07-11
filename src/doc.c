@@ -83,7 +83,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 {
   char *from, *to, *name, *p, *p1;
   Lisp_Object file, pos;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object dir;
   USE_SAFE_ALLOCA;
 
@@ -341,60 +341,12 @@ string is passed through `substitute-command-keys'.  */)
   else if (MODULE_FUNCTIONP (fun))
     doc = module_function_documentation (XMODULE_FUNCTION (fun));
 #endif
-  else if (COMPILEDP (fun))
-    {
-      if (PVSIZE (fun) <= COMPILED_DOC_STRING)
-	return Qnil;
-      else
-	{
-	  Lisp_Object tem = AREF (fun, COMPILED_DOC_STRING);
-	  if (STRINGP (tem))
-	    doc = tem;
-	  else if (FIXNATP (tem) || CONSP (tem))
-	    doc = tem;
-	  else
-	    return Qnil;
-	}
-    }
-  else if (STRINGP (fun) || VECTORP (fun))
-    {
-      return build_string ("Keyboard macro.");
-    }
-  else if (CONSP (fun))
-    {
-      Lisp_Object funcar = XCAR (fun);
-      if (!SYMBOLP (funcar))
-	xsignal1 (Qinvalid_function, fun);
-      else if (EQ (funcar, Qkeymap))
-	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
-      else if (EQ (funcar, Qlambda)
-	       || (EQ (funcar, Qclosure) && (fun = XCDR (fun), 1))
-	       || EQ (funcar, Qautoload))
-	{
-	  Lisp_Object tem1 = Fcdr (Fcdr (fun));
-	  Lisp_Object tem = Fcar (tem1);
-	  if (STRINGP (tem))
-	    doc = tem;
-	  /* Handle a doc reference--but these never come last
-	     in the function body, so reject them if they are last.  */
-	  else if ((FIXNATP (tem) || (CONSP (tem) && FIXNUMP (XCDR (tem))))
-		   && !NILP (XCDR (tem1)))
-	    doc = tem;
-	  else
-	    return Qnil;
-	}
-      else
-	goto oops;
-    }
   else
-    {
-    oops:
-      xsignal1 (Qinvalid_function, fun);
-    }
+    doc = call1 (intern ("function-documentation"), fun);
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
-  if (EQ (doc, make_fixnum (0)))
+  if (BASE_EQ (doc, make_fixnum (0)))
     doc = Qnil;
   if (FIXNUMP (doc) || CONSP (doc))
     {
@@ -448,7 +400,7 @@ aren't strings.  */)
 	tem = Fget (indirect, prop);
     }
 
-  if (EQ (tem, make_fixnum (0)))
+  if (BASE_EQ (tem, make_fixnum (0)))
     tem = Qnil;
 
   /* See if we want to look for the string in the DOC file. */
@@ -514,11 +466,17 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if (PVSIZE (fun) > COMPILED_DOC_STRING)
+      if (PVSIZE (fun) > COMPILED_DOC_STRING
+	  /* Don't overwrite a non-docstring value placed there,
+           * such as the symbols used for Oclosures.  */
+	  && VALID_DOCSTRING_P (AREF (fun, COMPILED_DOC_STRING)))
 	ASET (fun, COMPILED_DOC_STRING, make_fixnum (offset));
       else
 	{
-	  AUTO_STRING (format, "No docstring slot for %s");
+	  AUTO_STRING (format,
+	               (PVSIZE (fun) > COMPILED_DOC_STRING
+	                ? "Docstring slot busy for %s"
+	                : "No docstring slot for %s"));
 	  CALLN (Fmessage, format,
 		 (SYMBOLP (obj)
 		  ? SYMBOL_NAME (obj)
@@ -545,7 +503,6 @@ the same file name is found in the `doc-directory'.  */)
   EMACS_INT pos;
   Lisp_Object sym;
   char *p, *name;
-  ptrdiff_t count;
   char const *dirname;
   ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
@@ -569,7 +526,7 @@ the same file name is found in the `doc-directory'.  */)
       dirlen = SBYTES (Vdoc_directory);
     }
 
-  count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
   name = SAFE_ALLOCA (dirlen + SBYTES (filename) + 1);
   lispstpcpy (stpcpy (name, dirname), filename); 	/*** Add this line ***/
@@ -612,6 +569,8 @@ the same file name is found in the `doc-directory'.  */)
       if (p)
 	{
 	  end = strchr (p, '\n');
+	  if (!end)
+	    error ("DOC file invalid at position %"pI"d", pos);
 
 	  /* We used to skip files not in build_files, so that when a
 	     function was defined several times in different files
@@ -678,7 +637,7 @@ default_to_grave_quoting_style (void)
   Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
 				     LEFT_SINGLE_QUOTATION_MARK);
   return (VECTORP (dv) && ASIZE (dv) == 1
-	  && EQ (AREF (dv, 0), make_fixnum ('`')));
+	  && BASE_EQ (AREF (dv, 0), make_fixnum ('`')));
 }
 
 DEFUN ("text-quoting-style", Ftext_quoting_style,

@@ -7,7 +7,7 @@
 (defvar comp-test-45603-directory)
 (defvar comp-test-45603-marked-candidates)
 
-(defun comp-test-45603--call-marked (action)
+(defun comp-test-45603--call-marked (_action)
   (let* ((prefix-len (length comp-test-45603-mark-prefix))
          (marked-candidates
           (mapcar
@@ -17,7 +17,8 @@
                    (expand-file-name cand comp-test-45603-directory)
                  cand)))
            comp-test-45603-marked-candidates))
-         (multi-action (comp-test-45603--get-multi-action comp-test-45603-last)))))
+         (_multi-action (comp-test-45603--get-multi-action comp-test-45603-last)))
+    marked-candidates))
 
 (defalias 'comp-test-45603--file-local-name
   (if (fboundp 'file-local-name)

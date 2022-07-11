@@ -275,14 +275,6 @@ Vibhav Pant
        lisp/net/browse-url.el
        lisp/erc/*
 
-Alan Third
-        The NS port:
-            nextstep/*
-            src/ns*
-            src/*.m
-            lisp/term/ns-win.el
-            doc/emacs/macos.texi
-
 Amin Bandali
 	Eshell
 	    lisp/eshell/*
@@ -304,6 +296,8 @@ Tramp
 	Repository: git://git.savannah.gnu.org/tramp.git
 	Mailing List: tramp-devel@gnu.org
 	Bug Reports: M-x tramp-bug
+	Notes: For backward compatibility requirements, see
+	  lisp/net/trampver.el.
 
         lisp/net/tramp*.el
         doc/misc/tramp*.texi
@@ -311,10 +305,29 @@ Tramp
 
 Modus themes
         Maintainer: Protesilaos Stavrou
-        Repository and issue tracker: https://gitlab.com/protesilaos/modus-themes
+        Repository:  https://git.sr.ht/~protesilaos
+        Mailing list: https://lists.sr.ht/~protesilaos/modus-themes
+        Bug Reports: M-x modus-themes-report-bug
 
         doc/misc/modus-themes.org
         etc/themes/modus*.el
+
+Org Mode
+	Home Page: https://orgmode.org/
+	Maintainer: Org Mode developers
+	Repository: git://git.sv.gnu.org/emacs/org-mode.git
+	Mailing list: emacs-orgmode@gnu.org
+	Bug Reports: M-x org-submit-bug-report
+	Notes: Org Mode is maintained as a separate project that is
+          periodically merged into Emacs.  To view or participate in
+          Org Mode development, please go to https://orgmode.org/ and
+          follow the instructions there.
+
+	lisp/org/*.el
+	etc/org/*
+	etc/refcards/orgcard.tex
+	doc/misc/org.org
+	doc/misc/org-setup.org
 
 
 ;;; Local Variables:

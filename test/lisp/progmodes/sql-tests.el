@@ -425,5 +425,85 @@ The ACTION will be tested after set-up of PRODUCT."
   (let ((sql-password "password"))
     (should (equal "password" (sql-comint-automatic-password "")))))
 
+
+
+;; Tests for sql-interactive-remove-continuation-prompt
+
+(defmacro sql-tests-remove-cont-prompts-harness (&rest body)
+  "Set-up and tear-down for tests of
+`sql-interactive-remove-continuation-prompt'."
+  (declare (indent 0))
+  `(let ((comint-prompt-regexp "^ +\\.\\{3\\} ")
+         (sql-output-newline-count nil)
+         (sql-preoutput-hold nil))
+     ,@body
+     (should (null sql-output-newline-count))
+     (should (null sql-preoutput-hold))))
+
+(ert-deftest sql-tests-remove-cont-prompts-pass-through ()
+  "Test that `sql-interactive-remove-continuation-prompt' just
+passes the output line through when it doesn't expect prompts."
+  (sql-tests-remove-cont-prompts-harness
+   (should
+    (equal " ... "
+           (sql-interactive-remove-continuation-prompt
+            " ... ")))))
+
+(ert-deftest sql-tests-remove-cont-prompts-anchored-successive ()
+  "Test that `sql-interactive-remove-continuation-prompt' is able
+to delete multiple prompts (anchored to bol) even if they appear
+in a single line, but not more than `sql-output-newline-count'."
+  (sql-tests-remove-cont-prompts-harness
+   (setq sql-output-newline-count 2)
+   (should
+    (equal
+     ;; 2 of 3 prompts are deleted
+     "some output ... more output...\n\
+ ... \n\
+output after prompt"
+     (sql-interactive-remove-continuation-prompt
+      "some output ... more output...\n\
+ ...  ...  ... \n\
+output after prompt")))))
+
+(ert-deftest sql-tests-remove-cont-prompts-collect-chunked-output ()
+  "Test that `sql-interactive-remove-continuation-prompt' properly
+collects output when output arrives in chunks, with prompts
+intermixed."
+  (sql-tests-remove-cont-prompts-harness
+   (setq sql-output-newline-count 2)
+
+   ;; Part of first prompt gets held.  Complete line is passed
+   ;; through.
+   (should (equal "line1\n"
+                  (sql-interactive-remove-continuation-prompt
+                   "line1\n ..")))
+   (should (equal " .." sql-preoutput-hold))
+   (should (equal 2 sql-output-newline-count))
+
+   ;; First prompt is complete - remove it.  Hold part of line2.
+   (should (equal ""
+                  (sql-interactive-remove-continuation-prompt ". li")))
+   (should (equal "li" sql-preoutput-hold))
+   (should (equal 1 sql-output-newline-count))
+
+   ;; Remove second prompt.  Flush output & don't hold / process any
+   ;; output further on.
+   (should (equal "line2\nli"
+                  (sql-interactive-remove-continuation-prompt "ne2\n ... li")))
+   (should (null sql-preoutput-hold))
+   (should (null sql-output-newline-count))
+   (should (equal "line3\n ... "
+                  (sql-interactive-remove-continuation-prompt "line3\n ... ")))))
+
+(ert-deftest sql-tests-remove-cont-prompts-flush-held ()
+  "Test that when we don't wait for prompts,
+ `sql-interactive-remove-continuation-prompt' just 'flushes' held
+ output, with no prompt processing."
+  (sql-tests-remove-cont-prompts-harness
+   (setq sql-preoutput-hold "line1\n ..")
+   (should (equal "line1\n ... line2 .."
+                  (sql-interactive-remove-continuation-prompt ". line2 ..")))))
+
 (provide 'sql-tests)
 ;;; sql-tests.el ends here

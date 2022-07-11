@@ -61,7 +61,7 @@ Here is an example:
 
 @group
 (silly-loop 50000000)
-@result{} 10.235304117202759
+@result{} 5.200886011123657
 @end group
 
 @group
@@ -71,12 +71,12 @@ Here is an example:
 
 @group
 (silly-loop 50000000)
-@result{} 3.705854892730713
+@result{} 0.6239290237426758
 @end group
 @end example
 
-  In this example, the interpreted code required 10 seconds to run,
-whereas the byte-compiled code required less than 4 seconds.  These
+  In this example, the interpreted code required more than 5 seconds to run,
+whereas the byte-compiled code required less than 1 second.  These
 results are representative, but actual results may vary.
 
 @node Compilation Functions
@@ -135,10 +135,10 @@ definition of @var{symbol} (@pxref{Byte-Code Objects}).
 @group
 (byte-compile 'factorial)
 @result{}
-#[(integer)
-  "^H\301U\203^H^@@\301\207\302^H\303^HS!\"\207"
-  [integer 1 * factorial]
-  4 "Compute factorial of INTEGER."]
+#[257
+  "\211\300U\203^H^@@\300\207\211\301^BS!_\207"
+  [1 factorial] 4
+  "Compute factorial of INTEGER.\n\n(fn INTEGER)"]
 @end group
 @end example
 
@@ -688,11 +688,11 @@ Lisp source; these do not appear in the output of @code{disassemble}.
 (disassemble 'factorial)
      @print{} byte-code for factorial:
  doc: Compute factorial of an integer.
- args: (integer)
+ args: (arg1)
 @end group
 
 @group
-0   varref   integer      ; @r{Get the value of @code{integer} and}
+0   dup                   ; @r{Get the value of @code{integer} and}
                           ;   @r{push it onto the stack.}
 1   constant 1            ; @r{Push 1 onto stack.}
 @end group
@@ -707,9 +707,9 @@ Lisp source; these do not appear in the output of @code{disassemble}.
 7   return                ; @r{Return the top element of the stack.}
 @end group
 @group
-8:1 varref   integer      ; @r{Push value of @code{integer} onto stack.}
+8:1 dup                   ; @r{Push value of @code{integer} onto stack.}
 9   constant factorial    ; @r{Push @code{factorial} onto stack.}
-10  varref   integer      ; @r{Push value of @code{integer} onto stack.}
+10  stack-ref 2           ; @r{Push value of @code{integer} onto stack.}
 11  sub1                  ; @r{Pop @code{integer}, decrement value,}
                           ;   @r{push new value onto stack.}
 12  call     1            ; @r{Call function @code{factorial} using first}
@@ -717,9 +717,9 @@ Lisp source; these do not appear in the output of @code{disassemble}.
                           ;   @r{push returned value onto stack.}
 @end group
 @group
-13 mult                   ; @r{Pop top two values off stack, multiply}
+13  mult                  ; @r{Pop top two values off stack, multiply}
                           ;   @r{them, and push result onto stack.}
-14 return                 ; @r{Return the top element of the stack.}
+14  return                ; @r{Return the top element of the stack.}
 @end group
 @end example
 
@@ -740,7 +740,7 @@ The @code{silly-loop} function is somewhat more complex:
 (disassemble 'silly-loop)
      @print{} byte-code for silly-loop:
  doc: Return time before and after N iterations of a loop.
- args: (n)
+ args: (arg1)
 @end group
 
 @group
@@ -749,24 +749,21 @@ The @code{silly-loop} function is somewhat more complex:
 @end group
 @group
 1   call     0            ; @r{Call @code{current-time-string} with no}
-                          ;   @r{argument, push result onto stack.}
+                          ;   @r{argument, push result onto stack as @code{t1}.}
 @end group
 @group
-2   varbind  t1           ; @r{Pop stack and bind @code{t1} to popped value.}
-@end group
-@group
-3:1 varref   n            ; @r{Get value of @code{n} from the environment}
+2:1 stack-ref 1           ; @r{Get value of the argument @code{n}}
                           ;   @r{and push the value on the stack.}
-4   sub1                  ; @r{Subtract 1 from top of stack.}
+3   sub1                  ; @r{Subtract 1 from top of stack.}
 @end group
 @group
-5   dup                   ; @r{Duplicate top of stack; i.e., copy the top}
+4   dup                   ; @r{Duplicate top of stack; i.e., copy the top}
                           ;   @r{of the stack and push copy onto stack.}
-6   varset   n            ; @r{Pop the top of the stack,}
-                          ;   @r{and bind @code{n} to the value.}
+5   stack-set 3           ; @r{Pop the top of the stack,}
+                          ;   @r{and set @code{n} to the value.}
 
-;; @r{(In effect, the sequence @code{dup varset} copies the top of the stack}
-;; @r{into the value of @code{n} without popping it.)}
+;; @r{(In effect, the sequence @code{dup stack-set} copies the top of}
+;; @r{the stack into the value of @code{n} without popping it.)}
 @end group
 
 @group
@@ -781,16 +778,15 @@ The @code{silly-loop} function is somewhat more complex:
                           ;   @r{else continue.}
 @end group
 @group
-12  varref   t1           ; @r{Push value of @code{t1} onto stack.}
+12  dup                   ; @r{Push value of @code{t1} onto stack.}
 13  constant current-time-string  ; @r{Push @code{current-time-string}}
                                   ;   @r{onto the top of the stack.}
 14  call     0            ; @r{Call @code{current-time-string} again.}
 @end group
 @group
-15  unbind   1            ; @r{Unbind @code{t1} in local environment.}
-16  list2                 ; @r{Pop top two elements off stack, create a}
+15  list2                 ; @r{Pop top two elements off stack, create a}
                           ;   @r{list of them, and push it onto stack.}
-17  return                ; @r{Return value of the top of stack.}
+16  return                ; @r{Return value of the top of stack.}
 @end group
 @end example
 

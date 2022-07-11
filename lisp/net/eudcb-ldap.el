@@ -151,16 +151,20 @@ attribute names are returned.  Default to `person'."
   (interactive)
   (or eudc-server
       (call-interactively 'eudc-set-server))
-  (let ((ldap-host-parameters-alist
-	 (list (cons eudc-server
-		     '(scope subtree sizelimit 1)))))
-    (mapcar #'eudc-ldap-cleanup-record-filtering-addresses
-	    (ldap-search
-	     (eudc-ldap-format-query-as-rfc1558
-	      (list (cons "objectclass"
-			  (or objectclass
-			      "person"))))
-	     eudc-server nil t))))
+  (let ((plist (copy-sequence
+                (alist-get eudc-server ldap-host-parameters-alist
+                           nil nil #'equal))))
+    (plist-put plist 'scope 'subtree)
+    (plist-put plist 'sizelimit '1)
+    (let ((ldap-host-parameters-alist
+           (list (cons eudc-server plist))))
+      (mapcar #'eudc-ldap-cleanup-record-filtering-addresses
+	      (ldap-search
+	       (eudc-ldap-format-query-as-rfc1558
+	        (list (cons 'objectclass
+			    (or objectclass
+			        "person"))))
+	       eudc-server nil t)))))
 
 (defun eudc-ldap-escape-query-special-chars (string)
   "Value is STRING with characters forbidden in LDAP queries escaped."
@@ -178,12 +182,17 @@ attribute names are returned.  Default to `person'."
 
 (defun eudc-ldap-format-query-as-rfc1558 (query)
   "Format the EUDC QUERY list as a RFC1558 LDAP search filter."
-  (let ((formatter (lambda (item &optional wildcard)
-		     (format "(%s=%s)"
-			     (car item)
-			     (concat
-			      (eudc-ldap-escape-query-special-chars
-			       (cdr item)) (if wildcard "*" ""))))))
+  (let ((formatter
+         (lambda (item &optional wildcard)
+	   (format "(%s=%s)"
+		   (car item)
+		   (concat
+		    (eudc-ldap-escape-query-special-chars
+		     (cdr item))
+                    (if (and wildcard
+                             (not (memq (car item)
+                                        eudc-ldap-no-wildcard-attributes)))
+                        "*" ""))))))
     (format "(&%s)"
 	    (concat
 	     (mapconcat formatter (butlast query) "")

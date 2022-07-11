@@ -448,6 +448,9 @@ Symbols
 * Creating Symbols::        How symbols are kept unique.
 * Symbol Properties::       Each symbol has a property list
                               for recording miscellaneous information.
+* Shorthands::              Properly organize your symbol names but
+                              type less of them.
+* Symbols with Position::   Symbol variants containing integer positions
 
 Symbol Properties
 
@@ -589,6 +592,7 @@ Advising Emacs Lisp Functions
 * Advising Named Functions::  Advising named functions.
 * Advice Combinators::        Ways to compose advice.
 * Porting Old Advice::        Adapting code using the old defadvice.
+* Advice and Byte Code::      Not all functions can be advised.
 
 Macros
 
@@ -735,6 +739,7 @@ Reading and Printing Lisp Objects
 * Output Functions::        Functions to print Lisp objects as text.
 * Output Variables::        Variables that control what the printing
                               functions do.
+* Output Overrides::        Overriding output variables.
 
 Minibuffers
 
@@ -1228,6 +1233,7 @@ Text
 * Decompression::           Dealing with compressed data.
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
+* Suspicious Text::         Determining whether a string is suspicious.
 * GnuTLS Cryptography::     Cryptographic algorithms imported from GnuTLS.
 * Database::                Interacting with an SQL database.
 * Parsing HTML/XML::        Parsing HTML and XML.

@@ -1141,15 +1141,7 @@ this ;-)"
   "Check if show buffer is small.
 This is used to decide if smileys and graphical emphasis should be
 displayed."
-  (let ((max nil))
-    ;; FIXME: font-lock-maximum-size is obsolete.
-    (when (and (boundp 'font-lock-maximum-size) font-lock-maximum-size)
-      (cond ((numberp font-lock-maximum-size)
-             (setq max font-lock-maximum-size))
-            ((listp font-lock-maximum-size)
-             (setq max (cdr (or (assoc 'mh-show-mode font-lock-maximum-size)
-                                (assoc t font-lock-maximum-size)))))))
-    (or (not (numberp max)) (>= (/ max 8) (buffer-size)))))
+  (>= 64000 (buffer-size)))
 
 
 
@@ -1764,7 +1756,7 @@ initialized. Always use the command `mh-have-file-command'.")
 ;;;###mh-autoload
 (defun mh-have-file-command ()
   "Return t if `file' command is on the system.
-'file -i' is used to get MIME type of composition insertion."
+\"file -i\" is used to get MIME type of composition insertion."
   (when (eq mh-have-file-command 'undefined)
     (setq mh-have-file-command
           (and (executable-find "file") ; file command exists

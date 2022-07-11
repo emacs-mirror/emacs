@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -46,14 +46,10 @@
 ;; processing further, this is useful for checking the test
 ;; environment (like availability of features, external binaries, etc).
 ;;
-;; See ERT's info manual as well as the docstrings for more details.
-;; To compile the manual, run `makeinfo ert.texinfo' in the ERT
-;; directory, then C-u M-x info ert.info in Emacs to view it.
-;;
-;; To see some examples of tests written in ERT, see its self-tests in
-;; ert-tests.el.  Some of these are tricky due to the bootstrapping
-;; problem of writing tests for a testing tool, others test simple
-;; functions and are straightforward.
+;; See ERT's Info manual `(ert) Top' as well as the docstrings for
+;; more details.  To see some examples of tests written in ERT, see
+;; the test suite distributed with the Emacs source distribution (in
+;; the "test" directory).
 
 ;;; Code:
 
@@ -129,7 +125,8 @@ mode.")
   (body (cl-assert nil))
   (most-recent-result nil)
   (expected-result-type ':passed)
-  (tags '()))
+  (tags '())
+  (file-name nil))
 
 (defun ert-test-boundp (symbol)
   "Return non-nil if SYMBOL names a test."
@@ -240,7 +237,8 @@ in batch mode, an error is signalled.
                             `(:expected-result-type ,expected-result))
                         ,@(when tags-supplied-p
                             `(:tags ,tags))
-                        :body (lambda () ,@body)))
+                        :body (lambda () ,@body)
+                        :file-name ,(or (macroexp-file-name) buffer-file-name)))
          ',name))))
 
 (defvar ert--find-test-regexp
@@ -335,14 +333,19 @@ It should only be stopped when ran from inside `ert--run-test-internal'."
                                  (unless (eql ,value ',default-value)
                                    (list :value ,value))
                                  (unless (eql ,value ',default-value)
-                                   (let ((-explainer-
-                                          (and (symbolp ',fn-name)
-                                               (get ',fn-name 'ert-explainer))))
-                                     (when -explainer-
-                                       (list :explanation
-                                             (apply -explainer- ,args))))))
+                                   (when-let ((-explainer-
+                                               (ert--get-explainer ',fn-name)))
+                                     (list :explanation
+                                           (apply -explainer- ,args)))))
                          value)
                ,value))))))))
+
+(defun ert--get-explainer (fn-name)
+  (when (symbolp fn-name)
+    (cl-loop for fn in (cons fn-name (function-alias-p fn-name))
+             for explainer = (get fn 'ert-explainer)
+             when explainer
+             return explainer)))
 
 (defun ert--expand-should (whole form inner-expander)
   "Helper function for the `should' macro and its variants.
@@ -1365,6 +1368,22 @@ RESULT must be an `ert-test-result-with-condition'."
 (defvar ert-quiet nil
   "Non-nil makes ERT only print important information in batch mode.")
 
+(defun ert-test-location (test)
+  "Return a string description the source location of TEST."
+  (when-let ((loc
+              (ignore-errors
+                (find-function-search-for-symbol
+                 (ert-test-name test) 'ert-deftest (ert-test-file-name test)))))
+    (let* ((buffer (car loc))
+           (point (cdr loc))
+           (file (file-relative-name (buffer-file-name buffer)))
+           (line (with-current-buffer buffer
+                   (line-number-at-pos point))))
+      (format "at %s:%s" file line))))
+
+(defvar ert-batch-backtrace-right-margin 70
+  "The maximum line length for printing backtraces in `ert-run-tests-batch'.")
+
 ;;;###autoload
 (defun ert-run-tests-batch (&optional selector)
   "Run the tests specified by SELECTOR, printing results to the terminal.
@@ -1418,7 +1437,8 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                  (if (cl-plusp
+                                       (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
               (message "%s" ""))
@@ -1430,7 +1450,8 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (getenv "EMACS_TEST_VERBOSE")
+                                  (if (cl-plusp
+                                       (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
               (message "%s" ""))
@@ -1490,14 +1511,17 @@ Returns the stats object."
             (let* ((max (prin1-to-string (length (ert--stats-tests stats))))
                    (format-string (concat "%9s  %"
                                           (prin1-to-string (length max))
-                                          "s/" max "  %S (%f sec)")))
+                                          "s/" max "  %S (%f sec)%s")))
               (message format-string
                        (ert-string-for-test-result result
                                                    (ert-test-result-expected-p
                                                     test result))
                        (1+ (ert--stats-test-pos stats test))
                        (ert-test-name test)
-                       (ert-test-result-duration result))))))))
+                       (ert-test-result-duration result)
+                       (if (ert-test-result-expected-p test result)
+                           ""
+                         (concat " " (ert-test-location test))))))))))
    nil))
 
 ;;;###autoload
@@ -1510,18 +1534,28 @@ of the tests (e.g. invalid SELECTOR or bug in the code that runs
 the tests)."
   (or noninteractive
       (user-error "This function is only for use in batch mode"))
-  ;; Better crash loudly than attempting to recover from undefined
-  ;; behavior.
-  (setq attempt-stack-overflow-recovery nil
-        attempt-orderly-shutdown-on-fatal-signal nil)
-  (unwind-protect
-      (let ((stats (ert-run-tests-batch selector)))
-        (kill-emacs (if (zerop (ert-stats-completed-unexpected stats)) 0 1)))
+  (let ((eln-dir (and (featurep 'native-compile)
+                      (make-temp-file "test-nativecomp-cache-" t))))
+    (when eln-dir
+      (startup-redirect-eln-cache eln-dir))
+    ;; Better crash loudly than attempting to recover from undefined
+    ;; behavior.
+    (setq attempt-stack-overflow-recovery nil
+          attempt-orderly-shutdown-on-fatal-signal nil)
     (unwind-protect
-        (progn
-          (message "Error running tests")
-          (backtrace))
-      (kill-emacs 2))))
+        (let ((stats (ert-run-tests-batch selector)))
+          (when eln-dir
+            (ignore-errors
+              (delete-directory eln-dir t)))
+          (kill-emacs (if (zerop (ert-stats-completed-unexpected stats)) 0 1)))
+      (unwind-protect
+          (progn
+            (message "Error running tests")
+            (backtrace))
+        (when eln-dir
+          (ignore-errors
+            (delete-directory eln-dir t)))
+        (kill-emacs 2)))))
 
 (defvar ert-load-file-name nil
   "The name of the loaded ERT test file, a string.
@@ -2846,8 +2880,14 @@ To be used in the ERT results buffer."
   nil)
 
 (defun ert-test-erts-file (file &optional transform)
-  "Parse FILE as a file containing before/after parts.
-TRANSFORM will be called to get from before to after."
+  "Parse FILE as a file containing before/after parts (an erts file).
+
+This function puts the \"before\" section of an .erts file into a
+temporary buffer, calls the TRANSFORM function, and then compares
+the result with the \"after\" section.
+
+See Info node `(ert) erts files' for more information on how to
+write erts files."
   (with-temp-buffer
     (insert-file-contents file)
     (let ((gen-specs (list (cons 'dummy t)

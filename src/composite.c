@@ -575,7 +575,7 @@ update_compositions (ptrdiff_t from, ptrdiff_t to, int check_mask)
     }
   if (min_pos < max_pos)
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
+      specpdl_ref count = SPECPDL_INDEX ();
 
       specbind (Qinhibit_read_only, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
@@ -688,7 +688,7 @@ composition_gstring_cache_clear_font (Lisp_Object font_object)
     {
       Lisp_Object k = HASH_KEY (h, i);
 
-      if (!EQ (k, Qunbound))
+      if (!BASE_EQ (k, Qunbound))
 	{
 	  Lisp_Object gstring = HASH_VALUE (h, i);
 
@@ -704,8 +704,8 @@ DEFUN ("clear-composition-cache", Fclear_composition_cache,
 Clear composition cache.  */)
   (void)
 {
-  Lisp_Object args[] = {QCtest, Qequal, QCsize, make_fixnum (311)};
-  gstring_hash_table = CALLMANY (Fmake_hash_table, args);
+  gstring_hash_table = CALLN (Fmake_hash_table, QCtest, Qequal,
+			      QCsize, make_fixnum (311));
   /* Fixme: We call Fclear_face_cache to force complete re-building of
      display glyphs.  But, it may be better to call this function from
      Fclear_face_cache instead.  */
@@ -892,7 +892,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       ptrdiff_t limit, struct window *win, struct face *face,
 	       Lisp_Object string, Lisp_Object direction, int ch)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object pos = make_fixnum (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;
@@ -988,7 +988,9 @@ inhibit_auto_composition (void)
    less than CHARPOS, search backward to ENDPOS+1 assuming that
    set_iterator_to_next works in reverse order.  In this case, if a
    composition closest to CHARPOS is found, set cmp_it->stop_pos to
-   the last character of the composition.
+   the last character of the composition.  STRING, if non-nil, is
+   the string (as opposed to a buffer) whose characters should be
+   tested for being composable.
 
    If no composition is found, set cmp_it->ch to -2.  If a static
    composition is found, set cmp_it->ch to -1.  Otherwise, set
@@ -996,7 +998,9 @@ inhibit_auto_composition (void)
    composition.  */
 
 void
-composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t endpos, Lisp_Object string)
+composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
+			      ptrdiff_t bytepos, ptrdiff_t endpos,
+			      Lisp_Object string)
 {
   ptrdiff_t start, end;
   int c;
@@ -1035,7 +1039,9 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos, 
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
     }
-  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
+  if ((NILP (string)
+       && NILP (BVAR (current_buffer, enable_multibyte_characters)))
+      || (STRINGP (string) && !STRING_MULTIBYTE (string))
       || inhibit_auto_composition ())
     return;
   if (bytepos < 0)
@@ -1292,6 +1298,16 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  if (cmp_it->lookback > 0)
 	    {
 	      cpos = charpos - cmp_it->lookback;
+	      /* Reject the composition if it starts before ENDPOS,
+		 which here can only happen if
+		 composition-break-at-point is non-nil and point is
+		 inside the composition.  */
+	      if (cpos < endpos)
+		{
+		  eassert (composition_break_at_point);
+		  eassert (endpos == PT);
+		  goto no_composition;
+		}
 	      if (STRINGP (string))
 		bpos = string_char_to_byte (string, cpos);
 	      else
@@ -1497,10 +1513,11 @@ struct position_record
 /* Similar to find_composition, but find an automatic composition instead.
 
    This function looks for automatic composition at or near position
-   POS of OBJECT (a buffer or a string).  OBJECT defaults to the
-   current buffer.  It must be assured that POS is not within a static
-   composition.  Also, the current buffer must be displayed in some
-   window, otherwise the function will return FALSE.
+   POS of STRING object, either a buffer or a Lisp string.  If STRING
+   is nil, it defaults to the current buffer.  It must be assured that
+   POS is not within a static composition.  Also, the current buffer
+   must be displayed in some window, otherwise the function will
+   return FALSE.
 
    If LIMIT is negative, and there's no composition that includes POS
    (i.e. starts at or before POS and ends at or after POS), return
@@ -1509,8 +1526,8 @@ struct position_record
    MAX_AUTO_COMPOSITION_LOOKBACK, the maximum number of look-back for
    automatic compositions (3) -- this is a limitation imposed by
    composition rules in composition-function-table, which see.  If
-   BACKLIM is negative, it stands for the beginning of OBJECT: BEGV
-   for a buffer or position zero for a string.
+   BACKLIM is negative, it stands for the beginning of STRING object:
+   BEGV for a buffer or position zero for a string.
 
    If LIMIT is positive, search for a composition forward (LIMIT >
    POS) or backward (LIMIT < POS).  In this case, LIMIT bounds the
@@ -1519,18 +1536,21 @@ struct position_record
    function can find a composition that starts after POS.
 
    BACKLIM limits how far back is the function allowed to look in
-   OBJECT while trying to find a position where it is safe to start
-   searching forward for compositions.  Such a safe place is generally
-   the position after a character that can never be composed.
+   STRING object while trying to find a position where it is safe to
+   start searching forward for compositions.  Such a safe place is
+   generally the position after a character that can never be
+   composed.
 
    If BACKLIM is negative, that means the first character position of
-   OBJECT; this is useful when calling the function for the first time
-   for a given buffer or string, since it is possible that a
-   composition begins before POS.  However, if POS is very far from
-   the beginning of OBJECT, a negative value of BACKLIM could make the
-   function slow.  Also, in this case the function may return START
-   and END that do not include POS, something that is not necessarily
-   wanted, and needs to be explicitly checked by the caller.
+   STRING object; this is useful when calling the function for the
+   first time for a given buffer or string, since it is possible that
+   a composition begins before POS.  However, if POS is very far from
+   the beginning of STRING object, a negative value of BACKLIM could
+   make the function slow.  For that reason, when STRING is a buffer
+   or nil, we restrict the search back to the first newline before
+   POS.  Also, in this case the function may return START and END that
+   do not include POS, something that is not necessarily wanted, and
+   needs to be explicitly checked by the caller.
 
    When calling the function in a loop for the same buffer/string, the
    caller should generally set BACKLIM equal to POS, to avoid costly
@@ -1569,7 +1589,15 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
   cur.pos = pos;
   if (NILP (string))
     {
-      head = backlim < 0 ? BEGV : backlim, tail = ZV, stop = GPT;
+      if (backlim < 0)
+	{
+	  /* This assumes a newline can never be composed.  */
+	  head = find_newline (pos, -1, 0, -1, -1, NULL, NULL, false) + 1;
+	}
+      else
+	head = backlim;
+      tail = ZV;
+      stop = GPT;
       cur.pos_byte = CHAR_TO_BYTE (cur.pos);
       cur.p = BYTE_POS_ADDR (cur.pos_byte);
     }
@@ -1855,7 +1883,8 @@ should be ignored.  */)
   else
     {
       CHECK_STRING (string);
-      validate_subarray (string, from, to, SCHARS (string), &frompos, &topos);
+      ptrdiff_t chars = SCHARS (string);
+      validate_subarray (string, from, to, chars, &frompos, &topos);
       if (! STRING_MULTIBYTE (string))
 	{
 	  ptrdiff_t i;
@@ -1865,9 +1894,10 @@ should be ignored.  */)
 	      error ("Attempt to shape unibyte text");
 	  /* STRING is a pure-ASCII string, so we can convert it (or,
 	     rather, its copy) to multibyte and use that thereafter.  */
-	  Lisp_Object string_copy = Fconcat (1, &string);
-	  STRING_SET_MULTIBYTE (string_copy);
-	  string = string_copy;
+	  /* FIXME: Not clear why we need to do that: AFAICT the rest of
+             the code should work on an ASCII-only unibyte string just
+             as well (bug#56347).  */
+	  string = make_multibyte_string (SSDATA (string), chars, chars);
 	}
       frombyte = string_char_to_byte (string, frompos);
     }
@@ -1961,7 +1991,9 @@ See `find-composition' for more details.  */)
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
-      if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
+      if (((NILP (string)
+	    && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	   || (!NILP (string) && STRING_MULTIBYTE (string)))
 	  && ! inhibit_auto_composition ()
 	  && find_automatic_composition (from, to, (ptrdiff_t) -1,
 					 &start, &end, &gstring, string))
@@ -2064,7 +2096,8 @@ The default value is the function `compose-chars-after'.  */);
 Use the command `auto-composition-mode' to change this variable.
 
 If this variable is a string, `auto-composition-mode' will be disabled in
-buffers displayed on a terminal whose type compares equal to this string.  */);
+buffers displayed on a terminal whose type, as reported by `tty-type',
+compares equal to that string.  */);
   Vauto_composition_mode = Qt;
 
   DEFVAR_LISP ("auto-composition-function", Vauto_composition_function,

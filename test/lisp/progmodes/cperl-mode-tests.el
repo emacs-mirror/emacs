@@ -5,7 +5,7 @@
 ;; Author: Harald Jörg <haj@posteo.de>
 ;; Maintainer: Harald Jörg
 ;; Keywords: internal
-;; Homepage: https://github.com/HaraldJoerg/cperl-mode
+;; URL: https://github.com/HaraldJoerg/cperl-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -64,7 +64,7 @@ The expected output from running BODY on the input goes here.
 # -------- NAME: end --------
 
 You can have many of these blocks in one test file.  You can
-chose a NAME for each block, which is passed to the 'should'
+chose a NAME for each block, which is passed to the `should'
 clause for easy identification of the first test case that
 failed (if any).  Text outside these the blocks is ignored by the
 tests, so you can use it to document the test cases if you wish."
@@ -153,6 +153,55 @@ point in the distant past, and is still broken in perl-mode. "
     (search-forward "my")
     (should (equal (get-text-property (match-beginning 0) 'face)
                    'font-lock-keyword-face))))
+
+(ert-deftest cperl-test-fontify-attrs-and-signatures ()
+  "Test fontification of the various combinations of subroutine
+attributes, prototypes and signatures."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (let ((file (ert-resource-file "proto-and-attrs.pl")))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (funcall cperl-test-mode)
+      (font-lock-ensure)
+
+      ;; Named subroutines
+      (while (search-forward-regexp "\\_<sub_[[:digit:]]+" nil t)
+        (should (equal (get-text-property (match-beginning 0) 'face)
+                       'font-lock-function-name-face))
+        (let ((start-of-sub (match-beginning 0))
+              (end-of-sub (save-excursion (search-forward "}") (point))))
+
+          ;; Prototypes are shown as strings
+          (when (search-forward-regexp " ([$%@*]*) " end-of-sub t)
+            (should (equal (get-text-property (1+ (match-beginning 0)) 'face)
+                           'font-lock-string-face)))
+          (goto-char start-of-sub)
+          (when (search-forward-regexp "\\(:[a-z]+\\)\\((.*?)\\)?" end-of-sub t)
+            (should (equal (get-text-property (match-beginning 1) 'face)
+                           'font-lock-constant-face))
+            (when (match-beginning 2)
+              (should (equal (get-text-property (match-beginning 2) 'face)
+                             'font-lock-string-face))))
+          (goto-char end-of-sub)))
+
+      ;; Anonymous subroutines
+      (while (search-forward-regexp "= sub" nil t)
+        (let ((start-of-sub (match-beginning 0))
+              (end-of-sub (save-excursion (search-forward "}") (point))))
+
+          ;; Prototypes are shown as strings
+          (when (search-forward-regexp " ([$%@*]*) " end-of-sub t)
+            (should (equal (get-text-property (1+ (match-beginning 0)) 'face)
+                           'font-lock-string-face)))
+          (goto-char start-of-sub)
+          (when (search-forward-regexp "\\(:[a-z]+\\)\\((.*?)\\)?" end-of-sub t)
+            (should (equal (get-text-property (match-beginning 1) 'face)
+                           'font-lock-constant-face))
+            (when (match-beginning 2)
+              (should (equal (get-text-property (match-beginning 2) 'face)
+                             'font-lock-string-face))))
+          (goto-char end-of-sub))))))
 
 (ert-deftest cperl-test-fontify-special-variables ()
   "Test fontification of variables like $^T or ${^ENCODING}.
@@ -698,7 +747,6 @@ without a statement terminator on the same line does not loop
 forever.  The test starts an asynchronous Emacs batch process
 under timeout control."
   :tags '(:expensive-test)
-  (interactive)
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; FIXME times out
   (skip-unless (not (< emacs-major-version 28))) ; times out in older Emacsen
   (skip-unless (eq cperl-test-mode #'cperl-mode))

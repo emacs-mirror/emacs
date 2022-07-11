@@ -171,18 +171,18 @@ or \"ffmpeg\") is installed."
 
 (define-error 'unknown-image-type "Unknown image type")
 
-;; Map put into text properties on images.
-(defvar image-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "-" 'image-decrease-size)
-    (define-key map "+" 'image-increase-size)
-    (define-key map [C-wheel-down] 'image-mouse-decrease-size)
-    (define-key map [C-mouse-5]    'image-mouse-decrease-size)
-    (define-key map [C-wheel-up]   'image-mouse-increase-size)
-    (define-key map [C-mouse-4]    'image-mouse-increase-size)
-    (define-key map "r" 'image-rotate)
-    (define-key map "o" 'image-save)
-    map))
+(defvar-keymap image-map
+  :doc "Map put into text properties on images."
+  "-" #'image-decrease-size
+  "+" #'image-increase-size
+  "r" #'image-rotate
+  "o" #'image-save
+  "h" #'image-flip-horizontally
+  "v" #'image-flip-vertically
+  "C-<wheel-down>" #'image-mouse-decrease-size
+  "C-<mouse-5>"    #'image-mouse-decrease-size
+  "C-<wheel-up>"   #'image-mouse-increase-size
+  "C-<mouse-4>"    #'image-mouse-increase-size)
 
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
@@ -382,6 +382,7 @@ be determined."
   "Determine the type of image file FILE from its name.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
+  (declare (obsolete image-supported-file-p "29.1"))
   (let (type first (case-fold-search t))
     (catch 'found
       (dolist (elem image-type-file-name-regexps first)
@@ -390,6 +391,20 @@ be determined."
 	      (throw 'found type)
 	    ;; If nothing seems to be supported, return first type that matched.
 	    (or first (setq first type))))))))
+
+ ;;;###autoload
+(defun image-supported-file-p (file)
+  "Say whether Emacs has native support for displaying TYPE.
+The value is a symbol specifying the image type, or nil if type
+cannot be determined (or if Emacs doesn't have built-in support
+for the image type)."
+  (let ((case-fold-search t)
+        type)
+    (catch 'found
+      (dolist (elem image-type-file-name-regexps)
+	(when (and (string-match-p (car elem) file)
+                   (image-type-available-p (setq type (cdr elem))))
+	  (throw 'found type))))))
 
 (declare-function image-convert-p "image-converter.el"
                   (source &optional image-format))
@@ -419,7 +434,7 @@ type if we can't otherwise guess it."
                               (require 'image-converter)
                               (image-convert-p source data-p))))
 		 (or (image-type-from-file-header source)
-		     (image-type-from-file-name source)
+		     (image-supported-file-p source)
                      (and image-use-external-converter
                           (progn
                             (require 'image-converter)
@@ -430,15 +445,6 @@ type if we can't otherwise guess it."
              (not (memq type (and (boundp 'image-types) image-types))))
     (error "Invalid image type `%s'" type))
   type)
-
-
-(if (fboundp 'image-metadata)           ; eg not --without-x
-    (define-obsolete-function-alias 'image-extension-data
-      'image-metadata "24.1"))
-
-(define-obsolete-variable-alias
-    'image-library-alist
-    'dynamic-library-alist "24.1")
 
 ;;;###autoload
 (defun image-type-available-p (type)
@@ -463,6 +469,7 @@ must be available."
     (and auto
 	 (or (eq auto t) (image-type-available-p type)))))
 
+(defvar image-convert-to-format)
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)
@@ -500,7 +507,7 @@ Image file names that are not absolute are searched for in the
     (when (eq type 'image-convert)
       (require 'image-converter)
       (setq file-or-data (image-convert file-or-data data-format)
-            type 'png
+            type (intern image-convert-to-format)
             data-p t)))
   (when (image-type-available-p type)
     (let ((image
@@ -750,13 +757,15 @@ SPECS is a list of image specifications.
 
 Each image specification in SPECS is a property list.  The contents of
 a specification are image type dependent.  All specifications must at
-least contain the properties `:type TYPE' and either `:file FILE' or
-`:data DATA', where TYPE is a symbol specifying the image type,
-e.g. `xbm', FILE is the file to load the image from, and DATA is a
-string containing the actual image data.  The specification whose TYPE
-is supported, and FILE exists, is used to construct the image
-specification to be returned.  Return nil if no specification is
-satisfied.
+least contain either the property `:file FILE' or `:data DATA',
+where FILE is the file to load the image from, and DATA is a string
+containing the actual image data.  If the property `:type TYPE' is
+omitted or nil, try to determine the image type from its first few
+bytes of image data.  If that doesn't work, and the property `:file
+FILE' provide a file name, use its file extension as image type.
+If `:type TYPE' is provided, it must match the actual type
+determined for FILE or DATA by `create-image'.  Return nil if no
+specification is satisfied.
 
 If CACHE is non-nil, results are cached and returned on subsequent calls.
 
@@ -771,21 +780,43 @@ Image files should not be larger than specified by `max-image-size'."
           (let* ((spec (car specs))
 	         (type (plist-get spec :type))
 	         (data (plist-get spec :data))
-	         (file (plist-get spec :file))
-	         found)
-	    (when (image-type-available-p type)
-	      (cond ((stringp file)
-		     (if (setq found (image-search-load-path file))
-		         (setq image
-			       (cons 'image (plist-put (copy-sequence spec)
-						       :file found)))))
-		    ((not (null data))
-		     (setq image (cons 'image spec)))))
+	         (file (plist-get spec :file)))
+	    (cond
+             ((stringp file)
+	      (when (setq file (image-search-load-path file))
+                ;; At this point, remove the :type and :file properties.
+                ;; `create-image' will set them depending on image file.
+                (setq image (cons 'image (copy-sequence spec)))
+                (setf (image-property image :type) nil)
+                (setf (image-property image :file) nil)
+                (and (setq image (ignore-errors
+                                   (apply #'create-image file nil nil
+                                          (cdr image))))
+                     ;; Ensure, if a type has been provided, it is
+                     ;; consistent with the type returned by
+                     ;; `create-image'. If not, return nil.
+                     (not (null type))
+                     (not (eq type (image-property image :type)))
+                     (setq image nil))))
+	     ((not (null data))
+              ;; At this point, remove the :type and :data properties.
+              ;; `create-image' will set them depending on image data.
+              (setq image (cons 'image (copy-sequence spec)))
+              (setf (image-property image :type) nil)
+              (setf (image-property image :data) nil)
+	      (and (setq image (ignore-errors
+                                 (apply #'create-image data nil t
+                                        (cdr image))))
+                   ;; Ensure, if a type has been provided, it is
+                   ;; consistent with the type returned by
+                   ;; `create-image'. If not, return nil.
+                   (not (null type))
+                   (not (eq type (image-property image :type)))
+                   (setq image nil))))
 	    (setq specs (cdr specs))))
         (when cache
           (setf (gethash orig-specs find-image--cache) image))
         image)))
-
 
 ;;;###autoload
 (defmacro defimage (symbol specs &optional doc)
@@ -894,8 +925,9 @@ Frames are indexed from 0.  Optional argument NOCHECK non-nil means
 do not check N is within the range of frames present in the image."
   (unless nocheck
     (if (< n 0) (setq n 0)
-      (setq n (min n (1- (car (plist-get (cdr image)
-                                         :animate-multi-frame-data)))))))
+      (setq n (min n (1- (car (or (plist-get (cdr image)
+                                             :animate-multi-frame-data)
+                                  (image-multi-frame-p image))))))))
   (plist-put (cdr image) :index n)
   (force-window-update (plist-get (cdr image) :animate-buffer)))
 
@@ -1248,6 +1280,22 @@ changing the displayed image size does not affect the saved image."
           (insert (plist-get (cdr image) :data))))
       (write-region (point-min) (point-max)
                     (read-file-name "Write image to file: ")))))
+
+(defun image-flip-horizontally ()
+  "Horizontally flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-flush image)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
+
+(defun image-flip-vertically ()
+  "Vertically flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-rotate 180)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
 
 (provide 'image)
 

@@ -12223,7 +12223,6 @@ controlling variable is a predicate list, as described above.
 @vindex gnus-treat-highlight-citation
 @vindex gnus-treat-highlight-headers
 @vindex gnus-treat-highlight-signature
-@vindex gnus-treat-play-sounds
 @vindex gnus-treat-x-pgp-sig
 @vindex gnus-treat-unfold-headers
 @vindex gnus-treat-fold-headers
@@ -12359,8 +12358,6 @@ is controlled by @code{gnus-body-boundary-delimiter}.
 
 @xref{Article Highlighting}.
 
-@vindex gnus-treat-play-sounds
-@item gnus-treat-play-sounds
 @item gnus-treat-ansi-sequences (t)
 @vindex gnus-treat-x-pgp-sig
 @item gnus-treat-x-pgp-sig (head)
@@ -14841,12 +14838,17 @@ mail belongs in that group.
 The last of these groups should always be a general one, and the regular
 expression should @emph{always} be @samp{""} so that it matches any mails
 that haven't been matched by any of the other regexps.  (These rules are
-processed from the beginning of the alist toward the end.  The first rule
-to make a match will ``win'', unless you have crossposting enabled.  In
-that case, all matching rules will ``win''.)  If no rule matched, the mail
-will end up in the @samp{bogus} group.  When new groups are created by
-splitting mail, you may want to run @code{gnus-group-find-new-groups} to
-see the new groups.  This also applies to the @samp{bogus} group.
+processed from the beginning of the alist toward the end.
+
+If multiple rules match (excluding the general @samp{""} group), mail
+is crossposted to all these groups.  However, if
+@code{nnmail-crosspost} is set to @code{nil}, the first rule to make a
+match will ``win''.
+
+If no rule matched, the mail will end up in the @samp{bogus} group.
+When new groups are created by splitting mail, you may want to run
+@code{gnus-group-find-new-groups} to see the new groups.  This also
+applies to the @samp{bogus} group.
 
 If you like to tinker with this yourself, you can set this variable to a
 function of your choice.  This function will be called without any
@@ -18075,6 +18077,17 @@ running the function is not too time-consuming, a non-@code{nil} group
 parameter of @code{nnselect-rescan} will allow automatic refreshing.
 A refresh can always be invoked manually through
 @code{gnus-group-get-new-news-this-group}.
+
+By default a compressed version of the selection is stored (for
+permanent groups) along with other group information in the newsrc.
+For cases where this might be undesirable (for example if the
+selection is a very long list that doesn't compress well) a
+non-@code{nil} group parameter of @code{nnselect-always-regenerate}
+will prevent the list from being stored, and instead regenerate the
+list each time it is needed.  If more flexibility is desired,
+@code{nnselect-get-artlist-override-function} and
+@code{nnselect-store-artlist-override-function} may be set to
+functions that get and store the list of articles.
 
 Gnus includes engines for searching a variety of backends.  While the
 details of each search engine vary, the result of a search is always a
@@ -21638,6 +21651,9 @@ are:
 
 @item
 @code{gnus-search-namazu}
+
+@item
+@code{gnus-search-mu}
 @end itemize
 
 If you need more granularity, you can specify a search engine in the
@@ -21652,7 +21668,7 @@ buffer.  That might look like:
      (config-file "/home/user/.mail/.notmuch_config")))
 @end example
 
-Search engines like notmuch, namazu and mairix are similar in
+Search engines like notmuch, namazu, mairix and mu are similar in
 behavior: they use a local executable to create an index of a message
 store, and run command line search queries against those messages,
 and return a list of absolute file names of matching messages.
@@ -21672,7 +21688,9 @@ engine.
 @item remove-prefix
 The directory part to be removed from the filenames returned by the
 search query.  This absolute path should include everything up to the
-top level of the message store.
+top level of the message store.  Note that this is the path to the
+location of the actual messages, not to the search engine's indexes
+(nor, in the case of Mairix, to its symlink directories).
 
 @item switches
 Additional command-line switches to be fed to the search program.  The
@@ -21689,8 +21707,8 @@ The customization options are formed on the pattern
 non-standard notmuch program, you might set
 @code{gnus-search-notmuch-program} to @file{/usr/local/bin/notmuch}.
 This would apply to all notmuch engines.  The engines that use these
-options are: ``notmuch'', ``namazu'', ``mairix'', ``swish-e'' and
-``swish++''.
+options are: ``notmuch'', ``namazu'', ``mairix'', ``mu'', ``swish-e''
+and ``swish++''.
 
 Alternately, the options can be set directly on your Gnus server
 definitions, for instance, in the @code{nnmaildir} example above.
@@ -21730,6 +21748,12 @@ group are permanently reflected in the real groups from which the
 articles are drawn.  If you want to create a @emph{persistent} group
 that sticks around after exit from the summary buffer, you can call
 @code{gnus-group-make-search-group} (bound to @kbd{G g}).
+
+Unlike persistent groups, ephemeral groups by default do not run
+articles through the expiry process on exiting.  If you want expiry to
+happen in ephemeral search groups you can customize the variable
+@code{nnselect-allow-ephemeral-expiry}.  In all cases the expiry
+process uses the underlying group's expiry parameters.
 
 So you just performed a search whose results are so fabulous you
 wished you had done a persistent search rather than an ephemeral one?
@@ -24137,37 +24161,19 @@ If you want to see them in the Cc and To fields, set:
 @end lisp
 
 
-@subsubsection Toolbar
+@subsubsection Tool bar
 
 @table @code
 
-@item gnus-use-toolbar
-@vindex gnus-use-toolbar
-This variable specifies the position to display the toolbar.  If
-@code{nil}, don't display toolbars.  If it is non-@code{nil}, it should
-be one of the symbols @code{default}, @code{top}, @code{bottom},
-@code{right}, and @code{left}.  @code{default} means to use the default
-toolbar, the rest mean to display the toolbar on the place which those
-names show.  The default is @code{default}.
+@item gnus-group-tool-bar
+@vindex gnus-group-tool-bar
+Specifies the tool bar in the group buffer.  It can be either a list
+or a symbol referring to a list.
 
-@item gnus-toolbar-thickness
-@vindex gnus-toolbar-thickness
-Cons of the height and the width specifying the thickness of a toolbar.
-The height is used for the toolbar displayed on the top or the bottom,
-the width is used for the toolbar displayed on the right or the left.
-The default is that of the default toolbar.
-
-@item gnus-group-toolbar
-@vindex gnus-group-toolbar
-The toolbar in the group buffer.
-
-@item gnus-summary-toolbar
-@vindex gnus-summary-toolbar
-The toolbar in the summary buffer.
-
-@item gnus-summary-mail-toolbar
-@vindex gnus-summary-mail-toolbar
-The toolbar in the summary buffer of mail groups.
+@item gnus-summary-tool-bar
+@vindex gnus-summary-tool-bar
+Specifies the tool bar in the summary buffer.  It can be either a list
+or a symbol referring to a list.
 
 @end table
 
@@ -29679,10 +29685,9 @@ Gnus not to use @acronym{NOV}.
 
 As the variables for the other back ends, there are
 @code{nndiary-nov-is-evil}, @code{nndir-nov-is-evil},
-@code{nnfolder-nov-is-evil}, @code{nnimap-nov-is-evil},
-@code{nnml-nov-is-evil}, and @code{nnspool-nov-is-evil}.  Note that a
-non-@code{nil} value for @code{gnus-nov-is-evil} overrides all those
-variables.
+@code{nnfolder-nov-is-evil}, @code{nnml-nov-is-evil}, and
+@code{nnspool-nov-is-evil}.  Note that a non-@code{nil} value for
+@code{gnus-nov-is-evil} overrides all those variables.
 @end table
 
 

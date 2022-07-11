@@ -99,7 +99,7 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS SRC Bzr Git Hg Mtn)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS SRC Bzr Git Hg)
   ;; RCS, CVS, SVN, SCCS, and SRC come first because they are per-dir
   ;; rather than per-tree.  RCS comes first because of the multibackend
   ;; support intended to use RCS for local commits (with a remote CVS server).
@@ -141,7 +141,8 @@ confirmation whether it should follow the link.  If nil, the link is
 visited and a warning displayed."
   :type '(choice (const :tag "Ask for confirmation" ask)
 		 (const :tag "Visit link and warn" nil)
-		 (const :tag "Follow link" t))
+                 (const :tag "Follow link" t))
+  :safe #'null
   :group 'vc)
 
 (defcustom vc-display-status t
@@ -555,15 +556,6 @@ this function."
        templates))))
 
 
-;; toggle-read-only is obsolete since 24.3, but since vc-t-r-o was made
-;; obsolete earlier, it is ok for the latter to be an alias to the former,
-;; since the latter will be removed first.  We can't just make it
-;; an alias for read-only-mode, since that is not 100% the same.
-(defalias 'vc-toggle-read-only 'toggle-read-only)
-(make-obsolete 'vc-toggle-read-only
-               "use `read-only-mode' instead (or `toggle-read-only' in older versions of Emacs)."
-               "24.1")
-
 (defun vc-default-make-version-backups-p (_backend _file)
   "Return non-nil if unmodified versions should be backed up locally.
 The default is to switch off this feature."
@@ -798,9 +790,10 @@ In the latter case, VC mode is deactivated for this buffer."
     (add-hook 'vc-mode-line-hook #'vc-mode-line nil t)
     (let (backend)
       (cond
-        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
-         ;; Let the backend setup any buffer-local things he needs.
-         (vc-call-backend backend 'find-file-hook)
+       ((setq backend (with-demoted-errors "VC refresh error: %S"
+                        (vc-backend buffer-file-name)))
+        ;; Let the backend setup any buffer-local things he needs.
+        (vc-call-backend backend 'find-file-hook)
 	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files
@@ -964,7 +957,7 @@ In the latter case, VC mode is deactivated for this buffer."
 
 (defalias 'vc-menu-map vc-menu-map)
 
-(declare-function vc-responsible-backend "vc" (file))
+(declare-function vc-responsible-backend "vc" (file &optional no-error))
 
 (defun vc-menu-map-filter (orig-binding)
   (if (and (symbolp orig-binding) (fboundp orig-binding))

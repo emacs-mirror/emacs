@@ -1,7 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -131,7 +130,7 @@ Samples:
 This variable controls several other variables and is _NOT_ automatically
 updated.  Call the function `url-setup-privacy-info' after modifying this
 variable."
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val) (set-default sym val) (url-setup-privacy-info))
   :type '(radio (const :tag "None (you believe in the basic goodness of humanity)"
 		       :value none)
@@ -204,10 +203,9 @@ from the ACCESS_proxy environment variables."
   :type 'boolean
   :group 'url-cache)
 
-(defvar url-mime-separator-chars (mapcar 'identity
-					(concat "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-						"abcdefghijklmnopqrstuvwxyz"
-						"0123456789'()+_,-./=?"))
+(defvar url-mime-separator-chars (append "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+					 "abcdefghijklmnopqrstuvwxyz"
+					 "0123456789'()+_,-./=?")
   "Characters allowable in a MIME multipart separator.")
 
 (defcustom url-bad-port-list
@@ -254,7 +252,7 @@ Generated according to current coding system priorities."
 			  (push (car elt) accum)))
 		    (nreverse accum)))))
     (concat (format "%s;q=1, " (pop ordered))
-	    (mapconcat 'symbol-name ordered ";q=0.5, ")
+	    (mapconcat #'symbol-name ordered ";q=0.5, ")
 	    ";q=0.5")))
 
 (defvar url-mime-charset-string nil
@@ -299,7 +297,7 @@ get the first available language (as opposed to the default)."
 (defcustom url-max-password-attempts 5
   "Maximum number of times a password will be prompted for.
 Applies when a protected document is denied by the server."
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-show-status t
@@ -332,7 +330,7 @@ undefined."
 (defcustom url-max-redirections 30
   "The maximum number of redirection requests to honor in a HTTP connection.
 A negative number means to honor an unlimited number of redirection requests."
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-confirmation-func 'y-or-n-p
@@ -398,7 +396,7 @@ Should be one of:
 (defvar url-lazy-message-time 0)
 
 ;; Fixme: We may not be able to run SSL.
-(defvar url-extensions-header "Security/Digest Security/SSL")
+(defvar url-extensions-header nil)
 
 (defvar url-parse-syntax-table
   (copy-syntax-table emacs-lisp-mode-syntax-table)
@@ -424,11 +422,15 @@ Should be one of:
 This should be set, e.g. by mail user agents rendering HTML to avoid
 `bugs' which call home.")
 
+(defun url-interactive-p ()
+  "Non-nil when the current request is from an interactive context."
+  (not (or url-request-noninteractive
+           (bound-and-true-p url-http-noninteractive))))
+
 ;; Obsolete
 
 (defconst url-version "Emacs" "Version number of URL package.")
 (make-obsolete-variable 'url-version 'emacs-version "28.1")
 
 (provide 'url-vars)
-
 ;;; url-vars.el ends here

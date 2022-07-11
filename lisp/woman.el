@@ -841,10 +841,12 @@ Only useful when run on a graphic display such as X or MS-Windows."
   :tag "WoMan Formatting"
   :group 'woman)
 
-(defcustom woman-fill-column 65
-  "Right margin for formatted text -- default is 65."
-  :type 'integer
-  :group 'woman-formatting)
+;; This could probably be 80 to match 'Man-width'.
+(defcustom woman-fill-column 70
+  "Right margin for formatted text -- default is 70."
+  :type 'natnum
+  :group 'woman-formatting
+  :version "29.1")
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
@@ -1151,7 +1153,7 @@ updated (e.g. to re-interpret the current directory).
 Used non-interactively, arguments are optional: if given then TOPIC
 should be a topic string and non-nil RE-CACHE forces re-caching."
   (interactive (list nil current-prefix-arg))
-  ;; The following test is for non-interactive calls via gnudoit etc.
+  ;; The following test is for non-interactive calls via emacsclient, etc.
   (if (or (not (stringp topic)) (string-match-p "\\S " topic))
       (let ((file-name (woman-file-name topic re-cache)))
 	(if file-name
@@ -1813,8 +1815,7 @@ Argument EVENT is the invoking mouse event."
    "--"
    ["Describe (Wo)Man Mode" describe-mode t]
    ["Mini Help" woman-mini-help t]
-   ,@(if (fboundp 'customize-group)
-	 '(["Customize..." (customize-group 'woman) t]))
+   ["Customize..." (customize-group 'woman) t]
    "--"
    ("Advanced"
     ["View Source" (view-file woman-last-file-name) woman-last-file-name]
@@ -2280,9 +2281,9 @@ Currently set only from \\='\\\" t in the first line of the source file.")
       (replace-match woman-unpadded-space-string t t))
 
     ;; Discard optional hyphen \%; concealed newlines \<newline>;
-    ;; point-size change function \sN,\s+N, \s-N:
+    ;; kerning \/, \,; point-size change function \sN,\s+N, \s-N:
     (goto-char from)
-    (while (re-search-forward "\\\\\\([%\n]\\|s[-+]?[0-9]+\\)" nil t)
+    (while (re-search-forward "\\\\\\([%\n/,]\\|s[-+]?[0-9]+\\)" nil t)
       (woman-delete-match 0))
 
     ;; BEWARE: THIS SHOULD PROBABLY ALL BE DONE MUCH LATER!!!!!
@@ -4578,6 +4579,8 @@ logging the message."
                  (woman-find-file file) (current-buffer))))
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
+
+(put 'woman-bookmark-jump 'bookmark-handler-type "WoMan")
 
 ;; Obsolete.
 

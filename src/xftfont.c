@@ -33,6 +33,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "ftfont.h"
 #include "pdumper.h"
 
+#ifdef HAVE_XRENDER
+#include <X11/extensions/Xrender.h>
+#endif
+
 #ifndef FC_LCD_FILTER
 /* Older fontconfig versions don't have FC_LCD_FILTER.  */
 # define FC_LCD_FILTER "lcdfilter"
@@ -45,19 +49,26 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 struct xftface_info
 {
+  bool bg_allocated_p;
+  bool fg_allocated_p;
   XftColor xft_fg;		/* color for face->foreground */
   XftColor xft_bg;		/* color for face->background */
 };
 
 /* Setup foreground and background colors of GC into FG and BG.  If
    XFTFACE_INFO is not NULL, reuse the colors in it if possible.  BG
-   may be NULL.  */
+   may be NULL.  Return whether or not colors were allocated in
+   BG_ALLOCATED_P and FG_ALLOCATED_P.  */
 
 static void
 xftfont_get_colors (struct frame *f, struct face *face, GC gc,
 		    struct xftface_info *xftface_info,
-		    XftColor *fg, XftColor *bg)
+		    XftColor *fg, XftColor *bg,
+		    bool *bg_allocated_p, bool *fg_allocated_p)
 {
+  *bg_allocated_p = false;
+  *fg_allocated_p = false;
+
   if (xftface_info && face->gc == gc)
     {
       *fg = xftface_info->xft_fg;
@@ -90,20 +101,39 @@ xftfont_get_colors (struct frame *f, struct face *face, GC gc,
 	{
 	  XColor colors[2];
 
-	  colors[0].pixel = fg->pixel = xgcv.foreground;
+	  colors[0].pixel = xgcv.foreground;
 	  if (bg)
-	    colors[1].pixel = bg->pixel = xgcv.background;
+	    colors[1].pixel = xgcv.background;
 	  x_query_colors (f, colors, bg ? 2 : 1);
 	  fg->color.alpha = 0xFFFF;
 	  fg->color.red = colors[0].red;
 	  fg->color.green = colors[0].green;
 	  fg->color.blue = colors[0].blue;
+
+	  if (!XftColorAllocValue (FRAME_X_DISPLAY (f),
+				   FRAME_X_VISUAL (f),
+				   FRAME_X_COLORMAP (f),
+				   &fg->color, fg))
+	    /* This color should've been allocated when creating the
+	       GC.  */
+	    emacs_abort ();
+	  else
+	    *fg_allocated_p = true;
+
 	  if (bg)
 	    {
 	      bg->color.alpha = 0xFFFF;
 	      bg->color.red = colors[1].red;
 	      bg->color.green = colors[1].green;
 	      bg->color.blue = colors[1].blue;
+
+	      if (!XftColorAllocValue (FRAME_X_DISPLAY (f),
+				       FRAME_X_VISUAL (f),
+				       FRAME_X_COLORMAP (f),
+				       &bg->color, bg))
+		emacs_abort ();
+	      else
+		*bg_allocated_p = true;
 	    }
 	}
       unblock_input ();
@@ -356,9 +386,12 @@ xftfont_prepare_face (struct frame *f, struct face *face)
     }
 #endif
 
-  xftface_info = xmalloc (sizeof *xftface_info);
+  xftface_info = xzalloc (sizeof *xftface_info);
   xftfont_get_colors (f, face, face->gc, NULL,
-		      &xftface_info->xft_fg, &xftface_info->xft_bg);
+		      &xftface_info->xft_fg,
+		      &xftface_info->xft_bg,
+		      &xftface_info->bg_allocated_p,
+		      &xftface_info->fg_allocated_p);
   face->extra = xftface_info;
 }
 
@@ -377,6 +410,18 @@ xftfont_done_face (struct frame *f, struct face *face)
   xftface_info = (struct xftface_info *) face->extra;
   if (xftface_info)
     {
+      if (xftface_info->fg_allocated_p)
+	XftColorFree (FRAME_X_DISPLAY (f),
+		      FRAME_X_VISUAL (f),
+		      FRAME_X_COLORMAP (f),
+		      &xftface_info->xft_fg);
+
+      if (xftface_info->bg_allocated_p)
+	XftColorFree (FRAME_X_DISPLAY (f),
+		      FRAME_X_VISUAL (f),
+		      FRAME_X_COLORMAP (f),
+		      &xftface_info->xft_bg);
+
       xfree (xftface_info);
       face->extra = NULL;
     }
@@ -441,10 +486,10 @@ xftfont_get_xft_draw (struct frame *f)
   if (! xft_draw)
     {
       block_input ();
-      xft_draw= XftDrawCreate (FRAME_X_DISPLAY (f),
-                               FRAME_X_DRAWABLE (f),
-			       FRAME_X_VISUAL (f),
-			       FRAME_X_COLORMAP (f));
+      xft_draw = XftDrawCreate (FRAME_X_DISPLAY (f),
+				FRAME_X_DRAWABLE (f),
+				FRAME_X_VISUAL (f),
+				FRAME_X_COLORMAP (f));
       unblock_input ();
       eassert (xft_draw != NULL);
       font_put_frame_data (f, Qxft, xft_draw);
@@ -465,13 +510,16 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   XftDraw *xft_draw = xftfont_get_xft_draw (f);
   FT_UInt *code;
   XftColor fg, bg;
+  bool bg_allocated_p, fg_allocated_p;
   int len = to - from;
   int i;
 
   if (s->font == face->font)
     xftface_info = (struct xftface_info *) face->extra;
   xftfont_get_colors (f, face, s->gc, xftface_info,
-		      &fg, with_background ? &bg : NULL);
+		      &fg, with_background ? &bg : NULL,
+		      &bg_allocated_p, &fg_allocated_p);
+
   if (s->num_clips > 0)
     XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
   else
@@ -496,7 +544,40 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 	height = ascent =
 	  s->first_glyph->slice.glyphless.lower_yoff
 	  - s->first_glyph->slice.glyphless.upper_yoff;
-      XftDrawRect (xft_draw, &bg, x, y - ascent, s->width, height);
+
+#if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+      if (with_background
+	  && FRAME_DISPLAY_INFO (s->f)->alpha_bits
+	  && FRAME_CHECK_XR_VERSION (s->f, 0, 2))
+	{
+	  x_xr_ensure_picture (s->f);
+
+	  if (FRAME_X_PICTURE (s->f) != None)
+	    {
+	      XRenderColor xc;
+	      int height = FONT_HEIGHT (s->font), ascent = FONT_BASE (s->font);
+
+	      if (s->num_clips > 0)
+		XRenderSetPictureClipRectangles (FRAME_X_DISPLAY (s->f),
+						 FRAME_X_PICTURE (s->f),
+						 0, 0, s->clip, s->num_clips);
+	      else
+		x_xr_reset_ext_clip (f);
+	      x_xrender_color_from_gc_background (s->f, s->gc, &xc, s->hl != DRAW_CURSOR);
+	      XRenderFillRectangle (FRAME_X_DISPLAY (s->f),
+				    PictOpSrc, FRAME_X_PICTURE (s->f),
+				    &xc, x, y - ascent, s->width, height);
+	      x_xr_reset_ext_clip (f);
+	      x_mark_frame_dirty (s->f);
+
+	      with_background = false;
+	    }
+	  else
+	    XftDrawRect (xft_draw, &bg, x, y - ascent, s->width, height);
+	}
+      else
+#endif
+	XftDrawRect (xft_draw, &bg, x, y - ascent, s->width, height);
     }
   code = alloca (sizeof (FT_UInt) * len);
   for (i = 0; i < len; i++)
@@ -513,6 +594,19 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
      FRAME_X_DRAWABLE in order to draw: we cached the drawable in the
      XftDraw structure.  */
   x_mark_frame_dirty (f);
+
+  if (bg_allocated_p)
+    XftColorFree (FRAME_X_DISPLAY (f),
+		  FRAME_X_VISUAL (f),
+		  FRAME_X_COLORMAP (f),
+		  &bg);
+
+  if (fg_allocated_p)
+    XftColorFree (FRAME_X_DISPLAY (f),
+		  FRAME_X_VISUAL (f),
+		  FRAME_X_COLORMAP (f),
+		  &fg);
+
   unblock_input ();
   return len;
 }
@@ -549,18 +643,23 @@ xftfont_end_for_frame (struct frame *f)
   return 0;
 }
 
-/* When using X double buffering, the XftDraw structure we build
-   seems to be useless once a frame is resized, so recreate it on
+/* When using X double buffering, the XRender surfaces we create seem
+   to become useless once the window acting as the front buffer is
+   resized for an unknown reason (X server bug?), so recreate it on
    ConfigureNotify and in some other cases.  */
 
+#ifdef HAVE_XDBE
 static void
 xftfont_drop_xrender_surfaces (struct frame *f)
 {
-  block_input ();
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
-    xftfont_end_for_frame (f);
-  unblock_input ();
+    {
+      block_input ();
+      xftfont_end_for_frame (f);
+      unblock_input ();
+    }
 }
+#endif
 
 static bool
 xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
@@ -647,35 +746,37 @@ static void syms_of_xftfont_for_pdumper (void);
 struct font_driver const xftfont_driver =
   {
     /* We can't draw a text without device dependent functions.  */
-  .type = LISPSYM_INITIALLY (Qxft),
-  .get_cache = xfont_get_cache,
-  .list = xftfont_list,
-  .match = xftfont_match,
-  .list_family = ftfont_list_family,
-  .open_font = xftfont_open,
-  .close_font = xftfont_close,
-  .prepare_face = xftfont_prepare_face,
-  .done_face = xftfont_done_face,
-  .has_char = xftfont_has_char,
-  .encode_char = xftfont_encode_char,
-  .text_extents = xftfont_text_extents,
-  .draw = xftfont_draw,
-  .get_bitmap = ftfont_get_bitmap,
-  .anchor_point = ftfont_anchor_point,
+    .type = LISPSYM_INITIALLY (Qxft),
+    .get_cache = xfont_get_cache,
+    .list = xftfont_list,
+    .match = xftfont_match,
+    .list_family = ftfont_list_family,
+    .open_font = xftfont_open,
+    .close_font = xftfont_close,
+    .prepare_face = xftfont_prepare_face,
+    .done_face = xftfont_done_face,
+    .has_char = xftfont_has_char,
+    .encode_char = xftfont_encode_char,
+    .text_extents = xftfont_text_extents,
+    .draw = xftfont_draw,
+    .get_bitmap = ftfont_get_bitmap,
+    .anchor_point = ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
-  .otf_capability = ftfont_otf_capability,
+    .otf_capability = ftfont_otf_capability,
 #endif
-  .end_for_frame = xftfont_end_for_frame,
+    .end_for_frame = xftfont_end_for_frame,
 #if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
-  .shape = xftfont_shape,
+    .shape = xftfont_shape,
 #endif
 #if defined HAVE_OTF_GET_VARIATION_GLYPHS || defined HAVE_FT_FACE_GETCHARVARIANTINDEX
-  .get_variation_glyphs = ftfont_variation_glyphs,
+    .get_variation_glyphs = ftfont_variation_glyphs,
 #endif
-  .filter_properties = ftfont_filter_properties,
-  .cached_font_ok = xftfont_cached_font_ok,
-  .combining_capability = ftfont_combining_capability,
-  .drop_xrender_surfaces = xftfont_drop_xrender_surfaces,
+    .filter_properties = ftfont_filter_properties,
+    .cached_font_ok = xftfont_cached_font_ok,
+    .combining_capability = ftfont_combining_capability,
+#ifdef HAVE_XDBE
+    .drop_xrender_surfaces = xftfont_drop_xrender_surfaces,
+#endif
   };
 #ifdef HAVE_HARFBUZZ
 struct font_driver xfthbfont_driver;
@@ -695,6 +796,15 @@ syms_of_xftfont (void)
 	       doc:  /* Non-nil means override the ascent and descent values for Xft font driver.
 This is needed with some fonts to correct vertical overlap of glyphs.  */);
   xft_font_ascent_descent_override = 0;
+
+  DEFVAR_LISP ("xft-color-font-whitelist", Vxft_color_font_whitelist,
+    doc: /* List of "color" font families that don't actually have color glyphs.
+Some fonts (such as Source Code Pro) are reported as color fonts, but
+do not actually have glyphs with colors that can cause Xft crashes.
+
+The font families in this list will not be ignored when
+`xft-ignore-color-fonts' is non-nil.  */);
+  Vxft_color_font_whitelist = list1 (build_pure_c_string ("Source Code Pro"));
 
   pdumper_do_now_and_after_load (syms_of_xftfont_for_pdumper);
 }

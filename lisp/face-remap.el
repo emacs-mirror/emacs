@@ -70,9 +70,28 @@
    :foreground :background :stipple :overline :strike-through :box
    :font :inherit :fontset :distant-foreground :extend :vector])
 
+(defun face-remap--copy-face (val)
+  "Return a copy of the `face' property value VAL."
+  ;; A `face' property can be either a face name (a symbol), or a face
+  ;; property list like (:foreground "red" :inherit default),
+  ;; or a list of such things.
+  ;; FIXME: This should probably be shared to some extent with
+  ;; `add-face-text-property'.
+  (if (or (not (listp val)) (keywordp (car val)))
+      val
+    (copy-sequence val)))
+
+(defun face-attrs--make-indirect-safe ()
+  "Deep-copy the buffer's `face-remapping-alist' upon cloning the buffer."
+  (setq-local face-remapping-alist
+              (mapcar #'face-remap--copy-face face-remapping-alist)))
+
+(add-hook 'clone-indirect-buffer-hook #'face-attrs--make-indirect-safe)
+
 (defun face-attrs-more-relative-p (attrs1 attrs2)
-  "Return true if ATTRS1 contains a greater number of relative
-face-attributes than ATTRS2.  A face attribute is considered
+  "Return non-nil if ATTRS1 is \"more relative\" than ATTRS2.
+We define this as meaning that ATTRS1 contains a greater number of
+relative face-attributes than ATTRS2.  A face attribute is considered
 relative if `face-attribute-relative-p' returns non-nil.
 
 ATTRS1 and ATTRS2 may be any value suitable for a `face' text
@@ -99,7 +118,7 @@ face lists so that more specific faces are located near the end."
   "Order ENTRY so that more relative face specs are near the beginning.
 The list structure of ENTRY may be destructively modified."
   (setq entry (nreverse entry))
-  (setcdr entry (sort (cdr entry) 'face-attrs-more-relative-p))
+  (setcdr entry (sort (cdr entry) #'face-attrs-more-relative-p))
   (nreverse entry))
 
 ;;;###autoload
@@ -188,10 +207,12 @@ If SPECS is empty or a single face `eq' to FACE, call `face-remap-reset-base'
 to use the normal definition of FACE as the base remapping; note that
 this is different from SPECS containing a single value nil, which means
 not to inherit from the global definition of FACE at all."
+  ;; Simplify the specs in the case where it's just a single face (and
+  ;; it's not a list with just a nil).
   (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
     (setq specs (car specs)))
   (if (or (null specs)
-	  (and (eq (car specs) face) (null (cdr specs)))) ; default
+	  (eq specs face)) ; default
       ;; Set entry back to default
       (face-remap-reset-base face)
     ;; Set the base remapping
@@ -209,7 +230,8 @@ not to inherit from the global definition of FACE at all."
 
 (defcustom text-scale-mode-step 1.2
   "Scale factor used by `text-scale-mode'.
-Each positive or negative step scales the default face height by this amount."
+Each positive or negative step scales the size of the `default'
+face's font by this amount."
   :group 'display
   :type 'number
   :version "23.1")
@@ -314,7 +336,7 @@ the same amount)."
 
 ;;;###autoload
 (defun text-scale-increase (inc)
-  "Increase the height of the default face in the current buffer by INC steps.
+  "Increase the font size of the default face in current buffer by INC steps.
 If the new height is other than the default, `text-scale-mode' is enabled.
 
 Each step scales the height of the default face by the variable
@@ -326,14 +348,14 @@ will remove any scaling currently active."
          (new-value (if (= inc 0) 0 (+ current-value inc))))
     (if (or (> new-value (text-scale-max-amount))
             (< new-value (text-scale-min-amount)))
-        (user-error "Cannot %s the default face height more than it already is"
+        (user-error "Cannot %s the font size any further"
                     (if (> inc 0) "increase" "decrease")))
     (setq text-scale-mode-amount new-value))
   (text-scale-mode (if (zerop text-scale-mode-amount) -1 1)))
 
 ;;;###autoload
 (defun text-scale-decrease (dec)
-  "Decrease the height of the default face in the current buffer by DEC steps.
+  "Decrease the font size of the default face in the current buffer by DEC steps.
 See `text-scale-increase' for more details."
   (interactive "p")
   (text-scale-increase (- dec)))
@@ -344,19 +366,18 @@ See `text-scale-increase' for more details."
 ;;;###autoload (define-key ctl-x-map [(control ?0)] 'text-scale-adjust)
 ;;;###autoload
 (defun text-scale-adjust (inc)
-  "Adjust the height of the default face by INC.
-
+  "Adjust the font size in the current buffer by INC steps.
 INC may be passed as a numeric prefix argument.
 
 The actual adjustment made depends on the final component of the
 keybinding used to invoke the command, with all modifiers removed:
 
-   +, =   Increase the height of the default face by one step
-   -      Decrease the height of the default face by one step
-   0      Reset the height of the default face to the global default
+   \\`+', \\`='   Increase font size in current buffer by one step
+   \\`-'      Decrease font size in current buffer by one step
+   \\`0'      Reset the font size to the global default
 
 After adjusting, continue to read input events and further adjust
-the face height as long as the input event read
+the font size as long as the input event read
 \(with all modifiers removed) is one of the above characters.
 
 Each step scales the height of the default face by the variable
@@ -368,7 +389,14 @@ This command is a special-purpose wrapper around the
 `text-scale-increase' command which makes repetition convenient
 even when it is bound in a non-top-level keymap.  For binding in
 a top-level keymap, `text-scale-increase' or
-`text-scale-decrease' may be more appropriate."
+`text-scale-decrease' may be more appropriate.
+
+Most faces are affected by these font size changes, but not faces
+that have an explicit `:height' setting.  The two exceptions to
+this are the `default' and `header-line' faces: they will both be
+scaled even if they have an explicit `:height' setting.
+
+See also the related command `global-text-scale-adjust'."
   (interactive "p")
   (let ((ev last-command-event)
 	(echo-keystrokes nil))
@@ -380,15 +408,15 @@ a top-level keymap, `text-scale-increase' or
               (?0 0)
               (_ inc))))
       (text-scale-increase step)
-      ;; (unless (zerop step)
-      (message "Use +,-,0 for further adjustment")
       (set-transient-map
        (let ((map (make-sparse-keymap)))
          (dolist (mods '(() (control)))
-           (dolist (key '(?- ?+ ?= ?0)) ;; = is often unshifted +.
+           (dolist (key '(?+ ?= ?- ?0)) ;; = is often unshifted +.
              (define-key map (vector (append mods (list key)))
                (lambda () (interactive) (text-scale-adjust (abs inc))))))
-         map))))) ;; )
+         map)
+       nil nil
+       "Use %k for further adjustment"))))
 
 (defvar-local text-scale--pinch-start-scale 0
   "The text scale at the start of a pinch sequence.")
@@ -400,15 +428,6 @@ a top-level keymap, `text-scale-increase' or
   (interactive "e")
   (when (not (eq (event-basic-type event) 'pinch))
     (error "`text-scale-pinch' bound to bad event type"))
-  (let ((evt))
-    (catch 'done
-      (while t
-        (unless (and (setq evt (read-event nil nil 0.01))
-                     (eq (car evt) 'pinch))
-          (throw 'done nil))))
-    (when (and (consp evt)
-               (eq (car evt) 'pinch))
-      (setq event evt)))
   (let ((window (posn-window (nth 1 event)))
         (scale (nth 4 event))
         (dx (nth 2 event))
@@ -423,6 +442,83 @@ a top-level keymap, `text-scale-increase' or
       (text-scale-set
        (+ text-scale--pinch-start-scale
           (round (log scale text-scale-mode-step)))))))
+
+(defcustom global-text-scale-adjust-resizes-frames nil
+  "Whether `global-text-scale-adjust' resizes the frames."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On" t))
+  :group 'display
+  :version "29.1")
+
+(defcustom global-text-scale-adjust-limits '(10 . 500)
+  "Min/max values for `global-text-scale-adjust'.
+This is a cons cell where the `car' has the minimum font size and
+the `cdr' has the maximum font size, in units of 1/10 pt."
+  :version "29.1"
+  :group 'display
+  :type '(cons (integer :tag "Min")
+               (integer :tag "Max")))
+
+(defvar global-text-scale-adjust--default-height nil)
+
+;;;###autoload (define-key ctl-x-map [(control meta ?+)] 'global-text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control meta ?=)] 'global-text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control meta ?-)] 'global-text-scale-adjust)
+;;;###autoload (define-key ctl-x-map [(control meta ?0)] 'global-text-scale-adjust)
+;;;###autoload
+(defun global-text-scale-adjust (increment)
+  "Globally adjust the font size by INCREMENT.
+
+Interactively, INCREMENT may be passed as a numeric prefix argument.
+
+The adjustment made depends on the final component of the key binding
+used to invoke the command, with all modifiers removed:
+
+   \\`+', \\`='   Globally increase the height of the default face
+   \\`-'      Globally decrease the height of the default face
+   \\`0'      Globally reset the height of the default face
+
+After adjusting, further adjust the font size as long as the key,
+with all modifiers removed, is one of the above characters.
+
+Buffer-local face adjustements have higher priority than global
+face adjustments.
+
+The variable `global-text-scale-adjust-resizes-frames' controls
+whether the frames are resized to keep the same number of lines
+and characters per line when the font size is adjusted.
+
+See also the related command `text-scale-adjust'."
+  (interactive "p")
+  (when (display-graphic-p)
+    (unless global-text-scale-adjust--default-height
+      (setq global-text-scale-adjust--default-height
+            (face-attribute 'default :height)))
+    (let* ((key (event-basic-type last-command-event))
+           (echo-keystrokes nil)
+           (cur (face-attribute 'default :height))
+           (inc
+            (pcase key
+              (?- (* (- increment) 5))
+              (?0 (- global-text-scale-adjust--default-height cur))
+              (_ (* increment 5))))
+           (new (+ cur inc)))
+      (when (< (car global-text-scale-adjust-limits)
+               new
+               (cdr global-text-scale-adjust-limits))
+        (let ((frame-inhibit-implied-resize
+               (not global-text-scale-adjust-resizes-frames)))
+          (set-face-attribute 'default nil :height new)))
+      (when (characterp key)
+        (set-transient-map
+         (let ((map (make-sparse-keymap)))
+           (dolist (mod '(() (control meta)))
+             (dolist (key '(?+ ?= ?- ?0))
+               (define-key map (vector (append mod (list key)))
+                 'global-text-scale-adjust)))
+           map)
+       nil nil
+       "Use %k for further adjustment")))))
 
 
 ;; ----------------------------------------------------------------

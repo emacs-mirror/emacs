@@ -39,7 +39,8 @@
 (require 'semantic/sort)
 (require 'imenu)
 
-(declare-function pulse-momentary-highlight-one-line "pulse" (o &optional face))
+(declare-function pulse-momentary-highlight-one-line "pulse"
+                  (&optional point face))
 (declare-function semanticdb-semantic-init-hook-fcn "db-mode")
 
 ;; Because semantic imenu tags will hose the current imenu handling

@@ -90,6 +90,11 @@ The value used here is passed to `quit-restore-window'."
   :group 'debugger
   :version "24.3")
 
+(defcustom debug-allow-recursive-debug nil
+  "If non-nil, erroring in debug and edebug won't recursively debug."
+  :type 'boolean
+  :version "29.1")
+
 (defvar debugger-step-after-exit nil
   "Non-nil means \"single-step\" after the debugger exits.")
 
@@ -300,16 +305,15 @@ the debugger will not be entered."
 		  (set-buffer debugger-old-buffer)))
               ;; Forget debugger window, it won't be back (Bug#17882).
               (setq debugger-previous-window nil))
-            ;; Restore previous state of debugger-buffer in case we were
-            ;; in a recursive invocation of the debugger, otherwise just
-            ;; erase the buffer.
+            ;; Restore previous state of debugger-buffer in case we
+            ;; were in a recursive invocation of the debugger,
+            ;; otherwise just exit (after changing the mode, since we
+            ;; can't interact with the buffer in the same way).
 	    (when (buffer-live-p debugger-buffer)
 	      (with-current-buffer debugger-buffer
 	        (if debugger-previous-state
                     (debugger--restore-buffer-state debugger-previous-state)
-                  (setq backtrace-insert-header-function nil)
-                  (setq backtrace-frames nil)
-                  (backtrace-print))))
+                  (backtrace-mode))))
 	    (with-timeout-unsuspend debugger-with-timeout-suspend)
 	    (set-match-data debugger-outer-match-data)))
         (setq debug-on-next-call debugger-step-after-exit)
@@ -534,62 +538,75 @@ The environment used is the one when entering the activation frame at point."
                       (error 0)))) ;; If on first line.
 	(base (debugger--backtrace-base)))
     (debugger-env-macro
-      (let ((val (backtrace-eval exp nframe base)))
-        (prog1
-            (debugger--print val t)
-          (let ((str (eval-expression-print-format val)))
-            (if str (princ str t))))))))
+      (let* ((errored nil)
+             (val (if debug-allow-recursive-debug
+                      (backtrace-eval exp nframe base)
+                    (condition-case err
+                        (backtrace-eval exp nframe base)
+                      (error (setq errored
+                                   (format "%s: %s"
+                                           (get (car err) 'error-message)
+			                   (car (cdr err)))))))))
+        (if errored
+            (progn
+              (message "Error: %s" errored)
+              nil)
+          (prog1
+              (debugger--print val t)
+            (let ((str (eval-expression-print-format val)))
+              (if str (princ str t)))))))))
 
 (define-obsolete-function-alias 'debugger-toggle-locals
   'backtrace-toggle-locals "28.1")
 
 
-(defvar debugger-mode-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map backtrace-mode-map)
-    (define-key map "b" 'debugger-frame)
-    (define-key map "c" 'debugger-continue)
-    (define-key map "j" 'debugger-jump)
-    (define-key map "r" 'debugger-return-value)
-    (define-key map "u" 'debugger-frame-clear)
-    (define-key map "d" 'debugger-step-through)
-    (define-key map "l" 'debugger-list-functions)
-    (define-key map "q" 'debugger-quit)
-    (define-key map "e" 'debugger-eval-expression)
-    (define-key map "R" 'debugger-record-expression)
-    (define-key map [mouse-2] 'push-button)
-    (easy-menu-define nil map ""
-      '("Debugger"
-        ["Step through" debugger-step-through
-         :help "Proceed, stepping through subexpressions of this expression"]
-        ["Continue" debugger-continue
-         :help "Continue, evaluating this expression without stopping"]
-        ["Jump" debugger-jump
-         :help "Continue to exit from this frame, with all debug-on-entry suspended"]
-        ["Eval Expression..." debugger-eval-expression
-         :help "Eval an expression, in an environment like that outside the debugger"]
-        ["Display and Record Expression" debugger-record-expression
-         :help "Display a variable's value and record it in `*Backtrace-record*' buffer"]
-        ["Return value..." debugger-return-value
-         :help "Continue, specifying value to return."]
-        "--"
-        ["Debug frame" debugger-frame
-         :help "Request entry to debugger when this frame exits"]
-        ["Cancel debug frame" debugger-frame-clear
-         :help "Do not enter debugger when this frame exits"]
-        ["List debug on entry functions" debugger-list-functions
-         :help "Display a list of all the functions now set to debug on entry"]
-        "--"
-        ["Next Line" next-line
-         :help "Move cursor down"]
-        ["Help for Symbol" backtrace-help-follow-symbol
-         :help "Show help for symbol at point"]
-        ["Describe Debugger Mode" describe-mode
-         :help "Display documentation for debugger-mode"]
-        "--"
-        ["Quit" debugger-quit
-         :help "Quit debugging and return to top level"]))
-    map))
+(defvar-keymap debugger-mode-map
+  :full t
+  :parent backtrace-mode-map
+  "b" #'debugger-frame
+  "c" #'debugger-continue
+  "j" #'debugger-jump
+  "r" #'debugger-return-value
+  "u" #'debugger-frame-clear
+  "d" #'debugger-step-through
+  "l" #'debugger-list-functions
+  "q" #'debugger-quit
+  "e" #'debugger-eval-expression
+  "R" #'debugger-record-expression
+
+  "<mouse-2>" #'push-button
+
+  :menu
+  '("Debugger"
+    ["Step through" debugger-step-through
+     :help "Proceed, stepping through subexpressions of this expression"]
+    ["Continue" debugger-continue
+     :help "Continue, evaluating this expression without stopping"]
+    ["Jump" debugger-jump
+     :help "Continue to exit from this frame, with all debug-on-entry suspended"]
+    ["Eval Expression..." debugger-eval-expression
+     :help "Eval an expression, in an environment like that outside the debugger"]
+    ["Display and Record Expression" debugger-record-expression
+     :help "Display a variable's value and record it in `*Backtrace-record*' buffer"]
+    ["Return value..." debugger-return-value
+     :help "Continue, specifying value to return."]
+    "--"
+    ["Debug frame" debugger-frame
+     :help "Request entry to debugger when this frame exits"]
+    ["Cancel debug frame" debugger-frame-clear
+     :help "Do not enter debugger when this frame exits"]
+    ["List debug on entry functions" debugger-list-functions
+     :help "Display a list of all the functions now set to debug on entry"]
+    "--"
+    ["Next Line" next-line
+     :help "Move cursor down"]
+    ["Help for Symbol" backtrace-help-follow-symbol
+     :help "Show help for symbol at point"]
+    ["Describe Debugger Mode" describe-mode
+     :help "Display documentation for debugger-mode"]
+    "--"
+    ["Quit" debugger-quit
+     :help "Quit debugging and return to top level"]))
 
 (put 'debugger-mode 'mode-class 'special)
 

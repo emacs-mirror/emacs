@@ -24,6 +24,7 @@
 (require 'ert)
 (require 'cl-lib)
 (require 'generator)
+(require 'bytecomp)
 
 (ert-deftest cconv-tests-lambda-:documentation ()
   "Docstring for lambda can be specified with :documentation."

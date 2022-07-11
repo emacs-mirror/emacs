@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "fingerprint.h"
 #include "frame.h"
-#include "getpagesize.h"
 #include "intervals.h"
 #include "lisp.h"
 #include "pdumper.h"
@@ -163,7 +162,7 @@ ptrdiff_t_to_dump_off (ptrdiff_t value)
 /* Worst-case allocation granularity on any system that might load
    this dump.  */
 static int
-dump_get_page_size (void)
+dump_get_max_page_size (void)
 {
   return 64 * 1024;
 }
@@ -1070,7 +1069,7 @@ dump_queue_enqueue (struct dump_queue *dump_queue,
         }
     }
 
-  if (!EQ (weights, orig_weights))
+  if (!BASE_EQ (weights, orig_weights))
     Fputhash (object, weights, dump_queue->link_weights);
 }
 
@@ -1211,8 +1210,8 @@ dump_queue_find_score_of_one_weight_queue (struct dump_queue *dump_queue,
 static Lisp_Object
 dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 {
-  eassert (EQ (Fhash_table_count (dump_queue->sequence_numbers),
-               Fhash_table_count (dump_queue->link_weights)));
+  eassert (BASE_EQ (Fhash_table_count (dump_queue->sequence_numbers),
+		    Fhash_table_count (dump_queue->link_weights)));
 
   eassert (XFIXNUM (Fhash_table_count (dump_queue->sequence_numbers))
 	   <= (dump_tailq_length (&dump_queue->fancy_weight_objects)
@@ -1384,7 +1383,7 @@ print_paths_to_root_1 (struct dump_context *ctx,
     {
       Lisp_Object referrer = XCAR (referrers);
       referrers = XCDR (referrers);
-      Lisp_Object repr = Fprin1_to_string (referrer, Qnil);
+      Lisp_Object repr = Fprin1_to_string (referrer, Qnil, Qnil);
       for (int i = 0; i < level; ++i)
 	putc (' ', stderr);
       fwrite (SDATA (repr), 1, SBYTES (repr), stderr);
@@ -2068,7 +2067,7 @@ dump_interval_tree (struct dump_context *ctx,
 static dump_off
 dump_string (struct dump_context *ctx, const struct Lisp_String *string)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_String_348C2B2FDB)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_String_C2CAF90352)
 # error "Lisp_String changed. See CHECK_STRUCTS comment in config.h."
 #endif
   /* If we have text properties, write them _after_ the string so that
@@ -2079,7 +2078,7 @@ dump_string (struct dump_context *ctx, const struct Lisp_String *string)
      we seldom write to string data and never relocate it, so lumping
      it together at the end of the dump saves on COW faults.
 
-     If, however, the string's size_byte field is -1, the string data
+     If, however, the string's size_byte field is -2, the string data
      is actually a pointer to Emacs data segment, so we can do even
      better by emitting a relocation instead of bothering to copy the
      string data.  */
@@ -2854,7 +2853,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_F09D8E8E19)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_20B7443AD7)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
@@ -2877,12 +2876,14 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
       dump_remember_cold_op (ctx,
                              COLD_OP_NATIVE_SUBR,
 			     make_lisp_ptr ((void *) subr, Lisp_Vectorlike));
-      dump_field_lv (ctx, &out, subr, &subr->native_intspec, WEIGHT_NORMAL);
+      dump_field_lv (ctx, &out, subr, &subr->intspec.native, WEIGHT_NORMAL);
+      dump_field_lv (ctx, &out, subr, &subr->command_modes, WEIGHT_NORMAL);
     }
   else
     {
       dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
-      dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec.string);
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->command_modes);
     }
   DUMP_FIELD_COPY (&out, subr, doc);
 #ifdef HAVE_NATIVE_COMP
@@ -2948,7 +2949,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_19F6CF5169
+#if CHECK_STRUCTS && !defined HASH_pvec_type_AFF6FED5BD
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
@@ -3032,6 +3033,8 @@ dump_vectorlike (struct dump_context *ctx,
       error_unsupported_dump_object (ctx, lv, "sqlite");
     case PVEC_MODULE_FUNCTION:
       error_unsupported_dump_object (ctx, lv, "module function");
+    case PVEC_SYMBOL_WITH_POS:
+      error_unsupported_dump_object (ctx, lv, "symbol with pos");
     default:
       error_unsupported_dump_object(ctx, lv, "weird pseudovector");
     }
@@ -3755,7 +3758,7 @@ decode_emacs_reloc (struct dump_context *ctx, Lisp_Object lreloc)
             reloc.u.dump_offset = dump_recall_object (ctx, target_value);
             if (reloc.u.dump_offset <= 0)
               {
-                Lisp_Object repr = Fprin1_to_string (target_value, Qnil);
+                Lisp_Object repr = Fprin1_to_string (target_value, Qnil, Qnil);
                 error ("relocation target was not dumped: %s", SDATA (repr));
               }
             dump_check_dump_off (ctx, reloc.u.dump_offset);
@@ -4044,7 +4047,7 @@ types.  */)
     }
   while (number_finalizers_run);
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
@@ -4207,7 +4210,7 @@ types.  */)
   eassert (dump_queue_empty_p (&ctx->dump_queue));
 
   dump_off discardable_end = ctx->offset;
-  dump_align_output (ctx, dump_get_page_size ());
+  dump_align_output (ctx, dump_get_max_page_size ());
   ctx->header.cold_start = ctx->offset;
 
   /* Start the cold section.  This section contains bytes that should
@@ -4925,7 +4928,7 @@ dump_mmap_contiguous (struct dump_memory_map *maps, int nr_maps)
     return true;
 
   size_t total_size = 0;
-  int worst_case_page_size = dump_get_page_size ();
+  int worst_case_page_size = dump_get_max_page_size ();
 
   for (int i = 0; i < nr_maps; ++i)
     {
@@ -5540,7 +5543,10 @@ pdumper_load (const char *dump_filename, char *argv0)
 
   struct dump_header header_buf = { 0 };
   struct dump_header *header = &header_buf;
-  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS] = { 0 };
+  struct dump_memory_map sections[NUMBER_DUMP_SECTIONS];
+
+  /* Use memset instead of "= { 0 }" to work around GCC bug 105961.  */
+  memset (sections, 0, sizeof sections);
 
   const struct timespec start_time = current_timespec ();
   char *dump_filename_copy;
@@ -5613,7 +5619,7 @@ pdumper_load (const char *dump_filename, char *argv0)
   err = PDUMPER_LOAD_OOM;
 
   adj_discardable_start = header->discardable_start;
-  dump_page_size = dump_get_page_size ();
+  dump_page_size = dump_get_max_page_size ();
   /* Snap to next page boundary.  */
   adj_discardable_start = ROUNDUP (adj_discardable_start, dump_page_size);
   eassert (adj_discardable_start % dump_page_size == 0);

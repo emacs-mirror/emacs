@@ -47,6 +47,8 @@
          (calc-check-stack num)
 	 (let ((stuff (calc-top-list n (- num n -1))))
 	   (calc-cursor-stack-index num)
+           (unless calc-kill-line-numbering
+             (re-search-forward "\\=[0-9]+:\\s-+" (point-at-eol) t))
 	   (let ((first (point)))
 	     (calc-cursor-stack-index (- num n))
 	     (if (null nn)
@@ -264,14 +266,16 @@ as well as set the contents of the Emacs register REGISTER to TEXT."
   "Return the CALCVAL portion of the contents of the Calc register REG,
 unless the TEXT portion doesn't match the contents of the Emacs register REG,
 in which case either return the contents of the Emacs register (if it is
-text) or nil."
+text or a number) or nil."
   (let ((cval (cdr (assq reg calc-register-alist)))
         (val (cdr (assq reg register-alist))))
-    (if (stringp val)
-        (if (and (stringp (car cval))
-                 (string= (car cval) val))
-            (cdr cval)
-          val))))
+    (cond
+     ((stringp val)
+      (if (and (stringp (car cval))
+               (string= (car cval) val))
+          (cdr cval)
+        val))
+     ((numberp val) (number-to-string val)))))
 
 (defun calc-copy-to-register (register start end &optional delete-flag)
   "Copy the lines in the region into register REGISTER.
@@ -711,9 +715,9 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
-              (format-message "Press `C-c C-c'")
+              (substitute-command-keys "Press \\`C-c C-c'")
               (if allow-ret "" " or RET")
-              (format-message " to finish, `C-x k RET' to cancel.\n\n"))
+              (substitute-command-keys " to finish, \\`C-x k RET' to cancel.\n\n"))
              'font-lock-face 'italic 'read-only t 'rear-nonsticky t 'front-sticky t))
     (setq-local calc-edit-top (point))))
 

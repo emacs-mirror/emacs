@@ -802,7 +802,7 @@ If GROUP is nil, all groups on COMMAND-METHOD are scanned."
                (when (> min 1)
                  (let* ((range (if (= min 2) 1 (cons 1 (1- min))))
                         (read (gnus-info-read info))
-                        (new-read (gnus-range-add read (list range))))
+                        (new-read (range-concat read (list range))))
                    (setf (gnus-info-read info) new-read)))
                info))))))
 

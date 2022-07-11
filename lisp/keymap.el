@@ -241,13 +241,13 @@ See `kbd' for a descripion of KEYS."
                      (setq bits (+ bits
                                    (cdr
                                     (assq (aref word 0)
-                                          '((?A . ?\A-\^@) (?C . ?\C-\^@)
-                                            (?H . ?\H-\^@) (?M . ?\M-\^@)
-                                            (?s . ?\s-\^@) (?S . ?\S-\^@))))))
+                                          '((?A . ?\A-\0) (?C . ?\C-\0)
+                                            (?H . ?\H-\0) (?M . ?\M-\0)
+                                            (?s . ?\s-\0) (?S . ?\S-\0))))))
                      (setq prefix (+ prefix 2))
                      (setq word (substring word 2)))
                    (when (string-match "^\\^.$" word)
-                     (setq bits (+ bits ?\C-\^@))
+                     (setq bits (+ bits ?\C-\0))
                      (setq prefix (1+ prefix))
                      (setq word (substring word 1)))
                    (let ((found (assoc word '(("NUL" . "\0") ("RET" . "\r")
@@ -262,37 +262,26 @@ See `kbd' for a descripion of KEYS."
                        (setq word (vector n))))
                    (cond ((= bits 0)
                           (setq key word))
-                         ((and (= bits ?\M-\^@) (stringp word)
+                         ((and (= bits ?\M-\0) (stringp word)
                                (string-match "^-?[0-9]+$" word))
                           (setq key (mapcar (lambda (x) (+ x bits))
                                             (append word nil))))
                          ((/= (length word) 1)
                           (error "%s must prefix a single character, not %s"
                                  (substring orig-word 0 prefix) word))
-                         ((and (/= (logand bits ?\C-\^@) 0) (stringp word)
+                         ((and (/= (logand bits ?\C-\0) 0) (stringp word)
                                ;; We used to accept . and ? here,
                                ;; but . is simply wrong,
                                ;; and C-? is not used (we use DEL instead).
                                (string-match "[@-_a-z]" word))
-                          (setq key (list (+ bits (- ?\C-\^@)
+                          (setq key (list (+ bits (- ?\C-\0)
                                              (logand (aref word 0) 31)))))
                          (t
                           (setq key (list (+ bits (aref word 0)))))))))
           (when key
             (dolist (_ (number-sequence 1 times))
               (setq res (vconcat res key))))))
-      (if (and (>= (length res) 4)
-               (eq (aref res 0) ?\C-x)
-               (eq (aref res 1) ?\()
-               (eq (aref res (- (length res) 2)) ?\C-x)
-               (eq (aref res (- (length res) 1)) ?\)))
-          (apply #'vector (let ((lres (append res nil)))
-                            ;; Remove the first and last two elements.
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)))
-        res))))
+      res)))
 
 (defun key-valid-p (keys)
   "Say whether KEYS is a valid key.
@@ -306,10 +295,10 @@ number of characters have a special shorthand syntax.
 
 Here's some example key sequences.
 
-  \"f\"           (the key 'f')
-  \"S o m\"       (a three key sequence of the keys 'S', 'o' and 'm')
-  \"C-c o\"       (a two key sequence of the keys 'c' with the control modifier
-                 and then the key 'o')
+  \"f\"           (the key `f')
+  \"S o m\"       (a three key sequence of the keys `S', `o' and `m')
+  \"C-c o\"       (a two key sequence of the keys `c' with the control modifier
+                 and then the key `o')
   \"H-<left>\"    (the key named \"left\" with the hyper modifier)
   \"M-RET\"       (the \"return\" key with a meta modifier)
   \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)
@@ -325,38 +314,38 @@ which is
 
    Alt-Control-Hyper-Meta-Shift-super"
   (declare (pure t) (side-effect-free t))
-  (and
-   (stringp keys)
-   (string-match-p "\\`[^ ]+\\( [^ ]+\\)*\\'" keys)
-   (save-match-data
-     (catch 'exit
-       (let ((prefixes
-              "\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?")
-             (case-fold-search nil))
-         (dolist (key (split-string keys " "))
-           ;; Every key might have these modifiers, and they should be
-           ;; in this order.
-           (when (string-match (concat "\\`" prefixes) key)
-             (setq key (substring key (match-end 0))))
-           (unless (or (and (= (length key) 1)
-                            ;; Don't accept control characters as keys.
-                            (not (< (aref key 0) ?\s))
-                            ;; Don't accept Meta'd characters as keys.
-                            (or (multibyte-string-p key)
-                                (not (<= 127 (aref key 0) 255))))
-                       (and (string-match-p "\\`<[-_A-Za-z0-9]+>\\'" key)
-                            ;; Don't allow <M-C-down>.
-                            (= (progn
-                                 (string-match
-                                  (concat "\\`<" prefixes) key)
-                                 (match-end 0))
-                               1))
-                       (string-match-p
-                        "\\`\\(NUL\\|RET\\|TAB\\|LFD\\|ESC\\|SPC\\|DEL\\)\\'"
-                        key))
-             ;; Invalid.
-             (throw 'exit nil)))
-         t)))))
+  (let ((case-fold-search nil))
+    (and
+     (stringp keys)
+     (string-match-p "\\`[^ ]+\\( [^ ]+\\)*\\'" keys)
+     (save-match-data
+       (catch 'exit
+         (let ((prefixes
+                "\\(A-\\)?\\(C-\\)?\\(H-\\)?\\(M-\\)?\\(S-\\)?\\(s-\\)?"))
+           (dolist (key (split-string keys " "))
+             ;; Every key might have these modifiers, and they should be
+             ;; in this order.
+             (when (string-match (concat "\\`" prefixes) key)
+               (setq key (substring key (match-end 0))))
+             (unless (or (and (= (length key) 1)
+                              ;; Don't accept control characters as keys.
+                              (not (< (aref key 0) ?\s))
+                              ;; Don't accept Meta'd characters as keys.
+                              (or (multibyte-string-p key)
+                                  (not (<= 127 (aref key 0) 255))))
+                         (and (string-match-p "\\`<[-_A-Za-z0-9]+>\\'" key)
+                              ;; Don't allow <M-C-down>.
+                              (= (progn
+                                   (string-match
+                                    (concat "\\`<" prefixes) key)
+                                   (match-end 0))
+                                 1))
+                         (string-match-p
+                          "\\`\\(NUL\\|RET\\|TAB\\|LFD\\|ESC\\|SPC\\|DEL\\)\\'"
+                          key))
+               ;; Invalid.
+               (throw 'exit nil)))
+           t))))))
 
 (defun key-translate (from to)
   "Translate character FROM to TO on the current terminal.
@@ -462,18 +451,19 @@ If MESSAGE (and interactively), message the result."
               (keywordp (car args))
               (not (eq (car args) :menu)))
     (unless (memq (car args) '(:full :keymap :parent :suppress :name :prefix))
-      (byte-compile-warn "Invalid keyword: %s" (car args)))
+      (byte-compile-warn-x (car args) "Invalid keyword: %s" (car args)))
     (setq args (cdr args))
     (when (null args)
-      (byte-compile-warn "Uneven number of keywords in %S" form))
+      (byte-compile-warn-x form "Uneven number of keywords in %S" form))
     (setq args (cdr args)))
   ;; Bindings.
   (while args
-    (let ((key (pop args)))
+    (let* ((wargs args)
+           (key (pop args)))
       (when (and (stringp key) (not (key-valid-p key)))
-        (byte-compile-warn "Invalid `kbd' syntax: %S" key)))
+        (byte-compile-warn-x wargs "Invalid `kbd' syntax: %S" key)))
     (when (null args)
-      (byte-compile-warn "Uneven number of key bindings in %S" form))
+      (byte-compile-warn-x form "Uneven number of key bindings in %S" form))
     (setq args (cdr args)))
   form)
 
@@ -584,6 +574,11 @@ as the variable documentation string.
     `(defvar ,variable-name
        (define-keymap ,@(nreverse opts) ,@defs)
        ,@(and doc (list doc)))))
+
+(defun make-non-key-event (symbol)
+  "Mark SYMBOL as an event that shouldn't be returned from `where-is'."
+  (put symbol 'non-key-event t)
+  symbol)
 
 (provide 'keymap)
 

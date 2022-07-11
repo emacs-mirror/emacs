@@ -85,6 +85,10 @@ extern char **environ;
 #include "nsterm.h"
 #endif
 
+#ifdef HAVE_PGTK
+#include "pgtkterm.h"
+#endif
+
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
@@ -122,7 +126,7 @@ enum
     CALLPROC_FDS
   };
 
-static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
+static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, specpdl_ref);
 
 #ifdef DOS_NT
 # define CHILD_SETUP_TYPE int
@@ -289,7 +293,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 {
   Lisp_Object infile, encoded_infile;
   int filefd;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   if (nargs >= 2 && ! NILP (args[1]))
     {
@@ -310,12 +314,13 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   if (filefd < 0)
     report_file_error ("Opening process input file", infile);
   record_unwind_protect_int (close_file_unwind, filefd);
-  return unbind_to (count, call_process (nargs, args, filefd, -1));
+  return unbind_to (count, call_process (nargs, args, filefd,
+					 make_invalid_specpdl_ref ()));
 }
 
 /* Like Fcall_process (NARGS, ARGS), except use FILEFD as the input file.
 
-   If TEMPFILE_INDEX is nonnegative, it is the specpdl index of an
+   If TEMPFILE_INDEX is valid, it is the specpdl index of an
    unwinder that is intended to remove the input temporary file; in
    this case NARGS must be at least 2 and ARGS[1] is the file's name.
 
@@ -323,7 +328,7 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 
 static Lisp_Object
 call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
-	      ptrdiff_t tempfile_index)
+	      specpdl_ref tempfile_index)
 {
   Lisp_Object buffer, current_dir, path;
   bool display_p;
@@ -331,7 +336,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   int callproc_fd[CALLPROC_FDS];
   int status;
   ptrdiff_t i;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
 
   char **new_argv;
@@ -616,7 +621,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	callproc_fd[i] = -1;
       }
   emacs_close (filefd);
-  clear_unwind_protect (count - 1);
+  clear_unwind_protect (specpdl_ref_add (count, -1));
 
   if (tempfile)
     {
@@ -654,7 +659,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
       if (FIXNUMP (buffer))
 	{
-	  if (tempfile_index < 0)
+	  if (!specpdl_ref_valid_p (tempfile_index))
 	    record_deleted_pid (pid, Qnil);
 	  else
 	    {
@@ -681,7 +686,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	callproc_fd[i] = -1;
       }
   emacs_close (filefd);
-  clear_unwind_protect (count - 1);
+  clear_unwind_protect (specpdl_ref_add (count, -1));
 
 #endif /* not MSDOS */
 
@@ -813,7 +818,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	  else
 	    {			/* We have to decode the input.  */
 	      Lisp_Object curbuf;
-	      ptrdiff_t count1 = SPECPDL_INDEX ();
+	      specpdl_ref count1 = SPECPDL_INDEX ();
 
 	      XSETBUFFER (curbuf, current_buffer);
 	      /* We cannot allow after-change-functions be run
@@ -957,7 +962,6 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
   {
     Lisp_Object pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
     char *tempfile;
-    ptrdiff_t count;
 
 #ifdef WINDOWSNT
     /* Cannot use the result of Fexpand_file_name, because it
@@ -977,7 +981,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
     filename_string = Fcopy_sequence (ENCODE_FILE (pattern));
     tempfile = SSDATA (filename_string);
 
-    count = SPECPDL_INDEX ();
+    specpdl_ref count = SPECPDL_INDEX ();
     record_unwind_protect_nothing ();
     fd = mkostemp (tempfile, O_BINARY | O_CLOEXEC);
     if (fd < 0)
@@ -1009,7 +1013,7 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
   val = complement_process_encoding_system (val);
 
   {
-    ptrdiff_t count1 = SPECPDL_INDEX ();
+    specpdl_ref count1 = SPECPDL_INDEX ();
 
     specbind (intern ("coding-system-for-write"), val);
     /* POSIX lets mk[s]temp use "."; don't invoke jka-compr if we
@@ -1069,7 +1073,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object infile, val;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object start = args[0];
   Lisp_Object end = args[1];
   bool empty_input;
@@ -1123,7 +1127,8 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     }
   args[1] = infile;
 
-  val = call_process (nargs, args, fd, empty_input ? -1 : count);
+  val = call_process (nargs, args, fd,
+		      empty_input ? make_invalid_specpdl_ref () : count);
   return unbind_to (count, val);
 }
 
@@ -1334,7 +1339,8 @@ emacs_posix_spawn_init_actions (posix_spawn_file_actions_t *actions,
 }
 
 static int
-emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
+emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes,
+				   const sigset_t *oldset)
 {
   int error = posix_spawnattr_init (attributes);
   if (error != 0)
@@ -1376,11 +1382,7 @@ emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
     goto out;
 
   /* Stop blocking SIGCHLD in the child.  */
-  sigset_t oldset;
-  error = pthread_sigmask (SIG_SETMASK, NULL, &oldset);
-  if (error != 0)
-    goto out;
-  error = posix_spawnattr_setsigmask (attributes, &oldset);
+  error = posix_spawnattr_setsigmask (attributes, oldset);
   if (error != 0)
     goto out;
 
@@ -1389,23 +1391,6 @@ emacs_posix_spawn_init_attributes (posix_spawnattr_t *attributes)
     posix_spawnattr_destroy (attributes);
 
   return error;
-}
-
-static int
-emacs_posix_spawn_init (posix_spawn_file_actions_t *actions,
-                        posix_spawnattr_t *attributes, int std_in,
-                        int std_out, int std_err, const char *cwd)
-{
-  int error = emacs_posix_spawn_init_actions (actions, std_in,
-                                              std_out, std_err, cwd);
-  if (error != 0)
-    return error;
-
-  error = emacs_posix_spawn_init_attributes (attributes);
-  if (error != 0)
-    return error;
-
-  return 0;
 }
 
 #endif
@@ -1442,9 +1427,12 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   if (use_posix_spawn)
     {
       /* Initialize optional attributes before blocking. */
-      int error
-        = emacs_posix_spawn_init (&actions, &attributes, std_in,
-                                  std_out, std_err, cwd);
+      int error = emacs_posix_spawn_init_actions (&actions, std_in,
+                                              std_out, std_err, cwd);
+      if (error != 0)
+	return error;
+
+      error = emacs_posix_spawn_init_attributes (&attributes, oldset);
       if (error != 0)
 	return error;
     }
@@ -1500,7 +1488,7 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   if (pty != NULL)
     pid = fork ();
   else
-    pid = vfork ();
+    pid = VFORK ();
 #else
   pid = vfork ();
 #endif
@@ -1703,6 +1691,7 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
   /* For DISPLAY try to get the values from the frame or the initial env.  */
   if (strcmp (var, "DISPLAY") == 0)
     {
+#ifndef HAVE_PGTK
       Lisp_Object display
 	= Fframe_parameter (NILP (frame) ? selected_frame : frame, Qdisplay);
       if (STRINGP (display))
@@ -1711,6 +1700,7 @@ getenv_internal (const char *var, ptrdiff_t varlen, char **value,
 	  *valuelen = SBYTES (display);
 	  return 1;
 	}
+#endif
       /* If still not found, Look for DISPLAY in Vinitial_environment.  */
       if (getenv_internal_1 (var, varlen, value, valuelen,
 			     Vinitial_environment))
@@ -1828,6 +1818,18 @@ make_environment_block (Lisp_Object current_dir)
     if (NILP (display))
       {
 	Lisp_Object tmp = Fframe_parameter (selected_frame, Qdisplay);
+
+#ifdef HAVE_PGTK
+	/* The only time GDK actually returns correct information is
+	   when it's running under X Windows.  DISPLAY shouldn't be
+	   set to a Wayland display either, since that's an X specific
+	   variable.  */
+	if (FRAME_WINDOW_P (SELECTED_FRAME ())
+	    && strcmp (G_OBJECT_TYPE_NAME (FRAME_X_DISPLAY (SELECTED_FRAME ())),
+		       "GdkX11Display"))
+	  tmp = Qnil;
+#endif
+
 	if (!STRINGP (tmp) && CONSP (Vinitial_environment))
 	  /* If still not found, Look for DISPLAY in Vinitial_environment.  */
 	  tmp = Fgetenv_internal (build_string ("DISPLAY"),

@@ -93,7 +93,6 @@
 			   most-negative-fixnum most-positive-fixnum
 			   (1- most-negative-fixnum)
 			   (1+ most-positive-fixnum)
-			   1e+INF -1e+INF 1e+NaN -1e+NaN
 			   '(0 1 0 0) '(1 0 0 0) '(-1 0 0 0)
 			   '(123456789000000 . 1000000)
 			   (cons (1+ most-positive-fixnum) 1000000000000)
@@ -180,7 +179,6 @@ a fixed place on the right and are padded on the left."
 			   1e10 -1e10 1e-10 -1e-10
 			   1e16 -1e16 1e-16 -1e-16
 			   1e37 -1e37 1e-37 -1e-37
-			   1e+INF -1e+INF 1e+NaN -1e+NaN
 			   '(0 0 0 1) '(0 0 1 0) '(0 1 0 0) '(1 0 0 0)
 			   '(-1 0 0 0) '(1 2 3 4) '(-1 2 3 4)
 			   '(-123456789 . 100000) '(123456789 . 1000000)
@@ -220,6 +218,15 @@ a fixed place on the right and are padded on the left."
     (should (time-equal-p
              (encode-time '(29 31 17 30 4 2019 2 t 7200))
              '(23752 27217))))
+
+(ert-deftest encode-time-alternate-apis ()
+  (let* ((time '(30 30 12 15 6 1970))
+	 (time-1 (append time '(nil -1 nil)))
+	 (etime (encode-time time)))
+    (should (time-equal-p etime (encode-time time-1)))
+    (should (time-equal-p etime (apply #'encode-time time)))
+    (should (time-equal-p etime (apply #'encode-time time-1)))
+    (should (time-equal-p etime (apply #'encode-time (append time '(nil)))))))
 
 (ert-deftest float-time-precision ()
   (should (= (float-time '(0 1 0 4025)) 1.000000004025))

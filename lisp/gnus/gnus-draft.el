@@ -200,7 +200,7 @@ Obeys the standard process/prefix convention."
     (gnus-activate-group "nndraft:queue")
     (save-excursion
       (let* ((articles (nndraft-articles))
-	     (unsendable (gnus-uncompress-range
+	     (unsendable (range-uncompress
 			  (cdr (assq 'unsend
 				     (gnus-info-marks
 				      (gnus-get-info "nndraft:queue"))))))

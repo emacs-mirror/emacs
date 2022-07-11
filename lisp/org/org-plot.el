@@ -280,7 +280,7 @@ When NORMALISE is non-nil, the count is divided by the number of values."
 	     collect (cons n (/ (length m) normaliser)))))
 
 (defun org--plot/prime-factors (value)
-  "Return the prime decomposition of VALUE, e.g. for 12, '(3 2 2)."
+  "Return the prime decomposition of VALUE, e.g. for 12, \\='(3 2 2)."
   (let ((factors '(1)) (i 1))
     (while (/= 1 value)
       (setq i (1+ i))

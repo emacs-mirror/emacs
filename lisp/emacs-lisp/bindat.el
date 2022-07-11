@@ -77,7 +77,7 @@
 ;;    (bindat-type
 ;;      (type      u8)
 ;;	(opcode	   u8)
-;;	(length	   uintr 32)  ;; little endian order
+;;	(length	   uint 32 t)  ;; little endian order
 ;;	(id	   strz 8)
 ;;	(data	   vec length)
 ;;	(_         align 4)))
@@ -165,12 +165,12 @@
     (if (stringp s) s
       (apply #'unibyte-string s))))
 
-(defun bindat--unpack-strz (len)
+(defun bindat--unpack-strz (&optional len)
   (let ((i 0) s)
     (while (and (if len (< i len) t) (/= (aref bindat-raw (+ bindat-idx i)) 0))
       (setq i (1+ i)))
     (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
-    (setq bindat-idx (+ bindat-idx len))
+    (setq bindat-idx (+ bindat-idx (or len (1+ i))))
     (if (stringp s) s
       (apply #'unibyte-string s))))
 
@@ -320,72 +320,72 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 (defun bindat--length-group (struct spec)
   (if (cl-typep spec 'bindat--type)
       (funcall (bindat--type-le spec) struct)
-  (with-suppressed-warnings ((lexical struct last))
-    (defvar struct) (defvar last))
-  (let ((struct struct) last)
-    (dolist (item spec)
-      (let* ((field (car item))
-	     (type (nth 1 item))
-	     (len (nth 2 item))
-	     (vectype (and (eq type 'vec) (nth 3 item)))
-	     (tail 3))
-	(if (and type (consp type) (eq (car type) 'eval))
-	    (setq type (eval (car (cdr type)) t)))
-	(if (and len (consp len) (eq (car len) 'eval))
-	    (setq len (eval (car (cdr len)) t)))
-	(if (memq field '(eval fill align struct union))
-	    (setq tail 2
-		  len type
-		  type field
-		  field nil))
-	(if (and (consp field) (eq (car field) 'eval))
-	    (setq field (eval (car (cdr field)) t)))
-	(if (and (consp len) (not (eq type 'eval)))
-	    (setq len (apply #'bindat-get-field struct len)))
-	(if (not len)
-	    (setq len 1))
-	(while (eq type 'vec)
-	  (if (consp vectype)
-	      (setq len (* len (nth 1 vectype))
-		    type (nth 2 vectype))
-	    (setq type (or vectype 'u8)
-		  vectype nil)))
-	(pcase type
-	 ('eval
-	  (if field
-	      (setq struct (cons (cons field (eval len t)) struct))
-	    (eval len t)))
-	 ('fill
-	  (setq bindat-idx (+ bindat-idx len)))
-	 ('align
-	  (setq bindat-idx (bindat--align bindat-idx len)))
-	 ('struct
-	  (bindat--length-group
-	   (if field (bindat-get-field struct field) struct) (eval len t)))
-	 ('repeat
-	  (dotimes (index len)
-	    (bindat--length-group
-             (nth index (bindat-get-field struct field))
-             (nthcdr tail item))))
-	 ('union
-	  (with-suppressed-warnings ((lexical tag))
-	    (defvar tag))
-	  (let ((tag len) (cases (nthcdr tail item)) case cc)
-	    (while cases
-	      (setq case (car cases)
-		    cases (cdr cases)
-		    cc (car case))
-	      (if (or (equal cc tag) (equal cc t)
-		      (and (consp cc) (eval cc t)))
-		  (progn
-		    (bindat--length-group struct (cdr case))
-		    (setq cases nil))))))
-	 (_
-	  (if (setq type (assq type bindat--fixed-length-alist))
-	      (setq len (* len (cdr type))))
-	  (if field
-	      (setq last (bindat-get-field struct field)))
-	  (setq bindat-idx (+ bindat-idx len)))))))))
+    (with-suppressed-warnings ((lexical struct last))
+      (defvar struct) (defvar last))
+    (let ((struct struct) last)
+      (dolist (item spec)
+        (let* ((field (car item))
+               (type (nth 1 item))
+               (len (nth 2 item))
+               (vectype (and (eq type 'vec) (nth 3 item)))
+               (tail 3))
+          (if (and type (consp type) (eq (car type) 'eval))
+              (setq type (eval (car (cdr type)) t)))
+          (if (and len (consp len) (eq (car len) 'eval))
+              (setq len (eval (car (cdr len)) t)))
+          (if (memq field '(eval fill align struct union))
+              (setq tail 2
+                    len type
+                    type field
+                    field nil))
+          (if (and (consp field) (eq (car field) 'eval))
+              (setq field (eval (car (cdr field)) t)))
+          (if (and (consp len) (not (eq type 'eval)))
+              (setq len (apply #'bindat-get-field struct len)))
+          (if (not len)
+              (setq len 1))
+          (while (eq type 'vec)
+            (if (consp vectype)
+                (setq len (* len (nth 1 vectype))
+                      type (nth 2 vectype))
+              (setq type (or vectype 'u8)
+                    vectype nil)))
+          (pcase type
+            ('eval
+             (if field
+                 (setq struct (cons (cons field (eval len t)) struct))
+               (eval len t)))
+            ('fill
+             (setq bindat-idx (+ bindat-idx len)))
+            ('align
+             (setq bindat-idx (bindat--align bindat-idx len)))
+            ('struct
+             (bindat--length-group
+              (if field (bindat-get-field struct field) struct) (eval len t)))
+            ('repeat
+             (dotimes (index len)
+               (bindat--length-group
+                (nth index (bindat-get-field struct field))
+                (nthcdr tail item))))
+            ('union
+             (with-suppressed-warnings ((lexical tag))
+               (defvar tag))
+             (let ((tag len) (cases (nthcdr tail item)) case cc)
+               (while cases
+                 (setq case (car cases)
+                       cases (cdr cases)
+                       cc (car case))
+                 (if (or (equal cc tag) (equal cc t)
+                         (and (consp cc) (eval cc t)))
+                     (progn
+                       (bindat--length-group struct (cdr case))
+                       (setq cases nil))))))
+            (_
+             (if (setq type (assq type bindat--fixed-length-alist))
+                 (setq len (* len (cdr type))))
+             (if field
+                 (setq last (bindat-get-field struct field)))
+             (setq bindat-idx (+ bindat-idx len)))))))))
 
 (defun bindat-length (spec struct)
   "Calculate `bindat-raw' length for STRUCT according to bindat SPEC."
@@ -435,15 +435,31 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (bindat--pack-u32r (ash v -32)))
 
 (defun bindat--pack-str (len v)
-  (dotimes (i (min len (length v)))
-    (aset bindat-raw (+ bindat-idx i) (aref v i)))
-  (setq bindat-idx (+ bindat-idx len)))
-
-(defun bindat--pack-strz (v)
-  (let ((len (length v)))
-    (dotimes (i len)
+  (let ((v (string-to-unibyte v)))
+    (dotimes (i (min len (length v)))
       (aset bindat-raw (+ bindat-idx i) (aref v i)))
-    (setq bindat-idx (+ bindat-idx len 1))))
+    (setq bindat-idx (+ bindat-idx len))))
+
+(defun bindat--pack-strz (len v)
+  (let* ((v (string-to-unibyte v))
+         (vlen (length v)))
+    ;; Explicitly write a null terminator (if there's room) in case
+    ;; the user provided a pre-allocated string to `bindat-pack' that
+    ;; wasn't already zeroed.
+    (when (or (null len) (< vlen len))
+      (aset bindat-raw (+ bindat-idx vlen) 0))
+    (if len
+        ;; When len is specified, behave the same as the str type
+        ;; (except for the null terminator possibly written above).
+        (bindat--pack-str len v)
+      (dotimes (i vlen)
+        (when (= (aref v i) 0)
+          ;; Alternatively we could pretend that this was the end of
+          ;; the string and stop packing, but then bindat-length would
+          ;; need to scan the input string looking for a null byte.
+          (error "Null byte encountered in input strz string"))
+        (aset bindat-raw (+ bindat-idx i) (aref v i)))
+      (setq bindat-idx (+ bindat-idx vlen 1)))))
 
 (defun bindat--pack-bits (len v)
   (let ((bnum (1- (* 8 len))) j m)
@@ -472,7 +488,8 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
    ('u24r (bindat--pack-u24r v))
    ('u32r (bindat--pack-u32r v))
    ('bits (bindat--pack-bits len v))
-   ((or 'str 'strz) (bindat--pack-str len v))
+   ('str (bindat--pack-str len v))
+   ('strz (bindat--pack-strz len v))
    ('vec
     (let ((l (length v)) (vlen 1))
       (if (consp vectype)
@@ -663,19 +680,15 @@ is the name of a variable that will hold the value we need to pack.")
     (`(length . ,_) `(cl-incf bindat-idx 1))
     (`(pack . ,args) `(bindat--pack-u8 . ,args))))
 
-(cl-defmethod bindat--type (op (_ (eql 'uint))  n)
+(cl-defmethod bindat--type (op (_ (eql 'uint))  n &optional le)
   (if (eq n 8) (bindat--type op 'byte)
     (bindat--pcase op
-      ('unpack `(bindat--unpack-uint ,n))
+      ('unpack
+       `(if ,le (bindat--unpack-uintr ,n) (bindat--unpack-uint ,n)))
       (`(length . ,_) `(cl-incf bindat-idx (/ ,n 8)))
-      (`(pack . ,args) `(bindat--pack-uint ,n . ,args)))))
-
-(cl-defmethod bindat--type (op (_ (eql 'uintr)) n)
-  (if (eq n 8) (bindat--type op 'byte)
-    (bindat--pcase op
-      ('unpack `(bindat--unpack-uintr ,n))
-      (`(length . ,_) `(cl-incf bindat-idx (/ ,n 8)))
-      (`(pack . ,args) `(bindat--pack-uintr ,n . ,args)))))
+      (`(pack . ,args)
+       `(if ,le (bindat--pack-uintr ,n . ,args)
+          (bindat--pack-uint ,n . ,args))))))
 
 (cl-defmethod bindat--type (op (_ (eql 'str))   len)
   (bindat--pcase op
@@ -688,18 +701,12 @@ is the name of a variable that will hold the value we need to pack.")
     ('unpack `(bindat--unpack-strz ,len))
     (`(length ,val)
      `(cl-incf bindat-idx ,(cond
-                            ((null len) `(length ,val))
+                            ;; Optimizations if len is a literal number or nil.
+                            ((null len) `(1+ (length ,val)))
                             ((numberp len) len)
-                            (t `(or ,len (length ,val))))))
-    (`(pack . ,args)
-     (macroexp-let2 nil len len
-       `(if ,len
-            ;; Same as non-zero terminated strings since we don't actually add
-            ;; the terminating zero anyway (because we rely on the fact that
-            ;; `bindat-raw' was presumably initialized with all-zeroes before
-            ;; we started).
-            (bindat--pack-str ,len . ,args)
-          (bindat--pack-strz . ,args))))))
+                            ;; General expression support.
+                            (t `(or ,len (1+ (length ,val)))))))
+    (`(pack . ,args) `(bindat--pack-strz ,len . ,args))))
 
 (cl-defmethod bindat--type (op (_ (eql 'bits))  len)
   (bindat--pcase op
@@ -824,7 +831,7 @@ is the name of a variable that will hold the value we need to pack.")
     &optional ":unpack-val" def-form))
 
 (def-edebug-elem-spec 'bindat-type
-  '(&or ["uint" def-form]
+  '(&or ["uint" def-form &optional def-form]
         ["uintr" def-form]
         ["str" def-form]
         ["strz" &optional def-form]
@@ -844,8 +851,7 @@ is the name of a variable that will hold the value we need to pack.")
   "Return the Bindat type value to pack&unpack TYPE.
 TYPE is a Bindat type expression.  It can take the following forms:
 
-  uint BITLEN		- Big-endian unsigned integer
-  uintr BITLEN		- Little-endian unsigned integer
+  uint BITLEN [LE]	- unsigned integer (big-endian if LE is nil)
   str LEN		- Byte string
   strz [LEN]		- Zero-terminated byte-string
   bits LEN		- Bit vector (LEN is counted in bytes)
@@ -872,7 +878,7 @@ controlled in the following way:
 - If the list of fields is preceded with `:pack-var VAR' then the object to
   be packed is bound to VAR when evaluating the EXPs of `:pack-val'.
 
-All the above BITLEN, LEN, COUNT, and EXP are ELisp expressions evaluated
+All the above BITLEN, LEN, LE, COUNT, and EXP are ELisp expressions evaluated
 in the current lexical context extended with the previous fields.
 
 TYPE can additionally be one of the Bindat type macros defined with
@@ -886,7 +892,7 @@ a bindat type expression."
                    :pe ,(bindat--toplevel 'pack   type))))
 
 (eval-and-compile
-  (defconst bindat--primitives '(byte uint uintr str strz bits fill align
+  (defconst bindat--primitives '(byte uint str strz bits fill align
                                  struct type vec unit)))
 
 (eval-and-compile
@@ -930,9 +936,9 @@ a bindat type expression."
         (if ud (help-add-fundoc-usage combined-doc (car ud)) combined-doc)))))
 
 (bindat-defmacro u8 () "Unsigned 8bit integer." '(byte))
-(bindat-defmacro sint (bitlen r)
+(bindat-defmacro sint (bitlen le)
   "Signed integer of size BITLEN.
-Bigendian if R is nil and little endian if not."
+Big-endian if LE is nil and little-endian if not."
   (let ((bl (make-symbol "bitlen"))
         (max (make-symbol "max"))
         (wrap (make-symbol "wrap")))
@@ -940,9 +946,13 @@ Bigendian if R is nil and little endian if not."
             (,max (ash 1 (1- ,bl)))
             (,wrap (+ ,max ,max)))
        (struct :pack-var v
-               (n if ,r (uintr ,bl) (uint ,bl)
+               (n uint ,bl ,le
                   :pack-val (if (< v 0) (+ v ,wrap) v))
                :unpack-val (if (>= n ,max) (- n ,wrap) n)))))
+
+(bindat-defmacro uintr (bitlen)
+  "(deprecated since Emacs-29) Little-endian unsigned integer."
+  `(uint ,bitlen t))
 
 (bindat-defmacro repeat (count &rest type)
   "Like `vec', but unpacks to a list rather than a vector."

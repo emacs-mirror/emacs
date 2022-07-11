@@ -26,6 +26,9 @@ INLINE_HEADER_BEGIN
 
 #ifdef HAVE_X_WINDOWS
 # include <X11/X.h>
+#elif defined HAVE_HAIKU
+# include <support/SupportDefs.h>
+typedef int64 Time;
 #else
 typedef unsigned long Time;
 #endif
@@ -91,7 +94,7 @@ extern Lisp_Object timespec_to_lisp (struct timespec);
 extern bool list4_to_timespec (Lisp_Object, Lisp_Object, Lisp_Object,
 			       Lisp_Object, struct timespec *);
 extern struct timespec lisp_time_argument (Lisp_Object);
-extern AVOID time_overflow (void);
+extern double float_time (Lisp_Object);
 extern void init_timefns (void);
 extern void syms_of_timefns (void);
 

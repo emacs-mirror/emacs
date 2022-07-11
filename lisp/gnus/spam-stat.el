@@ -189,7 +189,7 @@ When using `spam-stat-process-spam-directory' or
 been touched in this many days will be considered.  Without
 this filter, re-training spam-stat with several thousand messages
 will start to take a very long time."
-  :type 'number)
+  :type 'integer)
 
 (defvar spam-stat-last-saved-at nil
   "Time stamp of last change of spam-stat-file on this run")

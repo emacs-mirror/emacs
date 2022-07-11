@@ -30,7 +30,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "pdumper.h"
 
-#include "pgtkterm.h"
+#ifdef HAVE_PGTK
+# include "pgtkterm.h"
+#endif
 
 /* Fringe bitmaps are represented in three different ways:
 
@@ -971,7 +973,7 @@ update_window_fringes (struct window *w, bool keep_current_p)
   if (w->pseudo_window_p)
     return 0;
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* This function could be called for redisplaying non-selected
      windows, in which case point has been temporarily moved to that
@@ -1821,6 +1823,23 @@ gui_init_fringe (struct redisplay_interface *rif)
       if (fb)
 	rif->define_fringe_bitmap (bt, fb->bits, fb->height, fb->width);
     }
+}
+
+/* Call frame F's specific define_fringe_bitmap method for a fringe
+   bitmap number N.  Called by various *term.c functions when they
+   need to display a fringe bitmap whose terminal-specific data is not
+   available.  */
+void
+gui_define_fringe_bitmap (struct frame *f, int n)
+{
+  struct redisplay_interface *rif = FRAME_RIF (f);
+
+  if (!rif || !rif->define_fringe_bitmap || n >= max_used_fringe_bitmap)
+    return;
+
+  struct fringe_bitmap *fb = fringe_bitmaps[n];
+  if (fb)
+    rif->define_fringe_bitmap (n, fb->bits, fb->height, fb->width);
 }
 
 #ifdef HAVE_NTGUI

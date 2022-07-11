@@ -33,6 +33,7 @@
 #include "buffer.h"
 #include "syntax.h"
 #include "category.h"
+#include "dispextern.h"
 
 /* Maximum number of duplicates an interval can allow.  Some systems
    define this in other header files, but we want our value, so remove
@@ -1244,21 +1245,22 @@ static int analyze_first (re_char *p, re_char *pend,
       return REG_ESIZE;							\
     ptrdiff_t b_off = b - old_buffer;					\
     ptrdiff_t begalt_off = begalt - old_buffer;				\
-    bool fixup_alt_jump_set = !!fixup_alt_jump;				\
-    bool laststart_set = !!laststart;					\
-    bool pending_exact_set = !!pending_exact;				\
-    ptrdiff_t fixup_alt_jump_off, laststart_off, pending_exact_off;	\
-    if (fixup_alt_jump_set) fixup_alt_jump_off = fixup_alt_jump - old_buffer; \
-    if (laststart_set) laststart_off = laststart - old_buffer;		\
-    if (pending_exact_set) pending_exact_off = pending_exact - old_buffer; \
+    ptrdiff_t fixup_alt_jump_off =					\
+      fixup_alt_jump ? fixup_alt_jump - old_buffer : -1;		\
+    ptrdiff_t laststart_off = laststart ? laststart - old_buffer : -1;	\
+    ptrdiff_t pending_exact_off =					\
+      pending_exact ? pending_exact - old_buffer : -1;			\
     bufp->buffer = xpalloc (bufp->buffer, &bufp->allocated,		\
 			    requested_extension, MAX_BUF_SIZE, 1);	\
     unsigned char *new_buffer = bufp->buffer;				\
     b = new_buffer + b_off;						\
     begalt = new_buffer + begalt_off;					\
-    if (fixup_alt_jump_set) fixup_alt_jump = new_buffer + fixup_alt_jump_off; \
-    if (laststart_set) laststart = new_buffer + laststart_off;		\
-    if (pending_exact_set) pending_exact = new_buffer + pending_exact_off; \
+    if (0 <= fixup_alt_jump_off)					\
+      fixup_alt_jump = new_buffer + fixup_alt_jump_off;			\
+    if (0 <= laststart_off)						\
+      laststart = new_buffer + laststart_off;				\
+    if (0 <= pending_exact_off)						\
+      pending_exact = new_buffer + pending_exact_off;			\
   } while (false)
 
 
@@ -3952,6 +3954,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
      and need to test it, it's not garbage.  */
   re_char *match_end = NULL;
 
+  /* This keeps track of how many buffer/string positions we examined.  */
+  ptrdiff_t nchars = 0;
+
 #ifdef DEBUG_COMPILES_ARGUMENTS
   /* Counts the total number of registers pushed.  */
   ptrdiff_t num_regs_pushed = 0;
@@ -3963,7 +3968,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   INIT_FAIL_STACK ();
 
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Prevent shrinking and relocation of buffer text if GC happens
      while we are inside this function.  The calls to
@@ -4208,6 +4213,12 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	  unbind_to (count, Qnil);
 	  SAFE_FREE ();
+	  /* The factor of 50 below is a heuristic that needs to be tuned.  It
+	     means we consider 50 buffer positions examined by this function
+	     roughly equivalent to the display engine iterating over a single
+	     buffer position.  */
+	  if (max_redisplay_ticks > 0 && nchars > 0)
+	    update_redisplay_ticks (nchars / 50 + 1, NULL);
 	  return dcnt;
 	}
 
@@ -4260,6 +4271,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		p += pat_charlen;
 		d += buf_charlen;
 		mcnt -= pat_charlen;
+		nchars++;
 	      }
 	    while (mcnt > 0);
 	  else
@@ -4297,6 +4309,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		p += pat_charlen;
 		d++;
 		mcnt -= pat_charlen;
+		nchars++;
 	      }
 	    while (mcnt > 0);
 
@@ -4320,6 +4333,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 	    DEBUG_PRINT ("  Matched \"%d\".\n", *d);
 	    d += buf_charlen;
+	    nchars++;
 	  }
 	  break;
 
@@ -4372,6 +4386,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      goto fail;
 
 	    d += len;
+	    nchars++;
 	  }
 	  break;
 
@@ -4491,6 +4506,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		    goto fail;
 		  }
 		d += dcnt, d2 += dcnt;
+		nchars++;
 	      }
 	  }
 	  break;
@@ -4772,10 +4788,12 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
                 ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 		UPDATE_SYNTAX_TABLE (charpos);
 		GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+		nchars++;
 		s1 = SYNTAX (c1);
 		UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 		PREFETCH_NOLIMIT ();
 		GET_CHAR_AFTER (c2, d, dummy);
+		nchars++;
 		s2 = SYNTAX (c2);
 
 		if (/* Case 2: Only one of S1 and S2 is Sword.  */
@@ -4811,6 +4829,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      GET_CHAR_AFTER (c2, d, dummy);
+	      nchars++;
 	      s2 = SYNTAX (c2);
 
 	      /* Case 2: S2 is not Sword. */
@@ -4821,6 +4840,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if (!AT_STRINGS_BEG (d))
 		{
 		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+		  nchars++;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
 		  s1 = SYNTAX (c1);
 
@@ -4851,6 +4871,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
               ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+	      nchars++;
 	      s1 = SYNTAX (c1);
 
 	      /* Case 2: S1 is not Sword.  */
@@ -4862,6 +4883,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		{
 		  PREFETCH_NOLIMIT ();
 		  GET_CHAR_AFTER (c2, d, dummy);
+		  nchars++;
                   UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 		  s2 = SYNTAX (c2);
 
@@ -4892,6 +4914,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      PREFETCH ();
 	      c2 = RE_STRING_CHAR (d, target_multibyte);
+	      nchars++;
 	      s2 = SYNTAX (c2);
 
 	      /* Case 2: S2 is neither Sword nor Ssymbol. */
@@ -4902,6 +4925,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if (!AT_STRINGS_BEG (d))
 		{
 		  GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+		  nchars++;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (charpos - 1);
 		  s1 = SYNTAX (c1);
 
@@ -4930,6 +4954,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
               ptrdiff_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset) - 1;
 	      UPDATE_SYNTAX_TABLE (charpos);
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+	      nchars++;
 	      s1 = SYNTAX (c1);
 
 	      /* Case 2: S1 is neither Ssymbol nor Sword.  */
@@ -4941,6 +4966,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		{
 		  PREFETCH_NOLIMIT ();
 		  c2 = RE_STRING_CHAR (d, target_multibyte);
+		  nchars++;
 		  UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 		  s2 = SYNTAX (c2);
 
@@ -4972,6 +4998,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
 		goto fail;
 	      d += len;
+	      nchars++;
 	    }
 	  }
 	  break;
@@ -4998,6 +5025,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      if ((!CHAR_HAS_CATEGORY (c, mcnt)) ^ not)
 		goto fail;
 	      d += len;
+	      nchars++;
 	    }
 	  }
 	  break;
@@ -5058,6 +5086,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
   unbind_to (count, Qnil);
   SAFE_FREE ();
+
+  if (max_redisplay_ticks > 0 && nchars > 0)
+    update_redisplay_ticks (nchars / 50 + 1, NULL);
 
   return -1;				/* Failure to match.  */
 }

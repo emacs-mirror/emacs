@@ -329,11 +329,9 @@ Argument OBJ is the object that has been customized."
 Optional argument GROUP is the sub-group of slots to display."
   (eieio-customize-object obj group))
 
-(defvar eieio-custom-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    map)
-  "Keymap for EIEIO Custom mode.")
+(defvar-keymap eieio-custom-mode-map
+  :doc "Keymap for EIEIO Custom mode."
+  :parent widget-keymap)
 
 (define-derived-mode eieio-custom-mode fundamental-mode "EIEIO Custom"
   "Major mode for customizing EIEIO objects.

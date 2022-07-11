@@ -731,7 +731,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
     {
       Lisp_Object prev = Qnil;
 
-      if (EQ (val, Qunbound))
+      if (BASE_EQ (val, Qunbound))
 	return val;
       while (CONSP (extra)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
@@ -745,7 +745,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
       return val;
     }
   XSETCDR (slot, val);
-  if (EQ (val, Qunbound))
+  if (BASE_EQ (val, Qunbound))
     ASET (font, FONT_EXTRA_INDEX, Fdelq (slot, extra));
   return val;
 }
@@ -2183,7 +2183,9 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 
   /* Score three style numeric fields.  Maximum difference is 127. */
   for (i = FONT_WEIGHT_INDEX; i <= FONT_WIDTH_INDEX; i++)
-    if (! NILP (spec_prop[i]) && ! EQ (AREF (entity, i), spec_prop[i]))
+    if (! NILP (spec_prop[i])
+	&& ! EQ (AREF (entity, i), spec_prop[i])
+	&& FIXNUMP (AREF (entity, i)))
       {
 	EMACS_INT diff = ((XFIXNUM (AREF (entity, i)) >> 8)
 			  - (XFIXNUM (spec_prop[i]) >> 8));
@@ -2764,26 +2766,31 @@ font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 	{
 	  if (FIXNUMP (AREF (spec, prop)))
 	    {
-	      int required = XFIXNUM (AREF (spec, prop)) >> 8;
-	      int candidate = XFIXNUM (AREF (entity, prop)) >> 8;
-
-	      if (candidate != required
-#ifdef HAVE_NTGUI
-		  /* A kludge for w32 font search, where listing a
-		     family returns only 4 standard weights: regular,
-		     italic, bold, bold-italic.  For other values one
-		     must specify the font, not just the family in the
-		     :family attribute of the face.  But specifying
-		     :family in the face attributes looks for regular
-		     weight, so if we require exact match, the
-		     non-regular font will be rejected.  So we relax
-		     the accuracy of the match here, and let
-		     font_sort_entities find the best match.  */
-		  && (prop != FONT_WEIGHT_INDEX
-		      || eabs (candidate - required) > 100)
-#endif
-		  )
+	      if (!FIXNUMP (AREF (entity, prop)))
 		prop = FONT_SPEC_MAX;
+	      else
+		{
+		  int required = XFIXNUM (AREF (spec, prop)) >> 8;
+		  int candidate = XFIXNUM (AREF (entity, prop)) >> 8;
+
+		  if (candidate != required
+#ifdef HAVE_NTGUI
+		      /* A kludge for w32 font search, where listing a
+			 family returns only 4 standard weights: regular,
+			 italic, bold, bold-italic.  For other values one
+			 must specify the font, not just the family in the
+			 :family attribute of the face.  But specifying
+			 :family in the face attributes looks for regular
+			 weight, so if we require exact match, the
+			 non-regular font will be rejected.  So we relax
+			 the accuracy of the match here, and let
+			 font_sort_entities find the best match.  */
+		      && (prop != FONT_WEIGHT_INDEX
+			  || eabs (candidate - required) > 100)
+#endif
+		      )
+		    prop = FONT_SPEC_MAX;
+		}
 	    }
 	}
       if (prop < FONT_SPEC_MAX
@@ -3582,8 +3589,8 @@ font_open_by_name (struct frame *f, Lisp_Object name)
 
    The second is with frame F NULL.  In this case, DRIVER is globally
    registered in the variable `font_driver_list'.  All font-driver
-   implementations must call this function in its syms_of_XXXX
-   (e.g. syms_of_xfont).  */
+   implementations must call this function in its
+   syms_of_XXXX_for_pdumper (e.g. syms_of_xfont_for_pdumper).  */
 
 void
 register_font_driver (struct font_driver const *driver, struct frame *f)
@@ -4230,26 +4237,33 @@ merge_font_spec (Lisp_Object from, Lisp_Object to)
 DEFUN ("font-get", Ffont_get, Sfont_get, 2, 2, 0,
        doc: /* Return the value of FONT's property KEY.
 FONT is a font-spec, a font-entity, or a font-object.
-KEY is any symbol, but these are reserved for specific meanings:
-  :family, :weight, :slant, :width, :foundry, :adstyle, :registry,
-  :size, :name, :script, :otf
+KEY can be any symbol, but these are reserved for specific meanings:
+  :foundry, :family, :adstyle, :registry, :weight, :slant, :width,
+  :size, :dpi, :spacing, :avgwidth, :script, :lang, :otf
 See the documentation of `font-spec' for their meanings.
-In addition, if FONT is a font-entity or a font-object, values of
-:script and :otf are different from those of a font-spec as below:
 
-The value of :script may be a list of scripts that are supported by the font.
+If FONT is a font-entity or a font-object, then values of
+:script and :otf properties are different from those of a font-spec
+as below:
 
-The value of :otf is a cons (GSUB . GPOS) where GSUB and GPOS are lists
-representing the OpenType features supported by the font by this form:
-  ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
-SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
-Layout tags.
+  The value of :script may be a list of scripts that are supported by
+  the font.
+
+  The value of :otf is a cons (GSUB . GPOS) where GSUB and GPOS are
+  lists representing the OpenType features supported by the font, of
+  this form: ((SCRIPT (LANGSYS FEATURE ...) ...) ...), where
+  SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
+  Layout tags.  See `otf-script-alist' for the OpenType script tags.
 
 In addition to the keys listed above, the following keys are reserved
 for the specific meanings as below:
 
-The value of :combining-capability is non-nil if the font-backend of
-FONT supports rendering of combining characters for non-OTF fonts.  */)
+  The value of :type is a symbol that identifies the font backend to be
+  used, such as `ftcrhb' or `xfthb' on X , `harfbuzz' or `uniscribe' on
+  MS-Windows, `ns' on Cocoa/GNUstep, etc.
+
+  The value of :combining-capability is non-nil if the font-backend of
+  FONT supports rendering of combining characters for non-OTF fonts.  */)
   (Lisp_Object font, Lisp_Object key)
 {
   int idx;
@@ -4377,7 +4391,9 @@ accepted by the function `font-spec' (which see), VAL must be what
 allowed in `font-spec'.
 
 If FONT is a font-entity or a font-object, KEY must not be the one
-accepted by `font-spec'.  */)
+accepted by `font-spec'.
+
+See also `font-get' for KEYs that have special meanings.  */)
   (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 {
   int idx;

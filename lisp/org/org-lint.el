@@ -784,8 +784,12 @@ Use \"export %s\" instead"
     reports))
 
 (defun org-lint-undefined-footnote-reference (ast)
-  (let ((definitions (org-element-map ast 'footnote-definition
-		       (lambda (f) (org-element-property :label f)))))
+  (let ((definitions
+          (org-element-map ast '(footnote-definition footnote-reference)
+	    (lambda (f)
+              (and (or (eq 'footnote-definition (org-element-type f))
+                       (eq 'inline (org-element-property :type f)))
+                   (org-element-property :label f))))))
     (org-element-map ast 'footnote-reference
       (lambda (f)
 	(let ((label (org-element-property :label f)))

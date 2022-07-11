@@ -441,6 +441,7 @@ Use group `text' for this instead.  This group is deprecated."
     (define-key map "u" 'Custom-goto-parent)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
+    (define-key map "H" 'custom-toggle-hide-all-widgets)
     map)
   "Keymap for `Custom-mode'.")
 
@@ -745,6 +746,9 @@ groups after non-groups, if nil do not order groups at all."
      (or custom-file user-init-file)
      "Un-customize settings in this and future sessions." "delete" "Uncustomize"
      (modified set changed rogue saved))
+    (" Toggle hiding all values " custom-toggle-hide-all-widgets
+     t "Toggle hiding all values."
+     "hide" "Hide" t)
     (" Help for Customize " Custom-help t "Get help for using Customize."
      "help" "Help" t)
     (" Exit " Custom-buffer-done t "Exit Customize." "exit" "Exit" t))
@@ -1043,6 +1047,36 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
  	 (put variable 'variable-comment comment)
  	 (put variable 'customized-variable-comment comment)))
   value)
+
+;;;###autoload
+(defmacro setopt (&rest pairs)
+  "Set VARIABLE/VALUE pairs, and return the final VALUE.
+This is like `setq', but is meant for user options instead of
+plain variables.  This means that `setopt' will execute any
+`custom-set' form associated with VARIABLE.
+
+\(fn [VARIABLE VALUE]...)"
+  (declare (debug setq))
+  (unless (zerop (mod (length pairs) 2))
+    (error "PAIRS must have an even number of variable/value members"))
+  (let ((expr nil))
+    (while pairs
+      (unless (symbolp (car pairs))
+        (error "Attempting to set a non-symbol: %s" (car pairs)))
+      (push `(setopt--set ',(car pairs) ,(cadr pairs))
+            expr)
+      (setq pairs (cddr pairs)))
+    (macroexp-progn (nreverse expr))))
+
+;;;###autoload
+(defun setopt--set (variable value)
+  (custom-load-symbol variable)
+  ;; Check that the type is correct.
+  (when-let ((type (get variable 'custom-type)))
+    (unless (widget-apply (widget-convert type) :match value)
+      (user-error "Value `%S' does not match type %s" value type)))
+  (put variable 'custom-check-value (list value))
+  (funcall (or (get variable 'custom-set) #'set-default) variable value))
 
 ;;;###autoload
 (defun customize-save-variable (variable value &optional comment)
@@ -1465,7 +1499,7 @@ symbols `custom-face' or `custom-variable'."
       (custom-buffer-create (custom-sort-items found t nil)
 			    "*Customize Saved*"))))
 
-(declare-function apropos-parse-pattern "apropos" (pattern))
+(declare-function apropos-parse-pattern "apropos" (pattern &optional di-all))
 (defvar apropos-regexp)
 
 ;;;###autoload
@@ -1531,12 +1565,12 @@ If TYPE is `groups', include only groups."
 ;;;###autoload
 (defun custom-prompt-customize-unsaved-options ()
   "Prompt user to customize any unsaved customization options.
-Return non-nil if user chooses to customize, for use in
+Return nil if user chooses to customize, for use in
 `kill-emacs-query-functions'."
   (not (and (custom-unsaved-options)
-	    (yes-or-no-p "Some customized options have not been saved; Examine? ")
-	    (customize-unsaved)
-	    t)))
+	    (yes-or-no-p
+             "Some customized options have not been saved; Examine? ")
+	    (progn (customize-unsaved) t))))
 
 ;;; Buffer.
 
@@ -2550,7 +2584,13 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 Normally just return the docstring.  But if VARIABLE automatically
 becomes buffer local when set, append a message to that effect.
 Also append any obsolescence information."
-  (format "%s%s%s" (documentation-property variable 'variable-documentation t)
+  (format "%s%s%s"
+          (with-temp-buffer
+            (insert
+             (or (documentation-property variable 'variable-documentation t)
+                 ""))
+            (untabify (point-min) (point-max))
+            (buffer-string))
 	  (if (and (local-variable-if-set-p variable)
 		   (or (not (local-variable-p variable))
 		       (with-temp-buffer
@@ -2804,6 +2844,39 @@ try matching its doc string against `custom-guess-doc-alist'."
 	(when (eq (widget-get widget :custom-level) 1)
 	  (custom-add-parent-links widget))
 	(custom-add-see-also widget)))))
+
+(defvar custom--hidden-state)
+
+(defun custom-toggle-hide-all-widgets ()
+  "Hide or show details of all customizable settings in a Custom buffer.
+This command is for use in a Custom buffer that shows many
+customizable settings, like \"*Customize Group*\" or \"*Customize Faces*\".
+It toggles the display of each of the customizable settings in the buffer
+between the expanded view, where the values of the settings and the value
+menus to change them are visible; and the concise view, where only the
+minimal details are shown, usually the name, the doc string and little
+else."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    ;; Surely there's a better way to find all the "top level" widgets
+    ;; in a buffer, but I couldn't find it.
+    (while (not (eobp))
+      (when-let* ((widget (widget-at (point)))
+                  (parent (widget-get widget :parent))
+                  (state (widget-get parent :custom-state)))
+        (when (eq state 'changed)
+          (setq state 'standard))
+        (when (and (eq (widget-type widget) 'custom-visibility)
+                   (eq state custom--hidden-state))
+          (custom-toggle-parent widget)))
+      (forward-line 1)))
+  (setq custom--hidden-state (if (eq custom--hidden-state 'hidden)
+                                 'standard
+                               'hidden))
+  (if (eq custom--hidden-state 'hidden)
+      (message "All variables hidden")
+    (message "All variables shown")))
 
 (defun custom-toggle-hide-variable (visibility-widget &rest _ignore)
   "Toggle the visibility of a `custom-variable' parent widget.
@@ -3976,6 +4049,18 @@ Optional EVENT is the location for the menu."
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
+    ;; When modifying the default face, we need to save the standard or themed
+    ;; attrs, in case the user asks to revert to them in the future.
+    ;; In GUIs, when resetting the attributes of the default face, the frame
+    ;; parameters associated with this face won't change, unless explicitly
+    ;; passed a value.  Storing this known attrs allows us to tell faces.el to
+    ;; set those attributes to specified values, making the relevant frame
+    ;; parameters stay in sync with the default face.
+    (when (and (eq symbol 'default)
+               (not (get symbol 'custom-face-default-attrs))
+               (memq (custom-face-state symbol) '(standard themed)))
+      (put symbol 'custom-face-default-attrs
+           (custom-face-get-current-spec symbol)))
     (custom-push-theme 'theme-face symbol 'user 'set value)
     (face-spec-set symbol value 'customized-face)
     (put symbol 'face-comment comment)
@@ -3994,6 +4079,12 @@ Optional EVENT is the location for the menu."
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
+    ;; See the comments in `custom-face-set'.
+    (when (and (eq symbol 'default)
+               (not (get symbol 'custom-face-default-attrs))
+               (memq (custom-face-state symbol) '(standard themed)))
+      (put symbol 'custom-face-default-attrs
+           (custom-face-get-current-spec symbol)))
     (custom-push-theme 'theme-face symbol 'user 'set value)
     (face-spec-set symbol value (if standard 'reset 'saved-face))
     (put symbol 'face-comment comment)
@@ -4007,7 +4098,14 @@ Optional EVENT is the location for the menu."
 
 (defun custom-face-save (widget)
   "Save the face edited by WIDGET."
-  (let ((form (widget-get widget :custom-form)))
+  (let ((form (widget-get widget :custom-form))
+        (symbol (widget-value widget)))
+    ;; See the comments in `custom-face-set'.
+    (when (and (eq symbol 'default)
+               (not (get symbol 'custom-face-default-attrs))
+               (memq (custom-face-state symbol) '(standard themed)))
+      (put symbol 'custom-face-default-attrs
+           (custom-face-get-current-spec symbol)))
     (if (memq form '(all lisp))
         (custom-face-mark-to-save widget)
       ;; The user is working on only a selected terminal type;
@@ -4035,10 +4133,20 @@ uncustomized (themed or standard) face."
 	 (saved-face (get face 'saved-face))
 	 (comment (get face 'saved-face-comment))
 	 (comment-widget (widget-get widget :comment-widget)))
+    ;; If resetting the default face and there isn't a saved value,
+    ;; push a fake user setting, so that reverting to the default
+    ;; attributes works.
     (custom-push-theme 'theme-face face 'user
-		       (if saved-face 'set 'reset)
-		       saved-face)
+                       (if (or saved-face (eq face 'default)) 'set 'reset)
+                       (or saved-face
+                           ;; If this is t, then MODE is 'reset,
+                           ;; and `custom-push-theme' ignores this argument.
+                           (not (eq face 'default))
+                           (get face 'custom-face-default-attrs)))
     (face-spec-set face saved-face 'saved-face)
+    (when (and (not saved-face) (eq face 'default))
+      ;; Remove the fake user setting.
+      (custom-push-theme 'theme-face face 'user 'reset))
     (put face 'face-comment comment)
     (put face 'customized-face-comment nil)
     (widget-value-set child saved-face)
@@ -4060,8 +4168,15 @@ redraw the widget immediately."
 	 (comment-widget (widget-get widget :comment-widget)))
     (unless value
       (user-error "No standard setting for this face"))
-    (custom-push-theme 'theme-face symbol 'user 'reset)
+    ;; If erasing customizations for the default face, push a fake user setting,
+    ;; so that reverting to the default attributes works.
+    (custom-push-theme 'theme-face symbol 'user
+                       (if (eq symbol 'default) 'set 'reset)
+                       (or (not (eq symbol 'default))
+                           (get symbol 'custom-face-default-attrs)))
     (face-spec-set symbol value 'reset)
+    ;; Remove the fake user setting.
+    (custom-push-theme 'theme-face symbol 'user 'reset)
     (put symbol 'face-comment nil)
     (put symbol 'customized-face-comment nil)
     (if (and custom-reset-standard-faces-list
@@ -4727,7 +4842,11 @@ if only the first line of the docstring is shown."))
         (delay-mode-hooks (emacs-lisp-mode)))
       (let ((inhibit-read-only t)
 	    (print-length nil)
-	    (print-level nil))
+	    (print-level nil)
+            ;; We might be saving byte-code with embedded NULs, which
+            ;; can cause problems when read back, so print them
+            ;; readably.  (Bug#52554)
+            (print-escape-control-characters t))
         (atomic-change-group
 	  (custom-save-variables)
 	  (custom-save-faces)))
@@ -5155,7 +5274,8 @@ if that value is non-nil."
 			:label (nth 5 arg)))
 		     custom-commands)
 		    (setq custom-tool-bar-map map))))
-  (setq-local custom--invocation-options nil)
+  (setq-local custom--invocation-options nil
+              custom--hidden-state 'hidden)
   (setq-local revert-buffer-function #'custom--revert-buffer)
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)

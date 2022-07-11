@@ -380,7 +380,7 @@ jarring angry fruit salad look to reduce eye fatigue.")
                           :foreground "black" :background "grey"
                           :weight bold ))))
  '(calendar-today-face ((t (:underline t :bold t :foreground "cornsilk"))))
- '(change-log-acknowledgement-face ((t (:italic t :slant oblique :foreground "AntiqueWhite3"))))
+ '(change-log-acknowledgment ((t (:italic t :slant oblique :foreground "AntiqueWhite3"))))
  '(change-log-conditionals-face ((t (:foreground "Aquamarine"))))
  '(change-log-date-face ((t (:italic t :slant oblique :foreground "BurlyWood"))))
  '(change-log-email-face ((t (:foreground "Aquamarine"))))
@@ -400,7 +400,7 @@ jarring angry fruit salad look to reduce eye fatigue.")
  '(compilation-warning-face ((t (:bold t :foreground "Orange" :weight bold))))
  '(completions-common-part ((t (:width normal :weight normal
                                 :slant normal :foreground "WhiteSmoke"
-				:background "black" :height 81))))
+				:background "black" :height 0.9))))
  '(completions-first-difference ((t (:bold t :weight bold))))
 
  '(css-selector ((t (:foreground "LightSteelBlue"))))

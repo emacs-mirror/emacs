@@ -50,6 +50,7 @@
 (require 'subr-x)
 (require 'yank-media)
 (require 'mailcap)
+(require 'sendmail)
 
 (autoload 'mailclient-send-it "mailclient")
 
@@ -716,7 +717,7 @@ The function accepts 1 parameter which is the matched prefix."
   (defvar sendmail-program)
   (cond ((executable-find sendmail-program)
 	 #'message-send-mail-with-sendmail)
-	((bound-and-true-p 'smtpmail-default-smtp-server)
+	((bound-and-true-p smtpmail-default-smtp-server)
 	 #'message-smtpmail-send-it)
 	(t
 	 #'message-send-mail-with-mailclient)))
@@ -1410,7 +1411,7 @@ text and it replaces `self-insert-command' with the other command, e.g.
       (file-name-as-directory (expand-file-name "drafts" message-directory))
     "~/")
   "Directory where Message auto-saves buffers if Gnus isn't running.
-If nil, Message won't auto-save."
+If nil, Message won't auto-save, whether or not Gnus is running."
   :group 'message-buffers
   :link '(custom-manual "(message)Various Message Variables")
   :type '(choice directory (const :tag "Don't auto-save" nil)))
@@ -1467,11 +1468,11 @@ candidates:
       (memq feature message-shoot-gnksa-feet)))
 
 (defcustom message-hidden-headers '("^References:" "^Face:" "^X-Face:"
-				    "^X-Draft-From:")
+				    "^X-Draft-From:" "^In-Reply-To:")
   "Regexp of headers to be hidden when composing new messages.
 This can also be a list of regexps to match headers.  Or a list
 starting with `not' and followed by regexps."
-  :version "22.1"
+  :version "29.1"
   :group 'message
   :link '(custom-manual "(message)Message Headers")
   :type '(choice
@@ -3179,8 +3180,7 @@ Like `text-mode', but with these additional commands:
     (mail-abbrevs-setup))
    ((message-mail-alias-type-p 'ecomplete)
     (ecomplete-setup)))
-  ;; FIXME: merge the completion tables from ecomplete/bbdb/...?
-  ;;(add-hook 'completion-at-point-functions #'message-ecomplete-capf nil t)
+  (add-hook 'completion-at-point-functions #'eudc-capf-complete -1 t)
   (add-hook 'completion-at-point-functions #'message-completion-function nil t)
   (unless buffer-file-name
     (message-set-auto-save-file-name))
@@ -4357,7 +4357,11 @@ it is left unchanged."
 (defun message-update-smtp-method-header ()
   "Insert an X-Message-SMTP-Method header according to `message-server-alist'."
   (unless (message-fetch-field "X-Message-SMTP-Method")
-    (let ((from (cadr (mail-extract-address-components (message-fetch-field "From"))))
+    (let ((from (cadr (mail-extract-address-components
+                       (save-restriction
+                         (widen)
+                         (message-narrow-to-headers-or-head)
+                         (message-fetch-field "From")))))
           method)
       (catch 'exit
         (dolist (server message-server-alist)
@@ -4901,7 +4905,18 @@ If you always want Gnus to send messages in one piece, set
 	      (message-generate-headers '(Lines)))
 	    ;; Remove some headers.
 	    (message-remove-header message-ignored-mail-headers t)
-            (mail-encode-encoded-word-buffer))
+            (mail-encode-encoded-word-buffer)
+	    ;; Then check for suspicious addresses.
+            (dolist (hdr '("To" "Cc" "Bcc"))
+              (let ((addr (message-fetch-field hdr)))
+	        (when (stringp addr)
+	          (dolist (address (mail-header-parse-addresses addr t))
+	            (when-let ((warning (textsec-suspicious-p
+                                         address 'email-address-header)))
+	              (unless (y-or-n-p
+		               (format "Suspicious address: %s; send anyway?"
+                                       warning))
+		        (user-error "Suspicious address %s" address))))))))
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
@@ -6866,13 +6881,14 @@ are not included."
     (or (bolp) (insert ?\n)))
   (insert (concat mail-header-separator "\n"))
   (forward-line -1)
-  ;; If a crash happens while replying, the auto-save file would *not* have a
-  ;; `References:' header if `message-generate-headers-first' was nil.
-  ;; Therefore, always generate it first.
+  ;; If a crash happens while replying, the auto-save file would *not*
+  ;; have a `References:' header if `message-generate-headers-first'
+  ;; was nil.  Therefore, always generate it first.  (And why not
+  ;; include the `In-Reply-To' header as well.)
   (let ((message-generate-headers-first
          (if (eq message-generate-headers-first t)
              t
-           (append message-generate-headers-first '(References)))))
+           (append message-generate-headers-first '(References In-Reply-To)))))
     (when (message-news-p)
       (when message-default-news-headers
         (insert message-default-news-headers)
@@ -7002,7 +7018,15 @@ is a function used to switch to and display the mail buffer."
 	;; https://lists.gnu.org/r/emacs-devel/2011-01/msg00337.html
 	;; We need to convert any string input, eg from rmail-start-mail.
 	(dolist (h other-headers other-headers)
-	  (if (stringp (car h)) (setcar h (intern (capitalize (car h)))))))
+	  (when (stringp (car h))
+            (setcar h (intern (capitalize (car h)))))
+          ;; Firefox sends us In-Reply-To headers that are Message-IDs
+          ;; without <> around them.  Fix that.
+          (when (and (eq (car h) 'In-Reply-To)
+                     ;; Looks like a Message-ID.
+                     (string-match-p "\\`[^ @]+@[^ @]+\\'" (cdr h))
+                     (not (string-match-p "\\`<.*>\\'" (cdr h))))
+            (setcdr h (concat "<" (cdr h) ">")))))
        yank-action send-actions continue switch-function
        return-action))))
 
@@ -8001,7 +8025,18 @@ is for the internal use."
 	    (select-safe-coding-system-function nil)
 	    message-required-mail-headers
 	    message-generate-hashcash
-	    rfc2047-encode-encoded-words)
+	    rfc2047-encode-encoded-words
+            ;; If `message-sendmail-envelope-from' is `header' then
+            ;; the envelope-from will be the original sender's
+            ;; address, not the resender's.  But when resending, the
+            ;; envelope-from should be the resender's address.  Defuse
+            ;; that particular case.
+            (message-sendmail-envelope-from
+             (and (not (and (eq message-sendmail-envelope-from
+                                'obey-mail-envelope-from)
+                            (eq mail-envelope-from 'header)))
+                  (not (eq message-sendmail-envelope-from 'header))
+                  message-sendmail-envelope-from)))
 	(message-send-mail))
       (when gcc
 	(message-goto-eoh)
@@ -8140,39 +8175,7 @@ which specify the range to operate on."
 ;; Support for toolbar
 (defvar tool-bar-mode)
 
-;; Note: The :set function in the `message-tool-bar*' variables will only
-;; affect _new_ message buffers.  We might add a function that walks thru all
-;; message-mode buffers and force the update.
-(defun message-tool-bar-update (&optional symbol value)
-  "Update message mode toolbar.
-Setter function for custom variables."
-  (setq-default message-tool-bar-map nil)
-  (when symbol
-    ;; When used as ":set" function:
-    (set-default symbol value)))
-
-(defcustom message-tool-bar (if (eq gmm-tool-bar-style 'gnome)
-				'message-tool-bar-gnome
-			      'message-tool-bar-retro)
-  "Specifies the message mode tool bar.
-
-It can be either a list or a symbol referring to a list.  See
-`gmm-tool-bar-from-list' for the format of the list.  The
-default key map is `message-mode-map'.
-
-Pre-defined symbols include `message-tool-bar-gnome' and
-`message-tool-bar-retro'."
-  :type '(repeat gmm-tool-bar-list-item)
-  :type '(choice (const :tag "GNOME style" message-tool-bar-gnome)
-		 (const :tag "Retro look"  message-tool-bar-retro)
-		 (repeat :tag "User defined list" gmm-tool-bar-item)
-		 (symbol))
-  :version "23.1" ;; No Gnus
-  :initialize #'custom-initialize-default
-  :set #'message-tool-bar-update
-  :group 'message)
-
-(defcustom message-tool-bar-gnome
+(defcustom message-tool-bar
   '((ispell-message "spell" nil
 		    :vert-only t
 		    :visible (not flyspell-mode))
@@ -8188,47 +8191,23 @@ Pre-defined symbols include `message-tool-bar-gnome' and
     (message-insert-importance-high "important" nil :visible nil)
     (message-insert-importance-low "unimportant" nil :visible nil)
     (message-insert-disposition-notification-to "receipt" nil :visible nil))
-  "List of items for the message tool bar (GNOME style).
+  "Specifies the message mode tool bar.
 
-See `gmm-tool-bar-from-list' for details on the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize #'custom-initialize-default
-  :set #'message-tool-bar-update
+It can be either a list or a symbol referring to a list.  See
+`gmm-tool-bar-from-list' for the format of the list.  The
+default key map is `message-mode-map'."
+  :type '(repeat gmm-tool-bar-list-item)
+  :type '(choice (repeat :tag "User defined list" gmm-tool-bar-item)
+		 (symbol))
+  :version "29.1"
   :group 'message)
 
-(defcustom message-tool-bar-retro
-  '(;; Old Emacs 21 icon for consistency.
-    (message-send-and-exit "mail/send")
-    (message-kill-buffer "close")
-    (message-dont-send "cancel")
-    (mml-attach-file "attach" mml-mode-map)
-    (ispell-message "spell")
-    (mml-preview "preview" mml-mode-map)
-    (message-insert-importance-high "gnus/important")
-    (message-insert-importance-low "gnus/unimportant")
-    (message-insert-disposition-notification-to "gnus/receipt"))
-  "List of items for the message tool bar (retro style).
-
-See `gmm-tool-bar-from-list' for details on the format of the list."
-  :type '(repeat gmm-tool-bar-item)
-  :version "23.1" ;; No Gnus
-  :initialize #'custom-initialize-default
-  :set #'message-tool-bar-update
-  :group 'message)
-
-(defcustom message-tool-bar-zap-list
-  '(new-file open-file dired kill-buffer write-file
-	     print-buffer customize help)
-  "List of icon items from the global tool bar.
-These items are not displayed on the message mode tool bar.
-
-See `gmm-tool-bar-from-list' for the format of the list."
-  :type 'gmm-tool-bar-zap-list
-  :version "23.1" ;; No Gnus
-  :initialize #'custom-initialize-default
-  :set #'message-tool-bar-update
-  :group 'message)
+(defvar message-tool-bar-gnome nil)
+(make-obsolete-variable 'message-tool-bar-gnome nil "29.1")
+(defvar message-tool-bar-retro nil)
+(make-obsolete-variable 'message-tool-bar-gnome nil "29.1")
+(defvar message-tool-bar-zap-list t)
+(make-obsolete-variable 'message-tool-bar-zap-list nil "29.1")
 
 (defvar image-load-path)
 (declare-function image-load-path-for-library "image"
@@ -8250,17 +8229,23 @@ When FORCE, rebuild the tool bar."
 				    'message-mode-map))))
   message-tool-bar-map)
 
-;;; Group name completion.
+;;; Group name and email address completion.
 
 (defcustom message-newgroups-header-regexp
   "^\\(Newsgroups\\|Followup-To\\|Posted-To\\|Gcc\\):"
-  "Regexp that match headers that lists groups."
+  "Regexp matching headers that list groups."
   :group 'message
+  :type 'regexp)
+
+(defcustom message-email-recipient-header-regexp
+  "^\\([^ :]*-\\)?\\(To\\|B?Cc\\|From\\|Reply-to\\|Mail-Followup-To\\|Mail-Copies-To\\):"
+  "Regexp matching headers that list email addresses."
+  :version "29.1"
   :type 'regexp)
 
 (defcustom message-completion-alist
   `((,message-newgroups-header-regexp . ,#'message-expand-group)
-    ("^\\([^ :]*-\\)?\\(To\\|B?Cc\\|From\\):" . ,#'message-expand-name))
+    (,message-email-recipient-header-regexp . ,#'message-expand-name))
   "Alist of (RE . FUN).  Use FUN for completion on header lines matching RE.
 FUN should be a function that obeys the same rules as those
 of `completion-at-point-functions'."
@@ -8354,7 +8339,11 @@ regular text mode tabbing command."
 
 (defcustom message-expand-name-standard-ui nil
   "If non-nil, use the standard completion UI in `message-expand-name'.
-E.g. this means it will obey `completion-styles' and other such settings."
+E.g. this means it will obey `completion-styles' and other such settings.
+
+If this variable is non-nil and `message-mail-alias-type' is
+`ecomplete', `message-self-insert-commands' should probably be
+set to nil."
   :version "27.1"
   :type 'boolean)
 
@@ -8383,7 +8372,8 @@ E.g. this means it will obey `completion-styles' and other such settings."
 	(t
 	 (expand-abbrev))))
 
-(add-to-list 'completion-category-defaults '(email (styles substring)))
+(add-to-list 'completion-category-defaults '(email (styles substring
+                                                           partial-completion)))
 
 (defun message--bbdb-query-with-words (words)
   ;; FIXME: This (or something like this) should live on the BBDB side.
@@ -8606,26 +8596,23 @@ From headers in the original article."
 		   message-hidden-headers))
 	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t)
-	(end-of-headers (point-min)))
+	end-of-headers)
     (when regexps
       (save-excursion
 	(save-restriction
 	  (message-narrow-to-headers)
+          (setq end-of-headers (point-min-marker))
 	  (goto-char (point-min))
 	  (while (not (eobp))
 	    (if (not (message-hide-header-p regexps))
 		(message-next-header)
-	      (let ((begin (point))
-		    header header-len)
+	      (let ((begin (point)))
 		(message-next-header)
-		(setq header (buffer-substring begin (point))
-		      header-len (- (point) begin))
-		(delete-region begin (point))
-		(goto-char end-of-headers)
-		(insert header)
-		(setq end-of-headers
-		      (+ end-of-headers header-len))))))))
-    (narrow-to-region end-of-headers (point-max))))
+                (let ((header (delete-and-extract-region begin (point))))
+                  (save-excursion
+                    (goto-char end-of-headers)
+                    (insert-before-markers header))))))))
+      (narrow-to-region end-of-headers (point-max)))))
 
 (defun message-hide-header-p (regexps)
   (let ((result nil)
@@ -8974,7 +8961,7 @@ used to take the screenshot."
 This is meant to be used for MIME handlers: Setting the handler
 for \"x-scheme-handler/mailto;\" to \"emacs -f message-mailto %u\"
 will then start up Emacs ready to compose mail.  For emacsclient use
-  emacsclient -e '(message-mailto \"%u\")'"
+  emacsclient -e \\='(message-mailto \"%u\")'"
   (interactive)
   ;; <a href="mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body">Send email</a>
   (message-mail)

@@ -89,6 +89,11 @@ list of available packages from package archive servers.  If the
 network is unavailable, it falls back on the most recently retrieved
 list.
 
+The main command to use in the package list buffer is the @key{x}
+command.  If the package under point isn't installed already, this
+command will install it.  If the package under point is already
+installed, this command will delete it.
+
 The following commands are available in the package menu:
 
 @table @kbd
@@ -162,7 +167,10 @@ installed versions (marked with status @samp{obsolete}).
 @findex package-menu-execute
 Download and install all packages marked with @kbd{i}, and their
 dependencies; also, delete all packages marked with @kbd{d}
-(@code{package-menu-execute}).  This also removes the marks.
+(@code{package-menu-execute}).  This also removes the marks.  If no
+packages are marked, this command will install the package under point
+(if it isn't installed already), or delete the package under point (if
+it's already installed).
 
 @item g
 @item r
@@ -320,10 +328,15 @@ version of the package, a newer version is also installed.
 @section Package Installation
 
 @findex package-install
+@findex package-update
+@findex package-update-all
   Packages are most conveniently installed using the package menu
 (@pxref{Package Menu}), but you can also use the command @kbd{M-x
 package-install}.  This prompts for the name of a package with the
-@samp{available} status, then downloads and installs it.
+@samp{available} status, then downloads and installs it.  Similarly,
+if you want to update a package, you can use the @kbd{M-x
+package-update} command, and if you just want to update all the
+packages, you can use the @kbd{M-x package-update-all} command.
 
 @cindex package requirements
   A package may @dfn{require} certain other packages to be installed,
@@ -469,6 +482,16 @@ The default value is just @code{'(all)}.
 @samp{muse}.  Any other version of @samp{muse} that happens to be
 installed will be ignored.  The @samp{muse} package will be listed in
 the package menu with the @samp{held} status.
+
+@findex package-recompile
+@findex package-recompile-all
+  Emacs byte code is quite stable, but it's possible for byte code to
+become outdated, or for the compiled files to rely on macros that have
+changed in new versions of Emacs.  You can use the command @w{@kbd{M-x
+package-recompile}} to recompile a particular package, or
+@w{@kbd{M-x package-recompile-all}} to recompile all the packages.  (The
+latter command might take quite a while to run if you have many
+installed packages.)
 
 @node Package Files
 @section Package Files and Directory Layout

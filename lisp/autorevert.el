@@ -692,7 +692,7 @@ system.")
 
 (defun auto-revert-notify-handler (event)
   "Handle an EVENT returned from file notification."
-  (with-demoted-errors
+  (with-demoted-errors "Error while auto-reverting: %S"
     (let* ((descriptor (car event))
 	   (action (nth 1 event))
 	   (file (nth 2 event))

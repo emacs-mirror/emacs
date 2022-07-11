@@ -140,15 +140,10 @@ SEVERITY-PREDICATE is used to setup
         (flymake-goto-next-error)
         (should (eq 'flymake-error (face-at-point)))))))
 
-(defun flymake-tests--gcc-is-clang ()
-  "Whether the `gcc' command actually runs the Clang compiler."
-  (string-match "[Cc]lang version "
-                (shell-command-to-string "gcc --version")))
-
 (ert-deftest different-diagnostic-types ()
   "Test GCC warning via function predicate."
   (skip-unless (and (executable-find "gcc")
-                    (not (flymake-tests--gcc-is-clang))
+                    (not (ert-gcc-is-clang-p))
                     (version<=
                      "5" (string-trim
                           (shell-command-to-string "gcc -dumpversion")))
@@ -173,7 +168,7 @@ SEVERITY-PREDICATE is used to setup
 (ert-deftest included-c-header-files ()
   "Test inclusion of .h header files."
   (skip-unless (and (executable-find "gcc")
-                    (not (flymake-tests--gcc-is-clang))
+                    (not (ert-gcc-is-clang-p))
                     (executable-find "make")))
   (let ((flymake-wrap-around nil))
     (flymake-tests--with-flymake

@@ -51,7 +51,14 @@
            (doc-string 3))
   `(ert-deftest ,(intern (concat "comp-tests-" (symbol-name name))) ,args
      :tags '(:nativecomp)
-     ,@docstring-and-body))
+     ,@(and (stringp (car docstring-and-body))
+            (list (pop docstring-and-body)))
+     ;; Some of the tests leave spill files behind -- so create a
+     ;; sub-dir where native-comp can do its work, and then delete it
+     ;; at the end.
+     (ert-with-temp-directory dir
+       (let ((temporary-file-directory dir))
+         ,@docstring-and-body))))
 
 
 
@@ -1369,7 +1376,14 @@ Return a list of results."
          (when (eql x 1.0)
 	   (error ""))
          x)
-       t)))
+       t)
+
+      ;; 74
+      ((defun comp-tests-ret-type-spec-f (x)
+         (if (eq x 0)
+	     (error "")
+	   (1+ x)))
+       number)))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

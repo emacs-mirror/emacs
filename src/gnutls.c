@@ -616,6 +616,9 @@ gnutls_try_handshake (struct Lisp_Process *proc)
   gnutls_session_t state = proc->gnutls_state;
   int ret;
   bool non_blocking = proc->is_non_blocking_client;
+  /* Sleep for ten milliseconds when busy-looping in
+     gnutls_handshake.  */
+  struct timespec delay = { 0, 1000 * 1000 * 10 };
 
   if (proc->gnutls_complete_negotiation_p)
     non_blocking = false;
@@ -630,6 +633,7 @@ gnutls_try_handshake (struct Lisp_Process *proc)
       maybe_quit ();
       if (non_blocking && ret != GNUTLS_E_INTERRUPTED)
 	break;
+      nanosleep (&delay, NULL);
     }
 
   proc->gnutls_initstage = GNUTLS_STAGE_HANDSHAKE_TRIED;
@@ -1517,7 +1521,7 @@ returned as the :certificate entry.  */)
 /* Initialize global GnuTLS state to defaults.
    Call 'gnutls-global-deinit' when GnuTLS usage is no longer needed.
    Return zero on success.  */
-Lisp_Object
+static Lisp_Object
 emacs_gnutls_global_init (void)
 {
   int ret = GNUTLS_E_SUCCESS;
@@ -1631,10 +1635,10 @@ gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist)
   char *c_hostname;
 
   if (NILP (proplist))
-    proplist = Fcdr (Fplist_get (p->childp, QCtls_parameters));
+    proplist = Fcdr (plist_get (p->childp, QCtls_parameters));
 
-  verify_error = Fplist_get (proplist, QCverify_error);
-  hostname = Fplist_get (proplist, QChostname);
+  verify_error = plist_get (proplist, QCverify_error);
+  hostname = plist_get (proplist, QChostname);
 
   if (EQ (verify_error, Qt))
     verify_error_all = true;
@@ -1664,7 +1668,7 @@ gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist)
 
   p->gnutls_peer_verification = peer_verification;
 
-  warnings = Fplist_get (Fgnutls_peer_status (proc), intern (":warnings"));
+  warnings = plist_get (Fgnutls_peer_status (proc), intern (":warnings"));
   if (!NILP (warnings))
     {
       for (Lisp_Object tail = warnings; CONSP (tail); tail = XCDR (tail))
@@ -1866,13 +1870,13 @@ one trustfile (usually a CA bundle).  */)
       return Qnil;
     }
 
-  hostname              = Fplist_get (proplist, QChostname);
-  priority_string       = Fplist_get (proplist, QCpriority);
-  trustfiles            = Fplist_get (proplist, QCtrustfiles);
-  keylist               = Fplist_get (proplist, QCkeylist);
-  crlfiles              = Fplist_get (proplist, QCcrlfiles);
-  loglevel              = Fplist_get (proplist, QCloglevel);
-  prime_bits            = Fplist_get (proplist, QCmin_prime_bits);
+  hostname              = plist_get (proplist, QChostname);
+  priority_string       = plist_get (proplist, QCpriority);
+  trustfiles            = plist_get (proplist, QCtrustfiles);
+  keylist               = plist_get (proplist, QCkeylist);
+  crlfiles              = plist_get (proplist, QCcrlfiles);
+  loglevel              = plist_get (proplist, QCloglevel);
+  prime_bits            = plist_get (proplist, QCmin_prime_bits);
 
   if (!STRINGP (hostname))
     {
@@ -1925,7 +1929,7 @@ one trustfile (usually a CA bundle).  */)
       check_memory_full (gnutls_certificate_allocate_credentials (&x509_cred));
       XPROCESS (proc)->gnutls_x509_cred = x509_cred;
 
-      verify_flags = Fplist_get (proplist, QCverify_flags);
+      verify_flags = plist_get (proplist, QCverify_flags);
       if (TYPE_RANGED_FIXNUMP (unsigned int, verify_flags))
 	{
 	  gnutls_verify_flags = XFIXNAT (verify_flags);
@@ -2105,7 +2109,7 @@ one trustfile (usually a CA bundle).  */)
     }
 
   XPROCESS (proc)->gnutls_complete_negotiation_p =
-    !NILP (Fplist_get (proplist, QCcomplete_negotiation));
+    !NILP (plist_get (proplist, QCcomplete_negotiation));
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CRED_SET;
   ret = emacs_gnutls_handshake (XPROCESS (proc));
   if (ret < GNUTLS_E_SUCCESS)
@@ -2344,7 +2348,7 @@ gnutls_symmetric (bool encrypting, Lisp_Object cipher,
 
   if (!NILP (info) && CONSP (info))
     {
-      Lisp_Object v = Fplist_get (info, QCcipher_id);
+      Lisp_Object v = plist_get (info, QCcipher_id);
       if (TYPE_RANGED_FIXNUMP (gnutls_cipher_algorithm_t, v))
         gca = XFIXNUM (v);
     }
@@ -2621,7 +2625,7 @@ itself. */)
 
   if (!NILP (info) && CONSP (info))
     {
-      Lisp_Object v = Fplist_get (info, QCmac_algorithm_id);
+      Lisp_Object v = plist_get (info, QCmac_algorithm_id);
       if (TYPE_RANGED_FIXNUMP (gnutls_mac_algorithm_t, v))
         gma = XFIXNUM (v);
     }
@@ -2711,7 +2715,7 @@ the number itself. */)
 
   if (!NILP (info) && CONSP (info))
     {
-      Lisp_Object v = Fplist_get (info, QCdigest_algorithm_id);
+      Lisp_Object v = plist_get (info, QCdigest_algorithm_id);
       if (TYPE_RANGED_FIXNUMP (gnutls_digest_algorithm_t, v))
         gda = XFIXNUM (v);
     }

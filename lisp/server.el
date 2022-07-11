@@ -779,7 +779,8 @@ by the current Emacs process, use the `server-process' variable."
   (condition-case nil
       (if server-use-tcp
 	  (with-temp-buffer
-	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
+            (setq default-directory server-auth-dir)
+	    (insert-file-contents-literally (expand-file-name name))
 	    (or (and (looking-at "127\\.0\\.0\\.1:[0-9]+ \\([0-9]+\\)")
 		     (assq 'comm
 			   (process-attributes
@@ -1313,7 +1314,8 @@ The following commands are accepted by the client:
 						       frame-parameters))
 		   ;; When resuming on a tty, tty-name is nil.
 		   (tty-name
-		    (server-create-tty-frame tty-name tty-type proc))
+		    (server-create-tty-frame tty-name tty-type proc
+                                             frame-parameters))
 
                    ;; If there won't be a current frame to use, fall
                    ;; back to trying to create a new one.
@@ -1366,7 +1368,7 @@ The following commands are accepted by the client:
 			 ((functionp initial-buffer-choice)
 			  (funcall initial-buffer-choice)))))
 	      (switch-to-buffer
-	       (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
+	       (if (buffer-live-p buf) buf (get-scratch-buffer-create))
 	       'norecord)))
 
           ;; Delete the client if necessary.

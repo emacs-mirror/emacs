@@ -356,6 +356,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                    (const :tag "Iconify" t))
 				  "26.1")
 	     (tooltip-reuse-hidden-frame tooltip boolean "26.1")
+             (use-system-tooltips tooltip boolean "29.1")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c
@@ -369,7 +370,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (auto-save-timeout auto-save (choice (const :tag "off" nil)
 						  (integer :format "%v")))
 	     (echo-keystrokes minibuffer number)
-	     (polling-period keyboard integer)
+	     (polling-period keyboard float)
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
 	     (double-click-fuzz mouse integer "22.1")
@@ -397,6 +398,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			(const :tag " current dir" nil)
 	     ;;    			(directory :format "%v"))))
 	     (load-prefer-newer lisp boolean "24.4")
+             (record-all-keys keyboard boolean)
 	     ;; minibuf.c
 	     (minibuffer-follows-selected-frame
               minibuffer (choice (const :tag "Always" t)
@@ -810,6 +812,7 @@ since it could result in memory overflow and make Emacs crash."
                character)
               "27.1"
               :safe (lambda (value) (or (characterp value) (null value))))
+             (composition-break-at-point display boolean "29.1")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed
               display (choice (const :tag "Don't allow scalable fonts" nil)
@@ -829,6 +832,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-stretch-cursor display boolean "21.1")
 	     (scroll-bar-adjust-thumb-portion windows boolean "24.4")
              (x-scroll-event-delta-factor mouse float "29.1")
+             (x-gtk-use-native-input keyboard boolean "29.1")
+             (x-dnd-disable-motif-drag dnd boolean "29.1")
 	     ;; xselect.c
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
@@ -855,6 +860,11 @@ since it could result in memory overflow and make Emacs crash."
 		       (featurep 'ns))
                       ((string-match "\\`haiku-" (symbol-name symbol))
                        (featurep 'haiku))
+                      ((eq symbol 'process-error-pause-time)
+                       (not (eq system-type 'ms-dos)))
+                      ((eq symbol 'x-gtk-use-native-input)
+                       (and (featurep 'x)
+                            (featurep 'gtk)))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
 		      ((string-match "clipboard-manager" (symbol-name symbol))
@@ -862,6 +872,8 @@ since it could result in memory overflow and make Emacs crash."
                       ((or (equal "scroll-bar-adjust-thumb-portion"
 			          (symbol-name symbol))
                            (equal "x-scroll-event-delta-factor"
+                                  (symbol-name symbol))
+                           (equal "x-dnd-disable-motif-drag"
                                   (symbol-name symbol)))
 		       (featurep 'x))
 		      ((string-match "\\`x-" (symbol-name symbol))

@@ -455,20 +455,27 @@ servers the user has connected to.  If this variable is @code{t},
 @cindex PostScript file
 @cindex OpenDocument file
 @cindex Microsoft Office file
+@cindex EPUB file
+@cindex CBZ file
+@cindex FB2 file
+@cindex XPS file
+@cindex OXPS file
 @cindex DocView mode
 @cindex mode, DocView
 @cindex document viewer (DocView)
 @findex doc-view-mode
 
   DocView mode is a major mode for viewing DVI, PostScript (PS), PDF,
-OpenDocument, and Microsoft Office documents.  It provides features
-such as slicing, zooming, and searching inside documents.  It works by
-converting the document to a set of images using the @command{gs}
-(GhostScript) or @command{mudraw}/@command{pdfdraw} (MuPDF) commands
-and other external tools @footnote{For PostScript files, GhostScript
-is a hard requirement.  For DVI files, @code{dvipdf} or @code{dvipdfm}
-is needed.  For OpenDocument and Microsoft Office documents, the
-@code{unoconv} tool is needed.}, and displaying those images.
+OpenDocument, Microsoft Office, EPUB, CBZ, FB2, XPS and OXPS
+documents.  It provides features such as slicing, zooming, and
+searching inside documents.  It works by converting the document to a
+set of images using the @command{gs} (GhostScript) or
+@command{pdfdraw}/@command{mutool draw} (MuPDF) commands and other
+external tools @footnote{PostScript files require GhostScript, DVI
+files require @code{dvipdf} or @code{dvipdfm}, OpenDocument and
+Microsoft Office documents require the @code{unoconv} tool, and EPUB,
+CBZ, FB2, XPS and OXPS files require @code{mutool} to be available.},
+and displaying those images.
 
 @findex doc-view-toggle-display
 @findex doc-view-minor-mode
@@ -849,6 +856,9 @@ Restores the position of point as it was before inserting the
 shell-command output.
 @end table
 
+In case the output buffer is not the current buffer, shell command
+output is appended at the end of this buffer.
+
 @node Interactive Shell
 @subsection Interactive Subshell
 
@@ -885,6 +895,19 @@ buffer name, and create (or reuse) a subshell in that buffer.  You can
 also rename the @file{*shell*} buffer using @kbd{M-x rename-uniquely},
 then create a new @file{*shell*} buffer using plain @kbd{M-x shell}.
 Subshells in different buffers run independently and in parallel.
+
+  Emacs attempts to keep track of what the current directory is by
+looking at the commands you enter, looking for @samp{cd} commands and
+the like.  This is an error-prone solution, since there are many ways
+to change the current directory, so Emacs also looks for special
+@acronym{OSC} (Operating System Commands) escape codes that are
+designed to convey this information in a more reliable fashion.  You
+should arrange for your shell to print the appropriate escape sequence
+at each prompt, for instance with the following command:
+
+@example
+printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
+@end example
 
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
@@ -2760,7 +2783,12 @@ will by default ask you whether to use the locked desktop file.  You
 can avoid the question by customizing the variable
 @code{desktop-load-locked-desktop} to either @code{nil}, which means
 never load the desktop in this case, or @code{t}, which means load the
-desktop without asking.
+desktop without asking.  Finally, the @code{check-pid} value means to
+load the file if the Emacs process that has locked the desktop is not
+running on the local machine.  This should not be used in
+circumstances where the locking Emacs might still be running on
+another machine.  This could be the case in multi-user environments
+where your home directory is mounted remotely using NFS or similar.
 
 @cindex desktop restore in daemon mode
   When Emacs starts in daemon mode, it cannot ask you any questions,

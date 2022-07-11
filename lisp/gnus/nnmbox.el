@@ -529,7 +529,7 @@
     ;; add article to index, either by building complete list
     ;; in reverse order, or as a list of ranges.
     (if (not nnmbox-group-building-active-articles)
-	(setcdr entry (gnus-add-to-range (cdr entry) (list article)))
+	(setcdr entry (range-add-list (cdr entry) (list article)))
       (when (memq article (cdr entry))
 	(switch-to-buffer nnmbox-mbox-buffer)
 	(error "Article %s:%d already exists!" group article))
@@ -548,10 +548,10 @@
 		      nnmbox-group-active-articles)
 		(car nnmbox-group-active-articles)))))
     ;; remove article from index
-    (setcdr entry (gnus-remove-from-range (cdr entry) (list article)))))
+    (setcdr entry (range-remove (cdr entry) (list article)))))
 
 (defun nnmbox-is-article-active-p (article)
-  (gnus-member-of-range
+  (range-member-p
    article
    (cdr (assoc nnmbox-current-group
 	       nnmbox-group-active-articles))))

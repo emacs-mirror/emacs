@@ -23,11 +23,10 @@
 
 ;;; Commentary:
 
-;;
 ;; There are three main areas of functionality:
 ;;
 ;; * Wrap common network utility programs (ping, traceroute, netstat,
-;; nslookup, arp, route). Note that these wrappers are of the diagnostic
+;; nslookup, arp, route).  Note that these wrappers are of the diagnostic
 ;; functions of these programs only.
 ;;
 ;; * Implement some very basic protocols in Emacs Lisp (finger and whois)
@@ -39,7 +38,7 @@
 ;;; Code:
 
 ;; On some systems, programs like ifconfig are not in normal user
-;; path, but rather in /sbin, /usr/sbin, etc (but non-root users can
+;; path, but rather in /sbin, /usr/sbin, etc. (but non-root users can
 ;; still use them for queries).  Actually the trend these
 ;; days is for /sbin to be a symlink to /usr/sbin, but we still need to
 ;; search both for older systems.
@@ -176,15 +175,6 @@ This variable is only used if the variable
 `comint-use-prompt-regexp' is non-nil."
   :type  'regexp)
 
-(defcustom dig-program "dig"
-  "Program to query DNS information."
-  :type  'string)
-
-(defcustom dig-program-options nil
-  "Options for the dig program."
-  :type '(repeat string)
-  :version "26.1")
-
 (defcustom ftp-program "ftp"
   "Program to run to do FTP transfers."
   :type  'string)
@@ -280,6 +270,7 @@ This variable is only used if the variable
 
 (define-derived-mode net-utils-mode special-mode "NetworkUtil"
   "Major mode for interacting with an external network utility."
+  :interactive nil
   (setq-local font-lock-defaults
               '((net-utils-font-lock-keywords)))
   (setq-local revert-buffer-function #'net-utils--revert-function))
@@ -287,31 +278,6 @@ This variable is only used if the variable
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Simplified versions of some at-point functions from ffap.el.
-;; It's not worth loading all of ffap just for these.
-(defun net-utils-machine-at-point ()
-  (let ((pt (point)))
-    (buffer-substring-no-properties
-     (save-excursion
-       (skip-chars-backward "-a-zA-Z0-9.")
-       (point))
-     (save-excursion
-       (skip-chars-forward "-a-zA-Z0-9.")
-       (skip-chars-backward "." pt)
-       (point)))))
-
-(defun net-utils-url-at-point ()
-  (let ((pt (point)))
-    (buffer-substring-no-properties
-     (save-excursion
-       (skip-chars-backward "--:=&?$+@-Z_a-z~#,%")
-       (skip-chars-forward "^A-Za-z0-9" pt)
-       (point))
-     (save-excursion
-       (skip-chars-forward "--:=&?$+@-Z_a-z~#,%")
-       (skip-chars-backward ":;.,!?" pt)
-       (point)))))
 
 (defun net-utils-remove-ctrl-m-filter (process output-string)
   "Remove trailing control Ms."
@@ -464,7 +430,8 @@ This variable is only used if the variable
 If your system's ping continues until interrupted, you can try setting
 `ping-program-options'."
   (interactive
-   (list (read-from-minibuffer "Ping host: " (net-utils-machine-at-point))))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Ping host" default) nil nil default))))
   (let ((options
 	 (if ping-program-options
 	     (append ping-program-options (list host))
@@ -497,7 +464,8 @@ See also: `nslookup-host-ipv4', `nslookup-host-ipv6' for
 non-interactive versions of this function more suitable for use
 in Lisp code."
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Lookup host" default) nil nil default))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (let ((options
          (append nslookup-program-options (list host)
@@ -589,14 +557,12 @@ This command uses `nslookup-program' to look up DNS records."
 
 (autoload 'comint-mode "comint" nil t)
 
-(defvar nslookup-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\t" #'completion-at-point)
-    map))
+(defvar-keymap nslookup-mode-map
+  "TAB" #'completion-at-point)
 
-;; Using a derived mode gives us keymaps, hooks, etc.
 (define-derived-mode nslookup-mode comint-mode "Nslookup"
   "Major mode for interacting with the nslookup program."
+  :interactive nil
   (setq-local font-lock-defaults
               '((nslookup-font-lock-keywords)))
   (setq comint-prompt-regexp nslookup-prompt-regexp)
@@ -611,7 +577,8 @@ Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 
 This command uses `dns-lookup-program' for looking up the DNS information."
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Lookup host" default) nil nil default))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
   (let ((options
          (append dns-lookup-program-options (list host)
@@ -633,20 +600,12 @@ DNS resolution.
 Interactively, prompt for NAME-SERVER if invoked with prefix argument.
 
 This command uses `dig-program' for looking up the DNS information."
+  (declare (obsolete dig "29.1"))
   (interactive
-   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Lookup host" default) nil nil default))
          (if current-prefix-arg (read-from-minibuffer "Name server: "))))
-  (let ((options
-         (append dig-program-options (list host)
-                 (if name-server (list (concat "@" name-server))))))
-  (net-utils-run-program
-   "Dig"
-   (concat "** "
-	   (mapconcat #'identity
-		      (list "Dig" host dig-program)
-		      " ** "))
-   dig-program
-   options)))
+  (dig host nil nil nil nil name-server))
 
 (autoload 'comint-exec "comint")
 (declare-function comint-watch-for-password-prompt "comint" (string))
@@ -656,9 +615,8 @@ This command uses `dig-program' for looking up the DNS information."
 (defun ftp (host)
   "Run `ftp-program' to connect to HOST."
   (interactive
-   (list
-    (read-from-minibuffer
-     "Ftp to Host: " (net-utils-machine-at-point))))
+   (list (let ((default (ffap-machine-at-point)))
+           (read-string (format-prompt "Ftp to Host" default) nil nil default))))
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
     (set-buffer buf)
     (ftp-mode)
@@ -668,14 +626,12 @@ This command uses `dig-program' for looking up the DNS information."
 		   (list host)))
     (pop-to-buffer buf)))
 
-(defvar ftp-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Occasionally useful
-    (define-key map "\t" #'completion-at-point)
-    map))
+(defvar-keymap ftp-mode-map
+  "TAB" #'completion-at-point)
 
 (define-derived-mode ftp-mode comint-mode "FTP"
   "Major mode for interacting with the ftp program."
+  :interactive nil
   (setq comint-prompt-regexp ftp-prompt-regexp)
   (setq comint-input-autoexpand t)
   ;; Only add the password-prompting hook if it's not already in the
@@ -695,8 +651,8 @@ This command uses `dig-program' for looking up the DNS information."
 This command uses `smbclient-program' to connect to HOST."
   (interactive
    (list
-    (read-from-minibuffer
-     "Connect to Host: " (net-utils-machine-at-point))
+    (let ((default (ffap-machine-at-point)))
+      (read-string (format-prompt "Connect to Host" default) nil nil default))
     (read-from-minibuffer "SMB Service: ")))
   (let* ((name (format "smbclient [%s\\%s]" host service))
 	 (buf (get-buffer-create (concat "*" name "*")))
@@ -714,8 +670,8 @@ This command uses `smbclient-program' to connect to HOST."
 This command uses `smbclient-program' to connect to HOST."
   (interactive
    (list
-    (read-from-minibuffer
-     "Connect to Host: " (net-utils-machine-at-point))))
+    (let ((default (ffap-machine-at-point)))
+      (read-string (format-prompt "Connect to Host" default) nil nil default))))
   (let ((buf (get-buffer-create (format "*SMB Shares on %s*" host))))
     (set-buffer buf)
     (smbclient-mode)
@@ -725,6 +681,7 @@ This command uses `smbclient-program' to connect to HOST."
 
 (define-derived-mode smbclient-mode comint-mode "smbclient"
   "Major mode for interacting with the smbclient program."
+  :interactive nil
   (setq comint-prompt-regexp smbclient-prompt-regexp)
   (setq comint-input-autoexpand t)
   ;; Only add the password-prompting hook if it's not already in the
@@ -813,15 +770,15 @@ and `network-connection-service-alist', which see."
   ;; uses a string like "pbreton@cs.umb.edu", we won't ask for the
   ;; host name. If we don't see an "@", we'll prompt for the host.
   (interactive
-    (let* ((answer (read-from-minibuffer "Finger User: "
-					 (net-utils-url-at-point)))
+    (let* ((answer (let ((default (ffap-url-at-point)))
+                     (read-string (format-prompt "Finger User" default) nil nil default)))
 	   (index  (string-match (regexp-quote "@") answer)))
       (if index
 	  (list (substring answer 0 index)
 		(substring answer (1+ index)))
 	(list answer
-	      (read-from-minibuffer "At Host: "
-				    (net-utils-machine-at-point))))))
+              (let ((default (ffap-machine-at-point)))
+                (read-string (format-prompt "At Host" default) nil nil default))))))
   (let* ((user-and-host (concat user "@" host))
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
@@ -940,10 +897,9 @@ The port is deduced from `network-connection-service-alist'."
 ;;; General Network connection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Using a derived mode gives us keymaps, hooks, etc.
-(define-derived-mode
-  network-connection-mode comint-mode "Network-Connection"
-  "Major mode for interacting with the `network-connection' program.")
+(define-derived-mode network-connection-mode comint-mode "Network-Connection"
+  "Major mode for interacting with the `network-connection' program."
+  :interactive nil)
 
 (defun network-connection-mode-setup (host service)
   (setq-local network-connection-host host)
@@ -955,7 +911,8 @@ The port is deduced from `network-connection-service-alist'."
 This command uses `network-connection-service-alist', which see."
   (interactive
    (list
-    (read-from-minibuffer "Host: " (net-utils-machine-at-point))
+    (let ((default (ffap-machine-at-point)))
+      (read-string (format-prompt "Host" default) nil nil default))
     (completing-read "Service: "
 		     (mapcar
                       (lambda (elt)
@@ -1007,6 +964,9 @@ This command uses `network-connection-service-alist', which see."
 			    (cdr (assoc service network-connection-service-alist))))
       (and old-comint-input-ring
 	   (setq comint-input-ring old-comint-input-ring)))))
+
+(define-obsolete-function-alias 'net-utils-machine-at-point #'ffap-machine-at-point "29.1")
+(define-obsolete-function-alias 'net-utils-url-at-point #'ffap-url-at-point "29.1")
 
 (provide 'net-utils)
 

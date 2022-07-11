@@ -1317,7 +1317,7 @@ feedmail-queue-buffer-file-name is restored to nil.
 
 Example advice for mail-send:
 
-    (advice-add 'mail-send :around #'my-feedmail-mail-send-advice)
+    (advice-add \\='mail-send :around #\\='my-feedmail-mail-send-advice)
     (defun my-feedmail-mail-send-advice (orig-fun &rest args)
       (let ((feedmail-queue-buffer-file-name buffer-file-name)
              (buffer-file-name nil))
@@ -1619,7 +1619,8 @@ local gurus."
 		 (if (null mail-interactive) '("-oem" "-odb")))))
 
 (declare-function smtpmail-via-smtp "smtpmail"
-		  (recipient smtpmail-text-buffer &optional ask-for-password))
+		  (recipient smtpmail-text-buffer &optional ask-for-password
+                             send-attempts))
 (defvar smtpmail-smtp-server)
 
 ;; provided by jam@austin.asc.slb.com (James A. McLaughlin);
@@ -1742,7 +1743,7 @@ applied to a file after you've just read it from disk: for example, a
 feedmail FQM message file from a queue.  You could use something like
 this:
 
-    (add-to-list 'auto-mode-alist \\='(\"\\\\.fqm\\\\\\='\" . feedmail-vm-mail-mode))"
+    (add-to-list \\='auto-mode-alist \\='(\"\\\\.fqm\\\\\\='\" . feedmail-vm-mail-mode))"
   (feedmail-say-debug ">in-> feedmail-vm-mail-mode")
   (let ((the-buf (current-buffer)))
     (vm-mail)

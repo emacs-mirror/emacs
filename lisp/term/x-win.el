@@ -85,6 +85,8 @@
 (defvar x-selection-timeout)
 (defvar x-session-id)
 (defvar x-session-previous-id)
+(defvar x-dnd-movement-function)
+(defvar x-dnd-unsupported-drop-function)
 
 (defun x-handle-no-bitmap-icon (_switch)
   (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
@@ -106,14 +108,6 @@
       (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-session-previous-id (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
-
-(defvar emacs-save-session-functions nil
-  "Special hook run when a save-session event occurs.
-The functions do not get any argument.
-Functions can return non-nil to inform the session manager that the
-window system shutdown should be aborted.
-
-See also `emacs-session-save'.")
 
 (defun emacs-session-filename (session-id)
   "Construct a filename to save the session in based on SESSION-ID.
@@ -247,7 +241,9 @@ exists."
 (defconst x-pointer-ur-angle 148)
 (defconst x-pointer-watch 150)
 (defconst x-pointer-xterm 152)
-(defconst x-pointer-invisible 255)
+(defconst x-pointer-invisible 65536) ;; This value is larger than a
+                                     ;; CARD16, so it cannot be a
+                                     ;; valid cursor.
 
 
 ;;;; Keysyms
@@ -1175,9 +1171,6 @@ as returned by `x-server-vendor'."
 
 ;;;; Selections
 
-(define-obsolete-function-alias 'x-cut-buffer-or-selection-value
-  'x-selection-value "24.1")
-
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 
 (defun x-clipboard-yank ()
@@ -1186,8 +1179,12 @@ as returned by `x-server-vendor'."
   (interactive "*")
   (let ((clipboard-text (gui--selection-value-internal 'CLIPBOARD))
 	(select-enable-clipboard t))
-    (if (and clipboard-text (> (length clipboard-text) 0))
-	(kill-new clipboard-text))
+    (when (and clipboard-text (> (length clipboard-text) 0))
+      ;; Avoid asserting ownership of CLIPBOARD, which will cause
+      ;; `gui-selection-value' to return nil in the future.
+      ;; (bug#56273)
+      (let ((select-enable-clipboard nil))
+        (kill-new clipboard-text)))
     (yank)))
 
 (declare-function accelerate-menu "xmenu.c" (&optional frame) t)
@@ -1295,14 +1292,6 @@ This returns an error if any Emacs frames are X frames."
 		    (cons (cons 'width (cdr (assq 'width parsed)))
 			  default-frame-alist))))))
 
-  ;; Check the reverseVideo resource.
-  (let ((case-fold-search t))
-    (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-      (if (and rv
-	       (string-match "^\\(true\\|yes\\|on\\)$" rv))
-	  (setq default-frame-alist
-		(cons '(reverse . t) default-frame-alist)))))
-
   ;; Set x-selection-timeout, measured in milliseconds.
   (let ((res-selection-timeout (x-get-resource "selectionTimeout"
 					       "SelectionTimeout")))
@@ -1378,7 +1367,8 @@ This returns an error if any Emacs frames are X frames."
 (cl-defmethod gui-backend-get-selection (selection-symbol target-type
                                          &context (window-system x)
                                          &optional time-stamp terminal)
-  (x-get-selection-internal selection-symbol target-type time-stamp terminal))
+  (x-get-selection-internal selection-symbol target-type
+                            time-stamp terminal))
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)
@@ -1489,6 +1479,12 @@ If you don't want stock icons, set the variable to nil."
 				       (string :tag "Stock/named")))))
   :group 'x)
 
+(defcustom x-display-cursor-at-start-of-preedit-string nil
+  "If non-nil, display the cursor at the start of any pre-edit text."
+  :version "29.1"
+  :type 'boolean
+  :group 'x)
+
 (defconst x-gtk-stock-cache (make-hash-table :weakness t :test 'equal))
 
 (defun x-gtk-map-stock (file)
@@ -1521,19 +1517,101 @@ This uses `icon-map-list' to map icon file names to stock icon names."
 (defvar x-preedit-overlay nil
   "The overlay currently used to display preedit text from a compose sequence.")
 
+;; With some input methods, text gets inserted before Emacs is told to
+;; remove any preedit text that was displayed, which causes both the
+;; preedit overlay and the text to be visible for a brief period of
+;; time.  This pre-command-hook clears the overlay before any command
+;; and should be set whenever a preedit overlay is visible.
+(defun x-clear-preedit-text ()
+  "Clear the pre-edit overlay and remove itself from pre-command-hook.
+This function should be installed in `pre-command-hook' whenever
+preedit text is displayed."
+  (when x-preedit-overlay
+    (delete-overlay x-preedit-overlay)
+    (setq x-preedit-overlay nil))
+  (remove-hook 'pre-command-hook #'x-clear-preedit-text))
+
 (defun x-preedit-text (event)
   "Display preedit text from a compose sequence in EVENT.
 EVENT is a preedit-text event."
   (interactive "e")
   (when x-preedit-overlay
     (delete-overlay x-preedit-overlay)
-    (setq x-preedit-overlay nil))
+    (setq x-preedit-overlay nil)
+    (remove-hook 'pre-command-hook #'x-clear-preedit-text))
   (when (nth 1 event)
-    (setq x-preedit-overlay (make-overlay (point) (point)))
-    (overlay-put x-preedit-overlay 'before-string
-                 (propertize (nth 1 event) 'face '(:underline t)))))
+    (let ((string (propertize (nth 1 event) 'face '(:underline t))))
+      (setq x-preedit-overlay (make-overlay (point) (point)))
+      (add-hook 'pre-command-hook #'x-clear-preedit-text)
+      (overlay-put x-preedit-overlay 'window (selected-window))
+      (overlay-put x-preedit-overlay 'before-string
+                   (if x-display-cursor-at-start-of-preedit-string
+                       (propertize string 'cursor t)
+                     string)))))
 
 (define-key special-event-map [preedit-text] 'x-preedit-text)
+
+(defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
+
+(declare-function x-internal-focus-input-context "xfns.c" (focus))
+
+(defun x-gtk-use-native-input-watcher (_symbol newval &rest _ignored)
+  "Variable watcher for `x-gtk-use-native-input'.
+If NEWVAL is non-nil, focus the GTK input context of focused
+frames on all displays."
+  (when (and (featurep 'gtk)
+             (eq (framep (selected-frame)) 'x))
+    (x-internal-focus-input-context newval)))
+
+(add-variable-watcher 'x-gtk-use-native-input
+                      #'x-gtk-use-native-input-watcher)
+
+(defun x-dnd-movement (_frame position)
+  "Handle movement to POSITION during drag-and-drop."
+  (dnd-handle-movement position)
+  (redisplay))
+
+(defun x-device-class (name)
+  "Return the device class of NAME.
+Users should not call this function; see `device-class' instead."
+  (let ((downcased-name (downcase name)))
+    (cond
+     ((string-match-p "XTEST" name) 'test)
+     ((string= "Virtual core pointer" name) 'core-pointer)
+     ((string= "Virtual core keyboard" name) 'core-keyboard)
+     ((string-match-p "eraser" downcased-name) 'eraser)
+     ((string-match-p " pad" downcased-name) 'pad)
+     ((or (or (string-match-p "wacom" downcased-name)
+              (string-match-p "pen" downcased-name))
+          (string-match-p "stylus" downcased-name))
+      'pen)
+     ((or (string-prefix-p "xwayland-touch:" name)
+          (string-match-p "touchscreen" downcased-name))
+      'touchscreen)
+     ((or (string-match-p "trackpoint" downcased-name)
+          (string-match-p "stick" downcased-name))
+      'trackpoint)
+     ((or (string-match-p "mouse" downcased-name)
+          (string-match-p "optical" downcased-name)
+          (string-match-p "pointer" downcased-name))
+      'mouse)
+     ((string-match-p "cursor" downcased-name) 'puck)
+     ((or (string-match-p "keyboard" downcased-name)
+          ;; One of my cheap keyboards is really named this...
+          (string= name "USB USB Keykoard"))
+      'keyboard)
+     ((string-match-p "button" downcased-name) 'power-button)
+     ((string-match-p "touchpad" downcased-name) 'touchpad)
+     ((or (string-match-p "midi" downcased-name)
+          (string-match-p "piano" downcased-name))
+      'piano)
+     ((or (string-match-p "wskbd" downcased-name) ; NetBSD/OpenBSD
+          (and (string-match-p "/dev" downcased-name)
+               (string-match-p "kbd" downcased-name)))
+      'keyboard))))
+
+(setq x-dnd-movement-function #'x-dnd-movement)
+(setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
 
 (provide 'x-win)
 (provide 'term/x-win)

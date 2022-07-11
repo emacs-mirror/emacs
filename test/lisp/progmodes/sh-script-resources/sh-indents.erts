@@ -1,0 +1,40 @@
+Code:
+  (lambda ()
+    (shell-script-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: sh-indents1
+
+=-=
+if test;then
+    something
+fi
+other
+=-=-=
+
+Name: sh-indents2
+
+=-=
+if test; then
+    something
+fi
+other
+=-=-=
+
+Name: sh-indents3
+
+=-=
+if test ; then
+    something
+fi
+other
+=-=-=
+
+Name: sh-indents4
+
+=-=
+if test ;then
+    something
+fi
+other
+=-=-=

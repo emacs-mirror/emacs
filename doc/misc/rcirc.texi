@@ -154,8 +154,11 @@ deego: fsbot rules!
 
 @cindex nick completion
 @cindex completion of nicks
+@vindex rcirc-cycle-completion-flag
 @kindex TAB
 Since this is so common, you can use @key{TAB} to do nick completion.
+By default rcirc will use the default completion system, but you can
+enable @code{rcirc-cycle-completion-flag} to cycle nicks in place.
 
 @node Getting started with rcirc
 @section Getting started with rcirc
@@ -636,9 +639,9 @@ password to use.
 @item certfp
 @cindex certfp authentication
 Use this symbol if you want to use CertFP authentication.  The
-necessary arguments are the path to the client certificate key and
-password.  The CertFP authentication requires a @acronym{TLS}
-connection.
+necessary arguments are the path to the key and to the client
+certificate associated with the account.  The CertFP authentication
+requires a @acronym{TLS} connection.
 
 @end table
 

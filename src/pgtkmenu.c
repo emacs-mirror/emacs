@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gtk/gtk.h>
 
 /* Flag which when set indicates a dialog or menu has been posted by
-   Xt on behalf of one of the widget sets.  */
+   GTK on behalf of one of the widget sets.  */
 static int popup_activated_flag;
 
 /* Set menu_items_inuse so no other popup menu or dialog is created.  */
@@ -62,19 +62,14 @@ pgtk_menu_set_in_use (bool in_use)
     struct frame *f = XFRAME (frame);
 
     if (in_use && FRAME_Z_GROUP_ABOVE (f))
-      x_set_z_group (f, Qabove_suspended, Qabove);
+      pgtk_set_z_group (f, Qabove_suspended, Qabove);
     else if (!in_use && FRAME_Z_GROUP_ABOVE_SUSPENDED (f))
-      x_set_z_group (f, Qabove, Qabove_suspended);
+      pgtk_set_z_group (f, Qabove, Qabove_suspended);
   }
 }
 
 DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
-       doc: /* Start key navigation of the menu bar in FRAME.
-       This initially opens the first menu bar item and you can then navigate with the
-       arrow keys, select a menu entry with the return key or cancel with the
-       escape key.  If FRAME has no menu bar this function does nothing.
-
-       If FRAME is nil or not given, use the selected frame.  */)
+       doc: /* SKIP: real doc in USE_GTK definition in xmenu.c.  */)
   (Lisp_Object frame)
 {
   GtkWidget *menubar;
@@ -132,7 +127,7 @@ pgtk_activate_menubar (struct frame *f)
 static void
 popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 {
-  popup_activated_flag = 0;
+  pgtk_menu_set_in_use (false);
 }
 
 /* Function that finds the frame for WIDGET and shows the HELP text
@@ -141,31 +136,15 @@ popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 static void
 show_help_event (struct frame *f, GtkWidget *widget, Lisp_Object help)
 {
-  /* Don't show this tooltip.
-   * Tooltips are always tied to main widget, so stacking order
-   * on Wayland is:
-   *   (above)
-   *   - menu
-   *   - tooltip
-   *   - main widget
-   *   (below)
-   * This is applicable to tooltips for menu, and menu tooltips
-   * are shown below menus.
-   * As a workaround, I entrust Gtk with menu tooltips, and
-   * let emacs not to show menu tooltips.
-   */
+  /* Don't show help echo on PGTK, as tooltips are always transient
+     for the main widget, so on Wayland the menu will display above
+     and obscure the tooltip.  FIXME: this is some low hanging fruit
+     for fixing.  After you fix Fx_show_tip in pgtkterm.c so that it
+     can display tooltips above menus, copy the definition of this
+     function from xmenu.c.
 
-#if 0
-  Lisp_Object frame;
-
-  if (f)
-    {
-      XSETFRAME (frame, f);
-      kbd_buffer_store_help_event (frame, help);
-    }
-  else
-    show_help_echo (help, Qnil, Qnil, Qnil);
-#endif
+     As a workaround, GTK is used to display menu tooltips, outside
+     the Emacs help echo machinery.  */
 }
 
 /* Callback called when menu items are highlighted/unhighlighted
@@ -279,7 +258,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
     {
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= alloca (previous_menu_items_used * sizeof *previous_items);
@@ -558,7 +537,7 @@ create_and_show_popup_menu (struct frame *f, widget_value * first_wv,
 			    int x, int y, bool for_click)
 {
   GtkWidget *menu;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_PGTK_P (f));
 
@@ -625,16 +604,11 @@ pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
     = alloca (menu_items_used * sizeof *subprefix_stack);
   int submenu_depth = 0;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_PGTK_P (f));
 
   *error_name = NULL;
-
-  if (!FRAME_GTK_OUTER_WIDGET (f)) {
-    *error_name = "Can't popup from child frames.";
-    return Qnil;
-  }
 
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
@@ -902,7 +876,7 @@ create_and_show_dialog (struct frame *f, widget_value *first_wv)
 
   if (menu)
     {
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       record_unwind_protect_ptr (pop_down_menu, menu);
 
       /* Display the menu.  */
@@ -934,16 +908,11 @@ pgtk_dialog_show (struct frame *f, Lisp_Object title,
   /* Whether we've seen the boundary between left-hand elts and right-hand.  */
   bool boundary_seen = false;
 
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_PGTK_P (f));
 
   *error_name = NULL;
-
-  if (!FRAME_GTK_OUTER_WIDGET (f)) {
-    *error_name = "Can't popup from child frames.";
-    return Qnil;
-  }
 
   if (menu_items_n_panes > 1)
     {
@@ -1087,7 +1056,7 @@ pgtk_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object title;
   const char *error_name;
   Lisp_Object selection;
-  ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   check_window_system (f);
 

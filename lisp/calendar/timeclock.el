@@ -86,7 +86,7 @@
 
 (defcustom timeclock-workday (* 8 60 60)
   "The length of a work period in seconds."
-  :type 'integer)
+  :type 'natnum)
 
 (defvar timeclock--previous-workday nil)
 

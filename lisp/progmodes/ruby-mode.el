@@ -70,7 +70,7 @@
   "Regexp to match modifiers.")
 
 (defconst ruby-block-mid-keywords
-  '("then" "else" "elsif" "when" "rescue" "ensure")
+  '("then" "else" "elsif" "when" "in" "rescue" "ensure")
   "Keywords where the indentation gets shallower in middle of block statements.")
 
 (defconst ruby-block-mid-re
@@ -325,6 +325,13 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   "Use `ruby-encoding-map' to set encoding magic comment if this is non-nil."
   :type 'boolean :group 'ruby)
 
+(defcustom ruby-toggle-block-space-before-parameters t
+  "When non-nil, ensure space between the \"toggled\" curly and parameters.
+This only affects the output of the command `ruby-toggle-block'."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
 ;;; SMIE support
 
 (require 'smie)
@@ -362,7 +369,9 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (for-body (for-head ";" insts))
        (for-head (id "in" exp))
        (cases (exp "then" insts)
-              (cases "when" cases) (insts "else" insts))
+              (cases "when" cases)
+              (cases "in" cases)
+              (insts "else" insts))
        (expseq (exp) );;(expseq "," expseq)
        (hashvals (exp1 "=>" exp1) (hashvals "," hashvals))
        (insts-rescue-insts (insts)
@@ -373,7 +382,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (if-body (ielsei) (if-body "elsif" if-body)))
      '((nonassoc "in") (assoc ";") (right " @ ")
        (assoc ",") (right "="))
-     '((assoc "when"))
+     '((assoc "when" "in"))
      '((assoc "elsif"))
      '((assoc "rescue" "ensure"))
      '((assoc ",")))
@@ -499,7 +508,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
            ((member tok '("unless" "if" "while" "until"))
             (if (save-excursion (forward-word-strictly -1) (ruby-smie--bosp))
                 tok "iuwu-mod"))
-           ((string-match-p "\\`|[*&]?\\'" tok)
+           ((string-match-p "\\`|[*&]*\\'" tok)
             (forward-char (- 1 (length tok)))
             (setq tok "|")
             (cond
@@ -552,7 +561,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
            ((ruby-smie--closing-pipe-p) "closing-|")
            (t tok)))
          ((string-match-p "\\`[^|]+|\\'" tok) "closing-|")
-         ((string-match-p "\\`|[*&]\\'" tok)
+         ((string-match-p "\\`|[*&]*\\'" tok)
           (forward-char 1)
           (substring tok 1))
          ((and (equal tok "") (eq ?\\ (char-before)) (looking-at "\n"))
@@ -588,7 +597,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
      (cond
       ((smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
                            "while" "until" "unless"
-                           "if" "then" "elsif" "else" "when"
+                           "if" "then" "elsif" "else" "when" "in"
                            "rescue" "ensure" "{")
        (smie-rule-parent ruby-indent-level))
       ;; For (invalid) code between switch and case.
@@ -652,7 +661,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
                         ruby-indent-level))))
     (`(:before . ,(or "else" "then" "elsif" "rescue" "ensure"))
      (smie-rule-parent))
-    ('(:before . "when")
+    (`(:before . ,(or "when" "in"))
      ;; Align to the previous `when', but look up the virtual
      ;; indentation of `case'.
      (if (smie-rule-sibling-p) 0 (smie-rule-parent)))
@@ -1722,13 +1731,14 @@ See `add-log-current-defun-function'."
       (insert "}")
       (goto-char orig)
       (delete-char 2)
-      ;; Maybe this should be customizable, let's see if anyone asks.
-      (insert "{ ")
-      (setq beg-marker (point-marker))
-      (when (looking-at "\\s +|")
-        (delete-char (- (match-end 0) (match-beginning 0) 1))
-        (forward-char)
-        (re-search-forward "|" (line-end-position) t))
+      (insert "{")
+      (if (looking-at "\\s +|")
+          (progn
+            (just-one-space (if ruby-toggle-block-space-before-parameters 1 0))
+            (setq beg-marker (point-marker))
+            (forward-char)
+            (re-search-forward "|" (line-end-position) t))
+        (setq beg-marker (point-marker)))
       (save-excursion
         (skip-chars-forward " \t\n\r")
         (setq beg-pos (point))
@@ -2446,6 +2456,13 @@ If there is no Rubocop config file, Rubocop will be passed a flag
   (setq-local add-log-current-defun-function #'ruby-add-log-current-method)
   (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
   (setq-local end-of-defun-function #'ruby-end-of-defun)
+
+  ;; `outline-regexp' contains the first part of `ruby-indent-beg-re'
+  (setq-local outline-regexp (concat "^\\s *"
+                                     (regexp-opt '("class" "module" "def"))
+                                     "\\_>"))
+  (setq-local outline-level (lambda () (1+ (/ (current-indentation)
+                                              ruby-indent-level))))
 
   (add-hook 'after-save-hook #'ruby-mode-set-encoding nil 'local)
   (add-hook 'electric-indent-functions #'ruby--electric-indent-p nil 'local)

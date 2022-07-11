@@ -216,23 +216,17 @@
 ;; Key bindings
 ;; ============
 ;;
-;; There is an alternative set of key bindings which will be used
-;; automatically for a PC if Oemacs is detected.  This set uses separate
-;; control, shift and meta keys with function keys 1 to 10.  In
-;; particular, movement keys are concentrated on f5 to f8 with (in
-;; increasing order of distance traveled) C-, M- and S- as prefixes.
-;; See the actual bindings below (search for C-f1).  This is because the
-;; C-S- prefix is represented by weird key sequences and the set is
-;; incomplete; if you don't mind that, some hints are given in comments
-;; below.
+;; There is an alternative set of key bindings named "Oemacs" (for
+;; historical reasons).  This set uses separate control, shift and
+;; meta keys with function keys 1 to 10.  In particular, movement keys
+;; are concentrated on f5 to f8 with (in increasing order of distance
+;; traveled) C-, M- and S- as prefixes.  See the actual bindings below
+;; (search for C-f1).  This is because the C-S- prefix is represented
+;; by weird key sequences and the set is incomplete; if you don't mind
+;; that, some hints are given in comments below.
 ;;
-;; You can specify the usual or the Oemacs bindings by setting the
-;; variable vcursor-key-bindings to `xterm' or `oemacs'.  You can also set
-;; it to nil, in which case vcursor will not make any key bindings
-;; and you can define your own.  The default is t, which makes vcursor
-;; guess (it will use xterm unless it thinks Oemacs is running).  The
-;; oemacs set will work on an X terminal with function keys, but the
-;; xterm set will not work under Oemacs.
+;; You can specify which set of key bindings to use by customizing the
+;; user option `vcursor-key-bindings'.
 ;;
 ;; Usage on dumb terminals
 ;; =======================
@@ -355,8 +349,7 @@ on loading vcursor and from the customize package."
   (set var value)
   (cond
    ((not value)) ;; Don't set any key bindings.
-   ((or (eq value 'oemacs)
-	(and (eq value t) (fboundp 'oemacs-version)))
+   ((eq value 'oemacs)
     (global-set-key [C-f1] #'vcursor-toggle-copy)
     (global-set-key [C-f2] #'vcursor-copy)
     (global-set-key [C-f3] #'vcursor-copy-word)
@@ -386,33 +379,6 @@ on loading vcursor and from the customize package."
 
     (global-set-key [S-f9] #'vcursor-execute-key)
     (global-set-key [S-f10] #'vcursor-execute-command)
-
-    ;; Partial dictionary of Oemacs key sequences for you to roll your own,
-    ;; e.g C-S-up: (global-set-key "\M-[\C-f\M-\C-m" 'vcursor-previous-line)
-    ;;    Sequence:         Sends:
-    ;; "\M-[\C-f\M-\C-m"   C-S-up
-    ;; "\M-[\C-f\M-\C-q"   C-S-down
-    ;; "\M-[\C-fs"         C-S-left
-    ;; "\M-[\C-ft"         C-S-right
-    ;;
-    ;; "\M-[\C-fw"         C-S-home
-    ;; "\M-[\C-b\C-o"      S-tab
-    ;; "\M-[\C-f\M-\C-r"   C-S-insert
-    ;; "\M-[\C-fu"         C-S-end
-    ;; "\M-[\C-f\M-\C-s"   C-S-delete
-    ;; "\M-[\C-f\M-\C-d"   C-S-prior
-    ;; "\M-[\C-fv"         C-S-next
-    ;;
-    ;; "\M-[\C-f^"         C-S-f1
-    ;; "\M-[\C-f_"         C-S-f2
-    ;; "\M-[\C-f`"         C-S-f3
-    ;; "\M-[\C-fa"         C-S-f4
-    ;; "\M-[\C-fb"         C-S-f5
-    ;; "\M-[\C-fc"         C-S-f6
-    ;; "\M-[\C-fd"         C-S-f7
-    ;; "\M-[\C-fe"         C-S-f8
-    ;; "\M-[\C-ff"         C-S-f9
-    ;; "\M-[\C-fg"         C-S-f10
     )
    (t
     (global-set-key (vcursor-cs-binding "up") #'vcursor-previous-line)
@@ -456,11 +422,12 @@ on loading vcursor and from the customize package."
     (global-set-key (vcursor-cs-binding "f10") #'vcursor-execute-command)
     )))
 
+;; TODO: Get rid of references to "oemacs", which was an ancient
+;;       MS-DOS compatible release of Emacs 19.
 (defcustom vcursor-key-bindings nil
   "How to bind keys when vcursor is loaded.
-If t, guess; if `xterm', use bindings suitable for an X terminal; if
-`oemacs', use bindings which work on a PC with Oemacs.  If nil, don't
-define any key bindings.
+If t or `xterm', use the default bindings; if `oemacs', use
+alternative key bindings.  If nil, don't define any key bindings.
 
 Default is nil."
   :type '(choice (const t) (const nil) (const xterm) (const oemacs))
@@ -854,9 +821,7 @@ Arguments N and optional ALL-FRAMES are the same as with `other-window'.
 ALL-FRAMES is also used to decide whether to split the window."
 
   (interactive "p")
-  (if (if (fboundp 'oemacs-version)
-	  (one-window-p nil)
-	(one-window-p nil all-frames))
+  (if (one-window-p nil all-frames)
       (display-buffer (current-buffer) t))
   (save-excursion
     (save-window-excursion

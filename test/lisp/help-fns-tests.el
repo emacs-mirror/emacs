@@ -25,6 +25,7 @@
 
 (require 'ert)
 (require 'help-fns)
+(require 'subr-x)
 
 (autoload 'help-fns-test--macro "foo" nil nil t)
 
@@ -176,5 +177,14 @@ Return first line of the output of (describe-function-1 FUNC)."
     (put help-fns--test-var 'variable-documentation 1)
     (should-not (find-lisp-object-file-name help-fns--test-var 'defface))
     (should-not (find-lisp-object-file-name help-fns--test-var 1))))
+
+(ert-deftest help-fns--analyze-function-recursive ()
+  (defalias 'help-fns--a 'help-fns--b)
+  (should (equal (help-fns--analyze-function 'help-fns--a)
+                 '(help-fns--a help-fns--b t help-fns--b)))
+  ;; Make a loop and see that it doesn't infloop.
+  (defalias 'help-fns--b 'help-fns--a)
+  (should (equal (help-fns--analyze-function 'help-fns--a)
+                 '(help-fns--a help-fns--b t help-fns--b))))
 
 ;;; help-fns-tests.el ends here

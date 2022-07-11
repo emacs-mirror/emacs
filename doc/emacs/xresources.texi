@@ -149,6 +149,15 @@ various X toolkits (GTK+, Lucid, etc.)---we indicate below when this
 is the case.
 
 @table @asis
+@item @code{alpha} (class @code{Alpha})
+Sets the @samp{alpha} frame parameter, determining frame transparency
+(@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
+
+@item @code{alphaBackground} (class @code{AlphaBackground})
+Sets the @samp{alpha-background} frame parameter, determining background
+transparency
+(@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
+
 @item @code{background} (class @code{Background})
 Background color (@pxref{Colors}).
 
@@ -355,10 +364,25 @@ Let the input method decide how to display itself.  This is usually
 equivalent to @samp{overthespot}, but it might work with more input
 methods.
 
+@item native
+Use the toolkit for handling input methods.  This is currently
+implemented only on GTK.
+
 @item root
 Use some location on display specific to the input method for
 displaying the preview text.
 @end table
+
+@item @code{synchronizeResize} (class @code{SynchronizeResize})
+If @samp{off} or @samp{false}, Emacs will not try to tell the window
+manager when it has finished redrawing the display in response to a
+frame being resized.  Otherwise, the window manager will postpone
+drawing a frame that was just resized until its contents are updated,
+which prevents blank areas of a frame that have not yet been painted
+from being displayed.  If set to @samp{extended}, it will enable use
+of an alternative frame synchronization protocol, which might be
+supported by some compositing window managers that don't support the
+protocol Emacs uses by default.
 
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars on the left if @samp{left}, on the right if
@@ -585,7 +609,7 @@ those are governed by normal X resources (@pxref{Resources}).
 
   The following sections describe how to customize GTK+ resources for
 Emacs.  For details about GTK+ resources, see the GTK+ API document at
-@uref{https://developer.gnome.org/gtk2/stable/gtk2-Resource-Files.html}.
+@uref{https://developer-old.gnome.org/gtk2/stable/gtk2-Resource-Files.html}.
 
   In GTK+ version 3, GTK+ resources have been replaced by a completely
 different system.  The appearance of GTK+ widgets is now determined by
@@ -595,7 +619,7 @@ style settings (where @var{theme} is the name of the current GTK+
 theme).  Therefore, the description of GTK+ resources in this section
 does not apply to GTK+ 3.  For details about the GTK+ 3 styling
 system, see
-@uref{https://developer.gnome.org/gtk3/3.0/GtkCssProvider.html}.
+@uref{https://developer-old.gnome.org/gtk3/3.0/GtkCssProvider.html}.
 
 @menu
 * GTK Resource Basics::   Basic usage of GTK+ resources.

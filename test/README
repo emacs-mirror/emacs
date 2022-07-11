@@ -111,26 +111,21 @@ debugging.  To do that, use
 
 By default, ERT test failure summaries are quite brief in batch
 mode--only the names of the failed tests are listed.  If the
-$EMACS_TEST_VERBOSE environment variable is set, the failure summaries
-will also include the data from the failing test.
+$EMACS_TEST_VERBOSE environment variable is set and non-empty, the
+failure summaries will also include the data from the failing test.
 
 If the $EMACS_TEST_JUNIT_REPORT environment variable is set to a file
 name, a JUnit test report is generated under this name.
 
 Some of the tests require a remote temporary directory
-(autorevert-tests.el, filenotify-tests.el, shadowfile-tests.el and
-tramp-tests.el).  Per default, a mock-up connection method is used
-(this might not be possible when running on MS Windows).  If you want
-to test a real remote connection, set $REMOTE_TEMPORARY_FILE_DIRECTORY
-to a suitable value in order to overwrite the default value:
+(autorevert-tests.el, dnd-tests.el, filenotify-tests.el,
+shadowfile-tests.el and tramp-tests.el).  Per default, a mock-up
+connection method is used (this might not be possible when running on
+MS Windows).  If you want to test a real remote connection, set
+$REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable value in order to
+overwrite the default value:
 
     env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make ...
-
-Some optional tests require packages from GNU ELPA.  By default
-../../elpa will be checked for these packages.  If GNU ELPA is checked
-out somewhere else, use
-
-    make GNU_ELPA_DIRECTORY=/path/to/elpa ...
 
 
 There are also continuous integration tests on

@@ -497,8 +497,8 @@ is requested."
 
 (defvar semantic-working-type 'percent
   "The type of working message to use when parsing.
-'percent means we are doing a linear parse through the buffer.
-'dynamic means we are reparsing specific tags.")
+`percent' means we are doing a linear parse through the buffer.
+`dynamic' means we are reparsing specific tags.")
 
 (defvar semantic-minimum-working-buffer-size (* 1024 5)
   "The minimum size of a buffer before working messages are displayed.
