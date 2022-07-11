@@ -1411,6 +1411,7 @@ This function is called with no argument.")
 Each element has the form:
    (INPUT-METHOD LANGUAGE-ENV ACTIVATE-FUNC TITLE DESCRIPTION ARGS...)
 See the function `register-input-method' for the meanings of the elements.")
+;; Autoload if this file no longer dumped.
 ;;;###autoload
 (put 'input-method-alist 'risky-local-variable t)
 

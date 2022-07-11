@@ -230,6 +230,7 @@ mnemonics of the following coding systems:
     (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
 		 help-echo ,(purecopy "emacsclient frame")))
   "Mode line construct for identifying emacsclient frames.")
+;; Autoload if this file no longer dumped.
 ;;;###autoload
 (put 'mode-line-client 'risky-local-variable t)
 
