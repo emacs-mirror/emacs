@@ -2911,7 +2911,8 @@ that you not build Emacs with native compilation on 32-bit Cygwin.
 Indeed, the configure script will not allow this unless you use the
 --with-cygwin32-native-compilation option.
 
-See bug#50666 for further discussion.
+See bug#50666 (https://debbugs.gnu.org/cgi/bugreport.cgi?bug=50666)
+for further discussion.
 
 
 * Runtime problems specific to macOS
