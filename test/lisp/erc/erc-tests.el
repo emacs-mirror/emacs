@@ -953,4 +953,93 @@
     (kill-buffer "ExampleNet")
     (kill-buffer "#chan")))
 
+(defvar erc-tests--ipv6-examples
+  '("1:2:3:4:5:6:7:8"
+    "::ffff:10.0.0.1" "::ffff:1.2.3.4" "::ffff:0.0.0.0"
+    "1:2:3:4:5:6:77:88" "::ffff:255.255.255.255"
+    "fe08::7:8" "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+    "1:2:3:4:5:6:7:8" "1::" "1:2:3:4:5:6:7::" "1::8"
+    "1:2:3:4:5:6::8" "1:2:3:4:5:6::8" "1::7:8" "1:2:3:4:5::7:8"
+    "1:2:3:4:5::8" "1::6:7:8" "1:2:3:4::6:7:8" "1:2:3:4::8"
+    "1::5:6:7:8" "1:2:3::5:6:7:8" "1:2:3::8" "1::4:5:6:7:8"
+    "1:2::4:5:6:7:8" "1:2::8" "1::3:4:5:6:7:8" "1::3:4:5:6:7:8"
+    "1::8" "::2:3:4:5:6:7:8" "::2:3:4:5:6:7:8" "::8"
+    "::" "fe08::7:8%eth0" "fe08::7:8%1" "::255.255.255.255"
+    "::ffff:255.255.255.255" "::ffff:0:255.255.255.255"
+    "2001:db8:3:4::192.0.2.33" "64:ff9b::192.0.2.33"))
+
+(ert-deftest erc--server-connect-dumb-ipv6-regexp ()
+  (dolist (a erc-tests--ipv6-examples)
+    (should-not (string-match erc--server-connect-dumb-ipv6-regexp a))
+    (should (string-match erc--server-connect-dumb-ipv6-regexp
+                          (concat "[" a "]")))))
+
+(ert-deftest erc-select-read-args ()
+
+  (ert-info ("Defaults to TLS")
+    (should (equal (ert-simulate-keys "\r\r\r\r"
+                     (erc-select-read-args))
+                   (list :server "irc.libera.chat"
+                         :port 6697
+                         :nick (user-login-name)
+                         :password nil))))
+
+  (ert-info ("Override default TLS")
+    (should (equal (ert-simulate-keys "irc://irc.libera.chat\r\r\r\r"
+                     (erc-select-read-args))
+                   (list :server "irc.libera.chat"
+                         :port 6667
+                         :nick (user-login-name)
+                         :password nil))))
+
+  (ert-info ("Address includes port")
+    (should (equal (ert-simulate-keys
+                       "localhost:6667\rnick\r\r"
+                     (erc-select-read-args))
+                   (list :server "localhost"
+                         :port 6667
+                         :nick "nick"
+                         :password nil))))
+
+  (ert-info ("Address includes nick, password skipped via option")
+    (should (equal (ert-simulate-keys "nick@localhost:6667\r"
+                     (let (erc-prompt-for-password)
+                       (erc-select-read-args)))
+                   (list :server "localhost"
+                         :port 6667
+                         :nick "nick"
+                         :password nil))))
+
+  (ert-info ("Addresss includes nick and password")
+    (should (equal (ert-simulate-keys "nick:sesame@localhost:6667\r"
+                     (erc-select-read-args))
+                   (list :server "localhost"
+                         :port 6667
+                         :nick "nick"
+                         :password "sesame"))))
+
+  (ert-info ("IPv6 address plain")
+    (should (equal (ert-simulate-keys "::1\r\r\r\r"
+                     (erc-select-read-args))
+                   (list :server "[::1]"
+                         :port 6667
+                         :nick (user-login-name)
+                         :password nil))))
+
+  (ert-info ("IPv6 address with port")
+    (should (equal (ert-simulate-keys "[::1]:6667\r\r\r"
+                     (erc-select-read-args))
+                   (list :server "[::1]"
+                         :port 6667
+                         :nick (user-login-name)
+                         :password nil))))
+
+  (ert-info ("IPv6 address includes nick")
+    (should (equal (ert-simulate-keys "nick@[::1]:6667\r\r"
+                     (erc-select-read-args))
+                   (list :server "[::1]"
+                         :port 6667
+                         :nick "nick"
+                         :password nil)))))
+
 ;;; erc-tests.el ends here

@@ -638,12 +638,18 @@ The current buffer is given by BUFFER."
   (let ((p (plist-put parameters :nowait t)))
     (apply #'open-network-stream name buffer host service p)))
 
+(defvar erc--server-connect-dumb-ipv6-regexp
+  ;; Not for validation (gives false positives).
+  (rx bot "[" (group (+ (any xdigit digit ":.")) (? "%" (+ alnum))) "]" eot))
+
 (defun erc-server-connect (server port buffer &optional client-certificate)
   "Perform the connection and login using the specified SERVER and PORT.
 We will store server variables in the buffer given by BUFFER.
 CLIENT-CERTIFICATE may optionally be used to specify a TLS client
 certificate to use for authentication when connecting over
 TLS (see `erc-session-client-certificate' for more details)."
+  (when (string-match erc--server-connect-dumb-ipv6-regexp server)
+    (setq server (match-string 1 server)))
   (let ((msg (erc-format-message 'connect ?S server ?p port)) process
         (args `(,(format "erc-%s-%s" server port) nil ,server ,port)))
     (when client-certificate

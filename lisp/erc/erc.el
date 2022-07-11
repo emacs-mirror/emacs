@@ -70,7 +70,7 @@
 (require 'auth-source)
 (require 'time-date)
 (require 'iso8601)
-(eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'subr-x) (require 'url-parse))
 
 (defconst erc-version "5.4.1"
   "This version of ERC.")
@@ -2094,52 +2094,51 @@ parameters SERVER and NICK."
   :group 'erc-hooks
   :type '(repeat function))
 
+(defun erc--ensure-url (input)
+  (unless (string-match (rx bot "irc" (? "6") (? "s") "://") input)
+    (when (and (string-match (rx (? (+ any) "@")
+                                 (or (group (* (not "[")) ":" (* any))
+                                     (+ any))
+                                 ":" (+ (not (any ":]"))) eot)
+                             input)
+               (match-beginning 1))
+      (setq input (concat "[" (substring input (match-beginning 1)) "]")))
+    (setq input (concat "irc://" input)))
+  input)
+
 ;;;###autoload
 (defun erc-select-read-args ()
   "Prompt the user for values of nick, server, port, and password."
-  (let (user-input server port nick passwd)
-    (setq user-input (read-string
-                      "IRC server: "
-                      (erc-compute-server) 'erc-server-history-list))
-
-    (if (string-match "\\(.*\\):\\(.*\\)\\'" user-input)
-        (setq port (erc-string-to-port (match-string 2 user-input))
-              user-input (match-string 1 user-input))
-      (setq port
-            (erc-string-to-port (read-string
-                                 "IRC port: " (erc-port-to-string
-                                               (erc-compute-port))))))
-
-    (if (string-match "\\`\\(.*\\)@\\(.*\\)" user-input)
-        (setq nick (match-string 1 user-input)
-              user-input (match-string 2 user-input))
-      (setq nick
-            (if (erc-already-logged-in server port nick)
-                (read-string
-                 (erc-format-message 'nick-in-use ?n nick)
-                 nick 'erc-nick-history-list)
-              (read-string
-               "Nickname: " (erc-compute-nick nick)
-               'erc-nick-history-list))))
-
-    (setq server user-input)
-
-    (setq passwd (if erc-prompt-for-password
-                     (read-passwd "Server password: ")
-                   (with-suppressed-warnings ((obsolete erc-password))
-                     erc-password)))
+  (require 'url-parse)
+  (let* ((input (let ((d (erc-compute-server)))
+                  (read-string (format "Server (default is %S): " d)
+                               nil 'erc-server-history-list d)))
+         ;; For legacy reasons, also accept a URL without a scheme.
+         (url (url-generic-parse-url (erc--ensure-url input)))
+         (server (url-host url))
+         (sp (and (or (string-suffix-p "s" (url-type url))
+                      (and (equal server erc-default-server)
+                           (not (string-prefix-p "irc://" input))))
+                  'ircs-u))
+         (port (or (url-portspec url)
+                   (erc-compute-port
+                    (let ((d (erc-compute-port sp))) ; may be a string
+                      (read-string (format "Port (default is %s): " d)
+                                   nil nil d)))))
+         ;; Trust the user not to connect twice accidentally.  We
+         ;; can't use `erc-already-logged-in' to check for an existing
+         ;; connection without modifying it to consider USER and PASS.
+         (nick (or (url-user url)
+                   (let ((d (erc-compute-nick)))
+                     (read-string (format "Nickname (default is %S): " d)
+                                  nil 'erc-nick-history-list d))))
+         (passwd (or (url-password url)
+                     (if erc-prompt-for-password
+                         (read-passwd "Server password (optional): ")
+                       (with-suppressed-warnings ((obsolete erc-password))
+                         erc-password)))))
     (when (and passwd (string= "" passwd))
       (setq passwd nil))
-
-    (while (erc-already-logged-in server port nick)
-      ;; hmm, this is a problem when using multiple connections to a bnc
-      ;; with the same nick. Currently this code prevents using more than one
-      ;; bnc with the same nick. actually it would be nice to have
-      ;; bncs transparent, so that erc-compute-buffer-name displays
-      ;; the server one is connected to.
-      (setq nick (read-string
-                  (erc-format-message 'nick-in-use ?n nick)
-                  nick 'erc-nick-history-list)))
     (list :server server :port port :nick nick :password passwd)))
 
 ;;;###autoload
