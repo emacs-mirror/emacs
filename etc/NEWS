@@ -440,6 +440,12 @@ The user options 'url-gateway-rlogin-host',
 are also obsolete.
 
 ---
+** The user function 'url-irc-function' now takes a 'scheme' argument.
+The user option 'url-irc-function' is now called with a sixth argument
+corresponding to the scheme portion of the target URL.  For example,
+this would be "ircs" for a URL like "ircs://irc.libera.chat".
+
+---
 ** The linum.el library is now obsolete.
 We recommend using either the built-in 'display-line-numbers-mode', or
 the 'nlinum' package from GNU ELPA instead.  The former has better
@@ -2643,6 +2649,17 @@ related functions will use by default.  For example, you could
 customize this to "https" to always prefer HTTPS URLs.
 
 ---
+*** New user option 'browse-url-irc-function'.
+This option specifies a function for opening irc:// links.  It
+defaults to the new function 'browse-url-irc'.
+
+---
+*** New function 'browse-url-irc'.
+This multipurpose autoloaded function can be used for opening irc://
+and ircs:// URLS by any caller that passes a URL string as an initial
+arg.
+
+---
 *** Support for the Netscape web browser has been removed.
 This support has been obsolete since Emacs 25.1.  The final version of
 the Netscape web browser was released in February, 2008.
@@ -2867,6 +2884,9 @@ remote host are shown.  Alternatively, the user option
 ---
 *** 'outlineify-sticky' command is renamed to 'allout-outlinify-sticky'.
 The old name is still available as an obsolete function alias.
+
+---
+*** The url-irc library now understands ircs:// links.
 
 ---
 *** New command 'world-clock-copy-time-as-kill' for 'M-x world-clock'.

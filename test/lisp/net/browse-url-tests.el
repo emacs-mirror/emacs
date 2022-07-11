@@ -56,6 +56,15 @@
               'browse-url--man))
   (should-not (browse-url-select-handler "man:ls" 'external)))
 
+(ert-deftest browse-url-tests-select-handler-irc ()
+  (should (eq (browse-url-select-handler "irc://localhost" 'internal)
+              'browse-url--irc))
+  (should-not (browse-url-select-handler "irc://localhost" 'external))
+  (should (eq (browse-url-select-handler "irc6://localhost")
+              'browse-url--irc))
+  (should (eq (browse-url-select-handler "ircs://tester@irc.gnu.org/#chan")
+              'browse-url--irc)))
+
 (ert-deftest browse-url-tests-select-handler-file ()
   (should (eq (browse-url-select-handler "file://foo.txt")
               'browse-url-emacs))

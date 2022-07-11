@@ -222,6 +222,14 @@ be used instead."
           (function :tag "Other function"))
   :version "26.1")
 
+(defcustom browse-url-irc-function 'browse-url-irc
+  "Function to open an irc:// link."
+  :type '(choice
+          (function-item :tag "Emacs IRC" :value browse-url-irc)
+          (const :tag "None" nil)
+          (function :tag "Other function"))
+  :version "29.1")
+
 (defcustom browse-url-button-regexp
   (concat
    "\\b\\(\\(www\\.\\|\\(s?https?\\|ftp\\|file\\|gopher\\|gemini\\|"
@@ -547,6 +555,11 @@ process), or nil (we don't know)."
 (function-put 'browse-url--man 'browse-url-browser-kind
               #'browse-url--browser-kind-man)
 
+(defun browse-url--irc (url &rest args)
+  "Call `browse-url-irc-function' with URL and ARGS."
+  (funcall browse-url-irc-function url args))
+(function-put 'browse-url--irc 'browse-url-browser-kind 'internal)
+
 (defun browse-url--browser (url &rest args)
   "Call `browse-url-browser-function' with URL and ARGS."
   (funcall browse-url-browser-function url args))
@@ -565,6 +578,7 @@ process), or nil (we don't know)."
 (defvar browse-url-default-handlers
   '(("\\`mailto:" . browse-url--mailto)
     ("\\`man:" . browse-url--man)
+    ("\\`irc6?s?://" . browse-url--irc)
     (browse-url--non-html-file-url-p . browse-url-emacs))
   "Like `browse-url-handlers' but populated by Emacs and packages.
 
@@ -1509,6 +1523,16 @@ used instead of `browse-url-new-window-flag'."
 				     "\r")))))
 
 (function-put 'browse-url-text-emacs 'browse-url-browser-kind 'internal)
+
+;; --- irc ---
+
+;;;###autoload
+(defun browse-url-irc (url &rest _)
+  "Call `url-irc' directly after parsing URL.
+This function is a fit for options like `gnus-button-alist'."
+  (url-irc (url-generic-parse-url url)))
+
+(function-put 'browse-url-irc 'browse-url-browser-kind 'internal)
 
 ;; --- mailto ---
 
