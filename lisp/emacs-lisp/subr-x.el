@@ -290,6 +290,7 @@ it makes no sense to convert it to a string using
 		(set-buffer source-buffer)
 		(replace-buffer-contents tmp-buffer max-secs max-costs)))))))))
 
+;;;###autoload
 (defmacro named-let (name bindings &rest body)
   "Looping construct taken from Scheme.
 Like `let', bind variables in BINDINGS and then evaluate BODY,
