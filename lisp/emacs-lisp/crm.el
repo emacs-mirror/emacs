@@ -77,6 +77,8 @@
 
 ;;; Code:
 
+(define-obsolete-variable-alias 'crm-default-separator 'crm-separator "29.1")
+
 (defvar crm-separator "[ \t]*,[ \t]*"
   "Separator regexp used for separating strings in `completing-read-multiple'.
 It should be a regexp that does not match the list of completion candidates.")
@@ -293,8 +295,6 @@ with empty strings removed."
 ;(completing-read-multiple my-prompt my-table nil "match")
 ;(completing-read my-prompt my-table nil t)
 ;(completing-read my-prompt my-table nil "match")
-
-(define-obsolete-variable-alias 'crm-default-separator 'crm-separator "29.1")
 
 (provide 'crm)
 
