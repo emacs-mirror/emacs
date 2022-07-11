@@ -449,6 +449,12 @@ Foreground color for a selected item.
 Foreground color.
 @item disabledForeground
 Foreground color for a disabled menu item.
+@item highlightForeground
+Foreground color for a menu item highlighted by the mouse or key
+navigation.
+@item highlightBackground
+Background color for a menu item highlighted by the mouse or key
+navigation.
 @ifnottex
 @item horizontalSpacing
 Horizontal spacing in pixels between items.  Default is 3.

@@ -121,6 +121,10 @@ xlwMenuResources[] =
    offset(menu.disabled_foreground), XtRString, (XtPointer)NULL},
   {XtNbuttonForeground, XtCButtonForeground, XtRPixel, sizeof(Pixel),
      offset(menu.button_foreground), XtRString, "XtDefaultForeground"},
+  {XtNhighlightForeground, XtCHighlightForeground, XtRPixel, sizeof(Pixel),
+   offset(menu.highlight_foreground), XtRString, "XtDefaultForeground"},
+  {XtNhighlightBackground, XtCHighlightBackground, XtRPixel, sizeof(Pixel),
+   offset(menu.highlight_background), XtRImmediate, (XtPointer)-1},
   {XtNmargin, XtCMargin, XtRDimension,  sizeof(Dimension),
      offset(menu.margin), XtRImmediate, (XtPointer)1},
   {XtNhorizontalSpacing, XtCMargin, XtRDimension,  sizeof(Dimension),
@@ -570,8 +574,7 @@ draw_arrow (XlwMenuWidget mw,
             int down_p)
 {
   Display *dpy = XtDisplay (mw);
-  GC top_gc = mw->menu.shadow_top_gc;
-  GC bottom_gc = mw->menu.shadow_bottom_gc;
+  GC top_gc, bottom_gc;
   int thickness = mw->menu.shadow_thickness;
   int height = width;
   XPoint pt[10];
@@ -584,10 +587,13 @@ draw_arrow (XlwMenuWidget mw,
 
   if (down_p)
     {
-      GC temp;
-      temp = top_gc;
-      top_gc = bottom_gc;
-      bottom_gc = temp;
+      top_gc = mw->menu.highlight_shadow_bottom_gc;
+      bottom_gc = mw->menu.highlight_shadow_top_gc;
+    }
+  else
+    {
+      top_gc = mw->menu.shadow_top_gc;
+      bottom_gc = mw->menu.shadow_bottom_gc;
     }
 
   pt[0].x = x;
@@ -621,23 +627,33 @@ draw_arrow (XlwMenuWidget mw,
   XFillPolygon (dpy, window, bottom_gc, pt, 4, Convex, CoordModeOrigin);
 }
 
-
-
+/* Generic draw shadow rectangle function.  It is used to draw shadows
+   on menus, menu items and also toggle buttons.  When ERASE_P is
+   true, it clears shadows.  DOWN_P is true when a menu item is pushed
+   or a button toggled.  TOP_GC and BOTTOM_GC are the graphic contexts
+   used to draw the top and bottom shadow respectively.  */
 static void
-draw_shadow_rectangle (XlwMenuWidget mw,
-                       Window window,
-                       int x,
-                       int y,
-                       int width,
-                       int height,
-                       int erase_p,
-                       int down_p)
+draw_shadow_rectangle (XlwMenuWidget mw, Window window, int x, int y,
+		       int width, int height, int erase_p, int down_p,
+		       GC top_gc, GC bottom_gc)
 {
   Display *dpy = XtDisplay (mw);
-  GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
-  GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
   int thickness = !x && !y ? mw->menu.border_thickness : mw->menu.shadow_thickness;
   XPoint points [4];
+
+  /* Choose correct GC with a standard default if NULL.  */
+  if (erase_p)
+    {
+      top_gc = mw->menu.background_gc;
+      bottom_gc = mw->menu.background_gc;
+    }
+  else
+    {
+      if (top_gc == NULL)
+	top_gc = mw->menu.shadow_top_gc;
+      if (bottom_gc == NULL)
+	bottom_gc = mw->menu.shadow_bottom_gc;
+    }
 
   if (!erase_p && width == height && width == toggle_button_width (mw))
     {
@@ -662,6 +678,7 @@ draw_shadow_rectangle (XlwMenuWidget mw,
       bottom_gc = temp;
     }
 
+  /* Do draw (or erase) shadows */
   points [0].x = x;
   points [0].y = y;
   points [1].x = x + width;
@@ -702,20 +719,27 @@ draw_shadow_rectangle (XlwMenuWidget mw,
 
 
 static void
-draw_shadow_rhombus (XlwMenuWidget mw,
-                     Window window,
-                     int x,
-                     int y,
-                     int width,
-                     int height,
-                     int erase_p,
-                     int down_p)
+draw_shadow_rhombus (XlwMenuWidget mw, Window window, int x, int y,
+                     int width, int height, int erase_p, int down_p,
+		     GC top_gc, GC bottom_gc)
 {
   Display *dpy = XtDisplay (mw);
-  GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
-  GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
   int thickness = mw->menu.shadow_thickness;
   XPoint points [4];
+
+  /* Choose correct GC with a standard default if NULL */
+  if (erase_p)
+    {
+      top_gc = mw->menu.background_gc;
+      bottom_gc = mw->menu.background_gc;
+    }
+  else
+    {
+      if (top_gc == NULL)
+	top_gc = mw->menu.shadow_top_gc;
+      if (bottom_gc == NULL)
+	top_gc = mw->menu.shadow_bottom_gc;
+    }
 
   if (!erase_p && width == height && width == radio_button_width (mw))
     {
@@ -784,15 +808,29 @@ draw_shadow_rhombus (XlwMenuWidget mw,
    toggle button is selected.  */
 
 static void
-draw_toggle (XlwMenuWidget mw, Window window, int x, int y, int selected_p)
+draw_toggle (XlwMenuWidget mw, Window window, int x, int y, int selected_p,
+	     int highlighted_p)
 {
   int width, height;
+  GC top_gc, bottom_gc;
+
+  if (highlighted_p)
+    {
+      top_gc = mw->menu.highlight_shadow_top_gc;
+      bottom_gc = mw->menu.highlight_shadow_bottom_gc;
+    }
+  else
+    {
+      top_gc = mw->menu.shadow_top_gc;
+      bottom_gc = mw->menu.shadow_bottom_gc;
+    }
 
   width = toggle_button_width (mw);
   height = width;
   x += mw->menu.horizontal_spacing;
   y += (MENU_FONT_ASCENT (mw) - height) / 2;
-  draw_shadow_rectangle (mw, window, x, y, width, height, False, selected_p);
+  draw_shadow_rectangle (mw, window, x, y, width, height, False,
+			 selected_p, top_gc, bottom_gc);
 }
 
 
@@ -801,15 +839,29 @@ draw_toggle (XlwMenuWidget mw, Window window, int x, int y, int selected_p)
    toggle button is selected.  */
 
 static void
-draw_radio (XlwMenuWidget mw, Window window, int x, int y, int selected_p)
+draw_radio (XlwMenuWidget mw, Window window, int x, int y, int selected_p,
+	    int highlighted_p)
 {
   int width, height;
+  GC top_gc, bottom_gc;
+
+  if (highlighted_p)
+    {
+      top_gc = mw->menu.highlight_shadow_top_gc;
+      bottom_gc = mw->menu.highlight_shadow_bottom_gc;
+    }
+  else
+    {
+      top_gc = mw->menu.shadow_top_gc;
+      bottom_gc = mw->menu.shadow_bottom_gc;
+    }
 
   width = radio_button_width (mw);
   height = width;
   x += mw->menu.horizontal_spacing;
   y += (MENU_FONT_ASCENT (mw) - height) / 2;
-  draw_shadow_rhombus (mw, window, x, y, width, height, False, selected_p);
+  draw_shadow_rhombus (mw, window, x, y, width, height, False, selected_p,
+		       top_gc, bottom_gc);
 }
 
 
@@ -968,6 +1020,31 @@ separator_height (enum menu_separator separator)
     }
 }
 
+/* Draw the highlighted background and shadows.  */
+
+static void
+draw_highlight (XlwMenuWidget mw, Window window, int x, int y, int width,
+		int height)
+{
+  Display *dpy = XtDisplay (mw);
+  XPoint points [4];
+
+  points [0].x = x;
+  points [0].y = y;
+  points [1].x = x + width;
+  points [1].y = y;
+  points [2].x = x + width;
+  points [2].y = y + height;
+  points [3].x = x;
+  points [3].y = y + height;
+  XFillPolygon (dpy, window,
+		mw->menu.highlight_background_gc,
+		points, 4, Convex, CoordModeOrigin);
+
+  draw_shadow_rectangle(mw, window, x, y, width, height, False, False,
+			mw->menu.highlight_shadow_top_gc,
+			mw->menu.highlight_shadow_bottom_gc);
+}
 
 /* Display the menu item and increment where.x and where.y to show how large
    the menu item was.  */
@@ -983,7 +1060,6 @@ display_menu_item (XlwMenuWidget mw,
 {
   GC deco_gc;
   GC text_gc;
-  int font_height = MENU_FONT_HEIGHT (mw);
   int font_ascent = MENU_FONT_ASCENT (mw);
   int shadow = mw->menu.shadow_thickness;
   int margin = mw->menu.margin;
@@ -1032,12 +1108,21 @@ display_menu_item (XlwMenuWidget mw,
 
       /* pick the foreground and background GC. */
       if (val->enabled)
-	text_gc = mw->menu.foreground_gc;
+	if (highlighted_p)
+	  text_gc = mw->menu.highlight_foreground_gc;
+	else
+	  text_gc = mw->menu.foreground_gc;
       else
 	text_gc = mw->menu.disabled_gc;
       deco_gc = mw->menu.foreground_gc;
 #if defined USE_CAIRO || defined HAVE_XFT
-      xftfg = val->enabled ? &mw->menu.xft_fg : &mw->menu.xft_disabled_fg;
+      if (val->enabled)
+	if (highlighted_p)
+	  xftfg = &mw->menu.xft_highlight_fg;
+	else
+	  xftfg = &mw->menu.xft_fg;
+      else
+	xftfg = &mw->menu.xft_disabled_fg;
 #endif
 
       if (separator_p)
@@ -1048,8 +1133,11 @@ display_menu_item (XlwMenuWidget mw,
 	{
 	  int x_offset = x + h_spacing + shadow;
 	  char* display_string = resource_widget_value (mw, val);
-	  draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height, True,
-				 False);
+	  /* Clears shadows and maybe highlight */
+	  draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height,
+				 True, False, NULL, NULL);
+	  if (highlighted_p)
+	    draw_highlight (mw, ws->pixmap, x, y, width, height);
 
 	  /* Deal with centering a menu title. */
 	  if (!horizontal_p && !val->contents && !val->call_data)
@@ -1095,10 +1183,10 @@ display_menu_item (XlwMenuWidget mw,
 	    {
 	      if (val->button_type == BUTTON_TYPE_TOGGLE)
 		draw_toggle (mw, ws->pixmap, x, y + v_spacing + shadow,
-			     val->selected);
+			     val->selected, highlighted_p);
 	      else if (val->button_type == BUTTON_TYPE_RADIO)
 		draw_radio (mw, ws->pixmap, x, y + v_spacing + shadow,
-			    val->selected);
+			    val->selected, highlighted_p);
 
 	      if (val->contents)
 		{
@@ -1145,25 +1233,18 @@ display_menu_item (XlwMenuWidget mw,
 	    }
 	  else
 	    {
-	      XDrawRectangle (XtDisplay (mw), ws->pixmap,
-			      mw->menu.background_gc,
-			      x + shadow, y + shadow,
-			      label_width + h_spacing - 1,
-			      font_height + 2 * v_spacing - 1);
-	      draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height,
-				     True, False);
+	      /* If not highlighted, clears shadows for horizontal
+		 menu item */
+	      if (!highlighted_p)
+		draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height,
+				       True, False, NULL, NULL);
 	    }
 #ifdef USE_CAIRO
 	  if (ws->xft_draw)
 	    cairo_surface_flush (cairo_get_target (ws->xft_draw));
 #endif
-
-	  if (highlighted_p)
-	    draw_shadow_rectangle (mw, ws->pixmap, x, y, width, height, False,
-				   False);
 	}
     }
-
   where->x += width;
   where->y += height;
 }
@@ -1257,7 +1338,7 @@ display_menu (XlwMenuWidget mw,
   if (!just_compute_p)
     {
       draw_shadow_rectangle (mw, ws->pixmap, 0, 0, ws->width, ws->height,
-                             False, False);
+                             False, False, NULL, NULL);
       XCopyArea (XtDisplay (mw), ws->pixmap, ws->window,
                  mw->menu.foreground_gc, 0, 0, ws->width, ws->height, 0, 0);
     }
@@ -1714,6 +1795,18 @@ make_drawing_gcs (XlwMenuWidget mw)
   xgcv.foreground = mw->core.background_pixel;
   xgcv.background = mw->menu.foreground;
   mw->menu.background_gc = XtGetGC ((Widget)mw, mask, &xgcv);
+
+  xgcv.foreground = mw->menu.highlight_foreground;
+  xgcv.background = ((mw->menu.highlight_background == -1)
+		     ? mw->core.background_pixel
+		     : mw->menu.highlight_background);
+  mw->menu.highlight_foreground_gc = XtGetGC ((Widget)mw, mask, &xgcv);
+
+  xgcv.foreground = ((mw->menu.highlight_background == -1)
+		     ? mw->core.background_pixel
+		     : mw->menu.highlight_background);
+  xgcv.background = mw->menu.foreground;
+  mw->menu.highlight_background_gc = XtGetGC ((Widget)mw, mask, &xgcv);
 }
 
 static void
@@ -1724,12 +1817,16 @@ release_drawing_gcs (XlwMenuWidget mw)
   XtReleaseGC ((Widget) mw, mw->menu.disabled_gc);
   XtReleaseGC ((Widget) mw, mw->menu.inactive_button_gc);
   XtReleaseGC ((Widget) mw, mw->menu.background_gc);
+  XtReleaseGC ((Widget) mw, mw->menu.highlight_foreground_gc);
+  XtReleaseGC ((Widget) mw, mw->menu.highlight_background_gc);
   /* let's get some segvs if we try to use these... */
   mw->menu.foreground_gc = (GC) -1;
   mw->menu.button_gc = (GC) -1;
   mw->menu.disabled_gc = (GC) -1;
   mw->menu.inactive_button_gc = (GC) -1;
   mw->menu.background_gc = (GC) -1;
+  mw->menu.highlight_foreground_gc = (GC) -1;
+  mw->menu.highlight_background_gc = (GC) -1;
 }
 
 #ifndef emacs
@@ -1738,29 +1835,29 @@ release_drawing_gcs (XlwMenuWidget mw)
 #endif
 
 static void
-make_shadow_gcs (XlwMenuWidget mw)
+compute_shadow_colors (XlwMenuWidget mw, Pixel *top_color, Pixel *bottom_color,
+		       Boolean *free_top_p, Boolean *free_bottom_p,
+		       Pixmap *top_pixmap, Pixmap *bottom_pixmap,
+		       Pixel fore_color, Pixel back_color)
 {
-  XGCValues xgcv;
-  unsigned long pm = 0;
   Display *dpy = XtDisplay ((Widget) mw);
   Screen *screen = XtScreen ((Widget) mw);
   Colormap cmap = mw->core.colormap;
   XColor topc, botc;
   int top_frobbed = 0, bottom_frobbed = 0;
 
-  mw->menu.free_top_shadow_color_p = 0;
-  mw->menu.free_bottom_shadow_color_p = 0;
+  *free_top_p = False;
+  *free_bottom_p = False;
 
-  if (mw->menu.top_shadow_color == -1)
-    mw->menu.top_shadow_color = mw->core.background_pixel;
+  if (*top_color == -1)
+    *top_color = back_color;
 
-  if (mw->menu.bottom_shadow_color == -1)
-    mw->menu.bottom_shadow_color = mw->menu.foreground;
+  if (*bottom_color == -1)
+    *bottom_color = fore_color;
 
-  if (mw->menu.top_shadow_color == mw->core.background_pixel ||
-      mw->menu.top_shadow_color == mw->menu.foreground)
+  if (*top_color == back_color || *top_color == fore_color)
     {
-      topc.pixel = mw->core.background_pixel;
+      topc.pixel = back_color;
 #ifdef emacs
       if (x_alloc_lighter_color_for_widget ((Widget) mw, dpy, cmap,
 					    &topc.pixel,
@@ -1774,15 +1871,14 @@ make_shadow_gcs (XlwMenuWidget mw)
       if (XAllocColor (dpy, cmap, &topc))
 #endif
 	{
-	  mw->menu.top_shadow_color = topc.pixel;
-	  mw->menu.free_top_shadow_color_p = 1;
+	  *top_color = topc.pixel;
+	  *free_top_p = True;
 	  top_frobbed = 1;
 	}
     }
-  if (mw->menu.bottom_shadow_color == mw->menu.foreground ||
-      mw->menu.bottom_shadow_color == mw->core.background_pixel)
+  if (*bottom_color == fore_color || *bottom_color == back_color)
     {
-      botc.pixel = mw->core.background_pixel;
+      botc.pixel = back_color;
 #ifdef emacs
       if (x_alloc_lighter_color_for_widget ((Widget) mw, dpy, cmap,
 					    &botc.pixel,
@@ -1795,8 +1891,8 @@ make_shadow_gcs (XlwMenuWidget mw)
       if (XAllocColor (dpy, cmap, &botc))
 #endif
 	{
-	  mw->menu.bottom_shadow_color = botc.pixel;
-	  mw->menu.free_bottom_shadow_color_p = 1;
+	  *bottom_color = botc.pixel;
+	  *free_bottom_p = True;
 	  bottom_frobbed = 1;
 	}
     }
@@ -1805,63 +1901,94 @@ make_shadow_gcs (XlwMenuWidget mw)
     {
       if (topc.pixel == botc.pixel)
 	{
-	  if (botc.pixel == mw->menu.foreground)
+	  if (botc.pixel == fore_color)
 	    {
-	      if (mw->menu.free_top_shadow_color_p)
+	      if (*free_top_p)
 		{
-		  x_free_dpy_colors (dpy, screen, cmap,
-				     &mw->menu.top_shadow_color, 1);
-		  mw->menu.free_top_shadow_color_p = 0;
+		  x_free_dpy_colors (dpy, screen, cmap, top_color, 1);
+		  *free_top_p = False;
 		}
-	      mw->menu.top_shadow_color = mw->core.background_pixel;
+	      *top_color = back_color;
 	    }
 	  else
 	    {
-	      if (mw->menu.free_bottom_shadow_color_p)
+	      if (*free_bottom_p)
 		{
-		  x_free_dpy_colors (dpy, screen, cmap,
-				     &mw->menu.bottom_shadow_color, 1);
-		  mw->menu.free_bottom_shadow_color_p = 0;
+		  x_free_dpy_colors (dpy, screen, cmap, bottom_color, 1);
+		  *free_bottom_p = False;
 		}
-	      mw->menu.bottom_shadow_color = mw->menu.foreground;
+	      *bottom_color = fore_color;
 	    }
 	}
     }
 
-  if (!mw->menu.top_shadow_pixmap
-      && mw->menu.top_shadow_color == mw->core.background_pixel)
+  if (!*top_pixmap && *top_color == back_color)
     {
-      mw->menu.top_shadow_pixmap = mw->menu.gray_pixmap;
-      if (mw->menu.free_top_shadow_color_p)
+      *top_pixmap = mw->menu.gray_pixmap;
+      if (*free_top_p)
 	{
-	  x_free_dpy_colors (dpy, screen, cmap, &mw->menu.top_shadow_color, 1);
-	  mw->menu.free_top_shadow_color_p = 0;
+	  x_free_dpy_colors (dpy, screen, cmap, top_color, 1);
+	  *free_top_p = False;
 	}
-      mw->menu.top_shadow_color = mw->menu.foreground;
+      *top_color = fore_color;
     }
-  if (!mw->menu.bottom_shadow_pixmap
-      && mw->menu.bottom_shadow_color == mw->core.background_pixel)
+  if (!*bottom_pixmap && *bottom_color == back_color)
     {
-      mw->menu.bottom_shadow_pixmap = mw->menu.gray_pixmap;
-      if (mw->menu.free_bottom_shadow_color_p)
+      *bottom_pixmap = mw->menu.gray_pixmap;
+      if (*free_bottom_p)
 	{
-	  x_free_dpy_colors (dpy, screen, cmap,
-			     &mw->menu.bottom_shadow_color, 1);
-	  mw->menu.free_bottom_shadow_color_p = 0;
+	  x_free_dpy_colors (dpy, screen, cmap, bottom_color, 1);
+	  *free_bottom_p = False;
 	}
-      mw->menu.bottom_shadow_color = mw->menu.foreground;
+      *bottom_color = fore_color;
     }
+}
+
+static void
+make_shadow_gcs (XlwMenuWidget mw)
+{
+  XGCValues xgcv;
+  unsigned long pm = 0;
+
+  /* Normal shadows */
+  compute_shadow_colors (mw, &(mw->menu.top_shadow_color),
+			 &(mw->menu.bottom_shadow_color),
+			 &(mw->menu.free_top_shadow_color_p),
+			 &(mw->menu.free_bottom_shadow_color_p),
+			 &(mw->menu.top_shadow_pixmap),
+			 &(mw->menu.bottom_shadow_pixmap),
+			 mw->menu.foreground, mw->core.background_pixel);
+
+  /* Highlight shadows */
+  compute_shadow_colors (mw, &(mw->menu.top_highlight_shadow_color),
+			 &(mw->menu.bottom_highlight_shadow_color),
+			 &(mw->menu.free_top_highlight_shadow_color_p),
+			 &(mw->menu.free_bottom_highlight_shadow_color_p),
+			 &(mw->menu.top_highlight_shadow_pixmap),
+			 &(mw->menu.bottom_highlight_shadow_pixmap),
+			 mw->menu.highlight_foreground,
+			 mw->menu.highlight_background);
 
   xgcv.fill_style = FillStippled;
   xgcv.foreground = mw->menu.top_shadow_color;
   xgcv.stipple = mw->menu.top_shadow_pixmap;
-  pm = (xgcv.stipple ? GCStipple|GCFillStyle : 0);
-  mw->menu.shadow_top_gc = XtGetGC ((Widget)mw, GCForeground | pm, &xgcv);
+  pm = (xgcv.stipple ? GCStipple | GCFillStyle : 0);
+  mw->menu.shadow_top_gc = XtGetGC ((Widget) mw, GCForeground | pm, &xgcv);
 
   xgcv.foreground = mw->menu.bottom_shadow_color;
   xgcv.stipple = mw->menu.bottom_shadow_pixmap;
-  pm = (xgcv.stipple ? GCStipple|GCFillStyle : 0);
-  mw->menu.shadow_bottom_gc = XtGetGC ((Widget)mw, GCForeground | pm, &xgcv);
+  pm = (xgcv.stipple ? GCStipple | GCFillStyle : 0);
+  mw->menu.shadow_bottom_gc = XtGetGC ((Widget) mw, GCForeground | pm, &xgcv);
+
+  xgcv.foreground = mw->menu.top_highlight_shadow_color;
+  xgcv.stipple = mw->menu.top_highlight_shadow_pixmap;
+  pm = (xgcv.stipple ? GCStipple | GCFillStyle : 0);
+  mw->menu.highlight_shadow_top_gc = XtGetGC ((Widget) mw, GCForeground | pm, &xgcv);
+
+  xgcv.foreground = mw->menu.bottom_highlight_shadow_color;
+  xgcv.stipple = mw->menu.bottom_highlight_shadow_pixmap;
+  pm = (xgcv.stipple ? GCStipple | GCFillStyle : 0);
+  mw->menu.highlight_shadow_bottom_gc = XtGetGC ((Widget) mw, GCForeground | pm, &xgcv);
 }
 
 
@@ -1871,18 +1998,24 @@ release_shadow_gcs (XlwMenuWidget mw)
   Display *dpy = XtDisplay ((Widget) mw);
   Screen *screen = XtScreen ((Widget) mw);
   Colormap cmap = mw->core.colormap;
-  Pixel px[2];
+  Pixel px[4];
   int i = 0;
 
   if (mw->menu.free_top_shadow_color_p)
     px[i++] = mw->menu.top_shadow_color;
   if (mw->menu.free_bottom_shadow_color_p)
     px[i++] = mw->menu.bottom_shadow_color;
+  if (mw->menu.free_top_highlight_shadow_color_p)
+    px[i++] = mw->menu.top_highlight_shadow_color;
+  if (mw->menu.free_bottom_highlight_shadow_color_p)
+    px[i++] = mw->menu.bottom_highlight_shadow_color;
   if (i > 0)
     x_free_dpy_colors (dpy, screen, cmap, px, i);
 
   XtReleaseGC ((Widget) mw, mw->menu.shadow_top_gc);
   XtReleaseGC ((Widget) mw, mw->menu.shadow_bottom_gc);
+  XtReleaseGC ((Widget) mw, mw->menu.highlight_shadow_top_gc);
+  XtReleaseGC ((Widget) mw, mw->menu.highlight_shadow_bottom_gc);
 }
 
 #if defined USE_CAIRO || defined HAVE_XFT
@@ -1964,6 +2097,11 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
     mw->menu.font_extents = XExtentsOfFontSet (mw->menu.fontSet);
 #endif
 
+  mw->menu.top_highlight_shadow_color = -1;
+  mw->menu.bottom_highlight_shadow_color = -1;
+  mw->menu.top_highlight_shadow_pixmap = None;
+  mw->menu.bottom_highlight_shadow_pixmap = None;
+
   make_drawing_gcs (mw);
   make_shadow_gcs (mw);
 
@@ -2038,12 +2176,14 @@ XlwMenuRealize (Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 #if defined USE_CAIRO || defined HAVE_XFT
   if (mw->menu.xft_font)
     {
-      XColor colors[3];
+      XColor colors[4];
       colors[0].pixel = mw->menu.xft_fg.pixel = mw->menu.foreground;
       colors[1].pixel = mw->menu.xft_bg.pixel = mw->core.background_pixel;
       colors[2].pixel = mw->menu.xft_disabled_fg.pixel
         = mw->menu.disabled_foreground;
-      XQueryColors (XtDisplay (mw), mw->core.colormap, colors, 3);
+      colors[3].pixel = mw->menu.xft_highlight_fg.pixel
+	= mw->menu.highlight_foreground;
+      XQueryColors (XtDisplay (mw), mw->core.colormap, colors, 4);
       mw->menu.xft_fg.color.alpha = 0xFFFF;
       mw->menu.xft_fg.color.red = colors[0].red;
       mw->menu.xft_fg.color.green = colors[0].green;
@@ -2056,6 +2196,10 @@ XlwMenuRealize (Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
       mw->menu.xft_disabled_fg.color.red = colors[2].red;
       mw->menu.xft_disabled_fg.color.green = colors[2].green;
       mw->menu.xft_disabled_fg.color.blue = colors[2].blue;
+      mw->menu.xft_highlight_fg.color.alpha = 0xFFFF;
+      mw->menu.xft_highlight_fg.color.red = colors[3].red;
+      mw->menu.xft_highlight_fg.color.green = colors[3].green;
+      mw->menu.xft_highlight_fg.color.blue = colors[3].blue;
     }
 #endif
 }
