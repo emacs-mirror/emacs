@@ -1463,6 +1463,8 @@ extern bool x_had_errors_p (Display *);
 extern void x_unwind_errors_to (int);
 extern void x_uncatch_errors (void);
 extern void x_uncatch_errors_after_check (void);
+extern void x_ignore_errors_for_next_request (struct x_display_info *);
+extern void x_stop_ignoring_errors (struct x_display_info *);
 extern void x_clear_errors (Display *);
 extern void x_set_window_size (struct frame *, bool, int, int);
 extern void x_set_last_user_time_from_lisp (struct x_display_info *, Time);

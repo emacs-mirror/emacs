@@ -1121,8 +1121,6 @@ static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar 
 #ifdef HAVE_X_I18N
 static int x_filter_event (struct x_display_info *, XEvent *);
 #endif
-static void x_ignore_errors_for_next_request (struct x_display_info *);
-static void x_stop_ignoring_errors (struct x_display_info *);
 static void x_clean_failable_requests (struct x_display_info *);
 
 static struct frame *x_tooltip_window_to_frame (struct x_display_info *,
@@ -23039,7 +23037,7 @@ x_clean_failable_requests (struct x_display_info *dpyinfo)
 				    + (last - first));
 }
 
-static void
+void
 x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
 {
   struct x_failable_request *request, *max;
@@ -23092,7 +23090,7 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo)
   dpyinfo->next_failable_request++;
 }
 
-static void
+void
 x_stop_ignoring_errors (struct x_display_info *dpyinfo)
 {
   struct x_failable_request *range;

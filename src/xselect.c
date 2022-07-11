@@ -437,10 +437,19 @@ static void
 x_decline_selection_request (struct selection_input_event *event)
 {
   XEvent reply_base;
-  XSelectionEvent *reply = &(reply_base.xselection);
+  XSelectionEvent *reply;
+  Display *dpy;
+  struct x_display_info *dpyinfo;
+
+  reply = &(reply_base.xselection);
+  dpy = SELECTION_EVENT_DISPLAY (event);
+  dpyinfo = x_display_info_for_display (dpy);
+
+  if (!dpyinfo)
+    return;
 
   reply->type = SelectionNotify;
-  reply->display = SELECTION_EVENT_DISPLAY (event);
+  reply->display = dpy;
   reply->requestor = SELECTION_EVENT_REQUESTOR (event);
   reply->selection = SELECTION_EVENT_SELECTION (event);
   reply->time = SELECTION_EVENT_TIME (event);
@@ -450,10 +459,12 @@ x_decline_selection_request (struct selection_input_event *event)
   /* The reason for the error may be that the receiver has
      died in the meantime.  Handle that case.  */
   block_input ();
-  x_catch_errors (reply->display);
-  XSendEvent (reply->display, reply->requestor, False, 0, &reply_base);
-  XFlush (reply->display);
-  x_uncatch_errors ();
+  x_ignore_errors_for_next_request (dpyinfo);
+  XSendEvent (dpyinfo->display, reply->requestor,
+	      False, 0, &reply_base);
+  x_stop_ignoring_errors (dpyinfo);
+
+  XFlush (dpyinfo->display);
   unblock_input ();
 }
 
