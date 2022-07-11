@@ -378,8 +378,4 @@ forwarded with `rmail-enable-mime-composing' set to nil."
 
 (provide 'undigest)
 
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
-
 ;;; undigest.el ends here
