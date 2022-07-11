@@ -1643,11 +1643,11 @@ interface is similar to the @code{more} program.
 @cindex remote host
 @cindex connecting to remote host
 @cindex Telnet
-@cindex Rlogin
+@cindex SSH
 
   You can login to a remote computer, using whatever commands you
-would from a regular terminal (e.g., using the @command{ssh} or
-@command{telnet} or @code{rlogin} commands), from a Term window.
+would from a regular terminal (e.g., the @command{ssh} command), from
+a Term window.
 
   A program that asks you for a password will normally suppress
 echoing of the password, so the password will not show up in the

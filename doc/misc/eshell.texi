@@ -2077,11 +2077,10 @@ it).
 
 @item Make the shell spawning commands be visual
 
-That is, make (@command{su}, @command{bash}, @command{telnet},
-@command{rlogin}, @command{rsh}, etc.)@: be part of
-@code{eshell-visual-commands}.  The only exception is if the shell is
-being used to invoke a single command.  Then, the behavior should be
-based on what that command is.
+That is, make (@command{su}, @command{bash}, @command{ssh}, etc.)@: be
+part of @code{eshell-visual-commands}.  The only exception is if the
+shell is being used to invoke a single command.  Then, the behavior
+should be based on what that command is.
 
 @item Create a smart viewing command named @command{open}
 
