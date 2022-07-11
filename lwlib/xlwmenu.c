@@ -1753,13 +1753,9 @@ make_shadow_gcs (XlwMenuWidget mw)
 
   if (mw->menu.top_shadow_color == -1)
     mw->menu.top_shadow_color = mw->core.background_pixel;
-  else
-    mw->menu.top_shadow_color = mw->menu.top_shadow_color;
 
   if (mw->menu.bottom_shadow_color == -1)
     mw->menu.bottom_shadow_color = mw->menu.foreground;
-  else
-    mw->menu.bottom_shadow_color = mw->menu.bottom_shadow_color;
 
   if (mw->menu.top_shadow_color == mw->core.background_pixel ||
       mw->menu.top_shadow_color == mw->menu.foreground)
