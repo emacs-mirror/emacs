@@ -59,7 +59,7 @@ also the To field, unless this would leave an empty To field."
 (defun mail-string-delete (string start end)
   "Return a string containing all of STRING except the part
 from START (inclusive) to END (exclusive)."
-  ;; FIXME: This is not used anywhere.  Make obsolete?
+  (declare (obsolete substring "29.1"))
   (if (null end) (substring string 0 start)
     (concat (substring string 0 start)
 	    (substring string end nil))))
