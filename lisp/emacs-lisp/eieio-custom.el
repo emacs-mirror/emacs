@@ -467,8 +467,4 @@ Return the symbol for the group, or nil."
 
 (provide 'eieio-custom)
 
-;; Local variables:
-;; generated-autoload-file: "eieio-loaddefs.el"
-;; End:
-
 ;;; eieio-custom.el ends here

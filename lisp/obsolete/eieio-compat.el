@@ -253,11 +253,6 @@ Summary:
   (declare (obsolete eieio-defclass-internal "25.1"))
   (eval `(defclass ,cname ,superclasses ,slots ,@options)))
 
-
-;; Local Variables:
-;; generated-autoload-file: "eieio-loaddefs.el"
-;; End:
-
 (provide 'eieio-compat)
 
 ;;; eieio-compat.el ends here

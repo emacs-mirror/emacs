@@ -32,7 +32,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'eieio-loaddefs nil t)
 
 ;;;
 ;; A few functions that are better in the official EIEIO src, but
