@@ -7186,25 +7186,83 @@ This function should be on `erc-kill-channel-hook'."
 ;; Teach url.el how to open irc:// URLs with ERC.
 ;; To activate, customize `url-irc-function' to `url-irc-erc'.
 
-;; FIXME change user to nick, and use API to find server buffer
+(defcustom erc-url-connect-function nil
+  "When non-nil, a function used to connect to an IRC URL.
+Called with a string meant to represent a URL scheme, like
+\"ircs\", followed by any number of keyword arguments recognized
+by `erc' and `erc-tls'."
+  :group 'erc
+  :package-version '(ERC . "5.4.1") ; FIXME increment on release
+  :type '(choice (const nil) function))
+
+(defun erc--url-default-connect-function (scheme &rest plist)
+  (let* ((ircsp (if scheme
+                    (string-suffix-p "s" scheme)
+                  (or (eql 6697 (plist-get plist :port))
+                      (yes-or-no-p "Connect using TLS? "))))
+         (erc-server (plist-get plist :server))
+         (erc-port (or (plist-get plist :port)
+                       (and ircsp (erc-normalize-port 'ircs-u))
+                       erc-port))
+         (erc-nick (or (plist-get plist :nick) erc-nick))
+         (erc-password (plist-get plist :password))
+         (args (erc-select-read-args)))
+    (unless ircsp
+      (setq ircsp (eql 6697 erc-port)))
+    (apply (if ircsp #'erc-tls #'erc) args)))
+
 ;;;###autoload
-(defun erc-handle-irc-url (host port channel user password)
-  "Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
+(defun erc-handle-irc-url (host port channel nick password &optional scheme)
+  "Use ERC to IRC on HOST:PORT in CHANNEL.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
-Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
-  (let ((server-buffer
-         (car (erc-buffer-filter
-               (lambda ()
-                 (and (string-equal erc-session-server host)
-                      (= erc-session-port port)
-                      (erc-open-server-buffer-p)))))))
-    (with-current-buffer (or server-buffer (current-buffer))
-      (if (and server-buffer channel)
-          (erc-cmd-JOIN channel)
-        (erc-open host port (or user (erc-compute-nick)) (erc-compute-full-name)
-                  (not server-buffer) password nil channel
-                  (when server-buffer
-                    (get-buffer-process server-buffer)))))))
+Otherwise, connect to HOST:PORT as NICK and /join CHANNEL.
+
+Beginning with ERC 5.5, new connections require human intervention.
+Customize `erc-url-connect-function' to override this."
+  (when (eql port 0) (setq port nil))
+  (let* ((net (erc-networks--determine host))
+         (server-buffer
+          ;; Viable matches may slip through the cracks for unknown
+          ;; networks.  Additional passes could likely improve things.
+          (car (erc-buffer-filter
+                (lambda ()
+                  (and (not erc--target)
+                       (erc-server-process-alive)
+                       ;; Always trust a matched network.
+                       (or (and net (eq net (erc-network)))
+                           (and (string-equal erc-session-server host)
+                                ;; Ports only matter when dialed hosts
+                                ;; match and we have sufficient info.
+                                (or (not port)
+                                    (= (erc-normalize-port erc-session-port)
+                                       port)))))))))
+         key deferred)
+    (unless server-buffer
+      (setq deferred t
+            server-buffer (apply (or erc-url-connect-function
+                                     #'erc--url-default-connect-function)
+                                 scheme
+                                 :server host
+                                 `(,@(and port (list :port port))
+                                   ,@(and nick (list :nick nick))
+                                   ,@(and password `(:password ,password))))))
+    (when channel
+      ;; These aren't percent-decoded by default
+      (when (string-prefix-p "%" channel)
+        (setq channel (url-unhex-string channel)))
+      (cl-multiple-value-setq (channel key) (split-string channel "[?]"))
+      (if deferred
+          ;; Alternatively, we could make this a defmethod, so when
+          ;; autojoin is loaded, it can do its own thing.  Also, as
+          ;; with `erc-once-with-server-event', it's fine to set local
+          ;; hooks here because they're killed when reconnecting.
+          (with-current-buffer server-buffer
+            (letrec ((f (lambda (&rest _)
+                          (remove-hook 'erc-after-connect f t)
+                          (erc-cmd-JOIN channel key))))
+              (add-hook 'erc-after-connect f nil t)))
+        (with-current-buffer server-buffer
+          (erc-cmd-JOIN channel key))))))
 
 (provide 'erc)
 

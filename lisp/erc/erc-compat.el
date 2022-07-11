@@ -32,8 +32,7 @@
 ;;; Code:
 
 (require 'compat nil 'noerror)
-(eval-when-compile (require 'cl-lib))
-
+(eval-when-compile (require 'cl-lib) (require 'url-parse))
 
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (define-obsolete-function-alias 'erc-define-minor-mode
@@ -284,6 +283,35 @@ If START or END is negative, it counts from the end."
    ((fboundp 'cl--generic-with-memoization)
     `(cl--generic-with-memoization ,table ,@forms))
    (t `(progn ,@forms))))
+
+(defvar url-irc-function)
+
+(defun erc-compat--29-browse-url-irc (string &rest _)
+  (require 'url-irc)
+  (let* ((url (url-generic-parse-url string))
+         (url-irc-function
+          (if (function-equal url-irc-function 'url-irc-erc)
+              (lambda (host port chan user pass)
+                (erc-handle-irc-url host port chan user pass (url-type url)))
+            url-irc-function)))
+    (url-irc url)))
+
+(cond ((fboundp 'browse-url-irc)) ; 29
+      ((boundp 'browse-url-default-handlers) ; 28
+       (cl-pushnew '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
+                   browse-url-default-handlers))
+      ((boundp 'browse-url-browser-function) ; 27
+       (require 'browse-url)
+       (let ((existing browse-url-browser-function))
+         (setq browse-url-browser-function
+               (if (functionp existing)
+                   (lambda (u &rest r)
+                     (apply (if (string-match-p "\\`irc6?s?://" u)
+                                #'erc-compat--29-browse-url-irc
+                              existing)
+                            u r))
+                 (cons '("\\`irc6?s?://" . erc-compat--29-browse-url-irc)
+                       existing))))))
 
 (provide 'erc-compat)
 

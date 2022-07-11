@@ -1084,4 +1084,98 @@
                        '(nil 7000 nil "Bob's Name" t
                              "bob:changeme" nil nil nil nil "bobo" nil)))))))
 
+(defun erc-tests--make-server-buf (name)
+  (with-current-buffer (get-buffer-create name)
+    (erc-mode)
+    (setq erc-server-process (start-process "sleep" (current-buffer)
+                                            "sleep" "1")
+          erc-session-server (concat "irc." name ".org")
+          erc-session-port 6667
+          erc-network (intern name))
+    (set-process-query-on-exit-flag erc-server-process nil)
+    (current-buffer)))
+
+(defun erc-tests--make-client-buf (server name)
+  (unless (bufferp server)
+    (setq server (get-buffer server)))
+  (with-current-buffer (get-buffer-create name)
+    (erc-mode)
+    (setq erc--target (erc--target-from-string name))
+    (dolist (v '(erc-server-process
+                 erc-session-server
+                 erc-session-port
+                 erc-network))
+      (set v (buffer-local-value v server)))
+    (current-buffer)))
+
+(ert-deftest erc-handle-irc-url ()
+  (let* (calls
+         rvbuf
+         erc-networks-alist
+         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook
+         (erc-url-connect-function
+          (lambda (&rest r)
+            (push r calls)
+            (if (functionp rvbuf) (funcall rvbuf) rvbuf))))
+
+    (cl-letf (((symbol-function 'erc-cmd-JOIN)
+               (lambda (&rest r) (push r calls))))
+
+      (with-current-buffer (erc-tests--make-server-buf "foonet")
+        (setq rvbuf (current-buffer)))
+      (erc-tests--make-server-buf "barnet")
+      (erc-tests--make-server-buf "baznet")
+
+      (ert-info ("Unknown network")
+        (erc-handle-irc-url "irc.foonet.org" 6667 "#chan" nil nil "irc")
+        (should (equal '("#chan" nil) (pop calls)))
+        (should-not calls))
+
+      (ert-info ("Unknown network, no port")
+        (erc-handle-irc-url "irc.foonet.org" nil "#chan" nil nil "irc")
+        (should (equal '("#chan" nil) (pop calls)))
+        (should-not calls))
+
+      (ert-info ("Known network, no port")
+        (setq erc-networks-alist '((foonet "irc.foonet.org")))
+        (erc-handle-irc-url "irc.foonet.org" nil "#chan" nil nil "irc")
+        (should (equal '("#chan" nil) (pop calls)))
+        (should-not calls))
+
+      (ert-info ("Known network, different port")
+        (erc-handle-irc-url "irc.foonet.org" 6697 "#chan" nil nil "irc")
+        (should (equal '("#chan" nil) (pop calls)))
+        (should-not calls))
+
+      (ert-info ("Known network, existing chan with key")
+        (erc-tests--make-client-buf "foonet" "#chan")
+        (erc-handle-irc-url "irc.foonet.org" nil "#chan?sec" nil nil "irc")
+        (should (equal '("#chan" "sec") (pop calls)))
+        (should-not calls))
+
+      (ert-info ("Unknown network, connect, no chan")
+        (erc-handle-irc-url "irc.gnu.org" nil nil nil nil "irc")
+        (should (equal '("irc" :server "irc.gnu.org") (pop calls)))
+        (should-not calls))
+
+      (ert-info ("Unknown network, connect, chan")
+        (with-current-buffer "foonet"
+          (should-not (local-variable-p 'erc-after-connect)))
+        (setq rvbuf (lambda () (erc-tests--make-server-buf "gnu")))
+        (erc-handle-irc-url "irc.gnu.org" nil "#spam" nil nil "irc")
+        (should (equal '("irc" :server "irc.gnu.org") (pop calls)))
+        (should-not calls)
+        (with-current-buffer "gnu"
+          (should (local-variable-p 'erc-after-connect))
+          (funcall (car erc-after-connect))
+          (should (equal '("#spam" nil) (pop calls)))
+          (should-not (local-variable-p 'erc-after-connect)))
+        (should-not calls))))
+
+  (when noninteractive
+    (kill-buffer "foonet")
+    (kill-buffer "barnet")
+    (kill-buffer "baznet")
+    (kill-buffer "#chan")))
+
 ;;; erc-tests.el ends here
