@@ -3482,8 +3482,11 @@ like) while `y-or-n-p' is running)."
                                   (format "(y, n or %s) "
 		                          (key-description
                                            (vector help-char)))
-                                  "(y or n) "
-                                  )))))))
+                                "(y or n) "))))))
+        ;; Preserve the actual command that eventually called
+        ;; `y-or-n-p' (otherwise `repeat' will be repeating
+        ;; `exit-minibuffer').
+        (real-this-command real-this-command))
     (cond
      (noninteractive
       (setq prompt (funcall padded prompt))
