@@ -1466,7 +1466,10 @@ and initial semicolons."
                              emacs-lisp-docstring-fill-column
                            fill-column)))
         (let ((ppss (syntax-ppss))
-              (start (point)))
+              (start (point))
+              ;; Avoid recursion if we're being called directly with
+              ;; `M-x lisp-fill-paragraph' in an `emacs-lisp-mode' buffer.
+              (fill-paragraph-function t))
           (save-excursion
             (save-restriction
               ;; If we're not inside a string, then do very basic
