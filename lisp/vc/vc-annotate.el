@@ -451,7 +451,8 @@ should be applied to the background or to the foreground."
           (setq-local vc-annotate-backend backend)
           (setq-local vc-annotate-parent-file file)
           (setq-local vc-annotate-parent-rev rev)
-          (setq-local vc-annotate-parent-display-mode display-mode))))
+          (setq-local vc-annotate-parent-display-mode display-mode)
+          (kill-local-variable 'revert-buffer-function))))
 
     (with-current-buffer temp-buffer-name
       (vc-run-delayed
