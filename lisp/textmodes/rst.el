@@ -3569,8 +3569,6 @@ Region is from BEG to END.  With WITH-EMPTY prefix empty lines too."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Font lock
 
-;; FIXME: The obsolete variables need to disappear.
-
 ;; The following versions have been done inside Emacs and should not be
 ;; replaced by `:package-version' attributes until a change.
 
