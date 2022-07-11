@@ -7117,7 +7117,8 @@ x_update_frame_user_time_window (struct frame *f)
   output = FRAME_X_OUTPUT (f);
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  if (!NILP (Vx_no_window_manager))
+  if (!NILP (Vx_no_window_manager)
+      || !x_wm_supports (f, dpyinfo->Xatom_net_wm_user_time))
     {
       if (output->user_time_window != None
 	  && output->user_time_window != FRAME_OUTER_WINDOW (f))
