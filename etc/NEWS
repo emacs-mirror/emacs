@@ -321,6 +321,10 @@ the major mode according to 'initial-major-mode', like at Emacs
 startup.  Previously, these functions ignored
 'initial-scratch-message' and left "*scratch*" in 'fundamental-mode'.
 
+---
+** The rlogin.el library is now obsolete.
+Use something like `M-x shell RET ssh <host> RET' instead.
+
 
 * Changes in Emacs 29.1
 
