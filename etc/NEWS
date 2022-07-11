@@ -2665,6 +2665,10 @@ them towards or away from each other.
 This hook is run before 'x-popup-menu' is about to display a
 deck-of-cards menu on screen.
 
+** New hook 'post-select-region-hook'.
+This hook is run immediately after 'select-active-regions' causes the
+region to be set as the primary selection.
+
 ** New function 'buffer-match-p'.
 Check if a buffer satisfies some condition.  Some examples for
 conditions can be regular expressions that match a buffer name, a

@@ -479,6 +479,24 @@ are not available to other programs."
 ;; Minor mode to make losing ownership of PRIMARY behave more like
 ;; other X programs.
 
+(defvar lost-selection-last-region-buffer nil
+  "The last buffer from which the region was selected.")
+
+(defun lost-selection-post-select-region-function (_text)
+  "Handle the region being selected into PRIMARY.
+If the current buffer is different from the last buffer,
+deactivate the mark in every other buffer.
+TEXT is ignored."
+  (when (not (eq lost-selection-last-region-buffer
+                 (current-buffer)))
+    (dolist (buffer (buffer-list))
+      (unless (or (string-match-p "^ "
+                                  (buffer-name buffer))
+                  (eq buffer (current-buffer)))
+        (with-current-buffer buffer
+          (deactivate-mark t))))
+    (setq lost-selection-last-region-buffer (current-buffer))))
+
 (defun lost-selection-function (selection)
   "Handle losing of ownership of SELECTION.
 If SELECTION is `PRIMARY', deactivate the mark in every
@@ -496,22 +514,32 @@ non-temporary buffer."
 
 When this is enabled, selecting some text in another program will
 cause the mark to be deactivated in all buffers, mimicking the
-behavior of most X Windows programs."
+behavior of most X Windows programs.
+
+Selecting text in a buffer that ends up changing the primary
+selection will also cause the mark to be deactivated in all other
+buffers."
   :global t
   :group 'x
   (if lost-selection-mode
-      (cond ((featurep 'x) (add-hook 'x-lost-selection-functions
-                                     #'lost-selection-function))
-            ((featurep 'pgtk) (add-hook 'pgtk-lost-selection-functions
-                                        #'lost-selection-function))
-            ((featurep 'haiku) (add-hook 'haiku-lost-selection-functions
-                                         #'lost-selection-function)))
+      (progn
+        (cond ((featurep 'x) (add-hook 'x-lost-selection-functions
+                                       #'lost-selection-function))
+              ((featurep 'pgtk) (add-hook 'pgtk-lost-selection-functions
+                                          #'lost-selection-function))
+              ((featurep 'haiku) (add-hook 'haiku-lost-selection-functions
+                                           #'lost-selection-function)))
+        (add-hook 'post-select-region-hook
+                  #'lost-selection-post-select-region-function))
     (cond ((featurep 'x) (remove-hook 'x-lost-selection-functions
                                       #'lost-selection-function))
           ((featurep 'pgtk) (remove-hook 'pgtk-lost-selection-functions
                                          #'lost-selection-function))
           ((featurep 'haiku) (remove-hook 'haiku-lost-selection-functions
-                                          #'lost-selection-function)))))
+                                          #'lost-selection-function)))
+    (remove-hook 'post-select-region-hook
+                 #'lost-selection-post-select-region-function)
+    (setq lost-selection-last-region-buffer nil)))
 
 
 ;; Functions to convert the selection into various other selection types.
