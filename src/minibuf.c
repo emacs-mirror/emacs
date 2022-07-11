@@ -1545,18 +1545,6 @@ function, instead of the usual behavior.  */)
   return unbind_to (count, result);
 }
 
-static Lisp_Object
-minibuf_conform_representation (Lisp_Object string, Lisp_Object basis)
-{
-  if (STRING_MULTIBYTE (string) == STRING_MULTIBYTE (basis))
-    return string;
-
-  if (STRING_MULTIBYTE (string))
-    return Fstring_make_unibyte (string);
-  else
-    return Fstring_make_multibyte (string);
-}
-
 static bool
 match_regexps (Lisp_Object string, Lisp_Object regexps,
 	       bool ignore_case)
@@ -1817,7 +1805,7 @@ or from one of the possible completions.  */)
      don't change the case of what the user typed.  */
   if (completion_ignore_case && bestmatchsize == SCHARS (string)
       && SCHARS (bestmatch) > bestmatchsize)
-    return minibuf_conform_representation (string, bestmatch);
+    return string;
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
@@ -2090,19 +2078,6 @@ the values STRING, PREDICATE and `lambda'.  */)
 		      SSDATA (string),
 		      SCHARS (string),
 		      SBYTES (string));
-      if (!SYMBOLP (tem))
-	{
-	  if (STRING_MULTIBYTE (string))
-	    string = Fstring_make_unibyte (string);
-	  else
-	    string = Fstring_make_multibyte (string);
-
-	  tem = oblookup (collection,
-			  SSDATA (string),
-			  SCHARS (string),
-			  SBYTES (string));
-	}
-
       if (completion_ignore_case && !SYMBOLP (tem))
 	{
 	  for (i = ASIZE (collection) - 1; i >= 0; i--)
