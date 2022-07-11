@@ -193,6 +193,15 @@ symbol: gradle-kotlin
 e: /src/Test.kt: (34, 15): foo: bar
 w: /src/Test.kt: (34, 15): foo: bar
 
+* Gradle Android resource linking
+
+symbol: gradle-android
+
+Execution failed for task ':app:processDebugResources'.
+> A failure occurred while executing com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask$TaskAction
+   > Android resource linking failed
+     ERROR:/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml:3: AAPT: error: '16dpw' is incompatible with attribute padding (attr) dimension.
+
 
 * IAR Systems C Compiler
 
