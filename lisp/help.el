@@ -1192,14 +1192,6 @@ Otherwise, return a new string."
                 (let* ((fun (intern (buffer-substring (point) (1- end-point))))
                        (key (with-current-buffer orig-buf
                               (where-is-internal fun keymap t))))
-                  ;; If this a command remap, we need to follow it.
-                  (when (and (vectorp key)
-                             (> (length key) 1)
-                             (eq (aref key 0) 'remap)
-                             (symbolp (aref key 1)))
-                    (setq fun (aref key 1))
-                    (setq key (with-current-buffer orig-buf
-                                (where-is-internal fun keymap t))))
                   (if (not key)
                       ;; Function is not on any key.
                       (let ((op (point)))
