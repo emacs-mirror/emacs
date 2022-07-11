@@ -220,8 +220,8 @@ to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
   "List of special targets.
 You will be offered to complete on one of those in the minibuffer whenever
 you enter a \".\" at the beginning of a line in `makefile-mode'."
-  :type '(repeat string))
-(put 'makefile-special-targets-list 'risky-local-variable t)
+  :type '(repeat string)
+  :risky t)
 
 (defcustom makefile-runtime-macros-list
   '(("@") ("&") (">") ("<") ("*") ("^") ("+") ("?") ("%") ("$"))

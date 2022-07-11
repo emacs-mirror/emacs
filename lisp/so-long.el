@@ -684,8 +684,8 @@ subsequently called."
                                   (function :tag "Action")
                                   (function :tag "Revert")))
   :set #'so-long--action-alist-setter
+  :risky t
   :package-version '(so-long . "1.0"))
-(put 'so-long-action-alist 'risky-local-variable t)
 
 (defcustom so-long-action 'so-long-mode
   "The action taken by `so-long' when long lines are detected.

@@ -128,10 +128,9 @@ patterns."
                  (const :tag "Ask about file patterns" ask)
                  (function :tag "Function to check file patterns"))
   :group 'hi-lock
+  ;; It can have a function value.
+  :risky t
   :version "22.1")
-
-;; It can have a function value.
-(put 'hi-lock-file-patterns-policy 'risky-local-variable t)
 
 (defcustom hi-lock-auto-select-face nil
   "When nil, highlighting commands prompt for the face to use.

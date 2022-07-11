@@ -1,7 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -458,8 +457,8 @@ displayed in `mode-line-position', a component of the default
           (const :tag "\"%q\": Offsets of both top and bottom of window"
                  (6 "%q")))
   :version "26.1"
+  :risky t
   :group 'mode-line)
-(put 'mode-line-percent-position 'risky-local-variable t)
 
 (defcustom mode-line-position-line-format '(" L%l")
   "Format used to display line numbers in the mode line.

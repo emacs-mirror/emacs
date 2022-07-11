@@ -326,8 +326,8 @@ See `easy-menu-add-item' for documentation."
 Set this to \"\", to disable caching of menus.
 Don't forget to check out `filesets-menu-ensure-use-cached'."
   :set #'filesets-set-default
-  :type 'file)
-(put 'filesets-menu-cache-file 'risky-local-variable t)
+  :type 'file
+  :risky t)
 
 (defcustom filesets-menu-cache-contents
   '(filesets-be-docile-flag
@@ -546,6 +546,7 @@ function that returns one) to be run on a filesets' files.
 The argument <file-name> or <<file-name>> (quoted) will be replaced with
 the filename."
   :set #'filesets-set-default+
+  :risky t
   :type '(repeat :tag "Commands"
 		 (list :tag "Definition" :value ("")
 		       (string "Name")
@@ -561,8 +562,7 @@ the filename."
 				       (string :tag "Quoted File Name"
 					       :value "<<file-name>>")
 				       (function :tag "Function"
-						 :value nil))))))
-(put 'filesets-commands 'risky-local-variable t)
+                                                 :value nil))))))
 
 (defcustom filesets-external-viewers
   (let
@@ -651,6 +651,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 			(and (filesets-which-command-p \"rtf2htm\")
 			     (filesets-which-command-p \"w3m\"))))))"
   :set #'filesets-set-default
+  :risky t
   :type '(repeat :tag "Viewer"
 		 (list :tag "Definition"
 		       :value ("^.+\\.suffix$" "")
@@ -707,7 +708,6 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 				      (const  :format ""
 					      :value :capture-output)
 				      (boolean :tag "Boolean")))))))
-(put 'filesets-external-viewers 'risky-local-variable t)
 
 (defcustom filesets-ingroup-patterns
   '(("^.+\\.tex$" t
@@ -848,6 +848,7 @@ With duplicates removed, it would be:
     M + A - X
         B"
   :set #'filesets-set-default
+  :risky t
   :type '(repeat
 	  :tag "Include"
 	  (list
@@ -894,7 +895,6 @@ With duplicates removed, it would be:
 				  :value (:preprocess)
 				  (const :format "" :value :preprocess)
 				  (function :tag "Function"))))))))
-(put 'filesets-ingroup-patterns 'risky-local-variable t)
 
 (defcustom filesets-data nil
   "Fileset definitions.
@@ -965,6 +965,7 @@ is used.
 Before using :ingroup, make sure that the file type is already
 defined in `filesets-ingroup-patterns'."
   :set #'filesets-data-set-default
+  :risky t
   :type '(repeat
 	  (cons :tag "Fileset"
 		(string :tag "Name" :value "")
@@ -1021,7 +1022,6 @@ defined in `filesets-ingroup-patterns'."
 			       :value (:open)
 			       (const :format "" :value :open)
 			       (function :tag "Function")))))))
-(put 'filesets-data 'risky-local-variable t)
 
 
 (defcustom filesets-query-user-limit 15

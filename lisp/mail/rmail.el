@@ -448,8 +448,8 @@ as argument, to ask the user that question."
 		 (const :tag "Confirm with y-or-n-p" y-or-n-p)
 		 (const :tag "Confirm with yes-or-no-p" yes-or-no-p))
   :version "21.1"
+  :risky t
   :group 'rmail-files)
-(put 'rmail-confirm-expunge 'risky-local-variable t)
 
 ;;;###autoload
 (defvar rmail-mode-hook nil

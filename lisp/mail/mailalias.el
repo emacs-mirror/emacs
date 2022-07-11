@@ -74,8 +74,8 @@ When t this still needs to be initialized.")
 The expression may reference the variable `pattern'
 which will hold the string being completed."
   :type 'alist
+  :risky t
   :group 'mailalias)
-(put 'mail-complete-alist 'risky-local-variable t)
 
 ;;;###autoload
 (defcustom mail-complete-style 'angles
@@ -121,8 +121,8 @@ or like this:
 
   (remote-shell-program \"HOST\" \"-n\" \"COMMAND \\='^\" pattern \"\\='\")"
   :type 'sexp
+  :risky t
   :group 'mailalias)
-(put 'mail-directory-process 'risky-local-variable t)
 
 (defcustom mail-directory-stream nil
   "List of (HOST SERVICE) for stream connection to mail directory."
@@ -132,8 +132,8 @@ or like this:
                                (string :tag "Service name"))
                        (plist :inline t
                               :tag "Additional open-network-stream parameters")))
+  :risky t
   :group 'mailalias)
-(put 'mail-directory-stream 'risky-local-variable t)
 
 (defcustom mail-directory-parser nil
   "How to interpret the output of `mail-directory-function'.
@@ -143,8 +143,8 @@ Three types of values are possible:
   - regexp means first \\(grouping\\) in successive matches is name
   - function called at beginning of buffer that returns an alist of names"
   :type '(choice (const nil) regexp function)
+  :risky t
   :group 'mailalias)
-(put 'mail-directory-parser 'risky-local-variable t)
 
 ;; Internal variables.
 

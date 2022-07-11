@@ -86,9 +86,8 @@
 ;;     '((my-rule
 ;;        (regexp . "Sample")))
 ;;     :type align-rules-list-type
+;;     :risky t
 ;;     :group 'my-package)
-;;
-;;   (put 'my-align-rules-list 'risky-local-variable t)
 ;;
 ;;   (add-to-list 'align-dq-string-modes 'my-package-mode)
 ;;   (add-to-list 'align-open-comment-modes 'my-package-mode)
@@ -319,9 +318,8 @@ The possible settings for `align-region-separate' are:
 ;         (const largest)
 	  (regexp :tag "Regexp defines section boundaries")
 	  (function :tag "Function defines section boundaries"))
+  :risky t
   :group 'align)
-
-(put 'align-region-separate 'risky-local-variable t)
 
 (defvar align-rules-list-type
   '(repeat
@@ -699,9 +697,8 @@ The following attributes are meaningful:
 	    (see the documentation of that variable for possible
 	    values), and any separation argument passed to `align'."
   :type align-rules-list-type
+  :risky t
   :group 'align)
-
-(put 'align-rules-list 'risky-local-variable t)
 
 (defvar align-exclude-rules-list-type
   '(repeat
@@ -770,9 +767,8 @@ The following attributes are meaningful:
   "A list describing text that should be excluded from alignment.
 See the documentation for `align-rules-list' for more info."
   :type align-exclude-rules-list-type
+  :risky t
   :group 'align)
-
-(put 'align-exclude-rules-list 'risky-local-variable t)
 
 ;;; Internal Variables:
 
@@ -823,8 +819,8 @@ See the variable `align-exclude-rules-list' for more details.")
      (regexp   . "\\(\\s-+\\)use\\s-+entity")))
   "Alignment rules for `vhdl-mode'.  See `align-rules-list' for more info."
   :type align-rules-list-type
+  :risky t
   :group 'align)
-(put 'align-vhdl-rules-list 'risky-local-variable t)
 (make-obsolete-variable 'align-vhdl-rules-list "no longer used." "27.1")
 
 (defun align-set-vhdl-rules ()

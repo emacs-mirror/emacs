@@ -372,8 +372,8 @@ and should insert whatever you want to insert."
   :type '(choice (const :tag "None" nil)
 		 (const :tag "Use `.signature' file" t)
 		 (string :tag "String to insert")
-		 (sexp :tag "Expression to evaluate")))
-(put 'mail-signature 'risky-local-variable t)
+                 (sexp :tag "Expression to evaluate"))
+  :risky t)
 
 ;;;###autoload
 (defcustom mail-signature-file (purecopy "~/.signature")
