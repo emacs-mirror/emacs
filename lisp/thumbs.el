@@ -704,27 +704,25 @@ ACTION and ARG should be a valid convert command."
 
 ;; thumbs-mode
 
-(defvar thumbs-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [return] 'thumbs-find-image-at-point)
-    (define-key map [mouse-2] 'thumbs-mouse-find-image)
-    (define-key map [(meta return)] 'thumbs-find-image-at-point-other-window)
-    (define-key map [(control return)] 'thumbs-set-image-at-point-to-root-window)
-    (define-key map [delete] 'thumbs-delete-images)
-    (define-key map [right] 'thumbs-forward-char)
-    (define-key map [left] 'thumbs-backward-char)
-    (define-key map [up] 'thumbs-backward-line)
-    (define-key map [down] 'thumbs-forward-line)
-    (define-key map "+" 'thumbs-show-more-images)
-    (define-key map "d" 'thumbs-dired)
-    (define-key map "m" 'thumbs-mark)
-    (define-key map "u" 'thumbs-unmark)
-    (define-key map "R" 'thumbs-rename-images)
-    (define-key map "x" 'thumbs-delete-images)
-    (define-key map "s" 'thumbs-show-name)
-    (define-key map "q" 'thumbs-kill-buffer)
-    map)
-  "Keymap for `thumbs-mode'.")
+(defvar-keymap thumbs-mode-map
+  :doc "Keymap for `thumbs-mode'."
+  "<return>"   #'thumbs-find-image-at-point
+  "<mouse-2>"  #'thumbs-mouse-find-image
+  "M-<return>" #'thumbs-find-image-at-point-other-window
+  "C-<return>" #'thumbs-set-image-at-point-to-root-window
+  "<delete>"   #'thumbs-delete-images
+  "<right>"    #'thumbs-forward-char
+  "<left>"     #'thumbs-backward-char
+  "<up>"       #'thumbs-backward-line
+  "<down>"     #'thumbs-forward-line
+  "+"          #'thumbs-show-more-images
+  "d"          #'thumbs-dired
+  "m"          #'thumbs-mark
+  "u"          #'thumbs-unmark
+  "R"          #'thumbs-rename-images
+  "x"          #'thumbs-delete-images
+  "s"          #'thumbs-show-name
+  "q"          #'thumbs-kill-buffer)
 
 (put 'thumbs-mode 'mode-class 'special)
 (define-derived-mode thumbs-mode
@@ -732,22 +730,20 @@ ACTION and ARG should be a valid convert command."
   "Preview images in a thumbnails buffer."
   (setq buffer-read-only t))
 
-(defvar thumbs-view-image-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [prior] 'thumbs-previous-image)
-    (define-key map [next] 'thumbs-next-image)
-    (define-key map "^" 'thumbs-display-thumbs-buffer)
-    (define-key map "-" 'thumbs-shrink-image)
-    (define-key map "+" 'thumbs-enlarge-image)
-    (define-key map "<" 'thumbs-rotate-left)
-    (define-key map ">" 'thumbs-rotate-right)
-    (define-key map "e" 'thumbs-emboss-image)
-    (define-key map "r" 'thumbs-resize-image)
-    (define-key map "s" 'thumbs-save-current-image)
-    (define-key map "q" 'thumbs-kill-buffer)
-    (define-key map "w" 'thumbs-set-root)
-    map)
-  "Keymap for `thumbs-view-image-mode'.")
+(defvar-keymap thumbs-view-image-mode-map
+  :doc "Keymap for `thumbs-view-image-mode'."
+  "<prior>" #'thumbs-previous-image
+  "<next>"  #'thumbs-next-image
+  "^"       #'thumbs-display-thumbs-buffer
+  "-"       #'thumbs-shrink-image
+  "+"       #'thumbs-enlarge-image
+  "<"       #'thumbs-rotate-left
+  ">"       #'thumbs-rotate-right
+  "e"       #'thumbs-emboss-image
+  "r"       #'thumbs-resize-image
+  "s"       #'thumbs-save-current-image
+  "q"       #'thumbs-kill-buffer
+  "w"       #'thumbs-set-root)
 
 ;; thumbs-view-image-mode
 (put 'thumbs-view-image-mode 'mode-class 'special)
