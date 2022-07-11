@@ -666,26 +666,26 @@ count_size_as_multibyte (const unsigned char *str, ptrdiff_t len)
 }
 
 
-/* Convert unibyte text at SRC of NCHARS bytes to a multibyte text
-   at DST of NBYTES bytes, that contains the same single-byte characters.  */
-void
+/* Convert unibyte text at SRC of NCHARS chars to a multibyte text
+   at DST, that contains the same single-byte characters.
+   Return the number of bytes written at DST.  */
+ptrdiff_t
 str_to_multibyte (unsigned char *dst, const unsigned char *src,
-		  ptrdiff_t nchars, ptrdiff_t nbytes)
+		  ptrdiff_t nchars)
 {
-  const unsigned char *s = src + nchars;
-  unsigned char *d = dst + nbytes;
+  unsigned char *d = dst;
   for (ptrdiff_t i = 0; i < nchars; i++)
     {
-      unsigned char c = *--s;
+      unsigned char c = src[i];
       if (c <= 0x7f)
-	*--d = c;
+	*d++ = c;
       else
 	{
-	  *--d = 0x80 + (c & 0x3f);
-	  *--d = 0xc0 + ((c >> 6) & 1);
+	  *d++ = 0xc0 + ((c >> 6) & 1);
+	  *d++ = 0x80 + (c & 0x3f);
 	}
     }
-  eassert (d == dst && s == src);
+  return d - dst;
 }
 
 /* Arrange multibyte text at STR of LEN bytes as a unibyte text.  It
