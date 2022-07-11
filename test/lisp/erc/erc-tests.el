@@ -1042,4 +1042,46 @@
                          :nick "nick"
                          :password nil)))))
 
+(ert-deftest erc-tls ()
+  (let (calls)
+    (cl-letf (((symbol-function 'user-login-name)
+               (lambda (&optional _) "tester"))
+              ((symbol-function 'erc-open)
+               (lambda (&rest r) (push r calls))))
+
+      (ert-info ("Defaults")
+        (erc-tls)
+        (should (equal (pop calls)
+                       '("irc.libera.chat" 6697 "tester" "unknown" t
+                         nil nil nil nil nil "user" nil))))
+
+      (ert-info ("Full")
+        (erc-tls :server "irc.gnu.org"
+                 :port 7000
+                 :user "bobo"
+                 :nick "bob"
+                 :full-name "Bob's Name"
+                 :password "bob:changeme"
+                 :client-certificate t
+                 :id 'GNU.org)
+        (should (equal (pop calls)
+                       '("irc.gnu.org" 7000 "bob" "Bob's Name" t
+                         "bob:changeme" nil nil nil t "bobo" GNU.org))))
+
+      ;; Values are often nil when called by lisp code, which leads to
+      ;; null params.  This is why `erc-open' recomputes almost
+      ;; everything.
+      (ert-info ("Fallback")
+        (let ((erc-nick "bob")
+              (erc-server "irc.gnu.org")
+              (erc-email-userid "bobo")
+              (erc-user-full-name "Bob's Name"))
+          (erc-tls :server nil
+                   :port 7000
+                   :nick nil
+                   :password "bob:changeme"))
+        (should (equal (pop calls)
+                       '(nil 7000 nil "Bob's Name" t
+                             "bob:changeme" nil nil nil nil "bobo" nil)))))))
+
 ;;; erc-tests.el ends here

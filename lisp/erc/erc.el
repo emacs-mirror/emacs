@@ -1542,6 +1542,11 @@ symbol, it may have these values:
 * ircs        -> 994
 * ircd        -> 6667
 * ircd-dalnet -> 7000"
+  ;; These were updated somewhat in 2022 to reflect modern standards
+  ;; and practices.  See also:
+  ;;
+  ;; https://datatracker.ietf.org/doc/html/rfc7194#section-1
+  ;; https://www.iana.org/assignments/service-names-port-numbers
   (cond
    ((symbolp port)
     (erc-normalize-port (symbol-name port)))
@@ -1554,8 +1559,10 @@ symbol, it may have these values:
         194)
        ((string-equal port "ircs")
         994)
-       ((string-equal port "ircd")
+       ((string-equal port "ircu") 6667) ; 6665-6669
+       ((string-equal port "ircd") ; nonstandard (irc-serv is 529)
         6667)
+       ((string-equal port "ircs-u") 6697)
        ((string-equal port "ircd-dalnet")
         7000)
        (t
@@ -1924,7 +1931,9 @@ removed from the list will be disabled."
 
 If CONNECT is non-nil, connect to the server.  Otherwise assume
 already connected and just create a separate buffer for the new
-target CHANNEL.
+target given by CHANNEL, meaning these parameters are mutually
+exclusive.  Note that CHANNEL may also be a query; its name has
+been retained for historical reasons.
 
 Use PASSWD as user password on the server.  If TGT-LIST is
 non-nil, use it to initialize `erc-default-recipients'.
@@ -2183,7 +2192,7 @@ interactively."
 
 ;;;###autoload
 (cl-defun erc-tls (&key (server (erc-compute-server))
-                        (port   (erc-compute-port))
+                        (port   (erc-compute-port 'ircs-u))
                         (nick   (erc-compute-nick))
                         (user   (erc-compute-user))
                         password
@@ -6404,7 +6413,7 @@ non-nil value is found.
 - PORT (the argument passed to this function)
 - The `erc-port' option
 - The `erc-default-port' variable"
-  (or port erc-port erc-default-port))
+  (erc-normalize-port (or port erc-port erc-default-port)))
 
 ;; time routines
 
