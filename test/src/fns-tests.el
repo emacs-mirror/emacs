@@ -1344,18 +1344,24 @@
     (should (equal (plist-member plist (copy-sequence "a") #'equal)
                    '("a" "c")))))
 
-(ert-deftest fns--string-to-unibyte ()
-  (dolist (str '("" "a" "abc" "a\x00\x7fz" "a\xaa\xbbz ""\x80\xdd\xff"))
+(ert-deftest fns--string-to-unibyte-multibyte ()
+  (dolist (str (list "" "a" "abc" "a\x00\x7fz" "a\xaa\xbbz" "\x80\xdd\xff"
+                     (apply #'unibyte-string (number-sequence 0 255))))
     (ert-info ((prin1-to-string str) :prefix "str: ")
       (should-not (multibyte-string-p str))
       (let* ((u (string-to-unibyte str))   ; should be identity
              (m (string-to-multibyte u))   ; lossless conversion
-             (uu (string-to-unibyte m)))   ; also lossless
+             (mm (string-to-multibyte m))  ; should be identity
+             (uu (string-to-unibyte m))    ; also lossless
+             (ml (mapcar (lambda (c) (if (<= c #x7f) c (+ c #x3fff00))) u)))
         (should-not (multibyte-string-p u))
         (should (multibyte-string-p m))
+        (should (multibyte-string-p mm))
         (should-not (multibyte-string-p uu))
         (should (equal str u))
-        (should (equal str uu)))))
+        (should (equal m mm))
+        (should (equal str uu))
+        (should (equal (append m nil) ml)))))
   (should-error (string-to-unibyte "å"))
   (should-error (string-to-unibyte "ABC∀BC")))
 

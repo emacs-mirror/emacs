@@ -1237,33 +1237,24 @@ string_make_multibyte (Lisp_Object string)
 
 
 /* Convert STRING (if unibyte) to a multibyte string without changing
-   the number of characters.  Characters 0200 through 0237 are
-   converted to eight-bit characters. */
+   the number of characters.  Characters 0x80..0xff are interpreted as
+   raw bytes. */
 
 Lisp_Object
 string_to_multibyte (Lisp_Object string)
 {
-  unsigned char *buf;
-  ptrdiff_t nbytes;
-  Lisp_Object ret;
-  USE_SAFE_ALLOCA;
-
   if (STRING_MULTIBYTE (string))
     return string;
 
-  nbytes = count_size_as_multibyte (SDATA (string), SBYTES (string));
+  ptrdiff_t nchars = SCHARS (string);
+  ptrdiff_t nbytes = count_size_as_multibyte (SDATA (string), nchars);
   /* If all the chars are ASCII, they won't need any more bytes once
      converted.  */
-  if (nbytes == SBYTES (string))
+  if (nbytes == nchars)
     return make_multibyte_string (SSDATA (string), nbytes, nbytes);
 
-  buf = SAFE_ALLOCA (nbytes);
-  memcpy (buf, SDATA (string), SBYTES (string));
-  str_to_multibyte (buf, nbytes, SBYTES (string));
-
-  ret = make_multibyte_string ((char *) buf, SCHARS (string), nbytes);
-  SAFE_FREE ();
-
+  Lisp_Object ret = make_uninit_multibyte_string (nchars, nbytes);
+  str_to_multibyte (SDATA (ret), SDATA (string), nchars, nbytes);
   return ret;
 }
 
