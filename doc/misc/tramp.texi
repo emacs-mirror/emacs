@@ -179,11 +179,10 @@ interface to remote files as if they are local files.  @value{tramp}'s
 transparency extends to editing, version control, and @code{dired}.
 
 @value{tramp} can access remote hosts using any number of access
-methods, such as @command{ssh}, @command{rsh}, @command{rlogin},
-@command{telnet}, and related programs.  If these programs can
-successfully pass @acronym{ASCII} characters, @value{tramp} can use
-them.  @value{tramp} does not require or mandate 8-bit clean
-connections.
+methods, such as @command{ssh}, @command{scp}, @command{telnet}, and
+related programs.  If these programs can successfully pass
+@acronym{ASCII} characters, @value{tramp} can use them.  @value{tramp}
+does not require or mandate 8-bit clean connections.
 
 @value{tramp}'s most common access method is through @command{ssh}, a
 more secure alternative to @command{ftp} and other older access
@@ -231,10 +230,10 @@ first time connecting to that host, here's what happens:
 
 @itemize
 @item
-@value{tramp} invokes @samp{telnet @var{host}} or @samp{rsh @var{host}
--l @var{user}} and establishes an external process to connect to the
-remote host.  @value{tramp} communicates with the process through an
-Emacs buffer, which also shows output from the remote host.
+@value{tramp} invokes @samp{telnet @var{host}} or @samp{ssh -l
+@var{user} @var{host}} and establishes an external process to connect
+to the remote host.  @value{tramp} communicates with the process
+through an Emacs buffer, which also shows output from the remote host.
 
 @item
 The remote host may prompt for a login name (for @command{telnet}, for
@@ -244,7 +243,7 @@ followed by a newline.
 
 @item
 The remote host may then prompt for a password or passphrase (for
-@command{rsh} or for @command{telnet}).  @value{tramp} displays the
+@command{ssh} or for @command{telnet}).  @value{tramp} displays the
 password prompt in the minibuffer.  @value{tramp} then sends whatever
 is entered to the remote host, followed by a newline.
 
@@ -5620,6 +5619,7 @@ Disable @value{tramp} file name completion:
 (customize-set-variable 'ido-enable-tramp-completion nil)
 @end lisp
 
+@c Obsolete since Emacs 29.1.
 @item
 @file{rlogin.el}
 
@@ -5685,8 +5685,8 @@ What is the difference between Ange FTP and @value{tramp}?
 
 The difference is that Ange FTP uses @command{ftp} to transfer files
 between the local and the remote host, whereas @value{tramp} uses a
-combination of @command{rsh} and @command{rcp} or other work-alike
-programs, such as @command{ssh}/@command{scp}.
+combination of @command{ssh} and @command{scp} or other work-alike
+programs.
 @end itemize
 
 
