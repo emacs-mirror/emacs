@@ -1709,6 +1709,12 @@ this message for SVG and XPM.
 *** New commands: 'image-flip-horizontally' and 'image-flip-vertically'.
 These commands horizontally and vertically flip the image under point.
 
+** Images
+
++++
+*** Users can now add special image conversion functions.
+This is done via 'image-converter-add-handler'.
+
 ** Image-Dired
 
 +++

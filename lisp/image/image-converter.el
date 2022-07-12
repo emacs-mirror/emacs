@@ -306,6 +306,7 @@ Only suffixes that map to `image-mode' are returned."
                                           "-")))))
       "ffmpeg error when converting")))
 
+;;;###autoload
 (defun image-converter-add-handler (suffix converter)
   "Make Emacs use CONVERTER to parse image files that end with SUFFIX.
 CONVERTER is a function with one parameter, the file name.  The
