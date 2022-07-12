@@ -136,7 +136,7 @@ converted image data is returned as a string."
                    (file-name-extension source)))
            (extra-converter (gethash type image-converter--extra-converters)))
       (if extra-converter
-          (funcall extra-converter source)
+          (funcall extra-converter source format)
         (when-let ((err (image-converter--convert
                          image-converter source format)))
           (error "%s" err))))
@@ -309,9 +309,11 @@ Only suffixes that map to `image-mode' are returned."
 ;;;###autoload
 (defun image-converter-add-handler (suffix converter)
   "Make Emacs use CONVERTER to parse image files that end with SUFFIX.
-CONVERTER is a function with one parameter, the file name.  The
-converter should output the image in the current buffer,
-converted to `image-convert-to-format'."
+CONVERTER is a function with two parameters, where the first is
+the file name or a string with the image data, and the second is
+non-nil if the first parameter is image data.  The converter
+should output the image in the current buffer, converted to
+`image-convert-to-format'."
   (cl-pushnew suffix image-converter-file-name-extensions :test #'equal)
   (setq image-converter-file-name-extensions
         (sort image-converter-file-name-extensions #'string<))

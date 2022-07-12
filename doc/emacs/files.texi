@@ -2364,15 +2364,19 @@ viewing Krita files as simple images, you could say something like:
 @lisp
 (image-converter-add
  "kra"
- (lambda (file)
-   (call-process "unzip" nil t nil
-                 "-qq" "-c" "-x" file "mergedimage.png"))))
+ (lambda (file data-p)
+   (if data-p
+       (error "Can't decode non-files")
+     (call-process "unzip" nil t nil
+                   "-qq" "-c" "-x" file "mergedimage.png"))))
 @end lisp
 
 The function takes two parameters, where the first is a file name
 suffix, and the second is a function to do the ``conversion''.  This
-function takes one parameter, the file name, and should output an
-image in @code{image-convert-to-format} format in the current buffer.
+function takes two parameters, where the first is the file name or a
+string with the data, and the second says whether the first parameter
+is data or not, and should output an image in
+@code{image-convert-to-format} format in the current buffer.
 
 @findex thumbs-mode
 @cindex mode, Thumbs
