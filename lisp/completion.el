@@ -926,10 +926,6 @@ Each symbol is bound to a single completion entry.")
   "Return a completion entry."
   (list string 0 nil current-completion-source))
 
-;; Obsolete
-;;(defmacro cmpl-prefix-entry-symbol (completion-entry)
-;;  (list 'car (list 'cdr completion-entry)))
-
 
 
 ;;-----------------------------------------------
