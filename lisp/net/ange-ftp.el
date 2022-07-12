@@ -1,7 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1996, 1998, 2000-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: emacs-devel@gnu.org
@@ -870,13 +869,10 @@ Both telnet and rlogin do something like this."
 (defcustom ange-ftp-gateway-program remote-shell-program
   "Name of program to spawn a shell on the gateway machine.
 
-Valid candidates are rsh (remsh on some systems), telnet and rlogin.
 See also the gateway variable above."
   :group 'ange-ftp
-  :type '(choice (const "rsh")
-		 (const "telnet")
-		 (const "rlogin")
-		 string))
+  :type 'string
+  :version "29.1")
 
 (defcustom ange-ftp-gateway-prompt-pattern "^[^#$%>;\n]*[#$%>;] *"
   "Regexp matching prompt after complete login sequence on gateway machine.
