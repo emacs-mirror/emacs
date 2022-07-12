@@ -391,6 +391,8 @@ If nil, construct the regexp from `thing-at-point-uri-schemes'.")
     "telnet://" "tftp://" "tip://" "tn3270://" "udp://" "urn:"
     "uuid:" "vemmi://"  "webcal://" "xri://" "xmlrpc.beep://"
     "xmlrpc.beeps://" "z39.50r://" "z39.50s://" "xmpp:"
+    ;; Unofficial
+    "gemini://"
     ;; Compatibility
     "fax:" "man:" "mms://" "mmsh://" "modem:" "prospero:" "snews:"
     "wais://")
