@@ -2970,6 +2970,72 @@ please call support for your X-server and see if you can get a fix.
 If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 
+* Runtime problems specific to Cygwin
+
+** Fork failures in a build with native compilation
+
+To prevent fork failures, shared libraries on Cygwin need to be
+rebased occasionally, for the reasons explained here:
+
+  https://cygwin.com/cygwin-ug-net/highlights.html#ov-hi-process-problems
+
+This includes the .eln files produced by an Emacs built with native
+compilation.
+
+Rebasing is handled by Cygwin's autorebase postinstall script every
+time you run the Cygwin setup program (which you should do with no
+Cygwin processes running).  This script knows about the .eln files
+installed in the standard places (e.g.,
+/usr/lib/emacs/28.1/native-lisp), but it does not know about those in
+your user cache (e.g., /home/<username>/.emacs.d/eln-cache).  In order
+for these to be automatically rebased, you must create a file
+
+  /var/lib/rebase/userpath.d/<username>
+
+with one line for each directory containing .eln files.  If you are
+running an installed Emacs, it should suffice to list your cache
+directory.  For example, if there is an Emacs user "kbrown", then
+there should be a file
+
+  /var/lib/rebase/userpath.d/kbrown
+
+containing the single line
+
+  /home/kbrown/.emacs.d/eln-cache
+
+If you are running an Emacs that you have built but not installed,
+then you will need an additional line giving the path to the
+native-lisp subdirectory of your build directory.
+
+If more than one user will be using Emacs on your system, there should
+be a file like this for each user.
+
+Rebasing is not currently done when new .eln files are created, so
+fork failures are still possible between runs of Cygwin's setup
+program.  If you ever see a fork failure whose error message refers to
+a .eln file, you should be able to fix it temporarily by exiting emacs
+and issuing the command
+
+   find ~/.emacs.d/eln-cache -name '*.eln' | rebase -O -T -
+
+This is called an "ephemeral" rebase.  Again, if you are running an
+Emacs that has not been installed, you need to add the native-lisp
+subdirectory of your build directory to this command.  Alternatively,
+stop all Cygwin processes and run Cygwin's setup program to let the
+autorebase postinstall script run.
+
+It is hoped that the measures above will make native compilation
+usable on 64-bit Cygwin, with only an occasional minor annoyance.  In
+the 32-bit case, however, the limited address space makes frequent
+fork failures extremely likely.  It is therefore strongly recommended
+that you not build Emacs with native compilation on 32-bit Cygwin.
+Indeed, the configure script will not allow this unless you use the
+--with-cygwin32-native-compilation option.
+
+See bug#50666 (https://debbugs.gnu.org/cgi/bugreport.cgi?bug=50666)
+for further discussion.
+
+
 * Runtime problems specific to macOS
 
 ** Error message when opening Emacs on macOS

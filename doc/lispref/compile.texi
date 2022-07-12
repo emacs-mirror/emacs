@@ -979,7 +979,9 @@ Its value should be a number between @minus{}1 and 3.  Values between
 0 and 3 specify the optimization levels equivalent to the
 corresponding compiler @option{-O0}, @option{-O1}, etc.@: command-line
 options of the compiler.  The value @minus{}1 means disable
-native-compilation; functions and files will be only byte-compiled.
+native-compilation: functions and files will be only byte-compiled;
+however, the @file{*.eln} files will still be produced, they will just
+contain the compiled code in bytecode form.
 The default value is 2.
 @end defopt
 

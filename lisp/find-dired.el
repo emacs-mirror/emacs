@@ -170,7 +170,12 @@ except that the car of the variable `find-ls-option' specifies what to
 use in place of \"-ls\" as the final argument.
 
 Collect output in the \"*Find*\" buffer.  To kill the job before
-it finishes, type \\[kill-find]."
+it finishes, type \\[kill-find].
+
+For more information on how to write valid find expressions for
+ARGS, see Info node `(find) Finding Files'.  If you are not
+using GNU findutils (on macOS and *BSD systems), see instead the
+man page for \"find\"."
   (interactive (list (read-directory-name "Run find in directory: " nil "" t)
 		     (read-string "Run find (with args): " find-args
 				  '(find-args-history . 1))))

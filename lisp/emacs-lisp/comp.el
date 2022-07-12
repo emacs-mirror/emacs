@@ -45,7 +45,9 @@
 
 (defcustom native-comp-speed 2
   "Optimization level for native compilation, a number between -1 and 3.
- -1 functions are kept in bytecode form and no native compilation is performed.
+ -1 functions are kept in bytecode form and no native compilation is performed
+    (but *.eln files are still produced, and include the compiled code in
+    bytecode form).
   0 native compilation is performed with no optimizations.
   1 light optimizations.
   2 max optimization level fully adherent to the language semantic.
