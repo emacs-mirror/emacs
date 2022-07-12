@@ -27960,7 +27960,10 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
 {
   Lisp_Object tail, frame, new_owner, tem;
   Time timestamp;
-  Window owner;
+  Window *owners;
+  Atom *names;
+  ptrdiff_t nowners, counter;
+  struct selection_input_event clear;
 
   new_owner = Qnil;
 
@@ -27975,10 +27978,12 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
     }
 
   tail = lost;
+  nowners = 0;
 
   FOR_EACH_TAIL_SAFE (tail)
     {
       tem = XCAR (tail);
+      ++nowners;
 
       /* The selection is really lost (since we cannot find a new
 	 owner), so run the appropriate hooks.  */
@@ -27994,13 +27999,54 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
 	  x_own_selection (XCAR (tem), XCAR (XCDR (tem)),
 			   new_owner, XCAR (XCDR (XCDR (XCDR (XCDR (tem))))),
 			   timestamp);
+	}
+    }
+
+  if (!NILP (new_owner))
+    {
+      owners = alloca (sizeof *owners * nowners);
+      names = alloca (sizeof *names * nowners);
+
+      tail = lost;
+      nowners = 0;
+      counter = 0;
+
+      FOR_EACH_TAIL_SAFE (tail)
+	{
+	  tem = XCAR (tail);
 
 	  /* Now check if we still don't own that selection, which can
 	     happen if another program set itself as the owner.  */
-	  owner = XGetSelectionOwner (dpyinfo->display,
-				      symbol_to_x_atom (dpyinfo, XCAR (tem)));
+	  names[counter++] = symbol_to_x_atom (dpyinfo, XCAR (tem));
+	  owners[nowners++] = XGetSelectionOwner (dpyinfo->display,
+						  names[counter - 1]);
 
-	  if (owner != FRAME_X_WINDOW (XFRAME (new_owner)))
+	  if (owners[nowners - 1] != FRAME_X_WINDOW (XFRAME (new_owner)))
+	    {
+	      /* Clear the local selection, since we know we don't own
+		 it any longer.  */
+	      CONS_TO_INTEGER (XCAR (XCDR (XCDR (tem))), Time, timestamp);
+
+	      clear.kind = SELECTION_CLEAR_EVENT;
+
+	      SELECTION_EVENT_DPYINFO (&clear) = dpyinfo;
+	      SELECTION_EVENT_SELECTION (&clear) = names[nowners - 1];
+	      SELECTION_EVENT_TIME (&clear) = timestamp;
+
+	      x_handle_selection_event (&clear);
+	    }
+	}
+
+      tail = lost;
+      nowners = 0;
+
+      FOR_EACH_TAIL_SAFE (tail)
+	{
+	  tem = XCAR (tail);
+
+	  /* If the selection isn't owned by us anymore, note that the
+	     selection was lost.  */
+	  if (owners[nowners++] != FRAME_X_WINDOW (XFRAME (new_owner)))
 	    CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
 		   XCAR (tem));
 	}
