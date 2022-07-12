@@ -2355,6 +2355,25 @@ can be used to transform the image in question to @acronym{PNG} before
 displaying.  GraphicsMagick, ImageMagick and @command{ffmpeg} are
 currently supported for image conversions.
 
+@findex image-converter-add-handler
+  In addition, you may wish to add special handlers for certain image
+formats.  These can be added with the
+@code{image-converter-add-handler} function.  For instance, to allow
+viewing Krita files as simple images, you could say something like:
+
+@lisp
+(image-converter-add
+ "kra"
+ (lambda (file)
+   (call-process "unzip" nil t nil
+                 "-qq" "-c" "-x" file "mergedimage.png"))))
+@end lisp
+
+The function takes two parameters, where the first is a file name
+suffix, and the second is a function to do the ``conversion''.  This
+function takes one parameter, the file name, and should output an
+image in @code{image-convert-to-format} format in the current buffer.
+
 @findex thumbs-mode
 @cindex mode, Thumbs
   The Image-Dired package can also be used to view images as
