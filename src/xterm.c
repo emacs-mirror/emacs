@@ -27964,6 +27964,11 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
   Atom *names;
   ptrdiff_t nowners, counter;
   struct selection_input_event clear;
+#ifdef USE_XCB
+  xcb_get_selection_owner_cookie_t *cookies;
+  xcb_generic_error_t *error;
+  xcb_get_selection_owner_reply_t *reply;
+#endif
 
   new_owner = Qnil;
 
@@ -28006,6 +28011,9 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
     {
       owners = alloca (sizeof *owners * nowners);
       names = alloca (sizeof *names * nowners);
+#ifdef USE_XCB
+      cookies = alloca (sizeof *cookies * nowners);
+#endif
 
       tail = lost;
       nowners = 0;
@@ -28018,8 +28026,30 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
 	  /* Now check if we still don't own that selection, which can
 	     happen if another program set itself as the owner.  */
 	  names[counter++] = symbol_to_x_atom (dpyinfo, XCAR (tem));
+
+#ifndef USE_XCB
 	  owners[nowners++] = XGetSelectionOwner (dpyinfo->display,
 						  names[counter - 1]);
+#else
+	  cookies[nowners++]
+	    = xcb_get_selection_owner (dpyinfo->xcb_connection,
+				       names[counter - 1]);
+	}
+
+      nowners = 0;
+
+      FOR_EACH_TAIL_SAFE (tail)
+	{
+	  reply = xcb_get_selection_owner_reply (dpyinfo->xcb_connection,
+						 cookies[nowners++], &error);
+
+	  if (reply)
+	    owners[nowners - 1] = reply->owner;
+	  else
+	    owners[nowners - 1] = None;
+
+	  free (reply ? (void *) reply : (void *) error);
+#endif
 
 	  if (owners[nowners - 1] != FRAME_X_WINDOW (XFRAME (new_owner)))
 	    {
