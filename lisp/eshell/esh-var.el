@@ -188,27 +188,28 @@ accessed via the syntax `$NAME'.
 
 If VALUE is a function, its behavior depends on the value of
 SIMPLE-FUNCTION.  If SIMPLE-FUNCTION is nil, call VALUE with two
-arguments: the list of the indices that was used in the reference and
-whether the variable was used within double quotes.  For example, if
-`NAME' were aliased to a function, a reference of `$NAME[10][20]'
-would result in that function being called with the arguments
-`((\"10\") (\"20\"))' and nil.  If SIMPLE-FUNCTION is non-nil, call
-the function with no arguments and then pass its result to
-`eshell-apply-indices'.
+arguments: the list of the indices that were used in the reference,
+and either t or nil depending on whether or not the variable was
+quoted with double quotes.  For example, if `NAME' were aliased
+to a function, a reference of `$NAME[10][20]' would result in that
+function being called with the arguments `((\"10\") (\"20\"))' and
+nil.
+If SIMPLE-FUNCTION is non-nil, call the function with no arguments
+and then pass its return value to `eshell-apply-indices'.
 
 If VALUE is a string, return the value for the variable with that
 name in the current environment.  If no variable with that name exists
 in the environment, but if a symbol with that same name exists and has
-a value bound to it, return its value instead.  You can prioritize
-symbol values over environment values by setting
-`eshell-prefer-lisp-variables' to t.
+a value bound to it, return that symbol's value instead.  You can
+prefer symbol values over environment values by setting the value
+of `eshell-prefer-lisp-variables' to t.
 
 If VALUE is a symbol, return the value bound to it.
 
 If VALUE has any other type, signal an error.
 
 Additionally, if COPY-TO-ENVIRONMENT is non-nil, the alias should be
-copied to the environment of created subprocesses."
+copied (a.k.a. \"exported\") to the environment of created subprocesses."
   :type '(repeat (list string sexp
 		       (choice (const :tag "Copy to environment" t)
                                (const :tag "Use only in Eshell" nil))))
