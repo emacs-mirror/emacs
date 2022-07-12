@@ -27951,6 +27951,62 @@ x_uncatch_errors_for_lisp (struct x_display_info *dpyinfo)
     x_stop_ignoring_errors (dpyinfo);
 }
 
+/* Preserve the selections in LOST in another frame on DPYINFO.  LOST
+   is a list of local selections that were lost, due to their frame
+   being deleted.  */
+
+void
+x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
+{
+  Lisp_Object tail, frame, new_owner, tem;
+  Time timestamp;
+  Window owner;
+
+  new_owner = Qnil;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (FRAME_X_P (XFRAME (frame))
+	  && FRAME_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+	{
+	  new_owner = frame;
+	  break;
+	}
+    }
+
+  tail = lost;
+
+  FOR_EACH_TAIL_SAFE (tail)
+    {
+      tem = XCAR (tail);
+
+      /* The selection is really lost (since we cannot find a new
+	 owner), so run the appropriate hooks.  */
+      if (NILP (new_owner))
+	CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
+	       XCAR (tem));
+      else
+	{
+	  CONS_TO_INTEGER (XCAR (XCDR (XCDR (tem))), Time, timestamp);
+
+	  /* This shouldn't be able to signal any errors, despite the
+	     call to `x_check_errors' inside.  */
+	  x_own_selection (XCAR (tem), XCAR (XCDR (tem)),
+			   new_owner, XCAR (XCDR (XCDR (XCDR (XCDR (tem))))),
+			   timestamp);
+
+	  /* Now check if we still don't own that selection, which can
+	     happen if another program set itself as the owner.  */
+	  owner = XGetSelectionOwner (dpyinfo->display,
+				      symbol_to_x_atom (dpyinfo, XCAR (tem)));
+
+	  if (owner != FRAME_X_WINDOW (XFRAME (new_owner)))
+	    CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
+		   XCAR (tem));
+	}
+    }
+}
+
 void
 syms_of_xterm (void)
 {
@@ -28265,4 +28321,11 @@ reply from the X server, and signal any errors that occurred while
 executing the protocol request.  Otherwise, errors will be silently
 ignored without waiting, which is generally faster.  */);
   x_fast_protocol_requests = false;
+
+  DEFVAR_BOOL ("x-auto-preserve-selections", x_auto_preserve_selections,
+    doc: /* Whether or not to transfer selection ownership when deleting a frame.
+When non-nil, deleting a frame that is currently the owner of a
+selection will cause its ownership to be transferred to another frame
+on the same display.  */);
+  x_auto_preserve_selections = true;
 }

@@ -1091,20 +1091,23 @@ x_handle_selection_event (struct selection_input_event *event)
 void
 x_clear_frame_selections (struct frame *f)
 {
-  Lisp_Object frame;
-  Lisp_Object rest;
+  Lisp_Object frame, rest, lost;
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   struct terminal *t = dpyinfo->terminal;
 
   XSETFRAME (frame, f);
+  lost = Qnil;
 
   /* Delete elements from the beginning of Vselection_alist.  */
   while (CONSP (t->Vselection_alist)
 	 && EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (t->Vselection_alist)))))))
     {
-      /* Run the `x-lost-selection-functions' abnormal hook.  */
-      CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
-	     Fcar (Fcar (t->Vselection_alist)));
+      if (!x_auto_preserve_selections)
+	/* Run the `x-lost-selection-functions' abnormal hook.  */
+	CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
+	       Fcar (Fcar (t->Vselection_alist)));
+      else
+	lost = Fcons (Fcar (t->Vselection_alist), lost);
 
       tset_selection_alist (t, XCDR (t->Vselection_alist));
     }
@@ -1114,11 +1117,18 @@ x_clear_frame_selections (struct frame *f)
     if (CONSP (XCDR (rest))
 	&& EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (XCDR (rest))))))))
       {
-	CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
-	       XCAR (XCAR (XCDR (rest))));
+	if (!x_auto_preserve_selections)
+	  CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
+		 XCAR (XCAR (XCDR (rest))));
+	else
+	  lost = Fcons (XCAR (XCDR (rest)), lost);
+
 	XSETCDR (rest, XCDR (XCDR (rest)));
 	break;
       }
+
+  if (x_auto_preserve_selections)
+    x_preserve_selections (dpyinfo, lost);
 }
 
 /* True if any properties for DISPLAY and WINDOW

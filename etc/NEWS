@@ -2448,6 +2448,15 @@ be kept aligned with the buffer contents when the user switches
 This minor mode makes Emacs deactivate the mark in all buffers when
 the primary selection is obtained by another program.
 
+---
+** On X, Emacs will try to preserve selection ownership when a frame is deleted.
+This means that if you make Emacs the owner of a selection, such as by
+selecting some text into the clipboard or primary selection, and then
+delete the current frame, you will still be able to insert the
+contents of that selection into other programs as long as another
+frame is open on the same display.  This behavior can be disabled by
+setting the variable 'x-auto-preserve-selections' to nil.
+
 +++
 ** New predicate 'char-uppercase-p'.
 This returns non-nil if its argument its an uppercase character.

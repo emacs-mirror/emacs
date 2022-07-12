@@ -834,6 +834,7 @@ since it could result in memory overflow and make Emacs crash."
              (x-scroll-event-delta-factor mouse float "29.1")
              (x-gtk-use-native-input keyboard boolean "29.1")
              (x-dnd-disable-motif-drag dnd boolean "29.1")
+             (x-auto-preserve-selections x boolean "29.1")
 	     ;; xselect.c
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
@@ -874,6 +875,8 @@ since it could result in memory overflow and make Emacs crash."
                            (equal "x-scroll-event-delta-factor"
                                   (symbol-name symbol))
                            (equal "x-dnd-disable-motif-drag"
+                                  (symbol-name symbol))
+                           (equal "x-auto-preserve-selections"
                                   (symbol-name symbol)))
 		       (featurep 'x))
 		      ((string-match "\\`x-" (symbol-name symbol))
