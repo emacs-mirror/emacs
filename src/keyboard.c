@@ -1371,12 +1371,6 @@ command_loop_1 (void)
 	    }
 	}
 
-      /* If it has changed current-menubar from previous value,
-	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag)
-	  && !NILP (Ffboundp (Qrecompute_lucid_menubar)))
-	call0 (Qrecompute_lucid_menubar);
-
       Vthis_command = Qnil;
       Vreal_this_command = Qnil;
       Vthis_original_command = Qnil;
@@ -12184,7 +12178,6 @@ syms_of_keyboard (void)
      apply_modifiers.  */
   DEFSYM (Qmodifier_cache, "modifier-cache");
 
-  DEFSYM (Qrecompute_lucid_menubar, "recompute-lucid-menubar");
   DEFSYM (Qactivate_menubar_hook, "activate-menubar-hook");
 
   DEFSYM (Qpolling_period, "polling-period");
@@ -12664,10 +12657,6 @@ See also `pre-command-hook'.  */);
   DEFSYM (Qcoding, "coding");
 
   Fset (Qecho_area_clear_hook, Qnil);
-
-  DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,
-	       doc: /* Non-nil means menu bar, specified Lucid style, needs to be recomputed.  */);
-  Vlucid_menu_bar_dirty_flag = Qnil;
 
 #ifdef USE_LUCID
   DEFVAR_BOOL ("lucid--menu-grab-keyboard",
