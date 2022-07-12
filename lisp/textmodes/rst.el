@@ -2153,8 +2153,8 @@ around the cursor.  Then the following cases are distinguished.
 	    (end-of-line))
 	  nil)))))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-adjust-section-title 'rst-adjust)
+(define-obsolete-function-alias 'rst-adjust-section-title
+  #'rst-adjust "29.1")
 
 (defun rst-adjust-region (demote)
   ;; testcover: ok.
@@ -2205,8 +2205,8 @@ Hierarchy is displayed in a temporary buffer."
 	  (insert "\n")
 	  (cl-incf level))))))
 
-;; Maintain an alias for backward compatibility.
-(defalias 'rst-display-adornments-hierarchy 'rst-display-hdr-hierarchy)
+(define-obsolete-function-alias 'rst-display-adornments-hierarchy
+  #'rst-display-hdr-hierarchy "29.1")
 
 ;; FIXME: Should accept an argument giving the hierarchy level to start with
 ;;        instead of the top of the hierarchy.
@@ -2231,8 +2231,8 @@ in order to adapt it to our preferred style."
        (goto-char marker) nil)
       (rst-update-section (nth level (rst-Hdr-preferred-adornments))))))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-straighten-adornments 'rst-straighten-sections)
+(define-obsolete-function-alias 'rst-straighten-adornments
+  #'rst-straighten-sections "29.1")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2858,8 +2858,8 @@ file-write hook to always make it up-to-date automatically."
 ;;	    ;; Disable undo for the write file hook.
 ;;	    (let ((buffer-undo-list t)) (rst-toc-update) ))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-insert-update 'rst-toc-update)
+(define-obsolete-function-alias 'rst-toc-insert-update
+  #'rst-toc-update "29.1")
 
 (defconst rst-toc-buffer-name "*Table of Contents*"
   "Name of the Table of Contents buffer.")
@@ -2893,8 +2893,8 @@ selecting a section title moves the cursor to that section."
     (setq rst-toc-mode-return-wincfg wincfg)
     (goto-char (or target-pos (point-min)))))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-goto-section 'rst-toc-follow-link)
+(define-obsolete-function-alias 'rst-goto-section
+  #'rst-toc-follow-link "29.1")
 
 (defun rst-toc-follow-link (link-buf link-pnt kill)
   ;; testcover: ok.
@@ -2919,8 +2919,8 @@ error if there is no working link at the given position."
     ;;        the adornment is always completely visible.
     (recenter 5)))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-mode-goto-section 'rst-toc-mode-follow-link-kill)
+(define-obsolete-function-alias 'rst-toc-mode-goto-section
+  #'rst-toc-mode-follow-link-kill "29.1")
 
 ;; FIXME: Cursor before or behind the list must be handled properly; before the
 ;;        list should jump to the top and behind the list to the last normal
@@ -2931,8 +2931,8 @@ error if there is no working link at the given position."
   (interactive)
   (rst-toc-follow-link (current-buffer) (point) t))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-mode-mouse-goto 'rst-toc-mouse-follow-link)
+(define-obsolete-function-alias 'rst-toc-mode-mouse-goto
+  #'rst-toc-mouse-follow-link "29.1")
 
 (defun rst-toc-mouse-follow-link (event kill)
   ;; testcover: uncovered.
@@ -2942,8 +2942,8 @@ EVENT is the input event.  Kill TOC buffer if KILL."
   (rst-toc-follow-link (window-buffer (posn-window (event-end event)))
 		       (posn-point (event-end event)) kill))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-mode-mouse-goto-kill 'rst-toc-mode-mouse-follow-link-kill)
+(define-obsolete-function-alias 'rst-toc-mode-mouse-goto-kill
+  #'rst-toc-mode-mouse-follow-link-kill "29.1")
 
 (defun rst-toc-mode-mouse-follow-link-kill (event)
   ;; testcover: uncovered.
@@ -2952,8 +2952,8 @@ EVENT is the input event."
   (interactive "e")
   (rst-toc-mouse-follow-link event t))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-quit-window 'rst-toc-mode-return)
+(define-obsolete-function-alias 'rst-toc-quit-window
+  #'rst-toc-mode-return "29.1")
 
 (defun rst-toc-mode-return (kill)
   ;; testcover: ok.
