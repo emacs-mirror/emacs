@@ -912,7 +912,7 @@ does not run the hooks `kill-buffer-hook',
       Fset (intern ("buffer-save-without-query"), Qnil);
       Fset (intern ("buffer-file-number"), Qnil);
       if (!NILP (Flocal_variable_p (Qbuffer_stale_function, base_buffer)))
-	Fset (Qbuffer_stale_function, Qbuffer_stale__default_function);
+	Fkill_local_variable (Qbuffer_stale_function);
       /* Cloned buffers need extra setup, to do things such as deep
 	 variable copies for list variables that might be mangled due
 	 to destructive operations in the indirect buffer. */
@@ -6480,7 +6480,6 @@ will run for `clone-indirect-buffer' calls as well.  */);
   DEFSYM (Qkill_buffer__possibly_save, "kill-buffer--possibly-save");
 
   DEFSYM (Qbuffer_stale_function, "buffer-stale-function");
-  DEFSYM (Qbuffer_stale__default_function, "buffer-stale--default-function");
 
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }
