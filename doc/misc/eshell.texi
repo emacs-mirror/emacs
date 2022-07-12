@@ -847,9 +847,11 @@ For example, you could handle a subset of the options for the
 
 @node Variables
 @section Variables
-Since Eshell is just an Emacs REPL@footnote{Read-Eval-Print Loop}, it
-does not have its own scope, and simply stores variables the same you
-would in an Elisp program.  Eshell provides a command version of
+Since Eshell is just an Emacs @acronym{REPL}@footnote{
+Short for ``Read-Eval-Print Loop''.
+}
+, it does not have its own scope, and simply stores variables the same
+you would in an Elisp program.  Eshell provides a command version of
 @code{setq} for convenience.
 
 @subsection Built-in variables
@@ -857,44 +859,44 @@ Eshell knows a few built-in variables:
 
 @table @code
 
-@item $PWD
-@item $+
 @vindex $PWD
 @vindex $+
+@item $PWD
+@itemx $+
 This variable always contains the current working directory.
 
-@item $OLDPWD
-@item $-
 @vindex $OLDPWD
 @vindex $-
+@item $OLDPWD
+@itemx $-
 This variable always contains the previous working directory (the
 current working directory from before the last @code{cd} command).
 When using @code{$-}, you can also access older directories in the
-directory ring via subscripting, e.g. @samp{$-[1]} refers to the
+directory ring via subscripting, e.g.@: @samp{$-[1]} refers to the
 working directory @emph{before} the previous one.
 
-@item $_
 @vindex $_
+@item $_
 This refers to the last argument of the last command.  With a
 subscript, you can access any argument of the last command.  For
 example, @samp{$_[1]} refers to the second argument of the last
 command (excluding the command name itself).
 
-@item $$
 @vindex $$
+@item $$
 This is the result of the last command.  In case of an external
 command, it is @code{t} or @code{nil}.
 
-@item $?
 @vindex $?
+@item $?
 This variable contains the exit code of the last command.  If the last
 command was a Lisp function, it is 0 for successful completion or 1
 otherwise.
 
-@item $COLUMNS
-@item $LINES
 @vindex $COLUMNS
 @vindex $LINES
+@item $COLUMNS
+@itemx $LINES
 These variables tell the number of columns and lines, respectively,
 that are currently visible in the Eshell window.  They are both
 copied to the environment, so external commands invoked from
