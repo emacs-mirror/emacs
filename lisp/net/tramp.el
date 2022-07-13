@@ -106,8 +106,8 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
  4  activities
  5  internal
  6  sent and received strings
- 7  file caching
- 8  connection properties
+ 7  connection properties
+ 8  file caching
  9  test commands
 10  traces (huge)
 11  call traces (maintainer only)."
