@@ -2030,6 +2030,11 @@ Set it to nil to exclude line numbering from kills and copies.
 
 ** Miscellaneous
 
+---
+*** New user option 'webjump-use-internal-browser'.
+When non-nil, WebJump will use an internal browser to open web pages,
+instead of the default external browser.
+
 +++
 *** New user option 'font-lock-ignore'.
 This option provides a mechanism to selectively disable font-lock
