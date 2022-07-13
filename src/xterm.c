@@ -23301,7 +23301,7 @@ static char *error_msg;
 /* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
    the text of an error message that lead to the connection loss.  */
 
-static AVOID
+static void
 x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 {
   struct x_display_info *dpyinfo;
@@ -23313,6 +23313,15 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
   Lisp_Object minibuf_frame, tmp;
   struct x_failable_request *failable;
   struct x_error_message_stack *stack;
+  static Display *current_display;
+
+  /* Prevent recursive calls of this function for the same display.
+     This is because destroying a frame might still cause an IO error
+     in some cases.  (bug#56528) */
+  if (current_display == dpy)
+    return;
+
+  current_display = dpy;
 
   dpyinfo = x_display_info_for_display (dpy);
   error_msg = alloca (strlen (error_message) + 1);
@@ -23519,6 +23528,7 @@ For details, see etc/PROBLEMS.\n",
   /* Here, we absolutely have to use a non-local exit (e.g. signal, throw,
      longjmp), because returning from this function would get us back into
      Xlib's code which will directly call `exit'.  */
+  current_display = NULL;
   error ("%s", error_msg);
 }
 
@@ -23623,7 +23633,7 @@ x_error_quitter (Display *display, XErrorEvent *event)
    It kills all frames on the display that we lost touch with.
    If that was the only one, it prints an error message and kills Emacs.  */
 
-static _Noreturn ATTRIBUTE_COLD int
+static int NO_INLINE
 x_io_error_quitter (Display *display)
 {
   char buf[256];
@@ -23631,6 +23641,8 @@ x_io_error_quitter (Display *display)
   snprintf (buf, sizeof buf, "Connection lost to X server '%s'",
 	    DisplayString (display));
   x_connection_closed (display, buf, true);
+
+  return 0;
 }
 
 
