@@ -27956,7 +27956,8 @@ x_uncatch_errors_for_lisp (struct x_display_info *dpyinfo)
    being deleted.  */
 
 void
-x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
+x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
+		       Lisp_Object current_owner)
 {
   Lisp_Object tail, frame, new_owner, tem;
   Time timestamp;
@@ -27975,6 +27976,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost)
   FOR_EACH_FRAME (tail, frame)
     {
       if (FRAME_X_P (XFRAME (frame))
+	  && !EQ (frame, current_owner)
 	  && FRAME_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
 	{
 	  new_owner = frame;
@@ -28105,6 +28107,7 @@ syms_of_xterm (void)
   DEFSYM (Qlatin_1, "latin-1");
   DEFSYM (Qnow, "now");
   DEFSYM (Qx_dnd_targets_list, "x-dnd-targets-list");
+  DEFSYM (Qx_auto_preserve_selections, "x-auto-preserve-selections");
 
 #ifdef USE_GTK
   xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");

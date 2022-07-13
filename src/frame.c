@@ -1933,6 +1933,9 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   int is_tooltip_frame;
   bool nochild = !FRAME_PARENT_FRAME (f);
   Lisp_Object minibuffer_child_frame = Qnil;
+#ifdef HAVE_X_WINDOWS
+  specpdl_ref ref;
+#endif
 
   if (!FRAME_LIVE_P (f))
     return Qnil;
@@ -2116,7 +2119,18 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   /* Clear any X selections for this frame.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
-    x_clear_frame_selections (f);
+    {
+      /* Don't preserve selections when a display is going away, since
+	 that sends stuff down the wire.  */
+
+      ref = SPECPDL_INDEX ();
+
+      if (EQ (force, Qnoelisp))
+	specbind (Qx_auto_preserve_selections, Qnil);
+
+      x_clear_frame_selections (f);
+      unbind_to (ref, Qnil);
+    }
 #endif
 
 #ifdef HAVE_PGTK

@@ -1128,7 +1128,7 @@ x_clear_frame_selections (struct frame *f)
       }
 
   if (x_auto_preserve_selections)
-    x_preserve_selections (dpyinfo, lost);
+    x_preserve_selections (dpyinfo, lost, frame);
 }
 
 /* True if any properties for DISPLAY and WINDOW

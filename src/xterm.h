@@ -1643,7 +1643,8 @@ extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
 extern bool x_defined_color (struct frame *, const char *, Emacs_Color *,
                              bool, bool);
-extern void x_preserve_selections (struct x_display_info *, Lisp_Object);
+extern void x_preserve_selections (struct x_display_info *, Lisp_Object,
+				   Lisp_Object);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
 # if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
