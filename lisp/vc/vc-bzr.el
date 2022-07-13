@@ -64,9 +64,13 @@
   :version "22.2"
   :group 'vc)
 
-(defcustom vc-bzr-program "bzr"
+(defcustom vc-bzr-program
+  (or (executable-find "bzr")
+      (executable-find "brz")
+      "bzr")
   "Name of the bzr command (excluding any arguments)."
-  :type 'string)
+  :type 'string
+  :version "29.1")
 
 (defcustom vc-bzr-diff-switches nil
   "String or list of strings specifying switches for bzr diff under VC.
