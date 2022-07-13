@@ -3756,7 +3756,7 @@ a merged sequence which is (stably) sorted according to
 The functions described here operate on lists.
 
 @menu
-* List Functions::                @code{cl-caddr}, @code{cl-first}, @code{cl-list*}, etc.
+* List Functions::                @code{cl-first}, @code{cl-list*}, etc.
 * Substitution of Expressions::   @code{cl-subst}, @code{cl-sublis}, etc.
 * Lists as Sets::                 @code{cl-member}, @code{cl-adjoin}, @code{cl-union}, etc.
 * Association Lists::             @code{cl-assoc}, @code{cl-acons}, @code{cl-pairlis}, etc.
@@ -3768,14 +3768,6 @@ The functions described here operate on lists.
 @noindent
 This section describes a number of simple operations on lists,
 i.e., chains of cons cells.
-
-@defun cl-caddr x
-This function is equivalent to @code{(car (cdr (cdr @var{x})))}.
-Likewise, this package aliases all 24 @code{c@var{xxx}r} functions
-where @var{xxx} is up to four @samp{a}s and/or @samp{d}s.
-All of these functions are @code{setf}-able, and calls to them
-are expanded inline by the byte-compiler for maximum efficiency.
-@end defun
 
 @defun cl-first x
 This function is a synonym for @code{(car @var{x})}.  Likewise,
@@ -4553,8 +4545,8 @@ For example,
 @end example
 @end ignore
 
-Note that @code{cl-adjoin}, @code{cl-caddr}, and @code{cl-member} all
-have built-in compiler macros to optimize them in common cases.
+Note that @code{cl-adjoin} and @code{cl-member} have built-in compiler
+macros to optimize them in common cases.
 @end defun
 
 @appendixsec Error Checking
