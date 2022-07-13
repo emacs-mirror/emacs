@@ -441,7 +441,7 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
       ;; Otherwise, find the bounds within which a URI may exist.  The
       ;; method is similar to `ffap-string-at-point'.  Note that URIs
       ;; may contain parentheses but may not contain spaces (RFC3986).
-      (let* ((allowed-chars "--:=&?$+@-Z_[:alpha:]~#,%;*()!'")
+      (let* ((allowed-chars "--:=&?$+@-Z_[:alpha:]~#,%;*()!'[]")
 	     (skip-before "^[0-9a-zA-Z]")
 	     (skip-after  ":;.,!?'")
 	     (pt (point))
