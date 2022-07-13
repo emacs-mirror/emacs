@@ -249,7 +249,7 @@ If TYPE is nil, return \"text/plain\"."
   "Find the types of data available from CLIPBOARD.
 CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
 `CLIPBOARD'.  Return the available types as a list of strings."
-  (mapcar #'car (haiku-selection-data clipboard nil)))
+  (delq 'type (mapcar #'car (haiku-selection-data clipboard nil))))
 
 (defun haiku-select-encode-xstring (_selection value)
   "Convert VALUE to a system message association.
@@ -288,12 +288,19 @@ or a pair of markers) and turns it into a file system reference."
 
 (cl-defmethod gui-backend-get-selection (type data-type
                                               &context (window-system haiku))
-  (if (eq data-type 'TARGETS)
-      (apply #'vector (mapcar #'intern
-                              (haiku-selection-targets type)))
-    (if (eq type 'XdndSelection)
-        haiku-dnd-selection-value
-      (haiku-selection-data type (haiku--selection-type-to-mime data-type)))))
+  (cond
+   ((eq data-type 'TARGETS)
+    (apply #'vector (mapcar #'intern
+                            (haiku-selection-targets type))))
+   ;; The timestamp here is really the number of times a program has
+   ;; put data into the selection.  But it always increases, so it
+   ;; makes sense if one imagines that time is frozen until
+   ;; immediately before that happens.
+   ((eq data-type 'TIMESTAMP)
+    (haiku-selection-timestamp type))
+   ((eq type 'XdndSelection) haiku-dnd-selection-value)
+   (t (haiku-selection-data type
+                            (haiku--selection-type-to-mime data-type)))))
 
 (cl-defmethod gui-backend-set-selection (type value
                                               &context (window-system haiku))

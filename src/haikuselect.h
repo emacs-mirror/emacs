@@ -67,6 +67,7 @@ extern void be_unlock_clipboard (enum haiku_clipboard, bool);
 extern void be_handle_clipboard_changed_message (void);
 extern void be_start_watching_selection (enum haiku_clipboard);
 extern bool be_selection_outdated_p (enum haiku_clipboard, int64);
+extern int64 be_get_clipboard_count (enum haiku_clipboard);
 
 #ifdef __cplusplus
 };

@@ -508,3 +508,12 @@ be_selection_outdated_p (enum haiku_clipboard id, int64 count)
 
   return false;
 }
+
+int64
+be_get_clipboard_count (enum haiku_clipboard id)
+{
+  BClipboard *clipboard;
+
+  clipboard = get_clipboard_object (id);
+  return clipboard->SystemCount ();
+}
