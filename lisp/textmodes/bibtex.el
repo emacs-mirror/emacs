@@ -3659,7 +3659,11 @@ if that value is non-nil.
                                         ?\s)))))
     (if (and buffer-file-name enable-local-variables)
         (add-hook 'hack-local-variables-hook fun nil t)
-      (funcall fun))))
+      (funcall fun)))
+  ;; We may be using the mode programmatically to extract data, and we
+  ;; then need this to be set up first so that sexp-based movement
+  ;; commands don't bug out.
+  (font-lock-set-defaults))
 
 (defun bibtex-entry-alist (dialect)
   "Return entry-alist for DIALECT."
