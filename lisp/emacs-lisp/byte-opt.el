@@ -1459,7 +1459,7 @@ See Info node `(elisp) Integer Basics'."
 	 symbol-function symbol-name symbol-plist symbol-value string-make-unibyte
 	 string-make-multibyte string-as-multibyte string-as-unibyte
 	 string-to-multibyte
-	 tan time-convert truncate
+	 take tan time-convert truncate
 	 unibyte-char-to-multibyte upcase user-full-name
 	 user-login-name user-original-login-name custom-variable-p
 	 vconcat
@@ -1560,7 +1560,7 @@ See Info node `(elisp) Integer Basics'."
          ;; arguments.  This is pure enough for the purposes of
          ;; constant folding, but not necessarily for all kinds of
          ;; code motion.
-         car cdr car-safe cdr-safe nth nthcdr last
+         car cdr car-safe cdr-safe nth nthcdr last take
          equal
          length safe-length
          memq memql member

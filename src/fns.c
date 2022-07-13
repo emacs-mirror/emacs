@@ -1557,6 +1557,61 @@ substring_both (Lisp_Object string, ptrdiff_t from, ptrdiff_t from_byte,
   return res;
 }
 
+DEFUN ("take", Ftake, Stake, 2, 2, 0,
+       doc: /* Return the first N elements of LIST.
+If N is zero or negative, return nil.
+If LIST is no more than N elements long, return it (or a copy).  */)
+  (Lisp_Object n, Lisp_Object list)
+{
+  CHECK_FIXNUM (n);
+  EMACS_INT m = XFIXNUM (n);
+  if (m <= 0)
+    return Qnil;
+  CHECK_LIST (list);
+  if (NILP (list))
+    return Qnil;
+  Lisp_Object ret = Fcons (XCAR (list), Qnil);
+  Lisp_Object prev = ret;
+  m--;
+  list = XCDR (list);
+  while (m > 0 && CONSP (list))
+    {
+      Lisp_Object p = Fcons (XCAR (list), Qnil);
+      XSETCDR (prev, p);
+      prev = p;
+      m--;
+      list = XCDR (list);
+    }
+  if (m > 0 && !NILP (list))
+    wrong_type_argument (Qlistp, list);
+  return ret;
+}
+
+DEFUN ("ntake", Fntake, Sntake, 2, 2, 0,
+       doc: /* Modify LIST to keep only the first N elements.
+If N is zero or negative, return nil.
+If LIST is no more than N elements long, return it.  */)
+  (Lisp_Object n, Lisp_Object list)
+{
+  CHECK_FIXNUM (n);
+  EMACS_INT m = XFIXNUM (n);
+  if (m <= 0)
+    return Qnil;
+  CHECK_LIST (list);
+  Lisp_Object tail = list;
+  --m;
+  while (m > 0 && CONSP (tail))
+    {
+      tail = XCDR (tail);
+      m--;
+    }
+  if (CONSP (tail))
+    XSETCDR (tail, Qnil);
+  else if (!NILP (tail))
+    wrong_type_argument (Qlistp, list);
+  return list;
+}
+
 DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
        doc: /* Take cdr N times on LIST, return the result.  */)
   (Lisp_Object n, Lisp_Object list)
@@ -6082,6 +6137,8 @@ The same variable also affects the function `read-answer'.  */);
   defsubr (&Scopy_alist);
   defsubr (&Ssubstring);
   defsubr (&Ssubstring_no_properties);
+  defsubr (&Stake);
+  defsubr (&Sntake);
   defsubr (&Snthcdr);
   defsubr (&Snth);
   defsubr (&Selt);

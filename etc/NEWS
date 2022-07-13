@@ -3197,6 +3197,11 @@ to preserve the old behavior, apply
     (let ((default-directory temporary-file-directory))
       (process-attributes pid))
 
++++
+** New functions 'take' and 'ntake'.
+'(take N LIST)' returns the first N elements of LIST; 'ntake' does
+the same but works by modifying LIST destructively.
+
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
