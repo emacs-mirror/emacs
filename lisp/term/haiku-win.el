@@ -206,6 +206,7 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
 (declare-function haiku-selection-owner-p "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
 (declare-function haiku-drag-message "haikuselect.c")
+(declare-function haiku-selection-timestamp "haikuselect.c")
 
 (defun haiku--handle-x-command-line-resources (command-line-resources)
   "Handle command line X resources specified with the option `-xrm'.
