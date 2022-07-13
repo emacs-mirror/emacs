@@ -4890,11 +4890,11 @@ The buffer is left in Command History mode." t nil)
 Examine commands from variable `command-history' in a buffer.
 The number of commands listed is controlled by `list-command-history-max'.
 The command history is filtered by `list-command-history-filter' if non-nil.
-Use \\<command-history-map>\\[command-history-repeat] to repeat the command on the current line.
+Use \\<command-history-mode-map>\\[command-history-repeat] to repeat the command on the current line.
 
 Otherwise much like Emacs-Lisp Mode except that there is no self-insertion
 and digits provide prefix arguments.  Tab does not indent.
-\\{command-history-map}
+\\{command-history-mode-map}
 
 This command always recompiles the Command History listing
 and runs the normal hook `command-history-hook'." t nil)
@@ -12832,6 +12832,11 @@ use in place of \"-ls\" as the final argument.
 
 Collect output in the \"*Find*\" buffer.  To kill the job before
 it finishes, type \\[kill-find].
+
+For more information on how to write valid find expressions for
+ARGS, see Info node `(find) Finding Files'.  If you are not
+using GNU findutils (on macOS and *BSD systems), see instead the
+man page for \"find\".
 
 \(fn DIR ARGS)" t nil)
 
@@ -35086,7 +35091,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 5 3)) package--builtin-versions)
+(push (purecopy '(tramp 2 5 3 28 2)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
