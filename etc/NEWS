@@ -322,8 +322,8 @@ startup.  Previously, these functions ignored
 'initial-scratch-message' and left "*scratch*" in 'fundamental-mode'.
 
 ---
-** The rlogin.el library is now obsolete.
-Use something like `M-x shell RET ssh <host> RET' instead.
+** The rlogin.el library and 'rsh' command are now obsolete.
+Use something like 'M-x shell RET ssh <host> RET' instead.
 
 
 * Changes in Emacs 29.1
