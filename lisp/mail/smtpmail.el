@@ -550,7 +550,6 @@ for `smtpmail-try-auth-method'.")
 		      :require (and ask-for-password
 				    '(:user :secret))
 		      :create ask-for-password)))
-         (mech (or (plist-get auth-info :smtp-auth) (car mechs)))
          (user (plist-get auth-info :user))
          (password (auth-info-password auth-info))
 	 (save-function (and ask-for-password
@@ -570,18 +569,26 @@ for `smtpmail-try-auth-method'.")
 	      :require '(:user :secret)
 	      :create t))
 	    password (auth-info-password auth-info)))
-    (let ((result (catch 'done
-                    (if (and mech user password)
-		        (smtpmail-try-auth-method process mech user password)
-                      ;; No mechanism, or no credentials.
-                      mech))))
-      (if (stringp result)
-	  (progn
-	    (auth-source-forget+ :host host :port port)
-	    (throw 'done result))
-	(when save-function
-	  (funcall save-function))
-	result))))
+    (let ((mechs (or (ensure-list (plist-get auth-info :smtp-auth))
+                     mechs))
+          (result ""))
+      (when (and mechs user password)
+        (while (and mechs
+                    (stringp result))
+          (setq result (catch 'done
+		         (smtpmail-try-auth-method
+                          process (pop mechs) user password))))
+        ;; A string result is an error.
+        (if (stringp result)
+            (progn
+              ;; All methods failed.
+              ;; Forget the credentials.
+	      (auth-source-forget+ :host host :port port)
+              (throw 'done result))
+          ;; Success.
+	  (when save-function
+	    (funcall save-function))
+          result)))))
 
 (cl-defgeneric smtpmail-try-auth-method (_process mech _user _password)
   "Perform authentication of type MECH for USER with PASSWORD.
