@@ -893,7 +893,7 @@ of 1.2; to change this factor, customize the variable
 to the @code{text-scale-adjust} command restores the default height,
 the same as typing @kbd{C-x C-0}.
 
-@cindex ajust global font size
+@cindex adjust global font size
 @findex global-text-scale-adjust
 @vindex global-text-scale-adjust-resizes-frames
 @kindex C-x C-M-+

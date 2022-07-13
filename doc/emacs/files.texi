@@ -2362,7 +2362,7 @@ formats.  These can be added with the
 viewing Krita files as simple images, you could say something like:
 
 @lisp
-(image-converter-add
+(image-converter-add-handler
  "kra"
  (lambda (file data-p)
    (if data-p
