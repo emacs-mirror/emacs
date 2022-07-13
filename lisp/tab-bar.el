@@ -371,31 +371,28 @@ at the mouse-down event to the position at mouse-up event."
       (tab-bar-move-tab-to
        (if (null to) (1+ (tab-bar--current-tab-index)) to) from))))
 
-(defvar tab-bar-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [down-mouse-1] 'tab-bar-mouse-down-1)
-    (define-key map [drag-mouse-1] 'tab-bar-mouse-move-tab)
-    (define-key map [mouse-1]      'tab-bar-mouse-1)
-    (define-key map [down-mouse-2] 'tab-bar-mouse-close-tab)
-    (define-key map [mouse-2]      'ignore)
-    (define-key map [down-mouse-3] 'tab-bar-mouse-context-menu)
+(defvar-keymap tab-bar-map
+  :doc "Keymap for the commands used on the tab bar."
+  "<down-mouse-1>"  #'tab-bar-mouse-down-1
+  "<drag-mouse-1>"  #'tab-bar-mouse-move-tab
+  "<mouse-1>"       #'tab-bar-mouse-1
+  "<down-mouse-2>"  #'tab-bar-mouse-close-tab
+  "<mouse-2>"       #'ignore
+  "<down-mouse-3>"  #'tab-bar-mouse-context-menu
 
-    (define-key map [mouse-4]     'tab-previous)
-    (define-key map [mouse-5]     'tab-next)
-    (define-key map [wheel-up]    'tab-previous)
-    (define-key map [wheel-down]  'tab-next)
-    (define-key map [wheel-left]  'tab-previous)
-    (define-key map [wheel-right] 'tab-next)
+  "<mouse-4>"       #'tab-previous
+  "<mouse-5>"       #'tab-next
+  "<wheel-up>"      #'tab-previous
+  "<wheel-down>"    #'tab-next
+  "<wheel-left>"    #'tab-previous
+  "<wheel-right>"   #'tab-next
 
-    (define-key map [S-mouse-4]     'tab-bar-move-tab-backward)
-    (define-key map [S-mouse-5]     'tab-bar-move-tab)
-    (define-key map [S-wheel-up]    'tab-bar-move-tab-backward)
-    (define-key map [S-wheel-down]  'tab-bar-move-tab)
-    (define-key map [S-wheel-left]  'tab-bar-move-tab-backward)
-    (define-key map [S-wheel-right] 'tab-bar-move-tab)
-
-    map)
-  "Keymap for the commands used on the tab bar.")
+  "S-<mouse-4>"     #'tab-bar-move-tab-backward
+  "S-<mouse-5>"     #'tab-bar-move-tab
+  "S-<wheel-up>"    #'tab-bar-move-tab-backward
+  "S-<wheel-down>"  #'tab-bar-move-tab
+  "S-<wheel-left>"  #'tab-bar-move-tab-backward
+  "S-<wheel-right>" #'tab-bar-move-tab)
 
 (global-set-key [tab-bar]
                 `(menu-item ,(purecopy "tab bar") ignore
@@ -2006,26 +2003,25 @@ For more information, see the function `tab-switcher'."
 
 (defvar-local tab-switcher-column 3)
 
-(defvar tab-switcher-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map t)
-    (define-key map "q"    'quit-window)
-    (define-key map "\C-m" 'tab-switcher-select)
-    (define-key map "d"    'tab-switcher-delete)
-    (define-key map "k"    'tab-switcher-delete)
-    (define-key map "\C-d" 'tab-switcher-delete-backwards)
-    (define-key map "\C-k" 'tab-switcher-delete)
-    (define-key map "x"    'tab-switcher-execute)
-    (define-key map " "    'tab-switcher-next-line)
-    (define-key map "n"    'tab-switcher-next-line)
-    (define-key map "p"    'tab-switcher-prev-line)
-    (define-key map "\177" 'tab-switcher-backup-unmark)
-    (define-key map "?"    'describe-mode)
-    (define-key map "u"    'tab-switcher-unmark)
-    (define-key map [mouse-2] 'tab-switcher-mouse-select)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Local keymap for `tab-switcher-mode' buffers.")
+(defvar-keymap tab-switcher-mode-map
+  :doc "Local keymap for `tab-switcher-mode' buffers."
+  :full t
+  :suppress t
+  "q"   #'quit-window
+  "RET" #'tab-switcher-select
+  "d"   #'tab-switcher-delete
+  "k"   #'tab-switcher-delete
+  "C-d" #'tab-switcher-delete-backwards
+  "C-k" #'tab-switcher-delete
+  "x"   #'tab-switcher-execute
+  "SPC" #'tab-switcher-next-line
+  "n"   #'tab-switcher-next-line
+  "p"   #'tab-switcher-prev-line
+  "DEL" #'tab-switcher-backup-unmark
+  "?"   #'describe-mode
+  "u"   #'tab-switcher-unmark
+  "<mouse-2>"     #'tab-switcher-mouse-select
+  "<follow-link>" 'mouse-face)
 
 (define-derived-mode tab-switcher-mode nil "Window Configurations"
   "Major mode for selecting a window configuration.
@@ -2401,42 +2397,38 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (defalias 'tab-group           'tab-bar-change-tab-group)
 (defalias 'tab-list            'tab-switcher)
 
-(define-key tab-prefix-map "n" 'tab-duplicate)
-(define-key tab-prefix-map "N" 'tab-new-to)
-(define-key tab-prefix-map "2" 'tab-new)
-(define-key tab-prefix-map "1" 'tab-close-other)
-(define-key tab-prefix-map "0" 'tab-close)
-(define-key tab-prefix-map "u" 'tab-undo)
-(define-key tab-prefix-map "o" 'tab-next)
-(define-key tab-prefix-map "O" 'tab-previous)
-(define-key tab-prefix-map "m" 'tab-move)
-(define-key tab-prefix-map "M" 'tab-move-to)
-(define-key tab-prefix-map "G" 'tab-group)
-(define-key tab-prefix-map "r" 'tab-rename)
-(define-key tab-prefix-map "\r" 'tab-switch)
-(define-key tab-prefix-map "b" 'switch-to-buffer-other-tab)
-(define-key tab-prefix-map "f" 'find-file-other-tab)
-(define-key tab-prefix-map "\C-f" 'find-file-other-tab)
-(define-key tab-prefix-map "\C-r" 'find-file-read-only-other-tab)
-(define-key tab-prefix-map "t" 'other-tab-prefix)
+(keymap-set tab-prefix-map "n"   #'tab-duplicate)
+(keymap-set tab-prefix-map "N"   #'tab-new-to)
+(keymap-set tab-prefix-map "2"   #'tab-new)
+(keymap-set tab-prefix-map "1"   #'tab-close-other)
+(keymap-set tab-prefix-map "0"   #'tab-close)
+(keymap-set tab-prefix-map "u"   #'tab-undo)
+(keymap-set tab-prefix-map "o"   #'tab-next)
+(keymap-set tab-prefix-map "O"   #'tab-previous)
+(keymap-set tab-prefix-map "m"   #'tab-move)
+(keymap-set tab-prefix-map "M"   #'tab-move-to)
+(keymap-set tab-prefix-map "G"   #'tab-group)
+(keymap-set tab-prefix-map "r"   #'tab-rename)
+(keymap-set tab-prefix-map "r"   #'tab-switch)
+(keymap-set tab-prefix-map "b"   #'switch-to-buffer-other-tab)
+(keymap-set tab-prefix-map "f"   #'find-file-other-tab)
+(keymap-set tab-prefix-map "C-f" #'find-file-other-tab)
+(keymap-set tab-prefix-map "C-r" #'find-file-read-only-other-tab)
+(keymap-set tab-prefix-map "t"   #'other-tab-prefix)
 
-(defvar tab-bar-switch-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "o" 'tab-next)
-    (define-key map "O" 'tab-previous)
-    map)
-  "Keymap to repeat tab switch key sequences \\`C-x t o o O'.
-Used in `repeat-mode'.")
+(defvar-keymap tab-bar-switch-repeat-map
+  :doc "Keymap to repeat tab switch key sequences \\`C-x t o o O'.
+Used in `repeat-mode'."
+  "o" #'tab-next
+  "O" #'tab-previous)
 (put 'tab-next 'repeat-map 'tab-bar-switch-repeat-map)
 (put 'tab-previous 'repeat-map 'tab-bar-switch-repeat-map)
 
-(defvar tab-bar-move-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "m" 'tab-move)
-    (define-key map "M" 'tab-bar-move-tab-backward)
-    map)
-  "Keymap to repeat tab move key sequences \\`C-x t m m M'.
-Used in `repeat-mode'.")
+(defvar-keymap tab-bar-move-repeat-map
+  :doc "Keymap to repeat tab move key sequences \\`C-x t m m M'.
+Used in `repeat-mode'."
+  "m" #'tab-move
+  "M" #'tab-bar-move-tab-backward)
 (put 'tab-move 'repeat-map 'tab-bar-move-repeat-map)
 (put 'tab-bar-move-tab-backward 'repeat-map 'tab-bar-move-repeat-map)
 
