@@ -612,7 +612,7 @@ This regexp must match both `tramp-initial-end-of-output' and
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
-This variable is, by default, initialised from
+This variable is, by default, initialized from
 `password-word-equivalents' when Tramp is loaded, and it is
 usually more convenient to add new passphrases to that variable
 instead of altering this variable.

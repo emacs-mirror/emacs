@@ -289,7 +289,7 @@ Earlier variables shadow later ones with the same name.")
        (if (eq fn localfn)
            ;; From the same file => same mode.
            (macroexp--unfold-lambda `(,fn ,@(cdr form)))
-         ;; Since we are called from inside the optimiser, we need to make
+         ;; Since we are called from inside the optimizer, we need to make
          ;; sure not to propagate lexvar values.
          (let ((byte-optimize--lexvars nil)
                ;; Silence all compilation warnings: the useful ones should
@@ -322,7 +322,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 This indicates the loop discovery phase.")
 
 (defvar byte-optimize--dynamic-vars nil
-  "List of variables declared as dynamic during optimisation.")
+  "List of variables declared as dynamic during optimization.")
 
 (defvar byte-optimize--aliased-vars nil
   "List of variables which may be aliased by other lexical variables.
@@ -429,7 +429,7 @@ for speeding up processing.")
       (`(cond . ,clauses)
        ;; FIXME: The condition in the first clause is always executed, and
        ;; clause bodies are mutually exclusive -- use this for improved
-       ;; optimisation (see comment about `if' below).
+       ;; optimization (see comment about `if' below).
        (cons fn
              (mapcar (lambda (clause)
                        (if (consp clause)
@@ -477,9 +477,9 @@ for speeding up processing.")
        ;; FIXME: We have to traverse the expressions in left-to-right
        ;; order (because that is the order of evaluation and variable
        ;; mutations must be found prior to their use), but doing so we miss
-       ;; some optimisation opportunities:
+       ;; some optimization opportunities:
        ;; consider (and A B) in a for-effect context, where B => nil.
-       ;; Then A could be optimised in a for-effect context too.
+       ;; Then A could be optimized in a for-effect context too.
        (let ((tail exps)
              (args nil))
          (while tail
@@ -493,19 +493,19 @@ for speeding up processing.")
        ;; FIXME: If the loop condition is statically nil after substitution
        ;; of surrounding variables then we can eliminate the whole loop,
        ;; even if those variables are mutated inside the loop.
-       ;; We currently don't perform this important optimisation.
+       ;; We currently don't perform this important optimization.
        (let* ((byte-optimize--vars-outside-loop byte-optimize--lexvars)
               (condition-body
                (if byte-optimize--inhibit-outside-loop-constprop
                    ;; We are already inside the discovery phase of an outer
                    ;; loop so there is no need for traversing this loop twice.
                    (cons exp exps)
-                 ;; Discovery phase: run optimisation without substitution
+                 ;; Discovery phase: run optimization without substitution
                  ;; of variables bound outside this loop.
                  (let ((byte-optimize--inhibit-outside-loop-constprop t))
                    (cons (byte-optimize-form exp nil)
                          (byte-optimize-body exps t)))))
-              ;; Optimise again, this time with constprop enabled (unless
+              ;; Optimize again, this time with constprop enabled (unless
               ;; we are in discovery of an outer loop),
               ;; as mutated variables have been marked as non-substitutable.
               (condition (byte-optimize-form (car condition-body) nil))
@@ -559,7 +559,7 @@ for speeding up processing.")
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure . ,_)
        ;; Look up free vars and mark them to be kept, so that they
-       ;; won't be optimised away.
+       ;; won't be optimized away.
        (dolist (var (caddr form))
          (let ((lexvar (assq var byte-optimize--lexvars)))
            (when lexvar
@@ -643,7 +643,7 @@ for speeding up processing.")
 
 (defun byte-optimize-one-form (form &optional for-effect)
   "The source-level pass of the optimizer."
-  ;; Make optimiser aware of lexical arguments.
+  ;; Make optimizer aware of lexical arguments.
   (let ((byte-optimize--lexvars
          (mapcar (lambda (v) (list (car v) t))
                  byte-compile--lexical-environment)))
@@ -655,7 +655,7 @@ for speeding up processing.")
         ;; First, optimize all sub-forms of this one.
         (setq form (byte-optimize-form-code-walker form for-effect))
 
-        ;; If a form-specific optimiser is available, run it and start over
+        ;; If a form-specific optimizer is available, run it and start over
         ;; until a fixpoint has been reached.
         (and (consp form)
              (symbolp (car form))

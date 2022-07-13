@@ -7045,7 +7045,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
                                          blue-alt-other))))
 ;;;;; selectrum
     ;; NOTE 2021-02-22: The `selectrum-primary-highlight' and
-    ;; `selectrum-secondary-highlight' are deprecated upstream in favour
+    ;; `selectrum-secondary-highlight' are deprecated upstream in favor
     ;; of their selectrum-prescient counterparts.  We shall remove those
     ;; faces from the themes once we are certain that they are no longer
     ;; relevant.

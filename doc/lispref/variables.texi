@@ -326,7 +326,7 @@ Example of a loop summing a list of numbers:
 
 @anchor{Tail recursion}
 Recursive calls to @var{name} that occur in @emph{tail
-positions} in @var{body} are guaranteed to be optimised as @emph{tail
+positions} in @var{body} are guaranteed to be optimized as @emph{tail
 calls}, which means that they will not consume any additional stack
 space no matter how deeply the recursion runs.  Such recursive calls
 will effectively jump to the top of the loop with new values for the
@@ -1346,7 +1346,7 @@ disappear without prior notice.
 
 The byte-compiler can also warn about lexical variables that are
 special in other Emacs Lisp files, often indicating a missing
-@code{defvar} declaration.  This useful but somewhat specialised check
+@code{defvar} declaration.  This useful but somewhat specialized check
 requires three steps:
 
 @enumerate

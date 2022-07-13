@@ -5070,7 +5070,7 @@ Opening bracket for adopted articles.  The default is @samp{<}.
 
 @item ]
 Closing bracket, which is normally @samp{]}, but can also be @samp{>}
-for adopted articles.  This can be customised using following settings:
+for adopted articles.  This can be customized using following settings:
 
 @table @code
 @item gnus-sum-closing-bracket

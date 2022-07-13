@@ -1449,7 +1449,7 @@ the entire buffer.
 
 *** 'so-long-target-modes' now includes 'fundamental-mode' by default.
 This means that 'global-so-long-mode' will also process files which were
-not recognised.  (This only has an effect if 'set-auto-mode' chooses
+not recognized.  (This only has an effect if 'set-auto-mode' chooses
 'fundamental-mode'; buffers which are simply in 'fundamental-mode' by
 default are unaffected.)
 
@@ -1763,8 +1763,8 @@ If non-nil (the default), create registry entries for all messages.
 If nil, don't automatically create entries, they must be created
 manually.
 
-*** New user options to customise the summary line specs "%[" and "%]".
-Four new options introduced in customisation group
+*** New user options to customize the summary line specs "%[" and "%]".
+Four new options introduced in customization group
 'gnus-summary-format'.  These are 'gnus-sum-opening-bracket',
 'gnus-sum-closing-bracket', 'gnus-sum-opening-bracket-adopted', and
 'gnus-sum-closing-bracket-adopted'.  Their default values are "[", "]",
@@ -2102,7 +2102,7 @@ modified flag.  The default is nil, to preserve the old behavior.
 ** CC mode
 
 *** Added support for Doxygen documentation style.
-'doxygen' is now a valid 'c-doc-comment-style' which recognises all
+'doxygen' is now a valid 'c-doc-comment-style' which recognizes all
 comment styles supported by Doxygen (namely '///', '//!', '/** … */'
 and '/*! … */'.  'gtkdoc' remains the default for C and C++ modes; to
 use 'doxygen' by default one might evaluate:

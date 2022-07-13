@@ -293,7 +293,7 @@ with width equal to the pixel-width of the buffer text multiplied by 0.7.
 This functionality is implemented in a new function,
 ~org-display-inline-image--width~ which contains the width
 determination logic previously in ~org-display-inline-images~ and the
-new behaviour.
+new behavior.
 
 ** New options
 *** Option ~org-hidden-keywords~ now also applies to #+SUBTITLE:
@@ -311,7 +311,7 @@ descriptions.
 *** New option ~org-id-ts-format~
 
 Earlier, IDs generated using =ts= method had a hard-coded format (i.e. =20200923T160237.891616=).
-The new option allows user to customise the format.
+The new option allows user to customize the format.
 Defaults are unchanged.
 
 *** New argument for ~file-desc~ babel header
@@ -503,16 +503,16 @@ heading, except return nil.
 
 *** Faces of all the heading text elements now conform to the headline face
 
-In the past, faces of todo keywords, emphasised text, tags, and
+In the past, faces of todo keywords, emphasized text, tags, and
 priority cookies inherited =default= face.  The resulting headline
 fontification was not always consistent, as discussed in [[msg::87h7sawubl.fsf@protesilaos.com][this bug
 report]].  Now, the relevant faces adapt to face used to fontify the
 current headline level.
 
-Users who prefer to keep the old behaviour should change their face
-customisation explicitly stating that =default= face is inherited.
+Users who prefer to keep the old behavior should change their face
+customization explicitly stating that =default= face is inherited.
 
-Example of old face customisation:
+Example of old face customization:
 
 #+begin_src emacs-lisp
 (setq org-todo-keyword-faces '(("TODO"
@@ -520,7 +520,7 @@ Example of old face customisation:
                                 :height 0.75)))
 #+end_src
 
-To preserve the old behaviour the above customisation should be
+To preserve the old behavior the above customization should be
 changed to
 
 #+begin_src emacs-lisp
@@ -543,7 +543,7 @@ The function does not allow for a third optional parameter anymore.
 *** LaTeX environment =#+results= are now removed
 
 If a babel src block produces a raw LaTeX environment, it will now be
-recognised as a result, and so replaced when re-evaluated.
+recognized as a result, and so replaced when re-evaluated.
 
 *** Tag completion now uses =completing-read-multiple=
 
@@ -681,7 +681,7 @@ enabled, and point is neither in a table nor on a timestamp or a link:
 - =C-j= (bound to the new command ~org-return-and-maybe-indent~)
   merely inserts a newline.
 
-To get the previous behaviour back, disable ~electric-indent-mode~
+To get the previous behavior back, disable ~electric-indent-mode~
 explicitly:
 
 #+begin_src emacs-lisp
@@ -1029,7 +1029,7 @@ Previously all session names had  ~org-babel-session-~ prepended.
 *** Forward/backward paragraph functions in line with the rest of Emacs
 
 ~org-forward-paragraph~ and ~org-backward-paragraph~, bound to
-~<C-UP>~ and ~<C-DOWN>~ functions mimic more closely behaviour of
+~<C-UP>~ and ~<C-DOWN>~ functions mimic more closely behavior of
 ~forward-paragraph~ and ~backward-paragraph~ functions when
 available.
 
