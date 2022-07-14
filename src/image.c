@@ -1071,9 +1071,16 @@ struct image_type
      libraries on Windows), or NULL if none.  */
   bool (*init) (void);
   /* An initializer for the init field.  */
-# define IMAGE_TYPE_INIT(f) f
-#else
-# define IMAGE_TYPE_INIT(f)
+#endif
+#if defined HAVE_RSVG || defined HAVE_PNG || defined HAVE_GIF || \
+  defined HAVE_TIFF || defined HAVE_JPEG || defined HAVE_XPM || \
+  defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK || \
+  defined HAVE_WEBP
+# ifdef WINDOWSNT
+#  define IMAGE_TYPE_INIT(f) f
+# else
+#  define IMAGE_TYPE_INIT(f)
+# endif
 #endif
 };
 
