@@ -134,6 +134,8 @@ Interactively, URL defaults to the string looking like a url around point."
         (xwidget-webkit-new-session url)
       (xwidget-webkit-goto-url url))))
 
+(function-put 'xwidget-webkit-browse-url 'browse-url-browser-kind 'internal)
+
 (defun xwidget-webkit-clone-and-split-below ()
   "Clone current URL into a new widget place in new window below.
 Get the URL of current session, then browse to the URL
