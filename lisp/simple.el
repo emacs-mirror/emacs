@@ -1918,17 +1918,19 @@ in *Help* buffer.  See also the command `describe-char'."
 		   bidi-fixer encoding-msg pos total percent col hscroll))))))
 
 ;; Initialize read-expression-map.  It is defined at C level.
-(defvar read-expression-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m "\M-\t" 'completion-at-point)
-    ;; Might as well bind TAB to completion, since inserting a TAB char is
-    ;; much too rarely useful.
-    (define-key m "\t" 'completion-at-point)
-    (define-key m "\r" 'read--expression-try-read)
-    (define-key m "\n" 'read--expression-try-read)
-    (define-key m "\M-g\M-c" 'read-expression-switch-to-completions)
-    (set-keymap-parent m minibuffer-local-map)
-    m))
+(defvar-keymap read-expression-map
+  :parent minibuffer-local-map
+  "C-M-i" #'completion-at-point
+  ;; Might as well bind TAB to completion, since inserting a TAB char is
+  ;; much too rarely useful.
+  "TAB" #'completion-at-point
+  "M-g M-c" #'read-expression-switch-to-completions)
+
+(defvar-keymap read--expression-map
+  :doc "Keymap used by `read--expression'."
+  :parent read-expression-map
+  "RET" #'read--expression-try-read
+  "C-j" #'read--expression-try-read)
 
 (defun read-minibuffer (prompt &optional initial-contents)
   "Return a Lisp object read using the minibuffer, unevaluated.
@@ -2020,7 +2022,7 @@ function `read-from-minibuffer'."
                   #'elisp-completion-at-point nil t)
         (run-hooks 'eval-expression-minibuffer-setup-hook))
     (read-from-minibuffer prompt initial-contents
-                          read-expression-map t
+                          read--expression-map t
                           'read-expression-history)))
 
 (defun read--expression-try-read ()
