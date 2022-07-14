@@ -193,7 +193,11 @@ before the external MIME handler is invoked."
   `(("image/p?jpeg"
      mm-inline-image
      ,(lambda (handle)
-       (mm-valid-and-fit-image-p 'jpeg handle)))
+        (mm-valid-and-fit-image-p 'jpeg handle)))
+    ("image/webp"
+     mm-inline-image
+     ,(lambda (handle)
+       (mm-valid-and-fit-image-p 'webp handle)))
     ("image/png"
      mm-inline-image
      ,(lambda (handle)
