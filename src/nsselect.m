@@ -724,7 +724,7 @@ Return the action that the drop target actually chose to perform, or
 nil if no action was performed (either because there was no drop
 target, or the drop was rejected).  If RETURN-FRAME is the symbol
 `now', also return any frame that mouse moves into during the
-drag-and-drop operation, whilst simultaneously cancelling it.  Any
+drag-and-drop operation, whilst simultaneously canceling it.  Any
 other non-nil value means to do the same, but to wait for the mouse to
 leave FRAME first.
 

@@ -327,7 +327,7 @@ in that list instead."
   "Begin dragging TEXT from FRAME.
 Initate a drag-and-drop operation allowing the user to drag text
 from Emacs to another program (the drop target), then block until
-the drop is completed or is cancelled.
+the drop is completed or is canceled.
 
 If the drop completed, return the action that the drop target
 actually performed, which can be one of the following symbols:
@@ -341,7 +341,7 @@ actually performed, which can be one of the following symbols:
   - `private', which means the drop target chose to perform an
     unspecified action.
 
-Return nil if the drop was cancelled.
+Return nil if the drop was canceled.
 
 TEXT is a string containing text that will be inserted by the
 program where the drop happened.  FRAME is the frame where the
@@ -383,7 +383,7 @@ currently being held down.  It should only be called upon a
   "Begin dragging FILE from FRAME.
 Initate a drag-and-drop operation allowing the user to drag a file
 from Emacs to another program (the drop target), then block until
-the drop happens or is cancelled.
+the drop happens or is canceled.
 
 Return the action that the drop target actually performed, which
 can be one of the following symbols:
@@ -399,7 +399,7 @@ can be one of the following symbols:
   - `private', which means the drop target chose to perform an
     unspecified action.
 
-Return nil if the drop was cancelled.
+Return nil if the drop was canceled.
 
 FILE is the file name that will be sent to the program where the
 drop happened.  If it is a remote file, Emacs will make a

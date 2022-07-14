@@ -142,7 +142,7 @@ enum
 
 struct font_selection_dialog_message
 {
-  /* Whether or not font selection was cancelled.  */
+  /* Whether or not font selection was canceled.  */
   bool_bf cancel : 1;
 
   /* Whether or not a size was explicitly specified.  */

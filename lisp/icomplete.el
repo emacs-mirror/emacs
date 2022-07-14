@@ -840,13 +840,13 @@ by `group-function''s second \"transformation\" protocol."
                                           while (listp r)
                                           count 1))
            repeat total-space
-           for neighbour = nil
+           for neighbor = nil
            if (and preds (> space-above 0)) do
-           (push (setq neighbour (pop preds)) scroll-above)
+           (push (setq neighbor (pop preds)) scroll-above)
            (cl-decf space-above)
            else if (consp succs) collect
-           (setq neighbour (pop succs)) into scroll-below-aux
-           while neighbour
+           (setq neighbor (pop succs)) into scroll-below-aux
+           while neighbor
            finally (setq scroll-below scroll-below-aux))
   ;; Halfway there...
   (let* ((selected (propertize (car comps) 'icomplete-selected t))

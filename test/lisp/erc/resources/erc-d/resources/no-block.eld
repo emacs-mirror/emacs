@@ -36,7 +36,7 @@
 ((mode-foo 1.2 "MODE #foo")
  (0.0 ":irc.example.org 324 tester #foo +Cint")
  (0.0 ":irc.example.org 329 tester #foo 1519850102")
- (-0.1 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :alice: But, in defence, by mercy, 'tis most just.")
+ (-0.1 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :alice: But, in defense, by mercy, 'tis most just.")
  (-0.2 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #foo :bob: Grows, lives, and dies, in single blessedness.")
  (-0.3 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :alice: For these two hours, Rosalind, I will leave thee.")
  (-0.4 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #foo :bob: By this hand, it will not kill a fly. But come, now I will be your Rosalind in a more coming-on disposition; and ask me what you will, I will grant it.")

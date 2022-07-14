@@ -1644,7 +1644,7 @@ Then display the welcome message."
   "Return list of unescaped components from an \"ISUPPORT\" VALUE."
   ;; https://tools.ietf.org/html/draft-brocklesby-irc-isupport-03#section-2
   ;;
-  ;; > The server SHOULD send "X", not "X="; this is the normalised form.
+  ;; > The server SHOULD send "X", not "X="; this is the normalized form.
   ;;
   ;; Note: for now, assume the server will only send non-empty values,
   ;; possibly with printable ASCII escapes.  Though in practice, the

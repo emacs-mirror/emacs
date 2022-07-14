@@ -876,7 +876,7 @@ are met.  The conditions are given by the argument, which can be
 +++
 *** New user option 'rcirc-cycle-completion-flag'.
 Rcirc will use the default 'completion-at-point' mechanism.  The
-conventional IRC behaviour of completing by cycling through the
+conventional IRC behavior of completing by cycling through the
 available options can be restored by enabling this option.
 
 ** Imenu
@@ -1221,7 +1221,7 @@ longer available after exiting the recursive edit.
 This user option controls whether the 'e' (in a "*Backtrace*"
 buffer or while edebugging) and 'C-x C-e' (while edebugging) commands
 lead to a (further) backtrace.  By default, this variable is nil,
-which is a change in behaviour from previous Emacs versions.
+which is a change in behavior from previous Emacs versions.
 
 +++
 *** 'e' in edebug can now take a prefix arg to pretty-print the results.
@@ -1452,7 +1452,7 @@ header before sending a message.
 ** Texinfo Mode
 
 ---
-*** 'texinfo-mode' now has a specialised 'narrow-to-defun' definition.
+*** 'texinfo-mode' now has a specialized 'narrow-to-defun' definition.
 It narrows to the current node.
 
 ** EUDC

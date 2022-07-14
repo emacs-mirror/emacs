@@ -71,7 +71,7 @@
 ;;    setting.
 ;;
 ;;    The value of the variable `eudc-capf-modes' indicates which
-;;    major modes do such a setup as part of their initialisation
+;;    major modes do such a setup as part of their initialization
 ;;    code.
 
 ;;; Code:

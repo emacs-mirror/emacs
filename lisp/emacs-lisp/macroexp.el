@@ -378,7 +378,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    form
                  `(,fn ,var ,new-expr))))
             (`(setq . ,args)
-             ;; Normalise to a sequence of (setq SYM EXPR).
+             ;; Normalize to a sequence of (setq SYM EXPR).
              ;; Malformed code is translated to code that signals an error
              ;; at run time.
              (let ((nargs (length args)))

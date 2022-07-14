@@ -4276,7 +4276,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		  /* Catch silly games like #1=#1# */
 		  invalid_syntax ("nonsensical self-reference", readcharfun);
 
-		/* Optimisation: since the placeholder is already
+		/* Optimization: since the placeholder is already
 		   a cons, repurpose it as the actual value.
 		   This allows us to skip the substitution below,
 		   since the placeholder is already referenced

@@ -425,7 +425,7 @@ for speeding up processing.")
       ;; `unwind-protect' is a special form which here takes the shape
       ;; (unwind-protect EXPR :fun-body UNWIND-FUN).
       ;; We can treat it as if it were a plain function at this point,
-      ;; although there are specific optimisations possible.
+      ;; although there are specific optimizations possible.
       ;; In particular, the return value of UNWIND-FUN is never used
       ;; so its body should really be compiled for-effect, but we
       ;; don't do that right now.

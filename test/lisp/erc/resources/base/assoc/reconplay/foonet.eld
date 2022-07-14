@@ -28,7 +28,7 @@
  (0.0 ":bob!~u@mw6kegwt77kwe.irc PRIVMSG #chan :[10:35:55] alice: This is but a custom in your tongue; you bear a graver purpose, I hope.")
  (0.0 ":alice!~u@mw6kegwt77kwe.irc PRIVMSG #chan :[10:37:16] bob: To imitate them; faults that are rich are fair.")
  (0.0 ":bob!~u@mw6kegwt77kwe.irc PRIVMSG #chan :[10:37:18] alice: Our Romeo hath not been in bed to-night.")
- (0.0 ":alice!~u@mw6kegwt77kwe.irc PRIVMSG #chan :[10:37:21] bob: But, in defence, by mercy, 'tis most just.")
+ (0.0 ":alice!~u@mw6kegwt77kwe.irc PRIVMSG #chan :[10:37:21] bob: But, in defense, by mercy, 'tis most just.")
  (0.0 ":bob!~u@mw6kegwt77kwe.irc PRIVMSG #chan :[10:37:25] alice: Younger than she are happy mothers made.")
  (0.0 ":***!znc@znc.in PRIVMSG #chan :Playback Complete.")
  (0.0 ":irc.foonet.org 305 tester :You are no longer marked as being away"))

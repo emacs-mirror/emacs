@@ -272,10 +272,10 @@ argument for the FUNCTION."
 	     for k in keys collect
 	     (cons k (funcall function (lookup k alist1) (lookup k alist2))))))
 
-(defun org--plot/item-frequencies (values &optional normalise)
+(defun org--plot/item-frequencies (values &optional normalize)
   "Return an alist indicating the frequency of values in VALUES list.
-When NORMALISE is non-nil, the count is divided by the number of values."
-  (let ((normaliser (if normalise (float (length values)) 1)))
+When NORMALIZE is non-nil, the count is divided by the number of values."
+  (let ((normaliser (if normalize (float (length values)) 1)))
     (cl-loop for (n . m) in (seq-group-by #'identity values)
 	     collect (cons n (/ (length m) normaliser)))))
 

@@ -8000,7 +8000,7 @@ If RESTART, restart Emacs after killing the current Emacs process."
                       ("Close Without Saving" . no-save)
                       ("Save All" . save-all)
                       ("Cancel" . cancel)))
-            ('cancel (user-error "Exit cancelled"))
+            ('cancel (user-error "Exit canceled"))
             ('save-all (save-some-buffers t)))
         (save-some-buffers arg t)))
   (let ((confirm confirm-kill-emacs))

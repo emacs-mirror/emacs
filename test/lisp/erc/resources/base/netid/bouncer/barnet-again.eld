@@ -41,7 +41,7 @@
 ((mode 5 "MODE #chan")
  (0 ":irc.barnet.org 324 tester #chan +nt")
  (0 ":irc.barnet.org 329 tester #chan 1620805269")
- (0.1 ":joe!~u@svpn88yjcdj42.irc PRIVMSG #chan :mike: But, in defence, by mercy, 'tis most just.")
+ (0.1 ":joe!~u@svpn88yjcdj42.irc PRIVMSG #chan :mike: But, in defense, by mercy, 'tis most just.")
  (0.1 ":mike!~u@xrir8fpe4d7ak.irc PRIVMSG #chan :joe: The Marshal of France, Monsieur la Far.")
  (0.1 ":joe!~u@xrir8fpe4d7ak.irc PRIVMSG #chan :mike: And bide the penance of each three years' day.")
  (0.1 ":mike!~u@xrir8fpe4d7ak.irc PRIVMSG #chan :joe: Madam, within; but never man so chang'd.")

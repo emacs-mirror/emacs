@@ -36,7 +36,7 @@
  (0.06 ":joe!~u@6d9pasqcqwb2s.irc PRIVMSG #chan :mike: Once more I'll read the ode that I have writ.")
  (0.06 ":mike!~u@6d9pasqcqwb2s.irc PRIVMSG #chan :joe: This is the foul fiend Flibbertigibbet: he begins at curfew, and walks till the first cock; he gives the web and the pin, squints the eye, and makes the harelip; mildews the white wheat, and hurts the poor creature of earth.")
  (0.06 ":joe!~u@6d9pasqcqwb2s.irc PRIVMSG #chan :mike: Sir, I praise the Lord for you, and so may my parishioners; for their sons are well tutored by you, and their daughters profit very greatly under you: you are a good member of the commonwealth.")
- (0.08 ":mike!~u@6d9pasqcqwb2s.irc PRIVMSG #chan :joe: If it please your honour, I know not well what they are; but precise villains they are, that I am sure of, and void of all profanation in the world that good Christians ought to have.")
+ (0.08 ":mike!~u@6d9pasqcqwb2s.irc PRIVMSG #chan :joe: If it please your honor, I know not well what they are; but precise villains they are, that I am sure of, and void of all profanation in the world that good Christians ought to have.")
  ;; Unexpected disconnect
  (0.03 ":BouncerServ!BouncerServ@BouncerServ NOTICE tester :disconnected from barnet: failed to handle messages: failed to read IRC command: read tcp [::1]:54990->[::1]:6668: read: software caused connection abort")
  ;; Eventual reconnect

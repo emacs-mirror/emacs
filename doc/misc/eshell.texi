@@ -1597,7 +1597,7 @@ integration: using the remote shell's pipelining avoids copying the
 data which will flow through the pipeline to local Emacs buffers and
 then right back again.
 
-Eshell recognises a special syntax to make it easier to convert
+Eshell recognizes a special syntax to make it easier to convert
 pipelines so as to bypass Eshell's pipelining.  Prefixing at least one
 @code{|}, @code{<} or @code{>} with an asterisk marks a command as
 intended for the operating system shell.  To make it harder to invoke

@@ -35,7 +35,7 @@
 ((mode 5 "MODE #chan")
  (0 ":irc.barnet.org 324 tester #chan +nt")
  (0 ":irc.barnet.org 329 tester #chan 1622538742")
- (0.1 ":joe!~u@286u8jcpis84e.irc PRIVMSG #chan :mike: By favours several which they did bestow.")
+ (0.1 ":joe!~u@286u8jcpis84e.irc PRIVMSG #chan :mike: By favors several which they did bestow.")
  (0.1 ":mike!~u@286u8jcpis84e.irc PRIVMSG #chan :joe: You, Roderigo! come, sir, I am for you."))
 
 ((privmsg-a 5 "PRIVMSG rando :Linda said you were gonna kill me.")

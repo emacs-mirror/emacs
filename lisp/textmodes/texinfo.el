@@ -401,7 +401,7 @@ REPORT-FN is the callback function."
                                      source beg end type msg)
                             into diags
                             finally (funcall report-fn diags)))
-                       (flymake-log :warning "Cancelling obsolete check %s"
+                       (flymake-log :warning "Canceling obsolete check %s"
                                     proc))
                    (kill-buffer (process-buffer proc)))))))
       (process-send-region texinfo--flymake-proc (point-min) (point-max))

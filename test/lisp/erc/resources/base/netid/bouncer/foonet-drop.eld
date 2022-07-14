@@ -36,7 +36,7 @@
  (0.1 ":bob!~u@ertp7idh9jtgi.irc PRIVMSG #chan :alice: More evident than this; for this was stol'n.")
  (0.1 ":alice!~u@ertp7idh9jtgi.irc PRIVMSG #chan :bob: Sell when you can; you are not for all markets.")
  (0.1 ":bob!~u@ertp7idh9jtgi.irc PRIVMSG #chan :alice: There's the fool hangs on your back already.")
- (0.1 ":alice!~u@ertp7idh9jtgi.irc PRIVMSG #chan :bob: Why, if you have a stomach to't, monsieur, if you think your mystery in stratagem can bring this instrument of honour again into its native quarter, be magnanimous in the enterprise and go on; I will grace the attempt for a worthy exploit: if you speed well in it, the duke shall both speak of it, and extend to you what further becomes his greatness, even to the utmost syllable of your worthiness.")
+ (0.1 ":alice!~u@ertp7idh9jtgi.irc PRIVMSG #chan :bob: Why, if you have a stomach to't, monsieur, if you think your mystery in stratagem can bring this instrument of honor again into its native quarter, be magnanimous in the enterprise and go on; I will grace the attempt for a worthy exploit: if you speed well in it, the duke shall both speak of it, and extend to you what further becomes his greatness, even to the utmost syllable of your worthiness.")
  (0.1 ":bob!~u@ertp7idh9jtgi.irc PRIVMSG #chan :alice: For he hath still been tried a holy man.")
  (0.1 ":alice!~u@ertp7idh9jtgi.irc PRIVMSG #chan :bob: To have the touches dearest priz'd.")
  (0.1 ":bob!~u@ertp7idh9jtgi.irc PRIVMSG #chan :alice: And must advise the emperor for his good.")

@@ -271,7 +271,7 @@ normal-mode}), but tries to force it not to choose any modes in
 
 @defun clean-mode
 Changing the major mode clears out most local variables, but it
-doesn't remove all artefacts in the buffer (like text properties and
+doesn't remove all artifacts in the buffer (like text properties and
 overlays).  It's rare to change a buffer from one major mode to
 another (except from @code{fundamental-mode} to everything else), so
 this is usually not a concern.  It can sometimes be convenient (mostly

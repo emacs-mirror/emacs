@@ -926,7 +926,7 @@ non-nil, collect results from all servers."
 `eudc-inline-expansion-format' is expected to return a list.")
           nil))))
 
-   ;; fallback behaviour (nil function, or non-matching type)
+   ;; fallback behavior (nil function, or non-matching type)
    (t
     (let ((fname (cdr (assq (nth 0 query-attrs) res)))
           (lname (cdr (assq (nth 1 query-attrs) res)))

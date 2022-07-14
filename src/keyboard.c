@@ -12982,7 +12982,7 @@ Emacs allows binding both upper and lower case key sequences to
 commands.  However, if there is a lower case key sequence bound to a
 command, and the user enters an upper case key sequence that is not
 bound to a command, Emacs will use the lower case binding.  Setting
-this variable to nil inhibits this behaviour.  */);
+this variable to nil inhibits this behavior.  */);
   translate_upper_case_key_bindings = true;
 
   DEFVAR_BOOL ("input-pending-p-filter-events",
