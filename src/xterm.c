@@ -23312,6 +23312,22 @@ x_trace_wire (Display *dpy)
 
 static char *error_msg;
 
+/* Try to find a frame in Vframe_list, and make it the selected frame.
+   `delete_frame' sometimes misses the initial frame for an unknown
+   reason when Emacs is running as a background daemon.  */
+
+static void
+x_try_restore_frame (void)
+{
+  Lisp_Object tail, frame;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (!NILP (do_switch_frame (frame, 1, Qnil)))
+	return;
+    }
+}
+
 /* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
    the text of an error message that lead to the connection loss.  */
 
@@ -23528,6 +23544,11 @@ For details, see etc/PROBLEMS.\n",
       XSETTERMINAL (tmp, dpyinfo->terminal);
       Fdelete_terminal (tmp, Qnoelisp);
     }
+
+  /* The initial "daemon" frame is sometimes not selected by
+     `delete_frame' when Emacs is a background daemon.  */
+  if (NILP (selected_frame))
+    x_try_restore_frame ();
 
   unblock_input ();
 
