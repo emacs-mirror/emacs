@@ -2210,21 +2210,6 @@ image_frame_cache_size (struct frame *f)
   return total;
 }
 
-DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
-       doc: /* Return the size of the image cache.  */)
-  (void)
-{
-  Lisp_Object tail, frame;
-  size_t total = 0;
-
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_WINDOW_P (XFRAME (frame)))
-      total += image_frame_cache_size (XFRAME (frame));
-
-  return make_int (total);
-}
-
-
 DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
        doc: /* Flush the image with specification SPEC on frame FRAME.
@@ -3037,6 +3022,11 @@ struct anim_cache
   /* A function to call to free the handle.  */
   void (*destructor) (void *);
   int index, width, height, frames;
+  /* This is used to be able to say something about the cache size.
+     We don't actually know how much memory the different libraries
+     actually use here (since these cache structures are opaque), so
+     this is mostly just the size of the original image file.  */
+  int byte_size;
   struct timespec update_time;
   struct anim_cache *next;
 };
@@ -3053,6 +3043,7 @@ anim_create_cache (Lisp_Object spec)
   cache->index = -1;
   cache->next = NULL;
   cache->spec = spec;
+  cache->byte_size = 0;
   return cache;
 }
 
@@ -9022,6 +9013,7 @@ gif_load (struct frame *f, struct image *img)
   struct anim_cache* cache = NULL;
   /* Which sub-image are we to display?  */
   Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+  int byte_size = 0;
 
   idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
 
@@ -9075,6 +9067,14 @@ gif_load (struct frame *f, struct image *img)
 		image_error ("Cannot open `%s'", file);
 	      return false;
 	    }
+
+	  /* Get the file size so that we can report it in
+	     `image-cache-size'.  */
+	  struct stat st;
+	  FILE *fp = fopen (SSDATA (encoded_file), "rb");
+	  if (fstat (fileno (fp), &st) == 0)
+	    byte_size = st.st_size;
+	  fclose (fp);
 	}
       else
 	{
@@ -9089,6 +9089,7 @@ gif_load (struct frame *f, struct image *img)
 	  memsrc.bytes = SDATA (specified_data);
 	  memsrc.len = SBYTES (specified_data);
 	  memsrc.index = 0;
+	  byte_size = memsrc.len;
 
 #if GIFLIB_MAJOR < 5
 	  gif = DGifOpen (&memsrc, gif_read_from_memory);
@@ -9183,6 +9184,7 @@ gif_load (struct frame *f, struct image *img)
       cache->destructor = (void (*)(void *)) &gif_destroy;
       cache->width = width;
       cache->height = height;
+      cache->byte_size = byte_size;
     }
 
   img->corners[TOP_CORNER] = gif->SavedImages[0].ImageDesc.Top;
@@ -9753,6 +9755,9 @@ webp_load (struct frame *f, struct image *img)
 	  /* In any case, we release the allocated memory when we
 	     purge the anim cache.  */
 	  webp_data.size = size;
+
+	  /* This is used just for reporting by `image-cache-size'.  */
+	  cache->byte_size = size;
 
 	  /* Get the width/height of the total image.  */
 	  WebPDemuxer* demux = WebPDemux (&webp_data);
@@ -11853,6 +11858,30 @@ The list of capabilities can include one or more of the following:
 
   return Qnil;
 }
+
+DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
+       doc: /* Return the size of the image cache.  */)
+  (void)
+{
+  Lisp_Object tail, frame;
+  size_t total = 0;
+
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_WINDOW_P (XFRAME (frame)))
+      total += image_frame_cache_size (XFRAME (frame));
+
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+  struct anim_cache *pcache = anim_cache;
+  while (pcache)
+    {
+      total += pcache->byte_size;
+      pcache = pcache->next;
+    }
+#endif
+
+  return make_int (total);
+}
+
 
 DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 1, 1, 0,
        doc: /* Initialize image library implementing image type TYPE.
