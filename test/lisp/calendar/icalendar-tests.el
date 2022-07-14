@@ -651,8 +651,8 @@ Argument INPUT-AMERICAN american style diary string.
 Argument EXPECTED-OUTPUT expected iCalendar result string.
 Optional argument ALARMS the value of `icalendar-export-alarms' for this test.
 
-European style input data must use german month names.  American
-and ISO style input data must use english month names."
+European style input data must use German month names.  American
+and ISO style input data must use English month names."
   (let ((tz (getenv "TZ"))
 	(calendar-date-style 'iso)
 	(icalendar-recurring-start-year 2000)
