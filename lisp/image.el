@@ -966,9 +966,10 @@ for the animation speed.  A negative value means to animate in reverse."
   (plist-put (cdr image) :animate-tardiness
              (+ (* (plist-get (cdr image) :animate-tardiness) 0.9)
                 (float-time (time-since target-time))))
-  (let ((buffer (plist-get (cdr image) :animate-buffer))
-        (position (plist-get (cdr image) :animate-position)))
-    (when (and (buffer-live-p buffer)
+  (let* ((buffer (plist-get (cdr image) :animate-buffer))
+         (position (plist-get (cdr image) :animate-position))
+         (continue-animation
+          (and (buffer-live-p buffer)
                ;; If we have a :animate-position setting, the caller
                ;; has requested that the animation be stopped if the
                ;; image is no longer displayed in the buffer.
@@ -985,7 +986,13 @@ for the animation speed.  A negative value means to animate in reverse."
                (or (< (plist-get (cdr image) :animate-tardiness) 2)
 		   (progn
 		     (message "Stopping animation; animation possibly too big")
-		     nil)))
+		     nil)))))
+    (if (not continue-animation)
+        ;; Eject from the animation cache since we've decided not to
+        ;; keep updating it.  This helps stop unbounded RAM usage when
+        ;; doing, for instance, `g' in an eww buffer with animated
+        ;; images.
+        (clear-image-cache nil image)
       (let* ((time (prog1 (current-time)
 		     (image-show-frame image n t)))
 	     (speed (image-animate-get-speed image))
