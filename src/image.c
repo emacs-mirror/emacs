@@ -2133,6 +2133,9 @@ which is then usually a filename.  */)
   else
     clear_image_cache (decode_window_system_frame (filter), Qt);
 
+  /* Also clear the animation caches.  */
+  image_prune_animation_caches (true);
+
   return Qnil;
 }
 
@@ -3046,9 +3049,10 @@ anim_create_cache (Lisp_Object spec)
   return cache;
 }
 
-/* Discard cached images that haven't been used for a minute. */
+/* Discard cached images that haven't been used for a minute.  If
+   CLEAR, remove all animation cache entries.  */
 static void
-anim_prune_animation_cache (void)
+anim_prune_animation_cache (bool clear)
 {
   struct anim_cache **pcache = &anim_cache;
   struct timespec old = timespec_sub (current_timespec (),
@@ -3057,9 +3061,7 @@ anim_prune_animation_cache (void)
   while (*pcache)
     {
       struct anim_cache *cache = *pcache;
-      if (timespec_cmp (old, cache->update_time) <= 0)
-	pcache = &cache->next;
-      else
+      if (clear || timespec_cmp (old, cache->update_time) > 0)
 	{
 	  if (cache->handle)
 	    cache->destructor (cache);
@@ -3068,6 +3070,8 @@ anim_prune_animation_cache (void)
 	  *pcache = cache->next;
 	  xfree (cache);
 	}
+      else
+	pcache = &cache->next;
     }
 }
 
@@ -3077,7 +3081,7 @@ anim_get_animation_cache (Lisp_Object spec)
   struct anim_cache *cache;
   struct anim_cache **pcache = &anim_cache;
 
-  anim_prune_animation_cache ();
+  anim_prune_animation_cache (false);
 
   while (1)
     {
@@ -10082,9 +10086,10 @@ imagemagick_create_cache (char *signature)
   return cache;
 }
 
-/* Discard cached images that haven't been used for a minute. */
+/* Discard cached images that haven't been used for a minute.  If
+   CLEAR, discard all cached animated images.  */
 static void
-imagemagick_prune_animation_cache (void)
+imagemagick_prune_animation_cache (bool clear)
 {
   struct animation_cache **pcache = &animation_cache;
   struct timespec old = timespec_sub (current_timespec (),
@@ -10093,15 +10098,15 @@ imagemagick_prune_animation_cache (void)
   while (*pcache)
     {
       struct animation_cache *cache = *pcache;
-      if (timespec_cmp (old, cache->update_time) <= 0)
-	pcache = &cache->next;
-      else
+      if (clear || timespec_cmp (old, cache->update_time) > 0)
 	{
 	  if (cache->wand)
 	    DestroyMagickWand (cache->wand);
 	  *pcache = cache->next;
 	  xfree (cache);
 	}
+      else
+	pcache = &cache->next;
     }
 }
 
@@ -10112,7 +10117,7 @@ imagemagick_get_animation_cache (MagickWand *wand)
   struct animation_cache *cache;
   struct animation_cache **pcache = &animation_cache;
 
-  imagemagick_prune_animation_cache ();
+  imagemagick_prune_animation_cache (false);
 
   while (1)
     {
@@ -11951,6 +11956,18 @@ lookup_image_type (Lisp_Object type)
   return NULL;
 }
 
+/* Prune the animation caches.  If CLEAR, remove all animation cache
+   entries.  */
+void
+image_prune_animation_caches (bool clear)
+{
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+  anim_prune_animation_cache (clear);
+#endif
+#ifdef HAVE_IMAGEMAGICK
+  imagemagick_prune_animation_cache (clear);
+#endif
+}
 
 void
 syms_of_image (void)
