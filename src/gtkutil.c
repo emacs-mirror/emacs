@@ -1887,7 +1887,9 @@ xg_free_frame_widgets (struct frame *f)
 
       /* x_free_frame_resources should have taken care of it */
 #ifndef HAVE_PGTK
+#ifdef HAVE_XDBE
       eassert (!FRAME_X_DOUBLE_BUFFERED_P (f));
+#endif
       g_object_unref (FRAME_X_OUTPUT (f)->im_context);
 #endif
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
