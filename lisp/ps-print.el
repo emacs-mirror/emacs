@@ -6325,17 +6325,6 @@ If FACE is not a valid face name, use default face."
 		(ps-face-background-name face))))
 
 
-(declare-function jit-lock-fontify-now "jit-lock" (&optional start end))
-(declare-function lazy-lock-fontify-region "lazy-lock" (beg end))
-
-;; to avoid compilation gripes
-(defun ps-print-ensure-fontified (start end)
-  (cond ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
-	 (jit-lock-fontify-now start end))
-	((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
-	 (lazy-lock-fontify-region start end))))
-
-
 (defun ps-generate-postscript-with-faces (from to)
   ;; Some initialization...
   (setq ps-current-effect 0)
@@ -6355,7 +6344,7 @@ If FACE is not a valid face name, use default face."
   ;; Generate some PostScript.
   (save-restriction
     (narrow-to-region from to)
-    (ps-print-ensure-fontified from to)
+    (font-lock-ensure from to)
     (deactivate-mark)                   ;bug#16866.
     (ps-generate-postscript-with-faces1 from to)))
 
@@ -6511,6 +6500,8 @@ If FACE is not a valid face name, use default face."
 
 (unless noninteractive
   (add-hook 'kill-emacs-query-functions #'ps-kill-emacs-check))
+
+(define-obsolete-function-alias 'ps-print-ensure-fontified #'font-lock-ensure "29.1")
 
 (provide 'ps-print)
 
