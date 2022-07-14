@@ -805,6 +805,20 @@ static int current_finish;
 static struct input_event *current_hold_quit;
 #endif
 
+#ifdef HAVE_XINPUT2
+#ifndef X_XIGrabDevice
+#define X_XIGrabDevice 51
+#endif
+
+#ifndef X_XIUngrabDevice
+#define X_XIUngrabDevice 52
+#endif
+
+#ifndef X_XIAllowEvents
+#define X_XIAllowEvents 53
+#endif
+#endif
+
 /* Queue selection requests in `pending_selection_requests' if more
    than 0.  */
 static int x_use_pending_selection_requests;
@@ -23579,15 +23593,13 @@ x_error_handler (Display *display, XErrorEvent *event)
      (that happens a lot in xmenu.c), just ignore the error.  */
 
 #ifdef HAVE_XINPUT2
-  /* 51 is X_XIGrabDevice and 52 is X_XIUngrabDevice.
-
-     53 is X_XIAllowEvents.  We handle errors from that here to avoid
-     a sync in handle_one_xevent.  */
+  /* Handle errors from some specific XI2 requests here to avoid a
+     sync in handle_one_xevent.  */
   if (dpyinfo && dpyinfo->supports_xi2
       && event->request_code == dpyinfo->xi2_opcode
-      && (event->minor_code == 51
-	  || event->minor_code == 52
-	  || event->minor_code == 53))
+      && (event->minor_code == X_XIGrabDevice
+	  || event->minor_code == X_XIUngrabDevice
+	  || event->minor_code == X_XIAllowEvents))
     return 0;
 #endif
 
