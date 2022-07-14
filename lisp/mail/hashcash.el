@@ -1,6 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2005, 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: emacs-devel@gnu.org
@@ -95,10 +95,12 @@ If this is not in your PATH, specify an absolute file name."
   :type '(choice (const nil) file)
   :group 'hashcash)
 
-(defcustom hashcash-extra-generate-parameters nil
+(defcustom hashcash-extra-generate-parameters '("-Z2")
   "A list of parameter strings passed to `hashcash-program' when minting.
-For example, you may want to set this to (\"-Z2\") to reduce header length."
+For example, on very old hardware, you may want to set this
+to (\"-Z0\") to disable compression."
   :type '(repeat string)
+  :version "29.1"
   :group 'hashcash)
 
 (defcustom hashcash-double-spend-database "hashcash.db"
