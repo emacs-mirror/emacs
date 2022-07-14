@@ -6266,8 +6266,10 @@ garbage_collect (void)
   /* GC is complete: now we can run our finalizer callbacks.  */
   run_finalizers (&doomed_finalizers);
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Eject unused image cache entries.  */
   image_prune_animation_caches (false);
+#endif
 
   if (!NILP (Vpost_gc_hook))
     {
