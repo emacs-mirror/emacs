@@ -2843,7 +2843,7 @@ Common Lisp, this is not an error since the function @code{(setf
 it, that value won't be automatically restored.  Users usually set
 normal variables in their startup files, or use Customize
 (@pxref{Customization}) to set user options permanently, and various
-packages have various files wher they store the data (e.g., Gnus
+packages have various files where they store the data (e.g., Gnus
 stores this in @file{.newsrc.eld} and the URL library stores cookies
 in @file{~/.emacs.d/url/cookies}).
 

@@ -1875,7 +1875,7 @@ class C(object):
                 (python-tests-look-at "def m(self):" -1)
                 (beginning-of-line)
                 (point))))
-   ;; Nested defuns shuld be skipped.
+   ;; Nested defuns should be skipped.
    (python-tests-look-at "return a" -1)
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)

@@ -6963,7 +6963,7 @@ that mouse buttons are being held down, such as immediately after a
     xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
   else if (SYMBOLP (action))
     /* This is to accommodate non-standard DND protocols such as XDS
-       that are explictly implemented by Emacs, and is not documented
+       that are explicitly implemented by Emacs, and is not documented
        for that reason.  */
     xaction = symbol_to_x_atom (FRAME_DISPLAY_INFO (f), action);
   else if (CONSP (action))

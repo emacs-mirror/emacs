@@ -2078,7 +2078,7 @@ and @var{kind} as arguments.
 @item load-changed
 This xwidget event indicates that the @var{xwidget} has reached a
 particular point of the page-loading process.  When these events are
-sent, @var{arg} will contain a string that futher describes the status
+sent, @var{arg} will contain a string that further describes the status
 of the widget:
 
 @table @samp

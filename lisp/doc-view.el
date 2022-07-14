@@ -238,7 +238,7 @@ Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
 (defun doc-view--epub-reconvert (&optional _event)
   "Reconvert all epub buffers.
 
-EVENT is unused, but neccesary to work with the filenotify API"
+EVENT is unused, but necessary to work with the filenotify API."
   (dolist (x (buffer-list))
     (with-current-buffer x
       (when (eq doc-view-doc-type 'epub)

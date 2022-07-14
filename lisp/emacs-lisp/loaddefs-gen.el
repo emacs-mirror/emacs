@@ -329,9 +329,9 @@ expression, in which case we want to handle forms differently."
 						     'string<))))))
 
 (defun loaddefs-generate--parse-file (file main-outfile &optional package-data)
-  "Examing FILE for ;;;###autoload statements.
+  "Examining FILE for ;;;###autoload statements.
 MAIN-OUTFILE is the main loaddefs file these statements are
-destined for, but this can be overriden by the buffer-local
+destined for, but this can be overridden by the buffer-local
 setting of `generated-autoload-file' in FILE, and
 by ;;;###foo-autoload statements.
 

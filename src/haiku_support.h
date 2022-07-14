@@ -398,7 +398,7 @@ struct haiku_font_pattern
   /* Temporary field used during font enumeration.  */
   int oblique_seen_p;
 
-  /* Whether or not to enable antialising in the font.  This field is
+  /* Whether or not to enable antialiasing in the font.  This field is
      special in that it's not handled by `BFont_open_pattern'.  */
   int use_antialiasing;
 };

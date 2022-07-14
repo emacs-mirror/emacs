@@ -1433,7 +1433,7 @@ static bool x_dnd_use_toplevels;
 /* Motif drag-and-drop protocol support.  */
 
 /* Pointer to a variable which stores whether or not an X error
-   occured while trying to create the Motif drag window.  */
+   occurred while trying to create the Motif drag window.  */
 static volatile bool *xm_drag_window_error;
 
 typedef enum xm_byte_order
@@ -2308,7 +2308,7 @@ xm_get_drag_atom_1 (struct x_display_info *dpyinfo,
 			   &actual_format, &nitems, &bytes_remaining,
 			   &tmp_data);
   atom = None;
-  /* GCC thinks i is used unitialized, but it's always initialized if
+  /* GCC thinks i is used uninitialized, but it's always initialized if
      `atoms' exists at that particular spot.  */
   i = 0;
 
@@ -28203,7 +28203,7 @@ you, try increasing the value of
   x_mouse_click_focus_ignore_position = false;
 
   DEFVAR_INT ("x-mouse-click-focus-ignore-time", x_mouse_click_focus_ignore_time,
-    doc: /* Number of miliseconds for which to ignore buttons after focus change.
+    doc: /* Number of milliseconds for which to ignore buttons after focus change.
 This variable only takes effect if
 `x-mouse-click-focus-ignore-position' is non-nil, and should be
 adjusted if the default value does not work for whatever reason.  */);

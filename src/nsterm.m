@@ -10917,7 +10917,7 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 It is called with three arguments FRAME, X, and Y, whenever the user
 moves the mouse over an Emacs frame as part of a drag-and-drop
 operation.  FRAME is the frame the mouse is on top of, and X and Y are
-the frame-relative positions of the mouse in the X and Y axises
+the frame-relative positions of the mouse in the X and Y axes
 respectively.  */);
   Vns_drag_motion_function = Qns_handle_drag_motion;
 

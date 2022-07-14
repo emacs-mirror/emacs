@@ -1046,7 +1046,7 @@ nonzero for this to work."
       (kill-buffer client-buffer)
       (kill-buffer dumb-server-buffer))))
 
-;; Without adjusting penalty, takes ~15 secs. With is comprable to direct ^.
+;; Without adjusting penalty, takes ~15 secs. With is comparable to direct ^.
 (ert-deftest erc-d-run-fuzzy ()
   :tags '(:expensive-test)
   (let ((erc-server-flood-penalty 1.2) ; penalty < margin/sends is basically 0

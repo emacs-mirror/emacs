@@ -481,7 +481,7 @@ used to invoke the command, with all modifiers removed:
 After adjusting, further adjust the font size as long as the key,
 with all modifiers removed, is one of the above characters.
 
-Buffer-local face adjustements have higher priority than global
+Buffer-local face adjustments have higher priority than global
 face adjustments.
 
 The variable `global-text-scale-adjust-resizes-frames' controls

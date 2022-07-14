@@ -1072,7 +1072,7 @@ back to a number as above).  For example, @samp{$list("a" "b")c}
 returns @samp{("a" "bc")}.
 
 @item anything else
-Concatenate the string represenation of each value.
+Concatenate the string representation of each value.
 
 @end table
 
@@ -1615,7 +1615,7 @@ nor the decoded data, into Emacs buffers, as would normally happen.
 The command is interpreted as extending up to the next @code{|}
 character which is not preceded by an unescaped asterisk following
 whitespace, or the end of the input if there is no such character.
-Thus, all @code{<} and @code{>} redirections occuring before the next
+Thus, all @code{<} and @code{>} redirections occurring before the next
 asterisk-unprefixed @code{|} are implicitly prefixed with (whitespace
 and) asterisks.  An exception is that Eshell-specific redirects right
 at the end of the command are excluded.  This allows input like this:
