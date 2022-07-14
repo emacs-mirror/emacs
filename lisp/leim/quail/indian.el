@@ -496,13 +496,13 @@ Full key sequences are listed below:"
     ("ௐ" "OM"))
   "List of input sequences to translate to Tamil characters.
 Each element should be (CHARACTER INPUT-SEQUENCES...) where
-CHARACTER is the Tamil character, and INPUT-SEQUENCES is a list
-of input sequences which produce that character.
+CHARACTER is the Tamil character, and INPUT-SEQUENCES are one
+or more input sequences which produce that character.
 
 CHARACTER is considered as a consonant (மெய் எழுத்து) if it ends
 with a pulli (virama).
 
-CHARACTER that is neither a vowel nor a consonant are inserted as
+CHARACTER that is neither a vowel nor a consonant is inserted as
 is."
   :group 'tamil-input
   :type '(alist :key-type string :value-type (repeat string))
