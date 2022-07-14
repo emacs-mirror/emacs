@@ -788,7 +788,7 @@ Default value of MODIFIERS is `shift-super'."
                       (const :tag "Hyper" hyper)
                       (const :tag "Super" super)
                       (const :tag "Alt" alt))))
-  "Customisation type for windmove modifiers.")
+  "Customization type for windmove modifiers.")
 
 (defcustom windmove-default-keybindings nil
   "Default keybindings for regular windmove commands.

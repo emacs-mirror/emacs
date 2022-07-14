@@ -2817,7 +2817,7 @@ END-CHAR is the ending delimiter; will stop at end-of-buffer otherwise."
               pieces)
         (forward-char))
        (t
-        (warn "Unrecognised escape char: %c" (following-char))))
+        (warn "Unrecognized escape char: %c" (following-char))))
       (setq start (point)))
     (push (buffer-substring start (1- (point))) pieces)
     (let ((s (apply #'concat (nreverse pieces))))

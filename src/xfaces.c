@@ -965,7 +965,7 @@ DEFUN ("color-values-from-color-spec",
        Scolor_values_from_color_spec,
        1, 1, 0,
        doc: /* Parse color SPEC as a numeric color and return (RED GREEN BLUE).
-This function recognises the following formats for SPEC:
+This function recognizes the following formats for SPEC:
 
  #RGB, where R, G and B are hex numbers of equal length, 1-4 digits each.
  rgb:R/G/B, where R, G, and B are hex numbers, 1-4 digits each.

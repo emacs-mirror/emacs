@@ -812,7 +812,7 @@ function passes responsibility to the functions in
 Other third-party values of `eldoc-documentation-strategy' should
 not use `eldoc--make-callback'.  They must find some alternate
 way to produce callbacks to feed to
-`eldoc-documentation-functions' and should endeavour to display
+`eldoc-documentation-functions' and should endeavor to display
 the docstrings eventually produced, using
 `eldoc-display-functions'."
   (let* (;; How many callbacks have been created by the strategy

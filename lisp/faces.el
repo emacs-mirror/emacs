@@ -1883,7 +1883,7 @@ This value was determined experimentally.")
   "Whether RGB is more readable against white than black.
 RGB is a 3-element list (R G B), each component in the range [0,1].
 This predicate can be used both for determining a suitable (black or white)
-contrast colour with RGB as background and as foreground."
+contrast color with RGB as background and as foreground."
   (unless (<= 0 (apply #'min rgb) (apply #'max rgb) 1)
     (error "RGB components %S not in [0,1]" rgb))
   ;; Compute the relative luminance after gamma-correcting (assuming sRGB),

@@ -38,7 +38,7 @@
 ;; compacted into the smallest file size possible, which often entails removing
 ;; newlines should they not be strictly necessary).  This can result in lines
 ;; which are many thousands of characters long, and most programming modes
-;; simply aren't optimised (remotely) for this scenario, so performance can
+;; simply aren't optimized (remotely) for this scenario, so performance can
 ;; suffer significantly.
 ;;
 ;; When so-long detects such a file, it calls the command `so-long', which
@@ -412,7 +412,7 @@
 ;;
 ;; 1.1.2 - Use `so-long-mode-line-active' face on `mode-name' in `so-long-mode'.
 ;; 1.1.1 - Identical to 1.1, but fixing an incorrect GNU ELPA release.
-;; 1.1   - Utilise `buffer-line-statistics' in Emacs 28+, with the new
+;; 1.1   - Utilize `buffer-line-statistics' in Emacs 28+, with the new
 ;;         `so-long-predicate' function `so-long-statistics-excessive-p'.
 ;;       - Increase `so-long-threshold' from 250 to 10,000.
 ;;       - Increase `so-long-max-lines' from 5 to 500.
@@ -449,7 +449,7 @@
 ;;       - Added sgml-mode and nxml-mode to `so-long-target-modes'.
 ;; 0.7.4 - Refactored the handling of `whitespace-mode'.
 ;; 0.7.3 - Added customization group `so-long' with user options.
-;;       - Added `so-long-original-values' to generalise the storage and
+;;       - Added `so-long-original-values' to generalize the storage and
 ;;         restoration of values from the original mode upon `so-long-revert'.
 ;;       - Added `so-long-revert-hook'.
 ;; 0.7.2 - Remember the original major mode even with M-x `so-long-mode'.
@@ -642,7 +642,7 @@ Note that `so-long-statistics-excessive-p' requires Emacs 28.1 or later."
 (defun so-long--action-type ()
   "Generate a :type for `so-long-action' based on `so-long-action-alist'."
   ;; :type seemingly cannot be a form to be evaluated on demand, so we
-  ;; endeavour to keep it up-to-date with `so-long-action-alist' by
+  ;; endeavor to keep it up-to-date with `so-long-action-alist' by
   ;; calling this from `so-long--action-alist-setter'.
   `(radio ,@(mapcar (lambda (x) (list 'const :tag (cadr x) (car x)))
                     (assq-delete-all nil so-long-action-alist))

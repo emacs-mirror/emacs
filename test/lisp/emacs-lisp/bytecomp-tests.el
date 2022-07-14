@@ -38,7 +38,7 @@
   bytecomp-test-var)
 
 (defun bytecomp-test-identity (x)
-  "Identity, but hidden from some optimisations."
+  "Identity, but hidden from some optimizations."
   x)
 
 (defmacro bytecomp-test-loop (outer1 outer2 inner1 inner2)
@@ -556,7 +556,7 @@ inner loops respectively."
                               ((not x) 3)))
             '("a" "b" "c" "d" nil))
 
-    ;; `let' and `let*' optimisations with body being constant or variable
+    ;; `let' and `let*' optimizations with body being constant or variable
     (let* (a
            (b (progn (setq a (cons 1 a)) 2))
            (c (1+ b))
@@ -582,7 +582,7 @@ inner loops respectively."
     (let* (x y)
       'a)
 
-    ;; Check empty-list optimisations.
+    ;; Check empty-list optimizations.
     (mapcar (lambda (x) (member x nil)) '("a" 2 nil))
     (mapcar (lambda (x) (memql x nil)) '(a 2 nil))
     (mapcar (lambda (x) (memq x nil)) '(a nil))
@@ -597,7 +597,7 @@ inner loops respectively."
       (list (mapcar (lambda (x) (assoc (setq n (1+ n)) nil)) '(a "nil"))
             n))
 
-    ;; Exercise variable-aliasing optimisations.
+    ;; Exercise variable-aliasing optimizations.
     (let ((a (list 1)))
       (let ((b a))
         (let ((a (list 2)))

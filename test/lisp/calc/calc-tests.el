@@ -445,7 +445,7 @@ An existing calc stack is reused, otherwise a new one is created."
        (t  ; n<k<0
         0))))
    ((natnump k)
-    ;; Generalisation for any n, integral k≥0: use falling product
+    ;; Generalization for any n, integral k≥0: use falling product
     (/ (apply '* (number-sequence n (- n (1- k)) -1))
        (calc-tests--fac k)))
    (t (error "Case not covered"))))

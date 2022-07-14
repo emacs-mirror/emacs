@@ -2866,12 +2866,12 @@ For more information and examples see the [[https://orgmode.org/worg/org-tutoria
 - transpose ::
 
   When =y=, =yes=, or =t= attempt to transpose the table data before
-  plotting.  Also recognises the shorthand option =trans=.
+  plotting.  Also recognizes the shorthand option =trans=.
 
 - =type= ::
 
   Specify the type of the plot, by default one of  =2d=, =3d=, =radar=, or =grid=.
-  Available types can be customised with ~org-plot/preset-plot-types~.
+  Available types can be customized with ~org-plot/preset-plot-types~.
 
 - =with= ::
 

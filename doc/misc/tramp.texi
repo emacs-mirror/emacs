@@ -667,6 +667,11 @@ may be used in your init file:
 (with-eval-after-load 'tramp (tramp-change-syntax 'simplified))
 @end lisp
 
+@vindex enable-remote-dir-locals
+Changing other variables via directory-local variables on a remote
+directory must be enabled by setting @code{enable-remote-dir-locals}
+to non-@code{nil}, @xref{Directory Variables, , , emacs}.
+
 
 @menu
 * Connection types::            Types of connections to remote hosts.
@@ -2427,7 +2432,7 @@ example below:
 @end lisp
 
 @vindex password-word-equivalents
-This user option is, by default, initialised from
+This user option is, by default, initialized from
 @code{password-word-equivalents} when @value{tramp} is loaded, and it
 is usually more convenient to add new passphrases to that user option
 instead of altering this user option.
@@ -5819,15 +5824,15 @@ The verbosity levels are
 @*@indent @w{ 4}  activities
 @*@indent @w{ 5}  internal
 @*@indent @w{ 6}  sent and received strings
-@*@indent @w{ 7}  file caching
-@*@indent @w{ 8}  connection properties
+@*@indent @w{ 7}  connection properties
+@*@indent @w{ 8}  file caching
 @*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
 @*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to a @value{tramp} debug buffer.  Such debug buffers are
-essential to bug and problem analyses.  For @value{tramp} bug reports,
+essential to bug and problem analyzes.  For @value{tramp} bug reports,
 set the @code{tramp-verbose} level to 6 (@pxref{Bug Reports}).
 
 The debug buffer is in

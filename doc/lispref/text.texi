@@ -3394,7 +3394,7 @@ for @var{object} is the current buffer.
 Search for the next region that has text property @var{prop} set to
 @var{value} according to @var{predicate}.
 
-This function is modelled after @code{search-forward} and friends in
+This function is modeled after @code{search-forward} and friends in
 that it moves point, but it returns a structure that describes the
 match instead of returning it in @code{match-beginning} and friends.
 

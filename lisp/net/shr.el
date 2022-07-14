@@ -819,7 +819,7 @@ size, and full-buffer size."
             (let* ((props (copy-sequence (text-properties-at (point))))
                    (face (plist-get props 'face)))
               ;; We don't want to use the faces on the indentation, because
-              ;; that's ugly, but we do want to use the background colour.
+              ;; that's ugly, but we do want to use the background color.
               (when face
                 (setq props (plist-put props 'face (shr-face-background face))))
 	      (add-text-properties gap-start (point) props))))

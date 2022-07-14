@@ -1678,9 +1678,9 @@ the file they refer to is visited and `flymake-mode' is turned on
 in the resulting buffer.
 
 Flymake backends that somehow gain sporadic information about
-diagnostics in neighbouring files may freely modify this variable
+diagnostics in neighboring files may freely modify this variable
 by adding or removing entries to for those files.  If the
-information about those neighbouring files is acquired repeatedly
+information about those neighboring files is acquired repeatedly
 and reliably, it may be more sensible to report them as
 \"foreign\" diagnostics instead.
 

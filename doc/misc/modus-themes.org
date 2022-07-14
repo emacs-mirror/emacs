@@ -2162,7 +2162,7 @@ things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization 
 This section is of interest only to users who are prepared to maintain
 their own local tweaks and who are willing to deal with any possible
 incompatibilities between versioned releases of the themes.  As such,
-they are labelled as "do-it-yourself" or "DIY".
+they are labeled as "do-it-yourself" or "DIY".
 
 ** More accurate colors in terminal emulators
 :PROPERTIES:
@@ -2605,7 +2605,7 @@ this example:
 Whenever we enter a ~diff-mode~ buffer, we now get a magenta-colored
 region.
 
-Perhaps you may wish to generalise those findings in to a set of
+Perhaps you may wish to generalize those findings in to a set of
 functions that also accept an arbitrary face.  We shall leave the
 experimentation up to you.
 
