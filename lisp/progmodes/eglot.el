@@ -2402,11 +2402,20 @@ Try to visit the target file for a richer summary line."
         (cl-labels ((refresh (pat)
                       (mapcar
                        (lambda (wss)
-                         (eglot--dbind ((WorkspaceSymbol) name containerName) wss
+                         (eglot--dbind
+                             ((WorkspaceSymbol) name containerName kind) wss
                            (propertize
-                            (concat (and (not (zerop (length containerName)))
-                                         (format "%s::" containerName))
-                                    name)
+                            (format "%s%s %s"
+                                    (if (zerop (length containerName)) ""
+                                        (concat (propertize containerName
+                                                            'face 'shadow)
+                                                " "))
+                                    name
+                                    (propertize (alist-get
+                                                 kind
+                                                 eglot--symbol-kind-names
+                                                 "Unknown")
+                                                'face 'shadow))
                             'eglot--lsp-workspaceSymbol wss)))
                        (with-current-buffer buf
                          (jsonrpc-request (eglot--current-server-or-lose)
@@ -2417,41 +2426,17 @@ Try to visit the target file for a richer summary line."
                              (probe (gethash pat cache :missing)))
                         (if (eq probe :missing) (puthash pat (refresh pat) cache)
                           probe)))
-                    (container (c)
-                      (plist-get (get-text-property
-                                  0 'eglot--lsp-workspaceSymbol c)
-                                 :containerName)))
+                    (score (c)
+                      (cl-getf (get-text-property
+                                0 'eglot--lsp-workspaceSymbol c)
+                               :score 0)))
           (lambda (string _pred action)
             (pcase action
               (`metadata `(metadata
                            (cycle-sort-function
                             . ,(lambda (completions)
-                                 (cl-sort completions
-                                          #'string-lessp
-                                          :key (lambda (c)
-                                                 (or (container c)
-                                                     "")))))
-                           (category . eglot-indirection-joy)
-                           ;; (annotation-function
-                           ;;  . ,(lambda (c)
-                           ;;       (plist-get (get-text-property
-                           ;;                   0 'eglot--lsp-workspaceSymbol c)
-                           ;;                  :containerName)))
-                           ;; (affixation-function
-                           ;;  . ,(lambda (comps)
-                           ;;       (mapcar (lambda (c)
-                           ;;                 (list c
-                           ;;                       (plist-get (get-text-property
-                           ;;                                   0 'eglot--lsp-workspaceSymbol c)
-                           ;;                                  :containerName)
-                           ;;                       " bla"))
-                           ;;               comps)))
-                           (group-function
-                            . ,(lambda (c transformp)
-                                 (if (not transformp)
-                                     (container c)
-                                   c)))
-                           ))
+                                 (cl-sort completions #'> :key #'score)))
+                           (category . eglot-indirection-joy)))
               (`(eglot--lsp-tryc . ,point) `(eglot--lsp-tryc . (,string . ,point)))
               (`(eglot--lsp-allc . ,_point) `(eglot--lsp-allc . ,(lookup string)))
               (_ nil)))))
@@ -2475,7 +2460,7 @@ Try to visit the target file for a richer summary line."
   ;; passed to LSP.  The reason for this particular wording is to
   ;; construct a readable message "No references for LSP identifier at
   ;; point.".   See https://github.com/joaotavora/eglot/issues/314
-  "LSP identifier at point.")
+  "LSP identifier at point")
 
 (defvar eglot--lsp-xref-refs nil
   "`xref' objects for overriding `xref-backend-references''s.")
