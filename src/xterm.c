@@ -23531,7 +23531,11 @@ For details, see etc/PROBLEMS.\n",
 
   unblock_input ();
 
-  if (terminal_list == 0)
+  /* Sometimes another terminal is still alive, but deleting this
+     terminal caused all frames to vanish.  In that case, simply kill
+     Emacs, since the next redisplay will abort as there is no more
+     selected frame.  (bug#56528) */
+  if (terminal_list == 0 || NILP (selected_frame))
     Fkill_emacs (make_fixnum (70), Qnil);
 
   totally_unblock_input ();
