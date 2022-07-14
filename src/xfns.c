@@ -8850,9 +8850,8 @@ DEFUN ("x-double-buffered-p", Fx_double_buffered_p, Sx_double_buffered_p,
        doc: /* Return t if FRAME is being double buffered.  */)
      (Lisp_Object frame)
 {
-  struct frame *f = decode_live_frame (frame);
-
 #ifdef HAVE_XDBE
+  struct frame *f = decode_live_frame (frame);
   return FRAME_X_DOUBLE_BUFFERED_P (f) ? Qt : Qnil;
 #else
   return Qnil;
