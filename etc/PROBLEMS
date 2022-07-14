@@ -729,6 +729,53 @@ time.  Possible reasons for this include:
 To work around the problem, you could use Git or some other
 free-software program, instead of ClearCase.
 
+*** Various commands that visit files on networked filesystems fail.
+
+This could happen if the filesystem of those files is mounted in a way
+that causes the files to be accessed via a symlink.  One such example
+is the 'amd' automounter, which unmounts the filesystem after some
+period of lack of use.  Another example is Emacs running on MS-Windows
+that accesses files on remote server via symlinks whose target is a
+UNC of the form '\\server\share'.
+
+The reason for these problems is that some Emacs commands visit files
+via their truename, resolving the symlink, which causes these files'
+default-directory to also have the symlink resolved.  If the resolved
+directory has access problems, subsequent commands from that file's
+buffer could fail.  For example, the stock MS-Windows shell 'cmd.exe'
+is unable to use a UNC-form directory as the current directory, so
+'shell-command' and its callers will typically fail.  Similarly with
+using targets of symlinks which no longer mount the remote filesystem
+will fail.
+
+You can solve these problems in several ways:
+
+  - Write a 'find-file'hook' function which will change the value of
+    'default-directory' to reference the symlink instead of its
+    target.
+
+  - Set up 'directory-abbrev-alist' to automatically convert the
+    'default-directory' of such files in the same manner.
+
+  - On MS-Windows, map a drive letter to the '\\server\share'
+    directory and point your symlinks to a directory name that uses
+    the drive letter.
+
+*** On MS-Windows, visiting files in OneDrive fails.
+
+This is known to happen when OneDrive is accessed via the so-called
+"metered connections", whose use is charged by the volume of
+transferred data.  Those are typically wireless links using a modem or
+a mobile phone.  In these cases, files that are left in the cloud and
+not downloaded to the local computer can produce various failures in
+system calls that access the files or their meta-data.
+
+The solution is to disable the "metered connection" status from the
+WiFi properties (reachable from the Windows Settings menu).  This will
+cause files to be downloaded to the local computer when they are
+accessed (which could take some time, and Emacs functions accessing
+the file will wait for that), avoiding the errors.
+
 *** ps-print commands fail to find prologue files ps-prin*.ps.
 
 This can happen if you use an old version of X-Symbol package: it
