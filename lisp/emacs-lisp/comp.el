@@ -3695,7 +3695,7 @@ Prepare every function for final compilation and drive the C back-end."
 				 (file-name-base output) "-")
 			 nil ".el")))
 	(with-temp-file temp-file
-          (insert ";; -*-coding: nil; -*-\n")
+          (insert ";; -*-coding: utf-8-emacs-unix; -*-\n")
           (mapc (lambda (e)
                   (insert (prin1-to-string e)))
                 expr))
