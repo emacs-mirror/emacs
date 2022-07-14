@@ -613,7 +613,7 @@ means display it in the right marginal area."
       (put-text-property 0 (length string) 'display prop string)
       (overlay-put overlay 'put-image t)
       (overlay-put overlay 'before-string string)
-      (overlay-put overlay 'map image-map)
+      (overlay-put overlay 'keymap image-map)
       overlay)))
 
 
