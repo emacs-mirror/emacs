@@ -324,3 +324,9 @@ lib-src/seccomp-filter-exec.pfc
 
 # Ignore directory made by admin/make-manuals.
 manual/
+
+# Ignore Finder files on MacOS.
+.DS_Store
+
+# Ignore a directory used by dap-mode.
+.vscode
