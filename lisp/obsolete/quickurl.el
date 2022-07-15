@@ -5,6 +5,7 @@
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Created: 1999-05-28
 ;; Keywords: hypermedia
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 

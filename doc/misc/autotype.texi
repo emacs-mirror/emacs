@@ -92,7 +92,6 @@ completions and expansions of text at point.
 * Copyrights::             Inserting and updating copyrights.
 * Executables::            Turning interpreter scripts into executables.
 * Timestamps::             Updating dates and times in modified files.
-* QuickURL::               Inserting URLs based on text at point.
 * Tempo::                  Flexible template insertion.
 * Hippie Expand::          Expansion of text trying various methods.
 * Skeleton Language::      Making skeleton commands insert what you want.
@@ -477,31 +476,6 @@ The time stamp is written between the brackets or quotes:
 @example
 Time-stamp: <1998-02-18 10:20:51 gildea>
 @end example
-
-@node QuickURL
-@chapter QuickURL: Inserting URLs Based on Text at Point
-
-@vindex quickurl-url-file
-@findex quickurl
-@cindex URLs
-@kbd{M-x quickurl} can be used to insert a URL into a buffer based on
-the text at point.  The URLs are stored in an external file defined by
-the variable @code{quickurl-url-file} as a list of either cons cells of
-the form @code{(@var{key} . @var{URL})} or
-lists of the form @code{(@var{key} @var{URL} @var{comment})}.  These
-specify that @kbd{M-x quickurl} should insert @var{URL} if the word
-@var{key} is at point, for example:
-
-@example
-(("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
- ("emacs"  . "https://www.gnu.org/software/emacs/"))
-@end example
-
-@findex quickurl-add-url
-@findex quickurl-list
-@kbd{M-x quickurl-add-url} can be used to add a new @var{key}/@var{URL}
-pair.  @kbd{M-x quickurl-list} provides interactive editing of the URL
-list.
 
 @node Tempo
 @chapter Tempo: Flexible Template Insertion
