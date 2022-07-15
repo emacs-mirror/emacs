@@ -2458,10 +2458,11 @@ If BUFFER, switch to it before."
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
   (let ((attempt
-         (puthash :default
-                  (ignore-errors
-                    (eglot--workspace-symbols (symbol-name (symbol-at-point))))
-                  eglot--workspace-symbols-cache)))
+         (and (xref--prompt-p this-command)
+              (puthash :default
+                       (ignore-errors
+                         (eglot--workspace-symbols (symbol-name (symbol-at-point))))
+                       eglot--workspace-symbols-cache))))
     (if attempt (car attempt) "LSP identifier at point")))
 
 (defvar eglot--lsp-xref-refs nil
