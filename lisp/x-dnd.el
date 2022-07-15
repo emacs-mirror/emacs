@@ -588,6 +588,7 @@ message (format 32) that caused EVENT to be generated."
 
 (declare-function x-change-window-property "xfns.c"
 		  (prop value &optional frame type format outer-P window-id))
+(declare-function x-translate-coordinates "xfns.c")
 
 (defun x-dnd-init-xdnd-for-frame (frame)
   "Set the XdndAware property for FRAME to indicate that we do XDND."
@@ -595,22 +596,43 @@ message (format 32) that caused EVENT to be generated."
 			    '(5)	;; The version of XDND we support.
 			    frame "ATOM" 32 t))
 
-(defun x-dnd-get-drop-width-height (frame w accept)
+(defun x-dnd-get-drop-width-height (w accept)
   "Return the width/height to be sent in a XdndStatus message.
-FRAME is the frame and W is the window where the drop happened.
+W is the window where the drop happened.
 If ACCEPT is nil return 0 (empty rectangle),
 otherwise if W is a window, return its width/height,
 otherwise return the frame width/height."
   (if accept
       (if (windowp w)   ;; w is not a window if dropping on the menu bar,
 			;; scroll bar or tool bar.
-	  (let ((edges (window-inside-pixel-edges w)))
-	    (cons
-	     (- (nth 2 edges) (nth 0 edges))	;; right - left
-	     (- (nth 3 edges) (nth 1 edges))))	;; bottom - top
-	(cons (frame-pixel-width frame)
-	      (frame-pixel-height frame)))
+	  (cons (window-pixel-width)
+                (window-pixel-height))
+        ;; Don't confine to mouse rect if w is not a window.
+        ;; Otherwise, we won't get position events once the mouse does
+        ;; move into a window.
+        0)
     0))
+
+(defun x-dnd-after-move-frame (frame)
+  "Handle FRAME moving to a different position.
+Clear any cached root window position."
+  (set-frame-parameter frame 'dnd-root-window-position
+                       nil))
+
+(add-hook 'move-frame-functions #'x-dnd-after-move-frame)
+
+(defun x-dnd-compute-root-window-position (frame)
+  "Return the position of FRAME's edit widget relative to the root window.
+The value is a cons of (X . Y), describing the position of
+FRAME's edit widget (inner window) relative to the root window of
+its screen."
+  (or (frame-parameter frame 'dnd-root-window-position)
+      (let* ((result (x-translate-coordinates frame))
+             (param (cons (car result) (cadr result))))
+        (unless result
+          (error "Frame isn't on the same screen as its root window"))
+        (prog1 param
+          (set-frame-parameter frame 'dnd-root-window-position param)))))
 
 (defun x-dnd-get-drop-x-y (frame w)
   "Return the x/y coordinates to be sent in a XdndStatus message.
@@ -618,10 +640,9 @@ Coordinates are required to be absolute.
 FRAME is the frame and W is the window where the drop happened.
 If W is a window, return its absolute coordinates,
 otherwise return the frame coordinates."
-  (let* ((frame-left (or (car-safe (cdr-safe (frame-parameter frame 'left)))
-			 (frame-parameter frame 'left)))
-	 (frame-top (or (car-safe (cdr-safe (frame-parameter frame 'top)))
-			(frame-parameter frame 'top))))
+  (let* ((position (x-dnd-compute-root-window-position frame))
+         (frame-left (car position))
+	 (frame-top (cdr position)))
     (if (windowp w)
 	(let ((edges (window-inside-pixel-edges w)))
 	  (cons
@@ -700,8 +721,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
                        ;; widget bounds".
 		       (+ (if dnd-indicate-insertion-point 2 0) accept)
 		       (x-dnd-get-drop-x-y frame window)
-		       (x-dnd-get-drop-width-height
-			frame window (eq accept 1))
+		       (x-dnd-get-drop-width-height window (eq accept 1))
                        ;; The no-toolkit Emacs build can actually
                        ;; receive drops from programs that speak
                        ;; versions of XDND earlier than 3 (such as

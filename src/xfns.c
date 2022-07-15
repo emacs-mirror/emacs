@@ -7833,6 +7833,92 @@ Otherwise, the return value is a vector with the following fields:
   return prop_attr;
 }
 
+
+/***********************************************************************
+		           Coordinate management
+ ***********************************************************************/
+
+DEFUN ("x-translate-coordinates", Fx_translate_coordinates,
+       Sx_translate_coordinates,
+       1, 5, 0, doc: /* Translate coordinates from FRAME.
+Translate the given coordinates SOURCE-X and SOURCE-Y from
+SOURCE-WINDOW's coordinate space to that of DEST-WINDOW, on FRAME.
+
+If SOURCE-X and SOURCE-Y are nil, use 0 instead.
+
+FRAME can either be a terminal or a frame.  If nil, it defaults to the
+selected frame.  SOURCE-WINDOW must be an X window ID, 0 (which means
+to use the root window), or nil, which means to use FRAME's inner
+window.  DEST-WINDOW must be another X window ID, or nil (which means
+to use the root window).
+
+Return a list of (X Y CHILD) if the given coordinates are on the same
+screen, or nil otherwise, where X and Y are the coordinates in
+DEST-WINDOW's coordinate space, and CHILD is the window ID of any
+mapped child in DEST-WINDOW at those coordinates, or nil if there is
+no such window.  */)
+  (Lisp_Object frame, Lisp_Object source_window,
+   Lisp_Object dest_window, Lisp_Object source_x,
+   Lisp_Object source_y)
+{
+  struct x_display_info *dpyinfo;
+  struct frame *source_frame;
+  int dest_x, dest_y;
+  Window child_return, src, dest;
+  Bool rc;
+
+  dpyinfo = check_x_display_info (frame);
+  dest_x = 0;
+  dest_y = 0;
+
+  if (!NILP (source_x))
+    {
+      CHECK_FIXNUM (source_x);
+      dest_x = XFIXNUM (source_x);
+    }
+
+  if (!NILP (source_y))
+    {
+      CHECK_FIXNUM (source_y);
+      dest_y = XFIXNUM (source_y);
+    }
+
+  if (!NILP (source_window))
+    CONS_TO_INTEGER (source_window, Window, src);
+  else
+    {
+      source_frame = decode_window_system_frame (frame);
+      src = FRAME_X_WINDOW (source_frame);
+    }
+
+  if (!src)
+    src = dpyinfo->root_window;
+
+  if (!NILP (dest_window))
+    CONS_TO_INTEGER (dest_window, Window, dest);
+  else
+    dest = dpyinfo->root_window;
+
+  block_input ();
+  x_catch_errors (dpyinfo->display);
+  rc = XTranslateCoordinates (dpyinfo->display, src, dest,
+			      dest_x, dest_y, &dest_x, &dest_y,
+			      &child_return);
+  x_check_errors (dpyinfo->display,
+		  "Couldn't translate coordinates: %s");
+  x_uncatch_errors_after_check ();
+  unblock_input ();
+
+  if (!rc)
+    return Qnil;
+
+  return list3 (make_int (dest_x),
+		make_int (dest_y),
+		(child_return != None
+		 ? make_uint (child_return)
+		 : Qnil));
+}
+
 /***********************************************************************
 				Tool tips
  ***********************************************************************/
@@ -10003,6 +10089,8 @@ eliminated in future versions of Emacs.  */);
   defsubr (&Sx_double_buffered_p);
   defsubr (&Sx_begin_drag);
   defsubr (&Sx_display_set_last_user_time);
+  defsubr (&Sx_translate_coordinates);
+
   tip_timer = Qnil;
   staticpro (&tip_timer);
   tip_frame = Qnil;
