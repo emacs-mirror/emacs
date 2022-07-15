@@ -20200,9 +20200,16 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
   /* Display all lines of W.  */
   while (it.current_y < it.last_visible_y)
     {
+      int last_row_scale = it.w->nrows_scale_factor;
+      int last_col_scale = it.w->ncols_scale_factor;
       if (display_line (&it, cursor_vpos))
 	last_text_row = it.glyph_row - 1;
-      if (f->fonts_changed && !(flags & TRY_WINDOW_IGNORE_FONTS_CHANGE))
+      if (f->fonts_changed
+	  && !((flags & TRY_WINDOW_IGNORE_FONTS_CHANGE)
+	       /* If the matrix dimensions are insufficient, we _must_
+		  fail and let dispnew.c reallocate the matrix.  */
+	       && last_row_scale == it.w->nrows_scale_factor
+	       && last_col_scale == it.w->ncols_scale_factor))
 	return 0;
     }
 
