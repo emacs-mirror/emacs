@@ -3115,6 +3115,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       ns_unfocus (f);
       draw_phys_cursor_glyph (w, glyph_row, DRAW_NORMAL_TEXT);
       ns_focus (f, &r, 1);
+      [FRAME_CURSOR_COLOR (f) set];
 
       /* This works like it does in PostScript, not X Windows.  */
       [NSBezierPath strokeRect: NSInsetRect (r, 0.5, 0.5)];
