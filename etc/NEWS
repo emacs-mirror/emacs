@@ -166,6 +166,11 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
+---
+** 'w' ('dired-copy-filename-as-kill') has changed behaviour.
+If there are several files marked, file names containing space and
+quote characters will be quoted "like this".
+
 +++
 ** Warning about "eager macro-expansion failure" is changed into an error.
 
