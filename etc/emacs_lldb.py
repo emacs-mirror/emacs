@@ -75,14 +75,23 @@ class Lisp_Object:
 
     # Object construction/initialization.
     def __init__(self, lisp_obj):
-        self.frame = lisp_obj.GetFrame()
         self.lisp_obj = lisp_obj
-        self.unsigned = lisp_obj.GetValueAsUnsigned()
+        self.frame = lisp_obj.GetFrame()
         self.lisp_type = None
         self.pvec_type = None
         self.value = None
+        self.init_unsigned()
         self.init_lisp_types()
         self.init_values()
+
+    def init_unsigned(self):
+        if self.lisp_obj.GetNumChildren() != 0:
+            # Lisp_Object is actually a struct.
+            lisp_word = self.lisp_obj.GetValueForExpressionPath(".i")
+            self.unsigned = lisp_word.GetValueAsUnsigned()
+        else:
+            self.unsigned = self.lisp_obj.GetValueAsUnsigned()
+        pass
 
     # Initialize self.lisp_type to the C Lisp_Type enumerator of the
     # Lisp_Object, as a string.  Initialize self.pvec_type likewise to
@@ -222,17 +231,22 @@ def define_command (debugger, function):
 # and deleted in a similar way.
 def define_type_summary(debugger, regex, function):
     python_function = __name__ + "." + function.__name__
-    debugger.HandleCommand(f"type summary add "
+    debugger.HandleCommand(f"type summary add --expand "
                            f"--cascade true "
                            f"--category Emacs "
-                           f'--regex "{regex}" '
-                           f"--python-function {python_function}")
+                           f"--python-function {python_function} "
+                           + regex)
+
+# Enable a given category of type summary providers.
+def enable_type_category(debugger, category):
+    debugger.HandleCommand(f"type category enable {category}")
 
 # This function is called by LLDB to initialize the module.
 def __lldb_init_module(debugger, internal_dict):
     define_command(debugger, xbacktrace)
     define_command(debugger, xdebug_print)
     define_type_summary(debugger, "Lisp_Object", type_summary_Lisp_Object)
+    enable_type_category(debugger, "Emacs")
     print('Emacs debugging support has been installed.')
 
 # end.
