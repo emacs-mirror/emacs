@@ -1281,11 +1281,14 @@ See Info node `(elisp) Integer Basics'."
 
 (put 'cons 'byte-optimizer #'byte-optimize-cons)
 (defun byte-optimize-cons (form)
-  ;; (cons X nil) => (list X)
-  (if (and (= (safe-length form) 3)
-           (null (nth 2 form)))
-      `(list ,(nth 1 form))
-    form))
+  (let ((tail (nth 2 form)))
+    (cond
+     ;; (cons X nil) => (list X)
+     ((null tail) `(list ,(nth 1 form)))
+     ;; (cons X (list YS...)) -> (list X YS...)
+     ((and (consp tail) (eq (car tail) 'list))
+      `(,(car tail) ,(nth 1 form) . ,(cdr tail)))
+     (t form))))
 
 (put 'list 'byte-optimizer #'byte-optimize-list)
 (defun byte-optimize-list (form)
