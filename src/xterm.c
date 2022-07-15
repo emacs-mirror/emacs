@@ -4455,7 +4455,10 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
 
   if (target == x_dnd_mouse_rect_target
       && x_dnd_mouse_rect.width
-      && x_dnd_mouse_rect.height)
+      && x_dnd_mouse_rect.height
+      /* Ignore the mouse rectangle if we're supposed to be sending a
+	 button press instead.  */
+      && (supported < 5 || !button))
     {
       if (root_x >= x_dnd_mouse_rect.x
 	  && root_x < (x_dnd_mouse_rect.x
