@@ -1577,13 +1577,14 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
                       (equal doctor-found 'killing))
                   (memq 'yourself doctor-sent)))
 	 (setq doctor--suicide-flag t)
-	 (doctor-type '(If you are really suicidal\, you might
-			   want to contact the Samaritans via
-			   E-mail: jo@samaritans.org or\, at your option\,
-			   anonymous E-mail: samaritans@anon.twwells.com\ \.
-                           or find a Befrienders crisis center at
-                           https://www.befrienders.org/\ \.
-			   (doc$ doctor--please) (doc$ doctor--continue) \.)))
+         (doctor-type '( If you are really suicidal\, you might
+                         want to contact the Samaritans via
+                         e-mail: jo@samaritans.org \.
+                         or find a Befrienders crisis center at
+                         https://www.befrienders.org/\ \.
+                         you can also find other suicide crisis lines at
+                         https://en.wikipedia.org/wiki/List_of_suicide_crisis_lines \.
+                         (doc$ doctor--please) (doc$ doctor--continue) \.)))
 	(t (doctor-type (doc$ doctor--deathlst)))))
 
 (defun doctor-foul ()
