@@ -327,6 +327,7 @@ data reflects the `outline-regexp'.")
 
 (defvar outline-view-change-hook nil
   "Normal hook to be run after outline visibility changes.")
+(make-obsolete-variable 'outline-view-change-hook nil "29.1")
 
 (defvar outline-mode-hook nil
   "This hook is run when outline mode starts.")
@@ -864,7 +865,6 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 		   (or outline-isearch-open-invisible-function
 		       #'outline-isearch-open-invisible))))
   (outline--fix-up-all-buttons from to)
-  ;; Seems only used by lazy-lock.  I.e. obsolete.
   (run-hooks 'outline-view-change-hook))
 
 (defun outline-reveal-toggle-invisible (o hidep)
