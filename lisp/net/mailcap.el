@@ -87,11 +87,9 @@ you have an entry for \"image/*\" in your ~/.mailcap file."
 
 (defcustom mailcap-user-mime-data nil
   "A list of viewers preferred for different MIME types.
-The elements of the list are alists of the following structure
+The elements of the list are lists of the following structure
 
-  ((viewer . VIEWER)
-   (type   . MIME-TYPE)
-   (test   . TEST))
+  (VIEWER MIME-TYPE TEST)
 
 where VIEWER is either a Lisp command, e.g., a major mode, or a
 string containing a shell command for viewing files of the
