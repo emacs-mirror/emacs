@@ -2396,52 +2396,52 @@ Try to visit the target file for a richer summary line."
           (eglot--current-server-or-lose))
     (xref-make-match summary (xref-make-file-location file line column) length)))
 
+(defun eglot--workspace-symbols (pat &optional buffer)
+  "Ask for :workspace/symbol on PAT, return list of formatted strings.
+If BUFFER, switch to it before."
+  (with-current-buffer (or buffer (current-buffer))
+    (unless (eglot--server-capable :workspaceSymbolProvider)
+      (eglot--error "This LSP server isn't a :workspaceSymbolProvider"))
+    (mapcar
+     (lambda (wss)
+       (eglot--dbind ((WorkspaceSymbol) name containerName kind) wss
+         (propertize
+          (format "%s%s %s"
+                  (if (zerop (length containerName)) ""
+                    (concat (propertize containerName 'face 'shadow) " "))
+                  name
+                  (propertize (alist-get kind eglot--symbol-kind-names "Unknown")
+                              'face 'shadow))
+          'eglot--lsp-workspaceSymbol wss)))
+     (jsonrpc-request (eglot--current-server-or-lose) :workspace/symbol
+                      `(:query ,pat)))))
+
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
-  (if (eglot--server-capable :workspaceSymbolProvider)
-      (let ((buf (current-buffer)))
-        (clrhash eglot--workspace-symbols-cache)
-        (cl-labels ((refresh (pat)
-                      (mapcar
-                       (lambda (wss)
-                         (eglot--dbind
-                             ((WorkspaceSymbol) name containerName kind) wss
-                           (propertize
-                            (format "%s%s %s"
-                                    (if (zerop (length containerName)) ""
-                                        (concat (propertize containerName
-                                                            'face 'shadow)
-                                                " "))
-                                    name
-                                    (propertize (alist-get
-                                                 kind
-                                                 eglot--symbol-kind-names
-                                                 "Unknown")
-                                                'face 'shadow))
-                            'eglot--lsp-workspaceSymbol wss)))
-                       (with-current-buffer buf
-                         (jsonrpc-request (eglot--current-server-or-lose)
-                                          :workspace/symbol
-                                          `(:query ,pat)))))
-                    (lookup (pat) ;; check cache, else refresh
-                      (let* ((cache eglot--workspace-symbols-cache)
-                             (probe (gethash pat cache :missing)))
-                        (if (eq probe :missing) (puthash pat (refresh pat) cache)
-                          probe)))
-                    (score (c)
-                      (cl-getf (get-text-property
-                                0 'eglot--lsp-workspaceSymbol c)
-                               :score 0)))
-          (lambda (string _pred action)
-            (pcase action
-              (`metadata `(metadata
-                           (cycle-sort-function
-                            . ,(lambda (completions)
-                                 (cl-sort completions #'> :key #'score)))
-                           (category . eglot-indirection-joy)))
-              (`(eglot--lsp-tryc . ,point) `(eglot--lsp-tryc . (,string . ,point)))
-              (`(eglot--lsp-allc . ,_point) `(eglot--lsp-allc . ,(lookup string)))
-              (_ nil)))))
-    (eglot--error "This LSP server isn't a :workspaceSymbolProvider")))
+  "Yet another tricky connection between LSP and Elisp completion semantics."
+  (let ((buf (current-buffer)) (cache eglot--workspace-symbols-cache))
+    (cl-labels ((refresh (pat) (eglot--workspace-symbols pat buf))
+                (lookup-1 (pat) ;; check cache, else refresh
+                  (let ((probe (gethash pat cache :missing)))
+                    (if (eq probe :missing) (puthash pat (refresh pat) cache)
+                      probe)))
+                (lookup (pat)
+                  (let ((res (lookup-1 pat))
+                        (def (and (string= pat "") (gethash :default cache))))
+                    (append def res nil)))
+                (score (c)
+                  (cl-getf (get-text-property
+                            0 'eglot--lsp-workspaceSymbol c)
+                           :score 0)))
+      (lambda (string _pred action)
+        (pcase action
+          (`metadata `(metadata
+                       (cycle-sort-function
+                        . ,(lambda (completions)
+                             (cl-sort completions #'> :key #'score)))
+                       (category . eglot-indirection-joy)))
+          (`(eglot--lsp-tryc . ,point) `(eglot--lsp-tryc . (,string . ,point)))
+          (`(eglot--lsp-allc . ,_point) `(eglot--lsp-allc . ,(lookup string)))
+          (_ nil))))))
 
 (defun eglot--recover-workspace-symbol-meta (string)
   "Search `eglot--workspace-symbols-cache' for rich entry of STRING."
@@ -2457,11 +2457,12 @@ Try to visit the target file for a richer summary line."
              '(eglot-indirection-joy (styles . (eglot--lsp-backend-style))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
-  ;; JT@19/10/09: This is a totally dummy identifier that isn't even
-  ;; passed to LSP.  The reason for this particular wording is to
-  ;; construct a readable message "No references for LSP identifier at
-  ;; point.".   See https://github.com/joaotavora/eglot/issues/314
-  "LSP identifier at point")
+  (let ((attempt
+         (puthash :default
+                  (ignore-errors
+                    (eglot--workspace-symbols (symbol-name (symbol-at-point))))
+                  eglot--workspace-symbols-cache)))
+    (if attempt (car attempt) "LSP identifier at point")))
 
 (defvar eglot--lsp-xref-refs nil
   "`xref' objects for overriding `xref-backend-references''s.")
