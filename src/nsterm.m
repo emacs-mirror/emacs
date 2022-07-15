@@ -2900,10 +2900,7 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
   for (int y = 0 ; y < h ; y++)
     for (int x = 0 ; x < w ; x++)
       {
-        /* XBM rows are always round numbers of bytes, with any unused
-           bits ignored.  */
-        int byte = y * (w/8 + (w%8 ? 1 : 0)) + x/8;
-        bool bit = bits[byte] & (0x80 >> x%8);
+        bool bit = bits[y] & (1 << (w - x - 1));
         if (bit)
           [p appendBezierPathWithRect:NSMakeRect (x, y, 1, 1)];
       }
