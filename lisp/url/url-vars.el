@@ -205,7 +205,8 @@ from the ACCESS_proxy environment variables."
 
 (defvar url-mime-separator-chars (append "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 					 "abcdefghijklmnopqrstuvwxyz"
-					 "0123456789'()+_,-./=?")
+					 "0123456789'()+_,-./=?"
+					 nil)
   "Characters allowable in a MIME multipart separator.")
 
 (defcustom url-bad-port-list
