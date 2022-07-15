@@ -3559,6 +3559,79 @@ This tests also `access-file', `file-readable-p',
 	(ignore-errors (delete-file tmp-name1))
 	(ignore-errors (delete-file tmp-name2))))))
 
+(defmacro tramp--test-deftest-with-stat (test)
+  "Define ert `TEST-with-stat'."
+  (declare (indent 1))
+  `(ert-deftest ,(intern (concat (symbol-name test) "-with-stat")) ()
+     ;; This is the docstring.  However, it must be expanded to a
+     ;; string inside the macro.  No idea.
+     (with-no-warnings
+       (concat (ert-test-documentation (ert-get-test ',test))
+	       "\nUse the \"stat\" command."))
+     :tags '(:expensive-test)
+     (skip-unless (tramp--test-enabled))
+     ;; We cannot use `tramp-test-vec', because this fails during compilation.
+     (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
+       (skip-unless (tramp-get-remote-stat v)))
+     (let ((default-directory ert-remote-temporary-file-directory)
+	   (ert-test (ert-get-test ',test))
+	   (tramp-connection-properties
+	    (cons '(nil "perl" nil)
+		  tramp-connection-properties)))
+       (funcall (ert-test-body ert-test)))))
+
+(defmacro tramp--test-deftest-with-perl (test)
+  "Define ert `TEST-with-perl'."
+  (declare (indent 1))
+  `(ert-deftest ,(intern (concat (symbol-name test) "-with-perl")) ()
+     ;; This is the docstring.  However, it must be expanded to a
+     ;; string inside the macro.  No idea.
+     (with-no-warnings
+       (concat (ert-test-documentation (ert-get-test ',test))
+	       "\nUse the \"perl\" command."))
+     :tags '(:expensive-test)
+     (skip-unless (tramp--test-enabled))
+     ;; We cannot use `tramp-test-vec', because this fails during compilation.
+     (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
+       (skip-unless (tramp-get-remote-perl v)))
+     (let ((default-directory ert-remote-temporary-file-directory)
+	   (ert-test (ert-get-test ',test))
+	   (tramp-connection-properties
+	    (append
+	     '((nil "stat" nil)
+	       ;; See `tramp-sh-handle-file-truename'.
+	       (nil "readlink" nil))
+	     tramp-connection-properties)))
+       (funcall (ert-test-body ert-test)))))
+
+(defmacro tramp--test-deftest-with-ls (test)
+  "Define ert `TEST-with-ls'."
+  (declare (indent 1))
+  `(ert-deftest ,(intern (concat (symbol-name test) "-with-ls")) ()
+     ;; This is the docstring.  However, it must be expanded to a
+     ;; string inside the macro.  No idea.
+     (with-no-warnings
+       (concat (ert-test-documentation (ert-get-test ',test))
+	       "\nUse the \"ls\" command."))
+     :tags '(:expensive-test)
+     (skip-unless (tramp--test-enabled))
+     (let ((default-directory ert-remote-temporary-file-directory)
+	   (ert-test (ert-get-test ',test))
+	   (tramp-connection-properties
+	    (append
+	     '((nil "perl" nil)
+	       (nil "stat" nil)
+	       ;; See `tramp-sh-handle-file-truename'.
+	       (nil "readlink" nil))
+	     tramp-connection-properties)))
+       (funcall (ert-test-body ert-test)))))
+
+(tramp--test-deftest-with-stat tramp-test18-file-attributes)
+
+(tramp--test-deftest-with-perl tramp-test18-file-attributes)
+
+(tramp--test-deftest-with-ls tramp-test18-file-attributes)
+
 (defvar tramp--test-start-time nil
   "Keep the start time of the current test, a float number.")
 
@@ -3675,6 +3748,12 @@ They might differ only in time attributes or directory size."
 
 	;; Cleanup.
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
+
+(tramp--test-deftest-with-stat tramp-test19-directory-files-and-attributes)
+
+(tramp--test-deftest-with-perl tramp-test19-directory-files-and-attributes)
+
+(tramp--test-deftest-with-ls tramp-test19-directory-files-and-attributes)
 
 (ert-deftest tramp-test20-file-modes ()
   "Check `file-modes'.
@@ -4004,6 +4083,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	;; Cleanup.
 	(ignore-errors
+	  (delete-file tmp-name2)
 	  (delete-file tmp-name3)
 	  (delete-directory tmp-name1 'recursive)))
 
@@ -4789,8 +4869,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	;; Cleanup.
 	(ignore-errors (delete-process proc))))))
 
-(defmacro tramp--test--deftest-direct-async-process
-    (test docstring &optional unstable)
+(defmacro tramp--test-deftest-direct-async-process (test &optional unstable)
   "Define ert test `TEST-direct-async' for direct async processes.
 If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (declare (indent 1))
@@ -4799,9 +4878,15 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (when (let ((file-name-handler-alist '(("" . (lambda (&rest _) t)))))
 	  (ignore-errors (make-process :file-handler t)))
     `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
-       ,docstring
-       :tags (append '(:expensive-test :tramp-asynchronous-processes)
-		     (and ,unstable '(:unstable)))
+       ;; This is the docstring.  However, it must be expanded to a
+       ;; string inside the macro.  No idea.
+       (with-no-warnings
+	 (concat (ert-test-documentation (ert-get-test ',test))
+		 "\nUse direct async process."))
+       :tags
+       (with-no-warnings
+	 (append '(:expensive-test :tramp-asynchronous-processes)
+		 (and ,unstable '(:unstable))))
        (skip-unless (tramp--test-enabled))
        (let ((default-directory ert-remote-temporary-file-directory)
 	     (ert-test (ert-get-test ',test))
@@ -4819,8 +4904,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	   (file-truename ert-remote-temporary-file-directory)
 	   (funcall (ert-test-body ert-test)))))))
 
-(tramp--test--deftest-direct-async-process tramp-test29-start-file-process
-  "Check direct async `start-file-process'.")
+(tramp--test-deftest-direct-async-process tramp-test29-start-file-process)
 
 (ert-deftest tramp-test30-make-process ()
   "Check `make-process'."
@@ -5077,8 +5161,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	      ;; Cleanup.
 	      (ignore-errors (delete-process proc)))))))))
 
-(tramp--test--deftest-direct-async-process tramp-test30-make-process
-  "Check direct async `make-process'.")
+(tramp--test-deftest-direct-async-process tramp-test30-make-process)
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
@@ -5364,8 +5447,7 @@ INPUT, if non-nil, is a string sent to the process."
       (when (natnump cols)
 	(should (= cols async-shell-command-width))))))
 
-(tramp--test--deftest-direct-async-process tramp-test32-shell-command
-  "Check direct async `shell-command'." 'unstable)
+(tramp--test-deftest-direct-async-process tramp-test32-shell-command 'unstable)
 
 ;; This test is inspired by Bug#39067.
 (ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
@@ -5586,9 +5668,7 @@ INPUT, if non-nil, is a string sent to the process."
 	       this-shell-command-to-string
 	       "printenv | grep -v PS1 | grep -v _=")))))))))
 
-(tramp--test--deftest-direct-async-process tramp-test33-environment-variables
-  "Check that remote processes set / unset environment variables properly.
-Use direct async.")
+(tramp--test-deftest-direct-async-process tramp-test33-environment-variables)
 
 ;; This test is inspired by Bug#27009.
 (ert-deftest tramp-test33-environment-variables-and-port-numbers ()
@@ -6850,8 +6930,14 @@ This requires restrictions of file name syntax."
 	(ignore-errors (delete-directory tmp-name1 'recursive))
 	(ignore-errors (delete-directory tmp-name2 'recursive))))))
 
-(defun tramp--test-special-characters ()
-  "Perform the test in `tramp-test41-special-characters*'."
+;; These tests are inspired by Bug#17238.
+(ert-deftest tramp-test41-special-characters ()
+  "Check special characters in file names."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 245s
+  (skip-unless (not (tramp--test-rsync-p)))
+  (skip-unless (not (tramp--test-rclone-p)))
+
   ;; Newlines, slashes and backslashes in file names are not
   ;; supported.  So we don't test.  And we don't test the tab
   ;; character on Windows or Cygwin, because the backslash is
@@ -6908,80 +6994,24 @@ This requires restrictions of file name syntax."
 	   (if (tramp--test-expensive-test-p)
 	       files (list (mapconcat #'identity files ""))))))
 
-;; These tests are inspired by Bug#17238.
-(ert-deftest tramp-test41-special-characters ()
-  "Check special characters in file names."
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 245s
+(tramp--test-deftest-with-stat tramp-test41-special-characters)
+
+(tramp--test-deftest-with-perl tramp-test41-special-characters)
+
+(tramp--test-deftest-with-ls tramp-test41-special-characters)
+
+(ert-deftest tramp-test42-utf8 ()
+  "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
+  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
+  (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
+  (skip-unless (not (tramp--test-ksh-p)))
+  (skip-unless (not (tramp--test-gdrive-p)))
+  (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-rclone-p)))
 
-  (tramp--test-special-characters))
-
-(ert-deftest tramp-test41-special-characters-with-stat ()
-  "Check special characters in file names.
-Use the \"stat\" command."
-  :tags '(:expensive-test)
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 287s
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-rsync-p)))
-  ;; We cannot use `tramp-test-vec', because this fails during compilation.
-  (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
-    (skip-unless (tramp-get-remote-stat v)))
-
-  (let ((tramp-connection-properties
-	 (append
-	  `((,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "perl" nil))
-	  tramp-connection-properties)))
-    (tramp--test-special-characters)))
-
-(ert-deftest tramp-test41-special-characters-with-perl ()
-  "Check special characters in file names.
-Use the \"perl\" command."
-  :tags '(:expensive-test)
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 266s
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-rsync-p)))
-  ;; We cannot use `tramp-test-vec', because this fails during compilation.
-  (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
-    (skip-unless (tramp-get-remote-perl v)))
-
-  (let ((tramp-connection-properties
-	 (append
-	  `((,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "stat" nil)
-	    ;; See `tramp-sh-handle-file-truename'.
-	    (,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "readlink" nil))
-	  tramp-connection-properties)))
-    (tramp--test-special-characters)))
-
-(ert-deftest tramp-test41-special-characters-with-ls ()
-  "Check special characters in file names.
-Use the \"ls\" command."
-  :tags '(:expensive-test)
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 287s
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-rsync-p)))
-
-  (let ((tramp-connection-properties
-	 (append
-	  `((,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "perl" nil)
-	    (,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "stat" nil)
-	    ;; See `tramp-sh-handle-file-truename'.
-	    (,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "readlink" nil))
-	  tramp-connection-properties)))
-    (tramp--test-special-characters)))
-
-(defun tramp--test-utf8 ()
-  "Perform the test in `tramp-test42-utf8*'."
   (let* ((utf8 (if (and (eq system-type 'darwin)
 			(memq 'utf-8-hfs (coding-system-list)))
 		   'utf-8-hfs 'utf-8))
@@ -7027,93 +7057,11 @@ Use the \"ls\" command."
 	     (replace-regexp-in-string "[ \t\n/.?]" "" x)))
 	  language-info-alist)))))))
 
-(ert-deftest tramp-test42-utf8 ()
-  "Check UTF8 encoding in file names and file contents."
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (not (tramp--test-docker-p)))
-  (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
-  (skip-unless (not (tramp--test-ksh-p)))
-  (skip-unless (not (tramp--test-gdrive-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
-  (skip-unless (not (tramp--test-rclone-p)))
+(tramp--test-deftest-with-stat tramp-test42-utf8)
 
-  (tramp--test-utf8))
+(tramp--test-deftest-with-perl tramp-test42-utf8)
 
-(ert-deftest tramp-test42-utf8-with-stat ()
-  "Check UTF8 encoding in file names and file contents.
-Use the \"stat\" command."
-  :tags '(:expensive-test)
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 595s
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-docker-p)))
-  (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-out-of-band-p))) ; SLOW
-  (skip-unless (not (tramp--test-ksh-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
-  ;; We cannot use `tramp-test-vec', because this fails during compilation.
-  (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
-    (skip-unless (tramp-get-remote-stat v)))
-
-  (let ((tramp-connection-properties
-	 (append
-	  `((,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "perl" nil))
-	  tramp-connection-properties)))
-    (tramp--test-utf8)))
-
-(ert-deftest tramp-test42-utf8-with-perl ()
-  "Check UTF8 encoding in file names and file contents.
-Use the \"perl\" command."
-  :tags '(:expensive-test)
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-docker-p)))
-  (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-out-of-band-p))) ; SLOW
-  (skip-unless (not (tramp--test-ksh-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
-  ;; We cannot use `tramp-test-vec', because this fails during compilation.
-  (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
-    (skip-unless (tramp-get-remote-perl v)))
-
-  (let ((tramp-connection-properties
-	 (append
-	  `((,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "stat" nil)
-	    ;; See `tramp-sh-handle-file-truename'.
-	    (,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "readlink" nil))
-	  tramp-connection-properties)))
-    (tramp--test-utf8)))
-
-(ert-deftest tramp-test42-utf8-with-ls ()
-  "Check UTF8 encoding in file names and file contents.
-Use the \"ls\" command."
-  :tags '(:expensive-test)
-  (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 690s
-  (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-docker-p)))
-  (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-out-of-band-p))) ; SLOW
-  (skip-unless (not (tramp--test-ksh-p)))
-  (skip-unless (not (tramp--test-crypt-p)))
-
-  (let ((tramp-connection-properties
-	 (append
-	  `((,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "perl" nil)
-	    (,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "stat" nil)
-	    ;; See `tramp-sh-handle-file-truename'.
-	    (,(regexp-quote (file-remote-p ert-remote-temporary-file-directory))
-	     "readlink" nil))
-	  tramp-connection-properties)))
-    (tramp--test-utf8)))
+(tramp--test-deftest-with-ls tramp-test42-utf8)
 
 (ert-deftest tramp-test43-file-system-info ()
   "Check that `file-system-info' returns proper values."
@@ -7367,8 +7315,8 @@ process sentinels.  They shall not disturb each other."
         (ignore-errors (cancel-timer timer))
         (ignore-errors (delete-directory tmp-name 'recursive))))))
 
-;; (tramp--test--deftest-direct-async-process tramp-test44-asynchronous-requests
-;;   "Check parallel direct asynchronous requests." 'unstable)
+;; (tramp--test-deftest-direct-async-process tramp-test44-asynchronous-requests
+;;   'unstable)
 
 (ert-deftest tramp-test45-dired-compress-file ()
   "Check that Tramp (un)compresses normal files."
