@@ -1287,6 +1287,11 @@ See Info node `(elisp) Integer Basics'."
       `(list ,(nth 1 form))
     form))
 
+(put 'list 'byte-optimizer #'byte-optimize-list)
+(defun byte-optimize-list (form)
+  ;; (list) -> nil
+  (and (cdr form) form))
+
 ;; Fixme: delete-char -> delete-region (byte-coded)
 
 (put 'set 'byte-optimizer #'byte-optimize-set)
