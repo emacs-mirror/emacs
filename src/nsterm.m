@@ -3103,16 +3103,25 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case NO_CURSOR:
       break;
     case FILLED_BOX_CURSOR:
+      /* The call to draw_phys_cursor_glyph can end up undoing the
+	 ns_focus, so unfocus here and regain focus later.  */
+      [ctx restoreGraphicsState];
+      ns_unfocus (f);
       draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+      ns_focus (f, &r, 1);
       break;
     case HOLLOW_BOX_CURSOR:
+      [ctx restoreGraphicsState];
+      ns_unfocus (f);
       draw_phys_cursor_glyph (w, glyph_row, DRAW_NORMAL_TEXT);
+      ns_focus (f, &r, 1);
 
       /* This works like it does in PostScript, not X Windows.  */
       [NSBezierPath strokeRect: NSInsetRect (r, 0.5, 0.5)];
       break;
     case HBAR_CURSOR:
       NSRectFill (r);
+      [ctx restoreGraphicsState];
       break;
     case BAR_CURSOR:
       s = r;
@@ -3123,10 +3132,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
         s.origin.x += cursor_glyph->pixel_width - s.size.width;
 
       NSRectFill (s);
+      [ctx restoreGraphicsState];
       break;
     }
 
-  [ctx restoreGraphicsState];
   ns_unfocus (f);
 }
 
