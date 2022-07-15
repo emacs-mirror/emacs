@@ -1295,6 +1295,84 @@ See Info node `(elisp) Integer Basics'."
   ;; (list) -> nil
   (and (cdr form) form))
 
+(put 'append 'byte-optimizer #'byte-optimize-append)
+(defun byte-optimize-append (form)
+  ;; There is (probably) too much code relying on `append' to return a
+  ;; new list for us to do full constant-folding; these transformations
+  ;; preserve the allocation semantics.
+  (and (cdr form)                       ; (append) -> nil
+       (named-let loop ((args (cdr form)) (newargs nil))
+         (let ((arg (car args))
+               (prev (car newargs)))
+           (cond
+            ;; Flatten nested `append' forms.
+            ((and (consp arg) (eq (car arg) 'append))
+             (loop (append (cdr arg) (cdr args)) newargs))
+
+            ;; Merge consecutive `list' forms.
+            ((and (consp arg) (eq (car arg) 'list)
+                  newargs (consp prev) (eq (car prev) 'list))
+             (loop (cons (cons (car prev) (append (cdr prev) (cdr arg)))
+                         (cdr args))
+                   (cdr newargs)))
+
+            ;; non-terminal arg
+            ((cdr args)
+             (cond
+              ((macroexp-const-p arg)
+               ;; constant arg
+               (let ((val (eval arg)))
+                 (cond
+                  ;; Elide empty arguments (nil, empty string, etc).
+                  ((zerop (length val))
+                   (loop (cdr args) newargs))
+                  ;; Merge consecutive constants.
+                  ((and newargs (macroexp-const-p prev))
+                   (loop (cdr args)
+                         (cons
+                          (list 'quote
+                                (append (eval prev) val nil))
+                          (cdr newargs))))
+                  (t (loop (cdr args) (cons arg newargs))))))
+
+              ;; (list CONSTANTS...) -> '(CONSTANTS...)
+              ((and (consp arg) (eq (car arg) 'list)
+                    (not (memq nil (mapcar #'macroexp-const-p (cdr arg)))))
+               (loop (cons (list 'quote (eval arg)) (cdr args)) newargs))
+
+              (t (loop (cdr args) (cons arg newargs)))))
+
+            ;; At this point, `arg' is the last (tail) argument.
+
+            ;; (append X) -> X
+            ((null newargs) arg)
+
+            ;; (append (list Xs...) nil) -> (list Xs...)
+            ((and (null arg)
+                  newargs (null (cdr newargs))
+                  (consp prev) (eq (car prev) 'list))
+             prev)
+
+            ;; (append '(X) Y)     -> (cons 'X Y)
+            ;; (append (list X) Y) -> (cons X Y)
+            ((and newargs (null (cdr newargs))
+                  (consp prev)
+                  (cond ((eq (car prev) 'quote)
+                         (and (consp (cadr prev))
+                              (= (length (cadr prev)) 1)))
+                        ((eq (car prev) 'list)
+                         (= (length (cdr prev)) 1))))
+             (list 'cons (if (eq (car prev) 'quote)
+                             (macroexp-quote (caadr prev))
+                           (cadr prev))
+                   arg))
+
+            (t
+             (let ((new-form (cons 'append (nreverse (cons arg newargs)))))
+               (if (equal new-form form)
+                   form
+                 new-form))))))))
+
 ;; Fixme: delete-char -> delete-region (byte-coded)
 
 (put 'set 'byte-optimizer #'byte-optimize-set)
