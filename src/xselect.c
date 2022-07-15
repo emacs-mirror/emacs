@@ -1084,6 +1084,26 @@ x_handle_selection_event (struct selection_input_event *event)
     x_handle_selection_request (event);
 }
 
+static bool
+x_should_preserve_selection (Lisp_Object selection)
+{
+  Lisp_Object tem;
+
+  tem = Vx_auto_preserve_selections;
+
+  if (CONSP (Vx_auto_preserve_selections))
+    {
+      FOR_EACH_TAIL_SAFE (tem)
+	{
+	  if (EQ (XCAR (tem), selection))
+	    return true;
+	}
+
+      return false;
+    }
+
+  return !NILP (tem);
+}
 
 /* Clear all selections that were made from frame F.
    We do this when about to delete a frame.  */
@@ -1091,7 +1111,7 @@ x_handle_selection_event (struct selection_input_event *event)
 void
 x_clear_frame_selections (struct frame *f)
 {
-  Lisp_Object frame, rest, lost;
+  Lisp_Object frame, rest, lost, selection;
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   struct terminal *t = dpyinfo->terminal;
 
@@ -1102,10 +1122,12 @@ x_clear_frame_selections (struct frame *f)
   while (CONSP (t->Vselection_alist)
 	 && EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (t->Vselection_alist)))))))
     {
-      if (!x_auto_preserve_selections)
+      selection = Fcar (Fcar (t->Vselection_alist));
+
+      if (!x_should_preserve_selection (selection))
 	/* Run the `x-lost-selection-functions' abnormal hook.  */
 	CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
-	       Fcar (Fcar (t->Vselection_alist)));
+	       selection);
       else
 	lost = Fcons (Fcar (t->Vselection_alist), lost);
 
@@ -1117,9 +1139,11 @@ x_clear_frame_selections (struct frame *f)
     if (CONSP (XCDR (rest))
 	&& EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (XCDR (rest))))))))
       {
-	if (!x_auto_preserve_selections)
+	selection = XCAR (XCAR (XCDR (rest)));
+
+	if (!x_should_preserve_selection (selection))
 	  CALLN (Frun_hook_with_args, Qx_lost_selection_functions,
-		 XCAR (XCAR (XCDR (rest))));
+		 selection);
 	else
 	  lost = Fcons (XCAR (XCDR (rest)), lost);
 
@@ -1127,7 +1151,7 @@ x_clear_frame_selections (struct frame *f)
 	break;
       }
 
-  if (x_auto_preserve_selections)
+  if (!NILP (lost))
     x_preserve_selections (dpyinfo, lost, frame);
 }
 

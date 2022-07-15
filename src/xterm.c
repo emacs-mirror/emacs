@@ -28096,6 +28096,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 	}
 
       nowners = 0;
+      tail = lost;
 
       FOR_EACH_TAIL_SAFE (tail)
 	{
@@ -28458,10 +28459,13 @@ executing the protocol request.  Otherwise, errors will be silently
 ignored without waiting, which is generally faster.  */);
   x_fast_protocol_requests = false;
 
-  DEFVAR_BOOL ("x-auto-preserve-selections", x_auto_preserve_selections,
+  DEFVAR_LISP ("x-auto-preserve-selections", Vx_auto_preserve_selections,
     doc: /* Whether or not to transfer selection ownership when deleting a frame.
 When non-nil, deleting a frame that is currently the owner of a
 selection will cause its ownership to be transferred to another frame
-on the same display.  */);
-  x_auto_preserve_selections = true;
+on the same display.
+
+In addition, when this variable is a list, only preserve the
+selections whose names are contained within.  */);
+  Vx_auto_preserve_selections = list2 (QCLIPBOARD, QPRIMARY);
 }
