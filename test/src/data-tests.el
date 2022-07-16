@@ -768,4 +768,8 @@ comparing the subr with a much slower Lisp implementation."
                          (default-value 'last-coding-system-used))
                    '(no-conversion bug34318)))))
 
+(ert-deftest data-tests-make_symbol_constant ()
+  "Can't set variable marked with 'make_symbol_constant'."
+  (should-error (setq most-positive-fixnum 1) :type 'setting-constant))
+
 ;;; data-tests.el ends here
