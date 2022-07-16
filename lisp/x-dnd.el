@@ -596,23 +596,6 @@ message (format 32) that caused EVENT to be generated."
 			    '(5)	;; The version of XDND we support.
 			    frame "ATOM" 32 t))
 
-(defun x-dnd-get-drop-width-height (w accept)
-  "Return the width/height to be sent in a XdndStatus message.
-W is the window where the drop happened.
-If ACCEPT is nil return 0 (empty rectangle),
-otherwise if W is a window, return its width/height,
-otherwise return the frame width/height."
-  (if accept
-      (if (windowp w)   ;; w is not a window if dropping on the menu bar,
-			;; scroll bar or tool bar.
-	  (cons (window-pixel-width)
-                (window-pixel-height))
-        ;; Don't confine to mouse rect if w is not a window.
-        ;; Otherwise, we won't get position events once the mouse does
-        ;; move into a window.
-        0)
-    0))
-
 (defun x-dnd-after-move-frame (frame)
   "Handle FRAME moving to a different position.
 Clear any cached root window position."
@@ -634,21 +617,71 @@ its screen."
         (prog1 param
           (set-frame-parameter frame 'dnd-root-window-position param)))))
 
-(defun x-dnd-get-drop-x-y (frame w)
-  "Return the x/y coordinates to be sent in a XdndStatus message.
-Coordinates are required to be absolute.
-FRAME is the frame and W is the window where the drop happened.
-If W is a window, return its absolute coordinates,
-otherwise return the frame coordinates."
-  (let* ((position (x-dnd-compute-root-window-position frame))
-         (frame-left (car position))
-	 (frame-top (cdr position)))
-    (if (windowp w)
-	(let ((edges (window-inside-pixel-edges w)))
-	  (cons
-	   (+ frame-left (nth 0 edges))
-	   (+ frame-top (nth 1 edges))))
-      (cons frame-left frame-top))))
+(defun x-dnd-get-window-rectangle (window)
+  "Return the bounds of WINDOW as a rectangle.
+The coordinates in the rectangle are relative to its frame's root
+window.  Return the bounds as a list of (X Y WIDTH HEIGHT)."
+  (let* ((frame (window-frame window))
+         (frame-pos (x-dnd-compute-root-window-position frame))
+         (edges (window-inside-pixel-edges window)))
+    (list (+ (car frame-pos) (nth 0 edges))
+          (+ (cdr frame-pos) (nth 1 edges))
+          (- (nth 2 edges) (nth 0 edges))
+          (- (nth 3 edges) (nth 1 edges)))))
+
+(defun x-dnd-intersect-rectangles (r1 r2)
+  "Return the intersection of R1 and R2, both rectangles."
+  (let ((left (if (< (car r1) (car r2)) r1 r2))
+        (right (if (> (car r2) (car r1)) r2 r1))
+        (upper (if (< (cadr r1) (cadr r2)) r1 r2))
+        (lower (if (> (cadr r2) (cadr r1)) r2 r1))
+        (result (list 0 0 0 0)))
+    (when (<= (car right) (+ (car left) (nth 2 left)))
+      (setcar result (car right))
+      (setcar (nthcdr 2 result)
+              (- (min (+ (car left) (nth 2 left))
+                      (+ (car right) (nth 2 right)))
+                 (car result)))
+      (when (<= (cadr lower) (+ (cadr upper) (nth 3 upper)))
+        (setcar (cdr result) (cadr lower))
+        (setcar (nthcdr 3 result)
+                (- (min (+ (cadr lower) (nth 3 lower))
+                        (+ (cadr upper) (nth 3 upper)))
+                   (cadr result)))))
+    result))
+
+(defun x-dnd-get-object-rectangle (window posn)
+  "Return the rectangle of the object (character or image) under POSN.
+WINDOW is the window POSN represents.  The rectangle is returned
+with coordinates relative to the root window."
+  (if (posn-point posn)
+      (with-selected-window window
+        (let* ((new-posn (posn-at-point (posn-point posn)))
+               (posn-x-y (posn-x-y new-posn))
+               (object-width-height (posn-object-width-height new-posn))
+               (edges (window-inside-pixel-edges window))
+               (frame-pos (x-dnd-compute-root-window-position
+                           (window-frame window))))
+          (list (+ (car frame-pos) (car posn-x-y)
+                   (car edges))
+                (+ (cdr frame-pos) (cdr posn-x-y)
+                   (cadr edges))
+                (car object-width-height)
+                (cdr object-width-height))))
+    '(0 0 0 0)))
+
+(defun x-dnd-get-drop-rectangle (window posn)
+  "Return the drag-and-drop rectangle at POSN on WINDOW."
+  (if (or dnd-scroll-margin
+          (not (windowp window)))
+      '(0 0 0 0)
+    (let ((window-rectangle (x-dnd-get-window-rectangle window))
+          object-rectangle)
+      (when dnd-indicate-insertion-point
+        (setq object-rectangle (x-dnd-get-object-rectangle window posn)
+              window-rectangle (x-dnd-intersect-rectangles object-rectangle
+                                                           window-rectangle)))
+      window-rectangle)))
 
 (declare-function x-get-atom-name "xselect.c" (value &optional frame))
 (declare-function x-send-client-message "xselect.c"
@@ -713,15 +746,17 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
                           ;; window.
                           (not (posn-area (event-start event))))
                      1 0))
+                (rect (x-dnd-get-drop-rectangle window
+                                                (event-start event)))
 		(list-to-send
 		 (list (string-to-number
 			(frame-parameter frame 'outer-window-id))
                        ;; 1 = accept, 0 = reject.  2 = "want position
                        ;; updates even for movement inside the given
                        ;; widget bounds".
-		       (+ (if dnd-indicate-insertion-point 2 0) accept)
-		       (x-dnd-get-drop-x-y frame window)
-		       (x-dnd-get-drop-width-height window (eq accept 1))
+		       accept
+		       (cons (car rect) (cadr rect))
+		       (cons (nth 2 rect) (nth 3 rect))
                        ;; The no-toolkit Emacs build can actually
                        ;; receive drops from programs that speak
                        ;; versions of XDND earlier than 3 (such as
