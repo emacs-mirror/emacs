@@ -3565,14 +3565,11 @@ This tests also `access-file', `file-readable-p',
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-stat")) ()
      ;; This is the docstring.  However, it must be expanded to a
      ;; string inside the macro.  No idea.
-     (with-no-warnings
-       (concat (ert-test-documentation (ert-get-test ',test))
-	       "\nUse the \"stat\" command."))
+     ;; (concat (ert-test-documentation (get ',test 'ert--test))
+     ;;  	     "\nUse the \"stat\" command.")
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
-     ;; We cannot use `tramp-test-vec', because this fails during compilation.
-     (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
-       (skip-unless (tramp-get-remote-stat v)))
+     (skip-unless (tramp-get-remote-stat tramp-test-vec))
      (let ((default-directory ert-remote-temporary-file-directory)
 	   (ert-test (ert-get-test ',test))
 	   (tramp-connection-properties
@@ -3586,14 +3583,11 @@ This tests also `access-file', `file-readable-p',
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-perl")) ()
      ;; This is the docstring.  However, it must be expanded to a
      ;; string inside the macro.  No idea.
-     (with-no-warnings
-       (concat (ert-test-documentation (ert-get-test ',test))
-	       "\nUse the \"perl\" command."))
+     ;; (concat (ert-test-documentation (get ',test 'ert--test))
+     ;;  	     "\nUse the \"perl\" command.")
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
-     ;; We cannot use `tramp-test-vec', because this fails during compilation.
-     (with-parsed-tramp-file-name ert-remote-temporary-file-directory nil
-       (skip-unless (tramp-get-remote-perl v)))
+     (skip-unless (tramp-get-remote-perl tramp-test-vec))
      (let ((default-directory ert-remote-temporary-file-directory)
 	   (ert-test (ert-get-test ',test))
 	   (tramp-connection-properties
@@ -3610,9 +3604,8 @@ This tests also `access-file', `file-readable-p',
   `(ert-deftest ,(intern (concat (symbol-name test) "-with-ls")) ()
      ;; This is the docstring.  However, it must be expanded to a
      ;; string inside the macro.  No idea.
-     (with-no-warnings
-       (concat (ert-test-documentation (ert-get-test ',test))
-	       "\nUse the \"ls\" command."))
+     ;; (concat (ert-test-documentation (get ',test 'ert--test))
+     ;;  	     "\nUse the \"ls\" command.")
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
      (let ((default-directory ert-remote-temporary-file-directory)
@@ -4880,13 +4873,10 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
     `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
        ;; This is the docstring.  However, it must be expanded to a
        ;; string inside the macro.  No idea.
-       (with-no-warnings
-	 (concat (ert-test-documentation (ert-get-test ',test))
-		 "\nUse direct async process."))
-       :tags
-       (with-no-warnings
-	 (append '(:expensive-test :tramp-asynchronous-processes)
-		 (and ,unstable '(:unstable))))
+       ;; (concat (ert-test-documentation (get ',test 'ert--test))
+       ;;         "\nUse direct async process.")
+       :tags (append '(:expensive-test :tramp-asynchronous-processes)
+		     (and ,unstable '(:unstable)))
        (skip-unless (tramp--test-enabled))
        (let ((default-directory ert-remote-temporary-file-directory)
 	     (ert-test (ert-get-test ',test))
