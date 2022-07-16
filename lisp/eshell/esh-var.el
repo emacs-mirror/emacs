@@ -212,7 +212,9 @@ Additionally, if COPY-TO-ENVIRONMENT is non-nil, the alias should be
 copied (a.k.a. \"exported\") to the environment of created subprocesses."
   :type '(repeat (list string sexp
 		       (choice (const :tag "Copy to environment" t)
-                               (const :tag "Use only in Eshell" nil))))
+                               (const :tag "Use only in Eshell" nil))
+                       (choice (const :tag "Call without argument" t)
+                               (const :tag "Call with 2 arguments" nil))))
   :risky t)
 
 (defvar-keymap eshell-var-mode-map
