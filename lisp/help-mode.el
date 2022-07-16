@@ -673,21 +673,24 @@ that."
           (while (and (not (bobp)) (bolp))
             (delete-char -1))
           (insert "\n")
-          (when (or help-xref-stack help-xref-forward-stack)
-            (insert "\n"))
-          ;; Make a back-reference in this buffer if appropriate.
-          (when help-xref-stack
-            (help-insert-xref-button help-back-label 'help-back
-                                     (current-buffer)))
-          ;; Make a forward-reference in this buffer if appropriate.
-          (when help-xref-forward-stack
-            (when help-xref-stack
-              (insert "\t"))
-            (help-insert-xref-button help-forward-label 'help-forward
-                                     (current-buffer)))
-          (when (or help-xref-stack help-xref-forward-stack)
-            (insert "\n")))
+          (help-xref--navigation-buttons))
         (set-buffer-modified-p old-modified)))))
+
+(defun help-xref--navigation-buttons ()
+  (let ((inhibit-read-only t))
+    ;; Make a back-reference in this buffer if appropriate.
+    (when help-xref-stack
+      (ensure-empty-lines 1)
+      (help-insert-xref-button help-back-label 'help-back
+                               (current-buffer)))
+    ;; Make a forward-reference in this buffer if appropriate.
+    (when help-xref-forward-stack
+      (when help-xref-stack
+        (insert "\t"))
+      (help-insert-xref-button help-forward-label 'help-forward
+                               (current-buffer)))
+    (unless (bolp)
+      (insert "\n"))))
 
 ;;;###autoload
 (defun help-xref-button (match-number type &rest args)
