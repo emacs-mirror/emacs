@@ -837,6 +837,15 @@ the C sources, too."
   (unless (memq 'help-fns--customize-variable-version
                 help-fns--activated-functions)
     (when-let ((first (and (symbolp object)
+                           ;; Weed out things that probably aren't
+                           ;; official things (so that we don't say
+                           ;; "Introduced in version 1.1" if the user
+                           ;; has done `(setq a 42)').
+                           (or (string-search "-" (symbol-name object))
+                               (and (boundp object)
+                                    (get object 'variable-documentation))
+                               (and (fboundp object)
+                                    (documentation object)))
                            (help-fns--first-release object))))
       (with-current-buffer standard-output
         (insert (format "  Probably introduced at or before Emacs version %s.\n"
