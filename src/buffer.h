@@ -681,6 +681,10 @@ struct buffer
      defined, as well as by with-temp-buffer, for example.  */
   bool_bf inhibit_buffer_hooks : 1;
 
+  /* Non-zero when the buffer contains long lines and specific
+     display optimizations must be used.  */
+  bool_bf long_line_optimizations_p : 1;
+
   /* List of overlays that end at or before the current center,
      in order of end-position.  */
   struct Lisp_Overlay *overlays_before;

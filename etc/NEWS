@@ -332,7 +332,9 @@ experience slowdowns while editing files with long lines, this is
 either due to font locking, which you can turn off with M-x
 font-lock-mode, or to the current major mode or one of the enabled
 minor modes, in which case you should open the the file with M-x
-find-file-literally instead of C-x C-f.
+find-file-literally instead of C-x C-f.  The variable
+'long-line-threshold' controls whether and when these display
+optimizations are used.
 
 +++
 ** New command to change the font size globally.

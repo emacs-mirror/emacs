@@ -3192,7 +3192,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 }
 
 /* Like find_newline, but doesn't use the cache, and only searches forward.  */
-static ptrdiff_t
+ptrdiff_t
 find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 	       ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *counted,
 	       ptrdiff_t *bytepos, bool allow_quit)

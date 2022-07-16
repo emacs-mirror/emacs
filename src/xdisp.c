@@ -3425,7 +3425,8 @@ init_iterator (struct it *it, struct window *w,
 	}
     }
 
-  it->narrowed_begv = get_narrowed_begv (w);
+  if (current_buffer->long_line_optimizations_p)
+    it->narrowed_begv = get_narrowed_begv (w);
 
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
@@ -3493,19 +3494,42 @@ init_iterator (struct it *it, struct window *w,
   CHECK_IT (it);
 }
 
-/* Compute a suitable value for BEGV that can be used temporarily, to
-   optimize display, for the buffer in window W.  */
+/* Compute a suitable alternate value for BEGV that may be used
+   temporarily to optimize display if the buffer in window W contains
+   long lines.  */
 
 ptrdiff_t
 get_narrowed_begv (struct window *w)
 {
   int len; ptrdiff_t begv;
-  len = (1 + ((window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
-	       window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS)) /
-	      10000)) * 10000;
-  begv = max ((PT / len - 2) * len, BEGV);
+  len = 3 * (window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
+	     window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS));
+  begv = max ((window_point (w) / len - 1) * len, BEGV);
   return begv == BEGV ? 0 : begv;
 }
+
+static void
+unwind_narrowed_begv (Lisp_Object point_min)
+{
+  SET_BUF_BEGV (current_buffer, XFIXNUM (point_min));
+}
+
+/* Set DST to EXPR.  When IT indicates that BEGV should temporarily be
+   updated to optimize display, evaluate EXPR with an updated BEGV.  */
+
+#define SET_WITH_NARROWED_BEGV(IT,DST,EXPR)				\
+  do {									\
+    if (IT->narrowed_begv)						\
+      {									\
+	specpdl_ref count = SPECPDL_INDEX ();				\
+	record_unwind_protect (unwind_narrowed_begv, Fpoint_min ());	\
+	SET_BUF_BEGV (current_buffer, IT->narrowed_begv);		\
+	DST = EXPR;							\
+	unbind_to (count, Qnil);					\
+      }									\
+    else								\
+      DST = EXPR;							\
+  } while (0)
 
 /* Initialize IT for the display of window W with window start POS.  */
 
@@ -7007,8 +7031,8 @@ back_to_previous_line_start (struct it *it)
   ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
   dec_both (&cp, &bp);
-  WITH_NARROWED_BEGV (IT_CHARPOS (*it) =
-		      find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it)));
+  SET_WITH_NARROWED_BEGV (it, IT_CHARPOS (*it),
+			  find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it)));
 }
 
 
@@ -8642,7 +8666,7 @@ get_visually_first_element (struct it *it)
   ptrdiff_t eob = (string_p ? it->bidi_it.string.schars : ZV);
   ptrdiff_t bob;
 
-  WITH_NARROWED_BEGV (bob = (string_p ? 0 : BEGV));
+  SET_WITH_NARROWED_BEGV (it, bob, string_p ? 0 : BEGV);
 
   if (STRINGP (it->string))
     {
@@ -8682,10 +8706,10 @@ get_visually_first_element (struct it *it)
       if (string_p)
 	it->bidi_it.charpos = it->bidi_it.bytepos = 0;
       else
-	WITH_NARROWED_BEGV (it->bidi_it.charpos =
-			    find_newline_no_quit (IT_CHARPOS (*it),
-						  IT_BYTEPOS (*it), -1,
-						  &it->bidi_it.bytepos));
+	SET_WITH_NARROWED_BEGV (it, it->bidi_it.charpos,
+				find_newline_no_quit (IT_CHARPOS (*it),
+						      IT_BYTEPOS (*it), -1,
+						      &it->bidi_it.bytepos));
       bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
       do
 	{
@@ -10603,7 +10627,8 @@ move_it_vertically_backward (struct it *it, int dy)
 	  ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
 	  dec_both (&cp, &bp);
-	  WITH_NARROWED_BEGV (cp = find_newline_no_quit (cp, bp, -1, NULL));
+	  SET_WITH_NARROWED_BEGV (it, cp,
+				  find_newline_no_quit (cp, bp, -1, NULL));
 	  move_it_to (it, cp, -1, -1, -1, MOVE_TO_POS);
 	}
       bidi_unshelve_cache (it3data, true);
@@ -19243,6 +19268,23 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
           invalidate_region_cache (buf, buf->width_run_cache, BEG, Z);
           recompute_width_table (current_buffer, disptab);
         }
+    }
+
+  /* Check whether the buffer to be displayed contains long lines.  */
+  if (!NILP (Vlong_line_threshold)
+      && !current_buffer->long_line_optimizations_p
+      && MODIFF != UNCHANGED_MODIFIED)
+    {
+      ptrdiff_t cur, next, found, max = 0;
+      for (cur = 1; cur < Z; cur = next)
+	{
+	  next = find_newline1 (cur, CHAR_TO_BYTE (cur), 0, -1, 1,
+				&found, NULL, true);
+	  if (next - cur > max) max = next - cur;
+	  if (!found || max > XFIXNUM (Vlong_line_threshold)) break;
+	}
+      if (max > XFIXNUM (Vlong_line_threshold))
+	current_buffer->long_line_optimizations_p = true;
     }
 
   /* If window-start is screwed up, choose a new one.  */

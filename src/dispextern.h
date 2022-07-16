@@ -2332,8 +2332,8 @@ struct it
      with which display_string was called.  */
   ptrdiff_t end_charpos;
 
-  /* Alternate begin position of the buffer, which is used to optimize
-     display (see the WITH_NARROWED_BEGV macro below).  */
+  /* Alternate begin position of the buffer that may be used to
+     optimize display (see the WITH_NARROWED_BEGV macro below).  */
   ptrdiff_t narrowed_begv;
 
   /* C string to iterate over.  Non-null means get characters from
@@ -2816,18 +2816,6 @@ struct it
       inhibit_free_realized_faces =true;		\
     reset_box_start_end_flags ((IT));			\
   } while (false)
-
-/* Execute STATEMENT with a temporarily narrowed buffer.  */
-
-#define WITH_NARROWED_BEGV(STATEMENT)				    \
-  do {								    \
-    ptrdiff_t obegv = BEGV;					    \
-    if (it->narrowed_begv)					    \
-      SET_BUF_BEGV (current_buffer, it->narrowed_begv);		    \
-    STATEMENT;							    \
-    if (it->narrowed_begv)					    \
-      SET_BUF_BEGV (current_buffer, obegv);			    \
-  } while (0)
 
 /* Bit-flags indicating what operation move_it_to should perform.  */
 
