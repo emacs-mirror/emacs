@@ -1592,7 +1592,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
       if (backlim < 0)
 	{
 	  /* This assumes a newline can never be composed.  */
-	  head = find_newline (pos, -1, 0, -1, -1, NULL, NULL, false) + 1;
+	  head = find_newline (pos, -1, 0, -1, -1, NULL, NULL, false);
 	}
       else
 	head = backlim;
