@@ -1876,7 +1876,7 @@ class C(object):
                 (beginning-of-line)
                 (point))))
    ;; Nested defuns should be skipped.
-   (python-tests-look-at "return a" -1)
+   (forward-line -1)
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
                 (point))
@@ -1885,6 +1885,15 @@ class C(object):
                 (beginning-of-line)
                 (point))))
    ;; Defuns on same levels should be respected.
+   (python-tests-look-at "if True:" -1)
+   (forward-line -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def a():" -1)
+                (beginning-of-line)
+                (point))))
    (python-tests-look-at "def a():" -1)
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
@@ -1893,8 +1902,16 @@ class C(object):
                 (python-tests-look-at "def b():" -1)
                 (beginning-of-line)
                 (point))))
-   ;; Jump to a top level defun.
+   ;; Jump to an upper level defun.
    (python-tests-look-at "def b():" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def m(self):" -1)
+                (beginning-of-line)
+                (point))))
+   (forward-line -1)
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
                 (point))
@@ -2011,12 +2028,25 @@ class C(object):
                 (point))))
    (should (= (save-excursion
                 (python-tests-look-at "def b():")
+                (forward-line -1)
+                (python-nav-end-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def c(self):")
+                (forward-line -1)
+                (point))))
+   (should (= (save-excursion
+                (python-tests-look-at "def b():")
                 (python-nav-end-of-defun)
                 (point))
               (save-excursion
                 (python-tests-look-at "def b():")
                 (forward-line 2)
                 (point))))
+   (should (not (save-excursion
+                  (python-tests-look-at "def a():")
+                  (forward-line -1)
+                  (python-nav-end-of-defun))))
    (should (= (save-excursion
                 (python-tests-look-at "def c(self):")
                 (python-nav-end-of-defun)
