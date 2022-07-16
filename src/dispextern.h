@@ -2333,7 +2333,7 @@ struct it
   ptrdiff_t end_charpos;
 
   /* Alternate begin position of the buffer that may be used to
-     optimize display (see the WITH_NARROWED_BEGV macro below).  */
+     optimize display (see the SET_WITH_NARROWED_BEGV macro).  */
   ptrdiff_t narrowed_begv;
 
   /* C string to iterate over.  Non-null means get characters from
