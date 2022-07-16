@@ -4532,9 +4532,11 @@ and the second element is the address."
 		      ;; FIXME? gnus-secondary-servers is obsolete,
 		      ;; and it is not obvious that there is anything
 		      ;; sensible to use instead in this particular case.
-		      (if (boundp 'gnus-secondary-servers)
-			  gnus-secondary-servers
-			(cdr gnus-select-method))))
+                      ;; (if (boundp 'gnus-secondary-servers)
+                      ;;     gnus-secondary-servers
+                      ;;   (cdr gnus-select-method))
+                      nil
+                      ))
 	     ;; We got a server name.
 	     how)))
    gnus-group-mode)

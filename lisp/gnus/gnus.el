@@ -1110,14 +1110,6 @@ that case, just return a fully prefixed name of the group --
 		 sexp
 		 string))
 
-(defcustom gnus-secondary-servers nil
-  "List of NNTP servers that the user can choose between interactively.
-To make Gnus query you for a server, you have to give `gnus' a
-non-numeric prefix - `\\[universal-argument] \\[gnus]', in short."
-  :group 'gnus-server
-  :type '(repeat string))
-(make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
-
 (defcustom gnus-secondary-select-methods nil
   "A list of secondary methods that will be used for reading news.
 This is a list where each element is a complete select method (see
