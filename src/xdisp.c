@@ -20171,11 +20171,19 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
    buffer position POS.
 
    Value is 1 if successful.  It is zero if fonts were loaded during
-   redisplay which makes re-adjusting glyph matrices necessary, and -1
-   if point would appear in the scroll margins.
-   (We check the former only if TRY_WINDOW_IGNORE_FONTS_CHANGE is
-   unset in FLAGS, and the latter only if TRY_WINDOW_CHECK_MARGINS is
-   set in FLAGS.)  */
+   redisplay or the dimensions of the desired matrix were found
+   insufficient, which makes re-adjusting glyph matrices necessary.
+   Value is -1 if point would appear in the scroll margins.  (We check
+   the former only if TRY_WINDOW_IGNORE_FONTS_CHANGE is unset in
+   FLAGS, and the latter only if TRY_WINDOW_CHECK_MARGINS is set in
+   FLAGS.)
+
+   Note that 'x-show-tip' invokes this function in a special way, and
+   in that case the return value of zero doesn't necessarily mean the
+   glyph matrices need to be re-adjusted, if the entire text of the
+   tooltip was processed and has its glyphs in the matrix's glyph
+   rows, i.e. if the dimensions of the matrix were found insufficient
+   while producing empty glyph rows beyond ZV.  */
 
 int
 try_window (Lisp_Object window, struct text_pos pos, int flags)
