@@ -4408,17 +4408,19 @@ minibuffer, but don't quit the completions window."
 Like `minibuffer-complete' but completes on the history items
 instead of the default completion table."
   (interactive)
-  (let ((completions-sort nil)
-        (history (symbol-value minibuffer-history-variable)))
-    (if (listp history)
-        ;; Support e.g. `C-x ESC ESC TAB' as
-        ;; a replacement of `list-command-history'
-        (setq history (mapcar (lambda (h)
-                                (if (consp h) (format "%S" h) h))
-                              history))
-      (user-error "No history available"))
+  (let* ((completions-sort nil)
+         (history (symbol-value minibuffer-history-variable))
+         (completions
+          (if (listp history)
+              ;; Support e.g. `C-x ESC ESC TAB' as
+              ;; a replacement of `list-command-history'
+              (mapcar (lambda (h)
+                        (if (stringp h) h (format "%S" h)))
+                      history)
+            (user-error "No history available"))))
+    ;; FIXME: Can we make it work for CRM?
     (completion-in-region (minibuffer--completion-prompt-end) (point-max)
-                          history nil)))
+                          completions nil)))
 
 (defun minibuffer-complete-defaults ()
   "Complete minibuffer defaults as far as possible.
