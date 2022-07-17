@@ -743,11 +743,52 @@ Return the number of clicks that were made in quick succession."
       (setcdr cell timestamp)
       (car cell))))
 
+(defun x-dnd-mwheel-scroll (button count modifiers)
+  "Call the appropriate wheel scrolling function for BUTTON.
+Use MODIFIERS, an X modifier mask, to determine if any
+alternative operation (such as scrolling horizontally) should be
+taken.  COUNT is the number of times in quick succession BUTTON
+has been pressed."
+  (let ((hscroll (not (zerop (logand modifiers
+                                     (x-dnd-hscroll-flags)))))
+        (amt (or (and (not mouse-wheel-progressive-speed) 1)
+                 (* 1 count))))
+    (unless (and (not mouse-wheel-tilt-scroll)
+                 (or (eq button 6) (eq button 7)))
+      (let ((function (cond ((eq button 4)
+                             (if hscroll
+                                 mwheel-scroll-left-function
+                               mwheel-scroll-down-function))
+                            ((eq button 5)
+                             (if hscroll
+                                 mwheel-scroll-right-function
+                               mwheel-scroll-up-function))
+                            ((eq button 6)
+                             (if mouse-wheel-flip-direction
+                                 mwheel-scroll-right-function
+                               mwheel-scroll-left-function))
+                            ((eq button 7)
+                             (if mouse-wheel-flip-direction
+                                 mwheel-scroll-left-function
+                               mwheel-scroll-right-function)))))
+        (when function
+          (condition-case nil
+              (funcall function amt)
+            ;; Do not error at buffer limits.  Show a message instead.
+            ;; This is especially important here because signalling an
+            ;; error will mess up the drag-and-drop operation.
+            (beginning-of-buffer
+             (message (error-message-string '(beginning-of-buffer))))
+            (end-of-buffer
+             (message (error-message-string '(end-of-buffer))))))))))
+
 (defun x-dnd-handle-xdnd (event frame window message _format data)
   "Receive one XDND event (client message) and send the appropriate reply.
 EVENT is the client message.  FRAME is where the mouse is now.
 WINDOW is the window within FRAME where the mouse is now.
-FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
+DATA is the vector containing the data of the client message as a
+vector of cardinals.
+MESSAGE is the type of the ClientMessage that was sent."
   (cond ((equal "XdndEnter" message)
 	 (let* ((flags (aref data 1))
 		(version (x-dnd-version-from-flags flags))
@@ -770,34 +811,22 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
          ;; to the button passed in bits 8 and 9, and the state passed
          ;; in bits 0 to 7.
          (let ((state (x-dnd-get-state-for-frame window)))
-           (let ((flags (aref data 1))
-                 (version (aref state 6)))
-             (when (not (zerop (logand (lsh flags -10) 1)))
-               (let* ((button (+ 4 (logand (lsh flags -8) #x3)))
-                      (count (or (and (>= version 1)
-                                      (x-dnd-note-click button
-                                                        (aref data 3)))
-                                 1))
-                      (state (logand flags #xff)))
-                 (unless (zerop (logand state (x-dnd-hscroll-flags)))
-                   (setq button (cond ((eq button 4) 6)
-                                      ((eq button 5) 7)
-                                      (t button))))
-                 (with-selected-window (posn-window (event-start event))
-                   (cond
-                    ;; FIXME: surely it's wrong to abuse
-                    ;; `mwheel-scroll' like this?
-                    ((eq button 4)
-                     (mwheel-scroll `(mouse-4 nil ,count)))
-                    ((eq button 5)
-                     (mwheel-scroll `(mouse-5 nil ,count)))
-                    ((eq button 6)
-                     (mwheel-scroll `(mouse-6 nil ,count)))
-                    ((eq button 7)
-                     (mwheel-scroll `(mouse-7 nil ,count))))
-                   (let ((old-x-y (posn-x-y (event-start event))))
-                     (setcar (cdr event) (posn-at-x-y (max (car old-x-y) 0)
-                                                      (max (cdr old-x-y) 0))))))))
+           (when (windowp (posn-window (event-start event)))
+             (let ((flags (aref data 1))
+                   (version (aref state 6)))
+               (when (not (zerop (logand (lsh flags -10) 1)))
+                 (let* ((button (+ 4 (logand (lsh flags -8) #x3)))
+                        (count (or (and (>= version 1)
+                                        (x-dnd-note-click button
+                                                          (aref data 3)))
+                                   1))
+                        (state (logand flags #xff)))
+                   (with-selected-window (posn-window (event-start event))
+                     (x-dnd-mwheel-scroll button count state)
+                     (let ((old-x-y (posn-x-y (event-start event))))
+                       (setcar (cdr event)
+                               (posn-at-x-y (max (car old-x-y) 0)
+                                            (max (cdr old-x-y) 0)))))))))
 	   (let* ((version (aref state 6))
                   (action (if (< version 2) 'copy ; `copy' is the default action.
                             (x-get-atom-name (aref data 4))))
