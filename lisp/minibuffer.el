@@ -4409,11 +4409,14 @@ Like `minibuffer-complete' but completes on the history items
 instead of the default completion table."
   (interactive)
   (let ((completions-sort nil)
-        (history (mapcar (lambda (h)
-                           ;; Support e.g. `C-x ESC ESC TAB' as
-                           ;; a replacement of `list-command-history'
-                           (if (consp h) (format "%S" h) h))
-                         (symbol-value minibuffer-history-variable))))
+        (history (symbol-value minibuffer-history-variable)))
+    (if (listp history)
+        ;; Support e.g. `C-x ESC ESC TAB' as
+        ;; a replacement of `list-command-history'
+        (setq history (mapcar (lambda (h)
+                                (if (consp h) (format "%S" h) h))
+                              history))
+      (user-error "No history available"))
     (completion-in-region (minibuffer--completion-prompt-end) (point-max)
                           history nil)))
 
