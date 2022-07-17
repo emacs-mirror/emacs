@@ -156,25 +156,32 @@ To define items in any other map, use `tool-bar-local-item'."
   (apply #'tool-bar-local-item icon def key tool-bar-map props)
   (tool-bar--flush-cache))
 
+(defun tool-bar--image-expression-make-spec (type icon ext &optional colors)
+  (append (list :type type
+                :file (if (and (file-name-absolute-p icon)
+                               (equal (file-name-extension icon) ext))
+                          icon
+                        (concat icon "." ext)))
+          colors))
+
 (defun tool-bar--image-expression (icon)
   "Return an expression that evaluates to an image spec for ICON."
   (let* ((fg (face-attribute 'tool-bar :foreground))
 	 (bg (face-attribute 'tool-bar :background))
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
 			(if (eq bg 'unspecified) nil (list :background bg))))
-	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
-	 (xpm-lo-spec (list :type 'xpm :file
-			    (concat "low-color/" icon ".xpm")))
-	 (pbm-spec (append (list :type 'pbm :file
-                                 (concat icon ".pbm")) colors))
-	 (xbm-spec (append (list :type 'xbm :file
-                                 (concat icon ".xbm")) colors)))
+         (xpm-spec (tool-bar--image-expression-make-spec 'xpm icon "xpm"))
+         (xpm-lo-spec (tool-bar--image-expression-make-spec
+                       'xpm (concat "low-color/" icon) "xpm"))
+         (pbm-spec (tool-bar--image-expression-make-spec 'pbm icon "pbm" colors))
+         (xbm-spec (tool-bar--image-expression-make-spec 'xbm icon "xbm" colors))
+         (svg-spec (tool-bar--image-expression-make-spec 'svg icon "svg" colors)))
     `(find-image (cond ((not (display-color-p))
-			',(list pbm-spec xbm-spec xpm-lo-spec xpm-spec))
+                        ',(list svg-spec pbm-spec xbm-spec xpm-lo-spec xpm-spec))
 		       ((< (display-color-cells) 256)
-			',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
+                        ',(list svg-spec xpm-lo-spec xpm-spec pbm-spec xbm-spec))
 		       (t
-			',(list xpm-spec pbm-spec xbm-spec)))
+                        ',(list svg-spec xpm-spec pbm-spec xbm-spec)))
                  t)))
 
 ;;;###autoload
