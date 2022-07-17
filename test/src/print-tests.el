@@ -514,7 +514,7 @@ otherwise, use a different charset."
               (should (< lead (length numbers)))
               (should (<= lead loopback-index))
               (should (< loopback-index (length numbers)))
-              (let ((lead-part (butlast numbers (- (length numbers) lead)))
+              (let ((lead-part (take lead numbers))
                     (loop-part (nthcdr lead numbers)))
                 ;; The lead part must match exactly.
                 (should (equal lead-part (number-sequence 1 lead)))

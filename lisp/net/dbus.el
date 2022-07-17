@@ -941,9 +941,7 @@ association to the service from D-Bus."
 
     ;; Loop over the registered functions.
     (dolist (elt entry)
-      (when (equal
-	     value
-	     (butlast (cdr elt) (- (length (cdr elt)) (length value))))
+      (when (equal value (take (length value) (cdr elt)))
 	(setq ret t)
 	;; Compute new hash value.  If it is empty, remove it from the
 	;; hash table.

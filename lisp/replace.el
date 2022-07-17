@@ -2437,9 +2437,8 @@ See also `multi-occur'."
       (if (>= (+ prev-line (length prev-after-lines))
 	      (- curr-line (length before-lines)))
 	  (setq prev-after-lines
-		(butlast prev-after-lines
-			 (- (length prev-after-lines)
-			    (- curr-line prev-line (length before-lines) 1))))
+                (take (- curr-line prev-line (length before-lines) 1)
+                      prev-after-lines))
 	;; Separate non-overlapping context lines with a dashed line.
 	(setq separator "-------\n")))
 

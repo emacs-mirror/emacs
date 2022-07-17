@@ -587,11 +587,13 @@ Signal an error if SEQUENCE is empty."
 
 (cl-defmethod seq-take ((list list) n)
   "Optimized implementation of `seq-take' for lists."
-  (let ((result '()))
-    (while (and list (> n 0))
-      (setq n (1- n))
-      (push (pop list) result))
-    (nreverse result)))
+  (if (eval-when-compile (fboundp 'take))
+      (take n list)
+    (let ((result '()))
+      (while (and list (> n 0))
+        (setq n (1- n))
+        (push (pop list) result))
+      (nreverse result))))
 
 (cl-defmethod seq-drop-while (pred (list list))
   "Optimized implementation of `seq-drop-while' for lists."

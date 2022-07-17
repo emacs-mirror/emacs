@@ -1622,7 +1622,7 @@ authentication tokens:
                                 (not (string-match label item)))
                     collect item)))
          ;; TODO: respect max in `secrets-search-items', not after the fact
-         (items (butlast items (- (length items) max)))
+         (items (take max items))
          ;; convert the item name to a full plist
          (items (mapcar (lambda (item)
                           (append
@@ -2080,7 +2080,7 @@ entries for git.gnus.org:
 				      search-keys)))
          (items (plstore-find store search-spec))
          (item-names (mapcar #'car items))
-         (items (butlast items (- (length items) max)))
+         (items (take max items))
          ;; convert the item to a full plist
          (items (mapcar (lambda (item)
                           (let* ((plist (copy-tree (cdr item)))
