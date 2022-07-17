@@ -1318,6 +1318,8 @@ NEW-NAME."
 ;;; Section: IO stuff
 
 (defun archive-write-file-member ()
+  (unless (buffer-live-p archive-superior-buffer)
+    (error "The archive buffer no longer exists; can't save"))
   (save-excursion
     (save-restriction
       (message "Updating archive...")

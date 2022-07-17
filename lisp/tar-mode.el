@@ -1329,6 +1329,8 @@ to make your changes permanent."
       (error "This buffer has no superior tar file buffer"))
   (if (not (and (boundp 'tar-superior-descriptor) tar-superior-descriptor))
       (error "This buffer doesn't have an index into its superior tar file!"))
+  (unless (buffer-live-p tar-superior-buffer)
+    (error "The tar buffer no longer exists; can't save"))
   (let ((subfile (current-buffer))
         (coding buffer-file-coding-system)
         (descriptor tar-superior-descriptor)
