@@ -77,11 +77,12 @@ This feature will be removed in future.")
        (buffer-modified-p)
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
-(defvar ibuffer-help-buffer-modes)
-;; Moved here from definition of ibuffer-help-buffer-modes to make
-;; that variable customizable even though this code is obsolete.  See
-;; also Bug#30990.
-(add-to-list 'ibuffer-help-buffer-modes 'Info-edit-mode)
+(with-eval-after-load 'ibuffer
+  (defvar ibuffer-help-buffer-modes)
+  ;; Moved here from definition of ibuffer-help-buffer-modes to make
+  ;; that variable customizable even though this code is obsolete.  See
+  ;; also Bug#30990.
+  (add-to-list 'ibuffer-help-buffer-modes 'Info-edit-mode))
 
 (provide 'info-edit)
 
