@@ -14054,15 +14054,41 @@ redisplay_tab_bar (struct frame *f)
       return false;
     }
 
+  /* Build a string that represents the contents of the tab-bar.  */
+  build_desired_tab_bar_string (f);
+
+  int new_nrows;
+  int new_height = tab_bar_height (f, &new_nrows, true);
+
+  if (f->n_tab_bar_rows == 0)
+    {
+      f->n_tab_bar_rows = new_nrows;
+      if (new_height != WINDOW_PIXEL_HEIGHT (w))
+	frame_default_tab_bar_height = new_height;
+    }
+
+  /* If new_height or new_nrows indicate that we need to enlarge the
+     tab-bar window, we can return right away.  */
+  if (new_nrows > f->n_tab_bar_rows
+      || (EQ (Vauto_resize_tab_bars, Qgrow_only)
+	  && !f->minimize_tab_bar_window_p
+	  && new_height > WINDOW_PIXEL_HEIGHT (w)))
+    {
+      if (FRAME_TERMINAL (f)->change_tab_bar_height_hook)
+	FRAME_TERMINAL (f)->change_tab_bar_height_hook (f, new_height);
+      if (new_nrows != f->n_tab_bar_rows)
+	f->n_tab_bar_rows = new_nrows;
+      clear_glyph_matrix (w->desired_matrix);
+      f->fonts_changed = true;
+      return true;
+    }
+
   /* Set up an iterator for the tab-bar window.  */
   init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TAB_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = WINDOW_PIXEL_WIDTH (w);
   row = it.glyph_row;
   row->reversed_p = false;
-
-  /* Build a string that represents the contents of the tab-bar.  */
-  build_desired_tab_bar_string (f);
   reseat_to_string (&it, NULL, f->desired_tab_bar_string, 0, 0, 0,
                     STRING_MULTIBYTE (f->desired_tab_bar_string));
   /* FIXME: This should be controlled by a user option.  But it
@@ -14073,22 +14099,6 @@ redisplay_tab_bar (struct frame *f)
      call unproduce_glyphs like display_line and display_string
      do.  */
   it.paragraph_embedding = L2R;
-
-  if (f->n_tab_bar_rows == 0)
-    {
-      int new_height = tab_bar_height (f, &f->n_tab_bar_rows, true);
-
-      if (new_height != WINDOW_PIXEL_HEIGHT (w))
-	{
-          if (FRAME_TERMINAL (f)->change_tab_bar_height_hook)
-            FRAME_TERMINAL (f)->change_tab_bar_height_hook (f, new_height);
-	  frame_default_tab_bar_height = new_height;
-	  /* Always do that now.  */
-	  clear_glyph_matrix (w->desired_matrix);
-	  f->fonts_changed = true;
-	  return true;
-	}
-    }
 
   /* Display as many lines as needed to display all tab-bar items.  */
 
@@ -14135,7 +14145,7 @@ redisplay_tab_bar (struct frame *f)
 
   if (!NILP (Vauto_resize_tab_bars))
     {
-      bool change_height_p = true;
+      bool change_height_p = false;
 
       /* If we couldn't display everything, change the tab-bar's
 	 height if there is room for more.  */

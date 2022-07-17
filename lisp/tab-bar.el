@@ -200,7 +200,9 @@ a list of frames to update."
                          (t frames))))
     ;; Loop over all frames and update `tab-bar-lines'
     (dolist (frame frame-lst)
-      (unless (frame-parameter frame 'tab-bar-lines-keep-state)
+      (unless (or (frame-parameter frame 'tab-bar-lines-keep-state)
+                  (and (eq auto-resize-tab-bars 'grow-only)
+                       (> (frame-parameter frame 'tab-bar-lines) 1)))
         (set-frame-parameter frame 'tab-bar-lines
                              (tab-bar--tab-bar-lines-for-frame frame)))))
   ;; Update `default-frame-alist'
