@@ -73,6 +73,9 @@
 ;; - Icon aliases
 
 (require 'cl-lib)
+(with-eval-after-load 'icons
+  (require 'icons-material)
+  (require 'icons-octicons))
 
 
 ;;;; User options.
