@@ -8573,6 +8573,7 @@ int
 sys_close (int fd)
 {
   int rc = -1;
+  bool reader_thread_exited = false;
 
   if (fd < 0)
     {
@@ -8583,6 +8584,13 @@ sys_close (int fd)
   if (fd < MAXDESC && fd_info[fd].cp)
     {
       child_process * cp = fd_info[fd].cp;
+      DWORD thrd_status = STILL_ACTIVE;
+
+      /* Thread handle will be NULL if we already called delete_child.  */
+      if (cp->thrd != NULL
+	  && GetExitCodeThread (cp->thrd, &thrd_status)
+	  && thrd_status != STILL_ACTIVE)
+	reader_thread_exited = true;
 
       fd_info[fd].cp = NULL;
 
@@ -8633,7 +8641,11 @@ sys_close (int fd)
      because socket handles are fully fledged kernel handles. */
   if (fd < MAXDESC)
     {
-      if ((fd_info[fd].flags & FILE_DONT_CLOSE) == 0)
+      if ((fd_info[fd].flags & FILE_DONT_CLOSE) == 0
+	  /* If the reader thread already exited, close the descriptor,
+	     since otherwise no one will close it, and we will be
+	     leaking descriptors.  */
+	  || reader_thread_exited)
 	{
 	  fd_info[fd].flags = 0;
 	  rc = _close (fd);
@@ -8641,10 +8653,11 @@ sys_close (int fd)
       else
 	{
 	  /* We don't close here descriptors open by pipe processes
-	     for reading from the pipe, because the reader thread
-	     might be stuck in _sys_read_ahead, and then we will hang
-	     here.  If the reader thread exits normally, it will close
-	     the descriptor; otherwise we will leave a zombie thread
+	     for reading from the pipe when the reader thread might
+	     still be running, since that thread might be stuck in
+	     _sys_read_ahead, and then we will hang here.  If the
+	     reader thread exits normally, it will close the
+	     descriptor; otherwise we will leave a zombie thread
 	     hanging around.  */
 	  rc = 0;
 	  /* Leave the flag set for the reader thread to close the
