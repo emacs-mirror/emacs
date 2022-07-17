@@ -1126,32 +1126,30 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 ;;; The actual UI code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar mpc-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; (define-key map "\e"          #'mpc-stop)
-    (define-key map "q"              #'mpc-quit)
-    (define-key map "\r"             #'mpc-select)
-    (define-key map [(shift return)] #'mpc-select-toggle)
-    (define-key map [mouse-2]        #'mpc-select)
-    (define-key map [S-mouse-2]      #'mpc-select-extend)
-    (define-key map [C-mouse-2]      #'mpc-select-toggle)
-    (define-key map [drag-mouse-2]   #'mpc-drag-n-drop)
-    ;; We use `always' because a binding to t is like a binding to nil.
-    (define-key map [follow-link] :always)
-    ;; But follow-link doesn't apply blindly to header-line and
-    ;; mode-line clicks.
-    (define-key map [header-line follow-link] #'ignore)
-    (define-key map [mode-line follow-link] #'ignore)
-    ;; Doesn't work because the first click changes the buffer, so the second
-    ;; is applied elsewhere :-(
-    ;; (define-key map [(double mouse-2)] #'mpc-play-at-point)
-    (define-key map "p" #'mpc-pause)
-    (define-key map "s" #'mpc-toggle-play)
-    (define-key map ">" #'mpc-next)
-    (define-key map "<" #'mpc-prev)
-    (define-key map "g" #'mpc-seek-current)
-    (define-key map "o" #'mpc-goto-playing-song)
-    map))
+(defvar-keymap mpc-mode-map
+  ;; "ESC"                         #'mpc-stop
+  "q"                           #'mpc-quit
+  "RET"                         #'mpc-select
+  "S-<return>"                  #'mpc-select-toggle
+  "<mouse-2>"                   #'mpc-select
+  "S-<mouse-2>"                 #'mpc-select-extend
+  "C-<mouse-2>"                 #'mpc-select-toggle
+  "<drag-mouse-2>"              #'mpc-drag-n-drop
+  ;; We use `always' because a binding to t is like a binding to nil.
+  "<follow-link>"               :always
+  ;; But follow-link doesn't apply blindly to header-line and
+  ;; mode-line clicks.
+  "<header-line> <follow-link>" #'ignore
+  "<mode-line> <follow-link>"   #'ignore
+  ;; Doesn't work because the first click changes the buffer, so the second
+  ;; is applied elsewhere :-(
+  ;; "<double-mouse-2>"            #'mpc-play-at-point
+  "p"                           #'mpc-pause
+  "s"                           #'mpc-toggle-play
+  ">"                           #'mpc-next
+  "<"                           #'mpc-prev
+  "g"                           #'mpc-seek-current
+  "o"                           #'mpc-goto-playing-song)
 
 (easy-menu-define mpc-mode-menu mpc-mode-map
   "Menu for MPC mode."
@@ -1748,11 +1746,9 @@ Return non-nil if a selection was deactivated."
 ;;   present (because we're in the non-selected part and the parent is
 ;;   in the selected part).
 
-(defvar mpc-tagbrowser-dir-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map mpc-tagbrowser-mode-map)
-    (define-key map [?\M-\C-m] #'mpc-tagbrowser-dir-toggle)
-    map))
+(defvar-keymap mpc-tagbrowser-dir-mode-map
+  :parent mpc-tagbrowser-mode-map
+  "M-RET" #'mpc-tagbrowser-dir-toggle)
 
 ;; (defvar mpc-tagbrowser-dir-keywords
 ;;   '(mpc-tagbrowser-dir-hide-prefix))
@@ -1859,17 +1855,15 @@ A value of t means the main playlist.")
 
 ;;; Volume management ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar mpc-volume-map
-  (let ((map (make-sparse-keymap)))
-    ;; Bind the up-events rather than the down-event, so the
-    ;; `message' isn't canceled by the subsequent up-event binding.
-    (define-key map [down-mouse-1]             #'ignore)
-    (define-key map [mouse-1]                  #'mpc-volume-mouse-set)
-    (define-key map [header-line mouse-1]      #'mpc-volume-mouse-set)
-    (define-key map [header-line down-mouse-1] #'ignore)
-    (define-key map [mode-line mouse-1]        #'mpc-volume-mouse-set)
-    (define-key map [mode-line down-mouse-1]   #'ignore)
-    map))
+(defvar-keymap mpc-volume-map
+  ;; Bind the up-events rather than the down-event, so the
+  ;; `message' isn't canceled by the subsequent up-event binding.
+  "<down-mouse-1>"               #'ignore
+  "<mouse-1>"                    #'mpc-volume-mouse-set
+  "<header-line> <mouse-1>"      #'mpc-volume-mouse-set
+  "<header-line> <down-mouse-1>" #'ignore
+  "<mode-line> <mouse-1>"        #'mpc-volume-mouse-set
+  "<mode-line> <down-mouse-1>"   #'ignore)
 
 (defvar mpc-volume nil) (put 'mpc-volume 'risky-local-variable t)
 
@@ -1937,10 +1931,8 @@ A value of t means the main playlist.")
 
 (defvar mpc-previous-window-config nil)
 
-(defvar mpc-songs-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap mpc-select] #'mpc-songs-jump-to)
-    map))
+(defvar-keymap mpc-songs-mode-map
+  "<remap> <mpc-select>" #'mpc-songs-jump-to)
 
 (defvar mpc-songpointer-set-visible nil)
 
