@@ -119,7 +119,7 @@ one dictionary yields matches."
   "exact"
   "The default strategy for listing matching words within a popup window.
 
-The following algorithm (defined by the dictd server) are supported
+The following algorithms (defined by the dictd server) are supported
 by the choice value:
 
 - Exact match
@@ -130,7 +130,7 @@ by the choice value:
 
   The found word sounds similar to the searched word.  For this match type
   the soundex algorithm defined by Donald E. Knuth is used.  It will only
-  works with english words and the algorithm is not very reliable (i.e.,
+  work with English words and the algorithm is not very reliable (i.e.,
   the soundex algorithm is quite simple).
 
 - Levenshtein distance one

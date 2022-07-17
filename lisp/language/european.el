@@ -390,7 +390,7 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
 (define-coding-system-alias 'cp284 'ibm284)
 
 (define-coding-system 'ibm285
-  "UK english version of EBCDIC"
+  "UK English version of EBCDIC"
   :coding-type 'charset
   :charset-list '(ibm285)
   :mnemonic ?*)
