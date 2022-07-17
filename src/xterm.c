@@ -4469,20 +4469,21 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
   msg.xclient.data.l[0] = FRAME_X_WINDOW (f);
   msg.xclient.data.l[1] = 0;
 
-  if (supported >= 5)
+  /* This is problematic because it's not specified in the
+     freedesktop.org copy of the protocol specification, but the copy
+     maintained by the original author of the protocol specifies it
+     for all versions.  Since at least one program supports these
+     flags, but uses protocol v4 (and not v5), set them for all
+     protocool versions.  */
+  if (button >= 4 && button <= 7)
     {
-      if (button >= 4 && button <= 7)
-	{
-	  msg.xclient.data.l[1] |= (1 << 9);
-	  msg.xclient.data.l[1] |= (button - 4) << 7;
-	}
-      else if (button)
-	return;
-
-      msg.xclient.data.l[1] |= state & 0x3f;
+      msg.xclient.data.l[1] |= (1 << 10);
+      msg.xclient.data.l[1] |= (button - 4) << 8;
     }
   else if (button)
     return;
+
+  msg.xclient.data.l[1] |= state & 0xff;
 
   msg.xclient.data.l[2] = (root_x << 16) | root_y;
   msg.xclient.data.l[3] = 0;
@@ -4508,7 +4509,7 @@ x_dnd_send_position (struct frame *f, Window target, int supported,
 	  && x_dnd_mouse_rect.height
 	  /* Ignore the mouse rectangle if we're supposed to be sending a
 	     button press instead.  */
-	  && (supported < 5 || !button))
+	  && button)
 	{
 	  if (root_x >= x_dnd_mouse_rect.x
 	      && root_x < (x_dnd_mouse_rect.x
@@ -16449,7 +16450,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			/* Ignore the mouse rectangle if we're
 			   supposed to be sending a button press
 			   instead.  */
-			&& (x_dnd_last_protocol_version < 5 || !button)
+			&& !button
 			&& (root_x >= x_dnd_mouse_rect.x
 			    && root_x < (x_dnd_mouse_rect.x
 					 + x_dnd_mouse_rect.width)
