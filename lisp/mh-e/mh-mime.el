@@ -394,18 +394,19 @@ do the work."
       (if (equal nil mh-mime-save-parts-default-directory)
           (setq mh-mime-save-parts-directory directory))
       (with-current-buffer (get-buffer-create mh-log-buffer)
-        (cd directory)
-        (setq mh-mime-save-parts-directory directory)
-        (let ((initial-size (mh-truncate-log-buffer)))
-          (apply #'call-process
-                 (expand-file-name command mh-progs) nil t nil
-                 (mh-list-to-string (list folder msg "-auto"
-                                          (if (not (mh-variant-p 'nmh))
-                                              "-store"))))
-          (if (> (buffer-size) initial-size)
-              (save-window-excursion
-                (switch-to-buffer-other-window mh-log-buffer)
-                (sit-for 3))))))))
+        (let (default-directory)
+          (cd directory)
+          (setq mh-mime-save-parts-directory directory)
+          (let ((initial-size (mh-truncate-log-buffer)))
+            (apply #'call-process
+                   (expand-file-name command mh-progs) nil t nil
+                   (mh-list-to-string (list folder msg "-auto"
+                                            (if (not (mh-variant-p 'nmh))
+                                                "-store"))))
+            (if (> (buffer-size) initial-size)
+                (save-window-excursion
+                  (switch-to-buffer-other-window mh-log-buffer)
+                  (sit-for 3)))))))))
 
 ;;;###mh-autoload
 (defun mh-toggle-mh-decode-mime-flag ()
