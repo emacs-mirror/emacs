@@ -379,10 +379,8 @@ do the work."
           ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
-           (read-directory-name (format-prompt
-                                 "Store in directory"
-                                 mh-mime-save-parts-directory)
-                           "" mh-mime-save-parts-directory t ""))
+           (read-directory-name "Store in directory: "
+                                mh-mime-save-parts-directory nil t))
           ((stringp mh-mime-save-parts-default-directory)
            mh-mime-save-parts-default-directory)
           (t
