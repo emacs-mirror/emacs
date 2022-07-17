@@ -1087,11 +1087,17 @@ NEW-NAME."
         (let* ((descr (archive-get-descr))
                (archive (buffer-file-name))
                (extractor (archive-name "extract"))
-               (ename (archive--file-desc-ext-file-name descr)))
-          (with-temp-buffer
-            (set-buffer-multibyte nil)
-            (archive--extract-file extractor archive ename)
-            (write-region (point-min) (point-max) write-to)))))))
+               (ename (archive--file-desc-ext-file-name descr))
+               ;; If the archive is remote, we have to copy it to a
+               ;; local file first to make extraction work.
+               (copy (archive-maybe-copy archive)))
+          (unwind-protect
+              (with-temp-buffer
+                (set-buffer-multibyte nil)
+                (archive--extract-file extractor copy ename)
+                (write-region (point-min) (point-max) write-to))
+            (unless (equal copy archive)
+              (delete-file copy))))))))
 
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
