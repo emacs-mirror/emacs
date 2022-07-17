@@ -4382,7 +4382,7 @@ a string of ASCII characters.")
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
-(define-derived-mode Info-mode nil "Info" ;FIXME: Derive from special-mode?
+(define-derived-mode Info-mode special-mode "Info"
   "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
 one topic and contains references to other nodes which discuss related
