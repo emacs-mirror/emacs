@@ -25,10 +25,10 @@
 
 ;; Access functions for encrypted remote files.  It uses encfs to
 ;; encrypt / decrypt the files on a remote directory.  A remote
-;; directory, which shall include encrypted files, must be declared in
+;; directory where you wish files to be encrypted must be declared in
 ;; `tramp-crypt-directories' via command `tramp-crypt-add-directory'.
 ;; All files in that directory, including all subdirectories, are
-;; stored there encrypted.  This includes file names and directory
+;; stored encrypted.  This includes file names and directory
 ;; names.
 
 ;; This package is just responsible for the encryption part.  Copying
@@ -36,20 +36,21 @@
 ;; file name handlers.
 
 ;; A password protected encfs configuration file is created the very
-;; first time you access a encrypted remote directory.  It is kept in
-;; your user directory "~/.emacs.d/" with the url-encoded directory
-;; name as part of the basename, and ".encfs6.xml" as suffix.  Do not
-;; lose this file and the corresponding password; otherwise there is
-;; no way to decrypt your encrypted files.
+;; first time you access an encrypted remote directory.  It is kept in
+;; your user directory (usually "~/.emacs.d/") with the url-encoded
+;; directory name as part of the basename, and ".encfs6.xml" as
+;; suffix.  Do not lose this file and the corresponding password;
+;; otherwise there is no way to decrypt your encrypted files.
 
-;; If the user option `tramp-crypt-save-encfs-config-remote' is non-nil (the
-;; default), the encfs configuration file ".encfs6.xml" is also kept
-;; in the encrypted remote directory.  It depends on you, whether you
-;; regard the password protection of this file as sufficient.
+;; If the user option `tramp-crypt-save-encfs-config-remote' is
+;; non-nil (the default), the encfs configuration file ".encfs6.xml"
+;; is also kept in the encrypted remote directory.  It depends on you,
+;; whether you regard the password protection of this file as
+;; sufficient security.
 
 ;; If you use a remote file name with a quoted localname part, this
 ;; localname and the corresponding file will not be encrypted/
-;; decrypted.  For example, if you have a encrypted remote directory
+;; decrypted.  For example, if you have an encrypted remote directory
 ;; "/nextcloud:user@host:/encrypted_dir", the command
 ;;
 ;;   C-x d /nextcloud:user@host:/encrypted_dir
@@ -61,11 +62,11 @@
 ;;
 ;; will show the directory with the encrypted file names, and visiting
 ;; a file will show its encrypted contents.  However, it is highly
-;; discouraged to mix encrypted and not encrypted files in the same
+;; discouraged to mix encrypted and non-encrypted files in the same
 ;; directory.
 
-;; If a remote directory shall not include encrypted files anymore, it
-;; must be indicated by the command `tramp-crypt-remove-directory'.
+;; To disable encryption for a particular remote directory, use the
+;; command `tramp-crypt-remove-directory'.
 
 ;;; Code:
 
@@ -142,7 +143,7 @@ They are completed by \"M-x TAB\" only when encryption support is enabled."
 ;;;###tramp-autoload
 (defsubst tramp-crypt-file-name-p (name)
   "Return the encrypted remote directory NAME belongs to.
-If NAME doesn't belong to a encrypted remote directory, retun nil."
+If NAME doesn't belong to an encrypted remote directory, retun nil."
   (catch 'crypt-file-name-p
     (and tramp-crypt-enabled (stringp name)
 	 (not (tramp-compat-file-name-quoted-p name))
@@ -623,7 +624,7 @@ absolute file names."
 		     (file-name-nondirectory encrypt-newname) tmpdir))
 		   tramp-crypt-enabled)
 	      (cond
-               ;; Source and target file are on a encrypted remote directory.
+               ;; Source and target file are on an encrypted remote directory.
 	       ((and t1 t2)
 		(if (eq op 'copy)
 		    (copy-file
@@ -631,7 +632,7 @@ absolute file names."
 		     keep-date preserve-uid-gid preserve-extended-attributes)
 		  (rename-file
 		   encrypt-filename encrypt-newname ok-if-already-exists)))
-               ;; Source file is on a encrypted remote directory.
+               ;; Source file is on an encrypted remote directory.
 	       (t1
 		(if (eq op 'copy)
 		    (copy-file
@@ -640,7 +641,7 @@ absolute file names."
 		  (rename-file encrypt-filename tmpfile1 t))
 		(tramp-crypt-decrypt-file t1 tmpfile1 tmpfile2)
 		(rename-file tmpfile2 newname ok-if-already-exists))
-               ;; Target file is on a encrypted remote directory.
+               ;; Target file is on an encrypted remote directory.
 	       (t2
 		(if (eq op 'copy)
 		    (copy-file
