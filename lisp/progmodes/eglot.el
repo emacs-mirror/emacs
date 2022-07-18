@@ -2199,11 +2199,21 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
 
 (defvar-local eglot-workspace-configuration ()
   "Alist of (SECTION . VALUE) entries configuring the LSP server.
-SECTION should be a keyword or a string, value can be anything
-that can be converted to JSON.")
+SECTION should be a keyword or a string.  VALUE is a
+plist or a primitive type converted to JSON.
+
+The value of this variable can also be a unary function of a
+`eglot-lsp-server' instance, the server connection requesting the
+configuration.  It should return an alist of the format described
+above.")
 
 ;;;###autoload
 (put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+
+(defun eglot--workspace-configuration (server)
+  (if (functionp eglot-workspace-configuration)
+      (funcall eglot-workspace-configuration server)
+    eglot-workspace-configuration))
 
 (defun eglot-signal-didChangeConfiguration (server)
   "Send a `:workspace/didChangeConfiguration' signal to SERVER.
@@ -2213,7 +2223,7 @@ When called interactively, use the currently active server"
    server :workspace/didChangeConfiguration
    (list
     :settings
-    (or (cl-loop for (section . v) in eglot-workspace-configuration
+    (or (cl-loop for (section . v) in (eglot--workspace-configuration server)
                  collect (if (keywordp section)
                              section
                            (intern (format ":%s" section)))
@@ -2235,7 +2245,7 @@ When called interactively, use the currently active server"
                          (project-root (eglot--project server)))))
                 (setq-local major-mode (eglot--major-mode server))
                 (hack-dir-local-variables-non-file-buffer)
-                (alist-get section eglot-workspace-configuration
+                (alist-get section (eglot--workspace-configuration server)
                            nil nil
                            (lambda (wsection section)
                              (string=
