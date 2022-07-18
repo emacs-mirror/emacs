@@ -354,7 +354,7 @@ arguments to pass to the OPERATION."
                                                  x))
                                  result)))
 	     (when (and (natnump count) (> count 0))
-	       (setq result (nbutlast result (- (length result) count))))
+	       (setq result (tramp-compat-ntake count result)))
              result)))))))
 
 (defun tramp-adb-get-ls-command (vec)
