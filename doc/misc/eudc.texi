@@ -292,7 +292,7 @@ LDAP:
 (setopt eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
-(setopt 'ldap-host-parameters-alist
+(setopt ldap-host-parameters-alist
         '(("ldaps://ldap.gnu.org"
                   base "ou=people,dc=gnu,dc=org"
                   binddn "gnu\\emacsuser"
@@ -346,10 +346,10 @@ configure EUDC for LDAP:
 @lisp
 (with-eval-after-load "message"
   (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
-(setopt 'eudc-server-hotlist
+(setopt eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
-(setopt 'ldap-host-parameters-alist
+(setopt ldap-host-parameters-alist
         '(("ldaps://ldap.gnu.org"
                   auth-source t)))
 @end lisp
@@ -376,9 +376,9 @@ and the @file{.emacs} expressions become:
 @lisp
 (with-eval-after-load "message"
   (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
-(setopt 'eudc-server-hotlist
+(setopt eudc-server-hotlist
         '(("" . bbdb) ("" . ldap)))
-(setopt 'ldap-host-parameters-alist
+(setopt ldap-host-parameters-alist
         '(("" auth-source t)))
 @end lisp
 
