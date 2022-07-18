@@ -3569,6 +3569,7 @@ This tests also `access-file', `file-readable-p',
      ;;  	     "\nUse the \"stat\" command.")
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
+     (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-stat tramp-test-vec))
      (let ((default-directory ert-remote-temporary-file-directory)
 	   (ert-test (ert-get-test ',test))
@@ -3587,6 +3588,7 @@ This tests also `access-file', `file-readable-p',
      ;;  	     "\nUse the \"perl\" command.")
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
+     (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-perl tramp-test-vec))
      (let ((default-directory ert-remote-temporary-file-directory)
 	   (ert-test (ert-get-test ',test))
@@ -3608,6 +3610,7 @@ This tests also `access-file', `file-readable-p',
      ;;  	     "\nUse the \"ls\" command.")
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
+     (skip-unless (tramp--test-sh-p))
      (let ((default-directory ert-remote-temporary-file-directory)
 	   (ert-test (ert-get-test ',test))
 	   (tramp-connection-properties
