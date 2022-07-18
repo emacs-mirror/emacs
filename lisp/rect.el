@@ -634,18 +634,17 @@ with a prefix argument, prompt for START-AT and FORMAT."
 (add-function :around region-insert-function
               #'rectangle--insert-region)
 
-(defvar rectangle-mark-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-o] 'open-rectangle)
-    (define-key map [?\C-t] 'string-rectangle)
-    (define-key map [remap exchange-point-and-mark]
-      'rectangle-exchange-point-and-mark)
-    (dolist (cmd '(right-char left-char forward-char backward-char
-                   next-line previous-line))
-      (define-key map (vector 'remap cmd)
-        (intern (format "rectangle-%s" cmd))))
-    map)
-  "Keymap used while marking a rectangular region.")
+(defvar-keymap rectangle-mark-mode-map
+  :doc "Keymap used while marking a rectangular region."
+  "C-o" #'open-rectangle
+  "C-t" #'string-rectangle
+  "<remap> <exchange-point-and-mark>" #'rectangle-exchange-point-and-mark
+  "<remap> <right-char>"              #'rectangle-right-char
+  "<remap> <left-char>"               #'rectangle-left-char
+  "<remap> <forward-char>"            #'rectangle-forward-char
+  "<remap> <backward-char>"           #'rectangle-backward-char
+  "<remap> <next-line>"               #'rectangle-next-line
+  "<remap> <previous-line>"           #'rectangle-previous-line)
 
 ;;;###autoload
 (define-minor-mode rectangle-mark-mode
