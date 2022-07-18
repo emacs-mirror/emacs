@@ -4408,8 +4408,7 @@ minibuffer, but don't quit the completions window."
 Like `minibuffer-complete' but completes on the history items
 instead of the default completion table."
   (interactive)
-  (let* ((completions-sort nil)
-         (history (symbol-value minibuffer-history-variable))
+  (let* ((history (symbol-value minibuffer-history-variable))
          (completions
           (if (listp history)
               ;; Support e.g. `C-x ESC ESC TAB' as
@@ -4419,21 +4418,31 @@ instead of the default completion table."
                       history)
             (user-error "No history available"))))
     ;; FIXME: Can we make it work for CRM?
-    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
-                          completions nil)))
+    (completion-in-region
+     (minibuffer--completion-prompt-end) (point-max)
+     (lambda (string pred action)
+       (if (eq action 'metadata)
+           '(metadata (display-sort-function . identity)
+                      (cycle-sort-function . identity))
+         (complete-with-action action completions string pred))))))
 
 (defun minibuffer-complete-defaults ()
   "Complete minibuffer defaults as far as possible.
 Like `minibuffer-complete' but completes on the default items
 instead of the completion table."
   (interactive)
-  (let ((completions-sort nil))
-    (when (and (not minibuffer-default-add-done)
-               (functionp minibuffer-default-add-function))
-      (setq minibuffer-default-add-done t
-            minibuffer-default (funcall minibuffer-default-add-function)))
-    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
-                          (ensure-list minibuffer-default) nil)))
+  (when (and (not minibuffer-default-add-done)
+             (functionp minibuffer-default-add-function))
+    (setq minibuffer-default-add-done t
+          minibuffer-default (funcall minibuffer-default-add-function)))
+  (let ((completions (ensure-list minibuffer-default)))
+    (completion-in-region
+     (minibuffer--completion-prompt-end) (point-max)
+     (lambda (string pred action)
+       (if (eq action 'metadata)
+           '(metadata (display-sort-function . identity)
+                      (cycle-sort-function . identity))
+         (complete-with-action action completions string pred))))))
 
 (define-key minibuffer-local-map [?\C-x up] 'minibuffer-complete-history)
 (define-key minibuffer-local-map [?\C-x down] 'minibuffer-complete-defaults)
