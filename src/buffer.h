@@ -144,6 +144,9 @@ enum { BEG = 1, BEG_BYTE = BEG };
 #define BUF_UNCHANGED_MODIFIED(buf) \
   ((buf)->text->unchanged_modified)
 
+#define BUF_UNCHANGED_SIZE(buf) \
+  ((buf)->text->unchanged_size)
+
 #define BUF_OVERLAY_UNCHANGED_MODIFIED(buf) \
   ((buf)->text->overlay_unchanged_modified)
 #define BUF_BEG_UNCHANGED(buf) ((buf)->text->beg_unchanged)
@@ -266,6 +269,9 @@ struct buffer_text
        finished; if it matches BUF_OVERLAY_MODIFF, beg_unchanged and
        end_unchanged contain no useful information.  */
     modiff_count overlay_unchanged_modified;
+
+    /* Buffer size as of last redisplay that finished.  */
+    ptrdiff_t unchanged_size;
 
     /* Properties of this buffer's text.  */
     INTERVAL intervals;

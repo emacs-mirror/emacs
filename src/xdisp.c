@@ -17074,6 +17074,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
       BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
       BUF_BEG_UNCHANGED (b) = BUF_GPT (b) - BUF_BEG (b);
       BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
+      BUF_UNCHANGED_SIZE (b) = BUF_Z (b) - BUF_BEG (b);
 
       w->current_matrix->buffer = b;
       w->current_matrix->begv = BUF_BEGV (b);
@@ -19279,7 +19280,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* Check whether the buffer to be displayed contains long lines.  */
   if (!NILP (Vlong_line_threshold)
       && !current_buffer->long_line_optimizations_p
-      && MODIFF != UNCHANGED_MODIFIED)
+      && Z - BEG - BUF_UNCHANGED_SIZE (current_buffer) <= 1)
     {
       ptrdiff_t cur, next, found, max = 0;
       for (cur = 1; cur < Z; cur = next)
