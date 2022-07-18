@@ -1568,8 +1568,7 @@ frames on all displays."
 
 (defun x-dnd-movement (_frame position)
   "Handle movement to POSITION during drag-and-drop."
-  (dnd-handle-movement position)
-  (redisplay))
+  (dnd-handle-movement position))
 
 (defun x-device-class (name)
   "Return the device class of NAME.

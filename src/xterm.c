@@ -11779,6 +11779,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			 Fposn_at_x_y (x, y, frame_object, Qnil));
 		  x_dnd_unwind_flag = false;
 		  unbind_to (ref, Qnil);
+
+		  /* Redisplay this way to preserve the echo area.
+		     Otherwise, the contents will abruptly disappear
+		     when the mouse moves over a frame.  */
+		  redisplay_preserve_echo_area (33);
 		}
 	    }
 
