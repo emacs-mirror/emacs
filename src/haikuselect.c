@@ -1030,6 +1030,11 @@ haiku_note_drag_motion (void)
 
   internal_catch_all (haiku_note_drag_motion_1, NULL,
 		      haiku_note_drag_motion_2);
+
+  /* Redisplay this way to preserve the echo area.  Otherwise, the
+     contents will abruptly disappear when the mouse moves over a
+     frame.  */
+  redisplay_preserve_echo_area (34);
 }
 
 void

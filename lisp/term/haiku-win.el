@@ -409,8 +409,7 @@ take effect on menu items until the menu bar is updated again."
     (when (car mouse-position)
       (dnd-handle-movement (posn-at-x-y (cadr mouse-position)
                                         (cddr mouse-position)
-                                        (car mouse-position)))
-      (redisplay))))
+                                        (car mouse-position))))))
 
 (setq haiku-drag-track-function #'haiku-dnd-drag-handler)
 
