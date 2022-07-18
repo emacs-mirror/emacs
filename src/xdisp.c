@@ -8668,18 +8668,11 @@ get_visually_first_element (struct it *it)
   bool string_p = STRINGP (it->string) || it->s;
   ptrdiff_t eob = (string_p ? it->bidi_it.string.schars : ZV);
   ptrdiff_t bob;
+  ptrdiff_t obegv = BEGV;
 
-  SET_WITH_NARROWED_BEGV (it, bob, string_p ? 0 : BEGV);
-
-  /* Reseat again when, as a consequence of the SET_WITH_NARROWED_BEGV
-     above, the iterator is before bob.  */
-  if (!string_p && IT_CHARPOS (*it) < bob)
-    {
-      struct text_pos pos;
-      pos.charpos = bob;
-      pos.bytepos = CHAR_TO_BYTE (bob);
-      reseat (it, pos, true);
-    }
+  SET_WITH_NARROWED_BEGV (it, bob,
+			  string_p ? 0 :
+			  IT_BYTEPOS (*it) < BEGV ? obegv : BEGV);
 
   if (STRINGP (it->string))
     {
