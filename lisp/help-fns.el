@@ -791,15 +791,40 @@ the C sources, too."
              (function-get function 'disabled))
     (insert "  This function is disabled.\n")))
 
+(defun help-fns--first-release-regexp (symbol)
+  (let* ((name (symbol-name symbol))
+         (quoted (regexp-quote name)))
+    ;; We used to use just (concat "\\_<" (regexp-quote name) "\\_>"),
+    ;; which had the advantage of adapting to the various notational
+    ;; conventions we've used over the years in etc/NEWS*, but it was also
+    ;; leading to many false positives.  So we use a more restrictive regexp
+    ;; now (which can still lead to false positives, e.g. because we don't
+    ;; distinguish between occurrences of the same symbol for
+    ;; different purposes, such as function name, var name, face name,
+    ;; property name, ...).
+    (concat
+     ;; The main "canonical" occurence of symbols is within '...'.
+     "'" quoted "'"
+     ;; Commands can also occur as `M-x blabla'.
+     "\\|M-x[ \t\n]+" quoted "\\_>"
+     ;; Other times we do '<key>' (<cmdname>).
+     "\\|(" quoted ")"
+     ;; Finally other times we just include sample code, which we will
+     ;; only recognize if it's indented by at least 2 spaces and start with
+     ;; an open paren.
+     "\\|^\\(?:  \\|\t\\)[ \t]*(\\(.*[( ']\\)?" quoted "\\_>")
+    ))
+
+
 (defun help-fns--first-release (symbol)
   "Return the likely first release that defined SYMBOL, or nil."
   ;; Code below relies on the etc/NEWS* files.
   ;; FIXME: Maybe we should also use the */ChangeLog* files when available.
   ;; FIXME: Maybe we should also look for announcements of the addition
   ;; of the *packages* in which the function is defined.
-  (let* ((name (symbol-name symbol))
-         (re (concat "\\_<" (regexp-quote name) "\\_>"))
+  (let* ((re (help-fns--first-release-regexp symbol))
          (news (directory-files data-directory t "\\`NEWS\\(\\'\\|\\.\\)"))
+         (case-fold-search nil)
          (place nil)
          (first nil))
     (with-temp-buffer
@@ -816,16 +841,59 @@ the C sources, too."
                 ;; Almost all entries are of the form "* ... in Emacs NN.MM."
                 ;; but there are also a few in the form "* Emacs NN.MM is a bug
                 ;; fix release ...".
-                (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
-                                             nil t))
-                    (message "Ref found in non-versioned section in %S"
-                             (file-name-nondirectory f))
+                (if (not (re-search-backward
+                          "^\\* \\(?:.* \\)?Emacs \\([0-9.]+[0-9]\\)"
+                          nil t))
+                    (message "Ref to %S found in non-versioned section in %S"
+                             symbol (file-name-nondirectory f))
                   (let ((version (match-string 1)))
                     (when (or (null first) (version< version first))
                       (setq place (list f pos))
                       (setq first version))))))))))
     (when first
       (make-text-button first nil 'type 'help-news 'help-args place))))
+
+;; (defun help-fns--check-first-releases ()
+;;   "Compare the old liberal regexp to the new more restrictive one."
+;;   (interactive)
+;;   (let* ((quoted nil)
+;;          (rx-fun (lambda (orig-fun symbol)
+;;                    (if quoted
+;;                        (funcall orig-fun symbol)
+;;                      (format "\\_<%s\\_>"
+;;                              (regexp-quote (symbol-name symbol))))))
+;;          (count
+;;           (let ((count 0))
+;;             (obarray-map (lambda (sym)
+;;                            (when (or (fboundp sym) (boundp sym))
+;;                              (cl-incf count)))
+;;                          obarray)
+;;             count))
+;;          (p (make-progress-reporter "Check first releases..." 0 count)))
+;;     (with-current-buffer (get-buffer-create "*Check-first-release*")
+;;       (unwind-protect
+;;           (progn
+;;             (advice-add 'help-fns--first-release-regexp :around rx-fun)
+;;             (erase-buffer)
+;;             (setq count 0)
+;;             (obarray-map
+;;              (lambda (sym)
+;;                (when (or (fboundp sym) (boundp sym))
+;;                  (cl-incf count)
+;;                  (progress-reporter-update p count)
+;;                  (let ((vt (progn (setq quoted t)
+;;                                   (help-fns--first-release sym)))
+;;                        (vnil (progn (setq quoted nil)
+;;                                     (help-fns--first-release sym))))
+;;                    (when (and vnil (not (equal vt vnil)))
+;;                      (insert (symbol-name sym)
+;;                              "\nnot-quoted: " (or vnil "nil")
+;;                              "\nquoted:     " (or vt "nil")
+;;                              "\n\n")))))
+;;              obarray)
+;;             (progress-reporter-done p))
+;;         (advice-remove 'help-fns--first-release-regexp rx-fun))
+;;       (display-buffer (current-buffer)))))
 
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--mention-first-release)
@@ -837,15 +905,6 @@ the C sources, too."
   (unless (memq 'help-fns--customize-variable-version
                 help-fns--activated-functions)
     (when-let ((first (and (symbolp object)
-                           ;; Weed out things that probably aren't
-                           ;; official things (so that we don't say
-                           ;; "Introduced in version 1.1" if the user
-                           ;; has done `(setq a 42)').
-                           (or (string-search "-" (symbol-name object))
-                               (and (boundp object)
-                                    (get object 'variable-documentation))
-                               (and (fboundp object)
-                                    (documentation object)))
                            (help-fns--first-release object))))
       (with-current-buffer standard-output
         (insert (format "  Probably introduced at or before Emacs version %s.\n"

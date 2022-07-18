@@ -736,7 +736,7 @@ keep previous behavior.
 
 ** html2text is now marked obsolete.
 
-** smerge-refine-regions can refine regions in separate buffers.
+** 'smerge-refine-regions' can refine regions in separate buffers.
 
 ** Info menu and index completion uses substring completion by default.
 This can be customized via the 'info-menu' category in
@@ -1506,7 +1506,7 @@ supported by the GnuTLS library used by Emacs.
 
 ** Emacs now supports records for user-defined types, via the new
 functions 'make-record', 'record', and 'recordp'.  Records are now
-used internally to represent cl-defstruct and defclass instances, for
+used internally to represent 'cl-defstruct' and 'defclass' instances, for
 example.
 
 If your program defines new record types, you should use
@@ -1798,11 +1798,11 @@ suitable for use in 'display-buffer-alist'.  For example, to avoid
 creating a new window when opening man pages when there's already one,
 use
 
-(add-to-list 'display-buffer-alist
-     '("\\`\\*Man .*\\*\\'" .
-       (display-buffer-reuse-mode-window
-        (inhibit-same-window . nil)
-        (mode . Man-mode))))
+    (add-to-list 'display-buffer-alist
+         '("\\`\\*Man .*\\*\\'" .
+           (display-buffer-reuse-mode-window
+            (inhibit-same-window . nil)
+            (mode . Man-mode))))
 
 *** New window parameter 'no-delete-other-windows' prevents that
 its window gets deleted by 'delete-other-windows'.

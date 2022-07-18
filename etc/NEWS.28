@@ -1677,7 +1677,7 @@ and variables.
 
 *** Lisp mode now uses 'common-lisp-indent-function'.
 To revert to the previous behavior,
-'(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
+'(setq lisp-indent-function #'lisp-indent-function)' from 'lisp-mode-hook'.
 
 ** Change Logs and VC
 
@@ -2826,7 +2826,7 @@ different timezone causing a difference in the date.
 
 *** 'mspools-show' is now autoloaded.
 
-*** Loading dunnet.el in batch mode doesn't start the game any more.
+*** Loading 'dunnet' in batch mode doesn't start the game any more.
 Instead you need to do "emacs --batch -f dunnet" to start the game in
 batch mode.
 

@@ -1105,9 +1105,9 @@ in Dired mode by default.  The user options 'dired-bind-man' and
 To get the old behavior back and unbind these keys in Dired mode, add
 the following to your Init file:
 
-(with-eval-after-load 'dired
-  (keymap-set dired-mode-map "N" nil)
-  (keymap-set dired-mode-map "I" nil))
+    (with-eval-after-load 'dired
+      (keymap-set dired-mode-map "N" nil)
+      (keymap-set dired-mode-map "I" nil))
 
 ---
 *** New command 'dired-do-eww'.
