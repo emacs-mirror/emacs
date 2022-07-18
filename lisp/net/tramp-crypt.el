@@ -143,7 +143,7 @@ They are completed by \"M-x TAB\" only when encryption support is enabled."
 ;;;###tramp-autoload
 (defsubst tramp-crypt-file-name-p (name)
   "Return the encrypted remote directory NAME belongs to.
-If NAME doesn't belong to an encrypted remote directory, retun nil."
+If NAME doesn't belong to an encrypted remote directory, return nil."
   (catch 'crypt-file-name-p
     (and tramp-crypt-enabled (stringp name)
 	 (not (tramp-compat-file-name-quoted-p name))
