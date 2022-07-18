@@ -370,8 +370,8 @@ original value of @var{list} may be lost.
 
 @code{ntake} returns @var{list} unmodified if shorter than @var{n}
 elements; it returns @code{nil} if @var{n} is zero or negative.
-Otherwise, @var{list} is returned after being truncated to its first
-@var{n} elements.
+Otherwise, it returns @var{list} truncated to its first @var{n}
+elements.
 
 This means that it is usually a good idea to use the return value and
 not just rely on the truncation effect unless @var{n} is known to be
