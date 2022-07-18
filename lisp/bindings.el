@@ -966,13 +966,12 @@ if `inhibit-field-text-motion' is non-nil."
       (backward-word n)
     (forward-word n)))
 
-(defvar narrow-map (make-sparse-keymap)
-  "Keymap for narrowing commands.")
+(defvar-keymap narrow-map
+  :doc "Keymap for narrowing commands."
+  "n" #'narrow-to-region
+  "w" #'widen
+  "g" #'goto-line-relative)
 (define-key ctl-x-map "n" narrow-map)
-
-(define-key narrow-map "n" 'narrow-to-region)
-(define-key narrow-map "w" 'widen)
-(define-key narrow-map "g" 'goto-line-relative)
 
 ;; Quitting
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
@@ -1009,11 +1008,9 @@ if `inhibit-field-text-motion' is non-nil."
 ;; Richard said that we should not use C-x <uppercase letter> and I have
 ;; no idea whereas to bind it.  Any suggestion welcome.  -stef
 ;; (define-key ctl-x-map "U" 'undo-only)
-(defvar undo-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "u" 'undo)
-    map)
-  "Keymap to repeat undo key sequences \\`C-x u u'.  Used in `repeat-mode'.")
+(defvar-keymap undo-repeat-map
+  :doc "Keymap to repeat undo key sequences \\`C-x u u'.  Used in `repeat-mode'."
+  "u" #'undo)
 (put 'undo 'repeat-map 'undo-repeat-map)
 
 (define-key global-map '[(control ??)] 'undo-redo)
@@ -1104,44 +1101,41 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "`" 'next-error)
 
-(defvar next-error-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map    "n" 'next-error)
-    (define-key map "\M-n" 'next-error)
-    (define-key map    "p" 'previous-error)
-    (define-key map "\M-p" 'previous-error)
-    map)
-  "Keymap to repeat `next-error' key sequences.  Used in `repeat-mode'.")
+(defvar-keymap next-error-repeat-map
+  :doc "Keymap to repeat `next-error' key sequences.  Used in `repeat-mode'."
+  "n"   #'next-error
+  "M-n" #'next-error
+  "p"   #'previous-error
+  "M-p" #'previous-error)
 (put 'next-error 'repeat-map 'next-error-repeat-map)
 (put 'previous-error 'repeat-map 'next-error-repeat-map)
 
-(defvar goto-map (make-sparse-keymap)
-  "Keymap for navigation commands.")
+(defvar-keymap goto-map
+  :doc "Keymap for navigation commands."
+  "c"   #'goto-char
+  "g"   #'goto-line
+  "M-g" #'goto-line
+  "n"   #'next-error
+  "M-n" #'next-error
+  "p"   #'previous-error
+  "M-p" #'previous-error
+  "TAB" #'move-to-column
+  "i"   #'imenu)
 (define-key esc-map "g" goto-map)
 
-(define-key goto-map    "c" 'goto-char)
-(define-key goto-map    "g" 'goto-line)
-(define-key goto-map "\M-g" 'goto-line)
-(define-key goto-map    "n" 'next-error)
-(define-key goto-map "\M-n" 'next-error)
-(define-key goto-map    "p" 'previous-error)
-(define-key goto-map "\M-p" 'previous-error)
-(define-key goto-map   "\t" 'move-to-column)
-(define-key goto-map    "i" 'imenu)
-
-(defvar search-map (make-sparse-keymap)
-  "Keymap for search related commands.")
+(defvar-keymap search-map
+  :doc "Keymap for search related commands."
+  "o"   #'occur
+  "M-w" #'eww-search-words
+  "h r" #'highlight-regexp
+  "h p" #'highlight-phrase
+  "h l" #'highlight-lines-matching-regexp
+  "h ." #'highlight-symbol-at-point
+  "h u" #'unhighlight-regexp
+  "h f" #'hi-lock-find-patterns
+  "h w" #'hi-lock-write-interactive-patterns)
 (define-key esc-map "s" search-map)
 
-(define-key search-map "o"    'occur)
-(define-key search-map "\M-w" 'eww-search-words)
-(define-key search-map "hr"   'highlight-regexp)
-(define-key search-map "hp"   'highlight-phrase)
-(define-key search-map "hl"   'highlight-lines-matching-regexp)
-(define-key search-map "h."   'highlight-symbol-at-point)
-(define-key search-map "hu"   'unhighlight-regexp)
-(define-key search-map "hf"   'hi-lock-find-patterns)
-(define-key search-map "hw"   'hi-lock-write-interactive-patterns)
 (put 'highlight-regexp                   :advertised-binding [?\M-s ?h ?r])
 (put 'highlight-phrase                   :advertised-binding [?\M-s ?h ?p])
 (put 'highlight-lines-matching-regexp    :advertised-binding [?\M-s ?h ?l])
@@ -1375,7 +1369,7 @@ if `inhibit-field-text-motion' is non-nil."
 
 (defalias 'mode-specific-command-prefix (make-sparse-keymap))
 (defvar mode-specific-map (symbol-function 'mode-specific-command-prefix)
-  "Keymap for characters following C-c.")
+  "Keymap for characters following \\`C-c'.")
 (define-key global-map "\C-c" 'mode-specific-command-prefix)
 
 (global-set-key [M-right]  'right-word)
@@ -1431,31 +1425,29 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-5-map "m" 'compose-mail-other-frame)
 
 
-(defvar ctl-x-r-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "c" 'clear-rectangle)
-    (define-key map "k" 'kill-rectangle)
-    (define-key map "d" 'delete-rectangle)
-    (define-key map "y" 'yank-rectangle)
-    (define-key map "o" 'open-rectangle)
-    (define-key map "t" 'string-rectangle)
-    (define-key map "N" 'rectangle-number-lines)
-    (define-key map "\M-w" 'copy-rectangle-as-kill)
-    (define-key map "\C-@" 'point-to-register)
-    (define-key map [?\C-\ ] 'point-to-register)
-    (define-key map " " 'point-to-register)
-    (define-key map "j" 'jump-to-register)
-    (define-key map "s" 'copy-to-register)
-    (define-key map "x" 'copy-to-register)
-    (define-key map "i" 'insert-register)
-    (define-key map "g" 'insert-register)
-    (define-key map "r" 'copy-rectangle-to-register)
-    (define-key map "n" 'number-to-register)
-    (define-key map "+" 'increment-register)
-    (define-key map "w" 'window-configuration-to-register)
-    (define-key map "f" 'frameset-to-register)
-    map)
-  "Keymap for subcommands of C-x r.")
+(defvar-keymap ctl-x-r-map
+  :doc "Keymap for subcommands of \\`C-x r'."
+  "c"     #'clear-rectangle
+  "k"     #'kill-rectangle
+  "d"     #'delete-rectangle
+  "y"     #'yank-rectangle
+  "o"     #'open-rectangle
+  "t"     #'string-rectangle
+  "N"     #'rectangle-number-lines
+  "M-w"   #'copy-rectangle-as-kill
+  "C-@"   #'point-to-register
+  "C-SPC" #'point-to-register
+  "SPC"   #'point-to-register
+  "j"     #'jump-to-register
+  "s"     #'copy-to-register
+  "x"     #'copy-to-register
+  "i"     #'insert-register
+  "g"     #'insert-register
+  "r"     #'copy-rectangle-to-register
+  "n"     #'number-to-register
+  "+"     #'increment-register
+  "w"     #'window-configuration-to-register
+  "f"     #'frameset-to-register)
 (define-key ctl-x-map "r" ctl-x-r-map)
 
 (define-key esc-map "q" 'fill-paragraph)
@@ -1472,12 +1464,10 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "[" 'backward-page)
 (define-key ctl-x-map "]" 'forward-page)
 
-(defvar page-navigation-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "]" #'forward-page)
-    (define-key map "[" #'backward-page)
-    map)
-  "Keymap to repeat page navigation key sequences.  Used in `repeat-mode'.")
+(defvar-keymap page-navigation-repeat-map
+  :doc "Keymap to repeat page navigation key sequences.  Used in `repeat-mode'."
+  "]" #'forward-page
+  "[" #'backward-page)
 
 (put 'forward-page 'repeat-map 'page-navigation-repeat-map)
 (put 'backward-page 'repeat-map 'page-navigation-repeat-map)
@@ -1487,20 +1477,20 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "np" 'narrow-to-page)
 ;; (define-key ctl-x-map "p" 'narrow-to-page)
 
-(defvar abbrev-map (make-sparse-keymap)
-  "Keymap for abbrev commands.")
+(defvar-keymap abbrev-map
+  :doc "Keymap for abbrev commands."
+  "l"   #'add-mode-abbrev
+  "C-a" #'add-mode-abbrev
+  "g"   #'add-global-abbrev
+  "+"   #'add-mode-abbrev
+  "i g" #'inverse-add-global-abbrev
+  "i l" #'inverse-add-mode-abbrev
+  ;; "C-h" #'inverse-add-global-abbrev
+  "-"   #'inverse-add-global-abbrev
+  "e"   #'expand-abbrev
+  "'"   #'expand-abbrev)
 (define-key ctl-x-map "a" abbrev-map)
 
-(define-key abbrev-map "l" 'add-mode-abbrev)
-(define-key abbrev-map "\C-a" 'add-mode-abbrev)
-(define-key abbrev-map "g" 'add-global-abbrev)
-(define-key abbrev-map "+" 'add-mode-abbrev)
-(define-key abbrev-map "ig" 'inverse-add-global-abbrev)
-(define-key abbrev-map "il" 'inverse-add-mode-abbrev)
-;; (define-key abbrev-map "\C-h" 'inverse-add-global-abbrev)
-(define-key abbrev-map "-" 'inverse-add-global-abbrev)
-(define-key abbrev-map "e" 'expand-abbrev)
-(define-key abbrev-map "'" 'expand-abbrev)
 ;; (define-key ctl-x-map "\C-a" 'add-mode-abbrev)
 ;; (define-key ctl-x-map "+" 'add-global-abbrev)
 ;; (define-key ctl-x-map "\C-h" 'inverse-add-mode-abbrev)
@@ -1514,17 +1504,15 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "z" 'repeat)
 
-(defvar ctl-x-x-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "f" #'font-lock-update)
-    (define-key map "g" #'revert-buffer-quick)
-    (define-key map "r" #'rename-buffer)
-    (define-key map "u" #'rename-uniquely)
-    (define-key map "n" #'clone-buffer)
-    (define-key map "i" #'insert-buffer)
-    (define-key map "t" #'toggle-truncate-lines)
-    map)
-  "Keymap for subcommands of C-x x.")
+(defvar-keymap ctl-x-x-map
+  :doc "Keymap for subcommands of \\`C-x x'."
+  "f" #'font-lock-update
+  "g" #'revert-buffer-quick
+  "r" #'rename-buffer
+  "u" #'rename-uniquely
+  "n" #'clone-buffer
+  "i" #'insert-buffer
+  "t" #'toggle-truncate-lines)
 (define-key ctl-x-map "x" ctl-x-x-map)
 
 (define-key esc-map "\C-l" 'reposition-window)
