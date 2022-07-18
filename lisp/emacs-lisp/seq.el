@@ -168,21 +168,25 @@ if positive or too small if negative)."
    ((or (stringp sequence) (vectorp sequence)) (substring sequence start end))
    ((listp sequence)
     (let (len
-          (errtext (format "Bad bounding indices: %s, %s" start end)))
+          (orig-start start)
+          (orig-end end))
       (and end (< end 0) (setq end (+ end (setq len (length sequence)))))
       (if (< start 0) (setq start (+ start (or len (setq len (length sequence))))))
       (unless (>= start 0)
-        (error "%s" errtext))
+        (error "Start index out of bounds: %s" orig-start))
       (when (> start 0)
         (setq sequence (nthcdr (1- start) sequence))
-        (or sequence (error "%s" errtext))
+        (unless sequence
+          (error "Start index out of bounds: %s" orig-start))
         (setq sequence (cdr sequence)))
       (if end
-          (let ((res nil))
-            (while (and (>= (setq end (1- end)) start) sequence)
-              (push (pop sequence) res))
-            (or (= (1+ end) start) (error "%s" errtext))
-            (nreverse res))
+          (let ((n (- end start)))
+            (when (or (< n 0)
+                      (if len
+                          (> end len)
+                        (and (> n 0) (null (nthcdr (1- n) sequence)))))
+              (error "End index out of bounds: %s" orig-end))
+            (take n sequence))
         (copy-sequence sequence))))
    (t (error "Unsupported sequence: %s" sequence))))
 
