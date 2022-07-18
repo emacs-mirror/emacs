@@ -2332,6 +2332,12 @@ they will still be escaped, so the '.foo' symbol is still printed as
 and remapping parent of basic faces does not work reliably.
 Instead of remapping 'mode-line', you have to remap 'mode-line-active'.
 
++++
+** 'make-process' has been extended to support ptys when ':stderr' is set.
+Previously, setting ':stderr' to a non-nil value would force the
+process's connection to use pipes.  Now, Emacs will use a pty for
+stdin and stdout if requested no matter the value of ':stderr'.
+
 ---
 ** User option 'mail-source-ignore-errors' is now obsolete.
 The whole mechanism for prompting users to continue in case of
@@ -3322,6 +3328,12 @@ translation.
 ** 'shell-quote-argument' has a new optional parameter POSIX.
 This is useful when quoting shell arguments for a remote shell
 invocation.  Such shells are POSIX conformant by default.
+
++++
+** 'make-process' can set connection type independently for input and output.
+When calling 'make-process', communication via pty can be enabled
+selectively for just input or output by passing a cons cell for
+':connection-type', e.g. '(pipe . pty)'.
 
 +++
 ** 'signal-process' now consults the list 'signal-process-functions'.

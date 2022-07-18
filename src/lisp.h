@@ -4943,7 +4943,8 @@ extern void setup_process_coding_systems (Lisp_Object);
 #endif
 
 extern int emacs_spawn (pid_t *, int, int, int, char **, char **,
-                        const char *, const char *, const sigset_t *);
+                        const char *, const char *, bool, bool,
+                        const sigset_t *);
 extern char **make_environment_block (Lisp_Object) ATTRIBUTE_RETURNS_NONNULL;
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
