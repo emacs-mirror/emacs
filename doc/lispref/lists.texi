@@ -344,7 +344,7 @@ If @var{n} is zero, @code{nthcdr} returns all of
 This function returns the @var{n} first elements of @var{list}.  Essentially,
 it returns the part of @var{list} that @code{nthcdr} skips.
 
-@code{take} returns @var{list} if it is shorter than @var{n} elements;
+@code{take} returns @var{list} if shorter than @var{n} elements;
 it returns @code{nil} if @var{n} is zero or negative.
 
 @example
@@ -366,7 +366,16 @@ it returns @code{nil} if @var{n} is zero or negative.
 @defun ntake n list
 This is a version of @code{take} that works by destructively modifying
 the list structure of the argument.  That makes it faster, but the
-original value of @var{list} is lost.
+original value of @var{list} may be lost.
+
+@code{ntake} returns @var{list} unmodified if shorter than @var{n}
+elements; it returns @code{nil} if @var{n} is zero or negative.
+Otherwise, @var{list} is returned after being truncated to its first
+@var{n} elements.
+
+This means that it is usually a good idea to use the return value and
+not just rely on the truncation effect unless @var{n} is known to be
+positive.
 @end defun
 
 @defun last list &optional n

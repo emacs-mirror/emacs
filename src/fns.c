@@ -1560,7 +1560,7 @@ substring_both (Lisp_Object string, ptrdiff_t from, ptrdiff_t from_byte,
 DEFUN ("take", Ftake, Stake, 2, 2, 0,
        doc: /* Return the first N elements of LIST.
 If N is zero or negative, return nil.
-If LIST is no more than N elements long, return it (or a copy).  */)
+If N is greater or equal to the length of LIST, return LIST (or a copy).  */)
   (Lisp_Object n, Lisp_Object list)
 {
   CHECK_FIXNUM (n);
@@ -1590,7 +1590,8 @@ If LIST is no more than N elements long, return it (or a copy).  */)
 DEFUN ("ntake", Fntake, Sntake, 2, 2, 0,
        doc: /* Modify LIST to keep only the first N elements.
 If N is zero or negative, return nil.
-If LIST is no more than N elements long, return it.  */)
+If N is greater or equal to the length of LIST, return LIST unmodified.
+Otherwise, return LIST after truncating it.  */)
   (Lisp_Object n, Lisp_Object list)
 {
   CHECK_FIXNUM (n);
