@@ -3501,9 +3501,12 @@ init_iterator (struct it *it, struct window *w,
 ptrdiff_t
 get_narrowed_begv (struct window *w)
 {
-  int len; ptrdiff_t begv;
-  len = 3 * (window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
-	     window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS));
+  int len, fact; ptrdiff_t begv;
+  /* In a character-only terminal, only one font size is used, so we
+     can use a smaller factor.  */
+  fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
+  len = fact * (window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
+		window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS));
   begv = max ((window_point (w) / len - 1) * len, BEGV);
   return begv == BEGV ? 0 : begv;
 }
@@ -8667,6 +8670,16 @@ get_visually_first_element (struct it *it)
   ptrdiff_t bob;
 
   SET_WITH_NARROWED_BEGV (it, bob, string_p ? 0 : BEGV);
+
+  /* Reseat again when, as a consequence of the SET_WITH_NARROWED_BEGV
+     above, the iterator is before bob.  */
+  if (!string_p && IT_CHARPOS (*it) < bob)
+    {
+      struct text_pos pos;
+      pos.charpos = bob;
+      pos.bytepos = CHAR_TO_BYTE (bob);
+      reseat (it, pos, true);
+    }
 
   if (STRINGP (it->string))
     {
