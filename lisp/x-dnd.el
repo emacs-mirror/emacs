@@ -696,19 +696,30 @@ with coordinates relative to the root window."
   "Return the nmore-than3 bit from the 32 bit FLAGS in an XDndEnter message."
   (logand flags 1))
 
+(declare-function x-get-modifier-masks "xfns.c")
+
 (defun x-dnd-modifier-mask (mods)
   "Return the X modifier mask for the Emacs modifier state MODS.
 MODS is a single symbol, or a list of symbols such as `shift' or
 `control'."
-  (let ((mask 0))
+  (let ((virtual-modifiers (x-get-modifier-masks))
+        (mask 0))
     (unless (consp mods)
       (setq mods (list mods)))
     (dolist (modifier mods)
       ;; TODO: handle virtual modifiers such as Meta and Hyper.
       (cond ((eq modifier 'shift)
-             (setq mask (logior mask 1)))   ; ShiftMask
+             (setq mask (logior mask 1))) ; ShiftMask
             ((eq modifier 'control)
-             (setq mask (logior mask 4))))) ; ControlMask
+             (setq mask (logior mask 4))) ; ControlMask
+            ((eq modifier 'meta)
+             (setq mask (logior mask (nth 4 virtual-modifiers))))
+            ((eq modifier 'hyper)
+             (setq mask (car virtual-modifiers)))
+            ((eq modifier 'super)
+             (setq mask (cadr virtual-modifiers)))
+            ((eq modifier 'alt)
+             (setq mask (nth 2 virtual-modifiers)))))
     mask))
 
 (defun x-dnd-hscroll-flags ()

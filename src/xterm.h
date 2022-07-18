@@ -1645,6 +1645,7 @@ extern bool x_defined_color (struct frame *, const char *, Emacs_Color *,
                              bool, bool);
 extern void x_preserve_selections (struct x_display_info *, Lisp_Object,
 				   Lisp_Object);
+extern Lisp_Object x_get_keyboard_modifiers (struct x_display_info *);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
 # if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT

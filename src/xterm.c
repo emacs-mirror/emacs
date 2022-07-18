@@ -28187,6 +28187,27 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
     }
 }
 
+/* Return a list of the keyboard modifier masks in DPYINFO.
+
+   Value is a list of (HYPER SUPER ALT SHIFT-LOCK META), each element
+   being the appropriate modifier mask.  */
+
+Lisp_Object
+x_get_keyboard_modifiers (struct x_display_info *dpyinfo)
+{
+  /* This sometimes happens when the function is called during display
+     initialization, which can happen while obtaining vendor specific
+     keysyms.  */
+  if (!dpyinfo->xkb_desc && !dpyinfo->modmap)
+    x_find_modifier_meanings (dpyinfo);
+
+  return list5 (make_uint (dpyinfo->hyper_mod_mask),
+		make_uint (dpyinfo->super_mod_mask),
+		make_uint (dpyinfo->alt_mod_mask),
+		make_uint (dpyinfo->shift_lock_mask),
+		make_uint (dpyinfo->meta_mod_mask));
+}
+
 void
 syms_of_xterm (void)
 {

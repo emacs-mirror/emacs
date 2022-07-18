@@ -9426,6 +9426,24 @@ present and mapped to the usual X keysyms.  */)
 #endif
 }
 
+DEFUN ("x-get-modifier-masks", Fx_get_modifier_masks, Sx_get_modifier_masks,
+       0, 1, 0,
+       doc: /* Return the X modifier masks corresponding to keyboard modifiers.
+The optional second argument TERMINAL specifies which display to fetch
+modifier masks from.  TERMINAL should be a terminal object, a frame or
+a display name (a string).  If TERMINAL is omitted or nil, that stands
+for the selected frame's display.
+
+Return a list of (HYPER SUPER ALT SHIFT-LOCK META), each element being
+a number describing the modifier mask for the corresponding Emacs
+modifier.  */)
+  (Lisp_Object terminal)
+{
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = check_x_display_info (terminal);
+  return x_get_keyboard_modifiers (dpyinfo);
+}
 
 
 /***********************************************************************
@@ -10090,6 +10108,7 @@ eliminated in future versions of Emacs.  */);
   defsubr (&Sx_begin_drag);
   defsubr (&Sx_display_set_last_user_time);
   defsubr (&Sx_translate_coordinates);
+  defsubr (&Sx_get_modifier_masks);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);
