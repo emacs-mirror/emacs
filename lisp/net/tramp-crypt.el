@@ -730,7 +730,7 @@ absolute file names."
       (unless nosort
         (setq result (sort result #'string<)))
       (when (and (natnump count) (> count 0))
-	(setq result (nbutlast result (- (length result) count))))
+	(setq result (tramp-compat-ntake count result)))
       result)))
 
 (defun tramp-crypt-handle-file-attributes (filename &optional id-format)

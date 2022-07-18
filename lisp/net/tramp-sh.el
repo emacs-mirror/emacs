@@ -1718,7 +1718,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	(setq result (sort result (lambda (x y) (string< (car x) (car y))))))
 
       (when (and (natnump count) (> count 0))
-	(setq result (nbutlast result (- (length result) count))))
+	(setq result (tramp-compat-ntake count result)))
 
       (or result
 	  ;; The scripts could fail, for example with huge file size.

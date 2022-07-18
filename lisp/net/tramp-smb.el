@@ -726,7 +726,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
     ;; Return count number of results.
     (when (and (natnump count) (> count 0))
-      (setq result (nbutlast result (- (length result) count))))
+      (setq result (tramp-compat-ntake count result)))
 
     ;; Prepend directory.
     (when full

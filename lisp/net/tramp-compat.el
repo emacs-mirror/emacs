@@ -294,6 +294,15 @@ CONDITION can also be a list of error conditions."
           (setq secret (funcall secret)))
 	secret))))
 
+;; Function `ntake' is new in Emacs 29.1.
+(defalias 'tramp-compat-ntake
+  (if (fboundp 'ntake)
+      #'ntake
+    (lambda (n list)
+      (when (and (natnump n) (> n 0))
+	(if (>= n (length list))
+	    list (nbutlast list (- (length list) n)))))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 
