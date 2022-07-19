@@ -599,7 +599,6 @@ even if it is dead.  The return value is never nil.  */)
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
   BUF_END_UNCHANGED (b) = 0;
   BUF_BEG_UNCHANGED (b) = 0;
-  BUF_UNCHANGED_SIZE (b) = 0;
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
   b->text->inhibit_shrinking = false;
   b->text->redisplay = false;
@@ -2477,11 +2476,6 @@ results, see Info node `(elisp)Swapping Text'.  */)
   current_buffer->text->end_unchanged = current_buffer->text->gpt;
   other_buffer->text->beg_unchanged = other_buffer->text->gpt;
   other_buffer->text->end_unchanged = other_buffer->text->gpt;
-  {
-    ptrdiff_t tmp = current_buffer->text->unchanged_size;
-    current_buffer->text->unchanged_size = other_buffer->text->unchanged_size;
-    other_buffer->text->unchanged_size = tmp;
-  }
   {
     struct Lisp_Marker *m;
     for (m = BUF_MARKERS (current_buffer); m; m = m->next)
