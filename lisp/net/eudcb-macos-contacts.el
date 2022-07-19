@@ -74,7 +74,7 @@
 
 (defun eudc-macos-contacts-search-helper (query)
   "Helper function to query the Contacts app via AppleScript.
-Searches for all persons matching QUERY. QUERY is a list of cons
+Searches for all persons matching QUERY.  QUERY is a list of cons
 cells (ATTR . VALUE) where ATTRs should be valid macOS Contacts
 attribute names with space characters replaced by `_' characters.
 Thus, to for instance search for the \"first name\" attribute in

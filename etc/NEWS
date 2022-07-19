@@ -1508,7 +1508,7 @@ adding the new function 'eudc-capf-complete' to
 'completion-at-point-functions' in 'message-mode'.
 
 +++
-*** Additional query and results attributes in eudcb-macos-contacts.el
+*** Additional attributes of query and results in eudcb-macos-contacts.el.
 The EUDC back-end for the macOS Contacts app now provides a wider set
 of attributes to use for queries, and delivers more attributes in
 query results.

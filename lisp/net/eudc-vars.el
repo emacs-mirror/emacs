@@ -194,7 +194,7 @@ must be set in a protocol/server-local fashion, see `eudc-server-set' and
 (defcustom eudc-inline-expansion-format nil
   "Specify the format of the expansion of inline queries.
 This variable controls what `eudc-expand-inline' actually inserts
-in the buffer. It is either a list, or a function.
+in the buffer.  It is either a list, or a function.
 
 When set to a list, the expansion result will be formatted
 according to the first element of the list, a string, which is
@@ -218,7 +218,7 @@ for example name, or email, use `eudc-translate-query' with
 REVERSE set to t to transform the received attribute alist.  The
 function should return a list, which should contain two elements.
 If the first element is a string, it will be used as the PHRASE
-part, quoting it if necessary. If the second element is a string,
+part, quoting it if necessary.  If the second element is a string,
 it will be used as the COMMENT part, unless it contains
 characters not allowed in the COMMENT part by RFC 5322, in which
 case the COMMENT part will be omitted."
