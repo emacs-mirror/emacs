@@ -2048,7 +2048,7 @@ THINGS are either registrations or unregisterations (sic)."
 (cl-defmethod eglot-handle-request
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit."
-  (eglot--apply-workspace-edit edit eglot-confirm-server-initiated-edits))
+  (eglot--apply-workspace-edit edit eglot-confirm-server-initiated-edits)
   `(:applied t))
 
 (cl-defmethod eglot-handle-request
