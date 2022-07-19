@@ -2291,8 +2291,8 @@ This checks also `file-name-as-directory', `file-name-directory',
       (should-not (file-exists-p tmp-name))
 
       ;; Trashing files doesn't work when `system-move-file-to-trash'
-      ;; is defined (on MS Windows and macOS), and for crypted remote
-      ;; files.
+      ;; is defined (on MS-Windows and macOS), and for encrypted
+      ;; remote files.
       (unless (or (fboundp 'system-move-file-to-trash) (tramp--test-crypt-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
@@ -2824,7 +2824,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 
       ;; Trashing directories works only since Emacs 27.1.  It doesn't
       ;; work when `system-move-file-to-trash' is defined (on MS
-      ;; Windows and macOS), for crypted remote directories and for
+      ;; Windows and macOS), for encrypted remote directories and for
       ;; ange-ftp.
       (when (and (not (fboundp 'system-move-file-to-trash))
 		 (not (tramp--test-crypt-p)) (not (tramp--test-ftp-p))
@@ -3099,8 +3099,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   ;; (this is performed by `dired').  If FULL is nil, it shows just
   ;; one file.  So we refrain from testing.
   (skip-unless (not (tramp--test-ange-ftp-p)))
-  ;; `insert-directory' of crypted remote directories works only since
-  ;; Emacs 27.1.
+  ;; `insert-directory' of encrypted remote directories works only
+  ;; since Emacs 27.1.
   (skip-unless (or (not (tramp--test-crypt-p)) (tramp--test-emacs27-p)))
 
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
@@ -6290,7 +6290,7 @@ This is used in tests which we dont't want to tag
 	     (string-match-p "[[:multibyte:]]" default-directory)))))
 
 (defun tramp--test-crypt-p ()
-  "Check, whether the remote directory is crypted."
+  "Check, whether the remote directory is encrypted."
   (tramp-crypt-file-name-p tramp-test-temporary-file-directory))
 
 (defun tramp--test-docker-p ()
