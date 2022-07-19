@@ -1648,6 +1648,24 @@ VERSION is the version of the XDND protocol understood by SOURCE."
                                          0
                                        "XdndDirectSave0")))))))
 
+;; Internal wheel movement.
+
+(defvar x-dnd-wheel-function)
+
+(defun x-dnd-note-wheel-movement (position button state time)
+  "Note wheel movement at POSITION.
+POSITION is a mouse position list describing the position of the
+wheel movement.
+BUTTON is the wheel button that was pressed.
+STATE is the X modifier state at the time of the wheel movement.
+TIME is the X server time at which the wheel moved."
+  (when (posn-window position)
+    (with-selected-window (posn-window position)
+      (let ((count (x-dnd-note-click button time)))
+        (x-dnd-mwheel-scroll button count state)))))
+
+(setq x-dnd-wheel-function #'x-dnd-note-wheel-movement)
+
 (provide 'x-dnd)
 
 ;;; x-dnd.el ends here
