@@ -1596,9 +1596,8 @@ However, if you wish for Eglot to stay out of a particular Emacs
 facility that you'd like to keep control of add an element to
 this list and Eglot will refrain from setting it.
 
-For example, to keep your Company customization use
-
-(add-to-list 'eglot-stay-out-of 'company)")
+For example, to keep your Company customization, add the symbol
+`company' to this variable.")
 
 (defun eglot--stay-out-of-p (symbol)
   "Tell if EGLOT should stay of of SYMBOL."
@@ -3122,7 +3121,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 (defmacro eglot--code-action (name kind)
   "Define NAME to execute KIND code action."
   `(defun ,name (beg &optional end)
-     ,(format "Execute '%s' code actions between BEG and END." kind)
+     ,(format "Execute `%s' code actions between BEG and END." kind)
      (interactive (eglot--region-bounds))
      (eglot-code-actions beg end ,kind)))
 
