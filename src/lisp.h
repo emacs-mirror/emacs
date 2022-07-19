@@ -3911,10 +3911,11 @@ integer_to_uintmax (Lisp_Object num, uintmax_t *n)
 typedef intmax_t modiff_count;
 
 INLINE modiff_count
-modiff_incr (modiff_count *a)
+modiff_incr (modiff_count *a, ptrdiff_t len)
 {
-  modiff_count a0 = *a;
-  bool modiff_overflow = INT_ADD_WRAPV (a0, 1, a);
+  modiff_count a0 = *a; int incr = len ? 1 : 0;
+  while (len >>= 1) incr++;
+  bool modiff_overflow = INT_ADD_WRAPV (a0, incr, a);
   eassert (!modiff_overflow && *a >> 30 >> 30 == 0);
   return a0;
 }
