@@ -3519,7 +3519,9 @@ representation.  */)
 DEFUN ("ash", Fash, Sash, 2, 2, 0,
        doc: /* Return VALUE with its bits shifted left by COUNT.
 If COUNT is negative, shifting is actually to the right.
-In this case, the sign bit is duplicated.  */)
+The return value is always VALUE multiplied by 2 to the power of COUNT,
+rounding down (towards negative infinity).
+VALUE and COUNT must be integers.  */)
   (Lisp_Object value, Lisp_Object count)
 {
   CHECK_INTEGER (value);
