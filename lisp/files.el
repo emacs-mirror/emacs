@@ -8337,7 +8337,7 @@ such as `?d' for a directory, or `?l' for a symbolic link and will override
 the leading `-' char."
   (string
    (or filetype
-       (pcase (lsh mode -12)
+       (pcase (ash mode -12)
          ;; POSIX specifies that the file type is included in st_mode
          ;; and provides names for the file types but values only for
          ;; the permissions (e.g., S_IWOTH=2).

@@ -188,7 +188,7 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
                           (error "Out of range octet: %d" octet))
                         (setq value
                               (logior value
-                                      (lsh octet
+                                      (ash octet
                                            (- (* (1- (length string)) 8)
                                               offset))))
                         (setq offset (+ offset 8))))
