@@ -19020,7 +19020,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				       x_dnd_last_protocol_version,
 				       event->xbutton.x_root,
 				       event->xbutton.y_root,
-				       x_dnd_selection_timestamp,
+				       event->xbutton.time,
 				       x_dnd_wanted_action,
 				       event->xbutton.button,
 				       event->xbutton.state);
@@ -20424,10 +20424,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					       xev->detail, dnd_state,
 					       xev->time);
 		      else
-			x_dnd_send_position (x_dnd_frame, x_dnd_last_seen_window,
-					     x_dnd_last_protocol_version, xev->root_x,
-					     xev->root_y, x_dnd_selection_timestamp,
-					     x_dnd_wanted_action, xev->detail, dnd_state);
+			x_dnd_send_position (x_dnd_frame,
+					     x_dnd_last_seen_window,
+					     x_dnd_last_protocol_version,
+					     xev->root_x, xev->root_y,
+					     xev->time, x_dnd_wanted_action,
+					     xev->detail, dnd_state);
 
 		      goto XI_OTHER;
 		    }
