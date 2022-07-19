@@ -1090,5 +1090,22 @@ final or penultimate step during initialization."))
   (should-not (plistp '(1 2 3)))
   (should-not (plistp '(1 2 3 . 4))))
 
+(defun subr-tests--butlast-ref (list &optional n)
+  "Reference implementation of `butlast'."
+  (let ((m (or n 1))
+        (len (length list)))
+    (let ((r nil))
+      (while (and list (> len m))
+        (push (car list) r)
+        (setq list (cdr list))
+        (setq len (1- len)))
+      (nreverse r))))
+
+(ert-deftest subr-butlast ()
+  (dolist (l '(nil '(a) '(a b) '(a b c) '(a b c d)))
+    (dolist (n (cons nil (number-sequence -2 6)))
+      (should (equal (butlast l n)
+                     (subr-tests--butlast-ref l n))))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
