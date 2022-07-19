@@ -1365,6 +1365,17 @@ command:
 
 ** Window-manager and toolkit-related problems
 
+*** Emacs built with GTK+ displays giant tool bar icons in some cases
+
+This is because some icon themes (such as the KDE Breeze icon theme)
+have several incorrectly sized icons, which also causes the toolbar to
+expand uncontrollably.  The fix is to switch to a different icon
+theme, or to use Emacs's own toolbar icons by placing:
+
+  (setq x-gtk-stock-map nil)
+
+in your early-init.el.
+
 *** Emacs built with GTK+ toolkit produces corrupted display on HiDPI screen
 
 This can happen if you set GDK_SCALE=2 in the environment or in your
@@ -3136,6 +3147,17 @@ file; for example:
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
 
 * Runtime problems specific to PGTK
+
+** Giant tool bar icons are displayed in some cases
+
+This is because some icon themes (such as the KDE Breeze icon theme)
+have several incorrectly sized icons, which also causes the toolbar to
+expand uncontrollably.  The fix is to switch to a different icon
+theme, or to use Emacs's own toolbar icons by placing:
+
+  (setq x-gtk-stock-map nil)
+
+in your early-init.el.
 
 ** Some modifier keys doesn't work if Emacs is started in a systemd unit file.
 
