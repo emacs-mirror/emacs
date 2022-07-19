@@ -4067,7 +4067,7 @@ Let-bind it when necessary.")
 
 		    ;; When we shall insert only a part of the file, we
 		    ;; copy this part.  This works only for the shell file
-		    ;; name handlers.  It doesn't work for crypted files.
+                    ;; name handlers.  It doesn't work for encrypted files.
 		    (when (and (or beg end)
 			       (tramp-sh-file-name-handler-p v)
 			       (null tramp-crypt-enabled))
@@ -5800,7 +5800,7 @@ This handles also chrooted environments, which are not regarded as local."
      ;; handlers.  `tramp-local-host-p' is also called for "smb" and
      ;; alike, where it must fail.
      (tramp-sh-file-name-handler-p vec)
-     ;; Direct actions aren't possible for crypted directories.
+     ;; Direct actions aren't possible for encrypted directories.
      (null tramp-crypt-enabled)
      ;; The local temp directory must be writable for the other user.
      (file-writable-p
