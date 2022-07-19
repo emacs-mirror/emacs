@@ -2049,6 +2049,7 @@ THINGS are either registrations or unregisterations (sic)."
   (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit."
   (eglot--apply-workspace-edit edit eglot-confirm-server-initiated-edits))
+  `(:applied t))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql workspace/workspaceFolders)))
@@ -3025,7 +3026,7 @@ for which LSP on-type-formatting should be requested."
           (unless (y-or-n-p
                    (format "[eglot] Server wants to edit:\n  %s\n Proceed? "
                            (mapconcat #'identity (mapcar #'car prepared) "\n  ")))
-            (eglot--error "User cancelled server edit")))
+            (jsonrpc-error "User cancelled server edit")))
       (cl-loop for edit in prepared
                for (path edits version) = edit
                do (with-current-buffer (find-file-noselect path)
