@@ -551,12 +551,13 @@ Helper for `eldoc-display-in-echo-area'."
 (defun eldoc--echo-area-prefer-doc-buffer-p (truncatedp)
   "Tell if display in the echo area should be skipped.
 Helper for `eldoc-display-in-echo-area'.  If TRUNCATEDP the
-documentation to potentially appear in the echo are is truncated."
+documentation to potentially appear in the echo area is
+known to be truncated."
   (and (or (eq eldoc-echo-area-prefer-doc-buffer t)
            (and truncatedp
                 (eq eldoc-echo-area-prefer-doc-buffer
                     'maybe)))
-       (get-buffer-window eldoc--doc-buffer 'visible)))
+       (get-buffer-window eldoc--doc-buffer t)))
 
 (defun eldoc-display-in-echo-area (docs _interactive)
   "Display DOCS in echo area.
