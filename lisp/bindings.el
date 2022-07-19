@@ -1081,8 +1081,6 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map "\C-y" 'yank)
 (define-key esc-map "y" 'yank-pop)
 
-;; (define-key ctl-x-map "a" 'append-to-buffer)
-
 (define-key global-map "\C-@" 'set-mark-command)
 ;; Many people are used to typing C-SPC and getting C-@.
 (define-key global-map [?\C- ] 'set-mark-command)
@@ -1475,7 +1473,6 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-map "\C-p" 'mark-page)
 (define-key ctl-x-map "l" 'count-lines-page)
 (define-key ctl-x-map "np" 'narrow-to-page)
-;; (define-key ctl-x-map "p" 'narrow-to-page)
 
 (defvar-keymap abbrev-map
   :doc "Keymap for abbrev commands."
@@ -1485,16 +1482,11 @@ if `inhibit-field-text-motion' is non-nil."
   "+"   #'add-mode-abbrev
   "i g" #'inverse-add-global-abbrev
   "i l" #'inverse-add-mode-abbrev
-  ;; "C-h" #'inverse-add-global-abbrev
   "-"   #'inverse-add-global-abbrev
   "e"   #'expand-abbrev
   "'"   #'expand-abbrev)
 (define-key ctl-x-map "a" abbrev-map)
 
-;; (define-key ctl-x-map "\C-a" 'add-mode-abbrev)
-;; (define-key ctl-x-map "+" 'add-global-abbrev)
-;; (define-key ctl-x-map "\C-h" 'inverse-add-mode-abbrev)
-;; (define-key ctl-x-map "-" 'inverse-add-global-abbrev)
 (define-key esc-map "'" 'abbrev-prefix-mark)
 (define-key ctl-x-map "'" 'expand-abbrev)
 (define-key ctl-x-map "\C-b" 'list-buffers)
