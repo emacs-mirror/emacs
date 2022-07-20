@@ -1243,14 +1243,31 @@ or t (process is stopped).  */)
   return XPROCESS (process)->command;
 }
 
-DEFUN ("process-tty-name", Fprocess_tty_name, Sprocess_tty_name, 1, 1, 0,
+DEFUN ("process-tty-name", Fprocess_tty_name, Sprocess_tty_name, 1, 2, 0,
        doc: /* Return the name of the terminal PROCESS uses, or nil if none.
 This is the terminal that the process itself reads and writes on,
-not the name of the pty that Emacs uses to talk with that terminal.  */)
-  (register Lisp_Object process)
+not the name of the pty that Emacs uses to talk with that terminal.
+
+If STREAM is nil, return the terminal name if any of PROCESS's
+standard streams use a terminal for communication.  If STREAM is one
+of `stdin', `stdout', or `stderr', return the name of the terminal
+PROCESS uses for that stream specifically, or nil if that stream
+communicates via a pipe.  */)
+  (register Lisp_Object process, Lisp_Object stream)
 {
   CHECK_PROCESS (process);
-  return XPROCESS (process)->tty_name;
+  register struct Lisp_Process *p = XPROCESS (process);
+
+  if (NILP (stream))
+    return p->tty_name;
+  else if (EQ (stream, Qstdin))
+    return p->pty_in ? p->tty_name : Qnil;
+  else if (EQ (stream, Qstdout))
+    return p->pty_out ? p->tty_name : Qnil;
+  else if (EQ (stream, Qstderr))
+    return p->pty_out && NILP (p->stderrproc) ? p->tty_name : Qnil;
+  else
+    signal_error ("Unknown stream", stream);
 }
 
 static void

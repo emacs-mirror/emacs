@@ -1243,15 +1243,24 @@ that are already closed, the value is either 0 or 256, depending on
 whether the connection was closed normally or abnormally.
 @end defun
 
-@defun process-tty-name process
+@defun process-tty-name process &optional stream
 This function returns the terminal name that @var{process} is using for
 its communication with Emacs---or @code{nil} if it is using pipes
 instead of a pty (see @code{process-connection-type} in
-@ref{Asynchronous Processes}).  If @var{process} represents a program
-running on a remote host, the terminal name used by that program on
-the remote host is provided as process property @code{remote-tty}.  If
-@var{process} represents a network, serial, or pipe connection, the
-value is @code{nil}.
+@ref{Asynchronous Processes}).  By default, this function returns the
+terminal name if any of @var{process}'s standard streams use a
+terminal.  If @var{stream} is one of @code{stdin}, @code{stdout}, or
+@code{stderr}, this function returns the terminal name (or @code{nil},
+as above) that @var{process} uses for that stream specifically.  You
+can use this to determine whether a particular stream uses a pipe or a
+pty.
+
+If @var{process} represents a program running on a remote host, this
+function returns the @emph{local} terminal name that communicates with
+@var{process}; you can get the terminal name used by that program on
+the remote host with the process property @code{remote-tty}.  If
+@var{process} represents a network, serial, or pipe connection, this
+function always returns @code{nil}.
 @end defun
 
 @defun process-coding-system process

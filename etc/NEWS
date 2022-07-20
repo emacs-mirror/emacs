@@ -3333,7 +3333,10 @@ invocation.  Such shells are POSIX conformant by default.
 ** 'make-process' can set connection type independently for input and output.
 When calling 'make-process', communication via pty can be enabled
 selectively for just input or output by passing a cons cell for
-':connection-type', e.g. '(pipe . pty)'.
+':connection-type', e.g. '(pipe . pty)'.  When examining a process
+later, you can determine whether a particular stream for a process
+uses a pty by passing one of 'stdin', 'stdout', or 'stderr' as the
+second argument to 'process-tty-name'.
 
 +++
 ** 'signal-process' now consults the list 'signal-process-functions'.

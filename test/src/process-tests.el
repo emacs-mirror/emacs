@@ -294,6 +294,9 @@ should be a TTY, respectively."
                                        "if [ -t 2 ]; then echo stderr; fi"))
                 :buffer stdout-buffer
                 args)))
+    (should (eq (and (process-tty-name proc 'stdin) t) (nth 0 ttys)))
+    (should (eq (and (process-tty-name proc 'stdout) t) (nth 1 ttys)))
+    (should (eq (and (process-tty-name proc 'stderr) t) (nth 2 ttys)))
     (process-test-wait-for-sentinel proc 0)
     (should (equal (with-current-buffer stdout-buffer (buffer-string))
                    expected-output))))

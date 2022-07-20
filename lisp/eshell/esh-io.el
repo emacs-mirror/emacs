@@ -276,18 +276,21 @@ STATUS should be non-nil on successful termination of the output."
    ;; If we're redirecting to a process (via a pipe, or process
    ;; redirection), send it EOF so that it knows we're finished.
    ((eshell-processp target)
-    ;; According to POSIX.1-2017, section 11.1.9, sending EOF causes
-    ;; all bytes waiting to be read to be sent to the process
-    ;; immediately.  Thus, if there are any bytes waiting, we need to
-    ;; send EOF twice: once to flush the buffer, and a second time to
-    ;; cause the next read() to return a size of 0, indicating
-    ;; end-of-file to the reading process.  However, some platforms
-    ;; (e.g. Solaris) actually require sending a *third* EOF.  Since
-    ;; sending extra EOFs while the process is running shouldn't break
-    ;; anything, we'll just send the maximum we'd ever need.  See
-    ;; bug#56025 for further details.
-    (let ((i 0))
-      (while (and (<= (cl-incf i) 3)
+    ;; According to POSIX.1-2017, section 11.1.9, when communicating
+    ;; via terminal, sending EOF causes all bytes waiting to be read
+    ;; to be sent to the process immediately.  Thus, if there are any
+    ;; bytes waiting, we need to send EOF twice: once to flush the
+    ;; buffer, and a second time to cause the next read() to return a
+    ;; size of 0, indicating end-of-file to the reading process.
+    ;; However, some platforms (e.g. Solaris) actually require sending
+    ;; a *third* EOF.  Since sending extra EOFs while the process is
+    ;; running are a no-op, we'll just send the maximum we'd ever
+    ;; need.  See bug#56025 for further details.
+    (let ((i 0)
+          ;; Only call `process-send-eof' once if communicating via a
+          ;; pipe (in truth, this just closes the pipe).
+          (max-attempts (if (process-tty-name target 'stdin) 3 1)))
+      (while (and (<= (cl-incf i) max-attempts)
                   (eq (process-status target) 'run))
         (process-send-eof target))))
 
