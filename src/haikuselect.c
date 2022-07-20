@@ -37,6 +37,10 @@ struct frame *haiku_dnd_frame;
 /* Whether or not to move the tip frame during drag-and-drop.  */
 bool haiku_dnd_follow_tooltip;
 
+/* Whether or not the current DND frame is able to receive drops from
+   the current drag-and-drop operation.  */
+bool haiku_dnd_allow_same_frame;
+
 static void haiku_lisp_to_message (Lisp_Object, void *);
 
 static enum haiku_clipboard
@@ -830,6 +834,8 @@ currently being displayed to move along with the mouse pointer.  */)
 
   haiku_dnd_frame = f;
   haiku_dnd_follow_tooltip = !NILP (follow_tooltip);
+  haiku_dnd_allow_same_frame = !NILP (allow_same_frame);
+
   be_message = be_create_simple_message ();
 
   record_unwind_protect_ptr (haiku_unwind_drag_message, be_message);
@@ -1038,6 +1044,31 @@ haiku_note_drag_motion (void)
 }
 
 void
+haiku_note_drag_wheel (struct input_event *ie)
+{
+  bool horizontal, up;
+
+  up = false;
+  horizontal = false;
+
+  if (ie->modifiers & up_modifier)
+    up = true;
+
+  if (ie->kind == HORIZ_WHEEL_EVENT)
+    horizontal = true;
+
+  ie->kind = NO_EVENT;
+
+  if (!NILP (Vhaiku_drag_wheel_function)
+      && (haiku_dnd_allow_same_frame
+	  || XFRAME (ie->frame_or_window) != haiku_dnd_frame))
+    safe_call (6, Vhaiku_drag_wheel_function, ie->frame_or_window,
+	       ie->x, ie->y, horizontal ? Qt : Qnil, up ? Qt : Qnil);
+
+  redisplay_preserve_echo_area (35);
+}
+
+void
 init_haiku_select (void)
 {
   be_clipboard_init ();
@@ -1100,13 +1131,13 @@ void
 syms_of_haikuselect (void)
 {
   DEFVAR_BOOL ("haiku-signal-invalid-refs", haiku_signal_invalid_refs,
-     doc: /* If nil, silently ignore invalid file names in system messages.
+    doc: /* If nil, silently ignore invalid file names in system messages.
 Otherwise, an error will be signalled if adding a file reference to a
 system message failed.  */);
   haiku_signal_invalid_refs = true;
 
   DEFVAR_LISP ("haiku-drag-track-function", Vhaiku_drag_track_function,
-     doc: /* If non-nil, a function to call upon mouse movement while dragging a message.
+    doc: /* If non-nil, a function to call upon mouse movement while dragging a message.
 The function is called without any arguments.  `mouse-position' can be
 used to retrieve the current position of the mouse.  */);
   Vhaiku_drag_track_function = Qnil;
@@ -1115,6 +1146,16 @@ used to retrieve the current position of the mouse.  */);
     doc: /* A list of functions to be called when Emacs loses an X selection.
 These are only called if a connection to the Haiku display was opened.  */);
   Vhaiku_lost_selection_functions = Qnil;
+
+  DEFVAR_LISP ("haiku-drag-wheel-function", Vhaiku_drag_wheel_function,
+    doc: /* Function called upon wheel movement while dragging a message.
+If non-nil, it is called with 5 arguments when the mouse wheel moves
+while a drag-and-drop operation is in progress: the frame where the
+mouse moved, the frame-relative X and Y positions where the mouse
+moved, whether or not the wheel movement was horizontal, and whether
+or not the wheel moved up (or left, if the movement was
+horizontal).  */);
+  Vhaiku_drag_wheel_function = Qnil;
 
   DEFSYM (QSECONDARY, "SECONDARY");
   DEFSYM (QCLIPBOARD, "CLIPBOARD");

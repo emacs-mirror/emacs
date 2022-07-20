@@ -333,6 +333,7 @@ extern Lisp_Object haiku_popup_dialog (struct frame *, Lisp_Object, Lisp_Object)
 extern void haiku_activate_menubar (struct frame *);
 extern void haiku_wait_for_event (struct frame *, int);
 extern void haiku_note_drag_motion (void);
+extern void haiku_note_drag_wheel (struct input_event *);
 
 extern void initialize_frame_menubar (struct frame *);
 

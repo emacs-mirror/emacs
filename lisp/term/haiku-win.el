@@ -459,7 +459,59 @@ take effect on menu items until the menu bar is updated again."
                           message allow-current-frame
                           follow-tooltip))))
 
-(add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
+(add-variable-watcher 'use-system-tooltips
+                      #'haiku-use-system-tooltips-watcher)
+
+(defvar haiku-dnd-wheel-count nil
+  "Cons used to determine how many times the wheel has been turned.
+The car is just that; cdr is the timestamp of the last wheel
+movement.")
+
+(defun haiku-note-wheel-click (timestamp)
+  "Note that the mouse wheel was moved at TIMESTAMP during drag-and-drop.
+Return the number of clicks that were made in quick succession."
+  (if (not (integerp double-click-time))
+      1
+    (let ((cell haiku-dnd-wheel-count))
+      (unless cell
+        (setq cell (cons 0 timestamp))
+        (setq haiku-dnd-wheel-count cell))
+      (when (< (cdr cell) (- timestamp double-click-time))
+        (setcar cell 0))
+      (setcar cell (1+ (car cell)))
+      (setcdr cell timestamp)
+      (car cell))))
+
+(defvar haiku-drag-wheel-function)
+
+(defun haiku-handle-drag-wheel (frame x y horizontal up)
+  "Handle wheel movement during drag-and-drop.
+FRAME is the frame on top of which the wheel moved.
+X and Y are the frame-relative coordinates of the wheel movement.
+HORIZONTAL is whether or not the wheel movement was horizontal.
+UP is whether or not the wheel moved up (or left)."
+  ;; FIXME: redisplay is very slow after this.
+  (let ((function (cond
+                   ((and (not horizontal) up)
+                    mwheel-scroll-up-function)
+                   ((not horizontal)
+                    mwheel-scroll-down-function)
+                   (up (if mouse-wheel-flip-direction
+                           mwheel-scroll-right-function
+                         mwheel-scroll-left-function))
+                   (t (if mouse-wheel-flip-direction
+                          mwheel-scroll-left-function
+                        mwheel-scroll-right-function))))
+        (timestamp (time-convert nil 1000)))
+    (when function
+      (let ((posn (posn-at-x-y x y frame)))
+        (when (windowp (posn-window posn))
+          (with-selected-window (posn-window posn)
+            (funcall function
+                     (or (and (not mouse-wheel-progressive-speed) 1)
+                         (haiku-note-wheel-click (car timestamp))))))))))
+
+(setq haiku-drag-wheel-function #'haiku-handle-drag-wheel)
 
 
 ;;;; Session management.

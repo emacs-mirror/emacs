@@ -3867,6 +3867,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 				   : down_modifier);
 		py = 0.0f;
 		px = 0.0f;
+
+		if (be_drag_and_drop_in_progress ())
+		  haiku_note_drag_wheel (&inev);
 	      }
 
 	    break;

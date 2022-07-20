@@ -189,10 +189,6 @@ static BMessage volatile *popup_track_message;
    number.  */
 static int32 volatile alert_popup_value;
 
-/* The current window ID.  This is increased every time a frame is
-   created.  */
-static int current_window_id;
-
 /* The view that has the passive grab.  */
 static void *grab_view;
 
@@ -698,7 +694,6 @@ public:
 		   was_shown_p (false),
 		   menu_bar_active_p (false),
 		   override_redirect_p (false),
-		   window_id (current_window_id),
 		   menus_begun (NULL),
 		   z_group (Z_GROUP_NONE),
 		   tooltip_p (false),
@@ -941,12 +936,11 @@ public:
     if (msg->WasDropped ())
       {
 	BPoint whereto;
-	int32 windowid;
+	int64 threadid;
 	struct haiku_drag_and_drop_event rq;
 
-	if (msg->FindInt32 ("emacs:window_id", &windowid) == B_OK
-	    && !msg->IsSourceRemote ()
-	    && windowid == this->window_id)
+	if (msg->FindInt64 ("emacs:thread_id", &threadid) == B_OK
+	    && threadid == find_thread (NULL))
 	  return;
 
 	whereto = msg->DropPoint ();
@@ -1794,7 +1788,7 @@ public:
   MouseMoved (BPoint point, uint32 transit, const BMessage *drag_msg)
   {
     struct haiku_mouse_motion_event rq;
-    int32 windowid;
+    int64 threadid;
     EmacsWindow *window;
 
     window = (EmacsWindow *) Window ();
@@ -1810,9 +1804,9 @@ public:
     rq.time = system_time ();
 
     if (drag_msg && (drag_msg->IsSourceRemote ()
-		     || drag_msg->FindInt32 ("emacs:window_id",
-					     &windowid) != B_OK
-		     || windowid != window->window_id))
+		     || drag_msg->FindInt64 ("emacs:thread_id",
+					     &threadid) != B_OK
+		     || threadid != find_thread (NULL)))
       rq.dnd_message = true;
     else
       rq.dnd_message = false;
@@ -5046,13 +5040,17 @@ be_drag_message (void *view, void *message, bool allow_same_view,
   BMessage cancel_message (CANCEL_DROP);
   struct object_wait_info infos[2];
   ssize_t stat;
+  thread_id window_thread;
 
   block_input_function ();
 
-  if (!allow_same_view &&
-      (msg->ReplaceInt32 ("emacs:window_id", window->window_id)
-       == B_NAME_NOT_FOUND))
-    msg->AddInt32 ("emacs:window_id", window->window_id);
+  if (!allow_same_view)
+    window_thread = window->Looper ()->Thread ();
+
+  if (!allow_same_view
+      && (msg->ReplaceInt64 ("emacs:thread_id", window_thread)
+	  == B_NAME_NOT_FOUND))
+    msg->AddInt64 ("emacs:thread_id", window_thread);
 
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock view looper for drag");
