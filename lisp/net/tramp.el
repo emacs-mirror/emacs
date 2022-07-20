@@ -4315,7 +4315,7 @@ Return nil when there is no lockfile."
 	       (buffer-string))))))
 
 (defvar tramp-lock-pid nil
-  "A random nunber local for every connection.
+  "A random number local for every connection.
 Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 
 (defun tramp-get-lock-pid (file)
