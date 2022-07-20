@@ -1183,9 +1183,6 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (ash
    :eval (ash 1 4)
    :eval (ash 16 -1))
-  (lsh
-   :eval (lsh 1 4)
-   :eval (lsh 16 -1))
   (logand
    :no-eval "(logand #b10 #b111)"
    :result-string "#b10")

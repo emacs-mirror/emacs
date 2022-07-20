@@ -524,7 +524,10 @@ was called."
   "Return VALUE with its bits shifted left by COUNT.
 If COUNT is negative, shifting is actually to the right.
 In this case, if VALUE is a negative fixnum treat it as unsigned,
-i.e., subtract 2 * `most-negative-fixnum' from VALUE before shifting it."
+i.e., subtract 2 * `most-negative-fixnum' from VALUE before shifting it.
+
+This function is provided for compatibility.  In new code, use `ash'
+instead."
   (when (and (< value 0) (< count 0))
     (when (< value most-negative-fixnum)
       (signal 'args-out-of-range (list value count)))
