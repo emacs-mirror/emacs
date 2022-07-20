@@ -802,7 +802,8 @@ It is the default value of the variable `top-level'."
 	  ;; objects and regenerate them; currently we do not.  As a
 	  ;; workaround, we specifically reset the default face's :font
 	  ;; attribute here, if it was rescaled.  See bug#1785.
-	  (when (and (not (eq face-font-rescale-alist
+	  (when (and (display-multi-font-p)
+                     (not (eq face-font-rescale-alist
 		              old-face-font-rescale-alist))
                      (assoc (font-xlfd-name (face-attribute 'default :font))
                             face-font-rescale-alist #'string-match-p))
@@ -2845,7 +2846,8 @@ nil default-directory" name)
 
         ;; See the commentary in `normal-top-level' for why we do
         ;; this.
-	(when (and (not (eq face-font-rescale-alist
+	(when (and (display-multi-font-p)
+                   (not (eq face-font-rescale-alist
 		            old-face-font-rescale-alist))
                    (assoc (font-xlfd-name (face-attribute 'default :font))
                           face-font-rescale-alist #'string-match-p))
