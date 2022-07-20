@@ -467,6 +467,11 @@ take effect on menu items until the menu bar is updated again."
 The car is just that; cdr is the timestamp of the last wheel
 movement.")
 
+(defvar haiku-last-wheel-direction nil
+  "Cons of two elements describing the direction the wheel last turned.
+The car is whether or not the movement was horizontal.
+The cdr is whether or not the movement was upwards or leftwards.")
+
 (defun haiku-note-wheel-click (timestamp)
   "Note that the mouse wheel was moved at TIMESTAMP during drag-and-drop.
 Return the number of clicks that were made in quick succession."
@@ -490,15 +495,20 @@ FRAME is the frame on top of which the wheel moved.
 X and Y are the frame-relative coordinates of the wheel movement.
 HORIZONTAL is whether or not the wheel movement was horizontal.
 UP is whether or not the wheel moved up (or left)."
-  ;; FIXME: redisplay is very slow after this.
+  (when (not (equal haiku-last-wheel-direction
+                    (cons horizontal up)))
+    (setq haiku-last-wheel-direction
+          (cons horizontal up))
+    (when (consp haiku-dnd-wheel-count)
+      (setcar haiku-dnd-wheel-count 0)))
   (let ((function (cond
-                   ((and (not horizontal) up)
+                   ((and (not horizontal) (not up))
                     mwheel-scroll-up-function)
                    ((not horizontal)
                     mwheel-scroll-down-function)
-                   (up (if mouse-wheel-flip-direction
-                           mwheel-scroll-right-function
-                         mwheel-scroll-left-function))
+                   ((not up) (if mouse-wheel-flip-direction
+                                 mwheel-scroll-right-function
+                               mwheel-scroll-left-function))
                    (t (if mouse-wheel-flip-direction
                           mwheel-scroll-left-function
                         mwheel-scroll-right-function))))
