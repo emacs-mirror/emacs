@@ -63,7 +63,7 @@
 (eval-when-compile (require 'cl-generic))
 
 ;;; Code:
-(defvar chart-mode-map (make-sparse-keymap) "Keymap used in chart mode.")
+(defvar-keymap chart-mode-map :doc "Keymap used in chart mode.")
 
 (defvar-local chart-local-object nil
   "Local variable containing the locally displayed chart object.")

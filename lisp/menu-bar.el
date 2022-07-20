@@ -47,7 +47,7 @@
 
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.
-(defvar global-buffers-menu-map (make-sparse-keymap "Buffers"))
+(defvar-keymap global-buffers-menu-map :name "Buffers")
 
 (defvar menu-bar-print-menu
   (let ((menu (make-sparse-keymap "Print")))
@@ -680,7 +680,7 @@ Do the same for the keys of the same name."
       '(menu-item "Custom Themes" customize-themes
                   :help "Choose a pre-defined customization theme"))
     menu))
-;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
+;(defvar-keymap menu-bar-preferences-menu :name "Preferences")
 
 (defmacro menu-bar-make-mm-toggle (fname doc help &optional props)
   "Make a menu-item for a global minor mode toggle.

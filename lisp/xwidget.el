@@ -965,7 +965,7 @@ You can retrieve the value with `xwidget-get'."
   (set-xwidget-plist xwidget
                      (plist-put (xwidget-plist xwidget) propname value)))
 
-(defvar xwidget-webkit-edit-mode-map (make-keymap))
+(defvar-keymap xwidget-webkit-edit-mode-map :full t)
 
 (define-key xwidget-webkit-edit-mode-map [backspace] 'xwidget-webkit-pass-command-event)
 (define-key xwidget-webkit-edit-mode-map [tab] 'xwidget-webkit-pass-command-event)
@@ -1111,8 +1111,9 @@ With argument, add COUNT copies of CHAR."
   (interactive)
   (xwidget-webkit-isearch-mode 0))
 
-(defvar xwidget-webkit-isearch-mode-map (make-keymap)
-  "The keymap used inside xwidget-webkit-isearch-mode.")
+(defvar-keymap xwidget-webkit-isearch-mode-map
+  :doc "The keymap used inside `xwidget-webkit-isearch-mode'."
+  :full t)
 
 (set-char-table-range (nth 1 xwidget-webkit-isearch-mode-map)
                       (cons 0 (max-char))

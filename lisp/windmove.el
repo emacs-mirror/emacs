@@ -445,8 +445,8 @@ unless `windmove-create-window' is non-nil and a new window is created."
 ;; I don't think these bindings will work on non-X terminals; you
 ;; probably want to use different bindings in that case.
 
-(defvar windmove-mode-map (make-sparse-keymap)
-  "Map used by `windmove-install-defaults'.")
+(defvar-keymap windmove-mode-map
+  :doc "Map used by `windmove-install-defaults'.")
 
 ;;;###autoload
 (define-minor-mode windmove-mode

@@ -79,9 +79,9 @@ If nil, C-h gets the usual Vi bindings."
 
 ;; Keymaps for vital things like \e and C-z.
 ;; Not for users
-(defvar viper-vi-intercept-map (make-sparse-keymap))
-(defvar viper-insert-intercept-map (make-sparse-keymap))
-(defvar viper-emacs-intercept-map (make-sparse-keymap))
+(defvar-keymap viper-vi-intercept-map)
+(defvar-keymap viper-insert-intercept-map)
+(defvar-keymap viper-emacs-intercept-map)
 
 (defvar-local viper-vi-local-user-map (make-sparse-keymap)
   "Keymap for user-defined local bindings.
@@ -91,60 +91,62 @@ For instance, in letter-mode, one may want to bind ZZ to
 to `save-buffers-kill-emacs' then post article, etc.")
 (put 'viper-vi-local-user-map 'permanent-local t)
 
-(defvar viper-vi-global-user-map (make-sparse-keymap)
-  "Keymap for user-defined global bindings.
+(defvar-keymap viper-vi-global-user-map
+  :doc "Keymap for user-defined global bindings.
 These bindings are seen in all Viper buffers.")
 
-(defvar viper-vi-basic-map (make-keymap)
-  "This is the main keymap in effect in Viper's Vi state.
-This map is global, shared by all buffers.")
+(defvar-keymap viper-vi-basic-map
+  :doc "This is the main keymap in effect in Viper's Vi state.
+This map is global, shared by all buffers."
+  :full t)
 
-(defvar  viper-vi-kbd-map (make-sparse-keymap)
-  "This keymap keeps keyboard macros defined via the :map command.")
+(defvar-keymap viper-vi-kbd-map
+  :doc "This keymap keeps keyboard macros defined via the :map command.")
 
-(defvar viper-vi-diehard-map (make-sparse-keymap)
-  "This keymap is in use when the user asks Viper to simulate Vi very closely.
-This happens when viper-expert-level is 1 or 2.  See viper-set-expert-level.")
+(defvar-keymap viper-vi-diehard-map
+  :doc "This keymap is in use when the user asks Viper to simulate Vi very closely.
+This happens when `viper-expert-level' is 1 or 2.  See `viper-set-expert-level'.")
 
 
 (defvar-local viper-insert-local-user-map (make-sparse-keymap)
   "Auxiliary map for per-buffer user-defined keybindings in Insert state.")
 (put 'viper-insert-local-user-map 'permanent-local t)
 
-(defvar viper-insert-global-user-map (make-sparse-keymap)
-  "Auxiliary map for global user-defined bindings in Insert state.")
+(defvar-keymap viper-insert-global-user-map
+  :doc "Auxiliary map for global user-defined bindings in Insert state.")
 
-(defvar viper-insert-basic-map (make-sparse-keymap)
-  "The basic insert-mode keymap.")
+(defvar-keymap viper-insert-basic-map
+  :doc "The basic insert-mode keymap.")
 
-(defvar viper-insert-diehard-map (make-keymap)
-  "Map used when user wants vi-style keys in insert mode.
+(defvar-keymap viper-insert-diehard-map
+  :doc "Map used when user wants vi-style keys in insert mode.
 Most of the Emacs keys are suppressed.  This map overshadows
-viper-insert-basic-map.  Not recommended, except for novice users.")
+`viper-insert-basic-map'.  Not recommended, except for novice users."
+  :full t)
 
-(defvar  viper-insert-kbd-map  (make-sparse-keymap)
-  "This keymap keeps VI-style kbd macros for insert mode.")
+(defvar-keymap viper-insert-kbd-map
+  :doc "This keymap keeps VI-style kbd macros for insert mode.")
 
-(defvar viper-replace-map (make-sparse-keymap)
-  "Map used in Viper's replace state.")
+(defvar-keymap viper-replace-map
+  :doc "Map used in Viper's replace state.")
 
-(defvar viper-emacs-global-user-map (make-sparse-keymap)
-  "Auxiliary map for global user-defined bindings in Emacs state.")
+(defvar-keymap viper-emacs-global-user-map
+  :doc "Auxiliary map for global user-defined bindings in Emacs state.")
 
-(defvar  viper-emacs-kbd-map  (make-sparse-keymap)
-  "This keymap keeps Vi-style kbd macros for Emacs mode.")
+(defvar-keymap viper-emacs-kbd-map
+  :doc "This keymap keeps Vi-style kbd macros for Emacs mode.")
 
 (defvar-local viper-emacs-local-user-map  (make-sparse-keymap)
   "Auxiliary map for local user-defined bindings in Emacs state.")
 (put 'viper-emacs-local-user-map 'permanent-local t)
 
 ;; This keymap should stay empty
-(defvar viper-empty-keymap (make-sparse-keymap))
+(defvar-keymap viper-empty-keymap)
 
 ;; This was the main Vi mode in old versions of VIP which may have been
 ;; extensively used by VIP users.  We declare it as a global var and, after
 ;; viper-custom-file-name is loaded, we add this keymap to viper-vi-basic-map.
-(defvar viper-mode-map (make-sparse-keymap))
+(defvar-keymap viper-mode-map)
 
 ;; Some important keys used in viper
 (defcustom viper-toggle-key [(control ?z)]  ; "\C-z"
@@ -442,41 +444,41 @@ In insert mode, this key also functions as Meta."
 ;;; Minibuffer keymap
 
 
-(defvar viper-minibuffer-map (make-sparse-keymap)
-  "Keymap used to modify keys when Minibuffer is in Insert state.")
+(defvar-keymap viper-minibuffer-map
+  :doc "Keymap used to modify keys when Minibuffer is in Insert state.")
 
 (define-key viper-minibuffer-map "\C-m" 'viper-exit-minibuffer)
 (define-key viper-minibuffer-map "\C-j" 'viper-exit-minibuffer)
 
 ;; Map used to read Ex-style commands.
-(defvar viper-ex-cmd-map (make-sparse-keymap))
+(defvar-keymap viper-ex-cmd-map)
 (define-key viper-ex-cmd-map " "  'ex-cmd-read-exit)
 (define-key viper-ex-cmd-map "\t" 'ex-cmd-complete)
 
 ;; Keymap for reading file names in Ex-style commands.
-(defvar ex-read-filename-map (make-sparse-keymap))
+(defvar-keymap ex-read-filename-map)
 (define-key ex-read-filename-map " " 'viper-complete-filename-or-exit)
 (define-key ex-read-filename-map "!" 'viper-handle-!)
 
 ;; Some other maps
-(defvar viper-slash-and-colon-map (make-sparse-keymap)
-  "This map redefines `/' and `:' to behave as in Vi.
+(defvar-keymap viper-slash-and-colon-map
+  :doc "This map redefines \\`/' and \\`:' to behave as in Vi.
 Useful in some modes, such as Gnus, MH, etc.")
 (define-key viper-slash-and-colon-map ":" 'viper-ex)
 (define-key viper-slash-and-colon-map "/" 'viper-search-forward)
 
-(defvar viper-comint-mode-modifier-map (make-sparse-keymap)
-  "This map modifies comint mode.")
+(defvar-keymap viper-comint-mode-modifier-map
+  :doc "This map modifies comint mode.")
 (define-key viper-comint-mode-modifier-map "\C-m" 'viper-exec-key-in-emacs)
 (define-key viper-comint-mode-modifier-map "\C-d" 'viper-exec-key-in-emacs)
 
-(defvar viper-dired-modifier-map (make-sparse-keymap)
-  "This map modifies Dired behavior.")
+(defvar-keymap viper-dired-modifier-map
+  :doc "This map modifies Dired behavior.")
 (define-key viper-dired-modifier-map ":" 'viper-ex)
 (define-key viper-dired-modifier-map "/" 'viper-search-forward)
 
-(defvar viper-gnus-modifier-map (make-sparse-keymap)
-  "This map modifies Gnus behavior.")
+(defvar-keymap viper-gnus-modifier-map
+  :doc "This map modifies Gnus behavior.")
 (define-key viper-gnus-modifier-map ":" 'viper-ex)
 
 

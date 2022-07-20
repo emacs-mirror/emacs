@@ -2190,7 +2190,7 @@ as the constructs of Haddock, Javadoc and similar systems."
 ;;;;;###autoload
 ;;(progn
 ;;  ;; Make the Font Lock menu.
-;;  (defvar font-lock-menu (make-sparse-keymap "Syntax Highlighting"))
+;;  (defvar-keymap font-lock-menu :name "Syntax Highlighting")
 ;;  ;; Add the menu items in reverse order.
 ;;  (define-key font-lock-menu [fontify-less]
 ;;    '("Less In Current Buffer" . font-lock-fontify-less))

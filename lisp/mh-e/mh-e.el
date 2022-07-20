@@ -163,8 +163,9 @@ User's mail folder directory.")
 
 ;; Maps declared here so that they can be used in docstrings.
 
-(defvar mh-folder-mode-map (make-keymap)
-  "Keymap for MH-Folder mode.")
+(defvar-keymap mh-folder-mode-map
+  :doc "Keymap for MH-Folder mode."
+  :full t)
 
 (defvar mh-folder-seq-tool-bar-map nil
   "Keymap for MH-Folder tool bar.")
@@ -172,8 +173,8 @@ User's mail folder directory.")
 (defvar mh-folder-tool-bar-map nil
   "Keymap for MH-Folder tool bar.")
 
-(defvar mh-inc-spool-map (make-sparse-keymap)
-  "Keymap for MH-E's mh-inc-spool commands.")
+(defvar-keymap mh-inc-spool-map
+  :doc "Keymap for MH-E's mh-inc-spool commands.")
 
 (defvar mh-letter-mode-map (copy-keymap text-mode-map)
   "Keymap for MH-Letter mode.")
@@ -181,11 +182,11 @@ User's mail folder directory.")
 (defvar mh-letter-tool-bar-map nil
   "Keymap for MH-Letter tool bar.")
 
-(defvar mh-search-mode-map (make-sparse-keymap)
-  "Keymap for MH-Search mode.")
+(defvar-keymap mh-search-mode-map
+  :doc "Keymap for MH-Search mode.")
 
-(defvar mh-show-mode-map (make-sparse-keymap)
-  "Keymap MH-Show mode.")
+(defvar-keymap mh-show-mode-map
+  :doc "Keymap for MH-Show mode.")
 
 (defvar mh-show-seq-tool-bar-map nil
   "Keymap for MH-Show tool bar.")

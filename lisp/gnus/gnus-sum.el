@@ -12929,7 +12929,7 @@ treated as multipart/mixed."
     (expirable gnus-expirable-mark "e"))
   "An alist of names/marks/keystrokes.")
 
-(defvar gnus-summary-generic-mark-map (make-sparse-keymap))
+(defvar-keymap gnus-summary-generic-mark-map)
 (defvar gnus-summary-mark-map)
 
 (defun gnus-summary-make-all-marking-commands ()

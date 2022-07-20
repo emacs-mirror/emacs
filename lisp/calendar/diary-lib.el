@@ -2465,8 +2465,8 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
       (setq end (line-beginning-position 2)))
   (font-lock-default-fontify-region beg end verbose))
 
-(defvar diary-fancy-overriding-map (make-sparse-keymap)
-  "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
+(defvar-keymap diary-fancy-overriding-map
+  :doc "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
 
 (define-derived-mode diary-fancy-display-mode special-mode
   "Diary"
