@@ -19295,15 +19295,16 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       && !current_buffer->long_line_optimizations_p
       && MODIFF - UNCHANGED_MODIFIED > 8)
     {
-      ptrdiff_t cur, next, found, max = 0;
+      ptrdiff_t cur, next, found, max = 0, threshold;
+      threshold = XFIXNUM (Vlong_line_threshold);
       for (cur = 1; cur < Z; cur = next)
 	{
 	  next = find_newline1 (cur, CHAR_TO_BYTE (cur), 0, -1, 1,
 				&found, NULL, true);
 	  if (next - cur > max) max = next - cur;
-	  if (!found || max > XFIXNUM (Vlong_line_threshold)) break;
+	  if (!found || max > threshold) break;
 	}
-      if (max > XFIXNUM (Vlong_line_threshold))
+      if (max > threshold)
 	current_buffer->long_line_optimizations_p = true;
     }
 
