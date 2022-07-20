@@ -122,9 +122,9 @@ xlwMenuResources[] =
   {XtNbuttonForeground, XtCButtonForeground, XtRPixel, sizeof(Pixel),
      offset(menu.button_foreground), XtRString, "XtDefaultForeground"},
   {XtNhighlightForeground, XtCHighlightForeground, XtRPixel, sizeof(Pixel),
-   offset(menu.highlight_foreground), XtRString, "XtDefaultForeground"},
+     offset(menu.highlight_foreground), XtRImmediate, (XtPointer) -1},
   {XtNhighlightBackground, XtCHighlightBackground, XtRPixel, sizeof(Pixel),
-   offset(menu.highlight_background), XtRImmediate, (XtPointer)-1},
+     offset(menu.highlight_background), XtRImmediate, (XtPointer)-1},
   {XtNmargin, XtCMargin, XtRDimension,  sizeof(Dimension),
      offset(menu.margin), XtRImmediate, (XtPointer)1},
   {XtNhorizontalSpacing, XtCMargin, XtRDimension,  sizeof(Dimension),
@@ -1126,9 +1126,7 @@ display_menu_item (XlwMenuWidget mw,
 #endif
 
       if (separator_p)
-	{
-	  draw_separator (mw, ws->pixmap, x, y, width, separator);
-	}
+	draw_separator (mw, ws->pixmap, x, y, width, separator);
       else
 	{
 	  int x_offset = x + h_spacing + shadow;
@@ -1724,7 +1722,7 @@ map_event_to_widget_value (XlwMenuWidget mw,
   return False;
 }
 
-/* Procedures */
+
 static void
 make_drawing_gcs (XlwMenuWidget mw)
 {
@@ -1796,7 +1794,9 @@ make_drawing_gcs (XlwMenuWidget mw)
   xgcv.background = mw->menu.foreground;
   mw->menu.background_gc = XtGetGC ((Widget)mw, mask, &xgcv);
 
-  xgcv.foreground = mw->menu.highlight_foreground;
+  xgcv.foreground = ((mw->menu.highlight_foreground == -1)
+		     ? mw->menu.foreground
+		     : mw->menu.highlight_foreground);
   xgcv.background = ((mw->menu.highlight_background == -1)
 		     ? mw->core.background_pixel
 		     : mw->menu.highlight_background);
@@ -1949,6 +1949,12 @@ make_shadow_gcs (XlwMenuWidget mw)
 {
   XGCValues xgcv;
   unsigned long pm = 0;
+  Pixel highlight_fg;
+
+  highlight_fg = mw->menu.highlight_foreground;
+
+  if (highlight_fg == -1)
+    highlight_fg = mw->menu.foreground;
 
   /* Normal shadows */
   compute_shadow_colors (mw, &(mw->menu.top_shadow_color),
@@ -1966,8 +1972,7 @@ make_shadow_gcs (XlwMenuWidget mw)
 			 &(mw->menu.free_bottom_highlight_shadow_color_p),
 			 &(mw->menu.top_highlight_shadow_pixmap),
 			 &(mw->menu.bottom_highlight_shadow_pixmap),
-			 mw->menu.highlight_foreground,
-			 mw->menu.highlight_background);
+			 highlight_fg, mw->menu.highlight_background);
 
   xgcv.fill_style = FillStippled;
   xgcv.foreground = mw->menu.top_shadow_color;
@@ -1990,7 +1995,6 @@ make_shadow_gcs (XlwMenuWidget mw)
   pm = (xgcv.stipple ? GCStipple | GCFillStyle : 0);
   mw->menu.highlight_shadow_bottom_gc = XtGetGC ((Widget) mw, GCForeground | pm, &xgcv);
 }
-
 
 static void
 release_shadow_gcs (XlwMenuWidget mw)
@@ -2055,6 +2059,46 @@ openXftFont (XlwMenuWidget mw)
   if (fname != mw->menu.fontName) xfree (fname);
 
   return mw->menu.xft_font != 0;
+}
+
+static void
+update_xft_colors (Widget w)
+{
+  XlwMenuWidget mw;
+  XColor colors[4];
+
+  mw = (XlwMenuWidget) w;
+
+  colors[0].pixel = mw->menu.xft_fg.pixel
+    = mw->menu.foreground;
+  colors[1].pixel = mw->menu.xft_bg.pixel
+    = mw->core.background_pixel;
+  colors[2].pixel = mw->menu.xft_disabled_fg.pixel
+    = mw->menu.disabled_foreground;
+  colors[3].pixel = mw->menu.xft_highlight_fg.pixel
+    = (mw->menu.highlight_foreground != -1
+       ? mw->menu.highlight_foreground
+       : mw->menu.foreground);
+
+  XQueryColors (XtDisplay (mw), mw->core.colormap,
+		colors, 4);
+
+  mw->menu.xft_fg.color.alpha = 0xFFFF;
+  mw->menu.xft_fg.color.red = colors[0].red;
+  mw->menu.xft_fg.color.green = colors[0].green;
+  mw->menu.xft_fg.color.blue = colors[0].blue;
+  mw->menu.xft_bg.color.alpha = 0xFFFF;
+  mw->menu.xft_bg.color.red = colors[1].red;
+  mw->menu.xft_bg.color.green = colors[1].green;
+  mw->menu.xft_bg.color.blue = colors[1].blue;
+  mw->menu.xft_disabled_fg.color.alpha = 0xFFFF;
+  mw->menu.xft_disabled_fg.color.red = colors[2].red;
+  mw->menu.xft_disabled_fg.color.green = colors[2].green;
+  mw->menu.xft_disabled_fg.color.blue = colors[2].blue;
+  mw->menu.xft_highlight_fg.color.alpha = 0xFFFF;
+  mw->menu.xft_highlight_fg.color.red = colors[3].red;
+  mw->menu.xft_highlight_fg.color.green = colors[3].green;
+  mw->menu.xft_highlight_fg.color.blue = colors[3].blue;
 }
 #endif
 
@@ -2175,32 +2219,7 @@ XlwMenuRealize (Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 
 #if defined USE_CAIRO || defined HAVE_XFT
   if (mw->menu.xft_font)
-    {
-      XColor colors[4];
-      colors[0].pixel = mw->menu.xft_fg.pixel = mw->menu.foreground;
-      colors[1].pixel = mw->menu.xft_bg.pixel = mw->core.background_pixel;
-      colors[2].pixel = mw->menu.xft_disabled_fg.pixel
-        = mw->menu.disabled_foreground;
-      colors[3].pixel = mw->menu.xft_highlight_fg.pixel
-	= mw->menu.highlight_foreground;
-      XQueryColors (XtDisplay (mw), mw->core.colormap, colors, 4);
-      mw->menu.xft_fg.color.alpha = 0xFFFF;
-      mw->menu.xft_fg.color.red = colors[0].red;
-      mw->menu.xft_fg.color.green = colors[0].green;
-      mw->menu.xft_fg.color.blue = colors[0].blue;
-      mw->menu.xft_bg.color.alpha = 0xFFFF;
-      mw->menu.xft_bg.color.red = colors[1].red;
-      mw->menu.xft_bg.color.green = colors[1].green;
-      mw->menu.xft_bg.color.blue = colors[1].blue;
-      mw->menu.xft_disabled_fg.color.alpha = 0xFFFF;
-      mw->menu.xft_disabled_fg.color.red = colors[2].red;
-      mw->menu.xft_disabled_fg.color.green = colors[2].green;
-      mw->menu.xft_disabled_fg.color.blue = colors[2].blue;
-      mw->menu.xft_highlight_fg.color.alpha = 0xFFFF;
-      mw->menu.xft_highlight_fg.color.red = colors[3].red;
-      mw->menu.xft_highlight_fg.color.green = colors[3].green;
-      mw->menu.xft_highlight_fg.color.blue = colors[3].blue;
-    }
+    update_xft_colors (w);
 #endif
 }
 
@@ -2368,6 +2387,12 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 	    XClearArea (XtDisplay (oldmw), oldmw->menu.windows[i].window,
 			0, 0, 0, 0, True);
 	  }
+
+      /* Colors changed.  Update the Xft colors as well.  */
+#if defined USE_CAIRO || defined HAVE_XFT
+      if (oldmw->menu.xft_font)
+	update_xft_colors (new);
+#endif
     }
 
 #if defined USE_CAIRO || defined HAVE_XFT
