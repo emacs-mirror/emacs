@@ -20418,11 +20418,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      dnd_state = xi_convert_event_state (xev);
 
 		      if (x_dnd_last_window_is_frame)
-			x_dnd_note_self_wheel (dpyinfo,
-					       x_dnd_last_seen_window,
-					       xev->root_x, xev->root_y,
-					       xev->detail, dnd_state,
-					       xev->time);
+			{
+#ifdef XI_PointerEmulated
+			  /* Set the last user time here even if this
+			     is an emulated button event, since
+			     something happened in response.  */
+
+			  if (xev->flags & XIPointerEmulated)
+			    x_display_set_last_user_time (dpyinfo, xev->time,
+							  xev->send_event);
+#endif
+			  x_dnd_note_self_wheel (dpyinfo,
+						 x_dnd_last_seen_window,
+						 xev->root_x, xev->root_y,
+						 xev->detail, dnd_state,
+						 xev->time);
+			}
 		      else
 			x_dnd_send_position (x_dnd_frame,
 					     x_dnd_last_seen_window,
@@ -20431,7 +20442,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					     xev->time, x_dnd_wanted_action,
 					     xev->detail, dnd_state);
 
-		      goto XI_OTHER;
+		      goto OTHER;
 		    }
 
 		  if (xev->evtype == XI_ButtonRelease)
