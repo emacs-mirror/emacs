@@ -19293,7 +19293,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* Check whether the buffer to be displayed contains long lines.  */
   if (!NILP (Vlong_line_threshold)
       && !current_buffer->long_line_optimizations_p
-      && MODIFF - UNCHANGED_MODIFIED > 4)
+      && MODIFF - UNCHANGED_MODIFIED > 8)
     {
       ptrdiff_t cur, next, found, max = 0;
       for (cur = 1; cur < Z; cur = next)

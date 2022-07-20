@@ -4010,7 +4010,7 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
   bset_redisplay (buf);
 
-  modiff_incr (&BUF_OVERLAY_MODIFF (buf), end - start);
+  modiff_incr (&BUF_OVERLAY_MODIFF (buf), 1);
 }
 
 /* Remove OVERLAY from LIST.  */

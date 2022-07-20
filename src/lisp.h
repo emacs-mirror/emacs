@@ -3914,6 +3914,9 @@ INLINE modiff_count
 modiff_incr (modiff_count *a, ptrdiff_t len)
 {
   modiff_count a0 = *a; int incr = len ? 1 : 0;
+  /* Increase the counter more for a large modification and less for a
+     small modification.  Increase it logarithmically to avoid
+     increasing it too much.  */
   while (len >>= 1) incr++;
   bool modiff_overflow = INT_ADD_WRAPV (a0, incr, a);
   eassert (!modiff_overflow && *a >> 30 >> 30 == 0);

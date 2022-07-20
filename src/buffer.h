@@ -237,9 +237,10 @@ struct buffer_text
     ptrdiff_t z_byte;		/* Byte pos of end of buffer.  */
     ptrdiff_t gap_size;		/* Size of buffer's gap.  */
     modiff_count modiff;	/* This counts buffer-modification events
-				   for this buffer.  It is incremented for
-				   each such event, and never otherwise
-				   changed.  */
+				   for this buffer.  It is increased
+				   logarithmically to the extent of the
+				   modification for each such event,
+				   and never otherwise changed.  */
     modiff_count chars_modiff;	/* This is modified with character change
 				   events for this buffer.  It is set to
 				   modiff for each such event, and never
