@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
-;; Author: Andy Norman (ange@hplb.hpl.hp.com)
+;; Author: Andy Norman <ange@hplb.hpl.hp.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm
 

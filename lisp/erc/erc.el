@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
-;; Author: Alexander L. Belikoff (alexander@belikoff.net)
+;; Author: Alexander L. Belikoff <alexander@belikoff.net>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
 ;;               Mario Lang (mlang@delysid.org),

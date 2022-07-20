@@ -1,11 +1,11 @@
 ;;; xwidget.el --- api functions for xwidgets  -*- lexical-binding: t -*-
-;;
+
 ;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
-;;
-;; Author: Joakim Verona (joakim@verona.se)
-;;
+
+;; Author: Joakim Verona <joakim@verona.se>
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -18,8 +18,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;; --------------------------------------------------------------------
 
 ;;; Commentary:
 
