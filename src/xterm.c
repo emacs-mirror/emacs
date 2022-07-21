@@ -18670,6 +18670,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 MOVE_FRAME_EVENT later.  */
 	      kbd_buffer_store_event (&inev.ie);
 	      inev.ie.kind = NO_EVENT;
+
+	      /* Also update the position of the drag-and-drop
+		 tooltip.  */
+	      x_dnd_update_tooltip_now ();
 	    }
 #endif
 
