@@ -487,7 +487,7 @@ Used internally, only.")
   "DEL"     #'bs-unmark-previous
   ">"       #'scroll-right
   "<"       #'scroll-left
-  "?"       #'bs-help
+  "?"       #'describe-mode
   "<mouse-2>" #'bs-mouse-select
   "<mouse-3>" #'bs-mouse-select-other-frame)
 
@@ -612,12 +612,12 @@ Used from `window-size-change-functions'."
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
 Move to a line representing the buffer you want to edit and select
-buffer by \\[bs-select] or SPC.  Abort buffer list with \\[bs-kill].
+buffer by \\[bs-select] or \\`SPC'.  Abort buffer list with \\[bs-kill].
 There are many key commands similar to `Buffer-menu-mode' for
 manipulating the buffer list and buffers.
 For faster navigation each digit key is a digit argument.
 
-\\[bs-select] or SPACE -- select current line's buffer and other marked buffers.
+\\[bs-select] or \\`SPC' -- select current line's buffer and other marked buffers.
 \\[bs-select-in-one-window] -- select current's line buffer in one \
 window, and delete other
      windows in the same frame.
@@ -655,7 +655,7 @@ apply it.
 
 \\[bs-kill] -- leave Buffer Selection Menu without a selection.
 \\[bs-refresh] -- refresh Buffer Selection Menu.
-\\[bs-help] -- display this help text."
+\\[describe-mode] -- display this help text."
   (buffer-disable-undo)
   (setq buffer-read-only t
 	truncate-lines t
@@ -1121,7 +1121,8 @@ configuration."
 
 (defun bs-help ()
   "Help for `bs-show'."
-  (interactive)
+  (declare (obsolete describe-mode "29.1"))
+  (interactive nil bs-mode)
   (describe-function 'bs-mode))
 
 (defun bs-next-config-aux (start-name list)
@@ -1484,7 +1485,7 @@ manipulating the buffer list and the buffers themselves.
 User can move with [up] or [down], select a buffer
 by \\[bs-select] or [SPC]\n
 Type \\[bs-kill] to leave Buffer Selection Menu without a selection.
-Type \\[bs-help] after invocation to get help on commands available.
+Type \\[describe-mode] after invocation to get help on commands available.
 With prefix argument ARG show a different buffer list.  Function
 `bs--configuration-name-for-prefix-arg' determine accordingly
 name of buffer configuration."
