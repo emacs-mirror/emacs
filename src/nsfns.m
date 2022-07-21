@@ -3210,7 +3210,8 @@ x_hide_tip (bool delete)
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* SKIP: real doc in xfns.c.  */)
-     (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
+  (Lisp_Object string, Lisp_Object frame, Lisp_Object parms,
+   Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
   int root_x, root_y;
   specpdl_ref count = SPECPDL_INDEX ();
@@ -3224,6 +3225,10 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   Lisp_Object window, size, tip_buf;
   char *str;
   NSWindow *nswindow;
+  bool displayed;
+#ifdef ENABLE_CHECKING
+  struct glyph_row *row, *end;
+#endif
 
   AUTO_STRING (tip, " *tip*");
 
@@ -3454,7 +3459,26 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
       clear_glyph_matrix (w->desired_matrix);
       clear_glyph_matrix (w->current_matrix);
       SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
-      try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+      displayed = try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+
+      if (!displayed && NILP (Vx_max_tooltip_size))
+	{
+#ifdef ENABLE_CHECKING
+	  row = w->desired_matrix->rows;
+	  end = w->desired_matrix->rows + w->desired_matrix->nrows;
+
+	  while (row < end)
+	    {
+	      if (!row->displays_text_p
+		  || row->ends_at_zv_p)
+		break;
+	      ++row;
+	    }
+
+	  eassert (row < end && row->ends_at_zv_p);
+#endif
+	}
+
       /* Calculate size of tooltip window.  */
       size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
 				      make_fixnum (w->pixel_height), Qnil,
@@ -3889,7 +3913,7 @@ Default is t.  */);
 
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
     doc: /* SKIP: real doc in xfns.c.  */);
-  Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
+  Vx_max_tooltip_size = Qnil;
 
   defsubr (&Sns_read_file_name);
   defsubr (&Sns_get_resource);
