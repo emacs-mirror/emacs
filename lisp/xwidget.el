@@ -20,14 +20,14 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; See xwidget.c for more API functions.
-
-;;; Code:
+;;
+;; See xwidget.c for more api functions.
 
 ;; This breaks compilation when we don't have xwidgets.
 ;; And is pointless when we do, since it's in C and so preloaded.
 ;;(require 'xwidget-internal)
+
+;;; Code:
 
 (require 'cl-lib)
 (require 'bookmark)
@@ -191,39 +191,48 @@ for the actual events that will be sent."
     (xwidget-perform-lispy-event (xwidget-webkit-current-session)
                                  last-command-event)))
 
-(defvar-keymap xwidget-webkit-mode-map
-  :doc "Keymap for `xwidget-webkit-mode'."
-  "g"     #'xwidget-webkit-browse-url
-  "a"     #'xwidget-webkit-adjust-size-dispatch
-  "b"     #'xwidget-webkit-back
-  "f"     #'xwidget-webkit-forward
-  "r"     #'xwidget-webkit-reload
-  "RET"   #'xwidget-webkit-insert-string
-  "w"     #'xwidget-webkit-current-url
-  "+"     #'xwidget-webkit-zoom-in
-  "-"     #'xwidget-webkit-zoom-out
-  "e"     #'xwidget-webkit-edit-mode
-  "C-r"   #'xwidget-webkit-isearch-mode
-  "C-s"   #'xwidget-webkit-isearch-mode
-  "H"     #'xwidget-webkit-browse-history
-  ;; Similar to image mode bindings
-  "SPC"   #'xwidget-webkit-scroll-up
-  "S-SPC" #'xwidget-webkit-scroll-down
-  "DEL"   #'xwidget-webkit-scroll-down
-  "<remap> <scroll-up>"                 #'xwidget-webkit-scroll-up-line
-  "<remap> <scroll-up-command>"         #'xwidget-webkit-scroll-up
-  "<remap> <scroll-down>"               #'xwidget-webkit-scroll-down-line
-  "<remap> <scroll-down-command>"       #'xwidget-webkit-scroll-down
-  "<remap> <forward-char>"              #'xwidget-webkit-scroll-forward
-  "<remap> <backward-char>"             #'xwidget-webkit-scroll-backward
-  "<remap> <right-char>"                #'xwidget-webkit-scroll-forward
-  "<remap> <left-char>"                 #'xwidget-webkit-scroll-backward
-  "<remap> <previous-line>"             #'xwidget-webkit-scroll-down-line
-  "<remap> <next-line>"                 #'xwidget-webkit-scroll-up-line
-  ;; "<remap> <move-beginning-of-line>"    #'image-bol
-  ;; "<remap> <move-end-of-line>"          #'image-eol
-  "<remap> <beginning-of-buffer>"       #'xwidget-webkit-scroll-top
-  "<remap> <end-of-buffer>"             #'xwidget-webkit-scroll-bottom)
+;;todo.
+;; - check that the webkit support is compiled in
+(defvar xwidget-webkit-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "g" 'xwidget-webkit-browse-url)
+    (define-key map "a" 'xwidget-webkit-adjust-size-dispatch)
+    (define-key map "b" 'xwidget-webkit-back)
+    (define-key map "f" 'xwidget-webkit-forward)
+    (define-key map "r" 'xwidget-webkit-reload)
+    (define-key map "\C-m" 'xwidget-webkit-insert-string)
+    (define-key map "w" 'xwidget-webkit-current-url)
+    (define-key map "+" 'xwidget-webkit-zoom-in)
+    (define-key map "-" 'xwidget-webkit-zoom-out)
+    (define-key map "e" 'xwidget-webkit-edit-mode)
+    (define-key map "\C-r" 'xwidget-webkit-isearch-mode)
+    (define-key map "\C-s" 'xwidget-webkit-isearch-mode)
+    (define-key map "H" 'xwidget-webkit-browse-history)
+
+    ;;similar to image mode bindings
+    (define-key map (kbd "SPC")                 'xwidget-webkit-scroll-up)
+    (define-key map (kbd "S-SPC")               'xwidget-webkit-scroll-down)
+    (define-key map (kbd "DEL")                 'xwidget-webkit-scroll-down)
+
+    (define-key map [remap scroll-up]           'xwidget-webkit-scroll-up-line)
+    (define-key map [remap scroll-up-command]   'xwidget-webkit-scroll-up)
+
+    (define-key map [remap scroll-down]         'xwidget-webkit-scroll-down-line)
+    (define-key map [remap scroll-down-command] 'xwidget-webkit-scroll-down)
+
+    (define-key map [remap forward-char]        'xwidget-webkit-scroll-forward)
+    (define-key map [remap backward-char]       'xwidget-webkit-scroll-backward)
+    (define-key map [remap right-char]          'xwidget-webkit-scroll-forward)
+    (define-key map [remap left-char]           'xwidget-webkit-scroll-backward)
+    (define-key map [remap previous-line]       'xwidget-webkit-scroll-down-line)
+    (define-key map [remap next-line]           'xwidget-webkit-scroll-up-line)
+
+    ;; (define-key map [remap move-beginning-of-line] 'image-bol)
+    ;; (define-key map [remap move-end-of-line]       'image-eol)
+    (define-key map [remap beginning-of-buffer] 'xwidget-webkit-scroll-top)
+    (define-key map [remap end-of-buffer]       'xwidget-webkit-scroll-bottom)
+    map)
+  "Keymap for `xwidget-webkit-mode'.")
 
 (easy-menu-define nil xwidget-webkit-mode-map "Xwidget WebKit menu."
   (list "Xwidget WebKit"
@@ -954,31 +963,31 @@ You can retrieve the value with `xwidget-get'."
   (set-xwidget-plist xwidget
                      (plist-put (xwidget-plist xwidget) propname value)))
 
-(defvar-keymap xwidget-webkit-edit-mode-map
-  :full t
-  "<backspace>"   #'xwidget-webkit-pass-command-event
-  "<tab>"         #'xwidget-webkit-pass-command-event
-  "<left>"        #'xwidget-webkit-pass-command-event
-  "<right>"       #'xwidget-webkit-pass-command-event
-  "<up>"          #'xwidget-webkit-pass-command-event
-  "<down>"        #'xwidget-webkit-pass-command-event
-  "<return>"      #'xwidget-webkit-pass-command-event
-  "C-<left>"      #'xwidget-webkit-pass-command-event
-  "C-<right>"     #'xwidget-webkit-pass-command-event
-  "C-<up>"        #'xwidget-webkit-pass-command-event
-  "C-<down>"      #'xwidget-webkit-pass-command-event
-  "C-<return>"    #'xwidget-webkit-pass-command-event
-  "S-<left>"      #'xwidget-webkit-pass-command-event
-  "S-<right>"     #'xwidget-webkit-pass-command-event
-  "S-<up>"        #'xwidget-webkit-pass-command-event
-  "S-<down>"      #'xwidget-webkit-pass-command-event
-  "S-<return>"    #'xwidget-webkit-pass-command-event
-  "M-<left>"      #'xwidget-webkit-pass-command-event
-  "M-<right>"     #'xwidget-webkit-pass-command-event
-  "M-<up>"        #'xwidget-webkit-pass-command-event
-  "M-<down>"      #'xwidget-webkit-pass-command-event
-  "M-<return>"    #'xwidget-webkit-pass-command-event
-  "C-<backspace>" #'xwidget-webkit-pass-command-event)
+(defvar-keymap xwidget-webkit-edit-mode-map :full t)
+
+(define-key xwidget-webkit-edit-mode-map [backspace] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [tab] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [S-return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-left] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-right] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-up] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-down] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [M-return] 'xwidget-webkit-pass-command-event)
+(define-key xwidget-webkit-edit-mode-map [C-backspace] 'xwidget-webkit-pass-command-event)
 
 (define-minor-mode xwidget-webkit-edit-mode
   "Minor mode for editing the content of WebKit buffers.
