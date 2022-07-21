@@ -913,7 +913,7 @@ Otherwise, delete overlays."
   (interactive)
   (setq image-dired-dired-disp-props
         (not image-dired-dired-disp-props))
-  (message "Dired display properties %s."
+  (message "Dired display properties %s"
            (if image-dired-dired-disp-props
                "on"
              "off")))
@@ -1464,7 +1464,7 @@ Should be called from commands in `image-dired-thumbnail-mode'."
   `(let ((file-name (image-dired-original-file-name))
          (dired-buf (image-dired-associated-dired-buffer)))
      (if (not (and dired-buf file-name))
-         (message "No image, or image with correct properties, at point.")
+         (message "No image, or image with correct properties, at point")
        (with-current-buffer dired-buf
          (when (dired-goto-file file-name)
            ,@body
@@ -2106,7 +2106,7 @@ default value at the prompt."
               (image-dired-set-exif-data file "ImageDescription"
                                    (read-string "Value of ImageDescription: "
 						old-value)))
-          (message "Successfully wrote ImageDescription tag.")
+          (message "Successfully wrote ImageDescription tag")
         (error "Could not write ImageDescription tag")))))
 
 (defun image-dired-set-exif-data (file tag-name tag-value)
@@ -2295,7 +2295,7 @@ matching tag will be marked in the Dired buffer."
 	(when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
 	  (setq hits (+ hits 1))
 	  (dired-mark 1))))
-    (message "%d files with matching tag marked." hits)))
+    (message "%d files with matching tag marked" hits)))
 
 
 
@@ -2728,14 +2728,14 @@ the operation by activating the Cancel button.\n\n")
                  (lambda (&rest _ignore)
                    (image-dired-save-information-from-widgets)
                    (bury-buffer)
-                   (message "Done."))
+                   (message "Done"))
                  "Save")
     (widget-insert " ")
     (widget-create 'push-button
                    :notify
                    (lambda (&rest _ignore)
                      (bury-buffer)
-                     (message "Operation canceled."))
+                     (message "Operation canceled"))
                    "Cancel")
     (widget-insert "\n")
     (use-local-map widget-keymap)
@@ -2973,7 +2973,7 @@ Dired."
   (let ((file-name (image-dired-original-file-name))
         (dired-buf (image-dired-associated-dired-buffer)))
     (if (not (and dired-buf file-name))
-        (message "No image, or image with correct properties, at point.")
+        (message "No image, or image with correct properties, at point")
     (with-current-buffer dired-buf
         (message "%s" file-name)
         (when (dired-goto-file file-name)
