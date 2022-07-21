@@ -1638,8 +1638,10 @@ This will not happen if you directly set this variable via `setq'."
   :set (lambda (sym var)
          (set-default sym var)
          (when (boundp 'x-max-tooltip-size)
-           (setcdr x-max-tooltip-size (max (1+ var) (cdr x-max-tooltip-size))))))
-
+           (if (not (consp x-max-tooltip-size))
+               (setq x-max-tooltip-size '(80 . 40)))
+           (setcdr x-max-tooltip-size
+                   (max (1+ var) (cdr x-max-tooltip-size))))))
 
 (defclass semantic-displayer-tooltip (semantic-displayer-traditional)
   ((mode :initarg :mode
