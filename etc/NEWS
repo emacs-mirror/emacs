@@ -2527,12 +2527,12 @@ value.  The byte compiler will now issue a warning if it encounters
 these forms.
 
 +++
-*** 'restore-buffer-modified-p' can now alter buffer auto-save state.
+** 'restore-buffer-modified-p' can now alter buffer auto-save state.
 With a FLAG value of 'autosaved', it will mark the buffer as having
 been auto-saved since the time of last modification.
 
 ---
-*** New minor mode 'isearch-fold-quotes-mode'.
+** New minor mode 'isearch-fold-quotes-mode'.
 This sets up 'search-default-mode' so that quote characters are
 char-folded into each other.  It is used, by default, in "*Help*" and
 "*info*" buffers.
