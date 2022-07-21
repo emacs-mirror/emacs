@@ -32,11 +32,6 @@
 ;; the MooseX::Declare CPAN module, as well as Perl 5.10 keyword
 ;; support.
 
-;; The latest version is available from
-;; https://github.com/jrockway/cperl-mode
-;;
-;; (perhaps in the moosex-declare branch)
-
 ;; You can either fine-tune the bells and whistles of this mode or
 ;; bulk enable them by putting
 
