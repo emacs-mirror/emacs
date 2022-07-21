@@ -2314,6 +2314,10 @@ Use 'exif-parse-file' and 'exif-field' instead.
 This change is now applied in 'dired-insert-directory'.
 
 ---
+** 'compilation-last-buffer' is (finally) declared obsolete.
+It's been obsolete since Emacs-22.1, actually.
+
+---
 ** Some functions and variables obsolete since Emacs 24 have been removed:
 'Info-edit-map', 'allout-abbreviate-flattened-numbering',
 'allout-mode-deactivate-hook', 'ansi-color-unfontify-region',
@@ -2324,6 +2328,7 @@ This change is now applied in 'dired-insert-directory'.
 'chart-map', 'comint-dynamic-complete',
 'comint-dynamic-complete-as-filename',
 'comint-dynamic-simple-complete', 'command-history-map',
+'compilation-parse-errors-function',
 'completion-annotate-function', 'condition-case-no-debug',
 'count-lines-region', 'data-debug-map', 'deferred-action-list',
 'deferred-action-function', 'dired-x-submit-report',

@@ -345,12 +345,12 @@ See `compilation-error-screen-columns'."
 
 (defalias 'kill-grep #'kill-compilation)
 
-;; override compilation-last-buffer
+;; override next-error-last-buffer
 (defvar grep-last-buffer nil
   "The most recent grep buffer.
 A grep buffer becomes most recent when you select Grep mode in it.
 Notice that using \\[next-error] or \\[compile-goto-error] modifies
-`compilation-last-buffer' rather than `grep-last-buffer'.")
+`next-error-last-buffer' rather than `grep-last-buffer'.")
 
 (defvar grep-match-face	'match
   "Face name to use for grep matches.")
