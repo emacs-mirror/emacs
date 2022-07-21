@@ -6430,11 +6430,13 @@ will run for `clone-indirect-buffer' calls as well.  */);
   Vclone_indirect_buffer_hook = Qnil;
 
   DEFVAR_LISP ("long-line-threshold", Vlong_line_threshold,
-	       doc: /* Line length above which specific display optimizations are used.
-Display optimizations for long lines will automatically be enabled in
-buffers which contain one or more lines whose length is above that
-threshold.
-When nil, these display optimizations are disabled.  */);
+    doc: /* Line length above which to use redisplay shortcuts.
+The value should be a positive integer or nil.
+If the value is an integer, shortcuts in the display code intended
+to speed up redisplay for long lines will automatically be enabled
+in buffers which contain one or more lines whose length is above
+this threshold.
+If nil, these display shortcuts will always remain disabled.  */);
   XSETFASTINT (Vlong_line_threshold, 10000);
 
   defsubr (&Sbuffer_live_p);
