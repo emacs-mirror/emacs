@@ -1028,7 +1028,7 @@ window_body_unit_from_symbol (Lisp_Object unit)
 /* Return the number of lines/pixels of W's body.  Don't count any mode
    or header line or horizontal divider of W.  Rounds down to nearest
    integer when not working pixelwise. */
-static int
+int
 window_body_height (struct window *w, enum window_body_unit pixelwise)
 {
   int height = (w->pixel_height

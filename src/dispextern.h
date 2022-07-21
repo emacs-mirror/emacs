@@ -2332,6 +2332,10 @@ struct it
      with which display_string was called.  */
   ptrdiff_t end_charpos;
 
+  /* Alternate begin position of the buffer that may be used to
+     optimize display (see the SET_WITH_NARROWED_BEGV macro).  */
+  ptrdiff_t narrowed_begv;
+
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
      or it->string.  */
@@ -3396,6 +3400,7 @@ void mark_window_display_accurate (Lisp_Object, bool);
 void redisplay_preserve_echo_area (int);
 void init_iterator (struct it *, struct window *, ptrdiff_t,
                     ptrdiff_t, struct glyph_row *, enum face_id);
+ptrdiff_t get_narrowed_begv (struct window *w);
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
 void start_display (struct it *, struct window *, struct text_pos);

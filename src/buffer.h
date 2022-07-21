@@ -237,9 +237,10 @@ struct buffer_text
     ptrdiff_t z_byte;		/* Byte pos of end of buffer.  */
     ptrdiff_t gap_size;		/* Size of buffer's gap.  */
     modiff_count modiff;	/* This counts buffer-modification events
-				   for this buffer.  It is incremented for
-				   each such event, and never otherwise
-				   changed.  */
+				   for this buffer.  It is increased
+				   logarithmically to the extent of the
+				   modification for each such event,
+				   and never otherwise changed.  */
     modiff_count chars_modiff;	/* This is modified with character change
 				   events for this buffer.  It is set to
 				   modiff for each such event, and never
@@ -680,6 +681,10 @@ struct buffer
      slowing down en/decoding when a lot of these hooks are
      defined, as well as by with-temp-buffer, for example.  */
   bool_bf inhibit_buffer_hooks : 1;
+
+  /* Non-zero when the buffer contains long lines and specific
+     display optimizations must be used.  */
+  bool_bf long_line_optimizations_p : 1;
 
   /* List of overlays that end at or before the current center,
      in order of end-position.  */

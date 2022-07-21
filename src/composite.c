@@ -1580,6 +1580,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
   Lisp_Object window;
   struct window *w;
   bool need_adjustment = 0;
+  ptrdiff_t narrowed_begv;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   if (NILP (window))
@@ -1596,6 +1597,11 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
 	}
       else
 	head = backlim;
+      /* In buffers with very long lines, this function becomes very
+	 slow.  Pretend that the buffer is narrowed to make it fast.  */
+      narrowed_begv = get_narrowed_begv (w);
+      if (narrowed_begv && pos > narrowed_begv)
+	head = narrowed_begv;
       tail = ZV;
       stop = GPT;
       cur.pos_byte = CHAR_TO_BYTE (cur.pos);

@@ -334,7 +334,16 @@ Use something like 'M-x shell RET ssh <host> RET' instead.
 * Changes in Emacs 29.1
 
 ---
-** 'longlines-mode' is no longer obsolete.
+** Emacs is now capable of editing files with arbitrarily long lines.
+The display of long lines has been optimized, and Emacs no longer
+chokes when a buffer on display contains long lines.  If you still
+experience slowdowns while editing files with long lines, this is
+either due to font locking, which you can turn off with M-x
+font-lock-mode or C-u C-x x f, or to the current major mode or one of
+the enabled minor modes, in which case you should open the the file
+with M-x find-file-literally instead of C-x C-f.  The variable
+'long-line-threshold' controls whether and when these display
+optimizations are used.
 
 +++
 ** New command to change the font size globally.
@@ -356,10 +365,10 @@ Get the parent directory of a file.
 This variable is used by some operations (mostly syntax-propertization
 and font-locking) to treat lines longer than this variable as if they
 were made up of various smaller lines.  This can help reduce the
-pathological slowdowns seen in buffers made of a single long line, but
-can also cause misbehavior in the presence of such long lines (tho
-most of that misbehavior should usually be limited to mis-highlighting).
-You can recover the previous behavior with:
+slowdowns seen in buffers made of a single long line, but can also
+cause misbehavior in the presence of such long lines (tho most of that
+misbehavior should usually be limited to mis-highlighting).  You can
+recover the previous behavior with:
 
     (setq syntax-wholeline-max most-positive-fixnum)
 
@@ -470,11 +479,6 @@ If non-nil, this option will force recording of all input keys,
 including those typed in response to passwords prompt (this was the
 previous behavior).  The default is nil, which inhibits recording of
 passwords.
-
-+++
-** New user option 'longlines-break-chars'.
-This is a string containing chars that could be used as break point in
-longlines mode.
 
 +++
 ** New function 'command-query'.
