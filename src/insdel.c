@@ -1123,6 +1123,7 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
   invalidate_buffer_caches (current_buffer, GPT, GPT);
   record_insert (GPT, nchars);
   modiff_incr (&MODIFF);
+  CHARS_MODIFF = MODIFF;
 
   insert_from_gap_1 (nchars, nbytes, text_at_gap_tail);
 

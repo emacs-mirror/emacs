@@ -1535,4 +1535,24 @@ with parameters from the *Messages* buffer modification."
       (restore-buffer-modified-p 'autosaved)
       (should (eq (buffer-modified-p) 'autosaved)))))
 
+(ert-deftest test-buffer-chars-modified-ticks ()
+  "Test `buffer-chars-modified-tick'."
+  (setq temporary-file-directory (file-truename temporary-file-directory))
+  (let ((text "foobar")
+        f1 f2)
+    (unwind-protect
+        (progn
+          (setq f1 (make-temp-file "buf-modiff-tests")
+                f2 (make-temp-file "buf-modiff-tests"))
+          (with-current-buffer (find-file f1)
+            (should (= (buffer-chars-modified-tick) 1))
+            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+            (write-region text nil f2 nil 'silent)
+            (insert-file-contents f2)
+            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+            (should (> (buffer-chars-modified-tick) 1))))
+      (if f1 (delete-file f1))
+      (if f2 (delete-file f2))
+      )))
+
 ;;; buffer-tests.el ends here
