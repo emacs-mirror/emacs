@@ -1,6 +1,6 @@
 ;;; wid-browse.el --- functions for browsing widgets  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
@@ -117,13 +117,6 @@ The following commands are available:
     (kill-buffer (get-buffer-create "*Browse Widget*"))
     (switch-to-buffer (get-buffer-create "*Browse Widget*")))
   (widget-browse-mode)
-
-  ;; Quick way to get out.
-;;  (widget-create 'push-button
-;;		 :action (lambda (widget &optional event)
-;;			   (bury-buffer))
-;;		 "Quit")
-;;  (widget-insert "\n")
 
   ;; Top text indicating whether it is a class or object browser.
   (if (listp widget)
