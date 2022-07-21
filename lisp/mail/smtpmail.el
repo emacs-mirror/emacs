@@ -806,7 +806,11 @@ Returns an error if the server cannot be contacted."
 				(plist-get (cdr result) :capabilities)
 				"\r\n")))
 		  (let ((name
-			 (with-case-table ascii-case-table ;FIXME: Why?
+                         ;; Use ASCII case-table to prevent I
+                         ;; downcasing to a dotless i under some
+                         ;; language environments.  See
+                         ;; https://lists.gnu.org/archive/html/emacs-devel/2007-03/msg01760.html.
+			 (with-case-table ascii-case-table
 			   (mapcar (lambda (s) (intern (downcase s)))
 				   (split-string (substring line 4) "[ ]")))))
 		    (when (= (length name) 1)
