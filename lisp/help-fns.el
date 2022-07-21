@@ -874,7 +874,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		 (aliased
 		  (format-message "an alias for `%s'" real-def))
                  ((subr-native-elisp-p def)
-                  (concat beg "native compiled Lisp function"))
+                  (concat beg "native-compiled Lisp function"))
 		 ((subrp def)
 		  (concat beg (if (eq 'unevalled (cdr (subr-arity def)))
 		                  "special form"
@@ -893,7 +893,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		      (macrop function))
 		  (concat beg "Lisp macro"))
 		 ((byte-code-function-p def)
-		  (concat beg "compiled Lisp function"))
+		  (concat beg "byte-compiled Lisp function"))
                  ((module-function-p def)
                   (concat beg "module function"))
 		 ((eq (car-safe def) 'lambda)
