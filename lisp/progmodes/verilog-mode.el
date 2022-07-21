@@ -5460,7 +5460,9 @@ becomes:
   (interactive)
   (let ((buff (if (boundp 'next-error-last-buffer) ;Added to Emacs-22.1
                   next-error-last-buffer
-                compilation-last-buffer)))
+                (verilog--suppressed-warnings
+                    ((obsolete compilation-last-buffer))
+                  compilation-last-buffer))))
     (when (buffer-live-p buff)
       (save-excursion
         (switch-to-buffer buff)
