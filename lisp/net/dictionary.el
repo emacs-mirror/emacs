@@ -330,7 +330,7 @@ is utf-8"
   :doc "Keymap for the dictionary mode."
   :suppress t :parent button-buffer-map
   "q"     #'dictionary-close
-  "h"     #'dictionary-help
+  "h"     #'describe-mode
   "s"     #'dictionary-search
   "d"     #'dictionary-lookup-definition
   "D"     #'dictionary-select-dictionary
@@ -379,7 +379,7 @@ protocol defined in RFC 2229.
 This is a quick reference to this mode describing the default key bindings:
 \\<dictionary-mode-map>
 * \\[dictionary-close] close the dictionary buffer
-* \\[dictionary-help] display this help information
+* \\[describe-mode] display this help information
 * \\[dictionary-search] ask for a new word to search
 * \\[dictionary-lookup-definition] search the word at point
 * \\[forward-button] or TAB place point to the next link
@@ -389,7 +389,7 @@ This is a quick reference to this mode describing the default key bindings:
 * \\[dictionary-select-dictionary] select the default dictionary
 * \\[dictionary-select-strategy] select the default search strategy
 
-* RET or <mouse-2> visit that link"
+* \\`RET' or \\`<mouse-2>' visit that link"
 
   (unless (eq major-mode 'dictionary-mode)
     (cl-incf dictionary-instances))
@@ -1184,7 +1184,8 @@ allows editing it."
 
 (defun dictionary-help ()
   "Display a little help."
-  (interactive)
+  (declare (obsolete describe-mode "29.1"))
+  (interactive nil dictionary-mode)
   (describe-function 'dictionary-mode))
 
 ;;;###autoload
