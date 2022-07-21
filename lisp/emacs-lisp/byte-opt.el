@@ -921,7 +921,7 @@ for speeding up processing.")
 (defun byte-optimize--fixnump (o)
   "Return whether O is guaranteed to be a fixnum in all Emacsen.
 See Info node `(elisp) Integer Basics'."
-  (and (fixnump o) (<= -536870912 o 536870911)))
+  (and (integerp o) (<= -536870912 o 536870911)))
 
 (defun byte-optimize-equal (form)
   ;; Replace `equal' or `eql' with `eq' if at least one arg is a
