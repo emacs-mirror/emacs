@@ -84,9 +84,7 @@
 ;; for temporary files outside the standard UN*X manual directory
 ;; structure.
 
-;; Or (3): Put the next two sexpr's in your .emacs:
-;; (autoload 'woman-dired-find-file "woman"
-;;   "In dired, run the WoMan man-page browser on this file." t)
+;; Or (3): Put this in your init file:
 ;; (add-hook 'dired-mode-hook
 ;;          (lambda ()
 ;;            (define-key dired-mode-map "W" 'woman-dired-find-file)))

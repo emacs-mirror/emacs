@@ -129,8 +129,6 @@
 ;; To map the primary remember function to the keystroke F8, do the
 ;; following.
 ;;
-;;   (autoload 'remember "remember" nil t)
-;;
 ;;   (define-key global-map [f8] 'remember)
 ;;
 ;; * Feedback

@@ -55,7 +55,6 @@
 ;; `mspools-using-vm' for details.
 
 ;;; Basic installation.
-;; (autoload 'mspools-show "mspools" "Show outstanding mail spools." t)
 ;; (setq mspools-folder-directory "~/MAIL/")
 ;;
 ;; If you use VM, mspools-folder-directory will default to vm-folder-directory
