@@ -347,7 +347,10 @@ tests:
 
 If committing changes written by someone else, commit in their name,
 not yours.  You can use 'git commit --author="AUTHOR"' to specify a
-change's author.  Note that the validity checks described in the
+change's author.  When using Emacs VC to commit, the author can be
+specified in the log-edit buffer by adding an "Author: AUTHOR" header
+line (set 'log-edit-setup-add-author' non-nil to have this header line
+added automatically).  Note that the validity checks described in the
 previous section are still applied, so you will have to correct any
 problems they uncover in the changes submitted by others.
 
