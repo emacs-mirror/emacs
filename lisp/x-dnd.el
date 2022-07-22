@@ -722,15 +722,27 @@ MODS is a single symbol, or a list of symbols such as `shift' or
              (setq mask (nth 2 virtual-modifiers)))))
     mask))
 
-(defun x-dnd-hscroll-flags ()
-  "Return the event state of a button press that should result in hscroll.
-Value is a mask of all the X modifier states that would normally
-cause a button press event to perform horizontal scrolling."
-  (let ((i 0))
-    (dolist (modifier mouse-wheel-scroll-amount)
-      (when (eq (cdr-safe modifier) 'hscroll)
-        (setq i (logior i (x-dnd-modifier-mask (car modifier))))))
-    i))
+(defun x-dnd-get-modifiers ()
+  "Obtain an X modifier mask containing all modifiers.
+Value is an X modifier mask containing all modifiers that can
+modify an Emacs keyboard or mouse event."
+  (let ((mods (x-get-modifier-masks))
+        (mask 5)) ; ShiftMask | ControlMask
+    (dolist (mod mods)
+      (setq mask (logior mask mod)))
+    mask))
+
+(defun x-dnd-wheel-modifier-type (flags)
+  "Return the modifier type of an X modifier mask.
+FLAGS is the X modifier mask of a turn of the mouse wheel."
+  (let ((modifiers (x-dnd-get-modifiers)))
+    (catch 'type
+      (dolist (modifier mouse-wheel-scroll-amount)
+        (when (and (consp modifier)
+                   (eq (x-dnd-modifier-mask (car modifier))
+                       (logand flags modifiers)))
+          (throw 'type (cdr modifier))))
+      nil)))
 
 (defvar x-dnd-click-count nil
   "Alist of button numbers to click counters during drag-and-drop.
@@ -760,19 +772,19 @@ Use MODIFIERS, an X modifier mask, to determine if any
 alternative operation (such as scrolling horizontally) should be
 taken.  COUNT is the number of times in quick succession BUTTON
 has been pressed."
-  (let ((hscroll (not (zerop (logand modifiers
-                                     (x-dnd-hscroll-flags)))))
-        (amt (or (and (not mouse-wheel-progressive-speed) 1)
-                 (* 1 count))))
+  (let* ((type (x-dnd-wheel-modifier-type modifiers))
+         (hscroll (eq type 'hscroll))
+         (amt (or (and (not mouse-wheel-progressive-speed) 1)
+                  (* 1 count))))
     (unless (and (not mouse-wheel-tilt-scroll)
                  (or (eq button 6) (eq button 7)))
       (let ((function (cond ((eq button 4)
                              (if hscroll
-                                 mwheel-scroll-left-function
+                                 mwheel-scroll-right-function
                                mwheel-scroll-down-function))
                             ((eq button 5)
                              (if hscroll
-                                 mwheel-scroll-right-function
+                                 mwheel-scroll-left-function
                                mwheel-scroll-up-function))
                             ((eq button 6)
                              (if mouse-wheel-flip-direction

@@ -1275,7 +1275,10 @@ set_window_hscroll (struct window *w, EMACS_INT hscroll)
 
   /* Prevent redisplay shortcuts when changing the hscroll.  */
   if (w->hscroll != new_hscroll)
-    XBUFFER (w->contents)->prevent_redisplay_optimizations_p = true;
+    {
+      XBUFFER (w->contents)->prevent_redisplay_optimizations_p = true;
+      wset_redisplay (w);
+    }
 
   w->hscroll = new_hscroll;
   w->suspend_auto_hscroll = true;
