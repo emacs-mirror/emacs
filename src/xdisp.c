@@ -18933,8 +18933,10 @@ set_vertical_scroll_bar (struct window *w)
       ptrdiff_t window_end_pos = w->window_end_pos;
 
       /* If w->window_end_pos cannot be trusted, recompute it "the
-	 hard way".  */
-      if (!w->window_end_valid)
+	 hard way".  Unless W is a minibuffer window, in which case
+	 w->window_end_pos is specially set?  (bug#56692) */
+      if (!MINI_WINDOW_P (w)
+	  && !w->window_end_valid)
 	{
 	  struct it it;
 	  struct text_pos start_pos;
