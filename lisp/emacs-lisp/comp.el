@@ -4294,7 +4294,7 @@ of (commands) to run simultaneously."
   "Remove .eln files that aren't applicable to the current Emacs invocation."
   (interactive)
   (unless (featurep 'native-compile)
-    (user-error "This Emacs isn't build with native-compile support"))
+    (user-error "This Emacs isn't built with native-compile support"))
   (dolist (dir native-comp-eln-load-path)
     ;; If a directory is non absolute it is assumed to be relative to
     ;; `invocation-directory'.
