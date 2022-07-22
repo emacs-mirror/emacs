@@ -2464,22 +2464,23 @@ commands of Compilation major mode are available.  See
 (defun compilation-sentinel (proc msg)
   "Sentinel for compilation buffers."
   (if (memq (process-status proc) '(exit signal))
-      (let ((buffer (process-buffer proc)))
-	(if (null (buffer-name buffer))
-	    ;; buffer killed
-	    (set-process-buffer proc nil)
-	  (with-current-buffer buffer
-	    ;; Write something in the compilation buffer
-	    ;; and hack its mode line.
-	    (compilation-handle-exit (process-status proc)
-				     (process-exit-status proc)
-				     msg)
-	    ;; Since the buffer and mode line will show that the
-	    ;; process is dead, we can delete it now.  Otherwise it
-	    ;; will stay around until M-x list-processes.
-	    (delete-process proc)))
+      (unwind-protect
+          (let ((buffer (process-buffer proc)))
+            (if (null (buffer-name buffer))
+                ;; buffer killed
+                (set-process-buffer proc nil)
+              (with-current-buffer buffer
+                ;; Write something in the compilation buffer
+                ;; and hack its mode line.
+                (compilation-handle-exit (process-status proc)
+                                         (process-exit-status proc)
+                                         msg))))
         (setq compilation-in-progress (delq proc compilation-in-progress))
-        (compilation--update-in-progress-mode-line))))
+        (compilation--update-in-progress-mode-line)
+        ;; Since the buffer and mode line will show that the
+        ;; process is dead, we can delete it now.  Otherwise it
+        ;; will stay around until M-x list-processes.
+        (delete-process proc))))
 
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
