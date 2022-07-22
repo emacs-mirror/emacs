@@ -281,7 +281,8 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
    outline-5 outline-6 outline-7 outline-8])
 
 (defcustom outline-minor-mode-use-buttons nil
-  "If non-nil, use clickable buttons on the headings.
+  "If non-nil, display clickable buttons on the headings.
+These buttons can be used to hide and show the body under the heading.
 Note that this feature is not meant to be used in editing
 buffers (yet) -- that will be amended in a future version.
 
@@ -294,7 +295,17 @@ buttons should look."
 (defcustom outline-minor-mode-buttons
   '(("▶️" "🔽" outline--valid-emoji-p)
     ("▶" "▼" outline--valid-char-p))
-  "List of close/open pairs to use if using buttons."
+  "How to show open/close buttons on the headings.
+Value should be a list of elements of the form (CLOSE OPEN TEST-FN),
+where CLOSE and OPEN are strings to display as, respectively, the
+close and open buttons, and TEST-FN is a function of one argument
+which will be called with CLOSE or OPEN and should return non-nil if
+the argument string can be displayed by the current frame's terminal.
+The pair of buttons that will be actually used is the first pair
+whose element in the list passes the test of TEST-FN for both the
+CLOSE and OPEN strings.
+
+This is only used when `outline-minor-mode-use-buttons' is non-nil"
   :type 'sexp
   :version "29.1")
 
