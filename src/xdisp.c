@@ -18930,27 +18930,29 @@ set_vertical_scroll_bar (struct window *w)
 	  && NILP (echo_area_buffer[0])))
     {
       struct buffer *buf = XBUFFER (w->contents);
-      ptrdiff_t window_end_pos = w->window_end_pos;
+
+      whole = BUF_ZV (buf) - BUF_BEGV (buf);
+      start = marker_position (w->start) - BUF_BEGV (buf);
+      end = BUF_Z (buf) - w->window_end_pos - BUF_BEGV (buf);
 
       /* If w->window_end_pos cannot be trusted, recompute it "the
-	 hard way".  Unless W is a minibuffer window, in which case
-	 w->window_end_pos is specially set?  (bug#56692) */
-      if (!MINI_WINDOW_P (w)
-	  && !w->window_end_valid)
+	 hard way".  */
+      if (!MINI_WINDOW_P (w))
 	{
 	  struct it it;
 	  struct text_pos start_pos;
-
+	  struct buffer *obuf = current_buffer;
+	  /* When we display the scroll bar of a mini-window,
+	     current_buffer is not gauranteed to be the mini-window's
+	     buffer, see the beginning of redisplay_window.  */
+	  set_buffer_internal_1 (XBUFFER (w->contents));
 	  SET_TEXT_POS_FROM_MARKER (start_pos, w->start);
 	  start_display (&it, w, start_pos);
 	  move_it_to (&it, -1, it.last_visible_x, window_box_height (w), -1,
 		      MOVE_TO_X | MOVE_TO_Y);
-	  window_end_pos = BUF_Z (buf) - IT_CHARPOS (it);
+	  end -= (BUF_Z (buf) - IT_CHARPOS (it)) - w->window_end_pos;
+	  set_buffer_internal_1 (obuf);
 	}
-
-      whole = BUF_ZV (buf) - BUF_BEGV (buf);
-      start = marker_position (w->start) - BUF_BEGV (buf);
-      end = BUF_Z (buf) - window_end_pos - BUF_BEGV (buf);
 
       if (end < start)
 	end = start;
