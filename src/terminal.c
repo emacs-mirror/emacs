@@ -402,7 +402,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
 
 DEFUN ("frame-terminal", Fframe_terminal, Sframe_terminal, 0, 1, 0,
        doc: /* Return the terminal that FRAME is displayed on.
-If FRAME is nil, the selected frame is used.
+If FRAME is nil, use the selected frame.
 
 The terminal device is represented by its integer identifier.  */)
   (Lisp_Object frame)
