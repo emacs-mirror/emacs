@@ -87,7 +87,7 @@
 ;; For hostname completion, information is retrieved from the zeroconf
 ;; daemon (for the "afp", "dav", "davs", and "sftp" methods).  The
 ;; zeroconf daemon is pre-configured to discover services in the
-;; "local" domain.  If another domain shall be used for discovering
+;; "local" domain.  If another domain should be used for discovering
 ;; services, the user option `tramp-gvfs-zeroconf-domain' can be set
 ;; accordingly.
 
@@ -949,7 +949,7 @@ The call will be traced by Tramp with trace level 6."
   "Current Tramp file name to be used, as vector.
 It is needed when D-Bus signals or errors arrive, because there
 is no information where to trace the message.
-Globally, the value shall always be nil; it is bound where needed.")
+The global value will always be nil; it is bound where needed.")
 
 (defun tramp-gvfs-dbus-event-error (event err)
   "Called when a D-Bus error message arrives, see `dbus-event-error-functions'."
