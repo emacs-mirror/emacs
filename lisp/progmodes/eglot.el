@@ -433,14 +433,12 @@ Here's what an element of this alist might look like:
     (Command ((:title . string) (:command . string)) (:arguments))"))
 
 (eval-and-compile
-  (defvar eglot-strict-mode (if load-file-name '()
-                              '(disallow-non-standard-keys
-                                ;; Uncomment these two for fun at
-                                ;; compile-time or with flymake-mode.
-                                ;;
-                                ;; enforce-required-keys
-                                ;; enforce-optional-keys
-                                ))
+  (defvar eglot-strict-mode
+    '(;; Uncomment next lines for fun and debugging
+      ;; disallow-non-standard-keys
+      ;; enforce-required-keys
+      ;; enforce-optional-keys
+      )
     "How strictly to check LSP interfaces at compile- and run-time.
 
 Value is a list of symbols (if the list is empty, no checks are
