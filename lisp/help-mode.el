@@ -678,9 +678,10 @@ that."
 
 (defun help-xref--navigation-buttons ()
   (let ((inhibit-read-only t))
+    (when (or help-xref-stack help-xref-forward-stack)
+      (ensure-empty-lines 1))
     ;; Make a back-reference in this buffer if appropriate.
     (when help-xref-stack
-      (ensure-empty-lines 1)
       (help-insert-xref-button help-back-label 'help-back
                                (current-buffer)))
     ;; Make a forward-reference in this buffer if appropriate.
