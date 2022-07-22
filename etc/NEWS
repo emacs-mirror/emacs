@@ -81,7 +81,7 @@ by saying
 
     make -C leim generate-ja-dic JA_DIC_NO_REDUCTION_OPTION=''
 
-after deleting lisp/leim/ja-dic/ja-dic.el.
+after deleting "lisp/leim/ja-dic/ja-dic.el".
 
 +++
 ** Emacs now supports being built with pure GTK.
@@ -117,7 +117,7 @@ Emacs Sessions" node in the Emacs manual for more details.
 * Startup Changes in Emacs 29.1
 
 +++
-** -batch and -script now adjusts the garbage collection levels.
+** '--batch' and '--script' now adjust the garbage collection levels.
 These switches now set 'gc-cons-percentage' to 1.0 (up from the
 default of 0.1).  This means that batch processes will typically use
 more memory than before, but use less time doing garbage collection.
@@ -152,7 +152,7 @@ time.
 
 ---
 *** New command 'native-compile-prune-cache'.
-This command deletes older .eln cache entries (but not the ones for
+This command deletes older ".eln" cache entries (but not the ones for
 the current Emacs version).
 
 ---
@@ -166,20 +166,30 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
+** Dired
+
 ---
-** 'w' ('dired-copy-filename-as-kill') has changed behaviour.
+*** 'w' ('dired-copy-filename-as-kill') has changed behavior.
 If there are several files marked, file names containing space and
 quote characters will be quoted "like this".
+
+---
+*** The 'd' command now more consistently skips dot files.
+In previous Emacs versions, commands like 'C-u 10 d' would put the "D"
+mark on the next ten files, no matter whether they were dot files
+(i.e., "." and "..") or not, while marking the next ten lines with the
+mouse (in 'transient-mark-mode') and then hitting 'd' would skip dot
+files.  These now work equivalently.
 
 +++
 ** Warning about "eager macro-expansion failure" is changed into an error.
 
 ---
-** Previously, the X reverseVideo value at startup was heeded for all frames.
-This meant that if you had a reverseVideo resource on the initial
+** Previously, the X "reverseVideo" value at startup was heeded for all frames.
+This meant that if you had a "reverseVideo" resource on the initial
 display, and then opened up a new frame on a display without any
-explicit reverseVideo setting, it would get heeded there, too.  (This
-included terminal frames.)  In Emacs 29, the reverseVideo X resource
+explicit "reverseVideo" setting, it would get heeded there, too.  (This
+included terminal frames.)  In Emacs 29, the "reverseVideo" X resource
 is handled like all the other X resources, and set on a per-frame basis.
 
 +++
@@ -187,20 +197,12 @@ is handled like all the other X resources, and set on a per-frame basis.
 Previously, this command did the same as 'e'.
 
 ---
-** '/ a' in *Packages* now limits by package name(s) instead of regexp.
+** '/ a' in "*Packages*" buffer now limits by package name(s) instead of regexp.
 
 +++
 ** Setting the goal columns now also affects '<prior>' and '<next>'.
 Previously, 'C-x C-n' only affected 'next-line' and 'previous-line',
 but it now also affects 'scroll-up-command' and 'scroll-down-command'.
-
----
-** The 'd' command in Dired now more consistently skip dot files.
-In previous Emacs versions, commands like `C-u 10 d' would put the "D"
-mark on the next ten files, no matter whether they were dot files
-(i.e., "." and "..") or not, while marking the next ten lines with the
-mouse (in 'transient-mark-mode') and then hitting 'd' would skip dot
-files.  These now work equivalently.
 
 ---
 ** Isearch in "*Help*" and "*info*" now char-folds quote characters by default.
@@ -338,10 +340,10 @@ Use something like 'M-x shell RET ssh <host> RET' instead.
 The display of long lines has been optimized, and Emacs no longer
 chokes when a buffer on display contains long lines.  If you still
 experience slowdowns while editing files with long lines, this is
-either due to font locking, which you can turn off with M-x
-font-lock-mode or C-u C-x x f, or to the current major mode or one of
-the enabled minor modes, in which case you should open the the file
-with M-x find-file-literally instead of C-x C-f.  The variable
+either due to font locking, which you can turn off with 'M-x
+font-lock-mode' or 'C-u C-x x f', or to the current major mode or one
+of the enabled minor modes, in which case you should open the the file
+with 'M-x find-file-literally' instead of 'C-x C-f'.  The variable
 'long-line-threshold' controls whether and when these display
 optimizations are used.
 
@@ -352,9 +354,9 @@ decrease it, type 'C-x C-M--'; to restore the font size, type 'C-x
 C-M-0'.  The final key in these commands may be repeated without the
 leading 'C-x' and without the modifiers, e.g. 'C-x C-M-+ C-M-+ C-M-+'
 and 'C-x C-M-+ + +' increase the font size by three steps.  When
-mouse-wheel-mode is enabled, 'C-M-wheel-up' and 'C-M-wheel-down' also
+'mouse-wheel-mode' is enabled, 'C-M-wheel-up' and 'C-M-wheel-down' also
 increase and decrease the font size globally.  Additionally, the
-variable 'global-text-scale-adjust-resizes-frames' controls whether
+user option 'global-text-scale-adjust-resizes-frames' controls whether
 the frames are resized when the font size is changed.
 
 +++
@@ -396,7 +398,7 @@ between these modes while the user is inputting a command by hitting
 This command duplicates the current line the specified number of times.
 
 ---
-** Files with the '.eld' extension are now visited in 'lisp-data-mode'.
+** Files with the ".eld" extension are now visited in 'lisp-data-mode'.
 
 +++
 ** New command 'find-sibling-file'.
@@ -554,7 +556,7 @@ This controls the style of the pre-edit and status areas of X input
 methods.
 
 +++
-** New X resources: "highlightForeground" and "highlightBackground"
+** New X resources: "highlightForeground" and "highlightBackground".
 Only in the Lucid build, this controls colors used for highlighted
 menu item widgets.
 
@@ -701,19 +703,19 @@ or ':scream:'.
 ** Help
 
 ---
-*** Variable values displayed by 'C-h v' in *Help* are now font-locked.
+*** Variable values displayed by 'C-h v' in "*Help*" are now font-locked.
 
 +++
 *** New user option 'help-clean-buttons'.
-If non-nil, link buttons in *Help* will have any surrounding quotes
+If non-nil, link buttons in "*Help*" will have any surrounding quotes
 removed.
 
 ---
 *** 'M-x apropos-variable' output now includes values of variables.
 
 +++
-*** New doc string syntax to indicate that symbols shouldn't be links.
-When displaying doc strings in "*Help*" buffers, strings that are
+*** New docstring syntax to indicate that symbols shouldn't be links.
+When displaying docstrings in "*Help*" buffers, strings that are
 "`like-this'" are made into links (if they point to a bound
 function/variable).  This can lead to false positives when talking
 about values that are symbols that happen to have the same names as
@@ -923,7 +925,7 @@ option 'cycle-spacing-actions'.
 ** 'zap-to-char' and 'zap-up-to-char' are case-sensitive for upper-case chars.
 These commands now behave as case-sensitive for interactive calls when
 they are invoked with an uppercase character, regardless of the
-`case-fold-search' value.
+'case-fold-search' value.
 
 ---
 ** 'scroll-other-window' and 'scroll-other-window-down' now respect remapping.
@@ -1084,21 +1086,21 @@ related user option 'dired-clean-confirm-killing-deleted-buffers'
 
 +++
 *** 'dired-do-relsymlink' moved from dired-x to dired.
-The corresponding key "Y" is now bound by default in Dired.
+The corresponding key 'Y' is now bound by default in Dired.
 
 +++
 *** 'dired-do-relsymlink-regexp' moved from dired-x to dired.
-The corresponding key "% Y" is now bound by default in Dired.
+The corresponding key '% Y' is now bound by default in Dired.
 
 ---
 *** 'M-G' is now bound to 'dired-goto-subdir'.
-Before, that binding was only available if the 'dired-x' package was
+Before, that binding was only available if the dired-x package was
 loaded.
 
 +++
 *** 'dired-info' and 'dired-man' moved from dired-x to dired.
 The 'dired-info' and 'dired-man' commands have been moved from the
-'dired-x' package to 'dired'.  They have also been renamed to
+dired-x package to dired.  They have also been renamed to
 'dired-do-info' and 'dired-do-man'; the old command names are obsolete
 aliases.
 
@@ -1144,7 +1146,7 @@ This can be used to trigger actions based on the battery status.
 +++
 *** New command 'enriched-toggle-markup'.
 This allows you to see the markup in 'enriched-mode' buffers (e.g.,
-the HELLO file).
+the "HELLO" file).
 
 ** Shell Script Mode
 
@@ -1206,7 +1208,7 @@ This command allows updating all packages without any queries.
 
 +++
 *** New commands 'package-recompile' and 'package-recompile-all'.
-These commands can be useful if the .elc files are out of date
+These commands can be useful if the ".elc" files are out of date
 (invalid byte code and macros).
 
 +++
@@ -1225,7 +1227,7 @@ inadvertently delete the "*scratch*" buffer.
 ** Debugging
 
 ---
-*** 'q' in a *Backtrace* buffer no longer clears the buffer.
+*** 'q' in a "*Backtrace*" buffer no longer clears the buffer.
 Instead it just buries the buffer and switches the mode from
 'debugger-mode' to 'backtrace-mode', since commands like 'e' are no
 longer available after exiting the recursive edit.
@@ -1275,7 +1277,7 @@ files that have few newlines.
 +++
 ** New minor mode 'word-wrap-whitespace-mode' for extending 'word-wrap'.
 This mode switches 'word-wrap' on, and breaks on all the whitespace
-characters instead of just SPC and TAB.
+characters instead of just 'SPC' and 'TAB'.
 
 ---
 ** New mode, 'emacs-news-mode', for editing the NEWS file.
@@ -1336,9 +1338,9 @@ the completions if they are already visible.  The default value 't'
 always hides the completion buffer after some completion is made.
 
 *** New commands to complete the minibuffer history.
-'minibuffer-complete-history' ('C-x up') is like 'minibuffer-complete'
+'minibuffer-complete-history' ('C-x <up>') is like 'minibuffer-complete'
 but completes on the history items instead of the default completion
-table.  'minibuffer-complete-defaults' ('C-x down') completes
+table.  'minibuffer-complete-defaults' ('C-x <down>') completes
 on the list of default items.
 
 +++
@@ -1566,7 +1568,7 @@ pre-defined toolbars.
 ---
 *** Gnus now uses a variable-pitch font in the headers by default.
 To get the monospace font back, you can put something like the
-following in your .gnus file:
+following in your ".gnus" file:
 
     (set-face-attribute 'gnus-header nil :inherit 'unspecified)
 
@@ -1978,7 +1980,7 @@ This support has been obsolete since Emacs 25.1.  The final version of
 the Galeon web browser was released in September, 2008.
 
 ---
-*** Support for the "Mozilla" web browser is now obsolete.
+*** Support for the Mozilla web browser is now obsolete.
 Note that this historical web browser is different from Mozilla
 Firefox; it is its predecessor.
 
@@ -2046,8 +2048,8 @@ symlinks in the latter case).
 
 ---
 *** New user option 'shell-kill-buffer-on-exit'.
-Enabling this will automatically kill a *shell* buffer as soon as the
-shell session terminates.
+Enabling this will automatically kill a "*shell*" buffer as soon as
+the shell session terminates.
 
 ** Calc
 
@@ -2098,7 +2100,7 @@ If non-nil, files untracked by a VCS are considered to be part of
 the project by a VC project based on that VCS.
 
 ---
-*** 'recentf-mode' now uses shortened filenames by default.
+*** 'recentf-mode' now uses abbreviated file names by default.
 This means that e.g. "/home/foo/bar" is now displayed as "~/bar".
 Customize the user option 'recentf-filename-handlers' to nil to get
 back the old behavior.
@@ -2159,36 +2161,36 @@ Emacs buffers, like indentation and the like.  The new ert function
 
 ---
 ** 'find-image' now uses 'create-image'.
-This means that images found through 'find-image' also has
+This means that images found through 'find-image' also have
 auto-scaling applied.  (This only makes a difference on HiDPI
 displays.)
 
 +++
 ** Changes to "raw" in-memory xbm images are specified.
 Some years back Emacs gained the ability to scale images, and you
-could then specify :width and :height when using 'create-image' on all
+could then specify ':width' and ':height' when using 'create-image' on all
 image types -- except xbm images, because this format already used the
-:width and :height arguments to specify the width/height of the "raw"
+':width' and ':height' arguments to specify the width/height of the "raw"
 in-memory format.  This meant that if you used these specifications
 on, for instance, xbm files, Emacs would refuse to display them.  This
-has been changed, and :width/:height now works as with all other image
+has been changed, and ':width'/':height' now works as with all other image
 formats, and the way to specify the width/height of the "raw"
-in-memory format is now by using :data-width and :data-height.
+in-memory format is now by using ':data-width' and ':data-height'.
 
 +++
-** loaddefs.el generation has been reimplemented.
-The various loaddefs.el files in the Emacs tree (which contain
+** "loaddefs.el" generation has been reimplemented.
+The various "loaddefs.el" files in the Emacs tree (which contain
 information about autoloads, built-in packages and package prefixes)
-used to be generated by functions in autoloads.el.  These are now
-generated by loaddefs-gen.el instead.  This leads to functionally
+used to be generated by functions in "autoloads.el".  These are now
+generated by "loaddefs-gen.el" instead.  This leads to functionally
 equivalent loaddef files, but they do not use exactly the same syntax,
 so using 'M-x update-file-autoloads' no longer works.  (This didn't
 work well in most files in the past, either, but it will now signal an
 error in any file.)
 
 In addition, files are scanned in a slightly different way.
-Previously ;;;### specs inside a top-level form (i.e., something like
-(when ... ;;;### ...) would be ignored.  They are now parsed as
+Previously ';;;###' specs inside a top-level form (i.e., something
+like '(when ... ;;;### ...)' would be ignored.  They are now parsed as
 normal.
 
 +++
@@ -2328,14 +2330,13 @@ It's been obsolete since Emacs-22.1, actually.
 'chart-map', 'comint-dynamic-complete',
 'comint-dynamic-complete-as-filename',
 'comint-dynamic-simple-complete', 'command-history-map',
-'compilation-parse-errors-function',
-'completion-annotate-function', 'condition-case-no-debug',
-'count-lines-region', 'data-debug-map', 'deferred-action-list',
-'deferred-action-function', 'dired-x-submit-report',
-'eieio-defgeneric', 'eieio-defmethod', 'emacs-lock-from-exiting',
-'erc-complete-word', 'eshell-cmpl-suffix-list', 'eshell-for',
-'font-lock-maximum-size', 'gnus-carpal',
-'gnus-debug-exclude-variables', 'gnus-debug-files',
+'compilation-parse-errors-function', 'completion-annotate-function',
+'condition-case-no-debug', 'count-lines-region', 'data-debug-map',
+'deferred-action-list', 'deferred-action-function',
+'dired-x-submit-report', 'eieio-defgeneric', 'eieio-defmethod',
+'emacs-lock-from-exiting', 'erc-complete-word',
+'eshell-cmpl-suffix-list', 'eshell-for', 'font-lock-maximum-size',
+'gnus-carpal', 'gnus-debug-exclude-variables', 'gnus-debug-files',
 'gnus-local-domain', 'gnus-outgoing-message-group',
 'gnus-secondary-servers', 'gnus-registry-user-format-function-M',
 'image-extension-data', 'image-library-alist',
@@ -2451,15 +2452,15 @@ If DATA is a string, then its text properties are searched for values
 for each specific data type while the selection is being converted.
 
 ---
-** New eldoc function: 'elisp-eldoc-var-docstring-with-value'.
+** New eldoc function 'elisp-eldoc-var-docstring-with-value'.
 This function includes the current value of the variable in eldoc display
 and can be used as a more detailed alternative to 'elisp-eldoc-var-docstring'.
 
 ** 'save-some-buffers' can now be extended to save other things.
 Traditionally, 'save-some-buffers' saved buffers, and also saved
 abbrevs.  This has been generalized via the
-'save-some-buffers-functions', and packages can now register things to
-be saved.
+'save-some-buffers-functions' variable, and packages can now register
+things to be saved.
 
 ** Themes
 
@@ -2499,7 +2500,7 @@ selecting some text into the clipboard or primary selection, and then
 delete the current frame, you will still be able to insert the
 contents of that selection into other programs as long as another
 frame is open on the same display.  This behavior can be disabled by
-setting the variable 'x-auto-preserve-selections' to nil.
+setting the user option 'x-auto-preserve-selections' to nil.
 
 +++
 ** New predicate 'char-uppercase-p'.
@@ -2508,18 +2509,18 @@ This returns non-nil if its argument its an uppercase character.
 ** Byte compilation
 
 ---
-*** Byte compilation will now warn about some quoting mistakes in doc strings.
-When writing code snippets that contains the ' character (APOSTROPHE),
+*** Byte compilation will now warn about some quoting mistakes in docstrings.
+When writing code snippets that contains the "'" character (APOSTROPHE),
 that quote character has to be escaped to avoid Emacs displaying it as
-’ (LEFT SINGLE QUOTATION MARK), which would make code examples like
+"’" (LEFT SINGLE QUOTATION MARK), which would make code examples like
 
     (setq foo '(1 2 3))
 
 invalid.  Emacs will now warn during byte compilation if it seems
 something like that, and also warn about when using RIGHT/LEFT SINGLE
 QUOTATION MARK directly.  In both these cases, if these characters
-should really be present in the doc string, they should be quoted with
-\=.
+should really be present in the docstring, they should be quoted with
+"\=".
 
 ---
 *** Byte compilation will now warn about some malformed 'defcustom' types.
@@ -2772,7 +2773,7 @@ option.
 
 +++
 *** 'where-is-internal' can now filter events marked as non key events.
-If a command maps to a key binding like [some-event], and 'some-event'
+If a command maps to a key binding like '[some-event]', and 'some-event'
 has a symbol plist containing a non-nil 'non-key-event' property, then
 that binding is ignored by 'where-is-internal'.
 
