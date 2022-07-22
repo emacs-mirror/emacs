@@ -18943,7 +18943,7 @@ set_vertical_scroll_bar (struct window *w)
 	  struct text_pos start_pos;
 	  struct buffer *obuf = current_buffer;
 	  /* When we display the scroll bar of a mini-window,
-	     current_buffer is not gauranteed to be the mini-window's
+	     current_buffer is not guaranteed to be the mini-window's
 	     buffer, see the beginning of redisplay_window.  */
 	  set_buffer_internal_1 (XBUFFER (w->contents));
 	  SET_TEXT_POS_FROM_MARKER (start_pos, w->start);
