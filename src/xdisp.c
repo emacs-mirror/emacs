@@ -4395,6 +4395,11 @@ handle_fontified_prop (struct it *it)
       bool old_clip_changed = current_buffer->clip_changed;
       bool saved_inhibit_flag = it->f->inhibit_clear_image_cache;
 
+      val = Vfontification_functions;
+      specbind (Qfontification_functions, Qnil);
+
+      eassert (it->end_charpos == ZV);
+
       if (it->narrowed_begv)
 	{
 	  record_unwind_protect (unwind_narrowed_begv, Fpoint_min ());
@@ -4403,11 +4408,6 @@ handle_fontified_prop (struct it *it)
 	  SET_BUF_ZV (current_buffer, it->narrowed_zv);
 	  specbind (Qinhibit_widen, Qt);
 	}
-
-      val = Vfontification_functions;
-      specbind (Qfontification_functions, Qnil);
-
-      eassert (it->end_charpos == ZV);
 
       /* Don't allow Lisp that runs from 'fontification-functions'
 	 clear our face and image caches behind our back.  */
