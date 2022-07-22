@@ -421,7 +421,8 @@ The terminal device is represented by its integer identifier.  */)
 
 DEFUN ("terminal-live-p", Fterminal_live_p, Sterminal_live_p, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a terminal which has not been deleted.
-Value is nil if OBJECT is not a live display terminal.
+Value is nil if OBJECT is not a live display terminal.  Uses the
+terminal of the currently selected frame if OBJECT is nil.
 If object is a live display terminal, the return value indicates what
 sort of output terminal it uses.  See the documentation of `framep' for
 possible return values.  */)
