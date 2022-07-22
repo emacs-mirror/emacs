@@ -2661,6 +2661,8 @@ DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
 This allows the buffer's full text to be seen and edited.  */)
   (void)
 {
+  if (!NILP (Vinhibit_widen))
+    return Qnil;
   if (BEG != BEGV || Z != ZV)
     current_buffer->clip_changed = 1;
   BEGV = BEG;
@@ -4457,6 +4459,7 @@ syms_of_editfns (void)
   DEFSYM (Qbuffer_access_fontify_functions, "buffer-access-fontify-functions");
   DEFSYM (Qwall, "wall");
   DEFSYM (Qpropertize, "propertize");
+  DEFSYM (Qinhibit_widen, "inhibit-widen");
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);
@@ -4516,6 +4519,15 @@ variable is nil.
 This variable is experimental; email 32252@debbugs.gnu.org if you need
 it to be non-nil.  */);
   binary_as_unsigned = false;
+
+  DEFVAR_LISP ("inhibit-widen", Vinhibit_widen,
+	       doc: /* Non-nil inhibits the `widen' function.
+
+Do NOT set this globally to a non-nil value, as doing that will
+disable the `widen' function everywhere, including the \\[widen\]
+command.  This variable is intended to be let-bound around code
+that needs to disable `widen' temporarily.  */);
+  Vinhibit_widen = Qnil;
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);

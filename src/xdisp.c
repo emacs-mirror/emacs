@@ -3426,7 +3426,10 @@ init_iterator (struct it *it, struct window *w,
     }
 
   if (current_buffer->long_line_optimizations_p)
-    it->narrowed_begv = get_narrowed_begv (w);
+    {
+      it->narrowed_begv = get_narrowed_begv (w);
+      it->narrowed_zv = get_narrowed_zv (w);
+    }
 
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
@@ -3494,27 +3497,47 @@ init_iterator (struct it *it, struct window *w,
   CHECK_IT (it);
 }
 
-/* Compute a suitable alternate value for BEGV that may be used
+/* Compute a suitable alternate value for BEGV and ZV that may be used
    temporarily to optimize display if the buffer in window W contains
    long lines.  */
+
+static int
+get_narrowed_len (struct window *w)
+{
+  int fact;
+  /* In a character-only terminal, only one font size is used, so we
+     can use a smaller factor.  */
+  fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
+  return fact * (window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
+		 window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS));
+}
 
 ptrdiff_t
 get_narrowed_begv (struct window *w)
 {
-  int len, fact; ptrdiff_t begv;
-  /* In a character-only terminal, only one font size is used, so we
-     can use a smaller factor.  */
-  fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
-  len = fact * (window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
-		window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS));
+  int len = get_narrowed_len (w);
+  ptrdiff_t begv;
   begv = max ((window_point (w) / len - 1) * len, BEGV);
   return begv == BEGV ? 0 : begv;
+}
+
+ptrdiff_t
+get_narrowed_zv (struct window *w)
+{
+  int len = get_narrowed_len (w);
+  return min ((window_point (w) / len + 1) * len, ZV);
 }
 
 static void
 unwind_narrowed_begv (Lisp_Object point_min)
 {
   SET_BUF_BEGV (current_buffer, XFIXNUM (point_min));
+}
+
+static void
+unwind_narrowed_zv (Lisp_Object point_max)
+{
+  SET_BUF_ZV (current_buffer, XFIXNUM (point_max));
 }
 
 /* Set DST to EXPR.  When IT indicates that BEGV should temporarily be
@@ -4371,6 +4394,15 @@ handle_fontified_prop (struct it *it)
       ptrdiff_t begv = BEGV, zv = ZV;
       bool old_clip_changed = current_buffer->clip_changed;
       bool saved_inhibit_flag = it->f->inhibit_clear_image_cache;
+
+      if (it->narrowed_begv)
+	{
+	  record_unwind_protect (unwind_narrowed_begv, Fpoint_min ());
+	  record_unwind_protect (unwind_narrowed_zv, Fpoint_max ());
+	  SET_BUF_BEGV (current_buffer, it->narrowed_begv);
+	  SET_BUF_ZV (current_buffer, it->narrowed_zv);
+	  specbind (Qinhibit_widen, Qt);
+	}
 
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
