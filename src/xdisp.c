@@ -7153,10 +7153,10 @@ forward_to_next_line_start (struct it *it, bool *skipped_p,
 	  || ((pos = Fnext_single_property_change (make_fixnum (start),
 						   Qdisplay, Qnil,
 						   make_fixnum (limit)),
-	       NILP (pos))
+	       (NILP (pos) || XFIXNAT (pos) == limit))
 	      && next_overlay_change (start) == ZV))
 	{
-	  if (!it->bidi_p)
+	  if (!it->bidi_p || !bidi_it_prev)
 	    {
 	      IT_CHARPOS (*it) = limit;
 	      IT_BYTEPOS (*it) = bytepos;
@@ -7319,7 +7319,8 @@ reseat_at_next_visible_line_start (struct it *it, bool on_newline_p)
   bool skipped_p = false;
   struct bidi_it bidi_it_prev;
   bool newline_found_p
-    = forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
+    = forward_to_next_line_start (it, &skipped_p,
+				  on_newline_p ? &bidi_it_prev : NULL);
 
   /* Skip over lines that are invisible because they are indented
      more than the value of IT->selective.  */
@@ -7331,7 +7332,8 @@ reseat_at_next_visible_line_start (struct it *it, bool on_newline_p)
 	eassert (IT_BYTEPOS (*it) == BEGV
 		 || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
 	newline_found_p =
-	  forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
+	  forward_to_next_line_start (it, &skipped_p,
+				      on_newline_p ? &bidi_it_prev : NULL);
       }
 
   /* Position on the newline if that's what's requested.  */
