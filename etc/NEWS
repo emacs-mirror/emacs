@@ -1004,9 +1004,10 @@ The user option 'comint-terminfo-terminal' and the variable
 change the terminal used on a remote host.
 
 ---
-*** New user option 'comint-delete-old-input'
-When set to nil, this prevents comint from deleting the current input
-when inserting previous input using '<mouse-2>'.
+*** New user option 'comint-delete-old-input'.
+When nil, this prevents comint from deleting the current input when
+inserting previous input using '<mouse-2>'.  The default is t, to
+preserve past behavior.
 
 ** Mwheel
 
