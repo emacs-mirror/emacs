@@ -1740,35 +1740,13 @@ BASE is the URL of the HTML being rendered."
     shr-cookie-policy)))
 
 (defun shr--preferred-image (dom)
-  (let ((srcset (dom-attr dom 'srcset))
-        (frame-width (frame-pixel-width))
-        (width (string-to-number (or (dom-attr dom 'width) "100")))
-        candidate)
-    (when (> (length srcset) 0)
-      ;; srcset consist of a series of URL/size specifications
-      ;; separated by the ", " string.
-      (setq srcset
-            (sort (mapcar
-                   (lambda (elem)
-                     (let ((spec (split-string elem "[\t\n\r ]+")))
-                       (cond
-                        ((= (length spec) 1)
-                         ;; Make sure it's well formed.
-                         (list (car spec) 0))
-                        ((string-match "\\([0-9]+\\)x\\'" (cadr spec))
-                         ;; If we have an "x" form, then use the width
-                         ;; spec to compute the real width.
-                         (list (car spec)
-                               (* width (string-to-number
-                                         (match-string 1 (cadr spec))))))
-                        (t
-                         (list (car spec)
-                               (string-to-number (cadr spec)))))))
-                   (split-string (replace-regexp-in-string
-				  "\\`[\t\n\r ]+\\|[\t\n\r ]+\\'" "" srcset)
-				 "[\t\n\r ]*,[\t\n\r ]*"))
-                  (lambda (e1 e2)
-                    (> (cadr e1) (cadr e2)))))
+  (let* ((srcset (shr--parse-srcset (dom-attr dom 'srcset)
+                                    (and (dom-attr dom 'width)
+                                         (string-to-number
+                                          (dom-attr dom 'width)))))
+         (frame-width (frame-pixel-width))
+         candidate)
+    (when (length> srcset 0)
       ;; Choose the smallest picture that's bigger than the current
       ;; frame.
       (setq candidate (caar srcset))
@@ -1777,6 +1755,42 @@ BASE is the URL of the HTML being rendered."
         (setq candidate (caar srcset))
         (pop srcset)))
     (or candidate (dom-attr dom 'src))))
+
+(defun shr--parse-srcset (srcset &optional width)
+  (setq srcset (string-trim srcset)
+        width (or width 100))
+  (when (> (length srcset) 0)
+    ;; srcset consists of a series of URL/size specifications separated
+    ;; by the " ," string.
+    (sort (mapcar
+           (lambda (elem)
+             (let ((spec (split-string elem "[\t\n\r ]+")))
+               (cond
+                ((= (length spec) 1)
+                 ;; Make sure it's well formed.
+                 (list (car spec) 0))
+                ((string-match "\\([0-9]+\\)x\\'" (cadr spec))
+                 ;; If we have an "x" form, then use the width
+                 ;; spec to compute the real width.
+                 (list (car spec)
+                       (* width (string-to-number
+                                 (match-string 1 (cadr spec))))))
+                (t
+                 (list (car spec)
+                       (string-to-number (cadr spec)))))))
+           (with-temp-buffer
+             (insert srcset)
+             (goto-char (point-min))
+             (let ((bits nil))
+               (while (re-search-forward "[^\t\n\r ]+[\t\n\r ]+[^\t\n\r ,]+"
+                                         nil t)
+                 (push (match-string 0) bits)
+                 (if (looking-at "[\t\n\r ]*,[\t\n\r ]*")
+                     (goto-char (match-end 0))
+                   (goto-char (point-max))))
+               bits)))
+          (lambda (e1 e2)
+            (> (cadr e1) (cadr e2))))))
 
 (defun shr-string-number (string)
   (if (null string)
