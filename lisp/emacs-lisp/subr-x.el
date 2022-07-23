@@ -107,12 +107,16 @@ characters; nil stands for the empty string."
 
 ;;;###autoload
 (defun string-truncate-left (string length)
-  "Truncate STRING to LENGTH, replacing initial surplus with \"...\"."
+  "If STRING is longer than LENGTH, return a truncated version.
+When truncating, \"...\" is always prepended to the string, so
+the resulting string may be longer than the original if LENGTH is
+3 or smaller."
   (let ((strlen (length string)))
     (if (<= strlen length)
 	string
       (setq length (max 0 (- length 3)))
-      (concat "..." (substring string (max 0 (- strlen 1 length)))))))
+      (concat "..." (substring string (min (1- strlen)
+                                           (max 0 (- strlen length))))))))
 
 (defsubst string-blank-p (string)
   "Check whether STRING is either empty or only whitespace.

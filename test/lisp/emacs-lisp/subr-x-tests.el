@@ -766,5 +766,10 @@
     (should (equal (sort (hash-table-keys h) #'string<) '(a b c)))
     (should (equal (sort (hash-table-values h) #'<) '(1 2 3)))))
 
+(ert-deftest test-string-truncate-left ()
+  (should (equal (string-truncate-left "band" 3) "...d"))
+  (should (equal (string-truncate-left "band" 2) "...d"))
+  (should (equal (string-truncate-left "longstring" 8) "...tring")))
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here
