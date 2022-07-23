@@ -2964,10 +2964,11 @@ See options: `dired-hide-details-hide-symlink-targets' and
   ;; approximate ("anywhere on the line is fine").
   ;; FIXME: This also removes other invisible properties!
   (save-excursion
-    (remove-list-of-text-properties
-     (progn (goto-char start) (line-end-position))
-     (progn (goto-char end) (line-end-position))
-     '(invisible))))
+    (let ((inhibit-read-only t))
+      (remove-list-of-text-properties
+       (progn (goto-char start) (line-end-position))
+       (progn (goto-char end) (line-end-position))
+       '(invisible)))))
 
 ;;; Functions for finding the file name in a dired buffer line
 
