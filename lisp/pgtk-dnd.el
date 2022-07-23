@@ -336,18 +336,32 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 (declare-function pgtk-update-drop-status "pgtkselect.c")
 (declare-function pgtk-drop-finish "pgtkselect.c")
 
+(defvar pgtk-dnd-clear-data-on-motion nil
+  "Whether or not to obtain the new list of targets upon the next drag motion.
+For more details, see the function `pgtk-dnd-handle-gdk'.")
+
 (defun pgtk-dnd-handle-gdk (event frame window client-message)
   "Handle drag-n-drop EVENT on FRAME.
 WINDOW should be the window the event happened on top of.
 CLIENT-MESSAGE is the detailed description of the drag-and-drop
 message."
   (cond
-   ;; We can't handle `drag-leave' here, since that signal is also
-   ;; sent right before `drag-drop', and there is no reliable way to
-   ;; distinguish the two.
+   ;; We can't handle `drag-leave' immediately, since that signal is
+   ;; also sent right before `drag-drop', and there is no reliable way
+   ;; to distinguish a signal sent because the source left from one
+   ;; sent prior to a drop.  Instead, set a flag that tells Emacs to
+   ;; clear the drag-and-drop state if anything other than a drop is
+   ;; received.
+   ((not client-message) ; drag-leave
+    (setq pgtk-dnd-clear-data-on-motion t))
    ((eq (car client-message) 'lambda) ; drag-motion
     (let ((state (pgtk-dnd-get-state-for-frame frame)))
-      (unless (aref state 0) ;; This is actually an entry.
+      (unless (and (aref state 0) ;; This is actually an entry.
+                   (not pgtk-dnd-clear-data-on-motion))
+        (setq pgtk-dnd-clear-data-on-motion nil)
+        ;; Forget the drop first, or else the list of targets will not
+        ;; be cleared if it is nil.
+        (pgtk-dnd-forget-drop window)
         (pgtk-dnd-save-state window nil nil
                              (pgtk-get-selection-internal
                               (nth 1 client-message) 'TARGETS)
