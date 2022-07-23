@@ -179,6 +179,9 @@ extern GdkCursor * xg_create_default_cursor (GdkDisplay *gdpy);
 extern bool xg_create_frame_widgets (struct frame *f);
 extern void xg_free_frame_widgets (struct frame *f);
 extern void xg_set_background_color (struct frame *f, unsigned long bg);
+extern bool xg_check_special_colors (struct frame *f,
+				     const char *color_name,
+				     Emacs_Color *color);
 #ifdef HAVE_PGTK
 extern void xg_create_frame_outer_widgets (struct frame *f);
 #endif
