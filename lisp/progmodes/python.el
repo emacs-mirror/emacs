@@ -1459,8 +1459,11 @@ With positive ARG search backwards, else search forwards."
                             (current-indentation)))
          (body-indentation
           (and (> arg 0)
-               (or (and (python-info-looking-at-beginning-of-defun)
-                        (+ (current-indentation) python-indent-offset))
+               (or (and (python-info-looking-at-beginning-of-defun nil t)
+                        (+ (save-excursion
+                             (python-nav-beginning-of-statement)
+                             (current-indentation))
+                           python-indent-offset))
                    (save-excursion
                      (while
                          (and

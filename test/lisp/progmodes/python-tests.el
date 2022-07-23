@@ -1995,6 +1995,32 @@ def c():
                 (beginning-of-line)
                 (point))))))
 
+(ert-deftest python-nav-beginning-of-defun-5 ()
+  (python-tests-with-temp-buffer
+   "
+class C:
+
+    def \\
+            m(self):
+        pass
+"
+   (python-tests-look-at "m(self):")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "class C:" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun -1)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\")
+                (beginning-of-line)
+                (point))))))
+
 (ert-deftest python-nav-end-of-defun-1 ()
   (python-tests-with-temp-buffer
    "
