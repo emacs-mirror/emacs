@@ -6913,9 +6913,7 @@ pgtk_defined_color (struct frame *f, const char *name,
   int r;
 
   block_input ();
-  r = xg_check_special_colors (f, name, color_def);
-  if (!r)
-    r = pgtk_parse_color (f, name, color_def);
+  r = pgtk_parse_color (f, name, color_def);
   unblock_input ();
   return r;
 }

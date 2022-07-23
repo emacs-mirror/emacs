@@ -2502,9 +2502,6 @@ default."
 (defface region
   '((((class color) (min-colors 88) (background dark))
      :background "blue3" :extend t)
-    (((class color) (min-colors 88) (background light) (type gtk))
-     :distant-foreground "gtk_selection_fg_color"
-     :background "gtk_selection_bg_color" :extend t)
     (((class color) (min-colors 88) (background light) (type ns))
      :distant-foreground "ns_selection_fg_color"
      :background "ns_selection_bg_color" :extend t)
