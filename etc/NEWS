@@ -3230,6 +3230,12 @@ to preserve the old behavior, apply
 '(take N LIST)' returns the first N elements of LIST; 'ntake' does
 the same but works by modifying LIST destructively.
 
+---
+** Calling 'lsh' now elicits a byte-compiler warning.
+'lsh' behaves in somewhat surprising and platform-dependent ways for
+negative arguments and is generally slower than 'ash' which should be
+used instead.
+
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
