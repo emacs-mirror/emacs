@@ -2348,7 +2348,7 @@ symbol, @pxref{Standard Properties}.
 @item (speed @var{n})
 Specify the value of @code{native-comp-speed} in effect for native
 compilation of this function (@pxref{Native-Compilation Variables}).
-This allows function-level control on the optimization level used for
+This allows function-level control of the optimization level used for
 native code emitted for the function.  In particular, if @var{n} is
 @minus{}1, native compilation of the function will emit bytecode
 instead of native code for the function.
