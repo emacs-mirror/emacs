@@ -778,7 +778,11 @@ has been pressed."
                   (* 1 count))))
     (unless (and (not mouse-wheel-tilt-scroll)
                  (or (eq button 6) (eq button 7)))
-      (let ((function (cond ((eq button 4)
+      (let ((function (cond ((eq type 'text-scale)
+                             #'text-scale-adjust)
+                            ((eq type 'global-text-scale)
+                             #'global-text-scale-adjust)
+                            ((eq button 4)
                              (if hscroll
                                  mwheel-scroll-right-function
                                mwheel-scroll-down-function))
@@ -794,9 +798,17 @@ has been pressed."
                              (if mouse-wheel-flip-direction
                                  mwheel-scroll-left-function
                                mwheel-scroll-right-function)))))
+        ;; Button5 should decrease the text scale, not increase it.
+        (when (and (memq type '(text-scale global-text-scale))
+                   (eq button 5))
+          (setq amt (- amt)))
         (when function
           (condition-case nil
-              (funcall function amt)
+              ;; Don't overwrite any echo-area message that might
+              ;; already be shown, since this can be called from
+              ;; `x-begin-drag'.
+              (let ((inhibit-message t))
+                (funcall function amt))
             ;; Do not error at buffer limits.  Show a message instead.
             ;; This is especially important here because signalling an
             ;; error will mess up the drag-and-drop operation.
