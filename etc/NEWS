@@ -168,7 +168,7 @@ of 'user-emacs-directory'.
 
 ---
 *** The Gtk selection face is no longer used for the region.
-The combination of a Gtk-controlled background and a foreground colour
+The combination of a Gtk-controlled background and a foreground color
 controlled by the internal Emacs machinery led to low-contrast faces
 in common default setups.  Emacs now uses the same 'region' face on
 Gtk and non-Gtk setups.
