@@ -846,6 +846,8 @@ the unwind-action")
 (byte-defop 178 -1 byte-stack-set)	; Stack offset in following one byte.
 (byte-defop 179 -1 byte-stack-set2)	; Stack offset in following two bytes.
 
+;; unused: 180-181
+
 ;; If (following one byte & 0x80) == 0
 ;;    discard (following one byte & 0x7F) stack entries
 ;; else
@@ -2077,7 +2079,6 @@ value is `no-byte-compile'.
 
 See also `emacs-lisp-byte-compile-and-load'."
   (declare (advertised-calling-convention (filename) "28.1"))
-;;  (interactive "fByte compile file: \nP")
   (interactive
    (let ((file buffer-file-name)
 	 (file-dir nil))
@@ -3759,7 +3760,6 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (put 'byte-insertN 'byte-opcode-invert 'insert)
 
 (byte-defop-compiler point		0)
-;;(byte-defop-compiler mark		0) ;; obsolete
 (byte-defop-compiler point-max		0)
 (byte-defop-compiler point-min		0)
 (byte-defop-compiler following-char	0)
@@ -3770,8 +3770,6 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler bolp		0)
 (byte-defop-compiler bobp		0)
 (byte-defop-compiler current-buffer	0)
-;;(byte-defop-compiler read-char	0) ;; obsolete
-;; (byte-defop-compiler interactive-p	0) ;; Obsolete.
 (byte-defop-compiler widen		0)
 (byte-defop-compiler end-of-line    0-1)
 (byte-defop-compiler forward-char   0-1)
@@ -3792,7 +3790,6 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler goto-char		1)
 (byte-defop-compiler char-after		0-1)
 (byte-defop-compiler set-buffer		1)
-;;(byte-defop-compiler set-mark		1) ;; obsolete
 (byte-defop-compiler forward-word	0-1)
 (byte-defop-compiler char-syntax	1)
 (byte-defop-compiler nreverse		1)
@@ -3845,7 +3842,6 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler (+ byte-plus)	byte-compile-variadic-numeric)
 (byte-defop-compiler (* byte-mult)	byte-compile-variadic-numeric)
 
-;;####(byte-defop-compiler move-to-column	1)
 (byte-defop-compiler-1 interactive byte-compile-noop)
 
 
@@ -4800,8 +4796,6 @@ binding slots have been popped."
 (byte-defop-compiler-1 save-excursion)
 (byte-defop-compiler-1 save-current-buffer)
 (byte-defop-compiler-1 save-restriction)
-;; (byte-defop-compiler-1 save-window-excursion)      ;Obsolete: now a macro.
-;; (byte-defop-compiler-1 with-output-to-temp-buffer) ;Obsolete: now a macro.
 
 (defun byte-compile-catch (form)
   (byte-compile-form (car (cdr form)))
