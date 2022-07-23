@@ -491,9 +491,9 @@ If INTERACTIVE, display it.  Else, return said buffer."
       (setq-local eldoc--doc-buffer-docs docs)
       (let ((inhibit-read-only t)
             (things-reported-on))
-        (erase-buffer) (setq buffer-read-only t)
+        (special-mode)
+        (erase-buffer)
         (setq-local nobreak-char-display nil)
-        (local-set-key "q" 'quit-window)
         (cl-loop for (docs . rest) on docs
                  for (this-doc . plist) = docs
                  for thing = (plist-get plist :thing)
