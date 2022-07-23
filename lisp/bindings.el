@@ -517,31 +517,31 @@ mouse-1: Display Line and Column Mode Menu")
 	  'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu")))
     (line-number-mode
-     ((column-number-mode
-       (column-number-indicator-zero-based
-        (10
-         (:propertize
-          mode-line-position-column-line-format
-          display (min-width (10.0))
-          ,@mode-line-position--column-line-properties))
-        (10
-         (:propertize
-          (:eval (string-replace
-                  "%c" "%C" (car mode-line-position-column-line-format)))
-          display (min-width (10.0))
-          ,@mode-line-position--column-line-properties)))
-       (6
+     (column-number-mode
+      (column-number-indicator-zero-based
+       (10
         (:propertize
-	 mode-line-position-line-format
-         display (min-width (6.0))
-         ,@mode-line-position--column-line-properties))))
+         mode-line-position-column-line-format
+         display (min-width (10.0))
+         ,@mode-line-position--column-line-properties))
+       (10
+        (:propertize
+         (:eval (string-replace
+                 "%c" "%C" (car mode-line-position-column-line-format)))
+         display (min-width (10.0))
+         ,@mode-line-position--column-line-properties)))
+      (6
+       (:propertize
+	mode-line-position-line-format
+        display (min-width (6.0))
+        ,@mode-line-position--column-line-properties)))
      (column-number-mode
       (column-number-indicator-zero-based
        (6
         (:propertize
          mode-line-position-column-format
          display (min-width (6.0))
-         (,@mode-line-position--column-line-properties)))
+         ,@mode-line-position--column-line-properties))
        (6
         (:propertize
          (:eval (string-replace
