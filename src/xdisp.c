@@ -12998,7 +12998,8 @@ mode_line_update_needed (struct window *w)
 {
   return (w->column_number_displayed != -1
 	  && !(PT == w->last_point && !window_outdated (w))
-	  && (w->column_number_displayed != current_column ()));
+	  && (!current_buffer->long_line_optimizations_p
+	      && w->column_number_displayed != current_column ()));
 }
 
 /* True if window start of W is frozen and may not be changed during
@@ -20116,6 +20117,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
        || w->base_line_pos > 0
        /* Column number is displayed and different from the one displayed.  */
        || (w->column_number_displayed != -1
+	   && !current_buffer->long_line_optimizations_p
 	   && (w->column_number_displayed != current_column ())))
       /* This means that the window has a mode line.  */
       && (window_wants_mode_line (w)
@@ -27619,7 +27621,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	return "";
       else
 	{
-	  ptrdiff_t col = current_column ();
+	  ptrdiff_t col =
+	    b->long_line_optimizations_p ? 0 : current_column ();
 	  int disp_col = (c == 'C') ? col + 1 : col;
 	  w->column_number_displayed = col;
 	  pint2str (decode_mode_spec_buf, width, disp_col);
