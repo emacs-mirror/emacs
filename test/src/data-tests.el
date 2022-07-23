@@ -741,14 +741,15 @@ comparing the subr with a much slower Lisp implementation."
   (should (= (ash 1000 (* 2 most-negative-fixnum)) 0))
   (should (= (ash -1000 (* 2 most-negative-fixnum)) -1))
   (should (= (ash (* 2 most-negative-fixnum) (* 2 most-negative-fixnum)) -1))
-  (should (= (lsh most-negative-fixnum 1)
-             (* most-negative-fixnum 2)))
   (should (= (ash (* 2 most-negative-fixnum) -1)
 	     most-negative-fixnum))
-  (should (= (lsh most-positive-fixnum -1) (/ most-positive-fixnum 2)))
-  (should (= (lsh most-negative-fixnum -1) (lsh (- most-negative-fixnum) -1)))
-  (should (= (lsh -1 -1) most-positive-fixnum))
-  (should-error (lsh (1- most-negative-fixnum) -1)))
+  (with-suppressed-warnings ((suspicious lsh))
+    (should (= (lsh most-negative-fixnum 1)
+               (* most-negative-fixnum 2)))
+    (should (= (lsh most-positive-fixnum -1) (/ most-positive-fixnum 2)))
+    (should (= (lsh most-negative-fixnum -1) (lsh (- most-negative-fixnum) -1)))
+    (should (= (lsh -1 -1) most-positive-fixnum))
+    (should-error (lsh (1- most-negative-fixnum) -1))))
 
 (ert-deftest data-tests-make-local-forwarded-var () ;bug#34318
   ;; Boy, this bug is tricky to trigger.  You need to:

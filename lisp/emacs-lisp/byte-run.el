@@ -672,7 +672,7 @@ types.  The types that can be suppressed with this macro are
 `suspicious'.
 
 For the `mapcar' case, only the `mapcar' function can be used in
-the symbol list.  For `suspicious', only `set-buffer' can be used."
+the symbol list.  For `suspicious', only `set-buffer' and `lsh' can be used."
   ;; Note: during compilation, this definition is overridden by the one in
   ;; byte-compile-initial-macro-environment.
   (declare (debug (sexp body)) (indent 1))

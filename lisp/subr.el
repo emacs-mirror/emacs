@@ -530,9 +530,8 @@ This function is provided for compatibility.  In new code, use `ash'
 instead."
   (declare (compiler-macro
             (lambda (form)
-              (when (byte-compile-warning-enabled-p 'suspicious 'lsh)
-                (byte-compile-warn-x form "avoid `lsh'; use `ash' instead"))
-              form)))
+              (macroexp-warn-and-return "avoid `lsh'; use `ash' instead"
+                                        form '(suspicious lsh) t form))))
   (when (and (< value 0) (< count 0))
     (when (< value most-negative-fixnum)
       (signal 'args-out-of-range (list value count)))

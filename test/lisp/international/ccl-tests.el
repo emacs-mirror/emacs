@@ -25,23 +25,25 @@
 
 
 (ert-deftest shift ()
-  ;; shift left +ve                      5628     #x00000000000015fc
-  (should (= (ash  5628  8)           1440768)) ; #x000000000015fc00
-  (should (= (lsh  5628  8)           1440768)) ; #x000000000015fc00
+  (with-suppressed-warnings ((suspicious lsh))
 
-  ;; shift left -ve                     -5628     #x3fffffffffffea04
-  (should (= (ash -5628  8)          -1440768)) ; #x3fffffffffea0400
-  (should (= (lsh -5628  8)          -1440768)) ; #x3fffffffffea0400
+    ;; shift left +ve                      5628     #x00000000000015fc
+    (should (= (ash  5628  8)           1440768)) ; #x000000000015fc00
+    (should (= (lsh  5628  8)           1440768)) ; #x000000000015fc00
 
-  ;; shift right +ve                     5628     #x00000000000015fc
-  (should (= (ash  5628 -8)                21)) ; #x0000000000000015
-  (should (= (lsh  5628 -8)                21)) ; #x0000000000000015
+    ;; shift left -ve                     -5628     #x3fffffffffffea04
+    (should (= (ash -5628  8)          -1440768)) ; #x3fffffffffea0400
+    (should (= (lsh -5628  8)          -1440768)) ; #x3fffffffffea0400
 
-  ;; shift right -ve                    -5628     #x3fffffffffffea04
-  (should (= (ash -5628 -8)               -22)) ; #x3fffffffffffffea
-  (should (= (lsh -5628 -8)
-             (ash (- -5628 (ash most-negative-fixnum 1)) -8)
-             (ash (logand (ash -5628 -1) most-positive-fixnum) -7))))
+    ;; shift right +ve                     5628     #x00000000000015fc
+    (should (= (ash  5628 -8)                21)) ; #x0000000000000015
+    (should (= (lsh  5628 -8)                21)) ; #x0000000000000015
+
+    ;; shift right -ve                    -5628     #x3fffffffffffea04
+    (should (= (ash -5628 -8)               -22)) ; #x3fffffffffffffea
+    (should (= (lsh -5628 -8)
+               (ash (- -5628 (ash most-negative-fixnum 1)) -8)
+               (ash (logand (ash -5628 -1) most-positive-fixnum) -7)))))
 
 ;; CCl program from `pgg-parse-crc24' in lisp/obsolete/pgg-parse.el
 (defconst prog-pgg-source
