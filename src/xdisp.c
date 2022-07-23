@@ -18968,8 +18968,9 @@ set_vertical_scroll_bar (struct window *w)
       ptrdiff_t window_end_pos = w->window_end_pos;
 
       /* If w->window_end_pos cannot be trusted, recompute it "the
-	 hard way".  */
-      if (!w->window_end_valid)
+	 hard way".  But don't bother to be too accurate when
+	 long-line shortcuts are in effect.  */
+      if (!w->window_end_valid && !buf->long_line_optimizations_p)
 	{
 	  struct it it;
 	  struct text_pos start_pos;
