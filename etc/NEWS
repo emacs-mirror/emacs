@@ -2332,6 +2332,12 @@ This change is now applied in 'dired-insert-directory'.
 It's been obsolete since Emacs-22.1, actually.
 
 ---
+** Calling 'lsh' now elicits a byte-compiler warning.
+'lsh' behaves in somewhat surprising and platform-dependent ways for
+negative arguments, and is generally slower than 'ash', which should be
+used instead.
+
+---
 ** Some functions and variables obsolete since Emacs 24 have been removed:
 'Info-edit-map', 'allout-abbreviate-flattened-numbering',
 'allout-mode-deactivate-hook', 'ansi-color-unfontify-region',
@@ -3229,12 +3235,6 @@ to preserve the old behavior, apply
 ** New functions 'take' and 'ntake'.
 '(take N LIST)' returns the first N elements of LIST; 'ntake' does
 the same but works by modifying LIST destructively.
-
----
-** Calling 'lsh' now elicits a byte-compiler warning.
-'lsh' behaves in somewhat surprising and platform-dependent ways for
-negative arguments and is generally slower than 'ash' which should be
-used instead.
 
 
 
