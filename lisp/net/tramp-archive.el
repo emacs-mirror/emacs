@@ -339,6 +339,13 @@ arguments to pass to the OPERATION."
 	        (tramp-archive-run-real-handler
                  #'file-directory-p (list archive)))
             (tramp-archive-run-real-handler operation args)
+	  ;; The default directory of the Tramp connection buffer
+	  ;; cannot be accessed.  (Bug#56628)
+	  ;; FIXME: It is superfluous to set it every single loop.
+	  ;; But there is no place to set it when creating the buffer.
+	  (with-current-buffer
+	      (tramp-get-buffer (tramp-archive-dissect-file-name filename))
+	    (setq default-directory (file-name-as-directory archive)))
           ;; Now run the handler.
           (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
 	        (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
