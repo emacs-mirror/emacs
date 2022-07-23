@@ -259,6 +259,7 @@ be printed along with the arguments in the trace."
           (ctx (funcall context)))
       (unless inhibit-trace
         (with-current-buffer trace-buffer
+          (setq-local page-delimiter (format "^%s" (regexp-quote trace-separator)))
           (setq-local window-point-insertion-type t)
           (unless background (trace--display-buffer trace-buffer))
           (goto-char (point-max))
