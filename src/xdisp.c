@@ -27620,10 +27620,20 @@ decode_mode_spec (struct window *w, register int c, int field_width,
          even crash emacs.)  */
       if (mode_line_target == MODE_LINE_TITLE)
 	return "";
+      else if (b->long_line_optimizations_p)
+	{
+	  char *p = decode_mode_spec_buf;
+	  int pad = width - 2;
+	  while (pad-- > 0)
+	    *p++ = ' ';
+	  *p++ = '?';
+	  *p++ = '?';
+	  *p = '\0';
+	  return decode_mode_spec_buf;
+	}
       else
 	{
-	  ptrdiff_t col =
-	    b->long_line_optimizations_p ? 0 : current_column ();
+	  ptrdiff_t col = current_column ();
 	  int disp_col = (c == 'C') ? col + 1 : col;
 	  w->column_number_displayed = col;
 	  pint2str (decode_mode_spec_buf, width, disp_col);
