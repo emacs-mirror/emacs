@@ -1821,7 +1821,8 @@ to control which program to use when looking for matches."
       (when (and (/= (point-min) (point-max))
                  (not (looking-at grep-re))
                  ;; TODO: Show these matches as well somehow?
-                 (not (looking-at "Binary file .* matches")))
+                 ;; Matching both Grep's and Ripgrep 13's messages.
+                 (not (looking-at ".*[bB]inary file.* matches")))
         (user-error "Search failed with status %d: %s" status
                     (buffer-substring (point-min) (line-end-position))))
       (while (re-search-forward grep-re nil t)
