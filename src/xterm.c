@@ -1390,6 +1390,12 @@ static int x_dnd_recursion_depth;
    initiating Motif drag-and-drop for the first time.  */
 static Lisp_Object x_dnd_selection_alias_cell;
 
+/* The last known position of the tooltip window.  */
+static int x_dnd_last_tooltip_x, x_dnd_last_tooltip_y;
+
+/* Whether or not those values are actually known yet.  */
+static bool x_dnd_last_tooltip_valid;
+
 /* Structure describing a single window that can be the target of
    drag-and-drop operations.  */
 struct x_client_list_window
@@ -11670,6 +11676,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_run_unsupported_drop_function = false;
   x_dnd_use_toplevels
     = x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_client_list_stacking);
+  x_dnd_last_tooltip_valid = false;
   x_dnd_toplevels = NULL;
   x_dnd_allow_current_frame = allow_current_frame;
   x_dnd_movement_frame = NULL;
@@ -15927,6 +15934,15 @@ x_dnd_update_tooltip_position (int root_x, int root_y)
     {
       x_dnd_compute_tip_xy (&root_x, &root_y,
 			    x_dnd_monitors);
+
+      if (x_dnd_last_tooltip_valid
+	  && root_x == x_dnd_last_tooltip_x
+	  && root_y == x_dnd_last_tooltip_y)
+	return;
+
+      x_dnd_last_tooltip_x = root_x;
+      x_dnd_last_tooltip_y = root_y;
+      x_dnd_last_tooltip_valid = true;
 
       XMoveWindow (FRAME_X_DISPLAY (x_dnd_frame),
 		   tip_window, root_x, root_y);
