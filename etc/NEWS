@@ -996,6 +996,11 @@ The user option 'comint-terminfo-terminal' and the variable
 'system-uses-terminfo' can now be set as connection-local variables to
 change the terminal used on a remote host.
 
+---
+*** New user option 'comint-delete-old-input'
+When set to nil, this prevents comint from deleting the current input
+when inserting previous input using '<mouse-2>'.
+
 ** Mwheel
 
 ---

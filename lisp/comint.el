@@ -905,6 +905,12 @@ series of processes in the same Comint buffer.  The hook
   "Return non-nil if STR contains non-whitespace syntax."
   (not (string-match "\\`\\s *\\'" str)))
 
+(defcustom comint-delete-old-input t
+  "When non-nil, delete old input on inserting previous input with \\<comint-mode-map>\\[comint-insert-input]."
+  :type 'boolean
+  :group 'comint
+  :version "29.1")
+
 (defun comint-insert-input (event)
   "In a Comint buffer, set the current input to the previous input at point.
 If there is no previous input at point, run the command specified
@@ -936,10 +942,11 @@ by the global keymap (usually `mouse-yank-at-click')."
         ;; Otherwise, insert the previous input.
         (goto-char (point-max))
         ;; First delete any old unsent input at the end
-        (delete-region
-         (or (marker-position comint-accum-marker)
-             (process-mark (get-buffer-process (current-buffer))))
-         (point))
+        (when comint-delete-old-input
+          (delete-region
+           (or (marker-position comint-accum-marker)
+               (process-mark (get-buffer-process (current-buffer))))
+           (point)))
         ;; Insert the input at point
         (insert input)))))
 
