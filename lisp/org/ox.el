@@ -1908,8 +1908,10 @@ Return a string."
 			   (org-element-property :archivedp data)))
 		  (let ((transcoder (org-export-transcoder data info)))
 		    (or (and (functionp transcoder)
-			     (broken-link-handler
-			      (funcall transcoder data nil info)))
+                             (if (eq type 'link)
+			         (broken-link-handler
+			          (funcall transcoder data nil info))
+                               (funcall transcoder data nil info)))
 			;; Export snippets never return a nil value so
 			;; that white spaces following them are never
 			;; ignored.
