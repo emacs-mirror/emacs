@@ -136,6 +136,9 @@ Only relevant when starting a server with `erc-d-run'.")
 Possibly used by overriding handlers, like the one for PING, and/or
 dialog templates for the sender portion of a reply message.")
 
+(defvar erc-d-line-ending "\r\n"
+  "Protocol line delimiter for sending and receiving.")
+
 (defvar erc-d-linger-secs nil
   "Seconds to wait before quitting for all dialogs.
 For more granular control, use the provided LINGER `rx' variable (alone)
@@ -249,6 +252,7 @@ return a replacement.")
          (mat-h (copy-sequence (process-get process :dialog-match-handlers)))
          (fqdn (copy-sequence (process-get process :dialog-server-fqdn)))
          (vars (copy-sequence (process-get process :dialog-vars)))
+         (ending (process-get process :dialog-ending))
          (dialog (make-erc-d-dialog :name name
                                     :process process
                                     :queue (make-ring 5)
@@ -263,6 +267,8 @@ return a replacement.")
           (erc-d-dialog-hunks dialog) reader)
     ;; Add reverse link, register client, launch
     (process-put process :dialog dialog)
+    (process-put process :ending ending)
+    (process-put process :ending-regexp (rx-to-string `(+ ,ending)))
     (push process erc-d--clients)
     (erc-d--command-refresh dialog nil)
     (erc-d--on-request process)))
@@ -311,7 +317,7 @@ PROCESS should be a client connection or a server network process."
          (name (erc-d-dialog-name (process-get ,process :dialog))))
      (if ,outbound
          (erc-d--m process "-> %s:%s %s" name id ,string)
-       (dolist (line (split-string ,string "\r\n"))
+       (dolist (line (split-string ,string (process-get process :ending)))
          (erc-d--m process "<- %s:%s %s" name id line)))))
 
 (defun erc-d--log-process-event (server process msg)
@@ -320,7 +326,7 @@ PROCESS should be a client connection or a server network process."
 (defun erc-d--send (process string)
   "Send STRING to PROCESS peer."
   (erc-d--log process string 'outbound)
-  (process-send-string process (concat string "\r\n")))
+  (process-send-string process (concat string (process-get process :ending))))
 
 (define-inline erc-d--fuzzy-p (exchange)
   (inline-letevals (exchange)
@@ -442,9 +448,10 @@ This will start the teardown for DIALOG."
   "Handle input received from peer.
 PROCESS represents a client peer connection and STRING is a raw request
 including line delimiters."
-  (let ((queue (erc-d-dialog-queue (process-get process :dialog))))
+  (let ((queue (erc-d-dialog-queue (process-get process :dialog)))
+        (delim (process-get process :ending-regexp)))
     (setq string (concat (process-get process :stashed-input) string))
-    (while (and string (string-match (rx (+ "\r\n")) string))
+    (while (and string (string-match delim string))
       (let ((line (substring string 0 (match-beginning 0))))
         (setq string (unless (= (match-end 0) (length string))
                        (substring string (match-end 0))))
@@ -913,35 +920,40 @@ Pass HOST and SERVICE directly to `make-network-process'.  When present,
 use string SERVER-NAME for the server-process name as well as that of
 its buffer (w. surrounding asterisks).  When absent, do the same with
 `erc-d-server-name'.  When running \"in process,\" return the server
-process, otherwise sleep for the duration of the server process.
+process; otherwise sleep until it dies.
 
 A dialog must be a symbol matching the base name of a dialog file in
-`erc-d-u-canned-dialog-dir'.
-
-The variable `erc-d-tmpl-vars' determines the common members of the
-`erc-d--render-entries' ENTRIES param.  Variables `erc-d-server-fqdn'
-and `erc-d-linger-secs' determine the `erc-d-dialog' items
-`:server-fqdn' and `:linger-secs' for all client processes.
-
-The variable `erc-d-tmpl-vars' can be used to initialize the
-process's `erc-d-dialog' vars item."
+`erc-d-u-canned-dialog-dir'.  Global variables `erc-d-server-fqdn',
+`erc-d-linger-secs', and `erc-d-tmpl-vars' determine the process's
+`erc-d-dialog' fields `:server-fqdn', `:linger-secs', and `:vars',
+respectively.  The latter may also be populated via keyword pairs
+appearing among DIALOGS."
   (when (and server-name (symbolp server-name))
     (push server-name dialogs)
     (setq server-name nil))
-  (let (loaded)
-    (dolist (dialog (nreverse dialogs))
-      (let ((reader (erc-d-u--canned-load-dialog dialog)))
-        (when erc-d--slow-mo
-          (setq reader (erc-d-u--rewrite-for-slow-mo erc-d--slow-mo reader)))
-        (push (cons (erc-d-u--normalize-canned-name dialog) reader) loaded)))
-    (setq dialogs loaded))
-  (erc-d--start host service (or server-name erc-d-server-name)
-                :dialog-dialogs dialogs
-                :dialog-vars erc-d-tmpl-vars
-                :dialog-linger-secs erc-d-linger-secs
-                :dialog-server-fqdn erc-d-server-fqdn
-                :dialog-match-handlers (erc-d-u--unkeyword
-                                        erc-d-match-handlers)))
+  (let (loaded kwds defaults args)
+    (while dialogs
+      (if-let* ((dlog (pop dialogs))
+                ((keywordp dlog)))
+          (progn (push (pop dialogs) kwds) (push dlog kwds))
+        (let ((reader (erc-d-u--canned-load-dialog dlog)))
+          (when erc-d--slow-mo
+            (setq reader (erc-d-u--rewrite-for-slow-mo erc-d--slow-mo reader)))
+          (push (cons (erc-d-u--normalize-canned-name dlog) reader) loaded))))
+    (setq kwds (erc-d-u--unkeyword kwds)
+          defaults `((ending . ,erc-d-line-ending)
+                     (server-fqdn . ,erc-d-server-fqdn)
+                     (linger-secs . ,erc-d-linger-secs)
+                     (vars . ,(or (plist-get kwds 'tmpl-vars) erc-d-tmpl-vars))
+                     (dialogs . ,(nreverse loaded)))
+          args (list :dialog-match-handlers
+                     (erc-d-u--unkeyword (or (plist-get kwds 'match-handlers)
+                                             erc-d-match-handlers))))
+    (pcase-dolist (`(,var . ,def) defaults)
+      (push (or (plist-get kwds var) def) args)
+      (push (intern (format ":dialog-%s" var)) args))
+    (apply #'erc-d--start host service (or server-name erc-d-server-name)
+           args)))
 
 (defun erc-d-serve ()
   "Start serving canned dialogs from the command line.

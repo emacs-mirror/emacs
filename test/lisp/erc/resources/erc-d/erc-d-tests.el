@@ -1343,4 +1343,31 @@ DIALOGS are symbols representing the base names of dialog files in
             (kill-buffer dumb-server-buffer)))
       (delete-file sock))))
 
+(ert-deftest erc-d-run-direct-foreign-protocol ()
+  :tags '(:expensive-test)
+  (let* ((server (erc-d-run "localhost" t "erc-d-server" 'foreign
+                            :ending "\n"))
+         (server-buffer (get-buffer "*erc-d-server*"))
+         (client-buffer (get-buffer-create "*erc-d-client*"))
+         client)
+    (with-current-buffer server-buffer (erc-d-t-search-for 4 "Starting"))
+    (setq client (make-network-process
+                  :buffer client-buffer
+                  :name "erc-d-client"
+                  :family 'ipv4
+                  :noquery t
+                  :coding 'binary
+                  :service (process-contact server :service)
+                  :host "localhost"))
+    (process-send-string client "ONE one\n")
+    (with-current-buffer client-buffer
+      (erc-d-t-search-for 5 "echo ONE one"))
+    (process-send-string client "TWO two\n")
+    (with-current-buffer client-buffer
+      (erc-d-t-search-for 2 "echo TWO two"))
+    (erc-d-t-wait-for 2 "server death" (not (process-live-p server)))
+    (when noninteractive
+      (kill-buffer client-buffer)
+      (kill-buffer server-buffer))))
+
 ;;; erc-d-tests.el ends here
