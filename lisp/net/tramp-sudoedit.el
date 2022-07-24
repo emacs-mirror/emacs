@@ -241,6 +241,8 @@ absolute file names."
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
 
+    ;; FIXME: This should be optimized.  Computing `file-attributes'
+    ;; checks already, whether the file exists.
     (let ((t1 (tramp-sudoedit-file-name-p filename))
 	  (t2 (tramp-sudoedit-file-name-p newname))
 	  (file-times (file-attribute-modification-time
@@ -256,62 +258,61 @@ absolute file names."
 	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(unless (file-exists-p filename)
-	  (tramp-error v 'file-missing filename))
-	(when (and (not ok-if-already-exists) (file-exists-p newname))
-	  (tramp-error v 'file-already-exists newname))
-	(when (and (file-directory-p newname)
-		   (not (directory-name-p newname)))
-	  (tramp-error v 'file-error "File is a directory %s" newname))
+	(tramp-barf-if-file-missing v filename
+	  (when (and (not ok-if-already-exists) (file-exists-p newname))
+	    (tramp-error v 'file-already-exists newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	(if (or (and (file-remote-p filename) (not t1))
-		(and (file-remote-p newname)  (not t2)))
-	    ;; We cannot copy or rename directly.
-	    (let ((tmpfile (tramp-compat-make-temp-file filename)))
-	      (if (eq op 'copy)
-		  (copy-file filename tmpfile t)
-		(rename-file filename tmpfile t))
-	      (rename-file tmpfile newname ok-if-already-exists))
+	  (if (or (and (file-remote-p filename) (not t1))
+		  (and (file-remote-p newname)  (not t2)))
+	      ;; We cannot copy or rename directly.
+	      (let ((tmpfile (tramp-compat-make-temp-file filename)))
+		(if (eq op 'copy)
+		    (copy-file filename tmpfile t)
+		  (rename-file filename tmpfile t))
+		(rename-file tmpfile newname ok-if-already-exists))
 
-	  ;; Direct action.
-	  (with-tramp-progress-reporter
-	      v 0 (format "%s %s to %s" msg-operation filename newname)
-	    (unless (tramp-sudoedit-send-command
-		     v sudoedit-operation
-		     (tramp-unquote-file-local-name filename)
-		     (tramp-unquote-file-local-name newname))
-	      (tramp-error
-	       v 'file-error
-	       "Error %s `%s' `%s'" msg-operation filename newname))))
+	    ;; Direct action.
+	    (with-tramp-progress-reporter
+		v 0 (format "%s %s to %s" msg-operation filename newname)
+	      (unless (tramp-sudoedit-send-command
+		       v sudoedit-operation
+		       (tramp-unquote-file-local-name filename)
+		       (tramp-unquote-file-local-name newname))
+		(tramp-error
+		 v 'file-error
+		 "Error %s `%s' `%s'" msg-operation filename newname))))
 
-	;; When `newname' is local, we must change the ownership to
-	;; the local user.
-	(unless (file-remote-p newname)
-	  (tramp-set-file-uid-gid
-	   (concat (file-remote-p filename) newname)
-	   (tramp-get-local-uid 'integer)
-	   (tramp-get-local-gid 'integer)))
+	  ;; When `newname' is local, we must change the ownership to
+	  ;; the local user.
+	  (unless (file-remote-p newname)
+	    (tramp-set-file-uid-gid
+	     (concat (file-remote-p filename) newname)
+	     (tramp-get-local-uid 'integer)
+	     (tramp-get-local-gid 'integer)))
 
-	;; Set the time and mode. Mask possible errors.
-	(when keep-date
-	  (ignore-errors
-	    (tramp-compat-set-file-times
-	     newname file-times (unless ok-if-already-exists 'nofollow))
-	    (set-file-modes newname file-modes)))
+	  ;; Set the time and mode. Mask possible errors.
+	  (when keep-date
+	    (ignore-errors
+	      (tramp-compat-set-file-times
+	       newname file-times (unless ok-if-already-exists 'nofollow))
+	      (set-file-modes newname file-modes)))
 
-	;; Handle `preserve-extended-attributes'.  We ignore possible
-	;; errors, because ACL strings could be incompatible.
-	(when attributes
-	  (ignore-errors
-	    (set-file-extended-attributes newname attributes)))
+	  ;; Handle `preserve-extended-attributes'.  We ignore possible
+	  ;; errors, because ACL strings could be incompatible.
+	  (when attributes
+	    (ignore-errors
+	      (set-file-extended-attributes newname attributes)))
 
-	(when (and t1 (eq op 'rename))
-	  (with-parsed-tramp-file-name filename v1
-	    (tramp-flush-file-properties v1 v1-localname)))
+	  (when (and t1 (eq op 'rename))
+	    (with-parsed-tramp-file-name filename v1
+	      (tramp-flush-file-properties v1 v1-localname)))
 
-	(when t2
-	  (with-parsed-tramp-file-name newname v2
-	    (tramp-flush-file-properties v2 v2-localname)))))))
+	  (when t2
+	    (with-parsed-tramp-file-name newname v2
+	      (tramp-flush-file-properties v2 v2-localname))))))))
 
 (defun tramp-sudoedit-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -407,34 +408,30 @@ the result will be a local, non-Tramp, file name."
 	;; provided by `tramp-sudoedit-send-command-string'.  Add it.
 	(and (stringp result) (concat result "\n"))))))
 
+(defconst tramp-sudoedit-file-attributes
+  (format
+   ;; Apostrophes in the stat output are masked as
+   ;; `tramp-stat-marker', in order to make a proper shell escape of
+   ;; them in file names.  They are replaced in
+   ;; `tramp-sudoedit-send-command-and-read'.
+   (concat "((%s%%N%s) %%h (%s%%U%s . %%u) (%s%%G%s . %%g)"
+	   " %%X %%Y %%Z %%s %s%%A%s t %%i -1)")
+   tramp-stat-marker tramp-stat-marker  ; %%N
+   tramp-stat-marker tramp-stat-marker  ; %%U
+   tramp-stat-marker tramp-stat-marker  ; %%G
+   tramp-stat-marker tramp-stat-marker) ; %%A
+  "stat format string to produce output suitable for use with
+`file-attributes' on the remote file system.")
+
 (defun tramp-sudoedit-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
-  (unless id-format (setq id-format 'integer))
+  ;; The result is cached in `tramp-convert-file-attributes'.
   (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (with-tramp-file-property
-	v localname (format "file-attributes-%s" id-format)
-      (tramp-message v 5 "file attributes: %s" localname)
-      (ignore-errors
-	(tramp-convert-file-attributes
-	 v
-	 (tramp-sudoedit-send-command-and-read
-	  v "env" "QUOTING_STYLE=locale" "stat" "-c"
-	  (format
-	   ;; Apostrophes in the stat output are masked as
-	   ;; `tramp-stat-marker', in order to make a proper shell
-	   ;; escape of them in file names.
-	   "((%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)"
-	   tramp-stat-marker tramp-stat-marker
-	   (if (eq id-format 'integer)
-	       "%u"
-	     (eval-when-compile
-	       (concat tramp-stat-marker "%U" tramp-stat-marker)))
-	   (if (eq id-format 'integer)
-	       "%g"
-	     (eval-when-compile
-	       (concat tramp-stat-marker "%G" tramp-stat-marker)))
-	   tramp-stat-marker tramp-stat-marker)
-	  (tramp-compat-file-name-unquote localname)))))))
+    (tramp-convert-file-attributes v localname id-format
+      (tramp-sudoedit-send-command-and-read
+       v "env" "QUOTING_STYLE=locale" "stat" "-c"
+       tramp-sudoedit-file-attributes
+       (tramp-compat-file-name-unquote localname)))))
 
 (defun tramp-sudoedit-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
@@ -718,6 +715,7 @@ VEC or USER, or if there is no home directory, return nil."
 (defun tramp-sudoedit-handle-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-uid'.
   (if (equal id-format 'integer)
       (tramp-sudoedit-send-command-and-read vec "id" "-u")
     (tramp-sudoedit-send-command-string vec "id" "-un")))
@@ -725,6 +723,7 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-sudoedit-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-gid'.
   (if (equal id-format 'integer)
       (tramp-sudoedit-send-command-and-read vec "id" "-g")
     (tramp-sudoedit-send-command-string vec "id" "-gn")))

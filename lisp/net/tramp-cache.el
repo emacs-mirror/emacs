@@ -205,6 +205,12 @@ Return VALUE."
 	      (unintern var obarray))))
 
 ;;;###tramp-autoload
+(defun tramp-file-property-p (key file property)
+  "Check whether PROPERTY of FILE is defined in the cache context of KEY."
+  (not (eq (tramp-get-file-property key file property tramp-cache-undefined)
+	   tramp-cache-undefined)))
+
+;;;###tramp-autoload
 (defun tramp-flush-file-property (key file property)
   "Remove PROPERTY of FILE in the cache context of KEY."
   ;; Unify localname.  Remove hop from `tramp-file-name' structure.

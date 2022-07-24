@@ -31,7 +31,6 @@
 (require 'ert)
 (require 'ert-x)
 (require 'tramp-archive)
-(defvar tramp-copy-size-limit)
 (defvar tramp-persistency-file-name)
 
 ;; `ert-resource-file' was introduced in Emacs 28.1.
@@ -96,7 +95,6 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
 
 (setq password-cache-expiry nil
       tramp-cache-read-persistent-data t ;; For auth-sources.
-      tramp-copy-size-limit nil
       tramp-persistency-file-name nil
       tramp-verbose 0)
 

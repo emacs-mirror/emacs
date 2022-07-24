@@ -58,36 +58,30 @@
 (defun tramp-fuse-handle-directory-files
     (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  (when (file-directory-p directory)
-    (setq directory (file-name-as-directory (expand-file-name directory)))
-    (with-parsed-tramp-file-name directory nil
-      (let ((result
-	     (tramp-compat-directory-files
-	      (tramp-fuse-local-file-name directory) full match nosort count)))
+  (let ((result
+	 (tramp-skeleton-directory-files directory full match nosort count
+	   ;; Some storage systems do not return "." and "..".
+	   (delete-dups
+	    (append
+	     '("." "..")
+	     (tramp-fuse-remove-hidden-files
+	      (tramp-compat-directory-files
+	       (tramp-fuse-local-file-name directory))))))))
+    (if full
 	;; Massage the result.
-	(when full
-	  (let ((local (concat "^" (regexp-quote (tramp-fuse-mount-point v))))
-		(remote (directory-file-name
-			 (funcall
-			  (if (tramp-compat-file-name-quoted-p directory)
-			      #'tramp-compat-file-name-quote #'identity)
-			  (file-remote-p directory)))))
-	    (setq result
-		  (mapcar
-		   (lambda (x) (replace-regexp-in-string local remote x))
-		   result))))
-	;; Some storage systems do not return "." and "..".
-	(dolist (item '(".." "."))
-	  (when (and (string-match-p (or match (regexp-quote item)) item)
-		     (not
-		      (member (if full (setq item (concat directory item)) item)
-			      result)))
-	    (setq result (cons item result))))
-	;; Return result.
-	(tramp-fuse-remove-hidden-files
-	 (if nosort result (sort result #'string<)))))))
+	(let ((local (concat
+		      "^" (regexp-quote
+			   (tramp-fuse-mount-point
+			    (tramp-dissect-file-name directory)))))
+	      (remote (directory-file-name
+		       (funcall
+			(if (tramp-compat-file-name-quoted-p directory)
+			    #'tramp-compat-file-name-quote #'identity)
+			(file-remote-p directory)))))
+	  (mapcar
+	   (lambda (x) (replace-regexp-in-string local remote x))
+	   result))
+      result)))
 
 (defun tramp-fuse-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

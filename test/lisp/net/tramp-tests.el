@@ -201,6 +201,14 @@ being the result.")
 	   (file-writable-p ert-remote-temporary-file-directory))))))
 
   (when (cdr tramp--test-enabled-checked)
+    ;; Remove old test files.
+    (dolist (dir `(,temporary-file-directory
+		   ,ert-remote-temporary-file-directory))
+      (dolist (file (directory-files dir 'full "^\\(.#\\)?tramp-test"))
+	(ignore-errors
+	  (if (file-directory-p file)
+	      (delete-directory file 'recursive)
+	    (delete-file file)))))
     ;; Cleanup connection.
     (ignore-errors
       (tramp-cleanup-connection tramp-test-vec nil 'keep-password)))
@@ -4078,10 +4086,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(setq tmp-name3 (concat (file-remote-p tmp-name3) tmp-name2)))))
 
 	;; Cleanup.
-	(ignore-errors
-	  (delete-file tmp-name2)
-	  (delete-file tmp-name3)
-	  (delete-directory tmp-name1 'recursive)))
+	(ignore-errors (delete-file tmp-name2))
+	(ignore-errors (delete-file tmp-name3))
+	(ignore-errors (delete-directory tmp-name1 'recursive)))
 
       ;; Detect cyclic symbolic links.
       (unwind-protect

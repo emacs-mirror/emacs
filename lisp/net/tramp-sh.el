@@ -620,6 +620,21 @@ on the remote file system.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
+(defconst tramp-readlink-file-truename
+  (format
+   (concat
+    "(echo -n %s &&"
+    " %%r --no-newline --canonicalize-missing \"$1\" &&"
+    " echo %s) |"
+    " sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'")
+   tramp-stat-marker
+   tramp-stat-marker
+   tramp-stat-quoted-marker)
+  "Shell function to produce output suitable for use with `file-truename'
+on the remote file system.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
 (defconst tramp-perl-file-name-all-completions
   "%p -e '
 opendir(d, $ARGV[0]) || die(\"$ARGV[0]: $!\\nfail\\n\");
@@ -666,14 +681,14 @@ else
 {
     $type = \"nil\"
 };
-$uid = ($ARGV[1] eq \"integer\") ? $stat[4] : \"\\\"\" . getpwuid($stat[4]) . \"\\\"\";
-$gid = ($ARGV[1] eq \"integer\") ? $stat[5] : \"\\\"\" . getgrgid($stat[5]) . \"\\\"\";
 printf(
-    \"(%%s %%u %%s %%s (%%u %%u) (%%u %%u) (%%u %%u) %%u %%u t %%u -1)\\n\",
+    \"(%%s %%u (%%s . %%u) (%%s . %%u) (%%u %%u) (%%u %%u) (%%u %%u) %%u %%u t %%u -1)\\n\",
     $type,
     $stat[3],
-    $uid,
-    $gid,
+    \"\\\"\" . getpwuid($stat[4]) . \"\\\"\",
+    $stat[4],
+    \"\\\"\" . getgrgid($stat[5]) . \"\\\"\",
+    $stat[5],
     $stat[8] >> 16 & 0xffff,
     $stat[8] & 0xffff,
     $stat[9] >> 16 & 0xffff,
@@ -683,8 +698,25 @@ printf(
     $stat[7],
     $stat[2],
     $stat[1]
-);' \"$1\" \"$2\" %n"
+);' \"$1\" %n"
   "Perl script to produce output suitable for use with `file-attributes'
+on the remote file system.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
+(defconst tramp-stat-file-attributes
+  (format
+   (concat
+    "(%%s -c"
+    " '((%s%%%%N%s) %%%%h (%s%%%%U%s . %%%%u) (%s%%%%G%s . %%%%g)"
+    " %%%%X %%%%Y %%%%Z %%%%s %s%%%%A%s t %%%%i -1)' \"$1\" %%n || echo nil) |"
+    " sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'")
+    tramp-stat-marker tramp-stat-marker ; %%N
+    tramp-stat-marker tramp-stat-marker ; %%U
+    tramp-stat-marker tramp-stat-marker ; %%G
+    tramp-stat-marker tramp-stat-marker ; %%A
+    tramp-stat-quoted-marker)
+  "Shell function to produce output suitable for use with `file-attributes'
 on the remote file system.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
@@ -715,16 +747,16 @@ for($i = 0; $i < $n; $i++)
     {
         $type = \"nil\"
     };
-    $uid = ($ARGV[1] eq \"integer\") ? $stat[4] : \"\\\"\" . getpwuid($stat[4]) . \"\\\"\";
-    $gid = ($ARGV[1] eq \"integer\") ? $stat[5] : \"\\\"\" . getgrgid($stat[5]) . \"\\\"\";
     $filename =~ s/\"/\\\\\"/g;
     printf(
-        \"(\\\"%%s\\\" %%s %%u %%s %%s (%%u %%u) (%%u %%u) (%%u %%u) %%u %%u t %%u -1)\\n\",
+        \"(\\\"%%s\\\" %%s %%u (%%s . %%u) (%%s . %%u) (%%u %%u) (%%u %%u) (%%u %%u) %%u %%u t %%u -1)\\n\",
         $filename,
         $type,
         $stat[3],
-        $uid,
-        $gid,
+        \"\\\"\" . getpwuid($stat[4]) . \"\\\"\",
+        $stat[4],
+        \"\\\"\" . getgrgid($stat[5]) . \"\\\"\",
+        $stat[5],
         $stat[8] >> 16 & 0xffff,
         $stat[8] & 0xffff,
         $stat[9] >> 16 & 0xffff,
@@ -735,9 +767,35 @@ for($i = 0; $i < $n; $i++)
         $stat[2],
         $stat[1]);
 }
-printf(\")\\n\");' \"$1\" \"$2\" %n"
+printf(\")\\n\");' \"$1\" %n"
   "Perl script implementing `directory-files-and-attributes' as Lisp `read'able
 output.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
+(defconst tramp-stat-directory-files-and-attributes
+  (format
+   (concat
+    ;; We must care about file names with spaces, or starting with
+    ;; "-"; this would confuse xargs.  "ls -aQ" might be a solution,
+    ;; but it does not work on all remote systems.  Therefore, we use
+    ;; \000 as file separator.  `tramp-sh--quoting-style-options' do
+    ;; not work for file names with spaces piped to "xargs".
+    ;; Apostrophes in the stat output are masked as
+    ;; `tramp-stat-marker', in order to make a proper shell escape of
+    ;; them in file names.
+    "cd \"$1\" && echo \"(\"; (%%l -a | tr '\\n\\r' '\\000\\000' |"
+    " xargs -0 %%s -c"
+    " '(%s%%%%n%s (%s%%%%N%s) %%%%h (%s%%%%U%s . %%%%u) (%s%%%%G%s . %%%%g) %%%%X %%%%Y %%%%Z %%%%s %s%%%%A%s t %%%%i -1)'"
+    " -- %%n | sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'); echo \")\"")
+   tramp-stat-marker tramp-stat-marker ; %n
+   tramp-stat-marker tramp-stat-marker ; %N
+   tramp-stat-marker tramp-stat-marker ; %U
+   tramp-stat-marker tramp-stat-marker ; %G
+   tramp-stat-marker tramp-stat-marker ; %A
+   tramp-stat-quoted-marker)
+  "Shell function implementing `directory-files-and-attributes' as Lisp
+`read'able output.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
@@ -1068,7 +1126,9 @@ component is used as the target of the symlink."
       (let ((non-essential t))
 	(when (and (tramp-tramp-file-p target)
 		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target (tramp-file-local-name (expand-file-name target)))))
+	  (setq target (tramp-file-local-name (expand-file-name target))))
+	;; There could be a cyclic link.
+	(tramp-flush-file-properties v target))
 
       ;; If TARGET is still remote, quote it.
       (if (tramp-tramp-file-p target)
@@ -1130,36 +1190,31 @@ component is used as the target of the symlink."
       (tramp-make-tramp-file-name
        v
        (with-tramp-file-property v localname "file-truename"
-	 (let (result)			; result steps in reverse order
-	   (tramp-message v 4 "Finding true name for `%s'" filename)
-	   (cond
-	    ;; Use GNU readlink --canonicalize-missing where available.
-	    ((tramp-get-remote-readlink v)
-	     (tramp-send-command-and-check
-	      v
-	      (format "%s --canonicalize-missing %s"
-		      (tramp-get-remote-readlink v)
-		      (tramp-shell-quote-argument localname)))
-	     (with-current-buffer (tramp-get-connection-buffer v)
-	       (goto-char (point-min))
-	       (setq result (buffer-substring (point-min) (point-at-eol)))))
+	 (tramp-message v 4 "Finding true name for `%s'" filename)
+	 (let ((result
+		(cond
+		 ;; Use GNU readlink --canonicalize-missing where
+		 ;; available.
+		 ((tramp-get-remote-readlink v)
+		  (tramp-maybe-send-script
+		   v tramp-readlink-file-truename "tramp_readlink_file_truename")
+		  (tramp-send-command-and-read
+		   v (format "tramp_readlink_file_truename %s"
+			     (tramp-shell-quote-argument localname))))
 
-	    ;; Use Perl implementation.
-	    ((and (tramp-get-remote-perl v)
-		  (tramp-get-connection-property v "perl-file-spec")
-		  (tramp-get-connection-property v "perl-cwd-realpath"))
-	     (tramp-maybe-send-script
-	      v tramp-perl-file-truename "tramp_perl_file_truename")
-	     (setq result
-		   (tramp-send-command-and-read
-		    v
-		    (format "tramp_perl_file_truename %s"
-			    (tramp-shell-quote-argument localname)))))
+		 ;; Use Perl implementation.
+		 ((and (tramp-get-remote-perl v)
+		       (tramp-get-connection-property v "perl-file-spec")
+		       (tramp-get-connection-property v "perl-cwd-realpath"))
+		  (tramp-maybe-send-script
+		   v tramp-perl-file-truename "tramp_perl_file_truename")
+		  (tramp-send-command-and-read
+		   v (format "tramp_perl_file_truename %s"
+			     (tramp-shell-quote-argument localname))))
 
-	    ;; Do it yourself.
-	    (t (setq
-		result
-		(tramp-file-local-name (tramp-handle-file-truename filename)))))
+		 ;; Do it yourself.
+		 (t (tramp-file-local-name
+		     (tramp-handle-file-truename filename))))))
 
 	   ;; Detect cycle.
 	   (when (and (file-symlink-p filename)
@@ -1184,37 +1239,28 @@ component is used as the target of the symlink."
   (when (tramp-connectable-p filename)
     (with-parsed-tramp-file-name filename nil
       (with-tramp-file-property v localname "file-exists-p"
-	(or (not (null (tramp-get-file-property
-			v localname "file-attributes-integer")))
-            (not (null (tramp-get-file-property
-			v localname "file-attributes-string")))
-	    (tramp-send-command-and-check
-	     v
-	     (format
-	      "%s %s"
-	      (tramp-get-file-exists-command v)
-	      (tramp-shell-quote-argument localname))))))))
+	(if (tramp-file-property-p v localname "file-attributes")
+	    (not (null (tramp-get-file-property v localname "file-attributes")))
+	  (tramp-send-command-and-check
+	   v
+	   (format
+	    "%s %s"
+	    (tramp-get-file-exists-command v)
+	    (tramp-shell-quote-argument localname))))))))
 
 (defun tramp-sh-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
-  (unless id-format (setq id-format 'integer))
-  (ignore-errors
-    ;; Don't modify `last-coding-system-used' by accident.
-    (let ((last-coding-system-used last-coding-system-used))
-      (with-parsed-tramp-file-name (expand-file-name filename) nil
-	(with-tramp-file-property
-	    v localname (format "file-attributes-%s" id-format)
-	  (tramp-convert-file-attributes
-	   v
-	   (or
-	    (cond
-	     ((tramp-get-remote-stat v)
-	      (tramp-do-file-attributes-with-stat v localname id-format))
-	     ((tramp-get-remote-perl v)
-	      (tramp-do-file-attributes-with-perl v localname id-format))
-	     (t nil))
-	    ;; The scripts could fail, for example with huge file size.
-	    (tramp-do-file-attributes-with-ls v localname id-format))))))))
+  ;; The result is cached in `tramp-convert-file-attributes'.
+  ;; Don't modify `last-coding-system-used' by accident.
+  (let ((last-coding-system-used last-coding-system-used))
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
+      (tramp-convert-file-attributes v localname id-format
+	(cond
+	 ((tramp-get-remote-stat v)
+	  (tramp-do-file-attributes-with-stat v localname))
+	 ((tramp-get-remote-perl v)
+	  (tramp-do-file-attributes-with-perl v localname))
+	 (t (tramp-do-file-attributes-with-ls v localname)))))))
 
 (defconst tramp-sunos-unames (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
   "Regexp to determine remote SunOS.")
@@ -1230,29 +1276,40 @@ component is used as the target of the symlink."
      (tramp-get-ls-command-with vec "-w"))
    ""))
 
-(defun tramp-do-file-attributes-with-ls (vec localname &optional id-format)
+(defun tramp-do-file-attributes-with-ls (vec localname)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
   (let (symlinkp dirp
 	res-inode res-filemodes res-numlinks
-	res-uid res-gid res-size res-symlink-target)
+	res-uid-string res-gid-string res-uid-integer res-gid-integer
+	res-size res-symlink-target)
     (tramp-message vec 5 "file attributes with ls: %s" localname)
     ;; We cannot send all three commands combined, it could exceed
     ;; NAME_MAX or PATH_MAX.  Happened on macOS, for example.
-    (when (or (tramp-send-command-and-check
-               vec
-               (format "%s %s"
-                       (tramp-get-file-exists-command vec)
-                       (tramp-shell-quote-argument localname)))
-              (tramp-send-command-and-check
-               vec
-               (format "%s -h %s"
-                       (tramp-get-test-command vec)
-                       (tramp-shell-quote-argument localname))))
+    (when (tramp-send-command-and-check
+           vec
+           (format "cd %s && (%s %s || %s -h %s)"
+		   (tramp-shell-quote-argument
+		    (tramp-run-real-handler
+		     #'file-name-directory (list localname)))
+		   (tramp-get-file-exists-command vec)
+		   (if (string-empty-p (file-name-nondirectory localname))
+		       "."
+                     (tramp-shell-quote-argument
+		      (file-name-nondirectory localname)))
+                   (tramp-get-test-command vec)
+		   (if (string-empty-p (file-name-nondirectory localname))
+		       "."
+                     (tramp-shell-quote-argument
+		      (file-name-nondirectory localname)))))
       (tramp-send-command
        vec
-       (format "%s %s %s %s"
+       (format "%s -ild %s %s; %s -lnd %s %s"
                (tramp-get-ls-command vec)
-               (if (eq id-format 'integer) "-ildn" "-ild")
+               ;; On systems which have no quoting style, file names
+               ;; with special characters could fail.
+               (tramp-sh--quoting-style-options vec)
+               (tramp-shell-quote-argument localname)
+               (tramp-get-ls-command vec)
                ;; On systems which have no quoting style, file names
                ;; with special characters could fail.
                (tramp-sh--quoting-style-options vec)
@@ -1268,17 +1325,12 @@ component is used as the target of the symlink."
           ;; ... number links
           (setq res-numlinks (read (current-buffer)))
           ;; ... uid and gid
-          (setq res-uid (read (current-buffer)))
-          (setq res-gid (read (current-buffer)))
-          (if (eq id-format 'integer)
-              (progn
-                (unless (numberp res-uid)
-		  (setq res-uid tramp-unknown-id-integer))
-                (unless (numberp res-gid)
-		  (setq res-gid tramp-unknown-id-integer)))
-            (progn
-              (unless (stringp res-uid) (setq res-uid (symbol-name res-uid)))
-              (unless (stringp res-gid) (setq res-gid (symbol-name res-gid)))))
+          (setq res-uid-string (read (current-buffer)))
+          (setq res-gid-string (read (current-buffer)))
+          (unless (stringp res-uid-string)
+	    (setq res-uid-string (symbol-name res-uid-string)))
+          (unless (stringp res-gid-string)
+	    (setq res-gid-string (symbol-name res-gid-string)))
           ;; ... size
           (setq res-size (read (current-buffer)))
           ;; From the file modes, figure out other stuff.
@@ -1291,7 +1343,20 @@ component is used as the target of the symlink."
                   (if (looking-at-p "\"")
                       (read (current-buffer))
                     (buffer-substring (point) (point-at-eol)))))
-          ;; Return data gathered.
+	  (forward-line)
+          ;; ... file mode flags
+	  (read (current-buffer))
+          ;; ... number links
+	  (read (current-buffer))
+          ;; ... uid and gid
+          (setq res-uid-integer (read (current-buffer)))
+          (setq res-gid-integer (read (current-buffer)))
+          (unless (numberp res-uid-integer)
+	    (setq res-uid-integer tramp-unknown-id-integer))
+          (unless (numberp res-gid-integer)
+	    (setq res-gid-integer tramp-unknown-id-integer))
+
+	  ;; Return data gathered.
           (list
            ;; 0. t for directory, string (name linked to) for symbolic
            ;; link, or nil.
@@ -1299,9 +1364,9 @@ component is used as the target of the symlink."
            ;; 1. Number of links to file.
            res-numlinks
            ;; 2. File uid.
-           res-uid
+           (cons res-uid-string res-uid-integer)
            ;; 3. File gid.
-           res-gid
+           (cons res-gid-string res-gid-integer)
            ;; 4. Last access time.
            ;; 5. Last modification time.
            ;; 6. Last status change time.
@@ -1318,42 +1383,23 @@ component is used as the target of the symlink."
            ;; 11. Device number.  Will be replaced by a virtual device number.
            -1))))))
 
-(defun tramp-do-file-attributes-with-perl
-  (vec localname &optional id-format)
+(defun tramp-do-file-attributes-with-perl (vec localname)
   "Implement `file-attributes' for Tramp files using a Perl script."
   (tramp-message vec 5 "file attributes with perl: %s" localname)
   (tramp-maybe-send-script
    vec tramp-perl-file-attributes "tramp_perl_file_attributes")
   (tramp-send-command-and-read
-   vec
-   (format "tramp_perl_file_attributes %s %s"
-	   (tramp-shell-quote-argument localname) id-format)))
+   vec (format "tramp_perl_file_attributes %s"
+	       (tramp-shell-quote-argument localname))))
 
-(defun tramp-do-file-attributes-with-stat
-  (vec localname &optional id-format)
+(defun tramp-do-file-attributes-with-stat (vec localname)
   "Implement `file-attributes' for Tramp files using stat(1) command."
   (tramp-message vec 5 "file attributes with stat: %s" localname)
+  (tramp-maybe-send-script
+   vec tramp-stat-file-attributes "tramp_stat_file_attributes")
   (tramp-send-command-and-read
-   vec
-   (format
-    (concat
-     ;; Apostrophes in the stat output are masked as
-     ;; `tramp-stat-marker', in order to make a proper shell escape of
-     ;; them in file names.
-     "(%s -c '((%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)' %s |"
-     " sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g')")
-    (tramp-get-remote-stat vec)
-    tramp-stat-marker tramp-stat-marker
-    (if (eq id-format 'integer)
-	"%u"
-      (eval-when-compile (concat tramp-stat-marker "%U" tramp-stat-marker)))
-    (if (eq id-format 'integer)
-	"%g"
-      (eval-when-compile (concat tramp-stat-marker "%G" tramp-stat-marker)))
-    tramp-stat-marker tramp-stat-marker
-    (tramp-shell-quote-argument localname)
-    tramp-stat-quoted-marker)
-   'noerror))
+   vec (format "tramp_stat_file_attributes %s"
+	       (tramp-shell-quote-argument localname))))
 
 (defun tramp-sh-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -1486,6 +1532,7 @@ VEC or USER, or if there is no home directory, return nil."
 (defun tramp-sh-handle-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-uid'.
   (ignore-errors
     (cond
      ((tramp-get-remote-id vec) (tramp-get-remote-uid-with-id vec id-format))
@@ -1496,6 +1543,7 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-sh-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-gid'.
   (ignore-errors
     (cond
      ((tramp-get-remote-id vec) (tramp-get-remote-gid-with-id vec id-format))
@@ -1620,16 +1668,18 @@ ID-FORMAT valid values are `string' and `integer'."
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (or (tramp-check-cached-permissions v ?x)
-	  (tramp-check-cached-permissions v ?s)
-	  (tramp-run-test "-x" filename)))))
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (or (tramp-check-cached-permissions v ?x)
+	      (tramp-check-cached-permissions v ?s))
+	(tramp-run-test "-x" filename)))))
 
 (defun tramp-sh-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-readable-p"
-      (or (tramp-handle-file-readable-p filename)
-	  (tramp-run-test "-r" filename)))))
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (tramp-handle-file-readable-p filename)
+	(tramp-run-test "-r" filename)))))
 
 ;; Functions implemented using the basic functions above.
 
@@ -1642,19 +1692,28 @@ ID-FORMAT valid values are `string' and `integer'."
     ;; be expected that this is always a directory.
     (or (zerop (length localname))
 	(with-tramp-file-property v localname "file-directory-p"
-	  (tramp-run-test "-d" filename)))))
+	  (if-let
+	      ((truename (tramp-get-file-property v localname "file-truename"))
+	       (attr-p (tramp-file-property-p
+			v (tramp-file-local-name truename) "file-attributes")))
+	      (eq (file-attribute-type
+		   (tramp-get-file-property
+		    v (tramp-file-local-name truename) "file-attributes"))
+		  t)
+	    (tramp-run-test "-d" filename))))))
 
 (defun tramp-sh-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
-	  ;; Examine `file-attributes' cache to see if request can be
-	  ;; satisfied without remote operation.
-          (or (tramp-check-cached-permissions v ?w)
-	      (tramp-run-test "-w" filename))
+	  (if (tramp-file-property-p v localname "file-attributes")
+	      ;; Examine `file-attributes' cache to see if request can
+	      ;; be satisfied without remote operation.
+	      (tramp-check-cached-permissions v ?w)
+	    (tramp-run-test "-w" filename))
 	;; If file doesn't exist, check if directory is writable.
-	(and (tramp-run-test "-d" (file-name-directory filename))
+	(and (file-exists-p (file-name-directory filename))
 	     (tramp-run-test "-w" (file-name-directory filename)))))))
 
 (defun tramp-sh-handle-file-ownership-preserved-p (filename &optional group)
@@ -1683,51 +1742,18 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-sh-handle-directory-files-and-attributes
   (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
-  (unless id-format (setq id-format 'integer))
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  (when (file-directory-p directory)
-    (setq directory (expand-file-name directory))
-    (let* ((temp
-	    (copy-tree
-	     (with-parsed-tramp-file-name directory nil
-	       (with-tramp-file-property
-		   v localname
-		   (format "directory-files-and-attributes-%s" id-format)
-		 (mapcar
-		  (lambda (x)
-		    (cons (car x) (tramp-convert-file-attributes v (cdr x))))
-		  (cond
-		   ((tramp-get-remote-stat v)
-		    (tramp-do-directory-files-and-attributes-with-stat
-		     v localname id-format))
-		   ((tramp-get-remote-perl v)
-		    (tramp-do-directory-files-and-attributes-with-perl
-		     v localname id-format))
-		   (t nil)))))))
-	   result item)
-
-      (while temp
-	(setq item (pop temp))
-	(when (or (null match) (string-match-p match (car item)))
-	  (when full
-	    (setcar item (expand-file-name (car item) directory)))
-	  (push item result)))
-
-      (unless nosort
-	(setq result (sort result (lambda (x y) (string< (car x) (car y))))))
-
-      (when (and (natnump count) (> count 0))
-	(setq result (tramp-compat-ntake count result)))
-
-      (or result
-	  ;; The scripts could fail, for example with huge file size.
-	  (tramp-handle-directory-files-and-attributes
-	   directory full match nosort id-format count)))))
+  (tramp-skeleton-directory-files-and-attributes
+      directory full match nosort id-format count
+    (cond
+     ((tramp-get-remote-stat v)
+      (tramp-do-directory-files-and-attributes-with-stat
+       v localname))
+     ((tramp-get-remote-perl v)
+      (tramp-do-directory-files-and-attributes-with-perl
+       v localname)))))
 
 ;; FIXME: Fix function to work with count parameter.
-(defun tramp-do-directory-files-and-attributes-with-perl
-  (vec localname &optional id-format)
+(defun tramp-do-directory-files-and-attributes-with-perl (vec localname)
   "Implement `directory-files-and-attributes' for Tramp files using a Perl script."
   (tramp-message vec 5 "directory-files-and-attributes with perl: %s" localname)
   (tramp-maybe-send-script
@@ -1735,50 +1761,21 @@ ID-FORMAT valid values are `string' and `integer'."
    "tramp_perl_directory_files_and_attributes")
   (let ((object
 	 (tramp-send-command-and-read
-	  vec
-	  (format "tramp_perl_directory_files_and_attributes %s %s"
-		  (tramp-shell-quote-argument localname) id-format))))
+	  vec (format "tramp_perl_directory_files_and_attributes %s"
+		      (tramp-shell-quote-argument localname)))))
     (when (stringp object) (tramp-error vec 'file-error object))
     object))
 
 ;; FIXME: Fix function to work with count parameter.
-(defun tramp-do-directory-files-and-attributes-with-stat
-  (vec localname &optional id-format)
+(defun tramp-do-directory-files-and-attributes-with-stat (vec localname)
   "Implement `directory-files-and-attributes' for Tramp files with stat(1) command."
   (tramp-message vec 5 "directory-files-and-attributes with stat: %s" localname)
+  (tramp-maybe-send-script
+   vec tramp-stat-directory-files-and-attributes
+   "tramp_stat_directory_files_and_attributes")
   (tramp-send-command-and-read
-   vec
-   (format
-    (concat
-     ;; We must care about file names with spaces, or starting with
-     ;; "-"; this would confuse xargs.  "ls -aQ" might be a solution,
-     ;; but it does not work on all remote systems.  Therefore, we use
-     ;; \000 as file separator.  `tramp-sh--quoting-style-options' do
-     ;; not work for file names with spaces piped to "xargs".
-     ;; Apostrophes in the stat output are masked as
-     ;; `tramp-stat-marker', in order to make a proper shell escape of
-     ;; them in file names.
-     "cd %s && echo \"(\"; (%s %s -a | tr '\\n\\r' '\\000\\000' | "
-     "xargs -0 %s -c "
-     "'(%s%%n%s (%s%%N%s) %%h %s %s %%X %%Y %%Z %%s %s%%A%s t %%i -1)' "
-     "-- 2>%s | sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'); echo \")\"")
-    (tramp-shell-quote-argument localname)
-    (tramp-get-ls-command vec)
-    ;; On systems which have no quoting style, file names with special
-    ;; characters could fail.
-    (tramp-sh--quoting-style-options vec)
-    (tramp-get-remote-stat vec)
-    tramp-stat-marker tramp-stat-marker
-    tramp-stat-marker tramp-stat-marker
-    (if (eq id-format 'integer)
-	"%u"
-      (eval-when-compile (concat tramp-stat-marker "%U" tramp-stat-marker)))
-    (if (eq id-format 'integer)
-	"%g"
-      (eval-when-compile (concat tramp-stat-marker "%G" tramp-stat-marker)))
-    tramp-stat-marker tramp-stat-marker
-    (tramp-get-remote-null-device vec)
-    tramp-stat-quoted-marker)))
+   vec (format "tramp_stat_directory_files_and_attributes %s"
+	       (tramp-shell-quote-argument localname))))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.
@@ -1900,59 +1897,62 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-sh-handle-copy-directory
   (dirname newname &optional keep-date parents copy-contents)
   "Like `copy-directory' for Tramp files."
-  (let ((t1 (tramp-tramp-file-p dirname))
-	(t2 (tramp-tramp-file-p newname))
-	target)
-    (with-parsed-tramp-file-name (if t1 dirname newname) nil
-      (unless (file-exists-p dirname)
-	(tramp-error v 'file-missing dirname))
+  (tramp-skeleton-copy-directory
+      dirname newname keep-date parents copy-contents
+    (let ((t1 (tramp-tramp-file-p dirname))
+	  (t2 (tramp-tramp-file-p newname))
+	  target)
+      (with-parsed-tramp-file-name (if t1 dirname newname) nil
+	(unless (file-exists-p dirname)
+	  (tramp-error v 'file-missing dirname))
 
-      ;; `copy-directory-create-symlink' exists since Emacs 28.1.
-      (if (and (bound-and-true-p copy-directory-create-symlink)
-	       (setq target (file-symlink-p dirname))
-	       (tramp-equal-remote dirname newname))
-	  (make-symbolic-link
-	   target
-	   (if (directory-name-p newname)
-	       (concat newname (file-name-nondirectory dirname)) newname)
-	   t)
+	;; `copy-directory-create-symlink' exists since Emacs 28.1.
+	(if (and (bound-and-true-p copy-directory-create-symlink)
+		 (setq target (file-symlink-p dirname))
+		 (tramp-equal-remote dirname newname))
+	    (make-symbolic-link
+	     target
+	     (if (directory-name-p newname)
+		 (concat newname (file-name-nondirectory dirname)) newname)
+	     t)
 
-	(if (and (not copy-contents)
-		 (tramp-get-method-parameter v 'tramp-copy-recursive)
-		 ;; When DIRNAME and NEWNAME are remote, they must
-		 ;; have the same method.
-		 (or (null t1) (null t2)
-		     (string-equal
-		      (tramp-file-name-method (tramp-dissect-file-name dirname))
-		      (tramp-file-name-method
-		       (tramp-dissect-file-name newname)))))
-	    ;; scp or rsync DTRT.
-	    (progn
-	      (when (and (file-directory-p newname)
-			 (not (directory-name-p newname)))
-		(tramp-error v 'file-already-exists newname))
-	      (setq dirname (directory-file-name (expand-file-name dirname))
-		    newname (directory-file-name (expand-file-name newname)))
-	      (when (and (file-directory-p newname)
-			 (not (string-equal (file-name-nondirectory dirname)
-					    (file-name-nondirectory newname))))
-		(setq newname
-		      (expand-file-name
-		       (file-name-nondirectory dirname) newname)))
-	      (unless (file-directory-p (file-name-directory newname))
-		(make-directory (file-name-directory newname) parents))
-	      (tramp-do-copy-or-rename-file-out-of-band
-	       'copy dirname newname 'ok-if-already-exists keep-date))
+	  (if (and (not copy-contents)
+		   (tramp-get-method-parameter v 'tramp-copy-recursive)
+		   ;; When DIRNAME and NEWNAME are remote, they must
+		   ;; have the same method.
+		   (or (null t1) (null t2)
+		       (string-equal
+			(tramp-file-name-method
+			 (tramp-dissect-file-name dirname))
+			(tramp-file-name-method
+			 (tramp-dissect-file-name newname)))))
+	      ;; scp or rsync DTRT.
+	      (progn
+		(when (and (file-directory-p newname)
+			   (not (directory-name-p newname)))
+		  (tramp-error v 'file-already-exists newname))
+		(setq dirname (directory-file-name (expand-file-name dirname))
+		      newname (directory-file-name (expand-file-name newname)))
+		(when (and (file-directory-p newname)
+			   (not (string-equal (file-name-nondirectory dirname)
+					      (file-name-nondirectory newname))))
+		  (setq newname
+			(expand-file-name
+			 (file-name-nondirectory dirname) newname)))
+		(unless (file-directory-p (file-name-directory newname))
+		  (make-directory (file-name-directory newname) parents))
+		(tramp-do-copy-or-rename-file-out-of-band
+		 'copy dirname newname 'ok-if-already-exists keep-date))
 
-	  ;; We must do it file-wise.
-	  (tramp-run-real-handler
-	   #'copy-directory
-	   (list dirname newname keep-date parents copy-contents))))
+	    ;; We must do it file-wise.
+	    (tramp-run-real-handler
+	     #'copy-directory
+	     (list dirname newname keep-date parents copy-contents))))
 
-      ;; When newname did exist, we have wrong cached values.
-      (when t2
-	(with-parsed-tramp-file-name newname nil
-	  (tramp-flush-file-properties v localname))))))
+	;; When newname did exist, we have wrong cached values.
+	(when t2
+	  (with-parsed-tramp-file-name newname nil
+	    (tramp-flush-file-properties v localname)))))))
 
 (defun tramp-sh-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -1997,98 +1997,101 @@ file names."
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
 
+    ;; FIXME: This should be optimized.  Computing `file-attributes'
+    ;; checks already, whether the file exists.
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname))
 	  (length (file-attribute-size
 		   (file-attributes (file-truename filename))))
-	  (attributes (and preserve-extended-attributes
-			   (file-extended-attributes filename)))
 	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(unless (file-exists-p filename)
+	(unless length
 	  (tramp-error v 'file-missing filename))
-	(when (and (not ok-if-already-exists) (file-exists-p newname))
-	  (tramp-error v 'file-already-exists newname))
-	(when (and (file-directory-p newname)
-		   (not (directory-name-p newname)))
-	  (tramp-error v 'file-error "File is a directory %s" newname))
+	(tramp-barf-if-file-missing v filename
+	  (when (and (not ok-if-already-exists) (file-exists-p newname))
+	    (tramp-error v 'file-already-exists newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	(with-tramp-progress-reporter
-	    v 0 (format "%s %s to %s" msg-operation filename newname)
+	  (with-tramp-progress-reporter
+	      v 0 (format "%s %s to %s" msg-operation filename newname)
 
-	  (cond
-	   ;; Both are Tramp files.
-	   ((and t1 t2)
-	    (with-parsed-tramp-file-name filename v1
-	      (with-parsed-tramp-file-name newname v2
-		(cond
-		 ;; Shortcut: if method, host, user are the same for
-		 ;; both files, we invoke `cp' or `mv' on the remote
-		 ;; host directly.
-		 ((tramp-equal-remote filename newname)
-		  (tramp-do-copy-or-rename-file-directly
-		   op filename newname
-		   ok-if-already-exists keep-date preserve-uid-gid))
-
-		 ;; Try out-of-band operation.
-		 ((and
-		   (tramp-method-out-of-band-p v1 length)
-		   (tramp-method-out-of-band-p v2 length))
-		  (tramp-do-copy-or-rename-file-out-of-band
-		   op filename newname ok-if-already-exists keep-date))
-
-		 ;; No shortcut was possible.  So we copy the file
-		 ;; first.  If the operation was `rename', we go back
-		 ;; and delete the original file (if the copy was
-		 ;; successful).  The approach is simple-minded: we
-		 ;; create a new buffer, insert the contents of the
-		 ;; source file into it, then write out the buffer to
-		 ;; the target file.  The advantage is that it doesn't
-		 ;; matter which file name handlers are used for the
-		 ;; source and target file.
-		 (t
-		  (tramp-do-copy-or-rename-file-via-buffer
-		   op filename newname ok-if-already-exists keep-date))))))
-
-	   ;; One file is a Tramp file, the other one is local.
-	   ((or t1 t2)
 	    (cond
-	     ;; Fast track on local machine.
-	     ((tramp-local-host-p v)
-	      (tramp-do-copy-or-rename-file-directly
-	       op filename newname
-	       ok-if-already-exists keep-date preserve-uid-gid))
+	     ;; Both are Tramp files.
+	     ((and t1 t2)
+	      (with-parsed-tramp-file-name filename v1
+		(with-parsed-tramp-file-name newname v2
+		  (cond
+		   ;; Shortcut: if method, host, user are the same for
+		   ;; both files, we invoke `cp' or `mv' on the remote
+		   ;; host directly.
+		   ((tramp-equal-remote filename newname)
+		    (tramp-do-copy-or-rename-file-directly
+		     op filename newname
+		     ok-if-already-exists keep-date preserve-uid-gid))
 
-	     ;; If the Tramp file has an out-of-band method, the
-	     ;; corresponding copy-program can be invoked.
-	     ((tramp-method-out-of-band-p v length)
-	      (tramp-do-copy-or-rename-file-out-of-band
-	       op filename newname ok-if-already-exists keep-date))
+		   ;; Try out-of-band operation.
+		   ((and
+		     (tramp-method-out-of-band-p v1 length)
+		     (tramp-method-out-of-band-p v2 length))
+		    (tramp-do-copy-or-rename-file-out-of-band
+		     op filename newname ok-if-already-exists keep-date))
 
-	     ;; Use the inline method via a Tramp buffer.
-	     (t (tramp-do-copy-or-rename-file-via-buffer
-		 op filename newname ok-if-already-exists keep-date))))
+		   ;; No shortcut was possible.  So we copy the file
+		   ;; first.  If the operation was `rename', we go
+		   ;; back and delete the original file (if the copy
+		   ;; was successful).  The approach is simple-minded:
+		   ;; we create a new buffer, insert the contents of
+		   ;; the source file into it, then write out the
+		   ;; buffer to the target file.  The advantage is
+		   ;; that it doesn't matter which file name handlers
+		   ;; are used for the source and target file.
+		   (t
+		    (tramp-do-copy-or-rename-file-via-buffer
+		     op filename newname ok-if-already-exists keep-date))))))
 
-	   (t
-	    ;; One of them must be a Tramp file.
-	    (error "Tramp implementation says this cannot happen")))
+	     ;; One file is a Tramp file, the other one is local.
+	     ((or t1 t2)
+	      (cond
+	       ;; Fast track on local machine.
+	       ((tramp-local-host-p v)
+		(tramp-do-copy-or-rename-file-directly
+		 op filename newname
+		 ok-if-already-exists keep-date preserve-uid-gid))
 
-	  ;; Handle `preserve-extended-attributes'.  We ignore possible
-	  ;; errors, because ACL strings could be incompatible.
-	  (when attributes
-	    (ignore-errors
-	      (set-file-extended-attributes newname attributes)))
+	       ;; If the Tramp file has an out-of-band method, the
+	       ;; corresponding copy-program can be invoked.
+	       ((tramp-method-out-of-band-p v length)
+		(tramp-do-copy-or-rename-file-out-of-band
+		 op filename newname ok-if-already-exists keep-date))
 
-	  ;; In case of `rename', we must flush the cache of the source file.
-	  (when (and t1 (eq op 'rename))
-	    (with-parsed-tramp-file-name filename v1
-	      (tramp-flush-file-properties v1 v1-localname)))
+	       ;; Use the inline method via a Tramp buffer.
+	       (t (tramp-do-copy-or-rename-file-via-buffer
+		   op filename newname ok-if-already-exists keep-date))))
 
-	  ;; When newname did exist, we have wrong cached values.
-	  (when t2
-	    (with-parsed-tramp-file-name newname v2
-	      (tramp-flush-file-properties v2 v2-localname))))))))
+	     (t
+	      ;; One of them must be a Tramp file.
+	      (error "Tramp implementation says this cannot happen")))
+
+	    ;; Handle `preserve-extended-attributes'.  We ignore
+	    ;; possible errors, because ACL strings could be
+	    ;; incompatible.
+	    (when-let ((attributes (and preserve-extended-attributes
+					(file-extended-attributes filename))))
+	      (ignore-errors
+		(set-file-extended-attributes newname attributes)))
+
+	    ;; In case of `rename', we must flush the cache of the source file.
+	    (when (and t1 (eq op 'rename))
+	      (with-parsed-tramp-file-name filename v1
+		(tramp-flush-file-properties v1 v1-localname)))
+
+	    ;; When newname did exist, we have wrong cached values.
+	    (when t2
+	      (with-parsed-tramp-file-name newname v2
+		(tramp-flush-file-properties v2 v2-localname)))))))))
 
 (defun tramp-do-copy-or-rename-file-via-buffer
     (op filename newname ok-if-already-exists keep-date)
@@ -3269,15 +3272,10 @@ implementation will be used."
 
 (defun tramp-sh-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (unless (file-exists-p (file-truename filename))
-      (tramp-error v 'file-missing filename))
-
-    (let* ((size (file-attribute-size
-		  (file-attributes (file-truename filename))))
-	   (rem-enc (tramp-get-inline-coding v "remote-encoding" size))
-	   (loc-dec (tramp-get-inline-coding v "local-decoding" size))
-	   (tmpfile (tramp-compat-make-temp-file filename)))
+  (tramp-skeleton-file-local-copy filename
+    (if-let ((size (file-attribute-size (file-attributes filename)))
+	     (rem-enc (tramp-get-inline-coding v "remote-encoding" size))
+	     (loc-dec (tramp-get-inline-coding v "local-decoding" size)))
 
       (condition-case err
 	  (cond
@@ -3308,7 +3306,7 @@ implementation will be used."
 		  (let (file-name-handler-alist
 			(coding-system-for-write 'binary)
 			(default-directory
-			  tramp-compat-temporary-file-directory))
+			 tramp-compat-temporary-file-directory))
 		    (with-temp-file tmpfile
 		      (set-buffer-multibyte nil)
 		      (insert-buffer-substring (tramp-get-buffer v))
@@ -3343,8 +3341,8 @@ implementation will be used."
 	 (delete-file tmpfile)
 	 (signal (car err) (cdr err))))
 
-      (run-hooks 'tramp-handle-file-local-copy-hook)
-      tmpfile)))
+      ;; Impossible to copy.  Trigger `file-missing' error.
+      (setq tmpfile nil))))
 
 (defun tramp-sh-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
@@ -3490,16 +3488,14 @@ implementation will be used."
 			   filename rem-dec)
 		    (goto-char (point-max))
 		    (unless (bolp) (newline))
-		    (tramp-send-command
+		    (tramp-barf-unless-okay
 		     v
 		     (format
 		      (concat rem-dec " <<'%s'\n%s%s")
 		      (tramp-shell-quote-argument localname)
 		      tramp-end-of-heredoc
 		      (buffer-string)
-		      tramp-end-of-heredoc))
-		    (tramp-barf-unless-okay
-		     v nil
+		      tramp-end-of-heredoc)
 		     "Couldn't write region to `%s', decode using `%s' failed"
 		     filename rem-dec)
 		    ;; When `file-precious-flag' is set, the region is
@@ -3814,8 +3810,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   (setq pos (match-end 0))
            (cond
             ((getenv "EMACS_EMBA_CI") 'GInotifyFileMonitor)
-            ((eq system-type 'cygwin) 'GPollFileMonitor)
-            (t nil)))
+            ((eq system-type 'cygwin) 'GPollFileMonitor)))
           ;; TODO: What happens, if several monitor names are reported?
           ((string-match "\
 Supported arguments for GIO_USE_FILE_MONITOR environment variable:
@@ -3927,14 +3922,14 @@ Supported arguments for GIO_USE_FILE_MONITOR environment variable:
 
 (defun tramp-expand-script (vec script)
   "Expand SCRIPT with remote files or commands.
-\"%a\", \"%h\", \"%o\" and \"%p\" format specifiers are replaced
-by the respective `awk', `hexdump', `od' and `perl' commands.
-\"%n\" is replaced by \"2>/dev/null\", and \"%t\" is replaced by
-a temporary file name.
-If VEC is nil, the respective local commands are used.
-If there is a format specifier which cannot be expanded, this
+\"%a\", \"%h\", \"%l\", \"%o\", \"%p\", \"%r\" and \"%s\" format
+specifiers are replaced by the respective `awk', `hexdump', `ls',
+`od', `perl', `readlink' and `stat' commands.  \"%n\" is replaced
+by \"2>/dev/null\", and \"%t\" is replaced by a temporary file
+name.  If VEC is nil, the respective local commands are used.  If
+there is a format specifier which cannot be expanded, this
 function returns nil."
-  (if (not (string-match-p "\\(^\\|[^%]\\)%[ahnopt]" script))
+  (if (not (string-match-p "\\(^\\|[^%]\\)%[ahlnoprst]" script))
       script
     (catch 'wont-work
       (let ((awk (when (string-match-p "\\(^\\|[^%]\\)%a" script)
@@ -3952,6 +3947,11 @@ function returns nil."
 		      (if (eq system-type 'windows-nt) ""
 			(concat "2>" null-device)))
 		    (throw 'wont-work nil))))
+	    (ls (when (string-match-p "\\(^\\|[^%]\\)%l" script)
+		  (format "%s %s"
+			  (or (tramp-get-ls-command vec)
+			      (throw 'wont-work nil))
+			  (tramp-sh--quoting-style-options vec))))
 	    (od (when (string-match-p "\\(^\\|[^%]\\)%o" script)
 		  (or (if vec (tramp-get-remote-od vec) (executable-find "od"))
 		      (throw 'wont-work nil))))
@@ -3959,6 +3959,17 @@ function returns nil."
 		    (or
 		     (if vec
 			 (tramp-get-remote-perl vec) (executable-find "perl"))
+		     (throw 'wont-work nil))))
+	    (readlink (when (string-match-p "\\(^\\|[^%]\\)%r" script)
+		    (or
+		     (if vec
+			 (tramp-get-remote-readlink vec)
+		       (executable-find "readlink"))
+		     (throw 'wont-work nil))))
+	    (stat (when (string-match-p "\\(^\\|[^%]\\)%s" script)
+		    (or
+		     (if vec
+			 (tramp-get-remote-stat vec) (executable-find "stat"))
 		     (throw 'wont-work nil))))
 	    (tmp (when (string-match-p "\\(^\\|[^%]\\)%t" script)
 		   (or
@@ -3968,7 +3979,9 @@ function returns nil."
 		    (throw 'wont-work nil)))))
 	(format-spec
 	 script
-	 (format-spec-make ?a awk ?h hdmp ?n dev ?o od ?p perl ?t tmp))))))
+	 (format-spec-make
+	  ?a awk ?h hdmp ?l ls ?n dev ?o od ?p perl
+	  ?r readlink ?s stat ?t tmp))))))
 
 (defun tramp-maybe-send-script (vec script name)
   "Define in remote shell function NAME implemented as SCRIPT.
@@ -4284,8 +4297,7 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "Set up an interactive shell.
 Mainly sets the prompt and the echo correctly.  PROC is the shell
 process to set up.  VEC specifies the connection."
-  (let ((tramp-end-of-output tramp-initial-end-of-output)
-	(case-fold-search t))
+  (let ((case-fold-search t))
     (tramp-open-shell vec (tramp-get-method-parameter vec 'tramp-remote-shell))
     (tramp-message vec 5 "Setting up remote shell environment")
 
@@ -4311,12 +4323,6 @@ process to set up.  VEC specifies the connection."
 	;; Make sure backspaces and their echo are enabled and no line
 	;; width magic interferes with them.
 	(tramp-send-command vec "stty icanon erase ^H cols 32767" t))))
-
-  (tramp-message vec 5 "Setting shell prompt")
-  (tramp-send-command
-   vec (format "PS1=%s PS2='' PS3='' PROMPT_COMMAND=''"
-	       (tramp-shell-quote-argument tramp-end-of-output))
-   t)
 
   ;; Check whether the output of "uname -sr" has been changed.  If
   ;; yes, this is a strong indication that we must expire all
@@ -5264,16 +5270,23 @@ executed in a subshell, ie surrounded by parentheses.  If
 DONT-SUPPRESS-ERR is non-nil, stderr won't be sent to \"/dev/null\".
 Optional argument EXIT-STATUS, if non-nil, triggers the return of
 the exit status."
-  (tramp-send-command
-   vec
-   (concat (if subshell "( " "")
-	   command
-	   (if command
-               (if dont-suppress-err
-                   "; " (format " 2>%s; " (tramp-get-remote-null-device vec)))
-             "")
-	   "echo tramp_exit_status $?"
-	   (if subshell " )" "")))
+  (let (cmd data)
+    (if (and (stringp command)
+	     (string-match (format ".*<<'%s'.*" tramp-end-of-heredoc) command))
+	(setq cmd (match-string 0 command)
+	      data (substring command (match-end 0)))
+      (setq cmd command))
+    (tramp-send-command
+     vec
+     (concat (if subshell "( " "")
+	     cmd
+	     (if cmd
+		 (if dont-suppress-err
+                     "; " (format " 2>%s; " (tramp-get-remote-null-device vec)))
+               "")
+	     "echo tramp_exit_status $?"
+	     (if subshell " )" "")
+	     data)))
   (with-current-buffer (tramp-get-connection-buffer vec)
     (unless (tramp-search-regexp "tramp_exit_status [[:digit:]]+")
       (tramp-error
@@ -5327,94 +5340,6 @@ raises an error."
 		  vec 'file-error
 		  "`%s' does not return a valid Lisp expression: `%s'"
 		  command (buffer-string))))))))
-
-;; FIXME: Move to tramp.el?
-;;;###tramp-autoload
-(defun tramp-convert-file-attributes (vec attr)
-  "Convert `file-attributes' ATTR generated by perl script, stat or ls.
-Convert file mode bits to string and set virtual device number.
-Return ATTR."
-  (when attr
-    (save-match-data
-      ;; Remove color escape sequences from symlink.
-      (when (stringp (car attr))
-	(while (string-match tramp-display-escape-sequence-regexp (car attr))
-	  (setcar attr (replace-match "" nil nil (car attr)))))
-      ;; Convert uid and gid.  Use `tramp-unknown-id-integer' as
-      ;; indication of unusable value.
-      (when (and (numberp (nth 2 attr)) (< (nth 2 attr) 0))
-	(setcar (nthcdr 2 attr) tramp-unknown-id-integer))
-      (when (and (floatp (nth 2 attr))
-		 (<= (nth 2 attr) most-positive-fixnum))
-	(setcar (nthcdr 2 attr) (round (nth 2 attr))))
-      (when (and (numberp (nth 3 attr)) (< (nth 3 attr) 0))
-	(setcar (nthcdr 3 attr) tramp-unknown-id-integer))
-      (when (and (floatp (nth 3 attr))
-		 (<= (nth 3 attr) most-positive-fixnum))
-	(setcar (nthcdr 3 attr) (round (nth 3 attr))))
-      ;; Convert last access time.
-      (unless (listp (nth 4 attr))
-	(setcar (nthcdr 4 attr) (seconds-to-time (nth 4 attr))))
-      ;; Convert last modification time.
-      (unless (listp (nth 5 attr))
-	(setcar (nthcdr 5 attr) (seconds-to-time (nth 5 attr))))
-      ;; Convert last status change time.
-      (unless (listp (nth 6 attr))
-	(setcar (nthcdr 6 attr) (seconds-to-time (nth 6 attr))))
-      ;; Convert file size.
-      (when (< (nth 7 attr) 0)
-	(setcar (nthcdr 7 attr) -1))
-      (when (and (floatp (nth 7 attr))
-		 (<= (nth 7 attr) most-positive-fixnum))
-	(setcar (nthcdr 7 attr) (round (nth 7 attr))))
-      ;; Convert file mode bits to string.
-      (unless (stringp (nth 8 attr))
-	(setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr)))
-	(when (stringp (car attr))
-          (aset (nth 8 attr) 0 ?l)))
-      ;; Convert directory indication bit.
-      (when (string-prefix-p "d" (nth 8 attr))
-	(setcar attr t))
-      ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
-      ;; Decode also multibyte string.
-      (when (consp (car attr))
-	(setcar attr
-		(and (stringp (caar attr))
-		     (string-match ".+ -> .\\(.+\\)." (caar attr))
-		     (decode-coding-string
-		      (match-string 1 (caar attr)) 'utf-8))))
-      ;; Set file's gid change bit.
-      (setcar (nthcdr 9 attr)
-              (if (numberp (nth 3 attr))
-                  (not (= (nth 3 attr)
-                          (tramp-get-remote-gid vec 'integer)))
-		(not (string-equal
-                      (nth 3 attr)
-                      (tramp-get-remote-gid vec 'string)))))
-      ;; Convert inode.
-      (when (floatp (nth 10 attr))
-	(setcar (nthcdr 10 attr)
-		(condition-case nil
-                    (let ((high (nth 10 attr))
-                          middle low)
-                      (if (<= high most-positive-fixnum)
-                          (floor high)
-			;; The low 16 bits.
-			(setq low (mod high #x10000)
-                              high (/ high #x10000))
-			(if (<= high most-positive-fixnum)
-                            (cons (floor high) (floor low))
-                          ;; The middle 24 bits.
-                          (setq middle (mod high #x1000000)
-				high (/ high #x1000000))
-                          (cons (floor high)
-				(cons (floor middle) (floor low))))))
-                  ;; Inodes can be incredible huge.  We must hide this.
-                  (error (tramp-get-inode vec)))))
-      ;; Set virtual device number.
-      (setcar (nthcdr 11 attr)
-              (tramp-get-device vec)))
-    attr))
 
 (defun tramp-shell-case-fold (string)
   "Convert STRING to shell glob pattern which ignores case."
@@ -5797,18 +5722,25 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	  (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))
 	    ;; Check POSIX parameter.
 	    (when (tramp-send-command-and-check vec (format "%s -u" result))
+	      (tramp-set-connection-property
+	       vec "uid-integer"
+	       (with-current-buffer (tramp-get-connection-buffer vec)
+		 (goto-char (point-min))
+		 (read (current-buffer))))
 	      (throw 'id-found result))
 	    (setq dl (cdr dl))))))))
 
 (defun tramp-get-remote-uid-with-id (vec id-format)
   "Implement `tramp-get-remote-uid' for Tramp files using `id'."
-  (tramp-send-command-and-read
-   vec
-   (format "%s -u%s %s"
-	   (tramp-get-remote-id vec)
-	   (if (equal id-format 'integer) "" "n")
-	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/"))))
+  ;; `tramp-get-remote-id' sets already connection property "uid-integer".
+  (with-tramp-connection-property vec (format "uid-%s" id-format)
+    (tramp-send-command-and-read
+     vec
+     (format "%s -u%s %s"
+	     (tramp-get-remote-id vec)
+	     (if (equal id-format 'integer) "" "n")
+	     (if (equal id-format 'integer)
+		 "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))))
 
 (defun tramp-get-remote-uid-with-perl (vec id-format)
   "Implement `tramp-get-remote-uid' for Tramp files using a Perl script."
@@ -5825,7 +5757,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
   (with-tramp-connection-property vec "python"
     (tramp-message vec 5 "Finding a suitable `python' command")
     (or (tramp-find-executable vec "python" (tramp-get-remote-path vec))
-        (tramp-find-executable vec "python2" (tramp-get-remote-path vec))
         (tramp-find-executable vec "python3" (tramp-get-remote-path vec)))))
 
 (defun tramp-get-remote-uid-with-python (vec id-format)

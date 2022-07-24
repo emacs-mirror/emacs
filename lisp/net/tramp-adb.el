@@ -182,8 +182,8 @@ It is used for TCP/IP devices."
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . ignore)
-    (tramp-get-remote-gid . ignore)
-    (tramp-get-remote-uid . ignore)
+    (tramp-get-remote-gid . tramp-adb-handle-get-remote-gid)
+    (tramp-get-remote-uid . tramp-adb-handle-get-remote-uid)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
     (unlock-file . tramp-handle-unlock-file)
@@ -252,21 +252,19 @@ arguments to pass to the OPERATION."
 
 (defun tramp-adb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
-  (unless id-format (setq id-format 'integer))
-  (ignore-errors
-    (with-parsed-tramp-file-name filename nil
-      (with-tramp-file-property
-	  v localname (format "file-attributes-%s" id-format)
-	(and
-	 (tramp-adb-send-command-and-check
-	  v (format "%s -d -l %s"
-		    (tramp-adb-get-ls-command v)
-		    (tramp-shell-quote-argument localname)))
-	 (with-current-buffer (tramp-get-buffer v)
-	   (tramp-adb-sh-fix-ls-output)
-	   (cdar (tramp-do-parse-file-attributes-with-ls v id-format))))))))
+  ;; The result is cached in `tramp-convert-file-attributes'.
+  (with-parsed-tramp-file-name filename nil
+    (tramp-convert-file-attributes v localname id-format
+      (and
+       (tramp-adb-send-command-and-check
+	v (format "%s -d -l %s"
+		  (tramp-adb-get-ls-command v)
+		  (tramp-shell-quote-argument localname)))
+       (with-current-buffer (tramp-get-buffer v)
+	 (tramp-adb-sh-fix-ls-output)
+	 (cdar (tramp-do-parse-file-attributes-with-ls v)))))))
 
-(defun tramp-do-parse-file-attributes-with-ls (vec &optional id-format)
+(defun tramp-do-parse-file-attributes-with-ls (vec)
   "Parse `file-attributes' for Tramp files using the ls(1) command."
   (with-current-buffer (tramp-get-buffer vec)
     (goto-char (point-min))
@@ -290,8 +288,8 @@ arguments to pass to the OPERATION."
 		 (or is-dir symlink-target)
 		 1     ;link-count
 		 ;; no way to handle numeric ids in Androids ash
-		 (if (eq id-format 'integer) 0 uid)
-		 (if (eq id-format 'integer) 0 gid)
+		 (cons uid tramp-unknown-id-integer)
+		 (cons gid tramp-unknown-id-integer)
 		 tramp-time-dont-know   ; atime
 		 ;; `date-to-time' checks `iso8601-parse', which might fail.
 		 (let (signal-hook-function)
@@ -308,54 +306,28 @@ arguments to pass to the OPERATION."
 (defun tramp-adb-handle-directory-files-and-attributes
   (directory &optional full match nosort id-format count)
   "Like `directory-files-and-attributes' for Tramp files."
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  (when (file-directory-p directory)
-    (with-parsed-tramp-file-name (expand-file-name directory) nil
-      (copy-tree
-       (with-tramp-file-property
-	   v localname (format "directory-files-and-attributes-%s-%s-%s-%s-%s"
-			       full match id-format nosort count)
-	 (with-current-buffer (tramp-get-buffer v)
-	   (when (tramp-adb-send-command-and-check
-		  v (format "%s -a -l %s"
-			    (tramp-adb-get-ls-command v)
-			    (tramp-shell-quote-argument localname)))
-	     ;; We insert also filename/. and filename/.., because "ls" doesn't.
-	     ;; Looks like it does include them in toybox, since Android 6.
-	     (unless (re-search-backward "\\.$" nil t)
-	       (narrow-to-region (point-max) (point-max))
-	       (tramp-adb-send-command
-		v (format "%s -d -a -l %s %s"
-			  (tramp-adb-get-ls-command v)
-			  (tramp-shell-quote-argument
-			   (tramp-compat-file-name-concat localname "."))
-			  (tramp-shell-quote-argument
-			   (tramp-compat-file-name-concat localname ".."))))
-	       (widen)))
-	   (tramp-adb-sh-fix-ls-output)
-	   (let ((result (tramp-do-parse-file-attributes-with-ls
-			  v (or id-format 'integer))))
-	     (when full
-	       (setq result
-		     (mapcar
-		      (lambda (x)
-			(cons (expand-file-name (car x) directory) (cdr x)))
-		      result)))
-	     (unless nosort
-	       (setq result
-		     (sort result (lambda (x y) (string< (car x) (car y))))))
-
-             (setq result (delq nil
-                                (mapcar
-                                 (lambda (x) (if (or (not match)
-                                                     (string-match-p
-                                                      match (car x)))
-                                                 x))
-                                 result)))
-	     (when (and (natnump count) (> count 0))
-	       (setq result (tramp-compat-ntake count result)))
-             result)))))))
+  (tramp-skeleton-directory-files-and-attributes
+      directory full match nosort id-format count
+    (with-current-buffer (tramp-get-buffer v)
+      (when (tramp-adb-send-command-and-check
+	     v (format "%s -a -l %s"
+		       (tramp-adb-get-ls-command v)
+		       (tramp-shell-quote-argument localname)))
+	;; We insert also filename/. and filename/.., because "ls"
+	;; doesn't.  Looks like it does include them in toybox, since
+	;; Android 6.
+	(unless (re-search-backward "\\.$" nil t)
+	  (narrow-to-region (point-max) (point-max))
+	  (tramp-adb-send-command
+	   v (format "%s -d -a -l %s %s"
+		     (tramp-adb-get-ls-command v)
+		     (tramp-shell-quote-argument
+		      (tramp-compat-file-name-concat localname "."))
+		     (tramp-shell-quote-argument
+		      (tramp-compat-file-name-concat localname ".."))))
+	  (widen)))
+      (tramp-adb-sh-fix-ls-output)
+      (tramp-do-parse-file-attributes-with-ls v))))
 
 (defun tramp-adb-get-ls-command (vec)
   "Determine `ls' command and its arguments."
@@ -502,22 +474,18 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (unless (file-exists-p (file-truename filename))
-      (tramp-error v 'file-missing filename))
-    (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (with-tramp-progress-reporter
-	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
-	;; "adb pull ..." does not always return an error code.
-	(unless
-	    (and (tramp-adb-execute-adb-command
-		  v "pull" (tramp-compat-file-name-unquote localname) tmpfile)
-		 (file-exists-p tmpfile))
-	  (ignore-errors (delete-file tmpfile))
-	  (tramp-error
-	   v 'file-error "Cannot make local copy of file `%s'" filename))
-	(set-file-modes tmpfile (logior (or (file-modes filename) 0) #o0400)))
-      tmpfile)))
+  (tramp-skeleton-file-local-copy filename
+    (with-tramp-progress-reporter
+	v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
+      ;; "adb pull ..." does not always return an error code.
+      (unless
+	  (and (tramp-adb-execute-adb-command
+		v "pull" (tramp-compat-file-name-unquote localname) tmpfile)
+	       (file-exists-p tmpfile))
+	(ignore-errors (delete-file tmpfile))
+	(tramp-error
+	 v 'file-error "Cannot make local copy of file `%s'" filename))
+      (set-file-modes tmpfile (logior (or (file-modes filename) 0) #o0400)))))
 
 (defun tramp-adb-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
@@ -617,62 +585,61 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  ;; let-bind `jka-compr-inhibit' to t.
 	  (jka-compr-inhibit t))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(unless (file-exists-p filename)
-	  (tramp-error v 'file-missing filename))
-	(when (and (not ok-if-already-exists) (file-exists-p newname))
-	  (tramp-error v 'file-already-exists newname))
-	(when (and (file-directory-p newname)
-		   (not (directory-name-p newname)))
-	  (tramp-error v 'file-error "File is a directory %s" newname))
+	(tramp-barf-if-file-missing v filename
+	  (when (and (not ok-if-already-exists) (file-exists-p newname))
+	    (tramp-error v 'file-already-exists newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	(with-tramp-progress-reporter
-	    v 0 (format "Copying %s to %s" filename newname)
-	  (if (and t1 t2 (tramp-equal-remote filename newname))
-	      (let ((l1 (tramp-file-local-name filename))
-		    (l2 (tramp-file-local-name newname)))
-		;; We must also flush the cache of the directory,
-		;; because `file-attributes' reads the values from
-		;; there.
-		(tramp-flush-file-properties v l2)
-		;; Short track.
-		(tramp-adb-barf-unless-okay
-		 v (format
-		    "cp -f %s %s"
-		    (tramp-shell-quote-argument l1)
-		    (tramp-shell-quote-argument l2))
-		 "Error copying %s to %s" filename newname))
+	  (with-tramp-progress-reporter
+	      v 0 (format "Copying %s to %s" filename newname)
+	    (if (and t1 t2 (tramp-equal-remote filename newname))
+		(let ((l1 (tramp-file-local-name filename))
+		      (l2 (tramp-file-local-name newname)))
+		  ;; We must also flush the cache of the directory,
+		  ;; because `file-attributes' reads the values from
+		  ;; there.
+		  (tramp-flush-file-properties v l2)
+		  ;; Short track.
+		  (tramp-adb-barf-unless-okay
+		   v (format
+		      "cp -f %s %s"
+		      (tramp-shell-quote-argument l1)
+		      (tramp-shell-quote-argument l2))
+		   "Error copying %s to %s" filename newname))
 
-	    (if-let ((tmpfile (file-local-copy filename)))
-		;; Remote filename.
-		(condition-case err
-		    (rename-file tmpfile newname ok-if-already-exists)
-		  ((error quit)
-		   (delete-file tmpfile)
-		   (signal (car err) (cdr err))))
+	      (if-let ((tmpfile (file-local-copy filename)))
+		  ;; Remote filename.
+		  (condition-case err
+		      (rename-file tmpfile newname ok-if-already-exists)
+		    ((error quit)
+		     (delete-file tmpfile)
+		     (signal (car err) (cdr err))))
 
-	      ;; Remote newname.
-	      (when (and (file-directory-p newname)
-			 (directory-name-p newname))
-		(setq newname
-		      (expand-file-name
-		       (file-name-nondirectory filename) newname)))
+		;; Remote newname.
+		(when (and (file-directory-p newname)
+			   (directory-name-p newname))
+		  (setq newname
+			(expand-file-name
+			 (file-name-nondirectory filename) newname)))
 
-	      (with-parsed-tramp-file-name newname nil
-		(when (and (not ok-if-already-exists)
-			   (file-exists-p newname))
-		  (tramp-error v 'file-already-exists newname))
+		(with-parsed-tramp-file-name newname nil
+		  (when (and (not ok-if-already-exists)
+			     (file-exists-p newname))
+		    (tramp-error v 'file-already-exists newname))
 
-		;; We must also flush the cache of the directory,
-		;; because `file-attributes' reads the values from
-		;; there.
-		(tramp-flush-file-properties v localname)
-		(unless (tramp-adb-execute-adb-command
-			 v "push"
-			 (tramp-compat-file-name-unquote filename)
-			 (tramp-compat-file-name-unquote localname))
-		  (tramp-error
-		   v 'file-error
-		   "Cannot copy `%s' `%s'" filename newname))))))))
+		  ;; We must also flush the cache of the directory,
+		  ;; because `file-attributes' reads the values from
+		  ;; there.
+		  (tramp-flush-file-properties v localname)
+		  (unless (tramp-adb-execute-adb-command
+			   v "push"
+			   (tramp-compat-file-name-unquote filename)
+			   (tramp-compat-file-name-unquote localname))
+		    (tramp-error
+		     v 'file-error
+		     "Cannot copy `%s' `%s'" filename newname)))))))))
 
     ;; KEEP-DATE handling.
     (when keep-date
@@ -698,37 +665,38 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  ;; let-bind `jka-compr-inhibit' to t.
 	  (jka-compr-inhibit t))
       (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(unless (file-exists-p filename)
-	  (tramp-error v 'file-missing filename))
-	(when (and (not ok-if-already-exists) (file-exists-p newname))
-	  (tramp-error v 'file-already-exists newname))
-	(when (and (file-directory-p newname)
-		   (not (directory-name-p newname)))
-	  (tramp-error v 'file-error "File is a directory %s" newname))
+	(tramp-barf-if-file-missing v filename
+	  (when (and (not ok-if-already-exists) (file-exists-p newname))
+	    (tramp-error v 'file-already-exists newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	(with-tramp-progress-reporter
-	    v 0 (format "Renaming %s to %s" filename newname)
-	  (if (and t1 t2
-		   (tramp-equal-remote filename newname)
-		   (not (file-directory-p filename)))
-	      (let ((l1 (tramp-file-local-name filename))
-		    (l2 (tramp-file-local-name newname)))
-		;; We must also flush the cache of the directory, because
-		;; `file-attributes' reads the values from there.
-		(tramp-flush-file-properties v l1)
-		(tramp-flush-file-properties v l2)
-		;; Short track.
-		(tramp-adb-barf-unless-okay
-		 v (format
-		    "mv -f %s %s"
-		    (tramp-shell-quote-argument l1)
-		    (tramp-shell-quote-argument l2))
-		 "Error renaming %s to %s" filename newname))
+	  (with-tramp-progress-reporter
+	      v 0 (format "Renaming %s to %s" filename newname)
+	    (if (and t1 t2
+		     (tramp-equal-remote filename newname)
+		     (not (file-directory-p filename)))
+		(let ((l1 (tramp-file-local-name filename))
+		      (l2 (tramp-file-local-name newname)))
+		  ;; We must also flush the cache of the directory,
+		  ;; because `file-attributes' reads the values from
+		  ;; there.
+		  (tramp-flush-file-properties v l1)
+		  (tramp-flush-file-properties v l2)
+		  ;; Short track.
+		  (tramp-adb-barf-unless-okay
+		   v (format
+		      "mv -f %s %s"
+		      (tramp-shell-quote-argument l1)
+		      (tramp-shell-quote-argument l2))
+		   "Error renaming %s to %s" filename newname))
 
-	    ;; Rename by copy.
-	    (copy-file
-	     filename newname ok-if-already-exists 'keep-time 'preserve-uid-gid)
-	    (delete-file filename)))))))
+	      ;; Rename by copy.
+	      (copy-file
+	       filename newname ok-if-already-exists
+	       'keep-time 'preserve-uid-gid)
+	      (delete-file filename))))))))
 
 (defun tramp-adb-get-signal-strings (vec)
   "Strings to return by `process-file' in case of signals."
@@ -1066,6 +1034,36 @@ implementation will be used."
 	":" 'omit)))
    ;; The equivalent to `exec-directory'.
    `(,(tramp-file-local-name (expand-file-name default-directory)))))
+
+(defun tramp-adb-handle-get-remote-uid (vec id-format)
+  "Like `tramp-get-remote-uid' for Tramp files.
+ ID-FORMAT valid values are `string' and `integer'."
+ ;; The result is cached in `tramp-get-remote-uid'.
+  (tramp-adb-send-command
+   vec
+   (format "id -u%s %s"
+	   (if (equal id-format 'integer) "" "n")
+	   (if (equal id-format 'integer)
+	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    ;; Read the expression.
+    (goto-char (point-min))
+    (read (current-buffer))))
+
+(defun tramp-adb-handle-get-remote-gid (vec id-format)
+  "Like `tramp-get-remote-gid' for Tramp files.
+ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-gid'.
+  (tramp-adb-send-command
+   vec
+   (format "id -g%s %s"
+	   (if (equal id-format 'integer) "" "n")
+	   (if (equal id-format 'integer)
+	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    ;; Read the expression.
+    (goto-char (point-min))
+    (read (current-buffer))))
 
 (defun tramp-adb-get-device (vec)
   "Return full host name from VEC to be used in shell execution.

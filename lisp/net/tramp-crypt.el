@@ -600,62 +600,61 @@ absolute file names."
 	    (delete-directory filename 'recursive)))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(unless (file-exists-p filename)
-	  (tramp-error v 'file-missing filename))
-	(when (and (not ok-if-already-exists) (file-exists-p newname))
-	  (tramp-error v 'file-already-exists newname))
-	(when (and (file-directory-p newname)
-		   (not (directory-name-p newname)))
-	  (tramp-error v 'file-error "File is a directory %s" newname))
+	(tramp-barf-if-file-missing v filename
+	  (when (and (not ok-if-already-exists) (file-exists-p newname))
+	    (tramp-error v 'file-already-exists newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	(with-tramp-progress-reporter
-	    v 0 (format "%s %s to %s" msg-operation filename newname)
-	  (if (and t1 t2 (string-equal t1 t2))
-              ;; Both files are on the same encrypted remote directory.
-	      (let (tramp-crypt-enabled)
-		(if (eq op 'copy)
-		    (copy-file
-		     encrypt-filename encrypt-newname ok-if-already-exists
-		     keep-date preserve-uid-gid preserve-extended-attributes)
-		  (rename-file
-		   encrypt-filename encrypt-newname ok-if-already-exists)))
+	  (with-tramp-progress-reporter
+	      v 0 (format "%s %s to %s" msg-operation filename newname)
+	    (if (and t1 t2 (string-equal t1 t2))
+		;; Both files are on the same encrypted remote directory.
+		(let (tramp-crypt-enabled)
+		  (if (eq op 'copy)
+		      (copy-file
+		       encrypt-filename encrypt-newname ok-if-already-exists
+		       keep-date preserve-uid-gid preserve-extended-attributes)
+		    (rename-file
+		     encrypt-filename encrypt-newname ok-if-already-exists)))
 
-	    (let* ((tmpdir (tramp-compat-make-temp-file filename 'dir))
-		   (tmpfile1
-		    (expand-file-name
-		     (file-name-nondirectory encrypt-filename) tmpdir))
-		   (tmpfile2
-		    (expand-file-name
-		     (file-name-nondirectory encrypt-newname) tmpdir))
-		   tramp-crypt-enabled)
-	      (cond
-               ;; Source and target file are on an encrypted remote directory.
-	       ((and t1 t2)
-		(if (eq op 'copy)
-		    (copy-file
-		     encrypt-filename encrypt-newname ok-if-already-exists
-		     keep-date preserve-uid-gid preserve-extended-attributes)
-		  (rename-file
-		   encrypt-filename encrypt-newname ok-if-already-exists)))
-               ;; Source file is on an encrypted remote directory.
-	       (t1
-		(if (eq op 'copy)
-		    (copy-file
-		     encrypt-filename tmpfile1 t keep-date preserve-uid-gid
-		     preserve-extended-attributes)
-		  (rename-file encrypt-filename tmpfile1 t))
-		(tramp-crypt-decrypt-file t1 tmpfile1 tmpfile2)
-		(rename-file tmpfile2 newname ok-if-already-exists))
-               ;; Target file is on an encrypted remote directory.
-	       (t2
-		(if (eq op 'copy)
-		    (copy-file
-		     filename tmpfile1 t keep-date preserve-uid-gid
-		     preserve-extended-attributes)
-		  (rename-file filename tmpfile1 t))
-		(tramp-crypt-encrypt-file t2 tmpfile1 tmpfile2)
-		(rename-file tmpfile2 encrypt-newname ok-if-already-exists)))
-	      (delete-directory tmpdir 'recursive))))))
+	      (let* ((tmpdir (tramp-compat-make-temp-file filename 'dir))
+		     (tmpfile1
+		      (expand-file-name
+		       (file-name-nondirectory encrypt-filename) tmpdir))
+		     (tmpfile2
+		      (expand-file-name
+		       (file-name-nondirectory encrypt-newname) tmpdir))
+		     tramp-crypt-enabled)
+		(cond
+		 ;; Source and target file are on an encrypted remote directory.
+		 ((and t1 t2)
+		  (if (eq op 'copy)
+		      (copy-file
+		       encrypt-filename encrypt-newname ok-if-already-exists
+		       keep-date preserve-uid-gid preserve-extended-attributes)
+		    (rename-file
+		     encrypt-filename encrypt-newname ok-if-already-exists)))
+		 ;; Source file is on an encrypted remote directory.
+		 (t1
+		  (if (eq op 'copy)
+		      (copy-file
+		       encrypt-filename tmpfile1 t keep-date preserve-uid-gid
+		       preserve-extended-attributes)
+		    (rename-file encrypt-filename tmpfile1 t))
+		  (tramp-crypt-decrypt-file t1 tmpfile1 tmpfile2)
+		  (rename-file tmpfile2 newname ok-if-already-exists))
+		 ;; Target file is on an encrypted remote directory.
+		 (t2
+		  (if (eq op 'copy)
+		      (copy-file
+		       filename tmpfile1 t keep-date preserve-uid-gid
+		       preserve-extended-attributes)
+		    (rename-file filename tmpfile1 t))
+		  (tramp-crypt-encrypt-file t2 tmpfile1 tmpfile2)
+		  (rename-file tmpfile2 encrypt-newname ok-if-already-exists)))
+		(delete-directory tmpdir 'recursive)))))))
 
     (when (and t1 (eq op 'rename))
       (with-parsed-tramp-file-name filename v1
@@ -702,36 +701,14 @@ absolute file names."
 (defun tramp-crypt-handle-directory-files
     (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  (when (file-directory-p directory)
-    (setq directory (file-name-as-directory (expand-file-name directory)))
-    (let* (tramp-crypt-enabled
-	   (result
-	    (directory-files (tramp-crypt-encrypt-file-name directory) 'full)))
-      (setq result
-	    (mapcar (lambda (x) (tramp-crypt-decrypt-file-name x)) result))
-      (when match
-	(setq result
-	      (delq
-	       nil
-	       (mapcar
-		(lambda (x)
-		  (when (string-match-p match (substring x (length directory)))
-		    x))
-		result))))
-      (unless full
-	(setq result
-	      (mapcar
-	       (lambda (x)
-		 (replace-regexp-in-string
-		  (concat "^" (regexp-quote directory)) "" x))
-	       result)))
-      (unless nosort
-        (setq result (sort result #'string<)))
-      (when (and (natnump count) (> count 0))
-	(setq result (tramp-compat-ntake count result)))
-      result)))
+  (tramp-skeleton-directory-files directory full match nosort count
+    (let (tramp-crypt-enabled)
+      (mapcar
+       (lambda (x)
+	 (replace-regexp-in-string
+	  (concat "^" (regexp-quote directory)) ""
+	  (tramp-crypt-decrypt-file-name x)))
+       (directory-files (tramp-crypt-encrypt-file-name directory) 'full)))))
 
 (defun tramp-crypt-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

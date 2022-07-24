@@ -1957,7 +1957,8 @@ The outline level is equal to the verbosity of the Tramp message."
 They are completed by \"M-x TAB\" only in Tramp debug buffers."
   (with-current-buffer buffer
     (string-equal
-     (buffer-substring (point-min) (min (+ (point-min) 10) (point-max))) ";; Emacs:")))
+     (buffer-substring (point-min) (min (+ (point-min) 10) (point-max)))
+     ";; Emacs:")))
 
 (put #'tramp-debug-buffer-command-completion-p 'tramp-suppress-trace t)
 
@@ -1984,6 +1985,7 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
                   ,(eval tramp-debug-font-lock-keywords t)))
   ;; Do not edit the debug buffer.
   (use-local-map special-mode-map)
+  (set-buffer-modified-p nil)
   ;; For debugging purposes.
   (local-set-key "\M-n" 'clone-buffer)
   (add-hook 'clone-buffer-hook #'tramp-setup-debug-buffer nil 'local))
@@ -2271,6 +2273,24 @@ the resulting error message."
        (error (tramp-message ,vec-or-proc 3 ,format ,err) nil))))
 
 (put #'tramp-with-demoted-errors 'tramp-suppress-trace t)
+
+;; This macro shall optimize the cases where an `file-exists-p' call
+;; is invoked first.  Often, the file exists, so the remote command is
+;; superfluous.
+(defmacro tramp-barf-if-file-missing (vec filename &rest body)
+  "Execute BODY and return the result.
+In case if an error, raise a `file-missing' error if FILENAME
+does not exist, otherwise propagate the error."
+  (declare (indent 2) (debug (symbolp form body)))
+  (let ((err (make-symbol "err")))
+    `(condition-case ,err
+         (progn ,@body)
+       (error
+	(if (not (file-exists-p ,filename))
+	    (tramp-error ,vec 'file-missing ,filename)
+	  (signal (car ,err) (cdr ,err)))))))
+
+(put #'tramp-barf-if-file-missing 'tramp-suppress-trace t)
 
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
@@ -3375,6 +3395,22 @@ User is always nil."
 
 ;;; Skeleton macros for file name handler functions.
 
+(defmacro tramp-skeleton-copy-directory
+  (directory _newname &optional _keep-date _parents _copy-contents &rest body)
+  "Skeleton for `tramp-*-handle-copy-directory'.
+BODY is the backend specific code."
+  (declare (indent 5) (debug t))
+  ;; `copy-directory' creates NEWNAME before running this check.  So
+  ;; we do it ourselves.  Therefore, we cannot also run
+  ;; `tramp-barf-if-file-missing'.
+  `(progn
+     (unless (file-exists-p ,directory)
+       (tramp-error
+	(tramp-dissect-file-name ,directory) 'file-missing ,directory))
+     ,@body))
+
+(put #'tramp-skeleton-copy-directory 'tramp-suppress-trace t)
+
 (defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
   "Skeleton for `tramp-*-handle-delete-directory'.
 BODY is the backend specific code."
@@ -3391,6 +3427,106 @@ BODY is the backend specific code."
     (tramp-flush-directory-properties v localname)))
 
 (put #'tramp-skeleton-delete-directory 'tramp-suppress-trace t)
+
+(defmacro tramp-skeleton-directory-files
+    (directory &optional full match nosort count &rest body)
+  "Skeleton for `tramp-*-handle-directory-files'.
+BODY is the backend specific code."
+  (declare (indent 5) (debug t))
+  `(or
+    (with-parsed-tramp-file-name ,directory nil
+      (tramp-barf-if-file-missing v ,directory
+	(when (file-directory-p ,directory)
+	  (setq ,directory
+		(file-name-as-directory (expand-file-name ,directory)))
+	  (let ((temp
+		 (with-tramp-file-property v localname "directory-files" ,@body))
+		result item)
+	    (while temp
+	      (setq item (directory-file-name (pop temp)))
+	      (when (or (null ,match) (string-match-p ,match item))
+		(push (if ,full (concat ,directory item) item)
+		      result)))
+	    (unless ,nosort
+              (setq result (sort result #'string<)))
+	    (when (and (natnump ,count) (> ,count 0))
+	      (setq result (tramp-compat-ntake ,count result)))
+	    result))))
+
+    ;; Error handling.
+    (if (not (file-exists-p ,directory))
+	(tramp-error
+	 (tramp-dissect-file-name ,directory) 'file-missing ,directory)
+      nil)))
+
+(put #'tramp-skeleton-directory-files 'tramp-suppress-trace t)
+
+(defmacro tramp-skeleton-directory-files-and-attributes
+    (directory &optional full match nosort id-format count &rest body)
+  "Skeleton for `tramp-*-handle-directory-files-and-attributes'.
+BODY is the backend specific code."
+  (declare (indent 6) (debug t))
+  `(or
+    (with-parsed-tramp-file-name ,directory nil
+      (tramp-barf-if-file-missing v ,directory
+	(when (file-directory-p ,directory)
+	  (setq ,directory (expand-file-name ,directory))
+	  (let ((temp
+		 (copy-tree
+		  (mapcar
+		   (lambda (x)
+		     (cons
+		      (car x)
+		      (tramp-convert-file-attributes
+			  v (car x) ,id-format (cdr x))))
+		   (with-tramp-file-property
+		       v localname ",directory-files-and-attributes"
+		     ,@body))))
+		result item)
+
+	    (while temp
+	      (setq item (pop temp))
+	      (when (or (null ,match) (string-match-p ,match (car item)))
+		(when ,full
+		  (setcar item (expand-file-name (car item) ,directory)))
+		(push item result)))
+
+	    (unless ,nosort
+	      (setq result
+		    (sort result (lambda (x y) (string< (car x) (car y))))))
+
+	    (when (and (natnump ,count) (> ,count 0))
+	      (setq result (tramp-compat-ntake ,count result)))
+
+	    (or result
+		;; The scripts could fail, for example with huge file size.
+		(tramp-handle-directory-files-and-attributes
+		 ,directory ,full ,match ,nosort ,id-format ,count))))))
+
+    ;; Error handling.
+    (if (not (file-exists-p ,directory))
+	(tramp-error
+	 (tramp-dissect-file-name ,directory) 'file-missing ,directory)
+      nil)))
+
+(put #'tramp-skeleton-directory-files-and-attributes 'tramp-suppress-trace t)
+
+(defmacro tramp-skeleton-file-local-copy (filename &rest body)
+  "Skeleton for `tramp-*-handle-file-local-copy-files'.
+BODY is the backend specific code."
+  (declare (indent 1) (debug t))
+  `(with-parsed-tramp-file-name (file-truename ,filename) nil
+     (tramp-barf-if-file-missing v ,filename
+       (or
+	(let ((tmpfile (tramp-compat-make-temp-file ,filename)))
+	  ,@body
+          (run-hooks 'tramp-handle-file-local-copy-hook)
+	  tmpfile)
+
+	;; Trigger the `file-missing' error.
+	(signal 'error nil)))))
+
+(put #'tramp-skeleton-file-local-copy 'tramp-suppress-trace t)
 
 (defmacro tramp-skeleton-write-region
   (start end filename append visit lockname mustbenew &rest body)
@@ -3585,14 +3721,12 @@ Let-bind it when necessary.")
 (defun tramp-handle-copy-directory
   (directory newname &optional keep-date parents copy-contents)
   "Like `copy-directory' for Tramp files."
-  ;; `copy-directory' creates NEWNAME before running this check.  So
-  ;; we do it ourselves.
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  ;; We must do it file-wise.
-  (tramp-run-real-handler
-   #'copy-directory
-   (list directory newname keep-date parents copy-contents)))
+  (tramp-skeleton-copy-directory
+      directory newname keep-date parents copy-contents
+   ;; We must do it file-wise.
+   (tramp-run-real-handler
+    #'copy-directory
+    (list directory newname keep-date parents copy-contents))))
 
 (defun tramp-handle-directory-file-name (directory)
   "Like `directory-file-name' for Tramp files."
@@ -3608,23 +3742,8 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-directory-files (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  (when (file-directory-p directory)
-    (setq directory (file-name-as-directory (expand-file-name directory)))
-    (let ((temp (nreverse (file-name-all-completions "" directory)))
-	  result item)
-
-      (while temp
-	(setq item (directory-file-name (pop temp)))
-	(when (or (null match) (string-match-p match item))
-	  (push (if full (concat directory item) item)
-		result)))
-      (unless nosort
-        (setq result (sort result #'string<)))
-      (when (and (natnump count) (> count 0))
-	(setq result (tramp-compat-ntake count result)))
-      result)))
+  (tramp-skeleton-directory-files directory full match nosort count
+    (nreverse (file-name-all-completions "" directory))))
 
 (defun tramp-handle-directory-files-and-attributes
   (directory &optional full match nosort id-format count)
@@ -3722,12 +3841,8 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (unless (file-exists-p filename)
-      (tramp-error v 'file-missing filename))
-    (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (copy-file filename tmpfile 'ok-if-already-exists 'keep-time)
-      tmpfile)))
+  (tramp-skeleton-file-local-copy filename
+    (copy-file filename tmpfile 'ok-if-already-exists 'keep-time)))
 
 (defun tramp-handle-file-modes (filename &optional flag)
   "Like `file-modes' for Tramp files."
@@ -4048,13 +4163,10 @@ Let-bind it when necessary.")
   (let (result local-copy remote-copy)
     (with-parsed-tramp-file-name filename nil
       (unwind-protect
-	  (if (not (file-exists-p filename))
-              (let ((tramp-verbose (if visit 0 tramp-verbose)))
-	        (tramp-error v 'file-missing filename))
-
-	    (with-tramp-progress-reporter
-		v 3 (format-message "Inserting `%s'" filename)
-	      (condition-case err
+	  (condition-case err
+	      (tramp-barf-if-file-missing v filename
+		(with-tramp-progress-reporter
+		    v 3 (format-message "Inserting `%s'" filename)
 		  (if (and (tramp-local-host-p v)
 			   (let (file-name-handler-alist)
 			     (file-readable-p localname)))
@@ -4067,7 +4179,7 @@ Let-bind it when necessary.")
 
 		    ;; When we shall insert only a part of the file, we
 		    ;; copy this part.  This works only for the shell file
-                    ;; name handlers.  It doesn't work for encrypted files.
+		    ;; name handlers.  It doesn't work for encrypted files.
 		    (when (and (or beg end)
 			       (tramp-sh-file-name-handler-p v)
 			       (null tramp-crypt-enabled))
@@ -4131,12 +4243,16 @@ Let-bind it when necessary.")
 			    filename local-copy)))
 		      (setq result
 			    (insert-file-contents
-			     local-copy visit beg end replace))))
-		(error
-		 (add-hook 'find-file-not-found-functions
-			   `(lambda () (signal ',(car err) ',(cdr err)))
-			   nil t)
-		 (signal (car err) (cdr err))))))
+			     local-copy visit beg end replace))))))
+
+	    (file-error
+	     (let ((tramp-verbose (if visit 0 tramp-verbose)))
+	       (tramp-error v 'file-missing filename)))
+	    (error
+	     (add-hook 'find-file-not-found-functions
+		       `(lambda () (signal ',(car err) ',(cdr err)))
+		       nil t)
+	     (signal (car err) (cdr err))))
 
 	;; Save exit.
 	(when visit
@@ -4288,8 +4404,7 @@ It is not guaranteed, that all process attributes as described in
                         (funcall (cdr elt)))
                        ((null (cdr elt))
                         (search-forward-regexp "\\s-+")
-                        (buffer-substring (point) (line-end-position)))
-                       (t nil)))
+                        (buffer-substring (point) (line-end-position)))))
                      res))
                   ;; `nice' could be `-'.
                   (setq res (rassq-delete-all '- res))
@@ -5199,8 +5314,7 @@ Wait, until the connection buffer changes."
 		 (tramp-message vec 3 "Process has finished.")
 		 (throw 'tramp-action 'ok))
 	     (tramp-message vec 3 "Process has died.")
-	     (throw 'tramp-action 'out-of-band-failed))))
-	(t nil)))
+	     (throw 'tramp-action 'out-of-band-failed))))))
 
 ;;; Functions for processing the actions:
 
@@ -5711,51 +5825,140 @@ VEC is used for tracing."
   "Check `file-attributes' caches for VEC.
 Return t if according to the cache access type ACCESS is known to
 be granted."
-  (let (result
-        (offset (cond
-                 ((eq ?r access) 1)
-                 ((eq ?w access) 2)
-                 ((eq ?x access) 3)
-                 ((eq ?s access) 3))))
-    (dolist (suffix '("string" "integer") result)
-      (setq
-       result
-       (or
-        result
-        (let ((file-attr
-	       (or
-		(tramp-get-file-property
-		 vec (tramp-file-name-localname vec)
-		 (concat "file-attributes-" suffix) nil)
-		(file-attributes
-		 (tramp-make-tramp-file-name vec) (intern suffix))))
-              (remote-uid (tramp-get-remote-uid vec (intern suffix)))
-              (remote-gid (tramp-get-remote-gid vec (intern suffix)))
-	      (unknown-id
-	       (if (string-equal suffix "string")
-		   tramp-unknown-id-string tramp-unknown-id-integer)))
-          (and
-           file-attr
-           (or
-            ;; Not a symlink.
-            (eq t (file-attribute-type file-attr))
-            (null (file-attribute-type file-attr)))
-           (or
-            ;; World accessible.
-            (eq access (aref (file-attribute-modes file-attr) (+ offset 6)))
-            ;; User accessible and owned by user.
-            (and
-             (eq access (aref (file-attribute-modes file-attr) offset))
-	     (or (equal remote-uid unknown-id)
-		 (equal remote-uid (file-attribute-user-id file-attr))
-		 (equal unknown-id (file-attribute-user-id file-attr))))
-            ;; Group accessible and owned by user's principal group.
-            (and
-             (eq access
-		 (aref (file-attribute-modes file-attr) (+ offset 3)))
-             (or (equal remote-gid unknown-id)
-		 (equal remote-gid (file-attribute-group-id file-attr))
-		 (equal unknown-id (file-attribute-group-id file-attr))))))))))))
+  (when-let ((offset (cond
+                      ((eq ?r access) 1)
+                      ((eq ?w access) 2)
+                      ((eq ?x access) 3)
+                      ((eq ?s access) 3)))
+	     (file-attr (file-attributes (tramp-make-tramp-file-name vec)))
+	     (remote-uid (tramp-get-remote-uid vec 'integer))
+	     (remote-gid (tramp-get-remote-gid vec 'integer)))
+    (or
+     ;; Not a symlink.
+     (eq t (file-attribute-type file-attr))
+     (null (file-attribute-type file-attr)))
+    (or
+     ;; World accessible.
+     (eq access (aref (file-attribute-modes file-attr) (+ offset 6)))
+     ;; User accessible and owned by user.
+     (and
+      (eq access (aref (file-attribute-modes file-attr) offset))
+      (or (equal remote-uid tramp-unknown-id-integer)
+	  (equal remote-uid (file-attribute-user-id file-attr))
+	  (equal tramp-unknown-id-integer (file-attribute-user-id file-attr))))
+     ;; Group accessible and owned by user's principal group.
+     (and
+      (eq access
+	  (aref (file-attribute-modes file-attr) (+ offset 3)))
+      (or (equal remote-gid tramp-unknown-id-integer)
+	  (equal remote-gid (file-attribute-group-id file-attr))
+	  (equal tramp-unknown-id-integer
+		 (file-attribute-group-id file-attr)))))))
+
+(defmacro tramp-convert-file-attributes (vec localname id-format attr)
+  "Convert `file-attributes' ATTR generated Tramp backend functions.
+Convert file mode bits to string and set virtual device number.
+Set file uid and gid according to ID-FORMAT.  LOCALNAME is used
+to cache the result.  Return the modified ATTR."
+  (declare (indent 3) (debug t))
+  `(with-tramp-file-property
+       ,vec ,localname (format "file-attributes-%s" (or ,id-format 'integer))
+     (when-let
+	 ((result
+	   (with-tramp-file-property ,vec ,localname "file-attributes"
+	     (when-let ((attr ,attr))
+	       (save-match-data
+		 ;; Remove color escape sequences from symlink.
+		 (when (stringp (car attr))
+		   (while (string-match
+			   tramp-display-escape-sequence-regexp (car attr))
+		     (setcar attr (replace-match "" nil nil (car attr)))))
+		 ;; Convert uid and gid.  Use `tramp-unknown-id-integer'
+		 ;; as indication of unusable value.
+		 (when (consp (nth 2 attr))
+		   (when (and (numberp (cdr (nth 2 attr)))
+			      (< (cdr (nth 2 attr)) 0))
+		     (setcdr (car (nthcdr 2 attr)) tramp-unknown-id-integer))
+		   (when (and (floatp (cdr (nth 2 attr)))
+			      (<= (cdr (nth 2 attr)) most-positive-fixnum))
+		     (setcdr (car (nthcdr 2 attr)) (round (cdr (nth 2 attr))))))
+		 (when (consp (nth 3 attr))
+		   (when (and (numberp (cdr (nth 3 attr)))
+			      (< (cdr (nth 3 attr)) 0))
+		     (setcdr (car (nthcdr 3 attr)) tramp-unknown-id-integer))
+		   (when (and (floatp (cdr (nth 3 attr)))
+			      (<= (cdr (nth 3 attr)) most-positive-fixnum))
+		     (setcdr (car (nthcdr 3 attr)) (round (cdr (nth 3 attr))))))
+		 ;; Convert last access time.
+		 (unless (listp (nth 4 attr))
+		   (setcar (nthcdr 4 attr) (seconds-to-time (nth 4 attr))))
+		 ;; Convert last modification time.
+		 (unless (listp (nth 5 attr))
+		   (setcar (nthcdr 5 attr) (seconds-to-time (nth 5 attr))))
+		 ;; Convert last status change time.
+		 (unless (listp (nth 6 attr))
+		   (setcar (nthcdr 6 attr) (seconds-to-time (nth 6 attr))))
+		 ;; Convert file size.
+		 (when (< (nth 7 attr) 0)
+		   (setcar (nthcdr 7 attr) -1))
+		 (when (and (floatp (nth 7 attr))
+			    (<= (nth 7 attr) most-positive-fixnum))
+		   (setcar (nthcdr 7 attr) (round (nth 7 attr))))
+		 ;; Convert file mode bits to string.
+		 (unless (stringp (nth 8 attr))
+		   (setcar (nthcdr 8 attr)
+			   (tramp-file-mode-from-int (nth 8 attr)))
+		   (when (stringp (car attr))
+		     (aset (nth 8 attr) 0 ?l)))
+		 ;; Convert directory indication bit.
+		 (when (string-prefix-p "d" (nth 8 attr))
+		   (setcar attr t))
+		 ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
+		 ;; Decode also multibyte string.
+		 (when (consp (car attr))
+		   (setcar attr
+			   (and (stringp (caar attr))
+				(string-match ".+ -> .\\(.+\\)." (caar attr))
+				(decode-coding-string
+				 (match-string 1 (caar attr)) 'utf-8))))
+		 ;; Set file's gid change bit.
+		 (setcar
+		  (nthcdr 9 attr)
+		  (not (= (cdr (nth 3 attr))
+			  (or (tramp-get-remote-gid ,vec 'integer)
+			      tramp-unknown-id-integer))))
+		 ;; Convert inode.
+		 (when (floatp (nth 10 attr))
+		   (setcar (nthcdr 10 attr)
+			   (condition-case nil
+			       (let ((high (nth 10 attr))
+				     middle low)
+				 (if (<= high most-positive-fixnum)
+				     (floor high)
+				   ;; The low 16 bits.
+				   (setq low (mod high #x10000)
+					 high (/ high #x10000))
+				   (if (<= high most-positive-fixnum)
+				       (cons (floor high) (floor low))
+				     ;; The middle 24 bits.
+				     (setq middle (mod high #x1000000)
+					   high (/ high #x1000000))
+				     (cons (floor high)
+					   (cons (floor middle) (floor low))))))
+			     ;; Inodes can be incredible huge.  We
+			     ;; must hide this.
+			     (error (tramp-get-inode ,vec)))))
+		 ;; Set virtual device number.
+		 (setcar (nthcdr 11 attr)
+			 (tramp-get-device ,vec))
+		 attr)))))
+
+       ;; Return normalized result.
+       (append (tramp-compat-take 2 result)
+	       (if (eq ,id-format 'string)
+		   (list (car (nth 2 result)) (car (nth 3 result)))
+		 (list (cdr (nth 2 result)) (cdr (nth 3 result))))
+	       (nthcdr 4 result)))))
 
 (defun tramp-get-home-directory (vec &optional user)
   "The remote home directory for connection VEC as local file name.
@@ -5828,21 +6031,15 @@ This handles also chrooted environments, which are not regarded as local."
 (defun tramp-make-tramp-temp-file (vec)
   "Create a temporary file on the remote host identified by VEC.
 Return the local name of the temporary file."
-  (let (result)
-    (while (not result)
-      ;; `make-temp-file' would be the natural choice for
-      ;; implementation.  But it calls `write-region' internally,
-      ;; which also needs a temporary file - we would end in an
-      ;; infinite loop.
-      (setq result (tramp-make-tramp-temp-name vec))
-      (if (file-exists-p result)
-	  (setq result nil)
-	;; This creates the file by side effect.
-	(set-file-times result)
-	(set-file-modes result #o0700)))
-
-    ;; Return the local part.
-    (tramp-file-local-name result)))
+  (let (create-lockfiles)
+    (cl-letf (((symbol-function 'tramp-remote-acl-p) #'ignore)
+	      ((symbol-function 'tramp-remote-selinux-p) #'ignore)
+	      ((symbol-function 'tramp-sudoedit-remote-acl-p) #'ignore)
+	      ((symbol-function 'tramp-sudoedit-remote-selinux-p) #'ignore))
+      (tramp-file-local-name
+       (make-temp-file
+	(expand-file-name
+	 tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))))
 
 (defun tramp-delete-temp-file-function ()
   "Remove temporary files related to current buffer."
