@@ -1442,6 +1442,11 @@ ACTION is the action given to `x-begin-drag'."
 (defvar x-dnd-disable-motif-protocol)
 (defvar x-dnd-use-unsupported-drop)
 
+(defvar x-dnd-xds-testing nil
+  "Whether or not XDS is being tested from ERT.
+When non-nil, throw errors from the `XdndDirectSave0' converters
+instead of returning \"E\".")
+
 (defun x-dnd-handle-direct-save (_selection _type _value)
   "Handle a selection request for `XdndDirectSave'."
   (setq x-dnd-xds-performed t)
@@ -1456,15 +1461,24 @@ ACTION is the action given to `x-begin-drag'."
                           (dnd-get-local-file-name local-file-uri))))
     (if (not local-name)
         '(STRING . "F")
-      (condition-case nil
-          (progn
+      ;; We want errors to be signalled immediately during ERT
+      ;; testing, instead of being silently handled.  (bug#56712)
+      (if x-dnd-xds-testing
+          (prog1 '(STRING . "S")
             (copy-file x-dnd-xds-current-file
                        local-name t)
             (when (equal x-dnd-xds-current-file
                          dnd-last-dragged-remote-file)
               (dnd-remove-last-dragged-remote-file)))
-        (:success '(STRING . "S"))
-        (error '(STRING . "E"))))))
+        (condition-case nil
+            (progn
+              (copy-file x-dnd-xds-current-file
+                         local-name t)
+              (when (equal x-dnd-xds-current-file
+                           dnd-last-dragged-remote-file)
+                (dnd-remove-last-dragged-remote-file)))
+          (:success '(STRING . "S"))
+          (error '(STRING . "E")))))))
 
 (defun x-dnd-handle-octet-stream (_selection _type _value)
   "Handle a selecton request for `application/octet-stream'.
