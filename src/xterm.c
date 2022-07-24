@@ -2937,7 +2937,7 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
   Window *toplevels;
   int format, rc;
   unsigned long nitems, bytes_after;
-  unsigned long i;
+  unsigned long i, real_nitems;
   unsigned char *data = NULL;
   int frame_extents[4];
 
@@ -3000,6 +3000,16 @@ x_dnd_compute_toplevels (struct x_display_info *dpyinfo)
     }
 
   toplevels = (Window *) data;
+
+  for (i = 0, real_nitems = 0; i < nitems; ++i)
+    {
+      /* Some window managers with built in compositors end up putting
+	 tooltips in the client list, which is silly.  */
+      if (!x_tooltip_window_to_frame (dpyinfo, toplevels[i], NULL))
+	toplevels[real_nitems++] = toplevels[i];
+    }
+
+  nitems = real_nitems;
 
 #ifdef USE_XCB
   USE_SAFE_ALLOCA;
@@ -11072,7 +11082,8 @@ x_tooltip_window_to_frame (struct x_display_info *dpyinfo,
   GdkWindow *tooltip_window;
 #endif
 
-  *unrelated_tooltip_p = false;
+  if (unrelated_tooltip_p)
+    *unrelated_tooltip_p = false;
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -11101,14 +11112,16 @@ x_tooltip_window_to_frame (struct x_display_info *dpyinfo,
       if (tooltip_window
 	  && (gdk_x11_window_get_xid (tooltip_window) == wdesc))
 	{
-	  *unrelated_tooltip_p = true;
+	  if (unrelated_tooltip_p)
+	    *unrelated_tooltip_p = true;
 	  break;
 	}
 #else
       if (tooltip_window
 	  && (GDK_WINDOW_XID (tooltip_window) == wdesc))
 	{
-	  *unrelated_tooltip_p = true;
+	  if (unrelated_tooltip_p)
+	    *unrelated_tooltip_p = true;
 	  break;
 	}
 #endif
@@ -16972,7 +16985,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         xft_settings_event (dpyinfo, event);
 
 	f = any;
-	if (!f)
+	/* We don't want to ever leak tooltip frames to Lisp code.  */
+	if (!f || FRAME_TOOLTIP_P (f))
 	  goto OTHER;
 
 	/* These values are always used initialized, but GCC doesn't
