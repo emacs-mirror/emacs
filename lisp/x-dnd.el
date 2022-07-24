@@ -194,7 +194,8 @@ any protocol specific data.")
 
 (defun x-dnd-init-frame (&optional frame)
   "Setup drag and drop for FRAME (i.e. create appropriate properties)."
-  (when (eq 'x (window-system frame))
+  (when (and (eq 'x (window-system frame))
+             (not (frame-parameter frame 'tooltip)))
     (let ((x-fast-protocol-requests (not x-dnd-debug-errors)))
       (x-register-dnd-atom "DndProtocol" frame)
       (x-register-dnd-atom "_MOTIF_DRAG_AND_DROP_MESSAGE" frame)
