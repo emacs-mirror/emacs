@@ -56,6 +56,7 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
 (require 'easy-mmode)
+(require 'whitespace)
 
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-find-revision-no-save "vc")
@@ -146,6 +147,11 @@ and hunk-based syntax highlighting otherwise as a fallback."
                  (const :tag "Hunk-based only" hunk-only)
                  (const :tag "Highlight syntax" t)
                  (const :tag "Allow hunk-based fallback" hunk-also)))
+
+(defcustom diff-whitespace-style '(face trailing)
+  "Specify `whitespace-style' variable for the current Diff mode buffer."
+  :type (get 'whitespace-style 'custom-type)
+  :version "29.1")
 
 (defvar diff-vc-backend nil
   "The VC backend that created the current Diff buffer, if any.")
@@ -1476,9 +1482,6 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     ;; Added when diff--font-lock-prettify is non-nil!
     (cl-pushnew 'display font-lock-extra-managed-props)))
 
-(defvar whitespace-style)
-(defvar whitespace-trailing-regexp)
-
 (defvar-local diff-mode-read-only nil
   "Non-nil when read-only diff buffer uses short keys.")
 
@@ -1572,7 +1575,7 @@ a diff with \\[diff-reverse-direction].
 This sets `whitespace-style' and `whitespace-trailing-regexp' so
 that Whitespace mode shows trailing whitespace problems on the
 modified lines of the diff."
-  (setq-local whitespace-style '(face trailing))
+  (setq-local whitespace-style diff-whitespace-style)
   (let ((style (save-excursion
 		 (goto-char (point-min))
                  ;; FIXME: For buffers filled from async processes, this search

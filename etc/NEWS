@@ -1190,6 +1190,13 @@ the run/continue command.
 This is bound to 'H' and toggles whether to hide or show the widget
 contents.
 
+** Diff mode
+
+---
+*** New user option 'diff-whitespace-style'.
+This option determines buffer-local 'whitespace-style' value.
+
+
 ** Ispell
 
 ---
