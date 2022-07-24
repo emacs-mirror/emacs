@@ -785,10 +785,14 @@ byte-compilation of the new package to fail."
   (with-demoted-errors "Error in package--load-files-for-activation: %s"
     (let* (result
            (dir (package-desc-dir pkg-desc))
-           (load-path-sans-dir
-            (cl-remove-if (apply-partially #'string= dir)
-                          (or (bound-and-true-p find-function-source-path)
-                              load-path)))
+           ;; A previous implementation would skip `dir' itself.
+           ;; However, in normal use reloading from the same directory
+           ;; never happens anyway, while in certain cases external to
+           ;; Emacs a package in the same directory not necessary
+           ;; stays byte-identical, e.g.  during development.  Just
+           ;; don't special-case `dir'.
+           (effective-path (or (bound-and-true-p find-library-source-path)
+                               load-path))
            (files (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
            (history (mapcar #'file-truename
                             (cl-remove-if-not #'stringp
@@ -796,8 +800,19 @@ byte-compilation of the new package to fail."
       (dolist (file files)
         (when-let ((library (package--library-stem
                              (file-relative-name file dir)))
-                   (canonical (locate-library library nil load-path-sans-dir))
-                   (found (member (file-truename canonical) history))
+                   (canonical (locate-library library nil effective-path))
+                   (truename (file-truename canonical))
+                   ;; Normally, all files in a package are compiled by
+                   ;; now, but don't assume that.  E.g. different
+                   ;; versions can add or remove `no-byte-compile'.
+                   (altname (if (string-suffix-p ".el" truename)
+                                (replace-regexp-in-string
+                                 "\\.el\\'" ".elc" truename t)
+                              (replace-regexp-in-string
+                               "\\.elc\\'" ".el" truename t)))
+                   (found (or (member truename history)
+                              (and (not (string= altname truename))
+                                   (member altname history))))
                    (recent-index (length found)))
           (unless (equal (file-name-base library)
                          (format "%s-autoloads" (package-desc-name pkg-desc)))
