@@ -4654,8 +4654,9 @@ a new window, but not to select it.  See the documentation for
                  (const :tag "Use current buffer" buffer)
                  (const :tag "Use current buffer" t)))
 
-;; FIXME either retire this or put it to use or more clearly explain
-;; what it's supposed to do.  It's currently only used by the obsolete
+;; FIXME either retire this or put it to use after determining how
+;; it's meant to work.  Clearly, the doc string does not describe
+;; current behavior.  It's currently only used by the obsolete
 ;; function `erc-auto-query'.
 (defcustom erc-query-on-unjoined-chan-privmsg t
   "If non-nil create query buffer on receiving any PRIVMSG at all.

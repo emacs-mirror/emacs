@@ -1526,11 +1526,13 @@ add things to `%s' instead."
         (setf (erc-response.contents parsed) msg)
         (setq buffer (erc-get-buffer (if privp nick tgt) proc))
         ;; Even worth checking for empty target here? (invalid anyway)
-        (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0)))
-          (if (and privp msgp (not (erc-is-message-ctcp-and-not-action-p msg)))
+        (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0))
+                    (erc-is-message-ctcp-and-not-action-p msg))
+          (if privp
               (when erc-auto-query
                 (let ((erc-join-buffer erc-auto-query))
                   (setq buffer (erc--open-target nick))))
+            ;; A channel buffer has been killed but is still joined
             (setq buffer (erc--open-target tgt))))
         (when buffer
           (with-current-buffer buffer

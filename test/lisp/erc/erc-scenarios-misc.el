@@ -138,4 +138,43 @@
 
     (should-not (get-buffer "$*"))))
 
+(ert-deftest erc-scenarios-dcc-chat-accept ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "dcc/chat")
+       (dcc-server (erc-d-run "127.0.0.1" t "erc-dcc-server" 'accept-dcc
+                              :ending "\n"))
+       (dcc-port (process-contact dcc-server :service))
+       (dumb-server (erc-d-run "localhost" t 'accept :tmpl-vars
+                               `((port . ,(number-to-string dcc-port)))))
+       (port (process-contact dumb-server :service))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect to foonet")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :password "changeme"
+                                :full-name "tester")
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))))
+
+    (ert-info ("Offer received")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "foonet"))
+        (funcall expect 10 "DCC: chat offered by dummy")
+        (erc-cmd-DCC "CHAT" "dummy")))
+
+    ;; Regression
+    (erc-d-t-ensure-for 1 (not (get-buffer "tester")))
+
+    ;; Becomes current buffer by default (because `erc-join-buffer')
+    (erc-d-t-wait-for 10 (get-buffer "DCC-CHAT-dummy"))
+
+    (with-current-buffer "foonet"
+      (funcall expect 10 "*** DCC: accepting chat from dummy"))
+
+    (ert-info ("Chat with dummy")
+      (with-current-buffer "DCC-CHAT-dummy"
+        (erc-scenarios-common-say "Hi")
+        (funcall expect 10 "Hola")))))
+
 ;;; erc-scenarios-misc.el ends here
