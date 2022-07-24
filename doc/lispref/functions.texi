@@ -2497,6 +2497,30 @@ the current buffer.
 @item (modes @var{modes})
 Specify that this command is meant to be applicable for @var{modes}
 only.
+
+@item (pure @var{val})
+If @var{val} is non-@code{nil}, this function is @dfn{pure}
+(@pxref{What Is a Function}).  This is the same as the @code{pure}
+property of the function's symbol (@pxref{Standard Properties}).
+
+@item (side-effect-free @var{val})
+If @var{val} is non-@code{nil}, this function is free of side effects,
+so the byte compiler can ignore calls whose value is ignored.  This is
+the same as the @code{side-effect-free} property of the function's
+symbol, @pxref{Standard Properties}.
+
+@item (speed @var{n})
+Specify the value of @code{native-comp-speed} in effect for native
+compilation of this function (@pxref{Native-Compilation Variables}).
+This allows function-level control of the optimization level used for
+native code emitted for the function.  In particular, if @var{n} is
+@minus{}1, native compilation of the function will emit bytecode
+instead of native code for the function.
+
+@item no-font-lock-keyword
+This is valid for macros only.  Macros with this declaration are
+highlighted by font-lock (@pxref{Font Lock Mode}) as normal functions,
+not specially as macros.
 @end table
 
 @end defmac

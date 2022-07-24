@@ -981,7 +981,9 @@ corresponding compiler @option{-O0}, @option{-O1}, etc.@: command-line
 options of the compiler.  The value @minus{}1 means disable
 native-compilation: functions and files will be only byte-compiled;
 however, the @file{*.eln} files will still be produced, they will just
-contain the compiled code in bytecode form.
+contain the compiled code in bytecode form.  (This can be achieved at
+function granularity by using the @w{@code{(declare (speed -1))}}
+form, @pxref{Declare Form}.)
 The default value is 2.
 @end defopt
 

@@ -266,13 +266,9 @@ handling of autoloaded functions."
              (current-buffer)))
         (help-buffer-under-preparation t))
 
-    (help-setup-xref
-     (list (lambda (function buffer)
-             (let ((describe-function-orig-buffer
-                    (if (buffer-live-p buffer) buffer)))
-               (describe-function function)))
-           function describe-function-orig-buffer)
-     (called-interactively-p 'interactive))
+    (help-setup-xref (list #'describe-function--helper
+                           function describe-function-orig-buffer)
+                     (called-interactively-p 'interactive))
 
     (save-excursion
       (with-help-window (help-buffer)

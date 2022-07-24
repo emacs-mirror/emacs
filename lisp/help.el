@@ -906,6 +906,18 @@ Describe the following key, mouse click, or menu item: "
 ;; Defined in help-fns.el.
 (defvar describe-function-orig-buffer)
 
+;; These two are named functions because lambda-functions cannot be
+;; serialized in a native-compilation build, which breaks bookmark
+;; support in help-mode.el.
+(defun describe-key--helper (key-list buf)
+  (describe-key key-list
+                (if (buffer-live-p buf) buf)))
+
+(defun describe-function--helper (func buf)
+  (let ((describe-function-orig-buffer
+         (if (buffer-live-p buf) buf)))
+    (describe-function func)))
+
 (defun describe-key (&optional key-list buffer up-event)
   "Display documentation of the function invoked by KEY-LIST.
 KEY-LIST can be any kind of a key sequence; it can include keyboard events,
@@ -959,10 +971,7 @@ current buffer."
                          `(,seq ,brief-desc ,defn ,locus)))
                      key-list))
            2)))
-    (help-setup-xref (list (lambda (key-list buf)
-                             (describe-key key-list
-                                           (if (buffer-live-p buf) buf)))
-                           key-list buf)
+    (help-setup-xref (list #'describe-key--helper key-list buf)
 		     (called-interactively-p 'interactive))
     (if (and (<= (length info-list) 1)
              (help--binding-undefined-p (nth 2 (car info-list))))
