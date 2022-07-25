@@ -204,7 +204,7 @@ being the result.")
     ;; Remove old test files.
     (dolist (dir `(,temporary-file-directory
 		   ,ert-remote-temporary-file-directory))
-      (dolist (file (directory-files dir 'full "^\\(\\.#\\)?tramp-test"))
+      (dolist (file (directory-files dir 'full "\\`\\(\\.#\\)?tramp-test"))
 	(ignore-errors
 	  (if (file-directory-p file)
 	      (delete-directory file 'recursive)
