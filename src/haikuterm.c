@@ -3365,6 +3365,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    if (b->just_exited_p)
 	      {
 		Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
+
 		if (f == hlinfo->mouse_face_mouse_frame)
 		  {
 		    /* If we move outside the frame, then we're
@@ -3374,6 +3375,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		    haiku_flush_dirty_back_buffer_on (f);
 		  }
+
+		if (f == x_display_list->last_mouse_glyph_frame)
+		  x_display_list->last_mouse_glyph_frame = NULL;
 
 		if (f->auto_lower && !popup_activated_p
 		    /* Don't do this if the mouse entered a scroll bar.  */
