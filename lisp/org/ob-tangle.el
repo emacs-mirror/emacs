@@ -581,7 +581,10 @@ which enable the original code blocks to be found."
 	  (error "Not in tangled code"))
         (setq body (buffer-substring body-start end)))
       ;; Go to the beginning of the relative block in Org file.
-      (org-link-open-from-string link)
+      ;; Explicitly allow fuzzy search even if user customized
+      ;; otherwise.
+      (let (org-link-search-must-match-exact-headline)
+        (org-link-open-from-string link))
       (setq target-buffer (current-buffer))
       (if (string-match "[^ \t\n\r]:\\([[:digit:]]+\\)" block-name)
           (let ((n (string-to-number (match-string 1 block-name))))

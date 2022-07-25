@@ -73,6 +73,7 @@
 (require 'seq)
 
 (declare-function org-open-at-point "org" (&optional arg))
+(declare-function org-open-file "org" (path &optional in-emacs line search))
 
 (declare-function org-element-interpret-data "org-element" (data))
 (declare-function org-element-property "org-element" (property element))

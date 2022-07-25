@@ -682,9 +682,10 @@ line directly before or after the table."
 				  (looking-at "[[:space:]]*#\\+"))
 			(setf params (org-plot/collect-options params))))
       ;; Dump table to datafile
-      (if-let ((dump-func (plist-get type :data-dump)))
-	  (funcall dump-func table data-file num-cols params)
-	(org-plot/gnuplot-to-data table data-file params))
+      (let ((dump-func (plist-get type :data-dump)))
+        (if dump-func
+	    (funcall dump-func table data-file num-cols params)
+	  (org-plot/gnuplot-to-data table data-file params)))
       ;; Check type of ind column (timestamp? text?)
       (when (plist-get params :check-ind-type)
 	(let* ((ind (1- (plist-get params :ind)))

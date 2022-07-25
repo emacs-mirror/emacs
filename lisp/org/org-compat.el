@@ -113,6 +113,11 @@ the symbol of the calling function, for example."
 
 ;;; Emacs < 27.1 compatibility
 
+(if (version< emacs-version "27.1")
+    (defsubst org-replace-buffer-contents (source &optional _max-secs _max-costs)
+      (replace-buffer-contents source))
+  (defalias 'org-replace-buffer-contents #'replace-buffer-contents))
+
 (unless (fboundp 'proper-list-p)
   ;; `proper-list-p' was added in Emacs 27.1.  The function below is
   ;; taken from Emacs subr.el 200195e824b^.
