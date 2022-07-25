@@ -3502,14 +3502,20 @@ init_iterator (struct it *it, struct window *w,
    long lines.  */
 
 static int
-get_narrowed_len (struct window *w)
+get_narrowed_width (struct window *w)
 {
   int fact;
   /* In a character-only terminal, only one font size is used, so we
      can use a smaller factor.  */
   fact = EQ (Fterminal_live_p (Qnil), Qt) ? 2 : 3;
-  return fact * (window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS) *
-		 window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS));
+  return fact * window_body_width (w, WINDOW_BODY_IN_CANONICAL_CHARS);
+}
+
+static int
+get_narrowed_len (struct window *w)
+{
+  return get_narrowed_width (w) *
+    window_body_height (w, WINDOW_BODY_IN_CANONICAL_CHARS);
 }
 
 ptrdiff_t
@@ -3528,6 +3534,13 @@ get_narrowed_zv (struct window *w)
   return min ((window_point (w) / len + 1) * len, ZV);
 }
 
+ptrdiff_t
+get_closer_narrowed_begv (struct window *w, ptrdiff_t pos)
+{
+  int len = get_narrowed_width (w);
+  return max ((pos / len - 1) * len, BEGV);
+}
+
 static void
 unwind_narrowed_begv (Lisp_Object point_min)
 {
@@ -3541,15 +3554,15 @@ unwind_narrowed_zv (Lisp_Object point_max)
 }
 
 /* Set DST to EXPR.  When IT indicates that BEGV should temporarily be
-   updated to optimize display, evaluate EXPR with an updated BEGV.  */
+   updated to optimize display, evaluate EXPR with BEGV set to BV.  */
 
-#define SET_WITH_NARROWED_BEGV(IT,DST,EXPR)				\
+#define SET_WITH_NARROWED_BEGV(IT,DST,EXPR,BV)				\
   do {									\
     if (IT->narrowed_begv)						\
       {									\
 	specpdl_ref count = SPECPDL_INDEX ();				\
 	record_unwind_protect (unwind_narrowed_begv, Fpoint_min ());	\
-	SET_BUF_BEGV (current_buffer, IT->narrowed_begv);		\
+	SET_BUF_BEGV (current_buffer, BV);				\
 	DST = EXPR;							\
 	unbind_to (count, Qnil);					\
       }									\
@@ -7067,7 +7080,8 @@ back_to_previous_line_start (struct it *it)
 
   dec_both (&cp, &bp);
   SET_WITH_NARROWED_BEGV (it, IT_CHARPOS (*it),
-			  find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it)));
+			  find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it)),
+			  get_closer_narrowed_begv (it->w, IT_CHARPOS (*it)));
 }
 
 
@@ -8706,7 +8720,8 @@ get_visually_first_element (struct it *it)
 
   SET_WITH_NARROWED_BEGV (it, bob,
 			  string_p ? 0 :
-			  IT_BYTEPOS (*it) < BEGV ? obegv : BEGV);
+			  IT_BYTEPOS (*it) < BEGV ? obegv : BEGV,
+			  it->narrowed_begv);
 
   if (STRINGP (it->string))
     {
@@ -8749,7 +8764,8 @@ get_visually_first_element (struct it *it)
 	SET_WITH_NARROWED_BEGV (it, it->bidi_it.charpos,
 				find_newline_no_quit (IT_CHARPOS (*it),
 						      IT_BYTEPOS (*it), -1,
-						      &it->bidi_it.bytepos));
+						      &it->bidi_it.bytepos),
+				it->narrowed_begv);
       bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
       do
 	{
@@ -10668,7 +10684,8 @@ move_it_vertically_backward (struct it *it, int dy)
 
 	  dec_both (&cp, &bp);
 	  SET_WITH_NARROWED_BEGV (it, cp,
-				  find_newline_no_quit (cp, bp, -1, NULL));
+				  find_newline_no_quit (cp, bp, -1, NULL),
+				  it->narrowed_begv);
 	  move_it_to (it, cp, -1, -1, -1, MOVE_TO_POS);
 	}
       bidi_unshelve_cache (it3data, true);
