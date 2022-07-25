@@ -3204,20 +3204,38 @@ If the vector does not include the port number, @var{p}, or if
 @code{:@var{p}} suffix.
 @end defun
 
-@defun network-lookup-address-info name &optional family
-This function is used to perform hostname lookups on @var{name}, which
-is expected to be an ASCII-only string, otherwise an error is
-signaled. Call @code{puny-encode-domain} on @var{name}
-first if you wish to lookup internationalized hostnames.
+@defun network-lookup-address-info name &optional family hints
+Perform hostname lookups on @var{name}, which is expected to be an
+ASCII-only string, otherwise signal an error. Call
+@code{puny-encode-domain} on @var{name} first if you wish to lookup
+internationalized hostnames.
 
-If successful it returns a list of Lisp representations of network
-addresses, otherwise it returns @code{nil}.  In the latter case, it
-also displays the error message hopefully explaining what went wrong.
+If successful, return a list of Lisp representations of network
+addresses (@pxref{Network Processes} for a description of the
+format.), otherwise return @code{nil}.  In the latter case, also log
+an error message hopefully explaining what went wrong.
 
-By default both IPv4 and IPv6 lookups are attempted.  The optional
-argument @var{family} controls this behavior, specifying the symbol
-@code{ipv4} or @code{ipv6} restricts lookups to IPv4 and IPv6
-respectively.
+By default, attempt both IPv4 and IPv6 lookups.  The optional argument
+@var{family} controls this behavior, specifying the symbol @code{ipv4}
+or @code{ipv6} restricts lookups to IPv4 and IPv6 respectively.
+
+If optional argument @var{hints} is @code{numeric}, treat the hostname
+as a numerical IP address (and do not perform DNS lookups).  This can
+be used to check whether a string is a valid numerical representation
+of an IP address, or to convert a numerical string to its canonical
+representation. e.g.
+
+@example
+(network-lookup-address-info "127.1" 'ipv4 'numeric)
+    @result{} ([127 0 0 1 0])
+
+(network-lookup-address-info "::1" nil 'numeric)
+    @result{} ([0 0 0 0 0 0 0 1 0])
+@end example
+
+Be warned that there are some surprising valid forms,
+especially for IPv4, e.g ``0xe3010203'' and ``0343.1.2.3'' are both
+valid, as are ``0'' and ``1'' (but they are invalid for IPv6).
 @end defun
 
 @node Serial Ports

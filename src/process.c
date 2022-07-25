@@ -4641,15 +4641,20 @@ network_lookup_address_info_1 (Lisp_Object host, const char *service,
 }
 
 DEFUN ("network-lookup-address-info", Fnetwork_lookup_address_info,
-       Snetwork_lookup_address_info, 1, 2, 0,
+       Snetwork_lookup_address_info, 1, 3, 0,
        doc: /* Look up Internet Protocol (IP) address info of NAME.
-Optional parameter FAMILY controls whether to look up IPv4 or IPv6
+Optional argument FAMILY controls whether to look up IPv4 or IPv6
 addresses.  The default of nil means both, symbol `ipv4' means IPv4
-only, symbol `ipv6' means IPv6 only.  Returns a list of addresses, or
-nil if none were found.  Each address is a vector of integers, as per
-the description of ADDRESS in `make-network-process'.  In case of
-error displays the error message.  */)
-     (Lisp_Object name, Lisp_Object family)
+only, symbol `ipv6' means IPv6 only.
+Optional argument HINTS allows specifying the hints passed to the
+underlying library call.  The only supported value is `numeric', which
+means treat NAME as a numeric IP address.  This also suppresses DNS
+traffic.
+Return a list of addresses, or nil if none were found.  Each address
+is a vector of integers, as per the description of ADDRESS in
+`make-network-process'.  In case of error log the error message
+returned from the lookup.  */)
+  (Lisp_Object name, Lisp_Object family, Lisp_Object hint)
 {
   Lisp_Object addresses = Qnil;
   Lisp_Object msg = Qnil;
@@ -4667,8 +4672,13 @@ error displays the error message.  */)
     hints.ai_family = AF_INET6;
 #endif
   else
-    error ("Unsupported lookup type");
+    error ("Unsupported family");
   hints.ai_socktype = SOCK_DGRAM;
+
+  if (EQ (hint, Qnumeric))
+    hints.ai_flags = AI_NUMERICHOST;
+  else if (!NILP (hint))
+    error ("Unsupported hints value");
 
   msg = network_lookup_address_info_1 (name, NULL, &hints, &res);
   if (!EQ (msg, Qt))
@@ -8515,6 +8525,7 @@ syms_of_process (void)
 #ifdef AF_INET6
   DEFSYM (Qipv6, "ipv6");
 #endif
+  DEFSYM (Qnumeric, "numeric");
   DEFSYM (Qdatagram, "datagram");
   DEFSYM (Qseqpacket, "seqpacket");
 

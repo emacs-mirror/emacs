@@ -378,6 +378,58 @@ See Bug#30460."
   (when (ipv6-is-available)
     (should (network-lookup-address-info "localhost" 'ipv6)))))
 
+(ert-deftest lookup-hints-specification ()
+  "`network-lookup-address-info' should only accept valid hints arg."
+  (should-error (network-lookup-address-info "1.1.1.1" nil t))
+  (should-error (network-lookup-address-info "1.1.1.1" 'ipv4 t))
+  (should (network-lookup-address-info "1.1.1.1" nil 'numeric))
+  (should (network-lookup-address-info "1.1.1.1" 'ipv4 'numeric))
+  (when (ipv6-is-available)
+    (should-error (network-lookup-address-info "::1" nil t))
+    (should-error (network-lookup-address-info "::1" 'ipv6 't))
+    (should (network-lookup-address-info "::1" nil 'numeric))
+    (should (network-lookup-address-info "::1" 'ipv6 'numeric))))
+
+(ert-deftest lookup-hints-values ()
+  "`network-lookup-address-info' should succeed/fail in looking up various numeric IP addresses."
+  (let ((ipv4-invalid-addrs
+         '("localhost" "343.1.2.3" "1.2.3.4.5"))
+        ;; These are valid for IPv4 but invalid for IPv6
+        (ipv4-addrs
+         '("127.0.0.1" "127.0.1" "127.1" "127" "1" "0"
+           "0xe3010203" "0xe3.1.2.3" "227.0x1.2.3"
+           "034300201003" "0343.1.2.3" "227.001.2.3"))
+        (ipv6-only-invalid-addrs
+         '("fe80:1" "e301:203:1" "e301::203::1"
+           "1:2:3:4:5:6:7:8:9" "0xe301:203::1"
+           "343:10001:2::3"
+           ;; "00343:1:2::3" is invalid on GNU/Linux and FreeBSD, but
+           ;; valid on macOS.  macOS is wrong here, but such is life.
+           ))
+        ;; These are valid for IPv6 but invalid for IPv4
+        (ipv6-addrs
+         '("fe80::1" "e301::203:1" "e301:203::1"
+           "e301:0203::1" "::1" "::0"
+           "0343:1:2::3" "343:001:2::3")))
+    (dolist (a ipv4-invalid-addrs)
+      (should-not (network-lookup-address-info a nil 'numeric))
+      (should-not (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a ipv6-addrs)
+      (should-not (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a ipv4-addrs)
+      (should (network-lookup-address-info a nil 'numeric))
+      (should (network-lookup-address-info a 'ipv4 'numeric)))
+    (when (ipv6-is-available)
+      (dolist (a ipv4-addrs)
+        (should-not (network-lookup-address-info a 'ipv6 'numeric)))
+      (dolist (a ipv6-only-invalid-addrs)
+        (should-not (network-lookup-address-info a 'ipv6 'numeric)))
+      (dolist (a ipv6-addrs)
+        (should (network-lookup-address-info a nil 'numeric))
+        (should (network-lookup-address-info a 'ipv6 'numeric))
+        (should (network-lookup-address-info (upcase a) nil 'numeric))
+        (should (network-lookup-address-info (upcase a) 'ipv6 'numeric))))))
+
 (ert-deftest lookup-unicode-domains ()
   "Unicode domains should fail."
   (skip-unless internet-is-working)

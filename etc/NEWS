@@ -408,6 +408,15 @@ This command duplicates the current line the specified number of times.
 ** Files with the ".eld" extension are now visited in 'lisp-data-mode'.
 
 +++
+** 'network-lookup-address-info' can now check numeric IP address validity.
+Specifying 'numeric as the new optional 'hints' argument makes it
+check if the passed address is a valid IPv4/IPv6 address (without DNS
+traffic).
+
+    (network-lookup-address-info "127.1" 'ipv4 'numeric)
+    => ([127 0 0 1 0])
+
++++
 ** New command 'find-sibling-file'.
 This command jumps to a file considered a "sibling file", which is
 determined according to the new user option 'find-sibling-rules'.
