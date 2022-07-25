@@ -124,8 +124,8 @@ Return the result of the selection."
                      (format "file://%s%s" (system-name)
                              (expand-file-name x-dnd-tests-xds-property-value
                                                x-dnd-tests-xds-target-dir))
-                   (concat "file:///" (expand-file-name x-dnd-tests-xds-property-value
-                                                        x-dnd-tests-xds-target-dir)))))
+                   (concat "file://" (expand-file-name x-dnd-tests-xds-property-value
+                                                       x-dnd-tests-xds-target-dir)))))
         (setq x-dnd-tests-xds-property-value
               (encode-coding-string (url-encode-url uri)
                                     'raw-text)))
