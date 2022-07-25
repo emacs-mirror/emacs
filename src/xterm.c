@@ -18303,6 +18303,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
       if (f)
         {
+	  /* Now clear dpyinfo->last_mouse_motion_frame, or
+	     gui_redo_mouse_highlight will end up highlighting the
+	     last known poisition of the mouse if a tooltip frame is
+	     later unmapped.  */
+
+	  if (f == dpyinfo->last_mouse_motion_frame)
+	    dpyinfo->last_mouse_motion_frame = NULL;
+
+	  /* Something similar applies to
+	     dpyinfo->last_mouse_glyph_frame.  */
+	  if (f == dpyinfo->last_mouse_glyph_frame)
+	    dpyinfo->last_mouse_glyph_frame = NULL;
+
           if (f == hlinfo->mouse_face_mouse_frame)
             {
               /* If we move outside the frame, then we're
@@ -19753,8 +19766,22 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!f)
 		f = x_top_window_to_frame (dpyinfo, leave->event);
 #endif
+
 	      if (f)
 		{
+		  /* Now clear dpyinfo->last_mouse_motion_frame, or
+		     gui_redo_mouse_highlight will end up highlighting
+		     the last known poisition of the mouse if a
+		     tooltip frame is later unmapped.  */
+
+		  if (f == dpyinfo->last_mouse_motion_frame)
+		    dpyinfo->last_mouse_motion_frame = NULL;
+
+		  /* Something similar applies to
+		     dpyinfo->last_mouse_glyph_frame.  */
+		  if (f == dpyinfo->last_mouse_glyph_frame)
+		    dpyinfo->last_mouse_glyph_frame = NULL;
+
 		  if (f == hlinfo->mouse_face_mouse_frame)
 		    {
 		      /* If we move outside the frame, then we're
