@@ -689,6 +689,18 @@ line.  This looks nice in the source code, but looks bizarre when users
 view the documentation.  Remember that the indentation before the
 starting double-quote is not part of the string!
 
+@item
+When documentation should display an ASCII apostrophe or grave accent,
+use @samp{\\='} or @samp{\\=`} in the documentation string literal so
+that the character is displayed as-is.
+
+@item
+In documentation strings, do not quote expressions that are not Lisp symbols,
+as these expressions can stand for themselves.  For example, write
+@samp{Return the list (NAME TYPE RANGE) ...}@: instead of
+@samp{Return the list `(NAME TYPE RANGE)' ...}@: or
+@samp{Return the list \\='(NAME TYPE RANGE) ...}.
+
 @anchor{Docstring hyperlinks}
 @item
 @cindex curly quotes
