@@ -6687,7 +6687,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	     considered to be part of the visible height of the line.
 	  */
 	  h += extra_line_spacing;
-	  while (-it.current_y > h)
+	  while (-it.current_y > h && it.what != IT_EOB)
 	    move_it_by_lines (&it, 1);
 
 	  charpos = IT_CHARPOS (it);
