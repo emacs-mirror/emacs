@@ -564,6 +564,7 @@ Representations}.
 @code{string-equal-ignore-case} compares strings ignoring case
 differences, like @code{char-equal} when @code{case-fold-search} is
 @code{t}.
+@end defun
 
 @cindex locale-dependent string equivalence
 @defun string-collate-equalp string1 string2 &optional locale ignore-case
