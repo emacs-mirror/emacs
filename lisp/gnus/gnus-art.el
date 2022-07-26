@@ -1987,8 +1987,8 @@ always hide."
 		  (gnus-article-hide-header "cc"))))
 	     ((eq elem 'followup-to)
 	      (when (string-equal-ignore-case
-		     (message-fetch-field "followup-to")
-		     (message-fetch-field "newsgroups"))
+		     (or (message-fetch-field "followup-to") "")
+		     (or (message-fetch-field "newsgroups") ""))
 		(gnus-article-hide-header "followup-to")))
 	     ((eq elem 'reply-to)
 	      (if (gnus-group-find-parameter
