@@ -196,7 +196,8 @@ language-server/bin/php-language-server.php"))
                                 (dockerfile-mode . ("docker-langserver" "--stdio"))
                                 (clojure-mode . ("clojure-lsp"))
                                 (csharp-mode . ("omnisharp" "-lsp"))
-                                (purescript-mode . ("purescript-language-server" "--stdio")))
+                                (purescript-mode . ("purescript-language-server" "--stdio"))
+                                (perl-mode . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific
