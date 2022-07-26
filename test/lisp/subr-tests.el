@@ -1026,7 +1026,16 @@ final or penultimate step during initialization."))
 
 (ert-deftest test-readablep ()
   (should (readablep "foo"))
-  (should-not (readablep (list (make-marker)))))
+  (should-not (readablep (list (make-marker))))
+  (should-not (readablep (make-marker))))
+
+(ert-deftest test-print-unreadable-function ()
+  :expected-result :failed
+  ;; Check that problem with unwinding properly is fixed (bug#56773).
+  (with-temp-buffer
+    (let ((buf (current-buffer)))
+      (readablep (make-marker))
+      (should (eq buf (current-buffer))))))
 
 (ert-deftest test-string-lines ()
   (should (equal (string-lines "") '("")))
