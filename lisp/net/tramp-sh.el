@@ -620,21 +620,6 @@ on the remote file system.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
-(defconst tramp-readlink-file-truename
-  (format
-   (concat
-    "(echo -n %s &&"
-    " %%r --no-newline --canonicalize-missing \"$1\" &&"
-    " echo %s) |"
-    " sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'")
-   tramp-stat-marker
-   tramp-stat-marker
-   tramp-stat-quoted-marker)
-  "Shell function to produce output suitable for use with `file-truename'
-on the remote file system.
-Format specifiers are replaced by `tramp-expand-script', percent
-characters need to be doubled.")
-
 (defconst tramp-perl-file-name-all-completions
   "%p -e '
 opendir(d, $ARGV[0]) || die(\"$ARGV[0]: $!\\nfail\\n\");
@@ -1193,14 +1178,15 @@ component is used as the target of the symlink."
 	 (tramp-message v 4 "Finding true name for `%s'" filename)
 	 (let ((result
 		(cond
-		 ;; Use GNU readlink --canonicalize-missing where
-		 ;; available.
+		 ;; Use GNU readlink --canonicalize-missing where available.
 		 ((tramp-get-remote-readlink v)
-		  (tramp-maybe-send-script
-		   v tramp-readlink-file-truename "tramp_readlink_file_truename")
-		  (tramp-send-command-and-read
-		   v (format "tramp_readlink_file_truename %s"
-			     (tramp-shell-quote-argument localname))))
+		  (tramp-send-command-and-check
+		   v (format "%s --canonicalize-missing %s"
+			     (tramp-get-remote-readlink v)
+			     (tramp-shell-quote-argument localname)))
+		  (with-current-buffer (tramp-get-connection-buffer v)
+		    (goto-char (point-min))
+		    (buffer-substring (point-min) (point-at-eol))))
 
 		 ;; Use Perl implementation.
 		 ((and (tramp-get-remote-perl v)
