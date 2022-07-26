@@ -2229,9 +2229,20 @@ See `extended-command-versions'."
   "Alist of prompts and what the extended command predicate should be.
 This is used by the \\<minibuffer-local-must-match-map>\\[execute-extended-command-cycle] command when reading an extended command.")
 
+(defvar-keymap read-extended-command-mode-map
+  :doc "Local keymap added to the current map when reading an extended command."
+  "M-X" #'execute-extended-command-cycle)
+
+(define-minor-mode read-extended-command-mode
+  "Minor mode when doing completion in `read-extended-command'.")
+
 (defun read-extended-command (&optional prompt)
   "Read command name to invoke in `execute-extended-command'.
-This function uses the `read-extended-command-predicate' user option."
+This function uses the `read-extended-command-predicate' user
+option.
+
+When reading the command name, the `read-extended-command-mode'
+minor mode is activated."
   (let ((default-predicate read-extended-command-predicate)
         (read-extended-command-predicate read-extended-command-predicate)
         already-typed ret)
@@ -2270,6 +2281,8 @@ This function uses the `read-extended-command-predicate' user option."
                       (setq execute-extended-command--last-typed
                             (minibuffer-contents)))
                     nil 'local)
+          ;; This is so that we define the `M-X' toggling command.
+          (read-extended-command-mode)
           (setq-local minibuffer-default-add-function
 	              (lambda ()
 	                ;; Get a command name at point in the original buffer
