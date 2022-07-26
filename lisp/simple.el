@@ -2234,15 +2234,15 @@ This is used by the \\<minibuffer-local-must-match-map>\\[execute-extended-comma
   "M-X" #'execute-extended-command-cycle)
 
 (define-minor-mode read-extended-command-mode
-  "Minor mode when doing completion in `read-extended-command'.")
+  "Minor mode used for completion in `read-extended-command'.")
 
 (defun read-extended-command (&optional prompt)
-  "Read command name to invoke in `execute-extended-command'.
-This function uses the `read-extended-command-predicate' user
-option.
+  "Read command name to invoke via `execute-extended-command'.
+Use `read-extended-command-predicate' to determine which commands
+to include among completion candidates.
 
-When reading the command name, the `read-extended-command-mode'
-minor mode is activated."
+This function activates the `read-extended-command-mode' minor
+mode when reading the command name."
   (let ((default-predicate read-extended-command-predicate)
         (read-extended-command-predicate read-extended-command-predicate)
         already-typed ret)
