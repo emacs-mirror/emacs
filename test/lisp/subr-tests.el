@@ -368,6 +368,13 @@
              2)))
 
 (ert-deftest string-comparison-test ()
+  (should (string-equal-ignore-case "abc" "abc"))
+  (should (string-equal-ignore-case "abc" "ABC"))
+  (should (string-equal-ignore-case "abc" "abC"))
+  (should-not (string-equal-ignore-case "abc" "abCD"))
+  (should (string-equal-ignore-case "S" "s"))
+  ;; not yet: (should (string-equal-ignore-case "SS" "ß"))
+
   (should (string-lessp "abc" "acb"))
   (should (string-lessp "aBc" "abc"))
   (should (string-lessp "abc" "abcd"))

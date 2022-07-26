@@ -934,6 +934,14 @@ Implements `define-error' for older emacsen."
     (put name 'error-conditions
          (copy-sequence (cons name (get 'error 'error-conditions))))))
 
+(unless (fboundp 'string-equal-ignore-case)
+  ;; From Emacs subr.el.
+  (defun string-equal-ignore-case (string1 string2)
+    "Like `string-equal', but case-insensitive.
+Upper-case and lower-case letters are treated as equal.
+Unibyte strings are converted to multibyte for comparison."
+    (eq t (compare-strings string1 0 nil string2 0 nil t))))
+
 (unless (fboundp 'string-suffix-p)
   ;; From Emacs subr.el.
   (defun string-suffix-p (suffix string  &optional ignore-case)
@@ -1125,10 +1133,8 @@ ELEMENT is the element at point."
 	  (and log
 	       (let ((drawer (org-element-lineage element '(drawer))))
 		 (and drawer
-		      (eq (compare-strings
-			   log nil nil
-			   (org-element-property :drawer-name drawer) nil nil t)
-			  t)))))
+		      (string-equal-ignore-case
+		       log (org-element-property :drawer-name drawer))))))
 	nil)
        (t
 	(cl-case (org-element-type element)

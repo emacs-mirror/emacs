@@ -128,11 +128,8 @@ See the documentation for `list-load-path-shadows' for further information."
 
             (if (setq orig-dir
                       (assoc file files
-                             (when dir-case-insensitive
-                               (lambda (f1 f2)
-                                 (eq (compare-strings f1 nil nil
-                                                      f2 nil nil t)
-                                     t)))))
+                             (and dir-case-insensitive
+                                  #'string-equal-ignore-case)))
 		;; This file was seen before, we have a shadowing.
 		;; Report it unless the files are identical.
                 (let ((base1 (concat (cdr orig-dir) "/" (car orig-dir)))

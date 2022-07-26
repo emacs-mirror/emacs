@@ -634,9 +634,6 @@ for use at QPOS."
       (let ((qstr (funcall qfun completion)))
 	(cons qstr (length qstr))))))
 
-(defun completion--string-equal-p (s1 s2)
-  (eq t (compare-strings s1 nil nil s2 nil nil 'ignore-case)))
-
 (defun completion--twq-all (string ustring completions boundary
                                    _unquote requote)
   (when completions
@@ -650,7 +647,7 @@ for use at QPOS."
          (qfullprefix (substring string 0 qfullpos))
 	 ;; FIXME: This assertion can be wrong, e.g. in Cygwin, where
 	 ;; (unquote "c:\bin") => "/usr/bin" but (unquote "c:\") => "/".
-         ;;(cl-assert (completion--string-equal-p
+         ;;(cl-assert (string-equal-ignore-case
          ;;            (funcall unquote qfullprefix)
          ;;            (concat (substring ustring 0 boundary) prefix))
          ;;           t))
@@ -688,7 +685,7 @@ for use at QPOS."
                            (let* ((rest (substring completion
                                                    0 (length prefix)))
                                   (qrest (funcall qfun rest)))
-                             (if (completion--string-equal-p qprefix qrest)
+                             (if (string-equal-ignore-case qprefix qrest)
                                  (propertize qrest 'face
                                              'completions-common-part)
                                qprefix))))
@@ -696,7 +693,7 @@ for use at QPOS."
 		   ;; FIXME: Similarly here, Cygwin's mapping trips this
 		   ;; assertion.
                    ;;(cl-assert
-                   ;; (completion--string-equal-p
+                   ;; (string-equal-ignore-case
 		   ;;  (funcall unquote
 		   ;;           (concat (substring string 0 qboundary)
 		   ;;                   qcompletion))
@@ -1309,10 +1306,8 @@ when the buffer's text is already an exact match."
       ;; for appearance, the string is rewritten if the case changes.
       (let* ((comp-pos (cdr comp))
              (completion (car comp))
-             (completed (not (eq t (compare-strings completion nil nil
-                                                    string nil nil t))))
-             (unchanged (eq t (compare-strings completion nil nil
-                                               string nil nil nil))))
+             (completed (not (string-equal-ignore-case completion string)))
+             (unchanged (string-equal completion string)))
         (if unchanged
 	    (goto-char end)
           ;; Insert in minibuffer the chars we got.

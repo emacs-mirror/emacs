@@ -1011,20 +1011,14 @@ Output must be in semanticdb Find result format."
 			   (oref obj last-prefix)))
 	 (completionlist
 	  (cond ((or same-prefix-p
-		     (and last-prefix (eq (compare-strings
-					   last-prefix 0 nil
-					   prefix 0 (length last-prefix))
-					  t)))
+		     (and last-prefix (string-prefix-p last-prefix prefix t)))
 		 ;; We have the same prefix, or last-prefix is a
 		 ;; substring of the of new prefix, in which case we are
 		 ;; refining our symbol so just re-use cache.
 		 (oref obj last-all-completions))
 		((and last-prefix
 		      (> (length prefix) 1)
-		      (eq (compare-strings
-			   prefix 0 nil
-			   last-prefix 0 (length prefix))
-			  t))
+		      (string-prefix-p prefix last-prefix t))
 		   ;; The new prefix is a substring of the old
 		   ;; prefix, and it's longer than one character.
 		   ;; Perform a full search to pull in additional

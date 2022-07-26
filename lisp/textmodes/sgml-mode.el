@@ -1536,8 +1536,7 @@ not the case, the first tag returned is the one inside which we are."
 	    ;; [ Well, actually it depends, but we don't have the info about
 	    ;; when it doesn't and when it does.   --Stef ]
 	    (setq ignore nil)))
-	 ((eq t (compare-strings (sgml-tag-name tag-info) nil nil
-				 (car stack) nil nil t))
+	 ((string-equal-ignore-case (sgml-tag-name tag-info) (car stack))
 	  (setq stack (cdr stack)))
 	 (t
 	  ;; The open and close tags don't match.
@@ -1549,9 +1548,8 @@ not the case, the first tag returned is the one inside which we are."
 		  ;; but it's a bad assumption when tags *are* closed but
 		  ;; not properly nested.
 		  (while (and (cdr tmp)
-			      (not (eq t (compare-strings
-					  (sgml-tag-name tag-info) nil nil
-					  (cadr tmp) nil nil t))))
+			      (not (string-equal-ignore-case
+				    (sgml-tag-name tag-info) (cadr tmp))))
 		    (setq tmp (cdr tmp)))
 		  (if (cdr tmp) (setcdr tmp (cddr tmp)))))
 	    (message "Unmatched tags <%s> and </%s>"
@@ -1701,9 +1699,8 @@ LCON is the lexical context, if any."
 	    (there (point)))
        ;; Ignore previous unclosed start-tag in context.
        (while (and context unclosed
-		   (eq t (compare-strings
-			  (sgml-tag-name (car context)) nil nil
-			  unclosed nil nil t)))
+		   (string-equal-ignore-case
+		    (sgml-tag-name (car context)) unclosed))
 	 (setq context (cdr context)))
        ;; Indent to reflect nesting.
        (cond

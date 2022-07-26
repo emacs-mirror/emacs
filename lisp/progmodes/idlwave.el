@@ -7528,7 +7528,7 @@ associated TAG, if any."
        (setq cl (pop sclasses))
        (let ((tags (idlwave-class-tags cl)))
 	 (while tags
-	   (if (eq t (compare-strings tag 0 nil (car tags) 0 nil t))
+	   (if (string-equal-ignore-case tag (car tags))
 	     (throw 'exit cl))
 	   (setq tags (cdr tags))))))))
 

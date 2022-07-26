@@ -1241,8 +1241,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
 (defun Man-softhyphen-to-minus ()
   ;; \255 is SOFT HYPHEN in Latin-N.  Versions of Debian man, at
   ;; least, emit it even when not in a Latin-N locale.
-  (unless (eq t (compare-strings "latin-" 0 nil
-				 current-language-environment 0 6 t))
+  (unless (string-prefix-p "latin-" current-language-environment t)
     (goto-char (point-min))
     (while (search-forward "­" nil t) (replace-match "-"))))
 

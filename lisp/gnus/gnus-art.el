@@ -1939,8 +1939,8 @@ always hide."
 		 'boring-headers)))
 	     ;; Hide boring Newsgroups header.
 	     ((eq elem 'newsgroups)
-	      (when (gnus-string-equal
-		     (gnus-fetch-field "newsgroups")
+	      (when (string-equal-ignore-case
+		     (or (gnus-fetch-field "newsgroups") "")
 		     (gnus-group-real-name
 		      (if (boundp 'gnus-newsgroup-name)
 			  gnus-newsgroup-name
@@ -1954,7 +1954,7 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and to to-address
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in To
 			      (nth 1 (mail-extract-address-components to))
 			      to-address)))
@@ -1967,7 +1967,7 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and to to-list
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in To
 			      (nth 1 (mail-extract-address-components to))
 			      to-list)))
@@ -1980,13 +1980,13 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and cc to-list
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in Cc
 			      (nth 1 (mail-extract-address-components cc))
 			      to-list)))
 		  (gnus-article-hide-header "cc"))))
 	     ((eq elem 'followup-to)
-	      (when (gnus-string-equal
+	      (when (string-equal-ignore-case
 		     (message-fetch-field "followup-to")
 		     (message-fetch-field "newsgroups"))
 		(gnus-article-hide-header "followup-to")))

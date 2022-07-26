@@ -560,6 +560,11 @@ Representations}.
 @code{string-equal} is another name for @code{string=}.
 @end defun
 
+@defun string-equal-ignore-case string1 string2
+@code{string-equal-ignore-case} compares strings ignoring case
+differences, like @code{char-equal} when @code{case-fold-search} is
+@code{t}.
+
 @cindex locale-dependent string equivalence
 @defun string-collate-equalp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} and @var{string2} are

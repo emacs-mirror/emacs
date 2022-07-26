@@ -243,6 +243,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   "Predicates for Strings"
   (string-equal
    :eval (string-equal "foo" "foo"))
+  (string-equal-ignore-case
+   :eval (string-equal-ignore-case "foo" "FOO"))
   (eq
    :eval (eq "foo" "foo"))
   (eql

@@ -2502,6 +2502,9 @@ abbrevs.  This has been generalized via the
 'save-some-buffers-functions' variable, and packages can now register
 things to be saved.
 
+** New function 'string-equal-ignore-case'.
+This compares strings ignoring case differences.
+
 ** Themes
 
 ---

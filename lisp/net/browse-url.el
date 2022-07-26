@@ -981,8 +981,7 @@ The optional NEW-WINDOW argument is not used."
                             ;; quotes in the MAILTO URLs, so we prefer
                             ;; to leave the URL with its embedded %nn
                             ;; encoding intact.
-                            (if (eq t (compare-strings url nil 7
-                                                       "file://" nil nil))
+                            (if (string-prefix-p "file://" url)
                                 (url-unhex-string url)
                               url)))))
 

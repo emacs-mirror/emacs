@@ -1451,7 +1451,7 @@ See Info node `(elisp) Integer Basics'."
 	 radians-to-degrees rassq rassoc read-from-string regexp-opt
          regexp-quote region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp
-         string> string-greaterp string-empty-p
+         string> string-greaterp string-empty-p string-equal-ignore-case
          string-prefix-p string-suffix-p string-blank-p
          string-search string-to-char
 	 string-to-number string-to-syntax substring
