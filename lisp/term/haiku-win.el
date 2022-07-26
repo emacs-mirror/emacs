@@ -489,19 +489,56 @@ Return the number of clicks that were made in quick succession."
 
 (defvar haiku-drag-wheel-function)
 
-(defun haiku-handle-drag-wheel (frame x y horizontal up)
+(defun haiku-dnd-modifier-mask (mods)
+  "Return the internal modifier mask for the Emacs modifier state MODS.
+MODS is a single symbol, or a list of symbols such as `shift' or
+`control'."
+  (let ((mask 0))
+    (unless (consp mods)
+      (setq mods (list mods)))
+    (dolist (modifier mods)
+      (cond ((eq modifier 'shift)
+             (setq mask (logior mask ?\S-\0)))
+            ((eq modifier 'control)
+             (setq mask (logior mask ?\C-\0)))
+            ((eq modifier 'meta)
+             (setq mask (logior mask ?\M-\0)))
+            ((eq modifier 'hyper)
+             (setq mask (logior mask ?\H-\0)))
+            ((eq modifier 'super)
+             (setq mask (logior mask ?\s-\0)))
+            ((eq modifier 'alt)
+             (setq mask (logior mask ?\A-\0)))))
+    mask))
+
+(defun haiku-dnd-wheel-modifier-type (flags)
+  "Return the modifier type of an internal modifier mask.
+FLAGS is the internal modifier mask of a turn of the mouse wheel."
+  (let ((modifiers (logior ?\M-\0 ?\C-\0 ?\S-\0
+			   ?\H-\0 ?\s-\0 ?\A-\0)))
+    (catch 'type
+      (dolist (modifier mouse-wheel-scroll-amount)
+        (when (and (consp modifier)
+                   (eq (haiku-dnd-modifier-mask (car modifier))
+                       (logand flags modifiers)))
+          (throw 'type (cdr modifier))))
+      nil)))
+
+(defun haiku-handle-drag-wheel (frame x y horizontal up modifiers)
   "Handle wheel movement during drag-and-drop.
 FRAME is the frame on top of which the wheel moved.
 X and Y are the frame-relative coordinates of the wheel movement.
 HORIZONTAL is whether or not the wheel movement was horizontal.
-UP is whether or not the wheel moved up (or left)."
+UP is whether or not the wheel moved up (or left).
+MODIFIERS is the internal modifier mask of the wheel movement."
   (when (not (equal haiku-last-wheel-direction
                     (cons horizontal up)))
     (setq haiku-last-wheel-direction
           (cons horizontal up))
     (when (consp haiku-dnd-wheel-count)
       (setcar haiku-dnd-wheel-count 0)))
-  (let ((function (cond
+  (let ((type (haiku-dnd-wheel-modifier-type modifiers))
+        (function (cond
                    ((and (not horizontal) (not up))
                     mwheel-scroll-up-function)
                    ((not horizontal)
@@ -512,14 +549,27 @@ UP is whether or not the wheel moved up (or left)."
                    (t (if mouse-wheel-flip-direction
                           mwheel-scroll-left-function
                         mwheel-scroll-right-function))))
-        (timestamp (time-convert nil 1000)))
+        (timestamp (time-convert nil 1000))
+        (amt 1))
+    (cond ((and (eq type 'hscroll)
+                (not horizontal))
+           (setq function (if (not up)
+                              mwheel-scroll-left-function
+                            mwheel-scroll-right-function)))
+          ((and (eq type 'global-text-scale))
+           (setq function 'global-text-scale-adjust
+                 amt (if up 1 -1)))
+          ((and (eq type 'text-scale))
+           (setq function 'text-scale-adjust
+                 amt (if up 1 -1))))
     (when function
       (let ((posn (posn-at-x-y x y frame)))
         (when (windowp (posn-window posn))
           (with-selected-window (posn-window posn)
             (funcall function
-                     (or (and (not mouse-wheel-progressive-speed) 1)
-                         (haiku-note-wheel-click (car timestamp))))))))))
+                     (* amt
+                        (or (and (not mouse-wheel-progressive-speed) 1)
+                            (haiku-note-wheel-click (car timestamp)))))))))))
 
 (setq haiku-drag-wheel-function #'haiku-handle-drag-wheel)
 

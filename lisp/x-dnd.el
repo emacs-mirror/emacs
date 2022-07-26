@@ -708,7 +708,6 @@ MODS is a single symbol, or a list of symbols such as `shift' or
     (unless (consp mods)
       (setq mods (list mods)))
     (dolist (modifier mods)
-      ;; TODO: handle virtual modifiers such as Meta and Hyper.
       (cond ((eq modifier 'shift)
              (setq mask (logior mask 1))) ; ShiftMask
             ((eq modifier 'control)

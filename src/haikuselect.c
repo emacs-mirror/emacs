@@ -1062,8 +1062,9 @@ haiku_note_drag_wheel (struct input_event *ie)
   if (!NILP (Vhaiku_drag_wheel_function)
       && (haiku_dnd_allow_same_frame
 	  || XFRAME (ie->frame_or_window) != haiku_dnd_frame))
-    safe_call (6, Vhaiku_drag_wheel_function, ie->frame_or_window,
-	       ie->x, ie->y, horizontal ? Qt : Qnil, up ? Qt : Qnil);
+    safe_call (7, Vhaiku_drag_wheel_function, ie->frame_or_window,
+	       ie->x, ie->y, horizontal ? Qt : Qnil, up ? Qt : Qnil,
+	       make_int (ie->modifiers));
 
   redisplay_preserve_echo_area (35);
 }
@@ -1149,12 +1150,12 @@ These are only called if a connection to the Haiku display was opened.  */);
 
   DEFVAR_LISP ("haiku-drag-wheel-function", Vhaiku_drag_wheel_function,
     doc: /* Function called upon wheel movement while dragging a message.
-If non-nil, it is called with 5 arguments when the mouse wheel moves
+If non-nil, it is called with 6 arguments when the mouse wheel moves
 while a drag-and-drop operation is in progress: the frame where the
 mouse moved, the frame-relative X and Y positions where the mouse
-moved, whether or not the wheel movement was horizontal, and whether
-or not the wheel moved up (or left, if the movement was
-horizontal).  */);
+moved, whether or not the wheel movement was horizontal, whether or
+not the wheel moved up (or left, if the movement was horizontal), and
+keyboard modifiers currently held down.  */);
   Vhaiku_drag_wheel_function = Qnil;
 
   DEFSYM (QSECONDARY, "SECONDARY");
