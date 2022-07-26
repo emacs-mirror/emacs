@@ -1073,6 +1073,16 @@ ARG is passed to the first function."
 	s)
     (error string)))
 
+;; This might use `compare-strings' to reduce consing in the
+;; case-insensitive case, but it has to cope with null args.
+;; (`string-equal' uses symbol print names.)
+(defun gnus-string-equal (x y)
+  "Like `string-equal', except it compares case-insensitively."
+  (declare (obsolete string-equal-ignore-case "29.1"))
+  (and (= (length x) (length y))
+       (or (string-equal x y)
+	   (string-equal (downcase x) (downcase y)))))
+
 (defcustom gnus-use-byte-compile t
   "If non-nil, byte-compile crucial run-time code."
   :type 'boolean

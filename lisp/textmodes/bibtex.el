@@ -2213,6 +2213,11 @@ Point must be at beginning of preamble.  Do not move point."
 
 ;; Helper Functions
 
+(defsubst bibtex-string= (str1 str2)
+  "Return t if STR1 and STR2 are equal, ignoring case."
+  (declare (obsolete string-equal-ignore-case "29.1"))
+  (eq t (compare-strings str1 0 nil str2 0 nil t)))
+
 (defun bibtex-delete-whitespace ()
   "Delete all whitespace starting at point."
   (if (looking-at "[ \t\n]+")
