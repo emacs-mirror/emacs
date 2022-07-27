@@ -1037,7 +1037,6 @@ final or penultimate step during initialization."))
   (should-not (readablep (make-marker))))
 
 (ert-deftest test-print-unreadable-function ()
-  :expected-result :failed
   ;; Check that problem with unwinding properly is fixed (bug#56773).
   (with-temp-buffer
     (let ((buf (current-buffer)))
