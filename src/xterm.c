@@ -21826,7 +21826,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (xi_find_touch_point (device, xev->detail))
 		emacs_abort ();
 
-	      f = x_any_window_to_frame (dpyinfo, xev->event);
+	      f = x_window_to_frame (dpyinfo, xev->event);
 
 #ifdef HAVE_GTK3
 	      menu_bar_p = (f && FRAME_X_OUTPUT (f)->menubar_widget
@@ -21924,7 +21924,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      touchpoint->x = xev->event_x;
 	      touchpoint->y = xev->event_y;
 
-	      f = x_any_window_to_frame (dpyinfo, xev->event);
+	      f = x_window_to_frame (dpyinfo, xev->event);
 
 	      if (f && device->direct_p)
 		{
@@ -21967,7 +21967,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (unlinked_p)
 		{
-		  f = x_any_window_to_frame (dpyinfo, xev->event);
+		  f = x_window_to_frame (dpyinfo, xev->event);
 
 		  if (f && device->direct_p)
 		    {
