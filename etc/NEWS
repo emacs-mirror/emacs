@@ -2418,7 +2418,7 @@ but switching to `ash` is generally much preferable.
 'vc-arch-command'.
 
 +++
-** New generic function 'function-doumentation'.
+** New generic function 'function-documentation'.
 Can dynamically generate a raw docstring depending on the type of
 a function.
 Used mainly for docstrings of OClosures.
