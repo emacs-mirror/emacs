@@ -403,7 +403,7 @@ commands reverses the effect of this variable."
 Any substring of a filename matching one of the REGEXPs is replaced by
 the corresponding STRING using `replace-match', not treating STRING
 literally.  All pairs are applied in the order given.  The default
-value converts ange-ftp/EFS-style file names into ftp URLs and prepends
+value converts ange-ftp-style file names into ftp URLs and prepends
 `file:' to any file name beginning with `/'.
 
 For example, adding to the default a specific translation of an ange-ftp

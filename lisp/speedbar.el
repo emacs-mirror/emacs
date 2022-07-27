@@ -2789,15 +2789,7 @@ to add more types of version control systems."
 	     (not (or (and (featurep 'ange-ftp)
 			   (string-match
 			    (car (symbol-value 'ange-ftp-name-format))
-			    (expand-file-name default-directory)))
-		      ;; efs support: Bob Weiner
-		      (and (featurep 'efs)
-			   (string-match
-			    (let ((reg (symbol-value 'efs-directory-regexp)))
-			      (if (stringp reg)
-				  reg
-				(car reg)))
-			    (expand-file-name default-directory))))))
+                            (expand-file-name default-directory))))))
 	(setq speedbar-vc-to-do-point 0))
     (if (numberp speedbar-vc-to-do-point)
 	(progn

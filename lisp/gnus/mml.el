@@ -980,13 +980,10 @@ type detected."
 	  (symbol-name type) value))))))
 
 (defvar ange-ftp-name-format)
-(defvar efs-path-regexp)
 
 (defun mml-parse-file-name (path)
-  (if (if (boundp 'efs-path-regexp)
-	  (string-match efs-path-regexp path)
-	(if (boundp 'ange-ftp-name-format)
-	    (string-match (car ange-ftp-name-format) path)))
+  (if (and (boundp 'ange-ftp-name-format)
+           (string-match (car ange-ftp-name-format) path))
       (list (match-string 1 path) (match-string 2 path)
 	    (substring path (1+ (match-end 2))))
     path))
