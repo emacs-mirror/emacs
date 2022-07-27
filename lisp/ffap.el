@@ -640,18 +640,6 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
 
 
 ;;; File Name Handling:
-;;
-;; The upcoming ffap-alist actions need various utilities to prepare
-;; and search directories.  Too many features here.
-
-;; (defun ffap-last (l) (while (cdr l) (setq l (cdr l))) l)
-;; (defun ffap-splice (func inlist)
-;;  "Equivalent to (apply 'nconc (mapcar FUNC INLIST)), but less consing."
-;;  (let* ((head (cons 17 nil)) (last head))
-;;    (while inlist
-;;      (setcdr last (funcall func (car inlist)))
-;;      (setq last (ffap-last last) inlist (cdr inlist)))
-;;    (cdr head)))
 
 (defun ffap-list-env (env &optional empty)
   "Return a list of strings parsed from environment variable ENV.
