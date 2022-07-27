@@ -56,7 +56,6 @@
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'subr-x))
 (require 'easy-mmode)
-(require 'whitespace)
 
 (autoload 'vc-find-revision "vc")
 (autoload 'vc-find-revision-no-save "vc")
@@ -149,7 +148,8 @@ and hunk-based syntax highlighting otherwise as a fallback."
                  (const :tag "Allow hunk-based fallback" hunk-also)))
 
 (defcustom diff-whitespace-style '(face trailing)
-  "Specify `whitespace-style' variable for the current Diff mode buffer."
+  "Specify `whitespace-style' variable for `diff-mode' buffers."
+  :require 'whitespace
   :type (get 'whitespace-style 'custom-type)
   :version "29.1")
 
@@ -1489,6 +1489,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 (or (assq 'diff-mode-read-only minor-mode-map-alist)
     (nconc minor-mode-map-alist
            (list (cons 'diff-mode-read-only diff-mode-shared-map))))
+
+(defvar whitespace-style)
+(defvar whitespace-trailing-regexp)
 
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"

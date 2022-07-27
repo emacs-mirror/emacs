@@ -1206,7 +1206,9 @@ contents.
 
 ---
 *** New user option 'diff-whitespace-style'.
-This option determines buffer-local 'whitespace-style' value.
+Sets the value of the buffer-local variable 'whitespace-style' in
+'diff-mode' buffers.  By default, this variable is '(face trailing)',
+which preserves behavior from previous Emacs versions.
 
 
 ** Ispell
