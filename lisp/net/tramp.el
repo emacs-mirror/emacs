@@ -4865,11 +4865,13 @@ support symbolic links."
 	 (error-file
 	  (and error-buffer
 	       (with-parsed-tramp-file-name default-directory nil
-		 (tramp-test-message "Holla1")
+                 (when (getenv "EMACS_EMBA_CI")
+		   (tramp-test-message "Holla1"))
 		 (prog1
 		     (tramp-make-tramp-file-name
 		      v (tramp-make-tramp-temp-file v))
-		 (tramp-test-message "Holla2")))))
+                   (when (getenv "EMACS_EMBA_CI")
+		     (tramp-test-message "Holla2"))))))
 	 (bname (buffer-name output-buffer))
 	 (p (get-buffer-process output-buffer))
 	 (dir default-directory)
@@ -4940,33 +4942,39 @@ support symbolic links."
 	      ;; Run the process.
 	      (setq p (start-file-process-shell-command
 		       (buffer-name output-buffer) buffer command))
-	    ;; Insert error messages if they were separated.
-	    (when error-file
-	      (tramp-test-message "Holla3")
-	      (with-current-buffer error-buffer
-		(insert-file-contents-literally error-file))
-	      (tramp-test-message "Holla4"))
-	    (if (process-live-p p)
-		;; Display output.
-		(with-current-buffer output-buffer
-		  (setq mode-line-process '(":%s"))
-		  (unless (eq major-mode 'shell-mode)
-		    (shell-mode))
-		  (set-process-filter p #'comint-output-filter)
-		  (set-process-sentinel p #'shell-command-sentinel)
-		  (when error-file
-		    (add-function
-		     :after (process-sentinel p)
-		     (lambda (_proc _string)
-		       (with-current-buffer error-buffer
-			 (insert-file-contents-literally
-			  error-file nil nil nil 'replace))
-		       (delete-file error-file))))
-		  (display-buffer output-buffer '(nil (allow-no-window . t))))
+	    (when (process-live-p p)
+	      ;; Display output.
+	      (with-current-buffer output-buffer
+		(setq mode-line-process '(":%s"))
+		(unless (eq major-mode 'shell-mode)
+		  (shell-mode))
+		(set-process-filter p #'comint-output-filter)
+		(set-process-sentinel p #'shell-command-sentinel)
+		(when error-file
+		  (add-function
+		   :after (process-sentinel p)
+		   (lambda (_proc _string)
+                     (when (getenv "EMACS_EMBA_CI")
+	               (tramp-test-message "Holla3 %s" error-file))
+		     (with-current-buffer error-buffer
+		       (insert-file-contents-literally
+			error-file nil nil nil 'replace))
+                     (when (getenv "EMACS_EMBA_CI")
+	               (tramp-test-message "Holla4 %s" error-file))
+		     (delete-file error-file))))
+		(display-buffer output-buffer '(nil (allow-no-window . t))))
 
-	      (when error-file
-		(delete-file error-file)))))
+	      ;; Insert error messages if they were separated.
+	      (when (and error-file (not (process-live-p p)))
+                (when (getenv "EMACS_EMBA_CI")
+	          (tramp-test-message "Holla5 %s" error-file))
+	        (with-current-buffer error-buffer
+		  (insert-file-contents-literally error-file))
+                (when (getenv "EMACS_EMBA_CI")
+	          (tramp-test-message "Holla6 %s" error-file))
+	        (delete-file error-file)))))
 
+      ;; Synchronous case.
       (prog1
 	  ;; Run the process.
 	  (process-file-shell-command command nil buffer)
