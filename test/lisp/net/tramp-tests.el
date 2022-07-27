@@ -5349,7 +5349,7 @@ INPUT, if non-nil, is a string sent to the process."
 
 (ert-deftest tramp-test32-shell-command ()
   "Check `shell-command'."
-  :tags (unless (getenv "EMACS_EMBA_CI") '(:expensive-test))
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
@@ -5357,7 +5357,6 @@ INPUT, if non-nil, is a string sent to the process."
   (when (tramp--test-adb-p)
     (skip-unless (tramp--test-emacs27-p)))
 
-  (tramp--test-instrument-test-case (if (getenv "EMACS_EMBA_CI") 10 0)
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((tmp-name (tramp--test-make-temp-name nil quoted))
 	  (default-directory ert-remote-temporary-file-directory)
@@ -5400,21 +5399,13 @@ INPUT, if non-nil, is a string sent to the process."
 	  (let ((stderr (generate-new-buffer "*stderr*")))
 	    (unwind-protect
 		(with-temp-buffer
-                  (when (getenv "EMACS_EMBA_CI")
-                    (tramp--test-message "Hallo1"))
 		  (funcall
 		   this-shell-command
 		   "echo foo >&2; echo bar" (current-buffer) stderr)
-                  (when (getenv "EMACS_EMBA_CI")
-                    (tramp--test-message "Hallo2"))
 		  (should (string-equal "bar\n" (buffer-string)))
-                  (when (getenv "EMACS_EMBA_CI")
-                    (tramp--test-message "Hallo3"))
 		  ;; Check stderr.
 		  (should
-		   (string-equal "foo\n" (tramp-get-buffer-string stderr)))
-                  (when (getenv "EMACS_EMBA_CI")
-                    (tramp--test-message "Hallo4")))
+		   (string-equal "foo\n" (tramp-get-buffer-string stderr))))
 
 	      ;; Cleanup.
 	      (ignore-errors (kill-buffer stderr))))))
@@ -5454,7 +5445,7 @@ INPUT, if non-nil, is a string sent to the process."
 		   (read (tramp--test-shell-command-to-string-asynchronously
 			  "tput cols")))))
       (when (natnump cols)
-	(should (= cols async-shell-command-width)))))))
+	(should (= cols async-shell-command-width))))))
 
 (tramp--test-deftest-direct-async-process tramp-test32-shell-command 'unstable)
 

@@ -4865,13 +4865,8 @@ support symbolic links."
 	 (error-file
 	  (and error-buffer
 	       (with-parsed-tramp-file-name default-directory nil
-                 (when (getenv "EMACS_EMBA_CI")
-		   (tramp-test-message "Holla1"))
-		 (prog1
-		     (tramp-make-tramp-file-name
-		      v (tramp-make-tramp-temp-file v))
-                   (when (getenv "EMACS_EMBA_CI")
-		     (tramp-test-message "Holla2"))))))
+		 (tramp-make-tramp-file-name
+		  v (tramp-make-tramp-temp-file v)))))
 	 (bname (buffer-name output-buffer))
 	 (p (get-buffer-process output-buffer))
 	 (dir default-directory)
@@ -4954,25 +4949,17 @@ support symbolic links."
 		  (add-function
 		   :after (process-sentinel p)
 		   (lambda (_proc _string)
-                     (when (getenv "EMACS_EMBA_CI")
-	               (tramp-test-message "Holla3 %s" error-file))
 		     (with-current-buffer error-buffer
 		       (insert-file-contents-literally
 			error-file nil nil nil 'replace))
-                     (when (getenv "EMACS_EMBA_CI")
-	               (tramp-test-message "Holla4 %s" error-file))
 		     (delete-file error-file))))
-		(display-buffer output-buffer '(nil (allow-no-window . t))))
+		(display-buffer output-buffer '(nil (allow-no-window . t)))))
 
-	      ;; Insert error messages if they were separated.
-	      (when (and error-file (not (process-live-p p)))
-                (when (getenv "EMACS_EMBA_CI")
-	          (tramp-test-message "Holla5 %s" error-file))
-	        (with-current-buffer error-buffer
-		  (insert-file-contents-literally error-file))
-                (when (getenv "EMACS_EMBA_CI")
-	          (tramp-test-message "Holla6 %s" error-file))
-	        (delete-file error-file)))))
+	    ;; Insert error messages if they were separated.
+	    (when (and error-file (not (process-live-p p)))
+	      (with-current-buffer error-buffer
+		(insert-file-contents-literally error-file))
+	      (delete-file error-file))))
 
       ;; Synchronous case.
       (prog1
