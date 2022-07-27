@@ -3108,14 +3108,9 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       ns_focus (f, &r, 1);
       break;
     case HOLLOW_BOX_CURSOR:
-      [ctx restoreGraphicsState];
-      ns_unfocus (f);
-      draw_phys_cursor_glyph (w, glyph_row, DRAW_NORMAL_TEXT);
-      ns_focus (f, &r, 1);
-      [FRAME_CURSOR_COLOR (f) set];
-
       /* This works like it does in PostScript, not X Windows.  */
       [NSBezierPath strokeRect: NSInsetRect (r, 0.5, 0.5)];
+      [ctx restoreGraphicsState];
       break;
     case HBAR_CURSOR:
       NSRectFill (r);
@@ -3998,42 +3993,104 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
 
 static void
-ns_dumpglyphs_stretch (struct glyph_string *s)
+ns_draw_stretch_glyph_string (struct glyph_string *s)
 {
-  NSRect glyphRect;
-  struct face *face = s->face;
-  NSColor *fgCol, *bgCol;
+  struct face *face;
 
-  if (!s->background_filled_p)
+  if (s->hl == DRAW_CURSOR
+      && !x_stretch_cursor_p)
     {
+      /* If `x-stretch-cursor' is nil, don't draw a block cursor as
+	 wide as the stretch glyph.  */
+      int width, background_width = s->background_width;
+      int x = s->x;
 
-      face = s->face;
-
-      bgCol = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
-      fgCol = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)];
-
-      if (s->hl == DRAW_CURSOR)
+      if (!s->row->reversed_p)
 	{
-	  fgCol = bgCol;
-	  bgCol = FRAME_CURSOR_COLOR (s->f);
+	  int left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	}
+      else
+	{
+	  /* In R2L rows, draw the cursor on the right edge of the
+	     stretch glyph.  */
+	  int right_x = window_box_right (s->w, TEXT_AREA);
+
+	  if (x + background_width > right_x)
+	    background_width -= x - right_x;
+	  x += background_width;
 	}
 
-      glyphRect = NSMakeRect (s->x, s->y, s->background_width, s->height);
+      width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
+      if (s->row->reversed_p)
+	x -= width;
 
-      [bgCol set];
+      if (s->hl == DRAW_CURSOR)
+	[FRAME_CURSOR_COLOR (s->f) set];
+      else
+	[[NSColor colorWithUnsignedLong: s->face->foreground] set];
 
-      NSRectFill (glyphRect);
+      NSRectFill (NSMakeRect (x, s->y, width, s->height));
 
-      /* Draw overlining, etc. on the stretch glyph (or the part of
-         the stretch glyph after the cursor).  If the glyph has a box,
-         then decorations will be drawn after drawing the box in
-         ns_draw_glyph_string, in order to prevent them from being
-         overwritten by the box.  */
-      if (s->face->box == FACE_NO_BOX)
-	ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
-				 NSMinX (glyphRect));
+      /* Clear rest using the GC of the original non-cursor face.  */
+      if (width < background_width)
+	{
+	  int y = s->y;
+	  int w = background_width - width, h = s->height;
 
-      s->background_filled_p = 1;
+	  if (!s->row->reversed_p)
+	    x += width;
+	  else
+	    x = s->x;
+
+	  if (s->row->mouse_face_p
+	      && cursor_in_mouse_face_p (s->w))
+	    {
+	      face = FACE_FROM_ID_OR_NULL (s->f,
+					   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+
+	      if (!s->face)
+		face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+	      prepare_face_for_display (s->f, face);
+
+	      [[NSColor colorWithUnsignedLong: face->background] set];
+	    }
+	  else
+	    [[NSColor colorWithUnsignedLong: s->face->background] set];
+	  NSRectFill (NSMakeRect (x, y, w, h));
+	}
+    }
+  else if (!s->background_filled_p)
+    {
+      int background_width = s->background_width;
+      int x = s->x, text_left_x = window_box_left (s->w, TEXT_AREA);
+
+      /* Don't draw into left fringe or scrollbar area except for
+         header line and mode line.  */
+      if (s->area == TEXT_AREA
+	  && x < text_left_x && !s->row->mode_line_p)
+	{
+	  background_width -= text_left_x - x;
+	  x = text_left_x;
+	}
+
+      if (!s->row->stipple_p)
+	s->row->stipple_p = s->stippled_p;
+
+      if (background_width > 0)
+	{
+	  if (s->hl == DRAW_CURSOR)
+	    [FRAME_CURSOR_COLOR (s->f) set];
+	  else
+	    [[NSColor colorWithUnsignedLong: s->face->background] set];
+
+	  NSRectFill (NSMakeRect (x, s->y, background_width, s->height));
+	}
     }
 }
 
@@ -4255,13 +4312,9 @@ ns_draw_glyph_string (struct glyph_string *s)
 	    n = ns_get_glyph_string_clip_rect (s->next, r);
 	    ns_focus (s->f, r, n);
             if (next->first_glyph->type != STRETCH_GLYPH)
-              {
-                ns_maybe_dumpglyphs_background (s->next, 1);
-              }
-            else
-              {
-                ns_dumpglyphs_stretch (s->next);
-              }
+	      ns_maybe_dumpglyphs_background (s->next, 1);
+	    else
+	      ns_draw_stretch_glyph_string (s->next);
 	    ns_unfocus (s->f);
             next->num_clips = 0;
           }
@@ -4301,7 +4354,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       break;
 
     case STRETCH_GLYPH:
-      ns_dumpglyphs_stretch (s);
+      ns_draw_stretch_glyph_string (s);
       break;
 
     case CHAR_GLYPH:
