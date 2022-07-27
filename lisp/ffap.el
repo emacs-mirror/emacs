@@ -778,7 +778,6 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
     ("\\.\\(tex\\|sty\\|doc\\|cls\\)\\'" . ffap-tex)
     ("\\.bib\\'" . ffap-bib)		; search ffap-bib-path
     ("\\`\\." . ffap-home)		; .emacs, .bashrc, .profile
-    ("\\`~/" . ffap-lcd)		; |~/misc/ffap.el.Z|
     ;; This used to have a blank, but ffap-string-at-point doesn't
     ;; handle blanks.
     ;; https://lists.gnu.org/r/emacs-devel/2008-01/msg01058.html
@@ -1026,7 +1025,7 @@ out of NAME."
 
 ;; Maybe a "Lisp Code Directory" reference:
 (defun ffap-lcd (name)
-  ;; FIXME: Is this still in use?
+  (declare (obsolete nil "29.1"))
   (and
    (or
     ;; lisp-dir-apropos output buffer:
