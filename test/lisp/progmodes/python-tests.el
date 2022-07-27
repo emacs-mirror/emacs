@@ -1122,6 +1122,35 @@ if save:
    (python-indent-line t)
    (should (= (python-indent-calculate-indentation t) 8))))
 
+(ert-deftest python-indent-dedenters-comment-else ()
+  "Test de-indentation for the else keyword with comments before it."
+  (python-tests-with-temp-buffer
+   "
+if save:
+    try:
+        write_to_disk(data)
+    except IOError:
+        msg = 'Error saving to disk'
+        message(msg)
+        logger.exception(msg)
+    except Exception:
+        if hide_details:
+            logger.exception('Unhandled exception')
+        # comment
+            else
+    finally:
+        data.free()
+"
+   (python-tests-look-at "else\n")
+   (should (eq (car (python-indent-context)) :at-dedenter-block-start))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 4))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 0))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 8))))
+
 (ert-deftest python-indent-dedenters-3 ()
   "Test de-indentation for the except keyword."
   (python-tests-with-temp-buffer
