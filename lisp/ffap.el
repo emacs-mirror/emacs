@@ -505,6 +505,7 @@ Returned values:
 
 (defun ffap-file-suffix (file)
   "Return trailing `.foo' suffix of FILE, or nil if none."
+  (declare (obsolete file-name-extension "29.1"))
   (let ((pos (string-match "\\.[^./]*\\'" file)))
     (and pos (substring file pos nil))))
 
@@ -528,7 +529,7 @@ The optional NOMODIFY argument suppresses the extra search."
    ;; three reasons to suppress search:
    (nomodify nil)
    ((not (rassq 'jka-compr-handler file-name-handler-alist)) nil)
-   ((member (ffap-file-suffix file) ffap-compression-suffixes) nil)
+   ((member (file-name-extension file t) ffap-compression-suffixes) nil)
    (t					; ok, do the search
     (let ((list ffap-compression-suffixes) try ret)
       (while list
