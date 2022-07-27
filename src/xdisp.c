@@ -7087,11 +7087,10 @@ back_to_previous_line_start (struct it *it)
 /* Find in the current buffer the first display or overlay string
    between STARTPOS and ENDPOS that includes embedded newlines.
    Consider only overlays that apply to window W.
-   Value is non-zero if such a display/overlay strong is found found.  */
+   Value is non-zero if such a display/overlay string is found.  */
 static bool
 strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
 {
-  int n = 0;
   /* Process overlays before the overlay center.  */
   for (struct Lisp_Overlay *ov = current_buffer->overlays_before;
        ov; ov = ov->next)
@@ -7099,7 +7098,6 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
       Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
       eassert (OVERLAYP (overlay));
 
-      n++;
       /* Skip this overlay if it doesn't apply to our window.  */
       Lisp_Object window = Foverlay_get (overlay, Qwindow);
       if (WINDOWP (window) && XWINDOW (window) != w)
@@ -7137,7 +7135,6 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
     {
       Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
       eassert (OVERLAYP (overlay));
-      n++;
 
       /* Skip this overlay if it doesn't apply to our window.  */
       Lisp_Object window = Foverlay_get (overlay, Qwindow);
