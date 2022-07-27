@@ -5171,7 +5171,8 @@ likely an invalid python file."
                                  (while (and (< (point) cur-line)
                                              (setq no-back-indent
                                                    (or (> (current-indentation) indentation)
-                                                       (python-info-current-line-empty-p))))
+                                                       (python-info-current-line-empty-p)
+                                                       (python-info-current-line-comment-p))))
                                    (forward-line)))
                                no-back-indent)))
                   (setq collected-indentations
