@@ -17756,7 +17756,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  /* `xkey' will be modified, but it's not important to modify
 	     `event' itself.  */
 	  XKeyEvent xkey = event->xkey;
-	  int i;
+
 #ifdef HAVE_XINPUT2
 	  Time pending_keystroke_time;
 	  struct xi_device_t *source;
@@ -17805,27 +17805,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              not it is combined with Meta.  */
           if (modifiers & dpyinfo->meta_mod_mask)
             memset (&compose_status, 0, sizeof (compose_status));
-
-#ifdef HAVE_XKB
-	  if (dpyinfo->xkb_desc)
-	    {
-	      XkbDescRec *rec = dpyinfo->xkb_desc;
-
-	      if (rec->map->modmap && rec->map->modmap[xkey.keycode])
-		goto done_keysym;
-	    }
-	  else
-#endif
-	    {
-	      if (dpyinfo->modmap)
-		{
-		  for (i = 0; i < 8 * dpyinfo->modmap->max_keypermod; i++)
-		    {
-		      if (xkey.keycode == dpyinfo->modmap->modifiermap[i])
-			  goto done_keysym;
-		    }
-		}
-	    }
 
 #ifdef HAVE_X_I18N
           if (FRAME_XIC (f))
@@ -21159,27 +21138,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	      state |= x_emacs_to_x_modifiers (dpyinfo, extra_keyboard_modifiers);
-
-#ifdef HAVE_XKB
-	      if (dpyinfo->xkb_desc)
-		{
-		  XkbDescRec *rec = dpyinfo->xkb_desc;
-
-		  if (rec->map->modmap && rec->map->modmap[xev->detail])
-		    goto xi_done_keysym;
-		}
-	      else
-#endif
-		{
-		  if (dpyinfo->modmap)
-		    {
-		      for (i = 0; i < 8 * dpyinfo->modmap->max_keypermod; i++)
-			{
-			  if (xev->detail == dpyinfo->modmap->modifiermap[i])
-			    goto xi_done_keysym;
-			}
-		    }
-		}
 
 #ifdef HAVE_XKB
 	      if (dpyinfo->xkb_desc)
