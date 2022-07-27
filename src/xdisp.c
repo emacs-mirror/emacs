@@ -7084,6 +7084,109 @@ back_to_previous_line_start (struct it *it)
 			  get_closer_narrowed_begv (it->w, IT_CHARPOS (*it)));
 }
 
+/* Find in the current buffer the first display or overlay string
+   between STARTPOS and ENDPOS that includes embedded newlines.
+   Consider only overlays that apply to window W.
+   Value is non-zero if such a display/overlay strong is found found.  */
+static bool
+strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
+{
+  int n = 0;
+  /* Process overlays before the overlay center.  */
+  for (struct Lisp_Overlay *ov = current_buffer->overlays_before;
+       ov; ov = ov->next)
+    {
+      Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
+      eassert (OVERLAYP (overlay));
+
+      n++;
+      /* Skip this overlay if it doesn't apply to our window.  */
+      Lisp_Object window = Foverlay_get (overlay, Qwindow);
+      if (WINDOWP (window) && XWINDOW (window) != w)
+	continue;
+
+      ptrdiff_t ostart = OVERLAY_POSITION (OVERLAY_START (overlay));
+      ptrdiff_t oend = OVERLAY_POSITION (OVERLAY_END (overlay));
+
+      /* Due to the order of overlays in overlays_before, once we get
+	 to an overlay whose end position is before STARTPOS, all the
+	 rest also end before STARTPOS, and thus are of no concern to us.  */
+      if (oend < startpos)
+	break;
+
+      /* Skip overlays that don't overlap the range.  */
+      if (!((startpos < oend && ostart < endpos)
+	    || (ostart == oend
+		&& (startpos == oend || (endpos == ZV && oend == endpos)))))
+	continue;
+
+      Lisp_Object str;
+      str = Foverlay_get (overlay, Qbefore_string);
+      if (STRINGP (str) && SCHARS (str)
+	  && memchr (SDATA (str), '\n', SBYTES (str)))
+	return true;
+      str = Foverlay_get (overlay, Qafter_string);
+      if (STRINGP (str) && SCHARS (str)
+	  && memchr (SDATA (str), '\n', SBYTES (str)))
+	return true;
+    }
+
+  /* Process overlays after the overlay center.  */
+  for (struct Lisp_Overlay *ov = current_buffer->overlays_after;
+       ov; ov = ov->next)
+    {
+      Lisp_Object overlay = make_lisp_ptr (ov, Lisp_Vectorlike);
+      eassert (OVERLAYP (overlay));
+      n++;
+
+      /* Skip this overlay if it doesn't apply to our window.  */
+      Lisp_Object window = Foverlay_get (overlay, Qwindow);
+      if (WINDOWP (window) && XWINDOW (window) != w)
+	continue;
+
+      ptrdiff_t ostart = OVERLAY_POSITION (OVERLAY_START (overlay));
+      ptrdiff_t oend = OVERLAY_POSITION (OVERLAY_END (overlay));
+
+      /* Due to the order of overlays in overlays_after, once we get
+	 to an overlay whose start position is after ENDPOS, all the
+	 rest also start after ENDPOS, and thus are of no concern to us.  */
+      if (ostart > endpos)
+	break;
+
+      /* Skip overlays that don't overlap the range.  */
+      if (!((startpos < oend && ostart < endpos)
+	    || (ostart == oend
+		&& (startpos == oend || (endpos == ZV && oend == endpos)))))
+	continue;
+
+      Lisp_Object str;
+      str = Foverlay_get (overlay, Qbefore_string);
+      if (STRINGP (str) && SCHARS (str)
+	  && memchr (SDATA (str), '\n', SBYTES (str)))
+	return true;
+      str = Foverlay_get (overlay, Qafter_string);
+      if (STRINGP (str) && SCHARS (str)
+	  && memchr (SDATA (str), '\n', SBYTES (str)))
+	return true;
+    }
+
+  /* Check for 'display' properties whose values include strings.  */
+  Lisp_Object cpos = make_fixnum (startpos);
+  Lisp_Object limpos = make_fixnum (endpos);
+
+  while ((cpos = Fnext_single_property_change (cpos, Qdisplay, Qnil, limpos),
+	  !(NILP (cpos) || XFIXNAT (cpos) >= endpos)))
+    {
+      Lisp_Object spec = Fget_char_property (cpos, Qdisplay, Qnil);
+      Lisp_Object string = string_from_display_spec (spec);
+      if (STRINGP (string)
+	  && memchr (SDATA (string), '\n', SBYTES (string)))
+	return true;
+    }
+
+  return false;
+}
+
 
 /* Move IT to the next line start.
 
@@ -7136,7 +7239,8 @@ forward_to_next_line_start (struct it *it, bool *skipped_p,
   it->selective = 0;
 
   /* Scan for a newline within MAX_NEWLINE_DISTANCE display elements
-     from buffer text.  */
+     from buffer text, or till the end of the string if iterating a
+     string.  */
   for (n = 0;
        !newline_found_p && n < MAX_NEWLINE_DISTANCE;
        n += !STRINGP (it->string))
@@ -7156,27 +7260,54 @@ forward_to_next_line_start (struct it *it, bool *skipped_p,
       ptrdiff_t bytepos, start = IT_CHARPOS (*it);
       ptrdiff_t limit = find_newline_no_quit (start, IT_BYTEPOS (*it),
 					      1, &bytepos);
-      Lisp_Object pos;
-
       eassert (!STRINGP (it->string));
 
-      /* If there isn't any `display' property in sight, and no
-	 overlays, we can just use the position of the newline in
-	 buffer text.  */
-      if (it->stop_charpos >= limit
-	  || ((pos = Fnext_single_property_change (make_fixnum (start),
-						   Qdisplay, Qnil,
-						   make_fixnum (limit)),
-	       (NILP (pos) || XFIXNAT (pos) == limit))
-	      && next_overlay_change (start) == ZV))
+      /* it->stop_charpos >= limit means we already know there's no
+	 stop position up until the newline at LIMIT, so there's no
+	 need for any further checks.  */
+      bool no_strings_with_newlines = it->stop_charpos >= limit;
+
+      if (!no_strings_with_newlines)
+	{
+	  if (!current_buffer->long_line_optimizations_p)
+	    {
+	      /* Quick-and-dirty check: if there isn't any `display'
+		 property in sight, and no overlays, we're done.  */
+	      Lisp_Object pos =
+		Fnext_single_property_change (make_fixnum (start),
+					      Qdisplay, Qnil,
+					      make_fixnum (limit));
+	      no_strings_with_newlines =
+		(NILP (pos) || XFIXNAT (pos) == limit) /* no 'display' props */
+		&& next_overlay_change (start) == ZV;  /* no overlays */
+	    }
+	  else
+	    {
+	      /* For buffers with very long lines we try harder,
+		 because it's worth our while to spend some time
+		 looking into the overlays and 'display' properties
+		 to try to avoid iterating through all of them.  */
+	      no_strings_with_newlines =
+		!strings_with_newlines (start, limit, it->w);
+	    }
+	}
+
+      /* If there's no display or overlay strings with embedded
+	 newlines until the position of the newline in buffer text, we
+	 can just use that position.  */
+      if (no_strings_with_newlines)
 	{
 	  if (!it->bidi_p || !bidi_it_prev)
 	    {
+	      /* The optimal case: just jump there.  */
 	      IT_CHARPOS (*it) = limit;
 	      IT_BYTEPOS (*it) = bytepos;
 	    }
 	  else
 	    {
+	      /* The less optimal case: need to bidi-walk there, but
+		 this is still cheaper that the full iteration using
+		 get_next_display_element and set_iterator_to_next.  */
 	      struct bidi_it bprev;
 
 	      /* Help bidi.c avoid expensive searches for display
@@ -7200,6 +7331,7 @@ forward_to_next_line_start (struct it *it, bool *skipped_p,
 	}
       else
 	{
+	  /* The slow case.  */
 	  while (!newline_found_p)
 	    {
 	      if (!get_next_display_element (it))
