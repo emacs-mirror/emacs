@@ -338,7 +338,7 @@ test-lisp-net-inotify:
         - test/lisp/net/*resources/**
   variables:
     target: emacs-inotify
-    make_params: "-k -C test check-lisp-net SELECTOR='(not (tag :unstable))'"
+    make_params: "-k -C test check-lisp-net"
 
 test-lisp-nxml-inotify:
   stage: normal

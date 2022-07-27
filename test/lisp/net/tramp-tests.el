@@ -5349,7 +5349,7 @@ INPUT, if non-nil, is a string sent to the process."
 
 (ert-deftest tramp-test32-shell-command ()
   "Check `shell-command'."
-  :tags '(:expensive-test)
+  :tags (unless (getenv "EMACS_EMBA_CI") '(:expensive-test))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
