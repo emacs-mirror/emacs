@@ -3115,7 +3115,7 @@ implementation will be used."
 		     (with-current-buffer (tramp-get-connection-buffer vec)
 		       (goto-char (point-min))
 		       (buffer-substring (point-at-bol) (point-at-eol)))))
-	     (if (string-equal res "")
+	     (if (string-empty-p res)
 		 (format "Signal %d" i)
 	       res)))
 	 result))
@@ -4434,7 +4434,7 @@ process to set up.  VEC specifies the connection."
 			     (copy-sequence tramp-remote-process-environment))))
 	(setq item (split-string item "=" 'omit))
 	(setcdr item (string-join (cdr item) "="))
-	(if (and (stringp (cdr item)) (not (string-equal (cdr item) "")))
+	(if (and (stringp (cdr item)) (not (string-empty-p (cdr item))))
 	    (push (format "%s %s" (car item) (cdr item)) vars)
 	  (push (car item) unset)))
       (when vars

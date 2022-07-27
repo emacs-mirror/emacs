@@ -312,6 +312,13 @@ CONDITION can also be a list of error conditions."
 	(if (>= n (length list))
 	    list (nbutlast list (- (length list) n)))))))
 
+;; Function `string-equal-ignore-case' is new in Emacs 29.1.
+(defalias 'tramp-compat-string-equal-ignore-case
+  (if (fboundp 'string-equal-ignore-case)
+      #'string-equal-ignore-case
+    (lambda (string1 string2)
+      (eq t (compare-strings string1 nil nil string2 nil nil t)))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 
@@ -328,6 +335,6 @@ CONDITION can also be a list of error conditions."
 ;;   parentheses with a backslash in docstrings anymore.
 ;;
 ;; * Starting with Emacs 27.1, there's `make-empty-file'.  Could be
-;;   used instead of `write-region'.
+;;   used instead of `(write-region "" ...)'.
 
 ;;; tramp-compat.el ends here

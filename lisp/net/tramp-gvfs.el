@@ -1889,7 +1889,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	     v 6 "%s %s"
 	     signal-name (tramp-gvfs-stringify-dbus-message mount-info))
 	    (tramp-flush-file-property v "/" "list-mounts")
-	    (if (string-equal (downcase signal-name) "unmounted")
+	    (if (tramp-compat-string-equal-ignore-case signal-name "unmounted")
 		(tramp-flush-file-properties v "/")
 	      ;; Set mountpoint and location.
 	      (tramp-set-file-property v "/" "fuse-mountpoint" fuse-mountpoint)

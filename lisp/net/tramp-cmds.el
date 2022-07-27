@@ -46,7 +46,7 @@ SYNTAX can be one of the symbols `default' (default),
    (let ((input (completing-read
 		 "Enter Tramp syntax: " (tramp-syntax-values) nil t
 		 (symbol-name tramp-syntax))))
-     (unless (string-equal input "")
+     (unless (string-empty-p input)
        (list (intern input)))))
   (when syntax
     (customize-set-variable 'tramp-syntax syntax)))

@@ -1558,7 +1558,7 @@ of `process-file', `start-file-process', or `shell-command'."
 This is METHOD, if non-nil.  Otherwise, do a lookup in
 `tramp-default-method-alist' and `tramp-default-method'."
   (when (and method
-	     (or (string-equal method "")
+	     (or (string-empty-p method)
 		 (string-equal method tramp-default-method-marker)))
     (setq method nil))
   (let ((result
