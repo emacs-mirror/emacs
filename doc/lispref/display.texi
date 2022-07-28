@@ -7004,18 +7004,19 @@ example:
   :help-echo "Open this section")
 @end lisp
 
-This is used in tandem with the @code{icon-preference} user option, as
-well as run-time checks for what the current Emacs frame can actually
-display.
+Which alternative will actually be displayed depends on the value of
+the user option @code{icon-preference} (@pxref{Icons,,, emacs, The GNU
+Emacs Manual}) and on the results of run-time checks for what the
+current frame's terminal can actually display.
 
-The macro in this example defines @code{outline-open} as an icon, and
-inherits properties from the icon called @code{button} (so this is
-meant as a clickable button to be inserted in a buffer).  We then get
-a list of @dfn{icon types} along with the actual icon shapes
-themselves.  In addition, there's a doc string and various keywords
-that contain additional information and properties.
+The macro in the example above defines @code{outline-open} as an icon,
+and inherits properties from the icon called @code{button} (so this is
+meant as a clickable button to be inserted in a buffer).  It is
+followed by a list of @dfn{icon types} along with the actual icon
+shapes themselves.  In addition, there's a doc string and various
+keywords that contain additional information and properties.
 
-When instantiating an icon you use @code{icon-string}, and this will
+To instantiate an icon, you use @code{icon-string}, which will
 consult the current Customize theming, and the @code{icon-preference}
 user option, and finally what the Emacs is able to actually display.
 If @code{icon-preference} is @code{(image emoji symbol text)} (i.e.,
@@ -7031,40 +7032,42 @@ For instance, if @code{icon-preference} doesn't contain @code{image}
 or @code{emoji}, it'll skip those entries.
 
 Code can confidently call @code{icon-string} in all circumstances and
-be confident that something readable will appear on the screen, no
+be sure that something readable will appear on the screen, no
 matter whether the user is on a graphical terminal or a text terminal,
 and no matter which features Emacs was built with.
 
 @defmac define-icon name parent specs doc &rest keywords
-@var{name} should be a symbol, and is the name of the resulting
-keyword.  @code{icon-string} can later be used to instantiate the
-icon.
+Define an icon @var{name}, a symbol, with the display alternatives in
+@var{spec}, that can be later instantiated using @code{icon-string}.
+The @var{name} is the name of the resulting keyword.
 
-This icon will inherit specs from @var{parent}, and recursively from
-the parent's parents, and so on, and the lowest descendent element
+The resulting icon will inherit specs from @var{parent}, and from
+their parent's parents, and so on, and the lowest descendent element
 wins.
 
-@var{specs} is a list of specifications.  The first element of each
+@var{specs} is a list of icon specifications.  The first element of each
 specification is the type, and the rest is something that can be used
 as an icon of that type, and then optionally followed by a keyword
-list.  The following types are available:
+list.  The following icon types are available:
 
+@cindex icon types
 @table @code
 @item image
 In this case, there may be many images listed as candidates.  Emacs
 will choose the first one that the current Emacs instance can show.
-If an image listed is an absolute file name, it's used as is, but it's
-otherwise looked up in the image load path.
+If an image is listed is an absolute file name, it's used as is, but it's
+otherwise looked up in the list @code{image-load-path}
+(@pxref{Defining Images}).
 
 @item emoji
 This should be a (possibly colorful) emoji.
 
 @item symbol
-This should be a (monochrome) symbol.
+This should be a (monochrome) symbol character.
 
 @item text
 Icons should also have a textual fallback.  This can also be used for
-by the visually impaired: If @code{icon-preference} is just
+the visually impaired: if @code{icon-preference} is just
 @code{(text)}, all icons will be replaced by text.
 @end table
 
@@ -7077,9 +7080,10 @@ instance:
 
 Unknown keywords are ignored.  The following keywords are allowed:
 
+@cindex icon keywords
 @table @code
 @item :face
-The face to be used.
+The face to be used for the icon.
 
 @item :height
 This is only valid for @code{image} icons, and can be either a number
@@ -7115,11 +7119,11 @@ buffer for @var{icon}.
 
 @defun icon-elements icon
 Alternatively, you can get a ``deconstructed'' version of @var{icon}
-with this function.  This returns a plist where the keys are
-@code{string}, @code{face} and @var{image}.  (The latter is only
-present if the icon is represented by an image.)  This can be useful
-if the icon isn't to be inserted directly in the buffer, but needs
-some sort of post-processing first.
+with this function.  It returns a plist (@pxref{Property Lists}) where
+the keys are @code{string}, @code{face} and @var{image}.  (The latter
+is only present if the icon is represented by an image.)  This can be
+useful if the icon isn't to be inserted directly in the buffer, but
+needs some sort of pre-processing first.
 @end defun
 
 Icons can be customized with @kbd{M-x customize-icon}.  Themes can

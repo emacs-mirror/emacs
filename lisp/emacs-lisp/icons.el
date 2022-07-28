@@ -192,7 +192,7 @@ present if the icon is represented by an image."
   (let ((file (if (file-name-absolute-p icon)
                   icon
                 (image-search-load-path icon))))
-    (and (display-graphic-p)
+    (and (display-images-p)
          (image-supported-file-p file)
          (propertize
           " " 'display
@@ -207,6 +207,8 @@ present if the icon is represented by an image."
 
 (cl-defmethod icons--create ((_type (eql 'emoji)) icon _keywords)
   (when-let ((font (and (display-multi-font-p)
+                        ;; FIXME: This is not enough for ensuring
+                        ;; display of color Emoji.
                         (car (internal-char-font nil ?😀)))))
     (and (font-has-char-p font (aref icon 0))
          icon)))
