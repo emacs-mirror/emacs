@@ -24322,7 +24322,11 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 #endif
 
   /* 'x_sync_with_move' is too costly for dragging child frames.  */
-  if (!FRAME_PARENT_FRAME (f))
+  if (!FRAME_PARENT_FRAME (f)
+      /* If no window manager exists, just calling XSync will be
+	 sufficient to ensure that the window geometry has been
+	 updated.  */
+      && NILP (Vx_no_window_manager))
     {
       x_sync_with_move (f, f->left_pos, f->top_pos,
 			FRAME_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN);
