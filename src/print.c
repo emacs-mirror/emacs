@@ -2931,6 +2931,8 @@ be printed.  */);
   Vprint__unreadable_callback_buffer = Qnil;
   DEFSYM (Qprint__unreadable_callback_buffer,
 	  "print--unreadable-callback-buffer");
+  /* Don't export this variable to Elisp.  */
+  Funintern (Qprint__unreadable_callback_buffer, Qnil);
 
   defsubr (&Sflush_standard_output);
 
