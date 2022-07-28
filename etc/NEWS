@@ -830,10 +830,6 @@ or is itself too long.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
 in addition to the ellipsis.  The default is nil.
 
----
-*** New user option 'outline-minor-mode-buttons'.
-This is a list of pairs of open/close strings used to display buttons.
-
 +++
 ** Support for the WebP image format.
 This support is built by default when the libwebp library is

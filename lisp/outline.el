@@ -35,6 +35,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'icons)
 
 (defgroup outlines nil
   "Support for hierarchical outlining."
@@ -280,34 +281,33 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
 
-(defcustom outline-minor-mode-use-buttons nil
-  "If non-nil, display clickable buttons on the headings.
+(defcustom outline-minor-mode-use-buttons '(derived-mode . special-mode)
+  "Whether to display clickable buttons on the headings.
+The value should be a `buffer-match-p' condition, or nil to
+disable in all buffers and t to enable in all buffers.
+
 These buttons can be used to hide and show the body under the heading.
 Note that this feature is not meant to be used in editing
-buffers (yet) -- that will be amended in a future version.
-
-The `outline-minor-mode-buttons' variable specifies how the
-buttons should look."
+buffers (yet) -- that will be amended in a future version."
   :type 'boolean
   :safe #'booleanp
   :version "29.1")
 
-(defcustom outline-minor-mode-buttons
-  '(("▶️" "🔽" outline--valid-emoji-p)
-    ("▶" "▼" outline--valid-char-p))
-  "How to show open/close buttons on the headings.
-Value should be a list of elements of the form (CLOSE OPEN TEST-FN),
-where CLOSE and OPEN are strings to display as, respectively, the
-close and open buttons, and TEST-FN is a function of one argument
-which will be called with CLOSE or OPEN and should return non-nil if
-the argument string can be displayed by the current frame's terminal.
-The pair of buttons that will be actually used is the first pair
-whose element in the list passes the test of TEST-FN for both the
-CLOSE and OPEN strings.
+(define-icon outline-open button
+  '((emoji "▶️")
+    (symbol " ▶ ")
+    (text " open "))
+  "Icon used for buttons for opening a section in outline buffers."
+  :version "29.1"
+  :help-echo "Open this section")
 
-This is only used when `outline-minor-mode-use-buttons' is non-nil"
-  :type 'sexp
-  :version "29.1")
+(define-icon outline-close button
+  '((emoji "🔽")
+    (symbol " ▼ ")
+    (text " close "))
+  "Icon used for buttons for closing a section in outline buffers."
+  :version "29.1"
+  :help-echo "Close this section")
 
 
 (defvar outline-level #'outline-level
@@ -434,7 +434,10 @@ outline font-lock faces to those of major mode."
                          (goto-char (match-beginning 0))
                          (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
-          (when outline-minor-mode-use-buttons
+          (when (and outline-minor-mode-use-buttons
+                     (or (eq outline-minor-mode-use-buttons t)
+                         (buffer-match-p outline-minor-mode-use-buttons
+                                         (current-buffer))))
             (outline--insert-open-button)))
         (goto-char (match-end 0))))))
 
@@ -983,22 +986,6 @@ If non-nil, EVENT should be a mouse event."
     (outline--insert-close-button))
   (outline-flag-subtree t))
 
-(defun outline--make-button (type)
-  (cl-loop for (close open test) in outline-minor-mode-buttons
-           when (and (funcall test close) (funcall test open))
-           return (concat (if (eq type 'close)
-                              close
-                            open)
-                          " " (buffer-substring (point) (1+ (point))))))
-
-(defun outline--valid-emoji-p (string)
-  (when-let ((font (and (display-multi-font-p)
-                        (car (internal-char-font nil ?😀)))))
-    (font-has-char-p font (aref string 0))))
-
-(defun outline--valid-char-p (string)
-  (char-displayable-p (aref string 0)))
-
 (defun outline--make-button-overlay (type)
   (let ((o (seq-find (lambda (o)
                        (overlay-get o 'outline-button))
@@ -1008,12 +995,27 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'follow-link 'mouse-face)
       (overlay-put o 'mouse-face 'highlight)
       (overlay-put o 'outline-button t))
-    (overlay-put o 'display (outline--make-button type))
+    (let ((icon
+           (icon-elements (if (eq type 'close) 'outline-close 'outline-open)))
+          (inhibit-read-only t))
+      ;; In editing buffers we use overlays only, but in other buffers
+      ;; we use a mix of text properties, text and overlays to make
+      ;; movement commands work more logically.
+      (when (derived-mode-p 'special-mode)
+        (put-text-property (point) (1+ (point)) 'face (plist-get icon 'face)))
+      (when-let ((image (plist-get icon 'image)))
+        (overlay-put o 'display image))
+      (overlay-put o 'display (plist-get icon 'string))
+      (overlay-put o 'face (plist-get icon 'face)))
     o))
 
 (defun outline--insert-open-button ()
   (save-excursion
     (beginning-of-line)
+    (when (derived-mode-p 'special-mode)
+      (let ((inhibit-read-only t))
+        (insert "  ")
+        (beginning-of-line)))
     (let ((o (outline--make-button-overlay 'open)))
       (overlay-put o 'help-echo "Click to hide")
       (overlay-put o 'keymap
@@ -1024,6 +1026,10 @@ If non-nil, EVENT should be a mouse event."
 (defun outline--insert-close-button ()
   (save-excursion
     (beginning-of-line)
+    (when (derived-mode-p 'special-mode)
+      (let ((inhibit-read-only t))
+        (insert "  ")
+        (beginning-of-line)))
     (let ((o (outline--make-button-overlay 'close)))
       (overlay-put o 'help-echo "Click to show")
       (overlay-put o 'keymap
