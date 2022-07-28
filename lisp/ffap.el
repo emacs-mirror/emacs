@@ -427,13 +427,6 @@ Returned values:
  t       means that HOST answered.
 `accept' means the relevant variable told us to accept.
 \"mesg\"   means HOST exists, but does not respond for some reason."
-  ;; Try some (Emory local):
-  ;; (ffap-machine-p "ftp" nil nil 'ping)
-  ;; (ffap-machine-p "nonesuch" nil nil 'ping)
-  ;; (ffap-machine-p "ftp.mathcs.emory.edu" nil nil 'ping)
-  ;; (ffap-machine-p "mathcs" 5678 nil 'ping)
-  ;; (ffap-machine-p "foo.bonk" nil nil 'ping)
-  ;; (ffap-machine-p "foo.bonk.com" nil nil 'ping)
   (if (or (string-match "[^-[:alnum:].]" host) ; Invalid chars (?)
 	  (not (string-match "[^0-9]" host))) ; 1: a number? 2: quick reject
       nil
@@ -530,9 +523,6 @@ The optional NOMODIFY argument suppresses the extra search."
 
 (defun ffap-file-remote-p (filename)
   "If FILENAME looks remote, return it (maybe slightly improved)."
-  ;; (ffap-file-remote-p "/user@foo.bar.com:/pub")
-  ;; (ffap-file-remote-p "/cssun.mathcs.emory.edu://dir")
-  ;; (ffap-file-remote-p "/ffap.el:80")
   (or (and ffap-ftp-regexp
 	   (string-match ffap-ftp-regexp filename)
 	   ;; Convert "/host.com://dir" to "/host:/dir", to handle a dying
@@ -573,7 +563,7 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
    ;; www.ncsa.uiuc.edu
    ((and (string-match "\\`w\\(ww\\|eb\\)[-.]" mach))
     (concat "http://" mach "/"))
-   ;; More cases?  Maybe "telnet:" for archie?
+   ;; More cases?
    (ffap-ftp-regexp (ffap-host-to-filename mach))
    ))
 
