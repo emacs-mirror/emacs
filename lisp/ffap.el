@@ -24,10 +24,10 @@
 
 
 ;;; Commentary:
-;;
-;; Command find-file-at-point replaces find-file.  With a prefix, it
-;; behaves exactly like find-file.  Without a prefix, it first tries
-;; to guess a default file or URL from the text around the point
+
+;; Command `find-file-at-point' replaces `find-file'.  With a prefix,
+;; it behaves exactly like find-file.  Without a prefix, it first
+;; tries to guess a default file or URL from the text around the point
 ;; (`ffap-require-prefix' swaps these behaviors).  This is useful for
 ;; following references in situations such as mail or news buffers,
 ;; README's, MANIFEST's, and so on.  Submit bugs or suggestions with
@@ -68,29 +68,27 @@
 ;; If you do not like these bindings, modify the variable
 ;; `ffap-bindings', or write your own.
 ;;
-;; If you use ange-ftp, browse-url, complete, efs, it is best to load
-;; or autoload them before ffap.  If you use ff-paths, load it
-;; afterwards.  Try apropos {C-h a ffap RET} to get a list of the many
-;; option variables.  In particular, if ffap is slow, try these:
+;; If you use ange-ftp, it is best to load or autoload it before ffap.
+;; If you use ff-paths, load it afterwards.  Try apropos {C-h a ffap
+;; RET} to get a list of the many option variables.  In particular, if
+;; ffap is slow, try these:
 ;;
 ;; (setq ffap-alist nil)                ; faster, dumber prompting
-;; (setq ffap-machine-p-known 'accept)  ; no pinging
 ;; (setq ffap-url-regexp nil)           ; disable URL features in ffap
 ;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
 ;; (setq ffap-gopher-regexp nil)        ; disable gopher bookmark matching
 ;;
 ;; ffap uses `browse-url' to fetch URLs.
-;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
 ;; Also, you can add `ffap-menu-rescan' to various hooks to fontify
 ;; the file and URL references within a buffer.
 
 
+;;; Code:
+
 ;;; Change Log:
-;;
-;; The History and Contributors moved to ffap.LOG (same ftp site),
+;; The History and Contributors moved to ffap.LOG,
 ;; which also has some old examples and commentary from ffap 1.5.
 
-
 ;;; Todo list:
 ;; * let "/dir/file#key" jump to key (tag or regexp) in /dir/file
 ;; * find file of symbol if TAGS is loaded (like above)
@@ -98,12 +96,9 @@
 ;; * notice node in "(dired)Virtual Dired" (quotes, parentheses, whitespace)
 ;; * notice "machine.dom blah blah blah dir/file" (how?)
 ;; * regexp options for ffap-string-at-point, like font-lock (MCOOK)
-;; * v19: could replace `ffap-locate-file' with a quieter `locate-library'
+;; * could replace `ffap-locate-file' with a quieter `locate-library'
 ;; * handle "$(VAR)" in Makefiles
 ;; * use the font-lock machinery
-
-
-;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 (require 'url-parse)
@@ -273,8 +268,7 @@ ffap most of the time."
   :risky t)
 
 (defcustom ffap-url-fetcher 'browse-url
-  "A function of one argument, called by ffap to fetch an URL.
-For a fancy alternative, get `ffap-url.el'."
+  "A function of one argument, called by ffap to fetch an URL."
   :type '(choice (const browse-url)
 		 function)
   :group 'ffap
