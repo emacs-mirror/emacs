@@ -22,8 +22,6 @@
 
 ;;; Commentary:
 
-;; Todo: describe-icon
-
 ;;; Code:
 
 (require 'cl-lib)

@@ -5520,6 +5520,8 @@ changes."
      (or state
          (custom-icon-state (widget-value widget) value)))))
 
+;;; FIXME -- more work is needed here.  We don't properly
+;;; differentiate between `saved' and `set'.
 (defun custom-icon-state (symbol value)
   "Return the state of customize icon SYMBOL for VALUE.
 Possible return values are `standard', `saved', `set', `themed',
