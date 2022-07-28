@@ -737,7 +737,7 @@ with any other @var{round} it returns the internal value of
 @cindex window width
 @cindex width of a window
 @cindex total width of a window
-The @dfn{total width} of a window is the number of lines comprising its
+The @dfn{total width} of a window is the number of columns comprising its
 body and its left and right decorations (@pxref{Basic Windows}).
 
 @defun window-total-width &optional window round
@@ -747,7 +747,7 @@ the selected window.  If @var{window} is internal, the return value is
 the total width occupied by its descendant windows.
 
   If a window's pixel width is not an integral multiple of its frame's
-character width, the number of lines occupied by the window is rounded
+character width, the number of columns occupied by the window is rounded
 internally.  This is done in a way such that, if the window is a parent
 window, the sum of the total widths of all its children internally
 equals the total width of their parent.  This means that although two
