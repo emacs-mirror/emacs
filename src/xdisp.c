@@ -7266,7 +7266,8 @@ forward_to_next_line_start (struct it *it, bool *skipped_p,
 
       if (!no_strings_with_newlines)
 	{
-	  if (!current_buffer->long_line_optimizations_p)
+	  if (!(current_buffer->long_line_optimizations_p
+		&& it->line_wrap == TRUNCATE))
 	    {
 	      /* Quick-and-dirty check: if there isn't any `display'
 		 property in sight, and no overlays, we're done.  */
@@ -7280,10 +7281,10 @@ forward_to_next_line_start (struct it *it, bool *skipped_p,
 	    }
 	  else
 	    {
-	      /* For buffers with very long lines we try harder,
-		 because it's worth our while to spend some time
-		 looking into the overlays and 'display' properties
-		 to try to avoid iterating through all of them.  */
+	      /* For buffers with very long and truncated lines we try
+		 harder, because it's worth our while to spend some
+		 time looking into the overlays and 'display' properties
+		 if we can then avoid iterating through all of them.  */
 	      no_strings_with_newlines =
 		!strings_with_newlines (start, limit, it->w);
 	    }
