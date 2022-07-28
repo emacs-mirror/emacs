@@ -529,6 +529,5 @@ otherwise, use a different charset."
                   (should (equal (% (- (length numbers) loopback-index) loop)
                                  0)))))))))))
 
-
 (provide 'print-tests)
 ;;; print-tests.el ends here

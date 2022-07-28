@@ -1122,5 +1122,15 @@ final or penultimate step during initialization."))
       (should (equal (butlast l n)
                      (subr-tests--butlast-ref l n))))))
 
+(ert-deftest test-print-unreadable-function-buffer ()
+  (with-temp-buffer
+    (let ((current (current-buffer))
+          callback-buffer)
+      (let ((print-unreadable-function
+             (lambda (_object _escape)
+               (setq callback-buffer (current-buffer)))))
+        (prin1-to-string (make-marker)))
+      (should (eq current callback-buffer)))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
