@@ -211,14 +211,6 @@
 ;;
 ;;;;;;;;
 ;;
-;; I think the LCD is no longer being updated, but if it were, this
-;; would be a proper LCD record.  There is an old version of
-;; feedmail.el in the LCD archive.  It works but is missing a lot of
-;; features.
-;;
-;; LCD record:
-;; feedmail|WJCarpenter|bill-feedmail@carpenter.ORG|Outbound mail queue handling|01-??-??|11-beta-??|feedmail.el
-;;
 ;; Change log:
 ;; original,      31 March 1991
 ;; patchlevel 1,   5 April 1991
