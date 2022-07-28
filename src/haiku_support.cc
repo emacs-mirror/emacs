@@ -1996,8 +1996,9 @@ public:
   float old_value;
   scroll_bar_info info;
 
-  /* True if button events should be passed to the parent.  */
-  bool handle_button;
+  /* How many button events were passed to the parent without
+     release.  */
+  int handle_button_count;
   bool in_overscroll;
   bool can_overscroll;
   bool maybe_overscroll;
@@ -2013,7 +2014,7 @@ public:
     : BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
 		  B_HORIZONTAL : B_VERTICAL),
       dragging (0),
-      handle_button (false),
+      handle_button_count (0),
       in_overscroll (false),
       can_overscroll (false),
       maybe_overscroll (false),
@@ -2234,10 +2235,10 @@ public:
 
     if (message && (message->FindInt32 ("modifiers", &mods)
 		    == B_OK)
-	&& mods & B_CONTROL_KEY && !handle_button)
+	&& mods & B_CONTROL_KEY)
       {
 	/* Allow C-mouse-3 to split the window on a scroll bar.   */
-	handle_button = true;
+	handle_button_count += 1;
 	SetMouseEventMask (B_POINTER_EVENTS, (B_SUSPEND_VIEW_FOCUS
 					      | B_LOCK_WINDOW_FOCUS));
 	parent->BasicMouseDown (ConvertToParent (pt), this, message);
@@ -2309,9 +2310,9 @@ public:
     in_overscroll = false;
     maybe_overscroll = false;
 
-    if (handle_button)
+    if (handle_button_count)
       {
-	handle_button = false;
+	handle_button_count--;
 	looper = Looper ();
 	msg = (looper
 	       ? looper->CurrentMessage ()
