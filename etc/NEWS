@@ -2455,6 +2455,11 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
+** Emacs now supports user-customizable and themable icons.
+These can be used for buttons in buffers and the like.  See
+'(elisp)Icons' and '(emacs)Icons' for details.
+
++++
 ** New arguments MESSAGE and TIMEOUT of 'set-transient-map'.
 MESSAGE specifies a message to display after activating the transient
 map, including a special formatting spec to list available keys.

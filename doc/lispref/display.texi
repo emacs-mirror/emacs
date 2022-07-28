@@ -27,6 +27,7 @@ that Emacs presents to the user.
 * Window Dividers::     Separating windows visually.
 * Display Property::    Images, margins, text size, etc.
 * Images::              Displaying images in Emacs buffers.
+* Icons::               Displaying icons in Emacs buffers.
 * Xwidgets::            Displaying native widgets in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
 * Abstract Display::    Emacs's Widget for Object Collections.
@@ -6978,6 +6979,161 @@ This function returns the total size of the current image cache, in
 bytes.  An image of size 200x100 with 24 bits per color will have a
 cache size of 60000 bytes, for instance.
 @end defun
+
+@node Icons
+@section Icons
+
+Emacs sometimes uses buttons (for clicking on) or small graphics (to
+illustrate something).  Since Emacs is available on a wide variety of
+systems with different capabilities, and users have different
+preferences, Emacs provides a facility to handle this in a convenient
+way, allowing customization, graceful degradation, accessibility, as
+well as themability: @dfn{Icons}.
+
+The central macro here is @code{define-icon}, and here's a simple
+example:
+
+@lisp
+(define-icon outline-open button
+  '((image "right.svg" "open.xpm" "open.pbm" :height line)
+    (emoji "▶️")
+    (symbol "▶" "➤")
+    (text "open" :face icon-button))
+  "Icon used for buttons for opening a section in outline buffers."
+  :version "29.1"
+  :help-echo "Open this section")
+@end lisp
+
+This is used in tandem with the @code{icon-preference} user option, as
+well as run-time checks for what the current Emacs frame can actually
+display.
+
+The macro in this example defines @code{outline-open} as an icon, and
+inherits properties from the icon called @code{button} (so this is
+meant as a clickable button to be inserted in a buffer).  We then get
+a list of @dfn{icon types} along with the actual icon shapes
+themselves.  In addition, there's a doc string and various keywords
+that contain additional information and properties.
+
+When instantiating an icon you use @code{icon-string}, and this will
+consult the current Customize theming, and the @code{icon-preference}
+user option, and finally what the Emacs is able to actually display.
+If @code{icon-preference} is @code{(image emoji symbol text)} (i.e.,
+allowing all of these forms of icons), in this case,
+@code{icon-string} will first check that Emacs is able to display
+images at all, and then whether it has support for each of those
+different image formats.  If that fails, Emacs will check whether
+Emacs can display emojis (in the current frame).  If that fails, it'll
+check whether it can display the symbol in question.  If that fails,
+it'll use the plain text version.
+
+For instance, if @code{icon-preference} doesn't contain @code{image}
+or @code{emoji}, it'll skip those entries.
+
+Code can confidently call @code{icon-string} in all circumstances and
+be confident that something readable will appear on the screen, no
+matter whether the user is on a graphical terminal or a text terminal,
+and no matter which features Emacs was built with.
+
+@defmac define-icon name parent specs doc &rest keywords
+@var{name} should be a symbol, and is the name of the resulting
+keyword.  @code{icon-string} can later be used to instantiate the
+icon.
+
+This icon will inherit specs from @var{parent}, and recursively from
+the parent's parents, and so on, and the lowest descendent element
+wins.
+
+@var{specs} is a list of specifications.  The first element of each
+specification is the type, and the rest is something that can be used
+as an icon of that type, and then optionally followed by a keyword
+list.  The following types are available:
+
+@table @code
+@item image
+In this case, there may be many images listed as candidates.  Emacs
+will choose the first one that the current Emacs instance can show.
+If an image listed is an absolute file name, it's used as is, but it's
+otherwise looked up in the image load path.
+
+@item emoji
+This should be a (possibly colorful) emoji.
+
+@item symbol
+This should be a (monochrome) symbol.
+
+@item text
+Icons should also have a textual fallback.  This can also be used for
+by the visually impaired: If @code{icon-preference} is just
+@code{(text)}, all icons will be replaced by text.
+@end table
+
+Various keywords may follow the list of icon specifications.  For
+instance:
+
+@example
+(symbol "▶" "➤" :face icon-button)
+@end example
+
+Unknown keywords are ignored.  The following keywords are allowed:
+
+@table @code
+@item :face
+The face to be used.
+
+@item :height
+This is only valid for @code{image} icons, and can be either a number
+(which specifies the height in pixels), or the symbol @code{line},
+which will use the default line height in the currently selected
+window.
+@end table
+
+@var{doc} should be a doc string.
+
+@var{keywords} is a list of keyword/value pairs.  The following
+keywords are allowed:
+
+@table @code
+@item :version
+The (approximate) Emacs version this button first appeared.  (This
+keyword is mandatory.)
+
+@item :group
+The customization group this icon belongs in.  If not present, it is
+inferred.
+
+@item :help-echo
+The help string shown when hovering over the icon with the mouse
+pointer.
+@end table
+@end defmac
+
+@defun icon-string icon
+This function returns a string suitable for display in the current
+buffer for @var{icon}.
+@end defun
+
+@defun icon-elements icon
+Alternatively, you can get a ``deconstructed'' version of @var{icon}
+with this function.  This returns a plist where the keys are
+@code{string}, @code{face} and @var{image}.  (The latter is only
+present if the icon is represented by an image.)  This can be useful
+if the icon isn't to be inserted directly in the buffer, but needs
+some sort of post-processing first.
+@end defun
+
+Icons can be customized with @kbd{M-x customize-icon}.  Themes can
+specify changes to icons with, for instance:
+
+@lisp
+(custom-theme-set-icons
+  'my-theme
+  '(outline-open ((image :height 100)
+                  (text " OPEN ")))
+  '(outline-close ((image :height 100)
+                   (text " CLOSE " :face warning))))
+@end lisp
+
 
 @node Xwidgets
 @section Embedded Native Widgets

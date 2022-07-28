@@ -910,7 +910,7 @@ symbol `set', then VALUE is the value to use.  If it is the symbol
 `reset', then SYMBOL will be removed from THEME (VALUE is ignored).
 
 See `custom-known-themes' for a list of known themes."
-  (unless (memq prop '(theme-value theme-face))
+  (unless (memq prop '(theme-value theme-face theme-icon))
     (error "Unknown theme property"))
   (let* ((old (get symbol prop))
 	 (setting (assq theme old))  ; '(theme value)

@@ -511,6 +511,9 @@ Set up a customization buffer for just one user option, @var{option}.
 @item M-x customize-face @key{RET} @var{face} @key{RET}
 Set up a customization buffer for just one face, @var{face}.
 
+@item M-x customize-icon @key{RET} @var{face} @key{RET}
+Set up a customization buffer for just one icon, @var{icon}.
+
 @item M-x customize-group @key{RET} @var{group} @key{RET}
 Set up a customization buffer for just one group, @var{group}.
 
