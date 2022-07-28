@@ -2411,7 +2411,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (keymap-set tab-prefix-map "M"   #'tab-move-to)
 (keymap-set tab-prefix-map "G"   #'tab-group)
 (keymap-set tab-prefix-map "r"   #'tab-rename)
-(keymap-set tab-prefix-map "r"   #'tab-switch)
+(keymap-set tab-prefix-map "RET" #'tab-switch)
 (keymap-set tab-prefix-map "b"   #'switch-to-buffer-other-tab)
 (keymap-set tab-prefix-map "f"   #'find-file-other-tab)
 (keymap-set tab-prefix-map "C-f" #'find-file-other-tab)
