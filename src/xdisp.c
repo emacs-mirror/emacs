@@ -3547,12 +3547,6 @@ unwind_narrowed_begv (Lisp_Object point_min)
   SET_BUF_BEGV (current_buffer, XFIXNUM (point_min));
 }
 
-static void
-unwind_narrowed_zv (Lisp_Object point_max)
-{
-  SET_BUF_ZV (current_buffer, XFIXNUM (point_max));
-}
-
 /* Set DST to EXPR.  When IT indicates that BEGV should temporarily be
    updated to optimize display, evaluate EXPR with BEGV set to BV.  */
 
@@ -4414,13 +4408,8 @@ handle_fontified_prop (struct it *it)
       eassert (it->end_charpos == ZV);
 
       if (it->narrowed_begv)
-	{
-	  record_unwind_protect (unwind_narrowed_begv, Fpoint_min ());
-	  record_unwind_protect (unwind_narrowed_zv, Fpoint_max ());
-	  SET_BUF_BEGV (current_buffer, it->narrowed_begv);
-	  SET_BUF_ZV (current_buffer, it->narrowed_zv);
-	  specbind (Qinhibit_widen, Qt);
-	}
+	Fnarrow_to_region (make_fixnum (it->narrowed_begv),
+			   make_fixnum (it->narrowed_zv), Qt);
 
       /* Don't allow Lisp that runs from 'fontification-functions'
 	 clear our face and image caches behind our back.  */

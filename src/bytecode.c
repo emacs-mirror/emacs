@@ -1481,7 +1481,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bnarrow_to_region):
 	  {
 	    Lisp_Object v1 = POP;
-	    TOP = Fnarrow_to_region (TOP, v1);
+	    TOP = Fnarrow_to_region (TOP, v1, Qnil);
 	    NEXT;
 	  }
 

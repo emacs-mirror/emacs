@@ -995,13 +995,18 @@ the entire buffer regardless of any narrowing.
 types of text, consider using an alternative facility described in
 @ref{Swapping Text}.
 
-@deffn Command narrow-to-region start end
+@deffn Command narrow-to-region start end &optional lock
 This function sets the accessible portion of the current buffer to start
 at @var{start} and end at @var{end}.  Both arguments should be character
 positions.
 
 In an interactive call, @var{start} and @var{end} are set to the bounds
 of the current region (point and the mark, with the smallest first).
+
+When @var{lock} is non-@code{nil}, calls to @code{widen}, or to
+@code{narrow-to-region} with an optional argument @var{lock}
+@code{nil}, do not produce any effect until the end of the current
+body form.
 @end deffn
 
 @deffn Command narrow-to-page &optional move-count
@@ -1026,6 +1031,10 @@ It is equivalent to the following expression:
 (narrow-to-region 1 (1+ (buffer-size)))
 @end example
 @end deffn
+
+However, when @code{widen} is called inside a body form in which
+@code{narrow-to-region} was called with an optional argument
+@code{lock} non-@code{nil}, it does not produce any effect.
 
 @defun buffer-narrowed-p
 This function returns non-@code{nil} if the buffer is narrowed, and
