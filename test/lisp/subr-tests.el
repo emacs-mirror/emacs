@@ -374,6 +374,8 @@
   (should-not (string-equal-ignore-case "abc" "abCD"))
   (should (string-equal-ignore-case "S" "s"))
   (should (string-equal-ignore-case "ẞ" "ß"))
+  (should (string-equal-ignore-case "ǲ" "Ǳ"))
+  (should (string-equal-ignore-case "Όσος" "ΌΣΟΣ"))
   ;; not yet: (should (string-equal-ignore-case "SS" "ß"))
   ;; not yet: (should (string-equal-ignore-case "SS" "ẞ"))
 
