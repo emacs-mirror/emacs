@@ -1451,8 +1451,7 @@ If so restore the actual mbox message collection."
   (setq-local font-lock-defaults
               '(rmail-font-lock-keywords
                 t t nil nil
-                (font-lock-dont-widen . t)
-                (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
+                (font-lock-dont-widen . t)))
   (setq-local require-final-newline nil)
   (setq-local version-control 'never)
   (add-hook 'kill-buffer-hook #'rmail-mode-kill-summary nil t)

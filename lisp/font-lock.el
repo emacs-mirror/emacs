@@ -490,8 +490,7 @@ of the line, i.e., cause the MATCHER search to span lines.
 These regular expressions can match text which spans lines,
 although it is better to avoid it if possible since updating them
 while editing text is slower, and it is not guaranteed to be
-always correct when using support modes like jit-lock or
-lazy-lock.
+always correct.
 
 This variable is set by major modes via the variable
 `font-lock-defaults'.  Be careful when composing regexps for this
@@ -623,11 +622,8 @@ fontified.")
 It should take two args, the beginning and end of the region.
 This is normally set via `font-lock-defaults'.")
 
-(defvar font-lock-inhibit-thing-lock nil
-  "List of Font Lock mode related modes that should not be turned on.
-Currently, valid mode names are `fast-lock-mode', `jit-lock-mode' and
-`lazy-lock-mode'.  This is normally set via `font-lock-defaults'.")
-(make-obsolete-variable 'font-lock-inhibit-thing-lock nil "25.1")
+(defvar font-lock-inhibit-thing-lock nil)
+(make-obsolete-variable 'font-lock-inhibit-thing-lock "it does nothing." "25.1")
 
 (defvar-local font-lock-multiline nil
   "Whether font-lock should cater to multiline keywords.
@@ -642,7 +638,6 @@ Major/minor modes can set this variable if they know which option applies.")
 
 (eval-when-compile
   ;;
-  ;; Borrowed from lazy-lock.el.
   ;; We use this to preserve or protect things when modifying text properties.
   (defmacro save-buffer-state (&rest body)
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
@@ -881,65 +876,17 @@ happens, so the major mode can be corrected."
 
 ;;; Font Lock Support mode.
 
-;; This is the code used to interface font-lock.el with any of its add-on
-;; packages, and provide the user interface.  Packages that have their own
-;; local buffer fontification functions (see below) may have to call
-;; `font-lock-after-fontify-buffer' and/or `font-lock-after-unfontify-buffer'
-;; themselves.
-
-(defcustom font-lock-support-mode 'jit-lock-mode
+(defvar font-lock-support-mode #'jit-lock-mode
   "Support mode for Font Lock mode.
-Support modes speed up Font Lock mode by being choosy about when fontification
-occurs.  The default support mode, Just-in-time Lock mode (symbol
-`jit-lock-mode'), is recommended.
-
-Other, older support modes are Fast Lock mode (symbol `fast-lock-mode') and
-Lazy Lock mode (symbol `lazy-lock-mode').  See those modes for more info.
-However, they are no longer recommended, as Just-in-time Lock mode is better.
-
 If nil, means support for Font Lock mode is never performed.
-If a symbol, use that support mode.
-If a list, each element should be of the form (MAJOR-MODE . SUPPORT-MODE),
-where MAJOR-MODE is a symbol or t (meaning the default).  For example:
- ((c-mode . fast-lock-mode) (c++-mode . fast-lock-mode) (t . lazy-lock-mode))
-means that Fast Lock mode is used to support Font Lock mode for buffers in C or
-C++ modes, and Lazy Lock mode is used to support Font Lock mode otherwise.
+This can be useful for debugging.
 
-The value of this variable is used when Font Lock mode is turned on."
-  :type '(choice (const :tag "none" nil)
-		 (const :tag "fast lock" fast-lock-mode)
-		 (const :tag "lazy lock" lazy-lock-mode)
-		 (const :tag "jit lock" jit-lock-mode)
-		 (repeat :menu-tag "mode specific" :tag "mode specific"
-			 :value ((t . jit-lock-mode))
-			 (cons :tag "Instance"
-			       (radio :tag "Mode"
-				      (const :tag "all" t)
-				      (symbol :tag "name"))
-			       (radio :tag "Support"
-				      (const :tag "none" nil)
-				      (const :tag "fast lock" fast-lock-mode)
-				      (const :tag "lazy lock" lazy-lock-mode)
-				      (const :tag "JIT lock" jit-lock-mode)))
-			 ))
-  :version "21.1"
-  :group 'font-lock)
+The value of this variable is used when Font Lock mode is turned on.")
 
-(defvar fast-lock-mode)
-(defvar lazy-lock-mode)
 (defvar jit-lock-mode)
-
-(declare-function fast-lock-after-fontify-buffer "fast-lock")
-(declare-function fast-lock-after-unfontify-buffer "fast-lock")
-(declare-function fast-lock-mode "fast-lock")
-(declare-function lazy-lock-after-fontify-buffer "lazy-lock")
-(declare-function lazy-lock-after-unfontify-buffer "lazy-lock")
-(declare-function lazy-lock-mode "lazy-lock")
 
 (defun font-lock-turn-on-thing-lock ()
   (pcase (font-lock-value-in-major-mode font-lock-support-mode)
-    ('fast-lock-mode (fast-lock-mode t))
-    ('lazy-lock-mode (lazy-lock-mode t))
     ('jit-lock-mode
      ;; Prepare for jit-lock
      (remove-hook 'after-change-functions
@@ -962,39 +909,11 @@ The value of this variable is used when Font Lock mode is turned on."
                nil t))))
 
 (defun font-lock-turn-off-thing-lock ()
-  (cond ((bound-and-true-p fast-lock-mode)
-	 (fast-lock-mode -1))
-	((bound-and-true-p jit-lock-mode)
+  (cond ((bound-and-true-p jit-lock-mode)
 	 (jit-lock-unregister 'font-lock-fontify-region)
 	 ;; Reset local vars to the non-jit-lock case.
-	 (kill-local-variable 'font-lock-fontify-buffer-function))
-	((bound-and-true-p lazy-lock-mode)
-	 (lazy-lock-mode -1))))
+         (kill-local-variable 'font-lock-fontify-buffer-function))))
 
-(defun font-lock-after-fontify-buffer ()
-  (cond ((bound-and-true-p fast-lock-mode)
-	 (fast-lock-after-fontify-buffer))
-	;; Useless now that jit-lock intercepts font-lock-fontify-buffer.  -sm
-	;; (jit-lock-mode
-	;;  (jit-lock-after-fontify-buffer))
-	((bound-and-true-p lazy-lock-mode)
-	 (lazy-lock-after-fontify-buffer))))
-
-(defun font-lock-after-unfontify-buffer ()
-  (cond ((bound-and-true-p fast-lock-mode)
-	 (fast-lock-after-unfontify-buffer))
-	;; Useless as well.  It's only called when:
-	;; - turning off font-lock: it does not matter if we leave spurious
-	;;   `fontified' text props around since jit-lock-mode is also off.
-	;; - font-lock-default-fontify-buffer fails: this is not run
-	;;   any more anyway.   -sm
-	;;
-	;; (jit-lock-mode
-	;;  (jit-lock-after-unfontify-buffer))
-	((bound-and-true-p lazy-lock-mode)
-	 (lazy-lock-after-unfontify-buffer))))
-
-;; End of Font Lock Support mode.
 
 ;;; Fontification functions.
 
@@ -1160,7 +1079,6 @@ Lock mode."
 	    (save-excursion
 	      (save-match-data
 		(font-lock-fontify-region (point-min) (point-max) verbose)
-		(font-lock-after-fontify-buffer)
 		(setq font-lock-fontified t)))
 	  ;; We don't restore the old fontification, so it's best to unfontify.
 	  (quit (font-lock-unfontify-buffer)))))))
@@ -1171,7 +1089,6 @@ Lock mode."
   (save-restriction
     (widen)
     (font-lock-unfontify-region (point-min) (point-max))
-    (font-lock-after-unfontify-buffer)
     (setq font-lock-fontified nil)))
 
 (defvar font-lock-dont-widen nil
@@ -2395,6 +2312,10 @@ This should be an integer.  Used in `cpp-font-lock-keywords'.")
 for C preprocessor directives.  This definition is for the other modes
 in which C preprocessor directives are used, e.g. `asm-mode' and
 `ld-script-mode'.")
+
+(define-obsolete-function-alias 'font-lock-after-fontify-buffer #'ignore "29.1")
+(define-obsolete-function-alias 'font-lock-after-unfontify-buffer #'ignore "29.1")
+
 
 (provide 'font-lock)
 

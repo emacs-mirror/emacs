@@ -343,6 +343,14 @@ Use 'skeleton' or 'tempo' instead.
 ** The rlogin.el library and 'rsh' command are now obsolete.
 Use something like 'M-x shell RET ssh <host> RET' instead.
 
+---
+** The fast-lock.el and lazy-lock.el library have been removed.
+They have been obsolete since Emacs 22.1.
+
+The variable 'font-lock-support-mode' is occasionally useful for
+debugging purposes.  It is now a regular variable (instead of a user
+option) and can be set to nil to disable Just-in-time Lock mode.
+
 
 * Changes in Emacs 29.1
 
