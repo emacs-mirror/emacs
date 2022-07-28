@@ -432,6 +432,11 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
+  /* Clear the grab view manually.  There is a race condition here if
+     the window thread receives a button press between here and the
+     end of BMenu_run.  */
+  be_clear_grab_view ();
+
   if (menu_item_selection)
     {
       prefix = entry = Qnil;

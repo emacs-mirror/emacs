@@ -1930,11 +1930,14 @@ public:
     button = (grabbed_buttons & ~buttons);
     grabbed_buttons = buttons;
 
-    if (!grabbed_buttons && wait_for_release_message)
+    if (wait_for_release_message)
       {
-	wait_for_release_message->SendReply (wait_for_release_message);
-	delete wait_for_release_message;
-	wait_for_release_message = NULL;
+	if (!grabbed_buttons)
+	  {
+	    wait_for_release_message->SendReply (wait_for_release_message);
+	    delete wait_for_release_message;
+	    wait_for_release_message = NULL;
+	  }
 
 	return;
       }
@@ -5456,4 +5459,18 @@ be_get_explicit_workarea (int *x, int *y, int *width, int *height)
   *height = BE_RECT_HEIGHT (zoom);
 
   return true;
+}
+
+/* Clear the grab view.  This has to be called manually from some
+   places, since we don't get B_MOUSE_UP messages after a popup menu
+   is run.  */
+
+void
+be_clear_grab_view (void)
+{
+  if (grab_view_locker.Lock ())
+    {
+      grab_view = NULL;
+      grab_view_locker.Unlock ();
+    }
 }
