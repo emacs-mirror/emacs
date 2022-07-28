@@ -1662,7 +1662,7 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	 problems if, for instance, the callback function switches a
 	 window to this buffer -- this will make Emacs segfault.  */
       if (!NILP (Vprint__unreadable_callback_buffer)
-	  && Fbuffer_live_p (Vprint__unreadable_callback_buffer))
+	  && !NILP (Fbuffer_live_p (Vprint__unreadable_callback_buffer)))
 	{
 	  record_unwind_current_buffer ();
 	  set_buffer_internal (XBUFFER (Vprint__unreadable_callback_buffer));
