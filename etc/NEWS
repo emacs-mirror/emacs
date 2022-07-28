@@ -337,13 +337,13 @@ Use something like 'M-x shell RET ssh <host> RET' instead.
 ** Emacs is now capable of editing files with arbitrarily long lines.
 The display of long lines has been optimized, and Emacs no longer
 chokes when a buffer on display contains long lines.  If you still
-experience slowdowns while editing files with long lines, this is
-either due to font locking, which you can turn off with M-x
-font-lock-mode or C-u C-x x f, or to the current major mode or one of
-the enabled minor modes, in which case you should open the the file
-with M-x find-file-literally instead of C-x C-f.  The variable
-'long-line-threshold' controls whether and when these display
-optimizations are used.
+experience slowdowns while editing files with long lines, this is due
+either to the current major mode or one of the enabled minor modes, in
+which case you should open the the file with M-x find-file-literally
+instead of C-x C-f, or to truncation of long lines, which you can
+disable with C-x x t.  The buffer may also be occasionally
+mis-fontified.  The variable 'long-line-threshold' controls whether
+and when these display optimizations are used.
 
 +++
 ** New command to change the font size globally.
