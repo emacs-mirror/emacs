@@ -24505,7 +24505,7 @@ Set restriction lock for agenda to current subtree or file.
 When in a restricted subtree, remove it.
 
 The restriction will span over the entire file if TYPE is `file',
-or if type is '(4), or if the cursor is before the first headline
+or if type is \\='(4), or if the cursor is before the first headline
 in the file.  Otherwise, only apply the restriction to the current
 subtree.
 
