@@ -28,6 +28,11 @@
 (require 'ert-x)
 (require 'ffap)
 
+(ert-deftest ffap-replace-file-component ()
+  (should (equal
+           (ffap-replace-file-component "/ftp:who@foo.com:/whatever" "/new")
+           "/ftp:who@foo.com:/new")))
+
 (ert-deftest ffap-tests-25243 ()
   "Test for https://debbugs.gnu.org/25243 ."
   (ert-with-temp-file file

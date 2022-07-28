@@ -492,7 +492,6 @@ Returned values:
   (and (stringp fullname)
        (stringp name)
        (concat (file-remote-p fullname) name)))
-;; (ffap-replace-file-component "/who@foo.com:/whatever" "/new")
 
 (defun ffap-file-suffix (file)
   "Return trailing `.foo' suffix of FILE, or nil if none."
