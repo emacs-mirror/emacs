@@ -17518,16 +17518,16 @@ If you have a directory that has lots of articles in separate files in
 it, you might treat it as a newsgroup.  The files have to have numerical
 names, of course.
 
-This might be an opportune moment to mention @code{ange-ftp} (and its
-successor @code{efs}), that most wonderful of all wonderful Emacs
-packages.  When I wrote @code{nndir}, I didn't think much about it---a
-back end to read directories.  Big deal.
+This might be an opportune moment to mention @code{ange-ftp}, that
+most wonderful of all wonderful Emacs packages.  When I wrote
+@code{nndir}, I didn't think much about it---a back end to read
+directories.  Big deal.
 
 @code{ange-ftp} changes that picture dramatically.  For instance, if you
 enter the @code{ange-ftp} file name
 @file{/ftp.hpc.uh.edu:/pub/emacs/ding-list/} as the directory name,
-@code{ange-ftp} or @code{efs} will actually allow you to read this
-directory over at @samp{sina} as a newsgroup.  Distributed news ahoy!
+@code{ange-ftp} will actually allow you to read this directory over at
+@samp{sina} as a newsgroup.  Distributed news ahoy!
 
 @code{nndir} will use @acronym{NOV} files if they are present.
 
@@ -26778,7 +26778,7 @@ on finding a separator line between the head and the body.  If this
 variable is @code{nil}, there is no upper read bound.  If it is
 @code{t}, the back ends won't try to read the articles piece by piece,
 but read the entire articles.  This makes sense with some versions of
-@code{ange-ftp} or @code{efs}.
+@code{ange-ftp}.
 
 @item nnheader-head-chop-length
 @vindex nnheader-head-chop-length

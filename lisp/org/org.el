@@ -1357,7 +1357,7 @@ Possible values for the file identifier are:
                      to open [[file:document.pdf::5]] with evince at page 5.
 
  `directory'   Matches a directory
- `remote'      Matches a remote file, accessible through tramp or efs.
+ `remote'      Matches a remote file, accessible through tramp.
                Remote files most likely should be visited through Emacs
                because external applications cannot handle such paths.
 `auto-mode'    Matches files that are matched by any entry in `auto-mode-alist',

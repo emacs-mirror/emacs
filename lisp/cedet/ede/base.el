@@ -204,7 +204,7 @@ This is a URL to be sent to a web site for documentation.")
 		       :group name
 		       :documentation
 		       "A directory where web pages can be found by Emacs.
-For remote locations use a path compatible with ange-ftp or EFS.
+For remote locations use a path compatible with ange-ftp.
 You can also use TRAMP for use with rcp & scp.")
    (web-site-file :initarg :web-site-file
 		  :initform ""
@@ -214,7 +214,7 @@ You can also use TRAMP for use with rcp & scp.")
 		  :documentation
                   "A file which contains the website for this project.
 This file can be relative to slot `web-site-directory'.
-This can be a local file, use ange-ftp, EFS, or TRAMP.")
+This can be a local file, use ange-ftp or TRAMP.")
    (ftp-site :initarg :ftp-site
 	     :initform ""
 	     :type string

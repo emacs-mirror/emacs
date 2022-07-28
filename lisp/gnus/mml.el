@@ -1514,7 +1514,7 @@ BUFFER is the name of the buffer to attach.  See
 
 (defun mml-attach-external (file &optional type description)
   "Attach an external file into the buffer.
-FILE is an ange-ftp/efs specification of the part location.
+FILE is an ange-ftp specification of the part location.
 TYPE is the MIME type to use."
   (interactive
    (let* ((file (mml-minibuffer-read-file "Attach external file: "))
