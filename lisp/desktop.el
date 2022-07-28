@@ -791,7 +791,10 @@ if different)."
 
 ;; ----------------------------------------------------------------------------
 (unless noninteractive
-  (add-hook 'kill-emacs-query-functions #'desktop-kill))
+  (add-hook 'kill-emacs-query-functions #'desktop-kill)
+  ;; Certain things should be done even if
+  ;; `kill-emacs-query-functions' are not called.
+  (add-hook 'kill-emacs-hook #'desktop--on-kill))
 
 (defun desktop-kill ()
   "If `desktop-save-mode' is non-nil, do what `desktop-save' says to do.
@@ -818,12 +821,15 @@ is nil, ask the user where to save the desktop."
       (file-error
        (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
 	 (signal (car err) (cdr err))))))
+  (desktop--on-kill)
+  t)
+
+(defun desktop--on-kill ()
   ;; If we own it, we don't anymore.
   (when (eq (emacs-pid) (desktop-owner))
     ;; Allow exiting Emacs even if we can't delete the desktop file.
     (ignore-error 'file-error
-      (desktop-release-lock)))
-  t)
+      (desktop-release-lock))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-list* (&rest args)
