@@ -846,6 +846,11 @@ VALUE is SELECTION's local selection value."
        (file-exists-p value)
        (not (file-remote-p value))))
 
+(defun xselect-dnd-target-available-p (selection _type _value)
+  "Return whether or not TYPE is a valid target for SELECTION.
+VALUE is SELECTION's local selection value."
+  (eq selection 'XdndSelection))
+
 (defun xselect-tt-net-file (file)
   "Get the canonical ToolTalk filename for FILE.
 FILE must be a local file, or otherwise the conversion will fail.
@@ -890,7 +895,8 @@ VALUE should be SELECTION's local value."
 	(text/plain\;charset=utf-8 . xselect-convert-to-string)
         (text/uri-list . (xselect-uri-list-available-p
                           . xselect-convert-to-text-uri-list))
-        (text/x-xdnd-username . xselect-convert-to-username)
+        (text/x-xdnd-username . (xselect-dnd-target-available-p
+                                 . xselect-convert-to-username))
         (FILE . (xselect-uri-list-available-p
                  . xselect-convert-to-xm-file))
 	(TARGETS . xselect-convert-to-targets)
@@ -909,8 +915,10 @@ VALUE should be SELECTION's local value."
 	(INTEGER . xselect-convert-to-integer)
 	(SAVE_TARGETS . xselect-convert-to-save-targets)
 	(_EMACS_INTERNAL . xselect-convert-to-identity)
-        (XmTRANSFER_SUCCESS . xselect-convert-xm-special)
-        (XmTRANSFER_FAILURE . xselect-convert-xm-special)
+        (XmTRANSFER_SUCCESS . (xselect-dnd-target-available-p
+                               . xselect-convert-xm-special))
+        (XmTRANSFER_FAILURE . (xselect-dnd-target-available-p
+                               . xselect-convert-xm-special))
         (_DT_NETFILE . (xselect-dt-netfile-available-p
                         . xselect-convert-to-dt-netfile))))
 
