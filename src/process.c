@@ -6339,7 +6339,7 @@ Otherwise it discards the output.  */)
 
       /* If the restriction isn't what it should be, set it.  */
       if (old_begv != BEGV || old_zv != ZV)
-	Fnarrow_to_region (make_fixnum (old_begv), make_fixnum (old_zv));
+	Fnarrow_to_region (make_fixnum (old_begv), make_fixnum (old_zv), Qnil);
 
       bset_read_only (current_buffer, old_read_only);
       SET_PT_BOTH (opoint, opoint_byte);

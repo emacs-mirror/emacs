@@ -2658,9 +2658,15 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
 
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
-This allows the buffer's full text to be seen and edited.  */)
+This allows the buffer's full text to be seen and edited.
+
+When called from Lisp inside a body form in which `narrow-to-region'
+was called with an optional argument LOCK non-nil, this function does
+not produce any effect.  */)
   (void)
 {
+  if (! NILP (Vrestrictions_locked))
+    return Qnil;
   if (BEG != BEGV || Z != ZV)
     current_buffer->clip_changed = 1;
   BEGV = BEG;
@@ -2671,7 +2677,19 @@ This allows the buffer's full text to be seen and edited.  */)
   return Qnil;
 }
 
-DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 2, "r",
+static void
+unwind_locked_begv (Lisp_Object point_min)
+{
+  SET_BUF_BEGV (current_buffer, XFIXNUM (point_min));
+}
+
+static void
+unwind_locked_zv (Lisp_Object point_max)
+{
+  SET_BUF_ZV (current_buffer, XFIXNUM (point_max));
+}
+
+DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 3, "r",
        doc: /* Restrict editing in this buffer to the current region.
 The rest of the text becomes temporarily invisible and untouchable
 but is not deleted; if you save the buffer in a file, the invisible
@@ -2680,8 +2698,13 @@ See also `save-restriction'.
 
 When calling from Lisp, pass two arguments START and END:
 positions (integers or markers) bounding the text that should
-remain visible.  */)
-  (Lisp_Object start, Lisp_Object end)
+remain visible.
+
+When called from Lisp with the optional argument LOCK non-nil,
+calls to `widen', or to `narrow-to-region' with an optional
+argument LOCK nil, do not produce any effect until the end of
+the current body form.  */)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object lock)
 {
   EMACS_INT s = fix_position (start), e = fix_position (end);
 
@@ -2690,14 +2713,37 @@ remain visible.  */)
       EMACS_INT tem = s; s = e; e = tem;
     }
 
-  if (!(BEG <= s && s <= e && e <= Z))
-    args_out_of_range (start, end);
+  if (! NILP (lock))
+    {
+      if (!(BEGV <= s && s <= e && e <= ZV))
+	args_out_of_range (start, end);
 
-  if (BEGV != s || ZV != e)
-    current_buffer->clip_changed = 1;
+      if (BEGV != s || ZV != e)
+	current_buffer->clip_changed = 1;
 
-  SET_BUF_BEGV (current_buffer, s);
-  SET_BUF_ZV (current_buffer, e);
+      record_unwind_protect (unwind_locked_begv, Fpoint_min ());
+      record_unwind_protect (unwind_locked_zv, Fpoint_max ());
+
+      SET_BUF_BEGV (current_buffer, s);
+      SET_BUF_ZV (current_buffer, e);
+
+      specbind (Qrestrictions_locked, Qt);
+    }
+  else
+    {
+      if (! NILP (Vrestrictions_locked))
+	return Qnil;
+
+      if (!(BEG <= s && s <= e && e <= Z))
+	args_out_of_range (start, end);
+
+      if (BEGV != s || ZV != e)
+	current_buffer->clip_changed = 1;
+
+      SET_BUF_BEGV (current_buffer, s);
+      SET_BUF_ZV (current_buffer, e);
+    }
+
   if (PT < s)
     SET_PT (s);
   if (e < PT)
@@ -4516,6 +4562,15 @@ variable is nil.
 This variable is experimental; email 32252@debbugs.gnu.org if you need
 it to be non-nil.  */);
   binary_as_unsigned = false;
+
+  DEFSYM (Qrestrictions_locked, "restrictions-locked");
+  DEFVAR_LISP ("restrictions-locked", Vrestrictions_locked,
+	       doc: /* If non-nil, restrictions are currently locked.
+
+This happens when `narrow-to-region', which see, is called from Lisp
+with an optional argument LOCK non-nil.  */);
+  Vrestrictions_locked = Qnil;
+  Funintern (Qrestrictions_locked, Qnil);
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);
