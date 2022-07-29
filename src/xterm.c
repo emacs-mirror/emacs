@@ -6625,7 +6625,10 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
 {
   XEvent event;
 
-  if (!FRAME_X_WAITING_FOR_DRAW (f))
+  if (!FRAME_X_WAITING_FOR_DRAW (f)
+      /* The compositing manager can't draw a frame if it is
+	 unmapped.  */
+      || !FRAME_VISIBLE_P (f))
     return;
 
   /* Wait for the frame drawn message to arrive.  */
@@ -6647,6 +6650,25 @@ x_sync_update_begin (struct frame *f)
     return;
 
   value = FRAME_X_COUNTER_VALUE (f);
+
+  if (FRAME_X_OUTPUT (f)->ext_sync_end_pending_p)
+    {
+      FRAME_X_COUNTER_VALUE (f)
+	= FRAME_X_OUTPUT (f)->resize_counter_value;
+
+      value = FRAME_X_COUNTER_VALUE (f);
+
+      if (XSyncValueLow32 (value) % 2)
+	{
+	  XSyncIntToValue (&add, 1);
+	  XSyncValueAdd (&value, value, add, &overflow);
+
+	  if (overflow)
+	    XSyncIntToValue (&value, 0);
+	}
+
+      FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = false;
+    }
 
   /* Since a frame is already in progress, there is no point in
      continuing.  */
@@ -6686,9 +6708,6 @@ x_sync_update_finish (struct frame *f)
   Bool overflow;
 
   if (FRAME_X_EXTENDED_COUNTER (f) == None)
-    return;
-
-  if (FRAME_X_OUTPUT (f)->ext_sync_end_pending_p)
     return;
 
   value = FRAME_X_COUNTER_VALUE (f);
@@ -6824,11 +6843,12 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     }
 }
 
+#ifdef HAVE_XDBE
+
 /* Show the frame back buffer.  If frame is double-buffered,
    atomically publish to the user's screen graphics updates made since
    the last call to show_back_buffer.  */
 
-#ifdef HAVE_XDBE
 static void
 show_back_buffer (struct frame *f)
 {
@@ -6870,6 +6890,7 @@ show_back_buffer (struct frame *f)
 
   unblock_input ();
 }
+
 #endif
 
 /* Updates back buffer and flushes changes to display.  Called from
@@ -6927,11 +6948,7 @@ x_update_end (struct frame *f)
 static void
 XTframe_up_to_date (struct frame *f)
 {
-#if defined HAVE_XSYNC && !defined HAVE_GTK3
-  XSyncValue add;
-  XSyncValue current;
-  Bool overflow_p;
-#elif defined HAVE_XSYNC
+#if defined HAVE_XSYNC && defined HAVE_GTK3
   GtkWidget *widget;
   GdkWindow *window;
   GdkFrameClock *clock;
@@ -6956,34 +6973,6 @@ XTframe_up_to_date (struct frame *f)
 		       FRAME_X_BASIC_COUNTER (f),
 		       FRAME_X_OUTPUT (f)->pending_basic_counter_value);
       FRAME_X_OUTPUT (f)->sync_end_pending_p = false;
-    }
-
-  if (FRAME_X_OUTPUT (f)->ext_sync_end_pending_p
-      && FRAME_X_EXTENDED_COUNTER (f) != None)
-    {
-      current = FRAME_X_COUNTER_VALUE (f);
-
-      if (XSyncValueLow32 (current) % 2)
-	XSyncIntToValue (&add, 1);
-      else
-	XSyncIntToValue (&add, 2);
-
-      XSyncValueAdd (&FRAME_X_COUNTER_VALUE (f),
-		     current, add, &overflow_p);
-
-      if (overflow_p)
-	emacs_abort ();
-
-      XSyncSetCounter (FRAME_X_DISPLAY (f),
-		       FRAME_X_EXTENDED_COUNTER (f),
-		       FRAME_X_COUNTER_VALUE (f));
-
-      FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = false;
-
-#ifndef USE_GTK
-      if (FRAME_OUTPUT_DATA (f)->use_vsync_p)
-	FRAME_X_WAITING_FOR_DRAW (f) = true;
-#endif
     }
 #else
   if (FRAME_X_OUTPUT (f)->xg_sync_end_pending_p)
@@ -17023,7 +17012,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      }
 		    else if (event->xclient.data.l[4] == 1)
 		      {
-			XSyncIntsToValue (&FRAME_X_COUNTER_VALUE (f),
+			XSyncIntsToValue (&FRAME_X_OUTPUT (f)->resize_counter_value,
 					  event->xclient.data.l[2],
 					  event->xclient.data.l[3]);
 

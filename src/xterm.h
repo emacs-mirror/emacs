@@ -1038,6 +1038,9 @@ struct x_output
   /* The current value of the extended counter.  */
   XSyncValue current_extended_counter_value;
 
+  /* The configure event value of the extended counter.  */
+  XSyncValue resize_counter_value;
+
   /* Whether or not basic resize synchronization is in progress.  */
   bool_bf sync_end_pending_p : 1;
 
