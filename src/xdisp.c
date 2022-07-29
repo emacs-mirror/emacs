@@ -4415,6 +4415,7 @@ handle_fontified_prop (struct it *it)
 	  if (charpos < begv || charpos > zv)
 	    {
 	      begv = get_narrowed_begv (it->w, charpos);
+	      if (!begv) begv = BEGV;
 	      zv = get_narrowed_zv (it->w, charpos);
 	    }
 	  Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv), Qt);
