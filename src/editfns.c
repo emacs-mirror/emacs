@@ -2661,8 +2661,8 @@ DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
 This allows the buffer's full text to be seen and edited.
 
 When called from Lisp inside a body form in which `narrow-to-region'
-was called with an optional argument LOCK non-nil, this does not
-produce any effect.  */)
+was called with an optional argument LOCK non-nil, this function does
+not produce any effect.  */)
   (void)
 {
   if (! NILP (Vrestrictions_locked))

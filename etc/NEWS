@@ -334,16 +334,21 @@ Use something like 'M-x shell RET ssh <host> RET' instead.
 * Changes in Emacs 29.1
 
 ---
-** Emacs is now capable of editing files with arbitrarily long lines.
-The display of long lines has been optimized, and Emacs no longer
-chokes when a buffer on display contains long lines.  If you still
-experience slowdowns while editing files with long lines, this is due
-either to the current major mode or one of the enabled minor modes, in
-which case you should open the the file with M-x find-file-literally
-instead of C-x C-f, or to truncation of long lines, which you can
-disable with C-x x t.  The buffer may also be occasionally
-mis-fontified.  The variable 'long-line-threshold' controls whether
-and when these display optimizations are used.
+** Emacs is now capable of editing files with very long lines.
+The display of long lines has been optimized, and Emacs should no
+longer choke when a buffer on display contains long lines.  The
+variable 'long-line-threshold' controls whether and when these display
+optimizations are in effect.
+
+If you still experience slowdowns while editing files with long lines,
+this is due either to the current major mode or to one of the enabled
+minor modes.  Try disabling the minor modes, or turn on 'so-long-mode'
+or 'so-long-minor-mode', or visit the file with find-file-literally'
+instead of the usual 'C-x C-f'.  Another reason for slowdown could be
+line truncation, which you can turn off with 'C-x x t'.
+
+Note that the display optimizations in these cases may cause the
+buffer to be occasionally mis-fontified.
 
 +++
 ** New command to change the font size globally.
@@ -2458,10 +2463,10 @@ be saved.
 
 +++
 ** New argument LOCK of 'narrow-to-region'.
-When 'narrow-to-region' is called from Lisp with the optional third
-argument LOCK non-nil, calls to 'widen', or to 'narrow-to-region' with
-an optional argument LOCK nil, do not produce any effect until the end
-of the current body form.
+If 'narrow-to-region' is called from Lisp with the new optional
+argument LOCK non-nil, then calls to 'widen' and calls to
+'narrow-to-region' with the optional argument LOCK nil or omitted do
+not produce any effect until the end of the current body form.
 
 ** Themes
 
