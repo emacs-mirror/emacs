@@ -240,11 +240,10 @@ it passes it on to `dired'."
   :group 'ffap)
 
 (defcustom ffap-newfile-prompt nil
-  ;; Suggestion from RHOGEE, 11 Jul 1994.  Disabled, I think this is
-  ;; better handled by `find-file-not-found-functions'.
   "Whether `find-file-at-point' prompts about a nonexistent file."
   :type 'boolean
   :group 'ffap)
+(make-obsolete-variable 'ffap-newfile-prompt 'find-file-not-found-functions "29.1")
 
 (defcustom ffap-require-prefix nil
   ;; Suggestion from RHOGEE, 20 Oct 1994.
@@ -1611,7 +1610,7 @@ Uses the face `ffap' if it is defined, or else `highlight'."
 If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
-See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
+See also the variables `ffap-dired-wildcards',
 `ffap-url-unwrap-local', `ffap-url-unwrap-remote',
 `ffap-file-name-with-spaces', and the functions `ffap-file-at-point'
 and `ffap-url-at-point'."
