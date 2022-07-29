@@ -4407,8 +4407,9 @@ handle_fontified_prop (struct it *it)
 
       eassert (it->end_charpos == ZV);
 
-      if (it->narrowed_begv)
-	Fnarrow_to_region (make_fixnum (it->narrowed_begv),
+      if (current_buffer->long_line_optimizations_p)
+	Fnarrow_to_region (make_fixnum (it->narrowed_begv ?
+					it->narrowed_begv : BEGV),
 			   make_fixnum (it->narrowed_zv), Qt);
 
       /* Don't allow Lisp that runs from 'fontification-functions'
