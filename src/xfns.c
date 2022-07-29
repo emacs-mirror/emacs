@@ -976,6 +976,16 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	  gdk_x11_window_set_frame_sync_enabled (window, FALSE);
 	}
 #endif
+
+#if defined HAVE_XSYNC && !defined USE_GTK
+      /* Frame synchronization can't be used in child frames since
+	 they are not directly managed by the compositing manager.
+	 Re-enabling vsync in former child frames also leads to
+	 inconsistent display.  In addition, they can only be updated
+	 outside of a toplevel frame.  */
+      FRAME_X_OUTPUT (f)->use_vsync_p = false;
+      FRAME_X_WAITING_FOR_DRAW (f) = false;
+#endif
       unblock_input ();
 
       fset_parent_frame (f, new_value);
@@ -5113,7 +5123,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 
 #ifdef HAVE_XSYNC
-  if (dpyinfo->xsync_supported_p)
+  if (dpyinfo->xsync_supported_p
+      /* Frame synchronization isn't supported in child frames.  */
+      && NILP (parent_frame)
+      && !f->output_data.x->explicit_parent)
     {
 #ifndef HAVE_GTK3
       XSyncValue initial_value;
@@ -5148,6 +5161,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       (unsigned char *) &counters,
 		       ((STRINGP (value)
 			 && !strcmp (SSDATA (value), "extended")) ? 2 : 1));
+#endif
+
+#ifndef USE_GTK
+      if (FRAME_X_EXTENDED_COUNTER (f))
+	FRAME_X_OUTPUT (f)->use_vsync_p
+	  = x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
 #endif
     }
 #endif

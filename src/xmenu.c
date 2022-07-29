@@ -2536,6 +2536,9 @@ Lisp_Object
 x_menu_show (struct frame *f, int x, int y, int menuflags,
 	     Lisp_Object title, const char **error_name)
 {
+#ifdef HAVE_X_WINDOWS
+  Window dummy_window;
+#endif
   Window root;
   XMenu *menu;
   int pane, selidx, lpane, status;
@@ -2584,20 +2587,22 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   inhibit_garbage_collection ();
 
 #ifdef HAVE_X_WINDOWS
-  {
-    /* Adjust coordinates to relative to the outer (window manager) window. */
-    int left_off, top_off;
+  XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
-    x_real_pos_and_offsets (f, &left_off, NULL, &top_off, NULL,
-                            NULL, NULL, NULL, NULL, NULL);
+                         /* From-window, to-window.  */
+                         FRAME_X_WINDOW (f),
+                         FRAME_DISPLAY_INFO (f)->root_window,
 
-    x += left_off;
-    y += top_off;
-  }
-#endif /* HAVE_X_WINDOWS */
+                         /* From-position, to-position.  */
+                         x, y, &x, &y,
 
+                         /* Child of win.  */
+                         &dummy_window);
+#else
+  /* MSDOS without X support.  */
   x += f->left_pos;
   y += f->top_pos;
+#endif
 
   /* Create all the necessary panes and their items.  */
   maxwidth = maxlines = lines = i = 0;

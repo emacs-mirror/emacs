@@ -6597,6 +6597,43 @@ x_set_frame_alpha (struct frame *f)
  ***********************************************************************/
 
 #if defined HAVE_XSYNC && !defined USE_GTK
+static Bool
+x_sync_is_frame_drawn_event (Display *dpy, XEvent *event,
+			     XPointer user_data)
+{
+  struct frame *f;
+  struct x_display_info *dpyinfo;
+
+  f = (struct frame *) user_data;
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  if (event->type == ClientMessage
+      && (event->xclient.message_type
+	  == dpyinfo->Xatom_net_wm_frame_drawn)
+      && event->xclient.window == FRAME_OUTER_WINDOW (f))
+    return True;
+
+  return False;
+}
+
+/* Wait for the compositing manager to finish drawing the last frame.
+   If the compositing manager has already drawn everything, do
+   nothing.  */
+
+static void
+x_sync_wait_for_frame_drawn_event (struct frame *f)
+{
+  XEvent event;
+
+  if (!FRAME_X_WAITING_FOR_DRAW (f))
+    return;
+
+  /* Wait for the frame drawn message to arrive.  */
+  XIfEvent (FRAME_X_DISPLAY (f), &event,
+	    x_sync_is_frame_drawn_event, (XPointer) f);
+  FRAME_X_WAITING_FOR_DRAW (f) = false;
+}
+
 /* Tell the compositing manager to postpone updates of F until a frame
    has finished drawing.  */
 
@@ -6615,6 +6652,15 @@ x_sync_update_begin (struct frame *f)
      continuing.  */
   if (XSyncValueLow32 (value) % 2)
     return;
+
+  /* Wait for a pending frame draw event if the last frame has not yet
+     been drawn if F isn't double buffered.  (In double buffered
+     frames, this happens before buffer flipping).  */
+
+#ifdef HAVE_XDBE
+  if (!FRAME_X_DOUBLE_BUFFERED_P (f))
+#endif
+    x_sync_wait_for_frame_drawn_event (f);
 
   /* Since Emacs needs a non-urgent redraw, ensure that value % 4 ==
      0.  */
@@ -6668,7 +6714,20 @@ x_sync_update_finish (struct frame *f)
 		   FRAME_X_EXTENDED_COUNTER (f),
 		   FRAME_X_COUNTER_VALUE (f));
 
-  /* TODO: implement sync fences.  */
+  /* FIXME: this leads to freezes if the compositing manager crashes
+     in the meantime.  */
+  if (FRAME_OUTPUT_DATA (f)->use_vsync_p)
+    FRAME_X_WAITING_FOR_DRAW (f) = true;
+}
+
+/* Handle a _NET_WM_FRAME_DRAWN message from the compositor.  */
+
+static void
+x_sync_handle_frame_drawn (struct x_display_info *dpyinfo,
+			   XEvent *message, struct frame *f)
+{
+  if (FRAME_OUTER_WINDOW (f) == message->xclient.window)
+    FRAME_X_WAITING_FOR_DRAW (f) = false;
 }
 #endif
 
@@ -6775,16 +6834,26 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 static void
 show_back_buffer (struct frame *f)
 {
+  XdbeSwapInfo swap_info;
+#ifdef USE_CAIRO
+  cairo_t *cr;
+#endif
+
   block_input ();
 
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     {
+#if defined HAVE_XSYNC && !defined USE_GTK
+      /* Wait for drawing of the previous frame to complete before
+	 displaying this new frame.  */
+      x_sync_wait_for_frame_drawn_event (f);
+#endif
+
 #ifdef USE_CAIRO
-      cairo_t *cr = FRAME_CR_CONTEXT (f);
+      cr = FRAME_CR_CONTEXT (f);
       if (cr)
 	cairo_surface_flush (cairo_get_target (cr));
 #endif
-      XdbeSwapInfo swap_info;
       memset (&swap_info, 0, sizeof (swap_info));
       swap_info.swap_window = FRAME_X_WINDOW (f);
       swap_info.swap_action = XdbeCopied;
@@ -6911,6 +6980,11 @@ XTframe_up_to_date (struct frame *f)
 		       FRAME_X_COUNTER_VALUE (f));
 
       FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = false;
+
+#ifndef USE_GTK
+      if (FRAME_OUTPUT_DATA (f)->use_vsync_p)
+	FRAME_X_WAITING_FOR_DRAW (f) = true;
+#endif
     }
 #else
   if (FRAME_X_OUTPUT (f)->xg_sync_end_pending_p)
@@ -17072,8 +17146,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #if defined HAVE_XSYNC && !defined USE_GTK
 	/* These messages are sent by the compositing manager after a
 	   frame is drawn under extended synchronization.  */
-	if (event->xclient.message_type == dpyinfo->Xatom_net_wm_frame_drawn
-	    || event->xclient.message_type == dpyinfo->Xatom_net_wm_frame_timings)
+	if (event->xclient.message_type
+	    == dpyinfo->Xatom_net_wm_frame_drawn)
+	  {
+	    if (any)
+	      x_sync_handle_frame_drawn (dpyinfo, (XEvent *) event, any);
+
+	    goto done;
+	  }
+
+	if (event->xclient.message_type
+	    == dpyinfo->Xatom_net_wm_frame_timings)
 	  goto done;
 #endif
 
