@@ -6653,14 +6653,8 @@ x_sync_update_begin (struct frame *f)
   if (XSyncValueLow32 (value) % 2)
     return;
 
-  /* Wait for a pending frame draw event if the last frame has not yet
-     been drawn if F isn't double buffered.  (In double buffered
-     frames, this happens before buffer flipping).  */
-
-#ifdef HAVE_XDBE
-  if (!FRAME_X_DOUBLE_BUFFERED_P (f))
-#endif
-    x_sync_wait_for_frame_drawn_event (f);
+  /* Wait for the last frame to be drawn before drawing this one.  */
+  x_sync_wait_for_frame_drawn_event (f);
 
   /* Since Emacs needs a non-urgent redraw, ensure that value % 4 ==
      0.  */
@@ -6672,11 +6666,10 @@ x_sync_update_begin (struct frame *f)
   XSyncValueAdd (&FRAME_X_COUNTER_VALUE (f),
 		 value, add, &overflow);
 
-  if (XSyncValueLow32 (FRAME_X_COUNTER_VALUE (f)) % 4 != 1)
-    emacs_abort ();
-
   if (overflow)
-    XSyncIntToValue (&FRAME_X_COUNTER_VALUE (f), 1);
+    XSyncIntToValue (&FRAME_X_COUNTER_VALUE (f), 3);
+
+  eassert (XSyncValueLow32 (FRAME_X_COUNTER_VALUE (f)) % 4 != 1);
 
   XSyncSetCounter (FRAME_X_DISPLAY (f),
 		   FRAME_X_EXTENDED_COUNTER (f),
@@ -6741,7 +6734,10 @@ static void
 x_update_begin (struct frame *f)
 {
 #if defined HAVE_XSYNC && !defined USE_GTK
-  x_sync_update_begin (f);
+  /* If F is double-buffered, we can make the entire frame center
+     around XdbeSwapBuffers.  */
+  if (!FRAME_X_DOUBLE_BUFFERED_P (f))
+    x_sync_update_begin (f);
 #else
   /* Nothing to do.  */
 #endif
@@ -6847,6 +6843,9 @@ show_back_buffer (struct frame *f)
       /* Wait for drawing of the previous frame to complete before
 	 displaying this new frame.  */
       x_sync_wait_for_frame_drawn_event (f);
+
+      /* Begin a new frame.  */
+      x_sync_update_begin (f);
 #endif
 
 #ifdef USE_CAIRO
@@ -6858,7 +6857,13 @@ show_back_buffer (struct frame *f)
       swap_info.swap_window = FRAME_X_WINDOW (f);
       swap_info.swap_action = XdbeCopied;
       XdbeSwapBuffers (FRAME_X_DISPLAY (f), &swap_info, 1);
+
+#if defined HAVE_XSYNC && !defined USE_GTK
+      /* Finish the frame here.  */
+      x_sync_update_finish (f);
+#endif
     }
+
   FRAME_X_NEED_BUFFER_FLIP (f) = false;
 
   unblock_input ();
@@ -6883,10 +6888,7 @@ x_flip_and_flush (struct frame *f)
   block_input ();
 #ifdef HAVE_XDBE
   if (FRAME_X_NEED_BUFFER_FLIP (f))
-    {
-      show_back_buffer (f);
-      x_sync_update_finish (f);
-    }
+    show_back_buffer (f);
 #endif
   x_flush (f);
   unblock_input ();
@@ -6941,11 +6943,6 @@ XTframe_up_to_date (struct frame *f)
   if (!buffer_flipping_blocked_p ()
       && FRAME_X_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
-
-#if defined HAVE_XSYNC && !defined USE_GTK
-  if (FRAME_X_DOUBLE_BUFFERED_P (f))
-    x_sync_update_finish (f);
-#endif
 #endif
 
 #ifdef HAVE_XSYNC
@@ -17027,6 +17024,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			XSyncIntsToValue (&FRAME_X_COUNTER_VALUE (f),
 					  event->xclient.data.l[2],
 					  event->xclient.data.l[3]);
+
 			FRAME_X_OUTPUT (f)->ext_sync_end_pending_p = true;
 		      }
 

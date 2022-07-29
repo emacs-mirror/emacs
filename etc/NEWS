@@ -598,12 +598,21 @@ Only in the Lucid build, this controls colors used for highlighted
 menu item widgets.
 
 +++
-** On X11, Emacs now tries to synchronize window resize with the window manager.
+** On X, Emacs now tries to synchronize window resize with the window manager.
 This leads to less flicker and empty areas of a frame being displayed
 when a frame is being resized.  Unfortunately, it does not work on
 some ancient buggy window managers, so if Emacs appears to freeze, but
 is still responsive to input, you can turn it off by setting the X
 resource "synchronizeResize" to "off".
+
++++
+** On X, Emacs can optionally synchronize display with the graphics hardware.
+When this is enabled by setting the X resource "synchronizeResize" to
+"extended", frame content "tearing" is drastically reduced.  This is
+only supported on the Motif, Lucid, and no-toolkit builds, and
+requires an X compositing manager supporting the extended frame
+synchronization protocol (see
+https://fishsoup.net/misc/wm-spec-synchronization.html).
 
 +++
 ** New frame parameter 'alpha-background' and X resource "alphaBackground".

@@ -382,7 +382,9 @@ which prevents blank areas of a frame that have not yet been painted
 from being displayed.  If set to @samp{extended}, it will enable use
 of an alternative frame synchronization protocol, which might be
 supported by some compositing window managers that don't support the
-protocol Emacs uses by default.
+protocol Emacs uses by default, and causes Emacs to synchronize
+display with the monitor refresh rate when a compatible compositing
+window manager is in use.
 
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars on the left if @samp{left}, on the right if
