@@ -854,9 +854,10 @@ would be selected if you click a mouse or press @key{RET}.
 
 @node Icons
 @section Icons
+@cindex icons, on clickable buttons
 
 Emacs sometimes displays clickable buttons (or other informative
-icons), and the look of these can be customized by the user.
+icons), and you can customize how these look on display.
 
 @vindex icon-preference
 The main customization point here is the @code{icon-preference} user
