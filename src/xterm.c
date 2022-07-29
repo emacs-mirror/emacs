@@ -6736,7 +6736,9 @@ x_update_begin (struct frame *f)
 #if defined HAVE_XSYNC && !defined USE_GTK
   /* If F is double-buffered, we can make the entire frame center
      around XdbeSwapBuffers.  */
+#ifdef HAVE_XDBE
   if (!FRAME_X_DOUBLE_BUFFERED_P (f))
+#endif
     x_sync_update_begin (f);
 #else
   /* Nothing to do.  */
