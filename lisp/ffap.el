@@ -185,7 +185,7 @@ Note this name may be omitted if it equals the default
    "\\("
    "news\\(post\\)?:\\|mailto:\\|file:" ; no host ok
    "\\|"
-   "\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://" ; needs host
+   "\\(ftp\\|https?\\|telnet\\|gopher\\|gemini\\|www\\|wais\\)://" ; needs host
    "\\)")
   "Regexp matching the beginning of a URI, for ffap.
 If the value is nil, disable URL-matching features in ffap.")
