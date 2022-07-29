@@ -614,7 +614,7 @@ struct x_display_info
     Xatom_net_wm_state_shaded, Xatom_net_frame_extents, Xatom_net_current_desktop,
     Xatom_net_workarea, Xatom_net_wm_opaque_region, Xatom_net_wm_ping,
     Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
-    Xatom_net_wm_frame_drawn, Xatom_net_wm_user_time,
+    Xatom_net_wm_frame_drawn, Xatom_net_wm_frame_timings, Xatom_net_wm_user_time,
     Xatom_net_wm_user_time_window, Xatom_net_client_list_stacking,
     Xatom_net_wm_pid;
 
@@ -1211,8 +1211,12 @@ extern void x_mark_frame_dirty (struct frame *f);
 #endif
 
 #ifdef HAVE_XSYNC
-#define FRAME_X_BASIC_COUNTER(f) FRAME_X_OUTPUT (f)->basic_frame_counter
-#define FRAME_X_EXTENDED_COUNTER(f) FRAME_X_OUTPUT (f)->extended_frame_counter
+#define FRAME_X_BASIC_COUNTER(f)		\
+  FRAME_X_OUTPUT (f)->basic_frame_counter
+#define FRAME_X_EXTENDED_COUNTER(f)		\
+  FRAME_X_OUTPUT (f)->extended_frame_counter
+#define FRAME_X_COUNTER_VALUE(f)		\
+  FRAME_X_OUTPUT (f)->current_extended_counter_value
 #endif
 
 /* This is the Colormap which frame F uses.  */
