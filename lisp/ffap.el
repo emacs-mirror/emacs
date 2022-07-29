@@ -31,7 +31,7 @@
 ;; (`ffap-require-prefix' swaps these behaviors).  This is useful for
 ;; following references in situations such as mail or news buffers,
 ;; README's, MANIFEST's, and so on.  Submit bugs or suggestions with
-;; M-x report-emacs-bug.
+;; `M-x report-emacs-bug'.
 ;;
 ;; For the default installation, add this line to your init file:
 ;;
@@ -69,8 +69,8 @@
 ;; `ffap-bindings', or write your own.
 ;;
 ;; If you use ange-ftp, it is best to load or autoload it before ffap.
-;; If you use ff-paths, load it afterwards.  Try apropos {C-h a ffap
-;; RET} to get a list of the many option variables.  In particular, if
+;; If you use ff-paths, load it afterwards.  Try apropos `C-h a ffap
+;; RET' to get a list of the many option variables.  In particular, if
 ;; ffap is slow, try these:
 ;;
 ;; (setq ffap-alist nil)                ; faster, dumber prompting
@@ -86,8 +86,8 @@
 ;;; Code:
 
 ;;; Change Log:
-;; The History and Contributors moved to ffap.LOG,
-;; which also has some old examples and commentary from ffap 1.5.
+;; The History and Contributors moved to ffap.LOG, which also has some
+;; old examples and commentary from ffap 1.5.
 
 ;;; Todo list:
 ;; * let "/dir/file#key" jump to key (tag or regexp) in /dir/file
@@ -108,9 +108,6 @@
   "Find file or URL at point."
   :group 'matching
   :group 'convenience)
-
-;; The code is organized in pages, separated by formfeed characters.
-;; See the next two pages for standard customization ideas.
 
 
 ;;; User Variables:
@@ -246,7 +243,6 @@ it passes it on to `dired'."
 (make-obsolete-variable 'ffap-newfile-prompt 'find-file-not-found-functions "29.1")
 
 (defcustom ffap-require-prefix nil
-  ;; Suggestion from RHOGEE, 20 Oct 1994.
   "If set, reverses the prefix argument to `find-file-at-point'.
 This is nil so neophytes notice ffap.  Experts may prefer to disable
 ffap most of the time."
@@ -254,19 +250,19 @@ ffap most of the time."
   :group 'ffap)
 
 ;;;###autoload
-(defcustom ffap-file-finder 'find-file
+(defcustom ffap-file-finder #'find-file
   "The command called by `find-file-at-point' to find a file."
   :type 'function
   :group 'ffap
   :risky t)
 
-(defcustom ffap-directory-finder 'dired
+(defcustom ffap-directory-finder #'dired
   "The command called by `dired-at-point' to find a directory."
   :type 'function
   :group 'ffap
   :risky t)
 
-(defcustom ffap-url-fetcher 'browse-url
+(defcustom ffap-url-fetcher #'browse-url
   "A function of one argument, called by ffap to fetch an URL."
   :type '(choice (const browse-url)
 		 function)
@@ -306,10 +302,6 @@ disable ffap most of the time."
 
 
 ;;; Find Next Thing in buffer (`ffap-next'):
-;;
-;; Original ffap-next-url (URLs only) from RPECK 30 Mar 1995.  Since
-;; then, broke it up into ffap-next-guess (noninteractive) and
-;; ffap-next (a command).  It now work on files as well as url's.
 
 (defvar ffap-next-guess nil
   "Last value returned by `ffap-next-guess'.")
@@ -736,8 +728,7 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
 ;;
 ;; These search actions depend on the major-mode or regexps matching
 ;; the current name.  The little functions and their variables are
-;; deferred to the next section, at some loss of "code locality".  A
-;; good example of featuritis.  Trim this list for speed.
+;; deferred to the next section, at some loss of "code locality".
 
 (defvar ffap-alist
   '(
@@ -748,12 +739,12 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
     ("\\.elc?\\'" . ffap-el)		; simple.el, simple.elc
     (emacs-lisp-mode . ffap-el-mode)	; rmail, gnus, simple, custom
     ;; (lisp-interaction-mode . ffap-el-mode) ; maybe
-    (finder-mode . ffap-el-mode)	; type {C-h p} and try it
+    (finder-mode . ffap-el-mode)	; type `C-h p' and try it
     (help-mode . ffap-el-mode)		; maybe useful
     (c++-mode . ffap-c++-mode)         ; search ffap-c++-path
     (cc-mode . ffap-c-mode)		; same
     ("\\.\\([chCH]\\|cc\\|hh\\)\\'" . ffap-c-mode) ; stdio.h
-    (fortran-mode . ffap-fortran-mode)	; FORTRAN requested by MDB
+    (fortran-mode . ffap-fortran-mode)
     ("\\.[fF]\\'" . ffap-fortran-mode)
     (tex-mode . ffap-tex-mode)		; search ffap-tex-path
     (latex-mode . ffap-latex-mode)	; similar
@@ -1005,7 +996,6 @@ out of NAME."
 		    (match-beginning 1) (match-end 1)))))
 	   try))))
 
-;; Maybe a "Lisp Code Directory" reference:
 (defun ffap-lcd (name)
   (declare (obsolete nil "29.1"))
   (and
@@ -1076,8 +1066,7 @@ Function `ffap-string-at-point' uses the data fields as follows:
 The arguments CHARS, BEG and END are handled as described in
 `skip-chars-forward'.")
 
-(defvar ffap-string-at-point nil
-  ;; Added at suggestion of RHOGEE (for ff-paths), 7/24/95.
+(defvar ffap-string-at-point nil            ; for ff-paths
   "Last string returned by the function `ffap-string-at-point'.")
 
 (defcustom ffap-file-name-with-spaces nil
@@ -1529,12 +1518,6 @@ which may actually result in an URL rather than a filename."
       ;; during the completing-read call).
       (setq file-name-handler-alist (delq elem file-name-handler-alist)))))
 
-;; The rest of this page is just to work with package complete.el.
-;; This code assumes that you load ffap.el after complete.el.
-;;
-;; We must inform complete about whether our completion function
-;; will do filename style completion.
-
 
 ;;; Highlighting (`ffap-highlight'):
 
@@ -1641,14 +1624,14 @@ and `ffap-url-at-point'."
 	    (file-exists-p filename)
 	    (y-or-n-p "File does not exist, create buffer? "))
 	(find-file
-	 ;; expand-file-name fixes "~/~/.emacs" bug sent by CHUCKR.
+         ;; expand-file-name fixes "~/~/.emacs" bug
 	 (expand-file-name filename)))
        ;; User does not want to find a non-existent file:
        ((signal 'file-missing (list "Opening file buffer"
 				    "No such file or directory"
 				    filename)))))))
 
-;; Shortcut: allow {M-x ffap} rather than {M-x find-file-at-point}.
+;; Shortcut: allow `M-x ffap' rather than `M-x find-file-at-point'.
 ;;;###autoload
 (defalias 'ffap 'find-file-at-point)
 
@@ -1791,7 +1774,7 @@ Applies `ffap-menu-text-plist' text properties at all matches."
 
 ;;; Mouse Support (`ffap-at-mouse'):
 ;;
-;; See the suggested binding in ffap-bindings (near eof).
+;; See the suggested binding in `ffap-bindings' (near eof).
 
 (defvar ffap-at-mouse-fallback nil	; ffap-menu? too time-consuming
   "Command invoked by `ffap-at-mouse' if nothing found at click, or nil.
@@ -1852,7 +1835,7 @@ Only intended for interactive use."
   "Like `ffap', but put buffer in another frame.
 Only intended for interactive use."
   (interactive (list (ffap-prompter nil " other frame")))
-  ;; Extra code works around dedicated windows (noted by JENS, 7/96):
+  ;; Extra code works around dedicated windows:
   (let* ((win (selected-window))
 	 (wdp (window-dedicated-p win))
 	 value)
@@ -2079,7 +2062,7 @@ Only intended for interactive use."
   "Like `dired-at-point', but put buffer in another frame.
 Only intended for interactive use."
   (interactive)
-  ;; Extra code works around dedicated windows (noted by JENS, 7/96):
+  ;; Extra code works around dedicated windows:
   (let* ((win (selected-window))
 	 (wdp (window-dedicated-p win))
 	 value)
