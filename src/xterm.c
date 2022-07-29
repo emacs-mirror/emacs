@@ -6814,7 +6814,10 @@ x_flip_and_flush (struct frame *f)
   block_input ();
 #ifdef HAVE_XDBE
   if (FRAME_X_NEED_BUFFER_FLIP (f))
-    show_back_buffer (f);
+    {
+      show_back_buffer (f);
+      x_sync_update_finish (f);
+    }
 #endif
   x_flush (f);
   unblock_input ();
