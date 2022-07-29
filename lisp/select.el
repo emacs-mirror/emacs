@@ -829,7 +829,8 @@ This function returns the string \"emacs\"."
                             (concat value [0]))))
 
 (defun xselect-uri-list-available-p (selection _type value)
-  "Return whether or not `text/uri-list' is a valid target for SELECTION.
+  "Return non-nil if `text/uri-list' is a valid target for SELECTION.
+Return nil otherwise.
 VALUE is the local selection value of SELECTION."
   (and (eq selection 'XdndSelection)
        (or (stringp value)
@@ -839,7 +840,8 @@ VALUE is the local selection value of SELECTION."
   "")
 
 (defun xselect-dt-netfile-available-p (selection _type value)
-  "Return whether or not `_DT_NETFILE' is a valid target for SELECTION.
+  "Return non-nil if `_DT_NETFILE' is a valid target for SELECTION.
+Return nil otherwise.
 VALUE is SELECTION's local selection value."
   (and (eq selection 'XdndSelection)
        (stringp value)
@@ -847,7 +849,8 @@ VALUE is SELECTION's local selection value."
        (not (file-remote-p value))))
 
 (defun xselect-dnd-target-available-p (selection _type _value)
-  "Return whether or not TYPE is a valid target for SELECTION.
+  "Return non-nil if TYPE is a valid target for SELECTION.
+Return nil otherwise.
 VALUE is SELECTION's local selection value."
   (eq selection 'XdndSelection))
 
