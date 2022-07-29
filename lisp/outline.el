@@ -438,13 +438,6 @@ outline font-lock faces to those of major mode."
             (outline--insert-open-button)))
         (goto-char (match-end 0))))))
 
-(defun outline--use-buttons-p ()
-  (and outline-minor-mode
-       outline-minor-mode-use-buttons
-       (or (eq outline-minor-mode-use-buttons t)
-           (buffer-match-p outline-minor-mode-use-buttons
-                           (current-buffer)))))
-
 ;;;###autoload
 (define-minor-mode outline-minor-mode
   "Toggle Outline minor mode.
@@ -481,6 +474,13 @@ See the command `outline-mode' for more information on this mode."
     (remove-from-invisibility-spec '(outline . t))
     ;; When turning off outline mode, get rid of any outline hiding.
     (outline-show-all)))
+
+(defun outline--use-buttons-p ()
+  (and outline-minor-mode
+       outline-minor-mode-use-buttons
+       (or (eq outline-minor-mode-use-buttons t)
+           (buffer-match-p outline-minor-mode-use-buttons
+                           (current-buffer)))))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.
