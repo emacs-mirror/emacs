@@ -355,19 +355,19 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 * Changes in Emacs 29.1
 
 ---
-** Emacs is now capable of editing files with arbitrarily long lines.
-The display of long lines has been optimized, and Emacs no longer
-chokes when a buffer on display contains long lines.  The variable
-'long-line-threshold' controls whether and when these display
+** Emacs is now capable of editing files with very long lines.
+The display of long lines has been optimized, and Emacs should no
+longer choke when a buffer on display contains long lines.  The
+variable 'long-line-threshold' controls whether and when these display
 optimizations are in effect.
 
 If you still experience slowdowns while editing files with long lines,
-this is due to line truncation, or to one of the enabled minor modes,
-or to the current major mode.  Try turning off line truncation with
-'C-x x t', or try disabling all known slow minor modes with 'M-x
-so-long-minor-mode', or try disabling all known slow minor modes and
-the major mode with 'M-x so-long-mode', or visit the file with 'M-x
-find-file-literally' instead of the usual 'C-x C-f'.
+this may be due to line truncation, or to one of the enabled minor
+modes, or to the current major mode.  Try turning off line truncation
+with 'C-x x t', or try disabling all known slow minor modes with
+'M-x so-long-minor-mode', or try disabling both known slow minor modes
+and the major mode with 'M-x so-long-mode', or visit the file with
+'M-x find-file-literally' instead of the usual 'C-x C-f'.
 
 Note that the display optimizations in these cases may cause the
 buffer to be occasionally mis-fontified.
