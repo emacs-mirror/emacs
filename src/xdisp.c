@@ -3427,8 +3427,8 @@ init_iterator (struct it *it, struct window *w,
 
   if (current_buffer->long_line_optimizations_p)
     {
-      it->narrowed_begv = get_narrowed_begv (w);
-      it->narrowed_zv = get_narrowed_zv (w);
+      it->narrowed_begv = get_narrowed_begv (w, window_point (w));
+      it->narrowed_zv = get_narrowed_zv (w, window_point (w));
     }
 
   /* If a buffer position was specified, set the iterator there,
@@ -3519,19 +3519,19 @@ get_narrowed_len (struct window *w)
 }
 
 ptrdiff_t
-get_narrowed_begv (struct window *w)
+get_narrowed_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_len (w);
   ptrdiff_t begv;
-  begv = max ((window_point (w) / len - 1) * len, BEGV);
+  begv = max ((pos / len - 1) * len, BEGV);
   return begv == BEGV ? 0 : begv;
 }
 
 ptrdiff_t
-get_narrowed_zv (struct window *w)
+get_narrowed_zv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_len (w);
-  return min ((window_point (w) / len + 1) * len, ZV);
+  return min ((pos / len + 1) * len, ZV);
 }
 
 ptrdiff_t
@@ -4408,9 +4408,17 @@ handle_fontified_prop (struct it *it)
       eassert (it->end_charpos == ZV);
 
       if (current_buffer->long_line_optimizations_p)
-	Fnarrow_to_region (make_fixnum (it->narrowed_begv ?
-					it->narrowed_begv : BEGV),
-			   make_fixnum (it->narrowed_zv), Qt);
+	{
+	  ptrdiff_t begv = it->narrowed_begv ? it->narrowed_begv : BEGV;
+	  ptrdiff_t zv = it->narrowed_zv;
+	  ptrdiff_t charpos = IT_CHARPOS (*it);
+	  if (charpos < begv || charpos > zv)
+	    {
+	      begv = get_narrowed_begv (it->w, charpos);
+	      zv = get_narrowed_zv (it->w, charpos);
+	    }
+	  Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv), Qt);
+	}
 
       /* Don't allow Lisp that runs from 'fontification-functions'
 	 clear our face and image caches behind our back.  */
