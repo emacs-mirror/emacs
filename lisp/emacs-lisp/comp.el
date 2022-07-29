@@ -1918,7 +1918,8 @@ and the annotation emission."
       (byte-narrow-to-region
        (comp-emit-set-call (comp-call 'narrow-to-region
                                       (comp-slot)
-                                      (comp-slot+1))))
+                                      (comp-slot+1)
+                                      (make-comp-mvar :constant nil))))
       (byte-widen
        (comp-emit-set-call (comp-call 'widen)))
       (byte-end-of-line auto)
