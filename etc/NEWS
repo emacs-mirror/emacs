@@ -2182,6 +2182,16 @@ instead of also trying to ping it.  Customize the user option
 *** The 'run-dig' command is now obsolete; use 'dig' instead.
 
 ---
+*** Some `bib-mode' commands and variables have been renamed.
+To respect Emacs naming conventions, the variable 'unread-bib-file'
+has been renamed to 'bib-unread-file'.  The following commands have
+also been renamed:
+  'addbib'           to  'bib-add'
+  'return-key-bib'   to  'bib-return-key'
+  'mark-bib'         to  'bib-mark'
+  'unread-bib'       to  'bib-unread'
+
+---
 ** The autoarg.el library is now marked obsolete.
 This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.
