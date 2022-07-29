@@ -408,7 +408,7 @@ If AFTER-LOAD is non-nil then re-process PREFIX after loading any
 file.  See `trace-function-foreground' for details of BUFFER and
 CONTEXT, and of foreground vs background tracing.
 
-Calling `trace-package' again for the same PACKAGE will update the
+Calling `trace-package' again for the same PREFIX will update the
 optional argument behaviours to respect the new values.
 
 See also `untrace-package'."
