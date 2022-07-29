@@ -994,6 +994,9 @@ Satisfied if the buffer's major mode derives from @var{expr}.
 Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
 using @code{derived-mode} instead when both can work.
 @end table
+@item t
+Satisfied by any buffer.  A convenient alternative to @code{""} (empty
+string), @code{(and)} (empty conjunction) or @code{always}.
 @end itemize
 @end defun
 
