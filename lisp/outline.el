@@ -283,13 +283,13 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
 
 (defcustom outline-minor-mode-use-buttons '(derived-mode . special-mode)
   "Whether to display clickable buttons on the headings.
-The value should be a `buffer-match-p' condition, or nil to
-disable in all buffers and t to enable in all buffers.
+The value should be a `buffer-match-p' condition.
 
 These buttons can be used to hide and show the body under the heading.
 Note that this feature is not meant to be used in editing
 buffers (yet) -- that will be amended in a future version."
   :type 'boolean
+  ;; FIXME -- is there a `buffer-match-p' defcustom type somewhere?
   :safe #'booleanp
   :version "29.1")
 
@@ -478,10 +478,7 @@ See the command `outline-mode' for more information on this mode."
 
 (defun outline--use-buttons-p ()
   (and outline-minor-mode
-       outline-minor-mode-use-buttons
-       (or (eq outline-minor-mode-use-buttons t)
-           (buffer-match-p outline-minor-mode-use-buttons
-                           (current-buffer)))))
+       (buffer-match-p outline-minor-mode-use-buttons (current-buffer))))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.
