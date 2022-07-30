@@ -393,7 +393,7 @@ the output buffer or changing the window configuration."
   (advice-remove function trace-advice-name))
 
 ;;;###autoload
-(defun trace-package (prefix &optional after-load buffer context)
+(defun trace-package (prefix &optional buffer context after-load)
   "Trace all functions with names starting with PREFIX.
 For example, to trace all diff functions, do the following:
 
@@ -417,8 +417,8 @@ See also `untrace-package'."
    (cons (completing-read "Prefix of package to trace: "
                           obarray #'trace-is-traceable-p)
          (and current-prefix-arg
-              (cons (y-or-n-p "Update traces after loading files?")
-                    (trace--read-extra-args)))))
+              (nconc (trace--read-extra-args)
+                     (list (y-or-n-p "Update traces after loading files?"))))))
   (when (zerop (length prefix))
     (error "Tracing all Emacs functions would render Emacs unusable"))
   (mapc (lambda (name)
@@ -450,7 +450,7 @@ See also `trace-package'."
   (trace--remove-after-load 'prefix prefix))
 
 ;;;###autoload
-(defun trace-regexp (regexp &optional after-load buffer context)
+(defun trace-regexp (regexp &optional buffer context after-load)
   "Trace all functions with names matching REGEXP.
 For example, to trace indentation-related functions, you could try:
 
@@ -475,8 +475,8 @@ See also `untrace-regexp'."
   (interactive
    (cons (read-regexp "Regexp matching functions to trace: ")
          (and current-prefix-arg
-              (cons (y-or-n-p "Update traces after loading files?")
-                    (trace--read-extra-args)))))
+              (nconc (trace--read-extra-args)
+                     (list (y-or-n-p "Update traces after loading files?"))))))
   (when (member regexp '("" "." ".+" ".*"))
     ;; Not comprehensive, but it catches the most likely attempts.
     (error "Tracing all Emacs functions would render Emacs unusable"))
@@ -512,7 +512,7 @@ See also `trace-regexp'."
   (trace--remove-after-load 'regexp regexp))
 
 ;;;###autoload
-(defun trace-library (library &optional after-load buffer context)
+(defun trace-library (library &optional buffer context after-load)
   "Trace functions defined by LIBRARY.
 For example, to trace tramp.el functions, you could use:
 
@@ -537,8 +537,8 @@ See also `untrace-library'."
   (interactive
    (cons (trace--read-library)
          (and current-prefix-arg
-              (cons (y-or-n-p "Update traces after loading this library?")
-                    (trace--read-extra-args)))))
+              (nconc (trace--read-extra-args)
+                     (list (y-or-n-p "Update traces after loading this library?"))))))
   ;; Build list of library functions and autoloads.
   (let ((defs (nconc (trace--library-defuns library)
                      (trace--library-autoloads library))))
