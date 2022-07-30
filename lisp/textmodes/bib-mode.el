@@ -225,12 +225,12 @@ named by variable `bib-unread-file'."
 	 (set-syntax-table orig-syntax-table))))
 
 (defun bib-capitalize-title (s)
-   "Like `capitalize', but don't capitalize stop words, except the first."
-   (with-current-buffer (get-buffer-create "$$$Scratch$$$")
-     (erase-buffer)
-     (insert s)
-     (bib-capitalize-title-region (point-min) (point-max))
-     (buffer-string)))
+  "Like `capitalize', but don't capitalize stop words, except the first."
+  (with-temp-buffer
+    (erase-buffer)
+    (insert s)
+    (bib-capitalize-title-region (point-min) (point-max))
+    (buffer-string)))
 
 (define-obsolete-function-alias 'addbib #'bib-add "29.1")
 (define-obsolete-function-alias 'return-key-bib #'bib-return-key "29.1")
