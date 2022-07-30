@@ -1672,9 +1672,13 @@ comment at the start of cc-engine.el for more info."
 Return the result of `forward-comment' if it gets called, nil otherwise."
   `(if (not comment-end-can-be-escaped)
        (forward-comment -1)
-     (when (and (< (skip-syntax-backward " >") 0)
-		(eq (char-after) ?\n))
-       (forward-char))
+     (let ((dist (skip-syntax-backward " >")))
+       (when (and
+	      (< dist 0)
+	      (progn
+		(skip-syntax-forward " " (- (point) dist 1))
+		(eq (char-after) ?\n)))
+	 (forward-char)))
      (cond
       ((and (eq (char-before) ?\n)
 	    (eq (char-before (1- (point))) ?\\))
