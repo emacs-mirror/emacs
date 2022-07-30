@@ -2721,6 +2721,7 @@ the current body form.  */)
       if (BEGV != s || ZV != e)
 	current_buffer->clip_changed = 1;
 
+      record_unwind_protect (restore_point_unwind, Fpoint_marker ());
       record_unwind_protect (unwind_locked_begv, Fpoint_min ());
       record_unwind_protect (unwind_locked_zv, Fpoint_max ());
 
