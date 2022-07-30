@@ -767,7 +767,7 @@ Each element is (INDEX . VALUE)")
 (byte-defop 122  0 byte-char-syntax)
 (byte-defop 123 -1 byte-buffer-substring)
 (byte-defop 124 -1 byte-delete-region)
-(byte-defop 125 -1 byte-narrow-to-region)
+(byte-defop 125 -2 byte-narrow-to-region)
 (byte-defop 126  1 byte-widen)
 (byte-defop 127  0 byte-end-of-line)
 
@@ -3833,7 +3833,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler setcdr		2)
 (byte-defop-compiler buffer-substring	2)
 (byte-defop-compiler delete-region	2)
-(byte-defop-compiler narrow-to-region	2)
+(byte-defop-compiler narrow-to-region	2-3)
 (byte-defop-compiler (% byte-rem)	2)
 (byte-defop-compiler aset		3)
 
