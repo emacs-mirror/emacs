@@ -2626,6 +2626,7 @@ emit_maybe_gc_or_quit (Lisp_Object insn)
 
 /* This is in charge of serializing an object and export a function to
    retrieve it at load time.  */
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 static void
 emit_static_object (const char *name, Lisp_Object obj)
@@ -4681,6 +4682,7 @@ DEFUN ("comp--release-ctxt", Fcomp__release_ctxt, Scomp__release_ctxt,
   return Qt;
 }
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 DEFUN ("comp-native-driver-options-effective-p",
        Fcomp_native_driver_options_effective_p,
@@ -4697,6 +4699,7 @@ DEFUN ("comp-native-driver-options-effective-p",
 }
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 DEFUN ("comp-native-compiler-options-effective-p",
        Fcomp_native_compiler_options_effective_p,
@@ -4943,6 +4946,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   return filename;
 }
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waddress"
 DEFUN ("comp-libgccjit-version", Fcomp_libgccjit_version,
        Scomp_libgccjit_version, 0, 0, 0,
