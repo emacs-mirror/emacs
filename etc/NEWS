@@ -160,7 +160,7 @@ the current Emacs version).
 This function can be called in your init files to change the
 user-specific directory where Emacs stores the "*.eln" files produced
 by native compilation of Lisp packages Emacs loads.  The default
-eln-cache directory is unchanged: it is the 'eln-cache' subdirectory
+eln-cache directory is unchanged: it is the "eln-cache" subdirectory
 of 'user-emacs-directory'.
 
 
@@ -204,7 +204,7 @@ is handled like all the other X resources, and set on a per-frame basis.
 Previously, this command did the same as 'e'.
 
 ---
-** '/ a' in "*Packages*" buffer now limits by package name(s) instead of regexp.
+** '/ a' in "*Packages*" buffer now limits by archive name(s) instead of regexp.
 
 +++
 ** Setting the goal columns now also affects '<prior>' and '<next>'.
@@ -328,7 +328,7 @@ variable set to nil, as it will default to nil in a future Emacs
 version and will be removed some time after that.
 
 +++
-** Functions which recreate the "*scratch*" buffer now also initialize it.
+** Functions that recreate the "*scratch*" buffer now also initialize it.
 When functions like 'other-buffer' and 'server-execute' recreate
 "*scratch*", they now also insert 'initial-scratch-message' and set
 the major mode according to 'initial-major-mode', like at Emacs
@@ -336,11 +336,17 @@ startup.  Previously, these functions ignored
 'initial-scratch-message' and left "*scratch*" in 'fundamental-mode'.
 
 ---
-** The quickurl.el library is now obsolete.
-Use 'skeleton' or 'tempo' instead.
+** The autoarg.el library is now marked obsolete.
+This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
+modes to emulate the behavior of the historical editor Twenex Emacs.
+It is believed to no longer be useful.
 
 ---
-** The rlogin.el library and 'rsh' command are now obsolete.
+** The quickurl.el library is now obsolete.
+Use 'abbrev', 'skeleton' or 'tempo' instead.
+
+---
+** The rlogin.el library, and the 'rsh' command are now obsolete.
 Use something like 'M-x shell RET ssh <host> RET' instead.
 
 ---
@@ -2192,13 +2198,7 @@ also been renamed:
   'unread-bib'       to  'bib-unread'
 
 ---
-** The autoarg.el library is now marked obsolete.
-This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
-modes to emulate the behavior of the historical editor Twenex Emacs.
-It is believed to no longer be useful.
-
----
-** proced.el shows system processes of remote hosts.
+*** proced.el shows system processes of remote hosts.
 When 'default-directory' is remote, and 'proced' is invoked with a
 negative argument like 'C-u - proced', the system processes of that
 remote host are shown.  Alternatively, the user option
