@@ -49,10 +49,10 @@ on the current display, and \"degrade\" gracefully to an icon
 type that's available."
   :version "29.1"
   :group 'customize
-  :type '(repeat (const :tag "Images" image)
-                 (const :tag "Colorful Emojis" emoji)
-                 (const :tag "Monochrome Symbols" symbol)
-                 (const :tag "Text Only" text)))
+  :type '(repeat (choice (const :tag "Images" image)
+                         (const :tag "Colorful Emojis" emoji)
+                         (const :tag "Monochrome Symbols" symbol)
+                         (const :tag "Text Only" text))))
 
 (defmacro define-icon (name parent specification documentation &rest keywords)
   "Define an icon identified by NAME.
