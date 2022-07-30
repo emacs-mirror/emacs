@@ -1127,7 +1127,7 @@ This function adds a background trace to @var{function}.  This is like
 buffer or changing the window configuration.
 @end defun
 
-@deffn Command trace-package prefix &optional after-load buffer context
+@deffn Command trace-package prefix &optional buffer context after-load
 This function calls @code{trace-function-background} for all functions
 with names starting with @var{prefix}.
 
@@ -1143,7 +1143,7 @@ Calling `trace-package' again for the same @var{prefix} will update
 the optional argument behaviours to respect the new values.
 @end defun
 
-@deffn Command trace-regexp regexp &optional after-load buffer context
+@deffn Command trace-regexp regexp &optional buffer context after-load
 This function calls @code{trace-function-background} for all functions
 matching in @var{regexp}.
 
@@ -1163,7 +1163,7 @@ Calling `trace-regexp' again for the same @var{regexp} will update the
 optional argument behaviours to respect the new values.
 @end defun
 
-@deffn Command trace-library library &optional after-load buffer context
+@deffn Command trace-library library &optional buffer context after-load
 This function calls @code{trace-function-background} for all functions
 defined in @var{library}.
 
