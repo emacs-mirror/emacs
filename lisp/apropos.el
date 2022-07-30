@@ -909,41 +909,39 @@ Returns list of symbols and documentation found."
   (apropos-parse-pattern pattern t)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator () apropos-files-scanned ())
-  (let ((standard-input (get-buffer-create " apropos-temp"))
-	(apropos-sort-by-scores apropos-documentation-sort-by-scores)
-	f v sf sv)
-    (unwind-protect
-	(with-current-buffer standard-input
-	  (apropos-documentation-check-doc-file)
-	  (if do-all
-	      (mapatoms
-	       (lambda (symbol)
-		 (setq f (apropos-safe-documentation symbol)
-		       v (get symbol 'variable-documentation))
-		 (if (integerp v) (setq v nil))
-		 (setq f (apropos-documentation-internal f)
-		       v (apropos-documentation-internal v))
-		 (setq sf (apropos-score-doc f)
-		       sv (apropos-score-doc v))
-		 (if (or f v)
-		     (if (setq apropos-item
-			       (cdr (assq symbol apropos-accumulator)))
-			 (progn
-			   (if f
-			       (progn
-				 (setcar (nthcdr 1 apropos-item) f)
-				 (setcar apropos-item (+ (car apropos-item) sf))))
-			   (if v
-			       (progn
-				 (setcar (nthcdr 2 apropos-item) v)
-				 (setcar apropos-item (+ (car apropos-item) sv)))))
-		       (setq apropos-accumulator
-			     (cons (list symbol
-					 (+ (apropos-score-symbol symbol 2) sf sv)
-					 f v)
-				   apropos-accumulator)))))))
-	  (apropos-print nil "\n----------------\n" nil t))
-      (kill-buffer standard-input))))
+  (with-temp-buffer
+    (let ((standard-input (current-buffer))
+          (apropos-sort-by-scores apropos-documentation-sort-by-scores)
+          f v sf sv)
+      (apropos-documentation-check-doc-file)
+      (if do-all
+          (mapatoms
+           (lambda (symbol)
+             (setq f (apropos-safe-documentation symbol)
+                   v (get symbol 'variable-documentation))
+             (if (integerp v) (setq v nil))
+             (setq f (apropos-documentation-internal f)
+                   v (apropos-documentation-internal v))
+             (setq sf (apropos-score-doc f)
+                   sv (apropos-score-doc v))
+             (if (or f v)
+                 (if (setq apropos-item
+                           (cdr (assq symbol apropos-accumulator)))
+                     (progn
+                       (if f
+                           (progn
+                             (setcar (nthcdr 1 apropos-item) f)
+                             (setcar apropos-item (+ (car apropos-item) sf))))
+                       (if v
+                           (progn
+                             (setcar (nthcdr 2 apropos-item) v)
+                             (setcar apropos-item (+ (car apropos-item) sv)))))
+                   (setq apropos-accumulator
+                         (cons (list symbol
+                                     (+ (apropos-score-symbol symbol 2) sf sv)
+                                     f v)
+                               apropos-accumulator)))))))
+      (apropos-print nil "\n----------------\n" nil t))))
 
 
 (defun apropos-value-internal (predicate symbol function)
