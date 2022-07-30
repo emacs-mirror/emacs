@@ -207,7 +207,7 @@ present if the icon is represented by an image."
   (when-let ((font (and (display-multi-font-p)
                         ;; FIXME: This is not enough for ensuring
                         ;; display of color Emoji.
-                        (car (internal-char-font nil ?😀)))))
+                        (car (internal-char-font nil ?🟠)))))
     (and (font-has-char-p font (aref icon 0))
          icon)))
 
