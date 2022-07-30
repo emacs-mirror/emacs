@@ -6899,7 +6899,8 @@ lines."
 (defun buffer-match-p (condition buffer-or-name &optional arg)
   "Return non-nil if BUFFER-OR-NAME matches CONDITION.
 CONDITION is either:
-- the symbol t, to always match
+- the symbol t, to always match,
+- the symbol nil, which never matches,
 - a regular expression, to match a buffer name,
 - a predicate function that takes a buffer object and ARG as
   arguments, and returns non-nil if the buffer matches,
