@@ -1915,11 +1915,7 @@ and the annotation emission."
       (byte-char-syntax auto)
       (byte-buffer-substring auto)
       (byte-delete-region auto)
-      (byte-narrow-to-region
-       (comp-emit-set-call (comp-call 'narrow-to-region
-                                      (comp-slot)
-                                      (comp-slot+1)
-                                      (make-comp-mvar :constant nil))))
+      (byte-narrow-to-region auto)
       (byte-widen
        (comp-emit-set-call (comp-call 'widen)))
       (byte-end-of-line auto)
