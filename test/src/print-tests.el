@@ -529,5 +529,15 @@ otherwise, use a different charset."
                   (should (equal (% (- (length numbers) loopback-index) loop)
                                  0)))))))))))
 
+(ert-deftest test-print-unreadable-function-buffer ()
+  (with-temp-buffer
+    (let ((current (current-buffer))
+          callback-buffer)
+      (let ((print-unreadable-function
+             (lambda (_object _escape)
+               (setq callback-buffer (current-buffer)))))
+        (prin1-to-string (make-marker)))
+      (should (eq current callback-buffer)))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here
