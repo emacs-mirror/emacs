@@ -866,8 +866,10 @@ The return value is the column where the insertion ends.  */)
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
        doc: /* Return the indentation of the current line.
-This is the horizontal position of the character
-following any initial whitespace.  */)
+This is the horizontal position of the character following any initial
+whitespace.
+Text that has an invisible property is considered as having width 0, unless
+`buffer-invisibility-spec' specifies that it is replaced by an ellipsis.  */)
   (void)
 {
   ptrdiff_t posbyte;
@@ -985,6 +987,9 @@ as displayed of the previous characters in the line.
 This function ignores line-continuation;
 there is no upper limit on the column number a character can have
 and horizontal scrolling has no effect.
+Text that has an invisible property is considered as having width 0,
+unless `buffer-invisibility-spec' specifies that it is replaced by
+an ellipsis.
 
 If specified column is within a character, point goes after that character.
 If it's past end of line, point goes to end of line.
