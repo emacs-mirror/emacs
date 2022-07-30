@@ -6736,7 +6736,7 @@ x_sync_update_begin (struct frame *f)
   x_sync_wait_for_frame_drawn_event (f);
 
   /* Since Emacs needs a non-urgent redraw, ensure that value % 4 ==
-     0.  */
+     1.  Later, add 3 to create the even counter value.  */
   if (XSyncValueLow32 (value) % 4 == 2)
     XSyncIntToValue (&add, 3);
   else
@@ -6748,7 +6748,7 @@ x_sync_update_begin (struct frame *f)
   if (overflow)
     XSyncIntToValue (&FRAME_X_COUNTER_VALUE (f), 3);
 
-  eassert (XSyncValueLow32 (FRAME_X_COUNTER_VALUE (f)) % 4 != 1);
+  eassert (XSyncValueLow32 (FRAME_X_COUNTER_VALUE (f)) % 4 == 1);
 
   XSyncSetCounter (FRAME_X_DISPLAY (f),
 		   FRAME_X_EXTENDED_COUNTER (f),
@@ -6772,7 +6772,15 @@ x_sync_update_finish (struct frame *f)
   if (!(XSyncValueLow32 (value) % 2))
     return;
 
-  XSyncIntToValue (&add, 1);
+  if ((XSyncValueLow32 (value) % 4) == 1)
+    /* This means the frame is non-urgent and should be drawn at the
+       next redraw point.  */
+    XSyncIntToValue (&add, 3);
+  else
+    /* Otherwise, the frame is urgent and should be drawn as soon as
+       possible.  */
+    XSyncIntToValue (&add, 1);
+
   XSyncValueAdd (&FRAME_X_COUNTER_VALUE (f),
 		 value, add, &overflow);
 
