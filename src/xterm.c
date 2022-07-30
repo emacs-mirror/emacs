@@ -6597,6 +6597,55 @@ x_set_frame_alpha (struct frame *f)
  ***********************************************************************/
 
 #if defined HAVE_XSYNC && !defined USE_GTK
+
+/* Wait for an event matching PREDICATE to show up in the event
+   queue, or TIMEOUT to elapse.
+
+   If TIMEOUT passes without an event being found, return 1.
+   Otherwise, return 0 and behave as XIfEvent would.  */
+
+static int
+x_if_event (Display *dpy, XEvent *event_return,
+	    Bool (*predicate) (Display *, XEvent *, XPointer),
+	    XPointer arg, struct timespec timeout)
+{
+  struct timespec current_time, target;
+  int fd;
+  fd_set fds;
+
+  fd = ConnectionNumber (dpy);
+  current_time = current_timespec ();
+  target = timespec_add (current_time, timeout);
+
+  while (true)
+    {
+      /* Get events into the queue.  */
+      XSync (dpy, False);
+
+      /* Check if an event is now in the queue.  */
+      if (XCheckIfEvent (dpy, event_return, predicate, arg))
+	return 0;
+
+      /* Calculate the timeout.  */
+      current_time = current_timespec ();
+      timeout = timespec_sub (target, current_time);
+
+      /* If not, wait for some input to show up on the X connection,
+	 or for the timeout to elapse.  */
+      FD_ZERO (&fds);
+      FD_SET (fd, &fds);
+
+      /* If this fails due to an IO error, XSync will call the IO
+	 error handler.  */
+      pselect (fd + 1, &fds, NULL, NULL, &timeout, NULL);
+
+      /* Timeout elapsed.  */
+      current_time = current_timespec ();
+      if (timespec_cmp (target, current_time) < 0)
+	return 1;
+    }
+}
+
 static Bool
 x_sync_is_frame_drawn_event (Display *dpy, XEvent *event,
 			     XPointer user_data)
@@ -6632,8 +6681,16 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
     return;
 
   /* Wait for the frame drawn message to arrive.  */
-  XIfEvent (FRAME_X_DISPLAY (f), &event,
-	    x_sync_is_frame_drawn_event, (XPointer) f);
+  if (x_if_event (FRAME_X_DISPLAY (f), &event,
+		  x_sync_is_frame_drawn_event, (XPointer) f,
+		  make_timespec (1, 0)))
+    {
+      /* TODO: display this warning in the echo area.  */
+      fprintf (stderr, "Warning: compositing manager spent more than 1 second "
+	       "drawing a frame.  Frame synchronization has been disabled\n");
+      FRAME_X_OUTPUT (f)->use_vsync_p = false;
+    }
+
   FRAME_X_WAITING_FOR_DRAW (f) = false;
 }
 
