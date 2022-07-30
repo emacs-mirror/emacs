@@ -189,6 +189,19 @@ the Content-Transfer-Encoding header of a mail."
 
 (defun ietf-drums-parse-address (string &optional decode)
   "Parse STRING and return a MAILBOX / DISPLAY-NAME pair.
+STRING here is supposed to be an RFC822(bis) mail address, and
+will commonly look like, for instance:
+
+  \"=?utf-8?Q?Andr=C3=A9?= <andre@example.com>\"
+
+If you have an already-decoded address, like
+
+  \"André <andre@example.com>\"
+
+this function can't be used to parse that.  Instead, use
+`mail-header-parse-address-lax' to make a guess at what's the
+name and what's the address.
+
 If DECODE, the DISPLAY-NAME will have RFC2047 decoding performed
 (that's the \"=?utf...q...=?\") stuff."
   (when decode
