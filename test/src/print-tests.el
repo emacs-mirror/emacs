@@ -536,7 +536,8 @@ otherwise, use a different charset."
       (let ((print-unreadable-function
              (lambda (_object _escape)
                (setq callback-buffer (current-buffer)))))
-        (prin1-to-string (make-marker)))
+        (let ((_ (prin1-to-string (make-marker)))) nil))  ; this `let' silences a
+                                                          ; warning
       (should (eq current callback-buffer)))))
 
 (provide 'print-tests)
