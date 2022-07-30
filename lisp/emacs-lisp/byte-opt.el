@@ -1471,7 +1471,7 @@ See Info node `(elisp) Integer Basics'."
 	 window-next-buffers window-next-sibling window-new-normal
 	 window-new-total window-normal-size window-parameter window-parameters
 	 window-parent window-pixel-edges window-point window-prev-buffers
-	 window-prev-sibling window-redisplay-end-trigger window-scroll-bars
+         window-prev-sibling window-scroll-bars
 	 window-start window-text-height window-top-child window-top-line
 	 window-total-height window-total-width window-use-time window-vscroll
 	 window-width zerop))

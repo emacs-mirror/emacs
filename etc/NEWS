@@ -2452,8 +2452,9 @@ but switching to `ash` is generally much preferable.
 ---
 ** Some functions and variables obsolete since Emacs 23 have been removed:
 'find-emacs-lisp-shadows', 'newsticker-cache-filename',
+'redisplay-end-trigger-functions', 'set-window-redisplay-end-trigger',
 'unify-8859-on-decoding-mode', 'unify-8859-on-encoding-mode',
-'vc-arch-command'.
+'vc-arch-command', 'window-redisplay-end-trigger'.
 
 +++
 ** New generic function 'function-documentation'.

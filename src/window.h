@@ -199,10 +199,6 @@ struct window
        and Qt, so bitfield can't be used here.  */
     Lisp_Object dedicated;
 
-    /* If redisplay in this window goes beyond this buffer position,
-       must run the redisplay-end-trigger-hook.  */
-    Lisp_Object redisplay_end_trigger;
-
     /* t means this window's child windows are not (re-)combined.  */
     Lisp_Object combination_limit;
 
@@ -495,12 +491,6 @@ INLINE void
 wset_prev (struct window *w, Lisp_Object val)
 {
   w->prev = val;
-}
-
-INLINE void
-wset_redisplay_end_trigger (struct window *w, Lisp_Object val)
-{
-  w->redisplay_end_trigger = val;
 }
 
 INLINE void

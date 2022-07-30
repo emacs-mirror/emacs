@@ -2350,9 +2350,6 @@ struct it
      used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
 
-  /* Position at which redisplay end trigger functions should be run.  */
-  ptrdiff_t redisplay_end_trigger_charpos;
-
   /* True means multibyte characters are enabled.  */
   bool_bf multibyte_p : 1;
 
