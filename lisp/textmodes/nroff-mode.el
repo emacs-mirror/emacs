@@ -1,7 +1,6 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp
@@ -45,16 +44,14 @@
   "Non-nil means automatically closing requests when you insert an open."
   :type 'boolean)
 
-(defvar nroff-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\t"  #'tab-to-tab-stop)
-    (define-key map "\e?" #'nroff-count-text-lines)
-    (define-key map "\n"  #'nroff-electric-newline)
-    (define-key map "\en" #'nroff-forward-text-line)
-    (define-key map "\ep" #'nroff-backward-text-line)
-    (define-key map "\C-c\C-c" #'nroff-view)
-    map)
-  "Major mode keymap for `nroff-mode'.")
+(defvar-keymap nroff-mode-map
+  :doc "Major mode keymap for `nroff-mode'."
+  "TAB"     #'tab-to-tab-stop
+  "M-?"     #'nroff-count-text-lines
+  "C-j"     #'nroff-electric-newline
+  "M-n"     #'nroff-forward-text-line
+  "M-p"     #'nroff-backward-text-line
+  "C-c C-c" #'nroff-view)
 
 (easy-menu-define nroff-mode-menu nroff-mode-map
   "Menu for `nroff-mode'."
@@ -160,8 +157,6 @@ closing requests for requests that are used in matched pairs."
     (skip-chars-forward ".H ")
     (string-to-number (buffer-substring (point) (+ 1 (point))))))
 
-;; Compute how much to indent a comment in nroff/troff source.
-;; By mit-erl!gildea April 86
 (defun nroff-comment-indent ()
   "Compute indent for an nroff/troff comment.
 Puts a full-stop before comments on a line by themselves."
