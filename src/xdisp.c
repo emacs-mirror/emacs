@@ -3413,12 +3413,6 @@ init_iterator (struct it *it, struct window *w,
 	}
     }
 
-  if (current_buffer->long_line_optimizations_p)
-    {
-      it->narrowed_begv = get_narrowed_begv (w, window_point (w));
-      it->narrowed_zv = get_narrowed_zv (w, window_point (w));
-    }
-
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
   if (charpos >= BUF_BEG (current_buffer))
@@ -7531,6 +7525,17 @@ reseat (struct it *it, struct text_pos pos, bool force_p)
   ptrdiff_t original_pos = IT_CHARPOS (*it);
 
   reseat_1 (it, pos, false);
+
+  if (current_buffer->long_line_optimizations_p)
+    {
+      if (!it->narrowed_begv
+	  || ((pos.charpos < it->narrowed_begv || pos.charpos > it->narrowed_zv)
+	      && (!redisplaying_p || it->line_wrap == TRUNCATE)))
+	{
+	  it->narrowed_begv = get_narrowed_begv (it->w, window_point (it->w));
+	  it->narrowed_zv = get_narrowed_zv (it->w, window_point (it->w));
+	}
+    }
 
   /* Determine where to check text properties.  Avoid doing it
      where possible because text property lookup is very expensive.  */
