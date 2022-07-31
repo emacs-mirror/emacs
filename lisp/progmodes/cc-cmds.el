@@ -328,9 +328,6 @@ after special characters such as brace, comma, semi-colon, and colon."
   (c-update-modeline)
   (c-keep-region-active))
 
-(defalias 'c-toggle-auto-state 'c-toggle-auto-newline)
-(make-obsolete 'c-toggle-auto-state 'c-toggle-auto-newline "22.1")
-
 (defun c-toggle-hungry-state (&optional arg)
   "Toggle hungry-delete-key feature.
 Optional numeric ARG, if supplied, turns on hungry-delete when

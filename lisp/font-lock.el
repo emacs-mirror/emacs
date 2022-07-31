@@ -346,9 +346,6 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-type-face		'font-lock-type-face
   "Face name to use for type and class names.")
 
-(define-obsolete-variable-alias
-  'font-lock-reference-face 'font-lock-constant-face "20.3")
-
 (defvar font-lock-constant-face		'font-lock-constant-face
   "Face name to use for constant and label names.")
 

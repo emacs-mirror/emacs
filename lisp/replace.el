@@ -157,7 +157,7 @@ is highlighted lazily using isearch lazy highlighting (see
 
 (defvar replace-count 0
   "Number of replacements done so far.
-See `replace-regexp' and `query-replace-regexp-eval'.")
+See `replace-regexp'.")
 
 (defun query-replace-descr (string)
   (setq string (copy-sequence string))
@@ -562,84 +562,6 @@ REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see)."
   (perform-replace regexp to-string t t delimited nil nil start end backward region-noncontiguous-p))
 
 (define-key esc-map [?\C-%] 'query-replace-regexp)
-
-(defun query-replace-regexp-eval (regexp to-expr &optional delimited start end region-noncontiguous-p)
-  "Replace some things after point matching REGEXP with the result of TO-EXPR.
-
-Interactive use of this function is deprecated in favor of the
-`\\,' feature of `query-replace-regexp'.  For non-interactive use, a loop
-using `search-forward-regexp' and `replace-match' is preferred.
-
-As each match is found, the user must type a character saying
-what to do with it.  Type SPC or `y' to replace the match,
-DEL or `n' to skip and go to the next match.  For more directions,
-type \\[help-command] at that time.
-
-TO-EXPR is a Lisp expression evaluated to compute each replacement.  It may
-reference `replace-count' to get the number of replacements already made.
-If the result of TO-EXPR is not a string, it is converted to one using
-`prin1-to-string' with the NOESCAPE argument (which see).
-
-For convenience, when entering TO-EXPR interactively, you can use `\\&'
-to stand for whatever matched the whole of REGEXP, and `\\N' (where
-N is a digit) to stand for whatever matched the Nth `\\(...\\)' (1-based)
-in REGEXP.
-
-Use `\\#&' or `\\#N' if you want a number instead of a string.
-In interactive use, `\\#' in itself stands for `replace-count'.
-
-In Transient Mark mode, if the mark is active, operate on the contents
-of the region.  Otherwise, operate from point to the end of the buffer's
-accessible portion.
-
-Use \\<minibuffer-local-map>\\[next-history-element] \
-to pull the last incremental search regexp to the minibuffer
-that reads REGEXP.
-
-Preserves case in each replacement if `case-replace' and `case-fold-search'
-are non-nil and REGEXP has no uppercase letters.
-
-Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
-ignore hidden matches if `search-invisible' is nil, and ignore more
-matches using `isearch-filter-predicate'.
-
-If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
-to be replaced will match a sequence of whitespace chars defined by the
-regexp in `search-whitespace-regexp'.
-
-This function is not affected by `replace-char-fold'.
-
-Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
-only matches that are surrounded by word boundaries.
-Fourth and fifth arg START and END specify the region to operate on.
-
-Arguments REGEXP, DELIMITED, START, END, and REGION-NONCONTIGUOUS-P
-are passed to `perform-replace' (which see)."
-  (declare (obsolete "use the `\\,' feature of `query-replace-regexp'
-for interactive calls, and `search-forward-regexp'/`replace-match'
-for Lisp calls." "22.1"))
-  (interactive
-   (progn
-     (barf-if-buffer-read-only)
-     (let* ((from
-	     ;; Let-bind the history var to disable the "foo -> bar"
-	     ;; default.  Maybe we shouldn't disable this default, but
-	     ;; for now I'll leave it off.  --Stef
-	     (let ((query-replace-defaults nil))
-	       (query-replace-read-from "Query replace regexp" t)))
-	    (to (list (read-from-minibuffer
-		       (format "Query replace regexp %s with eval: "
-			       (query-replace-descr from))
-		       nil nil t query-replace-to-history-variable from t))))
-       ;; We make TO a list because replace-match-string-symbols requires one,
-       ;; and the user might enter a single token.
-       (replace-match-string-symbols to)
-       (list from (car to) current-prefix-arg
-	     (if (use-region-p) (region-beginning))
-	     (if (use-region-p) (region-end))
-	     (if (use-region-p) (region-noncontiguous-p))))))
-  (perform-replace regexp (cons #'replace-eval-replacement to-expr)
-		   t 'literal delimited nil nil start end nil region-noncontiguous-p))
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end region-noncontiguous-p)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -2719,10 +2641,9 @@ with three arguments, as if it were `search-forward'.")
 
 (defvar replace-re-search-function nil
   "Function to use when searching for regexps to replace.
-It is used by `query-replace-regexp', `replace-regexp',
-`query-replace-regexp-eval', and `map-query-replace-regexp'.
-It is called with three arguments, as if it were
-`re-search-forward'.")
+It is used by `query-replace-regexp', `replace-regexp', and
+`map-query-replace-regexp'.  It is called with three arguments,
+as if it were `re-search-forward'.")
 
 (defvar replace-regexp-function nil
   "Function to convert the FROM string of query-replace commands to a regexp.

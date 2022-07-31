@@ -2416,7 +2416,8 @@ but switching to `ash` is generally much preferable.
 'dired-x-submit-report', 'eieio-defgeneric', 'eieio-defmethod',
 'emacs-lock-from-exiting', 'erc-complete-word',
 'eshell-cmpl-suffix-list', 'eshell-for', 'font-lock-maximum-size',
-'gnus-carpal', 'gnus-debug-exclude-variables', 'gnus-debug-files',
+'font-lock-reference-face', 'gnus-carpal',
+'gnus-debug-exclude-variables', 'gnus-debug-files',
 'gnus-local-domain', 'gnus-outgoing-message-group',
 'gnus-secondary-servers', 'gnus-registry-user-format-function-M',
 'image-extension-data', 'image-library-alist',
@@ -2458,7 +2459,8 @@ but switching to `ash` is generally much preferable.
 
 ---
 ** Some functions and variables obsolete since Emacs 21 or 22 have been removed:
-'find-file-not-found-hooks', 'ls-lisp-dired-ignore-case'.
+'c-toggle-auto-state', 'find-file-not-found-hooks',
+'ls-lisp-dired-ignore-case', 'query-replace-regexp-eval'.
 
 +++
 ** New generic function 'function-documentation'.
