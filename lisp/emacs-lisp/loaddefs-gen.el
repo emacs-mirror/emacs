@@ -459,7 +459,7 @@ don't include."
             (push name prefs)))))
     (loaddefs-generate--make-prefixes prefs load-name)))
 
-(defun loaddefs-generate--rubric (file &optional type feature)
+(defun loaddefs-generate--rubric (file &optional type feature compile)
   "Return a string giving the appropriate autoload rubric for FILE.
 TYPE (default \"autoloads\") is a string stating the type of
 information contained in FILE.  TYPE \"package\" acts like the default,
@@ -467,7 +467,9 @@ but adds an extra line to the output to modify `load-path'.
 
 If FEATURE is non-nil, FILE will provide a feature.  FEATURE may
 be a string naming the feature, otherwise it will be based on
-FILE's name."
+FILE's name.
+
+If COMPILE, don't include a \"don't compile\" cookie."
   (let ((lp (and (equal type "package") (setq type "autoloads"))))
     (with-temp-buffer
       (generate-lisp-file-heading
@@ -481,6 +483,7 @@ FILE's name."
       (insert "\n;;; End of scraped data\n\n")
       (generate-lisp-file-trailer
        file :provide (and (stringp feature) feature)
+       :compile compile
        :inhibit-provide (not feature))
       (buffer-string))))
 
