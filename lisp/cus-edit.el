@@ -5543,6 +5543,7 @@ See `define-icon' for details."
   (pcase-dolist (`(,icon ,spec) specs)
     (custom-push-theme 'theme-icon icon theme 'set spec)))
 
+;;;###autoload
 (defun custom-set-icons (&rest args)
   "Install user customizations of icon specs specified in ARGS.
 These settings are registered as theme `user'.
@@ -5556,27 +5557,28 @@ This stores EXP (without evaluating it) as the saved spec for SYMBOL."
 ;;;###autoload
 (defun custom-save-icons ()
   "Save all customized icons in `custom-file'."
-  (save-excursion
-    (custom-save-delete 'custom-set-icons)
-    (let ((values nil))
-      (mapatoms
-       (lambda (symbol)
-         (let ((value (car-safe (get symbol 'theme-icon))))
-	   (when (eq (car value) 'user)
-             (push (list symbol (cadr value)) values)))))
-      (ensure-empty-lines)
-      (insert "(custom-set-icons
+  (let ((values nil))
+    (mapatoms
+     (lambda (symbol)
+       (let ((value (car-safe (get symbol 'theme-icon))))
+	 (when (eq (car value) 'user)
+           (push (list symbol (cadr value)) values)))))
+    (save-excursion
+      (custom-save-delete 'custom-set-icons)
+      (when values
+        (ensure-empty-lines)
+        (insert "(custom-set-icons
  ;; custom-set-icons was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.\n")
-      (dolist (value (sort values (lambda (s1 s2)
-                                    (string< (car s1) (car s2)))))
-	(unless (bolp)
-	  (insert "\n"))
-        (insert "  '")
-        (prin1 value (current-buffer)))
-      (insert ")\n"))))
+        (dolist (value (sort values (lambda (s1 s2)
+                                      (string< (car s1) (car s2)))))
+	  (unless (bolp)
+	    (insert "\n"))
+          (insert "  '")
+          (prin1 value (current-buffer)))
+        (insert ")\n")))))
 
 (provide 'cus-edit)
 
