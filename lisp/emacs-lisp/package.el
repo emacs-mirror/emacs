@@ -301,6 +301,7 @@ packages in `package-directory-list'."
   :type 'directory
   :initialize #'custom-initialize-delay
   :risky t
+  :group 'applications
   :version "24.1")
 
 ;;;###autoload
