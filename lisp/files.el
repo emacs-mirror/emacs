@@ -8234,6 +8234,7 @@ arguments as the running Emacs)."
         (_
          (apply operation arguments))))))
 
+;;;###autoload
 (defsubst file-name-quoted-p (name &optional top)
   "Whether NAME is quoted with prefix \"/:\".
 If NAME is a remote file name and TOP is nil, check the local part of NAME."

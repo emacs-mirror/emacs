@@ -77,7 +77,8 @@
   :link '(custom-manual "(tramp)Top")
   :version "22.1")
 
-(eval-and-compile ;; So it's also available in tramp-loaddefs.el!
+;;;###tramp-autoload
+(progn
   (defvar tramp--startup-hook nil
     "Forms to be executed at the end of tramp.el.")
   (put 'tramp--startup-hook 'tramp-suppress-trace t)
@@ -186,9 +187,11 @@ See the variable `tramp-encoding-shell' for more information."
 ;; Since Emacs 26.1, `system-name' can return nil at build time if
 ;; Emacs is compiled with "--no-build-details".  We do expect it to be
 ;; a string.  (Bug#44481, Bug#54294)
+;;;###tramp-autoload
 (defconst tramp-system-name (or (system-name) "")
   "The system name Tramp is running locally.")
 
+;;;###tramp-autoload
 (defvar tramp-methods nil
   "Alist of methods for remote files.
 This is a list of entries of the form (NAME PARAM1 PARAM2 ...).
@@ -403,6 +406,7 @@ See `tramp-methods' for possibilities.
 Also see `tramp-default-method-alist'."
   :type 'string)
 
+;;;###tramp-autoload
 (defcustom tramp-default-method-alist nil
   ;; FIXME: This is not an "alist", because its elements are not of
   ;; the form (KEY . VAL) but (KEY1 KEY2 VAL).
@@ -432,6 +436,7 @@ It is nil by default; otherwise settings in configuration files like
 This variable is regarded as obsolete, and will be removed soon."
   :type '(choice (const nil) string))
 
+;;;###tramp-autoload
 (defcustom tramp-default-user-alist nil
   ;; FIXME: This is not an "alist", because its elements are not of
   ;; the form (KEY . VAL) but (KEY1 KEY2 VAL).
@@ -453,6 +458,7 @@ empty string for the method name."
 Useful for su and sudo methods mostly."
   :type 'string)
 
+;;;###tramp-autoload
 (defcustom tramp-default-host-alist nil
   ;; FIXME: This is not an "alist", because its elements are not of
   ;; the form (KEY . VAL) but (KEY1 KEY2 VAL).
@@ -518,6 +524,7 @@ host runs a restricted shell, it shall be added to this list, too."
   :version "27.1"
   :type '(repeat (regexp :tag "Host regexp")))
 
+;;;###tramp-autoload
 (defcustom tramp-local-host-regexp
   (concat
    "\\`"
@@ -679,6 +686,7 @@ The regexp should match at end of buffer.
 See also `tramp-yesno-prompt-regexp'."
   :type 'regexp)
 
+;;;###tramp-autoload
 (defcustom tramp-terminal-type "dumb"
   "Value of TERM environment variable for logging in to remote host.
 Because Tramp wants to parse the output of the remote shell, it is easily
@@ -1415,6 +1423,7 @@ Operations not mentioned here will be handled by Tramp's file
 name handler functions, or the normal Emacs functions.")
 
 ;; Handlers for foreign methods, like FTP or SMB, shall be plugged here.
+;;;###autoload
 (defvar tramp-foreign-file-name-handler-alist nil
   "Alist of elements (FUNCTION . HANDLER) for foreign methods handled specially.
 If (FUNCTION FILENAME) returns non-nil, then all I/O on that file is done by
@@ -1429,6 +1438,7 @@ calling HANDLER.")
 ;; The basic structure for remote file names.  We must autoload it in
 ;; tramp-loaddefs.el, because some functions, which need it, wouldn't
 ;; work otherwise when unloading / reloading Tramp.  (Bug#50869)
+;;;###tramp-autoload(require 'cl-lib)
 ;;;###tramp-autoload
 (cl-defstruct (tramp-file-name (:type list) :named)
   method user domain host port localname hop)
@@ -1693,6 +1703,7 @@ default values are used."
 
 (put #'tramp-dissect-file-name 'tramp-suppress-trace t)
 
+;;;###tramp-autoload
 (defun tramp-ensure-dissected-file-name (vec-or-filename)
   "Return a `tramp-file-name' structure for VEC-OR-FILENAME.
 
@@ -2444,6 +2455,7 @@ letter into the file name.  This function removes it."
 (defconst tramp-dns-sd-service-regexp "^_[-[:alnum:]]+\\._tcp$"
   "DNS-SD service regexp.")
 
+;;;###tramp-autoload
 (defun tramp-set-completion-function (method function-list)
   "Set the list of completion functions for METHOD.
 FUNCTION-LIST is a list of entries of the form (FUNCTION FILE).
@@ -2880,6 +2892,7 @@ remote file names."
 
 (tramp--with-startup (tramp-register-file-name-handlers))
 
+;;;###tramp-autoload
 (defun tramp-register-foreign-file-name-handler
     (func handler &optional append)
   "Register (FUNC . HANDLER) in `tramp-foreign-file-name-handler-alist'.

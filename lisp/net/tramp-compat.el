@@ -79,6 +79,7 @@ Add the extension of F, if existing."
 
 ;; `file-name-quoted-p', `file-name-quote' and `file-name-unquote' got
 ;; a second argument in Emacs 27.1.
+;;;###tramp-autoload
 (defalias 'tramp-compat-file-name-quoted-p
   (if (equal (func-arity #'file-name-quoted-p) '(1 . 2))
       #'file-name-quoted-p
