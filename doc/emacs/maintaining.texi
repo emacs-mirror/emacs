@@ -1055,15 +1055,6 @@ prefix argument is a repeat count.
 Move to the next revision entry.  A numeric prefix argument is a
 repeat count.
 
-@item P
-Move to the log of the previous file, if showing logs for a multi-file
-VC fileset.  Otherwise, just move to the beginning of the log.  A
-numeric prefix argument is a repeat count.
-
-@item N
-Move to the log of the next file, if showing logs for a multi-file VC
-fileset.  A numeric prefix argument is a repeat count.
-
 @item a
 Annotate the revision on the current line (@pxref{Old Revisions}).
 
@@ -1324,6 +1315,12 @@ If point is on a file entry, mark all files with the same status; if
 point is on a directory entry, mark all files in that directory tree
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
 listed files and directories.
+
+@findex vc-dir-mark-by-regexp
+@item %
+You can use this command to mark files by regexp
+(@code{vc-dir-mark-by-regexp}).  If given a prefix, unmark files
+instead.
 
 @item G
 Add the file under point to the list of files that the VC should
@@ -1669,6 +1666,9 @@ support additional types of projects.
   Which files do or don't belong to a project is also determined by
 the project back-end.  For example, the VC back-end doesn't consider
 ``ignored'' files (@pxref{VC Ignore}) to be part of the project.
+Also, the VC Project back-end considers ``untracked'' files by default.
+That behavior is controllable with the variable
+@code{project-vc-include-untracked}.
 
 @menu
 * Project File Commands::   Commands for handling project files.
@@ -1728,6 +1728,7 @@ doesn't seem to belong to a recognizable project, these commands
 prompt you for the project directory.
 
 @findex project-find-file
+@vindex vc-directory-exclusion-list
   The command @kbd{C-x p f} (@code{project-find-file}) is a convenient
 way of visiting files (@pxref{Visiting}) that belong to the current
 project.  Unlike @kbd{C-x C-f}, this command doesn't require to type
@@ -1736,7 +1737,9 @@ base name (i.e., omit the leading directories).  In addition, the
 completion candidates considered by the command include only the files
 belonging to the current project, and nothing else.  If there's a file
 name at point, this command offers that file as the first element of
-the ``future history''.
+the ``future history''.  If given a prefix, include all files under
+the project root, except for @acronym{VCS} directories listed in
+@code{vc-directory-exclusion-list}.
 
 @findex project-find-regexp
   The command @kbd{C-x p g} (@code{project-find-regexp}) is similar to
@@ -1831,11 +1834,14 @@ buffers as candidates for completion.
 
 @findex project-kill-buffers
 @vindex project-kill-buffer-conditions
+@vindex project-kill-buffers-display-buffer-list
   When you finish working on the project, you may wish to kill all the
 buffers that belong to the project, to keep your Emacs session
 smaller.  The command @kbd{C-x p k} (@code{project-kill-buffers})
 accomplishes that: it kills all the buffers that belong to the current
-project that satisfy any of @code{project-kill-buffer-conditions}.
+project that satisfy any of @code{project-kill-buffer-conditions}.  If
+@code{project-kill-buffers-display-buffer-list} is non-@code{nil}, the
+buffers to be killed will be displayed first.
 
 @node Switching Projects
 @subsection Switching Projects
@@ -2216,8 +2222,8 @@ where you were with @kbd{M-,}.
 
 @kindex C-M-,
 @findex xref-go-forward
-  Go forward to a place from where you previously went back using @kbd{M-,}.
-This is useful if you find that you went back too far.
+  If you previously went back too far with @kbd{M-,}, @kbd{C-M-,}
+(@code{xref-go-forward}) can be used to go forward again.
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might
@@ -2820,6 +2826,13 @@ place of a file name on the command line.  @command{etags} will read from
 standard input and mark the produced tags as belonging to the file
 @var{file}.
 
+  For C and C++, if the source files don't observe the GNU Coding
+Standards' convention if having braces (@samp{@{} and @samp{@}}) in
+column zero only for top-level definitions, like functions and
+@code{struct} definitions, we advise that you use the
+@samp{--ignore-indentation} option, to prevent @command{etags} from
+incorrectly interpreting closing braces in column zero.
+
   @samp{etags --help} outputs the list of the languages @command{etags}
 knows, and the file name rules for guessing the language.  It also prints
 a list of all the available @command{etags} options, together with a short
@@ -2992,11 +3005,12 @@ etags --language=none \
 
 @findex visit-tags-table
   Emacs has at any time at most one @dfn{selected} tags table.  All
-the commands for working with tags tables use the selected one.  To
-select a tags table, type @kbd{M-x visit-tags-table}, which reads the
-tags table file name as an argument, with @file{TAGS} defaulting to
-the first directory that contains a file named @file{TAGS} encountered
-when recursively searching upward from the default directory.
+the commands for working with tags tables use the selected one first.
+To select a tags table, type @kbd{M-x visit-tags-table}, which reads
+the tags table file name as an argument, with @file{TAGS} defaulting
+to the first directory that contains a file named @file{TAGS}
+encountered when recursively searching upward from the default
+directory.
 
 @vindex tags-file-name
   Emacs does not actually read in the tags table contents until you
@@ -3006,16 +3020,25 @@ variable's initial value is @code{nil}; that value tells all the
 commands for working with tags tables that they must ask for a tags
 table file name to use.
 
-  Using @code{visit-tags-table} when a tags table is already loaded
-gives you a choice: you can add the new tags table to the current list
-of tags tables, or start a new list.  The tags commands use all the tags
-tables in the current list.  If you start a new list, the new tags table
-is used @emph{instead} of others.  If you add the new table to the
-current list, it is used @emph{as well as} the others.
+  In addition to the selected tags table, Emacs maintains the list of
+several tags tables that you use together.  For example, if you are
+working on a program that uses a library, you may wish to have the
+tags tables of both the program and the library available, so that
+Emacs could easily find identifiers from both.  If the selected tags
+table doesn't have the identifier or doesn't mention the source file a
+tags command needs, the command will try using all the other tags
+tables in the current list of tags tables.
+
+  Using @code{visit-tags-table} to load a new tags table when another
+tags table is already loaded gives you a choice: you can add the new
+tags table to the current list of tags tables, or discard the current
+list and start a new list.  If you start a new list, the new tags
+table is used @emph{instead} of others.  If you add the new table to
+the current list, it is used @emph{as well as} the others.
 
 @vindex tags-table-list
   You can specify a precise list of tags tables by setting the variable
-@code{tags-table-list} to a list of strings, like this:
+@code{tags-table-list} to a list of directory names, like this:
 
 @c keep this on two lines for formatting in smallbook
 @example

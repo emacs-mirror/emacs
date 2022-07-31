@@ -34,7 +34,7 @@
 ;; you might be interested in replacing the default `list-buffers' key
 ;; binding by adding the following to your init file:
 ;;
-;;     (global-set-key (kbd "C-x C-b") 'ibuffer)
+;;     (keymap-global-set "C-x C-b" 'ibuffer)
 ;;
 ;; See also the various customization options, not least the
 ;; documentation for `ibuffer-formats'.
@@ -364,173 +364,170 @@ directory, like `default-directory'."
 		       (regexp :tag "From")
                        (regexp :tag "To"))))
 
-(defvar ibuffer--filter-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'ibuffer-filter-by-mode)
-    (define-key map (kbd "SPC") 'ibuffer-filter-chosen-by-completion)
-    (define-key map (kbd "m") 'ibuffer-filter-by-used-mode)
-    (define-key map (kbd "M") 'ibuffer-filter-by-derived-mode)
-    (define-key map (kbd "n") 'ibuffer-filter-by-name)
-    (define-key map (kbd "E") 'ibuffer-filter-by-process)
-    (define-key map (kbd "*") 'ibuffer-filter-by-starred-name)
-    (define-key map (kbd "f") 'ibuffer-filter-by-filename)
-    (define-key map (kbd "F") 'ibuffer-filter-by-directory)
-    (define-key map (kbd "b") 'ibuffer-filter-by-basename)
-    (define-key map (kbd ".") 'ibuffer-filter-by-file-extension)
-    (define-key map (kbd "<") 'ibuffer-filter-by-size-lt)
-    (define-key map (kbd ">") 'ibuffer-filter-by-size-gt)
-    (define-key map (kbd "i") 'ibuffer-filter-by-modified)
-    (define-key map (kbd "v") 'ibuffer-filter-by-visiting-file)
-    (define-key map (kbd "c") 'ibuffer-filter-by-content)
-    (define-key map (kbd "e") 'ibuffer-filter-by-predicate)
+(defvar-keymap ibuffer--filter-map
+  "RET"    #'ibuffer-filter-by-mode
+  "SPC"    #'ibuffer-filter-chosen-by-completion
+  "m"      #'ibuffer-filter-by-used-mode
+  "M"      #'ibuffer-filter-by-derived-mode
+  "n"      #'ibuffer-filter-by-name
+  "E"      #'ibuffer-filter-by-process
+  "*"      #'ibuffer-filter-by-starred-name
+  "f"      #'ibuffer-filter-by-filename
+  "F"      #'ibuffer-filter-by-directory
+  "b"      #'ibuffer-filter-by-basename
+  "."      #'ibuffer-filter-by-file-extension
+  "<"      #'ibuffer-filter-by-size-lt
+  ">"      #'ibuffer-filter-by-size-gt
+  "i"      #'ibuffer-filter-by-modified
+  "v"      #'ibuffer-filter-by-visiting-file
+  "c"      #'ibuffer-filter-by-content
+  "e"      #'ibuffer-filter-by-predicate
 
-    (define-key map (kbd "r") 'ibuffer-switch-to-saved-filters)
-    (define-key map (kbd "a") 'ibuffer-add-saved-filters)
-    (define-key map (kbd "x") 'ibuffer-delete-saved-filters)
-    (define-key map (kbd "d") 'ibuffer-decompose-filter)
-    (define-key map (kbd "s") 'ibuffer-save-filters)
-    (define-key map (kbd "p") 'ibuffer-pop-filter)
-    (define-key map (kbd "<up>") 'ibuffer-pop-filter)
-    (define-key map (kbd "!") 'ibuffer-negate-filter)
-    (define-key map (kbd "t") 'ibuffer-exchange-filters)
-    (define-key map (kbd "TAB") 'ibuffer-exchange-filters)
-    (define-key map (kbd "o") 'ibuffer-or-filter)
-    (define-key map (kbd "|") 'ibuffer-or-filter)
-    (define-key map (kbd "&") 'ibuffer-and-filter)
-    (define-key map (kbd "g") 'ibuffer-filters-to-filter-group)
-    (define-key map (kbd "P") 'ibuffer-pop-filter-group)
-    (define-key map (kbd "S-<up>") 'ibuffer-pop-filter-group)
-    (define-key map (kbd "D") 'ibuffer-decompose-filter-group)
-    (define-key map (kbd "/") 'ibuffer-filter-disable)
+  "r"      #'ibuffer-switch-to-saved-filters
+  "a"      #'ibuffer-add-saved-filters
+  "x"      #'ibuffer-delete-saved-filters
+  "d"      #'ibuffer-decompose-filter
+  "s"      #'ibuffer-save-filters
+  "p"      #'ibuffer-pop-filter
+  "<up>"   #'ibuffer-pop-filter
+  "!"      #'ibuffer-negate-filter
+  "t"      #'ibuffer-exchange-filters
+  "TAB"    #'ibuffer-exchange-filters
+  "o"      #'ibuffer-or-filter
+  "|"      #'ibuffer-or-filter
+  "&"      #'ibuffer-and-filter
+  "g"      #'ibuffer-filters-to-filter-group
+  "P"      #'ibuffer-pop-filter-group
+  "S-<up>" #'ibuffer-pop-filter-group
+  "D"      #'ibuffer-decompose-filter-group
+  "/"      #'ibuffer-filter-disable
 
-    (define-key map (kbd "S") 'ibuffer-save-filter-groups)
-    (define-key map (kbd "R") 'ibuffer-switch-to-saved-filter-groups)
-    (define-key map (kbd "X") 'ibuffer-delete-saved-filter-groups)
-    (define-key map (kbd "\\") 'ibuffer-clear-filter-groups)
-    map))
+  "S"      #'ibuffer-save-filter-groups
+  "R"      #'ibuffer-switch-to-saved-filter-groups
+  "X"      #'ibuffer-delete-saved-filter-groups
+  "\\"     #'ibuffer-clear-filter-groups)
 
-(defvar ibuffer-mode-map
-  (let ((map (make-keymap)))
-    (define-key map (kbd "0") 'digit-argument)
-    (define-key map (kbd "1") 'digit-argument)
-    (define-key map (kbd "2") 'digit-argument)
-    (define-key map (kbd "3") 'digit-argument)
-    (define-key map (kbd "4") 'digit-argument)
-    (define-key map (kbd "5") 'digit-argument)
-    (define-key map (kbd "6") 'digit-argument)
-    (define-key map (kbd "7") 'digit-argument)
-    (define-key map (kbd "8") 'digit-argument)
-    (define-key map (kbd "9") 'digit-argument)
+(defvar-keymap ibuffer-mode-map
+  :full t
+  "0"           #'digit-argument
+  "1"           #'digit-argument
+  "2"           #'digit-argument
+  "3"           #'digit-argument
+  "4"           #'digit-argument
+  "5"           #'digit-argument
+  "6"           #'digit-argument
+  "7"           #'digit-argument
+  "8"           #'digit-argument
+  "9"           #'digit-argument
 
-    (define-key map (kbd "m") 'ibuffer-mark-forward)
-    (define-key map (kbd "t") 'ibuffer-toggle-marks)
-    (define-key map (kbd "u") 'ibuffer-unmark-forward)
-    (define-key map (kbd "=") 'ibuffer-diff-with-file)
-    (define-key map (kbd "j") 'ibuffer-jump-to-buffer)
-    (define-key map (kbd "M-g") 'ibuffer-jump-to-buffer)
-    (define-key map (kbd "M-s a C-s") 'ibuffer-do-isearch)
-    (define-key map (kbd "M-s a M-C-s") 'ibuffer-do-isearch-regexp)
-    (define-key map (kbd "M-s a C-o") 'ibuffer-do-occur)
-    (define-key map (kbd "DEL") 'ibuffer-unmark-backward)
-    (define-key map (kbd "M-DEL") 'ibuffer-unmark-all)
-    (define-key map (kbd "* *") 'ibuffer-unmark-all)
-    (define-key map (kbd "* c") 'ibuffer-change-marks)
-    (define-key map (kbd "U") 'ibuffer-unmark-all-marks)
-    (define-key map (kbd "* M") 'ibuffer-mark-by-mode)
-    (define-key map (kbd "* m") 'ibuffer-mark-modified-buffers)
-    (define-key map (kbd "* u") 'ibuffer-mark-unsaved-buffers)
-    (define-key map (kbd "* s") 'ibuffer-mark-special-buffers)
-    (define-key map (kbd "* r") 'ibuffer-mark-read-only-buffers)
-    (define-key map (kbd "* /") 'ibuffer-mark-dired-buffers)
-    (define-key map (kbd "* e") 'ibuffer-mark-dissociated-buffers)
-    (define-key map (kbd "* h") 'ibuffer-mark-help-buffers)
-    (define-key map (kbd "* z") 'ibuffer-mark-compressed-file-buffers)
-    (define-key map (kbd ".") 'ibuffer-mark-old-buffers)
+  "m"           #'ibuffer-mark-forward
+  "t"           #'ibuffer-toggle-marks
+  "u"           #'ibuffer-unmark-forward
+  "="           #'ibuffer-diff-with-file
+  "j"           #'ibuffer-jump-to-buffer
+  "M-g"         #'ibuffer-jump-to-buffer
+  "M-s a C-s"   #'ibuffer-do-isearch
+  "M-s a C-M-s" #'ibuffer-do-isearch-regexp
+  "M-s a C-o"   #'ibuffer-do-occur
+  "DEL"         #'ibuffer-unmark-backward
+  "M-DEL"       #'ibuffer-unmark-all
+  "* *"         #'ibuffer-unmark-all
+  "* c"         #'ibuffer-change-marks
+  "U"           #'ibuffer-unmark-all-marks
+  "* M"         #'ibuffer-mark-by-mode
+  "* m"         #'ibuffer-mark-modified-buffers
+  "* u"         #'ibuffer-mark-unsaved-buffers
+  "* s"         #'ibuffer-mark-special-buffers
+  "* r"         #'ibuffer-mark-read-only-buffers
+  "* /"         #'ibuffer-mark-dired-buffers
+  "* e"         #'ibuffer-mark-dissociated-buffers
+  "* h"         #'ibuffer-mark-help-buffers
+  "* z"         #'ibuffer-mark-compressed-file-buffers
+  "."           #'ibuffer-mark-old-buffers
 
-    (define-key map (kbd "d") 'ibuffer-mark-for-delete)
-    (define-key map (kbd "C-d") 'ibuffer-mark-for-delete-backwards)
-    (define-key map (kbd "k") 'ibuffer-mark-for-delete)
-    (define-key map (kbd "x") 'ibuffer-do-kill-on-deletion-marks)
+  "d"           #'ibuffer-mark-for-delete
+  "C-d"         #'ibuffer-mark-for-delete-backwards
+  "k"           #'ibuffer-mark-for-delete
+  "x"           #'ibuffer-do-kill-on-deletion-marks
 
-    ;; immediate operations
-    (define-key map (kbd "n") 'ibuffer-forward-line)
-    (define-key map (kbd "SPC") 'forward-line)
-    (define-key map (kbd "p") 'ibuffer-backward-line)
-    (define-key map (kbd "M-}") 'ibuffer-forward-next-marked)
-    (define-key map (kbd "M-{") 'ibuffer-backwards-next-marked)
-    (define-key map (kbd "l") 'ibuffer-redisplay)
-    (define-key map (kbd "g") 'ibuffer-update)
-    (define-key map "`" 'ibuffer-switch-format)
-    (define-key map "-" 'ibuffer-add-to-tmp-hide)
-    (define-key map "+" 'ibuffer-add-to-tmp-show)
-    (define-key map "b" 'ibuffer-bury-buffer)
-    (define-key map (kbd ",") 'ibuffer-toggle-sorting-mode)
-    (define-key map (kbd "s i") 'ibuffer-invert-sorting)
-    (define-key map (kbd "s a") 'ibuffer-do-sort-by-alphabetic)
-    (define-key map (kbd "s v") 'ibuffer-do-sort-by-recency)
-    (define-key map (kbd "s s") 'ibuffer-do-sort-by-size)
-    (define-key map (kbd "s f") 'ibuffer-do-sort-by-filename/process)
-    (define-key map (kbd "s m") 'ibuffer-do-sort-by-major-mode)
+  ;; immediate operations
+  "n"           #'ibuffer-forward-line
+  "SPC"         #'forward-line
+  "p"           #'ibuffer-backward-line
+  "M-}"         #'ibuffer-forward-next-marked
+  "M-{"         #'ibuffer-backwards-next-marked
+  "l"           #'ibuffer-redisplay
+  "g"           #'ibuffer-update
+  "`"           #'ibuffer-switch-format
+  "-"           #'ibuffer-add-to-tmp-hide
+  "+"           #'ibuffer-add-to-tmp-show
+  "b"           #'ibuffer-bury-buffer
+  ","           #'ibuffer-toggle-sorting-mode
+  "s i"         #'ibuffer-invert-sorting
+  "s a"         #'ibuffer-do-sort-by-alphabetic
+  "s v"         #'ibuffer-do-sort-by-recency
+  "s s"         #'ibuffer-do-sort-by-size
+  "s f"         #'ibuffer-do-sort-by-filename/process
+  "s m"         #'ibuffer-do-sort-by-major-mode
 
-    (define-key map (kbd "M-n") 'ibuffer-forward-filter-group)
-    (define-key map "\t" 'ibuffer-forward-filter-group)
-    (define-key map (kbd "M-p") 'ibuffer-backward-filter-group)
-    (define-key map [backtab] 'ibuffer-backward-filter-group)
-    (define-key map (kbd "M-j") 'ibuffer-jump-to-filter-group)
-    (define-key map (kbd "C-k") 'ibuffer-kill-line)
-    (define-key map (kbd "C-y") 'ibuffer-yank)
+  "M-n"         #'ibuffer-forward-filter-group
+  "TAB"         #'ibuffer-forward-filter-group
+  "M-p"         #'ibuffer-backward-filter-group
+  "<backtab>"   #'ibuffer-backward-filter-group
+  "M-j"         #'ibuffer-jump-to-filter-group
+  "C-k"         #'ibuffer-kill-line
+  "C-y"         #'ibuffer-yank
 
-    (define-key map (kbd "% n") 'ibuffer-mark-by-name-regexp)
-    (define-key map (kbd "% m") 'ibuffer-mark-by-mode-regexp)
-    (define-key map (kbd "% f") 'ibuffer-mark-by-file-name-regexp)
-    (define-key map (kbd "% g") 'ibuffer-mark-by-content-regexp)
-    (define-key map (kbd "% L") 'ibuffer-mark-by-locked)
+  "% n"         #'ibuffer-mark-by-name-regexp
+  "% m"         #'ibuffer-mark-by-mode-regexp
+  "% f"         #'ibuffer-mark-by-file-name-regexp
+  "% g"         #'ibuffer-mark-by-content-regexp
+  "% L"         #'ibuffer-mark-by-locked
 
-    (define-key map (kbd "C-t") 'ibuffer-visit-tags-table)
+  "C-t"         #'ibuffer-visit-tags-table
 
-    (define-key map (kbd "|") 'ibuffer-do-shell-command-pipe)
-    (define-key map (kbd "!") 'ibuffer-do-shell-command-file)
-    (define-key map (kbd "~") 'ibuffer-do-toggle-modified)
-    ;; marked operations
-    (define-key map (kbd "A") 'ibuffer-do-view)
-    (define-key map (kbd "D") 'ibuffer-do-delete)
-    (define-key map (kbd "E") 'ibuffer-do-eval)
-    (define-key map (kbd "F") 'ibuffer-do-shell-command-file)
-    (define-key map (kbd "I") 'ibuffer-do-query-replace-regexp)
-    (define-key map (kbd "H") 'ibuffer-do-view-other-frame)
-    (define-key map (kbd "N") 'ibuffer-do-shell-command-pipe-replace)
-    (define-key map (kbd "M") 'ibuffer-do-toggle-modified)
-    (define-key map (kbd "O") 'ibuffer-do-occur)
-    (define-key map (kbd "P") 'ibuffer-do-print)
-    (define-key map (kbd "Q") 'ibuffer-do-query-replace)
-    (define-key map (kbd "R") 'ibuffer-do-rename-uniquely)
-    (define-key map (kbd "S") 'ibuffer-do-save)
-    (define-key map (kbd "T") 'ibuffer-do-toggle-read-only)
-    (define-key map (kbd "L") 'ibuffer-do-toggle-lock)
-    (define-key map (kbd "r") 'ibuffer-do-replace-regexp)
-    (define-key map (kbd "V") 'ibuffer-do-revert)
-    (define-key map (kbd "W") 'ibuffer-do-view-and-eval)
-    (define-key map (kbd "X") 'ibuffer-do-shell-command-pipe)
+  "|"           #'ibuffer-do-shell-command-pipe
+  "!"           #'ibuffer-do-shell-command-file
+  "~"           #'ibuffer-do-toggle-modified
+  ;; marked operations
+  "A"           #'ibuffer-do-view
+  "D"           #'ibuffer-do-delete
+  "E"           #'ibuffer-do-eval
+  "F"           #'ibuffer-do-shell-command-file
+  "I"           #'ibuffer-do-query-replace-regexp
+  "H"           #'ibuffer-do-view-other-frame
+  "N"           #'ibuffer-do-shell-command-pipe-replace
+  "M"           #'ibuffer-do-toggle-modified
+  "O"           #'ibuffer-do-occur
+  "P"           #'ibuffer-do-print
+  "Q"           #'ibuffer-do-query-replace
+  "R"           #'ibuffer-do-rename-uniquely
+  "S"           #'ibuffer-do-save
+  "T"           #'ibuffer-do-toggle-read-only
+  "L"           #'ibuffer-do-toggle-lock
+  "r"           #'ibuffer-do-replace-regexp
+  "V"           #'ibuffer-do-revert
+  "W"           #'ibuffer-do-view-and-eval
+  "X"           #'ibuffer-do-shell-command-pipe
 
-    (define-key map (kbd "k") 'ibuffer-do-kill-lines)
-    (define-key map (kbd "w") 'ibuffer-copy-filename-as-kill)
-    (define-key map (kbd "B") 'ibuffer-copy-buffername-as-kill)
+  "k"           #'ibuffer-do-kill-lines
+  "w"           #'ibuffer-copy-filename-as-kill
+  "B"           #'ibuffer-copy-buffername-as-kill
 
-    (define-key map (kbd "RET") 'ibuffer-visit-buffer)
-    (define-key map (kbd "e") 'ibuffer-visit-buffer)
-    (define-key map (kbd "f") 'ibuffer-visit-buffer)
-    (define-key map (kbd "C-x C-f") 'ibuffer-find-file)
-    (define-key map (kbd "o") 'ibuffer-visit-buffer-other-window)
-    (define-key map (kbd "C-o") 'ibuffer-visit-buffer-other-window-noselect)
-    (define-key map (kbd "M-o") 'ibuffer-visit-buffer-1-window)
-    (define-key map (kbd "v") 'ibuffer-do-view)
-    (define-key map (kbd "C-x v") 'ibuffer-do-view-horizontally)
-    (define-key map (kbd "C-c C-a") 'ibuffer-auto-mode)
-    (define-key map (kbd "C-x 4 RET") 'ibuffer-visit-buffer-other-window)
-    (define-key map (kbd "C-x 5 RET") 'ibuffer-visit-buffer-other-frame)
+  "RET"         #'ibuffer-visit-buffer
+  "e"           #'ibuffer-visit-buffer
+  "f"           #'ibuffer-visit-buffer
+  "C-x C-f"     #'ibuffer-find-file
+  "o"           #'ibuffer-visit-buffer-other-window
+  "C-o"         #'ibuffer-visit-buffer-other-window-noselect
+  "M-o"         #'ibuffer-visit-buffer-1-window
+  "v"           #'ibuffer-do-view
+  "C-x v"       #'ibuffer-do-view-horizontally
+  "C-c C-a"     #'ibuffer-auto-mode
+  "C-x 4 RET"   #'ibuffer-visit-buffer-other-window
+  "C-x 5 RET"   #'ibuffer-visit-buffer-other-frame
 
-    (define-key map (kbd "/") ibuffer--filter-map)
-    map))
+  "/"           ibuffer--filter-map)
 
 (defun ibuffer-mode--groups-menu-definition (&optional is-popup)
   "Build the `ibuffer' \"Filter\" menu.  Internal."
@@ -758,46 +755,32 @@ directory, like `default-directory'."
     ["Diff with file" ibuffer-diff-with-file
      :help "View the differences between this buffer and its file"]))
 
-(defvar ibuffer-name-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
-    (define-key map [(mouse-2)] 'ibuffer-mouse-visit-buffer)
-    (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
-    map))
+(defvar-keymap ibuffer-name-map
+  "<mouse-1>"      #'ibuffer-mouse-toggle-mark
+  "<mouse-2>"      #'ibuffer-mouse-visit-buffer
+  "<down-mouse-3>" #'ibuffer-mouse-popup-menu)
 
-(defvar ibuffer-filename/process-header-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-filename/process)
-    map))
+(defvar-keymap ibuffer-filename/process-header-map
+  "<mouse-1>"      #'ibuffer-do-sort-by-filename/process)
 
-(defvar ibuffer-mode-name-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(mouse-2)] 'ibuffer-mouse-filter-by-mode)
-    (define-key map (kbd "RET") 'ibuffer-interactive-filter-by-mode)
-    map))
+(defvar-keymap ibuffer-mode-name-map
+  "<mouse-2>"      #'ibuffer-mouse-filter-by-mode
+  "RET"            #'ibuffer-interactive-filter-by-mode)
 
-(defvar ibuffer-name-header-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-alphabetic)
-    map))
+(defvar-keymap ibuffer-name-header-map
+  "<mouse-1>"      #'ibuffer-do-sort-by-alphabetic)
 
-(defvar ibuffer-size-header-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-size)
-    map))
+(defvar-keymap ibuffer-size-header-map
+  "<mouse-1>"      #'ibuffer-do-sort-by-size)
 
-(defvar ibuffer-mode-header-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-major-mode)
-    map))
+(defvar-keymap ibuffer-mode-header-map
+  "<mouse-1>"      #'ibuffer-do-sort-by-major-mode)
 
-(defvar ibuffer-mode-filter-group-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
-    (define-key map [(mouse-2)] 'ibuffer-mouse-toggle-filter-group)
-    (define-key map (kbd "RET") 'ibuffer-toggle-filter-group)
-    (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
-    map))
+(defvar-keymap ibuffer-mode-filter-group-map
+  "<mouse-1>"      #'ibuffer-mouse-toggle-mark
+  "<mouse-2>"      #'ibuffer-mouse-toggle-filter-group
+  "RET"            #'ibuffer-toggle-filter-group
+  "<down-mouse-3>" #'ibuffer-mouse-popup-menu)
 
 (defvar ibuffer-did-modification nil)
 

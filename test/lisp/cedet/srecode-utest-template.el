@@ -33,7 +33,7 @@
 ;;; MAP DUMP TESTING
 (defun srecode-utest-map-reset ()
   "Reset, then dump the map of SRecoder templates.
-Probably should be called 'describe-srecode-maps'."
+Probably should be called `describe-srecode-maps'."
   (interactive)
   (message "SRecode Template Path: %S" srecode-map-load-path)
   ;; Interactive call allows us to dump.

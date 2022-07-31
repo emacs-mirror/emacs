@@ -121,6 +121,7 @@
 # undef __attr_dealloc
 # undef __attr_dealloc_free
 # undef __attribute__
+# undef __attribute_alloc_align__
 # undef __attribute_alloc_size__
 # undef __attribute_artificial__
 # undef __attribute_const__
@@ -129,6 +130,7 @@
 # undef __attribute_format_arg__
 # undef __attribute_format_strfmon__
 # undef __attribute_malloc__
+# undef __attribute_maybe_unused__
 # undef __attribute_noinline__
 # undef __attribute_nonstring__
 # undef __attribute_pure__
@@ -142,16 +144,24 @@
 # undef __extern_always_inline
 # undef __extern_inline
 # undef __flexarr
+# undef __fortified_attr_access
 # undef __fortify_function
 # undef __glibc_c99_flexarr_available
+# undef __glibc_fortify
+# undef __glibc_fortify_n
 # undef __glibc_has_attribute
 # undef __glibc_has_builtin
 # undef __glibc_has_extension
+# undef __glibc_likely
 # undef __glibc_macro_warning
 # undef __glibc_macro_warning1
 # undef __glibc_objsize
 # undef __glibc_objsize0
+# undef __glibc_safe_len_cond
+# undef __glibc_safe_or_unknown_len
 # undef __glibc_unlikely
+# undef __glibc_unsafe_len
+# undef __glibc_unsigned_or_positive
 # undef __inline
 # undef __ptr_t
 # undef __restrict
@@ -159,6 +169,7 @@
 # undef __va_arg_pack
 # undef __va_arg_pack_len
 # undef __warnattr
+# undef __wur
 
 /* Include our copy of glibc <sys/cdefs.h>.  */
 # include <cdefs.h>

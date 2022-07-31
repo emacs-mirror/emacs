@@ -69,12 +69,12 @@
 ;;    You might also want to bind the hi-lock commands to more
 ;;    finger-friendly sequences:
 
-;;    (define-key hi-lock-map "\C-z\C-h" 'highlight-lines-matching-regexp)
-;;    (define-key hi-lock-map "\C-zi" 'hi-lock-find-patterns)
-;;    (define-key hi-lock-map "\C-zh" 'highlight-regexp)
-;;    (define-key hi-lock-map "\C-zp" 'highlight-phrase)
-;;    (define-key hi-lock-map "\C-zr" 'unhighlight-regexp)
-;;    (define-key hi-lock-map "\C-zb" 'hi-lock-write-interactive-patterns))
+;;    (keymap-set hi-lock-map "C-z C-h" 'highlight-lines-matching-regexp)
+;;    (keymap-set hi-lock-map "C-z i" 'hi-lock-find-patterns)
+;;    (keymap-set hi-lock-map "C-z h" 'highlight-regexp)
+;;    (keymap-set hi-lock-map "C-z p" 'highlight-phrase)
+;;    (keymap-set hi-lock-map "C-z r" 'unhighlight-regexp)
+;;    (keymap-set hi-lock-map "C-z b" 'hi-lock-write-interactive-patterns))
 
 ;;    See the documentation for hi-lock-mode `C-h f hi-lock-mode' for
 ;;    additional instructions.
@@ -97,7 +97,7 @@
 When a file is visited and hi-lock mode is on, patterns starting
 up to this limit are added to font-lock's patterns.  See documentation
 of functions `hi-lock-mode' and `hi-lock-find-patterns'."
-  :type 'integer
+  :type 'natnum
   :group 'hi-lock)
 
 (defcustom hi-lock-highlight-range 2000000
@@ -107,7 +107,7 @@ such as the buffer created by `list-colors-display'.  In those buffers
 hi-lock patterns will only be applied over a range of
 `hi-lock-highlight-range' characters.  If font-lock is active then
 highlighting will be applied throughout the buffer."
-  :type 'integer
+  :type 'natnum
   :group 'hi-lock)
 
 (defcustom hi-lock-exclude-modes
@@ -128,10 +128,9 @@ patterns."
                  (const :tag "Ask about file patterns" ask)
                  (function :tag "Function to check file patterns"))
   :group 'hi-lock
+  ;; It can have a function value.
+  :risky t
   :version "22.1")
-
-;; It can have a function value.
-(put 'hi-lock-file-patterns-policy 'risky-local-variable t)
 
 (defcustom hi-lock-auto-select-face nil
   "When nil, highlighting commands prompt for the face to use.
@@ -276,17 +275,16 @@ a library is being loaded.")
     ["Patterns from Buffer" hi-lock-find-patterns
      :help "Use patterns (if any) near top of buffer."]))
 
-(defvar hi-lock-map
-  (let ((map (make-sparse-keymap "Hi Lock")))
-    (define-key map "\C-xwi" 'hi-lock-find-patterns)
-    (define-key map "\C-xwl" 'highlight-lines-matching-regexp)
-    (define-key map "\C-xwp" 'highlight-phrase)
-    (define-key map "\C-xwh" 'highlight-regexp)
-    (define-key map "\C-xw." 'highlight-symbol-at-point)
-    (define-key map "\C-xwr" 'unhighlight-regexp)
-    (define-key map "\C-xwb" 'hi-lock-write-interactive-patterns)
-    map)
-  "Key map for hi-lock.")
+(defvar-keymap hi-lock-map
+  :doc "Keymap for `hi-lock-mode'."
+  :name "Hi Lock"
+  "C-x w i" #'hi-lock-find-patterns
+  "C-x w l" #'highlight-lines-matching-regexp
+  "C-x w p" #'highlight-phrase
+  "C-x w h" #'highlight-regexp
+  "C-x w ." #'highlight-symbol-at-point
+  "C-x w r" #'unhighlight-regexp
+  "C-x w b" #'hi-lock-write-interactive-patterns)
 
 ;; Visible Functions
 

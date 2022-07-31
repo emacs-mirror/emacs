@@ -187,8 +187,11 @@
 (ert-deftest json-parse-string/null ()
   (skip-unless (fboundp 'json-parse-string))
   (should-error (json-parse-string "\x00") :type 'wrong-type-argument)
-  ;; FIXME: Reconsider whether this is the right behavior.
-  (should-error (json-parse-string "[\"a\\u0000b\"]") :type 'json-parse-error))
+  (should (json-parse-string "[\"a\\u0000b\"]"))
+  (let* ((string "{\"foo\":\"this is a string including a literal \\u0000\"}")
+         (data (json-parse-string string)))
+    (should (hash-table-p data))
+    (should (equal string (json-serialize data)))))
 
 (ert-deftest json-parse-string/invalid-unicode ()
   "Some examples from

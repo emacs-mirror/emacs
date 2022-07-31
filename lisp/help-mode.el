@@ -31,25 +31,23 @@
 
 (require 'cl-lib)
 
-(defvar help-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap button-buffer-map
-                                                 special-mode-map))
-    (define-key map "n" 'help-goto-next-page)
-    (define-key map "p" 'help-goto-previous-page)
-    (define-key map "l" 'help-go-back)
-    (define-key map "r" 'help-go-forward)
-    (define-key map "\C-c\C-b" 'help-go-back)
-    (define-key map "\C-c\C-f" 'help-go-forward)
-    (define-key map [XF86Back] 'help-go-back)
-    (define-key map [XF86Forward] 'help-go-forward)
-    (define-key map "\C-c\C-c" 'help-follow-symbol)
-    (define-key map "s" 'help-view-source)
-    (define-key map "I" 'help-goto-lispref-info)
-    (define-key map "i" 'help-goto-info)
-    (define-key map "c" 'help-customize)
-    map)
-  "Keymap for Help mode.")
+(defvar-keymap help-mode-map
+  :doc "Keymap for Help mode."
+  :parent (make-composed-keymap button-buffer-map
+                                special-mode-map)
+  "n"             #'help-goto-next-page
+  "p"             #'help-goto-previous-page
+  "l"             #'help-go-back
+  "r"             #'help-go-forward
+  "C-c C-b"       #'help-go-back
+  "C-c C-f"       #'help-go-forward
+  "<XF86Back>"    #'help-go-back
+  "<XF86Forward>" #'help-go-forward
+  "C-c C-c"       #'help-follow-symbol
+  "s"             #'help-view-source
+  "I"             #'help-goto-lispref-info
+  "i"             #'help-goto-info
+  "c"             #'help-customize)
 
 (easy-menu-define help-mode-menu help-mode-map
   "Menu for Help mode."
@@ -268,7 +266,9 @@ The format is (FUNCTION ARGS...).")
     (let* ((location
             (find-function-search-for-symbol fun type file))
            (position (cdr location)))
-      (pop-to-buffer (car location))
+      (if help-window-keep-selected
+          (pop-to-buffer-same-window (car location))
+        (pop-to-buffer (car location)))
       (run-hooks 'find-function-after-hook)
       (if position
           (progn
@@ -294,7 +294,10 @@ The format is (FUNCTION ARGS...).")
 		   (setq file (locate-library file t))
 		   (if (and file (file-readable-p file))
 		       (progn
-			 (pop-to-buffer (find-file-noselect file))
+                         (if help-window-keep-selected
+			     (pop-to-buffer-same-window
+                              (find-file-noselect file))
+                           (pop-to-buffer (find-file-noselect file)))
                          (widen)
 			 (goto-char (point-min))
 			 (if (re-search-forward
@@ -313,7 +316,9 @@ The format is (FUNCTION ARGS...).")
 		     (setq file (help-C-file-name var 'var)))
 		   (let* ((location (find-variable-noselect var file))
                           (position (cdr location)))
-		     (pop-to-buffer (car location))
+                     (if help-window-keep-selected
+		         (pop-to-buffer-same-window (car location))
+                       (pop-to-buffer (car location)))
 		     (run-hooks 'find-function-after-hook)
                      (if position
                            (progn
@@ -334,7 +339,9 @@ The format is (FUNCTION ARGS...).")
 		   (let* ((location
 			  (find-function-search-for-symbol fun 'defface file))
                          (position (cdr location)))
-		     (pop-to-buffer (car location))
+                     (if help-window-keep-selected
+                         (pop-to-buffer-same-window (car location))
+		       (pop-to-buffer (car location)))
                      (if position
                            (progn
                              ;; Widen the buffer if necessary to go to this position.
@@ -376,7 +383,9 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function
   (lambda (file pos)
-    (view-buffer-other-window (find-file-noselect file))
+    (if help-window-keep-selected
+        (view-file file)
+      (view-file-other-window file))
     (goto-char pos))
   'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
 
@@ -393,27 +402,32 @@ The format is (FUNCTION ARGS...).")
 ;;;###autoload
 (define-derived-mode help-mode special-mode "Help"
   "Major mode for viewing help text and navigating references in it.
-Entry to this mode runs the normal hook `help-mode-hook'.
+Also see the `help-enable-variable-value-editing' variable.
+
 Commands:
 \\{help-mode-map}"
   (setq-local revert-buffer-function
               #'help-mode-revert-buffer)
-  (add-hook 'context-menu-functions 'help-mode-context-menu 5 t)
+  (add-hook 'context-menu-functions #'help-mode-context-menu 5 t)
   (setq-local tool-bar-map
               help-mode-tool-bar-map)
   (setq-local help-mode--current-data nil)
   (setq-local bookmark-make-record-function
-              #'help-bookmark-make-record))
+              #'help-bookmark-make-record)
+  (unless search-default-mode
+    (isearch-fold-quotes-mode)))
 
 ;;;###autoload
 (defun help-mode-setup ()
   "Enter Help mode in the current buffer."
+  (declare (obsolete nil "29.1"))
   (help-mode)
   (setq buffer-read-only nil))
 
 ;;;###autoload
 (defun help-mode-finish ()
   "Finalize Help mode setup in current buffer."
+  (declare (obsolete nil "29.1"))
   (when (derived-mode-p 'help-mode)
     (setq buffer-read-only t)
     (help-make-xrefs (current-buffer))))
@@ -438,6 +452,7 @@ Commands:
  		    "\\(symbol\\|program\\|property\\)\\|" ; Don't link
 		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
 		    "[ \t\n]+\\)?"
+                    "\\(\\\\\\+\\)?"
                     "['`‘]\\(\\(?:\\sw\\|\\s_\\)+\\|`\\)['’]"))
   "Regexp matching doc string references to symbols.
 
@@ -498,17 +513,16 @@ restore it properly when going back."
 ;;;###autoload
 (defun help-buffer ()
   "Return the name of a buffer for inserting help.
-If `help-xref-following' is non-nil, this is the name of the
-current buffer.  Signal an error if this buffer is not derived
-from `help-mode'.
+If `help-xref-following' is non-nil and the current buffer is
+derived from `help-mode', this is the name of the current buffer.
+
 Otherwise, return \"*Help*\", creating a buffer with that name if
 it does not already exist."
-  (buffer-name				;for with-output-to-temp-buffer
-   (if (not help-xref-following)
-       (get-buffer-create "*Help*")
-     (unless (derived-mode-p 'help-mode)
-       (error "Current buffer is not in Help mode"))
-     (current-buffer))))
+  (buffer-name                         ;for with-output-to-temp-buffer
+   (if (and help-xref-following
+            (derived-mode-p 'help-mode))
+       (current-buffer)
+     (get-buffer-create "*Help*"))))
 
 (defvar describe-symbol-backends
   `((nil ,#'fboundp ,(lambda (s _b _f) (describe-function s)))
@@ -526,6 +540,12 @@ Each element has the form (NAME TESTFUN DESCFUN) where:
   DESCFUN is a function which takes three arguments (a symbol, a buffer,
     and a frame), inserts the description of that symbol in the current buffer
     and returns that text as well.")
+
+(defcustom help-clean-buttons nil
+  "If non-nil, remove quotes around link buttons."
+  :version "29.1"
+  :type 'boolean
+  :group 'help)
 
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)
@@ -614,27 +634,28 @@ that."
                 ;; Quoted symbols
                 (save-excursion
                   (while (re-search-forward help-xref-symbol-regexp nil t)
-                    (let* ((data (match-string 8))
-                           (sym (intern-soft data)))
-                      (if sym
-                          (cond
-                           ((match-string 3) ; `variable' &c
-                            (and (or (boundp sym) ; `variable' doesn't ensure
+                    (when-let ((sym (intern-soft (match-string 9))))
+                      (if (match-string 8)
+                          (delete-region (match-beginning 8)
+                                         (match-end 8))
+                        (cond
+                         ((match-string 3)        ; `variable' &c
+                          (and (or (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
-                                     (get sym 'variable-documentation))
-                                 (help-xref-button 8 'help-variable sym)))
-                           ((match-string 4) ; `function' &c
-                            (and (fboundp sym) ; similarly
-                                 (help-xref-button 8 'help-function sym)))
-                           ((match-string 5) ; `face'
-                            (and (facep sym)
-                                 (help-xref-button 8 'help-face sym)))
-                           ((match-string 6)) ; nothing for `symbol'
-                           ((match-string 7)
-                            (help-xref-button 8 'help-function-def sym))
-                           ((cl-some (lambda (x) (funcall (nth 1 x) sym))
-                                     describe-symbol-backends)
-                            (help-xref-button 8 'help-symbol sym)))))))
+                                   (get sym 'variable-documentation))
+                               (help-xref-button 9 'help-variable sym)))
+                         ((match-string 4)     ; `function' &c
+                          (and (fboundp sym)   ; similarly
+                               (help-xref-button 9 'help-function sym)))
+                         ((match-string 5) ; `face'
+                          (and (facep sym)
+                               (help-xref-button 9 'help-face sym)))
+                         ((match-string 6)) ; nothing for `symbol'
+                         ((match-string 7)
+                          (help-xref-button 9 'help-function-def sym))
+                         ((cl-some (lambda (x) (funcall (nth 1 x) sym))
+                                   describe-symbol-backends)
+                          (help-xref-button 9 'help-symbol sym)))))))
                 ;; An obvious case of a key substitution:
                 (save-excursion
                   (while (re-search-forward
@@ -652,21 +673,25 @@ that."
           (while (and (not (bobp)) (bolp))
             (delete-char -1))
           (insert "\n")
-          (when (or help-xref-stack help-xref-forward-stack)
-            (insert "\n"))
-          ;; Make a back-reference in this buffer if appropriate.
-          (when help-xref-stack
-            (help-insert-xref-button help-back-label 'help-back
-                                     (current-buffer)))
-          ;; Make a forward-reference in this buffer if appropriate.
-          (when help-xref-forward-stack
-            (when help-xref-stack
-              (insert "\t"))
-            (help-insert-xref-button help-forward-label 'help-forward
-                                     (current-buffer)))
-          (when (or help-xref-stack help-xref-forward-stack)
-            (insert "\n")))
+          (help-xref--navigation-buttons))
         (set-buffer-modified-p old-modified)))))
+
+(defun help-xref--navigation-buttons ()
+  (let ((inhibit-read-only t))
+    (when (or help-xref-stack help-xref-forward-stack)
+      (ensure-empty-lines 1))
+    ;; Make a back-reference in this buffer if appropriate.
+    (when help-xref-stack
+      (help-insert-xref-button help-back-label 'help-back
+                               (current-buffer)))
+    ;; Make a forward-reference in this buffer if appropriate.
+    (when help-xref-forward-stack
+      (when help-xref-stack
+        (insert "\t"))
+      (help-insert-xref-button help-forward-label 'help-forward
+                               (current-buffer)))
+    (unless (bolp)
+      (insert "\n"))))
 
 ;;;###autoload
 (defun help-xref-button (match-number type &rest args)
@@ -674,12 +699,26 @@ that."
 MATCH-NUMBER is the subexpression of interest in the last matched
 regexp.  TYPE is the type of button to use.  Any remaining arguments are
 passed to the button's help-function when it is invoked.
-See `help-make-xrefs'."
+See `help-make-xrefs'.
+
+This function removes quotes surrounding the match if the
+variable `help-clean-buttons' is non-nil."
   ;; Don't mung properties we've added specially in some instances.
-  (unless (button-at (match-beginning match-number))
-    (make-text-button (match-beginning match-number)
-		      (match-end match-number)
-		      'type type 'help-args args)))
+  (let ((beg (match-beginning match-number))
+        (end (match-end match-number)))
+    (unless (button-at beg)
+      (make-text-button beg end 'type type 'help-args args)
+      (when (and help-clean-buttons
+                 (> beg (point-min))
+                 (save-excursion
+                   (goto-char (1- beg))
+                   (looking-at "['`‘]"))
+                 (< end (point-max))
+                 (save-excursion
+                   (goto-char end)
+                   (looking-at "['’]")))
+        (delete-region end (1+ end))
+        (delete-region (1- beg) beg)))))
 
 ;;;###autoload
 (defun help-insert-xref-button (string type &rest args)
@@ -723,7 +762,7 @@ See `help-make-xrefs'."
 ;; Additional functions for (re-)creating types of help buffers.
 
 ;;;###autoload
-(define-obsolete-function-alias 'help-xref-interned 'describe-symbol "25.1")
+(define-obsolete-function-alias 'help-xref-interned #'describe-symbol "25.1")
 
 
 ;; Navigation/hyperlinking with xrefs
@@ -793,7 +832,7 @@ The help buffers are divided into \"pages\" by the ^L character."
 
 (defun help-goto-previous-page ()
   "Go to the previous page (if any) in the current buffer.
-(If not at the start of a page, go to the start of the current page.)
+\(If not at the start of a page, go to the start of the current page.)
 
 The help buffers are divided into \"pages\" by the ^L character."
   (interactive nil help-mode)
@@ -818,7 +857,8 @@ The help buffers are divided into \"pages\" by the ^L character."
   (unless help-mode--current-data
     (error "No symbol to look up in the current buffer"))
   (info-lookup-symbol (plist-get help-mode--current-data :symbol)
-                      'emacs-lisp-mode))
+                      'emacs-lisp-mode
+                      help-window-keep-selected))
 
 (defun help-goto-lispref-info ()
   "View the Emacs Lisp manual *info* node of the current help item."
@@ -936,6 +976,7 @@ BOOKMARK is a bookmark name or a bookmark record."
     (pop-to-buffer "*Help*")
     (goto-char position)))
 
+(put 'help-bookmark-jump 'bookmark-handler-type "Help")
 
 (provide 'help-mode)
 

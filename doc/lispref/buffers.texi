@@ -541,10 +541,12 @@ file formerly visited.
 @ref{Text}.
 
 @defun buffer-modified-p &optional buffer
-This function returns @code{t} if the buffer @var{buffer} has been modified
-since it was last read in from a file or saved, or @code{nil}
-otherwise.  If @var{buffer} is not supplied, the current buffer
-is tested.
+This function returns non-@code{nil} if @var{buffer} has
+been modified since it was last read in from a file or saved, or
+@code{nil} otherwise.  If @var{buffer} has been auto-saved since the
+time it was last modified, this function returns the symbol
+@code{autosaved}.  If @var{buffer} is @code{nil} or omitted, it
+defaults to the current buffer.
 @end defun
 
 @defun set-buffer-modified-p flag
@@ -563,8 +565,10 @@ function @code{force-mode-line-update} works by doing this:
 @end defun
 
 @defun restore-buffer-modified-p flag
-Like @code{set-buffer-modified-p}, but does not force redisplay
-of mode lines.
+Like @code{set-buffer-modified-p}, but does not force redisplay of
+mode lines.  This function also allows @var{flag}'s value to be
+the symbol @code{autosaved}, which marks the buffer as modified and
+auto-saved after the last modification.
 @end defun
 
 @deffn Command not-modified &optional arg
@@ -953,15 +957,67 @@ with a @code{nil} @var{norecord} argument since this may lead to
 infinite recursion.
 @end defvar
 
+@defun buffer-match-p condition buffer-or-name &optional arg
+This function checks if a buffer designated by @code{buffer-or-name}
+satisfies a @code{condition}.  Optional third argument @var{arg} is
+passed to the predicate function in @var{condition}.  A condition can
+be one of the following:
+@itemize @bullet{}
+@item
+A string, interpreted as a regular expression.  The buffer
+satisfies the condition if the regular expression matches the buffer
+name.
+@item
+A predicate function, which should return non-@code{nil} if the buffer
+matches.  If the function expects one argument, it is called with
+@var{buffer-or-name} as the argument; if it expects 2 arguments, the
+first argument is @var{buffer-or-name} and the second is @var{arg}
+(or @code{nil} if @var{arg} is omitted).
+@item
+A cons-cell @code{(@var{oper} . @var{expr})} where @var{oper} is one
+of
+@table @code
+@item not
+Satisfied if @var{expr} doesn't satisfy @code{buffer-match-p} with
+the same buffer and @code{arg}.
+@item or
+Satisfied if @var{expr} is a list and @emph{any} condition in
+@var{expr} satisfies @code{buffer-match-p}, with the same buffer and
+@code{arg}.
+@item and
+Satisfied if @var{expr} is a list and @emph{all} conditions in
+@var{expr} satisfy @code{buffer-match-p}, with the same buffer and
+@code{arg}.
+@item derived-mode
+Satisfied if the buffer's major mode derives from @var{expr}.
+@item major-mode
+Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
+using @code{derived-mode} instead when both can work.
+@end table
+@item t
+Satisfied by any buffer.  A convenient alternative to @code{""} (empty
+string), @code{(and)} (empty conjunction) or @code{always}.
+@end itemize
+@end defun
+
+@defun match-buffers condition &optional buffer-list arg
+This function returns a list of all buffers that satisfy a
+@code{condition}, as defined for @code{buffer-match-p}.  By default
+all buffers are considered, but this can be restricted via the second
+optional @code{buffer-list} argument.  Optional third argument
+@var{arg} will be used by @var{condition} in the same way as
+@code{buffer-match-p} does.
+@end defun
+
 @node Creating Buffers
 @section Creating Buffers
 @cindex creating buffers
 @cindex buffers, creating
 
   This section describes the two primitives for creating buffers.
-@code{get-buffer-create} creates a buffer if it finds no existing buffer
-with the specified name; @code{generate-new-buffer} always creates a new
-buffer and gives it a unique name.
+@code{get-buffer-create} creates a buffer if it finds no existing
+buffer with the specified name; @code{generate-new-buffer} always
+creates a new buffer and gives it a unique name.
 
   Both functions accept an optional argument @var{inhibit-buffer-hooks}.
 If it is non-@code{nil}, the buffer they create does not run the hooks

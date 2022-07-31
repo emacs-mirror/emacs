@@ -1,7 +1,6 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1988, 1997-1998, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -201,12 +200,10 @@
 
 (defvar scheme-mode-line-process "")
 
-(defvar scheme-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map lisp-mode-shared-map)
-    map)
-  "Keymap for Scheme mode.
-All commands in `lisp-mode-shared-map' are inherited by this map.")
+(defvar-keymap scheme-mode-map
+  :doc "Keymap for Scheme mode.
+All commands in `lisp-mode-shared-map' are inherited by this map."
+  :parent lisp-mode-shared-map)
 
 (easy-menu-define scheme-mode-menu scheme-mode-map
   "Menu for Scheme mode."
@@ -391,12 +388,18 @@ See `run-hooks'."
     st))
 
 (put 'lambda 'scheme-doc-string-elt 2)
+(put 'lambda* 'scheme-doc-string-elt 2)
 ;; Docstring's pos in a `define' depends on whether it's a var or fun def.
 (put 'define 'scheme-doc-string-elt
      (lambda ()
        ;; The function is called with point right after "define".
        (forward-comment (point-max))
        (if (eq (char-after) ?\() 2 0)))
+(put 'define* 'scheme-doc-string-elt 2)
+(put 'case-lambda 'scheme-doc-string-elt 1)
+(put 'case-lambda* 'scheme-doc-string-elt 1)
+(put 'define-syntax-rule 'scheme-doc-string-elt 2)
+(put 'syntax-rules 'scheme-doc-string-elt 2)
 
 (defun scheme-syntax-propertize (beg end)
   (goto-char beg)
@@ -562,10 +565,20 @@ indentation."
       (lisp-indent-specform 2 state indent-point normal-indent)
     (lisp-indent-specform 1 state indent-point normal-indent)))
 
-;; (put 'begin 'scheme-indent-function 0), say, causes begin to be indented
-;; like defun if the first form is placed on the next line, otherwise
-;; it is indented like any other form (i.e. forms line up under first).
-
+;; See `scheme-indent-function' (the function) for what these do.
+;; In a nutshell:
+;;  . for forms with no `scheme-indent-function' property the 2nd
+;;    and subsequent lines will be indented with one space;
+;;  . if the value of the property is zero, then when the first form
+;;    is on a separate line, the next lines will be indented with 2
+;;    spaces instead of the default one space;
+;;  . if the value is a positive integer N, the first N lines after
+;;    the first one will be indented with 4 spaces, and the rest
+;;    will be indented with 2 spaces;
+;;  . if the value is `defun', the indentation is like for `defun';
+;;  . if the value is a function, it will be called to produce the
+;;    required indentation.
+;; See also http://community.schemewiki.org/?emacs-indentation.
 (put 'begin 'scheme-indent-function 0)
 (put 'case 'scheme-indent-function 1)
 (put 'delay 'scheme-indent-function 0)
@@ -576,12 +589,16 @@ indentation."
 (put 'letrec 'scheme-indent-function 1)
 (put 'let-values 'scheme-indent-function 1) ; SRFI 11
 (put 'let*-values 'scheme-indent-function 1) ; SRFI 11
+(put 'and-let* 'scheme-indent-function 1) ; SRFI 2
 (put 'sequence 'scheme-indent-function 0) ; SICP, not r4rs
 (put 'let-syntax 'scheme-indent-function 1)
 (put 'letrec-syntax 'scheme-indent-function 1)
-(put 'syntax-rules 'scheme-indent-function 1)
+(put 'syntax-rules 'scheme-indent-function 'defun)
 (put 'syntax-case 'scheme-indent-function 2) ; not r5rs
+(put 'with-syntax 'scheme-indent-function 1)
 (put 'library 'scheme-indent-function 1) ; R6RS
+;; Part of at least Guile, Chez Scheme, Chicken
+(put 'eval-when 'scheme-indent-function 1)
 
 (put 'call-with-input-file 'scheme-indent-function 1)
 (put 'call-with-port 'scheme-indent-function 1)
@@ -604,6 +621,14 @@ indentation."
 
 ;; SRFI-8
 (put 'receive 'scheme-indent-function 2)
+
+;; SRFI-204 (withdrawn, but provided in many implementations, see the SRFI text)
+(put 'match 'scheme-indent-function 1)
+(put 'match-lambda 'scheme-indent-function 0)
+(put 'match-lambda* 'scheme-indent-function 0)
+(put 'match-let 'scheme-indent-function 'scheme-let-indent)
+(put 'match-let* 'scheme-indent-function 1)
+(put 'match-letrec 'scheme-indent-function 1)
 
 ;;;; MIT Scheme specific indentation.
 

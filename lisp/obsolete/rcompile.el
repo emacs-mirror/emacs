@@ -167,7 +167,7 @@ See \\[compile]."
     (compilation-start compile-command)
     ;; Set comint-file-name-prefix in the compilation buffer so
     ;; compilation-parse-errors will find referenced files by Tramp.
-    (with-current-buffer compilation-last-buffer
+    (with-current-buffer next-error-last-buffer
       (when (fboundp 'tramp-make-tramp-file-name)
 	(set (make-local-variable 'comint-file-name-prefix)
 	     (funcall

@@ -9,7 +9,7 @@
 ;; Homepage: https://orgmode.org
 ;; Package-Requires: ((emacs "25.1"))
 
-;; Version: 9.5.2
+;; Version: 9.5.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -199,6 +199,7 @@ Stars are put in group 1 and the trimmed body in group 2.")
 (declare-function org-update-radio-target-regexp "ol" ())
 
 (defvar org-element-paragraph-separate)
+(defvar org-element--timestamp-regexp)
 (defvar org-indent-indentation-per-level)
 (defvar org-radio-target-regexp)
 (defvar org-target-link-regexp)
@@ -246,7 +247,7 @@ byte-compiled before it is loaded."
     (if compile
 	(progn
 	  (byte-compile-file tangled-file)
-	  (load tangled-file)
+	  (load-file (byte-compile-dest-file tangled-file))
 	  (message "Compiled and loaded %s" tangled-file))
       (load-file tangled-file)
       (message "Loaded %s" tangled-file))))
@@ -1356,7 +1357,7 @@ Possible values for the file identifier are:
                      to open [[file:document.pdf::5]] with evince at page 5.
 
  `directory'   Matches a directory
- `remote'      Matches a remote file, accessible through tramp or efs.
+ `remote'      Matches a remote file, accessible through tramp.
                Remote files most likely should be visited through Emacs
                because external applications cannot handle such paths.
 `auto-mode'    Matches files that are matched by any entry in `auto-mode-alist',
@@ -1693,7 +1694,7 @@ OK to kill that hidden subtree.  When nil, kill without remorse."
 	  (const :tag "Never kill a hidden subtree with C-k" error)))
 
 (defcustom org-special-ctrl-o t
-  "Non-nil means, make `C-o' insert a row in tables."
+  "Non-nil means, make `open-line' (\\[open-line]) insert a row in tables."
   :group 'org-edit-structure
   :type 'boolean)
 
@@ -3300,7 +3301,7 @@ Replace format-specifiers in the command as noted below and use
 %i:     The LaTeX fragment to be converted.
 
 For example, this could be used with LaTeXML as
-\"latexmlc 'literal:%i' --profile=math --preload=siunitx.sty 2>/dev/null\"."
+\"latexmlc \\='literal:%i\\=' --profile=math --preload=siunitx.sty 2>/dev/null\"."
   :group 'org-latex
   :package-version '(Org . "9.4")
   :type '(choice
@@ -9318,6 +9319,7 @@ TYPE is the dynamic block type, as a string."
   "List all defined dynamic block types."
   (mapcar #'car org-dynamic-block-alist))
 
+;;;###org-autoload
 (defun org-dynamic-block-define (type func)
   "Define dynamic block TYPE with FUNC.
 TYPE is a string.  FUNC is the function creating the dynamic
@@ -12159,7 +12161,7 @@ This works in the agenda, and also in an Org buffer."
 	 (progn
 	   (message "[s]et or [r]emove? ")
 	   (equal (read-char-exclusive) ?r))))
-  (when (fboundp 'deactivate-mark) (deactivate-mark))
+  (deactivate-mark)
   (let ((agendap (equal major-mode 'org-agenda-mode))
 	l1 l2 m buf pos newhead (cnt 0))
     (goto-char end)
@@ -13986,7 +13988,7 @@ user."
     (when (< (nth 2 org-defdecode) org-extend-today-until)
       (setf (nth 2 org-defdecode) -1)
       (setf (nth 1 org-defdecode) 59)
-      (setq org-def (encode-time org-defdecode))
+      (setq org-def (apply #'encode-time org-defdecode))
       (setq org-defdecode (decode-time org-def)))
     (let* ((timestr (format-time-string
 		     (if org-with-time "%Y-%m-%d %H:%M" "%Y-%m-%d")
@@ -14470,7 +14472,7 @@ The command returns the inserted time stamp."
 	  time (org-fix-decoded-time t1)
 	  str (org-add-props
 		  (format-time-string
-		   (substring tf 1 -1) (encode-time time))
+		   (substring tf 1 -1) (apply 'encode-time time))
 		  nil 'mouse-face 'highlight))
     (put-text-property beg end 'display str)))
 
@@ -14725,7 +14727,7 @@ days in order to avoid rounding problems."
 
 (defun org-time-string-to-time (s)
   "Convert timestamp string S into internal time."
-  (encode-time (org-parse-time-string s)))
+  (apply #'encode-time (org-parse-time-string s)))
 
 (defun org-time-string-to-seconds (s)
   "Convert a timestamp string S into a number of seconds."
@@ -15011,16 +15013,25 @@ value is equivalent to `inactive'.
 When at a timestamp, return the position of the point as a symbol
 among `bracket', `after', `year', `month', `hour', `minute',
 `day' or a number of character from the last know part of the
-time stamp.
+time stamp.  If diary sexp timestamps, any point inside the timestamp
+is considered `day' (i.e. only `bracket', `day', and `after' return
+values are possible).
 
 When matching, the match groups are the following:
-  group 1: year
-  group 2: month
-  group 3: day number
-  group 4: day name
+  group 1: year, if any
+  group 2: month, if any
+  group 3: day number, if any
+  group 4: day name, if any
   group 5: hours, if any
   group 6: minutes, if any"
-  (let* ((regexp (if extended org-ts-regexp3 org-ts-regexp2))
+  (let* ((regexp
+          (if extended
+              (if (eq extended 'agenda)
+                  (rx-to-string
+                   `(or (regexp ,org-ts-regexp3)
+                        (regexp ,org-element--timestamp-regexp)))
+		org-ts-regexp3)
+            org-ts-regexp2))
 	 (pos (point))
 	 (match?
 	  (let ((boundaries (org-in-regexp regexp)))
@@ -15051,7 +15062,8 @@ When matching, the match groups are the following:
      ((org-pos-in-match-range pos 8)      'minute)
      ((or (org-pos-in-match-range pos 4)
 	  (org-pos-in-match-range pos 5)) 'day)
-     ((and (> pos (or (match-end 8) (match-end 5)))
+     ((and (or (match-end 8) (match-end 5))
+           (> pos (or (match-end 8) (match-end 5)))
 	   (< pos (match-end 0)))
       (- pos (or (match-end 8) (match-end 5))))
      (t                                   'day))))
@@ -15155,7 +15167,7 @@ When SUPPRESS-TMP-DELAY is non-nil, suppress delays like
 	  (setcar time0 (or (car time0) 0))
 	  (setcar (nthcdr 1 time0) (or (nth 1 time0) 0))
 	  (setcar (nthcdr 2 time0) (or (nth 2 time0) 0))
-	  (setq time (encode-time time0))))
+	  (setq time (apply 'encode-time time0))))
       ;; Insert the new time-stamp, and ensure point stays in the same
       ;; category as before (i.e. not after the last position in that
       ;; category).
@@ -17522,11 +17534,11 @@ this numeric value."
   (interactive "r")
   (let ((result ""))
     (while (/= beg end)
-      (when (get-char-property beg 'invisible)
-	(setq beg (next-single-char-property-change beg 'invisible nil end)))
-      (let ((next (next-single-char-property-change beg 'invisible nil end)))
-	(setq result (concat result (buffer-substring beg next)))
-	(setq beg next)))
+      (if (invisible-p beg)
+          (setq beg (next-single-char-property-change beg 'invisible nil end))
+        (let ((next (next-single-char-property-change beg 'invisible nil end)))
+          (setq result (concat result (buffer-substring beg next)))
+          (setq beg next))))
     (setq deactivate-mark t)
     (kill-new result)
     (message "Visible strings have been copied to the kill ring.")))

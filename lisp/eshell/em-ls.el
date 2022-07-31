@@ -100,15 +100,14 @@ faster and conserves more memory."
   :type 'boolean)
 
 (defface eshell-ls-directory
-  '((((class color) (background light)) (:foreground "Blue" :weight bold))
-    (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
-    (t (:weight bold)))
-  "The face used for highlighting directories.")
+  '((t (:inherit font-lock-function-name-face)))
+  "The face used for highlighting directories."
+  :version "29.1")
 
 (defface eshell-ls-symlink
-  '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
-    (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
-  "The face used for highlighting symbolic links.")
+  '((t (:inherit font-lock-keyword-face)))
+  "The face used for highlighting symbolic links."
+  :version "29.1")
 
 (defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
@@ -801,7 +800,7 @@ to use, and each member of which is the width of that column
              (+ 2 (length (car file))))
 	   files))
 	 ;; must account for the added space...
-	 (max-width (+ (window-width) 2))
+	 (max-width (+ (window-body-width nil 'remap) 2))
 	 (best-width 0)
 	 col-widths)
 
@@ -846,7 +845,7 @@ to use, and each member of which is the width of that column
            (lambda (file)
              (+ 2 (length (car file))))
 	   files))
-	 (max-width (+ (window-width) 2))
+	 (max-width (+ (window-body-width nil 'remap) 2))
 	 col-widths
 	 colw)
 

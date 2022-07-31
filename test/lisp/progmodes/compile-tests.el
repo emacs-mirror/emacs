@@ -260,6 +260,9 @@
      "e: e:\\src\\Test.kt: (34, 15): foo: bar" 4 15 34 "e:\\src\\Test.kt" 2)
     (gradle-kotlin
      "w: e:\\src\\Test.kt: (11, 98): foo: bar" 4 98 11 "e:\\src\\Test.kt" 1)
+    (gradle-android
+     "     ERROR:/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml:3: AAPT: error: '16dpw' is incompatible with attribute padding (attr) dimension."
+     1 nil 3 "/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml" 2)
     ;; Guile
     (guile-file "In foo.scm:\n" 1 nil nil "foo.scm")
     (guile-line "  63:4 [call-with-prompt prompt0 ...]" 1 4 63 nil)
@@ -492,7 +495,7 @@ The test data is in `compile-tests--test-regexps-data'."
           (compilation-num-warnings-found 0)
           (compilation-num-infos-found 0))
       (mapc #'compile--test-error-line compile-tests--test-regexps-data)
-      (should (eq compilation-num-errors-found 97))
+      (should (eq compilation-num-errors-found 98))
       (should (eq compilation-num-warnings-found 35))
       (should (eq compilation-num-infos-found 28)))))
 

@@ -29,7 +29,6 @@
 ;; .pas (and .dpr and .dpk) files.  Emacs, by default, will otherwise
 ;; enter Pascal mode.  For example:
 ;;
-;; (autoload 'opascal-mode "opascal")
 ;; (add-to-list 'auto-mode-alist
 ;;              '("\\.\\(pas\\|dpr\\|dpk\\)\\'" . opascal-mode))
 
@@ -1641,10 +1640,10 @@ An error is raised if not in a comment."
 (defun opascal-new-comment-line ()
   "If in a // comment, do a newline, indented such that one is still in the
 comment block.  If not in a // comment, just does a normal newline."
-  (interactive)
   (declare
    (obsolete "use comment-indent-new-line with comment-multi-line instead"
              "27.1"))
+  (interactive)
   (let ((comment (opascal-current-token)))
     (if (not (eq 'comment-single-line (opascal-token-kind comment)))
         ;; Not in a // comment. Just do the normal newline.

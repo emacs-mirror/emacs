@@ -1482,4 +1482,77 @@ with parameters from the *Messages* buffer modification."
           (when auto-save
             (ignore-errors (delete-file auto-save))))))))
 
+(ert-deftest test-buffer-modifications ()
+  (ert-with-temp-file file
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (buffer-modified-p))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) 'autosaved))
+      (do-auto-save nil t)
+      (should (eq (buffer-modified-p) 'autosaved))
+      (with-silent-modifications
+        (put-text-property 1 3 'face 'bold))
+      (should (eq (buffer-modified-p) 'autosaved))
+      (save-buffer)
+      (should-not (buffer-modified-p))
+      (with-silent-modifications
+        (put-text-property 1 3 'face 'italic))
+      (should-not (buffer-modified-p)))))
+
+(ert-deftest test-restore-buffer-modified-p ()
+  (ert-with-temp-file file
+    ;; This avoids the annoying "foo and bar are the same file" on
+    ;; MS-Windows.
+    (setq file (file-truename file))
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (eq (buffer-modified-p) t))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (restore-buffer-modified-p nil)
+      (should-not (buffer-modified-p))
+      (insert "bar")
+      (do-auto-save nil t)
+      (should (eq (buffer-modified-p) 'autosaved))
+      (insert "zot")
+      (restore-buffer-modified-p 'autosaved)
+      (should (eq (buffer-modified-p) 'autosaved))
+
+      ;; Clean up.
+      (when (file-exists-p buffer-auto-save-file-name)
+        (delete-file buffer-auto-save-file-name))))
+
+  (ert-with-temp-file file
+    (setq file (file-truename file))
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (eq (buffer-modified-p) t))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) 'autosaved))
+      (restore-buffer-modified-p 'autosaved)
+      (should (eq (buffer-modified-p) 'autosaved)))))
+
+(ert-deftest test-buffer-chars-modified-ticks ()
+  "Test `buffer-chars-modified-tick'."
+  (setq temporary-file-directory (file-truename temporary-file-directory))
+  (let ((text "foobar")
+        f1 f2)
+    (unwind-protect
+        (progn
+          (setq f1 (make-temp-file "buf-modiff-tests")
+                f2 (make-temp-file "buf-modiff-tests"))
+          (with-current-buffer (find-file f1)
+            (should (= (buffer-chars-modified-tick) 1))
+            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+            (write-region text nil f2 nil 'silent)
+            (insert-file-contents f2)
+            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+            (should (> (buffer-chars-modified-tick) 1))))
+      (if f1 (delete-file f1))
+      (if f2 (delete-file f2))
+      )))
+
 ;;; buffer-tests.el ends here

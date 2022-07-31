@@ -155,38 +155,36 @@ or `eshell-printn' for display."
    "umask" args
    '((?S "symbolic" nil symbolic-p "display umask symbolically")
      (?h "help" nil nil  "display this usage message")
+     :preserve-args
      :usage "[-S] [mode]")
-   (if (or (not args) symbolic-p)
-       (let ((modstr
-	      (concat "000"
-		      (format "%o"
-			      (logand (lognot (default-file-modes))
-				      511)))))
-	 (setq modstr (substring modstr (- (length modstr) 3)))
-	 (when symbolic-p
-	   (let ((mode (default-file-modes)))
-	     (setq modstr
-		   (format
-		    "u=%s,g=%s,o=%s"
-		    (concat (and (= (logand mode 64) 64) "r")
-			    (and (= (logand mode 128) 128) "w")
-			    (and (= (logand mode 256) 256) "x"))
-		    (concat (and (= (logand mode 8) 8) "r")
-			    (and (= (logand mode 16) 16) "w")
-			    (and (= (logand mode 32) 32) "x"))
-		    (concat (and (= (logand mode 1) 1) "r")
-			    (and (= (logand mode 2) 2) "w")
-			    (and (= (logand mode 4) 4) "x"))))))
-	 (eshell-printn modstr))
-     (setcar args (eshell-convert (car args)))
-     (if (numberp (car args))
-	 (set-default-file-modes
-	  (- 511 (car (read-from-string
-		       (concat "?\\" (number-to-string (car args)))))))
-       (error "Setting umask symbolically is not yet implemented"))
+   (cond
+    (symbolic-p
+     (let ((mode (default-file-modes)))
+       (eshell-printn
+        (format "u=%s,g=%s,o=%s"
+                (concat (and (= (logand mode 64) 64) "r")
+                        (and (= (logand mode 128) 128) "w")
+                        (and (= (logand mode 256) 256) "x"))
+                (concat (and (= (logand mode 8) 8) "r")
+                        (and (= (logand mode 16) 16) "w")
+                        (and (= (logand mode 32) 32) "x"))
+                (concat (and (= (logand mode 1) 1) "r")
+                        (and (= (logand mode 2) 2) "w")
+                        (and (= (logand mode 4) 4) "x"))))))
+    ((not args)
+     (eshell-printn (format "%03o" (logand (lognot (default-file-modes))
+                                           #o777))))
+    (t
+     (when (stringp (car args))
+       (if (string-match "^[0-7]+$" (car args))
+           (setcar args (string-to-number (car args) 8))
+         (error "Setting umask symbolically is not yet implemented")))
+     (set-default-file-modes (- #o777 (car args)))
      (eshell-print
-      "Warning: umask changed for all new files created by Emacs.\n"))
+      "Warning: umask changed for all new files created by Emacs.\n")))
    nil))
+
+(put 'eshell/umask 'eshell-no-numeric-conversions t)
 
 (provide 'em-basic)
 

@@ -51,7 +51,14 @@
            (doc-string 3))
   `(ert-deftest ,(intern (concat "comp-tests-" (symbol-name name))) ,args
      :tags '(:nativecomp)
-     ,@docstring-and-body))
+     ,@(and (stringp (car docstring-and-body))
+            (list (pop docstring-and-body)))
+     ;; Some of the tests leave spill files behind -- so create a
+     ;; sub-dir where native-comp can do its work, and then delete it
+     ;; at the end.
+     (ert-with-temp-directory dir
+       (let ((temporary-file-directory dir))
+         ,@docstring-and-body))))
 
 
 
@@ -501,11 +508,6 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (string= (comp-test-45635-f :height 180 :family "PragmataPro Liga")
                    "PragmataPro Liga")))
 
-(comp-deftest 45603-1 ()
-  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01994.html>"
-  (load (native-compile (ert-resource-file "comp-test-45603.el")))
-  (should (fboundp 'comp-test-45603--file-local-name)))
-
 (comp-deftest 46670-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01413.html>"
   (should (string= (comp-test-46670-2-f "foo") "foo"))
@@ -524,6 +526,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
                                           (comp-test-47868-2-f)))
   (should (eq (comp-test-47868-1-f) (comp-test-47868-3-f)))
   (should (eq (comp-test-47868-2-f) (comp-test-47868-4-f))))
+
+(comp-deftest 48029-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2022-07/msg00666.html>"
+  (should (subr-native-elisp-p
+           (symbol-function 'comp-test-48029-nonascii-žžž-f))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;

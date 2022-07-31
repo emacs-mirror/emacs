@@ -278,11 +278,17 @@ Type \\`SPC' or \\`y' to %s the current %s;
 
 ;; For backward compatibility check if short y/n answers are preferred.
 (defcustom read-answer-short 'auto
-  "If non-nil, `read-answer' accepts single-character answers.
+  "If non-nil, the `read-answer' function accepts single-character answers.
 If t, accept short (single key-press) answers to the question.
 If nil, require long answers.  If `auto', accept short answers if
 `use-short-answers' is non-nil, or the function cell of `yes-or-no-p'
-is set to `y-or-n-p'."
+is set to `y-or-n-p'.
+
+Note that this variable does not affect calls to the more
+commonly-used `yes-or-no-p' function; it only affects calls to
+the `read-answer' function.  To control whether `yes-or-no-p'
+requires a long or a short answer, see the `use-short-answers'
+variable."
   :type '(choice (const :tag "Accept short answers" t)
                  (const :tag "Require long answer" nil)
                  (const :tag "Guess preference" auto))

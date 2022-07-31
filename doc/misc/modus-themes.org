@@ -5,9 +5,9 @@
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
 
-#+macro: stable-version 2.0.0
-#+macro: release-date 2021-12-24
-#+macro: development-version 2.1.0-dev
+#+macro: stable-version 2.4.0
+#+macro: release-date 2022-06-01
+#+macro: development-version 2.5.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -15,7 +15,7 @@
 #+texinfo_filename: modus-themes.info
 #+texinfo_dir_category: Emacs misc features
 #+texinfo_dir_title: Modus Themes: (modus-themes)
-#+texinfo_dir_desc: Highly accessible themes (WCAG AAA)
+#+texinfo_dir_desc: Elegant, highly legible and customizable themes
 #+texinfo_header: @set MAINTAINERSITE @uref{https://protesilaos.com,maintainer webpage}
 #+texinfo_header: @set MAINTAINER Protesilaos Stavrou
 #+texinfo_header: @set MAINTAINEREMAIL @email{info@protesilaos.com}
@@ -34,6 +34,10 @@ explicitly marked as such.
 
 Current development target is {{{development-version}}}.
 
++ Homepage: https://protesilaos.com/emacs/modus-themes.
++ Git repository: https://git.sr.ht/~protesilaos/modus-themes.
++ Mailing list: https://lists.sr.ht/~protesilaos/modus-themes.
+
 #+toc: headlines 8 insert TOC here, with eight headline levels
 
 * COPYING
@@ -42,7 +46,7 @@ Current development target is {{{development-version}}}.
 :custom_id: h:b14c3fcb-13dd-4144-9d92-2c58b3ed16d3
 :end:
 
-Copyright (C) 2020-2022 Free Software Foundation, Inc.
+Copyright (C) 2020-2022  Free Software Foundation, Inc.
 
 #+begin_quote
 Permission is granted to copy, distribute and/or modify this document
@@ -165,13 +169,9 @@ The themes are now ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][
 The ~modus-themes~ package is available from the GNU ELPA archive, which
 is configured by default.
 
-Prior to querying any package archive, make sure to have updated the
-index, with {{{kbd(M-x package-refresh-contents)}}}.  Then all you need to do
+Prior to querying any package archive, make sure to update the index,
+with {{{kbd(M-x package-refresh-contents)}}}.  Then all you need to do
 is type {{{kbd(M-x package-install)}}} and specify the ~modus-themes~.
-
-Note that older versions of the themes used to be distributed as
-standalone packages.  This practice has been discontinued starting with
-version 1.0.0 of this project.
 
 Once installed, the themes are ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]].
 
@@ -211,6 +211,34 @@ guix package -i emacs-modus-themes
 
 They are now ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]].
 
+** Dealing with byte compilation errors
+:properties:
+:custom_id: h:e6268471-e847-4c9d-998f-49a83257b7f1
+:end:
+
+From time to time, we receive bug reports pertaining to errors with byte
+compilation.  These seldom have to do with faulty code in the themes: it
+might be a shortcoming of =package.el=, some regression in the current
+development target of Emacs, a misconfiguration in an otherwise exotic
+setup, and the like.
+
+The common solution with a stable version of Emacs is to:
+
+1. Delete the =modus-themes= package.
+2. Close the current Emacs session.
+3. Install the =modus-themes= again.
+
+For those building Emacs directly from source, the solution may involve
+reverting to an earlier commit in emacs.git.
+
+At any rate, if you encounter such an issue please report it: we will
+either fix the bug on our end if it is truly ours, or help forward it to
+the relevant upstream maintainer.  Whatever you do, please understand
+that a build failure does not mean we are necessarily doing something
+wrong.
+
+[[#h:6536c8d5-3f98-43ab-a787-b94120e735e8][Issues you can help with]].
+
 * Enable and load
 :properties:
 :custom_id: h:3f3c3728-1b34-437d-9d0c-b110f5b161a9
@@ -222,15 +250,15 @@ They are now ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable
 #+cindex: Essential configuration
 #+vindex: modus-themes-after-load-theme-hook
 
-Users of the built-in themes can load and automatically enable the theme
-of their preference by adding either form to their init file:
+Users of the built-in themes cannot ~require~ the package as usual
+because there is no package to speak of.  Instead, things are simpler as
+all one needs is to load the theme of their preference by adding either
+form to their init file:
 
 #+begin_src emacs-lisp
 (load-theme 'modus-operandi)            ; Light theme
 (load-theme 'modus-vivendi)             ; Dark theme
 #+end_src
-
-This is all one needs.
 
 Users of packaged variants of the themes must add a few more lines to
 ensure that everything works as intended.  First, one has to require the
@@ -260,24 +288,39 @@ a theme with either of the following expressions:
 Changes to the available customization options must always be evaluated
 before loading a theme ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization Options]]).  An exception to this
 norm is when using the various Custom interfaces or with commands like
-{{{kbd(M-x customize-set-variable)}}}, which automatically reload the theme by
-default ([[#h:9001527a-4e2c-43e0-98e8-3ef72d770639][Option for inhibiting theme reload]]).  This is how a basic setup
-could look like:
+{{{kbd(M-x customize-set-variable)}}}, which can optionally
+automatically reload the theme ([[#h:9001527a-4e2c-43e0-98e8-3ef72d770639][Option for inhibiting theme reload]]).
+
+This is how a basic setup could look like:
 
 #+begin_src emacs-lisp
+;;; For the built-in themes which cannot use `require':
+;; Add all your customizations prior to loading the themes
+(setq modus-themes-italic-constructs t
+      modus-themes-bold-constructs nil
+      modus-themes-region '(bg-only no-extend))
+
+;; Load the theme of your choice:
+(load-theme 'modus-operandi) ;; OR (load-theme 'modus-vivendi)
+
+(define-key global-map (kbd "<f5>") #'modus-themes-toggle)
+
+
+
+;;; For packaged versions which must use `require':
 (require 'modus-themes)
 
-;; Your customisations here.  For example:
-(setq modus-themes-bold-constructs t
-      modus-themes-mode-line '3d)
+;; Add all your customizations prior to loading the themes
+(setq modus-themes-italic-constructs t
+      modus-themes-bold-constructs nil
+      modus-themes-region '(bg-only no-extend))
 
-;; Load the theme files before enabling a theme (else you get an error).
+;; Load the theme files before enabling a theme
 (modus-themes-load-themes)
 
-;; Enable the theme of your preference:
-(modus-themes-load-operandi)
+;; Load the theme of your choice:
+(modus-themes-load-operandi) ;; OR (modus-themes-load-vivendi)
 
-;; Optionally add a key binding for the toggle between the themes:
 (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
 #+end_src
 
@@ -307,15 +350,30 @@ It is common for Emacs users to rely on ~use-package~ for declaring
 package configurations in their setup.  We use this as an example:
 
 #+begin_src emacs-lisp
+;;; For the built-in themes which cannot use `require':
+(use-package emacs
+  :init
+  ;; Add all your customizations prior to loading the themes
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs nil
+        modus-themes-region '(bg-only no-extend))
+  :config
+  ;; Load the theme of your choice:
+  (load-theme 'modus-operandi) ;; OR (load-theme 'modus-vivendi)
+  :bind ("<f5>" . modus-themes-toggle)
+
+
+
+;;; For packaged versions which must use `require':
 (use-package modus-themes
-  :ensure                         ; omit this to use the built-in themes
+  :ensure
   :init
   ;; Add all your customizations prior to loading the themes
   (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs nil
         modus-themes-region '(bg-only no-extend))
 
-  ;; Load the theme files before enabling a theme (else you get an error).
+  ;; Load the theme files before enabling a theme
   (modus-themes-load-themes)
   :config
   ;; Load the theme of your choice:
@@ -326,6 +384,20 @@ package configurations in their setup.  We use this as an example:
 The same without ~use-package~:
 
 #+begin_src emacs-lisp
+;;; For the built-in themes which cannot use `require':
+;; Add all your customizations prior to loading the themes
+(setq modus-themes-italic-constructs t
+      modus-themes-bold-constructs nil
+      modus-themes-region '(bg-only no-extend))
+
+;; Load the theme of your choice:
+(load-theme 'modus-operandi) ;; OR (load-theme 'modus-vivendi)
+
+(define-key global-map (kbd "<f5>") #'modus-themes-toggle)
+
+
+
+;;; For packaged versions which must use `require':
 (require 'modus-themes)
 
 ;; Add all your customizations prior to loading the themes
@@ -372,9 +444,9 @@ it might appear to the unsuspecting user that the themes are somehow
 broken whenever they try to assign a new value to a customization option
 or some face.
 
-This "reset" that ~load-theme~ conducts does, however, come at the cost
-of being somewhat slower than ~enable-theme~.  Users who have a stable
-setup and who seldom update their variables during a given Emacs
+This "reset" that ~load-theme~ brings about does, however, come at the
+cost of being somewhat slower than ~enable-theme~.  Users who have a
+stable setup and who seldom update their variables during a given Emacs
 session, are better off using something like this:
 
 #+begin_src emacs-lisp
@@ -384,6 +456,8 @@ session, are better off using something like this:
 
 (enable-theme 'modus-operandi) ;; OR (enable-theme 'modus-vivendi)
 #+end_src
+
+[[#h:b40aca50-a3b2-4c43-be58-2c26fcd14237][Toggle themes without reloading them]].
 
 [[#h:e979734c-a9e1-4373-9365-0f2cd36107b8][Sample configuration with and without use-package]].
 
@@ -416,7 +490,7 @@ this manual.
       modus-themes-bold-constructs nil
       modus-themes-mixed-fonts nil
       modus-themes-subtle-line-numbers nil
-      modus-themes-intense-markup t
+      modus-themes-intense-mouseovers nil
       modus-themes-deuteranopia t
       modus-themes-tabs-accented t
       modus-themes-variable-pitch-ui nil
@@ -432,8 +506,19 @@ this manual.
 
       ;; Options for `modus-themes-mode-line' are either nil, or a list
       ;; that can combine any of `3d' OR `moody', `borderless',
-      ;; `accented', and a natural number for extra padding
-      modus-themes-mode-line '(4 accented borderless)
+      ;; `accented', a natural number for extra padding (or a cons cell
+      ;; of padding and NATNUM), and a floating point for the height of
+      ;; the text relative to the base font size (or a cons cell of
+      ;; height and FLOAT)
+      modus-themes-mode-line '(accented borderless (padding . 4) (height . 0.9))
+
+      ;; Same as above:
+      ;; modus-themes-mode-line '(accented borderless 4 0.9)
+
+      ;; Options for `modus-themes-markup' are either nil, or a list
+      ;; that can combine any of `bold', `italic', `background',
+      ;; `intense'.
+      modus-themes-markup '(background italic)
 
       ;; Options for `modus-themes-syntax' are either nil (the default),
       ;; or a list of properties that may include any of those symbols:
@@ -456,14 +541,37 @@ this manual.
       ;; `bold', `italic', `background'
       modus-themes-links '(neutral-underline background)
 
+      ;; Options for `modus-themes-box-buttons' are either nil (the
+      ;; default), or a list that can combine any of `flat', `accented',
+      ;; `faint', `variable-pitch', `underline', `all-buttons', the
+      ;; symbol of any font weight as listed in `modus-themes-weights',
+      ;; and a floating point number (e.g. 0.9) for the height of the
+      ;; button's text.
+      modus-themes-box-buttons '(variable-pitch flat faint 0.9)
+
       ;; Options for `modus-themes-prompts' are either nil (the
       ;; default), or a list of properties that may include any of those
       ;; symbols: `background', `bold', `gray', `intense', `italic'
       modus-themes-prompts '(intense bold)
 
-      modus-themes-completions 'moderate ; {nil,'moderate,'opinionated}
+      ;; The `modus-themes-completions' is an alist that reads three
+      ;; keys: `matches', `selection', `popup'.  Each accepts a nil
+      ;; value (or empty list) or a list of properties that can include
+      ;; any of the following (for WEIGHT read further below):
+      ;;
+      ;; `matches' - `background', `intense', `underline', `italic', WEIGHT
+      ;; `selection' - `accented', `intense', `underline', `italic', `text-also' WEIGHT
+      ;; `popup' - same as `selected'
+      ;; `t' - applies to any key not explicitly referenced (check docs)
+      ;;
+      ;; WEIGHT is a symbol such as `semibold', `light', or anything
+      ;; covered in `modus-themes-weights'.  Bold is used in the absence
+      ;; of an explicit WEIGHT.
+      modus-themes-completions '((matches . (extrabold))
+                                 (selection . (semibold accented))
+                                 (popup . (accented intense)))
 
-      modus-themes-mail-citations nil ; {nil,'faint,'monochrome}
+      modus-themes-mail-citations nil ; {nil,'intense,'faint,'monochrome}
 
       ;; Options for `modus-themes-region' are either nil (the default),
       ;; or a list of properties that may include any of those symbols:
@@ -510,7 +618,7 @@ By default, customizing a theme-related user option through the Custom
 interfaces or with {{{kbd(M-x customize-set-variable)}}} will not reload the
 currently active Modus theme.
 
-Enable this behaviour by setting this variable to ~nil~.
+Enable this behavior by setting this variable to ~nil~.
 
 Regardless of this option, the active theme must be reloaded for changes
 to user options to take effect ([[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]]).
@@ -711,7 +819,7 @@ possible options are ~org-variable-pitch~ and ~mixed-pitch~.
 :properties:
 :alt_title: Link styles
 :description: Choose among several styles, with or without underline
-:custom_id: h:c119d7b2-fcd4-4e44-890e-5e25733d5e52
+:custom_id: h:5808be52-361a-4d18-88fd-90129d206f9b
 :end:
 #+vindex: modus-themes-links
 
@@ -779,6 +887,101 @@ The placement of the underline, meaning its proximity to the text, is
 controlled by ~x-use-underline-position-properties~,
 ~x-underline-at-descent-line~, ~underline-minimum-offset~.  Please refer to
 their documentation strings.
+
+** Option for box buttons
+:properties:
+:alt_title: Box buttons
+:description: Choose among several styles for buttons
+:custom_id: h:8b85f711-ff40-45b0-b7fc-4727503cd2ec
+:end:
+#+vindex: modus-themes-box-buttons
+
+Brief: Control the style of buttons in the Custom UI and related.
+
+Symbol: ~modus-themes-box-buttons~ (=choice= type, list of properties)
+
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
+
++ ~flat~
++ ~accented~
++ ~faint~
++ ~variable-pitch~
++ ~underline~
++ A font weight, which must be supported by the underlying typeface:
+  - ~thin~
+  - ~ultralight~
+  - ~extralight~
+  - ~light~
+  - ~semilight~
+  - ~regular~
+  - ~medium~
+  - ~semibold~
+  - ~bold~
+  - ~heavy~
+  - ~extrabold~
+  - ~ultrabold~
++ A floating point as a height multiple of the default or a cons cell in
+  the form of =(height . FLOAT)=
++ ~all-buttons~
+
+The default (a nil value or an empty list) is a gray background combined
+with a pseudo three-dimensional effect.
+
+The ~flat~ property makes the button two dimensional.
+
+The ~accented~ property changes the background from gray to an accent
+color.
+
+The ~faint~ property reduces the overall coloration.
+
+The ~variable-pitch~ property applies a proportionately spaced typeface
+to the button~s text.
+
+[[#h:defcf4fc-8fa8-4c29-b12e-7119582cc929][Font configurations for Org and others]].
+
+The ~underline~ property draws a line below the affected text and
+removes whatever box effect.  This is optimal when Emacs runs inside a
+terminal emulator ([[#h:fbb5e254-afd6-4313-bb05-93b3b4f67358][More accurate colors in terminal emulators]]).  If
+~flat~ and ~underline~ are defined together, the latter takes
+precedence.
+
+The symbol of a weight attribute adjusts the font of the button
+accordingly, such as ~light~, ~semibold~, etc.  Valid symbols are
+defined in the variable ~modus-themes-weights~.
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
+
+A number, expressed as a floating point (e.g. =0.9=), adjusts the height
+of the button's text to that many times the base font size.  The default
+height is the same as =1.0=, though it need not be explicitly stated.
+Instead of a floating point, an acceptable value can be in the form of a
+cons cell like =(height . FLOAT)= or =(height FLOAT)=, where FLOAT is
+the given number.
+
+The ~all-buttons~ property extends the box button effect (or the
+aforementioned properties) to the faces of the generic widget library.
+By default, those do not look like the buttons of the Custom UI as they
+are ordinary text wrapped in square brackets.
+
+Combinations of any of those properties are expressed as a list,
+like in these examples:
+
+#+begin_src emacs-lisp
+(flat)
+(variable-pitch flat)
+(variable-pitch flat semibold 0.9)
+(variable-pitch flat semibold (height 0.9)) ; same as above
+(variable-pitch flat semibold (height . 0.9)) ; same as above
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-box-buttons '(variable-pitch flat 0.9))
+#+end_src
 
 ** Option for command prompt styles
 :properties:
@@ -859,7 +1062,10 @@ effect, color, and border visibility:
   - ~moody~
 + ~accented~
 + ~borderless~
-+ A natural number > 1 for extra padding
++ A natural number > 1 for extra padding or a cons cell in the form of
+  ~(padding . NATNUM)~.
++ A floating point to set the height of the mode line's text.  It can
+  also be a cons cell in the form of ~(height . FLOAT)~.
 
 The default (a nil value or an empty list) is a two-dimensional
 rectangle with a border around it.  The active and the inactive mode
@@ -895,6 +1101,17 @@ bottom of the mode line, set ~x-underline-at-descent-line~ to non-nil
 users on Emacs 29, the ~x-use-underline-position-properties~ variable must
 also be set to nil.
 
+The padding can also be expressed as a cons cell in the form of
+=(padding . NATNUM)= or =(padding NATNUM)= where the key is constant and
+NATNUM is the desired natural number.
+
+A floating point applies an adjusted height to the mode line's text as a
+multiple of the main font size.  The default rate is 1.0 and does not
+need to be specified.  Apart from a floating point, the height may also
+be expressed as a cons cell in the form of =(height . FLOAT)= or
+=(height FLOAT)= where the key is constant and the FLOAT is the desired
+number.
+
 Combinations of any of those properties are expressed as a list, like in
 these examples:
 
@@ -902,6 +1119,15 @@ these examples:
 (accented)
 (borderless 3d)
 (moody accented borderless)
+#+end_src
+
+Same as above, using the padding and height as an example (these
+all yield the same result):
+
+#+begin_src emacs-lisp
+(accented borderless 4 0.9)
+(accented borderless (padding . 4) (height . 0.9))
+(accented borderless (padding 4) (height 0.9))
 #+end_src
 
 The order in which the properties are set is not significant.
@@ -964,49 +1190,106 @@ Centaur tabs package.
 ** Option for completion framework aesthetics
 :properties:
 :alt_title: Completion UIs
-:description: Choose among standard, moderate, or opinionated looks
+:description: Choose among several styles for completion UIs
 :custom_id: h:f1c20c02-7b34-4c35-9c65-99170efb2882
 :end:
 #+vindex: modus-themes-completions
 
 Brief: Set the overall style of completion framework interfaces.
 
-Symbol: ~modus-themes-completions~ (=choice= type)
+Symbol: ~modus-themes-completions~ (=alist= type properties)
 
-Possible values:
+This affects Company, Corfu, Flx, Helm, Icomplete/Fido, Ido, Ivy, Mct,
+Orderless, Selectrum, Vertico.  The value is an alist that takes the
+form of a =(key . properties)= combination.  Here is a sample, followed
+by a description of the particularities:
 
-1. ~nil~ (default)
-2. ~moderate~
-3. ~opinionated~
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((matches . (extrabold background intense))
+        (selection . (semibold accented intense))
+        (popup . (accented))))
+#+end_src
 
-This is a special option that has different effects depending on the
-completion UI.  The interfaces can be grouped in two categories, based
-on their default aesthetics: (i) those that only or mostly use
-foreground colors for their interaction model, and (ii) those that
-combine background and foreground values for some of their metaphors.
-The former category encompasses Icomplete, Ido, Selectrum, Vertico, as
-well as pattern matching styles like Orderless and Flx.  The latter
-covers Helm and Ivy.
+The ~matches~ key refers to the highlighted characters that correspond
+to the user's input.  By default (nil or an empty list), they have a
+bold weight and a colored foreground.  The list of properties may
+include any of the following symbols regardless of the order they may
+appear in:
 
-A value of ~nil~ (the default) will simply respect the metaphors of each
-completion framework.
+- ~background~ to add a background color;
 
-Option ~moderate~ applies a combination of background and foreground that
-is fairly subtle.  For Icomplete and friends this constitutes a
-departure from their default aesthetics, however the difference is
-small.  While Helm, Ivy et al appear slightly different than their
-original looks, as they are toned down a bit.
+- ~intense~ to increase the overall coloration (also amplifies
+  the ~background~, if present);
 
-Option ~opinionated~ uses color combinations that refashion the completion
-UI.  For the Icomplete camp this means that intense background and
-foreground combinations are used: in effect their looks emulate those of
-Helm, Ivy and co. in their original style.  Whereas the other group of
-packages will revert to an even more nuanced aesthetic with some
-additional changes to the choice of hues.
+- ~underline~ to draw a line below the characters;
 
-To appreciate the scope of this customization option, you should spend
-some time with every one of the ~nil~ (default), ~moderate~, and ~opinionated~
-possibilities.
+- ~italic~ to use a slanted font (italic or oblique forms);
+
+- The symbol of a font weight attribute such as ~light~, ~semibold~, et
+  cetera.  Valid symbols are defined in the ~modus-themes-weights~
+  variable.  The absence of a weight means that bold will be used.
+
+The ~selection~ key applies to the current line or currently matched
+candidate, depending on the specifics of the User Interface.  By default
+(nil or an empty list), it has a subtle gray background, a bold weight,
+and the base foreground value for the text. The list of properties it
+accepts is as follows (order is not significant):
+
+- ~accented~ to make the background colorful instead of gray;
+
+- ~text-also~ to apply extra color to the text of the selected line;
+
+- ~intense~ to increase the overall coloration;
+
+- ~underline~ to draw a line below the characters;
+
+- ~italic~ to use a slanted font (italic or oblique forms);
+
+- The symbol of a font weight attribute such as ~light~, ~semibold~, et
+  cetera.  Valid symbols are defined in the ~modus-themes-weights~
+  variable.  The absence of a weight means that bold will be used.
+
+The ~popup~ key takes the same values as ~selection~.
+
+Apart from specifying each key separately, a fallback list is accepted.
+This is only useful when the desired aesthetic is the same across all
+keys that are not explicitly referenced.  For example, this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((t . (extrabold intense))))
+#+end_src
+
+Is the same as:
+
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((matches . (extrabold intense))
+        (selection . (extrabold intense))
+        (popup . (extrabold intense))))
+#+end_src
+
+In the case of the fallback, any property that does not apply to the
+corresponding key is simply ignored (~matches~ does not have ~accented~
+and ~text-also~, while ~selection~ and ~popup~ do not have
+~background~).
+
+A concise expression of those associations can be written as follows,
+where the ~car~ is always the key and the ~cdr~ is the list of
+properties (whatever order they may appear in):
+
+#+begin_src emacs-lisp
+(setq modus-themes-completions
+      '((matches extrabold background intense)
+        (selection semibold accented intense)
+        (popup accented)))
+#+end_src
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
+
+Also refer to the Orderless documentation for its intersection with
+Company (if you choose to use those in tandem).
 
 ** Option for mail citations
 :properties:
@@ -1024,17 +1307,21 @@ Symbol: ~modus-themes-mail-citations~ (=choice= type)
 Possible values:
 
 1. ~nil~ (default)
-2. ~faint~
-3. ~monochrome~
+2. ~intense~
+3. ~faint~
+4. ~monochrome~
 
-By default, citations in email-related buffers apply contrasting hues to
-different levels of depth in cited text.  The colors are fairly easy to
-tell apart.
+By default (a nil value) citations are styled with contrasting hues to
+denote their depth.  Colors are easy to tell apart because they
+complement each other, but they otherwise are not very prominent.
 
-A value of ~faint~ makes all citation levels less intense, while retaining
-the default style of contrasting hues (albeit very subtle ones).
+Option ~intense~ is similar to the default in terms of using contrasting
+and complementary hues, but applies more saturated colors.
 
-Option ~monochrome~ turns all citations in to a uniform shade of gray.
+Option ~faint~ maintains the same color-based distinction between citation
+levels though the colors it uses have subtle differences between them.
+
+Option ~monochrome~ turns all quotes into a shade of gray.
 
 Whatever the value assigned to this variable, citations in emails are
 controlled by typographic elements or indentation, which the themes do
@@ -1220,29 +1507,83 @@ Instead they retain the primary background of the theme, blending with
 the rest of the buffer.  Foreground values for all relevant faces are
 updated to accommodate this aesthetic.
 
-** Option for intense markup in Org and others
+** Option for mouseover effects
 :properties:
-:alt_title: Intense markup
-:description: Toggle intense style for markup in Org and others
-:custom_id: h:9d9a4e64-99ac-4018-8f66-3051b9c43fd7
+:alt_title: Mouse hover effects
+:description: Toggle intense style for mouseover highlights
+:custom_id: h:9b869620-fcc5-4b5f-9ab8-225d73b7f22f
 :end:
-#+vindex: modus-themes-intense-markup
+#+vindex: modus-themes-intense-mouseovers
 
-Brief: Toggle intense style for inline code and related markup.
+Brief: Toggle intense mouse hover effects.
 
-Symbol: ~modus-themes-intense-markup~ (=boolean= type)
+Symbol: ~modus-themes-intense-mouseovers~ (=boolean= type)
 
 Possible value:
 
 1. ~nil~ (default)
 2. ~t~
 
-The default style for certain markup types like inline code and verbatim
-constructs in Org and related major modes is a subtle foreground color
-combined with a subtle background.
+By default all mouseover effects apply a highlight with a subtle colored
+background.  When non-nil, these have a more pronounced effect.
 
-With a non-nil value (~t~), these constructs will use a more prominent
-background and foreground color combination instead.
+Note that this affects the generic ~highlight~ which, strictly speaking,
+is not limited to mouse usage.
+
+** Option for markup style in Org and others
+:properties:
+:alt_title: Markup
+:description: Choose style for markup in Org and others
+:custom_id: h:9d9a4e64-99ac-4018-8f66-3051b9c43fd7
+:end:
+#+vindex: modus-themes-markup
+
+Brief: Choose style of markup in Org, Markdown, and others (affects
+constructs such as Org's ==verbatim== and =~code~=).
+
+Symbol: ~modus-themes-markup~ (=boolean= type)
+
+Possible values are expressed as a list of properties (default is ~nil~ or
+an empty list).  The list can include any of the following symbols:
+
+1. ~bold~
+2. ~italic~
+3. ~background~
+4. ~intense~
+
+The ~italic~ property applies a typographic slant (italics).
+
+The ~bold~ property applies a heavier typographic weight.
+
+[[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
+
+The ~background~ property adds a background color.  The background is a
+shade of gray, unless the ~intense~ property is also set.
+
+The ~intense~ property amplifies the existing coloration.  When
+~background~ is used, the background color is enhanced as well and
+becomes tinted instead of being gray.
+
+Combinations of any of those properties are expressed as a list,
+like in these examples:
+
+#+begin_src emacs-lisp
+(bold)
+(bold italic)
+(bold italic intense)
+(bold italic intense background)
+#+end_src
+
+The order in which the properties are set is not significant.
+
+In user configuration files the form may look like this:
+
+#+begin_src emacs-lisp
+(setq modus-themes-markup '(bold italic))
+#+end_src
+
+Also check the variables ~org-hide-emphasis-markers~,
+~org-hide-macro-markers~.
 
 ** Option for parenthesis matching
 :properties:
@@ -1387,6 +1728,8 @@ contrast threshold.
 
 [[#h:e2aed9eb-5e1e-45ec-bbd7-bc4faeab3236][Diffs with only the foreground]].
 
+[[#h:b0b31802-0216-427e-b071-1a47adcfe608][Ediff without diff color-coding]].
+
 ** Option for org-mode block styles
 :properties:
 :alt_title: Org mode blocks
@@ -1405,20 +1748,28 @@ Possible values:
 2. ~gray-background~ (value ~grayscale~ exists for backward compatibility)
 3. ~tinted-background~ (value ~rainbow~ exists for backward compatibility)
 
-The default means that the block has no distinct background of its own
-and uses the one that applies to the rest of the buffer.
+Nil (the default) means that the block has no background of its own: it
+uses the one that applies to the rest of the buffer.  In this case, the
+delimiter lines have a gray color for their text, making them look
+exactly like all other Org properties.
 
 Option ~gray-background~ applies a subtle gray background to the block's
-contents.  It also affects the begin and end lines of the block: their
-background extends to the edge of the window for Emacs version >= 27
-where the ~:extend~ keyword is recognized by ~set-face-attribute~ (this is
-contingent on the variable ~org-fontify-whole-block-delimiter-line~).
+contents.  It also affects the begin and end lines of the block as they
+get another shade of gray as their background, which differentiates them
+from the contents of the block.  All background colors extend to the
+edge of the window, giving the area a rectangular, "blocky"
+presentation.
 
 Option ~tinted-background~ uses a slightly colored background for the
 contents of the block.  The exact color will depend on the programming
 language and is controlled by the variable ~org-src-block-faces~ (refer to
 the theme's source code for the current association list).  For this to
-take effect, Org must be restarted with {{{kbd(M-x org-mode-restart)}}}.
+take effect, the Org buffer needs to be restarted with ~org-mode-restart~.
+In this scenario, it may be better to inhibit the extension of the
+delimiter lines' background to the edge of the window because Org does
+not provide a mechanism to update their colors depending on the contents
+of the block.  Disable the extension of such backgrounds by setting
+~org-fontify-whole-block-delimiter-line~ to nil.
 
 Code blocks use their major mode's colors only when the variable
 ~org-src-fontify-natively~ is non-nil.  While quote/verse blocks require
@@ -1464,17 +1815,23 @@ come in the form of a list that can include either or both of those
 properties:
 
 - ~variable-pitch~ to use a proportionately spaced typeface;
+
 - A number as a floating point (e.g. 1.5) to set the height of the text
   to that many times the default font height.  A float of 1.0 or the
-  symbol ~no-scale~ have the same effect of making the font to the same
-  height as the rest of the buffer.  When neither a number nor ~no-scale~
-  are present, the default is a small increase in height (a value of
-  1.15).
+  symbol ~no-scale~ have the same effect of making the font the same
+  height as the rest of the buffer.  When neither a number nor
+  `no-scale' are present, the default is a small increase in height (a
+  value of 1.15).
+
+  Instead of a floating point, an acceptable value can be in the form of
+  a cons cell like =(height . FLOAT)= or =(height FLOAT)=, where FLOAT
+  is the given number.
+
 - The symbol of a weight attribute adjusts the font of the heading
-  accordingly, such as ~light~, ~semibold~, etc.  Valid symbols are defined
-  in the internal variable ~modus-themes--heading-weights~.  The absence
-  of a weight means that bold will be used by virtue of inheriting the
-  ~bold~ face.
+  accordingly, such as ~light~, ~semibold~, etc.  Valid symbols are
+  defined in the variable ~modus-themes-weights~.  The absence of a
+  weight means that bold will be used by virtue of inheriting the ~bold~
+  face.
 
 [[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
 
@@ -1499,16 +1856,24 @@ the following properties:
 
 - ~grayscale~ to make weekdays use the main foreground color and
   weekends a more subtle gray;
+
 - ~workaholic~ to make weekdays and weekends look the same in
   terms of color;
+
 - ~bold-today~ to apply a bold typographic weight to the current
   date;
+
 - ~bold-all~ to render all date headings in a bold weight;
+
 - ~underline-today~ applies an underline to the current date while
   removing the background it has by default;
+
 - A number as a floating point (e.g. 1.2) to set the height of the text
   to that many times the default font height.  The default is the same
-  as the base font height (the equivalent of 1.0).
+  as the base font height (the equivalent of 1.0).  Instead of a
+  floating point, an acceptable value can be in the form of a cons cell
+  like =(height . FLOAT)= or =(height FLOAT)=, where FLOAT is the given
+  number.
 
 For example:
 
@@ -1594,10 +1959,10 @@ passed as a symbol.  Those are:
   being too late.  The difference between ready and clear states is
   attenuated by painting both of them using shades of green.  This
   option thus highlights the alert and overdue states.
-- When ~modus-themes-deuteranopia~ is non-nil the habit graph uses a
-  three-color style like the aforementioned ~traffic-light~ variant,
-  except that shades of blue are applied instead of green.  This is
-  suitable for users with red-green color deficiency (deuteranopia).
+- When ~modus-themes-deuteranopia~ is non-nil the exact style of the habit
+  graph adapts to the needs of users with red-green color deficiency by
+  substituting every instance of green with blue or cyan (depending on
+  the specifics).
 
 [[#h:3ed03a48-20d8-4ce7-b214-0eb7e4c79abe][Option for red-green color deficiency or deuteranopia]].
 
@@ -1674,7 +2039,8 @@ Properties:
   - ~extrabold~
   - ~ultrabold~
 + ~no-bold~ (deprecated alias of a ~regular~ weight)
-+ A floating point as a height multiple of the default
++ A floating point as a height multiple of the default or a cons cell in
+  the form of =(height . FLOAT)=.
 
 By default (a ~nil~ value for this variable), all headings have a bold
 typographic weight and use a desaturated text color.
@@ -1695,10 +2061,10 @@ A ~variable-pitch~ property changes the font family of the heading to that
 of the ~variable-pitch~ face (normally a proportionately spaced typeface).
 
 The symbol of a weight attribute adjusts the font of the heading
-accordingly, such as ~light~, ~semibold~, etc.  Valid symbols are defined in
-the internal variable ~modus-themes--heading-weights~.  The absence of a
-weight means that bold will be used by virtue of inheriting the ~bold~
-face.  For backward compatibility, the ~no-bold~ value is accepted, though
+accordingly, such as ~light~, ~semibold~, etc.  Valid symbols are
+defined in the variable ~modus-themes-weights~.  The absence of a weight
+means that bold will be used by virtue of inheriting the ~bold~ face.
+For backward compatibility, the ~no-bold~ value is accepted, though
 users are encouraged to specify a ~regular~ weight instead.
 
 [[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]].
@@ -1706,6 +2072,9 @@ users are encouraged to specify a ~regular~ weight instead.
 A number, expressed as a floating point (e.g. 1.5), adjusts the height
 of the heading to that many times the base font size.  The default
 height is the same as 1.0, though it need not be explicitly stated.
+Instead of a floating point, an acceptable value can be in the form of a
+cons cell like =(height . FLOAT)= or =(height FLOAT)=, where FLOAT is
+the given number.
 
 Combinations of any of those properties are expressed as a list, like in
 these examples:
@@ -1714,6 +2083,8 @@ these examples:
 (semibold)
 (rainbow background)
 (overline monochrome semibold 1.3)
+(overline monochrome semibold (height 1.3)) ; same as above
+(overline monochrome semibold (height . 1.3)) ; same as above
 #+end_src
 
 The order in which the properties are set is not significant.
@@ -1791,7 +2162,129 @@ things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization 
 This section is of interest only to users who are prepared to maintain
 their own local tweaks and who are willing to deal with any possible
 incompatibilities between versioned releases of the themes.  As such,
-they are labelled as "do-it-yourself" or "DIY".
+they are labeled as "do-it-yourself" or "DIY".
+
+** More accurate colors in terminal emulators
+:PROPERTIES:
+:CUSTOM_ID: h:fbb5e254-afd6-4313-bb05-93b3b4f67358
+:END:
+#+cindex: Color accuracy of terminal emulators
+
+[ This is based on partial information.  Please help verify and/or
+  expand these findings. ]
+
+The graphical version of Emacs can reproduce color values accurately.
+Whereas things get more tricky when Emacs is used in a terminal
+emulator, because the terminals' own capabilities determine the number
+of colors that may be displayed: the Modus themes don't look as good in
+that case.
+
+There is, however, a way to instruct supported terminal emulators to use
+more accurate colors.  In a shell prompt type =toe -a | grep direct= to
+get a list of relevant terminfo entries.  There should be items such as
+=xterm-direct=, =alacritty-direct=, =kitty-direct=.  Once you find the one
+that corresponds to your terminal, call Emacs with an environment
+variable like =TERM=xterm-direct=.  Example that can be adapted to shell
+aliases:
+
+: TERM=xterm-direct emacsclient -nw
+
+Another example that can be bound to a key:
+
+: TERM=xterm-direct uxterm -e emacsclient -nw
+
+** Range of color with terminal emulators
+:PROPERTIES:
+:CUSTOM_ID: h:6b8211b0-d11b-4c00-9543-4685ec3b742f
+:END:
+#+cindex: Pure white and pure black in terminal emulators
+
+[ This is based on partial information.  Please help verify and/or
+  expand these findings. ]
+
+When Emacs runs in a non-windowed session its color reproduction
+capacity is framed or determined by the underlying terminal emulator
+([[#h:fbb5e254-afd6-4313-bb05-93b3b4f67358][More accurate colors in terminal emulators]]).  Emacs cannot produce a
+color that lies outside the range of what the terminal's color palette
+renders possible.
+
+This is immediately noticeable when the terminal's first 16 codes do not
+include a pure black value for the =termcol0= entry and a pure white for
+=termcol15=.  Emacs cannot set the correct background (white for
+~modus-operandi~; black for ~modus-vivendi~) or foreground (inverse of
+the background).  It thus falls back to the closest approximation, which
+seldom is appropriate for the purposes of the Modus themes.
+
+In such a case, the user is expected to update their terminal's color
+palette such as by adapting these resources:
+
+#+begin_src emacs-lisp
+! Theme: modus-operandi
+! Description: XTerm port of modus-operandi (Modus themes for GNU Emacs)
+! Author: Protesilaos Stavrou, <https://protesilaos.com>
+xterm*background: #ffffff
+xterm*foreground: #000000
+xterm*color0:     #000000
+xterm*color1:     #a60000
+xterm*color2:     #005e00
+xterm*color3:     #813e00
+xterm*color4:     #0031a9
+xterm*color5:     #721045
+xterm*color6:     #00538b
+xterm*color7:     #bfbfbf
+xterm*color8:     #595959
+xterm*color9:     #972500
+xterm*color10:    #315b00
+xterm*color11:    #70480f
+xterm*color12:    #2544bb
+xterm*color13:    #5317ac
+xterm*color14:    #005a5f
+xterm*color15:    #ffffff
+
+! Theme: modus-vivendi
+! Description: XTerm port of modus-vivendi (Modus themes for GNU Emacs)
+! Author: Protesilaos Stavrou, <https://protesilaos.com>
+xterm*background: #000000
+xterm*foreground: #ffffff
+xterm*color0:     #000000
+xterm*color1:     #ff8059
+xterm*color2:     #44bc44
+xterm*color3:     #d0bc00
+xterm*color4:     #2fafff
+xterm*color5:     #feacd0
+xterm*color6:     #00d3d0
+xterm*color7:     #bfbfbf
+xterm*color8:     #595959
+xterm*color9:     #ef8b50
+xterm*color10:    #70b900
+xterm*color11:    #c0c530
+xterm*color12:    #79a8ff
+xterm*color13:    #b6a0ff
+xterm*color14:    #6ae4b9
+xterm*color15:    #ffffff
+#+end_src
+
+** Visualize the active Modus theme's palette
+:properties:
+:custom_id: h:f4d4b71b-2ca5-4c3d-b0b4-9bfd7aa7fb4d
+:end:
+#+findex: modus-themes-list-colors
+#+findex: modus-themes-list-colors-current
+#+cindex: Preview color values
+
+The command ~modus-themes-list-colors~ prompts for a choice between
+=modus-operandi= and =modus-vivendi= to produce a help buffer that shows a
+preview of each variable in the given theme's color palette.  The
+command ~modus-themes-list-colors-current~ skips the prompt, using the
+current Modus theme.
+
+Each row shows a foreground and background coloration using the
+underlying value it references.  For example a line with =#a60000= (a
+shade of red) will show red text followed by a stripe with that same
+color as a backdrop.
+
+The name of the buffer describes the given Modus theme.  It is thus
+called =*modus-operandi-list-colors*= or =*modus-vivendi-list-colors*=.
 
 ** Per-theme customization settings
 :properties:
@@ -1868,7 +2361,11 @@ The function always extracts the color value of the active Modus theme.
 #+end_src
 
 Do {{{kbd(C-h v)}}} on the aforementioned variables to check all the available
-symbols that can be passed to this function.
+symbols that can be passed to this function.  Or simply invoke the
+command ~modus-themes-list-colors~ to produce a buffer with a preview of
+each entry in the palette.
+
+[[#h:f4d4b71b-2ca5-4c3d-b0b4-9bfd7aa7fb4d][Visualize the active Modus theme's palette]].
 
 With that granted, let us expand the example to actually change the
 ~cursor~ face's background property.  We employ the built-in function of
@@ -1947,7 +2444,10 @@ The ~modus-themes-with-colors~ macro lets you retrieve multiple color
 values by employing the backquote/backtick and comma notation.  The
 values are stored in the alists ~modus-themes-operandi-colors~ and
 ~modus-themes-vivendi-colors~, while the macro always queries that of the
-active Modus theme.
+active Modus theme (preview the current palette with the command
+~modus-themes-list-colors~).
+
+[[#h:f4d4b71b-2ca5-4c3d-b0b4-9bfd7aa7fb4d][Visualize the active Modus theme's palette]].
 
 Here is an abstract example that just returns a list of color values
 while ~modus-operandi~ is enabled:
@@ -2105,7 +2605,7 @@ this example:
 Whenever we enter a ~diff-mode~ buffer, we now get a magenta-colored
 region.
 
-Perhaps you may wish to generalise those findings in to a set of
+Perhaps you may wish to generalize those findings in to a set of
 functions that also accept an arbitrary face.  We shall leave the
 experimentation up to you.
 
@@ -2124,7 +2624,7 @@ contrast on an on-demand basis.
 
 One way to achieve this is to design a command that cycles through three
 distinct levels of intensity, though the following can be adapted to any
-kind of cyclic behaviour, such as to switch between red, green, and
+kind of cyclic behavior, such as to switch between red, green, and
 blue.
 
 In the following example, we employ the ~modus-themes-color~ function
@@ -2285,8 +2785,10 @@ The themes provide a mechanism for overriding their color values.  This
 is controlled by the variables ~modus-themes-operandi-color-overrides~ and
 ~modus-themes-vivendi-color-overrides~, which are alists that should
 mirror a subset of the associations in ~modus-themes-operandi-colors~ and
-~modus-themes-vivendi-colors~ respectively.  As with all customisations,
+~modus-themes-vivendi-colors~ respectively.  As with all customizations,
 overriding must be done before loading the affected theme.
+
+[[#h:f4d4b71b-2ca5-4c3d-b0b4-9bfd7aa7fb4d][Visualize the active Modus theme's palette]].
 
 Let us approach the present topic one step at a time.  Here is a
 simplified excerpt of the default palette for Modus Operandi with some
@@ -2348,8 +2850,7 @@ both themes and expands to some more assosiations in the palette:
               (bg-header . "#ede3e0")
               (bg-tab-bar . "#dcd3d3")
               (bg-tab-active . "#fdf6eb")
-              (bg-tab-inactive . "#c8bab8")
-              (fg-unfocused . "#55556f"))
+              (bg-tab-inactive . "#c8bab8"))
             modus-themes-vivendi-color-overrides
             '((bg-main . "#100b17")
               (bg-dim . "#161129")
@@ -2361,19 +2862,36 @@ both themes and expands to some more assosiations in the palette:
               (bg-header . "#202037")
               (bg-tab-bar . "#262b41")
               (bg-tab-active . "#120f18")
-              (bg-tab-inactive . "#3a3a5a")
-              (fg-unfocused . "#9a9aab")))
+              (bg-tab-inactive . "#3a3a5a")))
     (setq modus-themes-operandi-color-overrides nil
           modus-themes-vivendi-color-overrides nil)))
 #+end_src
 
-With this in place, one can invoke {{{kbd(M-x my-modus-themes-tinted)}}} and
-then load the Modus theme of their choice.  The new palette subset will
-come into effect: subtle ochre tints for Modus Operandi and night sky
-shades for Modus Vivendi.  Switching between the two themes, such as
-with {{{kbd(M-x modus-themes-toggle)}}} will also use the overrides.
+A more neutral style for ~modus-themes-operandi-color-overrides~ can
+look like this:
 
-Given that this is a user-level customisation, one is free to implement
+#+begin_src emacs-lisp
+'((bg-main . "#f7f7f7")
+  (bg-dim . "#f2f2f2")
+  (bg-alt . "#e8e8e8")
+  (bg-hl-line . "#eaeaef")
+  (bg-active . "#e0e0e0")
+  (bg-inactive . "#e6e6e6")
+  (bg-region . "#b5b5b5")
+  (bg-header . "#e4e4e4")
+  (bg-tab-bar . "#d1d1d4")
+  (bg-tab-active . "#f5f5f5")
+  (bg-tab-inactive . "#c0c0c0"))
+#+end_src
+
+With those in place, one can use {{{kbd(M-x my-modus-themes-tinted)}}}
+and then load the Modus theme of their choice.  The new palette subset
+will come into effect: subtle ochre tints (or shades of gray) for Modus
+Operandi and night sky blue shades for Modus Vivendi.  Switching between
+the two themes, such as with {{{kbd(M-x modus-themes-toggle)}}} will
+also use the overrides.
+
+Given that this is a user-level customization, one is free to implement
 whatever color values they desire, even if the possible combinations
 fall below the minimum 7:1 contrast ratio that governs the design of the
 themes (the WCAG AAA legibility standard).  Alternatively, this can also
@@ -2507,6 +3025,71 @@ inspiration from the ~modus-themes-toggle~ we already provide:
   (pcase (modus-themes--current-theme)
     ('modus-operandi (modus-themes-load-operandi))
     ('modus-vivendi (modus-themes-load-vivendi))))
+#+end_src
+
+** Override colors through blending
+:properties:
+:custom_id: h:80c326bf-fe32-47b2-8c59-58022256fd6e
+:end:
+#+cindex: Change theme colors through blending
+
+This is yet another method of overriding color values.
+
+[[#h:307d95dd-8dbd-4ece-a543-10ae86f155a6][Override colors]].
+
+[[#h:4589acdc-2505-41fc-9f5e-699cfc45ab00][Override color saturation]].
+
+Building on ideas and concepts from the previous sections, this method
+blends the entire palette at once with the chosen colors.  The function
+~my-modus-themes-interpolate~ blends two colors, taking a value from the
+themes and mixing it with a user-defined color to arrive at a midpoint.
+This scales to all background and foreground colors with the help of the
+~my-modus-themes-tint-palette~ function.
+
+#+begin_src emacs-lisp
+(setq my-modus-operandi-bg-blend "#fbf1c7"
+      my-modus-operandi-fg-blend "#3a6084"
+      my-modus-vivendi-bg-blend "#3a4042"
+      my-modus-vivendi-fg-blend "#d7b765")
+
+;; Adapted from the `kurecolor-interpolate' function of kurecolor.el
+(defun my-modus-themes-interpolate (color1 color2)
+  (cl-destructuring-bind (r g b)
+      (mapcar #'(lambda (n) (* (/ n 2) 255.0))
+              (cl-mapcar '+ (color-name-to-rgb color1) (color-name-to-rgb color2)))
+    (format "#%02X%02X%02X" r g b)))
+
+(defun my-modus-themes-tint-palette (palette bg-blend fg-blend)
+  "Modify Modus PALETTE programmatically and return a new palette.
+Blend background colors with BG-BLEND and foreground colors with FG-BLEND."
+  (let (name cons colors)
+    (dolist (cons palette)
+      (let ((blend (if (string-match "bg" (symbol-name (car cons)))
+                       bg-blend
+                     fg-blend)))
+        (setq name (my-modus-themes-interpolate (cdr cons) blend)))
+      (setq name (format "%s" name))
+      (setq cons `(,(car cons) . ,name))
+      (push cons colors))
+    colors))
+
+(define-minor-mode modus-themes-tinted-mode
+  "Tweak some Modus themes colors."
+  :init-value nil
+  :global t
+  (if modus-themes-tinted-mode
+      (setq modus-themes-operandi-color-overrides
+            (my-modus-themes-tint-palette modus-themes-operandi-colors
+                                          my-modus-operandi-bg-blend
+                                          my-modus-operandi-fg-blend)
+            modus-themes-vivendi-color-overrides
+            (my-modus-themes-tint-palette modus-themes-vivendi-colors
+                                          my-modus-vivendi-bg-blend
+                                          my-modus-vivendi-fg-blend))
+    (setq modus-themes-operandi-color-overrides nil
+          modus-themes-vivendi-color-overrides nil)))
+
+(modus-themes-tinted-mode 1)
 #+end_src
 
 ** Font configurations for Org and others
@@ -2670,11 +3253,11 @@ of the themes, which can make it easier to redefine faces in bulk).
 
 [[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
 
-** Custom Org user faces
+** Custom Org todo keyword and priority faces
 :properties:
 :custom_id: h:89f0678d-c5c3-4a57-a526-668b2bb2d7ad
 :end:
-#+cindex: Org extra faces
+#+cindex: Org custom todo faces
 
 Users of ~org-mode~ have the option to configure various keywords and
 priority cookies to better match their workflow.  User options are
@@ -2757,6 +3340,139 @@ it if you plan to control face attributes.
 [[#h:1487c631-f4fe-490d-8d58-d72ffa3bd474][Custom face specs using the themes' palette]].
 
 [[#h:02e25930-e71a-493d-828a-8907fc80f874][Check color combinations]].
+
+** Custom Org emphasis faces
+:properties:
+:custom_id: h:26026302-47f4-4471-9004-9665470e7029
+:end:
+#+cindex: Org custom emphasis faces
+
+Org provides the user option ~org-emphasis-alist~ which associates a
+character with a face, list of faces, or face attributes.  The default
+specification of that variable looks like this:
+
+#+begin_src emacs-lisp
+(setq org-emphasis-alist
+      '(("*" bold)
+        ("/" italic)
+        ("_" underline)
+        ("=" org-verbatim verbatim)
+        ("~" org-code verbatim)
+        ("+" (:strike-through t))))
+#+end_src
+
+With the exception of ~org-verbatim~ and ~org-code~ faces, everything else
+uses the corresponding type of emphasis: a bold typographic weight, or
+italicised, underlined, and struck through text.
+
+The best way for users to add some extra attributes, such as a
+foreground color, is to define their own faces and assign them to the
+given emphasis marker/character.
+
+This is a custom face that extends the standard ~bold~ face with a red
+foreground value (so it colorises the text in addition to the bold
+weight):
+
+#+begin_src emacs-lisp
+(defface my-org-emphasis-bold
+  '((default :inherit bold)
+    (((class color) (min-colors 88) (background light))
+     :foreground "#a60000")
+    (((class color) (min-colors 88) (background dark))
+     :foreground "#ff8059"))
+  "My bold emphasis for Org.")
+#+end_src
+
+This face definition reads as follows:
+
++ Always inherit the ~bold~ face ([[#h:2793a224-2109-4f61-a106-721c57c01375][Configure bold and italic faces]]).
++ For versions of Emacs that support at least 88 colors (graphical
+  Emacs, for example) and use a light background, apply the =#a60000=
+  value.
++ For the same kind of Emacs that has a dark background use the =#ff8059=
+  color instead.
+
+Same principle for how to extend ~italic~ and ~underline~ with, for example,
+green and yellow hues, respectively:
+
+#+begin_src emacs-lisp
+(defface my-org-emphasis-italic
+  '((default :inherit italic)
+    (((class color) (min-colors 88) (background light))
+     :foreground "#005e00")
+    (((class color) (min-colors 88) (background dark))
+     :foreground "#44bc44"))
+  "My italic emphasis for Org.")
+
+(defface my-org-emphasis-underline
+  '((default :inherit underline)
+    (((class color) (min-colors 88) (background light))
+     :foreground "#813e00")
+    (((class color) (min-colors 88) (background dark))
+     :foreground "#d0bc00"))
+  "My underline emphasis for Org.")
+#+end_src
+
+In the case of a strike-through effect, we have no generic face to
+inherit from, so we can write it as follows to also change the
+foreground to a more subtle gray:
+
+#+begin_src emacs-lisp
+(defface my-org-emphasis-strike-through
+  '((default :strike-through t)
+    (((class color) (min-colors 88) (background light))
+     :foreground "#505050")
+    (((class color) (min-colors 88) (background dark))
+     :foreground "#a8a8a8"))
+  "My strike-through emphasis for Org.")
+#+end_src
+
+Or we can just change the color of the line that strikes through the
+text to, for example, a shade of red:
+
+#+begin_src emacs-lisp
+(defface my-org-emphasis-strike-through
+  '((((class color) (min-colors 88) (background light))
+     :strike-through "#972500")
+    (((class color) (min-colors 88) (background dark))
+     :strike-through "#ef8b50"))
+  "My strike-through emphasis for Org.")
+#+end_src
+
+It is possible to combine those effects:
+
+#+begin_src emacs-lisp
+(defface my-org-emphasis-strike-through
+  '((((class color) (min-colors 88) (background light))
+     :strike-through "#972500" :foreground "#505050")
+    (((class color) (min-colors 88) (background dark))
+     :strike-through "#ef8b50" :foreground "#a8a8a8"))
+  "My strike-through emphasis for Org.")
+#+end_src
+
+One may inspect the variables ~modus-themes-operandi-colors~ and
+~modus-themes-vivendi-colors~ for possible color values.  Or call the
+command ~modus-themes-list-colors~ to show a buffer that previews each
+entry in the palette.
+
+[[#h:f4d4b71b-2ca5-4c3d-b0b4-9bfd7aa7fb4d][Visualize the active Modus theme's palette]].
+
+Once we have defined the faces we need, we must update the
+~org-emphasis-alist~.  Given that ~org-verbatim~ and ~org-code~ are already
+styled by the themes, it probably is best not to edit them:
+
+#+begin_src emacs-lisp
+(setq org-emphasis-alist
+      '(("*" my-org-emphasis-bold)
+        ("/" my-org-emphasis-italic)
+        ("_" my-org-emphasis-underline)
+        ("=" org-verbatim verbatim)
+        ("~" org-code verbatim)
+        ("+" my-org-emphasis-strike-through)))
+#+end_src
+
+That's it!  For changes to take effect in already visited Org files,
+invoke {{{kbd(M-x org-mode-restart)}}}.
 
 ** Update Org block delimiter fontification
 :properties:
@@ -2954,13 +3670,20 @@ at something like the following, which builds on the above example:
       (pdf-view-midnight-minor-mode -1))
     (my-pdf-tools-backdrop)))
 
+(defun my-pdf-tools-themes-toggle ()
+  (mapc
+   (lambda (buf)
+     (with-current-buffer buf
+       (my-pdf-tools-midnight-mode-toggle)))
+   (buffer-list)))
+
 (add-hook 'pdf-tools-enabled-hook #'my-pdf-tools-midnight-mode-toggle)
-(add-hook 'modus-themes-after-load-theme-hook #'my-pdf-tools-midnight-mode-toggle)
+(add-hook 'modus-themes-after-load-theme-hook #'my-pdf-tools-themes-toggle)
 #+end_src
 
 With those in place, PDFs have a distinct backdrop for their page, while
-they automatically switch to their dark mode when ~modus-themes-toggle~ is
-called from inside a buffer whose major-mode is ~pdf-view-mode~.
+buffers with major-mode as ~pdf-view-mode~ automatically switches to dark
+mode when ~modus-themes-toggle~ is called.
 
 ** Decrease mode line height
 :properties:
@@ -3056,6 +3779,35 @@ to be specified as well:
 
 (add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-custom-faces)
 #+end_src
+
+** Toggle themes without reloading them
+:properties:
+:custom_id: h:b40aca50-a3b2-4c43-be58-2c26fcd14237
+:end:
+#+cindex: Switch themes without load-theme
+
+Users who have a stable setup and who only ever need to toggle between
+the themes without triggering a full reload, are better off defining
+their own command which calls ~enable-theme~ instead of ~load-theme~:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-toggle ()
+  "Toggle between `modus-operandi' and `modus-vivendi' themes.
+This uses `enable-theme' instead of the standard method of
+`load-theme'.  The technicalities are covered in the Modus themes
+manual."
+  (interactive)
+  (pcase (modus-themes--current-theme)
+    ('modus-operandi (progn (enable-theme 'modus-vivendi)
+                            (disable-theme 'modus-operandi)))
+    ('modus-vivendi (progn (enable-theme 'modus-operandi)
+                            (disable-theme 'modus-vivendi)))
+    (_ (error "No Modus theme is loaded; evaluate `modus-themes-load-themes' first"))))
+#+end_src
+
+[[#h:e68560b3-7fb0-42bc-a151-e015948f8a35][Differences between loading and enabling]].
+
+Recall that ~modus-themes-toggle~ uses ~load-theme~.
 
 ** A theme-agnostic hook for theme loading
 :properties:
@@ -3161,6 +3913,212 @@ This used to be an optional style of ~modus-themes-diffs~, but has been
 removed since version =2.0.0= to ensure that the accessibility standard
 and aesthetic quality of the themes is not compromised.
 
+** Ediff without diff color-coding
+:properties:
+:custom_id: h:b0b31802-0216-427e-b071-1a47adcfe608
+:end:
+
+Ediff uses the same color-coding as ordinary diffs in ~diff-mode~, Magit,
+etc. ([[#h:ea7ac54f-5827-49bd-b09f-62424b3b6427][Option for diff buffer looks]]).  This is consistent with the
+principle of least surprise.
+
+Users may, however, prefer to treat Ediff differently on the premise
+that it does not need any particular color-coding to show added or
+removed lines/words: it does not use the =+= or =-= markers, after all.
+
+This can be achieved by customizing the Ediff faces with color
+combinations that do not carry the same connotations as those of diffs.
+Consider this example, which leverages the ~modus-themes-with-colors~
+macro ([[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]]):
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-custom-faces ()
+  (modus-themes-with-colors
+    (custom-set-faces
+     `(ediff-current-diff-A ((,class :inherit unspecified :background ,bg-special-faint-cold :foreground ,fg-special-cold)))
+     `(ediff-current-diff-B ((,class :inherit unspecified :background ,bg-special-faint-warm :foreground ,fg-special-warm)))
+     `(ediff-current-diff-C ((,class :inherit unspecified :background ,bg-special-faint-calm :foreground ,fg-special-calm)))
+     `(ediff-fine-diff-A ((,class :inherit unspecified :background ,bg-special-cold :foreground ,fg-special-cold)))
+     `(ediff-fine-diff-B ((,class :inherit unspecified :background ,bg-special-warm :foreground ,fg-special-warm)))
+     `(ediff-fine-diff-C ((,class :inherit unspecified :background ,bg-special-calm :foreground ,fg-special-calm))))))
+
+;; This is so that the changes persist when switching between
+;; `modus-operandi' and `modus-vivendi'.
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-custom-faces)
+#+end_src
+
+Remove the =:foreground= and its value to preserve the underlying
+coloration.
+
+[[#h:f4d4b71b-2ca5-4c3d-b0b4-9bfd7aa7fb4d][Visualize the active Modus theme's palette]].
+
+** Near-monochrome syntax highlighting
+:properties:
+:custom_id: h:c1f3fa8e-7a63-4a6f-baf3-a7febc0661f0
+:end:
+#+cindex: Monochrome code syntax
+
+While the Modus themes do provide a user option to control the overall
+style of syntax highlighting in programming major modes, they do not
+cover the possibility of a monochromatic or near-monochromatic design
+([[#h:c119d7b2-fcd4-4e44-890e-5e25733d5e52][Option for syntax highlighting]]).  This is due to the multitude of
+preferences involved: one may like comments to be styled with an accent
+value, another may want certain constructs to be bold, a third may apply
+italics to doc strings but not comments...  The possibilities are
+virtually endless.  As such, this sort of design is best handled at the
+user level in accordance with the information furnished elsewhere in
+this manual.
+
+[[#h:1487c631-f4fe-490d-8d58-d72ffa3bd474][Case-by-case face specs using the themes' palette]].
+
+[[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
+
+The gist is that we want to override the font-lock faces.  For our
+changes to persist while switching between ~modus-operandi~ and
+~modus-vivendi~ we wrap our face overrides in a function that we hook to
+~modus-themes-after-load-theme-hook~.
+
+Users who want to replicate the structure of the themes' source code are
+advised to use the examples with ~custom-set-faces~.  Those who prefer a
+different approach can use the snippets which call ~set-face-attribute~.
+Below are the code blocks.
+
+The following uses a yellow accent value for comments and green hues for
+strings.  Regexp grouping constructs have color values that work in the
+context of a green string.  All other elements use the main foreground
+color, except warnings such as the ~user-error~ function in Elisp
+buffers which gets a subtle red tint (not to be confused with the
+~warning~ face which is used for genuine warnings).  Furthermore, notice
+the ~modus-themes-bold~ and ~modus-themes-slant~ which apply the
+preference set in the user options ~modus-themes-bold-constructs~ and
+~modus-themes-italic-constructs~, respectively.  Users who do not want
+this conditionally must replace these faces with ~bold~ and ~italic~
+respectively (or ~unspecified~ to disable the effect altogether).
+
+#+begin_src emacs-lisp
+;; This is the hook.  It will not be replicated across all code samples.
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-subtle-syntax)
+
+(defun my-modus-themes-subtle-syntax ()
+  (modus-themes-with-colors
+    (custom-set-faces
+     `(font-lock-builtin-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-comment-delimiter-face ((,class :inherit font-lock-comment-face)))
+     `(font-lock-comment-face ((,class :inherit unspecified :foreground ,fg-comment-yellow)))
+     `(font-lock-constant-face ((,class :foreground unspecified)))
+     `(font-lock-doc-face ((,class :inherit modus-themes-slant :foreground ,fg-special-mild)))
+     `(font-lock-function-name-face ((,class :foreground unspecified)))
+     `(font-lock-keyword-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-negation-char-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-preprocessor-face ((,class :foreground unspecified)))
+     `(font-lock-regexp-grouping-backslash ((,class :inherit bold :foreground ,yellow)))
+     `(font-lock-regexp-grouping-construct ((,class :inherit bold :foreground ,blue-alt-other)))
+     `(font-lock-string-face ((,class :foreground ,green-alt-other)))
+     `(font-lock-type-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-variable-name-face ((,class :foreground unspecified)))
+     `(font-lock-warning-face ((,class :inherit modus-themes-bold :foreground ,red-nuanced-fg))))))
+
+;; Same as above with `set-face-attribute' instead of `custom-set-faces'
+(defun my-modus-themes-subtle-syntax ()
+  (modus-themes-with-colors
+    (set-face-attribute 'font-lock-builtin-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-comment-delimiter-face nil :inherit 'font-lock-comment-face)
+    (set-face-attribute 'font-lock-comment-face nil :inherit 'unspecified :foreground fg-comment-yellow)
+    (set-face-attribute 'font-lock-constant-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-doc-face nil :inherit 'modus-themes-slant :foreground fg-special-mild)
+    (set-face-attribute 'font-lock-function-name-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-keyword-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-negation-char-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-preprocessor-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-regexp-grouping-backslash nil :inherit 'bold :foreground yellow)
+    (set-face-attribute 'font-lock-regexp-grouping-construct nil :inherit 'bold :foreground blue-alt-other)
+    (set-face-attribute 'font-lock-string-face nil :foreground green-alt-other)
+    (set-face-attribute 'font-lock-type-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-variable-name-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-warning-face nil :inherit 'modus-themes-bold :foreground red-nuanced-fg)))
+#+end_src
+
+The following sample is the same as above, except strings are blue and
+comments are gray.  Regexp constructs are adapted accordingly.
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-subtle-syntax ()
+  (modus-themes-with-colors
+    (custom-set-faces
+     `(font-lock-builtin-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-comment-delimiter-face ((,class :inherit font-lock-comment-face)))
+     `(font-lock-comment-face ((,class :inherit unspecified :foreground ,fg-alt)))
+     `(font-lock-constant-face ((,class :foreground unspecified)))
+     `(font-lock-doc-face ((,class :inherit modus-themes-slant :foreground ,fg-docstring)))
+     `(font-lock-function-name-face ((,class :foreground unspecified)))
+     `(font-lock-keyword-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-negation-char-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-preprocessor-face ((,class :foreground unspecified)))
+     `(font-lock-regexp-grouping-backslash ((,class :inherit bold :foreground ,fg-escape-char-backslash)))
+     `(font-lock-regexp-grouping-construct ((,class :inherit bold :foreground ,fg-escape-char-construct)))
+     `(font-lock-string-face ((,class :foreground ,blue-alt)))
+     `(font-lock-type-face ((,class :inherit modus-themes-bold :foreground unspecified)))
+     `(font-lock-variable-name-face ((,class :foreground unspecified)))
+     `(font-lock-warning-face ((,class :inherit modus-themes-bold :foreground ,red-nuanced-fg))))))
+
+;; Same as above with `set-face-attribute' instead of `custom-set-faces'
+(defun my-modus-themes-subtle-syntax ()
+  (modus-themes-with-colors
+    (set-face-attribute 'font-lock-builtin-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-comment-delimiter-face nil :inherit 'font-lock-comment-face)
+    (set-face-attribute 'font-lock-comment-face nil :inherit 'unspecified :foreground fg-alt)
+    (set-face-attribute 'font-lock-constant-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-doc-face nil :inherit 'modus-themes-slant :foreground fg-docstring)
+    (set-face-attribute 'font-lock-function-name-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-keyword-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-negation-char-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-preprocessor-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-regexp-grouping-backslash nil :inherit 'bold :foreground fg-escape-char-backslash)
+    (set-face-attribute 'font-lock-regexp-grouping-construct nil :inherit 'bold :foreground fg-escape-char-construct)
+    (set-face-attribute 'font-lock-string-face nil :foreground blue-alt)
+    (set-face-attribute 'font-lock-type-face nil :inherit 'modus-themes-bold :foreground 'unspecified)
+    (set-face-attribute 'font-lock-variable-name-face nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-warning-face nil :inherit 'modus-themes-bold :foreground red-nuanced-fg)))
+#+end_src
+
+** Custom hl-todo colors
+:PROPERTIES:
+:CUSTOM_ID: h:2ef83a21-2f0a-441e-9634-473feb940743
+:END:
+
+The =hl-todo= package provides the user option ~hl-todo-keyword-faces~:
+it specifies a pair of keyword and corresponding color value.  The Modus
+themes configure that option in the interest of legibility.  While this
+works for our purposes, users may still prefer to apply their custom
+values, in which case the following approach is necessary:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-hl-todo-faces ()
+  (setq hl-todo-keyword-faces '(("TODO" . "#ff0000")
+                                ("HACK" . "#ffff00")
+                                ("XXX" . "#00ffff")
+                                ("NOTE" . "#ff00ff"))))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-hl-todo-faces)
+#+end_src
+
+Or include a ~let~ form, if needed:
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-hl-todo-faces ()
+  (let ((red "#ff0000")
+        (blue "#0000ff"))
+    (setq hl-todo-keyword-faces `(("TODO" . ,blue)
+                                  ("HACK" . ,red)
+                                  ("XXX" . ,red)
+                                  ("NOTE" . ,blue)))))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-hl-todo-faces)
+#+end_src
+
+Normally, we do not touch user options, though this is an exception:
+otherwise the defaults are not always legible.
+
 * Face coverage
 :properties:
 :custom_id: h:a9c8f29d-7f72-4b54-b74b-ddefe15d6a19
@@ -3186,6 +4144,8 @@ have lots of extensions, so the "full support" may not be 100% true…
 + ace-window
 + alert
 + all-the-icons
++ all-the-icons-dired
++ all-the-icons-ibuffer
 + annotate
 + ansi-color
 + anzu
@@ -3204,11 +4164,13 @@ have lots of extensions, so the "full support" may not be 100% true…
 + breakpoint (provided by the built-in {{{file(gdb-mi.el)}}} library)
 + calendar and diary
 + calfw
++ calibredb
 + centaur-tabs
 + cfrs
 + change-log and log-view (such as ~vc-print-log~, ~vc-print-root-log~)
 + cider
 + circe
++ citar
 + color-rg
 + column-enforce-mode
 + company-mode*
@@ -3217,6 +4179,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + completions
 + consult
 + corfu
++ corfu-quick
 + counsel*
 + counsel-css
 + cov
@@ -3231,6 +4194,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + deadgrep
 + debbugs
 + deft
++ devdocs
 + dictionary
 + diff-hl
 + diff-mode
@@ -3250,6 +4214,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + easy-jekyll
 + ebdb
 + ediff
++ ein (Emacs IPython Notebook)
 + eglot
 + el-search
 + eldoc-box
@@ -3257,6 +4222,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + elfeed-score
 + elpher
 + embark
++ ement
 + emms
 + enh-ruby-mode (enhanced-ruby-mode)
 + epa
@@ -3348,8 +4314,10 @@ have lots of extensions, so the "full support" may not be 100% true…
 + marginalia
 + markdown-mode
 + markup-faces (~adoc-mode~)
++ mct
 + mentor
 + messages
++ mini-modeline
 + minimap
 + mmm-mode
 + mode-line
@@ -3395,6 +4363,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + proced
 + prodigy
 + pulse
++ pyim
 + quick-peek
 + racket-mode
 + rainbow-blocks
@@ -3417,6 +4386,8 @@ have lots of extensions, so the "full support" may not be 100% true…
 + side-notes
 + sieve-mode
 + skewer-mode
++ slime (slbd)
++ sly
 + smart-mode-line
 + smartparens
 + smerge
@@ -3438,9 +4409,11 @@ have lots of extensions, so the "full support" may not be 100% true…
 + telephone-line
 + terraform-mode
 + term
++ textsec
 + tomatinho
 + transient (pop-up windows such as Magit's)
 + trashed
++ tree-sitter
 + treemacs
 + tty-menu
 + tuareg
@@ -3454,6 +4427,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + visible-mark
 + visual-regexp
 + vterm
++ vundo
 + wcheck-mode
 + web-mode
 + wgrep
@@ -3492,8 +4466,11 @@ supported by the themes.
 + counsel-org-capture-string
 + define-word
 + disk-usage
++ dtache
 + easy-kill
 + edit-indirect
++ egerrit
++ elfeed-summary
 + evil-owl
 + flyspell-correct
 + fortran-mode
@@ -3504,6 +4481,7 @@ supported by the themes.
 + i3wm-config-mode
 + minibuffer-line
 + no-emoji
++ org-remark
 + parrot
 + perl-mode
 + php-mode
@@ -3513,6 +4491,7 @@ supported by the themes.
 + swift-mode
 + tab-bar-echo-area
 + tide
++ undo-hl
 + vdiff
 + vertico-indexed
 + vertico-mouse
@@ -3524,40 +4503,6 @@ supported by the themes.
 
 This section covers information that may be of interest to users of
 individual packages.
-
-** Note on avy hints
-:properties:
-:custom_id: h:2fdce705-6de7-44e6-ab7f-18f59af99e01
-:end:
-
-Hints can appear everywhere, in wildly varying contexts, hence, their
-appearance, by necessity, is a compromise.  However, there are various
-options for making them stand out. First is dimming the surroundings:
-
-#+begin_src emacs-lisp
-(setq avy-background t)
-#+end_src
-
-Dimming works well when you find it difficult to spot hints, any hint.
-Second is limiting the number of faces used by hints:
-
-#+begin_src emacs-lisp
-(setq avy-lead-faces
-      '(avy-lead-face
-        avy-lead-face-1
-        avy-lead-face-1
-        avy-lead-face-1
-        avy-lead-face-1))
-#+end_src
-
-Limiting the number of faces works well with longer hints when you find
-it difficult to identify individual hints, especially with hints
-touching each other.  The first character of the hint will have an
-intense color, the remaining ones the same neutral color.
-
-Third is preferring commands that produce fewer candidates.  Fewer hints
-is less noise: ~avy-goto-char-timer~ is an excellent alternative to
-~avy-goto-char~.
 
 ** Note on calendar.el weekday and weekend colors
 :properties:
@@ -3588,6 +4533,72 @@ weekends uniformly.
 For changes to take effect, the Calendar buffer needs to be generated
 anew.
 
+** Note on git-gutter in Doom Emacs
+:PROPERTIES:
+:CUSTOM_ID: h:a195e37c-e58c-4148-b254-8ba1ed8a731a
+:END:
+
+The =git-gutter= and =git-gutter-fr= packages default to drawing bitmaps
+for the indicators they display (e.g. bitmap of a plus sign for added
+lines).  In Doom Emacs, these bitmaps are replaced with contiguous lines
+which may look nicer, but require a change to the foreground of the
+relevant faces to yield the desired color combinations.
+
+Since this is Doom-specific, we urge users to apply changes in their
+local setup.  Below is some sample code, based on what we cover at
+length elsewhere in this manual:
+
+[[#h:f4651d55-8c07-46aa-b52b-bed1e53463bb][Advanced customization]].
+
+[[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
+
+#+begin_src emacs-lisp
+(defun my-modus-themes-custom-faces ()
+  (modus-themes-with-colors
+    (custom-set-faces
+     ;; Replace green with blue if you use `modus-themes-deuteranopia'.
+     `(git-gutter-fr:added ((,class :foreground ,green-fringe-bg)))
+     `(git-gutter-fr:deleted ((,class :foreground ,red-fringe-bg)))
+     `(git-gutter-fr:modified ((,class :foreground ,yellow-fringe-bg))))))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-custom-faces)
+#+end_src
+
+If the above does not work, try this instead:
+
+#+begin_src emacs-lisp
+(after! modus-themes
+  (modus-themes-with-colors
+    (custom-set-faces
+     ;; Replace green with blue if you use `modus-themes-deuteranopia'.
+     `(git-gutter-fr:added ((,class :foreground ,green-fringe-bg)))
+     `(git-gutter-fr:deleted ((,class :foreground ,red-fringe-bg)))
+     `(git-gutter-fr:modified ((,class :foreground ,yellow-fringe-bg))))))
+#+end_src
+
+Replace ~green-fringe-bg~ with ~blue-fringe-bg~ if you want to optimize
+for red-green color deficiency.
+
+[[#h:3ed03a48-20d8-4ce7-b214-0eb7e4c79abe][Option for red-green color deficiency or deuteranopia]].
+
+** Note on php-mode multiline comments
+:PROPERTIES:
+:CUSTOM_ID: h:d0a3157b-9c04-46e8-8742-5fb2a7ae8798
+:END:
+
+Depending on your build of Emacs and/or the environment it runs in,
+multiline comments in PHP with the =php-mode= package use the
+~font-lock-doc-face~ instead of ~font-lock-comment-face~.
+
+This seems to make all comments use the appropriate face:
+
+#+begin_src emacs-lisp
+(defun my-multine-comments ()
+  (setq-local c-doc-face-name 'font-lock-comment-face))
+
+(add-hook 'php-mode-hook #'my-multine-comments)
+#+end_src
+
 ** Note on underlines in compilation buffers
 :properties:
 :custom_id: h:420f5a33-c7a9-4112-9b04-eaf2cbad96bd
@@ -3597,14 +4608,15 @@ Various buffers that produce compilation results or run tests on code
 apply an underline to the file names they reference or to relevant
 messages.  Users may consider this unnecessary or excessive.
 
-To outright disable the effect, use this:
+To outright disable the effect, use this (buffers need to be generated
+anew):
 
 #+begin_src emacs-lisp
 (setq compilation-message-face nil)
 #+end_src
 
 If some element of differentiation is still desired, a good option is to
-render the affected text using the ~italic~ face:
+render the affected text with the ~italic~ face:
 
 #+begin_src emacs-lisp
 (setq compilation-message-face 'italic)
@@ -3668,32 +4680,34 @@ package: it draws too much attention to unfocused windows.
 :custom_id: h:2a602816-bc1b-45bf-9675-4cbbd7bf6cab
 :end:
 
-While designing the style for ~display-fill-column-indicator-mode~, we
-stayed close to the mode's defaults: to apply a subtle foreground color
-to the ~fill-column-indicator~ face, which blends well with the rest of
-theme and is consistent with the role of that mode.  This is to not
-upset the expectations of users.
+The ~display-fill-column-indicator-mode~ uses a typographic character to
+draw its line.  This has the downside of creating a dashed line.  The
+dashes are further apart depending on how tall the font's glyph height
+is and what integer the ~line-spacing~ is set to.
 
-Nevertheless, ~display-fill-column-indicator-mode~ has some known
-limitations pertaining to its choice of using typographic characters to
-draw its indicator.  What should be a continuous vertical line might
-appear as a series of dashes in certain contexts or under specific
-conditions: a non-default value for ~line-spacing~, scaled and/or
-variable-pitch headings have been observed to cause this effect.
-
-Given that we cannot control such factors, it may be better for affected
-users to deviate from the default style of the ~fill-column-indicator~
-face.  Instead of setting a foreground color, one could use a background
-and have the foreground be indistinguishable from it.  For example:
+At the theme level we eliminate this effect by making the character one
+pixel tall: the line is contiguous.  Users who prefer the dashed line
+are advised to change the ~fill-column-indicator~ face, as explained
+elsewhere in this document.  For example:
 
 #+begin_src emacs-lisp
 (modus-themes-with-colors
   (custom-set-faces
-   `(fill-column-indicator ((,class :background ,bg-inactive
-                                    :foreground ,bg-inactive)))))
+   `(fill-column-indicator ((,class :foreground ,bg-active)))))
 #+end_src
 
 [[#h:51ba3547-b8c8-40d6-ba5a-4586477fd4ae][Face specs at scale using the themes' palette]].
+
+To make the line thicker, set the height to be equal to the base font
+size instead of the one pixel we use.  This is done by specifying a rate
+instead of an absolute number, as in =:height 1.0= versus =:height 1=.
+For example:
+
+#+begin_src emacs-lisp
+(modus-themes-with-colors
+  (custom-set-faces
+   `(fill-column-indicator ((,class :height 1.0 :background ,bg-inactive :foreground ,bg-inactive)))))
+#+end_src
 
 ** Note on highlight-parentheses.el
 :PROPERTIES:
@@ -3885,7 +4899,7 @@ implements an alternative to the typical coloration of code.  Instead of
 highlighting the syntactic constructs, it applies color to different
 levels of depth in the code structure.
 
-As {{{file(prism.el)}}} offers a broad range of customisations, we cannot
+As {{{file(prism.el)}}} offers a broad range of customizations, we cannot
 style it directly at the theme level: that would run contrary to the
 spirit of the package.  Instead, we may offer preset color schemes.
 Those should offer a starting point for users to adapt to their needs.
@@ -4073,21 +5087,67 @@ Emacs' HTML rendering library ({{{file(shr.el)}}}) may need explicit
 configuration to respect the theme's colors instead of whatever
 specifications the webpage provides.
 
-Consult {{{kbd(C-h v shr-use-colors)}}}.
+Consult the doc string of ~shr-use-colors~.
 
-** Note on EWW and Elfeed fonts
+** Note on SHR fonts
 :properties:
 :custom_id: h:e6c5451f-6763-4be7-8fdb-b4706a422a4c
 :end:
+#+cindex: Fonts in EWW, Elfeed, Ement, and SHR
 
-EWW and Elfeed rely on the Simple HTML Renderer to display their
-content.  The {{{file(shr.el)}}} library contains the variable ~shr-use-fonts~
-that controls whether the text in the buffer is set to a ~variable-pitch~
-typeface (proportionately spaced) or if just retains whatever the
-default font family is.  Its default value is non-nil, which means that
-~variable-pitch~ is applied.
+By default, packages that build on top of the Simple HTML Remember (=shr=)
+use proportionately spaced fonts.  This is controlled by the user option
+~shr-use-fonts~, which is set to non-nil by default.  To use the standard
+font instead, set that variable to nil.
 
 [[#h:defcf4fc-8fa8-4c29-b12e-7119582cc929][Font configurations for Org and others]].
+
+Packages affected by this are:
+
++ elfeed
++ ement
++ eww
+
+This is a non-exhaustive list.
+
+** Note on Ement colors and fonts
+:properties:
+:custom_id: h:8e636056-356c-4ca7-bc78-ebe61031f585
+:end:
+
+The =ement.el= library by Adam Porter (also known as "alphapapa") defaults
+to a method of colorizing usernames in a rainbow style.  This is
+controlled by the user option ~ement-room-prism~ and can be disabled with:
+
+#+begin_src emacs-lisp
+(setq ement-room-prism nil)
+#+end_src
+
+The contrast ratio of these colors is governed by another user option:
+~ement-room-prism-minimum-contrast~.  By default, it is set to 6 which is
+slightly below our nominal target.  Try this instead:
+
+#+begin_src emacs-lisp
+(setq ement-room-prism-minimum-contrast 7)
+#+end_src
+
+With regard to fonts, Ement depends on =shr= ([[#h:e6c5451f-6763-4be7-8fdb-b4706a422a4c][Note on SHR fonts]]).
+
+Since we are here, here is an excerpt from Ement's source code:
+
+#+begin_src emacs-lisp
+(defcustom ement-room-prism-minimum-contrast 6
+  "Attempt to enforce this minimum contrast ratio for user faces.
+This should be a reasonable number from, e.g. 0-7 or so."
+  ;; Prot would almost approve of this default.  :) I would go all the way
+  ;; to 7, but 6 already significantly dilutes the colors in some cases.
+  :type 'number)
+#+end_src
+
+Yes, I do approve of that default.  Even a 4.5 (the WCAG AA rating)
+would be a good baseline for many themes and/or user configurations.
+Our target is the highest of the sort, though we do not demand that
+everyone conforms with it.
 
 ** Note on Helm grep
 :properties:
@@ -4187,6 +5247,20 @@ you've customized any faces.
             "-undercolor" "%f"
             "-fill"       "%b"
             "-draw"       "text %X,%Y '%c'"))))
+#+end_src
+
+** Note on the Notmuch logo
+:properties:
+:custom_id: h:636af312-54a5-4918-84a6-0698e85a3c6d
+:end:
+
+By default, the "hello" buffer of Notmuch includes a header with the
+programs' logo and a couple of buttons.  The logo has the effect of
+enlarging the height of the line, which negatively impacts the shape of
+those buttons.  Disabling the logo fixes the problem:
+
+#+begin_src emacs-lisp
+(setq notmuch-show-logo nil)
 #+end_src
 
 * Frequently Asked Questions
@@ -4312,8 +5386,8 @@ and hints of green give us suitable shades of purple.
 
 Due to the need of maintaining some difference in hueness between
 adjacent colors, it is not possible to make red, green, and yellow the
-primary colors, because blue could not be used to control their
-luminance and, thus the relevant space would shrink considerably.
+main colors, because blue cannot be used to control their luminance and,
+thus the relevant space will shrink considerably.
 
 [[#h:5ce7ae2e-9348-4e55-b4cf-9302345b1826][Is the contrast ratio about adjacent colors?]]
 
@@ -4400,6 +5474,139 @@ The color combinations may have been optimized for accessibility, though
 the remaining contributing factors in each case need to be considered in
 full.
 
+** Are these color schemes?
+:properties:
+:custom_id: h:a956dbd3-8fd2-4f5d-8b01-5f881268cf2b
+:end:
+#+cindex: Themes, not color schemes
+
+No, the Modus themes are not color schemes.
+
+A color scheme is a collection of colors.  A good color scheme is a
+combination of colors with an inner logic or abstract structure.
+
+A theme is a set of patterns that are applied across different contexts.
+A good theme is one that does so with consistency, though not
+uniformity.
+
+In practical terms, a color scheme is what one uses when, for example,
+they edit the first sixteen escape sequences of a terminal emulator to
+the hues of their preference.  The terminal offers the option to choose,
+say, the exact value of what counts as "red", but does not provide the
+means to control where that is mapped to and whether it should also have
+other qualities such as a bold weight for the underlying text or an
+added background color.  In contradistinction, Emacs uses constructs
+known as "faces" which allow the user/developer to specify where a given
+color will be used and whether it should be accompanied by other
+typographic or stylistic attributes.
+
+By configuring the multitude of faces on offer we thus control both
+which colors are applied and how they appear in their context.  When a
+package wants to render each instance of "foo" with the "bar" face, it
+is not requesting a specific color, which makes things considerably more
+flexible as we can treat "bar" in its own right without necessarily
+having to use some color value that we hardcoded somewhere.
+
+Which brings us to the distinction between consistency and uniformity
+where our goal is always the former: we want things to look similar
+across all interfaces, but we must never force a visual identity where
+that runs contrary to the functionality of the given interface.  For
+instance, all links are underlined by default yet there are cases such
+as when viewing listings of emails in Gnus (and Mu4e, Notmuch) where (i)
+it is already understood that one must follow the indicator or headline
+to view its contents and (ii) underlining everything would make the
+interface virtually unusable.
+
+[[#h:5808be52-361a-4d18-88fd-90129d206f9b][Option for links]].
+
+Again, one must exercise judgment in order to avoid discrimination,
+where "discrimination" refers to:
+
++ The treatment of substantially different magnitudes as if they were of
+  the same class.
++ Or the treatment of the same class of magnitudes as if they were of a
+  different class.
+
+(To treat similar things differently; to treat dissimilar things alike.)
+
+If, in other words, one was to enforce uniformity without accounting for
+the particular requirements of each case---the contextual demands for
+usability beyond matters of color---they would be making a
+not-so-obvious error of treating different cases as if they were the
+same.
+
+The Modus themes prioritize "thematic consistency" over abstract harmony
+or regularity among their applicable colors.  In concrete terms, we do
+not claim that, say, our yellows are the best complements for our blues
+because we generally avoid using complementary colors side-by-side, so
+it is wrong to optimize for a decontextualised blue+yellow combination.
+Not to imply that our colors do not work well together because they do,
+just to clarify that consistency of context is what themes must strive
+for, and that requires widening the scope of the design beyond the
+particularities of a color scheme.
+
+Long story short: color schemes and themes have different requirements.
+Please do not conflate the two.
+
+** Port the Modus themes to other platforms?
+:properties:
+:custom_id: h:7156b949-917d-488e-9a72-59f70d80729c
+:end:
+#+cindex: Porting the themes to other editors
+
+There is no plan to port the themes to other platforms or text editors.
+I (Protesilaos) only use GNU Emacs and thus cannot maintain code that
+targets software I am either not familiar with or am not using on a
+daily basis.
+
+While it is possible to produce a simulacrum based on a given template,
+doing so would run contrary to how this project is maintained where
+details matter greatly.
+
+Each program has its own requirements so it won't always be
+possible---or indeed desirable---to have 1:1 correspondence between what
+applies to Emacs and what should be done elsewhere.  No port should ever
+strive to be a faithful copy of the Emacs implementation, as no other
+program is an Emacs equivalent, but instead try to follow the spirit of
+the design.  For example, some of the customization options accept a
+list as their value, or an alist, which may not be possible to reproduce
+on other platforms.
+
+[[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization options]].
+
+In other words, if something must be done differently on a certain
+editor then that is acceptable so long as (i) the accessibility
+standards are not compromised and (ii) the overall character of the
+themes remains consistent.
+
+The former criterion should be crystal clear as it pertains to the
+scientific foundations of the themes: high legibility and taking care of
+the needs of users with red-green color deficiency (deuteranopia) by
+avoiding red+green color coding paradigms and/or by providing red+blue
+variants.
+
+The latter criterion is the "je ne sais quoi" of the artistic aspect of
+the themes, which is partially fleshed out in this manual.
+
+[[#h:b3384767-30d3-4484-ba7f-081729f03a47][Frequently Asked Questions]].
+
+With regard to the artistic aspect (where "art" qua skill may amount to
+an imprecise science), there is no hard-and-fast rule in effect as it
+requires one to exercise discretion and make decisions based on
+context-dependent information or constraints.  As is true with most
+things in life, when in doubt, do not cling on to the letter of the law
+but try to understand its spirit.
+
+For a trivial example: the curly underline that Emacs draws for spelling
+errors is thinner than, e.g., what a graphical web browser has, so if I
+was to design for an editor than has a thicker curly underline I would
+make the applicable colors less intense to counterbalance the
+typographic intensity of the added thickness.
+
+With those granted, if anyone is willing to develop a port of the
+themes, they are welcome to contact me and I will do my best to help
+them in their efforts.
+
 * Contributing
 :properties:
 :custom_id: h:9c3cd842-14b7-44d7-84b2-a5c8bc3fc3b1
@@ -4416,8 +5623,8 @@ in which you can contribute to their ongoing development.
 
 The ~modus-operandi~ and ~modus-vivendi~ themes are built into Emacs 28.
 
-The source code of the themes is [[https://gitlab.com/protesilaos/modus-themes/][available on Gitlab]], for the time
-being.  A [[https://github.com/protesilaos/modus-themes/][mirror on Github]] is also on offer.
+The source code of the themes is [[https://git.sr.ht/~protesilaos/modus-themes][available on SourceHut]].  Or check the
+[[https://gitlab.com/protesilaos/modus-themes/][GitLab mirror (former main source)]] and the [[https://github.com/protesilaos/modus-themes/][GitHub mirror]].
 
 An HTML version of this manual is provided as an extension of the
 [[https://protesilaos.com/emacs/modus-themes/][author's personal website]] (does not rely on any non-free code).
@@ -4428,7 +5635,10 @@ An HTML version of this manual is provided as an extension of the
 :end:
 #+cindex: Contributing
 
-A few tasks you can help with:
+#+findex: modus-themes-report-bug
+A few tasks you can help with by sending an email to the general
+[[https://lists.sr.ht/~protesilaos/modus-themes][modus-themes public mailing list]] (or use the command
+~modus-themes-report-bug~).
 
 + Suggest refinements to packages that are covered.
 + Report packages not covered thus far.
@@ -4436,13 +5646,18 @@ A few tasks you can help with:
 + Help expand the documentation of covered-but-not-styled packages.
 + Suggest refinements to the color palette.
 + Help expand this document or any other piece of documentation.
-+ Merge requests for code refinements.
++ Send patches for code refinements (if you need, ask me for help with
+  Git---we all start out as beginners).
 
 [[#h:111773e2-f26f-4b68-8c4f-9794ca6b9633][Patches require copyright assignment to the FSF]].
 
 It is preferable that your feedback includes some screenshots, GIFs, or
 short videos, as well as further instructions to reproduce a given
 setup.  Though this is not a requirement.
+
+#+findex: modus-themes-version
+Also consider mentioning the version of the themes you are using, such
+as by invoking the command ~modus-themes-version~.
 
 Whatever you do, bear in mind the overarching objective of the Modus
 themes: to keep a contrast ratio that is greater or equal to 7:1 between
@@ -4475,7 +5690,7 @@ will send you the assignment form for your past and future changes.
 
 Please use your full legal name (in ASCII characters) as the subject
 line of the message.
-----------------------------------------------------------------------
+
 REQUEST: SEND FORM FOR PAST AND FUTURE CHANGES
 
 [What is the name of the program or package you're contributing to?]
@@ -4523,40 +5738,48 @@ The Modus themes are a collective effort.  Every bit of work matters.
 
 + Author/maintainer :: Protesilaos Stavrou.
 
-+ Contributions to code or documentation :: Anders Johansson, Basil
-  L.{{{space()}}} Contovounesios, Björn Lindström, Carlo Zancanaro, Christian
-  Tietze, Daniel Mendler, Eli Zaretskii, Fritz Grabo, Illia Ostapyshyn,
-  Kévin Le Gouguec, Kostadin Ninev, Madhavan Krishnan, Markus Beppler,
-  Matthew Stevenson, Mauro Aranda, Nicolas De Jaeghere, Philip
-  Kaludercic, Rudolf Adamkovič, Stephen Gildea, Shreyas Ragavan, Stefan
-  Kangas, Vincent Murphy, Xinglu Chen.
++ Contributions to code or documentation :: Alex Griffin, Anders
+  Johansson, Basil L.{{{space()}}} Contovounesios, Björn Lindström,
+  Carlo Zancanaro, Christian Tietze, Daniel Mendler, Eli Zaretskii,
+  Fritz Grabo, Illia Ostapyshyn, Kévin Le Gouguec, Kostadin Ninev,
+  Madhavan Krishnan, Manuel Giraud, Markus Beppler, Matthew Stevenson,
+  Mauro Aranda, Nicolas De Jaeghere, Philip Kaludercic, Pierre
+  Téchoueyres, Rudolf Adamkovič, Stephen Gildea, Shreyas Ragavan, Stefan
+  Kangas, Utkarsh Singh, Vincent Murphy, Xinglu Chen, Yuanchen Xie.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
-  Adrian Manea, Alex Griffin, Alex Peitsinis, Alexey Shmalko, Alok
-  Singh, Anders Johansson, André Alexandre Gomes, Arif Rezai, Basil
-  L.{{{space()}}} Contovounesios, Burgess Chang, Christian Tietze, Christopher
-  Dimech, Damien Cassou, Daniel Mendler, Dario Gjorgjevski, David
-  Edmondson, Davor Rotim, Divan Santana, Eliraz Kedmi, Emanuele Michele
-  Alberto Monterosso, Farasha Euker, Feng Shu, Gautier Ponsinet, Gerry
-  Agbobada, Gianluca Recchia, Guilherme Semente, Gustavo Barros,
-  Hörmetjan Yiltiz, Ilja Kocken, Iris Garcia, Jeremy Friesen, Jerry
-  Zhang, Johannes Grødem, John Haman, Joshua O'Connor, Kevin Fleming,
-  Kévin Le Gouguec, Kostadin Ninev, Len Trigg, Manuel Uberti, Mark
-  Burton, Markus Beppler, Mauro Aranda, Michael Goldenberg, Morgan
-  Smith, Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Paul
-  Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic,
-  Pierre Téchoueyres, Roman Rudakov, Ryan Phillips, Rudolf Adamkovič,
-  Sam Kleinman, Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thibaut
-  Verron, Thomas Heartman, Trey Merkley, Togan Muftuoglu, Toon Claes,
-  Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as users: Ben,
-  CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik, Moesasji,
-  Nick, TheBlob42, Trey, bepolymathe, doolio, fleimgruber, iSeeU,
-  jixiuf, okamsn, pRot0ta1p.
+  Adrian Manea, Alex Griffin, Alex Koen, Alex Peitsinis, Alexey Shmalko,
+  Alok Singh, Anders Johansson, André Alexandre Gomes, Andrew Tropin,
+  Antonio Hernández Blas, Arif Rezai, Augusto Stoffel, Basil
+  L.{{{space()}}} Contovounesios, Burgess Chang, Christian Tietze,
+  Christopher Dimech, Christopher League, Damien Cassou, Daniel Mendler,
+  Dario Gjorgjevski, David Edmondson, Davor Rotim, Divan Santana, Eliraz
+  Kedmi, Emanuele Michele Alberto Monterosso, Farasha Euker, Feng Shu,
+  Gautier Ponsinet, Gerry Agbobada, Gianluca Recchia, Gonçalo Marrafa,
+  Guilherme Semente, Gustavo Barros, Hörmetjan Yiltiz, Ilja Kocken, Iris
+  Garcia, Ivan Popovych, Jeremy Friesen, Jerry Zhang, Johannes Grødem,
+  John Haman, Jorge Morais, Joshua O'Connor, Julio C. Villasante, Kenta
+  Usami, Kevin Fleming, Kévin Le Gouguec, Kostadin Ninev, Len Trigg,
+  Lennart C. Karssen, Magne Hov, Manuel Uberti, Mark Bestley, Mark
+  Burton, Markus Beppler, Mauro Aranda, Maxime Tréca, Michael
+  Goldenberg, Morgan Smith, Morgan Willcock, Murilo Pereira, Nicky van
+  Foreest, Nicolas De Jaeghere, Paul Poloskov, Pengji Zhang, Pete
+  Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres, Przemysław
+  Kryger, Robert Hepple, Roman Rudakov, Ryan Phillips, Rytis Paškauskas,
+  Rudolf Adamkovič, Sam Kleinman, Samuel Culpepper, Saša Janiška,
+  Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thibaut Verron, Thomas
+  Heartman, Togan Muftuoglu, Tony Zorman, Trey Merkley, Tomasz
+  Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley.  As
+  well as users: Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux,
+  Fredrik, Moesasji, Nick, TheBlob42, Trey, bepolymathe, bit9tream,
+  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn,
+  pRot0ta1p.
 
-+ Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii, Glenn
-  Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core Emacs),
-  Stefan Monnier (GNU Elpa), André Alexandre Gomes, Dimakakos Dimos,
-  Morgan Smith, Nicolas Goaziou (Guix), Dhavan Vaidya (Debian).
++ Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
+  Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core
+  Emacs), Stefan Monnier (GNU Elpa), André Alexandre Gomes, Andrew
+  Tropin, Dimakakos Dimos, Morgan Smith, Nicolas Goaziou (Guix), Dhavan
+  Vaidya (Debian).
 
 + Inspiration for certain features :: Bozhidar Batsov (zenburn-theme),
   Fabrice Niessen (leuven-theme).
@@ -4566,7 +5789,7 @@ Jaeghere, and Omar Antolín Camarena for their long time contributions
 and insightful commentary on key aspects of the themes' design and/or
 aspects of their functionality.
 
-* Meta
+* Other notes about the project
 :properties:
 :custom_id: h:13752581-4378-478c-af17-165b6e76bc1b
 :end:
@@ -4589,12 +5812,18 @@ of this sort):
 + [[https://protesilaos.com/codelog/2021-01-11-modus-themes-review-select-faint-colours/][Modus themes: review of select "faint" colours]] (2021-01-11)
 + [[https://protesilaos.com/codelog/2021-02-25-modus-themes-diffs-deuteranopia/][The Modus themes now cover deuteranopia in diffs]] (2021-02-25)
 + [[https://protesilaos.com/codelog/2021-06-02-modus-themes-org-agenda/][Introducing the variable modus-themes-org-agenda]] (2021-06-02)
++ [[https://protesilaos.com/codelog/2022-01-02-review-modus-themes-org-habit-colours/][Modus themes: review of the org-habit graph colours]] (2022-01-02)
++ [[https://protesilaos.com/codelog/2022-01-03-modus-themes-port-faq/][Re: VSCode or Vim ports of the Emacs modus-themes?]] (2022-01-03)
++ [[https://protesilaos.com/codelog/2022-04-20-modus-themes-case-study-avy/][Modus themes: case study on Avy faces and colour combinations]] (2022-04-20)
++ [[https://protesilaos.com/codelog/2022-04-21-modus-themes-colour-theory/][Emacs: colour theory and techniques used in the Modus themes]] (2022-04-21)
 
-And here are the canonical sources of this project's documentation:
+And here are the canonical sources of this project:
 
 + Manual :: <https://protesilaos.com/emacs/modus-themes>
 + Change Log :: <https://protesilaos.com/emacs/modus-themes-changelog>
 + Screenshots :: <https://protesilaos.com/emacs/modus-themes-pictures>
++ Git repository :: https://git.sr.ht/~protesilaos/modus-themes
++ Mailing list :: https://lists.sr.ht/~protesilaos/modus-themes
 
 * GNU Free Documentation License
 :properties:

@@ -95,6 +95,13 @@ expected function symbol and function library, respectively."
   (advice-remove #'mark-sexp 'my-message))
 
 (ert-deftest find-func-tests--find-library-verbose ()
+  (unwind-protect
+      (progn
+        (advice-add 'dired :before #'ignore)
+        ;; bug#41104
+        (should (equal (find-function-library #'dired) '(dired . "dired"))))
+    (advice-remove 'dired #'ignore))
+
   (find-function-library #'join-line nil t)
   (with-current-buffer "*Messages*"
     (save-excursion

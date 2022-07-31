@@ -1,9 +1,8 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1996, 1998, 2000-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
-;; Author: Andy Norman (ange@hplb.hpl.hp.com)
+;; Author: Andy Norman <ange@hplb.hpl.hp.com>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: comm
 
@@ -870,13 +869,10 @@ Both telnet and rlogin do something like this."
 (defcustom ange-ftp-gateway-program remote-shell-program
   "Name of program to spawn a shell on the gateway machine.
 
-Valid candidates are rsh (remsh on some systems), telnet and rlogin.
 See also the gateway variable above."
   :group 'ange-ftp
-  :type '(choice (const "rsh")
-		 (const "telnet")
-		 (const "rlogin")
-		 string))
+  :type 'string
+  :version "29.1")
 
 (defcustom ange-ftp-gateway-prompt-pattern "^[^#$%>;\n]*[#$%>;] *"
   "Regexp matching prompt after complete login sequence on gateway machine.
@@ -2554,7 +2550,7 @@ can parse the output from a DIR listing for a host of type TYPE.")
 FILE is the full name of the remote file, LSARGS is any args to pass to the
 `ls' command, and PARSE specifies that the output should be parsed and stored
 away in the internal cache."
-  (when (string-match "--" lsargs)
+  (while (string-match "--" lsargs)
     (require 'ls-lisp)
     (setq lsargs (ls-lisp--sanitize-switches lsargs)))
   ;; If parse is t, we assume that file is a directory. i.e. we only parse

@@ -655,7 +655,8 @@ With a prefix arg, query for optional fields."
 
 (defun org-bibtex-read ()
   "Read a bibtex entry and save to `org-bibtex-entries'.
-This uses `bibtex-parse-entry'."
+This uses `bibtex-parse-entry'.
+Return the new value of `org-bibtex-entries'."
   (interactive)
   (let ((keyword (lambda (str) (intern (concat ":" (downcase str)))))
 	(clean-space (lambda (str) (replace-regexp-in-string
@@ -678,7 +679,8 @@ This uses `bibtex-parse-entry'."
                    (funcall clean-space (funcall strip-delim (cdr pair)))))
            (save-excursion (bibtex-beginning-of-entry) (bibtex-parse-entry)))
           org-bibtex-entries)
-    (unless (car org-bibtex-entries) (pop org-bibtex-entries))))
+    (unless (car org-bibtex-entries) (pop org-bibtex-entries))
+    org-bibtex-entries))
 
 (defun org-bibtex-read-buffer (buffer)
   "Read all bibtex entries in BUFFER and save to `org-bibtex-entries'.

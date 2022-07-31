@@ -128,7 +128,6 @@ you can set, browse the `uniquify' custom group."
   "If non-nil, rerationalize buffer names after a buffer has been killed."
   :type 'boolean)
 
-;; The default value matches certain Gnus buffers.
 (defcustom uniquify-ignore-buffers-re nil
   "Regular expression matching buffer names that should not be uniquified.
 For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename

@@ -63,6 +63,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #include "coding.h"
 
+void w32_raise (int);
+
 #define RVA_TO_PTR(var,section,filedata) \
   ((void *)((section)->PointerToRawData					\
 	    + ((DWORD_PTR)(var) - (section)->VirtualAddress)		\
@@ -309,6 +311,21 @@ sigismember (const sigset_t *set, int signo)
     emacs_abort ();
 
   return (*set & (1U << signo)) != 0;
+}
+
+/* A fuller emulation of 'raise', which supports signals that MS
+   runtime doesn't know about.  */
+void
+w32_raise (int signo)
+{
+  if (!(signo == SIGCHLD || signo == SIGALRM || signo == SIGPROF))
+    raise (signo);
+
+  /* Call the handler directly for the signals that we handle
+     ourselves.  */
+  signal_handler handler = sig_handlers[signo];
+  if (!(handler == SIG_DFL || handler == SIG_IGN || handler == SIG_ERR))
+    handler (signo);
 }
 
 pid_t
@@ -1270,10 +1287,21 @@ reader_thread (void *arg)
     }
   /* If this thread was reading from a pipe process, close the
      descriptor used for reading, as sys_close doesn't in that case.  */
-  if (fd_info[fd].flags == FILE_DONT_CLOSE)
+  if ((fd_info[fd].flags & FILE_DONT_CLOSE) == FILE_DONT_CLOSE)
     {
-      fd_info[fd].flags = 0;
-      _close (fd);
+      int i;
+      /* If w32.c:sys_close is still processing this descriptor, wait
+	 for a while for it to finish.  */
+      for (i = 0; i < 5; i++)
+	{
+	  if (fd_info[fd].flags == FILE_DONT_CLOSE)
+	    {
+	      fd_info[fd].flags = 0;
+	      _close (fd);
+	      break;
+	    }
+	  Sleep (5);
+	}
     }
   return 0;
 }

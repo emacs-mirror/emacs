@@ -518,7 +518,7 @@ variables, not just user options."
 		      (if (or current-prefix-arg apropos-do-all)
 			  "variable" "user option"))
                      current-prefix-arg))
-  (apropos-command pattern nil
+  (apropos-command pattern (or do-all apropos-do-all)
 		   (if (or do-all apropos-do-all)
                        (lambda (symbol)
                          (and (boundp symbol)
@@ -663,7 +663,10 @@ search for matches for any two (or more) of those words.
 With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil,
 consider all symbols (if they match PATTERN).
 
-Return list of symbols and documentation found."
+Return list of symbols and documentation found.
+
+The *Apropos* window will be selected if `help-window-select' is
+non-nil."
   (interactive (list (apropos-read-pattern "symbol")
 		     current-prefix-arg))
   (setq apropos--current (list #'apropos pattern do-all))
@@ -871,7 +874,7 @@ Optional arg BUFFER (default: current buffer) is the buffer to check."
                             apropos-all-words apropos-accumulator))
          (setq var  (apropos-value-internal #'local-variable-if-set-p symb
                                             #'symbol-value)))
-       (when (and (fboundp 'apropos-false-hit-str)  (apropos-false-hit-str var))
+       (when (apropos-false-hit-str var)
          (setq var nil))
        (when var
          (setq apropos-accumulator (cons (list symb (apropos-score-str var) nil var)
@@ -906,41 +909,39 @@ Returns list of symbols and documentation found."
   (apropos-parse-pattern pattern t)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator () apropos-files-scanned ())
-  (let ((standard-input (get-buffer-create " apropos-temp"))
-	(apropos-sort-by-scores apropos-documentation-sort-by-scores)
-	f v sf sv)
-    (unwind-protect
-	(with-current-buffer standard-input
-	  (apropos-documentation-check-doc-file)
-	  (if do-all
-	      (mapatoms
-	       (lambda (symbol)
-		 (setq f (apropos-safe-documentation symbol)
-		       v (get symbol 'variable-documentation))
-		 (if (integerp v) (setq v nil))
-		 (setq f (apropos-documentation-internal f)
-		       v (apropos-documentation-internal v))
-		 (setq sf (apropos-score-doc f)
-		       sv (apropos-score-doc v))
-		 (if (or f v)
-		     (if (setq apropos-item
-			       (cdr (assq symbol apropos-accumulator)))
-			 (progn
-			   (if f
-			       (progn
-				 (setcar (nthcdr 1 apropos-item) f)
-				 (setcar apropos-item (+ (car apropos-item) sf))))
-			   (if v
-			       (progn
-				 (setcar (nthcdr 2 apropos-item) v)
-				 (setcar apropos-item (+ (car apropos-item) sv)))))
-		       (setq apropos-accumulator
-			     (cons (list symbol
-					 (+ (apropos-score-symbol symbol 2) sf sv)
-					 f v)
-				   apropos-accumulator)))))))
-	  (apropos-print nil "\n----------------\n" nil t))
-      (kill-buffer standard-input))))
+  (with-temp-buffer
+    (let ((standard-input (current-buffer))
+          (apropos-sort-by-scores apropos-documentation-sort-by-scores)
+          f v sf sv)
+      (apropos-documentation-check-doc-file)
+      (if do-all
+          (mapatoms
+           (lambda (symbol)
+             (setq f (apropos-safe-documentation symbol)
+                   v (get symbol 'variable-documentation))
+             (if (integerp v) (setq v nil))
+             (setq f (apropos-documentation-internal f)
+                   v (apropos-documentation-internal v))
+             (setq sf (apropos-score-doc f)
+                   sv (apropos-score-doc v))
+             (if (or f v)
+                 (if (setq apropos-item
+                           (cdr (assq symbol apropos-accumulator)))
+                     (progn
+                       (if f
+                           (progn
+                             (setcar (nthcdr 1 apropos-item) f)
+                             (setcar apropos-item (+ (car apropos-item) sf))))
+                       (if v
+                           (progn
+                             (setcar (nthcdr 2 apropos-item) v)
+                             (setcar apropos-item (+ (car apropos-item) sv)))))
+                   (setq apropos-accumulator
+                         (cons (list symbol
+                                     (+ (apropos-score-symbol symbol 2) sf sv)
+                                     f v)
+                               apropos-accumulator)))))))
+      (apropos-print nil "\n----------------\n" nil t))))
 
 
 (defun apropos-value-internal (predicate symbol function)
@@ -1052,7 +1053,13 @@ non-nil."
       (setq sepa (goto-char sepb)))))
 
 (defun apropos-documentation-check-elc-file (file)
-  (if (member file apropos-files-scanned)
+  ;; .elc files have the location of the file specified as #$, but for
+  ;; built-in files, that's a relative name (while for the rest, it's
+  ;; absolute).  So expand the name in the former case.
+  (unless (file-name-absolute-p file)
+    (setq file (expand-file-name file lisp-directory)))
+  (if (or (member file apropos-files-scanned)
+          (not (file-exists-p file)))
       nil
     (let (symbol doc beg end this-is-a-variable)
       (setq apropos-files-scanned (cons file apropos-files-scanned))
@@ -1244,12 +1251,27 @@ as a heading."
 				 'apropos-user-option
 			       'apropos-variable)
 			     (not nosubst))
+          ;; Insert an excerpt of variable values.
+          (when (boundp symbol)
+            (insert "  Value: ")
+            (let* ((print-escape-newlines t)
+                   (value (prin1-to-string (symbol-value symbol)))
+                   (truncated (truncate-string-to-width
+                               value (- (window-width) 20) nil nil t)))
+              (insert truncated)
+              (unless (equal value truncated)
+                (buttonize-region (1- (point)) (point)
+                                  (lambda (_)
+                                    (message "Value: %s" value))))
+              (insert "\n")))
 	  (apropos-print-doc 7 'apropos-group t)
 	  (apropos-print-doc 6 'apropos-face t)
 	  (apropos-print-doc 5 'apropos-widget t)
 	  (apropos-print-doc 4 'apropos-plist nil))
         (setq-local truncate-partial-width-windows t)
-        (setq-local truncate-lines t))))
+        (setq-local truncate-lines t)))
+    (when help-window-select
+      (select-window (get-buffer-window "*Apropos*"))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 
@@ -1257,12 +1279,13 @@ as a heading."
   (let ((doc (nth i apropos-item)))
     (when (stringp doc)
       (if apropos-compact-layout
-      	  (insert (propertize "\t" 'display '(space :align-to 32)) " ")
-      	(insert "  "))
+          (insert (propertize "\t" 'display '(space :align-to 32)))
+        (insert " "))
       (if apropos-multi-type
 	  (let ((button-face (button-type-get type 'face)))
 	    (unless (consp button-face)
 	      (setq button-face (list button-face)))
+            (insert " ")
 	    (insert-text-button
 	     (if apropos-compact-layout
 		 (format "<%s>" (button-type-get type 'apropos-short-label))

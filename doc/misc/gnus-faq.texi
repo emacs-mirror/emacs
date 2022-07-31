@@ -2163,18 +2163,9 @@ How to speed up the process of entering a group?
 
 A speed killer is setting the variable
 gnus-fetch-old-headers to anything different from @code{nil},
-so don't do this if speed is an issue. To speed up
-building of summary say
+so don't do this if speed is an issue.
 
-@example
-(gnus-compile)
-@end example
-@noindent
-
-at the bottom of your @file{~/.gnus.el}, this will make gnus
-byte-compile things like
-gnus-summary-line-format.
-then you could increase the value of gc-cons-threshold
+You could increase the value of gc-cons-threshold
 by saying something like
 
 @example
@@ -2182,21 +2173,7 @@ by saying something like
 @end example
 @noindent
 
-in ~/.emacs. If you don't care about width of CJK
-characters or use Gnus 5.10 or younger together with a
-recent GNU Emacs, you should say
-
-@example
-(setq gnus-use-correct-string-widths nil)
-@end example
-@noindent
-
-in @file{~/.gnus.el} (thanks to Jesper harder for the last
-two suggestions). Finally if you are still using 5.8.8
-or 5.9 and experience speed problems with summary
-buffer generation, you definitely should update to
-5.10 since there quite some work on improving it has
-been done.
+in ~/.emacs.
 
 @node FAQ 9-3
 @subsubheading Question 9.3

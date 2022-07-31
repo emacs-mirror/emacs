@@ -139,6 +139,7 @@
 
 (require 'cus-face)
 (require 'wid-edit)
+(require 'icons)
 
 (defvar custom-versions-load-alist)	; from cus-load
 (defvar recentf-exclude)		; from recentf.el
@@ -441,6 +442,7 @@ Use group `text' for this instead.  This group is deprecated."
     (define-key map "u" 'Custom-goto-parent)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
+    (define-key map "H" 'custom-toggle-hide-all-widgets)
     map)
   "Keymap for `Custom-mode'.")
 
@@ -745,6 +747,9 @@ groups after non-groups, if nil do not order groups at all."
      (or custom-file user-init-file)
      "Un-customize settings in this and future sessions." "delete" "Uncustomize"
      (modified set changed rogue saved))
+    (" Toggle hiding all values " custom-toggle-hide-all-widgets
+     t "Toggle hiding all values."
+     "hide" "Hide" t)
     (" Help for Customize " Custom-help t "Get help for using Customize."
      "help" "Help" t)
     (" Exit " Custom-buffer-done t "Exit Customize." "exit" "Exit" t))
@@ -1049,10 +1054,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   "Set VARIABLE/VALUE pairs, and return the final VALUE.
 This is like `setq', but is meant for user options instead of
 plain variables.  This means that `setopt' will execute any
-Customize form associated with VARIABLE.
-
-If VARIABLE has a `custom-set' property, that is used for setting
-VARIABLE, otherwise `set-default' is used.
+`custom-set' form associated with VARIABLE.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
@@ -1062,10 +1064,20 @@ VARIABLE, otherwise `set-default' is used.
     (while pairs
       (unless (symbolp (car pairs))
         (error "Attempting to set a non-symbol: %s" (car pairs)))
-      (push `(customize-set-variable ',(car pairs) ,(cadr pairs))
+      (push `(setopt--set ',(car pairs) ,(cadr pairs))
             expr)
       (setq pairs (cddr pairs)))
     (macroexp-progn (nreverse expr))))
+
+;;;###autoload
+(defun setopt--set (variable value)
+  (custom-load-symbol variable)
+  ;; Check that the type is correct.
+  (when-let ((type (get variable 'custom-type)))
+    (unless (widget-apply (widget-convert type) :match value)
+      (user-error "Value `%S' does not match type %s" value type)))
+  (put variable 'custom-check-value (list value))
+  (funcall (or (get variable 'custom-set) #'set-default) variable value))
 
 ;;;###autoload
 (defun customize-save-variable (variable value &optional comment)
@@ -1488,7 +1500,7 @@ symbols `custom-face' or `custom-variable'."
       (custom-buffer-create (custom-sort-items found t nil)
 			    "*Customize Saved*"))))
 
-(declare-function apropos-parse-pattern "apropos" (pattern))
+(declare-function apropos-parse-pattern "apropos" (pattern &optional di-all))
 (defvar apropos-regexp)
 
 ;;;###autoload
@@ -1554,12 +1566,12 @@ If TYPE is `groups', include only groups."
 ;;;###autoload
 (defun custom-prompt-customize-unsaved-options ()
   "Prompt user to customize any unsaved customization options.
-Return non-nil if user chooses to customize, for use in
+Return nil if user chooses to customize, for use in
 `kill-emacs-query-functions'."
   (not (and (custom-unsaved-options)
-	    (yes-or-no-p "Some customized options have not been saved; Examine? ")
-	    (customize-unsaved)
-	    t)))
+	    (yes-or-no-p
+             "Some customized options have not been saved; Examine? ")
+	    (progn (customize-unsaved) t))))
 
 ;;; Buffer.
 
@@ -2573,7 +2585,13 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 Normally just return the docstring.  But if VARIABLE automatically
 becomes buffer local when set, append a message to that effect.
 Also append any obsolescence information."
-  (format "%s%s%s" (documentation-property variable 'variable-documentation t)
+  (format "%s%s%s"
+          (with-temp-buffer
+            (insert
+             (or (documentation-property variable 'variable-documentation t)
+                 ""))
+            (untabify (point-min) (point-max))
+            (buffer-string))
 	  (if (and (local-variable-if-set-p variable)
 		   (or (not (local-variable-p variable))
 		       (with-temp-buffer
@@ -2827,6 +2845,39 @@ try matching its doc string against `custom-guess-doc-alist'."
 	(when (eq (widget-get widget :custom-level) 1)
 	  (custom-add-parent-links widget))
 	(custom-add-see-also widget)))))
+
+(defvar custom--hidden-state)
+
+(defun custom-toggle-hide-all-widgets ()
+  "Hide or show details of all customizable settings in a Custom buffer.
+This command is for use in a Custom buffer that shows many
+customizable settings, like \"*Customize Group*\" or \"*Customize Faces*\".
+It toggles the display of each of the customizable settings in the buffer
+between the expanded view, where the values of the settings and the value
+menus to change them are visible; and the concise view, where only the
+minimal details are shown, usually the name, the doc string and little
+else."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    ;; Surely there's a better way to find all the "top level" widgets
+    ;; in a buffer, but I couldn't find it.
+    (while (not (eobp))
+      (when-let* ((widget (widget-at (point)))
+                  (parent (widget-get widget :parent))
+                  (state (widget-get parent :custom-state)))
+        (when (eq state 'changed)
+          (setq state 'standard))
+        (when (and (eq (widget-type widget) 'custom-visibility)
+                   (eq state custom--hidden-state))
+          (custom-toggle-parent widget)))
+      (forward-line 1)))
+  (setq custom--hidden-state (if (eq custom--hidden-state 'hidden)
+                                 'standard
+                               'hidden))
+  (if (eq custom--hidden-state 'hidden)
+      (message "All variables hidden")
+    (message "All variables shown")))
 
 (defun custom-toggle-hide-variable (visibility-widget &rest _ignore)
   "Toggle the visibility of a `custom-variable' parent widget.
@@ -4792,10 +4843,15 @@ if only the first line of the docstring is shown."))
         (delay-mode-hooks (emacs-lisp-mode)))
       (let ((inhibit-read-only t)
 	    (print-length nil)
-	    (print-level nil))
+	    (print-level nil)
+            ;; We might be saving byte-code with embedded NULs, which
+            ;; can cause problems when read back, so print them
+            ;; readably.  (Bug#52554)
+            (print-escape-control-characters t))
         (atomic-change-group
 	  (custom-save-variables)
-	  (custom-save-faces)))
+	  (custom-save-faces)
+          (custom-save-icons)))
       (let ((file-precious-flag t))
 	(save-buffer))
       (if old-buffer
@@ -5220,7 +5276,8 @@ if that value is non-nil."
 			:label (nth 5 arg)))
 		     custom-commands)
 		    (setq custom-tool-bar-map map))))
-  (setq-local custom--invocation-options nil)
+  (setq-local custom--invocation-options nil
+              custom--hidden-state 'hidden)
   (setq-local revert-buffer-function #'custom--revert-buffer)
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
@@ -5234,6 +5291,292 @@ if that value is non-nil."
                         (buffer-name)))
 
 (put 'Custom-mode 'mode-class 'special)
+
+;; Icons.
+
+(define-widget 'custom-icon 'custom
+  "A widget for displaying an icon.
+The following properties have special meanings for this widget:
+
+:hidden-states should be a list of widget states for which the
+  widget's initial contents are to be hidden.
+
+:custom-form should be a symbol describing how to display and
+  edit the variable---either `edit' (using edit widgets),
+  `lisp' (as a Lisp sexp), or `mismatch' (should not happen);
+  if nil, use the return value of `custom-variable-default-form'.
+
+:shown-value, if non-nil, should be a list whose `car' is the
+  variable value to display in place of the current value.
+
+:custom-style describes the widget interface style; nil is the
+  default style, while `simple' means a simpler interface that
+  inhibits the magic custom-state widget."
+  :format "%v"
+  :help-echo "Alter or reset this icon."
+  :documentation-property #'icon-documentation
+  :custom-category 'option
+  :custom-state nil
+  :custom-form nil
+  :value-create 'custom-icon-value-create
+  :hidden-states '(standard)
+  :custom-set 'custom-icon-set
+  :custom-reset-current 'custom-redraw
+  :custom-reset-saved 'custom-variable-reset-saved)
+
+(defun custom-icon-value-create (widget)
+  "Here is where you edit the icon's specification."
+  (custom-load-widget widget)
+  (unless (widget-get widget :custom-form)
+    (widget-put widget :custom-form custom-variable-default-form))
+  (let* ((buttons (widget-get widget :buttons))
+	 (children (widget-get widget :children))
+	 (form (widget-get widget :custom-form))
+	 (symbol (widget-get widget :value))
+	 (tag (widget-get widget :tag))
+	 (type '(repeat
+                 (list (choice (const :tag "Images" image)
+                               (const :tag "Colorful Emojis" emoji)
+                               (const :tag "Monochrome Symbols" symbol)
+                               (const :tag "Text Only" text))
+                       (repeat string)
+                       plist)))
+	 (prefix (widget-get widget :custom-prefix))
+	 (last (widget-get widget :custom-last))
+	 (style (widget-get widget :custom-style))
+	 (value (let ((shown-value (widget-get widget :shown-value)))
+		  (cond (shown-value
+			 (car shown-value))
+	                (t (icon-complete-spec symbol nil t)))))
+	 (state (or (widget-get widget :custom-state)
+		    (if (memq (custom-icon-state symbol value)
+			      (widget-get widget :hidden-states))
+			'hidden))))
+
+    ;; Transform the spec into something that agrees with the type.
+    (setq value
+          (mapcar
+           (lambda (elem)
+             (list (car elem)
+                   (icon-spec-values elem)
+                   (icon-spec-keywords elem)))
+           value))
+
+    ;; Now we can create the child widget.
+    (cond ((eq custom-buffer-style 'tree)
+	   (insert prefix (if last " `--- " " |--- "))
+	   (push (widget-create-child-and-convert
+		  widget 'custom-browse-variable-tag)
+		 buttons)
+	   (insert " " tag "\n")
+	   (widget-put widget :buttons buttons))
+	  ((eq state 'hidden)
+	   ;; Indicate hidden value.
+	   (push (widget-create-child-and-convert
+		  widget 'custom-visibility
+		  :help-echo "Show the value of this option."
+		  :on-glyph "down"
+		  :on "Hide"
+		  :off-glyph "right"
+		  :off "Show Value"
+		  :action 'custom-toggle-hide-icon
+		  nil)
+		 buttons)
+	   (insert " ")
+	   (push (widget-create-child-and-convert
+		  widget 'item
+		  :format "%{%t%} "
+		  :sample-face 'custom-variable-tag
+		  :tag tag
+		  :parent widget)
+		 buttons))
+	  (t
+	   ;; Edit mode.
+	   (push (widget-create-child-and-convert
+		  widget 'custom-visibility
+		  :help-echo "Hide or show this option."
+		  :on "Hide"
+		  :off "Show"
+		  :on-glyph "down"
+		  :off-glyph "right"
+		  :action 'custom-toggle-hide-icon
+		  t)
+		 buttons)
+	   (insert " ")
+	   (let* ((format (widget-get type :format))
+                  tag-format)
+             (unless (string-match ":\\s-?" format)
+	       (error "Bad format"))
+	     (setq tag-format (substring format 0 (match-end 0)))
+	     (push (widget-create-child-and-convert
+		    widget 'item
+		    :format tag-format
+		    :action 'custom-tag-action
+		    :help-echo "Change specs of this face."
+		    :mouse-down-action 'custom-tag-mouse-down-action
+		    :button-face 'custom-variable-button
+		    :sample-face 'custom-variable-tag
+		    :tag tag)
+		   buttons)
+	     (push (widget-create-child-and-convert
+		    widget type
+		    :value value)
+		   children))))
+    (unless (eq custom-buffer-style 'tree)
+      (unless (eq (preceding-char) ?\n)
+	(widget-insert "\n"))
+      ;; Create the magic button.
+      (unless (eq style 'simple)
+	(let ((magic (widget-create-child-and-convert
+		      widget 'custom-magic nil)))
+	  (widget-put widget :custom-magic magic)
+	  (push magic buttons)))
+      (widget-put widget :buttons buttons)
+      ;; Insert documentation.
+      (widget-put widget :documentation-indent 3)
+      (unless (and (eq style 'simple)
+		   (eq state 'hidden))
+	(widget-add-documentation-string-button
+	 widget :visibility-widget 'custom-visibility))
+
+      ;; Update the rest of the properties.
+      (widget-put widget :custom-form form)
+      (widget-put widget :children children)
+      ;; Now update the state.
+      (if (eq state 'hidden)
+	  (widget-put widget :custom-state state)
+	(custom-icon-state-set widget))
+      ;; See also.
+      (unless (eq state 'hidden)
+	(when (eq (widget-get widget :custom-level) 1)
+	  (custom-add-parent-links widget))
+	(custom-add-see-also widget)))))
+
+(defun custom-toggle-hide-icon (visibility-widget &rest _ignore)
+  "Toggle the visibility of a `custom-icon' parent widget.
+By default, this signals an error if the parent has unsaved
+changes."
+  (let ((widget (widget-get visibility-widget :parent)))
+    (unless (eq (widget-type widget) 'custom-icon)
+      (error "Invalid widget type"))
+    (custom-load-widget widget)
+    (let ((state (widget-get widget :custom-state)))
+      (if (eq state 'hidden)
+	  (widget-put widget :custom-state 'unknown)
+	;; In normal interface, widget can't be hidden if modified.
+	(when (memq state '(invalid modified set))
+	  (error "There are unsaved changes"))
+	(widget-put widget :custom-state 'hidden))
+      (custom-redraw widget)
+      (widget-setup))))
+
+(defun custom--icons-widget-value (widget)
+  ;; Transform back to the real format.
+  (mapcar
+   (lambda (elem)
+     (cons (nth 0 elem)
+           (append (nth 1 elem) (nth 2 elem))))
+   (widget-value widget)))
+
+(defun custom-icon-set (widget)
+  "Set the current spec for the icon being edited by WIDGET."
+  (let* ((state (widget-get widget :custom-state))
+	 (child (car (widget-get widget :children)))
+	 (symbol (widget-value widget))
+	 val)
+    (when (eq state 'hidden)
+      (user-error "Cannot update hidden icon"))
+
+    (setq val (custom--icons-widget-value child))
+    (unless (equal val (icon-complete-spec symbol))
+      (custom-variable-backup-value widget))
+    (custom-push-theme 'theme-icon symbol 'user 'set val)
+    (custom-redraw-magic widget)))
+
+;;;###autoload
+(defun customize-icon (icon)
+  "Customize ICON."
+  (interactive
+   (let* ((v (symbol-at-point))
+	  (default (and (iconp v) (symbol-name v)))
+	  val)
+     (setq val (completing-read (format-prompt "Customize icon" default)
+		                obarray 'iconp t nil nil default))
+     (list (if (equal val "")
+	       (if (symbolp v) v nil)
+	     (intern val)))))
+  (unless icon
+    (error "No icon specified"))
+  (custom-buffer-create (list (list icon 'custom-icon))
+			(format "*Customize Icon: %s*"
+				(custom-unlispify-tag-name icon))))
+
+(defun custom-icon-state-set (widget &optional state)
+  "Set the state of WIDGET to STATE."
+  (let ((value (custom--icons-widget-value
+                (car (widget-get widget :children)))))
+    (widget-put
+     widget :custom-state
+     (or state
+         (custom-icon-state (widget-value widget) value)))))
+
+;;; FIXME -- more work is needed here.  We don't properly
+;;; differentiate between `saved' and `set'.
+(defun custom-icon-state (symbol value)
+  "Return the state of customize icon SYMBOL for VALUE.
+Possible return values are `standard', `saved', `set', `themed',
+and `changed'."
+  (cond
+   ((equal (icon-complete-spec symbol t t) value)
+    'standard)
+   ((equal (icon-complete-spec symbol nil t) value)
+    (if (eq (caar (get symbol 'theme-icon)) 'user)
+        'set
+      'themed))
+   (t 'changed)))
+
+(defun custom-theme-set-icons (theme &rest specs)
+  "Apply a list of icon specs associated with THEME.
+THEME should be a symbol, and SPECS are icon name/spec pairs.
+See `define-icon' for details."
+  (custom-check-theme theme)
+  (pcase-dolist (`(,icon ,spec) specs)
+    (custom-push-theme 'theme-icon icon theme 'set spec)))
+
+(defun custom-set-icons (&rest args)
+  "Install user customizations of icon specs specified in ARGS.
+These settings are registered as theme `user'.
+The arguments should each be a list of the form:
+
+  (SYMBOL EXP)
+
+This stores EXP (without evaluating it) as the saved spec for SYMBOL."
+  (apply #'custom-theme-set-icons 'user args))
+
+;;;###autoload
+(defun custom-save-icons ()
+  "Save all customized icons in `custom-file'."
+  (save-excursion
+    (custom-save-delete 'custom-set-icons)
+    (let ((values nil))
+      (mapatoms
+       (lambda (symbol)
+         (let ((value (car-safe (get symbol 'theme-icon))))
+	   (when (eq (car value) 'user)
+             (push (list symbol (cadr value)) values)))))
+      (ensure-empty-lines)
+      (insert "(custom-set-icons
+ ;; custom-set-icons was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.\n")
+      (dolist (value (sort values (lambda (s1 s2)
+                                    (string< (car s1) (car s2)))))
+	(unless (bolp)
+	  (insert "\n"))
+        (insert "  '")
+        (prin1 value (current-buffer)))
+      (insert ")\n"))))
 
 (provide 'cus-edit)
 

@@ -188,6 +188,30 @@ be considered.")
    ;; I also find it often preferable not to pair next to a word.
    (eq (char-syntax (following-char)) ?w)))
 
+(defmacro electric-pair--with-syntax (string-or-comment &rest body)
+  "Run BODY with appropriate syntax table active.
+STRING-OR-COMMENT is the start position of the string/comment
+in which we are, if applicable.
+Uses the text-mode syntax table if within a string or a comment."
+  (declare (debug t) (indent 1))
+  `(electric-pair--with-syntax-1 ,string-or-comment (lambda () ,@body)))
+
+(defun electric-pair--with-syntax-1 (string-or-comment body-fun)
+  (if (not string-or-comment)
+      (funcall body-fun)
+    ;; Here we assume that the `syntax-ppss' cache has already been filled
+    ;; past `string-or-comment' with data corresponding to the "normal" syntax
+    ;; (this should be the case because STRING-OR-COMMENT was returned
+    ;; in the `nth 8' of `syntax-ppss').
+    ;; Maybe we should narrow-to-region so that `syntax-ppss' uses the narrow
+    ;; cache?
+    (syntax-ppss-flush-cache string-or-comment)
+    (let ((syntax-propertize-function nil))
+       (unwind-protect
+           (with-syntax-table electric-pair-text-syntax-table
+             (funcall body-fun))
+         (syntax-ppss-flush-cache string-or-comment)))))
+
 (defun electric-pair-syntax-info (command-event)
   "Calculate a list (SYNTAX PAIR UNCONDITIONAL STRING-OR-COMMENT-START).
 
@@ -202,13 +226,11 @@ inside a comment or string."
          (post-string-or-comment (nth 8 (syntax-ppss (point))))
          (string-or-comment (and post-string-or-comment
                                  pre-string-or-comment))
-         (table (if string-or-comment
-                    electric-pair-text-syntax-table
-                  (syntax-table)))
-         (table-syntax-and-pair (with-syntax-table table
-                                  (list (char-syntax command-event)
-                                        (or (matching-paren command-event)
-                                            command-event))))
+         (table-syntax-and-pair
+          (electric-pair--with-syntax string-or-comment
+            (list (char-syntax command-event)
+                  (or (matching-paren command-event)
+                      command-event))))
          (fallback (if string-or-comment
                        (append electric-pair-text-pairs
                                electric-pair-pairs)
@@ -237,26 +259,10 @@ inside a comment or string."
         (electric-layout-allow-duplicate-newlines t))
     (self-insert-command 1)))
 
-(cl-defmacro electric-pair--with-uncached-syntax ((table &optional start) &rest body)
-  "Like `with-syntax-table', but flush the `syntax-ppss' cache afterwards.
-Use this instead of (with-syntax-table TABLE BODY) when BODY
-contains code which may update the `syntax-ppss' cache.  This
-includes calling `parse-partial-sexp' and any sexp-based movement
-functions when `parse-sexp-lookup-properties' is non-nil.  The
-cache is flushed from position START, defaulting to point."
-  (declare (debug ((form &optional form) body)) (indent 1))
-  (let ((start-var (make-symbol "start")))
-    `(let ((syntax-propertize-function #'ignore)
-           (,start-var ,(or start '(point))))
-       (unwind-protect
-           (with-syntax-table ,table
-             ,@body)
-         (syntax-ppss-flush-cache ,start-var)))))
-
 (defun electric-pair--syntax-ppss (&optional pos where)
   "Like `syntax-ppss', but sometimes fallback to `parse-partial-sexp'.
 
-WHERE is a list defaulting to '(string comment) and indicates
+WHERE is a list defaulting to \\='(string comment) and indicates
 when to fallback to `parse-partial-sexp'."
   (let* ((pos (or pos (point)))
          (where (or where '(string comment)))
@@ -271,8 +277,7 @@ when to fallback to `parse-partial-sexp'."
                               (skip-syntax-forward " >!")
                               (point)))))
     (if s-or-c-start
-        (electric-pair--with-uncached-syntax (electric-pair-text-syntax-table
-                                              s-or-c-start)
+        (electric-pair--with-syntax s-or-c-start
           (parse-partial-sexp s-or-c-start pos))
       ;; HACK! cc-mode apparently has some `syntax-ppss' bugs
       (if (memq major-mode '(c-mode c++ mode))
@@ -290,7 +295,8 @@ when to fallback to `parse-partial-sexp'."
 (defun electric-pair--balance-info (direction string-or-comment)
   "Examine lists forward or backward according to DIRECTION's sign.
 
-STRING-OR-COMMENT is info suitable for running `parse-partial-sexp'.
+STRING-OR-COMMENT is the position of the start of the comment/string
+in which we are, if applicable.
 
 Return a cons of two descriptions (MATCHED-P . PAIR) for the
 innermost and outermost lists that enclose point.  The outermost
@@ -301,9 +307,6 @@ If the outermost list is matched, don't rely on its PAIR.
 If point is not enclosed by any lists, return ((t) . (t))."
   (let* (innermost
          outermost
-         (table (if string-or-comment
-                    electric-pair-text-syntax-table
-                  (syntax-table)))
          (at-top-level-or-equivalent-fn
           ;; called when `scan-sexps' ran perfectly, when it found
           ;; a parenthesis pointing in the direction of travel.
@@ -325,11 +328,11 @@ If point is not enclosed by any lists, return ((t) . (t))."
                       (cond ((< direction 0)
                              (condition-case nil
                                  (eq (char-after pos)
-                                     (electric-pair--with-uncached-syntax
-                                      (table)
-                                      (matching-paren
-                                       (char-before
-                                        (scan-sexps (point) 1)))))
+                                     (electric-pair--with-syntax
+                                         string-or-comment
+                                       (matching-paren
+                                        (char-before
+                                         (scan-sexps (point) 1)))))
                                (scan-error nil)))
                             (t
                              ;; In this case, no need to use
@@ -343,7 +346,8 @@ If point is not enclosed by any lists, return ((t) . (t))."
                                     (opener (char-after start)))
                                (and start
                                     (eq (char-before pos)
-                                        (or (with-syntax-table table
+                                        (or (electric-pair--with-syntax
+                                                string-or-comment
                                               (matching-paren opener))
                                             opener))))))))
                    (actual-pair (if (> direction 0)
@@ -356,7 +360,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
     (save-excursion
       (while (not outermost)
         (condition-case err
-            (electric-pair--with-uncached-syntax (table)
+            (electric-pair--with-syntax string-or-comment
               (scan-sexps (point) (if (> direction 0)
                                       (point-max)
                                     (- (point-max))))
@@ -498,13 +502,13 @@ The decision is taken by order of preference:
   corresponding delimiter for C;
 
 * According to C alone, by looking C up in the tables
-  `electric-pair-paris' or `electric-pair-text-pairs' (which
+  `electric-pair-pairs' or `electric-pair-text-pairs' (which
   see);
 
 * According to C's syntax and the syntactic state of the buffer
   (both as defined by the major mode's syntax table).  This is
-  done by looking up up the variables
-  `electric-pair-inhibit-predicate', `electric-pair-skip-self'
+  done by looking up the variables
+ `electric-pair-inhibit-predicate', `electric-pair-skip-self'
   and `electric-pair-skip-whitespace' (which see)."
   (let* ((pos (and electric-pair-mode (electric--after-char-pos)))
          (skip-whitespace-info))
@@ -575,7 +579,7 @@ The decision is taken by order of preference:
          (save-excursion (electric-pair--insert pair))))))))
 
 (defun electric-pair-open-newline-between-pairs-psif ()
-  "Honour `electric-pair-open-newline-between-pairs'.
+  "Honor `electric-pair-open-newline-between-pairs'.
 Member of `post-self-insert-hook' if `electric-pair-mode' is on."
   (when (and (if (functionp electric-pair-open-newline-between-pairs)
                  (funcall electric-pair-open-newline-between-pairs)

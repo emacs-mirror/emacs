@@ -789,9 +789,8 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 If a ChangeLog file does not already exist, a non-nil value
 means to put log entries in a suitably named buffer."
   :type 'boolean
+  :safe #'booleanp
   :version "27.1")
-
-(put 'add-log-dont-create-changelog-file 'safe-local-variable #'booleanp)
 
 (defun add-log--pseudo-changelog-buffer-name (changelog-file-name)
   "Compute a suitable name for a non-file visiting ChangeLog buffer.

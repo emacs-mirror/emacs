@@ -30,15 +30,13 @@
 
 ;;; Code:
 
-(defvar scroll-lock-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap next-line] 'scroll-lock-next-line)
-    (define-key map [remap previous-line] 'scroll-lock-previous-line)
-    (define-key map [remap forward-paragraph] 'scroll-lock-forward-paragraph)
-    (define-key map [remap backward-paragraph] 'scroll-lock-backward-paragraph)
-    (define-key map [S-down] 'scroll-lock-next-line-always-scroll)
-    map)
-  "Keymap for Scroll Lock mode.")
+(defvar-keymap scroll-lock-mode-map
+  :doc "Keymap for Scroll Lock mode."
+  "<remap> <next-line>"          #'scroll-lock-next-line
+  "<remap> <previous-line>"      #'scroll-lock-previous-line
+  "<remap> <forward-paragraph>"  #'scroll-lock-forward-paragraph
+  "<remap> <backward-paragraph>" #'scroll-lock-backward-paragraph
+  "S-<down>"                     #'scroll-lock-next-line-always-scroll)
 
 (defvar-local scroll-lock-preserve-screen-pos-save scroll-preserve-screen-position
   "Used for saving the state of `scroll-preserve-screen-position'.")

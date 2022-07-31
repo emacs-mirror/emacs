@@ -913,7 +913,7 @@ Otherwise, delete overlays."
   (interactive)
   (setq image-dired-dired-disp-props
         (not image-dired-dired-disp-props))
-  (message "Dired display properties %s."
+  (message "Dired display properties %s"
            (if image-dired-dired-disp-props
                "on"
              "off")))
@@ -1464,7 +1464,7 @@ Should be called from commands in `image-dired-thumbnail-mode'."
   `(let ((file-name (image-dired-original-file-name))
          (dired-buf (image-dired-associated-dired-buffer)))
      (if (not (and dired-buf file-name))
-         (message "No image, or image with correct properties, at point.")
+         (message "No image, or image with correct properties, at point")
        (with-current-buffer dired-buf
          (when (dired-goto-file file-name)
            ,@body
@@ -2106,7 +2106,7 @@ default value at the prompt."
               (image-dired-set-exif-data file "ImageDescription"
                                    (read-string "Value of ImageDescription: "
 						old-value)))
-          (message "Successfully wrote ImageDescription tag.")
+          (message "Successfully wrote ImageDescription tag")
         (error "Could not write ImageDescription tag")))))
 
 (defun image-dired-set-exif-data (file tag-name tag-value)
@@ -2261,23 +2261,26 @@ Optionally use old comment from FILE as initial value."
      comment)))
 
 ;;;###autoload
-(defun image-dired-mark-tagged-files ()
-  "Use regexp to mark files with matching tag.
+(defun image-dired-mark-tagged-files (regexp)
+  "Use REGEXP to mark files with matching tag.
 A `tag' is a keyword, a piece of meta data, associated with an
 image file and stored in image-dired's database file.  This command
 lets you input a regexp and this will be matched against all tags
 on all image files in the database file.  The files that have a
 matching tag will be marked in the Dired buffer."
-  (interactive)
+  (interactive "sMark tagged files (regexp): ")
   (image-dired-sane-db-file)
-  (let ((tag (read-string "Mark tagged files (regexp): "))
-        (hits 0)
+  (let ((hits 0)
         files)
     (image-dired--with-db-file
-     ;; Collect matches
-     (while (search-forward-regexp
-	     (concat "\\(^[^;\n]+\\);.*" tag ".*$") nil t)
-       (push (match-string 1) files)))
+      ;; Collect matches
+      (while (search-forward-regexp "\\(^[^;\n]+\\);\\(.*\\)" nil t)
+        (let ((file (match-string 1))
+              (tags (split-string (match-string 2) ";")))
+          (when (seq-find (lambda (tag)
+                            (string-match-p regexp tag))
+                          tags)
+            (push file files)))))
     ;; Mark files
     (dolist (curr-file files)
       ;; I tried using `dired-mark-files-regexp' but it was waaaay to
@@ -2292,7 +2295,7 @@ matching tag will be marked in the Dired buffer."
 	(when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
 	  (setq hits (+ hits 1))
 	  (dired-mark 1))))
-    (message "%d files with matching tag marked." hits)))
+    (message "%d files with matching tag marked" hits)))
 
 
 
@@ -2725,14 +2728,14 @@ the operation by activating the Cancel button.\n\n")
                  (lambda (&rest _ignore)
                    (image-dired-save-information-from-widgets)
                    (bury-buffer)
-                   (message "Done."))
+                   (message "Done"))
                  "Save")
     (widget-insert " ")
     (widget-create 'push-button
                    :notify
                    (lambda (&rest _ignore)
                      (bury-buffer)
-                     (message "Operation canceled."))
+                     (message "Operation canceled"))
                    "Cancel")
     (widget-insert "\n")
     (use-local-map widget-keymap)
@@ -2792,6 +2795,7 @@ tags to their respective image file.  Internal function used by
     ;; (bookmark-prop-get bookmark 'image-dired-file)
     (goto-char (point-min))))
 
+(put 'image-dired-bookmark-jump 'bookmark-handler-type "Image-Dired")
 
 ;;; Obsolete
 
@@ -2969,7 +2973,7 @@ Dired."
   (let ((file-name (image-dired-original-file-name))
         (dired-buf (image-dired-associated-dired-buffer)))
     (if (not (and dired-buf file-name))
-        (message "No image, or image with correct properties, at point.")
+        (message "No image, or image with correct properties, at point")
     (with-current-buffer dired-buf
         (message "%s" file-name)
         (when (dired-goto-file file-name)

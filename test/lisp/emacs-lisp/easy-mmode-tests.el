@@ -60,6 +60,4 @@
     (easy-mmode-test-mode 'toggle)
     (should (eq easy-mmode-test-mode t))))
 
-(provide 'easy-mmode-tests)
-
 ;;; easy-mmode-tests.el ends here

@@ -34,6 +34,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "systty.h"
 #include "pdumper.h"
 
+#ifdef HAVE_NTGUI
+#include "w32term.h"
+#endif
+
 /* List of buffers for use as minibuffers.
    The first element of the list is used for the outermost minibuffer
    invocation, the next element is used for a recursive minibuffer
@@ -41,7 +45,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    minibuffer recursions are encountered.  */
 
 Lisp_Object Vminibuffer_list;
-Lisp_Object Vcommand_loop_level_list;
+static Lisp_Object Vcommand_loop_level_list;
 
 /* Data to remember during recursive minibuffer invocations.  */
 
@@ -197,20 +201,12 @@ move_minibuffers_onto_frame (struct frame *of, bool for_deletion)
     return;
   if (FRAME_LIVE_P (f)
       && !EQ (f->minibuffer_window, of->minibuffer_window)
-      && WINDOW_LIVE_P (f->minibuffer_window) /* F not a tootip frame */
+      && WINDOW_LIVE_P (f->minibuffer_window) /* F not a tooltip frame */
       && WINDOW_LIVE_P (of->minibuffer_window))
     {
       zip_minibuffer_stacks (f->minibuffer_window, of->minibuffer_window);
       if (for_deletion && XFRAME (MB_frame) != of)
 	MB_frame = selected_frame;
-      if (!for_deletion
-	  && MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (of))))
-	{
-	  Lisp_Object old_frame;
-	  XSETFRAME (old_frame, of);
-	  Fset_frame_selected_window (old_frame,
-				      Fframe_first_window (old_frame), Qnil);
-	}
     }
 }
 
@@ -261,7 +257,7 @@ without invoking the usual minibuffer commands.  */)
 
 static void read_minibuf_unwind (void);
 static void minibuffer_unwind (void);
-static void run_exit_minibuf_hook (void);
+static void run_exit_minibuf_hook (Lisp_Object minibuf);
 
 
 /* Read a Lisp object from VAL and return it.  If VAL is an empty
@@ -431,8 +427,8 @@ No argument or nil as argument means use the current buffer as BUFFER.  */)
 {
   if (NILP (buffer))
     buffer = Fcurrent_buffer ();
-  return EQ (buffer, (Fcar (Fnthcdr (make_fixnum (minibuf_level),
-				     Vminibuffer_list))))
+  return BASE_EQ (buffer, (Fcar (Fnthcdr (make_fixnum (minibuf_level),
+					  Vminibuffer_list))))
     ? Qt
     : Qnil;
 }
@@ -745,7 +741,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
      separately from read_minibuf_unwind because we need to make sure that
      read_minibuf_unwind is fully executed even if exit-minibuffer-hook
      signals an error.  --Stef  */
-  record_unwind_protect_void (run_exit_minibuf_hook);
+  record_unwind_protect (run_exit_minibuf_hook, minibuffer);
 
   /* Now that we can restore all those variables, start changing them.  */
 
@@ -764,7 +760,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* If variable is unbound, make it nil.  */
   histval = find_symbol_value (histvar);
-  if (EQ (histval, Qunbound))
+  if (BASE_EQ (histval, Qunbound))
     {
       Fset (histvar, Qnil);
       histval = Qnil;
@@ -916,7 +912,17 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
       XWINDOW (minibuf_window)->cursor.x = 0;
       XWINDOW (minibuf_window)->must_be_updated_p = true;
       update_frame (XFRAME (selected_frame), true, true);
+#ifndef HAVE_NTGUI
       flush_frame (XFRAME (XWINDOW (minibuf_window)->frame));
+#else
+      /* The reason this function isn't `flush_display' in the RIF is
+	 that `flush_frame' is also called in many other circumstances
+	 when some code wants X requests to be sent to the X server,
+	 but there is no corresponding "flush" concept on MS Windows,
+	 and flipping buffers every time `flush_frame' is called
+	 causes flicker.  */
+      w32_flip_buffers_if_dirty (XFRAME (XWINDOW (minibuf_window)->frame));
+#endif
     }
 
   /* Make minibuffer contents into a string.  */
@@ -1062,9 +1068,14 @@ static EMACS_INT minibuf_c_loop_level (EMACS_INT depth)
 }
 
 static void
-run_exit_minibuf_hook (void)
+run_exit_minibuf_hook (Lisp_Object minibuf)
 {
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_current_buffer ();
+  if (BUFFER_LIVE_P (XBUFFER (minibuf)))
+    Fset_buffer (minibuf);
   safe_run_hooks (Qminibuffer_exit_hook);
+  unbind_to (count, Qnil);
 }
 
 /* This variable records the expired minibuffer's frame between the
@@ -1112,8 +1123,8 @@ read_minibuf_unwind (void)
  found:
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (exp_MB_frame, 0, 0, Qt); /* This also sets
-					     minibuf_window */
+    do_switch_frame (exp_MB_frame, 0, Qt); /* This also sets
+					      minibuf_window */
 
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  Don't depend on
@@ -1225,7 +1236,7 @@ read_minibuf_unwind (void)
   /* Restore the selected frame. */
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (saved_selected_frame, 0, 0, Qt);
+    do_switch_frame (saved_selected_frame, 0, Qt);
 }
 
 /* Replace the expired minibuffer in frame exp_MB_frame with the next less
@@ -1534,18 +1545,6 @@ function, instead of the usual behavior.  */)
   return unbind_to (count, result);
 }
 
-static Lisp_Object
-minibuf_conform_representation (Lisp_Object string, Lisp_Object basis)
-{
-  if (STRING_MULTIBYTE (string) == STRING_MULTIBYTE (basis))
-    return string;
-
-  if (STRING_MULTIBYTE (string))
-    return Fstring_make_unibyte (string);
-  else
-    return Fstring_make_multibyte (string);
-}
-
 static bool
 match_regexps (Lisp_Object string, Lisp_Object regexps,
 	       bool ignore_case)
@@ -1568,36 +1567,47 @@ match_regexps (Lisp_Object string, Lisp_Object regexps,
 }
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
-       doc: /* Return common substring of all completions of STRING in COLLECTION.
+       doc: /* Return longest common substring of all completions of STRING in COLLECTION.
+
 Test each possible completion specified by COLLECTION
 to see if it begins with STRING.  The possible completions may be
 strings or symbols.  Symbols are converted to strings before testing,
-see `symbol-name'.
-All that match STRING are compared together; the longest initial sequence
-common to all these matches is the return value.
-If there is no match at all, the return value is nil.
-For a unique match which is exact, the return value is t.
+by using `symbol-name'.
+
+If no possible completions match, the function returns nil; if
+there's just one exact match, it returns t; otherwise it returns
+the longest initial substring common to all possible completions
+that begin with STRING.
 
 If COLLECTION is an alist, the keys (cars of elements) are the
 possible completions.  If an element is not a cons cell, then the
-element itself is the possible completion.
-If COLLECTION is a hash-table, all the keys that are strings or symbols
-are the possible completions.
+element itself is a possible completion.
+If COLLECTION is a hash-table, all the keys that are either strings
+or symbols are the possible completions.
 If COLLECTION is an obarray, the names of all symbols in the obarray
 are the possible completions.
 
 COLLECTION can also be a function to do the completion itself.
-It receives three arguments: the values STRING, PREDICATE and nil.
+It receives three arguments: STRING, PREDICATE and nil.
 Whatever it returns becomes the value of `try-completion'.
 
-If optional third argument PREDICATE is non-nil,
-it is used to test each possible match.
-The match is a candidate only if PREDICATE returns non-nil.
-The argument given to PREDICATE is the alist element
-or the symbol from the obarray.  If COLLECTION is a hash-table,
-predicate is called with two arguments: the key and the value.
-Additionally to this predicate, `completion-regexp-list'
-is used to further constrain the set of candidates.  */)
+If optional third argument PREDICATE is non-nil, it must be a function
+of one or two arguments, and is used to test each possible completion.
+A possible completion is accepted only if PREDICATE returns non-nil.
+
+The argument given to PREDICATE is either a string or a cons cell (whose
+car is a string) from the alist, or a symbol from the obarray.
+If COLLECTION is a hash-table, PREDICATE is called with two arguments:
+the string key and the associated value.
+
+To be acceptable, a possible completion must also match all the regexps
+in `completion-regexp-list' (unless COLLECTION is a function, in
+which case that function should itself handle `completion-regexp-list').
+
+If `completion-ignore-case' is non-nil, possible completions are matched
+while ignoring letter-case, but no guarantee is made about the letter-case
+of the return value, except that it comes either from the user's input
+or from one of the possible completions.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
 
@@ -1671,7 +1681,8 @@ is used to further constrain the set of candidates.  */)
       else /* if (type == hash_table) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && EQ (HASH_KEY (XHASH_TABLE (collection), idx), Qunbound))
+		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
+			     Qunbound))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -1768,10 +1779,10 @@ is used to further constrain the set of candidates.  */)
 	      if (bestmatchsize != SCHARS (eltstring)
 		  || bestmatchsize != matchsize
 		  || (completion_ignore_case
-		      && !EQ (Fcompare_strings (old_bestmatch, zero, lcompare,
-						eltstring, zero, lcompare,
-						Qnil),
-			      Qt)))
+		      && !BASE_EQ (Fcompare_strings (old_bestmatch, zero,
+						     lcompare, eltstring, zero,
+						     lcompare, Qnil),
+				   Qt)))
 		/* Don't count the same string multiple times.  */
 		matchcount += matchcount <= 1;
 	      bestmatchsize = matchsize;
@@ -1794,7 +1805,7 @@ is used to further constrain the set of candidates.  */)
      don't change the case of what the user typed.  */
   if (completion_ignore_case && bestmatchsize == SCHARS (string)
       && SCHARS (bestmatch) > bestmatchsize)
-    return minibuf_conform_representation (string, bestmatch);
+    return string;
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
@@ -1807,11 +1818,13 @@ is used to further constrain the set of candidates.  */)
 }
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
-       doc: /* Search for partial matches to STRING in COLLECTION.
-Test each of the possible completions specified by COLLECTION
+       doc: /* Search for partial matches of STRING in COLLECTION.
+
+Test each possible completion specified by COLLECTION
 to see if it begins with STRING.  The possible completions may be
 strings or symbols.  Symbols are converted to strings before testing,
-see `symbol-name'.
+by using `symbol-name'.
+
 The value is a list of all the possible completions that match STRING.
 
 If COLLECTION is an alist, the keys (cars of elements) are the
@@ -1823,17 +1836,21 @@ If COLLECTION is an obarray, the names of all symbols in the obarray
 are the possible completions.
 
 COLLECTION can also be a function to do the completion itself.
-It receives three arguments: the values STRING, PREDICATE and t.
+It receives three arguments: STRING, PREDICATE and t.
 Whatever it returns becomes the value of `all-completions'.
 
-If optional third argument PREDICATE is non-nil,
-it is used to test each possible match.
-The match is a candidate only if PREDICATE returns non-nil.
-The argument given to PREDICATE is the alist element
-or the symbol from the obarray.  If COLLECTION is a hash-table,
-predicate is called with two arguments: the key and the value.
-Additionally to this predicate, `completion-regexp-list'
-is used to further constrain the set of candidates.
+If optional third argument PREDICATE is non-nil, it must be a function
+of one or two arguments, and is used to test each possible completion.
+A possible completion is accepted only if PREDICATE returns non-nil.
+
+The argument given to PREDICATE is either a string or a cons cell (whose
+car is a string) from the alist, or a symbol from the obarray.
+If COLLECTION is a hash-table, PREDICATE is called with two arguments:
+the string key and the associated value.
+
+To be acceptable, a possible completion must also match all the regexps
+in `completion-regexp-list' (unless COLLECTION is a function, in
+which case that function should itself handle `completion-regexp-list').
 
 An obsolete optional fourth argument HIDE-SPACES is still accepted for
 backward compatibility.  If non-nil, strings in COLLECTION that start
@@ -1902,7 +1919,8 @@ with a space are ignored unless STRING itself starts with a space.  */)
       else /* if (type == 3) */
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && EQ (HASH_KEY (XHASH_TABLE (collection), idx), Qunbound))
+		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
+			     Qunbound))
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
@@ -1981,6 +1999,9 @@ REQUIRE-MATCH can take the following values:
   input, but she needs to confirm her choice if she called
   `minibuffer-complete' right before `minibuffer-complete-and-exit'
   and the input is not an element of COLLECTION.
+- a function, which will be called with the input as the
+  argument.  If the function returns a non-nil value, the
+  minibuffer is exited with that argument as the value.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
@@ -2057,19 +2078,6 @@ the values STRING, PREDICATE and `lambda'.  */)
 		      SSDATA (string),
 		      SCHARS (string),
 		      SBYTES (string));
-      if (!SYMBOLP (tem))
-	{
-	  if (STRING_MULTIBYTE (string))
-	    string = Fstring_make_unibyte (string);
-	  else
-	    string = Fstring_make_multibyte (string);
-
-	  tem = oblookup (collection,
-			  SSDATA (string),
-			  SCHARS (string),
-			  SBYTES (string));
-	}
-
       if (completion_ignore_case && !SYMBOLP (tem))
 	{
 	  for (i = ASIZE (collection) - 1; i >= 0; i--)
@@ -2078,10 +2086,11 @@ the values STRING, PREDICATE and `lambda'.  */)
 	      if (SYMBOLP (tail))
 		while (1)
 		  {
-		    if (EQ (Fcompare_strings (string, make_fixnum (0), Qnil,
-					      Fsymbol_name (tail),
-					      make_fixnum (0) , Qnil, Qt),
-			   Qt))
+		    if (BASE_EQ (Fcompare_strings (string, make_fixnum (0),
+						   Qnil,
+						   Fsymbol_name (tail),
+						   make_fixnum (0) , Qnil, Qt),
+				 Qt))
 		      {
 			tem = tail;
 			break;
@@ -2109,12 +2118,12 @@ the values STRING, PREDICATE and `lambda'.  */)
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
           {
             tem = HASH_KEY (h, i);
-            if (EQ (tem, Qunbound)) continue;
+            if (BASE_EQ (tem, Qunbound)) continue;
             Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
             if (!STRINGP (strkey)) continue;
-            if (EQ (Fcompare_strings (string, Qnil, Qnil,
-                                      strkey, Qnil, Qnil,
-                                      completion_ignore_case ? Qt : Qnil),
+            if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
+					   strkey, Qnil, Qnil,
+					   completion_ignore_case ? Qt : Qnil),
                     Qt))
               goto found_matching_key;
           }

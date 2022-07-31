@@ -2009,7 +2009,7 @@ It returns the highest number.
 
 Usage: (setq forms-number-of-fields
              (forms-enumerate
-              '(field1 field2 field2 ...)))"
+              \\='(field1 field2 field2 ...)))"
 
   (let ((the-index 0))
     (while the-fields

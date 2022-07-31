@@ -32,6 +32,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
 
+#ifdef HAVE_XINPUT2
+#include <X11/extensions/XInput2.h>
+#endif
+
 #ifdef USE_X_TOOLKIT
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>	/* CoreP.h needs this */
@@ -70,6 +74,9 @@ typedef GtkWidget *xt_or_gtk_widget;
                          XSync (d, b);  } while (false)
 #endif
 #endif /* USE_GTK */
+
+/* Number of "failable requests" to store.  */
+#define N_FAILABLE_REQUESTS 128
 
 #ifdef USE_CAIRO
 #include <cairo-xlib.h>
@@ -128,6 +135,7 @@ INLINE_HEADER_BEGIN
    | FocusChangeMask		\
    | LeaveWindowMask		\
    | EnterWindowMask		\
+   | PropertyChangeMask		\
    | VisibilityChangeMask)
 
 #ifdef HAVE_X11R6_XIM
@@ -138,6 +146,21 @@ struct xim_inst_t
   char *resource_name;
 };
 #endif /* HAVE_X11R6_XIM */
+
+#ifdef HAVE_XINPUT2
+#if HAVE_XISCROLLCLASSINFO_TYPE && defined XIScrollClass
+#define HAVE_XINPUT2_1
+#endif
+#if HAVE_XITOUCHCLASSINFO_TYPE && defined XITouchClass
+#define HAVE_XINPUT2_2
+#endif
+#if HAVE_XIBARRIERRELEASEPOINTERINFO_DEVICEID && defined XIBarrierPointerReleased
+#define HAVE_XINPUT2_3
+#endif
+#if HAVE_XIGESTURECLASSINFO_TYPE && defined XIGestureClass
+#define HAVE_XINPUT2_4
+#endif
+#endif
 
 /* Structure recording X pixmap and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
@@ -176,11 +199,20 @@ extern cairo_pattern_t *x_bitmap_stipple (struct frame *, Pixmap);
 struct color_name_cache_entry
 {
   struct color_name_cache_entry *next;
+
+  /* The color values of the cached color entry.  */
   XColor rgb;
+
+  /* The name of the cached color.  */
   char *name;
+
+  /* Whether or not RGB is valid (i.e. the color actually exists).  */
+  bool_bf valid : 1;
 };
 
 #ifdef HAVE_XINPUT2
+
+#ifdef HAVE_XINPUT2_1
 struct xi_scroll_valuator_t
 {
   bool invalid_p;
@@ -192,7 +224,9 @@ struct xi_scroll_valuator_t
   int number;
   int horizontal;
 };
+#endif
 
+#ifdef HAVE_XINPUT2_2
 struct xi_touch_point_t
 {
   struct xi_touch_point_t *next;
@@ -200,22 +234,42 @@ struct xi_touch_point_t
   int number;
   double x, y;
 };
+#endif
 
 struct xi_device_t
 {
   int device_id;
+#ifdef HAVE_XINPUT2_1
   int scroll_valuator_count;
-  int grab;
-  bool master_p;
+#endif
+  int grab, use;
+#ifdef HAVE_XINPUT2_2
   bool direct_p;
+#endif
 
+#ifdef HAVE_XINPUT2_1
   struct xi_scroll_valuator_t *valuators;
+#endif
+#ifdef HAVE_XINPUT2_2
   struct xi_touch_point_t *touchpoints;
+#endif
+
+  Lisp_Object name;
 };
 #endif
 
 Status x_parse_color (struct frame *f, const char *color_name,
 		      XColor *color);
+
+struct x_failable_request
+{
+  /* The first request making up this sequence.  */
+  unsigned long start;
+
+  /* If this is zero, then the request has not yet been made.
+     Otherwise, this is the request that ends this sequence.  */
+  unsigned long end;
+};
 
 
 /* For each X display, we have a structure that records
@@ -249,6 +303,9 @@ struct x_display_info
 
   /* The Visual being used for this display.  */
   Visual *visual;
+
+  /* The visual information corresponding to VISUAL.  */
+  XVisualInfo visual_info;
 
 #ifdef HAVE_XRENDER
   /* The picture format for this display.  */
@@ -284,8 +341,10 @@ struct x_display_info
      Unused if this display supports Xfixes extension.  */
   Cursor invisible_cursor;
 
-  /* Function used to toggle pointer visibility on this display.  */
-  void (*toggle_visible_pointer) (struct frame *, bool);
+#ifdef HAVE_XFIXES
+  /* Whether or not to use Xfixes for pointer blanking.  */
+  bool fixes_pointer_blanking;
+#endif
 
 #ifdef USE_GTK
   /* The GDK cursor for scroll bars and popup menus.  */
@@ -360,6 +419,7 @@ struct x_display_info
 
   /* Atom for indicating window state to the window manager.  */
   Atom Xatom_wm_change_state;
+  Atom Xatom_wm_state;
 
   /* Other WM communication */
   Atom Xatom_wm_configure_denied; /* When our config request is denied */
@@ -375,13 +435,14 @@ struct x_display_info
   Atom Xatom_CLIPBOARD, Xatom_TIMESTAMP, Xatom_TEXT, Xatom_DELETE,
     Xatom_COMPOUND_TEXT, Xatom_UTF8_STRING,
     Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
-    Xatom_ATOM, Xatom_ATOM_PAIR, Xatom_CLIPBOARD_MANAGER, Xatom_COUNTER;
+    Xatom_ATOM, Xatom_ATOM_PAIR, Xatom_CLIPBOARD_MANAGER,
+    Xatom_EMACS_SERVER_TIME_PROP;
 
   /* More atoms for font properties.  The last three are private
      properties, see the comments in src/fontset.h.  */
   Atom Xatom_PIXEL_SIZE, Xatom_AVERAGE_WIDTH,
-  Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE,
-  Xatom_MULE_DEFAULT_ASCENT;
+    Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE,
+    Xatom_MULE_DEFAULT_ASCENT;
 
   /* More atoms for Ghostscript support.  */
   Atom Xatom_DONE, Xatom_PAGE;
@@ -391,6 +452,25 @@ struct x_display_info
 
   /* Atom used in XEmbed client messages.  */
   Atom Xatom_XEMBED, Xatom_XEMBED_INFO;
+
+  /* Atom used to determine whether or not the screen is composited.  */
+  Atom Xatom_NET_WM_CM_Sn;
+
+  /* Atoms used by the Motif drag and drop protocols.  */
+  Atom Xatom_MOTIF_WM_HINTS, Xatom_MOTIF_DRAG_WINDOW,
+    Xatom_MOTIF_DRAG_TARGETS, Xatom_MOTIF_DRAG_AND_DROP_MESSAGE,
+    Xatom_MOTIF_DRAG_INITIATOR_INFO, Xatom_MOTIF_DRAG_RECEIVER_INFO;
+
+  /* Atoms used by Emacs internally.  */
+  Atom Xatom_EMACS_DRAG_ATOM;
+
+  /* Special selections used by the Motif drop protocol to indicate
+     success or failure.  */
+  Atom Xatom_XmTRANSFER_SUCCESS, Xatom_XmTRANSFER_FAILURE;
+
+  /* Atoms used by both versions of the OffiX DND protocol (the "old
+     KDE" protocol in x-dnd.el). */
+  Atom Xatom_DndProtocol, Xatom_DND_PROTOCOL;
 
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
@@ -427,7 +507,8 @@ struct x_display_info
   /* The scroll bar in which the last X motion event occurred.  */
   struct scroll_bar *last_mouse_scroll_bar;
 
-  /* Time of last user interaction as returned in X events on this display.  */
+  /* Time of last user interaction as returned in X events on this
+     display.  */
   Time last_user_time;
 
   /* Position where the mouse was last time we reported a motion.
@@ -447,6 +528,9 @@ struct x_display_info
      received, and return that in hopes that it's somewhat accurate.  */
   Time last_mouse_movement_time;
 
+  /* Whether or not the last mouse motion was synthetic.  */
+  bool last_mouse_movement_time_send_event;
+
   /* The gray pixmap.  */
   Pixmap gray;
 
@@ -459,7 +543,13 @@ struct x_display_info
 #endif
 
   /* A cache mapping color names to RGB values.  */
-  struct color_name_cache_entry *color_names;
+  struct color_name_cache_entry **color_names;
+
+  /* The number of buckets for each hash in that hash table.  */
+  ptrdiff_t *color_names_length;
+
+  /* The size of that hash table.  */
+  int color_names_size;
 
   /* If non-null, a cache of the colors in the color map.  Don't
      use this directly, call x_color_cells instead.  */
@@ -490,6 +580,23 @@ struct x_display_info
   ptrdiff_t x_dnd_atoms_size;
   ptrdiff_t x_dnd_atoms_length;
 
+  /* The unique drag and drop atom used on Motif.  None if it was not
+     already computed.  */
+  Atom motif_drag_atom;
+
+  /* Its name.  */
+  char motif_drag_atom_name[sizeof "_EMACS_ATOM_%lu" - 3
+			    + INT_STRLEN_BOUND (unsigned long)];
+
+  /* When it was owned.  */
+  Time motif_drag_atom_time;
+
+  /* The frame that currently owns `motif_drag_atom'.  */
+  struct frame *motif_drag_atom_owner;
+
+  /* The drag window for this display.  */
+  Window motif_drag_window;
+
   /* Extended window manager hints, Atoms supported by the window manager and
      atoms for setting the window type.  */
   Atom Xatom_net_supported, Xatom_net_supporting_wm_check;
@@ -504,10 +611,12 @@ struct x_display_info
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
     Xatom_net_wm_state_sticky, Xatom_net_wm_state_above, Xatom_net_wm_state_below,
     Xatom_net_wm_state_hidden, Xatom_net_wm_state_skip_taskbar,
-    Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea,
-    Xatom_net_wm_opaque_region, Xatom_net_wm_ping, Xatom_net_wm_sync_request,
-    Xatom_net_wm_sync_request_counter, Xatom_net_wm_frame_drawn,
-    Xatom_net_wm_user_time, Xatom_net_wm_user_time_window;
+    Xatom_net_wm_state_shaded, Xatom_net_frame_extents, Xatom_net_current_desktop,
+    Xatom_net_workarea, Xatom_net_wm_opaque_region, Xatom_net_wm_ping,
+    Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
+    Xatom_net_wm_frame_drawn, Xatom_net_wm_frame_timings, Xatom_net_wm_user_time,
+    Xatom_net_wm_user_time_window, Xatom_net_client_list_stacking,
+    Xatom_net_wm_pid;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -521,14 +630,37 @@ struct x_display_info
   /* SM */
   Atom Xatom_SM_CLIENT_ID;
 
+  /* DND source.  */
+  Atom Xatom_XdndAware, Xatom_XdndSelection, Xatom_XdndTypeList,
+    Xatom_XdndActionCopy, Xatom_XdndActionMove, Xatom_XdndActionLink,
+    Xatom_XdndActionAsk, Xatom_XdndActionPrivate, Xatom_XdndActionList,
+    Xatom_XdndActionDescription, Xatom_XdndProxy, Xatom_XdndEnter,
+    Xatom_XdndPosition, Xatom_XdndStatus, Xatom_XdndLeave, Xatom_XdndDrop,
+    Xatom_XdndFinished;
+
+  /* XDS source and target.  */
+  Atom Xatom_XdndDirectSave0, Xatom_XdndActionDirectSave, Xatom_text_plain;
+
 #ifdef HAVE_XKB
   /* Virtual modifiers */
   Atom Xatom_Meta, Xatom_Super, Xatom_Hyper, Xatom_ShiftLock, Xatom_Alt;
 #endif
 
+  /* Core modifier map when XKB is not present.  */
+  XModifierKeymap *modmap;
+
 #ifdef HAVE_XRANDR
+  bool xrandr_supported_p;
+  int xrandr_event_base;
+  int xrandr_error_base;
   int xrandr_major_version;
   int xrandr_minor_version;
+#endif
+
+#if defined HAVE_XRANDR || defined USE_GTK
+  /* This is used to determine if the monitor configuration really
+     changed upon receiving a monitor change event.  */
+  Lisp_Object last_monitor_attributes_list;
 #endif
 
 #if defined USE_CAIRO || defined HAVE_XRENDER
@@ -551,6 +683,17 @@ struct x_display_info
 
   int num_devices;
   struct xi_device_t *devices;
+
+  Time pending_keystroke_time;
+  int pending_keystroke_source;
+
+#if defined USE_GTK && !defined HAVE_GTK3
+  /* This means the two variables above shouldn't be reset the first
+     time a KeyPress event arrives, since they were set from a raw key
+     press event that was sent before the first (real, not sent by an
+     input method) core key event.  */
+  bool pending_keystroke_time_special_p;
+#endif
 #endif
 
 #ifdef HAVE_XKB
@@ -584,6 +727,48 @@ struct x_display_info
 #ifdef HAVE_XINERAMA
   bool xinerama_supported_p;
 #endif
+
+#ifdef HAVE_XCOMPOSITE
+  bool composite_supported_p;
+  int composite_major;
+  int composite_minor;
+#endif
+
+#ifdef HAVE_XSHAPE
+  bool xshape_supported_p;
+  int xshape_major;
+  int xshape_minor;
+  int xshape_event_base;
+  int xshape_error_base;
+#endif
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  Lisp_Object *protected_windows;
+  int n_protected_windows;
+  int protected_windows_max;
+#endif
+
+  /* The current dimensions of the screen.  This is updated when a
+     ConfigureNotify is received for the root window, and is zero if
+     that didn't happen.  */
+  int screen_width;
+  int screen_height;
+
+  /* The mm width and height of the screen.  Updated on
+     RRScreenChangeNotify.  */
+  int screen_mm_width;
+  int screen_mm_height;
+
+  /* Circular buffer of request serial ranges to ignore inside an
+     error handler in increasing order.  */
+  struct x_failable_request failable_requests[N_FAILABLE_REQUESTS];
+
+  /* Pointer to the next request in `failable_requests'.  */
+  struct x_failable_request *next_failable_request;
+
+  /* The pending drag-and-drop time for middle-click based
+     drag-and-drop emulation.  */
+  Time pending_dnd_time;
 };
 
 #ifdef HAVE_X_I18N
@@ -607,6 +792,9 @@ extern bool x_display_ok (const char *);
 extern void select_visual (struct x_display_info *);
 
 extern Window tip_window;
+extern Lisp_Object tip_dx;
+extern Lisp_Object tip_dy;
+extern Lisp_Object tip_frame;
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
@@ -715,6 +903,13 @@ struct x_output
   GtkWindow *ttip_window;
 
   GtkIMContext *im_context;
+
+#ifdef HAVE_GTK3
+  /* The CSS providers used for scroll bar foreground and background
+     colors.  */
+  GtkCssProvider *scrollbar_foreground_css_provider;
+  GtkCssProvider *scrollbar_background_css_provider;
+#endif
 #endif /* USE_GTK */
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the
@@ -819,6 +1014,10 @@ struct x_output
      false, tell Xt not to wait.  */
   bool_bf wait_for_wm : 1;
 
+  /* True if this frame's alpha value is the same for both the active
+     and inactive states.  */
+  bool_bf alpha_identical_p : 1;
+
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
@@ -827,15 +1026,41 @@ struct x_output
 #endif
 
 #ifdef HAVE_XSYNC
+  /* The "basic frame counter" used for resize synchronization.  */
   XSyncCounter basic_frame_counter;
+
+  /* The "extended frame counter" used for frame synchronization.  */
   XSyncCounter extended_frame_counter;
+
+  /* The pending value of the basic counter.  */
   XSyncValue pending_basic_counter_value;
+
+  /* The current value of the extended counter.  */
   XSyncValue current_extended_counter_value;
 
+  /* The configure event value of the extended counter.  */
+  XSyncValue resize_counter_value;
+
+  /* Whether or not basic resize synchronization is in progress.  */
   bool_bf sync_end_pending_p : 1;
+
+  /* Whether or not extended resize synchronization is in
+     progress.  */
   bool_bf ext_sync_end_pending_p : 1;
+
 #ifdef HAVE_GTK3
+  /* Whether or not GDK resize synchronization is in progress.  */
   bool_bf xg_sync_end_pending_p : 1;
+#endif
+
+  /* Whether or Emacs is waiting for the compositing manager to draw a
+     frame.  */
+  bool_bf waiting_for_frame_p : 1;
+
+#ifndef USE_GTK
+  /* Whether or not Emacs should wait for the compositing manager to
+     draw frames before starting a new frame.  */
+  bool_bf use_vsync_p : 1;
 #endif
 #endif
 
@@ -881,6 +1106,11 @@ struct x_output
   bool preedit_active;
   int preedit_caret;
 #endif
+
+#ifdef HAVE_XINPUT2
+  XIEventMask *xi_masks;
+  int num_xi_masks;
+#endif
 };
 
 enum
@@ -914,13 +1144,15 @@ extern void x_mark_frame_dirty (struct frame *f);
    code after any drawing command, but we can run code whenever
    someone asks for the handle necessary to draw.  */
 #define FRAME_X_DRAWABLE(f)                             \
-  (x_mark_frame_dirty((f)), FRAME_X_RAW_DRAWABLE ((f)))
+  (x_mark_frame_dirty ((f)), FRAME_X_RAW_DRAWABLE ((f)))
 
+#ifdef HAVE_XDBE
 #define FRAME_X_DOUBLE_BUFFERED_P(f)            \
   (FRAME_X_WINDOW (f) != FRAME_X_RAW_DRAWABLE (f))
 
 /* Return the need-buffer-flip flag for frame F.  */
 #define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
+#endif
 
 /* Return the outermost X window associated with the frame F.  */
 #ifdef USE_X_TOOLKIT
@@ -991,6 +1223,9 @@ extern void x_mark_frame_dirty (struct frame *f);
 /* This is the Visual which frame F is on.  */
 #define FRAME_X_VISUAL(f) FRAME_DISPLAY_INFO (f)->visual
 
+/* And its corresponding visual info.  */
+#define FRAME_X_VISUAL_INFO(f) (&FRAME_DISPLAY_INFO (f)->visual_info)
+
 #ifdef HAVE_XRENDER
 #define FRAME_X_PICTURE_FORMAT(f) FRAME_DISPLAY_INFO (f)->pict_format
 #define FRAME_X_PICTURE(f) ((f)->output_data.x->picture)
@@ -1002,8 +1237,14 @@ extern void x_mark_frame_dirty (struct frame *f);
 #endif
 
 #ifdef HAVE_XSYNC
-#define FRAME_X_BASIC_COUNTER(f) FRAME_X_OUTPUT (f)->basic_frame_counter
-#define FRAME_X_EXTENDED_COUNTER(f) FRAME_X_OUTPUT (f)->extended_frame_counter
+#define FRAME_X_BASIC_COUNTER(f)		\
+  FRAME_X_OUTPUT (f)->basic_frame_counter
+#define FRAME_X_EXTENDED_COUNTER(f)		\
+  FRAME_X_OUTPUT (f)->extended_frame_counter
+#define FRAME_X_WAITING_FOR_DRAW(f)		\
+  FRAME_X_OUTPUT (f)->waiting_for_frame_p
+#define FRAME_X_COUNTER_VALUE(f)		\
+  FRAME_X_OUTPUT (f)->current_extended_counter_value
 #endif
 
 /* This is the Colormap which frame F uses.  */
@@ -1231,27 +1472,37 @@ extern const char *x_get_string_resource (void *, const char *, const char *);
 
 /* Defined in xterm.c */
 
-typedef void (*x_special_error_handler)(Display *, XErrorEvent *, char *,
-					void *);
+typedef void (*x_special_error_handler) (Display *, XErrorEvent *, char *,
+					 void *);
 
 extern bool x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
 extern void x_catch_errors_with_handler (Display *, x_special_error_handler,
 					 void *);
+extern void x_catch_errors_for_lisp (struct x_display_info *);
+extern void x_uncatch_errors_for_lisp (struct x_display_info *);
+extern void x_check_errors_for_lisp (struct x_display_info *,
+				     const char *)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern bool x_had_errors_p (Display *);
+extern void x_unwind_errors_to (int);
 extern void x_uncatch_errors (void);
 extern void x_uncatch_errors_after_check (void);
+extern void x_ignore_errors_for_next_request (struct x_display_info *);
+extern void x_stop_ignoring_errors (struct x_display_info *);
 extern void x_clear_errors (Display *);
-extern void x_set_window_size (struct frame *f, bool, int, int);
-extern void x_make_frame_visible (struct frame *f);
-extern void x_make_frame_invisible (struct frame *f);
-extern void x_iconify_frame (struct frame *f);
+extern void x_set_window_size (struct frame *, bool, int, int);
+extern void x_set_last_user_time_from_lisp (struct x_display_info *, Time);
+extern void x_make_frame_visible (struct frame *);
+extern void x_make_frame_invisible (struct frame *);
+extern void x_iconify_frame (struct frame *);
 extern void x_free_frame_resources (struct frame *);
 extern void x_wm_set_size_hint (struct frame *, long, bool);
 
-extern void x_delete_terminal (struct terminal *terminal);
+extern void x_delete_terminal (struct terminal *);
+extern Cursor x_create_font_cursor (struct x_display_info *, int);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
@@ -1265,11 +1516,13 @@ extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
 extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_clear_area (struct frame *f, int, int, int, int);
-#if !defined USE_X_TOOLKIT && !defined USE_GTK
+#if (defined USE_LUCID && defined HAVE_XINPUT2) \
+  || (!defined USE_X_TOOLKIT && !defined USE_GTK)
 extern void x_mouse_leave (struct x_display_info *);
 #endif
+extern void x_wait_for_cell_change (Lisp_Object, struct timespec);
 
-#if defined USE_X_TOOLKIT || defined USE_MOTIF
+#ifndef USE_GTK
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
@@ -1286,8 +1539,6 @@ extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif
 
 #ifdef HAVE_XRENDER
-extern void x_xrender_color_from_gc_foreground (struct frame *, GC,
-						XRenderColor *, bool);
 extern void x_xrender_color_from_gc_background (struct frame *, GC,
 						XRenderColor *, bool);
 extern void x_xr_ensure_picture (struct frame *f);
@@ -1295,19 +1546,28 @@ extern void x_xr_apply_ext_clip (struct frame *f, GC gc);
 extern void x_xr_reset_ext_clip (struct frame *f);
 #endif
 
-extern void x_display_set_last_user_time (struct x_display_info *, Time);
+#ifdef HAVE_GTK3
+extern void x_scroll_bar_configure (GdkEvent *);
+#endif
 
-INLINE int
-x_display_pixel_height (struct x_display_info *dpyinfo)
-{
-  return HeightOfScreen (dpyinfo->screen);
-}
+#define DEFER_SELECTIONS						\
+  x_defer_selection_requests ();					\
+  record_unwind_protect_void (x_release_selection_requests_and_flush)
 
-INLINE int
-x_display_pixel_width (struct x_display_info *dpyinfo)
-{
-  return WidthOfScreen (dpyinfo->screen);
-}
+extern void x_defer_selection_requests (void);
+extern void x_release_selection_requests_and_flush (void);
+extern void x_handle_pending_selection_requests (void);
+extern bool x_detect_pending_selection_requests (void);
+extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
+					      Lisp_Object, Atom *, const char **,
+					      size_t, bool, Atom *, int,
+					      Lisp_Object, bool);
+extern void x_dnd_do_unsupported_drop (struct x_display_info *, Lisp_Object,
+				       Lisp_Object, Lisp_Object, Window, int,
+				       int, Time);
+
+extern int x_display_pixel_height (struct x_display_info *);
+extern int x_display_pixel_width (struct x_display_info *);
 
 INLINE unsigned long
 x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
@@ -1330,16 +1590,18 @@ x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
    also allows us to make other optimizations relating to server-side
    reference counts.  */
 INLINE bool
-x_mutable_colormap (Visual *visual)
+x_mutable_colormap (XVisualInfo *visual)
 {
   int class = visual->class;
   return (class != StaticColor && class != StaticGray && class != TrueColor);
 }
 
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_shaded (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_skip_taskbar (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_z_group (struct frame *, Lisp_Object, Lisp_Object);
 extern bool x_wm_supports (struct frame *, Atom);
+extern bool x_wm_supports_1 (struct x_display_info *, Atom);
 extern void x_wait_for_event (struct frame *, int);
 extern void x_clear_under_internal_border (struct frame *f);
 
@@ -1364,18 +1626,14 @@ extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);
 extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
-
-extern void x_send_client_event (Lisp_Object display,
-                                 Lisp_Object dest,
-                                 Lisp_Object from,
-                                 Atom message_type,
-                                 Lisp_Object format,
-                                 Lisp_Object values);
+extern Lisp_Object x_atom_to_symbol (struct x_display_info *, Atom);
+extern Atom symbol_to_x_atom (struct x_display_info *, Lisp_Object);
 
 extern bool x_handle_dnd_message (struct frame *,
 				  const XClientMessageEvent *,
 				  struct x_display_info *,
-				  struct input_event *);
+				  struct input_event *,
+				  bool, int, int);
 extern int x_check_property_data (Lisp_Object);
 extern void x_fill_property_data (Display *,
                                   Lisp_Object,
@@ -1390,6 +1648,15 @@ extern Lisp_Object x_property_data_to_lisp (struct frame *,
 extern void x_clipboard_manager_save_frame (Lisp_Object);
 extern void x_clipboard_manager_save_all (void);
 
+extern Lisp_Object x_timestamp_for_selection (struct x_display_info *,
+					      Lisp_Object);
+extern void x_own_selection (Lisp_Object, Lisp_Object, Lisp_Object,
+			     Lisp_Object, Time);
+extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
+				  bool);
+extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
+
 #ifdef USE_GTK
 extern bool xg_set_icon (struct frame *, Lisp_Object);
 extern bool xg_set_icon_from_xpm_data (struct frame *, const char **);
@@ -1403,6 +1670,9 @@ extern void xic_set_statusarea (struct frame *);
 extern void xic_set_xfontset (struct frame *, const char *);
 extern bool x_defined_color (struct frame *, const char *, Emacs_Color *,
                              bool, bool);
+extern void x_preserve_selections (struct x_display_info *, Lisp_Object,
+				   Lisp_Object);
+extern Lisp_Object x_get_keyboard_modifiers (struct x_display_info *);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
 # if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
@@ -1448,9 +1718,21 @@ extern void x_session_close (void);
 extern struct input_event xg_pending_quit_event;
 #endif
 
+extern bool x_dnd_in_progress;
+extern bool x_dnd_waiting_for_finish;
+extern struct frame *x_dnd_frame;
+extern struct frame *x_dnd_finish_frame;
+extern int x_error_message_count;
+
 #ifdef HAVE_XINPUT2
-struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
+extern struct xi_device_t *xi_device_from_id (struct x_display_info *, int);
+extern bool xi_frame_selected_for (struct frame *, unsigned long);
+#ifndef USE_GTK
+extern unsigned int xi_convert_event_state (XIDeviceEvent *);
 #endif
+#endif
+
+extern void mark_xterm (void);
 
 /* Is the frame embedded into another application? */
 

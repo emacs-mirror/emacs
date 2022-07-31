@@ -107,9 +107,9 @@
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
-    (file-notify-add-watch . ignore)
-    (file-notify-rm-watch . ignore)
-    (file-notify-valid-p . ignore)
+    (file-notify-add-watch . tramp-handle-file-notify-add-watch)
+    (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-rclone-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
@@ -123,6 +123,7 @@
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
+    (list-system-processes . ignore)
     (load . tramp-handle-load)
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
@@ -132,6 +133,7 @@
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
+    (process-attributes . ignore)
     (process-file . ignore)
     (rename-file . tramp-rclone-handle-rename-file)
     (set-file-acl . ignore)
@@ -143,6 +145,7 @@
     (start-file-process . ignore)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-get-home-directory . ignore)
     (tramp-get-remote-gid . ignore)
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
@@ -222,46 +225,45 @@ file names."
 	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(unless (file-exists-p filename)
-	  (tramp-error v 'file-missing filename))
-	(when (and (not ok-if-already-exists) (file-exists-p newname))
-	  (tramp-error v 'file-already-exists newname))
-	(when (and (file-directory-p newname)
-		   (not (directory-name-p newname)))
-	  (tramp-error v 'file-error "File is a directory %s" newname))
+	(tramp-barf-if-file-missing v filename
+	  (when (and (not ok-if-already-exists) (file-exists-p newname))
+	    (tramp-error v 'file-already-exists newname))
+	  (when (and (file-directory-p newname)
+		     (not (directory-name-p newname)))
+	    (tramp-error v 'file-error "File is a directory %s" newname))
 
-	(if (or (and t1 (not (tramp-rclone-file-name-p filename)))
-		(and t2 (not (tramp-rclone-file-name-p newname))))
+	  (if (or (and t1 (not (tramp-rclone-file-name-p filename)))
+		  (and t2 (not (tramp-rclone-file-name-p newname))))
 
-	    ;; We cannot copy or rename directly.
-	    (let ((tmpfile (tramp-compat-make-temp-file filename)))
-	      (if (eq op 'copy)
-		  (copy-file
-		   filename tmpfile t keep-date preserve-uid-gid
-		   preserve-extended-attributes)
-		(rename-file filename tmpfile t))
-	      (rename-file tmpfile newname ok-if-already-exists))
+	      ;; We cannot copy or rename directly.
+	      (let ((tmpfile (tramp-compat-make-temp-file filename)))
+		(if (eq op 'copy)
+		    (copy-file
+		     filename tmpfile t keep-date preserve-uid-gid
+		     preserve-extended-attributes)
+		  (rename-file filename tmpfile t))
+		(rename-file tmpfile newname ok-if-already-exists))
 
-	  ;; Direct action.
-	  (with-tramp-progress-reporter
-	      v 0 (format "%s %s to %s" msg-operation filename newname)
-	    (unless (zerop
-		     (tramp-rclone-send-command
-		      v rclone-operation
-		      (tramp-rclone-remote-file-name filename)
-		      (tramp-rclone-remote-file-name newname)))
-	      (tramp-error
-	       v 'file-error
-	       "Error %s `%s' `%s'" msg-operation filename newname)))
+	    ;; Direct action.
+	    (with-tramp-progress-reporter
+		v 0 (format "%s %s to %s" msg-operation filename newname)
+	      (unless (zerop
+		       (tramp-rclone-send-command
+			v rclone-operation
+			(tramp-rclone-remote-file-name filename)
+			(tramp-rclone-remote-file-name newname)))
+		(tramp-error
+		 v 'file-error
+		 "Error %s `%s' `%s'" msg-operation filename newname)))
 
-	  (when (and t1 (eq op 'rename))
-	    (while (file-exists-p filename)
-	      (with-parsed-tramp-file-name filename v1
-		(tramp-flush-file-properties v1 v1-localname))))
+	    (when (and t1 (eq op 'rename))
+	      (while (file-exists-p filename)
+		(with-parsed-tramp-file-name filename v1
+		  (tramp-flush-file-properties v1 v1-localname))))
 
-	  (when t2
-	    (with-parsed-tramp-file-name newname v2
-	      (tramp-flush-file-properties v2 v2-localname))))))))
+	    (when t2
+	      (with-parsed-tramp-file-name newname v2
+		(tramp-flush-file-properties v2 v2-localname)))))))))
 
 (defun tramp-rclone-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date

@@ -174,7 +174,7 @@ fi
 
 ### Find out which version of Emacs this is.
 version=`
-  sed -n 's/^AC_INIT(GNU Emacs,[	 ]*\([^	 ,)]*\).*/\1/p' <configure.ac
+  sed -n 's/^AC_INIT(\[GNU Emacs],[	 ]*\[\([^]]*\).*/\1/p' <configure.ac
 ` || version=
 if [ ! "${version}" ]; then
   printf '%s\n' \
@@ -485,6 +485,8 @@ if [ "${make_tar}" = yes ]; then
   esac
   echo "Creating tar file"
   taropt='--numeric-owner --owner=0 --group=0 --mode=go+u,go-w'
+  tar -H ustar -cf /dev/null $tempdir/src/lisp.h 2>/dev/null &&
+    taropt="$taropt -H ustar"
   tar --sort=name -cf /dev/null $tempdir/src/lisp.h 2>/dev/null &&
     taropt="$taropt --sort=name"
   [ "$verbose" = "yes" ] && taropt="$taropt --verbose"

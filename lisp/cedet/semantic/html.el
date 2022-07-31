@@ -82,6 +82,11 @@ or
          tag :members (mapcar #'semantic-html-expand-tag chil)))
     (car (semantic--tag-expand tag))))
 
+(define-mode-local-override semantic-tag-components html-mode (tag)
+  "Return components belonging to TAG."
+  ;; Keep this η-regexp because `semantic-html-components' is called
+  ;; from elsewhere.
+  (semantic-html-components tag))
 (defun semantic-html-components (tag)
   "Return components belonging to TAG."
   (semantic-tag-get-attribute tag :members))
@@ -245,12 +250,7 @@ tag with greater section value than LEVEL is found."
 	senator-step-at-start-end-tag-classes '(section)
 	senator-step-at-tag-classes '(section)
 	semantic-stickyfunc-sticky-classes '(section)
-	)
-  (semantic-install-function-overrides
-   '((semantic-tag-components . semantic-html-components)
-     )
-   t)
-  )
+	))
 
 ;; `html-helper-mode' hasn't been updated since 2004, so it's not very
 ;; relevant nowadays.

@@ -796,17 +796,14 @@ directly."
      ((string-match "text/" content-type)
       (setq type 'text))
      ((string-match "image/\\(.*\\)" content-type)
-      (setq type (image-type-from-file-name
+      (setq type (image-supported-file-p
 		  (concat "." (match-string 1 content-type))))
-      (if (and (boundp 'image-types)
-	       (memq type image-types)
-	       (image-type-available-p type))
-	  (if (and rmail-mime-show-images
-		   (not (eq rmail-mime-show-images 'button))
-		   (or (not (numberp rmail-mime-show-images))
-		       (< size rmail-mime-show-images)))
-	      (setq to-show t))
-	(setq type nil))))
+      (when (and type
+                 rmail-mime-show-images
+	         (not (eq rmail-mime-show-images 'button))
+	         (or (not (numberp rmail-mime-show-images))
+		     (< size rmail-mime-show-images)))
+	(setq to-show t))))
     (setcar bulk-data size)
     (setcdr bulk-data type)
     to-show))

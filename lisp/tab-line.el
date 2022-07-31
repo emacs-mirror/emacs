@@ -288,7 +288,7 @@ variable `tab-line-tab-name-function'."
   "Maximum length of the tab name from the current buffer.
 Effective when `tab-line-tab-name-function' is customized
 to `tab-line-tab-name-truncated-buffer'."
-  :type 'integer
+  :type 'natnum
   :group 'tab-line
   :version "27.1")
 

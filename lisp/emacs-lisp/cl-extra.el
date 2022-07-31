@@ -71,8 +71,7 @@ numbers of different types (float vs. integer), and also compares
 strings case-insensitively."
   (cond ((eq x y) t)
 	((stringp x)
-	 (and (stringp y) (= (length x) (length y))
-              (eq (compare-strings x nil nil y nil nil t) t)))
+	 (and (stringp y) (string-equal-ignore-case x y)))
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)
@@ -553,10 +552,14 @@ too large if positive or too small if negative)."
 			,new)))))
   (seq-subseq seq start end))
 
+;;; This isn't a defalias because autoloading defalises doesn't work
+;;; very well.
+
 ;;;###autoload
-(defalias 'cl-concatenate #'seq-concatenate
+(defun cl-concatenate (type &rest sequences)
   "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
-\n(fn TYPE SEQUENCE...)")
+\n(fn TYPE SEQUENCE...)"
+  (apply #'seq-concatenate type sequences))
 
 ;;; List functions.
 

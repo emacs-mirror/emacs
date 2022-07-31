@@ -59,7 +59,7 @@
 (defcustom pop3-port 110
   "POP3 port."
   :version "22.1" ;; Oort Gnus
-  :type 'number
+  :type 'natnum
   :group 'pop3)
 
 (defcustom pop3-password-required t
@@ -88,7 +88,7 @@ valid value is `apop'."
 The lower the number, the more latency-sensitive the fetching
 will be.  If your pop3 server doesn't support streaming at all,
 set this to 1."
-  :type 'number
+  :type 'natnum
   :version "24.1"
   :group 'pop3)
 

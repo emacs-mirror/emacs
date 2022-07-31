@@ -451,7 +451,7 @@ window to a height less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
 shorter, explicitly specify the SIZE argument of that function."
-  :type 'integer
+  :type 'natnum
   :version "24.1"
   :group 'windows)
 
@@ -483,7 +483,7 @@ window to a width less than the one specified here, an
 application should instead call `window-resize' with a non-nil
 IGNORE argument.  In order to have `split-window' make a window
 narrower, explicitly specify the SIZE argument of that function."
-  :type 'integer
+  :type 'natnum
   :version "24.1"
   :group 'windows)
 
@@ -2488,15 +2488,23 @@ and no others."
 
 (defalias 'some-window 'get-window-with-predicate)
 
+(defcustom display-buffer-avoid-small-windows nil
+  "If non-nil, windows that have fewer lines than this are avoided.
+This is used by `get-lru-window'.  The value is interpreted in units
+of the frame's canonical line height, like `window-total-height' does."
+  :type '(choice (const nil) number)
+  :version "29.1"
+  :group 'windows)
+
 (defun get-lru-window (&optional all-frames dedicated not-selected no-other)
-   "Return the least recently used window on frames specified by ALL-FRAMES.
+  "Return the least recently used window on frames specified by ALL-FRAMES.
 Return a full-width window if possible.  A minibuffer window is
 never a candidate.  A dedicated window is never a candidate
 unless DEDICATED is non-nil, so if all windows are dedicated, the
 value is nil.  Avoid returning the selected window if possible.
 Optional argument NOT-SELECTED non-nil means never return the
 selected window.  Optional argument NO-OTHER non-nil means to
-never return a window whose 'no-other-window' parameter is
+never return a window whose `no-other-window' parameter is
 non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
@@ -2513,15 +2521,23 @@ have special meanings:
 - A frame means consider all windows on that frame only.
 
 Any other value of ALL-FRAMES means consider all windows on the
-selected frame and no others."
-   (let (best-window best-time second-best-window second-best-time time)
-    (dolist (window (window-list-1 nil 'nomini all-frames))
+selected frame and no others.
+
+`display-buffer-avoid-small-windows', if non-nil, is also taken into
+consideration.  Windows whose height is smaller that the value of that
+variable will be avoided if larger windows are available."
+  (let ((windows (window-list-1 nil 'nomini all-frames))
+        best-window best-time second-best-window second-best-time time)
+    (dolist (window windows)
       (when (and (or dedicated (not (window-dedicated-p window)))
 		 (or (not not-selected) (not (eq window (selected-window))))
                  (or (not no-other)
                      (not (window-parameter window 'no-other-window))))
 	(setq time (window-use-time window))
 	(if (or (eq window (selected-window))
+                (and display-buffer-avoid-small-windows
+                     (< (window-height window)
+                        display-buffer-avoid-small-windows))
 		(not (window-full-width-p window)))
 	    (when (or (not second-best-time) (< time second-best-time))
 	      (setq second-best-time time)
@@ -2538,7 +2554,7 @@ never a candidate unless DEDICATED is non-nil, so if all windows
 are dedicated, the value is nil.  Optional argument NOT-SELECTED
 non-nil means never return the selected window.  Optional
 argument NO-OTHER non-nil means to never return a window whose
-'no-other-window' parameter is non-nil.
+`no-other-window' parameter is non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -2574,7 +2590,7 @@ never a candidate unless DEDICATED is non-nil, so if all windows
 are dedicated, the value is nil.  Optional argument NOT-SELECTED
 non-nil means never return the selected window.  Optional
 argument NO-OTHER non-nil means to never return a window whose
-'no-other-window' parameter is non-nil.
+`no-other-window' parameter is non-nil.
 
 The following non-nil values of the optional argument ALL-FRAMES
 have special meanings:
@@ -4165,8 +4181,8 @@ another live window on that frame to serve as its selected
 window.  This option allows to control which window gets selected
 instead.
 
-The possible choices are 'mru' (the default) to select the most
-recently used window on that frame, and 'pos' to choose the
+The possible choices are `mru' (the default) to select the most
+recently used window on that frame, and `pos' to choose the
 window at the frame coordinates of point of the previously
 selected window.  If this is nil, choose the frame's first window
 instead.  A window with a non-nil `no-other-window' parameter is
@@ -4578,7 +4594,9 @@ as well.  In that case, if this option specifies a function, it
 will be called with the third argument nil.
 
 Under certain circumstances `switch-to-prev-buffer' may ignore
-this option, for example, when there is only one buffer left."
+this option, for example, when there is only one buffer left.
+
+Also see `switch-to-prev-buffer-skip-regexp'."
   :type
   '(choice (const :tag "Never" nil)
            (const :tag "This frame" this)
@@ -4589,16 +4607,37 @@ this option, for example, when there is only one buffer left."
   :version "27.1"
   :group 'windows)
 
+(defcustom switch-to-prev-buffer-skip-regexp nil
+  "Buffers that `switch-to-prev-buffer' and `switch-to-next-buffer' should skip.
+The value can either be a regexp or a list of regexps.  Buffers whose
+names match these regexps are skipped by `switch-to-prev-buffer'
+and `switch-to-next-buffer'.
+
+Also see `switch-to-prev-buffer-skip'."
+  :type '(choice regexp
+                 (repeat regexp))
+  :version "29.1"
+  :group 'windows)
+
 (defun switch-to-prev-buffer-skip-p (skip window buffer &optional bury-or-kill)
   "Return non-nil if `switch-to-prev-buffer' should skip BUFFER.
 SKIP is a value derived from `switch-to-prev-buffer-skip', WINDOW
 the window `switch-to-prev-buffer' acts upon.  Optional argument
 BURY-OR-KILL is passed unchanged by `switch-to-prev-buffer' and
 omitted in calls from `switch-to-next-buffer'."
-  (when skip
-    (if (functionp skip)
-        (funcall skip window buffer bury-or-kill)
-      (get-buffer-window buffer skip))))
+  (or (and skip
+           (if (functionp skip)
+               (funcall skip window buffer bury-or-kill)
+             (get-buffer-window buffer skip)))
+      (and switch-to-prev-buffer-skip-regexp
+           (or (and (stringp switch-to-prev-buffer-skip-regexp)
+                    (string-match-p switch-to-prev-buffer-skip-regexp
+                                    (buffer-name buffer)))
+               (and (consp switch-to-prev-buffer-skip-regexp)
+                    (catch 'found
+                      (dolist (regexp switch-to-prev-buffer-skip-regexp)
+                        (when (string-match-p regexp (buffer-name buffer))
+                          (throw 'tag t)))))))))
 
 (defun switch-to-prev-buffer (&optional window bury-or-kill)
   "In WINDOW switch to previous buffer.
@@ -4886,10 +4925,7 @@ the buffer `*scratch*', creating it if necessary."
   (setq frame (or frame (selected-frame)))
   (or (get-next-valid-buffer (nreverse (buffer-list frame))
  			     buffer visible-ok frame)
-      (get-buffer "*scratch*")
-      (let ((scratch (get-buffer-create "*scratch*")))
-	(set-buffer-major-mode scratch)
-	scratch)))
+      (get-scratch-buffer-create)))
 
 (defcustom frame-auto-hide-function #'iconify-frame
   "Function called to automatically hide frames.
@@ -5007,7 +5043,11 @@ minibuffer window or is dedicated to its buffer."
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
 and defaults to the current buffer.
 
-Interactively, prompt for the buffer.
+Interactively, this command will prompt for the buffer name.  A
+prefix argument of 0 (zero) means that only windows in the
+current terminal's frames will be deleted.  Any other prefix
+argument means that only windows in the current frame will be
+deleted.
 
 The following non-nil values of the optional argument FRAME
 have special meanings:
@@ -5044,7 +5084,21 @@ If the buffer specified by BUFFER-OR-NAME is shown in a
 minibuffer window, do nothing for that window.  For any window
 that does not show that buffer, remove the buffer from that
 window's lists of previous and next buffers."
-  (interactive "bDelete windows on (buffer):\nP")
+  (interactive
+   (let ((frame (cond
+                 ((and (numberp current-prefix-arg)
+                       (zerop current-prefix-arg))
+                  0)
+                 (current-prefix-arg t))))
+     (list (read-buffer "Delete windows on (buffer): "
+                        nil nil
+                        (lambda (buf)
+                          (get-buffer-window
+                           (if (consp buf) (car buf) buf)
+                           (cond
+                            ((null frame) t)
+                            ((numberp frame) frame)))))
+           frame)))
   (let ((buffer (window-normalize-buffer buffer-or-name))
 	;; Handle the "inverted" meaning of the FRAME argument wrt other
 	;; `window-list-1' based function.
@@ -5104,6 +5158,14 @@ all window-local buffer lists."
   :version "27.1"
   :group 'windows)
 
+(defun window--quit-restore-select-window (window)
+  "Select WINDOW after having quit another one.
+Do not select an inactive minibuffer window."
+  (when (and (window-live-p window)
+             (or (not (window-minibuffer-p window))
+                 (minibuffer-window-active-p window)))
+    (select-window window)))
+
 (defun quit-restore-window (&optional window bury-or-kill)
   "Quit WINDOW and deal with its buffer.
 WINDOW must be a live window and defaults to the selected one.
@@ -5117,7 +5179,7 @@ parameter to nil.  See Info node `(elisp) Quitting Windows' for
 more details.
 
 If WINDOW's dedicated flag is t, try to delete WINDOW.  If it
-equals the value 'side', restore that value when WINDOW is not
+equals the value `side', restore that value when WINDOW is not
 deleted.
 
 Optional second argument BURY-OR-KILL tells how to proceed with
@@ -5142,6 +5204,7 @@ nil means to not handle the buffer in a particular way.  This
   (setq window (window-normalize-window window t))
   (let* ((buffer (window-buffer window))
 	 (quit-restore (window-parameter window 'quit-restore))
+	 (quit-restore-2 (nth 2 quit-restore))
          (prev-buffer (catch 'prev-buffer
                         (dolist (buf (window-prev-buffers window))
                           (unless (eq (car buf) buffer)
@@ -5153,15 +5216,13 @@ nil means to not handle the buffer in a particular way.  This
      ((and dedicated (not (eq dedicated 'side))
            (window--delete window 'dedicated (eq bury-or-kill 'kill)))
       ;; If the previously selected window is still alive, select it.
-      (when (window-live-p (nth 2 quit-restore))
-        (select-window (nth 2 quit-restore))))
+      (window--quit-restore-select-window quit-restore-2))
      ((and (not prev-buffer)
 	   (eq (nth 1 quit-restore) 'tab)
 	   (eq (nth 3 quit-restore) buffer))
       (tab-bar-close-tab)
       ;; If the previously selected window is still alive, select it.
-      (when (window-live-p (nth 2 quit-restore))
-	(select-window (nth 2 quit-restore))))
+      (window--quit-restore-select-window quit-restore-2))
      ((and (not prev-buffer)
 	   (or (eq (nth 1 quit-restore) 'frame)
 	       (and (eq (nth 1 quit-restore) 'window)
@@ -5173,8 +5234,7 @@ nil means to not handle the buffer in a particular way.  This
 	   ;; Delete WINDOW if possible.
 	   (window--delete window nil (eq bury-or-kill 'kill)))
       ;; If the previously selected window is still alive, select it.
-      (when (window-live-p (nth 2 quit-restore))
-	(select-window (nth 2 quit-restore))))
+      (window--quit-restore-select-window quit-restore-2))
      ((and (listp (setq quad (nth 1 quit-restore)))
 	   (buffer-live-p (car quad))
 	   (eq (nth 3 quit-restore) buffer))
@@ -5218,8 +5278,8 @@ nil means to not handle the buffer in a particular way.  This
       ;; Reset the quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
       ;; Select old window.
-      (when (window-live-p (nth 2 quit-restore))
-	(select-window (nth 2 quit-restore))))
+      ;; If the previously selected window is still alive, select it.
+      (window--quit-restore-select-window quit-restore-2))
      (t
       ;; Show some other buffer in WINDOW and reset the quit-restore
       ;; parameter.
@@ -5232,8 +5292,8 @@ nil means to not handle the buffer in a particular way.  This
           (when (eq dedicated 'side)
             (set-window-dedicated-p window 'side))
         (window--delete window nil (eq bury-or-kill 'kill))
-        (when (window-live-p (nth 2 quit-restore))
-          (select-window (nth 2 quit-restore))))))
+      ;; If the previously selected window is still alive, select it.
+      (window--quit-restore-select-window quit-restore-2))))
 
     ;; Deal with the buffer.
     (cond
@@ -5698,12 +5758,12 @@ right, if any."
 ;;; Balancing windows.
 
 ;; The following routine uses the recycled code from an old version of
-;; `window--resize-child-windows'.  It's not very pretty, but coding it the way the
-;; new `window--resize-child-windows' code does would hardly make it any shorter or
-;; more readable (FWIW we'd need three loops - one to calculate the
-;; minimum sizes per window, one to enlarge or shrink windows until the
-;; new parent-size matches, and one where we shrink the largest/enlarge
-;; the smallest window).
+;; `window--resize-child-windows'.  It's not very pretty, but coding it
+;; the way the new `window--resize-child-windows' code does would hardly
+;; make it any shorter or more readable (FWIW we'd need three loops -
+;; one to calculate the minimum sizes per window, one to enlarge or
+;; shrink windows until the new parent-size matches, and one where we
+;; shrink the largest/enlarge the smallest window).
 (defun balance-windows-2 (window horizontal)
   "Subroutine of `balance-windows-1'.
 WINDOW must be a vertical combination (horizontal if HORIZONTAL
@@ -5714,9 +5774,10 @@ is non-nil)."
 	 (first (window-child window))
 	 (sub first)
 	 (number-of-children 0)
+         (rest 0)
 	 (parent-size (window-new-pixel window))
 	 (total-sum parent-size)
-	 failed size sub-total sub-delta sub-amount rest)
+	 failed size sub-total sub-delta sub-amount)
     (while sub
       (if (window-size-fixed-p sub horizontal)
           (progn
@@ -6394,7 +6455,11 @@ windows can get as small as `window-safe-min-height' and
 	(window--state-put-2 ignore pixelwise))
       (while window-state-put-stale-windows
 	(let ((window (pop window-state-put-stale-windows)))
-	  (when (eq (window-deletable-p window) t)
+          ;; Avoid that 'window-deletable-p' throws an error if window
+          ;; was already deleted when exiting 'with-temp-buffer' above
+          ;; (Bug#54028).
+	  (when (and (window-valid-p window)
+                     (eq (window-deletable-p window) t))
 	    (delete-window window))))
       (window--check frame))))
 
@@ -7386,6 +7451,7 @@ The actual non-nil value of this variable will be copied to the
 	   (const display-buffer-pop-up-window)
 	   (const display-buffer-same-window)
 	   (const display-buffer-pop-up-frame)
+	   (const display-buffer-full-frame)
 	   (const display-buffer-in-child-frame)
 	   (const display-buffer-below-selected)
 	   (const display-buffer-at-bottom)
@@ -7435,9 +7501,9 @@ Its value takes effect before processing the ACTION argument of
 If non-nil, this is an alist of elements (CONDITION . ACTION),
 where:
 
- CONDITION is either a regexp matching buffer names, or a
-  function that takes two arguments - a buffer name and the
-  ACTION argument of `display-buffer' - and returns a boolean.
+ CONDITION is passed to `buffer-match-p', along with the buffer
+  that is to be displayed and the ACTION argument of
+  `display-buffer', to check if ACTION should be used.
 
  ACTION is a cons cell (FUNCTIONS . ALIST), where FUNCTIONS is an
   action function or a list of action functions and ALIST is an
@@ -7490,22 +7556,16 @@ all fail.  It should never be set by programs or users.  See
 `display-buffer'.")
 (put 'display-buffer-fallback-action 'risky-local-variable t)
 
-(defun display-buffer-assq-regexp (buffer-name alist action)
-  "Retrieve ALIST entry corresponding to BUFFER-NAME.
-This returns the cdr of the alist entry ALIST if either its key
-is a string that matches BUFFER-NAME, as reported by
-`string-match-p'; or if the key is a function that returns
-non-nil when called with three arguments: the ALIST key,
-BUFFER-NAME and ACTION.  ACTION should have the form of the
-action argument passed to `display-buffer'."
+(defun display-buffer-assq-regexp (buffer-or-name alist action)
+  "Retrieve ALIST entry corresponding to buffer specified by BUFFER-OR-NAME.
+This returns the cdr of the alist entry ALIST if the entry's
+key (its car) and BUFFER-OR-NAME satisfy `buffer-match-p', using
+the key as CONDITION argument of `buffer-match-p'.  ACTION should
+have the form of the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
-      (let ((key (car entry)))
-	(when (or (and (stringp key)
-		       (string-match-p key buffer-name))
-		  (and (functionp key)
-		       (funcall key buffer-name action)))
-	  (throw 'match (cdr entry)))))))
+      (when (buffer-match-p (car entry) buffer-or-name action)
+        (throw 'match (cdr entry))))))
 
 (defvar display-buffer--same-window-action
   '(display-buffer-same-window
@@ -7538,6 +7598,7 @@ to an expression containing one of these \"action\" functions:
  `display-buffer-use-least-recent-window' -- Try to avoid re-using
     windows that have recently been switched to.
  `display-buffer-pop-up-window' -- Pop up a new window.
+ `display-buffer-full-frame' -- Delete other windows and use the full frame.
  `display-buffer-below-selected' -- Use or pop up a window below
     the selected one.
  `display-buffer-at-bottom' -- Use or pop up a window at the
@@ -7550,7 +7611,7 @@ to an expression containing one of these \"action\" functions:
 
 For instance:
 
-   (setq display-buffer-alist '((\".*\" display-buffer-at-bottom)))
+   (setq display-buffer-alist \\='((\".*\" display-buffer-at-bottom)))
 
 Buffer display can be further customized to a very high degree;
 the rest of this docstring explains some of the many
@@ -7605,7 +7666,7 @@ Action alist entries are:
     the window specified in frame lines), a floating point
     number (the fraction of its total height with respect to the
     total height of the frame's root window), a cons cell whose
-    car is 'body-lines' and whose cdr is an integer that
+    car is `body-lines' and whose cdr is an integer that
     specifies the height of the window's body in frame lines, or
     a function to be called with one argument - the chosen
     window.  That function is supposed to adjust the height of
@@ -7616,7 +7677,7 @@ Action alist entries are:
     the window specified in frame lines), a floating point
     number (the fraction of its total width with respect to the
     width of the frame's root window), a cons cell whose car is
-    'body-columns' and whose cdr is an integer that specifies the
+    `body-columns' and whose cdr is an integer that specifies the
     width of the window's body in frame columns, or a function to
     be called with one argument - the chosen window.  That
     function is supposed to adjust the width of the window.
@@ -7624,7 +7685,7 @@ Action alist entries are:
     alone on their frame and specifies the desired size of that
     window either as a cons of integers (the total width and
     height of the window on that frame), a cons cell whose car is
-    'body-chars' and whose cdr is a cons of integers (the desired
+    `body-chars' and whose cdr is a cons of integers (the desired
     width and height of the window's body in columns and lines of
     its frame), or a function to be called with one argument -
     the chosen window.  That function is supposed to adjust the
@@ -7674,7 +7735,7 @@ specified by the ACTION argument."
       ;; Otherwise, use the defined actions.
       (let* ((user-action
 	      (display-buffer-assq-regexp
-	       (buffer-name buffer) display-buffer-alist action))
+	       buffer display-buffer-alist action))
              (special-action (display-buffer--special-action buffer))
 	     ;; Extra actions from the arguments to this function:
 	     (extra-action
@@ -7770,6 +7831,23 @@ indirectly called by the latter."
 	      (window-minibuffer-p)
 	      (window-dedicated-p))
     (window--display-buffer buffer (selected-window) 'reuse alist)))
+
+(defun display-buffer-full-frame (buffer alist)
+  "Display BUFFER in the current frame, taking the entire frame.
+ALIST is an association list of action symbols and values.  See
+Info node `(elisp) Buffer Display Action Alists' for details of
+such alists.
+
+This is an action function for buffer display, see Info
+node `(elisp) Buffer Display Action Functions'.  It should be
+called only by `display-buffer' or a function directly or
+indirectly called by the latter."
+  (when-let ((window (or (display-buffer-reuse-window buffer alist)
+                         (display-buffer-same-window buffer alist)
+                         (display-buffer-pop-up-window buffer alist)
+                         (display-buffer-use-some-window buffer alist))))
+    (delete-other-windows window)
+    window))
 
 (defun display-buffer--maybe-same-window (buffer alist)
   "Conditionally display BUFFER in the selected window.
@@ -8604,12 +8682,13 @@ If BUFFER-OR-NAME is nil, return the buffer returned by
 `other-buffer'.  Else, if a buffer specified by BUFFER-OR-NAME
 exists, return that buffer.  If no such buffer exists, create a
 buffer with the name BUFFER-OR-NAME and return that buffer."
-  (if buffer-or-name
-      (or (get-buffer buffer-or-name)
-	  (let ((buffer (get-buffer-create buffer-or-name)))
-	    (set-buffer-major-mode buffer)
-	    buffer))
-    (other-buffer)))
+  (pcase buffer-or-name
+    ('nil (other-buffer))
+    ("*scratch*" (get-scratch-buffer-create))
+    (_ (or (get-buffer buffer-or-name)
+	   (let ((buffer (get-buffer-create buffer-or-name)))
+	     (set-buffer-major-mode buffer)
+	     buffer)))))
 
 (defcustom switch-to-buffer-preserve-window-point t
   "If non-nil, `switch-to-buffer' tries to preserve `window-point'.
@@ -8852,6 +8931,7 @@ to deactivate this overriding action."
   (let* ((old-window (or (minibuffer-selected-window) (selected-window)))
          (new-window nil)
          (minibuffer-depth (minibuffer-depth))
+         (obey-display switch-to-buffer-obey-display-actions)
          (clearfun (make-symbol "clear-display-buffer-overriding-action"))
          (postfun (make-symbol "post-display-buffer-override-next-command"))
          (action (lambda (buffer alist)
@@ -8876,6 +8956,7 @@ to deactivate this overriding action."
               (funcall post-function old-window new-window)))))
     (fset clearfun
           (lambda ()
+            (setq switch-to-buffer-obey-display-actions obey-display)
             (setcar display-buffer-overriding-action
                     (delq action (car display-buffer-overriding-action)))))
     (fset postfun
@@ -8892,6 +8973,7 @@ to deactivate this overriding action."
     (add-hook 'post-command-hook postfun)
     (when echofun
       (add-hook 'prefix-command-echo-keystrokes-functions echofun))
+    (setq switch-to-buffer-obey-display-actions t)
     (push action (car display-buffer-overriding-action))
     exitfun))
 
@@ -9097,10 +9179,11 @@ present.  See also `fit-frame-to-buffer-sizes'."
 
 (defcustom fit-frame-to-buffer-sizes '(nil nil nil nil)
   "Size boundaries of frame for `fit-frame-to-buffer'.
-This list specifies the total maximum and minimum lines and
-maximum and minimum columns of the root window of any frame that
-shall be fit to its buffer.  If any of these values is non-nil,
-it overrides the corresponding argument of `fit-frame-to-buffer'.
+This list specifies the total maximum and minimum numbers of
+lines and the maximum and minimum numbers of columns of the body
+of the root window of any frame that shall be fit to its buffer.
+Any value specified by ths variable will be overridden by the
+corresponding argument of `fit-frame-to-buffer', if non-nil.
 
 On window systems where the menubar can wrap, fitting a frame to
 its buffer may swallow the last line(s).  Specifying an
@@ -9296,30 +9379,30 @@ for `fit-frame-to-buffer'."
               (t parent-or-display-height))
              ;; The following is the maximum height that fits into the
              ;; top and bottom margins.
-             (max (- bottom-margin top-margin outer-minus-body-height))))
+             (max (- bottom-margin top-margin outer-minus-body-height) 0)))
            (min-height
             (cond
              ((numberp min-height) (* min-height line-height))
              ((numberp (nth 1 sizes)) (* (nth 1 sizes) line-height))
-             (t (window-min-size window nil nil t))))
+             (t (window-safe-min-size window nil t))))
            (max-width
-            (min
-             (cond
-              ((numberp max-width) (* max-width char-width))
-              ((numberp (nth 2 sizes)) (* (nth 2 sizes) char-width))
-              (t parent-or-display-width))
-             ;; The following is the maximum width that fits into the
-             ;; left and right margins.
-             (max (- right-margin left-margin outer-minus-body-width))))
+            (unless (eq only 'vertically)
+              (min
+               (cond
+                ((numberp max-width) (* max-width char-width))
+                ((numberp (nth 2 sizes)) (* (nth 2 sizes) char-width))
+                (t parent-or-display-width))
+               ;; The following is the maximum width that fits into the
+               ;; left and right margins.
+               (max (- right-margin left-margin outer-minus-body-width) 0))))
            (min-width
             (cond
              ((numberp min-width) (* min-width char-width))
-             ((numberp (nth 3 sizes)) (nth 3 sizes))
-             (t (window-min-size window t nil t))))
+             ((numberp (nth 3 sizes)) (* (nth 3 sizes) char-width))
+             (t (window-safe-min-size window t t))))
            ;; Note: Currently, for a new frame the sizes of the header
            ;; and mode line may be estimated incorrectly
-           (size
-            (window-text-pixel-size window from to max-width max-height))
+           (size (window-text-pixel-size window from to max-width max-height))
            (width (max (car size) min-width))
            (height (max (cdr size) min-height)))
       ;; Don't change height or width when the window's size is fixed
@@ -10014,67 +10097,118 @@ When point is already on that position, then signal an error."
 
 (defun scroll-up-command (&optional arg)
   "Scroll text of selected window upward ARG lines; or near full screen if no ARG.
+Interactively, giving this command a numerical prefix will scroll
+up by that many lines (and down by that many lines if the number
+is negative).  Without a prefix, scroll up by a full screen.
+If given a `C-u -' prefix, scroll a full page down instead.
+
 If `scroll-error-top-bottom' is non-nil and `scroll-up' cannot
 scroll window further, move cursor to the bottom line.
 When point is already on that position, then signal an error.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
-If ARG is the atom `-', scroll downward by nearly full screen."
+
+If ARG is the atom `-', scroll downward by nearly full screen.
+
+The command \\[set-goal-column] can be used to create a
+semipermanent goal column for this command."
   (interactive "^P")
-  (cond
-   ((null scroll-error-top-bottom)
-    (scroll-up arg))
-   ((eq arg '-)
-    (scroll-down-command nil))
-   ((< (prefix-numeric-value arg) 0)
-    (scroll-down-command (- (prefix-numeric-value arg))))
-   ((eobp)
-    (scroll-up arg))			; signal error
-   (t
-    (condition-case nil
-	(scroll-up arg)
-      (end-of-buffer
-       (if arg
-	   ;; When scrolling by ARG lines can't be done,
-	   ;; move by ARG lines instead.
-	   (forward-line arg)
-	 ;; When ARG is nil for full-screen scrolling,
-	 ;; move to the bottom of the buffer.
-	 (goto-char (point-max))))))))
+  (prog1
+      (cond
+       ((null scroll-error-top-bottom)
+        (scroll-up arg))
+       ((eq arg '-)
+        (scroll-down-command nil))
+       ((< (prefix-numeric-value arg) 0)
+        (scroll-down-command (- (prefix-numeric-value arg))))
+       ((eobp)
+        (scroll-up arg))                ; signal error
+       (t
+        (condition-case nil
+	    (scroll-up arg)
+          (end-of-buffer
+           (if arg
+	       ;; When scrolling by ARG lines can't be done,
+	       ;; move by ARG lines instead.
+	       (forward-line arg)
+	     ;; When ARG is nil for full-screen scrolling,
+	     ;; move to the bottom of the buffer.
+	     (goto-char (point-max)))))))
+    (scroll-command--goto-goal-column)))
+
+(defun scroll-command--goto-goal-column ()
+  (when goal-column
+    ;; Move to the desired column.
+    (if (and line-move-visual
+             (not (or truncate-lines truncate-partial-width-windows)))
+        ;; Under line-move-visual, goal-column should be
+        ;; interpreted in units of the frame's canonical character
+        ;; width, which is exactly what vertical-motion does.
+        (vertical-motion (cons goal-column 0))
+      (line-move-to-column (truncate goal-column)))))
 
 (put 'scroll-up-command 'scroll-command t)
 
 (defun scroll-down-command (&optional arg)
   "Scroll text of selected window down ARG lines; or near full screen if no ARG.
+Interactively, giving this command a numerical prefix will scroll
+down by that many lines (and up by that many lines if the number
+is negative).  Without a prefix, scroll down by a full screen.
+If given a `C-u -' prefix, scroll a full page up instead.
+
 If `scroll-error-top-bottom' is non-nil and `scroll-down' cannot
 scroll window further, move cursor to the top line.
 When point is already on that position, then signal an error.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
-If ARG is the atom `-', scroll upward by nearly full screen."
+
+If ARG is the atom `-', scroll upward by nearly full screen.
+
+The command \\[set-goal-column] can be used to create a
+semipermanent goal column for this command."
   (interactive "^P")
-  (cond
-   ((null scroll-error-top-bottom)
-    (scroll-down arg))
-   ((eq arg '-)
-    (scroll-up-command nil))
-   ((< (prefix-numeric-value arg) 0)
-    (scroll-up-command (- (prefix-numeric-value arg))))
-   ((bobp)
-    (scroll-down arg))			; signal error
-   (t
-    (condition-case nil
-	(scroll-down arg)
-      (beginning-of-buffer
-       (if arg
-	   ;; When scrolling by ARG lines can't be done,
-	   ;; move by ARG lines instead.
-	   (forward-line (- arg))
-	 ;; When ARG is nil for full-screen scrolling,
-	 ;; move to the top of the buffer.
-	 (goto-char (point-min))))))))
+  (prog1
+      (cond
+       ((null scroll-error-top-bottom)
+        (scroll-down arg))
+       ((eq arg '-)
+        (scroll-up-command nil))
+       ((< (prefix-numeric-value arg) 0)
+        (scroll-up-command (- (prefix-numeric-value arg))))
+       ((bobp)
+        (scroll-down arg))              ; signal error
+       (t
+        (condition-case nil
+	    (scroll-down arg)
+          (beginning-of-buffer
+           (if arg
+	       ;; When scrolling by ARG lines can't be done,
+	       ;; move by ARG lines instead.
+	       (forward-line (- arg))
+	     ;; When ARG is nil for full-screen scrolling,
+	     ;; move to the top of the buffer.
+	     (goto-char (point-min)))))))
+    (scroll-command--goto-goal-column)))
 
 (put 'scroll-down-command 'scroll-command t)
+
+(defun scroll-other-window (&optional lines)
+  "Scroll next window upward LINES lines; or near full screen if no ARG.
+See `scroll-up-command' for details."
+  (interactive "P")
+  (with-selected-window (other-window-for-scrolling)
+    (funcall (or (command-remapping #'scroll-up-command)
+                 #'scroll-up-command)
+             lines)))
+
+(defun scroll-other-window-down (&optional lines)
+  "Scroll next window downward LINES lines; or near full screen if no ARG.
+See `scroll-down-command' for details."
+  (interactive "P")
+  (with-selected-window (other-window-for-scrolling)
+    (funcall (or (command-remapping #'scroll-down-command)
+                 #'scroll-down-command)
+             lines)))
 
 ;;; Scrolling commands which scroll a line instead of full screen.
 

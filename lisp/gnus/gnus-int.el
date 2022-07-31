@@ -114,10 +114,7 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
 	;; Read server name with completion.
 	(setq gnus-nntp-server
 	      (gnus-completing-read "NNTP server"
-                                    (cons gnus-nntp-server
-					  (if (boundp 'gnus-secondary-servers)
-					      gnus-secondary-servers))
-                                    nil gnus-nntp-server)))
+                                    nil nil gnus-nntp-server)))
 
       (when (and gnus-nntp-server
 		 (stringp gnus-nntp-server)

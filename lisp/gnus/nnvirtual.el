@@ -114,14 +114,9 @@ It is computed from the marks of individual component groups.")
 		       (gnus-check-server
 			(gnus-find-method-for-group cgroup) t)
 		       (gnus-request-group cgroup t)
-		       (setq prefix (gnus-group-real-prefix cgroup))
-		       ;; FIX FIX FIX we want to check the cache!
-		       ;; This is probably evil if people have set
-		       ;; gnus-use-cache to nil themselves, but I
-		       ;; have no way of finding the true value of it.
-		       (let ((gnus-use-cache t))
-			 (setq result (gnus-retrieve-headers
-				       articles cgroup nil))))
+		       (setq prefix (gnus-group-real-prefix cgroup)
+                             result (gnus-retrieve-headers
+				     articles cgroup nil)))
 	      (set-buffer nntp-server-buffer)
 	      ;; If we got HEAD headers, we convert them into NOV
 	      ;; headers.  This is slow, inefficient and, come to think

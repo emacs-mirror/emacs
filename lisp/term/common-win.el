@@ -59,21 +59,19 @@
 	(setq system-key-alist
 	      (list
 	       ;; These are special "keys" used to pass events from C to lisp.
-	       (cons  1 'ns-power-off)
-	       (cons  2 'ns-open-file)
-	       (cons  3 'ns-open-temp-file)
-	       (cons  4 'ns-drag-file)
-	       (cons  5 'ns-drag-color)
-	       (cons  6 'ns-drag-text)
-	       (cons  7 'ns-change-font)
-	       (cons  8 'ns-open-file-line)
-;;;	       (cons  9 'ns-insert-working-text)
-;;;	       (cons 10 'ns-delete-working-text)
-	       (cons 11 'ns-spi-service-call)
-	       (cons 12 'ns-new-frame)
-	       (cons 13 'ns-toggle-toolbar)
-	       (cons 14 'ns-show-prefs)
-	       ))))
+	       (cons  1 (make-non-key-event 'ns-power-off))
+	       (cons  2 (make-non-key-event 'ns-open-file))
+	       (cons  3 (make-non-key-event 'ns-open-temp-file))
+	       (cons  4 (make-non-key-event 'ns-drag-file))
+	       (cons  5 (make-non-key-event 'ns-drag-color))
+	       (cons  6 (make-non-key-event 'ns-drag-text))
+	       (cons  8 (make-non-key-event 'ns-open-file-line))
+;;;	       (cons  9 (make-non-key-event 'ns-insert-working-text))
+;;;	       (cons 10 (make-non-key-event 'ns-delete-working-text))
+	       (cons 11 (make-non-key-event 'ns-spi-service-call))
+	       (cons 12 (make-non-key-event 'ns-new-frame))
+	       (cons 13 (make-non-key-event 'ns-toggle-toolbar))
+	       (cons 14 (make-non-key-event 'ns-show-prefs))))))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 (defvar x-invocation-args)
@@ -418,6 +416,16 @@ the operating system.")
 	(and (color-supported-p this-color frame t)
 	     (setq defined-colors (cons this-color defined-colors))))
       defined-colors)))
+
+;;;; Session management.
+
+(defvar emacs-save-session-functions nil
+  "Special hook run when a save-session event occurs.
+The functions do not get any argument.
+Functions can return non-nil to inform the session manager that the
+window system shutdown should be aborted.
+
+See also `emacs-session-save'.")
 
 (provide 'term/common-win)
 

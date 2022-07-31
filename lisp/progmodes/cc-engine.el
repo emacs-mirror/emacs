@@ -1239,7 +1239,7 @@ comment at the start of cc-engine.el for more info."
 			   (not comma-delimited)
 			   (not (c-looking-at-inexpr-block lim nil t))
 			   (save-excursion
-			     (c-backward-token-2 1 t nil)
+			     (c-backward-token-2 1 t nil) ; Don't test the value
 			     (not (looking-at "=\\([^=]\\|$\\)")))
 			   (or
 			    (not c-opt-block-decls-with-vars-key)
@@ -1672,9 +1672,13 @@ comment at the start of cc-engine.el for more info."
 Return the result of `forward-comment' if it gets called, nil otherwise."
   `(if (not comment-end-can-be-escaped)
        (forward-comment -1)
-     (when (and (< (skip-syntax-backward " >") 0)
-		(eq (char-after) ?\n))
-       (forward-char))
+     (let ((dist (skip-syntax-backward " >")))
+       (when (and
+	      (< dist 0)
+	      (progn
+		(skip-syntax-forward " " (- (point) dist 1))
+		(eq (char-after) ?\n)))
+	 (forward-char)))
      (cond
       ((and (eq (char-before) ?\n)
 	    (eq (char-before (1- (point))) ?\\))
@@ -3422,7 +3426,9 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
   ;; Return a good pos (in the sense of `c-state-cache-good-pos') at the
   ;; lowest[*] position between POS and HERE which is syntactically equivalent
   ;; to HERE.  This position may be HERE itself.  POS is before HERE in the
-  ;; buffer.
+  ;; buffer.  If POS and HERE are both in the same literal, return the start
+  ;; of the literal.  STATE is the parsing state at POS.
+  ;;
   ;; [*] We don't actually always determine this exact position, since this
   ;; would require a disproportionate amount of work, given that this function
   ;; deals only with a corner condition, and POS and HERE are typically on
@@ -3438,7 +3444,7 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 	  (setq pos (point)
 		state s)))
       (if (eq (point) here)		; HERE is in the same literal as POS
-	  pos
+	  (nth 8 state)		    ; A valid good pos cannot be in a literal.
 	(setq s (parse-partial-sexp pos here (1+ (car state)) nil state nil))
 	(cond
 	 ((> (car s) (car state))  ; Moved into a paren between POS and HERE
@@ -3884,7 +3890,10 @@ initializing CC Mode.  Currently (2020-06) these are `js-mode' and
 		  (cons (if (and ce (< bra ce) (> ce here)) ; {..} straddling HERE?
 			    bra
 			  (point-min))
-			(min here from)))))))))
+			(progn
+			  (goto-char (min here from))
+			  (c-beginning-of-macro)
+			  (point))))))))))
 
 (defsubst c-state-push-any-brace-pair (bra+1 macro-start-or-here)
   ;; If BRA+1 is nil, do nothing.  Otherwise, BRA+1 is the buffer position
@@ -6139,7 +6148,7 @@ comment at the start of cc-engine.el for more info."
 	  (setq s (cons -1 (cdr s))))
 	 ((and (equal match ",")
 	       (eq (car s) -1)))	; at "," in "class foo : bar, ..."
-	 ((member match '(";" "*" "," "("))
+	 ((member match '(";" "*" "," ")"))
 	  (when (and s (cdr s) (<= (car s) 0))
 	    (setq s (cdr s))))
 	 ((c-keyword-member kwd-sym 'c-flat-decl-block-kwds)
@@ -6832,7 +6841,7 @@ comment at the start of cc-engine.el for more info."
   (let ((type (c-syntactic-content from to c-recognize-<>-arglists)))
     (unless (gethash type c-found-types)
       (puthash type t c-found-types)
-      (when (and (not c-record-found-types) ; Only call `c-fontify-new-fount-type'
+      (when (and (not c-record-found-types) ; Only call `c-fontify-new-found-type'
 					; when we haven't "bound" c-found-types
 					; to itself in c-forward-<>-arglist.
 		 (eq (string-match c-symbol-key type) 0)
@@ -6846,7 +6855,7 @@ comment at the start of cc-engine.el for more info."
   ;; checking `c-new-id-start' and `c-new-id-end'.  That's done to avoid
   ;; adding all prefixes of a type as it's being entered and font locked.
   ;; This is a bit rough and ready, but now covers adding characters into the
-  ;; middle of an identifer.
+  ;; middle of an identifier.
   ;;
   ;; This function might do hidden buffer changes.
   (if (and c-new-id-start c-new-id-end
@@ -8284,9 +8293,10 @@ multi-line strings (but not C++, for example)."
 (defun c-forward-noise-clause ()
   ;; Point is at a c-noise-macro-with-parens-names macro identifier.  Go
   ;; forward over this name, any parenthesis expression which follows it, and
-  ;; any syntactic WS, ending up at the next token.  If there is an unbalanced
-  ;; paren expression, leave point at it.  Always Return t.
-  (c-forward-token-2)
+  ;; any syntactic WS, ending up at the next token or EOB.  If there is an
+  ;; unbalanced paren expression, leave point at it.  Always Return t.
+  (or (zerop (c-forward-token-2))
+      (goto-char (point-max)))
   (if (and (eq (char-after) ?\()
 	   (c-go-list-forward))
       (c-forward-syntactic-ws))

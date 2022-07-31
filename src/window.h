@@ -199,10 +199,6 @@ struct window
        and Qt, so bitfield can't be used here.  */
     Lisp_Object dedicated;
 
-    /* If redisplay in this window goes beyond this buffer position,
-       must run the redisplay-end-trigger-hook.  */
-    Lisp_Object redisplay_end_trigger;
-
     /* t means this window's child windows are not (re-)combined.  */
     Lisp_Object combination_limit;
 
@@ -445,6 +441,10 @@ struct window
        window.  */
     bool_bf suspend_auto_hscroll : 1;
 
+    /* True if vscroll should be preserved while forcing the start due
+       to a frozen window.  */
+    bool_bf preserve_vscroll_p : 1;
+
     /* Amount by which lines of this window are scrolled in
        y-direction (smooth scrolling).  */
     int vscroll;
@@ -491,12 +491,6 @@ INLINE void
 wset_prev (struct window *w, Lisp_Object val)
 {
   w->prev = val;
-}
-
-INLINE void
-wset_redisplay_end_trigger (struct window *w, Lisp_Object val)
-{
-  w->redisplay_end_trigger = val;
 }
 
 INLINE void
@@ -1182,16 +1176,23 @@ extern bool window_wants_mode_line (struct window *);
 extern bool window_wants_header_line (struct window *);
 extern bool window_wants_tab_line (struct window *);
 extern int window_internal_height (struct window *);
-extern int window_body_width (struct window *w, bool);
+enum window_body_unit
+  {
+    WINDOW_BODY_IN_CANONICAL_CHARS,
+    WINDOW_BODY_IN_PIXELS,
+    WINDOW_BODY_IN_REMAPPED_CHARS
+  };
+extern int window_body_width (struct window *w, enum window_body_unit);
+extern int window_body_height (struct window *w, enum window_body_unit);
 enum margin_unit { MARGIN_IN_LINES, MARGIN_IN_PIXELS };
 extern int window_scroll_margin (struct window *, enum margin_unit);
 extern void temp_output_buffer_show (Lisp_Object);
 extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
-extern void sanitize_window_sizes (Lisp_Object horizontal);
 /* This looks like a setter, but it is a bit special.  */
 extern void wset_buffer (struct window *, Lisp_Object);
 extern bool window_outdated (struct window *);
+extern ptrdiff_t window_point (struct window *w);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);

@@ -36,6 +36,12 @@ copyright.html in admin/unidata (some of them might need trailing
 whitespace removed before they can be committed to the Emacs
 repository).
 
+Next, review the assignment of default values of the Bidi Class
+property to blocks in the file extracted/DerivedBidiClass.txt from the
+UCD (search for "unassigned" in that file).  Any changes should be
+reflected in the unidata-gen.el file, where it sets up the default
+values around line 210.
+
 Then Emacs should be rebuilt for them to take effect.  Rebuilding
 Emacs updates several derived files elsewhere in the Emacs source
 tree, mainly in lisp/international/.

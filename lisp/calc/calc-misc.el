@@ -61,48 +61,48 @@
 
 ;;;###autoload
 (defun calc-dispatch-help (arg)
-  "C-x* is a prefix key sequence; follow it with one of these letters:
+  "\\`C-x *' is a prefix key sequence; follow it with one of these letters:
 
 For turning Calc on and off:
-  C  calc.  Start the Calculator in a window at the bottom of the screen.
-  O  calc-other-window.  Start the Calculator but don't select its window.
-  B  calc-big-or-small.  Control whether to use the full Emacs screen for Calc.
-  Q  quick-calc.  Use the Calculator in the minibuffer.
-  K  calc-keypad.  Start the Calculator in keypad mode (X window system only).
-  E  calc-embedded.  Use the Calculator on a formula in this editing buffer.
-  J  calc-embedded-select.  Like E, but select appropriate half of => or :=.
-  W  calc-embedded-word.  Like E, but activate a single word, i.e., a number.
-  Z  calc-user-invocation.  Invoke Calc in the way you defined with `Z I' cmd.
-  X  calc-quit.  Turn Calc off.
+  \\`C'  calc.  Start the Calculator in a window at the bottom of the screen.
+  \\`O'  calc-other-window.  Start the Calculator but don't select its window.
+  \\`B'  calc-big-or-small.  Toggle using the full Emacs screen for Calc.
+  \\`Q'  quick-calc.  Use the Calculator in the minibuffer.
+  \\`K'  calc-keypad.  Start the Calculator in keypad mode (X window system only).
+  \\`E'  calc-embedded.  Use the Calculator on a formula in this editing buffer.
+  \\`J'  calc-embedded-select.  Like \\`E', but select appropriate half of => or :=.
+  \\`W'  calc-embedded-word.  Like \\`E', but activate a single word, i.e., a number.
+  \\`Z'  calc-user-invocation.  Invoke Calc in the way you defined with `Z I' cmd.
+  \\`X'  calc-quit.  Turn Calc off.
 
 For moving data into and out of Calc:
-  G  calc-grab-region.  Grab the region defined by mark and point into Calc.
-  R  calc-grab-rectangle.  Grab the rectangle defined by mark, point into Calc.
-  :  calc-grab-sum-down.  Grab a rectangle and sum the columns.
-  _  calc-grab-sum-across.  Grab a rectangle and sum the rows.
-  Y  calc-copy-to-buffer.  Copy a value from the stack into the editing buffer.
+  \\`G'  calc-grab-region.  Grab the region defined by mark and point into Calc.
+  \\`R'  calc-grab-rectangle.  Grab the rectangle defined by mark, point into Calc.
+  \\`:'  calc-grab-sum-down.  Grab a rectangle and sum the columns.
+  \\`_'  calc-grab-sum-across.  Grab a rectangle and sum the rows.
+  \\`Y'  calc-copy-to-buffer.  Copy a value from the stack into the editing buffer.
 
 For use with Embedded mode:
-  A  calc-embedded-activate.  Find and activate all :='s and =>'s in buffer.
-  D  calc-embedded-duplicate.  Make a copy of this formula and select it.
-  F  calc-embedded-new-formula.  Insert a new formula at current point.
-  N  calc-embedded-next.  Advance cursor to next known formula in buffer.
-  P  calc-embedded-previous.  Advance cursor to previous known formula.
-  U  calc-embedded-update-formula.  Re-evaluate formula at point.
-  \\=`  calc-embedded-edit.  Use calc-edit to edit formula at point.
+  \\`A'  calc-embedded-activate.  Find and activate all :='s and =>'s in buffer.
+  \\`D'  calc-embedded-duplicate.  Make a copy of this formula and select it.
+  \\`F'  calc-embedded-new-formula.  Insert a new formula at current point.
+  \\`N'  calc-embedded-next.  Advance cursor to next known formula in buffer.
+  \\`P'  calc-embedded-previous.  Advance cursor to previous known formula.
+  \\`U'  calc-embedded-update-formula.  Re-evaluate formula at point.
+  \\``'  calc-embedded-edit.  Use calc-edit to edit formula at point.
 
 Documentation:
-  I  calc-info.  Read the Calculator manual in the Emacs Info system.
-  T  calc-tutorial.  Run the Calculator Tutorial using the Emacs Info system.
-  S  calc-summary.  Read the Summary from the Calculator manual in Info.
+  \\`I'  calc-info.  Read the Calculator manual in the Emacs Info system.
+  \\`T'  calc-tutorial.  Run the Calculator Tutorial using the Emacs Info system.
+  \\`S'  calc-summary.  Read the Summary from the Calculator manual in Info.
 
 Miscellaneous:
-  L  calc-load-everything.  Load all parts of the Calculator into memory.
-  M  read-kbd-macro.  Read a region of keystroke names as a keyboard macro.
-  0  (zero) calc-reset.  Reset Calc stack and modes to default state.
+  \\`L'  calc-load-everything.  Load all parts of the Calculator into memory.
+  \\`M'  read-kbd-macro.  Read a region of keystroke names as a keyboard macro.
+  \\`0'  (zero) calc-reset.  Reset Calc stack and modes to default state.
 
-Press `*' twice (`C-x * *') to turn Calc on or off using the same
-Calc user interface as before (either C-x * C or C-x * K; initially C-x * C)."
+Press \\`*' twice (\\`C-x * *') to turn Calc on or off using the same
+Calc user interface as before (either \\`C-x * C' or \\`C-x * K'; initially \\`C-x * C')."
   (interactive "P")
   (calc-check-defines)
   (if calc-dispatch-help

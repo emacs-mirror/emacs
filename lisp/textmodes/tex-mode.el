@@ -248,9 +248,9 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 (defcustom tex-fontify-script t
   "If non-nil, fontify subscript and superscript strings."
   :type 'boolean
+  :safe #'booleanp
   :group 'tex
   :version "23.1")
-(put 'tex-fontify-script 'safe-local-variable #'booleanp)
 
 (defcustom tex-font-script-display '(-0.2 0.2)
   "How much to lower and raise subscript and superscript content.
@@ -983,14 +983,13 @@ Inherits `shell-mode-map' with a few additions.")
       (when (and slash (not comment))
 	(setq mode
 	      (if (looking-at
-		   (eval-when-compile
-		     (concat
-		      (regexp-opt '("documentstyle" "documentclass"
-				    "begin" "subsection" "section"
-				    "part" "chapter" "newcommand"
-				    "renewcommand" "RequirePackage")
-				  'words)
-		      "\\|NeedsTeXFormat{LaTeX")))
+		   (concat
+		    (regexp-opt '("documentstyle" "documentclass"
+				  "begin" "subsection" "section"
+				  "part" "chapter" "newcommand"
+				  "renewcommand" "RequirePackage")
+				'words)
+		    "\\|NeedsTeXFormat{LaTeX"))
 		  (if (and (looking-at
 			    "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
 			   ;; SliTeX is almost never used any more nowadays.
@@ -1178,12 +1177,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (setq-local outline-regexp latex-outline-regexp)
   (setq-local outline-level #'latex-outline-level)
   (setq-local forward-sexp-function #'latex-forward-sexp)
-  (setq-local skeleton-end-hook nil)
-  (setq-local comment-region-function #'latex--comment-region)
-  (setq-local comment-style 'plain))
-
-(defun latex--comment-region (beg end &optional arg)
-  (comment-region-default-1 beg end arg t))
+  (setq-local skeleton-end-hook nil))
 
 ;;;###autoload
 (define-derived-mode slitex-mode latex-mode "SliTeX"
@@ -1247,11 +1241,10 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
               (apply-partially
                #'tildify-foreach-ignore-environments
                `(("\\\\\\\\" . "") ; do not remove this
-                 (,(eval-when-compile
-                     (concat "\\\\begin{\\("
-                             (regexp-opt '("verbatim" "math" "displaymath"
-                                           "equation" "eqnarray" "eqnarray*"))
-                             "\\)}"))
+                 (,(concat "\\\\begin{\\("
+                           (regexp-opt '("verbatim" "math" "displaymath"
+                                         "equation" "eqnarray" "eqnarray*"))
+                           "\\)}")
                   . ("\\\\end{" 1 "}"))
                  ("\\\\verb\\*?\\(.\\)" . (1))
                  ("\\$\\$?" . (0))
@@ -2131,11 +2124,10 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 (defvar tex-compile-history nil)
 
 (defvar tex-input-files-re
-  (eval-when-compile
-    (concat "\\." (regexp-opt '("tex" "texi" "texinfo"
-				"bbl" "ind" "sty" "cls") t)
-	    ;; Include files with no dots (for directories).
-	    "\\'\\|\\`[^.]+\\'")))
+  (concat "\\." (regexp-opt '("tex" "texi" "texinfo"
+			      "bbl" "ind" "sty" "cls") t)
+	  ;; Include files with no dots (for directories).
+	  "\\'\\|\\`[^.]+\\'"))
 
 (defcustom tex-use-reftex t
   "If non-nil, use RefTeX's list of files to determine what command to use."
@@ -2504,10 +2496,8 @@ Only applies the FSPEC to the args part of FORMAT."
     (let (shell-dirtrack-verbose)
       (tex-send-command tex-shell-cd-command dir)))
   (with-current-buffer (process-buffer (tex-send-command cmd))
-    (setq compilation-last-buffer (current-buffer))
-    (compilation-forget-errors)
-    ;; Don't parse previous compilations.
-    (set-marker compilation-parsing-end (1- (point-max))))
+    (setq next-error-last-buffer (current-buffer))
+    (compilation-forget-errors))
   (tex-display-shell)
   (setq tex-last-buffer-texed (current-buffer)))
 
@@ -2989,13 +2979,7 @@ There might be text before point."
 	(put-text-property
 	 (1- (match-beginning 1)) (match-beginning 1)
 	 'syntax-table
-	 (if (= (1+ (line-beginning-position)) (match-beginning 1))
-	     ;; The `%' is a single-char comment, which Emacs
-	     ;; syntax-table can't deal with.  We could turn it
-	     ;; into a non-comment, or use `\n%' or `%^' as the comment.
-	     ;; Instead, we include it in the ^^A comment.
-             (string-to-syntax "< b")
-           (string-to-syntax ">")))
+         (string-to-syntax ">"))
 	(let ((end (line-end-position)))
 	  (if (< end (point-max))
 	      (put-text-property
@@ -3018,8 +3002,9 @@ There might be text before point."
   (defconst doctex-syntax-propertize-rules
     (syntax-propertize-precompile-rules
      latex-syntax-propertize-rules
-     ;; For DocTeX comment-in-doc.
-     ("\\(\\^\\)\\^A" (1 (doctex-font-lock-^^A))))))
+     ;; For DocTeX comment-in-doc (DocTeX ≥3 also allows ^^X).
+     ;; We make the comment start on the second char because of bug#35140.
+     ("\\^\\(\\^\\)[AX]" (1 (doctex-font-lock-^^A))))))
 
 (defvar doctex-font-lock-keywords
   (append tex-font-lock-keywords
@@ -3568,28 +3553,122 @@ There might be text before point."
     ("\\ordmasculine" . ?º)
     ("\\lambdabar" . ?ƛ)
     ("\\celsius" . ?℃)
+    ;; Text symbols formerly part of textcomp package:
+    ("\\textdollar" . ?$)
+    ("\\textborn" . ?*)
+    ("\\textless" . ?<)
+    ("\\textgreater" . ?>)
+    ("\\textbackslash" . ?\\)
+    ("\\textasciicircum" . ?^)
+    ("\\textunderscore" . ?_)
+    ("\\textbraceleft" . ?\{)
+    ("\\textbar" . ?|)
+    ("\\textbraceright" . ?\})
+    ("\\textasciitilde" . ?~)
+    ("\\textexclamdown" . ?¡)
+    ("\\textcent" . ?¢)
+    ("\\textsterling" . ?£)
+    ("\\textcurrency" . ?¤)
+    ("\\textyen" . ?¥)
+    ("\\textbrokenbar" . ?¦)
+    ("\\textsection" . ?§)
+    ("\\textasciidieresis" . ?¨)
+    ("\\textcopyright" . ?©)
+    ("\\textordfeminine" . ?ª)
+    ("\\guillemetleft" . ?«)
+    ("\\guillemotleft" . ?«)
+    ("\\textlnot" . ?¬)
+    ("\\textregistered" . ?®)
+    ("\\textasciimacron" . ?¯)
+    ("\\textdegree" . ?°)
+    ("\\textpm" . ?±)
+    ("\\texttwosuperior" . ?²)
+    ("\\textthreesuperior" . ?³)
+    ("\\textasciiacute" . ?´)
     ("\\textmu" . ?µ)
-    ("\\textfractionsolidus" . ?⁄)
-    ("\\textbigcircle" . ?⃝)
-    ("\\textmusicalnote" . ?♪)
-    ("\\textdied" . ?✝)
-    ("\\textcolonmonetary" . ?₡)
-    ("\\textwon" . ?₩)
-    ("\\textnaira" . ?₦)
-    ("\\textpeso" . ?₱)
-    ("\\textlira" . ?₤)
-    ("\\textrecipe" . ?℞)
-    ("\\textinterrobang" . ?‽)
-    ("\\textpertenthousand" . ?‱)
+    ("\\textparagraph" . ?¶)
+    ("\\textpilcrow" . ?¶)
+    ("\\textperiodcentered" . ?·)
+    ("\\textonesuperior" . ?¹)
+    ("\\textordmasculine" . ?º)
+    ("\\guillemetright" . ?»)
+    ("\\guillemotright" . ?»)
+    ("\\textonequarter" . ?¼)
+    ("\\textonehalf" . ?½)
+    ("\\textthreequarters" . ?¾)
+    ("\\textquestiondown" . ?¿)
+    ("\\texttimes" . ?×)
+    ("\\textdiv" . ?÷)
+    ("\\textflorin" . ?ƒ)
+    ("\\textasciicaron" . ?ˇ)
+    ("\\textasciibreve" . ?˘)
+    ("\\textacutedbl" . ?˝)
+    ("\\textgravedbl" . 757)
+    ("\\texttildelow" . 759)
     ("\\textbaht" . ?฿)
-    ("\\textnumero" . ?№)
+    ("\\textendash" . ?–)
+    ("\\textemdash" . ?—)
+    ("\\textbardbl" . ?‖)
+    ("\\textquoteleft" . 8216)
+    ("\\textquoteright" . 8217)
+    ("\\quotesinglbase" . 8218)
+    ("\\textquotedblleft" . 8220)
+    ("\\textquotedblright" . 8221)
+    ("\\quotedblbase" . 8222)
+    ;; \textdagger and \textdied are replaced with DAGGER (#x2020) and
+    ;; not with LATIN CROSS (#x271d)
+    ("\\textdagger" . ?†)
+    ("\\textdied" . ?†)
+    ("\\textdaggerdbl" . ?‡)
+    ("\\textbullet" . ?•)
+    ("\\textellipsis" . ?…)
+    ("\\textperthousand" . ?‰)
+    ("\\textpertenthousand" . ?‱)
+    ("\\guilsinglleft" . ?‹)
+    ("\\guilsinglright" . ?›)
+    ("\\textreferencemark" . ?※)
+    ("\\textinterrobang" . ?‽)
+    ("\\textfractionsolidus" . ?⁄)
+    ("\\textlquill" . 8261) ; Literal ?⁅ breaks indentation
+    ("\\textrquill" . 8262) ; Literal ?⁆ breaks indentation
     ("\\textdiscount" . ?⁒)
-    ("\\textestimated" . ?℮)
-    ("\\textopenbullet" . ?◦)
-    ("\\textlquill" . 8261)		; Literal ?⁅ breaks indentation.
-    ("\\textrquill" . 8262)             ; Literal ?⁆ breaks indentation.
+    ("\\textcolonmonetary" . ?₡)
+    ("\\textlira" . ?₤)
+    ("\\textnaira" . ?₦)
+    ("\\textwon" . ?₩)
+    ("\\textdong" . ?₫)
+    ("\\texteuro" . ?€)
+    ("\\textpeso" . ?₱)
+    ("\\textguarani" . ?₲)
+    ("\\textcelsius" . ?℃)
+    ("\\textnumero" . ?№)
     ("\\textcircledP" . ?℗)
-    ("\\textreferencemark" . ?※))
+    ("\\textrecipe" . ?℞)
+    ("\\textservicemark" . ?℠)
+    ("\\texttrademark" . ?™)
+    ("\\textohm" . ?Ω)
+    ("\\textmho" . ?℧)
+    ("\\textestimated" . ?℮)
+    ("\\textleftarrow" . ?←)
+    ("\\textuparrow" . ?↑)
+    ("\\textrightarrow" . ?→)
+    ("\\textdownarrow" . ?↓)
+    ("\\textminus" . ?−)
+    ("\\textsurd" . ?√)
+    ("\\textlangle" . 9001) ; Literal ?〈 breaks indentation
+    ("\\textrangle" . 9002) ; Literal ?〉 breaks indentation
+    ("\\textblank" . ?␢)
+    ("\\textvisiblespace" . ?␣)
+    ("\\textopenbullet" . ?◦)
+    ;; \textbigcircle is replaced with LARGE CIRCLE (#x25ef) and not
+    ;; with COMBINING ENCLOSING CIRCLE (#x20dd)
+    ("\\textbigcircle" . ?◯)
+    ("\\textmusicalnote" . ?♪)
+    ("\\textmarried" . ?⚭)
+    ("\\textdivorced" . ?⚮)
+    ("\\textlbrackdbl" . 10214) ; Literal ?⟦ breaks indentation
+    ("\\textrbrackdbl" . 10215) ; Literal ?⟧ breaks indentation
+    ("\\textinterrobangdown" . ?⸘))
   "A `prettify-symbols-alist' usable for (La)TeX modes.")
 
 (defun tex--prettify-symbols-compose-p (_start end _match)

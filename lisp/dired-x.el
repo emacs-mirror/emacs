@@ -1,7 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1997, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -51,11 +50,6 @@
   "Extended directory editing (dired-x)."
   :group 'dired)
 
-(defgroup dired-keys nil
-  "Dired keys customizations."
-  :prefix "dired-"
-  :group 'dired-x)
-
 (defcustom dired-bind-vm nil
   "Non-nil means \"V\" runs `dired-vm', otherwise \"V\" runs `dired-rmail'.
 RMAIL files in the old Babyl format (used before Emacs 23.1)
@@ -63,34 +57,16 @@ contain \"-*- rmail -*-\" at the top, so `dired-find-file'
 will run `rmail' on these files.  New RMAIL files use the standard
 mbox format, and so cannot be distinguished in this way."
   :type 'boolean
-  :group 'dired-keys)
+  :group 'dired-x)
 
 (defvar dired-bind-jump t)
 (make-obsolete-variable 'dired-bind-jump "not used." "28.1")
 
-(defcustom dired-bind-man t
-  "Non-nil means bind `dired-man' to \"N\" in Dired, otherwise do not.
-Setting this variable directly after dired-x is loaded has no effect -
-use \\[customize]."
-  :type 'boolean
-  :set (lambda (sym val)
-         (if (set sym val)
-             (define-key dired-mode-map "N" 'dired-man)
-           (if (eq 'dired-man (lookup-key dired-mode-map "N"))
-               (define-key dired-mode-map "N" nil))))
-  :group 'dired-keys)
+(defvar dired-bind-man t)
+(make-obsolete-variable 'dired-bind-man "not used." "29.1")
 
-(defcustom dired-bind-info t
-  "Non-nil means bind `dired-info' to \"I\" in Dired, otherwise do not.
-Setting this variable directly after dired-x is loaded has no effect -
-use \\[customize]."
-  :type 'boolean
-  :set (lambda (sym val)
-         (if (set sym val)
-             (define-key dired-mode-map "I" 'dired-info)
-           (if (eq 'dired-info (lookup-key dired-mode-map "I"))
-               (define-key dired-mode-map "I" nil))))
-  :group 'dired-keys)
+(defvar dired-bind-info t)
+(make-obsolete-variable 'dired-bind-info "not used." "29.1")
 
 (defcustom dired-vm-read-only-folders nil
   "If non-nil, \\[dired-vm] will visit all folders read-only.
@@ -101,11 +77,12 @@ files not writable by you are visited read-only."
 		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
-(defcustom dired-omit-size-limit 30000
+(defcustom dired-omit-size-limit 100000
   "Maximum size for the \"omitting\" feature.
 If nil, there is no maximum size."
   :type '(choice (const :tag "no maximum" nil) integer)
-  :group 'dired-x)
+  :group 'dired-x
+  :version "29.1")
 
 (defcustom dired-omit-case-fold 'filesystem
   "Determine whether \"omitting\" patterns are case-sensitive.
@@ -125,14 +102,49 @@ folding to be used on case-insensitive filesystems only."
       (file-name-case-insensitive-p dir)
     dired-omit-case-fold))
 
+(defcustom dired-omit-lines nil
+  "Regexp matching lines to be omitted by `dired-omit-mode'.
+The value can also be a variable whose value is such a regexp.
+The value can also be nil, which means do no line matching.
+
+Some predefined regexp variables for Dired, which you can use as the
+option value:
+
+* `dired-re-inode-size'
+* `dired-re-mark'
+* `dired-re-maybe-mark'
+* `dired-re-dir'
+* `dired-re-sym'
+* `dired-re-exe'
+* `dired-re-perms'
+* `dired-re-dot'
+* `dired-re-no-dot'"
+  :type `(choice
+          (const :tag "Do not match lines to omit" nil)
+          (regexp
+           :tag "Regexp to match lines to omit (default omits executables)"
+           :value ,dired-re-exe)
+          (restricted-sexp
+           :tag "Variable with regexp value (default: `dired-re-exe')"
+           :match-alternatives
+           ((lambda (obj) (and (symbolp obj) (boundp obj))))
+           :value dired-re-exe))
+  :group 'dired-x)
+
 ;;;###autoload
 (define-minor-mode dired-omit-mode
   "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
+With prefix argument ARG, enable Dired-Omit mode if ARG is positive,
+and disable it otherwise.
 
-Dired-Omit mode is a buffer-local minor mode.  When enabled in a
-Dired buffer, Dired does not list files whose filenames match
-regexp `dired-omit-files', nor files ending with extensions in
-`dired-omit-extensions'.
+If called from Lisp, enable the mode if ARG is omitted or nil.
+
+Dired-Omit mode is a buffer-local minor mode.
+
+When enabled in a Dired buffer, Dired does not list files whose
+filenames match regexp `dired-omit-files', files ending with
+extensions in `dired-omit-extensions', or files listed on lines
+matching `dired-omit-lines'.
 
 To enable omitting in every Dired buffer, you can put this in
 your init file:
@@ -141,10 +153,16 @@ your init file:
 
 See Info node `(dired-x) Omitting Variables' for more information."
   :group 'dired-x
-  (if dired-omit-mode
-      ;; This will mention how many lines were omitted:
-      (let ((dired-omit-size-limit nil)) (dired-omit-expunge))
-    (revert-buffer)))
+  (if (not dired-omit-mode)
+      (revert-buffer)
+    (let ((dired-omit-size-limit  nil)
+          (file-count 0))
+      ;; Omit by file-name match, then omit by line match.
+      ;; Use count of file-name match as INIT-COUNT for line match.
+      ;; Return total count.  (Return value is not used anywhere, so far).
+      (setq file-count (dired-omit-expunge))
+      (when dired-omit-lines
+        (dired-omit-expunge dired-omit-lines 'LINEP file-count)))))
 
 (put 'dired-omit-mode 'safe-local-variable 'booleanp)
 
@@ -207,17 +225,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 		 (string :tag "Switches"))
   :group 'dired-x)
 
-(defcustom dired-clean-up-buffers-too t
-  "Non-nil means offer to kill buffers visiting files and dirs deleted in Dired."
-  :type 'boolean
-  :group 'dired-x)
-
-(defcustom dired-clean-confirm-killing-deleted-buffers t
-  "If nil, don't ask whether to kill buffers visiting deleted files."
-  :version "26.1"
-  :type 'boolean
-  :group 'dired-x)
-
 
 ;;; Key bindings
 
@@ -226,15 +233,10 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   (define-key dired-mode-map "*O" 'dired-mark-omitted)
   (define-key dired-mode-map "*." 'dired-mark-extension))
 
-(when (keymapp (lookup-key dired-mode-map "%"))
-  (define-key dired-mode-map "%Y" 'dired-do-relsymlink-regexp))
-
 (define-key dired-mode-map "\C-x\M-o" 'dired-omit-mode)
 (define-key dired-mode-map "\M-(" 'dired-mark-sexp)
 (define-key dired-mode-map "\M-!" 'dired-smart-shell-command)
-(define-key dired-mode-map "\M-G" 'dired-goto-subdir)
 (define-key dired-mode-map "F" 'dired-do-find-marked-files)
-(define-key dired-mode-map "Y"  'dired-do-relsymlink)
 (define-key dired-mode-map "V" 'dired-do-run-mail)
 
 
@@ -245,12 +247,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
                       ["Find Files" dired-do-find-marked-files
                        :help "Find current or marked files"]
                       "Shell Command...")
-  (easy-menu-add-item menu '("Operate")
-                      ["Relative Symlink to..." dired-do-relsymlink
-                       :visible (fboundp 'make-symbolic-link)
-                       :help "Make relative symbolic links for current or \
-marked files"]
-                      "Hardlink to...")
   (easy-menu-add-item menu '("Mark")
                       ["Flag Extension..." dired-flag-extension
                        :help "Flag files with a certain extension for deletion"]
@@ -264,12 +260,6 @@ marked files"]
                        :help "Mark files matching `dired-omit-files' \
 and `dired-omit-extensions'"]
                       "Unmark All")
-  (easy-menu-add-item menu '("Regexp")
-                      ["Relative Symlink..." dired-do-relsymlink-regexp
-                       :visible (fboundp 'make-symbolic-link)
-                       :help "Make relative symbolic links for files \
-matching regexp"]
-                      "Hardlink...")
   (easy-menu-add-item menu '("Immediate")
                       ["Omit Mode" dired-omit-mode
                        :style toggle :selected dired-omit-mode
@@ -287,8 +277,6 @@ files"]
   "Automatically put on `dired-mode-hook' to get extra Dired features:
 \\<dired-mode-map>
   \\[dired-do-run-mail]\t-- run mail on folder (see `dired-bind-vm')
-  \\[dired-info]\t-- run info on file
-  \\[dired-man]\t-- run man on file
   \\[dired-do-find-marked-files]\t-- visit all marked files simultaneously
   \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
@@ -297,10 +285,8 @@ To see the options you can set, use \\[customize-group] RET dired-x RET.
 See also the functions:
   `dired-flag-extension'
   `dired-virtual'
-  `dired-man'
   `dired-vm'
   `dired-rmail'
-  `dired-info'
   `dired-do-find-marked-files'"
   (interactive)
   ;; These must be done in each new dired buffer.
@@ -486,45 +472,61 @@ variables `dired-omit-mode' and `dired-omit-files'."
   :type '(repeat string)
   :group 'dired-x)
 
-(defun dired-omit-expunge (&optional regexp)
-  "Erases all unmarked files matching REGEXP.
-Does nothing if global variable `dired-omit-mode' is nil, or if called
-  non-interactively and buffer is bigger than `dired-omit-size-limit'.
-If REGEXP is nil or not specified, uses `dired-omit-files', and also omits
-  filenames ending in `dired-omit-extensions'.
-If REGEXP is the empty string, this function is a no-op.
+(defun dired-omit-expunge (&optional regexp linep init-count)
+  "Erase all unmarked files whose names match REGEXP.
+With a prefix arg (non-nil LINEP when called from Lisp), match REGEXP
+against the whole line.  Otherwise, match it against the file name.
 
-This functions works by temporarily binding `dired-marker-char' to
-`dired-omit-marker-char' and calling `dired-do-kill-lines'."
-  (interactive "sOmit files (regexp): ")
+If REGEXP is nil, use `dired-omit-files', and also omit file names
+ending in `dired-omit-extensions'.
+
+Do nothing if REGEXP is the empty string, `dired-omit-mode' is nil, or
+if called from Lisp and buffer is bigger than `dired-omit-size-limit'.
+
+Optional arg INIT-COUNT is an initial count tha'is added to the number
+of lines omitted by this invocation of `dired-omit-expunge', in the
+status message."
+  (interactive "sOmit files (regexp): \nP")
+  ;; Bind `dired-marker-char' to `dired-omit-marker-char',
+  ;; then call `dired-do-kill-lines'.
   (if (and dired-omit-mode
            (or (called-interactively-p 'interactive)
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
-	       (progn
-		 (when dired-omit-verbose
-		   (message "Not omitting: directory larger than %d characters."
-			    dired-omit-size-limit))
-		 (setq dired-omit-mode nil)
-		 nil)))
+               (progn
+                 (when dired-omit-verbose
+                   (message "Not omitting: directory larger than %d characters."
+                            dired-omit-size-limit))
+                 (setq dired-omit-mode nil)
+                 nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
             (old-modified-p (buffer-modified-p))
-            count)
-        (or (string= omit-re "")
-            (let ((dired-marker-char dired-omit-marker-char))
-              (when dired-omit-verbose (message "Omitting..."))
-              (if (dired-mark-unmarked-files omit-re nil nil dired-omit-localp
-                                             (dired-omit-case-fold-p (if (stringp dired-directory)
-                                                                         dired-directory
-                                                                       (car dired-directory))))
-                  (progn
-                    (setq count (dired-do-kill-lines
-				 nil
-				 (if dired-omit-verbose "Omitted %d line%s." "")))
-                    (force-mode-line-update))
-                (when dired-omit-verbose (message "(Nothing to omit)")))))
-        ;; Try to preserve modified state of buffer.  So `%*' doesn't appear
-        ;; in mode-line of omitted buffers.
+            (count (or init-count 0)))
+        (unless (string= omit-re "")
+          (let ((dired-marker-char dired-omit-marker-char))
+            (when dired-omit-verbose (message "Omitting..."))
+            (if (not (if linep
+                         (dired-mark-if
+                          (and (= (following-char) ?\s) ; Not already marked
+                               (string-match-p
+                                omit-re (buffer-substring
+                                         (line-beginning-position)
+                                         (line-end-position))))
+                          nil)
+                       (dired-mark-unmarked-files
+                        omit-re nil nil dired-omit-localp
+                        (dired-omit-case-fold-p (if (stringp dired-directory)
+                                                    dired-directory
+                                                  (car dired-directory))))))
+                (when dired-omit-verbose (message "(Nothing to omit)"))
+              (setq count  (+ count
+                              (dired-do-kill-lines
+                               nil
+                               (if dired-omit-verbose "Omitted %d line%s" "")
+                               init-count)))
+              (force-mode-line-update))))
+        ;; Try to preserve modified state, so `%*' doesn't appear in
+        ;; `mode-line'.
         (set-buffer-modified-p (and old-modified-p
                                     (save-excursion
                                       (goto-char (point-min))
@@ -1021,95 +1023,6 @@ See `dired-guess-shell-alist-user'."
       (if (equal val "") default val))))
 
 
-;;; Relative symbolic links
-
-(declare-function make-symbolic-link "fileio.c")
-
-(defvar dired-keep-marker-relsymlink ?S
-  "See variable `dired-keep-marker-move'.")
-
-(defun dired-make-relative-symlink (file1 file2 &optional ok-if-already-exists)
-  "Make a symbolic link (pointing to FILE1) in FILE2.
-The link is relative (if possible), for example
-
-    \"/vol/tex/bin/foo\" \"/vol/local/bin/foo\"
-
-results in
-
-    \"../../tex/bin/foo\" \"/vol/local/bin/foo\""
-  (interactive "FRelSymLink: \nFRelSymLink %s: \np")
-  (let (name1 name2 len1 len2 (index 0) sub)
-    (setq file1 (expand-file-name file1)
-          file2 (expand-file-name file2)
-          len1 (length file1)
-          len2 (length file2))
-    ;; Find common initial file name components:
-    (let (next)
-      (while (and (setq next (string-search "/" file1 index))
-                  (< (setq next (1+ next)) (min len1 len2))
-                  ;; For the comparison, both substrings must end in
-                  ;; `/', so NEXT is *one plus* the result of the
-                  ;; string-search.
-                  ;; E.g., consider the case of linking "/tmp/a/abc"
-                  ;; to "/tmp/abc" erroneously giving "/tmp/a" instead
-                  ;; of "/tmp/" as common initial component
-                  (string-equal (substring file1 0 next)
-                                (substring file2 0 next)))
-        (setq index next))
-      (setq name2 file2
-            sub (substring file1 0 index)
-            name1 (substring file1 index)))
-    (if (string-equal sub "/")
-        ;; No common initial file name found
-        (setq name1 file1)
-      ;; Else they have a common parent directory
-      (let ((tem (substring file2 index))
-            (start 0)
-            (count 0))
-        ;; Count number of slashes we must compensate for ...
-        (while (setq start (string-search "/" tem start))
-          (setq count (1+ count)
-                start (1+ start)))
-        ;; ... and prepend a "../" for each slash found:
-        (dotimes (_ count)
-          (setq name1 (concat "../" name1)))))
-    (make-symbolic-link
-     (directory-file-name name1)        ; must not link to foo/
-                                        ; (trailing slash!)
-     name2 ok-if-already-exists)))
-
-(autoload 'dired-do-create-files "dired-aux")
-
-;;;###autoload
-(defun dired-do-relsymlink (&optional arg)
-  "Relative symlink all marked (or next ARG) files into a directory.
-Otherwise make a relative symbolic link to the current file.
-This creates relative symbolic links like
-
-    foo -> ../bar/foo
-
-not absolute ones like
-
-    foo -> /ugly/file/name/that/may/change/any/day/bar/foo
-
-For absolute symlinks, use \\[dired-do-symlink]."
-  (interactive "P")
-  (dired-do-create-files 'relsymlink #'dired-make-relative-symlink
-                         "RelSymLink" arg dired-keep-marker-relsymlink))
-
-(autoload 'dired-mark-read-regexp "dired-aux")
-(autoload 'dired-do-create-files-regexp "dired-aux")
-
-(defun dired-do-relsymlink-regexp (regexp newname &optional arg whole-name)
-  "RelSymlink all marked files containing REGEXP to NEWNAME.
-See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
-for more info."
-  (interactive (dired-mark-read-regexp "RelSymLink"))
-  (dired-do-create-files-regexp
-   #'dired-make-relative-symlink
-   "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
-
-
 ;;; Visit all marked files simultaneously
 
 ;; Brief Description:
@@ -1181,31 +1094,6 @@ NOSELECT the files are merely found but not selected."
 
 ;;; Miscellaneous commands
 
-;; Run man on files.
-
-(declare-function Man-getpage-in-background "man" (topic))
-
-(defvar manual-program) ; from man.el
-
-(defun dired-man ()
-  "Run `man' on this file."
-  ;; Used also to say: "Display old buffer if buffer name matches filename."
-  ;; but I have no idea what that means.
-  (interactive)
-  (require 'man)
-  (let* ((file (dired-get-filename))
-         (manual-program (string-replace "*" "%s"
-                          (dired-guess-shell-command
-                           "Man command: " (list file)))))
-    (Man-getpage-in-background file)))
-
-;; Run Info on files.
-
-(defun dired-info ()
-  "Run `info' on this file."
-  (interactive)
-  (info (dired-get-filename)))
-
 ;; Run mail on mail folders.
 
 (declare-function vm-visit-folder "ext:vm" (folder &optional read-only))
@@ -1248,14 +1136,6 @@ otherwise."
 
 
 ;;; Miscellaneous internal functions
-
-;; This should be a builtin
-(defun dired-buffer-more-recently-used-p (buffer1 buffer2)
-  "Return t if BUFFER1 is more recently used than BUFFER2.
-Considers buffers closer to the car of `buffer-list' to be more recent."
-  (and (not (equal buffer1 buffer2))
-       (memq buffer1 (buffer-list))
-       (not (memq buffer1 (memq buffer2 (buffer-list))))))
 
 ;; Needed if ls -lh is supported and also for GNU ls -ls.
 (defun dired-x--string-to-number (str)
@@ -1458,12 +1338,13 @@ Binding direction based on `dired-x-hands-off-my-keys'."
   (interactive)
   (if (called-interactively-p 'interactive)
       (setq dired-x-hands-off-my-keys
-            (not (y-or-n-p "Bind dired-x-find-file over find-file? "))))
+            (not (y-or-n-p (format-message
+                            "Bind `dired-x-find-file' over `find-file'?")))))
   (unless dired-x-hands-off-my-keys
-    (define-key (current-global-map) [remap find-file]
-      'dired-x-find-file)
-    (define-key (current-global-map) [remap find-file-other-window]
-      'dired-x-find-file-other-window)))
+    (keymap-set (current-global-map) "<remap> <find-file>"
+                #'dired-x-find-file)
+    (keymap-set (current-global-map) "<remap> <find-file-other-window>"
+                #'dired-x-find-file-other-window)))
 
 ;; Now call it so binding is correct.  This could go in the :initialize
 ;; slot, but then dired-x-bind-find-file has to be defined before the
@@ -1531,13 +1412,8 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
                         nil (file-name-nondirectory guess)))
     (read-file-name prompt default-directory)))
 
-(define-obsolete-function-alias 'read-filename-at-point
-  'dired-x-read-filename-at-point "24.1") ; is this even needed?
-
-
-;;; Epilog
-
-(define-obsolete-function-alias 'dired-x-submit-report 'report-emacs-bug "24.1")
+(define-obsolete-function-alias 'dired-man #'dired-do-man "29.1")
+(define-obsolete-function-alias 'dired-info #'dired-do-info "29.1")
 
 
 ;; As Barry Warsaw would say: "This might be useful..."

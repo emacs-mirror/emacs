@@ -22,6 +22,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
 
+#include <attribute.h>
+
 extern void init_signals (void);
 extern void block_child_signal (sigset_t *);
 extern void unblock_child_signal (sigset_t const *);

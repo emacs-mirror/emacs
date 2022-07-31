@@ -28,7 +28,6 @@
 (require 'reftex)
 ;;;
 
-(define-obsolete-variable-alias 'reftex-toc-map 'reftex-toc-mode-map "24.1")
 (defvar reftex-toc-mode-map
   (let ((map (make-sparse-keymap)))
 
@@ -157,22 +156,22 @@ Here are all local bindings.
 (defconst reftex-toc-help
 "                      AVAILABLE KEYS IN TOC BUFFER
                       ============================
-n / p      next-line / previous-line
-SPC        Show the corresponding location of the LaTeX document.
-TAB        Goto the location and keep the TOC window.
-RET        Goto the location and hide the TOC window (also on mouse-2).
-< / >      Promote / Demote section, or all sections in region.
-C-c >      Display Index. With prefix arg, restrict index to current section.
-q / k      Hide/Kill *toc* buffer, return to position of reftex-toc command.
-l i c F    Toggle display of  [l]abels,  [i]ndex,  [c]ontext,  [F]ile borders.
-t          Change maximum toc depth (e.g. `3 t' hides levels greater than 3).
-f / g      Toggle follow mode / Refresh *toc* buffer.
-a / d      Toggle auto recenter / Toggle dedicated frame
-r / C-u r  Reparse the LaTeX document     / Reparse entire LaTeX document.
-.          In other window, show position from where `reftex-toc' was called.
-M-%        Global search and replace to rename label at point.
-x          Switch to TOC of external document (with LaTeX package `xr').
-z          Jump to a specific section (e.g. '3 z' goes to section 3).")
+\\`n' / \\`p'      `next-line' / `previous-line'
+\\`SPC'        Show the corresponding location of the LaTeX document.
+\\`TAB'        Goto the location and keep the TOC window.
+\\`RET'        Goto the location and hide the TOC window (also on `mouse-2').
+\\`<' / \\`>'      Promote / Demote section, or all sections in region.
+\\`C-c >'      Display Index. With prefix arg, restrict index to current section.
+\\`q' / \\`k'      Hide/Kill *toc* buffer, return to position of reftex-toc command.
+\\`l' \\`i' \\`c' \\`F'    Toggle display of  [l]abels,  [i]ndex,  [c]ontext,  [F]ile borders.
+\\`t'          Change maximum toc depth (e.g. `3 t' hides levels greater than 3).
+\\`f' / \\`g'      Toggle follow mode / Refresh *toc* buffer.
+\\`a' / \\`d'      Toggle auto recenter / Toggle dedicated frame
+\\`r' / \\`C-u r'  Reparse the LaTeX document     / Reparse entire LaTeX document.
+\\`.'          In other window, show position from where `reftex-toc' was called.
+\\`M-%'        Global search and replace to rename label at point.
+\\`x'          Switch to TOC of external document (with LaTeX package `xr').
+\\`z'          Jump to a specific section (e.g. \\`3 z' goes to section 3).")
 
 (defvar reftex--rebuilding-toc nil)
 
@@ -394,7 +393,9 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
                 (frame-parameter  frame 'name))
               "RefTeX TOC Frame")))
     (if (and res error)
-        (error "This frame is view-only.  Use `C-c =' to create TOC window for commands"))
+        (error (substitute-command-keys
+                "This frame is view-only.  Use \\[reftex-toc] \
+to create TOC window for commands")))
     res))
 
 (defun reftex-toc-show-help ()
@@ -402,7 +403,9 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   (interactive)
   (reftex-toc-dframe-p nil 'error)
   (with-output-to-temp-buffer "*RefTeX Help*"
-    (princ reftex-toc-help))
+    (let ((help (substitute-command-keys reftex-toc-help)))
+      (with-current-buffer standard-output
+        (insert help))))
   (reftex-enlarge-to-fit "*RefTeX Help*" t)
   ;; If follow mode is active, arrange to delay it one command
   (if reftex-toc-follow-mode

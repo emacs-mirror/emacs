@@ -164,8 +164,6 @@ Overrides `password-cache-expiry' through a let-binding."
 (defvar auth-source-creation-prompts nil
   "Default prompts for token values.  Usually let-bound.")
 
-(make-obsolete 'auth-source-hide-passwords nil "24.1")
-
 (defcustom auth-source-save-behavior 'ask
   "If set, auth-source will respect it for save behavior."
   :version "23.2" ;; No Gnus
@@ -280,15 +278,16 @@ can get pretty complex."
                                          (const :tag "default" default))))
                         (repeat :tag "Extra Parameters" :inline t
                                 (choice :tag "Extra parameter"
+                                        :value (:host t)
                                         (list
-                                         :tag "Host"
+                                         :tag "Host" :inline t
                                          (const :format "" :value :host)
                                          (choice :tag "Host (machine) choice"
                                                  (const :tag "Any" t)
                                                  (regexp
                                                   :tag "Regular expression")))
                                         (list
-                                         :tag "Protocol"
+                                         :tag "Protocol" :inline t
                                          (const :format "" :value :port)
                                          (choice
                                           :tag "Protocol"
@@ -572,19 +571,24 @@ which says:
  or P.  The resulting token will only have keys user, host, and
  port.\"
 
-:create \\='(A B C) also means to create a token if possible.
+:create \\='(A B C)  or
+:create \\='(:unencrypted A B :encrypted C)
+also means to create a token if possible.
 
 The behavior is like :create t but if the list contains any
 parameter, that parameter will be required in the resulting
-token.  The value for that parameter will be obtained from the
-search parameters or from user input.  If any queries are needed,
-the alist `auth-source-creation-defaults' will be checked for the
-default value.  If the user, host, or port are missing, the alist
-`auth-source-creation-prompts' will be used to look up the
-prompts IN THAT ORDER (so the `user' prompt will be queried first,
-then `host', then `port', and finally `secret').  Each prompt string
-can use %u, %h, and %p to show the user, host, and port.  The prompt
-is formatted with `format-prompt', a trailing \": \" is removed.
+token (the second form is used only with the plstore backend and
+specifies if any of the extra parameters should be stored in
+encrypted format.)  The value for that parameter will be obtained
+from the search parameters or from user input.  If any queries
+are needed, the alist `auth-source-creation-defaults' will be
+checked for the default value.  If the user, host, or port are
+missing, the alist `auth-source-creation-prompts' will be used to
+look up the prompts IN THAT ORDER (so the `user' prompt will be
+queried first, then `host', then `port', and finally `secret').
+Each prompt string can use %u, %h, and %p to show the user, host,
+and port.  The prompt is formatted with `format-prompt', a
+trailing \": \" is removed.
 
 Here's an example:
 
@@ -861,7 +865,7 @@ while \(:host t) would find all host entries."
       secret)))
 
 (defun auth-source-pick-first-password (&rest spec)
-  "Pick the first secret found by applying 'auth-source-search' to SPEC."
+  "Pick the first secret found by applying `auth-source-search' to SPEC."
   (auth-info-password (car (apply #'auth-source-search (plist-put spec :max 1)))))
 
 (defun auth-source-format-prompt (prompt alist)
@@ -1618,7 +1622,7 @@ authentication tokens:
                                 (not (string-match label item)))
                     collect item)))
          ;; TODO: respect max in `secrets-search-items', not after the fact
-         (items (butlast items (- (length items) max)))
+         (items (take max items))
          ;; convert the item name to a full plist
          (items (mapcar (lambda (item)
                           (append
@@ -1952,7 +1956,7 @@ entries for git.gnus.org:
 
 
 (defun auth-source--decode-octal-string (string)
-  "Convert octal STRING to utf-8 string.  E.g: 'a\134b' to 'a\b'."
+  "Convert octal STRING to utf-8 string.  E.g: \"a\134b\" to \"a\b\"."
   (let ((list (string-to-list string))
         (size (length string)))
     (decode-coding-string
@@ -2076,7 +2080,7 @@ entries for git.gnus.org:
 				      search-keys)))
          (items (plstore-find store search-spec))
          (item-names (mapcar #'car items))
-         (items (butlast items (- (length items) max)))
+         (items (take max items))
          ;; convert the item to a full plist
          (items (mapcar (lambda (item)
                           (let* ((plist (copy-tree (cdr item)))
@@ -2130,12 +2134,17 @@ entries for git.gnus.org:
   (let* ((base-required '(host user port secret))
          (base-secret '(secret))
          ;; we know (because of an assertion in auth-source-search) that the
-         ;; :create parameter is either t or a list (which includes nil)
-         (create-extra (if (eq t create) nil create))
+         ;; :create parameter is either t, or a list (which includes nil
+         ;; or a plist)
+         (create-extra-secret (plist-get create :encrypted))
+         (create-extra (if (eq t create) nil
+                         (or (append (plist-get create :unencrypted)
+                                     create-extra-secret) create)))
          (current-data (car (auth-source-search :max 1
                                                 :host host
                                                 :port port)))
          (required (append base-required create-extra))
+         (required-secret (append base-secret create-extra-secret))
          ;; `valist' is an alist
          valist
          ;; `artificial' will be returned if no creation is needed
@@ -2157,10 +2166,11 @@ entries for git.gnus.org:
               (auth-source--aput valist br br-choice))))))
 
     ;; for extra required elements, see if the spec includes a value for them
-    (dolist (er create-extra)
-      (let ((k (auth-source--symbol-keyword er))
-            (keys (cl-loop for i below (length spec) by 2
-                           collect (nth i spec))))
+    (let ((keys (cl-loop for i below (length spec) by 2
+                         collect (nth i spec)))
+          k)
+      (dolist (er create-extra)
+        (setq k (auth-source--symbol-keyword er))
         (when (memq k keys)
           (auth-source--aput valist er (plist-get spec k)))))
 
@@ -2224,7 +2234,7 @@ entries for git.gnus.org:
                            (eval default)))))
 
         (when data
-          (if (member r base-secret)
+          (if (member r required-secret)
               (setq secret-artificial
                     (plist-put secret-artificial
                                (auth-source--symbol-keyword r)
@@ -2312,89 +2322,6 @@ See `auth-source-search' for details on SPEC."
                  (auth-source-json-check host user port require item))
         (push item all)))
     (nreverse all)))
-
-;;; older API
-
-;; (auth-source-user-or-password '("login" "password") "imap.myhost.com" t "tzz")
-
-;; deprecate the old interface
-(make-obsolete 'auth-source-user-or-password
-               'auth-source-search "24.1")
-(make-obsolete 'auth-source-forget-user-or-password
-               'auth-source-forget "24.1")
-
-(defun auth-source-user-or-password
-  (mode host port &optional username create-missing delete-existing)
-  "Find MODE (string or list of strings) matching HOST and PORT.
-
-DEPRECATED in favor of `auth-source-search'!
-
-USERNAME is optional and will be used as \"login\" in a search
-across the Secret Service API (see secrets.el) if the resulting
-items don't have a username.  This means that if you search for
-username \"joe\" and it matches an item but the item doesn't have
-a :user attribute, the username \"joe\" will be returned.
-
-A non-nil DELETE-EXISTING means deleting any matching password
-entry in the respective sources.  This is useful only when
-CREATE-MISSING is non-nil as well; the intended use case is to
-remove wrong password entries.
-
-If no matching entry is found, and CREATE-MISSING is non-nil,
-the password will be retrieved interactively, and it will be
-stored in the password database which matches best (see
-`auth-sources').
-
-MODE can be \"login\" or \"password\"."
-  (auth-source-do-debug
-   "auth-source-user-or-password: DEPRECATED get %s for %s (%s) + user=%s"
-   mode host port username)
-
-  (let* ((listy (listp mode))
-         (mode (if listy mode (list mode)))
-         ;; (cname (if username
-         ;;            (format "%s %s:%s %s" mode host port username)
-         ;;          (format "%s %s:%s" mode host port)))
-         (search (list :host host :port port))
-         (search (if username (append search (list :user username)) search))
-         (search (if create-missing
-                     (append search (list :create t))
-                   search))
-         (search (if delete-existing
-                     (append search (list :delete t))
-                   search))
-         ;; (found (if (not delete-existing)
-         ;;            (gethash cname auth-source-cache)
-         ;;          (remhash cname auth-source-cache)
-         ;;          nil)))
-         (found nil))
-    (if found
-        (progn
-          (auth-source-do-debug
-           "auth-source-user-or-password: DEPRECATED cached %s=%s for %s (%s) + %s"
-           mode
-           ;; don't show the password
-           (if (and (member "password" mode) t)
-               "SECRET"
-             found)
-           host port username)
-          found)                        ; return the found data
-      ;; else, if not found, search with a max of 1
-      (let ((choice (nth 0 (apply #'auth-source-search
-                                  (append '(:max 1) search)))))
-        (when choice
-          (dolist (m mode)
-            (cond
-             ((equal "password" m)
-              (push (if (plist-get choice :secret)
-                        (funcall (plist-get choice :secret))
-                      nil) found))
-             ((equal "login" m)
-              (push (plist-get choice :user) found)))))
-        (setq found (nreverse found))
-        (setq found (if listy found (car-safe found)))))
-
-    found))
 
 (defun auth-source-user-and-password (host &optional user)
   (let* ((auth-info (car

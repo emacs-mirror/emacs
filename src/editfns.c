@@ -161,7 +161,7 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
   if (XFIXNUM (byte) < 0 || XFIXNUM (byte) > 255)
     error ("Invalid byte");
   b = XFIXNUM (byte);
-  return make_string_from_bytes ((char *) &b, 1, 1);
+  return make_unibyte_string ((char *) &b, 1);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
@@ -648,7 +648,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
   prev_new = make_fixnum (XFIXNUM (new_pos) - 1);
 
   if (NILP (Vinhibit_field_text_motion)
-      && !EQ (new_pos, old_pos)
+      && !BASE_EQ (new_pos, old_pos)
       && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
           || !NILP (Fget_char_property (old_pos, Qfield, Qnil))
           /* To recognize field boundaries, we must also look at the
@@ -797,7 +797,7 @@ save_excursion_save (union specbinding *pdl)
   pdl->unwind_excursion.marker = Fpoint_marker ();
   /* Selected window if current buffer is shown in it, nil otherwise.  */
   pdl->unwind_excursion.window
-    = (EQ (XWINDOW (selected_window)->contents, Fcurrent_buffer ())
+    = (BASE_EQ (XWINDOW (selected_window)->contents, Fcurrent_buffer ())
        ? selected_window : Qnil);
 }
 
@@ -821,7 +821,7 @@ save_excursion_restore (Lisp_Object marker, Lisp_Object window)
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
      buffer, restore point in that window.  */
-  if (WINDOWP (window) && !EQ (window, selected_window))
+  if (WINDOWP (window) && !BASE_EQ (window, selected_window))
     {
       /* Set window point if WINDOW is live and shows the current buffer.  */
       Lisp_Object contents = XWINDOW (window)->contents;
@@ -2658,9 +2658,15 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
 
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
-This allows the buffer's full text to be seen and edited.  */)
+This allows the buffer's full text to be seen and edited.
+
+When called from Lisp inside a body form in which `narrow-to-region'
+was called with an optional argument LOCK non-nil, this function does
+not produce any effect.  */)
   (void)
 {
+  if (! NILP (Vrestrictions_locked))
+    return Qnil;
   if (BEG != BEGV || Z != ZV)
     current_buffer->clip_changed = 1;
   BEGV = BEG;
@@ -2671,7 +2677,19 @@ This allows the buffer's full text to be seen and edited.  */)
   return Qnil;
 }
 
-DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 2, "r",
+static void
+unwind_locked_begv (Lisp_Object point_min)
+{
+  SET_BUF_BEGV (current_buffer, XFIXNUM (point_min));
+}
+
+static void
+unwind_locked_zv (Lisp_Object point_max)
+{
+  SET_BUF_ZV (current_buffer, XFIXNUM (point_max));
+}
+
+DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 3, "r",
        doc: /* Restrict editing in this buffer to the current region.
 The rest of the text becomes temporarily invisible and untouchable
 but is not deleted; if you save the buffer in a file, the invisible
@@ -2680,8 +2698,13 @@ See also `save-restriction'.
 
 When calling from Lisp, pass two arguments START and END:
 positions (integers or markers) bounding the text that should
-remain visible.  */)
-  (Lisp_Object start, Lisp_Object end)
+remain visible.
+
+When called from Lisp with the optional argument LOCK non-nil,
+calls to `widen', or to `narrow-to-region' with an optional
+argument LOCK nil, do not produce any effect until the end of
+the current body form.  */)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object lock)
 {
   EMACS_INT s = fix_position (start), e = fix_position (end);
 
@@ -2690,14 +2713,38 @@ remain visible.  */)
       EMACS_INT tem = s; s = e; e = tem;
     }
 
-  if (!(BEG <= s && s <= e && e <= Z))
-    args_out_of_range (start, end);
+  if (! NILP (lock))
+    {
+      if (!(BEGV <= s && s <= e && e <= ZV))
+	args_out_of_range (start, end);
 
-  if (BEGV != s || ZV != e)
-    current_buffer->clip_changed = 1;
+      if (BEGV != s || ZV != e)
+	current_buffer->clip_changed = 1;
 
-  SET_BUF_BEGV (current_buffer, s);
-  SET_BUF_ZV (current_buffer, e);
+      record_unwind_protect (restore_point_unwind, Fpoint_marker ());
+      record_unwind_protect (unwind_locked_begv, Fpoint_min ());
+      record_unwind_protect (unwind_locked_zv, Fpoint_max ());
+
+      SET_BUF_BEGV (current_buffer, s);
+      SET_BUF_ZV (current_buffer, e);
+
+      specbind (Qrestrictions_locked, Qt);
+    }
+  else
+    {
+      if (! NILP (Vrestrictions_locked))
+	return Qnil;
+
+      if (!(BEG <= s && s <= e && e <= Z))
+	args_out_of_range (start, end);
+
+      if (BEGV != s || ZV != e)
+	current_buffer->clip_changed = 1;
+
+      SET_BUF_BEGV (current_buffer, s);
+      SET_BUF_ZV (current_buffer, e);
+    }
+
   if (PT < s)
     SET_PT (s);
   if (e < PT)
@@ -2843,7 +2890,7 @@ otherwise MSGID-PLURAL.  */)
   CHECK_INTEGER (n);
 
   /* Placeholder implementation until we get our act together.  */
-  return EQ (n, make_fixnum (1)) ? msgid : msgid_plural;
+  return BASE_EQ (n, make_fixnum (1)) ? msgid : msgid_plural;
 }
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
@@ -3327,7 +3374,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      if (EQ (arg, args[n]))
 		{
 		  Lisp_Object noescape = conversion == 'S' ? Qnil : Qt;
-		  spec->argument = arg = Fprin1_to_string (arg, noescape);
+		  spec->argument = arg = Fprin1_to_string (arg, noescape, Qnil);
 		  if (STRING_MULTIBYTE (arg) && ! multibyte)
 		    {
 		      multibyte = true;
@@ -4516,6 +4563,15 @@ variable is nil.
 This variable is experimental; email 32252@debbugs.gnu.org if you need
 it to be non-nil.  */);
   binary_as_unsigned = false;
+
+  DEFSYM (Qrestrictions_locked, "restrictions-locked");
+  DEFVAR_LISP ("restrictions-locked", Vrestrictions_locked,
+	       doc: /* If non-nil, restrictions are currently locked.
+
+This happens when `narrow-to-region', which see, is called from Lisp
+with an optional argument LOCK non-nil.  */);
+  Vrestrictions_locked = Qnil;
+  Funintern (Qrestrictions_locked, Qnil);
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);

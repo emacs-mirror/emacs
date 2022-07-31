@@ -651,8 +651,8 @@ Argument INPUT-AMERICAN american style diary string.
 Argument EXPECTED-OUTPUT expected iCalendar result string.
 Optional argument ALARMS the value of `icalendar-export-alarms' for this test.
 
-European style input data must use german month names.  American
-and ISO style input data must use english month names."
+European style input data must use German month names.  American
+and ISO style input data must use English month names."
   (let ((tz (getenv "TZ"))
 	(calendar-date-style 'iso)
 	(icalendar-recurring-start-year 2000)
@@ -1639,19 +1639,17 @@ SUMMARY:NNN Wwwwwwww Wwwww - Aaaaaa Pppppppp rrrrrr ddd oo Nnnnnnnn 30
                  "2004-09-17T03:09:10+0000"))
   (let ((orig (icalendar-test--format "20040917T050910")))
     (unwind-protect
-        (progn
-          (set-time-zone-rule "UTC-02:00")
-          (should (equal (icalendar-test--format "20040917T050910")
+	(let ((zone "XXX-02"))
+	  (should (equal (icalendar-test--format "20040917T050910" nil zone)
                          "2004-09-17T03:09:10+0000"))
-          (should (equal (icalendar-test--format "20040917T0509")
+	  (should (equal (icalendar-test--format "20040917T0509" nil zone)
                          "2004-09-17T03:09:00+0000"))
-          (should (equal (icalendar-test--format "20040917")
+	  (should (equal (icalendar-test--format "20040917" nil zone)
                          "2004-09-16T22:00:00+0000"))
-          (should (equal (icalendar-test--format "20040917T050910" 1)
+	  (should (equal (icalendar-test--format "20040917T050910" 1 zone)
                          "2004-09-18T03:09:10+0000"))
-          (should (equal (icalendar-test--format "20040917T050910" 30)
+	  (should (equal (icalendar-test--format "20040917T050910" 30 zone)
                          "2004-10-17T03:09:10+0000")))
-      (set-time-zone-rule 'wall) ;; (set-time-zone-rule nil) is broken
       (should (equal orig (icalendar-test--format "20040917T050910")))))
   (should (equal (icalendar-test--format "20040917T050910Z")
                  "2004-09-17T05:09:10+0000"))

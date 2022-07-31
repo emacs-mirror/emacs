@@ -180,15 +180,21 @@ s/@PACKAGE@/emacs/
 /^GL_GNULIB_ENVIRON *=/s/@GL_GNULIB_ENVIRON@/1/
 /^GL_GNULIB_FDATASYNC *=/s/@GL_GNULIB_FDATASYNC@/1/
 /^GL_GNULIB_GETLOADAVG *=/s/@GL_GNULIB_GETLOADAVG@/1/
+/^GL_GNULIB_GETRANDOM *=/s/@GL_GNULIB_GETRANDOM@/1/
 /^GL_GNULIB_UNISTD_H_GETOPT *=/s/@GL_GNULIB_UNISTD_H_GETOPT@/1/
+/^GL_GNULIB_MEMMEM *=/s/@GL_GNULIB_MEMMEM@/1/
 /^GL_GNULIB_MEMRCHR *=/s/@GL_GNULIB_MEMRCHR@/1/
 /^GL_GNULIB_MEMPCPY *=/s/@GL_GNULIB_MEMPCPY@/1/
 /^GL_GNULIB_MKOSTEMP *=/s/@GL_GNULIB_MKOSTEMP@/1/
 /^GL_GNULIB_MKTIME *=/s/@GL_GNULIB_MKTIME@/1/
+/^GL_GNULIB_SIGDESCR_NP *=/s/@GL_GNULIB_SIGDESCR_NP@/1/
 /^GL_GNULIB_TIME_R *=/s/@GL_GNULIB_TIME_R@/1/
 /^GL_GNULIB_TIMEGM *=/s/@GL_GNULIB_TIMEGM@/1/
 /^GL_GNULIB_TIME_RZ *=/s/@GL_GNULIB_TIME_RZ@/1/
 /^GL_GNULIB_UNSETENV *=/s/@GL_GNULIB_UNSETENV@/1/
+# Apparently without this `rawmemchr' isn't declared, so
+# we get warnings building canonicalize-lgpl.o
+/^GL_GNULIB_RAWMEMCHR *=/s/@GL_GNULIB_RAWMEMCHR@/1/
 /^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
 /^GL_GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
 /^GL_GSETTINGS_LIBS *=/s/@[^@\n]*@//
@@ -418,6 +424,8 @@ s/= @GL_GENERATE_LIMITS_H_CONDITION@/= /
 s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_GMP_H_CONDITION@/= /
 s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/
+s/= @GL_COND_OBJ_STDIO_READ_CONDITION@/= /
+s/= @GL_COND_OBJ_STDIO_WRITE_CONDITION@/= /
 s/\$\(MKDIR_P\) malloc//
 #
 # Determine which modules to build and which to omit
@@ -429,7 +437,6 @@ OMIT_GNULIB_MODULE_careadlinkat = true\
 OMIT_GNULIB_MODULE_cloexec = true\
 OMIT_GNULIB_MODULE_dirent = true\
 OMIT_GNULIB_MODULE_dirfd = true\
-OMIT_GNULIB_MODULE_scratch_buffer = true\
 OMIT_GNULIB_MODULE_dup2 = true\
 OMIT_GNULIB_MODULE_errno = true\
 OMIT_GNULIB_MODULE_euidaccess = true\
@@ -445,6 +452,7 @@ OMIT_GNULIB_MODULE_group-member = true\
 OMIT_GNULIB_MODULE_inttypes-incomplete = true\
 OMIT_GNULIB_MODULE_localtime-buffer = true\
 OMIT_GNULIB_MODULE_lstat = true\
+OMIT_GNULIB_MODULE_nanosleep = true\
 OMIT_GNULIB_MODULE_open = true\
 OMIT_GNULIB_MODULE_pipe2 = true\
 OMIT_GNULIB_MODULE_pselect = true\

@@ -24,6 +24,7 @@ DARWIN_OS	Compiling on macOS or pure Darwin (and using s/darwin.h).
 SOLARIS2
 USG
 USG5_4
+HAIKU		Compiling on Haiku.
 
 ** Distinguishing GUIs **
 
@@ -32,16 +33,38 @@ HAVE_NS		Use the NeXT/OpenStep/Cocoa UI under macOS or GNUstep.
 NS_IMPL_GNUSTEP	Compile support for GNUstep implementation of NS GUI API.
 NS_IMPL_COCOA	Compile support for Cocoa (Apple) implementation of NS GUI API.
 HAVE_X11	Compile support for the X11 GUI.
+HAVE_PGTK	Compile support for using GTK itself without directly using X Windows APIs.
+HAVE_HAIKU	Compile support for the Haiku window system.
 HAVE_X_WINDOWS	Compile support for X Window system
   (It looks like, nowadays, if HAVE_X11 is set, HAVE_X_WINDOWS must
    be, and vice versa.  At least, this is true for configure, and
    msdos; not sure about nt.)
-HAVE_X11R6
-HAVE_X11R6_XIM
-HAVE_X11XTR6
+
+** X Windows features **
+HAVE_X11R6	Whether or not the system has X11R6.  (Always defined.)
+HAVE_X11R6_XIM	Whether or not the system supports XIM features introduced in R6.
+HAVE_X11XTR6	Whether or not the Xt is from X11R6 or newer.
+
 USE_LUCID	Use the Lucid toolkit for menus&scrollbars.  Requires HAVE_X11.
 USE_MOTIF	Use the Motif toolkit for menus&scrollbars.  Requires HAVE_X11.
-USE_GTK		Use the Gtk   toolkit for menus&scrollbars.  Requires HAVE_X11.
+USE_GTK		Use the Gtk   toolkit for menus&scrollbars.  Requires HAVE_X11 or HAVE_PGTK.
+HAVE_GTK3	Use GTK version 3 or later. Requires HAVE_X11.
+
+HAVE_XCB_SHAPE	Whether or not XCB supports the Nonrectangular Window Shape extension.
+HAVE_XCOMPOSITE	Whether or not the XCOMPOSITE extension library is present.
+HAVE_XDBE	Whether or not to use the Xdbe extension for double buffering.
+HAVE_XFIXES	Whether or not the Xfixes extension library is present.
+HAVE_XINERAMA	Whether or not the Xinerama extension library is present.
+HAVE_XINPUT2	Whether or not to use version 2 of the X Input Extension for input.
+HAVE_XINPUT2_1	Whether or not version 2.1 of the X Input Extension is supported.
+HAVE_XINPUT2_2	Whether or not version 2.2 of the X Input Extension is supported.
+HAVE_XINPUT2_3	Whether or not version 2.3 of the X Input Extension is supported.
+HAVE_XINPUT2_4	Whether or not version 2.4 of the X Input Extension is supported.
+HAVE_XKB	Whether or not the XKB extension library is present.
+HAVE_XRANDR	Whether or not the RandR extension library is present.
+HAVE_XSHAPE	Whether or not the Nonrectangular Window Shape extension library is present.
+HAVE_XSYNC	Whether or not the X Synchronization Extension library is present.
+USE_XCB		Whether or not the XCB library is used to optimize some X requests.
 
 ** Frame types **
 

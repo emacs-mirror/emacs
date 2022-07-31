@@ -85,6 +85,8 @@
 (defvar x-selection-timeout)
 (defvar x-session-id)
 (defvar x-session-previous-id)
+(defvar x-dnd-movement-function)
+(defvar x-dnd-unsupported-drop-function)
 
 (defun x-handle-no-bitmap-icon (_switch)
   (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
@@ -106,14 +108,6 @@
       (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-session-previous-id (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
-
-(defvar emacs-save-session-functions nil
-  "Special hook run when a save-session event occurs.
-The functions do not get any argument.
-Functions can return non-nil to inform the session manager that the
-window system shutdown should be aborted.
-
-See also `emacs-session-save'.")
 
 (defun emacs-session-filename (session-id)
   "Construct a filename to save the session in based on SESSION-ID.
@@ -247,7 +241,9 @@ exists."
 (defconst x-pointer-ur-angle 148)
 (defconst x-pointer-watch 150)
 (defconst x-pointer-xterm 152)
-(defconst x-pointer-invisible 255)
+(defconst x-pointer-invisible 65536) ;; This value is larger than a
+                                     ;; CARD16, so it cannot be a
+                                     ;; valid cursor.
 
 
 ;;;; Keysyms
@@ -1175,9 +1171,6 @@ as returned by `x-server-vendor'."
 
 ;;;; Selections
 
-(define-obsolete-function-alias 'x-cut-buffer-or-selection-value
-  'x-selection-value "24.1")
-
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 
 (defun x-clipboard-yank ()
@@ -1186,8 +1179,12 @@ as returned by `x-server-vendor'."
   (interactive "*")
   (let ((clipboard-text (gui--selection-value-internal 'CLIPBOARD))
 	(select-enable-clipboard t))
-    (if (and clipboard-text (> (length clipboard-text) 0))
-	(kill-new clipboard-text))
+    (when (and clipboard-text (> (length clipboard-text) 0))
+      ;; Avoid asserting ownership of CLIPBOARD, which will cause
+      ;; `gui-selection-value' to return nil in the future.
+      ;; (bug#56273)
+      (let ((select-enable-clipboard nil))
+        (kill-new clipboard-text)))
     (yank)))
 
 (declare-function accelerate-menu "xmenu.c" (&optional frame) t)
@@ -1295,14 +1292,6 @@ This returns an error if any Emacs frames are X frames."
 		    (cons (cons 'width (cdr (assq 'width parsed)))
 			  default-frame-alist))))))
 
-  ;; Check the reverseVideo resource.
-  (let ((case-fold-search t))
-    (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-      (if (and rv
-	       (string-match "^\\(true\\|yes\\|on\\)$" rv))
-	  (setq default-frame-alist
-		(cons '(reverse . t) default-frame-alist)))))
-
   ;; Set x-selection-timeout, measured in milliseconds.
   (let ((res-selection-timeout (x-get-resource "selectionTimeout"
 					       "SelectionTimeout")))
@@ -1378,7 +1367,8 @@ This returns an error if any Emacs frames are X frames."
 (cl-defmethod gui-backend-get-selection (selection-symbol target-type
                                          &context (window-system x)
                                          &optional time-stamp terminal)
-  (x-get-selection-internal selection-symbol target-type time-stamp terminal))
+  (x-get-selection-internal selection-symbol target-type
+                            time-stamp terminal))
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)
@@ -1563,18 +1553,64 @@ EVENT is a preedit-text event."
 
 (defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
 
-(declare-function x-internal-focus-input-context (focus frame) "xfns.c")
+(declare-function x-internal-focus-input-context "xfns.c" (focus))
 
 (defun x-gtk-use-native-input-watcher (_symbol newval &rest _ignored)
   "Variable watcher for `x-gtk-use-native-input'.
-If NEWVAL is non-nil and the selected frame is displayed through X,
-focus the GTK input context."
+If NEWVAL is non-nil, focus the GTK input context of focused
+frames on all displays."
   (when (and (featurep 'gtk)
              (eq (framep (selected-frame)) 'x))
-    (x-internal-focus-input-context newval (selected-frame))))
+    (x-internal-focus-input-context newval)))
 
 (add-variable-watcher 'x-gtk-use-native-input
                       #'x-gtk-use-native-input-watcher)
+
+(defun x-dnd-movement (_frame position)
+  "Handle movement to POSITION during drag-and-drop."
+  (dnd-handle-movement position))
+
+(defun x-device-class (name)
+  "Return the device class of NAME.
+Users should not call this function; see `device-class' instead."
+  (let ((downcased-name (downcase name)))
+    (cond
+     ((string-match-p "XTEST" name) 'test)
+     ((string= "Virtual core pointer" name) 'core-pointer)
+     ((string= "Virtual core keyboard" name) 'core-keyboard)
+     ((string-match-p "eraser" downcased-name) 'eraser)
+     ((string-match-p " pad" downcased-name) 'pad)
+     ((or (or (string-match-p "wacom" downcased-name)
+              (string-match-p "pen" downcased-name))
+          (string-match-p "stylus" downcased-name))
+      'pen)
+     ((or (string-prefix-p "xwayland-touch:" name)
+          (string-match-p "touchscreen" downcased-name))
+      'touchscreen)
+     ((or (string-match-p "trackpoint" downcased-name)
+          (string-match-p "stick" downcased-name))
+      'trackpoint)
+     ((or (string-match-p "mouse" downcased-name)
+          (string-match-p "optical" downcased-name)
+          (string-match-p "pointer" downcased-name))
+      'mouse)
+     ((string-match-p "cursor" downcased-name) 'puck)
+     ((or (string-match-p "keyboard" downcased-name)
+          ;; One of my cheap keyboards is really named this...
+          (string= name "USB USB Keykoard"))
+      'keyboard)
+     ((string-match-p "button" downcased-name) 'power-button)
+     ((string-match-p "touchpad" downcased-name) 'touchpad)
+     ((or (string-match-p "midi" downcased-name)
+          (string-match-p "piano" downcased-name))
+      'piano)
+     ((or (string-match-p "wskbd" downcased-name) ; NetBSD/OpenBSD
+          (and (string-match-p "/dev" downcased-name)
+               (string-match-p "kbd" downcased-name)))
+      'keyboard))))
+
+(setq x-dnd-movement-function #'x-dnd-movement)
+(setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
 
 (provide 'x-win)
 (provide 'term/x-win)

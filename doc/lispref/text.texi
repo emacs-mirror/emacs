@@ -243,10 +243,8 @@ using a function specified by the variable
 The default filter function consults the obsolete wrapper hook
 @code{filter-buffer-substring-functions} (see the documentation string
 of the macro @code{with-wrapper-hook} for the details about this
-obsolete facility), and the obsolete variable
-@code{buffer-substring-filters}.  If both of these are @code{nil}, it
-returns the unaltered text from the buffer, i.e., what
-@code{buffer-substring} would return.
+obsolete facility).  If it is @code{nil}, it returns the unaltered
+text from the buffer, i.e., what @code{buffer-substring} would return.
 
 If @var{delete} is non-@code{nil}, the function deletes the text
 between @var{start} and @var{end} after copying it, like
@@ -282,22 +280,12 @@ the same as those of @code{filter-buffer-substring}.
 
 The first hook function is passed a @var{fun} that is equivalent to
 the default operation of @code{filter-buffer-substring}, i.e., it
-returns the buffer-substring between @var{start} and @var{end}
-(processed by any @code{buffer-substring-filters}) and optionally
-deletes the original text from the buffer.  In most cases, the hook
-function will call @var{fun} once, and then do its own processing of
-the result.  The next hook function receives a @var{fun} equivalent to
-this, and so on.  The actual return value is the result of all the
-hook functions acting in sequence.
-@end defvar
-
-@defvar buffer-substring-filters
-The value of this obsolete variable should be a list of functions
-that accept a single string argument and return another string.
-The default @code{filter-buffer-substring} function passes the buffer
-substring to the first function in this list, and the return value of
-each function is passed to the next function.  The return value of the
-last function is passed to @code{filter-buffer-substring-functions}.
+returns the buffer-substring between @var{start} and @var{end} and
+optionally deletes the original text from the buffer.  In most cases,
+the hook function will call @var{fun} once, and then do its own
+processing of the result.  The next hook function receives a @var{fun}
+equivalent to this, and so on.  The actual return value is the result
+of all the hook functions acting in sequence.
 @end defvar
 
 @defun current-word &optional strict really-word
@@ -1034,6 +1022,9 @@ text in @var{string} according to the @code{yank-handler} text
 property, as well as the variables @code{yank-handled-properties} and
 @code{yank-excluded-properties} (see below), before inserting the
 result into the current buffer.
+
+@var{string} will be run through @code{yank-transform-functions} (see
+below) before inserting.
 @end defun
 
 @defun insert-buffer-substring-as-yank buf &optional start end
@@ -1108,6 +1099,23 @@ or specifying key bindings.  It takes effect after
 @code{yank-handled-properties}.
 @end defopt
 
+@defvar yank-transform-functions
+This variable is a list of functions.  Each function is called (in
+order) with the string to be yanked as the argument, and should
+return a (possibly transformed) string.  This variable can be set
+globally, but can also be used to create new commands that are
+variations on @code{yank}.  For instance, to create a command that
+works like @code{yank}, but cleans up whitespace before inserting, you
+could say something like:
+
+@lisp
+(defun yank-with-clean-whitespace ()
+  (interactive)
+  (let ((yank-transform-functions
+	 '(string-clean-whitespace)))
+    (call-interactively #'yank)))
+@end lisp
+@end defvar
 
 @node Yank Commands
 @subsection Functions for Yanking
@@ -1731,8 +1739,9 @@ filling when @var{justify} is non-@code{nil}.
 
 If @var{nosqueeze} is non-@code{nil}, that means to leave whitespace
 other than line breaks untouched.  If @var{squeeze-after} is
-non-@code{nil}, it specifies a position in the region, and means don't
-canonicalize spaces before that position.
+non-@code{nil}, it specifies a position in the region, and means
+that whitespace other than line breaks should be left untouched before
+that position.
 
 In Adaptive Fill mode, this command calls @code{fill-context-prefix} to
 choose a fill prefix by default.  @xref{Adaptive Fill}.
@@ -2357,6 +2366,9 @@ begins.  @xref{Usual Display}.
 amount of horizontal scrolling.  Consequently, a column value can be
 arbitrarily high.  The first (or leftmost) column is numbered 0.  They
 also ignore overlays and text properties, aside from invisibility.
+Invisible text is considered as having zero width, unless
+@code{buffer-invisibility-spec} specifies that invisible text should
+be displayed as ellipsis (@pxref{Invisible Text}).
 
 @defun current-column
 This function returns the horizontal position of point, measured in
@@ -2430,6 +2442,10 @@ This function returns the indentation of the current line, which is
 the horizontal position of the first nonblank character.  If the
 contents are entirely blank, then this is the horizontal position of the
 end of the line.
+
+This function considers invisible text as having zero width, unless
+@code{buffer-invisibility-spec} specifies that invisible text should
+be displayed as ellipsis.  @xref{Invisible Text}.
 @end defun
 
 @deffn Command indent-to column &optional minimum
@@ -2968,6 +2984,12 @@ character after position @var{pos} in @var{object} (a buffer or
 string).  The argument @var{object} is optional and defaults to the
 current buffer.
 
+If @var{position} is at the end of @var{object}, the value is
+@code{nil}, but note that buffer narrowing does not affect the value.
+That is, if @var{object} is a buffer or @code{nil}, and the buffer is
+narrowed and @var{position} is at the end of the narrowed buffer, the
+result may be non-@code{nil}.
+
 If there is no @var{prop} property strictly speaking, but the character
 has a property category that is a symbol, then @code{get-text-property} returns
 the @var{prop} property of that symbol.
@@ -3020,6 +3042,12 @@ properties take precedence over this variable.
 This function returns the entire property list of the character at
 @var{position} in the string or buffer @var{object}.  If @var{object} is
 @code{nil}, it defaults to the current buffer.
+
+If @var{position} is at the end of @var{object}, the value is
+@code{nil}, but note that buffer narrowing does not affect the value.
+That is, if @var{object} is a buffer or @code{nil}, and the buffer is
+narrowed and @var{position} is at the end of the narrowed buffer, the
+result may be non-@code{nil}.
 @end defun
 
 @defvar default-text-properties
@@ -3373,7 +3401,7 @@ for @var{object} is the current buffer.
 Search for the next region that has text property @var{prop} set to
 @var{value} according to @var{predicate}.
 
-This function is modelled after @code{search-forward} and friends in
+This function is modeled after @code{search-forward} and friends in
 that it moves point, but it returns a structure that describes the
 match instead of returning it in @code{match-beginning} and friends.
 
@@ -3452,7 +3480,7 @@ This will give you a list of all those URLs.
 @end defun
 
 @defun text-property-search-backward prop &optional value predicate not-current
-This is just like @code{text-property-search-backward}, but searches
+This is just like @code{text-property-search-forward}, but searches
 backward instead.  Point is placed at the beginning of the matched
 region instead of the end, though.
 @end defun
@@ -3540,15 +3568,29 @@ special modes that implement their own highlighting.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}
-This property is used instead of @code{face} when the mouse is on or
-near the character.  For this purpose, ``near'' means that all text
-between the character and where the mouse is have the same
-@code{mouse-face} property value.
+This property is used instead of @code{face} when the mouse pointer
+hovers over the text which has this property.  When this happens, the
+entire stretch of text that has the same @code{mouse-face} property
+value, not just the character under the mouse, is highlighted.
 
 Emacs ignores all face attributes from the @code{mouse-face} property
 that alter the text size (e.g., @code{:height}, @code{:weight}, and
 @code{:slant}).  Those attributes are always the same as for the
 unhighlighted text.
+
+@item cursor-face
+@kindex cursor-face @r{(text property)}
+@findex cursor-face-highlight-mode
+@vindex cursor-face-highlight-nonselected-window
+This property is similar to @code{mouse-face}, but it is used when
+point (not the mouse) is inside text that has this property.  The
+highlighting happens only if the mode
+@code{cursor-face-highlight-mode} is enabled.  When the variable
+@code{cursor-face-highlight-nonselected-window} is non-@code{nil}, the
+text with this face is highlighted even if the window is not selected,
+similarly to what @code{highlight-nonselected-windows} does for the
+region (@pxref{Mark,, The Mark and the Region, emacs, The GNU Emacs
+Manual}).
 
 @item fontified
 @kindex fontified @r{(text property)}
@@ -5282,6 +5324,24 @@ interpolation).
 @code{sqlite-execute} returns the number of affected rows.  For
 instance, an @samp{insert} statement will return @samp{1}, whereas an
 @samp{update} statement may return zero or a higher number.
+
+Strings in SQLite are, by default, stored as @code{utf-8}, and
+selecting a text column will decode the string using that charset.
+Selecting a blob column will return the raw data without any decoding
+(i.e., it will return a unibyte string containing the bytes as stored
+in the database).  Inserting binary data into blob columns, however,
+requires some care, as @code{sqlite-execute} will, by default,
+interpret all strings as @code{utf-8}.
+
+So if you have, for instance, @acronym{GIF} data in a unibyte string
+called @var{gif}, you have to mark it specially to let
+@code{sqlite-execute} know this:
+
+@lisp
+(put-text-property 0 1 'coding-system 'binary gif)
+(sqlite-execute db "insert into foo values (?, ?)" (list gif 2))
+@end lisp
+
 @end defun
 
 @defun sqlite-select db query &optional values result-type
@@ -5392,6 +5452,12 @@ Load the named extension @var{module} into the database @var{db}.
 Extensions are usually shared-library files; on GNU and Unix systems,
 they have the @file{.so} file-name extension.
 @end defun
+
+@findex sqlite-mode-open-file
+If you wish to list the contents of an SQLite file, you can use the
+@code{sqlite-mode-open-file} command.  This will pop to a buffer using
+@code{sqlite-mode}, which allows you to examine (and alter) the
+contents of an SQLite database.
 
 @node Parsing HTML/XML
 @section Parsing HTML and XML

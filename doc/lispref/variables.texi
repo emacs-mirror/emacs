@@ -327,7 +327,7 @@ Example of a loop summing a list of numbers:
 
 @anchor{Tail recursion}
 Recursive calls to @var{name} that occur in @emph{tail
-positions} in @var{body} are guaranteed to be optimised as @emph{tail
+positions} in @var{body} are guaranteed to be optimized as @emph{tail
 calls}, which means that they will not consume any additional stack
 space no matter how deeply the recursion runs.  Such recursive calls
 will effectively jump to the top of the loop with new values for the
@@ -527,10 +527,11 @@ If @var{symbol} has a buffer-local binding in the current buffer,
 rather than the buffer-local binding.  It sets the default value if
 the default value is void.  @xref{Buffer-Local Variables}.
 
-If @var{symbol} is already lexically bound (e.g., if the @code{defvar}
-form occurs in a @code{let} form with lexical binding enabled), then
-@code{defvar} sets the dynamic value.  The lexical binding remains in
-effect until its binding construct exits.  @xref{Variable Scoping}.
+If @var{symbol} is already let bound (e.g., if the @code{defvar}
+form occurs in a @code{let} form), then @code{defvar} sets the toplevel
+default value, like @code{set-default-toplevel-value}.
+The let binding remains in effect until its binding construct exits.
+@xref{Variable Scoping}.
 
 @cindex @code{eval-defun}, and @code{defvar} forms
 @cindex @code{eval-last-sexp}, and @code{defvar} forms
@@ -868,24 +869,31 @@ particular, @code{setopt} will run the setter function associated with
 the variable.  For instance, if you have:
 
 @example
+@group
 (defcustom my-var 1
   "My var."
   :type 'number
   :set (lambda (var val)
          (set-default var val)
          (message "We set %s to %s" var val)))
+@end group
 @end example
 
-Then the following, in addition to setting @code{my-var} to @samp{2},
+@noindent
+then the following, in addition to setting @code{my-var} to @samp{2},
 will also issue a message:
 
 @example
-(setop my-var 2)
+(setopt my-var 2)
 @end example
 
-@code{setopt} can be used on regular, non-user option variables, but
-is much less efficient than @code{setq}.  The main use case for this
-macro is setting user options in the user's init file.
+@code{setopt} also checks whether the value is valid for the user
+option.  For instance, using @code{setopt} to set a user option
+defined with a @code{number} type to a string will signal an error.
+
+The @code{setopt} macro can be used on regular, non-user option
+variables, but is much less efficient than @code{setq}.  The main use
+case for this macro is setting user options in the user's init file.
 @end defmac
 
 @node Watching Variables
@@ -1355,7 +1363,7 @@ disappear without prior notice.
 
 The byte-compiler can also warn about lexical variables that are
 special in other Emacs Lisp files, often indicating a missing
-@code{defvar} declaration.  This useful but somewhat specialised check
+@code{defvar} declaration.  This useful but somewhat specialized check
 requires three steps:
 
 @enumerate
@@ -2288,6 +2296,21 @@ list in @var{variables} is an alist of the form
   '((null-device . "/dev/null")))
 @end group
 @end example
+
+@findex connection-local-get-profile-variables
+If you want to append variable settings to an existing profile, you
+could use the function @code{connection-local-get-profile-variables}
+in order to retrieve the existing settings, like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'remote-bash
+  (append
+   (connection-local-get-profile-variables 'remote-bash)
+   '((shell-command-dont-erase-buffer . t))))
+@end group
+@end example
 @end defun
 
 @deffn {User Option} connection-local-profile-alist
@@ -2410,6 +2433,37 @@ are unwound.  Example:
 @end group
 @end example
 @end defmac
+
+@defvar connection-local-default-application
+The default application, a symbol, to be applied in
+@code{with-connection-local-variables}.  It defaults to @code{tramp},
+but in case you want to overwrite Tramp's settings temporarily, you
+could let-bind it like
+
+@example
+@group
+(connection-local-set-profile-variables
+  'my-remote-perl
+  '((perl-command-name . "/usr/local/bin/perl5")
+    (perl-command-switch . "-e %s")))
+@end group
+
+@group
+(connection-local-set-profiles
+  '(:application 'my-app :protocol "ssh" :machine "remotehost")
+  'my-remote-perl)
+@end group
+
+@group
+(let ((default-directory "/ssh:remotehost:/working/dir/")
+      (connection-local-default-application 'my-app))
+  (with-connection-local-variables
+    do something useful))
+@end group
+@end example
+
+This variable must not be changed globally.
+@end defvar
 
 @defvar enable-connection-local-variables
 If @code{nil}, connection-local variables are ignored.  This variable
@@ -2736,13 +2790,13 @@ implemented this way:
 (gv-define-expander substring
   (lambda (do place from &optional to)
     (gv-letplace (getter setter) place
-      (macroexp-let2* nil ((start from) (end to))
-        (funcall do `(substring ,getter ,start ,end)
+      (macroexp-let2* (from to)
+        (funcall do `(substring ,getter ,from ,to)
                  (lambda (v)
-                   (macroexp-let2 nil v v
+                   (macroexp-let2* (v)
                      `(progn
                         ,(funcall setter `(cl--set-substring
-                                           ,getter ,start ,end ,v))
+                                           ,getter ,from ,to ,v))
                         ,v))))))))
 @end example
 @end defmac
@@ -2755,7 +2809,7 @@ of Common Lisp could be implemented this way:
 @example
 (defmacro incf (place &optional n)
   (gv-letplace (getter setter) place
-    (macroexp-let2 nil v (or n 1)
+    (macroexp-let2* ((v (or n 1)))
       (funcall setter `(+ ,v ,getter)))))
 @end example
 
@@ -2789,7 +2843,7 @@ Common Lisp, this is not an error since the function @code{(setf
 it, that value won't be automatically restored.  Users usually set
 normal variables in their startup files, or use Customize
 (@pxref{Customization}) to set user options permanently, and various
-packages have various files wher they store the data (e.g., Gnus
+packages have various files where they store the data (e.g., Gnus
 stores this in @file{.newsrc.eld} and the URL library stores cookies
 in @file{~/.emacs.d/url/cookies}).
 

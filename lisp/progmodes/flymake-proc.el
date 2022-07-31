@@ -399,10 +399,7 @@ instead of reading master file from disk."
                    (not (string-match (format "\\.%s\\'" source-file-extension)
                                       inc-name))
                    (setq inc-name (concat inc-name "." source-file-extension)))
-              (when (eq t (compare-strings
-                           source-file-nondir nil nil
-                           inc-name (- (length inc-name)
-                                       (length source-file-nondir)) nil))
+              (when (string-suffix-p source-file-nondir inc-name)
                 (flymake-log 3 "inc-name=%s" inc-name)
                 (when (flymake-proc--check-include source-file-name inc-name
                                                    include-dirs)
@@ -903,7 +900,7 @@ can also be executed interactively independently of
 
 (defun flymake-proc--delete-temp-directory (dir-name)
   "Attempt to delete temp dir DIR-NAME, do not fail on error."
-  (let* ((temp-dir    temporary-file-directory)
+  (let* ((temp-dir    (file-truename temporary-file-directory))
 	 (suffix      (substring dir-name (1+ (length (directory-file-name temp-dir))))))
 
     (while (> (length suffix) 0)

@@ -206,6 +206,11 @@ struct xsettings
   unsigned seen;
 };
 
+#ifdef HAVE_PGTK
+/* The cairo font_options as obtained using gsettings.  */
+static cairo_font_options_t *font_options;
+#endif
+
 #ifdef HAVE_GSETTINGS
 #define GSETTINGS_SCHEMA         "org.gnome.desktop.interface"
 #define GSETTINGS_TOOL_BAR_STYLE "toolbar-style"
@@ -215,10 +220,161 @@ struct xsettings
 #define GSETTINGS_FONT_NAME  "font-name"
 #endif
 
+#ifdef HAVE_PGTK
+#define GSETTINGS_FONT_ANTIALIASING  "font-antialiasing"
+#define GSETTINGS_FONT_RGBA_ORDER    "font-rgba-order"
+#define GSETTINGS_FONT_HINTING       "font-hinting"
+#endif
 
 /* The single GSettings instance, or NULL if not connected to GSettings.  */
 
 static GSettings *gsettings_client;
+
+#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+
+static bool
+xg_settings_key_valid_p (GSettings *settings, const char *key)
+{
+#ifdef GLIB_VERSION_2_32
+  GSettingsSchema *schema;
+  bool rc;
+
+  g_object_get (G_OBJECT (settings),
+		"settings-schema", &schema,
+		NULL);
+
+  if (!schema)
+    return false;
+
+  rc = g_settings_schema_has_key (schema, key);
+  g_settings_schema_unref (schema);
+
+  return rc;
+#else
+  return false;
+#endif
+}
+
+#endif
+
+#ifdef HAVE_PGTK
+/* Store an event for re-rendering of the fonts.  */
+static void
+store_font_options_changed (void)
+{
+  if (dpyinfo_valid (first_dpyinfo))
+    store_config_changed_event (Qfont_render,
+				XCAR (first_dpyinfo->name_list_element));
+}
+
+/* Apply changes in the hinting system setting.  */
+static void
+apply_gsettings_font_hinting (GSettings *settings)
+{
+  GVariant *val;
+  const char *hinting;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_HINTING))
+    return;
+
+  val = g_settings_get_value (settings, GSETTINGS_FONT_HINTING);
+
+  if (val)
+    {
+      g_variant_ref_sink (val);
+
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+	{
+	  hinting = g_variant_get_string (val, NULL);
+
+	  if (!strcmp (hinting, "full"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_FULL);
+	  else if (!strcmp (hinting, "medium"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_MEDIUM);
+	  else if (!strcmp (hinting, "slight"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_SLIGHT);
+	  else if (!strcmp (hinting, "none"))
+	    cairo_font_options_set_hint_style (font_options,
+					       CAIRO_HINT_STYLE_NONE);
+	}
+      g_variant_unref (val);
+    }
+}
+
+/* Apply changes in the antialiasing system setting.  */
+static void
+apply_gsettings_font_antialias (GSettings *settings)
+{
+  GVariant *val;
+  const char *antialias;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_ANTIALIASING))
+    return;
+
+  val = g_settings_get_value (settings, GSETTINGS_FONT_ANTIALIASING);
+
+  if (val)
+    {
+      g_variant_ref_sink (val);
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+	{
+	  antialias = g_variant_get_string (val, NULL);
+
+	  if (!strcmp (antialias, "none"))
+	    cairo_font_options_set_antialias (font_options,
+					      CAIRO_ANTIALIAS_NONE);
+	  else if (!strcmp (antialias, "grayscale"))
+	    cairo_font_options_set_antialias (font_options,
+					      CAIRO_ANTIALIAS_GRAY);
+	  else if (!strcmp (antialias, "rgba"))
+	    cairo_font_options_set_antialias (font_options,
+					      CAIRO_ANTIALIAS_SUBPIXEL);
+	}
+      g_variant_unref (val);
+    }
+}
+
+/* Apply the settings for the rgb element ordering.  */
+static void
+apply_gsettings_font_rgba_order (GSettings *settings)
+{
+  GVariant *val;
+  const char *rgba_order;
+
+  if (!xg_settings_key_valid_p (settings, GSETTINGS_FONT_RGBA_ORDER))
+    return;
+
+  val = g_settings_get_value (settings,
+			      GSETTINGS_FONT_RGBA_ORDER);
+
+  if (val)
+    {
+      g_variant_ref_sink (val);
+
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+	{
+	  rgba_order = g_variant_get_string (val, NULL);
+
+	  if (!strcmp (rgba_order, "rgb"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_RGB);
+	  else if (!strcmp (rgba_order, "bgr"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_BGR);
+	  else if (!strcmp (rgba_order, "vrgb"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_VRGB);
+	  else if (!strcmp (rgba_order, "vbgr"))
+	    cairo_font_options_set_subpixel_order (font_options,
+						   CAIRO_SUBPIXEL_ORDER_VBGR);
+	}
+      g_variant_unref (val);
+    }
+}
+#endif /* HAVE_PGTK */
 
 /* Callback called when something changed in GSettings.  */
 
@@ -273,6 +429,23 @@ something_changed_gsettingsCB (GSettings *settings,
         }
     }
 #endif /* USE_CAIRO || HAVE_XFT */
+#ifdef HAVE_PGTK
+  else if (!strcmp (key, GSETTINGS_FONT_ANTIALIASING))
+    {
+      apply_gsettings_font_antialias (settings);
+      store_font_options_changed ();
+    }
+  else if (!strcmp (key, GSETTINGS_FONT_HINTING))
+    {
+      apply_gsettings_font_hinting (settings);
+      store_font_options_changed ();
+    }
+  else if (!strcmp (key, GSETTINGS_FONT_RGBA_ORDER))
+    {
+      apply_gsettings_font_rgba_order (settings);
+      store_font_options_changed ();
+    }
+#endif /* HAVE_PGTK */
 }
 
 #endif /* HAVE_GSETTINGS */
@@ -900,6 +1073,16 @@ init_gsettings (void)
         dupstring (&current_font, g_variant_get_string (val, NULL));
       g_variant_unref (val);
     }
+
+  /* Only use the gsettings font entries for the Cairo backend
+     running on PGTK.  */
+#ifdef HAVE_PGTK
+  font_options = cairo_font_options_create ();
+  apply_gsettings_font_antialias (gsettings_client);
+  apply_gsettings_font_hinting (gsettings_client);
+  apply_gsettings_font_rgba_order (gsettings_client);
+#endif /* HAVE_PGTK */
+
 #endif /* USE_CAIRO || HAVE_XFT */
 
 #endif /* HAVE_GSETTINGS */
@@ -1021,6 +1204,21 @@ xsettings_get_system_normal_font (void)
 }
 #endif
 
+#ifdef HAVE_PGTK
+/* Return the cairo font options, updated from the gsettings font
+   config entries.  The caller should call cairo_font_options_destroy
+   on the result.  */
+cairo_font_options_t *
+xsettings_get_font_options (void)
+{
+  if (font_options != NULL)
+    return cairo_font_options_copy (font_options);
+  else
+    /* GSettings is not configured.  */
+    return cairo_font_options_create ();
+}
+#endif
+
 DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
@@ -1072,6 +1270,10 @@ syms_of_xsettings (void)
 #ifdef HAVE_GCONF
   gconf_client = NULL;
   PDUMPER_IGNORE (gconf_client);
+#endif
+#ifdef HAVE_PGTK
+  font_options = NULL;
+  PDUMPER_IGNORE (font_options);
 #endif
 
   DEFSYM (Qmonospace_font_name, "monospace-font-name");

@@ -567,10 +567,9 @@ extern int translate_char (Lisp_Object, int c);
 extern ptrdiff_t count_size_as_multibyte (const unsigned char *, ptrdiff_t);
 extern ptrdiff_t str_as_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t *);
-extern ptrdiff_t str_to_multibyte (unsigned char *, ptrdiff_t, ptrdiff_t);
+extern ptrdiff_t str_to_multibyte (unsigned char *dst, const unsigned char *src,
+				   ptrdiff_t nchars);
 extern ptrdiff_t str_as_unibyte (unsigned char *, ptrdiff_t);
-extern ptrdiff_t str_to_unibyte (const unsigned char *, unsigned char *,
-                                 ptrdiff_t);
 extern ptrdiff_t strwidth (const char *, ptrdiff_t);
 extern ptrdiff_t c_string_width (const unsigned char *, ptrdiff_t, int,
 				 ptrdiff_t *, ptrdiff_t *);

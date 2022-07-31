@@ -76,7 +76,8 @@
 The return value is a list with mail/name pairs."
   (delq nil
         (mapcar (lambda (elem)
-                  (or (mail-header-parse-address elem)
+                  (or (ignore-errors
+                        (mail-header-parse-address elem))
                       (mail-header-parse-address-lax elem)))
                 (mail-header-parse-addresses string t))))
 
@@ -84,10 +85,10 @@ The return value is a list with mail/name pairs."
   "Parse STRING as a mail address.
 Returns a mail/name pair.
 
-This function will first try to parse STRING as a
-standards-compliant address string, and if that fails, try to use
-heuristics to determine the email address and the name in the
-string."
+This function uses heuristics to determine the email address and
+the name in the string.  If you have an RFC822(bis)
+standards-compliant STRING, use `mail-header-parse-address'
+instead."
   (with-temp-buffer
     (insert (string-clean-whitespace string))
     ;; Find the bit with the @ and guess that that's the mail.

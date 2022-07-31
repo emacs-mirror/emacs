@@ -395,7 +395,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	    if (noinherit || NILP (retval))
 	      /* If NOINHERIT, stop here, the rest is inherited.  */
 	      break;
-	    else if (!EQ (retval, Qunbound))
+	    else if (!BASE_EQ (retval, Qunbound))
 	      {
 		Lisp_Object parent_entry;
 		eassert (KEYMAPP (retval));
@@ -454,7 +454,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	  }
 
 	/* If we found a binding, clean it up and return it.  */
-	if (!EQ (val, Qunbound))
+	if (!BASE_EQ (val, Qunbound))
 	  {
 	    if (EQ (val, Qt))
 	      /* A Qt binding is just like an explicit nil binding
@@ -466,12 +466,12 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 
 	    if (!KEYMAPP (val))
 	      {
-		if (NILP (retval) || EQ (retval, Qunbound))
+		if (NILP (retval) || BASE_EQ (retval, Qunbound))
 		  retval = val;
 		if (!NILP (val))
 		  break;  /* Shadows everything that follows.  */
 	      }
-	    else if (NILP (retval) || EQ (retval, Qunbound))
+	    else if (NILP (retval) || BASE_EQ (retval, Qunbound))
 	      retval = val;
 	    else if (CONSP (retval_tail))
 	      {
@@ -487,7 +487,8 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	maybe_quit ();
       }
 
-    return EQ (Qunbound, retval) ? get_keyelt (t_binding, autoload) : retval;
+    return BASE_EQ (Qunbound, retval)
+           ? get_keyelt (t_binding, autoload) : retval;
   }
 }
 
@@ -496,7 +497,7 @@ access_keymap (Lisp_Object map, Lisp_Object idx,
 	       bool t_ok, bool noinherit, bool autoload)
 {
   Lisp_Object val = access_keymap_1 (map, idx, t_ok, noinherit, autoload);
-  return EQ (val, Qunbound) ? Qnil : val;
+  return BASE_EQ (val, Qunbound) ? Qnil : val;
 }
 
 static void
@@ -1025,8 +1026,14 @@ DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
        doc: /* Return a copy of the keymap KEYMAP.
 
 Note that this is almost never needed.  If you want a keymap that's like
-another yet with a few changes, you should use map inheritance rather
-than copying.  I.e. something like:
+another yet with a few changes, you should use keymap inheritance rather
+than copying.  That is, something like:
+
+    (defvar-keymap foo-map
+      :parent <theirmap>
+      ...)
+
+Or, if you need to support Emacs versions older than 29:
 
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map <theirmap>)
@@ -1550,7 +1557,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
       for ( ; CONSP (alist); alist = XCDR (alist))
 	if ((assoc = XCAR (alist), CONSP (assoc))
 	    && (var = XCAR (assoc), SYMBOLP (var))
-	    && (val = find_symbol_value (var), !EQ (val, Qunbound))
+	    && (val = find_symbol_value (var), !BASE_EQ (val, Qunbound))
 	    && !NILP (val))
 	  {
 	    Lisp_Object temp;
@@ -2595,7 +2602,10 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
 
 - If DEFINITION is remapped to OTHER-COMMAND, normally return the
   bindings for OTHER-COMMAND.  But if NO-REMAP is non-nil, return the
-  bindings for DEFINITION instead, ignoring its remapping.  */)
+  bindings for DEFINITION instead, ignoring its remapping.
+
+Keys that are represented as events that have a `non-key-event' non-nil
+symbol property are ignored.  */)
   (Lisp_Object definition, Lisp_Object keymap, Lisp_Object firstonly, Lisp_Object noindirect, Lisp_Object no_remap)
 {
   /* The keymaps in which to search.  */
@@ -2719,7 +2729,12 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
 
       /* It is a true unshadowed match.  Record it, unless it's already
 	 been seen (as could happen when inheriting keymaps).  */
-      if (NILP (Fmember (sequence, found)))
+      if (NILP (Fmember (sequence, found))
+	  /* Filter out non key events.  */
+	  && !(VECTORP (sequence)
+	       && ASIZE (sequence) == 1
+	       && SYMBOLP (AREF (sequence, 0))
+	       && !NILP (Fget (AREF (sequence, 0), Qnon_key_event))))
 	found = Fcons (sequence, found);
 
       /* If firstonly is Qnon_ascii, then we can return the first
@@ -2867,7 +2882,7 @@ You type        Translation\n\
       CALLN (Ffuncall,
 	     Qdescribe_map_tree,
 	     Vkey_translation_map, Qnil, Qnil, prefix,
-	     msg, nomenu, Qt, Qnil, Qnil);
+	     msg, nomenu, Qt, Qnil, Qnil, buffer);
     }
 
   /* Print the (major mode) local map.  */
@@ -2881,7 +2896,7 @@ You type        Translation\n\
       CALLN (Ffuncall,
 	     Qdescribe_map_tree,
 	     start1, Qt, shadow, prefix,
-	     msg, nomenu, Qnil, Qnil, Qnil);
+	     msg, nomenu, Qnil, Qnil, Qnil, buffer);
       shadow = Fcons (start1, shadow);
       start1 = Qnil;
     }
@@ -2894,7 +2909,7 @@ You type        Translation\n\
       CALLN (Ffuncall,
 	     Qdescribe_map_tree,
 	     start1, Qt, shadow, prefix,
-	     msg, nomenu, Qnil, Qnil, Qnil);
+	     msg, nomenu, Qnil, Qnil, Qnil, buffer);
       shadow = Fcons (start1, shadow);
     }
   else
@@ -2917,7 +2932,7 @@ You type        Translation\n\
 	  CALLN (Ffuncall,
 		 Qdescribe_map_tree,
 		 start1, Qt, shadow, prefix,
-		 msg, nomenu, Qnil, Qnil, Qnil);
+		 msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	  shadow = Fcons (start1, shadow);
 	}
 
@@ -2950,7 +2965,7 @@ You type        Translation\n\
 	  CALLN (Ffuncall,
 		 Qdescribe_map_tree,
 		 maps[i], Qt, shadow, prefix,
-		 msg, nomenu, Qnil, Qnil, Qnil);
+		 msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	  shadow = Fcons (maps[i], shadow);
 	  SAFE_FREE ();
 	}
@@ -2968,7 +2983,7 @@ You type        Translation\n\
 	      CALLN (Ffuncall,
 		     Qdescribe_map_tree,
 		     start1, Qt, shadow, prefix,
-		     msg, nomenu, Qnil, Qnil, Qnil);
+		     msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	    }
 	  else
 	    {
@@ -2976,7 +2991,7 @@ You type        Translation\n\
 	      CALLN (Ffuncall,
 		     Qdescribe_map_tree,
 		     start1, Qt, shadow, prefix,
-		     msg, nomenu, Qnil, Qnil, Qnil);
+		     msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	    }
 
 	  shadow = Fcons (start1, shadow);
@@ -2987,7 +3002,7 @@ You type        Translation\n\
   CALLN (Ffuncall,
 	 Qdescribe_map_tree,
 	 current_global_map, Qt, shadow, prefix,
-	 msg, nomenu, Qnil, Qt, Qnil);
+	 msg, nomenu, Qnil, Qt, Qnil, buffer);
 
   /* Print the function-key-map translations under this prefix.  */
   if (!NILP (KVAR (current_kboard, Vlocal_function_key_map)))
@@ -2996,7 +3011,7 @@ You type        Translation\n\
       CALLN (Ffuncall,
 	     Qdescribe_map_tree,
 	     KVAR (current_kboard, Vlocal_function_key_map), Qnil, Qnil, prefix,
-	     msg, nomenu, Qt, Qnil, Qnil);
+	     msg, nomenu, Qt, Qnil, Qnil, buffer);
     }
 
   /* Print the input-decode-map translations under this prefix.  */
@@ -3006,7 +3021,7 @@ You type        Translation\n\
       CALLN (Ffuncall,
 	     Qdescribe_map_tree,
 	     KVAR (current_kboard, Vinput_decode_map), Qnil, Qnil, prefix,
-	     msg, nomenu, Qt, Qnil, Qnil);
+	     msg, nomenu, Qt, Qnil, Qnil, buffer);
     }
   return Qnil;
 }
@@ -3460,4 +3475,6 @@ that describe key bindings.  That is why the default is nil.  */);
 
   DEFSYM (Qkey_parse, "key-parse");
   DEFSYM (Qkey_valid_p, "key-valid-p");
+
+  DEFSYM (Qnon_key_event, "non-key-event");
 }

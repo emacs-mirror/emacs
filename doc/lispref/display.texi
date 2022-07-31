@@ -27,6 +27,7 @@ that Emacs presents to the user.
 * Window Dividers::     Separating windows visually.
 * Display Property::    Images, margins, text size, etc.
 * Images::              Displaying images in Emacs buffers.
+* Icons::               Displaying icons in Emacs buffers.
 * Xwidgets::            Displaying native widgets in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
 * Abstract Display::    Emacs's Widget for Object Collections.
@@ -336,7 +337,10 @@ functions call it with no arguments when their argument message is
 Usually this function is called when the next input event arrives
 after displaying an echo-area message.  The function is expected to
 clear the message displayed by its counterpart function specified by
-@code{set-message-function}.
+@code{set-message-function}, but doesn't have to.  If the function
+wants the echo area to remain uncleared, it should return the symbol
+@code{dont-clear-message}; any other value will result in the echo
+area being cleared.
 
 The default value is the function that clears the message displayed in
 an active minibuffer.
@@ -2007,6 +2011,11 @@ Tables}).  The width of a tab character is usually @code{tab-width}
 (@pxref{Usual Display}).
 @end defun
 
+@defun char-uppercase-p char
+Return non-@code{nil} if @var{char} is an uppercase character
+according to Unicode.
+@end defun
+
 @defun string-width string &optional from to
 This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.
@@ -2142,7 +2151,7 @@ the buffer might contain long lines that will be truncated anyway.
 The optional argument @var{y-limit}, if non-@code{nil}, specifies the
 maximum Y coordinate beyond which text is to be ignored; it is
 therefore also the maximum pixel-height that the function can return.
-If @var{y-limit} is nil or omitted, it means to considers all the
+If @var{y-limit} is @code{nil} or omitted, it means to consider all the
 lines of text till the buffer position specified by @var{to}.  Since
 calculating the pixel-height of a large buffer can take some time, it
 makes sense to specify this argument; in particular, if the caller
@@ -2466,6 +2475,7 @@ Otherwise, it returns @code{nil}.
 The following table lists all the face attributes, their possible
 values, and their effects.
 
+@cindex unspecified, face attribute value
   Apart from the values given below, each face attribute can have the
 value @code{unspecified}.  This special value means that the face
 doesn't specify that attribute directly.  An @code{unspecified}
@@ -2474,7 +2484,13 @@ description @code{:inherit} attribute below); or, failing that, to an
 underlying face (@pxref{Displaying Faces}).  (However,
 @code{unspecified} is not a valid value in @code{defface}.)
 
-  The @code{default} face must specify all attributes.
+@cindex reset, face attribute value
+  A face attribute can also have the value @code{reset}.  This special
+value stands for the value of the corresponding attribute of the
+@code{default} face.
+
+  The @code{default} face must explicitly specify all attributes, and
+cannot use the special value @code{reset}.
 
   Some of these attributes are meaningful only on certain kinds of
 displays.  If your display cannot handle a certain attribute, the
@@ -2698,6 +2714,13 @@ doesn't specify an explicit value for a face, the value from the
 original face definition by @code{defface} is inherited
 (@pxref{Defining Faces}).
 
+Some modes, like @code{hl-line-mode}, use a face with an
+@code{:extend} property to mark the entire current line.  Note,
+however, that Emacs will always allow you to move point after the
+final character in a buffer, and if the buffer ends with a newline
+character, point can be placed on what is seemingly a line at the end
+of the buffer---but Emacs can't highlight that ``line'', because it
+doesn't really exist.
 @end table
 
 @defun font-family-list &optional frame
@@ -2924,7 +2947,8 @@ modifying the attributes of a named face.
 
 @defun face-attribute face attribute &optional frame inherit
 This function returns the value of the @var{attribute} attribute for
-@var{face} on @var{frame}.
+@var{face} on @var{frame}.  @xref{Face Attributes}, for the supported
+attributes.
 
 If @var{frame} is omitted or @code{nil}, that means the selected frame
 (@pxref{Input Focus}).  If @var{frame} is @code{t}, this function
@@ -3007,7 +3031,8 @@ for all frames.  This function is mostly intended for internal usage.
 @defun set-face-attribute face frame &rest arguments
 This function sets one or more attributes of @var{face} for
 @var{frame}.  The attributes specified in this way override the face
-spec(s) belonging to @var{face}.
+spec(s) belonging to @var{face}.  @xref{Face Attributes}, for the
+supported attributes.
 
 The extra arguments @var{arguments} specify the attributes to set, and
 the values for them.  They should consist of alternating attribute
@@ -3021,12 +3046,21 @@ names (such as @code{:family} or @code{:underline}) and values.  Thus,
 sets the attribute @code{:weight} to @code{bold} and the attribute
 @code{:slant} to @code{italic}.
 
-
 If @var{frame} is @code{t}, this function sets the default attributes
 for newly created frames; they will effectively override the attribute
 values specified by @code{defface}.  If @var{frame} is @code{nil},
 this function sets the attributes for all existing frames, as well as
-for newly created frames.
+for newly created frames.  However, if you want to @emph{reset} the
+value of an attribute to @code{unspecified} in a way that also affects
+newly created frames, you @emph{must} explicitly call this function
+with @var{frame} set to @code{t} and the value of the attribute set to
+@code{unspecified} (@emph{not} @code{nil}!@:), in addition to the call
+with @var{frame} set to @code{nil}.  This is because the default
+attributes for newly created frames are merged with the face's spec in
+@code{defface} when a new frame is created, and so having
+@code{unspecified} in the default attributes for new frames will be
+unable to override @code{defface}; the special call to this function
+as described above will arrange for @code{defface} to be overridden.
 @end defun
 
   The following commands and functions mostly provide compatibility
@@ -3303,10 +3337,10 @@ and @code{face-remap-reset-base} functions; it is intended for major
 modes to remap faces in the buffers they control.
 
 @defun face-remap-add-relative face &rest specs
-This function adds the face spec in @var{specs} as relative
-remappings for face @var{face} in the current buffer.  The remaining
-arguments, @var{specs}, should form either a list of face names, or a
-property list of attribute/value pairs.
+This function adds @var{specs} as relative remappings for face
+@var{face} in the current buffer.  @var{specs} should be a list where
+each element is either a face name, or a property list of
+attribute/value pairs.
 
 The return value is a Lisp object that serves as a cookie; you can
 pass this object as an argument to @code{face-remap-remove-relative}
@@ -3321,12 +3355,15 @@ if you need to remove the remapping later.
 (face-remap-add-relative 'default :height 1.5)
 @end example
 
-Note that face remapping does not work reliably parent faces of
-@dfn{basic faces}.  (These are the faces that are used in mode lines,
-header lines and the like.)  For instance, @code{mode-line-inactive}
-inherits from @code{mode-line}, but remapping @code{mode-line} won't
-normally have the desired effect on @code{mode-line-inactive}.
-Instead you have to remap @code{mode-line-inactive} directly.
+Note that buffer-local face remapping does not work reliably for
+parent faces of basic faces (@pxref{Basic Faces}).  (These are the
+faces that are used in mode lines, header lines, and other basic
+decorations of windows and frames.)  For instance,
+@code{mode-line-inactive} inherits from @code{mode-line}, but
+remapping @code{mode-line} won't normally have the desired effect on
+@code{mode-line-inactive}, especially if done locally for some
+buffers.  Instead you have to remap @code{mode-line-inactive}
+directly.
 @end defun
 
 @defun face-remap-remove-relative cookie
@@ -3443,6 +3480,12 @@ function finishes are the ones that really matter.
 
 For efficiency, we recommend writing these functions so that they
 usually assign faces to around 400 to 600 characters at each call.
+
+When the buffer text includes very long lines, these functions are
+called with the buffer narrowed to a relatively small region around
+@var{pos}, and with narrowing locked, so the functions cannot use
+@code{widen} to gain access to the rest of the buffer.
+@xref{Narrowing}.
 @end defvar
 
 @node Basic Faces
@@ -3452,10 +3495,10 @@ usually assign faces to around 400 to 600 characters at each call.
 If your Emacs Lisp program needs to assign some faces to text, it is
 often a good idea to use certain existing faces or inherit from them,
 rather than defining entirely new faces.  This way, if other users
-have customized the basic faces to give Emacs a certain look, your
-program will fit in without additional customization.
+have customized those existing faces to give Emacs a certain look,
+your program will fit in without additional customization.
 
-  Some of the basic faces defined in Emacs are listed below.  In
+  Some of the @dfn{basic faces} defined in Emacs are listed below.  In
 addition to these, you might want to make use of the Font Lock faces
 for syntactic highlighting, if highlighting is not already handled by
 Font Lock mode, or if some Font Lock faces are not in use.
@@ -3466,6 +3509,28 @@ Font Lock mode, or if some Font Lock faces are not in use.
 The default face, whose attributes are all specified.  All other faces
 implicitly inherit from it: any unspecified attribute defaults to the
 attribute on this face (@pxref{Face Attributes}).
+
+@item mode-line-active
+@itemx mode-line-inactive
+@itemx header-line
+@itemx tab-line
+Basic faces used for the mode line, header line, and tab line.
+
+@item tool-bar
+@itemx tab-bar
+@itemx fringe
+@itemx scroll-bar
+@itemx window-divider
+@itemx border
+@itemx child-frame-border
+Basic faces used for the corresponding decorations of GUI frames.
+
+@item cursor
+The basic face used for the text cursor.
+
+@item mouse
+The basic face used for displaying mouse-sensitive text when the mouse
+pointer is on that text.
 
 @item bold
 @itemx italic
@@ -3773,57 +3838,62 @@ Then, the font specifications for all but Chinese GB2312 characters have
 Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
 field.
 
-@defun set-fontset-font name character font-spec &optional frame add
-This function modifies the existing fontset @var{name} to use the font
-matching with @var{font-spec} for the specified @var{character}.
+@defun set-fontset-font fontset characters font-spec &optional frame add
+This function modifies the existing @var{fontset} to use the font
+specified by @var{font-spec} for displaying the specified
+@var{characters}.
 
-If @var{name} is @code{nil}, this function modifies the fontset of the
-selected frame or that of @var{frame} if @var{frame} is not
+If @var{fontset} is @code{nil}, this function modifies the fontset of
+the selected frame or that of @var{frame} if @var{frame} is not
 @code{nil}.
 
-If @var{name} is @code{t}, this function modifies the default
-fontset, whose short name is @samp{fontset-default}.
+If @var{fontset} is @code{t}, this function modifies the default
+fontset, whose short name as a string is @samp{fontset-default}.
 
-In addition to specifying a single codepoint, @var{character} may be a
-cons @code{(@var{from} . @var{to})}, where @var{from} and @var{to} are
-character codepoints.  In that case, use @var{font-spec} for all the
-characters in the range @var{from} and @var{to} (inclusive).
+The @var{characters} argument can be a single character which should
+be displayed using @var{font-spec}.  It can also be a cons cell
+@w{@code{(@var{from} . @var{to})}}, where @var{from} and @var{to} are
+characters.  In that case, use @var{font-spec} for all the characters
+in the range @var{from} and @var{to} (inclusive).
 
-@var{character} may be a charset (@pxref{Character Sets}).  In that
-case, use @var{font-spec} for all the characters in the charset.
+@var{characters} may be a charset symbol (@pxref{Character Sets}).  In
+that case, use @var{font-spec} for all the characters in the charset.
 
-@var{character} may be a script name (@pxref{Character Properties,
+@var{characters} may be a script symbol (@pxref{Character Properties,
 char-script-table}).  In that case, use @var{font-spec} for all the
 characters belonging to the script.
 
-@var{character} may be @code{nil}, which means to use @var{font-spec}
-for any character which no font-spec is specified.
+@var{characters} may be @code{nil}, which means to use @var{font-spec}
+for any character in @var{fontset} for which no font-spec is
+specified.
 
 @var{font-spec} may be a font-spec object created by the function
 @code{font-spec} (@pxref{Low-Level Font}).
 
-@var{font-spec} may be a cons; @code{(@var{family} . @var{registry})},
-where @var{family} is a family name of a font (possibly including a
-foundry name at the head), @var{registry} is a registry name of a font
-(possibly including an encoding name at the tail).
+@var{font-spec} may be a cons cell @w{@code{(@var{family}
+. @var{registry})}}, where @var{family} is a family name of a font
+(possibly including a foundry name at the head), and @var{registry} is
+a registry name of a font (possibly including an encoding name at the
+tail).
 
 @var{font-spec} may be a font name, a string.
 
 @var{font-spec} may be @code{nil}, which explicitly specifies that
-there's no font for the specified @var{character}.  This is useful,
+there's no font for the specified @var{characters}.  This is useful,
 for example, to avoid expensive system-wide search for fonts for
 characters that have no glyphs, like those from the Unicode Private
 Use Area (PUA).
 
 The optional argument @var{add}, if non-@code{nil}, specifies how to
-add @var{font-spec} to the font specifications previously set.  If it
-is @code{prepend}, @var{font-spec} is prepended.  If it is
-@code{append}, @var{font-spec} is appended.  By default,
-@var{font-spec} overrides the previous settings.
+add @var{font-spec} to the font specifications previously set for
+@var{characters}.  If it is @code{prepend}, @var{font-spec} is
+prepended to the existing specs.  If it is @code{append},
+@var{font-spec} is appended.  By default, @var{font-spec} overwrites
+the previously set font specs.
 
-For instance, this changes the default fontset to use a font of which
+For instance, this changes the default fontset to use a font whose
 family name is @samp{Kochi Gothic} for all characters belonging to
-the charset @code{japanese-jisx0208}.
+the charset @code{japanese-jisx0208}:
 
 @smallexample
 (set-fontset-font t 'japanese-jisx0208
@@ -3963,13 +4033,26 @@ required; and @code{gpos} is a list of OpenType GPOS feature tag
 symbols, or @code{nil} if none is required.  If @code{gsub} or
 @code{gpos} is a list, a @code{nil} element in that list means that
 the font must not match any of the remaining tag symbols.  The
-@code{gpos} element may be omitted.
+@code{gpos} element may be omitted.  For the list of OpenType script,
+language, and feature tags, see
+@uref{https://docs.microsoft.com/en-us/typography/opentype/spec/ttoreg,
+the list of registered OTF tags}.
+
+@item :type
+@cindex font backend
+The symbol that specifies the @dfn{font backend} used to draw the
+characters.  The possible values depend on the platform and on how
+Emacs was configured at build time.  Typical values include
+@code{ftcrhb} and @code{xfthb} on X, @code{harfbuzz} on MS-Windows,
+@code{ns} on GNUstep, etc.  It can also be @code{nil} if left
+unspecified, typically in a font-spec.
 @end table
 @end defun
 
 @defun font-put font-spec property value
 Set the font property @var{property} in the font-spec @var{font-spec}
-to @var{value}.
+to @var{value}.  The @var{property} can any of the ones described
+above.
 @end defun
 
 @cindex font entity
@@ -4013,12 +4096,28 @@ object, a font entity, or a font spec.
 
 @defun font-get font property
 This function returns the value of the font property @var{property}
-for @var{font}.
+for @var{font}.  The @var{property} can any of the ones that
+@code{font-spec} supports.
 
 If @var{font} is a font spec and the font spec does not specify
 @var{property}, the return value is @code{nil}.  If @var{font} is a
 font object or font entity, the value for the @var{:script} property
-may be a list of scripts supported by the font.
+may be a list of scripts supported by the font, and the value of the
+@code{:otf} property is a cons of the form @w{@code{(@var{gsub}
+. @var{gpos})}}, where @var{gsub} and @var{gpos} are lists
+representing OpenType features  supported by the font, of the form
+
+@smallexample
+((@var{script-tag} (@var{langsys-tag} @var{feature}@dots{}) @dots{}) @dots{})
+@end smallexample
+
+@noindent where @var{script-tag}, @var{langsys-tag}, and @var{feature}
+are symbols representing OpenType layout tags.
+
+If @var{font} is a font object, the special property
+@code{:combining-capability} is non-@code{nil} if the font backend of
+@var{font} supports rendering of combining characters for non-OpenType
+fonts.
 @end defun
 
 @defun font-face-attributes font &optional frame
@@ -4608,14 +4707,15 @@ about to be executed.  This feature has nothing to do with
 @defvar overlay-arrow-string
 This variable holds the string to display to call attention to a
 particular line, or @code{nil} if the arrow feature is not in use.
-On a graphical display the contents of the string are ignored; instead a
-glyph is displayed in the fringe area to the left of the display area.
+On a graphical display the contents of the string are ignored if the
+left fringe is shown; instead a glyph is displayed in the fringe area
+to the left of the display area.
 @end defvar
 
 @defvar overlay-arrow-position
 This variable holds a marker that indicates where to display the overlay
 arrow.  It should point at the beginning of a line.  On a non-graphical
-display the arrow text
+display, or when the left fringe is not shown, the arrow text
 appears at the beginning of that line, overlaying any text that would
 otherwise appear.  Since the arrow is usually short, and the line
 usually begins with indentation, normally nothing significant is
@@ -4647,11 +4747,12 @@ this list.
 
 Each variable on this list can have properties
 @code{overlay-arrow-string} and @code{overlay-arrow-bitmap} that
-specify an overlay arrow string (for text terminals) or fringe bitmap
-(for graphical terminals) to display at the corresponding overlay
-arrow position.  If either property is not set, the default
-@code{overlay-arrow-string} or @code{overlay-arrow} fringe indicator
-is used.
+specify an overlay arrow string (for text terminals or graphical
+terminals without the left fringe shown) or fringe bitmap
+(for graphical terminals with a left fringe) to display at the
+corresponding overlay arrow position.  If either property is not set,
+the default @code{overlay-arrow-string} or @code{overlay-arrow} fringe
+indicator is used.
 
 
 @node Scroll Bars
@@ -4977,7 +5078,7 @@ which are evaluated at display time.  This could be unsafe in certain
 situations, e.g., when the display specification was generated by some
 external program/agent.  Wrapping a display specification in a list
 that begins with the special symbol @code{disable-eval}, as in
-@w{@code{('disable-eval @var{spec})}}, will disable evaluation of any
+@w{@code{(disable-eval @var{spec})}}, will disable evaluation of any
 Lisp in @var{spec}, while still supporting all the other display
 property features.
 
@@ -5471,6 +5572,12 @@ symbol}.  The symbols for the above formats are, respectively,
 @code{pbm}, @code{xbm}, @code{xpm}, @code{gif}, @code{jpeg},
 @code{tiff}, @code{png}, @code{svg}, and @code{webp}.
 
+  On some platforms, the built-in image support that doesn't require
+any optional libraries includes BMP images.@footnote{
+On MS-Windows, this requires @code{w32-use-native-image-API} to be set
+non-@code{nil}.
+}
+
   Furthermore, if you build Emacs with ImageMagick
 (@code{libMagickWand}) support, Emacs can display any image format
 that ImageMagick can.  @xref{ImageMagick Images}.  All images
@@ -5623,6 +5730,12 @@ Specifies a rotation angle in degrees.  Only multiples of 90 degrees
 are supported, unless the image type is @code{imagemagick}.  Positive
 values rotate clockwise, negative values counter-clockwise.  Rotation
 is performed after scaling and cropping.
+
+@item :flip @var{flip}
+If this is @code{t}, the image will be horizontally flipped.
+Currently it has no effect if the image type is @code{imagemagick}.
+Vertical flipping can be achieved by rotating the image 180 degrees
+and toggling this value.
 
 @item :transform-smoothing @var{smooth}
 If this is @code{t}, any image transform will have smoothing applied;
@@ -5837,13 +5950,10 @@ There are three formats you can use for @var{data}:
 @itemize @bullet
 @item
 A vector of strings or bool-vectors, each specifying one line of the
-image.  Do specify @code{:height} and @code{:width}.
+image.  Do specify @code{:data-height} and @code{:data-width}.
 
 @item
 A string containing the same byte sequence as an XBM file would contain.
-You must not specify @code{:height} and @code{:width} in this case,
-because omitting them is what indicates the data has the format of an
-XBM file.  The file contents specify the height and width of the image.
 
 @item
 A string or a bool-vector containing the bits of the image (plus
@@ -5851,25 +5961,10 @@ perhaps some extra bits at the end that will not be used).  It should
 contain at least @w{@code{@var{stride} * @var{height}}} bits, where
 @var{stride} is the smallest multiple of 8 greater than or equal to
 the width of the image.  In this case, you should specify
-@code{:height}, @code{:width} and @code{:stride}, both to indicate
-that the string contains just the bits rather than a whole XBM file,
-and to specify the size of the image.
+@code{:data-height}, @code{:data-width} and @code{:stride}, both to
+indicate that the string contains just the bits rather than a whole
+XBM file, and to specify the size of the image.
 @end itemize
-
-@item :width @var{width}
-The value, @var{width}, specifies the width of the image, in pixels.
-
-@item :height @var{height}
-The value, @var{height}, specifies the height of the image, in pixels.
-
-Note that @code{:width} and @code{:height} can only be used if passing
-in data that doesn't specify the width and height (e.g., a string or a
-vector containing the bits of the image).  @acronym{XBM} files usually
-specify this themselves, and it's an error to use these two properties
-on these files.  Also note that @code{:width} and @code{:height} are
-used by most other image formats to specify what the displayed image
-is supposed to be, which usually means performing some sort of
-scaling.  This isn't supported for @acronym{XBM} images.
 
 @item :stride @var{stride}
 The number of bool vector entries stored for each row; the smallest
@@ -6643,7 +6738,9 @@ buffer's text.
 
 The argument @var{slice} specifies a slice of the image to insert.  If
 @var{slice} is @code{nil} or omitted the whole image is inserted.
-Otherwise, @var{slice} is a list @code{(@var{x} @var{y} @var{width}
+(However, note that images are chopped on display at the window's
+right edge, because wrapping images is not supported.)  Otherwise,
+@var{slice} is a list @code{(@var{x} @var{y} @var{width}
 @var{height})} which specifies the @var{x} and @var{y} positions and
 @var{width} and @var{height} of the image area to insert.  Integer
 values are in units of pixels.  A floating-point number in the range
@@ -6888,6 +6985,165 @@ This function returns the total size of the current image cache, in
 bytes.  An image of size 200x100 with 24 bits per color will have a
 cache size of 60000 bytes, for instance.
 @end defun
+
+@node Icons
+@section Icons
+
+Emacs sometimes uses buttons (for clicking on) or small graphics (to
+illustrate something).  Since Emacs is available on a wide variety of
+systems with different capabilities, and users have different
+preferences, Emacs provides a facility to handle this in a convenient
+way, allowing customization, graceful degradation, accessibility, as
+well as themability: @dfn{Icons}.
+
+The central macro here is @code{define-icon}, and here's a simple
+example:
+
+@lisp
+(define-icon outline-open button
+  '((image "right.svg" "open.xpm" "open.pbm" :height line)
+    (emoji "▶️")
+    (symbol "▶" "➤")
+    (text "open" :face icon-button))
+  "Icon used for buttons for opening a section in outline buffers."
+  :version "29.1"
+  :help-echo "Open this section")
+@end lisp
+
+Which alternative will actually be displayed depends on the value of
+the user option @code{icon-preference} (@pxref{Icons,,, emacs, The GNU
+Emacs Manual}) and on the results of run-time checks for what the
+current frame's terminal can actually display.
+
+The macro in the example above defines @code{outline-open} as an icon,
+and inherits properties from the icon called @code{button} (so this is
+meant as a clickable button to be inserted in a buffer).  It is
+followed by a list of @dfn{icon types} along with the actual icon
+shapes themselves.  In addition, there's a doc string and various
+keywords that contain additional information and properties.
+
+To instantiate an icon, you use @code{icon-string}, which will
+consult the current Customize theming, and the @code{icon-preference}
+user option, and finally what the Emacs is able to actually display.
+If @code{icon-preference} is @code{(image emoji symbol text)} (i.e.,
+allowing all of these forms of icons), in this case,
+@code{icon-string} will first check that Emacs is able to display
+images at all, and then whether it has support for each of those
+different image formats.  If that fails, Emacs will check whether
+Emacs can display emojis (in the current frame).  If that fails, it'll
+check whether it can display the symbol in question.  If that fails,
+it'll use the plain text version.
+
+For instance, if @code{icon-preference} doesn't contain @code{image}
+or @code{emoji}, it'll skip those entries.
+
+Code can confidently call @code{icon-string} in all circumstances and
+be sure that something readable will appear on the screen, no
+matter whether the user is on a graphical terminal or a text terminal,
+and no matter which features Emacs was built with.
+
+@defmac define-icon name parent specs doc &rest keywords
+Define an icon @var{name}, a symbol, with the display alternatives in
+@var{spec}, that can be later instantiated using @code{icon-string}.
+The @var{name} is the name of the resulting keyword.
+
+The resulting icon will inherit specs from @var{parent}, and from
+their parent's parents, and so on, and the lowest descendent element
+wins.
+
+@var{specs} is a list of icon specifications.  The first element of each
+specification is the type, and the rest is something that can be used
+as an icon of that type, and then optionally followed by a keyword
+list.  The following icon types are available:
+
+@cindex icon types
+@table @code
+@item image
+In this case, there may be many images listed as candidates.  Emacs
+will choose the first one that the current Emacs instance can show.
+If an image is listed is an absolute file name, it's used as is, but it's
+otherwise looked up in the list @code{image-load-path}
+(@pxref{Defining Images}).
+
+@item emoji
+This should be a (possibly colorful) emoji.
+
+@item symbol
+This should be a (monochrome) symbol character.
+
+@item text
+Icons should also have a textual fallback.  This can also be used for
+the visually impaired: if @code{icon-preference} is just
+@code{(text)}, all icons will be replaced by text.
+@end table
+
+Various keywords may follow the list of icon specifications.  For
+instance:
+
+@example
+(symbol "▶" "➤" :face icon-button)
+@end example
+
+Unknown keywords are ignored.  The following keywords are allowed:
+
+@cindex icon keywords
+@table @code
+@item :face
+The face to be used for the icon.
+
+@item :height
+This is only valid for @code{image} icons, and can be either a number
+(which specifies the height in pixels), or the symbol @code{line},
+which will use the default line height in the currently selected
+window.
+@end table
+
+@var{doc} should be a doc string.
+
+@var{keywords} is a list of keyword/value pairs.  The following
+keywords are allowed:
+
+@table @code
+@item :version
+The (approximate) Emacs version this button first appeared.  (This
+keyword is mandatory.)
+
+@item :group
+The customization group this icon belongs in.  If not present, it is
+inferred.
+
+@item :help-echo
+The help string shown when hovering over the icon with the mouse
+pointer.
+@end table
+@end defmac
+
+@defun icon-string icon
+This function returns a string suitable for display in the current
+buffer for @var{icon}.
+@end defun
+
+@defun icon-elements icon
+Alternatively, you can get a ``deconstructed'' version of @var{icon}
+with this function.  It returns a plist (@pxref{Property Lists}) where
+the keys are @code{string}, @code{face} and @var{image}.  (The latter
+is only present if the icon is represented by an image.)  This can be
+useful if the icon isn't to be inserted directly in the buffer, but
+needs some sort of pre-processing first.
+@end defun
+
+Icons can be customized with @kbd{M-x customize-icon}.  Themes can
+specify changes to icons with, for instance:
+
+@lisp
+(custom-theme-set-icons
+  'my-theme
+  '(outline-open ((image :height 100)
+                  (text " OPEN ")))
+  '(outline-close ((image :height 100)
+                   (text " CLOSE " :face warning))))
+@end lisp
+
 
 @node Xwidgets
 @section Embedded Native Widgets
@@ -7221,6 +7477,7 @@ the usual Emacs @code{highlight} face.
 
 @item keymap
 @kindex keymap @r{(button property)}
+@vindex button-map
 The button's keymap, defining bindings active within the button
 region.  By default this is the usual button region keymap, stored
 in the variable @code{button-map}, which defines @key{RET} and
@@ -7435,6 +7692,7 @@ Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
 These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
+@cindex buffer-button-map
 @code{push-button} is the command that a user uses to actually push
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
@@ -7473,7 +7731,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return @code{nil}
 instead of signaling the error.
 @end deffn
 
@@ -7485,7 +7743,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return @code{nil}
 instead of signaling the error.
 @end deffn
 
@@ -8131,7 +8389,10 @@ help buffer.
 The window's display table, if there is one, takes precedence over the
 buffer's display table.  If neither exists, Emacs tries to use the
 standard display table; if that is @code{nil}, Emacs uses the usual
-character display conventions (@pxref{Usual Display}).
+character display conventions (@pxref{Usual Display}).  (Emacs does
+not ``merge'' display tables: For instance, if the window has a
+display table, the buffer's display table and the standard display
+table are completely ignored.)
 
   Note that display tables affect how the mode line is displayed, so
 if you want to force redisplay of the mode line using a new display
@@ -8237,7 +8498,7 @@ there is no available font (on a graphical display), and characters
 which cannot be encoded by the terminal's coding system (on a text
 terminal).
 
-@vindex glyphless-display-mode
+@findex glyphless-display-mode
 The @code{glyphless-display-mode} minor mode can be used to toggle
 displaying glyphless characters in a convenient manner in the current
 buffer.  If this mode is enabled, all the glyphless characters are
@@ -8465,7 +8726,7 @@ displayed in the echo area.
 @vindex use-system-tooltips
 When Emacs is built with the GTK+ toolkit or Haiku windowing support,
 it by default displays tooltips using toolkit functions, and the
-appearance of the tooltips is then controlled by by the toolkit's
+appearance of the tooltips is then controlled by the toolkit's
 settings.  Toolkit-provided tooltips can be disabled by changing the
 value of the variable @code{use-system-tooltips} to @code{nil}.  The
 rest of this subsection describes how to control non-toolkit tooltips,

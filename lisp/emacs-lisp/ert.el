@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -46,14 +46,10 @@
 ;; processing further, this is useful for checking the test
 ;; environment (like availability of features, external binaries, etc).
 ;;
-;; See ERT's info manual as well as the docstrings for more details.
-;; To compile the manual, run `makeinfo ert.texinfo' in the ERT
-;; directory, then C-u M-x info ert.info in Emacs to view it.
-;;
-;; To see some examples of tests written in ERT, see its self-tests in
-;; ert-tests.el.  Some of these are tricky due to the bootstrapping
-;; problem of writing tests for a testing tool, others test simple
-;; functions and are straightforward.
+;; See ERT's Info manual `(ert) Top' as well as the docstrings for
+;; more details.  To see some examples of tests written in ERT, see
+;; the test suite distributed with the Emacs source distribution (in
+;; the "test" directory).
 
 ;;; Code:
 
@@ -1538,18 +1534,28 @@ of the tests (e.g. invalid SELECTOR or bug in the code that runs
 the tests)."
   (or noninteractive
       (user-error "This function is only for use in batch mode"))
-  ;; Better crash loudly than attempting to recover from undefined
-  ;; behavior.
-  (setq attempt-stack-overflow-recovery nil
-        attempt-orderly-shutdown-on-fatal-signal nil)
-  (unwind-protect
-      (let ((stats (ert-run-tests-batch selector)))
-        (kill-emacs (if (zerop (ert-stats-completed-unexpected stats)) 0 1)))
+  (let ((eln-dir (and (featurep 'native-compile)
+                      (make-temp-file "test-nativecomp-cache-" t))))
+    (when eln-dir
+      (startup-redirect-eln-cache eln-dir))
+    ;; Better crash loudly than attempting to recover from undefined
+    ;; behavior.
+    (setq attempt-stack-overflow-recovery nil
+          attempt-orderly-shutdown-on-fatal-signal nil)
     (unwind-protect
-        (progn
-          (message "Error running tests")
-          (backtrace))
-      (kill-emacs 2))))
+        (let ((stats (ert-run-tests-batch selector)))
+          (when eln-dir
+            (ignore-errors
+              (delete-directory eln-dir t)))
+          (kill-emacs (if (zerop (ert-stats-completed-unexpected stats)) 0 1)))
+      (unwind-protect
+          (progn
+            (message "Error running tests")
+            (backtrace))
+        (when eln-dir
+          (ignore-errors
+            (delete-directory eln-dir t)))
+        (kill-emacs 2)))))
 
 (defvar ert-load-file-name nil
   "The name of the loaded ERT test file, a string.
@@ -2874,8 +2880,14 @@ To be used in the ERT results buffer."
   nil)
 
 (defun ert-test-erts-file (file &optional transform)
-  "Parse FILE as a file containing before/after parts.
-TRANSFORM will be called to get from before to after."
+  "Parse FILE as a file containing before/after parts (an erts file).
+
+This function puts the \"before\" section of an .erts file into a
+temporary buffer, calls the TRANSFORM function, and then compares
+the result with the \"after\" section.
+
+See Info node `(ert) erts files' for more information on how to
+write erts files."
   (with-temp-buffer
     (insert-file-contents file)
     (let ((gen-specs (list (cons 'dummy t)

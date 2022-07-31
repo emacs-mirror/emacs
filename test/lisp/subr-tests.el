@@ -112,7 +112,7 @@
   (should (equal (kbd "C-x C-f") "\C-x\C-f"))
   (should (equal (kbd "C-M-<down>") [C-M-down]))
   (should (equal (kbd "<C-M-down>") [C-M-down]))
-  (should (equal (kbd "C-RET") [?\C-\C-m]))
+  (should (equal (kbd "C-RET") [?\C-\r]))
   (should (equal (kbd "C-SPC") [?\C- ]))
   (should (equal (kbd "C-TAB") [?\C-\t]))
   (should (equal (kbd "C-<down>") [C-down]))
@@ -368,6 +368,17 @@
              2)))
 
 (ert-deftest string-comparison-test ()
+  (should (string-equal-ignore-case "abc" "abc"))
+  (should (string-equal-ignore-case "abc" "ABC"))
+  (should (string-equal-ignore-case "abc" "abC"))
+  (should-not (string-equal-ignore-case "abc" "abCD"))
+  (should (string-equal-ignore-case "S" "s"))
+  (should (string-equal-ignore-case "ẞ" "ß"))
+  (should (string-equal-ignore-case "ǲ" "Ǳ"))
+  (should (string-equal-ignore-case "Όσος" "ΌΣΟΣ"))
+  ;; not yet: (should (string-equal-ignore-case "SS" "ß"))
+  ;; not yet: (should (string-equal-ignore-case "SS" "ẞ"))
+
   (should (string-lessp "abc" "acb"))
   (should (string-lessp "aBc" "abc"))
   (should (string-lessp "abc" "abcd"))
@@ -1026,7 +1037,98 @@ final or penultimate step during initialization."))
 
 (ert-deftest test-readablep ()
   (should (readablep "foo"))
-  (should-not (readablep (list (make-marker)))))
+  (should-not (readablep (list (make-marker))))
+  (should-not (readablep (make-marker))))
+
+(ert-deftest test-print-unreadable-function ()
+  ;; Check that problem with unwinding properly is fixed (bug#56773).
+  (let* ((before nil)
+         (after nil)
+         (r (with-temp-buffer
+              (setq before (current-buffer))
+              (prog1 (readablep (make-marker))
+                (setq after (current-buffer))))))
+    (should (equal after before))
+    (should (equal r nil))))
+
+(ert-deftest test-string-lines ()
+  (should (equal (string-lines "") '("")))
+  (should (equal (string-lines "" t) '()))
+
+  (should (equal (string-lines "foo") '("foo")))
+  (should (equal (string-lines "foo\n") '("foo")))
+  (should (equal (string-lines "foo\nbar") '("foo" "bar")))
+
+  (should (equal (string-lines "foo" t) '("foo")))
+  (should (equal (string-lines "foo\n" t) '("foo")))
+  (should (equal (string-lines "foo\nbar" t) '("foo" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t) '("foo" "bar")))
+
+  (should (equal (string-lines "foo" nil t) '("foo")))
+  (should (equal (string-lines "foo\n" nil t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" nil t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" nil t)
+                 '("foo\n" "\n" "\n" "bar")))
+
+  (should (equal (string-lines "foo" t t) '("foo")))
+  (should (equal (string-lines "foo\n" t t) '("foo\n")))
+  (should (equal (string-lines "foo\nbar" t t) '("foo\n" "bar")))
+  (should (equal (string-lines "foo\n\n\nbar" t t)
+                 '("foo\n" "bar"))))
+
+(ert-deftest test-keymap-parse-macros ()
+  (should (equal (key-parse "C-x ( C-d C-x )") [24 40 4 24 41]))
+  (should (equal (kbd "C-x ( C-d C-x )") ""))
+  (should (equal (kbd "C-x ( C-x )") "")))
+
+(defvar subr-test--global)
+(ert-deftest test-local-set-state ()
+  (setq subr-test--global 1)
+  (with-temp-buffer
+    (setq-local subr-test--local 2)
+    (let ((state (buffer-local-set-state subr-test--global 10
+                                         subr-test--local 20
+                                         subr-test--unexist 30)))
+      (should (= subr-test--global 10))
+      (should (= subr-test--local 20))
+      (should (= subr-test--unexist 30))
+      (buffer-local-restore-state state)
+      (should (= subr-test--global 1))
+      (should (= subr-test--local 2))
+      (should-not (boundp 'subr-test--unexist)))))
+
+(ert-deftest test-char-uppercase-p ()
+  "Tests for `char-uppercase-p'."
+  (dolist (c (list ?R ?S ?Ω ?Ψ))
+    (should (char-uppercase-p c)))
+  (dolist (c (list ?a ?b ?α ?β))
+    (should-not (char-uppercase-p c))))
+
+(ert-deftest test-plistp ()
+  (should (plistp nil))
+  (should-not (plistp 1))
+  (should (plistp '(1 2)))
+  (should-not (plistp '(1 . 2)))
+  (should (plistp '(1 2 3 4)))
+  (should-not (plistp '(1 2 3)))
+  (should-not (plistp '(1 2 3 . 4))))
+
+(defun subr-tests--butlast-ref (list &optional n)
+  "Reference implementation of `butlast'."
+  (let ((m (or n 1))
+        (len (length list)))
+    (let ((r nil))
+      (while (and list (> len m))
+        (push (car list) r)
+        (setq list (cdr list))
+        (setq len (1- len)))
+      (nreverse r))))
+
+(ert-deftest subr-butlast ()
+  (dolist (l '(nil '(a) '(a b) '(a b c) '(a b c d)))
+    (dolist (n (cons nil (number-sequence -2 6)))
+      (should (equal (butlast l n)
+                     (subr-tests--butlast-ref l n))))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

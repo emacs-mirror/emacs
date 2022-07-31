@@ -59,8 +59,6 @@
     (define-key map [follow-link] 'mouse-face)
     map))
 
-(define-obsolete-variable-alias
-  'reftex-select-label-map 'reftex-select-label-mode-map "24.1")
 (defvar reftex-select-label-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
@@ -109,8 +107,6 @@ During a selection process, these are the local bindings.
   ;; We do not set a local map - reftex-select-item does this.
   )
 
-(define-obsolete-variable-alias
-  'reftex-select-bib-map 'reftex-select-bib-mode-map "24.1")
 (defvar reftex-select-bib-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)

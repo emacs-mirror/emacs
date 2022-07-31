@@ -119,7 +119,7 @@
 ;;; Code:
 
 (require 'dig)
-
+(require 'gnutls)
 (require 'password-cache)
 
 (eval-when-compile (require 'cl-lib))
@@ -149,10 +149,11 @@ certificate."
   :type '(choice (const :tag "none" nil)
 		 directory))
 
-(defcustom smime-CA-file nil
-  "Files containing certificates for CAs you trust.
-File should contain certificates in PEM format."
-  :version "22.1"
+(defcustom smime-CA-file (car (gnutls-trustfiles))
+  "File containing certificates for CAs you trust.
+The file should contain certificates in PEM format.  By default,
+this is initialized from the `gnutls-trusfiles' variable."
+  :version "29.1"
   :type '(choice (const :tag "none" nil)
 		 file))
 

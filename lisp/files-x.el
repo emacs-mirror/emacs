@@ -81,8 +81,7 @@ Intended to be used in the `interactive' spec of
     (let ((default (format "%S"
                            (cond ((eq variable 'unibyte) t)
                                  ((boundp variable)
-                                  (symbol-value variable)))))
-          (minibuffer-completing-symbol t))
+                                  (symbol-value variable))))))
       (read-from-minibuffer (format "Add %s with value: " variable)
                             nil read-expression-map t
                             'set-variable-value-history
@@ -502,24 +501,26 @@ from the MODE alist ignoring the input argument VALUE."
 		       ((and (symbolp (car b)) (stringp (car a))) nil)
 		       (t (string< (car a) (car b)))))))
              (current-buffer))
+      (when (eobp) (insert "\n"))
       (goto-char (point-min))
       (indent-sexp))))
 
 (defun dir-locals-to-string (variables)
   "Output alists of VARIABLES to string in dotted pair notation syntax."
-  (format "(%s)" (mapconcat
-                  (lambda (mode-variables)
-                    (format "(%S . %s)"
-                            (car mode-variables)
-                            (format "(%s)" (mapconcat
-                                            (lambda (variable-value)
-                                              (format "(%S . %s)"
-                                                      (car variable-value)
-                                                      (string-trim-right
-                                                       (pp-to-string
-                                                        (cdr variable-value)))))
-                                            (cdr mode-variables) "\n"))))
-                  variables "\n")))
+  (format "(%s)"
+          (mapconcat
+           (lambda (mode-variables)
+             (format "(%S . %s)"
+                     (car mode-variables)
+                     (format "(%s)" (mapconcat
+                                     (lambda (variable-value)
+                                       (format "(%S . %s)"
+                                               (car variable-value)
+                                               (string-trim-right
+                                                (pp-to-string
+                                                 (cdr variable-value)))))
+                                     (cdr mode-variables) "\n"))))
+           variables "\n")))
 
 ;;;###autoload
 (defun add-dir-local-variable (mode variable value)
@@ -722,36 +723,46 @@ will not be changed."
         (copy-tree connection-local-variables-alist)))
    (hack-local-variables-apply)))
 
+(defvar connection-local-default-application 'tramp
+  "Default application in connection-local functions, a symbol.
+This variable must not be changed globally.")
+
 (defsubst connection-local-criteria-for-default-directory (&optional application)
   "Return a connection-local criteria, which represents `default-directory'.
-If APPLICATION is nil, the symbol `tramp' is used."
+If APPLICATION is nil, `connection-local-default-application' is used."
   (when (file-remote-p default-directory)
-    `(:application ,(or application 'tramp)
-       :protocol   ,(file-remote-p default-directory 'method)
-       :user       ,(file-remote-p default-directory 'user)
-       :machine    ,(file-remote-p default-directory 'host))))
+    `(:application ,(or application connection-local-default-application)
+      :protocol    ,(file-remote-p default-directory 'method)
+      :user        ,(file-remote-p default-directory 'user)
+      :machine     ,(file-remote-p default-directory 'host))))
 
 ;;;###autoload
 (defmacro with-connection-local-variables (&rest body)
   "Apply connection-local variables according to `default-directory'.
 Execute BODY, and unwind connection-local variables."
   (declare (debug t))
-  `(if (file-remote-p default-directory)
-       (let ((enable-connection-local-variables t)
-             (old-buffer-local-variables (buffer-local-variables))
-	     connection-local-variables-alist)
-	 (hack-connection-local-variables-apply
-	  (connection-local-criteria-for-default-directory))
-	 (unwind-protect
-             (progn ,@body)
-	   ;; Cleanup.
-	   (dolist (variable connection-local-variables-alist)
-	     (let ((elt (assq (car variable) old-buffer-local-variables)))
-	       (if elt
-		   (set (make-local-variable (car elt)) (cdr elt))
-		 (kill-local-variable (car variable)))))))
-     ;; No connection-local variables to apply.
-     ,@body))
+  `(with-connection-local-variables-1 (lambda () ,@body)))
+
+;;;###autoload
+(defun with-connection-local-variables-1 (body-fun)
+  "Apply connection-local variables according to `default-directory'.
+Call BODY-FUN with no args, and then unwind connection-local variables."
+  (if (file-remote-p default-directory)
+      (let ((enable-connection-local-variables t)
+            (old-buffer-local-variables (buffer-local-variables))
+	    connection-local-variables-alist)
+	(hack-connection-local-variables-apply
+	 (connection-local-criteria-for-default-directory))
+	(unwind-protect
+            (funcall body-fun)
+	  ;; Cleanup.
+	  (dolist (variable connection-local-variables-alist)
+	    (let ((elt (assq (car variable) old-buffer-local-variables)))
+	      (if elt
+		  (set (make-local-variable (car elt)) (cdr elt))
+		(kill-local-variable (car variable)))))))
+    ;; No connection-local variables to apply.
+    (funcall body-fun)))
 
 ;;;###autoload
 (defun path-separator ()

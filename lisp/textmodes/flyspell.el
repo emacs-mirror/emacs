@@ -489,6 +489,9 @@ Flyspell mode is a buffer-local minor mode.  When enabled, it
 spawns a single Ispell process and checks each word.  The default
 flyspell behavior is to highlight incorrect words.
 
+This mode is geared toward text modes.  In buffers that contain
+code, `flyspell-prog-mode' is usually a better choice.
+
 Bindings:
 \\[ispell-word]: correct words (using Ispell).
 \\[flyspell-auto-correct-word]: automatically correct word.
@@ -1939,9 +1942,7 @@ before point that's highlighted as misspelled."
 			   'face 'flyspell-incorrect
 			   string))
       (setq pos (cdr pos)))
-    (if (fboundp 'display-message)
-	(display-message 'no-log string)
-      (message "%s" string))))
+    (message "%s" string)))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-abbrev-table ...                                        */

@@ -1,6 +1,6 @@
 ;;; trace.el --- tracing facility for Emacs Lisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 1998, 2000-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -21,12 +21,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-;; LCD Archive Entry:
-;; trace|Hans Chalupsky|hans@cs.buffalo.edu|
-;; Tracing facility for Emacs Lisp functions|
-;; 1993/05/18 00:41:16|2.0|~/packages/trace.el.Z|
-
 
 ;;; Commentary:
 
@@ -172,9 +166,10 @@ You can call this function to add internal values in the trace buffer."
 LEVEL is the trace level, ARGS is the list of arguments passed to FUNCTION,
 and CONTEXT is a string describing the dynamic context (e.g. values of
 some global variables)."
-  (let ((print-circle t))
+  (let ((print-circle t)
+        (print-escape-newlines t))
     (format "%s%s%d -> %S%s\n"
-            (mapconcat 'char-to-string (make-string (max 0 (1- level)) ?|) " ")
+            (mapconcat #'char-to-string (make-string (max 0 (1- level)) ?|) " ")
             (if (> level 1) " " "")
             level
             ;; FIXME: Make it so we can click the function name to jump to its
@@ -187,7 +182,8 @@ some global variables)."
 LEVEL is the trace level, VALUE value returned by FUNCTION,
 and CONTEXT is a string describing the dynamic context (e.g. values of
 some global variables)."
-  (let ((print-circle t))
+  (let ((print-circle t)
+        (print-escape-newlines t))
     (format "%s%s%d <- %s: %S%s\n"
             (mapconcat 'char-to-string (make-string (1- level) ?|) " ")
             (if (> level 1) " " "")
@@ -271,14 +267,14 @@ If `current-prefix-arg' is non-nil, also read a buffer and a \"context\"
                               (if default (symbol-name default)))))
    (when current-prefix-arg
      (list
-      (read-buffer (format-prompt "Output to buffer" trace-buffer))
+      (read-buffer "Output to buffer" trace-buffer)
       (let ((exp
-             (let ((minibuffer-completing-symbol t))
-               (read-from-minibuffer "Context expression: "
-                                     nil read-expression-map t
-                                     'read-expression-history))))
+             (read-from-minibuffer "Context expression: "
+                                   nil read-expression-map t
+                                   'read-expression-history)))
         (lambda ()
-          (let ((print-circle t))
+          (let ((print-circle t)
+                (print-escape-newlines t))
             (concat " [" (prin1-to-string (eval exp t)) "]"))))))))
 
 ;;;###autoload

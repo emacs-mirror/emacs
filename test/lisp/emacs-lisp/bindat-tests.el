@@ -36,7 +36,7 @@
   (bindat-type
     (type u8)
     (opcode u8)
-    (length uintr 16) ;; little endian order
+    (length uint 16 'le) ;; little endian order
     (id strz 8)
     (data vec length)
     (_ align 4)))
@@ -128,18 +128,17 @@
           (r (zerop (% kind 2))))
       (dotimes (_ 100)
         (let* ((n (random (ash 1 bitlen)))
-               (i (- n (ash 1 (1- bitlen)))))
+               (i (- n (ash 1 (1- bitlen))))
+               (stype (bindat-type sint bitlen r))
+               (utype (bindat-type if r (uintr bitlen) (uint bitlen))))
           (should (equal (bindat-unpack
-                          (bindat-type sint bitlen r)
-                          (bindat-pack (bindat-type sint bitlen r) i))
+                          stype
+                          (bindat-pack stype i))
                          i))
           (when (>= i 0)
-            (should (equal (bindat-pack
-                            (bindat-type if r (uintr bitlen) (uint bitlen)) i)
-                           (bindat-pack (bindat-type sint bitlen r) i)))
-            (should (equal (bindat-unpack
-                            (bindat-type if r (uintr bitlen) (uint bitlen))
-                            (bindat-pack (bindat-type sint bitlen r) i))
+            (should (equal (bindat-pack utype i)
+                           (bindat-pack stype i)))
+            (should (equal (bindat-unpack utype (bindat-pack stype i))
                            i))))))))
 
 (defconst bindat-test--LEB128
@@ -161,5 +160,126 @@
           (should (equal (bindat-unpack bindat-test--LEB128
                                         (bindat-pack bindat-test--LEB128 n))
                          n)))))))
+
+(ert-deftest bindat-test--str-strz-prealloc ()
+  (dolist (tc `(((,(bindat-type str 1) "") . "xx")
+                ((,(bindat-type str 2) "") . "xx")
+                ((,(bindat-type str 2) "a") . "ax")
+                ((,(bindat-type str 2) "ab") . "ab")
+                ((,(bindat-type str 2) "abc") . "ab")
+                ((((x str 1)) ((x . ""))) . "xx")
+                ((((x str 2)) ((x . ""))) . "xx")
+                ((((x str 2)) ((x . "a"))) . "ax")
+                ((((x str 2)) ((x . "ab"))) . "ab")
+                ((((x str 2)) ((x . "abc"))) . "ab")
+                ((,(bindat-type strz 1) "") . "\0x")
+                ((,(bindat-type strz 2) "") . "\0x")
+                ((,(bindat-type strz 2) "a") . "a\0")
+                ((,(bindat-type strz 2) "ab") . "ab")
+                ((,(bindat-type strz 2) "abc") . "ab")
+                ((((x strz 1)) ((x . ""))) . "\0x")
+                ((((x strz 2)) ((x . ""))) . "\0x")
+                ((((x strz 2)) ((x . "a"))) . "a\0")
+                ((((x strz 2)) ((x . "ab"))) . "ab")
+                ((((x strz 2)) ((x . "abc"))) . "ab")
+                ((,(bindat-type strz) "") . "\0x")
+                ((,(bindat-type strz) "a") . "a\0")))
+    (let ((prealloc (make-string 2 ?x)))
+      (apply #'bindat-pack (append (car tc) (list prealloc)))
+      (should (equal prealloc (cdr tc))))))
+
+(ert-deftest bindat-test--str-strz-multibyte ()
+  (dolist (spec (list (bindat-type str 2)
+                      (bindat-type strz 2)
+                      (bindat-type strz)))
+    (should (equal (bindat-pack spec (string-to-multibyte "x")) "x\0"))
+    (should (equal (bindat-pack spec (string-to-multibyte "\xff")) "\xff\0"))
+    (should-error (bindat-pack spec "💩"))
+    (should-error (bindat-pack spec "\N{U+ff}")))
+  (dolist (spec (list '((x str 2)) '((x strz 2))))
+    (should (equal (bindat-pack spec `((x . ,(string-to-multibyte "x"))))
+                   "x\0"))
+    (should (equal (bindat-pack spec `((x . ,(string-to-multibyte "\xff"))))
+                   "\xff\0"))
+    (should-error (bindat-pack spec '((x . "💩"))))
+    (should-error (bindat-pack spec '((x . "\N{U+ff}"))))))
+
+(let ((spec (bindat-type strz 2)))
+  (ert-deftest bindat-test--strz-fixedlen-len ()
+    (should (equal (bindat-length spec "") 2))
+    (should (equal (bindat-length spec "a") 2)))
+
+  (ert-deftest bindat-test--strz-fixedlen-len-overflow ()
+    (should (equal (bindat-length spec "ab") 2))
+    (should (equal (bindat-length spec "abc") 2)))
+
+  (ert-deftest bindat-test--strz-fixedlen-pack ()
+    (should (equal (bindat-pack spec "") "\0\0"))
+    (should (equal (bindat-pack spec "a") "a\0")))
+
+  (ert-deftest bindat-test--strz-fixedlen-pack-overflow ()
+    ;; This is not the only valid semantic, but it's the one we've
+    ;; offered historically.
+    (should (equal (bindat-pack spec "ab") "ab"))
+    (should (equal (bindat-pack spec "abc") "ab")))
+
+  (ert-deftest bindat-test--strz-fixedlen-unpack ()
+    (should (equal (bindat-unpack spec "\0\0") ""))
+    (should (equal (bindat-unpack spec "\0X") ""))
+    (should (equal (bindat-unpack spec "a\0") "a"))
+    ;; Same comment as for b-t-s-f-pack-overflow.
+    (should (equal (bindat-unpack spec "ab") "ab"))
+    ;; Missing null terminator.
+    (should-error (bindat-unpack spec ""))
+    (should-error (bindat-unpack spec "a"))))
+
+(let ((spec (bindat-type strz)))
+  (ert-deftest bindat-test--strz-varlen-len ()
+    (should (equal (bindat-length spec "") 1))
+    (should (equal (bindat-length spec "abc") 4)))
+
+  (ert-deftest bindat-test--strz-varlen-pack ()
+    (should (equal (bindat-pack spec "") "\0"))
+    (should (equal (bindat-pack spec "abc") "abc\0"))
+    ;; Null bytes in the input string break unpacking.
+    (should-error (bindat-pack spec "\0"))
+    (should-error (bindat-pack spec "\0x"))
+    (should-error (bindat-pack spec "x\0"))
+    (should-error (bindat-pack spec "x\0y")))
+
+  (ert-deftest bindat-test--strz-varlen-unpack ()
+    (should (equal (bindat-unpack spec "\0") ""))
+    (should (equal (bindat-unpack spec "abc\0") "abc"))
+    ;; Missing null terminator.
+    (should-error (bindat-unpack spec ""))
+    (should-error (bindat-unpack spec "a"))))
+
+(let ((spec '((x strz 2))))
+  (ert-deftest bindat-test--strz-legacy-fixedlen-len ()
+    (should (equal (bindat-length spec '((x . ""))) 2))
+    (should (equal (bindat-length spec '((x . "a"))) 2)))
+
+  (ert-deftest bindat-test--strz-legacy-fixedlen-len-overflow ()
+    (should (equal (bindat-length spec '((x . "ab"))) 2))
+    (should (equal (bindat-length spec '((x . "abc"))) 2)))
+
+  (ert-deftest bindat-test--strz-legacy-fixedlen-pack ()
+    (should (equal (bindat-pack spec '((x . ""))) "\0\0"))
+    (should (equal (bindat-pack spec '((x . "a"))) "a\0")))
+
+  (ert-deftest bindat-test--strz-legacy-fixedlen-pack-overflow ()
+    ;; Same comment as for b-t-s-f-pack-overflow.
+    (should (equal (bindat-pack spec '((x . "ab"))) "ab"))
+    (should (equal (bindat-pack spec '((x . "abc"))) "ab")))
+
+  (ert-deftest bindat-test--strz-legacy-fixedlen-unpack ()
+    (should (equal (bindat-unpack spec "\0\0") '((x . ""))))
+    (should (equal (bindat-unpack spec "\0X") '((x . ""))))
+    (should (equal (bindat-unpack spec "a\0") '((x . "a"))))
+    ;; Same comment as for b-t-s-f-pack-overflow.
+    (should (equal (bindat-unpack spec "ab") '((x . "ab"))))
+    ;; Missing null terminator.
+    (should-error (bindat-unpack spec ""))
+    (should-error (bindat-unpack spec "a"))))
 
 ;;; bindat-tests.el ends here

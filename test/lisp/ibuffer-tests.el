@@ -785,7 +785,7 @@
                                               (funcall tag
                                                        (funcall description
                                                                 'starred-name)
-                                                       ": " "nil"))
+                                                       "" ""))
                                      (funcall tag
                                               (funcall description 'directory)
                                               ": " "\\<org\\>")))))
@@ -806,7 +806,7 @@
                             (funcall tag "AND"
                                      (funcall tag
                                               (funcall description 'starred-name)
-                                              ": " "nil")
+                                              "" "")
                                      (funcall tag
                                               (funcall description 'name)
                                               ": " "elisp"))

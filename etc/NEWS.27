@@ -233,8 +233,8 @@ into the init file when Emacs was started.  This call can now safely
 be removed.  Alternatively, if you want to ensure that your init file
 is still compatible with earlier versions of Emacs, change it to:
 
-(when (< emacs-major-version 27)
-  (package-initialize))
+    (when (< emacs-major-version 27)
+      (package-initialize))
 
 However, if your init file changes the values of 'package-load-list'
 or 'package-user-dir', or sets 'package-enable-at-startup' to nil then
@@ -1761,7 +1761,7 @@ error.
 It can be used to set any buffer as the next one to be used by
 'next-error' and 'previous-error'.
 
-** nxml-mode
+** 'nxml-mode'
 
 *** The default value of 'nxml-sexp-element-flag' is now t.
 This means that pressing 'C-M-SPACE' now selects the entire tree by
@@ -2285,7 +2285,7 @@ Unqualified host name: (was none), now %q
 Login name: was %u, now %l
 User's full name: was %U, now %L
 
-Merely having '(add-hook 'before-save-hook 'time-stamp)' in your
+Merely having '(add-hook 'before-save-hook #'time-stamp)' in your
 Emacs init file does not expose you to this change.  However,
 if you set 'time-stamp-format' or 'time-stamp-pattern' with a
 file-local variable, you may need to update the value.
@@ -2400,7 +2400,7 @@ expansion to backtrace buffers produced by the Lisp debugger, Edebug
 and ERT.  See the node "(elisp) Backtraces" in the Elisp manual for
 documentation of the new mode and its commands.
 
-** so-long.el helps to mitigate performance problems with long lines.
+** 'so-long' helps to mitigate performance problems with long lines.
 When 'global-so-long-mode' has been enabled, visiting a file with very
 long lines will (subject to configuration) cause the user's preferred
 'so-long-action' to be automatically invoked (by default, the buffer's
@@ -2599,8 +2599,8 @@ available by scrolling with the meta modifier key.
 To get the old behavior back, customize the user option
 'mouse-wheel-scroll-amount', or add the following to your init file:
 
-(customize-set-variable 'mouse-wheel-scroll-amount
-                        '(5 ((shift) . 1) ((control) . nil)))
+    (customize-set-variable 'mouse-wheel-scroll-amount
+                            '(5 ((shift) . 1) ((control) . nil)))
 
 By default, the font size will be changed in the window that the mouse
 pointer is over.  To change this behavior, you can customize the user

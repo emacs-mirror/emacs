@@ -83,9 +83,9 @@
 
     (:height
      (choice :tag "Height"
-	     :help-echo "Face's font height."
+             :help-echo "Face's font size."
 	     :value 1.0			; default
-	     (integer :tag "Height in 1/10 pt")
+             (integer :tag "Font size in 1/10 pt")
 	     (number :tag "Scale" 1.0)))
 
     (:weight

@@ -364,7 +364,7 @@ lisp_to_json_nonscalar_1 (Lisp_Object lisp,
       for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
         {
           Lisp_Object key = HASH_KEY (h, i);
-          if (!EQ (key, Qunbound))
+          if (!BASE_EQ (key, Qunbound))
             {
               CHECK_STRING (key);
               Lisp_Object ekey = json_encode (key);
@@ -975,7 +975,7 @@ usage: (json-parse-string STRING &rest ARGS) */)
 
   json_error_t error;
   json_t *object
-    = json_loads (SSDATA (encoded), JSON_DECODE_ANY, &error);
+    = json_loads (SSDATA (encoded), JSON_DECODE_ANY | JSON_ALLOW_NUL, &error);
   if (object == NULL)
     json_parse_error (&error);
 
@@ -1071,7 +1071,9 @@ usage: (json-parse-buffer &rest args) */)
   json_error_t error;
   json_t *object
     = json_load_callback (json_read_buffer_callback, &data,
-                          JSON_DECODE_ANY | JSON_DISABLE_EOF_CHECK,
+                          JSON_DECODE_ANY
+			  | JSON_DISABLE_EOF_CHECK
+			  | JSON_ALLOW_NUL,
                           &error);
 
   if (object == NULL)

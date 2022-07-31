@@ -6278,6 +6278,32 @@ expressions for the operands.
 
 @comment ------------------------------------------------------------
 
+@defun c-lineup-argcont-+
+@findex lineup-argcont-+ (c-)
+Indent a continued argument @code{c-basic-offset} spaces from the
+start of the first argument at the current level of nesting on a
+previous line.
+
+@example
+@group
+foo (xyz, uvw, aaa + bbb + ccc
+         + ddd + eee + fff);    <- c-lineup-argcont-+
+     <-->                          c-basic-offset
+@end group
+@end example
+
+Only continuation lines like this are touched, @code{nil} being
+returned on lines which are the start of an argument.
+
+Within a gcc @code{asm} block, @code{:} is recognized as an argument
+separator, but of course only between operand specifications, not in the
+expressions for the operands.
+
+@workswith @code{arglist-cont}, @code{arglist-cont-nonempty}.
+@end defun
+
+@comment ------------------------------------------------------------
+
 @defun c-lineup-arglist-operators
 @findex lineup-arglist-operators @r{(c-)}
 Line up lines starting with an infix operator under the open paren.

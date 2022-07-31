@@ -31,17 +31,18 @@
 (eval-when-compile (require 'cl-lib))
 (require 'browse-url)
 (require 'url-parse)
+(require 'url-file)
 
 (defcustom url-queue-parallel-processes 6
   "The number of concurrent processes."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-queue-timeout 5
   "How long to let a job live once it's started (in seconds)."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 ;;; Internal variables.
@@ -160,10 +161,7 @@ The variable `url-queue-timeout' sets a timeout."
                                    (url-queue-context-buffer job)
                                  (current-buffer))
 	    (let ((url-request-noninteractive t)
-                  ;; This will disable querying the user for
-                  ;; credentials if one of the things we're fetching
-                  ;; in the background return a header requesting it.
-                  (url-request-extra-headers '(("Authorization" . ""))))
+                  (url-allow-non-local-files t))
               (url-retrieve (url-queue-url job)
                             #'url-queue-callback-function (list job)
                             (url-queue-silentp job)

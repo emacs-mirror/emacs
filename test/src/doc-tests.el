@@ -29,8 +29,8 @@
 
 (ert-deftest doc-tests-documentation/autoloaded-macro ()
   (skip-unless noninteractive)
-  (should (autoloadp (symbol-function 'rx)))
-  (should (stringp (documentation 'rx))))     ; See Bug#52969.
+  (should (autoloadp (symbol-function 'benchmark-run)))
+  (should (stringp (documentation 'benchmark-run))))     ; See Bug#52969.
 
 (ert-deftest doc-tests-documentation/autoloaded-defun ()
   (skip-unless noninteractive)

@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
+
 (defgroup fill nil
   "Indenting and filling text."
   :link '(custom-manual "(emacs)Filling")
@@ -44,8 +46,8 @@ A value of nil means that any change in indentation starts a new paragraph."
 
 (defcustom colon-double-space nil
   "Non-nil means put two spaces after a colon when filling."
-  :type 'boolean)
-(put 'colon-double-space 'safe-local-variable #'booleanp)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
   "Non-nil means to use a space to separate words of a different kind.
@@ -644,20 +646,27 @@ The break position will be always after LINEBEG and generally before point."
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
-  "Fill the region as one paragraph.
-It removes any paragraph breaks in the region and extra newlines at the end,
-indents and fills lines between the margins given by the
-`current-left-margin' and `current-fill-column' functions.
-\(In most cases, the variable `fill-column' controls the width.)
-It leaves point at the beginning of the line following the paragraph.
+  "Fill the region as if it were a single paragraph.
+This command removes any paragraph breaks in the region and
+extra newlines at the end, and indents and fills lines between the
+margins given by the `current-left-margin' and `current-fill-column'
+functions.  (In most cases, the variable `fill-column' controls the
+width.)  It leaves point at the beginning of the line following the
+region.
 
-Normally performs justification according to the `current-justification'
-function, but with a prefix arg, does full justification instead.
+Normally, the command performs justification according to
+the `current-justification' function, but with a prefix arg, it
+does full justification instead.
 
-From a program, optional third arg JUSTIFY can specify any type of
-justification.  Fourth arg NOSQUEEZE non-nil means not to make spaces
-between words canonical before filling.  Fifth arg SQUEEZE-AFTER, if non-nil,
-means don't canonicalize spaces before that position.
+When called from Lisp, optional third arg JUSTIFY can specify any
+type of justification; see `default-justification' for the possible
+values.
+Optional fourth arg NOSQUEEZE non-nil means not to make spaces
+between words canonical before filling.
+Fifth arg SQUEEZE-AFTER, if non-nil, should be a buffer position; it
+means canonicalize spaces only starting from that position.
+See `canonically-space-region' for the meaning of canonicalization
+of spaces.
 
 Return the `fill-prefix' used for filling.
 
@@ -832,75 +841,67 @@ region, instead of just filling the current paragraph."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (if current-prefix-arg 'full) t)))
-  (let ((hash (and (not (buffer-modified-p))
-                   (buffer-hash))))
-    (prog1
-        (or
-         ;; 1. Fill the region if it is active when called interactively.
-         (and region transient-mark-mode mark-active
-              (not (eq (region-beginning) (region-end)))
-              (or (fill-region (region-beginning) (region-end) justify) t))
-         ;; 2. Try fill-paragraph-function.
-         (and (not (eq fill-paragraph-function t))
-              (or fill-paragraph-function
-                  (and (minibufferp (current-buffer))
-                       (= 1 (point-min))))
-              (let ((function (or fill-paragraph-function
-                                  ;; In the minibuffer, don't count
-                                  ;; the width of the prompt.
-                                  'fill-minibuffer-function))
-                    ;; If fill-paragraph-function is set, it probably
-                    ;; takes care of comments and stuff.  If not, it
-                    ;; will have to set fill-paragraph-handle-comment
-                    ;; back to t explicitly or return nil.
-                    (fill-paragraph-handle-comment nil)
-                    (fill-paragraph-function t))
-                (funcall function justify)))
-         ;; 3. Try our syntax-aware filling code.
-         (and fill-paragraph-handle-comment
-              ;; Our code only handles \n-terminated comments right now.
-              comment-start (equal comment-end "")
-              (let ((fill-paragraph-handle-comment nil))
-                (fill-comment-paragraph justify)))
-         ;; 4. If it all fails, default to the good ol' text paragraph filling.
-         (let ((before (point))
-               (paragraph-start paragraph-start)
-               ;; Fill prefix used for filling the paragraph.
-               fill-pfx)
-           ;; Try to prevent code sections and comment sections from being
-           ;; filled together.
-           (when (and fill-paragraph-handle-comment comment-start-skip)
-             (setq paragraph-start
-                   (concat paragraph-start "\\|[ \t]*\\(?:"
-                           comment-start-skip "\\)")))
-           (save-excursion
-             ;; To make sure the return value of forward-paragraph is
-             ;; meaningful, we have to start from the beginning of
-             ;; line, otherwise skipping past the last few chars of a
-             ;; paragraph-separator would count as a paragraph (and
-             ;; not skipping any chars at EOB would not count as a
-             ;; paragraph even if it is).
-             (move-to-left-margin)
-             (if (not (zerop (fill-forward-paragraph 1)))
-                 ;; There's no paragraph at or after point: give up.
-                 (setq fill-pfx "")
-               (let ((end (point))
-                     (beg (progn (fill-forward-paragraph -1) (point))))
-                 (goto-char before)
-                 (setq fill-pfx
-                       (if use-hard-newlines
-                           ;; Can't use fill-region-as-paragraph, since this
-                           ;; paragraph may still contain hard newlines.  See
-                           ;; fill-region.
-                           (fill-region beg end justify)
-                         (fill-region-as-paragraph beg end justify))))))
-           fill-pfx))
-      ;; If we didn't change anything in the buffer (and the buffer
-      ;; was previously unmodified), then flip the modification status
-      ;; back to "unchanged".
-      (when (and hash
-                 (equal hash (buffer-hash)))
-        (set-buffer-modified-p nil)))))
+  (with-buffer-unmodified-if-unchanged
+    (or
+     ;; 1. Fill the region if it is active when called interactively.
+     (and region transient-mark-mode mark-active
+          (not (eq (region-beginning) (region-end)))
+          (or (fill-region (region-beginning) (region-end) justify) t))
+     ;; 2. Try fill-paragraph-function.
+     (and (not (eq fill-paragraph-function t))
+          (or fill-paragraph-function
+              (and (minibufferp (current-buffer))
+                   (= 1 (point-min))))
+          (let ((function (or fill-paragraph-function
+                              ;; In the minibuffer, don't count
+                              ;; the width of the prompt.
+                              'fill-minibuffer-function))
+                ;; If fill-paragraph-function is set, it probably
+                ;; takes care of comments and stuff.  If not, it
+                ;; will have to set fill-paragraph-handle-comment
+                ;; back to t explicitly or return nil.
+                (fill-paragraph-handle-comment nil)
+                (fill-paragraph-function t))
+            (funcall function justify)))
+     ;; 3. Try our syntax-aware filling code.
+     (and fill-paragraph-handle-comment
+          ;; Our code only handles \n-terminated comments right now.
+          comment-start (equal comment-end "")
+          (let ((fill-paragraph-handle-comment nil))
+            (fill-comment-paragraph justify)))
+     ;; 4. If it all fails, default to the good ol' text paragraph filling.
+     (let ((before (point))
+           (paragraph-start paragraph-start)
+           ;; Fill prefix used for filling the paragraph.
+           fill-pfx)
+       ;; Try to prevent code sections and comment sections from being
+       ;; filled together.
+       (when (and fill-paragraph-handle-comment comment-start-skip)
+         (setq paragraph-start
+               (concat paragraph-start "\\|[ \t]*\\(?:"
+                       comment-start-skip "\\)")))
+       (save-excursion
+         ;; To make sure the return value of forward-paragraph is
+         ;; meaningful, we have to start from the beginning of
+         ;; line, otherwise skipping past the last few chars of a
+         ;; paragraph-separator would count as a paragraph (and
+         ;; not skipping any chars at EOB would not count as a
+         ;; paragraph even if it is).
+         (move-to-left-margin)
+         (if (not (zerop (fill-forward-paragraph 1)))
+             ;; There's no paragraph at or after point: give up.
+             (setq fill-pfx "")
+           (let ((end (point))
+                 (beg (progn (fill-forward-paragraph -1) (point))))
+             (goto-char before)
+             (setq fill-pfx
+                   (if use-hard-newlines
+                       ;; Can't use fill-region-as-paragraph, since this
+                       ;; paragraph may still contain hard newlines.  See
+                       ;; fill-region.
+                       (fill-region beg end justify)
+                     (fill-region-as-paragraph beg end justify))))))
+       fill-pfx))))
 
 (declare-function comment-search-forward "newcomment" (limit &optional noerror))
 (declare-function comment-string-strip "newcomment" (str beforep afterp))
@@ -1104,6 +1105,10 @@ space does not end a sentence, so don't break a line there."
 (defcustom default-justification 'left
   "Method of justifying text not otherwise specified.
 Possible values are `left', `right', `full', `center', or `none'.
+The values `left' and `right' mean lines are lined up at,
+respectively, left or right margin, and ragged at the other margin.
+`full' means lines are lined up at both margins.  `center' means each
+line is centered.  `none' means no justification or centering.
 The requested kind of justification is done whenever lines are filled.
 The `justification' text-property can locally override this variable."
   :type '(choice (const left)
@@ -1133,6 +1138,7 @@ However, it returns nil rather than `none' to mean \"don't justify\"."
 (defun set-justification (begin end style &optional whole-par)
   "Set the region's justification style to STYLE.
 This commands prompts for the kind of justification to use.
+See `default-justification' for the possible values and their meaning.
 If the mark is not active, this command operates on the current paragraph.
 If the mark is active, it operates on the region.  However, if the
 beginning and end of the region are not at paragraph breaks, they are
@@ -1184,7 +1190,8 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-left (b e)
   "Make paragraphs in the region left-justified.
-This means they are flush at the left margin and ragged on the right.
+This means lines are flush (lined up) at the left margin and ragged
+on the right.
 This is usually the default, but see the variable `default-justification'.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
@@ -1193,7 +1200,8 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-right (b e)
   "Make paragraphs in the region right-justified.
-This means they are flush at the right margin and ragged on the left.
+This means lines are flush (lined up) at the right margin and ragged
+on the left.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
 		     (if mark-active (region-end) (point))))
@@ -1201,7 +1209,7 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-full (b e)
   "Make paragraphs in the region fully justified.
-This makes lines flush on both margins by inserting spaces between words.
+This makes lines be lined up on both margins by inserting spaces between words.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
 		     (if mark-active (region-end) (point))))
@@ -1236,7 +1244,8 @@ If the mark is not active, this applies to the current paragraph."
 Normally does full justification: adds spaces to the line to make it end at
 the column given by `current-fill-column'.
 Optional first argument HOW specifies alternate type of justification:
-it can be `left', `right', `full', `center', or `none'.
+it can be `left', `right', `full', `center', or `none'; for their
+meaning, see `default-justification'.
 If HOW is t, will justify however the `current-justification' function says to.
 If HOW is nil or missing, full justification is done by default.
 Second arg EOP non-nil means that this is the last line of the paragraph, so

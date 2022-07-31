@@ -24,12 +24,10 @@
 
 ;;; Commentary:
 
-;;   GNU Emacs code to help maintain databases compatible with (troff)
-;;   refer and lookbib.  The file bib-file should be set to your
-;;   bibliography file.  Keys are automagically inserted as you type,
-;;   and appropriate keys are presented for various kinds of entries.
-
-;; FIXME: Fix the namespace use of this library.
+;; GNU Emacs code to help maintain databases compatible with (troff)
+;; refer and lookbib.  The file `bib-file' should be set to your
+;; bibliography file.  Keys are automagically inserted as you type,
+;; and appropriate keys are presented for various kinds of entries.
 
 ;;; Code:
 
@@ -40,23 +38,23 @@
   :group 'text)
 
 (defcustom bib-file "~/my-bibliography.bib"
-  "Default name of file used by `addbib'."
+  "Default name of file used by `bib-add'."
   :type 'file)
 
-(defcustom unread-bib-file "~/to-be-read.bib"
-   "Default name of file used by `unread-bib' in Bib mode."
-   :type 'file)
+(define-obsolete-variable-alias 'unread-bib-file 'bib-unread-file "29.1")
+(defcustom bib-unread-file "~/to-be-read.bib"
+  "Default name of file used by `bib-unread' in Bib mode."
+  :type 'file
+  :version "29.1")
 
-(defvar bib-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\C-M" #'return-key-bib)
-    (define-key map "\C-c\C-u" #'unread-bib)
-    (define-key map "\C-c\C-@" #'mark-bib)
-    (define-key map "\e`" #'abbrev-mode)
-    map))
+(defvar-keymap bib-mode-map
+  :parent text-mode-map
+  "RET"     #'bib-return-key
+  "C-c C-u" #'bib-unread
+  "C-c C-@" #'bib-mark
+  "M-`"     #'abbrev-mode)
 
-(defun addbib ()
+(defun bib-add ()
    "Set up editor to add to troff bibliography file specified
 by global variable `bib-file'.  See description of `bib-mode'."
    (interactive)
@@ -87,10 +85,10 @@ R eport number or `phd thesis' or `masters thesis' or `draft' or
 W here can be found locally (login name, or ailib, etc.)
 X comments (not used in indexing)
 
-\\[unread-bib] appends current entry to a different file (for example,
+\\[bib-unread] appends current entry to a different file (for example,
 a file of papers to be read in the future), given by the value of the
-variable `unread-bib-file'.
-\\[mark-bib] marks current or previous entry.
+variable `bib-unread-file'.
+\\[bib-mark] marks current or previous entry.
 Abbreviations are saved in `bib-mode-abbrev-table'.
 Hook can be stored in `bib-mode-hook'.
 Field keys given by variable `bib-assoc'.
@@ -142,7 +140,7 @@ with the cdr.")
 
 (defconst bib-capitalized-fields "%[AETCBIJR]")
 
-(defun return-key-bib ()
+(defun bib-return-key ()
   "Magic when user hits return, used by `bib-mode'."
   (interactive)
   (if (eolp)
@@ -172,7 +170,7 @@ with the cdr.")
       (insert new-key))
     (newline)))
 
-(defun mark-bib ()
+(defun bib-mark ()
    "Set mark at beginning of current or previous bib entry, point at end."
    (interactive)
    (beginning-of-line nil)
@@ -185,14 +183,14 @@ with the cdr.")
    (forward-line 1)
    (beginning-of-line nil))
 
-(defun unread-bib ()
-   "Append current or previous entry to file of unread papers
-named by variable `unread-bib-file'."
-   (interactive)
-   (mark-bib)
-   (if (get-file-buffer unread-bib-file)
-      (append-to-buffer (get-file-buffer unread-bib-file) (mark) (point))
-      (append-to-file (mark) (point) unread-bib-file)))
+(defun bib-unread ()
+  "Append current or previous entry to file of unread papers
+named by variable `bib-unread-file'."
+  (interactive)
+  (bib-mark)
+  (if (get-file-buffer bib-unread-file)
+      (append-to-buffer (get-file-buffer bib-unread-file) (mark) (point))
+    (append-to-file (mark) (point) bib-unread-file)))
 
 
 (defvar bib-capitalize-title-stop-words
@@ -226,14 +224,17 @@ named by variable `unread-bib-file'."
 	       ))
 	 (set-syntax-table orig-syntax-table))))
 
-
 (defun bib-capitalize-title (s)
-   "Like `capitalize', but don't capitalize stop words, except the first."
-   (with-current-buffer (get-buffer-create "$$$Scratch$$$")
-     (erase-buffer)
-     (insert s)
-     (bib-capitalize-title-region (point-min) (point-max))
-     (buffer-string)))
+  "Like `capitalize', but don't capitalize stop words, except the first."
+  (with-temp-buffer
+    (insert s)
+    (bib-capitalize-title-region (point-min) (point-max))
+    (buffer-string)))
+
+(define-obsolete-function-alias 'addbib #'bib-add "29.1")
+(define-obsolete-function-alias 'return-key-bib #'bib-return-key "29.1")
+(define-obsolete-function-alias 'mark-bib #'bib-mark "29.1")
+(define-obsolete-function-alias 'unread-bib #'bib-unread "29.1")
 
 (provide 'bib-mode)
 

@@ -124,6 +124,7 @@ display for all of `latin1-display-sets'.  See also
 	     (?\™ "TM")	;; TRADE MARK SIGN
 	     (?\› ">") ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
 	     (?•  "·")
+             (?ẞ "SS") ;; LATIN CAPITAL LETTER SHARP S
 	     )))
 	  (setq latin1-display t))
     (mapc #'latin1-display-reset latin1-display-sets)

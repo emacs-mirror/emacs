@@ -277,7 +277,7 @@ the function is waiting, then it exits immediately, returning
 CANCEL-ON-INPUT-RETVAL.  Any future replies (normal or error) are
 ignored."
   (let* ((tag (cl-gensym "jsonrpc-request-catch-tag")) id-and-timer
-         cancelled
+         canceled
          (retval
           (unwind-protect
               (catch tag
@@ -287,26 +287,26 @@ ignored."
                   #'jsonrpc--async-request-1
                   connection method params
                   :success-fn (lambda (result)
-                                (unless cancelled
+                                (unless canceled
                                   (throw tag `(done ,result))))
                   :error-fn
                   (jsonrpc-lambda
                       (&key code message data)
-                    (unless cancelled
+                    (unless canceled
                       (throw tag `(error (jsonrpc-error-code . ,code)
                                          (jsonrpc-error-message . ,message)
                                          (jsonrpc-error-data . ,data)))))
                   :timeout-fn
                   (lambda ()
-                    (unless cancelled
+                    (unless canceled
                       (throw tag '(error (jsonrpc-error-message . "Timed out")))))
                   `(,@(when deferred `(:deferred ,deferred))
                     ,@(when timeout  `(:timeout  ,timeout)))))
                 (cond (cancel-on-input
                        (unwind-protect
                            (let ((inhibit-quit t)) (while (sit-for 30)))
-                         (setq cancelled t))
-                       `(cancelled ,cancel-on-input-retval))
+                         (setq canceled t))
+                       `(canceled ,cancel-on-input-retval))
                       (t (while t (accept-process-output nil 30)))))
             ;; In normal operation, cancellation is handled by the
             ;; timeout function and response filter, but we still have

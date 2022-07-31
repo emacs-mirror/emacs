@@ -84,7 +84,7 @@ is the equivalent of the following source code block:
  #+end_src
 
 NOTE: The quotation marks around the function name,
-'source-block', are optional.
+`source-block', are optional.
 
 NOTE: By default, string variable names are interpreted as
 references to source-code blocks, to force interpretation of a

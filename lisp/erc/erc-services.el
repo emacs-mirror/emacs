@@ -174,6 +174,18 @@ function `erc-nickserv-get-password'."
   :version "28.1"
   :type 'boolean)
 
+(defcustom erc-auth-source-services-function #'erc-auth-source-search
+  "Function to retrieve NickServ password from auth-source.
+Called with a subset of keyword parameters known to
+`auth-source-search' and relevant to authenticating to nickname
+services.  In return, ERC expects a string to send as the
+password, or nil, to fall through to the next method, such as
+prompting.  See info node `(erc) Connecting' for details."
+  :package-version '(ERC . "5.4.1") ; FIXME update when publishing to ELPA
+  :type '(choice (const erc-auth-source-search)
+                 (const nil)
+                 function))
+
 (defcustom erc-nickserv-passwords nil
   "Passwords used when identifying to NickServ automatically.
 `erc-prompt-for-nickserv-password' must be nil for these
@@ -202,7 +214,7 @@ Example of use:
 			(const QuakeNet)
 			(const Rizon)
 			(const SlashNET)
-			(symbol :tag "Network name"))
+                        (symbol :tag "Network name or session ID"))
 		(repeat :tag "Nickname and password"
 			(cons :tag "Identity"
 			      (string :tag "Nick")
@@ -431,31 +443,20 @@ As soon as some source returns a password, the sequence of
 lookups stops and this function returns it (or returns nil if it
 is empty).  Otherwise, no corresponding password was found, and
 it returns nil."
-  (let (network server port)
-    ;; Fill in local vars, switching to the server buffer once only
-    (erc-with-server-buffer
-     (setq network erc-network
-           server erc-session-server
-           port erc-session-port))
-    (let ((ret
-           (or
-            (when erc-nickserv-passwords
-              (cdr (assoc nick
-                          (cl-second (assoc network
-                                            erc-nickserv-passwords)))))
-            (when erc-use-auth-source-for-nickserv-password
-              (auth-source-pick-first-password
-               :require '(:secret)
-               :host server
-               ;; Ensure a string for :port
-               :port (format "%s" port)
-               :user nick))
-            (when erc-prompt-for-nickserv-password
-              (read-passwd
-               (format "NickServ password for %s on %s (RET to cancel): "
-                       nick network))))))
-      (when (and ret (not (string= ret "")))
-        ret))))
+  (when-let*
+      ((nid (erc-networks--id-symbol erc-networks--id))
+       (ret (or (when erc-nickserv-passwords
+                  (assoc-default nick
+                                 (cadr (assq nid erc-nickserv-passwords))))
+                (when (and erc-use-auth-source-for-nickserv-password
+                           erc-auth-source-services-function)
+                  (funcall erc-auth-source-services-function :user nick))
+                (when erc-prompt-for-nickserv-password
+                  (read-passwd
+                   (format "NickServ password for %s on %s (RET to cancel): "
+                           nick nid)))))
+       ((not (string-empty-p ret))))
+    ret))
 
 (defvar erc-auto-discard-away)
 

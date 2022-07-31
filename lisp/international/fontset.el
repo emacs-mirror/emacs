@@ -182,8 +182,21 @@
 	(canadian-aboriginal #x14C0)
 	(ogham #x168F)
 	(runic #x16A0)
+        (tagalog #x1700)
+        (hanunoo #x1720)
+        (buhid #x1740)
+        (tagbanwa #x1760)
 	(khmer #x1780)
 	(mongolian #x1826)
+        (limbu #x1901 #x1920 #x1936)
+        (buginese #x1A00 #x1A1E)
+        (balinese #x1B13 #x1B35 #x1B5E)
+        (sundanese #x1B8A #x1BAB #x1CC4)
+        (batak #x1BC2 #x1BE7 #x1BFF)
+        (lepcha #x1C00 #x1C24 #x1C40)
+        (tai-le #x1950)
+        (tai-lue #x1980)
+        (tai-tham #x1A20 #x1A55 #x1A61 #x1A80)
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
 	(ideographic-description #x2FF0)
@@ -193,9 +206,12 @@
 	(kanbun #x319D)
 	(han #x5B57)
 	(yi #xA288)
-	(javanese #xA980)
+        (syloti-nagri #xA807 #xA823 #xA82C)
+        (rejang #xA930 #xA947 #xA95F)
+	(javanese #xA98F #xA9B4 #xA9CA)
 	(cham #xAA00)
 	(tai-viet #xAA80)
+        (meetei-mayek #xABC0 #xABE3 #xAAE0 #xAAF6)
 	(hangul #xAC00)
 	(linear-b #x10000)
 	(aegean-number #x10100)
@@ -223,21 +239,24 @@
 	(lydian #x10920)
 	(kharoshthi #x10A00)
 	(manichaean #x10AC0)
-	(hanifi-rohingya #x10D00)
+	(hanifi-rohingya #x10D00 #x10D24 #x10D39)
 	(yezidi #x10E80)
 	(old-sogdian #x10F00)
 	(sogdian #x10F30)
 	(chorasmian #x10FB0)
 	(elymaic #x10FE0)
 	(old-uyghur #x10F70)
+        (brahmi #x11013 #x11045 #x11052 #x11065)
+        (kaithi #x1108D #x110B0 #x110BD)
 	(mahajani #x11150)
+        (sharada #x11191 #x111B3 #x111CD)
 	(khojki #x11200)
 	(khudawadi #x112B0)
-	(grantha #x11305)
+	(grantha #x11315 #x1133E #x11374)
 	(newa #x11400)
-	(tirhuta #x11481)
-	(siddham #x11580)
-	(modi #x11600)
+	(tirhuta #x11481 #x1148F #x114D0)
+	(siddham #x1158E #x115AF #x115D4)
+	(modi #x1160E #x11630 #x11655)
 	(takri #x11680)
 	(dogra #x11800)
 	(warang-citi #x118A1)
@@ -250,7 +269,7 @@
 	(marchen #x11C72)
 	(masaram-gondi #x11D00)
 	(gunjala-gondi #x11D60)
-	(makasar #x11EE0)
+	(makasar #x11EE0 #x11EF7)
 	(cuneiform #x12000)
 	(cypro-minoan #x12F90)
 	(egyptian #x13000)
@@ -282,7 +301,7 @@
 
 (defvar otf-script-alist)
 
-;; The below was synchronized with the latest Oct 8, 2020 version of
+;; The below was synchronized with the latest Sep 12, 2021 version of
 ;; https://docs.microsoft.com/en-us/typography/opentype/spec/scripttags
 (setq otf-script-alist
       '((adlm . adlam)
@@ -315,6 +334,7 @@
 	(copt . coptic)
 	(xsux . cuneiform)
 	(cprt . cypriot)
+        (cpmn . cypro-minoan)
 	(cyrl . cyrillic)
 	(dsrt . deseret)
 	(deva . devanagari)
@@ -338,7 +358,7 @@
 	(gur2 . gurmukhi)
 	(hani . han)
 	(hang . hangul)
-	(jamo . hangul)
+	(jamo . hangul) ; Not recommended; use 'hang' instead.
 	(rohg . hanifi-rohingya)
 	(hano . hanunoo)
 	(hatr . hatran)
@@ -361,8 +381,8 @@
 	(latn . latin)
 	(lepc . lepcha)
 	(limb . limbu)
-	(lina . linear_a)
-	(linb . linear_b)
+	(lina . linear-a)
+	(linb . linear-b)
 	(lisu . lisu)
 	(lyci . lycian)
 	(lydi . lydian)
@@ -388,6 +408,7 @@
 	(musc . musical-symbol)
 	(mym2 . burmese)
 	(mymr . burmese)
+        (nand . nandinagari)
 	(nbat . nabataean)
 	(newa . newa)
 	(nko\  . nko)
@@ -402,6 +423,7 @@
 	(sogo . old-sogdian)
 	(sarb . old-south-arabian)
 	(orkh . old-turkic)
+        (ougr . old-uyghur)
 	(orya . oriya)
 	(ory2 . oriya)
 	(osge . osage)
@@ -427,17 +449,18 @@
 	(sora . sora-sompeng)
 	(soyo . soyombo)
 	(sund . sundanese)
-	(sylo . syloti_nagri)
+	(sylo . syloti-nagri)
 	(syrc . syriac)
 	(tglg . tagalog)
 	(tagb . tagbanwa)
-	(tale . tai_le)
+	(tale . tai-le)
 	(talu . tai-lue)
 	(lana . tai-tham)
 	(tavt . tai-viet)
 	(takr . takri)
 	(taml . tamil)
 	(tml2 . tamil)
+        (tnsa . tangsa)
 	(tang . tangut)
 	(telu . telugu)
 	(tel2 . telugu)
@@ -446,7 +469,9 @@
 	(tibt . tibetan)
 	(tfng . tifinagh)
 	(tirh . tirhuta)
+        (toto . toto)
 	(ugar . ugaritic)
+        (vith . vithkuqi)
 	(vai\  . vai)
 	(wcho . wancho)
 	(wara . warang-citi)
@@ -735,11 +760,24 @@
                     cham
 		    ogham
 		    runic
+                    tagalog
+                    hanunoo
+                    buhid
+                    tagbanwa
+                    limbu
+                    buginese
+                    balinese
+                    sundanese
+                    batak
+                    lepcha
 		    symbol
 		    braille
 		    yi
+                    syloti-nagri
+                    rejang
                     javanese
 		    tai-viet
+                    meetei-mayek
 		    aegean-number
 		    ancient-greek-number
 		    ancient-symbol
@@ -757,12 +795,20 @@
 		    cypriot-syllabary
 		    phoenician
 		    lydian
+                    hanifi-rohingya
                     yezidi
 		    kharoshthi
 		    manichaean
                     chorasmian
 		    elymaic
                     old-uyghur
+                    brahmi
+                    kaithi
+                    sharada
+                    grantha
+                    tirhuta
+                    siddham
+                    modi
 		    makasar
                     dives-akuru
 		    cuneiform
@@ -779,6 +825,7 @@
 		    counting-rod-numeral
                     toto
 		    adlam
+                    tai-tham
 		    mahjong-tile
 		    domino-tile
                     emoji))
@@ -930,6 +977,13 @@
   ;; This sets up the Emoji codepoints to use prettier fonts.
   (set-fontset-font "fontset-default" 'emoji
                     '("Noto Color Emoji" . "iso10646-1") nil 'prepend)
+
+  ;; This supports the display of Tamil Supplement characters.  As
+  ;; these characters are pretty simple and do not need reordering,
+  ;; ligatures, vowel signs, virama etc., neither tml2 nor other OTF
+  ;; features are needed here.
+  (set-fontset-font "fontset-default" '(#x11FC0 . #x11FFF)
+                    '("Noto Sans Tamil Supplement" . "iso10646-1") nil 'append)
 
   ;; Append CJK fonts for characters other than han, kana, cjk-misc.
   ;; Append fonts for scripts whose name is also a charset name.
@@ -1133,7 +1187,7 @@ Internal use only.  Should be called at startup time."
 (defconst xlfd-regexp-pointsize-subnum 6)	; POINT_SIZE
 (defconst xlfd-regexp-resx-subnum 7)		; RESOLUTION_X
 (defconst xlfd-regexp-resy-subnum 8)		; RESOLUTION_Y
-(defconst xlfd-regexp-spacing-subnum 8)		; SPACING
+(defconst xlfd-regexp-spacing-subnum 9)		; SPACING
 (defconst xlfd-regexp-avgwidth-subnum 10)	; AVERAGE_WIDTH
 (defconst xlfd-regexp-registry-subnum 11)	; REGISTRY and ENCODING
 

@@ -604,44 +604,42 @@ For instance, if mode is #o700, then it produces `rwx------'."
       (goto-char (point-min))
       (restore-buffer-modified-p modified))))
 
-(defvar tar-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map " " 'tar-next-line)
-    (define-key map "C" 'tar-copy)
-    (define-key map "d" 'tar-flag-deleted)
-    (define-key map "\^D" 'tar-flag-deleted)
-    (define-key map "e" 'tar-extract)
-    (define-key map "f" 'tar-extract)
-    (define-key map "\C-m" 'tar-extract)
-    (define-key map [mouse-2] 'tar-mouse-extract)
-    (define-key map "g" 'revert-buffer)
-    (define-key map "n" 'tar-next-line)
-    (define-key map "\^N" 'tar-next-line)
-    (define-key map [down] 'tar-next-line)
-    (define-key map "o" 'tar-extract-other-window)
-    (define-key map "p" 'tar-previous-line)
-    (define-key map "\^P" 'tar-previous-line)
-    (define-key map [up] 'tar-previous-line)
-    (define-key map "I" 'tar-new-entry)
-    (define-key map "R" 'tar-rename-entry)
-    (define-key map "u" 'tar-unflag)
-    (define-key map "v" 'tar-view)
-    (define-key map "w" 'woman-tar-extract-file)
-    (define-key map "x" 'tar-expunge)
-    (define-key map "\177" 'tar-unflag-backwards)
-    (define-key map "E" 'tar-extract-other-window)
-    (define-key map "M" 'tar-chmod-entry)
-    (define-key map "G" 'tar-chgrp-entry)
-    (define-key map "O" 'tar-chown-entry)
-    ;; Let mouse-1 follow the link.
-    (define-key map [follow-link] 'mouse-face)
+(defvar-keymap tar-mode-map
+  :doc "Local keymap for Tar mode listings."
+  :full t :suppress t
+  "SPC"    #'tar-next-line
+  "C"      #'tar-copy
+  "d"      #'tar-flag-deleted
+  "C-d"    #'tar-flag-deleted
+  "e"      #'tar-extract
+  "f"      #'tar-extract
+  "RET"    #'tar-extract
+  "g"      #'revert-buffer
+  "n"      #'tar-next-line
+  "C-n"    #'tar-next-line
+  "<down>" #'tar-next-line
+  "o"      #'tar-extract-other-window
+  "p"      #'tar-previous-line
+  "C-p"    #'tar-previous-line
+  "<up>"   #'tar-previous-line
+  "I"      #'tar-new-entry
+  "R"      #'tar-rename-entry
+  "u"      #'tar-unflag
+  "v"      #'tar-view
+  "w"      #'woman-tar-extract-file
+  "x"      #'tar-expunge
+  "DEL"    #'tar-unflag-backwards
+  "E"      #'tar-extract-other-window
+  "M"      #'tar-chmod-entry
+  "G"      #'tar-chgrp-entry
+  "O"      #'tar-chown-entry
 
-    ;; Get rid of the Edit menu bar item to save space.
-    (define-key map [menu-bar edit] 'undefined)
+  ;; Let mouse-1 follow the link.
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'tar-mouse-extract
 
-    map)
-  "Local keymap for Tar mode listings.")
+  ;; Get rid of the Edit menu bar item to save space.
+  "<menu-bar> <edit>" #'undefined)
 
 (easy-menu-define tar-mode-immediate-menu tar-mode-map
   "Immediate menu for Tar mode."
@@ -1331,6 +1329,8 @@ to make your changes permanent."
       (error "This buffer has no superior tar file buffer"))
   (if (not (and (boundp 'tar-superior-descriptor) tar-superior-descriptor))
       (error "This buffer doesn't have an index into its superior tar file!"))
+  (unless (buffer-live-p tar-superior-buffer)
+    (error "The tar buffer no longer exists; can't save"))
   (let ((subfile (current-buffer))
         (coding buffer-file-coding-system)
         (descriptor tar-superior-descriptor)

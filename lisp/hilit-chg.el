@@ -669,7 +669,7 @@ This removes all saved change information."
 
 ;;;###autoload
 (defun highlight-changes-rotate-faces ()
-  "Rotate the faces if in Highlight Changes mode and the changes are visible.
+  "\"Age\" changes if in Highlight Changes mode and the changes are visible.
 
 Current changes are displayed in the face described by the first element
 of `highlight-changes-face-list', one level older changes are shown in

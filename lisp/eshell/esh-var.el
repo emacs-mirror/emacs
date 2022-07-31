@@ -34,14 +34,10 @@
 ;;
 ;; "-" is a valid part of a variable name.
 ;;
-;;   $<MYVAR>-TOO
+;;   $\"MYVAR\"-TOO
+;;   $'MYVAR'-TOO
 ;;
 ;; Only "MYVAR" is part of the variable name in this case.
-;;
-;;   $#VARIABLE
-;;
-;; Returns the length of the value of VARIABLE.  This could also be
-;; done using the `length' Lisp function.
 ;;
 ;;   $(lisp)
 ;;
@@ -55,38 +51,40 @@
 ;; Returns the value of an eshell subcommand.  See the note above
 ;; regarding Lisp evaluations.
 ;;
-;;   $ANYVAR[10]
+;;   $<command>
 ;;
-;; Return the 10th element of ANYVAR.  If ANYVAR's value is a string,
-;; it will be split in order to make it a list.  The splitting will
-;; occur at whitespace.
+;; Evaluates an eshell subcommand, redirecting the output to a
+;; temporary file, and returning the file name.
 ;;
-;;   $ANYVAR[: 10]
+;;   $EXPR[10]
 ;;
-;; As above, except that splitting occurs at the colon now.
+;; Return the 10th element of $EXPR, which can be any dollar
+;; expression.  If $EXPR's value is a string, it will be split in
+;; order to make it a list.  The splitting will occur at whitespace.
 ;;
-;;   $ANYVAR[: 10 20]
+;;   $EXPR[10 20]
 ;;
-;; As above, but instead of returning just a string, it now returns a
-;; list of two strings.  If the result is being interpolated into a
-;; larger string, this list will be flattened into one big string,
-;; with each element separated by a space.
+;; As above, but instead of returning a single element, it now returns a
+;; list of two elements.
 ;;
-;;   $ANYVAR["\\\\" 10]
+;;   $EXPR[: 10]
+;;
+;; Like $EXPR[10], except that splitting occurs at the colon now.
+;;
+;;   $EXPR["\\\\" 10]
 ;;
 ;; Separate on backslash characters.  Actually, the first argument --
-;; if it doesn't have the form of a number, or a plain variable name
-;; -- can be any regular expression.  So to split on numbers, use
-;; '$ANYVAR["[0-9]+" 10 20]'.
+;; if it doesn't have the form of a number -- can be any regular
+;; expression.  So to split on numbers, use '$EXPR["[0-9]+" 10 20]'.
 ;;
-;;   $ANYVAR[hello]
+;;   $EXPR[hello]
 ;;
-;; Calls `assoc' on ANYVAR with 'hello', expecting it to be an alist.
+;; Calls `assoc' on $EXPR with 'hello', expecting it to be an alist.
 ;;
-;;   $#ANYVAR[hello]
+;;   $#EXPR
 ;;
-;; Returns the length of the cdr of the element of ANYVAR who car is
-;; equal to "hello".
+;; Returns the length of the value of $EXPR.  This could also be
+;; done using the `length' Lisp function.
 ;;
 ;; There are also a few special variables defined by Eshell.  '$$' is
 ;; the value of the last command (t or nil, in the case of an external
@@ -114,6 +112,9 @@
 
 (require 'pcomplete)
 (require 'ring)
+
+(defconst eshell-inside-emacs (format "%s,eshell" emacs-version)
+  "Value for the `INSIDE_EMACS' environment variable.")
 
 (defgroup eshell-var nil
   "Variable interpolation is introduced whenever the `$' character
@@ -151,61 +152,69 @@ if they are quoted with a backslash."
 
 (defcustom eshell-variable-aliases-list
   `(;; for eshell.el
-    ("COLUMNS" ,(lambda (_indices) (window-width)) t)
-    ("LINES" ,(lambda (_indices) (window-height)) t)
+    ("COLUMNS" ,(lambda () (window-body-width nil 'remap)) t t)
+    ("LINES" ,(lambda () (window-body-height nil 'remap)) t t)
+    ("INSIDE_EMACS" eshell-inside-emacs t)
 
     ;; for eshell-cmd.el
-    ("_" ,(lambda (indices)
+    ("_" ,(lambda (indices quoted)
 	    (if (not indices)
 	        (car (last eshell-last-arguments))
 	      (eshell-apply-indices eshell-last-arguments
-				    indices))))
+				    indices quoted))))
     ("?" eshell-last-command-status)
     ("$" eshell-last-command-result)
+
+    ;; for em-alias.el and em-script.el
     ("0" eshell-command-name)
-    ("1" ,(lambda (_indices) (nth 0 eshell-command-arguments)))
-    ("2" ,(lambda (_indices) (nth 1 eshell-command-arguments)))
-    ("3" ,(lambda (_indices) (nth 2 eshell-command-arguments)))
-    ("4" ,(lambda (_indices) (nth 3 eshell-command-arguments)))
-    ("5" ,(lambda (_indices) (nth 4 eshell-command-arguments)))
-    ("6" ,(lambda (_indices) (nth 5 eshell-command-arguments)))
-    ("7" ,(lambda (_indices) (nth 6 eshell-command-arguments)))
-    ("8" ,(lambda (_indices) (nth 7 eshell-command-arguments)))
-    ("9" ,(lambda (_indices) (nth 8 eshell-command-arguments)))
-    ("*" ,(lambda (indices)
-	    (if (not indices)
-	        eshell-command-arguments
-	      (eshell-apply-indices eshell-command-arguments
-				    indices)))))
+    ("1" ,(lambda () (nth 0 eshell-command-arguments)) nil t)
+    ("2" ,(lambda () (nth 1 eshell-command-arguments)) nil t)
+    ("3" ,(lambda () (nth 2 eshell-command-arguments)) nil t)
+    ("4" ,(lambda () (nth 3 eshell-command-arguments)) nil t)
+    ("5" ,(lambda () (nth 4 eshell-command-arguments)) nil t)
+    ("6" ,(lambda () (nth 5 eshell-command-arguments)) nil t)
+    ("7" ,(lambda () (nth 6 eshell-command-arguments)) nil t)
+    ("8" ,(lambda () (nth 7 eshell-command-arguments)) nil t)
+    ("9" ,(lambda () (nth 8 eshell-command-arguments)) nil t)
+    ("*" eshell-command-arguments))
   "This list provides aliasing for variable references.
-Each member defines the name of a variable, and a Lisp value used to
+Each member is of the following form:
+
+  (NAME VALUE [COPY-TO-ENVIRONMENT] [SIMPLE-FUNCTION])
+
+NAME defines the name of the variable, VALUE is a Lisp value used to
 compute the string value that will be returned when the variable is
 accessed via the syntax `$NAME'.
 
-If the value is a function, call that function with two arguments: the
-list of the indices that was used in the reference, and whether the
-user is requesting the length of the ultimate element.  For example, a
-reference of `$NAME[10][20]' would result in the function for alias
-`NAME' being called (assuming it were aliased to a function), and the
-arguments passed to this function would be the list '(10 20)', and
+If VALUE is a function, its behavior depends on the value of
+SIMPLE-FUNCTION.  If SIMPLE-FUNCTION is nil, call VALUE with two
+arguments: the list of the indices that were used in the reference,
+and either t or nil depending on whether or not the variable was
+quoted with double quotes.  For example, if `NAME' were aliased
+to a function, a reference of `$NAME[10][20]' would result in that
+function being called with the arguments `((\"10\") (\"20\"))' and
 nil.
+If SIMPLE-FUNCTION is non-nil, call the function with no arguments
+and then pass its return value to `eshell-apply-indices'.
 
-If the value is a string, return the value for the variable with that
+If VALUE is a string, return the value for the variable with that
 name in the current environment.  If no variable with that name exists
 in the environment, but if a symbol with that same name exists and has
-a value bound to it, return its value instead.  You can prioritize
-symbol values over environment values by setting
-`eshell-prefer-lisp-variables' to t.
+a value bound to it, return that symbol's value instead.  You can
+prefer symbol values over environment values by setting the value
+of `eshell-prefer-lisp-variables' to t.
 
-If the value is a symbol, return the value bound to it.
+If VALUE is a symbol, return the value bound to it.
 
-If the value has any other type, signal an error.
+If VALUE has any other type, signal an error.
 
-Additionally, each member may specify if it should be copied to the
-environment of created subprocesses."
+Additionally, if COPY-TO-ENVIRONMENT is non-nil, the alias should be
+copied (a.k.a. \"exported\") to the environment of created subprocesses."
   :type '(repeat (list string sexp
 		       (choice (const :tag "Copy to environment" t)
-                               (const :tag "Use only in Eshell" nil))))
+                               (const :tag "Use only in Eshell" nil))
+                       (choice (const :tag "Call without argument" t)
+                               (const :tag "Call with 2 arguments" nil))))
   :risky t)
 
 (defvar-keymap eshell-var-mode-map
@@ -404,45 +413,63 @@ process any indices that come after the variable reference."
   (let* ((get-len (when (eq (char-after) ?#)
 		    (forward-char) t))
 	 value indices)
-    (setq value (eshell-parse-variable-ref)
+    (setq value (eshell-parse-variable-ref get-len)
 	  indices (and (not (eobp))
 		       (eq (char-after) ?\[)
 		       (eshell-parse-indices))
           ;; This is an expression that will be evaluated by `eshell-do-eval',
           ;; which only support let-binding of dynamically-scoped vars
-	  value `(let ((indices ',indices)) ,value))
-    (if get-len
-	`(length ,value)
-      value)))
+	  value `(let ((indices (eshell-eval-indices ',indices))) ,value))
+    (when get-len
+      (setq value `(length ,value)))
+    (when eshell-current-quoted
+      (setq value `(eshell-stringify ,value)))
+    value))
 
-(defun eshell-parse-variable-ref ()
+(defun eshell-parse-variable-ref (&optional modifier-p)
   "Eval a variable reference.
 Returns a Lisp form which, if evaluated, will return the value of the
 variable.
 
-Possible options are:
+If MODIFIER-P is non-nil, the value of the variable will be
+modified by some function.  If MODIFIER-P is nil, the value will be
+used as-is; this allows optimization of some kinds of variable
+references.
+
+Possible variable references are:
 
   NAME          an environment or Lisp variable value
-  <LONG-NAME>   disambiguates the length of the name
+  \"LONG-NAME\"   disambiguates the length of the name
+  `LONG-NAME'   as above
   {COMMAND}     result of command is variable's value
-  (LISP-FORM)   result of Lisp form is variable's value"
+  (LISP-FORM)   result of Lisp form is variable's value
+  <COMMAND>     write the output of command to a temporary file;
+                result is the file name"
   (cond
    ((eq (char-after) ?{)
     (let ((end (eshell-find-delimiter ?\{ ?\})))
       (if (not end)
           (throw 'eshell-incomplete ?\{)
+        (forward-char)
         (prog1
-            `(eshell-convert
-              (eshell-command-to-value
-               (eshell-as-subcommand
-                ,(eshell-parse-command (cons (1+ (point)) end)))))
+            `(eshell-apply-indices
+              (eshell-convert
+               (eshell-command-to-value
+                (eshell-as-subcommand
+                 ,(let ((subcmd (or (eshell-unescape-inner-double-quote end)
+                                    (cons (point) end)))
+                        (eshell-current-quoted nil))
+                    (eshell-parse-command subcmd))))
+               ;; If this is a simple double-quoted form like
+               ;; "${COMMAND}" (i.e. no indices after the subcommand
+               ;; and no `#' modifier before), ensure we convert to a
+               ;; single string.  This avoids unnecessary work
+               ;; (e.g. splitting the output by lines) when it would
+               ;; just be joined back together afterwards.
+               ,(when (and (not modifier-p) eshell-current-quoted)
+                  '(not indices)))
+              indices ,eshell-current-quoted)
           (goto-char (1+ end))))))
-   ((memq (char-after) '(?\' ?\"))
-    (let ((name (if (eq (char-after) ?\')
-                    (eshell-parse-literal-quote)
-                  (eshell-parse-double-quote))))
-      (if name
-	  `(eshell-get-variable ,(eval name) indices))))
    ((eq (char-after) ?\<)
     (let ((end (eshell-find-delimiter ?\< ?\>)))
       (if (not end)
@@ -454,27 +481,47 @@ Possible options are:
               `(let ((eshell-current-handles
                       (eshell-create-handles ,temp 'overwrite)))
                  (progn
-                   (eshell-as-subcommand ,(eshell-parse-command cmd))
+                   (eshell-as-subcommand
+                    ,(let ((eshell-current-quoted nil))
+                       (eshell-parse-command cmd)))
                    (ignore
                     (nconc eshell-this-command-hook
-                           (list (lambda ()
-                                   (delete-file ,temp)))))
-                   (quote ,temp)))
+                           ;; Quote this lambda; it will be evaluated
+                           ;; by `eshell-do-eval', which requires very
+                           ;; particular forms in order to work
+                           ;; properly.  See bug#54190.
+                           (list (function (lambda ()
+                                   (delete-file ,temp))))))
+                   (eshell-apply-indices ,temp indices ,eshell-current-quoted)))
             (goto-char (1+ end)))))))
    ((eq (char-after) ?\()
     (condition-case nil
-        `(eshell-command-to-value
-          (eshell-lisp-command
-           ',(read (current-buffer))))
+        `(eshell-apply-indices
+          (eshell-command-to-value
+           (eshell-lisp-command
+            ',(read (or (eshell-unescape-inner-double-quote (point-max))
+                        (current-buffer)))))
+          indices ,eshell-current-quoted)
       (end-of-file
        (throw 'eshell-incomplete ?\())))
+   ((looking-at (rx-to-string
+                 `(or "'" ,(if eshell-current-quoted "\\\"" "\""))))
+    (eshell-with-temp-command
+        (or (eshell-unescape-inner-double-quote (point-max))
+            (cons (point) (point-max)))
+      (let ((name (if (eq (char-after) ?\')
+                      (eshell-parse-literal-quote)
+                    (eshell-parse-double-quote))))
+        (when name
+          `(eshell-get-variable ,(eval name) indices ,eshell-current-quoted)))))
    ((assoc (char-to-string (char-after))
            eshell-variable-aliases-list)
     (forward-char)
-    `(eshell-get-variable ,(char-to-string (char-before)) indices))
+    `(eshell-get-variable ,(char-to-string (char-before)) indices
+                          ,eshell-current-quoted))
    ((looking-at eshell-variable-name-regexp)
     (prog1
-        `(eshell-get-variable ,(match-string 0) indices)
+        `(eshell-get-variable ,(match-string 0) indices ,eshell-current-quoted)
       (goto-char (match-end 0))))
    (t
     (error "Invalid variable reference"))))
@@ -482,44 +529,64 @@ Possible options are:
 (defvar eshell-glob-function)
 
 (defun eshell-parse-indices ()
-  "Parse and return a list of list of indices."
+  "Parse and return a list of index-lists.
+
+For example, \"[0 1][2]\" becomes:
+  ((\"0\" \"1\") (\"2\")."
   (let (indices)
     (while (eq (char-after) ?\[)
       (let ((end (eshell-find-delimiter ?\[ ?\])))
 	(if (not end)
 	    (throw 'eshell-incomplete ?\[)
 	  (forward-char)
-	  (let (eshell-glob-function)
-	    (setq indices (cons (eshell-parse-arguments (point) end)
-				indices)))
+          (eshell-with-temp-command (or (eshell-unescape-inner-double-quote end)
+                                        (cons (point) end))
+	    (let (eshell-glob-function (eshell-current-quoted nil))
+	      (setq indices (cons (eshell-parse-arguments
+                                   (point-min) (point-max))
+				  indices))))
 	  (goto-char (1+ end)))))
     (nreverse indices)))
 
-(defun eshell-get-variable (name &optional indices)
-  "Get the value for the variable NAME."
-  (let* ((alias (assoc name eshell-variable-aliases-list))
-	 (var (if alias
-		  (cadr alias)
-		name)))
-    (if (and alias (functionp var))
-	(funcall var indices)
-      (eshell-apply-indices
-       (cond
-	((stringp var)
-	 (let ((sym (intern-soft var)))
-	   (if (and sym (boundp sym)
-		    (or eshell-prefer-lisp-variables
-			(memq sym eshell--local-vars) ; bug#15372
-			(not (getenv var))))
-	       (symbol-value sym)
-	     (getenv var))))
-	((symbolp var)
-	 (symbol-value var))
-	(t
-	 (error "Unknown variable `%s'" (eshell-stringify var))))
-       indices))))
+(defun eshell-eval-indices (indices)
+  "Evaluate INDICES, a list of index-lists generated by `eshell-parse-indices'."
+  (mapcar (lambda (i) (mapcar #'eval i)) indices))
 
-(defun eshell-apply-indices (value indices)
+(defun eshell-get-variable (name &optional indices quoted)
+  "Get the value for the variable NAME.
+INDICES is a list of index-lists (see `eshell-parse-indices').
+If QUOTED is non-nil, this was invoked inside double-quotes."
+  (if-let ((alias (assoc name eshell-variable-aliases-list)))
+      (let ((target (nth 1 alias)))
+        (cond
+         ((functionp target)
+          (if (nth 3 alias)
+              (eshell-apply-indices (funcall target) indices quoted)
+            (condition-case nil
+	        (funcall target indices quoted)
+              (wrong-number-of-arguments
+               (display-warning
+                :warning (concat "Function for `eshell-variable-aliases-list' "
+                                 "entry should accept two arguments: INDICES "
+                                 "and QUOTED.'"))
+               (funcall target indices)))))
+         ((symbolp target)
+          (eshell-apply-indices (symbol-value target) indices quoted))
+         (t
+          (eshell-get-variable target indices quoted))))
+    (unless (stringp name)
+      (error "Unknown variable `%s'" (eshell-stringify name)))
+    (eshell-apply-indices
+     (let ((sym (intern-soft name)))
+       (if (and sym (boundp sym)
+		(or eshell-prefer-lisp-variables
+		    (memq sym eshell--local-vars) ; bug#15372
+		    (not (getenv name))))
+	   (symbol-value sym)
+	 (getenv name)))
+     indices quoted)))
+
+(defun eshell-apply-indices (value indices &optional quoted)
   "Apply to VALUE all of the given INDICES, returning the sub-result.
 The format of INDICES is:
 
@@ -528,11 +595,17 @@ The format of INDICES is:
 
 Each member of INDICES represents a level of nesting.  If the first
 member of a sublist is not an integer or name, and the value it's
-reference is a string, that will be used as the regexp with which is
-to divide the string into sub-parts.  The default is whitespace.
+referencing is a string, that will be used as the regexp with which
+is to divide the string into sub-parts.  The default is whitespace.
 Otherwise, each INT-OR-NAME refers to an element of the list value.
 Integers imply a direct index, and names, an associate lookup using
 `assoc'.
+
+If QUOTED is non-nil, this was invoked inside double-quotes.
+This affects the behavior of splitting strings: without quoting,
+the split values are converted to numbers via
+`eshell-convert-to-number' if possible; with quoting, they're
+left as strings.
 
 For example, to retrieve the second element of a user's record in
 '/etc/passwd', the variable reference would look like:
@@ -541,16 +614,14 @@ For example, to retrieve the second element of a user's record in
   (while indices
     (let ((refs (car indices)))
       (when (stringp value)
-	(let (separator)
-	  (if (not (or (not (stringp (caar indices)))
-		       (string-match
-			(concat "^" eshell-variable-name-regexp "$")
-			(caar indices))))
-	      (setq separator (caar indices)
-		    refs (cdr refs)))
-	  (setq value
-		(mapcar #'eshell-convert
-			(split-string value separator)))))
+	(let (separator (index (caar indices)))
+          (when (and (stringp index)
+                     (not (get-text-property 0 'number index)))
+            (setq separator index
+                  refs (cdr refs)))
+	  (setq value (split-string value separator))
+          (unless quoted
+            (setq value (mapcar #'eshell-convert-to-number value)))))
       (cond
        ((< (length refs) 0)
 	(error "Invalid array variable index: %s"

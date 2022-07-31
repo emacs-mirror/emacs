@@ -379,10 +379,8 @@ do the work."
           ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
-           (read-directory-name (format-prompt
-                                 "Store in directory"
-                                 mh-mime-save-parts-directory)
-                           "" mh-mime-save-parts-directory t ""))
+           (read-directory-name "Store in directory: "
+                                mh-mime-save-parts-directory nil t))
           ((stringp mh-mime-save-parts-default-directory)
            mh-mime-save-parts-default-directory)
           (t
@@ -394,18 +392,19 @@ do the work."
       (if (equal nil mh-mime-save-parts-default-directory)
           (setq mh-mime-save-parts-directory directory))
       (with-current-buffer (get-buffer-create mh-log-buffer)
-        (cd directory)
-        (setq mh-mime-save-parts-directory directory)
-        (let ((initial-size (mh-truncate-log-buffer)))
-          (apply #'call-process
-                 (expand-file-name command mh-progs) nil t nil
-                 (mh-list-to-string (list folder msg "-auto"
-                                          (if (not (mh-variant-p 'nmh))
-                                              "-store"))))
-          (if (> (buffer-size) initial-size)
-              (save-window-excursion
-                (switch-to-buffer-other-window mh-log-buffer)
-                (sit-for 3))))))))
+        (let (default-directory)
+          (cd directory)
+          (setq mh-mime-save-parts-directory directory)
+          (let ((initial-size (mh-truncate-log-buffer)))
+            (apply #'call-process
+                   (expand-file-name command mh-progs) nil t nil
+                   (mh-list-to-string (list folder msg "-auto"
+                                            (if (not (mh-variant-p 'nmh))
+                                                "-store"))))
+            (if (> (buffer-size) initial-size)
+                (save-window-excursion
+                  (switch-to-buffer-other-window mh-log-buffer)
+                  (sit-for 3)))))))))
 
 ;;;###mh-autoload
 (defun mh-toggle-mh-decode-mime-flag ()
@@ -1141,15 +1140,7 @@ this ;-)"
   "Check if show buffer is small.
 This is used to decide if smileys and graphical emphasis should be
 displayed."
-  (let ((max nil))
-    ;; FIXME: font-lock-maximum-size is obsolete.
-    (when (and (boundp 'font-lock-maximum-size) font-lock-maximum-size)
-      (cond ((numberp font-lock-maximum-size)
-             (setq max font-lock-maximum-size))
-            ((listp font-lock-maximum-size)
-             (setq max (cdr (or (assoc 'mh-show-mode font-lock-maximum-size)
-                                (assoc t font-lock-maximum-size)))))))
-    (or (not (numberp max)) (>= (/ max 8) (buffer-size)))))
+  (>= 64000 (buffer-size)))
 
 
 
@@ -1764,7 +1755,7 @@ initialized. Always use the command `mh-have-file-command'.")
 ;;;###mh-autoload
 (defun mh-have-file-command ()
   "Return t if `file' command is on the system.
-'file -i' is used to get MIME type of composition insertion."
+\"file -i\" is used to get MIME type of composition insertion."
   (when (eq mh-have-file-command 'undefined)
     (setq mh-have-file-command
           (and (executable-find "file") ; file command exists

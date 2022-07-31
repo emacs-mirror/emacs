@@ -271,7 +271,8 @@
      (should (equal (time-stamp-string "%3a" ref-time1) Mon))
      (should (equal (time-stamp-string "%#A" ref-time1) MONDAY))
      ;; documented 1997-2019
-     (should (equal (time-stamp-string "%3A" ref-time1) MON))
+     (should (equal (time-stamp-string "%3A" ref-time1)
+                    (substring MONDAY 0 3)))
      (should (equal (time-stamp-string "%:a" ref-time1) Monday))
      ;; implemented since 2001, documented since 2019
      (should (equal (time-stamp-string "%#a" ref-time1) MON))
@@ -291,10 +292,12 @@
          (January (format-time-string "%B" ref-time1 t))
          (JANUARY (format-time-string "%^B" ref-time1 t)))
      ;; implemented and documented since 1997
-     (should (equal (time-stamp-string "%3b" ref-time1) Jan))
+     (should (equal (time-stamp-string "%3b" ref-time1)
+                    (substring January 0 3)))
      (should (equal (time-stamp-string "%#B" ref-time1) JANUARY))
      ;; documented 1997-2019
-     (should (equal (time-stamp-string "%3B" ref-time1) JAN))
+     (should (equal (time-stamp-string "%3B" ref-time1)
+                    (substring JANUARY 0 3)))
      (should (equal (time-stamp-string "%:b" ref-time1) January))
      ;; implemented since 2001, documented since 2019
      (should (equal (time-stamp-string "%#b" ref-time1) JAN))
@@ -652,15 +655,17 @@
      (should (equal (time-stamp-string "%0b" ref-time3) ""))
      (should (equal (time-stamp-string "%1b" ref-time3) (substring May 0 1)))
      (should (equal (time-stamp-string "%2b" ref-time3) (substring May 0 2)))
-     (should (equal (time-stamp-string "%3b" ref-time3) May))
+     (should (equal (time-stamp-string "%3b" ref-time3) (substring May 0 3)))
      (should (equal (time-stamp-string "%4b" ref-time3) (concat " " May)))
      (should (equal (time-stamp-string "%0%" ref-time3) ""))
      (should (equal (time-stamp-string "%1%" ref-time3) "%"))
      (should (equal (time-stamp-string "%2%" ref-time3) " %"))
      (should (equal (time-stamp-string "%9%" ref-time3) "        %"))
      (should (equal (time-stamp-string "%10%" ref-time3) "         %"))
-     (should (equal (time-stamp-string "%#3a" ref-time3) SUN))
-     (should (equal (time-stamp-string "%#3b" ref-time2) NOV)))))
+     (should (equal (time-stamp-string "%#3a" ref-time3)
+                    (substring SUN 0 3)))
+     (should (equal (time-stamp-string "%#3b" ref-time2)
+                    (substring NOV 0 3))))))
 
 ;;; Tests of helper functions
 

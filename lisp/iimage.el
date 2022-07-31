@@ -76,11 +76,9 @@ Examples of image filename patterns to match:
      foo.JPG"
   :type '(alist :key-type regexp :value-type integer))
 
-(defvar iimage-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-l" #'iimage-recenter)
-    map)
-  "Keymap used in `iimage-mode'.")
+(defvar-keymap iimage-mode-map
+  :doc "Keymap used in `iimage-mode'."
+  "C-l" #'iimage-recenter)
 
 (defun iimage-recenter (&optional arg)
   "Re-draw images and recenter."
@@ -88,9 +86,6 @@ Examples of image filename patterns to match:
   (iimage-mode-buffer nil)
   (iimage-mode-buffer t)
   (recenter-top-bottom arg))
-
-;;;###autoload
-(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
 
 (defun turn-off-iimage-mode ()
   "Unconditionally turn off iimage mode."

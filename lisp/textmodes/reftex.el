@@ -2257,8 +2257,7 @@ IGNORE-WORDS List of words which should be removed from the string."
    ("Customize"
     ["Browse RefTeX Group" reftex-customize t]
     "--"
-    ["Build Full Customize Menu" reftex-create-customize-menu
-     (fboundp 'customize-menu-create)])
+    ["Build Full Customize Menu" reftex-create-customize-menu])
    ("Documentation"
     ["Info" reftex-info t]
     ["Commentary" reftex-show-commentary t])))

@@ -161,11 +161,12 @@ SHOULD be at least 2 (MUST BE at least 1).")
   "For making font-lock use the winner's face for the line.")
 
 (defface gomoku-O
-    '((((class color)) (:foreground "red" :weight bold)))
+  '((((class color)) :foreground "red" :weight bold))
   "Face to use for Emacs's O.")
 
 (defface gomoku-X
-    '((((class color)) (:foreground "green" :weight bold)))
+  '((((background light)) :foreground "blue" :weight bold)
+    (((class color)) :foreground "green" :weight bold))
   "Face to use for your X.")
 
 (defvar gomoku-font-lock-keywords

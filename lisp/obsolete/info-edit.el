@@ -33,7 +33,6 @@
 (make-obsolete-variable 'Info-edit-mode-hook
 			"editing Info nodes by hand is not recommended." "24.4")
 
-(define-obsolete-variable-alias 'Info-edit-map 'Info-edit-mode-map "24.1")
 (defvar Info-edit-mode-map (let ((map (make-sparse-keymap)))
                              (set-keymap-parent map text-mode-map)
                              (define-key map "\C-c\C-c" #'Info-cease-edit)
@@ -78,11 +77,12 @@ This feature will be removed in future.")
        (buffer-modified-p)
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
-(defvar ibuffer-help-buffer-modes)
-;; Moved here from definition of ibuffer-help-buffer-modes to make
-;; that variable customizable even though this code is obsolete.  See
-;; also Bug#30990.
-(add-to-list 'ibuffer-help-buffer-modes 'Info-edit-mode)
+(with-eval-after-load 'ibuffer
+  (defvar ibuffer-help-buffer-modes)
+  ;; Moved here from definition of ibuffer-help-buffer-modes to make
+  ;; that variable customizable even though this code is obsolete.  See
+  ;; also Bug#30990.
+  (add-to-list 'ibuffer-help-buffer-modes 'Info-edit-mode))
 
 (provide 'info-edit)
 

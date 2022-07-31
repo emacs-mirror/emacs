@@ -107,6 +107,7 @@ symmetric encryption will be used."
   :type '(choice (const nil) (repeat :tag "Recipient(s)" string))
   :group 'plstore)
 
+;;;###autoload
 (put 'plstore-encrypt-to 'safe-local-variable
      (lambda (val)
        (or (stringp val)

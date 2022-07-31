@@ -186,6 +186,10 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 #endif
 
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+static void anim_prune_animation_cache (Lisp_Object);
+#endif
+
 #ifdef USE_CAIRO
 
 static Emacs_Pix_Container
@@ -542,8 +546,26 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #endif /* HAVE_PGTK */
 
 #ifdef HAVE_HAIKU
-  void *bitmap = BBitmap_new (width, height, 1);
-  BBitmap_import_mono_bits (bitmap, bits, width, height);
+  void *bitmap, *stipple;
+  int bytes_per_line, x, y;
+
+  bitmap = BBitmap_new (width, height, false);
+
+  if (!bitmap)
+    return -1;
+
+  bytes_per_line = (width + 7) / 8;
+  stipple = xmalloc (height * bytes_per_line);
+  memcpy (stipple, bits, height * bytes_per_line);
+
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+	PUT_PIXEL (bitmap, x, y, ((bits[8] >> (x % 8)) & 1
+				  ? f->foreground_pixel
+				  : f->background_pixel));
+      bits += bytes_per_line;
+    }
 #endif
 
   id = image_allocate_bitmap_record (f);
@@ -563,6 +585,11 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
 #ifdef HAVE_HAIKU
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].stipple_bits = stipple;
+  dpyinfo->bitmaps[id - 1].stipple_foreground
+    = f->foreground_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_background
+    = f->background_pixel & 0xffffffff;
 #endif
 
   dpyinfo->bitmaps[id - 1].file = NULL;
@@ -588,24 +615,55 @@ image_create_bitmap_from_data (struct frame *f, char *bits,
   return id;
 }
 
+#if defined HAVE_HAIKU || defined HAVE_NS
+static char *slurp_file (int, ptrdiff_t *);
+static Lisp_Object image_find_image_fd (Lisp_Object, int *);
+static bool xbm_read_bitmap_data (struct frame *, char *, char *,
+				  int *, int *, char **, bool);
+#endif
+
 /* Create bitmap from file FILE for frame F.  */
 
 ptrdiff_t
 image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 {
-#if defined (HAVE_NTGUI) || defined (HAVE_HAIKU)
+#if defined (HAVE_NTGUI)
   return -1;  /* W32_TODO : bitmap support */
 #else
   Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
 #ifdef HAVE_NS
-  ptrdiff_t id;
-  void *bitmap = ns_image_from_file (file);
+  ptrdiff_t id, size;
+  int fd, width, height, rc;
+  char *contents, *data;
+  void *bitmap;
+
+  if (!STRINGP (image_find_image_fd (file, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  bitmap = ns_image_from_XBM (data, width, height, 0, 0);
 
   if (!bitmap)
+    {
+      xfree (contents);
+      xfree (data);
       return -1;
-
+    }
 
   id = image_allocate_bitmap_record (f);
   dpyinfo->bitmaps[id - 1].img = bitmap;
@@ -614,6 +672,9 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = ns_image_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = ns_image_height (bitmap);
+
+  xfree (contents);
+  xfree (data);
   return id;
 #endif
 
@@ -633,7 +694,6 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].img = bitmap;
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
-  //dpyinfo->bitmaps[id - 1].depth = 1;
   dpyinfo->bitmaps[id - 1].height = gdk_pixbuf_get_width (bitmap);
   dpyinfo->bitmaps[id - 1].width = gdk_pixbuf_get_height (bitmap);
   dpyinfo->bitmaps[id - 1].pattern
@@ -688,6 +748,89 @@ image_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   return id;
 #endif /* HAVE_X_WINDOWS */
+
+#ifdef HAVE_HAIKU
+  ptrdiff_t id, size;
+  int fd, width, height, rc, bytes_per_line, x, y;
+  char *contents, *data, *tmp;
+  void *bitmap;
+  Lisp_Object found;
+
+  /* Look for an existing bitmap with the same name.  */
+  for (id = 0; id < dpyinfo->bitmaps_last; ++id)
+    {
+      if (dpyinfo->bitmaps[id].refcount
+	  && dpyinfo->bitmaps[id].file
+	  && !strcmp (dpyinfo->bitmaps[id].file, SSDATA (file)))
+	{
+	  ++dpyinfo->bitmaps[id].refcount;
+	  return id + 1;
+	}
+    }
+
+  /* Search bitmap-file-path for the file, if appropriate.  */
+  if (openp (Vx_bitmap_file_path, file, Qnil, &found,
+	     make_fixnum (R_OK), false, false)
+      < 0)
+    return -1;
+
+  if (!STRINGP (image_find_image_fd (file, &fd))
+      && !STRINGP (image_find_image_fd (found, &fd)))
+    return -1;
+
+  contents = slurp_file (fd, &size);
+
+  if (!contents)
+    return -1;
+
+  rc = xbm_read_bitmap_data (f, contents, contents + size,
+			     &width, &height, &data, 0);
+
+  if (!rc)
+    {
+      xfree (contents);
+      return -1;
+    }
+
+  bitmap = BBitmap_new (width, height, false);
+
+  if (!bitmap)
+    {
+      xfree (contents);
+      xfree (data);
+      return -1;
+    }
+
+  id = image_allocate_bitmap_record (f);
+
+  dpyinfo->bitmaps[id - 1].img = bitmap;
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].file = xlispstrdup (file);
+  dpyinfo->bitmaps[id - 1].height = height;
+  dpyinfo->bitmaps[id - 1].width = width;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].stipple_foreground
+    = f->foreground_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_background
+    = f->background_pixel & 0xffffffff;
+  dpyinfo->bitmaps[id - 1].stipple_bits = data;
+
+  bytes_per_line = (width + 7) / 8;
+  tmp = data;
+
+  for (y = 0; y < height; y++)
+    {
+      for (x = 0; x < width; x++)
+	PUT_PIXEL (bitmap, x, y, ((tmp[x / 8] >> (x % 8)) & 1
+				  ? f->foreground_pixel
+				  : f->background_pixel));
+
+      tmp += bytes_per_line;
+    }
+
+  xfree (contents);
+  return id;
+#endif
 }
 
 /* Free bitmap B.  */
@@ -720,6 +863,9 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 
 #ifdef HAVE_HAIKU
   BBitmap_free (bm->img);
+
+  if (bm->stipple_bits)
+    xfree (bm->stipple_bits);
 #endif
 
   if (bm->file)
@@ -929,9 +1075,16 @@ struct image_type
      libraries on Windows), or NULL if none.  */
   bool (*init) (void);
   /* An initializer for the init field.  */
-# define IMAGE_TYPE_INIT(f) f
-#else
-# define IMAGE_TYPE_INIT(f)
+#endif
+#if defined HAVE_RSVG || defined HAVE_PNG || defined HAVE_GIF || \
+  defined HAVE_TIFF || defined HAVE_JPEG || defined HAVE_XPM || \
+  defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK || \
+  defined HAVE_WEBP
+# ifdef WINDOWSNT
+#  define IMAGE_TYPE_INIT(f) f
+# else
+#  define IMAGE_TYPE_INIT(f)
+# endif
 #endif
 };
 
@@ -1792,13 +1945,50 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash,
 }
 
 
+/* Filter out image elements that don't affect display, but will
+   disrupt finding the image in the cache.  This should perhaps be
+   user-configurable, but for now it's hard-coded (but new elements
+   can be added at will).  */
+static Lisp_Object
+filter_image_spec (Lisp_Object spec)
+{
+  Lisp_Object out = Qnil;
+
+  /* Skip past the `image' element.  */
+  if (CONSP (spec))
+    spec = XCDR (spec);
+
+  while (CONSP (spec))
+    {
+      Lisp_Object key = XCAR (spec);
+      spec = XCDR (spec);
+      if (CONSP (spec))
+	{
+	  Lisp_Object value = XCAR (spec);
+	  spec = XCDR (spec);
+
+	  /* Some animation-related data doesn't affect display, but
+	     breaks the image cache.  Filter those out.  */
+	  if (!(EQ (key, QCanimate_buffer)
+		|| EQ (key, QCanimate_tardiness)
+		|| EQ (key, QCanimate_position)
+		|| EQ (key, QCanimate_multi_frame_data)))
+	    {
+	      out = Fcons (value, out);
+	      out = Fcons (key, out);
+	    }
+	}
+    }
+  return out;
+}
+
 /* Search frame F for an image with spec SPEC, and free it.  */
 
 static void
 uncache_image (struct frame *f, Lisp_Object spec)
 {
   struct image *img;
-  EMACS_UINT hash = sxhash (spec);
+  EMACS_UINT hash = sxhash (filter_image_spec (spec));
 
   /* Because the background colors are based on the current face, we
      can have multiple copies of an image with the same spec. We want
@@ -1941,18 +2131,34 @@ clear_image_caches (Lisp_Object filter)
 }
 
 DEFUN ("clear-image-cache", Fclear_image_cache, Sclear_image_cache,
-       0, 1, 0,
+       0, 2, 0,
        doc: /* Clear the image cache.
 FILTER nil or a frame means clear all images in the selected frame.
 FILTER t means clear the image caches of all frames.
 Anything else means clear only those images that refer to FILTER,
-which is then usually a filename.  */)
-  (Lisp_Object filter)
+which is then usually a filename.
+
+This function also clears the image animation cache.  If
+ANIMATION-CACHE is non-nil, only the image spec `eq' with
+ANIMATION-CACHE is removed, and other image cache entries are not
+evicted.  */)
+  (Lisp_Object filter, Lisp_Object animation_cache)
 {
+  if (!NILP (animation_cache))
+    {
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+      anim_prune_animation_cache (XCDR (animation_cache));
+#endif
+      return Qnil;
+    }
+
   if (! (NILP (filter) || FRAMEP (filter)))
     clear_image_caches (filter);
   else
     clear_image_cache (decode_window_system_frame (filter), Qt);
+
+  /* Also clear the animation caches.  */
+  image_prune_animation_caches (true);
 
   return Qnil;
 }
@@ -2020,21 +2226,6 @@ image_frame_cache_size (struct frame *f)
     }
   return total;
 }
-
-DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
-       doc: /* Return the size of the image cache.  */)
-  (void)
-{
-  Lisp_Object tail, frame;
-  size_t total = 0;
-
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_WINDOW_P (XFRAME (frame)))
-      total += image_frame_cache_size (XFRAME (frame));
-
-  return make_int (total);
-}
-
 
 DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
@@ -2130,8 +2321,8 @@ postprocess_image (struct frame *f, struct image *img)
 	  tem = XCDR (conversion);
 	  if (CONSP (tem))
 	    image_edge_detection (f, img,
-                                  Fplist_get (tem, QCmatrix),
-                                  Fplist_get (tem, QCcolor_adjustment));
+                                  plist_get (tem, QCmatrix),
+                                  plist_get (tem, QCcolor_adjustment));
 	}
     }
 }
@@ -2324,17 +2515,17 @@ compute_image_size (double width, double height,
    finally move the origin back to the top left of the image, which
    may now be a different corner.
 
-   Note that different GUI backends (X, Cairo, w32, NS) want the
-   transform matrix defined as transform from the original image to
-   the transformed image, while others want the matrix to describe the
-   transform of the space, which boils down to inverting the matrix.
+   Note that different GUI backends (X, Cairo, w32, NS, Haiku) want
+   the transform matrix defined as transform from the original image
+   to the transformed image, while others want the matrix to describe
+   the transform of the space, which boils down to inverting the
+   matrix.
 
    It's possible to pre-calculate the matrix multiplications and just
    generate one transform matrix that will do everything we need in a
    single step, but the maths for each element is much more complex
    and performing the steps separately makes for more readable code.  */
 
-#ifndef HAVE_HAIKU
 typedef double matrix3x3[3][3];
 
 static void
@@ -2349,7 +2540,6 @@ matrix3x3_mult (matrix3x3 a, matrix3x3 b, matrix3x3 result)
 	result[i][j] = sum;
       }
 }
-#endif /* not HAVE_HAIKU */
 
 static void
 compute_image_rotation (struct image *img, double *rotation)
@@ -2374,6 +2564,22 @@ compute_image_rotation (struct image *img, double *rotation)
 static void
 image_set_transform (struct frame *f, struct image *img)
 {
+  bool flip;
+
+#if defined HAVE_HAIKU
+  matrix3x3 identity = {
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, 0, 1 },
+  };
+
+  img->original_width = img->width;
+  img->original_height = img->height;
+  img->use_bilinear_filtering = false;
+
+  memcpy (&img->transform, identity, sizeof identity);
+#endif
+
 # if (defined HAVE_IMAGEMAGICK \
       && !defined DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE)
   /* ImageMagick images already have the correct transform.  */
@@ -2408,8 +2614,10 @@ image_set_transform (struct frame *f, struct image *img)
   double rotation = 0.0;
   compute_image_rotation (img, &rotation);
 
-#ifndef HAVE_HAIKU
-# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS
+  /* Determine flipping.  */
+  flip = !NILP (image_spec_value (img->spec, QCflip, NULL));
+
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
      operations to use a blended filter, to avoid aliasing and the like.
@@ -2423,6 +2631,10 @@ image_set_transform (struct frame *f, struct image *img)
     smoothing = !NILP (s);
 # endif
 
+#ifdef HAVE_HAIKU
+  img->use_bilinear_filtering = smoothing;
+#endif
+
   /* Perform scale transformation.  */
 
   matrix3x3 matrix
@@ -2432,7 +2644,7 @@ image_set_transform (struct frame *f, struct image *img)
 		  : img->width / (double) width),
 	[1][1] = (!IEEE_FLOATING_POINT && height == 0 ? DBL_MAX
 		  : img->height / (double) height),
-# elif defined HAVE_NTGUI || defined HAVE_NS
+# elif defined HAVE_NTGUI || defined HAVE_NS || defined HAVE_HAIKU
 	[0][0] = (!IEEE_FLOATING_POINT && img->width == 0 ? DBL_MAX
 		  : width / (double) img->width),
 	[1][1] = (!IEEE_FLOATING_POINT && img->height == 0 ? DBL_MAX
@@ -2447,26 +2659,65 @@ image_set_transform (struct frame *f, struct image *img)
   /* Perform rotation transformation.  */
 
   int rotate_flag = -1;
-  if (rotation == 0)
+
+  /* Haiku needs this, since the transformation is done on the basis
+     of the view, and not the image.  */
+#ifdef HAVE_HAIKU
+  int extra_tx, extra_ty;
+
+  extra_tx = 0;
+  extra_ty = 0;
+#endif
+
+  if (rotation == 0 && !flip)
     rotate_flag = 0;
   else
     {
 # if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NTGUI || defined HAVE_NS)
+      || defined HAVE_NTGUI || defined HAVE_NS \
+      || defined HAVE_HAIKU)
       int cos_r, sin_r;
-      if (rotation == 90)
+      if (rotation == 0)
+	{
+	  /* FLIP is always true here.  As this will rotate by 0
+	     degrees, it has no visible effect.  Applying only
+	     translation matrix to the image would be sufficient for
+	     horizontal flipping, but writing special handling for
+	     this case would increase code complexity somewhat.  */
+	  cos_r = 1;
+	  sin_r = 0;
+	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  extra_tx = width;
+	  extra_ty = 0;
+#endif
+	}
+      else if (rotation == 90)
 	{
 	  width = img->height;
 	  height = img->width;
 	  cos_r = 0;
 	  sin_r = 1;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  if (!flip)
+	    extra_ty = height;
+	  extra_tx = 0;
+#endif
 	}
       else if (rotation == 180)
 	{
 	  cos_r = -1;
 	  sin_r = 0;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  if (!flip)
+	    extra_tx = width;
+	  extra_ty = height;
+#endif
 	}
       else if (rotation == 270)
 	{
@@ -2475,6 +2726,13 @@ image_set_transform (struct frame *f, struct image *img)
 	  cos_r = 0;
 	  sin_r = -1;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  extra_tx = width;
+
+	  if (flip)
+	    extra_ty = height;
+#endif
 	}
 
       if (0 < rotate_flag)
@@ -2495,9 +2753,14 @@ image_set_transform (struct frame *f, struct image *img)
 	  matrix3x3 v;
 	  matrix3x3_mult (rot, u, v);
 
-	  /* 3. Translate back.  */
+	  /* 3. Translate back.  Flip horizontally if requested.  */
 	  t[2][0] = width * -.5;
 	  t[2][1] = height * -.5;
+	  if (flip)
+	    {
+	      t[0][0] = -t[0][0];
+	      t[2][0] = -t[2][0];
+	    }
 	  matrix3x3_mult (t, v, matrix);
 #  else
 	  /* 1. Translate so (0, 0) is in the center of the image.  */
@@ -2515,9 +2778,10 @@ image_set_transform (struct frame *f, struct image *img)
 	  matrix3x3 v;
 	  matrix3x3_mult (u, rot, v);
 
-	  /* 3. Translate back.  */
+	  /* 3. Translate back.  Flip horizontally if requested.  */
 	  t[2][0] = width * .5;
 	  t[2][1] = height * .5;
+	  if (flip) t[0][0] = -t[0][0];
 	  matrix3x3_mult (v, t, matrix);
 #  endif
 	  img->width = width;
@@ -2578,35 +2842,17 @@ image_set_transform (struct frame *f, struct image *img)
   img->xform.eM22 = matrix[1][1];
   img->xform.eDx  = matrix[2][0];
   img->xform.eDy  = matrix[2][1];
-# endif
-#else
-  if (rotation != 0 &&
-      rotation != 90 &&
-      rotation != 180 &&
-      rotation != 270 &&
-      rotation != 360)
+# elif defined HAVE_HAIKU
+  /* Store the transform in the struct image for later.  */
+  memcpy (&img->transform, &matrix, sizeof matrix);
+
+  /* Also add the extra translations.   */
+  if (rotate_flag)
     {
-      image_error ("No native support for rotation by %g degrees",
-		   make_float (rotation));
-      return;
+      img->transform[0][2] = extra_tx;
+      img->transform[1][2] = extra_ty;
     }
-
-  rotation = fmod (rotation, 360.0);
-
-  if (rotation == 90 || rotation == 270)
-    {
-      int w = width;
-      width = height;
-      height = w;
-    }
-
-  img->have_be_transforms_p = rotation != 0 || (img->width != width) || (img->height != height);
-  img->be_rotate = rotation;
-  img->be_scale_x = 1.0 / (img->width / (double) width);
-  img->be_scale_y = 1.0 / (img->height / (double) height);
-  img->width = width;
-  img->height = height;
-#endif /* not HAVE_HAIKU */
+#endif
 }
 
 #endif /* HAVE_IMAGEMAGICK || HAVE_NATIVE_TRANSFORMS */
@@ -2639,7 +2885,7 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
   eassert (valid_image_p (spec));
 
   /* Look up SPEC in the hash table of the image cache.  */
-  hash = sxhash (spec);
+  hash = sxhash (filter_image_spec (spec));
   img = search_image_cache (f, spec, hash, foreground, background,
 			    font_size, font_family, false);
   if (img && img->load_failed_p)
@@ -2778,6 +3024,103 @@ cache_image (struct frame *f, struct image *img)
 }
 
 
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+
+/* To speed animations up, we keep a cache (based on EQ-ness of the
+   image spec/object) where we put the animator iterator.  */
+
+struct anim_cache
+{
+  Lisp_Object spec;
+  /* For webp, this will be an iterator, and for libgif, a gif handle.  */
+  void *handle;
+  /* If we need to maintain temporary data of some sort.  */
+  void *temp;
+  /* A function to call to free the handle.  */
+  void (*destructor) (void *);
+  int index, width, height, frames;
+  /* This is used to be able to say something about the cache size.
+     We don't actually know how much memory the different libraries
+     actually use here (since these cache structures are opaque), so
+     this is mostly just the size of the original image file.  */
+  int byte_size;
+  struct timespec update_time;
+  struct anim_cache *next;
+};
+
+static struct anim_cache *anim_cache = NULL;
+
+static struct anim_cache *
+anim_create_cache (Lisp_Object spec)
+{
+  struct anim_cache *cache = xmalloc (sizeof (struct anim_cache));
+  cache->handle = NULL;
+  cache->temp = NULL;
+
+  cache->index = -1;
+  cache->next = NULL;
+  cache->spec = spec;
+  cache->byte_size = 0;
+  return cache;
+}
+
+/* Discard cached images that haven't been used for a minute.  If
+   CLEAR is t, remove all animation cache entries.  If CLEAR is
+   anything other than nil or t, only remove the entries that have a
+   spec `eq' to CLEAR.  */
+static void
+anim_prune_animation_cache (Lisp_Object clear)
+{
+  struct anim_cache **pcache = &anim_cache;
+  struct timespec old = timespec_sub (current_timespec (),
+				      make_timespec (60, 0));
+
+  while (*pcache)
+    {
+      struct anim_cache *cache = *pcache;
+      if (EQ (clear, Qt)
+	  || (EQ (clear, Qnil) && timespec_cmp (old, cache->update_time) > 0)
+	  || EQ (clear, cache->spec))
+	{
+	  if (cache->handle)
+	    cache->destructor (cache);
+	  if (cache->temp)
+	    xfree (cache->temp);
+	  *pcache = cache->next;
+	  xfree (cache);
+	}
+      else
+	pcache = &cache->next;
+    }
+}
+
+static struct anim_cache *
+anim_get_animation_cache (Lisp_Object spec)
+{
+  struct anim_cache *cache;
+  struct anim_cache **pcache = &anim_cache;
+
+  anim_prune_animation_cache (Qnil);
+
+  while (1)
+    {
+      cache = *pcache;
+      if (! cache)
+	{
+          *pcache = cache = anim_create_cache (spec);
+          break;
+        }
+      if (EQ (spec, cache->spec))
+	break;
+      pcache = &cache->next;
+    }
+
+  cache->update_time = current_timespec ();
+  return cache;
+}
+
+#endif  /* HAVE_WEBP || HAVE_GIF */
+
 /* Call FN on every image in the image cache of frame F.  Used to mark
    Lisp Objects in the image cache.  */
 
@@ -2804,6 +3147,11 @@ mark_image_cache (struct image_cache *c)
 	if (c->images[i])
 	  mark_image (c->images[i]);
     }
+
+#if defined HAVE_WEBP || defined HAVE_GIF
+  for (struct anim_cache *cache = anim_cache; cache; cache = cache->next)
+    mark_object (cache->spec);
+#endif
 }
 
 
@@ -3453,6 +3801,8 @@ enum xbm_keyword_index
   XBM_ALGORITHM,
   XBM_HEURISTIC_MASK,
   XBM_MASK,
+  XBM_DATA_WIDTH,
+  XBM_DATA_HEIGHT,
   XBM_LAST
 };
 
@@ -3474,7 +3824,9 @@ static const struct image_keyword xbm_format[XBM_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":data-width",	IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":data-height",	IMAGE_POSITIVE_INTEGER_VALUE,		0}
 };
 
 /* Tokens returned from xbm_scan.  */
@@ -3496,8 +3848,8 @@ enum xbm_token
    an entry `:file FILENAME' where FILENAME is a string.
 
    If the specification is for a bitmap loaded from memory it must
-   contain `:width WIDTH', `:height HEIGHT', and `:data DATA', where
-   WIDTH and HEIGHT are integers > 0.  DATA may be:
+   contain `:data-width WIDTH', `:data-height HEIGHT', and `:data DATA',
+   where WIDTH and HEIGHT are integers > 0.  DATA may be:
 
    1. a string large enough to hold the bitmap data, i.e. it must
    have a size >= (WIDTH + 7) / 8 * HEIGHT
@@ -3507,9 +3859,7 @@ enum xbm_token
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
-   4. a string containing an in-memory XBM file.  WIDTH and HEIGHT
-   may not be specified in this case because they are defined in the
-   XBM file.
+   4. a string containing an in-memory XBM file.
 
    Both the file and data forms may contain the additional entries
    `:background COLOR' and `:foreground COLOR'.  If not present,
@@ -3529,13 +3879,13 @@ xbm_image_p (Lisp_Object object)
 
   if (kw[XBM_FILE].count)
     {
-      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_DATA].count)
+      if (kw[XBM_DATA].count)
 	return 0;
     }
   else if (kw[XBM_DATA].count && xbm_file_p (kw[XBM_DATA].value))
     {
       /* In-memory XBM file.  */
-      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_FILE].count)
+      if (kw[XBM_FILE].count)
 	return 0;
     }
   else
@@ -3544,14 +3894,14 @@ xbm_image_p (Lisp_Object object)
       int width, height, stride;
 
       /* Entries for `:width', `:height' and `:data' must be present.  */
-      if (!kw[XBM_WIDTH].count
-	  || !kw[XBM_HEIGHT].count
+      if (!kw[XBM_DATA_WIDTH].count
+	  || !kw[XBM_DATA_HEIGHT].count
 	  || !kw[XBM_DATA].count)
 	return 0;
 
       data = kw[XBM_DATA].value;
-      width = XFIXNAT (kw[XBM_WIDTH].value);
-      height = XFIXNAT (kw[XBM_HEIGHT].value);
+      width = XFIXNAT (kw[XBM_DATA_WIDTH].value);
+      height = XFIXNAT (kw[XBM_DATA_HEIGHT].value);
 
       if (!kw[XBM_STRIDE].count)
 	stride = width;
@@ -3677,6 +4027,48 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
       *ival = value;
       return overflow ? XBM_TK_OVERFLOW : XBM_TK_NUMBER;
     }
+  /* Character literal.  XBM images typically contain hex escape
+     sequences and not actual characters, so we only try to handle
+     that here.  */
+  else if (c == '\'')
+    {
+      int value = 0, digit;
+      bool overflow = false;
+
+      if (*s == end)
+	return 0;
+
+      c = *(*s)++;
+
+      if (c != '\\' || *s == end)
+	return 0;
+
+      c = *(*s)++;
+
+      if (c == 'x')
+	{
+	  while (*s < end)
+	    {
+	      c = *(*s)++;
+
+	      if (c == '\'')
+		{
+		  *ival = value;
+		  return overflow ? XBM_TK_OVERFLOW : XBM_TK_NUMBER;
+		}
+
+	      digit = char_hexdigit (c);
+
+	      if (digit < 0)
+		return 0;
+
+	      overflow |= INT_MULTIPLY_WRAPV (value, 16, &value);
+	      value += digit;
+	    }
+	}
+
+      return 0;
+    }
   else if (c_isalpha (c) || c == '_')
     {
       *sval++ = c;
@@ -3800,7 +4192,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
 				   data,
 				   img->width, img->height,
 				   fg, bg,
-				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+				   FRAME_DISPLAY_INFO (f)->n_planes);
 # if !defined USE_CAIRO && defined HAVE_XRENDER
   if (img->pixmap)
     img->picture = x_create_xrender_picture (f, img->pixmap, 0);
@@ -3815,6 +4207,21 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
     convert_mono_to_color_image (f, img, fg, bg);
 #elif defined HAVE_NS
   img->pixmap = ns_image_from_XBM (data, img->width, img->height, fg, bg);
+#elif defined HAVE_HAIKU
+  img->pixmap = BBitmap_new (img->width, img->height, 0);
+
+  if (img->pixmap)
+    {
+      int bytes_per_line = (img->width + 7) / 8;
+
+      for (int y = 0; y < img->height; y++)
+	{
+	  for (int x = 0; x < img->width; x++)
+	    PUT_PIXEL (img->pixmap, x, y,
+		       (data[x / 8] >> (x % 8)) & 1 ? fg : bg);
+	  data += bytes_per_line;
+	}
+    }
 #endif
 }
 
@@ -3999,6 +4406,7 @@ xbm_load_image (struct frame *f, struct image *img, char *contents, char *end)
 
   rc = xbm_read_bitmap_data (f, contents, end, &img->width, &img->height,
 			     &data, 0);
+
   if (rc)
     {
       unsigned long foreground = img->face_foreground;
@@ -4117,8 +4525,8 @@ xbm_load (struct frame *f, struct image *img)
       /* Get specified width, and height.  */
       if (!in_memory_file_p)
 	{
-	  img->width = XFIXNAT (fmt[XBM_WIDTH].value);
-	  img->height = XFIXNAT (fmt[XBM_HEIGHT].value);
+	  img->width = XFIXNAT (fmt[XBM_DATA_WIDTH].value);
+	  img->height = XFIXNAT (fmt[XBM_DATA_HEIGHT].value);
 	  eassert (img->width > 0 && img->height > 0);
 	  if (!check_image_size (f, img->width, img->height))
 	    {
@@ -5979,7 +6387,7 @@ image_edge_detection (struct frame *f, struct image *img,
 }
 
 
-#if defined HAVE_X_WINDOWS || defined USE_CAIRO
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_HAIKU
 static void
 image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
 			 int x, int y, unsigned int width, unsigned int height,
@@ -6013,9 +6421,11 @@ image_pixmap_draw_cross (struct frame *f, Emacs_Pixmap pixmap,
   XDrawLine (dpy, pixmap, gc, x, y, x + width - 1, y + height - 1);
   XDrawLine (dpy, pixmap, gc, x, y + height - 1, x + width - 1, y);
   XFreeGC (dpy, gc);
-#endif	/* HAVE_X_WINDOWS */
+#elif HAVE_HAIKU
+  be_draw_cross_on_pixmap (pixmap, x, y, width, height, color);
+#endif
 }
-#endif	/* HAVE_X_WINDOWS || USE_CAIRO */
+#endif	/* HAVE_X_WINDOWS || USE_CAIRO || HAVE_HAIKU */
 
 /* Transform image IMG on frame F so that it looks disabled.  */
 
@@ -6057,25 +6467,23 @@ image_disable_image (struct frame *f, struct image *img)
     {
 #ifndef HAVE_NTGUI
 #ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
-#ifndef HAVE_HAIKU
 
-#ifndef USE_CAIRO
+#if !defined USE_CAIRO && !defined HAVE_HAIKU
 #define CrossForeground(f) BLACK_PIX_DEFAULT (f)
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
-#else  /* USE_CAIRO */
+#else  /* USE_CAIRO || HAVE_HAIKU */
 #define CrossForeground(f) 0
 #define MaskForeground(f)  PIX_MASK_DRAW
-#endif	/* USE_CAIRO */
+#endif	/* USE_CAIRO || HAVE_HAIKU */
 
-#ifndef USE_CAIRO
+#if !defined USE_CAIRO && !defined HAVE_HAIKU
       image_sync_to_pixmaps (f, img);
-#endif	/* !USE_CAIRO */
+#endif	/* !USE_CAIRO && !HAVE_HAIKU */
       image_pixmap_draw_cross (f, img->pixmap, 0, 0, img->width, img->height,
 			       CrossForeground (f));
       if (img->mask)
 	image_pixmap_draw_cross (f, img->mask, 0, 0, img->width, img->height,
 				 MaskForeground (f));
-#endif /* !HAVE_HAIKU */
 #endif /* !HAVE_NS */
 #else
       HDC hdc, bmpdc;
@@ -8603,116 +9011,202 @@ static const int interlace_increment[] = {8, 8, 4, 2};
 
 #define GIF_LOCAL_DESCRIPTOR_EXTENSION 249
 
+static void
+gif_destroy (struct anim_cache* cache)
+{
+  int gif_err;
+  gif_close (cache->handle, &gif_err);
+}
+
 static bool
 gif_load (struct frame *f, struct image *img)
 {
   int rc, width, height, x, y, i, j;
   ColorMapObject *gif_color_map;
-  GifFileType *gif;
+  GifFileType *gif = NULL;
   gif_memory_source memsrc;
   Lisp_Object specified_bg = image_spec_value (img->spec, QCbackground, NULL);
   Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
   Lisp_Object specified_data = image_spec_value (img->spec, QCdata, NULL);
-  EMACS_INT idx;
+  unsigned long *pixmap = NULL;
+  EMACS_INT idx = -1;
   int gif_err;
+  struct anim_cache* cache = NULL;
+  /* Which sub-image are we to display?  */
+  Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+  int byte_size = 0;
 
-  if (NILP (specified_data))
+  idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
+
+  if (!NILP (image_number))
     {
-      Lisp_Object file = image_find_image_file (specified_file);
-      if (!STRINGP (file))
+      /* If this is an animated image, create a cache for it.  */
+      cache = anim_get_animation_cache (XCDR (img->spec));
+      /* We have an old cache entry, so use it.  */
+      if (cache->handle)
 	{
-	  image_error ("Cannot find image file `%s'", specified_file);
-	  return false;
+	  gif = cache->handle;
+	  pixmap = cache->temp;
+	  /* We're out of sync, so start from the beginning.  */
+	  if (cache->index != idx - 1)
+	    cache->index = -1;
+	}
+    }
+
+  /* If we don't have a cached entry, read the image.  */
+  if (! gif)
+    {
+      if (NILP (specified_data))
+	{
+	  Lisp_Object file = image_find_image_file (specified_file);
+	  if (!STRINGP (file))
+	    {
+	      image_error ("Cannot find image file `%s'", specified_file);
+	      return false;
+	    }
+
+	  Lisp_Object encoded_file = ENCODE_FILE (file);
+#ifdef WINDOWSNT
+	  encoded_file = ansi_encode_filename (encoded_file);
+#endif
+
+	  /* Open the GIF file.  */
+#if GIFLIB_MAJOR < 5
+	  gif = DGifOpenFileName (SSDATA (encoded_file));
+#else
+	  gif = DGifOpenFileName (SSDATA (encoded_file), &gif_err);
+#endif
+	  if (gif == NULL)
+	    {
+#if HAVE_GIFERRORSTRING
+	      const char *errstr = GifErrorString (gif_err);
+	      if (errstr)
+		image_error ("Cannot open `%s': %s", file,
+			     build_string (errstr));
+	      else
+#endif
+		image_error ("Cannot open `%s'", file);
+	      return false;
+	    }
+
+	  /* Get the file size so that we can report it in
+	     `image-cache-size'.  */
+	  struct stat st;
+	  FILE *fp = fopen (SSDATA (encoded_file), "rb");
+	  if (fstat (fileno (fp), &st) == 0)
+	    byte_size = st.st_size;
+	  fclose (fp);
+	}
+      else
+	{
+	  if (!STRINGP (specified_data))
+	    {
+	      image_error ("Invalid image data `%s'", specified_data);
+	      return false;
+	    }
+
+	  /* Read from memory! */
+	  current_gif_memory_src = &memsrc;
+	  memsrc.bytes = SDATA (specified_data);
+	  memsrc.len = SBYTES (specified_data);
+	  memsrc.index = 0;
+	  byte_size = memsrc.len;
+
+#if GIFLIB_MAJOR < 5
+	  gif = DGifOpen (&memsrc, gif_read_from_memory);
+#else
+	  gif = DGifOpen (&memsrc, gif_read_from_memory, &gif_err);
+#endif
+	  if (!gif)
+	    {
+#if HAVE_GIFERRORSTRING
+	      const char *errstr = GifErrorString (gif_err);
+	      if (errstr)
+		image_error ("Cannot open memory source `%s': %s",
+			     img->spec, build_string (errstr));
+	      else
+#endif
+		image_error ("Cannot open memory source `%s'", img->spec);
+	      return false;
+	    }
 	}
 
-      Lisp_Object encoded_file = ENCODE_FILE (file);
-#ifdef WINDOWSNT
-      encoded_file = ansi_encode_filename (encoded_file);
-#endif
+      /* Before reading entire contents, check the declared image size. */
+      if (!check_image_size (f, gif->SWidth, gif->SHeight))
+	{
+	  image_size_error ();
+	  goto gif_error;
+	}
 
-      /* Open the GIF file.  */
-#if GIFLIB_MAJOR < 5
-      gif = DGifOpenFileName (SSDATA (encoded_file));
-#else
-      gif = DGifOpenFileName (SSDATA (encoded_file), &gif_err);
-#endif
-      if (gif == NULL)
+      /* Read entire contents.  */
+      rc = DGifSlurp (gif);
+      if (rc == GIF_ERROR || gif->ImageCount <= 0)
 	{
 #if HAVE_GIFERRORSTRING
-	  const char *errstr = GifErrorString (gif_err);
+	  const char *errstr = GifErrorString (gif->Error);
 	  if (errstr)
-	    image_error ("Cannot open `%s': %s", file, build_string (errstr));
+	    if (NILP (specified_data))
+	      image_error ("Error reading `%s' (%s)", img->spec,
+			   build_string (errstr));
+	    else
+	      image_error ("Error reading GIF data: %s",
+			   build_string (errstr));
 	  else
 #endif
-	  image_error ("Cannot open `%s'", file);
-	  return false;
+	    if (NILP (specified_data))
+	      image_error ("Error reading `%s'", img->spec);
+	    else
+	      image_error ("Error reading GIF data");
+	  goto gif_error;
+	}
+
+      width = img->width = gif->SWidth;
+      height = img->height = gif->SHeight;
+
+      /* Check that the selected subimages fit.  It's not clear whether
+	 the GIF spec requires this, but Emacs can crash if they don't fit.  */
+      for (j = 0; j < gif->ImageCount; ++j)
+	{
+	  struct SavedImage *subimage = gif->SavedImages + j;
+	  int subimg_width = subimage->ImageDesc.Width;
+	  int subimg_height = subimage->ImageDesc.Height;
+	  int subimg_top = subimage->ImageDesc.Top;
+	  int subimg_left = subimage->ImageDesc.Left;
+	  if (subimg_width < 0
+	      || subimg_height < 0
+	      || subimg_top < 0
+	      || subimg_left < 0
+	      || subimg_top + subimg_height > height
+	      || subimg_left + subimg_width > width)
+	    {
+	      image_error ("Subimage does not fit in image");
+	      goto gif_error;
+	    }
 	}
     }
   else
     {
-      if (!STRINGP (specified_data))
-	{
-	  image_error ("Invalid image data `%s'", specified_data);
-	  return false;
-	}
-
-      /* Read from memory! */
-      current_gif_memory_src = &memsrc;
-      memsrc.bytes = SDATA (specified_data);
-      memsrc.len = SBYTES (specified_data);
-      memsrc.index = 0;
-
-#if GIFLIB_MAJOR < 5
-      gif = DGifOpen (&memsrc, gif_read_from_memory);
-#else
-      gif = DGifOpen (&memsrc, gif_read_from_memory, &gif_err);
-#endif
-      if (!gif)
-	{
-#if HAVE_GIFERRORSTRING
-	  const char *errstr = GifErrorString (gif_err);
-	  if (errstr)
-	    image_error ("Cannot open memory source `%s': %s",
-			 img->spec, build_string (errstr));
-	  else
-#endif
-	  image_error ("Cannot open memory source `%s'", img->spec);
-	  return false;
-	}
+      /* Cached image; set data.  */
+      width = img->width = gif->SWidth;
+      height = img->height = gif->SHeight;
     }
 
-  /* Before reading entire contents, check the declared image size. */
-  if (!check_image_size (f, gif->SWidth, gif->SHeight))
+  if (idx < 0 || idx >= gif->ImageCount)
     {
-      image_size_error ();
+      image_error ("Invalid image number `%s' in image `%s'",
+		   make_fixnum (idx), img->spec);
       goto gif_error;
     }
 
-  /* Read entire contents.  */
-  rc = DGifSlurp (gif);
-  if (rc == GIF_ERROR || gif->ImageCount <= 0)
+  /* It's an animated image, so initialize the cache.  */
+  if (cache && !cache->handle)
     {
-      if (NILP (specified_data))
-	image_error ("Error reading `%s'", img->spec);
-      else
-	image_error ("Error reading GIF data");
-      goto gif_error;
+      cache->handle = gif;
+      cache->destructor = (void (*)(void *)) &gif_destroy;
+      cache->width = width;
+      cache->height = height;
+      cache->byte_size = byte_size;
     }
-
-  /* Which sub-image are we to display?  */
-  {
-    Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
-    idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
-    if (idx < 0 || idx >= gif->ImageCount)
-      {
-	image_error ("Invalid image number `%s' in image `%s'",
-		     image_number, img->spec);
-	goto gif_error;
-      }
-  }
-
-  width = img->width = gif->SWidth;
-  height = img->height = gif->SHeight;
 
   img->corners[TOP_CORNER] = gif->SavedImages[0].ImageDesc.Top;
   img->corners[LEFT_CORNER] = gif->SavedImages[0].ImageDesc.Left;
@@ -8727,28 +9221,19 @@ gif_load (struct frame *f, struct image *img)
       goto gif_error;
     }
 
-  /* Check that the selected subimages fit.  It's not clear whether
-     the GIF spec requires this, but Emacs can crash if they don't fit.  */
-  for (j = 0; j <= idx; ++j)
-    {
-      struct SavedImage *subimage = gif->SavedImages + j;
-      int subimg_width = subimage->ImageDesc.Width;
-      int subimg_height = subimage->ImageDesc.Height;
-      int subimg_top = subimage->ImageDesc.Top;
-      int subimg_left = subimage->ImageDesc.Left;
-      if (! (subimg_width >= 0 && subimg_height >= 0
-	     && 0 <= subimg_top && subimg_top <= height - subimg_height
-	     && 0 <= subimg_left && subimg_left <= width - subimg_width))
-	{
-	  image_error ("Subimage does not fit in image");
-	  goto gif_error;
-	}
-    }
-
   /* Create the X image and pixmap.  */
   Emacs_Pix_Container ximg;
   if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
     goto gif_error;
+
+  /* We construct the (possibly composited animated) image in this
+     buffer.  */
+  if (!pixmap)
+    {
+      pixmap = xmalloc (width * height * sizeof (unsigned long));
+      if (cache)
+	cache->temp = pixmap;
+    }
 
   /* Clear the part of the screen image not covered by the image.
      Full animated GIF support requires more here (see the gif89 spec,
@@ -8764,28 +9249,24 @@ gif_load (struct frame *f, struct image *img)
     frame_bg = lookup_rgb_color (f, color.red, color.green, color.blue);
   }
 #endif	/* USE_CAIRO */
+
   for (y = 0; y < img->corners[TOP_CORNER]; ++y)
     for (x = 0; x < width; ++x)
-      PUT_PIXEL (ximg, x, y, frame_bg);
+      *(pixmap + x + y * width) = frame_bg;
 
   for (y = img->corners[BOT_CORNER]; y < height; ++y)
     for (x = 0; x < width; ++x)
-      PUT_PIXEL (ximg, x, y, frame_bg);
+      *(pixmap + x + y * width) = frame_bg;
 
   for (y = img->corners[TOP_CORNER]; y < img->corners[BOT_CORNER]; ++y)
     {
       for (x = 0; x < img->corners[LEFT_CORNER]; ++x)
-	PUT_PIXEL (ximg, x, y, frame_bg);
+	*(pixmap + x + y * width) = frame_bg;
       for (x = img->corners[RIGHT_CORNER]; x < width; ++x)
-	PUT_PIXEL (ximg, x, y, frame_bg);
+	*(pixmap + x + y * width) = frame_bg;
     }
 
   /* Read the GIF image into the X image.   */
-
-  /* FIXME: With the current implementation, loading an animated gif
-     is quadratic in the number of animation frames, since each frame
-     is a separate struct image.  We must provide a way for a single
-     gif_load call to construct and save all animation frames.  */
 
   init_color_table ();
 
@@ -8801,7 +9282,18 @@ gif_load (struct frame *f, struct image *img)
 #endif
     }
 
-  for (j = 0; j <= idx; ++j)
+  int start_frame = 0;
+
+  /* We have animation data in the cache.  */
+  if (cache && cache->temp)
+    {
+      start_frame = cache->index + 1;
+      if (start_frame > idx)
+	start_frame = 0;
+      cache->index = idx;
+    }
+
+  for (j = start_frame; j <= idx; ++j)
     {
       /* We use a local variable `raster' here because RasterBits is a
 	 char *, which invites problems with bytes >= 0x80.  */
@@ -8852,6 +9344,14 @@ gif_load (struct frame *f, struct image *img)
       if (disposal == DISPOSAL_UNSPECIFIED)
 	disposal = DISPOSE_DO_NOT;
 
+      /* This is not quite correct -- the specification is unclear,
+	 but I think we're supposed to restore to the frame before the
+	 previous frame?  And we don't have that data at this point.
+	 But DISPOSE_DO_NOT is less wrong than substituting the
+	 background, so do that for now.  */
+      if (disposal == DISPOSE_PREVIOUS)
+	disposal = DISPOSE_DO_NOT;
+
       gif_color_map = subimage->ImageDesc.ColorMap;
       if (!gif_color_map)
 	gif_color_map = gif->SColorMap;
@@ -8891,8 +9391,8 @@ gif_load (struct frame *f, struct image *img)
 		  int c = raster[y * subimg_width + x];
 		  if (transparency_color_index != c || disposal != DISPOSE_DO_NOT)
                     {
-                      PUT_PIXEL (ximg, x + subimg_left, row + subimg_top,
-                                 pixel_colors[c]);
+		      *(pixmap + x + subimg_left + (y + subimg_top) * width) =
+			pixel_colors[c];
 		    }
 		}
 	    }
@@ -8905,12 +9405,18 @@ gif_load (struct frame *f, struct image *img)
 		int c = raster[y * subimg_width + x];
 		if (transparency_color_index != c || disposal != DISPOSE_DO_NOT)
                   {
-                    PUT_PIXEL (ximg, x + subimg_left, y + subimg_top,
-                               pixel_colors[c]);
+		    *(pixmap + x + subimg_left + (y + subimg_top) * width) =
+		      pixel_colors[c];
                   }
 	      }
 	}
     }
+
+  /* We now have the complete image (possibly composed from a series
+     of animated frames) in pixmap.  Put it into ximg.  */
+  for (y = 0; y < height; ++y)
+    for (x = 0; x < width; ++x)
+      PUT_PIXEL (ximg, x, y, *(pixmap + x + y * width));
 
 #ifdef COLOR_TABLE_SUPPORT
   img->colors = colors_in_color_table (&img->ncolors);
@@ -8940,11 +9446,11 @@ gif_load (struct frame *f, struct image *img)
 	    }
 	}
       img->lisp_data = list2 (Qextension_data, img->lisp_data);
-      if (delay)
-	img->lisp_data
-	  = Fcons (Qdelay,
-		   Fcons (make_float (delay / 100.0),
-			  img->lisp_data));
+      img->lisp_data
+	= Fcons (Qdelay,
+		 /* Default GIF delay is 1/15th of a second.  */
+		 Fcons (make_float (delay? delay / 100.0: 1.0 / 15),
+			img->lisp_data));
     }
 
   if (gif->ImageCount > 1)
@@ -8952,17 +9458,22 @@ gif_load (struct frame *f, struct image *img)
 			    Fcons (make_fixnum (gif->ImageCount),
 				   img->lisp_data));
 
-  if (gif_close (gif, &gif_err) == GIF_ERROR)
+  if (!cache)
     {
+      if (pixmap)
+	xfree (pixmap);
+      if (gif_close (gif, &gif_err) == GIF_ERROR)
+	{
 #if HAVE_GIFERRORSTRING
-      char const *error_text = GifErrorString (gif_err);
+	  char const *error_text = GifErrorString (gif_err);
 
-      if (error_text)
-	image_error ("Error closing `%s': %s",
-		     img->spec, build_string (error_text));
-      else
+	  if (error_text)
+	    image_error ("Error closing `%s': %s",
+			 img->spec, build_string (error_text));
+	  else
 #endif
-      image_error ("Error closing `%s'", img->spec);
+	    image_error ("Error closing `%s'", img->spec);
+	}
     }
 
   /* Maybe fill in the background field while we have ximg handy. */
@@ -8976,7 +9487,14 @@ gif_load (struct frame *f, struct image *img)
   return true;
 
  gif_error:
+  if (pixmap)
+    xfree (pixmap);
   gif_close (gif, NULL);
+  if (cache)
+    {
+      cache->handle = NULL;
+      cache->temp = NULL;
+    }
   return false;
 }
 
@@ -8991,6 +9509,7 @@ gif_load (struct frame *f, struct image *img)
  ***********************************************************************/
 
 #include "webp/decode.h"
+#include "webp/demux.h"
 
 /* Indices of image specification fields in webp_format, below.  */
 
@@ -9005,6 +9524,7 @@ enum webp_keyword_index
   WEBP_ALGORITHM,
   WEBP_HEURISTIC_MASK,
   WEBP_MASK,
+  WEBP_INDEX,
   WEBP_BACKGROUND,
   WEBP_LAST
 };
@@ -9023,6 +9543,7 @@ static const struct image_keyword webp_format[WEBP_LAST] =
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
 
@@ -9055,20 +9576,41 @@ DEF_DLL_FN (VP8StatusCode, WebPGetFeaturesInternal,
 DEF_DLL_FN (uint8_t *, WebPDecodeRGBA, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (uint8_t *, WebPDecodeRGB, (const uint8_t *, size_t, int *, int *));
 DEF_DLL_FN (void, WebPFree, (void *));
+DEF_DLL_FN (uint32_t, WebPDemuxGetI, (const WebPDemuxer *, WebPFormatFeature));
+DEF_DLL_FN (WebPDemuxer *, WebPDemuxInternal,
+	    (const WebPData *, int, WebPDemuxState *, int));
+DEF_DLL_FN (void, WebPDemuxDelete, (WebPDemuxer *));
+DEF_DLL_FN (int, WebPAnimDecoderGetNext,
+	    (WebPAnimDecoder *, uint8_t **, int *));
+DEF_DLL_FN (WebPAnimDecoder *, WebPAnimDecoderNewInternal,
+	    (const WebPData *, const WebPAnimDecoderOptions *, int));
+DEF_DLL_FN (int, WebPAnimDecoderOptionsInitInternal,
+	    (WebPAnimDecoderOptions *, int));
+DEF_DLL_FN (int, WebPAnimDecoderHasMoreFrames, (const WebPAnimDecoder *));
+DEF_DLL_FN (void, WebPAnimDecoderDelete, (WebPAnimDecoder *));
 
 static bool
 init_webp_functions (void)
 {
-  HMODULE library;
+  HMODULE library1, library2;
 
-  if (!(library = w32_delayed_load (Qwebp)))
+  if (!((library1 = w32_delayed_load (Qwebp))
+	&& (library2 = w32_delayed_load (Qwebpdemux))))
     return false;
 
-  LOAD_DLL_FN (library, WebPGetInfo);
-  LOAD_DLL_FN (library, WebPGetFeaturesInternal);
-  LOAD_DLL_FN (library, WebPDecodeRGBA);
-  LOAD_DLL_FN (library, WebPDecodeRGB);
-  LOAD_DLL_FN (library, WebPFree);
+  LOAD_DLL_FN (library1, WebPGetInfo);
+  LOAD_DLL_FN (library1, WebPGetFeaturesInternal);
+  LOAD_DLL_FN (library1, WebPDecodeRGBA);
+  LOAD_DLL_FN (library1, WebPDecodeRGB);
+  LOAD_DLL_FN (library1, WebPFree);
+  LOAD_DLL_FN (library2, WebPDemuxGetI);
+  LOAD_DLL_FN (library2, WebPDemuxInternal);
+  LOAD_DLL_FN (library2, WebPDemuxDelete);
+  LOAD_DLL_FN (library2, WebPAnimDecoderGetNext);
+  LOAD_DLL_FN (library2, WebPAnimDecoderNewInternal);
+  LOAD_DLL_FN (library2, WebPAnimDecoderOptionsInitInternal);
+  LOAD_DLL_FN (library2, WebPAnimDecoderHasMoreFrames);
+  LOAD_DLL_FN (library2, WebPAnimDecoderDelete);
   return true;
 }
 
@@ -9077,6 +9619,14 @@ init_webp_functions (void)
 #undef WebPDecodeRGBA
 #undef WebPDecodeRGB
 #undef WebPFree
+#undef WebPDemuxGetI
+#undef WebPDemux
+#undef WebPDemuxDelete
+#undef WebPAnimDecoderGetNext
+#undef WebPAnimDecoderNew
+#undef WebPAnimDecoderOptionsInit
+#undef WebPAnimDecoderHasMoreFrames
+#undef WebPAnimDecoderDelete
 
 #define WebPGetInfo fn_WebPGetInfo
 #define WebPGetFeatures(d,s,f)					\
@@ -9084,8 +9634,25 @@ init_webp_functions (void)
 #define WebPDecodeRGBA fn_WebPDecodeRGBA
 #define WebPDecodeRGB fn_WebPDecodeRGB
 #define WebPFree fn_WebPFree
+#define WebPDemuxGetI fn_WebPDemuxGetI
+#define WebPDemux(d)						\
+  fn_WebPDemuxInternal(d,0,NULL,WEBP_DEMUX_ABI_VERSION)
+#define WebPDemuxDelete fn_WebPDemuxDelete
+#define WebPAnimDecoderGetNext fn_WebPAnimDecoderGetNext
+#define WebPAnimDecoderNew(d,o)					\
+  fn_WebPAnimDecoderNewInternal(d,o,WEBP_DEMUX_ABI_VERSION)
+#define WebPAnimDecoderOptionsInit(o)				\
+  fn_WebPAnimDecoderOptionsInitInternal(o,WEBP_DEMUX_ABI_VERSION)
+#define WebPAnimDecoderHasMoreFrames fn_WebPAnimDecoderHasMoreFrames
+#define WebPAnimDecoderDelete fn_WebPAnimDecoderDelete
 
 #endif /* WINDOWSNT */
+
+static void
+webp_destroy (struct anim_cache* cache)
+{
+  WebPAnimDecoderDelete (cache->handle);
+}
 
 /* Load WebP image IMG for use on frame F.  Value is true if
    successful.  */
@@ -9096,6 +9663,9 @@ webp_load (struct frame *f, struct image *img)
   ptrdiff_t size = 0;
   uint8_t *contents;
   Lisp_Object file = Qnil;
+  int frames = 0;
+  double delay = 0;
+  WebPAnimDecoder* anim = NULL;
 
   /* Open the WebP file.  */
   Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
@@ -9139,6 +9709,9 @@ webp_load (struct frame *f, struct image *img)
       goto webp_error1;
     }
 
+  Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+  ptrdiff_t idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
+
   /* Get WebP features.  */
   WebPBitstreamFeatures features;
   VP8StatusCode result = WebPGetFeatures (contents, size, &features);
@@ -9162,19 +9735,93 @@ webp_load (struct frame *f, struct image *img)
       goto webp_error1;
     }
 
-  /* Decode WebP data.  */
-  uint8_t *decoded;
+  uint8_t *decoded = NULL;
   int width, height;
-  if (features.has_alpha)
-    /* Linear [r0, g0, b0, a0, r1, g1, b1, a1, ...] order.  */
-    decoded = WebPDecodeRGBA (contents, size, &width, &height);
+
+  if (features.has_animation)
+    {
+      /* Animated image.  */
+      int timestamp;
+
+      struct anim_cache* cache = anim_get_animation_cache (XCDR (img->spec));
+      /* Get the next frame from the animation cache.  */
+      if (cache->handle && cache->index == idx - 1)
+	{
+	  WebPAnimDecoderGetNext (cache->handle, &decoded, &timestamp);
+	  delay = timestamp;
+	  cache->index++;
+	  anim = cache->handle;
+	  width = cache->width;
+	  height = cache->height;
+	  frames = cache->frames;
+	}
+      else
+	{
+	  /* Start a new cache entry.  */
+	  if (cache->handle)
+	    WebPAnimDecoderDelete (cache->handle);
+
+	  WebPData webp_data;
+	  if (NILP (specified_data))
+	    /* If we got the data from a file, then we don't need to
+	       copy the data. */
+	    webp_data.bytes = cache->temp = contents;
+	  else
+	    /* We got the data from a string, so copy it over so that
+	       it doesn't get garbage-collected.  */
+	    {
+	      webp_data.bytes = xmalloc (size);
+	      memcpy ((void*) webp_data.bytes, contents, size);
+	    }
+	  /* In any case, we release the allocated memory when we
+	     purge the anim cache.  */
+	  webp_data.size = size;
+
+	  /* This is used just for reporting by `image-cache-size'.  */
+	  cache->byte_size = size;
+
+	  /* Get the width/height of the total image.  */
+	  WebPDemuxer* demux = WebPDemux (&webp_data);
+	  cache->width = width = WebPDemuxGetI (demux, WEBP_FF_CANVAS_WIDTH);
+	  cache->height = height = WebPDemuxGetI (demux,
+						  WEBP_FF_CANVAS_HEIGHT);
+	  cache->frames = frames = WebPDemuxGetI (demux, WEBP_FF_FRAME_COUNT);
+	  cache->destructor = (void (*)(void *)) webp_destroy;
+	  WebPDemuxDelete (demux);
+
+	  WebPAnimDecoderOptions dec_options;
+	  WebPAnimDecoderOptionsInit (&dec_options);
+	  anim = WebPAnimDecoderNew (&webp_data, &dec_options);
+
+	  cache->handle = anim;
+	  cache->index = idx;
+
+	  while (WebPAnimDecoderHasMoreFrames (anim)) {
+	    WebPAnimDecoderGetNext (anim, &decoded, &timestamp);
+	    /* Each frame has its own delay, but we don't really support
+	       that.  So just use the delay from the first frame.  */
+	    if (delay == 0)
+	      delay = timestamp;
+	    /* Stop when we get to the desired index.  */
+	    if (idx-- == 0)
+	      break;
+	  }
+	}
+    }
   else
-    /* Linear [r0, g0, b0, r1, g1, b1, ...] order.  */
-    decoded = WebPDecodeRGB (contents, size, &width, &height);
+    {
+      /* Non-animated image.  */
+      if (features.has_alpha)
+	/* Linear [r0, g0, b0, a0, r1, g1, b1, a1, ...] order.  */
+	decoded = WebPDecodeRGBA (contents, size, &width, &height);
+      else
+	/* Linear [r0, g0, b0, r1, g1, b1, ...] order.  */
+	decoded = WebPDecodeRGB (contents, size, &width, &height);
+    }
 
   if (!decoded)
     {
-      image_error ("Error when interpreting WebP image data");
+      image_error ("Error when decoding WebP image data");
       goto webp_error1;
     }
 
@@ -9193,7 +9840,8 @@ webp_load (struct frame *f, struct image *img)
   /* Create an image and pixmap serving as mask if the WebP image
      contains an alpha channel.  */
   if (features.has_alpha
-      && !image_create_x_image_and_pixmap (f, img, width, height, 1, &mask_img, true))
+      && !image_create_x_image_and_pixmap (f, img, width, height, 1,
+					   &mask_img, true))
     {
       image_destroy_x_image (ximg);
       image_clear_image_1 (f, img, CLEAR_IMAGE_PIXMAP);
@@ -9202,6 +9850,13 @@ webp_load (struct frame *f, struct image *img)
 
   /* Fill the X image and mask from WebP data.  */
   init_color_table ();
+
+  img->corners[TOP_CORNER] = 0;
+  img->corners[LEFT_CORNER] = 0;
+  img->corners[BOT_CORNER]
+    = img->corners[TOP_CORNER] + height;
+  img->corners[RIGHT_CORNER]
+    = img->corners[LEFT_CORNER] + width;
 
   uint8_t *p = decoded;
   for (int y = 0; y < height; ++y)
@@ -9217,7 +9872,7 @@ webp_load (struct frame *f, struct image *img)
 	     image.  WebP allows up to 256 levels of partial transparency.
 	     We handle this like with PNG (which see), using the frame's
 	     background color to combine the image with.  */
-	  if (features.has_alpha)
+	  if (features.has_alpha || anim)
 	    {
 	      if (mask_img)
 		PUT_PIXEL (mask_img, x, y, *p > 0 ? PIX_MASK_DRAW : PIX_MASK_RETAIN);
@@ -9248,14 +9903,24 @@ webp_load (struct frame *f, struct image *img)
   img->width = width;
   img->height = height;
 
+  /* Return animation data.  */
+  img->lisp_data = Fcons (Qcount,
+			  Fcons (make_fixnum (frames),
+				 img->lisp_data));
+  img->lisp_data = Fcons (Qdelay,
+			  Fcons (make_float (delay / 1000),
+				 img->lisp_data));
+
   /* Clean up.  */
-  WebPFree (decoded);
-  if (NILP (specified_data))
+  if (!anim)
+    WebPFree (decoded);
+  if (NILP (specified_data) && !anim)
     xfree (contents);
   return true;
 
  webp_error2:
-  WebPFree (decoded);
+  if (!anim)
+    WebPFree (decoded);
 
  webp_error1:
   if (NILP (specified_data))
@@ -9422,7 +10087,7 @@ imagemagick_filename_hint (Lisp_Object spec, char hint_buffer[MaxTextExtent])
    (which is the first one, and then there's a number of images that
    follow.  If following images have non-transparent colors, these are
    composed "on top" of the master image.  So, in general, one has to
-   compute ann the preceding images to be able to display a particular
+   compute all the preceding images to be able to display a particular
    sub-image.
 
    Computing all the preceding images is too slow, so we maintain a
@@ -9454,9 +10119,10 @@ imagemagick_create_cache (char *signature)
   return cache;
 }
 
-/* Discard cached images that haven't been used for a minute. */
+/* Discard cached images that haven't been used for a minute.  If
+   CLEAR, discard all cached animated images.  */
 static void
-imagemagick_prune_animation_cache (void)
+imagemagick_prune_animation_cache (bool clear)
 {
   struct animation_cache **pcache = &animation_cache;
   struct timespec old = timespec_sub (current_timespec (),
@@ -9465,15 +10131,15 @@ imagemagick_prune_animation_cache (void)
   while (*pcache)
     {
       struct animation_cache *cache = *pcache;
-      if (timespec_cmp (old, cache->update_time) <= 0)
-	pcache = &cache->next;
-      else
+      if (clear || timespec_cmp (old, cache->update_time) > 0)
 	{
 	  if (cache->wand)
 	    DestroyMagickWand (cache->wand);
 	  *pcache = cache->next;
 	  xfree (cache);
 	}
+      else
+	pcache = &cache->next;
     }
 }
 
@@ -9484,7 +10150,7 @@ imagemagick_get_animation_cache (MagickWand *wand)
   struct animation_cache *cache;
   struct animation_cache **pcache = &animation_cache;
 
-  imagemagick_prune_animation_cache ();
+  imagemagick_prune_animation_cache (false);
 
   while (1)
     {
@@ -10883,7 +11549,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 #endif
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
-  image_error ("Error parsing SVG image `%s'", img->spec);
+  image_error ("Error parsing SVG image");
   g_clear_error (&err);
   return 0;
 }
@@ -11098,7 +11764,7 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
   /* On displays with a mutable colormap, figure out the colors
      allocated for the image by looking at the pixels of an XImage for
      img->pixmap.  */
-  if (x_mutable_colormap (FRAME_X_VISUAL (f)))
+  if (x_mutable_colormap (FRAME_X_VISUAL_INFO (f)))
     {
       XImage *ximg;
 
@@ -11214,6 +11880,30 @@ The list of capabilities can include one or more of the following:
   return Qnil;
 }
 
+DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
+       doc: /* Return the size of the image cache.  */)
+  (void)
+{
+  Lisp_Object tail, frame;
+  size_t total = 0;
+
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_WINDOW_P (XFRAME (frame)))
+      total += image_frame_cache_size (XFRAME (frame));
+
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+  struct anim_cache *pcache = anim_cache;
+  while (pcache)
+    {
+      total += pcache->byte_size;
+      pcache = pcache->next;
+    }
+#endif
+
+  return make_int (total);
+}
+
+
 DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 1, 1, 0,
        doc: /* Initialize image library implementing image type TYPE.
 Return t if TYPE is a supported image type.
@@ -11323,6 +12013,18 @@ lookup_image_type (Lisp_Object type)
   return NULL;
 }
 
+/* Prune the animation caches.  If CLEAR, remove all animation cache
+   entries.  */
+void
+image_prune_animation_caches (bool clear)
+{
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+  anim_prune_animation_cache (clear? Qt: Qnil);
+#endif
+#ifdef HAVE_IMAGEMAGICK
+  imagemagick_prune_animation_cache (clear);
+#endif
+}
 
 void
 syms_of_image (void)
@@ -11367,6 +12069,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCtransform_smoothing, ":transform-smoothing");
   DEFSYM (QCcolor_adjustment, ":color-adjustment");
   DEFSYM (QCmask, ":mask");
+  DEFSYM (QCflip, ":flip");
 
   /* Other symbols.  */
   DEFSYM (Qlaplace, "laplace");
@@ -11462,6 +12165,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #if defined (HAVE_WEBP) || (defined (HAVE_NATIVE_IMAGE_API) \
 			    && defined (HAVE_HAIKU))
   DEFSYM (Qwebp, "webp");
+  DEFSYM (Qwebpdemux, "webpdemux");
   add_image_type (Qwebp);
 #endif
 
@@ -11493,6 +12197,12 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
 #if HAVE_NATIVE_IMAGE_API
   DEFSYM (Qnative_image, "native-image");
+
+# if defined HAVE_NTGUI || defined HAVE_HAIKU
+  DEFSYM (Qbmp, "bmp");
+  add_image_type (Qbmp);
+# endif
+
 # ifdef HAVE_NTGUI
   DEFSYM (Qgdiplus, "gdiplus");
   DEFSYM (Qshlwapi, "shlwapi");
@@ -11514,6 +12224,11 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif
+
+  DEFSYM (QCanimate_buffer, ":animate-buffer");
+  DEFSYM (QCanimate_tardiness, ":animate-tardiness");
+  DEFSYM (QCanimate_position, ":animate-position");
+  DEFSYM (QCanimate_multi_frame_data, ":animate-multi-frame-data");
 
   defsubr (&Simage_transforms_p);
 

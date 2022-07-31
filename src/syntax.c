@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
+#include "dispextern.h"
 #include "character.h"
 #include "buffer.h"
 #include "regex-emacs.h"
@@ -1074,7 +1075,7 @@ unsigned char const syntax_spec_code[0400] =
 
 /* Indexed by syntax code, give the letter that describes it.  */
 
-char const syntax_code_spec[16] =
+static char const syntax_code_spec[16] =
   {
     ' ', '.', 'w', '_', '(', ')', '\'', '\"', '$', '\\', '/', '<', '>', '@',
     '!', '|'
@@ -3195,6 +3196,7 @@ scan_sexps_forward (struct lisp_parse_state *state,
   ptrdiff_t out_bytepos, out_charpos;
   int temp;
   unsigned short int quit_count = 0;
+  ptrdiff_t started_from = from;
 
   prev_from = from;
   prev_from_byte = from_byte;
@@ -3474,6 +3476,13 @@ do { prev_from = from;				\
                                 state->levelstarts);
   state->prev_syntax = (SYNTAX_FLAGS_COMSTARTEND_FIRST (prev_from_syntax)
                         || state->quoted) ? prev_from_syntax : Smax;
+
+  /* The factor of 10 below is a heuristic that needs to be tuned.  It
+     means we consider 10 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
+  if (max_redisplay_ticks > 0 && from > started_from)
+    update_redisplay_ticks ((from - started_from) / 10 + 1, NULL);
 }
 
 /* Convert a (lisp) parse state to the internal form used in

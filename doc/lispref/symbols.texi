@@ -775,7 +775,7 @@ For most purposes, when the flag variable
 @code{symbols-with-pos-enabled} is non-@code{nil}, symbols with
 positions behave just as bare symbols do.  For example, @samp{(eq
 #<symbol foo at 12345> foo)} has a value @code{t} when that variable
-is set (but nil when it isn't set).  Most of the time in Emacs this
+is set (but @code{nil} when it isn't set).  Most of the time in Emacs this
 variable is @code{nil}, but the byte compiler binds it to @code{t}
 when it runs.
 

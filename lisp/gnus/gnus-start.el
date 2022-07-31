@@ -329,10 +329,10 @@ with the subscription method in this variable."
   "If non-nil, Gnus will offer to subscribe hierarchically.
 When a new hierarchy appears, Gnus will ask the user:
 
-'alt.binaries': Do you want to subscribe to this hierarchy? ([d]ys):
+Descend hierarchy alt.binaries? ([y]nsq):
 
-If the user pressed `d', Gnus will descend the hierarchy, `y' will
-subscribe to all newsgroups in the hierarchy and `s' will skip this
+If the user pressed `y', Gnus will descend the hierarchy, `s' will
+subscribe to all newsgroups in the hierarchy and `n' will skip this
 hierarchy in its entirety."
   :group 'gnus-group-new
   :type 'boolean)

@@ -1367,7 +1367,7 @@ left at the end of the node line."
 	    ;; There may be an @chapter or other such command between
 	    ;; the top node line and the next node line, as a title
 	    ;; for an `ifinfo' section. This @chapter command must
-	    ;; must be skipped.  So the procedure is to search for
+	    ;; be skipped.  So the procedure is to search for
 	    ;; the next `@node' line, and then copy its name.
 	    (if (re-search-forward "^@node" nil t)
 		(progn

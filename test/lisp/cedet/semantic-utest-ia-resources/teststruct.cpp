@@ -20,7 +20,7 @@
 // along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
-// Note: initially provided by by Alex Ott.
+// Note: initially provided by Alex Ott.
 
 template <typename DerivedT>
 struct grammar {

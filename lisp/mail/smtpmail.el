@@ -171,7 +171,7 @@ attempt."
   "The number of times smtpmail will retry sending when getting transient errors.
 These are errors with a code of 4xx from the SMTP server, which
 mean \"try again\"."
-  :type 'integer
+  :type 'natnum
   :version "27.1")
 
 (defcustom smtpmail-store-queue-variables nil
@@ -342,8 +342,6 @@ for `smtpmail-try-auth-method'.")
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
-	    (if (eval mail-mailer-swallows-blank-line t)
-		(newline))
 	    ;; Find and handle any Fcc fields.
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Fcc:" delimline t)
@@ -552,7 +550,6 @@ for `smtpmail-try-auth-method'.")
 		      :require (and ask-for-password
 				    '(:user :secret))
 		      :create ask-for-password)))
-         (mech (or (plist-get auth-info :smtp-auth) (car mechs)))
          (user (plist-get auth-info :user))
          (password (auth-info-password auth-info))
 	 (save-function (and ask-for-password
@@ -572,18 +569,26 @@ for `smtpmail-try-auth-method'.")
 	      :require '(:user :secret)
 	      :create t))
 	    password (auth-info-password auth-info)))
-    (let ((result (catch 'done
-                    (if (and mech user password)
-		        (smtpmail-try-auth-method process mech user password)
-                      ;; No mechanism, or no credentials.
-                      mech))))
-      (if (stringp result)
-	  (progn
-	    (auth-source-forget+ :host host :port port)
-	    (throw 'done result))
-	(when save-function
-	  (funcall save-function))
-	result))))
+    (let ((mechs (or (ensure-list (plist-get auth-info :smtp-auth))
+                     mechs))
+          (result ""))
+      (when (and mechs user password)
+        (while (and mechs
+                    (stringp result))
+          (setq result (catch 'done
+		         (smtpmail-try-auth-method
+                          process (pop mechs) user password))))
+        ;; A string result is an error.
+        (if (stringp result)
+            (progn
+              ;; All methods failed.
+              ;; Forget the credentials.
+	      (auth-source-forget+ :host host :port port)
+              (throw 'done result))
+          ;; Success.
+	  (when save-function
+	    (funcall save-function))
+          result)))))
 
 (cl-defgeneric smtpmail-try-auth-method (_process mech _user _password)
   "Perform authentication of type MECH for USER with PASSWORD.
@@ -801,7 +806,11 @@ Returns an error if the server cannot be contacted."
 				(plist-get (cdr result) :capabilities)
 				"\r\n")))
 		  (let ((name
-			 (with-case-table ascii-case-table ;FIXME: Why?
+                         ;; Use ASCII case-table to prevent I
+                         ;; downcasing to a dotless i under some
+                         ;; language environments.  See
+                         ;; https://lists.gnu.org/archive/html/emacs-devel/2007-03/msg01760.html.
+			 (with-case-table ascii-case-table
 			   (mapcar (lambda (s) (intern (downcase s)))
 				   (split-string (substring line 4) "[ ]")))))
 		    (when (= (length name) 1)

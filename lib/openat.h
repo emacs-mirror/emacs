@@ -3,7 +3,7 @@
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -98,12 +98,14 @@ lchmodat (int fd, char const *file, mode_t mode)
 #  define STATAT_INLINE _GL_INLINE
 # endif
 
+_GL_ATTRIBUTE_DEPRECATED
 STATAT_INLINE int
 statat (int fd, char const *name, struct stat *st)
 {
   return fstatat (fd, name, st, 0);
 }
 
+_GL_ATTRIBUTE_DEPRECATED
 STATAT_INLINE int
 lstatat (int fd, char const *name, struct stat *st)
 {

@@ -31,6 +31,7 @@
 (require 'cl-extra)
 (require 'transient)
 (require 'multisession)
+(require 'generate-lisp-file)
 
 (defgroup emoji nil
   "Inserting Emojis."
@@ -72,18 +73,13 @@ representing names.  For instance:
 (defvar emoji--insert-buffer)
 
 ;;;###autoload
-(defun emoji-insert (&optional text)
-  "Choose and insert an emoji glyph.
-If TEXT (interactively, the prefix argument), choose the emoji
-by typing its Unicode Standard name (with completion), instead
-of selecting from emoji display."
-  (interactive "*P")
+(defun emoji-insert ()
+  "Choose and insert an emoji glyph."
+  (interactive "*")
   (emoji--init)
-  (if text
-      (emoji--choose-emoji)
-    (unless (fboundp 'emoji--command-Emoji)
-      (emoji--define-transient))
-    (funcall (intern "emoji--command-Emoji"))))
+  (unless (fboundp 'emoji--command-Emoji)
+    (emoji--define-transient))
+  (funcall (intern "emoji--command-Emoji")))
 
 ;;;###autoload
 (defun emoji-recent ()
@@ -415,8 +411,8 @@ the name is not known."
     (dolist (glyph glyphs)
       (remhash glyph emoji--derived)))
   (with-temp-buffer
-    (insert ";; Generated file -- do not edit.   -*- lexical-binding:t -*-
-;; Copyright © 1991-2021 Unicode, Inc.
+    (generate-lisp-file-heading file 'emoji--generate-file)
+    (insert ";; Copyright © 1991-2021 Unicode, Inc.
 ;; Generated from Unicode data files by emoji.el.
 ;; The source for this file is found in the admin/unidata/emoji-test.txt
 ;; file in the Emacs sources.  The Unicode data files are used under the
@@ -426,18 +422,7 @@ the name is not known."
       (insert (format "(defconst %s '" var))
       (pp (symbol-value var) (current-buffer))
       (insert (format "\n) ;; End %s\n\n" var)))
-    (insert ";; Local" " Variables:
-;; coding: utf-8
-;; version-control: never
-;; no-byte-"
-            ;; Obfuscate to not inhibit compilation of this file, too.
-            "compile: t
-;; no-update-autoloads: t
-;; End:
-
-\(provide 'emoji-labels)
-
-\;;; emoji-labels.el ends here\n")
+    (generate-lisp-file-trailer file)
     (write-region (point-min) (point-max) file)))
 
 (defun emoji--base-name (name derivations)
@@ -709,6 +694,39 @@ We prefer the earliest unique letter."
             (funcall
              (emoji--define-transient
               (cons "Choose Emoji" (cons glyph derived))))))))))
+
+(defvar-keymap emoji-zoom-map
+  "+" #'emoji-zoom-increase
+  "-" #'emoji-zoom-decrease)
+
+;;;###autoload
+(defun emoji-zoom-increase (&optional factor)
+  "Increase the size of the character under point.
+FACTOR is the multiplication factor for the size."
+  (interactive)
+  (set-transient-map emoji-zoom-map t nil "Zoom with %k")
+  (let* ((factor (or factor 1.1))
+         (old (get-text-property (point) 'face))
+         (height (or (and (consp old)
+                          (plist-get old :height))
+                     1.0))
+         (inhibit-read-only t))
+    (with-silent-modifications
+      (if (consp old)
+          (add-text-properties
+           (point) (1+ (point))
+           (list 'face (plist-put (copy-sequence old) :height (* height factor))
+                 'rear-nonsticky t))
+        (add-face-text-property (point) (1+ (point))
+                                (list :height (* height factor)))
+        (put-text-property (point) (1+ (point))
+                           'rear-nonsticky t)))))
+
+;;;###autoload
+(defun emoji-zoom-decrease ()
+  "Decrease the size of the character under point."
+  (interactive)
+  (emoji-zoom-increase 0.9))
 
 (provide 'emoji)
 

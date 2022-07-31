@@ -726,7 +726,7 @@ Returns position with the end of that macro."
 	  (point))))))
 
 (defun semantic-lex-spp-get-overlay (&optional point)
-  "Return first overlay which has a 'semantic-spp property."
+  "Return first overlay which has a `semantic-spp' property."
   (let ((overlays (overlays-at (or point (point)))))
     (while (and overlays
 		(null (overlay-get (car overlays) 'semantic-spp)))
@@ -1074,7 +1074,7 @@ and variable state from the current buffer."
 	    ))
 
 	;; Second Cheat: copy key variables regarding macro state from the
-	;; the originating buffer we are parsing.  We need to do this every time
+	;; originating buffer we are parsing.  We need to do this every time
 	;; since the state changes.
 	(dolist (V important-vars)
 	  (set V (buffer-local-value V origbuff)))

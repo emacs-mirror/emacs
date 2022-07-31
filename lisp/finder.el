@@ -1,7 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1997-1999, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -76,20 +75,18 @@
   "Association list of the standard \"Keywords:\" headers.
 Each element has the form (KEYWORD . DESCRIPTION).")
 
-(defvar finder-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " "	'finder-select)
-    (define-key map "f"	'finder-select)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2]	'finder-mouse-select)
-    (define-key map "\C-m"	'finder-select)
-    (define-key map "?"	'finder-summary)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "q"	'finder-exit)
-    (define-key map "d"	'finder-list-keywords)
-    map)
-  "Keymap used in `finder-mode'.")
+(defvar-keymap finder-mode-map
+  :doc "Keymap used in `finder-mode'."
+  "SPC"           #'finder-select
+  "f"             #'finder-select
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'finder-mouse-select
+  "C-m"           #'finder-select
+  "?"             #'finder-summary
+  "n"             #'next-line
+  "p"             #'previous-line
+  "q"             #'finder-exit
+  "d"             #'finder-list-keywords)
 
 (easy-menu-define finder-mode-menu finder-mode-map
   "Menu for `finder-mode'."
@@ -129,8 +126,6 @@ Keywords and package names both should be symbols.")
 (defvar finder-no-scan-regexp "\\(^\\.#\\|\\(loaddefs\\|ldefs-boot\\|\
 cus-load\\|finder-inf\\|esh-groups\\|subdirs\\|leim-list\\)\\.el$\\)"
   "Regexp matching file names not to scan for keywords.")
-
-(autoload 'autoload-rubric "autoload")
 
 (defconst finder--builtins-descriptions
   ;; I have no idea whether these are supposed to be capitalized
@@ -267,9 +262,9 @@ from; the default is `load-path'."
       (find-file-noselect generated-finder-keywords-file)
     (setq buffer-undo-list t)
     (erase-buffer)
-    (insert (autoload-rubric generated-finder-keywords-file
-                             "keyword-to-package mapping" t))
-    (search-backward "")
+    (generate-lisp-file-heading
+     generated-finder-keywords-file 'finder-compile-keywords
+     :title "keyword-to-package mapping")
     ;; FIXME: Now that we have package--builtin-versions, package--builtins is
     ;; only needed to get the list of unversioned packages and to get the
     ;; summary description of each package.
@@ -283,6 +278,7 @@ from; the default is `load-path'."
     (insert "(setq finder-keywords-hash\n      ")
     (prin1 finder-keywords-hash (current-buffer))
     (insert ")\n")
+    (generate-lisp-file-trailer generated-finder-keywords-file)
     (basic-save-buffer)))
 
 (defun finder-compile-keywords-make-dist ()
@@ -367,7 +363,7 @@ not `finder-known-keywords'."
   "Display FILE's commentary section.
 FILE should be in a form suitable for passing to `locate-library'."
   ;; FIXME: Merge this function into `describe-package', which is
-  ;; strictly better as it has links to URL's and is in a proper help
+  ;; strictly better as it has links to URLs and is in a proper help
   ;; buffer with navigation forward and backward, etc.
   (interactive
    (list

@@ -880,6 +880,7 @@ The child is converted, using the keyword arguments ARGS."
   "Make a deep copy of WIDGET."
   (widget-apply (copy-sequence widget) :copy))
 
+;;;###autoload
 (defun widget-convert (type &rest args)
   "Convert TYPE to a widget without inserting it in the buffer.
 The optional ARGS are additional keyword arguments."
@@ -3532,12 +3533,16 @@ It reads a directory name from an editable text field."
 (define-widget 'key 'editable-field
   "A key sequence."
   :prompt-value 'widget-field-prompt-value
-  :match 'key-valid-p
+  :match #'widget-key-valid-p
   :format "%{%t%}: %v"
   :validate 'widget-key-validate
   :keymap widget-key-sequence-map
   :help-echo "C-q: insert KEY, EVENT, or CODE; RET: enter value"
   :tag "Key")
+
+(defun widget-key-valid-p (_widget value)
+  "Non-nil if VALUE is a valid value for the key widget WIDGET."
+  (key-valid-p value))
 
 (defun widget-key-validate (widget)
   (unless (and (stringp (widget-value widget))

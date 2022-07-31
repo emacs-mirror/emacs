@@ -1144,7 +1144,8 @@ FExport diary data into iCalendar file: ")
                                      (cdr contents-n-summary))))
                       (setq result (concat result header contents alarm
                                            "\nEND:VEVENT")))
-                    (if (consp cns-cons-or-list)
+                    (if (and (consp cns-cons-or-list)
+                             (not (listp (cdr cns-cons-or-list))))
                         (list cns-cons-or-list)
                       cns-cons-or-list)))
           ;; handle errors

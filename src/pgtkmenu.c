@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <gtk/gtk.h>
 
 /* Flag which when set indicates a dialog or menu has been posted by
-   Xt on behalf of one of the widget sets.  */
+   GTK on behalf of one of the widget sets.  */
 static int popup_activated_flag;
 
 /* Set menu_items_inuse so no other popup menu or dialog is created.  */
@@ -62,19 +62,14 @@ pgtk_menu_set_in_use (bool in_use)
     struct frame *f = XFRAME (frame);
 
     if (in_use && FRAME_Z_GROUP_ABOVE (f))
-      x_set_z_group (f, Qabove_suspended, Qabove);
+      pgtk_set_z_group (f, Qabove_suspended, Qabove);
     else if (!in_use && FRAME_Z_GROUP_ABOVE_SUSPENDED (f))
-      x_set_z_group (f, Qabove, Qabove_suspended);
+      pgtk_set_z_group (f, Qabove, Qabove_suspended);
   }
 }
 
 DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
-       doc: /* Start key navigation of the menu bar in FRAME.
-       This initially opens the first menu bar item and you can then navigate with the
-       arrow keys, select a menu entry with the return key or cancel with the
-       escape key.  If FRAME has no menu bar this function does nothing.
-
-       If FRAME is nil or not given, use the selected frame.  */)
+       doc: /* SKIP: real doc in USE_GTK definition in xmenu.c.  */)
   (Lisp_Object frame)
 {
   GtkWidget *menubar;
@@ -132,7 +127,7 @@ pgtk_activate_menubar (struct frame *f)
 static void
 popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 {
-  popup_activated_flag = 0;
+  pgtk_menu_set_in_use (false);
 }
 
 /* Function that finds the frame for WIDGET and shows the HELP text
@@ -294,8 +289,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
       /* If it has changed current-menubar from previous value,
          really recompute the menubar from the value.  */
-      if (!NILP (Vlucid_menu_bar_dirty_flag))
-	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
       fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
@@ -615,11 +608,6 @@ pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
 
   *error_name = NULL;
 
-  if (!FRAME_GTK_OUTER_WIDGET (f)) {
-    *error_name = "Can't popup from child frames.";
-    return Qnil;
-  }
-
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
       *error_name = "Empty menu";
@@ -923,11 +911,6 @@ pgtk_dialog_show (struct frame *f, Lisp_Object title,
   eassert (FRAME_PGTK_P (f));
 
   *error_name = NULL;
-
-  if (!FRAME_GTK_OUTER_WIDGET (f)) {
-    *error_name = "Can't popup from child frames.";
-    return Qnil;
-  }
 
   if (menu_items_n_panes > 1)
     {

@@ -106,8 +106,10 @@ taken as the expansion.  For example, to define the abbrev @samp{foo} as
 mentioned above, insert the text @samp{find outer otter} and then type
 @kbd{C-u 3 C-x a g f o o @key{RET}}.
 
-  An argument of zero to @kbd{C-x a g} means to use the contents of the
-region as the expansion of the abbrev being defined.
+  If you're using @code{transient-mark-mode} (which is the default),
+the active region will be used as the expansion of the abbrev being
+defined.  If not, an argument of zero to @kbd{C-x a g} means to use
+the contents of the region.
 
 @kindex C-x a l
 @findex add-mode-abbrev
@@ -411,10 +413,13 @@ away in the buffer to search for an expansion.
 
 @vindex dabbrev-check-all-buffers
 @vindex dabbrev-check-other-buffers
+@vindex dabbrev-ignored-buffer-modes
   After scanning the current buffer, @kbd{M-/} normally searches other
 buffers.  The variables @code{dabbrev-check-all-buffers} and
 @code{dabbrev-check-other-buffers} can be used to determine which
-other buffers, if any, are searched.
+other buffers, if any, are searched.  Buffers that have major modes
+derived from any of the modes in @code{dabbrev-ignored-buffer-modes}
+are ignored.
 
 @vindex dabbrev-ignored-buffer-names
 @vindex dabbrev-ignored-buffer-regexps

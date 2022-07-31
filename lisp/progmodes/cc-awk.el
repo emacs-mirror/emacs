@@ -56,6 +56,8 @@
 ;; Silence the byte compiler.
 (cc-bytecomp-defvar c-new-BEG)
 (cc-bytecomp-defvar c-new-END)
+(cc-bytecomp-defun c-restore-string-fences)
+(cc-bytecomp-defun c-clear-string-fences)
 
 ;; Some functions in cc-engine that are used below.  There's a cyclic
 ;; dependency so it can't be required here.  (Perhaps some functions
@@ -934,7 +936,7 @@
   ;; It prepares the buffer for font
   ;; locking, hence must get called before `font-lock-after-change-function'.
   ;;
-  ;; This function is the AWK value of `c-before-font-lock-function'.
+  ;; This function is the AWK value of `c-before-font-lock-functions'.
   ;; It does hidden buffer changes.
   (c-save-buffer-state ()
     (setq c-new-END (c-awk-end-of-change-region beg end old-len))
@@ -1109,29 +1111,30 @@ nor helpful.
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
   (interactive "p")
-  (or arg (setq arg 1))
-  (save-match-data
-    (c-save-buffer-state                ; ensures the buffer is writable.
-     nil
-     (let ((found t))     ; Has the most recent regexp search found b-of-defun?
-       (if (>= arg 0)
-           ;; Go back one defun each time round the following loop. (For +ve arg)
-           (while (and found (> arg 0) (not (eq (point) (point-min))))
-             ;; Go back one "candidate" each time round the next loop until one
-             ;; is genuinely a beginning-of-defun.
-             (while (and (setq found (search-backward-regexp
-                                      "^[^#} \t\n\r]" (point-min) 'stop-at-limit))
-                         (not (memq (c-awk-get-NL-prop-prev-line) '(?\$ ?\} ?\#)))))
-             (setq arg (1- arg)))
-         ;; The same for a -ve arg.
-         (if (not (eq (point) (point-max))) (forward-char 1))
-         (while (and found (< arg 0) (not (eq (point) (point-max)))) ; The same for -ve arg.
-           (while (and (setq found (search-forward-regexp
-                                    "^[^#} \t\n\r]" (point-max) 'stop-at-limit))
-                       (not (memq (c-awk-get-NL-prop-prev-line) '(?\$ ?\} ?\#)))))
-           (setq arg (1+ arg)))
-         (if found (goto-char (match-beginning 0))))
-       (eq arg 0)))))
+  (c-with-string-fences
+   (or arg (setq arg 1))
+   (save-match-data
+     (c-save-buffer-state	     ; ensures the buffer is writable.
+	 nil
+       (let ((found t))	; Has the most recent regexp search found b-of-defun?
+	 (if (>= arg 0)
+             ;; Go back one defun each time round the following loop. (For +ve arg)
+             (while (and found (> arg 0) (not (eq (point) (point-min))))
+               ;; Go back one "candidate" each time round the next loop until one
+               ;; is genuinely a beginning-of-defun.
+               (while (and (setq found (search-backward-regexp
+					"^[^#} \t\n\r]" (point-min) 'stop-at-limit))
+                           (not (memq (c-awk-get-NL-prop-prev-line) '(?\$ ?\} ?\#)))))
+               (setq arg (1- arg)))
+           ;; The same for a -ve arg.
+           (if (not (eq (point) (point-max))) (forward-char 1))
+           (while (and found (< arg 0) (not (eq (point) (point-max)))) ; The same for -ve arg.
+             (while (and (setq found (search-forward-regexp
+                                      "^[^#} \t\n\r]" (point-max) 'stop-at-limit))
+			 (not (memq (c-awk-get-NL-prop-prev-line) '(?\$ ?\} ?\#)))))
+             (setq arg (1+ arg)))
+           (if found (goto-char (match-beginning 0))))
+	 (eq arg 0))))))
 
 (defun c-awk-forward-awk-pattern ()
   ;; Point is at the start of an AWK pattern (which may be null) or function
@@ -1187,39 +1190,40 @@ no explicit action; see function `c-awk-beginning-of-defun'.
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
   (interactive "p")
-  (or arg (setq arg 1))
-  (save-match-data
-    (c-save-buffer-state
-     nil
-     (let ((start-point (point)) end-point)
-       ;; Strategy: (For +ve ARG): If we're not already at a beginning-of-defun,
-       ;; move backwards to one.
-       ;; Repeat [(i) move forward to end-of-current-defun (see below);
-       ;;         (ii) If this isn't it, move forward to beginning-of-defun].
-       ;; We start counting ARG only when step (i) has passed the original point.
-       (when (> arg 0)
-         ;; Try to move back to a beginning-of-defun, if not already at one.
-         (if (not (c-awk-beginning-of-defun-p))
-             (when (not (c-awk-beginning-of-defun 1)) ; No bo-defun before point.
-               (goto-char start-point)
-               (c-awk-beginning-of-defun -1))) ; if this fails, we're at EOB, tough!
-         ;; Now count forward, one defun at a time
-         (while (and (not (eobp))
-                     (c-awk-end-of-defun1)
-                     (if (> (point) start-point) (setq arg (1- arg)) t)
-                     (> arg 0)
-                     (c-awk-beginning-of-defun -1))))
+  (c-with-string-fences
+   (or arg (setq arg 1))
+   (save-match-data
+     (c-save-buffer-state
+	 nil
+       (let ((start-point (point)) end-point)
+	 ;; Strategy: (For +ve ARG): If we're not already at a beginning-of-defun,
+	 ;; move backwards to one.
+	 ;; Repeat [(i) move forward to end-of-current-defun (see below);
+	 ;;         (ii) If this isn't it, move forward to beginning-of-defun].
+	 ;; We start counting ARG only when step (i) has passed the original point.
+	 (when (> arg 0)
+           ;; Try to move back to a beginning-of-defun, if not already at one.
+           (if (not (c-awk-beginning-of-defun-p))
+               (when (not (c-awk-beginning-of-defun 1)) ; No bo-defun before point.
+		 (goto-char start-point)
+		 (c-awk-beginning-of-defun -1))) ; if this fails, we're at EOB, tough!
+           ;; Now count forward, one defun at a time
+           (while (and (not (eobp))
+                       (c-awk-end-of-defun1)
+                       (if (> (point) start-point) (setq arg (1- arg)) t)
+                       (> arg 0)
+                       (c-awk-beginning-of-defun -1))))
 
-       (when (< arg 0)
-         (setq end-point start-point)
-         (while (and (not (bobp))
-                     (c-awk-beginning-of-defun 1)
-                     (if (< (setq end-point (if (bobp) (point)
-                                              (save-excursion (c-awk-end-of-defun1))))
-                            start-point)
-                         (setq arg (1+ arg)) t)
-                     (< arg 0)))
-         (goto-char (min start-point end-point)))))))
+	 (when (< arg 0)
+           (setq end-point start-point)
+           (while (and (not (bobp))
+                       (c-awk-beginning-of-defun 1)
+                       (if (< (setq end-point (if (bobp) (point)
+						(save-excursion (c-awk-end-of-defun1))))
+                              start-point)
+                           (setq arg (1+ arg)) t)
+                       (< arg 0)))
+           (goto-char (min start-point end-point))))))))
 
 
 (cc-provide 'cc-awk)			; Changed from 'awk-mode, ACM 2002/5/21

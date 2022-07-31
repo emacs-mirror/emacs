@@ -263,7 +263,7 @@ form.")
                 nil))
              (kill-emacs-args nil)
              ((symbol-function #'kill-emacs)
-              (lambda (&optional arg) (push arg kill-emacs-args)))
+              (lambda (&rest args) (push args kill-emacs-args)))
              (process
               (make-process
                :name "sleep"
@@ -274,7 +274,7 @@ form.")
     (save-buffers-kill-emacs)
     (kill-process process)
     (should-not yes-or-no-p-prompts)
-    (should (equal kill-emacs-args '(nil)))))
+    (should (equal kill-emacs-args '((nil nil))))))
 
 (ert-deftest files-tests-read-file-in-~ ()
   "Test file prompting in directory named `~'.
@@ -393,6 +393,8 @@ After evaluating BODY, the temporary file or directory is deleted."
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
   `(let* ((temporary-file-directory (file-truename temporary-file-directory))
+          (temporary-file-directory
+           (file-name-as-directory (make-temp-file "files-tests" t)))
           (,name (make-temp-file "files-tests" ,dir-flag))
           (,non-special-name (file-name-quote ,name)))
      (unwind-protect
@@ -402,7 +404,9 @@ After evaluating BODY, the temporary file or directory is deleted."
            (delete-file ,name)))
        (when (file-exists-p ,non-special-name)
          (if ,dir-flag (delete-directory ,non-special-name t)
-           (delete-file ,non-special-name))))))
+           (delete-file ,non-special-name)))
+       (when (file-exists-p temporary-file-directory)
+         (delete-directory temporary-file-directory t)))))
 
 (defconst files-tests--special-file-name-extension ".special"
   "Trailing string for test file name handler.")
@@ -444,14 +448,16 @@ unquoted file names."
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
   `(let* ((temporary-file-directory (file-truename temporary-file-directory))
+          (temporary-file-directory
+           (file-name-as-directory (make-temp-file "files-tests" t)))
           (file-name-handler-alist
            `((,files-tests--special-file-name-regexp
               . files-tests--special-file-name-handler)
              . ,file-name-handler-alist))
-           (,name (concat
+          (,name (concat
                   (make-temp-file "files-tests" ,dir-flag)
                   files-tests--special-file-name-extension))
-           (,non-special-name (file-name-quote ,name)))
+          (,non-special-name (file-name-quote ,name)))
      (unwind-protect
          (progn ,@body)
        (when (file-exists-p ,name)
@@ -459,7 +465,9 @@ unquoted file names."
            (delete-file ,name)))
        (when (file-exists-p ,non-special-name)
          (if ,dir-flag (delete-directory ,non-special-name t)
-           (delete-file ,non-special-name))))))
+           (delete-file ,non-special-name)))
+       (when (file-exists-p temporary-file-directory)
+         (delete-directory temporary-file-directory t)))))
 
 (defun files-tests--new-name (name part)
   (let (file-name-handler-alist)
@@ -931,7 +939,7 @@ unquoted file names."
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (load nospecial nil t)))
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
-    (should (load nospecial nil t))))
+    (should-error (load nospecial nil t))))
 
 (ert-deftest files-tests-file-name-non-special-make-auto-save-file-name ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
@@ -1411,7 +1419,10 @@ See <https://debbugs.gnu.org/35241>."
        (equal tmpfile
               (executable-find (file-name-nondirectory tmpfile)))))))
 
-(ert-deftest files-tests-dont-rewrite-precious-files ()
+;; Note: we call this test "...-zzdont..." so that it runs near the
+;; end, because otherwise the advice it adds to write-region doesn't
+;; get removed(??) and breaks the revert-file tests on MS-Windows.
+(ert-deftest files-tests-zzdont-rewrite-precious-files ()
   "Test that `file-precious-flag' forces files to be saved by
 renaming only, rather than modified in-place."
   (ert-with-temp-file temp-file-name
@@ -1457,7 +1468,7 @@ renaming only, rather than modified in-place."
   (should (equal (file-size-human-readable-iec 0) "0 B"))
   (should (equal (file-size-human-readable-iec 1) "1 B"))
   (should (equal (file-size-human-readable-iec 9621) "9.4 KiB"))
-  (should (equal (file-size-human-readable-iec 72528034765) "67.5 GiB")))
+  (should (equal (file-size-human-readable-iec 72528034765) "68 GiB")))
 
 (ert-deftest files-test-magic-mode-alist-re-baseline ()
   "Test magic-mode-alist with RE, expected behavior for match."
@@ -1540,13 +1551,10 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      ;; Disable lock files, since that barfs in
-      ;; userlock--check-content-unchanged on MS-Windows.
-      (let (create-lockfiles)
-        (write-file temp-file-name)
-        (erase-buffer)
-        (insert files-tests-tzu)
-        (revert-buffer t t t))
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (revert-buffer t t t)
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
@@ -1556,13 +1564,10 @@ The door of all subtleties!
   (ert-with-temp-file temp-file-name
     (with-temp-buffer
       (insert files-tests-lao)
-      ;; Disable lock files, since that barfs in
-      ;; userlock--check-content-unchanged on MS-Windows.
-      (let (create-lockfiles)
-        (write-file temp-file-name)
-        (erase-buffer)
-        (insert files-tests-tzu)
-        (should (revert-buffer-with-fine-grain t t)))
+      (write-file temp-file-name)
+      (erase-buffer)
+      (insert files-tests-tzu)
+      (should (revert-buffer-with-fine-grain t t))
       (should (compare-strings files-tests-lao nil nil
                                (buffer-substring (point-min) (point-max))
                                nil nil)))))
@@ -1694,7 +1699,7 @@ FN-TEST is the function to test: either `save-some-buffers' or
 specified inside ARGS-RESULTS.
 
 During the call to FN-TEST,`read-event' is overridden with a function that
-just returns `n' and `kill-emacs' is overriden to do nothing.
+just returns `n' and `kill-emacs' is overridden to do nothing.
 
 ARGS-RESULTS is a list of elements (FN-ARGS CALLERS-DIR EXPECTED), where
 FN-ARGS are the arguments for FN-TEST;
@@ -1816,6 +1821,51 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (should (equal (file-name-split "/foo/bar/zot") '("" "foo" "bar" "zot")))
   (should (equal (file-name-split "/foo/bar/") '("" "foo" "bar" "")))
   (should (equal (file-name-split "foo/bar/") '("foo" "bar" ""))))
+
+(ert-deftest files-test-set-mode ()
+  (find-file (ert-resource-file "file-mode"))
+  (should (eq major-mode 'text-mode))
+  (emacs-lisp-mode)
+  ;; Check that the mode cookie doesn't override the explicit setting.
+  (should (eq major-mode 'emacs-lisp-mode)))
+
+(ert-deftest files-test-set-mode-multiple ()
+  (find-file (ert-resource-file "file-mode-multiple"))
+  (should (eq major-mode 'outline-mode)))
+
+(ert-deftest files-test-set-mode-prop-line ()
+  (find-file (ert-resource-file "file-mode-prop-line"))
+  (should (eq major-mode 'text-mode)))
+
+(ert-deftest files-load-elc-gz-file ()
+  (skip-unless (executable-find "gzip"))
+  (ert-with-temp-directory dir
+    (let* ((pref (expand-file-name "compile-utf8" dir))
+           (el (concat pref ".el")))
+      (copy-file (ert-resource-file "compile-utf8.el") el)
+      (push dir load-path)
+      (should (load pref t))
+      (should (fboundp 'foo))
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot))
+
+      (byte-compile-file el)
+      (fmakunbound 'foo)
+      (should (load (concat pref ".elc") t))
+      (should (fboundp 'foo))
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot))
+
+      (dired-compress-file (concat pref ".elc"))
+      (fmakunbound 'foo)
+      (should (load (concat pref ".elc.gz") t))
+      (should (fboundp 'foo))
+      ;; This fails due to bug#12598.
+      (should (documentation 'foo))
+      (should (documentation 'bar))
+      (should (documentation 'zot)))))
 
 (provide 'files-tests)
 ;;; files-tests.el ends here

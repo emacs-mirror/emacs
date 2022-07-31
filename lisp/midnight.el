@@ -67,14 +67,14 @@ The autokilling is done by `clean-buffer-list' when it is in `midnight-hook'.
 Currently displayed and/or modified (unsaved) buffers, as well as buffers
 matching `clean-buffer-list-kill-never-buffer-names' and
 `clean-buffer-list-kill-never-regexps' are excluded."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom clean-buffer-list-delay-special 3600
   "The number of seconds before some buffers become eligible for autokilling.
 Buffers matched by `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' are killed if they were last
 displayed more than this many seconds ago."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom clean-buffer-list-kill-regexps '("\\`\\*Man ")
   "List of regexps saying which buffers will be killed at midnight.

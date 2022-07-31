@@ -1,13 +1,13 @@
 ;;; windmove.el --- directional window-selection routines  -*- lexical-binding:t -*-
-;;
+
 ;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
-;;
-;; Author: Hovav Shacham (hovav@cs.stanford.edu)
+
+;; Author: Hovav Shacham <hovav@cs.stanford.edu>
 ;; Created: 17 October 1998
 ;; Keywords: window, movement, convenience
-;;
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -20,8 +20,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;; --------------------------------------------------------------------
 
 ;;; Commentary:
 ;;
@@ -445,8 +443,8 @@ unless `windmove-create-window' is non-nil and a new window is created."
 ;; I don't think these bindings will work on non-X terminals; you
 ;; probably want to use different bindings in that case.
 
-(defvar windmove-mode-map (make-sparse-keymap)
-  "Map used by `windmove-install-defaults'.")
+(defvar-keymap windmove-mode-map
+  :doc "Map used by `windmove-install-defaults'.")
 
 ;;;###autoload
 (define-minor-mode windmove-mode
@@ -644,7 +642,7 @@ Default value of MODIFIERS is `shift-meta'."
 (defun windmove-delete-in-direction (dir &optional arg)
   "Delete the window at direction DIR.
 If prefix ARG is `\\[universal-argument]', also kill the buffer in that window.
-With `M-0' prefix, delete the selected window and
+With \\`M-0' prefix, delete the selected window and
 select the window at direction DIR.
 When `windmove-wrap-around' is non-nil, takes the window
 from the opposite side of the frame."
@@ -788,7 +786,7 @@ Default value of MODIFIERS is `shift-super'."
                       (const :tag "Hyper" hyper)
                       (const :tag "Super" super)
                       (const :tag "Alt" alt))))
-  "Customisation type for windmove modifiers.")
+  "Customization type for windmove modifiers.")
 
 (defcustom windmove-default-keybindings nil
   "Default keybindings for regular windmove commands.

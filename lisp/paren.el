@@ -225,6 +225,13 @@ It is the default value of `show-paren-data-function'."
   (let* ((temp (show-paren--locate-near-paren))
 	 (dir (car temp))
 	 (outside (cdr temp))
+         ;; If we're inside a comment, then we probably want to blink
+         ;; a matching parentheses in the comment.  So don't ignore
+         ;; comments in that case.
+         (parse-sexp-ignore-comments
+          (if (ppss-comment-depth (syntax-ppss))
+              nil
+            parse-sexp-ignore-comments))
 	 pos mismatch here-beg here-end)
     ;;
     ;; Find the other end of the sexp.

@@ -1158,7 +1158,7 @@ overeenkomende commandonaam zoals find-file.
 --------------------
 
 Je kunt meer over Emacs leren door haar handleiding te lezen.  Deze is
-zowel als boek als in in Emacs beschikbaar (gebruik het Help menu of
+zowel als boek als in Emacs beschikbaar (gebruik het Help menu of
 tik C-h r).  Kijk bijvoorbeeld eens naar "completion", wat minder
 tikwerk oplevert, of "dired" wat het omgaan met bestanden
 vereenvoudigt.

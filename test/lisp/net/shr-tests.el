@@ -67,6 +67,21 @@
     (should-not
      (shr--use-cookies-p "http://www.gnu.org" '("http://www.fsf.org")))))
 
+(ert-deftest shr-srcset ()
+  (should (equal (shr--parse-srcset "") nil))
+
+  (should (equal (shr--parse-srcset "a 10w, b 20w")
+                 '(("b" 20) ("a" 10))))
+
+  (should (equal (shr--parse-srcset "a 10w b 20w")
+                 '(("a" 10))))
+
+  (should (equal (shr--parse-srcset "https://example.org/1\n\n 10w , https://example.org/2 20w      ")
+	         '(("https://example.org/2" 20) ("https://example.org/1" 10))))
+
+  (should (equal (shr--parse-srcset "https://example.org/1,2\n\n 10w , https://example.org/2 20w      ")
+	         '(("https://example.org/2" 20) ("https://example.org/1,2" 10)))))
+
 (require 'shr)
 
 ;;; shr-tests.el ends here

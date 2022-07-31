@@ -246,7 +246,7 @@ This method is obsolete."
     `(progn
        ,@(mapcar (lambda (w)
                    (macroexp-warn-and-return
-                    (car w) (cdr w) `(progn ',(cdr w)) nil 'compile-only))
+                    (cdr w) `(progn ',(cdr w)) nil 'compile-only (car w)))
                  warnings)
        ;; This test must be created right away so we can have self-
        ;; referencing classes.  ei, a class whose slot can contain only
@@ -271,7 +271,8 @@ This method is obsolete."
        ;; test, so we can let typep have the CLOS documented behavior
        ;; while keeping our above predicate clean.
 
-       (define-symbol-prop ',name 'cl-deftype-satisfies #',testsym2)
+       (eval-and-compile
+         (define-symbol-prop ',name 'cl-deftype-satisfies #',testsym2))
 
        (eieio-defclass-internal ',name ',superclasses ',slots ',options-and-doc)
 
@@ -296,13 +297,13 @@ This method is obsolete."
                          (if (not (stringp (car slots)))
                              whole
                            (macroexp-warn-and-return
-                            (car slots)
                             (format "Obsolete name arg %S to constructor %S"
                                     (car slots) (car whole))
                             ;; Keep the name arg, for backward compatibility,
                             ;; but hide it so we don't trigger indefinitely.
                             `(,(car whole) (identity ,(car slots))
-                              ,@(cdr slots)))))))
+                              ,@(cdr slots))
+                            nil nil (car slots))))))
              (apply #'make-instance ',name slots))))))
 
 
@@ -688,6 +689,7 @@ This class is not stored in the `parent' slot of a class vector."
 (define-obsolete-function-alias 'standard-class
   #'eieio-default-superclass "26.1")
 
+;;;###autoload
 (cl-defgeneric make-instance (class &rest initargs)
   "Make a new instance of CLASS based on INITARGS.
 For example:

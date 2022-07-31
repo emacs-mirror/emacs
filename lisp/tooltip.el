@@ -140,15 +140,6 @@ When using the GTK toolkit, this face will only be used if
   :group 'tooltip
   :group 'basic-faces)
 
-(defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of tooltip frames for help and GUD tooltips.
-This variable is obsolete; instead of setting it to t, disable
-`tooltip-mode' (which has a similar effect)."
-  :type 'boolean)
-
-(make-obsolete-variable 'tooltip-use-echo-area
-			"disable Tooltip mode instead" "24.1" 'set)
-
 (defcustom tooltip-resize-echo-area nil
   "If non-nil, using the echo area for tooltips will resize the echo area.
 By default, when the echo area is used for displaying tooltips,
@@ -230,25 +221,42 @@ change the existing association.  Value is the resulting alist."
 (declare-function x-show-tip "xfns.c"
 		  (string &optional frame parms timeout dx dy))
 
-(defun tooltip-show (text &optional use-echo-area)
+(defun tooltip-show (text &optional use-echo-area text-face default-face)
   "Show a tooltip window displaying TEXT.
 
 Text larger than `x-max-tooltip-size' is clipped.
 
-If the alist in `tooltip-frame-parameters' includes `left' and `top'
-parameters, they determine the x and y position where the tooltip
-is displayed.  Otherwise, the tooltip pops at offsets specified by
-`tooltip-x-offset' and `tooltip-y-offset' from the current mouse
-position.
+If the alist in `tooltip-frame-parameters' includes `left' and
+`top' parameters, they determine the x and y position where the
+tooltip is displayed.  Otherwise, the tooltip pops at offsets
+specified by `tooltip-x-offset' and `tooltip-y-offset' from the
+current mouse position.
+
+The text properties of TEXT are also modified to add the
+appropriate faces before displaying the tooltip.  If your code
+depends on them, you should copy the tooltip string before
+passing it to this function.
 
 Optional second arg USE-ECHO-AREA non-nil means to show tooltip
-in echo area."
+in echo area.
+
+The third and fourth args TEXT-FACE and DEFAULT-FACE specify
+faces used to display the tooltip, and default to `tooltip' if
+not specified.  TEXT-FACE specifies a face used to display text
+in the tooltip, while DEFAULT-FACE specifies a face that provides
+the background, foreground and border colors of the tooltip
+frame.
+
+Note that the last two arguments are not respected when
+`use-system-tooltips' is non-nil and Emacs is built with support
+for system tooltips, such as on NS, Haiku, and with the GTK
+toolkit."
   (if use-echo-area
       (tooltip-show-help-non-mode text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
-	      (fg (face-attribute 'tooltip :foreground))
-	      (bg (face-attribute 'tooltip :background)))
+	      (fg (face-attribute (or default-face 'tooltip) :foreground))
+	      (bg (face-attribute (or default-face 'tooltip) :background)))
 	  (when (stringp fg)
 	    (setf (alist-get 'foreground-color params) fg)
 	    (setf (alist-get 'border-color params) fg))
@@ -258,7 +266,8 @@ in echo area."
           ;; faces used in our TEXT.  Among other things, this allows
           ;; tooltips to use the `help-key-binding' face used in
           ;; `substitute-command-keys' substitutions.
-          (add-face-text-property 0 (length text) 'tooltip t text)
+          (add-face-text-property 0 (length text)
+                                  (or text-face 'tooltip) t text)
           (x-show-tip text
 		      (selected-frame)
 		      params
@@ -377,7 +386,11 @@ It is also called if Tooltip mode is on, for text-only displays."
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (if (and (display-graphic-p))
+  (if (and (display-graphic-p)
+           ;; Tooltips can't be displayed on top of the global menu
+           ;; bar on NS.
+           (or (not (eq window-system 'ns))
+               (not (menu-or-popup-active-p))))
       (let ((previous-help tooltip-help-message))
 	(setq tooltip-help-message msg)
 	(cond ((null msg)
@@ -405,7 +418,7 @@ This is installed on the hook `tooltip-functions', which
 is run when the timer with id `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
-    (tooltip-show tooltip-help-message tooltip-use-echo-area)
+    (tooltip-show tooltip-help-message (not tooltip-mode))
     t))
 
 (provide 'tooltip)

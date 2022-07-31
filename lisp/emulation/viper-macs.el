@@ -105,7 +105,8 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
         #'viper-end-mapping-kbd-macro)
       (define-key viper-emacs-intercept-map "\C-x)"
         #'viper-end-mapping-kbd-macro)
-      (message "Mapping %S in %s state.  Type macro definition followed by `C-x )'"
+      (message (substitute-command-keys "Mapping %S in %s state.  \
+Type macro definition followed by \\[kmacro-end-macro]")
 	       (viper-display-macro macro-name)
 	       (if ins "Insert" "Vi")))
     ))
@@ -886,8 +887,9 @@ mistakes in macro names to be passed to this function is to use
   (if (get-register reg)
       (if (y-or-n-p "Register contains data.  Overwrite? ")
 	  ()
-	(error
-	 "Macro not saved in register.  Can still be invoked via `C-x e'")))
+        (error
+         (substitute-command-keys
+          "Macro not saved in register.  Can still be invoked via \\[kmacro-end-and-call-macro]"))))
   (set-register reg last-kbd-macro))
 
 (defun viper-register-macro (count)

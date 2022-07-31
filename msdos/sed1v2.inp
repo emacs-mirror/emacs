@@ -50,6 +50,7 @@ s/\.h\.in/.h-in/
 /^LIB_ACL *=/s/@LIB_ACL@//
 /^LIB_EACCESS *=/s/@LIB_EACCESS@//
 /^LIB_FDATASYNC *=/s/@LIB_FDATASYNC@//
+/^LIB_NANOSLEEP *=/s/@LIB_NANOSLEEP@//
 s/ *@LIBTIFF@//
 s/ *@LIBJPEG@//
 s/ *@LIBPNG@//
@@ -116,6 +117,10 @@ s/ *@WEBP_LIBS@//
 /^XFIXES_CFLAGS *=/s/@XFIXES_CFLAGS@//
 /^XDBE_LIBS *=/s/@XDBE_LIBS@//
 /^XDBE_CFLAGS *=/s/@XDBE_CFLAGS@//
+/^XCOMPOSITE_LIBS *=/s/@XCOMPOSITE_LIBS@//
+/^XCOMPOSITE_CFLAGS *=/s/@XCOMPOSITE_CFLAGS@//
+/^XSHAPE_LIBS *=/s/@XSHAPE_LIBS@//
+/^XSHAPE_CFLAGS *=/s/@XSHAPE_CFLAGS@//
 /^XINPUT_LIBS *=/s/@XINPUT_LIBS@//
 /^XINPUT_CFLAGS *=/s/@XINPUT_CFLAGS@//
 /^XSYNC_LIBS *=/s/@XSYNC_LIBS@//
@@ -193,6 +198,8 @@ s/ *@WEBP_LIBS@//
 /^PAXCTL_dumped *=/s/=.*$/=/
 /^PAXCTL_notdumped *=/s/=.*$/=/
 /^DUMPING *=/s/@DUMPING@/unexec/
+/^[ \t]*MAKE_PDUMPER_FINGERPRINT = *$/c\
+MAKE_PDUMPER_FINGERPRINT =
 /^lisp\.mk:/,/^$/c\
 lisp.mk: $(lispsource)/loadup.el\
 	@rm -f $@\
@@ -204,6 +211,10 @@ lisp.mk: $(lispsource)/loadup.el\
 
 /^	[ 	]*\$(AM_V_at)\$(libsrc)\/make-docfile -d/s!make-docfile!make-docfile -o $(etc)/DOC!
 / > \$(etc)\/DOC *$/s/ >.*$//
+/^\$(etc)\/DOC/,/^$/{
+  /^$/i\
+	cd ../src
+}
 /^	[ 	]*\$(AM_V_GLOBALS)\$(libsrc)\/make-docfile.*>.*globals.tmp/s!make-docfile!make-docfile -o globals.tmp!
 /^	[ 	]*\$(AM_V_GLOBALS)\$(libsrc)\/make-doc/s!>.*$!!
 /^\$(libsrc)\/make-docfile\$(EXEEXT): /i\

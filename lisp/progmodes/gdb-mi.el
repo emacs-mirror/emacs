@@ -90,6 +90,7 @@
 (require 'gud)
 (require 'cl-lib)
 (require 'cl-seq)
+(require 'bindat)
 (eval-when-compile (require 'pcase))
 
 (declare-function speedbar-change-initial-expansion-list
@@ -104,6 +105,7 @@
 ;; at toplevel, so the compiler doesn't know under which circumstances
 ;; they're defined.
 (declare-function gud-until  "gud" (arg))
+(declare-function gud-go     "gud" (arg))
 (declare-function gud-print  "gud" (arg))
 (declare-function gud-down   "gud" (arg))
 (declare-function gud-up     "gud" (arg))
@@ -283,8 +285,8 @@ Possible values are:
   :type '(choice
           (const :tag "Always restore" t)
           (const :tag "Don't restore" nil)
-          (const :tag "Depends on `gdb-show-main'" 'if-gdb-show-main)
-          (const :tag "Depends on `gdb-many-windows'" 'if-gdb-many-windows))
+          (const :tag "Depends on `gdb-show-main'" if-gdb-show-main)
+          (const :tag "Depends on `gdb-many-windows'" if-gdb-many-windows))
   :group 'gdb
   :version "28.1")
 
@@ -682,7 +684,7 @@ Note that this variable only takes effect when variable
 Until there are such number of source windows on screen, GDB
 tries to open a new window when visiting a new source file; after
 that GDB starts to reuse existing source windows."
-  :type 'number
+  :type 'natnum
   :group 'gdb
   :version "28.1")
 
@@ -954,12 +956,16 @@ detailed description of this mode.
 			  (forward-char 2)
 			  (gud-call "-exec-until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
-  ;; TODO Why arg here?
   (gud-def
-   gud-go (gud-call (if gdb-active-process
-                        (gdb-gud-context-command "-exec-continue")
-                      "-exec-run") arg)
-   nil "Start or continue execution.")
+   gud-go (progn
+            (when arg
+              (gud-call (concat "-exec-arguments "
+                                (read-string "Arguments to exec-run: "))))
+            (gud-call
+             (if gdb-active-process
+                 (gdb-gud-context-command "-exec-continue")
+               "-exec-run")))
+   "C-v" "Start or continue execution.  Use a prefix to specify arguments.")
 
   ;; For debugging Emacs only.
   (gud-def gud-pp
@@ -1138,7 +1144,8 @@ no input, and GDB is waiting for input."
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) gdb-define-alist))))
 
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defconst gdb--string-regexp (rx "\""
                                  (* (or (seq "\\" nonl)
@@ -1580,7 +1587,7 @@ Buffer mode and name are selected according to buffer type.
 
 If buffer has trigger associated with it in `gdb-buffer-rules',
 this trigger is subscribed to `gdb-buf-publisher' and called with
-'update argument."
+`update' argument."
   (or (gdb-get-buffer buffer-type thread)
       (let ((rules (assoc buffer-type gdb-buffer-rules))
             (new (generate-new-buffer "limbo")))
@@ -2105,7 +2112,7 @@ is running."
            (not (null gdb-running-threads-count))
            (> gdb-running-threads-count 0))))
 
-;; GUD displays the selected GDB frame.  This might might not be the current
+;; GUD displays the selected GDB frame.  This might not be the current
 ;; GDB frame (after up, down etc).  If no GDB frame is visible but the last
 ;; visited breakpoint is, use that window.
 (defun gdb-display-source-buffer (buffer)
@@ -2810,7 +2817,7 @@ END-CHAR is the ending delimiter; will stop at end-of-buffer otherwise."
               pieces)
         (forward-char))
        (t
-        (warn "Unrecognised escape char: %c" (following-char))))
+        (warn "Unrecognized escape char: %c" (following-char))))
       (setq start (point)))
     (push (buffer-substring start (1- (point))) pieces)
     (let ((s (apply #'concat (nreverse pieces))))
@@ -3080,6 +3087,45 @@ See `def-gdb-auto-update-handler'."
  'gdb-breakpoints-mode
  'gdb-invalidate-breakpoints)
 
+(defun gdb-breakpoints--add-breakpoint-row (tbl bkpt)
+  (let ((at (gdb-mi--field bkpt 'at))
+        (pending (gdb-mi--field bkpt 'pending))
+        (addr (gdb-mi--field bkpt 'addr))
+        (func (gdb-mi--field bkpt 'func))
+	(type (gdb-mi--field bkpt 'type)))
+    (if (and (not func) (string-equal addr "<MULTIPLE>"))
+        (setq func ""))
+    (gdb-table-add-row tbl
+                       (list
+                        (gdb-mi--field bkpt 'number)
+                        (or type "")
+                        (or (gdb-mi--field bkpt 'disp) "")
+                        (let ((flag (gdb-mi--field bkpt 'enabled)))
+                          (if (string-equal flag "y")
+                              (eval-when-compile
+                                (propertize "y" 'font-lock-face
+                                            font-lock-warning-face))
+                            (eval-when-compile
+                              (propertize "n" 'font-lock-face
+                                          font-lock-comment-face))))
+                        addr
+                        (or (gdb-mi--field bkpt 'times) "")
+                        (if (and type (string-match ".*watchpoint" type))
+                            (gdb-mi--field bkpt 'what)
+                          (or (and (equal func "") "")
+                              pending at
+                              (concat "in "
+                                      (propertize (or func "unknown")
+                                                  'font-lock-face
+                                                  font-lock-function-name-face)
+                                      (gdb-frame-location bkpt)))))
+                       ;; Add clickable properties only for
+                       ;; breakpoints with file:line information
+                       (append (list 'gdb-breakpoint bkpt)
+                               (when func
+                                 '(help-echo "mouse-2, RET: visit breakpoint"
+                                             mouse-face highlight))))))
+
 (defun gdb-breakpoints-list-handler-custom ()
   (let ((breakpoints-list (gdb-mi--field
                            (gdb-mi--field (gdb-mi--partial-output 'bkpt)
@@ -3092,37 +3138,14 @@ See `def-gdb-auto-update-handler'."
       (add-to-list 'gdb-breakpoints-list
                    (cons (gdb-mi--field breakpoint 'number)
                          breakpoint))
-      (let ((at (gdb-mi--field breakpoint 'at))
-            (pending (gdb-mi--field breakpoint 'pending))
-            (func (gdb-mi--field breakpoint 'func))
-	    (type (gdb-mi--field breakpoint 'type)))
-        (gdb-table-add-row table
-                           (list
-                            (gdb-mi--field breakpoint 'number)
-                            (or type "")
-                            (or (gdb-mi--field breakpoint 'disp) "")
-                            (let ((flag (gdb-mi--field breakpoint 'enabled)))
-                              (if (string-equal flag "y")
-                                  (eval-when-compile
-                                    (propertize "y" 'font-lock-face
-                                                font-lock-warning-face))
-                                (eval-when-compile
-                                  (propertize "n" 'font-lock-face
-                                              font-lock-comment-face))))
-                            (gdb-mi--field breakpoint 'addr)
-                            (or (gdb-mi--field breakpoint 'times) "")
-                            (if (and type (string-match ".*watchpoint" type))
-                                (gdb-mi--field breakpoint 'what)
-                              (or pending at
-                                  (concat "in "
-                                          (propertize (or func "unknown")
-                                                      'font-lock-face font-lock-function-name-face)
-                                          (gdb-frame-location breakpoint)))))
-                           ;; Add clickable properties only for breakpoints with file:line
-                           ;; information
-                           (append (list 'gdb-breakpoint breakpoint)
-                                   (when func '(help-echo "mouse-2, RET: visit breakpoint"
-                                                mouse-face highlight))))))
+      ;; Add the breakpoint/header row to the table.
+      (gdb-breakpoints--add-breakpoint-row table breakpoint)
+      ;; If this breakpoint has multiple locations, add them as well.
+      (when-let ((locations (gdb-mi--field breakpoint 'locations)))
+        (dolist (loc locations)
+          (add-to-list 'gdb-breakpoints-list
+                       (cons (gdb-mi--field loc 'number) loc))
+          (gdb-breakpoints--add-breakpoint-row table loc))))
     (insert (gdb-table-string table " "))
     (gdb-place-breakpoints)))
 
@@ -4288,7 +4311,7 @@ member."
 ;; uses "-stack-list-locals --simple-values". Needs GDB 6.1 onwards.
 (def-gdb-trigger-and-handler
   gdb-invalidate-locals
-  (concat (gdb-current-context-command "-stack-list-locals")
+  (concat (gdb-current-context-command "-stack-list-variables")
           " --simple-values")
   gdb-locals-handler gdb-locals-handler-custom
   '(start update))
@@ -4298,6 +4321,48 @@ member."
  'gdb-locals-buffer-name
  'gdb-locals-mode
  'gdb-invalidate-locals)
+
+
+;; Retrieve the values of all variables before invalidating locals.
+(def-gdb-trigger-and-handler
+  gdb-locals-values
+  (concat (gdb-current-context-command "-stack-list-variables")
+          " --all-values")
+  gdb-locals-values-handler gdb-locals-values-handler-custom
+  '(start update))
+
+(gdb-set-buffer-rules
+ 'gdb-locals-values-buffer
+ 'gdb-locals-values-buffer-name
+ 'gdb-locals-mode
+ 'gdb-locals-values)
+
+(defun gdb-locals-values-buffer-name ()
+  (gdb-current-context-buffer-name
+   (concat "local values of " (gdb-get-target-string))))
+
+(defcustom gdb-locals-simple-values-only nil
+  "Only display simple values in the Locals buffer."
+  :type 'boolean
+  :group 'gud
+  :version "29.1")
+
+(defcustom gdb-locals-value-limit 100
+  "Maximum length the value of a local variable is allowed to be."
+  :type 'integer
+  :group 'gud
+  :version "29.1")
+
+(defvar gdb-locals-values-table (make-hash-table :test #'equal)
+  "Mapping of local variable names to a string with their value.")
+
+(defun gdb-locals-values-handler-custom ()
+  "Store the values of local variables in `gdb-locals-value-map'."
+  (let ((locals-list (bindat-get-field (gdb-mi--partial-output) 'variables)))
+    (dolist (local locals-list)
+      (let ((name (bindat-get-field local 'name))
+            (value (bindat-get-field local 'value)))
+        (puthash name value gdb-locals-values-table)))))
 
 (defvar gdb-locals-watch-map
   (let ((map (make-sparse-keymap)))
@@ -4315,6 +4380,15 @@ member."
     map)
   "Keymap to edit value of a simple data type local variable.")
 
+(defun gdb-locals-value-filter (value)
+  "Filter function for the local variable VALUE."
+  (let* ((no-nl (replace-regexp-in-string "\n" " " value))
+         (str (replace-regexp-in-string "[[:space:]]+" " " no-nl))
+         (limit gdb-locals-value-limit))
+    (if (>= (length str) limit)
+        (concat (substring str 0 limit) "...")
+      str)))
+
 (defun gdb-edit-locals-value (&optional event)
   "Assign a value to a variable displayed in the locals buffer."
   (interactive (list last-input-event))
@@ -4327,17 +4401,22 @@ member."
       (gud-basic-call
        (concat  "-gdb-set variable " var " = " value)))))
 
-;; Don't display values of arrays or structures.
-;; These can be expanded using gud-watch.
+;; Complex data types are looked up in `gdb-locals-values-table'.
 (defun gdb-locals-handler-custom ()
-  (let ((locals-list (gdb-mi--field (gdb-mi--partial-output) 'locals))
+  "Handler to rebuild the local variables table buffer."
+  (let ((locals-list (bindat-get-field (gdb-mi--partial-output) 'variables))
         (table (make-gdb-table)))
     (dolist (local locals-list)
       (let ((name (gdb-mi--field local 'name))
             (value (gdb-mi--field local 'value))
             (type (gdb-mi--field local 'type)))
         (when (not value)
-          (setq value "<complex data type>"))
+          (setq value
+                (if gdb-locals-simple-values-only
+                    "<complex data type>"
+                  (gethash name gdb-locals-values-table "<unavailable>"))))
+        (setq value (gdb-locals-value-filter value))
+
         (if (or (not value)
                 (string-match "0x" value))
             (add-text-properties 0 (length name)
@@ -4860,6 +4939,8 @@ file\" where the GDB session starts (see `gdb-main-file')."
          (expand-file-name gdb-default-window-configuration-file
                            gdb-window-configuration-directory)))
     ;; Create default layout as before.
+    ;; Make sure that local values are updated before locals.
+    (gdb-get-buffer-create 'gdb-locals-values-buffer)
     (gdb-get-buffer-create 'gdb-locals-buffer)
     (gdb-get-buffer-create 'gdb-stack-buffer)
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)

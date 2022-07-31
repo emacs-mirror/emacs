@@ -448,6 +448,7 @@ DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 (defvar frameset-persistent-filter-alist
   (append
    '((background-color            . frameset-filter-sanitize-color)
+     (bottom                      . frameset-filter-shelve-param)
      (buffer-list                 . :never)
      (buffer-predicate            . :never)
      (buried-buffer-list          . :never)
@@ -464,13 +465,20 @@ DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
      (frameset--text-pixel-height . :save)
      (frameset--text-pixel-width  . :save)
      (fullscreen                  . frameset-filter-shelve-param)
+     (GUI:bottom                  . frameset-filter-unshelve-param)
      (GUI:font                    . frameset-filter-unshelve-param)
      (GUI:fullscreen              . frameset-filter-unshelve-param)
      (GUI:height                  . frameset-filter-unshelve-param)
+     (GUI:left                    . frameset-filter-unshelve-param)
+     (GUI:right                   . frameset-filter-unshelve-param)
+     (GUI:top                     . frameset-filter-unshelve-param)
      (GUI:width                   . frameset-filter-unshelve-param)
      (height                      . frameset-filter-shelve-param)
+     (left                        . frameset-filter-shelve-param)
      (parent-frame                . :never)
      (mouse-wheel-frame           . :never)
+     (right                       . frameset-filter-shelve-param)
+     (top                         . frameset-filter-shelve-param)
      (tty                         . frameset-filter-tty-to-GUI)
      (tty-type                    . frameset-filter-tty-to-GUI)
      (width                       . frameset-filter-shelve-param)
@@ -1010,13 +1018,15 @@ not be changed once the frame has been created.  Internal use only."
   (cl-loop for param in '(left top width height border-width minibuffer)
 	   when (assq param parameters) collect it))
 
-(defun frameset--restore-frame (parameters window-state filters force-onscreen)
+(defun frameset--restore-frame (parameters window-state filters force-onscreen
+                                           &optional dx dy)
   "Set up and return a frame according to its saved state.
 That means either reusing an existing frame or creating one anew.
 PARAMETERS is the frame's parameter alist; WINDOW-STATE is its window state.
 For the meaning of FILTERS and FORCE-ONSCREEN, see `frameset-restore'.
 Internal use only."
   (let* ((fullscreen (cdr (assq 'fullscreen parameters)))
+         (tty-to-GUI (frameset-switch-to-gui-p parameters))
 	 (filtered-cfg (frameset-filter-params parameters filters nil))
 	 (display (cdr (assq 'display filtered-cfg))) ;; post-filtering
 	 alt-cfg frame)
@@ -1093,6 +1103,14 @@ Internal use only."
 	       (not (eq (frame-parameter frame 'visibility) 'icon)))
       (frameset-move-onscreen frame force-onscreen))
 
+    ;; Frames saved on TTY shall be all considered visible when
+    ;; restoring on GUI display.  Also, offset each new such frame
+    ;; relative to the previous one, to make it more visible.
+    (when tty-to-GUI
+      (push '(visibility . t) alt-cfg)
+      (when (and (numberp dx) (numberp dy))
+        (push (cons 'left (+ (frame-parameter frame 'left) dx)) alt-cfg)
+        (push (cons 'top  (+ (frame-parameter frame 'top)  dy)) alt-cfg)))
     ;; Let's give the finishing touches (visibility, maximization).
     (when alt-cfg (modify-frame-parameters frame alt-cfg))
     ;; Now restore window state.
@@ -1216,7 +1234,9 @@ All keyword parameters default to nil."
 	    ((pred functionp)
 	     (cl-remove-if-not reuse-frames frames))
 	    (_
-	     (error "Invalid arg :reuse-frames %s" reuse-frames)))))
+	     (error "Invalid arg :reuse-frames %s" reuse-frames))))
+         (dx 0)
+         (dy 0))
 
     ;; Mark existing frames in the map; candidates to reuse are marked as :ignored;
     ;; they will be reassigned later, if chosen.
@@ -1289,11 +1309,21 @@ All keyword parameters default to nil."
 			    (setq mb-window nil)))
 			(when mb-window
 			  (push (cons 'minibuffer mb-window) frame-cfg))))))
+                  ;; Apply small offsets to each frame that came from
+                  ;; a TTY-saved desktop, so that they don't obscure
+                  ;; each other, but only if we don't have real frame
+                  ;; position info from a GUI session in some,
+                  ;; possibly distant, past.
+                  (when (and (frameset-switch-to-gui-p frame-cfg)
+                             (null (cdr (assq 'GUI:top frame-cfg)))
+                             (null (cdr (assq 'GUI:left frame-cfg))))
+                    (setq dx (+ dx 20)
+                          dy (+ dy 10)))
 		  ;; OK, we're ready at last to create (or reuse) a frame and
 		  ;; restore the window config.
 		  (setq frame (frameset--restore-frame frame-cfg window-cfg
 						       (or filters frameset-filter-alist)
-						       force-onscreen))
+						       force-onscreen dx dy))
 		  ;; Now reset any duplicate frameset--id
 		  (when (and duplicate (not (eq frame duplicate)))
 		    (set-frame-parameter duplicate 'frameset--id nil))

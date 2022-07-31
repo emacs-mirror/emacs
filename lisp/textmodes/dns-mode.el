@@ -1,6 +1,6 @@
 ;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2001, 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: DNS master zone file SOA comm
@@ -22,11 +22,11 @@
 
 ;;; Commentary:
 
-;; Use M-x dns-mode RET to invoke in master files.
+;; Use `M-x dns-mode' to invoke in master files.
 ;;
-;; C-c C-s  Increment SOA serial.
-;;          Understands YYYYMMDDNN, Unix time, and serial number formats,
-;;          and complains if it fail to find SOA serial.
+;; `C-c C-s'  Increment SOA serial.
+;;            Understands YYYYMMDDNN, Unix time, and serial number
+;;            formats, and complains if it fail to find SOA serial.
 
 ;;; References:
 
@@ -36,12 +36,6 @@
 ;; RFC 6698, "The DNS-Based Authentication of Named Entities (DANE)
 ;;             Transport Layer Security (TLS) Protocol: TLSA"
 ;; RFC 6844, "DNS Certification Authority Authorization (CAA) Resource Record"
-
-;;; Release history:
-
-;; 2004-09-11  Posted on gnu.emacs.sources.
-;; 2004-09-13  Ported to XEmacs.
-;; 2004-09-14  Installed in Emacs CVS.
 
 ;;; Code:
 
@@ -110,11 +104,11 @@
 			"26.1" 'set)
 
 (defcustom dns-mode-font-lock-keywords
-  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities))
+  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities) "\\>")
      0 ,dns-mode-control-entity-face)
     ("^\\$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
-    (,(regexp-opt dns-mode-classes) 0 ,dns-mode-class-face)
-    (,(regexp-opt dns-mode-types) 0 ,dns-mode-type-face))
+    (,(regexp-opt dns-mode-classes 'words) 0 ,dns-mode-class-face)
+    (,(regexp-opt dns-mode-types 'words) 0 ,dns-mode-type-face))
   "Font lock keywords used to highlight text in DNS master file mode."
   :version "26.1"
   :type 'sexp)
@@ -142,12 +136,10 @@ manually with \\[dns-mode-soa-increment-serial]."
 
 ;; Keymap.
 
-(defvar dns-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-s" #'dns-mode-soa-increment-serial)
-    (define-key map "\C-c\C-e" #'dns-mode-ipv6-to-nibbles)
-    map)
-  "Keymap for DNS master file mode.")
+(defvar-keymap dns-mode-map
+  :doc "Keymap for DNS master file mode."
+  "C-c C-s" #'dns-mode-soa-increment-serial
+  "C-c C-e" #'dns-mode-ipv6-to-nibbles)
 
 ;; Menu.
 
@@ -165,7 +157,7 @@ manually with \\[dns-mode-soa-increment-serial]."
 ;;;###autoload
 (define-derived-mode dns-mode text-mode "DNS"
   "Major mode for viewing and editing DNS master files.
-This mode is inherited from text mode.  It add syntax
+This mode is derived from text mode.  It adds syntax
 highlighting, and some commands for handling DNS master files.
 Its keymap inherits from `text-mode' and it has the same
 variables for customizing indentation.  It has its own abbrev

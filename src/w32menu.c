@@ -556,10 +556,8 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
   HMENU menu;
   POINT pos;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
-  widget_value **submenu_stack
-    = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
-  Lisp_Object *subprefix_stack
-    = (Lisp_Object *) alloca (menu_items_used * word_size);
+  widget_value **submenu_stack;
+  Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
   bool first_pane;
 
@@ -573,6 +571,11 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
       *error = "Empty menu";
       return Qnil;
     }
+
+  USE_SAFE_ALLOCA;
+
+  submenu_stack = SAFE_ALLOCA (menu_items_used * sizeof (widget_value *));
+  subprefix_stack = SAFE_ALLOCA (menu_items_used * word_size);
 
   block_input ();
 
@@ -816,6 +819,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
 		  unblock_input ();
+		  SAFE_FREE ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -830,6 +834,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 
   unblock_input ();
+  SAFE_FREE ();
   return Qnil;
 }
 

@@ -32,6 +32,7 @@
 (require 'thingatpt)
 (require 'url)
 (require 'url-queue)
+(require 'url-file)
 (require 'xdg)
 (eval-when-compile (require 'subr-x))
 
@@ -191,7 +192,7 @@ determine the renaming scheme, as follows:
   user-defined function:
 
   (defun my-eww-rename-buffer ()
-    (when (eq major-mode 'eww-mode)
+    (when (eq major-mode \\='eww-mode)
       (when-let ((string (or (plist-get eww-data :title)
                              (plist-get eww-data :url))))
         (format \"*%s*\" string))))
@@ -310,7 +311,7 @@ parameter, and should return the (possibly) transformed URL."
 
 (defvar eww-accept-content-types
   "text/html, text/plain, text/sgml, text/css, application/xhtml+xml, */*;q=0.01"
-  "Value used for the HTTP 'Accept' header.")
+  "Value used for the HTTP \"Accept\" header.")
 
 (defvar-keymap eww-link-keymap
   :parent shr-map
@@ -362,7 +363,9 @@ new buffer instead of reusing the default EWW buffer.
 
 If BUFFER, the data to be rendered is in that buffer.  In that
 case, this function doesn't actually fetch URL.  BUFFER will be
-killed after rendering."
+killed after rendering.
+
+For more information, see Info node `(eww) Top'."
   (interactive
    (let ((uris (eww-suggested-uris)))
      (list (read-string (format-prompt "Enter URL or keywords"
@@ -487,22 +490,21 @@ killed after rendering."
 (defun eww-open-file (file)
   "Render FILE using EWW."
   (interactive "fFile: ")
-  (eww (concat "file://"
-	       (and (memq system-type '(windows-nt ms-dos))
-		    "/")
-	       (expand-file-name file))
-       nil
-       ;; The file name may be a non-local Tramp file.  The URL
-       ;; library doesn't understand these file names, so use the
-       ;; normal Emacs machinery to load the file.
-       (with-current-buffer (generate-new-buffer " *eww file*")
-         (set-buffer-multibyte nil)
-         (insert "Content-type: " (or (mailcap-extension-to-mime
-			               (url-file-extension file))
-                                      "application/octet-stream")
-                 "\n\n")
-         (insert-file-contents file)
-         (current-buffer))))
+  (let ((url-allow-non-local-files t))
+    (eww (concat "file://"
+	         (and (memq system-type '(windows-nt ms-dos))
+		      "/")
+	         (expand-file-name file)))))
+
+(defun eww--file-buffer (file)
+  (with-current-buffer (generate-new-buffer " *eww file*")
+    (set-buffer-multibyte nil)
+    (insert "Content-type: " (or (mailcap-extension-to-mime
+			          (url-file-extension file))
+                                 "application/octet-stream")
+            "\n\n")
+    (insert-file-contents file)
+    (current-buffer)))
 
 ;;;###autoload
 (defun eww-search-words ()
@@ -833,7 +835,7 @@ The renaming scheme is performed in accordance with
                (when url
                  (setq url (propertize url 'face 'variable-pitch))
                  (let* ((parsed (url-generic-parse-url url))
-                        (host-length (shr-string-pixel-width
+                        (host-length (string-pixel-width
                                       (propertize
                                        (format "%s://%s" (url-type parsed)
                                                (url-host parsed))
@@ -842,17 +844,17 @@ The renaming scheme is performed in accordance with
                    (cond
                     ;; The host bit is wider than the window, so nix
                     ;; the title.
-                    ((> (+ host-length (shr-string-pixel-width "xxxxx")) width)
+                    ((> (+ host-length (string-pixel-width "xxxxx")) width)
                      (setq title ""))
                     ;; Trim the title.
-                    ((> (+ (shr-string-pixel-width (concat title "xx"))
+                    ((> (+ (string-pixel-width (concat title "xx"))
                            host-length)
                         width)
                      (setq title
                            (concat
                             (eww--limit-string-pixelwise
                              title (- width host-length
-                                      (shr-string-pixel-width
+                                      (string-pixel-width
                                        (propertize "...: " 'face
                                                    'variable-pitch))))
                             (propertize "..." 'face 'variable-pitch)))))))
@@ -932,9 +934,9 @@ The renaming scheme is performed in accordance with
 
 (defun eww-links-at-point ()
   "Return list of URIs, if any, linked at point."
-  (remq nil
-	(list (get-text-property (point) 'shr-url)
-	      (get-text-property (point) 'image-url))))
+  (seq-filter #'stringp
+	      (list (get-text-property (point) 'shr-url)
+	            (get-text-property (point) 'image-url))))
 
 (defun eww-view-source ()
   "View the HTML source code of the current page."
@@ -1204,7 +1206,10 @@ instead of `browse-url-new-window-flag'."
       (format "*eww-%s*" (url-host (url-generic-parse-url
                                     (eww--dwim-expand-url url))))))
     (eww-mode))
-  (eww url))
+  (let ((url-allow-non-local-files t))
+    (eww url)))
+
+(function-put 'eww-browse-url 'browse-url-browser-kind 'internal)
 
 (defun eww-back-url ()
   "Go to the previously displayed page."
@@ -1291,9 +1296,16 @@ just re-display the HTML already fetched."
 	    (error "No current HTML data")
 	  (eww-display-html 'utf-8 url (plist-get eww-data :dom)
 			    (point) (current-buffer)))
-      (let ((url-mime-accept-string eww-accept-content-types))
-        (eww-retrieve url #'eww-render
-		      (list url (point) (current-buffer) encode))))))
+      (let ((parsed (url-generic-parse-url url)))
+        (if (equal (url-type parsed) "file")
+            ;; Use Tramp instead of url.el for files (since url.el
+            ;; doesn't work well with Tramp files).
+            (let ((eww-buffer (current-buffer)))
+              (with-current-buffer (eww--file-buffer (url-filename parsed))
+                (eww-render nil url nil eww-buffer)))
+          (let ((url-mime-accept-string eww-accept-content-types))
+            (eww-retrieve url #'eww-render
+		          (list url (point) (current-buffer) encode))))))))
 
 ;; Form support.
 
@@ -1847,7 +1859,7 @@ The browser to used is specified by the
   (replace-regexp-in-string ".utm_.*" "" url))
 
 (defun eww--transform-url (url)
-  "Appy `eww-url-transformers'."
+  "Apply `eww-url-transformers'."
   (when url
     (dolist (func eww-url-transformers)
       (setq url (funcall func url)))
@@ -2045,7 +2057,9 @@ If CHARSET is nil then use UTF-8."
 (defun eww-write-bookmarks ()
   (with-temp-file (expand-file-name "eww-bookmarks" eww-bookmarks-directory)
     (insert ";; Auto-generated file; don't edit -*- mode: lisp-data -*-\n")
-    (pp eww-bookmarks (current-buffer))))
+    (let ((print-length nil)
+          (print-level nil))
+      (pp eww-bookmarks (current-buffer)))))
 
 (defun eww-read-bookmarks (&optional error-out)
   "Read bookmarks from `eww-bookmarks'.
@@ -2498,6 +2512,8 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 (defun eww-bookmark-jump (bookmark)
   "Default bookmark handler for EWW buffers."
   (eww (bookmark-prop-get bookmark 'location)))
+
+(put 'eww-bookmark-jump 'bookmark-handler-type "EWW")
 
 (provide 'eww)
 

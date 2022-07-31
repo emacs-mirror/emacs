@@ -334,10 +334,8 @@ called with one argument, the key used for comparison."
    ast
    'node-property
    (lambda (property)
-     (and (eq (compare-strings "CUSTOM_ID" nil nil
-			       (org-element-property :key property) nil nil
-			       t)
-	      t)
+     (and (string-equal-ignore-case
+           "CUSTOM_ID" (org-element-property :key property))
 	  (org-element-property :value property)))
    (lambda (property _) (org-element-property :begin property))
    (lambda (key) (format "Duplicate CUSTOM_ID property \"%s\"" key))))
@@ -784,8 +782,12 @@ Use \"export %s\" instead"
     reports))
 
 (defun org-lint-undefined-footnote-reference (ast)
-  (let ((definitions (org-element-map ast 'footnote-definition
-		       (lambda (f) (org-element-property :label f)))))
+  (let ((definitions
+          (org-element-map ast '(footnote-definition footnote-reference)
+	    (lambda (f)
+              (and (or (eq 'footnote-definition (org-element-type f))
+                       (eq 'inline (org-element-property :type f)))
+                   (org-element-property :label f))))))
     (org-element-map ast 'footnote-reference
       (lambda (f)
 	(let ((label (org-element-property :label f)))

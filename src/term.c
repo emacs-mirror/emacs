@@ -2287,9 +2287,9 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       delete_keyboard_wait_descriptor (fileno (f));
 
 #ifndef MSDOS
-      fclose (f);
       if (f != t->display_info.tty->output)
         fclose (t->display_info.tty->output);
+      fclose (f);
 #endif
 
       t->display_info.tty->input = 0;

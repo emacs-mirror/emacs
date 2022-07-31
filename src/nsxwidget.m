@@ -69,10 +69,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   [configuration.preferences setValue:@YES
                                forKey:@"developerExtrasEnabled"];
 
+#if 0 /* Plugins are not supported by Mac OS X anymore.  */
   Lisp_Object enablePlugins =
     Fintern (build_string ("xwidget-webkit-enable-plugins"), Qnil);
+
   if (!EQ (Fsymbol_value (enablePlugins), Qnil))
     configuration.preferences.plugInsEnabled = YES;
+#endif
 
   self = [super initWithFrame:frame configuration:configuration];
   if (self)

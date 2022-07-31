@@ -50,13 +50,10 @@ This file documents @w{@value{tramp} @value{trampver}}, a remote file
 editing package for Emacs.
 
 @value{tramp} stands for ``Transparent Remote (file) Access, Multiple
-Protocol''.  This package provides remote file editing, similar to
-Ange FTP@.
-
-The difference is that Ange FTP uses FTP to transfer files between the
-local and the remote host, whereas @value{tramp} uses a combination of
-@command{rsh} and @command{rcp} or other work-alike programs, such as
-@command{ssh}/@command{scp}.
+Protocol''.  This package provides an easy, convenient, and consistent
+interface to editing remote files transparently, just as if they are
+local files.  This extends to editing, version control, @code{dired},
+and more.
 
 You can find the latest version of this document on the web at
 @uref{@value{trampurl}}.
@@ -157,6 +154,7 @@ Using @value{tramp}
 @end ifset
 * File name completion::        File name completion.
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
+* Home directories::            Expanding @file{~} to home directory.
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
 * Renaming remote files::       Renaming remote files.
@@ -181,10 +179,10 @@ interface to remote files as if they are local files.  @value{tramp}'s
 transparency extends to editing, version control, and @code{dired}.
 
 @value{tramp} can access remote hosts using any number of access
-methods, such as @command{rsh}, @command{rlogin}, @command{telnet},
-and related programs.  If these programs can successfully pass
-@acronym{ASCII} characters, @value{tramp} can use them.
-@value{tramp} does not require or mandate 8-bit clean connections.
+methods, such as @command{ssh}, @command{scp}, @command{telnet}, and
+related programs.  If these programs can successfully pass
+@acronym{ASCII} characters, @value{tramp} can use them.  @value{tramp}
+does not require or mandate 8-bit clean connections.
 
 @value{tramp}'s most common access method is through @command{ssh}, a
 more secure alternative to @command{ftp} and other older access
@@ -232,10 +230,10 @@ first time connecting to that host, here's what happens:
 
 @itemize
 @item
-@value{tramp} invokes @samp{telnet @var{host}} or @samp{rsh @var{host}
--l @var{user}} and establishes an external process to connect to the
-remote host.  @value{tramp} communicates with the process through an
-Emacs buffer, which also shows output from the remote host.
+@value{tramp} invokes @samp{telnet @var{host}} or @samp{ssh -l
+@var{user} @var{host}} and establishes an external process to connect
+to the remote host.  @value{tramp} communicates with the process
+through an Emacs buffer, which also shows output from the remote host.
 
 @item
 The remote host may prompt for a login name (for @command{telnet}, for
@@ -245,7 +243,7 @@ followed by a newline.
 
 @item
 The remote host may then prompt for a password or passphrase (for
-@command{rsh} or for @command{telnet}).  @value{tramp} displays the
+@command{ssh} or for @command{telnet}).  @value{tramp} displays the
 password prompt in the minibuffer.  @value{tramp} then sends whatever
 is entered to the remote host, followed by a newline.
 
@@ -311,7 +309,7 @@ I hope this has provided you with a basic overview of what happens
 behind the scenes when you open a file with @value{tramp}.
 
 
-@c For the end user
+@c For the end user.
 @node Obtaining @value{tramp}
 @chapter Obtaining @value{tramp}
 @cindex obtaining @value{tramp}
@@ -668,6 +666,11 @@ may be used in your init file:
 @lisp
 (with-eval-after-load 'tramp (tramp-change-syntax 'simplified))
 @end lisp
+
+@vindex enable-remote-dir-locals
+Changing other variables via directory-local variables on a remote
+directory must be enabled by setting @code{enable-remote-dir-locals}
+to non-@code{nil}, @xref{Directory Variables, , , emacs}.
 
 
 @menu
@@ -1663,7 +1666,7 @@ local one, first connect via @command{ssh}, and then apply
 (add-to-list 'tramp-default-proxies-alist
              '(nil "\\`root\\'" "@trampfn{ssh,%h,}"))
 (add-to-list 'tramp-default-proxies-alist
-             '((regexp-quote (system-name)) nil nil))
+             `(,(regexp-quote (system-name)) nil nil))
 @end group
 @end lisp
 @end defopt
@@ -1808,6 +1811,17 @@ Access of a hadoop/hdfs file system.  A file is accessed via
 the user that you want to use, and @samp{node} is the name of the
 hadoop server.
 
+@item tramp-nspawn
+@cindex method @option{nspawn}
+@cindex @option{nspawn} method
+Access to environments provided by systemd-nspawn.  A file is accessed
+via @file{@trampfn{nspawn,user@@container,/path/to/file}}, where
+@samp{user} is the (optional) user that you want to use, and
+@samp{container} is the container to connect to.  systemd-nspawn and
+its container utilities often require super user access to run, use
+multi-hop file names with @option{doas} or @option{sudo} to raise your
+privileges.
+
 @item vagrant-tramp
 @cindex method @option{vagrant}
 @cindex @option{vagrant} method
@@ -1869,29 +1883,25 @@ Example:
 
 The following predefined functions parsing configuration files exist:
 
-@table @asis
+@ftable @asis
 @item @code{tramp-parse-rhosts}
-@findex tramp-parse-rhosts
 
 This function parses files which are syntactical equivalent to
 @file{~/.rhosts}.  It returns both host names and user names, if
 specified.
 
 @item @code{tramp-parse-shosts}
-@findex tramp-parse-shosts
 
 This function parses files which are syntactical equivalent to
 @file{~/.ssh/known_hosts}.  Since there are no user names specified
 in such files, it can return host names only.
 
 @item @code{tramp-parse-sconfig}
-@findex tramp-parse-sconfig
 
 This function returns the host nicknames defined by @option{Host}
 entries in @file{~/.ssh/config} style files.
 
 @item @code{tramp-parse-shostkeys}
-@findex tramp-parse-shostkeys
 
 SSH2 parsing of directories @file{/etc/ssh2/hostkeys/*} and
 @file{~/ssh2/hostkeys/*}.  Hosts are coded in file names
@@ -1899,7 +1909,6 @@ SSH2 parsing of directories @file{/etc/ssh2/hostkeys/*} and
 are always @code{nil}.
 
 @item @code{tramp-parse-sknownhosts}
-@findex tramp-parse-sknownhosts
 
 Another SSH2 style parsing of directories like
 @file{/etc/ssh2/knownhosts/*} and @file{~/ssh2/knownhosts/*}.  This
@@ -1907,26 +1916,22 @@ case, hosts names are coded in file names
 @file{@var{host-name}.@var{algorithm}.pub}.  User names are always @code{nil}.
 
 @item @code{tramp-parse-hosts}
-@findex tramp-parse-hosts
 
 A function dedicated to @file{/etc/hosts} for host names.
 
 @item @code{tramp-parse-passwd}
-@findex tramp-parse-passwd
 
 A function which parses @file{/etc/passwd} for user names.
 
 @item @code{tramp-parse-etc-group}
-@findex tramp-parse-etc-group
 
 A function which parses @file{/etc/group} for group names.
 
 @item @code{tramp-parse-netrc}
-@findex tramp-parse-netrc
 
 A function which parses @file{~/.netrc} and @file{~/.authinfo}-style files.
 
-@end table
+@end ftable
 
 To keep a custom file with custom data in a custom structure, a custom
 function has to be provided.  This function must meet the following
@@ -1985,6 +1990,20 @@ file name syntax, must be appended to the machine and login items:
 @example
 machine melancholia#4711 port davs login daniel%BIZARRE password geheim
 @end example
+
+For the methods @option{doas}, @option{sudo} and @option{sudoedit} the
+password of the user requesting the connection is needed, and not the
+password of the target user.  If these connections happen on the local
+host, an entry with the local user and local host is used:
+
+@example
+machine @var{HOST} port sudo login @var{USER} password secret
+@end example
+
+@var{USER} and @var{HOST} are the strings returned by
+@code{(user-login-name)} and @code{(system-name)}.  If one of these
+methods is connected via a multi hop (@pxref{Multi-hops}), the
+credentials of the previous hop are used.
 
 @vindex auth-source-save-behavior
 If no proper entry exists, the password is read
@@ -2150,6 +2169,14 @@ connection is disabled for security reasons, and must be
 reestablished.  A value of @code{nil} disables this feature.  Most of
 the methods do not set this property except the @option{sudo} and
 @option{doas} methods, which use predefined values.
+
+@item @t{"~"}@*
+@t{"~user"}
+
+This is the home directory on the remote host.  Setting this
+connection property helps especially for methods which cannot expand
+to a remote home directory, like @option{adb}, @option{rclone} and
+@option{sshfs}.  @ref{Home directories} for an example.
 
 @item @t{"tmpdir"}
 
@@ -2405,7 +2432,7 @@ example below:
 @end lisp
 
 @vindex password-word-equivalents
-This user option is, by default, initialised from
+This user option is, by default, initialized from
 @code{password-word-equivalents} when @value{tramp} is loaded, and it
 is usually more convenient to add new passphrases to that user option
 instead of altering this user option.
@@ -2622,6 +2649,41 @@ The most common @value{tramp} connection family is based on either
 @command{ssh} or @command{scp} of OpenSSH, or @command{plink} or
 @command{pscp} of PuTTY on MS Windows.  In the following, some
 configuration recommendations are given.
+
+
+@subsection Using ssh config include for host name completion
+
+@vindex Include@r{, ssh option}
+@findex tramp-set-completion-function
+@findex tramp-get-completion-function
+OpenSSH configuration files can use an @option{Include} option for
+further configuration files.  Default @value{tramp} host name
+completion ignores this option.  However, you can configure this
+yourself.
+
+Given, your @file{~/.ssh/config} file contains the following option:
+
+@example
+Include ~/.ssh/conf.d/*
+@end example
+
+The following code snippet in your @file{.emacs} uses all files in
+that directory for host name completion:
+
+@lisp
+@group
+(tramp-set-completion-function
+ "ssh" (append (tramp-get-completion-function "ssh")
+               (mapcar (lambda (file) `(tramp-parse-sconfig ,file))
+                       (directory-files
+                        "~/.ssh/conf.d/"
+                        'full directory-files-no-dot-files-regexp))))
+@end group
+@end lisp
+
+This code snippet does it for the @option{ssh} method.  If you replace
+@t{"ssh"} by @t{"scp"}, it does it also for that method (or any other
+method you like).
 
 
 @subsection Detection of session hangouts
@@ -2879,6 +2941,7 @@ Additionally, it declares also the arguments for running remote
 processes, using the @command{ssh} command.  These don't need to be
 changed.
 
+
 @node Android shell setup
 @section Android shell setup hints
 @cindex android shell setup for ssh
@@ -3063,6 +3126,14 @@ auto-saved files to the same directory as the original file.
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
 
+@c Since Emacs 29.
+@vindex remote-file-name-inhibit-auto-save-visited
+An alternative to @code{auto-save-mode} is
+@code{auto-save-visited-mode}.  In this mode, auto-saving is identical
+to explicit saving.  If you want to disable this behavior for remote
+files, set user option
+@code{remote-file-name-inhibit-auto-save-visited} to non-@code{nil}.
+
 @vindex lock-file-name-transforms
 And still more issues to handle.  Since @w{Emacs 28}, file locks use a
 similar user option as auto-save files, called
@@ -3227,6 +3298,7 @@ is a feature of Emacs that may cause missed prompts when using
 @end ifset
 * File name completion::        File name completion.
 * Ad-hoc multi-hops::           Declaring multiple hops in the file name.
+* Home directories::            Expanding @file{~} to home directory.
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
 * Renaming remote files::       Renaming remote files.
@@ -3242,24 +3314,25 @@ is a feature of Emacs that may cause missed prompts when using
 @file{@trampfn{method,host,/path/to/file}} opens file @var{/path/to/file}
 on the remote host @var{host}, using the method @var{method}.
 
+@c We cannot use @trampfn{} in @item.
 @table @file
-@item @trampfn{ssh,melancholia,.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}.emacs
 For the file @file{.emacs} located in the home directory, on the host
 @code{melancholia}, using method @code{ssh}.
 
-@item @trampfn{ssh,melancholia.danann.net,.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia.danann.net@value{postfix}.emacs
 For the file @file{.emacs} specified using the fully qualified domain name of
 the host.
 
-@item @trampfn{ssh,melancholia,~/.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~/.emacs
 For the file @file{.emacs} specified using the @file{~}, which is expanded.
 
-@item @trampfn{ssh,melancholia,~daniel/.emacs}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~daniel/.emacs
 For the file @file{.emacs} located in @code{daniel}'s home directory
 on the host, @code{melancholia}.  The @file{~<user>} construct is
 expanded to the home directory of that user on the remote host.
 
-@item @trampfn{ssh,melancholia,/etc/squid.conf}
+@item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}/etc/squid.conf
 For the file @file{/etc/squid.conf} on the host @code{melancholia}.
 
 @end table
@@ -3507,6 +3580,66 @@ On the other hand, if a trailing hop does not specify a host name, the
 host name of the previous hop is reused.  Therefore, the following
 file name is equivalent to the previous example:
 @samp{@trampfn{ssh@value{postfixhop}remotehost|su,,}}.
+
+
+@node Home directories
+@section Expanding @file{~} to home directory
+
+Home directories on remote hosts can be typed as tilde @file{~}.  If
+possible, they are expanded to the remote user's home directory on the
+remote host.  Example:
+
+@example
+@group
+@trampfn{ssh,user@@host,~}
+@result{} @trampfn{ssh,user@@host,/home/user}
+@end group
+@end example
+
+This works in general for @option{ssh}-like methods, and for
+@option{sudoedit}.  These methods allow also the home directory
+expansion for another user, like
+
+@example
+@group
+@trampfn{sudoedit,,~otheruser}
+@result{} @trampfn{sudoedit,root@@localhost,/home/otheruser}
+@end group
+@end example
+
+For other methods, a home directory can be expanded only if supported.
+This happens for example for the @option{sftp} method.  Methods, which
+require a share directory in the remote file name (@option{afp},
+@option{smb}), use the value of this share directory as home
+directory:
+
+@example
+@group
+@trampfn{smb,user@@host,~}
+@result{} @trampfn{smb,user@@host,/share}
+@end group
+@end example
+
+Since Tramp cannot know in advance which share directory is intended
+to use, this expansion can be applied only when a share directory has
+been used already.
+
+The methods @option{adb}, @option{rclone} and @option{sshfs} do not
+support home directory expansion at all.  However, @value{tramp} keeps
+the home directory in the cache.  Therefore, those methods could be
+configured to expand a home directory via a connection property,
+@xref{Predefined connection information}.  Example:
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "@trampfn{sshfs,user@@randomhost.your.domain,}")
+                   "~user" "/home/user"))
+@end group
+@end lisp
+
+When your remote file name does not contain a @samp{user} part, the
+connection property @t{"~"} must be used instead.
 
 
 @node Remote processes
@@ -3923,6 +4056,127 @@ using the @code{:connection-type} keyword.  If this keyword is not
 used, the value of @code{process-connection-type} is applied instead.
 
 
+@subsection Process properties of asynchronous remote processes
+@cindex Asynchronous remote processes
+
+When available, @value{tramp} adds process properties to process
+objects of asynchronous properties.  However, it is not guaranteed
+that all these properties are set.
+
+@itemize
+@item @code{remote-tty}
+
+This is the name of the terminal a @var{process} uses on the remote
+host, i.e., it reads and writes on.
+
+@item @code{remote-pid}
+
+The process id of the command executed on the remote host.  This is
+used when sending signals remotely.
+
+@item @code{remote-command}
+
+The remote command which has been invoked via @code{make-process} or
+@code{start-file-process}, a list of strings (program and its
+arguments).  This does not show the additional shell sugar
+@value{tramp} makes around the commands, in order to see this you must
+inspect @value{tramp} @ref{Traces and Profiles, traces}.
+@end itemize
+
+@findex list-system-processes
+@findex process-attributes
+The functions @code{list-system-processes} and
+@code{process-attributes} return information about system processes on
+the respective remote host.  In order to retrieve this information,
+they use the command @command{ps}, driven by the following constants:
+
+@defvr Constant tramp-process-attributes-ps-args
+This is a list of arguments (strings) @command{ps} is called with.
+The default value is appropriate for GNU/Linux remote hosts.
+@end defvr
+
+@defvr Constant tramp-process-attributes-ps-format
+This is a list of cons cells @code{(@var{key} . @var{type})} for
+interpretation of the @command{ps} output.  @var{key} is a key used in
+the @code{process-attributes} output plus the key @code{pid}, and
+@var{type} is the respective value returned by @command{ps}.  It can
+be
+
+
+@multitable {@bullet{} @code{numberp}} {--- a string of @var{number} width, could contain spaces}
+@item @bullet{} @code{numberp} @tab --- a number
+@item @bullet{} @code{stringp} @tab --- a string without spaces
+@item @bullet{} @var{number}
+@tab --- a string of @var{number} width, could contain spaces
+@item @bullet{} @code{nil} @tab --- a string until end of line
+@end multitable
+
+The default value is appropriate for GNU/Linux remote hosts.
+@end defvr
+
+If, for example, @code{tramp-process-attributes-ps-args} is declared
+as @code{("-eww" "-o" "pid,euid,euser,egid,egroup,comm:40,state")},
+the output of the respective @command{ps} command would look like
+
+@smallexample
+@group
+    PID  EUID EUSER     EGID EGROUP   COMMAND                                  S
+      1     0 root         0 root     systemd                                  S
+   1610     0 root         0 root     NFSv4 callback                           S
+   @dots{}
+@end group
+@end smallexample
+
+The corresponding @code{tramp-process-attributes-ps-format} has the value
+
+@smallexample
+@group
+@code{((pid . numberp) (euid . numberp) (user . stringp)
+ (egid . numberp) (group . stringp) (comm . 40) (state . stringp))}
+@end group
+@end smallexample
+
+@vindex tramp-adb-connection-local-default-ps-profile
+@vindex tramp-adb-connection-local-default-ps-variables
+@vindex tramp-connection-local-bsd-ps-profile
+@vindex tramp-connection-local-bsd-ps-variables
+@vindex tramp-connection-local-busybox-ps-profile
+@vindex tramp-connection-local-busybox-ps-variables
+@vindex tramp-connection-local-darwin-ps-profile
+@vindex tramp-connection-local-darwin-ps-variables
+The default values for @code{tramp-process-attributes-ps-args} and
+@code{tramp-process-attributes-ps-format} can be overwritten by
+connection-local variables.
+@ifinfo
+@xref{Connection Variables, , , emacs}.
+@end ifinfo
+This is already done by @value{tramp} for the @option{adb} method, see
+@code{tramp-adb-connection-local-default-ps-profile} and
+@code{tramp-adb-connection-local-default-ps-variables}.
+
+There are three further predefined sets of connection-local variables
+for remote BSD systems, for remote macOS systems, and for a remote
+@command{ps} command implemented with @command{busybox}.  These are
+called @code{tramp-connection-local-*-ps-profile} and
+@code{tramp-connection-local-*-ps-variables}.  Use them like
+
+@lisp
+@group
+(connection-local-set-profiles
+ '(:application tramp :machine "mybsdhost")
+ 'tramp-connection-local-bsd-ps-profile)
+@end group
+@end lisp
+
+@cindex proced
+@vindex proced-show-remote-processes
+If you want to see a listing of remote system processes when calling
+@code{proced}, set user option @code{proced-show-remote-processes} to
+non-@code{nil}, or invoke that command with a negative argument like
+@kbd{C-u - M-x proced @key{RET}} when your buffer has a remote
+@code{default-directory}.
+
+
 @anchor{Improving performance of asynchronous remote processes}
 @subsection Improving performance of asynchronous remote processes
 @cindex Asynchronous remote processes
@@ -3960,8 +4214,8 @@ Furthermore, this approach has the following limitations:
 
 @itemize
 @item
-It works only for connection methods defined in @file{tramp-sh.el} and
-@file{tramp-adb.el}.
+It works only for connection methods defined in @file{tramp-adb.el},
+@file{tramp-sh.el} and @file{tramp-sshfs.el}.
 
 @item
 It does not support interactive user authentication.  With
@@ -4234,6 +4488,11 @@ HP-UX SD depots
 @cindex @file{depot} file archive suffix
 @cindex file archive suffix @file{depot}
 
+@item @samp{.epub} ---
+Electronic publications
+@cindex @file{epub} file archive suffix
+@cindex file archive suffix @file{epub}
+
 @item @samp{.exe} ---
 Self extracting Microsoft Windows EXE files
 @cindex @file{exe} file archive suffix
@@ -4493,6 +4752,20 @@ there.
 @cindex FAQ
 
 @itemize @bullet
+@item
+What is the official name - ``Tramp'' or ``@value{tramp}''?
+
+The official name is ``Tramp''.  This is used in comments, docstrings,
+and everywhere speaking about @value{tramp}.
+
+However, for historical reasons this is formatted as ``@@sc@{Tramp@}''
+in the @value{tramp} manual.
+@ifinfo
+@pxref{Smallcaps, , , texinfo}.
+@end ifinfo
+So it looks different there.
+
+
 @item
 Where is the latest @value{tramp}?
 
@@ -4891,6 +5164,26 @@ be restored by moving them manually from
 
 
 @item
+How to identify temporary files produced by @value{tramp}?
+
+@vindex tramp-temp-name-prefix
+Temporary files are kept in your @code{temporary-file-directory}
+directory, which is often @file{/tmp/}.  By default, they have the
+file name prefix @t{"tramp."}.  If you want to change this prefix, for
+example because you want to identify temporary files produced by
+@code{file-local-copy} in your package, you can bind the variable
+@code{tramp-temp-name-prefix} temporarily:
+
+@example
+@group
+(let ((tramp-temp-name-prefix "my-prefix."))
+  (file-local-copy "@trampfn{ssh,,.emacs}"))
+@result{} "/tmp/my-prefix.HDfgDZ"
+@end group
+@end example
+
+
+@item
 How to shorten long file names when typing in @value{tramp}?
 
 Adapt several of these approaches to reduce typing.  If the full name
@@ -5040,13 +5333,6 @@ minibuffer:
 @group
 (defadvice minibuffer-complete
   (before my-minibuffer-complete activate)
-  (expand-abbrev))
-@end group
-
-@group
-;; If you use partial-completion-mode
-(defadvice PC-do-completion
-  (before my-PC-do-completion activate)
   (expand-abbrev))
 @end group
 @end lisp
@@ -5338,6 +5624,7 @@ Disable @value{tramp} file name completion:
 (customize-set-variable 'ido-enable-tramp-completion nil)
 @end lisp
 
+@c Obsolete since Emacs 29.1.
 @item
 @file{rlogin.el}
 
@@ -5396,10 +5683,19 @@ local host's root directory as @file{/ssh:example.com:}.
 To unload @value{tramp}, type @kbd{M-x tramp-unload-tramp @key{RET}}.
 Unloading @value{tramp} resets Ange FTP plugins also.
 @end itemize
+
+
+@item
+What is the difference between Ange FTP and @value{tramp}?
+
+The difference is that Ange FTP uses @command{ftp} to transfer files
+between the local and the remote host, whereas @value{tramp} uses a
+combination of @command{ssh} and @command{scp} or other work-alike
+programs.
 @end itemize
 
 
-@c For the developer
+@c For the developer.
 @node Files directories and localnames
 @chapter How file names, directories and localnames are mangled and managed
 
@@ -5528,15 +5824,15 @@ The verbosity levels are
 @*@indent @w{ 4}  activities
 @*@indent @w{ 5}  internal
 @*@indent @w{ 6}  sent and received strings
-@*@indent @w{ 7}  file caching
-@*@indent @w{ 8}  connection properties
+@*@indent @w{ 7}  connection properties
+@*@indent @w{ 8}  file caching
 @*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
 @*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to a @value{tramp} debug buffer.  Such debug buffers are
-essential to bug and problem analyses.  For @value{tramp} bug reports,
+essential to bug and problem analyzes.  For @value{tramp} bug reports,
 set the @code{tramp-verbose} level to 6 (@pxref{Bug Reports}).
 
 The debug buffer is in

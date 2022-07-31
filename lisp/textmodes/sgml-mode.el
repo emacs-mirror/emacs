@@ -419,11 +419,11 @@ These have to be run via `sgml-syntax-propertize'"))
 (defun sgml-syntax-propertize (start end &optional rules-function)
   "Syntactic keywords for `sgml-mode'."
   (setq sgml--syntax-propertize-ppss (cons start (syntax-ppss start)))
-  (cl-assert (>= (cadr sgml--syntax-propertize-ppss) 0))
-  (sgml-syntax-propertize-inside end)
-  (funcall (or rules-function sgml--syntax-propertize) (point) end)
-  ;; Catch any '>' after the last quote.
-  (sgml--syntax-propertize-ppss end))
+  (when (>= (cadr sgml--syntax-propertize-ppss) 0)
+    (sgml-syntax-propertize-inside end)
+    (funcall (or rules-function sgml--syntax-propertize) (point) end)
+    ;; Catch any '>' after the last quote.
+    (sgml--syntax-propertize-ppss end)))
 
 (defun sgml-syntax-propertize-inside (end)
   (let ((ppss (syntax-ppss)))
@@ -480,8 +480,8 @@ The attribute alist is made up as
 ATTRIBUTERULE is a list of optionally t (no value when no input) followed by
 an optional alist of possible values."
   :type '(repeat (cons (string :tag "Tag Name")
-		       (repeat :tag "Tag Rule" sexp))))
-(put 'sgml-tag-alist 'risky-local-variable t)
+                       (repeat :tag "Tag Rule" sexp)))
+  :risky t)
 
 (defcustom sgml-tag-help
   '(("!" . "Empty declaration for comment")
@@ -600,12 +600,11 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (setq-local tildify-foreach-region-function
               (apply-partially
                'tildify-foreach-ignore-environments
-               `((,(eval-when-compile
-                     (concat
-                      "<\\("
-                      (regexp-opt '("pre" "dfn" "code" "samp" "kbd" "var"
-                                    "PRE" "DFN" "CODE" "SAMP" "KBD" "VAR"))
-                      "\\)\\>[^>]*>"))
+               `((,(concat
+                    "<\\("
+                    (regexp-opt '("pre" "dfn" "code" "samp" "kbd" "var"
+                                  "PRE" "DFN" "CODE" "SAMP" "KBD" "VAR"))
+                    "\\)\\>[^>]*>")
                   . ("</" 1 ">"))
                  ("<! *--" . "-- *>")
                  ("<" . ">"))))
@@ -1537,8 +1536,7 @@ not the case, the first tag returned is the one inside which we are."
 	    ;; [ Well, actually it depends, but we don't have the info about
 	    ;; when it doesn't and when it does.   --Stef ]
 	    (setq ignore nil)))
-	 ((eq t (compare-strings (sgml-tag-name tag-info) nil nil
-				 (car stack) nil nil t))
+	 ((string-equal-ignore-case (sgml-tag-name tag-info) (car stack))
 	  (setq stack (cdr stack)))
 	 (t
 	  ;; The open and close tags don't match.
@@ -1550,9 +1548,8 @@ not the case, the first tag returned is the one inside which we are."
 		  ;; but it's a bad assumption when tags *are* closed but
 		  ;; not properly nested.
 		  (while (and (cdr tmp)
-			      (not (eq t (compare-strings
-					  (sgml-tag-name tag-info) nil nil
-					  (cadr tmp) nil nil t))))
+			      (not (string-equal-ignore-case
+				    (sgml-tag-name tag-info) (cadr tmp))))
 		    (setq tmp (cdr tmp)))
 		  (if (cdr tmp) (setcdr tmp (cddr tmp)))))
 	    (message "Unmatched tags <%s> and </%s>"
@@ -1702,9 +1699,8 @@ LCON is the lexical context, if any."
 	    (there (point)))
        ;; Ignore previous unclosed start-tag in context.
        (while (and context unclosed
-		   (eq t (compare-strings
-			  (sgml-tag-name (car context)) nil nil
-			  unclosed nil nil t)))
+		   (string-equal-ignore-case
+		    (sgml-tag-name (car context)) unclosed))
 	 (setq context (cdr context)))
        ;; Indent to reflect nesting.
        (cond
@@ -2409,6 +2405,7 @@ To work around that, do:
 	      (lambda () (char-before (match-end 0))))
   (setq-local add-log-current-defun-function #'html-current-defun-name)
   (setq-local sentence-end-base "[.?!][]\"'”)}]*\\(<[^>]*>\\)*")
+  (add-hook 'completion-at-point-functions 'html-mode--complete-at-point nil t)
 
   (when (fboundp 'libxml-parse-html-region)
     (defvar css-class-list-function)
@@ -2433,6 +2430,36 @@ To work around that, do:
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
   )
+
+(defun html-mode--complete-at-point ()
+  ;; Complete a tag like <colg etc.
+  (or
+   (when-let ((tag (save-excursion
+                     (and (looking-back "<\\([^ \t\n]*\\)"
+                                        (line-beginning-position))
+                          (match-string 1)))))
+     (list (match-beginning 1) (point)
+           (mapcar #'car html-tag-alist)))
+   ;; Complete params like <colgroup ali etc.
+   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
+              (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
+              (param (save-excursion
+                       (and (looking-back "[ \t\n]\\([^= \t\n]*\\)"
+                                          (line-beginning-position))
+                            (match-string 1)))))
+     (list (match-beginning 1) (point)
+           (mapcar #'car params)))
+   ;; Complete param values like <colgroup align=mi etc.
+   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
+              (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
+              (param (save-excursion
+                       (and (looking-back
+                             "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
+                             (line-beginning-position))
+                            (match-string 1))))
+              (values (cdr (assoc param params))))
+     (list (match-beginning 2) (point)
+           (mapcar #'car values)))))
 
 (defun html-mode--html-yank-handler (_type html)
   (save-restriction

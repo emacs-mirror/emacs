@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
+
 (defgroup sort nil
   "Commands to sort text in an Emacs buffer."
   :group 'data)
@@ -111,7 +113,8 @@ as start and end positions), and with `string<' otherwise."
 			     (lambda (a b) (string< (car a) (car b)))))))
 	  (if reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Reordering buffer..."))
-	  (sort-reorder-buffer sort-lists old)))
+          (with-buffer-unmodified-if-unchanged
+	    (sort-reorder-buffer sort-lists old))))
       (if messages (message "Reordering buffer... Done"))))
   nil)
 

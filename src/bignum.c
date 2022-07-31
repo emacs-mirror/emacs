@@ -476,3 +476,96 @@ check_int_nonnegative (Lisp_Object x)
   CHECK_INTEGER (x);
   return NILP (Fnatnump (x)) ? 0 : check_integer_range (x, 0, INT_MAX);
 }
+
+/* Return a random mp_limb_t.  */
+
+static mp_limb_t
+get_random_limb (void)
+{
+  if (GMP_NUMB_BITS <= ULONG_WIDTH)
+    return get_random_ulong ();
+
+  /* Work around GCC -Wshift-count-overflow false alarm.  */
+  int shift = GMP_NUMB_BITS <= ULONG_WIDTH ? 0 : ULONG_WIDTH;
+
+  /* This is in case someone builds GMP with unusual definitions for
+     MINI_GMP_LIMB_TYPE or _LONG_LONG_LIMB.  */
+  mp_limb_t r = 0;
+  for (int i = 0; i < GMP_NUMB_BITS; i += ULONG_WIDTH)
+    r = (r << shift) | get_random_ulong ();
+  return r;
+}
+
+/* Return a random mp_limb_t I in the range 0 <= I < LIM.
+   If LIM is zero, simply return a random mp_limb_t.  */
+
+static mp_limb_t
+get_random_limb_lim (mp_limb_t lim)
+{
+  /* Return the remainder of a random mp_limb_t R divided by LIM,
+     except reject the rare case where R is so close to the maximum
+     mp_limb_t that the remainder isn't random.  */
+  mp_limb_t difflim = - lim, diff, remainder;
+  do
+    {
+      mp_limb_t r = get_random_limb ();
+      if (lim == 0)
+	return r;
+      remainder = r % lim;
+      diff = r - remainder;
+    }
+  while (difflim < diff);
+
+  return remainder;
+}
+
+/* Return a random Lisp integer I in the range 0 <= I < LIMIT,
+   where LIMIT is a positive bignum.  */
+
+Lisp_Object
+get_random_bignum (struct Lisp_Bignum const *limit)
+{
+  mpz_t const *lim = bignum_val (limit);
+  mp_size_t nlimbs = mpz_size (*lim);
+  eassume (0 < nlimbs);
+  mp_limb_t *r_limb = mpz_limbs_write (mpz[0], nlimbs);
+  mp_limb_t const *lim_limb = mpz_limbs_read (*lim);
+  mp_limb_t limhi = lim_limb[nlimbs - 1];
+  eassert (limhi);
+  bool edgy;
+
+  do
+    {
+      /* Generate the result one limb at a time, most significant first.
+	 Choose the most significant limb RHI randomly from 0..LIMHI,
+	 where LIMHI is the LIM's first limb, except choose from
+	 0..(LIMHI-1) if there is just one limb.  RHI == LIMHI is an
+	 unlucky edge case as later limbs might cause the result to be
+	 exceed or equal LIM; if this happens, it causes another
+	 iteration in the outer loop.  */
+
+      mp_limb_t rhi = get_random_limb_lim (limhi + (1 < nlimbs));
+      edgy = rhi == limhi;
+      r_limb[nlimbs - 1] = rhi;
+
+      for (mp_size_t i = nlimbs - 1; 0 < i--; )
+	{
+	  /* get_random_limb_lim (edgy ? limb_lim[i] + 1 : 0)
+	     would be wrong here, as the full mp_limb_t range is
+	     needed in later limbs for the edge case to have the
+	     proper weighting.  */
+	  mp_limb_t ri = get_random_limb ();
+	  if (edgy)
+	    {
+	      if (lim_limb[i] < ri)
+		break;
+	      edgy = lim_limb[i] == ri;
+	    }
+	  r_limb[i] = ri;
+	}
+    }
+  while (edgy);
+
+  mpz_limbs_finish (mpz[0], nlimbs);
+  return make_integer_mpz ();
+}

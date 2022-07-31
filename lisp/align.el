@@ -86,9 +86,8 @@
 ;;     '((my-rule
 ;;        (regexp . "Sample")))
 ;;     :type align-rules-list-type
+;;     :risky t
 ;;     :group 'my-package)
-;;
-;;   (put 'my-align-rules-list 'risky-local-variable t)
 ;;
 ;;   (add-to-list 'align-dq-string-modes 'my-package-mode)
 ;;   (add-to-list 'align-open-comment-modes 'my-package-mode)
@@ -160,7 +159,8 @@ string), this heuristic is used to determine how far before and after
 point we should search in looking for a region separator.  Larger
 values can mean slower performance in large files, although smaller
 values may cause unexpected behavior at times."
-  :type 'integer
+  :type '(choice (const :tag "Don't use heuristic when aligning a region" nil)
+                 integer)
   :group 'align)
 
 (defcustom align-highlight-change-face 'highlight
@@ -176,7 +176,7 @@ values may cause unexpected behavior at times."
 (defcustom align-large-region 10000
   "If an integer, defines what constitutes a \"large\" region.
 If nil, then no messages will ever be printed to the minibuffer."
-  :type 'integer
+  :type '(choice (const :tag "Align a large region silently" nil) integer)
   :group 'align)
 
 (defcustom align-c++-modes '(c++-mode c-mode java-mode)
@@ -318,9 +318,8 @@ The possible settings for `align-region-separate' are:
 ;         (const largest)
 	  (regexp :tag "Regexp defines section boundaries")
 	  (function :tag "Function defines section boundaries"))
+  :risky t
   :group 'align)
-
-(put 'align-region-separate 'risky-local-variable t)
 
 (defvar align-rules-list-type
   '(repeat
@@ -356,11 +355,11 @@ The possible settings for `align-region-separate' are:
 	     (cons :tag "Valid"
 		   (const :tag "(Return non-nil if rule is valid)"
 			  valid)
-		   (function :value t))
+		   (function :value always))
 	     (cons :tag "Run If"
 		   (const :tag "(Return non-nil if rule should run)"
 			  run-if)
-		   (function :value t))
+		   (function :value always))
 	     (cons :tag "Column"
 		   (const :tag "(Column to fix alignment at)" column)
 		   (choice :value comment-column
@@ -545,15 +544,16 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\(\\s-*\\)\\\\\\\\")
      (modes    . align-tex-modes))
 
-    ;; With a numeric prefix argument, or C-u, space delimited text
-    ;; tables will be aligned.
+    ;; Align space delimited text as columns.
     (text-column
      (regexp   . "\\(^\\|\\S-\\)\\([ \t]+\\)\\(\\S-\\|$\\)")
      (group    . 2)
      (modes    . align-text-modes)
      (repeat   . t)
      (run-if   . ,(lambda ()
-                    (not (eq '- current-prefix-arg)))))
+                    (and (not (eq '- current-prefix-arg))
+                         (not (apply #'provided-mode-derived-p
+                                     major-mode align-tex-modes))))))
 
     ;; With a negative prefix argument, lists of dollar figures will
     ;; be aligned.
@@ -697,9 +697,8 @@ The following attributes are meaningful:
 	    (see the documentation of that variable for possible
 	    values), and any separation argument passed to `align'."
   :type align-rules-list-type
+  :risky t
   :group 'align)
-
-(put 'align-rules-list 'risky-local-variable t)
 
 (defvar align-exclude-rules-list-type
   '(repeat
@@ -768,9 +767,8 @@ The following attributes are meaningful:
   "A list describing text that should be excluded from alignment.
 See the documentation for `align-rules-list' for more info."
   :type align-exclude-rules-list-type
+  :risky t
   :group 'align)
-
-(put 'align-exclude-rules-list 'risky-local-variable t)
 
 ;;; Internal Variables:
 
@@ -821,8 +819,8 @@ See the variable `align-exclude-rules-list' for more details.")
      (regexp   . "\\(\\s-+\\)use\\s-+entity")))
   "Alignment rules for `vhdl-mode'.  See `align-rules-list' for more info."
   :type align-rules-list-type
+  :risky t
   :group 'align)
-(put 'align-vhdl-rules-list 'risky-local-variable t)
 (make-obsolete-variable 'align-vhdl-rules-list "no longer used." "27.1")
 
 (defun align-set-vhdl-rules ()
@@ -839,8 +837,8 @@ Interactively, BEG and END are the mark/point of the current region.
 
 Many modes define specific alignment rules, and some of these
 rules in some modes react to the current prefix argument.  For
-instance, in `text-mode', `M-x align' will align into columns
-based on space delimiters, while `C-u - M-x align' will align
+instance, in `text-mode', \\`M-x align' will align into columns
+based on space delimiters, while \\`C-u -' \\`M-x align' will align
 into columns based on the \"$\" character.  See the
 `align-rules-list' variable definition for the specific rules.
 

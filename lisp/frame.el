@@ -1727,7 +1727,7 @@ to the selected frame.
 Storing information about resize operations is off by default.
 If you set the variable `frame-size-history' like this
 
-(setq frame-size-history '(100))
+(setq frame-size-history \\='(100))
 
 then Emacs will save information about the next 100 significant
 operations affecting any frame's size in that variable.  This
@@ -1993,7 +1993,8 @@ workarea attribute."
 (declare-function x-frame-list-z-order "xfns.c" (&optional display))
 (declare-function w32-frame-list-z-order "w32fns.c" (&optional display))
 (declare-function ns-frame-list-z-order "nsfns.m" (&optional display))
-(declare-function pgtk-frame-list-z-order "pgtkfns.c" (&optional display))
+;; TODO: implement this on PGTK.
+;; (declare-function pgtk-frame-list-z-order "pgtkfns.c" (&optional display))
 (declare-function haiku-frame-list-z-order "haikufns.c" (&optional display))
 
 (defun frame-list-z-order (&optional display)
@@ -2016,7 +2017,9 @@ Return nil if DISPLAY contains no Emacs frame."
      ((eq frame-type 'ns)
       (ns-frame-list-z-order display))
      ((eq frame-type 'pgtk)
-      (pgtk-frame-list-z-order display))
+      ;; This is currently not supported on PGTK.
+      ;; (pgtk-frame-list-z-order display)
+      nil)
      ((eq frame-type 'haiku)
       (haiku-frame-list-z-order display)))))
 
@@ -2146,6 +2149,17 @@ frame's display)."
 (defalias 'display-multi-frame-p #'display-graphic-p)
 (defalias 'display-multi-font-p #'display-graphic-p)
 
+(defcustom tty-select-active-regions nil
+  "If non-nil, update PRIMARY window-system selection on text-mode frames.
+On a text-mode terminal that supports setSelection command, if
+this variable is non-nil, Emacs will set the PRIMARY selection
+from the active region, according to `select-active-regions'.
+This is currently supported only on xterm."
+  :group 'frames
+  :group 'killing
+  :version "29.1"
+  :type 'boolean)
+
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
@@ -2160,6 +2174,9 @@ frame's display)."
       (with-no-warnings
        (not (null dos-windows-version))))
      ((memq frame-type '(x w32 ns pgtk))
+      t)
+     ((and tty-select-active-regions
+           (terminal-parameter nil 'xterm--set-selection))
       t)
      (t
       nil))))
@@ -2373,6 +2390,8 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
 		  (&optional terminal))
 (declare-function pgtk-display-monitor-attributes-list "pgtkfns.c"
 		  (&optional terminal))
+(declare-function haiku-display-monitor-attributes-list "haikufns.c"
+		  (&optional terminal))
 
 (defun display-monitor-attributes-list (&optional display)
   "Return a list of physical monitor attributes on DISPLAY.
@@ -2424,6 +2443,8 @@ monitors."
       (ns-display-monitor-attributes-list display))
      ((eq frame-type 'pgtk)
       (pgtk-display-monitor-attributes-list display))
+     ((eq frame-type 'haiku)
+      (haiku-display-monitor-attributes-list display))
      (t
       (let ((geometry (list 0 0 (display-pixel-width display)
 			    (display-pixel-height display))))
@@ -2432,6 +2453,70 @@ monitors."
 	   (mm-size . (,(display-mm-width display)
 		       ,(display-mm-height display)))
 	   (frames . ,(frames-on-display-list display)))))))))
+
+(declare-function x-device-class "term/x-win.el" (name))
+(declare-function pgtk-device-class "term/pgtk-win.el" (name))
+
+(defun device-class (frame name)
+  "Return the class of the device NAME for an event generated on FRAME.
+NAME is a string that can be the value of `last-event-device', or
+nil.  FRAME is a window system frame, typically the value of
+`last-event-frame' when `last-event-device' was set.  On some
+window systems, it can also be a display name or a terminal.
+
+The class of a device is one of the following symbols:
+
+  `core-keyboard' means the device is a keyboard-like device, but
+  any other characteristics are unknown.
+
+  `core-pointer' means the device is a pointing device, but any
+  other characteristics are unknown.
+
+  `mouse' means the device is a computer mouse.
+
+  `trackpoint' means the device is a joystick or trackpoint.
+
+  `eraser' means the device is an eraser, which is typically the
+  other end of a stylus on a graphics tablet.
+
+  `pen' means the device is a stylus or some other similar
+  device.
+
+  `puck' means the device is a device similar to a mouse, but
+  reports absolute coordinates.
+
+  `power-button' means the device is a power button, volume
+  button, or some similar control.
+
+  `keyboard' means the device is a keyboard.
+
+  `touchscreen' means the device is a touchscreen.
+
+  `pad' means the device is a collection of buttons and rings and
+  strips commonly found in drawing tablets.
+
+  `touchpad' means the device is an indirect touch device, such
+  as a touchpad.
+
+  `piano' means the device is a piano, or some other kind of
+  musical instrument.
+
+  `test' means the device is used by the XTEST extension to
+  report input.
+
+It can also be nil, which means the class of the device could not
+be determined.  Individual window systems may also return other
+symbols."
+  (let ((frame-type (framep-on-display frame)))
+    (cond ((eq frame-type 'x)
+           (x-device-class name))
+          ((eq frame-type 'pgtk)
+           (pgtk-device-class name))
+          (t (cond
+              ((string= name "Virtual core pointer")
+               'core-pointer)
+              ((string= name "Virtual core keyboard")
+               'core-keyboard))))))
 
 
 ;;;; Frame geometry values
@@ -2756,7 +2841,7 @@ Values smaller than 0.2 sec are treated as 0.2 sec."
   "How many times to blink before using a solid cursor on NS, X, and MS-Windows.
 Use 0 or negative value to blink forever."
   :version "24.4"
-  :type 'integer
+  :type 'natnum
   :group 'cursor)
 
 (defvar blink-cursor-blinks-done 1
@@ -2896,6 +2981,12 @@ If the frame is in fullscreen state, don't change its state, but
 set the frame's `fullscreen-restore' parameter to `maximized', so
 the frame will be maximized after disabling fullscreen state.
 
+If you wish to hide the title bar when the frame is maximized, you
+can add something like the following to your init file:
+
+  (add-hook \\='window-size-change-functions
+            #\\='frame-hide-title-bar-when-maximized)
+
 Note that with some window managers you may have to set
 `frame-resize-pixelwise' to non-nil in order to make a frame
 appear truly maximized.  In addition, you may have to set
@@ -3010,6 +3101,13 @@ Offer NUMBER as default value, if it is a natural number."
         bidi-paragraph-direction
         bidi-display-reordering
         bidi-inhibit-bpa))
+
+(defun frame-hide-title-bar-when-maximized (frame)
+  "Hide the title bar if FRAME is maximized.
+If FRAME isn't maximized, show the title bar."
+  (set-frame-parameter
+   frame 'undecorated
+   (eq (alist-get 'fullscreen (frame-parameters frame)) 'maximized)))
 
 (provide 'frame)
 

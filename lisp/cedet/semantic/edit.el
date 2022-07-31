@@ -610,7 +610,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 		(setq last-cond "Beginning of buffer")
                 (setq parse-start
                       ;; Don't worry about parents since
-                      ;; there there would be an exact
+                      ;; there would be an exact
                       ;; match in the tag list otherwise
                       ;; and the routine would fail.
                       (point-min)

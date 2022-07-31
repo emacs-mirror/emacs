@@ -241,13 +241,13 @@ See `kbd' for a descripion of KEYS."
                      (setq bits (+ bits
                                    (cdr
                                     (assq (aref word 0)
-                                          '((?A . ?\A-\^@) (?C . ?\C-\^@)
-                                            (?H . ?\H-\^@) (?M . ?\M-\^@)
-                                            (?s . ?\s-\^@) (?S . ?\S-\^@))))))
+                                          '((?A . ?\A-\0) (?C . ?\C-\0)
+                                            (?H . ?\H-\0) (?M . ?\M-\0)
+                                            (?s . ?\s-\0) (?S . ?\S-\0))))))
                      (setq prefix (+ prefix 2))
                      (setq word (substring word 2)))
                    (when (string-match "^\\^.$" word)
-                     (setq bits (+ bits ?\C-\^@))
+                     (setq bits (+ bits ?\C-\0))
                      (setq prefix (1+ prefix))
                      (setq word (substring word 1)))
                    (let ((found (assoc word '(("NUL" . "\0") ("RET" . "\r")
@@ -262,37 +262,26 @@ See `kbd' for a descripion of KEYS."
                        (setq word (vector n))))
                    (cond ((= bits 0)
                           (setq key word))
-                         ((and (= bits ?\M-\^@) (stringp word)
+                         ((and (= bits ?\M-\0) (stringp word)
                                (string-match "^-?[0-9]+$" word))
                           (setq key (mapcar (lambda (x) (+ x bits))
                                             (append word nil))))
                          ((/= (length word) 1)
                           (error "%s must prefix a single character, not %s"
                                  (substring orig-word 0 prefix) word))
-                         ((and (/= (logand bits ?\C-\^@) 0) (stringp word)
+                         ((and (/= (logand bits ?\C-\0) 0) (stringp word)
                                ;; We used to accept . and ? here,
                                ;; but . is simply wrong,
                                ;; and C-? is not used (we use DEL instead).
                                (string-match "[@-_a-z]" word))
-                          (setq key (list (+ bits (- ?\C-\^@)
+                          (setq key (list (+ bits (- ?\C-\0)
                                              (logand (aref word 0) 31)))))
                          (t
                           (setq key (list (+ bits (aref word 0)))))))))
           (when key
             (dolist (_ (number-sequence 1 times))
               (setq res (vconcat res key))))))
-      (if (and (>= (length res) 4)
-               (eq (aref res 0) ?\C-x)
-               (eq (aref res 1) ?\()
-               (eq (aref res (- (length res) 2)) ?\C-x)
-               (eq (aref res (- (length res) 1)) ?\)))
-          (apply #'vector (let ((lres (append res nil)))
-                            ;; Remove the first and last two elements.
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)
-                            (setq lres (cdr (cdr lres)))
-                            (nreverse lres)))
-        res))))
+      res)))
 
 (defun key-valid-p (keys)
   "Say whether KEYS is a valid key.
@@ -306,10 +295,10 @@ number of characters have a special shorthand syntax.
 
 Here's some example key sequences.
 
-  \"f\"           (the key 'f')
-  \"S o m\"       (a three key sequence of the keys 'S', 'o' and 'm')
-  \"C-c o\"       (a two key sequence of the keys 'c' with the control modifier
-                 and then the key 'o')
+  \"f\"           (the key `f')
+  \"S o m\"       (a three key sequence of the keys `S', `o' and `m')
+  \"C-c o\"       (a two key sequence of the keys `c' with the control modifier
+                 and then the key `o')
   \"H-<left>\"    (the key named \"left\" with the hyper modifier)
   \"M-RET\"       (the \"return\" key with a meta modifier)
   \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)
@@ -585,6 +574,11 @@ as the variable documentation string.
     `(defvar ,variable-name
        (define-keymap ,@(nreverse opts) ,@defs)
        ,@(and doc (list doc)))))
+
+(defun make-non-key-event (symbol)
+  "Mark SYMBOL as an event that shouldn't be returned from `where-is'."
+  (put symbol 'non-key-event t)
+  symbol)
 
 (provide 'keymap)
 

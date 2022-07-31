@@ -137,7 +137,7 @@ Unfortunately this does not look as nice with a fixed-width font
 as it does in a proportionally-spaced printed document; the extra
 spaces that are needed on the screen can make it hard to read.</flushboth>
 
-<center>
+    <center>
 
     <bold>Center</bold>
 
@@ -147,7 +147,6 @@ spaces that are needed on the screen can make it hard to read.</flushboth>
 
     M-j or the "Text Properties" menu also can be used to change
     justification.
-
 
 
 </center><flushboth>Note that justification can only change at hard newlines, because
@@ -189,7 +188,14 @@ as possible.
 
 
 The text/enriched standard is defined in </indent>Internet<indent> RFC 1896
-(<<http://www.ietf.org/rfc/rfc1896.txt>).</indent>
+(<<http://www.ietf.org/rfc/rfc1896.txt>).
+
+
+To make format annotations visible and possibly edit them, tell
+Emacs to display the markup:
+
+
+<fixed><indent>M-x enriched-toggle-markup RET</indent></fixed></indent>
 
 
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>CUSTOMIZATION</bold></x-color></x-bg-color><bold>

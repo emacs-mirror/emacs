@@ -211,6 +211,7 @@ for example, (type-of 1) returns `integer'.  */)
       return Qcons;
 
     case Lisp_Vectorlike:
+      /* WARNING!!  Keep 'cl--typeof-types' in sync with this code!!  */
       switch (PSEUDOVECTOR_TYPE (XVECTOR (object)))
         {
         case PVEC_NORMAL_VECTOR: return Qvector;
@@ -698,7 +699,7 @@ global value outside of any lexical scope.  */)
     default: emacs_abort ();
     }
 
-  return (EQ (valcontents, Qunbound) ? Qnil : Qt);
+  return (BASE_EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
 
 /* It has been previously suggested to make this function an alias for
@@ -873,7 +874,7 @@ add_to_function_history (Lisp_Object symbol, Lisp_Object olddef)
     if (NILP (XCDR (tail)) && STRINGP (XCAR (tail)))
       file = XCAR (tail);
 
-  Lisp_Object tem = Fplist_member (past, file);
+  Lisp_Object tem = plist_member (past, file);
   if (!NILP (tem))
     { /* New def from a file used before.
          Overwrite the previous record associated with this file.  */
@@ -1072,6 +1073,7 @@ Value, if non-nil, is a list (interactive SPEC).  */)
   (Lisp_Object cmd)
 {
   Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
+  bool genfun = false;
 
   if (NILP (fun))
     return Qnil;
@@ -1090,10 +1092,10 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      if (SUBR_NATIVE_COMPILEDP (fun) && !NILP (XSUBR (fun)->native_intspec))
-	return XSUBR (fun)->native_intspec;
+      if (SUBR_NATIVE_COMPILEDP (fun) && !NILP (XSUBR (fun)->intspec.native))
+	return XSUBR (fun)->intspec.native;
 
-      const char *spec = XSUBR (fun)->intspec;
+      const char *spec = XSUBR (fun)->intspec.string;
       if (spec)
 	return list2 (Qinteractive,
 		      (*spec != '(') ? build_string (spec) :
@@ -1104,15 +1106,17 @@ Value, if non-nil, is a list (interactive SPEC).  */)
       if (PVSIZE (fun) > COMPILED_INTERACTIVE)
 	{
 	  Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
-	  if (VECTORP (form))
-	    /* The vector form is the new form, where the first
-	       element is the interactive spec, and the second is the
-	       command modes. */
-	    return list2 (Qinteractive, AREF (form, 0));
-	  else
-	    /* Old form -- just the interactive spec. */
-	    return list2 (Qinteractive, form);
+	  /* The vector form is the new form, where the first
+	     element is the interactive spec, and the second is the
+	     command modes. */
+	  return list2 (Qinteractive, VECTORP (form) ? AREF (form, 0) : form);
 	}
+      else if (PVSIZE (fun) > COMPILED_DOC_STRING)
+        {
+          Lisp_Object doc = AREF (fun, COMPILED_DOC_STRING);
+          /* An invalid "docstring" is a sign that we have an OClosure.  */
+          genfun = !(NILP (doc) || VALID_DOCSTRING_P (doc));
+        }
     }
 #ifdef HAVE_MODULES
   else if (MODULE_FUNCTIONP (fun))
@@ -1135,13 +1139,21 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 	  if (EQ (funcar, Qclosure))
 	    form = Fcdr (form);
 	  Lisp_Object spec = Fassq (Qinteractive, form);
-	  if (NILP (Fcdr (Fcdr (spec))))
+	  if (NILP (spec) && VALID_DOCSTRING_P (CAR_SAFE (form)))
+            /* A "docstring" is a sign that we may have an OClosure.  */
+	    genfun = true;
+	  else if (NILP (Fcdr (Fcdr (spec))))
 	    return spec;
 	  else
 	    return list2 (Qinteractive, Fcar (Fcdr (spec)));
 	}
     }
-  return Qnil;
+  if (genfun
+      /* Avoid burping during bootstrap.  */
+      && !NILP (Fsymbol_function (Qoclosure_interactive_form)))
+    return call1 (Qoclosure_interactive_form, fun);
+  else
+    return Qnil;
 }
 
 DEFUN ("command-modes", Fcommand_modes, Scommand_modes, 1, 1, 0,
@@ -1167,7 +1179,11 @@ The value, if non-nil, is a list of mode name symbols.  */)
 	fun = Fsymbol_function (fun);
     }
 
-  if (COMPILEDP (fun))
+  if (SUBRP (fun))
+    {
+      return XSUBR (fun)->command_modes;
+    }
+  else if (COMPILEDP (fun))
     {
       if (PVSIZE (fun) <= COMPILED_INTERACTIVE)
 	return Qnil;
@@ -1530,8 +1546,13 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 /* Find the value of a symbol, returning Qunbound if it's not bound.
    This is helpful for code which just wants to get a variable's value
    if it has one, without signaling an error.
-   Note that it must not be possible to quit
-   within this function.  Great care is required for this.  */
+
+   This function is very similar to buffer_local_value, but we have
+   two separate code paths here since find_symbol_value has to be very
+   efficient, while buffer_local_value doesn't have to be.
+
+   Note that it must not be possible to quit within this function.
+   Great care is required for this.  */
 
 Lisp_Object
 find_symbol_value (Lisp_Object symbol)
@@ -1569,7 +1590,7 @@ global value outside of any lexical scope.  */)
   Lisp_Object val;
 
   val = find_symbol_value (symbol);
-  if (!EQ (val, Qunbound))
+  if (!BASE_EQ (val, Qunbound))
     return val;
 
   xsignal1 (Qvoid_variable, symbol);
@@ -1596,7 +1617,7 @@ void
 set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
               enum Set_Internal_Bind bindflag)
 {
-  bool voide = EQ (newval, Qunbound);
+  bool voide = BASE_EQ (newval, Qunbound);
 
   /* If restoring in a dead buffer, do nothing.  */
   /* if (BUFFERP (where) && NILP (XBUFFER (where)->name))
@@ -1923,15 +1944,15 @@ default_value (Lisp_Object symbol)
 
 DEFUN ("default-boundp", Fdefault_boundp, Sdefault_boundp, 1, 1, 0,
        doc: /* Return t if SYMBOL has a non-void default value.
-A variable may have a buffer-local or a `let'-bound local value.  This
-function says whether the variable has a non-void value outside of the
-current context.  Also see `default-value'.  */)
+A variable may have a buffer-local value.  This function says whether
+the variable has a non-void value outside of the current buffer
+context.  Also see `default-value'.  */)
   (Lisp_Object symbol)
 {
   register Lisp_Object value;
 
   value = default_value (symbol);
-  return (EQ (value, Qunbound) ? Qnil : Qt);
+  return (BASE_EQ (value, Qunbound) ? Qnil : Qt);
 }
 
 DEFUN ("default-value", Fdefault_value, Sdefault_value, 1, 1, 0,
@@ -1942,7 +1963,7 @@ local bindings in certain buffers.  */)
   (Lisp_Object symbol)
 {
   Lisp_Object value = default_value (symbol);
-  if (!EQ (value, Qunbound))
+  if (!BASE_EQ (value, Qunbound))
     return value;
 
   xsignal1 (Qvoid_variable, symbol);
@@ -2122,7 +2143,7 @@ See also `defvar-local'.  */)
     case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
     case SYMBOL_PLAINVAL:
       forwarded = 0; valcontents.value = SYMBOL_VAL (sym);
-      if (EQ (valcontents.value, Qunbound))
+      if (BASE_EQ (valcontents.value, Qunbound))
 	valcontents.value = Qnil;
       break;
     case SYMBOL_LOCALIZED:
@@ -2314,7 +2335,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
      forwarded objects won't work right.  */
   {
     Lisp_Object buf; XSETBUFFER (buf, current_buffer);
-    if (EQ (buf, blv->where))
+    if (BASE_EQ (buf, blv->where))
       swap_in_global_binding (sym);
   }
 
@@ -2813,6 +2834,9 @@ DEFUN ("<", Flss, Slss, 1, MANY, 0,
 usage: (< NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) < XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_LESS);
 }
 
@@ -2821,6 +2845,9 @@ DEFUN (">", Fgtr, Sgtr, 1, MANY, 0,
 usage: (> NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) > XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_GRTR);
 }
 
@@ -2829,6 +2856,9 @@ DEFUN ("<=", Fleq, Sleq, 1, MANY, 0,
 usage: (<= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) <= XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_LESS_OR_EQUAL);
 }
 
@@ -2837,6 +2867,9 @@ DEFUN (">=", Fgeq, Sgeq, 1, MANY, 0,
 usage: (>= NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
+  if (nargs == 2 && FIXNUMP (args[0]) && FIXNUMP (args[1]))
+    return XFIXNUM (args[0]) >= XFIXNUM (args[1]) ? Qt : Qnil;
+
   return arithcompare_driver (nargs, args, ARITH_GRTR_OR_EQUAL);
 }
 
@@ -2968,6 +3001,29 @@ cons_to_signed (Lisp_Object c, intmax_t min, intmax_t max)
   return val;
 }
 
+/* Render NUMBER in decimal into BUFFER which ends right before END.
+   Return the start of the string; the end is always at END.
+   The string is not null-terminated.  */
+char *
+fixnum_to_string (EMACS_INT number, char *buffer, char *end)
+{
+  EMACS_INT x = number;
+  bool negative = x < 0;
+  if (negative)
+    x = -x;
+  char *p = end;
+  do
+    {
+      eassume (p > buffer && p - 1 < end);
+      *--p = '0' + x % 10;
+      x /= 10;
+    }
+  while (x);
+  if (negative)
+    *--p = '-';
+  return p;
+}
+
 DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
        doc: /* Return the decimal representation of NUMBER as a string.
 Uses a minus sign if negative.
@@ -2975,19 +3031,22 @@ NUMBER may be an integer or a floating point number.  */)
   (Lisp_Object number)
 {
   char buffer[max (FLOAT_TO_STRING_BUFSIZE, INT_BUFSIZE_BOUND (EMACS_INT))];
-  int len;
 
-  CHECK_NUMBER (number);
+  if (FIXNUMP (number))
+    {
+      char *end = buffer + sizeof buffer;
+      char *p = fixnum_to_string (XFIXNUM (number), buffer, end);
+      return make_unibyte_string (p, end - p);
+    }
 
   if (BIGNUMP (number))
     return bignum_to_string (number, 10);
 
   if (FLOATP (number))
-    len = float_to_string (buffer, XFLOAT_DATA (number));
-  else
-    len = sprintf (buffer, "%"pI"d", XFIXNUM (number));
+    return make_unibyte_string (buffer,
+				float_to_string (buffer, XFLOAT_DATA (number)));
 
-  return make_unibyte_string (buffer, len);
+  wrong_type_argument (Qnumberp, number);
 }
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
@@ -3458,9 +3517,16 @@ representation.  */)
 }
 
 DEFUN ("ash", Fash, Sash, 2, 2, 0,
-       doc: /* Return VALUE with its bits shifted left by COUNT.
-If COUNT is negative, shifting is actually to the right.
-In this case, the sign bit is duplicated.  */)
+       doc: /* Return integer VALUE with its bits shifted left by COUNT bit positions.
+If COUNT is negative, shift VALUE to the right instead.
+VALUE and COUNT must be integers.
+Mathematically, the return value is VALUE multiplied by 2 to the
+power of COUNT, rounded down.  If the result is non-zero, its sign
+is the same as that of VALUE.
+In terms of bits, when COUNT is positive, the function moves
+the bits of VALUE to the left, adding zero bits on the right; when
+COUNT is negative, it moves the bits of VALUE to the right,
+discarding bits.  */)
   (Lisp_Object value, Lisp_Object count)
 {
   CHECK_INTEGER (value);
@@ -3468,7 +3534,7 @@ In this case, the sign bit is duplicated.  */)
 
   if (! FIXNUMP (count))
     {
-      if (EQ (value, make_fixnum (0)))
+      if (BASE_EQ (value, make_fixnum (0)))
 	return value;
       if (mpz_sgn (*xbignum_val (count)) < 0)
 	{
@@ -3513,11 +3579,11 @@ Lisp_Object
 expt_integer (Lisp_Object x, Lisp_Object y)
 {
   /* Special cases for -1 <= x <= 1, which never overflow.  */
-  if (EQ (x, make_fixnum (1)))
+  if (BASE_EQ (x, make_fixnum (1)))
     return x;
-  if (EQ (x, make_fixnum (0)))
-    return EQ (x, y) ? make_fixnum (1) : x;
-  if (EQ (x, make_fixnum (-1)))
+  if (BASE_EQ (x, make_fixnum (0)))
+    return BASE_EQ (x, y) ? make_fixnum (1) : x;
+  if (BASE_EQ (x, make_fixnum (-1)))
     return ((FIXNUMP (y) ? XFIXNUM (y) & 1 : mpz_odd_p (*xbignum_val (y)))
 	    ? x : make_fixnum (1));
 
@@ -4081,6 +4147,7 @@ syms_of_data (void)
   DEFSYM (Qchar_table_p, "char-table-p");
   DEFSYM (Qvector_or_char_table_p, "vector-or-char-table-p");
   DEFSYM (Qfixnum_or_symbol_with_pos_p, "fixnum-or-symbol-with-pos-p");
+  DEFSYM (Qoclosure_interactive_form, "oclosure-interactive-form");
 
   DEFSYM (Qsubrp, "subrp");
   DEFSYM (Qunevalled, "unevalled");

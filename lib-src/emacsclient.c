@@ -80,6 +80,7 @@ char *w32_getenv (const char *);
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <attribute.h>
 #include <filename.h>
 #include <intprops.h>
 #include <min-max.h>
@@ -1430,8 +1431,7 @@ local_sockname (int s, char sockname[socknamesize], int tmpdirlen,
   char *emacsdirend = sockname + tmpdirlen + suffixlen -
     strlen(server_name) - 1;
   *emacsdirend = '\0';
-  int dir = openat (AT_FDCWD, sockname,
-		    O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+  int dir = open (sockname, O_PATH | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
   *emacsdirend = '/';
   if (dir < 0)
     return errno;

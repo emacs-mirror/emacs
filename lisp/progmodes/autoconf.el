@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(defvar autoconf-mode-map (make-sparse-keymap))
+(defvar-keymap autoconf-mode-map)
 
 (defvar autoconf-mode-hook nil
   "Hook run by `autoconf-mode'.")

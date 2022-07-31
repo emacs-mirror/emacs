@@ -592,6 +592,7 @@ Advising Emacs Lisp Functions
 * Advising Named Functions::  Advising named functions.
 * Advice Combinators::        Ways to compose advice.
 * Porting Old Advice::        Adapting code using the old defadvice.
+* Advice and Byte Code::      Not all functions can be advised.
 
 Macros
 
@@ -738,6 +739,7 @@ Reading and Printing Lisp Objects
 * Output Functions::        Functions to print Lisp objects as text.
 * Output Variables::        Variables that control what the printing
                               functions do.
+* Output Overrides::        Overriding output variables.
 
 Minibuffers
 

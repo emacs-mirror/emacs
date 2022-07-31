@@ -658,7 +658,6 @@ there is no recent clock to choose from."
 		     (if (< i 10)
 			 (+ i ?0)
 		       (+ i (- ?A 10))) m))
-	    (if (fboundp 'int-to-char) (setf (car s) (int-to-char (car s))))
 	    (push s sel-list)))
 	(run-hooks 'org-clock-before-select-task-hook)
 	(goto-char (point-min))
@@ -1105,7 +1104,7 @@ to be CLOCKED OUT."))))
 		  60))
 	 (keep
 	  (or (and (memq ch '(?k ?K))
-		   (read-number "Keep how many minutes? " default))
+		   (read-number "Keep how many minutes: " default))
 	      (and (memq ch '(?t ?T))
 		   (floor
 		    (/ (float-time
@@ -1113,7 +1112,7 @@ to be CLOCKED OUT."))))
 		       60)))))
 	 (gotback
 	  (and (memq ch '(?g ?G))
-	       (read-number "Got back how many minutes ago? " default)))
+	       (read-number "Got back how many minutes ago: " default)))
 	 (subtractp (memq ch '(?s ?S)))
 	 (barely-started-p (org-time-less-p
 			    (org-time-subtract last-valid (cdr clock))
@@ -1904,11 +1903,11 @@ PROPNAME lets you set a custom text property instead of :org-clock-minutes."
 	   ((match-end 2)
 	    ;; Two time stamps.
 	    (let* ((ts (float-time
-			(encode-time
+			(apply #'encode-time
 			       (save-match-data
 				 (org-parse-time-string (match-string 2))))))
 		   (te (float-time
-			(encode-time
+			(apply #'encode-time
 			       (org-parse-time-string (match-string 3)))))
 		   (dt (- (if tend (min te tend) te)
 			  (if tstart (max ts tstart) ts))))
@@ -3042,9 +3041,9 @@ Otherwise, return nil."
 	  (setq ts (match-string 1)
 		te (match-string 3))
 	  (setq s (- (float-time
-		      (encode-time (org-parse-time-string te)))
+		      (apply #'encode-time (org-parse-time-string te)))
 		     (float-time
-		      (encode-time (org-parse-time-string ts))))
+		      (apply #'encode-time (org-parse-time-string ts))))
 		neg (< s 0)
 		s (abs s)
 		h (floor (/ s 3600))

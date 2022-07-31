@@ -82,6 +82,43 @@ This is the same as `thai-tis620' with the addition of no-break-space."
     (aset composition-function-table (aref chars i) elt)))
 (aset composition-function-table ?ำ '(["[ก-ฯ]." 1 thai-composition-function]))
 
+;; Tai-Tham
+
+(set-language-info-alist
+ "Northern Thai" '((charset unicode)
+		   (coding-system utf-8)
+		   (coding-priority utf-8)
+		   (sample-text .
+		     "Northern Thai (ᨣᩣᩴᨾᩮᩬᩥᨦ / ᨽᩣᩈᩣᩃ᩶ᩣ᩠ᨶᨶᩣ)	ᩈ᩠ᩅᩢᩔ᩠ᨯᩦᨣᩕᩢ᩠ᨸ")
+		   (documentation . t)))
+
+;; From Richard Wordingham <richard.wordingham@ntlworld.com>:
+(defvar tai-tham-composable-pattern
+  (let ((table
+         ;; C is letters, independent vowels, digits, punctuation and symbols.
+         '(("C" . "[\u1A20-\u1A54\u1A80-\u1A89\u1A90-\u1A99\u1AA0-\u1AAD]")
+           ("M" .           ; Marks, CGJ, ZWNJ, ZWJ
+            "[\u0324\u034F\u0E49\u0E4A\u0E4B\u1A55-\u1A57\u1A59-\u1A5E\u1A61-\u1A7C\u1A7F\u200C\200D]")
+           ("H" . "\u1A60") ; Sakot
+           ("S" .           ; Marks commuting with sakot
+            "[\u0E49-\u0E4B\u0EC9\u0ECB\u1A75-\u1A7C]")
+           ("N" . "\u1A58"))) ; mai kang lai
+        (basic-syllable "C\\(N*\\(M\\|HS*C\\)\\)*")
+        (regexp "X\\(N\\(X\\)?\\)*H?")) ; where X is basic syllable
+    (let ((case-fold-search nil))
+      (setq regexp (replace-regexp-in-string "X" basic-syllable regexp t t))
+      (dolist (elt table)
+        (setq regexp (replace-regexp-in-string (car elt) (cdr elt)
+                                               regexp t t))))
+    regexp))
+
+(let ((elt (list (vector tai-tham-composable-pattern 0 'font-shape-gstring)
+		 )))
+  (set-char-table-range composition-function-table '(#x1A20 . #x1A54) elt)
+  (set-char-table-range composition-function-table '(#x1A80 . #x1A89) elt)
+  (set-char-table-range composition-function-table '(#x1A90 . #x1A99) elt)
+  (set-char-table-range composition-function-table '(#x1AA0 . #x1AAD) elt))
+
 (provide 'thai)
 
 ;;; thai.el ends here

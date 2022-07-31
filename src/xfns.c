@@ -610,7 +610,7 @@ x_relative_mouse_position (struct frame *f, int *x, int *y)
   block_input ();
 
   XQueryPointer (FRAME_X_DISPLAY (f),
-                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+                 FRAME_DISPLAY_INFO (f)->root_window,
 
                  /* The root window which contains the pointer.  */
                  &root,
@@ -730,12 +730,26 @@ x_set_wait_for_wm (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 static void
 x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-#ifndef HAVE_GTK3
   unsigned long opaque_region[] = {0, 0, FRAME_PIXEL_WIDTH (f),
 				   FRAME_PIXEL_HEIGHT (f)};
+#ifdef HAVE_GTK3
+  GObjectClass *object_class;
+  GtkWidgetClass *class;
 #endif
 
   gui_set_alpha_background (f, arg, oldval);
+
+#ifdef HAVE_XRENDER
+  /* Setting `alpha_background' to something other than opaque on a
+     display that doesn't support the required features leads to
+     confusing results.  */
+  if (f->alpha_background < 1.0
+      && !FRAME_DISPLAY_INFO (f)->alpha_bits
+      && !FRAME_CHECK_XR_VERSION (f, 0, 2))
+    f->alpha_background = 1.0;
+#else
+  f->alpha_background = 1.0;
+#endif
 
 #ifdef USE_GTK
   /* This prevents GTK from painting the window's background, which
@@ -764,6 +778,24 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     (unsigned char *) &opaque_region, 4);
+#else
+  else
+    {
+      if (FRAME_TOOLTIP_P (f))
+	XChangeProperty (FRAME_X_DISPLAY (f),
+			 FRAME_X_WINDOW (f),
+			 FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
+			 XA_CARDINAL, 32, PropModeReplace,
+			 (unsigned char *) &opaque_region, 4);
+      else
+	{
+	  object_class = G_OBJECT_GET_CLASS (FRAME_GTK_OUTER_WIDGET (f));
+	  class = GTK_WIDGET_CLASS (object_class);
+
+	  if (class->style_updated)
+	    class->style_updated (FRAME_GTK_OUTER_WIDGET (f));
+	}
+    }
 #endif
 }
 
@@ -791,22 +823,24 @@ x_set_tool_bar_position (struct frame *f,
     wrong_choice (choice, new_value);
 }
 
+#ifdef HAVE_XDBE
 static void
 x_set_inhibit_double_buffering (struct frame *f,
                                 Lisp_Object new_value,
                                 Lisp_Object old_value)
 {
-  block_input ();
+  bool want_double_buffering, was_double_buffered;
+
   if (FRAME_X_WINDOW (f) && !EQ (new_value, old_value))
     {
-      bool want_double_buffering = NILP (new_value);
-      bool was_double_buffered = FRAME_X_DOUBLE_BUFFERED_P (f);
-      /* font_drop_xrender_surfaces in xftfont does something only if
-         we're double-buffered, so call font_drop_xrender_surfaces before
-         and after any potential change.  One of the calls will end up
-         being a no-op.  */
+      want_double_buffering = NILP (new_value);
+      was_double_buffered = FRAME_X_DOUBLE_BUFFERED_P (f);
+
+      block_input ();
       if (want_double_buffering != was_double_buffered)
-        font_drop_xrender_surfaces (f);
+	/* Force XftDraw etc to be recreated with the new double
+	   buffered drawable.  */
+	font_drop_xrender_surfaces (f);
       if (FRAME_X_DOUBLE_BUFFERED_P (f) && !want_double_buffering)
         tear_down_x_back_buffer (f);
       else if (!FRAME_X_DOUBLE_BUFFERED_P (f) && want_double_buffering)
@@ -816,9 +850,10 @@ x_set_inhibit_double_buffering (struct frame *f,
           SET_FRAME_GARBAGED (f);
           font_drop_xrender_surfaces (f);
         }
+      unblock_input ();
     }
-  unblock_input ();
 }
+#endif
 
 /**
  * x_set_undecorated:
@@ -843,7 +878,7 @@ x_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 #else
       Display *dpy = FRAME_X_DISPLAY (f);
       PropMotifWmHints hints;
-      Atom prop = XInternAtom (dpy, "_MOTIF_WM_HINTS", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_MOTIF_WM_HINTS;
 
       memset (&hints, 0, sizeof(hints));
       hints.flags = MWM_HINTS_DECORATIONS;
@@ -895,6 +930,9 @@ static void
 x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   struct frame *p = NULL;
+#ifdef HAVE_GTK3
+  GdkWindow *window;
+#endif
 
   if (!NILP (new_value)
       && (!FRAMEP (new_value)
@@ -910,13 +948,31 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
       block_input ();
       XReparentWindow
 	(FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-	 p ? FRAME_X_WINDOW (p) : DefaultRootWindow (FRAME_X_DISPLAY (f)),
+	 p ? FRAME_X_WINDOW (p) : FRAME_DISPLAY_INFO (f)->root_window,
 	 f->left_pos, f->top_pos);
 #ifdef USE_GTK
       if (EQ (x_gtk_resize_child_frames, Qresize_mode))
 	gtk_container_set_resize_mode
 	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)),
 	   p ? GTK_RESIZE_IMMEDIATE : GTK_RESIZE_QUEUE);
+#endif
+
+#ifdef HAVE_GTK3
+      if (p)
+	{
+	  window = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
+	  gdk_x11_window_set_frame_sync_enabled (window, FALSE);
+	}
+#endif
+
+#if defined HAVE_XSYNC && !defined USE_GTK
+      /* Frame synchronization can't be used in child frames since
+	 they are not directly managed by the compositing manager.
+	 Re-enabling vsync in former child frames also leads to
+	 inconsistent display.  In addition, they can only be updated
+	 outside of a toplevel frame.  */
+      FRAME_X_OUTPUT (f)->use_vsync_p = false;
+      FRAME_X_WAITING_FOR_DRAW (f) = false;
 #endif
       unblock_input ();
 
@@ -944,7 +1000,7 @@ x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value, Lisp_Object old_v
       xg_set_no_focus_on_map (f, new_value);
 #else /* not USE_GTK */
       Display *dpy = FRAME_X_DISPLAY (f);
-      Atom prop = XInternAtom (dpy, "_NET_WM_USER_TIME", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_net_wm_user_time;
       Time timestamp = NILP (new_value) ? CurrentTime : 0;
 
       XChangeProperty (dpy, FRAME_OUTER_WINDOW (f), prop,
@@ -1203,25 +1259,27 @@ struct mouse_cursor_types {
 };
 
 /* This array must stay in sync with enum mouse_cursor above!  */
-static const struct mouse_cursor_types mouse_cursor_types[] = {
-  { "text",      &Vx_pointer_shape,                    XC_xterm               },
-  { "nontext",   &Vx_nontext_pointer_shape,            XC_left_ptr            },
-  { "hourglass", &Vx_hourglass_pointer_shape,          XC_watch               },
-  { "modeline",  &Vx_mode_pointer_shape,               XC_xterm               },
-  { NULL,        &Vx_sensitive_text_pointer_shape,     XC_hand2               },
-  { NULL,        &Vx_window_horizontal_drag_shape,     XC_sb_h_double_arrow   },
-  { NULL,        &Vx_window_vertical_drag_shape,       XC_sb_v_double_arrow   },
-  { NULL,        &Vx_window_left_edge_shape,           XC_left_side           },
-  { NULL,        &Vx_window_top_left_corner_shape,     XC_top_left_corner     },
-  { NULL,        &Vx_window_top_edge_shape,            XC_top_side            },
-  { NULL,        &Vx_window_top_right_corner_shape,    XC_top_right_corner    },
-  { NULL,        &Vx_window_right_edge_shape,          XC_right_side          },
-  { NULL,        &Vx_window_bottom_right_corner_shape, XC_bottom_right_corner },
-  { NULL,        &Vx_window_bottom_edge_shape,         XC_bottom_side         },
-  { NULL,        &Vx_window_bottom_left_corner_shape,  XC_bottom_left_corner  },
-};
+static const struct mouse_cursor_types mouse_cursor_types[] =
+  {
+    { "text",      &Vx_pointer_shape,                    XC_xterm               },
+    { "nontext",   &Vx_nontext_pointer_shape,            XC_left_ptr            },
+    { "hourglass", &Vx_hourglass_pointer_shape,          XC_watch               },
+    { "modeline",  &Vx_mode_pointer_shape,               XC_xterm               },
+    { NULL,        &Vx_sensitive_text_pointer_shape,     XC_hand2               },
+    { NULL,        &Vx_window_horizontal_drag_shape,     XC_sb_h_double_arrow   },
+    { NULL,        &Vx_window_vertical_drag_shape,       XC_sb_v_double_arrow   },
+    { NULL,        &Vx_window_left_edge_shape,           XC_left_side           },
+    { NULL,        &Vx_window_top_left_corner_shape,     XC_top_left_corner     },
+    { NULL,        &Vx_window_top_edge_shape,            XC_top_side            },
+    { NULL,        &Vx_window_top_right_corner_shape,    XC_top_right_corner    },
+    { NULL,        &Vx_window_right_edge_shape,          XC_right_side          },
+    { NULL,        &Vx_window_bottom_right_corner_shape, XC_bottom_right_corner },
+    { NULL,        &Vx_window_bottom_edge_shape,         XC_bottom_side         },
+    { NULL,        &Vx_window_bottom_left_corner_shape,  XC_bottom_left_corner  },
+  };
 
-struct mouse_cursor_data {
+struct mouse_cursor_data
+{
   /* Last index for which XCreateFontCursor has been called, and thus
      the last index for which x_request_serial[] is valid.  */
   int last_cursor_create_request;
@@ -1302,8 +1360,10 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     {
       cursor_data.x_request_serial[i] = XNextRequest (dpy);
       cursor_data.last_cursor_create_request = i;
-      cursor_data.cursor[i] = XCreateFontCursor (dpy,
-						 cursor_data.cursor_num[i]);
+
+      cursor_data.cursor[i]
+	= x_create_font_cursor (FRAME_DISPLAY_INFO (f),
+				cursor_data.cursor_num[i]);
     }
 
   /* Now sync up and process all received errors from cursor
@@ -1460,6 +1520,21 @@ x_set_border_pixel (struct frame *f, unsigned long pix)
   unload_color (f, f->output_data.x->border_pixel);
   f->output_data.x->border_pixel = pix;
 
+#ifdef USE_X_TOOLKIT
+  if (f->output_data.x->widget && f->border_width > 0)
+    {
+      block_input ();
+      XtVaSetValues (f->output_data.x->widget, XtNborderColor,
+		     (Pixel) pix, NULL);
+      unblock_input ();
+
+      if (FRAME_VISIBLE_P (f))
+	redraw_frame (f);
+
+      return;
+    }
+#endif
+
   if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
       block_input ();
@@ -1507,7 +1582,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (STRINGP (arg))
     {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+      if (STRINGP (oldval) && BASE_EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
   else if (!STRINGP (oldval) && NILP (oldval) == NILP (arg))
@@ -1539,7 +1614,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (STRINGP (arg))
     {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+      if (STRINGP (oldval) && BASE_EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
   else if (!NILP (arg) || NILP (oldval))
@@ -1893,6 +1968,10 @@ static void
 x_set_scroll_bar_foreground (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   unsigned long pixel;
+#ifdef HAVE_GTK3
+  XColor color;
+  char css[64];
+#endif
 
   if (STRINGP (value))
     pixel = x_decode_color (f, value, BLACK_PIX_DEFAULT (f));
@@ -1914,6 +1993,28 @@ x_set_scroll_bar_foreground (struct frame *f, Lisp_Object value, Lisp_Object old
       update_face_from_frame_parameter (f, Qscroll_bar_foreground, value);
       redraw_frame (f);
     }
+
+#ifdef HAVE_GTK3
+  if (!FRAME_TOOLTIP_P (f))
+    {
+      if (pixel != -1)
+	{
+	  color.pixel = pixel;
+
+	  XQueryColor (FRAME_X_DISPLAY (f),
+		       FRAME_X_COLORMAP (f),
+		       &color);
+
+	  sprintf (css, "scrollbar slider { background-color: #%02x%02x%02x; }",
+		   color.red >> 8, color.green >> 8, color.blue >> 8);
+	  gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
+					   css, -1, NULL);
+	}
+      else
+	gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_foreground_css_provider,
+					 "", -1, NULL);
+    }
+#endif
 }
 
 
@@ -1926,6 +2027,10 @@ static void
 x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   unsigned long pixel;
+#ifdef HAVE_GTK3
+  XColor color;
+  char css[64];
+#endif
 
   if (STRINGP (value))
     pixel = x_decode_color (f, value, WHITE_PIX_DEFAULT (f));
@@ -1961,6 +2066,28 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
       update_face_from_frame_parameter (f, Qscroll_bar_background, value);
       redraw_frame (f);
     }
+
+#ifdef HAVE_GTK3
+    if (!FRAME_TOOLTIP_P (f))
+      {
+	if (pixel != -1)
+	  {
+	    color.pixel = pixel;
+
+	    XQueryColor (FRAME_X_DISPLAY (f),
+			 FRAME_X_COLORMAP (f),
+			 &color);
+
+	    sprintf (css, "scrollbar trough { background-color: #%02x%02x%02x; }",
+		     color.red >> 8, color.green >> 8, color.blue >> 8);
+	    gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
+					     css, -1, NULL);
+	  }
+	else
+	  gtk_css_provider_load_from_data (FRAME_X_OUTPUT (f)->scrollbar_background_css_provider,
+					   "", -1, NULL);
+      }
+#endif
 }
 
 
@@ -2247,6 +2374,63 @@ x_set_scroll_bar_default_height (struct frame *f)
 #endif
 }
 
+static void
+x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  double alpha = 1.0;
+  double newval[2];
+  int i;
+  Lisp_Object item;
+  bool alpha_identical_p;
+
+  alpha_identical_p = true;
+
+  for (i = 0; i < 2; i++)
+    {
+      newval[i] = 1.0;
+      if (CONSP (arg))
+        {
+          item = CAR (arg);
+          arg  = CDR (arg);
+
+	  alpha_identical_p = false;
+        }
+      else
+        item = arg;
+
+      if (NILP (item))
+	alpha = - 1.0;
+      else if (FLOATP (item))
+	{
+	  alpha = XFLOAT_DATA (item);
+	  if (! (0 <= alpha && alpha <= 1.0))
+	    args_out_of_range (make_float (0.0), make_float (1.0));
+	}
+      else if (FIXNUMP (item))
+	{
+	  EMACS_INT ialpha = XFIXNUM (item);
+	  if (! (0 <= ialpha && ialpha <= 100))
+	    args_out_of_range (make_fixnum (0), make_fixnum (100));
+	  alpha = ialpha / 100.0;
+	}
+      else
+	wrong_type_argument (Qnumberp, item);
+      newval[i] = alpha;
+    }
+
+  for (i = 0; i < 2; i++)
+    f->alpha[i] = newval[i];
+
+  FRAME_X_OUTPUT (f)->alpha_identical_p = alpha_identical_p;
+
+  if (FRAME_TERMINAL (f)->set_frame_alpha_hook)
+    {
+      block_input ();
+      FRAME_TERMINAL (f)->set_frame_alpha_hook (f);
+      unblock_input ();
+    }
+}
+
 
 /* Record in frame F the specified or default value according to ALIST
    of the parameter named PROP (a Lisp symbol).  If no value is
@@ -2264,7 +2448,7 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 
   tem = gui_display_get_arg (dpyinfo, alist, prop, xprop, xclass,
                              RES_TYPE_STRING);
-  if (EQ (tem, Qunbound))
+  if (BASE_EQ (tem, Qunbound))
     {
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
@@ -3139,14 +3323,64 @@ xic_preedit_done_callback (XIC xic, XPointer client_data,
     }
 }
 
+struct x_xim_text_conversion_data
+{
+  struct coding_system *coding;
+  char *source;
+};
+
+static Lisp_Object
+x_xim_text_to_utf8_unix_1 (ptrdiff_t nargs,
+			   Lisp_Object *args)
+{
+  struct x_xim_text_conversion_data *data;
+  ptrdiff_t nbytes;
+
+  data = xmint_pointer (args[0]);
+  nbytes = strlen (data->source);
+
+  data->coding->destination = NULL;
+
+  setup_coding_system (Vlocale_coding_system,
+		       data->coding);
+  data->coding->mode |= (CODING_MODE_LAST_BLOCK
+			 | CODING_MODE_SAFE_ENCODING);
+  data->coding->source = (const unsigned char *) data->source;
+  data->coding->dst_bytes = 2048;
+  data->coding->destination = xmalloc (2048);
+  decode_coding_object (data->coding, Qnil, 0, 0,
+			nbytes, nbytes, Qnil);
+
+  return Qnil;
+}
+
+static Lisp_Object
+x_xim_text_to_utf8_unix_2 (Lisp_Object val,
+			   ptrdiff_t nargs,
+			   Lisp_Object *args)
+{
+  struct x_xim_text_conversion_data *data;
+
+  data = xmint_pointer (args[0]);
+
+  if (data->coding->destination)
+    xfree (data->coding->destination);
+
+  data->coding->destination = NULL;
+
+  return Qnil;
+}
+
 /* The string returned is not null-terminated.  */
 static char *
 x_xim_text_to_utf8_unix (XIMText *text, ptrdiff_t *length)
 {
   unsigned char *wchar_buf;
   ptrdiff_t wchar_actual_length, i;
-  ptrdiff_t nbytes;
   struct coding_system coding;
+  struct x_xim_text_conversion_data data;
+  bool was_waiting_for_input_p;
+  Lisp_Object arg;
 
   if (text->encoding_is_wchar)
     {
@@ -3161,17 +3395,16 @@ x_xim_text_to_utf8_unix (XIMText *text, ptrdiff_t *length)
       return (char *) wchar_buf;
     }
 
-  nbytes = strlen (text->string.multi_byte);
-  setup_coding_system (Vlocale_coding_system, &coding);
-  coding.mode |= (CODING_MODE_LAST_BLOCK
-		  | CODING_MODE_SAFE_ENCODING);
-  coding.source = (const unsigned char *) text->string.multi_byte;
-  coding.dst_bytes = 2048;
-  coding.destination = xmalloc (2048);
-  decode_coding_object (&coding, Qnil, 0, 0, nbytes, nbytes, Qnil);
+  data.coding = &coding;
+  data.source = text->string.multi_byte;
 
-  /* coding.destination has either been allocated by us, or
-     reallocated by decode_coding_object.  */
+  was_waiting_for_input_p = waiting_for_input;
+  /* Otherwise Fsignal will crash.  */
+  waiting_for_input = false;
+  arg = make_mint_ptr (&data);
+  internal_condition_case_n (x_xim_text_to_utf8_unix_1, 1, &arg,
+			     Qt, x_xim_text_to_utf8_unix_2);
+  waiting_for_input = was_waiting_for_input_p;
 
   *length = coding.produced;
   return (char *) coding.destination;
@@ -3198,16 +3431,14 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
       if (!output->preedit_active)
 	return;
 
-      /* If we don't bail out here then GTK can crash
-	 from the resulting signal in `setup_coding_system'.  */
-      if (NILP (Fcoding_system_p (Vlocale_coding_system)))
-	{
-	  text = NULL;
-	  goto im_abort;
-	}
-
       if (call_data->text)
-	text = x_xim_text_to_utf8_unix (call_data->text, &text_length);
+	{
+	  text = x_xim_text_to_utf8_unix (call_data->text, &text_length);
+
+	  if (!text)
+	    /* Decoding the IM text failed.  */
+	    goto im_abort;
+	}
       else
 	text = NULL;
 
@@ -3379,8 +3610,11 @@ xic_set_xfontset (struct frame *f, const char *base_fontname)
 void
 x_mark_frame_dirty (struct frame *f)
 {
-  if (FRAME_X_DOUBLE_BUFFERED_P (f) && !FRAME_X_NEED_BUFFER_FLIP (f))
+#ifdef HAVE_XDBE
+  if (FRAME_X_DOUBLE_BUFFERED_P (f)
+      && !FRAME_X_NEED_BUFFER_FLIP (f))
     FRAME_X_NEED_BUFFER_FLIP (f) = true;
+#endif
 }
 
 static void
@@ -3461,12 +3695,12 @@ tear_down_x_back_buffer (struct frame *f)
 void
 initial_set_up_x_back_buffer (struct frame *f)
 {
-  block_input ();
   eassert (FRAME_X_WINDOW (f));
   FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
-  if (NILP (CDR (Fassq (Qinhibit_double_buffering, f->param_alist))))
+
+  if (NILP (CDR (Fassq (Qinhibit_double_buffering,
+			f->param_alist))))
     set_up_x_back_buffer (f);
-  unblock_input ();
 }
 
 #if defined HAVE_XINPUT2
@@ -3476,13 +3710,23 @@ setup_xi_event_mask (struct frame *f)
   XIEventMask mask;
   ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
   unsigned char *m;
+#ifndef HAVE_XINPUT2_1
+  /* Set up fallback values, since XIGetSelectedEvents doesn't work
+     with this version of libXi.  */
+  XIEventMask *selected;
+
+  selected = xzalloc (sizeof *selected + l);
+  selected->mask = ((unsigned char *) selected) + sizeof *selected;
+  selected->mask_len = l;
+  selected->deviceid = XIAllMasterDevices;
+#endif
 
   mask.mask = m = alloca (l);
   memset (m, 0, l);
   mask.mask_len = l;
 
   block_input ();
-#ifndef USE_GTK
+#ifndef HAVE_GTK3
   mask.deviceid = XIAllMasterDevices;
 
   XISetMask (m, XI_ButtonPress);
@@ -3490,16 +3734,24 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_Motion);
   XISetMask (m, XI_Enter);
   XISetMask (m, XI_Leave);
+#ifndef USE_GTK
   XISetMask (m, XI_FocusIn);
   XISetMask (m, XI_FocusOut);
   XISetMask (m, XI_KeyPress);
   XISetMask (m, XI_KeyRelease);
+#endif
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
 
+  /* Fortunately `xi_masks' isn't used on GTK 3, where we really have
+     to get the event mask from the X server.  */
+#ifndef HAVE_XINPUT2_1
+  memcpy (selected->mask, m, l);
+#endif
+
   memset (m, 0, l);
-#endif /* !USE_GTK */
+#endif /* !HAVE_GTK3 */
 
 #ifdef USE_X_TOOLKIT
   XISetMask (m, XI_KeyPress);
@@ -3518,13 +3770,13 @@ setup_xi_event_mask (struct frame *f)
   XISetMask (m, XI_PropertyEvent);
   XISetMask (m, XI_HierarchyChanged);
   XISetMask (m, XI_DeviceChanged);
-#ifdef XI_TouchBegin
+#ifdef HAVE_XINPUT2_2
   if (FRAME_DISPLAY_INFO (f)->xi2_version >= 2)
     {
       XISetMask (m, XI_TouchBegin);
       XISetMask (m, XI_TouchUpdate);
       XISetMask (m, XI_TouchEnd);
-#ifdef XI_GesturePinchBegin
+#ifdef HAVE_XINPUT2_4
       if (FRAME_DISPLAY_INFO (f)->xi2_version >= 4)
 	{
 	  XISetMask (m, XI_GesturePinchBegin);
@@ -3537,6 +3789,12 @@ setup_xi_event_mask (struct frame *f)
   XISelectEvents (FRAME_X_DISPLAY (f),
 		  FRAME_X_WINDOW (f),
 		  &mask, 1);
+
+#ifndef HAVE_XINPUT2_1
+  FRAME_X_OUTPUT (f)->xi_masks = selected;
+  FRAME_X_OUTPUT (f)->num_xi_masks = 1;
+#endif
+
   unblock_input ();
 }
 #endif
@@ -3767,7 +4025,7 @@ x_window (struct frame *f, long window_prompting)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
       PropMotifWmHints hints;
-      Atom prop = XInternAtom (dpy, "_MOTIF_WM_HINTS", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_MOTIF_WM_HINTS;
 
       memset (&hints, 0, sizeof(hints));
       hints.flags = MWM_HINTS_DECORATIONS;
@@ -3946,7 +4204,7 @@ x_window (struct frame *f)
     {
       Display *dpy = FRAME_X_DISPLAY (f);
       PropMotifWmHints hints;
-      Atom prop = XInternAtom (dpy, "_MOTIF_WM_HINTS", False);
+      Atom prop = FRAME_DISPLAY_INFO (f)->Xatom_MOTIF_WM_HINTS;
 
       memset (&hints, 0, sizeof(hints));
       hints.flags = MWM_HINTS_DECORATIONS;
@@ -3986,12 +4244,12 @@ x_icon_verify (struct frame *f, Lisp_Object parms)
      icons in an icon window.  */
   icon_x = gui_frame_get_and_record_arg (f, parms, Qicon_left, 0, 0, RES_TYPE_NUMBER);
   icon_y = gui_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
-  if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
+  if (!BASE_EQ (icon_x, Qunbound) && !BASE_EQ (icon_y, Qunbound))
     {
       CHECK_FIXNUM (icon_x);
       CHECK_FIXNUM (icon_y);
     }
-  else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
+  else if (!BASE_EQ (icon_x, Qunbound) || !BASE_EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
 }
 
@@ -4010,8 +4268,8 @@ x_icon (struct frame *f, Lisp_Object parms)
     = gui_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   int icon_xval, icon_yval;
 
-  bool xgiven = !EQ (icon_x, Qunbound);
-  bool ygiven = !EQ (icon_y, Qunbound);
+  bool xgiven = !BASE_EQ (icon_x, Qunbound);
+  bool ygiven = !BASE_EQ (icon_y, Qunbound);
   if (xgiven != ygiven)
     error ("Both left and top icon corners of icon must be specified");
   if (xgiven)
@@ -4060,7 +4318,7 @@ x_make_gc (struct frame *f)
 
   gc_values.foreground = FRAME_FOREGROUND_PIXEL (f);
   gc_values.background = FRAME_BACKGROUND_PIXEL (f);
-  gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
+  gc_values.line_width = 1;
   f->output_data.x->normal_gc
     = XCreateGC (FRAME_X_DISPLAY (f),
                  FRAME_X_DRAWABLE (f),
@@ -4196,7 +4454,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
   Lisp_Object font_param = gui_display_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
                                                 RES_TYPE_STRING);
   Lisp_Object font = Qnil;
-  if (EQ (font_param, Qunbound))
+  if (BASE_EQ (font_param, Qunbound))
     font_param = Qnil;
 
   if (NILP (font_param))
@@ -4284,9 +4542,7 @@ set_machine_and_pid_properties (struct frame *f)
       unsigned long xpid = pid;
       XChangeProperty (FRAME_X_DISPLAY (f),
 		       FRAME_OUTER_WINDOW (f),
-		       XInternAtom (FRAME_X_DISPLAY (f),
-				    "_NET_WM_PID",
-				    False),
+		       FRAME_DISPLAY_INFO (f)->Xatom_net_wm_pid,
 		       XA_CARDINAL, 32, PropModeReplace,
 		       (unsigned char *) &xpid, 1);
     }
@@ -4315,6 +4571,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   struct x_display_info *dpyinfo = NULL;
   Lisp_Object parent, parent_frame;
   struct kboard *kb;
+#ifdef HAVE_GTK3
+  GdkWindow *gwin;
+#endif
 
   parms = Fcopy_alist (parms);
 
@@ -4324,10 +4583,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   display = gui_display_get_arg (dpyinfo, parms, Qterminal, 0, 0,
                                  RES_TYPE_NUMBER);
-  if (EQ (display, Qunbound))
+  if (BASE_EQ (display, Qunbound))
     display = gui_display_get_arg (dpyinfo, parms, Qdisplay, 0, 0,
                                    RES_TYPE_STRING);
-  if (EQ (display, Qunbound))
+  if (BASE_EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
   kb = dpyinfo->terminal->kboard;
@@ -4338,7 +4597,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   name = gui_display_get_arg (dpyinfo, parms, Qname, "name", "Name",
                               RES_TYPE_STRING);
   if (!STRINGP (name)
-      && ! EQ (name, Qunbound)
+      && ! BASE_EQ (name, Qunbound)
       && ! NILP (name))
     error ("Invalid frame name--not a string or nil");
 
@@ -4348,7 +4607,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* See if parent window is specified.  */
   parent = gui_display_get_arg (dpyinfo, parms, Qparent_id, NULL, NULL,
                                 RES_TYPE_NUMBER);
-  if (EQ (parent, Qunbound))
+  if (BASE_EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
     CHECK_FIXNUM (parent);
@@ -4377,7 +4636,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                                       RES_TYPE_SYMBOL);
   /* Accept parent-frame iff parent-id was not specified.  */
   if (!NILP (parent)
-      || EQ (parent_frame, Qunbound)
+      || BASE_EQ (parent_frame, Qunbound)
       || NILP (parent_frame)
       || !FRAMEP (parent_frame)
       || !FRAME_LIVE_P (XFRAME (parent_frame))
@@ -4393,7 +4652,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                                          NULL,
                                          NULL,
                                          RES_TYPE_BOOLEAN)))
-      && !(EQ (tem, Qunbound)))
+      && !(BASE_EQ (tem, Qunbound)))
     undecorated = true;
 
   FRAME_UNDECORATED (f) = undecorated;
@@ -4405,7 +4664,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                                          NULL,
                                          NULL,
                                          RES_TYPE_BOOLEAN)))
-      && !(EQ (tem, Qunbound)))
+      && !(BASE_EQ (tem, Qunbound)))
     override_redirect = true;
 
   FRAME_OVERRIDE_REDIRECT (f) = override_redirect;
@@ -4486,7 +4745,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name))
     {
       fset_name (f, build_string (dpyinfo->x_id_name));
       f->explicit_name = false;
@@ -4549,7 +4808,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       value = gui_display_get_arg (dpyinfo, parms, Qinternal_border_width,
                                    "internalBorder", "internalBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
@@ -4571,7 +4830,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       value = gui_display_get_arg (dpyinfo, parms, Qchild_frame_border_width,
                                    "childFrameBorder", "childFrameBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qchild_frame_border_width, value),
 		       parms);
     }
@@ -4613,6 +4872,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
                          "rightFringe", "RightFringe", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qno_special_glyphs, Qnil,
                          NULL, NULL, RES_TYPE_BOOLEAN);
+
+#ifdef HAVE_GTK3
+  FRAME_OUTPUT_DATA (f)->scrollbar_background_css_provider
+    = gtk_css_provider_new ();
+  FRAME_OUTPUT_DATA (f)->scrollbar_foreground_css_provider
+    = gtk_css_provider_new ();
+#endif
 
   x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_foreground,
 					"scrollBarForeground",
@@ -4689,6 +4955,16 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_icon (f, parms);
   x_make_gc (f);
 
+  /* While this function is present in versions of libXi that only
+     support 2.0, it does not release the display lock after
+     finishing, leading to a deadlock.  */
+#if defined HAVE_XINPUT2 && defined HAVE_XINPUT2_1
+  if (dpyinfo->supports_xi2)
+    FRAME_X_OUTPUT (f)->xi_masks
+      = XIGetSelectedEvents (dpyinfo->display, FRAME_X_WINDOW (f),
+			     &FRAME_X_OUTPUT (f)->num_xi_masks);
+#endif
+
   /* Now consider the frame official.  */
   f->terminal->reference_count++;
   FRAME_DISPLAY_INFO (f)->reference_count++;
@@ -4727,6 +5003,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
       if (EQ (x_gtk_resize_child_frames, Qresize_mode))
 	gtk_container_set_resize_mode
 	  (GTK_CONTAINER (FRAME_GTK_OUTER_WIDGET (f)), GTK_RESIZE_IMMEDIATE);
+#endif
+#ifdef HAVE_GTK3
+      gwin = gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f));
+      gdk_x11_window_set_frame_sync_enabled (gwin, FALSE);
 #endif
       unblock_input ();
     }
@@ -4795,7 +5075,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	}
       else
 	{
-	  if (EQ (visibility, Qunbound))
+	  if (BASE_EQ (visibility, Qunbound))
 	    visibility = Qt;
 
 	  if (!NILP (visibility))
@@ -4809,7 +5089,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	 from `x-create-frame-with-faces' (see above comment).  */
       f->was_invisible
 	= (f->was_invisible
-	   && (!EQ (height, Qunbound) || !EQ (width, Qunbound)));
+	   && (!BASE_EQ (height, Qunbound) || !BASE_EQ (width, Qunbound)));
 
       store_frame_param (f, Qvisibility, visibility);
     }
@@ -4831,7 +5111,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 
 #ifdef HAVE_XSYNC
-  if (dpyinfo->xsync_supported_p)
+  if (dpyinfo->xsync_supported_p
+      /* Frame synchronization isn't supported in child frames.  */
+      && NILP (parent_frame)
+      && !f->output_data.x->explicit_parent)
     {
 #ifndef HAVE_GTK3
       XSyncValue initial_value;
@@ -4866,6 +5149,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       (unsigned char *) &counters,
 		       ((STRINGP (value)
 			 && !strcmp (SSDATA (value), "extended")) ? 2 : 1));
+#endif
+
+#ifndef USE_GTK
+      if (FRAME_X_EXTENDED_COUNTER (f))
+	FRAME_X_OUTPUT (f)->use_vsync_p
+	  = x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
 #endif
     }
 #endif
@@ -4942,7 +5231,7 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
   if (dpyinfo->n_planes <= 2)
     return Qnil;
 
-  switch (dpyinfo->visual->class)
+  switch (dpyinfo->visual_info.class)
     {
     case StaticColor:
     case PseudoColor:
@@ -4969,7 +5258,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   if (dpyinfo->n_planes <= 1)
     return Qnil;
 
-  switch (dpyinfo->visual->class)
+  switch (dpyinfo->visual_info.class)
     {
     case StaticColor:
     case PseudoColor:
@@ -5045,14 +5334,17 @@ If omitted or nil, that stands for the selected frame's display.
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  int nr_planes = DisplayPlanes (dpyinfo->display,
-                                 XScreenNumberOfScreen (dpyinfo->screen));
+  if (dpyinfo->visual_info.class != TrueColor
+      && dpyinfo->visual_info.class != DirectColor)
+    return make_fixnum (dpyinfo->visual_info.colormap_size);
 
-  /* Truncate nr_planes to 24 to avoid integer overflow.
-     Some displays says 32, but only 24 bits are actually significant.
+  int nr_planes = dpyinfo->n_planes;
+
+  /* Truncate nr_planes to 24 to avoid integer overflow.  Some
+     displays says 32, but only 24 bits are actually significant.
      There are only very few and rare video cards that have more than
-     24 significant bits.  Also 24 bits is more than 16 million colors,
-     it "should be enough for everyone".  */
+     24 significant bits.  Also 24 bits is more than 16 million
+     colors, it "should be enough for everyone".  */
   if (nr_planes > 24) nr_planes = 24;
 
   return make_fixnum (1 << nr_planes);
@@ -5127,9 +5419,9 @@ DEFUN ("x-server-input-extension-version", Fx_server_input_extension_version,
        doc: /* Return the version of the X Input Extension supported by TERMINAL.
 The value is nil if TERMINAL's X server doesn't support the X Input
 Extension extension, or if Emacs doesn't support the version present
-on that server.  Otherwise, the return value is a list of the the
-major and minor versions of the X Input Extension extension running on
-that server.  */)
+on that server.  Otherwise, the return value is a list of the major
+and minor versions of the X Input Extension extension running on that
+server.  */)
   (Lisp_Object terminal)
 {
 #ifdef HAVE_XINPUT2
@@ -5174,6 +5466,9 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
+  if (dpyinfo->screen_mm_height)
+    return make_fixnum (dpyinfo->screen_mm_height);
+
   return make_fixnum (HeightMMOfScreen (dpyinfo->screen));
 }
 
@@ -5190,6 +5485,9 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
+
+  if (dpyinfo->screen_mm_width)
+    return make_fixnum (dpyinfo->screen_mm_width);
 
   return make_fixnum (WidthMMOfScreen (dpyinfo->screen));
 }
@@ -5246,7 +5544,7 @@ If omitted or nil, that stands for the selected frame's display.
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Lisp_Object result;
 
-  switch (dpyinfo->visual->class)
+  switch (dpyinfo->visual_info.class)
     {
     case StaticGray:
       result = intern ("static-gray");
@@ -5300,6 +5598,7 @@ On MS Windows, this just returns nil.  */)
 static bool
 x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 {
+#ifndef USE_XCB
   Display *dpy = dpyinfo->display;
   long offset, max_len;
   Atom target_type, actual_type;
@@ -5353,6 +5652,69 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
   x_uncatch_errors ();
 
   return result;
+#else
+  xcb_get_property_cookie_t current_desktop_cookie;
+  xcb_get_property_cookie_t workarea_cookie;
+  xcb_get_property_reply_t *reply;
+  xcb_generic_error_t *error;
+  bool rc;
+  uint32_t current_workspace, *values;
+
+  current_desktop_cookie
+    = xcb_get_property (dpyinfo->xcb_connection, 0,
+			(xcb_window_t) dpyinfo->root_window,
+			(xcb_atom_t) dpyinfo->Xatom_net_current_desktop,
+			XCB_ATOM_CARDINAL, 0, 1);
+
+  workarea_cookie
+    = xcb_get_property (dpyinfo->xcb_connection, 0,
+			(xcb_window_t) dpyinfo->root_window,
+			(xcb_atom_t) dpyinfo->Xatom_net_workarea,
+			XCB_ATOM_CARDINAL, 0, UINT32_MAX);
+
+  reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+				  current_desktop_cookie, &error);
+  rc = true;
+
+  if (!reply)
+    free (error), rc = false;
+  else
+    {
+      if (xcb_get_property_value_length (reply) != 4
+	  || reply->type != XCB_ATOM_CARDINAL || reply->format != 32)
+	rc = false;
+      else
+	current_workspace = *(uint32_t *) xcb_get_property_value (reply);
+
+      free (reply);
+    }
+
+  reply = xcb_get_property_reply (dpyinfo->xcb_connection,
+				  workarea_cookie, &error);
+
+  if (!reply)
+    free (error), rc = false;
+  else
+    {
+      if (rc && reply->type == XCB_ATOM_CARDINAL && reply->format == 32
+	  && (xcb_get_property_value_length (reply) / sizeof (uint32_t)
+	      >= current_workspace + 4))
+	{
+	  values = xcb_get_property_value (reply);
+
+	  rect->x = values[current_workspace];
+	  rect->y = values[current_workspace + 1];
+	  rect->width = values[current_workspace + 2];
+	  rect->height = values[current_workspace + 3];
+	}
+      else
+	rc = false;
+
+      free (reply);
+    }
+
+  return rc;
+#endif
 }
 #endif /* !(USE_GTK && HAVE_GTK3) */
 
@@ -5545,6 +5907,12 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
 
 #if RANDR_MAJOR > 1 || (RANDR_MAJOR == 1 && RANDR_MINOR >= 5)
   XRRMonitorInfo *rr_monitors;
+#ifdef USE_XCB
+  xcb_get_atom_name_cookie_t *atom_name_cookies;
+  xcb_get_atom_name_reply_t *reply;
+  xcb_generic_error_t *error;
+  int length;
+#endif
 
   /* If RandR 1.5 or later is available, use that instead, as some
      video drivers don't report correct dimensions via other versions
@@ -5563,6 +5931,9 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
 	goto fallback;
 
       monitors = xzalloc (n_monitors * sizeof *monitors);
+#ifdef USE_XCB
+      atom_name_cookies = alloca (n_monitors * sizeof *atom_name_cookies);
+#endif
 
       for (int i = 0; i < n_monitors; ++i)
 	{
@@ -5573,6 +5944,7 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
 	  monitors[i].mm_width = rr_monitors[i].mwidth;
 	  monitors[i].mm_height = rr_monitors[i].mheight;
 
+#ifndef USE_XCB
 	  name = XGetAtomName (dpyinfo->display, rr_monitors[i].name);
 	  if (name)
 	    {
@@ -5581,6 +5953,11 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
 	    }
 	  else
 	    monitors[i].name = xstrdup ("Unknown Monitor");
+#else
+	  atom_name_cookies[i]
+	    = xcb_get_atom_name (dpyinfo->xcb_connection,
+				 (xcb_atom_t) rr_monitors[i].name);
+#endif
 
 	  if (rr_monitors[i].primary)
 	    primary = i;
@@ -5597,6 +5974,29 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
 	  else
 	    monitors[i].work = monitors[i].geom;
 	}
+
+#ifdef USE_XCB
+      for (int i = 0; i < n_monitors; ++i)
+	{
+	  reply = xcb_get_atom_name_reply (dpyinfo->xcb_connection,
+					   atom_name_cookies[i], &error);
+
+	  if (!reply)
+	    {
+	      monitors[i].name = xstrdup ("Unknown monitor");
+	      free (error);
+	    }
+	  else
+	    {
+	      length = xcb_get_atom_name_name_length (reply);
+	      name = xmalloc (length + 1);
+	      memcpy (name, xcb_get_atom_name_name (reply), length);
+	      name[length] = '\0';
+	      monitors[i].name = name;
+	      free (reply);
+	    }
+	}
+#endif
 
       XRRFreeMonitors (rr_monitors);
       randr15_p = true;
@@ -6232,17 +6632,61 @@ menu bar or tool bar of FRAME.  */)
  * WINDOW to FRAMES and return FRAMES.
  */
 static Lisp_Object
-x_frame_list_z_order (Display* dpy, Window window)
+x_frame_list_z_order (struct x_display_info *dpyinfo, Window window)
 {
+  Display *dpy;
   Window root, parent, *children;
   unsigned int nchildren;
-  int i;
-  Lisp_Object frames = Qnil;
+  unsigned long i;
+  Lisp_Object frames, val;
+  Atom type;
+  Window *toplevels;
+  int format, rc;
+  unsigned long nitems, bytes_after;
+  unsigned char *data;
+  struct frame *f;
 
-  block_input ();
+  dpy = dpyinfo->display;
+  data = NULL;
+  frames = Qnil;
+
+  if (window == dpyinfo->root_window
+      && x_wm_supports_1 (dpyinfo,
+			  dpyinfo->Xatom_net_client_list_stacking))
+    {
+      rc = XGetWindowProperty (dpyinfo->display, dpyinfo->root_window,
+			       dpyinfo->Xatom_net_client_list_stacking,
+			       0, LONG_MAX, False, XA_WINDOW, &type,
+			       &format, &nitems, &bytes_after, &data);
+
+      if (rc != Success)
+	return Qnil;
+
+      if (format != 32 || type != XA_WINDOW)
+	{
+	  XFree (data);
+	  return Qnil;
+	}
+
+      toplevels = (Window *) data;
+
+      for (i = 0; i < nitems; ++i)
+	{
+	  f = x_top_window_to_frame (dpyinfo, toplevels[i]);
+
+	  if (f)
+	    {
+	      XSETFRAME (val, f);
+	      frames = Fcons (val, frames);
+	    }
+	}
+
+      XFree (data);
+      return frames;
+    }
+
   if (XQueryTree (dpy, window, &root, &parent, &children, &nchildren))
     {
-      unblock_input ();
       for (i = 0; i < nchildren; i++)
 	{
 	  Lisp_Object frame, tail;
@@ -6260,10 +6704,9 @@ x_frame_list_z_order (Display* dpy, Window window)
             }
 	}
 
-      if (children) XFree ((char *)children);
+      if (children)
+	XFree (children);
     }
-  else
-    unblock_input ();
 
   return frames;
 }
@@ -6284,7 +6727,6 @@ Frames are listed from topmost (first) to bottommost (last).  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
-  Display *dpy = dpyinfo->display;
   Window window;
 
   if (FRAMEP (terminal) && FRAME_LIVE_P (XFRAME (terminal)))
@@ -6292,7 +6734,7 @@ Frames are listed from topmost (first) to bottommost (last).  */)
   else
     window = dpyinfo->root_window;
 
-  return x_frame_list_z_order (dpy, window);
+  return x_frame_list_z_order (dpyinfo, window);
 }
 
 /**
@@ -6372,7 +6814,7 @@ selected frame's display.  */)
 
   block_input ();
   XQueryPointer (FRAME_X_DISPLAY (f),
-                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+		 FRAME_DISPLAY_INFO (f)->root_window,
                  &root, &dummy_window, &x, &y, &dummy, &dummy,
                  (unsigned int *) &dummy);
   unblock_input ();
@@ -6386,7 +6828,7 @@ DEFUN ("x-set-mouse-absolute-pixel-position", Fx_set_mouse_absolute_pixel_positi
 The coordinates X and Y are interpreted in pixels relative to a position
 \(0, 0) of the selected frame's display.  */)
   (Lisp_Object x, Lisp_Object y)
-  {
+{
   struct frame *f = SELECTED_FRAME ();
 
   if (FRAME_INITIAL_P (f) || !FRAME_X_P (f))
@@ -6406,18 +6848,193 @@ The coordinates X and Y are interpreted in pixels relative to a position
 			      &deviceid))
 	{
 	  XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
-			 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+			 FRAME_DISPLAY_INFO (f)->root_window,
 			 0, 0, 0, 0, xval, yval);
 	}
       XUngrabServer (FRAME_X_DISPLAY (f));
     }
   else
 #endif
-    XWarpPointer (FRAME_X_DISPLAY (f), None, DefaultRootWindow (FRAME_X_DISPLAY (f)),
+    XWarpPointer (FRAME_X_DISPLAY (f), None,
+		  FRAME_DISPLAY_INFO (f)->root_window,
 		  0, 0, 0, 0, xval, yval);
   unblock_input ();
 
   return Qnil;
+}
+
+DEFUN ("x-begin-drag", Fx_begin_drag, Sx_begin_drag, 1, 6, 0,
+       doc: /* Begin dragging contents on FRAME, with targets TARGETS.
+TARGETS is a list of strings, which defines the X selection targets
+that will be available to the drop target.  Block until the mouse
+buttons are released, then return the action chosen by the target, or
+`nil' if the drop was not accepted by the drop target.  Dragging
+starts when the mouse is pressed on FRAME, and the contents of the
+selection `XdndSelection' will be sent to the X window underneath the
+mouse pointer (the drop target) when the mouse button is released.
+
+ACTION is a symbol which tells the target what it should do, and can
+be one of the following:
+
+ - `XdndActionCopy', which means to copy the contents from the drag
+   source (FRAME) to the drop target.
+
+ - `XdndActionMove', which means to first take the contents of
+   `XdndSelection', and to delete whatever was saved into that
+   selection afterwards.
+
+`XdndActionPrivate' is also a valid return value, and means that the
+drop target chose to perform an unspecified or unknown action.
+
+The source is also expected to cooperate with the target to perform
+the action chosen by the target.  For example, callers should delete
+the buffer text that was dragged if `XdndActionMove' is returned.
+
+There are also some other valid values of ACTION that depend on
+details of both the drop target's implementation details and that of
+Emacs.  For that reason, they are not mentioned here.  Consult
+"Drag-and-Drop Protocol for the X Window System" for more details:
+https://freedesktop.org/wiki/Specifications/XDND/.
+
+If RETURN-FRAME is non-nil, this function will return the frame if the
+mouse pointer moves onto an Emacs frame, after first moving out of
+FRAME.  (This is not guaranteed to work on some systems.)  If
+RETURN-FRAME is the symbol `now', any frame underneath the mouse
+pointer will be returned immediately.
+
+If ACTION is a list and not nil, its elements are assumed to be a cons
+of (ITEM . STRING), where ITEM is the name of an action, and STRING is
+a string describing ITEM to the user.  The drop target is expected to
+prompt the user to choose between any of the actions in the list.
+
+If ACTION is not specified or nil, `XdndActionCopy' is used
+instead.
+
+If ALLOW-CURRENT-FRAME is not specified or nil, then the drop target
+is allowed to be FRAME.  Otherwise, no action will be taken if the
+mouse buttons are released on top of FRAME.
+
+If FOLLOW-TOOLTIP is non-nil, any tooltip currently being displayed
+will be moved to follow the mouse pointer while the drag is in
+progress.  Note that this does not work with system tooltips (tooltips
+created when `use-system-tooltips' is non-nil).
+
+This function will sometimes return immediately if no mouse buttons
+are currently held down.  It should only be called when it is known
+that mouse buttons are being held down, such as immediately after a
+`down-mouse-1' (or similar) event.  */)
+  (Lisp_Object targets, Lisp_Object action, Lisp_Object frame,
+   Lisp_Object return_frame, Lisp_Object allow_current_frame,
+   Lisp_Object follow_tooltip)
+{
+  struct frame *f = decode_window_system_frame (frame);
+  int ntargets = 0, nnames = 0;
+  char *target_names[2048];
+  Atom *target_atoms;
+  Lisp_Object lval, original, targets_arg, tem, t1, t2;
+  Atom xaction;
+  Atom action_list[2048];
+  char *name_list[2048];
+
+  USE_SAFE_ALLOCA;
+
+  CHECK_LIST (targets);
+  original = targets;
+  targets_arg = targets;
+
+  FOR_EACH_TAIL (targets)
+    {
+      CHECK_STRING (XCAR (targets));
+
+      if (ntargets < 2048)
+	{
+	  SAFE_ALLOCA_STRING (target_names[ntargets],
+			      XCAR (targets));
+	  ntargets++;
+	}
+      else
+	error ("Too many targets");
+    }
+
+  CHECK_LIST_END (targets, original);
+
+  if (NILP (action) || EQ (action, QXdndActionCopy))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionCopy;
+  else if (EQ (action, QXdndActionMove))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionMove;
+  else if (EQ (action, QXdndActionLink))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionLink;
+  else if (EQ (action, QXdndActionPrivate))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionPrivate;
+  else if (EQ (action, QXdndActionAsk))
+    xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
+  else if (SYMBOLP (action))
+    /* This is to accommodate non-standard DND protocols such as XDS
+       that are explicitly implemented by Emacs, and is not documented
+       for that reason.  */
+    xaction = symbol_to_x_atom (FRAME_DISPLAY_INFO (f), action);
+  else if (CONSP (action))
+    {
+      xaction = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
+      original = action;
+
+      CHECK_LIST (action);
+      FOR_EACH_TAIL (action)
+	{
+	  tem = XCAR (action);
+	  CHECK_CONS (tem);
+	  t1 = XCAR (tem);
+	  t2 = XCDR (tem);
+	  CHECK_SYMBOL (t1);
+	  CHECK_STRING (t2);
+
+	  if (nnames < 2048)
+	    {
+	      if (EQ (t1, QXdndActionCopy))
+		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionCopy;
+	      else if (EQ (t1, QXdndActionMove))
+		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionMove;
+	      else if (EQ (t1, QXdndActionLink))
+		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionLink;
+	      else if (EQ (t1, QXdndActionAsk))
+		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionAsk;
+	      else if (EQ (t1, QXdndActionPrivate))
+		action_list[nnames] = FRAME_DISPLAY_INFO (f)->Xatom_XdndActionPrivate;
+	      else
+		signal_error ("Invalid drag-and-drop action", tem);
+
+	      SAFE_ALLOCA_STRING (name_list[nnames],
+				  ENCODE_SYSTEM (t2));
+
+	      nnames++;
+	    }
+	  else
+	    error ("Too many actions");
+	}
+      CHECK_LIST_END (action, original);
+    }
+  else
+    signal_error ("Invalid drag-and-drop action", action);
+
+  target_atoms = SAFE_ALLOCA (ntargets * sizeof *target_atoms);
+
+  /* Catch errors since interning lots of targets can potentially
+     generate a BadAlloc error.  */
+  x_catch_errors (FRAME_X_DISPLAY (f));
+  XInternAtoms (FRAME_X_DISPLAY (f), target_names,
+		ntargets, False, target_atoms);
+  x_check_errors (FRAME_X_DISPLAY (f),
+		  "Failed to intern target atoms: %s");
+  x_uncatch_errors_after_check ();
+
+  lval = x_dnd_begin_drag_and_drop (f, FRAME_DISPLAY_INFO (f)->last_user_time,
+				    xaction, return_frame, action_list,
+				    (const char **) &name_list, nnames,
+				    !NILP (allow_current_frame), target_atoms,
+				    ntargets, targets_arg, !NILP (follow_tooltip));
+
+  SAFE_FREE ();
+  return lval;
 }
 
 /************************************************************************
@@ -6518,6 +7135,7 @@ select_visual (struct x_display_info *dpyinfo)
 	       SSDATA (ENCODE_SYSTEM (value)));
 
       dpyinfo->visual = vinfo.visual;
+      dpyinfo->visual_info = vinfo;
     }
   else
     {
@@ -6526,35 +7144,53 @@ select_visual (struct x_display_info *dpyinfo)
 
       vinfo_template.screen = XScreenNumberOfScreen (screen);
 
-#if !defined USE_X_TOOLKIT && !(defined USE_GTK && !defined HAVE_GTK3)
-      /* First attempt to use 32-bit visual if available */
+#if !defined USE_X_TOOLKIT && !(defined USE_GTK && !defined HAVE_GTK3) \
+  && defined HAVE_XRENDER
+      int i;
+      XRenderPictFormat *format;
 
-      vinfo_template.depth = 32;
-      vinfo_template.class = TrueColor;
+      /* First attempt to find a visual with an alpha mask if
+	 available.  That information is only available when the
+	 render extension is present, and we cannot do much with such
+	 a visual if it isn't.  */
 
-      vinfo = XGetVisualInfo (dpy, (VisualScreenMask
-				    | VisualDepthMask
-				    | VisualClassMask),
-			      &vinfo_template, &n_visuals);
-
-      if (n_visuals > 0 && vinfo)
+      if (dpyinfo->xrender_supported_p)
 	{
-	  dpyinfo->n_planes = vinfo->depth;
-	  dpyinfo->visual = vinfo->visual;
-	  XFree (vinfo);
-	  return;
-	}
 
+	  vinfo = XGetVisualInfo (dpy, VisualScreenMask,
+				  &vinfo_template, &n_visuals);
+
+	  for (i = 0; i < n_visuals; ++i)
+	    {
+	      format = XRenderFindVisualFormat (dpy, vinfo[i].visual);
+
+	      if (format && format->type == PictTypeDirect
+		  && format->direct.alphaMask)
+		{
+		  dpyinfo->n_planes = vinfo[i].depth;
+		  dpyinfo->visual = vinfo[i].visual;
+		  dpyinfo->visual_info = vinfo[i];
+		  dpyinfo->pict_format = format;
+
+		  XFree (vinfo);
+		  return;
+		}
+	    }
+
+	  if (vinfo)
+	    XFree (vinfo);
+	}
 #endif /* !USE_X_TOOLKIT */
 
-      /* 32-bit visual not available, fallback to default visual */
+      /* Visual with alpha channel (or the Render extension) not
+	 available, fallback to default visual.  */
       dpyinfo->visual = DefaultVisualOfScreen (screen);
       vinfo_template.visualid = XVisualIDFromVisual (dpyinfo->visual);
       vinfo = XGetVisualInfo (dpy, VisualIDMask | VisualScreenMask,
 			      &vinfo_template, &n_visuals);
       if (n_visuals <= 0)
 	fatal ("Can't get proper X visual info");
-
+      dpyinfo->visual_info = *vinfo;
       dpyinfo->n_planes = vinfo->depth;
       XFree (vinfo);
     }
@@ -6714,30 +7350,56 @@ converted to an atom and the value of the atom is used.  If an element
 is a cons, it is converted to a 32 bit number where the car is the 16
 top bits and the cdr is the lower 16 bits.
 
-FRAME nil or omitted means use the selected frame.
-If TYPE is given and non-nil, it is the name of the type of VALUE.
- If TYPE is not given or nil, the type is STRING.
-FORMAT gives the size in bits of each element if VALUE is a list.
- It must be one of 8, 16 or 32.
- If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to 8.
-If OUTER-P is non-nil, the property is changed for the outer X window of
- FRAME.  Default is to change on the edit X window.
-If WINDOW-ID is non-nil, change the property of that window instead
- of FRAME's X window; the number 0 denotes the root window.  This argument
- is separate from FRAME because window IDs are not unique across X
- displays or screens on the same display, so FRAME provides context
- for the window ID. */)
+FRAME nil or omitted means use the selected frame.  If TYPE is given
+and non-nil, it is the name of the type of VALUE.  If TYPE is not
+given or nil, the type is STRING.
+
+FORMAT gives the size in bits of each element if VALUE is a list.  It
+must be one of 8, 16 or 32.
+
+If VALUE is a string or FORMAT is nil or not given, FORMAT defaults to
+8.  If OUTER-P is non-nil, the property is changed for the outer X
+window of FRAME.  Default is to change on the edit X window.
+
+If WINDOW-ID is non-nil, change the property of that window instead of
+FRAME's X window; the number 0 denotes the root window.  This argument
+is separate from FRAME because window IDs are not unique across X
+displays or screens on the same display, so FRAME provides context for
+the window ID.
+
+If VALUE is a string and FORMAT is 32, then the format of VALUE is
+system-specific.  VALUE must contain unsigned integer data in native
+endian-ness in multiples of the size of the C type 'long': the low 32
+bits of each such number are used as the value of each element of the
+property.
+
+Wait for the request to complete and signal any error, unless
+`x-fast-protocol-requests' is non-nil, in which case errors will be
+silently ignored.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame,
    Lisp_Object type, Lisp_Object format, Lisp_Object outer_p,
    Lisp_Object window_id)
 {
-  struct frame *f = decode_window_system_frame (frame);
+  struct frame *f;
   Atom prop_atom;
   Atom target_type = XA_STRING;
   int element_format = 8;
   unsigned char *data;
   int nelements;
   Window target_window;
+  struct x_display_info *dpyinfo;
+#ifdef USE_XCB
+  bool intern_prop;
+  bool intern_target;
+  xcb_intern_atom_cookie_t prop_atom_cookie;
+  xcb_intern_atom_cookie_t target_type_cookie;
+  xcb_intern_atom_reply_t *reply;
+  xcb_generic_error_t *generic_error;
+  bool rc;
+#endif
+
+  f = decode_window_system_frame (frame);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
 
   CHECK_STRING (prop);
 
@@ -6790,7 +7452,7 @@ If WINDOW-ID is non-nil, change the property of that window instead
     {
       CONS_TO_INTEGER (window_id, Window, target_window);
       if (! target_window)
-        target_window = FRAME_DISPLAY_INFO (f)->root_window;
+        target_window = dpyinfo->root_window;
     }
   else
     {
@@ -6801,23 +7463,97 @@ If WINDOW-ID is non-nil, change the property of that window instead
     }
 
   block_input ();
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+#ifndef USE_XCB
+  prop_atom = x_intern_cached_atom (dpyinfo, SSDATA (prop),
+				    false);
   if (! NILP (type))
     {
       CHECK_STRING (type);
-      target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
+      target_type = x_intern_cached_atom (dpyinfo, SSDATA (type),
+					  false);
+    }
+#else
+  rc = true;
+  intern_target = true;
+  intern_prop = true;
+
+  prop_atom = x_intern_cached_atom (dpyinfo, SSDATA (prop),
+				    true);
+
+  if (prop_atom != None)
+    intern_prop = false;
+  else
+    prop_atom_cookie
+      = xcb_intern_atom (dpyinfo->xcb_connection,
+			 0, SBYTES (prop), SSDATA (prop));
+
+  if (!NILP (type))
+    {
+      CHECK_STRING (type);
+
+      target_type = x_intern_cached_atom (dpyinfo, SSDATA (type),
+					  true);
+
+      if (target_type)
+	intern_target = false;
+      else
+	target_type_cookie
+	  = xcb_intern_atom (dpyinfo->xcb_connection,
+			     0, SBYTES (type), SSDATA (type));
     }
 
-  XChangeProperty (FRAME_X_DISPLAY (f), target_window,
-		   prop_atom, target_type, element_format, PropModeReplace,
-		   data, nelements);
+  if (intern_prop)
+    {
+      reply = xcb_intern_atom_reply (dpyinfo->xcb_connection,
+				     prop_atom_cookie, &generic_error);
 
-  if (CONSP (value)) xfree (data);
+      if (reply)
+	{
+	  prop_atom = (Atom) reply->atom;
+	  free (reply);
+	}
+      else
+	{
+	  free (generic_error);
+	  rc = false;
+	}
+    }
 
-  /* Make sure the property is set when we return.  */
-  XFlush (FRAME_X_DISPLAY (f));
+  if (!NILP (type) && intern_target)
+    {
+      reply = xcb_intern_atom_reply (dpyinfo->xcb_connection,
+				     target_type_cookie, &generic_error);
+
+      if (reply)
+	{
+	  target_type = (Atom) reply->atom;
+	  free (reply);
+	}
+      else
+	{
+	  free (generic_error);
+	  rc = false;
+	}
+    }
+
+  if (!rc)
+    error ("Failed to intern type or property atom");
+#endif
+
+  x_catch_errors_for_lisp (dpyinfo);
+
+  XChangeProperty (dpyinfo->display, target_window,
+		   prop_atom, target_type, element_format,
+		   PropModeReplace, data, nelements);
+
+  if (CONSP (value))
+    xfree (data);
+
+  x_check_errors_for_lisp (dpyinfo,
+			   "Couldn't change window property: %s");
+  x_uncatch_errors_for_lisp (dpyinfo);
+
   unblock_input ();
-
   return value;
 }
 
@@ -6832,7 +7568,11 @@ If WINDOW-ID is non-nil, remove property from that window instead
  across X displays or screens on the same display, so FRAME provides
  context for the window ID.
 
-Value is PROP.  */)
+Value is PROP.
+
+Wait for the request to complete and signal any error, unless
+`x-fast-protocol-requests' is non-nil, in which case errors will be
+silently ignored.  */)
   (Lisp_Object prop, Lisp_Object frame, Lisp_Object window_id)
 {
   struct frame *f = decode_window_system_frame (frame);
@@ -6849,13 +7589,16 @@ Value is PROP.  */)
     }
 
   block_input ();
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+  prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+				    SSDATA (prop), false);
+
+  x_catch_errors_for_lisp (FRAME_DISPLAY_INFO (f));
   XDeleteProperty (FRAME_X_DISPLAY (f), target_window, prop_atom);
+  x_check_errors_for_lisp (FRAME_DISPLAY_INFO (f),
+			   "Couldn't delete window property: %s");
+  x_uncatch_errors_for_lisp (FRAME_DISPLAY_INFO (f));
 
-  /* Make sure the property is removed when we return.  */
-  XFlush (FRAME_X_DISPLAY (f));
   unblock_input ();
-
   return prop;
 }
 
@@ -6975,15 +7718,19 @@ if PROP has no value of TYPE (always a string in the MS Windows case). */)
     }
 
   block_input ();
+  x_catch_errors (FRAME_X_DISPLAY (f));
+
   if (STRINGP (type))
     {
       if (strcmp ("AnyPropertyType", SSDATA (type)) == 0)
         target_type = AnyPropertyType;
       else
-        target_type = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (type), False);
+        target_type = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+					    SSDATA (type), false);
     }
 
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+  prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+				    SSDATA (prop), false);
   prop_value = x_window_property_intern (f,
                                          target_window,
                                          prop_atom,
@@ -7005,6 +7752,9 @@ if PROP has no value of TYPE (always a string in the MS Windows case). */)
                                              &found);
     }
 
+  x_check_errors (FRAME_X_DISPLAY (f),
+		  "Can't retrieve window property: %s");
+  x_uncatch_errors_after_check ();
 
   unblock_input ();
   return prop_value;
@@ -7050,7 +7800,9 @@ Otherwise, the return value is a vector with the following fields:
 
   block_input ();
 
-  prop_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (prop), False);
+  x_catch_errors (FRAME_X_DISPLAY (f));
+  prop_atom = x_intern_cached_atom (FRAME_DISPLAY_INFO (f),
+				    SSDATA (prop), false);
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			   prop_atom, 0, 0, False, AnyPropertyType,
 			   &actual_type, &actual_format, &actual_size,
@@ -7080,8 +7832,98 @@ Otherwise, the return value is a vector with the following fields:
 			 make_fixnum (bytes_remaining / (actual_format >> 3)));
     }
 
+  x_check_errors (FRAME_X_DISPLAY (f),
+		  "Can't retrieve window property: %s");
+  x_uncatch_errors_after_check ();
+
   unblock_input ();
   return prop_attr;
+}
+
+
+/***********************************************************************
+		           Coordinate management
+ ***********************************************************************/
+
+DEFUN ("x-translate-coordinates", Fx_translate_coordinates,
+       Sx_translate_coordinates,
+       1, 5, 0, doc: /* Translate coordinates from FRAME.
+Translate the given coordinates SOURCE-X and SOURCE-Y from
+SOURCE-WINDOW's coordinate space to that of DEST-WINDOW, on FRAME.
+
+If SOURCE-X and SOURCE-Y are nil, use 0 instead.
+
+FRAME can either be a terminal or a frame.  If nil, it defaults to the
+selected frame.  SOURCE-WINDOW must be an X window ID, 0 (which means
+to use the root window), or nil, which means to use FRAME's inner
+window.  DEST-WINDOW must be another X window ID, or nil (which means
+to use the root window).
+
+Return a list of (X Y CHILD) if the given coordinates are on the same
+screen, or nil otherwise, where X and Y are the coordinates in
+DEST-WINDOW's coordinate space, and CHILD is the window ID of any
+mapped child in DEST-WINDOW at those coordinates, or nil if there is
+no such window.  */)
+  (Lisp_Object frame, Lisp_Object source_window,
+   Lisp_Object dest_window, Lisp_Object source_x,
+   Lisp_Object source_y)
+{
+  struct x_display_info *dpyinfo;
+  struct frame *source_frame;
+  int dest_x, dest_y;
+  Window child_return, src, dest;
+  Bool rc;
+
+  dpyinfo = check_x_display_info (frame);
+  dest_x = 0;
+  dest_y = 0;
+
+  if (!NILP (source_x))
+    {
+      CHECK_FIXNUM (source_x);
+      dest_x = XFIXNUM (source_x);
+    }
+
+  if (!NILP (source_y))
+    {
+      CHECK_FIXNUM (source_y);
+      dest_y = XFIXNUM (source_y);
+    }
+
+  if (!NILP (source_window))
+    CONS_TO_INTEGER (source_window, Window, src);
+  else
+    {
+      source_frame = decode_window_system_frame (frame);
+      src = FRAME_X_WINDOW (source_frame);
+    }
+
+  if (!src)
+    src = dpyinfo->root_window;
+
+  if (!NILP (dest_window))
+    CONS_TO_INTEGER (dest_window, Window, dest);
+  else
+    dest = dpyinfo->root_window;
+
+  block_input ();
+  x_catch_errors (dpyinfo->display);
+  rc = XTranslateCoordinates (dpyinfo->display, src, dest,
+			      dest_x, dest_y, &dest_x, &dest_y,
+			      &child_return);
+  x_check_errors (dpyinfo->display,
+		  "Couldn't translate coordinates: %s");
+  x_uncatch_errors_after_check ();
+  unblock_input ();
+
+  if (!rc)
+    return Qnil;
+
+  return list3 (make_int (dest_x),
+		make_int (dest_y),
+		(child_return != None
+		 ? make_uint (child_return)
+		 : Qnil));
 }
 
 /***********************************************************************
@@ -7092,11 +7934,14 @@ static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
 			    Lisp_Object, int, int, int *, int *);
 
 /* The frame of the currently visible tooltip, or nil if none.  */
-static Lisp_Object tip_frame;
+Lisp_Object tip_frame;
 
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */
 Window tip_window;
+
+/* The X and Y deltas of the last call to `x-show-tip'.  */
+Lisp_Object tip_dx, tip_dy;
 
 /* A timer that hides or deletes the currently visible tooltip when it
    fires.  */
@@ -7153,7 +7998,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
   name = gui_display_get_arg (dpyinfo, parms, Qname, "name", "Name",
                               RES_TYPE_STRING);
   if (!STRINGP (name)
-      && !EQ (name, Qunbound)
+      && !BASE_EQ (name, Qunbound)
       && !NILP (name))
     error ("Invalid frame name--not a string or nil");
 
@@ -7220,7 +8065,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
+  if (BASE_EQ (name, Qunbound) || NILP (name))
     {
       fset_name (f, build_string (dpyinfo->x_id_name));
       f->explicit_name = false;
@@ -7276,7 +8121,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
       value = gui_display_get_arg (dpyinfo, parms, Qinternal_border_width,
                                    "internalBorder", "internalBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (! BASE_EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
@@ -7436,8 +8281,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 
     if (FRAME_DISPLAY_INFO (f)->n_planes == 1)
       disptype = Qmono;
-    else if (FRAME_DISPLAY_INFO (f)->visual->class == GrayScale
-             || FRAME_DISPLAY_INFO (f)->visual->class == StaticGray)
+    else if (FRAME_X_VISUAL_INFO (f)->class == GrayScale
+             || FRAME_X_VISUAL_INFO (f)->class == StaticGray)
       disptype = intern ("grayscale");
     else
       disptype = intern ("color");
@@ -7503,9 +8348,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
    the display in *ROOT_X, and *ROOT_Y.  */
 
 static void
-compute_tip_xy (struct frame *f,
-		Lisp_Object parms, Lisp_Object dx, Lisp_Object dy,
-		int width, int height, int *root_x, int *root_y)
+compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
+		Lisp_Object dy, int width, int height, int *root_x,
+		int *root_y)
 {
   Lisp_Object left, top, right, bottom;
   int win_x, win_y;
@@ -7531,7 +8376,7 @@ compute_tip_xy (struct frame *f,
 		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
       unblock_input ();
 
-      XSETFRAME(frame, f);
+      XSETFRAME (frame, f);
       attributes = Fx_display_monitor_attributes_list (frame);
 
       /* Try to determine the monitor where the mouse pointer is and
@@ -7546,11 +8391,13 @@ compute_tip_xy (struct frame *f,
               min_y = XFIXNUM (Fnth (make_fixnum (2), geometry));
               max_x = min_x + XFIXNUM (Fnth (make_fixnum (3), geometry));
               max_y = min_y + XFIXNUM (Fnth (make_fixnum (4), geometry));
+
               if (min_x <= *root_x && *root_x < max_x
                   && min_y <= *root_y && *root_y < max_y)
                 {
                   break;
                 }
+
               max_y = -1;
             }
 
@@ -7560,7 +8407,7 @@ compute_tip_xy (struct frame *f,
 
   /* It was not possible to determine the monitor's geometry, so we
      assign some sane defaults here: */
-  if ( max_y < 0 )
+  if (max_y < 0)
     {
       min_x = 0;
       min_y = 0;
@@ -7723,29 +8570,6 @@ x_hide_tip (bool delete)
 	      else
 		x_make_frame_invisible (XFRAME (tip_frame));
 
-#ifdef USE_LUCID
-	      /* Bloodcurdling hack alert: The Lucid menu bar widget's
-		 redisplay procedure is not called when a tip frame over
-		 menu items is unmapped.  Redisplay the menu manually...  */
-	      {
-		Widget w;
-		struct frame *f = SELECTED_FRAME ();
-
-		if (FRAME_X_P (f) && FRAME_LIVE_P (f))
-		  {
-		    w = f->output_data.x->menubar_widget;
-
-		    if (!DoesSaveUnders (FRAME_DISPLAY_INFO (f)->screen)
-			&& w != NULL)
-		      {
-			block_input ();
-			xlwmenu_redisplay (w);
-			unblock_input ();
-		      }
-		  }
-	      }
-#endif /* USE_LUCID */
-
 	      was_open = Qt;
 	    }
 	  else
@@ -7772,7 +8596,8 @@ PARMS is an optional list of frame parameters which can be used to
 change the tooltip's appearance.
 
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
-means use the default timeout of 5 seconds.
+means use the default timeout from the `x-show-tooltip-timeout'
+variable.
 
 If the list of frame parameters PARMS contains a `left' parameter,
 display the tooltip at that x-position.  If the list of frame parameters
@@ -7805,6 +8630,10 @@ Text larger than the specified size is clipped.  */)
   Window child;
   XWindowAttributes child_attrs;
   int dest_x_return, dest_y_return;
+  bool displayed;
+#ifdef ENABLE_CHECKING
+  struct glyph_row *row, *end;
+#endif
   AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
@@ -7818,9 +8647,8 @@ Text larger than the specified size is clipped.  */)
   f = decode_window_system_frame (frame);
 
   if (NILP (timeout))
-    timeout = make_fixnum (5);
-  else
-    CHECK_FIXNAT (timeout);
+    timeout = Vx_show_tooltip_timeout;
+  CHECK_FIXNAT (timeout);
 
   if (NILP (dx))
     dx = make_fixnum (5);
@@ -7831,6 +8659,9 @@ Text larger than the specified size is clipped.  */)
     dy = make_fixnum (-10);
   else
     CHECK_FIXNUM (dy);
+
+  tip_dx = dx;
+  tip_dy = dy;
 
 #ifdef USE_GTK
   if (use_system_tooltips)
@@ -7857,7 +8688,8 @@ Text larger than the specified size is clipped.  */)
   if (!NILP (tip_frame) && FRAME_LIVE_P (XFRAME (tip_frame)))
     {
       if (FRAME_VISIBLE_P (XFRAME (tip_frame))
-	  && EQ (frame, tip_last_frame)
+	  && (FRAME_X_DISPLAY (XFRAME (frame))
+	      == FRAME_X_DISPLAY (XFRAME (tip_last_frame)))
 	  && !NILP (Fequal_including_properties (tip_last_string, string))
 	  && !NILP (Fequal (tip_last_parms, parms)))
 	{
@@ -7878,7 +8710,7 @@ Text larger than the specified size is clipped.  */)
 
 	  goto start_timer;
 	}
-      else if (tooltip_reuse_hidden_frame && EQ (frame, tip_last_frame))
+      else if (tooltip_reuse_hidden_frame && BASE_EQ (frame, tip_last_frame))
 	{
 	  bool delete = false;
 	  Lisp_Object tail, elt, parm, last;
@@ -8015,7 +8847,26 @@ Text larger than the specified size is clipped.  */)
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
-  try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+  displayed = try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+
+  if (!displayed && NILP (Vx_max_tooltip_size))
+    {
+#ifdef ENABLE_CHECKING
+      row = w->desired_matrix->rows;
+      end = w->desired_matrix->rows + w->desired_matrix->nrows;
+
+      while (row < end)
+	{
+	  if (!row->displays_text_p
+	      || row->ends_at_zv_p)
+	    break;
+	  ++row;
+	}
+
+      eassert (row < end && row->ends_at_zv_p);
+#endif
+    }
+
   /* Calculate size of tooltip window.  */
   size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
 				  make_fixnum (w->pixel_height), Qnil,
@@ -8043,7 +8894,8 @@ Text larger than the specified size is clipped.  */)
 			     FRAME_DISPLAY_INFO (f)->root_window,
 			     FRAME_DISPLAY_INFO (f)->root_window,
 			     root_x, root_y, &dest_x_return,
-			     &dest_y_return, &child))
+			     &dest_y_return, &child)
+      && child != None)
     {
       /* But only if the child is not override-redirect, which can
 	 happen if the pointer is above a menu.  */
@@ -8115,8 +8967,12 @@ DEFUN ("x-double-buffered-p", Fx_double_buffered_p, Sx_double_buffered_p,
        doc: /* Return t if FRAME is being double buffered.  */)
      (Lisp_Object frame)
 {
+#ifdef HAVE_XDBE
   struct frame *f = decode_live_frame (frame);
   return FRAME_X_DOUBLE_BUFFERED_P (f) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif
 }
 
 
@@ -8205,6 +9061,9 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
   /* Prevent redisplay.  */
   specbind (Qinhibit_redisplay, Qt);
 
+  /* Defer selection requests.  */
+  DEFER_SELECTIONS;
+
   block_input ();
 
   /* Create the dialog with PROMPT as title, using DIR as initial
@@ -8288,20 +9147,70 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
   result = 0;
   while (result == 0)
     {
-      XEvent event;
+      XEvent event, copy;
       x_menu_wait_for_event (0);
-      XtAppNextEvent (Xt_app_con, &event);
-      if (event.type == KeyPress
-          && FRAME_X_DISPLAY (f) == event.xkey.display)
-        {
-          KeySym keysym = XLookupKeysym (&event.xkey, 0);
 
-          /* Pop down on C-g.  */
-          if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
-            XtUnmanageChild (dialog);
-        }
+      if (XtAppPending (Xt_app_con))
+	{
+	  XtAppNextEvent (Xt_app_con, &event);
 
-      (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f));
+	  copy = event;
+	  if (event.type == KeyPress
+	      && FRAME_X_DISPLAY (f) == event.xkey.display)
+	    {
+	      KeySym keysym = XLookupKeysym (&event.xkey, 0);
+
+	      /* Pop down on C-g.  */
+	      if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
+		XtUnmanageChild (dialog);
+	    }
+#ifdef HAVE_XINPUT2
+	  else if (event.type == GenericEvent
+		   && FRAME_X_DISPLAY (f) == event.xgeneric.display
+		   && FRAME_DISPLAY_INFO (f)->supports_xi2
+		   && (event.xgeneric.extension
+		       == FRAME_DISPLAY_INFO (f)->xi2_opcode)
+		   && event.xgeneric.evtype == XI_KeyPress)
+	    {
+	      KeySym keysym;
+	      XIDeviceEvent *xev;
+
+	      if (event.xcookie.data)
+		emacs_abort ();
+
+	      if (XGetEventData (FRAME_X_DISPLAY (f), &event.xcookie))
+		{
+		  xev = (XIDeviceEvent *) event.xcookie.data;
+
+		  copy.xkey.type = KeyPress;
+		  copy.xkey.serial = xev->serial;
+		  copy.xkey.send_event = xev->send_event;
+		  copy.xkey.display = FRAME_X_DISPLAY (f);
+		  copy.xkey.window = xev->event;
+		  copy.xkey.root = xev->root;
+		  copy.xkey.subwindow = xev->child;
+		  copy.xkey.time = xev->time;
+		  copy.xkey.x = lrint (xev->event_x);
+		  copy.xkey.y = lrint (xev->event_y);
+		  copy.xkey.x_root = lrint (xev->root_x);
+		  copy.xkey.y_root = lrint (xev->root_y);
+		  copy.xkey.state = xev->mods.effective;
+		  copy.xkey.keycode = xev->detail;
+		  copy.xkey.same_screen = True;
+
+		  keysym = XLookupKeysym (&copy.xkey, 0);
+
+		  if (keysym == XK_g
+		      && (copy.xkey.state & ControlMask) != 0) /* Any escape, ignore modifiers.  */
+		    XtUnmanageChild (dialog);
+
+		  XFreeEventData (FRAME_X_DISPLAY (f), &event.xcookie);
+		}
+	    }
+#endif
+
+	  (void) x_dispatch_event (&copy, FRAME_X_DISPLAY (f));
+	}
     }
 
   /* Get the result.  */
@@ -8548,6 +9457,24 @@ present and mapped to the usual X keysyms.  */)
 #endif
 }
 
+DEFUN ("x-get-modifier-masks", Fx_get_modifier_masks, Sx_get_modifier_masks,
+       0, 1, 0,
+       doc: /* Return the X modifier masks corresponding to keyboard modifiers.
+The optional second argument TERMINAL specifies which display to fetch
+modifier masks from.  TERMINAL should be a terminal object, a frame or
+a display name (a string).  If TERMINAL is omitted or nil, that stands
+for the selected frame's display.
+
+Return a list of (HYPER SUPER ALT SHIFT-LOCK META), each element being
+a number describing the modifier mask for the corresponding Emacs
+modifier.  */)
+  (Lisp_Object terminal)
+{
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = check_x_display_info (terminal);
+  return x_get_keyboard_modifiers (dpyinfo);
+}
 
 
 /***********************************************************************
@@ -8723,29 +9650,64 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
 #endif /* HAVE_GTK3 */
 #endif	/* USE_GTK */
 
+DEFUN ("x-display-set-last-user-time", Fx_display_last_user_time,
+       Sx_display_set_last_user_time, 1, 2, 0,
+       doc: /* Set the last user time of TERMINAL to TIME-OBJECT.
+TIME-OBJECT is the X server time, in milliseconds, of the last user
+interaction.  This is the timestamp that `x-get-selection-internal'
+will use by default to fetch selection data.
+The optional second argument TERMINAL specifies which display to act
+on.  TERMINAL should be a terminal object, a frame or a display name
+(a string).  If TERMINAL is omitted or nil, that stands for the
+selected frame's display.  */)
+  (Lisp_Object time_object, Lisp_Object terminal)
+{
+  struct x_display_info *dpyinfo;
+  Time time;
+
+  dpyinfo = check_x_display_info (terminal);
+  CONS_TO_INTEGER (time_object, Time, time);
+
+  x_set_last_user_time_from_lisp (dpyinfo, time);
+  return Qnil;
+}
+
 DEFUN ("x-internal-focus-input-context", Fx_internal_focus_input_context,
-       Sx_internal_focus_input_context, 2, 2, 0,
-       doc: /* Focus and set the client window of FRAME's GTK input context.
+       Sx_internal_focus_input_context, 1, 1, 0,
+       doc: /* Focus and set the client window of all focused frames' GTK input context.
 If FOCUS is nil, focus out and remove the client window instead.
 This should be called from a variable watcher for `x-gtk-use-native-input'.  */)
-  (Lisp_Object focus, Lisp_Object frame)
+  (Lisp_Object focus)
 {
 #ifdef USE_GTK
-  struct frame *f = decode_window_system_frame (frame);
-  GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
+  struct x_display_info *dpyinfo;
+  struct frame *f;
+  GtkWidget *widget;
 
-  if (!NILP (focus))
+  block_input ();
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     {
-      gtk_im_context_focus_in (FRAME_X_OUTPUT (f)->im_context);
-      gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
-					gtk_widget_get_window (widget));
+      f = dpyinfo->x_focus_frame;
+
+      if (f)
+	{
+	  widget = FRAME_GTK_OUTER_WIDGET (f);
+
+	  if (!NILP (focus))
+	    {
+	      gtk_im_context_focus_in (FRAME_X_OUTPUT (f)->im_context);
+	      gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
+						gtk_widget_get_window (widget));
+	    }
+	  else
+	    {
+	      gtk_im_context_focus_out (FRAME_X_OUTPUT (f)->im_context);
+	      gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
+						NULL);
+	    }
+	}
     }
-  else
-    {
-      gtk_im_context_focus_out (FRAME_X_OUTPUT (f)->im_context);
-      gtk_im_context_set_client_window (FRAME_X_OUTPUT (f)->im_context,
-					NULL);
-    }
+  unblock_input ();
 #endif
 
   return Qnil;
@@ -8796,10 +9758,14 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_wait_for_wm,
   gui_set_fullscreen,
   gui_set_font_backend,
-  gui_set_alpha,
+  x_set_alpha,
   x_set_sticky,
   x_set_tool_bar_position,
+#ifdef HAVE_XDBE
   x_set_inhibit_double_buffering,
+#else
+  NULL,
+#endif
   x_set_undecorated,
   x_set_parent_frame,
   x_set_skip_taskbar,
@@ -8809,6 +9775,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_override_redirect,
   gui_set_no_special_glyphs,
   x_set_alpha_background,
+  x_set_shaded,
 };
 
 /* Some versions of libX11 don't have symbols for a few functions we
@@ -8836,7 +9803,15 @@ XkbFreeNames (XkbDescPtr xkb, unsigned int which, Bool free_map)
 int
 XDisplayCells (Display *dpy, int screen_number)
 {
-  return 1677216;
+  struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
+
+  if (!dpyinfo)
+    emacs_abort ();
+
+  /* Not strictly correct, since the display could be using a
+     non-default visual, but it satisfies the callers we need to care
+     about.  */
+  return dpyinfo->visual_info.colormap_size;
 }
 #endif
 
@@ -8881,6 +9856,12 @@ syms_of_xfns (void)
   DEFSYM (Qreverse_portrait, "reverse-portrait");
   DEFSYM (Qreverse_landscape, "reverse-landscape");
 #endif
+
+  DEFSYM (QXdndActionCopy, "XdndActionCopy");
+  DEFSYM (QXdndActionMove, "XdndActionMove");
+  DEFSYM (QXdndActionLink, "XdndActionLink");
+  DEFSYM (QXdndActionAsk, "XdndActionAsk");
+  DEFSYM (QXdndActionPrivate, "XdndActionPrivate");
 
   Fput (Qundefined_color, Qerror_conditions,
 	pure_list (Qundefined_color, Qerror));
@@ -8999,7 +9980,7 @@ or when you set the mouse color.  */);
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
     doc: /* Maximum size for tooltips.
 Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
-  Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
+  Vx_max_tooltip_size = Qnil;
 
   DEFVAR_LISP ("x-no-window-manager", Vx_no_window_manager,
     doc: /* Non-nil if no X window manager is in use.
@@ -9047,11 +10028,11 @@ default and usually works with most desktops.  Some desktop environments
 however, may refuse to resize a child frame when Emacs is built with
 GTK3.  For those environments, the two settings below are provided.
 
-If this equals the symbol 'hide', Emacs temporarily hides the child
+If this equals the symbol `hide', Emacs temporarily hides the child
 frame during resizing.  This approach seems to work reliably, may
 however induce some flicker when the frame is made visible again.
 
-If this equals the symbol 'resize-mode', Emacs uses GTK's resize mode to
+If this equals the symbol `resize-mode', Emacs uses GTK's resize mode to
 always trigger an immediate resize of the child frame.  This method is
 deprecated by GTK and may not work in future versions of that toolkit.
 It also may freeze Emacs when used with other desktop environments.  It
@@ -9155,6 +10136,11 @@ eliminated in future versions of Emacs.  */);
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sx_double_buffered_p);
+  defsubr (&Sx_begin_drag);
+  defsubr (&Sx_display_set_last_user_time);
+  defsubr (&Sx_translate_coordinates);
+  defsubr (&Sx_get_modifier_masks);
+
   tip_timer = Qnil;
   staticpro (&tip_timer);
   tip_frame = Qnil;
@@ -9165,6 +10151,10 @@ eliminated in future versions of Emacs.  */);
   staticpro (&tip_last_string);
   tip_last_parms = Qnil;
   staticpro (&tip_last_parms);
+  tip_dx = Qnil;
+  staticpro (&tip_dx);
+  tip_dy = Qnil;
+  staticpro (&tip_dy);
 
   defsubr (&Sx_uses_old_gtk_dialog);
 #if defined (USE_MOTIF) || defined (USE_GTK)

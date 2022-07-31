@@ -64,6 +64,19 @@
   "If non-nil, deleted region text is stored in this register.
 Value must be the register (key) to use.")
 
+(defcustom delete-selection-temporary-region nil
+  "Whether to delete only temporary regions.
+When non-nil, typed text replaces only the regions set by
+mouse-dragging, shift-selection, and \"\\[universal-argument] \\[exchange-point-and-mark]\" when
+`transient-mark-mode' is turned off.  If the value is the symbol
+`selection', then replace only the regions set by mouse-dragging
+and shift-selection."
+  :version "29.1"
+  :group 'editing-basics
+  :type '(choice (const :tag "Replace all regions" nil)
+                 (const :tag "Replace region from mouse, shift-selection, and \"C-u C-x C-x\"" t)
+                 (const :tag "Replace region from mouse and shift-selection" selection)))
+
 ;;;###autoload
 (defalias 'pending-delete-mode 'delete-selection-mode)
 
@@ -108,7 +121,8 @@ the active region is killed instead of deleted."
   "Repeat replacing text of highlighted region with typed text.
 Search for the next stretch of text identical to the region last replaced
 by typing text over it and replaces it with the same stretch of text.
-With ARG, repeat that many times.  `\\[universal-argument]' means until end of buffer."
+With ARG (interactively, prefix numeric argument), repeat that many times.
+Just `\\[universal-argument]' means repeat until the end of the buffer's accessible portion."
   (interactive "P")
   (let ((old-text (and delete-selection-save-to-register
                        (get-register delete-selection-save-to-register)))
@@ -251,7 +265,13 @@ property on their symbol; commands which insert text but don't
 have this property won't delete the selection.
 See `delete-selection-helper'."
   (when (and delete-selection-mode (use-region-p)
-	     (not buffer-read-only))
+	     (not buffer-read-only)
+             (or (null delete-selection-temporary-region)
+                 (and delete-selection-temporary-region
+                      (consp transient-mark-mode)
+                      (eq (car transient-mark-mode) 'only))
+                 (and (not (eq delete-selection-temporary-region 'selection))
+                      (eq transient-mark-mode 'lambda))))
     (delete-selection-helper (and (symbolp this-command)
                                   (get this-command 'delete-selection)))))
 

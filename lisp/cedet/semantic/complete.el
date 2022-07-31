@@ -1011,20 +1011,14 @@ Output must be in semanticdb Find result format."
 			   (oref obj last-prefix)))
 	 (completionlist
 	  (cond ((or same-prefix-p
-		     (and last-prefix (eq (compare-strings
-					   last-prefix 0 nil
-					   prefix 0 (length last-prefix))
-					  t)))
+		     (and last-prefix (string-prefix-p last-prefix prefix t)))
 		 ;; We have the same prefix, or last-prefix is a
 		 ;; substring of the of new prefix, in which case we are
 		 ;; refining our symbol so just re-use cache.
 		 (oref obj last-all-completions))
 		((and last-prefix
 		      (> (length prefix) 1)
-		      (eq (compare-strings
-			   prefix 0 nil
-			   last-prefix 0 (length prefix))
-			  t))
+		      (string-prefix-p prefix last-prefix t))
 		   ;; The new prefix is a substring of the old
 		   ;; prefix, and it's longer than one character.
 		   ;; Perform a full search to pull in additional
@@ -1638,8 +1632,10 @@ This will not happen if you directly set this variable via `setq'."
   :set (lambda (sym var)
          (set-default sym var)
          (when (boundp 'x-max-tooltip-size)
-           (setcdr x-max-tooltip-size (max (1+ var) (cdr x-max-tooltip-size))))))
-
+           (if (not (consp x-max-tooltip-size))
+               (setq x-max-tooltip-size '(80 . 40)))
+           (setcdr x-max-tooltip-size
+                   (max (1+ var) (cdr x-max-tooltip-size))))))
 
 (defclass semantic-displayer-tooltip (semantic-displayer-traditional)
   ((mode :initarg :mode
@@ -1761,7 +1757,8 @@ Return a cons cell (X . Y)."
 
 
 (defvar tooltip-frame-parameters)
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defun semantic-displayer-tooltip-show (text)
   "Display a tooltip with TEXT near cursor."

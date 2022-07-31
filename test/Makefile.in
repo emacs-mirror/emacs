@@ -49,18 +49,7 @@ SEPCHAR = @SEPCHAR@
 
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
-REPLACE_FREE = @REPLACE_FREE@
-
 -include ${top_builddir}/src/verbose.mk
-
-# Load any GNU ELPA dependencies that are present, for optional tests.
-GNU_ELPA_DIRECTORY ?= $(srcdir)/../../elpa
-# Keep elpa_dependencies dependency-ordered.
-elpa_dependencies = \
-	url-http-ntlm/url-http-ntlm.el \
-	web-server/web-server.el
-elpa_els = $(addprefix $(GNU_ELPA_DIRECTORY)/packages/,$(elpa_dependencies))
-elpa_opts = $(foreach el,$(elpa_els),$(and $(wildcard $(el)),-L $(dir $(el)) -l $(el)))
 
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
@@ -72,7 +61,7 @@ EMACS_EXTRAOPT =
 # Command line flags for Emacs.
 # Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
 # but we might as well be explicit.
-EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(elpa_opts) $(EMACS_EXTRAOPT)
+EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
 
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH GREP_OPTIONS XDG_CONFIG_HOME
@@ -101,7 +90,7 @@ export TEST_LOAD_EL ?= \
     $(if $(findstring $(MAKECMDGOALS), all check check-maybe),no,yes)
 
 # Additional settings for ert.
-ert_opts += $(elpa_opts)
+ert_opts =
 
 # Maximum length of lines in ert backtraces; nil for no limit.
 # (if empty, use the default ert-batch-backtrace-right-margin).
@@ -162,13 +151,13 @@ endif
 %.elc: %.el
 	$(AM_V_ELC)$(emacs) --batch -f batch-byte-compile $<
 
+ifdef EMACS_HYDRA_CI
+WRITE_LOG = 2>&1 | tee $@
+else
 ## Save logs, and show logs for failed tests.
 WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
-## On Hydra or Emba, always show logs for certain problematic tests.
-ifdef EMACS_HYDRA_CI
-lisp/net/tramp-tests.log \
-: WRITE_LOG = 2>&1 | tee $@
 endif
+## On Emba, always show logs for certain problematic tests.
 ifdef EMACS_EMBA_CI
 lisp/filenotify-tests.log lisp/net/tramp-tests.log src/emacs-module-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
@@ -251,7 +240,8 @@ $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 ## Get the tests for only a specific directory.
 SUBDIRS = $(sort $(shell cd ${srcdir} && find lib-src lisp misc src -type d \
-                 ! \( -path "*resources*" -o -path "*auto-save-list" \) -print))
+		\( -name '*resources*' -prune \
+		   -o ! -name '*auto-save-list' -print \)))
 SUBDIR_TARGETS =
 
 define subdir_template
@@ -274,27 +264,29 @@ endif
 
 GMP_H = @GMP_H@
 LIBGMP = @LIBGMP@
+LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
+LIB_NANOSLEEP = @LIB_NANOSLEEP@
 
-MODULE_CFLAGS = -I../src -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib \
+MODULE_CFLAGS = $(and $(GMP_H),-I.) -I../src -I$(srcdir)/../src \
   $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
+
+gmp.h:
+	echo '#include "$(srcdir)/../lib/mini-gmp.h"' >$@
 
 test_module = $(test_module_dir)/mod-test${SO}
 src/emacs-module-tests.log src/emacs-module-tests.elc: $(test_module)
 
-FREE_SOURCE_0 =
-FREE_SOURCE_1 = $(srcdir)/../lib/free.c
-
 # In the compilation command, we can't use any object or archive file
 # as source because those are not compiled with -fPIC.  Therefore we
 # use only source files.
-$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
+$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h \
+  ../src/config.h $(and $(GMP_H),gmp.h)
 	$(AM_V_CCLD)${MKDIR_P} $(dir $@)
 	$(AM_V_at)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $< $(LIBGMP) \
-	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp-gnulib.c) \
-	  $(FREE_SOURCE_$(REPLACE_FREE)) \
-	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
+	  $(and $(GMP_H),$(srcdir)/../lib/mini-gmp.c) \
+	  $(LIB_CLOCK_GETTIME) $(LIB_NANOSLEEP)
 endif
 
 src/emacs-tests.log: ../lib-src/seccomp-filter.c
@@ -349,12 +341,20 @@ mostlyclean:
 	-@for f in ${LOGFILES}; do test ! -f $$f || mv $$f $$f~; done
 	rm -f ./*.tmp
 
+# If 'find' supports -delete, it also supports -path.  Otherwise, use
+# -prune and $(FIND_DELETE) instead.  -prune is incompatible with -delete.
+ifeq ($(FIND_DELETE),-delete)
+CLEAN_XML_FILES = '(' -name '*.xml' -a ! -path '*resources*' ')' -delete
+else
+CLEAN_XML_FILES = -name '*resources*' -prune -o -name '*.xml' $(FIND_DELETE)
+endif
+
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
-	find . '(' -name '*.xml' -a ! -path '*resources*' ')' $(FIND_DELETE)
+	find . $(CLEAN_XML_FILES)
 	rm -f ${srcdir}/lisp/gnus/mml-sec-resources/random_seed
 	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
-	  $(test_module_dir)/*.dll
+	  $(test_module_dir)/*.dll gmp.h
 
 bootstrap-clean: clean
 	find $(srcdir) -name '*.elc' $(FIND_DELETE)

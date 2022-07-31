@@ -88,7 +88,7 @@ modify_text_properties (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
   BUF_COMPUTE_UNCHANGED (buf, b - 1, e);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, 1);
 
   bset_point_before_scroll (current_buffer, Qnil);
 
@@ -341,7 +341,7 @@ set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
       for (sym = properties;
 	   PLIST_ELT_P (sym, value);
 	   sym = XCDR (value))
-	if (EQ (property_value (interval->plist, XCAR (sym)), Qunbound))
+	if (BASE_EQ (property_value (interval->plist, XCAR (sym)), Qunbound))
 	  {
 	    record_property_change (interval->position, LENGTH (interval),
 				    XCAR (sym), Qnil,
@@ -561,8 +561,13 @@ DEFUN ("text-properties-at", Ftext_properties_at,
        doc: /* Return the list of properties of the character at POSITION in OBJECT.
 If the optional second argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
+
 If OBJECT is a string, POSITION is a 0-based index into it.
-If POSITION is at the end of OBJECT, the value is nil.
+
+If POSITION is at the end of OBJECT, the value is nil, but note that
+buffer narrowing does not affect the value.  That is, if OBJECT is a
+buffer or nil, and the buffer is narrowed and POSITION is at the end
+of the narrowed buffer, the result may be non-nil.
 
 If you want to display the text properties at point in a human-readable
 form, use the `describe-text-properties' command.  */)
@@ -590,7 +595,11 @@ DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
 OBJECT should be a buffer or a string; if omitted or nil, it defaults
 to the current buffer.
-If POSITION is at the end of OBJECT, the value is nil.  */)
+
+If POSITION is at the end of OBJECT, the value is nil, but note that
+buffer narrowing does not affect the value.  That is, if the buffer is
+narrowed and POSITION is at the end of the narrowed buffer, the result
+may be non-nil.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {
   return textget (Ftext_properties_at (position, object), prop);
@@ -1398,8 +1407,8 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
   /* If we want no properties for a whole string,
      get rid of its intervals.  */
   if (NILP (properties) && STRINGP (object)
-      && EQ (start, make_fixnum (0))
-      && EQ (end, make_fixnum (SCHARS (object))))
+      && BASE_EQ (start, make_fixnum (0))
+      && BASE_EQ (end, make_fixnum (SCHARS (object))))
     {
       if (!string_intervals (object))
 	return Qnil;
@@ -2240,7 +2249,7 @@ verify_interval_modification (struct buffer *buf,
 
 		      tem = textget (i->plist, Qfront_sticky);
 		      if (TMEM (Qread_only, tem)
-			  || (NILP (Fplist_get (i->plist, Qread_only))
+			  || (NILP (plist_get (i->plist, Qread_only))
 			      && TMEM (Qcategory, tem)))
 			text_read_only (after);
 		    }
@@ -2260,7 +2269,7 @@ verify_interval_modification (struct buffer *buf,
 
 		      tem = textget (prev->plist, Qrear_nonsticky);
 		      if (! TMEM (Qread_only, tem)
-			  && (! NILP (Fplist_get (prev->plist,Qread_only))
+			  && (! NILP (plist_get (prev->plist,Qread_only))
 			      || ! TMEM (Qcategory, tem)))
 			text_read_only (before);
 		    }
@@ -2279,13 +2288,13 @@ verify_interval_modification (struct buffer *buf,
 
 		  tem = textget (i->plist, Qfront_sticky);
 		  if (TMEM (Qread_only, tem)
-		      || (NILP (Fplist_get (i->plist, Qread_only))
+		      || (NILP (plist_get (i->plist, Qread_only))
 			  && TMEM (Qcategory, tem)))
 		    text_read_only (after);
 
 		  tem = textget (prev->plist, Qrear_nonsticky);
 		  if (! TMEM (Qread_only, tem)
-		      && (! NILP (Fplist_get (prev->plist, Qread_only))
+		      && (! NILP (plist_get (prev->plist, Qread_only))
 			  || ! TMEM (Qcategory, tem)))
 		    text_read_only (after);
 		}

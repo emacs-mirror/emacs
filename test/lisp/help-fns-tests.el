@@ -64,13 +64,13 @@ Return first line of the output of (describe-function-1 FUNC)."
 
 (ert-deftest help-fns-test-lisp-defun ()
   (let ((regexp (if (featurep 'native-compile)
-                    "a native compiled Lisp function in .+subr\\.el"
-                  "a compiled Lisp function in .+subr\\.el"))
+                    "a native-compiled Lisp function in .+subr\\.el"
+                  "a byte-compiled Lisp function in .+subr\\.el"))
         (result (help-fns-tests--describe-function 'last)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defsubst ()
-  (let ((regexp "a compiled Lisp function in .+subr\\.el")
+  (let ((regexp "a byte-compiled Lisp function in .+subr\\.el")
         (result (help-fns-tests--describe-function 'posn-window)))
     (should (string-match regexp result))))
 

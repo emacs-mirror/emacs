@@ -310,7 +310,7 @@ Print messages at start and end of loading unless optional fourth
 arg NOMESSAGE is non-nil.
 
 If EVAL-FUNCTION, call that instead of calling `eval-buffer'
-directly.  It is called with two paramameters: The buffer object
+directly.  It is called with two parameters: The buffer object
 and the file name.
 
 Return t if file exists."

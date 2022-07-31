@@ -201,8 +201,8 @@ switches."
 	     ;; FIXME are there other possible combinations?
 	     (cond ((eq state 'edited) (setq state 'needs-merge))
 		   ((not state) (setq state 'needs-update))))
-	(when (and state (not (string= "." filename)))
-         (setq result (cons (list filename state) result)))))
+	(when state
+          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
 
 ;; dir-status-files called from vc-dir, which loads vc,
@@ -212,7 +212,7 @@ switches."
 (autoload 'vc-expand-dirs "vc")
 
 (defun vc-svn-dir-status-files (_dir files callback)
-  "Run 'svn status' for DIR and update BUFFER via CALLBACK.
+  "Run \"svn status\" for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; FIXME shouldn't this rather default to all the files in dir?

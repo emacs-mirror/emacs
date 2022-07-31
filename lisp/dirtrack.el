@@ -26,13 +26,14 @@
 ;; Shell directory tracking by watching the prompt.
 ;;
 ;; This is yet another attempt at a directory-tracking package for
-;; Emacs shell-mode.  However, this package makes one strong assumption:
-;; that you can customize your shell's prompt to contain the
-;; current working directory.  Most shells do support this, including
-;; almost every type of Bourne and C shell on Unix, the native shells on
-;; Windows95 (COMMAND.COM) and Windows NT (CMD.EXE), and most 3rd party
-;; Windows shells.  If you cannot do this, or do not wish to, this package
-;; will be useless to you.
+;; Emacs shell-mode.  However, this package makes one strong
+;; assumption: that you can customize your shell's prompt to contain
+;; the current working directory.  Most shells do support this,
+;; including almost every type of Bourne and C shell on Unix, the
+;; native shells on Windows 9X (COMMAND.COM) and modern MS-Windows
+;; systems (cmd.exe), and most 3rd party MS-Windows shells.  If you
+;; cannot do this, or do not wish to, this package will be useless to
+;; you.
 ;;
 ;; Installation:
 ;;
@@ -63,7 +64,7 @@
 ;;
 ;; Examples:
 ;;
-;; 1) On Windows NT, my prompt is set to emacs$S$P$G.
+;; 1) On MS-Windows, my prompt is set to emacs$S$P$G.
 ;; 'dirtrack-list' is set to (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
 ;;
 ;; 2) On Solaris running bash, my prompt is set like this:
@@ -92,7 +93,7 @@
 ;; A final note:
 ;;
 ;;   I run LOTS of shell buffers through Emacs, sometimes as different users
-;;   (eg, when logged in as myself, I'll run a root shell in the same Emacs).
+;;   (e.g., when logged in as myself, I'll run a root shell in the same Emacs).
 ;;   If you do this, and the shell prompt contains a ~, Emacs will interpret
 ;;   this relative to the user which owns the Emacs process, not the user
 ;;   who owns the shell buffer.  This may cause dirtrack to behave strangely
@@ -100,7 +101,7 @@
 ;;   with a ~ in it).
 ;;
 ;;   The same behavior can occur if you use dirtrack with remote filesystems
-;;   (using telnet, rlogin, etc) as Emacs will be checking the local
+;;   (using telnet, ssh, etc.) as Emacs will be checking the local
 ;;   filesystem, not the remote one.  This problem is not specific to dirtrack,
 ;;   but also affects file completion, etc.
 

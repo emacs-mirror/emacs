@@ -607,21 +607,36 @@
   (should (equal (string-limit "foó" 4 nil 'utf-8) "fo\303\263"))
   (should (equal (string-limit "foóa" 4 nil 'utf-8) "fo\303\263"))
   (should (equal (string-limit "foóá" 4 nil 'utf-8) "fo\303\263"))
+  (should (equal (string-limit "foóá" 2 nil 'utf-8-with-signature)
+                 ""))
   (should (equal (string-limit "foóá" 4 nil 'utf-8-with-signature)
-                 "fo\303\263"))
+                 "\357\273\277f"))
   (should (equal (string-limit "foóa" 4 nil 'iso-8859-1) "fo\363a"))
   (should (equal (string-limit "foóá" 4 nil 'iso-8859-1) "fo\363\341"))
-  (should (equal (string-limit "foóá" 4 nil 'utf-16) "\000f\000o"))
+  (should (equal (string-limit "foóá" 3 nil 'utf-16) ""))
+  (should (equal (string-limit "foóá" 6 nil 'utf-16) "\376\377\000f\000o"))
 
   (should (equal (string-limit "foó" 10 t 'utf-8) "fo\303\263"))
   (should (equal (string-limit "foó" 3 t 'utf-8) "o\303\263"))
   (should (equal (string-limit "foó" 4 t 'utf-8) "fo\303\263"))
   (should (equal (string-limit "foóa" 4 t 'utf-8) "o\303\263a"))
   (should (equal (string-limit "foóá" 4 t 'utf-8) "\303\263\303\241"))
-  (should (equal (string-limit "foóá" 2 t 'utf-8-with-signature) "\303\241"))
+  (should (equal (string-limit "foóá" 2 t 'utf-8-with-signature)
+                 ""))
   (should (equal (string-limit "foóa" 4 t 'iso-8859-1) "fo\363a"))
   (should (equal (string-limit "foóá" 4 t 'iso-8859-1) "fo\363\341"))
-  (should (equal (string-limit "foóá" 4 t 'utf-16) "\000\363\000\341")))
+  (should (equal (string-limit "foóá" 6 t 'utf-16) "\376\377\000\363\000\341")))
+
+(ert-deftest subr-string-limit-glyphs ()
+  (should (equal (encode-coding-string "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 'utf-8)
+                 "Hello, \360\237\221\274\360\237\217\273\360\237\247\221\360\237\217\274\342\200\215\360\237\244\235\342\200\215\360\237\247\221\360\237\217\273"))
+  (should (= (length (encode-coding-string "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 'utf-8)) 41))
+  (should (equal (string-limit "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 100 nil 'utf-8)
+                 "Hello, \360\237\221\274\360\237\217\273\360\237\247\221\360\237\217\274\342\200\215\360\237\244\235\342\200\215\360\237\247\221\360\237\217\273"))
+  (should (equal (string-limit "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 15 nil 'utf-8)
+                 "Hello, \360\237\221\274\360\237\217\273"))
+  (should (equal (string-limit "Hello, 👼🏻🧑🏼‍🤝‍🧑🏻" 10 nil 'utf-8)
+                 "Hello, ")))
 
 (ert-deftest subr-string-lines ()
   (should (equal (string-lines "foo") '("foo")))
@@ -711,6 +726,50 @@
         (let ((sum sum))
           (loop (cdr rest) (+ sum (car rest))))))
     (should (equal (mapcar #'funcall funs) '(43 1 0)))))
+
+(ert-deftest test-with-buffer-unmodified-if-unchanged ()
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t"))
+    (should (buffer-modified-p)))
+
+  (with-temp-buffer
+    (with-buffer-unmodified-if-unchanged
+      (insert "t")
+      (delete-char -1))
+    (should-not (buffer-modified-p)))
+
+  ;; Shouldn't error.
+  (should
+   (with-temp-buffer
+     (with-buffer-unmodified-if-unchanged
+       (insert "t")
+       (delete-char -1)
+       (kill-buffer))))
+
+  (with-temp-buffer
+    (let ((outer (current-buffer)))
+      (with-temp-buffer
+        (let ((inner (current-buffer)))
+          (with-buffer-unmodified-if-unchanged
+            (insert "t")
+            (delete-char -1)
+            (set-buffer outer))
+          (with-current-buffer inner
+            (should-not (buffer-modified-p))))))))
+
+(ert-deftest subr-x--hash-table-keys-and-values ()
+  (let ((h (make-hash-table)))
+    (puthash 'a 1 h)
+    (puthash 'c 3 h)
+    (puthash 'b 2 h)
+    (should (equal (sort (hash-table-keys h) #'string<) '(a b c)))
+    (should (equal (sort (hash-table-values h) #'<) '(1 2 3)))))
+
+(ert-deftest test-string-truncate-left ()
+  (should (equal (string-truncate-left "band" 3) "...d"))
+  (should (equal (string-truncate-left "band" 2) "...d"))
+  (should (equal (string-truncate-left "longstring" 8) "...tring")))
 
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

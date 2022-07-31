@@ -180,9 +180,6 @@ C++ modes are included."
   (cwarn-font-lock-keywords cwarn-mode)
   (font-lock-flush))
 
-;;;###autoload
-(define-obsolete-function-alias 'turn-on-cwarn-mode 'cwarn-mode "24.1")
-
 ;;}}}
 ;;{{{ Help functions
 

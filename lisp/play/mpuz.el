@@ -156,7 +156,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 
 ;; A puzzle also uses a board displaying a multiplication.
-;; Every digit appears in the board, crypted or not.
+;; Every digit appears in the board, encrypted or not.
 ;;------------------------------------------------------
 (defvar mpuz-board (make-vector 10 nil)
   "The board associates to any digit the list of squares where it appears.")

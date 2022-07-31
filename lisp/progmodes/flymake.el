@@ -303,7 +303,7 @@ generated it."
 (defun flymake-error (text &rest args)
   "Format TEXT with ARGS and signal an error for Flymake."
   (let ((msg (apply #'format-message text args)))
-    (flymake-log :error msg)
+    (flymake-log :error "%s" msg)
     (error (concat "[Flymake] " msg))))
 
 (cl-defstruct (flymake--diag
@@ -1102,6 +1102,13 @@ The commands `flymake-goto-next-error' and
 `flymake-goto-prev-error' can be used to navigate among Flymake
 diagnostics annotated in the buffer.
 
+By default, `flymake-mode' doesn't override the \\[next-error] command, but
+if you're using Flymake a lot (and don't use the regular compilation
+mechanisms that often), it can be useful to put something like
+the following in your init file:
+
+  (setq next-error-function \\='flymake-goto-next-error)
+
 The visual appearance of each type of diagnostic can be changed
 by setting properties `flymake-overlay-control', `flymake-bitmap'
 and `flymake-severity' on the symbols of diagnostic types (like
@@ -1358,6 +1365,11 @@ This is a suitable place for placing the `flymake-error-counter',
 Separating each of these with space is not necessary."
   :type '(repeat (choice string symbol)))
 
+(defcustom flymake-mode-line-lighter "Flymake"
+  "The string to use in the Flymake mode line."
+  :type 'string
+  :version "29.1")
+
 (defvar flymake-mode-line-title '(:eval (flymake--mode-line-title))
   "Mode-line construct to show Flymake's mode name and menu.")
 
@@ -1386,7 +1398,7 @@ correctly.")
 
 (defun flymake--mode-line-title ()
   `(:propertize
-    "Flymake"
+    ,flymake-mode-line-lighter
     mouse-face mode-line-highlight
     help-echo
     ,(lambda (&rest _)
@@ -1637,6 +1649,8 @@ buffer."
 (defun flymake-show-buffer-diagnostics ()
   "Show a list of Flymake diagnostics for current buffer."
   (interactive)
+  (unless flymake-mode
+    (user-error "Flymake mode is not enabled in the current buffer"))
   (let* ((name (flymake--diagnostics-buffer-name))
          (source (current-buffer))
          (target (or (get-buffer name)
@@ -1664,9 +1678,9 @@ the file they refer to is visited and `flymake-mode' is turned on
 in the resulting buffer.
 
 Flymake backends that somehow gain sporadic information about
-diagnostics in neighbouring files may freely modify this variable
+diagnostics in neighboring files may freely modify this variable
 by adding or removing entries to for those files.  If the
-information about those neighbouring files is acquired repeatedly
+information about those neighboring files is acquired repeatedly
 and reliably, it may be more sensible to report them as
 \"foreign\" diagnostics instead.
 

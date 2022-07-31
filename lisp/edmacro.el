@@ -62,6 +62,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'kmacro)
 
 ;;; The user-level commands for editing macros.
@@ -72,11 +73,35 @@ Default nil means to write characters above \\177 in octal notation."
   :type 'boolean
   :group 'kmacro)
 
-(defvar edmacro-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" #'edmacro-finish-edit)
-    (define-key map "\C-c\C-q" #'edmacro-insert-key)
-    map))
+(defvar-keymap edmacro-mode-map
+  "C-c C-c" #'edmacro-finish-edit
+  "C-c C-q" #'edmacro-insert-key)
+
+(defface edmacro-label
+  '((default :inherit bold)
+    (((class color) (background dark)) :foreground "light blue")
+    (((min-colors 88) (class color) (background light)) :foreground "DarkBlue")
+    (((class color) (background light)) :foreground "blue")
+    (t :inherit bold))
+  "Face used for labels in `edit-kbd-macro'."
+  :version "29.1"
+  :group 'kmacro)
+
+(defvar edmacro-mode-font-lock-keywords
+  `((,(rx bol (group (or "Command" "Key" "Macro") ":")) 0 'edmacro-label)
+    (,(rx bol
+          (group ";; Keyboard Macro Editor.  Press ")
+          (group (*? any))
+          (group  " to finish; press "))
+     (1 'font-lock-comment-face)
+     (2 'help-key-binding)
+     (3 'font-lock-comment-face)
+     (,(rx (group (*? any))
+           (group " to cancel" (* any)))
+      nil nil
+      (1 'help-key-binding)
+      (2 'font-lock-comment-face)))
+    (,(rx (one-or-more ";") (zero-or-more any)) 0 'font-lock-comment-face)))
 
 (defvar edmacro-store-hook)
 (defvar edmacro-finish-hook)
@@ -86,7 +111,7 @@ Default nil means to write characters above \\177 in octal notation."
 (defun edit-kbd-macro (keys &optional prefix finish-hook store-hook)
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
-Or, type `\\[kmacro-end-and-call-macro]' or RET to edit the last
+Or, type `\\[kmacro-end-and-call-macro]' or \\`RET' to edit the last
 keyboard macro, `\\[view-lossage]' to edit the last 300
 keystrokes as a keyboard macro, or `\\[execute-extended-command]'
 to edit a macro by its command name.
@@ -99,8 +124,7 @@ With a prefix argument, format the macro in a more concise way."
   (when keys
     (let ((cmd (if (arrayp keys) (key-binding keys) keys))
           (cmd-noremap (when (arrayp keys) (key-binding keys nil t)))
-	  (mac nil) (mac-counter nil) (mac-format nil)
-	  kmacro)
+	  (mac nil) (mac-counter nil) (mac-format nil))
       (cond (store-hook
 	     (setq mac keys)
 	     (setq cmd nil))
@@ -131,10 +155,10 @@ With a prefix argument, format the macro in a more concise way."
 	    (t
 	     (setq mac cmd)
 	     (setq cmd nil)))
-      (when (setq kmacro (kmacro-extract-lambda mac))
-	(setq mac (car kmacro)
-	      mac-counter (nth 1 kmacro)
-	      mac-format (nth 2 kmacro)))
+      (when (kmacro-p mac)
+	(setq mac (kmacro--keys mac)
+	      mac-counter (kmacro--counter mac)
+	      mac-format (kmacro--format mac)))
       (unless (arrayp mac)
 	(error "Key sequence %s is not a keyboard macro"
 	       (key-description keys)))
@@ -154,9 +178,18 @@ With a prefix argument, format the macro in a more concise way."
         (setq-local edmacro-original-buffer oldbuf)
         (setq-local edmacro-finish-hook finish-hook)
         (setq-local edmacro-store-hook store-hook)
+        (setq-local font-lock-defaults
+                    '(edmacro-mode-font-lock-keywords nil nil nil nil))
+        (setq font-lock-multiline nil)
 	(erase-buffer)
-	(insert ";; Keyboard Macro Editor.  Press C-c C-c to finish; "
-		"press C-x k RET to cancel.\n")
+        (insert (substitute-command-keys
+                 (concat
+                  ;; When editing this, make sure to update
+                  ;; `edmacro-mode-font-lock-keywords' to match.
+                  ";; Keyboard Macro Editor.  Press \\[edmacro-finish-edit] "
+                  "to finish; press \\[kill-buffer] \\`RET' to cancel.\n")
+                 ;; Use 'no-face argument to not conflict with font-lock.
+                 'no-face))
 	(insert ";; Original keys: " fmt "\n")
 	(unless store-hook
 	  (insert "\nCommand: " (if cmd (symbol-name cmd) "none") "\n")
@@ -222,7 +255,7 @@ or nil, use a compact 80-column format."
 ;;; Commands for *Edit Macro* buffer.
 
 (defun edmacro-finish-edit ()
-  (interactive)
+  (interactive nil edmacro-mode)
   (unless (eq major-mode 'edmacro-mode)
     (error
      "This command is valid only in buffers created by `edit-kbd-macro'"))
@@ -252,15 +285,14 @@ or nil, use a compact 80-column format."
 		   ((looking-at "Key:\\(.*\\)$")
 		    (when edmacro-store-hook
 		      (error "\"Key\" line not allowed in this context"))
-		    (let ((key (edmacro-parse-keys
-				(match-string 1))))
+		    (let ((key (kbd (match-string 1))))
 		      (unless (equal key "")
 			(if (equal key "none")
 			    (setq no-keys t)
 			  (push key keys)
 			  (let ((b (key-binding key)))
 			    (and b (commandp b) (not (arrayp b))
-				 (not (kmacro-extract-lambda b))
+				 (not (kmacro-p b))
 				 (or (not (fboundp b))
 				     (not (or (arrayp (symbol-function b))
 					      (get b 'kmacro))))
@@ -313,10 +345,7 @@ or nil, use a compact 80-column format."
 	    (when cmd
 	      (if (= (length mac) 0)
 		  (fmakunbound cmd)
-		(fset cmd
-		      (if (and mac-counter mac-format)
-			  (kmacro-lambda-form mac mac-counter mac-format)
-			mac))))
+		(fset cmd (kmacro mac mac-counter mac-format))))
 	    (if no-keys
 		(when cmd
 		  (cl-loop for key in (where-is-internal cmd '(keymap)) do
@@ -327,10 +356,8 @@ or nil, use a compact 80-column format."
 		  (cl-loop for key in keys do
                            (global-set-key key
                                            (or cmd
-                                               (if (and mac-counter mac-format)
-                                                   (kmacro-lambda-form
-                                                    mac mac-counter mac-format)
-                                                 mac))))))))))
+                                               (kmacro mac mac-counter
+                                                       mac-format))))))))))
       (kill-buffer buf)
       (when (buffer-name obuf)
 	(switch-to-buffer obuf))
@@ -339,7 +366,7 @@ or nil, use a compact 80-column format."
 
 (defun edmacro-insert-key (key)
   "Insert the written name of a KEY in the buffer."
-  (interactive "kKey to insert: ")
+  (interactive "kKey to insert: " edmacro-mode)
   (if (bolp)
       (insert (edmacro-format-keys key t) "\n")
     (insert (edmacro-format-keys key) " ")))
@@ -347,7 +374,7 @@ or nil, use a compact 80-column format."
 (defun edmacro-mode ()
   "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \
 \\[edmacro-finish-edit] to save and exit.
-To abort the edit, just kill this buffer with \\[kill-buffer] RET.
+To abort the edit, just kill this buffer with \\[kill-buffer] \\`RET'.
 
 Press \\[edmacro-insert-key] to insert the name of any key by typing the key.
 
@@ -537,8 +564,8 @@ doubt, use whitespace."
                               ((integerp ch)
                                (concat
                                 (cl-loop for pf across "ACHMsS"
-                                         for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
-                                                              ?\M-\^@ ?\s-\^@ ?\S-\^@)
+                                         for bit in '( ?\A-\0 ?\C-\0 ?\H-\0
+                                                       ?\M-\0 ?\s-\0 ?\S-\0)
                                          when (/= (logand ch bit) 0)
                                          concat (format "%c-" pf))
                                 (let ((ch2 (logand ch (1- (ash 1 18)))))
@@ -645,9 +672,9 @@ This function assumes that the events can be stored in a string."
 
 ;;; Parsing a human-readable keyboard macro.
 
-(defun edmacro-parse-keys (string &optional need-vector)
+(defun edmacro-parse-keys (string &optional _need-vector)
   (let ((result (kbd string)))
-    (if (and need-vector (stringp result))
+    (if (stringp result)
         (seq-into result 'vector)
       result)))
 

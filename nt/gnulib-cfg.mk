@@ -74,3 +74,4 @@ OMIT_GNULIB_MODULE_futimens = true
 OMIT_GNULIB_MODULE_utimensat = true
 OMIT_GNULIB_MODULE_file-has-acl = true
 OMIT_GNULIB_MODULE_nproc = true
+OMIT_GNULIB_MODULE_nanosleep = true

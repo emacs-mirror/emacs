@@ -157,8 +157,8 @@ are known failures, and are skipped."
 
 (defun regex-tests-compare (string what-failed bounds-ref &optional substring-ref)
   "I just ran a search, looking at STRING.  WHAT-FAILED describes
-what failed, if anything; valid values are 'search-failed,
-'compilation-failed and nil.  I compare the beginning/end of each
+what failed, if anything; valid values are `search-failed',
+`compilation-failed' and nil.  I compare the beginning/end of each
 group with their expected values.  This is done with either
 BOUNDS-REF or SUBSTRING-REF; one of those should be non-nil.
 BOUNDS-REF is a sequence [start-ref0 end-ref0 start-ref1
@@ -166,9 +166,9 @@ end-ref1 ....] while SUBSTRING-REF is the expected substring
 obtained by indexing the input string by start/end-ref.
 
 If the search was supposed to fail then start-ref0/substring-ref0
-is 'search-failed.  If the search wasn't even supposed to compile
+is `search-failed'.  If the search wasn't even supposed to compile
 successfully, then start-ref0/substring-ref0 is
-'compilation-failed.  If I only care about a match succeeding,
+`compilation-failed'.  If I only care about a match succeeding,
 this can be set to t.
 
 This function returns a string that describes the failure, or nil
@@ -259,8 +259,8 @@ BOUNDS-REF is a sequence [start-ref0 end-ref0 start-ref1 end-ref1
 ....].
 
 If the search was supposed to fail then start-ref0 is
-'search-failed.  If the search wasn't even supposed to compile
-successfully, then start-ref0 is 'compilation-failed.
+`search-failed'.  If the search wasn't even supposed to compile
+successfully, then start-ref0 is `compilation-failed'.
 
 This function returns a string that describes the failure, or nil
 on success"

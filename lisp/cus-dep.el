@@ -156,9 +156,9 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (set-buffer (find-file-noselect generated-custom-dependencies-file))
   (setq buffer-undo-list t)
   (erase-buffer)
-  (insert (autoload-rubric generated-custom-dependencies-file
-                           "custom dependencies" t))
-  (search-backward "")
+  (generate-lisp-file-heading
+   generated-custom-dependencies-file 'custom-make-dependencies
+   :title "custom dependencies")
   (let (alist)
     (mapatoms (lambda (symbol)
 		(let ((members (get symbol 'custom-group))
@@ -241,6 +241,7 @@ This is an alist whose members have as car a version string, and as
 elements the files that have variables or faces that contain that
 version.  These files should be loaded before showing the customization
 buffer that `customize-changed' generates.\")\n\n"))
+  (generate-lisp-file-trailer generated-custom-dependencies-file)
   (save-buffer)
   (byte-compile-info
    (format "Generating %s...done" generated-custom-dependencies-file) t))

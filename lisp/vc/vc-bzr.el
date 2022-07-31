@@ -64,9 +64,13 @@
   :version "22.2"
   :group 'vc)
 
-(defcustom vc-bzr-program "bzr"
+(defcustom vc-bzr-program
+  (or (executable-find "bzr")
+      (executable-find "brz")
+      "bzr")
   "Name of the bzr command (excluding any arguments)."
-  :type 'string)
+  :type 'string
+  :version "29.1")
 
 (defcustom vc-bzr-diff-switches nil
   "String or list of strings specifying switches for bzr diff under VC.
@@ -640,7 +644,7 @@ Returns nil if unable to find this information."
 ;; Could run `bzr status' in the directory and see if it succeeds, but
 ;; that's relatively expensive.
 (defalias 'vc-bzr-responsible-p #'vc-bzr-root
-  "Return non-nil if FILE is (potentially) controlled by bzr.
+  "Return the directory if FILE is (potentially) controlled by bzr.
 The criterion is that there is a `.bzr' directory in the same
 or a superior directory.")
 

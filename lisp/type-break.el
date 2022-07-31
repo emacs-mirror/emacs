@@ -69,7 +69,7 @@
 
 (defcustom type-break-interval (* 60 60)
   "Number of seconds between scheduled typing breaks."
-  :type 'integer
+  :type 'natnum
   :group 'type-break)
 
 (defcustom type-break-good-rest-interval (/ type-break-interval 6)
@@ -82,7 +82,7 @@ rest from typing, then the next typing break is simply rescheduled for later.
 If a break is interrupted before this much time elapses, the user will be
 asked whether or not really to interrupt the break."
   :set-after '(type-break-interval)
-  :type 'integer
+  :type 'natnum
   :group 'type-break)
 
 (defcustom type-break-good-break-interval nil
@@ -148,7 +148,7 @@ To avoid being queried at all, set `type-break-query-mode' to nil."
   "Number of seconds between queries to take a break, if put off.
 The user will continue to be prompted at this interval until he or she
 finally submits to taking a typing break."
-  :type 'integer
+  :type 'natnum
   :group 'type-break)
 
 (defcustom type-break-time-warning-intervals '(300 120 60 30)
@@ -171,7 +171,7 @@ will occur."
   "Number of keystrokes for which warnings should be repeated.
 That is, for each of this many keystrokes the warning is redisplayed
 in the echo area to make sure it's really seen."
-  :type 'integer
+  :type 'natnum
   :group 'type-break)
 
 (defcustom type-break-time-stamp-format "[%H:%M] "

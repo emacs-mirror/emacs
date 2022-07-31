@@ -377,8 +377,11 @@ This macro is used to test if macroexpansion in `should' works."
          (test (make-ert-test :body test-body))
          (result (ert-run-test test)))
     (should (ert-test-failed-p result))
-    (should (eq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
-                'signal))))
+    (should (memq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
+                  ;;; This is `ert-fail' on nativecomp and `signal'
+                  ;;; otherwise.  It's not clear whether that's a bug
+                  ;;; or not (bug#51308).
+                  '(ert-fail signal)))))
 
 (ert-deftest ert-test-messages ()
   :tags '(:causes-redisplay)
@@ -595,6 +598,7 @@ This macro is used to test if macroexpansion in `should' works."
 	(should found-complex)))))
 
 (ert-deftest ert-test-run-tests-batch-expensive ()
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (let* ((complex-list '((:1 (:2 (:3 (:4 (:5 (:6 "abc"))))))))
 	 (failing-test-1
           (make-ert-test :name 'failing-test-1

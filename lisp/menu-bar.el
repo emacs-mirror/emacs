@@ -47,7 +47,7 @@
 
 ;; This definition is just to show what this looks like.
 ;; It gets modified in place when menu-bar-update-buffers is called.
-(defvar global-buffers-menu-map (make-sparse-keymap "Buffers"))
+(defvar-keymap global-buffers-menu-map :name "Buffers")
 
 (defvar menu-bar-print-menu
   (let ((menu (make-sparse-keymap "Print")))
@@ -178,17 +178,23 @@
                         t))
                   :help "Recover edits from a crashed session"))
     (bindings--define-key menu [revert-buffer]
-      '(menu-item "Revert Buffer" revert-buffer
-                  :enable (or (not (eq revert-buffer-function
-                                       'revert-buffer--default))
-                              (not (eq
-                                    revert-buffer-insert-file-contents-function
-                                    'revert-buffer-insert-file-contents--default-function))
-                              (and buffer-file-number
-                                   (or (buffer-modified-p)
-                                       (not (verify-visited-file-modtime
-                                             (current-buffer))))))
-                  :help "Re-read current buffer from its file"))
+      '(menu-item
+        "Revert Buffer" revert-buffer
+        :enable
+        (or (not (eq revert-buffer-function
+                     'revert-buffer--default))
+            (not (eq
+                  revert-buffer-insert-file-contents-function
+                  'revert-buffer-insert-file-contents--default-function))
+            (and buffer-file-number
+                 (or (buffer-modified-p)
+                     (not (verify-visited-file-modtime
+                           (current-buffer)))
+                     ;; Enable if the buffer has a different
+                     ;; writeability than the file.
+                     (not (eq (not buffer-read-only)
+                              (file-writable-p buffer-file-name))))))
+        :help "Re-read current buffer from its file"))
     (bindings--define-key menu [write-file]
       '(menu-item "Save As..." write-file
                   :enable (and (menu-bar-menu-frame-live-and-visible-p)
@@ -305,7 +311,7 @@
     (isearch-update-ring string t)
     (re-search-backward string)))
 
-;; The Edit->Search->Incremental Search menu
+;; The Edit->Incremental Search menu
 (defvar menu-bar-i-search-menu
   (let ((menu (make-sparse-keymap "Incremental Search")))
     (bindings--define-key menu [isearch-forward-symbol-at-point]
@@ -333,12 +339,6 @@
 
 (defvar menu-bar-search-menu
   (let ((menu (make-sparse-keymap "Search")))
-
-    (bindings--define-key menu [i-search]
-      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
-    (bindings--define-key menu [separator-tag-isearch]
-      menu-bar-separator)
-
     (bindings--define-key menu [tags-continue]
       '(menu-item "Continue Tags Search" fileloop-continue
                   :enable (and (featurep 'fileloop)
@@ -495,6 +495,9 @@
     (bindings--define-key menu [replace]
       `(menu-item "Replace" ,menu-bar-replace-menu))
 
+    (bindings--define-key menu [i-search]
+      `(menu-item "Incremental Search" ,menu-bar-i-search-menu))
+
     (bindings--define-key menu [search]
       `(menu-item "Search" ,menu-bar-search-menu))
 
@@ -581,9 +584,6 @@
 
     menu))
 
-(define-obsolete-function-alias
-  'menu-bar-kill-ring-save 'kill-ring-save "24.1")
-
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard.
 
@@ -600,7 +600,8 @@
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
   (let ((select-enable-clipboard t)
-        ;; Ensure that we defeat the DWIM login in `gui-selection-value'.
+        ;; Ensure that we defeat the DWIM logic in `gui-selection-value'
+        ;; (i.e., that gui--clipboard-selection-unchanged-p returns nil).
         (gui--last-selected-text-clipboard nil))
     (yank)))
 
@@ -679,7 +680,7 @@ Do the same for the keys of the same name."
       '(menu-item "Custom Themes" customize-themes
                   :help "Choose a pre-defined customization theme"))
     menu))
-;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
+;(defvar-keymap menu-bar-preferences-menu :name "Preferences")
 
 (defmacro menu-bar-make-mm-toggle (fname doc help &optional props)
   "Make a menu-item for a global minor mode toggle.
@@ -745,7 +746,11 @@ by \"Save Options\" in Custom buffers.")
        ;; interactively, because the purpose is to mark the variable as a
        ;; candidate for `Save Options', and we do not want to save options that
        ;; the user has already set explicitly in the init file.
-       (when interactively (customize-mark-as-set ',variable)))
+       (when interactively
+         (customize-mark-as-set ',variable))
+       ;; Toggle menu items must make sure that the menu is updated so
+       ;; that toggle marks are drawn in the right state.
+       (force-mode-line-update t))
      '(menu-item ,item-name ,command :help ,help
                  :button (:toggle . (and (default-boundp ',variable)
                                          (default-value ',variable)))
@@ -788,6 +793,7 @@ The selected font will be the default on both the existing and future frames."
     (dolist (elt '(scroll-bar-mode
 		   debug-on-quit debug-on-error
 		   ;; Somehow this works, when tool-bar and menu-bar don't.
+                   desktop-save-mode
 		   tooltip-mode window-divider-mode
 		   save-place-mode uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
@@ -2185,12 +2191,12 @@ otherwise it could decide to silently do nothing."
 
 (defcustom yank-menu-length 20
   "Text of items in `yank-menu' longer than this will be truncated."
-  :type 'integer
+  :type 'natnum
   :group 'menu)
 
 (defcustom yank-menu-max-items 60
   "Maximum number of entries to display in the `yank-menu'."
-  :type 'integer
+  :type 'natnum
   :group 'menu
   :version "29.1")
 
@@ -2316,8 +2322,29 @@ Buffers menu is regenerated."
 	      (cdr elt)))
 	  buf)))
 
-;; Used to cache the menu entries for commands in the Buffers menu
-(defvar menu-bar-buffers-menu-command-entries nil)
+(defvar menu-bar-buffers-menu-command-entries
+  (list '(command-separator "--")
+	(list 'next-buffer
+	      'menu-item
+	      "Next Buffer"
+	      'next-buffer
+	      :help "Switch to the \"next\" buffer in a cyclic order")
+	(list 'previous-buffer
+	      'menu-item
+	      "Previous Buffer"
+	      'previous-buffer
+	      :help "Switch to the \"previous\" buffer in a cyclic order")
+	(list 'select-named-buffer
+	      'menu-item
+	      "Select Named Buffer..."
+	      'switch-to-buffer
+	      :help "Prompt for a buffer name, and select that buffer in the current window")
+	(list 'list-all-buffers
+	      'menu-item
+	      "List All Buffers"
+	      'list-buffers
+	      :help "Pop up a window listing all Emacs buffers"))
+  "Entries to be included at the end of the \"Buffers\" menu.")
 
 (defvar menu-bar-select-buffer-function 'switch-to-buffer
   "Function to select the buffer chosen from the `Buffers' menu-bar menu.
@@ -2402,35 +2429,7 @@ It must accept a buffer as its only required argument.")
 			  `((frames-separator "--")
 			    (frames menu-item "Frames" ,frames-menu))))))
 
-	 ;; Add in some normal commands at the end of the menu.  We use
-	 ;; the copy cached in `menu-bar-buffers-menu-command-entries'
-	 ;; if it's been set already.  Note that we can't use constant
-	 ;; lists for the menu-entries, because the low-level menu-code
-	 ;; modifies them.
-	 (unless menu-bar-buffers-menu-command-entries
-	   (setq menu-bar-buffers-menu-command-entries
-		 (list '(command-separator "--")
-		       (list 'next-buffer
-			     'menu-item
-			     "Next Buffer"
-			     'next-buffer
-			     :help "Switch to the \"next\" buffer in a cyclic order")
-		       (list 'previous-buffer
-			     'menu-item
-			     "Previous Buffer"
-			     'previous-buffer
-			     :help "Switch to the \"previous\" buffer in a cyclic order")
-		       (list 'select-named-buffer
-			     'menu-item
-			     "Select Named Buffer..."
-			     'switch-to-buffer
-			     :help "Prompt for a buffer name, and select that buffer in the current window")
-		       (list 'list-all-buffers
-			     'menu-item
-			     "List All Buffers"
-			     'list-buffers
-			     :help "Pop up a window listing all Emacs buffers"
-			     ))))
+	 ;; Add in some normal commands at the end of the menu.
 	 (setq buffers-menu
 	       (nconc buffers-menu menu-bar-buffers-menu-command-entries))
 

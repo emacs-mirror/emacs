@@ -54,7 +54,7 @@ Valid values are the symbols `default-A', `default-B', and `combined'."
 The value must be a list of the form
 \(STRING1 bufspec1  STRING2 bufspec2 STRING3 bufspec3 STRING4)
 where bufspec is the symbol A, B, or Ancestor.  For instance, if the value is
-'(STRING1 A  STRING2 Ancestor STRING3 B STRING4) then the
+`(STRING1 A  STRING2 Ancestor STRING3 B STRING4)' then the
 combined text will look like this:
 
 STRING1

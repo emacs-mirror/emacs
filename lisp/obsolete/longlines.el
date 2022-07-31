@@ -73,6 +73,11 @@ You can also enable the display temporarily, using the command
 This is used when `longlines-show-hard-newlines' is on."
   :type 'string)
 
+(defcustom longlines-break-chars " ;,|"
+  "A bag of separator chars for longlines."
+  :version "29.1"
+  :type 'string)
+
 ;;; Internal variables
 
 (defvar longlines-wrap-beg nil)
@@ -115,7 +120,6 @@ newlines are indicated with a symbol."
         (add-to-list 'buffer-file-format 'longlines)
         (add-hook 'change-major-mode-hook #'longlines-mode-off nil t)
 	(add-hook 'before-revert-hook #'longlines-before-revert-hook nil t)
-        (make-local-variable 'buffer-substring-filters)
         (make-local-variable 'longlines-auto-wrap)
 	(set (make-local-variable 'isearch-search-fun-function)
 	     #'longlines-search-function)
@@ -123,7 +127,8 @@ newlines are indicated with a symbol."
 	     #'longlines-search-forward)
 	(set (make-local-variable 'replace-re-search-function)
 	     #'longlines-re-search-forward)
-        (add-to-list 'buffer-substring-filters 'longlines-encode-string)
+        (add-function :filter-return (local 'filter-buffer-substring-function)
+                      #'longlines-encode-string)
         (when longlines-wrap-follows-window-size
 	  (let ((dw (if (and (integerp longlines-wrap-follows-window-size)
 			     (>= longlines-wrap-follows-window-size 0)
@@ -140,7 +145,7 @@ newlines are indicated with a symbol."
 	      (inhibit-modification-hooks t)
               (mod (buffer-modified-p))
 	      buffer-file-name buffer-file-truename)
-          ;; Turning off undo is OK since (spaces + newlines) is
+          ;; Turning off undo is OK since (separators + newlines) is
           ;; conserved, except for a corner case in
           ;; longlines-wrap-lines that we'll never encounter from here
 	  (save-restriction
@@ -199,7 +204,8 @@ newlines are indicated with a symbol."
     (kill-local-variable 'replace-search-function)
     (kill-local-variable 'replace-re-search-function)
     (kill-local-variable 'require-final-newline)
-    (kill-local-variable 'buffer-substring-filters)
+    (remove-function (local 'filter-buffer-substring-function)
+                     #'longlines-encode-string)
     (kill-local-variable 'use-hard-newlines)))
 
 (defun longlines-mode-off ()
@@ -273,11 +279,8 @@ end of the buffer."
   "If the current line needs to be wrapped, wrap it and return nil.
 If wrapping is performed, point remains on the line.  If the line does
 not need to be wrapped, move point to the next line and return t."
-  (if (longlines-set-breakpoint)
+  (if (longlines-set-breakpoint fill-column)
       (progn (insert-before-markers-and-inherit ?\n)
-	     (backward-char 1)
-             (delete-char -1)
-	     (forward-char 1)
              nil)
     (if (longlines-merge-lines-p)
         (progn (end-of-line)
@@ -286,58 +289,60 @@ not need to be wrapped, move point to the next line and return t."
      ;; replace these two newlines by a single space.  Unfortunately,
      ;; this breaks the conservation of (spaces + newlines), so we
      ;; have to fiddle with longlines-wrap-point.
-	       (if (or (prog1 (bolp) (forward-char 1)) (eolp))
-		   (progn
-		     (delete-char -1)
-		     (if (> longlines-wrap-point (point))
-			 (setq longlines-wrap-point
-			       (1- longlines-wrap-point))))
-		 (insert-before-markers-and-inherit ?\s)
-		 (backward-char 1)
-		 (delete-char -1)
-		 (forward-char 1))
+               (if (or (prog1 (bolp) (forward-char 1)) (eolp))
+	           (progn
+	             (delete-char -1)
+	             (if (> longlines-wrap-point (point))
+		         (setq longlines-wrap-point
+		               (1- longlines-wrap-point))))
+	         (delete-char -1))
                nil)
       (forward-line 1)
       t)))
 
-(defun longlines-set-breakpoint ()
+(defun longlines-set-breakpoint (target-column)
   "Place point where we should break the current line, and return t.
 If the line should not be broken, return nil; point remains on the
 line."
-  (move-to-column fill-column)
-  (if (and (re-search-forward "[^ ]" (line-end-position) 1)
-           (> (current-column) fill-column))
-      ;; This line is too long.  Can we break it?
-      (or (longlines-find-break-backward)
-          (progn (move-to-column fill-column)
-                 (longlines-find-break-forward)))))
+  (move-to-column target-column)
+  (let ((non-break-re (format "[^%s]" longlines-break-chars)))
+    (if (and (re-search-forward non-break-re (line-end-position) t 1)
+             (> (current-column) target-column))
+        ;; This line is too long.  Can we break it?
+        (or (longlines-find-break-backward)
+            (progn (move-to-column target-column)
+                   (longlines-find-break-forward))))))
 
 (defun longlines-find-break-backward ()
   "Move point backward to the first available breakpoint and return t.
 If no breakpoint is found, return nil."
-  (and (search-backward " " (line-beginning-position) 1)
-       (save-excursion
-         (skip-chars-backward " " (line-beginning-position))
-         (null (bolp)))
-       (progn (forward-char 1)
-              (if (and fill-nobreak-predicate
-                       (run-hook-with-args-until-success
-                        'fill-nobreak-predicate))
-                  (progn (skip-chars-backward " " (line-beginning-position))
-                         (longlines-find-break-backward))
-                t))))
+  (let ((break-re (format "[%s]" longlines-break-chars)))
+    (when (and (re-search-backward break-re (line-beginning-position) t 1)
+               (save-excursion
+                 (skip-chars-backward longlines-break-chars
+                                      (line-beginning-position))
+                 (null (bolp))))
+      (forward-char 1)
+      (if (and fill-nobreak-predicate
+               (run-hook-with-args-until-success 'fill-nobreak-predicate))
+          (progn
+            (skip-chars-backward longlines-break-chars
+                                 (line-beginning-position))
+            (longlines-find-break-backward))
+        t))))
 
 (defun longlines-find-break-forward ()
   "Move point forward to the first available breakpoint and return t.
 If no break point is found, return nil."
-  (and (search-forward " " (line-end-position) 1)
-       (progn (skip-chars-forward " " (line-end-position))
-              (null (eolp)))
-       (if (and fill-nobreak-predicate
-                (run-hook-with-args-until-success
-                 'fill-nobreak-predicate))
-           (longlines-find-break-forward)
-         t)))
+  (let ((break-re (format "[%s]" longlines-break-chars)))
+    (and (re-search-forward break-re (line-end-position) t 1)
+         (progn
+           (skip-chars-forward longlines-break-chars (line-end-position))
+           (null (eolp)))
+         (if (and fill-nobreak-predicate
+                  (run-hook-with-args-until-success 'fill-nobreak-predicate))
+             (longlines-find-break-forward)
+           t))))
 
 (defun longlines-merge-lines-p ()
   "Return t if part of the next line can fit onto the current line.
@@ -348,12 +353,7 @@ Otherwise, return nil.  Text cannot be moved across hard newlines."
          (null (get-text-property (point) 'hard))
          (let ((space (- fill-column (current-column))))
            (forward-line 1)
-           (if (eq (char-after) ? )
-               t ; We can always merge some spaces
-             (<= (if (search-forward " " (line-end-position) 1)
-                     (current-column)
-                   (1+ (current-column)))
-                 space))))))
+           (longlines-set-breakpoint (max 0 (1- space)))))))
 
 (defun longlines-decode-region (&optional beg end)
   "Turn all newlines between BEG and END into hard newlines.
@@ -372,7 +372,7 @@ If BEG and END are nil, the point and mark are used."
   (longlines-decode-region (point-min) (point-max)))
 
 (defun longlines-encode-region (beg end &optional _buffer)
-  "Replace each soft newline between BEG and END with exactly one space.
+  "Remove each soft newline between BEG and END.
 Hard newlines are left intact.  The optional argument BUFFER exists for
 compatibility with `format-alist', and is ignored."
   (save-excursion
@@ -382,23 +382,28 @@ compatibility with `format-alist', and is ignored."
       (while (search-forward "\n" reg-max t)
 	(let ((pos (match-beginning 0)))
 	  (unless (get-text-property pos 'hard)
-	    (goto-char (1+ pos))
-	    (insert-and-inherit " ")
-	    (delete-region pos (1+ pos))
-            (remove-text-properties pos (1+ pos) '(hard nil)))))
+            (remove-text-properties pos (1+ pos) '(hard nil))
+            (delete-region pos (1+ pos)))))
       (set-buffer-modified-p mod)
       end)))
 
 (defun longlines-encode-string (string)
-  "Return a copy of STRING with each soft newline replaced by a space.
+  "Return a copy of STRING with each soft newline removed.
 Hard newlines are left intact."
-  (let* ((str (copy-sequence string))
-         (pos (string-search "\n" str)))
-    (while pos
-      (if (null (get-text-property pos 'hard str))
-          (aset str pos ? ))
-      (setq pos (string-search "\n" str (1+ pos))))
-    str))
+  (let ((start 0)
+        (result nil)
+        pos)
+    (while (setq pos (string-search "\n" string start))
+      (unless (= start pos)
+        (push (substring string start pos) result))
+      (when (get-text-property pos 'hard string)
+        (push (substring string pos (1+ pos)) result))
+      (setq start (1+ pos)))
+    (if (null result)
+        (copy-sequence string)
+      (unless (= start (length string))
+        (push (substring string start) result))
+      (apply #'concat (nreverse result)))))
 
 ;;; Auto wrap
 

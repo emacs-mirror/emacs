@@ -39,7 +39,7 @@
 (declare-function org-calendar-goto-agenda "org-agenda" ())
 (declare-function org-align-tags "org" (&optional all))
 (declare-function org-at-heading-p "org" (&optional ignored))
-(declare-function org-at-table.el-p "org" ())
+(declare-function org-at-table.el-p "org-table" ())
 (declare-function org-element-at-point "org-element" ())
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-lineage "org-element" (blob &optional types with-self))
@@ -72,6 +72,35 @@
 (defvar org-table1-hline-regexp)
 
 
+;;; Emacs < 29 compatibility
+
+(defvar org-file-has-changed-p--hash-table (make-hash-table :test #'equal)
+  "Internal variable used by `org-file-has-changed-p'.")
+
+(if (fboundp 'file-has-changed-p)
+    (defalias 'org-file-has-changed-p #'file-has-changed-p)
+  (defun org-file-has-changed-p (file &optional tag)
+    "Return non-nil if FILE has changed.
+The size and modification time of FILE are compared to the size
+and modification time of the same FILE during a previous
+invocation of `org-file-has-changed-p'.  Thus, the first invocation
+of `org-file-has-changed-p' always returns non-nil when FILE exists.
+The optional argument TAG, which must be a symbol, can be used to
+limit the comparison to invocations with identical tags; it can be
+the symbol of the calling function, for example."
+    (let* ((file (directory-file-name (expand-file-name file)))
+           (remote-file-name-inhibit-cache t)
+           (fileattr (file-attributes file 'integer))
+	   (attr (and fileattr
+                      (cons (file-attribute-size fileattr)
+		            (file-attribute-modification-time fileattr))))
+	   (sym (concat (symbol-name tag) "@" file))
+	   (cachedattr (gethash sym org-file-has-changed-p--hash-table)))
+      (when (not (equal attr cachedattr))
+        (puthash sym attr org-file-has-changed-p--hash-table)))))
+
+
+
 ;;; Emacs < 28.1 compatibility
 
 (if (fboundp 'directory-empty-p)
@@ -83,6 +112,11 @@
 
 
 ;;; Emacs < 27.1 compatibility
+
+(if (version< emacs-version "27.1")
+    (defsubst org-replace-buffer-contents (source &optional _max-secs _max-costs)
+      (replace-buffer-contents source))
+  (defalias 'org-replace-buffer-contents #'replace-buffer-contents))
 
 (unless (fboundp 'proper-list-p)
   ;; `proper-list-p' was added in Emacs 27.1.  The function below is
@@ -209,7 +243,7 @@ This is a floating point number if the size is too large for an integer."
 (if (fboundp 'string-collate-lessp)
     (defalias 'org-string-collate-lessp
       'string-collate-lessp)
-  (defun org-string-collate-lessp (s1 s2 &rest _)
+  (defun org-string-collate-lessp (s1 s2 &optional _ _)
     "Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant."
     (string< s1 s2)))
@@ -900,6 +934,14 @@ Implements `define-error' for older emacsen."
     (put name 'error-conditions
          (copy-sequence (cons name (get 'error 'error-conditions))))))
 
+(unless (fboundp 'string-equal-ignore-case)
+  ;; From Emacs subr.el.
+  (defun string-equal-ignore-case (string1 string2)
+    "Like `string-equal', but case-insensitive.
+Upper-case and lower-case letters are treated as equal.
+Unibyte strings are converted to multibyte for comparison."
+    (eq t (compare-strings string1 0 nil string2 0 nil t))))
+
 (unless (fboundp 'string-suffix-p)
   ;; From Emacs subr.el.
   (defun string-suffix-p (suffix string  &optional ignore-case)
@@ -1091,10 +1133,8 @@ ELEMENT is the element at point."
 	  (and log
 	       (let ((drawer (org-element-lineage element '(drawer))))
 		 (and drawer
-		      (eq (compare-strings
-			   log nil nil
-			   (org-element-property :drawer-name drawer) nil nil t)
-			  t)))))
+		      (string-equal-ignore-case
+		       log (org-element-property :drawer-name drawer))))))
 	nil)
        (t
 	(cl-case (org-element-type element)

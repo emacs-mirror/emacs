@@ -41,7 +41,9 @@
    Similarly for __has_builtin, etc.  */
 #if (defined __has_attribute \
      && (!defined __clang_minor__ \
-         || 3 < __clang_major__ + (5 <= __clang_minor__)))
+         || (defined __apple_build_version__ \
+             ? 6000000 <= __apple_build_version__ \
+             : 3 < __clang_major__ + (5 <= __clang_minor__))))
 # define __glibc_has_attribute(attr) __has_attribute (attr)
 #else
 # define __glibc_has_attribute(attr) 0
@@ -143,7 +145,8 @@
 #define __bos0(ptr) __builtin_object_size (ptr, 0)
 
 /* Use __builtin_dynamic_object_size at _FORTIFY_SOURCE=3 when available.  */
-#if __USE_FORTIFY_LEVEL == 3 && __glibc_clang_prereq (9, 0)
+#if __USE_FORTIFY_LEVEL == 3 && (__glibc_clang_prereq (9, 0)		      \
+				 || __GNUC_PREREQ (12, 0))
 # define __glibc_objsize0(__o) __builtin_dynamic_object_size (__o, 0)
 # define __glibc_objsize(__o) __builtin_dynamic_object_size (__o, 1)
 #else
@@ -161,13 +164,13 @@
    || (__builtin_constant_p (__l) && (__l) > 0))
 
 /* Length is known to be safe at compile time if the __L * __S <= __OBJSZ
-   condition can be folded to a constant and if it is true.  The -1 check is
-   redundant because since it implies that __glibc_safe_len_cond is true.  */
+   condition can be folded to a constant and if it is true, or unknown (-1) */
 #define __glibc_safe_or_unknown_len(__l, __s, __osz) \
-  (__glibc_unsigned_or_positive (__l)					      \
-   && __builtin_constant_p (__glibc_safe_len_cond ((__SIZE_TYPE__) (__l),     \
-						   __s, __osz))		      \
-   && __glibc_safe_len_cond ((__SIZE_TYPE__) (__l), __s, __osz))
+  ((__osz) == (__SIZE_TYPE__) -1					      \
+   || (__glibc_unsigned_or_positive (__l)				      \
+       && __builtin_constant_p (__glibc_safe_len_cond ((__SIZE_TYPE__) (__l), \
+						       (__s), (__osz)))	      \
+       && __glibc_safe_len_cond ((__SIZE_TYPE__) (__l), (__s), (__osz))))
 
 /* Conversely, we know at compile time that the length is unsafe if the
    __L * __S <= __OBJSZ condition can be folded to a constant and if it is

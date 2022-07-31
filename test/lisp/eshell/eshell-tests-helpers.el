@@ -38,27 +38,31 @@ See `eshell-wait-for-subprocess'.")
 
 (defmacro with-temp-eshell (&rest body)
   "Evaluate BODY in a temporary Eshell buffer."
-  `(ert-with-temp-directory eshell-directory-name
-     (let* (;; We want no history file, so prevent Eshell from falling
-            ;; back on $HISTFILE.
-            (process-environment (cons "HISTFILE" process-environment))
-            (eshell-history-file-name nil)
-            (eshell-buffer (eshell t)))
-       (unwind-protect
-           (with-current-buffer eshell-buffer
-             ,@body)
-         (let (kill-buffer-query-functions)
-           (kill-buffer eshell-buffer))))))
+  `(save-current-buffer
+     (ert-with-temp-directory eshell-directory-name
+       (let* (;; We want no history file, so prevent Eshell from falling
+              ;; back on $HISTFILE.
+              (process-environment (cons "HISTFILE" process-environment))
+              (eshell-history-file-name nil)
+              (eshell-buffer (eshell t)))
+         (unwind-protect
+             (with-current-buffer eshell-buffer
+               ,@body)
+           (let (kill-buffer-query-functions)
+             (kill-buffer eshell-buffer)))))))
 
-(defun eshell-wait-for-subprocess ()
+(defun eshell-wait-for-subprocess (&optional all)
   "Wait until there is no interactive subprocess running in Eshell.
+If ALL is non-nil, wait until there are no Eshell subprocesses at
+all running.
+
 If this takes longer than `eshell-test--max-subprocess-time',
 raise an error."
   (let ((start (current-time)))
-    (while (eshell-interactive-process-p)
+    (while (if all eshell-process-list (eshell-interactive-process-p))
       (when (> (float-time (time-since start))
                eshell-test--max-subprocess-time)
-        (error "timed out waiting for subprocess"))
+        (error "timed out waiting for subprocess(es)"))
       (sit-for 0.1))))
 
 (defun eshell-insert-command (text &optional func)

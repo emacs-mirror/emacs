@@ -1006,7 +1006,7 @@ which could be defined as:
     (defun my-test-explain (args...)
       (let ((faceup-test-explain t))
         (the-test args...)))
-    (put 'my-test 'ert-explainer 'my-test-explain)
+    (put \\='my-test \\='ert-explainer \\='my-test-explain)
 
 Alternative, you can use the macro `faceup-defexplainer' as follows:
 

@@ -65,10 +65,11 @@
   :type 'file)
 
 (defcustom ecomplete-database-file-coding-system 'iso-2022-7bit
+  ;; FIXME: We should transition to `utf-8-emacs-unix' somehow!
   "Coding system used for writing the ecomplete database file."
   :type '(symbol :tag "Coding system"))
 
-(defcustom ecomplete-sort-predicate 'ecomplete-decay
+(defcustom ecomplete-sort-predicate #'ecomplete-decay
   "Predicate to use when sorting matched.
 The predicate is called with two parameters that represent the
 completion.  Each parameter is a list where the first element is
@@ -95,13 +96,18 @@ string that was matched."
 
 (defun ecomplete-add-item (type key text)
   "Add item TEXT of TYPE to the database, using KEY as the identifier."
+  (unless ecomplete-database (ecomplete-setup))
   (let ((elems (assq type ecomplete-database))
 	(now (time-convert nil 'integer))
 	entry)
     (unless elems
       (push (setq elems (list type)) ecomplete-database))
     (if (setq entry (assoc key (cdr elems)))
-	(setcdr entry (list (1+ (cadr entry)) now text))
+	(pcase-let ((`(,_key ,count ,_time ,oldtext) entry))
+	  (setcdr entry (list (1+ count) now
+	                      ;; Preserve the "more complete" text.
+	                      (if (>= (length text) (length oldtext))
+	                          text oldtext))))
       (nconc elems (list (list key 1 now text))))))
 
 (defun ecomplete-get-item (type key)
@@ -110,19 +116,23 @@ string that was matched."
 
 (defun ecomplete-save ()
   "Write the .ecompleterc file."
-  (with-temp-buffer
-    (let ((coding-system-for-write ecomplete-database-file-coding-system))
-      (insert "(")
-      (cl-loop for (type . elems) in ecomplete-database
-	       do
-	       (insert (format "(%s\n" type))
-	       (dolist (entry elems)
-	         (prin1 entry (current-buffer))
-	         (insert "\n"))
-	       (insert ")\n"))
-      (insert ")")
-      (write-region (point-min) (point-max)
-		    ecomplete-database-file nil 'silent))))
+  ;; If the database is empty, it might be because we haven't called
+  ;; `ecomplete-setup', so better not save at all, lest we lose the real
+  ;; database!
+  (when ecomplete-database
+    (with-temp-buffer
+      (let ((coding-system-for-write ecomplete-database-file-coding-system))
+        (insert "(")
+        (cl-loop for (type . elems) in ecomplete-database
+	         do
+	         (insert (format "(%s\n" type))
+	         (dolist (entry elems)
+	           (prin1 entry (current-buffer))
+	           (insert "\n"))
+	         (insert ")\n"))
+	(insert ")")
+	(write-region (point-min) (point-max)
+		      ecomplete-database-file nil 'silent)))))
 
 (defun ecomplete-get-matches (type match)
   (let* ((elems (cdr (assq type ecomplete-database)))

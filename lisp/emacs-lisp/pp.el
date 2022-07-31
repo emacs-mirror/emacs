@@ -177,6 +177,10 @@ Also add the value to the front of the list in the variable `values'."
     (let ((pt (point)))
       (save-excursion
         (forward-sexp -1)
+        ;; Make `pp-eval-last-sexp' work the same way `eval-last-sexp'
+        ;; does.
+        (when (looking-at ",@?")
+          (goto-char (match-end 0)))
         (read
          ;; If first line is commented, ignore all leading comments:
          (if (save-excursion (beginning-of-line) (looking-at-p "[ \t]*;"))
@@ -246,7 +250,7 @@ Use the `pp-max-width' variable to control the desired line length."
                                    (set-marker (make-marker) (1- (point))))))
               (pp--format-list sexp)))
            (t
-            (princ sexp (current-buffer)))))
+            (prin1 sexp (current-buffer)))))
     ;; Print some of the smaller integers as characters, perhaps?
     (integer
      (if (<= ?0 sexp ?z)
@@ -378,7 +382,7 @@ Use the `pp-max-width' variable to control the desired line length."
         (when (> (current-column) (pp--max-width))
           (condition-case ()
               (backward-up-list 1)
-            (:success (when (looking-back " " 2)
+            (:success (when (and (not (bobp)) (looking-back " " 2))
                         (insert "\n")))
             (error nil)))))))
 

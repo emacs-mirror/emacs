@@ -61,6 +61,7 @@
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
 ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 foo\\|\\(?:[^icfgv]\\|g[^r]\\)\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
+cl-\\(?:defun\\|defmethod\\|defgeneric\\)\\|\
 menu-bar-make-toggle\\|menu-bar-make-toggle-command\\)"
    find-function-space-re
    "\\('\\|(quote \\)?%s\\(\\s-\\|$\\|[()]\\)")
@@ -268,11 +269,7 @@ defined in C.")
 If FUNC is not a symbol, return it.  Else, if it's not advised,
 return the symbol's function definition."
   (or (and (symbolp func)
-           (featurep 'nadvice)
-           (let ((ofunc (advice--symbol-function func)))
-             (if (advice--p ofunc)
-                 (advice--cd*r ofunc)
-               ofunc)))
+           (advice--cd*r (symbol-function func)))
       func))
 
 (defun find-function-C-source (fun-or-var file type)
@@ -515,8 +512,8 @@ Return t if any PRED returns t."
 (defun find-function-library (function &optional lisp-only verbose)
   "Return the pair (ORIG-FUNCTION . LIBRARY) for FUNCTION.
 
-ORIG-FUNCTION is the original name, after removing all advice and
-resolving aliases.  LIBRARY is an absolute file name, a relative
+ORIG-FUNCTION is the original name, after resolving aliases.
+LIBRARY is an absolute file name, a relative
 file name inside the C sources directory, or a name of an
 autoloaded feature.
 
@@ -803,7 +800,10 @@ See `find-function-on-key'."
   (define-key ctl-x-5-map "K" 'find-function-on-key-other-frame)
   (define-key ctl-x-map "V" 'find-variable)
   (define-key ctl-x-4-map "V" 'find-variable-other-window)
-  (define-key ctl-x-5-map "V" 'find-variable-other-frame))
+  (define-key ctl-x-5-map "V" 'find-variable-other-frame)
+  (define-key ctl-x-map "L" 'find-library)
+  (define-key ctl-x-4-map "L" 'find-library-other-window)
+  (define-key ctl-x-5-map "L" 'find-library-other-frame))
 
 (provide 'find-func)
 

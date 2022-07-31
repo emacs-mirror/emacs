@@ -244,6 +244,13 @@ This function works by calling the
     value))
 @end group
 @end smallexample
+
+@findex read-string-from-buffer
+If you have a long string (for instance, one that is several lines
+long) that you wish to edit, using @code{read-string} may not be
+ideal.  In that case, popping to a new, normal buffer where the user
+can edit the string may be more convenient, and you can use the
+@code{read-string-from-buffer} function to do that.
 @end defun
 
 @defun read-regexp prompt &optional defaults history
@@ -302,6 +309,22 @@ The optional argument @var{history}, if non-@code{nil}, is a symbol
 specifying a minibuffer history list to use (@pxref{Minibuffer
 History}).  If it is omitted or @code{nil}, the history list defaults
 to @code{regexp-history}.
+
+@cindex @code{case-fold}, text property
+@findex read-regexp-case-fold-search
+The user can use the @kbd{M-c} command to indicate whether case
+folding should be on or off.  If the user has used this command, the
+returned string will have the text property @code{case-fold} set to
+either @code{fold} or @code{inhibit-fold}.  It is up to the caller of
+@code{read-regexp} to actually use this value, and the convenience
+function @code{read-regexp-case-fold-search} is provided for that.  A
+typical usage pattern here might look like:
+
+@lisp
+(let* ((regexp (read-regexp "Search for: "))
+       (case-fold-search (read-regexp-case-fold-search regexp)))
+  (re-search-forward regexp))
+@end lisp
 @end defun
 
 @defopt read-regexp-defaults-function
@@ -1113,6 +1136,11 @@ but is asked for confirmation if the preceding command was a
 completion command (i.e., one of the commands in
 @code{minibuffer-confirm-exit-commands}) and the resulting input is
 not an element of @var{collection}.  @xref{Completion Commands}.
+
+@item
+If a function, it is called with the input as the only argument.  The
+function should return a non-@code{nil} value if the input is
+acceptable.
 
 @item
 Any other value of @var{require-match} behaves like @code{t}, except
@@ -1936,6 +1964,7 @@ completion function is trying to complete.  If the symbol matches one
 of the keys in @code{completion-category-overrides}, the usual
 completion behavior is overridden.  @xref{Completion Variables}.
 
+@cindex @code{annotation-function}, in completion
 @item annotation-function
 The value should be a function for @dfn{annotating} completions.  The
 function should take one argument, @var{string}, which is a possible
@@ -1945,6 +1974,7 @@ Unless this function puts own face on the annotation suffix string,
 the @code{completions-annotations} face is added by default to
 that string.
 
+@cindex @code{affixation-function}, in completion
 @item affixation-function
 The value should be a function for adding prefixes and suffixes to
 completions.  The function should take one argument,
@@ -1955,6 +1985,7 @@ the completion string in the @file{*Completions*} buffer, and
 a suffix displayed after the completion string.  This function
 takes priority over @code{annotation-function}.
 
+@cindex @code{group-function}, in completion
 @item group-function
 The value should be a function for grouping the completion candidates.
 The function must take two arguments, @var{completion}, which is a
@@ -1965,12 +1996,14 @@ can also be @code{nil}.  Otherwise the function must return the
 transformed candidate.  The transformation can for example remove a
 redundant prefix, which is displayed in the group title.
 
+@cindex @code{display-sort-function}, in completion
 @item display-sort-function
 The value should be a function for sorting completions.  The function
 should take one argument, a list of completion strings, and return a
 sorted list of completion strings.  It is allowed to alter the input
 list destructively.
 
+@cindex @code{cycle-sort-function}, in completion
 @item cycle-sort-function
 The value should be a function for sorting completions, when
 @code{completion-cycle-threshold} is non-@code{nil} and the user is

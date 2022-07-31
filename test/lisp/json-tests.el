@@ -510,8 +510,8 @@ Point is moved to beginning of the buffer."
     (let ((json-key-type 'string))
       (setq obj (json-add-to-object obj "g" 7))
       (setq obj (json-add-to-object obj "h" 8))
-      (should (= (lax-plist-get obj "g") 7))
-      (should (= (lax-plist-get obj "h") 8)))))
+      (should (= (plist-get obj "g" #'equal) 7))
+      (should (= (plist-get obj "h" #'equal) 8)))))
 
 (ert-deftest test-json-add-to-hash-table ()
   (let* ((json-object-type 'hash-table)

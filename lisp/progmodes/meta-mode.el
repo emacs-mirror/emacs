@@ -108,30 +108,27 @@
             (macro-keywords-2
              "\\(primarydef\\|secondarydef\\|tertiarydef\\)")
             (args-keywords
-             (eval-when-compile
-               (regexp-opt
-                '("expr" "suffix" "text" "primary" "secondary" "tertiary")
-                t)))
+             (regexp-opt
+              '("expr" "suffix" "text" "primary" "secondary" "tertiary")
+              t))
             (type-keywords
-             (eval-when-compile
-              (regexp-opt
-               '("boolean" "color" "numeric" "pair" "path" "pen" "picture"
-                 "string" "transform" "newinternal")
-               t)))
+             (regexp-opt
+              '("boolean" "color" "numeric" "pair" "path" "pen" "picture"
+                "string" "transform" "newinternal")
+              t))
             (syntactic-keywords
-             (eval-when-compile
-              (regexp-opt
-               '("for" "forever" "forsuffixes" "endfor"
-                 "step" "until" "upto" "downto" "thru" "within"
-                 "iff" "if" "elseif" "else" "fi" "exitif" "exitunless"
-                 "let" "def" "vardef" "enddef" "mode_def"
-                 "true" "false" "known" "unknown" "and" "or" "not"
-                 "save" "interim" "inner" "outer" "relax"
-                 "begingroup" "endgroup" "expandafter" "scantokens"
-                 "generate" "input" "endinput" "end" "bye"
-                 "message" "errmessage" "errhelp" "special" "numspecial"
-                 "readstring" "readfrom" "write")
-               t)))
+             (regexp-opt
+              '("for" "forever" "forsuffixes" "endfor"
+                "step" "until" "upto" "downto" "thru" "within"
+                "iff" "if" "elseif" "else" "fi" "exitif" "exitunless"
+                "let" "def" "vardef" "enddef" "mode_def"
+                "true" "false" "known" "unknown" "and" "or" "not"
+                "save" "interim" "inner" "outer" "relax"
+                "begingroup" "endgroup" "expandafter" "scantokens"
+                "generate" "input" "endinput" "end" "bye"
+                "message" "errmessage" "errhelp" "special" "numspecial"
+                "readstring" "readfrom" "write")
+              t))
             )
         (list
          ;; embedded TeX code in btex ... etex
@@ -441,8 +438,6 @@ If the list was changed, sort the list and remove duplicates first."
                    (insert close)))))))
       (nth 1 entry))))
 
-(define-obsolete-function-alias 'meta-complete-symbol
-  'completion-at-point "24.1")
 
 ;;; Indentation.
 
@@ -806,7 +801,6 @@ The environment marked is the one that contains point or follows point."
     st)
   "Syntax table used in Metafont or MetaPost mode.")
 
-(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 (defvar meta-common-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Comment Paragraphs:

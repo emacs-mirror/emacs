@@ -35,15 +35,13 @@
 (defvar eudc-hotlist-menu nil)
 (defvar eudc-hotlist-list-beginning nil)
 
-(defvar eudc-hotlist-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" #'eudc-hotlist-add-server)
-    (define-key map "d" #'eudc-hotlist-delete-server)
-    (define-key map "s" #'eudc-hotlist-select-server)
-    (define-key map "t" #'eudc-hotlist-transpose-servers)
-    (define-key map "q" #'eudc-hotlist-quit-edit)
-    (define-key map "x" #'kill-current-buffer)
-    map))
+(defvar-keymap eudc-hotlist-mode-map
+  "a" #'eudc-hotlist-add-server
+  "d" #'eudc-hotlist-delete-server
+  "s" #'eudc-hotlist-select-server
+  "t" #'eudc-hotlist-transpose-servers
+  "q" #'eudc-hotlist-quit-edit
+  "x" #'kill-current-buffer)
 
 (define-derived-mode eudc-hotlist-mode fundamental-mode "EUDC-Servers"
   "Major mode used to edit the hotlist of servers.

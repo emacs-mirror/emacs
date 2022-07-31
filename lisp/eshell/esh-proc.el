@@ -102,6 +102,7 @@ information, for example."
   "A list of the current status of subprocesses.")
 
 (declare-function eshell-send-eof-to-process "esh-mode")
+(declare-function eshell-tail-process "esh-cmd")
 
 (defvar-keymap eshell-proc-mode-map
   "C-c M-i"  #'eshell-insert-process
@@ -119,7 +120,9 @@ Runs `eshell-reset-after-proc' and `eshell-kill-hook', passing arguments
 PROC and STATUS to functions on the latter."
   ;; Was there till 24.1, but it is not optional.
   (remove-hook 'eshell-kill-hook #'eshell-reset-after-proc)
-  (eshell-reset-after-proc status)
+  ;; Only reset the prompt if this process is running interactively.
+  (when (eq proc (eshell-tail-process))
+    (eshell-reset-after-proc status))
   (run-hook-with-args 'eshell-kill-hook proc status))
 
 (define-minor-mode eshell-proc-mode
@@ -386,8 +389,27 @@ output."
 	      (let ((data (nth 3 entry)))
 		(setcar (nthcdr 3 entry) nil)
 		(setcar (nthcdr 4 entry) t)
-		(eshell-output-object data nil (cadr entry))
-		(setcar (nthcdr 4 entry) nil)))))))))
+                (unwind-protect
+                    (condition-case nil
+                        (eshell-output-object data nil (cadr entry))
+                      ;; FIXME: We want to send SIGPIPE to the process
+                      ;; here.  However, remote processes don't
+                      ;; currently support that, and not all systems
+                      ;; have SIGPIPE in the first place (e.g. MS
+                      ;; Windows).  In these cases, just delete the
+                      ;; process; this is reasonably close to the
+                      ;; right behavior, since the default action for
+                      ;; SIGPIPE is to terminate the process.  For use
+                      ;; cases where SIGPIPE is truly needed, using an
+                      ;; external pipe operator (`*|') may work
+                      ;; instead (e.g. when working with remote
+                      ;; processes).
+                      (eshell-pipe-broken
+                       (if (or (process-get proc 'remote-pid)
+                               (eq system-type 'windows-nt))
+                           (delete-process proc)
+                         (signal-process proc 'SIGPIPE))))
+                  (setcar (nthcdr 4 entry) nil))))))))))
 
 (defun eshell-sentinel (proc string)
   "Generic sentinel for command processes.  Reports only signals.
@@ -395,7 +417,7 @@ PROC is the process that's exiting.  STRING is the exit message."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (unwind-protect
-	  (let* ((entry (assq proc eshell-process-list)))
+          (let ((entry (assq proc eshell-process-list)))
 ;	    (if (not entry)
 ;		(error "Sentinel called for unowned process `%s'"
 ;		       (process-name proc))
@@ -403,8 +425,13 @@ PROC is the process that's exiting.  STRING is the exit message."
 	      (unwind-protect
 		  (progn
 		    (unless (string= string "run")
-		      (unless (string-match "^\\(finished\\|exited\\)" string)
-			(eshell-insertion-filter proc string))
+                      ;; Write the exit message if the status is
+                      ;; abnormal and the process is already writing
+                      ;; to the terminal.
+                      (when (and (eq proc (eshell-tail-process))
+                                 (not (string-match "^\\(finished\\|exited\\)"
+                                                    string)))
+                        (funcall (process-filter proc) proc string))
                       (let ((handles (nth 1 entry))
                             (str (prog1 (nth 3 entry)
                                    (setf (nth 3 entry) nil)))
@@ -416,8 +443,12 @@ PROC is the process that's exiting.  STRING is the exit message."
                                   (lambda ()
                                     (if (nth 4 entry)
                                         (run-at-time 0 nil finish-io)
-                                      (when str (eshell-output-object str nil handles))
-                                      (eshell-close-handles status 'nil handles)))))
+                                      (when str
+                                        (ignore-error 'eshell-pipe-broken
+                                          (eshell-output-object
+                                           str nil handles)))
+                                      (eshell-close-handles
+                                       status 'nil handles)))))
                           (funcall finish-io)))))
 		(eshell-remove-process-entry entry))))
 	(eshell-kill-process-function proc string)))))

@@ -3622,10 +3622,10 @@ is 0.
 Meaning of *single* declaration:
    E.g. In a module's port-list -
            module test(input clk, rst, x, output [1:0] y);
-   Here 'input clk, rst, x' is 1 *single* declaration statement,
-and 'output [1:0] y' is the other single declaration.  In the 1st single
-declaration, POINT is moved to start of 'clk'.  And in the 2nd declaration,
-POINT is moved to 'y'."
+   Here `input clk, rst, x' is 1 *single* declaration statement,
+and `output [1:0] y' is the other single declaration.  In the 1st single
+declaration, POINT is moved to start of `clk'.  And in the 2nd declaration,
+POINT is moved to `y'."
 
 
   (let (maxpoint old-point)
@@ -5458,9 +5458,11 @@ For example:
 becomes:
         // surefire lint_line_off UDDONX"
   (interactive)
-  (let ((buff (if (boundp 'next-error-last-buffer)
+  (let ((buff (if (boundp 'next-error-last-buffer) ;Added to Emacs-22.1
                   next-error-last-buffer
-                compilation-last-buffer)))
+                (verilog--suppressed-warnings
+                    ((obsolete compilation-last-buffer))
+                  compilation-last-buffer))))
     (when (buffer-live-p buff)
       (save-excursion
         (switch-to-buffer buff)
@@ -10878,10 +10880,10 @@ This repairs those mis-inserted by an AUTOARG."
             (setq out (replace-match
                        (concat (match-string 1 out)
                                (if (equal (match-string 3 out) ">>")
-                                   (int-to-string (lsh (string-to-number (match-string 2 out))
+                                   (int-to-string (ash (string-to-number (match-string 2 out))
                                                        (* -1 (string-to-number (match-string 4 out))))))
                                (if (equal (match-string 3 out) "<<")
-                                   (int-to-string (lsh (string-to-number (match-string 2 out))
+                                   (int-to-string (ash (string-to-number (match-string 2 out))
                                                        (string-to-number (match-string 4 out)))))
                                (if (equal (match-string 3 out) ">>>")
                                    (int-to-string (ash (string-to-number (match-string 2 out))

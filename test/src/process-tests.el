@@ -378,6 +378,58 @@ See Bug#30460."
   (when (ipv6-is-available)
     (should (network-lookup-address-info "localhost" 'ipv6)))))
 
+(ert-deftest lookup-hints-specification ()
+  "`network-lookup-address-info' should only accept valid hints arg."
+  (should-error (network-lookup-address-info "1.1.1.1" nil t))
+  (should-error (network-lookup-address-info "1.1.1.1" 'ipv4 t))
+  (should (network-lookup-address-info "1.1.1.1" nil 'numeric))
+  (should (network-lookup-address-info "1.1.1.1" 'ipv4 'numeric))
+  (when (ipv6-is-available)
+    (should-error (network-lookup-address-info "::1" nil t))
+    (should-error (network-lookup-address-info "::1" 'ipv6 't))
+    (should (network-lookup-address-info "::1" nil 'numeric))
+    (should (network-lookup-address-info "::1" 'ipv6 'numeric))))
+
+(ert-deftest lookup-hints-values ()
+  "`network-lookup-address-info' should succeed/fail in looking up various numeric IP addresses."
+  (let ((ipv4-invalid-addrs
+         '("localhost" "343.1.2.3" "1.2.3.4.5"))
+        ;; These are valid for IPv4 but invalid for IPv6
+        (ipv4-addrs
+         '("127.0.0.1" "127.0.1" "127.1" "127" "1" "0"
+           "0xe3010203" "0xe3.1.2.3" "227.0x1.2.3"
+           "034300201003" "0343.1.2.3" "227.001.2.3"))
+        (ipv6-only-invalid-addrs
+         '("fe80:1" "e301:203:1" "e301::203::1"
+           "1:2:3:4:5:6:7:8:9" "0xe301:203::1"
+           "343:10001:2::3"
+           ;; "00343:1:2::3" is invalid on GNU/Linux and FreeBSD, but
+           ;; valid on macOS.  macOS is wrong here, but such is life.
+           ))
+        ;; These are valid for IPv6 but invalid for IPv4
+        (ipv6-addrs
+         '("fe80::1" "e301::203:1" "e301:203::1"
+           "e301:0203::1" "::1" "::0"
+           "0343:1:2::3" "343:001:2::3")))
+    (dolist (a ipv4-invalid-addrs)
+      (should-not (network-lookup-address-info a nil 'numeric))
+      (should-not (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a ipv6-addrs)
+      (should-not (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a ipv4-addrs)
+      (should (network-lookup-address-info a nil 'numeric))
+      (should (network-lookup-address-info a 'ipv4 'numeric)))
+    (when (ipv6-is-available)
+      (dolist (a ipv4-addrs)
+        (should-not (network-lookup-address-info a 'ipv6 'numeric)))
+      (dolist (a ipv6-only-invalid-addrs)
+        (should-not (network-lookup-address-info a 'ipv6 'numeric)))
+      (dolist (a ipv6-addrs)
+        (should (network-lookup-address-info a nil 'numeric))
+        (should (network-lookup-address-info a 'ipv6 'numeric))
+        (should (network-lookup-address-info (upcase a) nil 'numeric))
+        (should (network-lookup-address-info (upcase a) 'ipv6 'numeric))))))
+
 (ert-deftest lookup-unicode-domains ()
   "Unicode domains should fail."
   (skip-unless internet-is-working)
@@ -908,35 +960,6 @@ Return nil if FILENAME doesn't exist."
       (should (equal 2 (process-exit-status proc)))
       ;; ...and the change description should be "interrupt".
       (should (equal '("interrupt\n") events)))))
-
-(ert-deftest process-async-https-with-delay ()
-  "Bug#49449: asynchronous TLS connection with delayed completion."
-  (skip-unless (and internet-is-working (gnutls-available-p)))
-  (let* ((status nil)
-         (buf (url-http
-                 #s(url "https" nil nil "elpa.gnu.org" nil
-                        "/packages/archive-contents" nil nil t silent t t)
-                 (lambda (s) (setq status s))
-                 '(nil) nil 'tls)))
-    (unwind-protect
-        (progn
-          ;; Busy-wait for 1 s to allow for the TCP connection to complete.
-          (let ((delay 1.0)
-                (t0 (float-time)))
-            (while (< (float-time) (+ t0 delay))))
-          ;; Wait for the entire operation to finish.
-          (let ((limit 4.0)
-                (t0 (float-time)))
-            (while (and (null status)
-                        (< (float-time) (+ t0 limit)))
-              (sit-for 0.1)))
-          (should status)
-          (should-not (assq :error status))
-          (should buf)
-          (should (> (buffer-size buf) 0))
-          )
-      (when buf
-        (kill-buffer buf)))))
 
 (ert-deftest process-num-processors ()
   "Sanity checks for num-processors."

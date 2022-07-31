@@ -743,7 +743,7 @@ Each element is a regular expression."
   "Face used for highlighting buttons in the article buffer.
 
 An article button is a piece of text that you can activate by pressing
-`RET' or `mouse-2' above it."
+\\`RET' or `mouse-2' above it."
   :type 'face
   :group 'gnus-article-buttons)
 
@@ -1091,9 +1091,9 @@ positive (negative), move point forward (backwards) this many
 parts.  When nil, redisplay article."
   :version "23.1" ;; No Gnus
   :group 'gnus-article-mime
-  :type '(choice (const nil :tag "Redisplay article.")
-		 (const 1 :tag "Next part.")
-		 (const 0 :tag "Current part.")
+  :type '(choice (const :value nil :tag "Redisplay article")
+                 (const :value 1   :tag "Next part")
+                 (const :value 0   :tag "Current part")
 		 integer))
 
 ;;;
@@ -1939,8 +1939,8 @@ always hide."
 		 'boring-headers)))
 	     ;; Hide boring Newsgroups header.
 	     ((eq elem 'newsgroups)
-	      (when (gnus-string-equal
-		     (gnus-fetch-field "newsgroups")
+	      (when (string-equal-ignore-case
+		     (or (gnus-fetch-field "newsgroups") "")
 		     (gnus-group-real-name
 		      (if (boundp 'gnus-newsgroup-name)
 			  gnus-newsgroup-name
@@ -1954,7 +1954,7 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and to to-address
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in To
 			      (nth 1 (mail-extract-address-components to))
 			      to-address)))
@@ -1967,7 +1967,7 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and to to-list
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in To
 			      (nth 1 (mail-extract-address-components to))
 			      to-list)))
@@ -1980,15 +1980,15 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and cc to-list
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in Cc
 			      (nth 1 (mail-extract-address-components cc))
 			      to-list)))
 		  (gnus-article-hide-header "cc"))))
 	     ((eq elem 'followup-to)
-	      (when (gnus-string-equal
-		     (message-fetch-field "followup-to")
-		     (message-fetch-field "newsgroups"))
+	      (when (string-equal-ignore-case
+		     (or (message-fetch-field "followup-to") "")
+		     (or (message-fetch-field "newsgroups") ""))
 		(gnus-article-hide-header "followup-to")))
 	     ((eq elem 'reply-to)
 	      (if (gnus-group-find-parameter

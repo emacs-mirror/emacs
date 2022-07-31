@@ -378,10 +378,9 @@ instead."
 					  function)
 			    (setq tentative-defun t))
 			   ((string-match
-                             (eval-when-compile
-                              (concat "\\`\\("
-                                      (regexp-opt '("with" "without" "do"))
-                                      "\\)-"))
+                             (concat "\\`\\("
+                                     (regexp-opt '("with" "without" "do"))
+                                     "\\)-")
                              function)
 			    (setq method '(&lambda &body))))))
                   ;; backwards compatibility.  Bletch.

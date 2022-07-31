@@ -248,7 +248,6 @@
 (eval-when-compile (require 'subr-x))   ;For `string-empty-p'.
 
 ;; Avoid compiler warnings
-(defvar view-return-to-alist)
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
 
@@ -359,9 +358,12 @@
 (defmacro python-rx (&rest regexps)
   "Python mode specialized rx macro.
 This variant of `rx' supports common Python named REGEXPS."
-  `(rx-let ((block-start       (seq symbol-start
+  `(rx-let ((sp-bsnl (or space (and ?\\ ?\n)))
+            (block-start       (seq symbol-start
                                     (or "def" "class" "if" "elif" "else" "try"
                                         "except" "finally" "for" "while" "with"
+                                        ;; Python 3.10+ PEP634
+                                        "match" "case"
                                         ;; Python 3.5+ PEP492
                                         (and "async" (+ space)
                                              (or "def" "for" "with")))
@@ -394,7 +396,7 @@ This variant of `rx' supports common Python named REGEXPS."
             (open-paren        (or "{" "[" "("))
             (close-paren       (or "}" "]" ")"))
             (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
-            (not-simple-operator (not simple-operator))
+            (not-simple-operator (not (or simple-operator ?\n)))
             (operator          (or "==" ">=" "is" "not"
                                    "**" "//" "<<" ">>" "<=" "!="
                                    "+" "-" "/" "&" "^" "~" "|" "*" "<" ">"
@@ -538,9 +540,9 @@ the {...} holes that appear within f-strings."
         (setq ppss (syntax-ppss))))))
 
 (defvar python-font-lock-keywords-level-1
-  `((,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
+  `((,(python-rx symbol-start "def" (1+ space) (group symbol-name))
      (1 font-lock-function-name-face))
-    (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
+    (,(python-rx symbol-start "class" (1+ space) (group symbol-name))
      (1 font-lock-type-face)))
   "Font lock keywords to use in `python-mode' for level 1 decoration.
 
@@ -563,6 +565,8 @@ class declarations.")
           ;; Python 3.5+ PEP492
           (and "async" (+ space) (or "def" "for" "with"))
           "await"
+          ;; Python 3.10+
+          "match" "case"
           ;; Extra:
           "self")
          symbol-end)
@@ -601,15 +605,18 @@ builtins.")
 
 (defun python-font-lock-assignment-matcher (regexp)
   "Font lock matcher for assignments based on REGEXP.
-Return nil if REGEXP matched within a `paren' context (to avoid,
-e.g., default values for arguments or passing arguments by name
-being treated as assignments) or is followed by an '=' sign (to
-avoid '==' being treated as an assignment."
+Search for next occurrence if REGEXP matched within a `paren'
+context (to avoid, e.g., default values for arguments or passing
+arguments by name being treated as assignments) or is followed by
+an '=' sign (to avoid '==' being treated as an assignment.  Set
+point to the position one character before the end of the
+occurrence found so that subsequent searches can detect the '='
+sign in chained assignment."
   (lambda (limit)
-    (let ((res (re-search-forward regexp limit t)))
-      (unless (or (python-syntax-context 'paren)
-                  (equal (char-after (point)) ?=))
-        res))))
+    (cl-loop while (re-search-forward regexp limit t)
+             unless (or (python-syntax-context 'paren)
+                        (equal (char-after) ?=))
+               return (progn (backward-char) t))))
 
 (defvar python-font-lock-keywords-maximum-decoration
   `((python--font-lock-f-strings)
@@ -671,7 +678,7 @@ avoid '==' being treated as an assignment."
     ;; and variants thereof
     ;; the cases
     ;;   (a) = 5
-    ;;   [a] = 5
+    ;;   [a] = 5,
     ;;   [*a] = 5, 6
     ;; are handled separately below
     (,(python-font-lock-assignment-matcher
@@ -701,10 +708,11 @@ avoid '==' being treated as an assignment."
      (1 font-lock-variable-name-face))
     ;; special cases
     ;;   (a) = 5
-    ;;   [a] = 5
+    ;;   [a] = 5,
     ;;   [*a] = 5, 6
     (,(python-font-lock-assignment-matcher
-       (python-rx (or "[" "(") (* space)
+       (python-rx (or line-start ?\; ?=) (* space)
+                  (or "[" "(") (* space)
                   grouped-assignment-target (* space)
                   (or ")" "]") (* space)
                   assignment-operator))
@@ -1294,7 +1302,7 @@ Called from a program, START and END specify the region to indent."
                    ;; Don't mess with strings, unless it's the
                    ;; enclosing set of quotes or a docstring.
                    (or (not (python-syntax-context 'string))
-                       (eq
+                       (equal
                         (syntax-after
                          (+ (1- (point))
                             (current-indentation)
@@ -1431,7 +1439,7 @@ marks the next defun after the ones already marked."
                  function))
 
 (defvar python-nav-beginning-of-defun-regexp
-  (python-rx line-start (* space) defun (+ space) (group symbol-name))
+  (python-rx line-start (* space) defun (+ sp-bsnl) (group symbol-name))
   "Regexp matching class or function definition.
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
@@ -1446,26 +1454,40 @@ With positive ARG search backwards, else search forwards."
          (line-beg-pos (line-beginning-position))
          (line-content-start (+ line-beg-pos (current-indentation)))
          (pos (point-marker))
+         (min-indentation (if (python-info-current-line-empty-p)
+                              most-positive-fixnum
+                            (current-indentation)))
          (body-indentation
           (and (> arg 0)
-               (save-excursion
-                 (while (and
-                         (not (python-info-looking-at-beginning-of-defun))
-                         (python-nav-backward-block)))
-                 (or (and (python-info-looking-at-beginning-of-defun)
-                          (+ (current-indentation) python-indent-offset))
-                     0))))
+               (or (and (python-info-looking-at-beginning-of-defun nil t)
+                        (+ (save-excursion
+                             (python-nav-beginning-of-statement)
+                             (current-indentation))
+                           python-indent-offset))
+                   (save-excursion
+                     (while
+                         (and
+                          (python-nav-backward-block)
+                          (or (not (python-info-looking-at-beginning-of-defun))
+                              (>= (current-indentation) min-indentation))
+                          (setq min-indentation
+                                (min min-indentation (current-indentation)))))
+                     (or (and (python-info-looking-at-beginning-of-defun)
+                              (+ (current-indentation) python-indent-offset))
+                         0)))))
          (found
           (progn
-            (when (and (python-info-looking-at-beginning-of-defun)
+            (when (and (python-info-looking-at-beginning-of-defun nil t)
                        (or (< arg 0)
                            ;; If looking at beginning of defun, and if
                            ;; pos is > line-content-start, ensure a
                            ;; backward re search match this defun by
                            ;; going to end of line before calling
                            ;; re-search-fn bug#40563
-                           (and (> arg 0) (> pos line-content-start))))
-              (end-of-line 1))
+                           (and (> arg 0)
+                                (or (python-info-continuation-line-p)
+                                    (> pos line-content-start)))))
+              (python-nav-end-of-statement))
 
             (while (and (funcall re-search-fn
                                  python-nav-beginning-of-defun-regexp nil t)
@@ -1475,14 +1497,18 @@ With positive ARG search backwards, else search forwards."
                             (and (> arg 0)
                                  (not (= (current-indentation) 0))
                                  (>= (current-indentation) body-indentation)))))
-            (and (python-info-looking-at-beginning-of-defun)
+            (and (python-info-looking-at-beginning-of-defun nil t)
                  (or (not (= (line-number-at-pos pos)
                              (line-number-at-pos)))
                      (and (>= (point) line-beg-pos)
                           (<= (point) line-content-start)
                           (> pos line-content-start)))))))
     (if found
-        (or (beginning-of-line 1) t)
+        (progn
+          (when (< arg 0)
+            (python-nav-beginning-of-statement))
+          (beginning-of-line 1)
+          t)
       (and (goto-char pos) nil))))
 
 (defun python-nav-beginning-of-defun (&optional arg)
@@ -1621,28 +1647,29 @@ of the statement."
     (while (and (or noend (goto-char (line-end-position)))
                 (not (eobp))
                 (cond ((setq string-start (python-syntax-context 'string))
-                       ;; The assertion can only fail if syntax table
+                       ;; The condition can be nil if syntax table
                        ;; text properties and the `syntax-ppss' cache
                        ;; are somehow out of whack.  This has been
                        ;; observed when using `syntax-ppss' during
                        ;; narrowing.
-                       (cl-assert (>= string-start last-string-end)
-                                  :show-args
-                                  "\
-Overlapping strings detected (start=%d, last-end=%d)")
-                       (goto-char string-start)
-                       (if (python-syntax-context 'paren)
-                           ;; Ended up inside a paren, roll again.
-                           (python-nav-end-of-statement t)
-                         ;; This is not inside a paren, move to the
-                         ;; end of this string.
-                         (goto-char (+ (point)
-                                       (python-syntax-count-quotes
-                                        (char-after (point)) (point))))
-                         (setq last-string-end
-                               (or (re-search-forward
-                                    (rx (syntax string-delimiter)) nil t)
-                                   (goto-char (point-max))))))
+                       ;; It can also fail in cases where the buffer is in
+                       ;; the process of being modified, e.g. when creating
+                       ;; a string with `electric-pair-mode' disabled such
+                       ;; that there can be an unmatched single quote
+                       (when (>= string-start last-string-end)
+                         (goto-char string-start)
+                         (if (python-syntax-context 'paren)
+                             ;; Ended up inside a paren, roll again.
+                             (python-nav-end-of-statement t)
+                           ;; This is not inside a paren, move to the
+                           ;; end of this string.
+                           (goto-char (+ (point)
+                                         (python-syntax-count-quotes
+                                          (char-after (point)) (point))))
+                           (setq last-string-end
+                                 (or (re-search-forward
+                                      (rx (syntax string-delimiter)) nil t)
+                                     (goto-char (point-max)))))))
                       ((python-syntax-context 'paren)
                        ;; The statement won't end before we've escaped
                        ;; at least one level of parenthesis.
@@ -1711,7 +1738,10 @@ backward to previous statement."
       (while (and (forward-line 1)
                   (not (eobp))
                   (or (and (> (current-indentation) block-indentation)
-                           (or (python-nav-end-of-statement) t))
+                           (let ((start (point)))
+                             (python-nav-end-of-statement)
+                             ;; must move forward otherwise infinite loop
+                             (> (point) start)))
                       (python-info-current-line-comment-p)
                       (python-info-current-line-empty-p))))
       (python-util-forward-comment -1)
@@ -2646,6 +2676,7 @@ banner and the initial prompt are received separately."
 (defun python-comint-postoutput-scroll-to-bottom (output)
   "Faster version of `comint-postoutput-scroll-to-bottom'.
 Avoids `recenter' calls until OUTPUT is completely sent."
+  (declare (obsolete nil "29.1")) ; Not used.
   (when (and (not (string= "" output))
              (python-shell-comint-end-of-output-p
               (ansi-color-filter-apply output)))
@@ -2951,11 +2982,11 @@ variable.
   (setq-local comint-output-filter-functions
               '(ansi-color-process-output
                 python-shell-comint-watch-for-first-prompt-output-filter
-                python-comint-postoutput-scroll-to-bottom
                 comint-watch-for-password-prompt))
   (setq-local comint-highlight-input nil)
   (setq-local compilation-error-regexp-alist
               python-shell-compilation-regexp-alist)
+  (setq-local scroll-conservatively 1)
   (add-hook 'completion-at-point-functions
             #'python-shell-completion-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"
@@ -3084,7 +3115,8 @@ of `error' with a user-friendly message."
   (or (python-shell-get-process)
       (if interactivep
           (user-error
-           "Start a Python process first with `M-x run-python' or `%s'"
+           (substitute-command-keys
+            "Start a Python process first with \\`M-x run-python' or `%s'")
            ;; Get the binding.
            (key-description
             (where-is-internal
@@ -3292,22 +3324,25 @@ the python shell:
                               (goto-char start)
                               (python-util-forward-comment 1)
                               (current-indentation))))
-         (fillstr (and (not no-cookie)
-                       (not starts-at-point-min-p)
-                       (concat
-                        (format "# -*- coding: %s -*-\n" encoding)
-                        (make-string
-                         ;; Subtract 2 because of the coding cookie.
-                         (- (line-number-at-pos start) 2) ?\n)))))
+         (fillstr (cond (starts-at-point-min-p
+                         nil)
+                        ((not no-cookie)
+                         (concat
+                          (format "# -*- coding: %s -*-\n" encoding)
+                          (make-string
+                           ;; Subtract 2 because of the coding cookie.
+                           (- (line-number-at-pos start) 2) ?\n)))
+                        (t
+                         (make-string (- (line-number-at-pos start) 1) ?\n)))))
     (with-temp-buffer
       (python-mode)
       (when fillstr
         (insert fillstr))
-      (insert substring)
-      (goto-char (point-min))
       (when (not toplevel-p)
-        (insert "if True:")
+        (forward-line -1)
+        (insert "if True:\n")
         (delete-region (point) (line-end-position)))
+      (insert substring)
       (when nomain
         (let* ((if-name-main-start-end
                 (and nomain
@@ -5136,7 +5171,8 @@ likely an invalid python file."
                                  (while (and (< (point) cur-line)
                                              (setq no-back-indent
                                                    (or (> (current-indentation) indentation)
-                                                       (python-info-current-line-empty-p))))
+                                                       (python-info-current-line-empty-p)
+                                                       (python-info-current-line-comment-p))))
                                    (forward-line)))
                                no-back-indent)))
                   (setq collected-indentations
@@ -5276,10 +5312,15 @@ operator."
       (forward-line -1)
       (python-info-assignment-statement-p t))))
 
-(defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
-  "Check if point is at `beginning-of-defun' using SYNTAX-PPSS."
+(defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss
+                                                            check-statement)
+  "Check if point is at `beginning-of-defun' using SYNTAX-PPSS.
+When CHECK-STATEMENT is non-nil, the current statement is checked
+instead of the current physical line."
   (and (not (python-syntax-context-type (or syntax-ppss (syntax-ppss))))
        (save-excursion
+         (when check-statement
+           (python-nav-beginning-of-statement))
          (beginning-of-line 1)
          (looking-at python-nav-beginning-of-defun-regexp))))
 

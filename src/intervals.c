@@ -121,7 +121,6 @@ copy_properties (INTERVAL source, INTERVAL target)
 {
   if (DEFAULT_INTERVAL_P (source) && DEFAULT_INTERVAL_P (target))
     return;
-  eassume (source && target);
 
   COPY_INTERVAL_CACHE (source, target);
   set_interval_plist (target, Fcopy_sequence (source->plist));
@@ -1738,11 +1737,11 @@ lookup_char_property (Lisp_Object plist, Lisp_Object prop, bool textprop)
     {
       tail = XCDR (tail);
       for (; NILP (fallback) && CONSP (tail); tail = XCDR (tail))
-	fallback = Fplist_get (plist, XCAR (tail));
+	fallback = plist_get (plist, XCAR (tail));
     }
 
   if (textprop && NILP (fallback) && CONSP (Vdefault_text_properties))
-    fallback = Fplist_get (Vdefault_text_properties, prop);
+    fallback = plist_get (Vdefault_text_properties, prop);
   return fallback;
 }
 

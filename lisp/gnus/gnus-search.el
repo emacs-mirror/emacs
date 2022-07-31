@@ -167,10 +167,9 @@ Instead, use this:
 This variable can also be set per-server."
   :type '(repeat string))
 
-(defcustom gnus-search-swish++-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-swish++-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by swish++
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :type 'regexp)
@@ -204,10 +203,9 @@ This variable can also be set per-server."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom gnus-search-swish-e-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-swish-e-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by swish-e
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :type 'regexp
@@ -252,7 +250,7 @@ This variable can also be set per-server."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom gnus-search-namazu-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-namazu-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by Namazu
 in order to get a group name (albeit with / instead of .).
 
@@ -296,10 +294,9 @@ This variable can also be set per-server."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom gnus-search-notmuch-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-notmuch-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by notmuch
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :type 'regexp
@@ -339,10 +336,9 @@ This variable can also be set per-server."
   :version "28.1"
   :type '(repeat string))
 
-(defcustom gnus-search-mairix-remove-prefix (concat (getenv "HOME") "/Mail/")
+(defcustom gnus-search-mairix-remove-prefix (expand-file-name "Mail/" "~")
   "The prefix to remove from each file name returned by mairix
-in order to get a group name (albeit with / instead of .).  This is a
-regular expression.
+in order to get a group name (albeit with / instead of .).
 
 This variable can also be set per-server."
   :version "28.1"
@@ -351,6 +347,41 @@ This variable can also be set per-server."
 (defcustom gnus-search-mairix-raw-queries-p nil
   "If t, all Mairix engines will only accept raw search query strings."
   :version "28.1"
+  :type 'boolean)
+
+(defcustom gnus-search-mu-program "mu"
+  "Name of the mu search executable.
+This can also be set per-server."
+  :version "29.1"
+  :type 'string)
+
+(defcustom gnus-search-mu-switches nil
+  "A list of strings, to be given as additional arguments to mu.
+Note that this should be a list. I.e., do NOT use the following:
+    (setq gnus-search-mu-switches \"-u -r\")
+Instead, use this:
+    (setq gnus-search-mu-switches \\='(\"-u\" \"-r\"))
+This can also be set per-server."
+  :version "29.1"
+  :type '(repeat string))
+
+(defcustom gnus-search-mu-remove-prefix (expand-file-name "~/Mail/")
+  "A prefix to remove from the mu results to get a group name.
+Usually this will be set to the path to your mail directory. This
+can also be set per-server."
+  :version "29.1"
+  :type 'directory)
+
+(defcustom gnus-search-mu-config-directory (expand-file-name "~/.cache/mu")
+  "Configuration directory for mu.
+This can also be set per-server."
+  :version "29.1"
+  :type 'file)
+
+(defcustom gnus-search-mu-raw-queries-p nil
+  "If t, all mu engines will only accept raw search query strings.
+This can also be set per-server."
+  :version "29.1"
   :type 'boolean)
 
 ;; Options for search language parsing.
@@ -826,7 +857,7 @@ quirks.")
     :documentation "Location of the config file, if any.")
    (remove-prefix
     :initarg :remove-prefix
-    :initform (concat (getenv "HOME") "/Mail/")
+    :initform (expand-file-name "Mail/" "~")
     :type string
     :documentation
     "The path to the directory where the indexed mails are
@@ -906,6 +937,18 @@ quirks.")
     :initform (symbol-value 'gnus-search-notmuch-config-file))
    (raw-queries-p
     :initform (symbol-value 'gnus-search-notmuch-raw-queries-p))))
+
+(defclass gnus-search-mu (gnus-search-indexed)
+  ((program
+    :initform (symbol-value 'gnus-search-mu-program))
+   (remove-prefix
+    :initform (symbol-value 'gnus-search-mu-remove-prefix))
+   (switches
+    :initform (symbol-value 'gnus-search-mu-switches))
+   (config-directory
+    :initform (symbol-value 'gnus-search-mu-config-directory))
+   (raw-queries-p
+    :initform (symbol-value 'gnus-search-mu-raw-queries-p))))
 
 (define-obsolete-variable-alias 'nnir-method-default-engines
   'gnus-search-default-engines "28.1")
@@ -1294,7 +1337,11 @@ elements are present."
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
 					      (str string))
   (with-slots (literal-plus) engine
-    (if (multibyte-string-p str)
+    ;; TODO: Figure out how Exchange IMAP servers actually work.  They
+    ;; do not accept any CHARSET but US-ASCII, but they do report
+    ;; Literal+ capability.  So what do we do?  Will quoted strings
+    ;; always work?
+    (if (string-match-p "[^[:ascii:]]" str)
 	;; If LITERAL+ is available, use it and encode string as
 	;; UTF-8.
 	(if literal-plus
@@ -1350,16 +1397,14 @@ This method is common to all indexed search engines.
 
 Returns a list of [group article score] vectors."
 
-  (save-excursion
-    (let* ((qstring (gnus-search-make-query-string engine query))
-	   (program (slot-value engine 'program))
-	   (buffer (slot-value engine 'proc-buffer))
-	   (cp-list (gnus-search-indexed-search-command
-		     engine qstring query groups))
-           proc exitstatus)
-      (set-buffer buffer)
+  (let* ((qstring (gnus-search-make-query-string engine query))
+	 (program (slot-value engine 'program))
+	 (buffer (slot-value engine 'proc-buffer))
+	 (cp-list (gnus-search-indexed-search-command
+		   engine qstring query groups))
+         proc exitstatus)
+    (with-current-buffer buffer
       (erase-buffer)
-
       (if groups
 	  (gnus-message 7 "Doing %s query on %s..." program groups)
 	(gnus-message 7 "Doing %s query..." program))
@@ -1378,7 +1423,7 @@ Returns a list of [group article score] vectors."
 	;; wants it.
 	(when (> gnus-verbose 6)
 	  (display-buffer buffer))
-	nil))))
+        nil))))
 
 (cl-defmethod gnus-search-indexed-parse-output ((engine gnus-search-indexed)
 						server query &optional groups)
@@ -1399,18 +1444,27 @@ Returns a list of [group article score] vectors."
 	(when (and f-name
                    (file-readable-p f-name)
 		   (null (file-directory-p f-name)))
-          (setq group
-                (replace-regexp-in-string
-	         "[/\\]" "."
-	         (replace-regexp-in-string
-	          "/?\\(cur\\|new\\|tmp\\)?/\\'" ""
+          ;; `expand-file-name' canoncalizes the file name,
+          ;; specifically collapsing multiple consecutive directory
+          ;; separators.
+          (setq f-name (expand-file-name f-name)
+                group
+                (delete
+                 "" ; forward slash at root leaves an empty string
+                 (file-name-split
 	          (replace-regexp-in-string
-	           "\\`\\." ""
-	           (string-remove-prefix
+	           "\\`\\." "" ; why do we do this?
+                   (string-remove-prefix
                     prefix (file-name-directory f-name))
-                   nil t)
-	          nil t)
-	         nil t))
+                   nil t)))
+                ;; Turn file name segments into a Gnus group name.
+                group (mapconcat
+                       #'identity
+                       (if (member (car (last group))
+                                   '("new" "tmp" "cur"))
+                           (nbutlast group)
+                         group)
+                       "."))
           (setq article (file-name-nondirectory f-name)
                 article
                 ;; TODO: Provide a cleaner way of producing final
@@ -1618,36 +1672,6 @@ Namazu provides a little more information, for instance a score."
       (format "date:%s.." (notmuch-date (cdr expr))))
      (t (ignore-errors (cl-call-next-method))))))
 
-(cl-defmethod gnus-search-run-search :around ((engine gnus-search-notmuch)
-					      server query groups)
-  "Handle notmuch's thread-search routine."
-  ;; Notmuch allows for searching threads, but only using its own
-  ;; thread ids.  That means a thread search is a \"double-bounce\":
-  ;; once to find the relevant thread ids, and again to find the
-  ;; actual messages.  This method performs the first \"bounce\".
-  (if (alist-get 'thread query)
-      (with-slots (program proc-buffer) engine
-	(let* ((qstring
-		(gnus-search-make-query-string engine query))
-	       (cp-list (gnus-search-indexed-search-command
-			 engine qstring query groups))
-	       thread-ids proc)
-	  (set-buffer proc-buffer)
-	  (erase-buffer)
-	  (setq proc (apply #'start-process (format "search-%s" server)
-			    proc-buffer program cp-list))
-	  (while (process-live-p proc)
-	    (accept-process-output proc))
-	  (while (re-search-forward "^thread:\\([^ ]+\\)" (point-max) t)
-	    (push (match-string 1) thread-ids))
-	  (cl-call-next-method
-	   engine server
-	   ;; Completely replace the query with our new thread-based one.
-	   (mapconcat (lambda (thrd) (concat "thread:" thrd))
-		      thread-ids " or ")
-	   nil)))
-    (cl-call-next-method engine server query groups)))
-
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-notmuch)
 						  (qstring string)
 						  query &optional _groups)
@@ -1657,16 +1681,17 @@ Namazu provides a little more information, for instance a score."
   (let ((limit (alist-get 'limit query))
 	(thread (alist-get 'thread query)))
     (with-slots (switches config-file) engine
-      `(,(format "--config=%s" config-file)
-	"search"
-	,(if thread
-	     "--output=threads"
-	   "--output=files")
-	"--duplicate=1" ; I have found this necessary, I don't know why.
-	,@switches
-	,(if limit (format "--limit=%d" limit) "")
-	,qstring
-	))))
+      (append
+       (list (format "--config=%s" config-file)
+             "search"
+             "--output=files")
+       (unless thread '("--duplicate=1"))
+       (when limit (list (format "--limit=%d" limit)))
+       switches
+       (list (if thread
+                 (format "thread:\"{%s}\""
+                         (string-replace "\"" "\"\"" qstring))
+               qstring))))))
 
 ;;; Mairix interface
 
@@ -1839,6 +1864,101 @@ Assume \"size\" key is equal to \"larger\"."
 	   (when (alist-get 'thread query) (list "-t"))
 	   (list qstring))))
 
+;;; Mu interface
+
+(cl-defmethod gnus-search-transform-expression ((engine gnus-search-mu)
+						(expr list))
+  (cl-case (car expr)
+    (recipient (setf (car expr) 'recip))
+    (address (setf (car expr) 'contact))
+    (id (setf (car expr) 'msgid))
+    (attachment (setf (car expr) 'file)))
+  (cl-flet ()
+    (cond
+     ((consp (car expr))
+      (format "(%s)" (gnus-search-transform engine expr)))
+     ;; Explicitly leave out 'date as gnus-search will encode it
+     ;; first; it is handled later
+     ((memq (car expr) '(cc c bcc h from f to t subject s body b
+			    maildir m msgid i prio p flag g d
+			    size z embed e file j mime y tag x
+			    list v))
+      (format "%s:%s" (car expr)
+	      (if (string-match "\\`\\*" (cdr expr))
+		  (replace-match "" nil nil (cdr expr))
+		(cdr expr))))
+     ((eq (car expr) 'mark)
+      (format "flag:%s" (gnus-search-mu-handle-flag (cdr expr))))
+     ((eq (car expr) 'date)
+      (format "date:%s" (gnus-search-mu-handle-date (cdr expr))))
+     ((eq (car expr) 'before)
+      (format "date:..%s" (gnus-search-mu-handle-date (cdr expr))))
+     ((eq (car expr) 'since)
+      (format "date:%s.." (gnus-search-mu-handle-date (cdr expr))))
+     (t (ignore-errors (cl-call-next-method))))))
+
+(defun gnus-search-mu-handle-date (date)
+  (if (stringp date)
+      date
+    (pcase date
+      (`(nil ,m nil)
+       (nth (1- m) gnus-english-month-names))
+      (`(nil nil ,y)
+       (number-to-string y))
+      ;; mu prefers ISO date YYYY-MM-DD HH:MM:SS
+      (`(,d ,m nil)
+       (let* ((ct (decode-time))
+	      (cm (decoded-time-month ct))
+	      (cy (decoded-time-year ct))
+	      (y (if (> cm m)
+		     cy
+		   (1- cy))))
+	 (format "%d-%02d-%02d" y m d)))
+      (`(nil ,m ,y)
+       (format "%d-%02d" y m))
+      (`(,d ,m ,y)
+       (format "%d-%02d-%02d" y m d)))))
+
+(defun gnus-search-mu-handle-flag (flag)
+  ;; Only change what doesn't match
+  (cond ((string= flag "flag")
+	 "flagged")
+	((string= flag "read")
+	 "seen")
+	(t
+	 flag)))
+
+(cl-defmethod gnus-search-indexed-extract ((_engine gnus-search-mu))
+  (prog1
+      (let ((bol (line-beginning-position))
+	    (eol (line-end-position)))
+	(list (buffer-substring-no-properties bol eol)
+	      100))
+    (move-beginning-of-line 2)))
+
+(cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-mu)
+						  (qstring string)
+						  query &optional groups)
+  (let ((limit (alist-get 'limit query))
+	(thread (alist-get 'thread query)))
+    (with-slots (switches config-directory) engine
+      `("find" 			; command must come first
+	"--nocolor"		; mu will always give coloured output otherwise
+	,(format "--muhome=%s" config-directory)
+	,@switches
+	,(if thread "-r" "")
+	,(if limit (format "--maxnum=%d" limit) "")
+	,qstring
+	,@(if groups
+	      `("and" "("
+		,@(nbutlast (mapcan (lambda (x)
+				      (list (concat "maildir:/" x) "or"))
+				    groups))
+		")")
+	    "")
+	"--format=plain"
+	"--fields=l"))))
+
 ;;; Find-grep interface
 
 (cl-defmethod gnus-search-transform-expression ((_engine gnus-search-find-grep)
@@ -1973,9 +2093,9 @@ Assume \"size\" key is equal to \"larger\"."
 (defun gnus-search-prepare-query (query-spec)
   "Accept a search query in raw format, and prepare it.
 QUERY-SPEC is an alist produced by functions such as
-`gnus-group-make-search-group', and contains at least a 'query
+`gnus-group-make-search-group', and contains at least a `query'
 key, and possibly some meta keys.  This function extracts any
-additional meta keys from the 'query string, and parses the
+additional meta keys from the `query' string, and parses the
 remaining string, then adds all that to the top-level spec."
   (let ((query (alist-get 'query query-spec))
 	val)
@@ -2187,8 +2307,7 @@ article came from is also searched."
 		(read-from-minibuffer
 		 "Query: " nil gnus-search-minibuffer-map
 		 nil 'gnus-search-history)))
-	(cons 'raw
-              (or (gnus-nnselect-group-p (gnus-group-group-name)) arg))))
+	(cons 'raw arg)))
 
 (provide 'gnus-search)
 ;;; gnus-search.el ends here

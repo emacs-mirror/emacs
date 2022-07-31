@@ -129,8 +129,6 @@
 ;; To map the primary remember function to the keystroke F8, do the
 ;; following.
 ;;
-;;   (autoload 'remember "remember" nil t)
-;;
 ;;   (define-key global-map [f8] 'remember)
 ;;
 ;; * Feedback
@@ -296,7 +294,8 @@ With a prefix or a visible region, use the region as INITIAL."
         (insert "\n\n" annotation))
       (setq remember-initial-contents nil)
       (goto-char (point-min)))
-    (message "Use C-c C-c to remember the data.")))
+    (message (substitute-command-keys
+              "Use \\[remember-finalize] to remember the data"))))
 
 ;;;###autoload
 (defun remember-other-frame (&optional initial)
@@ -653,7 +652,7 @@ to turn the *scratch* buffer into your notes buffer."
                    (remember-notes-mode 1)
                    (current-buffer)))))
     (when switch-to
-      (switch-to-buffer buf))
+      (pop-to-buffer-same-window buf))
     buf))
 
 (defun remember-notes--kill-buffer-query ()

@@ -326,6 +326,48 @@ of @code{require-final-newline} (@pxref{Customize Save}).  If you have
 already visited the same file in the usual (non-literal) manner, this
 command asks you whether to visit it literally instead.
 
+@findex find-sibling-file
+@vindex find-sibling-rules
+Files are sometimes (loosely) tied to other files, and you could call
+these files @dfn{sibling files}.  For instance, when editing C files,
+if you have a file called @samp{"foo.c"}, you often also have a file
+called @samp{"foo.h"}, and that could be its sibling file.  Or you may
+have different versions of a file, for instance
+@samp{"src/emacs/emacs-27/lisp/allout.el"} and
+@samp{"src/emacs/emacs-28/lisp/allout.el"} might be considered
+siblings.  Emacs provides the @code{find-sibling-file} command to jump
+between sibling files, but it's impossible to guess at which files a
+user might want to be considered siblings, so Emacs lets you configure
+this freely by altering the @code{find-sibling-rules} user option.
+This is a list of match/expansion elements.
+
+For instance, to do the @samp{".c"} to @samp{".h"} mapping, you could
+say:
+
+@lisp
+(setq find-sibling-rules
+      '(("\\([^/]+\\)\\.c\\'" "\\1.h")))
+@end lisp
+
+(@code{ff-find-related-file} offers similar functionality especially
+geared towards C files, @pxref{Other C Commands}.)
+
+Or, if you want to consider all files under
+@samp{"src/emacs/DIR/file-name"} to be siblings of other @var{dir}s,
+you could say:
+
+@lisp
+(setq find-sibling-rules
+      '(("src/emacs/[^/]+/\\(.*\\)\\'" "src/emacs/.*/\\1")))
+@end lisp
+
+As you can see, this is a list of @var{(MATCH EXPANSION...)} elements.
+The @var{match} is a regular expression that matches the visited file
+name, and each @var{expansion} may refer to match groups by using
+@samp{\\1} and so on.  The resulting expansion string is then applied
+to the file system to see if any files match this expansion
+(interpreted as a regexp).
+
 @vindex find-file-hook
 @vindex find-file-not-found-functions
   Two special hook variables allow extensions to modify the operation
@@ -378,6 +420,9 @@ With prefix argument (@kbd{C-u}), mark the current buffer as changed.
 Save the current buffer with a specified file name (@code{write-file}).
 @item M-x set-visited-file-name
 Change the file name under which the current buffer will be saved.
+@item M-x rename-visited-file
+The same as @kbd{M-x set-visited-file-name}, but also rename the file
+the buffer is visiting (if any).
 @end table
 
 @kindex C-x C-s
@@ -610,10 +655,10 @@ Never make numbered backups; always make single backups.
 The usual way to set this variable is globally, through your init file
 or the customization buffer.  However, you can set
 @code{version-control} locally in an individual buffer to control the
-making of backups for that buffer's file (@pxref{Locals}).  You can
-have Emacs set @code{version-control} locally whenever you visit a
-given file (@pxref{File Variables}).  Some modes, such as Rmail mode,
-set this variable.
+making of backups for that buffer's file (@pxref{Locals}).  Some
+modes, such as Rmail mode, set this variable.  You can also have Emacs
+set @code{version-control} locally whenever you visit a given file
+(@pxref{File Variables}).
 
 @cindex @env{VERSION_CONTROL} environment variable
   If you set the environment variable @env{VERSION_CONTROL}, to tell
@@ -1467,8 +1512,8 @@ specified buffers.
   The command @kbd{M-x compare-windows} compares the text in the
 current window with that in the window that was the selected window
 before you selected the current one.  (For more information about
-windows in Emacs, @ref{Windows}.)  Comparison starts at point in each
-window, after pushing each initial point value on the mark ring
+windows in Emacs, @pxref{Windows}.)  Comparison starts at point in
+each window, after pushing each initial point value on the mark ring
 (@pxref{Mark Ring}) in its respective buffer.  Then it moves point
 forward in each window, one character at a time, until it reaches
 characters that don't match.  Then the command exits.
@@ -2180,13 +2225,16 @@ recently-opened files, reading file names from a buffer.
 
 @findex recentf-mode
 @vindex recentf-mode
+@findex recentf-open
 @findex recentf-save-list
 @findex recentf-edit-list
-  If you enable Recentf mode, with @kbd{M-x recentf-mode}, the
-@samp{File} menu includes a submenu containing a list of recently
-opened files.  @kbd{M-x recentf-save-list} saves the current
-@code{recentf-list} to a file, and @kbd{M-x recentf-edit-list} edits
-it.
+  If you enable Recentf mode, with @kbd{M-x recentf-mode}, Emacs
+maintains a list of recently opened files.  To open a file from this
+list, use the @kbd{M-x recentf-open} command.  When this mode is
+enabled, the @samp{File} menu will include a submenu that you can use
+to visit one of these files.  @kbd{M-x recentf-save-list} saves the
+current @code{recentf-list} to a file, and @kbd{M-x recentf-edit-list}
+edits it.
 
 @c FIXME partial-completion-mode (complete.el) is obsolete.
   The @kbd{M-x ffap} command generalizes @code{find-file} with more
@@ -2306,6 +2354,29 @@ Emacs will try to determine whether there are external utilities that
 can be used to transform the image in question to @acronym{PNG} before
 displaying.  GraphicsMagick, ImageMagick and @command{ffmpeg} are
 currently supported for image conversions.
+
+@findex image-converter-add-handler
+  In addition, you may wish to add special handlers for certain image
+formats.  These can be added with the
+@code{image-converter-add-handler} function.  For instance, to allow
+viewing Krita files as simple images, you could say something like:
+
+@lisp
+(image-converter-add-handler
+ "kra"
+ (lambda (file data-p)
+   (if data-p
+       (error "Can't decode non-files")
+     (call-process "unzip" nil t nil
+                   "-qq" "-c" "-x" file "mergedimage.png"))))
+@end lisp
+
+The function takes two parameters, where the first is a file name
+suffix, and the second is a function to do the ``conversion''.  This
+function takes two parameters, where the first is the file name or a
+string with the data, and the second says whether the first parameter
+is data or not, and should output an image in
+@code{image-convert-to-format} format in the current buffer.
 
 @findex thumbs-mode
 @cindex mode, Thumbs

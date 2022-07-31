@@ -909,7 +909,7 @@ insert_1_both (const char *string,
      the insertion.  This, together with recording the insertion,
      will add up to the right stuff in the undo list.  */
   record_insert (PT, nchars);
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars);
   CHARS_MODIFF = MODIFF;
 
   memcpy (GPT_ADDR, string, nbytes);
@@ -1037,7 +1037,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 #endif
 
   record_insert (PT, nchars);
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars);
   CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1122,7 +1122,8 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
      of this dance.  */
   invalidate_buffer_caches (current_buffer, GPT, GPT);
   record_insert (GPT, nchars);
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars);
+  CHARS_MODIFF = MODIFF;
 
   insert_from_gap_1 (nchars, nbytes, text_at_gap_tail);
 
@@ -1250,7 +1251,7 @@ insert_from_buffer_1 (struct buffer *buf,
 #endif
 
   record_insert (PT, nchars);
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars);
   CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1351,7 +1352,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 
   if (len == 0)
     evaporate_overlays (from);
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars_del + len);
   CHARS_MODIFF = MODIFF;
 }
 
@@ -1546,7 +1547,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   check_markers ();
 
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars_del + inschars);
   CHARS_MODIFF = MODIFF;
 
   if (adjust_match_data)
@@ -1680,7 +1681,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   check_markers ();
 
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars_del + inschars);
   CHARS_MODIFF = MODIFF;
 }
 
@@ -1855,7 +1856,7 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
      at the end of the text before the gap.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, nchars_del);
   CHARS_MODIFF = MODIFF;
 
   /* Relocate point as if it were a marker.  */
@@ -1909,7 +1910,7 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   BUF_COMPUTE_UNCHANGED (current_buffer, start - 1, end);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, end - start);
   CHARS_MODIFF = MODIFF;
 
   bset_point_before_scroll (current_buffer, Qnil);

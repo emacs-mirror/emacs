@@ -76,6 +76,8 @@
 (cc-require 'cc-engine)
 (cc-require 'cc-styles)
 
+(cc-bytecomp-defun c-restore-string-fences)
+(cc-bytecomp-defun c-clear-string-fences)
 
 
 (defcustom c-guess-offset-threshold 10
@@ -225,11 +227,12 @@ guess is made from scratch.
 Note that the larger the region to guess in, the slower the guessing.
 So you can limit the region with `c-guess-region-max'."
   (interactive "r\nP")
-  (let ((accumulator (when accumulate c-guess-accumulator)))
-    (setq c-guess-accumulator (c-guess-examine start end accumulator))
-    (let ((pair (c-guess-guess c-guess-accumulator)))
-      (setq c-guess-guessed-basic-offset (car pair)
-	    c-guess-guessed-offsets-alist (cdr pair)))))
+  (c-with-string-fences
+   (let ((accumulator (when accumulate c-guess-accumulator)))
+     (setq c-guess-accumulator (c-guess-examine start end accumulator))
+     (let ((pair (c-guess-guess c-guess-accumulator)))
+       (setq c-guess-guessed-basic-offset (car pair)
+	     c-guess-guessed-offsets-alist (cdr pair))))))
 
 
 (defun c-guess-examine (start end accumulator)

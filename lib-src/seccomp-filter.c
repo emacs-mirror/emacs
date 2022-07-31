@@ -59,7 +59,8 @@ variants of those files that can be used to sandbox Emacs before
 #include <seccomp.h>
 #include <unistd.h>
 
-#include "verify.h"
+#include <attribute.h>
+#include <verify.h>
 
 #ifndef ARCH_CET_STATUS
 #define ARCH_CET_STATUS 0x3001
@@ -240,7 +241,9 @@ main (int argc, char **argv)
      should be further restricted using mount namespaces.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (access));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (faccessat));
+#ifdef __NR_faccessat2
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (faccessat2));
+#endif
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (stat));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (stat64));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (lstat));

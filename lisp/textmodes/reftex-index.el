@@ -269,8 +269,6 @@ will prompt for other arguments."
     (and newtag (cdr cell) (not (member newtag (cdr cell)))
          (push newtag (cdr cell)))))
 
-(define-obsolete-variable-alias
-  'reftex-index-map 'reftex-index-mode-map "24.1")
 (defvar reftex-index-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Index map
@@ -1198,8 +1196,6 @@ This gets refreshed in every phrases command.")
   '((reftex-index-phrases-font-lock-keywords)
     nil t nil beginning-of-line)
   "Font lock defaults for `reftex-index-phrases-mode'.")
-(define-obsolete-variable-alias
-  'reftex-index-phrases-map 'reftex-index-phrases-mode-map "24.1")
 (defvar reftex-index-phrases-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Keybindings and Menu for phrases buffer
@@ -1272,10 +1268,11 @@ This gets refreshed in every phrases command.")
 ;;;###autoload
 (defun reftex-index-phrase-selection-or-word (arg)
   "Add current selection or word at point to the phrases buffer.
+\\<reftex-index-phrases-mode-map>
 When you are in transient-mark-mode and the region is active, the
 selection will be used - otherwise the word at point.
 You get a chance to edit the entry in the phrases buffer - finish with
-`C-c C-c'."
+\\[reftex-index-phrases-save-and-return]."
   (interactive "P")
   (set-marker reftex-index-return-marker (point))
   (reftex-index-selection-or-word arg 'phrase)
@@ -1373,7 +1370,7 @@ If the buffer is non-empty, delete the old header first."
 ;;;###autoload
 (define-derived-mode reftex-index-phrases-mode fundamental-mode "Phrases"
   "Major mode for managing the Index phrases of a LaTeX document.
-This buffer was created with RefTeX.
+This buffer was created with RefTeX. \\<reftex-index-phrases-mode-map>
 
 To insert new phrases, use
  - `C-c \\' in the LaTeX document to copy selection or word
@@ -1684,8 +1681,8 @@ this function repeatedly."
 (defun reftex-index-phrases-set-macro-key ()
   "Change the macro key for the current line.
 Prompts for a macro key and insert is at the beginning of the line.
-If you reply with SPACE, the macro keyn will be removed, so that the
-default macro will be used.  If you reply with `RET', just prints
+If you reply with \\`SPC', the macro key will be removed, so that the
+default macro will be used.  If you reply with \\`RET', just prints
 information about the currently selected macro."
   (interactive)
   (reftex-index-phrases-parse-header)

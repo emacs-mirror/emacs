@@ -5,7 +5,7 @@
 ;; Author: Harald Jörg <haj@posteo.de>
 ;; Maintainer: Harald Jörg
 ;; Keywords: internal
-;; Homepage: https://github.com/HaraldJoerg/cperl-mode
+;; URL: https://github.com/HaraldJoerg/cperl-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -64,7 +64,7 @@ The expected output from running BODY on the input goes here.
 # -------- NAME: end --------
 
 You can have many of these blocks in one test file.  You can
-chose a NAME for each block, which is passed to the 'should'
+chose a NAME for each block, which is passed to the `should'
 clause for easy identification of the first test case that
 failed (if any).  Text outside these the blocks is ignored by the
 tests, so you can use it to document the test cases if you wish."
@@ -747,7 +747,6 @@ without a statement terminator on the same line does not loop
 forever.  The test starts an asynchronous Emacs batch process
 under timeout control."
   :tags '(:expensive-test)
-  (interactive)
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; FIXME times out
   (skip-unless (not (< emacs-major-version 28))) ; times out in older Emacsen
   (skip-unless (eq cperl-test-mode #'cperl-mode))

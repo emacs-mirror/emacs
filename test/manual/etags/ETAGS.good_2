@@ -1098,288 +1098,288 @@ record_auto_save 742,23849
 force_auto_save_soon 751,24017
 DEFUN ("recursive-edit", Frecursive_edit,759,24138
 DEFUN ("recursive-edit", Frecursive_edit,recursive-edit759,24138
-recursive_edit_unwind 804,25748
-any_kboard_state 817,26014
-single_kboard_state 838,26666
-not_single_kboard_state 848,26804
-struct kboard_stack858,27066
-static struct kboard_stack *kboard_stack;kboard_stack864,27139
-push_kboard 867,27187
-pop_kboard 879,27376
-temporarily_switch_to_single_kboard 914,28264
-record_single_kboard_state 943,29438
-restore_kboard_configuration 952,29622
-cmd_error 970,30078
-cmd_error_internal 1024,31511
-DEFUN ("command-error-default-function", Fcommand_error_default_function,1043,32031
-DEFUN ("command-error-default-function", Fcommand_error_default_function,command-error-default-function1043,32031
-static Lisp_Object command_loop_2 1086,33638
-static Lisp_Object top_level_1 1087,33687
-command_loop 1094,33917
-command_loop_2 1134,35136
-top_level_2 1146,35340
-top_level_1 1152,35418
-DEFUN ("top-level", Ftop_level,1164,35788
-DEFUN ("top-level", Ftop_level,top-level1164,35788
-user_error 1183,36289
-DEFUN ("exit-recursive-edit", Fexit_recursive_edit,1189,36430
-DEFUN ("exit-recursive-edit", Fexit_recursive_edit,exit-recursive-edit1189,36430
-DEFUN ("abort-recursive-edit", Fabort_recursive_edit,1201,36820
-DEFUN ("abort-recursive-edit", Fabort_recursive_edit,abort-recursive-edit1201,36820
-tracking_off 1216,37282
-DEFUN ("internal--track-mouse", Ftrack_mouse,1234,37817
-DEFUN ("internal--track-mouse", Ftrack_mouse,track-mouse1234,37817
-bool ignore_mouse_drag_p;1256,38393
-some_mouse_moved 1259,38442
-static int read_key_sequence 1282,38800
-static void adjust_point_for_property 1284,38918
-Lisp_Object last_undo_boundary;1287,39033
-command_loop_1 1294,39274
-read_menu_command 1649,50890
-adjust_point_for_property 1678,51618
-safe_run_hooks_1 1831,57340
-safe_run_hooks_error 1841,57570
-safe_run_hook_funcall 1878,58577
-safe_run_hooks 1893,59059
-int poll_suppress_count;1908,59398
-static struct atimer *poll_timer;poll_timer1915,59488
-poll_for_input_1 1919,59590
-poll_for_input 1930,59790
-start_polling 1942,60054
-input_polling_used 1979,61092
-stop_polling 1994,61391
-set_poll_suppress_count 2009,61760
-bind_polling_period 2029,62142
-make_ctrl_char 2048,62493
-show_help_echo 2113,64456
-static Lisp_Object kbd_buffer_get_event 2152,65485
-static void record_char 2154,65597
-static Lisp_Object help_form_saved_window_configs;2156,65639
-read_char_help_form_unwind 2158,65702
-#define STOP_POLLING	2166,65960
-#define RESUME_POLLING	2170,66085
-read_event_from_main_queue 2175,66230
-read_decoded_event_from_main_queue 2249,68418
-#define MAX_ENCODED_BYTES 2254,68665
-echo_keystrokes_p 2342,71557
-read_char 2376,72849
-record_menu_key 3225,98950
-help_char_p 3258,99675
-record_char 3273,99954
-save_getcjmp 3412,104236
-restore_getcjmp 3418,104327
-readable_events 3430,104698
-int stop_character EXTERNALLY_VISIBLE;3497,106438
-event_to_kboard 3500,106494
-kbd_buffer_nr_stored 3522,107143
-kbd_buffer_store_event 3534,107484
-kbd_buffer_store_event_hold 3550,108026
-kbd_buffer_unget_event 3684,111618
-#define INPUT_EVENT_POS_MAX 3698,112019
-#define INPUT_EVENT_POS_MIN 3701,112148
-position_to_Time 3706,112288
-Time_to_position 3716,112515
-gen_help_event 3738,113172
-kbd_buffer_store_help_event 3756,113612
-discard_mouse_events 3773,113977
-kbd_buffer_events_waiting 3803,114712
-clear_event 3823,115069
-kbd_buffer_get_event 3836,115409
-process_special_events 4258,127882
-swallow_events 4322,129706
-timer_start_idle 4339,130099
-timer_stop_idle 4355,130577
-timer_resume_idle 4363,130721
-struct input_event last_timer_event EXTERNALLY_VISIBLE;4372,130913
-Lisp_Object pending_funcalls;4377,131173
-decode_timer 4381,131294
-timer_check_2 4414,132247
-timer_check 4572,136818
-DEFUN ("current-idle-time", Fcurrent_idle_time,4607,137663
-DEFUN ("current-idle-time", Fcurrent_idle_time,current-idle-time4607,137663
-static Lisp_Object accent_key_syms;4625,138240
-static Lisp_Object func_key_syms;4626,138276
-static Lisp_Object mouse_syms;4627,138310
-static Lisp_Object wheel_syms;4628,138341
-static Lisp_Object drag_n_drop_syms;4629,138372
-static const int lispy_accent_codes[lispy_accent_codes4634,138517
-static const char *const lispy_accent_keys[lispy_accent_keys4741,139879
-#define FUNCTION_KEY_OFFSET 4766,140315
-const char *const lispy_function_keys[lispy_function_keys4768,140348
-static const char *const lispy_multimedia_keys[lispy_multimedia_keys4962,148902
-static const char *const lispy_kana_keys[lispy_kana_keys5026,150136
-#define FUNCTION_KEY_OFFSET 5061,151752
-static const char *const lispy_function_keys[lispy_function_keys5065,151895
-#define ISO_FUNCTION_KEY_OFFSET 5149,154430
-static const char *const iso_lispy_function_keys[iso_lispy_function_keys5151,154470
-static Lisp_Object Vlispy_mouse_stem;5172,155329
-static const char *const lispy_wheel_names[lispy_wheel_names5174,155368
-static const char *const lispy_drag_n_drop_names[lispy_drag_n_drop_names5181,155620
-static short const scroll_bar_parts[scroll_bar_parts5189,155886
-static Lisp_Object button_down_location;5210,156911
-static int last_mouse_button;5215,157066
-static int last_mouse_x;5216,157096
-static int last_mouse_y;5217,157121
-static Time button_down_time;5218,157146
-static int double_click_count;5222,157230
-make_lispy_position 5228,157391
-toolkit_menubar_in_use 5456,163954
-make_scroll_bar_position 5469,164322
-make_lispy_event 5485,164968
-make_lispy_movement 6104,183531
-make_lispy_switch_frame 6131,184262
-make_lispy_focus_in 6137,184369
-make_lispy_focus_out 6145,184495
-parse_modifiers_uncached 6163,184945
-#define SINGLE_LETTER_MOD(6185,185465
-#undef SINGLE_LETTER_MOD6212,185906
-#define MULTI_LETTER_MOD(6214,185932
-#undef MULTI_LETTER_MOD6231,186400
-apply_modifiers_uncached 6273,187574
-static const char *const modifier_names[modifier_names6319,189193
-#define NUM_MOD_NAMES 6325,189399
-static Lisp_Object modifier_symbols;6327,189449
-lispy_modifier_list 6331,189586
-#define KEY_TO_CHAR(6353,190252
-parse_modifiers 6356,190328
-DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,6399,191517
-DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,event-symbol-parse-modifiers6399,191517
-apply_modifiers 6422,192391
-reorder_modifiers 6491,194720
-modify_event_symbol 6536,196528
-DEFUN ("event-convert-list", Fevent_convert_list,6628,199244
-DEFUN ("event-convert-list", Fevent_convert_list,event-convert-list6628,199244
-parse_solitary_modifier 6695,201135
-#define SINGLE_LETTER_MOD(6701,201258
-#define MULTI_LETTER_MOD(6705,201343
-#undef SINGLE_LETTER_MOD6763,202641
-#undef MULTI_LETTER_MOD6764,202666
-lucid_event_type_list_p 6775,202889
-get_input_pending 6814,203960
-record_asynch_buffer_change 6834,204579
-gobble_input 6872,205702
-tty_read_avail_input 6967,208310
-handle_async_input 7149,214039
-process_pending_signals 7165,214359
-unblock_input_to 7177,214645
-unblock_input 7200,215277
-totally_unblock_input 7209,215445
-handle_input_available_signal 7217,215529
-deliver_input_available_signal 7226,215700
-struct user_signal_info7235,215865
-static struct user_signal_info *user_signals user_signals7250,216090
-add_user_signal 7253,216149
-handle_user_signal 7275,216598
-deliver_user_signal 7316,217558
-find_user_signal_name 7322,217659
-store_user_signal_events 7334,217841
-static void menu_bar_item 7362,218341
-static Lisp_Object menu_bar_one_keymap_changed_items;7363,218416
-static Lisp_Object menu_bar_items_vector;7368,218630
-static int menu_bar_items_index;7369,218672
-static const char *separator_names[separator_names7372,218707
-menu_separator_name_p 7393,219148
-menu_bar_items 7426,219852
-Lisp_Object item_properties;7568,224603
-menu_bar_item 7571,224645
-menu_item_eval_property_1 7647,227175
-eval_dyn 7658,227465
-menu_item_eval_property 7666,227675
-parse_menu_item 7686,228341
-static Lisp_Object tool_bar_items_vector;7965,236336
-static Lisp_Object tool_bar_item_properties;7970,236510
-static int ntool_bar_items;7974,236606
-static void init_tool_bar_items 7978,236664
-static void process_tool_bar_item 7979,236711
-static bool parse_tool_bar_item 7981,236801
-static void append_tool_bar_item 7982,236861
-tool_bar_items 7990,237083
-process_tool_bar_item 8075,239892
-#define PROP(8112,240969
-set_prop 8114,241038
-parse_tool_bar_item 8167,242453
-#undef PROP8379,248844
-init_tool_bar_items 8387,248969
-append_tool_bar_item 8401,249261
-read_char_x_menu_prompt 8443,250771
-read_char_minibuf_menu_prompt 8503,252445
-#define PUSH_C_STR(8527,253014
-follow_key 8726,258553
-active_maps 8733,258695
-typedef struct keyremap8742,259021
-} keyremap;8754,259464
-access_keymap_keyremap 8764,259808
-keyremap_step 8811,261450
-test_undefined 8867,262934
-read_key_sequence 8916,264861
-read_key_sequence_vs 9826,295821
-DEFUN ("read-key-sequence", Fread_key_sequence,9885,297294
-DEFUN ("read-key-sequence", Fread_key_sequence,read-key-sequence9885,297294
-DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,9938,299982
-DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,read-key-sequence-vector9938,299982
-detect_input_pending 9950,300488
-detect_input_pending_ignore_squeezables 9959,300654
-detect_input_pending_run_timers 9967,300870
-clear_input_pending 9985,301362
-requeued_events_pending_p 9997,301732
-DEFUN ("input-pending-p", Finput_pending_p,10002,301813
-DEFUN ("input-pending-p", Finput_pending_p,input-pending-p10002,301813
-DEFUN ("recent-keys", Frecent_keys,10024,302596
-DEFUN ("recent-keys", Frecent_keys,recent-keys10024,302596
-DEFUN ("this-command-keys", Fthis_command_keys,10055,303517
-DEFUN ("this-command-keys", Fthis_command_keys,this-command-keys10055,303517
-DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,10068,303958
-DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,this-command-keys-vector10068,303958
-DEFUN ("this-single-command-keys", Fthis_single_command_keys,10080,304380
-DEFUN ("this-single-command-keys", Fthis_single_command_keys,this-single-command-keys10080,304380
-DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,10096,304955
-DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,this-single-command-raw-keys10096,304955
-DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,10109,305495
-DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,reset-this-command-lengths10109,305495
-DEFUN ("clear-this-command-keys", Fclear_this_command_keys,10136,306510
-DEFUN ("clear-this-command-keys", Fclear_this_command_keys,clear-this-command-keys10136,306510
-DEFUN ("recursion-depth", Frecursion_depth,10158,307069
-DEFUN ("recursion-depth", Frecursion_depth,recursion-depth10158,307069
-DEFUN ("open-dribble-file", Fopen_dribble_file,10169,307406
-DEFUN ("open-dribble-file", Fopen_dribble_file,open-dribble-file10169,307406
-DEFUN ("discard-input", Fdiscard_input,10203,308447
-DEFUN ("discard-input", Fdiscard_input,discard-input10203,308447
-DEFUN ("suspend-emacs", Fsuspend_emacs,10225,308949
-DEFUN ("suspend-emacs", Fsuspend_emacs,suspend-emacs10225,308949
-stuff_buffered_input 10285,311045
-set_waiting_for_input 10323,312016
-clear_waiting_for_input 10337,312390
-handle_interrupt_signal 10351,312754
-deliver_interrupt_signal 10378,313642
-static int volatile force_quit_count;10387,313932
-handle_interrupt 10401,314414
-quit_throw_to_read_char 10541,318711
-DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,10562,319288
-DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,set-input-interrupt-mode10562,319288
-DEFUN ("set-output-flow-control", Fset_output_flow_control,10609,320516
-DEFUN ("set-output-flow-control", Fset_output_flow_control,set-output-flow-control10609,320516
-DEFUN ("set-input-meta-mode", Fset_input_meta_mode,10643,321432
-DEFUN ("set-input-meta-mode", Fset_input_meta_mode,set-input-meta-mode10643,321432
-DEFUN ("set-quit-char", Fset_quit_char,10694,322706
-DEFUN ("set-quit-char", Fset_quit_char,set-quit-char10694,322706
-DEFUN ("set-input-mode", Fset_input_mode,10729,323570
-DEFUN ("set-input-mode", Fset_input_mode,set-input-mode10729,323570
-DEFUN ("current-input-mode", Fcurrent_input_mode,10750,324459
-DEFUN ("current-input-mode", Fcurrent_input_mode,current-input-mode10750,324459
-DEFUN ("posn-at-x-y", Fposn_at_x_y,10787,325837
-DEFUN ("posn-at-x-y", Fposn_at_x_y,posn-at-x-y10787,325837
-DEFUN ("posn-at-point", Fposn_at_point,10824,327060
-DEFUN ("posn-at-point", Fposn_at_point,posn-at-point10824,327060
-init_kboard 10861,328214
-allocate_kboard 10893,329284
-wipe_kboard 10909,329637
-delete_kboard 10917,329751
-init_keyboard 10942,330281
-struct event_head11021,332696
-static const struct event_head head_table[head_table11027,332747
-syms_of_keyboard 11045,333577
-keys_of_keyboard 11841,367115
-mark_kboards 11916,370434
+recursive_edit_unwind 804,25751
+any_kboard_state 817,26017
+single_kboard_state 838,26669
+not_single_kboard_state 848,26807
+struct kboard_stack858,27069
+static struct kboard_stack *kboard_stack;kboard_stack864,27142
+push_kboard 867,27190
+pop_kboard 879,27379
+temporarily_switch_to_single_kboard 914,28267
+record_single_kboard_state 943,29441
+restore_kboard_configuration 952,29625
+cmd_error 970,30081
+cmd_error_internal 1024,31514
+DEFUN ("command-error-default-function", Fcommand_error_default_function,1043,32034
+DEFUN ("command-error-default-function", Fcommand_error_default_function,command-error-default-function1043,32034
+static Lisp_Object command_loop_2 1086,33641
+static Lisp_Object top_level_1 1087,33690
+command_loop 1094,33920
+command_loop_2 1134,35139
+top_level_2 1146,35343
+top_level_1 1152,35421
+DEFUN ("top-level", Ftop_level,1164,35791
+DEFUN ("top-level", Ftop_level,top-level1164,35791
+user_error 1183,36292
+DEFUN ("exit-recursive-edit", Fexit_recursive_edit,1189,36433
+DEFUN ("exit-recursive-edit", Fexit_recursive_edit,exit-recursive-edit1189,36433
+DEFUN ("abort-recursive-edit", Fabort_recursive_edit,1201,36823
+DEFUN ("abort-recursive-edit", Fabort_recursive_edit,abort-recursive-edit1201,36823
+tracking_off 1216,37285
+DEFUN ("internal--track-mouse", Ftrack_mouse,1234,37820
+DEFUN ("internal--track-mouse", Ftrack_mouse,track-mouse1234,37820
+bool ignore_mouse_drag_p;1256,38396
+some_mouse_moved 1259,38445
+static int read_key_sequence 1282,38803
+static void adjust_point_for_property 1284,38921
+Lisp_Object last_undo_boundary;1287,39036
+command_loop_1 1294,39277
+read_menu_command 1649,50893
+adjust_point_for_property 1678,51621
+safe_run_hooks_1 1831,57343
+safe_run_hooks_error 1841,57573
+safe_run_hook_funcall 1878,58580
+safe_run_hooks 1893,59062
+int poll_suppress_count;1908,59401
+static struct atimer *poll_timer;poll_timer1915,59491
+poll_for_input_1 1919,59593
+poll_for_input 1930,59793
+start_polling 1942,60057
+input_polling_used 1979,61095
+stop_polling 1994,61394
+set_poll_suppress_count 2009,61763
+bind_polling_period 2029,62145
+make_ctrl_char 2048,62496
+show_help_echo 2113,64459
+static Lisp_Object kbd_buffer_get_event 2152,65488
+static void record_char 2154,65600
+static Lisp_Object help_form_saved_window_configs;2156,65642
+read_char_help_form_unwind 2158,65705
+#define STOP_POLLING	2166,65963
+#define RESUME_POLLING	2170,66088
+read_event_from_main_queue 2175,66233
+read_decoded_event_from_main_queue 2249,68421
+#define MAX_ENCODED_BYTES 2254,68668
+echo_keystrokes_p 2342,71560
+read_char 2376,72852
+record_menu_key 3225,98953
+help_char_p 3258,99678
+record_char 3273,99957
+save_getcjmp 3412,104239
+restore_getcjmp 3418,104330
+readable_events 3430,104701
+int stop_character EXTERNALLY_VISIBLE;3497,106441
+event_to_kboard 3500,106497
+kbd_buffer_nr_stored 3522,107146
+kbd_buffer_store_event 3534,107487
+kbd_buffer_store_event_hold 3550,108029
+kbd_buffer_unget_event 3684,111621
+#define INPUT_EVENT_POS_MAX 3698,112022
+#define INPUT_EVENT_POS_MIN 3701,112151
+position_to_Time 3706,112291
+Time_to_position 3716,112518
+gen_help_event 3738,113175
+kbd_buffer_store_help_event 3756,113615
+discard_mouse_events 3773,113980
+kbd_buffer_events_waiting 3803,114715
+clear_event 3823,115072
+kbd_buffer_get_event 3836,115412
+process_special_events 4258,127885
+swallow_events 4322,129709
+timer_start_idle 4339,130102
+timer_stop_idle 4355,130580
+timer_resume_idle 4363,130724
+struct input_event last_timer_event EXTERNALLY_VISIBLE;4372,130916
+Lisp_Object pending_funcalls;4377,131176
+decode_timer 4381,131297
+timer_check_2 4414,132250
+timer_check 4572,136821
+DEFUN ("current-idle-time", Fcurrent_idle_time,4607,137666
+DEFUN ("current-idle-time", Fcurrent_idle_time,current-idle-time4607,137666
+static Lisp_Object accent_key_syms;4625,138243
+static Lisp_Object func_key_syms;4626,138279
+static Lisp_Object mouse_syms;4627,138313
+static Lisp_Object wheel_syms;4628,138344
+static Lisp_Object drag_n_drop_syms;4629,138375
+static const int lispy_accent_codes[lispy_accent_codes4634,138520
+static const char *const lispy_accent_keys[lispy_accent_keys4741,139882
+#define FUNCTION_KEY_OFFSET 4766,140318
+const char *const lispy_function_keys[lispy_function_keys4768,140351
+static const char *const lispy_multimedia_keys[lispy_multimedia_keys4962,148905
+static const char *const lispy_kana_keys[lispy_kana_keys5026,150139
+#define FUNCTION_KEY_OFFSET 5061,151755
+static const char *const lispy_function_keys[lispy_function_keys5065,151898
+#define ISO_FUNCTION_KEY_OFFSET 5149,154433
+static const char *const iso_lispy_function_keys[iso_lispy_function_keys5151,154473
+static Lisp_Object Vlispy_mouse_stem;5172,155332
+static const char *const lispy_wheel_names[lispy_wheel_names5174,155371
+static const char *const lispy_drag_n_drop_names[lispy_drag_n_drop_names5181,155623
+static short const scroll_bar_parts[scroll_bar_parts5189,155889
+static Lisp_Object button_down_location;5210,156914
+static int last_mouse_button;5215,157069
+static int last_mouse_x;5216,157099
+static int last_mouse_y;5217,157124
+static Time button_down_time;5218,157149
+static int double_click_count;5222,157233
+make_lispy_position 5228,157394
+toolkit_menubar_in_use 5456,163957
+make_scroll_bar_position 5469,164325
+make_lispy_event 5485,164971
+make_lispy_movement 6104,183534
+make_lispy_switch_frame 6131,184265
+make_lispy_focus_in 6137,184372
+make_lispy_focus_out 6145,184498
+parse_modifiers_uncached 6163,184948
+#define SINGLE_LETTER_MOD(6185,185468
+#undef SINGLE_LETTER_MOD6212,185909
+#define MULTI_LETTER_MOD(6214,185935
+#undef MULTI_LETTER_MOD6231,186403
+apply_modifiers_uncached 6273,187577
+static const char *const modifier_names[modifier_names6319,189196
+#define NUM_MOD_NAMES 6325,189402
+static Lisp_Object modifier_symbols;6327,189452
+lispy_modifier_list 6331,189589
+#define KEY_TO_CHAR(6353,190255
+parse_modifiers 6356,190331
+DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,6399,191520
+DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,event-symbol-parse-modifiers6399,191520
+apply_modifiers 6422,192394
+reorder_modifiers 6491,194723
+modify_event_symbol 6536,196531
+DEFUN ("event-convert-list", Fevent_convert_list,6628,199247
+DEFUN ("event-convert-list", Fevent_convert_list,event-convert-list6628,199247
+parse_solitary_modifier 6695,201138
+#define SINGLE_LETTER_MOD(6701,201261
+#define MULTI_LETTER_MOD(6705,201346
+#undef SINGLE_LETTER_MOD6763,202644
+#undef MULTI_LETTER_MOD6764,202669
+lucid_event_type_list_p 6775,202892
+get_input_pending 6814,203963
+record_asynch_buffer_change 6834,204582
+gobble_input 6872,205705
+tty_read_avail_input 6967,208313
+handle_async_input 7149,214042
+process_pending_signals 7165,214362
+unblock_input_to 7177,214648
+unblock_input 7200,215280
+totally_unblock_input 7209,215448
+handle_input_available_signal 7217,215532
+deliver_input_available_signal 7226,215703
+struct user_signal_info7235,215868
+static struct user_signal_info *user_signals user_signals7250,216093
+add_user_signal 7253,216152
+handle_user_signal 7275,216601
+deliver_user_signal 7316,217561
+find_user_signal_name 7322,217662
+store_user_signal_events 7334,217844
+static void menu_bar_item 7362,218344
+static Lisp_Object menu_bar_one_keymap_changed_items;7363,218419
+static Lisp_Object menu_bar_items_vector;7368,218633
+static int menu_bar_items_index;7369,218675
+static const char *separator_names[separator_names7372,218710
+menu_separator_name_p 7393,219151
+menu_bar_items 7426,219855
+Lisp_Object item_properties;7568,224606
+menu_bar_item 7571,224648
+menu_item_eval_property_1 7647,227178
+eval_dyn 7658,227468
+menu_item_eval_property 7666,227678
+parse_menu_item 7686,228344
+static Lisp_Object tool_bar_items_vector;7965,236339
+static Lisp_Object tool_bar_item_properties;7970,236513
+static int ntool_bar_items;7974,236609
+static void init_tool_bar_items 7978,236667
+static void process_tool_bar_item 7979,236714
+static bool parse_tool_bar_item 7981,236804
+static void append_tool_bar_item 7982,236864
+tool_bar_items 7990,237086
+process_tool_bar_item 8075,239895
+#define PROP(8112,240972
+set_prop 8114,241041
+parse_tool_bar_item 8167,242456
+#undef PROP8379,248847
+init_tool_bar_items 8387,248972
+append_tool_bar_item 8401,249264
+read_char_x_menu_prompt 8443,250774
+read_char_minibuf_menu_prompt 8503,252448
+#define PUSH_C_STR(8527,253017
+follow_key 8726,258556
+active_maps 8733,258698
+typedef struct keyremap8742,259024
+} keyremap;8754,259467
+access_keymap_keyremap 8764,259811
+keyremap_step 8811,261453
+test_undefined 8867,262937
+read_key_sequence 8916,264864
+read_key_sequence_vs 9826,295824
+DEFUN ("read-key-sequence", Fread_key_sequence,9885,297297
+DEFUN ("read-key-sequence", Fread_key_sequence,read-key-sequence9885,297297
+DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,9938,299985
+DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,read-key-sequence-vector9938,299985
+detect_input_pending 9950,300491
+detect_input_pending_ignore_squeezables 9959,300657
+detect_input_pending_run_timers 9967,300873
+clear_input_pending 9985,301365
+requeued_events_pending_p 9997,301735
+DEFUN ("input-pending-p", Finput_pending_p,10002,301816
+DEFUN ("input-pending-p", Finput_pending_p,input-pending-p10002,301816
+DEFUN ("recent-keys", Frecent_keys,10024,302599
+DEFUN ("recent-keys", Frecent_keys,recent-keys10024,302599
+DEFUN ("this-command-keys", Fthis_command_keys,10055,303520
+DEFUN ("this-command-keys", Fthis_command_keys,this-command-keys10055,303520
+DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,10068,303961
+DEFUN ("this-command-keys-vector", Fthis_command_keys_vector,this-command-keys-vector10068,303961
+DEFUN ("this-single-command-keys", Fthis_single_command_keys,10080,304383
+DEFUN ("this-single-command-keys", Fthis_single_command_keys,this-single-command-keys10080,304383
+DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,10096,304958
+DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,this-single-command-raw-keys10096,304958
+DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,10109,305498
+DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,reset-this-command-lengths10109,305498
+DEFUN ("clear-this-command-keys", Fclear_this_command_keys,10136,306513
+DEFUN ("clear-this-command-keys", Fclear_this_command_keys,clear-this-command-keys10136,306513
+DEFUN ("recursion-depth", Frecursion_depth,10158,307072
+DEFUN ("recursion-depth", Frecursion_depth,recursion-depth10158,307072
+DEFUN ("open-dribble-file", Fopen_dribble_file,10169,307409
+DEFUN ("open-dribble-file", Fopen_dribble_file,open-dribble-file10169,307409
+DEFUN ("discard-input", Fdiscard_input,10203,308450
+DEFUN ("discard-input", Fdiscard_input,discard-input10203,308450
+DEFUN ("suspend-emacs", Fsuspend_emacs,10225,308952
+DEFUN ("suspend-emacs", Fsuspend_emacs,suspend-emacs10225,308952
+stuff_buffered_input 10285,311048
+set_waiting_for_input 10323,312019
+clear_waiting_for_input 10337,312393
+handle_interrupt_signal 10351,312757
+deliver_interrupt_signal 10378,313645
+static int volatile force_quit_count;10387,313935
+handle_interrupt 10401,314417
+quit_throw_to_read_char 10541,318714
+DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,10562,319291
+DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode,set-input-interrupt-mode10562,319291
+DEFUN ("set-output-flow-control", Fset_output_flow_control,10609,320519
+DEFUN ("set-output-flow-control", Fset_output_flow_control,set-output-flow-control10609,320519
+DEFUN ("set-input-meta-mode", Fset_input_meta_mode,10643,321435
+DEFUN ("set-input-meta-mode", Fset_input_meta_mode,set-input-meta-mode10643,321435
+DEFUN ("set-quit-char", Fset_quit_char,10694,322709
+DEFUN ("set-quit-char", Fset_quit_char,set-quit-char10694,322709
+DEFUN ("set-input-mode", Fset_input_mode,10729,323573
+DEFUN ("set-input-mode", Fset_input_mode,set-input-mode10729,323573
+DEFUN ("current-input-mode", Fcurrent_input_mode,10750,324462
+DEFUN ("current-input-mode", Fcurrent_input_mode,current-input-mode10750,324462
+DEFUN ("posn-at-x-y", Fposn_at_x_y,10787,325840
+DEFUN ("posn-at-x-y", Fposn_at_x_y,posn-at-x-y10787,325840
+DEFUN ("posn-at-point", Fposn_at_point,10824,327063
+DEFUN ("posn-at-point", Fposn_at_point,posn-at-point10824,327063
+init_kboard 10861,328217
+allocate_kboard 10893,329287
+wipe_kboard 10909,329640
+delete_kboard 10917,329754
+init_keyboard 10942,330284
+struct event_head11021,332699
+static const struct event_head head_table[head_table11027,332750
+syms_of_keyboard 11045,333580
+keys_of_keyboard 11841,367118
+mark_kboards 11916,370437
 
 c-src/emacs/src/lisp.h,33840
 #define EMACS_LISP_H22,801
@@ -2735,112 +2735,112 @@ el-src/emacs/lisp/progmodes/etags.el,5188
 (defcustom tags-tag-face 148,5700
 (defcustom tags-apropos-verbose 154,5835
 (defcustom tags-apropos-additional-actions 160,5999
-(defvaralias 'find-tag-marker-ring find-tag-marker-ring183,6918
-(defvar default-tags-table-function 189,7098
-(defvar tags-location-ring 194,7324
-(defvar tags-table-files 201,7600
-(defvar tags-completion-table 206,7767
-(defvar tags-included-tables 209,7859
-(defvar next-file-list 212,7954
-(defvar tags-table-format-functions 217,8060
-(defvar file-of-tag-function 224,8441
-(defvar tags-table-files-function 228,8635
-(defvar tags-completion-table-function 230,8746
-(defvar snarf-tag-function 232,8841
-(defvar goto-tag-location-function 236,9050
-(defvar find-tag-regexp-search-function 239,9223
-(defvar find-tag-regexp-tag-order 241,9344
-(defvar find-tag-regexp-next-line-after-failure-p 243,9453
-(defvar find-tag-search-function 245,9573
-(defvar find-tag-tag-order 247,9680
-(defvar find-tag-next-line-after-failure-p 249,9775
-(defvar list-tags-function 251,9881
-(defvar tags-apropos-function 253,9969
-(defvar tags-included-tables-function 255,10063
-(defvar verify-tags-table-function 257,10182
-(defun initialize-new-tags-table 260,10293
-(defun tags-table-mode 276,10981
-(defun visit-tags-table 285,11246
-(defun tags-table-check-computed-list 321,12784
-(defun tags-table-extend-computed-list 360,14655
-(defun tags-expand-table-name 400,16368
-(defun tags-table-list-member 409,16711
-(defun tags-verify-table 421,17183
-(defun tags-table-including 470,19303
-(defun tags-next-table 522,21347
-(defun visit-tags-table-buffer 543,22204
-(defun tags-reset-tags-tables 712,28514
-(defun file-of-tag 731,29171
-(defun tags-table-files 740,29521
-(defun tags-included-tables 749,29871
-(defun tags-completion-table 755,30117
-(defun tags-lazy-completion-table 783,31311
-(defun tags-completion-at-point-function 799,31946
-(defun find-tag-tag 818,32696
-(defvar last-tag 837,33369
-(defun find-tag-interactive 840,33428
-(defvar find-tag-history 852,33843
-(defvar etags-case-fold-search)855,33908
-(defvar etags-syntax-table)856,33940
-(defvar local-find-tag-hook)857,33968
-(defun find-tag-noselect 860,34013
-(defun find-tag 932,37127
-(defun find-tag-other-window 959,38343
-(defun find-tag-other-frame 1000,40271
-(defun find-tag-regexp 1025,41445
-(defalias 'pop-tag-mark pop-tag-mark1049,42607
-(defvar tag-lines-already-matched 1052,42658
-(defun find-tag-in-order 1055,42765
-(defun tag-find-file-of-tag-noselect 1167,47111
-(defun tag-find-file-of-tag 1200,48957
-(defun etags-recognize-tags-table 1208,49183
-(defun etags-verify-tags-table 1241,50814
-(defun etags-file-of-tag 1246,51012
-(defun etags-tags-completion-table 1256,51347
-(defun etags-snarf-tag 1286,52553
-(defun etags-goto-tag-location 1324,54122
-(defun etags-list-tags 1388,56565
-(defmacro tags-with-face 1423,57840
-(defun etags-tags-apropos-additional 1431,58173
-(defun etags-tags-apropos 1465,59410
-(defun etags-tags-table-files 1527,61619
-(defun etags-tags-included-tables 1542,62055
-(defun tags-recognize-empty-tags-table 1559,62595
-(defun tag-exact-file-name-match-p 1587,63741
-(defun tag-file-name-match-p 1596,64134
-(defun tag-exact-match-p 1609,64690
-(defun tag-implicit-name-match-p 1620,65258
-(defun tag-symbol-match-p 1633,65858
-(defun tag-word-match-p 1643,66294
-(defun tag-partial-file-name-match-p 1652,66692
-(defun tag-any-match-p 1662,67136
-(defun tag-re-match-p 1667,67320
-(defcustom tags-loop-revert-buffers 1675,67569
-(defun next-file 1685,67978
-(defvar tags-loop-operate 1760,70892
-(defvar tags-loop-scan1763,70986
-(defun tags-loop-eval 1771,71315
-(defun tags-loop-continue 1782,71644
-(defun tags-search 1850,73950
-(defun tags-query-replace 1871,74776
-(defun tags-complete-tags-table-file 1896,76000
-(defun list-tags 1906,76379
-(defun tags-apropos 1934,77332
-(define-button-type 'tags-select-tags-tabletags-select-tags-table1957,78158
-(defun select-tags-table 1964,78397
-(defvar select-tags-table-mode-map 2019,80524
-(define-derived-mode select-tags-table-mode 2030,80907
-(defun select-tags-table-select 2034,81091
-(defun select-tags-table-quit 2043,81457
-(defun complete-tag 2049,81612
-(defconst etags--xref-limit 2074,82553
-(defvar etags-xref-find-definitions-tag-order 2076,82588
-(defun etags-xref-find 2082,82878
-(defun etags--xref-find-definitions 2096,83407
-(defclass xref-etags-location 2129,85121
-(defun xref-make-etags-location 2135,85344
-(cl-defmethod xref-location-marker 2139,85499
-(cl-defmethod xref-location-line 2146,85743
+(defvaralias 'find-tag-marker-ring find-tag-marker-ring183,6921
+(defvar default-tags-table-function 189,7101
+(defvar tags-location-ring 194,7327
+(defvar tags-table-files 201,7603
+(defvar tags-completion-table 206,7770
+(defvar tags-included-tables 209,7862
+(defvar next-file-list 212,7957
+(defvar tags-table-format-functions 217,8063
+(defvar file-of-tag-function 224,8444
+(defvar tags-table-files-function 228,8638
+(defvar tags-completion-table-function 230,8749
+(defvar snarf-tag-function 232,8844
+(defvar goto-tag-location-function 236,9053
+(defvar find-tag-regexp-search-function 239,9226
+(defvar find-tag-regexp-tag-order 241,9347
+(defvar find-tag-regexp-next-line-after-failure-p 243,9456
+(defvar find-tag-search-function 245,9576
+(defvar find-tag-tag-order 247,9683
+(defvar find-tag-next-line-after-failure-p 249,9778
+(defvar list-tags-function 251,9884
+(defvar tags-apropos-function 253,9972
+(defvar tags-included-tables-function 255,10066
+(defvar verify-tags-table-function 257,10185
+(defun initialize-new-tags-table 260,10296
+(defun tags-table-mode 276,10984
+(defun visit-tags-table 285,11249
+(defun tags-table-check-computed-list 321,12787
+(defun tags-table-extend-computed-list 360,14658
+(defun tags-expand-table-name 400,16371
+(defun tags-table-list-member 409,16714
+(defun tags-verify-table 421,17186
+(defun tags-table-including 470,19306
+(defun tags-next-table 522,21350
+(defun visit-tags-table-buffer 543,22207
+(defun tags-reset-tags-tables 712,28517
+(defun file-of-tag 731,29174
+(defun tags-table-files 740,29524
+(defun tags-included-tables 749,29874
+(defun tags-completion-table 755,30120
+(defun tags-lazy-completion-table 783,31314
+(defun tags-completion-at-point-function 799,31949
+(defun find-tag-tag 818,32699
+(defvar last-tag 837,33372
+(defun find-tag-interactive 840,33431
+(defvar find-tag-history 852,33846
+(defvar etags-case-fold-search)855,33911
+(defvar etags-syntax-table)856,33943
+(defvar local-find-tag-hook)857,33971
+(defun find-tag-noselect 860,34016
+(defun find-tag 932,37130
+(defun find-tag-other-window 959,38346
+(defun find-tag-other-frame 1000,40274
+(defun find-tag-regexp 1025,41448
+(defalias 'pop-tag-mark pop-tag-mark1049,42610
+(defvar tag-lines-already-matched 1052,42661
+(defun find-tag-in-order 1055,42768
+(defun tag-find-file-of-tag-noselect 1167,47114
+(defun tag-find-file-of-tag 1200,48960
+(defun etags-recognize-tags-table 1208,49186
+(defun etags-verify-tags-table 1241,50817
+(defun etags-file-of-tag 1246,51015
+(defun etags-tags-completion-table 1256,51350
+(defun etags-snarf-tag 1286,52556
+(defun etags-goto-tag-location 1324,54125
+(defun etags-list-tags 1388,56568
+(defmacro tags-with-face 1423,57843
+(defun etags-tags-apropos-additional 1431,58176
+(defun etags-tags-apropos 1465,59413
+(defun etags-tags-table-files 1527,61622
+(defun etags-tags-included-tables 1542,62058
+(defun tags-recognize-empty-tags-table 1559,62598
+(defun tag-exact-file-name-match-p 1587,63744
+(defun tag-file-name-match-p 1596,64137
+(defun tag-exact-match-p 1609,64693
+(defun tag-implicit-name-match-p 1620,65261
+(defun tag-symbol-match-p 1633,65861
+(defun tag-word-match-p 1643,66297
+(defun tag-partial-file-name-match-p 1652,66695
+(defun tag-any-match-p 1662,67139
+(defun tag-re-match-p 1667,67323
+(defcustom tags-loop-revert-buffers 1675,67572
+(defun next-file 1685,67981
+(defvar tags-loop-operate 1760,70895
+(defvar tags-loop-scan1763,70989
+(defun tags-loop-eval 1771,71318
+(defun tags-loop-continue 1782,71647
+(defun tags-search 1850,73953
+(defun tags-query-replace 1871,74779
+(defun tags-complete-tags-table-file 1896,76003
+(defun list-tags 1906,76382
+(defun tags-apropos 1934,77335
+(define-button-type 'tags-select-tags-tabletags-select-tags-table1957,78161
+(defun select-tags-table 1964,78400
+(defvar select-tags-table-mode-map 2019,80527
+(define-derived-mode select-tags-table-mode 2030,80910
+(defun select-tags-table-select 2034,81094
+(defun select-tags-table-quit 2043,81460
+(defun complete-tag 2049,81615
+(defconst etags--xref-limit 2074,82556
+(defvar etags-xref-find-definitions-tag-order 2076,82591
+(defun etags-xref-find 2082,82881
+(defun etags--xref-find-definitions 2096,83410
+(defclass xref-etags-location 2129,85124
+(defun xref-make-etags-location 2135,85347
+(cl-defmethod xref-location-marker 2139,85502
+(cl-defmethod xref-location-line 2146,85746
 
 erl-src/gs_dialog.erl,98
 -define(VERSION2,32
@@ -3514,92 +3514,92 @@ complete(328,10055
 add_active(340,10527
 parse(353,10949
 derived_analyses(364,11341
-build(378,11965
-buildact(392,12521
-mapsyn(412,13542
-add_edge(434,14278
-findcats(447,14758
-normalize_tree(465,15478
-normalize_trees(475,15856
-expandmng_tree(486,16248
-expandmng_trees(496,16614
-cat(511,17013
-subtree(644,21266
-hypothetical_mem(653,21565
-make_coor(667,22130
-start_up:-start_up688,23013
-tokenizeatom(710,23921
-tokenize(720,24348
-isoperator(752,25377
-isoptab(756,25431
-specialsymbol(765,25756
-sstab(771,25861
-parse_cgi(787,26347
-keyvalseq(792,26510
-andkeyvalseq(796,26609
-keyval(799,26688
-valseq(807,26920
-plusvalseq(810,27007
-val(816,27109
-argvals(824,27426
-commaargvals(828,27503
-atomval(833,27578
-atom(836,27640
-action(846,28004
-keyvalcgi(864,28649
-keyvalscgi(865,28670
-outsyn(868,28726
-act(876,29060
-actout(901,29906
-texttreelist(912,30089
-htmltreelist(918,30190
-fitchtreelist(924,30304
-pp_html_table_tree(938,30759
-pp_html_tree(949,31113
-pp_html_trees(988,32381
-pp_html_table_fitch_tree(999,32769
-pp_html_fitch_tree(1017,33672
-removeexp(1129,39002
-splitexp(1142,39490
-pp_exp(1155,39990
-map_word(1168,40249
-pp_exps(1180,40474
-pp_tree(1188,40777
-pp_trees(1216,41807
-pp_word_list(1225,42128
-pp_word(1231,42262
-pp_word_list_rest(1238,42569
-pp_cat(1248,42929
-pp_syn(1255,43196
-pp_syn_paren(1276,43899
-pp_paren(1293,44377
-pp_syn_back(1300,44661
-pp_bas_cat(1311,45001
-writecat(1322,45409
-writesubs(1351,46455
-writesups(1361,46757
-writelistsubs(1371,47090
-pp_lam(1380,47408
-pp_lam_bracket(1398,48022
-pp_lam_paren(1407,48338
-pp_rule(1429,49238
-member(1447,49866
-append_list(1451,49919
-append(1456,50010
-at_least_one_member(1460,50076
-numbervars(1464,50171
-reverse(1467,50209
-select(1471,50290
-select_last(1475,50357
-cat_atoms(1479,50436
-writelist(1485,50524
-write_lex_cat(1492,50676
-writebreaklex(1500,50988
-write_lex(1513,51265
-writebreak(1521,51541
-tt:-tt1531,51713
-mt:-mt1534,51784
-cmt:-cmt1537,51878
+build(378,11967
+buildact(392,12523
+mapsyn(412,13544
+add_edge(434,14280
+findcats(447,14760
+normalize_tree(465,15480
+normalize_trees(475,15858
+expandmng_tree(486,16250
+expandmng_trees(496,16616
+cat(511,17015
+subtree(644,21268
+hypothetical_mem(653,21567
+make_coor(667,22132
+start_up:-start_up688,23015
+tokenizeatom(710,23923
+tokenize(720,24350
+isoperator(752,25379
+isoptab(756,25433
+specialsymbol(765,25758
+sstab(771,25863
+parse_cgi(787,26349
+keyvalseq(792,26512
+andkeyvalseq(796,26611
+keyval(799,26690
+valseq(807,26922
+plusvalseq(810,27009
+val(816,27111
+argvals(824,27428
+commaargvals(828,27505
+atomval(833,27580
+atom(836,27642
+action(846,28006
+keyvalcgi(864,28651
+keyvalscgi(865,28672
+outsyn(868,28728
+act(876,29062
+actout(901,29908
+texttreelist(912,30091
+htmltreelist(918,30192
+fitchtreelist(924,30306
+pp_html_table_tree(938,30761
+pp_html_tree(949,31115
+pp_html_trees(988,32383
+pp_html_table_fitch_tree(999,32771
+pp_html_fitch_tree(1017,33674
+removeexp(1129,39004
+splitexp(1142,39492
+pp_exp(1155,39992
+map_word(1168,40251
+pp_exps(1180,40476
+pp_tree(1188,40779
+pp_trees(1216,41809
+pp_word_list(1225,42130
+pp_word(1231,42264
+pp_word_list_rest(1238,42571
+pp_cat(1248,42931
+pp_syn(1255,43198
+pp_syn_paren(1276,43901
+pp_paren(1293,44379
+pp_syn_back(1300,44663
+pp_bas_cat(1311,45003
+writecat(1322,45411
+writesubs(1351,46457
+writesups(1361,46759
+writelistsubs(1371,47092
+pp_lam(1380,47410
+pp_lam_bracket(1398,48024
+pp_lam_paren(1407,48340
+pp_rule(1429,49240
+member(1447,49868
+append_list(1451,49921
+append(1456,50012
+at_least_one_member(1460,50078
+numbervars(1464,50173
+reverse(1467,50211
+select(1471,50292
+select_last(1475,50359
+cat_atoms(1479,50438
+writelist(1485,50526
+write_lex_cat(1492,50678
+writebreaklex(1500,50990
+write_lex(1513,51267
+writebreak(1521,51543
+tt:-tt1531,51715
+mt:-mt1534,51786
+cmt:-cmt1537,51880
 
 pyt-src/server.py,1438
 class Controls:Controls17,358
@@ -4505,108 +4505,108 @@ initialize_goal_store573,22166
 accu_store584,22576
 :- pred identify_recursive_calls601,23288
 identify_recursive_calls604,23406
-:- pred identify_out_and_out_prime626,24396
-identify_out_and_out_prime631,24631
-:- type accu_sets676,26425
-:- pred accu_stage1689,26977
-accu_stage1693,27155
-:- pred accu_stage1_2727,28347
-accu_stage1_2731,28515
-:- pred accu_sets_init781,30557
-accu_sets_init783,30605
-:- func set_upto796,30984
-set_upto798,31039
-:- pred accu_before812,31498
-accu_before815,31639
-:- pred accu_assoc835,32477
-accu_assoc838,32617
-:- pred accu_construct862,33712
-accu_construct865,33856
-:- pred accu_construct_assoc896,35307
-accu_construct_assoc899,35457
-:- pred accu_update938,37069
-accu_update941,37210
-:- pred member_lessthan_goalid964,38219
-member_lessthan_goalid967,38342
-:- type accu_assoc975,38652
-:- pred accu_is_associative986,39138
-accu_is_associative989,39250
-:- pred associativity_assertion1014,40263
-associativity_assertion1017,40404
-:- pred commutativity_assertion1037,41242
-commutativity_assertion1040,41369
-:- pred accu_is_update1057,41952
-accu_is_update1060,42066
-:- pred is_associative_construction1078,42802
-is_associative_construction1081,42898
-:- type accu_substs1095,43480
-:- type accu_base1103,43744
-:- pred accu_stage21124,44605
-accu_stage21131,44946
-:- pred accu_substs_init1179,46957
-accu_substs_init1182,47097
-:- pred acc_var_subst_init1194,47573
-acc_var_subst_init1198,47718
-:- pred create_new_var1207,48147
-create_new_var1210,48288
-:- pred accu_process_assoc_set1223,48862
-accu_process_assoc_set1229,49150
-:- pred accu_has_heuristic1297,52081
-accu_has_heuristic1299,52161
-:- pred accu_heuristic1304,52336
-accu_heuristic1307,52457
-:- pred accu_process_update_set1318,52906
-accu_process_update_set1325,53221
-:- pred accu_divide_base_case1380,55844
-accu_divide_base_case1385,56059
-:- pred accu_related1412,57146
-accu_related1415,57270
-:- inst stored_goal_plain_call1444,58415
-:- pred lookup_call1449,58601
-lookup_call1452,58715
-:- pred accu_stage31470,59432
-accu_stage31477,59826
-:- pred acc_proc_info1508,61326
-acc_proc_info1512,61485
-:- pred acc_pred_info1556,63449
-acc_pred_info1559,63597
-:- pred accu_create_goal1600,65285
-accu_create_goal1607,65628
-:- func create_acc_call1621,66400
-create_acc_call1625,66569
-:- pred create_orig_goal1634,66987
-create_orig_goal1638,67176
-:- pred create_acc_goal1662,68157
-create_acc_goal1667,68380
-:- func create_new_orig_recursive_goals1709,70225
-create_new_orig_recursive_goals1712,70368
-:- func create_new_recursive_goals1723,70918
-create_new_recursive_goals1727,71108
-:- func create_new_base_goals1738,71717
-create_new_base_goals1741,71831
-:- pred acc_unification1749,72156
-acc_unification1751,72225
-:- pred accu_top_level1766,72896
-accu_top_level1770,73058
-:- pred update_accumulator_pred1856,76290
-update_accumulator_pred1859,76411
-:- func accu_rename1876,77253
-accu_rename1879,77363
-:- func base_case_ids1889,77784
-base_case_ids1891,77846
-:- func base_case_ids_set1898,78048
-base_case_ids_set1900,78113
-:- func accu_goal_list1905,78269
-accu_goal_list1907,78349
-:- pred calculate_goal_info1916,78680
-calculate_goal_info1918,78753
-:- func chain_subst1932,79319
-chain_subst1934,79378
-:- pred chain_subst_21938,79482
-chain_subst_21941,79576
-:- some [T] pred unravel_univ1956,80060
-:- pragma foreign_export1957,80116
-unravel_univ1961,80340
+:- pred identify_out_and_out_prime626,24397
+identify_out_and_out_prime631,24632
+:- type accu_sets676,26426
+:- pred accu_stage1689,26978
+accu_stage1693,27156
+:- pred accu_stage1_2727,28348
+accu_stage1_2731,28516
+:- pred accu_sets_init781,30558
+accu_sets_init783,30606
+:- func set_upto796,30985
+set_upto798,31040
+:- pred accu_before812,31499
+accu_before815,31640
+:- pred accu_assoc835,32478
+accu_assoc838,32618
+:- pred accu_construct862,33713
+accu_construct865,33857
+:- pred accu_construct_assoc896,35308
+accu_construct_assoc899,35458
+:- pred accu_update938,37070
+accu_update941,37211
+:- pred member_lessthan_goalid964,38220
+member_lessthan_goalid967,38343
+:- type accu_assoc975,38653
+:- pred accu_is_associative986,39139
+accu_is_associative989,39251
+:- pred associativity_assertion1014,40264
+associativity_assertion1017,40405
+:- pred commutativity_assertion1037,41243
+commutativity_assertion1040,41370
+:- pred accu_is_update1057,41953
+accu_is_update1060,42067
+:- pred is_associative_construction1078,42803
+is_associative_construction1081,42899
+:- type accu_substs1095,43481
+:- type accu_base1103,43745
+:- pred accu_stage21124,44606
+accu_stage21131,44947
+:- pred accu_substs_init1179,46958
+accu_substs_init1182,47098
+:- pred acc_var_subst_init1194,47574
+acc_var_subst_init1198,47719
+:- pred create_new_var1207,48148
+create_new_var1210,48289
+:- pred accu_process_assoc_set1223,48863
+accu_process_assoc_set1229,49151
+:- pred accu_has_heuristic1297,52082
+accu_has_heuristic1299,52162
+:- pred accu_heuristic1304,52337
+accu_heuristic1307,52458
+:- pred accu_process_update_set1318,52907
+accu_process_update_set1325,53222
+:- pred accu_divide_base_case1380,55845
+accu_divide_base_case1385,56060
+:- pred accu_related1412,57147
+accu_related1415,57271
+:- inst stored_goal_plain_call1444,58416
+:- pred lookup_call1449,58602
+lookup_call1452,58716
+:- pred accu_stage31470,59433
+accu_stage31477,59827
+:- pred acc_proc_info1508,61327
+acc_proc_info1512,61486
+:- pred acc_pred_info1556,63450
+acc_pred_info1559,63598
+:- pred accu_create_goal1600,65286
+accu_create_goal1607,65629
+:- func create_acc_call1621,66401
+create_acc_call1625,66570
+:- pred create_orig_goal1634,66988
+create_orig_goal1638,67177
+:- pred create_acc_goal1662,68158
+create_acc_goal1667,68381
+:- func create_new_orig_recursive_goals1709,70226
+create_new_orig_recursive_goals1712,70369
+:- func create_new_recursive_goals1723,70919
+create_new_recursive_goals1727,71109
+:- func create_new_base_goals1738,71718
+create_new_base_goals1741,71832
+:- pred acc_unification1749,72157
+acc_unification1751,72226
+:- pred accu_top_level1766,72897
+accu_top_level1770,73059
+:- pred update_accumulator_pred1856,76291
+update_accumulator_pred1859,76412
+:- func accu_rename1876,77254
+accu_rename1879,77364
+:- func base_case_ids1889,77785
+base_case_ids1891,77847
+:- func base_case_ids_set1898,78049
+base_case_ids_set1900,78114
+:- func accu_goal_list1905,78270
+accu_goal_list1907,78350
+:- pred calculate_goal_info1916,78681
+calculate_goal_info1918,78754
+:- func chain_subst1932,79320
+chain_subst1934,79379
+:- pred chain_subst_21938,79483
+chain_subst_21941,79577
+:- some [T] pred unravel_univ1956,80061
+:- pragma foreign_export1957,80117
+unravel_univ1961,80341
 
 c-src/c.c,76
 T f(1,0

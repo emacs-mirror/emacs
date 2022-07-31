@@ -193,6 +193,15 @@ symbol: gradle-kotlin
 e: /src/Test.kt: (34, 15): foo: bar
 w: /src/Test.kt: (34, 15): foo: bar
 
+* Gradle Android resource linking
+
+symbol: gradle-android
+
+Execution failed for task ':app:processDebugResources'.
+> A failure occurred while executing com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask$TaskAction
+   > Android resource linking failed
+     ERROR:/Users/salutis/src/AndroidSchemeExperiment/app/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir/layout/item.xml:3: AAPT: error: '16dpw' is incompatible with attribute padding (attr) dimension.
+
 
 * IAR Systems C Compiler
 
@@ -424,7 +433,7 @@ symbol: oracle
 
 This stupid precompiler wraps lines at column 80 in the middle of a file name.
 There is no obvious way of detecting this or turning it off.  But if you
-delete the newline (probably needs M-x toggle-read-only), the file name will
+delete the newline (probably needs M-x read-only-mode), the file name will
 automatically be reparsed, so that you can then go there.
 
 Semantic error at line 528, column 5, file erosacqdb.pc:
@@ -542,7 +551,7 @@ cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
 * ShellCheck
 
 In autogen.sh line 38:
-autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
+autoconf_min=`sed -n 's/^ *AC_PREREQ(\[\([0-9\.]*\)]).*/\1/p' configure.ac`
 ^----------^ SC2034: autoconf_min appears unused. Verify use (or export if used externally).
              ^-- SC2006: Use $(...) notation instead of legacy backticked `...`.
 

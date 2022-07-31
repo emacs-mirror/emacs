@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.11.0
+;; Version: 1.13.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -102,7 +102,7 @@ put in the echo area.  If a positive integer, the number is used
 directly, while a float specifies the number of lines as a
 proportion of the echo area frame's height.
 
-If value is the symbol `truncate-sym-name-if-fit' t, the part of
+If value is the symbol `truncate-sym-name-if-fit', the part of
 the doc string that represents a symbol's name may be truncated
 if it will enable the rest of the doc string to fit on a single
 line, without resizing the echo area.
@@ -464,19 +464,22 @@ directly from the user or from ElDoc's automatic mechanisms'.")
 
 (defvar eldoc--doc-buffer-docs nil "Documentation items in `eldoc--doc-buffer'.")
 
-(defun eldoc-doc-buffer ()
-  "Display ElDoc documentation buffer.
+(defun eldoc-doc-buffer (&optional interactive)
+  "Get or display ElDoc documentation buffer.
 
-This holds the results of the last documentation request."
-  (interactive)
+The buffer holds the results of the last documentation request.
+If INTERACTIVE, display it.  Else, return said buffer."
+  (interactive (list t))
   (unless (buffer-live-p eldoc--doc-buffer)
     (user-error (format
                  "ElDoc buffer doesn't exist, maybe `%s' to produce one."
                  (substitute-command-keys "\\[eldoc]"))))
   (with-current-buffer eldoc--doc-buffer
-    (rename-buffer (replace-regexp-in-string "^ *" ""
-                                             (buffer-name)))
-    (display-buffer (current-buffer))))
+    (cond (interactive
+           (rename-buffer (replace-regexp-in-string "^ *" ""
+                                                    (buffer-name)))
+           (display-buffer (current-buffer)))
+          (t (current-buffer)))))
 
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
@@ -488,9 +491,9 @@ This holds the results of the last documentation request."
       (setq-local eldoc--doc-buffer-docs docs)
       (let ((inhibit-read-only t)
             (things-reported-on))
-        (erase-buffer) (setq buffer-read-only t)
+        (special-mode)
+        (erase-buffer)
         (setq-local nobreak-char-display nil)
-        (local-set-key "q" 'quit-window)
         (cl-loop for (docs . rest) on docs
                  for (this-doc . plist) = docs
                  for thing = (plist-get plist :thing)
@@ -525,7 +528,8 @@ Helper for `eldoc-display-in-echo-area'."
                         (goto-char (point-min))
                         (skip-chars-forward " \t\n")
                         (point))
-                 (goto-char (line-end-position available))
+                 (forward-visible-line (1- available))
+                 (end-of-visible-line)
                  (skip-chars-backward " \t\n")))
         (truncated (save-excursion
                      (skip-chars-forward " \t\n")
@@ -535,7 +539,8 @@ Helper for `eldoc-display-in-echo-area'."
           ((and truncated
                 (> available 1)
                 eldoc-echo-area-display-truncation-message)
-           (goto-char (line-end-position 0))
+           (forward-visible-line -1)
+           (end-of-visible-line)
            (concat (buffer-substring start (point))
                    (format
                     "\n(Documentation truncated. Use `%s' to see rest)"
@@ -546,12 +551,13 @@ Helper for `eldoc-display-in-echo-area'."
 (defun eldoc--echo-area-prefer-doc-buffer-p (truncatedp)
   "Tell if display in the echo area should be skipped.
 Helper for `eldoc-display-in-echo-area'.  If TRUNCATEDP the
-documentation to potentially appear in the echo are is truncated."
+documentation to potentially appear in the echo area is
+known to be truncated."
   (and (or (eq eldoc-echo-area-prefer-doc-buffer t)
            (and truncatedp
                 (eq eldoc-echo-area-prefer-doc-buffer
                     'maybe)))
-       (get-buffer-window eldoc--doc-buffer 'visible)))
+       (get-buffer-window eldoc--doc-buffer t)))
 
 (defun eldoc-display-in-echo-area (docs _interactive)
   "Display DOCS in echo area.
@@ -610,7 +616,8 @@ Honor `eldoc-echo-area-use-multiline-p' and
                (let ((string
                       (with-current-buffer (eldoc--format-doc-buffer docs)
                         (buffer-substring (goto-char (point-min))
-                                          (line-end-position 1)))))
+                                          (progn (end-of-visible-line)
+                                                 (point))))))
                  (if (> (length string) width)  ; truncation to happen
                      (unless (eldoc--echo-area-prefer-doc-buffer-p t)
                        (truncate-string-to-width string width))
@@ -623,8 +630,7 @@ Honor `eldoc-echo-area-use-multiline-p' and
   "Display DOCS in a dedicated buffer.
 If INTERACTIVE is t, also display the buffer."
   (eldoc--format-doc-buffer docs)
-  (when interactive
-    (eldoc-doc-buffer)))
+  (when interactive (eldoc-doc-buffer t)))
 
 (defun eldoc-documentation-default ()
   "Show first doc string for item at point.
@@ -806,7 +812,7 @@ function passes responsibility to the functions in
 Other third-party values of `eldoc-documentation-strategy' should
 not use `eldoc--make-callback'.  They must find some alternate
 way to produce callbacks to feed to
-`eldoc-documentation-functions' and should endeavour to display
+`eldoc-documentation-functions' and should endeavor to display
 the docstrings eventually produced, using
 `eldoc-display-functions'."
   (let* (;; How many callbacks have been created by the strategy

@@ -643,18 +643,23 @@ xftfont_end_for_frame (struct frame *f)
   return 0;
 }
 
-/* When using X double buffering, the XftDraw structure we build
-   seems to be useless once a frame is resized, so recreate it on
+/* When using X double buffering, the XRender surfaces we create seem
+   to become useless once the window acting as the front buffer is
+   resized for an unknown reason (X server bug?), so recreate it on
    ConfigureNotify and in some other cases.  */
 
+#ifdef HAVE_XDBE
 static void
 xftfont_drop_xrender_surfaces (struct frame *f)
 {
-  block_input ();
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
-    xftfont_end_for_frame (f);
-  unblock_input ();
+    {
+      block_input ();
+      xftfont_end_for_frame (f);
+      unblock_input ();
+    }
 }
+#endif
 
 static bool
 xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
@@ -741,35 +746,37 @@ static void syms_of_xftfont_for_pdumper (void);
 struct font_driver const xftfont_driver =
   {
     /* We can't draw a text without device dependent functions.  */
-  .type = LISPSYM_INITIALLY (Qxft),
-  .get_cache = xfont_get_cache,
-  .list = xftfont_list,
-  .match = xftfont_match,
-  .list_family = ftfont_list_family,
-  .open_font = xftfont_open,
-  .close_font = xftfont_close,
-  .prepare_face = xftfont_prepare_face,
-  .done_face = xftfont_done_face,
-  .has_char = xftfont_has_char,
-  .encode_char = xftfont_encode_char,
-  .text_extents = xftfont_text_extents,
-  .draw = xftfont_draw,
-  .get_bitmap = ftfont_get_bitmap,
-  .anchor_point = ftfont_anchor_point,
+    .type = LISPSYM_INITIALLY (Qxft),
+    .get_cache = xfont_get_cache,
+    .list = xftfont_list,
+    .match = xftfont_match,
+    .list_family = ftfont_list_family,
+    .open_font = xftfont_open,
+    .close_font = xftfont_close,
+    .prepare_face = xftfont_prepare_face,
+    .done_face = xftfont_done_face,
+    .has_char = xftfont_has_char,
+    .encode_char = xftfont_encode_char,
+    .text_extents = xftfont_text_extents,
+    .draw = xftfont_draw,
+    .get_bitmap = ftfont_get_bitmap,
+    .anchor_point = ftfont_anchor_point,
 #ifdef HAVE_LIBOTF
-  .otf_capability = ftfont_otf_capability,
+    .otf_capability = ftfont_otf_capability,
 #endif
-  .end_for_frame = xftfont_end_for_frame,
+    .end_for_frame = xftfont_end_for_frame,
 #if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
-  .shape = xftfont_shape,
+    .shape = xftfont_shape,
 #endif
 #if defined HAVE_OTF_GET_VARIATION_GLYPHS || defined HAVE_FT_FACE_GETCHARVARIANTINDEX
-  .get_variation_glyphs = ftfont_variation_glyphs,
+    .get_variation_glyphs = ftfont_variation_glyphs,
 #endif
-  .filter_properties = ftfont_filter_properties,
-  .cached_font_ok = xftfont_cached_font_ok,
-  .combining_capability = ftfont_combining_capability,
-  .drop_xrender_surfaces = xftfont_drop_xrender_surfaces,
+    .filter_properties = ftfont_filter_properties,
+    .cached_font_ok = xftfont_cached_font_ok,
+    .combining_capability = ftfont_combining_capability,
+#ifdef HAVE_XDBE
+    .drop_xrender_surfaces = xftfont_drop_xrender_surfaces,
+#endif
   };
 #ifdef HAVE_HARFBUZZ
 struct font_driver xfthbfont_driver;
@@ -789,6 +796,15 @@ syms_of_xftfont (void)
 	       doc:  /* Non-nil means override the ascent and descent values for Xft font driver.
 This is needed with some fonts to correct vertical overlap of glyphs.  */);
   xft_font_ascent_descent_override = 0;
+
+  DEFVAR_LISP ("xft-color-font-whitelist", Vxft_color_font_whitelist,
+    doc: /* List of "color" font families that don't actually have color glyphs.
+Some fonts (such as Source Code Pro) are reported as color fonts, but
+do not actually have glyphs with colors that can cause Xft crashes.
+
+The font families in this list will not be ignored when
+`xft-ignore-color-fonts' is non-nil.  */);
+  Vxft_color_font_whitelist = list1 (build_pure_c_string ("Source Code Pro"));
 
   pdumper_do_now_and_after_load (syms_of_xftfont_for_pdumper);
 }

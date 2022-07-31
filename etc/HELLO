@@ -1,9 +1,11 @@
 Content-Type: text/enriched
 Text-Width: 70
 
-This is a list of ways to say hello in various languages.
-It is not intended to be comprehensive, but to demonstrate
-some of the character sets that Emacs supports.
+This is a list of ways to write a <x-color><param>orange red</param>"hello"</x-color> greeting using
+various scripts.  It is not intended to be comprehensive,
+but to demonstrate some of the character sets and writing
+systems that Emacs supports.  Look for the script used to
+write your language, to see if it is supported.
 
 
 Non-ASCII examples:
@@ -11,7 +13,7 @@ Non-ASCII examples:
           Cześć!,</x-charset><x-charset><param>latin-iso8859-2</param> Dobrý den,</x-charset><x-charset><param>cyrillic-iso8859-5</param> Здравствуйте!,</x-charset><x-charset><param>greek-iso8859-7</param> Γειά σας,</x-charset> გამარჯობა
   Africa: <x-charset><param>ethiopic</param>ሠላም</x-charset>
   Middle/Near East:<x-charset><param>hebrew-iso8859-8</param> שָׁלוֹם,</x-charset> السّلام عليكم
-  South Asia: નમસ્તે, नमस्ते, ನಮಸ್ಕಾರ, നമസ്കാരം, ଶୁଣିବେ,
+  South Asia: નમસ્તે, नमस्ते, ನಮಸ್ಕಾರ, നമസ്കാരം, ନମସ୍କାର,
               ආයුබෝවන්, வணக்கம், నమస్కారం,<x-charset><param>tibetan</param> བཀྲ་ཤིས་བདེ་ལེགས༎</x-charset>
   South East Asia: ជំរាបសួរ,<x-charset><param>lao</param> ສະບາຍດີ,</x-charset> မင်္ဂလာပါ,<x-charset><param>thai-tis620</param> สวัสดีครับ,</x-charset><x-charset><param>vietnamese-viscii-lower</param> </x-charset><x-charset><param>vietnamese-viscii-upper</param>C</x-charset><x-charset><param>vietnamese-viscii-lower</param>hào bạn</x-charset>
   East Asia:<x-charset><param>chinese-gb2312</param> 你好,</x-charset><x-charset><param>chinese-big5-1</param> 早晨,</x-charset><x-charset><param>japanese-jisx0208</param> こんにちは,</x-charset><x-charset><param>korean-ksc5601</param> 안녕하세요</x-charset>
@@ -25,17 +27,23 @@ LANGUAGE (NATIVE NAME)	HELLO
 Amharic (አማርኛ)	ሠላም
 Arabic (العربيّة)	السّلام عليكم
 Armenian (հայերեն)	Բարև ձեզ
+Balinese (ᬅᬓ᭄ᬱᬭᬩᬮᬶ)	ᬒᬁᬲ᭄ᬯᬲ᭄ᬢ᭄ᬬᬲ᭄ᬢᬸ
+Batak (ᯘᯮᯒᯗ᯲ᯅᯗᯂ᯲)	ᯂᯬᯒᯘ᯲ / ᯔᯧᯐᯬᯀᯱᯐᯬᯀᯱ
 Belarusian (беларуская)	Прывітанне
 Bengali (বাংলা)	নমস্কার
+Brahmi (𑀩𑁆𑀭𑀸𑀳𑁆𑀫𑀻)	𑀦𑀫𑀲𑁆𑀢𑁂
+
 Braille	⠓⠑⠇⠇⠕
+Buginese (ᨒᨚᨈᨑ)	ᨖᨒᨚ
 Burmese (မြန်မာ)	မင်္ဂလာပါ
-C	printf ("Hello, world!\n");
+C	printf (<x-color><param>orange red</param>"Hello, world!\n"</x-color>);
 Cham (ꨌꩌ)	ꨦꨤꩌ ꨦꨁꨰ
 Cherokee (ᏣᎳᎩ ᎦᏬᏂᎯᏍᏗ)	ᎣᏏᏲ / ᏏᏲ
 Comanche /kəˈmæntʃiː/	Haa marʉ́awe
 Cree (ᓀᐦᐃᔭᐍᐏᐣ)	ᑕᓂᓯ / ᐙᒋᔮ
 Czech (čeština)	Dobrý den
 Danish (dansk)	Hej / Goddag / Halløj
+Devanagari (देवनागरी)	नमस्ते / नमस्कार
 Dutch (Nederlands)	Hallo / Dag
 Efik  /ˈɛfɪk/	Mɔkɔm
 Egyptian Hieroglyphs (𓂋𓏤𓈖𓆎𓅓‌𓏏𓊖)	𓅓𓊵𓏏𓊪, 𓇍𓇋𓂻𓍘𓇋
@@ -48,39 +56,60 @@ Finnish (suomi)	Hei / Hyvää päivää
 French (français)	Bonjour / Salut
 Georgian (ქართული)	გამარჯობა
 German (Deutsch)	Guten Tag / Grüß Gott
+Grantha (𑌗𑍍𑌰𑌨𑍍𑌥)	𑌨𑌮𑌸𑍍𑌤𑍇 / 𑌨𑌮𑌸𑍍𑌕𑌾𑌰𑌃
 Greek (ελληνικά)	Γειά σας
 Greek, ancient (ἑλληνική)	Οὖλέ τε καὶ μέγα χαῖρε
 Gujarati (ગુજરાતી)	નમસ્તે
+Gurmukhi (ਗੁਰਮੁਖੀ)	ਸਤ ਸ੍ਰੀ ਅਕਾਲ
+Hanifi Rohingya (𐴌𐴟𐴇𐴥𐴝𐴚𐴒𐴙𐴝 𐴇𐴝𐴕𐴞𐴉𐴞 𐴓𐴠𐴑𐴤𐴝)	𐴀𐴝𐴏𐴓𐴝𐴀𐴡𐴤𐴛𐴝𐴓𐴝𐴙𐴑𐴟𐴔
+Hanunoo (ᜱᜨᜳᜨᜳᜢ)	ᜫᜬᜧ᜴ ᜣᜭᜯᜥ᜴ ᜰᜲᜭᜥ᜴
 Hebrew (עִבְרִית)	שָׁלוֹם
+Hindi (हिन्दी)	प्रणाम / पाय लागू
 Hungarian (magyar)	Szép jó napot!
-Hindi (हिंदी)	नमस्ते / नमस्कार ।
 Inuktitut (ᐃᓄᒃᑎᑐᑦ)	ᐊᐃ
 Italian (italiano)	Ciao / Buon giorno
 Javanese (ꦧꦱꦗꦮꦶ)	console.log("ꦲꦭꦺꦴ");
+
+Kaithi (𑂍𑂶𑂟𑂲)	𑂩𑂰𑂧𑂩𑂰𑂧
 Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ
+Kharoṣṭhī (𐨑𐨪𐨆𐨛𐨁)	𐨣𐨨𐨲𐨪𐨆 𐨐𐨪𐨅𐨨𐨁
 Khmer (ភាសាខ្មែរ)	ជំរាបសួរ
 Lakota (Lakȟotiyapi)	Taŋyáŋ yahí!
 Lao (ພາສາລາວ)	ສະບາຍດີ / ຂໍໃຫ້ໂຊກດີ
+Lepcha (ᰛᰩᰵᰛᰧᰵᰶ)	ᰂᰦᰕᰥᰬ
+Limbu (ᤕᤰᤌᤢᤱ ᤐᤠᤴ)	ᤛᤣᤘᤠᤖᤥ
+Makasar (𑻪𑻢𑻪𑻢)	𑻦𑻤𑻵𑻱
 Malayalam (മലയാളം)	നമസ്കാരം
 Maldivian (ދިވެހި)	އައްސަލާމު ޢަލައިކުމް / ކިހިނެހް؟
 Maltese (il-Malti)	Bonġu / Saħħa
 Mathematics	∀ p ∈ world • hello p  □
+Meetei Mayek (ꯃꯤꯇꯩ ꯃꯌꯦꯛ)	ꯈꯨꯔꯨꯝꯖꯔꯤ
+Modi (𑘦𑘻𑘚𑘲)	𑘡𑘦𑘭𑘿𑘎𑘰𑘨
 Mongolian (монгол хэл)	Сайн байна уу?
+Northern Thai (ᨣᩣᩴᨾᩮᩬᩥᨦ / ᨽᩣᩈᩣᩃ᩶ᩣ᩠ᨶᨶᩣ)	ᩈ᩠ᩅᩢᩔ᩠ᨯᩦᨣᩕᩢ᩠ᨸ
 Norwegian (norsk)	Hei / God dag
-Oriya (ଓଡ଼ିଆ)	ଶୁଣିବେ
+Odia (ଓଡ଼ିଆ)	ନମସ୍କାର
 Polish  (język polski)	Dzień dobry! / Cześć!
+Rejang (ꥆꤰ꥓ꤼꤽ ꤽꥍꤺꥏ)	ꤸꥉꥐꤺꥉꥂꥎ
 Russian (русский)	Здра́вствуйте!
+Sharada (𑆯𑆳𑆫𑆢𑆳)	𑆤𑆩𑆱𑇀𑆑𑆳𑆫
+Siddham (𑖭𑖰𑖟𑖿𑖠𑖽)	𑖡𑖦𑖫𑖿𑖝𑖸
 Sinhala (සිංහල)	ආයුබෝවන්
 Slovak (slovenčina)	Dobrý deň
 Slovenian (slovenščina)	Pozdravljeni!
 Spanish (español)	¡Hola!
+Sundanese (ᮃᮊ᮪ᮟᮛᮞᮥᮔ᮪ᮓ)	ᮞᮙ᮪ᮕᮥᮛᮞᮥᮔ᮪
 Swedish (svenska)	Hej / Goddag / Hallå
+Syloti Nagri (ꠍꠤꠟꠐꠤ ꠘꠣꠉꠞꠤ)	ꠀꠌ꠆ꠍꠣꠟꠣꠝꠥ ꠀꠟꠣꠁꠇꠥꠝ / ꠘꠝꠡ꠆ꠇꠣꠞ
 Tamil (தமிழ்)	வணக்கம்
 Telugu (తెలుగు)	నమస్కారం
+Tagalog (ᜊᜌ᜔ᜊᜌᜒᜈ᜔)	ᜃᜓᜋᜓᜐ᜔ᜆ
+Tagbanwa (ᝦᝪᝯ)	ᝫᝩᝬᝥ ᝣᝮᝧᝯ
 TaiViet (ꪁꪫꪱꪣ ꪼꪕ)	ꪅꪰꪙꫂ ꪨꪮꫂ ꪁꪫꪱ / ꪅꪽ ꪨꪷ ꪁꪫꪱ
 Thai (ภาษาไทย)	สวัสดีครับ / สวัสดีค่ะ
 Tibetan (བོད་སྐད་)	བཀྲ་ཤིས་བདེ་ལེགས༎
 Tigrigna (ትግርኛ)	ሰላማት
+Tirhuta (𑒞𑒱𑒩𑒯𑒳𑒞𑒰)	𑒣𑓂𑒩𑒢𑒰𑒧 / 𑒮𑒲𑒞𑒰𑒩𑒰𑒧
 Turkish (Türkçe)	Merhaba
 Ukrainian (українська)	Вітаю
 Vietnamese (tiếng Việt)	Chào bạn

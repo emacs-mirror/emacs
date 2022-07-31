@@ -3431,6 +3431,9 @@ Without an argument, it saves customized diff argument, if available
     ))
 
 (defun ediff-show-diff-output (arg)
+  "With prefix argument ARG, show plain diff output.
+Without an argument, save the customized diff argument, if available
+(and plain output, if customized output was not generated)."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (ediff-compute-custom-diffs-maybe)
@@ -3438,7 +3441,10 @@ Without an argument, it saves customized diff argument, if available
     (ediff-skip-unsuitable-frames ' ok-unsplittable))
   (let ((buf (cond ((and arg (ediff-buffer-live-p ediff-diff-buffer))
 		    ediff-diff-buffer)
-		   ((ediff-buffer-live-p ediff-custom-diff-buffer)
+		   ((and (ediff-buffer-live-p ediff-custom-diff-buffer)
+                         ;; We may not have gotten a custom output if
+                         ;; we're working on unsaved buffers.
+                         (> (buffer-size ediff-custom-diff-buffer) 0))
 		    ediff-custom-diff-buffer)
 		   ((ediff-buffer-live-p ediff-diff-buffer)
 		    ediff-diff-buffer)

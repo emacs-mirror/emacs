@@ -915,8 +915,15 @@ Term buffers are truncated from the top to be no greater than this number.
 Notice that a setting of 0 means \"don't truncate anything\".  This variable
 is buffer-local."
   :group 'term
-  :type 'integer
+  :type 'natnum
   :version "27.1")
+
+(defcustom term-bind-function-keys nil
+  "If nil, don't alter <f1>, <f2> and so on.
+If non-nil, bind these keys in `term-mode' and send them to the
+underlying shell."
+  :type 'boolean
+  :version "29.1")
 
 
 ;; Set up term-raw-map, etc.
@@ -958,6 +965,10 @@ is buffer-local."
     (define-key map [next] 'term-send-next)
     (define-key map [xterm-paste] #'term--xterm-paste)
     (define-key map [?\C-/] #'term-send-C-_)
+
+    (when term-bind-function-keys
+      (dotimes (key 21)
+        (keymap-set map (format "<f%d>" key) #'term-send-function-key)))
     map)
   "Keyboard map for sending characters directly to the inferior process.")
 
@@ -1041,11 +1052,10 @@ is buffer-local."
   "Change `term-escape-char' and keymaps that depend on it."
   (when term-escape-char
     ;; Undo previous term-set-escape-char.
-    (define-key term-raw-map term-escape-char 'term-send-raw))
+    (define-key term-raw-map term-escape-char 'term-send-raw)
+    (define-key term-raw-escape-map term-escape-char nil t))
   (setq term-escape-char (if (vectorp key) key (vector key)))
   (define-key term-raw-map term-escape-char term-raw-escape-map)
-  ;; FIXME: If we later call term-set-escape-char again with another key,
-  ;; we should undo this binding.
   (define-key term-raw-escape-map term-escape-char 'term-send-raw))
 
 (term-set-escape-char (or term-escape-char ?\C-c))
@@ -1411,14 +1421,31 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 (defun term-send-del   () (interactive) (term-send-raw-string "\e[3~"))
 (defun term-send-backspace  () (interactive) (term-send-raw-string "\C-?"))
 (defun term-send-C-_  () (interactive) (term-send-raw-string "\C-_"))
+
+(defun term-send-function-key ()
+  "If bound to a function key, this will send that key to the underlying shell."
+  (interactive)
+  (let ((key (this-command-keys-vector)))
+    (when (and (= (length key) 1)
+               (symbolp (elt key 0)))
+      (let ((name (symbol-name (elt key 0))))
+        (when (string-match "\\`f\\([0-9]+\\)\\'" name)
+          (let* ((num (string-to-number (match-string 1 name)))
+                 (ansi
+                  (cond
+                   ((<= num 5) (+ num 10))
+                   ((<= num 10) (+ num 11))
+                   ((<= num 14) (+ num 12))
+                   ((<= num 16) (+ num 13))
+                   ((<= num 20) (+ num 14)))))
+            (when ansi
+              (term-send-raw-string (format "\e[%d~" ansi)))))))))
+
 
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
 Each character you type is sent directly to the inferior without
-intervention from Emacs, except for the escape character (usually C-c).
-
-This command will send existing partial lines to the terminal
-process."
+intervention from Emacs, except for the escape character (usually C-c)."
   (interactive)
   ;; FIXME: Emit message? Cfr ilisp-raw-message
   (when (term-in-line-mode)
@@ -1437,10 +1464,10 @@ process."
       (when (> (point) pmark)
 	(unwind-protect
 	    (progn
-	      (add-function :override term-input-sender #'term-send-string)
+	      (add-function :override (local 'term-input-sender) #'term-send-string)
 	      (end-of-line)
 	      (term-send-input))
-	  (remove-function term-input-sender #'term-send-string))))
+	  (remove-function (local 'term-input-sender) #'term-send-string))))
     (term-update-mode-line)))
 
 (defun term-line-mode  ()
@@ -1550,7 +1577,8 @@ commands to use in that buffer.
 					 (or explicit-shell-file-name
 					     (getenv "ESHELL")
 					     shell-file-name))))
-  (set-buffer (make-term "terminal" program))
+  (let ((prog (split-string-shell-command program)))
+    (set-buffer (apply #'make-term "terminal" (car prog) nil (cdr prog))))
   (term-char-mode)
   (pop-to-buffer-same-window "*terminal*"))
 
@@ -2445,7 +2473,7 @@ Checks if STRING contains a password prompt as defined by
   "Long inputs send to term processes are broken up into chunks of this size.
 If your process is choking on big inputs, try lowering the value."
   :group 'term
-  :type 'integer)
+  :type 'natnum)
 
 (defun term-send-string (proc str)
   "Send to PROC the contents of STR as input.
@@ -4345,7 +4373,7 @@ the process.  Any more args are arguments to PROGRAM."
 (defun ansi-term (program &optional new-buffer-name)
   "Start a terminal-emulator in a new buffer.
 This is almost the same as `term' apart from always creating a new buffer,
-and `C-x' being marked as a `term-escape-char'."
+and \\`C-x' being marked as a `term-escape-char'."
   (interactive (list (read-from-minibuffer "Run program: "
 					   (or explicit-shell-file-name
 					       (getenv "ESHELL")
@@ -4368,7 +4396,10 @@ and `C-x' being marked as a `term-escape-char'."
   ;; for now they have the *term-ansi-term*<?> form but we'll see...
 
   (setq term-ansi-buffer-name (generate-new-buffer-name term-ansi-buffer-name))
-  (setq term-ansi-buffer-name (term-ansi-make-term term-ansi-buffer-name program))
+  (let ((prog (split-string-shell-command program)))
+    (setq term-ansi-buffer-name
+          (apply #'term-ansi-make-term term-ansi-buffer-name (car prog)
+                 nil (cdr prog))))
 
   (set-buffer term-ansi-buffer-name)
   (term-mode)

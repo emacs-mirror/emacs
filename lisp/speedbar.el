@@ -306,10 +306,9 @@ attached to and added to this list before the new frame is initialized."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value"))))
 
-(defcustom speedbar-use-imenu-flag (fboundp 'imenu)
+(defcustom speedbar-use-imenu-flag t
   "Non-nil means use imenu for file parsing, nil to use etags.
-XEmacs prior to 20.4 doesn't support imenu, therefore the default is to
-use etags instead.  Etags support is not as robust as imenu support."
+Etags support is not as robust as imenu support." ; See Bug#51102
   :tag "Use Imenu for tags"
   :group 'speedbar
   :type 'boolean)
@@ -704,8 +703,6 @@ If you want to change this while speedbar is active, either use
 (defvar speedbar-update-flag-disable nil
   "Permanently disable changing of the update flag.")
 
-(define-obsolete-variable-alias
-  'speedbar-syntax-table 'speedbar-mode-syntax-table "24.1")
 (defvar speedbar-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; Turn off paren matching around here.
@@ -720,8 +717,6 @@ If you want to change this while speedbar is active, either use
     st)
   "Syntax-table used on the speedbar.")
 
-
-(define-obsolete-variable-alias 'speedbar-key-map 'speedbar-mode-map "24.1")
 (defvar speedbar-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
@@ -800,15 +795,10 @@ This basically creates a sparse keymap, and makes its parent be
      ["Auto Update" speedbar-toggle-updates
       :active (not speedbar-update-flag-disable)
       :style toggle :selected speedbar-update-flag])
-   (if (and (or (fboundp 'defimage)
-		(fboundp 'make-image-specifier))
-	    (if (fboundp 'display-graphic-p)
-		(display-graphic-p)
-	      window-system))
-       (list
-	["Use Images" speedbar-toggle-images
-	 :style toggle :selected speedbar-use-images]))
-   )
+   (when (and (fboundp 'defimage) (display-graphic-p))
+     (list
+      ["Use Images" speedbar-toggle-images
+       :style toggle :selected speedbar-use-images])))
   "Base part of the speedbar menu.")
 
 (defvar speedbar-easymenu-definition-special
@@ -940,7 +930,8 @@ supported at a time.
   ;; reset the selection variable
   (setq speedbar-last-selected-file nil)
   (unless (display-graphic-p)
-    (message "Use `M-x speedbar-get-focus' to see the speedbar window")))
+    (message (substitute-command-keys
+              "Use \\[speedbar-get-focus] to see the speedbar window"))))
 
 (defun speedbar-frame-reposition-smartly ()
   "Reposition the speedbar frame to be next to the attached frame."
@@ -2276,9 +2267,7 @@ the list."
 		      (with-current-buffer (get-file-buffer f)
                         speedbar-tag-hierarchy-method)
 		    speedbar-tag-hierarchy-method))
-	 (lst (if (fboundp 'copy-tree)
-		  (copy-tree lst)
-		lst)))
+         (lst (copy-tree lst)))
     (while methods
       (setq lst (funcall (car methods) lst)
 	    methods (cdr methods)))
@@ -2800,15 +2789,7 @@ to add more types of version control systems."
 	     (not (or (and (featurep 'ange-ftp)
 			   (string-match
 			    (car (symbol-value 'ange-ftp-name-format))
-			    (expand-file-name default-directory)))
-		      ;; efs support: Bob Weiner
-		      (and (featurep 'efs)
-			   (string-match
-			    (let ((reg (symbol-value 'efs-directory-regexp)))
-			      (if (stringp reg)
-				  reg
-				(car reg)))
-			    (expand-file-name default-directory))))))
+                            (expand-file-name default-directory))))))
 	(setq speedbar-vc-to-do-point 0))
     (if (numberp speedbar-vc-to-do-point)
 	(progn

@@ -710,10 +710,14 @@ different header separator appropriate for `log-edit-mode'."
   (interactive)
   (when (or (called-interactively-p 'interactive)
             (log-edit-empty-buffer-p))
-    (insert "Summary: ")
-    (when log-edit-setup-add-author
-      (insert "\nAuthor: "))
-    (insert "\n\n")
+    (dolist (header (append '("Summary") (and log-edit-setup-add-author
+                                              '("Author"))))
+      ;; Make `C-a' work like in other buffers with header names.
+      (insert (propertize (concat header ": ")
+                          'field 'header
+                          'rear-nonsticky t)
+              "\n"))
+    (insert "\n")
     (message-position-point)))
 
 (defun log-edit-insert-cvs-template ()

@@ -95,6 +95,19 @@ STRING, it is skipped so the next STRING occurrence is selected."
         found-point
       (and restore-point (goto-char starting-point)))))
 
+(defun python-tests-assert-faces (content faces)
+  "Assert that font faces for CONTENT are equal to FACES."
+  (python-tests-with-temp-buffer content
+    (font-lock-ensure nil nil)
+    (should (equal faces (python-tests-get-buffer-faces)))))
+
+(defun python-tests-get-buffer-faces ()
+  "Return a list of (position . face) for each face change positions."
+  (cl-loop for pos = (point-min)
+           then (next-single-property-change pos 'face)
+           while pos
+           collect (cons pos (get-text-property pos 'face))))
+
 (defun python-tests-self-insert (char-or-str)
   "Call `self-insert-command' for chars in CHAR-OR-STR."
   (let ((chars
@@ -200,6 +213,172 @@ aliqua."
     (python-indent-dedent-line-backspace 1)
     (should (string= (buffer-string) "\"\""))
     (should (null (nth 3 (syntax-ppss))))))
+
+(ert-deftest python-font-lock-keywords-level-1-1 ()
+  (python-tests-assert-faces
+   "def func():"
+   '((1 . font-lock-keyword-face) (4)
+     (5 . font-lock-function-name-face) (9))))
+
+(ert-deftest python-font-lock-keywords-level-1-2 ()
+  "Invalid function name should not be font-locked."
+  (python-tests-assert-faces
+   "def 1func():"
+   '((1 . font-lock-keyword-face) (4))))
+
+(ert-deftest python-font-lock-assignment-statement-1 ()
+  (python-tests-assert-faces
+   "a, b, c = 1, 2, 3"
+   '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-variable-name-face) (5)
+     (7 . font-lock-variable-name-face) (8))))
+
+(ert-deftest python-font-lock-assignment-statement-2 ()
+  (python-tests-assert-faces
+   "a, *b, c = 1, 2, 3, 4, 5"
+   '((1 . font-lock-variable-name-face) (2)
+     (5 . font-lock-variable-name-face) (6)
+     (8 . font-lock-variable-name-face) (9))))
+
+(ert-deftest python-font-lock-assignment-statement-3 ()
+  (python-tests-assert-faces
+   "[a, b] = (1, 2)"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (5 . font-lock-variable-name-face) (6))))
+
+(ert-deftest python-font-lock-assignment-statement-4 ()
+  (python-tests-assert-faces
+   "(l[1], l[2]) = (10, 11)"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (8 . font-lock-variable-name-face) (9))))
+
+(ert-deftest python-font-lock-assignment-statement-5 ()
+  (python-tests-assert-faces
+   "(a, b, c, *d) = *x, y = 5, 6, 7, 8, 9"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (5 . font-lock-variable-name-face) (6)
+     (8 . font-lock-variable-name-face) (9)
+     (12 . font-lock-variable-name-face) (13)
+     (18 . font-lock-variable-name-face) (19)
+     (21 . font-lock-variable-name-face) (22))))
+
+(ert-deftest python-font-lock-assignment-statement-6 ()
+  (python-tests-assert-faces
+   "(a,) = 'foo',"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (8 . font-lock-string-face) (13))))
+
+(ert-deftest python-font-lock-assignment-statement-7 ()
+  (python-tests-assert-faces
+   "(*a,) = ['foo', 'bar', 'baz']"
+   '((1)
+     (3 . font-lock-variable-name-face) (4)
+     (10 . font-lock-string-face) (15)
+     (17 . font-lock-string-face) (22)
+     (24 . font-lock-string-face) (29))))
+
+(ert-deftest python-font-lock-assignment-statement-8 ()
+  (python-tests-assert-faces
+   "d = D('a', ['b'], 'c')"
+   '((1 . font-lock-variable-name-face) (2)
+     (7 . font-lock-string-face) (10)
+     (13 . font-lock-string-face) (16)
+     (19 . font-lock-string-face) (22))))
+
+(ert-deftest python-font-lock-assignment-statement-9 ()
+  (python-tests-assert-faces
+   "d.x, d.y[0], *d.z = 'a', 'b', 'c', 'd', 'e'"
+   '((1)
+     (3 . font-lock-variable-name-face) (4)
+     (8 . font-lock-variable-name-face) (9)
+     (17 . font-lock-variable-name-face) (18)
+     (21 . font-lock-string-face) (24)
+     (26 . font-lock-string-face) (29)
+     (31 . font-lock-string-face) (34)
+     (36 . font-lock-string-face) (39)
+     (41 . font-lock-string-face))))
+
+(ert-deftest python-font-lock-assignment-statement-10 ()
+  (python-tests-assert-faces
+   "a: int = 5"
+   '((1 . font-lock-variable-name-face) (2)
+     (4 . font-lock-builtin-face) (7))))
+
+(ert-deftest python-font-lock-assignment-statement-11 ()
+  (python-tests-assert-faces
+   "b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')"
+   '((1 . font-lock-variable-name-face) (2)
+     (19 . font-lock-builtin-face) (22)
+     (40 . font-lock-builtin-face) (43)
+     (46 . font-lock-builtin-face) (49)
+     (55 . font-lock-constant-face) (59)
+     (61 . font-lock-string-face) (66))))
+
+(ert-deftest python-font-lock-assignment-statement-12 ()
+  (python-tests-assert-faces
+   "c: Collection = {1, 2, 3}"
+   '((1 . font-lock-variable-name-face) (2))))
+
+(ert-deftest python-font-lock-assignment-statement-13 ()
+  (python-tests-assert-faces
+   "d: Mapping[int, str] = {1: 'bar', 2: 'baz'}"
+   '((1 . font-lock-variable-name-face) (2)
+     (12 . font-lock-builtin-face) (15)
+     (17 . font-lock-builtin-face) (20)
+     (28 . font-lock-string-face) (33)
+     (38 . font-lock-string-face) (43))))
+
+(ert-deftest python-font-lock-assignment-statement-14 ()
+  (python-tests-assert-faces
+   "(a) = 5; (b) = 6"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (11 . font-lock-variable-name-face) (12))))
+
+(ert-deftest python-font-lock-assignment-statement-15 ()
+  (python-tests-assert-faces
+   "[a] = 5,; [b] = 6,"
+   '((1)
+     (2 . font-lock-variable-name-face) (3)
+     (12 . font-lock-variable-name-face) (13))))
+
+(ert-deftest python-font-lock-assignment-statement-16 ()
+  (python-tests-assert-faces
+   "[*a] = 5, 6; [*b] = 7, 8"
+   '((1)
+     (3 . font-lock-variable-name-face) (4)
+     (16 . font-lock-variable-name-face) (17))))
+
+(ert-deftest python-font-lock-assignment-statement-17 ()
+  (python-tests-assert-faces
+   "(a) = (b) = 1"
+   `((1)
+     (2 . font-lock-variable-name-face) (3)
+     (8 . font-lock-variable-name-face) (9))))
+
+(ert-deftest python-font-lock-assignment-statement-18 ()
+  (python-tests-assert-faces
+   "CustomInt = int
+
+def f(x: CustomInt) -> CustomInt:
+    y = x + 1
+    ys: Sequence[CustomInt] = [y, y + 1]
+    res: CustomInt = sum(ys) + 1
+    return res
+"
+   '((1 . font-lock-variable-name-face) (10)
+     (13 . font-lock-builtin-face) (16)
+     (18 . font-lock-keyword-face) (21)
+     (22 . font-lock-function-name-face) (23)
+     (56 . font-lock-variable-name-face) (57)
+     (70 . font-lock-variable-name-face) (72)
+     (111 . font-lock-variable-name-face) (114)
+     (128 . font-lock-builtin-face) (131)
+     (144 . font-lock-keyword-face) (150))))
 
 
 ;;; Indentation
@@ -943,6 +1122,35 @@ if save:
    (python-indent-line t)
    (should (= (python-indent-calculate-indentation t) 8))))
 
+(ert-deftest python-indent-dedenters-comment-else ()
+  "Test de-indentation for the else keyword with comments before it."
+  (python-tests-with-temp-buffer
+   "
+if save:
+    try:
+        write_to_disk(data)
+    except IOError:
+        msg = 'Error saving to disk'
+        message(msg)
+        logger.exception(msg)
+    except Exception:
+        if hide_details:
+            logger.exception('Unhandled exception')
+        # comment
+            else
+    finally:
+        data.free()
+"
+   (python-tests-look-at "else\n")
+   (should (eq (car (python-indent-context)) :at-dedenter-block-start))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 4))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 0))
+   (python-indent-line t)
+   (should (= (python-indent-calculate-indentation t) 8))))
+
 (ert-deftest python-indent-dedenters-3 ()
   "Test de-indentation for the except keyword."
   (python-tests-with-temp-buffer
@@ -1349,6 +1557,31 @@ this is an arbitrarily
      (should (string= (buffer-substring-no-properties (point-min) (point-max))
                       expected)))))
 
+(ert-deftest python-indent-after-match-block ()
+  "Test PEP634 match."
+  (python-tests-with-temp-buffer
+   "
+match foo:
+"
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (goto-char (point-max))
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 4))))
+
+(ert-deftest python-indent-after-case-block ()
+  "Test PEP634 case."
+  (python-tests-with-temp-buffer
+   "
+match foo:
+    case 1:
+"
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (goto-char (point-max))
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 8))))
+
 
 ;;; Filling
 
@@ -1532,6 +1765,57 @@ class C:
      (should (= (marker-position (mark-marker))
                 expected-mark-end-position)))))
 
+(ert-deftest python-mark-defun-4 ()
+  "Test `python-mark-defun' with nested functions."
+  (python-tests-with-temp-buffer
+   "
+def foo(x):
+    def bar():
+        return x
+    if True:
+        return bar
+"
+   (let ((expected-mark-beginning-position
+          (progn
+            (python-tests-look-at "def foo(x):")
+            (1- (line-beginning-position))))
+         (expected-mark-end-position (point-max)))
+     (python-tests-look-at "return bar")
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position)))))
+
+(ert-deftest python-mark-defun-5 ()
+  "Test `python-mark-defun' with point inside backslash escaped defun."
+  (python-tests-with-temp-buffer
+   "
+def \\
+        foo(x):
+    return x
+"
+   (let ((transient-mark-mode t)
+         (expected-mark-beginning-position
+          (progn
+            (python-tests-look-at "def ")
+            (1- (line-beginning-position))))
+         (expected-mark-end-position
+          (save-excursion
+            (python-tests-look-at "return x")
+            (forward-line)
+            (point))))
+     (python-tests-look-at "def ")
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position))
+     (deactivate-mark)
+     (python-tests-look-at "foo(x)")
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position)))))
+
 
 ;;; Navigation
 
@@ -1558,12 +1842,20 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
         return wrapped_f
     return wwrap
 "
-   (python-tests-look-at "return wrap")
+   (python-tests-look-at "return wwrap")
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
                 (point))
               (save-excursion
-                (python-tests-look-at "def wrapped_f(*args):" -1)
+                (python-tests-look-at "def decoratorFunctionWithArguments" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "return wrap" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def wwrap(f):" -1)
                 (beginning-of-line)
                 (point))))
    (python-tests-look-at "def wrapped_f(*args):" -1)
@@ -1597,6 +1889,9 @@ class C(object):
         def a():
             pass
 
+        if True:
+            return a
+
     def c(self):
         pass
 "
@@ -1609,7 +1904,25 @@ class C(object):
                 (python-tests-look-at "def m(self):" -1)
                 (beginning-of-line)
                 (point))))
+   ;; Nested defuns should be skipped.
+   (forward-line -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def m(self):" -1)
+                (beginning-of-line)
+                (point))))
    ;; Defuns on same levels should be respected.
+   (python-tests-look-at "if True:" -1)
+   (forward-line -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def a():" -1)
+                (beginning-of-line)
+                (point))))
    (python-tests-look-at "def a():" -1)
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
@@ -1618,8 +1931,16 @@ class C(object):
                 (python-tests-look-at "def b():" -1)
                 (beginning-of-line)
                 (point))))
-   ;; Jump to a top level defun.
+   ;; Jump to an upper level defun.
    (python-tests-look-at "def b():" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def m(self):" -1)
+                (beginning-of-line)
+                (point))))
+   (forward-line -1)
    (should (= (save-excursion
                 (python-nav-beginning-of-defun)
                 (point))
@@ -1657,6 +1978,78 @@ class C(object):
                 (beginning-of-line)
                 (point))))))
 
+(ert-deftest python-nav-beginning-of-defun-4 ()
+  (python-tests-with-temp-buffer
+   "
+def a():
+    pass
+
+def \\
+        b():
+    return 0
+
+def c():
+    pass
+"
+   (python-tests-look-at "def c():")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "return 0" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "b():" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "def a():" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun -1)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\")
+                (beginning-of-line)
+                (point))))))
+
+(ert-deftest python-nav-beginning-of-defun-5 ()
+  (python-tests-with-temp-buffer
+   "
+class C:
+
+    def \\
+            m(self):
+        pass
+"
+   (python-tests-look-at "m(self):")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\" -1)
+                (beginning-of-line)
+                (point))))
+   (python-tests-look-at "class C:" -1)
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun -1)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def \\")
+                (beginning-of-line)
+                (point))))))
+
 (ert-deftest python-nav-end-of-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -1690,12 +2083,25 @@ class C(object):
                 (point))))
    (should (= (save-excursion
                 (python-tests-look-at "def b():")
+                (forward-line -1)
+                (python-nav-end-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def c(self):")
+                (forward-line -1)
+                (point))))
+   (should (= (save-excursion
+                (python-tests-look-at "def b():")
                 (python-nav-end-of-defun)
                 (point))
               (save-excursion
                 (python-tests-look-at "def b():")
                 (forward-line 2)
                 (point))))
+   (should (not (save-excursion
+                  (python-tests-look-at "def a():")
+                  (forward-line -1)
+                  (python-nav-end-of-defun))))
    (should (= (save-excursion
                 (python-tests-look-at "def c(self):")
                 (python-nav-end-of-defun)
@@ -1759,6 +2165,20 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
                 (line-beginning-position))))))
+
+(ert-deftest python-nav-end-of-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        a():
+    return 0
+"
+   (should (= (save-excursion
+                (python-tests-look-at "def \\")
+                (python-nav-end-of-defun)
+                (point))
+              (save-excursion
+                (point-max))))))
 
 (ert-deftest python-nav-backward-defun-1 ()
   (python-tests-with-temp-buffer
@@ -1858,6 +2278,18 @@ class A(object):
      (should (not (python-nav-backward-defun)))
      (should (= point (point))))))
 
+(ert-deftest python-nav-backward-defun-4 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        a():
+    return 0
+"
+   (goto-char (point-max))
+   (should (= (save-excursion (python-nav-backward-defun))
+              (python-tests-look-at "def \\" -1)))
+   (should (not (python-nav-backward-defun)))))
+
 (ert-deftest python-nav-forward-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -1955,6 +2387,18 @@ class A(object):
    (let ((point (python-tests-look-at "(object):")))
      (should (not (python-nav-forward-defun)))
      (should (= point (point))))))
+
+(ert-deftest python-nav-forward-defun-4 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        a():
+    return 0
+"
+   (goto-char (point-min))
+   (should (= (save-excursion (python-nav-forward-defun))
+              (python-tests-look-at "():")))
+   (should (not (python-nav-forward-defun)))))
 
 (ert-deftest python-nav-beginning-of-statement-1 ()
   (python-tests-with-temp-buffer
@@ -2265,6 +2709,18 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
               (save-excursion
                 (python-tests-look-at "print 'After f(*args)'")
                 (line-end-position))))))
+
+(ert-deftest python-nav-end-of-block-2 ()
+  "Ensure that `python-nav-end-of-block' does not enter an infinite loop."
+  (python-tests-with-temp-buffer
+   "def
+    =''
+ '
+\"\"\"\"\"\"
+ #
+''
+"
+   (python-nav-end-of-block)))
 
 (ert-deftest python-nav-forward-block-1 ()
   "This also accounts as a test for `python-nav-backward-block'."
@@ -3503,10 +3959,7 @@ def foo():
    (should (string= (python-shell-buffer-substring
                      (python-tests-look-at "print ('a')")
                      (point-max))
-                    "if True:
-
-    print ('a')
-"))))
+                    "# -*- coding: utf-8 -*-\nif True:\n    print ('a')\n\n"))))
 
 (ert-deftest python-shell-buffer-substring-11 ()
   "Check substring from partial block and point within indentation."
@@ -3521,10 +3974,7 @@ def foo():
                        (backward-char 1)
                        (point))
                      (point-max))
-                    "if True:
-
-    print ('a')
-"))))
+                    "# -*- coding: utf-8 -*-\nif True:\n    print ('a')\n\n"))))
 
 (ert-deftest python-shell-buffer-substring-12 ()
   "Check substring from partial block and point in whitespace."
@@ -3539,13 +3989,7 @@ def foo():
    (should (string= (python-shell-buffer-substring
                      (python-tests-look-at "# Whitespace")
                      (point-max))
-                    "if True:
-
-
-        # Whitespace
-
-    print ('a')
-"))))
+                    "# -*- coding: utf-8 -*-\n\nif True:\n        # Whitespace\n\n    print ('a')\n\n"))))
 
 
 
@@ -4942,6 +5386,23 @@ def decorat0r(deff):
    (should (python-info-looking-at-beginning-of-defun))
    (python-tests-look-at "deff()")
    (should (not (python-info-looking-at-beginning-of-defun)))))
+
+(ert-deftest python-info-looking-at-beginning-of-defun-2 ()
+  (python-tests-with-temp-buffer
+   "
+def \\
+        foo(arg):
+    pass
+"
+   (python-tests-look-at "def \\")
+   (should (python-info-looking-at-beginning-of-defun))
+   (should (python-info-looking-at-beginning-of-defun nil t))
+   (python-tests-look-at "foo(arg):")
+   (should (not (python-info-looking-at-beginning-of-defun)))
+   (should (python-info-looking-at-beginning-of-defun nil t))
+   (python-tests-look-at "pass")
+   (should (not (python-info-looking-at-beginning-of-defun)))
+   (should (not (python-info-looking-at-beginning-of-defun nil t)))))
 
 (ert-deftest python-info-current-line-comment-p-1 ()
   (python-tests-with-temp-buffer

@@ -330,12 +330,12 @@ This variable is buffer-local in all Comint buffers."
   "The maximum size in lines for Comint buffers.
 Comint buffers are truncated from the top to be no greater than this number, if
 the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
-  :type 'integer
+  :type 'natnum
   :group 'comint)
 
 (defcustom comint-input-ring-size 500
   "Size of the input history ring in `comint-mode'."
-  :type 'integer
+  :type 'natnum
   :group 'comint
   :version "23.2")
 
@@ -905,6 +905,12 @@ series of processes in the same Comint buffer.  The hook
   "Return non-nil if STR contains non-whitespace syntax."
   (not (string-match "\\`\\s *\\'" str)))
 
+(defcustom comint-delete-old-input t
+  "When non-nil, delete old input on inserting previous input with \\<comint-mode-map>\\[comint-insert-input]."
+  :type 'boolean
+  :group 'comint
+  :version "29.1")
+
 (defun comint-insert-input (event)
   "In a Comint buffer, set the current input to the previous input at point.
 If there is no previous input at point, run the command specified
@@ -936,10 +942,11 @@ by the global keymap (usually `mouse-yank-at-click')."
         ;; Otherwise, insert the previous input.
         (goto-char (point-max))
         ;; First delete any old unsent input at the end
-        (delete-region
-         (or (marker-position comint-accum-marker)
-             (process-mark (get-buffer-process (current-buffer))))
-         (point))
+        (when comint-delete-old-input
+          (delete-region
+           (or (marker-position comint-accum-marker)
+               (process-mark (get-buffer-process (current-buffer))))
+           (point)))
         ;; Insert the input at point
         (insert input)))))
 
@@ -1110,7 +1117,8 @@ See also `comint-read-input-ring'."
 	  (use-local-map keymap))
 	(forward-line 3)
 	(while (search-backward "completion" nil 'move)
-	  (replace-match "history reference")))
+	  (replace-match (apply #'propertize "history reference"
+				(text-properties-at (point))))))
       (sit-for 0)
       (message "Hit space to flush")
       (setq comint-dynamic-list-input-ring-window-conf conf)
@@ -1465,7 +1473,7 @@ A useful command to bind to SPC.  See `comint-replace-by-expanded-history'."
 
 (defcustom comint-history-isearch nil
   "Non-nil to Isearch in input history only, not in comint buffer output.
-If t, usual Isearch keys like `C-r' and `C-M-r' in comint mode search
+If t, usual Isearch keys like \\`C-r' and \\`C-M-r' in comint mode search
 in the input history.
 If `dwim', Isearch keys search in the input history only when initial
 point position is at the comint command line.  When starting Isearch
@@ -1515,6 +1523,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
                 #'comint-history-isearch-wrap)
     (setq-local isearch-push-state-function
                 #'comint-history-isearch-push-state)
+    (setq-local isearch-lazy-count nil)
     (add-hook 'isearch-mode-end-hook 'comint-history-isearch-end nil t)))
 
 (defun comint-history-isearch-end ()
@@ -1526,6 +1535,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
   (setq isearch-message-function nil)
   (setq isearch-wrap-function nil)
   (setq isearch-push-state-function nil)
+  (kill-local-variable 'isearch-lazy-count)
   (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t)
   (unless isearch-suspended
     (custom-reevaluate-setting 'comint-history-isearch)))
@@ -2512,8 +2522,9 @@ This function could be in the list `comint-output-filter-functions'."
                 (1+ comint--prompt-recursion-depth)))
            (if (> comint--prompt-recursion-depth 10)
                (message "Password prompt recursion too deep")
-             (comint-send-invisible
-              (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+"))))))
+             (when (get-buffer-process (current-buffer))
+               (comint-send-invisible
+                (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+")))))))
      (current-buffer))))
 
 ;; Low-level process communication
@@ -2808,7 +2819,7 @@ Interactively, if no prefix argument is given, the last argument is inserted.
 Repeated interactive invocations will cycle through the same argument
 from progressively earlier commands (using the value of INDEX specified
 with the first command).  Values of INDEX < 0 count from the end, so
-INDEX = -1 is the last argument.  This command is like `M-.' in
+INDEX = -1 is the last argument.  This command is like \"M-.\" in
 Bash and zsh."
   (interactive "P")
   (unless (null index)
@@ -3295,10 +3306,6 @@ Magic characters are those in `comint-file-name-quote-list'."
 (defun comint-completion-at-point ()
   (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
 
-(define-obsolete-function-alias
-  'comint-dynamic-complete
-  'completion-at-point "24.1")
-
 (defun comint-dynamic-complete-filename ()
   "Dynamically complete the filename at point.
 Completes if after a filename.
@@ -3379,13 +3386,6 @@ See `completion-table-with-quoting' and `comint-unquote-function'.")
                      (goto-char (match-end 0))
                    (insert filesuffix)))))))))
 
-(defun comint-dynamic-complete-as-filename ()
-  "Dynamically complete at point as a filename.
-See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (declare (obsolete comint-filename-completion "24.1"))
-  (let ((data (comint--complete-file-name-data)))
-    (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))
-
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
 Replace the filename with an expanded, canonicalized and
@@ -3399,65 +3399,6 @@ filename absolute.  For expansion see `expand-file-name' and
     (when filename
       (replace-match (expand-file-name filename) t t)
       (comint-dynamic-complete-filename))))
-
-
-(defun comint-dynamic-simple-complete (stub candidates)
-  "Dynamically complete STUB from CANDIDATES list.
-This function inserts completion characters at point by
-completing STUB from the strings in CANDIDATES.  If completion is
-ambiguous, possibly show a completions listing in a separate
-buffer.
-
-Return nil if no completion was inserted.
-Return `sole' if completed with the only completion match.
-Return `shortest' if completed with the shortest match.
-Return `partial' if completed as far as possible.
-Return `listed' if a completion listing was shown.
-
-See also `comint-dynamic-complete-filename'."
-  (declare (obsolete completion-in-region "24.1"))
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
-	 (minibuffer-p (window-minibuffer-p))
-	 (suffix (cond ((not comint-completion-addsuffix) "")
-		       ((not (consp comint-completion-addsuffix)) " ")
-		       (t (cdr comint-completion-addsuffix))))
-	 (completions (all-completions stub candidates)))
-    (cond ((null completions)
-	   (if minibuffer-p
-	       (minibuffer-message "No completions of %s" stub)
-	     (message "No completions of %s" stub))
-	   nil)
-	  ((= 1 (length completions))	; Gotcha!
-	   (let ((completion (car completions)))
-	     (if (string-equal completion stub)
-		 (unless minibuffer-p
-		   (message "Sole completion"))
-	       (insert (substring completion (length stub)))
-	       (unless minibuffer-p
-		 (message "Completed")))
-	     (insert suffix)
-	     'sole))
-	  (t				; There's no unique completion.
-	   (let ((completion (try-completion stub candidates)))
-	     ;; Insert the longest substring.
-	     (insert (substring completion (length stub)))
-	     (cond ((and comint-completion-recexact comint-completion-addsuffix
-			 (string-equal stub completion)
-			 (member completion completions))
-		    ;; It's not unique, but user wants shortest match.
-		    (insert suffix)
-		    (unless minibuffer-p
-		      (message "Completed shortest"))
-		    'shortest)
-		   ((or comint-completion-autolist
-			(string-equal stub completion))
-		    ;; It's not unique, list possible completions.
-		    (comint-dynamic-list-completions completions stub)
-		    'listed)
-		   (t
-		    (unless minibuffer-p
-		      (message "Partially completed"))
-		    'partial)))))))
 
 (defun comint-dynamic-list-filename-completions ()
   "Display a list of possible completions for the filename at point."
@@ -3975,10 +3916,12 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 ;;; OSC escape sequences (Operating System Commands)
 ;;============================================================================
-;; Adding `comint-osc-process-output' to `comint-output-filter-functions'
-;; enables the interpretation of OSC escape sequences.  By default, only
-;; OSC 8, for hyperlinks, is acted upon.  Adding more entries to
-;; `comint-osc-handlers' allows a customized treatment of further sequences.
+;; Adding `comint-osc-process-output' to
+;; `comint-output-filter-functions' enables the interpretation of OSC
+;; escape sequences.  By default, OSC 7 and 8 (for current directory
+;; and hyperlinks respectively) are acted upon.  Adding more entries
+;; to `comint-osc-handlers' allows a customized treatment of further
+;; sequences.
 
 (defvar-local comint-osc-handlers '(("7" . comint-osc-directory-tracker)
                                     ("8" . comint-osc-hyperlink-handler))
@@ -4023,9 +3966,9 @@ arguments, with point where the escape sequence was located."
 
 ;; Current directory tracking (OSC 7)
 
-(declare-function url-host "url-parse.el")
-(declare-function url-type "url-parse.el")
-(declare-function url-filename "url-parse.el")
+(declare-function url-host "url/url-parse.el")
+(declare-function url-type "url/url-parse.el")
+(declare-function url-filename "url/url-parse.el")
 (defun comint-osc-directory-tracker (_ text)
   "Update `default-directory' from OSC 7 escape sequences.
 

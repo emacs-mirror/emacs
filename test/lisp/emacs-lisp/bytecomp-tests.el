@@ -38,7 +38,7 @@
   bytecomp-test-var)
 
 (defun bytecomp-test-identity (x)
-  "Identity, but hidden from some optimisations."
+  "Identity, but hidden from some optimizations."
   x)
 
 (defmacro bytecomp-test-loop (outer1 outer2 inner1 inner2)
@@ -556,7 +556,7 @@ inner loops respectively."
                               ((not x) 3)))
             '("a" "b" "c" "d" nil))
 
-    ;; `let' and `let*' optimisations with body being constant or variable
+    ;; `let' and `let*' optimizations with body being constant or variable
     (let* (a
            (b (progn (setq a (cons 1 a)) 2))
            (c (1+ b))
@@ -582,7 +582,7 @@ inner loops respectively."
     (let* (x y)
       'a)
 
-    ;; Check empty-list optimisations.
+    ;; Check empty-list optimizations.
     (mapcar (lambda (x) (member x nil)) '("a" 2 nil))
     (mapcar (lambda (x) (memql x nil)) '(a 2 nil))
     (mapcar (lambda (x) (memq x nil)) '(a nil))
@@ -597,7 +597,7 @@ inner loops respectively."
       (list (mapcar (lambda (x) (assoc (setq n (1+ n)) nil)) '(a "nil"))
             n))
 
-    ;; Exercise variable-aliasing optimisations.
+    ;; Exercise variable-aliasing optimizations.
     (let ((a (list 1)))
       (let ((b a))
         (let ((a (list 2)))
@@ -747,6 +747,7 @@ byte-compiled.  Run with dynamic binding."
     (ert-with-temp-file elcfile
       :suffix ".elc"
       (with-temp-buffer
+        (insert ";;; -*- lexical-binding: t -*-\n")
         (dolist (form forms)
           (print form (current-buffer)))
         (write-region (point-min) (point-max) elfile nil 'silent))
@@ -950,10 +951,16 @@ byte-compiled.  Run with dynamic binding."
                             "let-bind nonvariable")
 
 (bytecomp--define-warning-file-test "warn-variable-set-constant.el"
-                            "variable reference to constant")
+                            "attempt to set constant")
 
 (bytecomp--define-warning-file-test "warn-variable-set-nonvariable.el"
                             "variable reference to nonvariable")
+
+(bytecomp--define-warning-file-test "warn-variable-setq-nonvariable.el"
+                            "attempt to set non-variable")
+
+(bytecomp--define-warning-file-test "warn-variable-setq-odd.el"
+                            "odd number of arguments")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-autoload.el"
@@ -1227,12 +1234,19 @@ literals (Bug#20852)."
    '((lexical prefixless))
    "global/dynamic var .prefixless. lacks")
 
-  (test-suppression
-   '(defun foo()
-      (let ((nil t))
-        (message-mail)))
-   '((constants nil))
-   "Warning: attempt to let-bind constant .nil.")
+  ;; FIXME: These messages cannot be suppressed reliably right now,
+  ;; but attempting mutate `nil' or `5' is a rather daft thing to do
+  ;; in the first place.  Preventing mutation of constants such as
+  ;; `most-positive-fixnum' makes more sense but the compiler doesn't
+  ;; warn about that at all right now (it's caught at runtime, and we
+  ;; allow writing the same value).
+  ;;
+  ;; (test-suppression
+  ;;  '(defun foo()
+  ;;     (let ((nil t))
+  ;;       (message-mail)))
+  ;;  '((constants nil))
+  ;;  "Warning: attempt to let-bind constant .nil.")
 
   (test-suppression
    '(progn
@@ -1251,7 +1265,7 @@ literals (Bug#20852)."
       (defun zot ()
         (wrong-params 1 2 3)))
    '((callargs wrong-params))
-   "Warning: wrong-params called with")
+   "Warning: .wrong-params. called with")
 
   (test-byte-comp-compile-and-load nil
     (defvar obsolete-variable nil)
@@ -1537,6 +1551,103 @@ REFERENCE SUBSTITUTION-GROUP ALTERNATIVES IS-GROUP)" fill-column))
 EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
 (TEST-IN-COMMENTS t) (TEST-IN-STRINGS t) (TEST-IN-CODE t) \
 (FIXTURE-FN \\='#\\='electric-pair-mode))" fill-column)))
+
+(defun test-bytecomp-defgroup-choice ()
+  (should-not (byte-compile--suspicious-defcustom-choice 'integer))
+  (should-not (byte-compile--suspicious-defcustom-choice
+               '(choice (const :tag "foo" bar))))
+  (should (byte-compile--suspicious-defcustom-choice
+           '(choice (const :tag "foo" 'bar)))))
+
+(ert-deftest bytecomp-function-attributes ()
+  ;; Check that `byte-compile' keeps the declarations, interactive spec and
+  ;; doc string of the function (bug#55830).
+  (let ((fname 'bytecomp-test-fun))
+    (fset fname nil)
+    (put fname 'pure nil)
+    (put fname 'lisp-indent-function nil)
+    (eval `(defun ,fname (x)
+             "tata"
+             (declare (pure t) (indent 1))
+             (interactive "P")
+             (list 'toto x))
+          t)
+    (let ((bc (byte-compile fname)))
+      (should (byte-code-function-p bc))
+      (should (equal (funcall bc 'titi) '(toto titi)))
+      (should (equal (aref bc 5) "P"))
+      (should (equal (get fname 'pure) t))
+      (should (equal (get fname 'lisp-indent-function) 1))
+      (should (equal (aref bc 4) "tata\n\n(fn X)")))))
+
+(ert-deftest bytecomp-fun-attr-warn ()
+  ;; Check that warnings are emitted when doc strings, `declare' and
+  ;; `interactive' forms don't come in the proper order, or more than once.
+  (let* ((filename "fun-attr-warn.el")
+         (el (ert-resource-file filename))
+         (elc (concat el "c"))
+         (text-quoting-style 'grave))
+    (with-current-buffer (get-buffer-create "*Compile-Log*")
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      (byte-compile-file el)
+      (let ((expected
+             '("70:4: Warning: `declare' after `interactive'"
+               "74:4: Warning: Doc string after `interactive'"
+               "79:4: Warning: Doc string after `interactive'"
+               "84:4: Warning: Doc string after `declare'"
+               "89:4: Warning: Doc string after `declare'"
+               "96:4: Warning: `declare' after `interactive'"
+               "102:4: Warning: `declare' after `interactive'"
+               "108:4: Warning: `declare' after `interactive'"
+               "106:4: Warning: Doc string after `interactive'"
+               "114:4: Warning: `declare' after `interactive'"
+               "112:4: Warning: Doc string after `interactive'"
+               "118:4: Warning: Doc string after `interactive'"
+               "119:4: Warning: `declare' after `interactive'"
+               "124:4: Warning: Doc string after `interactive'"
+               "125:4: Warning: `declare' after `interactive'"
+               "130:4: Warning: Doc string after `declare'"
+               "136:4: Warning: Doc string after `declare'"
+               "142:4: Warning: Doc string after `declare'"
+               "148:4: Warning: Doc string after `declare'"
+               "159:4: Warning: More than one doc string"
+               "165:4: Warning: More than one doc string"
+               "171:4: Warning: More than one doc string"
+               "178:4: Warning: More than one doc string"
+               "186:4: Warning: More than one doc string"
+               "192:4: Warning: More than one doc string"
+               "200:4: Warning: More than one doc string"
+               "206:4: Warning: More than one doc string"
+               "215:4: Warning: More than one `declare' form"
+               "222:4: Warning: More than one `declare' form"
+               "230:4: Warning: More than one `declare' form"
+               "237:4: Warning: More than one `declare' form"
+               "244:4: Warning: More than one `interactive' form"
+               "251:4: Warning: More than one `interactive' form"
+               "258:4: Warning: More than one `interactive' form"
+               "257:4: Warning: `declare' after `interactive'"
+               "265:4: Warning: More than one `interactive' form"
+               "264:4: Warning: `declare' after `interactive'")))
+        (goto-char (point-min))
+        (let ((actual nil))
+          (while (re-search-forward
+                  (rx bol (* (not ":")) ":"
+                      (group (+ digit) ":" (+ digit) ": Warning: "
+                             (or "More than one " (+ nonl) " form"
+                                 (: (+ nonl) " after " (+ nonl))))
+                      eol)
+                  nil t)
+            (push (match-string 1) actual))
+          (setq actual (nreverse actual))
+          (should (equal actual expected)))))))
+
+(ert-deftest byte-compile-file/no-byte-compile ()
+  (let* ((src-file (ert-resource-file "no-byte-compile.el"))
+         (dest-file (make-temp-file "bytecomp-tests-" nil ".elc"))
+         (byte-compile-dest-file-function (lambda (_) dest-file)))
+    (should (eq (byte-compile-file src-file) 'no-byte-compile))
+    (should-not (file-exists-p dest-file))))
 
 
 ;; Local Variables:

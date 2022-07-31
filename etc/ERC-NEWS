@@ -12,6 +12,96 @@ extensible IRC (Internet Relay Chat) client distributed with
 GNU Emacs since Emacs version 22.1.
 
 
+* Changes in ERC 5.5
+
+** Smarter buffer naming for withstanding collisions.
+ERC buffers now remain tied to their logical network contexts, even
+while offline.  These associations can survive regional server changes
+and the intercession of proxies.  As has long been practiced in other
+areas of Emacs, "uniquified" buffer renaming prevents collisions
+between buffers of different contexts.  ERC's approach prioritizes
+predictability over economy, favoring fully qualified suffixes without
+elided or omitted components.  Potential avenues for confusion remain
+but will die out with the adoption of emerging protocol extensions.
+
+** Option 'erc-rename-buffers' deprecated.
+The promises made by its old "on" state are now fully realized and
+enabled permanently by default.  Its old behavior when disabled has
+been preserved and will remain available (with warnings) for years to
+come.
+
+** Option 'erc-reuse-buffers' deprecated.
+This ancient option has been a constant source of confusion, as
+exhibited most recently when its "disabled" meaning was partially
+inverted.  Introduced in ERC 5.4 (Emacs 28.1), this regression saw
+existing channel buffers transparently reassociated instead of created
+anew.  The pre-5.4 "disabled" behavior has been restored and will
+remain accessible for the foreseeable future, warts and all (e.g.,
+with its often superfluous "/DIALED-HOST" suffixing always present).
+
+** Tighter auth-source integration with bigger changes on the horizon.
+The days of hit-and-miss auth-source queries are hopefully behind us.
+With the overhaul of the services module temporarily shelved and the
+transition to SASL-based authentication still underway, users may feel
+left in the lurch to endure yet another release cycle of backtick
+hell.  For some, auth-source may provide a workaround in the form of
+nonstandard server passwords.  See the "Connection" node in the manual
+under the subheading "Password".
+
+If you require SASL immediately, please participate in ERC development
+by volunteering to try (and give feedback on) edge features, one of
+which is SASL.  All known external offerings, past and present, are
+valiant efforts whose use is nevertheless discouraged.
+
+** Username argument for entry-point commands.
+Commands 'erc' and 'erc-tls' now accept a ':user' keyword argument,
+which, when present, becomes the first argument passed to the "USER"
+IRC command.  The traditional way of setting this globally, via
+'erc-email-userid', is still honored.
+
+** Additional display options for updated buffers.
+Additional flexibility is now available for controlling the behavior
+of newly created target buffers, especially during reconnection.
+
+** Improved handling of multiline prompt input.
+This means better detection and handling of intervening and trailing
+blanks when 'erc-send-whitespace-lines' is active.  New options have
+also been added for warning when input spans multiple lines.  Although
+off by default, new users are encouraged to enable them.
+
+** Miscellaneous behavioral changes impacting the user experience.
+A bug has been fixed that saw prompts being mangled, doubled, or
+erased in server buffers upon disconnection.  Instead, input prompts
+now collapse into an alternate form designated by the option
+'erc-prompt-hidden'.  Behavior differs for query and channel buffers
+but can be fine-tuned via the repurposed, formerly abandoned option
+'erc-hide-prompt'.
+
+A bug has been fixed affecting users of the Soju bouncer: outgoing
+messages during periods of heavy traffic no longer disappear.
+
+Although rare, server passwords containing white space are now handled
+correctly.
+
+** Miscellaneous behavioral changes in the library API.
+The function 'erc-network' always returns non-nil in server and target
+buffers belonging to a successfully established IRC connection, even
+after that connection has been closed.
+
+In 5.4, support for network symbols as keys was added for
+'erc-autojoin-channels-alist'.  This has been extended to include
+explicit symbols passed to 'erc-tls' and 'erc' as so-called
+network-context identifiers via a new ':id' keyword.  The latter
+carries wider significance beyond autojoin and can be used for
+unequivocally identifying a connection in a human-readable way.
+
+The function 'erc-auto-query', unused internally, and basically
+inscrutable when read, has been deprecated with no public replacement.
+This raises a related issue: if you use ERC as a library and need
+something only offered internally, please lobby to have it exported by
+writing to emacs-erc@gnu.org.
+
+
 * Changes in ERC 5.4.1
 
 ** No user-visible changes since ERC 5.4, but a few tweaks in some ERC

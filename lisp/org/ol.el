@@ -183,7 +183,7 @@ link.
 (defcustom org-link-descriptive t
   "Non-nil means Org displays descriptive links.
 
-E.g. [[https://orgmode.org][Org website]] is be displayed as
+E.g. [[https://orgmode.org][Org website]] is displayed as
 \"Org Website\", hiding the link itself and just displaying its
 description.  When set to nil, Org displays the full links
 literally.
@@ -646,7 +646,7 @@ followed by another \"%[A-F0-9]{2}\" group."
 		  (cons 6 128))))
 	  (when (>= val 192) (setq eat (car shift-xor)))
 	  (setq val (logxor val (cdr shift-xor)))
-	  (setq sum (+ (lsh sum (car shift-xor)) val))
+	  (setq sum (+ (ash sum (car shift-xor)) val))
 	  (when (> eat 0) (setq eat (- eat 1)))
 	  (cond
 	   ((= 0 eat)			;multi byte
@@ -937,7 +937,7 @@ characters that should be escaped."
 
 (defun org-link-decode (s)
   "Decode percent-encoded parts in string S.
-E.g. \"%C3%B6\" becomes the german o-Umlaut."
+E.g. \"%C3%B6\" becomes the German o-Umlaut."
   (replace-regexp-in-string "\\(%[0-9A-Za-z]\\{2\\}\\)+"
 			    #'org-link--decode-compound s t t))
 
@@ -1575,18 +1575,10 @@ non-nil."
 	  (setq link
 		(format-time-string
 		 (car org-time-stamp-formats)
-		 (encode-time
+		 (apply 'encode-time
 			(list 0 0 0 (nth 1 cd) (nth 0 cd) (nth 2 cd)
 			      nil nil nil))))
 	  (org-link-store-props :type "calendar" :date cd)))
-
-       ((eq major-mode 'w3-mode)
-	(setq cpltxt (if (and (buffer-name)
-			      (not (string-match "Untitled" (buffer-name))))
-			 (buffer-name)
-		       (url-view-url t))
-	      link (url-view-url t))
-	(org-link-store-props :type "w3" :url (url-view-url t)))
 
        ((eq major-mode 'image-mode)
 	(setq cpltxt (concat "file:"
