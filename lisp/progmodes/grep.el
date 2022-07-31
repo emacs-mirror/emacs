@@ -66,6 +66,7 @@ SYMBOL should be one of `grep-command', `grep-template',
 		 integer)
   :version "22.1")
 
+;;;###autoload
 (defcustom grep-highlight-matches 'auto-detect
   "Use special markers to highlight grep matches.
 
@@ -352,6 +353,7 @@ A grep buffer becomes most recent when you select Grep mode in it.
 Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `next-error-last-buffer' rather than `grep-last-buffer'.")
 
+;;;###autoload
 (defvar grep-match-face	'match
   "Face name to use for grep matches.")
 
