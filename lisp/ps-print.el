@@ -4733,6 +4733,10 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 (defun ps-output-boolean (name bool)
   (ps-output (format "/%s %s def\n" name (if bool "true" "false"))))
 
+;; Limit color RGB values to three decimals to cut down some on the
+;; size of the PostScript output.
+(defvar ps-color-format "%0.3f %0.3f %0.3f")
+(defvar ps-float-format "%0.3f ")
 
 (defun ps-output-frame-properties (name alist)
   (ps-output "/" name " ["
@@ -6312,6 +6316,22 @@ If FACE is not a valid face name, use default face."
       (setq ps-print-face-alist (cons face-map ps-print-face-alist)))
     face-map))
 
+(defun ps-face-bold-p (face)
+  (or (face-bold-p face)
+      (memq face ps-bold-faces)))
+
+(defun ps-face-italic-p (face)
+  (or (face-italic-p face)
+      (memq face ps-italic-faces)))
+
+(defun ps-face-strikeout-p (face)
+  (eq (face-attribute face :strike-through) t))
+
+(defun ps-face-overline-p (face)
+  (eq (face-attribute face :overline) t))
+
+(defun ps-face-box-p (face)
+  (not (memq (face-attribute face :box) '(nil unspecified))))
 
 (defun ps-screen-to-bit-face (face)
   (cons face
@@ -6324,6 +6344,38 @@ If FACE is not a valid face name, use default face."
                 (face-foreground face nil t)
                 (face-background face nil t))))
 
+
+(defun ps-generate-postscript-with-faces1 (from to)
+  ;; Generate some PostScript.
+  (let ((face 'default)
+        (position to)
+        (property-change from)
+        (overlay-change from)
+        before-string after-string)
+    (while (< from to)
+      (and (< property-change to)       ; Don't search for property change
+                                        ; unless previous search succeeded.
+           (setq property-change (next-property-change from nil to)))
+      (and (< overlay-change to)        ; Don't search for overlay change
+                                        ; unless previous search succeeded.
+           (setq overlay-change (min (next-overlay-change from)
+                                     to)))
+      (setq position (min property-change overlay-change)
+            before-string nil
+            after-string nil)
+      (setq face
+            (cond ((invisible-p from)
+                   'emacs--invisible--face)
+                  ((get-char-property from 'face))
+                  (t 'default)))
+      ;; Plot up to this record.
+      (and before-string
+           (ps-plot-string before-string))
+      (ps-plot-with-face from position face)
+      (and after-string
+           (ps-plot-string after-string))
+      (setq from position))
+    (ps-plot-with-face from to face)))
 
 (defun ps-generate-postscript-with-faces (from to)
   ;; Some initialization...
