@@ -234,6 +234,7 @@ type is required and the load function used.")
     (display-buffer b)
  ))
 
+;;;###autoload
 (defun ede-add-project-autoload (projauto &optional flag)
   "Add PROJAUTO, an EDE autoload definition to `ede-project-class-files'.
 Optional argument FLAG indicates how this autoload should be
