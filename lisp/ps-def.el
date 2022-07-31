@@ -35,35 +35,24 @@
 (defvar ps-bold-faces)                  ; in ps-print.el
 (defvar ps-italic-faces)
 
-
 
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Definitions
 
-
 (defun ps-mark-active-p ()
+  (declare (obsolete mark-active "29.1"))
   mark-active)
 
-
 (defun ps-face-foreground-name (face)
+  (declare (obsolete face-foreground "29.1"))
   (face-foreground face nil t))
 
-
 (defun ps-face-background-name (face)
+  (declare (obsolete face-background "29.1"))
   (face-background face nil t))
 
-
 (define-obsolete-function-alias 'ps-frame-parameter #'frame-parameter "28.1")
-
-;; Return t if the device (which can be changed during an emacs session) can
-;; handle colors.
-(defun ps-color-device ()
-  (color-values "Green"))
-
+(define-obsolete-function-alias 'ps-color-device #'display-color-p "29.1")
 (define-obsolete-function-alias 'ps-color-values #'color-values "28.1")
-
 
 (defun ps-face-bold-p (face)
   (or (face-bold-p face)
@@ -125,9 +114,6 @@
 	   (ps-plot-string after-string))
       (setq from position))
     (ps-plot-with-face from to face)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'ps-def)
 

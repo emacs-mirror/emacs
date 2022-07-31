@@ -4510,7 +4510,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 
 (defun ps-print-preprint-region (prefix)
-  (or (ps-mark-active-p)
+  (or mark-active
       (error "The mark is not set now"))
   (list (point) (mark) (ps-print-preprint prefix)))
 
@@ -5749,7 +5749,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	;; Set the color scale.  We do it here instead of in the defvar so
 	;; that ps-print can be dumped into emacs.  This expression can't be
 	;; evaluated at dump-time because X isn't initialized.
-	ps-color-p            (and ps-print-color-p (ps-color-device))
+        ps-color-p            (and ps-print-color-p (display-color-p))
 	ps-print-color-scale  (if ps-color-p
 				  (float (car (color-values "white")))
 				1.0)
@@ -5762,7 +5762,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq ps-default-bg 'frame-parameter)
 				 (frame-parameter nil 'background-color))
 				((eq ps-default-bg t)
-				 (ps-face-background-name 'default))
+                                 (face-background 'default nil t))
 				(t
 				 ps-default-bg))
 			       "unspecified-bg"
@@ -5776,7 +5776,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq ps-default-fg 'frame-parameter)
 				 (frame-parameter nil 'foreground-color))
 				((eq ps-default-fg t)
-				 (ps-face-foreground-name 'default))
+                                 (face-foreground 'default nil t))
 				(t
 				 ps-default-fg))
 			       "unspecified-fg"
@@ -6321,8 +6321,8 @@ If FACE is not a valid face name, use default face."
 			(if (ps-face-strikeout-p face)  8 0)  ; strikeout
 			(if (ps-face-overline-p face)  16 0)  ; overline
 			(if (ps-face-box-p face)       64 0)) ; box
-		(ps-face-foreground-name face)
-		(ps-face-background-name face))))
+                (face-foreground face nil t)
+                (face-background face nil t))))
 
 
 (defun ps-generate-postscript-with-faces (from to)

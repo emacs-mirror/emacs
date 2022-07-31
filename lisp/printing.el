@@ -2782,7 +2782,7 @@ See `pr-ps-printer-alist'.")
       ["4-up"     (pr-ps-buffer-preview 4   t) t]
       ["Other..." (pr-ps-buffer-preview nil t)
        :keys "\\[pr-ps-buffer-preview]"])
-     ("Region" :active (and (not pr-spool-p) (ps-mark-active-p))
+     ("Region" :active (and (not pr-spool-p) mark-active)
       ["1-up"     (pr-ps-region-preview 1   t) t]
       ["2-up"     (pr-ps-region-preview 2   t) t]
       ["4-up"     (pr-ps-region-preview 4   t) t]
@@ -2837,7 +2837,7 @@ See `pr-ps-printer-alist'.")
       ["4-up"     (pr-ps-buffer-ps-print 4   t) t]
       ["Other..." (pr-ps-buffer-ps-print nil t)
        :keys "\\[pr-ps-buffer-ps-print]"])
-     ("Region" :active (ps-mark-active-p)
+     ("Region" :active mark-active
       ["1-up"     (pr-ps-region-ps-print 1   t) t]
       ["2-up"     (pr-ps-region-ps-print 2   t) t]
       ["4-up"     (pr-ps-region-ps-print 4   t) t]
@@ -2887,12 +2887,12 @@ See `pr-ps-printer-alist'.")
      "Replace non-printing chars with printable representations."
      ["Directory" pr-printify-directory t]
      ["Buffer"    pr-printify-buffer    t]
-     ["Region"    pr-printify-region    (ps-mark-active-p)])
+     ["Region"    pr-printify-region    mark-active])
     ("Print" :included (pr-visible-p 'text)
      :help "Send text to printer"
      ["Directory" pr-txt-directory t]
      ["Buffer"    pr-txt-buffer    t]
-     ["Region"    pr-txt-region    (ps-mark-active-p)]
+     ["Region"    pr-txt-region    mark-active]
      ["Mode"      pr-txt-mode      (pr-mode-alist-p)])
     ["Text Printers" pr-update-menus
      :active pr-txt-printer-alist :included (pr-visible-p 'text)
@@ -5585,7 +5585,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (defun pr-create-interface ()
   "Create the front end for printing package."
   (setq pr-i-buffer (buffer-name (current-buffer))
-	pr-i-region (ps-mark-active-p)
+        pr-i-region mark-active
 	pr-i-mode   (pr-mode-alist-p)
 	pr-i-window-configuration (current-window-configuration))
 
@@ -5651,11 +5651,11 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 		    (nreverse choices))
 		  " Buffer : " nil
 		  (lambda ()
-		     (pr-interface-save
-		      (setq pr-i-region (ps-mark-active-p)
-			    pr-i-mode   (pr-mode-alist-p)))
-		     (pr-update-checkbox 'pr-i-region)
-		     (pr-update-checkbox 'pr-i-mode)))
+                    (pr-interface-save
+                     (setq pr-i-region mark-active
+                           pr-i-mode   (pr-mode-alist-p)))
+                    (pr-update-checkbox 'pr-i-region)
+                    (pr-update-checkbox 'pr-i-mode)))
   ;;    1a. Buffer: Region
   (put 'pr-i-region 'pr-widget
        (pr-insert-checkbox
@@ -5663,7 +5663,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	'pr-i-region
         (lambda (widget &rest _ignore)
           (let ((region-p (pr-interface-save
-                           (ps-mark-active-p))))
+                           mark-active)))
             (cond ((null (widget-value widget)) ; widget is nil
                    (setq pr-i-region nil))
                   (region-p		; widget is true and there is a region

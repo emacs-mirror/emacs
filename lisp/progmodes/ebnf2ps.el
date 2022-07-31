@@ -4524,7 +4524,7 @@ end
 
 (defun ebnf-generate-eps (tree)
   (let* ((ebnf-tree tree)
-         (ps-color-p           (and ebnf-color-p (ps-color-device)))
+         (ps-color-p           (and ebnf-color-p (display-color-p)))
 	 (ps-print-color-scale (if ps-color-p
 				   (float (car (color-values "white")))
 				 1.0))
@@ -4626,7 +4626,7 @@ end
 
 (defun ebnf-generate (tree)
   (let* ((ebnf-tree tree)
-         (ps-color-p           (and ebnf-color-p (ps-color-device)))
+         (ps-color-p           (and ebnf-color-p (display-color-p)))
 	 (ps-print-color-scale (if ps-color-p
 				   (float (car (color-values "white")))
 				 1.0))
