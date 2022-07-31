@@ -1150,6 +1150,8 @@ For extending the `rx' notation in FORM, use `rx-define' or `rx-let-eval'."
                   (rx--atomic-regexp item))))
     (apply #'concat exprs)))
 
+;; Autoloaded because it's referred to by form in loaddefs.el.
+;;;###autoload
 (defun rx--to-expr (form)
   "Translate the rx-expression FORM to a Lisp expression yielding a regexp."
   (let* ((rx--delayed-evaluation t)
@@ -1405,6 +1407,8 @@ For more details, see Info node `(elisp) Extending Rx'.
 ;; becomes a problem, we can handle those forms in the ordinary parser,
 ;; using a dynamic variable for activating the augmented forms.
 
+;; Autoloaded because it's referred to by form in loaddefs.el.
+;;;###autoload
 (defun rx--pcase-transform (rx)
   "Transform RX, an rx-expression augmented with `let' and named `backref',
 into a plain rx-expression, collecting names into `rx--pcase-vars'."
