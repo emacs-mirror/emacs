@@ -481,7 +481,6 @@ FILE's name."
       (insert "\n;;; End of scraped data\n\n")
       (generate-lisp-file-trailer
        file :provide (and (stringp feature) feature)
-       :compile t
        :inhibit-provide (not feature))
       (buffer-string))))
 
