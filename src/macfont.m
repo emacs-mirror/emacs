@@ -2645,6 +2645,9 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
   font->pixel_size = size;
   font->driver = &macfont_driver;
   font->encoding_charset = font->repertory_charset = -1;
+  /* Clear font->space_width so macfont_monospace_width_multiplier may
+     not be confused by an uninitialized value.  */
+  font->space_width = 0;
 
   block_input ();
 

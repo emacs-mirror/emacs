@@ -1882,6 +1882,7 @@ to make entries in @code{input-decode-map} beyond those that can be
 deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
 @end defvar
 
+@cindex function-key-map
 @defvar local-function-key-map
 This variable holds a keymap similar to @code{input-decode-map} except
 that it describes key sequences which should be translated to

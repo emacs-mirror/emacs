@@ -2366,6 +2366,9 @@ begins.  @xref{Usual Display}.
 amount of horizontal scrolling.  Consequently, a column value can be
 arbitrarily high.  The first (or leftmost) column is numbered 0.  They
 also ignore overlays and text properties, aside from invisibility.
+Invisible text is considered as having zero width, unless
+@code{buffer-invisibility-spec} specifies that invisible text should
+be displayed as ellipsis (@pxref{Invisible Text}).
 
 @defun current-column
 This function returns the horizontal position of point, measured in
@@ -2439,6 +2442,10 @@ This function returns the indentation of the current line, which is
 the horizontal position of the first nonblank character.  If the
 contents are entirely blank, then this is the horizontal position of the
 end of the line.
+
+This function considers invisible text as having zero width, unless
+@code{buffer-invisibility-spec} specifies that invisible text should
+be displayed as ellipsis.  @xref{Invisible Text}.
 @end defun
 
 @deffn Command indent-to column &optional minimum

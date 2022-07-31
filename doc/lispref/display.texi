@@ -7477,6 +7477,7 @@ the usual Emacs @code{highlight} face.
 
 @item keymap
 @kindex keymap @r{(button property)}
+@vindex button-map
 The button's keymap, defining bindings active within the button
 region.  By default this is the usual button region keymap, stored
 in the variable @code{button-map}, which defines @key{RET} and
@@ -7691,6 +7692,7 @@ Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
 These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
+@cindex buffer-button-map
 @code{push-button} is the command that a user uses to actually push
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
