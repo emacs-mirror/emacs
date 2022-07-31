@@ -165,7 +165,6 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 (defun r2b-capitalize-title (s)
   "Like `capitalize', but don't capitalize stop words, except the first."
   (with-temp-buffer
-    (erase-buffer)
     (insert s)
     (r2b-capitalize-title-region (point-min) (point-max))
     (buffer-string)))
