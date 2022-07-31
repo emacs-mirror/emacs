@@ -1129,10 +1129,6 @@ static void x_initialize (void);
 static bool x_get_current_wm_state (struct frame *, Window, int *, bool *, bool *);
 static void x_update_opaque_region (struct frame *, XEvent *);
 
-#if !defined USE_TOOLKIT_SCROLL_BARS && defined HAVE_XDBE
-static void x_scroll_bar_end_update (struct x_display_info *, struct scroll_bar *);
-#endif
-
 #ifdef HAVE_X_I18N
 static int x_filter_event (struct x_display_info *, XEvent *);
 #endif
@@ -1141,6 +1137,10 @@ static void x_clean_failable_requests (struct x_display_info *);
 static struct frame *x_tooltip_window_to_frame (struct x_display_info *,
 						Window, bool *);
 static Window x_get_window_below (Display *, Window, int, int, int *, int *);
+
+#ifndef USE_TOOLKIT_SCROLL_BARS
+static void x_scroll_bar_redraw (struct scroll_bar *);
+#endif
 
 /* Global state maintained during a drag-and-drop operation.  */
 
@@ -14627,20 +14627,12 @@ x_scroll_bar_create (struct window *w, int top, int left,
     XSetWindowAttributes a;
     unsigned long mask;
     Window window;
-#ifdef HAVE_XDBE
-    Drawable drawable;
-#endif
-
-    a.background_pixel = f->output_data.x->scroll_bar_background_pixel;
-    if (a.background_pixel == -1)
-      a.background_pixel = FRAME_BACKGROUND_PIXEL (f);
 
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
-		    | ButtonMotionMask | PointerMotionHintMask
-		    | ExposureMask);
+		    | ButtonMotionMask | PointerMotionHintMask);
     a.cursor = FRAME_DISPLAY_INFO (f)->vertical_scroll_bar_cursor;
 
-    mask = (CWBackPixel | CWEventMask | CWCursor);
+    mask = (CWEventMask | CWCursor);
 
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
@@ -14648,32 +14640,22 @@ x_scroll_bar_create (struct window *w, int top, int left,
     if (width > 0 && window_box_height (w) > 0)
       x_clear_area (f, left, top, width, window_box_height (w));
 
+    /* Create an input only window.  Scroll bar contents are drawn to
+       the frame window itself, so they can be double buffered and
+       synchronized using the same mechanism as the frame.  */
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
 			    left, top, width, height,
-			    /* Border width, depth, class, and visual.  */
+			    /* Border width.  */
 			    0,
+			    /* Depth.  */
 			    CopyFromParent,
-			    CopyFromParent,
+			    /* Class.  */
+			    InputOnly,
+			    /* Visual class.  */
 			    CopyFromParent,
 			     /* Attributes.  */
 			    mask, &a);
-#ifdef HAVE_XDBE
-    if (FRAME_DISPLAY_INFO (f)->supports_xdbe
-	&& FRAME_X_DOUBLE_BUFFERED_P (f))
-      {
-	x_catch_errors (FRAME_X_DISPLAY (f));
-	drawable = XdbeAllocateBackBufferName (FRAME_X_DISPLAY (f),
-					       window, XdbeCopied);
-	if (x_had_errors_p (FRAME_X_DISPLAY (f)))
-	  drawable = window;
-	else
-	  XSetWindowBackgroundPixmap (FRAME_X_DISPLAY (f), window, None);
-	x_uncatch_errors_after_check ();
-      }
-    else
-      drawable = window;
-#endif
 
 #ifdef HAVE_XINPUT2
   /* Ask for input extension button and motion events.  This lets us
@@ -14700,9 +14682,6 @@ x_scroll_bar_create (struct window *w, int top, int left,
 #endif
 
     bar->x_window = window;
-#ifdef HAVE_XDBE
-    bar->x_drawable = drawable;
-#endif
   }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
@@ -14775,14 +14754,11 @@ static void
 x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
 			 bool rebuild)
 {
-  bool dragging = bar->dragging != -1;
-#ifndef HAVE_XDBE
-  Window w = bar->x_window;
-#else
-  Drawable w = bar->x_drawable;
-#endif
-  struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-  GC gc = f->output_data.x->normal_gc;
+  bool dragging;
+  struct frame *f;
+  Drawable w;
+  GC gc;
+  int inside_width, inside_height, top_range, length;
 
   /* If the display is already accurate, do nothing.  */
   if (! rebuild
@@ -14790,106 +14766,102 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
       && end == bar->end)
     return;
 
+  f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+  dragging = bar->dragging != -1;
+  gc = f->output_data.x->normal_gc;
+  w = FRAME_X_DRAWABLE (f);
+
   block_input ();
 
-  {
-    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, bar->width);
-    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
-    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
+  inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, bar->width);
+  inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
+  top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
 
-    /* Make sure the values are reasonable, and try to preserve
-       the distance between start and end.  */
+  /* Make sure the values are reasonable, and try to preserve
+     the distance between start and end.  */
+  length = end - start;
+
+  if (start < 0)
+    start = 0;
+  else if (start > top_range)
+    start = top_range;
+  end = start + length;
+
+  if (end < start)
+    end = start;
+  else if (end > top_range && ! dragging)
+    end = top_range;
+
+  /* Store the adjusted setting in the scroll bar.  */
+  bar->start = start;
+  bar->end = end;
+
+  /* Clip the end position, just for display.  */
+  if (end > top_range)
+    end = top_range;
+
+  /* Draw bottom positions VERTICAL_SCROLL_BAR_MIN_HANDLE pixels
+     below top positions, to make sure the handle is always at least
+     that many pixels tall.  */
+  end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
+
+  /* Draw the empty space above the handle.  Note that we can't clear
+     zero-height areas; that means "clear to end of window."  */
+  if ((inside_width > 0) && (start > 0))
     {
-      int length = end - start;
-
-      if (start < 0)
-	start = 0;
-      else if (start > top_range)
-	start = top_range;
-      end = start + length;
-
-      if (end < start)
-	end = start;
-      else if (end > top_range && ! dragging)
-	end = top_range;
-    }
-
-    /* Store the adjusted setting in the scroll bar.  */
-    bar->start = start;
-    bar->end = end;
-
-    /* Clip the end position, just for display.  */
-    if (end > top_range)
-      end = top_range;
-
-    /* Draw bottom positions VERTICAL_SCROLL_BAR_MIN_HANDLE pixels
-       below top positions, to make sure the handle is always at least
-       that many pixels tall.  */
-    end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
-
-    /* Draw the empty space above the handle.  Note that we can't clear
-       zero-height areas; that means "clear to end of window."  */
-    if ((inside_width > 0) && (start > 0))
-      {
-	if (f->output_data.x->scroll_bar_background_pixel != -1)
-	  XSetForeground (FRAME_X_DISPLAY (f), gc,
-			  f->output_data.x->scroll_bar_background_pixel);
-	else
-	  XSetForeground (FRAME_X_DISPLAY (f), gc,
-			  FRAME_BACKGROUND_PIXEL (f));
-
-	XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
-			VERTICAL_SCROLL_BAR_LEFT_BORDER,
-			VERTICAL_SCROLL_BAR_TOP_BORDER,
-			inside_width, start);
-
+      if (f->output_data.x->scroll_bar_background_pixel != -1)
 	XSetForeground (FRAME_X_DISPLAY (f), gc,
-			FRAME_FOREGROUND_PIXEL (f));
-      }
-
-    /* Change to proper foreground color if one is specified.  */
-    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
-      XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      f->output_data.x->scroll_bar_foreground_pixel);
-
-    /* Draw the handle itself.  */
-    XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
-		    /* x, y, width, height */
-		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
-		    VERTICAL_SCROLL_BAR_TOP_BORDER + start,
-		    inside_width, end - start);
-
-
-    /* Draw the empty space below the handle.  Note that we can't
-       clear zero-height areas; that means "clear to end of window." */
-    if ((inside_width > 0) && (end < inside_height))
-      {
-	if (f->output_data.x->scroll_bar_background_pixel != -1)
-	  XSetForeground (FRAME_X_DISPLAY (f), gc,
-			  f->output_data.x->scroll_bar_background_pixel);
-	else
-	  XSetForeground (FRAME_X_DISPLAY (f), gc,
-			  FRAME_BACKGROUND_PIXEL (f));
-
-	XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
-			VERTICAL_SCROLL_BAR_LEFT_BORDER,
-			VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-			inside_width, inside_height - end);
-
+			f->output_data.x->scroll_bar_background_pixel);
+      else
 	XSetForeground (FRAME_X_DISPLAY (f), gc,
-			FRAME_FOREGROUND_PIXEL (f));
-      }
+			FRAME_BACKGROUND_PIXEL (f));
 
-    /* Restore the foreground color of the GC if we changed it above.  */
-    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+      XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
+		      bar->left + VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		      bar->top + VERTICAL_SCROLL_BAR_TOP_BORDER,
+		      inside_width, start);
+
       XSetForeground (FRAME_X_DISPLAY (f), gc,
 		      FRAME_FOREGROUND_PIXEL (f));
-  }
+    }
 
-#ifdef HAVE_XDBE
-  if (!rebuild)
-    x_scroll_bar_end_update (FRAME_DISPLAY_INFO (f), bar);
-#endif
+  /* Change to proper foreground color if one is specified.  */
+  if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+		    f->output_data.x->scroll_bar_foreground_pixel);
+
+  /* Draw the handle itself.  */
+  XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
+		  /* x, y, width, height */
+		  bar->left + VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		  bar->top + VERTICAL_SCROLL_BAR_TOP_BORDER + start,
+		  inside_width, end - start);
+
+
+  /* Draw the empty space below the handle.  Note that we can't
+     clear zero-height areas; that means "clear to end of window." */
+  if ((inside_width > 0) && (end < inside_height))
+    {
+      if (f->output_data.x->scroll_bar_background_pixel != -1)
+	XSetForeground (FRAME_X_DISPLAY (f), gc,
+			f->output_data.x->scroll_bar_background_pixel);
+      else
+	XSetForeground (FRAME_X_DISPLAY (f), gc,
+			FRAME_BACKGROUND_PIXEL (f));
+
+      XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
+		      bar->left + VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		      bar->top + VERTICAL_SCROLL_BAR_TOP_BORDER + end,
+		      inside_width, inside_height - end);
+
+      XSetForeground (FRAME_X_DISPLAY (f), gc,
+		      FRAME_FOREGROUND_PIXEL (f));
+    }
+
+  /* Restore the foreground color of the GC if we changed it above.  */
+  if (f->output_data.x->scroll_bar_foreground_pixel != -1)
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+		    FRAME_FOREGROUND_PIXEL (f));
 
   unblock_input ();
 }
@@ -14912,11 +14884,6 @@ x_scroll_bar_remove (struct scroll_bar *bar)
   XtDestroyWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar));
 #endif /* not USE_GTK */
 #else
-#ifdef HAVE_XDBE
-  if (bar->x_window != bar->x_drawable)
-    XdbeDeallocateBackBufferName (FRAME_X_DISPLAY (f),
-				  bar->x_drawable);
-#endif
   XDestroyWindow (FRAME_X_DISPLAY (f), bar->x_window);
 #endif
 
@@ -14962,6 +14929,12 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	}
 
       bar = x_scroll_bar_create (w, top, left, width, max (height, 1), false);
+#ifdef USE_TOOKIT_SCROLL_BARS
+      /* Since non-toolkit scroll bars don't display their contents to
+	 a dedicated window, no expose event will be generated.
+	 Redraw the scroll bar manually.  */
+      x_scroll_bar_redraw (bar);
+#endif
     }
   else
     {
@@ -15020,6 +14993,11 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
       bar->top = top;
       bar->width = width;
       bar->height = height;
+
+#ifndef USE_TOOLKIT_SCROLL_BARS
+      /* Redraw the scroll bar.  */
+      x_scroll_bar_redraw (bar);
+#endif
 
       unblock_input ();
     }
@@ -15328,60 +15306,84 @@ XTjudge_scroll_bars (struct frame *f)
 
 
 #ifndef USE_TOOLKIT_SCROLL_BARS
-/* Handle an Expose or GraphicsExpose event on a scroll bar.  This
-   is a no-op when using toolkit scroll bars.
-
-   This may be called from a signal handler, so we have to ignore GC
-   mark bits.  */
+/* Handle exposure event EVENT generated for F, by redrawing all
+   intersecting scroll bars.  */
 
 static void
-x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
+x_scroll_bar_handle_exposure (struct frame *f, XEvent *event)
 {
-#ifndef HAVE_XDBE
-  Window w = bar->x_window;
-#else
-  Drawable w = bar->x_drawable;
   int x, y, width, height;
+  XRectangle rect, scroll_bar_rect, intersection;
+  Lisp_Object bar, condemned;
+  struct scroll_bar *b;
 
-  if (event->type == Expose)
-    {
-      x = event->xexpose.x;
-      y = event->xexpose.y;
-      width = event->xexpose.width;
-      height = event->xexpose.height;
-    }
-  else
+  if (event->type == GraphicsExpose)
     {
       x = event->xgraphicsexpose.x;
       y = event->xgraphicsexpose.y;
       width = event->xgraphicsexpose.width;
       height = event->xgraphicsexpose.height;
     }
-#endif
+  else
+    {
+      x = event->xexpose.x;
+      y = event->xexpose.y;
+      width = event->xexpose.width;
+      height = event->xexpose.height;
+    }
 
+  rect.x = x;
+  rect.y = y;
+  rect.width = width;
+  rect.height = height;
+
+  /* Scan this frame's scroll bar list for intersecting scroll
+     bars.  */
+  condemned = FRAME_CONDEMNED_SCROLL_BARS (f);
+  for (bar = FRAME_SCROLL_BARS (f);
+       /* This trick allows us to search both the ordinary and
+	  condemned scroll bar lists with one loop.  */
+       !NILP (bar) || (bar = condemned,
+		       condemned = Qnil,
+		       !NILP (bar));
+       bar = XSCROLL_BAR (bar)->next)
+    {
+      b = XSCROLL_BAR (bar);
+
+      scroll_bar_rect.x = b->left;
+      scroll_bar_rect.y = b->top;
+      scroll_bar_rect.width = b->width;
+      scroll_bar_rect.height = b->height;
+
+      if (gui_intersect_rectangles (&rect,
+				    &scroll_bar_rect,
+				    &intersection))
+	x_scroll_bar_redraw (b);
+    }
+}
+
+/* Redraw the scroll bar BAR.  Draw its border and set its thumb.
+   This is usually called from x_clear_frame, but is also used to
+   handle exposure events that overlap scroll bars.  */
+
+static void
+x_scroll_bar_redraw (struct scroll_bar *bar)
+{
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
 
-  block_input ();
+  if (f->output_data.x->scroll_bar_background_pixel != -1)
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+		    f->output_data.x->scroll_bar_background_pixel);
+  else
+    XSetForeground (FRAME_X_DISPLAY (f), gc,
+		    FRAME_BACKGROUND_PIXEL (f));
 
-#ifdef HAVE_XDBE
-  if (w != bar->x_window)
-    {
-      if (f->output_data.x->scroll_bar_background_pixel != -1)
-	XSetForeground (FRAME_X_DISPLAY (f), gc,
-			f->output_data.x->scroll_bar_background_pixel);
-      else
-	XSetForeground (FRAME_X_DISPLAY (f), gc,
-			FRAME_BACKGROUND_PIXEL (f));
+  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
+		  bar->left, bar->top, bar->width, bar->height);
 
-      XFillRectangle (FRAME_X_DISPLAY (f),
-		      bar->x_drawable,
-		      gc, x, y, width, height);
-
-      XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      FRAME_FOREGROUND_PIXEL (f));
-    }
-#endif
+  XSetForeground (FRAME_X_DISPLAY (f), gc,
+		  FRAME_FOREGROUND_PIXEL (f));
 
   x_scroll_bar_set_handle (bar, bar->start, bar->end, true);
 
@@ -15391,27 +15393,13 @@ x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
 		    f->output_data.x->scroll_bar_foreground_pixel);
 
   /* Draw a one-pixel border just inside the edges of the scroll bar.  */
-  XDrawRectangle (FRAME_X_DISPLAY (f), w, gc,
-		  /* x, y, width, height */
-		  0, 0, bar->width - 1, bar->height - 1);
-
-  /* XDrawPoint (FRAME_X_DISPLAY (f), w, gc,
-		 bar->width - 1, bar->height - 1);
-
-     This code is no longer required since the normal GC now uses the
-     regular line width.  */
+  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
+		  bar->left, bar->top, bar->width - 1, bar->height - 1);
 
   /* Restore the foreground color of the GC if we changed it above.  */
   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
     XSetForeground (FRAME_X_DISPLAY (f), gc,
 		    FRAME_FOREGROUND_PIXEL (f));
-
-#ifdef HAVE_XDBE
-  x_scroll_bar_end_update (FRAME_DISPLAY_INFO (f), bar);
-#endif
-
-   unblock_input ();
-
 }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
@@ -15551,24 +15539,6 @@ x_scroll_bar_note_movement (struct scroll_bar *bar,
 	}
     }
 }
-
-#ifdef HAVE_XDBE
-static void
-x_scroll_bar_end_update (struct x_display_info *dpyinfo,
-			 struct scroll_bar *bar)
-{
-  XdbeSwapInfo swap_info;
-
-  /* This means the scroll bar is double-buffered.  */
-  if (bar->x_drawable != bar->x_window)
-    {
-      memset (&swap_info, 0, sizeof swap_info);
-      swap_info.swap_window = bar->x_window;
-      swap_info.swap_action = XdbeCopied;
-      XdbeSwapBuffers (dpyinfo->display, &swap_info, 1);
-    }
-}
-#endif
 
 #endif /* !USE_TOOLKIT_SCROLL_BARS */
 
@@ -15710,17 +15680,15 @@ x_horizontal_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_windo
 }
 
 
-/* The screen has been cleared so we may have changed foreground or
-   background colors, and the scroll bars may need to be redrawn.
-   Clear out the scroll bars, and ask for expose events, so we can
-   redraw them.  */
+/* The screen has been cleared and foreground or background colors may
+   have changed, so the scroll bars need to be redrawn.  Clear the
+   scroll bars and redraw them.  */
 
 static void
 x_scroll_bar_clear (struct frame *f)
 {
 #ifndef USE_TOOLKIT_SCROLL_BARS
-  Lisp_Object bar;
-#ifdef HAVE_XDBE
+  Lisp_Object bar, condemned;
   GC gc = f->output_data.x->normal_gc;
 
   if (f->output_data.x->scroll_bar_background_pixel != -1)
@@ -15729,35 +15697,25 @@ x_scroll_bar_clear (struct frame *f)
   else
     XSetForeground (FRAME_X_DISPLAY (f), gc,
 		    FRAME_BACKGROUND_PIXEL (f));
-#endif
 
   /* We can have scroll bars even if this is 0,
      if we just turned off scroll bar mode.
      But in that case we should not clear them.  */
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-    for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
-	 bar = XSCROLL_BAR (bar)->next)
-      {
-#ifdef HAVE_XDBE
-	if (XSCROLL_BAR (bar)->x_window
-	    == XSCROLL_BAR (bar)->x_drawable)
-#endif
-	  XClearArea (FRAME_X_DISPLAY (f),
-		      XSCROLL_BAR (bar)->x_window,
-		      0, 0, 0, 0, True);
-#ifdef HAVE_XDBE
-	else
-	  XFillRectangle (FRAME_X_DISPLAY (f),
-			  XSCROLL_BAR (bar)->x_drawable,
-			  gc, 0, 0, XSCROLL_BAR (bar)->width,
-			  XSCROLL_BAR (bar)->height);
-#endif
-      }
+    {
+      condemned = FRAME_CONDEMNED_SCROLL_BARS (f);
+      for (bar = FRAME_SCROLL_BARS (f);
+	   /* This trick allows us to search both the ordinary and
+              condemned scroll bar lists with one loop.  */
+	   !NILP (bar) || (bar = condemned,
+			   condemned = Qnil,
+			   !NILP (bar));
+	   bar = XSCROLL_BAR (bar)->next)
+	x_scroll_bar_redraw (XSCROLL_BAR (bar));
+    }
 
-#ifdef HAVE_XDBE
   XSetForeground (FRAME_X_DISPLAY (f), gc,
 		  FRAME_FOREGROUND_PIXEL (f));
-#endif
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
 
@@ -17643,7 +17601,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
           if (!FRAME_GARBAGED_P (f))
             {
-#ifdef USE_X_TOOLKIT
+#if defined USE_X_TOOLKIT && defined USE_TOOLKIT_SCROLL_BARS
 	      if (f->output_data.x->edit_widget)
 		/* The widget's expose proc will be run in this
 		   case.  */
@@ -17658,10 +17616,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
               expose_frame (f, event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
+#ifndef USE_TOOLKIT_SCROLL_BARS
+	      x_scroll_bar_handle_exposure (f, (XEvent *) event);
+#endif
 #ifdef USE_GTK
 	      x_clear_under_internal_border (f);
 #endif
             }
+#ifndef USE_TOOLKIT_SCROLL_BARS
+	  else
+	    x_scroll_bar_handle_exposure (f, (XEvent *) event);
+#endif
 
 #ifdef HAVE_XDBE
           if (!FRAME_GARBAGED_P (f))
@@ -17670,9 +17635,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         }
       else
         {
-#ifndef USE_TOOLKIT_SCROLL_BARS
-          struct scroll_bar *bar;
-#endif
 #if defined USE_LUCID
           /* Submenus of the Lucid menu bar aren't widgets
              themselves, so there's no way to dispatch events
@@ -17684,20 +17646,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           }
 #endif /* USE_LUCID */
 
-#ifdef USE_TOOLKIT_SCROLL_BARS
           /* Dispatch event to the widget.  */
           goto OTHER;
-#else /* not USE_TOOLKIT_SCROLL_BARS */
-          bar = x_window_to_scroll_bar (event->xexpose.display,
-                                        event->xexpose.window, 2);
-
-          if (bar)
-            x_scroll_bar_expose (bar, event);
-#ifdef USE_X_TOOLKIT
-          else
-            goto OTHER;
-#endif /* USE_X_TOOLKIT */
-#endif /* not USE_TOOLKIT_SCROLL_BARS */
         }
       break;
 
@@ -17711,6 +17661,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                         event->xgraphicsexpose.y,
                         event->xgraphicsexpose.width,
                         event->xgraphicsexpose.height);
+#ifndef USE_TOOLKIT_SCROLL_BARS
+	  x_scroll_bar_handle_exposure (f, (XEvent *) event);
+#endif
 #ifdef USE_GTK
 	  x_clear_under_internal_border (f);
 #endif
@@ -17718,16 +17671,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  show_back_buffer (f);
 #endif
         }
-#ifndef USE_TOOLKIT_SCROLL_BARS
-      struct scroll_bar *bar
-	= x_window_to_scroll_bar (dpyinfo->display,
-				  /* Hopefully this is just a window,
-				     not the back buffer.  */
-				  event->xgraphicsexpose.drawable, 2);
-
-      if (bar)
-	x_scroll_bar_expose (bar, event);
-#endif
 #ifdef USE_X_TOOLKIT
       else
         goto OTHER;

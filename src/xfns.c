@@ -838,21 +838,9 @@ x_set_inhibit_double_buffering (struct frame *f,
 
       block_input ();
       if (want_double_buffering != was_double_buffered)
-	{
-	  /* Force XftDraw etc to be recreated with the new double
-	     buffered drawable.  */
-	  font_drop_xrender_surfaces (f);
-
-	  /* Scroll bars decide whether or not to use a back buffer
-	     based on the value of this frame parameter, so destroy
-	     all scroll bars.  */
-#ifndef USE_TOOLKIT_SCROLL_BARS
-	  if (FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
-	    FRAME_TERMINAL (f)->condemn_scroll_bars_hook (f);
-	  if (FRAME_TERMINAL (f)->judge_scroll_bars_hook)
-	    FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
-#endif
-	}
+	/* Force XftDraw etc to be recreated with the new double
+	   buffered drawable.  */
+	font_drop_xrender_surfaces (f);
       if (FRAME_X_DOUBLE_BUFFERED_P (f) && !want_double_buffering)
         tear_down_x_back_buffer (f);
       else if (!FRAME_X_DOUBLE_BUFFERED_P (f) && want_double_buffering)
