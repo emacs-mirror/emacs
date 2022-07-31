@@ -320,6 +320,7 @@ These directories contain packages intended for system-wide; in
 contrast, `package-user-dir' contains packages for personal use."
   :type '(repeat directory)
   :initialize #'custom-initialize-delay
+  :group 'applications
   :risky t
   :version "24.1")
 
@@ -628,6 +629,7 @@ called via `package-activate-all'.  To change which packages are
 loaded and/or activated, customize `package-load-list'.")
 (put 'package-alist 'risky-local-variable t)
 
+;;;###autoload
 (defvar package-activated-list nil
   ;; FIXME: This should implicitly include all builtin packages.
   "List of the names of currently activated packages.")
@@ -4287,6 +4289,7 @@ activations need to be changed, such as when `package-load-list' is modified."
   (locate-user-emacs-file "package-quickstart.el")
   "Location of the file used to speed up activation of packages at startup."
   :type 'file
+  :group 'applications
   :initialize #'custom-initialize-delay
   :version "27.1")
 
