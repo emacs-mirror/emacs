@@ -1663,6 +1663,7 @@ The variable `package-load-list' controls which packages to load."
       (require 'package)
       (package--activate-all)))))
 
+;;;###autoload
 (defun package--activate-all ()
   (dolist (elt (package--alist))
     (condition-case err

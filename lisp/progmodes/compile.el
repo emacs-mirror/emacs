@@ -1792,6 +1792,7 @@ Otherwise, construct a buffer name from NAME-OF-MODE."
                #'compilation--default-buffer-name)
            name-of-mode))
 
+;;;###autoload
 (defun compilation--default-buffer-name (name-of-mode)
   (cond ((or (eq major-mode (intern-soft name-of-mode))
              (eq major-mode (intern-soft (concat name-of-mode "-mode"))))

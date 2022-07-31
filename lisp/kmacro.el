@@ -920,6 +920,7 @@ The ARG parameter is unused."
 	  (vectorp f)                   ;FIXME: Deprecated.
 	  (kmacro-p f)))))
 
+;;;###autoload
 (defun kmacro-name-last-macro (symbol)
   "Assign a name to the last keyboard macro defined.
 Argument SYMBOL is the name to define.
