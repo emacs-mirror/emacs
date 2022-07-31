@@ -31,6 +31,7 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
+(declare-function tramp-archive-file-name-handler "tramp-archive")
 (defvar ange-ftp-ftp-name-arg)
 (defvar ange-ftp-ftp-name-res)
 (defvar ange-ftp-name-format)

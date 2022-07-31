@@ -62,6 +62,7 @@
 (require 'cl-lib)
 (declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
+(declare-function tramp-archive-file-name-handler "tramp-archive")
 (defvar auto-save-file-name-transforms)
 
 ;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU ELPA package.
