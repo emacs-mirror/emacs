@@ -14929,7 +14929,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	}
 
       bar = x_scroll_bar_create (w, top, left, width, max (height, 1), false);
-#ifndef USE_TOOKIT_SCROLL_BARS
+#ifndef USE_TOOLKIT_SCROLL_BARS
       /* Since non-toolkit scroll bars don't display their contents to
 	 a dedicated window, no expose event will be generated.
 	 Redraw the scroll bar manually.  */
