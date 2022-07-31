@@ -281,32 +281,26 @@ being pedantic."
   (unless class
     (warn "`eieio-persistent-read' called without specifying a class"))
   (when class (cl-check-type class class))
-  (let ((ret nil)
-	(buffstr nil))
-    (unwind-protect
-	(progn
-	  (with-current-buffer (get-buffer-create " *tmp eieio read*")
-	    (insert-file-contents filename nil nil nil t)
-	    (goto-char (point-min))
-	    (setq buffstr (buffer-string)))
-	  ;; Do the read in the buffer the read was initialized from
-	  ;; so that any initialize-instance calls that depend on
-	  ;; the current buffer will work.
-	  (setq ret (read buffstr))
-	  (when (not (child-of-class-p (car ret) 'eieio-persistent))
-	    (error
-             "Invalid object: %s is not a subclass of `eieio-persistent'"
-             (car ret)))
-	  (when (and class
-		     (not (or (eq (car ret) class) ; same class
-			      (and allow-subclass  ; subclass
-				   (child-of-class-p (car ret) class)))))
-	    (error
-             "Invalid object: %s is not an object of class %s nor a subclass"
-             (car ret) class))
-          (setq ret (eieio-persistent-make-instance (car ret) (cdr ret)))
-	  (oset ret file filename))
-      (kill-buffer " *tmp eieio read*"))
+  (let* ((buffstr (with-temp-buffer
+                    (insert-file-contents filename)
+                    (buffer-string)))
+         ;; Do the read in the buffer the read was initialized from
+         ;; so that any initialize-instance calls that depend on
+         ;; the current buffer will work.
+         (ret (read buffstr)))
+    (when (not (child-of-class-p (car ret) 'eieio-persistent))
+      (error
+       "Invalid object: %s is not a subclass of `eieio-persistent'"
+       (car ret)))
+    (when (and class
+	       (not (or (eq (car ret) class) ; same class
+			(and allow-subclass  ; subclass
+			     (child-of-class-p (car ret) class)))))
+      (error
+       "Invalid object: %s is not an object of class %s nor a subclass"
+       (car ret) class))
+    (setq ret (eieio-persistent-make-instance (car ret) (cdr ret)))
+    (oset ret file filename)
     ret))
 
 (cl-defgeneric eieio-persistent-make-instance (objclass inputlist)
