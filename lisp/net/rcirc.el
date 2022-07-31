@@ -1388,6 +1388,21 @@ Each element looks like (FILENAME . TEXT).")
   "The current number of responses printed in this channel.
 This number is independent of the number of lines in the buffer.")
 
+(defun rcirc--electric-pair-inhibit (char)
+  "Check whether CHAR should be paired by `electric-pair-mode'.
+This uses the default value inhibition predicate (as set by
+`electric-pair-inhibit-predicate'), but ignores all text prior to
+the prompt so that mismatches parentheses by some other message
+does not confuse the pairing."
+  (let ((fallback (default-value 'electric-pair-inhibit-predicate)))
+    ;; The assumption is that this function is only bound by
+    ;; `rcirc-mode', and should never be the global default.
+    (cl-assert (not (eq fallback #'rcirc--electric-pair-inhibit)))
+    (save-restriction
+      (widen)
+      (narrow-to-region rcirc-prompt-start-marker (point-max))
+      (funcall fallback char))))
+
 (defun rcirc-mode (process target)
   "Initialize an IRC buffer for writing with TARGET.
 PROCESS is the process object used for communication.
@@ -1458,6 +1473,9 @@ PROCESS is the process object used for communication.
             'rcirc-completion-at-point nil 'local)
   (when rcirc-cycle-completion-flag
     (setq-local completion-cycle-threshold t))
+
+  (setq-local electric-pair-inhibit-predicate
+              #'rcirc--electric-pair-inhibit)
 
   (run-mode-hooks 'rcirc-mode-hook))
 
