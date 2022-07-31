@@ -313,7 +313,7 @@ Modifiers have to be specified in this order:
 which is
 
    Alt-Control-Hyper-Meta-Shift-super"
-  (declare (pure t) (side-effect-free t))
+  (declare (pure t) (side-effect-free error-free))
   (let ((case-fold-search nil))
     (and
      (stringp keys)

@@ -6820,7 +6820,7 @@ This means that OBJECT can be printed out and then read back
 again by the Lisp reader.  This function returns nil if OBJECT is
 unreadable, and the printed representation (from `prin1') of
 OBJECT if it is readable."
-  (declare (side-effect-free t))
+  (declare (side-effect-free error-free))
   (catch 'unreadable
     (let ((print-unreadable-function
            (lambda (_object _escape)
