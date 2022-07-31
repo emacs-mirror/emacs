@@ -2684,6 +2684,7 @@ Must be handled by the callers."
       res)))
 
 ;; Main function.
+;;;###autoload
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke Tramp file name handler for OPERATION and ARGS.
 Fall back to normal file name handler if no Tramp file name handler exists."

@@ -322,7 +322,7 @@ arguments to pass to the OPERATION."
 	 (inhibit-file-name-operation operation))
     (apply operation args))))
 
-;;;###tramp-autoload
+;;;###autoload
 (defun tramp-archive-file-name-handler (operation &rest args)
   "Invoke the file archive related OPERATION.
 First arg specifies the OPERATION, second arg ARGS is a list of
