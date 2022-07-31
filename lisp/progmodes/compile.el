@@ -860,7 +860,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 
 It's often useful to leave a space at the end of the value."
   :type 'string)
-;;;###autoload(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command)) compilation-read-command))))
+;;;###autoload(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (if (boundp 'compilation-read-command) compilation-read-command t))))
 
 ;;;###autoload
 (defcustom compilation-disable-input nil
