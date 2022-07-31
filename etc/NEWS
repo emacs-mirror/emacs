@@ -2456,6 +2456,10 @@ but switching to `ash` is generally much preferable.
 'unify-8859-on-decoding-mode', 'unify-8859-on-encoding-mode',
 'vc-arch-command', 'window-redisplay-end-trigger'.
 
+---
+** Some functions and variables obsolete since Emacs 21 or 22 have been removed:
+'find-file-not-found-hooks', 'ls-lisp-dired-ignore-case'.
+
 +++
 ** New generic function 'function-documentation'.
 Can dynamically generate a raw docstring depending on the type of
