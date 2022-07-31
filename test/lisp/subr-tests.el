@@ -1042,11 +1042,14 @@ final or penultimate step during initialization."))
 
 (ert-deftest test-print-unreadable-function ()
   ;; Check that problem with unwinding properly is fixed (bug#56773).
-  (with-temp-buffer
-    (let ((buf (current-buffer)))
-      (let ((_ (readablep (make-marker)))) nil) ; this `let' silences a
-                                                ; warning
-      (should (eq buf (current-buffer))))))
+  (let* ((before nil)
+         (after nil)
+         (r (with-temp-buffer
+              (setq before (current-buffer))
+              (prog1 (readablep (make-marker))
+                (setq after (current-buffer))))))
+    (should (equal after before))
+    (should (equal r nil))))
 
 (ert-deftest test-string-lines ()
   (should (equal (string-lines "") '("")))

@@ -530,15 +530,17 @@ otherwise, use a different charset."
                                  0)))))))))))
 
 (ert-deftest test-print-unreadable-function-buffer ()
-  (with-temp-buffer
-    (let ((current (current-buffer))
-          callback-buffer)
-      (let ((print-unreadable-function
-             (lambda (_object _escape)
-               (setq callback-buffer (current-buffer)))))
-        (let ((_ (prin1-to-string (make-marker)))) nil))  ; this `let' silences a
-                                                          ; warning
-      (should (eq current callback-buffer)))))
+  (let* ((buffer nil)
+         (callback-buffer nil)
+         (str (with-temp-buffer
+                (setq buffer (current-buffer))
+                (let ((print-unreadable-function
+                       (lambda (_object _escape)
+                         (setq callback-buffer (current-buffer))
+                         "tata")))
+                  (prin1-to-string (make-marker))))))
+      (should (eq callback-buffer buffer))
+      (should (equal str "tata"))))
 
 (provide 'print-tests)
 ;;; print-tests.el ends here
