@@ -1450,11 +1450,7 @@ Please send all bug fixes and enhancements to
 
 ;;; Code:
 
-
 (require 'lpr)
-
-;; Load Emacs definitions
-(require 'ps-def)
 
 ;; autoloads for secondary file
 (require 'ps-print-loaddefs)
