@@ -1253,7 +1253,7 @@ instead of the current time.  See `format-time-string' for the various
 forms of a time value.
 
 WARNING: Since the result is floating point, it may not be exact.
-If precise time stamps are required, use either `encode-time',
+If precise time stamps are required, use either `time-convert',
 or (if you need time as a string) `format-time-string'.  */)
   (Lisp_Object specified_time)
 {
