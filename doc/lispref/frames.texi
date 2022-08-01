@@ -2188,11 +2188,11 @@ way that its contents are hidden, leaving only the title bar.
 @item use-frame-synchronization
 If non-@code{nil}, synchronize the frame redisplay with the refresh
 rate of the monitor to avoid graphics tearing.  At present, this is
-only implemented on the X window system inside no-toolkit and X
-toolkit builds, does not work correctly with toolkit scroll bars, and
-requires a compositing manager supporting the relevant display
-synchronization protocols.  The @code{synchronizeResize} X resource
-must also be set to the string @code{"extended"}.
+only implemented on Haiku and the X window system inside no-toolkit
+and X toolkit builds, does not work correctly with toolkit scroll
+bars, and requires a compositing manager supporting the relevant
+display synchronization protocols.  The @code{synchronizeResize} X
+resource must also be set to the string @code{"extended"}.
 
 @vindex inhibit-double-buffering@r{, a frame parameter}
 @item inhibit-double-buffering
