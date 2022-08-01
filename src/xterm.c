@@ -17170,7 +17170,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  goto done;
 #endif
 
-        xft_settings_event (dpyinfo, event);
+        if (xft_settings_event (dpyinfo, event))
+	  goto done;
 
 	f = any;
 	/* We don't want to ever leak tooltip frames to Lisp code.  */

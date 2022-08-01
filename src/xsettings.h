@@ -36,7 +36,7 @@ typedef struct pgtk_display_info Display_Info;
 
 extern void xsettings_initialize (Display_Info *);
 #ifndef HAVE_PGTK
-extern void xft_settings_event (Display_Info *, const XEvent *);
+extern bool xft_settings_event (Display_Info *, const XEvent *);
 #endif
 extern const char *xsettings_get_system_font (void);
 #ifdef USE_LUCID
