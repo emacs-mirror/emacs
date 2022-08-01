@@ -3793,10 +3793,10 @@ make_symbol_constant (Lisp_Object sym)
 
 /* Buffer-local variable access functions.  */
 
-INLINE int
+INLINE bool
 blv_found (struct Lisp_Buffer_Local_Value *blv)
 {
-  eassert (blv->found == !EQ (blv->defcell, blv->valcell));
+  eassert (blv->found == !BASE_EQ (blv->defcell, blv->valcell));
   return blv->found;
 }
 
