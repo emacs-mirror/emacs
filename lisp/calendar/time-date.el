@@ -256,10 +256,10 @@ Returns a floating point number."
 ;;;###autoload
 (defun safe-date-to-time (date)
   "Parse a string DATE that represents a date-time and return a time value.
-If DATE is malformed, return a time value of zeros."
+If DATE is malformed, return a time value of zero."
   (condition-case ()
       (date-to-time date)
-    (error '(0 0))))
+    (error 0)))
 
 
 ;;;###autoload

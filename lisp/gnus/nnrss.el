@@ -325,7 +325,7 @@ for decoding when the cdr that the data specify is not available.")
 	       (nnmail-expired-article-p
 		group
 		(if (listp (setq days (nth 1 e))) days
-		  (days-to-time (- days (time-to-days '(0 0)))))
+		  (days-to-time (- days (time-to-days 0))))
 		force))
 	  (setq nnrss-group-data (delq e nnrss-group-data)
 		changed t)

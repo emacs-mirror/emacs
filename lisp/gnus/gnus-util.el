@@ -383,7 +383,7 @@ Cache the result as a text property stored in DATE."
   ;; Either return the cached value...
   `(let ((d ,date))
      (if (equal "" d)
-	 '(0 0)
+	 0
        (or (get-text-property 0 'gnus-time d)
 	   ;; or compute the value...
 	   (let ((time (safe-date-to-time d)))
