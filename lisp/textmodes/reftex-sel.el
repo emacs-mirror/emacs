@@ -33,14 +33,10 @@
 (defvar reftex-select-shared-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map special-mode-map)
-    (substitute-key-definition
-     #'next-line #'reftex-select-next                      map global-map)
-    (substitute-key-definition
-     #'previous-line #'reftex-select-previous              map global-map)
-    (substitute-key-definition
-     #'keyboard-quit #'reftex-select-keyboard-quit         map global-map)
-    (substitute-key-definition
-     #'newline #'reftex-select-accept                      map global-map)
+    (define-key map [remap next-line] #'reftex-select-next)
+    (define-key map [remap previous-line] #'reftex-select-previous)
+    (define-key map [remap keyboard-quit] #'reftex-select-keyboard-quit)
+    (define-key map [remap newline] #'reftex-select-accept)
 
     (define-key map " " #'reftex-select-callback)
     (define-key map "n" #'reftex-select-next)
