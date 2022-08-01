@@ -387,9 +387,9 @@ enum { flt_radix_power_size = DBL_MANT_DIG - DBL_MIN_EXP + 1 };
    equals FLT_RADIX**P.  */
 static Lisp_Object flt_radix_power;
 
-/* Convert T into an Emacs time *RESULT, truncating toward minus infinity.
-   Return zero if successful, an error number otherwise.  */
-static int
+/* Convert the finite number T into an Emacs time *RESULT, truncating
+   toward minus infinity.  Signal an error if unsuccessful.  */
+static void
 decode_float_time (double t, struct lisp_time *result)
 {
   Lisp_Object ticks, hz;
@@ -401,6 +401,7 @@ decode_float_time (double t, struct lisp_time *result)
   else
     {
       int scale = double_integer_scale (t);
+      eassume (scale < flt_radix_power_size);
 
       if (scale < 0)
 	{
@@ -412,8 +413,6 @@ decode_float_time (double t, struct lisp_time *result)
 	    which is typically better than signaling overflow.  */
 	  scale = 0;
 	}
-      else if (flt_radix_power_size <= scale)
-	return isnan (t) ? EDOM : EOVERFLOW;
 
       /* Compute TICKS, HZ such that TICKS / HZ exactly equals T, where HZ is
 	 T's frequency or 1, whichever is greater.  Here, “frequency” means
@@ -431,7 +430,6 @@ decode_float_time (double t, struct lisp_time *result)
     }
   result->ticks = ticks;
   result->hz = hz;
-  return 0;
 }
 
 /* Make a 4-element timestamp (HI LO US PS) from TICKS and HZ.
@@ -705,7 +703,7 @@ enum timeform
    TIMEFORM_TICKS_HZ /* fractional time: HI is ticks, LO is ticks per second */
   };
 
-/* From the valid form FORM and the time components HIGH, LOW, USEC
+/* From the non-float form FORM and the time components HIGH, LOW, USEC
    and PSEC, generate the corresponding time value.  If LOW is
    floating point, the other components should be zero and FORM should
    not be TIMEFORM_TICKS_HZ.
@@ -734,16 +732,7 @@ decode_time_components (enum timeform form,
       return EINVAL;
 
     case TIMEFORM_FLOAT:
-      {
-	double t = XFLOAT_DATA (low);
-	if (result)
-	  return decode_float_time (t, result);
-	else
-	  {
-	    *dresult = t;
-	    return 0;
-	  }
-      }
+      eassume (false);
 
     case TIMEFORM_NIL:
       return decode_ticks_hz (timespec_ticks (current_timespec ()),
@@ -830,7 +819,16 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
   if (NILP (specified_time))
     form = TIMEFORM_NIL;
   else if (FLOATP (specified_time))
-    form = TIMEFORM_FLOAT;
+    {
+      double d = XFLOAT_DATA (specified_time);
+      if (!isfinite (d))
+	time_error (isnan (d) ? EDOM : EOVERFLOW);
+      if (result)
+	decode_float_time (d, result);
+      else
+	*dresult = d;
+      return TIMEFORM_FLOAT;
+    }
   else if (CONSP (specified_time))
     {
       high = XCAR (specified_time);
@@ -878,7 +876,7 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
   return form;
 }
 
-/* Convert a Lisp timestamp SPECIFIED_TIME to double.
+/* Convert a non-float Lisp timestamp SPECIFIED_TIME to double.
    Signal an error if unsuccessful.  */
 double
 float_time (Lisp_Object specified_time)
@@ -1253,7 +1251,8 @@ If precise time stamps are required, use either `encode-time',
 or (if you need time as a string) `format-time-string'.  */)
   (Lisp_Object specified_time)
 {
-  return make_float (float_time (specified_time));
+  return (FLOATP (specified_time) ? specified_time
+	  : make_float (float_time (specified_time)));
 }
 
 /* Write information into buffer S of size MAXSIZE, according to the
