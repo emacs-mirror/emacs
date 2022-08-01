@@ -2837,8 +2837,8 @@ x_dnd_free_toplevels (bool display_alive)
   struct x_client_list_window *last;
   struct x_client_list_window *tem = x_dnd_toplevels;
   ptrdiff_t n_windows, i, buffer_size;
-  Window *destroy_windows;
-  unsigned long *prev_masks;
+  Window *destroy_windows UNINIT;
+  unsigned long *prev_masks UNINIT;
   specpdl_ref count;
   Display *dpy;
   struct x_display_info *dpyinfo;
@@ -2846,10 +2846,6 @@ x_dnd_free_toplevels (bool display_alive)
   if (!x_dnd_toplevels)
     /* Probably called inside an IO error handler.  */
     return;
-
-  /* Pacify GCC.  */
-  prev_masks = NULL;
-  destroy_windows = NULL;
 
   if (display_alive)
     {
@@ -2913,6 +2909,7 @@ x_dnd_free_toplevels (bool display_alive)
 
       if (n_windows)
 	{
+	  eassume (dpyinfo);
 	  x_ignore_errors_for_next_request (dpyinfo);
 
 	  for (i = 0; i < n_windows; ++i)
@@ -9311,9 +9308,7 @@ x_composite_image (struct glyph_string *s, Pixmap dest,
     {
       Picture destination;
       XRenderPictFormat *default_format;
-      XRenderPictureAttributes attr;
-      /* Pacify GCC.  */
-      memset (&attr, 0, sizeof attr);
+      XRenderPictureAttributes attr UNINIT;
 
       default_format = FRAME_X_PICTURE_FORMAT (s->f);
       destination = XRenderCreatePicture (display, dest,
