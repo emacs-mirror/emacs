@@ -3169,7 +3169,8 @@ list_system_processes (void)
 
 #endif /* !defined (WINDOWSNT) */
 
-#if defined __FreeBSD__ || defined DARWIN_OS || defined __OpenBSD__
+#if (HAVE_GETRUSAGE \
+     || defined __FreeBSD__ || defined DARWIN_OS || defined __OpenBSD__)
 
 static Lisp_Object
 make_lisp_s_us (time_t s, long us)
@@ -4276,7 +4277,7 @@ does the same thing as `current-time'.  */)
       usecs -= 1000000;
       secs++;
     }
-  return make_lisp_time (make_timespec (secs, usecs * 1000));
+  return make_lisp_s_us (secs, usecs);
 #else /* ! HAVE_GETRUSAGE  */
 #ifdef WINDOWSNT
   return w32_get_internal_run_time ();
