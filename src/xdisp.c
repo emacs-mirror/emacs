@@ -8891,7 +8891,7 @@ get_visually_first_element (struct it *it)
 				find_newline_no_quit (IT_CHARPOS (*it),
 						      IT_BYTEPOS (*it), -1,
 						      &it->bidi_it.bytepos),
-				get_closer_narrowed_begv (it->w, IT_CHARPOS (*it)));
+				it->narrowed_begv);
       bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
       do
 	{
