@@ -8846,7 +8846,7 @@ get_visually_first_element (struct it *it)
 
   SET_WITH_NARROWED_BEGV (it, bob,
 			  string_p ? 0 :
-			  IT_BYTEPOS (*it) < BEGV ? obegv : BEGV,
+			  IT_CHARPOS (*it) < BEGV ? obegv : BEGV,
 			  it->narrowed_begv);
 
   if (STRINGP (it->string))
