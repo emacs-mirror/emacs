@@ -73,7 +73,7 @@
   "Non-nil means that hanoi poles are oriented horizontally."
   :type 'boolean)
 
-(defcustom hanoi-move-period 1.0
+(defcustom hanoi-move-period 1
   "Time, in seconds, for each pole-to-pole move of a ring.
 If nil, move rings as fast as possible while displaying all
 intermediate positions."
@@ -112,35 +112,32 @@ intermediate positions."
 	     (prefix-numeric-value current-prefix-arg))))
   (if (< nrings 0)
       (error "Negative number of rings"))
-  (hanoi-internal nrings (make-list nrings 0) (float-time)))
+  (hanoi-internal nrings (make-list nrings 0) (time-convert nil 'integer)))
 
 ;;;###autoload
 (defun hanoi-unix ()
-  "Towers of Hanoi, UNIX doomsday version.
-Displays 32-ring towers that have been progressing at one move per
-second since 1970-01-01 00:00:00 GMT.
+  "Towers of Hanoi, 32-bit UNIX doomsday version.
+Display 32-ring towers that have been progressing at one move per
+second since 1970-01-01 00:00:00 UTC.
 
 Repent before ring 31 moves."
   (interactive)
-  (let* ((start (ftruncate (float-time)))
-	 (bits (cl-loop repeat 32
-                        for x = (/ start (expt 2.0 31)) then (* x 2.0)
-                        collect (truncate (mod x 2.0))))
-	 (hanoi-move-period 1.0))
+  (let* ((start (time-convert nil 'integer))
+	 (bits (nreverse (cl-loop repeat 32
+				  for x = start then (ash x -1)
+				  collect (logand x 1))))
+	 (hanoi-move-period 1))
     (hanoi-internal 32 bits start)))
 
 ;;;###autoload
 (defun hanoi-unix-64 ()
-  "Like `hanoi-unix', but pretend to have a 64-bit clock.
-This is, necessarily (as of Emacs 20.3), a crock.  When the
-`current-time' interface is made s2G-compliant, hanoi.el will need
-to be updated."
+  "Like `hanoi-unix', but with a 64-bit clock."
   (interactive)
-  (let* ((start (ftruncate (float-time)))
-	 (bits (cl-loop repeat 64
-                        for x = (/ start (expt 2.0 63)) then (* x 2.0)
-                        collect (truncate (mod x 2.0))))
-	 (hanoi-move-period 1.0))
+  (let* ((start (time-convert nil 'integer))
+	 (bits (nreverse (cl-loop repeat 64
+				  for x = start then (ash x -1)
+				  collect (logand x 1))))
+	 (hanoi-move-period 1))
     (hanoi-internal 64 bits start)))
 
 (defun hanoi-internal (nrings bits start-time)
@@ -378,9 +375,10 @@ BITS must be of length nrings.  Start at START-TIME."
 		    (/ (- tick flyward-ticks fly-ticks)
 		       ticks-per-pole-step))))))))
     (if hanoi-move-period
-	(cl-loop for elapsed = (- (float-time) start-time)
-                 while (< elapsed hanoi-move-period)
-                 with tick-period = (/ (float hanoi-move-period) total-ticks)
+	(cl-loop for elapsed = (float-time (time-subtract nil start-time))
+		 while (time-less-p elapsed hanoi-move-period)
+		 with tick-period = (/ (float-time hanoi-move-period)
+				       total-ticks)
 		 for tick = (ceiling elapsed tick-period) do
                  (hanoi-ring-to-pos ring (funcall tick-to-pos tick))
                  (hanoi-sit-for (- (* tick tick-period) elapsed)))
@@ -389,7 +387,7 @@ BITS must be of length nrings.  Start at START-TIME."
                (hanoi-sit-for 0)))
     ;; Always make last move to keep pole and ring data consistent
     (hanoi-ring-to-pos ring (car to))
-    (if hanoi-move-period (+ start-time hanoi-move-period))))
+    (if hanoi-move-period (time-add start-time hanoi-move-period))))
 
 ;; update display and pause, quitting with a pithy comment if the user
 ;; hits a key.
