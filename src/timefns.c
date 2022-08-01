@@ -1074,27 +1074,9 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 static Lisp_Object
 time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 {
-  if (FLOATP (a) && !isfinite (XFLOAT_DATA (a)))
-    {
-      double da = XFLOAT_DATA (a);
-      double db = float_time (b);
-      return make_float (subtract ? da - db : da + db);
-    }
   enum timeform aform, bform;
   struct lisp_time ta = lisp_time_struct (a, &aform);
-
-  if (FLOATP (b) && !isfinite (XFLOAT_DATA (b)))
-    return subtract ? make_float (-XFLOAT_DATA (b)) : b;
-
-  /* Subtract nil from nil correctly, and handle other eq values
-     quicker while we're at it.  Compare here rather than earlier, to
-     handle NaNs and check formats.  */
-  struct lisp_time tb;
-  if (BASE_EQ (a, b))
-    bform = aform, tb = ta;
-  else
-    tb = lisp_time_struct (b, &bform);
-
+  struct lisp_time tb = lisp_time_struct (b, &bform);
   Lisp_Object ticks, hz;
 
   if (FASTER_TIMEFNS && BASE_EQ (ta.hz, tb.hz))
@@ -1201,27 +1183,23 @@ See `format-time-string' for the various forms of a time value.
 For example, nil stands for the current time.  */)
   (Lisp_Object a, Lisp_Object b)
 {
+  /* Subtract nil from nil correctly, and handle other eq values
+     quicker while we're at it.  This means (time-subtract X X) does
+     not signal an error if X is not a valid time value, but that's OK.  */
+  if (BASE_EQ (a, b))
+    return timespec_to_lisp ((struct timespec) {0});
+
   return time_arith (a, b, true);
 }
 
-/* Return negative, 0, positive if a < b, a == b, a > b respectively.
-   Return positive if either a or b is a NaN; this is good enough
-   for the current callers.  */
+/* Return negative, 0, positive if A < B, A == B, A > B respectively.
+   A and B should be Lisp time values.  */
 static int
 time_cmp (Lisp_Object a, Lisp_Object b)
 {
-  if ((FLOATP (a) && !isfinite (XFLOAT_DATA (a)))
-      || (FLOATP (b) && !isfinite (XFLOAT_DATA (b))))
-    {
-      double da = FLOATP (a) ? XFLOAT_DATA (a) : 0;
-      double db = FLOATP (b) ? XFLOAT_DATA (b) : 0;
-      return da < db ? -1 : da != db;
-    }
-
   /* Compare nil to nil correctly, and handle other eq values quicker
-     while we're at it.  Compare here rather than earlier, to handle
-     NaNs.  This means (time-equal-p X X) does not signal an error if
-     X is not a valid time value, but that's OK.  */
+     while we're at it.  This means (time-equal-p X X) does not signal
+     an error if X is not a valid time value, but that's OK.  */
   if (BASE_EQ (a, b))
     return 0;
 
