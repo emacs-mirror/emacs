@@ -275,7 +275,8 @@ struct scroll_bar
 #define MAKE_FRAME_DIRTY(f)		(FRAME_DIRTY_P (f) = 1)
 #define FRAME_OUTPUT_DATA(f)		((f)->output_data.haiku)
 #define FRAME_HAIKU_WINDOW(f)		(FRAME_OUTPUT_DATA (f)->window)
-#define FRAME_HAIKU_VIEW(f)		((MAKE_FRAME_DIRTY (f)), FRAME_OUTPUT_DATA (f)->view)
+#define FRAME_HAIKU_VIEW(f)		(FRAME_OUTPUT_DATA (f)->view)
+#define FRAME_HAIKU_DRAWABLE(f)		((MAKE_FRAME_DIRTY (f)), FRAME_HAIKU_VIEW (f))
 #define FRAME_HAIKU_MENU_BAR(f)		(FRAME_OUTPUT_DATA (f)->menubar)
 #define FRAME_DISPLAY_INFO(f)		(FRAME_OUTPUT_DATA (f)->display_info)
 #define FRAME_FONT(f)			(FRAME_OUTPUT_DATA (f)->font)
@@ -287,7 +288,7 @@ struct scroll_bar
 #ifdef USE_BE_CAIRO
 #define FRAME_CR_CONTEXT(f)					\
   (FRAME_HAIKU_VIEW (f)						\
-   ? EmacsView_cairo_context (FRAME_HAIKU_VIEW (f))		\
+   ? EmacsView_cairo_context (FRAME_HAIKU_DRAWABLE (f))		\
    : NULL)
 #endif
 

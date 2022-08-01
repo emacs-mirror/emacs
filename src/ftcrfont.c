@@ -567,7 +567,7 @@ ftcrfont_draw (struct glyph_string *s,
       unblock_input ();
       return 0;
     }
-  BView_cr_dump_clipping (FRAME_HAIKU_VIEW (f), cr);
+  BView_cr_dump_clipping (FRAME_HAIKU_DRAWABLE (f), cr);
 #endif
 
   if (with_background)

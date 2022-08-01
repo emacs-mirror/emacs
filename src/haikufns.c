@@ -1505,9 +1505,9 @@ haiku_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 
   if (FRAME_HAIKU_VIEW (f))
     {
-      BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
-      BView_SetViewColor (FRAME_HAIKU_VIEW (f), background);
-      BView_draw_unlock (FRAME_HAIKU_VIEW (f));
+     BView_draw_lock (FRAME_HAIKU_DRAWABLE (f), false, 0, 0, 0, 0);
+      BView_SetViewColor (FRAME_HAIKU_DRAWABLE (f), background);
+      BView_draw_unlock (FRAME_HAIKU_DRAWABLE (f));
 
       FRAME_OUTPUT_DATA (f)->cursor_fg = background;
       update_face_from_frame_parameter (f, Qbackground_color, arg);
