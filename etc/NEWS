@@ -1458,6 +1458,11 @@ yank the text at mouse cursor.  But if 'mouse-yank-at-point' is
 non-nil, the text will now be added to the Isearch instead.
 
 +++
+*** Changes for values 'no' and 'no-ding' of 'isearch-wrap-pause'.
+Now with these values the search will wrap around not only on repeating
+with 'C-s C-s', but also after typing a character.
+
++++
 *** New user option 'char-fold-override'.
 Non-nil means that the default definitions of equivalent characters
 are overridden.
