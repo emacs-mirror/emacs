@@ -1134,14 +1134,11 @@ sure of changing the value of `foo'."
 If you find some problem with the directory separator character, try
 \"[/\\\\]\" for some systems.")
 
-(defun gnus-url-unhex (x)
-  (if (> x ?9)
-      (if (>= x ?a)
-	  (+ 10 (- x ?a))
-	(+ 10 (- x ?A)))
-    (- x ?0)))
+(autoload 'url-unhex "url-util")
+(define-obsolete-function-alias 'gnus-url-unhex #'url-unhex "29.1")
 
-;; Fixme: Do it like QP.
+;; FIXME: Make obsolete in favor of `url-unhex-string', which is
+;;        identical except for the call to `char-to-string'.
 (defun gnus-url-unhex-string (str &optional allow-newlines)
   "Remove %XX, embedded spaces, etc in a url.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
@@ -1151,9 +1148,9 @@ forbidden in URL encoding."
 	(case-fold-search t))
     (while (string-match "%[0-9a-f][0-9a-f]" str)
       (let* ((start (match-beginning 0))
-	     (ch1 (gnus-url-unhex (elt str (+ start 1))))
+             (ch1 (url-unhex (elt str (+ start 1))))
 	     (code (+ (* 16 ch1)
-		      (gnus-url-unhex (elt str (+ start 2))))))
+                      (url-unhex (elt str (+ start 2))))))
 	(setq tmp (concat
 		   tmp (substring str 0 start)
 		   (cond
