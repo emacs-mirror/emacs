@@ -6689,6 +6689,9 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
       fprintf (stderr, "Warning: compositing manager spent more than 1 second "
 	       "drawing a frame.  Frame synchronization has been disabled\n");
       FRAME_X_OUTPUT (f)->use_vsync_p = false;
+
+      /* Also change the frame parameter to reflect the new state.  */
+      store_frame_param (f, Quse_frame_synchronization, Qnil);
     }
 
   FRAME_X_WAITING_FOR_DRAW (f) = false;

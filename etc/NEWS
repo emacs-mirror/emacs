@@ -620,6 +620,9 @@ requires an X compositing manager supporting the extended frame
 synchronization protocol (see
 https://fishsoup.net/misc/wm-spec-synchronization.html).
 
+This behavior can be toggled on and off via the frame parameter
+'use-frame-synchronization'.
+
 +++
 ** New frame parameter 'alpha-background' and X resource "alphaBackground".
 This controls the opacity of the text background when running on a

@@ -3916,9 +3916,10 @@ static const struct frame_parm_table frame_parms[] =
   {"z-group",			SYMBOL_INDEX (Qz_group)},
   {"override-redirect",		SYMBOL_INDEX (Qoverride_redirect)},
   {"no-special-glyphs",		SYMBOL_INDEX (Qno_special_glyphs)},
-  {"alpha-background",          SYMBOL_INDEX (Qalpha_background)},
+  {"alpha-background",		SYMBOL_INDEX (Qalpha_background)},
+  {"use-frame-synchronization",	SYMBOL_INDEX (Quse_frame_synchronization)},
 #ifdef HAVE_X_WINDOWS
-  {"shaded", 			SYMBOL_INDEX (Qshaded)},
+  {"shaded",			SYMBOL_INDEX (Qshaded)},
 #endif
 #ifdef NS_IMPL_COCOA
   {"ns-appearance",		SYMBOL_INDEX (Qns_appearance)},
@@ -6195,6 +6196,7 @@ syms_of_frame (void)
   DEFSYM (Qtop_only, "top-only");
   DEFSYM (Qiconify_top_level, "iconify-top-level");
   DEFSYM (Qmake_invisible, "make-invisible");
+  DEFSYM (Quse_frame_synchronization, "use-frame-synchronization");
 
   {
     int i;

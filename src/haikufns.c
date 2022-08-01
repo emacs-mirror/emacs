@@ -3128,6 +3128,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     haiku_set_override_redirect,
     gui_set_no_special_glyphs,
     gui_set_alpha_background,
+    NULL,
   };
 
 void

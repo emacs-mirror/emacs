@@ -2431,6 +2431,28 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
 }
 
+static void
+x_set_use_frame_synchronization (struct frame *f, Lisp_Object arg,
+				 Lisp_Object oldval)
+{
+#if !defined USE_GTK && defined HAVE_XSYNC
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  if (!NILP (arg) && FRAME_X_EXTENDED_COUNTER (f))
+    FRAME_X_OUTPUT (f)->use_vsync_p
+      = x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
+  else
+    FRAME_X_OUTPUT (f)->use_vsync_p = false;
+
+  store_frame_param (f, Quse_frame_synchronization,
+		     FRAME_X_OUTPUT (f)->use_vsync_p ? Qt : Qnil);
+#else
+  store_frame_param (f, Quse_frame_synchronization, Qnil);
+#endif
+}
+
 
 /* Record in frame F the specified or default value according to ALIST
    of the parameter named PROP (a Lisp symbol).  If no value is
@@ -5150,16 +5172,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       ((STRINGP (value)
 			 && !strcmp (SSDATA (value), "extended")) ? 2 : 1));
 #endif
-
-#ifndef USE_GTK
-      if (FRAME_X_EXTENDED_COUNTER (f))
-	FRAME_X_OUTPUT (f)->use_vsync_p
-	  = x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
-#endif
     }
 #endif
 
   unblock_input ();
+
+  /* Set whether or not frame synchronization is enabled.  */
+  gui_default_parameter (f, parms, Quse_frame_synchronization, Qt,
+			 NULL, NULL, RES_TYPE_BOOLEAN);
 
   /* Works iff frame has been already mapped.  */
   gui_default_parameter (f, parms, Qskip_taskbar, Qnil,
@@ -9775,6 +9795,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_override_redirect,
   gui_set_no_special_glyphs,
   x_set_alpha_background,
+  x_set_use_frame_synchronization,
   x_set_shaded,
 };
 
