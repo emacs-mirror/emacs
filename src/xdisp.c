@@ -7531,12 +7531,16 @@ reseat (struct it *it, struct text_pos pos, bool force_p)
 
   if (current_buffer->long_line_optimizations_p)
     {
-      if (!it->narrowed_begv
-	  || ((pos.charpos < it->narrowed_begv || pos.charpos > it->narrowed_zv)
-	      && (!redisplaying_p || it->line_wrap == TRUNCATE)))
+      if (!it->narrowed_begv)
 	{
 	  it->narrowed_begv = get_narrowed_begv (it->w, window_point (it->w));
 	  it->narrowed_zv = get_narrowed_zv (it->w, window_point (it->w));
+	}
+      else if ((pos.charpos < it->narrowed_begv || pos.charpos > it->narrowed_zv)
+		&& (!redisplaying_p || it->line_wrap == TRUNCATE))
+	{
+	  it->narrowed_begv = get_narrowed_begv (it->w, pos.charpos);
+	  it->narrowed_zv = get_narrowed_zv (it->w, pos.charpos);
 	}
     }
 
