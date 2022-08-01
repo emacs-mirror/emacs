@@ -22,17 +22,13 @@
 
 ;;; Commentary:
 
-;; This provide an interface for "dig".
+;; This provides an interface for "dig".
 ;;
-;; For interactive use, try M-x dig and type a hostname.  Use `q' to quit
-;; dig buffer.
+;; For interactive use, try `M-x dig' and type a hostname.  Use `q' to
+;; quit dig buffer.
 ;;
-;; For use in elisp programs, call `dig-invoke' and use
+;; For use in Emacs Lisp programs, call `dig-invoke' and use
 ;; `dig-extract-rr' to extract resource records.
-
-;;; Release history:
-
-;; 2000-10-28  posted on gnu.emacs.sources
 
 ;;; Code:
 
