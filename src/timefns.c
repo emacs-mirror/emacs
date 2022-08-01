@@ -1192,7 +1192,7 @@ For example, nil stands for the current time.  */)
 
 /* Return negative, 0, positive if A < B, A == B, A > B respectively.
    A and B should be Lisp time values.  */
-static int
+static EMACS_INT
 time_cmp (Lisp_Object a, Lisp_Object b)
 {
   /* Compare nil to nil correctly, and handle other eq values quicker
@@ -1200,6 +1200,12 @@ time_cmp (Lisp_Object a, Lisp_Object b)
      an error if X is not a valid time value, but that's OK.  */
   if (BASE_EQ (a, b))
     return 0;
+
+  /* Compare (X . Z) to (Y . Z) quickly if X and Y are fixnums.
+     Do not inspect Z, as it is OK to not signal if A and B are invalid.  */
+  if (FASTER_TIMEFNS && CONSP (a) && CONSP (b) && BASE_EQ (XCDR (a), XCDR (b))
+      && FIXNUMP (XCAR (a)) && FIXNUMP (XCAR (b)))
+    return XFIXNUM (XCAR (a)) - XFIXNUM (XCAR (b));
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
