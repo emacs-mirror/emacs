@@ -168,20 +168,21 @@ prefix, also prompt for the SERVER parameter."
        (forward-line))
   (dig-mode))
 
-;; named for consistency with query-dns in dns.el
-(defun query-dig (domain &optional
-			 query-type query-class query-option dig-option server)
+(defun dig-query (domain &optional
+                         query-type query-class query-option dig-option server)
   "Query addresses of a DOMAIN using dig.
 It works by calling `dig-invoke' and `dig-extract-rr'.
 Optional arguments are passed to `dig-invoke' and `dig-extract-rr'.
 Returns nil for domain/class/type queries that result in no data."
-(let ((buffer (dig-invoke domain query-type query-class
-			  query-option dig-option server)))
-  (when buffer
-    (pop-to-buffer-same-window buffer)
-    (let ((digger (dig-extract-rr domain query-type query-class)))
-      (kill-buffer buffer)
-      digger))))
+  (let ((buffer (dig-invoke domain query-type query-class
+                            query-option dig-option server)))
+    (when buffer
+      (pop-to-buffer-same-window buffer)
+      (let ((digger (dig-extract-rr domain query-type query-class)))
+        (kill-buffer buffer)
+        digger))))
+
+(define-obsolete-function-alias 'query-dig #'dig-query "29.1")
 
 (provide 'dig)
 
