@@ -1600,7 +1600,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
       /* In buffers with very long lines, this function becomes very
 	 slow.  Pretend that the buffer is narrowed to make it fast.  */
       narrowed_begv = get_narrowed_begv (w, window_point (w));
-      if (narrowed_begv && pos > narrowed_begv)
+      if (pos > narrowed_begv)
 	head = narrowed_begv;
       tail = ZV;
       stop = GPT;

@@ -3507,9 +3507,7 @@ ptrdiff_t
 get_narrowed_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_len (w);
-  ptrdiff_t begv;
-  begv = max ((pos / len - 1) * len, BEGV);
-  return begv == BEGV ? 0 : begv;
+  return max ((pos / len - 1) * len, BEGV);
 }
 
 ptrdiff_t
@@ -4394,13 +4392,12 @@ handle_fontified_prop (struct it *it)
 
       if (current_buffer->long_line_optimizations_p)
 	{
-	  ptrdiff_t begv = it->narrowed_begv ? it->narrowed_begv : BEGV;
+	  ptrdiff_t begv = it->narrowed_begv;
 	  ptrdiff_t zv = it->narrowed_zv;
 	  ptrdiff_t charpos = IT_CHARPOS (*it);
 	  if (charpos < begv || charpos > zv)
 	    {
 	      begv = get_narrowed_begv (it->w, charpos);
-	      if (!begv) begv = BEGV;
 	      zv = get_narrowed_zv (it->w, charpos);
 	    }
 	  Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv), Qt);
@@ -8894,7 +8891,7 @@ get_visually_first_element (struct it *it)
 				find_newline_no_quit (IT_CHARPOS (*it),
 						      IT_BYTEPOS (*it), -1,
 						      &it->bidi_it.bytepos),
-				it->narrowed_begv);
+				get_closer_narrowed_begv (it->w, IT_CHARPOS (*it)));
       bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, true);
       do
 	{
@@ -10784,7 +10781,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	  dec_both (&cp, &bp);
 	  SET_WITH_NARROWED_BEGV (it, cp,
 				  find_newline_no_quit (cp, bp, -1, NULL),
-				  it->narrowed_begv);
+				  get_closer_narrowed_begv (it->w, IT_CHARPOS (*it)));
 	  move_it_to (it, cp, -1, -1, -1, MOVE_TO_POS);
 	}
       bidi_unshelve_cache (it3data, true);
