@@ -63,8 +63,9 @@
 			"port"))
 	      alist elem result pair)
           (if (and netrc-cache
-		   (equal (car netrc-cache) (file-attribute-modification-time
-                                             (file-attributes file))))
+		   (time-equal-p (car netrc-cache)
+				 (file-attribute-modification-time
+				  (file-attributes file))))
 	      (insert (base64-decode-string (rot13-string (cdr netrc-cache))))
 	    (insert-file-contents file)
 	    (when (string-match "\\.gpg\\'" file)

@@ -539,7 +539,7 @@ as unread by Gnus.")
     (let ((arts articles)
 	  art)
       (while (setq art (pop arts))
-	(when (not (equal
+	(when (not (time-equal-p
 		    (file-attribute-modification-time
 		     (file-attributes (concat dir (int-to-string (car art)))))
 		    (cdr art)))

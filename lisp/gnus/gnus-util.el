@@ -1254,7 +1254,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 	contents value)
     (if (or (null (setq value (symbol-value variable)))
 	    (not (equal (car value) file))
-	    (not (equal (nth 1 value) time)))
+	    (not (time-equal-p (nth 1 value) time)))
 	(progn
 	  (setq contents (funcall function file))
 	  (set variable (list file time contents))

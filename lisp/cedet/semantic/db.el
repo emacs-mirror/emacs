@@ -609,7 +609,7 @@ The file associated with OBJ does not need to be in a buffer."
 	(or (not (slot-boundp obj 'tags))
 	    ;; (not (oref obj tags)) -->  not needed anymore?
 	    (/= (or (oref obj fsize) 0) actualsize)
-	    (not (equal (oref obj lastmodtime) actualmod))
+	    (not (time-equal-p (oref obj lastmodtime) actualmod))
 	    )
 	))))
 

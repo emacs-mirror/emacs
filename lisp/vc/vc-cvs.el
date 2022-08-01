@@ -250,7 +250,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
         (lastmod (file-attribute-modification-time (file-attributes file))))
     (cond
-     ((equal checkout-time lastmod) 'up-to-date)
+     ((time-equal-p checkout-time lastmod) 'up-to-date)
      ((string= (vc-working-revision file) "0") 'added)
      ((null checkout-time) 'unregistered)
      (t 'edited))))

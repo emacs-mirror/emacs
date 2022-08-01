@@ -631,9 +631,10 @@ Before doing that, check if there are any old backups and get rid of them."
     (cond
      ((null backend))
      ((eq (vc-checkout-model backend (list file)) 'implicit)
-      ;; If the file was saved in the same second in which it was
+      ;; If the file was saved at the same time that it was
       ;; checked out, clear the checkout-time to avoid confusion.
-      (if (equal (vc-file-getprop file 'vc-checkout-time)
+      (if (time-equal-p
+		 (vc-file-getprop file 'vc-checkout-time)
 		 (file-attribute-modification-time (file-attributes file)))
 	  (vc-file-setprop file 'vc-checkout-time nil))
       (if (vc-state-refresh file backend)

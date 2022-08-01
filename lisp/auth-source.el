@@ -957,7 +957,8 @@ Note that the MAX parameter is used so we can exit the parse early."
                result)
 
           (if (and (functionp cached-secrets)
-                   (equal cached-mtime
+		   (time-equal-p
+			  cached-mtime
                           (file-attribute-modification-time
                            (file-attributes file))))
               (progn
