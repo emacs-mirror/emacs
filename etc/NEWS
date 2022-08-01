@@ -350,6 +350,9 @@ Use 'abbrev', 'skeleton' or 'tempo' instead.
 Use something like 'M-x shell RET ssh <host> RET' instead.
 
 ---
+** The url-dired.el library is now obsolete.
+
+---
 ** The fast-lock.el and lazy-lock.el library have been removed.
 They have been obsolete since Emacs 22.1.
 

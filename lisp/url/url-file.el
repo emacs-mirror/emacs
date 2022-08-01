@@ -26,7 +26,6 @@
 (require 'mailcap)
 (require 'url-vars)
 (require 'url-parse)
-(require 'url-dired)
 (declare-function mm-disable-multibyte "mm-util" ())
 
 (defvar url-allow-non-local-files nil
