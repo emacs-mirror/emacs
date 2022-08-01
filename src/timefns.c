@@ -1258,7 +1258,9 @@ DEFUN ("time-equal-p", Ftime_equal_p, Stime_equal_p, 2, 2, 0,
 See `format-time-string' for the various forms of a time value.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  return time_cmp (a, b) == 0 ? Qt : Qnil;
+  /* A nil arg compares unequal to a non-nil arg.  This also saves the
+     expense of current_timespec if either arg is nil.  */
+  return NILP (a) == NILP (b) && time_cmp (a, b) == 0 ? Qt : Qnil;
 }
 
 
