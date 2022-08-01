@@ -171,7 +171,7 @@ For Automake based projects, each directory is treated as a project.")
 	    :label "Local Targets"
 	    :group (targets)
 	    :documentation "List of top level targets in this project.")
-   (locate-obj :type (or null ede-locate-base-child)
+   (locate-obj :type (or null ede-locate-base)
 	       :documentation
 	       "A locate object to use as a backup to `ede-expand-filename'.")
    (tool-cache :initarg :tool-cache
