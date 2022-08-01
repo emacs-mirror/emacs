@@ -2560,13 +2560,6 @@ things to be saved.
 ** New function 'string-equal-ignore-case'.
 This compares strings ignoring case differences.
 
-+++
-** New argument LOCK of 'narrow-to-region'.
-If 'narrow-to-region' is called from Lisp with the new optional
-argument LOCK non-nil, then calls to 'widen' and calls to
-'narrow-to-region' with the optional argument LOCK nil or omitted do
-not produce any effect until the end of the current body form.
-
 ** Themes
 
 ---

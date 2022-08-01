@@ -4406,7 +4406,8 @@ handle_fontified_prop (struct it *it)
 	      if (!begv) begv = BEGV;
 	      zv = get_narrowed_zv (it->w, charpos);
 	    }
-	  Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv), Qt);
+	  narrow_to_region_internal (make_fixnum (begv), make_fixnum (zv), true);
+	  specbind (Qrestrictions_locked, Qt);
 	}
 
       /* Don't allow Lisp that runs from 'fontification-functions'

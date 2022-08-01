@@ -4679,6 +4679,7 @@ extern void save_restriction_restore (Lisp_Object);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
+extern Lisp_Object narrow_to_region_internal (Lisp_Object, Lisp_Object, bool);
 extern void init_editfns (void);
 extern void syms_of_editfns (void);
 
