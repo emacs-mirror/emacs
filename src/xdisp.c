@@ -3472,6 +3472,9 @@ init_iterator (struct it *it, struct window *w,
 			&it->bidi_it);
 	}
 
+      if (current_buffer->long_line_optimizations_p)
+	it->narrowed_begv = 0;
+
       /* Compute faces etc.  */
       reseat (it, it->current.pos, true);
     }
