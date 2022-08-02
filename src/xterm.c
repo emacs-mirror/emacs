@@ -16499,8 +16499,6 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
     }
 }
 
-#if defined USE_GTK || defined HAVE_XRANDR
-
 /* Find whether or not an undelivered MONITORS_CHANGED_EVENT is
    already on the event queue.  DPYINFO is the display any such event
    must apply to.  */
@@ -16523,8 +16521,6 @@ x_find_monitors_changed_event (struct x_display_info *dpyinfo)
 
   return false;
 }
-
-#endif
 
 #ifdef USE_GTK
 static void
@@ -18914,13 +18910,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  if (configureEvent.xconfigure.width != dpyinfo->screen_width
 	      || configureEvent.xconfigure.height != dpyinfo->screen_height)
 	    {
-	      inev.ie.kind = MONITORS_CHANGED_EVENT;
-	      XSETTERMINAL (inev.ie.arg, dpyinfo->terminal);
+	      /* Also avoid storing duplicate events here, since
+		 Fx_display_monitor_attributes_list will return the
+		 same information for both invocations of the
+		 hook.  */
+	      if (!x_find_monitors_changed_event (dpyinfo))
+		{
+		  inev.ie.kind = MONITORS_CHANGED_EVENT;
+		  XSETTERMINAL (inev.ie.arg, dpyinfo->terminal);
 
-	      /* Store this event now since inev.ie.type could be set to
-		 MOVE_FRAME_EVENT later.  */
-	      kbd_buffer_store_event (&inev.ie);
-	      inev.ie.kind = NO_EVENT;
+		  /* Store this event now since inev.ie.type could be set to
+		     MOVE_FRAME_EVENT later.  */
+		  kbd_buffer_store_event (&inev.ie);
+		  inev.ie.kind = NO_EVENT;
+		}
 
 	      /* Also update the position of the drag-and-drop
 		 tooltip.  */
