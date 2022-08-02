@@ -23,9 +23,13 @@
 ;;; Commentary:
 
 ;; BinHex is a binary-to-text encoding scheme similar to uuencode.
+;; It was used on the classic Mac OS, last released in 2001.
+;;
 ;; The command `binhex-decode-region' decodes BinHex-encoded text, via
 ;; the external program "hexbin" if that is available, or an Emacs
 ;; Lisp implementation if not.
+;;
+;; See also: https://en.wikipedia.org/wiki/BinHex
 
 ;;; Code:
 
