@@ -115,11 +115,13 @@ for a new table not associated with a buffer."
   "Return a nil, meaning abstract table OBJ is not in a buffer."
   nil)
 
-(cl-defmethod semanticdb-get-buffer ((_obj semanticdb-abstract-table))
-  "Return a buffer associated with OBJ.
+(cl-defgeneric semanticdb-get-buffer (_obj)
+  "Return a buffer associated with semanticdb table OBJ.
 If the buffer is not in memory, load it with `find-file-noselect'."
   nil)
 
+;; FIXME: Should we merge `semanticdb-get-buffer' and
+;; `semantic-tag-parent-buffer'?
 ;; This generic method allows for sloppier coding.  Many
 ;; functions treat "table" as something that could be a buffer,
 ;; file name, or other.  This makes use of table more robust.
@@ -270,6 +272,9 @@ Semantic's control.")
 For C/C++, the C preprocessor macros can be saved here.")
    )
   "A single table of tags derived from file.")
+
+(cl-defmethod semantic-tag-parent-buffer ((parent semanticdb-table))
+  (semanticdb-get-buffer parent))       ;FIXME: η-redex!
 
 (cl-defmethod semanticdb-in-buffer-p ((obj semanticdb-table))
   "Return a buffer associated with OBJ.

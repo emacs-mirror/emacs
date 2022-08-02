@@ -28,8 +28,6 @@
 (require 'semantic/tag)
 
 (defvar ede-minor-mode)
-(declare-function semanticdb-table-child-p "semantic/db" t t)
-(declare-function semanticdb-get-buffer "semantic/db")
 (declare-function semantic-dependency-find-file-on-path "semantic/dep")
 (declare-function ede-toplevel "ede/base")
 
@@ -37,68 +35,66 @@
 
 ;;; Location a TAG came from.
 ;;
+
+(cl-defgeneric semantic-tag-parent-buffer (parent)
+  "Return the buffer in which a tag can be found, knowing its PARENT."
+  (cond ((and (semantic-tag-p parent) (semantic-tag-in-buffer-p parent))
+	 ;; We have a parent with a buffer, then go there.
+	 (semantic-tag-buffer parent))
+	((and (semantic-tag-p parent) (semantic-tag-file-name parent))
+	 ;; The parent only has a file-name, then
+	 ;; find that file, and switch to that buffer.
+	 (find-file-noselect (semantic-tag-file-name parent)))))
+
 ;;;###autoload
-(define-overloadable-function semantic-go-to-tag (tag &optional parent)
+(defun semantic-go-to-tag (tag &optional parent)
   "Go to the location of TAG.
 TAG may be a stripped element, in which case PARENT specifies a
 parent tag that has position information.
 PARENT can also be a `semanticdb-table' object."
-  (:override
-   (save-match-data
+  (save-match-data
+    (set-buffer
      (cond ((semantic-tag-in-buffer-p tag)
 	    ;; We have a linked tag, go to that buffer.
-	    (set-buffer (semantic-tag-buffer tag)))
+	    (semantic-tag-buffer tag))
 	   ((semantic-tag-file-name tag)
 	    ;; If it didn't have a buffer, but does have a file
 	    ;; name, then we need to get to that file so the tag
 	    ;; location is made accurate.
-	    (set-buffer (find-file-noselect (semantic-tag-file-name tag))))
-	   ((and parent (semantic-tag-p parent) (semantic-tag-in-buffer-p parent))
-	    ;; The tag had nothing useful, but we have a parent with
-	    ;; a buffer, then go there.
-	    (set-buffer (semantic-tag-buffer parent)))
-	   ((and parent (semantic-tag-p parent) (semantic-tag-file-name parent))
-	    ;; Tag had nothing, and the parent only has a file-name, then
-	    ;; find that file, and switch to that buffer.
-	    (set-buffer (find-file-noselect (semantic-tag-file-name parent))))
-	   ((and parent (featurep 'semantic/db)
-		 (semanticdb-table-child-p parent))
-	    (set-buffer (semanticdb-get-buffer parent)))
-	   (t
-	    ;; Well, just assume things are in the current buffer.
-	    nil
-	    )))
-   ;; We should be in the correct buffer now, try and figure out
-   ;; where the tag is.
-   (cond ((semantic-tag-with-position-p tag)
-	  ;; If it's a number, go there
-	  (goto-char (semantic-tag-start tag)))
-	 ((semantic-tag-with-position-p parent)
-	  ;; Otherwise, it's a trimmed vector, such as a parameter,
-	  ;; or a structure part.  If there is a parent, we can use it
-	  ;; as a bounds for searching.
-	  (goto-char (semantic-tag-start parent))
-	  ;; Here we make an assumption that the text returned by
-	  ;; the parser and concocted by us actually exists
-	  ;; in the buffer.
-	  (re-search-forward (semantic-tag-name tag)
-			     (semantic-tag-end parent)
-			     t))
-	 ((semantic-tag-get-attribute tag :line)
-	  ;; The tag has a line number in it.  Go there.
-	  (goto-char (point-min))
-	  (forward-line (1- (semantic-tag-get-attribute tag :line))))
-	 ((and (semantic-tag-p parent) (semantic-tag-get-attribute parent :line))
-	  ;; The tag has a line number in it.  Go there.
-	  (goto-char (point-min))
-	  (forward-line (1- (semantic-tag-get-attribute parent :line)))
-	  (re-search-forward (semantic-tag-name tag) nil t))
-	 (t
-	  ;; Take a guess that the tag has a unique name, and just
-	  ;; search for it from the beginning of the buffer.
-	  (goto-char (point-min))
-	  (re-search-forward (semantic-tag-name tag) nil t)))
-   )
+	    (find-file-noselect (semantic-tag-file-name tag)))
+	   ((and parent (semantic-tag-parent-buffer parent)))
+	   ;; Well, just assume things are in the current buffer.
+	   (t (current-buffer)))))
+  ;; We should be in the correct buffer now, try and figure out
+  ;; where the tag is.
+  (cond ((semantic-tag-with-position-p tag)
+	 ;; If it's a number, go there
+	 (goto-char (semantic-tag-start tag)))
+	((semantic-tag-with-position-p parent)
+	 ;; Otherwise, it's a trimmed vector, such as a parameter,
+	 ;; or a structure part.  If there is a parent, we can use it
+	 ;; as a bounds for searching.
+	 (goto-char (semantic-tag-start parent))
+	 ;; Here we make an assumption that the text returned by
+	 ;; the parser and concocted by us actually exists
+	 ;; in the buffer.
+	 (re-search-forward (semantic-tag-name tag)
+			    (semantic-tag-end parent)
+			    t))
+	((semantic-tag-get-attribute tag :line)
+	 ;; The tag has a line number in it.  Go there.
+	 (goto-char (point-min))
+	 (forward-line (1- (semantic-tag-get-attribute tag :line))))
+	((and (semantic-tag-p parent) (semantic-tag-get-attribute parent :line))
+	 ;; The tag has a line number in it.  Go there.
+	 (goto-char (point-min))
+	 (forward-line (1- (semantic-tag-get-attribute parent :line)))
+	 (re-search-forward (semantic-tag-name tag) nil t))
+	(t
+	 ;; Take a guess that the tag has a unique name, and just
+	 ;; search for it from the beginning of the buffer.
+	 (goto-char (point-min))
+	 (re-search-forward (semantic-tag-name tag) nil t)))
   )
 
 ;;; Dependencies

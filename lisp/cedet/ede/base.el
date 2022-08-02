@@ -141,7 +141,7 @@ For some project types, this will be the file that stores the project configurat
 In other projects types, this file is merely a unique identifier to this type of project.")
    (rootproject ; :initarg - no initarg, don't save this slot!
     :initform nil
-    :type (or null ede-project-placeholder-child)
+    :type (or null ede-project-placeholder)
     :documentation "Pointer to our root project.")
    )
   "Placeholder object for projects not loaded into memory.

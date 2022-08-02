@@ -311,11 +311,27 @@ HISTORY is a symbol representing a variable to story the history in."
 (defvar semantic-complete-current-matched-tag nil
   "Variable used to pass the tags being matched to the prompt.")
 
-;; semantic-displayer-focus-abstract-child-p is part of the
-;; semantic-displayer-focus-abstract class, defined later in this
-;; file.
-(declare-function semantic-displayer-focus-abstract-child-p "semantic/complete"
-		  t t)
+
+
+;; Abstract baseclass for any displayer which supports focus
+(defclass semantic-displayer-focus-abstract (semantic-displayer-abstract)
+  ((focus :type number
+	  :protection :protected
+	  :documentation "A tag index from `table' which has focus.
+Multiple calls to the display function can choose to focus on a
+given tag, by highlighting its location.")
+   (find-file-focus
+    :allocation :class
+    :initform nil
+    :documentation
+    "Non-nil if focusing requires a tag's buffer be in memory.")
+   )
+  "Abstract displayer supporting `focus'.
+A displayer which has the ability to focus in on one tag.
+Focusing is a way of differentiating among multiple tags
+which have the same name."
+  :abstract t)
+
 
 (defun semantic-complete-current-match ()
   "Calculate a match from the current completion environment.
@@ -346,7 +362,7 @@ Return value can be:
        ((setq matchlist (semantic-collector-current-exact-match collector))
 	(if (= (semanticdb-find-result-length matchlist) 1)
 	    (setq answer (semanticdb-find-result-nth-in-buffer matchlist 0))
-	  (if (semantic-displayer-focus-abstract-child-p displayer)
+	  (if (cl-typep displayer 'semantic-displayer-focus-abstract)
 	      ;; For focusing displayers, we can claim this is
 	      ;; not unique.  Multiple focuses can choose the correct
 	      ;; one.
@@ -1407,24 +1423,7 @@ to click on the items to aid in completion.")
     )
   )
 
-;;; Abstract baseclass for any displayer which supports focus
-(defclass semantic-displayer-focus-abstract (semantic-displayer-abstract)
-  ((focus :type number
-	  :protection :protected
-	  :documentation "A tag index from `table' which has focus.
-Multiple calls to the display function can choose to focus on a
-given tag, by highlighting its location.")
-   (find-file-focus
-    :allocation :class
-    :initform nil
-    :documentation
-    "Non-nil if focusing requires a tag's buffer be in memory.")
-   )
-  "Abstract displayer supporting `focus'.
-A displayer which has the ability to focus in on one tag.
-Focusing is a way of differentiating among multiple tags
-which have the same name."
-  :abstract t)
+;;; Methods for any displayer which supports focus
 
 (define-obsolete-function-alias 'semantic-displayor-next-action
   #'semantic-displayer-next-action "27.1")
