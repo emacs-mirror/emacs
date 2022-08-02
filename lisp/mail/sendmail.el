@@ -49,7 +49,9 @@
        ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
        ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
        (t "sendmail")))
-  "Program used to send messages."
+  "Program used to send messages.
+If the program returns a non-zero error code, or outputs any
+text, sending is considered \"failed\" by Emacs."
   :version "24.1"		; add executable-find, remove fakemail
   :type 'file)
 
