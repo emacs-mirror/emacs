@@ -1645,6 +1645,12 @@ well as the icons used), and the "Gnome" tool bars are now the only
 pre-defined toolbars.
 
 ---
+*** 'gnus-summary-up-thread' and 'gnus-summary-down-thread' bindings removed.
+The 'gnus-summary-down-thread' binding to "M-C-d" was shadowed by
+'gnus-summary-read-document', and these commands are also available on
+"T-u" and "T-d" respectively.
+
+---
 *** Gnus now uses a variable-pitch font in the headers by default.
 To get the monospace font back, you can put something like the
 following in your ".gnus" file:
