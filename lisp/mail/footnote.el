@@ -93,6 +93,7 @@ displaying footnotes."
 (defcustom footnote-use-message-mode t ; Nowhere used.
   "If non-nil, assume Footnoting will be done in `message-mode'."
   :type 'boolean)
+(make-obsolete-variable 'footnote-use-message-mode "it does nothing." "29.1")
 
 (defcustom footnote-body-tag-spacing 2
   "Number of spaces separating a footnote body tag and its text.
