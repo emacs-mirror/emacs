@@ -16499,6 +16499,33 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
     }
 }
 
+#if defined USE_GTK || defined HAVE_XRANDR
+
+/* Find whether or not an undelivered MONITORS_CHANGED_EVENT is
+   already on the event queue.  DPYINFO is the display any such event
+   must apply to.  */
+
+static bool
+x_find_monitors_changed_event (struct x_display_info *dpyinfo)
+{
+  union buffered_input_event *event;
+
+  event = kbd_fetch_ptr;
+
+  while (event != kbd_store_ptr)
+    {
+      if (event->ie.kind == MONITORS_CHANGED_EVENT
+	  && XTERMINAL (event->ie.arg) == dpyinfo->terminal)
+	return true;
+
+      event = X_NEXT_KBD_EVENT (event);
+    }
+
+  return false;
+}
+
+#endif
+
 #ifdef USE_GTK
 static void
 x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
@@ -16514,6 +16541,9 @@ x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
   dpyinfo = x_display_info_for_display (dpy);
 
   if (!dpyinfo)
+    return;
+
+  if (x_find_monitors_changed_event (dpyinfo))
     return;
 
   XSETTERMINAL (terminal, dpyinfo->terminal);
@@ -22532,7 +22562,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      || event->type == (dpyinfo->xrandr_event_base
 				 + RRNotify)))
 	{
-	  union buffered_input_event *ev;
 	  Time timestamp;
 	  Lisp_Object current_monitors;
 	  XRRScreenChangeNotifyEvent *notify;
@@ -22560,13 +22589,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  else
 	    timestamp = 0;
 
-	  ev = (kbd_store_ptr == kbd_buffer
-		? kbd_buffer + KBD_BUFFER_SIZE - 1
-		: kbd_store_ptr - 1);
-
-	  if (kbd_store_ptr != kbd_fetch_ptr
-	      && ev->ie.kind == MONITORS_CHANGED_EVENT
-	      && XTERMINAL (ev->ie.arg) == dpyinfo->terminal)
+	  if (x_find_monitors_changed_event (dpyinfo))
 	    /* Don't store a MONITORS_CHANGED_EVENT if there is
 	       already an undelivered event on the queue.  */
 	    goto OTHER;
