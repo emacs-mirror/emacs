@@ -43,7 +43,7 @@
 	 ;; combinations
 	 ((eq system-type 'windows-nt) "Windows-NT; 32bit")
 	 ((eq system-type 'ms-dos) "MS-DOS; 32bit")
-	 ((memq (or window-system 'tty) '(win32 w32)) "Windows; 32bit")
+         ((memq window-system '(win32 w32)) "Windows; 32bit")
 	 (t
 	  (pcase (or window-system 'tty)
 	    ('x "X11")
