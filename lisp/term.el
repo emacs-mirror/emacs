@@ -78,7 +78,7 @@
 ;; directory/username/host tracking: the only drawback is that you will
 ;; have to modify your shell start-up script.  It's worth it, believe me :).
 ;;
-;; When you rlogin/su/telnet and the account you access has a modified
+;; When you ssh/sudo/su and the account you access has a modified
 ;; startup script, you will be able to access the remote files as usual
 ;; with C-x C-f, if it's needed you will have to enter a password,
 ;; otherwise the file should get loaded straight away.
