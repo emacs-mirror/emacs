@@ -235,9 +235,6 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
   (define-key keymap "\C-c\C-t\C-r"    #'texinfo-tex-region)
   (define-key keymap "\C-c\C-t\C-b"    #'texinfo-tex-buffer))
 
-;; Mode documentation displays commands in reverse order
-;; from how they are listed in the texinfo-mode-map.
-
 (defvar texinfo-mode-map
   (let ((map (make-sparse-keymap)))
 
