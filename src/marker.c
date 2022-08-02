@@ -214,11 +214,12 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
      We have one known above and one known below.
      Scan, counting characters, from whichever one is closer.  */
 
+  eassert (best_below <= charpos && charpos <= best_above);
   if (charpos - best_below < best_above - charpos)
     {
       bool record = charpos - best_below > 5000;
 
-      while (best_below != charpos)
+      while (best_below < charpos)
 	{
 	  best_below++;
 	  best_below_byte += buf_next_char_len (b, best_below_byte);
@@ -243,7 +244,7 @@ buf_charpos_to_bytepos (struct buffer *b, ptrdiff_t charpos)
     {
       bool record = best_above - charpos > 5000;
 
-      while (best_above != charpos)
+      while (best_above > charpos)
 	{
 	  best_above--;
 	  best_above_byte -= buf_prev_char_len (b, best_above_byte);
