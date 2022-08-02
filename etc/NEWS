@@ -2466,7 +2466,7 @@ but switching to `ash` is generally much preferable.
 'find-emacs-lisp-shadows', 'newsticker-cache-filename',
 'redisplay-end-trigger-functions', 'set-window-redisplay-end-trigger',
 'unify-8859-on-decoding-mode', 'unify-8859-on-encoding-mode',
-'vc-arch-command', 'window-redisplay-end-trigger'.
+'vc-arch-command', 'window-redisplay-end-trigger', 'x-selection'.
 
 ---
 ** Some functions and variables obsolete since Emacs 21 or 22 have been removed:
