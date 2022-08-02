@@ -184,26 +184,14 @@ be requested using REV."
                 (:rev . ,rev))))
     ((when-let* ((desc (cadr (assoc name-or-url package-archive-contents
                                     #'string=)))
-                 (spec (or (alist-get :vc (package-desc-extras desc))
-                           (user-error "Package has no VC header"))))
-       (unless (string-match
-                (rx bos
-                    (group (+ alnum))
-                    (+ blank) (group (+ (not blank)))
-                    (? (+ blank) (group (+ (not blank)))
-                       (? (+ blank) (group (+ (not blank)))))
-                    eos)
-                spec)
-         (user-error "Invalid repository specification %S" spec))
+                 (upstream (or (alist-get :vc (package-desc-extras desc))
+                               (user-error "Package has no VC data"))))
        (package-desc-create
         :name (if (stringp name-or-url)
                   (intern name-or-url)
                 name-or-url)
         :kind 'vc
-        :extras `((:upstream . ,(list (intern (match-string 1 spec))
-                                      (match-string 2 spec)
-                                      (match-string 3 spec)
-                                      (match-string 4 spec)))
+        :extras `((:upstream . ,upstream)
                   (:rev . ,rev)))))
     ((user-error "Unknown package to fetch: %s" name-or-url)))))
 
