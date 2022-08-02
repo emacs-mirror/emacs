@@ -135,8 +135,19 @@ The output is written out into PKG-FILE."
         (package-download-transaction
          (package-compute-transaction nil (delete-dups deps)))))
 
-    (package-vc-generate-description-file
-     pkg-desc (file-name-concat pkg-dir (package--description-file pkg-dir)))
+    (let ((default-directory pkg-dir)
+          (name (package-desc-name pkg-desc))
+          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
+      ;; Generate autoloads
+      (package-generate-autoloads name pkg-dir)
+      (vc-ignore (concat "/" (file-relative-name
+                              (expand-file-name (format "%s-autoloads.el" name))
+                              default-directory)))
+
+      ;; Generate package file
+      (package-vc-generate-description-file pkg-desc pkg-file)
+      (vc-ignore (concat "/" (file-relative-name pkg-file default-directory))))
+
     ;; Update package-alist.
     (let ((new-desc (package-load-descriptor pkg-dir)))
       ;; Activation has to be done before compilation, so that if we're
