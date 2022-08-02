@@ -1573,7 +1573,7 @@ Eli Zaretskii: wrote [bidirectional display in xdisp.c]
 and co-wrote help-tests.el
 and changed xdisp.c display.texi w32.c msdos.c w32fns.c simple.el
   files.el fileio.c emacs.c keyboard.c w32term.c text.texi dispnew.c
-  w32proc.c files.texi frames.texi configure.ac dispextern.h lisp.h
+  w32proc.c files.texi frames.texi configure.ac lisp.h dispextern.h
   process.c ms-w32.h and 1236 other files
 
 Eliza Velasquez: changed server.el
