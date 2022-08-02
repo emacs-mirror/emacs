@@ -2085,7 +2085,10 @@ If PACKAGE is a `package-desc' object, MIN-VERSION is ignored."
          package-activated-list)
     ;; We used the quickstart: make it possible to use package-installed-p
     ;; even before package is fully initialized.
-    (memq package package-activated-list))
+    (or
+     (memq package package-activated-list)
+     ;; Also check built-in packages.
+     (package-built-in-p package min-version)))
    (t
     (or
      (let ((pkg-descs (cdr (assq package (package--alist)))))
