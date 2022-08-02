@@ -46,6 +46,7 @@
   (let ((bitmaps '(question-mark exclamation-mark
 		   left-arrow right-arrow up-arrow down-arrow
 		   left-curly-arrow right-curly-arrow
+		   large-circle
 		   left-triangle right-triangle
 		   top-left-angle top-right-angle
 		   bottom-left-angle bottom-right-angle
@@ -323,6 +324,17 @@ If BITMAP already exists, the existing definition is replaced."
     ;; This is a fallback for non-GUI builds.
     ;; The real implementation is in src/fringe.c.
     ))
+
+(defun fringe-custom-set-bitmap (symbol value)
+  "Set SYMBOL to a fringe bitmap VALUE.
+This sets the `fringe' property on SYMBOL to match that of VALUE,
+and then force all windows to be updated on the next redisplay.
+You should use this for the :set parameter for customization
+options to pick a fringe bitmap."
+  (prog1
+      (set symbol value)
+    (put symbol 'fringe (get value 'fringe))
+    (force-window-update)))
 
 (provide 'fringe)
 

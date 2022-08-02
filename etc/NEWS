@@ -2013,6 +2013,11 @@ recently set.
 *** When editing a bookmark annotation, 'C-c C-k' will now cancel.
 It is bound to the new command 'bookmark-edit-annotation-cancel'.
 
+---
+*** New option 'bookmark-fringe-mark'.
+This option controls the bitmap used to indicate bookmarks in the
+fringe (or 'nil' to disable showing this marker).
+
 ** Exif
 
 ---

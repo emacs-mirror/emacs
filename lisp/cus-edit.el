@@ -4286,6 +4286,27 @@ restoring it to the state of a face that has never been customized."
     (widget-put widget :args args)
     widget))
 
+;;; The `fringe-bitmap' Widget.
+
+(defvar widget-fringe-bitmap-prompt-value-history nil
+  "History of input to `widget-fringe-bitmap-prompt-value'.")
+
+(define-widget 'fringe-bitmap 'symbol
+  "A Lisp fringe bitmap name."
+  :format "%v"
+  :tag "Fringe bitmap"
+  :match (lambda (_widget value) (fringe-bitmap-p value))
+  :completions (apply-partially #'completion-table-with-predicate
+                                obarray #'fringe-bitmap-p 'strict)
+  :prompt-match 'fringe-bitmap-p
+  :prompt-history 'widget-face-prompt-value-history
+  :validate (lambda (widget)
+	      (unless (fringe-bitmap-p (widget-value widget))
+		(widget-put widget
+			    :error (format "Invalid fringe bitmap: %S"
+					   (widget-value widget)))
+		widget)))
+
 ;;; The `custom-group-link' Widget.
 
 (define-widget 'custom-group-link 'link
