@@ -1,6 +1,6 @@
 ;;; url-about.el --- Show internal URLs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001, 2004-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -38,7 +38,7 @@
 				  (if (string-match "url-\\(.*\\).el$" f)
 				      (push (match-string 1 f) schemes)))
 				(directory-files d nil "\\`url-.*\\.el\\'")))
-			load-path)
+                        (seq-filter #'file-exists-p load-path))
 		  (put 'url-extension-protocols 'schemes schemes)
 		  schemes)))))
 
