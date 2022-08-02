@@ -35,8 +35,6 @@
   :group 'package
   :version "29.1")
 
-(declare-function vc-clone "vc" (backend remote &optional directory))
-
 (defun package-vc-commit (pkg)
   "Extract the commit of a development package PKG."
   (cl-assert (eq (package-desc-kind pkg) 'vc))
