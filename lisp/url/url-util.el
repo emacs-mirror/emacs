@@ -193,10 +193,9 @@ Will not do anything if `url-show-status' is nil."
 ;;;###autoload
 (defun url-display-percentage (fmt _perc &rest args)
   (when (and url-show-status
-	     (or (null url-current-object)
-		 (not (url-silent url-current-object))))
-    (when (not (null fmt))
-      (apply 'message fmt args))))
+             (not (and url-current-object (url-silent url-current-object)))
+             fmt)
+    (apply #'message fmt args)))
 
 ;;;###autoload
 (defun url-percentage (x y)
