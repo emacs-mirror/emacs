@@ -2575,6 +2575,11 @@ things to be saved.
 ** New function 'string-equal-ignore-case'.
 This compares strings ignoring case differences.
 
+** 'symbol-file' can now report natively-compiled .eln files.
+If Emacs was built with native-compilation enabled, Lisp programs can
+now call 'symbol-file' with the new optional 3rd argument non-nil to
+request the name of the .eln file which defined a given symbol.
+
 ** Themes
 
 ---
