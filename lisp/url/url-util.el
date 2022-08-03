@@ -180,17 +180,12 @@ Will not do anything if `url-show-status' is nil."
   (format-time-string "%a, %d %b %Y %T GMT" specified-time t)))
 
 ;;;###autoload
-(defun url-eat-trailing-space (x)
-  "Remove spaces/tabs at the end of a string."
-  (declare (obsolete string-trim "29.1"))
-  (string-trim x ""))
+(define-obsolete-function-alias 'url-eat-trailing-space
+  #'string-trim-right "29.1")
 
 ;;;###autoload
-(defun url-strip-leading-spaces (x)
-  "Remove spaces at the front of a string."
-  (declare (obsolete string-trim "29.1"))
-  (string-trim x nil ""))
-
+(define-obsolete-function-alias 'url-strip-leading-spaces
+  #'string-trim-left "29.1")
 
 (define-obsolete-function-alias 'url-pretty-length
   'file-size-human-readable "24.4")
