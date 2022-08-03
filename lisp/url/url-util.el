@@ -27,8 +27,6 @@
 
 (require 'url-parse)
 (require 'url-vars)
-(autoload 'timezone-parse-date "timezone")
-(autoload 'timezone-make-date-arpa-standard "timezone")
 (autoload 'mail-header-extract "mailheader")
 
 (defvar url-parse-args-syntax-table
