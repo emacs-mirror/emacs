@@ -114,7 +114,7 @@ The output is written out into PKG-FILE."
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p "Overwrite previous checkout?")
-          (delete-directory pkg-dir t)
+          (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
     (pcase-let* ((attr (package-desc-extras pkg-desc))
                  (`(,backend ,repo ,dir ,branch)
