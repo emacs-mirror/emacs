@@ -6479,7 +6479,7 @@ to send the output file through additional processing, e.g,
     (let ((outfile (org-export-output-file-name \".tex\" subtreep)))
       (org-export-to-file \\='latex outfile
         async subtreep visible-only body-only ext-plist
-        #'org-latex-compile)))
+        #\\='org-latex-compile)))
 
 When expressed as an anonymous function, using `lambda',
 POST-PROCESS needs to be quoted.
