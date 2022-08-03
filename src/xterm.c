@@ -6605,12 +6605,17 @@ x_if_event (Display *dpy, XEvent *event_return,
   current_time = current_timespec ();
   target = timespec_add (current_time, timeout);
 
+  /* Check if an event is already in the queue.  If it is, avoid
+     syncing.  */
+  if (XCheckIfEvent (dpy, event_return, predicate, arg))
+    return 0;
+
   while (true)
     {
       /* Get events into the queue.  */
       XSync (dpy, False);
 
-      /* Check if an event is now in the queue.  */
+      /* Look for an event again.  */
       if (XCheckIfEvent (dpy, event_return, predicate, arg))
 	return 0;
 
