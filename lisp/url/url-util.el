@@ -196,16 +196,12 @@ Will not do anything if `url-show-status' is nil."
   'file-size-human-readable "24.4")
 
 ;;;###autoload
-(defun url-display-percentage (fmt perc &rest args)
+(defun url-display-percentage (fmt _perc &rest args)
   (when (and url-show-status
 	     (or (null url-current-object)
 		 (not (url-silent url-current-object))))
-    (if (null fmt)
-	(if (fboundp 'clear-progress-display)
-	    (clear-progress-display))
-      (if (and (fboundp 'progress-display) perc)
-	  (apply 'progress-display fmt perc args)
-	(apply 'message fmt args)))))
+    (when (not (null fmt))
+      (apply 'message fmt args))))
 
 ;;;###autoload
 (defun url-percentage (x y)
