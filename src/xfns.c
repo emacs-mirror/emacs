@@ -1202,20 +1202,6 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       xg_set_background_color (f, bg);
 #endif
 
-#ifndef USE_TOOLKIT_SCROLL_BARS /* Turns out to be annoying with
-				   toolkit scroll bars.  */
-      {
-	Lisp_Object bar;
-	for (bar = FRAME_SCROLL_BARS (f);
-	     !NILP (bar);
-	     bar = XSCROLL_BAR (bar)->next)
-	  {
-	    Window window = XSCROLL_BAR (bar)->x_window;
-	    XSetWindowBackground (dpy, window, bg);
-	  }
-      }
-#endif /* USE_TOOLKIT_SCROLL_BARS */
-
       unblock_input ();
       update_face_from_frame_parameter (f, Qbackground_color, arg);
 
