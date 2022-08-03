@@ -1332,14 +1332,14 @@ as a heading."
 
 (defun apropos-follow ()
   "Invokes any button at point, otherwise invokes the nearest label button."
-  (interactive)
+  (interactive nil apropos-mode)
   (button-activate
    (or (apropos-next-label-button (line-beginning-position))
        (error "There is nothing to follow here"))))
 
 (defun apropos-next-symbol ()
   "Move cursor down to the next symbol in an `apropos-mode' buffer."
-  (interactive)
+  (interactive nil apropos-mode)
   (forward-line)
   (while (and (not (eq (face-at-point) 'apropos-symbol))
               (< (point) (point-max)))
@@ -1347,7 +1347,7 @@ as a heading."
 
 (defun apropos-previous-symbol ()
   "Move cursor back to the last symbol in an `apropos-mode' buffer."
-  (interactive)
+  (interactive nil apropos-mode)
   (forward-line -1)
   (while (and (not (eq (face-at-point) 'apropos-symbol))
               (> (point) (point-min)))
