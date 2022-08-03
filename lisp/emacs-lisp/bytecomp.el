@@ -1760,7 +1760,7 @@ It is too wide if it has any lines longer than the largest of
            kind name col))
         ;; There's a "naked" ' character before a symbol/list, so it
         ;; should probably be quoted with \=.
-        (when (string-match-p "\\( \"\\|[ \t]\\|^\\)'[a-z(]" docs)
+        (when (string-match-p "\\( [\"#]\\|[ \t]\\|^\\)'[a-z(]" docs)
           (byte-compile-warn-x
            name "%s%sdocstring has wrong usage of unescaped single quotes (use \\= or different quoting)"
            kind name))
