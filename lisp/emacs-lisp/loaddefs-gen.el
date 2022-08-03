@@ -588,7 +588,8 @@ If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
           (with-temp-buffer
             (if (and updating (file-exists-p loaddefs-file))
                 (insert-file-contents loaddefs-file)
-              (insert (loaddefs-generate--rubric loaddefs-file nil t))
+              (insert (loaddefs-generate--rubric
+                       loaddefs-file nil t include-package-version))
               (search-backward "\f")
               (when extra-data
                 (insert extra-data)

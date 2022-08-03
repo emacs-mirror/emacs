@@ -123,10 +123,10 @@ SUBDIRS_FINDER = $(filter-out ${srcdir}/leim%,${SUBDIRS_ALMOST})
 ## All subdirectories in which we might want to create subdirs.el.
 SUBDIRS_SUBDIRS = $(filter-out ${srcdir}/cedet% ${srcdir}/leim%,${SUBDIRS})
 
-# cus-load and finder-inf are not explicitly requested by anything, so
-# we add them here to make sure they get built.
+# cus-load, finder-inf and autoloads are not explicitly requested by
+# anything, so we add them here to make sure they get built.
 all: compile-main $(lisp)/cus-load.el $(lisp)/finder-inf.el generate-ja-dic \
-	org-manuals
+	org-manuals autoloads
 
 PHONY_EXTRAS =
 .PHONY: all custom-deps finder-data autoloads update-subdirs $(PHONY_EXTRAS) \
@@ -196,13 +196,10 @@ org-manuals: main-first
 # from ../src rules, but that doesn't seem possible due to the various
 # non-trivial dependencies.
 
-# We make $(lisp)/loaddefs.el a dependency of .PHONY to cause Make to
-# ignore its time stamp.  That's because the real dependencies of
-# loaddefs.el aren't known to Make, they are implemented in
-# loaddefs-generate--emacs-batch.
-
-autoloads .PHONY: $(lisp)/loaddefs.el
-$(lisp)/loaddefs.el: gen-lisp $(LOADDEFS) $(lisp)/emacs-lisp/loaddefs-gen.elc
+# That's because the real dependencies of loaddefs.el aren't known to
+# Make, they are implemented in loaddefs-generate--emacs-batch, so
+# autoloads is an "all" dependency.
+autoloads:
 	$(AM_V_GEN)$(emacs) \
             -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
 	    -f loaddefs-generate--emacs-batch ${SUBDIRS_ALMOST}

@@ -185,9 +185,10 @@
 ;; should be updated by overwriting it with an up-to-date copy of
 ;; loaddefs.el that is not corrupted by local changes.
 ;; admin/update_autogen can be used to update ldefs-boot.el periodically.
-(condition-case nil (load "loaddefs.el")
-  ;; In case loaddefs hasn't been generated yet.
-  (file-error (load "ldefs-boot.el")))
+(condition-case nil
+    (load "loaddefs")
+  (file-error
+   (load "ldefs-boot.el")))
 
 (let ((new (make-hash-table :test #'equal)))
   ;; Now that loaddefs has populated definition-prefixes, purify its contents.
