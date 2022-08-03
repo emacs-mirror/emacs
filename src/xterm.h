@@ -774,6 +774,10 @@ struct x_display_info
   /* Whether or not the server time is probably the same as
      "clock_gettime (CLOCK_MONOTONIC, ...)".  */
   bool server_time_monotonic_p;
+
+  /* The time difference between the X server clock and the monotonic
+     clock.  */
+  int64_t server_time_offset;
 #endif
 };
 

@@ -6645,7 +6645,11 @@ x_sync_get_monotonic_time (struct x_display_info *dpyinfo,
   if (dpyinfo->server_time_monotonic_p)
     return timestamp;
 
-  return 0;
+  /* This means we haven't yet initialized the server time offset.  */
+  if (!dpyinfo->server_time_offset)
+    return 0;
+
+  return timestamp - dpyinfo->server_time_offset;
 }
 
 /* Return the current monotonic time in the same format as a
@@ -7464,7 +7468,14 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 	  && time * 1000 < monotonic_time + 500 * 1000)
 	dpyinfo->server_time_monotonic_p = true;
       else
-	dpyinfo->server_time_monotonic_p = false;
+	{
+	  /* Compute an offset that can be subtracted from the server
+	     time to estimate the monotonic time on the X server.  */
+
+	  dpyinfo->server_time_monotonic_p = false;
+	  dpyinfo->server_time_offset
+	    = ((int64_t) time * 1000) - monotonic_time;
+	}
     }
 #endif
 
