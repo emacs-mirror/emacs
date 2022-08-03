@@ -1,6 +1,6 @@
 ;;; viper-util.el --- Utilities used by viper.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1997, 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -175,35 +175,23 @@ Otherwise return the normal value."
 
 
 ;; Check the current version against the major and minor version numbers
-;; using op: cur-vers op major.minor If emacs-major-version or
-;; emacs-minor-version are not defined, we assume that the current version
-;; is hopelessly outdated.  We assume that emacs-major-version and
-;; emacs-minor-version are defined.  Otherwise, for Emacs/XEmacs 19, if the
-;; current minor version is < 10 (xemacs) or < 23 (emacs) the return value
-;; will be nil (when op is =, >, or >=) and t (when op is <, <=), which may be
-;; incorrect.  However, this gives correct result in our cases, since we are
-;; testing for sufficiently high Emacs versions.
-(defun viper-check-version (op major minor &optional type-of-emacs)
+;; using op: cur-vers op major.minor
+(defun viper-check-version (op major minor &optional _type-of-emacs)
   (declare (obsolete nil "28.1"))
-  (if (and (boundp 'emacs-major-version) (boundp 'emacs-minor-version))
-      (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
-		 ((eq type-of-emacs 'emacs) (featurep 'emacs))
-		 (t t))
-	   (cond ((eq op '=) (and (= emacs-minor-version minor)
-				  (= emacs-major-version major)))
-		 ((memq op '(> >= < <=))
-		  (and (or (funcall op emacs-major-version major)
-			   (= emacs-major-version major))
-		       (if (= emacs-major-version major)
-			   (funcall op emacs-minor-version minor)
-			 t)))
-		 (t
-		  (error "%S: Invalid op in viper-check-version" op))))
-    (cond ((memq op '(= > >=)) nil)
-	  ((memq op '(< <=)) t))))
+  (cond ((eq op '=) (and (= emacs-minor-version minor)
+                         (= emacs-major-version major)))
+        ((memq op '(> >= < <=))
+         (and (or (funcall op emacs-major-version major)
+                  (= emacs-major-version major))
+              (if (= emacs-major-version major)
+                  (funcall op emacs-minor-version minor)
+                t)))
+        (t
+         (error "%S: Invalid op in viper-check-version" op))))
 
 
 (defun viper-get-visible-buffer-window (wind)
+  (declare (obsolete "use `(get-buffer-window wind 'visible)'." "29.1"))
   (get-buffer-window wind 'visible))
 
 ;; Return line position.
@@ -1005,6 +993,7 @@ Otherwise return the normal value."
 	  (t (prin1-to-string event-seq)))))
 
 (defun viper-key-press-events-to-chars (events)
+  (declare (obsolete nil "29.1"))
   (mapconcat #'char-to-string events ""))
 
 
