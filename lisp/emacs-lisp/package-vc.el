@@ -41,6 +41,7 @@
 (require 'package)
 (require 'lisp-mnt)
 (require 'vc)
+(require 'seq)
 
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
@@ -190,9 +191,12 @@ be requested using REV."
      ;; Initialize the package system to get the list of package
      ;; symbols for completion.
      (package--archives-initialize)
-     (let* ((input (completing-read
-                    "Fetch package source (name or URL): "
-                    package-archive-contents))
+     (let* ((packages (seq-filter
+                       (lambda (pkg)
+                         (alist-get :vc (package-desc-extras (cadr pkg))))
+                       package-archive-contents))
+            (input (completing-read
+                    "Fetch package source (name or URL): " packages))
             (name (file-name-base input)))
        (list input (intern (string-remove-prefix "emacs-" name))))))
   (package--archives-initialize)
