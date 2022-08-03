@@ -1182,6 +1182,7 @@ Otherwise, return a new string."
                 (let ((k (buffer-substring-no-properties (+ orig-point 2)
                                                          end-point)))
                   (when (or (key-valid-p k)
+                            (string-match-p "\\`mouse-[1-9]" k)
                             (string-match-p "\\`M-x " k))
                     (goto-char orig-point)
                     (delete-char 2)

@@ -93,7 +93,9 @@
   (with-substitute-command-keys-test
    (test "\\`C-m'" "C-m")
    (test "\\`C-m'\\`C-j'" "C-mC-j")
-   (test "foo\\`C-m'bar\\`C-j'baz" "fooC-mbarC-jbaz")))
+   (test "foo\\`C-m'bar\\`C-j'baz" "fooC-mbarC-jbaz")
+   (test "\\`M-x next-line'" "M-x next-line")
+   (test "\\`mouse-1'" "mouse-1")))
 
 (ert-deftest help-tests-substitute-command-keys/literal-key-sequence-ignore-invalid ()
   "Ignore any invalid literal key sequence."
