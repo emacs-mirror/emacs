@@ -4960,15 +4960,6 @@ x_xr_ensure_picture (struct frame *f)
 }
 #endif
 
-/* Remove calls to XFlush by defining XFlush to an empty replacement.
-   Calls to XFlush should be unnecessary because the X output buffer
-   is flushed automatically as needed by calls to XPending,
-   XNextEvent, or XWindowEvent according to the XFlush man page.
-   XTread_socket calls XPending.  Removing XFlush improves
-   performance.  */
-
-#define XFlush(DISPLAY)	(void) 0
-
 
 /***********************************************************************
 			      Debugging
@@ -10464,16 +10455,12 @@ x_clear_frame (struct frame *f)
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   block_input ();
-
   font_drop_xrender_surfaces (f);
   x_clear_window (f);
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
-
-  XFlush (FRAME_X_DISPLAY (f));
-
   unblock_input ();
 }
 
@@ -10851,7 +10838,6 @@ x_scroll_run (struct window *w, struct run *run)
 						   view->clip_bottom - view->clip_top);
 		    }
 		  xwidget_expose (view);
-		  XFlush (dpy);
 		}
             }
 	}
@@ -23157,8 +23143,6 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	xic_set_preeditarea (w, x, y);
 #endif
     }
-
-  XFlush (FRAME_X_DISPLAY (f));
 }
 
 
@@ -26216,8 +26200,6 @@ x_free_frame_resources (struct frame *f)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_edge_cursor);
       if (f->output_data.x->bottom_left_corner_cursor != 0)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_left_corner_cursor);
-
-      XFlush (FRAME_X_DISPLAY (f));
     }
 
 #ifdef HAVE_GTK3
