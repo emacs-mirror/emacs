@@ -6634,6 +6634,57 @@ x_if_event (Display *dpy, XEvent *event_return,
     }
 }
 
+/* Return the monotonic time corresponding to the high-resolution
+   server timestamp TIMESTAMP.  Return 0 if the necessary information
+   is not available.  */
+
+static uint64_t
+x_sync_get_monotonic_time (struct x_display_info *dpyinfo,
+			   uint64_t timestamp)
+{
+  if (dpyinfo->server_time_monotonic_p)
+    return timestamp;
+
+  return 0;
+}
+
+/* Return the current monotonic time in the same format as a
+   high-resolution server timestamp.  */
+
+static uint64_t
+x_sync_current_monotonic_time (void)
+{
+  struct timespec time;
+
+  clock_gettime (CLOCK_MONOTONIC, &time);
+  return time.tv_sec * 1000000 + time.tv_nsec / 1000;
+}
+
+/* Decode a _NET_WM_FRAME_DRAWN message and calculate the time it took
+   to draw the last frame.  */
+
+static void
+x_sync_note_frame_times (struct x_display_info *dpyinfo,
+			 struct frame *f, XEvent *event)
+{
+  uint64_t low, high, time;
+  struct x_output *output;
+
+  low = event->xclient.data.l[2];
+  high = event->xclient.data.l[3];
+  output = FRAME_X_OUTPUT (f);
+
+  time = x_sync_get_monotonic_time (dpyinfo, low | (high << 32));
+
+  if (time)
+    output->last_frame_time = time - output->temp_frame_time;
+
+#ifdef FRAME_DEBUG
+  fprintf (stderr, "Drawing the last frame took: %lu ms (%lu)\n",
+	   output->last_frame_time / 1000, time);
+#endif
+}
+
 static Bool
 x_sync_is_frame_drawn_event (Display *dpy, XEvent *event,
 			     XPointer user_data)
@@ -6681,6 +6732,8 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
       /* Also change the frame parameter to reflect the new state.  */
       store_frame_param (f, Quse_frame_synchronization, Qnil);
     }
+  else
+    x_sync_note_frame_times (FRAME_DISPLAY_INFO (f), f, &event);
 
   FRAME_X_WAITING_FOR_DRAW (f) = false;
 }
@@ -6725,6 +6778,10 @@ x_sync_update_begin (struct frame *f)
 
   /* Wait for the last frame to be drawn before drawing this one.  */
   x_sync_wait_for_frame_drawn_event (f);
+
+  /* Make a note of the time at which we started to draw this
+     frame.  */
+  FRAME_X_OUTPUT (f)->temp_frame_time = x_sync_current_monotonic_time ();
 
   /* Since Emacs needs a non-urgent redraw, ensure that value % 4 ==
      1.  Later, add 3 to create the even counter value.  */
@@ -6796,6 +6853,8 @@ x_sync_handle_frame_drawn (struct x_display_info *dpyinfo,
 {
   if (FRAME_OUTER_WINDOW (f) == message->xclient.window)
     FRAME_X_WAITING_FOR_DRAW (f) = false;
+
+  x_sync_note_frame_times (dpyinfo, f, message);
 }
 #endif
 
@@ -7379,6 +7438,9 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 #ifndef USE_GTK
   struct frame *focus_frame;
   Time old_time;
+#if defined HAVE_XSYNC
+  uint64_t monotonic_time;
+#endif
 
   focus_frame = dpyinfo->x_focus_frame;
   old_time = dpyinfo->last_user_time;
@@ -7390,6 +7452,21 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 
   if (!send_event || time > dpyinfo->last_user_time)
     dpyinfo->last_user_time = time;
+
+#if defined HAVE_XSYNC && !defined USE_GTK
+  if (!send_event)
+    {
+      /* See if the current CLOCK_MONOTONIC time is reasonably close
+	 to the X server time.  */
+      monotonic_time = x_sync_current_monotonic_time ();
+
+      if (time * 1000 > monotonic_time - 500 * 1000
+	  && time * 1000 < monotonic_time + 500 * 1000)
+	dpyinfo->server_time_monotonic_p = true;
+      else
+	dpyinfo->server_time_monotonic_p = false;
+    }
+#endif
 
 #ifndef USE_GTK
   /* Don't waste bandwidth if the time hasn't actually changed.  */
