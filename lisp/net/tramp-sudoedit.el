@@ -484,10 +484,9 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    ;; It is unlikely that "chmod -h" works.
-    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
-      (tramp-flush-file-properties v localname)
+  ;; It is unlikely that "chmod -h" works.
+  (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+    (tramp-skeleton-set-file-modes-times-uid-gid filename
       (unless (tramp-sudoedit-send-command
 	       v "chmod" (format "%o" mode)
 	       (tramp-compat-file-name-unquote localname))
@@ -542,8 +541,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
     (let ((time
 	   (if (or (null time)
 		   (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
@@ -730,13 +728,13 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sudoedit-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
-    (with-parsed-tramp-file-name filename nil
-      (tramp-sudoedit-send-command
-       v "chown"
-       (format "%d:%d"
-	       (or uid (tramp-get-remote-uid v 'integer))
-	       (or gid (tramp-get-remote-gid v 'integer)))
-       (tramp-unquote-file-local-name filename))))
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
+    (tramp-sudoedit-send-command
+     v "chown"
+     (format "%d:%d"
+	     (or uid (tramp-get-remote-uid v 'integer))
+	     (or gid (tramp-get-remote-gid v 'integer)))
+     (tramp-unquote-file-local-name filename))))
 
 
 ;; Internal functions.

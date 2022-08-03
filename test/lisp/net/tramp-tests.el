@@ -2481,6 +2481,19 @@ This checks also `file-name-as-directory', `file-name-directory',
 	      (insert-file-contents tmp-name)
 	      (should (string-equal (buffer-string) "foo")))
 
+	    ;; Write empty string.  Used for creation of temprorary files.
+	    ;; Since Emacs 27.1.
+	    (when (fboundp 'make-empty-file)
+	      (with-no-warnings
+		(should-error
+		 (make-empty-file tmp-name)
+		 :type 'file-already-exists)
+		(delete-file tmp-name)
+		(make-empty-file tmp-name)
+		(with-temp-buffer
+		  (insert-file-contents tmp-name)
+		  (should (string-equal (buffer-string) "")))))
+
 	    ;; Write partly.
 	    (with-temp-buffer
 	      (insert "123456789")
@@ -3790,7 +3803,11 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	    (when (tramp--test-emacs28-p)
 	      (with-no-warnings
 		(set-file-modes tmp-name1 #o222 'nofollow)
-		(should (= (file-modes tmp-name1 'nofollow) #o222)))))
+		(should (= (file-modes tmp-name1 'nofollow) #o222))))
+	    ;; Setting the mode for not existing files shall fail.
+	    (should-error
+	     (set-file-modes tmp-name2 #o777)
+	     :type 'file-missing))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name1)))
@@ -4153,6 +4170,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (tramp-compat-time-equal-p
                 (file-attribute-modification-time (file-attributes tmp-name1))
 		(seconds-to-time 1)))
+	      ;; Setting the time for not existing files shall fail.
+	      (should-error
+	       (set-file-times tmp-name2)
+	       :type 'file-missing)
 	      (write-region "bla" nil tmp-name2)
 	      (should (file-exists-p tmp-name2))
 	      (should (file-newer-than-file-p tmp-name2 tmp-name1))
