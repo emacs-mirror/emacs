@@ -701,7 +701,7 @@ DIRNAME omitted or nil means use `desktop-dirname'."
                                           -4))))
           ;; We should err on the safe side here: if any of the
           ;; executables is something like "emacs-nox" or "emacs-42.1"
-          ;; or "gemacs" or "xemacs", let's recognize them as well.
+          ;; or "gemacs", let's recognize them as well.
           (and (string-match-p "emacs" proc-cmd)
                (string-match-p "emacs" my-cmd))))))
 
