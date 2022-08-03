@@ -313,6 +313,26 @@ HISTORY is a symbol representing a variable to story the history in."
 
 
 
+;; Abstract baseclass for any displayer which supports focus
+(defclass semantic-displayer-focus-abstract (semantic-displayer-abstract)
+  ((focus :type number
+	  :protection :protected
+	  :documentation "A tag index from `table' which has focus.
+Multiple calls to the display function can choose to focus on a
+given tag, by highlighting its location.")
+   (find-file-focus
+    :allocation :class
+    :initform nil
+    :documentation
+    "Non-nil if focusing requires a tag's buffer be in memory.")
+   )
+  "Abstract displayer supporting `focus'.
+A displayer which has the ability to focus in on one tag.
+Focusing is a way of differentiating among multiple tags
+which have the same name."
+  :abstract t)
+
+
 (defun semantic-complete-current-match ()
   "Calculate a match from the current completion environment.
 Save this in our completion variable.  Make sure that variable
@@ -1297,7 +1317,6 @@ Uses semanticdb for searching all tags in the current project."
 ;; * semantic-displayer-scroll-request
 ;; * semantic-displayer-focus-request
 
-
 (defclass semantic-displayer-abstract ()
   ((table :type (or null semanticdb-find-result-with-nil)
 	  :initform nil
@@ -1405,25 +1424,6 @@ to click on the items to aid in completion.")
   )
 
 ;;; Methods for any displayer which supports focus
-
-;; Abstract baseclass for any displayer which supports focus
-(defclass semantic-displayer-focus-abstract (semantic-displayer-abstract)
-  ((focus :type number
-	  :protection :protected
-	  :documentation "A tag index from `table' which has focus.
-Multiple calls to the display function can choose to focus on a
-given tag, by highlighting its location.")
-   (find-file-focus
-    :allocation :class
-    :initform nil
-    :documentation
-    "Non-nil if focusing requires a tag's buffer be in memory.")
-   )
-  "Abstract displayer supporting `focus'.
-A displayer which has the ability to focus in on one tag.
-Focusing is a way of differentiating among multiple tags
-which have the same name."
-  :abstract t)
 
 (define-obsolete-function-alias 'semantic-displayor-next-action
   #'semantic-displayer-next-action "27.1")
