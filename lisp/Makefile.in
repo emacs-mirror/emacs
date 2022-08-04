@@ -171,49 +171,38 @@ org-manuals: main-first
 
 ## Comments on loaddefs generation:
 
-# loaddefs depends on gen-lisp for two reasons:
-# 1) In ../src, the emacs target depends on loaddefs but not on eg leim-list.
+# In ../src, the emacs target depends on loaddefs but not on eg leim-list.
 # So having leim as a dependency of loaddefs (via gen-lisp) ensures leim-list
 # gets created before the final emacs is dumped.  Having leim
 # dependencies in ../src as well would create a parallel race condition.
 #
-# FIXME: 2) is no longer correct, so perhaps we could add unidata to
-# gen-lisp now?
+# FIXME: Is the following true any more?
 #
-# 2) Files that are marked no-update-autoloads still get recorded in loaddefs.
-# So those files should be generated before we make autoloads, if we
-# don't want a successive make autoloads to change the output file.
-# Said changes are trivial (only comments in the "files without autoloads"
-# section), but still can be annoying.  Of course, if generated lisp files
-# do contain autoloads, it is essential they be built before make autoloads.
-# (Also, if a generated file is not written atomically, it is possible that
-# in a parallel build, make autoloads could read a partial version of it.)
-#
-# We'd really like to add "make -C ../admin/unidata all" to gen-lisp
-# because of 2) above, but it causes a race condition in parallel
-# builds because ../src also runs that rule.  Given the limitations of
-# recursive make, the only way to fix that would be to remove unidata
-# from ../src rules, but that doesn't seem possible due to the various
-# non-trivial dependencies.
+# We'd really like to add "make -C ../admin/unidata all" to gen-lisp,
+# but it causes a race condition in parallel builds because ../src
+# also runs that rule.  Given the limitations of recursive make, the
+# only way to fix that would be to remove unidata from ../src rules,
+# but that doesn't seem possible due to the various non-trivial
+# dependencies.
 
-# That's because the real dependencies of loaddefs.el aren't known to
-# Make, they are implemented in loaddefs-generate--emacs-batch, so
-# autoloads is an "all" dependency.
+# The real dependencies of loaddefs.el aren't known to Make, they are
+# implemented in loaddefs-generate--emacs-batch, so autoloads is an
+# "all" dependency.
 autoloads:
 	$(AM_V_GEN)$(emacs) \
             -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
 	    -f loaddefs-generate--emacs-batch ${SUBDIRS_ALMOST}
 
-# autoloads only runs when loaddefs.el is nonexistent, although it
-# generates a number of different files. Provide a force option to enable
-# regeneration of all these files.
+# autoloads always runs, but only updates when there's something new.
+# Provide a force option to enable regeneration of all loaddefs files.
 .PHONY: autoloads-force
 autoloads-force:
 	rm -f $(lisp)/loaddefs.el
 	$(MAKE) autoloads
 
 ldefs-boot.el: autoloads-force
-	cp  $(lisp)/loaddefs.el $(lisp)/ldefs-boot.el
+	sed '/^;; Local Variables:/a ;; no-byte-compile: t'\
+		< $(lisp)/loaddefs.el > $(lisp)/ldefs-boot.el
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
