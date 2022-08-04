@@ -460,7 +460,7 @@ bootstrap-clean:
 	rm -f $(AUTOGENEL)
 
 distclean:
-	-rm -f ./Makefile $(lisp)/loaddefs.el
+	-rm -f ./Makefile $(lisp)/loaddefs.el $(lisp)/loaddefs.elc
 
 maintainer-clean: distclean bootstrap-clean
 	rm -f TAGS
