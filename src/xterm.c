@@ -13283,6 +13283,37 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
 /* Scroll bar support.  */
 
+#if defined HAVE_XINPUT2
+
+/* Select for input extension events used by scroll bars.  This will
+   result in the corresponding core events not being generated for
+   SCROLL_BAR.  */
+
+MAYBE_UNUSED static void
+xi_select_scroll_bar_events (struct x_display_info *dpyinfo,
+			     Window scroll_bar)
+{
+  XIEventMask mask;
+  unsigned char *m;
+  ptrdiff_t length;
+
+  length = XIMaskLen (XI_LASTEVENT);
+  mask.mask = m = alloca (length);
+  memset (m, 0, length);
+  mask.mask_len = length;
+
+  mask.deviceid = XIAllMasterDevices;
+  XISetMask (m, XI_ButtonPress);
+  XISetMask (m, XI_ButtonRelease);
+  XISetMask (m, XI_Motion);
+  XISetMask (m, XI_Enter);
+  XISetMask (m, XI_Leave);
+
+  XISelectEvents (dpyinfo->display, scroll_bar, &mask, 1);
+}
+
+#endif
+
 /* Given an X window ID and a DISPLAY, find the struct scroll_bar which
    manages it.
    This can be called in GC, so we have to make sure to strip off mark
@@ -14073,25 +14104,8 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   /* Ask for input extension button and motion events.  This lets us
      send the proper `wheel-up' or `wheel-down' events to Emacs.  */
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
-    {
-      XIEventMask mask;
-      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
-      unsigned char *m;
-
-      mask.mask = m = alloca (l);
-      memset (m, 0, l);
-      mask.mask_len = l;
-
-      mask.deviceid = XIAllMasterDevices;
-      XISetMask (m, XI_ButtonPress);
-      XISetMask (m, XI_ButtonRelease);
-      XISetMask (m, XI_Motion);
-      XISetMask (m, XI_Enter);
-      XISetMask (m, XI_Leave);
-
-      XISelectEvents (XtDisplay (widget), XtWindow (widget),
-		      &mask, 1);
-    }
+    xi_select_scroll_bar_events (FRAME_DISPLAY_INFO (f),
+				 XtWindow (widget));
 #endif
 #else /* !USE_MOTIF i.e. use Xaw */
 
@@ -14298,25 +14312,8 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   /* Ask for input extension button and motion events.  This lets us
      send the proper `wheel-up' or `wheel-down' events to Emacs.  */
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
-    {
-      XIEventMask mask;
-      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
-      unsigned char *m;
-
-      mask.mask = m = alloca (l);
-      memset (m, 0, l);
-      mask.mask_len = l;
-
-      mask.deviceid = XIAllMasterDevices;
-      XISetMask (m, XI_ButtonPress);
-      XISetMask (m, XI_ButtonRelease);
-      XISetMask (m, XI_Motion);
-      XISetMask (m, XI_Enter);
-      XISetMask (m, XI_Leave);
-
-      XISelectEvents (XtDisplay (widget), XtWindow (widget),
-		      &mask, 1);
-    }
+    xi_select_scroll_bar_events (FRAME_DISPLAY_INFO (f),
+				 XtWindow (widget));
 #endif
 #else /* !USE_MOTIF i.e. use Xaw */
 
@@ -14738,24 +14735,8 @@ x_scroll_bar_create (struct window *w, int top, int left,
   /* Ask for input extension button and motion events.  This lets us
      send the proper `wheel-up' or `wheel-down' events to Emacs.  */
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
-    {
-      XIEventMask mask;
-      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
-      unsigned char *m;
-
-      mask.mask = m = alloca (l);
-      memset (m, 0, l);
-      mask.mask_len = l;
-
-      mask.deviceid = XIAllMasterDevices;
-      XISetMask (m, XI_ButtonPress);
-      XISetMask (m, XI_ButtonRelease);
-      XISetMask (m, XI_Motion);
-      XISetMask (m, XI_Enter);
-      XISetMask (m, XI_Leave);
-
-      XISelectEvents (FRAME_X_DISPLAY (f), window, &mask, 1);
-    }
+    xi_select_scroll_bar_events (FRAME_DISPLAY_INFO (f),
+				 window);
 #endif
 
     bar->x_window = window;
