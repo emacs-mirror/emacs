@@ -3056,7 +3056,6 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
   /* True if we saw an escape sequence specifying
      a single-byte character.  */
   bool force_singlebyte = false;
-  bool cancel = false;
   ptrdiff_t nchars = 0;
 
   int ch;
@@ -3085,8 +3084,6 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
 	    case ' ':
 	    case '\n':
 	      /* `\SPC' and `\LF' generate no characters at all.  */
-	      if (p == read_buffer)
-		cancel = true;
 	      continue;
 	    default:
 	      UNREAD (ch);
@@ -3151,15 +3148,6 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
 
   if (ch < 0)
     end_of_file_error ();
-
-  /* If purifying, and string starts with \ newline,
-     return zero instead.  This is for doc strings
-     that we are really going to find in etc/DOC.nn.nn.  */
-  if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
-    {
-      unbind_to (count, Qnil);
-      return make_fixnum (0);
-    }
 
   if (!force_multibyte && force_singlebyte)
     {
