@@ -54,7 +54,7 @@ be included.")
   '("define-obsolete-function-alias"
     "define-obsolete-variable-alias"
     "define-category"
-    "define-key" "define-key-after"
+    "define-key" "define-key-after" "define-keymap"
     "defgroup" "defface" "defadvice"
     "def-edebug-spec"
     ;; Hmm... this is getting ugly:
