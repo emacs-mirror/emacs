@@ -106,7 +106,7 @@
   (declare (obsolete "use `(not (zerop ...))'." "29.1"))
   (not (zerop number)))
 
-(defsubst alphabetp (char)
+(defsubst hangul-alphabetp (char)
   (or (and (>= char ?A) (<= char ?Z))
       (and (>= char ?a) (<= char ?z))))
 
@@ -389,7 +389,7 @@ When a Korean input method is off, convert the following hangul character."
 
 (defun hangul2-input-method (key)
   "2-Bulsik input method."
-  (if (or buffer-read-only (not (alphabetp key)))
+  (if (or buffer-read-only (not (hangul-alphabetp key)))
       (list key)
     (quail-setup-overlays nil)
     (let ((input-method-function nil)
@@ -406,7 +406,7 @@ When a Korean input method is off, convert the following hangul character."
 		(cond ((and (stringp seq)
 			    (= 1 (length seq))
 			    (setq key (aref seq 0))
-			    (alphabetp key))
+                            (hangul-alphabetp key))
 		       (hangul2-input-method-internal key))
 		      ((commandp cmd)
 		       (call-interactively cmd))
@@ -546,6 +546,8 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (princ hangul-input-method-help-text)))
+
+(define-obsolete-function-alias 'alphabetp 'hangul-alphabetp "29.1")
 
 (provide 'hangul)
 
