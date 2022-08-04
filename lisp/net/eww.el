@@ -349,6 +349,8 @@ This can also be used on the command line directly:
 
 will start Emacs and browse the GNU web site."
   (interactive)
+  (unless command-line-args-left
+    (user-error "No URL given"))
   (eww (pop command-line-args-left)))
 
 
