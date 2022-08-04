@@ -60,7 +60,10 @@ be included.")
     "define-widget"
     "define-erc-module"
     "define-erc-response-handler"
-    "defun-rcirc-command")
+    "defun-rcirc-command"
+    "define-short-documentation-group"
+    "def-edebug-elem-spec"
+    "defvar-mode-local")
   "List of strings naming definitions to ignore for prefixes.
 More specifically those definitions will not be considered for the
 `register-definition-prefixes' call.")
