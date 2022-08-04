@@ -34,7 +34,6 @@
 (require 'gnus-util)
 (require 'gnus)
 (require 'nnoo)
-(require 'netrc)
 (require 'utf7)
 (require 'nnmail)
 
