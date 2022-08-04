@@ -6638,7 +6638,7 @@ Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 (defvar package--builtin-versions
-  ;; Mostly populated by loaddefs.el via autoload-builtin-package-versions.
+  ;; Mostly populated by loaddefs.el.
   (purecopy `((emacs . ,(version-to-list emacs-version))))
   "Alist giving the version of each versioned builtin package.
 I.e. each element of the list is of the form (NAME . VERSION) where

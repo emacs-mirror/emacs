@@ -267,12 +267,6 @@ if `autoload-timestamps' is non-nil, otherwise a fixed fake time is inserted)."
       (hack-local-variables))
     (current-buffer)))
 
-(defalias 'autoload-insert-section-header
-  #'loaddefs-generate--insert-section-header)
-
-(defvar no-update-autoloads nil
-  "File local variable to prevent scanning this file for autoload cookies.")
-
 (defalias 'autoload-file-load-name #'loaddefs-generate--file-load-name)
 
 (defun generate-file-autoloads (file)

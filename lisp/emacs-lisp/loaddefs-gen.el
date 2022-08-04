@@ -50,6 +50,9 @@ prefix, that will not be registered.  But all other prefixes will
 be included.")
 (put 'autoload-compute-prefixes 'safe-local-variable #'booleanp)
 
+(defvar no-update-autoloads nil
+  "File local variable to prevent scanning this file for autoload cookies.")
+
 (defvar autoload-ignored-definitions
   '("define-obsolete-function-alias"
     "define-obsolete-variable-alias"
@@ -492,27 +495,6 @@ If COMPILE, don't include a \"don't compile\" cookie."
        :compile compile
        :inhibit-provide (not feature))
       (buffer-string))))
-
-(defun loaddefs-generate--insert-section-header (outbuf autoloads
-                                                        load-name file time)
-  "Insert into buffer OUTBUF the section-header line for FILE.
-The header line lists the file name, its \"load name\", its autoloads,
-and the time the FILE was last updated (the time is inserted only
-if `autoload-timestamps' is non-nil, otherwise a fixed fake time is inserted)."
-  (insert "\f\n;;;### ")
-  (prin1 `(autoloads ,autoloads ,load-name ,file ,time)
-	 outbuf)
-  (terpri outbuf)
-  ;; Break that line at spaces, to avoid very long lines.
-  ;; Make each sub-line into a comment.
-  (with-current-buffer outbuf
-    (save-excursion
-      (forward-line -1)
-      (while (not (eolp))
-	(move-to-column 64)
-	(skip-chars-forward "^ \n")
-	(or (eolp)
-	    (insert "\n" ";;;;;; "))))))
 
 ;;;###autoload
 (defun loaddefs-generate (dir output-file &optional excluded-files

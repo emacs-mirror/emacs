@@ -1024,7 +1024,9 @@ untar into a directory named DIR; otherwise, signal an error."
   (unless (file-exists-p file)
     (require 'autoload)
     (let ((coding-system-for-write 'utf-8-emacs-unix))
-      (write-region (autoload-rubric file "package" nil) nil file nil 'silent)))
+      (with-suppressed-warnings ((obsolete autoload-rubric))
+        (write-region (autoload-rubric file "package" nil)
+                      nil file nil 'silent))))
   file)
 
 (defvar autoload-timestamps)
