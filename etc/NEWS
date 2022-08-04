@@ -357,6 +357,11 @@ Use something like 'M-x shell RET ssh <host> RET' instead.
 It is superseded by the loaddefs-gen.el library.
 
 ---
+** The netrc.el library is now obsolete.
+Use the 'auth-source-netrc-parse-all' function in auth-source.el
+instead.
+
+---
 ** The url-dired.el library is now obsolete.
 
 ---

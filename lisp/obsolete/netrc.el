@@ -4,6 +4,9 @@
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
+;; Obsolete-since: 29.1
+;;
+;; Instead of using `netrc-parse', use `auth-source-netrc-parse-all'.
 ;;
 ;;  Modularized by Ted Zlatanov <tzz@lifelogs.com>
 ;;  when it was part of Gnus.
