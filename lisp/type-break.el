@@ -451,7 +451,7 @@ the variable of the same name."
 	      ;; file saving is left to auto-save
 	      ))))))
 
-(defun timep (time)
+(defun type-break-timep (time)
   "If TIME is a Lisp time value then return TIME, else return nil."
   (condition-case nil
       (and (float-time time) time)
@@ -475,7 +475,7 @@ the variable of the same name."
 Return nil if the file is missing or if the time is not a Lisp time value."
   (let ((file (type-break-choose-file)))
     (if file
-        (timep ;; returns expected format, else nil
+        (type-break-timep ;; returns expected format, else nil
          (with-current-buffer (find-file-noselect file 'nowarn)
 	   (condition-case nil
 	       (save-excursion
@@ -1142,6 +1142,8 @@ With optional non-nil ALL, force redisplay of all mode-lines."
       (quit
        (and (get-buffer buffer-name)
             (kill-buffer buffer-name))))))
+
+(define-obsolete-function-alias 'timep 'type-break-timep "29.1")
 
 
 (provide 'type-break)
