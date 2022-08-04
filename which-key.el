@@ -1972,8 +1972,9 @@ is the width of the live window."
          (avl-lines (if prefix-top-bottom (- max-lines 1) max-lines))
          (min-lines (min avl-lines which-key-min-display-lines))
          (avl-width (if prefix (- max-width prefix) max-width))
-         (vertical (and (eq which-key-popup-type 'side-window)
-                        (member which-key-side-window-location '(left right))))
+         (vertical (or (and (eq which-key-popup-type 'side-window)
+                            (member which-key-side-window-location '(left right)))
+		       (eq which-key-max-display-columns 1)))
          result)
     (setq result
           (which-key--create-pages-1
