@@ -2563,9 +2563,9 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 (defun cl--optimize (f _args &rest qualities)
   "Serve `cl-optimize' in function declarations.
 Example:
-(defun foo (x)
-  (declare (cl-optimize (speed 3) (safety 0)))
-  x)"
+  (defun foo (x)
+    (declare (cl-optimize (speed 3) (safety 0)))
+    x)"
   ;; FIXME this should make use of `cl--declare-stack' but I suspect
   ;; this mechanism should be reviewed first.
   (cl-loop for (qly val) in qualities
