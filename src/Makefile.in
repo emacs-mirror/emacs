@@ -641,11 +641,6 @@ $(pdmp): emacs$(EXEEXT) $(lispsource)/loaddefs.elc
 	cp -f $@ $(bootstrap_pdmp)
 endif
 
-## We run make-docfile twice because the command line may get too long
-## on some systems.  Unfortunately, no-one has any idea
-## exactly how long the maximum safe command line length is on all the
-## various systems that Emacs supports.
-##
 ## $(SOME_MACHINE_OBJECTS) comes before $(obj) because some files may
 ## or may not be included in $(obj), but they are always included in
 ## $(SOME_MACHINE_OBJECTS).  Since a file is processed when it is mentioned
