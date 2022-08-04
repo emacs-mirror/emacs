@@ -164,7 +164,8 @@ default ports DEFAULTS to `netrc-machine'.
 MODE can be \"login\" or \"password\", suitable for passing to
 `netrc-get'."
   (let ((authinfo-list (if (stringp authinfo-file-or-list)
-			   (netrc-parse authinfo-file-or-list)
+                           (with-suppressed-warnings ((obsolete netrc-parse))
+			     (netrc-parse authinfo-file-or-list))
 			 authinfo-file-or-list))
 	(ports (or ports '(nil)))
 	(defaults (or defaults '(nil)))
@@ -227,7 +228,8 @@ MODE can be \"login\" or \"password\", suitable for passing to
   "Return a user name/password pair.
 Port specifications will be prioritized in the order they are
 listed in the PORTS list."
-  (let ((list (netrc-parse))
+  (let ((list (with-suppressed-warnings ((obsolete netrc-parse))
+                (netrc-parse)))
 	found)
     (if (not ports)
 	(setq found (netrc-machine list machine))
