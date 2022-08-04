@@ -1021,7 +1021,11 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  /* But we don't know where to stop the searching.  */
 	  endpos = NILP (string) ? BEGV - 1 : -1;
 	  /* Usually we don't reach ENDPOS because we stop searching
-	     at an uncomposable character (NL, LRE, etc).  */
+	     at an uncomposable character (NL, LRE, etc).  In buffers
+	     with long lines, however, NL might be far away, so
+	     pretend that the buffer is smaller.  */
+	  if (current_buffer->long_line_optimizations_p)
+	    endpos = get_closer_narrowed_begv (cmp_it->parent_it->w, charpos);
 	}
     }
   cmp_it->id = -1;
@@ -1580,7 +1584,6 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
   Lisp_Object window;
   struct window *w;
   bool need_adjustment = 0;
-  ptrdiff_t narrowed_begv;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   if (NILP (window))
@@ -1597,11 +1600,14 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
 	}
       else
 	head = backlim;
-      /* In buffers with very long lines, this function becomes very
-	 slow.  Pretend that the buffer is narrowed to make it fast.  */
-      narrowed_begv = get_narrowed_begv (w, window_point (w));
-      if (narrowed_begv && pos > narrowed_begv)
-	head = narrowed_begv;
+      if (current_buffer->long_line_optimizations_p)
+	{
+	  /* In buffers with very long lines, this function becomes very
+	     slow.  Pretend that the buffer is narrowed to make it fast.  */
+	  ptrdiff_t begv = get_closer_narrowed_begv (w, window_point (w));
+	  if (pos > begv)
+	    head = begv;
+	}
       tail = ZV;
       stop = GPT;
       cur.pos_byte = CHAR_TO_BYTE (cur.pos);

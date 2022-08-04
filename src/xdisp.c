@@ -3229,6 +3229,7 @@ init_iterator (struct it *it, struct window *w,
   it->f = XFRAME (w->frame);
 
   it->cmp_it.id = -1;
+  it->cmp_it.parent_it = it;
 
   if (max_redisplay_ticks > 0)
     update_redisplay_ticks (0, w);
@@ -3413,12 +3414,6 @@ init_iterator (struct it *it, struct window *w,
 	}
     }
 
-  if (current_buffer->long_line_optimizations_p)
-    {
-      it->narrowed_begv = get_narrowed_begv (w, window_point (w));
-      it->narrowed_zv = get_narrowed_zv (w, window_point (w));
-    }
-
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
   if (charpos >= BUF_BEG (current_buffer))
@@ -3478,6 +3473,9 @@ init_iterator (struct it *it, struct window *w,
 			&it->bidi_it);
 	}
 
+      if (current_buffer->long_line_optimizations_p)
+	it->narrowed_begv = 0;
+
       /* Compute faces etc.  */
       reseat (it, it->current.pos, true);
     }
@@ -3510,9 +3508,7 @@ ptrdiff_t
 get_narrowed_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_len (w);
-  ptrdiff_t begv;
-  begv = max ((pos / len - 1) * len, BEGV);
-  return begv == BEGV ? 0 : begv;
+  return max ((pos / len - 1) * len, BEGV);
 }
 
 ptrdiff_t
@@ -4397,13 +4393,12 @@ handle_fontified_prop (struct it *it)
 
       if (current_buffer->long_line_optimizations_p)
 	{
-	  ptrdiff_t begv = it->narrowed_begv ? it->narrowed_begv : BEGV;
+	  ptrdiff_t begv = it->narrowed_begv;
 	  ptrdiff_t zv = it->narrowed_zv;
 	  ptrdiff_t charpos = IT_CHARPOS (*it);
 	  if (charpos < begv || charpos > zv)
 	    {
 	      begv = get_narrowed_begv (it->w, charpos);
-	      if (!begv) begv = BEGV;
 	      zv = get_narrowed_zv (it->w, charpos);
 	    }
 	  narrow_to_region_internal (make_fixnum (begv), make_fixnum (zv), true);
@@ -7533,6 +7528,21 @@ reseat (struct it *it, struct text_pos pos, bool force_p)
 
   reseat_1 (it, pos, false);
 
+  if (current_buffer->long_line_optimizations_p)
+    {
+      if (!it->narrowed_begv)
+	{
+	  it->narrowed_begv = get_narrowed_begv (it->w, window_point (it->w));
+	  it->narrowed_zv = get_narrowed_zv (it->w, window_point (it->w));
+	}
+      else if ((pos.charpos < it->narrowed_begv || pos.charpos > it->narrowed_zv)
+		&& (!redisplaying_p || it->line_wrap == TRUNCATE))
+	{
+	  it->narrowed_begv = get_narrowed_begv (it->w, pos.charpos);
+	  it->narrowed_zv = get_narrowed_zv (it->w, pos.charpos);
+	}
+    }
+
   /* Determine where to check text properties.  Avoid doing it
      where possible because text property lookup is very expensive.  */
   if (force_p
@@ -8838,7 +8848,7 @@ get_visually_first_element (struct it *it)
 
   SET_WITH_NARROWED_BEGV (it, bob,
 			  string_p ? 0 :
-			  IT_BYTEPOS (*it) < BEGV ? obegv : BEGV,
+			  IT_CHARPOS (*it) < BEGV ? obegv : BEGV,
 			  it->narrowed_begv);
 
   if (STRINGP (it->string))
@@ -10773,7 +10783,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	  dec_both (&cp, &bp);
 	  SET_WITH_NARROWED_BEGV (it, cp,
 				  find_newline_no_quit (cp, bp, -1, NULL),
-				  it->narrowed_begv);
+				  get_closer_narrowed_begv (it->w, IT_CHARPOS (*it)));
 	  move_it_to (it, cp, -1, -1, -1, MOVE_TO_POS);
 	}
       bidi_unshelve_cache (it3data, true);
