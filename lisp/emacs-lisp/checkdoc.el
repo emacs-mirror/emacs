@@ -2360,8 +2360,6 @@ News agents may remove it"
 
 ;;; Comment checking engine
 ;;
-(defvar generate-autoload-cookie)
-
 (defun checkdoc-file-comments-engine ()
   "Return a message list if this file does not match the Emacs standard.
 This checks for style only, such as the first line, Commentary:,
