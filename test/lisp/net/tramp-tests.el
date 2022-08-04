@@ -7590,7 +7590,7 @@ Since it unloads Tramp, it shall be the last test to run."
   (should-not (cl--find-class 'tramp-file-name))
   (mapatoms
    (lambda (x)
-     (and (functionp x)
+     (and (functionp x) (null (autoloadp (symbol-function x)))
           (string-match-p "tramp-file-name" (symbol-name x))
           (ert-fail (format "Structure function `%s' still exists" x)))))
 
