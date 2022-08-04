@@ -909,6 +909,7 @@ Remove trailing \": \"."
 (defun auth-source--aget (alist key)
   (cdr (assoc key alist)))
 
+;;;###autoload
 (defun auth-source-netrc-parse-all (file)
   "Parse FILE and return all entries."
   (auth-source-netrc-parse :file file :allow-null t))

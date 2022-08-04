@@ -3342,12 +3342,11 @@ Host is always \"localhost\"."
 User may be nil."
   ;; The declaration is not sufficient at runtime, because netrc.el is
   ;; not autoloaded.
-  (autoload 'netrc-parse "netrc")
   (mapcar
    (lambda (item)
      (and (assoc "machine" item)
 	  `(,(cdr (assoc "login" item)) ,(cdr (assoc "machine" item)))))
-   (netrc-parse filename)))
+   (auth-source-netrc-parse-all filename)))
 
 (defun tramp-parse-putty (registry-or-dirname)
   "Return a list of (user host) tuples allowed to access.
