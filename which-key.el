@@ -1989,6 +1989,9 @@ is the width of the live window."
             (or prefix-title
                 (which-key--maybe-get-prefix-title
                  (key-description prefix-keys))))
+      (when prefix-top-bottom
+	;; Add back the line earlier reserved for the page information.
+        (setf (which-key--pages-height result) max-lines))
       (when (and (= (which-key--pages-num-pages result) 1)
                  (> which-key-min-display-lines
                     (which-key--pages-height result)))
