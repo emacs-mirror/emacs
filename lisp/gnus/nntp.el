@@ -1133,11 +1133,6 @@ It will make innd servers spawn an nnrpd process to allow actual article
 reading."
   (nntp-send-command "^.*\n" "MODE READER"))
 
-(declare-function netrc-parse "netrc" (&optional file))
-(declare-function netrc-machine "netrc"
-		  (list machine &optional port defaultport))
-(declare-function netrc-get "netrc" (alist type))
-
 (defun nntp-send-authinfo (&optional send-if-force)
   "Send the AUTHINFO to the nntp server.
 It will look in the \"~/.authinfo\" file for matching entries.  If
@@ -1146,30 +1141,16 @@ and a password.
 
 If SEND-IF-FORCE, only send authinfo to the server if the
 .authinfo file has the FORCE token."
-  (require 'netrc)
-  (let* ((list (netrc-parse))
-	 (alist (netrc-machine list nntp-address "nntp"))
-         (auth-info
+  (let* ((auth-info
           (nth 0 (auth-source-search
 		  :max 1
 		  :host (list nntp-address (nnoo-current-server 'nntp))
 		  :port `("119" "nntp" ,(format "%s" nntp-port-number)
 			  "563" "nntps" "snews"))))
          (auth-user (plist-get auth-info :user))
-         (auth-force (plist-get auth-info :force))
-         (auth-passwd (auth-info-password auth-info))
-	 (force (or (netrc-get alist "force")
-                    nntp-authinfo-force
-                    auth-force))
-	 (user (or
-		;; this is preferred to netrc-*
-		auth-user
-		(netrc-get alist "login")
-		nntp-authinfo-user))
-	 (passwd (or
-		  ;; this is preferred to netrc-*
-		  auth-passwd
-		  (netrc-get alist "password"))))
+         (passwd (auth-info-password auth-info))
+	 (force (or nntp-authinfo-force (plist-get auth-info :force)))
+	 (user (or auth-user nntp-authinfo-user)))
     (when (or (not send-if-force)
 	      force)
       (unless user
