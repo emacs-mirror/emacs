@@ -8415,10 +8415,12 @@ the appropriate statement modifier."
   (interactive)
   (cperl-perldoc (cperl-word-at-point)))
 
-(defcustom pod2man-program "pod2man"
+(define-obsolete-variable-alias 'pod2man-program 'cperl-pod2man-program "29.1")
+(defcustom cperl-pod2man-program "pod2man"
   "File name for `pod2man'."
   :type 'file
-  :group 'cperl)
+  :group 'cperl
+  :version "29.1")
 
 ;; By Nick Roberts <Nick.Roberts@src.bae.co.uk> (with changes)
 (defun cperl-pod-to-manpage ()
@@ -8437,7 +8439,6 @@ the appropriate statement modifier."
                         (format (cperl-pod2man-build-command) pod2man-args))
          'Man-bgproc-sentinel)))))
 
-;; Updated version by him too
 (defun cperl-build-manpage ()
   "Create a virtual manpage in Emacs from the POD in the file."
   (interactive)

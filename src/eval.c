@@ -593,16 +593,19 @@ The return value is BASE-VARIABLE.  */)
 
   if (SYMBOL_CONSTANT_P (new_alias))
     /* Making it an alias effectively changes its value.  */
-    error ("Cannot make a constant an alias");
+    error ("Cannot make a constant an alias: %s",
+	   SDATA (SYMBOL_NAME (new_alias)));
 
   sym = XSYMBOL (new_alias);
 
   switch (sym->u.s.redirect)
     {
     case SYMBOL_FORWARDED:
-      error ("Cannot make an internal variable an alias");
+      error ("Cannot make a built-in variable an alias: %s",
+	     SDATA (SYMBOL_NAME (new_alias)));
     case SYMBOL_LOCALIZED:
-      error ("Don't know how to make a localized variable an alias");
+      error ("Don't know how to make a buffer-local variable an alias: %s",
+	     SDATA (SYMBOL_NAME (new_alias)));
     case SYMBOL_PLAINVAL:
     case SYMBOL_VARALIAS:
       break;
@@ -633,7 +636,8 @@ The return value is BASE-VARIABLE.  */)
     for (p = specpdl_ptr; p > specpdl; )
       if ((--p)->kind >= SPECPDL_LET
 	  && (EQ (new_alias, specpdl_symbol (p))))
-	error ("Don't know how to make a let-bound variable an alias");
+	error ("Don't know how to make a let-bound variable an alias: %s",
+	       SDATA (SYMBOL_NAME (new_alias)));
   }
 
   if (sym->u.s.trapped_write == SYMBOL_TRAPPED_WRITE)

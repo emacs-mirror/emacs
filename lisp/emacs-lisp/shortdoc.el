@@ -503,7 +503,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (set-file-modes
    :no-value "(set-file-modes \"/tmp/foo\" #o644)")
   (set-file-times
-   :no-value (set-file-times "/tmp/foo" (current-time)))
+   :no-value (set-file-times "/tmp/foo"))
   "File Modes"
   (set-default-file-modes
    :no-value "(set-default-file-modes #o755)")

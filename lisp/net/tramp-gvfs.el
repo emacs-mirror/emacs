@@ -960,6 +960,15 @@ The global value will always be nil; it is bound where needed.")
 
 ;; File name primitives.
 
+(defun tramp-gvfs-info (filename &optional arg)
+  "Check FILENAME via `gvfs-info'.
+Set file property \"file-exists-p\" with the result."
+  (with-parsed-tramp-file-name filename nil
+    (tramp-set-file-property
+     v localname "file-exists-p"
+     (tramp-gvfs-send-command
+      v "gvfs-info" arg (tramp-gvfs-url-file-name filename)))))
+
 (defun tramp-gvfs-do-copy-or-rename-file
   (op filename newname &optional ok-if-already-exists keep-date
    preserve-uid-gid preserve-extended-attributes)
@@ -1046,12 +1055,9 @@ file names."
 			 ;; code in case of direct copy/move.  Apply
 			 ;; sanity checks.
 			 (or (not equal-remote)
-			     (tramp-gvfs-send-command
-			      v "gvfs-info" (tramp-gvfs-url-file-name newname))
+			     (tramp-gvfs-info newname)
 			     (eq op 'copy)
-			     (not (tramp-gvfs-send-command
-				   v "gvfs-info"
-				   (tramp-gvfs-url-file-name filename)))))
+			     (not (tramp-gvfs-info filename))))
 
 		  (if (or (not equal-remote)
 			  (and equal-remote
@@ -1111,8 +1117,9 @@ file names."
 	(tramp-error
 	 v 'file-error "Couldn't delete non-empty %s" directory)))
 
-    (unless (tramp-gvfs-send-command
-	     v "gvfs-rm" (tramp-gvfs-url-file-name directory))
+    (unless (and (tramp-gvfs-send-command
+		  v "gvfs-rm" (tramp-gvfs-url-file-name directory))
+		 (not (tramp-gvfs-info directory)))
       ;; Propagate the error.
       (with-current-buffer (tramp-get-connection-buffer v)
 	(goto-char (point-min))
@@ -1125,8 +1132,9 @@ file names."
     (tramp-flush-file-properties v localname)
     (if (and delete-by-moving-to-trash trash)
 	(move-file-to-trash filename)
-      (unless (tramp-gvfs-send-command
-	       v "gvfs-rm" (tramp-gvfs-url-file-name filename))
+      (unless (and (tramp-gvfs-send-command
+		    v "gvfs-rm" (tramp-gvfs-url-file-name filename))
+		   (not (tramp-gvfs-info filename)))
 	;; Propagate the error.
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
@@ -1239,10 +1247,8 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	 (if file-system " system" "") localname)
 	;; Send command.
 	(if file-system
-	    (tramp-gvfs-send-command
-	     v "gvfs-info" "--filesystem" (tramp-gvfs-url-file-name filename))
-	  (tramp-gvfs-send-command
-	   v "gvfs-info" (tramp-gvfs-url-file-name filename)))
+	    (tramp-gvfs-info filename "--filesystem")
+	  (tramp-gvfs-info filename))
 	;; Parse output.
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
@@ -1547,8 +1553,10 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	  (make-directory ldir parents))
 	;; Just do it.
 	(or (when-let ((mkdir-succeeded
-			(tramp-gvfs-send-command
-			 v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))))
+			(and
+			 (tramp-gvfs-send-command
+			  v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))
+			 (tramp-gvfs-info dir))))
 	      (set-file-modes dir (default-file-modes))
 	      mkdir-succeeded)
 	    (and parents (file-directory-p dir))
@@ -1582,16 +1590,14 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 
 (defun tramp-gvfs-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
     (tramp-gvfs-set-attribute
      v (if (eq flag 'nofollow) "-nt" "-t") "uint32"
      (tramp-gvfs-url-file-name filename) "unix::mode" (number-to-string mode))))
 
 (defun tramp-gvfs-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
     (tramp-gvfs-set-attribute
      v (if (eq flag 'nofollow) "-nt" "-t") "uint64"
      (tramp-gvfs-url-file-name filename) "time::modified"
@@ -1644,8 +1650,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-gvfs-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
     (when (natnump uid)
       (tramp-gvfs-set-attribute
        v "-t" "uint32"

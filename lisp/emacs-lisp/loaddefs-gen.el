@@ -60,7 +60,10 @@ be included.")
     "define-widget"
     "define-erc-module"
     "define-erc-response-handler"
-    "defun-rcirc-command")
+    "defun-rcirc-command"
+    "define-short-documentation-group"
+    "def-edebug-elem-spec"
+    "defvar-mode-local")
   "List of strings naming definitions to ignore for prefixes.
 More specifically those definitions will not be considered for the
 `register-definition-prefixes' call.")
@@ -588,7 +591,8 @@ If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
           (with-temp-buffer
             (if (and updating (file-exists-p loaddefs-file))
                 (insert-file-contents loaddefs-file)
-              (insert (loaddefs-generate--rubric loaddefs-file nil t))
+              (insert (loaddefs-generate--rubric
+                       loaddefs-file nil t include-package-version))
               (search-backward "\f")
               (when extra-data
                 (insert extra-data)
@@ -634,18 +638,19 @@ If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
                                t "GEN")))))))
 
 (defun loaddefs-generate--print-form (def)
-  "Print DEF in the way make-docfile.c expects it."
+  "Print DEF in a format that makes sense for version control."
   (if (or (not (consp def))
           (not (symbolp (car def)))
           (memq (car def) '( make-obsolete
                              define-obsolete-function-alias))
           (not (stringp (nth 3 def))))
       (prin1 def (current-buffer) t)
-    ;; The salient point here is that we have to have the doc string
-    ;; that starts with a backslash and a newline, and there mustn't
-    ;; be any newlines before that.  So -- typically
-    ;; (defvar foo 'value "\
-    ;; Doc string" ...).
+    ;; We want to print, for instance, `defvar' values while escaping
+    ;; control characters (so that we don't end up with lines with
+    ;; trailing tab characters and the like), but we don't want to do
+    ;; this for doc strings, because then the doc strings would be on
+    ;; one single line, which would lead to more VC churn.  So --
+    ;; typically (defvar foo 'value "\ Doc string" ...).
     (insert "(")
     (dotimes (_ 3)
       (prin1 (pop def) (current-buffer)

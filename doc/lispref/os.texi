@@ -2067,7 +2067,12 @@ This returns @code{t} if the time value @var{t1} is less than the time value
 
 @defun time-equal-p t1 t2
 This returns @code{t} if the two time values @var{t1} and @var{t2} are
-equal.
+equal.  The result is @code{nil} if either argument is a NaN.
+For the purpose of comparison, a @code{nil} argument represents the
+current time with infinite resolution, so this function returns
+@code{nil} if one argument is @code{nil} and the other is not, and
+callers can therefore use @code{nil} to represent an unknown time
+value that does not equal any timestamp.
 @end defun
 
 @defun time-subtract t1 t2

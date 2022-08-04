@@ -902,7 +902,6 @@ Like original function but it skips read-only words."
   "x"   #'wdired-set-bit
   "-"   #'wdired-set-bit
   "S"   #'wdired-set-bit
-  "s"   #'wdired-set-bit
   "T"   #'wdired-set-bit
   "t"   #'wdired-set-bit
   "s"   #'wdired-set-bit

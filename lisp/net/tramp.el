@@ -62,7 +62,6 @@
 (require 'cl-lib)
 (declare-function file-notify-rm-watch "filenotify")
 (declare-function netrc-parse "netrc")
-(declare-function tramp-archive-file-name-handler "tramp-archive")
 (defvar auto-save-file-name-transforms)
 
 ;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU ELPA package.
@@ -97,6 +96,7 @@
 If it is set to nil, all remote file names are used literally."
   :type 'boolean)
 
+;;;###tramp-autoload
 (defcustom tramp-verbose 3
   "Verbosity level for Tramp messages.
 Any level x includes messages for all levels 1 .. x-1.  The levels are
@@ -1441,8 +1441,9 @@ calling HANDLER.")
 ;; work otherwise when unloading / reloading Tramp.  (Bug#50869)
 ;;;###tramp-autoload(require 'cl-lib)
 ;;;###tramp-autoload
-(cl-defstruct (tramp-file-name (:type list) :named)
-  method user domain host port localname hop)
+(progn
+  (cl-defstruct (tramp-file-name (:type list) :named)
+    method user domain host port localname hop))
 
 (put #'tramp-file-name-method 'tramp-suppress-trace t)
 (put #'tramp-file-name-user 'tramp-suppress-trace t)
@@ -1485,13 +1486,22 @@ If nil, return `tramp-default-port'."
 
 (put #'tramp-file-name-port-or-default 'tramp-suppress-trace t)
 
-(defun tramp-file-name-unify (vec)
+;;;###tramp-autoload
+(defun tramp-file-name-unify (vec &optional file)
   "Unify VEC by removing localname and hop from `tramp-file-name' structure.
+If FILE is a string, set it as localname.
 Objects returned by this function compare `equal' if they refer to the
 same connection.  Make a copy in order to avoid side effects."
   (when (tramp-file-name-p vec)
     (setq vec (copy-tramp-file-name vec))
-    (setf (tramp-file-name-localname vec) nil
+    (setf (tramp-file-name-localname vec)
+	  (and (stringp file)
+	       ;; FIXME: This is a sanity check.  When this error
+	       ;; doesn't happen for a while, it can be removed.
+	       (or (file-name-absolute-p file)
+		   (tramp-error
+		    vec 'file-error "File `%s' must be absolute" file))
+	       (directory-file-name (tramp-compat-file-name-unquote file)))
 	  (tramp-file-name-hop vec) nil))
   vec)
 
@@ -1525,6 +1535,7 @@ entry does not exist, return nil."
   "Return unquoted localname component of VEC."
   (tramp-compat-file-name-unquote (tramp-file-name-localname vec)))
 
+;;;###tramp-autoload
 (defun tramp-tramp-file-p (name)
   "Return t if NAME is a string with Tramp file name syntax."
   (and tramp-mode (stringp name)
@@ -1546,6 +1557,7 @@ entry does not exist, return nil."
 ;; However, it is more performant than `file-local-name', and might be
 ;; useful where performance matters, like in operations over a bulk
 ;; list of file names.
+;;;###tramp-autoload
 (defun tramp-file-local-name (name)
   "Return the local name component of NAME.
 This function removes from NAME the specification of the remote
@@ -1637,6 +1649,7 @@ This is HOST, if non-nil.  Otherwise, do a lookup in
 
 (put #'tramp-find-host 'tramp-suppress-trace t)
 
+;;;###tramp-autoload
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of NAME, a remote file name.
 The structure consists of method, user, domain, host, port,
@@ -1747,6 +1760,7 @@ See `tramp-dissect-file-name' for details."
 
 (put #'tramp-buffer-name 'tramp-suppress-trace t)
 
+;;;###tramp-autoload
 (defun tramp-make-tramp-file-name (&rest args)
   "Construct a Tramp file name from ARGS.
 
@@ -1856,6 +1870,7 @@ Unless DONT-CREATE, the buffer is created when it doesn't exist yet."
 		(tramp-make-tramp-file-name vec 'noloc))
 	  (current-buffer)))))
 
+;;;###tramp-autoload
 (defun tramp-get-connection-buffer (vec &optional dont-create)
   "Get the connection buffer to be used for VEC.
 Unless DONT-CREATE, the buffer is created when it doesn't exist yet.
@@ -1912,16 +1927,13 @@ version, the function does nothing."
   "Return `default-directory' of BUFFER."
   (buffer-local-value 'default-directory buffer))
 
-(put #'tramp-get-default-directory 'tramp-suppress-trace t)
-
+;;;###tramp-autoload
 (defsubst tramp-get-buffer-string (&optional buffer)
   "Return contents of BUFFER.
 If BUFFER is not a buffer or a buffer name, return the contents
 of `current-buffer'."
   (with-current-buffer (or buffer (current-buffer))
     (substring-no-properties (buffer-string))))
-
-(put #'tramp-get-buffer-string 'tramp-suppress-trace t)
 
 (defun tramp-debug-buffer-name (vec)
   "A name for the debug buffer for VEC."
@@ -2034,6 +2046,7 @@ They are completed by \"M-x TAB\" only in Tramp debug buffers."
 (defvar tramp-trace-functions nil
   "A list of non-Tramp functions to be traced with `tramp-verbose' > 10.")
 
+;;;###tramp-autoload
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
 Message is formatted with FMT-STRING as control string and the remaining
@@ -2107,10 +2120,12 @@ ARGUMENTS to actually emit the message (if applicable)."
 
 (put #'tramp-debug-message 'tramp-suppress-trace t)
 
+;;;###tramp-autoload
 (defvar tramp-inhibit-progress-reporter nil
   "Show Tramp progress reporter in the minibuffer.
 This variable is used to disable concurrent progress reporter messages.")
 
+;;;###tramp-autoload
 (defsubst tramp-message (vec-or-proc level fmt-string &rest arguments)
   "Emit a message depending on verbosity level.
 VEC-OR-PROC identifies the Tramp buffer to use.  It can be either a
@@ -2163,8 +2178,6 @@ applicable)."
 		 (concat (format "(%d) # " level) fmt-string)
 		 arguments))))))
 
-(put #'tramp-message 'tramp-suppress-trace t)
-
 (defsubst tramp-backtrace (&optional vec-or-proc force)
   "Dump a backtrace into the debug buffer.
 If VEC-OR-PROC is nil, the buffer *debug tramp* is used.  FORCE
@@ -2176,8 +2189,6 @@ This function is meant for debugging purposes."
 	  (tramp-message
 	   vec-or-proc 10 "\n%s" (with-output-to-string (backtrace)))
 	(with-output-to-temp-buffer "*debug tramp*" (backtrace))))))
-
-(put #'tramp-backtrace 'tramp-suppress-trace t)
 
 (defun tramp-error (vec-or-proc signal fmt-string &rest arguments)
   "Emit an error.
@@ -2246,8 +2257,6 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	(when (tramp-file-name-equal-p vec (car tramp-current-connection))
 	  (setcdr tramp-current-connection (current-time)))))))
 
-(put #'tramp-error-with-buffer 'tramp-suppress-trace t)
-
 ;; We must make it a defun, because it is used earlier already.
 (defun tramp-user-error (vec-or-proc fmt-string &rest arguments)
   "Signal a user error (or \"pilot error\")."
@@ -2284,8 +2293,6 @@ the resulting error message."
          (progn ,@body)
        (error (tramp-message ,vec-or-proc 3 ,format ,err) nil))))
 
-(put #'tramp-with-demoted-errors 'tramp-suppress-trace t)
-
 ;; This macro shall optimize the cases where an `file-exists-p' call
 ;; is invoked first.  Often, the file exists, so the remote command is
 ;; superfluous.
@@ -2301,8 +2308,6 @@ does not exist, otherwise propagate the error."
 	(if (not (file-exists-p ,filename))
 	    (tramp-error ,vec 'file-missing ,filename)
 	  (signal (car ,err) (cdr ,err)))))))
-
-(put #'tramp-barf-if-file-missing 'tramp-suppress-trace t)
 
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
@@ -2398,45 +2403,6 @@ without a visible progress reporter."
          ;; Stop progress reporter.
          (if tm (cancel-timer tm))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
-
-(defmacro with-tramp-file-property (vec file property &rest body)
-  "Check in Tramp cache for PROPERTY, otherwise execute BODY and set cache.
-FILE must be a local file name on a connection identified via VEC."
-  (declare (indent 3) (debug t))
-  `(if (file-name-absolute-p ,file)
-       (let ((value (tramp-get-file-property
-		     ,vec ,file ,property tramp-cache-undefined)))
-	 (when (eq value tramp-cache-undefined)
-	   ;; We cannot pass @body as parameter to
-	   ;; `tramp-set-file-property' because it mangles our debug
-	   ;; messages.
-	   (setq value (progn ,@body))
-	   (tramp-set-file-property ,vec ,file ,property value))
-	 value)
-     ,@body))
-
-(defmacro with-tramp-connection-property (key property &rest body)
-  "Check in Tramp for property PROPERTY, otherwise execute BODY and set."
-  (declare (indent 2) (debug t))
-  `(let ((value (tramp-get-connection-property
-		 ,key ,property tramp-cache-undefined)))
-     (when (eq value tramp-cache-undefined)
-       ;; We cannot pass ,@body as parameter to
-       ;; `tramp-set-connection-property' because it mangles our debug
-       ;; messages.
-       (setq value (progn ,@body))
-       (tramp-set-connection-property ,key ,property value))
-     value))
-
-(defmacro with-tramp-saved-connection-property (key property &rest body)
-  "Save PROPERTY, run BODY, reset PROPERTY."
-  (declare (indent 2) (debug t))
-  `(let ((value (tramp-get-connection-property
-		 ,key ,property tramp-cache-undefined)))
-     (unwind-protect (progn ,@body)
-       (if (eq value tramp-cache-undefined)
-	   (tramp-flush-connection-property ,key ,property)
-	 (tramp-set-connection-property ,key ,property value)))))
 
 (defun tramp-drop-volume-letter (name)
   "Cut off unnecessary drive letter from file NAME.
@@ -3424,8 +3390,6 @@ BODY is the backend specific code."
 	(tramp-dissect-file-name ,directory) 'file-missing ,directory))
      ,@body))
 
-(put #'tramp-skeleton-copy-directory 'tramp-suppress-trace t)
-
 (defmacro tramp-skeleton-delete-directory (directory recursive trash &rest body)
   "Skeleton for `tramp-*-handle-delete-directory'.
 BODY is the backend specific code."
@@ -3440,8 +3404,6 @@ BODY is the backend specific code."
 	  (move-file-to-trash ,directory))
       ,@body)
     (tramp-flush-directory-properties v localname)))
-
-(put #'tramp-skeleton-delete-directory 'tramp-suppress-trace t)
 
 (defmacro tramp-skeleton-directory-files
     (directory &optional full match nosort count &rest body)
@@ -3474,8 +3436,6 @@ BODY is the backend specific code."
 	 (tramp-dissect-file-name ,directory) 'file-missing ,directory)
       nil)))
 
-(put #'tramp-skeleton-directory-files 'tramp-suppress-trace t)
-
 (defmacro tramp-skeleton-directory-files-and-attributes
     (directory &optional full match nosort id-format count &rest body)
   "Skeleton for `tramp-*-handle-directory-files-and-attributes'.
@@ -3485,7 +3445,6 @@ BODY is the backend specific code."
     (with-parsed-tramp-file-name ,directory nil
       (tramp-barf-if-file-missing v ,directory
 	(when (file-directory-p ,directory)
-	  (setq ,directory (expand-file-name ,directory))
 	  (let ((temp
 		 (copy-tree
 		  (mapcar
@@ -3493,9 +3452,10 @@ BODY is the backend specific code."
 		     (cons
 		      (car x)
 		      (tramp-convert-file-attributes
-			  v (car x) ,id-format (cdr x))))
+			  v (expand-file-name (car x) localname)
+			  ,id-format (cdr x))))
 		   (with-tramp-file-property
-		       v localname ",directory-files-and-attributes"
+		       v localname "directory-files-and-attributes"
 		     ,@body))))
 		result item)
 
@@ -3524,10 +3484,8 @@ BODY is the backend specific code."
 	 (tramp-dissect-file-name ,directory) 'file-missing ,directory)
       nil)))
 
-(put #'tramp-skeleton-directory-files-and-attributes 'tramp-suppress-trace t)
-
 (defmacro tramp-skeleton-file-local-copy (filename &rest body)
-  "Skeleton for `tramp-*-handle-file-local-copy-files'.
+  "Skeleton for `tramp-*-handle-file-local-copy'.
 BODY is the backend specific code."
   (declare (indent 1) (debug t))
   `(with-parsed-tramp-file-name (file-truename ,filename) nil
@@ -3541,7 +3499,22 @@ BODY is the backend specific code."
 	;; Trigger the `file-missing' error.
 	(signal 'error nil)))))
 
-(put #'tramp-skeleton-file-local-copy 'tramp-suppress-trace t)
+(defmacro tramp-skeleton-set-file-modes-times-uid-gid
+    (filename &rest body)
+  "Skeleton for `tramp-*-set-file-{modes,times,uid-gid}'.
+BODY is the backend specific code."
+  (declare (indent 1) (debug t))
+  `(with-parsed-tramp-file-name ,filename nil
+     (when (not (file-exists-p ,filename))
+       (tramp-error v 'file-missing ,filename))
+     (with-tramp-saved-file-properties
+	 v localname
+	 ;; We cannot add "file-attributes", "file-executable-p",
+	 ;; "file-ownership-preserved-p", "file-readable-p",
+	 ;; "file-writable-p".
+	 '("file-directory-p" "file-exists-p" "file-symlinkp" "file-truename")
+       (tramp-flush-file-properties v localname))
+     ,@body))
 
 (defmacro tramp-skeleton-write-region
   (start end filename append visit lockname mustbenew &rest body)
@@ -3602,6 +3575,9 @@ BODY is the backend specific code."
 	   ;; We must also flush the cache of the directory, because
 	   ;; `file-attributes' reads the values from there.
 	   (tramp-flush-file-properties v localname)
+	   ;; Set the "file-exists-p" file property, because it is
+	   ;; likely that it is needed shortly after `write-region'.
+	   (tramp-set-file-property v localname "file-exists-p" t)
 
 	   ;; We must protect `last-coding-system-used', now we have
 	   ;; set it to its correct value.
@@ -3644,8 +3620,6 @@ BODY is the backend specific code."
 		      (or (eq ,visit t) (string-or-null-p ,visit)))
 	     (tramp-message v 0 "Wrote %s" filename))
 	   (run-hooks 'tramp-handle-write-region-hook))))))
-
-(put #'tramp-skeleton-write-region 'tramp-suppress-trace t)
 
 ;;; Common file name handler functions for different backends:
 
@@ -3843,7 +3817,9 @@ Let-bind it when necessary.")
   ;; We don't want to run it when `non-essential' is t, or there is
   ;; no connection process yet.
   (when (tramp-connectable-p filename)
-    (not (null (file-attributes filename)))))
+    (with-parsed-tramp-file-name filename nil
+      (with-tramp-file-property v localname "file-exists-p"
+	(not (null (file-attributes filename)))))))
 
 (defun tramp-handle-file-in-directory-p (filename directory)
   "Like `file-in-directory-p' for Tramp files."
@@ -5620,7 +5596,7 @@ the remote host use line-endings as defined in the variable
       (when vec
 	(tramp-message vec 5 "Sentinel called: `%S' `%s'" proc event)
         (tramp-flush-connection-properties proc)
-        (tramp-flush-directory-properties vec ""))
+        (tramp-flush-directory-properties vec "/"))
       (when (buffer-live-p buf)
 	(with-current-buffer buf
           (when (and prompt (tramp-search-regexp (regexp-quote prompt)))
@@ -6049,6 +6025,7 @@ Return the local name of the temporary file."
   (let (create-lockfiles)
     (cl-letf (((symbol-function 'tramp-remote-acl-p) #'ignore)
 	      ((symbol-function 'tramp-remote-selinux-p) #'ignore)
+	      ((symbol-function 'tramp-smb-remote-acl-p) #'ignore)
 	      ((symbol-function 'tramp-sudoedit-remote-acl-p) #'ignore)
 	      ((symbol-function 'tramp-sudoedit-remote-selinux-p) #'ignore))
       (tramp-file-local-name

@@ -3,6 +3,7 @@
 ;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, files
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +28,7 @@
 
 (defvar-keymap url-dired-minor-mode-map
   :doc "Keymap used when browsing directories."
-  "C-m"       #'url-dired-find-file
+  "RET"       #'url-dired-find-file
   "<mouse-2>" #'url-dired-find-file-mouse)
 
 (defun url-dired-find-file ()

@@ -991,6 +991,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
     pgtk_set_override_redirect,
     gui_set_no_special_glyphs,
     pgtk_set_alpha_background,
+    NULL,
   };
 
 

@@ -217,25 +217,6 @@ then use this hook to rsh to the remote machine and start a proxy NNTP
 server there that you can connect to.  See also
 `nntp-open-connection-function'")
 
-(defcustom nntp-authinfo-file "~/.authinfo"
-  ".netrc-like file that holds nntp authinfo passwords."
-  :type
-  '(choice file
-	   (repeat :tag "Entries"
-		   :menu-tag "Inline"
-		   (list :format "%v"
-			 :value ("" ("login" . "") ("password" . ""))
-			 (string :tag "Host")
-			 (checklist :inline t
-				    (cons :format "%v"
-					  (const :format "" "login")
-					  (string :format "Login: %v"))
-				    (cons :format "%v"
-					  (const :format "" "password")
-					  (string :format "Password: %v")))))))
-
-(make-obsolete-variable 'nntp-authinfo-file 'netrc-file "24.1")
-
 
 
 (defvoo nntp-connection-timeout nil
@@ -1166,7 +1147,7 @@ and a password.
 If SEND-IF-FORCE, only send authinfo to the server if the
 .authinfo file has the FORCE token."
   (require 'netrc)
-  (let* ((list (netrc-parse nntp-authinfo-file))
+  (let* ((list (netrc-parse))
 	 (alist (netrc-machine list nntp-address "nntp"))
          (auth-info
           (nth 0 (auth-source-search

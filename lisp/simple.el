@@ -3543,10 +3543,7 @@ Return what remains of the list."
                  (setq visited-file-time
                       (with-current-buffer (buffer-base-buffer)
                         (visited-file-modtime))))
-             (when (or (equal time visited-file-time)
-                       (and (consp time)
-                            (equal (list (car time) (cdr time))
-                                   visited-file-time)))
+	     (when (time-equal-p time visited-file-time)
                (unlock-buffer)
                (set-buffer-modified-p nil))))
           ;; Element (nil PROP VAL BEG . END) is property change.

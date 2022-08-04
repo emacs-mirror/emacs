@@ -26,7 +26,6 @@
 (require 'mailcap)
 (require 'url-vars)
 (require 'url-parse)
-(require 'url-dired)
 (declare-function mm-disable-multibyte "mm-util" ())
 
 (defvar url-allow-non-local-files nil
@@ -174,7 +173,7 @@ it up to them."
 
     (if (file-directory-p filename)
 	;; A directory is done the same whether we are local or remote
-	(url-find-file-dired filename)
+	(find-file filename)
       (with-current-buffer
 	  (setq buffer (generate-new-buffer " *url-file*"))
         (require 'mm-util)

@@ -471,9 +471,7 @@ Return the number of characters removed."
           t ;; Instruct caller to signal an error.  Bug#50511
         ;; Find strongest supported auth.
         (dolist (this-auth auths)
-          (setq this-auth (url-eat-trailing-space
-                           (url-strip-leading-spaces
-                            this-auth)))
+          (setq this-auth (string-trim this-auth))
           (let* ((this-type
                   (downcase (if (string-match "[ \t]" this-auth)
                                 (substring this-auth 0 (match-beginning 0))

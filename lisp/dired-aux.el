@@ -3058,7 +3058,7 @@ Optional third arg LIMIT (>= 1) is a limit to the length of the
 resulting list.
 Thus, if SEP is a regexp that only matches itself,
 
-   (mapconcat #'identity (dired-split SEP STRING) SEP)
+   (mapconcat #\\='identity (dired-split SEP STRING) SEP)
 
 is always equal to STRING."
   (declare (obsolete split-string "29.1"))

@@ -860,7 +860,8 @@ deleted.  Point is left where the deleted region was."
 		    (nnheader-find-file-noselect file t)))))
     (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
     (buffer-disable-undo)
-    (if (equal (cadr (assoc group nnfolder-scantime-alist))
+    (if (time-equal-p
+	       (cadr (assoc group nnfolder-scantime-alist))
 	       (file-attribute-modification-time (file-attributes file)))
 	;; This looks up-to-date, so we don't do any scanning.
 	(if (file-exists-p file)

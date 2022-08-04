@@ -242,6 +242,11 @@ it finishes, type \\[kill-find]."
     (setq default-directory dir)
     ;; Start the find process.
     (shell-command (concat command "&") (current-buffer))
+    (let ((proc (get-buffer-process (current-buffer))))
+      ;; Initialize the process marker; it is used by the filter.
+      (move-marker (process-mark proc) (point) (current-buffer))
+      (set-process-filter proc #'find-dired-filter)
+      (set-process-sentinel proc #'find-dired-sentinel))
     (dired-mode dir (cdr find-ls-option))
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map (current-local-map))
@@ -273,11 +278,6 @@ it finishes, type \\[kill-find]."
       (insert "  " command "\n")
       (dired-insert-set-properties point (point)))
     (setq buffer-read-only t)
-    (let ((proc (get-buffer-process (current-buffer))))
-      (set-process-filter proc #'find-dired-filter)
-      (set-process-sentinel proc #'find-dired-sentinel)
-      ;; Initialize the process marker; it is used by the filter.
-      (move-marker (process-mark proc) (point) (current-buffer)))
     (setq mode-line-process '(":%s"))))
 
 (defun find-dired--escaped-ls-option ()
@@ -419,10 +419,10 @@ specifies what to use in place of \"-ls\" as the final argument."
   "Sort entries in *Find* buffer by file name lexicographically."
   (sort-subr nil 'forward-line 'end-of-line
              (lambda ()
-               (buffer-substring-no-properties
-                (next-single-property-change
-                 (point) 'dired-filename)
-                (line-end-position)))))
+               (when-let ((start
+                           (next-single-property-change
+                            (point) 'dired-filename)))
+               (buffer-substring-no-properties start (line-end-position))))))
 
 
 (provide 'find-dired)

@@ -255,14 +255,14 @@ of the following information may or may not be available:
 For instance, to play an alarm when the battery power dips below
 10%, you could use a function like the following:
 
-(defvar my-prev-battery nil)
-(defun my-battery-alarm (data)
-  (when (and my-prev-battery
-             (equal (alist-get ?L data) \"off-line\")
-             (< (string-to-number (alist-get ?p data)) 10)
-             (>= (string-to-number (alist-get ?p my-prev-battery)) 10))
-    (play-sound-file \"~/alarm.wav\" 5))
-  (setq my-prev-battery data))"
+  (defvar my-prev-battery nil)
+  (defun my-battery-alarm (data)
+    (when (and my-prev-battery
+               (equal (alist-get ?L data) \"off-line\")
+               (< (string-to-number (alist-get ?p data)) 10)
+               (>= (string-to-number (alist-get ?p my-prev-battery)) 10))
+      (play-sound-file \"~/alarm.wav\" 5))
+    (setq my-prev-battery data))"
   :version "29.1"
   :type '(repeat function))
 

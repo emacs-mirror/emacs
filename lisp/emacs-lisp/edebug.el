@@ -864,7 +864,7 @@ marker.  The needed data will then come from property
 
 (defun edebug-read-special (stream)
   "Read from STREAM a Lisp object beginning with #.
-Turn #'thing into (function thing) and handle the read syntax for
+Turn #\\='thing into (function thing) and handle the read syntax for
 circular objects.  Let `read' read everything else."
   (catch 'return
     (forward-char 1)

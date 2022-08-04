@@ -202,7 +202,7 @@ def xdebug_print(debugger, command, result, internal_dict):
 ########################################################################
 
 def type_summary_Lisp_Object(obj, internal_dict):
-    return "-> " + Lisp_Object(obj).summary()
+    return Lisp_Object(obj).summary()
 
 
 ########################################################################

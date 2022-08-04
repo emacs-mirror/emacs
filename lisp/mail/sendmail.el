@@ -49,7 +49,9 @@
        ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
        ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
        (t "sendmail")))
-  "Program used to send messages."
+  "Program used to send messages.
+If the program returns a non-zero error code, or outputs any
+text, sending is considered \"failed\" by Emacs."
   :version "24.1"		; add executable-find, remove fakemail
   :type 'file)
 
@@ -537,7 +539,7 @@ This also saves the value of `send-mail-function' via Customize."
   (when mail-personal-alias-file
     (let ((modtime (file-attribute-modification-time
 		    (file-attributes mail-personal-alias-file))))
-      (or (equal mail-alias-modtime modtime)
+      (or (time-equal-p mail-alias-modtime modtime)
 	  (setq mail-alias-modtime modtime
 		mail-aliases t)))))
 

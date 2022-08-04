@@ -139,7 +139,7 @@ When called interactively, a Tramp connection has to be selected."
       (when (bufferp buf) (kill-buffer buf)))
 
     ;; Flush file cache.
-    (tramp-flush-directory-properties vec "")
+    (tramp-flush-directory-properties vec "/")
 
     ;; Flush connection cache.
     (tramp-flush-connection-properties vec)

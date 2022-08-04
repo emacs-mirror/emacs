@@ -1825,7 +1825,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t nil)
-(register-definition-prefixes "battery" '("battery-" "my-"))
+(register-definition-prefixes "battery" '("battery-"))
 
 
 ;;; Generated autoloads from emacs-lisp/benchmark.el
@@ -2865,7 +2865,7 @@ and corresponding effects.
 
 ;;; Generated autoloads from cedet/semantic/bovine/c.el
 
-(register-definition-prefixes "semantic/bovine/c" '("c-mode" "semantic"))
+(register-definition-prefixes "semantic/bovine/c" '("semantic"))
 
 
 ;;; Generated autoloads from calendar/cal-bahai.el
@@ -4566,7 +4566,7 @@ it is disabled.
 
 ;;; Generated autoloads from emacs-lisp/cl-macs.el
 
-(register-definition-prefixes "cl-macs" '("cl-" "foo" "function-form"))
+(register-definition-prefixes "cl-macs" '("cl-"))
 
 
 ;;; Generated autoloads from emacs-lisp/cl-print.el
@@ -5558,7 +5558,7 @@ Run `perldoc' on WORD.
 (fn WORD)" t nil)
 (autoload 'cperl-perldoc-at-point "cperl-mode" "\
 Run a `perldoc' on the word around point." t nil)
-(register-definition-prefixes "cperl-mode" '("cperl-" "pod2man-program"))
+(register-definition-prefixes "cperl-mode" '("cperl-"))
 
 
 ;;; Generated autoloads from progmodes/cpp.el
@@ -6289,12 +6289,12 @@ Create a new data-debug buffer with NAME.
 
 ;;; Generated autoloads from cedet/semantic/db-ebrowse.el
 
-(register-definition-prefixes "semantic/db-ebrowse" '("c++-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-ebrowse" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-el.el
 
-(register-definition-prefixes "semantic/db-el" '("emacs-lisp-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-el" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-file.el
@@ -6314,7 +6314,7 @@ Create a new data-debug buffer with NAME.
 
 ;;; Generated autoloads from cedet/semantic/db-javascript.el
 
-(register-definition-prefixes "semantic/db-javascript" '("javascript-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-javascript" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-mode.el
@@ -7305,7 +7305,7 @@ If given a \\[universal-argument] prefix, also prompt for the QUERY-TYPE paramet
 If given a \\[universal-argument] \\[universal-argument] prefix, also prompt for the SERVER parameter.
 
 (fn DOMAIN &optional QUERY-TYPE QUERY-CLASS QUERY-OPTION DIG-OPTION SERVER)" t nil)
-(register-definition-prefixes "dig" '("dig-" "query-dig"))
+(register-definition-prefixes "dig" '("dig-"))
 
 
 ;;; Generated autoloads from cedet/ede/dired.el
@@ -7917,7 +7917,7 @@ it is disabled.
 
 (autoload 'doctor "doctor" "\
 Switch to *doctor* buffer and start giving psychotherapy." t nil)
-(register-definition-prefixes "doctor" '("doc" "make-doctor-variables"))
+(register-definition-prefixes "doctor" '("doc"))
 
 
 ;;; Generated autoloads from cedet/srecode/document.el
@@ -8632,7 +8632,7 @@ already is one.)" t nil)
 Toggle edebugging of all definitions." t nil)
 (autoload 'edebug-all-forms "edebug" "\
 Toggle edebugging of all forms." t nil)
-(register-definition-prefixes "edebug" '("arglist" "backquote-form" "def-declarations" "edebug" "function-form" "interactive" "lambda-" "name" "nested-backquote-form"))
+(register-definition-prefixes "edebug" '("edebug"))
 
 
 ;;; Generated autoloads from vc/ediff.el
@@ -9164,7 +9164,7 @@ Describe CTR if it is a class constructor.
 
 ;;; Generated autoloads from cedet/semantic/bovine/el.el
 
-(register-definition-prefixes "semantic/bovine/el" '("emacs-lisp-mode" "semantic-"))
+(register-definition-prefixes "semantic/bovine/el" '("semantic-"))
 
 
 ;;; Generated autoloads from emacs-lisp/eldoc.el
@@ -9417,7 +9417,7 @@ displayed." t nil)
 
 ;;; Generated autoloads from eshell/em-unix.el
 
-(register-definition-prefixes "em-unix" '("eshell" "nil-blank-string"))
+(register-definition-prefixes "em-unix" '("eshell"))
 
 
 ;;; Generated autoloads from eshell/em-xtra.el
@@ -11073,7 +11073,7 @@ Display the bookmarks." t nil)
 Default bookmark handler for EWW buffers.
 
 (fn BOOKMARK)" nil nil)
-(register-definition-prefixes "eww" '("erc--download-directory" "eww-"))
+(register-definition-prefixes "eww" '("eww-"))
 
 
 ;;; Generated autoloads from progmodes/executable.el
@@ -14642,16 +14642,13 @@ Towers of Hanoi diversion.  Use NRINGS rings.
 
 (fn NRINGS)" t nil)
 (autoload 'hanoi-unix "hanoi" "\
-Towers of Hanoi, UNIX doomsday version.
-Displays 32-ring towers that have been progressing at one move per
-second since 1970-01-01 00:00:00 GMT.
+Towers of Hanoi, 32-bit UNIX doomsday version.
+Display 32-ring towers that have been progressing at one move per
+second since 1970-01-01 00:00:00 UTC.
 
 Repent before ring 31 moves." t nil)
 (autoload 'hanoi-unix-64 "hanoi" "\
-Like `hanoi-unix', but pretend to have a 64-bit clock.
-This is, necessarily (as of Emacs 20.3), a crock.  When the
-`current-time' interface is made s2G-compliant, hanoi.el will need
-to be updated." t nil)
+Like `hanoi-unix', but with a 64-bit clock." t nil)
 (register-definition-prefixes "hanoi" '("hanoi-"))
 
 
@@ -19328,7 +19325,7 @@ Mairix will be called asynchronously unless
 
 ;;; Generated autoloads from cedet/semantic/bovine/make.el
 
-(register-definition-prefixes "semantic/bovine/make" '("makefile-mode" "semantic-"))
+(register-definition-prefixes "semantic/bovine/make" '("semantic-"))
 
 
 ;;; Generated autoloads from cedet/ede/make.el
@@ -23588,11 +23585,6 @@ they are not by default assigned to keys." t nil)
 (register-definition-prefixes "picture" '("picture-"))
 
 
-;;; Generated autoloads from language/pinyin.el
-
-(register-definition-prefixes "pinyin" '("pinyin-character-map"))
-
-
 ;;; Generated autoloads from textmodes/pixel-fill.el
 
 (register-definition-prefixes "pixel-fill" '("pixel-fill-"))
@@ -27833,7 +27825,7 @@ If SAME-WINDOW, don't pop to a new window.
 
 (fn GROUP &optional FUNCTION SAME-WINDOW)" t nil)
 (defalias 'shortdoc #'shortdoc-display-group)
-(register-definition-prefixes "shortdoc" '("alist" "buffer" "file" "hash-table" "keymaps" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "text-properties" "vector"))
+(register-definition-prefixes "shortdoc" '("shortdoc-"))
 
 
 ;;; Generated autoloads from net/shr.el
@@ -31260,7 +31252,7 @@ Gregorian date Sunday, December 31, 1 BC.
 (fn TIME)" nil nil)
 (autoload 'safe-date-to-time "time-date" "\
 Parse a string DATE that represents a date-time and return a time value.
-If DATE is malformed, return a time value of zeros.
+If DATE is malformed, return a time value of zero.
 
 (fn DATE)" nil nil)
 (autoload 'format-seconds "time-date" "\
@@ -31773,12 +31765,7 @@ List of suffixes which indicate a compressed file.
 It must be supported by libarchive(3).")
 (defmacro tramp-archive-autoload-file-name-regexp nil "\
 Regular expression matching archive file names." '(concat "\\`" "\\(" ".+" "\\." (regexp-opt tramp-archive-suffixes) "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*" "\\)" "\\(" "/" ".*" "\\)" "\\'"))
-(autoload 'tramp-archive-file-name-handler "tramp-archive" "\
-Invoke the file archive related OPERATION.
-First arg specifies the OPERATION, second arg ARGS is a list of
-arguments to pass to the OPERATION.
-
-(fn OPERATION &rest ARGS)" nil nil)
+(autoload 'tramp-archive-file-name-handler "tramp-archine")
 (defun tramp-archive-autoload-file-name-handler (operation &rest args) "\
 Load Tramp archive file name handler, and perform OPERATION." (defvar tramp-archive-autoload) (let ((default-directory temporary-file-directory) (tramp-archive-autoload tramp-archive-enabled)) (apply #'tramp-autoload-file-name-handler operation args)))
 (defun tramp-register-archive-file-name-handler nil "\
@@ -31790,7 +31777,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/tramp-cache.el
 
-(register-definition-prefixes "tramp-cache" '("tramp-"))
+(register-definition-prefixes "tramp-cache" '("tramp-" "with-tramp-"))
 
 
 ;;; Generated autoloads from net/tramp-cmds.el
@@ -31916,9 +31903,11 @@ SUFFIX is a suffix command or a group specification (of
 LOC is a command, a key vector, a key description (a string
   as returned by `key-description'), or a coordination list
   (whose last element may also be a command or key).
+Remove a conflicting binding unless optional KEEP-OTHER is
+  non-nil.
 See info node `(transient)Modifying Existing Transients'.
 
-(fn PREFIX LOC SUFFIX)" nil nil)
+(fn PREFIX LOC SUFFIX &optional KEEP-OTHER)" nil nil)
 (function-put 'transient-insert-suffix 'lisp-indent-function 'defun)
 (autoload 'transient-append-suffix "transient" "\
 Insert a SUFFIX into PREFIX after LOC.
@@ -31928,9 +31917,11 @@ SUFFIX is a suffix command or a group specification (of
 LOC is a command, a key vector, a key description (a string
   as returned by `key-description'), or a coordination list
   (whose last element may also be a command or key).
+Remove a conflicting binding unless optional KEEP-OTHER is
+  non-nil.
 See info node `(transient)Modifying Existing Transients'.
 
-(fn PREFIX LOC SUFFIX)" nil nil)
+(fn PREFIX LOC SUFFIX &optional KEEP-OTHER)" nil nil)
 (function-put 'transient-append-suffix 'lisp-indent-function 'defun)
 (autoload 'transient-replace-suffix "transient" "\
 Replace the suffix at LOC in PREFIX with SUFFIX.
@@ -31954,7 +31945,7 @@ See info node `(transient)Modifying Existing Transients'.
 
 (fn PREFIX LOC)" nil nil)
 (function-put 'transient-remove-suffix 'lisp-indent-function 'defun)
-(register-definition-prefixes "transient" '("magit--fit-window-to-buffer" "transient-"))
+(register-definition-prefixes "transient" '("magit--fit-window-to-buffer" "transient"))
 
 
 ;;; Generated autoloads from tree-widget.el
@@ -32318,11 +32309,6 @@ how long to wait for a response before giving up.
 (register-definition-prefixes "url" '("url-"))
 
 
-;;; Generated autoloads from url/url-about.el
-
-(register-definition-prefixes "url-about" '("url-"))
-
-
 ;;; Generated autoloads from url/url-auth.el
 
 (autoload 'url-get-authentication "url-auth" "\
@@ -32422,11 +32408,6 @@ added to this list, so most requests can just pass in nil.
 
 (fn URL)" nil nil)
 (register-definition-prefixes "url-dav" '("url-dav-"))
-
-
-;;; Generated autoloads from url/url-dired.el
-
-(register-definition-prefixes "url-dired" '("url-"))
 
 
 ;;; Generated autoloads from url/url-domsuf.el
@@ -32781,14 +32762,8 @@ Will not do anything if `url-show-status' is nil.
 Return a date string that most HTTP servers can understand.
 
 (fn &optional SPECIFIED-TIME)" nil nil)
-(autoload 'url-eat-trailing-space "url-util" "\
-Remove spaces/tabs at the end of a string.
-
-(fn X)" nil nil)
-(autoload 'url-strip-leading-spaces "url-util" "\
-Remove spaces at the front of a string.
-
-(fn X)" nil nil)
+(define-obsolete-function-alias 'url-eat-trailing-space #'string-trim-right "29.1")
+(define-obsolete-function-alias 'url-strip-leading-spaces #'string-trim-left "29.1")
 (autoload 'url-display-percentage "url-util" "\
 
 
@@ -35880,8 +35855,8 @@ Zone out, completely." t nil)
 (provide 'loaddefs)
 
 ;; Local Variables:
-;; version-control: never
 ;; no-byte-compile: t
+;; version-control: never
 ;; no-update-autoloads: t
 ;; coding: utf-8-emacs-unix
 ;; End:

@@ -372,8 +372,8 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 (cl--defalias 'cl-second 'cadr)
 (cl--defalias 'cl-rest 'cdr)
 
-(cl--defalias 'cl-third 'cl-caddr "Return the third element of the list X.")
-(cl--defalias 'cl-fourth 'cl-cadddr "Return the fourth element of the list X.")
+(cl--defalias 'cl-third #'caddr "Return the third element of the list X.")
+(cl--defalias 'cl-fourth #'cadddr "Return the fourth element of the list X.")
 
 (defsubst cl-fifth (x)
   "Return the fifth element of the list X."

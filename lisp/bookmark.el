@@ -1172,7 +1172,7 @@ it to the name of the bookmark currently being set, advancing
 (defun bookmark--watch-file-already-queried-p (new-mtime)
   ;; Don't ask repeatedly if user already said "no" to reloading a
   ;; file with this mtime:
-  (prog1 (equal new-mtime bookmark--watch-already-asked-mtime)
+  (prog1 (time-equal-p new-mtime bookmark--watch-already-asked-mtime)
     (setq bookmark--watch-already-asked-mtime new-mtime)))
 
 (defun bookmark-maybe-load-default-file ()
@@ -1185,7 +1185,7 @@ it to the name of the bookmark currently being set, advancing
               (let ((new-mtime (nth 5 (file-attributes
                                        (car bookmark-bookmarks-timestamp))))
                     (old-mtime (cdr bookmark-bookmarks-timestamp)))
-                (and (not (equal new-mtime old-mtime))
+		(and (not (time-equal-p new-mtime old-mtime))
                      (not (bookmark--watch-file-already-queried-p new-mtime))
                      (or (eq 'silent bookmark-watch-bookmark-file)
                          (yes-or-no-p

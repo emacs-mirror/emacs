@@ -93,6 +93,7 @@ displaying footnotes."
 (defcustom footnote-use-message-mode t ; Nowhere used.
   "If non-nil, assume Footnoting will be done in `message-mode'."
   :type 'boolean)
+(make-obsolete-variable 'footnote-use-message-mode "it does nothing." "29.1")
 
 (defcustom footnote-body-tag-spacing 2
   "Number of spaces separating a footnote body tag and its text.
@@ -839,22 +840,18 @@ being set it is automatically widened."
       (when (looking-at (footnote--current-regexp))
         (goto-char (match-end 0))))))
 
-(defvar footnote-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" #'footnote-add-footnote)
-    (define-key map "b" #'footnote-back-to-message)
-    (define-key map "c" #'footnote-cycle-style)
-    (define-key map "d" #'footnote-delete-footnote)
-    (define-key map "g" #'footnote-goto-footnote)
-    (define-key map "r" #'footnote-renumber-footnotes)
-    (define-key map "s" #'footnote-set-style)
-    map))
+(defvar-keymap footnote-mode-map
+  "a" #'footnote-add-footnote
+  "b" #'footnote-back-to-message
+  "c" #'footnote-cycle-style
+  "d" #'footnote-delete-footnote
+  "g" #'footnote-goto-footnote
+  "r" #'footnote-renumber-footnotes
+  "s" #'footnote-set-style)
 
-(defvar footnote-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map footnote-prefix footnote-mode-map)
-    map)
-  "Keymap used for binding footnote minor mode.")
+(defvar-keymap footnote-minor-mode-map
+  :doc "Keymap used for binding footnote minor mode."
+  (key-description footnote-prefix) footnote-mode-map)
 
 (defmacro footnote--local-advice (mode variable function)
   "Add advice to a variable holding buffer-local functions.
@@ -888,7 +885,6 @@ play around with the following keys:
   (footnote--local-advice footnote-mode fill-paragraph-function
                           footnote--fill-paragraph)
   (when footnote-mode
-    ;; (footnote-setup-keybindings)
     (make-local-variable 'footnote-style)
     (make-local-variable 'footnote-body-tag-spacing)
     (make-local-variable 'footnote-spaced-footnotes)

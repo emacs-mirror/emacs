@@ -4094,11 +4094,11 @@ Mail anyway? (y or n) ")
 
 ;;; Debug
 
-(ediff-defvar-local ediff-command-begin-time '(0 0 0))
+(ediff-defvar-local ediff-command-begin-time 0)
 
 ;; calculate time used by command
 (defun ediff-calc-command-time ()
-  (or (equal ediff-command-begin-time '(0 0 0))
+  (or (equal ediff-command-begin-time 0)
       (message "Elapsed time: %g second(s)"
 	       (float-time (time-since ediff-command-begin-time)))))
 
@@ -4112,10 +4112,10 @@ Mail anyway? (y or n) ")
 
   (let ((pre-hook 'pre-command-hook)
 	(post-hook 'post-command-hook))
-    (if (not (equal ediff-command-begin-time '(0 0 0)))
+    (if (not (equal ediff-command-begin-time 0))
 	(progn (remove-hook pre-hook 'ediff-save-time)
 	       (remove-hook post-hook 'ediff-calc-command-time)
-	       (setq ediff-command-begin-time '(0 0 0))
+	       (setq ediff-command-begin-time 0)
 	       (message "Ediff profiling disabled"))
       (add-hook pre-hook 'ediff-save-time t 'local)
       (add-hook post-hook 'ediff-calc-command-time nil 'local)

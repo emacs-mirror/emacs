@@ -539,7 +539,7 @@ as unread by Gnus.")
     (let ((arts articles)
 	  art)
       (while (setq art (pop arts))
-	(when (not (equal
+	(when (not (time-equal-p
 		    (file-attribute-modification-time
 		     (file-attributes (concat dir (int-to-string (car art)))))
 		    (cdr art)))
@@ -547,14 +547,17 @@ as unread by Gnus.")
 	  (push (car art) new))))
     ;; Go through all the new articles and add them, and their
     ;; time-stamps, to the list.
+    ;; Use list format for timestamps, so Emacs <27 can read .nnmh-articles.
     (setq articles
 	  (nconc articles
 		 (mapcar
 		  (lambda (art)
 		    (cons art
-			  (file-attribute-modification-time
-			   (file-attributes
-			    (concat dir (int-to-string art))))))
+			  (when-let ((modtime
+				      (file-attribute-modification-time
+				       (file-attributes
+					(concat dir (int-to-string art))))))
+			    (time-convert modtime 'list))))
 		  new)))
     ;; Make Gnus mark all new articles as unread.
     (when new

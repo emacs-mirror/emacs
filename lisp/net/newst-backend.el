@@ -1552,12 +1552,8 @@ argument, which is one of the items in ITEMLIST."
 
 (defun newsticker--remove-whitespace (string)
   "Remove leading and trailing whitespace from STRING."
-  ;; we must have ...+ but not ...* in the regexps otherwise xemacs loops
-  ;; endlessly...
-  (when (and string (stringp string))
-    (replace-regexp-in-string
-     "[ \t\r\n]+$" ""
-     (replace-regexp-in-string "^[ \t\r\n]+" "" string))))
+  (when (stringp string)
+    (string-trim string)))
 
 (defun newsticker--do-forget-preformatted (item)
   "Forget pre-formatted data for ITEM.

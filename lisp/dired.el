@@ -1140,7 +1140,8 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
 	     (modtime (visited-file-modtime)))
 	 (or (eq modtime 0)
 	     (not (eq (file-attribute-type attributes) t))
-	     (equal (file-attribute-modification-time attributes) modtime)))))
+	     (time-equal-p (file-attribute-modification-time attributes)
+			   modtime)))))
 
 (defvar auto-revert-remote-files)
 

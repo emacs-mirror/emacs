@@ -966,7 +966,7 @@ REPO must be the directory name of an hg repository."
              (attr (file-attributes (nth 0 fs)))
              (current-mtime (file-attribute-modification-time attr))
              (current-size (file-attribute-size attr)))
-        (unless (and (equal saved-mtime current-mtime)
+	(unless (and (time-equal-p saved-mtime current-mtime)
                      (equal saved-size current-size))
           (setf valid nil))))
     valid))
@@ -1037,7 +1037,7 @@ Avoids the need to repeatedly scan dirstate on repeated calls to
          )
     (if (and cache
              (equal dirstate (pop cache))
-             (equal mtime (pop cache))
+	     (time-equal-p mtime (pop cache))
              (equal size (pop cache))
              (equal ascii-fname (pop cache)))
         (pop cache)

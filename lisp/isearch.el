@@ -2838,7 +2838,9 @@ The command accepts Unicode names like \"smiling face\" or
 			    isearch-barrier
 			    (1+ isearch-other-end)))))
       (isearch-search)
-      ))
+      (when (and (memq isearch-wrap-pause '(no no-ding))
+                 (not isearch-success))
+        (isearch-repeat (if isearch-forward 'forward 'backward)))))
   (isearch-push-state)
   (if isearch-op-fun (funcall isearch-op-fun))
   (isearch-update))

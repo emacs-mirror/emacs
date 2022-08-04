@@ -964,9 +964,10 @@ read_and_apply_settings (Display_Info *dpyinfo, bool send_event_p)
 #endif
 
 #ifndef HAVE_PGTK
-/* Check if EVENT for the display in DPYINFO is XSettings related.  */
+/* Check if EVENT for the display in DPYINFO is XSettings related.
+   Return true if it is, after performing associated side effects.  */
 
-void
+bool
 xft_settings_event (Display_Info *dpyinfo, const XEvent *event)
 {
   bool check_window_p = false, apply_settings_p = false;
@@ -1004,6 +1005,8 @@ xft_settings_event (Display_Info *dpyinfo, const XEvent *event)
 
   if (apply_settings_p)
     read_and_apply_settings (dpyinfo, true);
+
+  return check_window_p || apply_settings_p;
 }
 #endif
 

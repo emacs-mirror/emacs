@@ -228,8 +228,9 @@ customizing the @code{isearch-wrap-pause} user option.  If it is
 @code{t} (the default), signal an error.  (Repeating the search will
 wrap around.)  If @code{no}, issue a @code{ding} and wrap immediately
 after reaching the last match.  If @code{no-ding}, wrap immediately,
-but don't @code{ding}.  Finally, if @code{nil}, never wrap, but just
-stop at the last match.
+but don't @code{ding}.  With the values @code{no} and @code{no-ding}
+the search will try to wrap around also on typing a character.
+Finally, if @code{nil}, never wrap, but just stop at the last match.
 
 @cindex search ring
 @findex isearch-ring-advance

@@ -240,7 +240,7 @@ It must be supported by libarchive(3).")
     (file-directory-p . tramp-handle-file-directory-p)
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-archive-handle-file-executable-p)
-    (file-exists-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-archive-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-archive-handle-file-local-copy)
     (file-locked-p . ignore)
@@ -322,7 +322,11 @@ arguments to pass to the OPERATION."
 	 (inhibit-file-name-operation operation))
     (apply operation args))))
 
-;;;###autoload
+;; Starting with Emacs 29, `tramp-archive-file-name-handler' is
+;; autoloaded.  But it must still be in tramp-loaddefs.el for older
+;; Emacsen.
+;;;###autoload(autoload 'tramp-archive-file-name-handler "tramp-archine")
+;;;###tramp-autoload
 (defun tramp-archive-file-name-handler (operation &rest args)
   "Invoke the file archive related OPERATION.
 First arg specifies the OPERATION, second arg ARGS is a list of
@@ -644,6 +648,10 @@ offered."
 (defun tramp-archive-handle-file-executable-p (filename)
   "Like `file-executable-p' for file archives."
   (file-executable-p (tramp-archive-gvfs-file-name filename)))
+
+(defun tramp-archive-handle-file-exists-p (filename)
+  "Like `file-exists-p' for file archives."
+  (file-exists-p (tramp-archive-gvfs-file-name filename)))
 
 (defun tramp-archive-handle-file-local-copy (filename)
   "Like `file-local-copy' for file archives."

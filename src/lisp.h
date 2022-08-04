@@ -3793,10 +3793,10 @@ make_symbol_constant (Lisp_Object sym)
 
 /* Buffer-local variable access functions.  */
 
-INLINE int
+INLINE bool
 blv_found (struct Lisp_Buffer_Local_Value *blv)
 {
-  eassert (blv->found == !EQ (blv->defcell, blv->valcell));
+  eassert (blv->found == !BASE_EQ (blv->defcell, blv->valcell));
   return blv->found;
 }
 
@@ -4679,6 +4679,7 @@ extern void save_restriction_restore (Lisp_Object);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
+extern Lisp_Object narrow_to_region_internal (Lisp_Object, Lisp_Object, bool);
 extern void init_editfns (void);
 extern void syms_of_editfns (void);
 

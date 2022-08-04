@@ -527,7 +527,7 @@ its argument list allows full Common Lisp conventions."
   (while (and (eq (car args) '&aux) (pop args))
     (while (and args (not (memq (car args) cl--lambda-list-keywords)))
       (if (consp (car args))
-          (if (and cl--bind-enquote (cl-cadar args))
+          (if (and cl--bind-enquote (cadar args))
               (cl--do-arglist (caar args)
                               `',(cadr (pop args)))
             (cl--do-arglist (caar args) (cadr (pop args))))
@@ -612,7 +612,7 @@ its argument list allows full Common Lisp conventions."
                              (if (eq ?_ (aref name 0))
                                  (setq name (substring name 1)))
                              (intern (format ":%s" name)))))
-		   (varg (if (consp (car arg)) (cl-cadar arg) (car arg)))
+                   (varg (if (consp (car arg)) (cadar arg) (car arg)))
 		   (def (if (cdr arg) (cadr arg)
                           ;; The ordering between those two or clauses is
                           ;; irrelevant, since in practice only one of the two
@@ -1339,7 +1339,7 @@ For more details, see Info node `(cl)Loop Facility'.
 		      (temp-idx
                        (if (eq (car cl--loop-args) 'using)
                            (if (and (= (length (cadr cl--loop-args)) 2)
-                                    (eq (cl-caadr cl--loop-args) 'index))
+                                    (eq (caadr cl--loop-args) 'index))
                                (cadr (cl--pop2 cl--loop-args))
                              (error "Bad `using' clause"))
                          (make-symbol "--cl-idx--"))))
@@ -1370,8 +1370,8 @@ For more details, see Info node `(cl)Loop Facility'.
 		       (other
                         (if (eq (car cl--loop-args) 'using)
                             (if (and (= (length (cadr cl--loop-args)) 2)
-                                     (memq (cl-caadr cl--loop-args) hash-types)
-                                     (not (eq (cl-caadr cl--loop-args) word)))
+                                     (memq (caadr cl--loop-args) hash-types)
+                                     (not (eq (caadr cl--loop-args) word)))
                                 (cadr (cl--pop2 cl--loop-args))
                               (error "Bad `using' clause"))
                           (make-symbol "--cl-var--"))))
@@ -1433,8 +1433,8 @@ For more details, see Info node `(cl)Loop Facility'.
 		      (other
                        (if (eq (car cl--loop-args) 'using)
                            (if (and (= (length (cadr cl--loop-args)) 2)
-                                    (memq (cl-caadr cl--loop-args) key-types)
-                                    (not (eq (cl-caadr cl--loop-args) word)))
+                                    (memq (caadr cl--loop-args) key-types)
+                                    (not (eq (caadr cl--loop-args) word)))
                                (cadr (cl--pop2 cl--loop-args))
                              (error "Bad `using' clause"))
                          (make-symbol "--cl-var--"))))
@@ -1656,7 +1656,7 @@ If BODY is `setq', then use SPECS for assignments rather than for bindings."
   (let ((temps nil) (new nil))
     (when par
       (let ((p specs))
-        (while (and p (or (symbolp (car-safe (car p))) (null (cl-cadar p))))
+        (while (and p (or (symbolp (car-safe (car p))) (null (cadar p))))
           (setq p (cdr p)))
         (when p
           (setq par nil)
@@ -1731,7 +1731,7 @@ such that COMBO is equivalent to (and . CLAUSES)."
 	      (setq clauses (cons (nconc (butlast (car clauses))
 					 (if (eq (car-safe (cadr clauses))
 						 'progn)
-					     (cl-cdadr clauses)
+                                             (cdadr clauses)
 					   (list (cadr clauses))))
 				  (cddr clauses)))
             ;; A final (progn ,@A t) is moved outside of the `and'.
@@ -2563,9 +2563,9 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 (defun cl--optimize (f _args &rest qualities)
   "Serve `cl-optimize' in function declarations.
 Example:
-(defun foo (x)
-  (declare (cl-optimize (speed 3) (safety 0)))
-  x)"
+  (defun foo (x)
+    (declare (cl-optimize (speed 3) (safety 0)))
+    x)"
   ;; FIXME this should make use of `cl--declare-stack' but I suspect
   ;; this mechanism should be reviewed first.
   (cl-loop for (qly val) in qualities
@@ -2613,7 +2613,7 @@ Example:
 	((and (eq (car-safe spec) 'warn) (boundp 'byte-compile-warnings))
 	 (while (setq spec (cdr spec))
 	   (if (consp (car spec))
-	       (if (eq (cl-cadar spec) 0)
+               (if (eq (cadar spec) 0)
                    (byte-compile-disable-warning (caar spec))
                  (byte-compile-enable-warning (caar spec)))))))
   nil)
@@ -3093,9 +3093,9 @@ To see the documentation for a defined struct type, use
                             (t `(and (consp cl-x)
 				     (memq (nth ,pos cl-x) ,tag-symbol))))))
 	  pred-check (and pred-form (> safety 0)
-			  (if (and (eq (cl-caadr pred-form) 'vectorp)
+                          (if (and (eq (caadr pred-form) 'vectorp)
 				   (= safety 1))
-			      (cons 'and (cl-cdddr pred-form))
+                              (cons 'and (cdddr pred-form))
                             `(,predicate cl-x))))
     (when pred-form
       (push `(,defsym ,predicate (cl-x)

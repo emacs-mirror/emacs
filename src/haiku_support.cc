@@ -1512,6 +1512,8 @@ public:
 
   BMessage *wait_for_release_message;
   int64 grabbed_buttons;
+  BScreen screen;
+  bool use_frame_synchronization;
 
   EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs",
 			B_FOLLOW_NONE, B_WILL_DRAW),
@@ -1524,7 +1526,8 @@ public:
 		 cr_context (NULL),
 #endif
 		 wait_for_release_message (NULL),
-		 grabbed_buttons (0)
+		 grabbed_buttons (0),
+		 use_frame_synchronization (false)
   {
 
   }
@@ -1544,6 +1547,16 @@ public:
     if (grab_view == this)
       grab_view = NULL;
     grab_view_locker.Unlock ();
+  }
+
+  void
+  SetFrameSynchronization (bool sync)
+  {
+    if (LockLooper ())
+      {
+	use_frame_synchronization = sync;
+	UnlockLooper ();
+      }
   }
 
   void
@@ -1722,14 +1735,14 @@ public:
   void
   FlipBuffers (void)
   {
+    EmacsWindow *w;
     if (!LockLooper ())
       gui_abort ("Failed to lock looper during buffer flip");
     if (!offscreen_draw_view)
       gui_abort ("Failed to lock offscreen view during buffer flip");
 
     offscreen_draw_view->Sync ();
-
-    EmacsWindow *w = (EmacsWindow *) Window ();
+    w = (EmacsWindow *) Window ();
     w->shown_flag = 0;
 
     if (copy_bitmap &&
@@ -1749,6 +1762,11 @@ public:
 
     if (copy_bitmap->InitCheck () != B_OK)
       gui_abort ("Failed to init copy bitmap during buffer flip");
+
+    /* Wait for VBLANK.  If responding to the invalidation or buffer
+       flipping takes longer than the blanking period, we lose.  */
+    if (use_frame_synchronization)
+      screen.WaitForRetrace ();
 
     Invalidate (&invalid_region);
     invalid_region.MakeEmpty ();
@@ -5473,4 +5491,13 @@ be_clear_grab_view (void)
       grab_view = NULL;
       grab_view_locker.Unlock ();
     }
+}
+
+void
+be_set_use_frame_synchronization (void *view, bool sync)
+{
+  EmacsView *vw;
+
+  vw = (EmacsView *) view;
+  vw->SetFrameSynchronization (sync);
 }

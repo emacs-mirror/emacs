@@ -447,7 +447,6 @@ directory, like `default-directory'."
 
   "d"           #'ibuffer-mark-for-delete
   "C-d"         #'ibuffer-mark-for-delete-backwards
-  "k"           #'ibuffer-mark-for-delete
   "x"           #'ibuffer-do-kill-on-deletion-marks
 
   ;; immediate operations

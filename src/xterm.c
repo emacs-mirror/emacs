@@ -997,6 +997,7 @@ static const struct x_atom_ref x_atom_refs[] =
     ATOM_REFS_INIT ("_NET_WORKAREA", Xatom_net_workarea)
     ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST", Xatom_net_wm_sync_request)
     ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
+    ATOM_REFS_INIT ("_NET_WM_SYNC_FENCES", Xatom_net_wm_sync_fences)
     ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
     ATOM_REFS_INIT ("_NET_WM_FRAME_TIMINGS", Xatom_net_wm_frame_timings)
     ATOM_REFS_INIT ("_NET_WM_USER_TIME", Xatom_net_wm_user_time)
@@ -2837,8 +2838,8 @@ x_dnd_free_toplevels (bool display_alive)
   struct x_client_list_window *last;
   struct x_client_list_window *tem = x_dnd_toplevels;
   ptrdiff_t n_windows, i, buffer_size;
-  Window *destroy_windows;
-  unsigned long *prev_masks;
+  Window *destroy_windows UNINIT;
+  unsigned long *prev_masks UNINIT;
   specpdl_ref count;
   Display *dpy;
   struct x_display_info *dpyinfo;
@@ -2846,10 +2847,6 @@ x_dnd_free_toplevels (bool display_alive)
   if (!x_dnd_toplevels)
     /* Probably called inside an IO error handler.  */
     return;
-
-  /* Pacify GCC.  */
-  prev_masks = NULL;
-  destroy_windows = NULL;
 
   if (display_alive)
     {
@@ -2913,6 +2910,7 @@ x_dnd_free_toplevels (bool display_alive)
 
       if (n_windows)
 	{
+	  eassume (dpyinfo);
 	  x_ignore_errors_for_next_request (dpyinfo);
 
 	  for (i = 0; i < n_windows; ++i)
@@ -4963,15 +4961,6 @@ x_xr_ensure_picture (struct frame *f)
 }
 #endif
 
-/* Remove calls to XFlush by defining XFlush to an empty replacement.
-   Calls to XFlush should be unnecessary because the X output buffer
-   is flushed automatically as needed by calls to XPending,
-   XNextEvent, or XWindowEvent according to the XFlush man page.
-   XTread_socket calls XPending.  Removing XFlush improves
-   performance.  */
-
-#define XFlush(DISPLAY)	(void) 0
-
 
 /***********************************************************************
 			      Debugging
@@ -6617,12 +6606,17 @@ x_if_event (Display *dpy, XEvent *event_return,
   current_time = current_timespec ();
   target = timespec_add (current_time, timeout);
 
+  /* Check if an event is already in the queue.  If it is, avoid
+     syncing.  */
+  if (XCheckIfEvent (dpy, event_return, predicate, arg))
+    return 0;
+
   while (true)
     {
       /* Get events into the queue.  */
       XSync (dpy, False);
 
-      /* Check if an event is now in the queue.  */
+      /* Look for an event again.  */
       if (XCheckIfEvent (dpy, event_return, predicate, arg))
 	return 0;
 
@@ -6644,6 +6638,61 @@ x_if_event (Display *dpy, XEvent *event_return,
       if (timespec_cmp (target, current_time) < 0)
 	return 1;
     }
+}
+
+/* Return the monotonic time corresponding to the high-resolution
+   server timestamp TIMESTAMP.  Return 0 if the necessary information
+   is not available.  */
+
+static uint64_t
+x_sync_get_monotonic_time (struct x_display_info *dpyinfo,
+			   uint64_t timestamp)
+{
+  if (dpyinfo->server_time_monotonic_p)
+    return timestamp;
+
+  /* This means we haven't yet initialized the server time offset.  */
+  if (!dpyinfo->server_time_offset)
+    return 0;
+
+  return timestamp - dpyinfo->server_time_offset;
+}
+
+/* Return the current monotonic time in the same format as a
+   high-resolution server timestamp.  */
+
+static uint64_t
+x_sync_current_monotonic_time (void)
+{
+  struct timespec time;
+
+  clock_gettime (CLOCK_MONOTONIC, &time);
+  return time.tv_sec * 1000000 + time.tv_nsec / 1000;
+}
+
+/* Decode a _NET_WM_FRAME_DRAWN message and calculate the time it took
+   to draw the last frame.  */
+
+static void
+x_sync_note_frame_times (struct x_display_info *dpyinfo,
+			 struct frame *f, XEvent *event)
+{
+  uint64_t low, high, time;
+  struct x_output *output;
+
+  low = event->xclient.data.l[2];
+  high = event->xclient.data.l[3];
+  output = FRAME_X_OUTPUT (f);
+
+  time = x_sync_get_monotonic_time (dpyinfo, low | (high << 32));
+
+  if (time)
+    output->last_frame_time = time - output->temp_frame_time;
+
+#ifdef FRAME_DEBUG
+  fprintf (stderr, "Drawing the last frame took: %lu ms (%lu)\n",
+	   output->last_frame_time / 1000, time);
+#endif
 }
 
 static Bool
@@ -6689,7 +6738,12 @@ x_sync_wait_for_frame_drawn_event (struct frame *f)
       fprintf (stderr, "Warning: compositing manager spent more than 1 second "
 	       "drawing a frame.  Frame synchronization has been disabled\n");
       FRAME_X_OUTPUT (f)->use_vsync_p = false;
+
+      /* Also change the frame parameter to reflect the new state.  */
+      store_frame_param (f, Quse_frame_synchronization, Qnil);
     }
+  else
+    x_sync_note_frame_times (FRAME_DISPLAY_INFO (f), f, &event);
 
   FRAME_X_WAITING_FOR_DRAW (f) = false;
 }
@@ -6735,6 +6789,10 @@ x_sync_update_begin (struct frame *f)
   /* Wait for the last frame to be drawn before drawing this one.  */
   x_sync_wait_for_frame_drawn_event (f);
 
+  /* Make a note of the time at which we started to draw this
+     frame.  */
+  FRAME_X_OUTPUT (f)->temp_frame_time = x_sync_current_monotonic_time ();
+
   /* Since Emacs needs a non-urgent redraw, ensure that value % 4 ==
      1.  Later, add 3 to create the even counter value.  */
   if (XSyncValueLow32 (value) % 4 == 2)
@@ -6754,6 +6812,85 @@ x_sync_update_begin (struct frame *f)
 		   FRAME_X_EXTENDED_COUNTER (f),
 		   FRAME_X_COUNTER_VALUE (f));
 }
+
+#ifdef HAVE_XSYNCTRIGGERFENCE
+
+/* Trigger the sync fence for counter VALUE immediately before a frame
+   finishes.  */
+
+static void
+x_sync_trigger_fence (struct frame *f, XSyncValue value)
+{
+  uint64_t n, low, high, idx;
+
+  /* Sync fences aren't supported by the X server.  */
+  if (FRAME_DISPLAY_INFO (f)->xsync_major < 3
+      || (FRAME_DISPLAY_INFO (f)->xsync_major == 3
+	  && FRAME_DISPLAY_INFO (f)->xsync_minor < 1))
+    return;
+
+  low = XSyncValueLow32 (value);
+  high = XSyncValueHigh32 (value);
+
+  n = low | (high << 32);
+  idx = (n / 4) % 2;
+
+#ifdef FRAME_DEBUG
+  fprintf (stderr, "Triggering synchonization fence: %lu\n", idx);
+#endif
+
+  XSyncTriggerFence (FRAME_X_DISPLAY (f),
+		     FRAME_X_OUTPUT (f)->sync_fences[idx]);
+}
+
+/* Initialize the sync fences on F.  */
+
+void
+x_sync_init_fences (struct frame *f)
+{
+  struct x_output *output;
+  struct x_display_info *dpyinfo;
+
+  output = FRAME_X_OUTPUT (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* Sync fences aren't supported by the X server.  */
+  if (dpyinfo->xsync_major < 3
+      || (dpyinfo->xsync_major == 3
+	  && dpyinfo->xsync_minor < 1))
+    return;
+
+  output->sync_fences[0]
+    = XSyncCreateFence (FRAME_X_DISPLAY (f),
+			/* The drawable given below is only used to
+			   determine the screen on which the fence is
+			   created.  */
+			FRAME_X_WINDOW (f),
+			False);
+  output->sync_fences[1]
+    = XSyncCreateFence (FRAME_X_DISPLAY (f),
+			FRAME_X_WINDOW (f),
+			False);
+
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		   dpyinfo->Xatom_net_wm_sync_fences, XA_CARDINAL,
+		   32, PropModeReplace,
+		   (unsigned char *) &output->sync_fences, 1);
+}
+
+static void
+x_sync_free_fences (struct frame *f)
+{
+  if (FRAME_X_OUTPUT (f)->sync_fences[0] != None)
+    XSyncDestroyFence (FRAME_X_DISPLAY (f),
+		       FRAME_X_OUTPUT (f)->sync_fences[0]);
+
+  if (FRAME_X_OUTPUT (f)->sync_fences[1] != None)
+    XSyncDestroyFence (FRAME_X_DISPLAY (f),
+		       FRAME_X_OUTPUT (f)->sync_fences[1]);
+}
+
+#endif
 
 /* Tell the compositing manager that FRAME has been drawn and can be
    updated.  */
@@ -6787,12 +6924,15 @@ x_sync_update_finish (struct frame *f)
   if (overflow)
     XSyncIntToValue (&FRAME_X_COUNTER_VALUE (f), 0);
 
+  /* Trigger any sync fences if necessary.  */
+#ifdef HAVE_XSYNCTRIGGERFENCE
+  x_sync_trigger_fence (f, FRAME_X_COUNTER_VALUE (f));
+#endif
+
   XSyncSetCounter (FRAME_X_DISPLAY (f),
 		   FRAME_X_EXTENDED_COUNTER (f),
 		   FRAME_X_COUNTER_VALUE (f));
 
-  /* FIXME: this leads to freezes if the compositing manager crashes
-     in the meantime.  */
   if (FRAME_OUTPUT_DATA (f)->use_vsync_p)
     FRAME_X_WAITING_FOR_DRAW (f) = true;
 }
@@ -6805,6 +6945,8 @@ x_sync_handle_frame_drawn (struct x_display_info *dpyinfo,
 {
   if (FRAME_OUTER_WINDOW (f) == message->xclient.window)
     FRAME_X_WAITING_FOR_DRAW (f) = false;
+
+  x_sync_note_frame_times (dpyinfo, f, message);
 }
 #endif
 
@@ -7388,6 +7530,9 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 #ifndef USE_GTK
   struct frame *focus_frame;
   Time old_time;
+#if defined HAVE_XSYNC
+  uint64_t monotonic_time;
+#endif
 
   focus_frame = dpyinfo->x_focus_frame;
   old_time = dpyinfo->last_user_time;
@@ -7399,6 +7544,28 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 
   if (!send_event || time > dpyinfo->last_user_time)
     dpyinfo->last_user_time = time;
+
+#if defined HAVE_XSYNC && !defined USE_GTK
+  if (!send_event)
+    {
+      /* See if the current CLOCK_MONOTONIC time is reasonably close
+	 to the X server time.  */
+      monotonic_time = x_sync_current_monotonic_time ();
+
+      if (time * 1000 > monotonic_time - 500 * 1000
+	  && time * 1000 < monotonic_time + 500 * 1000)
+	dpyinfo->server_time_monotonic_p = true;
+      else
+	{
+	  /* Compute an offset that can be subtracted from the server
+	     time to estimate the monotonic time on the X server.  */
+
+	  dpyinfo->server_time_monotonic_p = false;
+	  dpyinfo->server_time_offset
+	    = ((int64_t) time * 1000) - monotonic_time;
+	}
+    }
+#endif
 
 #ifndef USE_GTK
   /* Don't waste bandwidth if the time hasn't actually changed.  */
@@ -9308,9 +9475,7 @@ x_composite_image (struct glyph_string *s, Pixmap dest,
     {
       Picture destination;
       XRenderPictFormat *default_format;
-      XRenderPictureAttributes attr;
-      /* Pacify GCC.  */
-      memset (&attr, 0, sizeof attr);
+      XRenderPictureAttributes attr UNINIT;
 
       default_format = FRAME_X_PICTURE_FORMAT (s->f);
       destination = XRenderCreatePicture (display, dest,
@@ -10466,16 +10631,12 @@ x_clear_frame (struct frame *f)
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   block_input ();
-
   font_drop_xrender_surfaces (f);
   x_clear_window (f);
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
-
-  XFlush (FRAME_X_DISPLAY (f));
-
   unblock_input ();
 }
 
@@ -10853,7 +11014,6 @@ x_scroll_run (struct window *w, struct run *run)
 						   view->clip_bottom - view->clip_top);
 		    }
 		  xwidget_expose (view);
-		  XFlush (dpy);
 		}
             }
 	}
@@ -13206,6 +13366,37 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
 /* Scroll bar support.  */
 
+#if defined HAVE_XINPUT2
+
+/* Select for input extension events used by scroll bars.  This will
+   result in the corresponding core events not being generated for
+   SCROLL_BAR.  */
+
+MAYBE_UNUSED static void
+xi_select_scroll_bar_events (struct x_display_info *dpyinfo,
+			     Window scroll_bar)
+{
+  XIEventMask mask;
+  unsigned char *m;
+  ptrdiff_t length;
+
+  length = XIMaskLen (XI_LASTEVENT);
+  mask.mask = m = alloca (length);
+  memset (m, 0, length);
+  mask.mask_len = length;
+
+  mask.deviceid = XIAllMasterDevices;
+  XISetMask (m, XI_ButtonPress);
+  XISetMask (m, XI_ButtonRelease);
+  XISetMask (m, XI_Motion);
+  XISetMask (m, XI_Enter);
+  XISetMask (m, XI_Leave);
+
+  XISelectEvents (dpyinfo->display, scroll_bar, &mask, 1);
+}
+
+#endif
+
 /* Given an X window ID and a DISPLAY, find the struct scroll_bar which
    manages it.
    This can be called in GC, so we have to make sure to strip off mark
@@ -13996,25 +14187,8 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   /* Ask for input extension button and motion events.  This lets us
      send the proper `wheel-up' or `wheel-down' events to Emacs.  */
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
-    {
-      XIEventMask mask;
-      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
-      unsigned char *m;
-
-      mask.mask = m = alloca (l);
-      memset (m, 0, l);
-      mask.mask_len = l;
-
-      mask.deviceid = XIAllMasterDevices;
-      XISetMask (m, XI_ButtonPress);
-      XISetMask (m, XI_ButtonRelease);
-      XISetMask (m, XI_Motion);
-      XISetMask (m, XI_Enter);
-      XISetMask (m, XI_Leave);
-
-      XISelectEvents (XtDisplay (widget), XtWindow (widget),
-		      &mask, 1);
-    }
+    xi_select_scroll_bar_events (FRAME_DISPLAY_INFO (f),
+				 XtWindow (widget));
 #endif
 #else /* !USE_MOTIF i.e. use Xaw */
 
@@ -14221,25 +14395,8 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   /* Ask for input extension button and motion events.  This lets us
      send the proper `wheel-up' or `wheel-down' events to Emacs.  */
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
-    {
-      XIEventMask mask;
-      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
-      unsigned char *m;
-
-      mask.mask = m = alloca (l);
-      memset (m, 0, l);
-      mask.mask_len = l;
-
-      mask.deviceid = XIAllMasterDevices;
-      XISetMask (m, XI_ButtonPress);
-      XISetMask (m, XI_ButtonRelease);
-      XISetMask (m, XI_Motion);
-      XISetMask (m, XI_Enter);
-      XISetMask (m, XI_Leave);
-
-      XISelectEvents (XtDisplay (widget), XtWindow (widget),
-		      &mask, 1);
-    }
+    xi_select_scroll_bar_events (FRAME_DISPLAY_INFO (f),
+				 XtWindow (widget));
 #endif
 #else /* !USE_MOTIF i.e. use Xaw */
 
@@ -14661,24 +14818,8 @@ x_scroll_bar_create (struct window *w, int top, int left,
   /* Ask for input extension button and motion events.  This lets us
      send the proper `wheel-up' or `wheel-down' events to Emacs.  */
   if (FRAME_DISPLAY_INFO (f)->supports_xi2)
-    {
-      XIEventMask mask;
-      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
-      unsigned char *m;
-
-      mask.mask = m = alloca (l);
-      memset (m, 0, l);
-      mask.mask_len = l;
-
-      mask.deviceid = XIAllMasterDevices;
-      XISetMask (m, XI_ButtonPress);
-      XISetMask (m, XI_ButtonRelease);
-      XISetMask (m, XI_Motion);
-      XISetMask (m, XI_Enter);
-      XISetMask (m, XI_Leave);
-
-      XISelectEvents (FRAME_X_DISPLAY (f), window, &mask, 1);
-    }
+    xi_select_scroll_bar_events (FRAME_DISPLAY_INFO (f),
+				 window);
 #endif
 
     bar->x_window = window;
@@ -16501,6 +16642,29 @@ x_wait_for_cell_change (Lisp_Object cell, struct timespec timeout)
     }
 }
 
+/* Find whether or not an undelivered MONITORS_CHANGED_EVENT is
+   already on the event queue.  DPYINFO is the display any such event
+   must apply to.  */
+
+static bool
+x_find_monitors_changed_event (struct x_display_info *dpyinfo)
+{
+  union buffered_input_event *event;
+
+  event = kbd_fetch_ptr;
+
+  while (event != kbd_store_ptr)
+    {
+      if (event->ie.kind == MONITORS_CHANGED_EVENT
+	  && XTERMINAL (event->ie.arg) == dpyinfo->terminal)
+	return true;
+
+      event = X_NEXT_KBD_EVENT (event);
+    }
+
+  return false;
+}
+
 #ifdef USE_GTK
 static void
 x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
@@ -16516,6 +16680,9 @@ x_monitors_changed_cb (GdkScreen *gscr, gpointer user_data)
   dpyinfo = x_display_info_for_display (dpy);
 
   if (!dpyinfo)
+    return;
+
+  if (x_find_monitors_changed_event (dpyinfo))
     return;
 
   XSETTERMINAL (terminal, dpyinfo->terminal);
@@ -17172,7 +17339,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  goto done;
 #endif
 
-        xft_settings_event (dpyinfo, event);
+        if (xft_settings_event (dpyinfo, event))
+	  goto done;
 
 	f = any;
 	/* We don't want to ever leak tooltip frames to Lisp code.  */
@@ -18885,13 +19053,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  if (configureEvent.xconfigure.width != dpyinfo->screen_width
 	      || configureEvent.xconfigure.height != dpyinfo->screen_height)
 	    {
-	      inev.ie.kind = MONITORS_CHANGED_EVENT;
-	      XSETTERMINAL (inev.ie.arg, dpyinfo->terminal);
+	      /* Also avoid storing duplicate events here, since
+		 Fx_display_monitor_attributes_list will return the
+		 same information for both invocations of the
+		 hook.  */
+	      if (!x_find_monitors_changed_event (dpyinfo))
+		{
+		  inev.ie.kind = MONITORS_CHANGED_EVENT;
+		  XSETTERMINAL (inev.ie.arg, dpyinfo->terminal);
 
-	      /* Store this event now since inev.ie.type could be set to
-		 MOVE_FRAME_EVENT later.  */
-	      kbd_buffer_store_event (&inev.ie);
-	      inev.ie.kind = NO_EVENT;
+		  /* Store this event now since inev.ie.type could be set to
+		     MOVE_FRAME_EVENT later.  */
+		  kbd_buffer_store_event (&inev.ie);
+		  inev.ie.kind = NO_EVENT;
+		}
 
 	      /* Also update the position of the drag-and-drop
 		 tooltip.  */
@@ -22533,7 +22708,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      || event->type == (dpyinfo->xrandr_event_base
 				 + RRNotify)))
 	{
-	  union buffered_input_event *ev;
 	  Time timestamp;
 	  Lisp_Object current_monitors;
 	  XRRScreenChangeNotifyEvent *notify;
@@ -22561,13 +22735,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  else
 	    timestamp = 0;
 
-	  ev = (kbd_store_ptr == kbd_buffer
-		? kbd_buffer + KBD_BUFFER_SIZE - 1
-		: kbd_store_ptr - 1);
-
-	  if (kbd_store_ptr != kbd_fetch_ptr
-	      && ev->ie.kind == MONITORS_CHANGED_EVENT
-	      && XTERMINAL (ev->ie.arg) == dpyinfo->terminal)
+	  if (x_find_monitors_changed_event (dpyinfo))
 	    /* Don't store a MONITORS_CHANGED_EVENT if there is
 	       already an undelivered event on the queue.  */
 	    goto OTHER;
@@ -23132,8 +23300,6 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	xic_set_preeditarea (w, x, y);
 #endif
     }
-
-  XFlush (FRAME_X_DISPLAY (f));
 }
 
 
@@ -25648,6 +25814,7 @@ x_make_frame_visible (struct frame *f)
   struct x_display_info *dpyinfo;
   struct x_output *output;
 #endif
+  bool output_flushed;
 
   if (FRAME_PARENT_FRAME (f))
     {
@@ -25738,8 +25905,6 @@ x_make_frame_visible (struct frame *f)
 	}
     }
 
-  XFlush (FRAME_X_DISPLAY (f));
-
   /* Synchronize to ensure Emacs knows the frame is visible
      before we do anything else.  We do this loop with input not blocked
      so that incoming events are handled.  */
@@ -25757,6 +25922,10 @@ x_make_frame_visible (struct frame *f)
 
     /* This must come after we set COUNT.  */
     unblock_input ();
+
+    /* Keep track of whether or not the output buffer was flushed, to
+       avoid any extra flushes.  */
+    output_flushed = false;
 
     /* We unblock here so that arriving X events are processed.  */
 
@@ -25791,6 +25960,7 @@ x_make_frame_visible (struct frame *f)
 	   there, and take the potential window manager hit.  */
 	XGetGeometry (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		      &rootw, &x, &y, &width, &height, &border, &depth);
+	output_flushed = true;
 
 	if (original_left != x || original_top != y)
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
@@ -25825,7 +25995,11 @@ x_make_frame_visible (struct frame *f)
 	    (f, build_string ("x_make_frame_visible"));
 
 	x_wait_for_event (f, MapNotify);
+	output_flushed = true;
       }
+
+    if (!output_flushed)
+      x_flush (f);
   }
 }
 
@@ -26192,7 +26366,10 @@ x_free_frame_resources (struct frame *f)
       if (f->output_data.x->bottom_left_corner_cursor != 0)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_left_corner_cursor);
 
-      XFlush (FRAME_X_DISPLAY (f));
+      /* Free sync fences.  */
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+      x_sync_free_fences (f);
+#endif
     }
 
 #ifdef HAVE_GTK3

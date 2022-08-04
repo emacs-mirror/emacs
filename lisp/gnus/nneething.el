@@ -245,7 +245,8 @@ included.")
 	(while map
 	  (if (and (member (cadr (car map)) files)
 		  ;; We also remove files that have changed mod times.
-		   (equal (file-attribute-modification-time (file-attributes
+		   (time-equal-p
+			  (file-attribute-modification-time (file-attributes
 				  (nneething-file-name (cadr (car map)))))
 			  (cadr (cdar map))))
 	      (progn

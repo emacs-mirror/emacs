@@ -38,9 +38,6 @@
 (require 'srecode/table)
 (require 'srecode/dictionary)
 
-(declare-function srecode-template-inserter-newline-child-p "srecode/insert"
-		  t t)
-
 ;;; Code:
 
 ;;; Template Class
@@ -378,8 +375,11 @@ It is hard if the previous inserter is a newline object."
   (while (and comp (stringp (car comp)))
     (setq comp (cdr comp)))
   (or (not comp)
-      (progn (require 'srecode/insert)
-	     (srecode-template-inserter-newline-child-p (car comp)))))
+      (srecord-compile-inserter-newline-p (car comp))))
+
+(cl-defgeneric srecord-compile-inserter-newline-p (_obj)
+  "Non-nil if OBJ is a newline inserter object."
+  nil)
 
 (defun srecode-compile-split-code (tag str STATE
 				       &optional end-name)

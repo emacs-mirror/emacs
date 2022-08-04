@@ -414,7 +414,7 @@ or nil."
 	     (setq rng-schema-locating-file-alist
 		   (delq cached rng-schema-locating-file-alist)))
 	   nil)
-	  ((and cached (equal (nth 1 cached) mtime))
+	  ((and cached (time-equal-p (nth 1 cached) mtime))
 	   (nth 2 cached))
 	  (t
 	   (setq parsed (rng-parse-schema-locating-file file))
