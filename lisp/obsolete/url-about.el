@@ -3,6 +3,7 @@
 ;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 ;;
