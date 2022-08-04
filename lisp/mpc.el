@@ -1569,8 +1569,9 @@ when constructing the set of constraints."
         (mpc-tagbrowser-refresh)
         buf))))
 
-(defvar tag-browser-tagtypes
-  (lazy-completion-table tag-browser-tagtypes
+(define-obsolete-variable-alias 'tag-browser-tagtypes 'mpc-tag-browser-tagtypes "29.1")
+(defvar mpc-tag-browser-tagtypes
+  (lazy-completion-table mpc-tag-browser-tagtypes
                          (lambda ()
                            (append '("Playlist" "Directory")
                                    (mpc-cmd-tagtypes)))))
@@ -1581,7 +1582,7 @@ when constructing the set of constraints."
    (list
     (let ((completion-ignore-case t))
       (intern
-       (completing-read "Tag: " tag-browser-tagtypes nil 'require-match)))))
+       (completing-read "Tag: " mpc-tag-browser-tagtypes nil 'require-match)))))
   (let* ((newbuf (mpc-tagbrowser-buf tag))
          (win (get-buffer-window newbuf 0)))
     (if win (select-window win)
