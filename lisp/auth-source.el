@@ -925,27 +925,33 @@ Note that the MAX parameter is used so we can exit the parse early."
                (cached (cdr-safe (assoc file auth-source-netrc-cache)))
                (cached-mtime (plist-get cached :mtime))
                (cached-secrets (plist-get cached :secret))
-               (check (lambda(alist)
+               (check (lambda (alist)
                         (and alist
-                             (auth-source-search-collection
-                              host
-                              (or
-                               (auth-source--aget alist "machine")
-                               (auth-source--aget alist "host")
-                               t))
-                             (auth-source-search-collection
-                              user
-                              (or
-                               (auth-source--aget alist "login")
-                               (auth-source--aget alist "account")
-                               (auth-source--aget alist "user")
-                               t))
-                             (auth-source-search-collection
-                              port
-                              (or
-                               (auth-source--aget alist "port")
-                               (auth-source--aget alist "protocol")
-                               t))
+                             (or
+                              (null host)
+                              (auth-source-search-collection
+                               host
+                               (or
+                                (auth-source--aget alist "machine")
+                                (auth-source--aget alist "host")
+                                t)))
+                             (or
+                              (null user)
+                              (auth-source-search-collection
+                               user
+                               (or
+                                (auth-source--aget alist "login")
+                                (auth-source--aget alist "account")
+                                (auth-source--aget alist "user")
+                                t)))
+                             (or
+                              (null port)
+                              (auth-source-search-collection
+                               port
+                               (or
+                                (auth-source--aget alist "port")
+                                (auth-source--aget alist "protocol")
+                                t)))
                              (or
                               ;; the required list of keys is nil, or
                               (null require)
