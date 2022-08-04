@@ -1874,13 +1874,12 @@ that width."
          (col-sep-width  (which-key--max-len col-keys 1))
          (col-desc-width (which-key--max-len
                           col-keys 2 which-key-min-column-description-width))
-         (col-width      (+ 1 col-key-width col-sep-width col-desc-width)))
+         (col-width      (+ 1 col-key-width col-sep-width col-desc-width))
+	 (col-format     (concat "%" (int-to-string col-key-width)
+                                 "s%s%-" (int-to-string col-desc-width) "s")))
     (cons col-width
-          (mapcar (lambda (k)
-                    (format (concat "%" (int-to-string col-key-width)
-                                    "s%s%-" (int-to-string col-desc-width) "s")
-                            (nth 0 k) (nth 1 k) (nth 2 k)))
-                  col-keys))))
+          (mapcar (lambda (k) (apply #'format col-format k))
+		  col-keys))))
 
 (defun which-key--partition-list (n list)
   "Partition LIST into N-sized sublists."
