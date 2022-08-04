@@ -1865,15 +1865,18 @@ element in each list element of KEYS."
    (lambda (x y) (max x (which-key--string-width (nth index y))))
    keys :initial-value (if initial-value initial-value 0)))
 
-(defun which-key--pad-column (col-keys)
+(defun which-key--pad-column (col-keys avl-width)
   "Take a column of (key separator description) COL-KEYS,
 calculate the max width in the column and pad all cells out to
 that width."
   (let* ((col-key-width  (+ which-key-add-column-padding
                             (which-key--max-len col-keys 0)))
          (col-sep-width  (which-key--max-len col-keys 1))
-         (col-desc-width (which-key--max-len
-                          col-keys 2 which-key-min-column-description-width))
+	 (avl-width      (- avl-width col-key-width col-sep-width))
+         (col-desc-width (min avl-width
+			      (which-key--max-len
+                               col-keys 2
+			       which-key-min-column-description-width)))
          (col-width      (+ 1 col-key-width col-sep-width col-desc-width))
 	 (col-format     (concat "%" (int-to-string col-key-width)
                                  "s%s%-" (int-to-string col-desc-width) "s")))
@@ -1893,8 +1896,8 @@ that width."
   "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
 Returns a `which-key--pages' object that holds the page strings,
 as well as metadata."
-  (let ((cols-w-widths (mapcar #'which-key--pad-column
-                               (which-key--partition-list avl-lines keys)))
+  (let ((cols-w-widths (mapcar (lambda (c) (which-key--pad-column c avl-width))
+			       (which-key--partition-list avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0) (n-columns 0)
         page-cols pages page-widths keys/page col)
     (if (> (apply #'max (mapcar #'car cols-w-widths)) avl-width)
