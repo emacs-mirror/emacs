@@ -126,9 +126,9 @@ Possible value: main, $rsp, x+3.")
   "Address of memory display.")
 (defvar-local gdb-memory-last-address nil
   "Last successfully accessed memory address.")
-(defvar	gdb-memory-next-page nil
+(defvar gdb-memory-next-page nil
   "Address of next memory page for program memory buffer.")
-(defvar	gdb-memory-prev-page nil
+(defvar gdb-memory-prev-page nil
   "Address of previous memory page for program memory buffer.")
 (defvar-local gdb--memory-display-warning nil
   "Display warning on memory header if t.
