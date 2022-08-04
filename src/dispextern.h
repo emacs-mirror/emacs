@@ -2287,6 +2287,8 @@ struct composition_it
      reverse order, and thus the grapheme clusters must be rendered
      from the last to the first.  */
   bool reversed_p;
+  /* Parent iterator. */
+  struct it *parent_it;
 
   /** The following members contain information about the current
       grapheme cluster.  */

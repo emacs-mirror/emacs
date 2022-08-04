@@ -3229,6 +3229,7 @@ init_iterator (struct it *it, struct window *w,
   it->f = XFRAME (w->frame);
 
   it->cmp_it.id = -1;
+  it->cmp_it.parent_it = it;
 
   if (max_redisplay_ticks > 0)
     update_redisplay_ticks (0, w);
