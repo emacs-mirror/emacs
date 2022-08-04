@@ -36,6 +36,7 @@ SCRAPE|\
 INFO.*Scraping.*[.] ?\$|\
 INFO.*Scraping.*done\$|\
 GEN.*etc/DOC|\
+GEN.*autoloads|\
 ^Waiting for git|\
 ^Finding pointers|\
 ^Using load-path|\
