@@ -63,7 +63,8 @@ be included.")
     "defun-rcirc-command"
     "define-short-documentation-group"
     "def-edebug-elem-spec"
-    "defvar-mode-local")
+    "defvar-mode-local"
+    "define-ibuffer-column")
   "List of strings naming definitions to ignore for prefixes.
 More specifically those definitions will not be considered for the
 `register-definition-prefixes' call.")
