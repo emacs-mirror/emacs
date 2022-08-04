@@ -3340,13 +3340,11 @@ Host is always \"localhost\"."
 (defun tramp-parse-netrc (filename)
   "Return a list of (user host) tuples allowed to access.
 User may be nil."
-  ;; The declaration is not sufficient at runtime, because netrc.el is
-  ;; not autoloaded.
   (mapcar
    (lambda (item)
      (and (assoc "machine" item)
 	  `(,(cdr (assoc "login" item)) ,(cdr (assoc "machine" item)))))
-   (auth-source-netrc-parse-all filename)))
+   (tramp-compat-auth-source-netrc-parse-all filename)))
 
 (defun tramp-parse-putty (registry-or-dirname)
   "Return a list of (user host) tuples allowed to access.
