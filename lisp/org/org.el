@@ -82,8 +82,8 @@
 (or (eq this-command 'eval-buffer)
     (condition-case nil
 	(load (concat (file-name-directory load-file-name)
-		      "org-loaddefs.el")
-	      nil t t t)
+		      "org-loaddefs")
+	      nil t nil t)
       (error
        (message "WARNING: No org-loaddefs.el file could be found from where org.el is loaded.")
        (sit-for 3)
