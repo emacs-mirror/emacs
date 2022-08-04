@@ -348,7 +348,11 @@ endif
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # 'no-byte-compile', so watch out for false-positives!
-compile-main: gen-lisp compile-clean main-first
+
+# The "autoloads" target has to run first, because it may generate new
+# loaddefs files.  But don't depend on it, because that might trigger
+# unnecessary rebuilds.
+compile-main: gen-lisp compile-clean main-first | autoloads
 	@(cd $(lisp) && 			     \
 	els=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do            \
