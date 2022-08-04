@@ -2664,6 +2664,14 @@ commands with a warning face as you type.
 *** New user option 'calc-kill-line-numbering'.
 Set it to nil to exclude line numbering from kills and copies.
 
+** Hierarchy
+
++++
+*** Tree Display can delay computation of children.
+'hierarchy-add-tree' and 'hierarchy-add-trees' have an optional
+argument which allows tree-widget display to be activated and computed
+only when the user expands the node.
+
 ** Miscellaneous
 
 ---
