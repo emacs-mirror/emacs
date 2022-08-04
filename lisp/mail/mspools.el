@@ -164,17 +164,13 @@ your primary spool is.  If this fails, set it to something like
 (defvar mspools-buffer "*spools*"
   "Name of buffer for displaying spool info.")
 
-(defvar mspools-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" #'mspools-visit-spool)
-    (define-key map "\C-m" #'mspools-visit-spool)
-    (define-key map " " #'mspools-visit-spool)
-    (define-key map "n" #'next-line)
-    (define-key map "p" #'previous-line)
-    map)
-  "Keymap for the *spools* buffer.")
-
-;;; Code
+(defvar-keymap mspools-mode-map
+  :doc "Keymap for the *spools* buffer."
+  "C-c C-c" #'mspools-visit-spool
+  "RET"     #'mspools-visit-spool
+  "SPC"     #'mspools-visit-spool
+  "n"       #'next-line
+  "p"       #'previous-line)
 
 ;;; VM Specific code
 (if mspools-using-vm
