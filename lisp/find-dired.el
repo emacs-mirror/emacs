@@ -1,7 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1995, 2000-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -320,7 +319,7 @@ See `find-name-arg' to customize the arguments."
 ;; Date: 10 May 91 17:50:00 GMT
 ;; Organization: University of Waterloo
 
-(defalias 'lookfor-dired 'find-grep-dired)
+(define-obsolete-function-alias 'lookfor-dired #'find-grep-dired "29.1")
 ;;;###autoload
 (defun find-grep-dired (dir regexp)
   "Find files in DIR that contain matches for REGEXP and start Dired on output.
