@@ -353,6 +353,10 @@ Use something like 'M-x shell RET ssh <host> RET' instead.
 ** The url-about.el library is now obsolete.
 
 ---
+** The autoload.el library is now obsolete.
+It is superseded by the loaddefs-gen.el library.
+
+---
 ** The url-dired.el library is now obsolete.
 
 ---

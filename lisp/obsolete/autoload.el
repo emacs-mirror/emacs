@@ -5,6 +5,7 @@
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
 ;; Package: emacs
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -28,8 +29,7 @@
 ;; Lisp source files in various useful ways.  To learn more, read the
 ;; source; if you're going to use this, you'd better be able to.
 
-;; The functions in this file have been largely superseded by
-;; loaddefs-gen.el.
+;; The functions in this file have been superseded by loaddefs-gen.el.
 
 ;;; Code:
 
