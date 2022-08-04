@@ -1825,7 +1825,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t nil)
-(register-definition-prefixes "battery" '("battery-" "my-"))
+(register-definition-prefixes "battery" '("battery-"))
 
 
 ;;; Generated autoloads from emacs-lisp/benchmark.el
@@ -2865,7 +2865,7 @@ and corresponding effects.
 
 ;;; Generated autoloads from cedet/semantic/bovine/c.el
 
-(register-definition-prefixes "semantic/bovine/c" '("c-mode" "semantic"))
+(register-definition-prefixes "semantic/bovine/c" '("semantic"))
 
 
 ;;; Generated autoloads from calendar/cal-bahai.el
@@ -4566,7 +4566,7 @@ it is disabled.
 
 ;;; Generated autoloads from emacs-lisp/cl-macs.el
 
-(register-definition-prefixes "cl-macs" '("cl-" "foo" "function-form"))
+(register-definition-prefixes "cl-macs" '("cl-"))
 
 
 ;;; Generated autoloads from emacs-lisp/cl-print.el
@@ -5558,7 +5558,7 @@ Run `perldoc' on WORD.
 (fn WORD)" t nil)
 (autoload 'cperl-perldoc-at-point "cperl-mode" "\
 Run a `perldoc' on the word around point." t nil)
-(register-definition-prefixes "cperl-mode" '("cperl-" "pod2man-program"))
+(register-definition-prefixes "cperl-mode" '("cperl-"))
 
 
 ;;; Generated autoloads from progmodes/cpp.el
@@ -6289,12 +6289,12 @@ Create a new data-debug buffer with NAME.
 
 ;;; Generated autoloads from cedet/semantic/db-ebrowse.el
 
-(register-definition-prefixes "semantic/db-ebrowse" '("c++-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-ebrowse" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-el.el
 
-(register-definition-prefixes "semantic/db-el" '("emacs-lisp-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-el" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-file.el
@@ -6314,7 +6314,7 @@ Create a new data-debug buffer with NAME.
 
 ;;; Generated autoloads from cedet/semantic/db-javascript.el
 
-(register-definition-prefixes "semantic/db-javascript" '("javascript-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-javascript" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-mode.el
@@ -7917,7 +7917,7 @@ it is disabled.
 
 (autoload 'doctor "doctor" "\
 Switch to *doctor* buffer and start giving psychotherapy." t nil)
-(register-definition-prefixes "doctor" '("doc" "make-doctor-variables"))
+(register-definition-prefixes "doctor" '("doc"))
 
 
 ;;; Generated autoloads from cedet/srecode/document.el
@@ -8632,7 +8632,7 @@ already is one.)" t nil)
 Toggle edebugging of all definitions." t nil)
 (autoload 'edebug-all-forms "edebug" "\
 Toggle edebugging of all forms." t nil)
-(register-definition-prefixes "edebug" '("arglist" "backquote-form" "def-declarations" "edebug" "function-form" "interactive" "lambda-" "name" "nested-backquote-form"))
+(register-definition-prefixes "edebug" '("edebug"))
 
 
 ;;; Generated autoloads from vc/ediff.el
@@ -9164,7 +9164,7 @@ Describe CTR if it is a class constructor.
 
 ;;; Generated autoloads from cedet/semantic/bovine/el.el
 
-(register-definition-prefixes "semantic/bovine/el" '("emacs-lisp-mode" "semantic-"))
+(register-definition-prefixes "semantic/bovine/el" '("semantic-"))
 
 
 ;;; Generated autoloads from emacs-lisp/eldoc.el
@@ -9417,7 +9417,7 @@ displayed." t nil)
 
 ;;; Generated autoloads from eshell/em-unix.el
 
-(register-definition-prefixes "em-unix" '("eshell" "nil-blank-string"))
+(register-definition-prefixes "em-unix" '("eshell"))
 
 
 ;;; Generated autoloads from eshell/em-xtra.el
@@ -11073,7 +11073,7 @@ Display the bookmarks." t nil)
 Default bookmark handler for EWW buffers.
 
 (fn BOOKMARK)" nil nil)
-(register-definition-prefixes "eww" '("erc--download-directory" "eww-"))
+(register-definition-prefixes "eww" '("eww-"))
 
 
 ;;; Generated autoloads from progmodes/executable.el
@@ -19325,7 +19325,7 @@ Mairix will be called asynchronously unless
 
 ;;; Generated autoloads from cedet/semantic/bovine/make.el
 
-(register-definition-prefixes "semantic/bovine/make" '("makefile-mode" "semantic-"))
+(register-definition-prefixes "semantic/bovine/make" '("semantic-"))
 
 
 ;;; Generated autoloads from cedet/ede/make.el
@@ -27825,7 +27825,7 @@ If SAME-WINDOW, don't pop to a new window.
 
 (fn GROUP &optional FUNCTION SAME-WINDOW)" t nil)
 (defalias 'shortdoc #'shortdoc-display-group)
-(register-definition-prefixes "shortdoc" '("alist" "buffer" "file" "hash-table" "keymaps" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "text-properties" "vector"))
+(register-definition-prefixes "shortdoc" '("shortdoc-"))
 
 
 ;;; Generated autoloads from net/shr.el
@@ -32307,11 +32307,6 @@ how long to wait for a response before giving up.
 
 (fn URL &optional SILENT INHIBIT-COOKIES TIMEOUT)" nil nil)
 (register-definition-prefixes "url" '("url-"))
-
-
-;;; Generated autoloads from url/url-about.el
-
-(register-definition-prefixes "url-about" '("url-"))
 
 
 ;;; Generated autoloads from url/url-auth.el
