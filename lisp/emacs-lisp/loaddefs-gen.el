@@ -456,7 +456,7 @@ don't include."
   (let ((prefs nil))
     ;; Avoid (defvar <foo>) by requiring a trailing space.
     (while (re-search-forward
-            "^(\\(def[^ ]+\\) ['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
+            "^(\\(def[^ \t]+\\)[ \t]+['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
       (unless (member (match-string 1) autoload-ignored-definitions)
         (let ((name (match-string-no-properties 2)))
           (when (save-excursion
