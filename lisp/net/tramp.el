@@ -1487,21 +1487,21 @@ If nil, return `tramp-default-port'."
 (put #'tramp-file-name-port-or-default 'tramp-suppress-trace t)
 
 ;;;###tramp-autoload
-(defun tramp-file-name-unify (vec &optional file)
+(defun tramp-file-name-unify (vec &optional localname)
   "Unify VEC by removing localname and hop from `tramp-file-name' structure.
-If FILE is a string, set it as localname.
+If LOCALNAME is a string, set it as localname.
 Objects returned by this function compare `equal' if they refer to the
 same connection.  Make a copy in order to avoid side effects."
   (when (tramp-file-name-p vec)
     (setq vec (copy-tramp-file-name vec))
     (setf (tramp-file-name-localname vec)
-	  (and (stringp file)
+	  (and (stringp localname)
 	       ;; FIXME: This is a sanity check.  When this error
 	       ;; doesn't happen for a while, it can be removed.
-	       (or (file-name-absolute-p file)
+	       (or (file-name-absolute-p localname)
 		   (tramp-error
-		    vec 'file-error "File `%s' must be absolute" file))
-	       (directory-file-name (tramp-compat-file-name-unquote file)))
+		    vec 'file-error "File `%s' must be absolute" localname))
+	       (tramp-compat-file-name-unquote (directory-file-name localname)))
 	  (tramp-file-name-hop vec) nil))
   vec)
 

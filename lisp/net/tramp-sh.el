@@ -3340,7 +3340,9 @@ implementation will be used."
     ;; file is created.  Do it directly.
     (if (and (stringp start) (string-empty-p start))
 	(tramp-send-command
-	 v (format "echo -n \"\">%s" (tramp-shell-quote-argument localname)))
+	 v (format "cat <%s >%s"
+		   (tramp-get-remote-null-device v)
+		   (tramp-shell-quote-argument localname)))
 
       ;; Short track: if we are on the local host, we can run directly.
       (if (and (tramp-local-host-p v)
