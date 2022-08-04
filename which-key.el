@@ -1605,8 +1605,9 @@ If KEY contains any \"special keys\" defined in
 			    (if (floatp val) (truncate val) val))))))
     (if (and max (> (length desc) max))
 	(let* ((last-face (get-text-property (1- (length desc)) 'face desc))
-               (dots (which-key--propertize which-key-ellipsis 'face last-face)))
-          (concat (substring desc 0 max) dots))
+               (dots (which-key--propertize which-key-ellipsis
+					    'face last-face)))
+          (concat (substring desc 0 (- max (length dots))) dots))
       desc)))
 
 (defun which-key--highlight-face (description)
