@@ -886,13 +886,7 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 	fi
 endif
 
-## VCSWITNESS points to the file that holds info about the current checkout.
-## We use it as a heuristic to decide when to rebuild loaddefs.el.
-## If empty it is ignored; the parent makefile can set it to some other value.
-VCSWITNESS =
-
-$(lispsource)/loaddefs.el: $(VCSWITNESS) | \
-		bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
+$(lispsource)/loaddefs.el: | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
