@@ -909,10 +909,16 @@ Remove trailing \": \"."
 (defun auth-source--aget (alist key)
   (cdr (assoc key alist)))
 
+(defun auth-source-netrc-parse-all (file)
+  "Parse FILE and return all entries."
+  (auth-source-netrc-parse :file file :allow-null t))
+
 ;; (auth-source-netrc-parse :file "~/.authinfo.gpg")
 (cl-defun auth-source-netrc-parse (&key file max host user port require
-                                   &allow-other-keys)
-  "Parse FILE and return a list of all entries in the file.
+                                        allow-null &allow-other-keys)
+  "Parse FILE and return a list of matching entries in the file.
+If ALLOW-NULL, allow nil values of HOST, USER and PORT to match.
+
 Note that the MAX parameter is used so we can exit the parse early."
   (if (listp file)
       ;; We got already parsed contents; just return it.
@@ -928,7 +934,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                (check (lambda (alist)
                         (and alist
                              (or
-                              (null host)
+                              (and allow-null (null host))
                               (auth-source-search-collection
                                host
                                (or
@@ -936,7 +942,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                                 (auth-source--aget alist "host")
                                 t)))
                              (or
-                              (null user)
+                              (and allow-null (null user))
                               (auth-source-search-collection
                                user
                                (or
@@ -945,7 +951,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                                 (auth-source--aget alist "user")
                                 t)))
                              (or
-                              (null port)
+                              (and allow-null (null port))
                               (auth-source-search-collection
                                port
                                (or
