@@ -53,6 +53,7 @@
 
 (defun netrc-parse (&optional file)
   "Parse FILE and return a list of all entries in the file."
+  (declare (obsolete auth-source-netrc-parse-all "29.1"))
   (interactive "fFile to Parse: ")
   (unless file
     (setq file netrc-file))
