@@ -45,6 +45,9 @@
   '(("Newsgroups" . nil)
     ("Followup-To" . nil)
     ("Message-ID" . nil)
+    ;; This header must be pre-encoded by the MTA, so avoid
+    ;; double-encoding it.
+    ("Content-Disposition" . default)
     ("\\(Resent-\\)?\\(From\\|Cc\\|To\\|Bcc\\|\\(In-\\)?Reply-To\\|Sender\
 \\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\|Disposition-Notification-To\\)" . address-mime)
     (t . mime))
