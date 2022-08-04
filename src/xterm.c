@@ -6875,7 +6875,7 @@ x_sync_init_fences (struct frame *f)
   XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		   dpyinfo->Xatom_net_wm_sync_fences, XA_CARDINAL,
 		   32, PropModeReplace,
-		   (unsigned char *) &output->sync_fences, 1);
+		   (unsigned char *) &output->sync_fences, 2);
 }
 
 static void
