@@ -997,6 +997,7 @@ static const struct x_atom_ref x_atom_refs[] =
     ATOM_REFS_INIT ("_NET_WORKAREA", Xatom_net_workarea)
     ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST", Xatom_net_wm_sync_request)
     ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
+    ATOM_REFS_INIT ("_NET_WM_SYNC_FENCES", Xatom_net_wm_sync_fences)
     ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
     ATOM_REFS_INIT ("_NET_WM_FRAME_TIMINGS", Xatom_net_wm_frame_timings)
     ATOM_REFS_INIT ("_NET_WM_USER_TIME", Xatom_net_wm_user_time)
@@ -6812,6 +6813,85 @@ x_sync_update_begin (struct frame *f)
 		   FRAME_X_COUNTER_VALUE (f));
 }
 
+#ifdef HAVE_XSYNCTRIGGERFENCE
+
+/* Trigger the sync fence for counter VALUE immediately before a frame
+   finishes.  */
+
+static void
+x_sync_trigger_fence (struct frame *f, XSyncValue value)
+{
+  uint64_t n, low, high, idx;
+
+  /* Sync fences aren't supported by the X server.  */
+  if (FRAME_DISPLAY_INFO (f)->xsync_major < 3
+      || (FRAME_DISPLAY_INFO (f)->xsync_major == 3
+	  && FRAME_DISPLAY_INFO (f)->xsync_minor < 1))
+    return;
+
+  low = XSyncValueLow32 (value);
+  high = XSyncValueHigh32 (value);
+
+  n = low | (high << 32);
+  idx = (n / 4) % 2;
+
+#ifdef FRAME_DEBUG
+  fprintf (stderr, "Triggering synchonization fence: %lu\n", idx);
+#endif
+
+  XSyncTriggerFence (FRAME_X_DISPLAY (f),
+		     FRAME_X_OUTPUT (f)->sync_fences[idx]);
+}
+
+/* Initialize the sync fences on F.  */
+
+void
+x_sync_init_fences (struct frame *f)
+{
+  struct x_output *output;
+  struct x_display_info *dpyinfo;
+
+  output = FRAME_X_OUTPUT (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* Sync fences aren't supported by the X server.  */
+  if (dpyinfo->xsync_major < 3
+      || (dpyinfo->xsync_major == 3
+	  && dpyinfo->xsync_minor < 1))
+    return;
+
+  output->sync_fences[0]
+    = XSyncCreateFence (FRAME_X_DISPLAY (f),
+			/* The drawable given below is only used to
+			   determine the screen on which the fence is
+			   created.  */
+			FRAME_X_WINDOW (f),
+			False);
+  output->sync_fences[1]
+    = XSyncCreateFence (FRAME_X_DISPLAY (f),
+			FRAME_X_WINDOW (f),
+			False);
+
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		   dpyinfo->Xatom_net_wm_sync_fences, XA_CARDINAL,
+		   32, PropModeReplace,
+		   (unsigned char *) &output->sync_fences, 1);
+}
+
+static void
+x_sync_free_fences (struct frame *f)
+{
+  if (FRAME_X_OUTPUT (f)->sync_fences[0] != None)
+    XSyncDestroyFence (FRAME_X_DISPLAY (f),
+		       FRAME_X_OUTPUT (f)->sync_fences[0]);
+
+  if (FRAME_X_OUTPUT (f)->sync_fences[1] != None)
+    XSyncDestroyFence (FRAME_X_DISPLAY (f),
+		       FRAME_X_OUTPUT (f)->sync_fences[1]);
+}
+
+#endif
+
 /* Tell the compositing manager that FRAME has been drawn and can be
    updated.  */
 
@@ -6844,12 +6924,15 @@ x_sync_update_finish (struct frame *f)
   if (overflow)
     XSyncIntToValue (&FRAME_X_COUNTER_VALUE (f), 0);
 
+  /* Trigger any sync fences if necessary.  */
+#ifdef HAVE_XSYNCTRIGGERFENCE
+  x_sync_trigger_fence (f, FRAME_X_COUNTER_VALUE (f));
+#endif
+
   XSyncSetCounter (FRAME_X_DISPLAY (f),
 		   FRAME_X_EXTENDED_COUNTER (f),
 		   FRAME_X_COUNTER_VALUE (f));
 
-  /* FIXME: this leads to freezes if the compositing manager crashes
-     in the meantime.  */
   if (FRAME_OUTPUT_DATA (f)->use_vsync_p)
     FRAME_X_WAITING_FOR_DRAW (f) = true;
 }
@@ -26282,6 +26365,11 @@ x_free_frame_resources (struct frame *f)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_edge_cursor);
       if (f->output_data.x->bottom_left_corner_cursor != 0)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_left_corner_cursor);
+
+      /* Free sync fences.  */
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+      x_sync_free_fences (f);
+#endif
     }
 
 #ifdef HAVE_GTK3

@@ -614,9 +614,9 @@ struct x_display_info
     Xatom_net_wm_state_shaded, Xatom_net_frame_extents, Xatom_net_current_desktop,
     Xatom_net_workarea, Xatom_net_wm_opaque_region, Xatom_net_wm_ping,
     Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
-    Xatom_net_wm_frame_drawn, Xatom_net_wm_frame_timings, Xatom_net_wm_user_time,
-    Xatom_net_wm_user_time_window, Xatom_net_client_list_stacking,
-    Xatom_net_wm_pid;
+    Xatom_net_wm_sync_fences, Xatom_net_wm_frame_drawn, Xatom_net_wm_frame_timings,
+    Xatom_net_wm_user_time, Xatom_net_wm_user_time_window,
+    Xatom_net_client_list_stacking, Xatom_net_wm_pid;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -1077,6 +1077,13 @@ struct x_output
 
   /* A temporary time used to calculate that value.  */
   uint64_t temp_frame_time;
+
+#ifdef HAVE_XSYNCTRIGGERFENCE
+  /* An array of two sync fences that are triggered in order after a
+     frame completes.  Not initialized if the XSync extension is too
+     old to support sync fences.  */
+  XSyncFence sync_fences[2];
+#endif
 #endif
 #endif
 
@@ -1516,6 +1523,9 @@ extern void x_make_frame_invisible (struct frame *);
 extern void x_iconify_frame (struct frame *);
 extern void x_free_frame_resources (struct frame *);
 extern void x_wm_set_size_hint (struct frame *, long, bool);
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+extern void x_sync_init_fences (struct frame *);
+#endif
 
 extern void x_delete_terminal (struct terminal *);
 extern Cursor x_create_font_cursor (struct x_display_info *, int);
