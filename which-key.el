@@ -1589,12 +1589,12 @@ If KEY contains any \"special keys\" defined in
 
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
-  (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
-         (dots (which-key--propertize which-key-ellipsis 'face last-face)))
-    (if (and which-key-max-description-length
-             (> (length desc) which-key-max-description-length))
-        (concat (substring desc 0 which-key-max-description-length) dots)
-      desc)))
+  (if (and which-key-max-description-length
+           (> (length desc) which-key-max-description-length))
+      (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
+             (dots (which-key--propertize which-key-ellipsis 'face last-face)))
+        (concat (substring desc 0 which-key-max-description-length) dots))
+    desc))
 
 (defun which-key--highlight-face (description)
   "Return the highlight face for DESCRIPTION if it has one."
