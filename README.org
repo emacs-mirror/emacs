@@ -520,6 +520,7 @@
 
       ;; Set the maximum length (in characters) for key descriptions (commands or
       ;; prefixes). Descriptions that are longer are truncated and have ".." added.
+      ;; This can also be a float (fraction of available width) or a function.
       (setq which-key-max-description-length 27)
 
       ;; Use additional padding between columns of keys. This variable specifies the

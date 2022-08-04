@@ -89,9 +89,16 @@ which-key popup."
 
 (defcustom which-key-max-description-length 27
   "Truncate the description of keys to this length.
-Also adds \"..\". If nil, disable any truncation."
+Either nil (no truncation), an integer (truncate after that many
+characters), a float (use that fraction of the available width),
+or a function, which takes one argument, the available width in
+characters, and whose return value has one of the types mentioned
+before.  Truncation is done using `which-key-ellipsis'."
   :group 'which-key
-  :type '(choice integer (const :tag "Disable truncation" nil)))
+  :type '(choice (const :tag "Disable truncation" nil)
+		 (integer :tag "Width in characters")
+		 (float :tag "Use fraction of available width")
+		 function))
 
 (defcustom which-key-min-column-description-width 0
   "Every column should at least have this width."
@@ -1587,14 +1594,20 @@ If KEY contains any \"special keys\" defined in
                                (which-key--string-width key-w-face))))
         key-w-face))))
 
-(defsubst which-key--truncate-description (desc)
+(defsubst which-key--truncate-description (desc avl-width)
   "Truncate DESC description to `which-key-max-description-length'."
-  (if (and which-key-max-description-length
-           (> (length desc) which-key-max-description-length))
-      (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
-             (dots (which-key--propertize which-key-ellipsis 'face last-face)))
-        (concat (substring desc 0 which-key-max-description-length) dots))
-    desc))
+  (let* ((max which-key-max-description-length)
+	 (max (cl-etypecase max
+		(null nil)
+		(integer max)
+		(float (truncate (* max avl-width)))
+		(function (let ((val (funcall max avl-width)))
+			    (if (floatp val) (truncate val) val))))))
+    (if (and max (> (length desc) max))
+	(let* ((last-face (get-text-property (1- (length desc)) 'face desc))
+               (dots (which-key--propertize which-key-ellipsis 'face last-face)))
+          (concat (substring desc 0 max) dots))
+      desc)))
 
 (defun which-key--highlight-face (description)
   "Return the highlight face for DESCRIPTION if it has one."
@@ -1696,6 +1709,7 @@ alists. Returns a list (key separator description)."
          (which-key--propertize which-key-separator
                                 'face 'which-key-separator-face))
         (local-map (current-local-map))
+	(avl-width (cdr (which-key--popup-max-dimensions)))
         new-list)
     (dolist (key-binding unformatted)
       (let* ((keys (car key-binding))
@@ -1710,7 +1724,8 @@ alists. Returns a list (key separator description)."
         (when final-desc
           (setq final-desc
                 (which-key--truncate-description
-                 (which-key--maybe-add-docstring final-desc orig-desc))))
+                 (which-key--maybe-add-docstring final-desc orig-desc)
+		 avl-width)))
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
