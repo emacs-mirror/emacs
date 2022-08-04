@@ -450,6 +450,9 @@ For more information, see Info node `(eww) Top'."
 	;; Don't mangle file: URLs at all.
         ((string-match-p "\\`ftp://" url)
          (user-error "FTP is not supported"))
+        ((string-match-p "\\`about:" url)
+         ;; Treat this as an about: url.  (bug#56885)
+         url)
         (t
 	 ;; Anything that starts with something that vaguely looks
 	 ;; like a protocol designator is interpreted as a full URL.

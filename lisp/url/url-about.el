@@ -93,7 +93,7 @@
     (if (fboundp func)
 	(progn
 	  (set-buffer (generate-new-buffer " *about-data*"))
-	  (insert "Content-type: text/plain\n\n")
+	  (insert "Content-type: text/html\n\n")
 	  (funcall func url)
 	  (current-buffer))
       (error "URL does not know about `%s'" item))))
