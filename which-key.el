@@ -142,12 +142,12 @@ the default is \" : \"."
 
 (defcustom which-key-ellipsis
   (if which-key-dont-use-unicode ".." "…")
-  "Ellipsis to use when truncating. Default is \"…\", unless
-`which-key-dont-use-unicode' is non nil, in which case
-the default is \"..\"."
+  "Ellipsis to use when truncating.
+Default is \"…\", unless `which-key-dont-use-unicode' is non nil,
+in which case the default is \"..\".  This can also be the empty
+string to truncate without using any ellipsis."
   :group 'which-key
   :type 'string)
-
 
 (defcustom which-key-prefix-prefix "+"
   "String to insert in front of prefix commands (i.e., commands
@@ -1604,10 +1604,13 @@ If KEY contains any \"special keys\" defined in
 		(function (let ((val (funcall max avl-width)))
 			    (if (floatp val) (truncate val) val))))))
     (if (and max (> (length desc) max))
-	(let* ((last-face (get-text-property (1- (length desc)) 'face desc))
-               (dots (which-key--propertize which-key-ellipsis
-					    'face last-face)))
-          (concat (substring desc 0 (- max (length dots))) dots))
+        (let ((dots (and (not (equal which-key-ellipsis ""))
+			 (which-key--propertize
+			  which-key-ellipsis 'face
+			  (get-text-property (1- (length desc)) 'face desc)))))
+	  (if dots
+              (concat (substring desc 0 (- max (length dots))) dots)
+	    (substring desc 0 max)))
       desc)))
 
 (defun which-key--highlight-face (description)
