@@ -1877,7 +1877,7 @@ that width."
 			      (which-key--max-len
                                col-keys 2
 			       which-key-min-column-description-width)))
-         (col-width      (+ 1 col-key-width col-sep-width col-desc-width))
+         (col-width      (+ col-key-width col-sep-width col-desc-width))
 	 (col-format     (concat "%" (int-to-string col-key-width)
                                  "s%s%-" (int-to-string col-desc-width) "s")))
     (cons col-width
@@ -1915,10 +1915,10 @@ as well as metadata."
         (while (and cols-w-widths
                     (or (null which-key-max-display-columns)
                         (< n-columns which-key-max-display-columns))
-                    (<= (+ (caar cols-w-widths) page-width) avl-width))
+                    (<= (+ page-width 1 (caar cols-w-widths)) avl-width))
           (setq col (pop cols-w-widths))
           (push (cdr col) page-cols)
-          (cl-incf page-width (car col))
+          (cl-incf page-width (1+ (car col)))
           (cl-incf n-keys (length (cdr col)))
           (cl-incf n-columns))
         (push (which-key--join-columns page-cols) pages)
