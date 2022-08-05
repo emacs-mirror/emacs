@@ -507,6 +507,13 @@ It is called with no argument, right after calling `beginning-of-defun-raw'.
 So the function can assume that point is at the beginning of the defun body.
 It should move point to the first position after the defun.")
 
+(defvar end-of-defun-moves-to-eol t
+  "Defines whether `end-of-defun' moves to eol before doing
+everything else.
+
+Set this to nil in major mode if this movement affects mode's
+decisions about context in an unwanted way.")
+
 (defun buffer-end (arg)
   "Return the \"far end\" position of the buffer, in direction ARG.
 If ARG is positive, that's the end of the buffer.
@@ -538,7 +545,9 @@ report errors as appropriate for this kind of usage."
         (push-mark))
     (if (or (null arg) (= arg 0)) (setq arg 1))
     (let ((pos (point))
-          (beg (progn (end-of-line 1) (beginning-of-defun-raw 1) (point)))
+          (beg (progn (when end-of-defun-moves-to-eol
+                        (end-of-line 1))
+                      (beginning-of-defun-raw 1) (point)))
 	  (skip (lambda ()
 		  ;; When comparing point against pos, we want to consider that
 		  ;; if point was right after the end of the function, it's
