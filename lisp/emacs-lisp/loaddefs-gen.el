@@ -68,6 +68,7 @@ be included.")
     "define-short-documentation-group"
     "def-edebug-elem-spec"
     "defvar-mode-local"
+    "defcustom-mode-local-semantic-dependency-system-include-path"
     "define-ibuffer-column"
     "define-ibuffer-sorter")
   "List of strings naming definitions to ignore for prefixes.
@@ -456,7 +457,7 @@ don't include."
   (let ((prefs nil))
     ;; Avoid (defvar <foo>) by requiring a trailing space.
     (while (re-search-forward
-            "^(\\(def[^ \t]+\\)[ \t]+['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
+            "^(\\(def[^ \t\n]+\\)[ \t\n]+['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
       (unless (member (match-string 1) autoload-ignored-definitions)
         (let ((name (match-string-no-properties 2)))
           (when (save-excursion
