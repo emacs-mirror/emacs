@@ -12616,6 +12616,36 @@ xi_handle_delete_frame (struct x_display_info *dpyinfo,
     }
 }
 
+/* Handle an interaction by DEVICE on frame F.  TIME is the time of
+   the interaction; if F isn't currently the global focus frame, but
+   is the focus of DEVICE, make it the focus frame.  */
+
+static void
+xi_handle_interaction (struct x_display_info *dpyinfo,
+		       struct frame *f, struct xi_device_t *device,
+		       Time time)
+{
+  bool change;
+
+  change = false;
+
+  if (device->focus_frame == f)
+    {
+      device->focus_frame_time = time;
+      change = true;
+    }
+
+  if (device->focus_implicit_frame == f)
+    {
+      device->focus_implicit_time = time;
+      change = true;
+    }
+
+  /* If F isn't currently focused, update the focus state.  */
+  if (change && f != dpyinfo->x_focus_frame)
+    xi_handle_focus_change (dpyinfo);
+}
+
 #endif
 
 /* The focus may have changed.  Figure out if it is a real focus change,
@@ -21285,6 +21315,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 		}
 
+	      if (f)
+		{
+		  /* If the user interacts with a frame that's focused
+		     on another device, but not the current focus
+		     frame, make it the focus frame.  */
+		  if (device)
+		    xi_handle_interaction (dpyinfo, f, device,
+					   xev->time);
+		}
+
 #ifdef USE_GTK
 	      if (!f)
 		{
@@ -21565,6 +21605,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ignore_next_mouse_click_timeout = 0;
 
 	      f = x_any_window_to_frame (dpyinfo, xev->event);
+
+	      if (f)
+		{
+		  /* If the user interacts with a frame that's focused
+		     on another device, but not the current focus
+		     frame, make it the focus frame.  */
+		  if (device)
+		    xi_handle_interaction (dpyinfo, f, device,
+					   xev->time);
+		}
 
 	      XKeyPressedEvent xkey;
 

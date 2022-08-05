@@ -1746,6 +1746,19 @@ for vc-rcs-update-changelog.
 A two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.
 
+** Multi-pointer X does not work very well
+Emacs is reasonably usable under a multi-pointer X (MPX) environment,
+if you turn off tooltips and mouse highlight, and don't use anything
+that calls `mouse-position'.  Otherwise, tooltips are shown next to
+the wrong pointer, mouse highlight simply goes haywire, and
+`mouse-position' returns information for the wrong pointer.
+
+This could be easily fixed in principle, but I cannot find a stable
+enough environment under which the fix can be tested.
+
+The MPX code has not been tested under X toolkit or GTK+ 2.x builds
+and is not expected to work there.
+
 
 This file is part of GNU Emacs.
 
