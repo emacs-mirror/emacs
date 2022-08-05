@@ -59,7 +59,7 @@ If a constant file name is required, the file can be renamed to
 "emacs.pdmp", and Emacs will find it during startup anyway.
 
 ---
-** Emacs now uses of XInput 2 for input events.
+** Emacs now uses XInput 2 for input events.
 If your X server has support and you have the XInput 2 development
 headers installed, Emacs will use the X Input Extension for handling
 input.  If this causes problems, you can configure Emacs with the
