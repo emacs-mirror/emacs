@@ -3473,8 +3473,9 @@ init_iterator (struct it *it, struct window *w,
 			&it->bidi_it);
 	}
 
-      if (current_buffer->long_line_optimizations_p)
-	it->narrowed_begv = 0;
+      /* This is set only when long_line_optimizations_p is non-zero
+	 for the current buffer.  */
+      it->narrowed_begv = 0;
 
       /* Compute faces etc.  */
       reseat (it, it->current.pos, true);
@@ -7412,7 +7413,7 @@ back_to_previous_visible_line_start (struct it *it)
   it->continuation_lines_width = 0;
 
   eassert (IT_CHARPOS (*it) >= BEGV);
-  eassert (it->narrowed_begv > BEGV
+  eassert (it->narrowed_begv > 0 /* long-line optimizations: all bets off */
 	   || IT_CHARPOS (*it) == BEGV
 	   || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
   CHECK_IT (it);
