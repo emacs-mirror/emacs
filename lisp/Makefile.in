@@ -187,8 +187,10 @@ org-manuals: main-first
 
 # The real dependencies of loaddefs.el aren't known to Make, they are
 # implemented in loaddefs-generate--emacs-batch, so autoloads is an
-# "all" dependency.
-autoloads: $(lisp)/emacs-lisp/loaddefs-gen.elc
+# "all" dependency.  "leim" isn't really a dependency here, but we
+# need leim-list.el at about the same time, so ensure that it's
+# generated, too.
+autoloads: $(lisp)/emacs-lisp/loaddefs-gen.elc leim
 	$(AM_V_GEN)$(emacs) \
             -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
 	    -f loaddefs-generate--emacs-batch ${SUBDIRS_ALMOST}
