@@ -295,13 +295,11 @@ enough, since keyservers have strict timeout settings."
                :created
                (and  (match-string 4)
                      (not (string-empty-p (match-string 4)))
-		     (time-convert
-                      (string-to-number (match-string 4))))
+		     (time-convert (string-to-number (match-string 4)) t))
                :expires
                (and (match-string 5)
                     (not (string-empty-p (match-string 5)))
-		    (time-convert
-                     (string-to-number (match-string 5))))
+		    (time-convert (string-to-number (match-string 5)) t))
                :flags
                (mapcar (lambda (flag)
                          (cdr (assq flag '((?r revoked)

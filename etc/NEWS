@@ -2525,6 +2525,10 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 
 * Lisp Changes in Emacs 29.1
 
+** The FORM arg of 'time-convert' is mandatory.
+'time-convert' can still be called without it, as before, but the
+compiler now emits a warning about this deprecated usage.
+
 +++
 ** Emacs now supports user-customizable and themable icons.
 These can be used for buttons in buffers and the like.  See

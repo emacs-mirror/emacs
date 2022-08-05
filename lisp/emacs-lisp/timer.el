@@ -122,7 +122,7 @@ of SECS seconds since the epoch.  SECS may be a fraction."
       (setq ticks (ash ticks 1))
       (setq hz (ash hz 1)))
     (let ((more-ticks (+ ticks trunc-s-ticks)))
-      (time-convert (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz)))))
+      (time-convert (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz) t))))
 
 (defun timer-relative-time (time secs &optional usecs psecs)
   "Advance TIME by SECS seconds.

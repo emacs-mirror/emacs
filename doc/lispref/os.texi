@@ -1541,7 +1541,7 @@ Year numbers count since the year 1 BCE, and do not skip zero
 as traditional Gregorian years do; for example, the year number
 @minus{}37 represents the Gregorian year 38 BCE@.
 
-@defun time-convert time &optional form
+@defun time-convert time form
 This function converts a time value into a Lisp timestamp.
 
 The optional @var{form} argument specifies the timestamp form to be
@@ -1554,7 +1554,7 @@ representing the timestamp; for example, it is treated as 1000000000
 if @var{time} is @code{nil} and the platform timestamp has nanosecond
 resolution.  If @var{form} is @code{list}, this function returns an
 integer list @code{(@var{high} @var{low} @var{micro} @var{pico})}.
-Although an omitted or @code{nil} @var{form} currently acts like
+Although a @code{nil} @var{form} currently acts like
 @code{list}, this is planned to change in a future Emacs version, so
 callers requiring list timestamps should pass @code{list} explicitly.
 
