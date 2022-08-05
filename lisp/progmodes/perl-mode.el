@@ -1120,7 +1120,6 @@ Returns (parse-state) if line starts inside a string."
         (t (forward-char -1) (forward-comment (- (point))) t)))))
 
 ;; note: this may be slower than the c-mode version, but I can understand it.
-(defalias 'indent-perl-exp 'perl-indent-exp)
 (defun perl-indent-exp ()
   "Indent each line of the Perl grouping following point."
   (interactive)
@@ -1220,7 +1219,6 @@ With argument, repeat that many times; negative args move backward."
 	      (goto-char (point-min)))))
       (setq arg (1+ arg)))))
 
-(defalias 'mark-perl-function 'perl-mark-function)
 (defun perl-mark-function ()
   "Put mark at end of Perl function, point at beginning."
   (interactive)
@@ -1229,6 +1227,9 @@ With argument, repeat that many times; negative args move backward."
   (push-mark)
   (perl-beginning-of-function)
   (backward-paragraph))
+
+(define-obsolete-function-alias 'indent-perl-exp #'perl-indent-exp "29.1")
+(define-obsolete-function-alias 'mark-perl-function #'perl-mark-function "29.1")
 
 (provide 'perl-mode)
 
