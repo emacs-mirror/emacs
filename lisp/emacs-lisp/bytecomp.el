@@ -2404,8 +2404,8 @@ Call from the source buffer."
 
 (defun byte-compile-output-file-form (form)
   ;; Write the given form to the output buffer, being careful of docstrings
-  ;; in defvar, defvaralias, defconst, autoload and
-  ;; custom-declare-variable because make-docfile is so amazingly stupid.
+  ;; (for `byte-compile-dynamic-docstrings') in defvar, defvaralias,
+  ;; defconst, autoload, and custom-declare-variable.
   ;; defalias calls are output directly by byte-compile-file-form-defmumble;
   ;; it does not pay to first build the defalias in defmumble and then parse
   ;; it here.
@@ -2589,8 +2589,8 @@ list that represents a doc string reference.
 	  (t
 	   (byte-compile-keep-pending form)))))
 
-;; Functions and variables with doc strings must be output separately,
-;; so make-docfile can recognize them.  Most other things can be output
+;; Functions and variables with doc strings must be output specially,
+;; for `byte-compile-dynamic-docstrings'.  Most other things can be output
 ;; as byte-code.
 
 (put 'autoload 'byte-hunk-handler 'byte-compile-file-form-autoload)
@@ -4989,7 +4989,7 @@ binding slots have been popped."
   ;;
   ;; FIXME: we also use this hunk-handler to implement the function's
   ;; dynamic docstring feature (via byte-compile-file-form-defmumble).
-  ;; We should actually implement it (more elegantly) in
+  ;; We should probably actually implement it (more elegantly) in
   ;; byte-compile-lambda so it applies to all lambdas.  We did it here
   ;; so the resulting .elc format was recognizable by make-docfile,
   ;; but since then we stopped using DOC for the docstrings of
