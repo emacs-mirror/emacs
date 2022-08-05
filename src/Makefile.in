@@ -635,7 +635,7 @@ Emacs.pdmp: $(pdmp)
 endif
 
 ifeq ($(DUMPING),pdumper)
-$(pdmp): emacs$(EXEEXT) $(lispsource)/loaddefs.elc
+$(pdmp): emacs$(EXEEXT) $(lispsource)/loaddefs.el $(lispsource)/loaddefs.elc
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
 		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
 	cp -f $@ $(bootstrap_pdmp)
