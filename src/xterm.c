@@ -5394,7 +5394,7 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
 static void
 x_cache_xi_devices (struct x_display_info *dpyinfo)
 {
-  int ndevices, actual_devices;
+  int ndevices, actual_devices, i;
   XIDeviceInfo *infos;
 
   actual_devices = 0;
@@ -5411,9 +5411,9 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
       return;
     }
 
-  dpyinfo->devices = xmalloc (sizeof *dpyinfo->devices * ndevices);
+  dpyinfo->devices = xzalloc (sizeof *dpyinfo->devices * ndevices);
 
-  for (int i = 0; i < ndevices; ++i)
+  for (i = 0; i < ndevices; ++i)
     {
       if (infos[i].enabled)
 	xi_populate_device_from_info (&dpyinfo->devices[actual_devices++],
@@ -12446,6 +12446,178 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   return unbind_to (base, Qnil);
 }
 
+#ifdef HAVE_XINPUT2
+
+/* Since the input extension assigns a keyboard focus to each master
+   device, there is no longer a 1:1 correspondence between the
+   selected frame and the focus frame immediately after the keyboard
+   focus is switched to a given frame.  This situation is handled by
+   keeping track of each master device's focus frame, the time of the
+   last interaction with that frame, and always keeping the focus on
+   the most recently selected frame.  */
+
+static void
+xi_handle_focus_change (struct x_display_info *dpyinfo)
+{
+  struct input_event ie;
+  struct frame *focus, *new;
+  struct xi_device_t *device, *source;
+  ptrdiff_t i;
+  Time time;
+#ifdef USE_GTK
+  struct x_output *output;
+  GtkWidget *widget;
+#endif
+
+  focus = dpyinfo->x_focus_frame;
+  new = NULL;
+  time = 0;
+
+  for (i = 0; i < dpyinfo->num_devices; ++i)
+    {
+      device = &dpyinfo->devices[i];
+
+      if (device->focus_frame
+	  && device->focus_frame_time > time)
+	{
+	  new = device->focus_frame;
+	  time = device->focus_frame_time;
+	  source = device;
+	}
+
+      if (device->focus_implicit_frame
+	  && device->focus_implicit_time > time)
+	{
+	  new = device->focus_implicit_frame;
+	  time = device->focus_implicit_time;
+	  source = device;
+	}
+    }
+
+  if (new != focus && focus)
+    {
+#ifdef HAVE_X_I18N
+      if (FRAME_XIC (focus))
+	XUnsetICFocus (FRAME_XIC (focus));
+#endif
+
+#ifdef USE_GTK
+      output = FRAME_X_OUTPUT (focus);
+
+      if (x_gtk_use_native_input)
+	{
+	  gtk_im_context_focus_out (output->im_context);
+	  gtk_im_context_set_client_window (output->im_context,
+					    NULL);
+	}
+#endif
+
+      EVENT_INIT (ie);
+      ie.kind = FOCUS_OUT_EVENT;
+      XSETFRAME (ie.frame_or_window, focus);
+
+      kbd_buffer_store_event (&ie);
+    }
+
+  if (new != focus && new)
+    {
+
+#ifdef HAVE_X_I18N
+      if (FRAME_XIC (new))
+	XSetICFocus (FRAME_XIC (new));
+#endif
+
+#ifdef USE_GTK
+      output = FRAME_X_OUTPUT (new);
+
+      if (x_gtk_use_native_input)
+	{
+	  widget = FRAME_GTK_OUTER_WIDGET (new);
+
+	  gtk_im_context_focus_in (output->im_context);
+	  gtk_im_context_set_client_window (output->im_context,
+					    gtk_widget_get_window (widget));
+	}
+#endif
+
+      EVENT_INIT (ie);
+      ie.kind = FOCUS_IN_EVENT;
+      ie.device = source->name;
+      XSETFRAME (ie.frame_or_window, new);
+
+      kbd_buffer_store_event (&ie);
+    }
+
+  x_new_focus_frame (dpyinfo, new);
+}
+
+static void
+xi_focus_handle_for_device (struct x_display_info *dpyinfo,
+			    struct frame *mentioned_frame,
+			    XIEvent *base_event)
+{
+  struct xi_device_t *device;
+  XIEnterEvent *event;
+
+  /* XILeaveEvent, XIFocusInEvent, etc are just synonyms for
+     XIEnterEvent.  */
+  event = (XIEnterEvent *) base_event;
+  device = xi_device_from_id (dpyinfo, event->deviceid);
+
+  if (!device)
+    return;
+
+  switch (event->evtype)
+    {
+    case XI_FocusIn:
+      device->focus_frame = mentioned_frame;
+      device->focus_frame_time = event->time;
+      break;
+
+    case XI_FocusOut:
+      device->focus_frame = NULL;
+      break;
+
+    case XI_Enter:
+      if (!event->focus)
+	break;
+
+      device->focus_implicit_frame = mentioned_frame;
+      device->focus_implicit_time = event->time;
+      break;
+
+    case XI_Leave:
+      if (!event->focus)
+	break;
+
+      device->focus_implicit_frame = NULL;
+      break;
+    }
+
+  xi_handle_focus_change (dpyinfo);
+}
+
+static void
+xi_handle_delete_frame (struct x_display_info *dpyinfo,
+			struct frame *f)
+{
+  struct xi_device_t *device;
+  ptrdiff_t i;
+
+  for (i = 0; i < dpyinfo->num_devices; ++i)
+    {
+      device = &dpyinfo->devices[i];
+
+      if (device->focus_frame == f)
+	device->focus_frame = NULL;
+
+      if (device->focus_implicit_frame == f)
+	device->focus_implicit_frame = NULL;
+    }
+}
+
+#endif
+
 /* The focus may have changed.  Figure out if it is a real focus change,
    by checking both FocusIn/Out and Enter/LeaveNotify events.
 
@@ -12478,33 +12650,9 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 
 #ifdef HAVE_XINPUT2
     case GenericEvent:
-      {
-	XIEvent *xi_event = event->xcookie.data;
-	XIEnterEvent *enter_or_focus = event->xcookie.data;
-
-        struct frame *focus_frame = dpyinfo->x_focus_event_frame;
-        int focus_state
-          = focus_frame ? focus_frame->output_data.x->focus_state : 0;
-
-	if (xi_event->evtype == XI_FocusIn
-	    || xi_event->evtype == XI_FocusOut)
-	  x_focus_changed ((xi_event->evtype == XI_FocusIn
-			    ? FocusIn : FocusOut),
-			   ((enter_or_focus->detail
-			     == XINotifyPointer)
-			    ? FOCUS_IMPLICIT : FOCUS_EXPLICIT),
-			     dpyinfo, frame, bufp);
-	else if ((xi_event->evtype == XI_Enter
-		  || xi_event->evtype == XI_Leave)
-		 && (enter_or_focus->detail != XINotifyInferior)
-		 && enter_or_focus->focus
-		 && !(focus_state & FOCUS_EXPLICIT))
-	  x_focus_changed ((xi_event->evtype == XI_Enter
-			    ? FocusIn : FocusOut),
-			   FOCUS_IMPLICIT,
-			   dpyinfo, frame, bufp);
-	break;
-      }
+      xi_focus_handle_for_device (dpyinfo, frame,
+				  event->xcookie.data);
+      break;
 #endif
 
     case FocusIn:
@@ -21912,7 +22060,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (n_disabled)
 			{
 			  ndevices = 0;
-			  devices = xmalloc (sizeof *devices * dpyinfo->num_devices);
+			  devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
 
 			  for (i = 0; i < dpyinfo->num_devices; ++i)
 			    {
@@ -21992,7 +22140,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (n_disabled)
 		{
 		  ndevices = 0;
-		  devices = xmalloc (sizeof *devices * dpyinfo->num_devices);
+		  devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
 
 		  for (i = 0; i < dpyinfo->num_devices; ++i)
 		    {
@@ -22027,6 +22175,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  dpyinfo->num_devices = ndevices;
 		}
 
+	      /* Now that the device hierarchy has been changed,
+		 recompute focus.  */
+	      xi_handle_focus_change (dpyinfo);
+
 	      goto XI_OTHER;
 	    }
 
@@ -22044,17 +22196,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      device = xi_device_from_id (dpyinfo, device_changed->deviceid);
 
-	      if (!device)
-		{
-		  /* An existing device might have been enabled.  */
-		  x_cache_xi_devices (dpyinfo);
-
-		  /* Now try to find the device again, in case it was
-		     just enabled.  */
-		  device = xi_device_from_id (dpyinfo, device_changed->deviceid);
-		}
-
-	      /* If it wasn't enabled, then stop handling this event.  */
+	      /* If the device isn't enabled, then stop handling this
+		 event.  A HierarchyChanged event will be sent if it
+		 is enabled afterwards.  */
 	      if (!device)
 		goto XI_OTHER;
 
@@ -26218,6 +26362,11 @@ x_free_frame_resources (struct frame *f)
 #endif
 
   block_input ();
+
+#ifdef HAVE_XINPUT2
+  /* Remove any record of this frame being focused.  */
+  xi_handle_delete_frame (dpyinfo, f);
+#endif
 
   /* If a display connection is dead, don't try sending more
      commands to the X server.  */
