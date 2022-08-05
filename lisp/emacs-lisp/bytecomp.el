@@ -2454,9 +2454,6 @@ list that represents a doc string reference.
         (and (>= (nth 1 info) 0)
              dynamic-docstrings
              (progn
-               ;; Make the doc string start at beginning of line
-               ;; for make-docfile's sake.
-               (insert "\n")
                (setq position
                      (byte-compile-output-as-comment
                       (nth (nth 1 info) form) nil))
