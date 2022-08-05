@@ -200,13 +200,13 @@ INIT are the initialization parameters for the new template table."
     ;; go front-to-back, the highest priority items are put
     ;; into the search table first, allowing lower priority items
     ;; to be the items found in the search table.
-    (object-sort-list mt 'modetables (lambda (a b)
-				       (> (oref a priority)
-					  (oref b priority))))
+    (srecode-object-sort-list mt 'modetables (lambda (a b)
+                                               (> (oref a priority)
+                                                  (oref b priority))))
     ;; Return it.
     new))
 
-(defun object-sort-list (object slot predicate)
+(defun srecode-object-sort-list (object slot predicate)
   "Sort the items in OBJECT's SLOT.
 Use PREDICATE is the same as for the `sort' function."
   (when (slot-boundp object slot)
@@ -284,6 +284,8 @@ Use PREDICATE is the same as for the `sort' function."
       (setq temp (cdr temp))))
   )
 
+(define-obsolete-function-alias 'object-sort-list
+  #'srecode-object-sort-list "29.1")
 
 (provide 'srecode/table)
 
