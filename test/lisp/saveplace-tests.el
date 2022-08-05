@@ -84,7 +84,7 @@
         (save-place-file
          (ert-resource-file "saveplace"))
         (save-place-alist nil))
-    (load-save-place-alist-from-file)
+    (save-place-load-alist-from-file)
     (should (equal save-place-alist
                    '(("/home/skangas/.emacs.d/cache/recentf" . 1306)
                      ("/home/skangas/wip/emacs/"
