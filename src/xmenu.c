@@ -232,6 +232,7 @@ static void
 x_menu_translate_generic_event (XEvent *event)
 {
   struct x_display_info *dpyinfo;
+  struct xi_device_t *device;
   XEvent copy;
   XIDeviceEvent *xev;
 
@@ -264,6 +265,16 @@ x_menu_translate_generic_event (XEvent *event)
 	      copy.xbutton.state = xi_convert_event_state (xev);
 	      copy.xbutton.button = xev->detail;
 	      copy.xbutton.same_screen = True;
+
+	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+
+	      /* I don't know the repercussions of changing
+		 device->grab on XI_ButtonPress events, so be safe and
+		 only do what is necessary to prevent the grab from
+		 being left invalid as XMenuActivate swallows
+		 events.  */
+	      if (device && xev->evtype == XI_ButtonRelease)
+		device->grab &= ~(1 << xev->detail);
 
 	      XPutBackEvent (dpyinfo->display, &copy);
 
@@ -2507,6 +2518,10 @@ pop_down_menu (void *arg)
   struct pop_down_menu *data = arg;
   struct frame *f = data->frame;
   XMenu *menu = data->menu;
+#ifdef HAVE_XINPUT2
+  int i;
+  struct xi_device_t *device;
+#endif
 
   block_input ();
 #ifndef MSDOS
@@ -2525,6 +2540,17 @@ pop_down_menu (void *arg)
      That is not necessarily true, but the fiction leads to reasonable
      results, and it is a pain to ask which are actually held now.  */
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
+
+#ifdef HAVE_XINPUT2
+  /* Likewise for XI grabs when the mouse is released on top of the
+     menu itself.  */
+
+  for (i = 0; i < FRAME_DISPLAY_INFO (f)->num_devices; ++i)
+    {
+      device = &FRAME_DISPLAY_INFO (f)->devices[i];
+      device->grab = 0;
+    }
+#endif
 
 #endif /* HAVE_X_WINDOWS */
 
