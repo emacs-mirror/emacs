@@ -35815,6 +35815,7 @@ Zone out, completely." t nil)
 (provide 'loaddefs)
 
 ;; Local Variables:
+;; no-byte-compile: t
 ;; version-control: never
 ;; no-update-autoloads: t
 ;; coding: utf-8-emacs-unix
