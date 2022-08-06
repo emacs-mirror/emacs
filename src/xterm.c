@@ -22144,6 +22144,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  dpyinfo->devices
 			    = xrealloc (dpyinfo->devices, (sizeof *dpyinfo->devices
 							   * ++dpyinfo->num_devices));
+			  memset (dpyinfo->devices + dpyinfo->num_devices - 1,
+				  0, sizeof *dpyinfo->devices);
 			  device = &dpyinfo->devices[dpyinfo->num_devices - 1];
 			  xi_populate_device_from_info (device, info);
 			}
