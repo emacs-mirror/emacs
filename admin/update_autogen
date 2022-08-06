@@ -300,7 +300,7 @@ make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
 # Refresh the prebuilt grammar-wy.el
 grammar_in=lisp/cedet/semantic/grammar-wy.el
 grammar_out=lisp/cedet/semantic/grm-wy-boot.el
-make -C admin/grammars/ ../../$grammar_in
+make -C admin/grammars/ ../../$grammar_in EMACS=../../src/bootstrap-emacs
 cp $grammar_in $grammar_out || die "cp grm_wy_boot error"
 
 
