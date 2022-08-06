@@ -1727,8 +1727,6 @@ even if the header display is currently pruned."
 	(if (< i n)
 	    (rmail-summary-next-msg 1))))))
 
-(defalias 'rmail-summary-output-to-rmail-file 'rmail-summary-output)
-
 (declare-function rmail-output-as-seen "rmailout"
 		  (file-name &optional count noattribute from-gnus))
 
@@ -1873,6 +1871,9 @@ the summary is only showing a subset of messages."
 	(progn (rmail-pop-to-buffer rmail-buffer)
 	       (funcall sortfun reverse))
       (select-window selwin))))
+
+(define-obsolete-function-alias 'rmail-summary-output-to-rmail-file
+  #'rmail-summary-output "29.1")
 
 (provide 'rmailsum)
 
