@@ -81,7 +81,6 @@ ldefs_flag=1
 lboot_flag=
 
 ## Parameters.
-ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
 sources="configure.ac lib/Makefile.am"
 ## Files to copy into autogendir.
@@ -177,8 +176,6 @@ modified=$(status ${autogendir:+$sources} ${ldefs_flag:+lisp}) || die
     echo "Running 'make maintainer-clean'..."
 
     make maintainer-clean #|| die "Cleaning error"
-
-    rm -f $ldefs_in
 }
 
 
@@ -289,13 +286,8 @@ make -C src "$@" bootstrap-emacs || die "make src error"
 
 echo "Running lisp/ make..."
 
-make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
+make -C lisp "$@" ldefs-boot.el EMACS=../src/bootstrap-emacs || die "make src error"
 
-
-## Ignore comment differences.
-[ ! "$lboot_flag" ] ||                      \
-    diff -q -I '^;' $ldefs_in $ldefs_out || \
-    cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
 
 # Refresh the prebuilt grammar-wy.el
 grammar_in=lisp/cedet/semantic/grammar-wy.el
