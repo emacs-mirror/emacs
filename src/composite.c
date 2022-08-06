@@ -2096,9 +2096,9 @@ of the way buffer text is examined for matching one of the rules.  */)
 	}
       qsort (sortvec, nrules, sizeof (Lisp_Object), compare_composition_rules);
       rules = Flist (nrules, sortvec);
+      SAFE_FREE ();
     }
 
-  SAFE_FREE ();
   return rules;
 }
 
