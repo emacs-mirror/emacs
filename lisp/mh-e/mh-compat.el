@@ -42,22 +42,6 @@
 (define-obsolete-function-alias 'mh-assoc-string #'assoc-string "29.1")
 (define-obsolete-function-alias 'mh-cancel-timer #'cancel-timer "29.1")
 
-;; Emacs 24 made flet obsolete and suggested either cl-flet or
-;; cl-letf. This macro is based upon gmm-flet from Gnus.
-(defmacro mh-flet (bindings &rest body)
-  "Make temporary overriding function definitions.
-That is, temporarily rebind the functions listed in BINDINGS and then
-execute BODY.  BINDINGS is a list containing one or more lists of the
-form (FUNCNAME ARGLIST BODY...), similar to defun."
-  (declare (indent 1) (debug ((&rest (sexp sexp &rest form)) &rest form)))
-  (if (fboundp 'cl-letf)
-      `(cl-letf ,(mapcar (lambda (binding)
-                           `((symbol-function ',(car binding))
-                             (lambda ,@(cdr binding))))
-                         bindings)
-         ,@body)
-    `(flet ,bindings ,@body)))
-
 (define-obsolete-function-alias 'mh-display-color-cells
   #'display-color-cells "29.1")
 
