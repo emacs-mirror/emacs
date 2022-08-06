@@ -174,7 +174,10 @@ If DATE lacks timezone information, GMT is assumed."
 (defalias 'time-to-seconds 'float-time)
 
 ;;;###autoload
-(defalias 'seconds-to-time 'time-convert)
+(defun seconds-to-time (seconds &rest form)
+  "Convert SECONDS to a proper time, like `current-time' would.
+FORM means the same as in `time-convert'."
+  (time-convert seconds form))
 
 ;;;###autoload
 (defun days-to-time (days)
