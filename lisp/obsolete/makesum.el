@@ -4,6 +4,7 @@
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
