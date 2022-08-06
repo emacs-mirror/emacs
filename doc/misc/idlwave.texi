@@ -217,7 +217,7 @@ Integrity checks and auto-termination of logical blocks.
 @item
 Routine name space conflict search with likelihood-of-use ranking.
 @item
-Support for @file{imenu} (Emacs) and @file{func-menu} (XEmacs).
+Support for @file{imenu}.
 @item
 Documentation support.
 @item
@@ -2298,12 +2298,11 @@ Regexp matching the start of a document library header.
 @cindex Motion commands
 @cindex Program structure, moving through
 @cindex Code structure, moving through
-@cindex @file{Func-menu}, XEmacs package
-@cindex @file{Imenu}, Emacs package
+@cindex @file{Imenu}
 @cindex Function definitions, jumping to
 @cindex Procedure definitions, jumping to
 
-IDLWAVE supports both @file{Imenu} and @file{Func-menu}, two packages
+IDLWAVE supports @file{Imenu}, a package
 which make it easy to jump to the definitions of functions and
 procedures in the current file with a pop-up selection.  To bind
 @file{Imenu} to a mouse-press, use in your @file{.emacs}:

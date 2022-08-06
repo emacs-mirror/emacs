@@ -8811,7 +8811,7 @@ to reset the variable `idlwave-true-path-alist' to nil."
 
 ;; ----------------------------------------------------------------------------
 ;;
-;; Additions for use with imenu.el and func-menu.el
+;; Additions for use with imenu.el
 ;; (pop-up a list of IDL units in the current file).
 ;;
 
@@ -8835,16 +8835,7 @@ Assumes that point is at the beginning of the unit as found by
      "[a-zA-Z_][a-zA-Z0-9$_]+\\(::[a-zA-Z_][a-zA-Z0-9$_]+\\)?")
     (buffer-substring-no-properties begin (point))))
 
-(defalias 'idlwave-function-menu
-  (condition-case nil
-      (progn
-	(require 'func-menu)
-	'function-menu)
-    (error (condition-case nil
-	       (progn
-		 (require 'imenu)
-		 'imenu)
-	     (error nil)))))
+(define-obsolete-function-alias 'idlwave-function-menu #'imenu "29.1")
 
 (defun idlwave-edit-in-idlde ()
   "Edit the current file in IDL Development environment."
@@ -8864,7 +8855,7 @@ Assumes that point is at the beginning of the unit as found by
 ;; Menus - using easymenu.el
 (defvar idlwave-mode-menu-def
   '("IDLWAVE"
-    ["PRO/FUNC menu" idlwave-function-menu t]
+    ["PRO/FUNC menu" imenu t]
     ("Motion"
      ["Subprogram Start" idlwave-beginning-of-subprogram t]
      ["Subprogram End" idlwave-end-of-subprogram t]
