@@ -657,8 +657,8 @@ If FACE is a face-alias, get the documentation for the target face."
   (put face 'face-documentation (purecopy string)))
 
 
-(defalias 'face-doc-string 'face-documentation)
-(defalias 'set-face-doc-string 'set-face-documentation)
+(define-obsolete-function-alias 'face-doc-string #'face-documentation "29.1")
+(define-obsolete-function-alias 'set-face-doc-string #'set-face-documentation "29.1")
 
 
 
