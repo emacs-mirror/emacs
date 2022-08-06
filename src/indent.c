@@ -2345,7 +2345,15 @@ whether or not it is currently displayed in some window.  */)
 	     last line that it occupies.  */
 	  if (it_start < ZV)
 	    {
-	      while (IT_CHARPOS (it) <= it_start)
+	      if ((it.bidi_it.scan_dir > 0)
+		  ? IT_CHARPOS (it) < it_start
+		  : IT_CHARPOS (it) > it_start)
+		{
+		  it.vpos = 0;
+		  it.current_y = 0;
+		  move_it_by_lines (&it, 1);
+		}
+	      while (IT_CHARPOS (it) == it_start)
 		{
 		  it.vpos = 0;
 		  it.current_y = 0;

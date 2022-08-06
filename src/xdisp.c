@@ -10956,14 +10956,20 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
       int nchars_per_row
 	= (it->last_visible_x - it->first_visible_x) / FRAME_COLUMN_WIDTH (it->f);
       bool hit_pos_limit = false;
+      bool reverse_rows = false;
       ptrdiff_t pos_limit;
 
       /* Start at the beginning of the screen line containing IT's
 	 position.  This may actually move vertically backwards,
          in case of overlays, so adjust dvpos accordingly.  */
       dvpos += it->vpos;
+      start_charpos = IT_CHARPOS (*it);
       move_it_vertically_backward (it, 0);
       dvpos -= it->vpos;
+
+      /* Do we have glyph rows whose positions _increase_ as we go up?  */
+      if (IT_CHARPOS (*it) > start_charpos)
+	reverse_rows = true;
 
       /* Go back -DVPOS buffer lines, but no farther than -DVPOS full
 	 screen lines, and reseat the iterator there.  */
@@ -11015,7 +11021,8 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 	  SAVE_IT (it2, *it, it2data);
 	  move_it_to (it, -1, -1, -1, it->vpos + delta, MOVE_TO_VPOS);
 	  /* Move back again if we got too far ahead.  */
-	  if (IT_CHARPOS (*it) >= start_charpos)
+	  if ((IT_CHARPOS (*it) >= start_charpos && !reverse_rows)
+	      || (IT_CHARPOS (*it) <= start_charpos && reverse_rows))
 	    RESTORE_IT (it, &it2, it2data);
 	  else
 	    bidi_unshelve_cache (it2data, true);
@@ -18837,6 +18844,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 	    {
 	      /* Cursor has to be moved backward.  Note that PT >=
 		 CHARPOS (startp) because of the outer if-statement.  */
+	      struct glyph_row *row0 = row;
+
 	      while (!row->mode_line_p
 		     && (MATRIX_ROW_START_CHARPOS (row) > PT
 			 || (MATRIX_ROW_START_CHARPOS (row) == PT
@@ -18849,6 +18858,23 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		{
 		  eassert (row->enabled_p);
 		  --row;
+		}
+
+	      /* With bidi-reordered rows we can have buffer positions
+		 _decrease_ when going down by rows.  If we haven't
+		 found our row in the loop above, give it another try
+		 now going in the other direction from the original row.  */
+	      if (!(MATRIX_ROW_START_CHARPOS (row) <= PT
+		    && PT <= MATRIX_ROW_END_CHARPOS (row))
+		  && row0->continued_p)
+		{
+		  row = row0;
+		  while (MATRIX_ROW_START_CHARPOS (row) > PT
+			 && MATRIX_ROW_BOTTOM_Y (row) < last_y)
+		    {
+		      eassert (row->enabled_p);
+		      ++row;
+		    }
 		}
 
 	      /* Consider the following case: Window starts at BEGV,
@@ -18874,9 +18900,16 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		     && !cursor_row_p (row))
 		++row;
 
-	      /* If within the scroll margin, scroll.  */
-	      if (row->y < top_scroll_margin
-		  && CHARPOS (startp) != BEGV)
+	      /* If within the scroll margin, either the top one or
+		 the bottom one, scroll.  */
+	      if ((row->y < top_scroll_margin
+		   && CHARPOS (startp) != BEGV)
+		  || MATRIX_ROW_BOTTOM_Y (row) > last_y
+		  || PT > MATRIX_ROW_END_CHARPOS (row)
+		  || (MATRIX_ROW_BOTTOM_Y (row) == last_y
+		      && PT == MATRIX_ROW_END_CHARPOS (row)
+		      && !row->ends_at_zv_p
+		      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
 		scroll_p = true;
 	    }
 	  else
