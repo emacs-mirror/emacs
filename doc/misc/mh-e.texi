@@ -2098,7 +2098,7 @@ The first header field used, if present, is the Gnus-specific
 Next is the traditional @samp{X-Face:} header field@footnote{The
 display of this field requires the
 @uref{ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z,
-@command{uncompface} program}. MH-E renders the foreground and
+@command{uncompface} program}.} MH-E renders the foreground and
 background of the image using the associated attributes of the face
 @code{mh-show-xface}.
 
