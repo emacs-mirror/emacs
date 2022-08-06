@@ -407,7 +407,7 @@ no text on the right side of the rectangle."
 				    (point))))))
 
 ;;;###autoload
-(defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
+(define-obsolete-function-alias 'close-rectangle #'delete-whitespace-rectangle "29.1")
 
 ;;;###autoload
 (defun delete-whitespace-rectangle (start end &optional fill)
@@ -536,7 +536,7 @@ Called from a program, takes three args; START, END and STRING."
    (apply-on-rectangle 'string-rectangle-line start end string t)))
 
 ;;;###autoload
-(defalias 'replace-rectangle 'string-rectangle)
+(define-obsolete-function-alias 'replace-rectangle #'string-rectangle "29.1")
 
 ;;;###autoload
 (defun string-insert-rectangle (start end string)
