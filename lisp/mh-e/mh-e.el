@@ -86,7 +86,6 @@
 (require 'cl-lib)
 
 (require 'mh-buffers)
-(require 'mh-compat)
 
 
 

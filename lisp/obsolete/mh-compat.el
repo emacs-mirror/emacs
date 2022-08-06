@@ -5,6 +5,7 @@
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 

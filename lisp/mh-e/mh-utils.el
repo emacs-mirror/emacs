@@ -29,6 +29,7 @@
 (require 'mh-e)
 
 (require 'font-lock)
+(require 'mailabbrev)
 
 ;;; CL Replacements
 
