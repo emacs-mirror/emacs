@@ -2054,6 +2054,54 @@ See `find-composition' for more details.  */)
   return Fcons (make_fixnum (start), Fcons (make_fixnum (end), tail));
 }
 
+static int
+compare_composition_rules (const void *r1, const void *r2)
+{
+  Lisp_Object vec1 = *(Lisp_Object *)r1, vec2 = *(Lisp_Object *)r2;
+
+  return XFIXNAT (AREF (vec2, 1)) - XFIXNAT (AREF (vec1, 1));
+}
+
+DEFUN ("composition-sort-rules", Fcomposition_sort_rules,
+       Scomposition_sort_rules, 1, 1, 0,
+       doc: /* Sort composition RULES by their LOOKBACK parameter.
+
+If RULES include just one rule, return RULES.
+Otherwise, return a new list of rules where all the rules are
+arranged in decreasing order of the LOOKBACK parameter of the
+rules (the second element of the rule's vector).  This is required
+when combining composition rules from different sources, because
+of the way buffer text is examined for matching one of the rules.  */)
+  (Lisp_Object rules)
+{
+  ptrdiff_t nrules;
+  USE_SAFE_ALLOCA;
+
+  CHECK_LIST (rules);
+  nrules = list_length (rules);
+  if (nrules > 1)
+    {
+      ptrdiff_t i;
+      Lisp_Object *sortvec;
+
+      SAFE_NALLOCA (sortvec, 1, nrules);
+      for (i = 0; i < nrules; i++)
+	{
+	  Lisp_Object elt = XCAR (rules);
+	  if (VECTORP (elt) && ASIZE (elt) == 3 && FIXNATP (AREF (elt, 1)))
+	    sortvec[i] = elt;
+	  else
+	    error ("Invalid composition rule in RULES argument");
+	  rules = XCDR (rules);
+	}
+      qsort (sortvec, nrules, sizeof (Lisp_Object), compare_composition_rules);
+      rules = Flist (nrules, sortvec);
+    }
+
+  SAFE_FREE ();
+  return rules;
+}
+
 
 void
 syms_of_composite (void)
@@ -2185,4 +2233,5 @@ This list is auto-generated, you should not need to modify it.  */);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
   defsubr (&Sclear_composition_cache);
+  defsubr (&Scomposition_sort_rules);
 }
