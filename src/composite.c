@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <stdlib.h>		/* for qsort */
+
 #include "lisp.h"
 #include "character.h"
 #include "composite.h"
