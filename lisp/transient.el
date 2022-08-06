@@ -3250,9 +3250,9 @@ have a history of their own.")
         (goto-char (point-min))
         (when transient-enable-popup-navigation
           (transient--goto-button focus))
-        (magit--fit-window-to-buffer transient--window)))))
+        (transient--fit-window-to-buffer transient--window)))))
 
-(defun magit--fit-window-to-buffer (window)
+(defun transient--fit-window-to-buffer (window)
   (let ((window-resize-pixelwise t)
         (window-size-fixed nil))
     (if (eq (car (window-parameter window 'quit-restore)) 'other)
